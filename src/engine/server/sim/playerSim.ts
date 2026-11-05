@@ -14,7 +14,7 @@ import { COYOTE_MS, type JumpState } from '../../shared/player/jump';
 import { pondBob, type SwimState } from '../../shared/player/swim';
 import { localWalkingMove, wadeScale } from '../../shared/player/walk';
 import { PlayerModes, type ModePlayer } from '../../shared/player/modes';
-import { HOST_MOTION, leaveSwim, setBoard, stepPlayerMotion, versionedWalk, type MotionFooting, type MotionOut, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
+import { commandedWalk, HOST_MOTION, leaveSwim, setBoard, stepPlayerMotion, type MotionFooting, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
 import { dashToward, startDash, type DashState, type DodgeState } from '../../shared/player/dash';
 import { validateLocalMovement } from '../../shared/input/commands';
 import { netSimCommand } from '../../shared/sim/netMotion';
@@ -55,8 +55,6 @@ export class PlayerSim implements PlayerMotionState {
   readonly velocity: Vector3 = new Vector3();
   /** Whether the motor last stood it on ground. At rest (grounded, still) an idle tick leaves the player untouched. */
   readonly fall = { grounded: true };
-  /** This player walks on version-1 commands, inactive on legacy hosts. */
-  walkActive = false;
   /** The client Player's moveScale: what its owner (an input lock: 0, a slowing zone) scales the version-1 walk by, and
    *  what a mounted driver's reins read. Saved while it is not 1. */
   moveScale = 1;
@@ -97,7 +95,7 @@ export class PlayerSim implements PlayerMotionState {
   private motionObserver: { receive: (sample: SimPlayerMotionSample | null) => void; sample: { velocityX: number; velocityZ: number; grounded: boolean; swimming: boolean; hover: boolean } } | undefined;
   private external: { value: SimExternalPlayer; health: PlayerHealth; scope: Scope } | undefined;
   private modeDriver: SimPlayerDriver | null = null;
-  private readonly versionedWalking = { speed: 4.3, crouching: false, clientMotion: this.velocity };
+  private readonly commanded = { speed: 4.3, crouching: false };
   private readonly localMove = { x: 0, z: 0 };
   /** The motion step's world (player/motion.ts): this player's motor, the host's queries, and the host's moments. */
   private readonly world: MotionWorld = this.motionWorld();
@@ -105,8 +103,7 @@ export class PlayerSim implements PlayerMotionState {
   private command: SimCommand | undefined;
   private tickDriver: SimPlayerDriver | undefined;
   private delegated = false;
-  private versioned = false;
-  private walking: SimWalkingControl | undefined;
+  private walking: SimWalkingControl = this.commanded;
 
   constructor(host: SimHost, body: PlayerSimBody, scope: Scope) {
     this.host = host; this.id = body.id;
@@ -197,12 +194,11 @@ export class PlayerSim implements PlayerMotionState {
   /** Bind one active motion driver to this owned player. Borrowed, frozen and disposed hosts refuse; the returned remover
    * releases the scope's reference early. Reinstall alongside its continuation adapter before native restore. */
   useDriver(driver: SimPlayerDriver): () => void { return this.claim('Player driver', () => this.driver, driver, next => { this.driver = next; }); }
-  /** Bind one scoped on-foot law without replacing the native riding/input driver. A delegated mode still owns motion;
+  /** Bind one scoped on-foot control without replacing the native riding/input driver. A delegated mode still owns motion;
    * borrowed hosts refuse. */
   useWalkingControl(control: SimWalkingControl): () => void { return this.claim('Walking control', () => this.walkingControl, control, next => { this.walkingControl = next; }); }
-  /** Observe owned movement before gameplay callbacks. Native walk samples commanded/shove/dash velocity before the motor,
-   * excluding transient impulse velocity, then publishes post-move ground/hover state. Board samples its own velocity. An
-   * alternative driver supplies its own sample or null is delivered. The native sample is reused: copy scalars if
+  /** Observe owned movement before gameplay callbacks. Native motion samples the one velocity, excluding transient impulse
+   * velocity, and the post-move ground/hover state. An alternative driver supplies its own sample or null is delivered. The native sample is reused: copy scalars if
    * retaining it. Observers and delegated mutable samples own their continuation; absent preserves all bytes. */
   observeMotion(observer: (sample: SimPlayerMotionSample | null) => void): () => void {
     const binding = { receive: observer, sample: { velocityX: 0, velocityZ: 0, grounded: true, swimming: false, hover: false } };
@@ -262,7 +258,6 @@ export class PlayerSim implements PlayerMotionState {
     this.position.set(feet.x, feet.y, feet.z); this.yaw = yaw;
     this.motor.resetAt(this.position); this.impulse.set(0, 0, 0); this.dash.t = 0;
     this.velocity.set(0, 0, 0); this.fall.grounded = false; this.swim.stood = false;
-    this.walkActive = false;
   }
   /** The registry's view of this player: the mode driver slot and the motor state. */
   private modePlayer(): ModePlayer<SimPlayerDriver> {
@@ -287,7 +282,7 @@ export class PlayerSim implements PlayerMotionState {
    *  coyote window. */
   private motionWorld(): MotionWorld {
     const motor = (): CharacterMotor => this.motor, water = (): boolean => this.host.water !== undefined;
-    const walking = (): SimWalkingControl | undefined => this.walking, versioned = (): boolean => this.versioned;
+    const walking = (): SimWalkingControl => this.walking;
     return {
       law: HOST_MOTION,
       get motor() { return motor(); },
@@ -299,14 +294,8 @@ export class PlayerSim implements PlayerMotionState {
       floor: (x, z, fromY, maxDrop) => floorBelow(this.host.physics, x, z, fromY, maxDrop, this.motor.collider),
       bob: (x, z) => this.host.water?.bob?.(x, z) ?? pondBob(this.host.clock.now),
       foot: {
-        speed: (wadeT) => {
-          const control = this.walking, levelSpeed = this.host.level.player.speed;
-          if (control === undefined) return this.host.water === undefined ? levelSpeed : levelSpeed * wadeScale(wadeT);
-          return control.speed * (control.clientMotion === undefined ? 1 : wadeScale(wadeT));
-        },
-        get crouching() { return walking()?.crouching === true; },
-        get velocity() { return walking()?.clientMotion; },
-        get active() { return versioned(); },
+        speed: (wadeT) => this.walking.speed * wadeScale(wadeT) * this.moveScale,
+        get crouching() { return walking().crouching; },
         coyoteMs: COYOTE_MS,
       },
       boardTop: () => hoverSpeed(),
@@ -340,19 +329,10 @@ export class PlayerSim implements PlayerMotionState {
     this.tickDriver = driver; this.delegated = delegated;
     const observe = this.motionObserver;
     if (observe !== undefined) { observe.sample.velocityX = 0; observe.sample.velocityZ = 0; }
-    const versioned = !delegated && (command?.commandVersion === 1 || command === undefined && this.walkActive);
-    this.versioned = versioned;
-    if (versioned) {
-      this.walkActive = true;
-      versionedWalk(this, command, this.versionedWalking);
-    } else {
-      this.walkActive = false;
-      if (!this.board.on && !this.swim.on) { this.velocity.x = 0; this.velocity.z = 0; }
-    }
-    const walking = delegated ? undefined : this.walkingControl ?? (versioned ? this.versionedWalking : driver?.walking);
+    commandedWalk(this, command, this.commanded);
+    const walking = this.walkingControl ?? this.commanded;
     this.walking = walking;
-    if (walking !== undefined && (!Number.isFinite(walking.speed) || walking.speed < 0 || typeof walking.crouching !== 'boolean')) throw new RangeError('Invalid walking control');
-    if (walking?.clientMotion !== undefined && ![walking.clientMotion.x, walking.clientMotion.z].every(Number.isFinite)) throw new RangeError('Invalid client walking velocity');
+    if (!Number.isFinite(walking.speed) || walking.speed < 0 || typeof walking.crouching !== 'boolean') throw new RangeError('Invalid walking control');
     // the HOVER press lands in the ordinary input phase; an active alternative driver owns its own motion switches
     if (!delegated && command?.hover === true) this.setBoard(!this.board.on);
   }
@@ -363,10 +343,9 @@ export class PlayerSim implements PlayerMotionState {
     // An unanswered ask returns its numeric dt input; only an explicit true claims motion.
     const traversal: unknown = delegated ? false : host.askTraversal(this);
     const traversed = traversal === true;
-    let motion: MotionOut | undefined;
     if (delegated) driver?.step(FIXED_STEP, host);
     else if (traversed) this.impulse.set(0, 0, 0);
-    else motion = stepPlayerMotion(this, command, this.world, FIXED_STEP);
+    else stepPlayerMotion(this, command, this.world, FIXED_STEP);
     if (command?.attack !== undefined) host.startStrike(this.id, command.attack.targetId);
     if (observe !== undefined) {
       let sample: SimPlayerMotionSample | null;
@@ -376,9 +355,8 @@ export class PlayerSim implements PlayerMotionState {
           || typeof sample.grounded !== 'boolean' || typeof sample.swimming !== 'boolean' || typeof sample.hover !== 'boolean')) throw new RangeError('Invalid delegated player motion sample');
       } else {
         const native = observe.sample;
-        native.velocityX = motion?.walkX ?? 0; native.velocityZ = motion?.walkZ ?? 0;
+        native.velocityX = this.velocity.x; native.velocityZ = this.velocity.z;
         native.grounded = this.fall.grounded; native.swimming = this.swim.on; native.hover = this.board.on;
-        if (native.hover || native.swimming) { native.velocityX = this.velocity.x; native.velocityZ = this.velocity.z; }
         sample = native;
       }
       observe.receive(sample);

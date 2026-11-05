@@ -14,13 +14,13 @@ function player(): PlayerMotionState {
     footing: { water: null, depth: 0, wading: false, onPlatform: false, sliding: false } };
 }
 /** Flat ground at y = 0 with a slope normal the test sets, and a capsule that records its moves. */
-function world(law: MotionLaw, velocity?: { x: number; z: number }): MotionWorld & { moves: number } {
+function world(law: MotionLaw): MotionWorld & { moves: number } {
   const result = { grounded: true, groundNormalY: 1, downhillX: 0, downhillZ: 0, horizontalFreedom: 1, groundCollider: null };
   const w: MotionWorld & { moves: number } = { moves: 0, law, hasWater: false, water: () => null, heightAt: () => 0, platforms: [], floor: () => undefined, bob: () => 0,
     motor: { result, carry: () => false, move: (feet, want) => {
       w.moves++; feet.x += want.x; feet.z += want.z; feet.y = Math.max(0, feet.y + want.y); result.grounded = feet.y === 0; return result;
     } },
-    foot: { speed: () => 4, crouching: false, velocity, active: false, coyoteMs: 100 },
+    foot: { speed: () => 4, crouching: false, coyoteMs: 100 },
     boardTop: () => 14, boardCapped: () => false, jumped: () => undefined, dodged: () => undefined, landed: () => undefined, boardLanded: () => undefined,
     swimChanged: () => undefined, stroked: () => undefined, scratch: null };
   return w;
@@ -28,21 +28,20 @@ function world(law: MotionLaw, velocity?: { x: number; z: number }): MotionWorld
 const still = { moveX: 0, moveZ: 0, yaw: 0 };
 
 describe('the page law and the host law', () => {
-  test('a dash leaves momentum on the page; on the host it only overrode the step', () => {
-    const page = player(), host = player(), hostVelocity = { x: 0, z: 0 };
-    const pageWorld = world(PAGE_MOTION), hostWorld = world(HOST_MOTION, hostVelocity);
+  test('a dash leaves momentum on both laws', () => {
+    const page = player(), host = player();
+    const pageWorld = world(PAGE_MOTION), hostWorld = world(HOST_MOTION);
     for (const s of [page, host]) Object.assign(s.dash, { t: DT * 2, vx: 12, vz: 0 });
     stepPlayerMotion(page, still, pageWorld, DT); stepPlayerMotion(host, still, hostWorld, DT);
     expect(page.velocity.x).toBe(12);
-    expect(hostVelocity.x).toBe(0);
-    expect(host.position.x).toBeCloseTo(page.position.x, 9);
+    expect(host.velocity.x).toBe(12);
   });
-  test('only the page slides down ground too steep to stand on', () => {
-    for (const [law, sliding] of [[PAGE_MOTION, true], [HOST_MOTION, false]] as const) {
+  test('both laws slide down ground too steep to stand on', () => {
+    for (const law of [PAGE_MOTION, HOST_MOTION]) {
       const s = player(), w = world(law);
       Object.assign(w.motor.result, { groundNormalY: .5, downhillX: 1 });
       stepPlayerMotion(s, still, w, DT);
-      expect(s.footing.sliding).toBe(sliding);
+      expect(s.footing.sliding).toBe(true);
     }
   });
   test('a resting host player takes no step at all; a resting page player still falls into the ground', () => {
@@ -51,11 +50,6 @@ describe('the page law and the host law', () => {
     expect(hostWorld.moves).toBe(0);
     expect(stepPlayerMotion(page, still, pageWorld, DT).mode).toBe('foot');
     expect(pageWorld.moves).toBe(1);
-  });
-  test('a host walker with no velocity takes no gravity while it holds the ground', () => {
-    const s = player(), w = world(HOST_MOTION);
-    stepPlayerMotion(s, { ...still, moveX: 1 }, w, DT);
-    expect(s.velocity.y).toBe(0); expect(s.position.x).toBeCloseTo(4 * DT, 9);
   });
   test('one velocity: on the board a walk\'s speed is kept on both laws', () => {
     const page = player(), host = player();

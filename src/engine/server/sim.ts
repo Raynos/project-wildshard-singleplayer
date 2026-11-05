@@ -30,7 +30,7 @@ import type { DayCycle, DayCycleClock, DayCycleSpec } from '../shared/world/dayC
 import { clockDayPhase, clockPeriod, wrapClock, type DayClockState } from '../shared/sim/dayClock';
 
 /** The embedded simulation contract. Versions change when level or command semantics change. */
-export const SIM_API_VERSION = 2;
+export const SIM_API_VERSION = 3;
 /** Serializable F1 extension values, without callbacks or renderer objects. */
 export type SimValue = null | boolean | number | string | SimValue[] | { [key: string]: SimValue };
 /** Script instance memory, module globals, authored quest data and ledger dedupe live on the host. */
@@ -72,15 +72,12 @@ export interface SimCommand extends LocalMovementCommand {
    *  touch discs). Held states, so `advance` repeats them; read only by a host with water (useWater). */
   dive?: boolean; surface?: boolean;
 }
-/** One player's input for one tick: off the wire, or a recorded world-space tape command. Only `SimCommand` can say a
- *  legacy move at the level's own speed, which every recorded tape does and the wire format cannot. */
+/** One player's input for one tick: off the wire, or a recorded world-space tape command. */
 export type SimTickCommand = NetCommand | SimCommand;
-/** Resident on-foot tuning supplied by an owned driver; the ordinary native motor, fall and jump remain authoritative. */
+/** Resident on-foot tuning supplied by a scoped owner: the dry walking speed and the crouch. The native motor, fall and
+ *  jump remain authoritative. */
 export interface SimWalkingControl {
   readonly speed: number; readonly crouching: boolean;
-  /** Opt into the page's acceleration and gravity law. The driver owns this
-   * velocity continuation and must reset or restore it with its own lifetime. */
-  readonly clientMotion?: { x: number; z: number };
 }
 /** Combat's motion input, not corrected displacement. Delegated movement owns these same scalar observations. */
 export interface SimPlayerMotionSample {
@@ -91,8 +88,6 @@ export interface SimPlayerMotionSample {
  * Input runs before physics and returns true only while it owns motion; step then runs after physics instead of the
  * ordinary walk/board/dodge/jump. False retains that ordinary law. Register mutable state through a SimStateAdapter. */
 export interface SimPlayerDriver {
-  /** Consulted only when input returns false, outside board motion; absent keeps the level speed and ordinary jump. */
-  readonly walking?: SimWalkingControl;
   /** Queried after step, only when a motion observer is installed. Missing delegated samples are unavailable. */
   readonly motionSample?: () => SimPlayerMotionSample;
   input: (command: Readonly<SimCommand> | undefined, dt: number, host: SimHost) => boolean;

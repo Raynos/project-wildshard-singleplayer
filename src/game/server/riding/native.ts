@@ -11,7 +11,6 @@ import { AnimalPoseLaw } from '@wildshard/engine/entities/animalPose';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import { tagOf } from '@wildshard/engine/physics/surface';
 import { withOwner } from '@wildshard/engine/app/ownership';
-import { walkingSpeed } from '@wildshard/engine/player/walk';
 import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 
 const num = v.pipe(v.number(), v.finite()), triple = v.tuple([num, num, num]);
@@ -22,7 +21,7 @@ const MotorState = v.strictObject({ version: v.literal(1), colliderHandle: v.pip
   climbAngle: num, slideAngle: num, result: v.strictObject({ grounded: v.boolean(), groundNormalY: num,
     downhillX: num, downhillZ: num, horizontalFreedom: num, groundColliderHandle: handle }) });
 const SeatRows = { horse: v.nullable(v.string()), body: v.unknown(), motor: v.nullable(MotorState),
-  decisionClock: num, walkingSpeed: num, rider: v.strictObject({ velocity: triple, onGround: v.boolean(), sprinting: v.boolean(), crouching: v.boolean(), speedFactor: num }) };
+  decisionClock: num, walkingSpeed: v.optional(num), rider: v.strictObject({ velocity: triple, onGround: v.boolean(), sprinting: v.boolean(), crouching: v.boolean(), speedFactor: num }) };
 const SeatSaved = v.strictObject(SeatRows);
 const Saved = v.strictObject({ version: v.literal(1), ...SeatRows, poses: v.pipe(v.array(v.tuple([v.string(), v.string()])), v.maxLength(64)),
   others: v.exactOptional(v.record(v.string(), SeatSaved)) });
@@ -141,7 +140,7 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
   const body = new MountedBody(rows.speeds), rider: MountedRider = { position: player.position, velocity: new Vector3(),
     onGround: true, sprinting: false, crouching: false, speedFactor: 1 };
   let decisionClock = 0;
-  const walking = { speed: host.level.player.speed, crouching: false }, previousFoot = player.position.clone();
+  const previousFoot = player.position.clone();
   let horse: AnimalSim | null = null, savedMotor: v.InferOutput<typeof MotorState> | null = null;
   /** The horse under them walks free where it stands. */
   const freeHorse = (a: AnimalSim): void => {
@@ -185,7 +184,7 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
     motion.velocityX = rider.velocity.x; motion.velocityZ = rider.velocity.z; motion.grounded = rider.onGround;
     return motion;
   };
-  const driver: SimPlayerDriver = { walking, motionSample: sampleMotion, input: (command, dt) => {
+  const driver: SimPlayerDriver = { motionSample: sampleMotion, input: (command, dt) => {
     if (horse?.alive === false) dismount(true);
     previousFoot.copy(player.position);
     const a = horse;
@@ -200,8 +199,6 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
         decisionClock = 0;
         const row = rules.project('walk', { version: Number(versioned), board: Number(board), swim: Number(player.swim.on), depth, forward, crouched: Number(command?.crouch === true), sprint: Number(command?.sprint === true), grounded: Number(player.fall.grounded) });
         rider.crouching = row['crouched'] === 1; rider.sprinting = row['sprinting'] === 1;
-        walking.speed = versioned ? walkingSpeed(rider.crouching, rider.sprinting, row['wade'] ?? 0, 1, 1) : host.level.player.speed;
-        walking.crouching = rider.crouching;
       }
       return false;
     }
@@ -259,7 +256,7 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
     },
     save: () => {
       const state = body.snapshotBody(), motor = body.motor?.snapshot();
-      return { decisionClock, walkingSpeed: walking.speed, horse: horse?.entityId ?? null, body: { ...state, reins: { ...state.reins, spur: { ...state.reins.spur } } },
+      return { decisionClock, horse: horse?.entityId ?? null, body: { ...state, reins: { ...state.reins, spur: { ...state.reins.spur } } },
         motor: motor === undefined ? null : { ...motor, anchor: { ...motor.anchor }, result: { ...motor.result } },
         rider: { velocity: rider.velocity.toArray(), onGround: rider.onGround, sprinting: rider.sprinting,
           crouching: rider.crouching, speedFactor: rider.speedFactor } };
@@ -271,7 +268,7 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
     },
     load: state => {
       const a = state.horse === null ? null : host.entities.get(state.horse) ?? null;
-      body.restoreBody(state.body); decisionClock = state.decisionClock; walking.speed = state.walkingSpeed; walking.crouching = state.rider.crouching; horse = a; savedMotor = state.motor;
+      body.restoreBody(state.body); decisionClock = state.decisionClock; horse = a; savedMotor = state.motor;
       rider.velocity.fromArray(state.rider.velocity); rider.onGround = state.rider.onGround; rider.sprinting = state.rider.sprinting;
       rider.crouching = state.rider.crouching; rider.speedFactor = state.rider.speedFactor;
       if (a === null) player.modes.exit('ride'); else player.modes.enter('ride', driver);

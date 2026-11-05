@@ -83,6 +83,7 @@ const playerStateV2 = v.strictObject({ id, position: vector, yaw: finite, health
   dash: v.optional(v.strictObject({ t: finite, vx: finite, vz: finite })), dodge: v.optional(v.strictObject({ cd: nonnegative, t: nonnegative })) });
 const playerState = v.strictObject({ id, position: vector, yaw: finite, health: eventValue, motor, impulse: v.optional(vector),
   traversals: v.optional(v.pipe(v.array(v.picklist(['ride', 'grapple', 'glide', 'climb', 'drive'])), v.minLength(1), v.maxLength(5))),
+  // `walking` was written for one day (A1, A2): every walker has run one law since
   velocity: v.optional(vector), walking: v.optional(v.literal(true)), airborne: v.optional(v.literal(true)),
   moveScale: v.optional(v.pipe(nonnegative, v.check(value => value !== 1, 'Default move scale must stay omitted'))),
   shove: v.optional(v.strictObject({ t: finite, vx: finite, vz: finite })),
@@ -348,7 +349,7 @@ export function decodeSnapshotDataBytes(input: unknown, apiVersion: number, phys
 /** A version 2 player's one velocity is the one its mode ran: the board's, the swim's, or the walk's over the fall's. */
 function migratePlayerV2({ walk, fall, board, swim, ...rest }: v.InferOutput<typeof playerStateV2>): v.InferOutput<typeof playerState> {
   const velocity = board?.velocity ?? (swim?.on === true ? swim.velocity : [walk?.x ?? 0, fall?.vy ?? 0, walk?.z ?? 0]);
-  return { ...rest, ...(velocity.every(axis => axis === 0) ? {} : { velocity }), ...(walk === undefined ? {} : { walking: true as const }),
+  return { ...rest, ...(velocity.every(axis => axis === 0) ? {} : { velocity }),
     ...(board === undefined ? fall?.grounded === false : !board.ground) ? { airborne: true as const } : {}, ...(board === undefined ? {} : { board: { air: board.air, bob: board.bob } }),
     ...(swim === undefined ? {} : { swim: { on: swim.on, diving: swim.diving, climbTo: swim.climbTo, climbCooldown: swim.climbCooldown, stroke: swim.stroke, stood: swim.stood } }) };
 }

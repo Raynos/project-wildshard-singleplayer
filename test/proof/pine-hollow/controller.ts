@@ -80,7 +80,7 @@ function route(spots: PineSpots, nav: Navmesh, heightAt: (x: number, z: number) 
     // 3. the pond's lantern
     walk(atGlass, atPond), act(PINE_ACT.pond, lanterns.pond, lanterns.pond.radius, 'lit:pond'),
     // 4. the lookout: up the five flights to the fire finder's flint, down to the ridge lantern
-    walk(atPond, TRAIL_FOOT), { kind: 'go', path: [...LAYOUT.LOOKOUT_TRAIL.slice(1, -1), LOOKOUT_FOOT, ...CAB] }, act(PINE_ACT.flint, flint, 2.5, 'taken:ridge-flint'),
+    walk(atPond, TRAIL_FOOT), { kind: 'go', path: [...LAYOUT.LOOKOUT_TRAIL.slice(1, -1), LOOKOUT_FOOT, ...CAB.slice(0, -1)] }, act(PINE_ACT.flint, flint, 2.5, 'taken:ridge-flint'),
     { kind: 'go', path: [[34.3, 213.0], ...reverse(CAB).slice(1), LOOKOUT_FOOT, atRidge] }, act(PINE_ACT.ridge, lanterns.ridge, lanterns.ridge.radius, 'lit:ridge'),
     // 5. up again to the launch; the zipline down to the Hollow
     { kind: 'go', path: [LOOKOUT_FOOT, ...CLIMB] }, act(PINE_ACT.zip, zip.prompt, zip.prompt.radius, 'used:ph-zip'), { kind: 'ride' },

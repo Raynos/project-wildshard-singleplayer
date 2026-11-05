@@ -57,7 +57,7 @@ export async function runNalatiFieldTaming(options:TamingProofOptions={}):Promis
     };
     walkNalatiHorsePlains(first.host,step);const approachTicks=first.host.state.tick;
     const pilot=createNalatiTamingPilot();let prompt=false,breakingTicks=0,checkpointTick=0,rounds=0;
-    for(let tick=0;tick<6000&&taming.phase!=='bonded';tick++){
+    for(let tick=0;tick<12000&&taming.phase!=='bonded';tick++){
       const commands=pilot(first.host,original.entityId);
       prompt ||= taming.interactable.radius>0;
       if(taming.phase==='breaking'){breakingTicks++;rounds=Math.max(rounds,taming.view.round??0);}

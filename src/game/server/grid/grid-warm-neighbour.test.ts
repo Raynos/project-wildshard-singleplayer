@@ -13,7 +13,7 @@ import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 // T7 neighbours admit inert metadata and render tiles only. Actual entry retires
 // the departed whole source before allocating its destination and publishing it.
-const level: SimLevel = { version: 2, id: 'platform', seed: 1, ground: { size: 500, height: 0 },
+const level: SimLevel = { version: 3, id: 'platform', seed: 1, ground: { size: 500, height: 0 },
   player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 30 }, entities: [], quests: [],
   weapon: { id: 'none', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
 

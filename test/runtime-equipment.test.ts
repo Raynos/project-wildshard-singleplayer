@@ -114,7 +114,7 @@ test('factory DATA keeps Driftwood pickup rows and wood-first extras while Pine 
 
 test('native multi-item binding restores old held/swap and ammunition envelopes with live aim and locks', async () => {
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-  const host = createSimHost({ version: 2, id: 'ranged-loadout', seed: 1, ground: { size: 20, height: 0 },
+  const host = createSimHost({ version: 3, id: 'ranged-loadout', seed: 1, ground: { size: 20, height: 0 },
     player: { at: { x: 0, y: 1, z: 0 }, yaw: 0, speed: 5 }, weapon: HOST_PROBE, entities: [], quests: [] }, { rapier });
   let locked = false, aim = 0.7, pick: number | null = null;
   const ports = { owned: () => true, locked: () => locked };

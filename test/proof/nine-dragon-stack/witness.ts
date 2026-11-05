@@ -76,8 +76,8 @@ const assets = new Map(descriptor.index.files.map(file => {
   if(bytes.length!==file.compressed||createHash('sha256').update(bytes).digest('hex')!==file.hash)throw new Error('Native blob differs from output inventory');
   return [file.commons===true?`commons:${file.hash}`:file.hash,Uint8Array.from(bytes)] as const;
 }));
-/** The walk's speed per tick (the host's 5 m/s at 60 Hz) and the north deck the square's ring sends a fresh spawn to. */
-const STEP = 5 / 60, NORTH = portalPlan.decks[0];
+/** The walk's speed per tick (the page's 4.3 m/s at 60 Hz) and the north deck the square's ring sends a fresh spawn to. */
+const STEP = 4.3 / 60, NORTH = portalPlan.decks[0];
 if (NORTH === undefined) throw new Error('Nine Dragon declares its north deck portal');
 /** The walk as [ticks, world move x, world move z] legs: each route leg at full speed, a still second for the ride, then
  *  2.5 m out of the deck's ring (re-arming it), back in (the ride home) and a still second. */
@@ -100,14 +100,14 @@ const TO_RIM = RIM_LEGS.flatMap(([n, x, z]) => Array.from({ length: n }, () => [
  *  0.1632 down, seen past the rim's rail and the safety cap), LOCK, JUMP; the zip lifts over the parapet with the cap
  *  open, flies to the crossing's deck and settles, the cap closing behind it, then drops onto the deck (210 ticks). */
 const AIM = RIM_AT + TO_RIM.length, HOOK_YAW = 0.1495, HOOK_PITCH = -0.1632;
-/** Tick 400: held in the square's ring (touched ~tick 386, the transfer at ~tick 403), mid-way through a Jian swing. */
+/** Tick 464: held in the square's ring (touched at tick 454, the transfer at tick 470), mid-way through a Jian swing. */
 const TICKS = AIM + 2 + 210;
 /** Each replay test owns one checkpoint and compares two short continuations in the same process (no recorded float oracle). */
 export type CheckpointName = 'ride' | 'crossing';
-const SLICES = { ride: { from: 400, to: 460 }, crossing: { from: 940, to: TICKS } } as const;
+const SLICES = { ride: { from: 464, to: 524 }, crossing: { from: 1000, to: TICKS } } as const;
 let CHECKPOINTS = new URL('test/proof/nine-dragon-stack/checkpoints/', ROOT);
 const CheckpointSchema = v.strictObject({ tick: v.pipe(v.number(), v.integer()), snapshot: v.string() });
-const ManifestSchema = v.strictObject({ inputs: v.string(), ticks: v.strictObject({ ride: v.literal(400), crossing: v.literal(940) }) });
+const ManifestSchema = v.strictObject({ inputs: v.string(), ticks: v.strictObject({ ride: v.literal(464), crossing: v.literal(1000) }) });
 let MANIFEST = new URL('manifest.json', CHECKPOINTS);
 /** Select the shared generator's verified outputs for native recording and replay. */
 export function setCheckpointDirectory(directory: URL): void { CHECKPOINTS = directory; MANIFEST = new URL('manifest.json', directory); }

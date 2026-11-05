@@ -54,7 +54,7 @@ byte; this refactor adds no entry coverage.
   route from the spawn into the ring out (→ the north deck, `portal.square.north>portal.north`), steps 2.5 m out of the
   deck's ring and back in (→ the square, `portal.north>portal.square.arrival`). The hold is the page Player's `carried`
   (feet kept at the ring's touch through the fade), the transfer is `createPortalTraversal` on the host's own physics,
-  motor and feet; the ride's state and hold are continuation, and the committed ride checkpoint (tick 400) falls mid-swing AND
+  motor and feet; the ride's state and hold are continuation, and the committed ride checkpoint (tick 464) falls mid-swing AND
   held in the square's ring before the transfer. Its 60-tick suffix finishes the north transfer. The same build's browser rides all four decks (north arrival
   (0, 0.01, 236), the headless one (0, 0, 236));
 - the Jian's charged heavy (part 5) on the tick protocol's HEAVY hold: back at the arrival the tape holds HEAVY for 40
@@ -85,14 +85,14 @@ item and does not make the witness transitional.
 `nine-dragon-stack.well` (the Fei Zhua's lifting crossing settles over the Well, origin `engine.fei-zhua.crossing`).
 `world/feats.ts` reads both off the same laws the page and the host run (the ride's transfers, the grapple's settle →
 release); the page sends them to `bindRuntimeLedger` (`runtime/facts.ts`), the host emits them as committed `fact`
-effects. The ledger stage plays the whole tape: the ride home lands in the square (tick 522) and the crossing settles
-(tick 1024); both facts reach the platform `Ledger` once under their declared provenance, durably, and a session restored
+effects. The ledger stage plays the whole tape: the ride home lands in the square (tick 587) and the crossing settles
+(tick 1086); both facts reach the platform `Ledger` once under their declared provenance, durably, and a session restored
 from the tape's end plays 120 more ticks and re-emits nothing. A zip that is blocked or times out releases from the zip,
 never the settle, so it reports nothing. The checkpoint payloads are unchanged (no new continuation state).
 
 ## Short replay checkpoints (Nine6)
 
-The uninterrupted headless stage still walks all 1,084 ticks, exercises both portal rides and the charged heavy, crosses
+The uninterrupted headless stage still walks all 1,149 ticks, exercises both portal rides and the charged heavy, crosses
 the Well, and proves 92 entry lanes / 8 transfers. Replay no longer repeats that whole tape:
 
 | Checkpoint | State | Suffix | Ticks stepped in both continuations |

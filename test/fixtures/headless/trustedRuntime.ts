@@ -6,7 +6,7 @@ import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard }) => {
   if (typeof window !== 'undefined' || typeof document !== 'undefined') throw new Error('Trusted fixture requires plain Node');
   const level: SimLevel = {
-    version: 2, id: shard.identity.slug, seed: shard.identity.seed,
+    version: 3, id: shard.identity.slug, seed: shard.identity.seed,
     ground: { size: 32, height: 0 }, player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 3 },
     weapon: { id: 'fixture.strike', shape: { kind: 'arc', radius: 2.2, halfAngle: Math.PI / 2 }, windup: 0.07, active: 0.165, recover: 0.115, cooldown: 0.08, range: 2.2, damage: 28, tags: [] },
     entities: [{ id: 'fixture.actor', seed: 7, scale: 1, at: { x: 0, y: 0, z: 1.6 }, yaw: 0,

@@ -19,22 +19,17 @@ test('the shared page acceleration preserves its arithmetic through turns and st
   }
 });
 
-test('the opted-in native walk accelerates while ordinary motion keeps its own speed',async()=>{
+test('every native walk accelerates at the page\'s walking speed',async()=>{
   const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const sim=createShardfileSim(emptyShardfile({slug:'walk-motion',name:'Walk motion',author:'Test',revision:1,seed:1}),new Map(),{rapier});
   try{
     const {host}=sim;
     for(let tick=0;tick<120;tick++)host.step();
-    const before=leadPlayer(host).position.clone(),clientMotion={x:0,z:0};
-    const release=leadPlayer(host).useDriver({walking:{speed:walkingSpeed(false,false,0,1,1),crouching:false,clientMotion},input:()=>false,step:()=>undefined});
+    const before=leadPlayer(host).position.clone();
     host.step(leadCommands(host, {moveX:1,moveZ:0,yaw:-Math.PI/2}));
-    expect(clientMotion.x).toBe(walkVelocity(0,4.3,14,1/60));
+    expect(leadPlayer(host).velocity.x).toBe(walkVelocity(0,walkingSpeed(false,false,0,1,1),14,1/60));
     const accelerated=leadPlayer(host).position.x-before.x;
     expect(accelerated).toBeGreaterThan(0);expect(accelerated).toBeLessThan(4.3/60);
-    release();
-    const prior=leadPlayer(host).position.x;
-    host.step(leadCommands(host, {moveX:1,moveZ:0,yaw:-Math.PI/2}));
-    expect(leadPlayer(host).position.x-prior).toBeGreaterThan(accelerated);
   }finally{sim.dispose();}
 });
 
@@ -54,13 +49,13 @@ test('route walking preserves the existing native driver and delegated motion au
   try{
     const {host}=sim;let delegated=false,inputs=0,steps=0;
     const driver={input:()=>{inputs++;return delegated;},step:()=>{steps++;}};
-    const remove=leadPlayer(host).useDriver(driver),clientMotion={x:0,z:0};
-    const release=leadPlayer(host).useWalkingControl({speed:4.3,crouching:false,clientMotion});
+    const remove=leadPlayer(host).useDriver(driver),walked=leadPlayer(host).velocity;
+    const release=leadPlayer(host).useWalkingControl({speed:4.3,crouching:false});
     expect(()=>leadPlayer(host).useDriver(driver)).toThrow('Player driver belongs');
     expect(()=>leadPlayer(host).useWalkingControl({speed:4.3,crouching:false})).toThrow('Walking control belongs');
-    host.step(leadCommands(host, {moveX:1,moveZ:0,yaw:0}));expect(inputs).toBe(1);expect(steps).toBe(0);expect(clientMotion.x).toBeGreaterThan(0);
-    const velocity=clientMotion.x;delegated=true;
-    host.step(leadCommands(host, {moveX:1,moveZ:0,yaw:0}));expect(inputs).toBe(2);expect(steps).toBe(1);expect(clientMotion.x).toBe(velocity);
+    host.step(leadCommands(host, {moveX:1,moveZ:0,yaw:0}));expect(inputs).toBe(1);expect(steps).toBe(0);expect(walked.x).toBeGreaterThan(0);
+    const velocity=walked.x;delegated=true;
+    host.step(leadCommands(host, {moveX:1,moveZ:0,yaw:0}));expect(inputs).toBe(2);expect(steps).toBe(1);expect(walked.x).toBe(velocity);
     release();remove();
     const retry=leadPlayer(host).useWalkingControl({speed:4.3,crouching:false});retry();
   }finally{sim.dispose();}

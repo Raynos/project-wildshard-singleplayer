@@ -77,23 +77,12 @@ test('release and a serialized mid-stride continuation keep the same native moti
   }finally{restored?.dispose();host.dispose();}
 });
 
-test('legacy commands retain their ordinary law and omit versioned continuation',()=>{
-  const host=flat();
-  try{
-    expect(leadSnapshot(snapshotSimHost(host)).walking).toBeUndefined();
-    host.step(leadCommands(host, {moveX:1,moveZ:0,yaw:0}));expect(leadSnapshot(snapshotSimHost(host)).walking).toBeUndefined();
-    host.step(leadCommands(host, forward));expect(leadSnapshot(snapshotSimHost(host)).walking).toBeDefined();
-    host.step(leadCommands(host, {moveX:1,moveZ:0,yaw:0}));expect(leadSnapshot(snapshotSimHost(host)).walking).toBeUndefined();
-    expect([leadPlayer(host).walkActive,leadPlayer(host).velocity.x,leadPlayer(host).velocity.z]).toEqual([false,0,0]);
-  }finally{host.dispose();}
-});
-
 test('native delegated motion keeps first authority and malformed input changes no state',()=>{
   const host=flat();
   try{
     let commands=0;
     leadPlayer(host).useDriver({input:command=>{expect(command?.steer).toEqual(forward.steer);commands++;return true;},step:()=>undefined});
-    host.step(leadCommands(host, forward));expect(commands).toBe(1);expect(leadPlayer(host).walkActive).toBe(false);
+    host.step(leadCommands(host, forward));expect(commands).toBe(1);
     const before=snapshotSimHost(host);
     expect(()=>host.step(leadCommands(host, {...forward,steer:{keyX:0,keyY:Infinity,stickX:0,stickY:0}}))).toThrow('Invalid raw movement axes');
     expect(snapshotSimHost(host)).toEqual(before);

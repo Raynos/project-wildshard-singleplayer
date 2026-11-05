@@ -275,7 +275,7 @@ export class Player {
       // the open sea: ride the Ocean's own Gerstner swell (DRIFTWOOD-REMASTER W3); the pond keeps its gentle sine bob
       bob: (x, z) => { const sea = app.world.water.sea; return sea !== null ? sea.surfaceAt(x, z) - sea.level : pondBob(this.waveTime); },
       foot: { speed: wadeT => walkingSpeed(this.crouching, this.sprinting, wadeT, this.moveScale, this.effectMoveScale),
-        get crouching() { return crouching(); }, velocity: undefined, active: true, get coyoteMs() { return coyote(); } },
+        get crouching() { return crouching(); }, get coyoteMs() { return coyote(); } },
       boardTop: () => hoverSpeed(this.hoverSpeedLimit?.(), this.hoverBoost && isDev()),
       boardCapped: () => this.hoverSpeedLimit !== null || this.hoverBoost,
       jumped: () => { this.commandJumpUsed = true; if (this.replaying) return; if (this.hover) this.hoverJumpKick = 1; app.events.emit('player.jump', true); this.onJump?.(); },

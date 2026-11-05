@@ -9,9 +9,9 @@ import { SIM_LEVEL } from './fixtures/sim-level/level';
 import recorded from './fixtures/sim-snapshot-v1.json';
 import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
-// P1-E5.2a: old saves load. Every wire here came out of the real version 1 writer, and each tape was played on from it by
-// the version 1 engine: the digest and end state are what that engine reached, so a pass means nothing about the
-// continuation moved. Never re-record the fixture.
+// P1-E5.2a: old saves load. Every wire here came out of the real version 1 writer and is never re-recorded. J112 moved the
+// law, so the digests and end states are where each tape reaches on the one law, re-recorded at P1-E5.3-A2. A pass means
+// the save still loads and nothing about the continuation moved since.
 const target = SIM_LEVEL.entities[0]?.id ?? '';
 const tapes: Record<string, (tick: number) => SimCommand> = {
   'walk-strike': tick => ({ moveX: Math.sin(tick / 40), moveZ: Math.cos(tick / 55), yaw: tick / 90, ...(tick % 50 === 7 ? { attack: { targetId: target } } : {}) }),

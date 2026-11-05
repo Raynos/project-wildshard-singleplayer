@@ -36,8 +36,8 @@ test('one tick moves each player on its own command and leaves the idle one alon
   const host = hostWithPlayers(3), bot = player(host, 'bot:1'), idle = player(host, 'bot:2'), lead = leadPlayer(host);
   const start = idle.position.clone(), commands = new Map([[lead.id, walk(0, -1)], [bot.id, walk(1, 0)]]);
   for (let tick = 0; tick < 60; tick++) host.step(commands);
-  expect(lead.position.z).toBeCloseTo(-3, 1); expect(lead.position.x).toBeCloseTo(0, 2);
-  expect(bot.position.x).toBeCloseTo(2 + 3, 1); expect(bot.position.z).toBeCloseTo(0, 2);
+  expect(lead.position.z).toBeCloseTo(-4.06, 1); expect(lead.position.x).toBeCloseTo(0, 2);
+  expect(bot.position.x).toBeCloseTo(2 + 4.06, 1); expect(bot.position.z).toBeCloseTo(0, 2);
   expect(idle.position.distanceTo(start)).toBeLessThan(1e-9);
   expect(host.state.tick).toBe(60);
   host.dispose();

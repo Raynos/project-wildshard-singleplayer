@@ -90,7 +90,7 @@ function versionOnePlayer(player: Readonly<Record<string, unknown>>): Record<str
   const board = player['board'] as Record<string, unknown> | undefined, swim = player['swim'] as ({ on: boolean } & Record<string, unknown>) | undefined;
   const riding = board !== undefined || swim?.on === true, airborne = player['airborne'] === true, vy = riding ? 0 : y;
   const mapped: Record<string, unknown> = { ...player,
-    ...(player['walking'] === true ? { walk: riding ? { x: 0, z: 0 } : { x, z } } : {}),
+    ...(riding || (x === 0 && z === 0) ? {} : { walk: { x, z } }),
     ...(board === undefined && (airborne || vy !== 0) ? { fall: { vy, grounded: !airborne } } : {}),
     ...(board === undefined ? {} : { board: { velocity: [...velocity], ...board, ground: !airborne } }),
     ...(swim === undefined ? {} : { swim: { on: swim.on, velocity: swim.on ? [...velocity] : [0, 0, 0], diving: swim['diving'], climbTo: swim['climbTo'], climbCooldown: swim['climbCooldown'], stroke: swim['stroke'], stood: swim['stood'] } }) };

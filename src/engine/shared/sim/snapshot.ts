@@ -57,8 +57,6 @@ export interface SimPlayerSnapshot { id: string; position: number[]; yaw: number
     traversals?: DrivenMode[] | undefined;
     /** The one world velocity through every mode (P1-E5.3-A1); absent = still. */
     velocity?: number[] | undefined;
-    /** This player walks on version-1 commands; absent preserves legacy hosts. */
-    walking?: true | undefined;
     /** SimHost.playerMoveScale while it is not 1 (an input lock or a slowing room); absent = 1. */
     moveScale?: number | undefined;
     /** The feet left the ground; absent = they stand on it. */
@@ -278,7 +276,6 @@ function captureSimHost<Bytes extends number[] | Uint8Array>(host: SimHost, phys
 function playerSnapshot(host: SimHost, player: PlayerSim): SimPlayerSnapshot {
   return { id: player.id, position: player.position.toArray(), yaw: player.yaw, health: encode(player.health.snapshot(), host), motor: player.motor.snapshot(),
     ...(player.velocity.lengthSq() > 0 ? { velocity: player.velocity.toArray() } : {}),
-    ...(player.walkActive ? { walking: true as const } : {}),
     ...(player.moveScale === 1 ? {} : { moveScale: player.moveScale }),
     // a resting impulse is omitted (canonical: absent = zero), so a host that was never shoved keeps its exact bytes
     ...(player.impulse.lengthSq() > 0 ? { impulse: player.impulse.toArray() } : {}),
@@ -332,7 +329,6 @@ function restorePlayer(host: SimHost, saved: SimPlayerSnapshot): void {
   player.position.fromArray(saved.position); player.yaw = saved.yaw;
   if (saved.impulse === undefined) player.impulse.set(0, 0, 0); else player.impulse.fromArray(saved.impulse);
   player.velocity.set(0, 0, 0); if (saved.velocity !== undefined) player.velocity.fromArray(saved.velocity);
-  player.walkActive = saved.walking === true;
   player.moveScale = saved.moveScale ?? 1;
   Object.assign(player.shove, saved.shove ?? { t: 0, vx: 0, vz: 0 });
   const { board } = saved;
