@@ -10,7 +10,7 @@ import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHos
 import { loadRapier, type Rapier } from '../../../src/engine/shared/physics/rapier';
 import { canonicalSimDigest, simWireV1 } from '../../fake/simState';
 import { SaveStore, type SaveStorage } from '../../../src/engine/shared/saves/store';
-import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/server/ledger';
+import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/shared/ledger';
 import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
 import { prepareNativeRuntime, type HeadlessRuntimeInstallation, type HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';

@@ -3,7 +3,7 @@ import {SaveStore,type SaveStorage} from '../../src/engine/shared/saves/store';
 import type {SimHost} from '../../src/engine/server/sim';
 import {AdventurePersistenceSchema} from '@wildshard/format/namedJsonContracts';
 import type {ShardProduct} from '../../src/game/shared/shardfile/shardProduct';
-import {installRuntimeState} from '../../src/game/server/shardfile/runtimeState';
+import {installRuntimeState} from '../../src/game/shared/shardfile/runtimeState';
 import type {ObservedRecords} from '../../src/game/shared/quest/questObservation';
 import {featOutcome,witnessSavedFeats} from '../../src/game/server/quest/featCounters';
 import {nativeQuestInputs,type NativeQuestInputs} from '../../src/game/server/quest/nativeInputs';

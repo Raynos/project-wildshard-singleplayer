@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, test } from 'vitest';
 import { SaveStore } from '../src/engine/shared/saves/store';
 import { Scope } from '../src/engine/shared/app/scope';
-import { installRuntimeState } from '../src/game/server/shardfile/runtimeState';
+import { installRuntimeState } from '../src/game/shared/shardfile/runtimeState';
 import { bindRuntimeState } from '../src/game/server/plugin/headless';
 import { installShards, shards } from '../src/game/client/shard/list';
 import { sourceManifest, type ShardContext } from '../src/game/client/plugin/context';

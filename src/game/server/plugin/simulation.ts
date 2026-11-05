@@ -27,7 +27,7 @@ import { ResidencyAllocator } from '../../shared/grid/allocator';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { leadSnapshot, restoreSimHost, prepareSimHostRestore, isSimHostRestoring, snapshotSimHost, regionalContinuation, type SimSnapshot, type PreparedSimHostRestore } from '@wildshard/engine/sim/snapshot';
 import { SaveStore } from '@wildshard/engine/saves/store';
-import { Ledger } from '../ledger';
+import { Ledger } from '../../shared/ledger';
 import type { Material } from '@wildshard/engine/physics/surface';
 import type { SocketLift } from '@wildshard/format/socketLift';
 import { DirectorStageLane, bindDirectorActions, type DirectorActionBinding } from './director';

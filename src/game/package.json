@@ -17,7 +17,7 @@
     "./models/mountedSpecimen": "./client/models/mountedSpecimen.ts",
     "./population/perchBody": "./server/population/perchBody.ts",
     "./population/productCreatures": "./client/population/productCreatures.ts",
-    "./quest/ledger": "./server/quest/ledger.ts",
+    "./quest/ledger": "./shared/quest/ledger.ts",
     "./quest/legacyRecords": "./server/quest/legacyRecords.ts",
     "./shardfile/pageWater": "./client/shardfile/pageWater.ts",
     "./shardfile/pagePreparation": "./client/shardfile/pagePreparation.ts",

@@ -510,7 +510,7 @@
 | src/game/server/loot/Bounty.ts | src/game/server/loot/Bounty.ts | src/game/server/loot/Bounty.ts |
 | src/game/server/loot/CoinBurst.ts | src/game/server/loot/CoinBurst.ts | src/game/server/loot/CoinBurst.ts |
 | src/game/shared/loot/Owned.ts | src/game/shared/loot/Owned.ts | src/game/shared/loot/Owned.ts |
-| src/game/server/loot/Purse.ts | src/game/server/loot/Purse.ts | src/game/server/loot/Purse.ts |
+| src/game/shared/loot/Purse.ts | src/game/shared/loot/Purse.ts | src/game/shared/loot/Purse.ts |
 | src/game/server/loot/coins.ts | src/game/server/loot/coins.ts | src/game/server/loot/coins.ts |
 | src/game/loot/finds.ts | src/shards/driftwood-isle/loot/finds.ts | src/shards/driftwood-isle/loot/finds.ts |
 | src/game/loot/install.ts | src/game/loot/install.ts | src/game/loot/install.ts |

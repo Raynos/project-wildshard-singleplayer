@@ -5,7 +5,7 @@ import type { ShardProduct } from '../../../../src/game/shared/shardfile/shardPr
 import { CoinMotion } from '../../../../src/game/client/loot/CoinMotion';
 import { readCoinBurstState } from '../../../../src/game/shared/loot/coinBurstState';
 import { Owned, isOwnedId, isCosmetic } from '../../../../src/game/shared/loot/Owned';
-import { Purse } from '../../../../src/game/server/loot/Purse';
+import { Purse } from '../../../../src/game/shared/loot/Purse';
 import { Bounty } from '../../../../src/game/server/loot/Bounty';
 import { Exchange } from '../../../../src/game/server/loot/exchange';
 import { DEATH_ORDER } from '../../../../src/game/server/loot/deaths';

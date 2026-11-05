@@ -29,7 +29,7 @@ import wardens from '../../../src/shards/pine-hollow/data/wardensHollow.json' wi
 import bossRows from '../../../src/shards/pine-hollow/data/bossEncounter.json' with { type: 'json' };
 import { canonicalSimDigest, simWireV1 } from '../../fake/simState';
 import { SaveStore, type SaveStorage } from '../../../src/engine/shared/saves/store';
-import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/server/ledger';
+import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/shared/ledger';
 import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 

@@ -42,7 +42,7 @@ import { mountDeclaredUi } from '../shard/declaredUi';
 import { createQuestScriptPorts } from '../../server/quest/declared';
 import type { ClientScriptViewTarget } from "../plugin/ui";
 import { instanceSave } from '../../shared/instanceSaves';
-import { Ledger, installLedgerEmitter, type LedgerCatalogueItem, type LedgerEmitter } from '../../server/ledger';
+import { Ledger, installLedgerEmitter, type LedgerCatalogueItem, type LedgerEmitter } from '../../shared/ledger';
 import { EmptyEquipment } from './emptyEquipment';
 import type { ResidencyAllocator } from '../../shared/grid/allocator';
 import type { PageResidency, HomeResidencyClaim } from '../grid/pageResidency';

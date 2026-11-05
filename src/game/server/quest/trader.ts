@@ -8,7 +8,7 @@ import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
 import { isJsonData } from '@wildshard/format/json';
 import { declaredLootEconomy } from '../../shared/shard/declaredRows';
-import { enteredPurse } from '../loot/Purse';
+import { enteredPurse } from '../../shared/loot/Purse';
 import { Exchange } from '../loot/exchange';
 import { ShopPanel, type ShopGood } from '../../client/loot/ui/ShopPanel';
 import { enteredHeldLoadout } from '../../client/loadout/held';

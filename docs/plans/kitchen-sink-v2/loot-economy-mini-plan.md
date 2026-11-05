@@ -123,7 +123,7 @@ finish grants) stay where they are; these rows are the rest.
 
 | Row | Work | h |
 |---|---|---|
-| LE1 | Currency row (id, name, icon, chip) replaces `loot.coins: true`; `game/server/loot/Purse.ts`, `coins.ts` | 6 |
+| LE1 | Currency row (id, name, icon, chip) replaces `loot.coins: true`; `game/shared/loot/Purse.ts`, `coins.ts` | 6 |
 | LE2 | Kill payouts: coin rows by kind and variant, night ×, LV gap factor, `cap: per-enemy \| none` (`Bounty.ts`; Driftwood keeps its cap) | 10 |
 | LE3 | Salvage rows out of `game/server/Inventory.ts` (E405): match → drops, mode `auto` (walk-in) or `harvest` (Pine's kneel); Driftwood and Pine parity | 14 |
 | LE4 | Pack catalogue rows: label, icon, stack cap, "used for" line from the exchange, 20 slots, silhouettes (`inventoryLaw.ts`, bag schema, `Menu.ts`) | 10 |

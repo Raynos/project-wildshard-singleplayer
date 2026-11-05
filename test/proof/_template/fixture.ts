@@ -6,7 +6,7 @@ import { createShardfileSim, bindShardfileSim, type ShardfileSimulation, type Sh
 import { loadRapier, type Rapier } from '../../../src/engine/shared/physics/rapier';
 import { canonicalSimDigest } from '../../fake/simState';
 import { SaveStore, type SaveStorage } from '../../../src/engine/shared/saves/store';
-import { Ledger, installLedgerEmitter, type LedgerEmitter } from '../../../src/game/server/ledger';
+import { Ledger, installLedgerEmitter, type LedgerEmitter } from '../../../src/game/shared/ledger';
 import { snapshotSimHost, restoreSimHost } from '../../../src/engine/shared/sim/snapshot';
 import type { SimHost } from '../../../src/engine/server/sim';
 import { ItemRuntime, scriptItemHook } from '../../../src/engine/server/combat/items';

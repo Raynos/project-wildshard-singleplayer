@@ -7,7 +7,7 @@ import { QuestState } from '../src/engine/server/quest/core';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { Owned } from '../src/game/shared/loot/Owned';
-import { Purse } from '../src/game/server/loot/Purse';
+import { Purse } from '../src/game/shared/loot/Purse';
 import { enteredLootPresentation } from '../src/game/server/loot/runtime';
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';

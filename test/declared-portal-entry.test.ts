@@ -13,7 +13,7 @@ import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime, ShardPlayHost } from '../src/game/shared/shard/runtime';
 import type { ShardWorld } from '../src/game/server/shard/world';
 import type { Progress } from '../src/game/client/Progress';
-import type { LedgerReceipt } from '../src/game/server/ledger';
+import type { LedgerReceipt } from '../src/game/shared/ledger';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { installDeclaredPortalRide, installPortalRide, type PortalPlayer } from '../src/game/client/shardfile/portalRideBinding';
 import * as headless from '../src/game/server/plugin/headless';

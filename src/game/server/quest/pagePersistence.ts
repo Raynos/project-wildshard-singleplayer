@@ -6,9 +6,9 @@ import type { Progress } from '../../client/Progress';
 import * as v from 'valibot';
 import { bossesSave } from '../../shared/saves';
 import { bossFlagRecord, parseBossRecord, type BossRecordRow, type BossRowFlags } from '../shardfile/bossRow';
-import { installRuntimeState } from '../shardfile/runtimeState';
+import { installRuntimeState } from '../../shared/shardfile/runtimeState';
 import { projectRuntimeFacts, type RuntimeFacts } from '../plugin/headless';
-import { createQuestLedger } from './ledger';
+import { createQuestLedger } from '../../shared/quest/ledger';
 
 /** Bind the existing declared state owner, including its original legacy read.
  * Native page admission owns this call; no runtime declaration is synthesized. */

@@ -52,7 +52,7 @@ const hosts = {
   'quests/quests': ['game/server/quest/declared#DeclaredQuests'],
   'quests/host': ['game/server/plugin/simulation#installDeclaredQuestHost'],
   'quests/directors': ['game/shardfile/directorClient#installDeclaredDirector'],
-  'economy/ledger': ['game/server/ledger#Ledger', 'game/server/ledger#installLedgerEmitter'],
+  'economy/ledger': ['game/shared/ledger#Ledger', 'game/shared/ledger#installLedgerEmitter'],
   'economy/loot': ['game/shared/shard/declaredRows#declaredLootPresentation'],
   'state/state': ['game/server/shardfile/scripts#numericScriptState'],
   'state/migrations': ['game/shared/shardfile/logicalState#logicalStateFromLane'],

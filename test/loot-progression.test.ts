@@ -4,7 +4,7 @@ import { parseLootEconomy } from '@wildshard/format/lootEconomy';
 import { curveAt } from '@wildshard/format/materials';
 import { declaredLootEconomy } from '../src/game/shared/shard/declaredRows';
 import { Owned } from '../src/game/shared/loot/Owned';
-import { Purse } from '../src/game/server/loot/Purse';
+import { Purse } from '../src/game/shared/loot/Purse';
 import { Flags } from '../src/engine/shared/world/interact/flags';
 import { Scope } from '../src/engine/shared/app/scope';
 import { fixtureLootPresentation } from './fixtures/loot-page';

@@ -1,7 +1,7 @@
 import type { SaveStore } from '@wildshard/engine/saves/store';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { Ledger, LedgerEmitter, type LedgerReceipt } from '../ledger';
-import type { RuntimeFacts } from '../plugin/headless';
+import type { RuntimeFacts } from '../../server/plugin/headless';
 
 /** One declared ledger over the caller's original SaveStore and placement.
  * Runtime adapters and native page features share this exact grant owner. */

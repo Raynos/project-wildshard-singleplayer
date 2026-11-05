@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { installAppIdentity } from '../../../src/engine/shared/app/identity';
 import { SaveStore, type SaveStorage } from '../../../src/engine/shared/saves/store';
 import { WILDSHARD_IDENTITY } from '../../../src/game/client/identity';
-import { Ledger } from '../../../src/game/server/ledger';
+import { Ledger } from '../../../src/game/shared/ledger';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
 
 /** Test storage is an actual SaveStore backend; refusal never replaces gameplay or fabricates a grant. */

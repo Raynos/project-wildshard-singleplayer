@@ -11,7 +11,7 @@
  *   purse.coins                   // the total (the HUD chip, GEAR)
  *   purse.onChange((n, delta) => chip.set(n))   // returns an unsubscribe
  */
-import { purseSave, saveSlug } from '../../shared/saves';
+import { purseSave, saveSlug } from '../saves';
 import * as schema from 'valibot';
 import type { Scope } from '@wildshard/engine/app/scope';
 

@@ -53,7 +53,7 @@ import { prepareApproachProductInputs } from './approachProductInputs';
 import { installGridCrossing, type GridCheckpointResult, type GridCrossingSession, type GridCrossingState } from '../../server/grid/crossing';
 import { GridWallet, stowGridMount } from '../../shared/grid/wallet';
 import { GridRegionDurability } from '../../server/grid/durability';
-import type { LedgerCatalogueItem } from '../../server/ledger';
+import type { LedgerCatalogueItem } from '../../shared/ledger';
 import { installGridHoverSpeed } from '../../shared/grid/rules';
 import { installGridTravellerCombat } from '../../server/grid/travellerCombat';
 import { gridHomeSim, gridCells, type GridHomeSimulation } from '../plugin/context';

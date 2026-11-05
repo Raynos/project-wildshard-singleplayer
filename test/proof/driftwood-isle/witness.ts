@@ -19,7 +19,7 @@ import policy from '../../../src/shards/driftwood-isle/data/nativeQuest.json' wi
 import { loadRapier, type Rapier } from '../../../src/engine/shared/physics/rapier';
 import { serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/shared/sim/snapshot';
 import { SaveStore, type SaveStorage } from '../../../src/engine/shared/saves/store';
-import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/server/ledger';
+import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/shared/ledger';
 import type { TrustedHeadlessResident } from '../../../src/sdk/headlessRuntime';
 import { createNativeProofResident, prepareProductPlan } from '../../fixtures/headless-native';
 import type { TickWorkerHost } from '../../../src/sdk/tickWorkerHost';

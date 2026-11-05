@@ -19,7 +19,7 @@ import type { TickWorkerHost } from '../../../src/sdk/tickWorkerHost';
 import { createNativeProofWorker } from '../../fixtures/headless-worker';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import { SaveStore, type SaveStorage } from '../../../src/engine/shared/saves/store';
-import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/server/ledger';
+import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/shared/ledger';
 import type { TickWorkerAdapter } from '../../../src/sdk/tickWorkerLoop';
 
 import headlessAssembly from '../../../src/shards/nine-dragon-stack/data/headlessAssembly.json' with { type: 'json' };

@@ -9,7 +9,7 @@ import { Flags } from '../src/engine/shared/world/interact/flags';
 import { PlayerHealth } from '../src/engine/server/combat/health';
 import { EffectService } from '../src/engine/client/combat/effects/EffectService';
 import { Owned } from '../src/game/shared/loot/Owned';
-import { Purse } from '../src/game/server/loot/Purse';
+import { Purse } from '../src/game/shared/loot/Purse';
 import { bindFixtureEffects } from './fixtures/item-effects';
 import { fixtureLootPresentation } from './fixtures/loot-page';
 import { DRIFTWOOD_EFFECTS } from '../src/shards/driftwood-isle/generators/economy';
