@@ -1,11 +1,13 @@
-import type { SimCommand, SimHost } from '@wildshard/engine/sim';
+import type { SimCommand, SimHost, SimTickCommand } from '@wildshard/engine/sim';
+import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
+import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import { snapshotSimHost, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { prepareFrameMotors, type FrameMember } from '@wildshard/engine/physics/frame';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { GridAssembly, GridCell, GridPoint } from './assembly';
 import type { ResidencyAllocator } from './allocator';
 import { GridContinuationCache, GRID_CONTINUATION_CACHE_BYTES } from './continuations';
-import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** Admission returns one owned, renderer-free regional host; its world is always in authored local coordinates. */
 export interface GridResident { readonly host: SimHost; readonly dispose: () => void }
@@ -35,9 +37,15 @@ export interface PreparedGridFrame { commit: () => void; cancel: () => void }
 export interface PreparedGridUnload { commit: () => void; abort: () => void }
 interface Resident { value: GridResident; touched: number; reservations: number; retained: boolean; evicting: boolean; lease: GridSimLease | undefined }
 
-/** Independent local physics worlds; only the current one advances, while visible neighbours remain frozen. */
+/**
+ * Independent local physics worlds; only a world with a player in it advances, while visible neighbours remain frozen.
+ * Each player crosses on their own (P1-E3.9). `owner` is the player this session was built around, the lead of every host:
+ * its systems bind to that seat, so when it leaves others behind the seat stays, parked, and a lone player never parks.
+ */
 export class GridSimulation {
-  private active: string | null = null;
+  /** Where each player is: a cell's instance, or null for the highway. */
+  private readonly sites = new Map<string, string | null>();
+  private readonly owner: string;
   private readonly residents = new Map<string, Resident>();
   private readonly snapshots = new GridContinuationCache();
   private cacheLease: GridSimLease | undefined;
@@ -53,20 +61,61 @@ export class GridSimulation {
   constructor(assembly: GridAssembly, ports: GridSimulationPorts) {
     this.assembly = assembly; this.ports = ports;
     this.limit = ports.maxResidents ?? 4;
-    if (!Number.isInteger(this.limit) || this.limit < 2 || this.limit > 9 || ports.highway.host.embedded || !leadPlayer(ports.highway.host).hasMotor) throw new RangeError('Invalid grid simulation owner');
+    const owner = leadPlayer(ports.highway.host);
+    if (!Number.isInteger(this.limit) || this.limit < 2 || this.limit > 9 || ports.highway.host.embedded || !owner.hasMotor) throw new RangeError('Invalid grid simulation owner');
+    this.owner = owner.id; this.sites.set(owner.id, null);
     if (ports.reserve !== undefined && ports.residentBytes === undefined) throw new Error('Sim reservation needs admitted resident bytes');
     if (ports.allocator !== undefined && (ports.residentBytes === undefined || ports.reserve !== undefined)) throw new Error('Use one sim reservation owner with admitted bytes');
   }
   /** Stable active instance; null is the platform highway/strip frame. */
-  current(): string | null { return this.active; }
-  /** Current host owns the only enabled traveller capsule and character controller. */
-  host(): SimHost { return this.active === null ? this.ports.highway.host : this.resident(this.active).value.host; }
+  current(player: string = this.owner): string | null {
+    const site = this.sites.get(player);
+    if (site === undefined) throw new Error(`Not on the grid: ${player}`);
+    return site;
+  }
+  /** The host a player stands in, which holds that player's enabled capsule and character controller. */
+  host(player: string = this.owner): SimHost { return this.hostAt(this.current(player)); }
+  private hostAt(site: string | null): SimHost { return site === null ? this.ports.highway.host : this.resident(site).value.host; }
+  /** Whether any player stands in this cell, so it advances and cannot be evicted. */
+  private occupied(site: string | null): boolean { for (const at of this.sites.values()) if (at === site) return true; return false; }
+  /** Everyone on the grid. */
+  players(): readonly string[] { return [...this.sites.keys()]; }
+  private seat(host: SimHost, player: string): PlayerSim {
+    const seat = host.players.get(player);
+    if (seat === undefined) throw new Error(`No grid seat for ${player}`);
+    return seat;
+  }
+  /** Another player comes onto the highway, already free of any cell. */
+  join(player: string, at: Readonly<GridPoint>, yaw = 0): void {
+    if (this.disposed || this.sites.has(player)) throw new Error('Invalid grid player');
+    const { host } = this.ports.highway;
+    this.parkOwner(host); host.addPlayer(player, at, yaw); this.sites.set(player, null);
+  }
+  /** A player other than the owner leaves the grid, from wherever it stands. */
+  leave(player: string): boolean {
+    const site = this.sites.get(player);
+    if (site === undefined || player === this.owner) return false;
+    const host = this.hostAt(site);
+    this.sites.delete(player); host.removePlayer(player); this.settleOwner(host, site);
+    return true;
+  }
+  /** A host about to run without its lead keeps the lead's seat, its capsule disabled, for the systems bound to it. */
+  private parkOwner(host: SimHost): void {
+    const seat = this.seat(host, this.owner);
+    if (seat.hasMotor) return;
+    const capsule = new CharacterMotor(host.physics, host.playerMotorOptions(seat));
+    capsule.setEnabled(false); capsule.resetAt(seat.position); seat.attachMotor(capsule); host.parked.add(seat.id);
+  }
+  /** A host nobody is left in freezes as any region does: its lead's seat holds no capsule. */
+  private settleOwner(host: SimHost, site: string | null): void { if (!this.occupied(site)) this.unparkOwner(host); }
+  private unparkOwner(host: SimHost): void { if (host.parked.delete(this.owner)) this.seat(host, this.owner).detachMotor(); }
   private resident(instance: string): Resident { const value = this.residents.get(instance); if (value === undefined) throw new Error(`Grid sim is not resident: ${instance}`); return value; }
   /** Resolve a pure target using the 6 m enter / 10 m leave bands, both within the 20 m strip. */
-  target(feet: Readonly<GridPoint>): string | null {
+  target(feet: Readonly<GridPoint>, player: string = this.owner): string | null {
     if (![feet.x, feet.y, feet.z].every(Number.isFinite)) throw new RangeError('Invalid grid feet');
     const distance = (cell: GridCell): number => Math.max(Math.abs(feet.x - cell.origin.x), Math.abs(feet.z - cell.origin.z)) - CHUNK_HALF;
-    if (this.active !== null && distance(this.assembly.cell(this.active)) <= 10) return this.active;
+    const active = this.current(player);
+    if (active !== null && distance(this.assembly.cell(active)) <= 10) return active;
     return [...this.assembly.cells].sort((a, b) => a.instance.localeCompare(b.instance)).find((cell) => distance(cell) <= 6)?.instance ?? null;
   }
   /** Physics construction is not enough when the runtime/admitted closure has an additional readiness fence. */
@@ -90,7 +139,7 @@ export class GridSimulation {
       this.assertAlive();
       await this.reserveCache();
       while (this.residents.size >= this.limit) {
-        const candidate = [...this.residents].filter(([id, value]) => id !== this.active && value.reservations === 0 && !value.retained).sort((a, b) => a[1].touched - b[1].touched || a[0].localeCompare(b[0]))[0];
+        const candidate = [...this.residents].filter(([id, value]) => !this.occupied(id) && value.reservations === 0 && !value.retained).sort((a, b) => a[1].touched - b[1].touched || a[0].localeCompare(b[0]))[0];
         if (candidate === undefined || !this.unload(candidate[0])) throw new Error('No durable frozen grid residency can be evicted');
       }
       const cell = this.assembly.cell(instance), bytes = this.ports.residentBytes?.(cell) ?? 0;
@@ -104,10 +153,12 @@ export class GridSimulation {
       let value: GridResident;
       try { value = await this.ports.load(cell, this.snapshots.read(instance) ?? this.ports.read?.(instance)); } catch (error) { lease?.release(); throw error; }
       try {
-        if (this.disposed || value.host.embedded || !leadPlayer(value.host).hasMotor) throw new Error('Grid admission requires an owned host');
+        if (this.disposed || value.host.embedded || !value.host.players.get(this.owner)?.hasMotor) throw new Error('Grid admission requires an owned host');
+        // A save holds whoever stood here when it was made; they carry themselves now, and nobody stands here yet.
+        for (const id of [...value.host.players.keys()]) if (id !== this.owner) value.host.removePlayer(id);
         const checkpoint = this.snapshots.pack(instance, snapshotSimHost(value.host));
         if (checkpoint === null) throw new Error('Grid continuation cache capacity exceeded');
-        leadPlayer(value.host).detachMotor(); this.snapshots.store(instance, checkpoint);
+        this.seat(value.host, this.owner).detachMotor(); this.snapshots.store(instance, checkpoint);
         this.residents.set(instance, { value, touched: ++this.used, reservations: 0, retained: false, evicting: false, lease });
         lease?.update?.({ needed: false });
       } catch (error) { try { value.dispose(); } finally { lease?.release(); } throw error; }
@@ -131,7 +182,7 @@ export class GridSimulation {
   /** Snapshot before leaving the active region. Failure keeps both its world and the traveller authoritative. */
   checkpoint(instance: string): boolean {
     const resident = this.residents.get(instance); if (resident === undefined || this.disposed) return false;
-    const snapshot = instance === this.active ? snapshotSimHost(resident.value.host) : this.snapshots.read(instance);
+    const snapshot = this.occupied(instance) ? snapshotSimHost(resident.value.host) : this.snapshots.read(instance);
     if (snapshot === undefined) throw new Error('Missing admitted grid continuation');
     const packed = this.snapshots.pack(instance, snapshot); if (packed === null) return false;
     if (!this.ports.save(instance, snapshot)) return false;
@@ -141,7 +192,7 @@ export class GridSimulation {
   retain(instance: string, needed: boolean, distance: number): void {
     if (!Number.isFinite(distance) || distance < 0) throw new RangeError('Invalid sim residency distance');
     const resident = this.resident(instance); resident.retained = needed;
-    resident.lease?.update?.({ distance, needed: needed || this.active === instance || resident.reservations > 0 });
+    resident.lease?.update?.({ distance, needed: needed || this.occupied(instance) || resident.reservations > 0 });
   }
   /** Dispose only a frozen region after its local continuation is durably retained. */
   unload(instance: string): boolean {
@@ -153,7 +204,7 @@ export class GridSimulation {
   /** Fallible checkpoints run before the allocator retires any claim. An aborted multi-claim eviction changes no world. */
   prepareUnload(instance: string): PreparedGridUnload | null {
     const resident = this.residents.get(instance);
-    if (resident === undefined || this.disposed || instance === this.active || resident.reservations !== 0 || resident.retained || resident.evicting) return null;
+    if (resident === undefined || this.disposed || this.occupied(instance) || resident.reservations !== 0 || resident.retained || resident.evicting) return null;
     try { if (!this.checkpoint(instance)) return null; } catch { return null; }
     resident.evicting = true;
     let closed = false;
@@ -174,45 +225,68 @@ export class GridSimulation {
   /** A session owner must surface failed disposal; allocator commits remain atomic and never hide these errors. */
   disposalIssues(): readonly string[] { return [...this.cleanupIssues]; }
   /** Admission and disabled replacement controllers are prepared ahead of the fixed-step boundary. */
-  async prepare(from: string | null, to: string | null): Promise<PreparedGridFrame> {
-    if (this.disposed || from !== this.active || from === to) throw new Error('Stale grid frame preparation');
+  async prepare(from: string | null, to: string | null, player: string = this.owner): Promise<PreparedGridFrame> {
+    if (this.disposed || this.sites.get(player) !== from || from === to) throw new Error('Stale grid frame preparation');
     if (to !== null) await this.ensure(to);
-    if (!this.ready(null) || from !== this.active) throw new Error('Stale grid frame preparation');
+    if (!this.ready(null) || this.sites.get(player) !== from) throw new Error('Stale grid frame preparation');
     if (to !== null && this.resident(to).evicting) throw new Error('Destination eviction is prepared');
-    const source = this.host(), destination = to === null ? this.ports.highway.host : this.resident(to).value.host;
-    const traveller = leadPlayer(source), arrival = leadPlayer(destination);
+    const source = this.hostAt(from), destination = this.hostAt(to);
+    const traveller = this.seat(source, player);
     const fromOrigin = from === null ? { x: 0, z: 0 } : this.assembly.cell(from).origin, toOrigin = to === null ? { x: 0, z: 0 } : this.assembly.cell(to).origin;
-    const rider: FrameMember = { position: traveller.position, motor: traveller.motor }, mount = this.ports.mount?.();
+    const rider: FrameMember = { position: traveller.position, motor: traveller.motor }, mount = player === this.owner ? this.ports.mount?.() : undefined;
     const transaction = prepareFrameMotors(mount === undefined ? [rider] : [rider, mount], destination.physics, { x: fromOrigin.x - toOrigin.x, z: fromOrigin.z - toOrigin.z });
     const target = to === null ? undefined : this.resident(to); if (target !== undefined) target.reservations++;
     target?.lease?.update?.({ needed: true });
     let closed = false;
     const cancellations = this.cancelFrames;
     function cancel(): void { if (closed) return; transaction.cancel(); release(); }
-    const stillNeeded = (): boolean => to === this.active || (target?.retained ?? false);
+    const stillNeeded = (): boolean => this.occupied(to) || (target?.retained ?? false);
     function release(): void { closed = true; cancellations.delete(cancel); if (target !== undefined) { target.reservations--; target.lease?.update?.({ needed: target.reservations > 0 || stillNeeded() }); } }
     this.cancelFrames.add(cancel);
     return {
       commit: () => {
-        if (closed || this.disposed || this.active !== from || !this.ready(to)) throw new Error('Stale or unready grid frame commit');
-        const health = traveller.health.snapshot();
+        if (closed || this.disposed || this.sites.get(player) !== from || !this.ready(to)) throw new Error('Stale or unready grid frame commit');
+        const health = traveller.health.snapshot(), arrival = this.arrivalSeat(destination, player, traveller);
         // Validate before any source motor is retired; restore is bounded and cannot invoke application callbacks.
         arrival.health.restore({ ...health, lastHurt: health.lastHurt + (destination.clock.now - source.clock.now) * 1000 });
         transaction.commit(); traveller.releaseMotor(); arrival.attachMotor(rider.motor);
         arrival.position.copy(rider.position); arrival.yaw = traveller.yaw;
-        this.active = to; release();
-        if (from !== null) { const previous = this.resident(from); previous.lease?.update?.({ needed: previous.retained || previous.reservations > 0 }); }
+        this.sites.set(player, to);
+        if (player !== this.owner) source.removePlayer(player);
+        if (this.occupied(from)) { if (player === this.owner) this.parkOwner(source); } else this.unparkOwner(source);
+        release();
+        if (from !== null) { const previous = this.resident(from); previous.lease?.update?.({ needed: previous.retained || previous.reservations > 0 || this.occupied(from) }); }
       },
       cancel,
     };
   }
+  /** The empty seat a player takes on arrival. The lead's is always there; anyone else's is made for them. */
+  private arrivalSeat(host: SimHost, player: string, traveller: PlayerSim): PlayerSim {
+    if (player === this.owner) { this.unparkOwner(host); return this.seat(host, player); }
+    this.parkOwner(host);
+    const seat = host.addPlayer(player, traveller.position, traveller.yaw);
+    seat.detachMotor();
+    return seat;
+  }
   /** Run once after the crossing coordinator; no frozen neighbour's clock, creatures, scripts or quests advance. */
-  step(command?: SimCommand): void {
+  step(command?: SimCommand): void { this.stepAll(command === undefined ? undefined : new Map([[this.owner, command]])); }
+  /** One tick for every world with a player in it: each player's command goes to the host it stands in. */
+  stepAll(commands?: ReadonlyMap<string, SimTickCommand>): void {
     if (this.disposed) throw new Error('Grid simulation is disposed');
-    const host = this.host(); this.ports.beforeMove?.(this.active, host); host.step(leadCommands(host, command));
+    const sites = new Set(this.sites.values());
+    for (const site of sites) {
+      const host = this.hostAt(site); this.ports.beforeMove?.(site, host);
+      if (sites.size === 1) { host.step(commands); continue; }
+      const own = new Map<string, SimTickCommand>();
+      for (const [id, command] of commands ?? []) if (this.sites.get(id) === site) own.set(id, command);
+      host.step(own);
+    }
   }
   /** Global render pose is derived from local feet and the current frame, never saved into an authored host. */
-  worldFeet(): GridPoint { const position = leadPlayer(this.host()).position; return this.active === null ? { x: position.x, y: position.y, z: position.z } : this.assembly.world(position, this.assembly.cell(this.active)); }
+  worldFeet(player: string = this.owner): GridPoint {
+    const site = this.current(player), { position } = this.seat(this.hostAt(site), player);
+    return site === null ? { x: position.x, y: position.y, z: position.z } : this.assembly.world(position, this.assembly.cell(site));
+  }
   /** Packed same-page continuations stay bounded independently of the number of unloaded native worlds. */
   continuationState(): { entries: number; storedChars: number; capacityChars: number; claimedBytes: number } {
     return { ...this.snapshots.state(), claimedBytes: this.cacheLease === undefined ? 0 : GRID_CONTINUATION_CACHE_BYTES };

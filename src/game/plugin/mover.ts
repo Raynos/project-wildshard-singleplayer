@@ -170,7 +170,7 @@ export interface MoverInstallation {
   activation?: MoverActivationPorts;
 }
 /** What every player in the world stands on. A seat with no capsule is not in the world. */
-export function* playerGrounds(host: Pick<SimHost, 'players'>): Generator<CharacterMotor['result']> { for (const player of host.players.values()) if (player.hasMotor) yield player.motor.result; }
+export function* playerGrounds(host: Pick<SimHost, 'players' | 'parked'>): Generator<CharacterMotor['result']> { for (const player of host.players.values()) if (player.hasMotor && !host.parked.has(player.id)) yield player.motor.result; }
 /** Trusted activation observes real grounded collider ownership and the admitted host shared state. */
 export interface MoverActivationPorts {
   ground?: () => Iterable<CharacterMotor['result']>;

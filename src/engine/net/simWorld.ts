@@ -35,7 +35,7 @@ export class SimNetWorld implements NetWorld {
   quests(player: string, since: number): QuestProgressRead | null { return questBooks(this.host).progressOf(player, since); }
   visit(visitor: NetVisitor): void {
     const { host, pose } = this, targets = new Map(host.attackTargets());
-    for (const player of host.players.values()) visitor.entity(player.id, PLAYER_CLASS, player);
+    for (const player of host.players.values()) if (!host.parked.has(player.id)) visitor.entity(player.id, PLAYER_CLASS, player);
     for (const [id, sim] of host.entities) {
       sim.samplePose(pose);
       const view: AnimalNetView = { sim, pose, target: targets.get(id) ?? null };

@@ -996,6 +996,7 @@
   "src/game/grid/roadTileStream.ts": "client",
   "src/game/grid/roadTileWrite.worker.ts": "client",
   "src/game/grid/roadTileWriter.ts": "client",
+  "src/game/grid/room.ts": "server",
   "src/game/grid/rules.ts": "server",
   "src/game/grid/runtimeCheckpoint.ts": "client",
   "src/game/grid/runtimeCost.ts": "client",

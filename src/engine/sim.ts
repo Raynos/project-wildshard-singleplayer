@@ -213,6 +213,8 @@ export class SimHost {
    */
   readonly playerFocus: Vector3;
   private focused: PlayerSim;
+  /** Seats held out of the world: their capsule is disabled, and they take no input, move and heal nothing, and draw no one. */
+  readonly parked: Set<string> = new Set<string>();
   /** The player `player.traversal` is being asked for: a mode answers only for its own player. */
   traversing: PlayerSim | null = null;
   private boardHandles: number[] = [];
@@ -328,6 +330,7 @@ export class SimHost {
     if (this.players.size === 1) return this.lead;
     let best = this.lead, bestScore = Infinity;
     for (const player of this.players.values()) {
+      if (this.parked.has(player.id)) continue;
       const p = player.position, score = (p.x - point.x) ** 2 + (p.y - point.y) ** 2 + (p.z - point.z) ** 2 + (player.health.alive ? 0 : DEAD_PLAYER_PENALTY);
       if (score < bestScore) { best = player; bestScore = score; }
     }
@@ -570,18 +573,18 @@ export class SimHost {
   step(commands?: ReadonlyMap<string, SimTickCommand>): void {
     if (this.disposed) throw new Error('Simulation host is disposed');
     if (this.embedded) throw new Error('Borrowed simulation uses the existing fixed-step driver');
-    const { players } = this;
-    for (const player of players.values()) if (!player.hasMotor) throw new Error('Frozen simulation cannot step');
+    const { players, parked } = this, present = parked.size === 0 ? players : new Map([...players].filter(([id]) => !parked.has(id)));
+    for (const player of present.values()) if (!player.hasMotor) throw new Error('Frozen simulation cannot step');
     if (commands !== undefined) for (const id of commands.keys()) if (!players.has(id)) throw new RangeError(`Unknown simulation player ${id}`);
     this.tickCommands = commands;
-    for (const player of players.values()) player.take(commands?.get(player.id));
+    for (const player of present.values()) player.take(commands?.get(player.id));
     this.events.beginFrame(); this.clock.tick(FIXED_STEP);
-    for (const player of players.values()) player.input();
+    for (const player of present.values()) player.input();
     if (this.boardHandles.length > 0) this.syncBoardColliders();
     this.physics.step();
-    for (const player of players.values()) player.move();
+    for (const player of present.values()) player.move();
     this.stepSystems();
-    for (const player of players.values()) player.health.update(FIXED_STEP);
+    for (const player of present.values()) player.health.update(FIXED_STEP);
     this.events.flush('fixed.post');
   }
   /** Called once by the client's fixed.post slot; it never advances physics, clock, player or event phases. */
