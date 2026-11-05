@@ -33,13 +33,11 @@ import { installRoomRespawn } from '@wildshard/game/roomRespawn';
 import { hasNativeAssembly } from '@wildshard/game/shardfile/nativeAssembly';
 import { createQuestLedger } from '@wildshard/game/quest/ledger';
 import { createTrustedHeadlessResident, type HeadlessRuntimeInput } from '../headlessRuntime';
-import { tickCommands, type HeadlessEffect } from '../tickProtocol';
+import type { HeadlessEffect } from '../tickProtocol';
 import { cellDocuments, CONTINUATION, ContinuationSlots, SITE, siteDocuments, type SavedContinuation, type SavedSite } from './continuation';
 import { ledgerFilings } from './ledgerFilings';
-import { netTickCommands } from './netInput';
+import { stepResident } from './netInput';
 
-/** The tick allowance one player's input may use. */
-const COMMANDS_PER_TICK = 8;
 /** Worlds the worker holds beside the road, and so what a crossroads costs a phone (E5.2b, J68): the one its player stands in. */
 export const STANDALONE_RESIDENTS = 1;
 /** A deck that covers the whole grid, and a player's pace on it. */
@@ -249,9 +247,9 @@ export class StandaloneGrid {
       host.respawn.served = true;
       return { host, dispose: () => { resident.dispose(); }, fact, effects: () => resident.effects,
         adopt: () => { regionalRuntimeCheckpoint(options.saves, placed, input.shard.identity.revision).restore({ animals: [...host.entities.values()] }); return true; }, step: inputs => {
-        const player = sessionPlayer(host), own = inputs.find(row => row.player === player.id);
+        const player = sessionPlayer(host);
         near?.update(player.position.x, player.position.z);
-        resident.step(tickCommands([{ source: 'net', commands: netTickCommands(own?.command ?? null, own?.acts ?? [], actRoutes(host)) }], COMMANDS_PER_TICK), undefined, new Map(inputs.map(row => [row.player, row.acts])));
+        stepResident(resident, player.id, inputs);
       } };
     }
     const effects: HeadlessEffect[] = [], { host, dispose, sim } = await openDataCell(input, snapshot, effects, options.lone === true);
