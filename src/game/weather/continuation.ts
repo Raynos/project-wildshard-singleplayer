@@ -7,6 +7,7 @@ import { Vector3 } from 'three';
 import { Wind } from '@wildshard/engine/world/steppeWind';
 import { WeatherWorldSchema, WindStateSchema, type WeatherProgram } from '@wildshard/format/weatherProgram';
 import { NativeWildEnvironment } from '../population/nativeManager';
+import { mountedPlayerOf } from '../riding/native';
 import { nativePopulationOf } from '../riding/nativePopulation';
 import { installWeatherReactions, weatherWorldLight, type nativeWeatherBundle, type WeatherListener, type WeatherReactions } from './reactions';
 import type { NativeCombatFrame } from '../plugin/nativeItems';
@@ -55,7 +56,7 @@ export function installWeatherContinuation(host: SimHost | WeatherInstallation, 
     const hurt = (player: PlayerSim, event: Readonly<Record<string, number>>): void => { host.combat.hit({ source: 'env',sourceTags: worldRows.hit.tags,target: player.health,amount: host.events.ask(worldRows.hit.ask,event['damage'] ?? 0),
       point: player.position.clone(),dir: new Vector3(),cause: worldRows.hit.cause,toast: worldRows.hit.toast }); };
     storm.on('hurt',event => { hurt(focus,event); });
-    const posed = (player: PlayerSim): WeatherListener => ({ read: inputs => { Object.assign(inputs,{ px: player.position.x,py: player.position.y,pz: player.position.z,crouched: 0,mounted: 0 }); },hear: event => { hurt(player,event); } });
+    const posed = (player: PlayerSim): WeatherListener => ({ read: inputs => { const seat = mountedPlayerOf(host,player.id); Object.assign(inputs,{ px: player.position.x,py: player.position.y,pz: player.position.z,crouched: Number(seat?.rider.crouching === true),mounted: Number(seat?.mounted === true) }); },hear: event => { hurt(player,event); } });
     storm.serve({ event: 'hurt',others: function* others() { for (const player of host.players.values()) if (player !== focus) yield posed(player); } });
     const view = (): void => {
       env.light = weatherWorldLight(worldRows.light,clock.sunElevation,storm.stormActive); env.storm = storm.stormActive;
@@ -66,6 +67,7 @@ export function installWeatherContinuation(host: SimHost | WeatherInstallation, 
       if (!host.players.has(focus.id)) focus = playerAfter(host,null);
       wind.update(dt); const player = focus.position;
       Object.assign(storm.inputs,{ px: player.x,py: player.y,pz: player.z,crouched: Number(env.playerCrouched),mounted: Number(env.playerMounted) });
+      if (focus !== playerAfter(host,null)) posed(focus).read(storm.inputs);
       storm.update(dt); view();
       if (struck) { struck = false; focus = playerAfter(host,focus); }
     },{ snapshot: () => { const state = wind.snapshot(); return { wind: { ...state,target: { ...state.target } },storm: storm.snapshot(),...(focus === playerAfter(host,null) ? {} : { focus: focus.id }) }; },restore: value => { const state = v.parse(saved,value); wind.restore(state.wind); storm.restore(state.storm); view();

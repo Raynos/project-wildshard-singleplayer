@@ -12,7 +12,7 @@ import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import { tagOf } from '@wildshard/engine/physics/surface';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { walkingSpeed } from '@wildshard/engine/player/walk';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
+import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 
 const num = v.pipe(v.number(), v.finite()), triple = v.tuple([num, num, num]);
 const handle = v.nullable(v.pipe(num, v.minValue(0)));
@@ -21,9 +21,11 @@ const MotorState = v.strictObject({ version: v.literal(1), colliderHandle: v.pip
   anchor: v.strictObject({ x: num, y: num, z: num }), anchorBodyHandle: handle,
   climbAngle: num, slideAngle: num, result: v.strictObject({ grounded: v.boolean(), groundNormalY: num,
     downhillX: num, downhillZ: num, horizontalFreedom: num, groundColliderHandle: handle }) });
-const Saved = v.strictObject({ version: v.literal(1), horse: v.nullable(v.string()), body: v.unknown(), motor: v.nullable(MotorState),
-  decisionClock: num, walkingSpeed: num, rider: v.strictObject({ velocity: triple, onGround: v.boolean(), sprinting: v.boolean(), crouching: v.boolean(), speedFactor: num }),
-  poses: v.pipe(v.array(v.tuple([v.string(), v.string()])), v.maxLength(64)) });
+const SeatRows = { horse: v.nullable(v.string()), body: v.unknown(), motor: v.nullable(MotorState),
+  decisionClock: num, walkingSpeed: num, rider: v.strictObject({ velocity: triple, onGround: v.boolean(), sprinting: v.boolean(), crouching: v.boolean(), speedFactor: num }) };
+const SeatSaved = v.strictObject(SeatRows);
+const Saved = v.strictObject({ version: v.literal(1), ...SeatRows, poses: v.pipe(v.array(v.tuple([v.string(), v.string()])), v.maxLength(64)),
+  others: v.exactOptional(v.record(v.string(), SeatSaved)) });
 
 /** Trusted physical rider, not a presentation/taming stand-in. Mountable identities come from the page's actual camp roster. */
 export interface NativeMountedPlayer {
@@ -40,14 +42,31 @@ export interface NativeMountedPlayer {
   /** The page Mount's teleport: the ridden horse and its rider stand at x, z facing yaw, at rest. */
   readonly teleport: (x: number, z: number, yaw: number) => void;
 }
-const installed = new WeakMap<SimHost, NativeMountedPlayer>();
-/** Read this host's owned riding law; no page/global singleton. */
-export function mountedPlayerOf(host: SimHost): NativeMountedPlayer | undefined { return installed.get(host); }
+/** One player's saddle under the host's riding law: what the law steps and saves for them. */
+interface Seat extends NativeMountedPlayer {
+  readonly player: PlayerSim;
+  /** The on-foot observation the law keeps while no horse is under them. */
+  readonly observe: (dt: number) => void;
+  readonly save: () => Record<string, SimValue>;
+  /** Refuse a foreign save before anything changes. */
+  readonly check: (state: v.InferOutput<typeof SeatSaved>) => void;
+  readonly load: (state: v.InferOutput<typeof SeatSaved>) => void;
+  readonly reconnect: () => void;
+  /** The player has gone: their horse walks free, and nothing touches their body. */
+  readonly leave: () => void;
+}
+const installed = new WeakMap<SimHost, { readonly first: NativeMountedPlayer; readonly seat: (id: string) => NativeMountedPlayer | undefined }>();
+/** Read this host's owned riding law; no page/global singleton. Without `id`, the first player's seat. */
+export function mountedPlayerOf(host: SimHost, id?: string): NativeMountedPlayer | undefined {
+  const law = installed.get(host);
+  return id === undefined ? law?.first : law?.seat(id);
+}
 
-/** The page's native reins/body and gait phase under the host's single physics authority. The ordinary player driver
- * remains authoritative on foot. Companions, taming and the weapons are subsequent installs, never simulated here. */
+/** The page's native reins/body and gait phase under the host's single physics authority, one seat a player: each rides
+ * their own horse on their own reins, and the roster, the poses and the rules are the world's. The ordinary player driver
+ * remains authoritative on foot. Companions, taming and the weapons are subsequent installs, never simulated here. One
+ * player saves the one seat's exact bytes; a seat comes when a player first plays a tick, or is first asked for. */
 export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?: { readonly file: string; readonly bytes: Uint8Array }, wetBlock?: { readonly file: string; readonly bytes: Uint8Array }): NativeMountedPlayer {
-  const lead = leadPlayer(host);
   const rows = v.parse(NativeRidingSchema, profile), { herds } = nativeHerdCollection(host, rows.herds);
   const blocks = new Map(pondBlock === undefined ? [] : [[pondBlock.file,pondBlock.bytes]]);
   if(wetBlock!==undefined){if(blocks.has(wetBlock.file))throw new Error('Duplicate native scalar block');blocks.set(wetBlock.file,wetBlock.bytes);}
@@ -59,13 +78,7 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
   const wetAt = (x: number, z: number): boolean => wet(x, z) > .5;
   const inBounds = (x: number, z: number, margin: number): boolean => Math.abs(x) < rows.world.size / 2 - margin && Math.abs(z) < rows.world.size / 2 - margin;
   if (installed.has(host)) throw new Error('Native mounted player already installed');
-  lead.modes.register({ id: 'ride', hud: 'ride' }, host.scope);
   const rules = ReturnProgram.native(host, rows.program);
-  const body = new MountedBody(rows.speeds), rider: MountedRider = { position: lead.position, velocity: new Vector3(),
-    onGround: true, sprinting: false, crouching: false, speedFactor: 1 };
-  let decisionClock = 0;
-  const walking = { speed: host.level.player.speed, crouching: false }, previousFoot = new Vector3();
-  let horse: AnimalSim | null = null, savedMotor: v.InferOutput<typeof MotorState> | null = null;
   const poses = new Map<string, AnimalPoseLaw>();
   const horses = [...host.entities.values()].filter(actor => rows.kinds.includes(actor.kind));
   if (horses.length > 64 || herds.length > 64) throw new Error('Native mounted roster exceeds its bound');
@@ -90,21 +103,66 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
   }
   const mountables = rows.mountable.map(id => { const a = host.entities.get(id); if (a === undefined) throw new Error('Missing native mountable'); return a; });
   const poseRows = [...poses].map(([id, pose]) => ({ id, pose }));
-  const dismount = (thrown = false): void => {
-    const a = horse; if (a === null) return;
+  const seats = new Map<string, Seat>();
+  /** The herd's one `ridden` slot, kept on a horse someone still rides when another of its herd is mounted or let go. */
+  const holdHerd = (a: AnimalSim): void => {
+    const h = herd(a); if (h === null) { a.mem['ridden'] = 1; return; }
+    h.setRidden(a);
+    for (const seat of seats.values()) if (seat.horse !== null && seat.horse !== a && herd(seat.horse) === h) seat.horse.mem['ridden'] = 1;
+  };
+  const releaseHerd = (a: AnimalSim): void => {
+    const h = herd(a);
+    if (h?.ridden !== a) { a.mem['ridden'] = 0; return; }
+    h.setRidden(null);
+    for (const seat of seats.values()) if (seat.horse !== null && seat.horse !== a && herd(seat.horse) === h) { h.setRidden(seat.horse); return; }
+  };
+  const addMountable = (id: string): void => {
+    const a = host.entities.get(id); if (a === undefined) throw new Error('Missing adopted mount');
+    if (host.entities.get(a.entityId) !== a || a.kind !== rows.adopted.kind || a.variant !== rows.adopted.variant || available.has(a.entityId)
+      || poses.size >= 64) throw new Error('Foreign Native adopted mount');
+    const pose = new AnimalPoseLaw({ dims: a.dims, custom: true,
+      ...rows.pose });
+    a.mem['owned'] = 1; poses.set(a.entityId, pose); poseRows.push({ id: a.entityId, pose }); available.add(a.entityId); mountables.push(a);
+  };
+  const removeMountable = (id: string): void => {
+    const a = host.entities.get(id); if (a === undefined) throw new Error('Missing adopted mount');
+    if (host.entities.get(a.entityId) !== a || [...seats.values()].some(seat => seat.horse === a) || a.kind !== rows.adopted.kind || a.variant !== rows.adopted.variant
+      || !available.delete(a.entityId)) throw new Error('Foreign Native mount removal');
+    const registered = mountables.indexOf(a); if (registered === -1) throw new Error('Missing adopted mount'); mountables.splice(registered, 1);
+    poses.delete(a.entityId); const at = poseRows.findIndex(row => row.id === a.entityId); if (at === -1) throw new Error('Missing adopted pose');
+    poseRows.splice(at, 1);
+  };
+  const missingPose = new Error('Missing mounted pose actor');
+  const seatFor = (player: PlayerSim): Seat => {
+  const known = seats.get(player.id); if (known?.player === player) return known;
+  player.modes.register({ id: 'ride', hud: 'ride' }, host.scope);
+  const body = new MountedBody(rows.speeds), rider: MountedRider = { position: player.position, velocity: new Vector3(),
+    onGround: true, sprinting: false, crouching: false, speedFactor: 1 };
+  let decisionClock = 0;
+  const walking = { speed: host.level.player.speed, crouching: false }, previousFoot = player.position.clone();
+  let horse: AnimalSim | null = null, savedMotor: v.InferOutput<typeof MotorState> | null = null;
+  /** The horse under them walks free where it stands. */
+  const freeHorse = (a: AnimalSim): void => {
     a.position.copy(body.feet); a.yaw = body.heading; a.driven = false; a.levelGround = false;
     a.yOffset = Math.max(0, body.feet.y - heightAt(body.feet.x, body.feet.z));
     body.motor?.dispose(); body.motor = null;
+  };
+  const settleHorse = (a: AnimalSim): void => {
+    releaseHerd(a);
+    a.setMotion(a.yaw, 0, 2); a.mem['rear'] = 0; a.mem['buck'] = 0; a.mem['turnLead'] = 0;
+    body.gait = 'stand';
+  };
+  const dismount = (thrown = false): void => {
+    const a = horse; if (a === null) return;
+    freeHorse(a);
     const site = rules.project('dismount', { x: a.position.x, z: a.position.z, yaw: a.yaw, thrown: Number(thrown) });
     let x = site['x'] ?? a.position.x, z = site['z'] ?? a.position.z;
     if (!inBounds(x, z, 3)) { x = site['altX'] ?? x; z = site['altZ'] ?? z; }
     rider.position.set(x, Math.max(heightAt(x, z), body.onDeck ? body.feet.y : -Infinity), z);
     rider.velocity.set(0, 0, 0); rider.onGround = true; rider.speedFactor = 1;
-    lead.motor.setEnabled(true); lead.fall.grounded = true; lead.fall.vy = 0;
-    horse = null; body.breaking = false; lead.modes.exit('ride');
-    const h = herd(a); if (h?.ridden === a) h.setRidden(null); else a.mem['ridden'] = 0;
-    a.setMotion(a.yaw, 0, 2); a.mem['rear'] = 0; a.mem['buck'] = 0; a.mem['turnLead'] = 0;
-    body.gait = 'stand';
+    player.motor.setEnabled(true); player.fall.grounded = true; player.fall.vy = 0;
+    horse = null; body.breaking = false; player.modes.exit('ride');
+    settleHorse(a);
   };
   const world: MountedWorld = { get physics() { return host.physics; }, heightAt, waterLevel,
     wetAt, stampede: owner => {
@@ -113,7 +171,7 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
       return h !== null && (h.stampeding || (owner === h.stallion && h.stallionState === 'charge')) ? owner : null;
     }, thrown: () => {
       dismount(true);
-      host.combat.hit({ source: 'env', sourceTags: [], target: lead.health, amount: rows.thrownDamage, point: lead.position,
+      host.combat.hit({ source: 'env', sourceTags: [], target: player.health, amount: rows.thrownDamage, point: player.position,
         dir: rider.velocity, cause: { kind: 'env.ride', label: rows.thrownLabel, text: rows.thrownLabel } });
     } };
   const frame: { -readonly [K in keyof ReinsFrame]: ReinsFrame[K] } = {
@@ -127,18 +185,18 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
   };
   const driver: SimPlayerDriver = { walking, motionSample: sampleMotion, input: (command, dt) => {
     if (horse?.alive === false) dismount(true);
-    previousFoot.copy(lead.position);
+    previousFoot.copy(player.position);
     const a = horse;
     if (a === null) {
       const versioned = command?.commandVersion === 1;
-      const board = command?.hover === true ? !lead.board.on : lead.board.on;
+      const board = command?.hover === true ? !player.board.on : player.board.on;
       const surface = surfaceAt(rider.position.x, rider.position.z);
       const depth = surface === null ? 0 : Math.max(0, surface - rider.position.y);
       const forward = command === undefined ? 0 : -Math.sin(command.yaw) * command.moveX - Math.cos(command.yaw) * command.moveZ;
       decisionClock += dt;
       if (decisionClock + 1e-9 >= .1) {
         decisionClock = 0;
-        const row = rules.project('walk', { version: Number(versioned), board: Number(board), swim: Number(lead.swim.on), depth, forward, crouched: Number(command?.crouch === true), sprint: Number(command?.sprint === true), grounded: Number(lead.fall.grounded) });
+        const row = rules.project('walk', { version: Number(versioned), board: Number(board), swim: Number(player.swim.on), depth, forward, crouched: Number(command?.crouch === true), sprint: Number(command?.sprint === true), grounded: Number(player.fall.grounded) });
         rider.crouching = row['crouched'] === 1; rider.sprinting = row['sprinting'] === 1;
         walking.speed = versioned ? walkingSpeed(rider.crouching, rider.sprinting, row['wade'] ?? 0, 1, 1) : host.level.player.speed;
         walking.crouching = rider.crouching;
@@ -146,11 +204,11 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
       return false;
     }
     if (command !== undefined && (command.commandVersion !== 1 || command.steer === undefined)) throw new Error('Mounted reins require versioned raw local controls');
-    if (command !== undefined) lead.yaw = command.yaw;
-    lead.impulse.set(0, 0, 0); rider.crouching = false;
+    if (command !== undefined) player.yaw = command.yaw;
+    player.impulse.set(0, 0, 0); rider.crouching = false;
     frame.forward = command?.steer?.keyY ?? 0; frame.turn = command?.steer?.keyX ?? 0;
     frame.touchX = command?.steer?.stickX ?? 0; frame.touchY = command?.steer?.stickY ?? 0;
-    frame.gallop = command?.sprint === true; frame.jump = command?.jump === true; frame.phase = phase(a.entityId); frame.moveScale = lead.moveScale;
+    frame.gallop = command?.sprint === true; frame.jump = command?.jump === true; frame.phase = phase(a.entityId); frame.moveScale = player.moveScale;
     frame.wet = wetAt(body.feet.x, body.feet.z) || heightAt(body.feet.x, body.feet.z) < waterLevel() - 0.2;
     body.read(dt, frame); a.mem['turnLead'] = body.turnLead; a.lookWeight = 0;
     return true;
@@ -159,7 +217,7 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
     body.stepBody(dt, a, rider, world);
     if (horse !== null) body.placeRider(dt, 1, a, rider, world);
   } };
-  lead.useDriver(driver);
+  player.useDriver(driver);
   const accepts = (id: string, breaking: boolean): boolean => {
     const a = host.entities.get(id);
     const allowed = rules.project('mount', { mounted: Number(horse !== null), present: Number(a !== undefined), alive: Number(a?.alive === true), driven: Number(a?.driven === true), available: Number(available.has(id)), breaking: Number(breaking), stallion: Number(herds.some(h => h.stallion === a)) });
@@ -168,8 +226,8 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
   const mount = (id: string, breaking = false): boolean => {
     const a = host.entities.get(id);
     if (!accepts(id, breaking) || a === undefined) return false;
-    lead.setBoard(false); horse = a;
-    const h = herd(a); if (h !== null) h.setRidden(a); else a.mem['ridden'] = 1;
+    player.setBoard(false); horse = a;
+    holdHerd(a);
     a.setMotion(a.yaw, 0, 2); body.heading = a.yaw; body.speed = 0; body.wUp = 0; body.yawRate = 0;
     body.breaking = breaking;
     body.target = 0; body.rateIn = 0; body.turnIn = 0; body.sector = 2; body.jumpQueued = false;
@@ -179,15 +237,65 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
     body.spur.reset(); body.spur.good = 0; body.lastPhase = phase(id);
     body.motor = withOwner(null, () => new CharacterMotor(host.physics, mountedMotorOptions(a.scale, a)));
     body.settleBody(); body.landBody(world); body.eyeY = body.feet.y;
-    lead.motor.setEnabled(false);
-    lead.modes.enter('ride', driver);
+    player.motor.setEnabled(false);
+    player.modes.enter('ride', driver);
     return true;
   };
-  const missingPose = new Error('Missing mounted pose actor');
+  const teleport = (x: number, z: number, yaw: number): void => {
+    const a = horse; if (a === null) return;
+    a.place(x, z, yaw); body.heading = yaw; body.speed = 0; a.speed = 0;
+    body.feet.set(x, heightAt(x, z), z); body.settleBody(); body.landBody(world);
+    body.eyeY = body.feet.y; player.yaw = yaw - Math.PI; body.yawRate = 0;
+  };
+  const seat: Seat = { player, body, rider, get horse() { return horse; }, get mounted() { return horse !== null; }, mount, dismount, phase, addMountable, removeMountable, mountables,
+    canRide: id => accepts(id, false), teleport,
+    observe: dt => {
+      if (horse !== null) return;
+      rider.velocity.set((rider.position.x - previousFoot.x) / dt, player.fall.vy, (rider.position.z - previousFoot.z) / dt);
+      rider.onGround = player.fall.grounded;
+    },
+    save: () => {
+      const state = body.snapshotBody(), motor = body.motor?.snapshot();
+      return { decisionClock, walkingSpeed: walking.speed, horse: horse?.entityId ?? null, body: { ...state, reins: { ...state.reins, spur: { ...state.reins.spur } } },
+        motor: motor === undefined ? null : { ...motor, anchor: { ...motor.anchor }, result: { ...motor.result } },
+        rider: { velocity: rider.velocity.toArray(), onGround: rider.onGround, sprinting: rider.sprinting,
+          crouching: rider.crouching, speedFactor: rider.speedFactor } };
+    },
+    check: state => {
+      const checked = new MountedBody(rows.speeds); checked.restoreBody(state.body);
+      const a = state.horse === null ? null : host.entities.get(state.horse);
+      if (a === undefined || (state.horse === null) !== (state.motor === null) || (a !== null && ((!available.has(a.entityId) && !(checked.breaking && herds.some(h => h.stallion === a))) || !a.driven))) throw new Error('Invalid mounted continuation identity');
+    },
+    load: state => {
+      const a = state.horse === null ? null : host.entities.get(state.horse) ?? null;
+      body.restoreBody(state.body); decisionClock = state.decisionClock; walking.speed = state.walkingSpeed; walking.crouching = state.rider.crouching; horse = a; savedMotor = state.motor;
+      rider.velocity.fromArray(state.rider.velocity); rider.onGround = state.rider.onGround; rider.sprinting = state.rider.sprinting;
+      rider.crouching = state.rider.crouching; rider.speedFactor = state.rider.speedFactor;
+      if (a === null) player.modes.exit('ride'); else player.modes.enter('ride', driver);
+    },
+    reconnect: () => {
+      if (horse === null || savedMotor === null) return;
+      const native = host.physics.world, state = savedMotor;
+      if (!native.colliders.contains(state.colliderHandle)) throw new Error('Missing mounted native collider');
+      const c = native.getCollider(state.colliderHandle), opts = mountedMotorOptions(horse.scale, horse);
+      const half = (opts.length ?? 0) / 2 - opts.radius;
+      if (tagOf(c)?.owner !== horse || c.shapeType() !== host.physics.R.ShapeType.Capsule
+        || Math.abs(c.halfHeight() - half) > 1e-6 || Math.abs(c.radius() - opts.radius) > 1e-6) throw new Error('Invalid mounted native capsule identity');
+      body.motor = withOwner(null, () => new CharacterMotor(host.physics, opts, state)); savedMotor = null;
+    },
+    leave: () => { const a = horse; if (a !== null) { freeHorse(a); horse = null; body.breaking = false; settleHorse(a); } },
+  };
+  seats.set(player.id, seat); return seat;
+  };
+  const first = host.players.values().next();
+  if (first.done === true) throw new Error('Simulation host has no player');
+  const firstSeat = seatFor(first.value);
+  const others = (): Seat[] => [...seats.values()].filter(seat => seat !== firstSeat);
   host.onStep(rows.step, dt => {
-    if (horse === null) {
-      rider.velocity.set((rider.position.x - previousFoot.x) / dt, lead.fall.vy, (rider.position.z - previousFoot.z) / dt);
-      rider.onGround = lead.fall.grounded;
+    for (const player of host.players.values()) seatFor(player);
+    for (const [id, seat] of seats) {
+      if (host.players.get(id) === seat.player) seat.observe(dt);
+      else { seat.leave(); seats.delete(id); }
     }
     for (let i = 0; i < Math.min(64, poseRows.length); i++) {
       const row = poseRows[i]; if (row === undefined) throw missingPose;
@@ -203,68 +311,35 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
     }
   }, {
     snapshot: (): SimValue => {
-      const state = body.snapshotBody(), motor = body.motor?.snapshot();
-      return { version: 1, decisionClock, walkingSpeed: walking.speed, horse: horse?.entityId ?? null, body: { ...state, reins: { ...state.reins, spur: { ...state.reins.spur } } },
-        motor: motor === undefined ? null : { ...motor, anchor: { ...motor.anchor }, result: { ...motor.result } },
-        rider: { velocity: rider.velocity.toArray(), onGround: rider.onGround, sprinting: rider.sprinting,
-          crouching: rider.crouching, speedFactor: rider.speedFactor }, poses: [...poses].map(([id, pose]) => [id, pose.snapshot()]) };
+      const rest = others();
+      return { version: 1, ...firstSeat.save(), poses: [...poses].map(([id, pose]) => [id, pose.snapshot()]),
+        ...(rest.length === 0 ? {} : { others: Object.fromEntries(rest.map(seat => [seat.player.id, seat.save()])) }) };
     }, restore: value => {
-      const state = v.parse(Saved, value), checked = new MountedBody(rows.speeds); checked.restoreBody(state.body);
-      const a = state.horse === null ? null : host.entities.get(state.horse);
-      if (a === undefined || (state.horse === null) !== (state.motor === null) || (a !== null && ((!available.has(a.entityId) && !(checked.breaking && herds.some(h => h.stallion === a))) || !a.driven))
-        || state.poses.length !== poses.size || new Set(state.poses.map(([id]) => id)).size !== poses.size) throw new Error('Invalid mounted continuation identity');
+      const state = v.parse(Saved, value), { poses: savedPoses, others: savedOthers = {} } = state;
+      firstSeat.check(state);
+      const players = Object.entries(savedOthers).map(([id, row]) => {
+        const player = host.players.get(id); if (player === undefined) throw new Error('Invalid mounted continuation identity');
+        return [seatFor(player), row] as const;
+      });
+      for (const [seat, row] of players) seat.check(row);
+      if (savedPoses.length !== poses.size || new Set(savedPoses.map(([id]) => id)).size !== poses.size) throw new Error('Invalid mounted continuation identity');
       // Validate all pose wires before mutating the installed law.
-      for (let i = 0; i < Math.min(64, state.poses.length); i++) {
-        const row = state.poses[i]; if (row === undefined) throw new Error('Missing saved mounted pose');
+      for (let i = 0; i < Math.min(64, savedPoses.length); i++) {
+        const row = savedPoses[i]; if (row === undefined) throw new Error('Missing saved mounted pose');
         const [id, wire] = row;
         const known = poses.get(id); if (known === undefined) throw new Error('Invalid mounted pose identity');
         new AnimalPoseLaw(known.recipe).restore(wire);
       }
-      body.restoreBody(state.body); decisionClock = state.decisionClock; walking.speed = state.walkingSpeed; walking.crouching = state.rider.crouching; horse = a; savedMotor = state.motor;
-      rider.velocity.fromArray(state.rider.velocity); rider.onGround = state.rider.onGround; rider.sprinting = state.rider.sprinting;
-      rider.crouching = state.rider.crouching; rider.speedFactor = state.rider.speedFactor;
-      for (let i = 0; i < Math.min(64, state.poses.length); i++) {
-        const row = state.poses[i]; if (row === undefined) throw new Error('Missing saved mounted pose');
+      firstSeat.load(state);
+      for (const [seat, row] of players) seat.load(row);
+      for (let i = 0; i < Math.min(64, savedPoses.length); i++) {
+        const row = savedPoses[i]; if (row === undefined) throw new Error('Missing saved mounted pose');
         poses.get(row[0])?.restore(row[1]);
       }
-
-      if (a === null) lead.modes.exit('ride'); else lead.modes.enter('ride', driver);
-    }, physicsRestored: () => {
-      if (horse === null || savedMotor === null) return;
-      const native = host.physics.world, state = savedMotor;
-      if (!native.colliders.contains(state.colliderHandle)) throw new Error('Missing mounted native collider');
-      const c = native.getCollider(state.colliderHandle), opts = mountedMotorOptions(horse.scale, horse);
-      const half = (opts.length ?? 0) / 2 - opts.radius;
-      if (tagOf(c)?.owner !== horse || c.shapeType() !== host.physics.R.ShapeType.Capsule
-        || Math.abs(c.halfHeight() - half) > 1e-6 || Math.abs(c.radius() - opts.radius) > 1e-6) throw new Error('Invalid mounted native capsule identity');
-      body.motor = withOwner(null, () => new CharacterMotor(host.physics, opts, state)); savedMotor = null;
-    },
+    }, physicsRestored: () => { for (const seat of seats.values()) seat.reconnect(); },
   }, 'afterBodies');
   // The current motor changes after native restore. Capture the slot, not an expired wrapper/world.
-  host.scope.onDispose(() => { body.motor?.dispose(); body.motor = null; poses.clear(); installed.delete(host); });
-  const addMountable = (id: string): void => {
-    const a = host.entities.get(id); if (a === undefined) throw new Error('Missing adopted mount');
-    if (host.entities.get(a.entityId) !== a || a.kind !== rows.adopted.kind || a.variant !== rows.adopted.variant || available.has(a.entityId)
-      || poses.size >= 64) throw new Error('Foreign Native adopted mount');
-    const pose = new AnimalPoseLaw({ dims: a.dims, custom: true,
-      ...rows.pose });
-    a.mem['owned'] = 1; poses.set(a.entityId, pose); poseRows.push({ id: a.entityId, pose }); available.add(a.entityId); mountables.push(a);
-  };
-  const removeMountable = (id: string): void => {
-    const a = host.entities.get(id); if (a === undefined) throw new Error('Missing adopted mount');
-    if (host.entities.get(a.entityId) !== a || a === horse || a.kind !== rows.adopted.kind || a.variant !== rows.adopted.variant
-      || !available.delete(a.entityId)) throw new Error('Foreign Native mount removal');
-    const registered = mountables.indexOf(a); if (registered === -1) throw new Error('Missing adopted mount'); mountables.splice(registered, 1);
-    poses.delete(a.entityId); const at = poseRows.findIndex(row => row.id === a.entityId); if (at === -1) throw new Error('Missing adopted pose');
-    poseRows.splice(at, 1);
-  };
-  const teleport = (x: number, z: number, yaw: number): void => {
-    const a = horse; if (a === null) return;
-    a.place(x, z, yaw); body.heading = yaw; body.speed = 0; a.speed = 0;
-    body.feet.set(x, heightAt(x, z), z); body.settleBody(); body.landBody(world);
-    body.eyeY = body.feet.y; lead.yaw = yaw - Math.PI; body.yawRate = 0;
-  };
-  const out: NativeMountedPlayer = { body, rider, get horse() { return horse; }, get mounted() { return horse !== null; }, mount, dismount, phase, addMountable, removeMountable, mountables,
-    canRide: id => accepts(id, false), teleport };
-  installed.set(host, out); return out;
+  host.scope.onDispose(() => { for (const seat of seats.values()) { seat.body.motor?.dispose(); seat.body.motor = null; } poses.clear(); installed.delete(host); });
+  installed.set(host, { first: firstSeat, seat: id => { const player = host.players.get(id); return player === undefined ? undefined : seatFor(player); } });
+  return firstSeat;
 }

@@ -18,7 +18,8 @@ import { NativeGroupCollection as FixtureNativeGroups, nativeGroupCollection as 
 import { Rng as FixtureRandom } from '@wildshard/engine/core/rng';
 import { nativeGroupBrain as fixtureBrain } from '@wildshard/format/groupBrains';
 import fixtureBrains from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };
-import { installMountedPlayer } from '@wildshard/game/riding/native';
+import { installMountedPlayer, mountedPlayerOf } from '@wildshard/game/riding/native';
+import { NET_BUTTONS } from '@wildshard/engine/input/netButtons';
 import { respawnNativeMounted } from '@wildshard/game/riding/nativeTaming';
 import { NALATI_RIDING_PROGRAMS as programs } from './fixtures/nalati-riding';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
@@ -77,6 +78,49 @@ test('G478 orchard native fixture owns and restores its actual mounted capsule',
     mounted.removeMountable('boar:1'); expect(mounted.mountables).toEqual([]);
     mounted.addMountable('boar:1'); expect(mounted.mountables.map(actor => actor.entityId)).toEqual(['boar:1']);
   } finally { restored?.dispose(); host.dispose(); }
+});
+
+test('a bot takes its own seat: its own horse, reins, save and fall, and the lead stays on foot', async () => {
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  const level = { ...SIM_LEVEL, quests: [] }, host = createSimHost(level, { rapier }), lead = install(host);
+  const bot = host.addPlayer('bot.rider', { x: 2, y: leadPlayer(host).position.y, z: 0 }), seat = mountedPlayerOf(host, bot.id);
+  const addBot = (fresh: SimHost): void => { install(fresh); };
+  let restored: SimHost | undefined;
+  try {
+    if (seat === undefined) throw new Error('Missing bot seat');
+    expect(seat).not.toBe(lead); expect(mountedPlayerOf(host)).toBe(lead); expect(mountedPlayerOf(host, 'nobody')).toBeUndefined();
+    expect(seat.mount('boar:1')).toBe(true);
+    expect(bot.modes.current()).toBe('ride'); expect(leadPlayer(host).modes.current()).toBe('foot');
+    expect(lead.mount('boar:1')).toBe(false); expect(lead.mounted).toBe(false);
+    const gallop = { seq: 0, viewTick: 0, steer: { keyX: 0, keyY: 1, stickX: 0, stickY: 0 }, yaw: 0, pitch: 0, buttons: NET_BUTTONS.sprint };
+    const reins = new Map([[bot.id, gallop]]);
+    for (let tick = 0; tick < 30; tick++) host.step(reins);
+    expect(seat.body.speed).toBeGreaterThan(0); expect(seat.body.target).toBeGreaterThan(0); expect(lead.body.target).toBe(0);
+    expect(bot.position.distanceTo(seat.body.feet)).toBeLessThan(4);
+    restored = restoreSimHost(level, { rapier }, snapshotSimHost(host), addBot);
+    const copy = restored.players.get(bot.id), copySeat = mountedPlayerOf(restored, bot.id);
+    if (copy === undefined || copySeat === undefined) throw new Error('Missing restored bot');
+    expect(copySeat.horse?.entityId).toBe('boar:1');
+    for (let tick = 0; tick < 12; tick++) {
+      host.step(reins); restored.step(reins);
+      expect(copy.position.distanceTo(bot.position)).toBeLessThan(1e-6);
+    }
+    const horse = seat.horse; if (horse === null) throw new Error('Missing bot horse');
+    seat.dismount(); expect(bot.modes.current()).toBe('foot'); expect(horse.driven).toBe(false); expect(seat.mounted).toBe(false);
+  } finally { restored?.dispose(); host.dispose(); }
+});
+
+test('a player who leaves mid-ride lets their horse go', async () => {
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  const host = createSimHost({ ...SIM_LEVEL, quests: [] }, { rapier }), lead = install(host);
+  const bot = host.addPlayer('bot.rider', { x: 2, y: leadPlayer(host).position.y, z: 0 });
+  try {
+    expect(mountedPlayerOf(host, bot.id)?.mount('boar:1')).toBe(true);
+    host.step(); expect(host.entities.get('boar:1')?.driven).toBe(true);
+    host.removePlayer(bot.id); host.step();
+    expect(host.entities.get('boar:1')?.driven).toBe(false);
+    expect(lead.mount('boar:1')).toBe(true);
+  } finally { host.dispose(); }
 });
 
 test('an input lock holds the walk and the reins through a save, and a respawn remounts the horse', async () => {
