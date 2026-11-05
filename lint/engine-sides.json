@@ -607,6 +607,7 @@
   "src/engine/sim/cableTraversal.ts": "shared",
   "src/engine/sim/dayClock.ts": "shared",
   "src/engine/sim/edgeProfiles.ts": "shared",
+  "src/engine/sim/leadPlayer.ts": "shared",
   "src/engine/sim/moverLifecycle.ts": "shared",
   "src/engine/sim/moverMotion.ts": "shared",
   "src/engine/sim/playerSim.ts": "server",

@@ -119,7 +119,7 @@ export class PlayerSim {
 
   constructor(host: SimHost, body: PlayerSimBody, scope: Scope) {
     this.host = host; this.id = body.id;
-    this.modes = new PlayerModes<SimPlayerDriver>(this.modePlayer(), () => host.traversing === this);
+    this.modes = new PlayerModes<SimPlayerDriver>(this.modePlayer(), () => host.traversing === null || host.traversing === this);
     if (body.borrowed !== undefined) {
       this.borrowed = true; this.body = body.borrowed; this.position = body.borrowed.position;
     } else {

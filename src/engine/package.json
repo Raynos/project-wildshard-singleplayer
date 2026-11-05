@@ -421,6 +421,8 @@
     "./app/view/pageActivity": "./app/view/pageActivity.ts",
     "./sim": "./sim.ts",
     "./sim/bands": "./sim/bands.ts",
+    "./sim/leadPlayer": "./sim/leadPlayer.ts",
+    "./sim/playerSim": "./sim/playerSim.ts",
     "./sim/snapshot": "./sim/snapshot.ts",
     "./script/state": "./script/state.ts",
     "./script/lane": "./script/lane.ts",

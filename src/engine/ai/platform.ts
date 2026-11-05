@@ -110,7 +110,7 @@ export function preparePlatformBrains(sim: SimHost, rows: readonly PlatformSpawn
     const actor = sim.entities.get(row.id), spec = definitions.get(row.brain);
     if (!actor || !spec || result.has(row.id)) throw new Error('Unresolved brain/spawn');
     const brain = new PlatformBrain(actor, spec, { x: row.at[0], y: row.at[1], z: row.at[2] }, {
-      targets: () => [{ id: sim.player.id, position: sim.player.position, alive: sim.player.health.alive }],
+      targets: () => Array.from(sim.players.values(), player => ({ id: player.id, position: player.position, alive: player.health.alive })),
       visible: (from, to) => {
         const dx = to.x - from.x, dy = to.y - from.y, dz = to.z - from.z, length = Math.hypot(dx, dy, dz);
         if (length < 1e-6) return true;

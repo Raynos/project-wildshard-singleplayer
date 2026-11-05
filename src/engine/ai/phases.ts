@@ -3,6 +3,7 @@ import { Vector3 } from 'three';
 import { BossBrain, type BossSaved, type BossPresentation } from './BossBrain';
 import type { AnimalSim } from '../entities/AnimalSim';
 import type { SimHost, SimValue } from '../sim';
+import { leadPlayer } from '../sim/leadPlayer';
 
 /** One ordered phase: health threshold, steering and a presentation caption, authored without callbacks. */
 export interface EncounterPhase { at: number; name: string; caption: string; speed: number; stopDistance: number; turnRate: number }
@@ -47,27 +48,27 @@ export class PhaseEncounter {
       seal: () => undefined, intro: () => focus, begin: () => undefined, enterPhase: () => undefined,
       update: (_dt, _t, fighting) => {
         if (decisionOwned) return;
-        const player = sim.player.position, tune = phase(), dx = player.x - actor.position.x, dz = player.z - actor.position.z;
+        const foe = sim.nearestPlayer(actor.position), player = foe.position, tune = phase(), dx = player.x - actor.position.x, dz = player.z - actor.position.z;
         actor.setMotion(Math.atan2(dx, dz), fighting && actor.alive && Math.hypot(dx, dz) > tune.stopDistance ? tune.speed : 0, tune.turnRate);
-        if (fighting && actor.alive && sim.player.health.alive) sim.startStrike(actor.entityId, sim.player.id);
+        if (fighting && actor.alive && foe.health.alive) sim.startStrike(actor.entityId, foe.id);
       }, get hpFrac() { return actor.hp / actor.maxHp; }, get shielded() { return false; }, get dead() { return !actor.alive; },
       clampHp: (fraction) => { actor.hp = actor.maxHp * fraction; }, setInvulnerable: (on) => { this.shield = on; },
       victory: () => { actor.setMotion(actor.yaw, 0, 4); }, rewardPoint: () => focus,
       respawnPoint: () => ({ pos: new Vector3(...spec.respawn.at), yaw: spec.respawn.yaw }),
-    }, { events: sim.events, player: { position: sim.player.position }, lockInput: () => undefined,
-      respawn: (position, yaw) => { sim.player.position.copy(position); sim.player.yaw = yaw; sim.player.health.attributes.health = sim.player.health.attributes.maxHealth; },
+    }, { events: sim.events, player: { position: sim.playerFocus }, lockInput: () => undefined,
+      respawn: (position, yaw) => { const player = leadPlayer(sim); player.position.copy(position); player.yaw = yaw; player.health.attributes.health = player.health.attributes.maxHealth; },
       skipHeld: () => false, faceToward: () => undefined, spawnReward: ports.reward, persist: (value) => { ports.persist({ ...value }); },
     }, this.presentation, saved);
     sim.events.answer('damage.modify', (request) => {
       if (request === null) return null;
-      if (this.boss.state === 'intro' && request.source === sim.player.health) return null;
+      if (this.boss.state === 'intro' && request.source !== 'env' && sim.players.has(request.source.id)) return null;
       if (request.target !== actor.combatActor()) return request;
       if (this.shield || this.boss.state !== 'fight') return null;
       const next = this.spec.phases[this.boss.phase + 1];
       // A large hit cannot skip a checkpoint or kill through the next phase threshold.
       return next ? { ...request, amount: Math.min(request.amount, Math.max(0, actor.hp - actor.maxHp * next.at)) } : request;
     }, sim.scope, { order: 100 });
-    sim.events.on('actor.died', ({ actor: dead }) => { if (dead.id === sim.player.id) this.boss.onPlayerDeath(); }, sim.scope);
+    sim.events.on('actor.died', ({ actor: dead }) => { if (sim.players.has(dead.id)) this.boss.onPlayerDeath(); }, sim.scope);
     sim.onStep(`encounter.${spec.id}`, (_dt) => { this.boss.update(1 / 60, sim.clock.now); }, { snapshot: () => this.snapshot(), restore: (value) => { this.restore(value); } });
     sim.scope.onDispose(() => { this.boss.disarm(); }); this.boss.arm();
   }

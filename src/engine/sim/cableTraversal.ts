@@ -1,4 +1,5 @@
 import type { SimHost } from '../sim';
+import { leadPlayer } from './leadPlayer';
 import type { Flags } from '../world/interact/flags';
 import { CableProfileSchema, parseModes, ZiplineModeSchema, type ModeRows, type ZiplineMode } from '@wildshard/format/modes';
 import { MathUtils, Vector3, type Object3D } from 'three';
@@ -205,11 +206,12 @@ export class CableTraversal {
   declaration(id: string): Readonly<ZiplineMode> { return this.entry(id).row; }
   /** The native mode host lends the real carry/reward pose once, before any quest or restore runs. */
   bindNative(host: SimHost): void {
+    const player = leadPlayer(host);
     for (const entry of this.entries.values()) {
       if (entry.native !== undefined || entry.view !== undefined) throw new Error('Cable native owner is already bound');
-      const rider: NativeCableRider = { position: entry.row.lifecycle?.native === 'position' ? host.player.position : new Vector3(),
+      const rider: NativeCableRider = { position: entry.row.lifecycle?.native === 'position' ? player.position : new Vector3(),
         velocity: new Vector3(), pitch: 0, carried: false,
-        get yaw(): number { return host.player.yaw; }, set yaw(value: number) { host.player.yaw = value; } };
+        get yaw(): number { return player.yaw; }, set yaw(value: number) { player.yaw = value; } };
       entry.native = rider; entry.rider = rider;
     }
   }
@@ -264,9 +266,10 @@ export class CableTraversal {
     if (!entry.driver.isRiding) return;
     const holding = this.advance(entry, dt, rider);
     if (entry.row.lifecycle?.native === 'motor') {
-      host.player.motor.resetAt(rider.position); host.player.position.copy(rider.position);
-      host.playerFall.vy = 0; host.playerFall.grounded = false;
-      if (!holding) host.impulsePlayer(rider.velocity);
+      const player = leadPlayer(host);
+      player.motor.resetAt(rider.position); player.position.copy(rider.position);
+      player.fall.vy = 0; player.fall.grounded = false;
+      if (!holding) player.addImpulse(rider.velocity);
     }
     if (!holding) this.release(entry);
     entry.events.length = 0;

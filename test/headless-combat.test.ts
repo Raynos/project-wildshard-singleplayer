@@ -132,7 +132,7 @@ test('Driftwood: a real walk, free swings and the page\'s own Sword land the sam
     const rows = wire.drain(), hits = rows.filter(row => row.kind === 'hit');
     expect(owner.swings()).toBe(server.length);
     expect(hits.map(row => row.killed)).toEqual([...Array.from({ length: hits.length - 1 }, () => false), true]);
-    expect(hits.every(row => row.target === crab.entityId && row.owned)).toBe(true);
+    expect(hits.every(row => row.target === crab.entityId && row.by === live.host.player.id)).toBe(true);
     expect(hits.reduce((sum, row) => sum + row.amount, 0)).toBeGreaterThanOrEqual(hpBefore);
     expect(rows.find(row => row.kind === 'died')).toMatchObject({ id: crab.entityId, by: live.host.player.id });
     expect(crab.alive).toBe(false);
@@ -176,7 +176,7 @@ test('Pine: arrows and rifle rounds fly and strike on the tick, and match the pa
     const midFlight = serializeSimSnapshot(snapshotSimHostBytes(host)), ticksInFlight = countUntil(live, () => bow.item.flying() === 0, 120);
     expect(ticksInFlight).toBeGreaterThan(3);
     const arrow = wire.drain().find(row => row.kind === 'hit');
-    expect(arrow).toMatchObject({ kind: 'hit', target: boar.entityId, owned: true });
+    expect(arrow).toMatchObject({ kind: 'hit', target: boar.entityId, by: host.player.id });
     expect(boar.hp).toBe(hpBefore - (arrow?.kind === 'hit' ? arrow.amount : 0));
 
     // the page's Projectiles: the same flight from the same world
@@ -197,7 +197,7 @@ test('Pine: arrows and rifle rounds fly and strike on the tick, and match the pa
     tick(live, 1, [{ ...stand(live), attack: { targetId: boar.entityId } }]); tick(live, 1);
     const round = wire.drain().find(row => row.kind === 'hit');
     if (round?.kind !== 'hit') throw new Error('The rifle did not settle a hit');
-    expect(round).toMatchObject({ target: boar.entityId, owned: true });
+    expect(round).toMatchObject({ target: boar.entityId, by: host.player.id });
     const shot = await resident(beforeShot), twinShot = body(shot, boar.entityId), rifleRays = pageTargets(shot), aimed = pageWorld(shot, chest(twinShot));
     try {
       const stream = vi.spyOn(app.rng, 'stream').mockImplementation(name => shot.host.rng.stream(name));
@@ -211,7 +211,7 @@ test('Pine: arrows and rifle rounds fly and strike on the tick, and match the pa
     const eye = host.player.position.clone().setY(host.player.position.y + 1.68), pitch = Math.asin(chest(boar).sub(eye).normalize().y), free: StandCommand = { ...stand(live), pitch, swing: true };
     const hpFree = boar.hp;
     countUntil(live, () => { tick(live, 1, [free]); return boar.hp < hpFree; }, 240);
-    expect(wire.drain().find(row => row.kind === 'hit')).toMatchObject({ target: boar.entityId, owned: true });
+    expect(wire.drain().find(row => row.kind === 'hit')).toMatchObject({ target: boar.entityId, by: host.player.id });
 
     // and a free loose at the next boar: the held draw names nothing, the release leaves along the look
     const next = nearest(live, 'boar'); facing(live, next, 14); pick(2); wire.drain();
@@ -219,7 +219,7 @@ test('Pine: arrows and rifle rounds fly and strike on the tick, and match the pa
     tick(live, 70, [{ ...stand(live), pitch: lookAt, heavy: {}, swing: true }]); tick(live, 1, [{ ...stand(live), pitch: lookAt }]);
     countUntil(live, () => bow.item.flying() === 0, 120);
     expect(next.hp).toBeLessThan(hpLoose);
-    expect(wire.drain().find(row => row.kind === 'hit')).toMatchObject({ target: next.entityId, owned: true });
+    expect(wire.drain().find(row => row.kind === 'hit')).toMatchObject({ target: next.entityId, by: host.player.id });
   } finally { live.dispose(); }
 }, 180_000);
 
