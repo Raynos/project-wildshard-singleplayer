@@ -52,7 +52,7 @@ test('a crossing restarts the frame clock and no page write sticks', () => {
   expect(book.has('seen:road')).toBe(false);
 });
 
-const quest: QuestDef = { id: 'q', title: 'Q', steps: [{ id: 'one', objective: 'One', chip: 'One', hint: 'h', done: { all: ['x'] } }] };
+const quest: QuestDef = { id: 'q', title: 'Q', completeFlag: 'done', steps: [{ id: 'one', objective: 'One', chip: 'One', hint: 'h', done: { all: ['x'] } }] };
 test('what a save opened with is no news; what changes after it is', () => {
   const quests = new Map<string, QuestProgress>(), feed = new QuestViewFeed([quest], { quests, phased: new Set() }), view = feed.quest('q'), told: string[] = [];
   view.observe({ step: step => { told.push(step?.id ?? 'none'); }, complete: () => { told.push('done'); } });

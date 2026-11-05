@@ -32,6 +32,7 @@ import { installNativeChapterDirector } from './nativeChapter';
 import { takeNativeBossReward } from '../boss/native';
 import { ReturnProgram } from '../../shared/population/returnProgram';
 import { questBooks } from '@wildshard/engine/quest/players';
+import { actRoutes } from '@wildshard/engine/sim/actRoutes';
 
 const promptLoans = new WeakMap<SimHost, Map<string, readonly HeadlessPrompt[]>>();
 /** Borrow the actual bound roster, including unhosted prompts and live reach. */
@@ -183,6 +184,9 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
   if (bound !== undefined && (ports.counters.feats.length > bound || ports.counters.feats.some(feat => feat.count > bound))) throw new RangeError('Native quest feats exceed their finite bound');
   const earlyCounters = rows.counts === 'declared' ? entry.achievements(ports.counters, Object.fromEntries(ports.counters.feats.map(feat => [feat.id, 0]))) : null;
   const graph = entry.install(commandOwners());
+  // Every prompt with an act answers a client by name: a sword or a cable is a command too, not only the graph's rows.
+  const interactions = actRoutes(host).interactions, promptActor = ports.source.questHost?.graph.actor;
+  if (promptActor !== undefined) for (const prompt of promptRoster ?? []) if (typeof prompt.id === 'string' && prompt.act !== null && !interactions.has(prompt.id)) interactions.set(prompt.id, { actorId: promptActor, value: prompt.act });
   const quests = graph.quests, chapter = quests.quests[0];
   const traderFor = (bag: typeof pack, owns: (skin: string) => boolean, own: (skin: string) => void, quiver: typeof ammunition, bolts: NativeBoltItem | null): Exchange | null => rows.trade === undefined ? null : new Exchange(ports.trades, new Map<string, unknown>([[rows.trade.pack, bag],
     ['skins', { owns, own }],

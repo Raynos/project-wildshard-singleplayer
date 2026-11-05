@@ -80,6 +80,13 @@ export async function play(browser, phone, base) {
     for (let i = 0; i < 8; i++) { const r = await report(drift.page); const seen = r.flags.filter(flag => flag.startsWith('seen:')); if (seen.length > 0) return { ok: true, seen }; await drift.page.waitForTimeout(1000); }
     return { ok: false };
   });
+  await step('open the castaway chest: the server keeps it', async () => {
+    const at = await drift.page.evaluate(() => { const live = window.__wildshard.shard['driftwood.adventure'].kit.lives.find(row => row.def.id === 'castaway-chest'); return live === undefined ? null : { x: live.position.x, z: live.position.z }; });
+    if (at === null) return { ok: false, why: 'no chest row' };
+    await walk(drift.page, at.x, at.z, 1.8, 30);
+    for (let i = 0; i < 8; i++) { await drift.page.keyboard.press('KeyE'); await drift.page.waitForTimeout(700); const r = await report(drift.page), held = r.flags.filter(flag => flag.includes('castaway-chest')); if (held.length > 0) return { ok: true, held }; }
+    const r = await report(drift.page); return { ok: false, at, x: r.x, z: r.z, flags: r.flags.slice(0, 14) };
+  });
   await step('a fight: the server takes a hit', async () => {
     const before = await report(drift.page);
     for (let i = 0; i < 40; i++) {

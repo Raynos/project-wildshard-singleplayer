@@ -86,8 +86,7 @@ export class WirePage {
     if (client === null || client.latest === null || !here) return;
     for (const [id, row] of client.quests) this.quests.set(id, row);
     this.heard.clear(); for (const flag of client.phased) this.heard.add(flag);
-    const held = client.flags(), now = client.latest.tick;
-    for (const flag of client.phased) (held as Set<string>).add(flag);
+    const held = new Set([...client.flags(), ...client.phased]), now = client.latest.tick;
     for (const book of this.books) if (level === null || book.level.endsWith(level)) book.mirror(held, now);
     // What a save opened with is no news: the first frame only says where things stand.
     if (!this.seeded) { this.seeded = true; for (const feed of this.feeds.values()) feed.settle(); return; }

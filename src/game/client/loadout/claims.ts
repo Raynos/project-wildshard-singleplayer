@@ -220,7 +220,7 @@ class HeldClaim extends ItemPickup {
     super({ scene: world.game.scene, item, position: floor, prompt, radius: row.radius, scale: row.scale, tilt: row.tilt, random: () => random.next() });
     this.glowScene = world.game.scene; this.phase = phase; this.guard = new HeldClaimGuard(row.guard.condition);
     const base = this.interactable, reason = (): string | null => this.reason();
-    this.interactable = { position: base.position,
+    this.interactable = { position: base.position, wireId: row.id,
       get radius() { return reason() === null ? base.radius : Math.min(base.radius, row.guard.radius); },
       get weak() { return reason() !== null; }, get label() { return reason() ?? base.label; },
       onInteract: () => {
