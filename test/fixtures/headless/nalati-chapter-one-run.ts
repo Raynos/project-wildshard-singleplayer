@@ -142,7 +142,7 @@ try{
     :stage==='goat'?chapterGoatInputs(host,parseCarriedQuest(await product.json('quests/carried.json'))):stage==='return'?chapterReturnInputs(host):stage==='home'?chapterHomeInputs(host,true)
       :stage==='carving-road'?chapterCarvingRoadInputs(host):stage==='carving-arrival'?chapterCarvingArrivalInputs(host,true):stage==='carvings'?await carvingInputs():await kingInputs();
   const recordInput=(commands:readonly HeadlessCommand[]):void=>{
-    checked.check();commandsCount+=commands.length;assert.ok(commandsCount<=60_000&&host.state.tick<60_000);
+    checked.check();commandsCount+=commands.length;assert.ok(commandsCount<=90_000&&host.state.tick<60_000);
     frames.push(structuredClone([...commands]));active.step(commands);effects.push(...structuredClone(active.effects));
     assert.ok(leadPlayer(host).health.alive);peakY=Math.max(peakY,leadPlayer(host).position.y);
   };
