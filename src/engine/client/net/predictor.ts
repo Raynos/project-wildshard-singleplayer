@@ -136,6 +136,18 @@ export class Predictor {
     return !led;
   }
 
+  /** A session's first frame: this body stands where the server says, with nothing to compare it to. */
+  adopt(lastSeq: number, owner: ArrayLike<number>): void {
+    const { body, table } = this, s = body.motionState, { yaw } = s;
+    this.acked = lastSeq; this.led = this.flag(table.led, owner) === 1; this.resets = this.value(table.resets, owner);
+    this.head = 0; this.count = 0;
+    this.write(s, owner);
+    s.yaw = yaw;
+    body.motor.resetAt(s.position);
+    this.write(s, owner); // the reset cleared the ground the owner block had just landed
+    body.renderOffset.set(0, 0, 0);
+  }
+
   /** Each render frame: the camera glides back onto the predicted feet. */
   update(dt: number): void {
     const { renderOffset } = this.body;
