@@ -426,3 +426,23 @@ Raw selection and diagnostics: `tmp/sp-x2-dl5-gzip/final-summary.json`,
 All measurement/browser/Simulator/proxy resources ended **01:19:27Z**; only
 sp-x2's preview lease was released (sp-x6 retained its independent use).
 DL5 remains open.
+
+### DL18 retained Pine warm evidence — 2026-11-04, sp-x2
+
+Read-only audit of the same-context Chromium warm companion above, same
+`673e525-mw2s656z` build; no additional visit. Exact Pine packs-manifest
+membership gives **0 part requests / 0 part bytes**, but **940 member URL
+requests (619 distinct)** answered by the service worker, all complete and
+all **0 transferred bytes**. These are cache lookups, not a no-reads claim.
+The 102 loose-manifest URL requests likewise transferred 0 B.
+
+Across all retained warm rows, completed native transfers sum to 133,346 B
+(including a 131,088 B Pine portrait worker fetch). The independent shared
+link counted 130,895 B tap→control / 399,549 B for the visit. These counters
+have different scopes; three retained rows were pending, and the full live
+ledger reported nine in flight, so neither sum is asserted as a complete
+all-response wire total. Accounting reported no incomplete finished row;
+the post-control publication overlap stays flagged as in the DL5 report.
+No recovered facade pairs occurred. This narrows Pine's same-build warm
+behavior only: **Driftwood's warm/deploy browser acceptance remains open**.
+Audit: `tmp/sp-x2-dl5-gzip/dl18-pine-warm-audit.json`.
