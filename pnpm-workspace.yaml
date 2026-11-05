@@ -3,9 +3,10 @@
 # Their package.json "exports" are the public entries; a deep path does not resolve.
 packages:
   - src/engine
-  - src/format
   - src/game
   - src/sdk
   - src/commons
 # `pnpm add <dep>` at the root keeps working without -w
 ignoreWorkspaceRootCheck: true
+# Scripts and the build mirror read node_modules/.pnpm; a machine-wide global virtual store would move it.
+enableGlobalVirtualStore: false

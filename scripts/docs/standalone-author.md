@@ -119,7 +119,8 @@ Your entry must call it with the actual product bytes, real entered client and a
 route. Its native, replay, scene and equipped-item checks remain mandatory. A native
 validation summary alone gives no credit for those rendered-client gates.
 
-After producing the matched archives, the retained milestone proof runs the consumer path above:
+After producing the matched archives, the retained milestone proof runs the consumer path above.
+The `format` archive comes from `pnpm pack` in the `project-wildshard/shardfile` clone, at the tag the SDK pins:
 
 ```sh
 node scripts/docs/proof-standalone.mjs release /tmp/fresh-author-proof

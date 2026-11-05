@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
 import ts from '@typescript/typescript6';
 import { hostPlayFile } from './host-files.mjs';
+import { formatSource } from '../scripts/format-package.mjs';
 
 const projects = new Map();
 const localPath = (root, file) => relative(root, file).replaceAll('\\', '/');
@@ -17,7 +18,7 @@ export function hostAnalysis(inputRoot) {
   const parsed = ts.parseJsonConfigFileContent(config, ts.sys, root);
   const files = ts.sys.readDirectory(resolve(root, 'src/shards'), ['.ts', '.tsx', '.mts', '.cts'], ['**/node_modules/**', '**/dist/**'])
     .filter(file => hostPlayFile(root, localPath(root, file)));
-  const sectionRegistry = resolve(root, 'src/format/sections.ts');
+  const sectionRegistry = formatSource(root, 'sections.ts');
   const program = ts.createProgram([...files, ...existsSync(sectionRegistry) ? [sectionRegistry] : []], { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext,
     moduleResolution: ts.ModuleResolutionKind.Bundler, ...parsed.options, noEmit: true });
   const checker = program.getTypeChecker();

@@ -7,6 +7,7 @@ import {outputFormat,gridReadinessFormat} from './shard-platform-format.mjs';
 import {runtimeGridEvidence} from './grid-runtime-evidence.mjs';
 import catalogue from '../src/game/grid/singleplayer.json' with {type:'json'};
 import plotOutputs from '../src/shards/open-plots/outputs.json' with {type:'json'};
+import {formatSource} from './format-package.mjs';
 
 export const MILESTONE_SHARDS=['far-reach','sunscar-dunes','pine-hollow','driftwood-isle','nalati-grasslands','nine-dragon-stack'];
 // M2 covers the complete authored grid, shared by public and Developer. M3
@@ -60,7 +61,7 @@ export function gridReady(root,slug,products,{revision=null,receipts=[],reader}=
     if(JSON.stringify(structural)!==JSON.stringify(gridReadinessFormat.structuralGridEvidence(source)))throw new Error('Grid evidence differs from emitted sections');
     for(const [name,criterion] of Object.entries(structural.criteria))criteria[name]={...criterion,
       evidence:`index sha256:${hash(bytes)}, validation sha256:${hash(readFileSync(receiptPath))}: ${criterion.evidence}`};
-    const caps=JSON.parse(readFileSync(resolve(root,'src/format/memoryGates.json'),'utf8'));
+    const caps=JSON.parse(readFileSync(formatSource(root,'memoryGates.json'),'utf8'));
     criteria.memory={verdict:'unknown',evidence:'No latched memory pass or qualified current-source reading; declared costs alone are not readings'};
     criteria.oneFrameLooks={verdict:'unknown',evidence:'No latched look/travel pass or qualified current-source phone grid witness'};
     if([caps.explorerMB,caps.loadingMB].every(value=>typeof value==='number'&&Number.isFinite(value)&&value>0)) {

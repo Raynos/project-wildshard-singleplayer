@@ -93,7 +93,7 @@ test('seat rows refuse callbacks, unknown looks and malformed looks (test 6)', (
 test('the rider host names no shard and no shard-only figure (test 2)', () => {
   const nouns = [...readdirSync('src/shards', { withFileTypes: true }).filter(entry => entry.isDirectory() && !entry.name.startsWith('_')).map(entry => entry.name), 'shepherd', 'ferryman'];
   expect(nouns.length).toBeGreaterThan(3);
-  for (const file of ['src/game/riding/seatedFigure.ts', 'src/game/models/mountedSpecimen.ts', 'src/format/mountedSpecimenRows.ts']) {
+  for (const file of ['src/game/riding/seatedFigure.ts', 'src/game/models/mountedSpecimen.ts', 'node_modules/@wildshard/format/src/format/mountedSpecimenRows.ts']) {
     const source = readFileSync(file, 'utf8').toLowerCase();
     expect(nouns.filter(noun => source.includes(noun))).toEqual([]);
   }

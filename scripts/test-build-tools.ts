@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import * as v from 'valibot';
 
 const TestFile = v.pipe(v.string(), v.regex(/^(?:src|test|admin\/test|drafts\/test)\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_.-]+\.test\.ts$/u));
@@ -12,11 +13,13 @@ export function selectTestBuildTools(files: readonly string[], input: unknown): 
   return [...new Set(files.flatMap(file => registry[file] ?? []))].sort();
 }
 
-const preparers: TestBuildToolPreparers = { basis: async () => {
+const preparers: TestBuildToolPreparers = { basis: () => {
   // Keep native installation outside author bundles and individual test clocks.
   // This is the existing pinned installer: corrupt tools still refuse, never use PATH.
-  const { prepareBasisTool } = await import('../src/sdk/bake/basisTool');
-  await prepareBasisTool();
+  // Its own process: the Vitest configs bundle this module, and format's raw .ts cannot join a bundled config (J82).
+  const install = "await (await import('./src/sdk/bake/basisTool.ts')).prepareBasisTool();";
+  const run = spawnSync(process.execPath, ['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', install], { stdio: 'inherit' });
+  return run.status === 0 ? Promise.resolve() : Promise.reject(new Error('Basis tool install failed'));
 } };
 
 /** The runner awaits every selected prerequisite before creating test workers.

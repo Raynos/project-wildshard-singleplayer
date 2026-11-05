@@ -81,10 +81,11 @@ export function simClosure(root, entries = globSync('src/**/*.ts', { cwd: root }
         const source = value(node.source);
         if (source === null) { if (node.source) add('import', 'dynamic'); return; }
         if (source === 'three' || source.startsWith('three/')) {
-          if (trace.some(part => part.startsWith('src/format/'))) { add('import', source); return; }
           if (source !== 'three' || !node.specifiers?.length || node.specifiers.some((s) => s.importKind !== 'type' && (s.type !== 'ImportSpecifier' || !MATH.has(s.imported.name)))) add('import', source);
           return;
         }
+        // Format's own closure is the shardfile repo's to hold: only valibot and its Wasm decoder.
+        if (source.startsWith('@wildshard/format/')) return;
         const dest = target(root, file, source, observed);
         if (dest === null) {
           if (source.startsWith('.') || source.startsWith('@wildshard/')) add('unresolved', source);

@@ -66,7 +66,7 @@ export function titleClosureBudgetErrors(modules, budgets) {
   return closureBudgetErrors(modules, budgets, 'title', titleRoots, id => /node_modules\/(?:three|@dimforge\/rapier[^/]*)(?:\/|$)/u.test(id)
     || /^src\/shards\/.*\.[cm]?[jt]sx?$/u.test(id) || (/\.generated(?:\.|$)/u.test(id) && id !== 'out/.app/titleCatalogue.generated.ts')
     || /^src\/engine\/(?:explore|calibrate)\//u.test(id)
-    || /^src\/format\/.*\.ts$/u.test(id) && !titleFormat.has(id.slice('src/format/'.length)));
+    || /\/@wildshard\/format\/src\/format\/.*\.ts$/u.test(id) && !titleFormat.has(id.slice(id.lastIndexOf('/') + 1)));
 }
 /** js-payload J10: the shard session entry's static closure (what every shardfile or grid entry loads before its shard):
  *  gzip / raw ceilings, and no shard folder's code (each shard, LEGACY included, stays behind its own dynamic root). */

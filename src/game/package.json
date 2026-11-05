@@ -337,7 +337,7 @@
     "./shardfile/wholeGeometryPieces": "./shardfile/wholeGeometryPieces.ts"
   },
   "dependencies": {
-    "@wildshard/format": "workspace:*",
+    "@wildshard/format": "github:project-wildshard/shardfile#v0.2.0",
     "ajv": "6.15.0"
   }
 }

@@ -2,7 +2,7 @@ import { nativeProgramFixture } from './native-program';
 
 // The complete executable/asset roots and installed compiler identities of the
 // existing guest constructor. Parsers and all consumer assertions stay outside.
-const inputs = ['src/engine', 'src/format', 'src/game', 'src/sdk', 'src/commons',
+const inputs = ['src/engine', 'src/game', 'src/sdk', 'src/commons',
   'src/shards/driftwood-isle', 'package.json', 'pnpm-lock.yaml',
   'node_modules/assemblyscript/package.json', 'node_modules/binaryen/package.json',
   'node_modules/@typescript/typescript6/package.json', 'scripts/bake-loader.mjs',

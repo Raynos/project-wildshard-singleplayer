@@ -3,6 +3,7 @@
 // the SDK's `bakeQueryTerrain` over its retained bare WSTR lattice. File I/O stays here, never in shard authoring code.
 //   node scripts/bake-query-terrain.mjs <entry> <function> <lattice> <metadata> <assets> [--check]
 // <metadata> receives `{ terrain, files, critical }`; <assets>/<hash> receives each charged file, named by its content hash.
+import '../src/sdk/bake/format-hook.mjs';
 import { createHash } from 'node:crypto';
 import { existsSync, lstatSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { registerHooks } from 'node:module';

@@ -8,7 +8,7 @@ import pins from './nalati-place-wires.json' with { type: 'json' };
 const rows = v.parse(v.array(v.tuple([v.string(), v.string()])), JSON.parse(await nativeProgramFixture({
   id: 'nalati-native-places', script: 'test/fixtures/nalati-native-places-compile.mjs',
   loader: 'simulation', transformTypes: true,
-  inputs: ['src/engine', 'src/format', 'src/game', 'src/sdk', 'src/commons', 'src/shards/nalati-grasslands',
+  inputs: ['src/engine', 'src/game', 'src/sdk', 'src/commons', 'src/shards/nalati-grasslands',
     'public/assets/baked/nalati-grasslands/terrain.bin', 'package.json', 'pnpm-lock.yaml',
     'test/fixtures/native-program.ts', 'test/fixtures/nalati-native-place-files.ts', 'test/fixtures/nalati-place-wires.json'],
 })));

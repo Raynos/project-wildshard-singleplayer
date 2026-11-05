@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 import { rapierAlias } from './vite/rapier';
 import { assertVitestLane, vitestMaxWorkers, vitestNodeExecArgv } from './scripts/vitest-lane';
 import { vitestTmpRoot } from './scripts/vitest-tmp';
@@ -20,8 +20,10 @@ export default defineConfig({
   test: { execArgv: vitestNodeExecArgv(), fsModuleCache: Boolean(ci ?? githubActions), ...(maxWorkers === undefined ? {} : { maxWorkers }), testTimeout: 30_000, environment: 'node',
     // Native product/hash readers own filesystem URLs, even in DOM suites.
     // Vite's browser query injection must not rewrite the hash CLI's hashbang.
-    server: { deps: { external: [/\/scripts\/(?:built-product|bake-input-hashes)\.mjs$/u] } },
+    // Format ships raw .ts from the shardfile repo (J42): Vite transforms it, because Node will not under node_modules.
+    server: { deps: { external: [/\/scripts\/(?:built-product|bake-input-hashes)\.mjs$/u], inline: [/@wildshard\/format/u] } },
     sequence: { sequencer: DurationSequencer },
+    exclude: [...configDefaults.exclude, 'src/format/**'],
     include: ['src/**/*.test.ts', 'test/**/*.test.ts', 'test/**/*.test.mjs', 'admin/test/**/*.test.ts', 'drafts/test/**/*.test.ts'],
     setupFiles: ['test/setup.ts'], restoreMocks: true },
 });

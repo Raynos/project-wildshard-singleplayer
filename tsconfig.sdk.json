@@ -10,7 +10,6 @@
     "tsBuildInfoFile": ".tsc-layers/sdk.tsbuildinfo"
   },
   "references": [
-    { "path": "./tsconfig.format.json" },
     {
       "path": "./tsconfig.engine.json"
     },

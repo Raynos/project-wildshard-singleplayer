@@ -49,7 +49,7 @@ const exported = (source) => {
   const m = LAYER_PACKAGE.exec(source);
   if (!m) return false;
   if (!packageExports.has(m[1])) {
-    const file = new URL(`../src/${m[1]}/package.json`, import.meta.url);
+    const file = new URL(m[1] === 'format' ? '../node_modules/@wildshard/format/package.json' : `../src/${m[1]}/package.json`, import.meta.url);
     packageExports.set(m[1], existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')).exports ?? {} : {});
   }
   return Object.hasOwn(packageExports.get(m[1]), m[2] ? `./${m[2]}` : '.');
@@ -385,15 +385,6 @@ const layerWalk = (kind) => (context) => {
     if (typeof source !== 'string' || source === '') return;
     const targetPath = modulePath(context.filename, source);
     const target = layerOf(targetPath);
-    // E435: decoded-byte GLB admission needs this pinned, server-safe pure Wasm codec only here.
-    const formatCodec = pathOf(context) === 'src/format/glbBuffers.ts' && source === 'meshoptimizer/decoder';
-    // G645: external fixture builders are test inputs; imports up our layers still refuse.
-    const formatTestDependency = pathOf(context).endsWith('.test.ts') && target === null
-      && !source.startsWith('.') && !source.startsWith('@wildshard/');
-    if (kind === 'layer' && own.name === 'format' && target?.name !== 'format' && source !== 'valibot' && !formatCodec && !formatTestDependency) {
-      report(context, node, `Format imports only valibot or its own defining modules: ${source}`);
-      return;
-    }
     // SF54: @wildshard/kit is dissolved; a workspace specifier names one of the layer packages or nothing
     if (kind === 'layer' && source.startsWith('@wildshard/') && packageTarget(source) === null) report(context, node, `No such layer package: ${source}`);
     if (kind === 'layer' && own.name === 'commons' && target && !['commons', 'sdk', 'format'].includes(target.name)) report(context, node, `Commons author tools import only the SDK and pure format contracts: ${source}`);
@@ -1103,7 +1094,8 @@ const noReexport = rule('No barrels: no module re-exports one of ours (E434)', (
 });
 
 const clientPlanReflection = rule('Client features cannot reflect into shard TS owners (G483)', context => {
-  if (pathOf(context) !== 'src/format/clientPlan.ts') return {};
+  // Format's clientPlan.ts lives in the shardfile repo now; its registry here carries the check.
+  if (pathOf(context) !== 'src/game/shardfile/clientPlan.ts') return {};
   return { Program(node) { for (const failure of clientPlanSchemaViolations(REPO)) report(context, node, failure); } };
 });
 

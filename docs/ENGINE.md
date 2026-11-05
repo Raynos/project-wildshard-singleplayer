@@ -10984,7 +10984,7 @@ A made-up second building tests different door motion, prompts and lights.
 ## Declared client plans (Z1, G480/G483)
 
 `client/plan` (`wildshard:client/plan@1`) is a client-only plain-value section:
-`{version:1, features:[...]}`. `src/format/clientPlan.ts` refuses unknown kinds,
+`{version:1, features:[...]}`. `@wildshard/format/clientPlan` refuses unknown kinds,
 duplicates, executable values, reflected owners and caller-selected order.
 `admitClientPlan(input, product)` refuses any missing required section with
 `ProductError` before any feature runs. Headless simulation ignores this plan.

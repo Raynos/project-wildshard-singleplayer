@@ -16,9 +16,6 @@
       "path": "../../tsconfig.sdk.json"
     },
     {
-      "path": "../../tsconfig.format.json"
-    },
-    {
       "path": "../../tsconfig.engine.json"
     }
   ]

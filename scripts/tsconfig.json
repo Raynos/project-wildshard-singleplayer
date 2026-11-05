@@ -5,6 +5,7 @@
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
     "target": "ES2022",
@@ -22,9 +23,6 @@
   },
   "references": [
     {
-      "path": "../tsconfig.format.json"
-    },
-    {
       "path": "../tsconfig.engine.json"
     }
   ],
@@ -41,6 +39,7 @@
   ],
   "files": [
     "bake-loader.mjs",
+    "../src/sdk/bake/format-hook.mjs",
     "perf/exact-world-capture.mjs",
     "preparation-cache-key.mjs",
     "author-bundle-usage.mjs",

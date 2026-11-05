@@ -48,8 +48,8 @@ importers:
         specifier: workspace:*
         version: link:src/engine
       '@wildshard/format':
-        specifier: workspace:*
-        version: link:src/format
+        specifier: github:project-wildshard/shardfile#v0.2.0
+        version: git+ssh://git@github.com/project-wildshard/shardfile.git#c6cb30190de1c6714588dda3f72d3cf9b1669265(typescript@7.0.2)
       '@wildshard/game':
         specifier: workspace:*
         version: link:src/game
@@ -145,8 +145,8 @@ importers:
   src/commons:
     dependencies:
       '@wildshard/format':
-        specifier: workspace:*
-        version: link:../format
+        specifier: github:project-wildshard/shardfile#v0.2.0
+        version: git+ssh://git@github.com/project-wildshard/shardfile.git#c6cb30190de1c6714588dda3f72d3cf9b1669265(typescript@7.0.2)
       '@wildshard/sdk':
         specifier: workspace:*
         version: link:../sdk
@@ -156,20 +156,11 @@ importers:
 
   src/engine: {}
 
-  src/format:
-    dependencies:
-      meshoptimizer:
-        specifier: 1.2.0
-        version: 1.2.0
-      valibot:
-        specifier: 1.5.0
-        version: 1.5.0(typescript@7.0.2)
-
   src/game:
     dependencies:
       '@wildshard/format':
-        specifier: workspace:*
-        version: link:../format
+        specifier: github:project-wildshard/shardfile#v0.2.0
+        version: git+ssh://git@github.com/project-wildshard/shardfile.git#c6cb30190de1c6714588dda3f72d3cf9b1669265(typescript@7.0.2)
       ajv:
         specifier: 6.15.0
         version: 6.15.0
@@ -195,8 +186,8 @@ importers:
         specifier: 1.8.0
         version: 1.8.0(valibot@1.5.0(typescript@7.0.2))
       '@wildshard/format':
-        specifier: workspace:*
-        version: link:../format
+        specifier: github:project-wildshard/shardfile#v0.2.0
+        version: git+ssh://git@github.com/project-wildshard/shardfile.git#c6cb30190de1c6714588dda3f72d3cf9b1669265(typescript@7.0.2)
       ajv:
         specifier: 6.15.0
         version: 6.15.0
@@ -1233,6 +1224,12 @@ packages:
 
   '@vitest/spy@5.0.1':
     resolution: {integrity: sha512-rbto/mF/SGERxEgYOek7Xm6B9b+y+mVoo+f4b2LymYO8zM1b7uB5nHuhVMTP2hxdzgxvGiZYGxGIaMvL5y180Q==}
+
+  '@wildshard/format@git+ssh://git@github.com/project-wildshard/shardfile.git#c6cb30190de1c6714588dda3f72d3cf9b1669265':
+    resolution: {commit: c6cb30190de1c6714588dda3f72d3cf9b1669265, repo: git@github.com:project-wildshard/shardfile.git, type: git}
+    version: 0.2.0
+    engines: {node: '>=24.18.0'}
+    hasBin: true
 
   '@xmldom/xmldom@0.9.12':
     resolution: {integrity: sha512-5AXjrcMClTryPe9LgZrygpB1lj7s0S9E0+W+AHaVKAVyHanafK86iPSvG5xHVSp/jC+VH1UXu0TAEmY279xH7A==}
@@ -3272,6 +3269,13 @@ snapshots:
       vite: 8.3.0(@types/node@24.13.6)
 
   '@vitest/spy@5.0.1': {}
+
+  '@wildshard/format@git+ssh://git@github.com/project-wildshard/shardfile.git#c6cb30190de1c6714588dda3f72d3cf9b1669265(typescript@7.0.2)':
+    dependencies:
+      meshoptimizer: 1.2.0
+      valibot: 1.5.0(typescript@7.0.2)
+    transitivePeerDependencies:
+      - typescript
 
   '@xmldom/xmldom@0.9.12': {}
 

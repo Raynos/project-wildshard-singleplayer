@@ -1,4 +1,5 @@
 // CS1: plain, hash-bound section facts. No progress, credit or host score.
+import '../src/sdk/bake/format-hook.mjs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { existsSync, lstatSync, readFileSync, readdirSync } from 'node:fs';
@@ -6,9 +7,11 @@ import { dirname, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import ts from '@typescript/typescript6';
 import { outputFormat } from './shard-platform-format.mjs';
-import { validatePlatformFile, platformFileFamily } from '@wildshard/format/platformFileFamilies';
 import { shardProducts } from './shard-outputs.mjs';
 import type { SectionMapping } from '@wildshard/format/outputFields';
+import { formatSource } from './format-package.mjs';
+
+const { validatePlatformFile, platformFileFamily } = await import('@wildshard/format/platformFileFamilies');
 
 interface Reader {path:string;line:number;selector:string|null;name:string|null;schema:string|null;groups:string[];access:string}
 interface Entry {product:string;shard:string;name:string;kind:'platform'|'named-json'|'platform-file';path:string;bytes:number;hash:string;schema:string|null;document:unknown;routes:string[]}
@@ -190,7 +193,7 @@ export async function readSectionInventory(root:string=ROOT,productsRoot:string=
   const historic=execFileSync('git',['show',`${HOST_PIN}:docs/HOST-BAR.md`],{cwd:root,encoding:'utf8'});
   const groups=hostGroupBindings(table,historic),files=['src/engine','src/game'].flatMap(folder=>tree(resolve(root,folder)))
     .filter(path=>path.endsWith('.ts')&&!path.endsWith('.d.ts')&&!path.endsWith('.test.ts')).map(path=>({path:relative(root,path).replaceAll('\\','/'),source:readFileSync(path,'utf8')}));
-  return sectionInventory(products,namedFormatJsonSchemas(),platformSchemaBindings(readFileSync(resolve(root,'src/format/platformDataSections.ts'),'utf8')),OUTPUT_SECTIONS,sectionReaders(files,groups));
+  return sectionInventory(products,namedFormatJsonSchemas(),platformSchemaBindings(readFileSync(formatSource(root,'platformDataSections.ts'),'utf8')),OUTPUT_SECTIONS,sectionReaders(files,groups));
 }
 export function renderSectionInventory(report:Inventory):string{
   const cell=(value:unknown):string=>String(value).replaceAll('|',String.raw`\|`).replaceAll('\n',' ');

@@ -4,14 +4,16 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import ts from '@typescript/typescript6';
 import { schemaInventory } from './schema-reference.mjs';
+import { layerFolder } from '../format-package.mjs';
 
 /** Read public schema metadata without invoking author/build functions.
  * @param {string} root @param {"sdk"|"format"} layer */
 async function packageSchemas(root, layer) {
-  const manifest = JSON.parse(readFileSync(resolve(root, `src/${layer}/package.json`), 'utf8')), rows = [];
+  const manifest = JSON.parse(readFileSync(resolve(root, layerFolder(layer), 'package.json'), 'utf8')), rows = [];
   for (const [module, target] of Object.entries(manifest.exports).sort(([a], [b]) => a.localeCompare(b))) {
+    if (module.endsWith('.json')) continue;
     if (typeof target !== 'string' || !target.startsWith('./') || !target.endsWith('.ts')) throw new Error(`Unsupported ${layer} defining export ${module}`);
-    const file = resolve(root, `src/${layer}`, target), text = readFileSync(file, 'utf8');
+    const file = resolve(root, layerFolder(layer), target), text = readFileSync(file, 'utf8');
     const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
     const names = source.statements.flatMap(statement => ts.isVariableStatement(statement)
       && statement.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword)

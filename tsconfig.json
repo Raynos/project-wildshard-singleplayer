@@ -4,6 +4,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowArbitraryExtensions": true,
+    "allowImportingTsExtensions": true,
     "lib": [
       "ES2022",
       "DOM",

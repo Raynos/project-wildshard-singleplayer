@@ -88,6 +88,6 @@ export function sectionHostImports(sections, sourcePrefix = '../../src/') {
   }
   return [...roots].sort((a,b)=>a.localeCompare(b)).map((host, i) => {
     const [module, name] = host.split('#');
-    return `import { ${name} as host${i} } from '${sourcePrefix}${module}'; void host${i};`;
+    return `import { ${name} as host${i} } from '${module.startsWith('format/') ? '@wildshard/' : sourcePrefix}${module}'; void host${i};`;
   }).join('\n');
 }

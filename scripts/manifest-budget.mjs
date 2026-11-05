@@ -1,5 +1,6 @@
 // Temporary build-only discovery bridge until P3's catalog owns level metadata.
 // Only a declared data/ budget module and its local data TS dependencies execute.
+import '../src/sdk/bake/format-hook.mjs';
 import { realpathSync, readFileSync, statSync } from 'node:fs';
 import { registerHooks } from 'node:module';
 import { dirname, sep } from 'node:path';

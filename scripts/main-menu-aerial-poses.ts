@@ -1,6 +1,8 @@
+import '../src/sdk/bake/format-hook.mjs';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { roadLayout } from '../src/game/grid/roadLayout';
-import { CHUNK_HALF } from '../src/engine/core/config';
+
+const { CHUNK_HALF } = await import('../src/engine/core/config');
 
 /** One actual world-space camera and target; light is an existing Debug time pick. */
 export interface AerialHeroPose {

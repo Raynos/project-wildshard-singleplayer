@@ -1,15 +1,17 @@
 #!/usr/bin/env node
 // OP3: source-only, deterministic plot scaffolds. Run the ordinary producer to qualify their bytes.
+import '../../src/sdk/bake/format-hook.mjs';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import * as v from 'valibot';
-import { AccentSchema } from '@wildshard/format/accent';
 import { checkLayout, parseLayout } from '../../src/shards/open-plots/generators/kit.mjs';
 import { plotBuilders } from '../../src/shards/open-plots/generators/tiledPlot.mjs';
 import { parseDomeCameras } from '../dome-cameras.mjs';
 import { plotAudioRequest } from './audio-template.mjs';
+
+const { AccentSchema } = await import('@wildshard/format/accent');
 
 const slugSchema = v.pipe(v.string(), v.regex(/^open-plot-[a-z0-9]+(?:-[a-z0-9]+)*$/u));
 const word = v.pipe(v.string(), v.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u));

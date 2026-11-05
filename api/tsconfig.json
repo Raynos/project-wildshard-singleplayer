@@ -14,9 +14,6 @@
     "tsBuildInfoFile": "../.tsc-layers/api.tsbuildinfo"
   },
   "references": [
-    {
-      "path": "../tsconfig.format.json"
-    }
   ],
   "include": [
     ".",

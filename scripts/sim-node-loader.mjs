@@ -1,4 +1,5 @@
 // Plain Node type stripping plus the same Rapier binding selection as the client/tests; no app identity or shard list.
+import '../src/sdk/bake/format-hook.mjs';
 import { registerHooks } from 'node:module';
 import { existsSync, statSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

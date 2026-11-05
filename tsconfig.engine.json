@@ -9,7 +9,7 @@
     "outDir": ".tsc-layers/engine",
     "tsBuildInfoFile": ".tsc-layers/engine.tsbuildinfo"
   },
-  "references": [{ "path": "./tsconfig.format.json" }],
+  "references": [],
   "include": ["src/engine", "budgets/desktop-reference.json"],
   "exclude": ["src/engine/**/*.test.ts", "src/engine/test"]
 }

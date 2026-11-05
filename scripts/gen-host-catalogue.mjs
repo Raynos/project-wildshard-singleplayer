@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 import ts from '@typescript/typescript6';
 import { hostAnalysis } from '../lint/host-callbacks.mjs';
 import { referenceData } from './docs/gen-shardfile-reference.mjs';
+import { formatSource } from './format-package.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const AUDIT = 'progress/shard-platform/host-audit-2026-10-16/README.md';
@@ -57,7 +58,7 @@ export function hostCatalogue(root = ROOT, reference = referenceData(root)) {
   }
   const reviewsPath = resolve(root, 'lint/host-reviews.json');
   const reviews = existsSync(reviewsPath) ? JSON.parse(readFileSync(reviewsPath, 'utf8')).entries : {};
-  const sectionFile = program.getSourceFile(resolve(root, 'src/format/sections.ts'));
+  const sectionFile = program.getSourceFile(formatSource(root, 'sections.ts'));
   const registry = sectionFile?.statements.find(node => ts.isInterfaceDeclaration(node) && node.name.text === 'PlatformSections');
   if (!registry) throw new Error('Host catalogue requires the public PlatformSections registry');
   const sections = registry.members.filter(ts.isPropertySignature).map(member => {

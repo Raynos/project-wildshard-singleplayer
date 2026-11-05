@@ -10,7 +10,6 @@
     "tsBuildInfoFile": ".tsc-layers/app.tsbuildinfo"
   },
   "references": [
-    { "path": "./tsconfig.format.json" },
     { "path": "./tsconfig.engine.json" },
     { "path": "./tsconfig.game.json" },
     { "path": "./tsconfig.sdk.json" },

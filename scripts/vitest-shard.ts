@@ -12,17 +12,7 @@ import { readDurations, packShards, readShardPlan } from './test-shard-plan';
 
 /** Reviewed format-only suites: no host globals, mocked modules or fresh-import contracts.
  * Every other suite retains an isolated worker. Additions require the same audit. */
-export const PURE_TESTS = [
-  'src/format/audio-entry.test.ts',
-  'src/format/contentCost.test.ts',
-  'src/format/entry-reads.test.ts',
-  'src/format/mesh-entryways.test.ts',
-  'src/format/scalar-storage.test.ts',
-  'src/format/scene-scatter-pose.test.ts',
-  'src/format/scriptWireV2.test.ts',
-  'src/format/skin-sample-admission.test.ts',
-  'src/format/worldScenePlacement-color.test.ts',
-] as const;
+export const PURE_TESTS: readonly string[] = [];
 
 // CF1 preselects exact paths without Vitest's broad related-module transform.
 // Capture its existing worker token before the runner clears child inheritance.

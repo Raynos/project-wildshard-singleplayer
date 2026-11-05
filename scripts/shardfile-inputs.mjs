@@ -1,5 +1,6 @@
 // Product-only read receipts. Node records file access; the Vite bridge records
 // Rust-bundled module inputs and resolution candidates which bypass Node fs.
+import '../src/sdk/bake/format-hook.mjs';
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import childProcess from 'node:child_process';

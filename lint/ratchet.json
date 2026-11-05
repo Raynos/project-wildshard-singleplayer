@@ -29,10 +29,7 @@
       "src/engine/ui/perfLap.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state.",
       "src/engine/ui/perfProbe.ts": "performance.now measures elapsed cost or diagnostic timing; never gameplay state."
     },
-    "shardfile/sim-in-runtime": {},
-    "wildshard/explicit-schema-types": {
-      "src/format/catalogueEconomy.ts#EconomyEffectIdSchema": "G655 TD3: existing untyped export; remove when annotated"
-    }
+    "shardfile/sim-in-runtime": {}
   },
   "budgets": {
     "js/title/raw": 350000,
@@ -273,8 +270,5 @@
       "C8",
       "C9"
     ]
-  },
-  "wildshard/explicit-schema-types": {
-    "src/format/catalogueEconomy.ts": 1
   }
 }

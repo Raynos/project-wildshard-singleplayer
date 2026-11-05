@@ -17,6 +17,5 @@
   "src/shards/nine-dragon-stack/data",
   "src/sdk",
   "src/engine",
-  "src/commons",
-  "src/format"
+  "src/commons"
 ]

@@ -1,4 +1,5 @@
 // Node authoring resolution only: no app identity, service installers, simulation bindings or browser shims.
+import './format-hook.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The authoring CLI installs only Node source resolution.
 import { registerHooks } from 'node:module';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve regular files in the isolated authoring tree.

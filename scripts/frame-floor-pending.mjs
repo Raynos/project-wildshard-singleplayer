@@ -1,4 +1,6 @@
-import { CHUNK_HALF } from '@wildshard/format/contentBounds';
+import '../src/sdk/bake/format-hook.mjs';
+
+const { CHUNK_HALF } = await import('@wildshard/format/contentBounds');
 
 /** G872 (wildshard-new, 2026-11-04): list optional radial metadata outside
  * its cell, with an already drawn near view, separately. World/required/unknown

@@ -3,11 +3,10 @@
 // (and its grid or model parts when its land is not a height field), its ground source and its tree stand-ins.
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { pathToFileURL } from 'node:url';
 
 /** Every shard folder with a declared placeholder row, sorted by folder name: `{ slug, dir, source }`. */
 export async function placeholderShards(root) {
-  const { placeholderSource } = await import(pathToFileURL(join(root, 'src/format/placeholderSource.ts')).href);
+  const { placeholderSource } = await import('@wildshard/format/placeholderSource');
   const out = [];
   for (const slug of readdirSync(join(root, 'src/shards')).sort()) {
     const file = join(root, 'src/shards', slug, 'data/placeholder.json');
@@ -21,7 +20,7 @@ export async function placeholderShards(root) {
 /** One shard's declared placeholder row (`{}` when it declares none). */
 export async function placeholderOf(root, slug) {
   const file = join(root, 'src/shards', slug, 'data/placeholder.json');
-  const { placeholderSource } = await import(pathToFileURL(join(root, 'src/format/placeholderSource.ts')).href);
+  const { placeholderSource } = await import('@wildshard/format/placeholderSource');
   return placeholderSource(slug, existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : undefined);
 }
 

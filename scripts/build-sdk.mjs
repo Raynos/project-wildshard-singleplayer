@@ -44,7 +44,8 @@ function declaration(layer, module) {
   let text = readFileSync(existsSync(source) ? source : resolve(root, `src/${layer}/${module}.d.ts`), 'utf8');
   // Relative import declarations are illegal inside ambient modules; the equivalent type query remains portable.
   if (key === 'engine/types/n8ao') text = text.replace("import type { Renderer } from '@wildshard/engine/render/renderer';", "type Renderer = import('@wildshard/engine/render/renderer').Renderer;");
-  text = text.replaceAll(/(['"])@wildshard\/(engine|format|game|sdk)\/([^'"]+)\1/gu, (_match, quote, dependencyLayer, specifier) => {
+  // @wildshard/format stays a package import: the SDK depends on the shardfile repo's own files.
+  text = text.replaceAll(/(['"])@wildshard\/(engine|game|sdk)\/([^'"]+)\1/gu, (_match, quote, dependencyLayer, specifier) => {
     const dependency = defining(dependencyLayer, specifier);
     declaration(dependencyLayer, dependency);
     const from = resolve(root, `src/sdk/dist/types/${layer}`, module, '..');

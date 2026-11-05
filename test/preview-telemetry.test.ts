@@ -6,6 +6,7 @@ import {expect, test} from 'vitest';
 import {previewServer} from './fixtures/preview-server';
 import {crossroadsConfig} from '@wildshard/format/contentBounds';
 import {record} from '../scripts/phone-loading/model';
+import {CROSSROADS_CONFIG} from '../api/_crossroadsConfig';
 
 test('the real preview accepts and records exact production-valid telemetry; real refusals remain', async () => {
   mkdirSync('tmp', {recursive: true}); const root = mkdtempSync(resolve('tmp/preview-telemetry-'));
@@ -92,3 +93,7 @@ test('public static cache entries are Origin-invariant without changing API or p
     }
   } finally {server.close(); rmSync(root, {recursive: true, force: true});}
 }, 15_000);
+
+test('the API keeps format\'s exact crossroads experiment', () => {
+  expect(CROSSROADS_CONFIG).toEqual(crossroadsConfig());
+});

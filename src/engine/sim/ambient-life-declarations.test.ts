@@ -7,7 +7,7 @@ import { ForagerContinuation } from '@wildshard/format/ambientLife';
 import { expect, test } from 'vitest';
 
 test('ambient declarations bound schema metadata and retain population entries for forest composition', () => {
-  const emitted = ts.transpileDeclaration(readFileSync('src/format/ambientLife.ts', 'utf8'), {
+  const emitted = ts.transpileDeclaration(readFileSync('node_modules/@wildshard/format/src/format/ambientLife.ts', 'utf8'), {
     fileName: 'ambientLife.ts', reportDiagnostics: true,
     compilerOptions: { isolatedDeclarations: true, strict: true, exactOptionalPropertyTypes: true },
   });

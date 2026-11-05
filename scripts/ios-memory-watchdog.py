@@ -12,9 +12,9 @@ import time
 
 GIB = 1024 ** 3
 GB = 1000 ** 3
-# The one memory switch (src/format/memoryGates.json, G433): phase budgets and whether a budget overrun fails the run.
+# The one memory switch (@wildshard/format's memoryGates.json, G433): phase budgets and whether a budget overrun fails the run.
 # In report-only mode an overrun is recorded and printed, never a failure; a vanished or restarted WebContent still fails.
-MEMORY_GATES = json.loads((pathlib.Path(__file__).resolve().parent.parent / 'src' / 'format' / 'memoryGates.json').read_text())
+MEMORY_GATES = json.loads((pathlib.Path(__file__).resolve().parent.parent / 'node_modules' / '@wildshard' / 'format' / 'src' / 'format' / 'memoryGates.json').read_text())
 LOADING_BUDGET = int(MEMORY_GATES['loadingMB'] * 1_000_000)
 WORLD_BUDGET = int(MEMORY_GATES['explorerMB'] * 1_000_000)
 REPORT_ONLY = MEMORY_GATES['mode'] == 'report-only'
@@ -218,7 +218,7 @@ def main():
     budget = parser.add_mutually_exclusive_group()
     budget.add_argument('--budget-gib', type=positive_number, help='Single budget in binary GiB; defaults to 4 GiB outside phase mode')
     budget.add_argument('--budget-gb', type=positive_number, help='Single budget in decimal GB (1 GB = 1,000,000,000 bytes)')
-    budget.add_argument('--world-phase-file', type=pathlib.Path, help='Two-phase mode: the loading / Explorer budgets of src/format/memoryGates.json (decimal), Explorer once the test driver creates this new marker')
+    budget.add_argument('--world-phase-file', type=pathlib.Path, help='Two-phase mode: the loading / Explorer budgets of memoryGates.json in @wildshard/format (decimal), Explorer once the test driver creates this new marker')
     parser.add_argument('--duration', type=positive_number, default=120, help='Seconds to watch AFTER first WebContent sample')
     parser.add_argument('--interval', type=positive_number, default=0.1, help='Sampling interval in seconds; default 0.1; brief bursts can still be missed')
     parser.add_argument('--start-timeout', type=positive_number, default=30, help='Fail if no WebContent appears within this many seconds')
@@ -317,7 +317,7 @@ def main():
                         raise RuntimeError('World phase was never marked; refusing to pass a loading-only run')
                     result, reason, code = 'pass', 'Observed native memory stayed within budget for the requested window', 0
                     if run.overruns:
-                        reason = 'REPORT-ONLY (src/format/memoryGates.json, G433): over budget but not failed: ' + '; '.join(row['first'] for row in run.overruns)
+                        reason = 'REPORT-ONLY (@wildshard/format memoryGates.json, G433): over budget but not failed: ' + '; '.join(row['first'] for row in run.overruns)
                     break
                 time.sleep(max(0, args.interval - (time.monotonic() - tick)))
         except KeyboardInterrupt:

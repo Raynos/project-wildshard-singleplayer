@@ -13,7 +13,7 @@ spec.loader.exec_module(watchdog)
 
 
 class WatchdogTests(unittest.TestCase):
-    # These tests pin enforcement; src/format/memoryGates.json's report-only mode has its own test below.
+    # These tests pin enforcement; @wildshard/format's memoryGates.json report-only mode has its own test below.
     def setUp(self):
         self.report_only = watchdog.REPORT_ONLY
         watchdog.REPORT_ONLY = False

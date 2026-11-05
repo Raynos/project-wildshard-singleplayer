@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // E432: give a clean export of the repo (a `git archive` tree) the checkout's node_modules — every entry linked back to
-// the checkout's, except the workspace packages (@wildshard/engine, game, kit), which link to the export's own
-// src/<layer>. A plain `ln -s <repo>/node_modules <tree>/node_modules` would resolve @wildshard/* through the checkout's
+// the checkout's, except the workspace packages (@wildshard/engine, game, sdk, commons), which link to the export's own
+// src/<layer>. @wildshard/format is installed from the shardfile repo, so it links like any other dependency, unless the
+// export predates that and still holds its own src/format. A plain `ln -s <repo>/node_modules <tree>/node_modules` would resolve @wildshard/* through the checkout's
 // links to the checkout's working tree, so the export would build (and gate) whatever is uncommitted there.
 //
 //   node scripts/link-node-modules.mjs <repo> <tree>          (the shell scripts)
@@ -40,6 +41,7 @@ export function linkNodeModules(repo, tree) {
   if (existsSync(to)) {
     if (lstatSync(to).isSymbolicLink()) throw new Error(`link-node-modules: ${to} is a whole-folder link; remove it first`);
     linkWorkspaceSources(tree, to);
+    linkInstalledScope(repo, tree, from, to);
     linkPackageNodeModules(repo, tree);
     return; // existing links stay untouched; new manifest dependencies can still be repaired
   }
@@ -48,6 +50,7 @@ export function linkNodeModules(repo, tree) {
     if (!WORKSPACE_SCOPES.has(name)) { symlinkSync(join(from, name), join(to, name)); continue; }
     mkdirSync(join(to, name));
     for (const pkg of readdirSync(join(from, name))) {
+      if (existsSync(resolve(tree, 'src', pkg, 'package.json'))) continue; // linkWorkspaceSources names the tree's own
       const link = join(from, name, pkg);
       // the checkout's link points into the checkout (../../src/engine); the export's points at the same path in the tree
       const target = resolve(dirname(link), readlinkSync(link));
@@ -60,6 +63,19 @@ export function linkNodeModules(repo, tree) {
   }
   linkWorkspaceSources(tree, to);
   linkPackageNodeModules(repo, tree);
+}
+
+/** A package that left the workspace leaves a dangling link in an older export's node_modules: point it at the install. */
+function linkInstalledScope(repo, tree, from, to) {
+  for (const name of WORKSPACE_SCOPES) {
+    if (!existsSync(join(from, name))) continue;
+    for (const pkg of readdirSync(join(from, name))) {
+      const link = join(to, name, pkg), target = resolve(join(from, name), readlinkSync(join(from, name, pkg)));
+      if (relative(resolve(repo), target).startsWith('src/') || present(link)) continue;
+      mkdirSync(dirname(link), { recursive: true });
+      symlinkSync(target, link);
+    }
+  }
 }
 
 /** Link newly available defining packages on both first use and reruns. */

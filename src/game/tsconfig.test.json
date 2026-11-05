@@ -21,9 +21,6 @@
       "path": "../engine/tsconfig.test.json"
     },
     {
-      "path": "../../tsconfig.format.json"
-    },
-    {
       "path": "../../tsconfig.game.json"
     }
   ],

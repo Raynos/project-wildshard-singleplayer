@@ -7,6 +7,10 @@ import { dirname, isAbsolute, matchesGlob, relative, resolve, sep } from 'node:p
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as v from 'valibot';
 
+// Committed generators load format from node_modules (J82). Fixture trees that carry only these tools have no hook.
+const formatHook = new URL('../src/sdk/bake/format-hook.mjs', import.meta.url);
+if (fs.existsSync(formatHook)) await import(formatHook.href);
+
 /** @param {string} root @param {string} revision */
 export function gitSourceView(root, revision) {
   const actualRead=fs.readFileSync;

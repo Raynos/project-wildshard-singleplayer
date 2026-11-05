@@ -1,4 +1,6 @@
-import { CHUNK_HALF, ENTRY_ASPHALT } from '@wildshard/engine/core/config';
+import '../src/sdk/bake/format-hook.mjs';
+
+const { CHUNK_HALF, ENTRY_ASPHALT } = await import('@wildshard/engine/core/config');
 /** a home exit socket's centre from its cell centre (metres): the socket floor sits at the highway level */
 const EXIT = CHUNK_HALF - ENTRY_ASPHALT / 2;
 

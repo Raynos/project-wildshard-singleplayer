@@ -1,3 +1,4 @@
+import '../src/sdk/bake/format-hook.mjs';
 import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
@@ -5,7 +6,7 @@ import { registerHooks } from 'node:module';
 import { join } from 'node:path';
 
 async function validator() {
-  const root = new URL('../', import.meta.url), roots = ['api/', 'src/format/'].map(path => new URL(path, root).href);
+  const root = new URL('../', import.meta.url), roots = ['api/'].map(path => new URL(path, root).href);
   // API source names its emitted .js dependencies. Resolve only this pure
   // validation graph to TS; never load the Blob store or install a global host.
   const hooks = registerHooks({resolve(specifier, context, next) {

@@ -50,7 +50,7 @@ it('rejects unknown section hosts and absent outputs instead of measuring source
 it('attributes body sections to defining hosts without a native barrel adapter',()=>{
  const roots=sectionHostImports([{name:'sim/bodies'},{name:'sim/bodies'}]);
  expect(roots.split('\n')).toEqual([
-  "import { DeclaredBodyOpsSchema as host0 } from '../../src/format/bodySlots'; void host0;",
+  "import { DeclaredBodyOpsSchema as host0 } from '@wildshard/format/bodySlots'; void host0;",
   "import { DeclaredBodyOps as host1 } from '../../src/game/quest/bodyOps'; void host1;",
  ]);
  expect(roots).not.toContain('nativeBodyScripts');

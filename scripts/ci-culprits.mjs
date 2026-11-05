@@ -66,6 +66,7 @@ function closure(root,view,roots,promisor){
         const source=row.fileName.split('?')[0]??row.fileName;
         let target=source.startsWith('.')?posix.normalize(posix.join(dirname(file),source)):null;
         const workspace=/^@wildshard\/([^/]+)(?:\/(.+))?$/u.exec(source);
+        if(workspace?.[1]==='format')continue; // Installed: the lockfile pins it, not this tree.
         if(workspace!==null){
           const manifest=`src/${workspace[1]}/package.json`;seen.add(manifest);
           if(!view.files.has(manifest)){missing.add(manifest);continue;}

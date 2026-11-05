@@ -201,7 +201,7 @@ def check(root, base, tip, deadline, runner=run, files=None, tools=None, types_a
         result['output'] += '\nWhole-repo fast lint passed'
         guards = ['test/host-callbacks.test.ts', 'test/shardfile-boundaries.test.ts',
                   'test/platform-chargebacks.test.ts', 'test/manifest-declarations.test.ts']
-        if any(name.startswith(('src/format/', 'src/sdk/')) for name in files):
+        if any(name.startswith('src/sdk/') or name == 'pnpm-lock.yaml' for name in files):
             guards.insert(0, 'test/schema-reference.test.ts')
         rc, output = steps.run('guards', runner, ['pnpm', 'exec', 'vitest', 'run', '--config',
                              'scripts/vitest-push-guards.config.ts', *guards], root, deadline, env)

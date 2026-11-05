@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import ts from '@typescript/typescript6';
+import { formatSource } from '../scripts/format-package.mjs';
 
 /** Follow referenced schema declarations, including the compiled feature registry's required sections.
  * Unrelated legacy schemas in the same file are not part of the client plan's API. */
@@ -24,7 +25,7 @@ export function clientPlanSchemaViolations(root) {
       if (statement.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.DefaultKeyword)) { declarations.set('default', statement); exported.push('default'); }
       if (ts.isImportDeclaration(statement) && ts.isStringLiteral(statement.moduleSpecifier)) {
         const name = statement.moduleSpecifier.text;
-        const target = name.startsWith('.') ? resolve(dirname(file), name.endsWith('.ts') ? name : `${name}.ts`) : name.startsWith('@wildshard/format/') ? resolve(root, 'src/format', `${name.slice('@wildshard/format/'.length)}.ts`) : null;
+        const target = name.startsWith('.') ? resolve(dirname(file), name.endsWith('.ts') ? name : `${name}.ts`) : name.startsWith('@wildshard/format/') ? formatSource(root, `${name.slice('@wildshard/format/'.length)}.ts`) : null;
         const bindings = statement.importClause?.namedBindings;
         if (target !== null && existsSync(target) && statement.importClause?.name)
           imports.set(statement.importClause.name.text, { file: target, name: 'default' });
@@ -64,7 +65,7 @@ export function clientPlanSchemaViolations(root) {
     }
     walk(declaration);
   }
-  const plan = resolve(root, 'src/format/clientPlan.ts');
+  const plan = formatSource(root, 'clientPlan.ts');
   for (const name of module(plan).exported) visit(plan, name);
   const registry = resolve(root, 'src/game/shardfile/clientPlan.ts');
   if (existsSync(registry)) {
@@ -78,7 +79,7 @@ export function clientPlanSchemaViolations(root) {
       ts.forEachChild(node, required);
     };
     required(module(registry).source);
-    const platform = resolve(root, 'src/format/platformDataSections.ts'), loaded = module(platform);
+    const platform = formatSource(root, 'platformDataSections.ts'), loaded = module(platform);
     const tables = [];
     for (const name of ['PLATFORM_DATA_SECTIONS', 'CLIENT_ENVELOPE_SECTIONS']) {
       const table = loaded.declarations.get(name)?.initializer;

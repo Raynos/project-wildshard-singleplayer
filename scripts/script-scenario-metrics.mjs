@@ -5,6 +5,7 @@ import {relative,resolve} from 'node:path';
 import {createHash} from 'node:crypto';
 import * as v from 'valibot';
 import {outputFormat} from './shard-platform-format.mjs';
+import {formatSource} from './format-package.mjs';
 
 const hash=v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u)),natural=v.pipe(v.number(),v.safeInteger(),v.minValue(0));
 const schema=v.strictObject({schema:v.literal('script-scenario/1'),slug:v.string(),script:v.string(),scenario:v.string(),
@@ -16,7 +17,8 @@ const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 export function scenarioHostHash(root) {
   const fingerprint=createHash('sha256');
   for(const path of ['src/engine/script/decision.ts','src/engine/script/decisionModule.ts','src/format/scriptAbiV1.ts']) {
-    const file=resolve(root,path);if(!existsSync(file))return null;
+    // The fingerprint keeps format's old path: same bytes, same receipts.
+    const file=path.startsWith('src/format/')?formatSource(root,path.slice('src/format/'.length)):resolve(root,path);if(!existsSync(file))return null;
     fingerprint.update(`${path}\0`);fingerprint.update(readFileSync(file));fingerprint.update('\0');
   }
   return fingerprint.digest('hex');

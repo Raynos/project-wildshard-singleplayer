@@ -8,6 +8,7 @@ import {pathToFileURL} from 'node:url';
 import * as v from 'valibot';
 import {GRID_READY_LATCHES,GridReadyLatchesSchema} from './grid-ready-latches.mjs';
 import {runtimeGridEvidence} from './grid-runtime-evidence.mjs';
+import {formatSource} from './format-package.mjs';
 
 /** Qualify fresh observations independently of existing latches, then retain numbers inline.
  * Existing passes are immutable here; regression removal remains manual.
@@ -20,7 +21,7 @@ export function latchGridEvidence(root,receipt,receiptCommit,shards) {
  if(typeof source!=='string'||!/^[a-f0-9]{40}$/u.test(source))throw new Error('Missing measured source SHA');
  const path=resolve(root,GRID_READY_LATCHES);
  const latches=v.parse(GridReadyLatchesSchema,existsSync(path)?JSON.parse(readFileSync(path,'utf8')):{schema:'grid-ready-latches/1',entries:[]});
- const caps=JSON.parse(readFileSync(resolve(root,'src/format/memoryGates.json'),'utf8'));
+ const caps=JSON.parse(readFileSync(formatSource(root,'memoryGates.json'),'utf8'));
  mkdirSync(resolve(root,'tmp'),{recursive:true});const scratch=mkdtempSync(resolve(root,'tmp/grid-latch-'));
  let added=0;
  try {

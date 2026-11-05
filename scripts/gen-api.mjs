@@ -15,12 +15,13 @@ import ts from '@typescript/typescript6';
 import { authoringGuide } from './docs/authoring-reference.mjs';
 import { SHARDFILE_REFERENCE, shardfileReference } from './docs/gen-shardfile-reference.mjs';
 import { APPENDIX_END, APPENDIX_START, engineAppendix } from './generated-policy.mjs';
+import { layerFolder } from './format-package.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 // E434: no index files; a package's public surface is every module its package.json `exports` lists
 const PACKAGES = ['engine', 'format', 'game', 'sdk', 'commons'];
-const modulesOf = (root, layer) => Object.entries(JSON.parse(readFileSync(resolve(root, `src/${layer}/package.json`), 'utf8')).exports ?? {})
-  .filter(([, target]) => typeof target === 'string').map(([subpath, target]) => ({ specifier: `@wildshard/${layer}/${subpath.slice(2)}`, file: `src/${layer}/${target.slice(2)}` }));
+const modulesOf = (root, layer) => Object.entries(JSON.parse(readFileSync(resolve(root, layerFolder(layer), 'package.json'), 'utf8')).exports ?? {})
+  .filter(([subpath, target]) => typeof target === 'string' && !subpath.endsWith('.json')).map(([subpath, target]) => ({ specifier: `@wildshard/${layer}/${subpath.slice(2)}`, file: `${layerFolder(layer)}/${target.slice(2)}` }));
 const CONTEXTS = { LevelContext: 'src/engine/level/context.ts', ShardContext: 'src/game/plugin/context.ts' };
 const SURFACE = 'lint/api-surface.json', CEILING = 'lint/api-undocumented.json';
 
@@ -43,7 +44,7 @@ export function apiSurface(root = ROOT) {
   const configPath = ts.findConfigFile(root, (f) => ts.sys.fileExists(f));
   const config = configPath ? ts.readConfigFile(configPath, (f) => ts.sys.readFile(f)).config : {};
   const { options } = ts.parseJsonConfigFileContent(config, ts.sys, root);
-  const modules = Object.fromEntries(PACKAGES.filter(layer => existsSync(resolve(root, `src/${layer}/package.json`))).map((layer) => [layer, modulesOf(root, layer)]));
+  const modules = Object.fromEntries(PACKAGES.filter(layer => existsSync(resolve(root, layerFolder(layer), 'package.json'))).map((layer) => [layer, modulesOf(root, layer)]));
   const files = [...Object.values(modules).flat().map((m) => m.file), ...Object.values(CONTEXTS)].map((f) => resolve(root, f));
   const program = ts.createProgram(files, { ...options, noEmit: true });
   const checker = program.getTypeChecker();

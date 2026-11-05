@@ -56,7 +56,8 @@ step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', "awa
 
 const vite = resolve(import.meta.dirname, '../node_modules/vite/bin/vite.js');
 const deferPublic = deferredPublicCopy(process.cwd(), outDir, args);
-const build = spawnSync(process.execPath, [vite, 'build', ...args], {
+// vite.config.ts bundles to one module whose static imports reach @wildshard/format, so the hook comes first (J82).
+const build = spawnSync(process.execPath, ['--import', resolve(import.meta.dirname, '../src/sdk/bake/format-hook.mjs'), vite, 'build', ...args], {
   stdio: 'inherit', env: {...process.env, WS_APP_DEFER_PUBLIC_COPY: deferPublic ? '1' : '0'},
 });
 if (build.error !== undefined) throw build.error;

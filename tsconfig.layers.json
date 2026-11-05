@@ -5,9 +5,6 @@
       "path": "./tsconfig.engine.json"
     },
     {
-      "path": "./tsconfig.format.json"
-    },
-    {
       "path": "./tsconfig.game.json"
     },
     {
@@ -24,9 +21,6 @@
     },
     {
       "path": "./src/engine/tsconfig.test.json"
-    },
-    {
-      "path": "./src/format/tsconfig.test.json"
     },
     {
       "path": "./src/game/tsconfig.test.json"
