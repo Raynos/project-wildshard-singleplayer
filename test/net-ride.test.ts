@@ -109,14 +109,16 @@ const seeded = (seed: number): (() => number) => { let a = seed; return () => { 
 const lowPower = (): ((frame: number) => number) => { const rng = seeded(21); return frame => frame % 24 === 0 ? 60 : 41.15 + (rng() * 16 - 8); };
 
 test.each([['Low Power Mode', lowPower()], ['60 frames/s', () => 1000 / 60]] as const)('%s: a gallop is predicted, and corrected nowhere', (_name, frameMs) => {
-  const f = rig(), { page, seat, mount, net } = f, { player } = page;
+  const f = rig(), { page, seat, mount, net, room } = f, { player } = page, { stats } = room;
   play(f, .4, frameMs);
   expect(mount.mounted).toBe(false);
+  const walking = { bytes: stats.frameBytes, frames: stats.frames };
   expect(mount.mount(TARGET_ID)).toBe(false); // a press, not a ride: the server says when
   play(f, .4, frameMs);
   expect(seat.mounted).toBe(true); expect(mount.mounted).toBe(true);
   player.keys.add('KeyW'); player.keys.add('ShiftLeft');
-  const run = play(f, 4, frameMs);
+  const foot = walking.bytes / walking.frames, riding = { bytes: stats.frameBytes, frames: stats.frames }, run = play(f, 4, frameMs);
+  expect((stats.frameBytes - riding.bytes) / (stats.frames - riding.frames) - foot).toBeLessThan(160); // 38 f32s, only in the saddle
   expect(run.commands).toBeGreaterThan(90);
   expect(seat.body.speed).toBeGreaterThan(5);
   expect(net.predictor.corrections).toBe(0);

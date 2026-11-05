@@ -387,6 +387,9 @@ export class AnimalManager {
     return this.spawnAnimal(kind, x, z, yaw, variant, placement);
   }
 
+  /** This manager retired `actor`. */
+  retired(actor: Animal): boolean { return this.retiredActors.has(actor); }
+
   /** Rebuild one retired authored home with fresh rig/state and ordinary spawn RNG, preserving its logical identity.
    * Only an actor retired by this manager can be replaced, once; a foreign/live actor or live duplicate refuses before construction. */
   replace(retired: Animal, x: number, z: number, yaw: number, variant?: string | string[], placement?: { y?: number; fromY?: number }): Animal {

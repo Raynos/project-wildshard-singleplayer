@@ -6,7 +6,7 @@ import type { HerdBrain } from '@wildshard/engine/ai/herd';
 import { pickPrompt, setPromptSight } from '@wildshard/engine/world/interact/prompts';
 import { nativeHerdCollection } from '../shardfile/groupRuntime';
 import { bondedMountRoster } from './roster';
-import { mountedPlayerOf } from './native';
+import { mountedPlayerOf, type NativeMountedPlayer } from './native';
 import { actRoutes } from '@wildshard/engine/sim/actRoutes';
 import { TamingSession,type TamingPrograms } from './taming';
 import type { TamingBindingProfile, TamingObservation } from './bindingTypes';
@@ -245,11 +245,27 @@ export function installNativeTaming(host: SimHost, context: NativeTamingContext,
   } });
   const net = actRoutes(host);
   net.ride = (id, action) => {
-    if (action === 'dismount') { mountedPlayerOf(host, id)?.dismount(); return; }
+    const seat = mountedPlayerOf(host, id);
+    if (action === 'dismount') { seat?.dismount(); return; }
+    // the page's prompt, on the server's numbers: the nearest horse in reach that will take this rider, or the wild one's press
+    if (action === 'mount' && seat !== undefined && !seat.mounted && mountNearest(seat, rows.eye)) return;
     pending.set(id, { ...pending.get(id), [action]: true });
   };
   net.lean = (id, lean, pitch) => { if (sessions.has(id)) pending.set(id, { ...pending.get(id), lean, pitch }); };
   installed.set(host, law); return law;
+}
+
+/** m from the eye a horse answers a press: the page's `Mount` prompt. */
+const MOUNT_REACH = 3.3;
+/** Get on the nearest horse in reach that takes this rider. False: none did. */
+function mountNearest(seat: NativeMountedPlayer, eyeHeight: number): boolean {
+  const { x, y, z } = seat.player.position;
+  let best: string | null = null, bestDistance = MOUNT_REACH;
+  for (const horse of seat.mountables) {
+    const distance = Math.hypot(horse.position.x - x, horse.position.y - y - eyeHeight, horse.position.z - z);
+    if (distance < bestDistance && seat.canRide(horse.entityId)) { best = horse.entityId; bestDistance = distance; }
+  }
+  return best !== null && seat.mount(best);
 }
 
 /** The page's respawnPageMounted for a native host: the player stands at `position` facing `yaw`, at rest, and rides the

@@ -341,6 +341,7 @@ export function prepareEliteEntry<S extends BorrowedEliteController = BorrowedEl
       if (plan?.kind !== 'native') continue;
       if (!(controller instanceof NativeEliteController) || entry === undefined || entry.controller.kind === 'borrowed') throw new Error('Changed elite native construction');
       const observationId = entry.controller.observations, loan = need(observations.find(row => row.id === observationId)), actor = controller.animal;
+      if (actor !== null && plan.manager.retired(actor)) continue; // a server's rows stand in for this page's bodies
       if (actor !== null && !plan.manager.animals.includes(actor)) throw new Error('Foreign elite observation actor');
       const frame = loan.columns.capture({ ...loan.owners, self: { ...loan.owners.self, actor, identity: actor?.entityId ?? '' } });
       const value = (name: string): number => need(frame.find(row => row.name === name)).value;

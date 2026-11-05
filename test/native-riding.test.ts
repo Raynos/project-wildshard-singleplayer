@@ -24,6 +24,7 @@ import { respawnNativeMounted } from '@wildshard/game/riding/nativeTaming';
 import { NALATI_RIDING_PROGRAMS as programs } from './fixtures/nalati-riding';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { installWorldFixture } from './fixtures/worldSetup';
+import { actRoutes } from '@wildshard/engine/sim/actRoutes';
 import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 await installWorldFixture();
@@ -216,7 +217,13 @@ test('G478 orchard fixture owns companion allocation, retirement and native tami
     const actor = roster.spawn(2, 3, 0, false), before = random.snapshot();
     expect(actor.entityId).toBe('creature:0'); expect(bodies).toEqual([actor]); expect(sight).toEqual([false]);
     expect(() => roster.spawn(4, 3, 0, false)).toThrow(); expect(random.snapshot()).toEqual(before);
-    mounted.addMountable(actor.entityId); expect(mounted.mount(actor.entityId)).toBe(true);
+    mounted.addMountable(actor.entityId);
+    // the wire's press takes the horse in reach, and nothing out of it
+    const ride = actRoutes(host).ride; if (ride === null) throw new Error('Missing ride route');
+    first.position.set(actor.position.x + 40, first.position.y, actor.position.z); ride(first.id, 'mount'); expect(mounted.mounted).toBe(false);
+    first.position.set(actor.position.x + 1, first.position.y, actor.position.z); ride(first.id, 'mount'); expect(mounted.mounted).toBe(true);
+    ride(first.id, 'dismount'); expect(mounted.mounted).toBe(false);
+    expect(mounted.mount(actor.entityId)).toBe(true);
     taming.update(.1); host.step(leadCommands(host, { moveX: 0, moveZ: 0, yaw: 0, commandVersion: 1, steer: { keyX: 0, keyY: 1, stickX: 0, stickY: 0 } }));
     mounted.dismount(); mounted.removeMountable(actor.entityId); roster.retire(actor.entityId);
     expect(host.entities.has(actor.entityId)).toBe(false); expect(bodies).toEqual([]); expect(sight).toEqual([]); expect(retired.has(actor.entityId)).toBe(true);
