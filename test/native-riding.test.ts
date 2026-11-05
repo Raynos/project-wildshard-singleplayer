@@ -11,6 +11,7 @@ import { expect, test, vi } from 'vitest';
 import { onFault, type Fault } from '@wildshard/engine/core/faults';
 import { zlibSync } from 'fflate';
 import { Vector3 } from 'three';
+import type { HeadlessCommand } from '../src/sdk/tickProtocol';
 import { createSimHost, type SimHost } from '@wildshard/engine/sim';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
 import { restoreSimHost, snapshotSimHost, serializeSimSnapshot, decodeSimSnapshot, leadSnapshot } from '@wildshard/engine/sim/snapshot';
@@ -198,7 +199,8 @@ test('G478 orchard fixture owns companion allocation, retirement and native tami
   try { expect(() => new BondedMountRoster(foreign, companionRows, service)).toThrow('Invalid mount roster owners'); } finally { foreign.dispose(); }
   lendNalatiPasture(host.scope);
   const mounted = installMountedPlayer(host, { ...rows, mountable: [] },zeroPond,zeroWet);
-  const taming = installNativeTaming(host, { commands: () => [] }, { step: 'orchard.taming', herds: 'orchard.herds', roster: 'orchard.companions', kinds: [], programs,
+  let lent: readonly HeadlessCommand[] = [];
+  const taming = installNativeTaming(host, { commands: () => lent }, { step: 'orchard.taming', herds: 'orchard.herds', roster: 'orchard.companions', kinds: [], programs,
     binding: { upgradeKind: 'silver', bonds: ['ordinary', 'silver'], names: ['Juniper', 'Silver'], offset: [1, 2], fields: { upgraded: 'argymaq', horseUpgraded: 'horseArgymaq', candidateUpgraded: 'argymaq' },
       labels: { mount: 'Ride', breaking: 'Tame', trust: 'Trust', start: 'Start', thrown: 'Thrown', bonded: ['Bonded', 'Upgraded'] } },
     poses: [], poseProgram: SPECIES_POSES.horse, presentation: { alive: 'alive', smooth: [], decay: [], graze: { target: 'graze', rate: 1, speed: .3 }, base: { bone: 'body', target: 'base' }, wind: { x: 'wx', z: 'wz', strength: 'wind' } },
@@ -208,6 +210,10 @@ test('G478 orchard fixture owns companion allocation, retirement and native tami
     const controls = nativeTamingControls(host), first = leadPlayer(host), bot = host.addPlayer('bot.tamer', { x: 8, y: first.position.y, z: 8 });
     const tamingSave = host.adapters.get('orchard.taming'); if (controls === undefined || tamingSave === undefined) throw new Error('Missing taming controls');
     expect(controls.sessionOf(first.id)).toBe(taming); expect(tamingSave.snapshot()).not.toHaveProperty('others');
+    // a net lead's lean and look arrive on its command, not by a route: only `others` take one
+    lent = [{ kind: 'player', moveX: 0, moveZ: 0, yaw: 0, commandVersion: 1, seq: 7, pitch: .5, steer: { keyX: -.5, keyY: 0, stickX: 0, stickY: 0 } }];
+    taming.update(1 / 60); expect(tamingSave.snapshot()).toMatchObject({ pitch: .5 });
+    lent = [];
     controls.press(bot.id, { lean: 1 }); taming.update(1 / 60); expect(controls.sessionOf(bot.id)).toBeUndefined();
     controls.press(bot.id, { offer: true }); taming.update(1 / 60);
     const own = controls.sessionOf(bot.id); expect(own).toBeDefined(); expect(own).not.toBe(taming);

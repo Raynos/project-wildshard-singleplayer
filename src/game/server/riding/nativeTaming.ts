@@ -151,7 +151,7 @@ export function installNativeTaming(host: SimHost, context: NativeTamingContext,
       const commands = context.commands(); if (commands.length > 4096) throw invalidInput;
       for (let i = 0; i < 4096; i++) {
         const c = commands[i]; if (c === undefined) break;
-        if (c.kind === 'player') lean = c.steer?.keyX ?? 0;
+        if (c.kind === 'player') { lean = c.steer?.keyX ?? 0; if (c.seq !== undefined && c.pitch !== undefined) pitch = c.pitch; } // a wire's command carries the rider's look; a tape's script row does
         else if (c.kind === 'script') {
           if (c.actorId === rows.inputs.offer) { if (c.value !== 0 && c.value !== 1) throw invalidInput; offer = c.value === 1; }
           else if (c.actorId === rows.inputs.lean) { if (!Number.isFinite(c.value) || Math.abs(c.value) > 1) throw invalidInput; lean = c.value; }
