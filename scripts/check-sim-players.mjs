@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // P1-E5.2a: SimHost once had one player, and code that reaches for "the" player cannot run a room. This counts, with the
 // type checker, every read of a one-player member of SimHost (the `player` field, its per-player state and its helpers)
-// and every `soloPlayer` call in non-test source, however the host is named or destructured. The counts may only fall.
+// and every `leadPlayer` call in non-test source, however the host is named or destructured. The counts may only fall.
 //   node scripts/check-sim-players.mjs            check (fails on a rise; notes a fall)
 //   node scripts/check-sim-players.mjs --update   lower lint/sim-players.json to today's counts (it refuses a rise)
 //   node scripts/check-sim-players.mjs --list     every site, one per line
@@ -13,7 +13,7 @@ import ts from '@typescript/typescript6';
 
 const ROOT = resolve(fileURLToPath(new URL('../', import.meta.url)));
 const FILE = resolve(ROOT, 'lint/sim-players.json');
-const ABOUT = 'P1-E5.2a: per-file reads of a one-player SimHost member, and soloPlayer calls, in non-test source (scripts/check-sim-players.mjs, by type, not by spelling). They never rise.';
+const ABOUT = 'P1-E5.2a: per-file reads of a one-player SimHost member, and leadPlayer calls, in non-test source (scripts/check-sim-players.mjs, by type, not by spelling). They never rise.';
 /** The members that only make sense with exactly one player. */
 const MEMBERS = new Set(['player', 'playerImpulse', 'playerFall', 'playerWalk', 'playerMoveScale', 'playerShove', 'playerBoard', 'boardVelocity',
   'playerSwim', 'swimVelocity', 'playerJump', 'playerDash', 'playerDodge', 'modes', 'playerMode', 'playerWading', 'impulsePlayer', 'shovePlayer',
@@ -46,8 +46,8 @@ function census(program) {
           if (declaration !== undefined && ts.isClassLike(declaration.parent) && declaration.parent.name?.text === 'SimHost') sites.push({ path, line, name: name.text });
         }
       }
-      if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === 'soloPlayer') {
-        sites.push({ path, line: source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1, name: 'soloPlayer' });
+      if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === 'leadPlayer') {
+        sites.push({ path, line: source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1, name: 'leadPlayer' });
       }
       ts.forEachChild(node, visit);
     };

@@ -23,7 +23,7 @@ interface HealthSnapshot {
   version: number; attributes: HealthAttributes; effectTags: CombatTag[]; lastHurt: number; cause: DeathCause | null; previousMode: PlayerMode;
 }
 export class PlayerHealth implements Actor {
-  readonly id = 'actor.player';
+  readonly id: string;
   readonly tags = ['actor.player'] as const;
   effectTags: readonly CombatTag[] = [];
   readonly attributes: HealthAttributes = { health: 100, maxHealth: 100, incomingCap: Infinity };
@@ -36,7 +36,7 @@ export class PlayerHealth implements Actor {
   /** Immediate motor state; the change event is sampled during update. */
   get mode(): PlayerMode { return this.ports.mode?.() ?? 'foot'; }
   private readonly ports: PlayerHealthPorts;
-  constructor(events: Events, ports: PlayerHealthPorts) { this.events = events; this.ports = ports; this.previousMode = this.mode; }
+  constructor(events: Events, ports: PlayerHealthPorts, id = 'actor.player') { this.events = events; this.ports = ports; this.id = id; this.previousMode = this.mode; }
   snapshot(): HealthSnapshot {
     return { version: 1, attributes: { ...this.attributes }, effectTags: [...this.effectTags],
       lastHurt: this.lastHurt, cause: this.cause === undefined ? null : { ...this.cause }, previousMode: this.previousMode };

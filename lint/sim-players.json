@@ -1,6 +1,6 @@
 {
- "about": "P1-E5.2a: per-file reads of a one-player SimHost member, and soloPlayer calls, in non-test source (scripts/check-sim-players.mjs, by type, not by spelling). They never rise.",
- "total": 549,
+ "about": "P1-E5.2a: per-file reads of a one-player SimHost member, and leadPlayer calls, in non-test source (scripts/check-sim-players.mjs, by type, not by spelling). They never rise.",
+ "total": 379,
  "files": {
   "src/engine/ai/eliteKernels.ts": 3,
   "src/engine/ai/eliteRoster.ts": 3,
@@ -9,7 +9,7 @@
   "src/engine/net/combatWire.ts": 1,
   "src/engine/net/playerNet.ts": 25,
   "src/engine/net/simWorld.ts": 2,
-  "src/engine/sim.ts": 172,
+  "src/engine/sim.ts": 2,
   "src/engine/sim/cableTraversal.ts": 8,
   "src/engine/sim/snapshot.ts": 67,
   "src/game/animation/limbPopulation.ts": 1,

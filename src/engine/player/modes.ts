@@ -106,7 +106,9 @@ export class PlayerModes<D = PlayerModeDriver> {
   private entered: { readonly id: DrivenMode; readonly driver: D } | null = null;
 
   private readonly player: ModePlayer<D>;
-  constructor(player: ModePlayer<D>) { this.player = player; }
+  private readonly asked: () => boolean;
+  /** `asked`: a host of several players says whether the running `player.traversal` ask is for this registry's. */
+  constructor(player: ModePlayer<D>, asked: () => boolean = () => true) { this.player = player; this.asked = asked; }
 
   /**
    * Declare a driven mode for `scope`'s lifetime: its context is registered with `input`, its traversal answers `events`'
@@ -126,7 +128,7 @@ export class PlayerModes<D = PlayerModeDriver> {
     if (context !== undefined && input !== undefined) input.register(context, scope);
     if (traverse !== undefined && events !== undefined) {
       events.answer('player.traversal', (dt) => {
-        if (typeof dt !== 'number') return dt; // an earlier answer stands
+        if (typeof dt !== 'number' || !this.asked()) return dt; // an earlier answer stands
         const moved = traverse(dt);
         if (moved) this.traversing.add(def.id); else this.traversing.delete(def.id);
         return moved;

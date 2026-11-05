@@ -609,6 +609,7 @@
   "src/engine/sim/edgeProfiles.ts": "shared",
   "src/engine/sim/moverLifecycle.ts": "shared",
   "src/engine/sim/moverMotion.ts": "shared",
+  "src/engine/sim/playerSim.ts": "server",
   "src/engine/sim/readiness.ts": "shared",
   "src/engine/sim/seamError.ts": "shared",
   "src/engine/sim/seamGeometry.ts": "shared",

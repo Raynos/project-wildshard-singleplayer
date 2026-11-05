@@ -36,7 +36,7 @@ export interface EventMap {
 export interface CrouchRequest { want: boolean; via: 'toggle' | 'hold' }
 export interface CrouchAnswer { allowed: boolean; latched: boolean }
 export interface AskMap {
-  'player.traversal': readonly [number | boolean, boolean];
+  'player.traversal': readonly [number | boolean, number | boolean];
   'player.crouch': readonly [CrouchRequest, CrouchAnswer];
   /** Scope-owned admission precedes reaction callbacks, cover and damage modifiers; absent rules pass through. */
   'damage.admit': [DamageRequest | null, DamageRequest | null];
