@@ -32,7 +32,7 @@ export function installCombatMotion(host: SimHost, context: { readonly combat?: 
   const fed = new Map<string, PlayerSim>();
   frame.seated = (id, own) => {
     const player = host.players.get(id);
-    if (player === undefined || player === first || fed.get(id) === player) return;
+    if (player === undefined || player === first || !player.hasMotor || fed.get(id) === player) return;
     fed.set(id, player); observe(player, own);
   };
 }

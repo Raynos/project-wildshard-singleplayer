@@ -2,8 +2,8 @@ import type { SimCommand } from '../sim';
 import type { PlayerSim } from './playerSim';
 
 /**
- * The player a system not yet per-player serves: the host's first. Weapons, quests, riding and hand-offs bind it; a room's
- * other players share its world, creatures and physics but have none of those (P1-E5.2a). The uses are a ratchet.
+ * The host's first player: what a save, a tape or a page's own view means by "the player". A system serving a room reads
+ * every player instead (P1-E5.2a); the uses are a ratchet.
  */
 export function leadPlayer<P = PlayerSim>(host: { readonly players: ReadonlyMap<string, P> }): P {
   const first = host.players.values().next();

@@ -303,7 +303,7 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
   books.install(book => {
     const body = need(host.players.get(book.player), 'seated body'), seat = entry.seat(book.player, rows.transitions);
     const ride = cables.seat(cableId, body, seat.flags);
-    if (rider !== null) holdCarried(body, ride, seat.flags);
+    if (rider !== null && body.hasMotor) holdCarried(body, ride, seat.flags);
     const held = rows.ammunition === undefined ? null : need(ammunition ?? undefined, 'ammunition').of(body), own = { iron: false, rewardOwned: false }, skins = new Set<string>();
     const gear: SeatGear = { body, board: boardFor(), reward: rows.reward === undefined ? null : rewardFor(ride, undefined, seat.flags), ammunition: held, state: own, seen: seat.flags,
       trader: traderFor(seat.pack, skin => skin === rows.trade?.finish && own.rewardOwned || skins.has(skin), skin => { skins.add(skin); }, held, launcher?.kind === 'bolt' ? seatedBolt(launcher.item, body) : null),
