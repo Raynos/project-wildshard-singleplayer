@@ -43,8 +43,8 @@ try {
     await browser.close();
     process.exit(failures.length === 0 ? 0 : 1);
   }
-  const enter = async () => {
-    await page.goto(floorGridBenchmarkUrl(base), { waitUntil: 'load' });
+  const enter = async (url = floorGridBenchmarkUrl(base)) => {
+    await page.goto(url, { waitUntil: 'load' });
     await page.locator('.ws-main-grid').click({ timeout: 60_000 });
     await page.waitForFunction(() => window.__wildshard?.shard?.grid?.state().live?.live?.gameplayReady, undefined, { timeout: 60_000 });
     await page.evaluate(FLOOR_GRID_ENTER);
@@ -78,12 +78,17 @@ try {
   const back = await page.evaluate(() => ({ report: window.__workerClient(), current: window.__wildshard.shard.grid.state().live.live.current }));
   if (!back.report.restored) failures.push('the reload did not restore');
   if (Math.hypot(back.report.serverX - stood.serverX, back.report.serverZ - stood.serverZ) > 3) failures.push('the reload moved the player');
-  // The same boot with no link: the level's index and the server's files are the ones this walk left on the device.
+  // The same boot with no link. The bench URL turns the service worker off, so first play under it: twice, since a first visit installs it and only a controlled one fills it.
+  const played = new URL('/?mute=1&nolock=1', base).href;
+  await enter(played);
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await enter(played);
+  await page.waitForFunction(() => window.__workerClient().frames > 30, undefined, { timeout: 60_000 });
   await page.evaluate(() => window.__workerClientSave());
   await context.setOffline(true);
   const reach = await page.evaluate(() => fetch(`/version.json?${Date.now()}`).then(() => true, () => false));
   if (reach) console.log('[offline] the link did not go down');
-  await enter();
+  await enter(played);
   await page.waitForFunction(() => window.__workerClient().frames > 30, undefined, { timeout: 60_000 }).catch(() => { failures.push('the offline boot did not start'); });
   const away = await page.evaluate(() => window.__workerClient());
   console.log(JSON.stringify({ offline: { restored: away.restored, closed: away.closed, cell: away.cell, frames: away.frames } }));
