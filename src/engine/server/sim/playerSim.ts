@@ -14,7 +14,7 @@ import { COYOTE_MS, type JumpState } from '../../shared/player/jump';
 import { pondBob, type SwimState } from '../../shared/player/swim';
 import { localWalkingMove, wadeScale } from '../../shared/player/walk';
 import { PlayerModes, type ModePlayer } from '../../shared/player/modes';
-import { commandedWalk, leaveSwim, setBoard, stepPlayerMotion, type MotionFooting, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
+import { commandedWalk, resetMotion, setBoard, stepPlayerMotion, type MotionFooting, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
 import { dashToward, startDash, type DashState, type DodgeState } from '../../shared/player/dash';
 import { validateLocalMovement } from '../../shared/input/commands';
 import { netSimCommand } from '../../shared/sim/netMotion';
@@ -261,10 +261,9 @@ export class PlayerSim implements PlayerMotionState {
   resetPose(feet: { x: number; y: number; z: number }, yaw: number): void {
     if (this.host.disposed || this.host.embedded || this.borrowed || !this.hasMotor) throw new Error('Player pose belongs to an owned active host');
     if (![feet.x, feet.y, feet.z, yaw].every(Number.isFinite)) throw new RangeError('Invalid native player pose');
-    this.setBoard(false); leaveSwim(this, this.world);
-    this.position.set(feet.x, feet.y, feet.z); this.yaw = yaw;
-    this.motor.resetAt(this.position); this.impulse.set(0, 0, 0); this.dash.t = 0;
-    this.velocity.set(0, 0, 0); this.fall.grounded = false; this.swim.stood = false; this.resets++;
+    this.setBoard(false);
+    resetMotion(this, this.world, feet.x, feet.y, feet.z, yaw);
+    this.motor.release(); this.swim.stood = false; this.resets++;
   }
   /** Nothing the client commands moves this player now: a traversal or carry has them (a boat, a cable, a grapple's pull), or
    *  a fall's fade. Its client takes no step and compares nothing until this ends; the client's own moves wait. */

@@ -5,7 +5,7 @@ import { pondBob } from '../../shared/player/swim';
 import { combatSpeedFactor } from '../../shared/player/combatMotion';
 import { HOVER_HARD_LANDING } from '../../shared/player/board';
 import { createMotionState } from '../../shared/player/motionState';
-import { leaveSwim, setBoard, sprints, stepPlayerMotion, type MotionOut, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
+import { resetMotion, setBoard, sprints, stepPlayerMotion, type MotionOut, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
 import type { AimCommand, PlayerCommand, LocalSteer, RideCommandSample } from '../../shared/input/commands';
 import { NET_BUTTONS } from '../../shared/input/netButtons';
 import type { InputService } from '../input/InputService';
@@ -341,14 +341,10 @@ export class Player {
 
   /** `y`: the feet's height (a shard whose floor is built: ShardManifest.spawn.y); omitted = the ground's */
   spawn(x: number, z: number, yaw: number, y?: number): void {
-    this.position.set(x, y ?? this.groundHeightAt(x, z), z);
+    resetMotion(this.motionState, this.motionWorld, x, y ?? this.groundHeightAt(x, z), z, yaw);
     this.motor.release();
     this.prevFeet.copy(this.position);
-    this.yaw = yaw; this.pitch = 0;
-    this.velocity.set(0, 0, 0);
-    this.impulseVelocity.set(0, 0, 0);
-    this.dashState.t = 0;
-    leaveSwim(this.motionState, this.motionWorld); this.inWater = false; this.depth = 0; this.wading = false;
+    this.pitch = 0; this.inWater = false;
   }
 
   get forward(): THREE.Vector3 { return new THREE.Vector3(-Math.sin(this.yaw), 0, -Math.cos(this.yaw)); }

@@ -204,6 +204,14 @@ export function setBoard(s: PlayerMotionState, w: MotionWorld, on: boolean): voi
   s.board.on = on;
   if (on) { s.fall.grounded = false; leaveSwim(s, w); }
 }
+/** Put the feet somewhere new: speed, impulse, dash and the swim end there. The ground flag stays until the next step
+ *  resolves it, so a walk carries on from a respawn at its ground acceleration. The caller moves its capsule. */
+export function resetMotion(s: PlayerMotionState, w: MotionWorld, x: number, y: number, z: number, yaw: number): void {
+  s.position.set(x, y, z); s.yaw = yaw;
+  s.velocity.set(0, 0, 0); s.impulse.set(0, 0, 0); s.dash.t = 0;
+  leaveSwim(s, w);
+  s.footing.depth = 0; s.footing.wading = false;
+}
 /** Start swimming, from the walk: most of the fall speed goes into the splash, and the walk's own speed stays. */
 function enterSwim(s: PlayerMotionState, w: MotionWorld, run: MotionScratch): void {
   const { swim, fall, velocity } = s, keep = entryKeep(velocity.y);
