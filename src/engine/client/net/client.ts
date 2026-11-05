@@ -5,6 +5,7 @@ import type { QuestProgress } from '../../shared/quest/progress';
 import type { NetCommand } from '@wildshard/format/netCommand';
 import type { ChatChannel, NetRoomAct } from '../../shared/net/acts';
 import type { NetChat } from '../../shared/net/chatWire';
+import { diagnosticNow } from '../../shared/core/clock';
 import { BitWriter, fitText, MAX_NET_TEXT_BYTES } from '../../shared/net/bits';
 import { encodeCommands, seqAfter } from '../../shared/net/command';
 import { GUEST, type NetIdentity } from '../../shared/net/identity';
@@ -15,6 +16,9 @@ import { FLAG_CLASS, NET_CLASSES, NET_SCHEMA_HASH, PLAYER_CLASS } from '../../sh
 import { FLAG_PREFIX, STATE_PREFIX } from '../../shared/net/shardNet';
 import type { NetClass, NetValue } from '../../shared/net/schema';
 import type { Transport } from '../../shared/net/transport';
+import { Interpolator } from './interpolator';
+import { NetClock } from './netClock';
+import { NetDelivery } from './onRep';
 
 /** Older commands repeated in each bundle, against loss (§4.2). */
 export const REDUNDANT_COMMANDS = 4;
@@ -43,6 +47,13 @@ export class NetClient {
   /** Frames refused as malformed or not applicable yet. */
   dropped = 0;
   readonly entities: Map<number, NetEntityInfo> = new Map<number, NetEntityInfo>();
+  /** Where the server is now, and how far behind it rows are drawn (P1-E5.3-F3). */
+  readonly clock: NetClock = new NetClock();
+  /** Every row but this client's own character, buffered to be drawn in the past (P1-E5.3-F2). */
+  readonly interpolator: Interpolator = new Interpolator(handle => this.entities.get(handle)?.cls);
+  /** Events and field changes, when the screen reaches them (P1-E5.3-F4). Step it with `present`. */
+  readonly delivery: NetDelivery = new NetDelivery(this.interpolator, handle => this.entities.get(handle)?.cls.cls);
+  private readonly now: () => number;
   private readonly transport: Transport;
   private readonly writer = new BitWriter(1024);
   private readonly frames = new Map<number, DecodedFrame>();
@@ -64,8 +75,8 @@ export class NetClient {
   private fresh = 0;
   private seq = 0;
   private readonly off: (() => void)[];
-  constructor(transport: Transport) {
-    this.transport = transport;
+  constructor(transport: Transport, now: () => number = diagnosticNow) {
+    this.transport = transport; this.now = now;
     this.table = { ownerClass: PLAYER_CLASS, classOf: handle => this.entities.get(handle)?.cls, baseline: tick => this.frames.get(tick) ?? null };
     this.off = [transport.onMessage((_channel, bytes) => { this.receive(new Uint8Array(bytes)); }), transport.onClose(reason => { this.closed = reason; })];
   }
@@ -108,11 +119,18 @@ export class NetClient {
   }
   /** The owner block of a frame, as field values. */
   owner(frame: DecodedFrame): NetFields { return decodeColumns(PLAYER_CLASS.owner, frame.owner); }
-  /** Queue one sim step's input; the next `flush` sends it. Returns the `seq` it was given. */
-  command(input: Omit<NetCommand, 'seq'>): number {
+  /** Queue one sim step's input; the next `flush` sends it. Returns the `seq` it was given. `viewTick`, left out, is what the
+   *  screen shows now, which is what a blow is settled against (J50). */
+  command(input: Omit<NetCommand, 'seq' | 'viewTick'> & { readonly viewTick?: number }): number {
     this.seq = (this.seq + 1) & 0xffff;
-    this.unacked.push({ ...input, seq: this.seq }); this.fresh++;
+    this.unacked.push({ ...input, viewTick: input.viewTick ?? this.clock.viewTick(this.now()), seq: this.seq }); this.fresh++;
     return this.seq;
+  }
+  /** Once per render frame: the tick rows are drawn at, with every event and field change that tick has reached delivered. */
+  present(): number {
+    const renderTick = this.clock.renderTick(this.now());
+    this.delivery.update(renderTick);
+    return renderTick;
   }
   /** Send this client frame's bundle: its new commands and up to REDUNDANT_COMMANDS older unacked ones, plus the ack. */
   flush(): void {
@@ -129,10 +147,11 @@ export class NetClient {
   dispose(): void { for (const off of this.off) off(); this.listeners.clear(); this.fights.clear(); this.travels.clear(); }
 
   private receive(bytes: Uint8Array): void {
+    const arrived = this.now(); // here, never in a render frame: at 24.3 frames/s that stamp would be 41 ms of false jitter
     switch (messageId(bytes)) {
-      case MSG_WELCOME: this.welcome = decodeWelcome(bytes); break;
+      case MSG_WELCOME: this.welcome = decodeWelcome(bytes); this.interpolator.own = this.welcome?.handle ?? null; break;
       case MSG_EVENTS: this.events(bytes); break;
-      case MSG_FRAME: this.decoded(decodeFrame(bytes, this.table)); break;
+      case MSG_FRAME: this.decoded(decodeFrame(bytes, this.table), arrived); break;
       default: this.dropped++;
     }
   }
@@ -140,7 +159,7 @@ export class NetClient {
     const decoded = decodeEvents(bytes, initialBits);
     if (decoded === null) { this.dropped++; return; }
     for (const event of decoded.events) {
-      if (event.kind === 'hit' || event.kind === 'died' || event.kind === 'reward') { for (const listener of this.fights) listener(event); continue; }
+      if (event.kind === 'hit' || event.kind === 'died' || event.kind === 'reward') { for (const listener of this.fights) listener(event); this.delivery.receive(event); continue; }
       if (event.kind === 'quest') { this.quests.set(event.quest, event); continue; }
       if (event.kind === 'ledger') { this.receipt(event); continue; }
       if (event.kind === 'chat') { for (const listener of this.lines) listener(event); continue; }
@@ -161,17 +180,18 @@ export class NetClient {
     }
   }
   /** Everything it holds named the cell it left. Commands stand: the player's own stream goes on. */
-  private left(): void { this.welcome = null; this.latest = null; this.frames.clear(); this.entities.clear(); this.ids.clear(); this.quests.clear(); this.phased.clear(); this.ledgerSerial = 0; }
+  private left(): void { this.welcome = null; this.latest = null; this.clock.reset(); this.interpolator.clear(); this.delivery.clear(); this.frames.clear(); this.entities.clear(); this.ids.clear(); this.quests.clear(); this.phased.clear(); this.ledgerSerial = 0; }
   private receipt(event: NetLedger): void {
     if (event.serial <= this.ledgerSerial || this.granted.has(event.id)) return;
     this.ledgerSerial = event.serial; this.granted.add(event.id);
     for (const listener of this.receipts) listener(event);
   }
-  private decoded(frame: DecodedFrame | null): void {
+  private decoded(frame: DecodedFrame | null, arrived: number): void {
     if (frame === null || (this.welcome !== null && frame.cell !== this.welcome.cell)) { this.dropped++; return; }
     this.frames.set(frame.tick, frame);
     if (this.frames.size > FRAME_RING) for (const tick of this.frames.keys()) { this.frames.delete(tick); if (this.frames.size <= FRAME_RING) break; }
     if (this.latest === null || frame.tick > this.latest.tick) this.latest = frame;
+    this.clock.arrival(frame.tick, arrived); this.interpolator.push(frame);
     for (const listener of this.listeners) listener(frame);
   }
 }
