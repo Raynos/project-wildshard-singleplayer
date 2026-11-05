@@ -7,10 +7,12 @@ import { boardShoved, HOVER_HARD_LANDING } from '../../shared/player/board';
 import { createMotionState } from '../../shared/player/motionState';
 import { leaveSwim, PAGE_MOTION, setBoard, sprints, stepPlayerMotion, type MotionOut, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
 import type { AimCommand, PlayerCommand, LocalSteer, RideCommandSample } from '../../shared/input/commands';
+import { NET_BUTTONS } from '../../shared/input/netButtons';
 import type { InputService } from '../input/InputService';
 import type { Events } from '../../shared/events/events';
 import { dodgeFx, dodgeEnv } from '../../shared/player/dodge';
 import * as THREE from 'three';
+import type { NetCommand } from '@wildshard/format/netCommand';
 import { heightAt } from '../../shared/world/Heightfield';
 import { app } from '../app/runtime';
 import { WaterLine, type WaterLineView } from './WaterLine';
@@ -216,6 +218,12 @@ export class Player {
   /** the feet before the last fixed step: update() interpolates the camera between it and `position` */
   private readonly prevFeet = new THREE.Vector3();
   private readonly renderFeet = new THREE.Vector3();
+  /** A correction still being glided out (client/net/predictor.ts): added to the camera's feet, never to the feet. */
+  readonly renderOffset: THREE.Vector3 = new THREE.Vector3();
+  /** A replayed step (client/net/predictor.ts): it already played, so it fires no sound, event or view moment. */
+  private replaying = false;
+  /** Something other than the motion law owned this step: a ride or a traversal. */
+  private lawless = false;
   /** the capsule + Rapier character controller that collides the move (src/engine/shared/physics/CharacterMotor.ts) */
   private currentMotor: CharacterMotor;
   /** The current frame's one capsule/controller; replacement is committed by bindFrame. */
@@ -270,12 +278,12 @@ export class Player {
         get crouching() { return crouching(); }, velocity: undefined, active: true, get coyoteMs() { return coyote(); } },
       boardTop: () => hoverSpeed(this.hoverSpeedLimit?.(), this.hoverBoost && isDev()),
       boardCapped: () => this.hoverSpeedLimit !== null || this.hoverBoost,
-      jumped: () => { this.commandJumpUsed = true; if (this.hover) this.hoverJumpKick = 1; app.events.emit('player.jump', true); this.onJump?.(); },
+      jumped: () => { this.commandJumpUsed = true; if (this.replaying) return; if (this.hover) this.hoverJumpKick = 1; app.events.emit('player.jump', true); this.onJump?.(); },
       dodged: () => undefined, // the page presses its own dodge: dodge()
-      landed: (hard, vy, cushion) => { this.landImpulse = Math.min(0.35, -vy * 0.03) * (1 - 0.7 * cushion); this.onLand?.(hard); },
-      boardLanded: (speed) => { this.hoverLanded = speed; this.onLand?.(speed > HOVER_HARD_LANDING); },
+      landed: (hard, vy, cushion) => { if (this.replaying) return; this.landImpulse = Math.min(0.35, -vy * 0.03) * (1 - 0.7 * cushion); this.onLand?.(hard); },
+      boardLanded: (speed) => { if (this.replaying) return; this.hoverLanded = speed; this.onLand?.(speed > HOVER_HARD_LANDING); },
       swimChanged: (on) => { this.swimChanged(on); },
-      stroked: () => { this.onStroke?.(); },
+      stroked: () => { if (!this.replaying) this.onStroke?.(); },
       scratch: null,
     };
   }
@@ -303,6 +311,7 @@ export class Player {
     if (on === this.hover) return;
     setBoard(this.motionState, this.motionWorld, on);
     if (on) { this.crouching = false; this.sprinting = false; }
+    if (this.replaying) return;
     this.onHoverChange?.(on); app.events.emit('player.hover', on);
   }
 
@@ -315,6 +324,7 @@ export class Player {
   /** Swimming started or stopped: the held controls let go with it. */
   private swimChanged(on: boolean): void {
     if (!on) { this.diveHeld = false; this.touchDive = false; this.surfaceHeld = false; this.touchSurface = false; }
+    if (this.replaying) return;
     this.onSwimChange?.(on); app.events.emit('player.swim', on);
   }
 
@@ -379,6 +389,7 @@ export class Player {
     ok ??= this.dash(mx * v, mz * v, DODGE_TIME);
     if (!ok) return false;
     startDodge(this.dodgeState, this.dodgeCooldownScale);
+    if (this.replaying) return true;
     // feel (E63): the camera / viewmodel / screen curves run off one clock — see the camera block in update()
     const side = len < 0.2 ? 0 : Math.max(-1, Math.min(1, mx * cos - mz * sin)); // + = the dodge goes right (view space)
     this.dodgeClock = 0;
@@ -471,10 +482,28 @@ export class Player {
     };
   }
 
+  /**
+   * One predicted step of a wire command (P1-E5.3-C4): the page's own step, on the quantised command the server will decode.
+   * `replay` is that step's second run, which fires no moment. The view keeps the raw yaw and pitch, so a slow thumb is not
+   * rounded away. False when a ride or a traversal owned the motion: nothing to replay.
+   */
+  stepNet(dt: number, command: NetCommand, replay: boolean): boolean {
+    const { buttons, steer } = command, held = (button: number): boolean => (buttons & button) !== 0, { yaw, pitch } = this;
+    this.replaying = replay;
+    try {
+      if (held(NET_BUTTONS.hover)) this.setHover(!this.hover);
+      this.step(dt, { moveX: Math.max(-1, Math.min(1, steer.keyX + steer.stickX)), moveY: Math.max(-1, Math.min(1, steer.keyY + steer.stickY)), yaw: command.yaw, pitch: command.pitch,
+        crouch: held(NET_BUTTONS.crouch), sprint: held(NET_BUTTONS.sprint), jump: held(NET_BUTTONS.jump), dodge: held(NET_BUTTONS.dodge), dive: held(NET_BUTTONS.dive), surface: held(NET_BUTTONS.surface),
+        aim: this.sampleAimCommand() });
+    } finally { this.replaying = false; }
+    if (!replay) { this.yaw = yaw; this.pitch = pitch; }
+    return !this.lawless;
+  }
+
   /** Live callers sample at the edge; Node replays pass a recorded command. */
   step(dt: number, command?: PlayerCommand): void {
     const resolved = command ?? this.sampleCommand();
-    this.recordCommand?.({ ...resolved });
+    if (!this.replaying) this.recordCommand?.({ ...resolved });
     this.commandJumpUsed = false; this.commandDodgeUsed = false;
     this.activeCommand = resolved;
     try { this.stepCommand(dt, resolved); } finally { this.activeCommand = null; }
@@ -493,9 +522,10 @@ export class Player {
       this.dodgeQueued = false; this.commandDodgeUsed = true;
     }
     this.prevFeet.copy(this.position);
+    this.lawless = false;
     // in the saddle the horse carries you (Mount.step, on the horse's own motor): no walk, no motor of yours
-    if (this.ride !== null) { this.impulseVelocity.set(0, 0, 0); this.ride.step(dt); return; }
-    if (this.traversalEvents?.ask('player.traversal', dt) === true) { this.impulseVelocity.set(0, 0, 0); this.jumpQueued = false; return; }
+    if (this.ride !== null) { this.impulseVelocity.set(0, 0, 0); this.lawless = true; this.ride.step(dt); return; }
+    if (this.traversalEvents?.ask('player.traversal', dt) === true) { this.impulseVelocity.set(0, 0, 0); this.jumpQueued = false; this.lawless = true; return; }
     if (this.carried || this.effectMoveLocked) { this.impulseVelocity.set(0, 0, 0); this.velocity.set(0, 0, 0); this.onGround = false; return; }
     const fwd = command.moveY, str = command.moveX;
     const hover = this.hover;
@@ -544,6 +574,7 @@ export class Player {
     const inWater = this.depth > 0.02;
     if (inWater !== this.inWater) {
       this.inWater = inWater;
+      if (this.replaying) return;
       if (inWater) this.onEnterWater?.(Math.max(0, -this.velocity.y / (this.swimming ? out.entryKeep : 1)) + Math.hypot(this.velocity.x, this.velocity.z) * 0.3);
       else this.onExitWater?.();
     }
@@ -563,6 +594,7 @@ export class Player {
     const feet = this.renderFeet;
     if (this.prevFeet.distanceToSquared(this.position) > 25) feet.copy(this.position);
     else feet.lerpVectors(this.prevFeet, this.position, Math.max(0, Math.min(1, alpha)));
+    feet.add(this.renderOffset);
 
     const hSpeed = Math.hypot(this.velocity.x, this.velocity.z);
     this.speedFactor = combatSpeedFactor(hSpeed, this.onGround, swim, hover, 7.2);
