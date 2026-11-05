@@ -32,7 +32,7 @@ export class NativeReturns {
     this.queue = new RespawnQueue(this.rows.rules, this.rows.outOfSight,
       { order: 'reverse', limit: this.rows.limit, result: 'reuse' }, ReturnProgram.native(host, this.rows.program));
     const owe = (kind: string, variant: string, herd: number, x: number, z: number, id: string): void => {
-      if (this.queue.pending.length >= this.rows.limit) throw new Error('Native return queue exceeds its bound');
+      if (this.queue.pending.length >= this.rows.limit) return; // a full queue forgives the spot: the world is not short of bodies
       const entry = this.queue.add(kind, variant, herd, x, z, this.now, host.rng.stream('spawn').next(), ROOM_RULE);
       if (entry !== null) this.predecessors.set(entry, id);
     };

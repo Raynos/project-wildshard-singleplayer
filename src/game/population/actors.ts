@@ -31,10 +31,17 @@ export class NativeActors<A> {
   allocatorState(): { next: number; used: string[] } { return this.allocator.snapshot(); }
   restoreAllocator(value: { next: number; used: readonly string[] }): void { this.allocator.restore(value); }
 
+  /** The bound holds bodies and recipes, not history: a retired row gives way, oldest first. The allocator never reissues its id. */
+  private room(): boolean {
+    if (this.entries.size < this.limit) return true;
+    for (const [id, entry] of this.entries) if (entry.row.state === 'retired') { this.entries.delete(id); return true; }
+    return false;
+  }
+
   private admit(identity: Identity): Entry<A> | undefined {
     const found = this.entries.get(identity.id);
     if (identity.id.length === 0 || identity.id.length > 128 || identity.kind.length === 0 || identity.variant.length === 0
-      || (found === undefined && this.entries.size >= this.limit)
+      || (found === undefined && !this.room())
       || (found !== undefined && (found.row.kind !== identity.kind || found.row.variant !== identity.variant || found.row.state === 'retired')))
       throw new Error('Incompatible native actor identity');
     return found;

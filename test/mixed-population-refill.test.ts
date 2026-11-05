@@ -96,3 +96,45 @@ test('one player owes nothing for either, and their tick is the tick it was', as
     expect(snapshotSimHost(solo.host)).toEqual(snapshotSimHost(twin.host));
   } finally { solo.dispose(); twin.dispose(); }
 }, 60_000);
+
+/** The orchard's bound is 8: two boot bodies, the reserved guardian's slot and five spares. */
+const FULL = 7;
+const liveIds = (room: { population: ReturnType<typeof installMixedPopulation> }): string[] =>
+  room.population.bodies().flatMap((body, i) => i > 0 && body.actor?.alive === true ? [body.id] : []);
+
+test('at the roster bound a return takes the slot a dead body left, on and on', async () => {
+  const room = await open(2);
+  try {
+    walkAway(room.host);
+    for (let round = 0; round < FULL + 3; round++) {
+      const [id] = liveIds(room); if (id === undefined) throw new Error('Missing live body');
+      kill(room.host, id);
+      seconds(room.host, REFILL_WAIT + 5);
+      expect(owed(room.host)).toBe(0);
+    }
+    expect(room.population.bodies()).toHaveLength(FULL);
+    expect(liveIds(room)).toHaveLength(1);
+    expect(room.population.bodies().filter(body => body.actor === null)).toHaveLength(FULL - 2);
+    room.population.bodies().forEach((body, i) => { expect(room.population.bodies().findIndex(other => other.id === body.id)).toBe(i); });
+  } finally { room.dispose(); }
+}, 120_000);
+
+test('a roster full of living bodies forgives the return, and a full queue forgives the debt', async () => {
+  const room = await open(2);
+  try {
+    walkAway(room.host);
+    for (let round = 0; round < FULL + 3; round++) {
+      const id = liveIds(room).at(-1); if (id === undefined) throw new Error('Missing live body');
+      tame(room.host, id);
+      seconds(room.host, REFILL_WAIT + 5);
+      expect(owed(room.host)).toBe(0);
+    }
+    expect(room.population.bodies()).toHaveLength(FULL);
+    expect(room.population.bodies().filter(body => body.actor?.alive === true)).toHaveLength(FULL);
+    for (let i = 0; i < 12; i++) tame(room.host, 'creature:1');
+    seconds(room.host, 1);
+    expect(owed(room.host)).toBe(8);
+    seconds(room.host, REFILL_WAIT + 5);
+    expect(owed(room.host)).toBe(0);
+  } finally { room.dispose(); }
+}, 120_000);

@@ -103,7 +103,6 @@ export function installMixedPopulation(host: SimHost, ports: MixedPopulationInpu
   if (contact === undefined || bite === undefined) throw new Error('Mixed population requires its admitted volley contacts');
   const biteStrike = strikeFromData(bite);
 
-  const FULL_ROSTER = new Error('Mixed population ecology roster exceeds its native bound');
   const { bake } = ports, specs = new Map([...ports.specs].map(([kind, spec]) => [kind, continuationSpec(spec)])),
     rng = new Rng(ports.seed + 31), bodies: MixedPopulationBody[] = [], player = host.playerFocus;
 
@@ -216,17 +215,25 @@ export function installMixedPopulation(host: SimHost, ports: MixedPopulationInpu
   const first = roster.bodies[0]; if (first === undefined) throw new Error('Empty mixed population roster');
   const extra = Array.from({ length: ROSTER - BODY_COUNT - 1 }, () => enemyBody('', first.kind, first.variant, -1, { x: 0, z: 0 }, 0));
   const returns = intake.returns(roster.ecology);
+  /** A slot a retired body left. Boot slots stay their row's: a continuation rebuilds those from the rows, not the save. */
+  const vacated = (): number => { for (let i = BODY_COUNT; i < bodies.length; i++) if (bodies[i]?.actor === null) return i; return -1; };
+  const retireFallen = (id: string): void => { const fallen = intake.retireDead(id); if (fallen !== null) fallen.brain = null; };
   const respawns = (dt: number): void => {
     for (const pending of returns.take(dt)) {
       const entry = returns.place(pending); if (entry === null) continue;
       const { x, z } = entry;
-      if (bodies.length + 1 >= ROSTER) throw FULL_ROSTER;
-      const body = intake.retarget(extra[bodies.length - BODY_COUNT], entry.kind, entry.variant, entry.herd, x, z, 'spawn');
+      // Below the bound a return takes the next slot and retires its predecessor after, as every save records. At the
+      // bound it takes a vacated slot instead, so a long session keeps its roster; with none, the world is full of live
+      // bodies and the spot is forgiven.
+      const grow = bodies.length + 1 < ROSTER;
+      if (!grow) retireFallen(entry.id);
+      const at = grow ? bodies.length : vacated();
+      if (at === -1) continue;
+      const body = intake.retarget(grow ? extra[at - BODY_COUNT] : bodies[at], entry.kind, entry.variant, entry.herd, x, z, 'spawn');
       draw(body, !FAUNA.has(body.kind));
       if (rows.floorKinds.includes(body.kind)) { body.recipe.at.y = holdFloorAt(x, z) ?? heightAt(x, z); join(body, intake.materialize(body, body.recipe, true)); } else place(body);
       if (FAUNA.has(body.kind)) intake.remember(body);
-      const fallen = intake.retireDead(entry.id); if (fallen !== null) fallen.brain = null;
-      bodies.push(body);
+      if (grow) { retireFallen(entry.id); bodies.push(body); } else sight[at + 1] = null; // rosterAt's index: the captain sits at BODY_COUNT
     }
   };
   host.useBodyStep({
