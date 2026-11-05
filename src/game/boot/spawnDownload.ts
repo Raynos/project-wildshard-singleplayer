@@ -13,8 +13,15 @@ export interface SpawnDownloadSnapshot {
   readonly filesTotal: number; readonly filesDone: number; readonly complete: boolean; readonly error: string | null;
   /** Bytes streamed so far, verified or not: progress for the stuck-boot watch, never shown as downloaded. */
   readonly streamedBytes?: number;
-  /** DL20: on the packs path, parts read and failed and the files a failed part left to their loose copies. */
-  readonly parts?: {readonly parts: number; readonly failed: number; readonly fallbackFiles: number};
+  /** DL20: on the packs path, parts read and failed, the files a failed part left to their loose copies, and the loose
+   *  fetches made for them; from the manifest on, so a fully cached packed boot reports zeros, not nothing. */
+  readonly parts?: {readonly parts: number; readonly failed: number; readonly fallbackFiles: number; readonly fetched: number};
+}
+/** DL20: one foreground boot's download, once settled: the telemetry denominator (every boot, cached or downloaded,
+ *  failed or cancelled), its part counts when packed. */
+export interface SpawnOutcome {
+  readonly level: string; readonly outcome: 'complete' | 'failed' | 'cancelled'; readonly packs: boolean;
+  readonly parts: number; readonly failed: number; readonly fallbackFiles: number; readonly fetched: number;
 }
 export interface SpawnDownloadPorts {
   readonly fetch: (url: string, signal: AbortSignal, init?: RequestInit) => Promise<Response>;
@@ -183,7 +190,9 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
     if (next !== was) { arriving.set(file.url, next); wireArriving += next - was; }
   };
   const landed = (url: string): void => { wireArriving -= arriving.get(url) ?? 0; arriving.delete(url); };
-  let partCounts: {parts: number; failed: number; fallbackFiles: number} | undefined;
+  let partCounts: {parts: number; failed: number; fallbackFiles: number; fetched: number} | undefined;
+  /** the files failed parts handed to the loose lanes (their real fetches are counted as `fetched`) */
+  const fallbackUrls = new Set<string>();
   const snapshot = (): SpawnDownloadSnapshot => ({...(partCounts === undefined ? {} : {parts: {...partCounts}}),...(wireTotal === undefined ? {} : {wire: {totalBytes: wireTotal, completedBytes: wireCompleted, cachedBytes: wireCached, arrivingBytes: wireArriving}}), progressKnown, totalBytes: address.totalBytes, completedBytes, cachedBytes,
     filesTotal: address.files, filesDone, complete, error, streamedBytes: streamedBytes + completedBytes});
   const publish = (): void => { if (!controller.signal.aborted) for (const listener of listeners) listener(snapshot()); };
@@ -249,6 +258,8 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       // DL18: on a warm visit the held-parts index and the cache's keys answer every packed member at once; the few
       // loose files left are looked up one by one, so no bulk read of the cache runs.
       const parts = ports.packs === true ? manifest.parts : undefined, heldFiles = new Set<string>();
+      // DL20 (sp-x1's coverage matrix): the counts exist from the manifest on, before the all-cached return below
+      if (parts !== undefined && parts.length > 0) partCounts = {parts: 0, failed: 0, fallbackFiles: 0, fetched: 0};
       // DL15 (sp-x9): on the packs path the wire is each part's q11 body, not its members' loose q3 sizes. A member's
       // wire is its share of its part's body by decoded bytes, so a part's members sum to exactly that body.
       if (wireTotal !== undefined && parts !== undefined && parts.length > 0 && parts.every(part => part.wireBytes !== undefined)) {
@@ -331,6 +342,8 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       const looseLanes = Promise.all(Array.from({length: partsRunning ? 8 : Math.min(8, loose.length)}, async () => {
         for (let next = await nextLoose(); next !== undefined; next = await nextLoose()) {
           const {file} = next;
+          // DL20: a loose fetch made for a failed part's member (fallbackFiles counts what was handed over)
+          if (partCounts !== undefined && fallbackUrls.has(file.url)) partCounts.fetched++;
           try {
             let received = 0, credited = 0;
             const {bytes: body, copy: cachedCopy} = await readSpawnFile(file.url, file.bytes, {
@@ -354,7 +367,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
         if (parts === undefined || parts.length === 0) return;
         try {
         installMemberLayer();
-        const counts = {parts: 0, failed: 0, fallbackFiles: 0}; partCounts = counts;
+        const counts = partCounts ??= {parts: 0, failed: 0, fallbackFiles: 0, fetched: 0};
         const wanted = new Set(missing), left = new Set<number>(), stored = new Map<string, readonly string[]>();
         const readPart = async (part: (typeof parts)[number]): Promise<void> => {
           const order = part.members.filter(([index]) => {const file = files[index]; return file !== undefined && wanted.has(file);});
@@ -405,7 +418,9 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
             // Settle first: a page read already waiting on a member must fall through, even when this download aborts.
             counts.failed++;
             for (const [index] of order) { const file = files[index]; if (file !== undefined) landed(file.url); }
-            for (const [index] of order) if (!done.has(index)) {left.add(index); counts.fallbackFiles++; settle.get(index)?.(null);}
+            for (const [index] of order) if (!done.has(index)) {
+              left.add(index); counts.fallbackFiles++; const url = files[index]?.url; if (url !== undefined) fallbackUrls.add(url); settle.get(index)?.(null);
+            }
             controller.signal.throwIfAborted();
           }
         };
@@ -456,6 +471,35 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
 }
 
 let current: {key: string; download: SpawnDownload; foreground: boolean} | undefined;
+/** DL20: each download's settled outcome and whether it was ever a boot's own (foreground): a boot's download is reported
+ *  once, when both hold (a completed title prefetch is adopted after it settled). Queued until a sink is installed. */
+const settledAs = new WeakMap<SpawnDownload, SpawnOutcome>(), foregroundDownloads = new WeakSet<SpawnDownload>(), reported = new WeakSet<SpawnDownload>();
+const queuedOutcomes: SpawnOutcome[] = [];
+let outcomeSink: ((outcome: SpawnOutcome) => void) | null = null;
+function reportOutcome(download: SpawnDownload): void {
+  const outcome = settledAs.get(download);
+  if (outcome === undefined || !foregroundDownloads.has(download) || reported.has(download)) return;
+  reported.add(download);
+  if (outcomeSink === null) queuedOutcomes.push(outcome); else outcomeSink(outcome);
+}
+function markForeground(download: SpawnDownload): void { foregroundDownloads.add(download); reportOutcome(download); }
+function trackOutcome(download: SpawnDownload, level: string, packs: boolean): void {
+  const settle = (outcome: SpawnOutcome['outcome']): void => {
+    const parts = download.snapshot().parts;
+    settledAs.set(download, {level, outcome, packs, parts: parts?.parts ?? 0, failed: parts?.failed ?? 0, fallbackFiles: parts?.fallbackFiles ?? 0, fetched: parts?.fetched ?? 0});
+    reportOutcome(download);
+  };
+  void (async (): Promise<void> => {
+    try { await download.ready; settle('complete'); }
+    catch (error: unknown) { settle(error instanceof DOMException && error.name === 'AbortError' ? 'cancelled' : 'failed'); }
+  })();
+}
+/** DL20: every boot's spawn download outcome (cached, downloaded, failed or cancelled) goes to `sink` once, the queued ones
+ *  at once; the session installs it when telemetry exists (the download paints before the engine loads). */
+export function reportSpawnOutcomes(sink: (outcome: SpawnOutcome) => void): void {
+  outcomeSink = sink;
+  for (const outcome of queuedOutcomes.splice(0)) sink(outcome);
+}
 const addressKey = (address: SpawnManifestAddress): string =>
   `${address.url}|${address.bytes}|${address.totalBytes}|${address.files}|${address.wireBytes ?? ''}`;
 /** The selected entry is explicit; no engine import is needed on the title. */
@@ -516,7 +560,7 @@ export function adoptCompletedSpawnDownload(slug: string, flow: 'client' | 'grid
   const key = packsOn ? `packs:${flow}|${slug}|${tier}|${mode}` : (() => { const selected = spawnSelection(slug, flow, tier, mode); return selected === null ? null : addressKey(selected.address); })();
   const held = current;
   if (key === null || held === undefined || held.key !== key || !held.download.snapshot().complete) return null;
-  held.foreground = true;
+  held.foreground = true; markForeground(held.download);
   return held.download;
 }
 /** DL18: the held-parts index's own key in the asset cache; no page or worker route serves it. */
@@ -594,6 +638,7 @@ function spawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'd
   const key = packsOn ? `packs:${flow}|${slug}|${tier}|${mode}` : addressKey(selected.address);
   if (current !== undefined && current.key === key) {
     if (foreground && !current.foreground) holdUnlisted(current.download.ready);
+    if (foreground) markForeground(current.download);
     current.foreground ||= foreground; return current.download;
   }
   // Runtime packs: this entry's whole-level manifest from the packs book. A missing, unreadable or entry-less book
@@ -607,7 +652,8 @@ function spawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'd
       return downloadSpawnManifest(address, downloadPorts(selected.cacheName, true), document.baseURI);
     })());
   current?.download.cancel(); current = {key, download, foreground};
-  if (foreground) holdUnlisted(download.ready);
+  trackOutcome(download, slug, packsOn);
+  if (foreground) { markForeground(download); holdUnlisted(download.ready); }
   return download;
 }
 /** The entry's own download only: a title read-ahead never holds the title's reads. */

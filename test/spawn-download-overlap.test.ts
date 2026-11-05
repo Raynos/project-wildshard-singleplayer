@@ -3,7 +3,7 @@
 // fetch layer captures the network beneath it once per page, so every test here stubs the same network function. Page
 // reads name URLs against document.baseURI, as the downloads do (happy-dom's location is another origin).
 import {expect, test, vi} from 'vitest';
-import {releaseSpawnMembers, startSpawnDownload} from '../src/game/boot/spawnDownload';
+import {releaseSpawnMembers, reportSpawnOutcomes, startSpawnDownload, type SpawnOutcome} from '../src/game/boot/spawnDownload';
 
 const file = (slug: string, kind: string, fill: string, bytes: number): {url: string; bytes: number; hash: string} =>
   ({url: `/shardfiles/${slug}/blobs/${kind}/${fill.repeat(64)}.${kind}`, bytes, hash: fill.repeat(64)});
@@ -14,7 +14,9 @@ const entry = (slug: string, files: readonly {url: string; bytes: number; hash: 
 };
 const ktx2 = file('overlap', 'ktx2', 'e', 6), x = file('first', 'bin', 'a', 4), y = file('second', 'bin', 'b', 4);
 const x2 = file('third', 'bin', 'c', 4), y2 = file('fourth', 'bin', 'd', 4);
-const entries = {overlap: entry('overlap', [ktx2]), first: entry('first', [x]), second: entry('second', [y]), third: entry('third', [x2]), fourth: entry('fourth', [y2])};
+const o1 = file('dl20done', 'bin', 'f', 4), o2 = file('dl20stop', 'bin', '0', 4);
+const entries = {overlap: entry('overlap', [ktx2]), first: entry('first', [x]), second: entry('second', [y]), third: entry('third', [x2]), fourth: entry('fourth', [y2]),
+  dl20done: entry('dl20done', [o1]), dl20stop: entry('dl20stop', [o2])};
 // Requests the test holds until it releases them; a held download read still ends when its download is cancelled.
 const holds = new Map<string, Promise<void>>();
 const network = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -26,7 +28,7 @@ const network = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
   }
   const named = Object.values(entries).find(row => row.address.url === path);
   if (named !== undefined) return new Response(named.text);
-  const listed = [ktx2, x, y, x2, y2].find(row => row.url === path);
+  const listed = [ktx2, x, y, x2, y2, o1, o2].find(row => row.url === path);
   return new Response(listed === undefined || signal === undefined || signal === null ? 'network' : new Uint8Array(listed.bytes).fill(7));
 });
 const bank = (): void => {
@@ -120,5 +122,27 @@ test('an entry cancelled during its manifest store leaves nothing: the next entr
   expect(await unlisted.text).toBe('network');
   expect((await own.text).length).toBeGreaterThan(0);
   releaseSpawnMembers(); holds.clear();
+  vi.unstubAllGlobals();
+});
+
+// DL20 (sp-x1's coverage matrix): every boot's download reports one outcome, queued until telemetry's sink exists
+test('each foreground download reports one outcome: complete, or cancelled, queued until a sink is installed', async () => {
+  vi.stubGlobal('fetch', network); bank();
+  const done = startSpawnDownload('dl20done', 'client', 'phone');
+  if (done === null) throw new Error('No spawn download');
+  await done.ready;
+  holds.set(o2.url, new Promise<void>(() => { /* held: the second download is cancelled mid-read */ }));
+  const stopped = startSpawnDownload('dl20stop', 'client', 'phone'); // cancels nothing: the first has settled
+  if (stopped === null) throw new Error('No spawn download');
+  stopped.cancel();
+  await expect(stopped.ready).rejects.toThrow();
+  const seen: SpawnOutcome[] = [];
+  reportSpawnOutcomes(outcome => { seen.push(outcome); });
+  const mine = seen.filter(row => row.level.startsWith('dl20'));
+  expect(mine).toEqual([
+    {level: 'dl20done', outcome: 'complete', packs: false, parts: 0, failed: 0, fallbackFiles: 0, fetched: 0},
+    {level: 'dl20stop', outcome: 'cancelled', packs: false, parts: 0, failed: 0, fallbackFiles: 0, fetched: 0},
+  ]);
+  releaseSpawnMembers(); holds.delete(o2.url);
   vi.unstubAllGlobals();
 });

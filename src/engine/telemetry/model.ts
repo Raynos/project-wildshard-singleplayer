@@ -15,7 +15,7 @@ export interface AnalyticsMap {
   'weapon.used': { level: string; weapon: string };
   'level.time': { level: string; seconds: number };
   'boss.attempt': { level: string; boss: string; outcome: 'started' | 'won' | 'died' | 'lost' | 'left' };
-  'download.parts': { level: string; parts: number; failed: number; fallback: number };
+  'download.parts': { level: string; outcome: 'complete' | 'failed' | 'cancelled'; parts: number; failed: number; fallback: number; fetched: number };
 }
 export type AnalyticsEvent = { [K in keyof AnalyticsMap]: { name: K; data: AnalyticsMap[K] } }[keyof AnalyticsMap];
 export interface AnalyticsBatch { kind: 'analytics'; build: string; install: string; events: AnalyticsEvent[] }

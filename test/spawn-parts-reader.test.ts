@@ -583,8 +583,20 @@ test('DL20: a packs download counts parts read, parts failed and the files left 
     await download.ready;
     return download.snapshot().parts;
   };
-  expect(await run('dl20-ok', false)).toEqual({parts: 1, failed: 0, fallbackFiles: 0});
-  expect(await run('dl20-fallback', true)).toEqual({parts: 0, failed: 1, fallbackFiles: 2}); // bin and glb fetched loose
+  expect(await run('dl20-ok', false)).toEqual({parts: 1, failed: 0, fallbackFiles: 0, fetched: 0});
+  // the two members handed over are fetched loose, and counted as fetches made (sp-x1: fallbackFiles alone is eligibility)
+  expect(await run('dl20-fallback', true)).toEqual({parts: 0, failed: 1, fallbackFiles: 2, fetched: 2});
+  vi.unstubAllGlobals();
+});
+
+// sp-x1's coverage matrix: a fully cached packed boot returned before its counts existed, so it reported nothing
+test('DL20: a fully cached packs download reports zero parts, not no parts', async () => {
+  vi.stubGlobal('fetch', vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network'))));
+  const at = {...address, url: '/assets/spawn/example-dl20-cached-1234567890abcdef.json'};
+  const download = downloadSpawnManifest(at, {packs: true, cached: url => Promise.resolve(new URL(url).pathname === at.url ? undefined : new Response('cached')),
+    fetch: url => Promise.resolve(new Response(new URL(url).pathname === at.url ? text : 'unexpected'))}, base);
+  await download.ready;
+  expect(download.snapshot().parts).toEqual({parts: 0, failed: 0, fallbackFiles: 0, fetched: 0});
   vi.unstubAllGlobals();
 });
 

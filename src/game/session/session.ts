@@ -22,6 +22,7 @@ import { playStage } from './play';
 import { finishStage } from './finish';
 import { currentOwner, enterOwner } from '@wildshard/engine/app/ownership';
 import { app } from '@wildshard/engine/app/runtime';
+import { reportSpawnOutcomes } from '../boot/spawnDownload';
 import { Scope } from '@wildshard/engine/app/scope';
 import { markBootHandledError } from '@wildshard/engine/boot/bootTrace';
 import { setBootCatalog } from '@wildshard/engine/boot/catalog';
@@ -57,6 +58,9 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts, optio
   installProductGround(); // a required manifest ground reads its shard's own admitted product (before any level loads)
   installProductSampling(); // an optional bake its shard admitted as query terrain reads that product, never terrain.bin too
   installProductNavigation(); // declared navigation its shard's product admitted reads that product, never navmesh.bin too
+  // DL20: every boot's level download outcome (cached, downloaded, failed or cancelled) reaches telemetry once, including
+  // one that settled before this session and one whose failure stops the boot
+  reportSpawnOutcomes(outcome => { app.events.emit('download.parts', outcome); });
   // the boot and the background download read the registry through the engine's catalog (E405: no engine → game import)
   const levels=catalogueManifests(),byId=new Map<string,(typeof levels)[number]>(levels.map(row=>[row.slug,row]));
   setBootCatalog({ levels, playable: levels.filter(playable), find:id=>byId.get(id), artBytes: ART_URL_BYTES });
