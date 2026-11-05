@@ -16,6 +16,8 @@ import type { MoverView } from '../../server/plugin/mover';
 
 type Live = (client: NetClient) => (() => void) | undefined;
 const NO_ROWS: readonly EncounterRow[] = [];
+/** A talk's end, which says it again: a press is judged where the server has the body, a command behind, and a retry changes nothing. */
+const TALKED = 'talked:';
 
 /** A client's rows, through a seat that may not have one yet. */
 const rowsOf = (seat: { readonly client: NetClient | null }): Pick<NetClient, 'latest' | 'stateField'> => ({ get latest() { return seat.client?.latest ?? null; }, stateField: (frame, name) => seat.client?.stateField(frame, name) });
@@ -29,6 +31,8 @@ export class WirePage {
   readonly movers: Map<string, MoverView> = new Map<string, MoverView>();
   /** The head over a row's body, into `to`: what an elite's bar stands on. */
   readonly head: (body: number, to: Vector3) => boolean = (body, to) => this.heads(body, to);
+  /** How many poses rows have set: what a proof reads. */
+  posed = 0;
   /** This player's own world (J106), for a gate and a key. */
   readonly gates: QuestGateView = { has: flag => this.heard.has(flag) };
   private readonly quests = new Map<string, QuestProgress>();
@@ -52,7 +56,7 @@ export class WirePage {
     this.waiting.add(run); scope.onDispose(() => { this.waiting.delete(run); });
   }
   /** Every flag book this page makes from now on follows the server's. */
-  followBooks(): void { Flags.made = book => { this.books.add(book); book.follow(flag => { if (flag.startsWith('seen:')) this.send(flag); }); }; }
+  followBooks(): void { Flags.made = book => { this.books.add(book); book.follow(flag => { if (flag.startsWith('seen:')) this.send(flag); else if (flag.startsWith(TALKED)) this.send(`${flag.slice(TALKED.length)}.talk`); }); }; }
   /** The wire is up. `press` sends one `interact`. */
   bind(client: NetClient, press: (id: string) => void, stop: () => void, heads: (body: number, to: Vector3) => boolean): void {
     this.client = client; this.press = press; this.stop = stop; this.heads = heads; this.encounterRows = netEncounterFeed(client).rows;

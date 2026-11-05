@@ -92,6 +92,7 @@ export class PopulationProjection {
         this.lights.push({ actor, light, dead: false, fade: 0 });
       }
       this.counts(); this.scene.add(this.group);
+      wirePage.whenLive(this.scope, client => client.onFrame(() => { this.counts(); })); // on the wire the rows are the census
     });
     return this;
   }

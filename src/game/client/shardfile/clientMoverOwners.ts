@@ -32,7 +32,7 @@ export function wirePageSim():void{
   Object.assign(pageSim,{
     installDeclaredMovers:async(...[ctx,world,options]:Parameters<PageSimFeed['installDeclaredMovers']>)=>{
       const runtime=await installDeclaredMovers(ctx,world,{...options,followed:true});
-      for(const row of options.data)wirePage.movers.set(row.id,{pose:pose=>{runtime.follow(row.id,pose);}});
+      for(const row of options.data)wirePage.movers.set(row.id,{pose:pose=>{wirePage.posed++;runtime.follow(row.id,pose);}});
       return runtime;
     },
     climate:(ports:Parameters<PageSimFeed['climate']>[0])=>climate({...ports,net:rows=>netClimate(wirePage.climateRows,rows)}),
