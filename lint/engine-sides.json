@@ -445,10 +445,7 @@
   "src/engine/player/hoverSpeed.ts": "shared",
   "src/engine/player/impulse.ts": "shared",
   "src/engine/player/jump.ts": "shared",
-  "src/engine/player/LockOnTarget.ts": {
-   "side": "client",
-   "mixed": true
-  },
+  "src/engine/player/LockOnTarget.ts": "client",
   "src/engine/player/MeleeSweep.ts": "client",
   "src/engine/player/modes.ts": "shared",
   "src/engine/player/motion.ts": "shared",
@@ -1168,19 +1165,13 @@
   "src/game/population/nativeReturns.ts": "server",
   "src/game/population/pageGroups.ts": "server",
   "src/game/population/pageHomes.ts": "server",
-  "src/game/population/pageLife.ts": {
-   "side": "client",
-   "mixed": true
-  },
+  "src/game/population/pageLife.ts": "client",
   "src/game/population/pageReturns.ts": "server",
   "src/game/population/pageRows.ts": "server",
   "src/game/population/perchBody.ts": "server",
   "src/game/population/productCreatures.ts": "client",
   "src/game/population/projectedSites.ts": "server",
-  "src/game/population/projection.ts": {
-   "side": "client",
-   "mixed": true
-  },
+  "src/game/population/projection.ts": "client",
   "src/game/population/relations.ts": "server",
   "src/game/population/respawn.ts": "server",
   "src/game/population/returnProgram.ts": "server",
@@ -1528,10 +1519,7 @@
   "src/game/shardfile/worldSceneWeld.ts": "client",
   "src/game/shardfile/worldTargets.ts": "server",
   "src/game/shardfile/worldUpdates.ts": "server",
-  "src/game/stealth/controller.ts": {
-   "side": "client",
-   "mixed": true
-  },
+  "src/game/stealth/controller.ts": "client",
   "src/game/stealth/stealthLaw.ts": "server",
   "src/game/strings.ts": "shared",
   "src/game/summary.ts": "client",
