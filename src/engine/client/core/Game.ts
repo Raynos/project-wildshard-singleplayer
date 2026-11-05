@@ -36,6 +36,7 @@ import { GradeEffect } from './Grade';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { TIER, TIER_CONFIG, frameCapFps, gfxPrefs, type Tier } from './tier';
 import { worldTime } from '../../shared/core/time';
+import { HIT_STOP_SCALE } from '../../shared/combat/sweptMeleeCore';
 import { installViewport, viewportHeight } from './viewport';
 import { FIXED_STEP, MAX_FIXED_STEPS } from '../../shared/core/fixedStep';
 import { SHADOW_LAYER } from './shadowLayer';
@@ -57,7 +58,6 @@ import { exploreEntryPending, recordExploreFrame, recordBootCheckpoint, bootTrac
 import { cullPlaced } from '../models/place';
 
 /** the world's pace during a hit-stop (not 0: nothing downstream has to cope with a zero dt) */
-const HIT_STOP_SCALE = 0.04;
 /** the frame cap's tolerance for vsync timestamp jitter (see Game.start) */
 const FRAME_CAP_SLACK_MS = 4;
 /**

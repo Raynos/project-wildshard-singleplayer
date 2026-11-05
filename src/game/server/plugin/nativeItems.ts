@@ -8,7 +8,7 @@ import { RangedAction } from '@wildshard/engine/combat/Firearm';
 import { BowDraw } from '@wildshard/engine/combat/bowDraw';
 import { ProjectileSlots, projectileFlightStep, type FlightSlot } from '@wildshard/engine/combat/projectileFlight';
 import { ProjectileContact, StoppedProjectileSlots, stoppedProjectileSaved } from '@wildshard/engine/combat/projectileContact';
-import { drawnSpreadDegrees, instantSpreadDegrees, shotSpread } from '@wildshard/engine/combat/shotSpread';
+import { drawnSpreadDegrees, instantSpreadDegrees, shotRandom, shotSpread } from '@wildshard/engine/combat/shotSpread';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { worldHit, floorBelow } from '@wildshard/engine/physics/query';
 import { fieldGustAt, type WindFieldSpec } from '@wildshard/engine/world/windField';
@@ -107,6 +107,8 @@ function lookAlong(player: PlayerSim, frame: NativeCombatFrame, height: number, 
   const p = player.position, level = Math.cos(frame.pitch);
   eye.set(p.x, p.y + height, p.z); dir.set(-Math.sin(player.yaw) * level, Math.sin(frame.pitch), -Math.cos(player.yaw) * level);
 }
+/** A shot left on `seq`: the owner block says so, which is how a client tells a confirmed start from a refused one (P1-E5.3-E5). */
+function noteShot(player: PlayerSim, seq: number): void { if (seq !== 0) player.swing.seq = seq; }
 function windAt(frame: NativeCombatFrame, x: number, z: number, out: Vector3): Vector3 | null {
   const wind = frame.wind; if (wind === null) return null;
   const speed = wind.base + wind.scale * fieldGustAt(x, z, wind.clock.time, wind.clock.gust, wind.field);
@@ -180,7 +182,8 @@ function boltItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: u
     // the page's hip spread: a random axis across the line, a random fraction of 0.75°
     const spread = (p.spreadAds + (1 - smoothstep(0, 1, aimInput?.ads ?? own.adsBlend)) * (p.spreadHip - p.spreadAds)) * (Math.PI / 180);
     dir.copy(fwd);
-    shotSpread(dir, spread, random, cone, side);
+    shotSpread(dir, spread, own.seq === 0 ? random : shotRandom(own.seq), cone, side);
+    noteShot(player, own.seq);
     const b = pool.take(); b.ammo = own.ammo; b.seq = own.seq; b.firedOn = host.state.tick;
     b.pos.copy(eye).addScaledVector(fwd, p.muzzle); b.vel.copy(dir).multiplyScalar(p.speed);
   };
@@ -236,7 +239,8 @@ function cycleItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: 
     const a = smoothstep(0, 1, own.adsBlend);
     const spread = instantSpreadDegrees(profile.spreadAds, profile.spreadHip, a, 0,
       motion(own), profile.movingSpread, profile.movingAimReduction) * (Math.PI / 180);
-    shotSpread(dir, spread, random, cone, across);
+    shotSpread(dir, spread, own.seq === 0 ? random : shotRandom(own.seq), cone, across);
+    noteShot(player, own.seq);
     const wall = worldHit(host.physics, eye, end.copy(eye).addScaledVector(dir, profile.range), 0);
     const hit = bodyAlong(host, own.viewTick, eye, dir, wall ? wall.distance : profile.range), body = hit?.body ?? null;
     if (hit === null || body === null) return;
@@ -330,7 +334,8 @@ function bowItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: un
     else lookAlong(player, own, row.eye, eye, dir);
     const spread = drawnSpreadDegrees(profile.spread.degrees, profile.spread.aimMultiplier, own.aimed, profile.spread.motion,
       motion(own), own.extraSpread, own.mountSpread);
-    shotSpread(dir, spread * (Math.PI / 180), random, profile.spread, across);
+    shotSpread(dir, spread * (Math.PI / 180), own.seq === 0 ? random : shotRandom(own.seq), profile.spread, across);
+    noteShot(player, own.seq);
     const a = pool.take();
     a.pos.copy(eye).addScaledVector(dir, profile.muzzle); a.origin.copy(a.pos); a.vel.copy(dir).multiplyScalar(profile.speedBase + profile.speedDraw); a.seq = own.seq; a.firedOn = host.state.tick;
     state.arrows--;

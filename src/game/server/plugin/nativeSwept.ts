@@ -5,7 +5,7 @@ import { pickLunge, targetRadius } from '@wildshard/engine/combat/lungeTarget';
 import { lineOfSight } from '@wildshard/engine/physics/query';
 import { BladeSweep, bladeInReach, sweptBladeDirs, type BladeSwing, type SweptBladeRig } from '@wildshard/engine/combat/sweptBlade';
 import { SweptBasePose } from '@wildshard/engine/combat/sweptBasePose';
-import { SweptMeleeCore, sweptLunge, sweptMoveDamage, sweptStrikeDirection, sweptStrikePush } from '@wildshard/engine/combat/sweptMeleeCore';
+import { HitStopClock, SweptMeleeCore, sweptLunge, sweptMoveDamage, sweptStrikeDirection, sweptStrikePush } from '@wildshard/engine/combat/sweptMeleeCore';
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 import { STARTER_BLADE } from '../../shared/weapons/starterMoves';
@@ -62,7 +62,7 @@ export function installNativeSweptMelee(host: SimHost, items: readonly unknown[]
   const swingOf = (profile: Profile, move: Move): BladeSwing => {
     const at = profile.moves.combo.indexOf(move), swing = at === -1 ? rig.heavy : rig.combo[at];
     if (swing === undefined) throw new Error('Swept kit has more moves than its blade poses');
-    return { keys: swing.keys, total: move.total };
+    return { keys: swing.keys, total: move.total, ...(swing.hitStop === undefined ? {} : { hitStop: swing.hitStop }) };
   };
   const yAxis = new Vector3(0, 1, 0), queries = createNativeTargetQueries<NativeSweptActor>({ fore: false }), rays = createNativeTargetQueries<NativeSweptActor>();
   const roster: NativeSweptActor[] = [];
@@ -70,6 +70,8 @@ export function installNativeSweptMelee(host: SimHost, items: readonly unknown[]
   const seats = playerSeats(host, (player, first) => {
     const loadout = createNativeLoadout(row.selection ?? { slots, initial: row.initial, lower: 0, raise: 0 }, { owned: () => true, locked: () => false });
     const state = { queued: false, struck: false, opened: false, windows: 0, target: null as string | null, aimed: false, swings: 0, hits: 0 };
+    /** The page's hit-stop, served here (P1-E5.3-E1), and whether this seat's swing is the one the wire shows. */
+    const stop = new HitStopClock(); let showing = false;
     /** The swing's command seq, a queued tap's until it chains, and whether a tap is pressing right now. */
     const seq = { swing: 0, queued: 0, chained: null as number | null, pressing: false };
     let blade: LiveBlade | null = null, current: NativeSweptMeleeInput = { attack: null, heavy: false, heavyTarget: null };
@@ -97,6 +99,7 @@ export function installNativeSweptMelee(host: SimHost, items: readonly unknown[]
       { start: (move, dash) => {
         state.struck = false; state.opened = false; state.swings++;
         seq.swing = seq.pressing ? current.seq ?? 0 : seq.chained ?? current.seq ?? 0; seq.chained = null;
+        if (seq.swing !== 0) player.swing.seq = seq.swing;
         if (blade !== null) { blade.pose.startSwing(); blade.sweep.reset(); blade.struck.length = 0; }
         if (state.aimed) state.target = aimedBody(profile, move);
         if (dash) lunge(profile, move); ports.alarm();
@@ -114,7 +117,11 @@ export function installNativeSweptMelee(host: SimHost, items: readonly unknown[]
       request.amount = Math.round(sweptMoveDamage(profile.damage, move, move === profile.moves.heavy, 1));
       const dealt = host.combat.hit(seen === null ? request : { ...request, point: seen.point, seen: seen.seen, headshot: seen.head, sourceTags: [...profile.tags, 'cover.checked'] });
       if (dealt === null) return;
-      state.hits++; if (dealt.killed) return;
+      state.hits++;
+      // the page's clock stops with its world at a swing's first blow, so a client's does: this one serves the same stop (J47).
+      // A tape has no client to keep time with, and keeps its exact ticks.
+      if (seq.swing !== 0 && !state.struck) { state.struck = true; stop.stop((swingOf(profile, move).hitStop ?? 0) * profile.swingScale); }
+      if (dealt.killed) return;
       sweptStrikePush(push, forward, left, move.sweep, row.contact);
       const running = actor.speed > row.contact.running;
       actor.stagger(push, move.stagger); ports.staggered(actor, Math.max(0, Math.min(move.stagger, 1)), running);
@@ -172,7 +179,8 @@ export function installNativeSweptMelee(host: SimHost, items: readonly unknown[]
           state.aimed = true; clock.tryFire(); if (idle && state.swings === swings) state.aimed = aimed;
         }
         seq.pressing = false;
-        const dt = 1 / 60, t = host.state.tick * dt, { move, active } = clock.step(dt, t, profile.swingScale, command.heavy);
+        const dt = 1 / 60, t = host.state.tick * dt, { move, active } = clock.step(stop.step(dt), t, profile.swingScale, command.heavy);
+        if (move !== null || showing) { showing = move !== null; player.swing.t = move === null ? null : clock.swingTime; }
         if (move !== null && active && !state.opened) { state.opened = true; state.windows++; }
         if (blade !== null) { sweepBlade(blade, clock, profile, move, active, t); return; }
         if (move === null || !active || state.struck || state.target === null) return;
@@ -186,22 +194,22 @@ export function installNativeSweptMelee(host: SimHost, items: readonly unknown[]
         strike(actor, move, profile, null);
       },
       snapshot: (): SimValue => JSON.stringify({ held: loadout.held(), ...state, aimed: state.aimed ? true : undefined, clocks: clocks.map(clock => clock.snapshot()),
-        ...(seq.swing === 0 ? {} : { seq: seq.swing }), ...(seq.queued === 0 ? {} : { queuedSeq: seq.queued }),
+        ...(seq.swing === 0 ? {} : { seq: seq.swing }), ...(seq.queued === 0 ? {} : { queuedSeq: seq.queued }), ...(stop.left === 0 ? {} : { stop: stop.left }),
         ...(blade === null ? {} : { blade: { pose: blade.pose.snapshot(), grip: blade.sweep.grip.toArray(), tip: blade.sweep.tip.toArray(), have: blade.sweep.have, struck: blade.struck, pitch: blade.pitch } }) }),
       restore: (value: unknown) => {
         if (typeof value !== 'string') throw new Error('Invalid swept melee continuation');
         const parsed = v.parse(v.union([
           v.strictObject({ held: v.pipe(count, v.maxValue(profiles.length - 1)), queued: v.boolean(), struck: v.boolean(), target: v.nullable(v.string()), aimed: v.optional(v.boolean(), false),
             opened: v.optional(v.boolean(), false), windows: v.optional(count, 0), swings: count, hits: count, clocks: v.pipe(v.array(clockSaved), v.length(clocks.length)),
-            seq: v.optional(count, 0), queuedSeq: v.optional(count, 0), blade: v.optional(bladeSaved) }),
+            seq: v.optional(count, 0), queuedSeq: v.optional(count, 0), stop: v.optional(finite, 0), blade: v.optional(bladeSaved) }),
           v.strictObject({ queued: v.boolean(), struck: v.boolean(), swings: count, hits: count, clock: clockSaved }),
         ]), JSON.parse(value));
         if ('clock' in parsed && clocks.length !== 1) throw new Error('Single-clock continuation requires one swept slot');
         const saved = 'clock' in parsed ? { held: 0, target: null, aimed: false, opened: parsed.struck, windows: parsed.hits,
-          queued: parsed.queued, struck: false, swings: parsed.swings, hits: 0, clocks: [parsed.clock], seq: 0, queuedSeq: 0, blade: undefined } : parsed;
+          queued: parsed.queued, struck: false, swings: parsed.swings, hits: 0, clocks: [parsed.clock], seq: 0, queuedSeq: 0, stop: 0, blade: undefined } : parsed;
         loadout.restore({ held: saved.held, swap: null }); Object.assign(state, { queued: saved.queued, struck: saved.struck, opened: saved.opened,
           windows: saved.windows, target: saved.target, aimed: saved.aimed, swings: saved.swings, hits: saved.hits });
-        seq.swing = saved.seq; seq.queued = saved.queuedSeq;
+        seq.swing = saved.seq; seq.queued = saved.queuedSeq; stop.left = saved.stop;
         for (const [index, savedClock] of saved.clocks.entries()) { const restoredClock = clocks[index]; if (restoredClock === undefined) throw new Error('Missing saved swept clock'); restoredClock.restore(savedClock); }
         if (saved.blade === undefined) { blade = null; return; }
         const live = newBlade(), { pose, grip: g, tip: t, have, struck, pitch } = saved.blade;

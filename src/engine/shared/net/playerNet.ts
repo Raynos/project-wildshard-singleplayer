@@ -4,7 +4,7 @@ import { netSchema, type NetSchema } from './schema';
 
 // P1-E5.2 (E5-REPLICATION §3.5, §4.3), P1-E5.3-C2: the player's wire fields. Others interpolate a quantised row; the owner
 // gets back all the motion state a step reads, exact, 30 times a second, so a correction replays from what the server had.
-// A null is NaN. The swing clocks come with E1 and the mount with D3. `yaw` stays out: the view is the client's own.
+// A null is NaN. The mount comes with D3. `yaw` stays out: the view is the client's own.
 const metres = { kind: 'f32q', min: -260, max: 260, bits: 16 } as const;
 const orNaN = (value: number | null | undefined): number => value ?? Number.NaN;
 /** The last move's ground, as a body with no capsule has it. */
@@ -61,6 +61,8 @@ export const PLAYER_NET: NetSchema<PlayerSim> = netSchema<PlayerSim>({
     downhillZ: { kind: 'f32', predicted: true, read: player => ground(player).downhillZ },
     freedom: { kind: 'f32', predicted: true, read: player => ground(player).horizontalFreedom },
     // what the server alone decides: the client reads these, never predicts them
+    swingPhase: { kind: 'f32', send: 'owner', read: player => orNaN(player.swing.t) },
+    lastSwingSeq: { kind: 'u16', send: 'owner', read: player => player.swing.seq },
     moveScale: { kind: 'f32', send: 'owner', read: player => player.moveScale },
     resets: { kind: 'u16', send: 'owner', read: player => player.resets % 0x10000 },
     led: { kind: 'bool', send: 'owner', read: player => player.led },

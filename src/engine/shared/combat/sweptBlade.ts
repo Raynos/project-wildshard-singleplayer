@@ -12,7 +12,7 @@ export interface BladeKey { readonly t: number; readonly pos: Vector3; readonly 
 export interface BladeSweepProfile { readonly rays: number; readonly extensions: readonly number[]; readonly step: number; readonly maxSamples: number; readonly maxHits: number }
 
 /** One swing's keys, as a move holds them. */
-export interface BladeSwing { readonly keys: readonly [BladeKey, BladeKey, BladeKey]; readonly total: number }
+export interface BladeSwing { readonly keys: readonly [BladeKey, BladeKey, BladeKey]; readonly total: number; /** Seconds the page's world stops at its first contact. */ readonly hitStop?: number }
 /** A blade's whole pose set: what a host needs to sweep it with no scene. */
 export interface SweptBladeRig {
   readonly rest: BladeKey; readonly charge: BladeKey; readonly sprint: BladeKey;

@@ -49,6 +49,8 @@ export class PlayerSim implements PlayerMotionState {
   readonly strike: StrikeRunner = new StrikeRunner();
   /** The loadout slot this player holds, for the wire. The loadout writes it each tick and keeps the saved truth. */
   held = 0;
+  /** For the wire (P1-E5.3-E1): seconds into the running swing, null with none, and the `seq` of the last swing or shot that left. The seats write it each tick and keep the saved truth. */
+  readonly swing: { t: number | null; seq: number } = { t: null, seq: 0 };
   /** Transient world velocity (m/s), the client Player's impulse law (player/impulse.ts). */
   readonly impulse: Vector3 = new Vector3();
   /** The one world velocity (m/s, y negative = falling) through every mode, the client Player's `velocity`. */

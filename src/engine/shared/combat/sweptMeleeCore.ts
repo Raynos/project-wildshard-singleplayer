@@ -104,6 +104,24 @@ export function sweptLunge(lunge: SweptLungeTiming, heavy: boolean, dx: number, 
   return { stopAt: radius + lunge.stop, time: Math.max(lunge.minTime, Math.min(lunge.maxTime, go / lunge.speed)) };
 }
 
+/** How far a hit-stop slows the world a view draws: it runs at this while the stop holds (Game.hitStop). */
+export const HIT_STOP_SCALE = 0.04;
+/**
+ * A hit-stop as a swing's clock feels it (P1-E5.3-E1). The page's view clock slows with its world at a swing's first blow.
+ * Server and client each serve the same stop, the server at contact and the client on `hit`, so they stay a tick apart.
+ */
+export class HitStopClock {
+  left = 0;
+  /** Begin a stop; a longer one in progress stands. */
+  stop(seconds: number): void { this.left = Math.max(this.left, seconds); }
+  /** The clock's `dt` for a step of `dt`. */
+  step(dt: number): number {
+    const scaled = this.left > 0 ? dt * HIT_STOP_SCALE : dt;
+    this.left = Math.max(0, this.left - dt);
+    return scaled;
+  }
+}
+
 /** The swept melee family's swing / combo / heavy clock; see the module comment. */
 export class SweptMeleeCore<M extends SwingTiming> {
   private readonly moves: SweptMoves<M>;
