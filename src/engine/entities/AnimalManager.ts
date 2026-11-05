@@ -36,11 +36,11 @@ declare module '../events/maps' {
 }
 
 /**
- * AnimalManager — spawns the chunk's huntable wildlife (the active ShardManifest's `fauna` herd plans),
+ * AnimalManager (the sim half, P1-E4.3; AnimalHerdView.ts draws) — spawns the chunk's huntable wildlife (the active ShardManifest's `fauna` herd plans),
  * runs their AI at 10 Hz (idle / graze / wander / alert / flee / charge / stalk / dead), animates
  * them every frame, and exposes the combat + audio hooks.
  *
- *   const animals = new AnimalManager(scene, sky, forest).build();
+ *   const animals = new AnimalManager(new AnimalHerdView(scene, sky), app, forest).build();
  *   game.onUpdate((dt, t) => animals.update(dt, t, player.position, player.sprinting));
  *
  *   animals.raycast(origin, dir, maxDist) → { animal, point, distance, headshot, damage } | null  (result object is reused;
@@ -65,8 +65,6 @@ declare module '../events/maps' {
  * ends in a STALK (walking the player down, huffing) that becomes a charge inside panicDist, and a charge that
  * lands or times out drops back into the stalk after `stalk.rechargeCd` s until the player is `stalk.giveUp` m away.
  *
- * Fur shells: the SHELL_MAX nearest animals within SHELL_DIST m get 4–8 fur-shell layers (SkinnedMeshes
- * sharing the body's geometry + skeleton); nothing changes beyond that distance.
  *   animals.onKill   = (animal) => …
  *   animals.onCharge = (animal, damage) => …          a boar reached the player
  *   animals.onSound  = (name, position) => …          'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal'
