@@ -308,6 +308,7 @@ export class SweptMelee extends Melee {
     this.aimPose(_aimOrigin, _aimRotation); this.aimRay(_aimOrigin, _fwd);
     _v2.copy(_fwd).applyAxisAngle(Y_AXIS, Math.PI / 2); sweptStrikePush(_push, _fwd, _v2, move.sweep);
     this.landed(move, hit.kind, _hitPoint.copy(hit.at), this.player.position.y, hit.killed);
+    this.onMoveHit(move, hit.killed);
   }
   /** The start the server refused goes at once, with whatever it queued (P1-E5.3-E5). */
   override attackRefused(): void { this.clock.stop(); }
@@ -536,7 +537,7 @@ export class SweptMelee extends Melee {
     sweptStrikePush(_push, _fwd, _v2, move.sweep);
     if (!killed) animal.stagger?.(_push, move.stagger);
     this.landed(move, animal.kind, point, animal.position.y, killed);
-    this.onMoveHit(move, hit, killed);
+    this.onMoveHit(move, killed);
   }
   /** What a blow plays, wherever it was settled. `point`, and `_push`, `_fwd` for its throw, are the caller's. */
   private landed(move: Move, kind: string, point: THREE.Vector3, feetY: number, killed: boolean): void {

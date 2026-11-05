@@ -28,6 +28,11 @@ let R: Rapier;
 beforeAll(async () => { R = await loadCourseRapier(); });
 
 const TICK_MS = FIXED_STEP * 1000, scenario: MotionScenario = { id: 'net-weapon', start: { x: -10, z: 0, yaw: 0 }, ticks: 0, intent: () => ({}), bodyAt: { x: -5, z: 30 } };
+/** The view with a subclass's bookkeeping on it, the way a mounted sabre books its pass. */
+class BookedBlade extends SweptMelee {
+  readonly booked: boolean[] = [];
+  protected override onMoveHit(_move: Parameters<SweptMelee['onMoveHit']>[0], killed: boolean): void { this.booked.push(killed); }
+}
 const HIT: OwnHit = { kind: 'crab', at: new Vector3(0, 1, -1), head: false, killed: false, amount: 12, seq: 9 };
 
 function sword(wire: WeaponWire): { blade: SweptMelee; stops: ReturnType<typeof vi.fn>; heard: string[]; player: Player; done: () => void } {
@@ -38,7 +43,7 @@ function sword(wire: WeaponWire): { blade: SweptMelee; stops: ReturnType<typeof 
     sampleAimCommand: () => ({ origin: { x: eye.x, y: eye.y, z: eye.z }, direction: { x: 0, y: 0, z: -1 } }) });
   const profile: MeleeProfile = applyMeleeCombatProfile(SWORD_WOOD, STARTER_MELEE_PROFILE), { moves } = profile;
   if (moves === undefined) throw new Error('The starter sword declares its moves');
-  const blade = new SweptMelee({ game, sky: legacyDouble<SkyRig>({}), player, forest: legacyDouble<Forest>({}) }, undefined,
+  const blade = new BookedBlade({ game, sky: legacyDouble<SkyRig>({}), player, forest: legacyDouble<Forest>({}) }, undefined,
     { row: profile, profile, inputContext: 'weapon.melee', rig: { sword: new BoxGeometry(0.1, 0.1, 0.1), arms: new BoxGeometry(0.1, 0.1, 0.1), tipY: 0.62, baseY: 0.1, material: new MeshBasicMaterial() } },
     { moves, slash: SLASH, finisher: FINISHER, heavy: HEAVY, events: {}, debris: () => ({ surface: 'sand', count: 1, atFeet: true, sparks: false }) });
   blade.setActive(true); blade.enabled = true; blade.wire = wire;
@@ -67,6 +72,7 @@ test('the server\'s hit plays the blow once, and a refusal lets the swing go at 
     expect(stops).not.toHaveBeenCalled();
     blade.serverHit(HIT); blade.serverHit({ ...HIT, seq: 10 });
     expect(stops).toHaveBeenCalledTimes(1); expect(heard).toEqual(['crab', 'crab']);
+    expect(blade.booked).toEqual([HIT.killed, false]); // a mounted pass books its chain off this, wherever the blow was settled
     blade.attackRefused(); blade.update(1 / 60, 1 / 60);
     expect(player.swinging).toBe(false);
   } finally { done(); }

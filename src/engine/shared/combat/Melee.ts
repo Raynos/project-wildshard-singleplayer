@@ -1,6 +1,6 @@
 import { melee } from './blocks/melee';
 import type { Actor, CombatPipeline, DamageDealt } from '../../server/combat/pipeline';
-import type { TargetAnimal, TargetHit } from '../../client/combat/types';
+import type { TargetAnimal } from '../../client/combat/types';
 import type { Move } from '../../client/combat/view/melee';
 import { Weapon } from './Weapon';
 import type { Vector3, Quaternion } from 'three';
@@ -39,7 +39,7 @@ export abstract class Melee<P extends MeleeProfile = MeleeProfile> extends Weapo
       point, dir, from, weaponId: this.row.id, moveId });
   }
   protected onSwingStart(_move: Move): void { /* Rung-2 weapons add a behavior at the same input edge. */ }
-  protected onMoveHit(_move: Move, _hit: TargetHit, _killed: boolean): void { /* Optional subclass bookkeeping. */ }
+  protected onMoveHit(_move: Move, _killed: boolean): void { /* Optional subclass bookkeeping. */ }
   protected pickMove(_input: 'attack' | 'heavy'): Move | null { return null; }
   protected moveDamage(move: Move): number { return (this.attributes['damage'] ?? this.profile.damage) * move.damage; }
   protected poseExtra(_pos: Vector3, _q: Quaternion, _dt: number): void { /* Optional extra weapon pose. */ }
