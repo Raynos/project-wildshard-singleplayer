@@ -155,7 +155,7 @@ export class GridSimulation {
       try {
         if (this.disposed || value.host.embedded || !value.host.players.get(this.owner)?.hasMotor) throw new Error('Grid admission requires an owned host');
         // A save holds whoever stood here when it was made; they carry themselves now, and nobody stands here yet.
-        for (const id of [...value.host.players.keys()]) if (id !== this.owner) value.host.removePlayer(id);
+        for (const id of value.host.players.keys()) if (id !== this.owner) value.host.removePlayer(id);
         const checkpoint = this.snapshots.pack(instance, snapshotSimHost(value.host));
         if (checkpoint === null) throw new Error('Grid continuation cache capacity exceeded');
         this.seat(value.host, this.owner).detachMotor(); this.snapshots.store(instance, checkpoint);

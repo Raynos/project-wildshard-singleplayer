@@ -21,7 +21,7 @@ function install(host: SimHost): MoverRuntime {
     rules: { fields: {}, archetypes: [], events: [], maxEntities: 32 } }, { id: 'carry-test', drive: true });
 }
 const landing = (end: 0 | 1): Vector3 => { const at = row.carry?.landings[end]; if (at === undefined) throw new Error('Missing landing'); return new Vector3(...at); };
-async function rapierNow(): Promise<Awaited<ReturnType<typeof loadRapier>>> { return loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm'))); }
+function rapierNow(): ReturnType<typeof loadRapier> { return loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm'))); }
 
 test('the bot that calls a canoe rides it, and the lead stays on foot and free', async () => {
   const host = createSimHost(level, { rapier: await rapierNow() }), motion = install(host);

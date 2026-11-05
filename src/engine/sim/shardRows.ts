@@ -14,7 +14,7 @@ export interface ShardRows {
 
 const books = new WeakMap<object, ShardRows>();
 const NO_ROWS: ShardRows = { bodies: new Map<string, () => ScriptNetView>(), state: null };
-type RowHost = { readonly scope: { readonly onDispose: (run: () => void) => unknown } };
+interface RowHost { readonly scope: { readonly onDispose: (run: () => void) => unknown } }
 function bookOf(host: RowHost): ShardRows {
   let book = books.get(host);
   if (book === undefined) { const fresh: ShardRows = { bodies: new Map<string, () => ScriptNetView>(), state: null }; book = fresh; books.set(host, fresh); host.scope.onDispose(() => { fresh.bodies.clear(); fresh.state = null; }); }
@@ -29,7 +29,7 @@ export function publishScriptBody(host: RowHost, id: string, read: () => ScriptN
 /** Publish the shard's public shared state. One lane owns a host's declared state. */
 export function publishShardState(host: RowHost, read: () => readonly StateNetRow[]): void {
   const book = bookOf(host);
-  if (book.state !== null) throw new Error('Duplicate shard state rows');
+  if (book.state !== null) throw new Error('Duplicate declared state rows');
   book.state = read;
 }
 /** Everything a host publishes. */
