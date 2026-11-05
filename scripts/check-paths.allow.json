@@ -823,5 +823,10 @@
     "path": "src/shards/driftwood-isle/assets/a9f1a2ef4650ab6bb7acbb197997e68bdb883a09206f99e66183d32cac731d0a",
     "file": "scripts/storage-policy.json",
     "why": "An exact storage pin for a blob, read by oid; the path need not exist at this tree"
+  },
+  {
+    "path": "src/sdk/dist/",
+    "file": "scripts/generated-source.mjs",
+    "why": "build-sdk.mjs's gitignored package output: the generated-source check names the folder to skip, so it exists only in a tree that built the SDK and never in a clean CI checkout."
   }
 ]
