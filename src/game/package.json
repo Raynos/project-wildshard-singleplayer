@@ -115,6 +115,7 @@
     "./shard/declaredRows": "./shard/declaredRows.ts",
     "./plugin/nativeItems": "./plugin/nativeItems.ts",
     "./plugin/nativeSwept": "./plugin/nativeSwept.ts",
+    "./loot/personal": "./loot/personal.ts",
     "./loadout/itemCatalogue": "./loadout/itemCatalogue.ts",
     "./shardfile/nativePlan": "./shardfile/nativePlan.ts",
     "./shardfile/worldTargets": "./shardfile/worldTargets.ts",

@@ -100,6 +100,7 @@ const entries = {
   slots: v.strictObject({ scriptMemory: v.record(v.string(), simValue), scriptGlobals: v.record(v.string(), simValue),
     questState: v.record(v.string(), simValue), ledgerDedupe: v.array(v.string()) }),
   adapters: v.array(v.strictObject({ id, state: simValue })),
+  damage: v.optional(v.array(v.tuple([v.string(), v.array(v.tuple([v.string(), finite]))]))),
   bands: v.optional(v.strictObject({ rates: uint32, time: nonnegative, frame: integer, frameDt: nonnegative,
     rows: v.array(v.strictObject({ id, rate: id, brain: bandClock, body: bandClock })) })),
   day: v.optional(v.strictObject({ value: finite, paused: v.boolean(), scale: finite, cycle: v.pipe(finite, v.minValue(Number.MIN_VALUE)),

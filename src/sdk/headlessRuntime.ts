@@ -14,6 +14,7 @@ import { createSimHost, type SimHost, type SimHostPorts, type SimLevel, type Sim
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 import type { NetAct, NetCommand } from '@wildshard/format/netCommand';
 import { netTickCommands } from './standalone/netInput';
+import { installPersonalLoot, personalCoinTable } from '@wildshard/game/loot/personal';
 import { checkSimSnapshotWire, decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import type { Shardfile } from './shardfile';
@@ -97,6 +98,8 @@ export interface HeadlessRuntimePlan {
   ports?: Pick<SimHostPorts, 'ground' | 'heightAt' | 'groundResolution'>;
   install: (host: SimHost, context: HeadlessRuntimeInstallation) => void;
   proveEntries?: (host: SimHost) => { lanes: number; steps: number; liftRides?: number; liftCalls?: number; portalTransfers?: number };
+  /** The product's `economy/loot` rows, where a room's personal rolls read their tables. */
+  economy?: unknown;
 }
 /** Direct typed legacy/proof factory contract; the public worker accepts only admitted data plans. */
 export type PrepareHeadlessRuntime = (context: HeadlessRuntimePreparation) => HeadlessRuntimePlan | Promise<HeadlessRuntimePlan>;
@@ -128,6 +131,11 @@ function tamingCommand(command: HeadlessCommand): ReturnType<ReturnType<NativeAs
   if (command.kind !== 'player') return { kind: 'action' };
   return command.steer === undefined ? { kind: 'player' } : { kind: 'player', steer: command.steer };
 }
+/** J105: a shard whose kills pay coins pays a room's players each their own roll. */
+function installRoomLoot(host: SimHost, economy: unknown, context: HeadlessRuntimeInstallation): void {
+  const coins = personalCoinTable(economy);
+  if (coins !== null) installPersonalLoot(host, { coins, grant: (player, amount) => { context.emit({ kind: 'coins', amount, actorId: player }); } });
+}
 /** The tick protocol's loans to a native assembly (`@wildshard/game/shardfile/nativeAssembly`). */
 export function headlessAssemblyPorts(rapier: Rapier): NativeAssemblyPorts<HeadlessRuntimeInstallation> {
   return { rapier, bindCommands: bindHeadlessCommands, tamingCommands: context => () => context.commands().map(tamingCommand) };
@@ -141,6 +149,7 @@ export async function prepareNativeRuntime(provided: HeadlessRuntimeInput): Prom
   if (provided.sections !== undefined) {
     const declaration = parseNativeRuntimePlan(provided.sections.get('sim/runtime-plan'));
     plan = await prepareRuntimePlan(source, provided.assets, declaration.baked, declaration.recipe, provided.sections);
+    plan = { ...plan, economy: provided.sections.get('economy/loot') };
   } else {
     let product = provided.product;
     if (product === undefined) {
@@ -151,6 +160,7 @@ export async function prepareNativeRuntime(provided: HeadlessRuntimeInput): Prom
     if (actualIdentity !== expectedIdentity || product.revision !== provided.shard.identity.revision) throw new Error('Native product and trusted identity differ');
     source = product.shardfile;
     plan = await prepareProductRuntimePlan(product, provided.assets, headlessAssemblyPorts(provided.rapier));
+    if (product.has('economy/loot')) plan = { ...plan, economy: product.section('economy/loot') };
   }
   const identity = { id: source.identity.slug, seed: source.identity.seed };
   if (plan.level.id !== identity.id || plan.level.seed !== identity.seed) throw new Error('Trusted runtime simulation identity mismatch');
@@ -194,6 +204,7 @@ export async function createTrustedHeadlessResident(preparation: HeadlessRuntime
     });
     if (effects.length > 0) throw new Error('Trusted runtime emitted gameplay effects during installation');
   } catch (error) { installing?.dispose(); throw error; }
+  if (plan.economy !== undefined) installRoomLoot(host, plan.economy, context);
   const lead = leadPlayer(host);
   const lend = (input: readonly HeadlessCommand[]): void => {
     validateHeadlessCommandOwners(host,input);

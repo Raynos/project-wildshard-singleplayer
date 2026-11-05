@@ -407,3 +407,29 @@ test('Pine: a bot fires its own crossbow, and an arrow confirms the shot that lo
     expect(boar.hp).toBeLessThan(hp); expect(crossbow.item.state.quiver).toBe(quiver);
   } finally { live.dispose(); }
 }, 120_000);
+
+test('J105: on Driftwood each player who hurt a crab gets their own coins, a chip of damage gets none, and alone nothing changes', async () => {
+  const { resident } = await shipped('driftwood-isle');
+  const live = await resident(), { host } = live, bot = 'bot:1', chipper = 'bot:2';
+  const solo = await resident();
+  try {
+    const crab = nearest(live, 'crab'), link = { hit: (who: string, amount: number): void => {
+      const health = host.players.get(who)?.health; if (health === undefined) throw new Error(`No ${who}`);
+      host.combat.hit({ source: health, sourceTags: ['actor.player'], target: crab.combatActor(), amount, point: crab.position, dir: new Vector3(0, 0, 1), throughWalls: true });
+    } };
+    host.addPlayer(bot, leadPlayer(host).position); host.addPlayer(chipper, leadPlayer(host).position);
+    link.hit(bot, crab.maxHp * 0.3); link.hit(chipper, crab.maxHp * 0.01); link.hit(leadPlayer(host).id, crab.maxHp * 2);
+    expect(crab.alive).toBe(false);
+    hold(live); live.step([stand(live)]); // the tick's flush hears the deaths
+    const paid = live.effects.filter(effect => effect.kind === 'coins');
+    expect(paid.map(effect => effect.kind === 'coins' ? effect.actorId : '').sort()).toEqual([leadPlayer(host).id, bot].sort());
+    expect(host.damage.meaningful(crab.entityId)).toEqual([]);
+
+    // alone: no server grant and no save bytes; the page's own bounty pays exactly what it always did
+    const crabAlone = nearest(solo, 'crab'), before = solo.host.slots.ledgerDedupe.length;
+    solo.host.combat.hit({ source: leadPlayer(solo.host).health, sourceTags: ['actor.player'], target: crabAlone.combatActor(), amount: crabAlone.maxHp * 2, point: crabAlone.position, dir: new Vector3(0, 0, 1), throughWalls: true });
+    solo.step([stand(solo)]);
+    expect(crabAlone.alive).toBe(false); expect(solo.effects.filter(effect => effect.kind === 'coins')).toEqual([]); expect(solo.host.slots.ledgerDedupe.length).toBe(before);
+    expect(snapshotSimHost(solo.host).damage).toBeUndefined();
+  } finally { live.dispose(); solo.dispose(); }
+}, 120_000);

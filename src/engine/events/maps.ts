@@ -12,6 +12,8 @@ export interface EventMap {
   'creature.signal': { name: string; x: number; z: number };
   'ai.windup': { actor: Actor; duration: number };
   'damage.dealt': DamageDealt;
+  /** J105: a personal roll paid out; only `player` hears of it. */
+  'reward.granted': { player: string; coins: number; body: string };
   'actor.died': { actor: Actor; req: DamageRequest };
   'player.died': { actor: Actor; checkpoint: boolean; cause?: DeathCause };
   'player.respawned': { at: Vector3; checkpoint: boolean };

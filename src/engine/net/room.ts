@@ -10,7 +10,7 @@ import { decodeCommands } from './command';
 import { CommandQueue } from './commandQueue';
 import { encodeFrame, FRAME_RING, WorldFrameRing, type WorldFrame } from './frame';
 import { NetHandles } from './handles';
-import { decodeAct, decodeHello, encodeEvents, encodeWelcome, messageId, MSG_ACT, MSG_CMDS, MSG_HELLO, type InitialBits, type NetDied, type NetEvent, type NetHit } from './messages';
+import { decodeAct, decodeHello, encodeEvents, encodeWelcome, messageId, MSG_ACT, MSG_CMDS, MSG_HELLO, type InitialBits, type NetDied, type NetEvent, type NetHit, type NetReward } from './messages';
 import { NET_CLASSES, NET_SCHEMA_HASH } from './netSchemas';
 import type { NetClass, NetRefs } from './schema';
 import type { NetChannel, Transport } from './transport';
@@ -52,7 +52,7 @@ export interface NetRoomOptions {
 
 interface ClientView { tick: number; readonly visible: Set<number> }
 /** A settled event in handles, kept until the next frame. */
-type RoomCombat = NetDied | (NetHit & { readonly landedBy: string | null });
+type RoomCombat = NetDied | (NetHit & { readonly landedBy: string | null }) | (NetReward & { readonly owner: string });
 interface RoomClient {
   readonly id: number; readonly transport: Transport; readonly queue: CommandQueue; readonly player: NetPlayer;
   /** waiting: said hello before the room opened. live: welcomed. */
@@ -129,6 +129,7 @@ export class NetRoom {
   private settled(): void {
     for (const row of this.world.combat?.() ?? []) {
       const { refs } = this.handles;
+      if (row.kind === 'reward') { const { player, ...reward } = row; this.combat.push({ ...reward, body: refs(row.body), owner: player }); continue; }
       if (row.kind === 'hit') { const target = refs(row.target); if (target !== 0) { const { by, seq, ...hit } = row; this.combat.push({ ...hit, target, confirmFor: seq, landedBy: by }); } }
       else { const id = refs(row.id); if (id !== 0) this.combat.push({ ...row, id, by: row.by === null ? 0 : refs(row.by) }); }
     }
@@ -214,6 +215,7 @@ export class NetRoom {
     }
     // Spawns, then what happened, then who left: a body's last hit and its death arrive before its despawn.
     for (const row of combat) {
+      if (row.kind === 'reward') { if (row.owner === client.player.id) { const { owner: _owner, ...reward } = row; events.push(reward); } continue; }
       if (row.kind === 'died') { if (row.id === own || client.known.has(row.id)) events.push(row); continue; }
       const { landedBy, ...hit } = row, owned = landedBy === client.player.id;
       if (row.target !== own && !owned && !client.known.has(row.target)) continue;

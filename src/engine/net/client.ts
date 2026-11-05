@@ -117,7 +117,7 @@ export class NetClient {
     const decoded = decodeEvents(bytes, initialBits);
     if (decoded === null) { this.dropped++; return; }
     for (const event of decoded.events) {
-      if (event.kind === 'hit' || event.kind === 'died') { for (const listener of this.fights) listener(event); continue; }
+      if (event.kind === 'hit' || event.kind === 'died' || event.kind === 'reward') { for (const listener of this.fights) listener(event); continue; }
       if (event.kind === 'quest') { this.quests.set(event.quest, event); continue; }
       if (event.kind === 'phase') { if (event.on) this.phased.add(event.flag); else this.phased.delete(event.flag); continue; }
       if (event.kind === 'despawn') {

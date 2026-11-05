@@ -181,6 +181,7 @@
   "src/engine/combat/bowLaw.ts": "shared",
   "src/engine/combat/contactWeapon.ts": "server",
   "src/engine/combat/cues.ts": "client",
+  "src/engine/combat/damageBook.ts": "server",
   "src/engine/combat/effects/EffectService.ts": "client",
   "src/engine/combat/effects/types.ts": "client",
   "src/engine/combat/Equipment.ts": "server",
@@ -1073,6 +1074,7 @@
   "src/game/loot/exchange.ts": "server",
   "src/game/loot/Owned.ts": "server",
   "src/game/loot/Purse.ts": "server",
+  "src/game/loot/personal.ts": "server",
   "src/game/loot/runtime.ts": {
    "side": "server",
    "mixed": true

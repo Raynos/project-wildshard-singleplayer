@@ -11,6 +11,7 @@ import { AnimalSim, type AnimalSimSpec } from './entities/AnimalSim';
 import { StrikeRunner, type StrikeSpec } from './ai/strikes';
 import { canReach } from './ai/reach';
 import { CombatPipeline } from './combat/pipeline';
+import { DamageBook } from './combat/damageBook';
 import type { PlayerHealth } from './combat/health';
 import { Physics } from './physics/Physics';
 import { CharacterMotor, PLAYER_BODY, type MotorOptions } from './physics/CharacterMotor';
@@ -188,6 +189,8 @@ export class SimHost {
   readonly state = { tick: 0, accumulator: 0, timers: {} as Record<string, number> };
   readonly slots: SimSlots = { scriptMemory: {}, scriptGlobals: {}, questState: {}, ledgerDedupe: [] };
   readonly combat: CombatPipeline;
+  /** J105: who hurt which body. */
+  readonly damage: DamageBook = new DamageBook();
   physics: Physics;
   /** Every player in this host, the lead first. */
   readonly players: Map<string, PlayerSim> = new Map<string, PlayerSim>();
@@ -264,6 +267,7 @@ export class SimHost {
     this.weapons.set(this.lead.id, { ...level.weapon, weight: () => 1 });
     for (const spawn of level.entities) this.createActor(spawn);
     this.events.on('actor.died', ({ actor }) => { this.flags.set(`dead:${actor.id}`); }, this.scope);
+    this.events.on('damage.dealt', ({ req, dealt }) => { this.damage.record(req, dealt, this.players); }, this.scope);
     this.scope.onDispose(() => {
       this.disposed = true;
       for (const player of this.players.values()) { player.releaseExternal(); if (this.ownsPlayer) player.disposeMotor(); }
@@ -313,7 +317,7 @@ export class SimHost {
     if (player === undefined || player === this.lead) return false;
     if (this.focused === player) this.focused = this.lead;
     player.disposeMotor(); this.playerScopes.get(id)?.dispose(); this.playerScopes.delete(id);
-    this.players.delete(id); this.strikes.delete(id); this.weapons.delete(id); this.strikeSeqs.delete(id);
+    this.players.delete(id); this.strikes.delete(id); this.weapons.delete(id); this.strikeSeqs.delete(id); this.damage.leave(id);
     for (const [source, target] of this.targetIds) if (source === id || target === id) {
       this.strikes.get(source)?.cancel(); this.entities.get(source)?.cancelAttack(); this.targetIds.delete(source);
     }

@@ -160,6 +160,7 @@
     "./combat/sweptMeleeCore": "./combat/sweptMeleeCore.ts",
     "./combat/sweptBasePose": "./combat/sweptBasePose.ts",
     "./combat/sweptBlade": "./combat/sweptBlade.ts",
+    "./combat/damageBook": "./combat/damageBook.ts",
     "./combat/targets": "./combat/targets.ts",
     "./combat/types": "./combat/types.ts",
     "./combat/view/EquipmentHost": "./combat/view/EquipmentHost.ts",
