@@ -473,7 +473,7 @@ export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: S
   const beforeBody = (id: string, dt: number): boolean => {
     const actor = byId.get(id)?.actor;
     if (phase === undefined || actor === null || actor === undefined) return false;
-    const player = host.player.position;
+    const player = host.nearestPlayer(actor.position).position;
     poseNear = actor.position.distanceToSquared(player) < phase.animateWithin * phase.animateWithin;
     if (!actor.alive || actor.stunned) return false;
     if ((hunted === null || hunted.has(actor.kind)) && actor.state === 'charge') hunt.advanceCharge(actor, dt, player);
@@ -483,7 +483,7 @@ export function createNativeCreatureRoster<B extends NativeCreatureSlot>(host: S
     const actor = byId.get(id)?.actor;
     if (phase === undefined || actor === null || actor === undefined) return;
     poses?.get(id)?.advance(dt, host.clock.now, poseNear);
-    const player = host.player.position;
+    const player = host.nearestPlayer(actor.position).position;
     if (actor.state === 'charge' && actor.alive && !actor.stunned) hunt.chargeContact(actor, player);
     if ((hunted === null || hunted.has(actor.kind)) && actor.alive && actor.position.distanceToSquared(player) < phase.clearWithin * phase.clearWithin) clearBody(actor, player);
   };
@@ -517,7 +517,7 @@ export class NativeDeferredRoster {
     slot.recipe.at.y = y; const actor = this.intake.materialize(slot, slot.recipe, y !== this.host.groundHeightAt(x, z));
     actor.herd = herd; this.bodies.push(actor); this.sight.push(false); this.rng.restore(saved.adopted); this.hunt.adopt(actor, x, z);
     if (!restoring && this.rows.motorKinds.includes(kind) && this.host.bodyBands?.physics === true
-      && keepsCreatureBody(false, actor.alive, actor.driven, creatureBodyDistance(actor.position, this.host.player.position))) {
+      && keepsCreatureBody(false, actor.alive, actor.driven, creatureBodyDistance(actor.position, this.host.nearestPlayer(actor.position).position))) {
       const motor = withOwner(null, () => new CharacterMotor(this.host.physics, this.host.creatureMotorOptions(actor))); motor.resetAt(actor.position); actor.motor = motor;
     }
     return actor;

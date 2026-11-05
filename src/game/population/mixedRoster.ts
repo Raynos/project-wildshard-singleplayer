@@ -105,7 +105,7 @@ export function installMixedPopulation(host: SimHost, ports: MixedPopulationInpu
 
   const FULL_ROSTER = new Error('Mixed population ecology roster exceeds its native bound');
   const { bake } = ports, specs = new Map([...ports.specs].map(([kind, spec]) => [kind, continuationSpec(spec)])),
-    rng = new Rng(ports.seed + 31), bodies: MixedPopulationBody[] = [], player = host.player.position;
+    rng = new Rng(ports.seed + 31), bodies: MixedPopulationBody[] = [], player = host.playerFocus;
 
   installPopulationEnvironment(host, { res: Math.sqrt(bake.ground.heights.length), size: bake.ground.scale.x, heights: bake.ground.heights }, roster.environment);
   const ground = populationEnvironment(host, roster.environment.id), heightAt = ground.heightAt;
@@ -242,7 +242,7 @@ export function installMixedPopulation(host: SimHost, ports: MixedPopulationInpu
     volley.update(dt, 1, player);
     for (const effect of volley.takeEvents()) if (effect.kind === 'contact' && effect.source !== null) {
       const th = effect.source;
-      host.combat.hit({ source: 'env', sourceTags: rows.volley.tags, target: host.player.health,
+      host.combat.hit({ source: 'env', sourceTags: rows.volley.tags, target: host.nearestPlayer(th.position).health,
         amount: contact.damage, moveId: contact.id, point: th.position.clone(), dir: new Vector3(), cause: { kind: th.kind, label: th.label } });
     }
     service.pre(dt);

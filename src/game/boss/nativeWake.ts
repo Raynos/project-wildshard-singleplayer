@@ -16,12 +16,12 @@ export function installWakeBoss(host: SimHost, input: unknown, placement: { pool
   const row = parseWakeEncounter(input), { pool, arena } = placement;
   const encounter = new WakeBossEncounter(row, pool);
   const body = () => Array.from(host.entities.values()).find(actor => actor.kind === row.kind) ?? null;
-  const observation = (): WakeBossObservation => ({ player: host.player.position, animal: body(), wake: host.flags.has(row.wakeFlag), dead: host.flags.has(row.deadFlag) });
+  const observation = (): WakeBossObservation => ({ player: host.playerFocus, animal: body(), wake: host.flags.has(row.wakeFlag), dead: host.flags.has(row.deadFlag) });
   const flush = (): void => { for (const effect of encounter.takeEffects()) if (effect.kind === 'outcome') host.events.emit('boss.attempt', { boss: row.id, level: row.level, outcome: effect.outcome }); };
   host.events.on('damage.dealt', ({ req, killed }) => {
     const actor = body(); if (killed && actor !== null && req.target === actor.combatActor()) host.flags.set(row.deadFlag);
   }, host.scope);
-  host.events.on('player.died', () => { encounter.onPlayerDeath(host.player.position); flush(); }, host.scope);
+  host.events.on('player.died', ({ actor }) => { encounter.onPlayerDeath(host.players.get(actor.id)?.position ?? host.playerFocus); flush(); }, host.scope);
   host.onStep(row.step, () => { encounter.update(observation()); flush(); }, {
     snapshot: () => JSON.stringify(encounter.encounterSnapshot()),
     restore: value => { encounter.encounterRestore(v.parse(Encounter, JSON.parse(v.parse(v.string(), value)))); },

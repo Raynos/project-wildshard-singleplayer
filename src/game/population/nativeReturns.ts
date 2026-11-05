@@ -5,6 +5,7 @@ import type { HuntBody } from '@wildshard/engine/ai/hunt';
 import type { StalkerBrain } from '@wildshard/engine/ai/stalker';
 import { RespawnQueue } from './respawn';
 import { ReturnProgram } from './returnProgram';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const finite = v.pipe(v.number(), v.finite());
 const savedEntry: v.GenericSchema<BoundedNativeReturnSaveInput, BoundedNativeReturnSave> = v.strictObject({ kind: v.string(), variant: v.string(), herd: finite,
@@ -44,7 +45,7 @@ export class NativeReturns {
     this.now += dt;
     if (this.now - this.check < this.rows.interval) return this.idle;
     this.check = this.now;
-    const player = this.host.player.position;
+    const player = leadPlayer(this.host).position;
     return this.queue.take(this.now, player.x, player.z, this.host.dayClock?.night ?? 0);
   }
   /** Resolve one due entry at the caller's spawn boundary, preserving random

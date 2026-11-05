@@ -11,6 +11,7 @@ import type { ShardCreatures } from '@wildshard/format/creatures';
 import type { ShardRows } from '@wildshard/format/rows';
 import type { DeclaredBrainPorts } from './brainRuntime';
 import type { DeclaredGroupPorts, DeclaredPackRecipe } from './groupRuntime';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const finite = v.pipe(v.number(), v.finite());
 const motionSchema = v.strictObject({ x: finite, z: finite, speed: v.pipe(finite, v.minValue(0)) });
@@ -60,19 +61,22 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardC
   const homes = new Map(spawns.map(row => [row.id, row.home === undefined ? undefined : { ...row.home }]));
   const directors = new Map<AnimalSim, Parameters<DeclaredPackRecipe['ports']['register']>[1]>();
   const phases = new Map(spawns.map(row => [row.id, row.phaseOffset]));
-  const impulse = borrowedImpulse ?? (host.embedded ? undefined : (velocity: Vector3) => { host.impulsePlayer(velocity); });
+  const impulse = borrowedImpulse ?? (host.embedded ? undefined : (velocity: Vector3) => { host.focusedPlayer.addImpulse(velocity); });
   const forces = impulse === undefined ? undefined : bindPlayerImpulse(impulse);
-  const motion = { x: host.player.position.x, z: host.player.position.z, speed: 0 };
+  const lead = leadPlayer(host), motion = { x: lead.position.x, z: lead.position.z, speed: 0 };
   const from = new Vector3(), to = new Vector3(), direction = new Vector3(), point = new Vector3();
   const strikes = new Map<string, StrikeSpec>(rows.strikes.map(({ weight, speed, ...row }) =>
     [row.id, { ...row, motion: { speed }, weight: () => weight }]));
-  const reach = (actor: AnimalSim): boolean => canReach(actor, host.player.position, host.physics);
+  const foe = (actor: AnimalSim): ReturnType<SimHost['nearestPlayer']> => host.nearestPlayer(actor.position);
+  const calm = (actor: AnimalSim): boolean => !foe(actor).health.alive;
+  const reach = (actor: AnimalSim): boolean => canReach(actor, foe(actor).position, host.physics);
   const hurt = (actor: AnimalSim, damage: number, tags: StrikeSpec['tags'], moveId: string): void => {
-    if (!actor.alive || !host.player.health.alive) return;
-    point.copy(host.player.position); point.y += 1.2;
+    const target = foe(actor);
+    if (!actor.alive || !target.health.alive) return;
+    point.copy(target.position); point.y += 1.2;
     from.copy(actor.position); from.y += actor.dims.bodyY * actor.scale;
     direction.subVectors(point, from).normalize();
-    host.combat.hit({ source: actor.combatActor(), sourceTags: tags, target: host.player.health,
+    host.combat.hit({ source: actor.combatActor(), sourceTags: tags, target: target.health,
       amount: damage, point, dir: direction, from, moveId });
   };
   const inBounds = (x: number, z: number, margin: number): boolean => Math.abs(x) <= 250 - margin && Math.abs(z) <= 250 - margin;
@@ -90,7 +94,7 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardC
     used = true;
     const strike = strikes.get(id);
     if (strike === undefined) throw new Error('Unresolved data-host diver strike');
-    return { strike, observe: (dt: number) => ({ dt, player: host.player.position, calm: !host.player.health.alive,
+    return { strike, observe: (dt: number) => ({ dt, player: foe(actor).position, calm: calm(actor),
       mayAttack: (body: AnimalSim) => host.events.ask('ai.mayAttack', body),
       claim: (body: AnimalSim) => host.events.ask('ai.claim', body), reach,
       hurt: (damage: number) => { hurt(actor, damage, strike.tags, strike.id); },
@@ -103,7 +107,7 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardC
       if (home === undefined) throw new Error('Missing authored data-host ram home');
       if (strike === undefined) throw new Error('Unresolved data-host ram strike');
       used = true;
-      return { strike, observe: dt => ({ dt, home, player: host.player.position, calm: !host.player.health.alive,
+      return { strike, observe: dt => ({ dt, home, player: foe(actor).position, calm: calm(actor),
         rng: host.rng.stream('ai'), reach, claim: body => host.events.ask('ai.claim', body),
         hurt: damage => { hurt(actor, damage, strike.tags, strike.id); },
         strikeHit: selected => { hurt(actor, selected.damage, selected.tags, selected.id); },
@@ -113,8 +117,8 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardC
       if (phaseOffset === undefined) throw new Error('Missing authored data-host circle phase');
       if (charge === undefined || close === undefined) throw new Error('Unresolved data-host challenge strikes');
       used = true;
-      return { charge, close, observe: dt => ({ dt, t: host.clock.now, phaseOffset, player: host.player.position,
-        calm: !host.player.health.alive, reach, claim: body => host.events.ask('ai.claim', body),
+      return { charge, close, observe: dt => ({ dt, t: host.clock.now, phaseOffset, player: foe(actor).position,
+        calm: calm(actor), reach, claim: body => host.events.ask('ai.claim', body),
         hurt: () => { throw new Error('Missing selected data-host challenge strike'); },
         strikeHit: selected => { hurt(actor, selected.damage, selected.tags, selected.id); },
         steer: (body, yaw, speed, turn) => { body.setMotion(yaw, speed, turn); },
@@ -131,9 +135,9 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardC
       const memberSet = new Set(members);
       return { ports: {
         sharedRng: () => host.rng.stream('ai'),
-        environment: () => ({ playerFwdX: Math.sin(host.player.yaw), playerFwdZ: Math.cos(host.player.yaw),
-          playerMounted: host.playerMode === 'ride',
-          playerHealth01: host.player.health.attributes.health / host.player.health.attributes.maxHealth,
+        environment: () => ({ playerFwdX: Math.sin(lead.yaw), playerFwdZ: Math.cos(lead.yaw),
+          playerMounted: lead.mode === 'ride',
+          playerHealth01: lead.health.attributes.health / lead.health.attributes.maxHealth,
           // Data-only rows declare no grass/scent field or animal-prey binding.
           grassHeightAt: () => 0 }),
         visibility: (x, z, player) => {
@@ -147,13 +151,13 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardC
           directors.set(actor, director);
         },
         bite: (actor, _context, radius) => {
-          if (Math.hypot(actor.position.x - host.player.position.x, actor.position.z - host.player.position.z) < radius && reach(actor))
+          if (Math.hypot(actor.position.x - foe(actor).position.x, actor.position.z - foe(actor).position.z) < radius && reach(actor))
             hurt(actor, actor.mods.chargeDamage, ['animal.pack', 'feel.blow'], group.id);
         },
         // The stock group has only its actual player target; injected recipes own animal prey.
         preyIdentity: () => { throw new Error('Undeclared data-host pack prey'); }, resolvePrey: () => null,
-      }, observe: (_actor, dt) => ({ dt, t: host.clock.now, player: host.player.position,
-        playerSpeed: motion.speed, calm: !host.player.health.alive, rng: host.rng.stream('ai'),
+      }, observe: (body, dt) => ({ dt, t: host.clock.now, player: foe(body).position,
+        playerSpeed: motion.speed, calm: calm(body), rng: host.rng.stream('ai'),
         sound: () => undefined,
         claim: actor => host.events.ask('ai.claim', actor) && (directors.get(actor)?.take(actor) ?? false),
         steer: (actor, yaw, speed, turn) => { actor.setMotion(yaw, speed, turn); },
@@ -167,7 +171,7 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardC
       used = true;
       return { ports: {
         sharedRng: () => host.rng.stream('ai'),
-        environment: () => ({ playerMounted: host.playerMode === 'ride', playerCrouched: false }),
+        environment: () => ({ playerMounted: lead.mode === 'ride', playerCrouched: false }),
         visibility: (x, z, player) => {
           from.set(x, host.groundHeightAt(x, z) + 1.2, z); to.copy(player); to.y += 1.2;
           return lineOfSight(host.physics, from, to) ? 1 : 0;
@@ -180,13 +184,13 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardC
           if (motor instanceof CharacterMotor) motor.passThrough(through ? ['PLAYER'] : []);
         },
         chargeContact: (actor, _context, radius) => {
-          if (actor.position.distanceTo(host.player.position) < radius && reach(actor))
+          if (actor.position.distanceTo(foe(actor).position) < radius && reach(actor))
             hurt(actor, actor.mods.chargeDamage, ['animal.charge', 'feel.blow'], group.id);
         },
         // No declared pack owner is installed by this herd-only recipe.
         scarePack: () => false, resolveActor: id => host.entities.get(id) ?? null,
-      }, observe: (actor, dt) => ({ dt, t: host.clock.now, player: host.player.position, playerSpeed: motion.speed,
-        calm: !host.player.health.alive, rng: host.rng.stream('ai'),
+      }, observe: (actor, dt) => ({ dt, t: host.clock.now, player: foe(actor).position, playerSpeed: motion.speed,
+        calm: calm(actor), rng: host.rng.stream('ai'),
         // Cues are presentation-only; this owner has no audio callback, reward or event grant.
         sound: () => undefined, hurt: (damage: number) => { hurt(actor, damage, ['animal.herd', 'feel.blow'], group.id); },
         steer: (body, yaw, speed, turn) => { body.setMotion(yaw, speed, turn); },
@@ -200,7 +204,7 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardC
     install: () => {
       if (!used) return;
       host.onStep('creatures.data-motion', dt => {
-        const player = host.player.position;
+        const player = lead.position;
         motion.speed = Math.hypot(player.x - motion.x, player.z - motion.z) / dt;
         motion.x = player.x; motion.z = player.z;
       }, { snapshot: () => ({ ...motion }), restore: value => { Object.assign(motion, v.parse(motionSchema, value)); } });

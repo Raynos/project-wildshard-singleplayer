@@ -6,6 +6,7 @@
  */
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import * as schema from 'valibot';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const SIZE = 256;
 const TEXEL = 0.5;
@@ -60,7 +61,7 @@ export class TrampleTrail {
 export function installTrampleTrail(host: SimHost, map: TrampleField, rows: { id: string; radius: number; strength: number; speedLimit: number }): void {
   const trail = new TrampleTrail(map, rows.speedLimit);
   host.onStep(rows.id, dt => {
-    const at = host.player.position;
+    const at = leadPlayer(host).position;
     trail.push(dt, at, rows.radius, rows.strength); map.update(dt, at);
   }, { snapshot: () => trail.snapshot(), restore: saved => { trail.restore(saved); } });
 }

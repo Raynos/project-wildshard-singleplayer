@@ -10,6 +10,7 @@ import { NativeWildEnvironment } from '../population/nativeManager';
 import { nativePopulationOf } from '../riding/nativePopulation';
 import { installWeatherReactions, weatherWorldLight, type nativeWeatherBundle, type WeatherReactions } from './reactions';
 import type { NativeCombatFrame } from '../plugin/nativeItems';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** A page borrows its existing system service; native composites retain their own snapshot/step adapter. */
 export interface WeatherInstallation { readonly seed:number; readonly system?:LevelContext['system']; readonly state?:{readonly paused:boolean} }
@@ -33,15 +34,16 @@ export function installWeatherContinuation(host: SimHost | WeatherInstallation, 
     Object.assign(storm.inputs,{ calmSpeed: wind.speed,calmDir: wind.dir,calmGust: wind.gustiness,held: 0,crouched: 0,mounted: 0 });
     storm.on('strike',event => { const population = nativePopulationOf(host); if (population === undefined) throw new Error('Missing native weather population'); population.scare(event['x'] ?? 0,event['z'] ?? 0,worldRows.scareRadius); });
     storm.on('wind',event => { wind.setTarget(event['speed'] ?? wind.speed,event['dir'] ?? wind.dir,event['gustiness'],event['seconds']); });
-    storm.on('hurt',event => { host.combat.hit({ source: 'env',sourceTags: worldRows.hit.tags,target: host.player.health,amount: host.events.ask(worldRows.hit.ask,event['damage'] ?? 0),
-      point: host.player.position.clone(),dir: new Vector3(),cause: worldRows.hit.cause,toast: worldRows.hit.toast }); });
+    const lead = leadPlayer(host);
+    storm.on('hurt',event => { host.combat.hit({ source: 'env',sourceTags: worldRows.hit.tags,target: lead.health,amount: host.events.ask(worldRows.hit.ask,event['damage'] ?? 0),
+      point: lead.position.clone(),dir: new Vector3(),cause: worldRows.hit.cause,toast: worldRows.hit.toast }); });
     const view = (): void => {
       env.light = weatherWorldLight(worldRows.light,clock.sunElevation,storm.stormActive); env.storm = storm.stormActive;
       env.wind.x = wind.dirX; env.wind.z = wind.dirZ; env.wind.strength = Math.min(1,wind.speed/worldRows.windReference);
     };
     const saved = v.strictObject({ wind: WindStateSchema,storm: v.unknown() });
     host.onStep(worldRows.step,dt => {
-      wind.update(dt); const player = host.player.position;
+      wind.update(dt); const player = lead.position;
       Object.assign(storm.inputs,{ px: player.x,py: player.y,pz: player.z,crouched: Number(env.playerCrouched),mounted: Number(env.playerMounted) });
       storm.update(dt); view();
     },{ snapshot: () => { const state = wind.snapshot(); return { wind: { ...state,target: { ...state.target } },storm: storm.snapshot() }; },restore: value => { const state = v.parse(saved,value); wind.restore(state.wind); storm.restore(state.storm); view(); } });

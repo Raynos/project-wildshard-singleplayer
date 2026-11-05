@@ -955,8 +955,8 @@ export function bindSpeciesBody(actor: AnimalSim, input: CreatureBodyRecipe, sha
     throw new Error('Species body requires its actual host and declared motor');
   if (recipe.attack !== attacks.kind || attacks.kind === 'unlimited' && attacks.limit !== Infinity)
     throw new Error('Species body requires its actual attack authority');
-  const player = host.player.position, point = new Vector3(), dir = new Vector3(), from = new Vector3();
-  const impulse = bindPlayerImpulse(velocity => { host.impulsePlayer(velocity); });
+  const player = host.playerFocus, point = new Vector3(), dir = new Vector3(), from = new Vector3();
+  const impulse = bindPlayerImpulse(velocity => { host.nearestPlayer(actor.position).addImpulse(velocity); });
   const tags: readonly `${string}.${string}`[] = [`creature.${actor.kind}`, 'feel.blow', 'cover.checked'];
   const reach = (body: AnimalSim): boolean => canReach(body, player, host.physics);
   const claim = attacks.kind === 'keeper' ? attacks.claim : (): boolean => true;
@@ -965,11 +965,11 @@ export function bindSpeciesBody(actor: AnimalSim, input: CreatureBodyRecipe, sha
     rel = Math.atan2(Math.sin(rel), Math.cos(rel));
     if (Math.abs(rel) > recipe.contact.halfArc || !reach(actor)) return;
     if (recipe.contact.kind === 'environment') {
-      host.combat.hit({ source: 'env', sourceTags: tags, target: host.player.health, amount: damage,
+      host.combat.hit({ source: 'env', sourceTags: tags, target: host.nearestPlayer(actor.position).health, amount: damage,
         point: actor.position.clone(), dir: new Vector3(), cause: { kind: actor.kind, label: actor.label } });
     } else {
       point.copy(actor.position); dir.subVectors(player, actor.position).normalize(); from.copy(actor.position);
-      host.combat.hit({ source: actor.combatActor(), sourceTags: tags, target: host.player.health, amount: damage,
+      host.combat.hit({ source: actor.combatActor(), sourceTags: tags, target: host.nearestPlayer(actor.position).health, amount: damage,
         point, dir, from, moveId: recipe.contact.move });
     }
   };
@@ -1274,9 +1274,9 @@ export function createNativeHunt(host: SimHost, row: NativeHuntRow, ports: {
       const known = ports.species.get(kind); if (known === undefined) throw new Error(`Native hunt has no species row '${kind}'`); return known; } },
     ports: { ground: ports.ground, nav: () => ports.nav, reach, wanderGoal: actor => ports.wanderGoal?.(actor.herd) ?? null, unaware: () => false,
       now: () => host.clock.now * 1000, sound: () => undefined,
-      charge: (actor, damage) => { host.combat.hit({ source: 'env', sourceTags: [`${row.hit.namespace}.${actor.kind}`, ...row.hit.tags], target: host.player.health,
+      charge: (actor, damage) => { host.combat.hit({ source: 'env', sourceTags: [`${row.hit.namespace}.${actor.kind}`, ...row.hit.tags], target: host.nearestPlayer(actor.position).health,
         amount: damage, point: actor.position.clone(), dir: new Vector3(), cause: { kind: actor.kind, label: actor.label } }); } },
-    player: row.player === 'host' ? host.player.position : new Vector3(), sampleTerrain: actor => { actor.sampleTerrain(); } });
+    player: row.player === 'host' ? host.playerFocus : new Vector3(), sampleTerrain: actor => { actor.sampleTerrain(); } });
   return { hunt, reach };
 }
 /** Native species observations over an existing body and hunt owner. Policy and continuation remain caller-owned.
@@ -1300,7 +1300,7 @@ export function createNativeSpeciesContext<W, A extends HuntBody = HuntBody>(sha
 } {
   const { host, hunt } = shared;
   if (host.entities.get(actor.entityId) !== actor) throw new Error('Native species context requires its actual host body');
-  const player = host.player.position, dir = new Vector3(), attackRandom = host.rng.stream('ai');
+  const player = host.playerFocus, dir = new Vector3(), attackRandom = host.rng.stream('ai');
   const tags: readonly CombatTag[] = [`creature.${actor.kind}`, 'feel.blow', 'cover.checked'], cause = { kind: actor.kind, label };
   const reach = (body: A): boolean => canReach(body, player, host.physics);
   const observation = {
@@ -1309,7 +1309,7 @@ export function createNativeSpeciesContext<W, A extends HuntBody = HuntBody>(sha
     attackRandom: { range: (min: number, max: number): number => attackRandom.range(min, max) },
     hurt: (damage: number): void => {
       if (!hunt.facing(actor, player, HURT_ARC) || !reach(actor)) return;
-      host.combat.hit({ source: 'env', sourceTags: tags, target: host.player.health, amount: damage,
+      host.combat.hit({ source: 'env', sourceTags: tags, target: host.nearestPlayer(actor.position).health, amount: damage,
         point: actor.position.clone(), dir, cause });
     },
     sound: (_name: string): void => undefined,

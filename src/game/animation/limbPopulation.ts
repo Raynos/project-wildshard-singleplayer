@@ -85,7 +85,7 @@ export function installNativeLimbPoses(host: SimHost, input: unknown): {
   });
   host.useBodyStep({ before: (id, body) => {
     const entry = byId.get(id);
-    if (entry?.body === body) entry.near = body.position.distanceToSquared(host.player.position) < NEAR_SQUARED;
+    if (entry?.body === body) entry.near = body.position.distanceToSquared(host.nearestPlayer(body.position).position) < NEAR_SQUARED;
   }, after: (id, body, dt) => {
     const entry = byId.get(id);
     if (entry === undefined || entry.body !== body || body.harnessHold || entry.body.hidden) return;

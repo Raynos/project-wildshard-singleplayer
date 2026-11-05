@@ -16,6 +16,7 @@ import { Lane } from './lane';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { itemPickupFloor, ITEM_PICKUP_HOVER } from '@wildshard/engine/world/interact/pickup';
 import { pickPrompt } from '@wildshard/engine/world/interact/prompts';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** The actual native body remains owned by its installed population service; its limb pose roster publishes the ribs
  * volume (game/animation/limbPopulation `ribsWorld`: the chest chain, then the baked ribs point). */
@@ -45,14 +46,14 @@ function nativeGroundFight(host: SimHost, row: RoamingEncounterRow, program: Spe
     if (body.ribsWorld === undefined) throw new Error('Boss body has no ribs volume'); return body.ribsWorld(out);
   };
   const reach = (a: NativeGroundBossBody, target: { x: number; y: number; z: number }): boolean => canReach(a, target, host.physics);
-  const player = host.player;
+  const player = { position: host.playerFocus };
   const env: GroundBossEnv<NativeGroundBossBody> = {
     reach,
-    player: { position: player.position, get onGround(): boolean { return host.playerFall.grounded; }, shove: (x, z, speed) => { host.shovePlayer(x, z, speed); } },
+    player: { position: player.position, get onGround(): boolean { return host.focusedPlayer.fall.grounded; }, shove: (x, z, speed) => { host.focusedPlayer.knockBack(x, z, speed); } },
     // ctx.hurt: blocked unless it reaches (or the move goes through walls), a blow the host knocks the player back from
     hurt: (a, amount, throughWalls = false) => {
       if (!throughWalls && !reach(a, player.position)) return;
-      host.combat.hit({ source: a.combatActor(), sourceTags: [`creature.${a.kind}`, 'feel.blow', 'cover.checked'], target: player.health, amount,
+      host.combat.hit({ source: a.combatActor(), sourceTags: [`creature.${a.kind}`, 'feel.blow', 'cover.checked'], target: host.nearestPlayer(a.position).health, amount,
         point: a.position.clone(), dir: new Vector3(), throughWalls, cause: { kind: a.kind, label: a.label } });
     },
     trauma: () => undefined, shot: () => undefined,
@@ -113,7 +114,7 @@ const finite = v.pipe(v.number(), v.finite());
 export function installGroundBoss(host: SimHost, input: unknown, profile: unknown, program: SpeciesProgramData, bindingInput: unknown): { boss: BossBrain; fight: GroundBossFight<NativeGroundBossBody>; locked: () => boolean;
   rewardPoint: () => { x: number; y: number; z: number } | null; takeReward: (eye: { x: number; y: number; z: number }) => boolean } {
   const row = parseRoamingEncounter(input, profile), binding = v.parse(NativeBossBindingSchema, bindingInput), roster = () => populationRoster(host, binding.population);
-  const { fight, own, waves } = nativeGroundFight(host, row, program, binding), player = host.player.position, brain: { boss: BossBrain | null } = { boss: null };
+  const { fight, own, waves } = nativeGroundFight(host, row, program, binding), player = leadPlayer(host).position, brain: { boss: BossBrain | null } = { boss: null };
   host.onStep(row.steps.presence, () => { if (brain.boss !== null) groundBossPresence(row, brain.boss, fight, player, (host.dayClock?.night ?? 0) > 0.5); });
   // read at install (a restoring install's record is the brain's continuation, which restores over it)
   const record = bossFlagRecord(host.flags, row.record), saved = record.saved;

@@ -23,6 +23,7 @@ import { StalkerBrain } from '@wildshard/engine/ai/stalker';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { SimHost } from '@wildshard/engine/sim';
 import { emitFault } from '@wildshard/engine/core/faults';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** Existing native envelope fields; adapters retain their historical wire names. */
 export interface NativeHuntContinuation {
@@ -147,10 +148,10 @@ export class NativePopulationDriver {
     for (const actor of bodies) this.admit(actor);
     this.cadence = hunt.bindRoster({ limit: 64, order: 'combined', at: index => bodies[index],
       actor: actor => actor.harnessHold || actor.hidden ? null : actor, id: actor => actor.entityId,
-      player: host.player.position, noise: manager.noise, sight: manager.sight,
-      reach: actor => canReach(actor, host.player.position, host.physics), brainDt: (id, urgent) => this.takeStep(id, urgent === true),
+      player: host.playerFocus, noise: manager.noise, sight: manager.sight,
+      reach: actor => canReach(actor, host.nearestPlayer(actor.position).position, host.physics), brainDt: (id, urgent) => this.takeStep(id, urgent === true),
       policy: () => this.policy, beforeDecisions: () => {
-        const dodged = host.playerDodge.cd > this.dodgeCd; this.dodgeCd = host.playerDodge.cd;
+        const { dodge } = leadPlayer(host), dodged = dodge.cd > this.dodgeCd; this.dodgeCd = dodge.cd;
         if (dodged) for (const actor of bodies) if (actor.alive && !actor.harnessHold && !actor.hidden && (actor.aggressive || hunt.sensed(actor))) this.cadence.wake(actor);
       } });
     host.useBodyStep({ before: (_id, body, dt) => {
@@ -160,7 +161,7 @@ export class NativePopulationDriver {
       else if (actor.kind === rows.packKind) { const pack = packs.get(actor); if (pack !== undefined) { const c = this.context(actor, dt); pack.drive(actor, c, true); c.confine(actor); } }
       else { const herd = herds.get(actor); if (herd !== undefined) herd.drive(actor, this.context(actor, dt), true); }
     }, after: (_id, body) => {
-      const actor = this.bodies.find(candidate => candidate === body); if (actor?.alive === true && !actor.hidden && !actor.stunned && actor.state === 'charge') hunt.chargeContact(actor, host.player.position);
+      const actor = this.bodies.find(candidate => candidate === body); if (actor?.alive === true && !actor.hidden && !actor.stunned && actor.state === 'charge') hunt.chargeContact(actor, host.nearestPlayer(actor.position).position);
     } });
   }
   private required(actor: AnimalSim): HuntBody { const body = this.bodies.find(candidate => candidate === actor); if (body === undefined) throw this.missing; return body; }
@@ -172,7 +173,7 @@ export class NativePopulationDriver {
       const director = this.tokens.get(a); if (director !== undefined && !(director instanceof AggressionDirector)) throw this.missing; return director?.take(a) ?? true;
     }, pathYaw: (a: AnimalSim, x: number, z: number, every = 1): number => this.hunt.pathYawFor(this.required(a), x, z, every),
       steer: (a: AnimalSim, yaw: number, speed: number, turn: number): void => { this.hunt.steerAny(this.required(a), yaw, speed, turn); },
-      confine: (a: AnimalSim): void => { this.hunt.confine(this.required(a)); }, reach: (a: AnimalSim): boolean => canReach(a, this.host.player.position, this.host.physics) };
+      confine: (a: AnimalSim): void => { this.hunt.confine(this.required(a)); }, reach: (a: AnimalSim): boolean => canReach(a, this.host.nearestPlayer(a.position).position, this.host.physics) };
   }
   admit(actor: HuntBody): void {
     if (this.host.entities.get(actor.entityId) !== actor || this.contexts.has(actor)) throw new Error('Invalid native driver actor');
@@ -213,7 +214,7 @@ export class NativePopulationDriver {
     // a directed kind (ghost riders) decides through its own law: it needs no elite brain
     const directed = this.directed.get(actor.kind);
     if (directed === undefined && this.rows.eliteKinds.includes(actor.kind) && elite === undefined) throw this.missing;
-    if (actor.stunned) { actor.setMotion(actor.yaw, 0, 1); actor.setStrafe(0); actor.lookTarget.copy(this.host.player.position); actor.lookWeight = 1; return; }
+    if (actor.stunned) { actor.setMotion(actor.yaw, 0, 1); actor.setStrafe(0); actor.lookTarget.copy(this.host.nearestPlayer(actor.position).position); actor.lookWeight = 1; return; }
     if (directed !== undefined) {
       // the page's self-thinking path (AnimalManager.thinkFrame): its context, its herd, the ground under it, its own law
       const context = this.context(actor, dt), herd = actor.herd >= 0 ? this.hunt.herds[actor.herd] : undefined;
@@ -282,7 +283,7 @@ export class NativeWildlifeFrame {
   }
   /** Accepted native effects stay accepted; a refused frame is never replayed. */
   private updateFrame(dt: number, crouched: boolean): void {
-    const player = this.host.player.position, state = this.state;
+    const player = leadPlayer(this.host).position, state = this.state;
     if (!state.init) { state.x = player.x; state.z = player.z; state.init = true; }
     const elapsed = this.host.clock.now-(state.at ?? 0);
     if (elapsed >= .1-1e-9) {
@@ -305,7 +306,7 @@ export class NativeWildlifeFrame {
   private readonly knocked={x:0,z:0};
   knockdown(x: number, z: number, strength: number): void {
     const row=this.rows.knockdown;knockdownVelocity(row,x,z,strength,this.knocked);
-    this.host.dashPlayer(this.knocked.x,this.knocked.z,row.seconds);
+    this.host.nearestPlayer({x,y:leadPlayer(this.host).position.y,z}).dashAt(this.knocked.x,this.knocked.z,row.seconds);
   }
   snapshot(): { wild: { init: boolean; x: number; z: number; v: number; at: number }; flocks: string[]; marmots: ReturnType<ForagerPopulation['snapshot']> } {
     return { wild: { ...this.state, at: this.state.at ?? 0 }, flocks: this.flocks.map(flock => flock.snapshot()), marmots: this.foragers.snapshot() };

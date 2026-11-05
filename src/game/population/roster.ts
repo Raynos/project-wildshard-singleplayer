@@ -65,7 +65,7 @@ export function installPopulationRoster(host: SimHost, ports: PopulationRosterPo
   const Saved = savedSchema(BODY_COUNT, LIVE_MAX);
   const settings = ports.population.hunt;
   if (settings === undefined) throw new Error('native population requires its admitted hunt settings');
-  const { bake } = ports, rng = new Rng(rows.seed), player = host.player.position;
+  const { bake } = ports, rng = new Rng(rows.seed), player = host.playerFocus;
   // the page's distance bands (engine/sim/bands.ts, native population overrides no tier ticks): the scheduler's 'ai' rate for the herds
   // (every frame within 60 m, every other frame to 160 m, paused beyond; decisions at 20 / 10 Hz), 'always' for a scripted
   // elite (pinned: it thinks every frame), and the creature body LOD (a capsule within 45 m, released past 55). Before any

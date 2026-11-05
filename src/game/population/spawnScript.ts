@@ -34,6 +34,7 @@ import { ANIMAL_STATES } from '@wildshard/engine/entities/animalStates';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** Entered concrete service loans only; no shard callback or reflected name resolver. */
 export type SpawnV2Owners = Omit<V2ColumnOwners,'self' | 'player' | 'observed' | 't' | 'dt'> & { readonly module?: Uint8Array };
@@ -763,7 +764,7 @@ export function installNativeSpawnScript(host: SimHost, day: Pick<DayCycleClock,
   let restored: SimValue | undefined;
   host.onStep(rows.step, dt => {
     restored = undefined;
-    runner.advance(dt, host.player.position, day.night, rows.maximum, rows.flags.filter(flag => host.flags.has(flag)));
+    runner.advance(dt, leadPlayer(host).position, day.night, rows.maximum, rows.flags.filter(flag => host.flags.has(flag)));
     for (const flag of rows.flags) if (runner.hasFlag(flag) !== host.flags.has(flag)) host.flags.set(flag, runner.hasFlag(flag));
     runner.drainEffects();
   }, { snapshot: () => restored ?? runner.snapshot(), restore: saved => { runner.restore(saved); restored = structuredClone(saved); } });
