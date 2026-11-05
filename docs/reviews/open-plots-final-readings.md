@@ -1938,3 +1938,4 @@ A settled crossing alone cannot establish optional work: a cancelled
 construction may still be in flight. The retained 1bc5 result lacks the
 necessary kinds and therefore remains unqualified, with no rerun or raw
 repinning in this window. Related checks passed 7 files / 97 cases in
+4.39 s, root types passed, and touched lint plus reader syntax passed.
