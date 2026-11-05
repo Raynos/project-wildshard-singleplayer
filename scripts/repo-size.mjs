@@ -320,7 +320,9 @@ export function createChecker({ cwd = process.cwd(), env = process.env, now = Da
   function violations(changes, policy) {
     // A pure executable-bit flip keeps its blob: nothing new to judge.
     const regular = /^1006[0-9]{2}$/u;
-    const live = changes.filter((change) => change.status !== 'D' &&
+    // Without rename detection a move reads as delete + add; the same blob under a new path adds nothing (J122).
+    const moved = new Set(changes.filter((change) => change.status === 'D').map((change) => change.oldOid));
+    const live = changes.filter((change) => change.status !== 'D' && !(change.status === 'A' && moved.has(change.oid)) &&
       !(change.oid === change.oldOid && regular.test(change.mode) && regular.test(change.oldMode)));
     const known = sizeOf(live.filter((change) => change.mode !== '160000').map((change) => change.oid));
     /** @type {string[]} */
