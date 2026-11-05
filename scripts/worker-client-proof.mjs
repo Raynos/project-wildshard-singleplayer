@@ -81,6 +81,8 @@ try {
   const back = await page.evaluate(() => ({ report: window.__workerClient(), current: window.__wildshard.shard.grid.state().live.live.current, state: window.__wildshard.world.game.app.state, frame: window.__wildshard.world.game.frameCount, phase: window.__wildshard.shard.grid.state().live.crossing.phase, text: document.body.textContent.slice(0, 200) }));
   console.log(JSON.stringify({ back: { state: back.state, frame: back.frame, phase: back.phase, text: back.text, cell: back.report.cell, frames: back.report.frames, restored: back.report.restored, closed: back.report.closed, x: back.report.x, z: back.report.z, serverX: back.report.serverX, serverZ: back.report.serverZ, page: back.current } }));
   if (!back.report.restored) failures.push('the reload did not restore');
+  // A page boots its home whichever cell the save stands in, and has to get there.
+  await page.waitForFunction(place => window.__wildshard.shard.grid.state().live.live.current === place, seen.at(-1) === 'null' ? null : seen.at(-1), { timeout: 45_000 }).catch(() => { failures.push(`the page never reached ${String(seen.at(-1))}`); });
   if (Math.hypot(back.report.serverX - stood.serverX, back.report.serverZ - stood.serverZ) > 3) failures.push('the reload moved the player');
   // The same boot with no link. The bench URL turns the service worker off, so first play under it: twice, since a first visit installs it and only a controlled one fills it.
   const played = new URL('/?mute=1&nolock=1', base).href;
