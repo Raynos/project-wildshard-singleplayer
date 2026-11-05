@@ -385,6 +385,7 @@
   "src/engine/net/serverClock.ts": "server",
   "src/engine/net/shardNet.ts": "shared",
   "src/engine/net/simWorld.ts": "server",
+  "src/engine/net/tiers.ts": "server",
   "src/engine/net/transport.ts": "shared",
   "src/engine/physics/active.ts": "shared",
   "src/engine/physics/bodies.ts": "shared",
