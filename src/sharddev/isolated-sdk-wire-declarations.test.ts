@@ -6,14 +6,14 @@ import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
 for(const name of ["worldSource","tickProtocol"])test(`${name} emits isolated declarations`,()=>{
- const emitted=ts.transpileDeclaration(readFileSync(`src/sharddev/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
+ const emitted=ts.transpileDeclaration(readFileSync(`src/${/^(?:tick|headless)/u.test(name)?"sdk":"sharddev"}/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);
 });
 
 test('SDK wire contracts retain command variants, worker proofs and normalized source defaults',()=>{
  const consumer=resolve('src/sharddev/t4-isolated-sdk-wire-declarations-consumer.ts');
- let source="import type * as v from 'valibot';\nimport {WorldSourceSchema} from './worldSource';\nimport {TickCommandSchema,TickCommitSchema,AuthorProofReportSchema,WorkerRequestSchema} from './tickProtocol';\nexport const player:v.InferOutput<typeof TickCommandSchema>={kind:\"player\",moveX:0,moveZ:0,yaw:0,hover:true};\nexport const finish:v.InferOutput<typeof WorkerRequestSchema>={kind:\"finish\"};\ndeclare const report:v.InferOutput<typeof AuthorProofReportSchema>;\ndeclare const source:v.InferOutput<typeof WorldSourceSchema>;\ndeclare const commit:v.InferOutput<typeof TickCommitSchema>;\nexport const saved:true=report.grid.refusedSave;\nexport const ticks:5=report.grid.frozenTicks;\nexport const mode:\"replace\"|undefined=source.farMode;\nexport const objects:Record<string,string>=source.objects;\nexport const micros:number|undefined=commit.scriptMicros;\n";
+ let source="import type * as v from 'valibot';\nimport {WorldSourceSchema} from './worldSource';\nimport {TickCommandSchema,TickCommitSchema,AuthorProofReportSchema,WorkerRequestSchema} from '@wildshard/sdk/tickProtocol';\nexport const player:v.InferOutput<typeof TickCommandSchema>={kind:\"player\",moveX:0,moveZ:0,yaw:0,hover:true};\nexport const finish:v.InferOutput<typeof WorkerRequestSchema>={kind:\"finish\"};\ndeclare const report:v.InferOutput<typeof AuthorProofReportSchema>;\ndeclare const source:v.InferOutput<typeof WorldSourceSchema>;\ndeclare const commit:v.InferOutput<typeof TickCommitSchema>;\nexport const saved:true=report.grid.refusedSave;\nexport const ticks:5=report.grid.frozenTicks;\nexport const mode:\"replace\"|undefined=source.farMode;\nexport const objects:Record<string,string>=source.objects;\nexport const micros:number|undefined=commit.scriptMicros;\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};

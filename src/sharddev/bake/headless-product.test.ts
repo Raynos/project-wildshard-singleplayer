@@ -18,7 +18,7 @@ async function nativeReader(mode: 'direct' | 'author-bundle'): Promise<typeof lo
   if (mode === 'direct') return loadHeadlessProduct;
   const result = await build({ configFile: false, publicDir: false, logLevel: 'silent',
     define: { 'import.meta.env.SSR': 'false' },
-    build: { write: false, minify: false, lib: { entry: new URL('@wildshard/sdk/headlessProduct', import.meta.url).pathname, formats: ['es'] },
+    build: { write: false, minify: false, lib: { entry: new URL('../../sdk/headlessProduct.ts', import.meta.url).pathname, formats: ['es'] },
       rolldownOptions: { platform: 'node', external: [/^node:/u], output: { codeSplitting: false } } } });
   const built = Array.isArray(result) ? result[0] : result;
   if (built === undefined || !('output' in built)) throw new Error('Missing native author bundle');
