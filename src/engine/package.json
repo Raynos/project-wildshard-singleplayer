@@ -511,6 +511,7 @@
     "./combat/bowDraw": "./shared/combat/bowDraw.ts",
     "./combat/projectileFlight": "./shared/combat/projectileFlight.ts",
     "./combat/projectileContact": "./shared/combat/projectileContact.ts",
+    "./combat/projectileLaw": "./shared/combat/projectileLaw.ts",
     "./combat/shotSpread": "./shared/combat/shotSpread.ts",
     "./combat/bowLaw": "./shared/combat/bowLaw.ts",
     "./combat/view/Bow": "./client/combat/view/Bow.ts",

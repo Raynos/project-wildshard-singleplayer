@@ -18,6 +18,7 @@ import { parse } from 'valibot';
 import { installGroundBoss } from '../boss/native';
 import { EliteCore, memoryElitePersistence, type EliteCoreRule, type EliteCoreScript } from '../eliteSystem';
 import { installNativeHeldAmmunition } from '../loadout/nativeAmmunition';
+import { prepareHeldArms } from '../weapons/nativeHeld';
 import { dayClock } from '../../shared/looks/dayClock';
 import { keyedSkyDaySpec } from '../../shared/looks/keyedSkyClock';
 import { readDirectorProduct } from '../../shared/plugin/director';
@@ -137,6 +138,10 @@ export async function prepareAssemblyFeature<C extends NativeAssemblyContext>(ro
     case 'boss.arena': {
       const input = await readAssemblyInput<unknown>(product, { file: row.file }), spec = arenaSpecies(await readAssemblyInput<unknown>(product, { file: 'server/arena-species.json' }));
       return run => { if (run.context.room === true) installArenaEntry(run.host, input, row, { spec, grantItem: at.ports.grantItem(run.context), snapshot: run.context.snapshot }); };
+    }
+    case 'held.arms': {
+      const arms = await prepareHeldArms(product, { ...row, weather: await readAssemblyInput<unknown>(product, row.weather) });
+      return run => { if (run.context.room === true) { installCombatMotion(run.host, run.context, row.speed); arms(run.host, { combat: combatOf(run), room: true, tick: at.ports.heldTick(run.context) }); } };
     }
     case 'grapple': {
       const profile = parseGrappleProfile(await readAssemblyInput<unknown>(product, row.profile)), hooks = await readAssemblyInput<readonly { readonly x: number; readonly y: number; readonly z: number }[]>(product, row.hooks);

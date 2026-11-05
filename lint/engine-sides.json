@@ -1579,6 +1579,7 @@
   },
   "src/game/server/weapons/mountedPass.ts": "server",
   "src/game/shared/weapons/polearmContact.ts": "shared",
+  "src/game/server/weapons/nativeHeld.ts": "server",
   "src/game/server/weapons/polearmDecision.ts": "server",
   "src/game/server/weapons/starter.generated.ts": "server",
   "src/game/server/weapons/starterBowProfile.ts": "server",
