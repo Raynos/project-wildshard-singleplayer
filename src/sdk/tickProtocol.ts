@@ -18,7 +18,8 @@ export const TickCommandSchema: v.GenericSchema<BoundedTickCommandInput, Bounded
   // resolves along `yaw` and the look `pitch` from the server's own eye. `seq` is the NetCommand's: the hit a swing or shot started
   // here lands confirms it (J47). `viewTick` is the tick a client saw the world at, which its blow is settled against (J50); no
   // rewind without one.
-  v.pipe(v.strictObject({ kind: v.literal('player'), moveX: finite, moveZ: finite, yaw: finite, attack: v.optional(v.strictObject({ targetId: text })), hover: v.optional(v.literal(true)),
+  // `lockTarget` is J116's lock-on: what SimCommand.lockTarget orbits.
+  v.pipe(v.strictObject({ kind: v.literal('player'), moveX: finite, moveZ: finite, yaw: finite, attack: v.optional(v.strictObject({ targetId: text })), lockTarget: v.exactOptional(text), hover: v.optional(v.literal(true)),
     jump: v.optional(v.literal(true)), dodge: v.optional(v.literal(true)), heavy: v.optional(v.strictObject({ targetId: v.optional(text) })),
     swing: v.exactOptional(v.literal(true)), seq: v.exactOptional(natural), viewTick: v.exactOptional(natural), pitch: v.exactOptional(v.pipe(finite, v.minValue(-Math.PI / 2), v.maxValue(Math.PI / 2))), dive: v.exactOptional(v.boolean()), surface: v.exactOptional(v.boolean()),
     commandVersion: v.exactOptional(v.literal(1)), steer: v.exactOptional(v.strictObject({ keyX: v.pipe(finite, v.minValue(-1), v.maxValue(1)), keyY: v.pipe(finite, v.minValue(-1), v.maxValue(1)),
@@ -37,7 +38,7 @@ export type HeadlessCommand = v.InferOutput<typeof TickCommandSchema>;
 /** The same detached player command for both native worker paths; absent optional fields stay absent. */
 export function simPlayerCommand(command: Extract<HeadlessCommand, { kind: 'player' }>): SimCommand {
   return { moveX: command.moveX, moveZ: command.moveZ, yaw: command.yaw,
-    ...(command.attack === undefined ? {} : { attack: { ...command.attack } }),
+    ...(command.attack === undefined ? {} : { attack: { ...command.attack } }), ...(command.lockTarget === undefined ? {} : { lockTarget: command.lockTarget }),
     ...(command.hover === undefined ? {} : { hover: command.hover }), ...(command.jump === undefined ? {} : { jump: command.jump }),
     ...(command.dodge === undefined ? {} : { dodge: command.dodge }),
     ...(command.dive === undefined ? {} : { dive: command.dive }), ...(command.surface === undefined ? {} : { surface: command.surface }),
@@ -119,6 +120,7 @@ type BoundedTickCommand = {
     attack?: {
         targetId: string;
     } | undefined;
+    lockTarget?: string;
     hover?: true | undefined;
     jump?: true | undefined;
     dodge?: true | undefined;

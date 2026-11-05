@@ -103,7 +103,8 @@ export async function prepareHeldArms(product: Pick<ShardProduct, 'json' | 'sect
     const taming = nativeTamingOf(host);
     if (taming === undefined || mountedPlayerOf(host) === undefined) throw new Error('Weapons require actual native riding');
     if (owners.has(host)) throw new Error('Native held equipment already has an owner');
-    if (room) actRoutes(host).equip = arms.input.swap;
+    // A held arsenal has no launcher to own a slot: the wire's launcher is its aim, on whichever weapon is in hand.
+    if (room) { const routes = actRoutes(host); routes.equip = arms.input.swap; routes.launcher = (index, reload) => index < order.length && !reload; }
     const seats = playerSeats<HeldSeat>(host, (player: PlayerSim, first: boolean) => {
     const mount = mountedPlayerOf(host, first ? undefined : player.id), frame = first ? combat : otherCombatFrame(combat, player.id), striker = room ? player.health : 'env';
     if (mount === undefined) throw new Error('Weapons require actual native riding');

@@ -5,7 +5,8 @@ import { BitWriter } from '../src/engine/shared/net/bits';
 import { decodeAct, encodeAct } from '../src/engine/shared/net/messages';
 import { NET_BUTTONS } from '../src/engine/shared/input/netButtons';
 import { lockedHook, type ActRoutes } from '../src/engine/shared/sim/actRoutes';
-import { netRide, netTickCommands } from '../src/sdk/standalone/netInput';
+import { netInteractCommands, netRide, netTickCommands } from '../src/sdk/standalone/netInput';
+import { simPlayerCommand, tickCommands } from '../src/sdk/tickProtocol';
 
 // What the room's input gained in format v0.3.0: LOCK has a bit, J116's target has a place, and riding is on the wire.
 const steer = { keyX: 0, keyY: 0, stickX: 0, stickY: 0 };
@@ -15,7 +16,7 @@ const roundTrip = (input: NetCommand): NetCommand | undefined => {
   const bytes = encodeCommands(new BitWriter(), { ackFrame: 0, commands: [input] }, id => ids.indexOf(id));
   return decodeCommands(new Uint8Array(bytes), handle => ids[handle])?.commands[0];
 };
-const routes = (extra: Partial<ActRoutes>): ActRoutes => ({ interactions: new Map(), equip: null, lock: null, ride: null, lean: null, ...extra });
+const routes = (extra: Partial<ActRoutes>): ActRoutes => ({ interactions: new Map(), equip: null, lock: null, ride: null, lean: null, launcher: null, refused: 0, ...extra });
 
 test('every button survives the wire, LOCK with them', () => {
   const buttons = Object.values(NET_BUTTONS).reduce((all, bit) => all | bit, 0);
@@ -53,6 +54,28 @@ test('LOCK lands on the shard\'s script actor, and nowhere on a shard without on
   const held = command({ buttons: NET_BUTTONS.lock });
   expect(netTickCommands(held, [], routes({ lock: 'grapple.lock' }))).toContainEqual({ kind: 'script', actorId: 'grapple.lock', value: 1 });
   expect(netTickCommands(held, [], routes({})).filter(row => row.kind === 'script')).toEqual([]);
+});
+
+test('a launcher input nothing owns is refused, and the rest of its command stands', () => {
+  const held = routes({ launcher: slot => slot === 2 }), input = command({ launcher: { slot: 9, ads: 1, fire: true } });
+  const launchers = (rows: ReturnType<typeof netTickCommands>): number => rows.filter(row => row.kind === 'launcher').length;
+  const rows = netTickCommands(input, [{ kind: 'reload', seq: 1, slot: 9 }, { kind: 'reload', seq: 2, slot: 2 }], held);
+  expect(launchers(rows)).toBe(1);
+  expect(rows.filter(row => row.kind === 'player')).toHaveLength(1);
+  expect(held.refused).toBe(2);
+});
+
+test('an act this world has no owner for is counted, and goes nowhere', () => {
+  const held = routes({});
+  expect(netTickCommands(null, [{ kind: 'equip', seq: 1, slot: 1 }], held)).toEqual([]);
+  netRide(held, 'bot:1', undefined, [{ kind: 'ride', seq: 1, action: 'mount' }]);
+  expect(netInteractCommands(held, [{ kind: 'interact', seq: 1, id: 'nobody' }], 'bot:1')).toEqual([]);
+  expect(held.refused).toBe(3);
+});
+
+test('a lock-on target reaches the tick', () => {
+  const [row] = tickCommands([{ source: 'net', commands: netTickCommands(command({ lockTarget: 'creature.1' }), []) }], 8);
+  expect(row?.kind === 'player' ? simPlayerCommand(row).lockTarget : null).toBe('creature.1');
 });
 
 test('a ride act and the lean reach the taming law for who sent them', () => {

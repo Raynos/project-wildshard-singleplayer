@@ -15,6 +15,10 @@ export interface ActRoutes {
   ride: ((player: string, action: Extract<NetAct, { kind: 'ride' }>['action']) => void) | null;
   /** A player's lean and look while they ride, on a shard with taming. */
   lean: ((player: string, lean: number, pitch: number) => void) | null;
+  /** Whether a launcher input lands on an owner that takes it, on a shard with native items: a client names any slot. */
+  launcher: ((slot: number, reload: boolean, fire: boolean) => boolean) | null;
+  /** Inputs that fit the wire and that this world had no use for, until the room counts them. */
+  refused: number;
 }
 /** A LOCK press as a script value: 1 picks nothing, and a hook the client named (its index in the course) is that plus 2. */
 export const lockValue = (hook: number | undefined): number => hook === undefined ? 1 : hook + 2;
@@ -24,6 +28,6 @@ const routes = new WeakMap<SimHost, ActRoutes>();
 /** One host's routes (P1-E5.2c). */
 export function actRoutes(host: SimHost): ActRoutes {
   let held = routes.get(host);
-  if (held === undefined) { held = { interactions: new Map(), equip: null, lock: null, ride: null, lean: null }; routes.set(host, held); }
+  if (held === undefined) { held = { interactions: new Map(), equip: null, lock: null, ride: null, lean: null, launcher: null, refused: 0 }; routes.set(host, held); }
   return held;
 }

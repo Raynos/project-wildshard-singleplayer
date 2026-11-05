@@ -51,6 +51,8 @@ export interface NetWorld {
   riders?: () => ReadonlyMap<string, string>;
   /** Hears who steps this tick, just before `step` (J125). A world whose players commands do not move leaves it out. */
   commanded?: (inputs: readonly NetTickInput[]) => void;
+  /** Inputs the tick found no use for since the last call. A world that uses every input leaves it out. */
+  refused?: () => number;
   /** The player a client owns unless it joins as another. */
   readonly player: NetPlayer;
 }
@@ -172,6 +174,7 @@ export class NetRoom {
     }
     this.world.commanded?.(this.inputs);
     this.step(this.inputs);
+    this.stats.refused += this.world.refused?.() ?? 0;
     this.settled();
     for (const filing of this.world.ledger?.() ?? []) this.book.file(filing);
     const tick = this.world.tick();

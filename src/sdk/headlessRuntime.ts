@@ -8,7 +8,7 @@ import { parseNativeRuntimePlan } from '@wildshard/format/nativeRuntimePlan';
 import { MoverScriptDriver, type MoverRuntime } from '@wildshard/game/plugin/mover';
 import type { NearColliders } from '@wildshard/engine/physics/nearColliders';
 import { installCableModes } from '@wildshard/engine/player/modes';
-import { createNativeCombatFrame, otherCombatFrame, readNativeRangedItem, type NativeCombatFrame } from '@wildshard/game/plugin/nativeItems';
+import { createNativeCombatFrame, nativeRangedItem, otherCombatFrame, readNativeRangedItem, type NativeCombatFrame, type NativeRangedItem } from '@wildshard/game/plugin/nativeItems';
 import { prepareRuntimePlan, ledgerPorts, pickCommands } from '@wildshard/game/plugin/simulation';
 import { HEADLESS_ARENA } from './headlessArenaViews';
 import type { NativeSweptMeleeInput } from '@wildshard/game/plugin/nativeSwept';
@@ -227,6 +227,8 @@ export async function createTrustedHeadlessResident(preparation: HeadlessRuntime
   } catch (error) { installing?.dispose(); throw error; }
   if (plan.economy !== undefined) installRoomLoot(host, plan.economy, context);
   const lead = leadPlayer(host);
+  const routes = actRoutes(host), held = routes.launcher;
+  routes.launcher = (slot, reload, fire) => launcherTakes(nativeRangedItem(host, slot)?.kind, reload, fire) || held?.(slot, reload, fire) === true;
   const lend = (input: readonly HeadlessCommand[]): void => {
     validateHeadlessCommandOwners(host,input);
     fillNativeCombatFrame(combat, input); commands = input; effects = []; };
@@ -279,14 +281,17 @@ export async function createTrustedHeadlessAdapter(preparation: HeadlessRuntimeI
   };
 }
 
+/** Bolts take every launcher input; a lever gun's cycle only a reload. */
+function launcherTakes(kind: NativeRangedItem['kind'] | undefined, reload: boolean, fire: boolean): boolean { return kind === 'bolt' || (kind === 'cycle' && reload && !fire); }
+
 /** Validate command authority before any tick input or effect buffer changes.
  * An arbitrary slot cannot install a weapon, bypass its loadout or mutate ammo. */
 export function validateHeadlessCommandOwners(host:SimHost,commands:readonly HeadlessCommand[]):void {
   if(commands.some(command=>command.kind==='interact'))throw new Error('Authored interaction commands require the data-only owner');
   for(const command of commands)if(command.kind==='launcher'){
     v.assert(TickCommandSchema,command);
-    const {kind}=readNativeRangedItem(host,command.slot);
-    if(kind!=='bolt'&&!(kind==='cycle'&&command.reload===true&&command.fire!==true))throw new Error('Launcher input requires an installed bolt owner');
+    if(actRoutes(host).launcher?.(command.slot,command.reload===true,command.fire===true)===true)continue;
+    if(!launcherTakes(readNativeRangedItem(host,command.slot).kind,command.reload===true,command.fire===true))throw new Error('Launcher input requires an installed bolt owner');
   }
 }
 

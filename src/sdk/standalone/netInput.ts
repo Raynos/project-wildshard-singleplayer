@@ -29,15 +29,25 @@ export function netPlayerCommand(command: NetCommand): Extract<HeadlessCommand, 
  */
 export function netInteractCommands(routes: ActRoutes, acts: readonly NetTickAct[], player: string): HeadlessCommand[] {
   return acts.flatMap(act => {
-    const route = act.kind === 'interact' ? routes.interactions.get(act.id) : undefined;
-    return route === undefined ? [] : [{ kind: 'script' as const, ...route, playerId: player }];
+    if (act.kind !== 'interact') return [];
+    const route = routes.interactions.get(act.id);
+    if (route === undefined) { routes.refused++; return []; }
+    return [{ kind: 'script' as const, ...route, playerId: player }];
   });
 }
 
 /** A player's riding: a `ride` act goes to the taming law as it stands, and the lean and look follow its command. */
 export function netRide(routes: ActRoutes, player: string, command: NetCommand | undefined, acts: readonly NetTickAct[]): void {
-  for (const act of acts) if (act.kind === 'ride') routes.ride?.(player, act.action);
+  for (const act of acts) if (act.kind === 'ride') { if (routes.ride === null) routes.refused++; else routes.ride(player, act.action); }
   if (command !== undefined) routes.lean?.(player, command.steer.keyX, lookPitch(command));
+}
+
+/** A client names any slot, and a tick throws on one nothing owns: that input is refused here, and the rest of its command stands. */
+function owned(routes: ActRoutes | undefined, slot: number, reload: boolean, fire: boolean): boolean {
+  if (routes === undefined) return true;
+  if (routes.launcher?.(slot, reload, fire) === true) return true;
+  routes.refused++;
+  return false;
 }
 
 /** Every tick command one player's input becomes: the player command, then its launcher and acts. `interact` is netInteractCommands'. */
@@ -47,11 +57,14 @@ export function netTickCommands(command: NetCommand | null, acts: readonly NetTi
     out.push(netPlayerCommand(command));
     if (has(command, NET_BUTTONS.lock) && routes?.lock !== null && routes?.lock !== undefined) out.push({ kind: 'script', actorId: routes.lock, value: lockValue(command.hookTarget) });
     const { launcher } = command;
-    if (launcher !== undefined) out.push({ kind: 'launcher', slot: launcher.slot, ads: launcher.ads, pitch: lookPitch(command), ...(launcher.fire === undefined ? {} : { fire: launcher.fire }) });
+    if (launcher !== undefined && owned(routes, launcher.slot, false, launcher.fire === true)) out.push({ kind: 'launcher', slot: launcher.slot, ads: launcher.ads, pitch: lookPitch(command), ...(launcher.fire === undefined ? {} : { fire: launcher.fire }) });
   }
   for (const act of acts) {
-    if (act.kind === 'reload') out.push({ kind: 'launcher', slot: act.slot, ads: 0, pitch: command === null ? 0 : lookPitch(command), reload: true });
-    else if (act.kind === 'equip' && routes?.equip !== null && routes?.equip !== undefined) out.push({ kind: 'script', actorId: routes.equip, value: act.slot });
+    if (act.kind === 'reload') { if (owned(routes, act.slot, true, false)) out.push({ kind: 'launcher', slot: act.slot, ads: 0, pitch: command === null ? 0 : lookPitch(command), reload: true }); }
+    else if (act.kind === 'equip') {
+      if (routes?.equip !== null && routes?.equip !== undefined) out.push({ kind: 'script', actorId: routes.equip, value: act.slot });
+      else if (routes !== undefined) routes.refused++;
+    }
   }
   return out;
 }

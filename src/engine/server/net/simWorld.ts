@@ -1,6 +1,7 @@
 import type { NetCommand } from '@wildshard/format/netCommand';
 import type { AnimalPoseSample } from '../entities/AnimalSim';
 import type { SimHost } from '../sim';
+import { actRoutes } from '../../shared/sim/actRoutes';
 import { leadPlayer } from '../../shared/sim/leadPlayer';
 import type { AnimalNetView } from '../../shared/net/animalNet';
 import { CombatWire, type CombatEvent } from './combatWire';
@@ -51,6 +52,7 @@ export class SimNetWorld implements NetWorld {
     }
     host.commanded = turn;
   }
+  refused(): number { const routes = actRoutes(this.host), { refused } = routes; routes.refused = 0; return refused; }
   tick(): number { return this.host.state.tick; }
   cell(): number { return this.frame; }
   combat(): readonly CombatEvent[] { return this.wire.drain(); }

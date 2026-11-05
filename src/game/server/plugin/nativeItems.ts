@@ -384,7 +384,7 @@ function ammoDamage(row: Policy, id: string, kind: string): number {
 export type NativeBoltItem = ReturnType<typeof boltItem>;
 export interface NativeCycleItem { readonly act: InstanceType<typeof RangedAction.Cycle>; readonly store: { reserve: number } }
 export type NativeBowItem = ReturnType<typeof bowItem>;
-type NativeRangedItem = { readonly frame: NativeCombatFrame } & (
+export type NativeRangedItem = { readonly frame: NativeCombatFrame } & (
   { readonly kind: 'bolt'; readonly item: NativeBoltItem } |
   { readonly kind: 'cycle'; readonly item: NativeCycleItem } |
   { readonly kind: 'bow'; readonly item: NativeBowItem });
@@ -394,6 +394,8 @@ export function nativeMeleeItem(host: SimHost, id: string): NativeSweptMeleeOwne
 }
 const nativeRangedItems = new WeakMap<SimHost, Map<number, NativeRangedItem>>();
 /** Resolve a native family by its admitted numeric slot. Only the native installer publishes owners. */
+/** A slot's installed item, if any: what a net input, which may name any slot, is asked about before it reaches a tick. */
+export function nativeRangedItem(host: SimHost, slot: number): NativeRangedItem | undefined { return nativeRangedItems.get(host)?.get(slot); }
 export function readNativeRangedItem(host: SimHost, slot: number): NativeRangedItem {
   const item = nativeRangedItems.get(host)?.get(slot);
   if (item === undefined || host.scope.disposed) throw new Error(`Native ranged slot is not installed: ${slot}`);
