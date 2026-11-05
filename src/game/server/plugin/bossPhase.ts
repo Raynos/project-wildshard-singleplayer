@@ -416,7 +416,9 @@ function fixedPhasedBossFight<A extends PhasedBossBody>(row: PhasedBossRow, port
         if (a.attackPhase >= 1) a.cancelAttack();
         _v.set(o.x + row.shieldSpot.x, o.y + 0, o.z + row.shieldSpot.z);
         const hx = _v.x - a.position.x, hz = _v.z - a.position.z, hd = Math.hypot(hx, hz);
-        if (hd < motion.arrive) enter(motion.next);
+        // A long capsule lies along its heading, so a boss walking head-on at its plinth can stop short of the spot for good.
+        // No walk crosses the arena's diagonal for longer than this: past it, he has arrived and the fight goes on.
+        if (hd < motion.arrive || s.modeT > 2 * Math.SQRT2 * row.bounds / motion.speed) enter(motion.next);
         else a.setMotion(Math.atan2(hx, hz), motion.speed, motion.turn);
         break;
       }
