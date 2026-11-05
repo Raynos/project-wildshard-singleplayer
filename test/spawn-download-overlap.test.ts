@@ -4,6 +4,7 @@
 // reads name URLs against document.baseURI, as the downloads do (happy-dom's location is another origin).
 import {expect, test, vi} from 'vitest';
 import {releaseSpawnMembers, reportSpawnOutcomes, startSpawnDownload, type SpawnOutcome} from '../src/game/boot/spawnDownload';
+import {jsonSlot} from '../src/engine/saves/slots';
 
 const file = (slug: string, kind: string, fill: string, bytes: number): {url: string; bytes: number; hash: string} =>
   ({url: `/shardfiles/${slug}/blobs/${kind}/${fill.repeat(64)}.${kind}`, bytes, hash: fill.repeat(64)});
@@ -136,8 +137,13 @@ test('each foreground download reports one outcome: complete, or cancelled, queu
   if (stopped === null) throw new Error('No spawn download');
   stopped.cancel();
   await expect(stopped.ready).rejects.toThrow();
+  // with no sink yet (a boot failing before its session) they are kept in the device save, for the next boot to report
+  const kept = jsonSlot('download.outcomes', 'device', () => []);
+  const stored = kept.read();
+  expect(Array.isArray(stored) ? stored.filter(row => JSON.stringify(row).includes('"dl20')).length : 0).toBe(2);
   const seen: SpawnOutcome[] = [];
   reportSpawnOutcomes(outcome => { seen.push(outcome); });
+  expect(kept.read()).toEqual([]);
   const mine = seen.filter(row => row.level.startsWith('dl20'));
   expect(mine).toEqual([
     {level: 'dl20done', outcome: 'complete', packs: false, parts: 0, failed: 0, fallbackFiles: 0, fetched: 0},

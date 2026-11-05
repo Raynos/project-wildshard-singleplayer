@@ -20,8 +20,10 @@ test('a download.parts count that is missing or not a nonnegative integer makes 
 });
 
 test('well-formed counts, the outcome and the loose fetches made are kept', () => {
-  expect(parts({ parts: 7, failed: 1, fallback: 3, fetched: 3, outcome: 'failed' }))
-    .toEqual({ shard: 'nine', parts: 7, failed: 1, fallback: 3, fetched: 3, outcome: 'failed' });
+  expect(parts({ parts: 7, failed: 1, fallback: 3, fetched: 3, outcome: 'failed', packs: 'on' }))
+    .toEqual({ shard: 'nine', parts: 7, failed: 1, fallback: 3, fetched: 3, outcome: 'failed', packs: 'on' });
+  expect(parts({ parts: 0, failed: 0, fallback: 0, packs: 'off' })).toEqual({ shard: 'nine', parts: 0, failed: 0, fallback: 0, packs: 'off' });
+  expect(parts({ parts: 0, failed: 0, fallback: 0, packs: true })).toEqual({ shard: 'nine', parts: 0, failed: 0, fallback: 0 });
   expect(parts({ parts: 7, failed: 0, fallback: 0 })).toEqual({ shard: 'nine', parts: 7, failed: 0, fallback: 0 });
   expect(parts({ parts: 7, failed: 0, fallback: 0, fetched: 'x', outcome: 'other' })).toEqual({ shard: 'nine', parts: 7, failed: 0, fallback: 0 });
 });

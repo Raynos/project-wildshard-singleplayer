@@ -1,4 +1,5 @@
 import {packsBookPath, readSpawnManifest, readSpawnManifestAddress, type SpawnManifestAddress} from '@wildshard/format/spawnManifest';
+import {jsonSlot} from '@wildshard/engine/saves/slots';
 
 /** This leaf statically imports no engine, renderer or worker. The title can start it on
  * the tap; Loading later adopts the same progress rather than recounting IO. */
@@ -474,13 +475,33 @@ let current: {key: string; download: SpawnDownload; foreground: boolean} | undef
 /** DL20: each download's settled outcome and whether it was ever a boot's own (foreground): a boot's download is reported
  *  once, when both hold (a completed title prefetch is adopted after it settled). Queued until a sink is installed. */
 const settledAs = new WeakMap<SpawnDownload, SpawnOutcome>(), foregroundDownloads = new WeakSet<SpawnDownload>(), reported = new WeakSet<SpawnDownload>();
-const queuedOutcomes: SpawnOutcome[] = [];
+/** DL20 (sp-x1's read of 7329ffb0d3): an outcome with no sink yet is kept in storage, not page memory, so a boot that fails
+ *  before its session (a book or manifest failure rejects the entry before startSession) is reported by the next boot */
+const OUTCOMES_KEPT = 20, outcomesSlot = jsonSlot('download.outcomes', 'device', () => []);
+const outcomeOf = (row: unknown): SpawnOutcome | null => {
+  if (typeof row !== 'object' || row === null) return null;
+  const read = (key: string): unknown => Reflect.get(row, key), level = read('level'), outcome = read('outcome'), packs = read('packs');
+  const counts = ['parts', 'failed', 'fallbackFiles', 'fetched'].map(read);
+  if (typeof level !== 'string' || (outcome !== 'complete' && outcome !== 'failed' && outcome !== 'cancelled') || typeof packs !== 'boolean'
+    || !counts.every(count => typeof count === 'number' && Number.isInteger(count) && count >= 0)) return null;
+  const [parts = 0, failed = 0, fallbackFiles = 0, fetched = 0] = counts.map(Number);
+  return {level, outcome, packs, parts, failed, fallbackFiles, fetched};
+};
+function storedOutcomes(): SpawnOutcome[] {
+  const rows: unknown = outcomesSlot.read();
+  return Array.isArray(rows) ? rows.flatMap(row => outcomeOf(row) ?? []) : [];
+}
+function keepOutcome(outcome: SpawnOutcome): void {
+  const row = (kept: SpawnOutcome): Record<string, string | number | boolean> => ({level: kept.level, outcome: kept.outcome, packs: kept.packs,
+    parts: kept.parts, failed: kept.failed, fallbackFiles: kept.fallbackFiles, fetched: kept.fetched});
+  outcomesSlot.write([...storedOutcomes(), outcome].slice(-OUTCOMES_KEPT).map(row));
+}
 let outcomeSink: ((outcome: SpawnOutcome) => void) | null = null;
 function reportOutcome(download: SpawnDownload): void {
   const outcome = settledAs.get(download);
   if (outcome === undefined || !foregroundDownloads.has(download) || reported.has(download)) return;
   reported.add(download);
-  if (outcomeSink === null) queuedOutcomes.push(outcome); else outcomeSink(outcome);
+  if (outcomeSink === null) keepOutcome(outcome); else outcomeSink(outcome);
 }
 function markForeground(download: SpawnDownload): void { foregroundDownloads.add(download); reportOutcome(download); }
 function trackOutcome(download: SpawnDownload, level: string, packs: boolean): void {
@@ -498,7 +519,9 @@ function trackOutcome(download: SpawnDownload, level: string, packs: boolean): v
  *  at once; the session installs it when telemetry exists (the download paints before the engine loads). */
 export function reportSpawnOutcomes(sink: (outcome: SpawnOutcome) => void): void {
   outcomeSink = sink;
-  for (const outcome of queuedOutcomes.splice(0)) sink(outcome);
+  const kept = storedOutcomes();
+  outcomesSlot.write([]);
+  for (const outcome of kept) sink(outcome);
 }
 const addressKey = (address: SpawnManifestAddress): string =>
   `${address.url}|${address.bytes}|${address.totalBytes}|${address.files}|${address.wireBytes ?? ''}`;

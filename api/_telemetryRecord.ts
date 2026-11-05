@@ -45,6 +45,8 @@ export function cleanTelemetryRecord(body: unknown, now = new Date()): Telemetry
       else data['counts'] = 'unknown';
       const fetched = count(source['fetched']); if (fetched !== null) data['fetched'] = fetched;
       if (['complete', 'failed', 'cancelled'].includes(text(source['outcome']))) data['outcome'] = text(source['outcome']);
+      // packs-off zeros and a packed cached boot's zeros differ (sp-x1)
+      if (['on', 'off'].includes(text(source['packs']))) data['packs'] = text(source['packs']);
     }
     if (name === 'boss.attempt') {
       if (!['started', 'won', 'died', 'left'].includes(text(source['outcome']))) return null;
