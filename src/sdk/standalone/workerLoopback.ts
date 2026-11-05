@@ -17,12 +17,14 @@ export class WorkerLoopback implements Transport {
   private sentBytes = 0;
   private recvBytes = 0;
   private open = true;
+  /** Posts that were not a message at all: a page's, or anything else with this port. */
+  refused = 0;
   constructor(port: MessagePort) {
     this.port = port;
     port.onmessage = (event: MessageEvent<unknown>): void => {
       const { data } = event, reason = closeReason(data);
       if (reason !== null) { this.ended(reason); return; }
-      if (!isEnvelope(data)) return;
+      if (!isEnvelope(data)) { this.refused++; return; }
       this.recvBytes += data.bytes.byteLength;
       for (const listener of this.messages) listener(data.channel, data.bytes);
     };

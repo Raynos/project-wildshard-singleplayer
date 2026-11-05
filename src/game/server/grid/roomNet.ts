@@ -69,7 +69,8 @@ export class GridNetRooms {
       const client = this.clients.get(player);
       if (client === undefined) continue;
       const source = this.at(from).net, target = this.at(to);
-      this.clients.set(player, source.handOff(client, target.net, target.world.playerOf(player)));
+      const moved = source.handOff(client, target.net, target.world.playerOf(player));
+      if (moved === null) this.clients.delete(player); else this.clients.set(player, moved);
     }
     for (const site of this.grid.occupiedSites()) this.at(site).net.tick();
   }

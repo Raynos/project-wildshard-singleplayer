@@ -41,10 +41,10 @@ function probeRows(host: SimHost): ProbedRow[] {
 }
 
 /** Run the server half until `dispose`. Anything that ends it reports `failed` on the control port. */
-export function runStandaloneServer(options: StandaloneServerOptions): { dispose: () => void } {
+export function runStandaloneServer(options: StandaloneServerOptions): { dispose: () => void; /** Control messages refused. */ refused: () => number } {
   const { control, game } = options, scope = new Scope('standalone.server');
   const book = new LedgerBook();
-  let grid: StandaloneGrid | undefined, clock: ServerClock | undefined, storage: ForwardedStorage | undefined, probing: number | null = null;
+  let grid: StandaloneGrid | undefined, clock: ServerClock | undefined, storage: ForwardedStorage | undefined, probing: number | null = null, booting = false, refused = 0;
   const post = (message: ServerMessage): void => { control.postMessage(v.parse(ServerMessageSchema, message), []); };
   const fail = (error: unknown): void => { clock?.pause(); post({ kind: 'failed', reason: error instanceof Error ? error.message : String(error) }); };
   const stepped = (host: SimHost, tickMs: number): void => {
@@ -71,14 +71,19 @@ export function runStandaloneServer(options: StandaloneServerOptions): { dispose
   };
 
   const save = async (id: number): Promise<void> => {
-    if (grid === undefined) throw new Error('Save before boot');
+    if (grid === undefined) { refused++; post({ kind: 'saved', id, tick: 0, ok: false }); return; } // nothing is saved, and the asker hears so
     const { tick, durable } = await grid.save(); // J-ledger rule: a save counts only once the real storage has it (§6.3.3)
     post({ kind: 'saved', id, tick, ok: durable });
   };
 
   const handle = (raw: unknown): void => {
-    const message = v.parse(ShellMessageSchema, raw);
-    if (message.kind === 'boot') void boot(message).catch(fail);
+    const parsed = v.safeParse(ShellMessageSchema, raw); // what crosses a port is input: a bad message is refused, and the server goes on
+    if (!parsed.success) { refused++; return; }
+    const message = parsed.output;
+    if (message.kind === 'boot') {
+      if (booting) { refused++; return; }
+      booting = true; void boot(message).catch(fail);
+    }
     else if (message.kind === 'ready') { grid?.open(); clock?.start(); }
     else if (message.kind === 'pause') clock?.pause();
     else if (message.kind === 'resume') clock?.start();
@@ -87,6 +92,6 @@ export function runStandaloneServer(options: StandaloneServerOptions): { dispose
     else storage?.acked(message.seq, message.ok);
   };
   control.onmessage = (event: MessageEvent<unknown>): void => { try { handle(event.data); } catch (error) { fail(error); } };
-  return { dispose: () => { clock?.pause(); scope.dispose(); grid?.dispose(); control.close(); } };
+  return { refused: () => refused, dispose: () => { clock?.pause(); scope.dispose(); grid?.dispose(); control.close(); } };
 }
 

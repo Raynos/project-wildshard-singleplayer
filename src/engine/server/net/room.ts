@@ -27,6 +27,14 @@ const SIM_HZ = 60, FRAME_HZ = 30;
 const RIDE_WORDS = 64;
 /** Acts one client gets a tick, and the most it may have waiting. */
 const ACTS_PER_TICK = 2, MAX_QUEUED_ACTS = 16;
+/** Past a hello's three full texts: no message is longer, so no bigger one is read. */
+export const MAX_CLIENT_MESSAGE_BYTES = 1024;
+/**
+ * Messages a client earns each tick, and the most it can hold. A phone at 120 Hz with an act or two stays well inside this,
+ * and a burst after a stall spends what it saved. A message past it is refused unread, and each one is debt, so a client
+ * flooding for seconds runs to `CLIENT_FLOOD_DEBT` and is dropped: the room's work for a client stays what the client earned.
+ */
+export const CLIENT_MESSAGES_PER_TICK = 8, MAX_CLIENT_MESSAGES = 240, CLIENT_FLOOD_DEBT = -3600;
 
 /** The player a client owns. */
 export interface NetPlayer { readonly id: string; readonly cls: NetClass<never>; sample: (out: Uint32Array, refs: NetRefs) => void;
@@ -59,7 +67,7 @@ export interface NetWorld {
 /** One client's input for one tick: its turn, and its acts. */
 export interface NetTickInput extends CommandTurn { readonly client: number; readonly player: string; readonly acts: readonly NetTickAct[] }
 /** Bytes this room has put on the wire, for the bandwidth number (§7). */
-export interface RoomStats { frames: number; frameBytes: number; eventBytes: number; refused: number; /** Rows a far tier left out (§3.3). */ tierSkips: number }
+export interface RoomStats { frames: number; frameBytes: number; eventBytes: number; refused: number; /** Rows a far tier left out (§3.3). */ tierSkips: number; /** Clients sent away for what they sent. */ dropped: number }
 /** How a room is built. */
 export interface NetRoomOptions {
   readonly world: NetWorld;
@@ -81,6 +89,8 @@ interface RoomClient {
   readonly id: number; readonly transport: Transport; readonly queue: CommandQueue; readonly player: NetPlayer;
   /** Who it said it is at `hello` (J111). A hand-off keeps it. */
   identity: NetIdentity;
+  /** Messages it may still send; below 0, what it owes. */
+  credit: number;
   /** The last receipt it has had. */
   ledgerSeen: number;
   /** waiting: said hello before the room opened. live: welcomed. */
@@ -105,7 +115,7 @@ function rowPosition(frame: WorldFrame, at: number, cls: NetClass<never>): { x: 
 
 /** The server's end of the wire. */
 export class NetRoom {
-  readonly stats: RoomStats = { frames: 0, frameBytes: 0, eventBytes: 0, refused: 0, tierSkips: 0 };
+  readonly stats: RoomStats = { frames: 0, frameBytes: 0, eventBytes: 0, refused: 0, tierSkips: 0, dropped: 0 };
   private readonly clients: RoomClient[] = [];
   private readonly handles = new NetHandles();
   private readonly ring = new WorldFrameRing();
@@ -133,7 +143,7 @@ export class NetRoom {
   /** Connect a client that owns `player`. It waits for its `hello`, and past that for `open`. Returns its id. */
   join(transport: Transport, player: NetPlayer = this.world.player, queue: CommandQueue = new CommandQueue()): number {
     const id = ++this.clientIds, owner = new Uint32Array(player.cls.owner.length);
-    const client: RoomClient = { id, transport, player, queue, identity: GUEST, ledgerSeen: 0, state: 'new', ack: -1, acts: [], known: new Set(), questVersion: -1, quests: new Map(), phased: new Set(), rides: new Map(), owner,
+    const client: RoomClient = { id, transport, player, queue, identity: GUEST, credit: MAX_CLIENT_MESSAGES, ledgerSeen: 0, state: 'new', ack: -1, acts: [], known: new Set(), questVersion: -1, quests: new Map(), phased: new Set(), rides: new Map(), owner,
       views: Array.from({ length: FRAME_RING }, () => ({ tick: -1, visible: new Set<number>(), due: new Set<number>(), rows: new Map<number, number>() })), nextView: 0, dispose: () => undefined };
     const off = transport.onMessage((channel, bytes) => { this.receive(client, channel, bytes); });
     const closed = transport.onClose(() => { this.remove(client); });
@@ -144,10 +154,13 @@ export class NetRoom {
   /**
    * A player crossed (P1-E3.9): their client leaves this world for the room of the one they stand in, on the same link and
    * with the same command stream. It hears `travel`, then the new room's `welcome`, then a full frame at that room's next.
+   * Null: nobody follows them. Their client left, or never said hello, and any link it still has is closed: a player's
+   * feet can cross with no one holding them, and that may not end either room.
    */
-  handOff(id: number, to: NetRoom, player: NetPlayer): number {
+  handOff(id: number, to: NetRoom, player: NetPlayer): number | null {
     const client = this.clients.find(entry => entry.id === id);
-    if (client === undefined || client.state !== 'live' || !to.opened) throw new Error('Invalid net hand-off');
+    if (client === undefined) return null;
+    if (client.state !== 'live' || !to.opened) { this.drop(client); return null; }
     const tick = this.world.tick(), travel: NetEvent = { kind: 'travel', tick, from: this.world.cell(), to: to.world.cell() };
     client.transport.send('reliable', encodeEvents(this.writer, tick, [travel], initialBits));
     this.remove(client);
@@ -169,6 +182,7 @@ export class NetRoom {
   tick(): void {
     this.inputs.length = 0;
     for (const client of this.clients) {
+      client.credit = Math.min(client.credit + CLIENT_MESSAGES_PER_TICK, MAX_CLIENT_MESSAGES);
       if (client.state !== 'live') continue;
       this.inputs.push({ client: client.id, player: client.player.id, ...client.queue.next(), acts: client.acts.splice(0, ACTS_PER_TICK) });
     }
@@ -197,13 +211,32 @@ export class NetRoom {
     const at = this.clients.indexOf(client);
     if (at !== -1) this.clients.splice(at, 1);
   }
+  /** Send a client away. The room goes on; a bad client may be dropped, and the room may not. */
+  private drop(client: RoomClient): void {
+    this.stats.dropped++;
+    client.transport.close('refused');
+    this.remove(client);
+  }
+  /** The trust boundary: every byte a client sends arrives here, and nothing it sends gets past this as an exception. */
   private receive(client: RoomClient, _channel: NetChannel, bytes: ArrayBuffer): void {
+    client.credit--;
+    if (client.credit < 0 || bytes.byteLength > MAX_CLIENT_MESSAGE_BYTES) {
+      this.stats.refused++;
+      if (client.credit <= CLIENT_FLOOD_DEBT) this.drop(client);
+      return;
+    }
     const view = new Uint8Array(bytes);
-    switch (messageId(view)) {
-      case MSG_HELLO: this.hello(client, view); break;
-      case MSG_CMDS: this.commands(client, view); break;
-      case MSG_ACT: this.act(client, view); break;
-      default: this.stats.refused++;
+    try {
+      switch (messageId(view)) {
+        case MSG_HELLO: this.hello(client, view); break;
+        case MSG_CMDS: this.commands(client, view); break;
+        case MSG_ACT: this.act(client, view); break;
+        default: this.stats.refused++;
+      }
+    } catch (error) {
+      console.error('A client message threw past its decoder; dropping the client', error);
+      this.stats.refused++;
+      this.drop(client);
     }
   }
   private hello(client: RoomClient, view: Uint8Array): void {
@@ -212,7 +245,7 @@ export class NetRoom {
     // A hello this build cannot read is a stale tab as surely as a wrong hash: it must reload, not wait for ever (§4.4).
     if (hello === null) { this.stats.refused++; client.transport.close('reload'); return; }
     // J54: exact match only. Refused with `reload`, so a stale tab picks up the new build (§4.4).
-    if (hello.schemaHash !== NET_SCHEMA_HASH || (this.build !== '' && hello.build !== this.build)) { client.transport.close('reload'); return; }
+    if (hello.schemaHash !== NET_SCHEMA_HASH || (this.build !== '' && hello.build !== this.build)) { this.stats.refused++; client.transport.close('reload'); return; }
     const said = v.safeParse(NetIdentitySchema, { player: hello.player, name: hello.name });
     if (!said.success) { this.stats.refused++; client.transport.close('refused'); return; }
     client.identity = { player: said.output.player, name: cleanName(said.output.name) };
@@ -221,9 +254,10 @@ export class NetRoom {
     if (this.opened) this.welcome(client);
   }
   private commands(client: RoomClient, view: Uint8Array): void {
-    const bundle = decodeCommands(view, this.handles.idOf);
-    if (bundle === null || client.state !== 'live') { this.stats.refused++; return; }
-    if (bundle.ackFrame > client.ack && bundle.ackFrame <= this.world.tick()) client.ack = bundle.ackFrame;
+    const bundle = client.state === 'live' ? decodeCommands(view, this.handles.idOf) : null;
+    if (bundle === null) { this.stats.refused++; return; }
+    if (bundle.ackFrame > this.world.tick()) this.stats.refused++; // a frame that never was: its commands may still stand
+    else if (bundle.ackFrame > client.ack) client.ack = bundle.ackFrame;
     client.queue.admit(bundle.commands);
   }
   private act(client: RoomClient, view: Uint8Array): void {
@@ -236,7 +270,7 @@ export class NetRoom {
     client.acts.push(act);
   }
   private chatAct(client: RoomClient, act: NetChatSay | NetChatReport): boolean {
-    if (act.kind === 'report') return this.chat.report(client.identity.player, act.line);
+    if (act.kind === 'report') return this.chat.report(client.identity.player, act.line, this.world.tick());
     return this.chat.say({ ...client.identity, body: client.player.id }, act.channel, act.text, this.world.tick());
   }
   /** Whether `client` hears a line: anyone in the room, or within earshot of who said it. */

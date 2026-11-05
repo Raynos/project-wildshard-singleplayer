@@ -65,3 +65,30 @@ test('a client crosses with its player: travel, a new welcome, cell-local frames
     expect(client.dropped).toBe(0);
   } finally { client.dispose(); rooms.dispose(); room.dispose(); grid.dispose(); }
 });
+
+// A player's feet can cross with nobody holding them: their client left, or never said hello. Neither room may mind.
+test.each([['left', true], ['never said hello', false]])('a player crosses after their client %s, and the rooms go on', async (_name, left) => {
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
+  const assembly = new GridAssembly({ developer: false, devserver: false }), cell = assembly.cells[0];
+  if (cell === undefined) throw new Error('Missing cell');
+  const highway = createSimHost(level, { rapier }), hosts = new Map<string, SimHost>();
+  const grid = new GridSimulation(assembly, { highway: { host: highway, dispose: () => { highway.dispose(); } }, save: () => true,
+    load: () => { const host = createSimHost(level, { rapier }); hosts.set(cell.instance, host); return Promise.resolve({ host, dispose: () => { host.dispose(); } }); } });
+  const room = new GridRoom(grid, assembly, { loadout: () => ({ checkpoint: () => true, stow: () => undefined, interior: () => undefined }) }), rooms = new GridNetRooms(grid, room, assembly);
+  const link = directLoopback(), client = new NetClient(link.client), { x, z } = cell.origin;
+  try {
+    const lead = leadPlayer(highway);
+    lead.position.set(x + CHUNK_HALF + 30, 0, z); lead.motor.resetAt(lead.position);
+    room.join(BOT, { x: x + CHUNK_HALF + 8, y: 0, z });
+    rooms.connect(BOT, link.server);
+    if (left) { client.hello(); link.pump(); link.client.close(); }
+    const seat = highway.players.get(BOT); if (seat === undefined) throw new Error('Missing bot seat');
+    seat.position.set(x, 0, z); seat.motor.resetAt(seat.position);
+    for (let at = 0; at < 600 && hosts.get(cell.instance)?.players.has(BOT) !== true; at++) { rooms.tick(); link.pump(); await settle(); }
+    expect(hosts.get(cell.instance)?.players.has(BOT)).toBe(true);
+    const tick = hosts.get(cell.instance)?.state.tick ?? 0;
+    for (let at = 0; at < 4; at++) rooms.tick();
+    expect(hosts.get(cell.instance)?.state.tick).toBeGreaterThan(tick);
+    if (!left) expect(client.closed, 'it has no room to say hello to now').toBe('refused');
+  } finally { client.dispose(); rooms.dispose(); room.dispose(); grid.dispose(); }
+});

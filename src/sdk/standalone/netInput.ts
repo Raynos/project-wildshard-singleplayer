@@ -1,9 +1,14 @@
 import type { NetCommand } from '@wildshard/format/netCommand';
 import type { NetTickAct } from '@wildshard/engine/net/acts';
-import { lockValue, type ActRoutes } from '@wildshard/engine/sim/actRoutes';
+import type { NetTickInput } from '@wildshard/engine/net/room';
+import { actRoutes, lockValue, type ActRoutes } from '@wildshard/engine/sim/actRoutes';
 import { NET_BUTTONS } from '@wildshard/engine/input/netButtons';
 import { netSimCommand } from '@wildshard/engine/sim/netMotion';
-import type { HeadlessCommand } from '../tickProtocol';
+import { tickCommands, type HeadlessCommand } from '../tickProtocol';
+import type { TrustedHeadlessResident } from '../headlessRuntime';
+
+/** The tick allowance one player's input may use: their command, LOCK, a launcher and a tick's two acts, with room to spare. */
+const COMMANDS_PER_TICK = 8;
 
 const has = (command: NetCommand, button: number): boolean => (command.buttons & button) !== 0;
 /** Admission allows a hair past straight up; the tick's grammar does not, and an input may not end the server. */
@@ -67,4 +72,11 @@ export function netTickCommands(command: NetCommand | null, acts: readonly NetTi
     }
   }
   return out;
+}
+
+/** One room tick on a trusted resident: `lead`'s input as tick commands, which the systems bound to it read, and everyone else's as their own commands. */
+export function stepResident(resident: Pick<TrustedHeadlessResident, 'host' | 'step'>, lead: string, inputs: readonly NetTickInput[]): void {
+  const own = inputs.find(row => row.player === lead), others = new Map<string, NetCommand>();
+  for (const { player, command } of inputs) if (player !== lead && command !== null) others.set(player, command);
+  resident.step(tickCommands([{ source: 'net', commands: netTickCommands(own?.command ?? null, own?.acts ?? [], actRoutes(resident.host)) }], COMMANDS_PER_TICK), others, new Map(inputs.map(row => [row.player, row.acts])));
 }

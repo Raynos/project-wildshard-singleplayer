@@ -175,9 +175,9 @@ test('hello refuses a stale schema or build with `reload`, and garbage never rea
   expect(client.welcome).not.toBeNull();
   good.client.send('unreliable', Uint8Array.of(99, 1, 2, 3).buffer);
   good.client.send('unreliable', Uint8Array.of(2, 1).buffer);
-  good.client.send('reliable', encodeCommands(writer, { ackFrame: 0xfffffff0, commands: [] }, () => 0)); // an ack from the future is ignored
+  good.client.send('reliable', encodeCommands(writer, { ackFrame: 0xfffffff0, commands: [] }, () => 0)); // an ack from the future is refused
   good.pump();
-  expect(room.stats.refused).toBe(3);
+  expect(room.stats.refused).toBe(6); // three hellos, two bad messages, and that ack
   room.tick(); room.tick(); good.pump();
   expect(client.latest?.baselineTick).toBe(0xffffffff);
   resident.dispose();

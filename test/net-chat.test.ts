@@ -1,8 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Real Rapier bytes.
 import { readFileSync } from 'node:fs';
-import { beforeAll, expect, test } from 'vitest';
+import { beforeAll, expect, test, vi } from 'vitest';
 import type { ChatChannel } from '../src/engine/shared/net/acts';
-import { CHAT_RADIUS, type ChatReport } from '../src/engine/server/net/chat';
+import { CHAT_RADIUS, RoomChat, type ChatReport } from '../src/engine/server/net/chat';
 import type { NetChat } from '../src/engine/shared/net/chatWire';
 import { BitWriter } from '../src/engine/shared/net/bits';
 import { NetClient } from '../src/engine/client/net/client';
@@ -99,4 +99,27 @@ test('a speaker cannot flood, a blank line says nothing, and hostile text never 
   expect(new TextEncoder().encode(near.heard.at(-1)?.text).length).toBeLessThanOrEqual(240);
   expect(near.client.closed).toBeNull();
   room.dispose(); host.dispose();
+});
+
+test('a reporter cannot flood either, and a line stops counting them', () => {
+  const filed: ChatReport[] = [], chat = new RoomChat({ file: report => { filed.push(report); } });
+  for (let line = 1; line <= 20; line++) chat.say({ player: 'p', name: 'P', body: 'b' }, 'room', `line ${String(line)}`, line * 100);
+  for (let line = 1; line <= 20; line++) chat.report('r', line, 2000);
+  expect(filed).toHaveLength(5);
+  expect(chat.report('r', 6, 2000), 'still inside the window').toBe(false);
+  expect(chat.report('r', 6, 2300), 'a window later').toBe(true);
+  for (let reporter = 0; reporter < 40; reporter++) chat.report(`churn${String(reporter)}`, 7, 2400);
+  expect(filed.filter(row => row.typed === 'line 7')).toHaveLength(32);
+});
+
+test('a stream of new names leaves nothing behind', () => {
+  const chat = new RoomChat();
+  for (let tick = 0; tick < 3000; tick++) chat.say({ player: `device:${String(tick)}`, name: 'N', body: 'b' }, 'room', 'hi', tick);
+  expect(chat.held).toBeLessThanOrEqual(600);
+});
+
+test('a flood stops before its text is read', () => {
+  const chat = new RoomChat(), filter = vi.spyOn(String.prototype, 'normalize');
+  for (let index = 0; index < 100; index++) chat.say({ player: 'p', name: 'P', body: 'b' }, 'room', 'hi', 1);
+  expect(filter.mock.calls.length).toBe(5);
 });
