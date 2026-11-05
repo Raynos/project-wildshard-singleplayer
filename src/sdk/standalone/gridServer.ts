@@ -16,7 +16,7 @@ import { NearColliders } from '@wildshard/engine/physics/nearColliders';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimLevel } from '@wildshard/engine/sim';
 import { actRoutes } from '@wildshard/engine/sim/actRoutes';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
+import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import type { ForwardedStorage } from '@wildshard/engine/saves/forwardedStorage';
 import type { SaveStore } from '@wildshard/engine/saves/store';
@@ -42,6 +42,8 @@ export const STANDALONE_RESIDENTS = 1;
 const ROAD_HALF_SIZE = 2000, ROAD_SPEED = 8;
 /** How far past a cell's edge the deck runs in that cell's own world: past the 10 m leave band, with room to stop. */
 const RIM = 16;
+/** A cell wall's thickness and half its height. */
+const WALL = 0.5, WALL_HEIGHT = 30;
 const ROAD: SimLevel = { version: SIM_API_VERSION, id: 'grid-road', seed: 1, ground: { size: ROAD_HALF_SIZE * 2, height: 0 }, player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: ROAD_SPEED }, entities: [], quests: [], weapon: HOST_PROBE };
 
 /** One world the worker has open: its host, and how it takes a tick and reports what the tick granted. */
@@ -82,6 +84,18 @@ function addDeck(host: SimHost, x: number, z: number, hx: number, hz: number): v
   const { R, world } = host.physics;
   withOwner(host.scope, () => { world.createCollider(R.ColliderDesc.heightfield(1, 1, new Float32Array(4), { x: hx * 2, y: 1, z: hz * 2 }).setTranslation(x, 0, z).setCollisionGroups(groups('WORLD'))); });
 }
+/**
+ * A wall around every cell in the road's own world, as the page's readiness walls are while a cell loads. A player stops at a cell's
+ * edge until its world is ready and the crossing takes them in, which happens 6 m short of here; the road's flat deck never runs on
+ * under a cell's own hills, where a late hand-off would set them down inside one.
+ */
+function addCellWalls(road: SimHost, cells: readonly GridCell[]): void {
+  const { R, world } = road.physics, long = CHUNK_HALF + WALL / 2;
+  withOwner(road.scope, () => {
+    for (const { origin } of cells) for (const [x, z, hx, hz] of [[CHUNK_HALF + WALL / 2, 0, WALL / 2, long], [-CHUNK_HALF - WALL / 2, 0, WALL / 2, long], [0, CHUNK_HALF + WALL / 2, long, WALL / 2], [0, -CHUNK_HALF - WALL / 2, long, WALL / 2]] as const)
+      world.createCollider(R.ColliderDesc.cuboid(hx, WALL_HEIGHT, hz).setTranslation(origin.x + x, WALL_HEIGHT, origin.z + z).setCollisionGroups(groups('WORLD')));
+  });
+}
 /** The four slabs around a cell, in its own coordinates. A restored world has them already: its save holds its colliders. */
 function addRim(host: SimHost): void {
   const reach = CHUNK_HALF + RIM / 2, long = CHUNK_HALF + RIM;
@@ -102,9 +116,17 @@ async function openDataCell(input: HeadlessRuntimeInput, snapshot: string | SimS
   return { host, dispose: () => { (installed.value ?? { dispose: () => { host.dispose(); } }).dispose(); } };
 }
 
+/** The one client this worker serves is on the wire as the host's own player. A room with more players keeps this seat. */
+const SESSION_PLAYER = 'actor.player';
+function sessionPlayer(host: SimHost): PlayerSim {
+  const player = host.players.get(SESSION_PLAYER);
+  if (player === undefined) throw new Error('The session player has no body in this host');
+  return player;
+}
+
 /** A world's continuation. The solids held near its player are out of it while it is taken: they are in no save. */
 function capture(host: SimHost): string {
-  const { near } = host.physics, { position } = leadPlayer(host);
+  const { near } = host.physics, { position } = sessionPlayer(host);
   near?.suspend();
   try { return serializeSimSnapshot(snapshotSimHostBytes(host)); } finally { near?.resume(position.x, position.z); }
 }
@@ -162,7 +184,7 @@ export class StandaloneGrid {
       }
       return StandaloneGrid.world(cell, source, undefined, options);
     };
-    const road = StandaloneGrid.road(rapier, site === null ? candidate?.saved.road : undefined, options.arrival);
+    const road = StandaloneGrid.road(rapier, assembly.cells, site === null ? candidate?.saved.road : undefined, options.arrival);
     const grid: GridSimulation = new GridSimulation(assembly, { highway: { host: road, dispose: () => { road.dispose(); } }, maxResidents: options.residents ?? STANDALONE_RESIDENTS,
       load: async (cell, cached) => { const world = await open(cell, cached); worlds.set(cell.instance, world); return { host: world.host, dispose: () => { worlds.delete(cell.instance); world.dispose(); } }; },
       durable: (instance, host) => {
@@ -177,10 +199,11 @@ export class StandaloneGrid {
     return server;
   }
 
-  private static road(rapier: Rapier, saved: string | undefined, arrival: Readonly<GridPoint> | undefined): SimHost {
+  private static road(rapier: Rapier, cells: readonly GridCell[], saved: string | undefined, arrival: Readonly<GridPoint> | undefined): SimHost {
     if (saved !== undefined) return restoreSimHost(ROAD, { rapier }, decodeSimSnapshot(saved));
     const road = createSimHost(ROAD, { rapier });
-    if (arrival !== undefined) { const lead = leadPlayer(road); lead.position.set(arrival.x, arrival.y, arrival.z); lead.motor.resetAt(lead.position); }
+    addCellWalls(road, cells);
+    if (arrival !== undefined) { const player = sessionPlayer(road); player.position.set(arrival.x, arrival.y, arrival.z); player.motor.resetAt(player.position); }
     return road;
   }
 
@@ -195,8 +218,8 @@ export class StandaloneGrid {
       if (snapshot === undefined) addRim(host);
       host.respawn.served = true;
       return { host, dispose: () => { resident.dispose(); }, fact, effects: () => resident.effects, step: inputs => {
-        const lead = leadPlayer(host), own = inputs.find(row => row.player === lead.id);
-        near?.update(lead.position.x, lead.position.z);
+        const player = sessionPlayer(host), own = inputs.find(row => row.player === player.id);
+        near?.update(player.position.x, player.position.z);
         resident.step(tickCommands([{ source: 'net', commands: netTickCommands(own?.command ?? null, own?.acts ?? [], actRoutes(host)) }], COMMANDS_PER_TICK), undefined, new Map(inputs.map(row => [row.player, row.acts])));
       } };
     }
@@ -228,7 +251,7 @@ export class StandaloneGrid {
   /** The host the session's player stands in. */
   get host(): SimHost { return this.grid.host(); }
   /** Connect the session's client; it waits for `open`. */
-  connect(transport: Transport): void { this.rooms.connect(leadPlayer(this.grid.hostOf(this.grid.current())).id, transport); }
+  connect(transport: Transport): void { this.rooms.connect(SESSION_PLAYER, transport); }
   open(): void { this.rooms.open(); }
   tick(): void { this.rooms.tick(); }
   /** Resolves true when every write so far reached the real storage, and tells `held` which of its saves that makes good. */
