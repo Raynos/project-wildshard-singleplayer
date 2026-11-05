@@ -92,7 +92,7 @@ test('ordinary oxlint refuses callback growth and new files, while count mode em
 test('catalogue joins section fields and actual callers; pending users grant no pass', () => {
   const f = fixture("import {host} from '../../../game/host'; host('world/props');");
   try {
-    f.write('src/format/sections.ts', "export interface PlatformSections { 'world/props': { props: number[] }; 'ui/ui': { title: string } }");
+    f.write('node_modules/@wildshard/format/src/format/sections.ts', "export interface PlatformSections { 'world/props': { props: number[] }; 'ui/ui': { title: string } }");
     f.write('src/shards/second/runtime/main.ts', "import {host} from '../../../game/host'; host({answer:7});");
     f.write('lint/platform-pending-users.json', JSON.stringify({ entries: [{ module: 'src/game/host.ts', export: 'Base', shard: 'planned' }] }));
     const reference = { fields: [{ path: '$.props', type: 'array' }], abi: [{ name: 'query' }], contract: { version: 0 } };

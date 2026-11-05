@@ -21,7 +21,7 @@ test('title closure counts shared imports once and refuses either exceeded measu
   expect(titleClosureBudgetErrors(modules, {})).toContain('missing title gzip ceiling');
 });
 test.each(['node_modules/three/build/three.core.js', 'node_modules/@dimforge/rapier3d/rapier.js', 'src/shards/other/runtime.ts',
-  'src/game/boot/bytes.generated.ts', 'src/format/shardSchema.ts', 'src/format/newGameplayValidator.ts', 'src/engine/explore/Explore.ts'])('title refuses a forbidden transitive module %s', module => {
+  'src/game/boot/bytes.generated.ts', 'node_modules/@wildshard/format/src/format/shardSchema.ts', 'node_modules/@wildshard/format/src/format/newGameplayValidator.ts', 'src/engine/explore/Explore.ts'])('title refuses a forbidden transitive module %s', module => {
   const modules = fixture(); modules['shared.js'] = { name: 'shared', moduleIds: [module], imports: [], rawBytes: 100, gzBytes: 50 };
   expect(titleClosureBudgetErrors(modules, caps)).toContain(`forbidden title module ${module} (shared.js)`);
 });

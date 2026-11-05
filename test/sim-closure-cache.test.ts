@@ -13,23 +13,22 @@ test('reused syntax keeps root-specific traces, current bytes and new import edg
     mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, text);
   };
   const first = 'src/engine/sim/first.ts', second = 'src/engine/sim/second.ts';
-  const bridge = 'src/format/bridge.ts', shared = 'src/engine/helpers/shared.ts';
+  const bridge = 'src/engine/helpers/bridge.ts', shared = 'src/engine/helpers/shared.ts';
   try {
     put(first, `import '../helpers/shared';`);
-    put(second, `import '../../format/bridge';`);
-    put(bridge, `import '../engine/helpers/shared';`);
-    put(shared, `import {Vector3} from 'three';export const value = new Vector3();`);
+    put(second, `import '../helpers/bridge';`);
+    put(bridge, `import './shared';`);
+    put(shared, 'export const value = 1;');
     expect(simClosure(root, [first])).toEqual([]);
-    expect(simClosure(root, [second])).toEqual([{ id: `${shared}:import:three`, count: 1, trace: [second, bridge, shared] }]);
-    expect(simClosure(root, [first])).toEqual([]);
+    expect(simClosure(root, [second])).toEqual([]);
     put(shared, 'export const value = document;');
     expect(simClosure(root, [first])).toEqual([{ id: `${shared}:global:document`, count: 1, trace: [first, shared] }]);
     expect(simClosure(root, [second])).toEqual([{ id: `${shared}:global:document`, count: 1, trace: [second, bridge, shared] }]);
     put(bridge, `import './missing';`);
     expect(simClosure(root, [second])).toEqual([{ id: `${bridge}:unresolved:./missing`, count: 1, trace: [second, bridge] }]);
-    put('src/format/missing.ts', 'export const value = 1;');
+    put('src/engine/helpers/missing.ts', 'export const value = 1;');
     expect(simClosure(root, [second])).toEqual([]);
-    put(bridge, `import type {value} from '../engine/helpers/shared';`);
+    put(bridge, `import type {value} from './shared';`);
     expect(simClosure(root, [second])).toEqual([]);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

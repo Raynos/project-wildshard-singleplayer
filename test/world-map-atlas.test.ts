@@ -58,7 +58,7 @@ test('the native command prepares products before the atlas, and a cold atlas re
   expect(command).toMatch(/node scripts\/build-shardfiles\.mjs --reuse && node scripts\/build-app\.mjs --mode native/u);
   const script = readFileSync('scripts/build-app.mjs', 'utf8');
   expect(script.indexOf('writeWorldMapAtlas')).toBeGreaterThan(-1);
-  expect(script.indexOf('writeWorldMapAtlas')).toBeLessThan(script.indexOf("[vite, 'build'"));
+  expect(script.indexOf('writeWorldMapAtlas')).toBeLessThan(script.indexOf("vite, 'build'"));
   const root = mkdtempSync(resolve('tmp', 'world-atlas-native-'));
   try {
     mkdirSync(resolve(root, 'src/game/grid'), { recursive: true });

@@ -48,7 +48,7 @@ test('every source file has a layer owner, while the root covers all tests and a
   }
   expect(new Set(root.projectReferences?.map(reference => ts.resolveProjectReferencePath(reference))
     .filter(file => !file.endsWith('/tsconfig.test.json')))).toEqual(
-    new Set([...seen].filter(file => /^tsconfig\.(?:engine|format|game|sdk|commons|shards|app)\.json$/u.test(relative('.', file)))),
+    new Set([...seen].filter(file => /^tsconfig\.(?:engine|game|sdk|commons|shards|app)\.json$/u.test(relative('.', file)))),
   );
   for (const reference of root.projectReferences ?? []) expect(seen.has(ts.resolveProjectReferencePath(reference))).toBe(true);
   for (const file of ['api/tsconfig.json', 'scripts/tsconfig.json']) {
@@ -59,7 +59,7 @@ test('every source file has a layer owner, while the root covers all tests and a
   expect(project('scripts/tsconfig.json').options.checkJs).toBe(true);
   expect(project('scripts/tsconfig.json').options.strict).toBe(true);
   expect(project('scripts/tsconfig.json').options.skipLibCheck).toBe(true);
-  for (const layer of ['engine', 'format', 'game', 'sdk', 'commons', 'shards']) {
+  for (const layer of ['engine', 'game', 'sdk', 'commons', 'shards']) {
     const production = project(`tsconfig.${layer}.json`), tests = project(`src/${layer}/tsconfig.test.json`);
     expect(tests.options.outDir).toBe(production.options.outDir);
     expect(tests.options.tsBuildInfoFile).not.toBe(production.options.tsBuildInfoFile);

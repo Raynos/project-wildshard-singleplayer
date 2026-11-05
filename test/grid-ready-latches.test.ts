@@ -97,8 +97,8 @@ it('carries inline measurement numbers without a receipt folder',()=>{
 it('writes qualified numbers inline from scratch observations without committing receipts',()=>{
  const root=mkdtempSync(resolve('tmp','grid-latch-writer-')),source='a'.repeat(40);
  try {
-  mkdirSync(resolve(root,'src/format'),{recursive:true});
-  writeFileSync(resolve(root,'src/format/memoryGates.json'),JSON.stringify({explorerMB:1200,loadingMB:1800}));
+  mkdirSync(resolve(root,'node_modules/@wildshard/format/src/format'),{recursive:true});
+  writeFileSync(resolve(root,'node_modules/@wildshard/format/src/format/memoryGates.json'),JSON.stringify({explorerMB:1200,loadingMB:1800}));
   const row={name:'grid-entry-drive',frames:120,pass:true,contextLost:false,maxMs:166.7,p95Ms:50,medianFps:30};
   const observation={schema:1,source,protocol:{profiler:false,glObserver:'off',quiet:true},runs:[{
    sha:source,when:'2026-10-21T15:00:00Z',surface:'chromium',cohort:'grid',complete:true,glObserver:'off',

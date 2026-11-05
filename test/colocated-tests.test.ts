@@ -11,7 +11,7 @@ import { expect,test } from 'vitest';
 import { fastCommitLintConfig } from '../scripts/precommit-checks.mjs';
 import { readLintConfig } from '../scripts/guard-counts.mjs';
 
-for(const layer of ['engine','format','game','sdk','commons','shards','app']){
+for(const layer of ['engine','game','sdk','commons','shards','app']){
  test(`the actual ${layer} test project owns units outside production`,()=>{
   const directory=layer==='app'?'src':`src/${layer}`;
   const units=readdirSync(directory,{recursive:layer!=='app',encoding:'utf8'})
@@ -30,7 +30,7 @@ for(const layer of ['engine','format','game','sdk','commons','shards','app']){
 test('every colocated source suite has exactly one owning test project',()=>{
  const suites=ts.sys.readDirectory(resolve('src'),['.ts'],['**/node_modules/**'],['**/*.test.ts']);
  const owners=new Map<string,string[]>();
- for(const layer of ['engine','format','game','sdk','commons','shards','app']){
+ for(const layer of ['engine','game','sdk','commons','shards','app']){
   const file=layer==='app'?'src/tsconfig.test.json':`src/${layer}/tsconfig.test.json`;
   const parsed=ts.getParsedCommandLineOfConfigFile(resolve(file),{},
    {...ts.sys,onUnRecoverableConfigFileDiagnostic:diagnostic=>{throw new Error(ts.flattenDiagnosticMessageText(diagnostic.messageText,'\n'));}});
@@ -54,26 +54,5 @@ test('colocated tests retain the hard refusal of module replacement',()=>{
   const result=spawnSync(execPath,[resolve('node_modules/oxlint/bin/oxlint'),'-c',config,'--no-ignore',target],{cwd:root,encoding:'utf8'});
   expect(result.status,result.stdout+result.stderr).toBe(1);
   expect(result.stdout+result.stderr).toContain('no-module-mock');
- }finally{rmSync(root,{recursive:true,force:true});}
-});
-
-
-test('format runner imports are test-only and do not open higher layers',()=>{
- mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/unit-policy-'));
- try{
-  const config=resolve(root,'lint.json');
-  const fast=fastCommitLintConfig(readLintConfig('.oxlintrc.json'));
-  fast['jsPlugins']=[resolve('lint/wildshard-plugin.js')];writeFileSync(config,JSON.stringify(fast));
-  const run=(file:string,source:string)=>{
-   const target=resolve(root,`src/format/${file}`);mkdirSync(resolve(target,'..'),{recursive:true});
-   writeFileSync(target,source);
-   return spawnSync(execPath,[resolve('node_modules/oxlint/bin/oxlint'),'-c',config,'--no-ignore',target],{cwd:root,encoding:'utf8'});
-  };
-  const unit=run('example.test.ts',"import {expect,test} from 'vitest';\n\ntest('unit',()=>{expect(1).toBe(1);});\n");
-  expect(unit.status,unit.stdout+unit.stderr).toBe(0);
-  const production=run('example.ts',"import {expect} from 'vitest';\n\nexport const value=expect;\n");
-  expect(production.status).toBe(1);expect(production.stdout+production.stderr).toContain('Format imports only');
-  const higher=run('example.test.ts',"import {value} from '../game/example';\n\nexport const result=value;\n");
-  expect(higher.status).toBe(1);expect(higher.stdout+higher.stderr).toContain('Format imports only');
  }finally{rmSync(root,{recursive:true,force:true});}
 });

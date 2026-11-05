@@ -31,8 +31,7 @@ test('colocated fixtures keep product guards in production and architecture guar
   const rejected: { file: string; rules: readonly string[] }[] = [];
   const refuses = (path: string, source: string, rules: readonly string[]): void => { rejected.push({ file: put(path, source), rules }); };
   try {
-    const builder = 'import binaryen from "binaryen"; export const wasm = binaryen;';
-    const allowed = run([put('src/engine/core/fixture.test.ts', code), put('src/engine/test/helper.ts', code), put('src/game/test/helper.ts', code), put('src/sdk/test/helper.ts', code), put('src/format/binary.test.ts', builder),
+    const allowed = run([put('src/engine/core/fixture.test.ts', code), put('src/engine/test/helper.ts', code), put('src/game/test/helper.ts', code), put('src/sdk/test/helper.ts', code),
       put('src/shards/probe/generators/unit.test.ts', 'import {test} from "vitest"; import {readFile} from "node:fs"; export const fixture = {test,readFile};')]);
     expect(allowed.status, String(allowed.error ?? '') + String(allowed.stdout) + String(allowed.stderr)).toBe(0);
     refuses('src/engine/core/fixture.ts', code, ['engine-words', 'no-inline-ui-string', 'no-authored-html', 'no-global-listener-patch', 'no-raw-hud']);
@@ -41,8 +40,6 @@ test('colocated fixtures keep product guards in production and architecture guar
     refuses('src/engine/core/boundary.test.ts', 'import {value} from "../../game/value"; import {vi} from "vitest"; vi.mock("./value"); export {value};', ['layer', 'no-module-mock']);
     refuses('src/sdk/test/boundary.ts', 'import {value} from "../../shards/probe/value"; import {vi} from "vitest"; vi.mock("./value"); export {value};', ['layer', 'no-module-mock']);
     refuses('src/game/test/boundary.ts', 'import {value} from "../../sdk/value"; import {vi} from "vitest"; vi.mock("./value"); export {value};', ['layer', 'no-module-mock']);
-    refuses('src/format/binary.ts', builder, ['layer']);
-    refuses('src/format/upward.test.ts', 'import {value} from "../engine/value"; export {value};', ['layer']);
     refuses('src/shards/probe/generators/runner.ts', 'import {test} from "vitest"; export const fixture = test;', ['generator-imports']);
     refuses('src/shards/probe/generators/files.ts', 'import {readFile} from "node:fs"; export const fixture = readFile;', ['generator-imports']);
     refuses('src/shards/probe/generators/cross.test.ts', 'import {value} from "../../other/generators/value"; export {value};', ['layer', 'generator-imports']);

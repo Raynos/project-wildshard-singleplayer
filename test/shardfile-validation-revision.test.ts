@@ -11,10 +11,10 @@ function put(root: string, path: string, text: string): void { mkdirSync(dirname
 it('invalidates on admission, schemas and verified transport changes, while gameplay and generated tables stay independent', () => {
   mkdirSync('tmp', { recursive: true }); const root = mkdtempSync(resolve('tmp/validation-revision-')); owned.push(root);
   put(root, 'package.json', '{}'); put(root, 'pnpm-lock.yaml', 'lock');
-  const paths = ['src/format/product.ts', 'src/game/shardfile/product.ts', 'src/game/shardfile/readAsset.ts', 'src/engine/pwa/cacheNames.ts'];
+  const paths = ['pnpm-lock.yaml', 'src/game/shardfile/product.ts', 'src/game/shardfile/readAsset.ts', 'src/engine/pwa/cacheNames.ts'];
   for (const path of paths) put(root, path, 'first');
   let before = shardfileValidationRevision(root);
   for (const path of paths) { put(root, path, 'second'); const after = shardfileValidationRevision(root); expect(after).not.toBe(before); before = after; }
-  for (const path of ['src/game/combat/feel.ts', 'src/engine/render/sky.ts', 'src/format/schema.generated.ts']) put(root, path, 'unrelated');
+  for (const path of ['src/game/combat/feel.ts', 'src/engine/render/sky.ts', 'src/game/shardfile/schema.generated.ts']) put(root, path, 'unrelated');
   expect(shardfileValidationRevision(root)).toBe(before);
 });
