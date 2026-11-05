@@ -63,6 +63,7 @@ try{
   }else{assert.ok(inherited);assert.equal(canonicalSimDigest(snapshotSimHost(host)),inherited.digest,'the recorder restores the exact earned state');}
   const nightTick=inherited?.nightTick??host.state.tick,checkpoint=serializeSimSnapshot(snapshotSimHost(host));
   const motion=new Map<string,{x:number;z:number;vx:number;vz:number}>(inherited?.motion);
+  const TRAIL_TICKS=12,trail=new Map<string,[number,number,number][]>();
   if(inherited===undefined)for(const rider of patrol.law.riders)motion.set(rider.a.entityId,{x:rider.a.position.x,z:rider.a.position.z,vx:0,vz:0});
   const history:QaraPart[]=inherited?.parts??[];
   let ticks=inherited?.ticks??0;
@@ -117,6 +118,7 @@ try{
     for(const rider of patrol.law.riders){
       const p=rider.a.position,old=motion.get(rider.a.entityId);
       motion.set(rider.a.entityId,{x:p.x,z:p.z,vx:old===undefined?0:(p.x-old.x)*60,vz:old===undefined?0:(p.z-old.z)*60});
+      const past=trail.get(rider.a.entityId)??[];past.push([p.x,p.y,p.z]);if(past.length>TRAIL_TICKS*2+1)past.shift();trail.set(rider.a.entityId,past);
     }
     assert.equal(leadPlayer(host).health.alive,true,'ordinary combat must keep the player alive');assert.ok(ticks<=60_000,'one fight retains the original tape tick budget');
     if(ticks%512===0)await flush();
@@ -142,8 +144,15 @@ try{
     const target=captain?qara.captain():nearest();if(target===undefined||target===null)return idle;
     const feet=leadPlayer(host).position;patrol.aimPoint(target,head);
     const time=Math.hypot(head.x-feet.x,head.z-feet.z)/bowLaunchSpeed(bow.base,1);
+    // A rider curves and climbs: lead what the last ticks show, because 0.5 s of arc is wider than the body row.
+    const lead=(axis:0|1|2,flat:number):number=>{
+      const past=trail.get(target.entityId),[a,b,c]=past?.length===TRAIL_TICKS*2+1?[past[0],past[TRAIL_TICKS],past[TRAIL_TICKS*2]]:[];
+      if(a===undefined||b===undefined||c===undefined)return flat*time;
+      const span=TRAIL_TICKS/60,acceleration=(c[axis]-2*b[axis]+a[axis])/(span*span);
+      return ((c[axis]-b[axis])/span+acceleration*span/2)*time+.5*acceleration*time*time;
+    };
     const velocity=motion.get(target.entityId);
-    head.x+=(velocity?.vx??0)*time;head.z+=(velocity?.vz??0)*time;head.y+=.5*bow.rows.arrow.gravity*time*time;
+    head.x+=lead(0,velocity?.vx??0);head.y+=lead(1,0)+.5*bow.rows.arrow.gravity*time*time;head.z+=lead(2,velocity?.vz??0);
     const dx=head.x-feet.x,dz=head.z-feet.z;
     return [{kind:'player',moveX:0,moveZ:0,yaw:Math.atan2(-dx,-dz),commandVersion:1,steer:{keyX:0,keyY:0,stickX:0,stickY:0},...(held?{heavy:{}}:{})},
       {kind:'script',actorId:'nalati.weapon.aim',value:1},{kind:'script',actorId:'nalati.weapon.pitch',value:Math.atan2(head.y-feet.y-1.68,Math.hypot(dx,dz))}];

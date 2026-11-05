@@ -192,7 +192,7 @@ export async function prepareNalatiPatrol(preparation:Parameters<PrepareHeadless
       return found===null?original:{body:found.actor,point:crossing.clone(),distance:found.distance,head:found.head};
     };
     const aimPoint:NativeNalatiPatrol['aimPoint']=(body,out)=>{
-      const rider=law.riders.find(row=>row.a===body),point=rows.ride.targets.find(row=>row.head);
+      const rider=law.riders.find(row=>row.a===body),point=rows.ride.targets.find(row=>!row.head);
       if(rider===undefined||point===undefined)throw new Error('Missing original patrol target joint');
       rider.view.jointPoint(rows.ride.figure.bone,point.at,out);
     };
