@@ -29,9 +29,12 @@ const Saved = v.strictObject({ version: v.literal(1), ...SeatRows, poses: v.pipe
 
 /** Trusted physical rider, not a presentation/taming stand-in. Mountable identities come from the page's actual camp roster. */
 export interface NativeMountedPlayer {
+  readonly player: PlayerSim;
   readonly body: MountedBody; readonly rider: MountedRider;
   readonly mounted: boolean; readonly horse: AnimalSim | null;
   readonly mount: (id: string, breaking?: boolean) => boolean;
+  /** J108: this horse is this player's own; nobody else may ride it. */
+  readonly claim: (id: string) => void;
   /** Only the taming owner may register/retire an actually adopted horse. */
   readonly addMountable: (id: string) => void; readonly removeMountable: (id: string) => void; readonly dismount: (thrown?: boolean) => void;
   /** Actual registration order, for the page's strict nearest ride-action selector. */
@@ -44,7 +47,6 @@ export interface NativeMountedPlayer {
 }
 /** One player's saddle under the host's riding law: what the law steps and saves for them. */
 interface Seat extends NativeMountedPlayer {
-  readonly player: PlayerSim;
   /** The on-foot observation the law keeps while no horse is under them. */
   readonly observe: (dt: number) => void;
   readonly save: () => Record<string, SimValue>;
@@ -103,7 +105,7 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
   }
   const mountables = rows.mountable.map(id => { const a = host.entities.get(id); if (a === undefined) throw new Error('Missing native mountable'); return a; });
   const poseRows = [...poses].map(([id, pose]) => ({ id, pose }));
-  const seats = new Map<string, Seat>();
+  const seats = new Map<string, Seat>(), owners = new Map<string, string>();
   /** The herd's one `ridden` slot, kept on a horse someone still rides when another of its herd is mounted or let go. */
   const holdHerd = (a: AnimalSim): void => {
     const h = herd(a); if (h === null) { a.mem['ridden'] = 1; return; }
@@ -220,7 +222,7 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
   player.useDriver(driver);
   const accepts = (id: string, breaking: boolean): boolean => {
     const a = host.entities.get(id);
-    const allowed = rules.project('mount', { mounted: Number(horse !== null), present: Number(a !== undefined), alive: Number(a?.alive === true), driven: Number(a?.driven === true), available: Number(available.has(id)), breaking: Number(breaking), stallion: Number(herds.some(h => h.stallion === a)) });
+    const allowed = rules.project('mount', { mounted: Number(horse !== null), present: Number(a !== undefined), alive: Number(a?.alive === true), driven: Number(a?.driven === true), available: Number(available.has(id) && (owners.get(id) ?? player.id) === player.id), breaking: Number(breaking), stallion: Number(herds.some(h => h.stallion === a)) });
     return allowed['accept'] === 1 && a !== undefined;
   };
   const mount = (id: string, breaking = false): boolean => {
@@ -247,7 +249,8 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
     body.feet.set(x, heightAt(x, z), z); body.settleBody(); body.landBody(world);
     body.eyeY = body.feet.y; player.yaw = yaw - Math.PI; body.yawRate = 0;
   };
-  const seat: Seat = { player, body, rider, get horse() { return horse; }, get mounted() { return horse !== null; }, mount, dismount, phase, addMountable, removeMountable, mountables,
+  const seat: Seat = { player, body, rider, get horse() { return horse; }, get mounted() { return horse !== null; }, mount, dismount, phase, mountables, claim: id => { owners.set(id, player.id); },
+    addMountable: id => { addMountable(id); owners.set(id, player.id); }, removeMountable: id => { removeMountable(id); owners.delete(id); },
     canRide: id => accepts(id, false), teleport,
     observe: dt => {
       if (horse !== null) return;
@@ -283,7 +286,10 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
         || Math.abs(c.halfHeight() - half) > 1e-6 || Math.abs(c.radius() - opts.radius) > 1e-6) throw new Error('Invalid mounted native capsule identity');
       body.motor = withOwner(null, () => new CharacterMotor(host.physics, opts, state)); savedMotor = null;
     },
-    leave: () => { const a = horse; if (a !== null) { freeHorse(a); horse = null; body.breaking = false; settleHorse(a); } },
+    leave: () => {
+      const a = horse; if (a !== null) { freeHorse(a); horse = null; body.breaking = false; settleHorse(a); }
+      for (const [id, owner] of owners) if (owner === player.id) owners.delete(id);
+    },
   };
   seats.set(player.id, seat); return seat;
   };

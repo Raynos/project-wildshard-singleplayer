@@ -43,7 +43,7 @@ const PopulationSaved = v.strictObject({ calm: v.exactOptional(v.boolean()), rng
   // Wildlife's own smoothed player speed (the flocks read it) and the flocks' continuations (FlockBrain `snapshot()`)
   wild: v.strictObject({ init: v.boolean(), x: finite, z: finite, v: finite, at: v.exactOptional(finite) }), flocks: v.array(v.string()),
   marmots: MarmotContinuation, placement: Stream, raids: v.array(PopulationPack), elitePacks: v.array(PopulationPack), dormant: v.array(v.string()), elites: v.array(EliteSpawn),
-  bonded: v.exactOptional(v.pipe(v.array(BondedSpawn), v.maxLength(1))), hiddenStallions: v.exactOptional(v.pipe(v.array(v.string()), v.maxLength(2))),
+  bonded: v.exactOptional(v.pipe(v.array(BondedSpawn), v.maxLength(32))), hiddenStallions: v.exactOptional(v.pipe(v.array(v.string()), v.maxLength(32))),
   retired: v.array(v.string()), nextId: v.pipe(finite, v.integer(), v.minValue(0)), dodgeCd: v.pipe(finite, v.minValue(0)) });
 type SavedMemory = v.InferOutput<typeof Memory>;
 
@@ -199,6 +199,13 @@ export function installNativePopulation(host: SimHost, hunt: StalkerBrain<HuntBo
   const speed = manager.noise, seen = manager.sight;
   const driver = new NativePopulationDriver(host, manager, hunt, rng, bodies, packOf, herdOf, ports.elites, flocks, wolves,
     { ...cfg.driver, tokens: cfg.tokens, program: ports.boot.admission, packKind: cfg.packKind, dogKind: cfg.dogKind, eliteKinds: cfg.eliteKinds }, groups);
+  // A room's creatures sense the player nearest each of them: their stance, heading and health, not the first player's.
+  driver.focused = () => {
+    if (host.players.size < 2) return;
+    const near = host.focusedPlayer, seat = mountedPlayerOf(host, near.id), vital = near.health.attributes;
+    env.playerFwdX = -Math.sin(near.yaw); env.playerFwdZ = -Math.cos(near.yaw);
+    env.playerCrouched = seat?.rider.crouching === true; env.playerMounted = seat?.mounted === true; env.playerHealth01 = vital.health / vital.maxHealth;
+  };
   const placement = new Rng(0); placement.restore(ports.wildStream);
   const raids: v.InferOutput<typeof PopulationPack>[] = [], elitePacks: v.InferOutput<typeof PopulationPack>[] = [];
   const deferredSpec = (kind: string, variant: string) => v.parse(nativeBodySchema('axis'), ports.boot.recipes.find(row => row.kind === kind && row.variant === variant));
@@ -316,7 +323,7 @@ export function installNativePopulation(host: SimHost, hunt: StalkerBrain<HuntBo
     eliteSpawns.push(...saved.elites); bonded.push(...saved.bonded ?? []);
     const hidden = saved.hiddenStallions ?? [];
     if (new Set(hidden).size !== hidden.length) throw new Error('Duplicate native population tamed stallion');
-    for (let i = 0; i < 2; i++) { const id = hidden[i]; if (id === undefined) break; const actor = host.entities.get(id); if (actor === undefined) throw new Error('Missing tamed native population stallion'); mountRoster.hide(actor.entityId); }
+    for (let i = 0; i < 32; i++) { const id = hidden[i]; if (id === undefined) break; const actor = host.entities.get(id); if (actor === undefined) throw new Error('Missing tamed native population stallion'); mountRoster.hide(actor.entityId); }
   };
   const firstFlock = flocks[0] ?? null;
   const horse = bodies.find(a => a.kind === cfg.companion.kind && a.herd === -1 && firstFlock !== null

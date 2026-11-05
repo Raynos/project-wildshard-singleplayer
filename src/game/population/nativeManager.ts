@@ -132,6 +132,8 @@ export class NativePopulationDriver {
   }
   /** CI12: kinds that decide through their own directed law (Nalati's ghost riders), as the page's self-thinking species */
   private readonly directed = new Map<string, NativeDirected>();
+  /** Runs when a body turns to the player nearest it, before it decides or acts (the room's senses, nativePopulation). */
+  focused: () => void = () => undefined;
   private readonly policy = { state: 'owned' as const, decide: (dt: number, actor: HuntBody): void => { this.decide(actor, dt); }, sample: (actor: HuntBody): void => { actor.sampleTerrain(); } };
   private readonly cadence;
   constructor(private readonly host: SimHost, private readonly manager: NativeManager, private readonly hunt: StalkerBrain<HuntBody>, private readonly rng: Rng,
@@ -155,6 +157,7 @@ export class NativePopulationDriver {
         if (dodged) for (const actor of bodies) if (actor.alive && !actor.harnessHold && !actor.hidden && (actor.aggressive || hunt.sensed(actor))) this.cadence.wake(actor);
       } });
     host.useBodyStep({ before: (_id, body, dt) => {
+      this.focused();
       const actor = this.bodies.find(candidate => candidate === body); if (actor === undefined || actor.hidden || !actor.alive || actor.stunned || actor.kind === rows.dogKind) return;
       const elite = elites.brains.get(actor);
       if (elite !== undefined) elite.act(actor);
@@ -235,6 +238,7 @@ export class NativePopulationDriver {
   private takeStep(id: string, urgent: boolean): number {
     const actor = this.host.entities.get(id); if (actor === undefined) throw this.missing;
     const dt = this.host.brainDt(id, urgent);
+    this.focused();
     if(this.always.has(actor.kind))return dt;
     const last = actor.mem['groupThinkAt'];
     if (dt <= 0 || (last !== undefined && this.host.clock.now-last < .1-1e-9)) return 0;

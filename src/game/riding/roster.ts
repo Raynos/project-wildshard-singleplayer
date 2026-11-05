@@ -50,9 +50,10 @@ export class BondedMountRoster {
   owns(actor: AnimalSim): actor is HuntBody {
     return this.records.some(row => row.body.id === actor.entityId) && this.service.bodies.some(body => body === actor);
   }
-  spawn(x: number, z: number, yaw: number, upgraded: boolean): HuntBody {
+  /** A bonded horse for a tamer who holds `bonds` already: the guest's one-companion rule is one each. */
+  spawn(x: number, z: number, yaw: number, upgraded: boolean, bonds: number = this.records.length): HuntBody {
     const { identities, random } = this.service;
-    const plan = this.program.project('bond', { x, z, bonds: this.records.length, elite: Number(upgraded) });
+    const plan = this.program.project('bond', { x, z, bonds, elite: Number(upgraded) });
     if (!Number.isFinite(yaw) || plan['accept'] !== 1) throw new Error('Invalid bonded mount adoption');
     const id = identities.allocate(), scale = random.range(this.rows.scale[0], this.rows.scale[1]); random.next(); const seed = random.next();
     const terrain = this.host.groundHeightAt(x, z), at = this.floor(x, z, Math.max(this.rows.spawnY, terrain) + 1);
@@ -89,6 +90,13 @@ export class BondedMountRoster {
     Object.assign(actor, { hidden: true }); actor.position.y = -1e4; actor.motor?.dispose(); actor.motor = null;
     const owner = this.service.identities.identity(id); if (owner !== null) this.service.identities.own(id, { ...owner, listed: false });
     this.host.bodyDt(id); this.host.brainDt(id); this.hidden.add(id);
+  }
+  /** J108: the wild pool fills the place a tamed horse left: a hidden body stands at (x, z), listed and wild again. */
+  reveal(id: string, x: number, z: number, yaw: number): void {
+    const actor = this.host.entities.get(id);
+    if (actor === undefined || !this.hidden.delete(id)) throw new Error('Foreign wild return');
+    Object.assign(actor, { hidden: false }); actor.mem['ridden'] = 0; actor.place(x, z, yaw);
+    const owner = this.service.identities.identity(id); if (owner !== null) this.service.identities.own(id, { ...owner, listed: true });
   }
   retire(id: string): void {
     const actor = this.host.entities.get(id), record = this.records.findIndex(row => row.body.id === id), index = actor === undefined ? -1 : this.service.bodies.findIndex(body => body.entityId === id && body === actor);

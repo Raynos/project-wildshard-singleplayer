@@ -92,6 +92,8 @@ test('a bot takes its own seat: its own horse, reins, save and fall, and the lea
     expect(seat.mount('boar:1')).toBe(true);
     expect(bot.modes.current()).toBe('ride'); expect(leadPlayer(host).modes.current()).toBe('foot');
     expect(lead.mount('boar:1')).toBe(false); expect(lead.mounted).toBe(false);
+    seat.dismount(); seat.claim('boar:1'); expect(lead.canRide('boar:1')).toBe(false); expect(seat.canRide('boar:1')).toBe(true);
+    expect(seat.mount('boar:1')).toBe(true);
     const gallop = { seq: 0, viewTick: 0, steer: { keyX: 0, keyY: 1, stickX: 0, stickY: 0 }, yaw: 0, pitch: 0, buttons: NET_BUTTONS.sprint };
     const reins = new Map([[bot.id, gallop]]);
     for (let tick = 0; tick < 30; tick++) host.step(reins);
@@ -175,7 +177,7 @@ test('G478 orchard fixture owns companion allocation, retirement and native tami
   const { Rng } = await import('@wildshard/engine/core/rng');
   const { NativeActors } = await import('../src/game/population/actors');
   const { BondedMountRoster } = await import('@wildshard/game/riding/roster');
-  const { installNativeTaming } = await import('@wildshard/game/riding/nativeTaming');
+  const { installNativeTaming, nativeTamingControls } = await import('@wildshard/game/riding/nativeTaming');
   const { SPECIES_POSES } = await import('../src/shards/nalati-grasslands/generators/speciesPoses');
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
   const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
@@ -201,6 +203,16 @@ test('G478 orchard fixture owns companion allocation, retirement and native tami
     poses: [], poseProgram: SPECIES_POSES.horse, presentation: { alive: 'alive', smooth: [], decay: [], graze: { target: 'graze', rate: 1, speed: .3 }, base: { bone: 'body', target: 'base' }, wind: { x: 'wx', z: 'wz', strength: 'wind' } },
     inputs: { offer: 'orchard.offer', lean: 'orchard.lean', pitch: 'orchard.pitch', mount: 'orchard.mount' }, rest: { x: 0, z: 0, face: { x: 1, z: 0 } }, rail: { x: 0, z: 0 }, eye: 1.6, impactRange: 4, scareRange: 20, scareSeconds: 3, thrownLabel: 'Thrown' });
   try {
+    // J108: each player tames for themselves, from their first offer; one player saves no extra row
+    const controls = nativeTamingControls(host), first = leadPlayer(host), bot = host.addPlayer('bot.tamer', { x: 8, y: first.position.y, z: 8 });
+    const tamingSave = host.adapters.get('orchard.taming'); if (controls === undefined || tamingSave === undefined) throw new Error('Missing taming controls');
+    expect(controls.sessionOf(first.id)).toBe(taming); expect(tamingSave.snapshot()).not.toHaveProperty('others');
+    controls.press(bot.id, { lean: 1 }); taming.update(1 / 60); expect(controls.sessionOf(bot.id)).toBeUndefined();
+    controls.press(bot.id, { offer: true }); taming.update(1 / 60);
+    const own = controls.sessionOf(bot.id); expect(own).toBeDefined(); expect(own).not.toBe(taming);
+    const held = tamingSave.snapshot(); expect(held).toHaveProperty(['others', bot.id]);
+    tamingSave.restore(held); expect(controls.sessionOf(bot.id)).toBe(own);
+    host.removePlayer(bot.id); taming.update(1 / 60); expect(controls.sessionOf(bot.id)).toBeUndefined();
     const actor = roster.spawn(2, 3, 0, false), before = random.snapshot();
     expect(actor.entityId).toBe('creature:0'); expect(bodies).toEqual([actor]); expect(sight).toEqual([false]);
     expect(() => roster.spawn(4, 3, 0, false)).toThrow(); expect(random.snapshot()).toEqual(before);

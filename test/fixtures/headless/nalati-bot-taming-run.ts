@@ -1,0 +1,64 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Read the admitted product and shipped physics bytes.
+import {readFileSync} from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Native behavior assertions run in this bounded child.
+import assert from 'node:assert/strict';
+import * as v from 'valibot';
+import {builtProduct} from '../builtProduct';
+import {loadHeadlessProduct} from '../../../src/sdk/headlessProduct';
+import {outputDescriptor} from '../../../src/game/shardfile/outputDescriptor';
+import {loadRapier} from '../../../src/engine/physics/rapier';
+import {NET_BUTTONS} from '../../../src/engine/input/netButtons';
+import {mountedPlayerOf} from '../../../src/game/riding/native';
+import {nativeTamingControls,nativeTamingOf} from '../../../src/game/riding/nativeTaming';
+import {createNativeProofResident} from '../headless-native';
+import {prepareHeadlessRuntime} from '../nalati-verbs';
+
+// J108, on the real Nalati stallion: a bot offers beside it, is put to the break (the approach is the first player's own
+// tested law, and a chase is only a matter of ticks) and rides out every bucking round on its own session, and the horse leaves the wild for the bot's own mount. The first player cannot ride it, and later the wild has
+// a stallion again for anyone else.
+const directory=builtProduct('nalati-grasslands'),product=await loadHeadlessProduct(directory),shard=product.shardfile;
+const descriptor=outputDescriptor(shard);assert.ok(descriptor);
+const assets=new Map(descriptor.index.files.map(file=>[file.commons===true?`commons:${file.hash}`:file.hash,
+  Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
+const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
+const resident=await createNativeProofResident({shard,assets,rapier,product},prepareHeadlessRuntime);
+try{
+  const {host}=resident,first=mountedPlayerOf(host),firstTaming=nativeTamingOf(host),controls=nativeTamingControls(host);
+  assert.ok(first);assert.ok(firstTaming);assert.ok(controls);
+  const stallion=[...host.entities.values()].find(actor=>actor.kind==='horse'&&actor.variant==='stallion');assert.ok(stallion);
+  const bot=host.addPlayer('bot.tamer',{x:stallion.position.x-3,y:stallion.position.y+.3,z:stallion.position.z});
+  let seq=0,balance=0,speed=0,sampled=0,breakingTicks=0,rounds=0;
+  for(let tick=0;tick<9000;tick++){
+    const session=controls.sessionOf(bot.id);
+    if(session?.phase==='bonded')break;
+    const breaking=session?.phase==='breaking';
+    let x=0,z=0;
+    if(!breaking){const dx=stallion.position.x-bot.position.x,dz=stallion.position.z-bot.position.z,length=Math.hypot(dx,dz);if(length>2.2){x=dx/length;z=dz/length;}}
+    const gauge=session?.view.balance??0;
+    if(!breaking){balance=gauge;speed=0;sampled=host.state.tick;}
+    else{breakingTicks++;rounds=Math.max(rounds,session?.view.round??0);if(gauge!==balance){speed=(gauge-balance)/((host.state.tick-sampled)/60);balance=gauge;sampled=host.state.tick;}}
+    controls.press(bot.id,{offer:true,lean:Math.max(-1,Math.min(1,balance*2+speed*1.1)),...((session?.interactable.radius??0)>0?{mount:true}:{})});
+    if(tick===30&&session!==undefined)session.forceBreak();
+    resident.lend([]);
+    host.step(new Map([[bot.id,{seq:seq++&0xffff,viewTick:0,steer:{keyX:x,keyY:-z,stickX:0,stickY:0},yaw:0,pitch:0,buttons:NET_BUTTONS.crouch}]]));
+  }
+  const session=controls.sessionOf(bot.id),seat=mountedPlayerOf(host,bot.id);assert.ok(session);assert.ok(seat);
+  assert.equal(session.phase,'bonded',`the bot earns the bond (round ${String(rounds)}, ${String(breakingTicks)} ticks breaking, ${String(bot.position.distanceTo(stallion.position))} m away)`);
+  assert.equal(rounds,5);assert.equal(firstTaming.phase,'wild','the first player has tamed nothing');
+  const mount=session.companion;assert.ok(mount);assert.equal(mount.variant,'tulpar');
+  assert.equal(seat.horse,mount,'the bot rides off on its own mount');assert.equal(host.entities.get(mount.entityId),mount,'everyone sees it');
+  assert.equal(stallion.position.y,-1e4,'the stallion has left the wild');
+  seat.dismount();assert.equal(first.canRide(mount.entityId),false,'that horse is not the first player\'s');assert.equal(seat.canRide(mount.entityId),true);
+  const adapter=host.adapters.get('nalati.taming');assert.ok(adapter);
+  resident.lend([]);host.step();
+  const wild=v.parse(v.looseObject({wild:v.record(v.string(),v.number())}),adapter.snapshot()).wild;
+  assert.deepEqual(Object.keys(wild),[stallion.entityId],'a room waits for a new wild one');
+  const due=wild[stallion.entityId];assert.ok(due!==undefined&&due>host.clock.now+60);
+  // Five minutes of game clock, skipped through the save: the return is a saved appointment.
+  const saved=adapter.snapshot();assert.ok(typeof saved==='object'&&saved!==null&&!Array.isArray(saved));
+  adapter.restore({...saved,wild:{[stallion.entityId]:host.clock.now}});
+  resident.lend([]);host.step();
+  assert.ok(stallion.position.y>-1e3,'a wild stallion stands again');assert.equal(stallion.alive,true);
+  assert.equal(firstTaming.phase,'wild');assert.equal(first.canRide(mount.entityId),false,'the tamed horse stays the bot\'s');
+  console.info(JSON.stringify({story:'bot-taming',ticks:host.state.tick,breakingTicks,rounds,mount:mount.entityId}));
+}finally{resident.dispose();}
