@@ -13,7 +13,7 @@ import {publishEntryOwner,lendEntryOwner} from '../src/game/client/shardfile/ent
 import {bindResidentWorldScope} from '../src/game/client/shardfile/hybridPresentation';
 import {enterClientAudioScene} from '../src/game/client/audio/sceneDirector';
 import * as gameplay from '../src/game/client/plugin/audio';
-import type {ShardContext} from '../src/game/server/plugin/context';
+import type {ShardContext} from '../src/game/client/plugin/context';
 import {driftwoodGameplayAudioEnvironment} from '../src/shards/driftwood-isle/generators/gameplayAudioEnvironment';
 import source from '../src/shards/driftwood-isle/data/audioSource.json' with {type:'json'};
 import { islandFoliagePlacements } from '../src/shards/driftwood-isle/generators/islandDressing';

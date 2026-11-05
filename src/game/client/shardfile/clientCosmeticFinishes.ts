@@ -4,7 +4,7 @@ import { pageRidingMount } from '../riding/client';
 import { isBowStyle } from '../../server/weapons/starterBowProfile';
 import { entryOwner, presentEntryOwner } from './entryOwners';
 import { enteredAdventurePersistence } from '../../shared/quest/chapterBindings';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
 
 interface ClientCosmeticFinishes { readonly locker: CosmeticFinishLocker; readonly painter: CosmeticFinishPainter;

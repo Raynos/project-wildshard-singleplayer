@@ -1,6 +1,6 @@
 /** G677: the original entered stealth, mounted and weapon bindings as rows. */
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import type { HeldSlotKit } from '../loadout/claims';
 import { clientWildlifeState } from '../../server/population/wildlife';
 import { wildEnv } from '../../server/population/pageGroups';

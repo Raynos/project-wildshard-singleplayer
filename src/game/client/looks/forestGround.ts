@@ -9,7 +9,7 @@ import { forestGroundLayoutSteps, type ForestPageRows, type GroundPlacement } fr
 import { plumbingKnob } from '../shard/declaredPlumbing';
 import type { CoverAppearance, CoverMaterial } from './coverAppearance';
 import { readForestGroundInputs } from './forestGroundInputs';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 
 export interface ForestGroundDraw { readonly geometry: BufferGeometry; readonly material: CoverMaterial; readonly castShadow: boolean }
 /** Output-only native field borrowed by model placement and specimen views. */

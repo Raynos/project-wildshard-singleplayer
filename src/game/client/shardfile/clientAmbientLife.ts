@@ -1,6 +1,6 @@
 /** Entered ambient life borrows the original resident flock draws. */
 import { parsePageLife } from '@wildshard/format/pageLife';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { installPageLife, type PageLife } from '../population/pageLife';
 import { entryOwner } from './entryOwners';
 

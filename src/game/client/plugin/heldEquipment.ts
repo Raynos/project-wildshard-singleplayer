@@ -5,7 +5,7 @@ import { loadTexture } from '@wildshard/engine/core/assets';
 import { emitFault } from '@wildshard/engine/core/faults';
 import { viewmodelRowMaterial, type RangedWorld, type TexSet, type ViewmodelSet } from '@wildshard/engine/combat/view/ranged';
 import { prepareRangedFeel } from '@wildshard/engine/combat/view/rangedFeel';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from './context';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
 import type { Targets } from '@wildshard/engine/combat/types';

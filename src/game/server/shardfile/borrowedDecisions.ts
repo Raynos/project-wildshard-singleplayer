@@ -12,7 +12,7 @@ import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { readStrikeState } from '@wildshard/engine/ai/strikeState';
 import { focusPlayer, ShardDecisions, type DecisionRuntime } from './decisions';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import type { SimHost } from '@wildshard/engine/sim';
 import { floorBelow } from '@wildshard/engine/physics/query';
 import { canReach } from '@wildshard/engine/ai/reach';

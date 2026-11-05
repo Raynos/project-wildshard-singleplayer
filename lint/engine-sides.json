@@ -1133,7 +1133,7 @@
    "mixed": true
   },
   "src/game/client/plugin/clientChannelView.ts": "client",
-  "src/game/server/plugin/context.ts": "server",
+  "src/game/client/plugin/context.ts": "client",
   "src/game/client/plugin/creatureFrame.ts": "client",
   "src/game/server/plugin/director.ts": "server",
   "src/game/client/plugin/geometry.ts": "client",
@@ -1311,7 +1311,7 @@
   "src/game/shared/shard/api.ts": "shared",
   "src/game/client/shard/art.generated.ts": "client",
   "src/game/server/shard/declaredEncounters.ts": "server",
-  "src/game/server/shard/declaredEntry.ts": "server",
+  "src/game/client/shard/declaredEntry.ts": "client",
   "src/game/client/shard/declaredPlumbing.ts": "client",
   "src/game/shared/shard/declaredRows.ts": "shared",
   "src/game/client/shard/declaredTargets.ts": "client",

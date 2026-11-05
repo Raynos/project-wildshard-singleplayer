@@ -15,7 +15,7 @@ import type { InteractTable, createQuestPlacements } from '@wildshard/engine/wor
 import type { QuestPageTalksRows } from '@wildshard/format/npcs';
 import { completionProjection, type CompletionProgress } from '../complete/declared';
 import { ProductFigureCatalogue } from '../models/figureCatalogue';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { QuestViews, type QuestNpcTalkPorts } from '../plugin/ui';
 import { ControlRefinement } from '../shardfile/controlRefinement';
 import { residentWorldScope } from '../shardfile/hybridPresentation';

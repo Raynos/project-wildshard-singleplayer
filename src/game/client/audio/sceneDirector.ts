@@ -24,7 +24,7 @@ import { audioMixValue, requireAudioProfile } from '@wildshard/engine/audio/audi
 import { panFromYaw, audioRandom } from '@wildshard/engine/audio/util';
 import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import { CombatCues, type CombatCueOpts } from '@wildshard/engine/combat/cues';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import { AudioVoicePatches } from './voicePatches';
 

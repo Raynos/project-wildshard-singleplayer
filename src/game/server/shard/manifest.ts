@@ -4,7 +4,7 @@ import { readFileInputs } from '../../shared/shardfile/fileInputs';
 import { ScalarLatticeSchema,ScalarTripletSchema,type ScalarLatticeRows,type ScalarTripletRows } from '@wildshard/format/scalarChannel';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { basinBody,type WaterBody } from '@wildshard/engine/world/water/body';
-import type { ShardPlugin } from "../plugin/context";
+import type { ShardPlugin } from "../../client/plugin/context";
 import type { Ktx2Table } from '@wildshard/engine/boot/gpuFiles';
 import type { SwordArms, SwordFraming, SwordMoveSet, SwordRig } from '@wildshard/engine/combat/view/melee';
 import type { Noise2D } from '@wildshard/engine/core/noise';

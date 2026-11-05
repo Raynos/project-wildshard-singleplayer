@@ -13,7 +13,7 @@ import {parseCarriedQuest} from '@wildshard/format/questSteps';
 import {parseDecisionScripts} from '@wildshard/format/decisionScripts';
 import * as terrain from '../src/engine/shared/world/terrainHeight';
 import * as riding from '../src/game/client/riding/client';
-import type {ShardContext} from '../src/game/server/plugin/context';
+import type {ShardContext} from '../src/game/client/plugin/context';
 import {carriedQuestRows} from './fixtures/nalati-carried-quest';
 
 function fixture(){

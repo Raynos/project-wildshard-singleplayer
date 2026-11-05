@@ -4,7 +4,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { LightEmitters } from '@wildshard/engine/fx/lightEmitters';
 import { SiteLights } from '@wildshard/engine/fx/SiteLights';
 import { parseLightEmitters, type LightEmittersRows } from '@wildshard/format/lightEmitters';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { prepareClientWorld } from './runtimeProduct';
 import { sceneScalar, sceneVectors } from './sceneInputs';
 import type { SceneHandles } from './sceneHandles';

@@ -18,7 +18,7 @@ import {emptyShardfile} from '../src/sdk/author';
 import {emitNamedBlobs,nameBlob} from '../src/sdk/blobs';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {SceneDressing} from '../src/game/client/shardfile/sceneDressing';
-import type {ShardContext} from '../src/game/server/plugin/context';
+import type {ShardContext} from '../src/game/client/plugin/context';
 import {explorerRoster} from '../src/game/client/models/explorerCatalogue';
 import {awaitSpecimenAssets,defineSpecimenCatalogue,loadSpecimenAsset,prepareSpecimenCatalogue} from '../src/game/client/models/specimenCatalogue';
 

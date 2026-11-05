@@ -2,7 +2,7 @@ import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { installArenaRoomEntry } from '../src/game/client/shardfile/clientEntryBinds';
 import { entryOwner, publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
 import { HeldClaims, type HeldSlotKit } from '../src/game/client/loadout/claims';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ModelDef } from '../src/engine/client/models/model';
 import { currentOwner } from '../src/engine/shared/app/ownership';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

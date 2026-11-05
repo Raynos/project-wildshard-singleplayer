@@ -7,7 +7,7 @@ import type { Physics } from '@wildshard/engine/physics/Physics';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { WorldRegistry } from '@wildshard/engine/world/registry';
 import * as model from '@wildshard/engine/models/model';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from './context';
 import type { ShardWorld } from '../../server/shard/world';
 import type { ShardRuntime } from '../../shared/shard/runtime';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';

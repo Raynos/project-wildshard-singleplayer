@@ -1,7 +1,7 @@
 import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial } from 'three';
 import { parse } from 'valibot';
 import { ClientBossTelegraphSchema } from '@wildshard/format/clientNative';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { clientNativeBook } from './clientNativeBook';
 
 /** Client-only telegraphs on the original encounter. Marked views are consumed

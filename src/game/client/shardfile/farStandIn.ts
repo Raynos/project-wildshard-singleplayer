@@ -21,7 +21,7 @@ import { publicBytes } from '@wildshard/engine/boot/tables';
 import { readContent } from '@wildshard/engine/boot/contentRead';
 import { farProxyMaterial } from '../grid/farView';
 import { bakedNearFiles } from '../grid/nearPlaceholderView';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import type { TileContent } from './tileContent';
 
 /** metres a near-view corner may rise above the terrain and still count as ground */

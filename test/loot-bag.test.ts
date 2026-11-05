@@ -4,7 +4,7 @@ import * as v from 'valibot';
 import { Scope } from '../src/engine/shared/app/scope';
 import { Flags } from '../src/engine/shared/world/interact/flags';
 import { QuestState } from '../src/engine/server/quest/core';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { Owned } from '../src/game/shared/loot/Owned';
 import { Purse } from '../src/game/server/loot/Purse';

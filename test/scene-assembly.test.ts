@@ -5,7 +5,7 @@ import * as gpu from '../src/engine/client/core/gpuOnly';
 import { Scope } from '../src/engine/shared/app/scope';
 import { type Piece, WorldRegistry } from '../src/engine/client/world/registry';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import type { ShardWorld } from '../src/game/server/shard/world';
 import { CLIENT_FEATURES, admitClientPlan } from '../src/game/client/shardfile/clientPlan';

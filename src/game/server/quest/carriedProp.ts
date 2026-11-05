@@ -10,7 +10,7 @@ import { ReturnProgram } from '../../shared/population/returnProgram';
 import { pageRidingMount } from '../../client/riding/client';
 import { commitQuestEffects } from './effects';
 import { boundQuestState } from '../../shared/quest/boundState';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import { carriedRound, carriedRoundCarrying, carriedRoundDue, carriedRoundFrame, carriedRoundGoal, carriedRoundHome, carriedRoundOutputs, type CarriedRound } from './carriedRound';
 
 /** Client-only projection of an existing carried-prop guest. The entered world,

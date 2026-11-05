@@ -25,7 +25,7 @@ import { perfLap } from '@wildshard/engine/core/perfLap';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { ITEMS, isItemId } from '../../shared/bag/itemCatalog';
 import type { ItemId } from '../Inventory';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import { QuestViews, bindQuestPageInteractions, type QuestPageInteractions } from '../../client/plugin/ui';
 import type { MoverRuntime } from '../plugin/mover';
 import type { DialogueBox } from '@wildshard/engine/quest/view/ui';

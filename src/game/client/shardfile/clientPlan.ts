@@ -21,7 +21,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { parseClientPlan, type ClientFeatureKind, type ClientFeatureRow } from '@wildshard/format/clientPlan';
 import { clientOwnershipRules } from '@wildshard/format/clientOwnership';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { ProductError, type ShardProduct } from '../../shared/shardfile/shardProduct';
 import { clientSceneHandles, publishClientSceneHandles } from './clientSceneHandles';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';

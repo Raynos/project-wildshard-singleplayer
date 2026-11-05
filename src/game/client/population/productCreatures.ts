@@ -5,7 +5,7 @@ import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalMaterial } from '@wildshard/engine/entities/AnimalFactory';
 import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
 import type { SpeciesDecisionAuthority } from '../../server/plugin/brain';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { PerchBodyBinding } from '../../server/population/perchBody';
 import { registerLootTable } from '../../server/loot/tables';
 import { readLootTables } from '../../shared/loot/tableRows';

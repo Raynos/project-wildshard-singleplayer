@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
 import { WorldRegistry } from '@wildshard/engine/world/registry';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from './context';
 import { bindClientPlaceSets, installClientPlaceSets, requireClientPlaceSetsBound } from '../shardfile/clientPlaceSets';
 import * as workSlice from '@wildshard/engine/core/workSlice';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { App } from '../src/engine/client/app/app';
 import { Scope } from '../src/engine/shared/app/scope';
 import { createLevelInstallation } from '../src/engine/client/level/installation';
-import { shardContext, type BagVerbs } from '../src/game/server/plugin/context';
+import { shardContext, type BagVerbs } from '../src/game/client/plugin/context';
 import { installEnteredRuntimeService, RetainedRuntimeHooks } from '../src/game/client/shard/retainedHooks';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { MeshBasicMaterial } from 'three';

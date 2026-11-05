@@ -10,7 +10,7 @@ import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { installWeatherFields, settleWeatherFields } from '../src/game/client/shardfile/weatherFields';
 import { sceneScalar, sceneScalarValue } from '../src/game/client/shardfile/sceneInputs';
 import { graphParamFeeds } from '../src/game/client/shardfile/clientGraphs';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 

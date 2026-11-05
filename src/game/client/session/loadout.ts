@@ -34,7 +34,7 @@ import type { DiscSpot } from '@wildshard/engine/ui/hudSlots';
 import { GAME_STRINGS } from '../../shared/strings';
 import { titleCards } from '../titleDeck';
 import { buildTitleMenu } from '../mainMenu';
-import { pageMode } from '../../server/plugin/context';
+import { pageMode } from '../plugin/context';
 import { enterGrid } from '../grid/pageEntry';
 import { travel } from '../travel/travel';
 import type { worldStage } from './world';

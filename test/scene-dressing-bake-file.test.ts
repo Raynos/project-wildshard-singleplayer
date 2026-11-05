@@ -3,7 +3,7 @@ import { zlibSync } from 'fflate';
 import { BoxGeometry, BufferGeometry, Group } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
 import { SceneDressing } from '../src/game/client/shardfile/sceneDressing';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { SceneDressingSchema } from '@wildshard/format/sceneDressing';
 import { writeGeometry, join } from '../src/shards/nalati-grasslands/generators/geometryWriter';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

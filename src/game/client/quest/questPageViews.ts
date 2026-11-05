@@ -15,7 +15,7 @@ import * as v from 'valibot';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { perfLap } from '@wildshard/engine/core/perfLap';
 import { DomePuffs } from '@wildshard/engine/fx/groundFx';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import type { QuestPageComposition } from '../../server/quest/pageComposition';
 import { entryOwner } from '../shardfile/entryOwners';
 import { installChapterLead, type QuestSpawnResult } from '../../server/quest/chapterDirector';

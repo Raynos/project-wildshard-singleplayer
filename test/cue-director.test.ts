@@ -12,7 +12,7 @@ import { CueDirectorSchema } from '@wildshard/format/cueDirector';
 import * as sceneSources from '../src/game/client/shardfile/sceneSources';
 import { createModelLibrary } from '../src/game/client/plugin/geometry';
 import { lendLooks } from '../src/game/client/shardfile/lentLooks';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import king from '../src/shards/pine-hollow/data/kingCues.json' with { type: 'json' };
 
 afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });

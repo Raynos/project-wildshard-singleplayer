@@ -8,7 +8,7 @@ import { PAGE_LIFE } from '../src/shards/pine-hollow/generators/pageLife';
 import { PAGE_LIFE as coastLife } from '../src/shards/driftwood-isle/generators/pageLife';
 import { AmbientFlockDraw } from '../src/game/client/ambient/ambientFlock';
 import { installPageLife } from '../src/game/client/population/pageLife';
-import type { ShardContext, GameServices } from '../src/game/server/plugin/context';
+import type { ShardContext, GameServices } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import type { ShardWorld } from '../src/game/server/shard/world';
 import type { Game } from '../src/engine/client/core/Game';

@@ -3,7 +3,7 @@ import { Group } from 'three';
 import type { Bounds } from '@wildshard/engine/level/spec';
 import type { ShardRuntime } from '../../shared/shard/runtime';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { entryOwner } from './entryOwners';
 
 /** An admitted play-area policy over the current entered world's player. */

@@ -3,7 +3,7 @@ import { Window } from 'happy-dom';
 import { installClientEliteEntry } from '../src/game/client/shardfile/clientEliteEntry';
 import { publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { ENGINE_CONTENT_STRINGS } from '../src/game/client/engineStrings';
 import { installEngineStrings } from '../src/engine/shared/strings';

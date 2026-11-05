@@ -4,7 +4,7 @@ import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { Scope } from '../src/engine/shared/app/scope';
 import { app } from '../src/engine/client/app/runtime';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import * as geometryTools from '../src/game/client/plugin/geometry';
 import loadout from '../src/shards/nalati-grasslands/data/loadout.json' with { type: 'json' };

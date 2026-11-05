@@ -28,7 +28,7 @@ import { macrotask } from '@wildshard/engine/boot/plan';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { ForestPageRows } from '@wildshard/format/forestPage';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { pageModeCap } from '../shard/pagePolicy';
 import { PosedDraw } from '../looks/posedInstances';
 import { rangedPage, type RangedPage } from '../loadout/rangedPage';

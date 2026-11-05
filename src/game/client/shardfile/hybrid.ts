@@ -8,7 +8,7 @@ import { ownerTask, withOwner } from '@wildshard/engine/app/ownership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { createLevelInstallation, type LevelInstallation } from '@wildshard/engine/level/installation';
-import { shardContext, type ShardContext, gridCells, gridHomeSim, pageGridInstance, type GridCellRef, ShardPlugin } from '../../server/plugin/context';
+import { shardContext, type ShardContext, gridCells, gridHomeSim, pageGridInstance, type GridCellRef, ShardPlugin } from '../plugin/context';
 
 import type { ShardRuntime } from '../../shared/shard/runtime';
 import { bindScopedRuntime, createScopedRuntimeBinding, type ScopedRuntimeBinding } from '../shard/scopedRuntime';

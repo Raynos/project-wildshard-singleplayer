@@ -10,7 +10,7 @@ import { QuestState } from '../src/engine/server/quest/core';
 import { withOwner } from '../src/engine/shared/app/ownership';
 import { QuestFlagGates } from '../src/game/server/quest/flagGates';
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 const rows = { gates: [{ id: 'sluice', opensWhen: { all: ['open:sluice'] },

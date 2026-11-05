@@ -161,7 +161,7 @@ only contains the word, not a `#box` row).
 - `game/cook/bake/entryways.ts`: `proveSocketLift`
 - `game/shared/compendium/types.ts`: `CompendiumSkin`
 - `game/server/inventoryLaw.ts`: `InventoryState`
-- `game/server/plugin/context.ts`: `ShardCube`
+- `game/client/plugin/context.ts`: `ShardCube`
 - `game/server/plugin/mover.ts`: `moverQueries`
 - `game/server/shard/manifest.ts`: `Vec2`, `RGB`, `OceanDef`
 - `game/client/shardfile/bakedKinds.ts`: `BakedKindRow`, `BakedColliderRow`, `bakedColliders`, `bakedKindsGroup`
@@ -229,7 +229,7 @@ retire its row in that registry and in `test/platform-chargebacks.test.ts` / the
 
 ## 4. ShardContext / ShardPlugin / LevelContext members with no caller
 
-Checked every member of `ShardContext` (`src/game/server/plugin/context.ts:80`), `GameServices` (:66), `BagVerbs`,
+Checked every member of `ShardContext` (`src/game/client/plugin/context.ts:80`), `GameServices` (:66), `BagVerbs`,
 `GameRowMap`/`GameRows`, the `ShardPlugin` hooks (:190) and the inherited `LevelContext` / `EngineRows`
 (`src/engine/server/level/context.ts:19-90`), counting direct calls, ports passed by reference (`debugRow: ctx.debugRow`,
 `knobs: ctx.tiers.knobs`), and string-keyed row dispatch (`game.rows.get(kind)`, `levelRegistrations.get/list(kind)`).
@@ -249,7 +249,7 @@ Have callers (keep): `manifest`, `game` (`residency`, `runtime`, `declaredAudio`
 `cube` (`src/game/client/audio/sceneDirector.ts:223`), `product` (many). LevelContext: `playground`
 (`src/game/client/practice/registration.ts:10`), `tiers.knobs` (`client.ts:243`), `strings` (`src/game/client/shardfile/clientPlan.ts:273`),
 `debugRow` (port at `client.ts:569`), `inputContext` (`src/game/client/riding/client.ts:256`), `piece`, `system`, `on`, `answer`,
-`hud`, `debug.expose`. `ShardPlugin` stays: `src/game/client/grid/pageShell.ts:61` and `src/game/server/shard/declaredEntry.ts:29`
+`hud`, `debug.expose`. `ShardPlugin` stays: `src/game/client/grid/pageShell.ts:61` and `src/game/client/shard/declaredEntry.ts:29`
 extend it; `GridHomeHandoff.expect` has one caller (`src/game/client/shardfile/hybrid.ts:325`, LD9b area). Other context.ts
 exports all have readers (`buildProgress`: `src/game/client/shardfile/clientWorldAssembly.ts:47`; `compiledPageBoot`,
 `pageGridInstance`, `gridHomeSim`, `sourceManifest`). Export-level only: `ShardCube` is used only inside context.ts (3b).

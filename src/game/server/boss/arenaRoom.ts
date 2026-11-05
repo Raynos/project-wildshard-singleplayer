@@ -6,7 +6,7 @@ import type { BossViewBinding, PhasedBossFight } from '../plugin/bossPhase';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import { installBossEncounter, type Boss } from '../Boss';
 import type { BossBar } from '@wildshard/engine/ui/BossBar';
 import type { Game } from '@wildshard/engine/core/Game';

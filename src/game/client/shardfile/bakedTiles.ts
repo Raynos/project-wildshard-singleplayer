@@ -24,7 +24,7 @@ import { boxDesc, type ColliderDesc, type WorldRegistry } from '@wildshard/engin
 import { withOwner } from '@wildshard/engine/app/ownership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { BakedPlanSchema, BakedTilesSchema, type BakedPlan, type BakedSource, type BakedTilesRow } from '@wildshard/format/bakedTiles';
 import { followToonLook } from '../looks/toonLook';

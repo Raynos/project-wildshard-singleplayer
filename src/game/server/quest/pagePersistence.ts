@@ -1,5 +1,5 @@
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { SaveSlot, SaveStore } from '@wildshard/engine/saves/store';
 import type { Progress } from '../../client/Progress';

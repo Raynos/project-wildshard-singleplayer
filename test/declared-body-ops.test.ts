@@ -16,7 +16,7 @@ import { SkyRig } from '../src/engine/client/world/skyRig';
 import { activeLevel, configureLevel } from '../src/engine/shared/level/selection';
 import { Scope } from '../src/engine/shared/app/scope';
 import { app } from '../src/engine/client/app/runtime';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { installKitWorldFixture } from './fixtures/kit-world';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';

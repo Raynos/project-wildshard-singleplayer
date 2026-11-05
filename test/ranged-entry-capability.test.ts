@@ -9,7 +9,7 @@ import { installEntryRangedPage } from '../src/game/client/shardfile/clientQuest
 import { currentPageMode, setPageMode } from '../src/game/shared/grid/pageMode';
 import authoredPlan from '../src/shards/pine-hollow/data/clientPlan.json' with { type: 'json' };
 import { prepareRangedPage } from '../src/game/client/loadout/rangedPage';
-import { shardContext } from '../src/game/server/plugin/context';
+import { shardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { admitClientPlan, installClientPhase } from '../src/game/client/shardfile/clientPlan';

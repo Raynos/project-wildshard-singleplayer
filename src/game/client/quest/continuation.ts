@@ -3,7 +3,7 @@
 import * as v from 'valibot';
 import { QuestContinuationSchema, parseQuestContinuationDocument } from '@wildshard/format/questContinuation';
 import { CollectionDisplaysSchema } from '@wildshard/format/collectionDisplay';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { requireClientPlaceSetsBound } from '../shardfile/clientPlaceSets';
 import { entryOwner } from '../shardfile/entryOwners';
 import { declaredLootEconomy } from '../../shared/shard/declaredRows';

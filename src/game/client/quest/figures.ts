@@ -26,7 +26,7 @@ import { SceneHandles } from '../shardfile/sceneHandles';
 import { hasLentLook, lentLook } from '../shardfile/lentLooks';
 import { defineModel, sharedModelContext, type ModelDef } from '@wildshard/engine/models/model';
 import { place as placeModel } from '@wildshard/engine/models/place';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { FigureRows } from '../systems/npc/figureRows';
 import { stepFigureOrbit } from './figureOrbit';
 import { ownQuestTree } from './chapterView';

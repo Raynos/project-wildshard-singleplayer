@@ -7,7 +7,7 @@ import type {DeclaredEliteEntry} from '../src/engine/client/ai/view/eliteEntry';
 import type {Animal} from '../src/engine/client/entities/AnimalView';
 import type {ArenaRoomEncounter} from '../src/game/server/boss/arenaRoom';
 import type {TimedEncounters} from '../src/game/server/boss/timedEncounters';
-import type {ShardContext} from '../src/game/server/plugin/context';
+import type {ShardContext} from '../src/game/client/plugin/context';
 import type {ShardWorld} from '../src/game/server/shard/world';
 import type {ShardRuntime} from '../src/game/shared/shard/runtime';
 import {admitClientPlan} from '../src/game/client/shardfile/clientPlan';

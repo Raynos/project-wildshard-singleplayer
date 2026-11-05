@@ -21,7 +21,7 @@ import { emitNamedBlobs, nameBlob } from '../src/sdk/blobs';
 import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { SceneDressing } from '../src/game/client/shardfile/sceneDressing';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { explorerRoster } from '../src/game/client/models/explorerCatalogue';
 import { awaitSpecimenAssets, defineSpecimenCatalogue, loadBoundSpecimen, prepareSpecimenCatalogue } from '../src/game/client/models/specimenCatalogue';
 

@@ -9,7 +9,7 @@ import { WorldRegistry } from '../src/engine/client/world/registry';
 import { sharedModelContext } from '../src/engine/client/models/model';
 import type { OwnedGeometry } from '../src/engine/client/models/ownedGeometry';
 import type { FixedDraws } from '../src/game/client/models/fixedDraws';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardWorld } from '../src/game/server/shard/world';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { createShardProduct, type ShardProduct } from '../src/game/shared/shardfile/shardProduct';

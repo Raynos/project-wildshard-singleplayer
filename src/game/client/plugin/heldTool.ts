@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { viewmodelMaterial, whiteColors } from '@wildshard/engine/combat/view/ranged';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { ModelContext } from '@wildshard/engine/models/model';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from './context';
 import { HeldPlayback } from './weaponFamily';
 import { createModelLibrary, paintedPrimitives, type PaintedPrimitiveRow } from './geometry';
 import * as v from 'valibot';

@@ -4,7 +4,7 @@ import {prepareHeldClaimsEntry,installHeldClaimsEntry} from '../src/game/client/
 import {entryOwner} from '../src/game/client/shardfile/entryOwners';
 import {CLIENT_FEATURES} from '../src/game/client/shardfile/clientPlan';
 import {Scope} from '../src/engine/shared/app/scope';
-import type {ShardContext} from '../src/game/server/plugin/context';
+import type {ShardContext} from '../src/game/client/plugin/context';
 import type {ShardRuntime} from '../src/game/shared/shard/runtime';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';

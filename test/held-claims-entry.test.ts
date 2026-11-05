@@ -5,7 +5,7 @@ import { heldSwordWorld } from './fixtures/heldNativeSword';
 import { Sword } from '../src/game/server/weapons/Sword';
 import { Scope } from '../src/engine/shared/app/scope';
 import { ToonLook } from '../src/engine/client/render/families/toon';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { HeldClaims } from '../src/game/client/loadout/claims';
 import { entryOwner } from '../src/game/client/shardfile/entryOwners';

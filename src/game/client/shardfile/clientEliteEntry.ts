@@ -2,7 +2,7 @@
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import { EliteBar } from '@wildshard/engine/ui/EliteBar';
 import { Elites } from '../../server/Elite';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { retainsRuntimeServices } from '../shard/retainedHooks';
 import { entryOwner } from './entryOwners';
 

@@ -5,7 +5,7 @@ import type { SceneHandles } from './sceneHandles';
 import { publishClientSceneHandles } from './clientSceneHandles';
 import type { IslandLibrary } from '../models/islandLibrary';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
-import { buildProgress, type ShardContext } from '../../server/plugin/context';
+import { buildProgress, type ShardContext } from '../plugin/context';
 import { admittedIslandBook, preflightIslandBook } from './islandBook';
 import { WorldAssembly } from './worldAssembly';
 import { HybridResidentWorld } from './hybrid';

@@ -11,7 +11,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import { Events } from '../src/engine/shared/events/events';
 import { app } from '../src/engine/client/app/runtime';
 import type { ModelContext } from '../src/engine/client/models/model';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import type { ShardWorld } from '../src/game/server/shard/world';
 import type { ForestWeatherRig } from '../src/game/client/weather/forest';

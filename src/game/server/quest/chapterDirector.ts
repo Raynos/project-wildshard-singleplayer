@@ -7,7 +7,7 @@ import { bindRuntimeBoss } from '../plugin/headless';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { WakeBossEncounter } from '../boss/wake';
 import { presentWakeBoss } from '../../client/boss/presentation';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import { readDirectorProduct } from '../plugin/director';
 import { enteredCompletion } from '../../client/complete/declared';
 import { boundQuestChapter } from './chapter';

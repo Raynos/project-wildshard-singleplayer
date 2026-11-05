@@ -17,7 +17,7 @@ import {fixtureProductFile,fixtureJsonCheck} from './fixtures/productFile';
 import {emptyShardfile} from '../src/sdk/author';
 import {parseItems} from '@wildshard/format/items';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
-import type {ShardContext} from '../src/game/server/plugin/context';
+import type {ShardContext} from '../src/game/client/plugin/context';
 import type {ShardRuntime} from '../src/game/shared/shard/runtime';
 import type {Targets} from '../src/engine/client/combat/types';
 import type {EquipmentService} from '../src/engine/client/combat/EquipmentService';

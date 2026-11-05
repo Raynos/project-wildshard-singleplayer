@@ -21,7 +21,7 @@ import * as sceneSources from '../src/game/client/shardfile/sceneSources';
 import { admitWorldSceneStepSources, worldSceneStepSources } from '../src/game/client/shardfile/worldSceneStepSources';
 import { createModelLibrary, rigLibrary } from '../src/game/client/plugin/geometry';
 import { sceneScalar, sceneScalarValue, sceneVectors } from '../src/game/client/shardfile/sceneInputs';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { originalSkyOutput } from './fixtures/sky-scene-source';
 import { originalOutput as signal } from './fixtures/sunscar-source-program';
 import { signalEmberBuffer, SIGNAL_EMBER_BLOBS } from '../src/shards/sunscar-dunes/generators/emberBuffers';

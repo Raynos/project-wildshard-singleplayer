@@ -1,7 +1,7 @@
 import { parse } from 'valibot';
 import { Mesh } from 'three';
 import { ClientHeldMeleeSchema } from '@wildshard/format/clientNative';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { createDeclaredHeldMelee } from '../plugin/weaponFamily';
 import { startMeleeSecondary } from '../../server/plugin/simulation';
 import { runtimeEquipment } from '../../server/plugin/headless';

@@ -11,7 +11,7 @@ import * as v from 'valibot';
 import { HeldClaims, HeldClaimGuard } from '../src/game/client/loadout/claims';
 import * as compiler from '../src/game/client/shardfile/runtimeProduct';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { emptyShardfile } from '../src/sdk/author';

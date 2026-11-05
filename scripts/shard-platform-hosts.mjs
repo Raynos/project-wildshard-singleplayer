@@ -11,7 +11,7 @@ const hosts = {
   'look/painted': ['game/client/looks/paintedLook#productPaintedLook'],
   'look/colour-functions': ['engine/client/render/graph/colourFunction#materialColourGraph'],
   'look/toon': ['game/client/looks/toonLook#toonLook'],
-  'client/plan': ['game/client/shardfile/clientPlan#installClientPhase', 'game/server/shard/declaredEntry#declaredRuntimeEntry'],
+  'client/plan': ['game/client/shardfile/clientPlan#installClientPhase', 'game/client/shard/declaredEntry#declaredRuntimeEntry'],
   'world/tiles': ['game/client/shardfile/clientViews#clientTileViews'],
   'world/terrain': ['game/shared/shardfile/clientGround#clientGround'],
   'world/edge': ['game/shared/shardfile/portalTraversal#createPortalTraversal'],

@@ -3,7 +3,7 @@ import type { Actor } from '@wildshard/engine/combat/pipeline';
 import { lockOn } from '@wildshard/engine/player/AimTargets';
 import type { FirstHints } from '@wildshard/engine/ui/FirstHints';
 import { parseQuestHintRows, type QuestHintRows } from '@wildshard/format/questSteps';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 
 /** Read existing actors without changing their population or save ownership. */
 export interface QuestHintBody {

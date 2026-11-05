@@ -1,6 +1,6 @@
 import {zlibSync} from 'fflate';
 import {ScalarLatticeBindings} from '../src/engine/shared/world/scalarChannel';
-import { sourceManifest } from '../src/game/server/plugin/context';
+import { sourceManifest } from '../src/game/client/plugin/context';
 // oxlint-disable-next-line import/no-nodejs-modules -- Actual inert image fixture exercises the admitted cost envelope.
 import { readFileSync } from 'node:fs';
 import { afterEach, expect, test, vi } from 'vitest';

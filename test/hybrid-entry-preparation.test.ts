@@ -7,7 +7,7 @@ import { buildYield } from '../src/engine/shared/core/workSlice';
 import { bindConstructionEnvironment, constructionOwner, ownedFacade, withOwner } from '../src/engine/shared/app/ownership';
 import { createLevelInstallation } from '../src/engine/client/level/installation';
 import { parseShardSlug } from '../src/game/shared/shard/slug';
-import { shardContext } from '../src/game/server/plugin/context';
+import { shardContext } from '../src/game/client/plugin/context';
 import { installEnteredRuntimeService } from '../src/game/client/shard/retainedHooks';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { HybridRuntimeSession, type HybridResident } from '../src/game/client/shardfile/hybrid';

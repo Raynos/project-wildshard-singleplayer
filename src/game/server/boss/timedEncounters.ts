@@ -1,4 +1,4 @@
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import type { TimedEncountersRows } from '@wildshard/format/encounterRows';
 import { Vector3, type BufferGeometry } from 'three';
 import { app } from '@wildshard/engine/app/runtime';

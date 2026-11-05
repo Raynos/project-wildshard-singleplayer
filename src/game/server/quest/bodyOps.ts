@@ -6,7 +6,7 @@ import { staticBoxCollider } from '@wildshard/engine/physics/query';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { DecisionCommit } from '@wildshard/engine/script/decision';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 
 type Owner = SimHost | ShardContext;
 type Row = DeclaredBodyOpsRows['bodies'][number];

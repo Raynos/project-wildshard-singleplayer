@@ -12,7 +12,7 @@ import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { decodeLaneBytes } from '../src/engine/client/core/deflate';
 import {bakedSamplers} from '@wildshard/format/bakedTerrainSampling';
 import { expect, test, vi } from 'vitest';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import * as THREE from 'three';
 import { SceneDressing, readSceneGeometryAddress, readSceneFloors } from '../src/game/client/shardfile/sceneDressing';
 import { Scope } from '../src/engine/shared/app/scope';

@@ -4,7 +4,7 @@ import { Vector3 } from 'three';
 import { App } from '../src/engine/client/app/app';
 import { Scope } from '../src/engine/shared/app/scope';
 import { createLevelInstallation } from '../src/engine/client/level/installation';
-import { shardContext } from '../src/game/server/plugin/context';
+import { shardContext } from '../src/game/client/plugin/context';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { buildQuestChapter, installQuestFlags } from '../src/game/server/quest/chapter';

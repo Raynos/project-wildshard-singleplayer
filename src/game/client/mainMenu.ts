@@ -49,7 +49,7 @@ let screen: MainMenuScreen = 'main';
 export interface TitleMenuOptions extends Omit<TitleDeckOptions, 'cards'> {
   /** the deck's cards (default: `titleCards()`, Developer read live) */
   readonly cards?: TitleDeckOptions['cards'];
-  /** INFINITE WILDSHARD's tap: boots the grid from its one-shot intent (src/game/server/plugin/context.ts `enterGrid`) */
+  /** INFINITE WILDSHARD's tap: boots the grid from its one-shot intent (src/game/client/plugin/context.ts `enterGrid`) */
   readonly onGrid: () => void;
   /** which screen to open on (default: the one this page was last on, the main menu at first) */
   readonly screen?: MainMenuScreen;

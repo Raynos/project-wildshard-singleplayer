@@ -13,7 +13,7 @@ import { onFault,type Fault } from '../src/engine/shared/core/faults';
 import { ProjectedTrail } from '../src/engine/client/combat/view/projectedTrail';
 import type { Targets } from '../src/engine/client/combat/types';
 import type { EquipmentService } from '../src/engine/client/combat/EquipmentService';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';

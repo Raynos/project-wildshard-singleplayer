@@ -5,7 +5,7 @@ import { PageWaterBindingSchema } from '@wildshard/format/pagePreparation';
 import { POND, waterLevel } from '@wildshard/engine/world/Heightfield';
 import { waterTexture } from '@wildshard/engine/world/water/ripples';
 import { lentLook, prepareLentLooks, setLentParam, setLentTexture } from './lentLooks';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 
 function isTexture(value: unknown): value is THREE.Texture { return value instanceof THREE.Texture; }
 

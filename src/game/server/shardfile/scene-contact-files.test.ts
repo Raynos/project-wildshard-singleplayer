@@ -1,7 +1,7 @@
 import {expect,test,vi} from 'vitest';
 import {SceneDressing} from '../../client/shardfile/sceneDressing';
 import {Scope} from '@wildshard/engine/app/scope';
-import type {ShardContext} from '../plugin/context';
+import type {ShardContext} from '../../client/plugin/context';
 import type {ShardProduct} from '../../shared/shardfile/shardProduct';
 import type {ShardRuntime} from '../../shared/shard/runtime';
 import type {ShardWorld} from '../shard/world';

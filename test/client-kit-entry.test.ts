@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { SpeciesDecisionAuthority } from '../src/game/server/plugin/brain';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';

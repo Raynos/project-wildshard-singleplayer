@@ -3,7 +3,7 @@ import { legacyAdventureNames,legacyAdventureCosmetics,legacyAdventureBond } fro
 import { AdventurePersistenceSchema } from '@wildshard/format/namedJsonContracts';
 import * as v from 'valibot';
 import { Flags } from '@wildshard/engine/world/interact/flags';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { bindRuntimeJsonRecord, bindRuntimeLedger, bindRuntimeState, projectRuntimeFacts, type RuntimeFacts } from '../plugin/headless';
 import { bossesSave, elitesSave, progressSave } from '../../shared/saves';

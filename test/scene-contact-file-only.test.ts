@@ -1,7 +1,7 @@
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
-import type {ShardContext} from '../src/game/server/plugin/context';
+import type {ShardContext} from '../src/game/client/plugin/context';
 import {SceneDressing} from '../src/game/client/shardfile/sceneDressing';
 import {SceneDressingSchema} from '@wildshard/format/sceneDressing';
 

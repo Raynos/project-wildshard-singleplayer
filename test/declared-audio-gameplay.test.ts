@@ -10,7 +10,7 @@ import { AudioSurfaceMap } from '@wildshard/engine/audio/surface';
 import { setTerrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { App } from '@wildshard/engine/app/app';
 import { createLevelInstallation } from '@wildshard/engine/level/installation';
-import { shardContext } from '../src/game/server/plugin/context';
+import { shardContext } from '../src/game/client/plugin/context';
 import { RetainedRuntimeHooks } from '../src/game/client/shard/retainedHooks';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { installRuntimeAudioEntry,installRuntimeGameplayAudio,type RuntimeGameplayAudioEnvironment } from '../src/game/client/plugin/audio';

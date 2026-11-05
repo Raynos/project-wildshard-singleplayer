@@ -1,5 +1,5 @@
 import type { ForestPageRows } from '@wildshard/format/forestPage';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { readWholeGeometry, type WholeGeometryView } from '../plugin/geometry';
 import { productCoverAppearance, type CoverAppearance } from './coverAppearance';
 

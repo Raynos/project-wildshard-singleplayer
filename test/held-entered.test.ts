@@ -6,7 +6,7 @@ import { admitClientPlan, installClientPhase } from '../src/game/client/shardfil
 import { bakedLayout } from '../src/shards/nine-dragon-stack/generators/layoutProjection';
 import { emitPlatformSections } from '../src/sdk/platformSections';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
-import { declaredClientPlanEntry } from '../src/game/server/shard/declaredEntry';
+import { declaredClientPlanEntry } from '../src/game/client/shard/declaredEntry';
 import { clientPlanPhases } from './fixtures/clientPlanHost';
 import { App } from '../src/engine/client/app/app';
 

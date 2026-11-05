@@ -15,7 +15,7 @@ import { explorerRoster } from '../src/game/client/models/explorerCatalogue';
 import { admitClientPlan, CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';
 import { ANTLER_KING_CARD } from '../src/shards/pine-hollow/generators/kingCard';
 import kingLook from '../src/shards/pine-hollow/data/antlerKingLook.json' with {type:'json'};
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const heldRows = v.parse(HeldEquipmentSchema, outputPlatformPayloads(pineOutput.platform, ['held/equipment']).get('held/equipment'));

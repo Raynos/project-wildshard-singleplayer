@@ -1,4 +1,4 @@
-import { ShardPlugin, type ShardContext } from '../../src/game/server/plugin/context';
+import { ShardPlugin, type ShardContext } from '../../src/game/client/plugin/context';
 import { admitClientPlan, installClientPhase, type AdmittedClientPlan, type ClientPhase } from '../../src/game/client/shardfile/clientPlan';
 
 /** A modern host fixture for the one client-plan entry (LD9's `declaredClientPlanEntry(policy, prepare)`): it installs the

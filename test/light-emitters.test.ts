@@ -21,7 +21,7 @@ import { plainWeaveBytes, silkWeaveBytes } from '../src/shards/nine-dragon-stack
 import NINE_GRAPHS from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
 import { validateGraph, type GraphRef } from '@wildshard/format/materialGraph';
 import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 
 /** colours as linear [r, g, b], vectors as arrays: the frozen oracle's reading (fixtures/legacy-oracles/nine-light.json) */
 const plain = (value: unknown): unknown => value instanceof Color ? [value.r, value.g, value.b] : value instanceof Vector3 || value instanceof Vector4 ? value.toArray()

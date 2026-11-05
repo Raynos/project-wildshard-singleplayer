@@ -9,7 +9,7 @@ import { effectField, type EffectField } from '@wildshard/engine/fx/effectField'
 import { ParticlePool, pointScale } from '@wildshard/engine/fx/ParticlePool';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { CueDirectorSchema, type CueDirectorRows } from '@wildshard/format/cueDirector';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { sceneModelSource } from '../shardfile/sceneSources';
 import { lentLook, setLentParam } from '../shardfile/lentLooks';
 

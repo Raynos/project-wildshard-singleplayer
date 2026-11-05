@@ -6,7 +6,7 @@ import { RETURN_PROGRAM } from '../fixtures/driftwood-guest-programs';
 import { MONKEY_CLIPS } from '../../src/shards/driftwood-isle/generators/monkeyClips';
 import type { SpeciesRow } from '../../src/engine/server/ai/species';
 import { app } from '../../src/engine/client/app/runtime';
-import type { ShardContext } from '../../src/game/server/plugin/context';
+import type { ShardContext } from '../../src/game/client/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { DRIFTWOOD_ENEMY_PROGRAM } from '../../src/shards/driftwood-isle/generators/speciesPrograms';
 

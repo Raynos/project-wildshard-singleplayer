@@ -4,7 +4,7 @@ import { createFindsCatalogue } from '../../shared/bag/findsCatalogue';
 import { renderFinds } from '../bag/bag';
 import { boundQuestState } from '../../shared/quest/boundState';
 import { isOwnedId } from '../../shared/loot/Owned';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 
 /** Client-only Bag projection from admitted sticker rows and the actual quest
  * flag owner. Content supplies ids and metadata, never a render/read callback. */

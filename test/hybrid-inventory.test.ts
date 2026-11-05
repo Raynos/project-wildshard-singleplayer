@@ -106,7 +106,7 @@ test('explicit runtime loot ownership leaves inventory alone and does not instal
 test.each([false, true])('quality-only rows register once without a data simulation (runtime stages %s)', async runtimeStagesOnly => {
   const [{ App }, { Scope }, { createLevelInstallation }, { shardContext }, { createShardProduct }, { MANIFEST }, { parsePlumbing }] = await Promise.all([
     import('../src/engine/client/app/app'), import('../src/engine/shared/app/scope'), import('../src/engine/client/level/installation'),
-    import('../src/game/server/plugin/context'), import('../src/game/shared/shardfile/shardProduct'), import('../src/shards/_template/discovery.generated'), import('@wildshard/format/plumbing'),
+    import('../src/game/client/plugin/context'), import('../src/game/shared/shardfile/shardProduct'), import('../src/shards/_template/discovery.generated'), import('@wildshard/format/plumbing'),
   ]);
   const source = emptyShardfile({ slug: 'harbour', name: 'Harbour', author: 'Test', revision: 1, seed: 1 });
   source.plumbing = parsePlumbing({ namespace: 'harbour', input: [], debug: [], knobs: [{ id: 'harbour.spray', phone: 0.5, desktop: 0.5 }, { id: 'harbour.shadows', phone: false, desktop: false }] });
@@ -136,7 +136,7 @@ test.each([false, true])('quality-only rows register once without a data simulat
 test('look-only trusted hybrids retain native kit and play ownership', async () => {
   const [{ App }, { Scope }, { createLevelInstallation }, { shardContext }, { createShardProduct }, { MANIFEST }] = await Promise.all([
     import('../src/engine/client/app/app'), import('../src/engine/shared/app/scope'), import('../src/engine/client/level/installation'),
-    import('../src/game/server/plugin/context'), import('../src/game/shared/shardfile/shardProduct'), import('../src/shards/_template/discovery.generated'),
+    import('../src/game/client/plugin/context'), import('../src/game/shared/shardfile/shardProduct'), import('../src/shards/_template/discovery.generated'),
   ]);
   const source = emptyShardfile({ slug: 'look-only', name: 'Look only', author: 'Test', revision: 1, seed: 1 });
   source.look.materials = parse(MaterialsSchema, { smoke: { family: 'toon' } });

@@ -10,7 +10,7 @@ import * as descriptors from '../src/game/shared/shardfile/outputDescriptor';
 import type {OutputDescriptor} from '../src/game/shared/shardfile/outputDescriptor';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
-import type {ShardContext} from '../src/game/server/plugin/context';
+import type {ShardContext} from '../src/game/client/plugin/context';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 

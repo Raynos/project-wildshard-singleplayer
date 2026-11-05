@@ -5,7 +5,7 @@ import { Scope } from '../../src/engine/shared/app/scope';
 import { EquipmentService } from '../../src/engine/client/combat/EquipmentService';
 import { createLevelInstallation } from '../../src/engine/client/level/installation';
 import { INPUT_CONTEXTS } from '../../src/game/client/inputContexts';
-import { shardContext } from '../../src/game/server/plugin/context';
+import { shardContext } from '../../src/game/client/plugin/context';
 import { createShardProduct } from '../../src/game/shared/shardfile/shardProduct';
 import { prepareHeldClaimsEntry, installHeldClaimsEntry } from '../../src/game/client/shardfile/heldClaimsEntry';
 import { entryOwner } from '../../src/game/client/shardfile/entryOwners';

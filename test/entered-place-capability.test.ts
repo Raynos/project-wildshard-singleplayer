@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { installClientPhase, admitClientPlan } from '../src/game/client/shardfile/clientPlan';
 import * as places from '../src/game/client/shardfile/clientPlaceSets';

@@ -1,7 +1,7 @@
 import { Group } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { harnessPins } from '@wildshard/engine/app/identity';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { clientTileViews } from './clientViews';
 import { prepareClientTile, ring, type ResidentTile, type TileContent } from './tileContent';
 import { tileOf } from '../../shared/shardfile/tileOrder';

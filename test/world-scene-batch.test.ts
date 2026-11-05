@@ -8,7 +8,7 @@ import { AssetService } from '../src/engine/client/app/assets';
 import { WorldSceneBatchSchema } from '@wildshard/format/worldSceneBatch';
 import { WorldSceneBatch } from '../src/game/client/shardfile/worldSceneBatch';
 import { installWorldRegistry, WorldRegistry } from '../src/engine/client/world/registry';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 
 installWorldRegistry();
 

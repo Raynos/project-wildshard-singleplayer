@@ -9,7 +9,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { parsePracticeController, type PracticeControllerRows, type RidingPracticeLayout, type HookPracticeLayout } from '@wildshard/format/practiceCourseRows';
 import { isJsonData } from '@wildshard/format/json';
 import type { GrappleCourseRow } from '@wildshard/format/grapple';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { ReturnProgram } from '../../shared/population/returnProgram';
 import { pageRidingMount } from '../riding/client';
 import { GrappleTool } from '../grapple/tool';

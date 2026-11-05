@@ -1,6 +1,6 @@
 import { parse } from 'valibot';
 import { ClientCuesSchema } from '@wildshard/format/clientCues';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { CueDirector } from '../audio/cueDirector';
 import { clientNativeBook } from './clientNativeBook';
 

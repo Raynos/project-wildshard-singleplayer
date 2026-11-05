@@ -4,7 +4,7 @@ import { Group, Vector3 } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
 import { WorldRegistry } from '../src/engine/client/world/registry';
 import type { Interactable } from '../src/engine/shared/world/interact/types';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import { FigureRows } from '../src/game/client/systems/npc/figureRows';
 import { installQuestTrader } from '../src/game/server/quest/trader';

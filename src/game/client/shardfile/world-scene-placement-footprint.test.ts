@@ -8,7 +8,7 @@ import { Scope } from '@wildshard/engine/app/scope';
 import { SkyRig } from '@wildshard/engine/world/skyRig';
 import { WorldRegistry } from '@wildshard/engine/world/registry';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { WorldScenePlacement } from './worldScenePlacement';
 
 /** NT6: a copy belongs to every tile its bounds touch, not only its origin's */

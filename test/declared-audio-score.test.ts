@@ -11,7 +11,7 @@ import {createLevelInstallation} from '@wildshard/engine/level/installation';
 import type {DebugRowSpec} from '@wildshard/engine/level/context';
 import {parseAudioData,AudioDataSchema} from '@wildshard/format/audio';
 import {formatJsonSchema} from '@wildshard/sdk/formatJsonSchema';
-import {shardContext} from '../src/game/server/plugin/context';
+import {shardContext} from '../src/game/client/plugin/context';
 import {installRuntimeScore} from '../src/game/client/plugin/audio';
 import {RetainedRuntimeHooks} from '../src/game/client/shard/retainedHooks';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';

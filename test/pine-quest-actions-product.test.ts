@@ -6,7 +6,7 @@ import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { QuestState } from '../src/engine/server/quest/core';
 import { Scope } from '../src/engine/shared/app/scope';
 import type { ShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import steps from '../src/shards/pine-hollow/data/questSteps.json' with { type: 'json' };
 import { CONTRACTS } from './fixtures/pine-contracts';
 import { afterAll, beforeAll, expect, test } from 'vitest';

@@ -4,7 +4,7 @@ import { test, type Flags } from '@wildshard/engine/world/interact/flags';
 import { staticBoxCollider } from '@wildshard/engine/physics/query';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import type { SimHost } from '@wildshard/engine/sim';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import { questBooks } from '@wildshard/engine/quest/players';
 import { boundQuestState } from '../../shared/quest/boundState';
 

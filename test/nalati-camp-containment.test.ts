@@ -9,7 +9,7 @@ import { cellClip } from '../src/game/client/grid/cellClip';
 import { uploadedSkinBounds } from '../src/game/client/grid/skinEnvelope';
 import * as v from 'valibot';
 import { installQuestFigures } from '../src/game/client/quest/figures';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { ClientChannelsSchema } from '@wildshard/format/clientChannels';

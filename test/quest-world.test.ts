@@ -6,7 +6,7 @@ import { Group } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
 import { defineModel, modelContext } from '../src/engine/client/models/model';
 import { placeModelSite } from '../src/engine/client/models/place';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { AmbientGroup } from '../src/game/shared/ambient/flock';
 import { publishEntryOwner, lendEntryOwner, entryOwner } from '../src/game/client/shardfile/entryOwners';
 import { prepareQuestWorldEntry } from '../src/game/server/shardfile/questWorld';

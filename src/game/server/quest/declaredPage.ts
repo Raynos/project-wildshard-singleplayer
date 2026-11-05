@@ -2,7 +2,7 @@ import { Vector3 } from 'three';
 import { test, type Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { parseDeclaredQuestPage } from '@wildshard/format/declaredQuestPage';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import type { MoverRuntime } from '../plugin/mover';
 import type { SceneHandles } from '../../client/shardfile/sceneHandles';
 import { WorldTargetHost, type WorldTargetLanding } from '../shardfile/worldTargets';

@@ -5,7 +5,7 @@ import { legacyDouble } from '../src/engine/test/FakeGame';
 import * as owned from '../src/engine/client/models/ownedGeometry';
 import * as runtime from '../src/game/client/shardfile/runtimeProduct';
 import { clientWaterSurfaces, installClientWaterSurfaces } from '../src/game/client/shardfile/clientWaterSurfaces';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { emptyShardfile } from '../src/sdk/author';

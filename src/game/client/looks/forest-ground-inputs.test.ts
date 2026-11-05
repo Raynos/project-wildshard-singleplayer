@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import type { WholeGeometryView } from '../plugin/geometry';
 import type { CoverAppearance } from './coverAppearance';
 import { readForestGroundInputs } from './forestGroundInputs';

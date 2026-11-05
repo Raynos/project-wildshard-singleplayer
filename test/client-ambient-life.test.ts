@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { BufferGeometry, Float32BufferAttribute, MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
 import { AmbientFlockDraw } from '../src/game/client/ambient/ambientFlock';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { installClientAmbientLife } from '../src/game/client/shardfile/clientAmbientLife';
 import { entryOwner, lendEntryOwner, publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';

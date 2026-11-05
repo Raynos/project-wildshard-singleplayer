@@ -6,7 +6,7 @@ import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import { installEntryQuestViews } from '../src/game/client/shardfile/clientQuestComposition';
 import { admitClientPlan, CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';
 import { QuestPageViews } from '../src/game/client/quest/questPageViews';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 // This partial input exercises entry ordering before the mocked view host.

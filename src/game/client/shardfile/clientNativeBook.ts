@@ -1,6 +1,6 @@
 import type { CueDirector } from '../audio/cueDirector';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import type { createDeclaredHeldMelee } from '../plugin/weaponFamily';
 import type { SpeciesBrains, SpeciesPageCatalogue, SpeciesDecisionAuthority } from '../../server/plugin/brain';
 import type { RuntimeHomes, RuntimeCoins } from '../../server/plugin/headless';

@@ -7,7 +7,7 @@ import { createLevelInstallation } from '../src/engine/client/level/installation
 import { WorldRegistry } from '../src/engine/client/world/registry';
 import { installCableModes } from '../src/engine/shared/player/modes';
 import { prepareQuestEntry } from '../src/game/server/quest/chapter';
-import { shardContext } from '../src/game/server/plugin/context';
+import { shardContext } from '../src/game/client/plugin/context';
 import { parseShardSlug } from '../src/game/shared/shard/slug';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';

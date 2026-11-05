@@ -2,7 +2,7 @@ import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { Scene, Mesh, MeshPhysicalMaterial, MeshStandardMaterial, Texture } from 'three';
 import { bindPageWater } from '../src/game/client/shardfile/pageWater';
 import { lendLooks } from '../src/game/client/shardfile/lentLooks';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { afterEach, beforeEach, expect, test } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';
 import { prepareScriptMemoryLease } from '../src/engine/server/script/host';

@@ -9,7 +9,7 @@ import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { InteractEvent } from '@wildshard/engine/world/interact/Interactables';
 import type { MoverRuntime } from '../plugin/mover';
 import { enterMovers } from '../plugin/moverInstall';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import type { SceneHandles } from '../../client/shardfile/sceneHandles';
 import { forestPage } from '../../client/shardfile/forestPage';
 import type { QuestChapter } from './chapter';

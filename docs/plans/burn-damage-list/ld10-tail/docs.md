@@ -55,7 +55,7 @@ or drop the sentence "The template's imports show the rule" and its block.
 **762-780 (§7 "The shard plugin and the registry").** The `TemplatePlugin extends ShardPlugin` example and the rows
 "`ShardPlugin` | the base class; each hook may be async" and "`GameRows`, `GameRowMap` | `ctx.rows.item / lootTable /
 skin / feat / shop / compendium / places`" describe plugin authoring that no shard does any more (only
-`src/game/client/grid/pageShell.ts:61` and `src/game/server/shard/declaredEntry.ts:29` extend `ShardPlugin`). Replace the code
+`src/game/client/grid/pageShell.ts:61` and `src/game/client/shard/declaredEntry.ts:29` extend `ShardPlugin`). Replace the code
 block with: "A shard declares data; its manifest's `bindings.entry` names the built-in client-plan entry
 (`declaredClientPlanEntry`), which runs the world, kit and play stages with a `ShardContext`." Keep the table but
 make `ShardPlugin` "the internal staged base class of the page shell and the declared entry" and drop `places`

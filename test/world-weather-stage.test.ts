@@ -5,7 +5,7 @@ import * as v from 'valibot';
 import { Group, Scene, Mesh, MeshBasicMaterial, BufferGeometry } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ForestWeatherRig } from '../src/game/client/weather/forest';
 import { installClientForestWeather } from '../src/game/client/shardfile/clientForestPage';
 import { CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';

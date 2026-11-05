@@ -2,7 +2,7 @@
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
-import type { ShardContext } from './context';
+import type { ShardContext } from '../../client/plugin/context';
 import type { ShardRuntime } from '../../shared/shard/runtime';
 import { CLIENT_FEATURES } from '../../client/shardfile/clientPlan';
 import * as population from '../population/wildlife';

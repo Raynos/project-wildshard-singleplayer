@@ -5,7 +5,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import { legacyDouble } from '../src/engine/test/FakeGame';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseClientPlan, type ClientFeatureRow } from '@wildshard/format/clientPlan';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';
 import { clientSceneHandles } from '../src/game/client/shardfile/clientSceneHandles';
 import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';

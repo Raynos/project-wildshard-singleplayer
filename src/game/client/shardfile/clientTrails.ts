@@ -2,7 +2,7 @@ import { BufferAttribute, BufferGeometry, Mesh, Vector3 } from 'three';
 import { parse } from 'valibot';
 import { SlashTrail } from '@wildshard/engine/combat/view/slashTrail';
 import { ClientTrailsSchema } from '@wildshard/format/clientTrails';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { clientPopulationActors } from './clientPopulation';
 import { sceneModelSource } from './sceneSources';
 

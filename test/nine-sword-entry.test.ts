@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { App } from '../src/engine/client/app/app';
 import { Scope } from '../src/engine/shared/app/scope';
 import { createLevelInstallation } from '../src/engine/client/level/installation';
-import { shardContext, type ShardContext } from '../src/game/server/plugin/context';
+import { shardContext, type ShardContext } from '../src/game/client/plugin/context';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import { nineHeldPresentationBytes } from './fixtures/nine-held-presentation';
@@ -10,7 +10,7 @@ import source from './fixtures/nine-product-inputs';
 import manifest from '../src/shards/nine-dragon-stack/discovery.generated';
 import { entryOwner } from '../src/game/client/shardfile/entryOwners';
 import { toLevelSpec } from '../src/game/server/shard/spec';
-import { declaredClientPlanEntry } from '../src/game/server/shard/declaredEntry';
+import { declaredClientPlanEntry } from '../src/game/client/shard/declaredEntry';
 import { clientPlanPhases } from './fixtures/clientPlanHost';
 import heldPrimary from '../src/shards/nine-dragon-stack/data/heldPrimary.json' with { type: 'json' };
 

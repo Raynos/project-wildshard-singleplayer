@@ -8,7 +8,7 @@ import { ToonLook } from '../src/engine/client/render/families/toon';
 import { updateWind, windUniforms } from '../src/engine/client/world/wind';
 import type { RopeChain } from '../src/engine/shared/physics/ropeChain';
 import type { RopeDeckSite } from '../src/game/client/models/ropeDeckSite';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { installWorldUpdates } from '../src/game/server/shardfile/worldUpdates';
 import { CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';
 import { parseClientPlan } from '@wildshard/format/clientPlan';

@@ -5,7 +5,7 @@ import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import type { BakedSource } from '@wildshard/format/bakedTiles';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import { WaterSurface,waterSurfaceLook } from '../systems/looks/waterSurface';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
 import { hasLentLook,lendLooks,lentLooksOf } from './lentLooks';
 import { runtimeLookMaterials } from './runtimeProduct';

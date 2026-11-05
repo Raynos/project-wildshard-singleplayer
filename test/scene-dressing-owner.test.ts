@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Group } from 'three';
 import { SceneDressing } from '../src/game/client/shardfile/sceneDressing';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { Scope } from '../src/engine/shared/app/scope';
 import { enterOwner, ownerTask } from '../src/engine/shared/app/ownership';
 import { WorldRegistry } from '../src/engine/client/world/registry';

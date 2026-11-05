@@ -15,7 +15,7 @@ import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { createClientScene } from '../plugin/scene';
 import type { BossViewBinding } from '../../server/plugin/bossPhase';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import type { FixedDraws } from '../models/fixedDraws';
 import type { Boss } from '../../server/Boss';
 import type { BossBar } from '@wildshard/engine/ui/BossBar';

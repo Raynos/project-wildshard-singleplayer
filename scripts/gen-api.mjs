@@ -22,7 +22,7 @@ const ROOT = resolve(import.meta.dirname, '..');
 const PACKAGES = ['engine', 'format', 'game', 'sdk', 'commons'];
 const modulesOf = (root, layer) => Object.entries(JSON.parse(readFileSync(resolve(root, layerFolder(layer), 'package.json'), 'utf8')).exports ?? {})
   .filter(([subpath, target]) => typeof target === 'string' && !subpath.endsWith('.json')).map(([subpath, target]) => ({ specifier: `@wildshard/${layer}/${subpath.slice(2)}`, file: `${layerFolder(layer)}/${target.slice(2)}` }));
-const CONTEXTS = { LevelContext: 'src/engine/server/level/context.ts', ShardContext: 'src/game/server/plugin/context.ts' };
+const CONTEXTS = { LevelContext: 'src/engine/server/level/context.ts', ShardContext: 'src/game/client/plugin/context.ts' };
 const SURFACE = 'lint/api-surface.json', CEILING = 'lint/api-undocumented.json';
 
 const firstLine = (text) => text.split('\n').map((l) => l.trim()).find((l) => l !== '') ?? '';
@@ -91,7 +91,7 @@ export function pages(surface) {
     'docs/api/GAME.md': renderPage('@wildshard/game', 'The game layer\'s public modules (src/game/package.json `exports`).', surface.indexes.game, true),
     'docs/api/SDK.md': `${renderPage('@wildshard/sdk', 'The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.', surface.indexes.sdk, true)}\n${authoringGuide()}`,
     'docs/api/COMMONS.md': renderPage('@wildshard/commons', 'Build-time packs and catalogue (src/commons/package.json `exports`); no commons code executes in the game.', surface.indexes.commons, true),
-    'docs/api/SHARD-CONTEXT.md': renderPage('ShardContext', 'What a shard\'s plugin receives (src/game/server/plugin/context.ts, over the engine\'s LevelContext).', surface.contexts.ShardContext, true),
+    'docs/api/SHARD-CONTEXT.md': renderPage('ShardContext', 'What a shard\'s plugin receives (src/game/client/plugin/context.ts, over the engine\'s LevelContext).', surface.contexts.ShardContext, true),
   };
 }
 /** docs/api/EXPORTS.md: every package's export index, grouped by the module to import each name from. */

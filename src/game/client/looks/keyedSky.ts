@@ -1,4 +1,4 @@
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { nextDrawnFrame, presenting } from '@wildshard/engine/core/framePacing';
 import { loadBakedSky, skyHorizonColor } from '@wildshard/engine/boot/bakedApi';
 import type { LookStrategy, SkyBackdropContext, SkyBackdropFactory, SkyBackdropPost, SkyBackdropTargets } from '@wildshard/engine/render/look';

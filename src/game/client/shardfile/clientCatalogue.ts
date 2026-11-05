@@ -3,7 +3,7 @@ import { CatalogueEconomySchema } from '@wildshard/format/catalogueEconomy';
 import { isOwnedId } from '../../shared/loot/Owned';
 import { isJsonData } from '@wildshard/format/json';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { HeldFinishes } from '../loadout/finishes';
 import { heldFinishEffect, STARTER_EFFECTS } from '../../server/loadout/effects';
 import { ItemCatalogue } from '../../shared/loadout/itemCatalogue';

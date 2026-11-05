@@ -29,7 +29,7 @@ import { runtimeLookMaterials } from './runtimeProduct';
 import { timeClientPreparation } from './preparationTiming';
 import { lendLooks, setLentParam } from './lentLooks';
 import type { SceneHandles } from './sceneHandles';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { followResidentTiles, noteTileBytes, productTileRing, residentTiles } from './tileDriver';
 import { StreamingCamera } from './streamingView';
 import { bucketByTile, followTile, ring, tileKey } from './tileContent';

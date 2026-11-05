@@ -16,7 +16,7 @@ import { App } from '../src/engine/client/app/app';
 import { Scope } from '../src/engine/shared/app/scope';
 import { createLevelInstallation } from '../src/engine/client/level/installation';
 import { WorldRegistry } from '../src/engine/client/world/registry';
-import { shardContext } from '../src/game/server/plugin/context';
+import { shardContext } from '../src/game/client/plugin/context';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { installViewProgram } from '../src/game/client/shardfile/clientViewProgram';
 import { lendLooks } from '../src/game/client/shardfile/lentLooks';

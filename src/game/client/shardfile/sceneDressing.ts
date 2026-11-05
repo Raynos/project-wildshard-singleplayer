@@ -37,7 +37,7 @@ import { anchorOf } from './worldScenePlacement';
 import { colliderTileKeys, type TileContent } from './tileContent';
 import { followResidentTiles, noteTileBytes, productTileRing, residentTiles } from './tileDriver';
 import { StreamingCamera } from './streamingView';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 
 /** N2: a tile's dressing colliders register this many a task (Rapier hulls: ~1 ms each on the phone) */
 const COLLIDERS_PER_TASK=48;

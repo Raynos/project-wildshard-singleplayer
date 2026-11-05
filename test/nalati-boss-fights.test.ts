@@ -17,7 +17,7 @@ import type { Animal } from '../src/engine/client/entities/AnimalView';
 import { eliteDamageMul } from '../src/engine/shared/entities/eliteBrain';
 // @vitest-environment happy-dom
 import { app } from '../src/engine/client/app/runtime';
-import { shardContext, type ShardContext } from '../src/game/server/plugin/context';
+import { shardContext, type ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime, ShardPlayHost } from '../src/game/shared/shard/runtime';
 import type { ShardWorld } from '../src/game/server/shard/world';
 import type { HUD } from '../src/engine/client/ui/HUD';

@@ -33,7 +33,7 @@ import type { EquipmentIcon } from '@wildshard/engine/combat/Equipment';
 import { installDeclaredAudio, type DeclaredAudioPorts } from '@wildshard/engine/audio/declared';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { ShardContext } from "../../server/plugin/context";
+import type { ShardContext } from "../plugin/context";
 import type { ShardPlayHost } from '../../shared/shard/runtime';
 import { installDeclaredPlumbing } from '../shard/declaredPlumbing';
 import { declaredProductCompendium, declaredDay, declaredWeather } from '../../shared/shard/declaredRows';

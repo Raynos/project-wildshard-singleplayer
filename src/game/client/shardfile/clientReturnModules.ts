@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { ReturnModulesSchema } from '@wildshard/format/scriptContract';
 import { ReturnProgram } from '../../shared/population/returnProgram';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { clientNativeBook } from './clientNativeBook';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 

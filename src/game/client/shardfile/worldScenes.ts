@@ -42,7 +42,7 @@ import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { parseWorldSceneModels, worldSceneModelResources, worldSceneModelGraphs } from '@wildshard/format/worldSceneModels';
 import { parseWorldScenes, worldScenesForTier, type WorldScenesSection } from '@wildshard/format/worldScenes';
 import { parseWorldScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import type { ModelLibrary } from '../plugin/geometry';
 import { tierFile, worldScenePool } from './scenePools';
 import { createWorldScene, bindWorldSceneParts } from '../plugin/scene';

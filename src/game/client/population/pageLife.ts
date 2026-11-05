@@ -16,7 +16,7 @@ import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import { ForagerPopulation } from '@wildshard/engine/ai/ambientForager';
 import { installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
 import { sharedWeaponVoices } from '../plugin/audio';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { HeldEquipment } from '../plugin/heldEquipment';
 import type { CompendiumState } from '../../shared/compendium/state';
 import { ReturnProgram } from '../../shared/population/returnProgram';

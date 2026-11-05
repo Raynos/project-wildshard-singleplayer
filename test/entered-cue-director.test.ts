@@ -1,7 +1,7 @@
 import { expect,test } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';
 import type { Game } from '../src/engine/client/core/Game';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { CueDirector } from '../src/game/client/audio/cueDirector';
 import { clientNativeBook } from '../src/game/client/shardfile/clientNativeBook';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';

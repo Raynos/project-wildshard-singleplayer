@@ -8,7 +8,7 @@ import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import { SceneMotionBinding } from '../src/game/client/shardfile/sceneMotion';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { SKY_DRESSING_PROGRAMS } from '../src/shards/far-reach/generators/sceneDressing';
 import { SIGNAL_BUCKET_MOVERS } from '../src/shards/sunscar-dunes/generators/bucket';
 

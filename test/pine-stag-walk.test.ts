@@ -9,7 +9,7 @@ import { QuestState } from '../src/engine/server/quest/core';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { Animal } from '../src/engine/client/entities/AnimalView';
 import type { AnimalManager } from '../src/engine/server/entities/AnimalManager';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { QuestChapter } from '../src/game/server/quest/chapter';
 import { parseQuestLeadPage } from '@wildshard/format/questSteps';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';

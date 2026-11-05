@@ -12,7 +12,7 @@ import { clientNativeBook } from '../src/game/client/shardfile/clientNativeBook'
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import * as descriptors from '../src/game/shared/shardfile/outputDescriptor';
 import type { OutputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { emptyShardfile } from '../src/sdk/author';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { ninePracticeRows,ninePracticeBytes } from './fixtures/nine-practice-product';

@@ -36,7 +36,7 @@ import { InteractionRules } from '../../server/quest/interactionRows';
 import { parseQuestPageInteractions, type QuestPageInteractionsData } from '@wildshard/format/questInteractions';
 import { QuestRewardBeat, type QuestRewardSpec, type QuestRewardPlayer } from '../../server/quest/reward';
 import { createLevelInstallation } from '@wildshard/engine/level/installation';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from './context';
 import type { BossDefinition, BossSaved, BossScript } from '@wildshard/engine/ai/BossBrain';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { BossBar } from '@wildshard/engine/ui/BossBar';

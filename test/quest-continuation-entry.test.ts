@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { CLIENT_FEATURES, admitClientPlan, installClientPhase } from '../src/game/client/shardfile/clientPlan';
 import * as continuation from '../src/game/client/quest/continuation';

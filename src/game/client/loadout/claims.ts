@@ -11,7 +11,7 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { applyMeleeCombatProfile, type MeleeProfile } from '@wildshard/engine/combat/meleeProfile';
 import type { RosterEntry } from '@wildshard/engine/models/live';
 import { HeldArmsSchema, parseHeldSlots, type HeldSlotsRows, type HeldArmsRows } from '@wildshard/format/heldArms';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { createOwnedGeometry, type OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { createClientScene } from '../plugin/scene';
 import { bindRuntimeEquipment, bindRuntimeItems, sameRuntimeProfile } from '../../server/plugin/headless';

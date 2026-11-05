@@ -19,7 +19,7 @@ import { createFindsCatalogue } from '../../shared/bag/findsCatalogue';
 import { boundQuestState } from '../../shared/quest/boundState';
 import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
 import { onCreatureDeath, DEATH_ORDER, type CreatureDeathSource } from './deaths';
-import type { ShardContext } from "../plugin/context";
+import type { ShardContext } from "../../client/plugin/context";
 import { installEnteredRuntimeService } from '../../client/shard/retainedHooks';
 import { DynamicBodySlots } from '@wildshard/engine/physics/bodies';
 

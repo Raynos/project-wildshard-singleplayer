@@ -8,7 +8,7 @@ import { cutTerrain } from '@wildshard/engine/physics/terrain';
 import { yawLocal, yawWorld } from '@wildshard/engine/world/yawFrame';
 import { slicer } from '@wildshard/engine/boot/plan';
 import { PagePathRampSchema, PageTerrainCutSchema, type PageTerrainCutRows } from '@wildshard/format/pagePreparation';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 
 /** Exact native triangle/AABB overlap law over a yawed generated opening. */
 export function terrainOpeningHits(rows: PageTerrainCutRows, ax: number, ay: number, az: number, bx: number, by: number, bz: number, cx: number, cy: number, cz: number): boolean {

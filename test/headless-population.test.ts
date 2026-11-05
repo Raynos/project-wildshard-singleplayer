@@ -18,7 +18,7 @@ import { bindPageHomes } from '../src/game/server/population/pageHomes';
 import { censusOf, populationCensus, type PopulationCensus } from '../src/game/shared/population/census';
 import { Scope } from '../src/engine/shared/app/scope';
 import { legacyDouble } from '../src/engine/test/FakeGame';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardPlayHost, ShardRuntime } from '../src/game/shared/shard/runtime';
 import type { AnimalManager } from '../src/engine/server/entities/AnimalManager';
 import type { Animal } from '../src/engine/client/entities/AnimalView';

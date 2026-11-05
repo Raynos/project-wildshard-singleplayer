@@ -7,7 +7,7 @@ import { Scope } from '@wildshard/engine/app/scope';
 import { withOwner, enteredOwner } from '@wildshard/engine/app/ownership';
 import * as bootPlan from '@wildshard/engine/boot/plan';
 import { SkyRig } from '@wildshard/engine/world/skyRig';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from './context';
 import { WorldScenePlacement } from '../shardfile/worldScenePlacement';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';

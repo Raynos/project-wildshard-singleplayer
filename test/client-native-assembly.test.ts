@@ -6,7 +6,7 @@ import {Scope} from '../src/engine/shared/app/scope';
 import type {Game} from '../src/engine/client/core/Game';
 import type {StepRunner} from '../src/engine/client/boot/plan';
 import {parseClientPlan} from '@wildshard/format/clientPlan';
-import type {ShardContext} from '../src/game/server/plugin/context';
+import type {ShardContext} from '../src/game/client/plugin/context';
 import type {ShardWorld} from '../src/game/server/shard/world';
 import type {ShardRuntime} from '../src/game/shared/shard/runtime';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';

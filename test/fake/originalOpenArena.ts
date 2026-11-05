@@ -23,7 +23,7 @@ import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { modelContext, type ModelDef } from '@wildshard/engine/models/model';
 import { Rng } from '@wildshard/engine/core/rng';
-import type { ShardContext } from '../../src/game/server/plugin/context';
+import type { ShardContext } from '../../src/game/client/plugin/context';
 import { installChannelPrograms } from '../../src/game/shared/plugin/channelPrograms';
 import type { WeatherReactions } from '../../src/game/server/weather/reactions';
 import type { ShardProduct } from '../../src/game/shared/shardfile/shardProduct';

@@ -7,7 +7,7 @@ import { WorldRegistry } from '../src/engine/client/world/registry';
 import { defineModel, sharedModelContext } from '../src/engine/client/models/model';
 import { place as placeModel } from '../src/engine/client/models/place';
 import * as lowPolyKit from '../src/engine/client/world/lowpolyKit';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { installQuestFigures } from '../src/game/client/quest/figures';
 import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import { lendLooks } from '../src/game/client/shardfile/lentLooks';

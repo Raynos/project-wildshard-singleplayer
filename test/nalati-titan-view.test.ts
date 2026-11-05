@@ -5,7 +5,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import { createLevelInstallation } from '../src/engine/client/level/installation';
 import { WorldRegistry } from '../src/engine/client/world/registry';
 import type { ViewTell } from '../src/engine/client/script/viewProgram';
-import { shardContext } from '../src/game/server/plugin/context';
+import { shardContext } from '../src/game/client/plugin/context';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { installViewProgram, lendViewCell, lendViewFrame, lendViewTell, lendViewValues } from '../src/game/client/shardfile/clientViewProgram';
 import { ARENA_VIEW, arenaChainTell } from '@wildshard/format/arenaView';

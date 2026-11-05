@@ -4,7 +4,7 @@ import type { Placed } from '@wildshard/engine/models/place';
 import { WorldRegistry } from '@wildshard/engine/world/registry';
 import { Scope } from '@wildshard/engine/app/scope';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from './context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { bindClientPlaceSets,installClientPlaceSets } from '../shardfile/clientPlaceSets';
 

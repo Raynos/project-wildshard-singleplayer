@@ -4,7 +4,7 @@ import { placeSet,placedWithin } from '@wildshard/engine/models/sets';
 import type { RegisteredSet } from '@wildshard/engine/world/registry';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
 import { entryOwner } from './entryOwners';
 

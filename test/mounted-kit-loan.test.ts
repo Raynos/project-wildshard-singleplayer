@@ -7,7 +7,7 @@ import type { Targets } from '../src/engine/client/combat/types';
 import { MountedArsenal, type MountedLoadout } from './fixtures/originalMountedArsenal';
 import * as nativeItems from '../src/game/server/plugin/headless';
 import { ItemCatalogue } from '../src/game/shared/loadout/itemCatalogue';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';

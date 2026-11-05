@@ -27,7 +27,7 @@ Every candidate that must stay, with its actual reader (file:line). Readers are 
 | 17 `*.d.ts` / `*.merge.d.ts` (orphans.md §1) | tsconfig `include` of each layer project | declaration roots (AGENTS.md E434) |
 | 23 `src/sdk/**` modules read only by `src/shards/*/generators/**` (e.g. `bake/compactGlb` 16 generators, `bake/groundMap` 15, `speciesBrains` 9, `bootInventory` 9) | shard generators (author roots) | author/bake API |
 | `src/sdk/outputRuntime.ts`, `src/sdk/executeBundle.ts`, `src/sdk/runtimePerformance.ts` | `src/sdk/project.ts`, `src/sdk/cli.ts` (type), `scripts/bake-template-shardfile.mjs`, `src/sdk/synth.ts` | **LD9b** decides (copied-runtime arm), not LD10 |
-| `src/game/client/shardfile/hybrid.ts` (`prepareHybridShard`) | `src/game/server/shard/declaredEntry.ts:2,15`, `src/game/client/grid/liveSession.ts`, `src/game/client/grid/regionalRuntime.ts`, `src/game/client/shardfile/clientWorldAssembly.ts` | live entry composite; its runtime-TS arm is LD9b |
+| `src/game/client/shardfile/hybrid.ts` (`prepareHybridShard`) | `src/game/client/shard/declaredEntry.ts:2,15`, `src/game/client/grid/liveSession.ts`, `src/game/client/grid/regionalRuntime.ts`, `src/game/client/shardfile/clientWorldAssembly.ts` | live entry composite; its runtime-TS arm is LD9b |
 | `src/game/server/quest/legacyRecords.ts`, `test/fixtures/quest-step-legacy-saves.*`, `test/fake/legacy{Actor,Hurt,Source}.ts`, `test/fixtures/legacy-oracles/**` | modern save migration and native oracles (plan text) | historical fixtures, not loading paths |
 | `scripts/g571-hosts.mjs`, `scripts/listed-view-code.mjs` | `scripts/shard-platform.mjs:13,17` (G294 attribution and listed-view register), `scripts/platform-chargebacks.mjs`, `scripts/precommit-jobs.mjs:72` | not copied-runtime paths (orphans.md §7) |
 
@@ -55,7 +55,7 @@ author/tool caller): `src/sdk/kit/bakedGeometry.ts` 7, `src/sdk/phasedBoss.ts` 9
 | `LevelContext.strings` | `src/game/client/shardfile/clientPlan.ts:273` |
 | `LevelContext.inputContext` | `src/game/client/riding/client.ts:256`, `src/game/server/shardfile/pageItems.ts:55`, `src/game/client/stealth/controller.ts:47` |
 | `EngineRows.{weapon,tool,ammo,species,speciesLook,effect,encounter,spawnTable}` | e.g. `src/game/client/loadout/claims.ts:495-496`, `src/game/client/shardfile/clientCatalogue.ts:28,30`, `src/game/client/models/socketRigCreature.ts:43` |
-| `ShardPlugin` (`world`/`kit`/`play`) | `src/game/client/grid/pageShell.ts:61`, `src/game/server/shard/declaredEntry.ts:29` |
+| `ShardPlugin` (`world`/`kit`/`play`) | `src/game/client/grid/pageShell.ts:61`, `src/game/client/shard/declaredEntry.ts:29` |
 | `GridHomeHandoff.expect` | `src/game/client/shardfile/hybrid.ts:325` |
 | `buildProgress` | `src/game/client/shardfile/clientWorldAssembly.ts:8,47` |
 
@@ -114,8 +114,8 @@ see orphans.md §3 for the retirement rule if LD10 chooses to drop them.
 | `format/materialGraph.ts#GraphValidation` | src/engine/client/render/graph/glsl.ts:31, src/engine/client/render/graphBackend.ts:10 | NF18 importer gone |
 | `format/materialGraph.ts#GraphValidationOptions` | src/engine/client/render/graph/glsl.ts:32, src/engine/client/render/graphBackend.ts:10 | NF18 importer gone |
 | `format/materialGraph.ts#GraphValueType` | src/engine/client/render/graph/glsl.ts:32, src/sdk/materials.ts:8 | NF18 importer gone |
-| `game/client/shardfile/hybrid.ts#prepareHybridShard` | src/game/server/shard/declaredEntry.ts:2 | LD9a importer gone |
-| `game/server/plugin/context.ts#ShardContext` | lint/wildshard-plugin.js:811, scripts/gen-api.mjs:24 (+129 more) | LD9a importer gone |
-| `game/server/plugin/context.ts#ShardPlugin` | src/game/client/grid/pageShell.ts:3, src/game/server/shard/declaredEntry.ts:1 (+2 more) | LD9a importer gone |
-| `game/shared/grid/pageMode.ts#currentPageMode` | src/game/server/plugin/context.ts:4, src/game/client/session/data.ts:27 (+3 more) | LD9a importer gone |
+| `game/client/shardfile/hybrid.ts#prepareHybridShard` | src/game/client/shard/declaredEntry.ts:2 | LD9a importer gone |
+| `game/client/plugin/context.ts#ShardContext` | lint/wildshard-plugin.js:811, scripts/gen-api.mjs:24 (+129 more) | LD9a importer gone |
+| `game/client/plugin/context.ts#ShardPlugin` | src/game/client/grid/pageShell.ts:3, src/game/client/shard/declaredEntry.ts:1 (+2 more) | LD9a importer gone |
+| `game/shared/grid/pageMode.ts#currentPageMode` | src/game/client/plugin/context.ts:4, src/game/client/session/data.ts:27 (+3 more) | LD9a importer gone |
 | `engine/shared/core/workSlice.ts#buildYield` | src/engine/client/anim/rigParser.ts:7, src/game/server/boss/arenaRoom.ts:43 (+19 more) | LD9a importer gone |

@@ -17,7 +17,7 @@ import { progressSave } from '../../shared/saves';
 import { createAchievementCounters } from '../../shared/achievements';
 import { bindRuntimeLedger, bindRuntimeJsonRecord, bindRuntimeQuest, type RuntimeFacts } from '../plugin/headless';
 import { chapterFlow } from './chapterFlow';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import { QuestViews, installDeclaredNpcTalks, type QuestNpcTalkPorts, type QuestTalkFigure, type NpcTalkInstallation, presentQuest, type QuestPresentation, type QuestPresentationHost, type QuestPresentationOptions } from '../../client/plugin/ui';
 
 /** Bind an ordered chapter view over the original runtime quest states and fact owner.

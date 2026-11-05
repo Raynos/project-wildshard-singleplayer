@@ -6,7 +6,7 @@ import { createLevelInstallation } from '../src/engine/client/level/installation
 import { WorldRegistry } from '../src/engine/client/world/registry';
 import { setTerrainHeight } from '../src/engine/shared/world/terrainHeight';
 import { smooth01, step } from '../src/engine/shared/entities/species/rigs';
-import { shardContext } from '../src/game/server/plugin/context';
+import { shardContext } from '../src/game/client/plugin/context';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import type { SpeciesViewActor } from '../src/game/client/population/speciesViewSlots';
 import { emptyShardfile } from '../src/sdk/author';

@@ -15,7 +15,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { parseShardfile } from '@wildshard/format/shardSchema';
 import { lendSceneMaterials, sceneMaterial } from '../src/game/client/shardfile/lentLooks';
 import { installWorldScenes } from '../src/game/client/shardfile/worldScenes';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 
 const SIGNAL_WORLD_SCENES = scene.worldScenes;
 

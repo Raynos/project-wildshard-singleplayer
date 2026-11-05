@@ -4,7 +4,7 @@ import { Vector3 } from 'three';
 import { App } from '../src/engine/client/app/app';
 import { Scope } from '../src/engine/shared/app/scope';
 import { createLevelInstallation } from '../src/engine/client/level/installation';
-import { shardContext, ShardPlugin } from '../src/game/server/plugin/context';
+import { shardContext, ShardPlugin } from '../src/game/client/plugin/context';
 import { installEnteredRuntimeService } from '../src/game/client/shard/retainedHooks';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { parseShardSlug } from '../src/game/shared/shard/slug';

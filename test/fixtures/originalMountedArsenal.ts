@@ -6,7 +6,7 @@ import { equipmentActorOwner } from '../../src/game/client/loadout/actors';
 import { ReturnProgram } from '../../src/game/shared/population/returnProgram';
 import { ProjectedTrail } from '@wildshard/engine/combat/view/projectedTrail';
 import { parse } from 'valibot';
-import type { ShardContext } from '../../src/game/server/plugin/context';
+import type { ShardContext } from '../../src/game/client/plugin/context';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { HeldFirearm, type HeldFirearmProfile, type HeldFirearmView, type HeldFirearmRows } from '../../src/game/client/plugin/heldFirearm';
 import { FirearmWeaponProfileSchema } from '@wildshard/format/weaponProfiles';

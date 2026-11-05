@@ -1,4 +1,4 @@
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import { FigureRows } from '../../client/systems/npc/figureRows';
 import { QuestTraderSchema } from '@wildshard/format/namedJsonContracts';
 import * as v from 'valibot';

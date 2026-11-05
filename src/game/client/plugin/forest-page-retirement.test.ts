@@ -1,7 +1,7 @@
 import { beforeAll, expect, test, vi } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
 import { installAssetTables } from '@wildshard/engine/boot/tables';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from './context';
 import type { ForestPage } from '../shardfile/forestPage';
 import type { CaveInterior } from '../shardfile/caveInterior';
 import { publishEntryOwner } from '../shardfile/entryOwners';

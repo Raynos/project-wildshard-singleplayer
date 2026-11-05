@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { Scene, type Object3D } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
 import type { Game } from '../src/engine/client/core/Game';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardWorld } from '../src/game/server/shard/world';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import type { TimedEncounters } from '../src/game/server/boss/timedEncounters';

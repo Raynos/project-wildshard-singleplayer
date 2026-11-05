@@ -3,7 +3,7 @@ import { weatherFog, type WeatherFog } from '@wildshard/engine/world/Atmosphere'
 import type { MarkedBossPresentation } from '@wildshard/format/bossProfiles';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { prepareClientWorld } from '../shardfile/runtimeProduct';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from './context';
 
 /**
  * A spawned boss fight's storm (SHARD-PLATFORM SF27; ENGINE §"Phased flyers and marked boss fights"), presented from its

@@ -1,5 +1,5 @@
 import type { RuntimeSpawns, RuntimeHomeRow } from '@wildshard/format/runtimeSpawns';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import type { RuntimeHome, RuntimeHomes, RuntimeHomePorts, RuntimeBoss, RuntimeBossOptions, RuntimeActor } from '../plugin/headless';
 import { retainsRuntimeServices } from '../../client/shard/retainedHooks';
 

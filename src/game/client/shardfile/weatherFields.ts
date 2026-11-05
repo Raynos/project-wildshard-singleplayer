@@ -3,7 +3,7 @@ import { parseEasedFields } from '@wildshard/format/easedFields';
 import { boundQuestState } from '../../shared/quest/boundState';
 import { sceneScalar } from './sceneInputs';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 
 const weatherFields = new Map<string, EasedFields>();
 /** Client-only weather targets read an existing quest's flag book. Load/enter snaps; play eases. */

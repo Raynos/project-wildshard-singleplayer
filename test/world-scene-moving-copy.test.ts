@@ -9,7 +9,7 @@ import { defineModel } from '../src/engine/client/models/model';
 import { WorldRegistry } from '../src/engine/client/world/registry';
 import { SkyRig } from '../src/engine/client/world/skyRig';
 import { WorldScenePlacementSchema } from '@wildshard/format/worldScenePlacement';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import { WorldEntry } from '../src/game/client/shardfile/worldEntry';
 import { WorldScenePlacement } from '../src/game/client/shardfile/worldScenePlacement';

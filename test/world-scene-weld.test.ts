@@ -21,7 +21,7 @@ import { installWorldScenes } from '../src/game/client/shardfile/worldScenes';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { emptyShardfile } from '../src/sdk/author';
 import { WorldRegistry } from '../src/engine/client/world/registry';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 
 const matrixWords = (matrix: Float32Array): number[] => Array.from(new Uint32Array(matrix.buffer));
 const identity = () => matrixWords(Float32Array.of(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -0, 0, 1));

@@ -19,7 +19,7 @@ import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { buildQuestChapter } from '../src/game/server/quest/chapter';
 import { readChapterDirector } from '../src/game/server/quest/chapterDirector';
 import { ChapterDirectorSchema, parseChapterDirector, parseChapterWake, chapterObservations } from '@wildshard/format/chapterDirector';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { PAGE_STORY as pineStory } from '../src/shards/pine-hollow/generators/pageStory';
 import { PAGE_STORY as driftwoodStory } from '../src/shards/driftwood-isle/generators/pageStory';
 import { beatFlags } from '../src/shards/pine-hollow/generators/questBeats';

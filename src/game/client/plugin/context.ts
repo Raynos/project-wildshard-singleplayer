@@ -1,8 +1,8 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import { pageGridCells } from '../../shared/grid/cellEvents';
-import type { HomeResidencyClaim, PageResidency } from '../../client/grid/pageResidency';
+import type { HomeResidencyClaim, PageResidency } from '../grid/pageResidency';
 import { currentPageMode } from '../../shared/grid/pageMode';
-import type { ShardManifest } from '../shard/manifest';
+import type { ShardManifest } from '../../server/shard/manifest';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { TabId as BagTabId, TabSpec as BagTabSpec, TabFragment as BagFragment } from '@wildshard/engine/ui/tabs';
 import { registerItemRow } from '../../shared/bag/itemCatalog';
@@ -16,7 +16,7 @@ import type { SkinDef } from '@wildshard/engine/player/Skins';
 import type { AudioData } from '@wildshard/format/audio';
 import { parseShardSlug } from '../../shared/shard/slug';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { ownedPresentationImages } from '../../client/shardfile/presentation';
+import { ownedPresentationImages } from '../shardfile/presentation';
 import { absentShardProduct, type ShardProduct } from '../../shared/shardfile/shardProduct';
 
 
@@ -172,11 +172,11 @@ export function sourceManifest(source: Pick<Shardfile, 'identity' | 'accent' | '
     atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0, volumetricSunColor: [1, 1, 1] },
     grade: { saturation: source.look.grade.saturation - 1, brightness: 0, contrast: source.look.grade.contrast - 1, bloomIntensity: 0, bloomThreshold: 1, shadowTint: [1, 1, 1], highTint: [1, 1, 1], lift: [0, 0, 0], gain: [1, 1, 1], gamma: 1 },
     budgets: {}, fight: {}, loadout: { weapons: [], tools: [], start: [] }, minimap: images?.map === undefined ? {} : { image: images.map },
-    render: async () => source.look.keys.length === 0 ? (await import('../../client/shardfile/emptyLook')).emptyLook(source.look.dayOverride) : (await import('../../client/shardfile/look')).shardfileLook(source.look), tiers: { phone: { ao: false, godRays: false }, desktop: { ao: false, godRays: false } },
+    render: async () => source.look.keys.length === 0 ? (await import('../shardfile/emptyLook')).emptyLook(source.look.dayOverride) : (await import('../shardfile/look')).shardfileLook(source.look), tiers: { phone: { ao: false, godRays: false }, desktop: { ao: false, godRays: false } },
     audio: { ambience: 'none', score: 'none' },
     boot: { files: () => [], sources: () => ({ sky: [], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [], art: [], music: [], sfx: [] }), viewmodelSets: [], audio: () => Promise.resolve([]), precache: [] },
     // A plugin source enters the ordinary staged LevelLoader, even with no authored hooks.
-    load: async () => { const { EmptyEquipment } = await import('../../client/shardfile/emptyEquipment'); return { default: class {
+    load: async () => { const { EmptyEquipment } = await import('../shardfile/emptyEquipment'); return { default: class {
       kit(ctx: ShardContext): void {
         const runtime = ctx.game.runtime;
         if (runtime === undefined) throw new Error('Shardfile source requires the session host');

@@ -13,7 +13,7 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { bossesSave, saveSlug } from '../shared/saves';
 import * as THREE from 'three';
 import * as v from 'valibot';
-import type { ShardContext } from './plugin/context';
+import type { ShardContext } from '../client/plugin/context';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { CameraFX } from '@wildshard/engine/player/CameraFX';

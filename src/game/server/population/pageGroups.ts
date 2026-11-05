@@ -1,6 +1,6 @@
 import type {Vector3} from 'three';
 import { installEnteredRuntimeService } from '../../client/shard/retainedHooks';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import { PackBrain, type PackPorts } from '@wildshard/engine/ai/pack';
 import { HerdBrain } from '@wildshard/engine/ai/herd';
 import { CrowdRoster, type CrowdTargets } from '../../shared/shardfile/crowdRuntime';

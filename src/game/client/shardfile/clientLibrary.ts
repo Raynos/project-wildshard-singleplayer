@@ -1,5 +1,5 @@
 import type { TextureTranscodeSupport } from '@wildshard/format/contentBounds';
-import type { ShardContext } from "../../server/plugin/context";
+import type { ShardContext } from "../plugin/context";
 import type { ResidencyAllocator, ResidencyClaim } from '../../shared/grid/allocator';
 import { parseKtx2, ktx2DeviceGpu } from '@wildshard/format/ktx2Cost';
 import { admitScript } from '@wildshard/format/scriptAdmission';

@@ -1,5 +1,5 @@
 import { parseQuestWorldDocument } from '@wildshard/format/questWorld';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import { registerQuestPageWorld } from '../quest/pageResources';
 import { entryOwner } from '../../client/shardfile/entryOwners';
 

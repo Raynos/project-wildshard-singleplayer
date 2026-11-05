@@ -21,7 +21,7 @@ import { ReturnProgram } from '../../shared/population/returnProgram';
 import { boundChapter, hasBoundChapter, publishBoundChapter, readQuestObservation, enteredAdventurePersistence } from '../../shared/quest/chapterBindings';
 import { commitQuestEffects, readQuestServiceActions } from './effects';
 import { QuestEffectSchema } from '@wildshard/format/questSteps';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import type { FigureRows } from '../../client/systems/npc/figureRows';
 import type { CompletionProgress } from '../../client/complete/declared';
 import type { QuestPresentationHost, QuestPresentationOptions } from '../../client/plugin/ui';

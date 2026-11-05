@@ -4,7 +4,7 @@ import { Events } from '../src/engine/shared/events/events';
 import { Scope } from '../src/engine/shared/app/scope';
 import { FlockBrain } from '../src/engine/shared/ai/flock';
 import { RetainedRuntimeHooks } from '../src/game/client/shard/retainedHooks';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { installCombatTargets, type CombatTargetOwner } from '../src/game/client/shardfile/clientTargets';
 import { CrowdRoster, CrowdTargets, CrowdWeaponTarget, type ForagerTargets } from '../src/game/shared/shardfile/crowdRuntime';

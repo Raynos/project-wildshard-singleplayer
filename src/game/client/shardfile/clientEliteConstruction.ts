@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import { DeclaredEliteEntry } from '@wildshard/engine/ai/view/eliteEntry';
 import { parseEliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { clientNativeBook } from './clientNativeBook';
 import { ReturnProgram } from '../../shared/population/returnProgram';
 import { readSpawnScript } from '../../server/population/spawnScript';

@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';
 import { installProductCreatures } from '../src/game/client/population/productCreatures';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { SpeciesDecisionAuthority } from '../src/game/server/plugin/brain';
 import { CREATURE_INSTALL } from '../src/shards/driftwood-isle/generators/creatureLook';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

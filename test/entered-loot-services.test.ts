@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { App } from '../src/engine/client/app/app';
 import { Scope } from '../src/engine/shared/app/scope';
 import { createLevelInstallation } from '../src/engine/client/level/installation';
-import { shardContext } from '../src/game/server/plugin/context';
+import { shardContext } from '../src/game/client/plugin/context';
 import { RetainedRuntimeHooks } from '../src/game/client/shard/retainedHooks';
 import { BagMenu, type BagMenuOptions } from '../src/game/client/bag/tabs';
 import { installLoot, type LootPresentation } from '../src/game/server/loot/runtime';

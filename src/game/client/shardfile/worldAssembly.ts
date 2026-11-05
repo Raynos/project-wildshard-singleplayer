@@ -4,7 +4,7 @@ import { bindClientPlaceSets } from './clientPlaceSets';
 import { installFixedDrawsStage, installPaintedReseedStage, installPaintedWorldStage } from './paintedWorldStages';
 import {ArenaRoomEncounter} from '../../server/boss/arenaRoom';
 import {buildArenaRoomEncounter} from '../boss/arenaRoomView';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { TIER } from '@wildshard/engine/core/tier';
 import { gpuOnlyTrees } from '@wildshard/engine/core/gpuOnly';
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';

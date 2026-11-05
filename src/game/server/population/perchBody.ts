@@ -11,7 +11,7 @@ import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { admitSpeciesProgram, createMemoryActionBrain, type SpeciesDecision, type SpeciesDecisionAuthority } from '../plugin/brain';
 import type { SpeciesProgramData } from '@wildshard/format/speciesPrograms';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { projectedSite } from './projectedSites';
 import { ReturnProgram } from '../../shared/population/returnProgram';

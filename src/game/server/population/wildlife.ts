@@ -3,7 +3,7 @@ import { macrotask } from '@wildshard/engine/boot/plan';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import { wind } from '@wildshard/engine/world/steppeWind';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import { createPageCrowds } from '../ambient/crowdPage';
 import { fixedDraws } from '../../client/models/fixedDraws';
 import type { SpeciesActorsFileRows } from '@wildshard/format/speciesBookRows';

@@ -2,7 +2,7 @@ import { expect,test,vi } from 'vitest';
 import { BufferGeometry,Group,Mesh,MeshBasicMaterial,Object3D,Vector3 } from 'three';
 import type { Bounds } from '@wildshard/engine/level/spec';
 import { Scope } from '@wildshard/engine/app/scope';
-import type { ShardContext } from './context';
+import type { ShardContext } from '../../client/plugin/context';
 import type { ShardRuntime } from '../../shared/shard/runtime';
 import { installClientRuntimeHooks, runtimeLevelBounds } from '../../client/shardfile/clientRuntimeHooks';
 import { lendEntryOwner,publishEntryOwner } from '../../client/shardfile/entryOwners';

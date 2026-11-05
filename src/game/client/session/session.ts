@@ -4,7 +4,7 @@ import { type LevelSequence, bootLevel } from '@wildshard/engine/boot';
 import { retried } from '@wildshard/engine/boot/retry';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
-import { shardContext, pageGridInstance, type GameServices, type ShardContext, type PageMode } from '../../server/plugin/context';
+import { shardContext, pageGridInstance, type GameServices, type ShardContext, type PageMode } from '../plugin/context';
 import { regionalDataCellBytes } from '../grid/runtimeCost';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { bootPageMode } from '../grid/pageEntry';

@@ -14,7 +14,7 @@ import * as THREE from 'three';
 import { app } from '@wildshard/engine/app/runtime';
 import { AmbientGroup, type AmbientVisitorPlayer } from '../../shared/ambient/flock';
 import { parseAmbientFlock, type AmbientFlockData } from '@wildshard/format/ambientLife';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { PosedDraw } from '../looks/posedInstances';
 import type { PosedBufferPool } from '../looks/posedBufferPool';
 

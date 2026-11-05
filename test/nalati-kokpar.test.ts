@@ -14,7 +14,7 @@ import { WorldRegistry } from '../src/engine/client/world/registry';
 import { QuestState } from '../src/engine/server/quest/core';
 import { Flags } from '../src/engine/shared/world/interact/flags';
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import * as terrainService from '../src/engine/shared/world/terrainHeight';
 import { Scope } from '../src/engine/shared/app/scope';
 import { SkyRig } from '../src/engine/client/world/skyRig';

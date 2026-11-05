@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';
-import { sourceManifest } from '../src/game/server/plugin/context';
+import { sourceManifest } from '../src/game/client/plugin/context';
 import { emptyShardfile } from '../src/sdk/author';
 
 const original = Uint8Array.from(readFileSync('test/fixtures/world-source/image.png'));

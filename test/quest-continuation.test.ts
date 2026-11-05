@@ -8,7 +8,7 @@ import { WorldRegistry } from '../src/engine/client/world/registry';
 import { Flags } from '../src/engine/shared/world/interact/flags';
 import { Audio } from '../src/engine/client/audio/Audio';
 import { Events } from '../src/engine/shared/events/events';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import type { QuestPageComposition } from '../src/game/server/quest/pageComposition';
 import { CollectionCatalogue } from '../src/game/client/models/collectionDisplay';

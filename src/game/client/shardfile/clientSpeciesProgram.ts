@@ -7,7 +7,7 @@ import { ClientSpeciesProgramSchema } from '@wildshard/format/clientNative';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { floorBelow } from '@wildshard/engine/physics/query';
 import { admitSpeciesProgram } from '../../server/plugin/brain';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import { bindPlayerImpulse } from '../../server/shardfile/dataCreaturePorts';
 import { borrowedDecisionAuthority } from '../../server/shardfile/borrowedDecisions';

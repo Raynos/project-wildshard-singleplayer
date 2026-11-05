@@ -3,7 +3,7 @@ import type { Actor } from '@wildshard/engine/combat/pipeline';
 import type { ItemFamily } from '@wildshard/engine/combat/itemFamilies';
 import { playerModes } from '@wildshard/engine/player/modes';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import type { RuntimeItemPorts, RuntimeMeleePorts, bindRuntimeItems } from '../plugin/headless';
 import { installEnteredRuntimeInput, retainsRuntimeServices } from '../../client/shard/retainedHooks';
 import { declaredItemContext, installDeclaredItems, type DeclaredItems } from './items';

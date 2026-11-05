@@ -8,7 +8,7 @@ import { createLevelInstallation } from '../src/engine/client/level/installation
 import { Flags } from '../src/engine/shared/world/interact/flags';
 import { QuestLine, QuestState } from '../src/engine/server/quest/core';
 import type { MapQuest } from '../src/engine/client/ui/Map';
-import { shardContext } from '../src/game/server/plugin/context';
+import { shardContext } from '../src/game/client/plugin/context';
 import { RetainedRuntimeHooks } from '../src/game/client/shard/retainedHooks';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { bindStoryChapters, presentChapterStory, presentQuestStory } from '../src/game/server/quest/story';

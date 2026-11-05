@@ -3,7 +3,7 @@ import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { Scope } from '../src/engine/shared/app/scope';
 import { WorldAssembly, type WorldAssemblyPorts } from '../src/game/client/shardfile/worldAssembly';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { FixedDraws } from '../src/game/client/models/fixedDraws';
 import { entryOwner, publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
 import { installFixedDrawsStage, installPaintedReseedStage, installPaintedWorldStage, paintedWorldUpdate, type PaintedWorldStagePorts } from '../src/game/client/shardfile/paintedWorldStages';

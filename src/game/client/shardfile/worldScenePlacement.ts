@@ -13,7 +13,7 @@ import type { CullOptions } from '@wildshard/engine/models/cull';
 import type { WorldScenesSection } from '@wildshard/format/worldScenes';
 import { worldSceneSourceMaterial } from './worldSceneMaterials';
 import type { WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import type { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
 import type { SceneHandles } from './sceneHandles';
 import { bucketByTile, colliderTileKeys, SharedTileBuilds, tileKey, tilesTouching, type TileContent } from './tileContent';

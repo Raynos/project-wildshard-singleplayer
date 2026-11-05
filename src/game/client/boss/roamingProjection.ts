@@ -24,7 +24,7 @@ import { FixedPageSpawnTable } from '../../server/population/pageGroups';
 import { GroundTell } from '../eliteView';
 import { effectField } from '@wildshard/engine/fx/effectField';
 import { lentLook, setLentParam } from '../shardfile/lentLooks';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { Rng, fnv1a32, type RngState } from '@wildshard/engine/core/rng';
 import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { Lane, type LaneState } from '../../server/boss/lane';

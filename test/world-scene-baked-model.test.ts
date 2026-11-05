@@ -28,7 +28,7 @@ import * as colliderReader from '../src/engine/client/models/colliders';
 import { WorldScenePlacement } from '../src/game/client/shardfile/worldScenePlacement';
 import { installWorldScenes } from '../src/game/client/shardfile/worldScenes';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { listModel } from '../src/engine/client/models/live';
 import { place } from '../src/engine/client/models/place';
 

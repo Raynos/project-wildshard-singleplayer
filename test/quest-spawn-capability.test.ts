@@ -6,7 +6,7 @@ import { Flags } from '../src/engine/shared/world/interact/flags';
 import { QuestState } from '../src/engine/server/quest/core';
 import type { AnimalManager } from '../src/engine/server/entities/AnimalManager';
 import type { DeclaredSoundBank } from '../src/engine/client/audio/declaredBank';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import type { QuestPageComposition } from '../src/game/server/quest/pageComposition';
 import { publishEntryOwner } from '../src/game/client/shardfile/entryOwners';

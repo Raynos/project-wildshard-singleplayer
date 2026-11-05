@@ -1,4 +1,4 @@
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { PlaygroundHost } from '@wildshard/engine/practice/playground/Playground';
 import type { PracticeCourseRows } from './course';

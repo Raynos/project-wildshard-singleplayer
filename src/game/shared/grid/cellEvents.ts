@@ -1,4 +1,4 @@
-import type { GridCellRef } from '../../server/plugin/context';
+import type { GridCellRef } from '../../client/plugin/context';
 
 /**
  * The seam for inside-cell enter / leave notifications (SF46's hybrid runtime activation consumes them; the grid client

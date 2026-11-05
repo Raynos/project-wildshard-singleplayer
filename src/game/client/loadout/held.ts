@@ -9,7 +9,7 @@ import { whenControl } from '@wildshard/engine/boot/prefetch';
 import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import { fixIBL, VIEWMODEL_GROUP, worldHit } from '@wildshard/engine/combat/view/ranged';
 import { listenPage } from '@wildshard/engine/input/dom';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import { bindRuntimeState } from '../../server/plugin/headless';
 import { ItemCatalogue } from '../../shared/loadout/itemCatalogue';

@@ -1,5 +1,5 @@
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import { QuestState, type QuestMarker, type QuestStep } from '@wildshard/engine/quest/core';
 import { installCableModes } from '@wildshard/engine/player/modes';
 import { publishBoundQuest } from '../../shared/quest/boundState';

@@ -24,7 +24,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import { runtimeBoundWorldFiles } from '../../server/plugin/headless';
 import { clientMaterials } from './clientMaterials';
 import { graphFileTextureRefs, materialTextureRefs } from '@wildshard/format/materials';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { readAsset } from './readAsset';
 import { legacyAsset } from './legacyAsset';
 

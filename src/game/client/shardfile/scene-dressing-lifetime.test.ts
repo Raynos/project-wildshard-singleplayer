@@ -11,7 +11,7 @@ import { Scope } from '@wildshard/engine/app/scope';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { WorldRegistry } from '@wildshard/engine/world/registry';
 import { SceneDressing } from './sceneDressing';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const geometry = { attrs: [['position', 'f32', 3, false], ['normal', 'f32', 3, false]], count: 3, index: null, indexCount: 0, box: true, expand: false };

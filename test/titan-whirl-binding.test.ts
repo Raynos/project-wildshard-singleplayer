@@ -6,7 +6,7 @@ import {App} from '../src/engine/client/app/app';
 import {Scope} from '../src/engine/shared/app/scope';
 import {createLevelInstallation} from '../src/engine/client/level/installation';
 import {WorldRegistry} from '../src/engine/client/world/registry';
-import {shardContext} from '../src/game/server/plugin/context';
+import {shardContext} from '../src/game/client/plugin/context';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
 import {MANIFEST as TEMPLATE} from '../src/shards/_template/discovery.generated';

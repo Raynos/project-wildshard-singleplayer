@@ -1,6 +1,6 @@
 import { parse } from 'valibot';
 import { ClientBossFightSchema } from '@wildshard/format/clientNative';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { bindDeclaredFight } from '../plugin/ui';
 import { bindPageBoss } from '../../server/population/pageHomes';
 import { pagePopulationRows } from '../../shared/population/pageRows';

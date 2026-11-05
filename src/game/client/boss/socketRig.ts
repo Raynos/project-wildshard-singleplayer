@@ -6,7 +6,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { BossSocketRigSchema, type BossSocketRigRows } from '@wildshard/format/bossSocketRig';
 import { bindLimbQueryView } from '../animation/limbQueryView';
 import { SceneHandles } from '../shardfile/sceneHandles';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { createModelLibrary, type ModelLibrary } from '../plugin/geometry';
 import { RoamingCombatSchema } from '@wildshard/format/roamingCombat';
 import type { ModelContext } from '@wildshard/engine/models/model';

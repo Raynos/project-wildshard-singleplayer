@@ -2,7 +2,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { SceneDressing } from '../src/game/client/shardfile/sceneDressing';
 import { installClientPlaceSets, requireClientPlaceSetsBound } from '../src/game/client/shardfile/clientPlaceSets';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { App } from '../src/engine/client/app/app';
 import type { Game } from '../src/engine/client/core/Game';
 import { Physics } from '../src/engine/shared/physics/Physics';

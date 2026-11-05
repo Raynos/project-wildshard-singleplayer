@@ -9,7 +9,7 @@ import { ForagerDrawSchema } from '@wildshard/format/ambientLife';
 import { SpecimenBookSchema } from '@wildshard/format/specimenCatalogue';
 import { WildlifePopulationSchema } from '@wildshard/format/wildlifePopulation';
 import { createPackedSpecimens, prepareSpecimenCatalogue } from '../models/specimenCatalogue';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 
 /** Project the actual native population's due poses without advancing its clock.
  * Geometry/material are borrowed native resources; rows contain no query port. */

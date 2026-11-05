@@ -9,7 +9,7 @@ import type { World } from '../src/engine/client/core/bootstrap';
 import { Physics } from '../src/engine/shared/physics/Physics';
 import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { RopeChain } from '../src/engine/shared/physics/ropeChain';
-import { shardContext, ShardPlugin, type ShardContext } from '../src/game/server/plugin/context';
+import { shardContext, ShardPlugin, type ShardContext } from '../src/game/client/plugin/context';
 import { hybridInstallation } from '../src/game/client/shardfile/hybrid';
 import { bindResidentWorldScope, boundResidentWorldScope } from '../src/game/client/shardfile/hybridPresentation';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';

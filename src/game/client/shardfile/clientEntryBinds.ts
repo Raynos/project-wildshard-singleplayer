@@ -1,6 +1,6 @@
 /** Finite entry bindings over existing room and riding owners. */
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { clientCosmeticFinishes } from './clientCosmeticFinishes';
 import { entryOwner, presentEntryOwner, publishEntryOwner } from './entryOwners';
 

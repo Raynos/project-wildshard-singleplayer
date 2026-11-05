@@ -7,7 +7,7 @@ import * as lookCompiler from '../src/game/client/shardfile/runtimeProduct';
 import { ToonLook } from '../src/engine/client/render/families/toon';
 import { BufferGeometry, InterleavedBufferAttribute, Color, Mesh, MeshBasicMaterial, PerspectiveCamera, Vector2, Vector3, Vector4 } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { SkyRig } from '../src/engine/client/world/skyRig';
 import { parseToonArmsLook } from '@wildshard/format/heldArms';
 import { HeldView } from '../src/game/client/systems/viewmodel/heldView';

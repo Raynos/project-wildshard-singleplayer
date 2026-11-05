@@ -2,7 +2,7 @@
 import * as v from 'valibot';
 import { QuestPageDoorSchema } from '@wildshard/format/questPageFacets';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import { forestPage } from '../../client/shardfile/forestPage';
 import { QuestFlagGates } from './flagGates';
 

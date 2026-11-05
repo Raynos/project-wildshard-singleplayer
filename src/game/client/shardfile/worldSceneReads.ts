@@ -1,5 +1,5 @@
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 
 type Context = Pick<ShardContext, 'scope'> & { readonly product: Pick<ShardContext['product'], 'file' | 'hasFile'> };
 

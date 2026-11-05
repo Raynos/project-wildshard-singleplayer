@@ -5,7 +5,7 @@ import type { RayTargets } from '@wildshard/engine/combat/targets';
 import type { ArenaRoomEncounter } from '../../server/boss/arenaRoom';
 import type { TimedEncounters } from '../../server/boss/timedEncounters';
 import type { CrowdWeaponTarget, ForagerTargets } from '../../shared/shardfile/crowdRuntime';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import {clientWildlifeState,type PageWildlife} from '../../server/population/wildlife';
 import type { CrowdDraw } from '../ambient/crowdDraw';
 import {entryOwner} from './entryOwners';

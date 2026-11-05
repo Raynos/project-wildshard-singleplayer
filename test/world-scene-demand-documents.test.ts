@@ -13,7 +13,7 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { installWorldScenes } from '../src/game/client/shardfile/worldScenes';
 import { defineWorldSceneCatalogue } from '../src/game/client/models/worldSceneCatalogue';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 
 function fixture(demand = true, direct = false, corrupt = false) {
   const owner = new Scope('cold-scene-documents'), registry = new WorldRegistry();

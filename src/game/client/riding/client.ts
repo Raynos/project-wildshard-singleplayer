@@ -1,4 +1,4 @@
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { installEnteredLevelService } from '../shard/retainedHooks';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import { publishEntryOwner, presentEntryOwner, type WorldFrameOwner } from '../shardfile/entryOwners';

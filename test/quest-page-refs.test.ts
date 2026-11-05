@@ -20,7 +20,7 @@ import { parseWorldTargets } from '@wildshard/format/worldTargets';
 import { bindDeclaredPage } from '../src/game/server/quest/declaredPage';
 import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 
 const signal = signalProductRows();
 const sky = skyProductRows(originalSkyNavigation(), originalSkyMovers());

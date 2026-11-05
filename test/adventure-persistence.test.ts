@@ -3,7 +3,7 @@ import { expect, test,vi } from 'vitest';
 import { entryOwner } from '../src/game/client/shardfile/entryOwners';
 import { enteredAdventurePersistence } from '../src/game/shared/quest/chapterBindings';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { Scope } from '../src/engine/shared/app/scope';

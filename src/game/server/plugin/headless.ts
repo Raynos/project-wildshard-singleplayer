@@ -11,7 +11,7 @@ import type { EquipmentIcon } from '@wildshard/engine/combat/Equipment';
 import type { ItemFamily, ItemFamilyPresentation } from '@wildshard/engine/combat/itemFamilies';
 import type { QuestState, QuestMarker } from '@wildshard/engine/quest/core';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
-import type { ShardContext } from './context';
+import type { ShardContext } from '../../client/plugin/context';
 import type { LedgerReceipt } from "../ledger";
 import { Purse } from "../loot/Purse";
 import type { DeclaredItems, DeclaredItemPorts } from "../shardfile/items";

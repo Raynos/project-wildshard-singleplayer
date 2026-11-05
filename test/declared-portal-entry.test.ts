@@ -9,7 +9,7 @@ import { CharacterMotor, PLAYER_BODY } from '../src/engine/shared/physics/Charac
 import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { groups } from '../src/engine/shared/physics/groups';
 import { tagCollider } from '../src/engine/shared/physics/surface';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime, ShardPlayHost } from '../src/game/shared/shard/runtime';
 import type { ShardWorld } from '../src/game/server/shard/world';
 import type { Progress } from '../src/game/client/Progress';

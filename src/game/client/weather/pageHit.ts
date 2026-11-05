@@ -2,7 +2,7 @@ import { Vector3 } from 'three';
 import * as v from 'valibot';
 import type { Player } from '@wildshard/engine/player/Player';
 import { WeatherWorldSchema } from '@wildshard/format/weatherProgram';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import type { WeatherReactions } from '../../server/weather/reactions';
 

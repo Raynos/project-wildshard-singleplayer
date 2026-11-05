@@ -16,7 +16,7 @@ import {readScalarChannel} from '../src/engine/shared/world/scalarChannel';
 import {Scope} from '../src/engine/shared/app/scope';
 import type {Player} from '../src/engine/client/player/Player';
 import {AudioSceneDirector,clientAudioScene,installClientAudioScene} from '../src/game/client/audio/sceneDirector';
-import type {ShardContext} from '../src/game/server/plugin/context';
+import type {ShardContext} from '../src/game/client/plugin/context';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
 

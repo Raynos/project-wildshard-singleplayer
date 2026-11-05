@@ -53,7 +53,7 @@ import { generatePlatform, generatePlatformSliced, type GeneratedStrip, type Pla
 import { GridAssembly, type GridCell } from '../../shared/grid/assembly';
 import { neighbourEdges } from '../../shared/grid/readinessEdges';
 import { DEVSERVER, gridMode } from './menu';
-import { gridCells, pageGridInstance } from '../../server/plugin/context';
+import { gridCells, pageGridInstance } from '../plugin/context';
 import { prepareHomeMetadata, withInitialHomeMetadata } from './homeMetadata';
 import type { ResidencyAllocator } from '../../shared/grid/allocator';
 import type { PageResidency } from './pageResidency';

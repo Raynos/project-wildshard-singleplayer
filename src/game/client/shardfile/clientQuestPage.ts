@@ -1,7 +1,7 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import { parse as parseData } from 'valibot';
 import { ClientQuestPageSchema } from '@wildshard/format/clientNative';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { installPersistedQuest, bindPageQuestStages } from '../plugin/ui';
 import type { DirectorActionBinding } from '../../server/plugin/director';
 import { bindRuntimeCoins } from '../../server/plugin/headless';

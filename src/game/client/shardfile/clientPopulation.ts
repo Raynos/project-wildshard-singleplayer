@@ -2,7 +2,7 @@ import { parse } from 'valibot';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import { ClientPopulationSchema } from '@wildshard/format/clientNative';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import type { RuntimeHomePorts } from '../../server/plugin/headless';
 import { bindPageHomes } from '../../server/population/pageHomes';
 import { pagePopulationRows } from '../../shared/population/pageRows';

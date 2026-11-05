@@ -18,7 +18,7 @@ import { manager } from '@wildshard/engine/test/manager';
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { buildQuestChapter } from '../src/game/server/quest/chapter';
 import { installChapterWakeEncounter } from '../src/game/server/quest/chapterDirector';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { parseChapterWake } from '@wildshard/format/chapterDirector';
 import { PAGE_STORY } from '../src/shards/driftwood-isle/generators/pageStory';
 import { WAKE_ENCOUNTER } from '../src/shards/driftwood-isle/generators/wakeEncounter';

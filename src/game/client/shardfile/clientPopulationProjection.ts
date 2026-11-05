@@ -1,4 +1,4 @@
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { PopulationProjection } from '../population/projection';
 

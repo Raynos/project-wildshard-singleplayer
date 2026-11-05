@@ -13,7 +13,7 @@ import { prepareViewMemory } from '@wildshard/engine/script/viewLane';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { speciesViewSlots } from '../population/speciesViewSlots';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { entryOwner } from './entryOwners';
 import { setLentParam } from './lentLooks';
 

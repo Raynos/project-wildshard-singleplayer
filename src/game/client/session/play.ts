@@ -105,7 +105,7 @@ import { installPlayerDeath } from '@wildshard/engine/ui/playerDeath';
 import { PlayerHurt } from '@wildshard/engine/ui/playerHurt';
 import { onReview, queuedCount, quickNote } from '@wildshard/engine/ui/review';
 import { installBounds } from '@wildshard/engine/world/bounds';
-import { gridCells, gridHomeSim, pageMode } from '../../server/plugin/context';
+import { gridCells, gridHomeSim, pageMode } from '../plugin/context';
 import { whenControl } from '@wildshard/engine/boot/prefetch';
 import { installMemoryWarning, residentOverLimit } from '../grid/memoryWarning';
 import { ACCENTS } from '@wildshard/format/accent';

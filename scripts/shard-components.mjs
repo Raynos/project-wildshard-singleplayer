@@ -131,7 +131,7 @@ const reviewedW2Owners = new Map([
   ['src/engine/server/script/host.ts#requirePreparationOwner', 'C9'],
   ['src/sdk/headlessRuntime.ts#HeadlessCommandPorts', 'C9'],
   ['src/sdk/headlessRuntime.ts#bindHeadlessCommands', 'C9'],
-  ['src/game/server/plugin/context.ts#buildProgress', 'C9'],
+  ['src/game/client/plugin/context.ts#buildProgress', 'C9'],
   ['src/game/client/shard/retainedHooks.ts#installEnteredRuntimeAttachment', 'C9'],
   ['src/game/client/shard/retainedHooks.ts#installEnteredRuntimeObserver', 'C9'],
   ['src/game/client/shard/retainedHooks.ts#installEnteredRuntimeUpdate', 'C9'],

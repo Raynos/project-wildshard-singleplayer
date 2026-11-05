@@ -12,7 +12,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import { isDev } from '@wildshard/engine/core/devMode';
 import { CONTENT_CAPS, _applyChunkConstants } from '@wildshard/engine/core/config';
 import { configureLevel } from '@wildshard/engine/level/selection';
-import { pageGridInstance, sourceManifest, compiledPageBoot, type PageMode } from '../../server/plugin/context';
+import { pageGridInstance, sourceManifest, compiledPageBoot, type PageMode } from '../plugin/context';
 import { PageResidency } from '../grid/pageResidency';
 import { ResidencyAllocator } from '../../shared/grid/allocator';
 import type { GridRecoveryRecord } from '../../shared/grid/recovery';

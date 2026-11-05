@@ -16,7 +16,7 @@ import { isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputD
 import { saves } from '../src/engine/shared/saves/runtime';
 import { installManifestShardfile, installShardfileProduct } from '../src/game/client/shardfile/clientSource';
 import { prepareBootImports } from '../src/bootDownloads';
-import { sourceManifest } from '../src/game/server/plugin/context';
+import { sourceManifest } from '../src/game/client/plugin/context';
 import { installShards, shards } from '../src/game/client/shard/list';
 import { game, setActiveChunk } from '../src/game/client/shard/registry';
 import { Scope } from '../src/engine/shared/app/scope';

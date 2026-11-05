@@ -4,7 +4,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import { installRuntimeState } from '../src/game/server/shardfile/runtimeState';
 import { bindRuntimeState } from '../src/game/server/plugin/headless';
 import { installShards, shards } from '../src/game/client/shard/list';
-import { sourceManifest, type ShardContext } from '../src/game/server/plugin/context';
+import { sourceManifest, type ShardContext } from '../src/game/client/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { FIXTURE_RUNTIME_COST } from './fixtures/clientPlanRuntime';

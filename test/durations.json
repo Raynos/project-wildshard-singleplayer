@@ -348,7 +348,7 @@
  "src/game/client/plugin/client-place-sets-readiness.test.ts": 0,
  "src/game/client/plugin/client-place-sets.test.ts": 0,
  "src/game/server/plugin/client-runtime-hooks.test.ts": 0,
- "src/game/server/plugin/context.test.ts": 0,
+ "src/game/client/plugin/context.test.ts": 0,
  "src/game/server/plugin/creature-group-sampling.test.ts": 0,
  "src/game/server/plugin/creature-lift.test.ts": 0,
  "src/game/server/plugin/creature-site-selection.test.ts": 0,

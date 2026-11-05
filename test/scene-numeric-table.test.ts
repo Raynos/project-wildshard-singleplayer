@@ -5,7 +5,7 @@ import { WorldRegistry } from '../src/engine/client/world/registry';
 import { captureScatterSource } from '../src/engine/client/render/scatterInstances';
 import { SceneDressing, readSceneNumericTable, readSceneScatterTable } from '../src/game/client/shardfile/sceneDressing';
 import { readSceneScatterPose } from '@wildshard/format/sceneDressing';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { join, writeGeometry } from '../src/shards/nalati-grasslands/generators/geometryWriter';
 
 function table(rows: readonly Record<string, number>[]): Uint8Array {

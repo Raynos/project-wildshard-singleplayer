@@ -8,7 +8,7 @@ import { validateFixtureJsonValue } from './fixtures/defined-json-value';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { installClientCatalogue } from '../src/game/client/shardfile/clientCatalogue';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { ItemCatalogue } from '../src/game/shared/loadout/itemCatalogue';
 import { HeldFinishes } from '../src/game/client/loadout/finishes';
 import { PINE as source } from './fixtures/pine-program';

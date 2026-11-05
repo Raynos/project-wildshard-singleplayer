@@ -17,7 +17,7 @@ import { isOwnedId, isCosmetic, type Owned } from '../../shared/loot/Owned';
 import { rollLoot } from '../loot/tables';
 import { onCreatureDeath } from '../loot/deaths';
 import type { DeclaredLootEconomy } from '../../shared/shard/declaredRows';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import type { CollectionCatalogue, CollectionDisplay, CollectionParams } from '../../client/models/collectionDisplay';
 import { collectionLoose, keepsakeView } from '../../client/compendium/keepsakesView';
 

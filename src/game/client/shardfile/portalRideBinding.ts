@@ -8,7 +8,7 @@ import type { PanelNode } from '@wildshard/engine/ui/panel';
 import type { PortalLinkEntry, portalLinkRules } from '@wildshard/format/portalLinkAssets';
 import { createPortalRide, PortalRideStateSchema, type PortalRideState, type PortalRideLane, type RideRings } from './walkInPortalRide';
 import { createPortalTraversal, type PortalTransfer, type PortalTraversalPorts } from '../../shared/shardfile/portalTraversal';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 
 /** the ride's rows: its director (a `directors` id), walk-in volume, fade, veil and the facts a landing reports */
 export interface PortalRideRows {

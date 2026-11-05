@@ -29,7 +29,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import { Flags } from '../src/engine/shared/world/interact/flags';
 import { QuestState } from '../src/engine/server/quest/core';
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import type { Actor, DamageRequest } from '../src/engine/server/combat/pipeline';
 import { Events } from '../src/engine/shared/events/events';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';

@@ -1,4 +1,4 @@
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 
 /**

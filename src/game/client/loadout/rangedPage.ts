@@ -23,7 +23,7 @@ import { installRoamingCombat, type RoamingCombat } from '../../server/combat/ro
 import { installCollectionCompendium } from '../models/collectionWall';
 import { installItemEffects } from '../../server/loadout/effects';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { finishForestPageAudio } from '../audio/forestPage';
 import { declaredLootEconomy } from '../../shared/shard/declaredRows';
 import { registerLootTable, rollLoot } from '../../server/loot/tables';

@@ -8,7 +8,7 @@ import { bindClientPlaceSets } from '../shardfile/clientPlaceSets';
 import type { RangedPage } from '../loadout/rangedPage';
 import { installRuntimeGameplayAudio, runtimeAudio } from '../plugin/audio';
 import { retainsRuntimeServices } from '../shard/retainedHooks';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 
 /** Named place membership is admitted separately; it adds no physics. */
 export async function finishForestPageAudio(ctx: ShardContext, page: Pick<RangedPage, 'rows' | 'loadout' | 'fights'>): Promise<DeclaredAmbience> {

@@ -7,7 +7,7 @@ import { jsonSchema, jsonSlot } from '@wildshard/engine/saves/slots';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { InteractSfx } from '@wildshard/engine/audio/interactSfx';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { bindRuntimeState } from '../../server/plugin/headless';
 import { QuestViews } from '../plugin/ui';
 import { enteredHeldLoadout } from '../loadout/held';

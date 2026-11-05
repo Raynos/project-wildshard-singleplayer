@@ -7,7 +7,7 @@ import { StatusIcons } from '../../client/systems/effects/view';
 import * as v from 'valibot';
 import starterRows from '../systems/effects/starterRows.json' with { type: 'json' };
 import { bindPlayerEffects, selectEffectGrants, type EffectService } from '@wildshard/engine/combat/effects/EffectService';
-import type { ShardContext } from '../plugin/context';
+import type { ShardContext } from '../../client/plugin/context';
 import { installEnteredRuntimeService, installRetainedPlayerEffects, retainsRuntimeServices } from '../../client/shard/retainedHooks';
 import { isOwnedId, isCosmetic } from '../../shared/loot/Owned';
 import type { EffectDef, CueId, EffectId } from '@wildshard/engine/combat/effects/types';

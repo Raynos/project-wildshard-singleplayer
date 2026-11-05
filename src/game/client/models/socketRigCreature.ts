@@ -17,7 +17,7 @@ import type { ShardProduct } from '../../shared/shardfile/shardProduct';
 import { SocketRigCard } from '../boss/socketRig';
 import { productHullBook } from '../looks/speciesBook';
 import { HeldEquipment } from '../plugin/heldEquipment';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 
 /** One boss creature card (see the module note). */
 export class SocketRigCreature {

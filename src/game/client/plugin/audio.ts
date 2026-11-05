@@ -15,7 +15,7 @@ import type { CombatCueMap, CombatCueOpts, CombatCues } from '@wildshard/engine/
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { AudioData } from '@wildshard/format/audio';
-import type { GameServices, ShardContext } from '../../server/plugin/context';
+import type { GameServices, ShardContext } from './context';
 import { installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
 import { installSilentScore } from '../systems/audio/silentScore';
 import { crossbowFire, dryFire, boltImpact, reload } from "../systems/audio/crossbowSounds";

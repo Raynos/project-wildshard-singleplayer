@@ -1,6 +1,6 @@
 import { expect, it, vi } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';
-import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import * as v from 'valibot';
 import { QuestPageCollectionsSchema, QuestPageDoorSchema, QuestPageMapSchema, QuestPageMoverSchema } from '@wildshard/format/questPageFacets';

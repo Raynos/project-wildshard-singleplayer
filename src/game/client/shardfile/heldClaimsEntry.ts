@@ -1,6 +1,6 @@
 /** Client-only concrete held-claim phases. Product rows own the rig and native
  * item catalogue; entered loans preserve the original preparation instance. */
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { HeldClaims } from '../loadout/claims';
 import { parseHeldSlots } from '@wildshard/format/heldArms';
 import { entryOwner, publishEntryOwner } from './entryOwners';

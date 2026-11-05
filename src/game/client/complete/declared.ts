@@ -1,7 +1,7 @@
 import type { CompletionRows } from '@wildshard/format/completion';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { LiveMarker } from '@wildshard/engine/quest/view';
-import type { ShardContext } from '../../server/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { findTitleManifest } from '../shard/titleList';
 import { findChunk } from '../shard/registry';
 import { travel } from '../travel/travel';
