@@ -57,6 +57,14 @@ export class BitWriter {
   }
 }
 
+/** Cut text to fit `maxBytes` of UTF-8, at a whole character. */
+export function fitText(text: string, maxBytes: number): string {
+  if (encoder.encode(text).length <= maxBytes) return text;
+  let out = '', used = 0;
+  for (const char of text) { used += encoder.encode(char).length; if (used > maxBytes) break; out += char; }
+  return out;
+}
+
 /** Reads one message. Every read past the end throws NetDecodeError, so untrusted lengths stay bounded. */
 export class BitReader {
   private readonly bytes: Uint8Array;

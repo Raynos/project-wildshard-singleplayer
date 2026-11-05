@@ -1,6 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The server half runs the shipped product bytes and physics module.
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
+import type { NetChat } from '../src/engine/net/chatWire';
 import type { NetLedger } from '../src/engine/net/ledgerWire';
 import { loadRapier } from '../src/engine/physics/rapier';
 import type { SaveStorage } from '../src/engine/saves/store';
@@ -76,5 +77,18 @@ test('equip crosses the worker and comes back in the owner block', async () => {
   client.onFrame(() => { client.flush(); });
   client.act({ kind: 'equip', seq: 1, slot: 1 });
   await until(() => client.latest !== null && client.owner(client.latest)['held'] === 1);
+  shell.dispose();
+}, 40_000);
+
+test('a line of chat crosses the worker, filtered', async () => {
+  const input = await product('sunscar-dunes'), shell = start('sunscar-dunes', new PageStorage(), input);
+  const { client } = shell, heard: NetChat[] = [];
+  client.onChat(line => { heard.push(line); });
+  await shell.booted; shell.ready();
+  await until(() => client.latest !== null);
+  client.onFrame(() => { client.flush(); });
+  client.say('room', 'hello shit');
+  await until(() => heard.length === 1);
+  expect(heard[0]).toMatchObject({ name: 'Guest', text: 'hello ****', channel: 'room' });
   shell.dispose();
 }, 40_000);

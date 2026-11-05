@@ -323,6 +323,7 @@
     "./saves/forwardedStorage": "./saves/forwardedStorage.ts",
     "./net/client": "./net/client.ts",
     "./net/acts": "./net/acts.ts",
+    "./net/chat": "./net/chat.ts",
     "./net/combatWire": "./net/combatWire.ts",
     "./net/ledgerBook": "./net/ledgerBook.ts",
     "./net/identity": "./net/identity.ts",

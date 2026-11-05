@@ -5,6 +5,7 @@ import { installAppIdentity } from '@wildshard/engine/app/identity';
 import { Scope } from '@wildshard/engine/app/scope';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { LedgerBook, LedgerBookSchema, type LedgerBookSave } from '@wildshard/engine/net/ledgerBook';
+import type { ChatReports } from '@wildshard/engine/net/chat';
 import { NetRoom } from '@wildshard/engine/net/room';
 import { ServerClock } from '@wildshard/engine/net/serverClock';
 import { SimNetWorld } from '@wildshard/engine/net/simWorld';
@@ -28,6 +29,8 @@ export interface StandaloneServerOptions {
   readonly control: MessagePort; readonly game: MessagePort;
   /** Read and verify the shard's server inputs. */
   readonly load: (boot: Boot) => Promise<HeadlessRuntimeInput>;
+  /** Where chat reports go (J110). Where that ends up is still to be decided. */
+  readonly reports?: ChatReports;
 }
 interface SavedContinuation { readonly tick: number; readonly snapshot: string; readonly ledger?: LedgerBookSave }
 /** The tick allowance one player's input may use. */
@@ -75,7 +78,7 @@ export function runStandaloneServer(options: StandaloneServerOptions): { dispose
     // M8: this is where a grant becomes the profile's, as it is on the page; only a fact the shard declares has a rule to pay.
     const facts = createQuestLedger(saves, input.shard, slug), declared = new Set(input.shard.ledger.map(row => row.fact));
     const world = new SimNetWorld(live.host, 0, () => ledgerFilings(live.host, live.effects, (name, entity) => declared.has(name) ? facts(name, entity) : null));
-    room = new NetRoom({ world, step, build: message.build, book });
+    room = new NetRoom({ world, step, build: message.build, book, ...(options.reports === undefined ? {} : { reports: options.reports }) });
     room.join(new WorkerLoopback(game));
     const tickRoom = room;
     clock = new ServerClock({ now: diagnosticNow, wait: (ms, run) => { const timer = scope.timeout(ms, run); return () => { scope.cancelTimer(timer); }; },

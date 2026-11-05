@@ -1,3 +1,4 @@
+import { fitText } from './bits';
 import { CHAT_WORDS } from './chatWords';
 import { GUEST, MAX_NAME_LENGTH } from './identity';
 
@@ -6,7 +7,6 @@ import { GUEST, MAX_NAME_LENGTH } from './identity';
 
 /** Cap a chat line in bytes, so it always fits the wire's one-byte text length. */
 export const MAX_CHAT_BYTES = 240;
-const encoder = new TextEncoder();
 const LOOKALIKES: Readonly<Record<string, string>> = { 0: 'o', 1: 'i', 3: 'e', 4: 'a', 5: 's', 7: 't', '@': 'a', $: 's', '!': 'i' };
 const WORDS: ReadonlySet<string> = new Set(CHAT_WORDS);
 /** Tolerates what stands in for letters, so a word cannot hide in look-alikes; only whole words match, so "class" passes. */
@@ -22,10 +22,7 @@ export function filterWords(text: string): string { return text.replaceAll(WORD,
 /** Plain text, one line: no control or invisible characters, runs of space closed up, cut at a whole character. */
 export function plainLine(text: string, maxBytes: number): string {
   const line = text.normalize('NFKC').replaceAll(/[\p{Cc}\p{Cf}\p{Co}\p{Cs}\p{Cn}]+/gu, ' ').replaceAll(/\s+/gu, ' ').trim();
-  if (encoder.encode(line).length <= maxBytes) return line;
-  let out = '', used = 0;
-  for (const char of line) { used += encoder.encode(char).length; if (used > maxBytes) break; out += char; }
-  return out.trimEnd();
+  return fitText(line, maxBytes).trimEnd();
 }
 /** A typed Name as others will read it. */
 export function cleanName(name: string): string { return filterWords(plainLine(name, MAX_NAME_LENGTH * 3).slice(0, MAX_NAME_LENGTH)) || GUEST.name; }

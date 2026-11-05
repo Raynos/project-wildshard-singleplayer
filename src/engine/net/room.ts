@@ -3,7 +3,8 @@
 // no save: a Transport carries its bytes, and accounts, rooms and persistence stay in the MMO plan.
 import * as v from 'valibot';
 import type { NetCommand } from '@wildshard/format/netCommand';
-import { NetRoomActSchema, type NetTickAct } from './acts';
+import { NetRoomActSchema, type NetChatReport, type NetChatSay, type NetTickAct } from './acts';
+import { CHAT_RADIUS, RoomChat, type ChatLine, type ChatReports } from './chat';
 import { BitWriter } from './bits';
 import { cleanName } from './chatFilter';
 import type { CombatEvent } from './combatWire';
@@ -59,6 +60,8 @@ export interface NetRoomOptions {
   readonly build?: string;
   /** The players' receipts, where something outlives the room: a save, or rooms that share a player. */
   readonly book?: LedgerBook;
+  /** Where reports of chat go. Absent, a report is checked and goes nowhere. */
+  readonly reports?: ChatReports;
 }
 
 /** What a client held at a frame. `due` are the rows this frame may send; `rows` is the world frame each held row came from. */
@@ -102,10 +105,11 @@ export class NetRoom {
   private readonly inputs: NetTickInput[] = [];
   private readonly combat: RoomCombat[] = [];
   private readonly book: LedgerBook;
+  private readonly chat: RoomChat;
   private opened = false;
   private serial = 0;
   private clientIds = 0;
-  constructor(options: NetRoomOptions) { this.world = options.world; this.step = options.step; this.build = options.build ?? ''; this.book = options.book ?? new LedgerBook(); }
+  constructor(options: NetRoomOptions) { this.world = options.world; this.step = options.step; this.build = options.build ?? ''; this.book = options.book ?? new LedgerBook(); this.chat = new RoomChat(options.reports); }
   /** Who a client said it is, its Name cleaned. */
   identityOf(client: number): NetIdentity | null { return this.clients.find(entry => entry.id === client)?.identity ?? null; }
   /** The last command `seq` applied for a client, or 0. */
@@ -210,10 +214,24 @@ export class NetRoom {
     const decoded = decodeAct(view), parsed = v.safeParse(NetRoomActSchema, decoded);
     if (!parsed.success || client.state !== 'live') { this.stats.refused++; return; }
     const act = parsed.output;
-    if (act.kind === 'chat' || act.kind === 'report') return;
+    if (act.kind === 'chat' || act.kind === 'report') { if (!this.chatAct(client, act)) this.stats.refused++; return; }
     // Untrusted input stays bounded (R3): a flood of acts waits its turn or is refused, and can never exceed a tick's allowance.
     if (client.acts.length >= MAX_QUEUED_ACTS) { this.stats.refused++; return; }
     client.acts.push(act);
+  }
+  private chatAct(client: RoomClient, act: NetChatSay | NetChatReport): boolean {
+    if (act.kind === 'report') return this.chat.report(client.identity.player, act.line);
+    return this.chat.say({ ...client.identity, body: client.player.id }, act.channel, act.text, this.world.tick());
+  }
+  /** Whether `client` hears a line: anyone in the room, or within earshot of who said it. */
+  private hears(frame: WorldFrame, own: number, line: ChatLine, from: number): boolean {
+    if (line.channel === 'room' || from === own) return true;
+    const place = (handle: number): { x: number; y: number; z: number } | null => {
+      const cls = this.handles.row(handle)?.cls, at = frame.offset(handle);
+      return cls === undefined || at === undefined ? null : rowPosition(frame, at, cls);
+    };
+    const here = place(own), there = place(from);
+    return here !== null && there !== null && (here.x - there.x) ** 2 + (here.y - there.y) ** 2 + (here.z - there.z) ** 2 <= CHAT_RADIUS ** 2;
   }
   private welcome(client: RoomClient): void {
     client.state = 'live';
@@ -229,8 +247,8 @@ export class NetRoom {
       const row = handles.touch(id, cls, view, serial), at = frame.claim(row.handle, cls.row.length);
       cls.row.forEach((column, index) => { frame.data[at + index] = column.sample(view, handles.refs); });
     } });
-    const retired = handles.sweep(serial), combat = this.combat.splice(0);
-    for (const client of this.clients) if (client.state === 'live') this.send(client, frame, retired, combat);
+    const retired = handles.sweep(serial), combat = this.combat.splice(0), lines = this.chat.drain();
+    for (const client of this.clients) if (client.state === 'live') this.send(client, frame, retired, combat, lines);
   }
   /** Every entity in range of this client, itself excluded: its own state is the owner block. */
   private view(client: RoomClient, frame: WorldFrame, own: number): ClientView {
@@ -264,7 +282,7 @@ export class NetRoom {
       if (kept) this.stats.tierSkips++;
     }
   }
-  private send(client: RoomClient, frame: WorldFrame, retired: readonly number[], combat: readonly RoomCombat[]): void {
+  private send(client: RoomClient, frame: WorldFrame, retired: readonly number[], combat: readonly RoomCombat[], lines: readonly ChatLine[]): void {
     const { handles, writer, world } = this, own = handles.refs(client.player.id), view = this.view(client, frame, own), events: NetEvent[] = [];
     for (const handle of view.visible) {
       if (client.known.has(handle)) continue;
@@ -291,6 +309,11 @@ export class NetRoom {
       }
       for (const flag of client.phased) if (!quests.flags.includes(flag)) { client.phased.delete(flag); events.push({ kind: 'phase', tick: frame.tick, flag, on: false }); }
       for (const flag of quests.flags) if (!client.phased.has(flag)) { client.phased.add(flag); events.push({ kind: 'phase', tick: frame.tick, flag, on: true }); }
+    }
+    for (const line of lines) {
+      const from = handles.refs(line.body);
+      if (!this.hears(frame, own, line, from)) continue;
+      events.push({ kind: 'chat', tick: line.tick, line: line.line, channel: line.channel, from: client.known.has(from) || from === own ? from : 0, name: line.name, text: line.text });
     }
     for (const receipt of this.book.since(client.player.id, client.ledgerSeen)) { events.push({ ...receipt, tick: frame.tick }); client.ledgerSeen = receipt.serial; }
     for (const handle of retired) if (client.known.delete(handle)) events.push({ kind: 'despawn', handle });

@@ -3,8 +3,9 @@
 // read its rows in E4.3. It knows nothing of how bytes travel, and imports nothing from the server.
 import type { QuestProgress } from '../quest/progress';
 import type { NetCommand } from '@wildshard/format/netCommand';
-import type { NetRoomAct } from './acts';
-import { BitWriter } from './bits';
+import type { ChatChannel, NetRoomAct } from './acts';
+import type { NetChat } from './chatWire';
+import { BitWriter, fitText, MAX_NET_TEXT_BYTES } from './bits';
 import { encodeCommands, seqAfter } from './command';
 import { GUEST, type NetIdentity } from './identity';
 import type { NetLedger } from './ledgerWire';
@@ -51,6 +52,7 @@ export class NetClient {
   /** The last ledger serial this client has: pass it to `hello` when it comes back, and it hears only what it missed. */
   ledgerSerial = 0;
   private readonly receipts = new Set<(receipt: NetLedger) => void>();
+  private readonly lines = new Set<(line: NetChat) => void>();
   private readonly granted = new Set<string>();
   /** This client's own player's quests, newest row each (P1-E3.3): what a QuestReplica reads. */
   readonly quests: Map<string, QuestProgress> = new Map<string, QuestProgress>();
@@ -78,6 +80,12 @@ export class NetClient {
   onCombat(listener: (event: NetCombatEvent) => void): () => void { this.fights.add(listener); return () => { this.fights.delete(listener); }; }
   /** Call when this client's player crosses, before the new cell's `welcome`; returns the unsubscribe. */
   onTravel(listener: (event: NetTravel) => void): () => void { this.travels.add(listener); return () => { this.travels.delete(listener); }; }
+  /** Call for every line of chat this client hears, its own included, as others read it; returns the unsubscribe. */
+  onChat(listener: (line: NetChat) => void): () => void { this.lines.add(listener); return () => { this.lines.delete(listener); }; }
+  /** Say a line (J110). The server cleans, filters and may refuse it; hearing it back is the proof it went out. */
+  say(channel: ChatChannel, text: string): void { this.act({ kind: 'chat', seq: this.seq, channel, text: fitText(text, MAX_NET_TEXT_BYTES) }); }
+  /** Report a line this client heard. */
+  report(line: number): void { this.act({ kind: 'report', seq: this.seq, line }); }
   /** Call once for every ledger receipt, however often the wire repeats it (M8); returns the unsubscribe. */
   onLedger(listener: (receipt: NetLedger) => void): () => void { this.receipts.add(listener); return () => { this.receipts.delete(listener); }; }
   /** A held frame by tick. */
@@ -135,6 +143,7 @@ export class NetClient {
       if (event.kind === 'hit' || event.kind === 'died' || event.kind === 'reward') { for (const listener of this.fights) listener(event); continue; }
       if (event.kind === 'quest') { this.quests.set(event.quest, event); continue; }
       if (event.kind === 'ledger') { this.receipt(event); continue; }
+      if (event.kind === 'chat') { for (const listener of this.lines) listener(event); continue; }
       if (event.kind === 'travel') { this.left(); for (const listener of this.travels) listener(event); continue; }
       if (event.kind === 'phase') { if (event.on) this.phased.add(event.flag); else this.phased.delete(event.flag); continue; }
       if (event.kind === 'despawn') {
