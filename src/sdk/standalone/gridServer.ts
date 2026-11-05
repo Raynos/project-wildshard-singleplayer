@@ -16,6 +16,7 @@ import { NearColliders } from '@wildshard/engine/physics/nearColliders';
 import { addEdgeWalls } from '@wildshard/engine/physics/terrain';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimLevel } from '@wildshard/engine/sim';
+import { actRoutes } from '@wildshard/engine/sim/actRoutes';
 import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import type { ForwardedStorage } from '@wildshard/engine/saves/forwardedStorage';
@@ -258,7 +259,11 @@ export class StandaloneGrid {
     return { host, dispose, fact, effects: () => effects, adopt: () => { const held = sim(); return held === undefined || importPageProgress(options.saves, placed, input.shard, held); }, step: inputs => {
       effects.length = 0;
       // A data shard's prompts answer whoever stands at them; an id they don't offer that player is dropped, since an input may not end the server.
-      for (const { player, acts } of inputs) for (const act of acts) if (act.kind === 'interact' && sim()?.selectedInteraction(player) === act.id) sim()?.interact(act.id, player);
+      const routes = actRoutes(host);
+      for (const { player, acts } of inputs) for (const act of acts) {
+        if (act.kind === 'interact' && sim()?.selectedInteraction(player) === act.id) sim()?.interact(act.id, player);
+        else routes.refused++;
+      }
       host.step(commandsOf(inputs));
     } };
   }
