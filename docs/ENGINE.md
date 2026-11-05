@@ -3761,7 +3761,7 @@ graph owns the shell's colour, alpha and streaks, so a shard's storm is data onl
 shells. Signal's Dune Matriarch is the first user (`data/matriarchPresentation.ts`, `data/stormLook.ts`); Nalati's
 Storm Titan (SF48) is the planned second (`lint/platform-pending-users.json`).
 
-`game/plugin/headless.runtimeEquipment` constructs a primary and optional rifle
+`game/plugin/runtimeRows.runtimeEquipment` constructs a primary and optional rifle
 and secondary in declared order. Each preparation is awaited, then paused before
 construction; the shared slice starts when equipment builds. `bindRuntimeEquipment`
 adopts these same instances through admitted item families, checking profiles and
@@ -4326,9 +4326,10 @@ same files while runtime consumers and sealed legacy copies migrate.
 | `plugin/context` | `ShardContext`, `shardContext` |
 | `plugin/context` | staged `ShardPlugin` constructor |
 | `shard/retainedHooks` | retained context and entered-service/input lifetime hooks |
-| `plugin/headless` | runtime row bindings for quests, items, ledger, state and spawns |
+| `plugin/headless` | runtime row bindings for quests and items |
+| `plugin/runtimeRows` | runtime row bindings for ledger, state, coins and spawns, read by both sides |
 
-`projectRuntimeFacts(emit, progress)` in `@wildshard/game/plugin/headless` projects an already bound runtime ledger into its caller-owned Progress view. The original ledger owns grants, writes and pending retries; its exact achievement/flush ports are retained. Emission refreshes the view once after the receipt, including duplicates; an undeclared fact throws before refresh. An absent view adds no presentation. Nine and Signal use this same binding.
+`projectRuntimeFacts(emit, progress)` in `@wildshard/game/plugin/runtimeRows` projects an already bound runtime ledger into its caller-owned Progress view. The original ledger owns grants, writes and pending retries; its exact achievement/flush ports are retained. Emission refreshes the view once after the receipt, including duplicates; an undeclared fact throws before refresh. An absent view adds no presentation. Nine and Signal use this same binding.
 | `plugin/brain` | `SpeciesBrains` and the shared home/brain installers |
 | `plugin/bossPhase` | declared boss phase runtime and trusted observations |
 | `plugin/mover` | `MoverRuntime` and declared mover host installation |
@@ -9965,7 +9966,7 @@ data, never card-policy callbacks. `createQuestPlacements().anchors` is a
 readonly view of that placement owner's validated anchors, so late ride anchors
 remain authoritative for completion markers without a second placement cache.
 
-`sameRuntimeProfile(left, right)` in `game/plugin/headless` compares admitted native profiles by JSON value, preserving array order and rejecting changed values while ignoring object-key order.
+`sameRuntimeProfile(left, right)` in `game/plugin/runtimeRows` compares admitted native profiles by JSON value, preserving array order and rejecting changed values while ignoring object-key order.
 
 ### Retained decision bodies: placement and pose
 

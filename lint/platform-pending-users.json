@@ -989,7 +989,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/server/plugin/headless.ts",
+      "module": "src/game/shared/plugin/runtimeRows.ts",
       "export": "bindRuntimeJsonRecord",
       "shard": "nalati-grasslands",
       "plan": {
