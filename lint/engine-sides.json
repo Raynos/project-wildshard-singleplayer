@@ -281,6 +281,7 @@
   "src/engine/entities/animalShadow.ts": "client",
   "src/engine/entities/animalShells.ts": "client",
   "src/engine/entities/AnimalSim.ts": "server",
+  "src/engine/entities/animalStates.ts": "shared",
   "src/engine/entities/AnimalView.ts": "client",
   "src/engine/entities/bodyClear.ts": "server",
   "src/engine/entities/creatureFloor.ts": "server",
