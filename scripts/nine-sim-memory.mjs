@@ -7,7 +7,7 @@ import { deviceSavePicks, saveFixtureCode } from './debug-settings.mjs';
 // ~0.75). Compare builds with it; take the caps' verdict from a physical reading (scripts/iphone-mem-reading.sh).
 //
 //   node scripts/nine-sim-memory.mjs [--rev=HEAD] [--rev=f9ca6490 …] [--runs=2] [--play=60] [--fly=60]
-//        [--setting=key=value …] [--out=<dir>] [--max=<min>] [--clear-website-data]
+//        [--setting=key=value …] [--out=<dir>] [--max=<min>] [--clear-website-data] [--network]
 //        [--device-save=key=value …]  a device-scope Debug value before every load, as sim-memory.mjs's (debug.levelDownload.harness=shardfile: DL16's loose files)
 //   node scripts/nine-sim-memory.mjs --url=http://127.0.0.1:4401/=mine …     (an already served build, labelled)
 //   node scripts/nine-sim-memory.mjs --table=<out dir>                         (reprint a finished run's table)
@@ -91,7 +91,7 @@ async function inspectorPage(base) {
 }
 
 // the raw WebKit protocol, with the proxy's Target.* multiplexing (as scripts/webkit-mem-reading.mjs)
-function connect(wsUrl, onMemory) {
+function connect(wsUrl, onMemory, onNetwork = null) {
   const ws = new WebSocket(wsUrl);
   let seq = 0;
   const conn = { target: /** @type {string | null} */ (null) };
@@ -104,9 +104,15 @@ function connect(wsUrl, onMemory) {
     else raw({ id, method, params });
     return p;
   };
-  const track = () => Promise.race([send('Memory.enable').then(() => send('Memory.startTracking')).catch(() => null), sleep(3000)]);
+  const enable = async () => {
+    try { await send('Memory.enable'); await send('Memory.startTracking'); } catch { /* memory tracking is best effort */ }
+    if (onNetwork !== null) try { await send('Network.enable'); } catch { /* so is the request log */ }
+  };
+  const track = () => Promise.race([enable(), sleep(3000)]);
   const inner = (m) => {
     if (m.method === 'Memory.trackingUpdate') { onMemory(m.params.event.categories); return; }
+    // --network (DL21): every request's start, response and end, with the wall time it arrived
+    if (onNetwork !== null && typeof m.method === 'string' && m.method.startsWith('Network.')) { onNetwork(m); return; }
     const p = m.id ? pending.get(m.id) : undefined;
     if (p) { pending.delete(m.id); if (m.error) p.reject(new Error(m.error.message)); else p.resolve(m.result); }
   };
@@ -182,11 +188,16 @@ async function oneRun(udid, run, opts) {
   let sampler = null;
   let page = null;
   const result = { label: run.label, base: run.base, phases: {} };
+  const network = opts.network ? createWriteStream(join(out, `${run.tag}.network.jsonl`), { flags: 'wx' }) : null;
   try {
     page = connect(await inspectorPage(run.base), (cats) => {
       const bytes = cats.reduce((s, c) => s + c.size, 0);
       samples.push({ phase, bytes, cats });
       write({ kind: 'memory', bytes });
+    }, network === null ? null : (m) => {
+      const p = m.params ?? {};
+      network.write(`${JSON.stringify({ at: Date.now(), phase, event: m.method.slice(8), id: p.requestId, url: p.request?.url ?? p.response?.url,
+        status: p.response?.status, source: p.response?.source, bytes: p.encodedDataLength, error: p.errorText })}\n`);
     });
     await page.opened;
     await sleep(700); // the proxy announces its target first
@@ -281,6 +292,7 @@ async function oneRun(udid, run, opts) {
     result.inspectorAtPeakMB = Object.fromEntries(PHASES.map((ph) => [ph, Object.fromEntries(peak(ph).cats.map((c) => [c.type, Math.round(c.size / 1e6)]))]));
     write({ kind: 'summary', result });
     log.end();
+    network?.end();
     proxy.kill();
     const png = join(out, `${run.tag}.end.png`);
     spawnSync('xcrun', ['simctl', 'io', udid, 'screenshot', png]);
@@ -309,7 +321,7 @@ async function main() {
   mkdirSync(out, { recursive: true });
   if (readdirSync(out).length > 0) throw new Error(`${out} is not empty`);
   const runs = Number(flag('runs', '2'));
-  const opts = { out, play: Number(flag('play', '60')), fly: Number(flag('fly', '60')), settings: flags('setting'), deviceSaves: deviceSavePicks(flags('device-save')), clearWebsiteData: argv.includes('--clear-website-data') };
+  const opts = { out, play: Number(flag('play', '60')), fly: Number(flag('fly', '60')), settings: flags('setting'), deviceSaves: deviceSavePicks(flags('device-save')), clearWebsiteData: argv.includes('--clear-website-data'), network: argv.includes('--network') };
   const targets = [];
   const served = [];
   try {

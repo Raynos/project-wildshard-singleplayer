@@ -6,7 +6,9 @@
 // while `simctl recordVideo` films the screen. A pop is what scripts/complete-at-control-snapshot.mjs `lapPops` counts.
 //
 //   scripts/sim-lane.sh run --max 30 wildshard-iphone node scripts/sim-boost-lap.mjs --base=URL --rev=SHA
-//     [--flow=driftwood-isle] [--level-download=shardfile|packs] [--reach=220] [--out=tmp/sim-boost-lap/<label>]
+//     [--flow=driftwood-isle] [--level-download=shardfile|packs] [--reach=220] [--memory=on] [--out=tmp/sim-boost-lap/<label>]
+// --memory=on samples the game's WebContent native footprint with scripts/sim-mem-phases.py (sim-memory's sampler): its
+// high per phase, loading (to control), control (5 s standing) and lap.
 // --base is a served preview of --rev (scripts/serve-build.sh --rev): Safari's inspector cannot inject a script before
 // navigation, so the harness pins and the control-frame snapshot go in a copy of the served entry HTML (frame-floor's
 // method), dl17-sim.html; compiled JS and assets stay byte-identical. Exit 0 = 0 pops, 1 = pops, 2 = no reading.
@@ -19,7 +21,7 @@ import { soakInspector } from './soak/inspector.mjs';
 import { saveFixtureCode, harnessPinCode, levelDownloadFixtures } from './debug-settings.mjs';
 import { snapshot, lapPops } from './complete-at-control-snapshot.mjs';
 
-const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'level-download', 'reach', 'out'].map(key => [key, { type: 'string' }])) });
+const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'level-download', 'reach', 'out', 'memory'].map(key => [key, { type: 'string' }])) });
 const base = (values.base ?? '').replace(/\/$/u, ''), rev = values.rev ?? '', flow = values.flow ?? 'driftwood-isle', reach = Number(values.reach ?? '220');
 const levelDownload = values['level-download'];
 if (!/^https?:\/\//u.test(base) || !/^[0-9a-f]{7,40}$/u.test(rev) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(flow) || flow === 'grid' || !(reach > 0)
@@ -32,6 +34,7 @@ if (udid === undefined || udid === '') throw new Error('Run under scripts/sim-la
 const out = resolvePath(values.out ?? `tmp/sim-boost-lap/${flow}-${rev.slice(0, 10)}-${levelDownload ?? 'default'}`);
 if (!out.startsWith(`${resolvePath('tmp')}/`)) { console.error('--out must be under ./tmp'); process.exit(2); }
 mkdirSync(out, { recursive: true });
+const memory = values.memory === 'on', phaseFile = join(out, 'phase');
 const report = { schema: 1, gate: 'DL17 Simulator boost lap', rev, base, flow, reach, levelDownload: levelDownload ?? null, when: new Date().toISOString(), errors: [], legs: [] };
 
 const version = await (await fetch(`${base}/version.json`)).json();
@@ -54,7 +57,8 @@ writeFileSync(join(dist, 'dl17-sim.html'), readFileSync(join(dist, 'index.html')
 
 const sock = execFileSync('xcrun', ['simctl', 'getenv', udid, 'RWI_LISTEN_SOCKET'], { encoding: 'utf8' }).trim();
 const proxy = spawn('ios_webkit_debug_proxy', ['-s', `unix:${sock}`, '-c', 'null:9221,:9232-9240'], { stdio: 'ignore' });
-let page = null, recorder = null;
+let page = null, recorder = null, sampler = null;
+const phase = name => { if (memory) writeFileSync(phaseFile, name); };
 async function connect(prefix) {
   if (page !== null) { page.close(); page = null; }
   const deadline = Date.now() + 90000;
@@ -93,14 +97,24 @@ try {
   if (!await until("window.__dl17Reset !== null", 30000) || await page.evaluate('window.__dl17Reset') !== 'done') throw new Error('The Safari reset did not finish');
   const query = new URLSearchParams({ chunk: flow, tier: 'phone', skipintro: '1', nolock: '1', mute: '1' });
   const opened = Date.now();
+  if (memory) {
+    phase('loading');
+    sampler = spawn('python3', [resolvePath('scripts/sim-mem-phases.py'), '--device', udid, '--phase-file', phaseFile, '--out', join(out, 'native.jsonl'), '--max', '900'], { stdio: ['ignore', 'pipe', 'ignore'] });
+    let printed = ''; sampler.stdout.on('data', data => { printed += String(data); }); sampler.on('exit', () => { report.memoryRaw = printed; });
+    await sleep(1000);
+  }
   await page.evaluate(`setTimeout(() => location.replace('/dl17-sim.html?${query}'), 50); 1`);
   await sleep(800);
   await connect(`${base}/dl17-sim.html`);
   if (!await until('window.__dl17AtControl !== undefined', 300000)) throw new Error('No control within 300 s');
   report.openToControlMs = Date.now() - opened;
+  // the level Safari booted (a route can fall back to another level)
+  report.level = await read('window.__wildshard?.world?.game?.level?.id ?? null');
+  if (report.level !== flow) throw new Error(`Safari booted ${String(report.level)}, not ${flow}`);
   const at = await read('window.__dl17AtControl');
   report.atControl = { marks: at.marks, textures: at.textures, lods: at.scene?.lods ?? [], texturesPending: at.scene?.texturesPending ?? [], meshes: at.scene?.meshes ?? null, player: at.scene?.player ?? null };
 
+  phase('control'); await sleep(memory ? 5000 : 0); phase('lap');
   const video = join(out, 'lap.mp4');
   recorder = spawn('xcrun', ['simctl', 'io', udid, 'recordVideo', '--codec=h264', '--force', video], { stdio: ['ignore', 'pipe', 'pipe'] });
   await new Promise(resolve => {
@@ -163,6 +177,12 @@ try {
 } finally {
   if (recorder !== null) recorder.kill('SIGINT');
   if (page !== null) page.close();
+  if (sampler !== null) {
+    phase('done'); await new Promise(resolve => { sampler?.once('exit', resolve); setTimeout(resolve, 15000); });
+    const summary = (report.memoryRaw ?? '').split('\n').map(line => { try { return JSON.parse(line); } catch { return null; } }).findLast(row => row?.phases !== undefined);
+    report.memory = summary === undefined ? null : Object.fromEntries(Object.entries(summary.phases).map(([name, row]) => [name, { gameHighGB: row.gameHighGB, gpuProcessGB: row.gpuProcessGB }]));
+    delete report.memoryRaw;
+  }
   try { execFileSync('xcrun', ['simctl', 'terminate', udid, 'com.apple.mobilesafari'], { stdio: 'ignore' }); } catch { /* not running */ }
   proxy.kill();
   writeFileSync(join(out, 'report.json'), JSON.stringify(report, null, 2));
@@ -170,6 +190,7 @@ try {
 const p = report.pops;
 const lines = [`DL17 Simulator boost lap ${flow} ${report.build ?? rev}${levelDownload === undefined ? '' : ` (${levelDownload})`}: ${report.pass === null ? 'NO READING' : report.pass ? '0 POPS' : 'POPS'}`];
 if (p !== undefined) lines.push(`  fine ${p.fine.length}, meshes ${p.pops.length} (${p.pops.slice(0, 4).join('; ')}), textures ${p.textures.length}; distance LOD (listed, not red) ${p.distanceLod.length + p.lods.length}, actors ${p.actors.length}`);
+if (report.memory !== undefined) lines.push(`  native memory high: ${Object.entries(report.memory ?? {}).map(([name, row]) => `${name} ${row.gameHighGB} GB`).join(', ')}`);
 lines.push(`  legs ${report.legs.map(r => `${r.leg}:${r.on}:${r.complete ? 'ok' : 'no'}`).join(' ')}, boost ${JSON.stringify(report.boost ?? null)}`);
 if (report.errors.length > 0) lines.push(`  errors: ${report.errors.slice(0, 3).join(' | ')}`);
 lines.push(`  report ${join(out, 'report.json')}${existsSync(join(out, 'lap.mp4')) ? `, clip ${join(out, 'lap.mp4')}` : ''}`);
