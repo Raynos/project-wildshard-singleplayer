@@ -1038,6 +1038,10 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
 export interface QuestCableOwner {
   readonly state: (id: string) => { readonly riding: boolean; readonly atEnd: boolean };
   readonly start: (id: string) => void;
+  /** Every other player's place at the cable: their own ride, ending on their own flags. */
+  readonly seat: (id: string, player: PlayerSim, flags: Flags) => unknown;
+  readonly seatState: (id: string, player: string) => { readonly riding: boolean; readonly atEnd: boolean };
+  readonly startSeat: (id: string, player: string) => void;
 }
 /** Platform-installed mechanics, never per-shard callback maps. This host constructs no replacement owners. */
 export interface QuestMechanics {
@@ -1057,6 +1061,14 @@ export interface QuestHostPorts extends Omit<QuestGraphPorts, 'drive' | 'summon'
   readonly mechanics?: QuestMechanics;
 }
 
+/** The cable with `player` seated at it; undefined once they have left. */
+function seatedCable(host: SimHost, cables: QuestCableOwner, id: string, player: string): QuestCableOwner | undefined {
+  const body = host.players.get(player);
+  if (body === undefined) return undefined;
+  cables.seat(id, body, questBooks(host).of(player).flags);
+  return cables;
+}
+
 function questObservation(host: SimHost, row: QuestHostRow['observations'][number], ports: QuestHostPorts): (player: string) => boolean {
   switch (row.kind) {
     case 'all-dead': return () => row.actors.every(id => host.entities.get(id)?.alive === false);
@@ -1073,7 +1085,11 @@ function questObservation(host: SimHost, row: QuestHostRow['observations'][numbe
       const cables = ports.mechanics?.cables;
       if (cables === undefined) throw new Error(`Unbound quest cable ${row.cable}`);
       cables.state(row.cable);
-      return () => row.state === 'riding' ? cables.state(row.cable).riding : cables.state(row.cable).atEnd;
+      const books = questBooks(host);
+      return player => {
+        const ride = player === books.lead.player ? cables.state(row.cable) : seatedCable(host, cables, row.cable, player)?.seatState(row.cable, player);
+        return ride !== undefined && (row.state === 'riding' ? ride.riding : ride.atEnd);
+      };
     }
     case 'mover': {
       const motion = ports.mechanics?.motion;
@@ -1115,8 +1131,8 @@ export function installQuestHost(host: SimHost, quests: QuestData, input: QuestH
     } else if (route.action.kind === 'cable') {
       const action = route.action, cables = ports.mechanics?.cables;
       if (cables === undefined) throw new Error(`Unbound quest cable ${action.cable}`);
-      // the cable carries one traveller, the lead (a player's ride is P1-E3.6's)
-      cables.state(action.cable); actions.set(route, (_value, player) => { if (player === books.lead.player) cables.start(action.cable); });
+      cables.state(action.cable);
+      actions.set(route, (_value, player) => { if (player === books.lead.player) cables.start(action.cable); else seatedCable(host, cables, action.cable, player)?.startSeat(action.cable, player); });
     } else if (route.action.kind === 'flag') {
       const action = route.action; books.claim([action.flag]); actions.set(route, (_value, player) => { books.of(player).flags.set(action.flag, action.value); });
     }

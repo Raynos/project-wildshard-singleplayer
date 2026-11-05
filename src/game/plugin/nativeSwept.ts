@@ -33,7 +33,7 @@ export interface NativeSweptMeleePorts {
 }
 /** The lead's swept weapon. */
 export interface NativeSweptMeleeOwner {
-  readonly held: () => number; readonly equip: (slot: number) => void;
+  readonly held: () => number; readonly equip: (slot: number) => void; readonly equipFor: (player: PlayerSim, slot: number) => void;
   readonly swings: () => number; readonly hits: () => number;
 }
 
@@ -199,7 +199,12 @@ export function installNativeSweptMelee(host: SimHost, items: readonly unknown[]
   });
   host.onStep(row.step, seats.step, seats.adapter, 'afterBodies');
   const { lead } = seats;
+  const equip = (seat: typeof lead, index: number): void => {
+    if (!slots.includes(index)) throw new Error('Invalid swept melee slot');
+    if (index === seat.loadout.held()) return;
+    seat.clocks[seat.loadout.held()]?.stop(); seat.state.queued = false; seat.state.target = null; seat.loadout.select(index);
+  };
   return { held: lead.loadout.held,
-    equip: index => { if (!slots.includes(index)) throw new Error('Invalid swept melee slot'); if (index === lead.loadout.held()) return; lead.clocks[lead.loadout.held()]?.stop(); lead.state.queued = false; lead.state.target = null; lead.loadout.select(index); },
+    equip: index => { equip(lead, index); }, equipFor: (player, index) => { equip(seats.of(player), index); },
     swings: () => lead.state.swings, hits: () => lead.state.hits };
 }

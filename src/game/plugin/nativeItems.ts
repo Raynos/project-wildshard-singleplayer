@@ -104,6 +104,17 @@ function windAt(frame: NativeCombatFrame, x: number, z: number, out: Vector3): V
   out.x = wind.field.x * speed; out.z = wind.field.z * speed; return out;
 }
 
+/** Each ranged item's seats, keyed by the first player's item: how an owner reaches another player's own. */
+const seatedBolts = new WeakMap<NativeBoltItem, (player: PlayerSim) => NativeBoltItem>();
+const seatedCycles = new WeakMap<NativeCycleItem, (player: PlayerSim) => NativeCycleItem>();
+const seatedBows = new WeakMap<NativeBowItem, (player: PlayerSim) => NativeBowItem>();
+const seated = <T extends object>(book: WeakMap<T, (player: PlayerSim) => T>, item: T, player: PlayerSim): T => {
+  const of = book.get(item); if (of === undefined) throw new Error('Native item has no seats'); return of(player);
+};
+export function seatedBolt(item: NativeBoltItem, player: PlayerSim): NativeBoltItem { return seated(seatedBolts, item, player); }
+export function seatedCycle(item: NativeCycleItem, player: PlayerSim): NativeCycleItem { return seated(seatedCycles, item, player); }
+export function seatedBow(item: NativeBowItem, player: PlayerSim): NativeBowItem { return seated(seatedBows, item, player); }
+
 function boltItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: unknown) : { state: { loaded: boolean; quiver: number; reloading: boolean; reloadProgress: number; ammo: undefined; reserve: number; bolts: number; }; flying: () => number; addBolts: (amount: number) => void; } {
   const raw = parseNativeFirearmProfile(input, 'bolt'), projectile = raw.projectile;
   if (projectile.muzzle === undefined || raw.spreadAxisScale === undefined) throw new Error('Missing bolt launch');
@@ -189,6 +200,7 @@ function boltItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: u
     } };
   });
   host.onStep(row.step, seats.step, seats.adapter, 'afterBodies');
+  seatedBolts.set(seats.lead.item, player => seats.of(player).item);
   return seats.lead.item;
 }
 
@@ -250,6 +262,7 @@ function cycleItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: 
     } };
   });
   host.onStep(row.step, seats.step, seats.adapter, 'afterBodies');
+  seatedCycles.set(seats.lead.item, player => seats.of(player).item);
   return seats.lead.item;
 }
 
@@ -327,6 +340,7 @@ function bowItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: un
     } };
   });
   host.onStep(row.step, seats.step, seats.adapter, 'afterBodies');
+  seatedBows.set(seats.lead.item, player => seats.of(player).item);
   return seats.lead.item;
 }
 

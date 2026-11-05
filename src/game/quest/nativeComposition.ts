@@ -9,12 +9,14 @@ import { Vector3 } from 'three';
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import type { InteractTable } from '@wildshard/engine/world/interact/types';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
+import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
+import type { NativeCableRider } from '@wildshard/engine/sim/cableTraversal';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { NpcDialogueRow } from '@wildshard/format/npcs';
 import type { ContractCatalogue } from '@wildshard/format/contracts';
 import type { AchievementCounterData } from '@wildshard/format/achievementCounters';
 import { QuestRewardController, installNativeQuestProps, createReadingRoster, bindQuestDeathEffects, type QuestReadingRows } from '../plugin/quests';
-import { nativeMeleeItem, readNativeRangedItem } from '../plugin/nativeItems';
+import { nativeMeleeItem, otherCombatFrame, readNativeRangedItem, seatedBolt, type NativeBoltItem } from '../plugin/nativeItems';
 import { nativeHeldAmmunition, NativeAmmunitionSavedSchema } from '../loadout/nativeAmmunition';
 import { nativeInventorySchema, type NativeInventory } from '../inventoryLaw';
 import { cableModes } from '@wildshard/engine/player/modes';
@@ -29,7 +31,6 @@ import { questBenchPose } from './storyLaw';
 import { installNativeChapterDirector } from './nativeChapter';
 import { takeNativeBossReward } from '../boss/native';
 import { ReturnProgram } from '../population/returnProgram';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 import { questBooks } from '@wildshard/engine/quest/players';
 
 const promptLoans = new WeakMap<SimHost, Map<string, readonly HeadlessPrompt[]>>();
@@ -92,6 +93,8 @@ export interface NativeQuestCompositionInput {
   readonly director?: Awaited<ReturnType<typeof readDirectorProduct>>;
 }
 
+const SeatGearSaved = v.strictObject({ iron: v.boolean(), rewardOwned: v.boolean(), skins: v.array(v.string()) });
+
 /** One frame, command graph and saved adapter for the declared native facets.
  * State/scheduling rows keep the existing owner wire without a shard mode. */
 export function installNativeQuestComposition(host: SimHost, ports: NativeQuestCompositionInput): {
@@ -101,7 +104,6 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
   readonly riding: () => boolean; readonly talking: () => boolean;
   readonly ownsFinish: (skin: string) => boolean; readonly ownsBoardFinish: () => boolean; readonly takePickup: () => boolean;
 } {
-  const traveller = leadPlayer(host);
   if (!isJsonData({ rows: ports.rows, table: ports.table, spots: ports.spots, counters: ports.counters, props: ports.props ?? null,
     steps: ports.steps ?? null, deaths: ports.deaths ?? null, readings: ports.readings ?? null, contracts: ports.contracts ?? null, trades: ports.trades ?? null, lead: ports.lead ?? null }))
     throw new Error('Native quest composition requires JSON rows');
@@ -109,17 +111,23 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
   const need = <T>(value: T | undefined, name: string): T => { if (value === undefined) throw new Error(`Missing native quest ${name}`); return value; };
   const entry = prepareNativeQuestEntry(host, ports.source, ports.table, spots.rows, rows.bounds, rows.saved.names);
   const { input, pack } = entry, rules = [...entry.rules.values()], indexed = entry.rules, books = questBooks(host);
-  /** The owners that carry one traveller (cable, board, trader, reward, held gear) stay the lead's; another player's command to them does nothing. */
-  const solo = (run: (value: number) => void) => (value: number, player: string): void => { if (player === books.lead.player) run(value); };
+  const traveller = need(host.players.get(books.lead.player), 'first player');
   let promptRoster: readonly HeadlessPrompt[] | undefined;
-  let seatRoster: ((owned: typeof rules) => readonly HeadlessPrompt[]) | undefined;
+  let seatRoster: ((owned: typeof rules, player: string) => readonly HeadlessPrompt[]) | undefined;
+  /** What carries one traveller: their body, ride, board, trader, reward and held gear. */
+  interface SeatGear {
+    readonly body: PlayerSim; readonly board: ContractBoard | null; readonly trader: Exchange | null; readonly reward: QuestRewardController | null;
+    readonly ammunition: ReturnType<typeof nativeHeldAmmunition> | null; readonly state: { iron: boolean; rewardOwned: boolean };
+    readonly claim: (value: number) => void; readonly riding: () => boolean; readonly seen: Flags;
+  }
   /** One player's place at the composition. The lead's are the composition's own owners. */
   interface QuestSeat {
     readonly rules: ReadonlyMap<string, typeof rules[number]>; readonly transitions: ReturnType<typeof entry.transitions>;
-    readonly dialogue: ReturnType<typeof readingRoster>; readonly roster: readonly HeadlessPrompt[] | undefined;
+    readonly dialogue: ReturnType<typeof readingRoster>; readonly roster: readonly HeadlessPrompt[] | undefined; readonly gear: SeatGear;
   }
   const seats = new Map<string, QuestSeat>();
   const seatOf = (player: string): QuestSeat => { books.of(player); return need(seats.get(player), 'player seat'); };
+  const gearOf = (player: string): SeatGear => seatOf(player).gear;
   const state = { iron: false, pickup: false, rewardOwned: false }; let finishes = new Set<string>();
   const population = rows.acquisition === undefined ? null : mixedPopulation(host, rows.acquisition.population);
   const equipment = rows.acquisition === undefined ? null : nativeMeleeItem(host, rows.acquisition.equipment);
@@ -138,19 +146,26 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
     const cable = cables.declaration(cableId);
     if (JSON.stringify(cable.top) !== JSON.stringify(spots.cable.top) || JSON.stringify(cable.bottom) !== JSON.stringify(spots.cable.bottom) || cable.sag !== spots.cable.sag)
       throw new Error('Native quest cable row does not match the real native spots');
+    holdCarried(traveller, rider, flags);
+  }
+  /** While carried, the ride owns the body; the look stays the player's until the reward is seen. */
+  function holdCarried(body: PlayerSim, ride: NativeCableRider, book: Flags): void {
     const rewardFlag = need(rows.reward, 'reward').seen;
-    traveller.useDriver({ input: command => {
-      if (!rider.carried) return false;
-      if (command !== undefined && !flags.has(rewardFlag)) traveller.yaw = command.yaw;
-      traveller.impulse.set(0, 0, 0); rider.velocity.set(0, 0, 0); traveller.fall.grounded = false; return true;
+    body.useDriver({ input: command => {
+      if (!ride.carried) return false;
+      if (command !== undefined && !book.has(rewardFlag)) body.yaw = command.yaw;
+      body.impulse.set(0, 0, 0); ride.velocity.set(0, 0, 0); body.fall.grounded = false; return true;
     }, step: () => undefined });
   }
-  const reward = rows.reward === undefined || rider === null ? null : new QuestRewardController(rider, host.dayClock, {
+  /** One traveller's reward beat. Only the first player's moves the shared day. */
+  const rewardFor = (ride: NativeCableRider, day: typeof host.dayClock, book: Flags): QuestRewardController => new QuestRewardController(ride, day, {
     at: new Vector3(need(spots.reward, 'reward pose').x, need(spots.reward, 'reward pose').y, need(spots.reward, 'reward pose').z),
     yaw: need(spots.reward, 'reward pose').yaw, pitch: need(spots.reward, 'reward pose').pitch, phase: need(spots.reward, 'reward pose').phase,
     when: () => channels?.[need(rows.reward, 'reward').field] === true || channels?.[need(rows.reward, 'reward').field] === 1,
-    finish: () => { const flag = need(rows.reward, 'reward').complete; if (flags.has(flag)) return false; flags.set(flag); return true; },
+    finish: () => { const flag = need(rows.reward, 'reward').complete; if (book.has(flag)) return false; book.set(flag); return true; },
   });
+  if (rows.reward !== undefined) books.claim([rows.reward.complete]);
+  const reward = rows.reward === undefined || rider === null ? null : rewardFor(rider, host.dayClock, flags);
   if (reward !== null) host.scope.onDispose(() => { reward.dispose(); });
   const keyPrompt = { x: 0, y: 0, z: 0 }, walked = { x: 0, z: 0 }, eye = new Vector3(), at = new Vector3();
   const promptOf = (rule: typeof rules[number]): Point | undefined => {
@@ -169,11 +184,12 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
   const earlyCounters = rows.counts === 'declared' ? entry.achievements(ports.counters, Object.fromEntries(ports.counters.feats.map(feat => [feat.id, 0]))) : null;
   const graph = entry.install(commandOwners());
   const quests = graph.quests, chapter = quests.quests[0];
-  const trader = rows.trade === undefined ? null : new Exchange(ports.trades, new Map<string, unknown>([[rows.trade.pack, pack],
-    ['skins', { owns: (skin: string) => skin === rows.trade?.finish && state.rewardOwned || finishes.has(skin), own: (skin: string) => { finishes.add(skin); } }],
-    ['ammo', { capacity: (kind: string, n: number) => need(ammunition ?? undefined, 'ammunition').room(kind, n),
-      addBolts: (n: number) => { if (launcher?.kind === 'bolt') launcher.item.addBolts(n); },
-      grant: (kind: string, n: number) => { need(ammunition ?? undefined, 'ammunition').add(kind, n); } }]]));
+  const traderFor = (bag: typeof pack, owns: (skin: string) => boolean, own: (skin: string) => void, quiver: typeof ammunition, bolts: NativeBoltItem | null): Exchange | null => rows.trade === undefined ? null : new Exchange(ports.trades, new Map<string, unknown>([[rows.trade.pack, bag],
+    ['skins', { owns, own }],
+    ['ammo', { capacity: (kind: string, n: number) => need(quiver ?? undefined, 'ammunition').room(kind, n),
+      addBolts: (n: number) => { bolts?.addBolts(n); },
+      grant: (kind: string, n: number) => { need(quiver ?? undefined, 'ammunition').add(kind, n); } }]]));
+  const trader = traderFor(pack, skin => skin === rows.trade?.finish && state.rewardOwned || finishes.has(skin), skin => { finishes.add(skin); }, ammunition, launcher?.kind === 'bolt' ? launcher.item : null);
   const initialTrader = trader?.snapshot();
   const steps = rows.effects === undefined ? null : new QuestStepRunner(ports.steps);
   if (steps !== null) books.claim(steps.writes);
@@ -188,7 +204,8 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
   const chapterClock = rows.chapter === undefined ? null : installNativeChapterDirector(host, need(ports.director, 'chapter director'), { id: `${rows.step}.chapter`, rows: rows.chapter });
   if (rows.chapter !== undefined && chapter === undefined) throw new Error('Story requires its chapter');
   const counterBook = earlyCounters ?? entry.achievements(ports.counters), feats = counterBook.counters;
-  const board = rows.board === undefined ? null : new ContractBoard({ contracts: need(ports.contracts, 'contracts'), prompt: need(spots.board, 'board prompt'), radius: need(spots.board, 'board prompt').radius });
+  const boardFor = (): ContractBoard | null => rows.board === undefined ? null : new ContractBoard({ contracts: need(ports.contracts, 'contracts'), prompt: need(spots.board, 'board prompt'), radius: need(spots.board, 'board prompt').radius });
+  const board = boardFor();
   const initialBoard = board?.snapshot();
   const useBoard = (value: number): void => {
     const claim = board?.use(value, eye); if (claim === null || claim === undefined) return;
@@ -201,7 +218,8 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
   if (rows.effects !== undefined) {
     const killed = bindQuestDeathEffects(ports.deaths, { kill: feats.kill, event: feats.event,
       calls: new Map([['contracts', (body: SimHost['entities'] extends ReadonlyMap<string, infer Entity> ? Entity : never) => {
-        if (board !== null) board.killed(contractKill(need(ports.contracts, 'contracts'), body));
+        // a room's kill counts on every player's board: the death names no killer
+        if (board !== null) for (const book of books.each()) gearOf(book.player).board?.killed(contractKill(need(ports.contracts, 'contracts'), body));
       }]]) });
     host.events.on('actor.died', ({ actor }) => {
       const body = [...host.entities.values()].find(candidate => candidate.combatActor() === actor);
@@ -216,8 +234,11 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
     const actions = new Map<string, (value: number, player: string) => void>(), observations = new Map<string, (player: string) => boolean>();
     if (rows.acquisition !== undefined) {
       const acquisition = rows.acquisition;
-      observations.set(acquisition.observation, () => !state.iron && !guarded());
-      actions.set(acquisition.id, solo(() => { state.iron = true; equipment?.equip(acquisition.slot); }));
+      observations.set(acquisition.observation, player => !gearOf(player).state.iron && !guarded());
+      actions.set(acquisition.id, (_value, player) => {
+        const gear = gearOf(player); gear.state.iron = true;
+        if (player === books.lead.player) equipment?.equip(acquisition.slot); else equipment?.equipFor(gear.body, acquisition.slot);
+      });
     }
     if (rows.prompts !== undefined) for (const rule of rules) actions.set(rule.d.id, (_value, player) => {
       const seat = seatOf(player); seat.transitions.interact(need(seat.rules.get(rule.d.id), 'seated row'));
@@ -228,44 +249,45 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
       for (const person of spots.people ?? []) actions.set(`talk.${person.kind}`, (_value, player) => { seatOf(player).dialogue?.press(person.kind); });
     }
     if (rows.trade !== undefined) {
-      observations.set('trading', player => player === books.lead.player && (trader?.active ?? false));
-      actions.set('quest.trade.close', solo(() => { trader?.use(-1); })); actions.set('quest.trade.use', solo(value => { trader?.use(value); }));
+      observations.set('trading', player => gearOf(player).trader?.active ?? false);
+      actions.set('quest.trade.close', (_value, player) => { gearOf(player).trader?.use(-1); });
+      actions.set('quest.trade.use', (value, player) => { gearOf(player).trader?.use(value); });
     }
     if (rows.board !== undefined) {
-      observations.set('boarding', player => player === books.lead.player && (board?.active ?? false));
-      actions.set('quest.board.close', solo(() => { board?.use(CONTRACT_ACTION.close, eye); }));
-      actions.set('quest.board.use', solo(value => { eye.copy(traveller.position); eye.y += rows.eye; useBoard(value); }));
+      observations.set('boarding', player => gearOf(player).board?.active ?? false);
+      actions.set('quest.board.close', (_value, player) => { gearOf(player).board?.use(CONTRACT_ACTION.close, eye); });
+      actions.set('quest.board.use', (value, player) => { const gear = gearOf(player); eye.copy(gear.body.position); eye.y += rows.eye; gear.claim(value); });
     }
     if (rows.reading !== undefined || rows.trade !== undefined || rows.board !== undefined)
       actions.set('quest.cancel', (_value, player) => {
         seatOf(player).dialogue?.dismiss();
-        if (player === books.lead.player) { board?.use(CONTRACT_ACTION.close, eye); trader?.use(-1); }
+        const gear = gearOf(player); gear.board?.use(CONTRACT_ACTION.close, eye); gear.trader?.use(-1);
       });
     if (rows.ammunition !== undefined) {
-      observations.set('selectable', () => launcher?.frame.live.has(need(rows.ammunition, 'ammunition').launcher) ?? false);
-      actions.set('quest.ammo.cycle', solo(() => { ammunition?.cycle(); }));
+      observations.set('selectable', player => launcher !== null && (player === books.lead.player ? launcher.frame : otherCombatFrame(launcher.frame, player)).live.has(need(rows.ammunition, 'ammunition').launcher));
+      actions.set('quest.ammo.cycle', (_value, player) => { gearOf(player).ammunition?.cycle(); });
     }
     if (rows.pickup !== undefined) {
       const flag = rows.pickup.flag; books.claim([flag]); observations.set('pickup', player => !books.of(player).flags.has(flag));
       actions.set('quest.pickup', (_value, player) => { books.of(player).flags.set(flag); if (player === books.lead.player) state.pickup = true; });
     }
-    if (rows.boss !== undefined) actions.set('quest.reward', solo(() => { eye.copy(traveller.position); eye.y += rows.eye; takeNativeBossReward(host, need(rows.boss, 'boss').id, eye); }));
+    if (rows.boss !== undefined) actions.set('quest.reward', (_value, player) => { eye.copy(gearOf(player).body.position); eye.y += rows.eye; takeNativeBossReward(host, need(rows.boss, 'boss').id, eye); });
     if (rows.bench !== undefined && bench !== null) actions.set(rows.bench.id, (_value, player) => {
       const body = host.players.get(player);
       if (body === undefined || !graph.run(bench.d.id, undefined, player).ok) return;
       const pose = questBenchPose(need(rows.bench, 'bench').pose, bench.spot, bench.spot.yaw);
       at.set(pose.x, pose.y, pose.z); body.motor.resetAt(at); body.position.copy(at); body.yaw = pose.yaw; body.fall.vy = 0;
     });
-    const rosterOver = (owned: typeof rules): readonly HeadlessPrompt[] => bindHeadlessPrompts(spots.promptRegistrations ?? [], id => {
+    const rosterOver = (owned: typeof rules, player: string): readonly HeadlessPrompt[] => bindHeadlessPrompts(spots.promptRegistrations ?? [], id => {
       const policy = need(rows.prompts, 'prompts');
       if (id === policy.talk.id) return { act: policy.talk.action, position: need(spots.talk, 'talk prompt'), radius: policy.talk.radius };
-      if (id === rows.acquisition?.id) return { act: rows.acquisition.action, position: need(spots.sword, 'held prompt'), get radius() { return state.iron ? 0 : guarded() ? need(rows.acquisition, 'acquisition').guardRadius : need(rows.acquisition, 'acquisition').radius; } };
-      if (id === policy.cable.id) return { act: policy.cable.action, position: spots.cable.prompt, get radius() { return cables.state(cableId).riding ? 0 : spots.cable.prompt.radius; } };
+      if (id === rows.acquisition?.id) return { act: rows.acquisition.action, position: need(spots.sword, 'held prompt'), get radius() { return gearOf(player).state.iron ? 0 : guarded() ? need(rows.acquisition, 'acquisition').guardRadius : need(rows.acquisition, 'acquisition').radius; } };
+      if (id === policy.cable.id) return { act: policy.cable.action, position: spots.cable.prompt, get radius() { return gearOf(player).riding() ? 0 : spots.cable.prompt.radius; } };
       const i = owned.findIndex(rule => rule.d.id === id), rule = owned[i];
       if (rule?.spot.prompt === undefined || rule.spot.prompt === null) return undefined;
       return { act: policy.rowBase + i, get position() { return promptOf(rule) ?? rule.spot; }, get radius() { return rule.promptRadius(); } };
     });
-    const prompts = rows.prompts === undefined ? undefined : rosterOver(rules);
+    const prompts = rows.prompts === undefined ? undefined : rosterOver(rules, books.lead.player);
     promptRoster = prompts; seatRoster = rosterOver;
     return { mechanics: { cables }, observations, actions, ...(prompts === undefined ? {} : { prompts, rosterOf: player => seatOf(player).roster ?? prompts, directorActions: new Map() }),
       ...(prompts === undefined ? { spots: { crack: [], interact: [
@@ -276,12 +298,36 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
       ] } } : {}) };
   }
 
-  seats.set(books.lead.player, { rules: indexed, transitions, dialogue, roster: promptRoster });
+  seats.set(books.lead.player, { rules: indexed, transitions, dialogue, roster: promptRoster, gear: { body: traveller, board, trader, reward, ammunition, state, claim: useBoard, seen: flags,
+    riding: () => cables.state(cableId).riding } });
   books.install(book => {
-    const seat = entry.seat(book.player, rows.transitions), read = readingRoster(seat.flags, kind => {
+    const body = need(host.players.get(book.player), 'seated body'), seat = entry.seat(book.player, rows.transitions);
+    const ride = cables.seat(cableId, body, seat.flags);
+    if (rider !== null) holdCarried(body, ride, seat.flags);
+    const held = rows.ammunition === undefined ? null : need(ammunition ?? undefined, 'ammunition').of(body), own = { iron: false, rewardOwned: false }, skins = new Set<string>();
+    const gear: SeatGear = { body, board: boardFor(), reward: rows.reward === undefined ? null : rewardFor(ride, undefined, seat.flags), ammunition: held, state: own, seen: seat.flags,
+      trader: traderFor(seat.pack, skin => skin === rows.trade?.finish && own.rewardOwned || skins.has(skin), skin => { skins.add(skin); }, held, launcher?.kind === 'bolt' ? seatedBolt(launcher.item, body) : null),
+      riding: () => cables.seatState(cableId, book.player).riding,
+      claim: value => {
+        const claim = gear.board?.use(value, eye); if (claim === null || claim === undefined) return;
+        commitSeatEffects(claim.reward.items.map(item => ({ kind: 'item', item: item.id, count: item.n })), seat.flags, seat.pack);
+        if (claim.reward.bolts > 0 && launcher?.kind === 'bolt') seatedBolt(launcher.item, body).addBolts(claim.reward.bolts);
+        if (claim.reward.skin === rows.board?.finish) own.rewardOwned = true;
+      } };
+    if (gear.reward !== null) host.scope.onDispose(() => { gear.reward?.dispose(); });
+    const read = readingRoster(seat.flags, kind => {
       commitSeatEffects(need(steps ?? undefined, 'steps').signal({ kind: 'talk', target: kind }, { flags: seat.flags.all, inventory: seat.pack.snapshot().counts }), seat.flags, seat.pack);
+      if (kind === rows.trade?.speaker) gear.trader?.open();
     });
-    seats.set(book.player, { rules: seat.rules, transitions: seat.transitions, dialogue: read, roster: rows.prompts === undefined ? undefined : seatRoster?.([...seat.rules.values()]) });
+    seats.set(book.player, { rules: seat.rules, transitions: seat.transitions, dialogue: read, roster: rows.prompts === undefined ? undefined : seatRoster?.([...seat.rules.values()], book.player), gear });
+    book.part(`cable:${rows.step}`, { read: () => JSON.stringify(cables.snapshotSeat(cableId, book.player)), write: saved => { cables.restoreSeat(cableId, book.player, JSON.parse(saved)); } });
+    book.part(`gear:${rows.step}`, { read: () => JSON.stringify({ ...own, skins: [...skins] }), write: saved => {
+      const value = v.parse(SeatGearSaved, JSON.parse(saved)); own.iron = value.iron; own.rewardOwned = value.rewardOwned; skins.clear(); for (const skin of value.skins) skins.add(skin);
+    } });
+    if (gear.board !== null) book.part(`board:${rows.step}`, { read: () => JSON.stringify(gear.board?.snapshot() ?? null), write: saved => { gear.board?.prepareRestore(JSON.parse(saved))(); } });
+    if (gear.trader !== null) book.part(`trader:${rows.step}`, { read: () => JSON.stringify(gear.trader?.snapshot() ?? null), write: saved => { gear.trader?.prepareRestore(JSON.parse(saved))(); } });
+    if (gear.reward !== null) book.part(`reward:${rows.step}`, { read: () => JSON.stringify(gear.reward?.snapshot() ?? null), write: saved => { gear.reward?.restore(JSON.parse(saved)); } });
+    if (held !== null) book.part(`ammo:${rows.step}`, { read: () => JSON.stringify(held.snapshot()), write: saved => { held.restoreSeat(v.parse(NativeAmmunitionSavedSchema, JSON.parse(saved))); } });
     book.part(`pack:${rows.step}`, { read: () => JSON.stringify(seat.pack.snapshot()), write: saved => { seat.pack.restore(JSON.parse(saved)); } });
     if (read !== null) book.part(`reading:${rows.step}`, { read: () => JSON.stringify(read.active ? read.snapshot() : null), write: saved => { read.prepareRestore(JSON.parse(saved))(); } });
   });
@@ -291,7 +337,9 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
     }],
     ['props', dt => { const asked = input.walk(host.level.player.speed); walked.x = rider?.carried === true ? 0 : asked.x; walked.z = rider?.carried === true ? 0 : asked.z; props?.step(dt, walked); }],
     ['transitions', () => { for (const book of books.each()) seatOf(book.player).transitions.step(); props?.syncGates(); }], ['cable', dt => { cables.updateNative(cableId, dt, host); }],
-    ['director', dt => { finale?.update(dt); }], ['reward', dt => { if (rows.reward !== undefined) reward?.update(dt, flags.has(rows.reward.seen)); }],
+    ['director', dt => { finale?.update(dt); }], ['reward', dt => {
+      if (rows.reward !== undefined) for (const book of books.each()) { const { gear } = seatOf(book.player); gear.reward?.update(dt, gear.seen.has(rows.reward.seen)); }
+    }],
     ['chapter', dt => { chapterClock?.update(dt, chapter?.current?.id, chapter?.def.id); }],
     ['lead', dt => { if (lead?.step(dt, chapter?.current?.id) === true && rows.lead !== undefined)
       commitQuestEffects(host, need(rows.effects, 'effects').pack, need(steps ?? undefined, 'steps').signal({ kind: 'follow', target: rows.lead.target }, { flags: flags.all })); }],

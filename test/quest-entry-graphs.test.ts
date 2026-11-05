@@ -43,7 +43,7 @@ function pineCommandOwners(calls: string[] = []): { owners: Omit<QuestHostPorts,
     }]];
   }));
   return { modal, owners: { spots: { interact: spots, crack: [] }, actions,
-    mechanics: { cables: { state: () => ({ riding: modal['riding'] === true, atEnd: false }),
+    mechanics: { cables: { seat: () => undefined, seatState: () => ({ riding: false, atEnd: false }), startSeat: () => undefined, state: () => ({ riding: modal['riding'] === true, atEnd: false }),
       start: () => { modal['riding'] = true; calls.push('cable:start'); } } },
     observations: new Map(row.observations.flatMap(value => value.kind === 'owner' ? [[value.owner, () => modal[value.owner] === true] as const] : [])) } };
 }
@@ -205,7 +205,7 @@ test('native entries share direct and graph pickup transitions over their origin
       const ids = [...new Set([...declared.commands.routes.flatMap(route => route.spot === null ? [] : [route.spot]),
         ...declared.interactions.rows.map(value => value.at), ...declared.npcs.map(value => value.spot)])];
       entry.install({ spots: { interact: ids.map(id => ({ id, x: 0, y: 0, z: 0, radius: 3 })), crack: [] },
-        mechanics: { cables: { state: () => ({ riding: false, atEnd: false }), start: () => undefined } },
+        mechanics: { cables: { seat: () => undefined, seatState: () => ({ riding: false, atEnd: false }), startSeat: () => undefined, state: () => ({ riding: false, atEnd: false }), start: () => undefined } },
         observations: new Map(declared.observations.flatMap(value => value.kind === 'owner' ? [[value.owner, () => true] as const] : [])),
         actions: new Map(declared.commands.routes.flatMap(route => route.action.kind === 'owner' ? [[route.action.id, () => undefined] as const] : [])) });
       leadPlayer(host).position.set(sample.radius, 0, 0); transitions.step(); expect(host.flags.has(sample.flag)).toBe(false);

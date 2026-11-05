@@ -18,6 +18,9 @@ class Cable implements QuestCableOwner {
   riding = false; atEnd = false; starts = 0;
   state(id: string) { if (id !== 'cable') throw new Error('Unknown cable'); return { riding: this.riding, atEnd: this.atEnd }; }
   start(id: string) { this.state(id); this.riding = true; this.starts++; }
+  seat() { return undefined; }
+  seatState() { return { riding: false, atEnd: false }; }
+  startSeat() { return undefined; }
 }
 const base = { version: 1, drive: 'external', actors: { ids: [], error: 'Missing body' },
   graph: { actor: 'interact', step: 'graph', actions: [] }, interactions: { marks: [], rows: [] }, npcs: [],

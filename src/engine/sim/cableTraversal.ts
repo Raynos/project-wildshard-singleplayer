@@ -1,5 +1,5 @@
 import type { SimHost } from '../sim';
-import { leadPlayer } from './leadPlayer';
+import type { PlayerSim } from './playerSim';
 import type { Flags } from '../world/interact/flags';
 import { CableProfileSchema, parseModes, ZiplineModeSchema, type ModeRows, type ZiplineMode } from '@wildshard/format/modes';
 import { MathUtils, Vector3, type Object3D } from 'three';
@@ -160,8 +160,12 @@ export class ZiplineTrolley {
 interface CableRider { readonly position: Vector3; readonly velocity: Vector3; carried?: boolean }
 /** Native carry also lends the existing reward pose, without a second player or clock. */
 export interface NativeCableRider { readonly position: Vector3; readonly velocity: Vector3; carried: boolean; yaw: number; pitch: number }
+/** Another player's ride on a cable: their own driver and carry, ending on their own flags. */
+interface CableSeat { readonly body: PlayerSim; readonly driver: ZiplineDriver; readonly rider: NativeCableRider; readonly flags: Pick<Flags, 'set' | 'has'> }
 interface CableEntry {
   readonly row: ZiplineMode; readonly driver: ZiplineDriver;
+  /** Every other player who has come to this cable, by id. The first player's ride is the entry's own, and saves as it did. */
+  readonly seats: Map<string, CableSeat>;
   readonly events: boolean[]; roll: number; rider?: CableRider; native?: NativeCableRider;
   view?: { trolley: ZiplineTrolley; rider: CableRider; camera?: { rotation: { z: number } } };
 }
@@ -177,7 +181,7 @@ export class CableTraversal {
   constructor(rows: ModeRows['traverse'], flags: Pick<Flags, 'set' | 'has'>) {
     this.flags = flags;
     for (const row of parseModes({ traverse: rows }).traverse) if (row.kind === 'zipline') {
-      this.entries.set(row.id, { row, driver: new ZiplineDriver(row), events: [], roll: 0 });
+      this.entries.set(row.id, { row, driver: new ZiplineDriver(row), seats: new Map(), events: [], roll: 0 });
     }
   }
   private entry(id: string): CableEntry {
@@ -206,15 +210,44 @@ export class CableTraversal {
   declaration(id: string): Readonly<ZiplineMode> { return this.entry(id).row; }
   /** The native mode host lends the real carry/reward pose once, before any quest or restore runs. */
   bindNative(host: SimHost): void {
-    const player = leadPlayer(host);
+    const [player] = host.players.values(); if (player === undefined) throw new Error('Simulation host has no player');
     for (const entry of this.entries.values()) {
       if (entry.native !== undefined || entry.view !== undefined) throw new Error('Cable native owner is already bound');
-      const rider: NativeCableRider = { position: entry.row.lifecycle?.native === 'position' ? player.position : new Vector3(),
-        velocity: new Vector3(), pitch: 0, carried: false,
-        get yaw(): number { return player.yaw; }, set yaw(value: number) { player.yaw = value; } };
+      const rider = this.lend(entry, player);
       entry.native = rider; entry.rider = rider;
     }
   }
+  private lend(entry: CableEntry, player: PlayerSim): NativeCableRider {
+    return { position: entry.row.lifecycle?.native === 'position' ? player.position : new Vector3(), velocity: new Vector3(), pitch: 0, carried: false,
+      get yaw(): number { return player.yaw; }, set yaw(value: number) { player.yaw = value; } };
+  }
+  /** Seat another player at this cable: `flags` is whose completion its ride raises. A body that left and came back sits anew. */
+  seat(id: string, player: PlayerSim, flags: Pick<Flags, 'set' | 'has'>): NativeCableRider {
+    const entry = this.entry(id), known = entry.seats.get(player.id);
+    if (known?.body === player) return known.rider;
+    const rider = this.lend(entry, player);
+    entry.seats.set(player.id, { body: player, driver: new ZiplineDriver(entry.row), rider, flags });
+    return rider;
+  }
+  private seatOf(id: string, player: string): CableSeat {
+    const seat = this.entry(id).seats.get(player);
+    if (seat === undefined) throw new Error(`Player has no seat at cable ${id}: ${player}`);
+    return seat;
+  }
+  /** One seated player's ride; their end is on their own flags. */
+  seatState(id: string, player: string): { riding: boolean; atEnd: boolean } {
+    const { row } = this.entry(id), { driver, flags } = this.seatOf(id, player);
+    return { riding: driver.isRiding, atEnd: !driver.isRiding && (driver.distance >= driver.len - (row.profile?.release ?? 1.6)
+      || row.lifecycle !== undefined && flags.has(row.lifecycle.endFlag)) };
+  }
+  startSeat(id: string, player: string): void {
+    const { row } = this.entry(id), seat = this.seatOf(id, player);
+    if (seat.driver.isRiding) return;
+    seat.driver.start();
+    if (row.lifecycle?.carry === 'start') seat.rider.carried = true;
+  }
+  snapshotSeat(id: string, player: string): ReturnType<ZiplineDriver['snapshot']> { return this.seatOf(id, player).driver.snapshot(); }
+  restoreSeat(id: string, player: string, value: unknown): void { this.seatOf(id, player).driver.restore(value); }
   /** The actual installed carry pose; other platform mechanics borrow it rather than copying its state. */
   nativeRider(id: string): NativeCableRider {
     const rider = this.entry(id).native;
@@ -261,18 +294,27 @@ export class CableTraversal {
   }
   /** Native update on its existing quest step. Motor teleports and walking impulses preserve the declared carry law. */
   updateNative(id: string, dt: number, host: SimHost): void {
-    const entry = this.entry(id), rider = entry.rider ?? this.rider;
+    const entry = this.entry(id), rider = entry.rider ?? this.rider, [first] = host.players.values();
     entry.events.length = 0;
-    if (!entry.driver.isRiding) return;
-    const holding = this.advance(entry, dt, rider);
-    if (entry.row.lifecycle?.native === 'motor') {
-      const player = leadPlayer(host);
-      player.motor.resetAt(rider.position); player.position.copy(rider.position);
-      player.fall.vy = 0; player.fall.grounded = false;
-      if (!holding) player.addImpulse(rider.velocity);
+    if (entry.driver.isRiding) {
+      const holding = this.advance(entry, dt, rider);
+      if (first !== undefined) this.carry(entry, first, rider, holding);
+      if (!holding) this.release(entry);
+      entry.events.length = 0;
     }
-    if (!holding) this.release(entry);
-    entry.events.length = 0;
+    for (const [player, seat] of entry.seats) {
+      if (host.players.get(player) !== seat.body) { entry.seats.delete(player); continue; }
+      if (!seat.driver.isRiding) continue;
+      const holding = seat.driver.update(dt, seat.rider);
+      seat.rider.carried = holding; this.carry(entry, seat.body, seat.rider, holding);
+      if (!holding && entry.row.lifecycle !== undefined) seat.flags.set(entry.row.lifecycle.endFlag);
+    }
+  }
+  private carry(entry: CableEntry, player: PlayerSim, rider: CableRider, holding: boolean): void {
+    if (entry.row.lifecycle?.native !== 'motor') return;
+    player.motor.resetAt(rider.position); player.position.copy(rider.position);
+    player.fall.vy = 0; player.fall.grounded = false;
+    if (!holding) player.addImpulse(rider.velocity);
   }
   /** Existing owner envelopes keep their bytes; no new save owner or live restore effects. */
   snapshot(id: string): ReturnType<ZiplineDriver['snapshot']> { return this.entry(id).driver.snapshot(); }

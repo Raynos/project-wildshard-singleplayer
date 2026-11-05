@@ -9,7 +9,6 @@ import type { PortalLinkEntry, portalLinkRules } from '@wildshard/format/portalL
 import { createPortalRide, PortalRideStateSchema, type PortalRideState, type PortalRideLane, type RideRings } from './walkInPortalRide';
 import { createPortalTraversal, type PortalTransfer, type PortalTraversalPorts } from './portalTraversal';
 import type { ShardContext } from '../plugin/context';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** the ride's rows: its director (a `directors` id), walk-in volume, fade, veil and the facts a landing reports */
 export interface PortalRideRows {
@@ -163,36 +162,61 @@ export interface RideHost<Physics> {
 }
 
 const finite = v.pipe(v.number(), v.finite());
-const Saved = v.strictObject({ held: v.nullable(v.strictObject({ x: finite, y: finite, z: finite })), ride: PortalRideStateSchema });
+const SeatSavedSchema = { held: v.nullable(v.strictObject({ x: finite, y: finite, z: finite })), ride: PortalRideStateSchema };
+/** Alone, the first player's seat as it always saved; the rest beside it, only with company. */
+const Saved = v.strictObject({ ...SeatSavedSchema, others: v.exactOptional(v.record(v.string(), v.strictObject(SeatSavedSchema))) });
 interface Point { x: number; y: number; z: number }
+interface SeatSaved { held: Point | null; ride: PortalRideState }
 
 /** The host's ride on its fixed step under `id`: `carried` holds the feet still while the fade runs, `spawn` releases the
  *  motor and clears every velocity; the hold and the ride are exact continuation. */
-export function installHostPortalRide(host: RideHost<PortalTraversalPorts['physics']>, id: string, source: PortalSource, rows: PortalRideRows, facts: PortalFacts): PortalRide {
-  const player = leadPlayer(host), holdPoint = { x: 0, y: 0, z: 0 }, spawnPoint = { x: 0, y: 0, z: 0 };
-  let held: Point | null = null;
-  const keep = (at: Point): void => {
-    player.position.set(at.x, at.y, at.z); player.motor.resetAt(at);
-    player.fall.vy = 0; player.fall.grounded = false; player.impulse.set(0, 0, 0); player.shove.t = 0;
+export function installHostPortalRide(host: RideHost<PortalTraversalPorts['physics']>, id: string, source: PortalSource, rows: PortalRideRows, facts: PortalFacts, factsOf: (player: string) => PortalFacts = () => () => undefined): PortalRide {
+  /** One player's ride and hold. */
+  const seat = (player: RidePlayer, landed: PortalFacts) => {
+    const holdPoint = { x: 0, y: 0, z: 0 }, spawnPoint = { x: 0, y: 0, z: 0 };
+    let held: Point | null = null;
+    const keep = (at: Point): void => {
+      player.position.set(at.x, at.y, at.z); player.motor.resetAt(at);
+      player.fall.vy = 0; player.fall.grounded = false; player.impulse.set(0, 0, 0); player.shove.t = 0;
+    };
+    const body: PortalPlayer = {
+      // the motor is read each time: a restore rebuilds the player's motor on the restored physics after install
+      position: player.position, get motor() { return player.motor; },
+      get hover() { return player.board.on; },
+      get carried() { return held !== null; },
+      set carried(on) {
+        holdPoint.x = player.position.x; holdPoint.y = player.position.y; holdPoint.z = player.position.z;
+        held = on ? holdPoint : null;
+        if (held !== null) keep(held);
+      },
+      setHover: (on) => { player.setBoard(on); },
+      spawn: (x, z, yaw, y) => { player.yaw = yaw; player.motor.release(); player.dash.t = 0; spawnPoint.x = x; spawnPoint.y = y ?? player.position.y; spawnPoint.z = z; keep(spawnPoint); },
+    };
+    const ride = bindPortalRide(portalRider(body, () => host.physics, source), () => undefined, portalRings(source, rows), rows.landings, landed);
+    return { ride, player, step: (dt: number): void => { if (held !== null) keep(held); ride.step(dt); }, save: (): SeatSaved => ({ held, ride: ride.snapshot() }),
+      load: (saved: SeatSaved): void => { ride.restore(saved.ride); held = saved.held; } };
   };
-  const body: PortalPlayer = {
-    // the motor is read each time: a restore rebuilds the player's motor on the restored physics after install
-    position: player.position, get motor() { return player.motor; },
-    get hover() { return player.board.on; },
-    get carried() { return held !== null; },
-    set carried(on) {
-      holdPoint.x = player.position.x; holdPoint.y = player.position.y; holdPoint.z = player.position.z;
-      held = on ? holdPoint : null;
-      if (held !== null) keep(held);
-    },
-    setHover: (on) => { player.setBoard(on); },
-    spawn: (x, z, yaw, y) => { player.yaw = yaw; player.motor.release(); player.dash.t = 0; spawnPoint.x = x; spawnPoint.y = y ?? player.position.y; spawnPoint.z = z; keep(spawnPoint); },
+  const [first] = host.players.values(); if (first === undefined) throw new Error('Simulation host has no player');
+  const lead = seat(first, facts), others = new Map<string, ReturnType<typeof seat>>();
+  /** Another player's seat: a body that left and came back rides anew. */
+  const seatOf = (key: string, player: RidePlayer): ReturnType<typeof seat> => {
+    const known = others.get(key);
+    if (known?.player === player) return known;
+    const made = seat(player, factsOf(key)); others.set(key, made); return made;
   };
-  const ride = bindPortalRide(portalRider(body, () => host.physics, source), () => undefined, portalRings(source, rows), rows.landings, facts);
-  host.onStep(id, (dt) => { if (held !== null) keep(held); ride.step(dt); }, { snapshot: () => JSON.stringify({ held, ride: ride.snapshot() }), restore: (value) => {
+  host.onStep(id, (dt) => {
+    lead.step(dt);
+    for (const key of others.keys()) if (!host.players.has(key)) others.delete(key);
+    for (const [key, player] of host.players) if (player !== first) seatOf(key, player).step(dt);
+  }, { snapshot: () => JSON.stringify({ ...lead.save(), ...(others.size === 0 ? {} : { others: Object.fromEntries([...others].map(([key, row]) => [key, row.save()])) }) }), restore: (value) => {
     if (typeof value !== 'string') throw new Error(`Invalid portal continuation (${id})`);
-    const saved = v.parse(Saved, JSON.parse(value));
-    ride.restore(saved.ride); held = saved.held;
+    const { others: saved = {}, ...own } = v.parse(Saved, JSON.parse(value));
+    lead.load(own); others.clear();
+    for (const [key, row] of Object.entries(saved)) {
+      const player = host.players.get(key);
+      if (player === undefined) throw new Error(`Invalid portal continuation (${id})`);
+      seatOf(key, player).load(row);
+    }
   } });
-  return ride;
+  return lead.ride;
 }

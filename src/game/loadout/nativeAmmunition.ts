@@ -1,7 +1,8 @@
 import * as v from 'valibot';
 import { LoadoutSchema, type LoadoutRows } from '@wildshard/format/loadout';
-import { readNativeRangedItem, type NativeCombatFrame, type NativeBoltItem, type NativeCycleItem, type NativeBowItem } from '../plugin/nativeItems';
+import { otherCombatFrame, readNativeRangedItem, seatedBolt, seatedBow, seatedCycle, type NativeCombatFrame, type NativeBoltItem, type NativeCycleItem, type NativeBowItem } from '../plugin/nativeItems';
 import type { SimHost } from '@wildshard/engine/sim';
+import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 import { parseItems } from '@wildshard/format/items';
 import { AmmoPouch } from './pouch';
 
@@ -22,7 +23,13 @@ export class NativeHeldAmmunition {
   private readonly ports: { readonly crossbow: NativeBoltItem; readonly lever: NativeCycleItem; readonly longbow: NativeBowItem };
   private readonly bowCapacity: number;
   private readonly frame: NativeCombatFrame;
-  constructor(host: SimHost, input: unknown, itemRows: unknown) {
+  private readonly host: SimHost;
+  private readonly input: unknown;
+  private readonly itemRows: unknown;
+  /** Every other player's pouch over their own items, by id: each cycles and stashes alone. */
+  private readonly others = new Map<string, { readonly body: PlayerSim; readonly pouch: NativeHeldAmmunition }>();
+  constructor(host: SimHost, input: unknown, itemRows: unknown, player?: PlayerSim) {
+    this.host = host; this.input = input; this.itemRows = itemRows;
     this.rows = v.parse(LoadoutSchema, input); this.quiver = new AmmoPouch(this.rows.pouch);
     const items = parseItems(itemRows).rows;
     const launcher = items.find(item => item.id === this.rows.launcher.item);
@@ -33,8 +40,22 @@ export class NativeHeldAmmunition {
       throw new Error('Native loadout identities need admitted ranged items');
     const bolt = readNativeRangedItem(host, launcher.ranged.slot), cycle = readNativeRangedItem(host, firearm.ranged.slot), arrow = readNativeRangedItem(host, bow.ranged.slot);
     if (bolt.kind !== 'bolt' || cycle.kind !== 'cycle' || arrow.kind !== 'bow') throw new Error('Native loadout has incompatible families');
-    this.ports = { crossbow: bolt.item, lever: cycle.item, longbow: arrow.item };
-    this.bowCapacity = bow.profile.quiver; this.frame = bolt.frame;
+    this.ports = player === undefined ? { crossbow: bolt.item, lever: cycle.item, longbow: arrow.item }
+      : { crossbow: seatedBolt(bolt.item, player), lever: seatedCycle(cycle.item, player), longbow: seatedBow(arrow.item, player) };
+    this.bowCapacity = bow.profile.quiver; this.frame = player === undefined ? bolt.frame : otherCombatFrame(bolt.frame, player.id);
+  }
+  /** Another player's pouch, made as they first reach for it. */
+  of(player: PlayerSim): NativeHeldAmmunition {
+    const known = this.others.get(player.id);
+    if (known?.body === player) return known.pouch;
+    const pouch = new NativeHeldAmmunition(this.host, this.input, this.itemRows, player);
+    this.others.set(player.id, { body: player, pouch }); return pouch;
+  }
+  /** A seated pouch's own continuation: its weapon saves apart and may come back later, so the stacks stand alone. */
+  restoreSeat(saved: Record<string, string | number>): void {
+    const selected = v.parse(v.picklist(this.rows.pouch.kinds), saved['selected']);
+    for (const kind of this.rows.pouch.kinds) this.quiver.counts[kind] = v.parse(stack, saved[kind]);
+    this.quiver.selected = selected; this.frame.ammo = selected;
   }
   get selected(): string { return this.quiver.selected; }
   count(kind: string): number {
@@ -57,6 +78,7 @@ export class NativeHeldAmmunition {
   cycle(): void { this.loadKind(this.quiver.next()); }
   /** Stash/fall back after the native weapon update, at the same point as the page. */
   update(): void {
+    for (const [id, { body, pouch }] of this.others) if (this.host.players.get(id) === body) pouch.update(); else this.others.delete(id);
     const state = this.ports.crossbow.state;
     this.quiver.stash(state.quiver);
     if (this.selected !== this.rows.pouch.fallback && state.quiver <= 0 && !state.loaded && !state.reloading) this.loadKind(this.rows.pouch.fallback);

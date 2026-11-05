@@ -51,7 +51,7 @@ export class QuestBook {
       parts: Object.fromEntries([...this.parts].map(([id, part]) => [id, part.read()])) };
   }
   restore(saved: QuestBookSaved): void {
-    if (saved.quests.length !== this.quests.length || Object.keys(saved.parts).length !== this.parts.size || Object.keys(saved.parts).some(id => !this.parts.has(id))) throw new RangeError('Snapshot quest book does not match');
+    if (saved.quests.length !== this.quests.length || Object.keys(saved.parts).some(id => !this.parts.has(id))) throw new RangeError('Snapshot quest book does not match');
     this.flags.restore(saved.flags);
     for (const quest of this.quests) { const state = saved.quests.find(row => row.id === quest.def.id); if (state === undefined) throw new RangeError('Snapshot quest book does not match'); quest.restore(state); }
     for (const [id, part] of this.parts) { const value = saved.parts[id]; if (value !== undefined) part.write(value); }
