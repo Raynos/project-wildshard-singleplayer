@@ -26,7 +26,7 @@ const bootRows = (pasture: NalatiTitanProgram, admissionInput: NalatiAdmission, 
 export type NalatiNativeBootRows = ReturnType<typeof bootRows>;
 export function nalatiNativeBootRows(pasture: NalatiTitanProgram, admission: NalatiAdmission, riding: NalatiRidingPrograms): NalatiNativeBootRows { return bootRows(pasture, admission, riding); }
 
-const assemblyRows = (pasture: NalatiTitanProgram, admission: NalatiAdmission, nativeShelters: readonly (readonly [number, number, number])[]) => {
+const assemblyRows = (pasture: NalatiTitanProgram, admission: NalatiAdmission, nativeShelters: [number, number, number][]) => {
   const assembly = nalatiHeadlessAssembly(pasture, admission), constants = assembly.constants;
   const riding = nalatiRidingPopulation(ecology);
   return { ...assembly, constants: { ...constants,
@@ -40,7 +40,7 @@ const assemblyRows = (pasture: NalatiTitanProgram, admission: NalatiAdmission, n
 };
 /** The population, riding, elite and shelter rows the native hosts read, around the build's programs and placed shelters. */
 export type NalatiNativeAssemblyRows = ReturnType<typeof assemblyRows>;
-export function nalatiNativeAssemblyRows(pasture: NalatiTitanProgram, admission: NalatiAdmission, nativeShelters: readonly (readonly [number, number, number])[]): NalatiNativeAssemblyRows { return assemblyRows(pasture, admission, nativeShelters); }
+export function nalatiNativeAssemblyRows(pasture: NalatiTitanProgram, admission: NalatiAdmission, nativeShelters: [number, number, number][]): NalatiNativeAssemblyRows { return assemblyRows(pasture, admission, nativeShelters); }
 
 /** The elite roster the native kernels bind: three members, two kernels and the borrowed stallion's projection. */
 export function nalatiEliteRows(constants: {
@@ -59,6 +59,10 @@ export function nalatiEliteRows(constants: {
     projections: { argymaq: { signal: 'argymaqTick', states: { display: 1, charge: 2, beaten: 3 }, bondedState: 'bonded', brokenState: 'beaten', adoption: { variant: 'tulpar', scale: 1.3 } } } };
 }
 
+/** How each elite's condition word reads the clock and the storm through the admission programme. */
+export const NALATI_ELITE_CONDITIONS = { rules: { always: { rule: 0, phase: false, storm: false }, storm: { rule: 1, phase: true, storm: true }, night: { rule: 2, phase: true, storm: false }, dusk: { rule: 3, phase: true, storm: false } },
+  phases: { dawn: 0, day: 0, golden: 0, dusk: 1, night: 2 }, storm: { calm: 0, storm: 1 } };
+
 /** Nalati's native assembly (P1-E3.1b, J90): its hosts in install order, as data over its product files. */
 function nalatiNativeAssemblyPlan(nativeBake: NativeAssemblyPlan['bake']['reader'] & { readonly size: number; readonly resolution: number }): NativeAssemblyPlan {
   return { kind: 'native-assembly', level: { speed: 5, authorCap: true, ground: { size: nativeBake.size, height: 0 } }, terrain: { kind: 'shard-tile', resolution: 256, size: 500 }, navigation: 'shard',
@@ -69,14 +73,13 @@ function nalatiNativeAssemblyPlan(nativeBake: NativeAssemblyPlan['bake']['reader
     features: [{ host: 'collision' }, { host: 'water.field' }, { host: 'day.declared', clock: { file: 'world/forest-weather.json', path: ['sky', 'clock'] } }, { host: 'riding.roster' },
       { host: 'riding.trample', id: 'nalati.trample', radius: 0.55, strength: 1, speedLimit: 30 }, { host: 'riding.environment', wind: { x: -0.8, z: 0.6, strength: 0.5 }, flatten: 0.85 },
       { host: 'weather.native', program: { file: 'world/weather.json' }, shelters: { file: 'server/shelters.json' }, rows: { file: 'server/weather.json' } }, { host: 'riding.groups', rows: { file: 'server/groups.json' } },
-      { host: 'riding.elites', rows: { file: 'server/elites.json' }, strikes: { file: 'server/elite-strikes.json' }, projected: 2, conditions: { rules: { always: { rule: 0, phase: false, storm: false }, storm: { rule: 1, phase: true, storm: true }, night: { rule: 2, phase: true, storm: false }, dusk: { rule: 3, phase: true, storm: false } },
-        phases: { dawn: 0, day: 0, golden: 0, dusk: 1, night: 2 }, storm: { calm: 0, storm: 1 } } },
+      { host: 'riding.elites', rows: { file: 'server/elites.json' }, strikes: { file: 'server/elite-strikes.json' }, projected: 2, conditions: NALATI_ELITE_CONDITIONS },
       { host: 'riding.hunt', config: { file: 'server/population.json' } }, { host: 'riding.mounted', profile: { file: 'server/ride.json' } },
       { host: 'riding.taming', rows: { file: 'server/taming.json' }, poses: { file: 'sim/taming-poses.json', path: ['poses'] }, pose: { file: 'actors/species-looks.json', path: ['poses', 'horse'] } }, { host: 'riding.elites-ready' }] };
 }
 
 /** Nalati's server-class files (J91), built from the same programs the product ships: a client never fetches one. */
-export function nalatiServerFiles(pasture: NalatiTitanProgram, admission: NalatiAdmission, riding: NalatiRidingPrograms, nativeShelters: readonly (readonly [number, number, number])[]): ServerBlob[] {
+export function nalatiServerFiles(pasture: NalatiTitanProgram, admission: NalatiAdmission, riding: NalatiRidingPrograms, nativeShelters: [number, number, number][]): ServerBlob[] {
   const bootFile = nalatiNativeBootRows(pasture, admission, riding), { constants } = nalatiNativeAssemblyRows(pasture, admission, nativeShelters);
   const strike = (at: number) => declared(constants.pageElites.strikes[at], 'Missing elite strikes').strike;
   const strikes = [strike(0), strike(1), strike(2)], [swipe, pounce, bite] = strikes;

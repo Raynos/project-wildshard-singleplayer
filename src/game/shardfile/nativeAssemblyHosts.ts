@@ -16,7 +16,7 @@ import { TOON_DAY_PRESET } from '@wildshard/format/toonLook';
 import { parseWeatherProgram } from '@wildshard/format/weatherProgram';
 import { parse } from 'valibot';
 import { installGroundBoss } from '../boss/native';
-import { EliteCore, memoryElitePersistence, type EliteCoreRule } from '../eliteSystem';
+import { EliteCore, memoryElitePersistence, type EliteCoreRule, type EliteCoreScript } from '../eliteSystem';
 import { installNativeHeldAmmunition } from '../loadout/nativeAmmunition';
 import { dayClock } from '../looks/dayClock';
 import { keyedSkyDaySpec } from '../looks/keyedSkyClock';
@@ -91,8 +91,8 @@ async function prepareMixed<C extends NativeAssemblyContext>(row: Extract<Native
   return run => { run.island = installMixedPopulation(run.host, { ...input, reserved: bake['captain'], launch, population: species, specs, seed: shard.identity.seed, waterLevel, spawnY: shard.spawn.y, nav,
     bake: { ground: bake.ground, actors: bake['actors'], herds: bake['herds'], habitat: bake['habitat'] } } as MixedPopulationInput, run.context.snapshot); };
 }
-function eliteCore<C extends NativeAssemblyContext>(run: AssemblyRun<C>, conditions: NativeEliteConditions, program: Pick<ReturnProgram, 'project'>, day: { readonly dayPhase: string }, env: Pick<NativeWildEnvironment, 'storm'>) {
-  const { host } = run;
+/** The elite core a riding world binds: each rule's word, read through its programme from the clock and the storm. */
+export function nativeEliteCore(host: Pick<SimHost, 'player' | 'level'>, conditions: NativeEliteConditions, program: Pick<ReturnProgram, 'project'>, day: { readonly dayPhase: string }, env: Pick<NativeWildEnvironment, 'storm'>): EliteCore<EliteCoreScript> {
   return new EliteCore({ player: host.player, condition: (rule: EliteCoreRule) => {
     const code = need(conditions.rules[rule], 'Missing elite rule');
     return program.project('eliteRule', { rule: code.rule, phase: code.phase ? conditions.phases[day.dayPhase] ?? 0 : 0, storm: code.storm ? (env.storm ? conditions.storm.storm : conditions.storm.calm) : 0 })['accept'] === 1;
@@ -103,7 +103,7 @@ async function prepareRidingElites<C extends NativeAssemblyContext>(row: Extract
   return run => {
     const strikes = [swipe, pounce, bite].map(strike => strikeFromData(need(strike, 'Missing elite strikes')));
     const { host } = run, clock = dayOf(run), env = need(run.wild, 'Native elites need their environment'), boot = bootOf(at);
-    const core = eliteCore(run, row.conditions, ReturnProgram.native(host, boot.admission), clock, env);
+    const core = nativeEliteCore(host, row.conditions, ReturnProgram.native(host, boot.admission), clock, env);
     const elites = new NativeEliteRoster(rows, { host, core, bindings: need(run.bindings, 'Native elites need their bindings'), groups: need(run.groups, 'Native elites need their groups'),
       kernel: { contacts: new StrikeRunner(), strikes, terrain: need(at.samplers, 'Native elites need terrain samplers'), environment: env, ledges: at.bake['ledges'] as NativeEliteKernelLoans['ledges'] } });
     elites.bindProjected(row.projected, ReturnProgram.native(host, boot.admission), core); elites.install(); run.nativeElites = elites;
@@ -124,7 +124,7 @@ export async function prepareAssemblyFeature<C extends NativeAssemblyContext>(ro
     case 'riding.hunt': {
       const config = await readAssemblyInput<Parameters<typeof installNativePopulationHunt>[1]['config']>(product, row.config);
       return run => { const roster = need(run.roster, 'Native hunt needs its roster'); run.creatures = installNativePopulationHunt(run.host, { boot: bootOf(at), elites: need(run.bindings, 'Native hunt needs its bindings'), bodies: roster.bodies, herds: roster.herds, nav, stream: roster.stream, wildStream: roster.wildStream,
-        bake: bake as Parameters<typeof installNativePopulationHunt>[1]['bake'], spawnY: shard.spawn.y, config, field: fieldOf(at), ...(run.context.snapshot === undefined ? {} : { snapshot: run.context.snapshot }) }); };
+        bake: bake as Parameters<typeof installNativePopulationHunt>[1]['bake'], spawnY: shard.spawn.y, config, field: fieldOf(at), ...(at.ports.pastureCues === undefined ? {} : { pastureCues: at.ports.pastureCues }), ...(run.context.snapshot === undefined ? {} : { snapshot: run.context.snapshot }) }); };
     }
     case 'riding.mounted': {
       const profile = await readAssemblyInput<object>(product, row.profile), { world } = at;
@@ -137,6 +137,7 @@ export async function prepareAssemblyFeature<C extends NativeAssemblyContext>(ro
     case 'riding.elites-ready': return run => {
       const elites = need(run.nativeElites, 'Native elites are not installed');
       elites.bindPopulation(need(run.creatures, 'Native elites need their population')); elites.bindBond(need(run.taming, 'Native elites need their taming')); if (!run.context.restoring) elites.initialize();
+      at.ports.observeBindings?.(run.host, need(run.bindings, 'Native elites need their bindings'));
     };
     case 'decisions': return run => { nativeDecisionAuthority(shard, assets, run.host); };
     case 'commands': return run => { run.input = at.ports.bindCommands(run.context, run.host); };
@@ -156,7 +157,7 @@ export async function prepareAssemblyFeature<C extends NativeAssemblyContext>(ro
     case 'weather.program': { const weather = parseWeatherProgram(await readAssemblyInput(product, row.program)); return run => { installWeatherContinuation(run.host, weather, dayOf(run), undefined, combatOf(run)); }; }
     case 'weather.native': {
       const program = nativeWeatherBundle(await readAssemblyInput(product, row.program), await readAssemblyInput(product, row.shelters)), input = await readAssemblyInput(product, row.rows);
-      return run => { installWeatherContinuation(run.host, { program, rows: input, clock: dayOf(run), env: need(run.wild, 'Native weather needs its environment'), bake: bake as NativeWeatherWorld['bake'] }); };
+      return run => { const weather = installWeatherContinuation(run.host, { program, rows: input, clock: dayOf(run), env: need(run.wild, 'Native weather needs its environment'), bake: bake as NativeWeatherWorld['bake'] }); at.ports.observeWeather?.(run.host, weather); };
     }
     case 'item.ranged': {
       const weapon = weaponRow(shard, row.weapon), policy = need(weapon.ranged, 'Missing native ranged policy'), profile = need(weapon.profile, 'Missing native ranged profile');

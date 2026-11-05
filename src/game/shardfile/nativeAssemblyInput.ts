@@ -2,11 +2,15 @@ import type { bakedSamplers } from '@wildshard/engine/world/BakedTerrain';
 import type { readNavmesh } from '@wildshard/engine/physics/navmesh';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import type { SimHost } from '@wildshard/engine/sim';
+import type { NativeEliteBindings } from '@wildshard/engine/ai/eliteRoster';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
+import type { Wind } from '@wildshard/engine/world/steppeWind';
 import type { BakedGrid } from '@wildshard/format/bakedTerrainBytes';
 import type { NativeAssemblyPlan, NativeAssemblyRead } from '@wildshard/format/nativeAssembly';
 import type { NativeCombatFrame } from '../plugin/nativeItems';
 import type { NativePopulationField } from '../population/environment';
+import type { PastureCues } from '../riding/pastureCues';
+import type { WeatherReactions } from '../weather/reactions';
 import type { NativeCollisionBake } from '../population/nativeBake';
 import type { ShardProduct } from './shardProduct';
 
@@ -18,6 +22,10 @@ export interface NativeAssemblyPorts<C extends NativeAssemblyContext> {
   readonly bindCommands: (context: C, host: SimHost) => { readonly ledger: { readonly fact: (name: string, actorId: string) => void } };
   /** The tick's commands as the taming owner reads them. */
   readonly tamingCommands: (context: C) => () => readonly ({ kind: 'player'; steer?: { keyX: number } } | { kind: 'script'; actorId: string; value: number } | { kind: 'action' })[];
+  /** A trusted wrapper's loans over the same world (proofs that drive a raid, the storm or an elite). The server sets none. */
+  readonly pastureCues?: PastureCues;
+  readonly observeWeather?: (host: SimHost, weather: { readonly wind: Wind; readonly storm: WeatherReactions }) => void;
+  readonly observeBindings?: (host: SimHost, bindings: NativeEliteBindings) => void;
 }
 export function need<T>(value: T, message: string): NonNullable<T> {
   if (value === null || value === undefined) throw new Error(message);
