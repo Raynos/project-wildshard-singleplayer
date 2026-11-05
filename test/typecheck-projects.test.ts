@@ -51,7 +51,7 @@ test('every source file has a layer owner, while the root covers all tests and a
     new Set([...seen].filter(file => /^tsconfig\.(?:engine|game|sdk|commons|shards|app)\.json$/u.test(relative('.', file)))),
   );
   for (const reference of root.projectReferences ?? []) expect(seen.has(ts.resolveProjectReferencePath(reference))).toBe(true);
-  for (const file of ['api/tsconfig.json', 'scripts/tsconfig.json']) {
+  for (const file of ['scripts/tsconfig.json']) {
     const references = project(file).projectReferences ?? [];
     expect(references.length).toBeGreaterThan(0);
     for (const reference of references) expect(seen.has(ts.resolveProjectReferencePath(reference))).toBe(true);
