@@ -1,4 +1,4 @@
-import { parseQuestData } from '@wildshard/sdk/quests';
+import { parseQuestData } from '@wildshard/sharddev/quests';
 import { DRIFTWOOD_QUEST, CASTAWAY } from './questStory';
 import { QUEST_FLAGS } from './questHost';
 

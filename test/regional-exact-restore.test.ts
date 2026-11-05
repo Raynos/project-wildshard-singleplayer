@@ -1,8 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Real native checkpoint contracts use the shipped Rapier bytes.
 import {readFileSync} from 'node:fs';
 import {beforeAll,expect,test,vi} from 'vitest';
-import {emptyShardfile} from '../src/sdk/author';
-import {compileScript} from '@wildshard/sdk/compileScript';
+import {emptyShardfile} from '../src/sharddev/author';
+import {compileScript} from '@wildshard/sharddev/compileScript';
 import {hashImmutableBytes} from '../src/sdk/immutable';
 import {createShardfileSim,bindShardfileSim,prepareShardfileSimRestore} from '../src/game/server/plugin/simulation';
 import {prepareSimHostRestore,restoreSimHost,snapshotSimHost,onSimHostRestored,isSimHostRestoring,serializeSimSnapshot} from '../src/engine/shared/sim/snapshot';

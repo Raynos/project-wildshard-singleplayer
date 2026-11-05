@@ -2,7 +2,7 @@ import * as files from './fileInventory';
 import { SKY_STAND_INS } from './standIns';
 import { SKY_CREATURE_LOOK_ROWS } from './creatureLooks';
 import STRINGS from '../data/strings.json' with { type: 'json' };
-import type { modelSceneSourceFile } from '@wildshard/sdk/worldScenes';
+import type { modelSceneSourceFile } from '@wildshard/sharddev/worldScenes';
 
 type RigLibraryRows = NonNullable<Parameters<typeof modelSceneSourceFile>[1]['rows']['rigs']>;
 type ModelSpecimenRow = NonNullable<Parameters<typeof modelSceneSourceFile>[1]['specimens']>[number];

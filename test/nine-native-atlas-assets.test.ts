@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Declare the same public input root as the source author CLI.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nineNativeSignAtlas } from '../src/shards/nine-dragon-stack/generators/nativeSignAtlas';
 import source from '../src/shards/nine-dragon-stack/data/nativeSignAtlas.json' with { type: 'json' };

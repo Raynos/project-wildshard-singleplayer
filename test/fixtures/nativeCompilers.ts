@@ -7,7 +7,7 @@ import { DecisionScriptsSchema } from '@wildshard/format/decisionScripts';
 import { OutputIndexSchema } from '@wildshard/format/outputIndex';
 import { ScriptContractSchema } from '@wildshard/format/scriptContract';
 import { hashImmutableBytes, encodeCanonicalJson } from '../../src/sdk/immutable';
-import type { ProjectGenerationContext } from '../../src/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '../../src/sharddev/projectGeneration';
 
 const binary = v.instance(Uint8Array);
 const file = v.pipe(v.unknown(), v.transform(value => {

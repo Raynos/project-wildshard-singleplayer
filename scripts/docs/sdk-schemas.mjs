@@ -7,7 +7,7 @@ import { schemaInventory } from './schema-reference.mjs';
 import { layerFolder } from '../format-package.mjs';
 
 /** Read public schema metadata without invoking author/build functions.
- * @param {string} root @param {"sdk"|"format"} layer */
+ * @param {string} root @param {"sharddev"|"format"} layer */
 async function packageSchemas(root, layer) {
   const manifest = JSON.parse(readFileSync(resolve(root, layerFolder(layer), 'package.json'), 'utf8')), rows = [];
   for (const [module, target] of Object.entries(manifest.exports).sort(([a], [b]) => a.localeCompare(b))) {
@@ -26,6 +26,6 @@ async function packageSchemas(root, layer) {
 }
 
 /** Every public SDK schema is inventoried from its defining metadata. @param {string} root */
-export async function sdkSchemaInventory(root) { return packageSchemas(root, 'sdk'); }
+export async function sdkSchemaInventory(root) { return packageSchemas(root, 'sharddev'); }
 /** Every extracted format schema joins SF45 automatically. @param {string} root */
 export async function formatSchemaInventory(root) { return packageSchemas(root, 'format'); }

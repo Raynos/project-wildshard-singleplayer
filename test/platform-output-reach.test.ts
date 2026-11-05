@@ -175,19 +175,19 @@ it.each([
  const put=(path:string,source:string):void=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,source);};
  try{
   put('src/game/package.json',JSON.stringify({name:'@wildshard/game',exports:{'./implementation':'./implementation.ts'}}));
-  put('src/sdk/package.json',JSON.stringify({name:'@wildshard/sdk',exports:{'./outer':'./outer.ts'}}));
+  put('src/sharddev/package.json',JSON.stringify({name:'@wildshard/sharddev',exports:{'./outer':'./outer.ts'}}));
   put('src/game/implementation.ts','function helper() { return 1; }\nexport function privateWork() { return helper(); }\nexport function sharedWork() { return 2; }\nexport function unused() { return 3; }');
-  put('src/sdk/inner.ts',inner);put('src/sdk/outer.ts',outer);
+  put('src/sharddev/inner.ts',inner);put('src/sharddev/outer.ts',outer);
   platformOutput(root,'pine-hollow',{'runtime/index.ts':"import {privateWork} from '@wildshard/game/implementation'; export const value=privateWork();"});
   platformOutput(root,'driftwood-isle',{'runtime/index.ts':"import {sharedWork} from '@wildshard/game/implementation'; export const value=sharedWork();"});
   const defining=()=>sourceProgressInventory(root)['pine-hollow']?.customSources?.filter(row=>row.path==='src/game/implementation.ts');
   const direct=defining();
   expect(direct?.map(row=>row.name)).toEqual(['helper','privateWork']);
-  platformOutput(root,'pine-hollow',{'runtime/index.ts':"import {chosen} from '@wildshard/sdk/outer'; export const value=chosen();"});
+  platformOutput(root,'pine-hollow',{'runtime/index.ts':"import {chosen} from '@wildshard/sharddev/outer'; export const value=chosen();"});
   expect(defining()).toEqual(direct);
   // A genuine second shard using the same forwarded binding shares it;
   // forwarding modules themselves never manufacture another shard user.
-  platformOutput(root,'driftwood-isle',{'runtime/index.ts':"import {chosen} from '@wildshard/sdk/outer'; import {sharedWork} from '@wildshard/game/implementation'; export const value=[chosen(),sharedWork()];"});
+  platformOutput(root,'driftwood-isle',{'runtime/index.ts':"import {chosen} from '@wildshard/sharddev/outer'; import {sharedWork} from '@wildshard/game/implementation'; export const value=[chosen(),sharedWork()];"});
   expect(defining()).toEqual([]);
  }finally{rmSync(root,{recursive:true,force:true});}
 });

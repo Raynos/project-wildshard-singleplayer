@@ -23,6 +23,9 @@
       "path": "../tsconfig.sdk.json"
     },
     {
+      "path": "../tsconfig.sharddev.json"
+    },
+    {
       "path": "../tsconfig.commons.json"
     },
     {
@@ -41,6 +44,9 @@
       "path": "../src/sdk/tsconfig.test.json"
     },
     {
+      "path": "../src/sharddev/tsconfig.test.json"
+    },
+    {
       "path": "../src/tsconfig.test.json"
     }
   ],
@@ -57,6 +63,7 @@
   ],
   "exclude": [
     "../node_modules",
+    "../src/sharddev/dist",
     "../src/sdk/dist",
     "fixtures/legacy-oracles/nalati-ambience.json",
     "fixtures/legacy-oracles/nalati-people.json",

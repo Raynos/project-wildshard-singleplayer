@@ -1,7 +1,7 @@
 import ARM_STYLE from '../data/armsStyle.json' with { type: 'json' };
 import { MeshBasicMaterial, Vector3, type BufferGeometry } from 'three';
-import { staticGlb, type GlbPrimitive } from '@wildshard/sdk/bake/glb';
-import { bakeGloveFist, bakeRiderArm } from '@wildshard/sdk/bake/riderArms';
+import { staticGlb, type GlbPrimitive } from '@wildshard/sharddev/bake/glb';
+import { bakeGloveFist, bakeRiderArm } from '@wildshard/sharddev/bake/riderArms';
 import { installPortableMath } from '@wildshard/commons/bake/portableMath';
 import { merge } from './meleeGeo';
 import { buildSpear, buildJavelin, SPEAR_PROFILE, SPEAR_VIEW } from './spear';

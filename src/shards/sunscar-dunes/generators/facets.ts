@@ -1,5 +1,5 @@
 import { Box3, BufferGeometry, Float32BufferAttribute, Mesh, Vector3, type BufferAttribute, type Object3D } from 'three';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
 import type { ModelFit } from './rows/hulls';
 
 /**
@@ -8,7 +8,7 @@ import type { ModelFit } from './rows/hulls';
  * file. `facetModel` is the library's `mesh` (every mesh of the GLB, through three's GLTFLoader and the meshopt decoder,
  * as one flat world-space soup: position, the facet colour times its baked AO kept down to `aoFloor`, flat normals);
  * `fitGeometry` is the library's own; rigid binding is the SDK bake's `bindRigid`. test/signal-rigs-authoring.test.ts
- * keeps each bit-equal to the library (`@wildshard/sdk/looks/modelLibrary`) over the public copies.
+ * keeps each bit-equal to the library (`@wildshard/sharddev/looks/modelLibrary`) over the public copies.
  */
 
 const isMesh = (o: Object3D): o is Mesh => o instanceof Mesh;

@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import bridgeGeometry from '../data/bridgeGeometryPolicy.json' with { type: 'json' };
-import { Rng } from '@wildshard/sdk/random';
-import { boxDesc, type ColliderDesc, type BoxSpec as Collider } from '@wildshard/sdk/bake/placement';
+import { Rng } from '@wildshard/sharddev/random';
+import { boxDesc, type ColliderDesc, type BoxSpec as Collider } from '@wildshard/sharddev/bake/placement';
 /** Numeric authored span; no live site or physics service is needed by the builder. */
 interface RopeBridgeSpec { a: [number, number]; b: [number, number]; sag?: number; width?: number }
 interface Point { x: number; y: number; z: number }

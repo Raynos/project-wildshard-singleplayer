@@ -24,7 +24,7 @@ import { WORDS } from './words';
 import { hungLine } from './props';
 import { laundryLine, laundryPole } from './wellParts';
 import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
-import { Rng } from '@wildshard/sdk/random';
+import { Rng } from '@wildshard/sharddev/random';
 import { FLOOR_H, type GalleryKits, type GalleryProfile } from './well-galleries';
 
 const SURF = paint.surfaces;

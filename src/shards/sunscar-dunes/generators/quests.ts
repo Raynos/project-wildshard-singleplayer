@@ -1,4 +1,4 @@
-import { parseQuestData } from '@wildshard/sdk/quests';
+import { parseQuestData } from '@wildshard/sharddev/quests';
 import * as LAYOUT from './layout';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import { FLAG, SCOUT_AT, SCOUT_FLAG } from './rows/flags';

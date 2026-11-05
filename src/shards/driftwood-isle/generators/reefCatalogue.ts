@@ -1,6 +1,6 @@
 import { REEF_SPECIMENS } from './reefSpecimenRows';
 import { REEF_FILES } from './reefFiles';
-import type { worldSceneModels } from '@wildshard/sdk/worldScenes';
+import type { worldSceneModels } from '@wildshard/sharddev/worldScenes';
 import { driftwoodReefBank } from './reefBank';
 
 type WorldSceneModels = ReturnType<typeof worldSceneModels>;

@@ -1,7 +1,7 @@
 import { BoxGeometry, MeshStandardMaterial } from 'three';
 import { expect, expectTypeOf, test } from 'vitest';
 import type { ModelDef, ModelPart } from '../src/engine/client/models/model';
-import { Rng } from '../src/sdk/random';
+import { Rng } from '../src/sharddev/random';
 import { buildFencePost, type TrailMeshPart } from '../src/shards/driftwood-isle/generators/trailsideModels';
 import { painted, paintedSpecimen, type PaintedModelSource } from '../src/shards/nalati-grasslands/generators/painted';
 

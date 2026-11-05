@@ -1,4 +1,4 @@
-import { creaturePoseRows, numericChannelPrograms, type ClientChannels, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
+import { creaturePoseRows, numericChannelPrograms, type ClientChannels, type NumericChannelOutput } from '@wildshard/sharddev/clientChannels';
 
 type Read = Parameters<NumericChannelOutput['expr']>[1];
 type Builder = Pick<ClientChannels, 'constant' | 'binary' | 'unary' | 'select'>;

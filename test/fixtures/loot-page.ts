@@ -11,7 +11,7 @@ import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import type {ShardContext} from '../../src/game/client/plugin/context';
 import type {ShardRuntime} from '../../src/game/shared/shard/runtime';
 import {createShardProduct} from '../../src/game/shared/shardfile/shardProduct';
-import {emptyShardfile} from '../../src/sdk/author';
+import {emptyShardfile} from '../../src/sharddev/author';
 import { DRIFTWOOD_LOOT as LOOT } from '../../src/shards/driftwood-isle/generators/loot';
 
 /** Real saved flags/health/ownership, under a page whose unused services refuse. */

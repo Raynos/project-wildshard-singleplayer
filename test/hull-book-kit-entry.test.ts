@@ -1,10 +1,10 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { HeldEquipmentSchema } from '@wildshard/format/heldEquipment';
-import { outputPlatformPayloads } from '../src/sdk/outputProduct';
+import { outputPlatformPayloads } from '../src/sharddev/outputProduct';
 import { PINE_PREPARED_OUTPUT as pineOutput } from './fixtures/pine-program';
 import { Scope } from '../src/engine/shared/app/scope';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
 import { SocketRigCreatureSchema } from '@wildshard/format/socketRigCreature';

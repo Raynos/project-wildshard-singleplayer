@@ -1,4 +1,4 @@
-import '../src/sdk/bake/format-hook.mjs';
+import '../src/sharddev/bake/format-hook.mjs';
 import { GridAssembly } from '../src/game/shared/grid/assembly';
 import { roadLayout } from '../src/game/shared/grid/roadLayout';
 

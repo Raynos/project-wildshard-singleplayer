@@ -1,6 +1,6 @@
 import { gunzipSync } from 'fflate';
 import oracle from './fixtures/keyed-sky-half-oracle.json';
-import { encodeGainKey, packGainKey } from '../src/sdk/bake/keyedSky';
+import { encodeGainKey, packGainKey } from '../src/sharddev/bake/keyedSky';
 import { encodeGainKey as nativeEncodeGainKey, packGainKey as nativePackGainKey } from '../scripts/bake/keyed-sky.mjs';
 import { describe, expect, it } from 'vitest';
 import { DayCycle } from '../src/engine/shared/world/dayCycle';

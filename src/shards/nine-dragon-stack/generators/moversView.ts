@@ -1,4 +1,4 @@
-import type { clientPlanSection } from '@wildshard/sdk/platformSections';
+import type { clientPlanSection } from '@wildshard/sharddev/platformSections';
 import plan from '../data/layoutPlan.json' with { type: 'json' };
 import worldDressingRows from '../data/worldDressing.json' with { type: 'json' };
 

@@ -57,7 +57,7 @@ test('scripted contact continuation validates actor/row identity atomically and 
 });
 
 test('a made-up reed guardian drives different species, slots and laws through the same elite host', async () => {
-  const { compileDecisionScripts } = await import('../src/sdk/buildDecisionScripts');
+  const { compileDecisionScripts } = await import('../src/sharddev/buildDecisionScripts');
   const { parseSpawnScript, spawnScriptRegistries } = await import('@wildshard/format/spawnScripts');
   const { readSpeciesPrograms } = await import('@wildshard/format/speciesPrograms');
   const { installPopulationRoster } = await import('../src/game/server/population/roster');
@@ -118,7 +118,7 @@ test('a made-up reed guardian drives different species, slots and laws through t
 
 test('Nalati captain charges on the 10 Hz guest and leashing cancels its attack', async () => {
   const { charge } = await import('../src/shards/nalati-grasslands/generators/eliteCharge');
-  const { compileDecisionScripts } = await import('../src/sdk/buildDecisionScripts');
+  const { compileDecisionScripts } = await import('../src/sharddev/buildDecisionScripts');
   const { parseSpawnScript, spawnScriptRegistries } = await import('@wildshard/format/spawnScripts');
   const { decisionBindingMap } = await import('@wildshard/format/decisionBindings');
   const { actorDecisionRows } = await import('@wildshard/format/decisionScripts');

@@ -4,7 +4,7 @@ import { rebindGeometry } from '@wildshard/engine/app/cachedAssets';
 import { realGc } from '@wildshard/engine/test/realGc';
 import { createRigLoader } from '@wildshard/engine/anim/rigParser';
 import { createModelLibrary } from '@wildshard/game/plugin/geometry';
-import { staticGlb } from '../src/sdk/bake/glb';
+import { staticGlb } from '../src/sharddev/bake/glb';
 
 const isMesh = (node: Object3D): node is Mesh => node instanceof Mesh;
 

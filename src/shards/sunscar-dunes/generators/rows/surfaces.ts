@@ -1,4 +1,4 @@
-import type { modelSceneSourceFile } from '@wildshard/sdk/worldScenes';
+import type { modelSceneSourceFile } from '@wildshard/sharddev/worldScenes';
 import type { DuneHdName } from './files';
 
 type HdLookRow = NonNullable<Parameters<typeof modelSceneSourceFile>[1]['rows']['hdLooks'][string]>;

@@ -1,8 +1,8 @@
 import { BufferAttribute, Mesh, MeshStandardMaterial } from 'three';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { emitNamedBlobs, nameBlob, type EmittedBlobs } from '@wildshard/sdk/blobs';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { emitNamedBlobs, nameBlob, type EmittedBlobs } from '@wildshard/sharddev/blobs';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
 import { driftwoodFixedFiles } from './fixedProgram';
 
 /** the world scenes' standalone models and the fixed model each is cut from */

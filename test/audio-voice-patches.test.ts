@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Original inline oracle from the same raw rasters.
 import {readFileSync} from 'node:fs';
 import {preflightShardfile} from '@wildshard/format/preflight';
-import {emptyShardfile} from '../src/sdk/author';
+import {emptyShardfile} from '../src/sharddev/author';
 import {AudioSceneSchema} from '@wildshard/format/audioScene';
 import { afterEach, expect, it, vi } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';

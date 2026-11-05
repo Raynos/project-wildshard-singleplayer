@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { prepareSceneSources, sceneModelDefinition, sceneBakeSource } from '../src/game/client/shardfile/sceneSources';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';

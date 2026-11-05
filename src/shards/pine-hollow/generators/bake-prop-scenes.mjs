@@ -3,7 +3,7 @@
 // sceneModelRows.ts names them in memory (no scheduler job, no stored files under assets/). D65: the timber world's rows
 // and the scans come from the program's sources.
 import {Mesh,MeshStandardMaterial} from 'three';
-import {staticGlb} from '@wildshard/sdk/bake/glb';
+import {staticGlb} from '@wildshard/sharddev/bake/glb';
 import {bakePropSceneRows} from './propSceneRows.ts';
 import {pinePropShapes} from './propShapes.ts';
 import {pinePropScan,pineProps} from './bake-pine-props.mjs';

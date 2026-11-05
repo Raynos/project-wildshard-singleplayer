@@ -7,7 +7,7 @@ import { SpecimenAssetSchema } from '@wildshard/format/specimenCatalogue';
 import { expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { staticGlb } from '../src/sdk/bake/glb';
+import { staticGlb } from '../src/sharddev/bake/glb';
 import { Rng } from '../src/engine/shared/core/rng';
 import { modelContext, paramsOf } from '../src/engine/client/models/model';
 import { SkyRig } from '../src/engine/client/world/skyRig';

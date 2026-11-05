@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import * as THREE from 'three';
 import { vec3 } from 'three/tsl';
 import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
-import { graph as authorGraph } from '../src/sdk/materials';
+import { graph as authorGraph } from '../src/sharddev/materials';
 import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 
 test('receiver offsets reach the shadow lookups and live uniforms without moving the caster', () => {

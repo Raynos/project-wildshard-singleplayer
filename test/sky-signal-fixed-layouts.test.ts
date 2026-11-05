@@ -12,7 +12,7 @@ import { SIGNAL_DUNES_MAP as signalMap } from '../src/shards/sunscar-dunes/gener
 import { fixedLayoutFiles as skyFiles, skyMapPalette } from '../src/shards/far-reach/generators/fixedLayouts';
 import * as skySource from '../src/shards/far-reach/generators/layout';
 import * as crownSource from '../src/shards/far-reach/generators/crownLayout';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
 import { skyCreatureRigOutput } from '../src/shards/far-reach/generators/creatureRigOutput';
 import { skyRigAssetSources } from '../src/shards/far-reach/generators/rigAssetSources';
 import { skyProductBoot } from '../src/shards/far-reach/generators/bootInventory';

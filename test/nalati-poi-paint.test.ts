@@ -1,5 +1,5 @@
 import {DRESSING_ATLAS_SOURCES} from '../src/shards/nalati-grasslands/generators/dressingScene';
-import {readNamedBlob} from '../src/sdk/blobs';
+import {readNamedBlob} from '../src/sharddev/blobs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the exact committed atlas files through the product reader.
 import {readFileSync} from 'node:fs';
 import {prepareBinarySources} from '../src/game/client/models/binarySource';

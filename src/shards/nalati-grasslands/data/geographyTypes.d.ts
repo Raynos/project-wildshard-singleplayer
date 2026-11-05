@@ -1,5 +1,5 @@
-import type { AuthorMapPalette as MapPaletteRow } from '@wildshard/sdk/bake/mapRaster';
-import type { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
+import type { AuthorMapPalette as MapPaletteRow } from '@wildshard/sharddev/bake/mapRaster';
+import type { authorFormatRows } from '@wildshard/sharddev/formatJsonSchema';
 
 type GroundRows = ReturnType<typeof authorFormatRows<'terrain.GroundRowsSchema'>>;
 type ScalarLatticeRows = ReturnType<typeof authorFormatRows<'scalarChannel.ScalarLatticeSchema'>>;

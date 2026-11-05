@@ -25,7 +25,7 @@ Research:
   `src/engine/server/ai/eliteRoster.ts`, `src/engine/shared/entities/eliteBrain.ts`. Save: `elitesSave { timer, discovered,
   skinTaken, kills, retired }` (`src/game/shared/saves.ts:18`).
 - Users: Pine (`generators/eliteFeatureRows.ts`, `sourceOutput.ts`), Nalati (`generators/eliteEntryRows.ts` via
-  `src/sdk/eliteEntryRows.ts`), the template (`combat/encounters` kind `elite`, "Greyback").
+  `src/sharddev/eliteEntryRows.ts`), the template (`combat/encounters` kind `elite`, "Greyback").
 - The drop is weapon-skin-shaped (`skin`, `weapon`); no Scrip, title, part or trophy-wall grant.
 
 Work:

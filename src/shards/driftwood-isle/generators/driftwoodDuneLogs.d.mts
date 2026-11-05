@@ -1,5 +1,5 @@
 import type { BufferGeometry } from 'three';
-import type { AuthorPlacement as Placement } from '@wildshard/sdk/bake/placement';
+import type { AuthorPlacement as Placement } from '@wildshard/sharddev/bake/placement';
 import type { DRIFT_SPECIMENS } from './driftLogs';
 
 type DriftLogParams = { -readonly [Key in keyof typeof DRIFT_SPECIMENS.long]: number };

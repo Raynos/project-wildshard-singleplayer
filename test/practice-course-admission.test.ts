@@ -1,7 +1,7 @@
 import {expect,test} from 'vitest';
 import { NALATI_KOKPAR } from './fixtures/nalati-kokpar';
-import {namedJsonSchema} from '@wildshard/sdk/formatJsonSchema';
-import {nameBlob} from '@wildshard/sdk/blobs';
+import {namedJsonSchema} from '@wildshard/sharddev/formatJsonSchema';
+import {nameBlob} from '@wildshard/sharddev/blobs';
 import {PracticeSceneSchema,RidingPracticeSchema} from '@wildshard/format/practiceCourseRows';
 import {FixedPracticeFileSchema} from '../src/shards/nine-dragon-stack/generators/sections';
 import {horseCourseRows} from '../src/shards/nalati-grasslands/generators/courseScene';

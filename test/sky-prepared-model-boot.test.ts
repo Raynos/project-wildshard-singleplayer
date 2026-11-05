@@ -12,7 +12,7 @@ import { BRIDGE_REST_URL, ISLET_POOL, MILL_REST_URL, REST_URLS } from '../src/sh
 import { GPU_FILES } from '../src/shards/far-reach/ktx2.generated';
 import { MANIFEST } from '../src/shards/far-reach/discovery.generated';
 import { prepareShardAssets } from '../src/game/client/shard/load';
-import { nameBlob } from '../src/sdk/blobs';
+import { nameBlob } from '../src/sharddev/blobs';
 import { originalSkyRigs } from './fixtures/sky-original-rigs';
 import { skyRigAssetSources } from '../src/shards/far-reach/generators/rigAssetSources';
 import { originalSkyOutput } from './fixtures/sky-scene-source';

@@ -11,7 +11,7 @@ import { nalatiScriptSections } from '../src/shards/nalati-grasslands/generators
 import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import { NALATI_COURSE_MODULE } from '../src/shards/nalati-grasslands/generators/kokparRows';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { nameBlob } from '../src/sdk/blobs';
+import { nameBlob } from '../src/sharddev/blobs';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { Scope } from '../src/engine/shared/app/scope';
 

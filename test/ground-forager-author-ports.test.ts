@@ -1,7 +1,7 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
-import { authorFormatSchema, authorFormatRows } from '../src/sdk/formatJsonSchema';
-import type { AuthorDayClock } from '../src/sdk/rows';
+import { authorFormatSchema, authorFormatRows } from '../src/sharddev/formatJsonSchema';
+import type { AuthorDayClock } from '../src/sharddev/rows';
 import type { DayClockRow } from '@wildshard/format/dayCycle';
 import { nativeBodySchema, nativeColliderRecordSchema, nativeGroundRecordSchema } from '@wildshard/format/nativePhysics';
 import { ForagerContinuation } from '@wildshard/format/ambientLife';

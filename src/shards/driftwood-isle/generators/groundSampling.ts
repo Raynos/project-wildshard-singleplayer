@@ -1,4 +1,4 @@
-import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
+import { readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
 import { WORLD_DROP } from './landscapeRows';
 import { driftwoodGroundBytes } from './groundRows';
 

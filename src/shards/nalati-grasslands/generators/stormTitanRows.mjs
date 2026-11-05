@@ -4,8 +4,8 @@
 import { PACK_PROFILE } from './packGroup.ts';
 import { groupBankWidthV2 } from '@wildshard/format/scriptGroupBankV2';
 import herdRows from '../data/herdGroup.json' with { type: 'json' };
-import { groupBankSourceV2 } from '@wildshard/sdk/as/groupBankV2';
-import { groupStepSourceV2 } from '@wildshard/sdk/as/groupStepV2';
+import { groupBankSourceV2 } from '@wildshard/sharddev/as/groupBankV2';
+import { groupStepSourceV2 } from '@wildshard/sharddev/as/groupStepV2';
 import { parseGroupStepV2 } from '@wildshard/format/scriptGroupStepV2';
 import { titanWhirlGate } from './stormTitanFight.ts';
 

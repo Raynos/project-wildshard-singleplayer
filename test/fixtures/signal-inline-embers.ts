@@ -3,7 +3,7 @@ import { Buffer } from 'node:buffer';
 import { parseSceneBuffers } from '@wildshard/format/sceneBuffers';
 import type { OutputFile } from '@wildshard/format/outputIndex';
 import type { Shardfile } from '../../src/sdk/shardfile';
-import { nameBlob } from '../../src/sdk/blobs';
+import { nameBlob } from '../../src/sharddev/blobs';
 
 /** Project only the new ember transport back to the original inline representation.
  * Full original declaration/output/asset goldens remain strict; no field is omitted. */

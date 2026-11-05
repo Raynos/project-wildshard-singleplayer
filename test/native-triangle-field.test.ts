@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Preserve the actual native renderer-dependency guard.
 import { execFileSync } from 'node:child_process';
 import { expect, test } from 'vitest';
-import { readNativeTriangleField } from '../src/sdk/bake/terrain';
+import { readNativeTriangleField } from '../src/sharddev/bake/terrain';
 import { terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 
 const input = { resolution: 3, x: -5, z: -7, size: 12, heights: new Float32Array([-0, 1.17, 2.91, 3.13, 4.73, 5.29, 6.31, 7.79, 8.41]) };
@@ -34,6 +34,6 @@ test('native triangular author intake refuses incomplete, nonfinite and over-cap
 
 test('the bounded triangular field stays available under the original native renderer guard', () => {
   const value = execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/sim-node-loader.mjs', '--input-type=module', '-e',
-    "import {readNativeTriangleField} from './src/sdk/bake/terrain.ts'; const field=readNativeTriangleField({resolution:2,x:0,z:0,size:1,heights:new Float32Array([0,1,2,3])}); if(field.sample(.25,.25)!==.75) throw new Error('Native triangle differs'); console.log('triangle-native');"], { encoding: 'utf8', timeout: 30_000 });
+    "import {readNativeTriangleField} from './src/sharddev/bake/terrain.ts'; const field=readNativeTriangleField({resolution:2,x:0,z:0,size:1,heights:new Float32Array([0,1,2,3])}); if(field.sample(.25,.25)!==.75) throw new Error('Native triangle differs'); console.log('triangle-native');"], { encoding: 'utf8', timeout: 30_000 });
   expect(value.trim()).toBe('triangle-native');
 });

@@ -1,5 +1,5 @@
 import { graphFileRules } from '@wildshard/format/materials';
-import { lowerMaterialGraphs } from '../src/sdk/materialGraphFiles';
+import { lowerMaterialGraphs } from '../src/sharddev/materialGraphFiles';
 import { parseShardfile } from '../src/sdk/shardfile';
 import product, { heldGraphFiles, heldProfile } from './fixtures/nine-product-inputs';
 import { postRows } from '../src/shards/nine-dragon-stack/generators/postGraphs';

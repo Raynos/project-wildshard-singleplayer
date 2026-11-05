@@ -1,4 +1,4 @@
-import { strike, type StrikeData } from '@wildshard/sdk/species';
+import { strike, type StrikeData } from '@wildshard/sharddev/species';
 
 
 const lane = (id: string, windup: number, width: number, speed: number, overshoot: number, damage: number, recover: number, range: number): StrikeData => strike({

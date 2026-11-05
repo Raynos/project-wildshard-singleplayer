@@ -1,4 +1,4 @@
-import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
+import { encodeBuildBytes } from '@wildshard/sharddev/bake/byteCodec';
 import { PineSeedStream } from './seedStream';
 import { forestDensity, oldGrowthMask, speciesMix } from './forestGeography';
 

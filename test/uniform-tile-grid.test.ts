@@ -1,11 +1,11 @@
 import { BoxGeometry, Group, Matrix4, Mesh, MeshStandardMaterial } from 'three';
 import { expect, test } from 'vitest';
-import { bake } from '../src/sdk/bake';
-import { bakeProps } from '../src/sdk/bake/props';
-import { bakeAuthoredWorld } from '../src/sdk/bake/authoredWorld';
-import { staticGlb } from '../src/sdk/bake/glb';
-import { completeL0Tiles } from '../src/sdk/bake/tileGrid';
-import { emptyShardfile } from '../src/sdk/author';
+import { bake } from '../src/sharddev/bake';
+import { bakeProps } from '../src/sharddev/bake/props';
+import { bakeAuthoredWorld } from '../src/sharddev/bake/authoredWorld';
+import { staticGlb } from '../src/sharddev/bake/glb';
+import { completeL0Tiles } from '../src/sharddev/bake/tileGrid';
+import { emptyShardfile } from '../src/sharddev/author';
 import { clientRingCatalogue } from '../src/game/client/shardfile/tileContent';
 import { TileStreamer } from '../src/engine/client/world/tileStreamer';
 import { ResidencyAllocator } from '../src/game/shared/grid/allocator';

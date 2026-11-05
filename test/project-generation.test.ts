@@ -5,10 +5,10 @@ import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Buffer.slice aliases its source; ownership must still detach.
 import { Buffer } from 'node:buffer';
 import { afterEach, expect, test } from 'vitest';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { emptyShardfile } from '../src/sdk/author';
-import { readProjectAssets } from '../src/sdk/project';
+import { emptyShardfile } from '../src/sharddev/author';
+import { readProjectAssets } from '../src/sharddev/project';
 import { runWildshard } from '../scripts/wildshard.mjs';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 

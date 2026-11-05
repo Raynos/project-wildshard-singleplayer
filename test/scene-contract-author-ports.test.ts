@@ -2,8 +2,8 @@ import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
 import { worldSceneMotion, type AuthorPrivateScene, type AuthorWorldSceneRecipe, type AuthorWorldScenePlacement,
   type AuthorWorldConstruction, type AuthorWorldEntry, type AuthorWorldEntryStep, type AuthorRopeDeckSite,
-  type AuthorWorldUpdates, type AuthorSceneMotion } from '../src/sdk/worldScenes';
-import type { AuthorQuestWorld } from '../src/sdk/quests';
+  type AuthorWorldUpdates, type AuthorSceneMotion } from '../src/sharddev/worldScenes';
+import type { AuthorQuestWorld } from '../src/sharddev/quests';
 import type { PrivateScene, WorldSceneRecipe } from '@wildshard/format/clientChannels';
 import type { WorldScenePlacementRow } from '@wildshard/format/worldScenePlacement';
 import type { WorldConstructionRows } from '@wildshard/format/worldAssembly';

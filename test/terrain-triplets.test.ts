@@ -8,7 +8,7 @@ import { declaredGroundColour as declaredGroundColourInput,declaredSurface as de
 import {ScalarLatticeBindings} from '../src/engine/shared/world/scalarChannel';
 import { ScalarTripletSchema } from '@wildshard/format/scalarChannel';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
-import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
+import { formatJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { groundColor,surfaceAt,GROUND } from './fixtures/nalati-terrain';
 
 const finite=v.pipe(v.number(),v.finite());

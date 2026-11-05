@@ -1,10 +1,10 @@
 import { islandFoliagePlacements } from './islandDressing';
-import { readNativeTriangleField } from '@wildshard/sdk/bake/terrain';
+import { readNativeTriangleField } from '@wildshard/sharddev/bake/terrain';
 import { driftwoodGroundSampler } from './groundSampling';
-import { Rng } from '@wildshard/sdk/random';
+import { Rng } from '@wildshard/sharddev/random';
 import volleyData from '../data/coconutSlots.json' with { type: 'json' };
-import { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
-import { sampleCreatureGroup, selectCreatureSites } from '@wildshard/sdk/bake/creaturePlacement';
+import { authorFormatRows } from '@wildshard/sharddev/formatJsonSchema';
+import { sampleCreatureGroup, selectCreatureSites } from '@wildshard/sharddev/bake/creaturePlacement';
 import { ENEMY_COUNTS } from './fauna';
 import { driftwoodPhysics, driftwoodPhysicsGroundBytes } from './physics';
 

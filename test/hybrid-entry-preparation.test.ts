@@ -12,7 +12,7 @@ import { installEnteredRuntimeService } from '../src/game/client/shard/retainedH
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { HybridRuntimeSession, type HybridResident } from '../src/game/client/shardfile/hybrid';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 
 test('resident services keep yielded construction hidden while page callbacks see their own scene', async () => {

@@ -33,7 +33,7 @@ test('every source file has a layer owner, while the root covers all tests and a
   }
   expect(project('tsconfig.json').fileNames).toEqual([]);
   const root = project('test/tsconfig.json'), roots = new Set(root.fileNames);
-  const original = ts.parseJsonConfigFileContent({ include: ['src', 'test'], exclude: ['node_modules', 'src/sdk/dist'] }, ts.sys, resolve('.'));
+  const original = ts.parseJsonConfigFileContent({ include: ['src', 'test'], exclude: ['node_modules', 'src/sharddev/dist'] }, ts.sys, resolve('.'));
   expect(original.errors).toEqual([]);
   const missing = original.fileNames.filter(file => !sources.has(file) && !roots.has(file));
   expect(missing.map(file => relative('.', file))).toEqual([]);
@@ -48,7 +48,7 @@ test('every source file has a layer owner, while the root covers all tests and a
   }
   expect(new Set(root.projectReferences?.map(reference => ts.resolveProjectReferencePath(reference))
     .filter(file => !file.endsWith('/tsconfig.test.json')))).toEqual(
-    new Set([...seen].filter(file => /^tsconfig\.(?:engine|game|sdk|commons|shards|app)\.json$/u.test(relative('.', file)))),
+    new Set([...seen].filter(file => /^tsconfig\.(?:engine|game|sdk|sharddev|commons|shards|app)\.json$/u.test(relative('.', file)))),
   );
   for (const reference of root.projectReferences ?? []) expect(seen.has(ts.resolveProjectReferencePath(reference))).toBe(true);
   for (const file of ['scripts/tsconfig.json']) {
@@ -59,13 +59,13 @@ test('every source file has a layer owner, while the root covers all tests and a
   expect(project('scripts/tsconfig.json').options.checkJs).toBe(true);
   expect(project('scripts/tsconfig.json').options.strict).toBe(true);
   expect(project('scripts/tsconfig.json').options.skipLibCheck).toBe(true);
-  for (const layer of ['engine', 'game', 'sdk', 'commons', 'shards']) {
+  for (const layer of ['engine', 'game', 'sdk', 'sharddev', 'commons', 'shards']) {
     const production = project(`tsconfig.${layer}.json`), tests = project(`src/${layer}/tsconfig.test.json`);
     expect(tests.options.outDir).toBe(production.options.outDir);
     expect(tests.options.tsBuildInfoFile).not.toBe(production.options.tsBuildInfoFile);
     const implementations = new Set(production.fileNames.filter(file => !file.endsWith('.d.ts')));
     expect(tests.fileNames.filter(file => implementations.has(file))).toEqual([]);
-    if (layer === 'engine' || layer === 'game' || layer === 'sdk') {
+    if (layer === 'engine' || layer === 'game' || layer === 'sdk' || layer === 'sharddev') {
       const testConfig = v.parse(v.object({ include: v.array(v.string()) }), tests.raw);
       const productionConfig = v.parse(v.object({ exclude: v.array(v.string()) }), production.raw);
       expect(testConfig.include).toContain('test/**/*.ts');
@@ -285,10 +285,10 @@ test('workspace Node tests consume declarations without giving production Node g
       module: 'ESNext', moduleResolution: 'bundler', target: 'ES2022' };
     put('tsconfig.sdk.json', JSON.stringify({ compilerOptions: { strict: true, composite: true, declaration: true,
       module: 'ESNext', moduleResolution: 'bundler', target: 'ES2022', types: [], skipLibCheck: true,
-      emitDeclarationOnly: true, outDir: 'out' }, include: ['src/sdk'], exclude: ['**/*.test.ts', 'src/sdk/test'] }));
-    put('src/sdk/value.ts', 'export const value: number = 1;\n');
-    put('src/sdk/test/helper.ts', 'export const fixturePid: number = process.pid;\n');
-    put('src/sdk/value.test.ts', 'import {make} from "../engine/test/helper"; export const result: number = make().value;\n');
+      emitDeclarationOnly: true, outDir: 'out' }, include: ['src/sdk'], exclude: ['**/*.test.ts', 'src/sharddev/test'] }));
+    put('src/sharddev/value.ts', 'export const value: number = 1;\n');
+    put('src/sharddev/test/helper.ts', 'export const fixturePid: number = process.pid;\n');
+    put('src/sharddev/value.test.ts', 'import {make} from "../engine/test/helper"; export const result: number = make().value;\n');
     put('src/sdk/tsconfig.test.json', JSON.stringify({ compilerOptions: sdkOptions, include: ['**/*.test.ts'],
       references: [{ path: '../../tsconfig.engine.json' }] }));
     const missingTestReference = run('--noEmit', '-p', 'src/sdk/tsconfig.test.json');
@@ -304,7 +304,7 @@ test('workspace Node tests consume declarations without giving production Node g
     expect(sdkFiles).toContain(`${root}/out/src/engine/test/helper.d.ts`);
     expect(sdkFiles).not.toContain(`${root}/src/engine/test/helper.ts`);
     expect(sdkFiles).not.toContain(`${root}/src/engine/internal.ts`);
-    expect(sdkFiles).toContain(`${root}/src/sdk/test/helper.ts`);
+    expect(sdkFiles).toContain(`${root}/src/sharddev/test/helper.ts`);
     const sdkTestsBuild = run('-b', 'src/sdk/tsconfig.test.json');
     expect(sdkTestsBuild.status, String(sdkTestsBuild.stdout) + String(sdkTestsBuild.stderr)).toBe(0);
     put('tsconfig.json', JSON.stringify({ compilerOptions: { strict: true, noEmit: true, types: [], skipLibCheck: true,
@@ -312,26 +312,26 @@ test('workspace Node tests consume declarations without giving production Node g
       { path: './tsconfig.engine.json' }, { path: './src/engine/tsconfig.test.json' },
       { path: './tsconfig.sdk.json' }, { path: './src/sdk/tsconfig.test.json' },
     ] }));
-    put('test/sdk-helper.ts', 'import {fixturePid} from "../src/sdk/test/helper"; export const result: number = fixturePid;\n');
+    put('test/sdk-helper.ts', 'import {fixturePid} from "../src/sharddev/test/helper"; export const result: number = fixturePid;\n');
     const sdkRoot = run('--noEmit', '--listFiles');
     expect(sdkRoot.status, String(sdkRoot.stdout) + String(sdkRoot.stderr)).toBe(0);
     const sdkRootFiles = String(sdkRoot.stdout).replaceAll('\\', '/').split('\n');
-    expect(sdkRootFiles).toContain(`${root}/out/src/sdk/test/helper.d.ts`);
-    expect(sdkRootFiles).not.toContain(`${root}/src/sdk/test/helper.ts`);
-    put('test/sdk-helper.ts', 'import {fixturePid} from "../src/sdk/test/helper"; export const result: string = fixturePid;\n');
+    expect(sdkRootFiles).toContain(`${root}/out/src/sharddev/test/helper.d.ts`);
+    expect(sdkRootFiles).not.toContain(`${root}/src/sharddev/test/helper.ts`);
+    put('test/sdk-helper.ts', 'import {fixturePid} from "../src/sharddev/test/helper"; export const result: string = fixturePid;\n');
     const badSdkRoot = run('--noEmit');
     expect(badSdkRoot.status, String(badSdkRoot.stdout) + String(badSdkRoot.stderr)).not.toBe(0);
     expect(String(badSdkRoot.stdout) + String(badSdkRoot.stderr)).toContain('TS2322');
-    put('test/sdk-helper.ts', 'import {fixturePid} from "../src/sdk/test/helper"; export const result: number = fixturePid;\n');
-    put('src/sdk/value.test.ts', 'import {make} from "../engine/test/helper"; export const result: string = make().value;\n');
+    put('test/sdk-helper.ts', 'import {fixturePid} from "../src/sharddev/test/helper"; export const result: number = fixturePid;\n');
+    put('src/sharddev/value.test.ts', 'import {make} from "../engine/test/helper"; export const result: string = make().value;\n');
     const badSdkTest = run('--noEmit', '-p', 'src/sdk/tsconfig.test.json');
     expect(badSdkTest.status).not.toBe(0);
     expect(String(badSdkTest.stdout) + String(badSdkTest.stderr)).toContain('TS2322');
-    put('src/sdk/value.ts', 'export const value: number = process.pid;\n');
+    put('src/sharddev/value.ts', 'export const value: number = process.pid;\n');
     const badSdkProduction = run('-b', 'tsconfig.sdk.json', '--force');
     expect(badSdkProduction.status, String(badSdkProduction.stdout) + String(badSdkProduction.stderr)).not.toBe(0);
     expect(String(badSdkProduction.stdout) + String(badSdkProduction.stderr)).toContain('Cannot find name');
-    put('src/sdk/value.ts', 'export const value: number = 1;\n');
+    put('src/sharddev/value.ts', 'export const value: number = 1;\n');
     put('test/helper.ts', 'import {make} from "../src/engine/test/helper"; export const result: string = make().value;\n');
     const badHelper = run('--noEmit');
     expect(badHelper.status).not.toBe(0);

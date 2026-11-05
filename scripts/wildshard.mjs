@@ -15,7 +15,7 @@ import { decisionLegacyLines } from './decision-legacy-lines.mjs';
 import { outputManifest, shardOutputs } from './shard-outputs.mjs';
 
 let runner;
-const authorRequire = createRequire(resolve(import.meta.dirname, '../src/sdk/package.json'));
+const authorRequire = createRequire(resolve(import.meta.dirname, '../src/sharddev/package.json'));
 /** Compile the trusted CLI once before product children; later invocations
  * verify the same content-addressed compiler and replay its complete inputs. */
 export function prepareWildshard() {
@@ -25,7 +25,7 @@ export function prepareWildshard() {
       if (id === 'vite') return { id: pathToFileURL(resolve(import.meta.dirname,'shardfile-vite.mjs')).href, external: true };
       if (id === 'sharp' || id === 'binaryen' || /^assemblyscript(?:\/|$)/u.test(id)) return { id: pathToFileURL(authorRequire.resolve(id)).href, external: true };
       return null;
-    } }], build: { write: false, minify: false, lib: { entry: resolve(import.meta.dirname, '../src/sdk/cli.ts'), formats: ['es'], fileName: 'cli' }, rolldownOptions: { platform: 'node', external: [/^node:/u], output: { codeSplitting: false } } } });
+    } }], build: { write: false, minify: false, lib: { entry: resolve(import.meta.dirname, '../src/sharddev/cli.ts'), formats: ['es'], fileName: 'cli' }, rolldownOptions: { platform: 'node', external: [/^node:/u], output: { codeSplitting: false } } } });
     recordBundle(result,{execution:true});
     const output = Array.isArray(result) ? result.at(0) : result;
     if (output === undefined || !('output' in output)) throw new Error('Author CLI build produced no output');

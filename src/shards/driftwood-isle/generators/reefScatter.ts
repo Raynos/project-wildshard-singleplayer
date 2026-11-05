@@ -5,8 +5,8 @@
  * densest reef with each fish's tint and swim seeds. The reef bank (reefBank.ts) scatters the layout over the native ground
  * and welds the reef from the same layout at build time; the runtime only reads it.
  */
-import { Noise2D } from '@wildshard/sdk/noise';
-import { Rng } from '@wildshard/sdk/random';
+import { Noise2D } from '@wildshard/sharddev/noise';
+import { Rng } from '@wildshard/sharddev/random';
 
 /** the fish's tints: each of the school takes one */
 const REEF_FISH_COLOURS = [0xffb347, 0x4fc3f7, 0xf06292, 0xfff176] as const;

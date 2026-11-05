@@ -1,4 +1,4 @@
-import { parseAudioData } from '@wildshard/sdk/audio';
+import { parseAudioData } from '@wildshard/sharddev/audio';
 import CUES from '../../data/cues.json' with { type: 'json' };
 
 /** Today's kit voices and intentionally silent score, without added ambience or samples. */

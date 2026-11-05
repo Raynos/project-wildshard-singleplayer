@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { bakeLog as log, bakePlank as plank, bakeRock as rock, bakeRope as rope } from '@wildshard/sdk/bake/primitives';
-import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
+import { bakeLog as log, bakePlank as plank, bakeRock as rock, bakeRope as rope } from '@wildshard/sharddev/bake/primitives';
+import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sharddev/bake/facetedGeometry';
 
 /** A primitive's kind; `args` are the constructor's (`log`: a, b, r0, r1, sides, twist; `rope`: r then the points
  *  flattened; `rock`: r, detail, squash, rough; `plank`: length, width, thickness, wobble), the kit's rng implied. */

@@ -1,6 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import { installEntryQuestViews } from '../src/game/client/shardfile/clientQuestComposition';

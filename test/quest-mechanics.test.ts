@@ -5,7 +5,7 @@ import { createSimHost } from '../src/engine/server/sim';
 import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { parseMovers } from '@wildshard/format/movers';
 import { lowerMoverMotion } from '@wildshard/format/moverMotion';
-import { compileMoverDriver } from '../src/sdk/compileMovers';
+import { compileMoverDriver } from '../src/sharddev/compileMovers';
 import { installMoverFixture } from './fixtures/mover-installation';
 import { parseQuestHost } from '@wildshard/format/questHost';
 import { installQuestHost, type QuestCableOwner } from '../src/game/server/plugin/simulation';

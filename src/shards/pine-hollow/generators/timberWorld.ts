@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { pineUndergrowthScene } from './undergrowth';
 import { pineCabinScene } from './logCabin';
-import { bakeOwned, BakedPiece, type BakedScene } from '@wildshard/sdk/bake';
+import { bakeOwned, BakedPiece, type BakedScene } from '@wildshard/sharddev/bake';
 import { pineLookoutScene, pineSiteTimberScene, timberDraws } from './timberScene';
 import { bakeSiteTimbers } from './siteTimbers';
 import { TimberRecorder } from './timberBake';

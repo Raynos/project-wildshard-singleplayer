@@ -1,4 +1,4 @@
-import { bakedBootTextureSource, sharedBootPhysics } from "@wildshard/sdk/bootInventory";
+import { bakedBootTextureSource, sharedBootPhysics } from "@wildshard/sharddev/bootInventory";
 import { PALM_FILES } from './palmFiles';
 import { HIBISCUS_FILES } from './hibiscusFiles';
 import ISLAND_COVER_FILES from '../data/islandCoverFiles.json' with { type: 'json' };

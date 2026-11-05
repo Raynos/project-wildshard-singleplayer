@@ -7,8 +7,8 @@ import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
 import { prepareAssetDecoders } from '@wildshard/format/product';
-import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { createProjectGeneration, type ProjectGenerationContext } from '../src/sharddev/projectGeneration';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import { PREPARED_MODEL_INPUTS, preparedModelProgram, preparedModelSource } from '../src/shards/far-reach/generators/preparedModelProgram';
 
 const original = readFileSync('public/assets/far-reach/baked/prepared-models.glb');

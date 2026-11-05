@@ -8,7 +8,7 @@
     "outDir": ".tsc-layers/shards",
     "tsBuildInfoFile": ".tsc-layers/shards.tsbuildinfo"
   },
-  "references": [{ "path": "./tsconfig.engine.json" }, { "path": "./tsconfig.game.json" }, { "path": "./tsconfig.sdk.json" }, { "path": "./tsconfig.commons.json" }],
+  "references": [{ "path": "./tsconfig.engine.json" }, { "path": "./tsconfig.game.json" }, { "path": "./tsconfig.sdk.json" }, { "path": "./tsconfig.sharddev.json" }, { "path": "./tsconfig.commons.json" }],
   // T1: generated JSON has no compiler roots; authored JSON remains fully typed.
   "files": [],
   "include": ["src/shards", "src/shards/**/*.json", "public/assets/nalati/baked/recurve-pool.json", "src/engine/**/*.d.ts", "src/game/**/*.merge.d.ts", "scripts/map-geometry.d.mts"],

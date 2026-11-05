@@ -1,4 +1,4 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { project, type BlenderProject } from './project';
 import { output } from './ground';
 import { blenderMap } from './mapProgram';

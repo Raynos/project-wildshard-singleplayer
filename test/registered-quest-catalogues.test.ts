@@ -11,9 +11,9 @@ import {REGISTERED_JSON,validateRegisteredJson} from '@wildshard/format/register
 import {CarriedQuestSchema,parseCarriedQuest} from '@wildshard/format/questSteps';
 import {ContractCatalogueSchema,parseContractCatalogue} from '@wildshard/format/contracts';
 import {NativeQuestCompositionSchema,parseNativeQuestComposition,NativeQuestServiceSpotsSchema,parseNativeQuestServiceSpots} from '@wildshard/format/nativeQuestComposition';
-import {registeredJsonSchema,namedJsonSchema} from '../src/sdk/formatJsonSchema';
-import {nameBlob} from '../src/sdk/blobs';
-import {emptyShardfile} from '../src/sdk/author';
+import {registeredJsonSchema,namedJsonSchema} from '../src/sharddev/formatJsonSchema';
+import {nameBlob} from '../src/sharddev/blobs';
+import {emptyShardfile} from '../src/sharddev/author';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {fixtureJsonCheck} from './fixtures/productFile';
 

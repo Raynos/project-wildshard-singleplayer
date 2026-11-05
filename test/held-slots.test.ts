@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { HeldSlotsSchema, parseHeldSlots } from '@wildshard/format/heldArms';
-import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { namedJsonSchema } from '../src/sharddev/formatJsonSchema';
 import arms from '../src/shards/driftwood-isle/data/heldArms.json' with { type: 'json' };
 import primary from '../src/shards/nine-dragon-stack/data/heldPrimary.json' with { type: 'json' };
 import authored from '../src/shards/nalati-grasslands/data/loadout.json' with { type: 'json' };

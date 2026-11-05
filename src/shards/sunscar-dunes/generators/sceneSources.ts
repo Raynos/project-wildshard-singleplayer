@@ -1,10 +1,10 @@
-import { sceneDrawRows, modelSceneSourceFile, bakedSceneSourceFile } from '@wildshard/sdk/worldScenes';
+import { sceneDrawRows, modelSceneSourceFile, bakedSceneSourceFile } from '@wildshard/sharddev/worldScenes';
 import { FIRE_GRAPH_IDS } from './rows/fire';
 import { signalEmberBuffer } from './emberBuffers';
 import { placeEffects, type PlaceEffects } from './placeEffects';
 import type { CardGroupRow } from './rows/fireCards';
 import { QUEST_NPC } from './questNpc';
-import type { NamedBlob } from '@wildshard/sdk/blobs';
+import type { NamedBlob } from '@wildshard/sharddev/blobs';
 import * as models from './rows/files';
 import { SIGNAL_PIECES as pieces } from './rows/pieces';
 import * as surfaces from './rows/surfaces';

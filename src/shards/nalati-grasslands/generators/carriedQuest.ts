@@ -1,5 +1,5 @@
 import type { NalatiKokpar } from './kokparRows';
-import { carriedQuestRows as parseCarriedQuest } from '@wildshard/sdk/rows';
+import { carriedQuestRows as parseCarriedQuest } from '@wildshard/sharddev/rows';
 
 /** The existing round program chooses poses and existing quest service effects. */
 export function makeCarriedQuestRows(input: unknown, kokpar: Pick<NalatiKokpar, 'program' | 'home' | 'goals' | 'messages'>): ReturnType<typeof parseCarriedQuest> {

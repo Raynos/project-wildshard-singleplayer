@@ -1,4 +1,4 @@
-import type { parseFirearmProfile } from '@wildshard/sdk/weapons/firearmRows';
+import type { parseFirearmProfile } from '@wildshard/sharddev/weapons/firearmRows';
 
 /** The native single-bolt rail, quiver, reload clock and physical flight. Range is the host's fixed world boundary, not hitscan reach. */
 export const CROSSBOW_WEAPON_PROFILE: { family: "firearm"; action: "bolt"; magazine: number; reserve: number; interval: number; reload: number; reloadMode: "single"; autoReload: number; damageScale: number; range: number; spreadAds: number; spreadHip: number; spreadRadius: "linear"; spreadAxisScale: 2; bloomShot: number; bloomMax: number; movingSpread: number; movingAimReduction: number; projectile: { kind: "bolt"; delivery: "flight"; speed: number; radius: number; muzzle: number; flight: { gravity: number; drag: number; windCoupling: number; }; pool: number; substeps: number; lifetime: number; }; } = {

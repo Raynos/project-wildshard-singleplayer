@@ -1,4 +1,4 @@
-import { creaturePoseRows, numericChannelPrograms } from '../src/sdk/clientChannels';
+import { creaturePoseRows, numericChannelPrograms } from '../src/sharddev/clientChannels';
 import { SAILOR_CLIPS, CAPTAIN_CLIPS } from '../src/shards/driftwood-isle/generators/humanoidClips';
 import { animateSailor as shippingSailorPose } from './fixtures/animal-pose/sailorPoseShipping';
 import { animateCaptain as shippingCaptainPose } from './fixtures/animal-pose/captainPoseShipping';

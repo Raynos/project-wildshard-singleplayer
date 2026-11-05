@@ -1,4 +1,4 @@
-import '../../src/sdk/bake/format-hook.mjs';
+import '../../src/sharddev/bake/format-hook.mjs';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

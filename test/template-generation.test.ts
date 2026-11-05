@@ -15,9 +15,9 @@ import { TEMPLATE_BEHAVIOUR, TEMPLATE_BOSS } from './fixtures/templateSource';
 import { templateBehaviour } from '../src/shards/_template/generators/behaviour';
 import { templateProduct } from '../src/shards/_template/generators/product';
 import { templatePropRows } from '../src/shards/_template/generators/props';
-import { createProjectGeneration, isProjectGenerator } from '../src/sdk/projectGeneration';
+import { createProjectGeneration, isProjectGenerator } from '../src/sharddev/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import { parseShardfile } from '../src/sdk/shardfile';
 
 test('template direct generation and a cache hit retain every original world row and asset byte', async () => {

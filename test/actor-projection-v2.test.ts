@@ -7,7 +7,7 @@ import {loadRapier} from '../src/engine/shared/physics/rapier';
 import type {AnimalSim} from '../src/engine/server/entities/AnimalSim';
 import {fixtureBytes} from '@wildshard/engine/test/nativeBytes';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
-import {namedJsonSchema} from '../src/sdk/formatJsonSchema';
+import {namedJsonSchema} from '../src/sharddev/formatJsonSchema';
 import {validateNamedJsonSchema} from '../src/game/shared/shardfile/customSchema';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {titanPrograms as programme} from './fixtures/titanInlineWitness';

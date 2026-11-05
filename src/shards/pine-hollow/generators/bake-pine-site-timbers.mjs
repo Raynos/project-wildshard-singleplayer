@@ -6,7 +6,7 @@
 // world carries (bake-pine-lookout.mjs --world). GR8 G22 retired the standalone outputs (site-timbers.bin,
 // siteTimbers.json, the site-timbers Scene): nothing read them. GR8 G37: the grid comes from the program's sources.
 import { bakeSiteTimbers } from './siteTimbers.ts';
-import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
+import { readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { TERRAIN_SOURCE } from './pineSources.ts';
 

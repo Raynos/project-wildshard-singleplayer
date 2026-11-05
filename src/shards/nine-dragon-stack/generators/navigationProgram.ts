@@ -1,5 +1,5 @@
-import { declareNavigation } from '@wildshard/sdk/bake/navigationAsset';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import { declareNavigation } from '@wildshard/sharddev/bake/navigationAsset';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 
 /** Original authored WSNM input, not the legacy producer's duplicate hash file. */
 export const NINE_NAVIGATION_INPUT = 'assets/navigation-2a8083c33ed009f7f1fa122cbec44a2b83e2c457ad8f4dde012736f9e512ea08';

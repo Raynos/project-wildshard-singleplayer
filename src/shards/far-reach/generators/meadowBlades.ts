@@ -1,4 +1,4 @@
-import { encodePortableBytes } from '@wildshard/sdk/bake/portableBytes';
+import { encodePortableBytes } from '@wildshard/sharddev/bake/portableBytes';
 import { ISLES, KNOLLS } from "./layout";
 import { meadowHoles, meadowPaths } from './placements';
 import { heroStoneDiscs } from './dressing';

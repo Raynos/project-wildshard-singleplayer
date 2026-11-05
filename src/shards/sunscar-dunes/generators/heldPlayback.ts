@@ -1,4 +1,4 @@
-import { ClientChannels } from '@wildshard/sdk/clientChannels';
+import { ClientChannels } from '@wildshard/sharddev/clientChannels';
 import { LASH_CORD, WHIP_VIEW } from './rows/whip';
 
 /** Compile the original grip flick and root observations without changing the contact clock. */

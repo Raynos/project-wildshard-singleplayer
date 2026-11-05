@@ -6,7 +6,7 @@ import { QuestRuntimeDocumentSchema } from '@wildshard/format/questRuntime';
 import { QuestStoryBindingsSchema } from '@wildshard/format/questStoryBindings';
 import { ChapterViewSchema } from '@wildshard/format/questPageComposition';
 import { platformFileFamily, validatePlatformFile } from '@wildshard/format/platformFileFamilies';
-import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
+import { registeredJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 

@@ -2,9 +2,9 @@ import {expect,test} from 'vitest';
 import {WorldSceneSchema} from '@wildshard/format/clientChannels';
 import {SceneBakeSourceSchema} from '@wildshard/format/sceneSources';
 import {registeredJsonContract,validateRegisteredJson} from '@wildshard/format/registeredJson';
-import {registeredJsonSchema,namedJsonSchema} from '../src/sdk/formatJsonSchema';
-import {nameBlob} from '../src/sdk/blobs';
-import {emptyShardfile} from '../src/sdk/author';
+import {registeredJsonSchema,namedJsonSchema} from '../src/sharddev/formatJsonSchema';
+import {nameBlob} from '../src/sharddev/blobs';
+import {emptyShardfile} from '../src/sharddev/author';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {fixtureJsonCheck} from './fixtures/productFile';
 

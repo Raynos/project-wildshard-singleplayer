@@ -3,8 +3,8 @@
 // sceneModelRows.ts names them in memory (no scheduler job, no stored files under assets/). The hero GLBs and the
 // timber world's arch facts come from the program's sources (pineSources.ts).
 import {MeshStandardMaterial} from 'three';
-import {readSourceModel} from '@wildshard/sdk/bake/skinned';
-import {staticGlb} from '@wildshard/sdk/bake/glb';
+import {readSourceModel} from '@wildshard/sharddev/bake/skinned';
+import {staticGlb} from '@wildshard/sharddev/bake/glb';
 import {heroRestShape,alignHeroLod,heroHullPoints,disposeHeroSource,openedArch,closedArchPlane} from './heroScenes.ts';
 import {heroModelSource} from './heroMaterialFiles.mjs';
 import {perSources} from './pineSources.ts';

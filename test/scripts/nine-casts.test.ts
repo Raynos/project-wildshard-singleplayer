@@ -10,7 +10,7 @@ import { Color, Matrix4, InstancedMesh, BufferAttribute, DataUtils, Float16Buffe
 import {CASTS, nineCastBlobs, rawCast} from '../fixtures/nine-cast-blobs';
 import { createOwnedGeometry } from '../../src/engine/client/models/ownedGeometry';
 import { createModelLibrary } from '../../src/game/client/plugin/geometry';
-import { readSourceModel } from '../../src/sdk/bake/skinned';
+import { readSourceModel } from '../../src/sharddev/bake/skinned';
 import type { PreparedGeometry } from '../../src/shards/nine-dragon-stack/data/casts';
 import castRows from '../../src/shards/nine-dragon-stack/data/casts.json' with { type: 'json' };
 import { layoutBlobs } from '../../src/shards/nine-dragon-stack/generators/layoutBlobs';

@@ -1,5 +1,5 @@
-import { bakeQueryTerrain, readNativeTerrain, type BakedQueryTerrain } from '@wildshard/sdk/bake/terrain';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import { bakeQueryTerrain, readNativeTerrain, type BakedQueryTerrain } from '@wildshard/sharddev/bake/terrain';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 
 const LATTICE = '/assets/baked/nalati-grasslands/terrain.bin';
 

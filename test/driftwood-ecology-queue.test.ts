@@ -6,7 +6,7 @@ import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { RETURN_PROGRAM } from './fixtures/driftwood-guest-programs';
 import { Rng } from '../src/engine/shared/core/rng';
 import { setTerrainHeight } from '../src/engine/shared/world/terrainHeight';
-import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
+import { compileDecisionScripts } from '../src/sharddev/buildDecisionScripts';
 
 const owners:Scope[]=[];afterEach(()=>{for(const owner of owners.splice(0))owner.dispose();});
 function returns():ReturnProgram {const owner=lendDriftwoodReturns(new Scope('return fixture'));owners.push(owner);return ReturnProgram.page(RETURN_PROGRAM,owner);}

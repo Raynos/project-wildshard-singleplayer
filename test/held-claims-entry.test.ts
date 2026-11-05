@@ -12,7 +12,7 @@ import { entryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { prepareHeldClaimsEntry, installHeldClaimsEntry } from '../src/game/client/shardfile/heldClaimsEntry';
 import * as compiler from '../src/game/client/shardfile/runtimeProduct';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { parseItems } from '@wildshard/format/items';
 import { HELD_ARMS } from './fixtures/driftwood-layout-source';
 import { DRIFTWOOD_SWORDS } from '../src/shards/driftwood-isle/generators/items';

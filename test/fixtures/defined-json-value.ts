@@ -1,4 +1,4 @@
-import { validateDefinedJson } from '../../src/sdk/sections';
+import { validateDefinedJson } from '../../src/sharddev/sections';
 import { encodeCanonicalJson } from '../../src/sdk/immutable';
 
 /** Test-only serialized value oracle; no shipping section or schema registry. */

@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare every complete native continuation field without partial tolerances.
 import { deepStrictEqual } from 'node:assert';
 import { expect, test, vi } from 'vitest';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { createShardfileSim, type ShardfileSimulation } from '../src/game/server/plugin/simulation';
 import { DirectorStageLane } from '../src/game/shared/plugin/director';
 import { directorDayRange, type DirectorStagesData } from '@wildshard/format/directorStages';

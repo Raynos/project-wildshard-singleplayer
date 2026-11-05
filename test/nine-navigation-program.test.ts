@@ -7,11 +7,11 @@ import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
 import * as v from 'valibot';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nineNavigation, NINE_NAVIGATION_INPUT } from '../src/shards/nine-dragon-stack/generators/navigationProgram';
-import { navigationSourceRows } from '../src/sdk/bake/navigationAsset';
+import { navigationSourceRows } from '../src/sharddev/bake/navigationAsset';
 import { generated } from './fixtures/nine-source-program';
 import { bootDiscovery } from './fixtures/nine-boot-discovery';
 

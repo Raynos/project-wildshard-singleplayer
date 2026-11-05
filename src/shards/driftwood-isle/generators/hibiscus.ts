@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { Rng } from '@wildshard/sdk/random';
+import type { Rng } from '@wildshard/sharddev/random';
 import type { IslandKnobs } from './tiers';
 import type { HibiscusBushParams } from './foliageModels';
 

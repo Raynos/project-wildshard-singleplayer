@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { FigureRows } from '../src/game/client/systems/npc/figureRows';
-import { figureColliderRows } from '../src/sdk/bake/placement';
+import { figureColliderRows } from '../src/sharddev/bake/placement';
 import trader from '../src/shards/driftwood-isle/data/traderFigure.json' with { type: 'json' };
 import castaway from '../src/shards/driftwood-isle/data/castawayFigure.json' with { type: 'json' };
 

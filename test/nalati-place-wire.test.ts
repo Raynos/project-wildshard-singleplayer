@@ -9,7 +9,7 @@ import { build } from 'vite';
 import { encodeNalatiPart } from '../src/shards/nalati-grasslands/generators/placeWire';
 import { committedPlaces } from './fixtures/nalati-committed-places';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import beforeWires from './fixtures/nalati-place-wires.json' with { type: 'json' };
 import { nativePlaceFile } from './fixtures/nalati-native-place-files';
 

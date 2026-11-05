@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { Rng } from '@wildshard/sdk/random';
-import { bakeCommonBody, type AnimalSpecies, type BoneDef, type VariantDef } from '@wildshard/sdk/bake/species';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
+import { Rng } from '@wildshard/sharddev/random';
+import { bakeCommonBody, type AnimalSpecies, type BoneDef, type VariantDef } from '@wildshard/sharddev/bake/species';
 import { PINE_HULLS } from './creatureHulls';
 import { PINE_LOFTS } from './creatureLofts';
 
@@ -10,7 +10,7 @@ import { PINE_LOFTS } from './creatureLofts';
  * (`boar:thrall`, `elk:thrall`) wears glowing glass eyes and a few rigid fern clumps on its spine, placed on its tier's
  * rigged hull. This runs the same placement the page ran on the same loaded rig (three's GLTFLoader, `readSourceModel`)
  * and writes the parts as one static GLB per tier (`bake-pine-thrall-extras.mjs`); the page appends them to the hull
- * (`@wildshard/sdk/looks/riggedHulls` `parts`). Each part vertex carries `_bone` (its one rigid bone) and `_glow`.
+ * (`@wildshard/sharddev/looks/riggedHulls` `parts`). Each part vertex carries `_bone` (its one rigid bone) and `_glow`.
  */
 
 /** the thralls the bake covers: [kind, variant id, the variant's traits as the look declares them] */

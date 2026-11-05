@@ -19,7 +19,7 @@ import { WorldAssembly } from '../src/game/client/shardfile/worldAssembly';
 import * as runtimeProduct from '../src/game/client/shardfile/runtimeProduct';
 import * as sceneHost from '../src/game/client/shardfile/worldScenes';
 import * as bakedHost from '../src/game/client/shardfile/bakedTiles';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const rows = {

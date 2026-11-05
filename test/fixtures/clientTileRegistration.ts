@@ -1,7 +1,7 @@
 import { Group, type Object3D } from 'three';
 import { Scope } from '../../src/engine/shared/app/scope';
 import { TileStreamer } from '../../src/engine/client/world/tileStreamer';
-import { emptyShardfile } from '../../src/sdk/author';
+import { emptyShardfile } from '../../src/sharddev/author';
 import { hashImmutableBytes } from '../../src/sdk/immutable';
 import { ResidencyAllocator } from '../../src/game/shared/grid/allocator';
 import { TileDecoder } from '../../src/game/client/grid/tileDecoder';

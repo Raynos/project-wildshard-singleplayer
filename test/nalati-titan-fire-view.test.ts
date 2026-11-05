@@ -4,7 +4,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import { viewProgram } from '../src/engine/client/script/viewProgram';
 import { prepareViewMemory } from '../src/engine/client/script/viewLane';
 import { ARENA_BURNT_PER_FRAME, ARENA_VIEW } from '@wildshard/format/arenaView';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
+import { compileScriptV2 } from '../src/sharddev/bake/compileScriptV2';
 import { nalatiTitanFireView } from '../src/shards/nalati-grasslands/generators/titanFireView';
 import { TITAN_FIRE_FIELD } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import fireView from '../src/shards/nalati-grasslands/data/arenaFire.json' with { type: 'json' };

@@ -2,13 +2,13 @@
 import { resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { inflateSync } from 'node:zlib';
-import { readBakedGeometry } from '../src/sdk/kit/bakedGeometry.ts';
+import { readBakedGeometry } from '../src/sharddev/kit/bakedGeometry.ts';
 import { _applyChunkConstants } from '../src/engine/shared/core/config.ts';
 import { configureLevel } from '../src/engine/shared/level/selection.ts';
 import { placeForest } from '../src/engine/shared/world/forest/placement.ts';
 
 import { BufferGeometry, Euler, Float32BufferAttribute, Matrix4, Quaternion, Vector3 } from 'three';
-import { MapRaster } from '../src/sdk/bake/mapRaster.ts';
+import { MapRaster } from '../src/sharddev/bake/mapRaster.ts';
 import { readMapGeometry } from './map-painter.mjs';
 import { mapModel, readMapJson } from './map-geometry.mjs';
 

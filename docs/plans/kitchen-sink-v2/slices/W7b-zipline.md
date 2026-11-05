@@ -27,7 +27,7 @@ Work:
 
 | Row | Shape | Layer |
 |---|---|---|
-| cable look | the zipline row gains `look: { cable, sag, towers? }`; the SDK bakes the cable mesh (Driftwood's generator moves to `src/sdk/bake/`) | sdk bake + format |
+| cable look | the zipline row gains `look: { cable, sag, towers? }`; the SDK bakes the cable mesh (Driftwood's generator moves to `src/sharddev/bake/`) | sdk bake + format |
 | start prompt | the zipline row's own `prompt: { at, radius, label }` (no quest-host command needed) | game reader |
 | finish | the zipline's bottom is a course checkpoint (W6d) | data |
 

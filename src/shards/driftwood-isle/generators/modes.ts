@@ -1,4 +1,4 @@
-import type { ModeRows } from '@wildshard/sdk/modes';
+import type { ModeRows } from '@wildshard/sharddev/modes';
 import spots from '../data/spotsRows.json' with { type: 'json' };
 
 /** The authored cable floors (data/spotsRows.json) and shipping scalar parameters, admitted by the SDK mode schema. */

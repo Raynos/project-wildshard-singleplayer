@@ -218,7 +218,7 @@ test('undo returns a failed apply to HEAD',()=>{
 
 test('ratchets read a side move as the same file',()=>{
   expect(unsortedPath('src/game/server/quest/a.ts')).toBe('src/game/quest/a.ts');
-  expect(unsortedPath('src/sdk/server/a.ts')).toBe('src/sdk/server/a.ts');
+  expect(unsortedPath('src/sharddev/server/a.ts')).toBe('src/sharddev/server/a.ts');
   const edge='client → server';
   expect(compareSideEdges({files:{'src/engine/ui/a.ts':{[edge]:2}}},{files:{'src/engine/client/ui/a.ts':{[edge]:2}}})).toEqual([]);
   expect(compareSideEdges({files:{'src/engine/ui/a.ts':{[edge]:2}}},{files:{'src/engine/client/ui/a.ts':{[edge]:3}}})).toHaveLength(1);

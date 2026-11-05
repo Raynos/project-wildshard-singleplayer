@@ -5,7 +5,7 @@ import {arenaSealCollider} from '../src/game/shared/boss/arenaCollision';
 import {installNativeCollision,type NativeCollisionSolid} from '@wildshard/game/population/nativeBake';
 import {loadRapier} from '../src/engine/shared/physics/rapier';
 import {createShardfileSim} from '../src/game/server/plugin/simulation';
-import {emptyShardfile} from '../src/sdk/author';
+import {emptyShardfile} from '../src/sharddev/author';
 import {nativeArenaSealSolids} from '@wildshard/game/boss/nativeArenaSeal';
 
 const room={origin:{x:10,y:0,z:5},sealId:'test-seal',doorHeight:3,halfWidth:4,doorHalfWidth:1};

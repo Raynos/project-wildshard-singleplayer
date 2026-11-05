@@ -1,5 +1,5 @@
 import { nalatiGeographyProgram } from './geographyProgram';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { prepareNalatiDressingInputs } from './dressingInputs';
 import { bakeNalatiDressingSource } from './dressingSource';
 

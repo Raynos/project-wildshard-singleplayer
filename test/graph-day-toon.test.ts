@@ -2,8 +2,8 @@ import { afterAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
 import { clientMaterials } from '../src/game/client/shardfile/clientMaterials';
-import { emptyShardfile } from '../src/sdk/author';
-import { graph } from '../src/sdk/materials';
+import { emptyShardfile } from '../src/sharddev/author';
+import { graph } from '../src/sharddev/materials';
 
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
 afterAll(() => { vi.unstubAllGlobals(); });

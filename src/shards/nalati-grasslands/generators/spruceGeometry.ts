@@ -1,6 +1,6 @@
-import { smoothstep } from '@wildshard/sdk/noise';
-import { Rng } from '@wildshard/sdk/random';
-import { forestDefaultTreeSpecs } from '@wildshard/sdk/bake/forest';
+import { smoothstep } from '@wildshard/sharddev/noise';
+import { Rng } from '@wildshard/sharddev/random';
+import { forestDefaultTreeSpecs } from '@wildshard/sharddev/bake/forest';
 /**
  * Spruce — a Tian Shan spruce (Picea schrenkiana) for Nalati's gullies, in the painterly style (style B).
  *

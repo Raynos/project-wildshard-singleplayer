@@ -5,7 +5,7 @@ import { Terrain } from '../src/engine/client/world/Terrain';
 import type { PainterField } from '../src/engine/client/render/look';
 import { productPaintedLook } from '../src/game/client/looks/paintedLook';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { colourGraphFunction, materialColourGraph } from '../src/engine/client/render/graph/colourFunction';
 import { applyPaintedTerrain } from '../src/engine/client/render/families/paintedTerrain';
 import { parsePaintedTerrain } from '@wildshard/format/materialFamilies';

@@ -1,4 +1,4 @@
-import { bootRecipeSources as resolveBootSources, type BootModes, type BootSources, type BootGpuFiles } from '@wildshard/sdk/bootInventory';
+import { bootRecipeSources as resolveBootSources, type BootModes, type BootSources, type BootGpuFiles } from '@wildshard/sharddev/bootInventory';
 import { GPU_FILES } from '../ktx2.generated';
 import policy from '../data/pagePolicy.json' with { type: 'json' };
 import { PINE_BOOT_FILES, PINE_BOOT_SOURCES } from './bootFiles';

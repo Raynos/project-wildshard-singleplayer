@@ -1,4 +1,4 @@
-import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { registeredJsonSchema } from '@wildshard/sharddev/formatJsonSchema';
 import { NINE_MATERIAL_LOOKS, NINE_WHOLE_DRESSING } from './wholeDressing';
 import { addWindowNodes, windowStep } from './facadeWindowRecipe';
 import { moverPlacements } from './moversView';
@@ -18,12 +18,12 @@ import { portalLookRows } from './portalLook';
 // model names only the tiles that hold it, so an Explorer card reads its own and the resident world reads only the boot
 // and layout-set tiles. The world's banyan crown, the Well's mist, the painted sky and the scroll screen are one
 // `dressing` scene step over the same tiles and two owned shapes.
-import { parseSectionValue } from '@wildshard/sdk/sections';
-import { worldSceneWeldFile, worldScenePlacementPages, worldSceneTileGroups, worldSceneRecipe as parseWorldScene, worldSceneModels as parseWorldSceneModels, worldSceneRows as parseWorldScenes, worldSceneWeldRows as parseWorldSceneWeld } from '@wildshard/sdk/worldScenes';
+import { parseSectionValue } from '@wildshard/sharddev/sections';
+import { worldSceneWeldFile, worldScenePlacementPages, worldSceneTileGroups, worldSceneRecipe as parseWorldScene, worldSceneModels as parseWorldSceneModels, worldSceneRows as parseWorldScenes, worldSceneWeldRows as parseWorldSceneWeld } from '@wildshard/sharddev/worldScenes';
 import { NINE_SHARED } from './sharedRows';
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
+import { compressGlb } from '@wildshard/sharddev/bake/glbCompression';
 import { Matrix4, MeshBasicMaterial, PlaneGeometry, Quaternion, SphereGeometry, Vector3 } from 'three';
 import { crowdPaletteColor } from './crowdPalette';
 import { bakedLayoutProjection } from './layoutProjection';

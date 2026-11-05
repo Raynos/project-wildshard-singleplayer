@@ -1,10 +1,10 @@
 import { CatmullRomCurve3, CylinderGeometry, Group, Mesh, MeshStandardMaterial, TubeGeometry, Vector3, type BufferGeometry } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { clientSceneGlb } from '@wildshard/sdk/bake/glb';
-import { GeometryPack, packedRows } from '@wildshard/sdk/kit/geometryPack';
+import { clientSceneGlb } from '@wildshard/sharddev/bake/glb';
+import { GeometryPack, packedRows } from '@wildshard/sharddev/kit/geometryPack';
 import { bakeSkyBridges, ropeSpans } from './bridges';
 import { BRIDGE_REST_URL } from './restFiles';
-import type { AuthorPrivateScene as PrivateScene } from '@wildshard/sdk/worldScenes';
+import type { AuthorPrivateScene as PrivateScene } from '@wildshard/sharddev/worldScenes';
 
 type ReadAsset = (url: string) => Uint8Array;
 interface BridgeSpan { id: string; deckGeometry: string; deck: number[]; posts: number[]; ropes: string[] }

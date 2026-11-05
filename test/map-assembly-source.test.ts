@@ -6,10 +6,10 @@ import { BufferGeometry, Float32BufferAttribute, Group, Matrix4, Mesh, MeshStand
 import { expect, test } from 'vitest';
 import { build } from 'vite';
 import { WebIO } from '@gltf-transform/core';
-import { MapAssembly, mapModelBytes } from '../src/sdk/bake/mapAssembly';
-import { clientSceneGlb } from '../src/sdk/bake/glb';
+import { MapAssembly, mapModelBytes } from '../src/sharddev/bake/mapAssembly';
+import { clientSceneGlb } from '../src/sharddev/bake/glb';
 import { MapAssembly as PublishedMapAssembly } from '../scripts/map-geometry.mjs';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 
 test('raw map packing retains native scene bytes, placements and independent buffer ownership', () => {
   const geometry = new BufferGeometry();
@@ -73,7 +73,7 @@ test('owned GLBs cannot acquire undeclared external buffer resources', async () 
 
 test('the actual map assembly packer bundles without filesystem, module or compiler services', async () => {
   const result = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false,
-    lib: { entry: resolve('src/sdk/bake/mapAssembly.ts'), formats: ['es'] },
+    lib: { entry: resolve('src/sharddev/bake/mapAssembly.ts'), formats: ['es'] },
     rolldownOptions: { external: [/^node:/u, 'assemblyscript/dist/asc.js'], output: { codeSplitting: false } } } });
   const output = Array.isArray(result) ? result[0] : result;
   if (output === undefined || !('output' in output)) throw new Error('Missing map assembly bundle');

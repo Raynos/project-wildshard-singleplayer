@@ -1,4 +1,4 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { parseNativeSignAtlas } from './sections';
 import type { NineNativeAtlas } from './nativeSignMetadata';

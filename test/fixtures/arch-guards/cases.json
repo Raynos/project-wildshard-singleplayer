@@ -71,7 +71,7 @@
   },
   {
     "id": "glob-array",
-    "file": "src/sdk/glob-array.ts",
+    "file": "src/sharddev/glob-array.ts",
     "rule": "public-index",
     "code": "const x = import.meta.glob(['../engine/world/*.ts', '../game/*.ts']);",
     "count": 2

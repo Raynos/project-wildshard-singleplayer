@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bind the defining author root explicitly.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
+import { createProjectGeneration, type ProjectGenerationContext } from '../src/sharddev/projectGeneration';
 import { signalFireBook } from '../src/shards/sunscar-dunes/generators/fireBookProgram';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import original from './fixtures/sunscar-fire-book.json' with { type: 'json' };

@@ -1,7 +1,7 @@
 import speciesRows from '../data/speciesRows.json' with { type: 'json' };
 import { GREAT_KURGAN, GREAT_KURGAN_DOOR } from './poiLayout';
-import { nativeAssemblyFiles, type NativeAssemblyPlan, type ServerBlob } from '@wildshard/sdk/blobs';
-import { parsePopulationKnockdownSource } from '@wildshard/sdk/nativePopulationRows';
+import { nativeAssemblyFiles, type NativeAssemblyPlan, type ServerBlob } from '@wildshard/sharddev/blobs';
+import { parsePopulationKnockdownSource } from '@wildshard/sharddev/nativePopulationRows';
 import boot from '../data/headlessBoot.json' with { type: 'json' };
 import combatTargets from '../data/combatTargets.json' with { type: 'json' };
 import crowdNativeProjection from '../data/crowdNativeProjection.json' with { type: 'json' };

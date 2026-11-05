@@ -11,7 +11,7 @@
  */
 import * as THREE from 'three';
 import geometryPolicy from '../data/groundGeometryPolicy.json' with { type: 'json' };
-import { staticGlb } from '@wildshard/sdk/bake/glb';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
 import { SEA_RES } from './oceanLook';
 
 const CHUNK_SIZE = geometryPolicy.size, CHUNK_HALF = CHUNK_SIZE / 2;

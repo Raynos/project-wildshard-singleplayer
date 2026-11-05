@@ -6,7 +6,7 @@ midnight, 0.5 is noon. The interval includes FROM and excludes TO; an interval
 that crosses midnight uses two inputs and `late || early`.
 
 ```ts
-import { Director } from '@wildshard/sdk/director';
+import { Director } from '@wildshard/sharddev/director';
 
 const dusk = new Director({
   id: 'outpost.dusk',

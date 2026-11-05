@@ -1,4 +1,4 @@
-import type { equipmentRows } from '@wildshard/sdk/rows';
+import type { equipmentRows } from '@wildshard/sharddev/rows';
 
 type EquipmentRow = ReturnType<typeof equipmentRows>;
 type RangedFeelProfile = NonNullable<EquipmentRow['rangedFeel']>;

@@ -1,4 +1,4 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { skyProductRows } from './product';
 import { prepareOutput } from './sourceOutput';
 import { skyProductBoot } from './bootInventory';

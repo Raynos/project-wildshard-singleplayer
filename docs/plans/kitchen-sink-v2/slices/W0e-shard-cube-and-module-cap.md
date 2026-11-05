@@ -12,7 +12,7 @@ no two volumes overlapping (round 5 `layerCheck`).
 ## 2. Engine / game / host work, just in time
 
 **Cube rule.** Today the bake already refuses props, terrain and world GLB nodes outside the cell
-(`src/sdk/bake/props.ts:227`, `terrain.ts:34`, `world.ts:58`), and `src/format/shardSchema.ts:293` checks the spawn. Not
+(`src/sharddev/bake/props.ts:227`, `terrain.ts:34`, `world.ts:58`), and `src/format/shardSchema.ts:293` checks the spawn. Not
 checked: **portal destinations** (`src/format/portalLink.ts:10`, `destination.at`), **interior volumes** (Pine's cave
 file `src/format/caveInterior.ts` holes/cuts, Nalati's arena room `src/game/server/boss/arenaRoom.ts`), and overlap between
 declared volumes. Add to the shardfile validator (`format/shardSchema.ts` rules beside line 293): a declared

@@ -1,8 +1,8 @@
 import { RAY_WAKE } from './rows/rayWakeLook';
 import { skyWindView } from './viewData';
 import { FAN_ROW } from './rows/equipment';
-import { clientPlanSection as parseClientPlan } from '@wildshard/sdk/platformSections';
-import { parsePersistedQuestPage } from '@wildshard/sdk/quests';
+import { clientPlanSection as parseClientPlan } from '@wildshard/sharddev/platformSections';
+import { parsePersistedQuestPage } from '@wildshard/sharddev/quests';
 import { skyQuestPage } from './questRows';
 import { SKY_PAGE_PROGRAM } from './rows/population';
 import { FAN_ID } from './rows/items';

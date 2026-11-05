@@ -1,5 +1,5 @@
 // Independent pre-migration Nine grammar; keep its native guards as the oracle.
-import { authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
+import { authorFormatSchema } from '@wildshard/sharddev/formatJsonSchema';
 import * as v from 'valibot';
 
 const ReturnProgramSchema: ReturnType<typeof authorFormatSchema<'namedJsonContracts.ReturnProgramSchema'>> = authorFormatSchema('namedJsonContracts.ReturnProgramSchema');

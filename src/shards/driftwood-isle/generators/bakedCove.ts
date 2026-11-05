@@ -1,7 +1,7 @@
 // G532 (4): the Blender spawn cove as one baked-tiles row (format/bakedTiles; the platform's `world.baked` feature draws it):
 // its terrain tiles in the island's graph toon look with the Cycles AO and bounce lightmaps, and its prototypes placed
 // instanced by family with their collider boxes. Authored island rows and owned native facts supply its numbers.
-import { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
+import { authorFormatRows } from '@wildshard/sharddev/formatJsonSchema';
 import PLAN_FILES from '../data/islandPlanFiles.json' with { type: 'json' };
 import type { DriftwoodIslandFacts } from './islandFacts';
 import { COVE_MODELS, coveDrawnProto } from './coveModels';

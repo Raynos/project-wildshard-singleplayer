@@ -7,10 +7,10 @@ import { createLevelInstallation } from '../src/engine/client/level/installation
 import { WorldRegistry } from '../src/engine/client/world/registry';
 import { shardContext } from '../src/game/client/plugin/context';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { installViewProgram, lendViewCell, lendViewFrame, lendViewValues } from '../src/game/client/shardfile/clientViewProgram';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
+import { compileScriptV2 } from '../src/sharddev/bake/compileScriptV2';
 import { ViewProgramSchema } from '@wildshard/format/viewProgram';
 import { ViewLane, prepareViewMemory, type ViewLaneRows } from '../src/engine/client/script/viewLane';
 import { scriptMemoryCensus } from '../src/engine/shared/script/moduleV2';

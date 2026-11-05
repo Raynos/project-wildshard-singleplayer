@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { pineJournal } from '../src/shards/pine-hollow/generators/journal';
 import { pineGeneration } from './fixtures/pine-generation';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { controlFileHashes } from '@wildshard/format/admissionControl';
 import { journalImageRefs } from '@wildshard/format/compendiumRows';
 import { hashImmutableBytes } from '../src/sdk/immutable';

@@ -1,4 +1,4 @@
-import type { AuthorPrivateScene as PrivateScene, AuthorWorldSceneRecipe as WorldSceneRecipe } from '@wildshard/sdk/worldScenes';
+import type { AuthorPrivateScene as PrivateScene, AuthorWorldSceneRecipe as WorldSceneRecipe } from '@wildshard/sharddev/worldScenes';
 import { fixedWorld, skyFixedWorldValues, type SkyFixedWorldValues } from './fixedWorld';
 import type { SkyPlacements } from './placements';
 import { WORLD_PLACEMENT_INPUTS, skyWorldPlacementValues } from './worldPlacementBytes';

@@ -8,10 +8,10 @@ const request = deserialize(readFileSync(0));
 if (!Array.isArray(request.args)) throw new Error('Invalid native fixture compiler arguments');
 let result;
 switch (request.method) {
-  case 'compileScript': result = await (await import('../../src/sdk/bake/compileScript.ts')).compileScript(...request.args); break;
-  case 'compileScriptV2': result = await (await import('../../src/sdk/bake/compileScriptV2.ts')).compileScriptV2(...request.args); break;
-  case 'compileDecisionRows': result = await (await import('../../src/sdk/buildDecisionScripts.ts')).compileDecisionScripts(...request.args); break;
-  case 'compileDecisionScripts': result = await (await import('../../src/sdk/buildDecisionScripts.ts')).compileDeclaredDecisionScripts(...request.args); break;
+  case 'compileScript': result = await (await import('../../src/sharddev/bake/compileScript.ts')).compileScript(...request.args); break;
+  case 'compileScriptV2': result = await (await import('../../src/sharddev/bake/compileScriptV2.ts')).compileScriptV2(...request.args); break;
+  case 'compileDecisionRows': result = await (await import('../../src/sharddev/buildDecisionScripts.ts')).compileDecisionScripts(...request.args); break;
+  case 'compileDecisionScripts': result = await (await import('../../src/sharddev/buildDecisionScripts.ts')).compileDeclaredDecisionScripts(...request.args); break;
   default: throw new Error('Invalid native fixture compiler method');
 }
 process.stdout.write(serialize(result));

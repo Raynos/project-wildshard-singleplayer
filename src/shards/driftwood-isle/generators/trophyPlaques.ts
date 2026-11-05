@@ -1,8 +1,8 @@
 /** Original shield boards, prints and swept trophies; offline geometry only. */
 import * as THREE from 'three';
 import { recordVertexSlots, type SlotRange } from './slotRanges';
-import { bakeLog as log, bakeRock as rock, bakeTriangles as tris } from '@wildshard/sdk/bake/primitives';
-import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
+import { bakeLog as log, bakeRock as rock, bakeTriangles as tris } from '@wildshard/sharddev/bake/primitives';
+import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sharddev/bake/facetedGeometry';
 import { TROPHY_LAYOUT } from './trophyLayout';
 
 type TrophyId = (typeof TROPHY_LAYOUT.ids)[number];

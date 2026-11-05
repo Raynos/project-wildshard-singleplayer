@@ -2,7 +2,7 @@
 import { pineKingCollision } from './kingCollision';
 import blend from '../data/kingBlend.json' with { type: 'json' };
 import { pineKingClips } from './kingClips';
-import { parseNativePopulationRoster as parseNativePopulationRows } from '@wildshard/sdk/nativePopulationRows';
+import { parseNativePopulationRoster as parseNativePopulationRows } from '@wildshard/sharddev/nativePopulationRows';
 import { PINE_FAUNA } from './fauna';
 import * as LAYOUT from './layout';
 import { PINE_ELITE_DEFS, PINE_ELITE_ANIMALS, ORDINARY } from './eliteRoster';

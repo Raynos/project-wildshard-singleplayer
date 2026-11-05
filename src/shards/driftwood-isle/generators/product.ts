@@ -1,14 +1,14 @@
 import { DRIFTWOOD_FEATS } from './questInventory';
 import { CAPTAIN_FIELDS } from './captainFields';
 import { DRIFTWOOD_LOOT as LOOT } from './loot';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { driftwoodQuestRows } from './questRows';
 import { DRIFTWOOD_LEDGER } from './ledger';
 import { driftwoodItems } from './items';
 import { DRIFTWOOD_SPAWNS } from './spawns';
 import { NPC_FOCUS_PROGRAMS } from './npcFocusPrograms';
-import type { AudioData } from '@wildshard/sdk/audio';
+import type { AudioData } from '@wildshard/sharddev/audio';
 import { DRIFTWOOD_EDGE_HEIGHTS } from './edges';
 import DRIFTWOOD_RUNTIME_COST from '../data/runtimeCost.json' with { type: 'json' };
 import { DECLARED_SEA, WORLD_DROP } from './sea';
@@ -17,7 +17,7 @@ import type { driftwoodNavigationRows } from './navigation';
 import type { DriftwoodFixedProduct } from './fixedProduct';
 import { driftwoodLookMaterials } from './lookMaterials';
 import { driftwoodSkyChannels } from './skyChannels';
-import { parseClientChannels } from '@wildshard/sdk/rows';
+import { parseClientChannels } from '@wildshard/sharddev/rows';
 import captainCoat from '../data/captainCoat.json' with { type: 'json' };
 import type { DriftwoodGuestRows } from './guestPrograms';
 

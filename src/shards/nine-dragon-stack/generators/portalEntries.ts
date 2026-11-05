@@ -1,6 +1,6 @@
 import { Group } from 'three';
-import { Entry } from '@wildshard/sdk/entries';
-import { readScene } from '@wildshard/sdk/scene';
+import { Entry } from '@wildshard/sharddev/entries';
+import { readScene } from '@wildshard/sharddev/scene';
 import NINE_FLOOR_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import portals from '../data/portals.json' with { type: 'json' };
 

@@ -1,6 +1,6 @@
 
 import PINE_SKY from '../data/sky.json' with { type: 'json' };
-import { chapterDirectorRows as parseChapterDirector } from '@wildshard/sdk/director';
+import { chapterDirectorRows as parseChapterDirector } from '@wildshard/sharddev/director';
 import director from '../data/director.json' with { type: 'json' };
 
 /** The director publishes closed chapter effects; the existing sky owns phase keys. */

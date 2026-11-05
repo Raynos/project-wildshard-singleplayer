@@ -389,10 +389,10 @@ const layerWalk = (kind) => (context) => {
     // SF54: @wildshard/kit is dissolved; a workspace specifier names one of the layer packages or nothing
     if (kind === 'layer' && source.startsWith('@wildshard/') && packageTarget(source) === null) report(context, node, `No such layer package: ${source}`);
     if (kind === 'layer' && own.name === 'commons' && target && !['commons', 'sdk', 'sharddev', 'format'].includes(target.name)) report(context, node, `Commons author tools import only the SDK and pure format contracts: ${source}`);
-    if (kind === 'layer' && own.name === 'commons' && targetPath.startsWith('src/sdk/runtime/')) report(context, node, `Commons author tools cannot import trusted runtime code: ${source}`);
+    if (kind === 'layer' && own.name === 'commons' && targetPath.startsWith('src/sharddev/runtime/')) report(context, node, `Commons author tools cannot import trusted runtime code: ${source}`);
     const shardLocal = /^src\/shards\/[^/]+\/(.+)$/u.exec(pathOf(context))?.[1];
     if (kind === 'layer' && shardLocal !== undefined) {
-      if (/^@wildshard\/sdk\/runtime(?:\/|$)/u.test(source) || targetPath.startsWith('src/sdk/runtime/')) report(context, node, `Primary shards cannot import trusted SDK runtime: ${source}`);
+      if (/^@wildshard\/sharddev\/runtime(?:\/|$)/u.test(source) || targetPath.startsWith('src/sharddev/runtime/')) report(context, node, `Primary shards cannot import trusted SDK runtime: ${source}`);
       if (target?.name === 'commons' && !/^(?:generators|data|quests)\//u.test(shardLocal) && shardLocal !== 'shard.config.ts') report(context, node, `Commons packs are build-time imports: ${source}`);
     }
     if (!target) {
@@ -998,8 +998,8 @@ const noShardRuntime = rule('Primary shards contain authoring and declarations o
         report(context, node, 'Primary shard runtime source is forbidden; use generators/, registered Blender sources or erased declarations; shard.config.ts must be declaration-only');
     },
     ...boundaryVisitors((node, source) => {
-      if (typeof source === 'string' && (/^@wildshard\/sdk\/runtime(?:\/|$)/u.test(source)
-        || modulePath(context.filename, source).startsWith('src/sdk/runtime/')))
+      if (typeof source === 'string' && (/^@wildshard\/sharddev\/runtime(?:\/|$)/u.test(source)
+        || modulePath(context.filename, source).startsWith('src/sharddev/runtime/')))
         report(context, node, 'Primary shards cannot import trusted SDK runtime; emit admitted data or WASM instead');
     }),
   };
@@ -1019,7 +1019,7 @@ const shardEngineImports = rule('Direct shard engine imports shrink during the p
 });
 
 const sdkNoFacade = rule('The authoring SDK never aliases a game or engine runtime binding (G307)', context => {
-  if(!pathOf(context).startsWith('src/sdk/'))return {};
+  if(!/^src\/(?:sdk|sharddev)\//u.test(pathOf(context)))return {};
   return { Program(node) {
     const imported=new Map(), aliases=new Map(), candidates=[];
     const external=source=>shardGameImport(context.filename,source) || shardEngineImport(context.filename,source);

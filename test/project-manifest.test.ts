@@ -2,8 +2,8 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { parseManifestMetadata } from '@wildshard/format/minimap';
-import { manifestImages, packManifestImages } from '@wildshard/sdk/projectManifest';
-import { emitNamedBlobs } from '@wildshard/sdk/blobs';
+import { manifestImages, packManifestImages } from '@wildshard/sharddev/projectManifest';
+import { emitNamedBlobs } from '@wildshard/sharddev/blobs';
 import metadata from '../src/shards/far-reach/manifest.json';
 import template from '../src/shards/_template/data/card.json' with { type: 'json' };
 

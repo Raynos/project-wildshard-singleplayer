@@ -3,8 +3,8 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, 
 // oxlint-disable-next-line import/no-nodejs-modules -- All fixture paths stay under the owned tmp directory.
 import { dirname, join, resolve } from 'node:path';
 import { afterEach, expect, it } from 'vitest';
-import { defineMirror } from '@wildshard/sdk/runtimeMirrors';
-import { runtimeCodeLines, validateRuntimeData, writeRuntimeFiles } from '@wildshard/sdk/outputRuntime';
+import { defineMirror } from '@wildshard/sharddev/runtimeMirrors';
+import { runtimeCodeLines, validateRuntimeData, writeRuntimeFiles } from '@wildshard/sharddev/outputRuntime';
 import { codeLines } from '../scripts/shard-platform.mjs';
 
 const owned: string[] = [];

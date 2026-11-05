@@ -1,7 +1,7 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
-import { sourceColliderSchemas, recordedPhysicsPieces, recordedPhysicsPoints, recordedColliderRows, type SourceCollider } from '../src/sdk/bake/contactRows';
-import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { sourceColliderSchemas, recordedPhysicsPieces, recordedPhysicsPoints, recordedColliderRows, type SourceCollider } from '../src/sharddev/bake/contactRows';
+import { namedJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { bakedColliderSchemas, bakedColliderDesc, type BakedCollider } from '../src/shards/nine-dragon-stack/generators/bakedColliders';
 

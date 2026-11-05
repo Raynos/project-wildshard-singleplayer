@@ -1,7 +1,7 @@
 import { Box3, Vector3 } from 'three';
-import { modelPrototypeFacts, modelSourceMetadata } from '@wildshard/sdk/bake/sourceMetadata';
+import { modelPrototypeFacts, modelSourceMetadata } from '@wildshard/sharddev/bake/sourceMetadata';
 import { islandProtos, type IslandProto } from './islandProtos';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 
 interface ProtoFacts { name:string;present:boolean;empty:boolean;min:{x:number;y:number;z:number};max:{x:number;y:number;z:number};half:number;top:number }
 export interface DriftwoodIslandFacts {

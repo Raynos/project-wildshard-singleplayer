@@ -1,5 +1,5 @@
-import { compileBehaviourModule } from '@wildshard/sdk/buildBehaviour';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { compileBehaviourModule } from '@wildshard/sharddev/buildBehaviour';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 
 /** Data-only goats flee through the guarded-herd owner; a hawk dives through the native flight/contact owner. */

@@ -1,4 +1,4 @@
-import { parseLedgerRules } from '@wildshard/sdk/ledger';
+import { parseLedgerRules } from '@wildshard/sharddev/ledger';
 import { PINE_FEATS } from './questInventory';
 
 /** Native progress remains the journal/title presentation adapter; profile grants are declared, deduplicated facts. */

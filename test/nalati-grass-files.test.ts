@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import {expect,test} from 'vitest';
-import {nameBlob} from '../src/sdk/blobs';
+import {nameBlob} from '../src/sharddev/blobs';
 import {nalatiGrass,nalatiGrassJson} from './fixtures/nalati-grass-bake';
 import {GrassPresentationSchema,grassPresentationFiles} from '@wildshard/format/fieldPresentation';
 import {GrassPresentationProfile} from '../src/game/client/looks/grassPresentation';

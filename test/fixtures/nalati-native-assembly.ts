@@ -5,7 +5,7 @@ import type { NativeProgramSpec } from './native-program';
 
 /** Defining complete constructor specification used by the native input publisher. */
 export const NALATI_NATIVE_ASSEMBLY_SPEC: NativeProgramSpec = { id: 'nalati-native-assembly', transformTypes: true, loader: 'simulation', script: 'test/fixtures/nalati-native-assembly-compile.mjs',
-    inputs: ['src/engine', 'src/game', 'src/sdk', 'src/commons', 'src/shards/nalati-grasslands',
+    inputs: ['src/engine', 'src/game', 'src/sdk', 'src/sharddev', 'src/commons', 'src/shards/nalati-grasslands',
       'public/assets/baked/nalati-grasslands/terrain.bin', 'package.json', 'pnpm-lock.yaml',
       'test/fixtures/nalati-native-assembly.ts', 'test/fixtures/nalati-native-assembly-inputs.ts',
       'test/fixtures/nalati-native-place-files.ts', 'test/fixtures/nalati-native-places-compile.mjs',

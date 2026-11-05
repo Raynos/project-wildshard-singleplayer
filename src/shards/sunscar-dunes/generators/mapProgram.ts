@@ -1,5 +1,5 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { rasterSceneMap, type SceneMapBytes } from '@wildshard/sdk/bake/groundMap';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { rasterSceneMap, type SceneMapBytes } from '@wildshard/sharddev/bake/groundMap';
 import { signalWorldFiles } from './worldProgram';
 import { signalWorldMetadata } from './worldMetadata';
 import { wellRest, oilRest, fireRest, placeBindings } from './restScene';

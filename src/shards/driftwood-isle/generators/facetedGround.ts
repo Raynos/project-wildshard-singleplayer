@@ -10,7 +10,7 @@ import * as THREE from 'three';
 import geometryPolicy from '../data/groundGeometryPolicy.json' with { type: 'json' };
 import { GROUND_PATHS } from './groundLook';
 import { LP, hash2, lowPolyGroundColor } from './groundColor';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
 import { islandClippedIndex } from './islandClips';
 
 const CHUNK_SIZE = geometryPolicy.size, CHUNK_HALF = CHUNK_SIZE / 2, CHUNK_DEPTH = geometryPolicy.slabDepth, TERRAIN_RES = geometryPolicy.resolution;

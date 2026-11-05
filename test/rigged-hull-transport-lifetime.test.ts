@@ -5,7 +5,7 @@ import { realGc } from '@wildshard/engine/test/realGc';
 import { createRigLoader } from '@wildshard/engine/anim/rigParser';
 import { rebindGeometry } from '@wildshard/engine/app/cachedAssets';
 import { riggedHulls } from '@wildshard/game/looks/riggedHulls';
-import { staticGlb } from '../src/sdk/bake/glb';
+import { staticGlb } from '../src/sharddev/bake/glb';
 
 afterEach(() => { vi.restoreAllMocks(); });
 

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
-import { bakeLog as log } from '@wildshard/sdk/bake/primitives';
+import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sharddev/bake/facetedGeometry';
+import { bakeLog as log } from '@wildshard/sharddev/bake/primitives';
 import { addDriftLog, DRIFT } from './driftLogs';
 import authoredLayout from '../data/layout.json' with { type: 'json' };
 

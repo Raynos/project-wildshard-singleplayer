@@ -1,4 +1,4 @@
-import type { BrainedSpecies } from '@wildshard/sdk/speciesBrains';
+import type { BrainedSpecies } from '@wildshard/sharddev/speciesBrains';
 import { STRIKES as DRIFTWOOD_STRIKE_ROWS } from './strikeRows';
 import * as authoredSpeciesActions from './speciesContactRows';
 import { MONKEY_VARIANTS } from './monkeyVariants';

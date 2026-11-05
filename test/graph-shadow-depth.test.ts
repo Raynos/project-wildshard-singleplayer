@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { vec3 } from 'three/tsl';
 import { classicShadowDepth, compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
-import { graph as authorGraph } from '../src/sdk/materials';
+import { graph as authorGraph } from '../src/sharddev/materials';
 import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 
 test('opted-in casters share live displacement and alpha, cache by material and release with it', () => {

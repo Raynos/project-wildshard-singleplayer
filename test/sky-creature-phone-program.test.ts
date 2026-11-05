@@ -4,8 +4,8 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, unlinkSync
 import { dirname, resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { createProjectGeneration, type ProjectGenerationContext } from '../src/sharddev/projectGeneration';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { CREATURE_RIG_INPUTS } from '../src/shards/far-reach/generators/creatureRigProgram';
 import { CREATURE_PHONE_FILE, skyCreaturePhoneSource, skyCreaturePhoneProgram, type CreaturePhoneEncoder } from '../src/shards/far-reach/generators/creaturePhoneProgram';

@@ -1,6 +1,6 @@
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
-import {registeredJsonSchema,namedJsonSchema} from '../src/sdk/formatJsonSchema';
+import {registeredJsonSchema,namedJsonSchema} from '../src/sharddev/formatJsonSchema';
 import {ReturnProgramSchema} from '@wildshard/format/namedJsonContracts';
 import {ReturnProjectionV2Schema} from '@wildshard/format/returnProjectionV2';
 import {WildlifePopulationSchema} from '@wildshard/format/wildlifePopulation';

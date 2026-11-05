@@ -1,7 +1,7 @@
 import rowsJson from '../data/bodies.json' with { type: 'json' };
 import type { BufferAttribute, BufferGeometry, InterleavedBufferAttribute, EulerOrder } from 'three';
-import { Rng } from '@wildshard/sdk/random';
-import type { AnimalDims, AnimalSpecies } from '@wildshard/sdk/bake/species';
+import { Rng } from '@wildshard/sharddev/random';
+import type { AnimalDims, AnimalSpecies } from '@wildshard/sharddev/bake/species';
 import { buildHorse } from './horseBody';
 import { buildCanid } from './canidBody';
 import { buildFelid } from './leopardBody';

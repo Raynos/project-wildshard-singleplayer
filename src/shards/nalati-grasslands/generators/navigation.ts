@@ -1,5 +1,5 @@
-import { declareNavigation } from '@wildshard/sdk/bake/navigationAsset';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import { declareNavigation } from '@wildshard/sharddev/bake/navigationAsset';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import type { Shardfile } from '@wildshard/sdk/shardfile';
 import source from '../data/navigationSource.json' with { type: 'json' };
 

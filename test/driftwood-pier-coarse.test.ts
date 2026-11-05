@@ -7,7 +7,7 @@ import { Matrix4, Vector3 } from 'three';
 import { CONTENT_CAPS } from '@wildshard/format/contentBounds';
 import { validateEntrywayClearance } from '@wildshard/format/entryClearance';
 import { prepareAssetDecoders, visitGlbTriangles } from '@wildshard/format/product';
-import { Entry } from '../src/sdk/entries';
+import { Entry } from '../src/sharddev/entries';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { driftwoodCoarseTiles } from '../src/shards/driftwood-isle/generators/coarseTiles';
 import { originalPiers } from '../src/shards/driftwood-isle/generators/driftwoodPiers';

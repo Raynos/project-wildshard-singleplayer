@@ -1,6 +1,6 @@
 import type { NineSourceWorld } from './worldProgram';
 import { BufferAttribute, Color, InstancedBufferAttribute, InstancedBufferGeometry, Matrix4, type Mesh, Quaternion, Vector3, Vector4 } from 'three';
-import { worldSceneBuffers as parseSceneBuffers } from '@wildshard/sdk/worldScenes';
+import { worldSceneBuffers as parseSceneBuffers } from '@wildshard/sharddev/worldScenes';
 import { volumeSources } from './lightVolumes';
 import { floorReceiver, receiverCards, stairReceivers } from './receiverCards';
 import { buildHalos } from './haloCards';

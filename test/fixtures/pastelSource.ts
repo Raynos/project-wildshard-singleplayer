@@ -6,8 +6,8 @@ import { pastelTerrain } from '../../src/shards/pastel-plain/generators/terrain'
 import { pastelProps } from '../../src/shards/pastel-plain/generators/props';
 import { pastelProduct } from '../../src/shards/pastel-plain/generators/product';
 import { compilePastelBehaviour, pastelBehaviourMetadata, PASTEL_BEHAVIOUR_INPUTS } from '../../src/shards/pastel-plain/generators/behaviour';
-import { compileScript } from '../../src/sdk/bake/compileScript';
-import { bakeProps } from '../../src/sdk/bake/props';
+import { compileScript } from '../../src/sharddev/bake/compileScript';
+import { bakeProps } from '../../src/sharddev/bake/props';
 import { hashImmutableBytes } from '../../src/sdk/immutable';
 
 const root = resolve('src/shards/pastel-plain');

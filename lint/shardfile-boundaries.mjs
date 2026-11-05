@@ -48,7 +48,7 @@ function violation(root, file, source, computed, glob, rule) {
     return null;
   }
   if (rule === 'no-build-time-import') {
-    if (!file.startsWith('src/') || file.startsWith('src/commons/') || /^src\/sdk\/(?:cli|bake)\//u.test(file)) return null;
+    if (!file.startsWith('src/') || file.startsWith('src/commons/') || /^src\/sharddev\/(?:cli|bake)\//u.test(file)) return null;
     if (other === null || !BUILD.test(other[2])) {
       return computed && dest?.startsWith('src/shards/') && !build ? `Play code cannot compute a path into shard build-time folders: ${source}` : null;
     }

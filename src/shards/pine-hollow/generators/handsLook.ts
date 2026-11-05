@@ -1,6 +1,6 @@
 // Pine Hollow's first-person hands as data (SHARD-PLATFORM M3, the viewmodel system ../runtime/viewmodel/gloveHands):
 // the hunter's gloves on the Longbow, the crossbow and the lever-action (E322 F-M6, Jake's pick B: always on).
-import type { bakeGloveFist } from '@wildshard/sdk/bake/riderArms';
+import type { bakeGloveFist } from '@wildshard/sharddev/bake/riderArms';
 
 /** A palette key of the engine's arm builder (firstPersonArms). */
 export type ArmPaletteKey = keyof Parameters<typeof bakeGloveFist>[0];

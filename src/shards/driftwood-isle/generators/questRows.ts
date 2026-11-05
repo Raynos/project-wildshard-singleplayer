@@ -1,4 +1,4 @@
-import { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
+import { authorFormatRows } from '@wildshard/sharddev/formatJsonSchema';
 import { DRIFTWOOD_QUESTS, DRIFTWOOD_MARKERS } from './quests';
 import { QUEST_NPCS } from './questNpcs';
 import { QUEST_HOST } from './questHost';

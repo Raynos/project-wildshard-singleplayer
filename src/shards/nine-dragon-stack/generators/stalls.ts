@@ -8,7 +8,7 @@ import { Box3, type BufferGeometry, Color, Matrix4, Quaternion, Vector3 } from '
 import type { Ctx } from './ctx';
 import { E, K, Kit, type Look } from './kit';
 import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
-import type { Rng } from '@wildshard/sdk/random';
+import type { Rng } from '@wildshard/sharddev/random';
 import paint from '../data/paint.json' with { type: 'json' };
 import { person } from './heroFigures';
 import { KitX, curve, merge } from './kitx';

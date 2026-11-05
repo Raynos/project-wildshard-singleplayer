@@ -1,6 +1,6 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
-import { worldSceneTileGroups, worldSceneTileFiles, type AuthorSceneTileGroup, type AuthorSceneTileFiles } from '../src/sdk/worldScenes';
+import { worldSceneTileGroups, worldSceneTileFiles, type AuthorSceneTileGroup, type AuthorSceneTileFiles } from '../src/sharddev/worldScenes';
 
 test('scene tile groups retain native order, empty groups and detached ownership', () => {
   const original = v.record(v.string(), v.strictObject({ files: v.array(v.string()), resident: v.boolean() }));

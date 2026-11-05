@@ -1,5 +1,5 @@
 import { BoxGeometry, Group, Mesh, MeshStandardMaterial, TorusGeometry } from 'three';
-import { clientSceneGlb, type ClientSceneBake } from '@wildshard/sdk/bake/glb';
+import { clientSceneGlb, type ClientSceneBake } from '@wildshard/sharddev/bake/glb';
 import { risingIsletRows } from './risingIslets';
 import { skyIsletRigRows } from './isletRigRows';
 import { isletMotionRows } from './isletMotion';

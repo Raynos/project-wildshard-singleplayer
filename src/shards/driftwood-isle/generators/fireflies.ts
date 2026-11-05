@@ -6,7 +6,7 @@
  */
 import * as THREE from 'three';
 import { SEED } from './landscapeRows';
-import { Rng } from '@wildshard/sdk/random';
+import { Rng } from '@wildshard/sharddev/random';
 import { FIREFLY_COUNT } from './fireflyLook';
 
 /** a firefly quad's four corners, x then y (the graph scales and turns them to the camera) */

@@ -3,8 +3,8 @@ import { createRequire } from 'node:module';
 // oxlint-disable-next-line import/no-nodejs-modules -- Directory and bounded read controls keep native identity strict.
 import { readdirSync, realpathSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { decoderIdentity } from '../src/sdk/bake/basisEncoder';
-import { readBoundedFile } from '../src/sdk/sourceReader';
+import { decoderIdentity } from '../src/sharddev/bake/basisEncoder';
+import { readBoundedFile } from '../src/sharddev/sourceReader';
 
 const native = {
   require: createRequire, names: (path: string) => readdirSync(path),

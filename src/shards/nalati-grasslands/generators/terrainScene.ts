@@ -1,7 +1,7 @@
 import { BufferGeometry, Float32BufferAttribute, MeshBasicMaterial } from 'three';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
+import { compressGlb } from '@wildshard/sharddev/bake/glbCompression';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
 import { buildPainterlyGeometry, buildPainterlySlab, type TerrainPaintField, type TerrainPaintSource } from './terrainPainter';
 
 /** The original native sampler and arithmetic run offline, without a renderer or physics world. */

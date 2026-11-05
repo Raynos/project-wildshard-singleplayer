@@ -1,4 +1,4 @@
-import { worldEntryRows as parseWorldEntry } from '@wildshard/sdk/worldScenes';
+import { worldEntryRows as parseWorldEntry } from '@wildshard/sharddev/worldScenes';
 import { AddEquation, CustomBlending, OneFactor, ZeroFactor } from 'three';
 import canopy from '../data/canopy.json' with { type: 'json' };
 import light from '../data/light.json' with { type: 'json' };

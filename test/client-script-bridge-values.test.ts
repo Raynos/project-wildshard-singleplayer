@@ -1,5 +1,5 @@
 import { beforeAll, expect, test } from 'vitest';
-import { compileScript } from '@wildshard/sdk/compileScript';
+import { compileScript } from '@wildshard/sharddev/compileScript';
 import { createShardfileClientScripts as current, captureClientScriptPosition, type ShardfileClientScriptPorts } from '../src/game/client/shardfile/clientScripts';
 import { createShardfileClientScripts as before } from './fixtures/client-script-bridge-before';
 import { DeclaredScriptWorld } from '../src/engine/server/script/state';

@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "../../tsconfig.sharddev.json"
+    },
+    {
+      "path": "./tsconfig.test.json"
+    }
+  ]
+}

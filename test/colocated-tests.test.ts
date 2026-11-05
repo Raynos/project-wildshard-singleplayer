@@ -11,7 +11,7 @@ import { expect,test } from 'vitest';
 import { fastCommitLintConfig } from '../scripts/precommit-checks.mjs';
 import { readLintConfig } from '../scripts/guard-counts.mjs';
 
-for(const layer of ['engine','game','sdk','commons','shards','app']){
+for(const layer of ['engine','game','sdk','sharddev','commons','shards','app']){
  test(`the actual ${layer} test project owns units outside production`,()=>{
   const directory=layer==='app'?'src':`src/${layer}`;
   const units=readdirSync(directory,{recursive:layer!=='app',encoding:'utf8'})
@@ -30,7 +30,7 @@ for(const layer of ['engine','game','sdk','commons','shards','app']){
 test('every colocated source suite has exactly one owning test project',()=>{
  const suites=ts.sys.readDirectory(resolve('src'),['.ts'],['**/node_modules/**'],['**/*.test.ts']);
  const owners=new Map<string,string[]>();
- for(const layer of ['engine','game','sdk','commons','shards','app']){
+ for(const layer of ['engine','game','sdk','sharddev','commons','shards','app']){
   const file=layer==='app'?'src/tsconfig.test.json':`src/${layer}/tsconfig.test.json`;
   const parsed=ts.getParsedCommandLineOfConfigFile(resolve(file),{},
    {...ts.sys,onUnRecoverableConfigFileDiagnostic:diagnostic=>{throw new Error(ts.flattenDiagnosticMessageText(diagnostic.messageText,'\n'));}});

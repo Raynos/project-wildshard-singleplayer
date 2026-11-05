@@ -1,4 +1,4 @@
-import type { BoxColliderData } from '@wildshard/sdk/physics';
+import type { BoxColliderData } from '@wildshard/sharddev/physics';
 import { RIDGES, SEED } from "./layout";
 import { SIGNAL_SPAWNS } from './rows/spawns';
 import STRINGS from '../data/strings.json' with { type: 'json' };

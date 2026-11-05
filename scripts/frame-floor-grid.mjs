@@ -1,4 +1,4 @@
-import '../src/sdk/bake/format-hook.mjs';
+import '../src/sharddev/bake/format-hook.mjs';
 
 const { CHUNK_HALF, ENTRY_ASPHALT } = await import('@wildshard/engine/core/config');
 /** a home exit socket's centre from its cell centre (metres): the socket floor sits at the highway level */

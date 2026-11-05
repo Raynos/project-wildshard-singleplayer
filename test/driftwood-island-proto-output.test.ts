@@ -4,10 +4,10 @@ import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSyn
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
+import { createProjectGeneration, type ProjectGenerationContext } from '../src/sharddev/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
-import type { EmittedBlobs } from '../src/sdk/blobs';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
+import type { EmittedBlobs } from '../src/sharddev/blobs';
 import { ISLAND_PROTO_INPUTS, driftwoodIslandProtoOutput, driftwoodIslandProtoSource } from '../src/shards/driftwood-isle/generators/islandProtoProgram';
 
 /** The one prototype GLB the output publishes, named by its own bytes; its hash. */

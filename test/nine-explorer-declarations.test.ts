@@ -15,7 +15,7 @@ import heldCards from '../src/shards/nine-dragon-stack/data/heldCards.json' with
 import heldPrimary from '../src/shards/nine-dragon-stack/data/heldPrimary.json' with { type: 'json' };
 import manifest from '../src/shards/nine-dragon-stack/manifest.json' with { type: 'json' };
 import { NINE_HELD_CARDS } from '../src/shards/nine-dragon-stack/generators/explorerDeclarations';
-import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
+import { registeredJsonSchema } from '../src/sharddev/formatJsonSchema';
 
 const decode = (bytes: Uint8Array): unknown => JSON.parse(new TextDecoder().decode(bytes));
 function section(name: string): unknown {

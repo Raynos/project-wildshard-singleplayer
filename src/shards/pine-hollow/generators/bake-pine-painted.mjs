@@ -7,12 +7,12 @@
 // on the same page by ./undergrowthPaintPage.ts. Every file is named by its SHA-256 under public/assets/pine-hollow/painted/, and
 // ../data/paintedTextures.json (GR8 / D2: committed with the PNGs) holds their URLs, colour spaces and wraps, and the chalk atlas's layout.
 //
-//   scripts/browser-lane.sh node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs \
+//   scripts/browser-lane.sh node --experimental-transform-types --import ./src/sharddev/bake/source-loader.mjs \
 //     src/shards/pine-hollow/generators/bake-pine-painted.mjs [--check]
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
-import { bundleNativeRaster, openNativeRasterPage } from '@wildshard/sdk/bake/nativeRaster';
-import { writeImagePixels } from '@wildshard/sdk/bake/image';
+import { bundleNativeRaster, openNativeRasterPage } from '@wildshard/sharddev/bake/nativeRaster';
+import { writeImagePixels } from '@wildshard/sharddev/bake/image';
 import { COAT_SIZE, coatPixels } from './coatCanvas.ts';
 
 const ROOT = new URL('../../../../', import.meta.url);

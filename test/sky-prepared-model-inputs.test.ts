@@ -1,6 +1,6 @@
 import { SKY_MAP_INPUTS } from '../src/shards/far-reach/generators/bake-map.mjs';
 import { skyHeroLibrarySource, skyHeroLibraryProgram, HERO_LIBRARY_INPUTS } from '../src/shards/far-reach/generators/heroLibrary';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own only the isolated cold cache and matching omission catalogue.
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine real producer fixtures to repository scratch.

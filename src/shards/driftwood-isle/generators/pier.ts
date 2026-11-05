@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type {Rng} from '@wildshard/sdk/random';
+import type {Rng} from '@wildshard/sharddev/random';
 import type {PierParams,PierSpec} from './pierContract';
 import {pierDeckAt,pierHalfWidthAt,pierPosts} from './pierLayout';
 

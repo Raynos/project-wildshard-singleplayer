@@ -1,11 +1,11 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
-import type { AuthorMapPalette } from '../src/sdk/bake/mapRaster';
+import type { AuthorMapPalette } from '../src/sharddev/bake/mapRaster';
 import type { MapPaletteRow } from '@wildshard/format/minimap';
 import type { GroundRows } from '@wildshard/format/terrain';
 import type { ScalarLatticeRows, ScalarTripletRows } from '@wildshard/format/scalarChannel';
 import type { GeographyRows } from '../src/shards/nalati-grasslands/data/geographyTypes';
-import { toonHeldArmsRows } from '../src/sdk/rows';
+import { toonHeldArmsRows } from '../src/sharddev/rows';
 import { HeldArmsSchema } from '@wildshard/format/heldArms';
 
 function outcome(run: () => unknown): unknown {

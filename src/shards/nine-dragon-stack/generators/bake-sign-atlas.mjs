@@ -3,10 +3,10 @@ import { fixedKitRows, readFixedSlots } from './casts.ts';
 // Native WebKit reference raster; portable product intake reads these retained bytes.
 import { resolve } from 'node:path';
 import rawSignRows from '../data/signView.json' with { type: 'json' };
-import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
-import { openNativeRaster, bundleNativeRaster } from '@wildshard/sdk/bake/nativeRaster';
+import { encodeBuildBytes } from '@wildshard/sharddev/bake/byteCodec';
+import { openNativeRaster, bundleNativeRaster } from '@wildshard/sharddev/bake/nativeRaster';
 import { byteWriter, outputHash, browserBakeBytes } from '../../../../scripts/bake-output.mjs';
-import { readImagePixels } from '@wildshard/sdk/bake/image';
+import { readImagePixels } from '@wildshard/sharddev/bake/image';
 import { parseSignView } from './sections.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');

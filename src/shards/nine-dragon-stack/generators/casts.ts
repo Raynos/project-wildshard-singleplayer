@@ -1,14 +1,14 @@
 import { type BufferGeometry, Float32BufferAttribute, MeshStandardMaterial, Vector3 } from 'three';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
 import type { Cast, PreparedGeometry } from '../data/casts';
 import castRows from '../data/casts.json' with { type: 'json' };
 import { loadPropGlb, propGlbBox } from './propGlb';
 import { guardMatrix } from './propFrame';
 import { SignRecorder } from './layout';
-import { recordedSignGroups } from '@wildshard/sdk/bake/signPlacements';
+import { recordedSignGroups } from '@wildshard/sharddev/bake/signPlacements';
 import { Ctx } from './ctx';
 import { buildEntryDecks } from './entries';
-import { Rng } from '@wildshard/sdk/random';
+import { Rng } from '@wildshard/sharddev/random';
 import { WORDS } from './words';
 
 const { CAST_CHANNELS } = castRows;

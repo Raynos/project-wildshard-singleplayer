@@ -1,5 +1,5 @@
-import { parseAudioData, type AudioData } from '@wildshard/sdk/audio';
-import { clientPlanSection } from '@wildshard/sdk/platformSections';
+import { parseAudioData, type AudioData } from '@wildshard/sharddev/audio';
+import { clientPlanSection } from '@wildshard/sharddev/platformSections';
 
 /** Real sound anchors in plot-local metres, supplied by the tile layout owner. */
 export interface PlotAudioSpot { readonly id: string; readonly x: number; readonly z: number; readonly reach: number }

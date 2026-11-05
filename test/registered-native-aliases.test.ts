@@ -5,9 +5,9 @@ import {ForestPageSchema} from '@wildshard/format/forestPage';
 import {PosedLibrarySchema} from '@wildshard/format/namedJsonContracts';
 import {WorldSceneWeldSchema} from '@wildshard/format/worldSceneWeld';
 import {registeredJsonContract,validateRegisteredJson} from '@wildshard/format/registeredJson';
-import {registeredJsonSchema,namedJsonSchema} from '../src/sdk/formatJsonSchema';
-import {nameBlob} from '../src/sdk/blobs';
-import {emptyShardfile} from '../src/sdk/author';
+import {registeredJsonSchema,namedJsonSchema} from '../src/sharddev/formatJsonSchema';
+import {nameBlob} from '../src/sharddev/blobs';
+import {emptyShardfile} from '../src/sharddev/author';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {fixtureJsonCheck} from './fixtures/productFile';
 

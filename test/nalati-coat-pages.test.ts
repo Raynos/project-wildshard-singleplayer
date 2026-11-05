@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native byte comparison avoids recursively visiting millions of PNG byte properties.
 import { Buffer } from 'node:buffer';
 import { expect, it } from 'vitest';
-import { readImagePixels } from '@wildshard/sdk/bake/image';
+import { readImagePixels } from '@wildshard/sharddev/bake/image';
 import { produceNalatiCoats } from '../src/shards/nalati-grasslands/generators/coats';
 import { nalatiCoatInputs } from '../scripts/bake/nalatiCoats.mjs';
 import { readCoatFiles, writeCoatFiles } from '../scripts/bake/coatFiles.mjs';

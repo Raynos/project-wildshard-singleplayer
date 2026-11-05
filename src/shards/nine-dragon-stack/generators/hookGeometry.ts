@@ -1,5 +1,5 @@
 import { type BufferGeometry, Float32BufferAttribute, Mesh, type Object3D } from 'three';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
 
 /** Preserve the native sculpt's widening and node-transform order before writing its exact typed channels. */
 export async function hookGeometry(read: (url: string) => Uint8Array): Promise<BufferGeometry> {

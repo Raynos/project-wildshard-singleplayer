@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
-import { recordedSignGroups } from '../src/sdk/bake/signPlacements';
+import { recordedSignGroups } from '../src/sharddev/bake/signPlacements';
 import { readFixedSlots } from '../src/shards/nine-dragon-stack/generators/casts';
 
 const vector = v.tuple([v.number(), v.number(), v.number()]);

@@ -7,7 +7,7 @@ test('kit models retint by palette slot, turn and stretch in place, and refuse w
   const program = `import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {prepareModelKit} from ${JSON.stringify(glb)};
-import {normalizeWorldGlb} from ${JSON.stringify(new URL('../src/sdk/bake/world.ts', import.meta.url).href)};
+import {normalizeWorldGlb} from ${JSON.stringify(new URL('../src/sharddev/bake/world.ts', import.meta.url).href)};
 const bytes=new Uint8Array(readFileSync('public/assets/open-plots/kit/lanterns.glb'));
 const writer=()=>{const w={tris:[],lights:[]};w.triChannels=(role,points,colours,normals,uvs)=>w.tris.push({role,points,colours,normals,uvs});w.lanternEmitter=(at,colour)=>w.lights.push({at,colour});return w;};
 const red=[0.5,0,0],kit=await prepareModelKit({stone:red},new Map([['lanterns',bytes]]),normalizeWorldGlb);

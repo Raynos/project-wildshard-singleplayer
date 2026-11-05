@@ -117,7 +117,7 @@ function inventoryDebugFlags(root, cacheDir, sourceOnly = false) {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       const file = resolve(dir, entry.name);
       // The SDK ships copied clients and author templates here; their defining sources are inventoried instead.
-      if (entry.isDirectory()) { if (file !== resolve(root, 'src/sdk/dist')) scan(file); continue; }
+      if (entry.isDirectory()) { if (file !== resolve(root, 'src/sharddev/dist')) scan(file); continue; }
       if (!/\.[cm]?[jt]sx?$/u.test(file) || sourceOnly && /\.generated\.[cm]?[jt]sx?$/u.test(file)) continue;
       const source = readFileSync(file, 'utf8');
       const key = recipe === null ? null : hash(JSON.stringify([recipe, relative(root, file), source]));

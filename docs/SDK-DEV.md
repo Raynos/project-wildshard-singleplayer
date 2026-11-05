@@ -2,7 +2,7 @@
 
 The weapon audio recipes (`sharedWeaponVoices`, `declaredWeaponVoices`) and the equipment
 cue router (`sharedCombatCues`) live in the game, `@wildshard/game/plugin/audio`; LD10 retired
-their `@wildshard/sdk/runtime/audio/*` wrappers. `@wildshard/game/systems/audio/silentScore`
+their `@wildshard/sharddev/runtime/audio/*` wrappers. `@wildshard/game/systems/audio/silentScore`
 mutes only the score output and restores its previous gain on disposal.
 
 The first-person arm player, clip alias tables and arm IK measures are the defining
@@ -12,7 +12,7 @@ The [SDK API catalogue](api/SDK.md) is generated from the package's defining pub
 modules and their JSDoc. The [schema and ABI reference](api/SHARDFILE.md) lists every
 compiled shardfile field, every public SDK `*Schema` constant (including the
 build-only `WorldSourceSchema`), and every admitted Wasm import/export call.
-SDK schema paths use `$sdk["./module"].Schema`; `$` is the compiled shardfile.
+SDK schema paths use `$sharddev["./module"].Schema`; `$` is the compiled shardfile.
 Types, optionality, defaults, literals, union branches and bounds come from the
 actual accepting schemas. New public schema constants are discovered through
 `src/sdk/package.json`; they cannot silently miss the reference. Missing,
@@ -39,12 +39,12 @@ shard data/asset product is the same format in both modes.
 GR1 build programs may export a default function, or a named `generate(ctx)`
 while direct readers still use the default declaration. The SDK invokes it
 before ordinary shardfile admission. `ProjectGenerationContext` is defined in
-`@wildshard/sdk/projectGeneration`: `ctx.asset(bytes)` detaches and registers
+`@wildshard/sharddev/projectGeneration`: `ctx.asset(bytes)` detaches and registers
 content-addressed bytes, and `ctx.cached({id, inputs?, native?}, generate)`
 returns named byte files. The step receives detached declared input bytes;
 JSON metadata is encoded as a file alongside binary outputs, never as base64.
 Shared named documents use `registeredJsonSchema(name)` from
-`@wildshard/sdk/formatJsonSchema`. The exact names and defining contracts are
+`@wildshard/sharddev/formatJsonSchema`. The exact names and defining contracts are
 registered in `@wildshard/format/registeredJson`; `product.json(name)` infers
 their types, checks their provenance and retains the original consumer
 validation without rewriting decoded values. The inferred type is the wire
@@ -69,7 +69,7 @@ capabilities for I/O rather than importing filesystem modules into the entry.
 
 ### Streamed placement pages
 
-`worldScenePlacementPages(id, rows)` from `@wildshard/sdk/worldScenes`
+`worldScenePlacementPages(id, rows)` from `@wildshard/sharddev/worldScenes`
 groups up to 128 complete native placements into pages of at most 16
 rows under `world/placement-pages/`. Pages never mix device membership;
 the returned placement references retain the original order, ids and
@@ -167,9 +167,9 @@ allocating duplicates. Borrowed snapshots belong to the client world owner.
 The ten starter harvest rows (ids, labels, icons and travel flags) are authored
 once in `src/game/server/bag/starterItems.json`. The game expands them into a gitignored
 literal table during every `pnpm gen`. Trusted runtimes normalize bag metadata through
-`@wildshard/sdk/bag.normalizeItemRow`, whose default remains `travels: false`.
+`@wildshard/sharddev/bag.normalizeItemRow`, whose default remains `travels: false`.
 
-`@wildshard/sdk/runtime/effects.bindPlayerEffects` exposes the engine's existing
+`@wildshard/sharddev/runtime/effects.bindPlayerEffects` exposes the engine's existing
 scope-owned status binding directly: movement lock/scale use independent channels,
 periodic damage uses the supplied combat pipeline, and death/disposal cleanup ends
 with the owner. It adds no HUD or visual policy; status-icon presentation stays
@@ -178,7 +178,7 @@ separate. Importing the module installs nothing.
 The five existing status rows are authored once in
 `src/game/server/systems/effects/starterRows.json`. The normal boot-table generator
 expands them into a literal game table. Trusted runtimes read it through
-`@wildshard/sdk/runtime/effects.STARTER_EFFECTS`; the engine checks the typed row
+`@wildshard/sharddev/runtime/effects.STARTER_EFFECTS`; the engine checks the typed row
 contract, and neither import installs or applies an effect. Stun / burn / poison /
 bleed / slow tuning, damage cadence, stacking and cue/icon ids stay unchanged.
 

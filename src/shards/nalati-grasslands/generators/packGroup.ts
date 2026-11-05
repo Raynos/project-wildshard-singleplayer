@@ -1,6 +1,6 @@
 // R10b: the shared pasture programme's groups: the herd's main rows (data/herdGroup.json) and the wolf pack's profile,
 // matching behaviour/pack.as's indices.
-import type { AuthorGroupStepProfile as GroupStepProfileV2 } from '@wildshard/sdk/decisionScripts';
+import type { AuthorGroupStepProfile as GroupStepProfileV2 } from '@wildshard/sharddev/decisionScripts';
 
 type ObservationColumnV2 = GroupStepProfileV2['columns'][number];
 

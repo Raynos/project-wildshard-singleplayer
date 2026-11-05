@@ -12,12 +12,12 @@ import { build } from '../scripts/shardfile-vite.mjs';
 import recurve from '../public/assets/nalati/baked/recurve-pool.json' with { type:'json' };
 import { HeldBowFileSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
 import { bindHeldBow } from '../src/game/client/weapons/heldLauncher';
-import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
+import { registeredJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { fixtureJsonCheck } from './fixtures/productFile';
-import { nameBlob } from '../src/sdk/blobs';
+import { nameBlob } from '../src/sharddev/blobs';
 import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 
 const encode=(input:unknown):Uint8Array=>new TextEncoder().encode(`${JSON.stringify(input)}\n`);
 const schema=registeredJsonSchema('weapons/bow-page.json');

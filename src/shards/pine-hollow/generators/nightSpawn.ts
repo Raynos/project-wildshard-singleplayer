@@ -1,6 +1,6 @@
 
-import { Rng } from '@wildshard/sdk/random';
-import { parseSpawnScript, spawnRegistries as spawnScriptRegistries, type SpawnScript as SpawnScriptRowsType } from '@wildshard/sdk/rows';
+import { Rng } from '@wildshard/sharddev/random';
+import { parseSpawnScript, spawnRegistries as spawnScriptRegistries, type SpawnScript as SpawnScriptRowsType } from '@wildshard/sharddev/rows';
 import { pineNightSpec } from './nightSpec';
 import tuning from '../data/populationWaves.json' with { type: 'json' };
 import rule from '../data/populationNight.json' with { type: 'json' };

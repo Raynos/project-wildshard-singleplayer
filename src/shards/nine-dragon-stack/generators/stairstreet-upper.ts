@@ -31,7 +31,7 @@ import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import { ASHLAR, COPING, FLOWER_COLS, ICO0, landingPlanter, leafBush, leafLook, leafQuad, tint } from './landingPlanter';
 import dims from '../data/specimenDims.json' with { type: 'json' };
 import { MIN, NEON } from './util';
-import { Rng } from '@wildshard/sdk/random';
+import { Rng } from '@wildshard/sharddev/random';
 
 const SURF = paint.surfaces;
 

@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Bind only the author project's explicit public input root.
 import { resolve } from 'node:path';
-import { createProjectGeneration } from '../../src/sdk/projectGeneration';
+import { createProjectGeneration } from '../../src/sharddev/projectGeneration';
 import { nineBootProgram } from '../../src/shards/nine-dragon-stack/generators/bootDiscovery';
 
 /** Actual source operation using current presence facts; creates no intermediate output or cache entry. */

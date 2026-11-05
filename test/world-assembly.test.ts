@@ -1,4 +1,4 @@
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { SceneDressing } from '../src/game/client/shardfile/sceneDressing';
 import { installClientPlaceSets, requireClientPlaceSetsBound } from '../src/game/client/shardfile/clientPlaceSets';

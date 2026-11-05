@@ -164,8 +164,8 @@ class PreparedProducts(unittest.TestCase):
         self.assertEqual(json.loads((self.root / words).read_text())['slugs'], ['fictional'])
         repo = Path(__file__).resolve().parents[1]
         probe = f"""
-          import {{projectDecisionBudget}} from '{(repo / 'src/sdk/projectPolicy.ts').as_uri()}';
-          import {{decisionLineCeiling}} from '{(repo / 'src/sdk/buildDecisionScripts.ts').as_uri()}';
+          import {{projectDecisionBudget}} from '{(repo / 'src/sharddev/projectPolicy.ts').as_uri()}';
+          import {{decisionLineCeiling}} from '{(repo / 'src/sharddev/buildDecisionScripts.ts').as_uri()}';
           const ceiling = decisionLineCeiling({{decisionLegacyLines: projectDecisionBudget(process.argv[1])}});
           if (ceiling !== 10) throw new Error('Restored policy did not reach decision admission');
         """

@@ -1,4 +1,4 @@
-import { ClientChannels } from '@wildshard/sdk/clientChannels';
+import { ClientChannels } from '@wildshard/sharddev/clientChannels';
 
 const drift = new ClientChannels('nalati-far-horse.drift');
 const x = drift.read('x'), z = drift.read('z'), yaw = drift.read('yaw'), turn = drift.read('turn'), speed = drift.read('speed');

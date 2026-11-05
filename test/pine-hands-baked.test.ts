@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { readPineProject } from './fixtures/pine-project';
 import { HeldEquipmentSchema } from '@wildshard/format/heldEquipment';
-import { outputPlatformPayloads } from '../src/sdk/outputProduct';
+import { outputPlatformPayloads } from '../src/sharddev/outputProduct';
 import { HUNTER_HANDS, HANDS_MATERIAL, COAT_MATERIAL } from '../src/shards/pine-hollow/generators/handsLook';
 import { LONGBOW_LOOK, type ArrowLook, type StaveBowLook } from '../src/shards/pine-hollow/generators/longbowLook';
 import { StaveBowLookSchema, type ArrowLook as OriginalArrowLook, type StaveBowLook as OriginalStaveBowLook } from './fixtures/pine-longbow-look';

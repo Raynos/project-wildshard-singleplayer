@@ -1,4 +1,4 @@
-import { parseQuestData } from '@wildshard/sdk/quests';
+import { parseQuestData } from '@wildshard/sharddev/quests';
 import { DECK, ROOST, SPAWN, VANES, WINCH } from "./layout";
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import FLAGS from '../data/flags.json' with { type: 'json' };

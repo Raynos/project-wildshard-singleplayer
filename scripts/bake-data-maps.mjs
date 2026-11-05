@@ -4,11 +4,11 @@ import { createRequire } from 'node:module';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { MapRaster } from '../src/sdk/bake/mapRaster.ts';
+import { MapRaster } from '../src/sharddev/bake/mapRaster.ts';
 import { readMapGeometry, stylizeMap } from './map-painter.mjs';
 import { MAP_METRES, mapPixelHash, mapSettingsPath, mapStampPath, mapShards, mapTilesHash } from './map-hash.mjs';
 
-const sharp = createRequire(new URL('../src/sdk/package.json', import.meta.url))('sharp');
+const sharp = createRequire(new URL('../src/sharddev/package.json', import.meta.url))('sharp');
 const json = file => JSON.parse(readFileSync(file, 'utf8'));
 
 /** Rasterize declared map geometry into owned RGBA without publishing an image or stamp.
@@ -17,7 +17,7 @@ export async function rasterDataMap(settings, data, { output, glbs, label = 'map
   const painter = settings.painter;
   if (painter?.version !== 1 || settings.style === undefined) throw new Error(`${label}: missing data map painter declaration`);
   const raster = new MapRaster(1000, settings, readMapGeometry);
-  const { paintMapGeometry } = await import('../src/sdk/bake/mapScenes.ts');
+  const { paintMapGeometry } = await import('../src/sharddev/bake/mapScenes.ts');
   const source = data.input;
   await paintMapGeometry(raster, settings, { input: source, model: url => source(`../../../public${url}`), json: data.json, bytes: data.bytes }, { output, glbs, label });
   const own = output === undefined ? undefined : settings.outputs?.[output];

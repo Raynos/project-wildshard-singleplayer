@@ -1,7 +1,7 @@
 // The same retained terrain binding as the native level: original WSTR samples plus its authored datum.
 // Explicit function call only; import selects no world, service or level.
 import { Vector3 } from 'three';
-import { withFacetedAO } from '@wildshard/sdk/bake/facetedGeometry';
+import { withFacetedAO } from '@wildshard/sharddev/bake/facetedGeometry';
 import { driftwoodGroundSampler } from './groundSampling.ts';
 import { coveGeometry } from './cove.ts';
 import { coveNative } from './coveNative.ts';

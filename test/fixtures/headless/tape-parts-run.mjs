@@ -8,7 +8,7 @@ import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {HeadlessSimulation} from '../../../src/sdk/headless.ts';
 import {TickWorkerHost} from '../../../src/sdk/tickWorkerHost.ts';
-import {emptyShardfile} from '../../../src/sdk/author.ts';
+import {emptyShardfile} from '../../../src/sharddev/author.ts';
 
 const source=emptyShardfile({slug:'tape-parts-fixture',name:'Tape parts',author:'Test',revision:1,seed:417});
 source.serverBudget.commandsPerTick=1;

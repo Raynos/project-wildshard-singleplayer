@@ -1,6 +1,6 @@
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import decision from '../data/bossDecision.json' with { type: 'json' };
 import moves from '../data/moves.json' with { type: 'json' };
 import creatures from '../data/creatures.json' with { type: 'json' };

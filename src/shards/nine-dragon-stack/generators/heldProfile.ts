@@ -1,5 +1,5 @@
-import { bakeRawColourPixels } from '@wildshard/sdk/bake/rawTexture';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import { bakeRawColourPixels } from '@wildshard/sharddev/bake/rawTexture';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { parseHeldMeshes, parseHeldRigSource, type NineHeldMesh } from './sections';
 
 /** Existing authored rig, read only through the build's declared public asset root. */

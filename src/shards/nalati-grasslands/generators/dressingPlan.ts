@@ -17,7 +17,7 @@
  *   · each instance carries its own draw distance: small things go early, and inside a drift the outer clumps go
  *     before the heart, so a drift shrinks to its core with distance instead of vanishing at a ring
  */
-import { Rng } from '@wildshard/sdk/random';
+import { Rng } from '@wildshard/sharddev/random';
 import type { PlaceRow } from './placeRows';
 
 interface Box { x: number; z: number; hw: number; hd: number; rot: number; yBottom: number; yTop: number; ghost?: true }

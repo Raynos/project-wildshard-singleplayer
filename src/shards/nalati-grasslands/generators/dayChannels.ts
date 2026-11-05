@@ -1,5 +1,5 @@
-import { ClientChannels } from '@wildshard/sdk/clientChannels';
-import { parseClientChannels } from '@wildshard/sdk/rows';
+import { ClientChannels } from '@wildshard/sharddev/clientChannels';
+import { parseClientChannels } from '@wildshard/sharddev/rows';
 
 type RGB = [number, number, number];
 

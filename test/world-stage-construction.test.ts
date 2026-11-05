@@ -17,7 +17,7 @@ import { entryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { SceneDressing } from '../src/game/client/shardfile/sceneDressing';
 import * as arena from '../src/game/client/boss/arenaRoomView';
 import type { ArenaRoomEncounter } from '../src/game/client/boss/arenaRoom';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { WorldAssembly, type WorldConstructionPorts } from '../src/game/client/shardfile/worldAssembly';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 

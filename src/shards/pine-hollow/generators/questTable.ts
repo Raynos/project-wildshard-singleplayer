@@ -14,7 +14,7 @@
  *
  * Placement is world coordinates (`poi: 'world'`); `y` pins heights on the tower (its deck), the rest sit on the floor.
  */
-import { bindInteractionPlacements as bindInteractPlacements, readInteractionPlacements as readInteractPlacements } from '@wildshard/sdk/interactions';
+import { bindInteractionPlacements as bindInteractPlacements, readInteractionPlacements as readInteractPlacements } from '@wildshard/sharddev/interactions';
 
 import { RESIN_FLAG, TOKEN_FLAG, TOKEN_NAMES } from './interactions';
 

@@ -11,11 +11,11 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
-import { bakePlank as plank } from '@wildshard/sdk/bake/primitives';
-import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
-import { readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
-import { sharedPickupCatalogue } from '@wildshard/sdk/bake/specimenCatalogue';
+import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sharddev/kit/geometryPack';
+import { bakePlank as plank } from '@wildshard/sharddev/bake/primitives';
+import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sharddev/bake/facetedGeometry';
+import { readBakedGeometry } from '@wildshard/sharddev/kit/bakedGeometry';
+import { sharedPickupCatalogue } from '@wildshard/sharddev/bake/specimenCatalogue';
 import HOLLOW_LOG_SHAPE from '../data/hollowLog.json' with { type: 'json' }; // length, outer and bore radius (m), the rotted bed's depth
 import * as LAYOUT from './layout';
 import type { TimberWorld } from './timberWorldRows';

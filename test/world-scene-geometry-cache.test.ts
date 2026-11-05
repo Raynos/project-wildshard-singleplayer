@@ -7,7 +7,7 @@ import { CONTENT_CAPS } from '../src/engine/shared/core/config';
 import { AssetResidencyBridge } from '../src/game/client/grid/assetResidency';
 import { ResidencyAllocator } from '../src/game/shared/grid/allocator';
 import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
-import { staticGlb } from '../src/sdk/bake/glb';
+import { staticGlb } from '../src/sharddev/bake/glb';
 import { cachedWorldSceneGeometry, readWorldSceneGeometries, readWorldSceneGeometry } from '../src/game/client/shardfile/worldSceneGeometry';
 import { createOwnedGeometry } from '../src/engine/client/models/ownedGeometry';
 import { PreparationReads } from '../src/game/client/shardfile/preparationReads';

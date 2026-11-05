@@ -1,6 +1,6 @@
 import { RAM_DATA, DIVE_DATA, BURST_DATA } from './strikes';
-import type { BrainedSpecies } from '@wildshard/sdk/speciesBrains';
-import type { StrikeData } from '@wildshard/sdk/species';
+import type { BrainedSpecies } from '@wildshard/sharddev/speciesBrains';
+import type { StrikeData } from '@wildshard/sharddev/species';
 import * as LAYOUT from '../layout';
 import { SKY_GOAT_DATA, DRIFT_RAY_DATA, GALE_WISP_DATA, STORM_ROC_DATA } from './species';
 

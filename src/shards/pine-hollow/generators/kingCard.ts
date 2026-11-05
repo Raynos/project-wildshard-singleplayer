@@ -1,5 +1,5 @@
 
-import { socketRigCreatureRows } from '@wildshard/sdk/species';
+import { socketRigCreatureRows } from '@wildshard/sharddev/species';
 import authoredLook from '../data/antlerKingLook.json' with { type: 'json' };
 
 /** The original King card and coat. The existing socket rig host dresses its specimen and live body. */

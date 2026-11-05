@@ -1,6 +1,6 @@
 import { SKY_PAINTED } from './rows/skyPaintedLook';
-import { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
-import { checkAuthorGraph } from '@wildshard/sdk/bake/materialGraph';
+import { authorFormatRows } from '@wildshard/sharddev/formatJsonSchema';
+import { checkAuthorGraph } from '@wildshard/sharddev/bake/materialGraph';
 import { SKY_WORLD_PREPARATION } from './worldTextures';
 
 type PaintedLookRow = ReturnType<typeof authorFormatRows<'paintedLook.PaintedLookSchema'>>;

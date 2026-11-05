@@ -10,7 +10,7 @@ import { publishShardState } from '../src/engine/shared/sim/shardRows';
 import { directLoopback } from '../src/engine/test/netLoopback';
 import { DeclaredScriptWorld } from '../src/engine/server/script/state';
 import { MoverScriptDriver } from '../src/game/server/plugin/mover';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { canoeMover } from '../src/shards/pine-hollow/generators/canoe';
 import { timberWorld } from '../src/shards/pine-hollow/generators/timberWorldRows';
 import { PINE_SOURCES } from './fixtures/pine-sources';

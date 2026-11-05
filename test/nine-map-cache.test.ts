@@ -6,8 +6,8 @@ import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { afterAll, expect, test } from 'vitest';
 import { build } from 'vite';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import { nineCastsProgram } from '../src/shards/nine-dragon-stack/generators/castsProgram';
 import { nineMap, nineMapPixels, NINE_MAP_INPUTS } from '../src/shards/nine-dragon-stack/generators/mapProgram';
 

@@ -1,8 +1,8 @@
 import type { NineHeldInputs } from './heldGraphFiles';
 import { JIAN_GEOMETRY } from './jianGeometry';
-import { privateSceneRows as parsePrivateScene } from '@wildshard/sdk/worldScenes';
-import { graphArmsRows as parseGraphArms } from '@wildshard/sdk/rows';
-import { namedFormatJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { privateSceneRows as parsePrivateScene } from '@wildshard/sharddev/worldScenes';
+import { graphArmsRows as parseGraphArms } from '@wildshard/sharddev/rows';
+import { namedFormatJsonSchema } from '@wildshard/sharddev/formatJsonSchema';
 import pendants from '../data/heldPendants.json' with { type: 'json' };
 import arms from '../data/arms.json' with { type: 'json' };
 

@@ -1,4 +1,4 @@
-import '../src/sdk/bake/format-hook.mjs';
+import '../src/sharddev/bake/format-hook.mjs';
 
 const { CHUNK_HALF } = await import('@wildshard/format/contentBounds');
 

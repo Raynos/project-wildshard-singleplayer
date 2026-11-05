@@ -1,6 +1,6 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { parseGlb, parseKtx2 } from '@wildshard/sdk/assets';
-import { bakeRawColourPixels } from '@wildshard/sdk/bake/rawTexture';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { parseGlb, parseKtx2 } from '@wildshard/sharddev/assets';
+import { bakeRawColourPixels } from '@wildshard/sharddev/bake/rawTexture';
 import { MODEL_FILES, bakeModelPaint } from './modelPaint.mjs';
 import { nalatiModelSourceParts } from './modelSourceParts';
 

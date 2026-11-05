@@ -3,9 +3,9 @@ import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve repository scratch without borrowing the shared cache.
 import { resolve } from 'node:path';
 import { expect, test, vi } from 'vitest';
-import * as codec from '../src/sdk/bake/byteCodec';
-import { encodeZstdBytesMemo } from '../src/sdk/bake/zstdBytesMemo';
-import { bakeRawColourPixels } from '../src/sdk/bake/rawTexture';
+import * as codec from '../src/sharddev/bake/byteCodec';
+import { encodeZstdBytesMemo } from '../src/sharddev/bake/zstdBytesMemo';
+import { bakeRawColourPixels } from '../src/sharddev/bake/rawTexture';
 
 function isolated(run: (root: string) => void): void {
   mkdirSync('tmp', { recursive: true });

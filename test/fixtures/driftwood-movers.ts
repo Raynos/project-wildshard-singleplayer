@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the tracked predecessor header without importing JSON into the compiler.
 import { readFileSync } from 'node:fs';
-import { parseMoverRows } from '../../src/sdk/movers';
+import { parseMoverRows } from '../../src/sharddev/movers';
 
 /** Exact independent predecessor field order for the complete wire hash control. */
 export function originalDriftwoodMoverTransport(): unknown {

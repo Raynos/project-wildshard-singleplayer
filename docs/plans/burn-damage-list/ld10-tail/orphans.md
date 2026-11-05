@@ -13,7 +13,7 @@ workers, `import.meta.glob`, `?worker`, every `@wildshard/<layer>/<key>` through
 and string loads (`'src/engine/…'`, `./src/sdk/…`, and the short `src('engine/…ts')` / `imp('src/…')` helpers used by
 `scripts/bake/worldHost.mjs` and `scripts/blender/lib/export-scene.mjs`). Comments are blanked before string matching.
 Root classes: app (index.html, native.html, calibration/index.html → identity, sw, RotateGate, entry, Update, native,
-calibrate), tools (scripts, lint, art, admin, api, site, vite, configs, `src/sdk/bin`, `src/sdk/cli.ts`, shell/yml text),
+calibrate), tools (scripts, lint, art, admin, api, site, vite, configs, `src/sharddev/bin`, `src/sharddev/cli.ts`, shell/yml text),
 shard author code (`src/shards/**`), tests (`test/**`, `*.test.ts`, `src/*/test/**`), weak (`progress/`, `drafts/`;
 none of the results below depends on a weak root). 1,836 of 2,028 layer modules are reached from the app.
 Scripts: `tmp/qd7-ld10/work/{graph,analyze,exports}.mjs`; raw data `graph.json`, `analysis.json`, `exports.json`.
@@ -32,7 +32,7 @@ Not candidates (listed so nobody deletes them):
   audio/codecs.merge.d.ts,boot/swGlobal.d.ts,physics/rapier-bg.d.ts,types/meshopt-simplifier.d.ts,types/n8ao.d.ts}`,
   `src/game/{equipmentTypes,icons,items,nativeItems,population,rng}.merge.d.ts`,
   `src/game/{audio/sceneEvents,plugin/moverEvents,weather/weatherEvents}.merge.d.ts`, `src/game/client/debug/browser.d.ts`,
-  `src/game/client/grid/mapAtlas.build.d.ts`, `src/sdk/assemblyscriptCompiler.d.mts`.
+  `src/game/client/grid/mapAtlas.build.d.ts`, `src/sharddev/assemblyscriptCompiler.d.mts`.
 - **Dangling export key (working tree only):** `src/game/package.json` in the working tree re-adds
   `"./shard/entryMode": "./shard/entryMode.ts"` (line 311) although the file was deleted in `4a92df75a4`; HEAD's
   package.json does not have it. It is a peer's stale whole-file hunk (the same diff also moves
@@ -44,8 +44,8 @@ Not candidates (listed so nobody deletes them):
 | Module | Test readers | Last production reader dropped by | Suggested disposition |
 |---|---|---|---|
 | `src/engine/render/shadowDepthKinds.ts` | `src/engine/render/shadow-depth-kinds.test.ts` | **NF18**: `render/nodes/engineNodesHandler.ts` (deleted) was its only reader (`e42267e32f` wired it there) | delete module + test |
-| `src/sdk/runtime/audio/combatCues.ts` | `src/entry-spawn.test.ts:139` (module-name string) | working-tree `src/entry.ts:217` (uncommitted peer edit); **at HEAD `src/entry.ts:217` still imports it** | LD10 retarget, see §5 |
-| `src/sdk/runtime/audio/weaponVoices.ts` | same | same | LD10 retarget, see §5 |
+| `src/sharddev/runtime/audio/combatCues.ts` | `src/entry-spawn.test.ts:139` (module-name string) | working-tree `src/entry.ts:217` (uncommitted peer edit); **at HEAD `src/entry.ts:217` still imports it** | LD10 retarget, see §5 |
+| `src/sharddev/runtime/audio/weaponVoices.ts` | same | same | LD10 retarget, see §5 |
 | `src/engine/boot/stall.ts` | `src/engine/boot/stall.test.ts` | `30584ca91a fix(loading): share waits from the first byte` (Loading.ts dropped `LoadingStall`) | delete module + test |
 | `src/engine/models/placementBatch.ts` | `src/engine/models/model-placement-batch.test.ts` | `98e432ab8c refactor(models): isolate pure pose composition` (encounterView/worldScenePlacement moved to `modelPose`) | delete module + test + engine key `./models/placementBatch` (never imported by spec) |
 | `src/game/shardfile/cachedTransport.ts` | `test/cached-transport.test.ts` | `66ddf99cdf refactor(cache): use the worker URL store` (runtimeProduct.ts) | delete module + test |
@@ -53,17 +53,17 @@ Not candidates (listed so nobody deletes them):
 | `src/game/server/population/nativeBake.ts` | ~20 tests/fixtures (`test/native-bake-*.test.ts`, `test/population-bake.test.ts`, `test/fixtures/driftwood-headless.ts`, …) | `892e75d553` / `fa5801434a` (headless scaffold retirements) | native oracle: keep or move to `test/fixtures` (ambiguous, see report) |
 | `src/game/boss/arenaPoseView.ts` | `test/titan-continuation.test.ts`, `test/fixtures/nalati-titan-native.ts` | never had one: created test-only in `e48975bf7c` (10-30, Titan continuation) | ambiguous: new Titan view awaiting wiring, or move to fixtures |
 | `src/game/boss/cloudRig.ts` | `test/cloud-rig.test.ts`, `test/fixtures/nalati-titan-views.ts`, `test/proof/nalati-grasslands/titanCombat.ts` | never had one: created test-only in `3c5c0d7baa` (10-30) | same as above |
-| `src/sdk/scriptScenario.ts` (+ `src/sdk/diskScriptScenario.ts`, dynamic-only from it) | 10 tests (`src/sdk/bake/{decision-host,decision-script-build,disk-script-scenario,script-scenario}.test.ts`, `test/scripts/*.test.ts`) | never had one (test harness exported as SDK key `./scriptScenario`, not in publishConfig) | move to `src/sdk/test/` or keep as an author test API (owner call) |
-| `src/sdk/bake/typedDataBank.ts` → `src/format/typedDataBank.ts` | `test/typed-data-bank.test.ts` | never had one: `4f7bbe5b10` added both with only the test | delete both + keys, or wire a generator (owner call) |
-| `src/sdk/bake/export.ts` | `test/fixtures/sim-level/skins/build.ts` | not traced (SF9c `0a05f0bbc7`) | SDK key + publish key `./bake/export`; move to the fixture or keep as published author API |
+| `src/sharddev/scriptScenario.ts` (+ `src/sharddev/diskScriptScenario.ts`, dynamic-only from it) | 10 tests (`src/sharddev/bake/{decision-host,decision-script-build,disk-script-scenario,script-scenario}.test.ts`, `test/scripts/*.test.ts`) | never had one (test harness exported as SDK key `./scriptScenario`, not in publishConfig) | move to `src/sharddev/test/` or keep as an author test API (owner call) |
+| `src/sharddev/bake/typedDataBank.ts` → `src/format/typedDataBank.ts` | `test/typed-data-bank.test.ts` | never had one: `4f7bbe5b10` added both with only the test | delete both + keys, or wire a generator (owner call) |
+| `src/sharddev/bake/export.ts` | `test/fixtures/sim-level/skins/build.ts` | not traced (SF9c `0a05f0bbc7`) | SDK key + publish key `./bake/export`; move to the fixture or keep as published author API |
 
-Kept although test/tool-only at the module level (real non-graph roots): `src/sdk/bake/source-loader.mjs` (the
-`node --import ./src/sdk/bake/source-loader.mjs` CLI loader: `src/sdk/bake/native-scalar.test.ts:48`, documented usage in
+Kept although test/tool-only at the module level (real non-graph roots): `src/sharddev/bake/source-loader.mjs` (the
+`node --import ./src/sharddev/bake/source-loader.mjs` CLI loader: `src/sharddev/bake/native-scalar.test.ts:48`, documented usage in
 `src/shards/pine-hollow/generators/bake-pine-trophies.mjs:6`, `scripts/bake-captain-coat.mjs:4`), and the two drivers it
-string-dispatches, `src/sdk/bake/{json,navigation-json}.mjs` (`source-loader.mjs:18`).
+string-dispatches, `src/sharddev/bake/{json,navigation-json}.mjs` (`source-loader.mjs:18`).
 
 Also: 23 `src/sdk/**` modules are read only by shard author generators and 127 layer modules only by tools; those are
-real readers (author/bake roots) and are not orphans. `src/sdk/outputRuntime.ts` and `src/sdk/executeBundle.ts` are
+real readers (author/bake roots) and are not orphans. `src/sharddev/outputRuntime.ts` and `src/sharddev/executeBundle.ts` are
 tool-only and exist for the copied-runtime arm: **LD9b**, not LD10.
 
 ## 3. Exported symbols with no reader outside their module
@@ -110,7 +110,7 @@ go; deleting kit functions that are never called moves no rng draw (the LowPolyK
 `PositionalLoops` stay (`src/game/client/audio/sceneDirector.ts:16`). `game/client/systems/looks/rainCurtain.ts#rainCurtain` goes;
 `rainCurtainGeometry` stays (`src/game/client/weather/forest.ts:30`, `src/game/client/weather/rainPresentation.ts:15`).
 Same-named functions in shards (`remapUV`/`stripExtra` in `src/shards/pine-hollow/generators/crossbowPool.ts:17,40`,
-`setShapeFn` in `src/sdk/bake/species.ts:174`, `lilyPad`/`grassTuft`/`vineStrand` in Driftwood generators) are local
+`setShapeFn` in `src/sharddev/bake/species.ts:174`, `lilyPad`/`grassTuft`/`vineStrand` in Driftwood generators) are local
 copies, not readers.
 
 ### 3b. Unexport: used only inside the defining module (103)
@@ -174,7 +174,7 @@ only contains the word, not a `#box` row).
 - `game/client/systems/species/boar.ts`: `BOAR_TUNING`
 - `game/client/systems/species/view/bear.ts`: `BEAR_PALETTE`
 - `game/client/systems/viewmodel/armRig.ts`: `JointAngles`
-- `sdk/weapons/bowProfile.ts`: `BowProfile`, `BowView`, `GripPose`
+- `sharddev/weapons/bowProfile.ts`: `BowProfile`, `BowView`, `GripPose`
 - `engine/client/combat/view/ranged.ts`: `box`
 
 ### 3c. Test-only exports (37)
@@ -184,14 +184,14 @@ assertions, or delete export + test. `test/fixtures/legacy-oracles/nalati-runtim
 string (legacy oracle), not a live import; where it is the only "reader" the symbol is effectively unread.
 
 - `engine/server/ai/species.ts#SpeciesVariant` (also used inside its module): test/driftwood-monkey-author-variants.test.ts
-- `engine/server/ai/species.ts#deriveSpecies` (no internal use): sdk/bake/species-rows.test.ts, test/isolated-shard-driftwood-author-values.test.ts
+- `engine/server/ai/species.ts#deriveSpecies` (no internal use): sharddev/bake/species-rows.test.ts, test/isolated-shard-driftwood-author-values.test.ts
 - `engine/client/core/assets.ts#PBRSet` (also used inside its module): test/world-scene-baked-model.test.ts
 - `engine/shared/entities/species/rigs.ts#smooth01` (also used inside its module): test/fixtures/animal-pose/captainPoseShipping.ts, test/fixtures/animal-pose/customShipping.ts, test/fixtures/animal-pose/monkeyPoseShipping.ts +4
 - `engine/shared/entities/species/rigs.ts#bump` (also used inside its module): test/fixtures/animal-pose/captainPoseShipping.ts, test/fixtures/animal-pose/customShipping.ts, test/fixtures/animal-pose/monkeyPoseShipping.ts +3
 - `engine/client/models/place.ts#Draw` (also used inside its module): test/author-placement-parity.test.ts
 - `engine/shared/world/dayCycle.ts#ScheduleSeg` (also used inside its module): test/fixtures/nalati-day-keys.ts
 - `engine/client/world/geometryBake.ts#withGeometryBake` (also used inside its module): test/fixtures/legacy-oracles/nalati-runtime-debt.json
-- `engine/client/world/geometryKit.ts#sagLine` (no internal use): sdk/bake/primitives.test.ts
+- `engine/client/world/geometryKit.ts#sagLine` (no internal use): sharddev/bake/primitives.test.ts
 - `engine/client/world/geometryKit.ts#blob` (also used inside its module): engine/client/world/geometry-bake-producer.test.ts, test/fixtures/kurgan-oracle/source.json
 - `engine/shared/world/interact/types.ts#PoiId` (also used inside its module): test/quest-live-frames.test.ts
 - `engine/client/world/lowpolyKit.ts#lowPolyMaterial` (also used inside its module): engine/client/render/world-look-ports.test.ts
@@ -206,13 +206,13 @@ string (legacy oracle), not a live import; where it is the only "reader" the sym
 - `game/client/systems/looks/trample.ts#TrampleState` (also used inside its module): game/client/systems/looks/trample-upload.test.ts
 - `game/client/systems/looks/trample.ts#installTrampleTrail` (no internal use): test/fixtures/nalati-headless.ts
 - `game/client/systems/looks/trample.ts#GrassTrample` (also used inside its module): game/client/systems/looks/trample-upload.test.ts, test/fixtures/legacy-oracles/nalati-runtime-debt.json
-- `game/server/weapons/starterBowProfile.ts#BOW` (no internal use): sdk/weapons/bow-file.test.ts, test/nalati-recurve-source-inputs.test.ts
-- `game/shared/weapons/starterMoves.ts#key` (also used inside its module): sdk/weapons/melee-authoring.test.ts
+- `game/server/weapons/starterBowProfile.ts#BOW` (no internal use): sharddev/weapons/bow-file.test.ts, test/nalati-recurve-source-inputs.test.ts
+- `game/shared/weapons/starterMoves.ts#key` (also used inside its module): sharddev/weapons/melee-authoring.test.ts
 - `sdk/headlessRuntime.ts#HeadlessRuntimePreparation` (also used inside its module): test/fixtures/headless-native.ts, test/fixtures/headless-plan.ts, test/fixtures/pine-headless.ts +2
 - `sdk/headlessRuntime.ts#HeadlessRuntimeInstallation` (also used inside its module): test/fixtures/headless-native.ts, test/fixtures/headless-plan.ts, test/fixtures/nalati-chapter-native.ts +8
 - `sdk/headlessRuntime.ts#HeadlessRuntimePlan` (also used inside its module): test/driftwood-barrel-saves.test.ts, test/driftwood-physics-binary.test.ts, test/fixtures/headless-native.ts +12
 - `sdk/headlessRuntime.ts#PrepareHeadlessRuntime` (no internal use): test/fixtures/driftwood-headless.ts, test/fixtures/driftwood-trade-native.ts, test/fixtures/headless-native.ts +26
-- `sdk/weapons/thrownProfile.ts#ThrownProfile` (no internal use): test/fixtures/weapon-oracle/thrown.ts
+- `sharddev/weapons/thrownProfile.ts#ThrownProfile` (no internal use): test/fixtures/weapon-oracle/thrown.ts
 - `engine/client/render/shaderPatches.ts#shaderPatchProgramKey` (also used inside its module): engine/client/render/shader-patch-set.test.ts — NF18 removed its last production reader (nodes/engineNodesHandler.ts)
 - `engine/client/render/shaderPatches.ts#shaderPatchSet` (no internal use): engine/client/render/shader-patch-set.test.ts — NF18 removed its last production reader (nodes/engineNodesHandler.ts)
 - `engine/client/render/shaderPatches.ts#shaderPatchSceneShape` (no internal use): engine/client/render/shader-patch-set.test.ts — NF18 removed its last production reader (nodes/engineNodesHandler.ts)
@@ -256,16 +256,16 @@ exports all have readers (`buildProgress`: `src/game/client/shardfile/clientWorl
 
 ## 5. The two SDK audio wrappers
 
-`src/sdk/runtime/audio/combatCues.ts` re-exports `sharedCombatCues` from `@wildshard/game/plugin/audio`;
-`src/sdk/runtime/audio/weaponVoices.ts` re-exports `sharedWeaponVoices`, `declaredWeaponVoices` and type `WeaponSynth`
+`src/sharddev/runtime/audio/combatCues.ts` re-exports `sharedCombatCues` from `@wildshard/game/plugin/audio`;
+`src/sharddev/runtime/audio/weaponVoices.ts` re-exports `sharedWeaponVoices`, `declaredWeaponVoices` and type `WeaponSynth`
 from `@wildshard/game/systems/audio/weaponVoices`, which is only an **alias key**: `src/game/package.json:206`
 `"./systems/audio/weaponVoices": "./plugin/audio.ts"`. So both wrappers bind the very functions defined in
 `src/game/client/plugin/audio.ts`: `sharedCombatCues` (:52), `sharedWeaponVoices` (:82), `declaredWeaponVoices` (:99),
 `WeaponSynth` (:74), plus `installDeclaredCombatCues` (:112). Function identity is preserved by retargeting.
 
 Exact readers, working tree:
-- `src/entry-spawn.test.ts:139`: module-name strings `'@wildshard/sdk/runtime/audio/weaponVoices'`,
-  `'@wildshard/sdk/runtime/audio/combatCues'` in the fake-module table (both already alongside `'@wildshard/game/plugin/audio'`); :106 fake exports.
+- `src/entry-spawn.test.ts:139`: module-name strings `'@wildshard/sharddev/runtime/audio/weaponVoices'`,
+  `'@wildshard/sharddev/runtime/audio/combatCues'` in the fake-module table (both already alongside `'@wildshard/game/plugin/audio'`); :106 fake exports.
 - `src/sdk/package.json:40` and `:103` (exports), `:279-281` and `:511-513` (publishConfig).
 - `lint/ratchet.json:274-275` (`wildshard/sdk-no-facade` rows 1 and 3; the other six rows stay).
 - `docs/ENGINE.md:6-11, 96-99`; `docs/SDK-DEV.md:3, 15`.
@@ -274,7 +274,7 @@ Exact readers, working tree:
   `lint/runtime-performance.json:1165,1169` name `src/shards/pine-hollow/runtime/audio/combatCues.ts`, a file that no
   longer exists (stale rows, separate cleanup).
 
-`src/entry.ts`: at **HEAD** line 217 dynamically imports `@wildshard/sdk/runtime/audio/weaponVoices` and
+`src/entry.ts`: at **HEAD** line 217 dynamically imports `@wildshard/sharddev/runtime/audio/weaponVoices` and
 `.../combatCues` (destructured at :240 `{ sharedWeaponVoices, declaredWeaponVoices }` and :281 `{ sharedCombatCues }`).
 The **working tree** (an uncommitted peer edit) already replaces both with `import('@wildshard/game/plugin/audio')`
 twice; behaviour is identical (same module promise, same functions), but LD10 should land one import feeding both
@@ -314,7 +314,7 @@ wrappers: the alias key `src/game/package.json:206` (its only importer is the we
   `src/format/materialGraph.ts:4` (names `graph/compile.ts`), `src/game/client/shardfile/clientViews.ts:27` (same),
   `src/game/client/shardfile/clientPropMaterials.ts:11`. The "as a node material does" parity comments in
   `src/engine/client/render/graph/{glslMaterial,glslProgram}.ts` and their tests describe the parity target and can stay.
-  Build-time TSL in `src/sdk/materials.ts` and shard `generators/materials.ts` is the kept graph DSL.
+  Build-time TSL in `src/sharddev/materials.ts` and shard `generators/materials.ts` is the kept graph DSL.
 
 ## 7. Measurement paths over copied runtime TypeScript (always empty now)
 

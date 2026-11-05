@@ -3,7 +3,7 @@ import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin the original complete document bytes.
 import {createHash} from 'node:crypto';
 import {platformFileFamily,validatePlatformFile} from '@wildshard/format/platformFileFamilies';
-import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
+import {registeredJsonSchema} from '../src/sharddev/formatJsonSchema';
 import roots from './fixtures/people-places-root-users.json' with {type:'json'};
 
 test('G1004 registers only the three approved complete people/place documents',()=>{

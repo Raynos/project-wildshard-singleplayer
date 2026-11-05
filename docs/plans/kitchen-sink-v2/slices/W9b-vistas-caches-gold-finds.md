@@ -26,7 +26,7 @@ Research:
   flags}]`, `sections [{title, items [{label, icon, prize?, flag | owned}]}]`, **`glass`** (Driftwood's sea glass: flags,
   colours, fallback) and **`next {counter, every, max, text}`** ("every 5 glass → a charm"). The perk the charm grants is
   an Owned charm read by `game/server/loadout/effects.ts`. `glass` is Driftwood-shaped by name. Users: Driftwood
-  (`game/server/loot/runtime.ts`), Nalati (`bag.finds`, `game/client/shardfile/clientFinds.ts`), the SDK (`src/sdk/finds.ts`).
+  (`game/server/loot/runtime.ts`), Nalati (`bag.finds`, `game/client/shardfile/clientFinds.ts`), the SDK (`src/sharddev/finds.ts`).
 - **Feats with joke titles exist:** quest `achievements [{ id, name, goal, count, kind, variant, event, title, icon }]`
   (`src/format/quests.ts:20-21`, "display metadata for the existing achievement registry"); counters
   `src/format/achievementCounters.ts`, `src/game/shared/achievements.ts`.

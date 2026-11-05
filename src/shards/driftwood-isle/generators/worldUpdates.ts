@@ -1,4 +1,4 @@
-import type { AuthorWorldUpdates as WorldUpdatesRows } from '@wildshard/sdk/worldScenes';
+import type { AuthorWorldUpdates as WorldUpdatesRows } from '@wildshard/sharddev/worldScenes';
 import { REEF_LOOK } from './reefLook';
 import cove from '../data/coveComposition.json' with { type: 'json' };
 

@@ -9,7 +9,7 @@
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { bakePineProps, propKit } from './props.ts';
 import { pineCragGround } from './bake-pine-crags.mjs';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import { PHYSICS_SOURCE, perSources, propScanSource, sourceJson } from './pineSources.ts';
 
 const entries = emptyShardfile({ slug: 'pine-hollow', name: 'Pine Hollow', author: 'Wildshard', revision: 1, seed: 1337 }).entryways;

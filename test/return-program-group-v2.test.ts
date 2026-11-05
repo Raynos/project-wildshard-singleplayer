@@ -8,11 +8,11 @@ import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { parseGroupStepV2 } from '@wildshard/format/scriptGroupStepV2';
 import { parseReturnProjectionV2, returnProjectionV2Layout } from '@wildshard/format/returnProjectionV2';
 import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
-import { compileReturnProjectionV2 } from '../src/sdk/returnProjectionV2';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
-import { v2CoreSource } from '../src/sdk/as/wsV2';
+import { compileReturnProjectionV2 } from '../src/sharddev/returnProjectionV2';
+import { compileScriptV2 } from '../src/sharddev/bake/compileScriptV2';
+import { v2CoreSource } from '../src/sharddev/as/wsV2';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { namedJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 

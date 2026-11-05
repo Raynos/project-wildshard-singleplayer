@@ -1,5 +1,5 @@
 
-import { nativeQuestCompositionRows as parseNativeQuestComposition } from '@wildshard/sdk/quests';
+import { nativeQuestCompositionRows as parseNativeQuestComposition } from '@wildshard/sharddev/quests';
 import authored from '../data/nativeStory.json' with { type: 'json' };
 import { NATIVE_CHAPTER_DIRECTOR } from './chapterDirector';
 import { PINE_QUEST_RUNTIME, PINE_QUEST_PAYLOAD } from './questRuntime';

@@ -1,4 +1,4 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { HD_URLS, SKY_HD } from './fileInventory';
 import { CARVED, MODEL_FITS } from './modelFrames';
 import { bakeSkyIsleFrames } from './skyIsleFrames';

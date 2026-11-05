@@ -1,12 +1,12 @@
 import { expect, test } from 'vitest';
 import { isJsonData, isJsonDataWithFileSchemas } from '@wildshard/format/json';
-import { nameBlob } from '../src/sdk/blobs';
-import {validateDefinedJson} from '../src/sdk/sections';
+import { nameBlob } from '../src/sharddev/blobs';
+import {validateDefinedJson} from '../src/sharddev/sections';
 import {encodeCanonicalJson} from '../src/sdk/immutable';
-import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
+import {registeredJsonSchema} from '../src/sharddev/formatJsonSchema';
 import { validateNamedJsonSchema, validateNamedJsonSchemaPaced } from '../src/game/shared/shardfile/customSchema';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 
 const jsonSchema = { $schema: 'http://json-schema.org/draft-07/schema#', type: 'array', maxItems: 20000,
   items: { type: 'array', minItems: 10, maxItems: 10, items: { type: 'number' } } };

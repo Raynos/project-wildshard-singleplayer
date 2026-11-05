@@ -1,10 +1,10 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { emitNamedBlobs, nameBlob, type EmittedBlobs } from '@wildshard/sdk/blobs';
-import { compactPhoneGlb } from '@wildshard/sdk/bake/compactGlb';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { emitNamedBlobs, nameBlob, type EmittedBlobs } from '@wildshard/sharddev/blobs';
+import { compactPhoneGlb } from '@wildshard/sharddev/bake/compactGlb';
 import { BLENDER_MODELS } from './blenderArea';
 import { OCEAN_FILES } from './oceanFiles';
 import { driftwoodOceanBank, type DriftwoodOceanBank } from './oceanBank';
-import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { registeredJsonSchema } from '@wildshard/sharddev/formatJsonSchema';
 import { bakeIslandPlan, islandPlacements } from './islandCover';
 import { driftwoodIslandFacts, type DriftwoodIslandFacts } from './islandFacts';
 

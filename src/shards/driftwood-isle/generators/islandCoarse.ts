@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { bakePlacementPose as poseOf } from '@wildshard/sdk/bake/colliders';
-import type { AuthorPlacement as Placement } from '@wildshard/sdk/bake/placement';
+import { bakePlacementPose as poseOf } from '@wildshard/sharddev/bake/colliders';
+import type { AuthorPlacement as Placement } from '@wildshard/sharddev/bake/placement';
 import type { PalmParams } from './foliageModels';
 import { PALM_PALETTE, palmAxisAt } from './palm';
 import { SHORE_ROCK } from './rockProfiles';

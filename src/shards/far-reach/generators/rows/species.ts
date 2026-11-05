@@ -1,4 +1,4 @@
-import type { SpeciesData } from '@wildshard/sdk/species';
+import type { SpeciesData } from '@wildshard/sharddev/species';
 import STRINGS from '../../data/strings.json' with { type: 'json' };
 import * as LAYOUT from '../layout';
 import { SKY_GOAT_VARIANTS, DRIFT_RAY_VARIANTS, GALE_WISP_VARIANTS, STORM_ROC_VARIANTS } from './variants';

@@ -6,10 +6,10 @@ import { createLevelInstallation } from '../src/engine/client/level/installation
 import { WorldRegistry } from '../src/engine/client/world/registry';
 import { shardContext } from '../src/game/client/plugin/context';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { installViewProgram } from '../src/game/client/shardfile/clientViewProgram';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
+import { compileScriptV2 } from '../src/sharddev/bake/compileScriptV2';
 import { driftwoodBridgeSway } from '../src/shards/driftwood-isle/generators/bridgeSway';
 import swaySource from '../src/shards/driftwood-isle/behaviour/bridgeSway.as?raw';
 

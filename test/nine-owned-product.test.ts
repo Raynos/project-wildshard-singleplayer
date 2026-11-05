@@ -1,10 +1,10 @@
-import { outputPlatformPayloads } from '../src/sdk/outputProduct';
+import { outputPlatformPayloads } from '../src/sharddev/outputProduct';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { nineNativeConstants } from './fixtures/nine-native-constants';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compile the actual authored guest source, without generated metadata.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
+import { compileScriptV2 } from '../src/sharddev/bake/compileScriptV2';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import product, { nineProduct, inputs } from './fixtures/nine-product-inputs';
 import { output } from './fixtures/nine-source-program';

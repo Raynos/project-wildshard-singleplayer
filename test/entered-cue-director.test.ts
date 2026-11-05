@@ -5,7 +5,7 @@ import type { ShardContext } from '../src/game/client/plugin/context';
 import { CueDirector } from '../src/game/client/audio/cueDirector';
 import { clientNativeBook } from '../src/game/client/shardfile/clientNativeBook';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 test('entered cue identities stay isolated by product and entered lifetime',()=>{

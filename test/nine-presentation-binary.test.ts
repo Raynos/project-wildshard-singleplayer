@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, InstancedBufferAttribute, Mesh, MeshBasicMaterial } from 'three';
 import { parseSceneBuffers } from '@wildshard/format/sceneBuffers';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { emitNamedBlobs } from '../src/sdk/blobs';
+import { emitNamedBlobs } from '../src/sharddev/blobs';
 import { NINE_SCENE_BLOBS } from './fixtures/nine-product-inputs';
 import { cardScene } from '../src/shards/nine-dragon-stack/generators/presentation';
 import { admitSceneBuffers } from '../src/game/client/shardfile/sceneBuffers';

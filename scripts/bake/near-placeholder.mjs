@@ -4,7 +4,7 @@ import { decisionLegacyLines } from '../decision-legacy-lines.mjs';
 // G342: bake one shard's near placeholder (public/assets/baked/<slug>/near.glb + near.json). Its drawn static world is
 // built in Node from the shard's own authored world through the bake world host, as the physics bakes build it (no
 // browser, no game page), harvested as prototypes with their placed copies, reduced by the SDK producer
-// (`@wildshard/sdk/bake/nearPlaceholder`) to a low-LOD budget, and merged over its terrain at L1 density (17 × 17 per
+// (`@wildshard/sharddev/bake/nearPlaceholder`) to a low-LOD budget, and merged over its terrain at L1 density (17 × 17 per
 // 125 m region) in its own far look: one draw, regions in TEXCOORD_0.x, no colliders.
 // node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake/near-placeholder.mjs <slug> [--report]
 //
@@ -37,7 +37,7 @@ const at = path => import(pathToFileURL(resolve(root, path)).href);
 const folder = resolve(root, 'src/shards', slug), manifestSource = { folder: slug, ...(existsSync(resolve(folder, 'manifest.json')) ? { file: resolve(folder, 'manifest.json') } : {}),
   imageRoots: [{ prefix: `/src/shards/${slug}/`, directory: folder }, { prefix: '/assets/', directory: resolve(root, 'public/assets') }] };
 const legacy = decisionLegacyLines(root, slug);
-const project = existsSync(resolve(folder, 'shard.config.ts')) ? await (await at('src/sdk/project.ts')).readProjectAssets(folder, undefined, manifestSource, legacy === undefined ? {} : { decisionLegacyLines: legacy }) : null;
+const project = existsSync(resolve(folder, 'shard.config.ts')) ? await (await at('src/sharddev/project.ts')).readProjectAssets(folder, undefined, manifestSource, legacy === undefined ? {} : { decisionLegacyLines: legacy }) : null;
 const environment = installBakeEnvironment(root);
 // G342: a colour map's mean colour, decoded from its encoded bytes (PNG / JPEG / WebP) by Pillow, so a textured prop keeps
 // its own paint (Pine's cabins, Driftwood's huts) instead of a guessed wood tint; the bitmap is that one mean texel
@@ -227,8 +227,8 @@ const prototypes = parts.filter((p) => {
   if (report && p.transforms.length > 0) console.log(`  ${skip === null ? "take" : "skip"} ${p.name} (${skip}) ${p.index.length / 3} tris x ${p.transforms.length} ${box(p)}`);
   return skip === null; // ground / sea / sky come from the lattice; an unlit white or an emissive glow is not paint
 });
-// the far look, the grid and the bake are the generic ones (`@wildshard/sdk/bake/placeholders`, as `wildshard build`)
-const sdk = await at('src/sdk/bake/placeholders.ts');
+// the far look, the grid and the bake are the generic ones (`@wildshard/sharddev/bake/placeholders`, as `wildshard build`)
+const sdk = await at('src/sharddev/bake/placeholders.ts');
 const exported = async (ref) => { const value = (await at(`src/shards/${slug}/${ref.module}`))[ref.export]; if (value === undefined) throw new Error(`${slug}: ${ref.module} has no export ${ref.export}`); return value; };
 // G380: a shard that declares no far look takes the generic one `wildshard build` gives any shardfile (`shardfileLook`)
 if (source.far === undefined && project === null) throw new Error(`${slug}: no far row in its data/placeholder.json and no shardfile project`);

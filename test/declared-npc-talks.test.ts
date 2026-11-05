@@ -9,7 +9,7 @@ import { DialogueBox } from '../src/engine/client/quest/view/ui';
 import { Flags } from '../src/engine/shared/world/interact/flags';
 import { pineQuestNpcs } from '../src/shards/pine-hollow/generators/questNpcs';
 import { QUEST_NPCS } from '../src/shards/driftwood-isle/generators/questNpcs';
-import { parseQuestData } from '../src/sdk/quests';
+import { parseQuestData } from '../src/sharddev/quests';
 import { DRIFTWOOD_QUESTS } from '../src/shards/driftwood-isle/generators/quests';
 
 // GR8: called, not read from a scheduler job's output

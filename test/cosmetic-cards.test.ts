@@ -4,9 +4,9 @@ import packed from '../src/shards/pine-hollow/data/codeParts.json' with { type: 
 import { expect, test } from 'vitest';
 import { CosmeticsLocker, SkinLocker, type CosmeticState } from '../src/game/client/cosmetics/locker';
 import { HeldFinishes } from '../src/game/client/loadout/finishes';
-import { outputPlatformPayloads } from '../src/sdk/outputProduct';
+import { outputPlatformPayloads } from '../src/sharddev/outputProduct';
 import { PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { FINISH_CARDS } from '../src/shards/pine-hollow/generators/finishCards';
 

@@ -1,4 +1,4 @@
-import type { AuthorRopeDeckSite as RopeDeckSiteRows } from '@wildshard/sdk/worldScenes';
+import type { AuthorRopeDeckSite as RopeDeckSiteRows } from '@wildshard/sharddev/worldScenes';
 import { originalBridgeFacts } from './driftwoodBridge.mjs';
 
 /** The original card, rest spans and draw slots, as build-time construction data. */

@@ -4,7 +4,7 @@ import {HeadlessSimulation} from '../../../src/sdk/headless.ts';
 import {TickWorkerHost} from '../../../src/sdk/tickWorkerHost.ts';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {emptyShardfile} from '../../../src/sdk/author.ts';
+import {emptyShardfile} from '../../../src/sharddev/author.ts';
 import {decodeSimSnapshotBytes, leadSnapshot } from '../../../src/engine/shared/sim/snapshot.ts';
 const source=emptyShardfile({slug:'stream-tape-fixture',name:'Stream tape',author:'Test',revision:1,seed:435});
 source.serverBudget.commandsPerTick=1024;

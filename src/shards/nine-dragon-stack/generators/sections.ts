@@ -1,4 +1,4 @@
-import { authorFormatSchema, defineNamedRows, type NamedRowValue } from '@wildshard/sdk/formatJsonSchema';
+import { authorFormatSchema, defineNamedRows, type NamedRowValue } from '@wildshard/sharddev/formatJsonSchema';
 
 import type { NineNativeAtlas, NineNativeSignInputs } from './nativeSignMetadata';
 import type { GrappleRows } from '../data/grappleTypes';

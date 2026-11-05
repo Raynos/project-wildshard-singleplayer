@@ -7,9 +7,9 @@ import { GroupStepV2 } from '../src/engine/shared/script/groupStepV2';
 import { ObservationColumnsV2, type V2ColumnOwners } from '../src/engine/shared/script/observationColumnsV2';
 import { parseGroupStepV2, GroupStepV2Schema, groupStepLayoutV2 } from '@wildshard/format/scriptGroupStepV2';
 import { ObservationColumnsV2Schema } from '@wildshard/format/scriptObservationColumnsV2';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
-import { v2CoreSource } from '../src/sdk/as/wsV2';
-import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { compileScriptV2 } from '../src/sharddev/bake/compileScriptV2';
+import { v2CoreSource } from '../src/sharddev/as/wsV2';
+import { namedJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 
 const columns = [

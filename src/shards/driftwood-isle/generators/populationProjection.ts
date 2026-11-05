@@ -1,4 +1,4 @@
-import { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
+import { authorFormatRows } from '@wildshard/sharddev/formatJsonSchema';
 import { enemyPlacements } from './enemyPlacement';
 import { driftwoodGroundSampler } from './groundSampling';
 import { DRIFTWOOD_SPECIES_PROGRAMS } from './speciesPrograms';

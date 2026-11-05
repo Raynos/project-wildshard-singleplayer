@@ -3,7 +3,7 @@
 // worldScenes.ts names them in memory (no scheduler job, no stored files under assets/). D65: their ground comes from the
 // program's sources.
 import { BufferGeometry, Float32BufferAttribute, PlaneGeometry, MeshStandardMaterial } from 'three';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
 import { streamGeometry } from './streamCodec.ts';
 import { bakeStreamRows } from './bake-pine-streams.mjs';
 import { bakeBeaverPool } from './beaverPool.ts';

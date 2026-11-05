@@ -1,5 +1,5 @@
 
-import { parseAmbientLife, parsePageLife, type PageLifeRows as PageLifeRowsType } from '@wildshard/sdk/rows';
+import { parseAmbientLife, parsePageLife, type PageLifeRows as PageLifeRowsType } from '@wildshard/sharddev/rows';
 import { returnGuest, type ReturnScriptRow } from './returnPrograms';
 import { PINE_LIFE } from './ambientLife';
 import type { BarkPerch, PointPerch } from './perchRows';

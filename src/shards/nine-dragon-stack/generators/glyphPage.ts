@@ -1,4 +1,4 @@
-import { encodePortableBytes } from '@wildshard/sdk/bake/portableBytes';
+import { encodePortableBytes } from '@wildshard/sharddev/bake/portableBytes';
 import { bakeGlyphField } from './glyphField';
 import { KAI_STACK, GLYPH_LAYOUT } from './signs';
 import { FONT_CHARS } from './words';

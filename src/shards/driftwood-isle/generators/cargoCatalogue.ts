@@ -1,4 +1,4 @@
-import type { worldSceneModels } from '@wildshard/sdk/worldScenes';
+import type { worldSceneModels } from '@wildshard/sharddev/worldScenes';
 import type { FixedWreckLayout } from './fixedLayouts';
 
 type WorldSceneModels = ReturnType<typeof worldSceneModels>;

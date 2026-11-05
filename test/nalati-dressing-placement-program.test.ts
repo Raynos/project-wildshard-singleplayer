@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import { nalatiDressingPlacementProgram } from '../src/shards/nalati-grasslands/generators/dressingPlacementProgram';
 
 test('fresh and persistent placement rows retain all eighteen complete native predecessor files with detached loans', () => {
@@ -13,7 +13,7 @@ test('fresh and persistent placement rows retain all eighteen complete native pr
     import assert from 'node:assert/strict';
     import {mkdtempSync,rmSync} from 'node:fs';
     import {resolve} from 'node:path';
-    import {createProjectGeneration} from './src/sdk/projectGeneration.ts';
+    import {createProjectGeneration} from './src/sharddev/projectGeneration.ts';
     import {hashImmutableBytes} from './src/sdk/immutable.ts';
     import {selectedLevel} from '@wildshard/engine/level/selection';
     import {nalatiDressingPlacementProgram} from './src/shards/nalati-grasslands/generators/dressingPlacementProgram.ts';
@@ -23,7 +23,7 @@ test('fresh and persistent placement rows retain all eighteen complete native pr
     import {originalGeographyFiles} from './test/fixtures/nalati-geography-original.ts';
     import {nalatiDressingPlacementBlobs,nalatiDressingBlob} from './src/shards/nalati-grasslands/generators/dressingSchemas.ts';
     import {packDressingTable} from './src/shards/nalati-grasslands/generators/dressingTable.ts';
-    import {nameBlob} from './src/sdk/blobs.ts';
+    import {nameBlob} from './src/sharddev/blobs.ts';
     import {encodeCanonicalJson} from './src/sdk/immutable.ts';
     const cache=mkdtempSync(resolve('tmp/nalati-dressing-placement-'));
     let constructions=0;

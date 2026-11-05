@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { ModelDef } from '@wildshard/engine/models/model';
-import type { BoxSpec as Collider, ColliderDesc } from '@wildshard/sdk/bake/placement';
+import type { BoxSpec as Collider, ColliderDesc } from '@wildshard/sharddev/bake/placement';
 import { M, v3, type ColorLike, type Painter, type PaintOpts } from './paint';
 import { pole, lathe, blob } from './smoothGeometry';
 import paintedTextures from '../data/paintedTextures.json' with { type: 'json' };

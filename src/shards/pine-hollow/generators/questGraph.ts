@@ -1,5 +1,5 @@
-import { compileQuestTable, parseQuestGraph } from '@wildshard/sdk/questGraph';
-import { parseInteractionRows } from '@wildshard/sdk/interactions';
+import { compileQuestTable, parseQuestGraph } from '@wildshard/sharddev/questGraph';
+import { parseInteractionRows } from '@wildshard/sharddev/interactions';
 
 import { PINE_GRAPH_DATA, PINE_TABLE_ACTIONS, PINE_LANTERN_ROWS } from './interactions';
 

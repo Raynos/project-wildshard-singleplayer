@@ -72,7 +72,7 @@ const RULES = {
   typescript: /\.tsx?$/u,
   tests: /(?:^|\/)(?:tests?|__tests__)(?:\/|$)|\.(?:test|spec)\.tsx?$/u,
   attributedLayers: /^src\/(?:engine|game|sdk|sharddev)\//u,
-  buildOnlySdk: /^src\/sdk\/(?:bake\/|project\.ts$)/u,
+  buildOnlySdk: /^src\/sharddev\/(?:bake\/|project\.ts$)/u,
   publicUserCount: 2,
   template: '_template',
   enforcement: 'report-only',
@@ -734,8 +734,8 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     }
     // Classify the resolved path's namespace components; an audited tree need not contain that namespace.
     const local = (to ?? '').split('/');
-    const trustedLocal = local.length > 3 && local[0] === 'src' && local[1] === 'sdk' && local[2] === 'runtime';
-    return { sdk: publishedTarget('sdk', spec) !== null, trusted: /^@wildshard\/sdk\/runtime(?:\/|$)/u.test(spec ?? '') || trustedLocal, commons: publishedTarget('commons', spec) !== null, to: to ?? assemblyPath ?? jsonPath ?? null };
+    const trustedLocal = local.length > 3 && local[0] === 'src' && local[1] === 'sharddev' && local[2] === 'runtime';
+    return { sdk: publishedTarget('sdk', spec) !== null || publishedTarget('sharddev', spec) !== null, trusted: /^@wildshard\/sharddev\/runtime(?:\/|$)/u.test(spec ?? '') || trustedLocal, commons: publishedTarget('commons', spec) !== null, to: to ?? assemblyPath ?? jsonPath ?? null };
   };
   const resolveEdge = (path, spec) => {
     const key = spec === null ? `${path}\0\u0001` : `${path}\0${String(spec)}`;
@@ -764,7 +764,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
       if (seen.has(path) || !exists(path) || !sourceFile.test(path)) continue;
       seen.add(path);
       if (!buildFile(slug, path) && !/^src\/(?:engine|game|sdk|sharddev|commons)\//u.test(path)) continue;
-      if (path.startsWith('src/sdk/')) {
+      if (/^src\/(?:sdk|sharddev)\//u.test(path)) {
         if (!buildUsers.has(path)) buildUsers.set(path, new Set());
         buildUsers.get(path).add(slug);
       }

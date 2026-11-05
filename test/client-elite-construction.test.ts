@@ -18,7 +18,7 @@ import { SceneDressing } from '../src/game/client/shardfile/sceneDressing';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import * as spawn from '../src/game/server/population/spawnScript';
 import { sha256 } from '../src/game/shared/plugin/moduleHash';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { admission, lendNalatiAdmission } from './fixtures/nalati-return-modules';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 

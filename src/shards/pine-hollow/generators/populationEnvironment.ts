@@ -1,5 +1,5 @@
 
-import { parsePopulationEnvironment, type PopulationEnvironment as PopulationEnvironmentRowsType } from '@wildshard/sdk/rows';
+import { parsePopulationEnvironment, type PopulationEnvironment as PopulationEnvironmentRowsType } from '@wildshard/sharddev/rows';
 import * as layout from './layout';
 import { pineGeographyRows } from './geographyRows';
 import { pinePhysics } from './physics';

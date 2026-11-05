@@ -1,5 +1,5 @@
 import { BoxGeometry, ConeGeometry, IcosahedronGeometry, MeshStandardMaterial, type BufferGeometry } from 'three';
-import { skinnedGlb } from '@wildshard/sdk/bake/skinned';
+import { skinnedGlb } from '@wildshard/sharddev/bake/skinned';
 import { SKITTERER_BODY } from './rows/species/bodies';
 import { placed, skinParts } from './rigidSkin';
 

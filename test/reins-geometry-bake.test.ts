@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { bakeReinsGeometry, reinPresentationRows } from '../src/sdk/bake/riderArms';
+import { bakeReinsGeometry, reinPresentationRows } from '../src/sharddev/bake/riderArms';
 import { buildReinsRibbon, fillRein } from '../src/game/client/riding/reins';
 import { parse } from 'valibot';
 import { ReinPresentationSchema } from '@wildshard/format/riding';

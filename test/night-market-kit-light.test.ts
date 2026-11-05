@@ -11,7 +11,7 @@ import {readFileSync} from 'node:fs';
 import {bakeLanternVertices,buildLayout,parseLayout,plotWriter,Soup} from ${JSON.stringify(kit)};
 import {nightMarketBuilders} from ${JSON.stringify(builders)};
 import {prepareModelKit} from ${JSON.stringify(glb)};
-import {normalizeWorldGlb} from ${JSON.stringify(new URL('../src/sdk/bake/world.ts', import.meta.url).href)};
+import {normalizeWorldGlb} from ${JSON.stringify(new URL('../src/sharddev/bake/world.ts', import.meta.url).href)};
 const profile={gain:1,radius:1,cut:2},light={at:[0,0,0],colour:[1,.5,.25]};
 const source={positions:[0,0,0,1,0,0,2,0,0,3,0,0],colours:Array(12).fill(0)};
 assert.deepEqual(bakeLanternVertices(source,[light],profile),[1,.5,.25,.28125,.140625,.0703125,0,0,0,0,0,0]);

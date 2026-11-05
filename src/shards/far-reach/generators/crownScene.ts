@@ -1,4 +1,4 @@
-import { worldSceneRecipe as parseWorldScene } from '@wildshard/sdk/worldScenes';
+import { worldSceneRecipe as parseWorldScene } from '@wildshard/sharddev/worldScenes';
 import { crownInstances } from './crownInstances';
 import { CROWN, DAIS } from "./layout";
 

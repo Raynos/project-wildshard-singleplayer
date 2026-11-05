@@ -10,7 +10,7 @@ import { build } from 'vite';
 import * as v from 'valibot';
 import { SceneBakedGeometrySchema } from '@wildshard/format/sceneDressing';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import { nalatiNativePlaceParts, nalatiPlaceParts } from '../src/shards/nalati-grasslands/generators/placeParts';
 
 const root = 'src/shards/nalati-grasslands/';

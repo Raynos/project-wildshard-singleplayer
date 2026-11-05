@@ -14,7 +14,7 @@ import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { installDeclaredQuestSpawns, type QuestSpawnCapability } from '../src/game/client/quest/chapterDirector';
 import { pageSimFeed } from '../src/game/server/plugin/pageSimFeed';
 import * as spawn from '../src/game/server/population/spawnScript';
-import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
+import { compileDecisionScripts } from '../src/sharddev/buildDecisionScripts';
 import { parseSpawnScript, spawnScriptRegistries, type SpawnScriptRows } from '@wildshard/format/spawnScripts';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 

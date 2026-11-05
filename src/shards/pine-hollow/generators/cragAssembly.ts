@@ -1,6 +1,6 @@
 /** Native batch reservations, LOD bounds, hull words and roof-cell selection, authored once. */
 import * as THREE from 'three';
-import type { NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
+import type { NativeTerrainSource } from '@wildshard/sharddev/bake/terrain';
 import { pineCragScene } from './cragScene';
 import type { CragPlace, CragTier, CragId as CragIdType } from './cragRows';
 import type { SkinBake } from './crags';

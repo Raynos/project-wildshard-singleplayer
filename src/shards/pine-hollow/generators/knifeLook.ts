@@ -1,4 +1,4 @@
-// Pine Hollow's skinning knife as data (SHARD-PLATFORM M3, the kit system's held tool: @wildshard/sdk/kit/heldTool;
+// Pine Hollow's skinning knife as data (SHARD-PLATFORM M3, the kit system's held tool: @wildshard/sharddev/kit/heldTool;
 // models/skinningKnife.ts holds it through the skinning beat).
 
 /**

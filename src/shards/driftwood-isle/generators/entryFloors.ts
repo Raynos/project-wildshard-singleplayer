@@ -1,6 +1,6 @@
 import { Group } from 'three';
-import { BoxCollider, type BoxColliderData } from '@wildshard/sdk/physics';
-import { readScene } from '@wildshard/sdk/scene';
+import { BoxCollider, type BoxColliderData } from '@wildshard/sharddev/physics';
+import { readScene } from '@wildshard/sharddev/scene';
 import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '@wildshard/format/contentBounds';
 import { ENTRY_ROWS as authoredEntryRows } from './entryRows';
 

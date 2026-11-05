@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
 
 const isMesh = (node: THREE.Object3D): node is THREE.Mesh => node instanceof THREE.Mesh;
 

@@ -1,10 +1,10 @@
 import { BufferGeometry, Euler, Float32BufferAttribute, Matrix4, Quaternion, Vector3 } from 'three';
-import { decodeBuildDeflate, encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
-import { MapAssembly, mapModelBytes } from '@wildshard/sdk/bake/mapAssembly';
-import { MapRaster } from '@wildshard/sdk/bake/mapRaster';
-import { bakedGeometryBytes, readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
-import { readNativeScalarField, readNativeTerrain } from '@wildshard/sdk/bake/terrain';
-import { bakeForestPlacements, nativeTerrainQueries } from '@wildshard/sdk/bake/forest';
+import { decodeBuildDeflate, encodeBuildBytes } from '@wildshard/sharddev/bake/byteCodec';
+import { MapAssembly, mapModelBytes } from '@wildshard/sharddev/bake/mapAssembly';
+import { MapRaster } from '@wildshard/sharddev/bake/mapRaster';
+import { bakedGeometryBytes, readBakedGeometry } from '@wildshard/sharddev/kit/bakedGeometry';
+import { readNativeScalarField, readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
+import { bakeForestPlacements, nativeTerrainQueries } from '@wildshard/sharddev/bake/forest';
 import { mapCloth } from './mapCloth.mjs';
 import { bakeDressing } from './dressingGeometryRows.ts';
 import { decorativeRowsOnGround } from './decorative.ts';

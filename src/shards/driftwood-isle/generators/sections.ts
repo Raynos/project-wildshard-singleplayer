@@ -1,4 +1,4 @@
-import { defineNamedRows, type NamedRowValue, authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
+import { defineNamedRows, type NamedRowValue, authorFormatSchema } from '@wildshard/sharddev/formatJsonSchema';
 
 const number = ({ kind: 'number' } as const);
 const EnemyPlacementsRows=defineNamedRows(authorFormatSchema('populationProjection.EnemyPlacementsSchema'));

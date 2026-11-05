@@ -1,6 +1,6 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
-import { authorFormatRows } from '../src/sdk/formatJsonSchema';
+import { authorFormatRows } from '../src/sharddev/formatJsonSchema';
 import { SpecimenMaterialSchema } from '@wildshard/format/specimenCatalogue';
 import { SceneDressingSchema } from '@wildshard/format/sceneDressing';
 import type { CatalogueEconomySchema } from '@wildshard/format/catalogueEconomy';

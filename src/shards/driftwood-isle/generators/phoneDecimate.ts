@@ -1,5 +1,5 @@
 import { BufferAttribute, BufferGeometry } from 'three';
-import { simplifyWithin } from '@wildshard/sdk/bake/simplifier';
+import { simplifyWithin } from '@wildshard/sharddev/bake/simplifier';
 
 /**
  * L18.3e (G769 on the recommended option; board art/driftwood-isle/round-20-phone-decimation): the phone tier's flat

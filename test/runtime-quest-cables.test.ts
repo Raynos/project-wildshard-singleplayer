@@ -6,7 +6,7 @@ import { Flags } from '../src/engine/shared/world/interact/flags';
 import { bindRuntimeQuest } from '../src/game/shared/quest/pageState';
 import { boundQuestState } from '../src/game/shared/quest/boundState';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { PINE_MODES } from '../src/shards/pine-hollow/generators/zipline';
 import { FIXTURE_RUNTIME_COST } from './fixtures/clientPlanRuntime';
 

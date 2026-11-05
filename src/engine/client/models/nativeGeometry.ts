@@ -71,7 +71,7 @@ export function admitNativeWholeGeometry(node: Mesh, ownership: 'borrow' | 'take
 
 /**
  * D154: a native node drawn as parsed keeps every portable channel, but one it stores only as its typed copy has no
- * attribute under the name three reads: a vec4 shader normal is never a glTF NORMAL (`sdk/bake/glb.ts`), so a lit
+ * attribute under the name three reads: a vec4 shader normal is never a glTF NORMAL (`sharddev/bake/glb.ts`), so a lit
  * material normalized a zero normal to NaN, which bloom spread into black blocks (Nine Dragon's L0 ring tiles seen from
  * Nalati). Each drawn channel the geometry lacks is restored under its own name from its stored accessor (the stored
  * copy goes, so nothing uploads twice). Custom application channels follow the same explicit metadata: glTF lowercases

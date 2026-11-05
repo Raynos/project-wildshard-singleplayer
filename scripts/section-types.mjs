@@ -1,6 +1,6 @@
 // Standalone declarations from the same output JSON schemas the builder ships.
 // Refuse unsupported shapes instead of silently weakening a product's type.
-/** @param {import('../src/sdk/formatJsonSchema').FormatJsonSchema | boolean} schema @param {{records?:boolean}} [options] @returns {string} */
+/** @param {import('../src/sharddev/formatJsonSchema').FormatJsonSchema | boolean} schema @param {{records?:boolean}} [options] @returns {string} */
 export function sectionType(schema,options={}) {
   if (schema === true) return 'unknown';
   if (schema === false) return 'never';

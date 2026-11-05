@@ -31,8 +31,8 @@ None new. Research (11-03):
   (19ab) needs real modelled walls, kerbs and roads, which is what the Blender path is for (AGENTS.md: the script is the
   source, the GLB is committed). Recommended: **data rows copied from `_template`, world geometry from a Blender script
   as in `blender-template`** (Q1).
-- **Bounds are already enforced** at bake time: `src/sdk/bake/terrain.ts:34`, `src/sdk/bake/props.ts:227`,
-  `src/sdk/bake/world.ts:58` refuse anything outside x/z ±250 and y −250…+250 (`format/contentBounds.ts:19`). The
+- **Bounds are already enforced** at bake time: `src/sharddev/bake/terrain.ts:34`, `src/sharddev/bake/props.ts:227`,
+  `src/sharddev/bake/world.ts:58` refuse anything outside x/z ±250 and y −250…+250 (`format/contentBounds.ts:19`). The
   interior/portal half of the cube rule is W0e.
 - **The grid slot is not (0,2).** The grid catalogue (`src/game/shared/grid/singleplayer.json`) already holds a hologram plot
   **`open-plot-showcase-template` at cell [−1,−1] (instance `open-plot-sw`)**; cell [0,2] is

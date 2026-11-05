@@ -5,7 +5,7 @@ import { REEF_SCENE_LIBRARY } from './reefCatalogue';
 import { driftwoodFoliageScenes } from './foliageScenesBank';
 import { REEF_LOOK } from './reefLook';
 import { driftwoodTrailRows } from './fixedFacts';
-import { worldSceneRows as parseWorldScenes, type AuthorWorldScenes as WorldScenesSection } from '@wildshard/sdk/worldScenes';
+import { worldSceneRows as parseWorldScenes, type AuthorWorldScenes as WorldScenesSection } from '@wildshard/sharddev/worldScenes';
 import inventory from '../data/fixedGeometry.json' with { type: 'json' };
 import { driftwoodZiplineBank } from './ziplineBank';
 import { DRIFTWOOD_FIXED_SOURCES } from './assets';
@@ -13,7 +13,7 @@ import authoredPoolLook from '../data/poolLook.json' with { type: 'json' };
 import { CASCADE_LOOKS } from './waterfallLook';
 import { worldPlacements, TRAIL_PLACEMENTS } from './worldPlacements';
 import trailSpecimens from '../data/trailCatalogue.json' with { type: 'json' };
-import { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
+import { authorFormatRows } from '@wildshard/sharddev/formatJsonSchema';
 import { trailSpecimenBank } from './trailsideModels';
 import { entryDeckSpecimen } from './entryDeckSpecimen';
 

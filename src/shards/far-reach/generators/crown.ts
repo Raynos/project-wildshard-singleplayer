@@ -1,5 +1,5 @@
 import { BufferGeometry, Color, DoubleSide, Float32BufferAttribute, InstancedMesh, Matrix4, MeshStandardMaterial } from 'three';
-import { boxDesc, type ColliderDesc } from '@wildshard/sdk/bake/placement';
+import { boxDesc, type ColliderDesc } from '@wildshard/sharddev/bake/placement';
 import { SkyPiece } from './piece';
 import { CROWN, DAIS } from "./layout";
 import { CROWN_RING, CROWN_STONES, type Stone } from "./crownLayout";

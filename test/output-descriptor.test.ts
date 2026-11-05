@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { parseKtx2, ktx2DeviceCosts, ktx2DeviceGpu } from '@wildshard/format/ktx2Cost';
 import { runtimeOnlyProductFiles, deviceLibraryCostPaced, productResidentBytes, productResidentBytesSteps, productPostCost } from '../src/game/client/shardfile/productCost';
 import { expect, test, vi } from 'vitest';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { encodeCanonicalJson as canonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { parseOutputIndex, type OutputIndex } from '@wildshard/format/outputIndex';
 import { OUTPUT_SECTIONS, outputSectionPayloads } from '@wildshard/format/outputFields';

@@ -15,7 +15,7 @@ import type {ForestWeatherRig} from '../src/game/client/weather/forest';
 import {SceneDressing} from '../src/game/client/shardfile/sceneDressing';
 import * as population from '../src/game/server/population/wildlife';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
-import {emptyShardfile} from '../src/sdk/author';
+import {emptyShardfile} from '../src/sharddev/author';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 
 function fixture(){

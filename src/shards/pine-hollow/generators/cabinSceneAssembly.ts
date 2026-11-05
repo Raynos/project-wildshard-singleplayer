@@ -3,7 +3,7 @@
  * The independent native assembly oracle checks these geometry and append-order
  * operations; this module never imports runtime, engine or game code. */
 import * as THREE from 'three';
-import { checkBuildingAssembly as admitBuildingAssembly, emptyBuildingLifeRows, type AuthorBuildingAssembly as BuildingAssemblyRows, type AuthorBuildingCloud as BuildingCloudRow } from '@wildshard/sdk/worldScenes';
+import { checkBuildingAssembly as admitBuildingAssembly, emptyBuildingLifeRows, type AuthorBuildingAssembly as BuildingAssemblyRows, type AuthorBuildingCloud as BuildingCloudRow } from '@wildshard/sharddev/worldScenes';
 import { cabinShadowProxy, cabinFlatPositions, cabinTwoSidedPositions, type CabinWeldPart, type CabinWeldCopy } from './cabinWeld';
 
 type BakedBuildingRecord<K extends string, P extends string> = BuildingAssemblyRows<K, P>['record'];

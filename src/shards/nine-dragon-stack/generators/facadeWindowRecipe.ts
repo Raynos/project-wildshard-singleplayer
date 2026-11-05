@@ -1,4 +1,4 @@
-import { worldSceneRecipe as parseWorldScene, type AuthorWorldScenes as WorldScenesSection } from '@wildshard/sdk/worldScenes';
+import { worldSceneRecipe as parseWorldScene, type AuthorWorldScenes as WorldScenesSection } from '@wildshard/sharddev/worldScenes';
 import { facadeWindowPackets } from './facadeWindowPackets';
 import type { NineWindowLayout } from './facadeWindows';
 

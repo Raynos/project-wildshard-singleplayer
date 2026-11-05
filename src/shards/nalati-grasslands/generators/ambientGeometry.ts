@@ -1,8 +1,8 @@
 // Offline ambient geometry; live drawing reads the prepared pack.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { smoothstep as sstep } from '@wildshard/sdk/noise';
-import { loft, S, mix, srgb, type Paint } from '@wildshard/sdk/bake/species';
+import { smoothstep as sstep } from '@wildshard/sharddev/noise';
+import { loft, S, mix, srgb, type Paint } from '@wildshard/sharddev/bake/species';
 
 export function wingGeo(): THREE.BufferGeometry {
   const v = [0, 0, 0.004, 0.034, 0.004, 0.02, 0.044, 0, -0.004, 0.03, 0, -0.026, 0, 0, -0.012];

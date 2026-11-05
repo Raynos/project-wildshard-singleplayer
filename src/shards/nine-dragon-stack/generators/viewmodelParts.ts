@@ -8,7 +8,7 @@ import { ClassKit, type ClassLook, v3 } from './kit/classKit';
 import { tubeTopology, sheetTopology } from './kit/clothTopology';
 import viewmodel from '../data/decals.json' with { type: 'json' };
 import cloth from '../data/cloth.json' with { type: 'json' };
-import { numberTupleRows } from '@wildshard/sdk/rows';
+import { numberTupleRows } from '@wildshard/sharddev/rows';
 
 const tuples = {
   TASSEL: { strandTaper: numberTupleRows(cloth.TASSEL.strandTaper, 4), spread: numberTupleRows(cloth.TASSEL.spread, 4),

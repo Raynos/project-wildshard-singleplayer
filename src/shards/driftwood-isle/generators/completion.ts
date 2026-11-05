@@ -1,10 +1,10 @@
 /** Authored completion copy; the existing platform card owns safety, progress and its page lifetime. */
-import { completionCardRows as parseCompletion } from '@wildshard/sdk/quests';
-import { createAuthorQuestPlacements as createQuestPlacements } from '@wildshard/sdk/bake/questPlacement';
+import { completionCardRows as parseCompletion } from '@wildshard/sharddev/quests';
+import { createAuthorQuestPlacements as createQuestPlacements } from '@wildshard/sharddev/bake/questPlacement';
 import frames from '../data/questFrames.json' with { type: 'json' };
 import { DRIFTWOOD_PLACES } from './discovery';
 import placeSets from '../data/placeSets.json' with { type: 'json' };
-import type { clientPlanSection } from '@wildshard/sdk/platformSections';
+import type { clientPlanSection } from '@wildshard/sharddev/platformSections';
 import { SHARD_FLAGS, SEA_GLASS_COUNT, SEA_GLASS_POINTS, SEA_GLASS_FLAG, REEF_TREASURE } from './interactables';
 
 type CompletionRows = ReturnType<typeof parseCompletion>;

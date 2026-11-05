@@ -9,7 +9,7 @@ import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generate
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { buildQuestChapter, installQuestFlags } from '../src/game/client/quest/chapter';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { PAGE_STORY as pineStory } from '../src/shards/pine-hollow/generators/pageStory';
 import { PAGE_STORY as driftwoodStory } from '../src/shards/driftwood-isle/generators/pageStory';
 import { PINE_QUESTS } from '../src/shards/pine-hollow/generators/quests';

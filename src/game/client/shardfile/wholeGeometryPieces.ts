@@ -6,7 +6,7 @@ import type { WholeGeometryPiece } from '../plugin/geometry';
 /** A run list expands to at most this many ordinals (a 2 MB GLB JSON chunk cannot otherwise bound it). */
 const WHOLE_ORDINALS_MAX = 1 << 24;
 const WholeOrdinal = wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(0));
-/** Ordinals as a plain list, or the baker's run-length form `{ runs: [start, length, …] }` (sdk/bake/props `wholePartitionRuns`). */
+/** Ordinals as a plain list, or the baker's run-length form `{ runs: [start, length, …] }` (sharddev/bake/props `wholePartitionRuns`). */
 /** A plain ordinal list, checked in one loop with WholeOrdinal's rules (valibot's per-element pipe over whole tiles' lists
  *  was ~150 ms of a phone-tier home region) */
 const isOrdinals = (list: unknown): list is number[] => Array.isArray(list) && list.every((ordinal: unknown) => typeof ordinal === 'number' && Number.isInteger(ordinal) && ordinal >= 0);
@@ -32,7 +32,7 @@ const WholeOrdinals = wholeV.union([wholeV.pipe(wholeV.custom<number[]>(isOrdina
     && row.runs.reduce((sum, ordinal, i) => sum + (i % 2 === 1 ? ordinal : 0), 0) <= WHOLE_ORDINALS_MAX, 'whole ordinal runs are bounded start/length pairs'),
   wholeV.transform(row => runWholeOrdinals(row.runs)))]);
 const WholePartition = wholeV.pipe(wholeV.strictObject({ id: wholeV.string(), vertices: WholeOrdinals, triangles: WholeOrdinals, vertexCount: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(1)), indexCount: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(0)), index: wholeV.picklist(['none', 'u16', 'u32']),
-  // I3: the partition's positions are unnormalized Int16 on this grid of its whole shape (sdk/bake/props `wholeGrid`)
+  // I3: the partition's positions are unnormalized Int16 on this grid of its whole shape (sharddev/bake/props `wholeGrid`)
   grid: wholeV.exactOptional(wholeV.strictObject({ origin: wholeV.tuple([wholeV.number(), wholeV.number(), wholeV.number()]), step: wholeV.pipe(wholeV.number(), wholeV.minValue(1 / 4096), wholeV.maxValue(1)) })) }),
   // The proof lives only in this parsed row: caller-owned explicit arrays
   // never qualify, even when they currently look like a complete run.

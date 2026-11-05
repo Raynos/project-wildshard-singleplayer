@@ -1,4 +1,4 @@
-import { bootFilePolicy as filePolicy, sharedBootTextures, type BootSources as ChunkFiles, type BootTier as Tier, type BootTextures as TexMode } from '@wildshard/sdk/bootInventory';
+import { bootFilePolicy as filePolicy, sharedBootTextures, type BootSources as ChunkFiles, type BootTier as Tier, type BootTextures as TexMode } from '@wildshard/sharddev/bootInventory';
 import { GPU_FILES } from '../ktx2.generated';
 import declared from '../data/bootAssets.json' with { type: 'json' };
 

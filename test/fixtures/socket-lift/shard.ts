@@ -1,4 +1,4 @@
-import { emptyShardfile } from '../../../src/sdk/author';
+import { emptyShardfile } from '../../../src/sharddev/author';
 import { parseShardfile } from '@wildshard/format/shardSchema';
 import { assetCost } from '@wildshard/format/product';
 import { parseMovers } from '@wildshard/format/movers';

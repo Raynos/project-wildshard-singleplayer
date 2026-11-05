@@ -20,7 +20,7 @@ import { geometryWriter } from './bakeWrite';
 import { KIT_KINDS } from './kitKinds';
 import type { AuthoredPlacement as Placement } from './contracts/modelPlacement';
 import { type BakedPlace, type LayoutRows, LayoutRowsSchema, type SignCallRow } from './sections';
-import { parseSectionValue } from '@wildshard/sdk/sections';
+import { parseSectionValue } from '@wildshard/sharddev/sections';
 
 const tuple = (p: Vector3): [number, number, number] => [p.x, p.y, p.z];
 

@@ -14,7 +14,7 @@ import { InputHashMemo } from '../scripts/bake-input-hashes.mjs';
 import { build } from '../scripts/shardfile-vite.mjs';
 import {build as buildCompiler} from 'vite';
 import * as v from 'valibot';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
 
 const owned: string[] = [];
 afterEach(() => { for (const root of owned.splice(0)) rmSync(root, { recursive: true, force: true }); });
@@ -108,8 +108,8 @@ it('replay keeps an earlier observation and refuses a crossed product scope',asy
 });
 it('keys workspace installation while complete receipts own SDK and format source freshness', () => {
   const root = fixture(), memo = new InputHashMemo(root), key = () => productToolchainKey(root,memo), before = key();
-  writeFileSync(resolve(root,'src/sdk/unread.generated.ts'),'generated'); expect(key()).toBe(before);
-  writeFileSync(resolve(root,'src/sdk/compiler.ts'),'compiler'); expect(key()).toBe(before);
+  writeFileSync(resolve(root,'src/sharddev/unread.generated.ts'),'generated'); expect(key()).toBe(before);
+  writeFileSync(resolve(root,'src/sharddev/compiler.ts'),'compiler'); expect(key()).toBe(before);
   writeFileSync(resolve(root,'src/format/schema.ts'),'schema'); expect(key()).toBe(before);
   writeFileSync(resolve(root,'pnpm-lock.yaml'),'changed dependency installation');expect(key()).not.toBe(before);
 });
@@ -196,7 +196,7 @@ it.each(['execution','source','function-text'])('keeps %s compiler dependencies 
 });
 
 it.each([true,false])('keeps native compiler execution %s separate from raw runtime bytes',async execution=>{
-  const root=fixture(),receipt=resolve(root,'receipt.json'),compiler=resolve(root,'src/sdk/compiler.ts');
+  const root=fixture(),receipt=resolve(root,'receipt.json'),compiler=resolve(root,'src/sharddev/compiler.ts');
   const before='/** compiler docs */ export const compile=()=>1;';writeFileSync(compiler,before);
   await captureProductInputs(root,receipt,async()=>{
     const result=await buildCompiler({root,configFile:false,publicDir:false,logLevel:'silent',plugins:[inputRecorderPlugin({execution})],build:{write:false,minify:false,lib:{entry:compiler,formats:['es'],fileName:'compiler'}}});
@@ -208,7 +208,7 @@ it.each([true,false])('keeps native compiler execution %s separate from raw runt
   writeFileSync(compiler,before.replace('()=>1','()=>2'));expect(key()).toBeUndefined();
 });
 it.each([false,true])('keys an explicitly executed author declaration separately from runtime source: %s',async execution=>{
-  const root=fixture(),receipt=resolve(root,'receipt.json'),compiler=resolve(root,'src/sdk/compiler.ts');
+  const root=fixture(),receipt=resolve(root,'receipt.json'),compiler=resolve(root,'src/sharddev/compiler.ts');
   const source='/** declaration documentation */ export const value=1;';writeFileSync(compiler,source);
   await captureProductInputs(root,receipt,async()=>{
     await build({root,configFile:false,publicDir:false,logLevel:'silent',plugins:execution?[{name:'wildshard-author-execution',api:{wildshardInputIdentity:'execution'}}]:[],build:{write:false,minify:false,lib:{entry:compiler,formats:['es'],fileName:'config'}}});
@@ -219,7 +219,7 @@ it.each([false,true])('keys an explicitly executed author declaration separately
   writeFileSync(compiler,source.replace('value=1','value=2'));expect(key()).toBeUndefined();
 });
 it.each([false,true])('guards function text after the native bundle execution boundary: %s',async executed=>{
-  const root=fixture(),receipt=resolve(root,'receipt.json'),compiler=resolve(root,'src/sdk/compiler.ts');
+  const root=fixture(),receipt=resolve(root,'receipt.json'),compiler=resolve(root,'src/sharddev/compiler.ts');
   const source='/** first docs */ export const compile=()=>1;';writeFileSync(compiler,source);
   const bundled=v.parse(v.object({compile:v.function()}),await import(`data:text/javascript,${encodeURIComponent(source)}`));
   await captureProductInputs(root,receipt,()=>{

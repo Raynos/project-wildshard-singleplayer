@@ -1,4 +1,4 @@
-import { parseQuestData } from '@wildshard/sdk/quests';
+import { parseQuestData } from '@wildshard/sharddev/quests';
 import { WARDENS_HOLLOW, QUEST_EXTERNAL, ERRAND_EXTERNAL } from './wardensHollow';
 import wardens from '../data/wardensHollow.json' with { type: 'json' };
 

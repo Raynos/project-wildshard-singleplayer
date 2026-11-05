@@ -1,7 +1,7 @@
 /**
  * The far tier's impostor at run time (G539: near = the full cell, mid = its far proxy, far = this). One quad under the
  * cell's root, turned about the vertical to face the camera in the vertex shader; it samples the two baked views
- * (`@wildshard/sdk/bake/farImpostor`) nearest the camera's azimuth and blends them, then hazes exactly as the proxy does
+ * (`@wildshard/sharddev/bake/farImpostor`) nearest the camera's azimuth and blends them, then hazes exactly as the proxy does
  * (the proxy's own haze toward the frame's air, after tone mapping and the output conversion). The band between proxy
  * and impostor is a screen-door cross-fade: the proxy keeps the fragments under the band's dither and the impostor the
  * rest, so a cell never pops between them. The texels pack to RGBA 5551 (2 bytes, the bake's own quantisation) in a

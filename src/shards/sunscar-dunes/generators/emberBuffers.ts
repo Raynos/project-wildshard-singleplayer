@@ -1,6 +1,6 @@
-import {registeredJsonSchema} from '@wildshard/sdk/formatJsonSchema';
-import { worldSceneBuffers as parseSceneBuffers } from '@wildshard/sdk/worldScenes';
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
+import {registeredJsonSchema} from '@wildshard/sharddev/formatJsonSchema';
+import { worldSceneBuffers as parseSceneBuffers } from '@wildshard/sharddev/worldScenes';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
 
 export const SIGNAL_EMBER_BLOBS: NamedBlob[] = [];
 /** Original Points storage and golden-ratio seed rounding, baked once per authored ember count. */

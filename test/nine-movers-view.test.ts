@@ -6,7 +6,7 @@ import { parse } from 'valibot';
 import { Scope } from '../src/engine/shared/app/scope';
 import { viewProgram } from '../src/engine/client/script/viewProgram';
 import { ViewProgramSchema } from '@wildshard/format/viewProgram';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
+import { compileScriptV2 } from '../src/sharddev/bake/compileScriptV2';
 import plan from '../src/shards/nine-dragon-stack/data/layoutPlan.json' with { type: 'json' };
 import dressing from '../src/shards/nine-dragon-stack/data/worldDressing.json' with { type: 'json' };
 import { MOVER_REST, MOVER_STAGES, moverPlacements, nineMoversView } from '../src/shards/nine-dragon-stack/generators/moversView';

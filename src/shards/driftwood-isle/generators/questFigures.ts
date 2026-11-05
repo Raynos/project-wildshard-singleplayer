@@ -2,7 +2,7 @@ import inventory from '../data/fixedGeometry.json' with { type: 'json' };
 import page from '../data/questPageComposition.json' with { type: 'json' };
 import stall from '../data/traderStall.json' with { type: 'json' };
 import { CASTAWAY_SMOKE, SMOKE_LOOK } from './smokeLook';
-import { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
+import { authorFormatRows } from '@wildshard/sharddev/formatJsonSchema';
 
 type QuestFiguresRows = ReturnType<typeof authorFormatRows<'questFigures.QuestFiguresSchema'>>;
 

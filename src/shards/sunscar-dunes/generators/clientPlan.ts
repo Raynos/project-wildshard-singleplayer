@@ -1,5 +1,5 @@
-import { clientPlanSection as parseClientPlan } from '@wildshard/sdk/platformSections';
-import { parsePersistedQuestPage } from '@wildshard/sdk/quests';
+import { clientPlanSection as parseClientPlan } from '@wildshard/sharddev/platformSections';
+import { parsePersistedQuestPage } from '@wildshard/sharddev/quests';
 import { SIGNAL_PAGE_PROGRAM } from './rows/population';
 import { WHIP_ITEMS } from './rows/items';
 import { SIGNAL_SCENE_MOTION } from './clientMotion';

@@ -5,7 +5,7 @@ import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { Renderer } from '../src/engine/client/render/renderer';
 import { initKtx2, parseKtx2Bytes } from '../src/engine/client/core/ktx2';
 import * as gpuFiles from '../src/engine/client/boot/gpuFiles';
-import { bakeRawColourPixels } from '../src/sdk/bake/rawTexture';
+import { bakeRawColourPixels } from '../src/sharddev/bake/rawTexture';
 
 let loader: KTX2Loader | undefined;
 beforeAll(() => {

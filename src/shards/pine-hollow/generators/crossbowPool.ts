@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { clientSceneGlb, staticGlb } from '@wildshard/sdk/bake/glb';
+import { clientSceneGlb, staticGlb } from '@wildshard/sharddev/bake/glb';
 
 function box(w: number, h: number, d: number, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0): THREE.BufferGeometry {
   const g = new THREE.BoxGeometry(w, h, d);

@@ -1,6 +1,6 @@
-import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
-import type { NamedBlob } from '@wildshard/sdk/blobs';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import { readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
+import type { NamedBlob } from '@wildshard/sharddev/blobs';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { TERRAIN_PAINT_SOURCE } from './nalatiGroundSource';
 import { terrainSceneBlobs, waterSceneBlob } from './terrainScene';
 import { bakeWaterStrips } from './waterStrips';

@@ -5,8 +5,8 @@ import { dirname, resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
-import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
+import { createProjectGeneration, type ProjectGenerationContext } from '../src/sharddev/projectGeneration';
 import { MILL_REST_FILES, MILL_REST_INPUTS, skyMillRestSource, skyMillRestProgram } from '../src/shards/far-reach/generators/millRestProgram';
 
 const check = (files: ReadonlyMap<string, Uint8Array>, expected: ReadonlyMap<string, { bytes: number; hash: string }>): void => {

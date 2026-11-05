@@ -5,7 +5,7 @@ import { classicLookCompiler } from './fixtures/classicLookCompiler';
 import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 import { materialTextureRefs } from '@wildshard/format/materials';
 import { clientGraphs } from '../src/game/client/shardfile/clientGraphs';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import lookGraphs from '../src/shards/pine-hollow/data/lookGraphs.json' with { type: 'json' };
 import { authoredGraphs } from './fixtures/authoredGraphs';
 

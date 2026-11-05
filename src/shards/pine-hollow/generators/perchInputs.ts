@@ -1,6 +1,6 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { bakePlantedForest } from '@wildshard/sdk/bake/forest';
-import { Rng } from '@wildshard/sdk/random';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { bakePlantedForest } from '@wildshard/sharddev/bake/forest';
+import { Rng } from '@wildshard/sharddev/random';
 import declared from '../data/publicInputs.json' with { type: 'json' };
 import bindings from '../data/terrainBindings.json' with { type: 'json' };
 import manifest from '../manifest.json' with { type: 'json' };

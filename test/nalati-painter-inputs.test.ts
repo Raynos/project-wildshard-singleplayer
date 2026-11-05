@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import type { BufferGeometry } from 'three';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { readNativeTerrain } from '../src/sdk/bake/terrain';
+import { readNativeTerrain } from '../src/sharddev/bake/terrain';
 import { buildPainterlyGeometry, buildPainterlySlab } from '../src/shards/nalati-grasslands/generators/terrainPainter';
 import { TERRAIN_PAINT_SOURCE } from '../src/shards/nalati-grasslands/generators/nalatiGroundSource';
 import { CHUNK_SIZE, CHUNK_DEPTH, TERRAIN_RES } from '../src/engine/shared/core/config';

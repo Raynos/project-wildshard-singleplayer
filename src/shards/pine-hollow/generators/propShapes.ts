@@ -1,7 +1,7 @@
 /** Original scan rest shapes and native contact facts, authored once into the Pine Scene. */
 import * as THREE from 'three';
 import { deinterleaveGeometry } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { BakedPiece } from '@wildshard/sdk/bake';
+import { BakedPiece } from '@wildshard/sharddev/bake';
 
 export interface PineScanPart { geometry: THREE.BufferGeometry; matrix: THREE.Matrix4 }
 interface ShapeRow { name: string; hull: number[]; sphere: [number, number, number, number] }

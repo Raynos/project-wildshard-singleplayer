@@ -220,7 +220,7 @@ test('a debt row follows its file across a side move, and only there',()=>fixtur
   expect(grew({[old]:2,[moved]:1})).toContain('source debt allowance grew');
   expect(grew({'src/game/server/quest/other.ts':1})).toContain('source debt allowance grew');
   expect(grew({'src/engine/server/quest/rows.ts':1})).toContain('source debt allowance grew');
-  expect(grew({'src/sdk/server/game/quest/rows.ts':1})).toContain('source debt allowance grew');
+  expect(grew({'src/sharddev/server/game/quest/rows.ts':1})).toContain('source debt allowance grew');
   expect(grew({[old]:2},[table,'src/game/client/boot/table.generated.ts'])).toContain('app source exemption grew');
 }));
 

@@ -1,6 +1,6 @@
 import {expect,test} from 'vitest';
-import {compileScriptV2} from '../src/sdk/bake/compileScriptV2';
-import {v2CoreSource} from '../src/sdk/as/wsV2';
+import {compileScriptV2} from '../src/sharddev/bake/compileScriptV2';
+import {v2CoreSource} from '../src/sharddev/as/wsV2';
 import {admitScriptV2} from '@wildshard/format/scriptAdmissionV2';
 
 const project=(output:number):Promise<Uint8Array>=>compileScriptV2(`import * as core from './core';

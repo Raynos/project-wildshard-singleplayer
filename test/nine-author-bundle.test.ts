@@ -8,7 +8,7 @@ import { build, parseSync } from 'vite';
 import { generatorImportViolation } from '../lint/shard-imports.mjs';
 import { nineBuildBlocks } from '../src/shards/nine-dragon-stack/generators/worldEntry';
 import { BLEND_ADD_KEEP_ALPHA } from '../src/game/client/plugin/shaderFamily';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 
 test('Nine authored streaks retain the original blend state without importing a runtime host', () => {
   const row = Object.values(nineBuildBlocks(scenes)).flat().find(entry => entry.kind === 'look' && entry.look === 'nine-streaks');

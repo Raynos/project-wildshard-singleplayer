@@ -1,6 +1,6 @@
 /** Build-time cover splat; the page only admits and installs its declared file. */
 import * as THREE from 'three';
-import { modelCoverMetadata } from '@wildshard/sdk/bake/sourceMetadata';
+import { modelCoverMetadata } from '@wildshard/sharddev/bake/sourceMetadata';
 import { triAreas, type CoverTri } from './coverTris';
 import { islandProtos, type IslandProto } from './islandProtos';
 import { AuthorCoverGrid, baseCoverGrid } from './coverGrid';
@@ -13,7 +13,7 @@ import { coveFamilyOf, type CoveFamily } from './coveModels';
 import { WORLD_DROP } from './sea';
 import { ISLAND_LOOK, ISLAND_TIERS } from './islandRows';
 import geometryPolicy from '../data/groundGeometryPolicy.json' with { type: 'json' };
-import type { AuthorBakedPlacementPlan } from '@wildshard/sdk/worldScenes';
+import type { AuthorBakedPlacementPlan } from '@wildshard/sharddev/worldScenes';
 
 const CHUNK_SIZE = geometryPolicy.size, CHUNK_HALF = CHUNK_SIZE / 2, TERRAIN_RES = geometryPolicy.resolution;
 

@@ -3,11 +3,11 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture artifact paths are local build products.
 import { join } from 'node:path';
 import { templateProps } from '../../../../src/shards/_template/generators/templatePropsSource';
-import { bakeProps } from '../../../../src/sdk/bake/props';
-import { bakeTerrain } from '../../../../src/sdk/bake/terrain';
-import { canonicalJson } from '../../../../src/sdk/project';
-import { emptyShardfile } from '../../../../src/sdk/author';
-import { validateProject } from '../../../../src/sdk/project';
+import { bakeProps } from '../../../../src/sharddev/bake/props';
+import { bakeTerrain } from '../../../../src/sharddev/bake/terrain';
+import { canonicalJson } from '../../../../src/sharddev/project';
+import { emptyShardfile } from '../../../../src/sharddev/author';
+import { validateProject } from '../../../../src/sharddev/project';
 /** Generate the board's actual admitted bytes and the CLI-valid fixture shardfile, without shipping a template runtime. */
 export function buildPropsFixture(directory: string, count = 10): void {
   mkdirSync(directory, { recursive: true });

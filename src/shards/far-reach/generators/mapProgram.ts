@@ -1,5 +1,5 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { rasterSceneMap } from '@wildshard/sdk/bake/groundMap';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { rasterSceneMap } from '@wildshard/sharddev/bake/groundMap';
 import { skyMapSources, SKY_MAP_INPUTS } from './bake-map.mjs';
 import settings from '../data/map.json' with { type: 'json' };
 import lookGraphs from '../data/lookGraphs.json' with { type: 'json' };

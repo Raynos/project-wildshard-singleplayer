@@ -1,4 +1,4 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { nineOutput, type NineOutput, type NineOutputInputs } from './productOutput';
 import { NINE_MOVERS_CONTRACT, nineMoversProgram } from './moversProgram';
 import { nineEntryProof } from './entryProof';

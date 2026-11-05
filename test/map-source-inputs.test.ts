@@ -50,17 +50,17 @@ test('source-owned maps declare their program and its defining raster inputs', (
     expect(mapSettings(dir).inputs.length).toBeGreaterThan(0);
     expect(roots.some(root => program === root || program.startsWith(`${root}/`))).toBe(true);
     const inputs = programInputs(program);
-    expect(inputs, `${slug} raster entry`).toContain(resolve('src/sdk/bake/groundMap.ts'));
+    expect(inputs, `${slug} raster entry`).toContain(resolve('src/sharddev/bake/groundMap.ts'));
   }
-  const rasterInputs = programInputs(resolve('src/sdk/bake/groundMap.ts'));
+  const rasterInputs = programInputs(resolve('src/sharddev/bake/groundMap.ts'));
   for (const source of ['mapScenes', 'mapRaster']) {
-    expect(rasterInputs).toContain(resolve(`src/sdk/bake/${source}.ts`));
+    expect(rasterInputs).toContain(resolve(`src/sharddev/bake/${source}.ts`));
   }
   const nineRoots = mapInputRoots(resolve('src/shards/nine-dragon-stack'));
   for (const source of ['mapAssembly', 'mapScenes', 'mapRaster', 'groundMap']) {
-    expect(nineRoots).toContain(resolve(`src/sdk/bake/${source}.ts`));
+    expect(nineRoots).toContain(resolve(`src/sharddev/bake/${source}.ts`));
   }
-  expect(nineRoots).toContain(resolve('src/sdk/kit/geometryPack.ts'));
+  expect(nineRoots).toContain(resolve('src/sharddev/kit/geometryPack.ts'));
   expect(nineRoots).toContain(resolve('src/commons/bake/portableMath.ts'));
   expect(nineRoots).toContain(resolve('src/shards/nine-dragon-stack/data/map.json'));
   expect(nineRoots).not.toContain(resolve('scripts/map-painter.mjs'));

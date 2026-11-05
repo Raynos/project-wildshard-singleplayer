@@ -1,11 +1,11 @@
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { BufferAttribute, BufferGeometry, DataUtils, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Scene, Vector3 } from 'three';
 import { drawSpill, withSpill, type NineSpillAtlas } from './spillBake';
-import { bakeOwned, BakedPiece, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
-import { compactWholeChannels, gridPositions, objectSpaceLooks, partitionWholeGeometry, wholeGrid, wholePartitionRuns, type PropWhole } from '@wildshard/sdk/bake/props';
+import { bakeOwned, BakedPiece, WholeShape, type BakedScene } from '@wildshard/sharddev/bake';
+import { compactWholeChannels, gridPositions, objectSpaceLooks, partitionWholeGeometry, wholeGrid, wholePartitionRuns, type PropWhole } from '@wildshard/sharddev/bake/props';
 import lookGraphs from '../data/lookGraphs.json' with { type: 'json' };
 import { NINE_MATERIAL_LOOKS, NINE_WHOLE_DRESSING } from './wholeDressing';
-import { measuredCoarseGeometry } from '@wildshard/sdk/bake/coarseCopy';
+import { measuredCoarseGeometry } from '@wildshard/sharddev/bake/coarseCopy';
 import { nineLayoutSource, SPLIT_KINDS } from './layout';
 import { kitKind } from './kitKinds';
 import { bootSpecimen, specimenRecipes } from './specimens';

@@ -19,7 +19,7 @@ import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { originalHeldMetadata } from './fixtures/nalati-held-original';
 import { scriptAdmissionRows, decisionModuleContracts } from '@wildshard/format/scriptContract';
 import { ReturnProjectionV2Schema, parseReturnProjectionV2 } from '@wildshard/format/returnProjectionV2';
-import { nameBlob } from '../src/sdk/blobs';
+import { nameBlob } from '../src/sharddev/blobs';
 import { NALATI_SCRIPT_SECTIONS } from './fixtures/nalati-script-inventory';
 
 const { held, stealth } = originalHeldMetadata();

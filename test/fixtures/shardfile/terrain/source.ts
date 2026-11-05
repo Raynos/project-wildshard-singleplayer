@@ -1,4 +1,4 @@
-import type { TerrainBakeSource } from '../../../../src/sdk/bake/terrain';
+import type { TerrainBakeSource } from '../../../../src/sharddev/bake/terrain';
 
 /** A rolling fixture field with flat entry roads and one hand-raised mound; no trusted runtime survives baking. */
 export const TERRAIN_FIXTURE: TerrainBakeSource = {

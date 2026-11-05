@@ -10,7 +10,7 @@ import {NALATI_SCRIPT_SECTIONS} from './fixtures/nalati-script-inventory';
 import {Scope} from '../src/engine/shared/app/scope';
 import {ReturnProgram} from '../src/game/shared/population/returnProgram';
 import {hashImmutableBytes} from '../src/sdk/immutable';
-import {nameBlob} from '../src/sdk/blobs';
+import {nameBlob} from '../src/sharddev/blobs';
 import {kokparModuleOptions,NALATI_KOKPAR_MODULE} from '../src/shards/nalati-grasslands/generators/kokparRows';
 import {kokparProgram,kokparModuleBytes,lendNalatiKokpar} from './fixtures/nalati-return-modules';
 

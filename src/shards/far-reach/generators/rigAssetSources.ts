@@ -1,4 +1,4 @@
-import type { EmittedBlobs } from '@wildshard/sdk/blobs';
+import type { EmittedBlobs } from '@wildshard/sharddev/blobs';
 import { SKY_CREATURES, SKY_CREATURE_RIGS, type SkyCreature } from './fileInventory';
 
 /** Existing two-tier variant policy accepted by the metadata translator. */

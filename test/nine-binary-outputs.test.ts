@@ -1,5 +1,5 @@
 import { halfFloatBeforeControl } from './fixtures/half-float-before-control';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own and remove the isolated historical-control cache only.
 import { mkdirSync, mkdtempSync, rmSync, readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the same bounded source/public roots as the current fixture.
@@ -9,8 +9,8 @@ import { nineCastsProgram } from '../src/shards/nine-dragon-stack/generators/cas
 import {createHash} from 'node:crypto';
 import {expect,test} from 'vitest';
 import {build} from 'vite';
-import {parseGlb} from '../src/sdk/assets';
-import {assertConfigBoundary} from '../src/sdk/configBoundary';
+import {parseGlb} from '../src/sharddev/assets';
+import {assertConfigBoundary} from '../src/sharddev/configBoundary';
 
 import {CASTS} from './fixtures/nine-cast-blobs';
 import {hookProduct} from '../src/shards/nine-dragon-stack/generators/hookProduct';

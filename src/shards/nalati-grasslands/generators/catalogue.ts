@@ -1,4 +1,4 @@
-import { authorFormatSchema } from '@wildshard/sdk/formatJsonSchema';
+import { authorFormatSchema } from '@wildshard/sharddev/formatJsonSchema';
 import rows from '../data/campCatalogue.json' with { type: 'json' };
 import type { CatalogueParams } from './campParams';
 

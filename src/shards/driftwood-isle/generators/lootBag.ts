@@ -1,4 +1,4 @@
-import { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
+import { authorFormatRows } from '@wildshard/sharddev/formatJsonSchema';
 import { DRIFTWOOD_LOOT as loot } from './loot';
 import continuation from '../data/questContinuation.json' with { type: 'json' };
 

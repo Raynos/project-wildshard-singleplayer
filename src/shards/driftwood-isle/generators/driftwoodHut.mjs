@@ -1,7 +1,7 @@
 // Driftwood's fixed buildings on their sites (the castaway's hut, the lookout tower) over the same retained terrain
 // binding as the native level (original WSTR samples plus its authored datum), their AO answered by the committed voxel
 // table as on the page. Explicit function calls only; import selects no world, service or level.
-import { withFacetedAO } from '@wildshard/sdk/bake/facetedGeometry';
+import { withFacetedAO } from '@wildshard/sharddev/bake/facetedGeometry';
 import { driftwoodGroundSampler } from './groundSampling.ts';
 import { PLATEAU, HEADLAND } from './landscapeRows.ts';
 import { hutBake } from './hut.ts';

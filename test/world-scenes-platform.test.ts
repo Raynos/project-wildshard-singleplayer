@@ -16,7 +16,7 @@ import { installWorldScenes } from '../src/game/client/shardfile/worldScenes';
 import { constructionCheckpoint } from '../src/game/client/shardfile/constructionCheckpoint';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import type { ShardContext } from '../src/game/client/plugin/context';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import * as runtimeProducts from '../src/game/client/shardfile/runtimeProduct';
 import { recordSceneProfile } from '../src/game/client/shardfile/sceneProfile';
 import { isDev, setDev } from '../src/engine/client/core/devMode';

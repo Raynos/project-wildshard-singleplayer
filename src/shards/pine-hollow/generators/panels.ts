@@ -1,5 +1,5 @@
 
-import { panelDefinitionRows as parsePanelDefinition, type AuthorPanelTemplate as PanelTemplate, type AuthorPanelValue as PanelValue } from '@wildshard/sdk/quests';
+import { panelDefinitionRows as parsePanelDefinition, type AuthorPanelTemplate as PanelTemplate, type AuthorPanelValue as PanelValue } from '@wildshard/sharddev/quests';
 import { contractCatalogue } from './contractRows';
 import { itemName } from './trades';
 

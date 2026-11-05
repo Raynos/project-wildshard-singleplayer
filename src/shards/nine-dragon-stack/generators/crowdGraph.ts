@@ -1,5 +1,5 @@
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { assetCost } from '@wildshard/sdk/assets';
+import { assetCost } from '@wildshard/sharddev/assets';
 import { crowdGraph } from './architectureGraphs';
 
 /** The paired crowd owns a separate material so ordinary kit instances never

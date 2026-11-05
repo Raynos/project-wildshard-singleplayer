@@ -1,8 +1,8 @@
 // Deterministic presentation placement, evaluated only by the build driver.
 import * as THREE from 'three';
 import catalogue from '../data/campCatalogue.json' with { type: 'json' };
-import { Rng } from '@wildshard/sdk/random';
-import { bakeModelPose as modelPoseMatrix } from '@wildshard/sdk/bake/placement';
+import { Rng } from '@wildshard/sharddev/random';
+import { bakeModelPose as modelPoseMatrix } from '@wildshard/sharddev/bake/placement';
 import { inPoiClearing } from './clearings';
 import { HORSE_PLAINS, KURGANS, SUMMER_YURTS, SNOW_LOTUS, SNOW_LINE } from './layout';
 

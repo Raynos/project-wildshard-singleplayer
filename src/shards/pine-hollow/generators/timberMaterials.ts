@@ -1,4 +1,4 @@
-import { worldSceneSurface } from '@wildshard/sdk/worldScenes';
+import { worldSceneSurface } from '@wildshard/sharddev/worldScenes';
 import { CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE } from './cabinAssembly';
 import { CABIN_DOOR_LOOK, CABIN_MOSS_LOOKS } from './cabinLook';
 

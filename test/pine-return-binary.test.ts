@@ -11,7 +11,7 @@ import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { ReturnModulesSchema } from '@wildshard/format/scriptContract';
-import { outputPlatformPayloads } from '../src/sdk/outputProduct';
+import { outputPlatformPayloads } from '../src/sharddev/outputProduct';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { prepareOutput } from '../src/shards/pine-hollow/generators/sourceOutput';
 import { pineGeneration } from './fixtures/pine-generation';

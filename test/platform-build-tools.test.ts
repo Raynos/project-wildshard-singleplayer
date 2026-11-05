@@ -16,14 +16,14 @@ it('excludes only the G456 build-tool paths from whole-module charges',()=>{
  const root=mkdtempSync(join(tmpdir(),'platform-build-tools-'));
  const put=(path:string,source:string):void=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,source);};
  try{
-  put('src/sdk/package.json',JSON.stringify({name:'@wildshard/sdk',exports:{'./bake/tool':'./bake/tool.ts','./project':'./project.ts','./bakeTools':'./bakeTools.ts','./projectOther':'./projectOther.ts'}}));
-  put('src/sdk/bake/tool.ts',"import {helper} from '../runtimeHelper'; export const bake=helper;");
-  put('src/sdk/project.ts','export const project=1;');
-  put('src/sdk/bakeTools.ts','export const runtimeTool=1;');
-  put('src/sdk/projectOther.ts','export const other=1;');
-  put('src/sdk/runtimeHelper.ts','export const helper=1;');
-  platformOutput(root,'pine-hollow',{'runtime/index.ts':"import {bake} from '@wildshard/sdk/bake/tool'; import {project} from '@wildshard/sdk/project'; import {runtimeTool} from '@wildshard/sdk/bakeTools'; import {other} from '@wildshard/sdk/projectOther'; export const live=[bake,project,runtimeTool,other];"});
-  expect(sourceProgressInventory(root)['pine-hollow']?.conversion.gameSystemAttribution.modules.map(row=>row.path)).toEqual(['src/sdk/bakeTools.ts','src/sdk/projectOther.ts','src/sdk/runtimeHelper.ts']);
+  put('src/sharddev/package.json',JSON.stringify({name:'@wildshard/sharddev',exports:{'./bake/tool':'./bake/tool.ts','./project':'./project.ts','./bakeTools':'./bakeTools.ts','./projectOther':'./projectOther.ts'}}));
+  put('src/sharddev/bake/tool.ts',"import {helper} from '../runtimeHelper'; export const bake=helper;");
+  put('src/sharddev/project.ts','export const project=1;');
+  put('src/sharddev/bakeTools.ts','export const runtimeTool=1;');
+  put('src/sharddev/projectOther.ts','export const other=1;');
+  put('src/sharddev/runtimeHelper.ts','export const helper=1;');
+  platformOutput(root,'pine-hollow',{'runtime/index.ts':"import {bake} from '@wildshard/sharddev/bake/tool'; import {project} from '@wildshard/sharddev/project'; import {runtimeTool} from '@wildshard/sharddev/bakeTools'; import {other} from '@wildshard/sharddev/projectOther'; export const live=[bake,project,runtimeTool,other];"});
+  expect(sourceProgressInventory(root)['pine-hollow']?.conversion.gameSystemAttribution.modules.map(row=>row.path)).toEqual(['src/sharddev/bakeTools.ts','src/sharddev/projectOther.ts','src/sharddev/runtimeHelper.ts']);
  }finally{rmSync(root,{recursive:true,force:true});}
 });
 
@@ -31,12 +31,12 @@ it('also excludes sole declarations inside shared build modules, retaining runti
  const root=mkdtempSync(join(tmpdir(),'platform-build-exports-'));
  const put=(path:string,source:string):void=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,source);};
  try{
-  put('src/sdk/package.json',JSON.stringify({name:'@wildshard/sdk',exports:{'./bake/tool':'./bake/tool.ts','./project':'./project.ts','./runtime':'./runtime.ts'}}));
-  for(const path of ['src/sdk/bake/tool.ts','src/sdk/project.ts','src/sdk/runtime.ts'])put(path,'export const first=1;\nexport const second=2;');
-  for(const [slug,name]of [['pine-hollow','first'],['driftwood-isle','second']] as const)platformOutput(root,slug,{'runtime/index.ts':`import {${name} as bake} from '@wildshard/sdk/bake/tool'; import {${name} as project} from '@wildshard/sdk/project'; import {${name} as runtime} from '@wildshard/sdk/runtime'; export const live=[bake,project,runtime];`});
+  put('src/sharddev/package.json',JSON.stringify({name:'@wildshard/sharddev',exports:{'./bake/tool':'./bake/tool.ts','./project':'./project.ts','./runtime':'./runtime.ts'}}));
+  for(const path of ['src/sharddev/bake/tool.ts','src/sharddev/project.ts','src/sharddev/runtime.ts'])put(path,'export const first=1;\nexport const second=2;');
+  for(const [slug,name]of [['pine-hollow','first'],['driftwood-isle','second']] as const)platformOutput(root,slug,{'runtime/index.ts':`import {${name} as bake} from '@wildshard/sharddev/bake/tool'; import {${name} as project} from '@wildshard/sharddev/project'; import {${name} as runtime} from '@wildshard/sharddev/runtime'; export const live=[bake,project,runtime];`});
   const rows=sourceProgressInventory(root);
-  expect(rows['pine-hollow']?.conversion.gameSystemAttribution.exports).toEqual([{path:'src/sdk/runtime.ts',name:'first',exported:true,lines:1}]);
-  expect(rows['driftwood-isle']?.conversion.gameSystemAttribution.exports).toEqual([{path:'src/sdk/runtime.ts',name:'second',exported:true,lines:1}]);
+  expect(rows['pine-hollow']?.conversion.gameSystemAttribution.exports).toEqual([{path:'src/sharddev/runtime.ts',name:'first',exported:true,lines:1}]);
+  expect(rows['driftwood-isle']?.conversion.gameSystemAttribution.exports).toEqual([{path:'src/sharddev/runtime.ts',name:'second',exported:true,lines:1}]);
  }finally{rmSync(root,{recursive:true,force:true});}
 });
 

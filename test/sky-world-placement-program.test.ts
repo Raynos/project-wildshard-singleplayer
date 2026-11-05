@@ -6,7 +6,7 @@ import { resolve } from 'node:path';
 import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import { WORLD_PLACEMENT_FILES, WORLD_PLACEMENT_INPUTS, skyWorldPlacementSource } from '../src/shards/far-reach/generators/worldPlacementBytes';
 
 const check = (files: ReadonlyMap<string, Uint8Array>): void => {

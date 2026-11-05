@@ -10,7 +10,7 @@
 import { BackSide, BoxGeometry, BufferAttribute, Color, DirectionalLight, MeshBasicMaterial, PMREMGenerator, FloatType, HemisphereLight, Mesh, PCFShadowMap, PerspectiveCamera, PlaneGeometry, RGBAFormat, Scene, SphereGeometry, Vector3, WebGLRenderer, WebGLRenderTarget, type BufferGeometry, type Material } from 'three';
 import { Scope } from '../../src/engine/shared/app/scope';
 import { clientMaterials } from '../../src/game/client/shardfile/clientMaterials';
-import { emptyShardfile } from '../../src/sdk/author';
+import { emptyShardfile } from '../../src/sharddev/author';
 import { GRAPH_PRESET_VERSION, parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 
 interface ToneCase { readonly name: string; readonly entry: Readonly<Record<string, unknown>>; readonly looks: Readonly<Record<string, unknown>>; readonly hemi?: number; readonly env?: boolean }

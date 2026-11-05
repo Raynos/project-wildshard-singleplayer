@@ -1,4 +1,4 @@
-import { questPageInteractionRows as parseQuestPageInteractions } from '@wildshard/sdk/rows';
+import { questPageInteractionRows as parseQuestPageInteractions } from '@wildshard/sharddev/rows';
 import policy from '../data/forestStory.json' with { type: 'json' };
 import wardens from '../data/wardensHollow.json' with { type: 'json' };
 

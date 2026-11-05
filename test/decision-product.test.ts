@@ -3,13 +3,13 @@ import { afterEach, beforeAll, expect, test } from 'vitest';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- All paths stay inside the owned fixture.
 import { resolve } from 'node:path';
-import { emptyShardfile } from '../src/sdk/author';
-import { compileScript } from '@wildshard/sdk/compileScript';
-import { nameBlob, emitNamedBlobs, readNamedBlob } from '../src/sdk/blobs';
-import { buildProject } from '../src/sdk/project';
-import { mergeProjectBlobs, prepareProjectOutput } from '../src/sdk/projectOutput';
-import { emitPlatformSections } from '../src/sdk/platformSections';
-import { writeOutputProduct, validateOutputProduct } from '../src/sdk/outputProduct';
+import { emptyShardfile } from '../src/sharddev/author';
+import { compileScript } from '@wildshard/sharddev/compileScript';
+import { nameBlob, emitNamedBlobs, readNamedBlob } from '../src/sharddev/blobs';
+import { buildProject } from '../src/sharddev/project';
+import { mergeProjectBlobs, prepareProjectOutput } from '../src/sharddev/projectOutput';
+import { emitPlatformSections } from '../src/sharddev/platformSections';
+import { writeOutputProduct, validateOutputProduct } from '../src/sharddev/outputProduct';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { admitProduct as admitBrowser, readProductDescriptor, type ProductOptions } from '../src/game/client/shardfile/product';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
@@ -94,7 +94,7 @@ test('project build carries source declaration contracts and their bound moves t
   // The author compiler builds the row's module from its declared AssemblyScript source.
   mkdirSync(resolve(root, 'behaviour')); writeFileSync(resolve(root, 'behaviour/sample.as'), 'export function onStart():void {}');
   writeFileSync(resolve(root, 'shard.config.ts'), `
-import { emitPlatformSections } from '@wildshard/sdk/platformSections';
+import { emitPlatformSections } from '@wildshard/sharddev/platformSections';
 export default ${JSON.stringify(source)};
 export const buildOptions = { asLineCeiling: 1 };
 export const output = {

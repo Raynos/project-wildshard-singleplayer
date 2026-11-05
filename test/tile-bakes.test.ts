@@ -4,8 +4,8 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { resolve } from 'node:path';
 import { afterEach, expect, test } from 'vitest';
 import { CONTENT_CAPS } from '@wildshard/format/contentBounds';
-import { emptyShardfile } from '../src/sdk/author';
-import { writeOutputProduct } from '../src/sdk/outputProduct';
+import { emptyShardfile } from '../src/sharddev/author';
+import { writeOutputProduct } from '../src/sharddev/outputProduct';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { checkTileBake, readTileBakeCensus, tileBakeCensus } from '../scripts/tile-bakes.mjs';
 import { parseTileBakePolicy, tileBakeApprovalFailures } from '../scripts/tile-bake-policy.mjs';

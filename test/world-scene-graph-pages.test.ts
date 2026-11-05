@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
-import { worldSceneGraphPages } from '../src/sdk/worldScenes';
+import { worldSceneGraphPages } from '../src/sharddev/worldScenes';
 import { parseWorldSceneWeld, sceneFileKey } from '@wildshard/format/worldSceneWeld';
 import { parseWorldScenePage, worldScenePageWeld, sceneWeldBytes, sceneLivingBytes } from '@wildshard/format/worldScenePages';
 import { registeredJsonContract } from '@wildshard/format/registeredJson';
-import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
+import { registeredJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { platformFileFamily } from '@wildshard/format/platformFileFamilies';
 import { admitWorldSceneModelGraphs } from '../src/game/client/shardfile/worldSceneWeld';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';

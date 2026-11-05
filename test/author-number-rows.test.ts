@@ -1,6 +1,6 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
-import { numberTupleRows, numberArrayRows } from '../src/sdk/rows';
+import { numberTupleRows, numberArrayRows } from '../src/sharddev/rows';
 
 function sparseNumbers(length: number): number[] { const rows: number[] = []; rows.length = length; return rows; }
 

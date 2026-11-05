@@ -1,5 +1,5 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
 import { nalatiNavigationSource, NALATI_NAVIGATION_INPUT, NALATI_NAVIGATION_URL } from './navigation';
 import { nalatiGeographyRows } from './geographySource';
 import { nalatiBootInventory } from './bootInventory';

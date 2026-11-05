@@ -52,7 +52,7 @@ test('the Nalati raw floor decodes byte-exact as its 256-square lattice',()=>{
 
 test('the producer lends the exact floor through standard named binary admission',async()=>{
   const {nalatiPhysicsSources}=await import('../src/shards/nalati-grasslands/generators/physics');
-  const {readNamedBlob}=await import('../src/sdk/blobs');
+  const {readNamedBlob}=await import('../src/sharddev/blobs');
   const [source]=nalatiPhysicsSources();if(source===undefined)throw new Error('Missing native floor declaration');
   expect(source).toEqual({name:file,kind:'bin',source:file,options:{decoded:262144}});
   const blob=await readNamedBlob('src/shards/nalati-grasslands',source.name,source.source,source.kind,source.options);

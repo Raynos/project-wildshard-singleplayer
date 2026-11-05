@@ -4,7 +4,7 @@ import { expect, test } from 'vitest';
 
 
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { readProjectAssets } from '../src/sdk/project';
+import { readProjectAssets } from '../src/sharddev/project';
 import { decisionLegacyLines } from '../scripts/decision-legacy-lines.mjs';
 import { navigation, generated } from './fixtures/sunscar-source-program';
 import { SIGNAL_DUNES_MAP } from '../src/shards/sunscar-dunes/generators/minimap';

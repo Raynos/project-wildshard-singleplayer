@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { parsePlatformDataSection } from '@wildshard/format/platformDataSections';
-import { emitPlatformSections } from '../src/sdk/platformSections';
+import { emitPlatformSections } from '../src/sharddev/platformSections';
 import { BARREL_BODIES } from '../src/shards/driftwood-isle/generators/barrelDecision';
 
 test('declared body section preserves actual body profiles and captured floors', () => {

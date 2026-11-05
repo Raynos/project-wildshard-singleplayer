@@ -103,7 +103,7 @@ function debugCount(root, cacheDir) {
     const digest=createHash('sha256').update(JSON.stringify([process.version,process.platform,process.arch]));
     // The complete AST census reads every eligible source, including files
     // outside the commit's debt scope. Include additions/deletions and helpers.
-    for (const file of globSync('src/**/*',{cwd:root}).filter(path=>/\.[cm]?[jt]sx?$/u.test(path) && !path.startsWith('src/sdk/dist/')).sort()) {
+    for (const file of globSync('src/**/*',{cwd:root}).filter(path=>/\.[cm]?[jt]sx?$/u.test(path) && !path.startsWith('src/sharddev/dist/')).sort()) {
       digest.update(JSON.stringify([file,createHash('sha256').update(readFileSync(resolve(root,file))).digest('hex')]));
     }
     for (const file of ['lint/ratchet.mjs','lint/debug-flags.mjs','package.json','pnpm-lock.yaml','node_modules/vite/package.json']) {

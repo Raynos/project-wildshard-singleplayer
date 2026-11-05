@@ -1,7 +1,7 @@
 /** Original sailcloth cape geometry, executed only by the offline GLB baker (G262 / G285). */
 import * as THREE from 'three';
-import { bakeRock as rock, bakeRope as rope, bakeTriangles as tris } from '@wildshard/sdk/bake/primitives';
-import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
+import { bakeRock as rock, bakeRope as rope, bakeTriangles as tris } from '@wildshard/sharddev/bake/primitives';
+import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sharddev/bake/facetedGeometry';
 
 /** the neck's height over the hem (m) */
 export const CAPE_H = 1.0;

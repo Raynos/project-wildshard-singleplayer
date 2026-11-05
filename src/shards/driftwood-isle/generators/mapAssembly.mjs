@@ -1,8 +1,8 @@
 // G508: rest copies come from the exact declared scene and placement data. GR7: a pure producer; its caller owns every
 // read (`source`, by repository path) and the map program paints its files in one cached step (mapProgram.ts).
 import { Matrix4, Quaternion, Vector3 } from 'three';
-import { MapAssembly } from '@wildshard/sdk/bake/mapAssembly';
-import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
+import { MapAssembly } from '@wildshard/sharddev/bake/mapAssembly';
+import { encodeBuildBytes } from '@wildshard/sharddev/bake/byteCodec';
 import { MapWorld, mapJson, mapModel, mapPool } from './mapWorld.mjs';
 import { worldScenes } from './worldScenes.ts';
 import { driftwoodFoliageScenes, foliageLogPlacements, foliageSceneFiles } from './foliageScenesBank.ts';

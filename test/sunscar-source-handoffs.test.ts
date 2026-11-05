@@ -1,4 +1,4 @@
-import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
+import { registeredJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { expect, test } from 'vitest';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { sourceBlobs as SIGNAL_SOURCE_BLOBS } from './fixtures/sunscar-source-program';

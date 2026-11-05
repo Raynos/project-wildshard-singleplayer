@@ -1,5 +1,5 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { emitNamedBlobs, nameBlob, type EmittedBlobs } from '@wildshard/sdk/blobs';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { emitNamedBlobs, nameBlob, type EmittedBlobs } from '@wildshard/sharddev/blobs';
 
 /** The phone birds GPU GLB as bake-ktx2 encodes it (G738 FAR_GLBS: its colour atlas is ETC1S, I4). */
 export const PHONE_BIRDS_INPUTS: readonly string[] = ['/assets/gpu/pine-hollow/life/birds.phone-8f6a9e72.glb'];

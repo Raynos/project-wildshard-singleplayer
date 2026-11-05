@@ -2,8 +2,8 @@
 import { expect, test, vi } from 'vitest';
 import { Box3, BufferAttribute, BufferGeometry, Group, Mesh, MeshStandardMaterial } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
-import { staticGlb } from '../src/sdk/bake/glb';
-import { emptyShardfile } from '../src/sdk/author';
+import { staticGlb } from '../src/sharddev/bake/glb';
+import { emptyShardfile } from '../src/sharddev/author';
 import { clientTileViews } from '../src/game/client/shardfile/clientViews';
 
 const isMesh = (value: unknown): value is Mesh => value instanceof Mesh;

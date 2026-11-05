@@ -1,14 +1,14 @@
-import { cachedBlobSources } from '@wildshard/sdk/bake/sourceMetadata';
-import { parseSectionValue } from '@wildshard/sdk/sections';
+import { cachedBlobSources } from '@wildshard/sharddev/bake/sourceMetadata';
+import { parseSectionValue } from '@wildshard/sharddev/sections';
 import { SignAtlasSchema, parseSignView } from './sections';
-import { encodeBuildBytes, decodeBuildDeflate } from '@wildshard/sdk/bake/byteCodec';
+import { encodeBuildBytes, decodeBuildDeflate } from '@wildshard/sharddev/bake/byteCodec';
 import { NeonText } from './neonGeometry';
 import rawSignRows from '../data/signView.json' with { type: 'json' };
 import { signCopies } from './signCopies';
 import type { SignModelParams } from '../data/signTypes';
 import { BufferAttribute, BufferGeometry, Float32BufferAttribute, MeshStandardMaterial, Vector3 } from 'three';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import type { NineNativeSignInputs } from './nativeSignMetadata';
 

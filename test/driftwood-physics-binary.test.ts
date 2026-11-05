@@ -2,12 +2,12 @@ import {nativeBakeFloats,originalNativeGround} from './fixtures/native-bake-inli
 import { expect, test, vi } from 'vitest';
 import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { createNativeBakeReader, nativeBakeGround, installNativeCollision } from '@wildshard/game/population/nativeBake';
-import { readNamedBlob } from '../src/sdk/blobs';
+import { readNamedBlob } from '../src/sharddev/blobs';
 import { driftwoodPhysics, driftwoodPhysicsFloor, driftwoodPhysicsGroundBytes, driftwoodPhysicsSources } from '../src/shards/driftwood-isle/generators/physics';
 import { driftwoodNativeRows } from '../src/shards/driftwood-isle/generators/nativeBake';
 import { trustedLevel } from '../src/game/server/plugin/simulation';
 import type { HeadlessRuntimePlan } from '../src/sdk/headlessRuntime';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { createSimHost } from '../src/engine/server/sim';
 import { snapshotSimHost, serializeSimSnapshot, restoreSimHost } from '../src/engine/shared/sim/snapshot';

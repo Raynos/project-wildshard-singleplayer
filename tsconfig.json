@@ -47,6 +47,7 @@
   "include": [],
   "exclude": [
     "node_modules",
+    "src/sharddev/dist",
     "src/sdk/dist"
   ],
   "files": []

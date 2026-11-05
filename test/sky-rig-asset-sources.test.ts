@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
-import { nameBlob } from '../src/sdk/blobs';
+import { nameBlob } from '../src/sharddev/blobs';
 import { originalSkyRigs } from './fixtures/sky-original-rigs';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { sceneRigFiles } from '../src/game/client/shardfile/sceneRigFiles';
 import type { ModelLibraryRows } from '../src/game/client/plugin/geometry';

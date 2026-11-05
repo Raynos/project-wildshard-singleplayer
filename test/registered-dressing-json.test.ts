@@ -1,11 +1,11 @@
 import {expect,test} from 'vitest';
 import {SceneDressingSchema} from '@wildshard/format/sceneDressing';
 import {registeredJsonContract,validateRegisteredJson} from '@wildshard/format/registeredJson';
-import {registeredJsonSchema,namedJsonSchema} from '../src/sdk/formatJsonSchema';
-import {nameBlob} from '../src/sdk/blobs';
+import {registeredJsonSchema,namedJsonSchema} from '../src/sharddev/formatJsonSchema';
+import {nameBlob} from '../src/sharddev/blobs';
 import {encodeCanonicalJson,hashImmutableBytes} from '../src/sdk/immutable';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
-import {emptyShardfile} from '../src/sdk/author';
+import {emptyShardfile} from '../src/sharddev/author';
 import {fixtureJsonCheck} from './fixtures/productFile';
 
 const names=['world/dressing-phone.json','world/dressing-desktop.json'] as const;

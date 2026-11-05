@@ -13,7 +13,7 @@ import { ScalarChannelSchema, ScalarLatticeSchema, ScalarTripletSchema } from '@
 import { ForestRowsSchema } from '@wildshard/format/terrain';
 import { declaredForestQueries } from '../src/game/server/shard/manifest';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
-import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
+import { formatJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { forestMask,groundColor,surfaceAt,NALATI_MINIMAP,GROUND } from './fixtures/nalati-terrain';
 
 const scalarBlocks=readNalatiScalarBlocks();

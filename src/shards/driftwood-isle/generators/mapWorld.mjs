@@ -1,8 +1,8 @@
 // GR7: the map assembly's rest world over owned bytes only (scripts/map-world.mjs's MapWorld and mapPool, which still serve
 // Pine, read source paths from disk). Every blob, recipe and model arrives as bytes; nothing is read from a file.
 import { BufferGeometry, Euler, Float32BufferAttribute, Matrix4, Quaternion, Vector3 } from 'three';
-import { mapModelBytes } from '@wildshard/sdk/bake/mapAssembly';
-import { MapRaster } from '@wildshard/sdk/bake/mapRaster';
+import { mapModelBytes } from '@wildshard/sharddev/bake/mapAssembly';
+import { MapRaster } from '@wildshard/sharddev/bake/mapRaster';
 
 /** JSON as the map's readers parse it: the literal strings '-0' and '±Infinity' are those numbers. */
 export const mapJson = bytes => JSON.parse(new TextDecoder().decode(bytes), (_key, value) => value === '-0' ? -0 : value === 'Infinity' ? Infinity : value === '-Infinity' ? -Infinity : value);

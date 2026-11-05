@@ -1,9 +1,9 @@
 
 
 import { PINE_ELITE_DEFS } from './eliteRoster';
-import { roamingCombatRows as admitRoamingCombat } from '@wildshard/sdk/bossProfiles';
-import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
-import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { roamingCombatRows as admitRoamingCombat } from '@wildshard/sharddev/bossProfiles';
+import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sharddev/blobs';
+import { registeredJsonSchema } from '@wildshard/sharddev/formatJsonSchema';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { roamingProjection } from './roamingProjection';
 import type { KingKitRows } from './kingKit';

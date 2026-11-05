@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bind the real author project without copying its source.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { admitNativeSignAtlas, nineNativeSignAtlas } from '../src/shards/nine-dragon-stack/generators/nativeSignAtlas';
 import before from './fixtures/nine-native-atlas-files.json' with { type: 'json' };

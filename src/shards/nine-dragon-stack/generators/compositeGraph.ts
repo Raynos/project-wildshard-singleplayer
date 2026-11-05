@@ -1,5 +1,5 @@
 import { checkAuthorGraph, colourLutSampleTransform, type AuthorGraph as GraphIr, type AuthorGraphNode as GraphNode,
-  type AuthorGraphRef as GraphRef, type AuthorScaledPost as ScaledPostRow } from '@wildshard/sdk/bake/materialGraph';
+  type AuthorGraphRef as GraphRef, type AuthorScaledPost as ScaledPostRow } from '@wildshard/sharddev/bake/materialGraph';
 import fog from '../data/lookGraphs.json' with { type: 'json' };
 import { Screen } from './screenGraph';
 

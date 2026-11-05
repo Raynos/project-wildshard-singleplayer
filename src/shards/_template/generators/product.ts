@@ -1,12 +1,12 @@
 import TEMPLATE_DIRECTORS from '../data/director.json' with { type: 'json' };
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import { parseShardfile, type Shardfile } from '@wildshard/sdk/shardfile';
 import type { templateTerrain } from './terrain';
 import type { TemplateBehaviour } from './behaviour';
-import type { BakedProps } from '@wildshard/sdk/bake/props';
+import type { BakedProps } from '@wildshard/sharddev/bake/props';
 import hooks from '../behaviour/hooks.json' with { type: 'json' };
 import rows from '../data/rows.json' with { type: 'json' };
-import { parseRows } from '@wildshard/sdk/rows';
+import { parseRows } from '@wildshard/sharddev/rows';
 import TEMPLATE_PLUMBING from '../data/plumbing.json' with { type: 'json' };
 import ui from '../data/ui.json' with { type: 'json' };
 import text from '../data/text.json' with { type: 'json' };

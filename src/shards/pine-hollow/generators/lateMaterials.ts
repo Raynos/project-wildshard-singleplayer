@@ -1,5 +1,5 @@
-import { lateSceneMaterialFiles } from '@wildshard/sdk/worldScenes';
-import type { ProjectOutput } from '@wildshard/sdk/projectOutput';
+import { lateSceneMaterialFiles } from '@wildshard/sharddev/worldScenes';
+import type { ProjectOutput } from '@wildshard/sharddev/projectOutput';
 import type { TimberWorld } from './timberWorldRows';
 import { HAMLET } from './layout';
 import { pineQuestNpcs } from './questNpcs';

@@ -1,5 +1,5 @@
-import type { BrainedSpecies } from '@wildshard/sdk/speciesBrains';
-import type { StrikeData } from '@wildshard/sdk/species';
+import type { BrainedSpecies } from '@wildshard/sharddev/speciesBrains';
+import type { StrikeData } from '@wildshard/sharddev/species';
 import * as LAYOUT from '../layout';
 import { DUNE_RAY, SWOOP_DATA } from './species/duneRay';
 import { DUNE_STRIDER, CHARGE_DATA, HORNS_DATA } from './species/strider';

@@ -1,7 +1,7 @@
 import { beforeAll, expect, test } from 'vitest';
 import { ScriptHost } from '../src/engine/shared/script/host';
 import { ScriptWorld } from '../src/engine/shared/script/effects';
-import { compileScript } from '@wildshard/sdk/compileScript';
+import { compileScript } from '@wildshard/sharddev/compileScript';
 
 // The same ABI regions as the Template's scene hooks; `witness` keeps door.as's tick counter outside them.
 const module = (witness: boolean): string => `

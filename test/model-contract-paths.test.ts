@@ -74,7 +74,7 @@ describe('model contract after client relocation', () => {
   it.each([
     ['src/game/client/plugin/ui.ts', 'new InstancedMesh();'],
     ['src/game/client/shardfile/worldSceneWeld.ts', 'new InstancedMesh();'],
-    ['src/sdk/bake/glb.ts', 'mergeGeometries(parts);'],
+    ['src/sharddev/bake/glb.ts', 'mergeGeometries(parts);'],
     ['src/game/client/looks/posedInstances.ts', 'new THREE.InstancedMesh();'],
   ])('retains a one-draw ceiling at %s', (file, draw) => {
     expect(checkModels({ [file]: draw }).violations).toEqual([]);

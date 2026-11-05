@@ -1,5 +1,5 @@
 import painted from '../data/paintedTextures.json' with {type:'json'};
-import { sharedBootPhysics } from '@wildshard/sdk/bootInventory';
+import { sharedBootPhysics } from '@wildshard/sharddev/bootInventory';
 
 const PINE_BOOT_ASSET_1="/assets/baked/pine-hollow/sky.json";
 const PINE_BOOT_ASSET_2="/assets/baked/pine-hollow/tex/";

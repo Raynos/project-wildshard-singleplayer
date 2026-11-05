@@ -18,7 +18,7 @@ import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import firearmPage from './fixtures/nalati-rifle-original.json' with { type:'json' };
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { parseItems } from '@wildshard/format/items';
 import { parseHeldSlots } from '@wildshard/format/heldArms';
 import { ItemCatalogue } from '../src/game/shared/loadout/itemCatalogue';

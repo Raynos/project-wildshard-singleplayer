@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { readSourceModel, skinnedGlb } from '@wildshard/sdk/bake/skinned';
+import { readSourceModel, skinnedGlb } from '@wildshard/sharddev/bake/skinned';
 
 /** Offline hull fitting. The page owns only the existing legBones/legPose clock. */
 interface NpcRigProfile { id: string; lantern: boolean }

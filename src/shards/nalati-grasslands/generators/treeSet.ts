@@ -1,4 +1,4 @@
-import { treeSetRows } from '@wildshard/sdk/bake/forest';
+import { treeSetRows } from '@wildshard/sharddev/bake/forest';
 import { SPRUCE_REST as rest } from './sprucePool';
 
 // Spruce is stiff: ~0.35 m of sway at the top of an 18 m tree (painterly's sway is metres per metre² of height), the bark

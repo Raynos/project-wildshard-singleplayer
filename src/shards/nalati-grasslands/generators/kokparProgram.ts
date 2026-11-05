@@ -1,8 +1,8 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import courseSource from '@wildshard/commons/scripts/course.as?raw';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { parseDecisionScripts } from '@wildshard/sdk/decisionScripts';
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
+import { parseDecisionScripts } from '@wildshard/sharddev/decisionScripts';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
 import { kokparModuleOptions, nalatiKokparRows, NALATI_KOKPAR_MODULE, NALATI_COURSE_MODULE, type NalatiKokpar } from './kokparRows';
 
 const PREFIX = '/src/shards/nalati-grasslands/';

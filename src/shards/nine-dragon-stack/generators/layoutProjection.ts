@@ -1,5 +1,5 @@
-import { parseSectionValue } from '@wildshard/sdk/sections';
-import { numberTupleRows, numberArrayRows } from '@wildshard/sdk/rows';
+import { parseSectionValue } from '@wildshard/sharddev/sections';
+import { numberTupleRows, numberArrayRows } from '@wildshard/sharddev/rows';
 import { LayoutProjectionSchema, LayoutRowsSchema, type LayoutRows, type LayoutProjection } from './sections';
 import { fixedKitRows } from './casts';
 import lantern from '../data/lantern.json' with { type: 'json' };

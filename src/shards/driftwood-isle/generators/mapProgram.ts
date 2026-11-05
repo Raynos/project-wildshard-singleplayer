@@ -1,5 +1,5 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { rasterSceneMap } from '@wildshard/sdk/bake/groundMap';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { rasterSceneMap } from '@wildshard/sharddev/bake/groundMap';
 import { driftwoodMapFiles } from './mapAssembly.mjs';
 import { DRIFTWOOD_FIXED_INPUTS, driftwoodMapFixedFiles } from './fixedProgram';
 import { DRIFTWOOD_SCENE_BANK_INPUTS } from './sceneBanks';

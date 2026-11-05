@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { build } from 'vite';
 import { compileScript } from './compile-script.mjs';
-import { executeBundle } from '../src/sdk/executeBundle.ts';
+import { executeBundle } from '../src/sharddev/executeBundle.ts';
 
 const root = resolve(import.meta.dirname, '..'), project = resolve(root, 'src/shards/_template');
 const result = await build({ plugins: [{ name: 'external-build-tool', enforce: 'pre', resolveId(id) { return id === 'vite' ? { id: import.meta.resolve('vite'), external: true } : null; } }], configFile: false, publicDir: false, logLevel: 'silent', build: { write: false, minify: false,

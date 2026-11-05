@@ -1,9 +1,9 @@
-import { emitNamedBlobs, nameBlob } from '@wildshard/sdk/blobs';
-import { emitPlatformSections } from '@wildshard/sdk/platformSections';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import type { ProjectOutput } from '@wildshard/sdk/projectOutput';
+import { emitNamedBlobs, nameBlob } from '@wildshard/sharddev/blobs';
+import { emitPlatformSections } from '@wildshard/sharddev/platformSections';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import type { ProjectOutput } from '@wildshard/sharddev/projectOutput';
 import type { Shardfile } from '@wildshard/sdk/shardfile';
-import type { AudioData } from '@wildshard/sdk/audio';
+import type { AudioData } from '@wildshard/sharddev/audio';
 import { plotAudioClientPlan, plotAudioData, type PlotAudioSpot } from './audio';
 
 /** Source-owned audio paths and anchors; activation requires every actual file. */

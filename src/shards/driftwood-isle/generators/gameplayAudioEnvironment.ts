@@ -1,4 +1,4 @@
-import type { AudioData } from '@wildshard/sdk/audio';
+import type { AudioData } from '@wildshard/sharddev/audio';
 import { islandFoliagePlacements } from './islandDressing';
 import type { DriftwoodIslandFacts } from './islandFacts';
 import type { FixedWreckLayout } from './fixedLayouts';

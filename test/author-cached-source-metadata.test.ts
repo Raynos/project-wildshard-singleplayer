@@ -1,8 +1,8 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
-import { cachedBlobSources, type CachedBlobSource } from '../src/sdk/bake/sourceMetadata';
+import { cachedBlobSources, type CachedBlobSource } from '../src/sharddev/bake/sourceMetadata';
 import { parseSignSourceRows } from '../src/shards/nine-dragon-stack/generators/signAtlasOutput';
-import { parseDeviceTierSections } from '../src/sdk/sections';
+import { parseDeviceTierSections } from '../src/sharddev/sections';
 
 const kinds = ['glb', 'ktx2', 'json'] as const;
 const original = v.object({ sources: v.array(v.strictObject({ name: v.string(), kind: v.picklist(kinds), source: v.string(),

@@ -4,8 +4,8 @@ import { expect, test } from 'vitest';
 import { BoxGeometry, Matrix4, Quaternion, Vector3, BufferGeometry, InterleavedBuffer, InterleavedBufferAttribute } from 'three';
 import { poseOf, poseGeometry, drawnHullWorld } from '../src/engine/client/models/colliders';
 import { supportPoints } from './fixtures/native-support-points';
-import { bakePlacementPose, bakePlacedGeometry, bakeWorldHull, bakeSupportPoints } from '../src/sdk/bake/colliders';
-import type { AuthorPlacement } from '../src/sdk/bake/placement';
+import { bakePlacementPose, bakePlacedGeometry, bakeWorldHull, bakeSupportPoints } from '../src/sharddev/bake/colliders';
+import type { AuthorPlacement } from '../src/sharddev/bake/placement';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
 const rows: readonly AuthorPlacement<object>[] = [
@@ -52,7 +52,7 @@ test('support selection retains numeric strided reads, duplicate ties and stable
 
 test('all author collider kernels execute beneath the unchanged native renderer guard', () => {
   const source = `import {BoxGeometry,Matrix4} from 'three';
-    import {bakePlacementPose,bakePlacedGeometry,bakeWorldHull,bakeSupportPoints} from './src/sdk/bake/colliders.ts';
+    import {bakePlacementPose,bakePlacedGeometry,bakeWorldHull,bakeSupportPoints} from './src/sharddev/bake/colliders.ts';
     const row={x:1,y:2,z:3,yaw:0.4,leanX:0.2,scale:1.3},geometry=new BoxGeometry(1,2,3);
     bakePlacedGeometry(geometry,row);const hull=bakeWorldHull([geometry],bakePlacementPose(row));
     console.log(JSON.stringify({kind:hull.kind,vertices:hull.points.length,support:bakeSupportPoints(geometry,new Matrix4()).length}));geometry.dispose();`;

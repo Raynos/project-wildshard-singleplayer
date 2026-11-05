@@ -1,7 +1,7 @@
 import { BufferAttribute, BufferGeometry, MeshStandardMaterial } from 'three';
-import { emitNamedBlobs, nameBlob, type EmittedBlobs } from '@wildshard/sdk/blobs';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { compactPhoneGlb } from '@wildshard/sdk/bake/compactGlb';
+import { emitNamedBlobs, nameBlob, type EmittedBlobs } from '@wildshard/sharddev/blobs';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
+import { compactPhoneGlb } from '@wildshard/sharddev/bake/compactGlb';
 import { compactChannels } from './compactChannels';
 import { decimateFlatBatch } from './phoneDecimate';
 

@@ -1,10 +1,10 @@
 import { BufferAttribute, BufferGeometry, Float32BufferAttribute, MeshStandardMaterial, Vector3 } from 'three';
-import { sliceNativeLattice, type NativeLatticeAttribute, type NativeLatticeSource, type NativeLatticeTile } from '@wildshard/sdk/bake/nativeLattice';
-import { floatPositionError } from '@wildshard/sdk/bake/geometryError';
-import { staticGlb, type GlbPrimitive } from '@wildshard/sdk/bake/glb';
-import { parseGlb, type AssetCost } from '@wildshard/sdk/assets';
-import { simplifyNativeLatticeTile, type NativeLatticeLod } from '@wildshard/sdk/bake/worldLod';
-import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
+import { sliceNativeLattice, type NativeLatticeAttribute, type NativeLatticeSource, type NativeLatticeTile } from '@wildshard/sharddev/bake/nativeLattice';
+import { floatPositionError } from '@wildshard/sharddev/bake/geometryError';
+import { staticGlb, type GlbPrimitive } from '@wildshard/sharddev/bake/glb';
+import { parseGlb, type AssetCost } from '@wildshard/sharddev/assets';
+import { simplifyNativeLatticeTile, type NativeLatticeLod } from '@wildshard/sharddev/bake/worldLod';
+import { readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
 import { PAINTED_TERRAIN_ATTRIBUTES as ATTR } from '@wildshard/format/materialFamilies';
 import { buildPainterlyGeometry } from './terrainPainter';
 import terrainPaintPolicy from '../data/terrainPaintPolicy.json' with { type: 'json' };

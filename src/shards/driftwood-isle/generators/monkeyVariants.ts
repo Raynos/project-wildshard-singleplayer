@@ -1,4 +1,4 @@
-import type { bakeSpecies } from '@wildshard/sdk/bake/species';
+import type { bakeSpecies } from '@wildshard/sharddev/bake/species';
 import labels from '../data/monkeyLabels.json' with { type: 'json' };
 
 /** The Coconut Monkey's variants (./monkey.ts's species row), renderer-free: a renderer-free host rolls the same table. */

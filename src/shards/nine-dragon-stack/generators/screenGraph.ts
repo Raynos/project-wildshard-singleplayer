@@ -1,4 +1,4 @@
-import type { AuthorGraph as GraphIr, AuthorGraphRef as GraphRef, AuthorGraphNode as GraphNode } from '@wildshard/sdk/bake/materialGraph';
+import type { AuthorGraph as GraphIr, AuthorGraphRef as GraphRef, AuthorGraphNode as GraphNode } from '@wildshard/sharddev/bake/materialGraph';
 import { LookGraph } from './lookGraph';
 
 type Ref = GraphRef;

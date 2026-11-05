@@ -4,7 +4,7 @@ import { expect, expectTypeOf, test } from 'vitest';
 import { BoxGeometry, BufferAttribute, type BufferGeometry, Color, Matrix4, PlaneGeometry, SphereGeometry } from 'three';
 import { LowPolyKit } from '../src/engine/client/world/lowpolyKit';
 import { withoutHidden } from '../src/engine/client/world/geometryKit';
-import { FacetedGeometryBuilder, cullFacetedParts, type FacetedGeometrySink } from '../src/sdk/bake/facetedGeometry';
+import { FacetedGeometryBuilder, cullFacetedParts, type FacetedGeometrySink } from '../src/sharddev/bake/facetedGeometry';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
 type Options = NonNullable<Parameters<FacetedGeometryBuilder['finish']>[0]>;
@@ -50,7 +50,7 @@ for (const { label, options } of cases) test(`the author compiler retains native
 });
 
 test('the actual author compiler runs beneath the unchanged native renderer guard', () => {
-  const source = `import {FacetedGeometryBuilder} from './src/sdk/bake/facetedGeometry.ts';
+  const source = `import {FacetedGeometryBuilder} from './src/sharddev/bake/facetedGeometry.ts';
     import {BoxGeometry} from 'three'; const kit=new FacetedGeometryBuilder(1);
     kit.add(new BoxGeometry(1,1,1),'#abcdef');const g=kit.finish({ao:{floorY:0}});
     console.log(g.getAttribute('position').count);g.dispose();`;

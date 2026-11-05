@@ -2,7 +2,7 @@ import {expect,test} from 'vitest';
 import * as v from 'valibot';
 import {DecisionScriptRowDocumentSchema,DecisionScriptsSchema,type DecisionScriptRowInput} from '@wildshard/format/decisionScripts';
 import {ReturnProgramDocumentSchema,ReturnProgramWireDocumentSchema} from '@wildshard/format/returnProgramDocument';
-import {namedJsonSchema} from '@wildshard/sdk/formatJsonSchema';
+import {namedJsonSchema} from '@wildshard/sharddev/formatJsonSchema';
 import {encodeCanonicalJson} from '@wildshard/sdk/immutable';
 import {validateNamedJsonSchema} from '../src/game/shared/shardfile/customSchema';
 

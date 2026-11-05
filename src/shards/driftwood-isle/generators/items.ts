@@ -1,4 +1,4 @@
-import { parseItems, type ShardItems } from '@wildshard/sdk/rows';
+import { parseItems, type ShardItems } from '@wildshard/sharddev/rows';
 import { DRIFTWOOD_ITEMS } from './questInventory';
 import { DRIFTWOOD_PLAYER_GRANTS, DRIFTWOOD_WORN_GRANTS, DRIFTWOOD_WEAPON_GRANTS } from './economy';
 import { DRIFTWOOD_NATIVE_PACK } from './nativeInventory';

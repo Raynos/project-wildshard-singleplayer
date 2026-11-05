@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { nameBlob } from '../src/sdk/blobs';
+import { nameBlob } from '../src/sharddev/blobs';
 import { pineLateMaterialFiles } from '../src/shards/pine-hollow/generators/lateMaterials';
 import { resolveBootFiles } from '../src/engine/client/boot/filePolicy';
 import { PINE_BOOT_FILES } from '../src/shards/pine-hollow/generators/bootFiles';

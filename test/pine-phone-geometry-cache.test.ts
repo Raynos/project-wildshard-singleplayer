@@ -1,10 +1,10 @@
 import { expect, it } from 'vitest';
 import { WebIO } from '@gltf-transform/core';
 import { MeshStandardMaterial, SphereGeometry } from 'three';
-import { compactPhoneGlb, compactClearGlb, nameCompactBlobs } from '@wildshard/sdk/bake/compactGlb';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
+import { compactPhoneGlb, compactClearGlb, nameCompactBlobs } from '@wildshard/sharddev/bake/compactGlb';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { cachedTreeRest, cachedGroundTile, cachedCompactShapes } from '../src/shards/pine-hollow/generators/phoneGeometryCache';
 
 function pool(radius: number): Uint8Array {

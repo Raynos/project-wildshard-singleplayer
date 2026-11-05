@@ -1,4 +1,4 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { nalatiTitanRows, type NalatiTitanModule, type NalatiTitanPrograms } from './stormTitanRows.mjs';
 
 /** The Storm Titan and pasture programs' rows and both selected modules' bytes and witnesses. */

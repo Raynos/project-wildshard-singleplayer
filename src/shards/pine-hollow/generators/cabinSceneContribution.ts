@@ -1,10 +1,10 @@
 /** Product rows over the completed cabin bake. The author-only graph book keeps
  * bundled declarations free of file I/O; the product still emits individual graphs. */
 import { Matrix4 } from 'three';
-import { registeredJsonSchema, defineNamedRows, type NamedRows } from '@wildshard/sdk/formatJsonSchema';
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
-import { nameCompactBlobs } from '@wildshard/sdk/bake/compactGlb';
-import { worldSceneWeldRows as parseWorldSceneWeld, worldScenePlacement as parseWorldScenePlacement, worldSceneGraphPages, type AuthorWorldScenes } from '@wildshard/sdk/worldScenes';
+import { registeredJsonSchema, defineNamedRows, type NamedRows } from '@wildshard/sharddev/formatJsonSchema';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
+import { nameCompactBlobs } from '@wildshard/sharddev/bake/compactGlb';
+import { worldSceneWeldRows as parseWorldSceneWeld, worldScenePlacement as parseWorldScenePlacement, worldSceneGraphPages, type AuthorWorldScenes } from '@wildshard/sharddev/worldScenes';
 import { cabinSceneBake } from './bake-cabin-scenes.mjs';
 import { pineCabins } from './bake-pine-cabins.mjs';
 import logKit from '../data/logKit.json' with { type: 'json' };

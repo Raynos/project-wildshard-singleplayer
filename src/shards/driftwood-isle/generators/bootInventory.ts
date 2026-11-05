@@ -1,4 +1,4 @@
-import { bootRecipeFiles as resolveBootFiles, bootRecipeSources as resolveBootSources, type BootModes as BootModeRows, type BootSources as ChunkFiles } from '@wildshard/sdk/bootInventory';
+import { bootRecipeFiles as resolveBootFiles, bootRecipeSources as resolveBootSources, type BootModes as BootModeRows, type BootSources as ChunkFiles } from '@wildshard/sharddev/bootInventory';
 import { DRIFTWOOD_BOOT_FILES, DRIFTWOOD_BOOT_SOURCES } from './bootRecipes';
 import { GPU_FILES } from '../ktx2.generated';
 

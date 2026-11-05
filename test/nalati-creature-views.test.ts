@@ -9,10 +9,10 @@ import { smooth01, step } from '../src/engine/shared/entities/species/rigs';
 import { shardContext } from '../src/game/client/plugin/context';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import type { SpeciesViewActor } from '../src/game/client/population/speciesViewSlots';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { installViewProgram } from '../src/game/client/shardfile/clientViewProgram';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
+import { compileScriptV2 } from '../src/sharddev/bake/compileScriptV2';
 import { nalatiCreatureViews } from '../src/shards/nalati-grasslands/generators/creatureViews';
 import source from '../src/shards/nalati-grasslands/behaviour/creatureViews.as?raw';
 

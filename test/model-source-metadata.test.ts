@@ -2,7 +2,7 @@ import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- The original model metadata is a tracked source oracle.
 import { readFileSync } from 'node:fs';
-import { modelPrototypeFacts, modelSourceMetadata, modelCoverMetadata } from '../src/sdk/bake/sourceMetadata';
+import { modelPrototypeFacts, modelSourceMetadata, modelCoverMetadata } from '../src/sharddev/bake/sourceMetadata';
 import original from './fixtures/driftwood-island-original.json' with { type: 'json' };
 import type { DriftwoodIslandFacts } from '../src/shards/driftwood-isle/generators/islandFacts';
 

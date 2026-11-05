@@ -1,5 +1,5 @@
-import type { NativeForestTree } from '@wildshard/sdk/bake/forest';
-import type { Rng } from '@wildshard/sdk/random';
+import type { NativeForestTree } from '@wildshard/sharddev/bake/forest';
+import type { Rng } from '@wildshard/sharddev/random';
 
 /** A planted tree as the perches read it (GR8 G32: `bakePlantedForest`'s records). */
 type TreeInstance = Pick<NativeForestTree, 'x' | 'y' | 'z' | 'rot' | 'scale' | 'variant' | 'species'>;

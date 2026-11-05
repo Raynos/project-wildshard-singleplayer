@@ -18,7 +18,7 @@ import { castawayFigure } from './fixtures/driftwoodCastawayOracle';
 import { FigureRows } from '@wildshard/game/systems/npc/figureRows';
 import { ownQuestTree } from '@wildshard/game/quest/chapterView';
 import { clientMaterials } from '../src/game/client/shardfile/clientMaterials';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import { driftwoodProduct, driftwoodRows } from './fixtures/driftwoodLegacyRows';
 import { lendLooks } from '@wildshard/game/shardfile/lentLooks';

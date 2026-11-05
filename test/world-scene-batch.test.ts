@@ -106,8 +106,8 @@ test('batch rows reject executable values, missing fixed geometry and unbounded 
 
 test('resident rows share one native batch across a named model and fixed tail', async () => {
   const [{ installWorldScenes }, { parseWorldScenes }, { emptyShardfile }, { staticGlb }, { SkyRig }] = await Promise.all([
-    import('../src/game/client/shardfile/worldScenes'), import('@wildshard/format/worldScenes'), import('../src/sdk/author'),
-    import('../src/sdk/bake/glb'), import('../src/engine/client/world/skyRig'),
+    import('../src/game/client/shardfile/worldScenes'), import('@wildshard/format/worldScenes'), import('../src/sharddev/author'),
+    import('../src/sharddev/bake/glb'), import('../src/engine/client/world/skyRig'),
   ]);
   const owner = new Scope('harbour-resident'), registry = new WorldRegistry(), geometry = triangle(), material = new MeshBasicMaterial();
   const sky: unknown = Object.create(SkyRig.prototype);

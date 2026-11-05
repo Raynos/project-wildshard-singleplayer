@@ -1,7 +1,7 @@
 /** Original sailboat geometry, executed only by the offline GLB baker (G262 / G285); the seed is Driftwood's authored identity. */
 import * as THREE from 'three';
-import { bakeBeam as beam, bakeLog as log, bakePlank as plank, bakeRope as rope, bakeSagLine as sagLine } from '@wildshard/sdk/bake/primitives';
-import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
+import { bakeBeam as beam, bakeLog as log, bakePlank as plank, bakeRope as rope, bakeSagLine as sagLine } from '@wildshard/sharddev/bake/primitives';
+import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sharddev/bake/facetedGeometry';
 import { BOAT_LAYOUT } from './boatLayout';
 import { boatStation, type BoatStation } from './boatFrame';
 

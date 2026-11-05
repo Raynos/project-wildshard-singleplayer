@@ -1,7 +1,7 @@
 import { expect, expectTypeOf, test } from 'vitest';
-import { carriedQuestRows } from '../src/sdk/rows';
+import { carriedQuestRows } from '../src/sharddev/rows';
 import { parseCarriedQuest } from '@wildshard/format/questSteps';
-import { paintedTerrainAttributes } from '../src/sdk/bake/terrain';
+import { paintedTerrainAttributes } from '../src/sharddev/bake/terrain';
 import { PAINTED_TERRAIN_ATTRIBUTES } from '@wildshard/format/materialFamilies';
 import { carriedQuestRows as original } from './fixtures/nalati-carried-quest';
 

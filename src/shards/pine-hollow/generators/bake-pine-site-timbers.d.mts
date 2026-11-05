@@ -1,4 +1,4 @@
-import type { NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
+import type { NativeTerrainSource } from '@wildshard/sharddev/bake/terrain';
 import type { SiteTimberRows } from './timberRows';
 import type { PineSources } from './pineSources';
 /** The site timbers' bake: its rows and the raw (unshuffled, uninflated) binary (src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs). */

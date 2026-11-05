@@ -3,8 +3,8 @@ import {mkdirSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only files in this test's explicit fixture root.
 import {resolve} from 'node:path';
 import {afterEach,expect,test} from 'vitest';
-import {emptyShardfile} from '../src/sdk/author';
-import {writeOutputProduct} from '../src/sdk/outputProduct';
+import {emptyShardfile} from '../src/sharddev/author';
+import {writeOutputProduct} from '../src/sharddev/outputProduct';
 import type {Shardfile} from '@wildshard/format/shardSchema';
 import {checkTileBake} from '../scripts/tile-bakes.mjs';
 import {checkNineTiling,readTilingReport,tileBoxVisible,tileTilingReport,tilingMarkdown,type BakeCamera,type NineTilingBaseline,type TilingInput} from '../scripts/tile-bake-report.mjs';

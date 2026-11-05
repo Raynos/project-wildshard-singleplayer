@@ -5,7 +5,7 @@ import { Rng } from '../src/engine/shared/core/rng';
 import { Scope } from '../src/engine/shared/app/scope';
 import { ObservationColumnsV2, type V2ColumnOwners, type V2SenseColumns } from '../src/engine/shared/script/observationColumnsV2';
 import { ObservationColumnsV2Schema, parseObservationColumnsV2 } from '@wildshard/format/scriptObservationColumnsV2';
-import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { namedJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 
 const rows = [

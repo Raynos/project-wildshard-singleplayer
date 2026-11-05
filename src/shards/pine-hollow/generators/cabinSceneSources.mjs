@@ -1,13 +1,13 @@
 /** Original cabin geometry and glTF hierarchy, decoded without a Node image host. */
 import {hashImmutableBytes} from '@wildshard/sdk/immutable';
 import {Mesh} from 'three';
-import {GeometryPack,packedRows} from '@wildshard/sdk/kit/geometryPack';
-import {readSourceModel} from '@wildshard/sdk/bake/skinned';
+import {GeometryPack,packedRows} from '@wildshard/sharddev/kit/geometryPack';
+import {readSourceModel} from '@wildshard/sharddev/bake/skinned';
 import {pineCabinPropParts} from './cabinPropMaterials.mjs';
 import {pineCabinPropShapes} from './cabinPropShapes.ts';
 import {pineCabins} from './bake-pine-cabins.mjs';
 import {timberWorld} from './timberWorldRows.ts';
-import {BakedPiece} from '@wildshard/sdk/bake';
+import {BakedPiece} from '@wildshard/sharddev/bake';
 
 function pack(doc,bin){
  const json=Buffer.from(JSON.stringify(doc)),text=Buffer.concat([json,Buffer.alloc((-json.length)&3,0x20)]),binary=Buffer.concat([bin,Buffer.alloc((-bin.length)&3)]),header=Buffer.alloc(20),binaryHeader=Buffer.alloc(8);

@@ -10,8 +10,8 @@ import { expect, test } from 'vitest';
 import { build } from 'vite';
 import { parseKtx2 } from '@wildshard/format/ktx2Cost';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
-import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
+import { createProjectGeneration, type ProjectGenerationContext } from '../src/sharddev/projectGeneration';
 import { bakeSkySwardAtlas, bakeSwardAtlasTexture } from '../src/shards/far-reach/generators/swardAtlas';
 import { skySwardAtlasProgram } from '../src/shards/far-reach/generators/swardAtlasProgram';
 

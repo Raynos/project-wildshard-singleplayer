@@ -1,4 +1,4 @@
-import type { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
+import type { authorFormatRows } from '@wildshard/sharddev/formatJsonSchema';
 
 type SpecimenModelRow = ReturnType<typeof authorFormatRows<'specimenCatalogue.SpecimenCatalogueSchema'>>[number];
 type SpecimenMaterialRow = ReturnType<typeof authorFormatRows<'specimenCatalogue.SpecimenMaterialSchema'>>;

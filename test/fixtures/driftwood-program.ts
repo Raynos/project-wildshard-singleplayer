@@ -3,7 +3,7 @@ import { nativeCompilers } from './nativeCompilers';
 import {homedir} from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep the fixture's explicit production input roots.
 import {resolve} from 'node:path';
-import {createProjectGeneration} from '../../src/sdk/projectGeneration';
+import {createProjectGeneration} from '../../src/sharddev/projectGeneration';
 import {hashImmutableBytes} from '../../src/sdk/immutable';
 import type {Shardfile} from '../../src/sdk/shardfile';
 import build from '../../src/shards/driftwood-isle/shard.config';

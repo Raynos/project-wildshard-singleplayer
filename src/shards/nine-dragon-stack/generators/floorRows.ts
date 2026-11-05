@@ -20,7 +20,7 @@ export const OPENING_HALF: number = DECK.opening / 2;
 export const DECK_DEPTH: number = DECK.depth;
 /** a floor slab's thickness under its top (the decks' and the fragment's floors) */
 export const SLAB: number = DECK.slab;
-/** the deck's sizes for the SDK's edge decks (@wildshard/sdk/props/edgeDecks) */
+/** the deck's sizes for the SDK's edge decks (@wildshard/sharddev/props/edgeDecks) */
 const SIZES = { half: OPENING_HALF, ...DECK };
 
 /** a box from its extents (min / max corners) */

@@ -12,28 +12,28 @@ hand-edit them. Each row below names a removed or never-existing API.
 
 ## SDK runtime audio / viewmodel facades
 
-**6-11.** Names `@wildshard/sdk/runtime/audio/weaponVoices` (LD10 removes it), the alias
+**6-11.** Names `@wildshard/sharddev/runtime/audio/weaponVoices` (LD10 removes it), the alias
 `@wildshard/game/systems/audio/weaponVoices` (a key pointing at `plugin/audio.ts`, retired with the wrapper) and
-`@wildshard/sdk/runtime/audio/silentScore` (already does not exist). Replace with:
+`@wildshard/sharddev/runtime/audio/silentScore` (already does not exist). Replace with:
 > `@wildshard/game/plugin/audio` defines the sample-first equipment recipes (`sharedWeaponVoices`,
 > `declaredWeaponVoices`, `WeaponSynth`) and the equipment cue router `sharedCombatCues`; boot imports them from there.
 > They retain oscillator parameters, cue taps and audio random-draw order.
 > `@wildshard/game/systems/audio/silentScore.installSilentScore` scopes a score-only gain mute and restores the
 > previous value at disposal. Both install only when called.
 
-**13-17.** "Trusted runtimes reach them through `@wildshard/sdk/runtime/viewmodel/*`, whose facades bind the same
-values; legacy shard files outside `runtime/` import the game modules until their -p port." `src/sdk/runtime/viewmodel/`
+**13-17.** "Trusted runtimes reach them through `@wildshard/sharddev/runtime/viewmodel/*`, whose facades bind the same
+values; legacy shard files outside `runtime/` import the game modules until their -p port." `src/sharddev/runtime/viewmodel/`
 is empty. Replace the last two sentences with: "Callers import these game modules directly; there is no SDK facade."
 
 **96-101.** "`@wildshard/game/systems/audio/combatCues` defines the shared equipment cue router. Trusted runtimes use
-`@wildshard/sdk/runtime/audio/combatCues.sharedCombatCues(audio, meleeSilent)`; its SDK facade refers to the same
+`@wildshard/sharddev/runtime/audio/combatCues.sharedCombatCues(audio, meleeSilent)`; its SDK facade refers to the same
 function." Neither module exists after LD10 (`systems/audio/combatCues` never had a key). Replace the first two
 sentences with: "`@wildshard/game/plugin/audio` `sharedCombatCues(audio, meleeSilent)` is the shared equipment cue
 router." Keep the rest of the paragraph (single call, surface/pan/gain, melee silence).
 
-**2981-2998.** SF54 table: "existing transitional runtime facades in `@wildshard/sdk/runtime/*` (deleted under G307)",
+**2981-2998.** SF54 table: "existing transitional runtime facades in `@wildshard/sharddev/runtime/*` (deleted under G307)",
 "`runtime/` files import the SDK facades", the header "Defining module (runtime facade)", and the parentheticals
-`(@wildshard/sdk/runtime/weapons/*)` (2989) and `(@wildshard/sdk/runtime/{viewmodel,audio}/*)` (2997). Replace the
+`(@wildshard/sharddev/runtime/weapons/*)` (2989) and `(@wildshard/sharddev/runtime/{viewmodel,audio}/*)` (2997). Replace the
 intro with: "SF54 dissolved `@wildshard/kit`: content that 2+ shards use lives in `@wildshard/game`, content one shard
 uses stays in that shard, and callers import the defining game module." Rename the column to "Defining module" and
 drop both parentheticals.
@@ -78,7 +78,7 @@ declared client-plan entry like every shard."
 `standaloneHybridEntry(Native, admit, shardfile, name)` defines the shared standalone lifecycle used by Nine and Sky:
 …" and "The frozen `./shard/context` and `./shard/plugin` export keys point to those distinct modules". LD9a removed
 `standaloneHybridEntry` and `shard/plugin.ts`; the `./shard/plugin` key is gone; `./shard/context` still aliases
-`plugin/context.ts` (readers: `src/sdk/bake/baked-tiles-looks.test.ts:6`, `test/fixtures/driftwood-world-updates.ts:2`,
+`plugin/context.ts` (readers: `src/sharddev/bake/baked-tiles-looks.test.ts:6`, `test/fixtures/driftwood-world-updates.ts:2`,
 `lint/wildshard-plugin.js:926`). Replace with: "`@wildshard/game/plugin/context` defines `ShardContext`,
 `shardContext` and the internal staged `ShardPlugin` base class. The `./shard/context` key is a compatibility alias of
 the same module for its remaining test/lint readers."
@@ -135,7 +135,7 @@ ownership/lifetime summary to keep. The single-entry API is covered by the 169 /
 
 ## Outside ENGINE.md (same commit, same reason)
 
-- `docs/SDK-DEV.md:3,7,15`: `@wildshard/sdk/runtime/audio/{weaponVoices,silentScore,combatCues}` → the
+- `docs/SDK-DEV.md:3,7,15`: `@wildshard/sharddev/runtime/audio/{weaponVoices,silentScore,combatCues}` → the
   `@wildshard/game/plugin/audio` and `@wildshard/game/systems/audio/silentScore` defining modules.
 - Source comments naming deleted node files (orphans.md §6), plus `src/engine/client/render/shadowDepthVariants.ts:6`
   ("its own node depth variant").

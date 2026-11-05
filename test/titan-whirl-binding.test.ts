@@ -8,7 +8,7 @@ import {createLevelInstallation} from '../src/engine/client/level/installation';
 import {WorldRegistry} from '../src/engine/client/world/registry';
 import {shardContext} from '../src/game/client/plugin/context';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
-import {emptyShardfile} from '../src/sdk/author';
+import {emptyShardfile} from '../src/sharddev/author';
 import {MANIFEST as TEMPLATE} from '../src/shards/_template/discovery.generated';
 import {ArenaWhirlsSchema,type ArenaWhirlsRows} from '@wildshard/format/encounterRows';
 import {ArenaWhirlsView} from '../src/game/client/boss/arenaFire';

@@ -8,7 +8,7 @@ import { build } from 'vite';
 import * as v from 'valibot';
 import { SpecimenCatalogueSchema } from '@wildshard/format/specimenCatalogue';
 import { SceneBakedGeometrySchema } from '@wildshard/format/sceneDressing';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import { nalatiBalbalSpecimen } from '../src/shards/nalati-grasslands/generators/balbalSpecimen';
 
 const root = 'src/shards/nalati-grasslands/data/';

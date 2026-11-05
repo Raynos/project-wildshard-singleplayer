@@ -2,16 +2,16 @@
 // Finish the shipping whole-geometry draws with their original weld and shadow proxies. D65: the timber world, its GLBs,
 // the native code parts and the ground come from the program's sources.
 import {Mesh,MeshStandardMaterial} from 'three';
-import {GeometryPack,packedRows} from '@wildshard/sdk/kit/geometryPack';
-import {readSourceModel} from '@wildshard/sdk/bake/skinned';
-import {staticGlb} from '@wildshard/sdk/bake/glb';
-import {readNativeTerrain} from '@wildshard/sdk/bake/terrain';
+import {GeometryPack,packedRows} from '@wildshard/sharddev/kit/geometryPack';
+import {readSourceModel} from '@wildshard/sharddev/bake/skinned';
+import {staticGlb} from '@wildshard/sharddev/bake/glb';
+import {readNativeTerrain} from '@wildshard/sharddev/bake/terrain';
 import {questSites} from './questSites.ts';
 import {cabinAmbienceRows} from './ambience.ts';
 import {timberWholeViews} from './timberWholeViews.ts';
 import {bakeTimberCopy} from './timberScenes.ts';
 import {hashImmutableBytes} from '@wildshard/sdk/immutable';
-import {decodeBuildDeflate} from '@wildshard/sdk/bake/byteCodec';
+import {decodeBuildDeflate} from '@wildshard/sharddev/bake/byteCodec';
 import codeParts from '../data/codeParts.json' with {type:'json'};
 import rideModels from '../data/questRideModels.json' with {type:'json'};
 import {TERRAIN_SOURCE,TIMBER_SOURCE,perSources,sourceJson} from './pineSources.ts';

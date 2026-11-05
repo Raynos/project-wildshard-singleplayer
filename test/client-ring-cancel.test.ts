@@ -1,7 +1,7 @@
 import { BufferGeometry, Group } from 'three';
 import { expect, test } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { ClientAssets } from '../src/game/client/shardfile/clientAssets';
 import { clientRingPorts, type PreparedRingTile } from '../src/game/client/shardfile/tileContent';
 import type { RingTile } from '../src/engine/client/world/tileStreamer';

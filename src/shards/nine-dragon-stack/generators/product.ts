@@ -11,7 +11,7 @@ import { nineProductFrom, type NineProductInputs } from './productDefinition';
 import { nineNavigation } from './navigationProgram';
 import { nineHeldProfile } from './heldProfile';
 import { createHeldGraphFiles } from './heldGraphFiles';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { nineNativeSignAtlas } from './nativeSignAtlas';
 import nativeAtlasInputs from '../data/nativeSignAtlas.json' with { type: 'json' };
 import { nineNativeGlyphs } from './nativeGlyphs';

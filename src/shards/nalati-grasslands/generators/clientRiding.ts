@@ -1,4 +1,4 @@
-import { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
+import { authorFormatRows } from '@wildshard/sharddev/formatJsonSchema';
 import reins from '../data/reins.json' with { type: 'json' };
 import type { NalatiRidingPrograms } from './ridingRows.mjs';
 import { NALATI_ECOLOGY as ecology } from './ecology.mjs';

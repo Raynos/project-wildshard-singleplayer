@@ -2,11 +2,11 @@
 import { resolve } from 'node:path';
 import { expect, test, vi } from 'vitest';
 import { build } from 'vite';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
 import { nineEntryProof } from '../src/shards/nine-dragon-stack/generators/entryProof';
 import { Physics } from '../src/engine/shared/physics/Physics';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { portalEntryRows } from '../src/shards/nine-dragon-stack/generators/portalEntries';
 import { portalFloorRows } from '../src/shards/nine-dragon-stack/generators/portalFloors';
 
@@ -49,7 +49,7 @@ test('the authored entry proof bundles without importing its native capability i
   const chunks = built.output.filter(row => row.type === 'chunk'); expect(chunks).toHaveLength(1);
   for (const chunk of chunks) {
     assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
-    expect(Object.keys(chunk.modules).some(path => path.endsWith('/src/sdk/projectEntryProof.ts'))).toBe(false);
+    expect(Object.keys(chunk.modules).some(path => path.endsWith('/src/sharddev/projectEntryProof.ts'))).toBe(false);
     expect(Object.keys(chunk.modules).some(path => path.endsWith('/src/engine/shared/physics/rapier.ts') || path.endsWith('/src/engine/shared/physics/Physics.ts'))).toBe(false);
   }
 });

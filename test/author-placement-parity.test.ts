@@ -1,11 +1,11 @@
 import { expect, expectTypeOf, test } from 'vitest';
-import { Noise2D as AuthorNoise, smoothstep as authorSmoothstep, clamp as authorClamp, lerp as authorLerp } from '../src/sdk/noise';
-import { Rng as AuthorRng } from '../src/sdk/random';
-import { annulus as authorAnnulus } from '../src/sdk/bake/annulus';
+import { Noise2D as AuthorNoise, smoothstep as authorSmoothstep, clamp as authorClamp, lerp as authorLerp } from '../src/sharddev/noise';
+import { Rng as AuthorRng } from '../src/sharddev/random';
+import { annulus as authorAnnulus } from '../src/sharddev/bake/annulus';
 import { Noise2D, smoothstep, clamp, lerp } from '../src/engine/shared/core/noise';
 import { Rng } from '../src/engine/shared/core/rng';
 import { annulus } from '../src/engine/client/fx/groundFx';
-import { specimenKey, siteFloor as authorSiteFloor, type FloorRect as AuthorFloor, type ColliderDesc, type BoxSpec, type Draw, type ContactSurface } from '../src/sdk/bake/placement';
+import { specimenKey, siteFloor as authorSiteFloor, type FloorRect as AuthorFloor, type ColliderDesc, type BoxSpec, type Draw, type ContactSurface } from '../src/sharddev/bake/placement';
 import type { ColliderDesc as RuntimeCollider } from '../src/engine/client/world/registry';
 import { siteFloor, type FloorRect as RuntimeFloor, type BoxSpec as RuntimeBox } from '../src/engine/shared/physics/box';
 import type { Draw as RuntimeDraw } from '../src/engine/client/models/place';

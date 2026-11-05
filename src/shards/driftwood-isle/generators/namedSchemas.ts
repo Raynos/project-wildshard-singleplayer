@@ -1,5 +1,5 @@
-import { defineNamedRows, type NamedJsonComposition, authorFormatSchema, namedFormatJsonSchema, registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
+import { defineNamedRows, type NamedJsonComposition, authorFormatSchema, namedFormatJsonSchema, registeredJsonSchema } from '@wildshard/sharddev/formatJsonSchema';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
 import { EnemyPlacementsSchema, FixedGeometryGroupsSchema } from './sections';
 import type { DriftwoodFixedLayouts } from './fixedLayouts';
 

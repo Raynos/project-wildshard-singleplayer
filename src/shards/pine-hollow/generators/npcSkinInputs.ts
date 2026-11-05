@@ -1,5 +1,5 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { emitNamedBlobs, nameBlob, type EmittedBlobs } from '@wildshard/sdk/blobs';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { emitNamedBlobs, nameBlob, type EmittedBlobs } from '@wildshard/sharddev/blobs';
 import declared from '../data/publicInputs.json' with { type: 'json' };
 import { bakeNpcSkin, type BakedNpcSkin } from './npcSkin';
 

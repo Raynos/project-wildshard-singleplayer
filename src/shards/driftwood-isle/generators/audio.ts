@@ -1,4 +1,4 @@
-import { parseAudioData, type AudioData } from '@wildshard/sdk/audio';
+import { parseAudioData, type AudioData } from '@wildshard/sharddev/audio';
 import source from '../data/audioSource.json' with { type: 'json' };
 import cove from '../data/coveComposition.json' with { type: 'json' };
 import type { FixedWreckLayout } from './fixedLayouts';

@@ -1,7 +1,7 @@
 import { expect } from 'vitest';
 import { encodeCanonicalJson, hashImmutableBytes } from '../../src/sdk/immutable';
-import { parseGlb } from '../../src/sdk/assets';
-import type { PreparedProjectOutput } from '../../src/sdk/projectOutput';
+import { parseGlb } from '../../src/sharddev/assets';
+import type { PreparedProjectOutput } from '../../src/sharddev/projectOutput';
 import { nineOutputReceipt } from './nine-output-receipt';
 
 type Json = string | number | boolean | null | Json[] | { [key: string]: Json };

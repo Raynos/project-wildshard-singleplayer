@@ -1,16 +1,16 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { SEED } from './landscapeRows';
-import { Rng } from '@wildshard/sdk/random';
-import { cullFacetedParts as withoutHidden } from '@wildshard/sdk/bake/facetedGeometry';
-import { bakeLog as log, bakePlank as plank, bakeRock as rock, bakeRope as rope } from '@wildshard/sdk/bake/primitives';
+import { Rng } from '@wildshard/sharddev/random';
+import { cullFacetedParts as withoutHidden } from '@wildshard/sharddev/bake/facetedGeometry';
+import { bakeLog as log, bakePlank as plank, bakeRock as rock, bakeRope as rope } from '@wildshard/sharddev/bake/primitives';
 import { ShipwreckBuilder, WRECK_COLOURS as C, type CargoCopy, type WreckAround } from './shipwreck';
 import { addBarrel, addCoil, addCrate } from './cargo';
 import { authoredRockGeometry as rockGeometry } from './rocks';
 import { REEF_ROCK } from './rockProfiles';
 import { addDriftLog, DRIFT } from './driftLogs';
 import type { WreckSpec, WreckAnchor, HoldBounds } from './wreckContract';
-import type { BoxSpec, FloorRect, ColliderDesc } from '@wildshard/sdk/bake/placement';
+import type { BoxSpec, FloorRect, ColliderDesc } from '@wildshard/sharddev/bake/placement';
 import { wreckCatalogue } from './wreckCatalogue';
 
 /** Authored draw and native layout of the canonical Wreck Cove site. */

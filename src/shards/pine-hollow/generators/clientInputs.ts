@@ -1,5 +1,5 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { emitNamedBlobs, nameBlob, nameMeshoptBlob, type EmittedBlobs, type NamedBlob } from '@wildshard/sdk/blobs';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { emitNamedBlobs, nameBlob, nameMeshoptBlob, type EmittedBlobs, type NamedBlob } from '@wildshard/sharddev/blobs';
 import painted from '../data/paintedTextures.json' with { type: 'json' };
 import trophies from '../data/trophyMounts.json' with { type: 'json' };
 import details from '../data/leverDetails.json' with { type: 'json' };

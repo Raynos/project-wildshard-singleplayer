@@ -29,7 +29,7 @@ Work:
 | Piece | Shape | Layer |
 |---|---|---|
 | timeline | `src/engine/cinematic/`: a clock, a camera owner (borrows the render camera, returns it), shot kinds `pov` (ease the player's view) / `rig` (an authored camera on keys) / `hold` / cut; a control track (input lock, HUD hide, skip, letterbox from `BossBar`); snapshot / restore | engine (IC1) |
-| rows | `cutscenes: [{ id, shots: [{ kind, from, to, seconds, look? }], captions?, cues?, skip: 'hold', short?: { from: shot } }]`; a boss row's `intro: <cutscene id>` | format + `@wildshard/sdk/cutscenes` (IC3) |
+| rows | `cutscenes: [{ id, shots: [{ kind, from, to, seconds, look? }], captions?, cues?, skip: 'hold', short?: { from: shot } }]`; a boss row's `intro: <cutscene id>` | format + `@wildshard/sharddev/cutscenes` (IC3) |
 | tracks | captions in the dialogue style, music / SFX events on the timeline clock (`audio` cue ids) | engine + format (IC4) |
 | docs | an ENGINE.md section, a SHARDS.md section, the template's example | docs |
 

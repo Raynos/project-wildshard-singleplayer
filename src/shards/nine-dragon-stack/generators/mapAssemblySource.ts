@@ -2,7 +2,7 @@
 // records as boot. No renderer, live model, physics or shard runtime is loaded.
 import { BufferGeometry, Float32BufferAttribute, Matrix4, PlaneGeometry, Quaternion, TorusGeometry, Vector3 } from 'three';
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
-import { MapAssembly, mapModelBytes } from '@wildshard/sdk/bake/mapAssembly';
+import { MapAssembly, mapModelBytes } from '@wildshard/sharddev/bake/mapAssembly';
 import type { NineNativeAtlasSource } from './nativeSignAtlas';
 import type { NineNativeGlyphSource } from './nativeGlyphs';
 import type { NineNativeAtlas } from './nativeSignMetadata';

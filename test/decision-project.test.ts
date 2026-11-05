@@ -3,12 +3,12 @@ import { afterEach, expect, test } from 'vitest';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Isolate author fixtures under the repository scratch root.
 import { resolve } from 'node:path';
-import { emptyShardfile } from '@wildshard/sdk/author';
-import { prepareProjectOutput } from '@wildshard/sdk/projectOutput';
-import { prepareProjectDecisions, projectDecisionOptions } from '@wildshard/sdk/projectDecisions';
+import { emptyShardfile } from '@wildshard/sharddev/author';
+import { prepareProjectOutput } from '@wildshard/sharddev/projectOutput';
+import { prepareProjectDecisions, projectDecisionOptions } from '@wildshard/sharddev/projectDecisions';
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { emitPlatformSections } from '@wildshard/sdk/platformSections';
-import { outputDecisionScripts } from '@wildshard/sdk/outputProduct';
+import { emitPlatformSections } from '@wildshard/sharddev/platformSections';
+import { outputDecisionScripts } from '@wildshard/sharddev/outputProduct';
 import { decisionLegacyLines } from '../scripts/decision-legacy-lines.mjs';
 import { codeLines } from '../scripts/shard-platform.mjs';
 import { legacyLineBasis } from './fixtures/legacyLineBasis';

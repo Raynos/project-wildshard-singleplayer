@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { parsePersistedQuestPage } from '../src/sdk/quests';
+import { parsePersistedQuestPage } from '../src/sharddev/quests';
 import { skyQuestPage, skyQuestPrompts } from '../src/shards/far-reach/generators/questRows';
 import { page as signalPage } from './fixtures/sunscar-source-program';
 import { SKY_SPOTS, SKY_ACT, SKY_INTERACT, QUEST_STEP, ROOST_IDS } from '../src/shards/far-reach/generators/questPrompts';

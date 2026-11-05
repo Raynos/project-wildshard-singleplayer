@@ -12,7 +12,7 @@ import type {ShardWorld} from '../src/game/server/shard/world';
 import type {ShardRuntime} from '../src/game/shared/shard/runtime';
 import {admitClientPlan} from '../src/game/client/shardfile/clientPlan';
 import {createShardProduct,type ShardProduct} from '../src/game/shared/shardfile/shardProduct';
-import {emptyShardfile} from '../src/sdk/author';
+import {emptyShardfile} from '../src/sharddev/author';
 import {installWorldUpdates} from '../src/game/server/shardfile/worldUpdates';
 import {publishEntryOwner,type EliteEntryConstruction} from '../src/game/shared/shardfile/entryOwners';
 import * as population from '../src/game/server/population/wildlife';

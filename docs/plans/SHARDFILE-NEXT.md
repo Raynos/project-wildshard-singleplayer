@@ -115,7 +115,7 @@ shard silently picks up a changed pack.
 - **A1** `src/shards/<slug>/commons.lock.json` (id → hash), written on first build and committed. A build resolves
   through the lock. An id missing from the lock fails the build with the command that adds it. — open
 - **A2** `wildshard commons outdated` lists every locked id with a newer hash, and `wildshard commons update <id>
-  [--shard <slug>]` moves one lock on purpose (`src/sdk/cli.ts`). — open
+  [--shard <slug>]` moves one lock on purpose (`src/sharddev/cli.ts`). — open
 - **A3** The outdated report shows what a lag costs: when two resident shards lock two hashes of one pack, it prints
   the extra MB (the allocator already charges each hash once per resident shard). — open
 

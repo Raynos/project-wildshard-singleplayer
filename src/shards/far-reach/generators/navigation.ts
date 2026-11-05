@@ -1,6 +1,6 @@
-import { navigationSourceRows } from '@wildshard/sdk/bake/navigationAsset';
+import { navigationSourceRows } from '@wildshard/sharddev/bake/navigationAsset';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 
 export const SKY_NAVIGATION_HASH = '97a29a22f3827e4103059929276b2e6a6831f50bd5fc3b121abc11252f774f26';
 export const SKY_NAVIGATION_INPUT = `assets/navigation-${SKY_NAVIGATION_HASH}`;

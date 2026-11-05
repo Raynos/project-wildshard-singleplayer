@@ -1,4 +1,4 @@
-import { boxDesc, type ColliderDesc, type BoxSpec } from '@wildshard/sdk/bake/placement';
+import { boxDesc, type ColliderDesc, type BoxSpec } from '@wildshard/sharddev/bake/placement';
 import { ANTE, PASS, ALC, STEPS, ANTE_FLOOR, ALC_FLOOR, CUT, BACKFILL, coveFloorAt, coveWorld, type CoveSpec, type CoveAnchor } from './coveLayout';
 
 /** Existing cave walls, floors, anchors and terrain cut, evaluated against the native authoring ground. */

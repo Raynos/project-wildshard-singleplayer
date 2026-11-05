@@ -1,4 +1,4 @@
-import type { AuthorPrivateScene as PrivateScene, AuthorWorldSceneRecipe as WorldSceneRecipe } from '@wildshard/sdk/worldScenes';
+import type { AuthorPrivateScene as PrivateScene, AuthorWorldSceneRecipe as WorldSceneRecipe } from '@wildshard/sharddev/worldScenes';
 import { bakeSkyMillModel } from './millModel';
 
 /** Source-owned mill hierarchy and motion bindings, with fresh rows for every caller. */

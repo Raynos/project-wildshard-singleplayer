@@ -1,5 +1,5 @@
 import { beforeAll, expect, test } from 'vitest';
-import { emitNamedBlobs } from '../src/sdk/blobs';
+import { emitNamedBlobs } from '../src/sharddev/blobs';
 import { parseAdventureContent, type AdventureContent } from '@wildshard/format/questStory';
 import { createQuestPlacements } from '../src/engine/shared/world/interact/types';
 import { Flags } from '../src/engine/shared/world/interact/flags';

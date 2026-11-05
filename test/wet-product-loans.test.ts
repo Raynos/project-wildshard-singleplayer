@@ -7,7 +7,7 @@ import {Vector3} from 'three';
 import type {ShardContext} from '../src/game/client/plugin/context';
 import type {ShardRuntime} from '../src/game/shared/shard/runtime';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
-import {emptyShardfile} from '../src/sdk/author';
+import {emptyShardfile} from '../src/sharddev/author';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {parseClientPlan} from '@wildshard/format/clientPlan';
 import {installClientWildlife} from '../src/game/server/population/wildlife';

@@ -10,9 +10,9 @@ import { ObservationColumnsV2, type V2ColumnOwners, type V2ReferenceColumn } fro
 import { GroupBankV2 } from '../src/engine/shared/script/groupBankV2';
 import { parseGroupStepV2, groupStepLayoutV2, GroupStepV2Schema } from '@wildshard/format/scriptGroupStepV2';
 import { ObservationColumnsV2Schema, parseObservationColumnsV2 } from '@wildshard/format/scriptObservationColumnsV2';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
-import { v2CoreSource } from '../src/sdk/as/wsV2';
-import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { compileScriptV2 } from '../src/sharddev/bake/compileScriptV2';
+import { v2CoreSource } from '../src/sharddev/as/wsV2';
+import { namedJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 
 const columns = ['present','handle','x','y','z','yaw','alive'].map((field,index) => ({name:field,id:index+1,source:{kind:'reference',binding:'target',field}}));

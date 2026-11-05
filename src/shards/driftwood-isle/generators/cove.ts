@@ -2,9 +2,9 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { SEED } from './landscapeRows';
-import { Rng } from '@wildshard/sdk/random';
-import { bakeRock as rock, bakeLog as log, bakeTriangles as tris } from '@wildshard/sdk/bake/primitives';
-import { FacetedGeometryBuilder as LowPolyKit, cullFacetedParts as withoutHidden } from '@wildshard/sdk/bake/facetedGeometry';
+import { Rng } from '@wildshard/sharddev/random';
+import { bakeRock as rock, bakeLog as log, bakeTriangles as tris } from '@wildshard/sharddev/bake/primitives';
+import { FacetedGeometryBuilder as LowPolyKit, cullFacetedParts as withoutHidden } from '@wildshard/sharddev/bake/facetedGeometry';
 import { bakeLight, type BakedLight } from './lowpolyPlants';
 import { authoredRockGeometry as rockGeometry } from './rocks';
 import { REEF_ROCK } from './rockProfiles';

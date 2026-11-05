@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
 import { generated } from './fixtures/nine-source-program';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { admitScriptContract } from '@wildshard/format/scriptContract';

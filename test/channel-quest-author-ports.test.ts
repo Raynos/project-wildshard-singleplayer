@@ -1,8 +1,8 @@
 import { expect, expectTypeOf, test } from 'vitest';
-import { clientChannelLimits } from '../src/sdk/clientChannels';
+import { clientChannelLimits } from '../src/sharddev/clientChannels';
 import { CLIENT_CHANNEL_LIMITS, type ClientChannelProgram as NativeChannel } from '@wildshard/format/clientChannels';
-import type { ClientChannelProgram } from '../src/sdk/rows';
-import type { parseNpcDialogueRow } from '../src/sdk/questGraph';
+import type { ClientChannelProgram } from '../src/sharddev/rows';
+import type { parseNpcDialogueRow } from '../src/sharddev/questGraph';
 import type { NpcDialogueRow } from '@wildshard/format/npcs';
 import { channelQuestAuthorObservation, historicalDriftwoodCatalogue } from './fixtures/channel-quest-author-observation';
 import { EXPLORER_CATALOGUE as driftwood } from '../src/shards/driftwood-isle/generators/explorerCatalogue';

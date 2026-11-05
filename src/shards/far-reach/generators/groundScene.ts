@@ -1,4 +1,4 @@
-import type { worldSceneRecipe } from '@wildshard/sdk/worldScenes';
+import type { worldSceneRecipe } from '@wildshard/sharddev/worldScenes';
 import { ISLES, KNOLLS } from "./layout";
 import { ISLE_DRAWS } from './rows/isleLook';
 import { ISLE_KEEL_CUT } from './rows/skyIsles';

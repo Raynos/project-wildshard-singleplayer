@@ -14,7 +14,7 @@ import { Vector3 } from 'three';
 import { E, K, type Kit, type Look } from './kit';
 import type { SignSink } from './contracts/signPlacement';
 import { type KitX, type XLook, curve } from './kitx';
-import { Rng } from '@wildshard/sdk/random';
+import { Rng } from '@wildshard/sharddev/random';
 import paintRows from '../data/paint.json' with { type: 'json' };
 import type { GateSpec } from '../data/specimenDims';
 

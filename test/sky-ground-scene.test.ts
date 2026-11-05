@@ -6,7 +6,7 @@ import type { Piece } from '../src/engine/client/world/registry';
 import { skyGroundValues } from '../src/shards/far-reach/generators/groundScene';
 import { skyPhysicsPlacements } from '../src/shards/far-reach/generators/physicsPlacements';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
+import { registeredJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { originalSkyScenes } from './fixtures/sky-scene-source';
 
 const { blobs: SKY_SCENE_BLOBS } = await originalSkyScenes();

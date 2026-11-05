@@ -9,7 +9,7 @@ import { expect, test } from 'vitest';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { parseQuestData } from '../src/sdk/quests';
+import { parseQuestData } from '../src/sharddev/quests';
 import { pineQuestNpcs } from '../src/shards/pine-hollow/generators/questNpcs';
 import { parsePineSpots, parsePineQuestRows } from '../src/shards/pine-hollow/generators/sections';
 import { PINE_QUEST_RUNTIME } from '../src/shards/pine-hollow/generators/questRuntime';

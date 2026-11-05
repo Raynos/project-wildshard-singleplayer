@@ -15,7 +15,7 @@ import {preflightIslandBook} from '../src/game/client/shardfile/islandBook';
 import {WorldAssembly} from '../src/game/client/shardfile/worldAssembly';
 import {entryOwner} from '../src/game/shared/shardfile/entryOwners';
 import type {FixedDraws} from '../src/game/client/models/fixedDraws';
-import {emptyShardfile} from '../src/sdk/author';
+import {emptyShardfile} from '../src/sharddev/author';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 
 const rows={construction:{prelude:{draws:'models/book.json'},seed:1,progress:{kind:'checkpoints',total:1,finish:'Assembly',budgetMs:0},checkpoints:[]},stages:[{kind:'fixed-draws',id:'shapes'}]};

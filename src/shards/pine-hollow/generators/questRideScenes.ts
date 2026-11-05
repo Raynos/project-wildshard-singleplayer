@@ -1,7 +1,7 @@
-import {registeredJsonSchema} from '@wildshard/sdk/formatJsonSchema';
+import {registeredJsonSchema} from '@wildshard/sharddev/formatJsonSchema';
 
-import { nameBlob, nameMeshoptBlob, type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
-import { worldSceneRecipe as parseWorldScene, type AuthorWorldScenes as WorldScenesSection } from '@wildshard/sdk/worldScenes';
+import { nameBlob, nameMeshoptBlob, type NamedBlob as NamedBlobType } from '@wildshard/sharddev/blobs';
+import { worldSceneRecipe as parseWorldScene, type AuthorWorldScenes as WorldScenesSection } from '@wildshard/sharddev/worldScenes';
 import models from '../data/questRideModels.json' with { type: 'json' };
 import { FIGURE_CATALOGUE } from './figureCatalogue';
 import { questRideGlbs } from './bake-timber-scenes.mjs';

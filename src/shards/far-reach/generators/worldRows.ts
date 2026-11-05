@@ -1,5 +1,5 @@
 import type { BakedPiece } from './fileInventory';
-import type { bakedSceneSourceFile } from '@wildshard/sdk/worldScenes';
+import type { bakedSceneSourceFile } from '@wildshard/sharddev/worldScenes';
 import { skyWorldPieceValues, type SkyWorldPieceRows } from './worldPieceBytes';
 import { FALLEN_BRIDGE, MILL, NOTES, STEP, VANES, WINCH, WINCH_HOUSE } from "./layout";
 import STRINGS from '../data/strings.json' with { type: 'json' };

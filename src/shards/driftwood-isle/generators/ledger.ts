@@ -1,4 +1,4 @@
-import { parseLedgerRules } from '@wildshard/sdk/ledger';
+import { parseLedgerRules } from '@wildshard/sharddev/ledger';
 import { DRIFTWOOD_FEATS } from './questInventory';
 
 /** Existing feat identities/titles/counts remain the UI projection; these rows own the profile grants. */

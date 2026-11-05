@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { BoxGeometry, MeshStandardMaterial } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { staticGlb } from '../src/sdk/bake/glb';
+import { staticGlb } from '../src/sharddev/bake/glb';
 import { loadSpecimenAsset, loadBoundSpecimen } from '../src/game/client/models/specimenCatalogue';
 import { SkyRig } from '../src/engine/client/world/skyRig';
 import { realGc } from '@wildshard/engine/test/realGc';

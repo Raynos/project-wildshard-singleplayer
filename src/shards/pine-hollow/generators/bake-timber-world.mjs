@@ -15,9 +15,9 @@ import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutabl
 import { TIMBER_SOURCE, cragSource, sourceJson } from './pineSources.ts';
 import { pineLandmarkSites } from './landmarkSites.ts';
 import { pineLandmarkFacts } from './bake-pine-landmark-facts.mjs';
-import { bakeQueryTerrain } from '@wildshard/sdk/bake/terrain';
+import { bakeQueryTerrain } from '@wildshard/sharddev/bake/terrain';
 import { bakeFireLookout } from './fireLookout.ts';
-import { parseGlb } from '@wildshard/sdk/assets';
+import { parseGlb } from '@wildshard/sharddev/assets';
 import { pineTimberWorldBake, pineTimberPlacements } from './timberWorld.ts';
 import { bakeSiteTimberRows, pineTimberGround } from './bake-pine-site-timbers.mjs';
 import { pineCragAssembly } from './cragAssembly.ts';

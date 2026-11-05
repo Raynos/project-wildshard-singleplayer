@@ -4,7 +4,7 @@ import { TileStreamer } from '../src/engine/client/world/tileStreamer';
 import { TileDecoder } from '../src/game/client/grid/tileDecoder';
 import { tileOf } from '../src/game/shared/shardfile/tileOrder';
 import { Scope } from '../src/engine/shared/app/scope';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { ResidencyAllocator } from '../src/game/shared/grid/allocator';
 import { ClientAssets } from '../src/game/client/shardfile/clientAssets';

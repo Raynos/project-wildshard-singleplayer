@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
 import { mergeAnimalGeometry } from '../src/engine/client/models/animalGeometry';
 import { facetGeometry } from '../src/engine/client/entities/lowpoly';
 import { Rng } from '../src/engine/shared/core/rng';

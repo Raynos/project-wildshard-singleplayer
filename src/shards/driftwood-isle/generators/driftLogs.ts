@@ -14,8 +14,8 @@
  *   · the two end caps are dark end grain.
  */
 import * as THREE from 'three';
-import { bakeLog as log, bakeWobble as wobble } from '@wildshard/sdk/bake/primitives';
-import { FacetedGeometryBuilder as LowPolyKit, type FacetedGeometrySink } from '@wildshard/sdk/bake/facetedGeometry';
+import { bakeLog as log, bakeWobble as wobble } from '@wildshard/sharddev/bake/primitives';
+import { FacetedGeometryBuilder as LowPolyKit, type FacetedGeometrySink } from '@wildshard/sharddev/bake/facetedGeometry';
 
 /** the body tones (one per log), the facet leans, the crack and the end grain */
 export const DRIFT: { readonly tones: readonly ["#ab9d85", "#9d8e75", "#b4a894"]; readonly silver: THREE.Color; readonly brown: THREE.Color; readonly crack: THREE.Color; readonly end: THREE.Color; 

@@ -58,7 +58,7 @@ test('behaviour restores the exact native tool cache published before its matrix
     expect(source).toContain('path: ~/.cache/wildshard/basis');
     expect(source).not.toContain('restore-keys:');
     expect(source).not.toContain('continue-on-error:');
-    for (const input of ['runner.os', 'runner.arch', 'src/sdk/bake/basisTool.ts', 'src/sdk/bake/basisToolInputs.ts'])
+    for (const input of ['runner.os', 'runner.arch', 'src/sharddev/bake/basisTool.ts', 'src/sharddev/bake/basisToolInputs.ts'])
       expect(key(source)).toContain(input);
   }
   expect(prepare.indexOf('Cache the checked Basis compiler')).toBeLessThan(prepare.indexOf('node scripts/gen.mjs --reuse'));

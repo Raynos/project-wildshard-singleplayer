@@ -5,7 +5,7 @@ import * as v from 'valibot';
 import { createNativeBakeReader, type NativePhysicsBake, type NativeBakeReader } from '@wildshard/game/population/nativeBake';
 import { trustedLevel } from '../src/game/server/plugin/simulation';
 import type { HeadlessRuntimePlan } from '../src/sdk/headlessRuntime';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { createSimHost } from '../src/engine/server/sim';
 import { loadRapier } from '../src/engine/shared/physics/rapier';
@@ -13,11 +13,11 @@ import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { readFileSync } from 'node:fs';
 import terrain from '../src/shards/pine-hollow/data/terrainBindings.json' with { type: 'json' };
 import { PinePhysicsSchema } from '../src/shards/pine-hollow/generators/sections';
-import { namedJsonSchema, registeredJsonSchema } from '../src/sdk/formatJsonSchema';
+import { namedJsonSchema, registeredJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 import { pinePhysics, pinePhysicsBytes, pinePhysicsOwners, pinePhysicsOwnersBytes, pineWorldPhysics } from '../src/shards/pine-hollow/generators/physics';
-import { nameBlob } from '../src/sdk/blobs';
+import { nameBlob } from '../src/sharddev/blobs';
 
 const baked=(()=>{
   const rows:unknown=pinePhysics();

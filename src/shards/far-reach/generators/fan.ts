@@ -1,14 +1,14 @@
 import { BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, ExtrudeGeometry, Float32BufferAttribute, Shape, SphereGeometry, TorusGeometry, TubeGeometry, Vector3, Group, Mesh, MeshStandardMaterial } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { clientSceneGlb } from '@wildshard/sdk/bake/glb';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
+import { clientSceneGlb } from '@wildshard/sharddev/bake/glb';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
 import { FAN } from './rows/fanGeometry';
 import { hdGeometry } from './modelIntake';
 import { HD_URLS } from './fileInventory';
 
 /**
  * Build-time only (SHARD-PLATFORM M3, offline bakes): the war fan's built shapes (weapons/fanModel.ts, mockup C), baked by
- * `scripts/bake-sky-world.mjs` into `baked/fan.bin` (a deflated `@wildshard/sdk/kit/geometryPack`) + `data/fan.json`; the
+ * `scripts/bake-sky-world.mjs` into `baked/fan.bin` (a deflated `@wildshard/sharddev/kit/geometryPack`) + `data/fan.json`; the
  * page draws each in its own material (`fanParts`). Local frame: the pivot at the origin, the fan opens up (+Y) in the XY
  * plane facing +Z (the camera).
  */

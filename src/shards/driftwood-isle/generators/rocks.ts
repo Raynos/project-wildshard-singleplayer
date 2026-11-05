@@ -1,7 +1,7 @@
 /** Author-only rock sculpting. Runtime and Explorer consume finished scene draws. */
 import * as THREE from 'three';
 import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { Rng } from '@wildshard/sdk/random';
+import type { Rng } from '@wildshard/sharddev/random';
 import { finishRock, type RockOpts, type RockPalette } from './rockFinish';
 import { SHORE_ROCK, ROCK_PROFILES, ROCK_KINDS } from './rockProfiles';
 

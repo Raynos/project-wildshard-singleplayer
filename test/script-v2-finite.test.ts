@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
 import binaryen from 'binaryen';
-import { instrumentV2Finite, inspectV2Finite } from '../src/sdk/bake/v2Finite';
-import { compileScript } from '../src/sdk/bake/compileScript';
+import { instrumentV2Finite, inspectV2Finite } from '../src/sharddev/bake/v2Finite';
+import { compileScript } from '../src/sharddev/bake/compileScript';
 import { admitScript } from '@wildshard/format/scriptAdmission';
 import { sha256 } from '../src/game/shared/plugin/moduleHash';
-import { scriptSource } from '../src/sdk/test/scriptSource';
+import { scriptSource } from '../src/sharddev/test/scriptSource';
 
 function bytes(source: string): Uint8Array {
   const module = binaryen.parseText(source);

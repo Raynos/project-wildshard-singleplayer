@@ -1,4 +1,4 @@
-import { scriptV1ReferenceKinds } from '@wildshard/sdk/decisionScripts';
+import { scriptV1ReferenceKinds } from '@wildshard/sharddev/decisionScripts';
 /** Omit only schema-defined defaults; the existing parser restores them.
  * No module bytes, alias identities or decoding rules change. Build-only. */
 interface ProgramWire {readonly script:Readonly<Record<string,unknown>>;readonly bytes:string}

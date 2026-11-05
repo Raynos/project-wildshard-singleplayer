@@ -2,10 +2,10 @@
  *  over the cabin scene rows (bake-cabin-scenes.mjs) in memory; each row and GLB equals the retired pine-cabin-living
  *  outputs, and the rows keep the job's source names (`assets/cabin-living/…`) as identities. */
 import {BufferAttribute,MeshStandardMaterial} from 'three';
-import {staticGlb} from '@wildshard/sdk/bake/glb';
+import {staticGlb} from '@wildshard/sharddev/bake/glb';
 import {hashImmutableBytes} from '@wildshard/sdk/immutable';
 import {installPortableMath} from '@wildshard/commons/bake/portableMath';
-import {worldSceneWeldRows as parseWorldSceneWeld,buildingLifeRows as parseBuildingLifeRows} from '@wildshard/sdk/worldScenes';
+import {worldSceneWeldRows as parseWorldSceneWeld,buildingLifeRows as parseBuildingLifeRows} from '@wildshard/sharddev/worldScenes';
 import {cabinSceneSources} from './cabinSceneSources.mjs';
 import {CabinSceneRecorder} from './cabinScenes.ts';
 import {cabinSceneBake} from './bake-cabin-scenes.mjs';

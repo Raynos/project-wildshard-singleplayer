@@ -7,7 +7,7 @@ import type { Terrain } from '../src/engine/client/world/Terrain';
 import * as geometry from '../src/engine/client/models/ownedGeometry';
 import { ToonLook } from '../src/engine/client/render/families/toon';
 import { TOON_DAY_PRESET, ToonDaySchema, parseToonLook } from '@wildshard/format/toonLook';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import * as materials from '../src/game/client/shardfile/runtimeProduct';
 import * as sky from '../src/game/client/looks/graphDaySky';

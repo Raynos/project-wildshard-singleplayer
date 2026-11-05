@@ -44,7 +44,7 @@ For example, a 5 MB playable closure estimates 6 s under those assumptions. A go
 card says `PASS (refuse)` with measured script samples and no refusals. A bad new
 card declaring an 8,000,001-byte library says `REFUSED (refuse)` and
 `REFUSAL: library download budget bytes: 8000001 > 8000000`; build writes no product.
-Use `@wildshard/sdk/reportCard` to inspect the same structured report in tooling.
+Use `@wildshard/sharddev/reportCard` to inspect the same structured report in tooling.
 
 Before marking a shard done:
 
@@ -82,7 +82,7 @@ exemption. The LEGACY entry and Developer buttons remain available for QA.
 
 **G8 generated data banks.** Keep `.bin` / `.glb` payloads as named files,
 never base64 in JSON or numeric payloads in generated TypeScript. Node author
-programs can use `@wildshard/sdk/bake/typedDataBank`: `encodeTypedDataBank`
+programs can use `@wildshard/sharddev/bake/typedDataBank`: `encodeTypedDataBank`
 returns an owned little-endian `.bin` and a small JSON header; publish both
 through the existing output writer. `readTypedDataBank(headerPath)` reads the
 bounded header at run time, valibot-parses the defining
@@ -96,7 +96,7 @@ header and bank in the source/cache inputs. Do not statically import a
 This Node reader is for author programs, not a runtime or config declaration.
 
 **Late material receipts.** `lateSceneMaterialFiles` from
-`@wildshard/sdk/worldScenes`
+`@wildshard/sharddev/worldScenes`
 projects explicit `{ variantOf, at: [x, z] }` groups from named output files
 into the existing `output.late` hints. Declare only detail or off-view
 materials whose native readers already support later demand. A critical
@@ -111,7 +111,7 @@ stable name such as `props.0.2.4`, after any existing tile compression but
 before the compiler hashes and parses the final GLB costs. Both sides of
 the callback are copied, so retained encoder buffers cannot mutate emitted
 assets. Libraries, panels and far proxies never invoke it; omitting the
-callback preserves the existing path. `@wildshard/sdk/bake/tileEncoder`
+callback preserves the existing path. `@wildshard/sharddev/bake/tileEncoder`
 defines `meshoptTileBytes`: lossless meshopt buffer views, selected only
 when gzip-9 is strictly smaller. It never quantizes or reorders geometry.
 Decoded/GPU/draw costs still come from admission of the returned bytes;
@@ -120,7 +120,7 @@ wire savings do not discount the decoder's memory charge.
 To start a shard, run `pnpm gen` in this repository before copying
 `src/shards/_template` to a fresh project folder. This restores its pinned CPU
 outputs from retained authoring sources; then install
-`@wildshard/sdk`, and open `shard.config.ts` to edit the identity (follow its imported
+`@wildshard/sharddev`, and open `shard.config.ts` to edit the identity (follow its imported
 author-only declaration when the entry is thin). Run `wildshard build
 <folder>` and `wildshard validate <folder>`. The config imports only SDK modules;
 content-addressed assets are already included. Build-time generators may use author
@@ -128,7 +128,7 @@ tools, while shipped behaviour is admitted AssemblyScript and callback-free data
 The platform owns placement, cache, residency, physics, input, HUD and the normal
 Game boot. Follow [SHARDFILE.md](SHARDFILE.md) for the data contract; the history below describes earlier APIs and is not a primary-shard authoring path.
 
-Ledger declarations use `@wildshard/sdk/ledger`: validate fact-to-reward mappings with
+Ledger declarations use `@wildshard/sharddev/ledger`: validate fact-to-reward mappings with
 `parseLedgerRules`. Authors emit a named outcome; the host assigns its stable instance,
 package revision, entity, tick, ordinal and engine/script provenance. The platform admits
 catalogue rewards at capped tiers and records achievements/titles once per package in the
@@ -151,7 +151,7 @@ remain in memory and retry on read/write; `peek` stays read-only. Template copie
 inherit one another’s progress, and cells never enter the save API. Client integration
 follows at SF20a/SF46.
 
-Quest authors use `@wildshard/sdk/quests` to compile declared flags, quest steps,
+Quest authors use `@wildshard/sharddev/quests` to compile declared flags, quest steps,
 world markers, region/death triggers and finite dialogue trees. The platform binds them
 to the existing `QuestState`, preserving journal/chip/marker text and counters. Custom
 conditions read atomically published public or owner script fields by stable id; scene hooks
@@ -159,13 +159,13 @@ queue declared events for the next script tick with the session's actor binding.
 outcomes pass through the ledger fact port, while coins remain local. Dialogue cursors
 and quest state restore at the same simulation checkpoint.
 
-Audio authors use `@wildshard/sdk/audio` for a cue-to-catalogue voice map, bounded wind
+Audio authors use `@wildshard/sharddev/audio` for a cue-to-catalogue voice map, bounded wind
 recipes and a silent/default score. `installDeclaredAudio` admits every voice before
 installing anything; the game's `declaredWeaponVoices` retains the existing weapon sounds
 and impact surface routing. Level scopes remove cue routes, stop bed sources and restore
 the score output gain. The template's data keeps its two forest wind bands and silent score.
 
-Scoped plumbing uses `@wildshard/sdk/plumbing`: declare namespaced input actions and
+Scoped plumbing uses `@wildshard/sharddev/plumbing`: declare namespaced input actions and
 keyboard/touch bindings, phone/desktop tier values, and Debug choices with named scene
 hooks. `installDeclaredPlumbing` qualifies context ids by stable instance, uses the normal
 recordable command path, gates bindings by active instance, and registers knobs/Debug
@@ -294,7 +294,7 @@ Follow [SHARDFILE.md](SHARDFILE.md) for the admitted data contract and
 using the existing entity/director contracts. Use named content-addressed files
 for large payloads and declare their input identities in the producer registry.
 Build and validate the real product; never ship a TypeScript plugin or an
-`@wildshard/sdk/runtime/*` import from a primary shard.
+`@wildshard/sharddev/runtime/*` import from a primary shard.
 
 Keep strings, spawn, bounds, equipment, quests, audio and look choices as data
 in the admitted schemas. A new host still needs the [host bar](HOST-BAR.md).

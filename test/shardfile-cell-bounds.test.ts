@@ -5,8 +5,8 @@ import { validateOutputSection } from '@wildshard/format/outputIndex';
 import { CellBoundsSchema } from '@wildshard/format/shardSections';
 import * as v from 'valibot';
 import { BoxGeometry, MeshBasicMaterial } from 'three';
-import { emptyShardfile } from '../src/sdk/author';
-import { staticGlb } from '../src/sdk/bake/glb';
+import { emptyShardfile } from '../src/sharddev/author';
+import { staticGlb } from '../src/sharddev/bake/glb';
 import { validatePropDrawBounds } from '@wildshard/format/product';
 
 const box = { min: [-250, -250, -250], max: [250, 250, 250] };

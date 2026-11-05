@@ -16,7 +16,7 @@ import { ReturnGate } from '../src/game/shared/population/respawn';
 import { populationProjectionRows } from '../src/shards/driftwood-isle/generators/populationProjection';
 import { manager } from '@wildshard/engine/test/manager';
 import { mockCanvas } from '@wildshard/engine/test/weaponParity';
-import { readNativeTerrain } from '../src/sdk/bake/terrain';
+import { readNativeTerrain } from '../src/sharddev/bake/terrain';
 import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/groundRows';
 import { WORLD_DROP } from '../src/shards/driftwood-isle/generators/landscapeRows';
 import { islandFoliagePlacements } from '../src/shards/driftwood-isle/generators/islandDressing';

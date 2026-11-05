@@ -4,7 +4,7 @@ import {expect,test,vi} from 'vitest';
 import {SIM_CREATURE_RECIPE} from '../src/game/test/creatureRecipe';
 import {loadRapier} from '../src/engine/shared/physics/rapier';
 import {createShardfileSim} from '../src/game/server/plugin/simulation';
-import {emptyShardfile} from '../src/sdk/author';
+import {emptyShardfile} from '../src/sharddev/author';
 import {walkVelocity,walkingSpeed} from '../src/engine/shared/player/walk';
 import {runHeadlessJourney} from '../src/sdk/headlessJourney';
 import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';

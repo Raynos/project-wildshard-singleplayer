@@ -3,7 +3,7 @@ import { Vector3 } from 'three';
 import { WakeBossEncounter } from '@wildshard/game/boss/wake';
 import { parseRoamingEncounter, NativeBossBindingSchema, WakeEncounterSchema } from '@wildshard/format/bossEncounter';
 import * as v from 'valibot';
-import { formatJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { formatJsonSchema } from '@wildshard/sharddev/formatJsonSchema';
 import roaming from '../src/shards/pine-hollow/data/bossEncounter.json' with { type: 'json' };
 import { ANTLER_KING_BOSS_PROFILE as profile } from '../src/shards/pine-hollow/generators/kingFight';
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture lends the shipped physics runtime, not generated shard products.

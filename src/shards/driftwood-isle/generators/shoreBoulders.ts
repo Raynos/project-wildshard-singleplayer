@@ -1,6 +1,6 @@
 import geometryPolicy from '../data/groundGeometryPolicy.json' with { type: 'json' };
-import { Rng } from '@wildshard/sdk/random';
-import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
+import { Rng } from '@wildshard/sharddev/random';
+import { readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
 import { SEED, WORLD_DROP, SHORE_LEVEL } from './landscapeRows';
 import WRECK_SITES from '../data/wreckSites.json' with { type: 'json' };
 import { driftwoodGroundBytes } from './groundRows';

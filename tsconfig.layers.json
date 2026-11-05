@@ -11,6 +11,9 @@
       "path": "./tsconfig.sdk.json"
     },
     {
+      "path": "./tsconfig.sharddev.json"
+    },
+    {
       "path": "./tsconfig.commons.json"
     },
     {
@@ -27,6 +30,9 @@
     },
     {
       "path": "./src/sdk/tsconfig.test.json"
+    },
+    {
+      "path": "./src/sharddev/tsconfig.test.json"
     },
     {
       "path": "./src/commons/tsconfig.test.json"

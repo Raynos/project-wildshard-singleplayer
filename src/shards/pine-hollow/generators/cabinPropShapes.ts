@@ -1,7 +1,7 @@
 /** Original cabin scan parts merged once in their native frame, never on the page. */
 import * as THREE from 'three';
 import { mergeGeometries, deinterleaveGeometry } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { BakedPiece } from '@wildshard/sdk/bake';
+import type { BakedPiece } from '@wildshard/sharddev/bake';
 
 export const CABIN_PROP_SOURCES = { crate: 'wooden_crate_02', barrel: 'wine_barrel_01', bucket: 'wooden_bucket_01', hatchet: 'hatchet' } as const;
 interface Shape { name: string; matrix: number[]; sphere: number[] }

@@ -1,5 +1,5 @@
-import { actorProjectionRows as parseActorProjectionV2 } from '@wildshard/sdk/decisionScripts';
-import type { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
+import { actorProjectionRows as parseActorProjectionV2 } from '@wildshard/sharddev/decisionScripts';
+import type { authorFormatRows } from '@wildshard/sharddev/formatJsonSchema';
 
 type CreatureGuestRows = ReturnType<typeof authorFormatRows<'speciesBookRows.CreatureGuestSchema'>>;
 type ActorProjectionV2Rows = ReturnType<typeof parseActorProjectionV2>;

@@ -7,7 +7,7 @@ import {createSimHost,type SimHost} from '@wildshard/engine/sim';
 import {loadRapier} from '@wildshard/engine/physics/rapier';
 import {snapshotSimHost,snapshotSimHostBytes,serializeSimSnapshot,decodeSimSnapshot,restoreSimHost} from '@wildshard/engine/sim/snapshot';
 import {SIM_LEVEL,fightCommand} from './fixtures/sim-level/level';
-import {newProject,buildProject} from '../src/sdk/project';
+import {newProject,buildProject} from '../src/sharddev/project';
 import {loadHeadlessProduct} from '../src/sdk/headlessProduct';
 import {createNativeProofAdapter,createNativeProofResident} from './fixtures/headless-native';
 import {prepareHeadlessRuntime} from './fixtures/headless/trustedRuntime';

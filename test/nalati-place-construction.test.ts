@@ -12,7 +12,7 @@ test('fresh native POI keep-outs own their rows without selecting a world or ret
     import { readFileSync } from 'node:fs';
     import { BufferGeometry } from 'three';
     import { selectedLevel } from '@wildshard/engine/level/selection';
-    import { readNativeTerrain } from './src/sdk/bake/terrain.ts';
+    import { readNativeTerrain } from './src/sharddev/bake/terrain.ts';
     import { bakeNalatiPoiKeepouts } from './src/shards/nalati-grasslands/generators/places.ts';
     assert.equal(selectedLevel(),null);
     const ground=readNativeTerrain(readFileSync('public/assets/baked/nalati-grasslands/terrain.bin'));
@@ -124,7 +124,7 @@ test('native dressing rock keep-outs own their geometry and require no selected 
     import { readFileSync } from 'node:fs';
     import { BufferGeometry } from 'three';
     import { selectedLevel } from '@wildshard/engine/level/selection';
-    import { readNativeTerrain } from './src/sdk/bake/terrain.ts';
+    import { readNativeTerrain } from './src/sharddev/bake/terrain.ts';
     import { dressingRockColliders } from './src/shards/nalati-grasslands/generators/places.ts';
     import { TERRAIN } from './src/shards/nalati-grasslands/generators/terrainRecipe.ts';
     assert.equal(selectedLevel(),null);

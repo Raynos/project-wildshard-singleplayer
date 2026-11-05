@@ -9,7 +9,7 @@ import { parse } from 'valibot';
 import { ReturnModulesSchema } from '@wildshard/format/scriptContract';
 import { titanRawPrograms as programs, titanWitnessBytes } from './fixtures/titanInlineWitness';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { prepareProjectOutput } from '../src/sdk/projectOutput';
+import { prepareProjectOutput } from '../src/sharddev/projectOutput';
 import { Scope } from '../src/engine/shared/app/scope';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { lendNalatiTitan, titanModuleBytes } from './fixtures/nalati-return-modules';

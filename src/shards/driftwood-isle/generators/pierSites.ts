@@ -1,4 +1,4 @@
-import { roadSocketMetrics } from '@wildshard/sdk/entries';
+import { roadSocketMetrics } from '@wildshard/sharddev/entries';
 import {PIER,JETTIES} from './worldSites';
 import authoredLayout from '../data/layout.json' with { type: 'json' };
 import { DECLARED_SEA, PIER_START } from './sea';

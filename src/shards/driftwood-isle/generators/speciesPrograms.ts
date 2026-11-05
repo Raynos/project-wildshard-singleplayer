@@ -2,10 +2,10 @@
 import { CAPTAIN_BRAIN, CAPTAIN_BODY } from './captainDecision';
 import { DRIFTWOOD_SPAWNS } from './spawnTables';
 import { DRIFTWOOD_NATIVE_HUNT } from './nativeHunt';
-import { speciesProgramRows as readSpeciesProgram, type SpeciesData as SpeciesDataType } from '@wildshard/sdk/species';
-import type { BrainedSpecies } from '@wildshard/sdk/speciesBrains';
+import { speciesProgramRows as readSpeciesProgram, type SpeciesData as SpeciesDataType } from '@wildshard/sharddev/species';
+import type { BrainedSpecies } from '@wildshard/sharddev/speciesBrains';
 import { DRIFTWOOD_ENEMY_SPECIES, DRIFTWOOD_ENEMY_STRIKES, ENEMY_SPECIES_METADATA } from './enemySpecies';
-import { bakeSpecies } from '@wildshard/sdk/bake/species';
+import { bakeSpecies } from '@wildshard/sharddev/bake/species';
 import { ISLAND_BOAR, ISLAND_BEAR } from './faunaSpecies';
 
 type SpeciesProgramDataType = ReturnType<typeof readSpeciesProgram>;

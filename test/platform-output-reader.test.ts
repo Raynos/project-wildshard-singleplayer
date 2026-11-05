@@ -9,10 +9,10 @@ import {createOutputReader,outputSections} from '../scripts/shard-platform-outpu
 import {platformOutput} from './fixtures/platformOutputs';
 import { parseOutputIndex } from '@wildshard/format/outputIndex';
 import { outputSectionPayloads } from '@wildshard/format/outputFields';
-import {emptyShardfile} from '../src/sdk/author';
+import {emptyShardfile} from '../src/sharddev/author';
 import {outputContent} from '../scripts/shard-output-content.mjs';
-import {nameBlob} from '../src/sdk/blobs';
-import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
+import {nameBlob} from '../src/sharddev/blobs';
+import {registeredJsonSchema} from '../src/sharddev/formatJsonSchema';
 
 // LD10: a product ships no runtime TypeScript, so the reader verifies only sections and named JSON (copy checks retired)
 it('admits registered named JSON, refuses private names and detects corrupt blob bytes',()=>{

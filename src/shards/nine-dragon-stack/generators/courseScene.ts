@@ -1,7 +1,7 @@
 import { practiceFrame } from './practiceFrame';
 import type { NinePracticeProgram } from './practiceProgram';
 import * as THREE from 'three';
-import { CourseKit as DevKit, courseLabel as devLabel, captureCourse, type AuthorHookPracticeLayout as HookPracticeLayout, type AuthorPracticeScene as PracticeScene } from '@wildshard/sdk/bake/practiceCourse';
+import { CourseKit as DevKit, courseLabel as devLabel, captureCourse, type AuthorHookPracticeLayout as HookPracticeLayout, type AuthorPracticeScene as PracticeScene } from '@wildshard/sharddev/bake/practiceCourse';
 import type course from '../data/grappleCourse.json';
 
 type ColliderDesc = PracticeScene['colliders'][number];

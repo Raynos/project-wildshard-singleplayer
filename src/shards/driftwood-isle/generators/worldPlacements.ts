@@ -4,7 +4,7 @@ import { driftwoodTrailRows } from './fixedFacts';
 import { ENTRY_LANDINGS } from './entryLandings';
 import { ENTRY_DECKS } from './entryDecks';
 import { ENTRY_FLOORS } from './staticWorld';
-import { worldScenePlacement as parseWorldScenePlacement, type AuthorWorldScenePlacement as WorldScenePlacementRow } from '@wildshard/sdk/worldScenes';
+import { worldScenePlacement as parseWorldScenePlacement, type AuthorWorldScenePlacement as WorldScenePlacementRow } from '@wildshard/sharddev/worldScenes';
 
 const trail = driftwoodTrailRows();
 

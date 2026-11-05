@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { Box, Platform } from '../data/placeTypes';
 import type { ModelLod, ModelLook, ModelPlacement, NalatiModelName } from '../data/modelTypes';
 import modelMetrics from '../data/modelMetrics.json' with { type: 'json' };
-import type { AuthorPlacement as Placement, Draw, ColliderDesc } from '@wildshard/sdk/bake/placement';
+import type { AuthorPlacement as Placement, Draw, ColliderDesc } from '@wildshard/sharddev/bake/placement';
 
 
 export interface GeneratedSpec<P> {

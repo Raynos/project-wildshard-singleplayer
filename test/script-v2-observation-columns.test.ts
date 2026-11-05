@@ -7,7 +7,7 @@ import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { PageWildEnvironment } from '../src/game/server/population/pageGroups';
 import { ObservationColumnsV2,type V2ColumnOwners,type V2ReferenceColumn } from '../src/engine/shared/script/observationColumnsV2';
 import { parseObservationColumnsV2,ObservationColumnsV2Schema } from '@wildshard/format/scriptObservationColumnsV2';
-import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
+import { formatJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 async function fixture() {

@@ -1,7 +1,7 @@
 import { expect, expectTypeOf, test } from 'vitest';
-import { ARENA_VIEW, arenaChainTell, type AuthorViewProgramRows } from '../src/sdk/arenaView';
-import { ELITE_VIEW_FIELDS, eliteViewSource, eliteViewTell } from '../src/sdk/eliteEntryRows';
-import type { SceneEffectField } from '../src/sdk/worldScenes';
+import { ARENA_VIEW, arenaChainTell, type AuthorViewProgramRows } from '../src/sharddev/arenaView';
+import { ELITE_VIEW_FIELDS, eliteViewSource, eliteViewTell } from '../src/sharddev/eliteEntryRows';
+import type { SceneEffectField } from '../src/sharddev/worldScenes';
 import { ARENA_VIEW as nativeArena, arenaChainTell as nativeChain } from '@wildshard/format/arenaView';
 import { ELITE_VIEW_FIELDS as nativeFields, eliteViewSource as nativeSource, eliteViewTell as nativeTell } from '@wildshard/format/eliteFeature';
 import type { ViewProgramRows } from '@wildshard/format/viewProgram';

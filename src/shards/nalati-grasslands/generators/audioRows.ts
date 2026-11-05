@@ -1,4 +1,4 @@
-import { parseAudioData } from '@wildshard/sdk/audio';
+import { parseAudioData } from '@wildshard/sharddev/audio';
 import source from '../data/audioSource.json' with { type: 'json' };
 import patches from '../data/voicePatches.json' with { type: 'json' };
 import scene from '../data/audioScene.json' with { type: 'json' };

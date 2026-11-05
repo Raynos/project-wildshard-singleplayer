@@ -6,8 +6,8 @@ import * as v from 'valibot';
 import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
 import { classicLookCompiler } from './fixtures/classicLookCompiler';
 import { clientGraphs } from '../src/game/client/shardfile/clientGraphs';
-import { GraphMaterial } from '../src/sdk/materials';
-import { emptyShardfile } from '../src/sdk/author';
+import { GraphMaterial } from '../src/sharddev/materials';
+import { emptyShardfile } from '../src/sharddev/author';
 
 it('compiles a declared larger graph only with trusted authority and never substitutes a family', () => {
   const nodes: Record<string, GraphNode> = { colour: { op: 'const', value: [0.3, 0.6, 0.2] } };

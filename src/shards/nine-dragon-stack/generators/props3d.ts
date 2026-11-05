@@ -12,7 +12,7 @@
 // they stand — the queues the square's builders fill — and squareProps.ts places them.
 import { type BufferGeometry, Matrix4, Quaternion, Vector3 } from 'three';
 import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
-import { numberTupleRows } from '@wildshard/sdk/rows';
+import { numberTupleRows } from '@wildshard/sharddev/rows';
 
 const GATE = { ...NINE_LAYOUT_PLAN.GATE, posts: numberTupleRows(NINE_LAYOUT_PLAN.GATE.posts, 4) };
 

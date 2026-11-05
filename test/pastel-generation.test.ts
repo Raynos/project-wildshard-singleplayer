@@ -6,8 +6,8 @@ import { resolve } from 'node:path';
 import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
 import { generate } from '../src/shards/pastel-plain/shard.config';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
-import { readProjectAssets } from '../src/sdk/project';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
+import { readProjectAssets } from '../src/sharddev/project';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { PASTEL_SOURCE, pastelAssets } from './fixtures/pastelSource';
 

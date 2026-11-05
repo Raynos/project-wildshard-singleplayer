@@ -1,10 +1,10 @@
-import { WorldBakeRows, type BakedWorldRows } from '@wildshard/sdk/bake/worldRows';
-import { staticMaterialNames, type StaticMaterialCatalogue } from '@wildshard/sdk/bake/staticMaterials';
+import { WorldBakeRows, type BakedWorldRows } from '@wildshard/sharddev/bake/worldRows';
+import { staticMaterialNames, type StaticMaterialCatalogue } from '@wildshard/sharddev/bake/staticMaterials';
 import type { NativeGround } from '@wildshard/format/nativeGround';
 import { bakeNalatiGround, bakeNalatiGroundLod, nalatiGroundSource, type NalatiGroundTile, type NalatiStaticTile } from './nalatiGroundSource';
-import { compactClearGlb } from '@wildshard/sdk/bake/compactGlb';
-import { parseGlb } from '@wildshard/sdk/assets';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { compactClearGlb } from '@wildshard/sharddev/bake/compactGlb';
+import { parseGlb } from '@wildshard/sharddev/assets';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 
 /** Compile ordinary render rows, with one combined ground/props GLB per address and the unchanged critical WSTR.
  * This is an offline assembly seam, not product admission: the caller supplies the real catalogue/textures,

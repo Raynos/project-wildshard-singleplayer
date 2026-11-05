@@ -18,7 +18,7 @@
  *   dawn    on his death (or the moment the quest reaches this beat after an early kill) the clock runs to dawn, every
  *           lantern on the shard is lit, the dawn sting plays, the reward: the caption, amber resin, the title
  */
-import type { QuestData } from '@wildshard/sdk/quests';
+import type { QuestData } from '@wildshard/sharddev/quests';
 
 import wardens from '../data/wardensHollow.json' with { type: 'json' };
 

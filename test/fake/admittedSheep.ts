@@ -1,9 +1,9 @@
 import { originalSpeciesJson } from '../fixtures/nalati-original-species';
 import { object, parse, unknown } from 'valibot';
 import { SpeciesActorsFileSchema, type SpeciesActorsFileRows } from '@wildshard/format/speciesActorsFile';
-import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
-import { nameBlob } from '@wildshard/sdk/blobs';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { registeredJsonSchema } from '@wildshard/sharddev/formatJsonSchema';
+import { nameBlob } from '@wildshard/sharddev/blobs';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import { createShardProduct, type ShardProduct } from '../../src/game/shared/shardfile/shardProduct';
 import { fixedDraws } from '../../src/game/client/models/fixedDraws';
 import type { CrowdBody } from '../../src/game/client/ambient/crowdDraw';

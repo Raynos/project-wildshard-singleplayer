@@ -1,4 +1,4 @@
-import { ClientChannels } from '@wildshard/sdk/clientChannels';
+import { ClientChannels } from '@wildshard/sharddev/clientChannels';
 import { FAN_VIEW } from './rows/fanView';
 
 /** Compile the original held fan rows into bounded private visual channels. */

@@ -1,8 +1,8 @@
 import { InstancedMesh, Mesh, MeshStandardMaterial, Scene, type BufferGeometry } from 'three';
-import { bakeOwned, publishScene, BakedPiece, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
-import { completeEmptyL1Tiles } from '@wildshard/sdk/bake/tileGrid';
-import { compactWholeChannels, compactWholeNormals, gridPositions, wholeGrid } from '@wildshard/sdk/bake/props';
-import { meshoptTileBytes } from '@wildshard/sdk/bake/tileEncoder';
+import { bakeOwned, publishScene, BakedPiece, WholeShape, type BakedScene } from '@wildshard/sharddev/bake';
+import { completeEmptyL1Tiles } from '@wildshard/sharddev/bake/tileGrid';
+import { compactWholeChannels, compactWholeNormals, gridPositions, wholeGrid } from '@wildshard/sharddev/bake/props';
+import { meshoptTileBytes } from '@wildshard/sharddev/bake/tileEncoder';
 import { driftwoodFixedSource } from './fixedSource';
 import { bridgeUnitGeometries } from './ropeBridge';
 import { originalBridgeDecks } from './driftwoodBridge.mjs';

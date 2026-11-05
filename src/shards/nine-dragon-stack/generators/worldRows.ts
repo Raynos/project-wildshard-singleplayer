@@ -11,9 +11,9 @@ import { portalPlanRows } from './portalEntries';
 import { tintAbove } from './lods';
 import { BAKED, DRAWN_AS, SMALL, isPiece, type PieceId } from './facadeIds';
 import { LayoutRowsSchema, WorldRowsSchema, type WorldRows } from './sections';
-import { parseSectionValue } from '@wildshard/sdk/sections';
-import { worldSceneSourceRecords } from '@wildshard/sdk/worldScenes';
-import { glbWholePartitionIds } from '@wildshard/sdk/bake/glb';
+import { parseSectionValue } from '@wildshard/sharddev/sections';
+import { worldSceneSourceRecords } from '@wildshard/sharddev/worldScenes';
+import { glbWholePartitionIds } from '@wildshard/sharddev/bake/glb';
 
 const { SHEET_LAYERS, STEAM_PUFFS } = worldDressingRows;
 

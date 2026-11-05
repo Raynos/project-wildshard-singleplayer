@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { wildlifeGeometry } from './wildlife';
 import { KIND } from './wildlifeKinds';
-import { meshoptGlb } from '@wildshard/sdk/bake/glbCompression';
+import { meshoptGlb } from '@wildshard/sharddev/bake/glbCompression';
 import { BIRD_FRAMES } from './birdVariants';
 import { clingPose,inflateBody,type ClingFeet } from './birdFrames';
 

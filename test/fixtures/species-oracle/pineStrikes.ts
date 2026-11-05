@@ -1,7 +1,7 @@
 // Frozen contact/profile oracle before the data-only runtime migration.
 import { StrikeRunner, type StrikeActor, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
-import { strike, type StrikeData } from '@wildshard/sdk/species';
+import { strike, type StrikeData } from '@wildshard/sharddev/species';
 
 interface BrainPoint { x: number; y: number; z: number }
 

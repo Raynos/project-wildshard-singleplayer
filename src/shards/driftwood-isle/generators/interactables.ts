@@ -16,7 +16,7 @@
  *   CAVE      — the sluice gate seals the sea cave; two tide plates on the sand in front must be held at once — one
  *             by you, one by the barrel that washed up by the wreck — and the gate latches open → the shard.
  */
-import type { compileQuestTable } from '@wildshard/sdk/questGraph';
+import type { compileQuestTable } from '@wildshard/sharddev/questGraph';
 
 type InteractTable = Parameters<typeof compileQuestTable>[0];
 type PickupDef = Extract<InteractTable['rows'][number], { kind: 'pickup' }>;

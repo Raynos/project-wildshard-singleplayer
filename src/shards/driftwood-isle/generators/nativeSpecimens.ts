@@ -1,7 +1,7 @@
 /** Native card snapshots over the same fixed geometry and rest scenes as the entered people. */
 import { Box3, BufferGeometry, Group, Material, Mesh, MeshBasicMaterial, type Object3D, Vector3 } from 'three';
-import { figureColliderRows } from '@wildshard/sdk/bake/placement';
-import { worldSceneModels as parseWorldSceneModels, worldSceneWeldRows as parseWorldSceneWeld, worldSceneRecipe } from '@wildshard/sdk/worldScenes';
+import { figureColliderRows } from '@wildshard/sharddev/bake/placement';
+import { worldSceneModels as parseWorldSceneModels, worldSceneWeldRows as parseWorldSceneWeld, worldSceneRecipe } from '@wildshard/sharddev/worldScenes';
 
 import { FIGURE_CATALOGUE } from './figureCatalogue';
 import { COUNTER_TOP } from './counterLayout';

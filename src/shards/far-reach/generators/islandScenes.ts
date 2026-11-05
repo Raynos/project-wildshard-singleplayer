@@ -1,9 +1,9 @@
 import { Matrix4, MeshBasicMaterial } from 'three';
-import { partitionWholeGeometry } from '@wildshard/sdk/bake/props';
-import { GeometryPack, packedRows } from '@wildshard/sdk/kit/geometryPack';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
+import { partitionWholeGeometry } from '@wildshard/sharddev/bake/props';
+import { GeometryPack, packedRows } from '@wildshard/sharddev/kit/geometryPack';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
+import { compressGlb } from '@wildshard/sharddev/bake/glbCompression';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
 import { bakeSkyIsles } from './isles';
 import { ISLES } from './layout';
 import { RISING_ISLETS } from './risingIslets';

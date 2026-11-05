@@ -1,6 +1,6 @@
 import grappleProfile from '../data/grappleProfile.json' with { type: 'json' };
-import type { ContactSurface, ColliderDesc } from '@wildshard/sdk/bake/placement';
-import { treadBoxRows as treadBoxes, recordedPhysicsPieces, recordedPhysicsPoints, recordedColliderRows } from '@wildshard/sdk/bake/contactRows';
+import type { ContactSurface, ColliderDesc } from '@wildshard/sharddev/bake/placement';
+import { treadBoxRows as treadBoxes, recordedPhysicsPieces, recordedPhysicsPoints, recordedColliderRows } from '@wildshard/sharddev/bake/contactRows';
 import { bakedColliderDesc } from './bakedColliders';
 import { deckCapRows } from './portalFloors';
 import portals from '../data/portals.json' with { type: 'json' };

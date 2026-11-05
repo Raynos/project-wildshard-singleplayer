@@ -5,7 +5,7 @@ import { readScalarLattice } from '../src/engine/shared/world/scalarChannel';
 import { ScalarLatticeSchema } from '@wildshard/format/scalarChannel';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { GroundRowsSchema } from '@wildshard/format/terrain';
-import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
+import { formatJsonSchema } from '../src/sharddev/formatJsonSchema';
 
 const files=new Map<string,Uint8Array>();
 const encode = (values: Float32Array | Float64Array): {file:string} => {

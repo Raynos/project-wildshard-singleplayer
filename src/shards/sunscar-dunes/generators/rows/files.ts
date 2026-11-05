@@ -1,4 +1,4 @@
-import type { modelSceneSourceFile } from '@wildshard/sdk/worldScenes';
+import type { modelSceneSourceFile } from '@wildshard/sharddev/worldScenes';
 import { HD_LOOKS } from './surfaces';
 import FACET_AO_FLOOR from '../../data/facets.json' with { type: 'json' };
 
@@ -80,7 +80,7 @@ export const DUNE_RIGS = ['skitterer', 'strider', 'ray', 'matriarch'] as const;
 export type DuneRigName = (typeof DUNE_RIGS)[number];
 export const DUNE_RIG_URLS: Readonly<Record<DuneRigName, string>> = { skitterer: '/assets/sunscar-dunes/rigs/skitterer.glb', strider: '/assets/sunscar-dunes/rigs/strider.glb',
   ray: '/assets/sunscar-dunes/rigs/ray.glb', matriarch: '/assets/sunscar-dunes/rigs/matriarch.glb' };
-/** The model library `world/meshes.ts` loads (`@wildshard/sdk/looks/modelLibrary`): the lists above, the AO floor, the hero dressing. */
+/** The model library `world/meshes.ts` loads (`@wildshard/sharddev/looks/modelLibrary`): the lists above, the AO floor, the hero dressing. */
 export const DUNE_MODELS: ModelLibraryRows<DuneMeshName, DuneHdName> = {
   meshes: DUNE_MESHES, meshUrls: DUNE_MESH_URLS, hd: DUNE_HD, hdUrls: DUNE_HD_URLS,
   aoFloor: FACET_AO_FLOOR, hdLooks: HD_LOOKS,

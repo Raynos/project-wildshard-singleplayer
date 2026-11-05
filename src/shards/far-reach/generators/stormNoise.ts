@@ -1,6 +1,6 @@
 import { bakeSkySeaTexture } from './seaTexture';
-import { writeImagePixels } from '@wildshard/sdk/bake/image';
-import { bakeRawColourTexture } from '@wildshard/sdk/bake/texture';
+import { writeImagePixels } from '@wildshard/sharddev/bake/image';
+import { bakeRawColourTexture } from '@wildshard/sharddev/bake/texture';
 
 /** Retain the existing density/light raster as a lossless, linear library
  * texture. Row order, alpha and channel meaning match the original DataTexture. */

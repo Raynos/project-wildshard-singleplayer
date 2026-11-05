@@ -17,11 +17,11 @@ import { PackedSpecimenSchema } from '@wildshard/format/specimenCatalogue';
 import { MeshBasicMaterial } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { buildSabre as authorSabre, SABRE_PROFILE as authorProfile, PASS_LEFT, PASS_RIGHT } from '../src/shards/nalati-grasslands/generators/sabre';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { parseItems } from '@wildshard/format/items';
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
 import { nalatiSabrePool, SABRE_POOL_NAME } from '../src/shards/nalati-grasslands/generators/sabrePool';
-import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
+import { registeredJsonSchema } from '../src/sharddev/formatJsonSchema';
 
 const { glb: poolGlb, rows } = nalatiSabrePool();
 

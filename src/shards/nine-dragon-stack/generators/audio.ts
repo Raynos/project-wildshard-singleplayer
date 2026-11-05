@@ -1,4 +1,4 @@
-import { parseAudioData } from '@wildshard/sdk/audio';
+import { parseAudioData } from '@wildshard/sharddev/audio';
 import ND_SAMPLES from '../data/audioSamples.json' with { type: 'json' };
 import type { NineWorldScenes } from './worldScenes';
 

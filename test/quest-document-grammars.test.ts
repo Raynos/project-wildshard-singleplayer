@@ -5,7 +5,7 @@ import roots from './fixtures/approved-quest-complete.json' with { type: 'json' 
 import { QuestRuntimeDocumentSchema } from '@wildshard/format/questRuntime';
 import { QuestStoryBindingsSchema } from '@wildshard/format/questStoryBindings';
 import { parseQuestLeadPage, parseQuestSpawnPage, parseQuestStepRows } from '@wildshard/format/questSteps';
-import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { namedJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 import { validateTable } from '../src/engine/shared/world/interact/validate';

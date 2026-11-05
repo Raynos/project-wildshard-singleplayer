@@ -7,10 +7,10 @@ import * as v from 'valibot';
 import { NativePopulationRowsSchema, parseNativePopulationRows } from '@wildshard/format/populationRoster';
 import { EliteFeatureSchema, parseEliteFeature } from '@wildshard/format/eliteFeature';
 import { REGISTERED_JSON, validateRegisteredJson } from '@wildshard/format/registeredJson';
-import { namedJsonSchema, namedFormatJsonSchema, registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { namedJsonSchema, namedFormatJsonSchema, registeredJsonSchema } from '@wildshard/sharddev/formatJsonSchema';
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { nameBlob } from '@wildshard/sdk/blobs';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { nameBlob } from '@wildshard/sharddev/blobs';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import { createShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { readBuiltShardfile } from '../scripts/build-shardfiles.mjs';
 

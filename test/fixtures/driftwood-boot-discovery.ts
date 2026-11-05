@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Bind the source operation to its real public input root.
 import { resolve } from 'node:path';
-import { createProjectGeneration } from '../../src/sdk/projectGeneration';
+import { createProjectGeneration } from '../../src/sharddev/projectGeneration';
 import { driftwoodBootProgram } from '../../src/shards/driftwood-isle/generators/bootProgram';
 import { driftwoodNavigation } from '../../src/shards/driftwood-isle/generators/navigation';
 import { driftwoodGroundDeclaration } from '../../src/shards/driftwood-isle/generators/groundDeclaration';

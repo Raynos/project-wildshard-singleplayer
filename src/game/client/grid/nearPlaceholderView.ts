@@ -1,7 +1,7 @@
 /**
  * G342: the near-placeholder tier. The cells nearest the eye (G371: by distance, diagonals included) draw a richer
  * placeholder than the far proxy: the terrain at L1 density (17 × 17 per 125 m region) and the shard's own drawn world
- * (landmarks, trees, water) at a low LOD, baked by the generic `@wildshard/sdk/bake/placeholders` (G348) into one single-draw GLB per shard
+ * (landmarks, trees, water) at a low LOD, baked by the generic `@wildshard/sharddev/bake/placeholders` (G348) into one single-draw GLB per shard
  * (`public/assets/baked/<slug>/near.glb`, regions in TEXCOORD_0.x like the far proxy, so the rings' masks apply to it
  * unchanged). Cells further out keep the far proxy; the entered runtime always wins; it never registers a collider.
  *

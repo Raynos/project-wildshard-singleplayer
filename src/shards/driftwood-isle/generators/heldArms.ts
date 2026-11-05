@@ -1,6 +1,6 @@
 import scene from '../data/ironSwordScene.json' with { type: 'json' };
 import steps from '../data/questSteps.json' with { type: 'json' };
-import { toonHeldArmsRows } from '@wildshard/sdk/rows';
+import { toonHeldArmsRows } from '@wildshard/sharddev/rows';
 import authored from '../data/heldArms.json' with { type: 'json' };
 import type { FixedWreckLayout } from './fixedLayouts';
 import { DRIFTWOOD_FIXED_SOURCES } from './assets';

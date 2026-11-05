@@ -2,7 +2,7 @@ import bindings from '../data/nightBindings.json' with { type: 'json' };
 import { BOWL } from './layout';
 import { NALATI_ECOLOGY as ecology } from './ecology.mjs';
 import { ghostArrowKind, nightCues } from './nightGeometry';
-import type { DecisionScriptRow } from '@wildshard/sdk/decisionScripts';
+import type { DecisionScriptRow } from '@wildshard/sharddev/decisionScripts';
 import type { BufferGeometryJSON } from 'three';
 
 /** The night roster's ABI-1 return programme: the shard's weather decision (its script; the bytes stay a named file). */

@@ -2,7 +2,7 @@ import { installCatalogueFixture } from './fixtures/bootSetup';
 import { installShards, shards } from '../src/game/client/shard/list';
 import { game, setActiveChunk } from '../src/game/client/shard/registry';
 import { expect, test, vi } from 'vitest';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { outputSectionPayloads } from '@wildshard/format/outputFields';
 import { parseOutputIndex } from '@wildshard/format/outputIndex';

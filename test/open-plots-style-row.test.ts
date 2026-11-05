@@ -13,7 +13,7 @@ import {readFileSync} from 'node:fs';
 import {buildLayout, parseLayout, Soup} from ${JSON.stringify(kit)};
 import {nightMarketBuilders} from ${JSON.stringify(builders)};
 import {prepareModelKit} from ${JSON.stringify(glb)};
-import {normalizeWorldGlb} from ${JSON.stringify(new URL('../src/sdk/bake/world.ts', import.meta.url).href)};
+import {normalizeWorldGlb} from ${JSON.stringify(new URL('../src/sharddev/bake/world.ts', import.meta.url).href)};
 const layout = JSON.parse(readFileSync('src/shards/open-plots/data/layouts/night-market.json', 'utf8'));
 const linear = hex => [1, 3, 5].map(at => { const c = Number.parseInt(hex.slice(at, at + 2), 16) / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
 const files = new Map(layout.kit.map(family => [family, new Uint8Array(readFileSync('public/assets/open-plots/kit/' + family + '.glb'))]));

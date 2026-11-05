@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { build } from 'vite';
 import { chromium, devices } from 'playwright';
-import { normalizeRigSource } from '../src/sdk/bake/normalizeRig.ts';
+import { normalizeRigSource } from '../src/sharddev/bake/normalizeRig.ts';
 
 const output = process.argv.slice(2).at(0), sourceTree = process.argv.slice(3).at(0);
 if (output === undefined || sourceTree === undefined || !/^[a-f0-9]{40}$/u.test(sourceTree)) throw new Error('Requires an owned output directory and exact source tree hash');

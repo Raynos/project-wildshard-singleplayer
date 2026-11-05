@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { readSourceModel, skinnedGlb } from '@wildshard/sdk/bake/skinned';
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import { readSourceModel, skinnedGlb } from '@wildshard/sharddev/bake/skinned';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import frames from '../data/peopleFrames.json' with { type: 'json' };
 import { fitNpcFigure, mergeNpcFigures, rawFromGltf } from './peopleRig';
 import { peopleRows } from './peopleRows.mjs';

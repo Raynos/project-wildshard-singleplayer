@@ -1,14 +1,14 @@
 import { placeEffects, type PlaceEffects } from './placeEffects';
 import { CylinderGeometry, PlaneGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, Vector3 } from 'three';
-import { clientSceneGlb, type ClientSceneBake } from '@wildshard/sdk/bake/glb';
+import { clientSceneGlb, type ClientSceneBake } from '@wildshard/sharddev/bake/glb';
 import { WELL_RIG, HD, CAMP_HD, COOK, LANTERN, WAYMARK_HD, DECK_BRAZIER } from './rows/places';
 import { BRAZIERS, CARAVAN, TOWER, WELL } from "./layout";
 import { signalDunesTiles, signalDunesField } from './tiles';
-import { readTerrainTileSource } from '@wildshard/sdk/bake/terrain';
+import { readTerrainTileSource } from '@wildshard/sharddev/bake/terrain';
 import { fireRows, lampRows, COOKFIRE, WAYMARK_FIRE, type FirePool } from './rows/fire';
 import { towerAnchors } from './tower';
 import { waymarkFrame } from './places';
-import { privateSceneRows as parsePrivateScene, worldSceneRecipe as parseWorldScene } from '@wildshard/sdk/worldScenes';
+import { privateSceneRows as parsePrivateScene, worldSceneRecipe as parseWorldScene } from '@wildshard/sharddev/worldScenes';
 
 type PrivateScene = ReturnType<typeof parsePrivateScene>;
 type WorldSceneRecipe = ReturnType<typeof parseWorldScene>;

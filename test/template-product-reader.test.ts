@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare immutable payload bytes without giant assertion diffs.
 import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
-import { writeOutputProduct, validateOutputProduct } from '../src/sdk/outputProduct';
+import { writeOutputProduct, validateOutputProduct } from '../src/sharddev/outputProduct';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { readProductDescriptor } from '../src/game/client/shardfile/product';
 import { outputBlobUrl } from '../src/game/shared/shardfile/outputDescriptor';

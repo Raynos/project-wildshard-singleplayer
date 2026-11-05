@@ -1,7 +1,7 @@
 # Build-time commons
 
 `@wildshard/commons/catalogue` is an author-tool workspace. It imports the defining
-pack contract from `@wildshard/sdk/commons`; it cannot import engine, game, kit or
+pack contract from `@wildshard/sharddev/commons`; it cannot import engine, game, kit or
 trusted runtime modules. Importing it installs no services.
 
 **A pack lands only in the commit where two real shards use it** (Jake, G355,
@@ -28,7 +28,7 @@ assets; it never runs commons code.
 
 In `shard.config.ts`, export the compiled `BuiltCommons` as the named build-only
 `commons` export. Use `commonsRequirements(commons, entryIds)` from
-`@wildshard/sdk/commons` to populate `requires.commons`, `commonsWire` and
+`@wildshard/sharddev/commons` to populate `requires.commons`, `commonsWire` and
 `commonsCosts` from selected pinned bytes. It verifies the hash and derives costs
 again, so mutable catalogue metadata cannot understate the manifest.
 

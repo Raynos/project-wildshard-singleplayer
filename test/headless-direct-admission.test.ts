@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { prepareHeadlessRuntime } from './fixtures/nine-headless';
 import { prepareProductPlan } from './fixtures/headless-native';

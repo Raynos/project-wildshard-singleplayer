@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import { createProjectGeneration, type ProjectGenerationContext } from '../../src/sdk/projectGeneration';
+import { createProjectGeneration, type ProjectGenerationContext } from '../../src/sharddev/projectGeneration';
 import { hashImmutableBytes } from '../../src/sdk/immutable';
 
 const project = 'src/shards/pine-hollow';

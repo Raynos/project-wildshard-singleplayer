@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { writeCoatFiles } from './coatFiles.mjs';
-import { readImagePixels, writeImagePixels } from '../../src/sdk/bake/image.ts';
+import { readImagePixels, writeImagePixels } from '../../src/sharddev/bake/image.ts';
 
 const [tier, out] = process.argv.slice(2);
 if ((tier !== 'phone' && tier !== 'desktop') || out === undefined || process.argv.length !== 4) throw new Error('Usage: pineCoats.mjs <phone|desktop> <out.json>');

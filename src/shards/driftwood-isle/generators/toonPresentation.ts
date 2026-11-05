@@ -1,4 +1,4 @@
-import { toonSceneLook as parseToonLook } from '@wildshard/sdk/worldScenes';
+import { toonSceneLook as parseToonLook } from '@wildshard/sharddev/worldScenes';
 import held from '../data/heldArms.json' with { type: 'json' };
 import puffs from '../data/cumulusPuffs.json' with { type: 'json' };
 import DRIFTWOOD_SKY_DAY from '../data/skyDay.json' with { type: 'json' };

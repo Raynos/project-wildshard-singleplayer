@@ -2,9 +2,9 @@
 import { execFileSync } from 'node:child_process';
 import { expect, expectTypeOf, test } from 'vitest';
 import { createQuestPlacements, type QuestPlace, type QuestPlaceAnchor, type QuestPlacementPorts, type Place } from '../src/engine/shared/world/interact/types';
-import { createAuthorQuestPlacements, type AuthorQuestPlace, type AuthorQuestAnchor, type AuthorQuestPlacementPorts } from '../src/sdk/bake/questPlacement';
-import { completionCardRows } from '../src/sdk/quests';
-import { clientPlanSection } from '../src/sdk/platformSections';
+import { createAuthorQuestPlacements, type AuthorQuestPlace, type AuthorQuestAnchor, type AuthorQuestPlacementPorts } from '../src/sharddev/bake/questPlacement';
+import { completionCardRows } from '../src/sharddev/quests';
+import { clientPlanSection } from '../src/sharddev/platformSections';
 import { parseCompletion } from '@wildshard/format/completion';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { completionRows, placeSetRows, COMPLETE_CONTENT } from '../src/shards/driftwood-isle/generators/completion';
@@ -73,7 +73,7 @@ test('every original completion, place-set and authored content byte is retained
 });
 
 test('the actual quest compiler executes beneath the unchanged native renderer guard', () => {
-  const source = `import {createAuthorQuestPlacements} from './src/sdk/bake/questPlacement.ts';
+  const source = `import {createAuthorQuestPlacements} from './src/sharddev/bake/questPlacement.ts';
     const compile=createAuthorQuestPlacements({terrain:()=>3,frames:{meadow:{x:10,z:20,rot:0}}});
     console.log(JSON.stringify(compile.place({poi:'meadow',x:2,z:4,dy:0.5})));`;
   const result = execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/sim-node-loader.mjs', '--input-type=module', '-e', source], { encoding: 'utf8', timeout: 30_000 });

@@ -14,7 +14,7 @@ import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { HELD_ARMS } from './fixtures/driftwood-layout-source';
 import { FIXED_MODEL_NAMES } from '../src/shards/driftwood-isle/generators/modelFiles';

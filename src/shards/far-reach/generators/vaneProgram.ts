@@ -1,7 +1,7 @@
 import { MeshStandardMaterial } from 'three';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { MODEL_URLS } from './fileInventory';
 import { facetedGeometry } from './modelIntake';
 import { bakeVaneParts } from './vane';

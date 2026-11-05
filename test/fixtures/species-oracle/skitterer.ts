@@ -1,6 +1,6 @@
 // Shipping policy oracle captured from 2dd3925b5:src/shards/sunscar-dunes/runtime/species/skitterer.ts (SF27: the skitterer now runs
 // behaviour/skitterer.as); test/shards/sunscar-dunes/skitterer-script.test.ts holds the script to it.
-import { strike as admitStrike } from '../../../src/sdk/species';
+import { strike as admitStrike } from '../../../src/sharddev/species';
 import { strikeFromData } from '../../../src/engine/shared/ai/strikeRows';
 import { BITE_DATA, SKITTER } from '../../../src/shards/sunscar-dunes/generators/rows/species/skitterer';
 import { CreatureBrain } from '../../../src/engine/server/ai/CreatureBrain';

@@ -270,7 +270,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ~/.cache/wildshard/basis
-          key: basis-tool-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/sdk/bake/basisTool.ts', 'src/sdk/bake/basisToolInputs.ts') }}
+          key: basis-tool-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/sharddev/bake/basisTool.ts', 'src/sharddev/bake/basisToolInputs.ts') }}
       # Transform bytes only: Vitest keys file contents, resolve/config and
       # coverage, and checks the lockfile. Test bodies and setup still run.
       - name: Restore Vitest transformed modules

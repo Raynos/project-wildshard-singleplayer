@@ -13,7 +13,7 @@ import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import authored from '../src/shards/driftwood-isle/data/groundCover.json';
 import { createCoverAppearance } from '../src/game/client/looks/coverAppearance';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import appearanceRows from '../src/shards/pine-hollow/data/coverAppearance.json';
 
 // A fictional second shard has different models, graph ids, capacities and bands.

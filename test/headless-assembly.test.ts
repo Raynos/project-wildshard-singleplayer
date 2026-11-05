@@ -9,7 +9,7 @@ import {titanPrograms as returnPrograms} from './fixtures/titanInlineWitness';
 // oxlint-disable-next-line import/no-nodejs-modules -- The unit host uses the same native physics module as the resident.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { trustedLevel } from '../src/game/server/plugin/simulation';
 import type { HeadlessRuntimePlan } from '../src/sdk/headlessRuntime';
 import { installBodyScripts, prepareReturns } from '@wildshard/game/shardfile/nativeRuntimeLoans';

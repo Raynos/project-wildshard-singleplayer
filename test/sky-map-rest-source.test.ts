@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { mapSceneRest } from '../src/sdk/bake/mapRest';
+import { mapSceneRest } from '../src/sharddev/bake/mapRest';
 import { isletScenes } from '../src/shards/far-reach/generators/isletScene';
 import { isletMotionRows } from '../src/shards/far-reach/generators/isletMotion';
 import { hashImmutableBytes } from '../src/sdk/immutable';

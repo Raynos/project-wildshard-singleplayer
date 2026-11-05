@@ -2,8 +2,8 @@
 import { Color, DataTexture, InstancedMesh, Matrix4, Mesh, NearestFilter, NoToneMapping, OrthographicCamera, PlaneGeometry, RGBAFormat, Scene, SRGBColorSpace, WebGLRenderer } from 'three';
 import { Scope } from '../../src/engine/shared/app/scope';
 import { clientMaterials } from '../../src/game/client/shardfile/clientMaterials';
-import { emptyShardfile } from '../../src/sdk/author';
-import { graph, meshMap } from '../../src/sdk/materials';
+import { emptyShardfile } from '../../src/sharddev/author';
+import { graph, meshMap } from '../../src/sharddev/materials';
 
 async function prove(): Promise<unknown> {
   const canvas = document.getElementById('proof');

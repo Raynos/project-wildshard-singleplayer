@@ -1,8 +1,8 @@
 // GR6: compile Nalati's mounts / taming / riding program in plain Node (a happy-dom test environment cannot feed the
 // compiler) through the product's own builder, and print { programs, wasm, witness } (base64) as one JSON line.
 import { readFileSync } from 'node:fs';
-import { compileReturnProjectionV2 } from '../../src/sdk/returnProjectionV2.ts';
-import { memoAssemblyScript } from '../../src/sdk/bake/assemblyscriptMemo.ts';
+import { compileReturnProjectionV2 } from '../../src/sharddev/returnProjectionV2.ts';
+import { memoAssemblyScript } from '../../src/sharddev/bake/assemblyscriptMemo.ts';
 import { nalatiRidingRows } from '../../src/shards/nalati-grasslands/generators/ridingRows.mjs';
 import { NALATI_ECOLOGY as ecology } from '../../src/shards/nalati-grasslands/generators/ecology.mjs';
 

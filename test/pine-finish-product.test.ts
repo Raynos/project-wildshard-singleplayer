@@ -3,16 +3,16 @@ import { mockPackedFetch } from './fake/packedGeometry';
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
 import * as v from 'valibot';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { HeldFinishes } from '../src/game/client/loadout/finishes';
 import { WEAPON_FINISHES } from '../src/shards/pine-hollow/generators/weaponFinishes';
 import { HELD_GEAR } from '../src/shards/pine-hollow/generators/heldGear';
 import packed from '../src/shards/pine-hollow/data/codeParts.json' with { type: 'json' };
 import { PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';
-import { outputPlatformPayloads } from '../src/sdk/outputProduct';
+import { outputPlatformPayloads } from '../src/sharddev/outputProduct';
 import { HeldFinishesSchema } from '@wildshard/format/heldFinishes';
-import { GeometryPack, packedRows } from '../src/sdk/kit/geometryPack';
+import { GeometryPack, packedRows } from '../src/sharddev/kit/geometryPack';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare actual shipped geometry bytes, not a regenerated substitute.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The original code-parts bake is zlib compressed.

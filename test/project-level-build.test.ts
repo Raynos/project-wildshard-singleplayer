@@ -4,13 +4,13 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, 
 import { resolve } from 'node:path';
 import { afterEach, expect, it } from 'vitest';
 import { parseManifestMetadata } from '@wildshard/format/minimap';
-import { emptyShardfile } from '@wildshard/sdk/author';
-import { nameBlob } from '@wildshard/sdk/blobs';
+import { emptyShardfile } from '@wildshard/sharddev/author';
+import { nameBlob } from '@wildshard/sharddev/blobs';
 import { assetCost } from '@wildshard/format/product';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { buildProject, readProjectAssets } from '@wildshard/sdk/project';
-import { manifestImages, readManifestSource, type ProjectManifestSource } from '@wildshard/sdk/projectManifest';
-import { validateOutputProduct } from '@wildshard/sdk/outputProduct';
+import { buildProject, readProjectAssets } from '@wildshard/sharddev/project';
+import { manifestImages, readManifestSource, type ProjectManifestSource } from '@wildshard/sharddev/projectManifest';
+import { validateOutputProduct } from '@wildshard/sharddev/outputProduct';
 import { runWildshard } from '../scripts/wildshard.mjs';
 import metadata from '../src/shards/far-reach/manifest.json';
 

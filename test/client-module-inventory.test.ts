@@ -3,7 +3,7 @@ import { afterEach, expect, test, vi } from 'vitest';
 import { readModuleFiles, readModuleGroups, preloadModuleFiles, preloadModuleGroups } from '../src/engine/client/boot/download';
 import { checkClientPlanModules, checkProductClientModules, prepareClientModuleGroups } from '../src/game/client/shardfile/clientModules';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 
 afterEach(() => { document.body.replaceChildren(); for (const link of document.querySelectorAll('link[rel="modulepreload"]')) link.remove(); });
 function bank(input: unknown): void {

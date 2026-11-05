@@ -6,7 +6,7 @@ import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { installClientPhase, admitClientPlan } from '../src/game/client/shardfile/clientPlan';
 import * as places from '../src/game/client/shardfile/clientPlaceSets';
 import * as continuation from '../src/game/client/quest/continuation';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const binding = { kind: 'world.bind-sets', placed: ['orchard.pier'], groups: [{ id: 'shore', placed: ['orchard.pier'] }] };

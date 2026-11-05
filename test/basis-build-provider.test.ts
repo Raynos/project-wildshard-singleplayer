@@ -3,8 +3,8 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 // oxlint-disable-next-line import/no-nodejs-modules -- Owned fixture paths never enter the author bundle.
 import { basename, dirname, resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { basisToolRecipe, prepareBasisTool } from '../src/sdk/bake/basisTool';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { basisToolRecipe, prepareBasisTool } from '../src/sharddev/bake/basisTool';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { skyCreaturePhoneProgram, CREATURE_PHONE_FILE } from '../src/shards/far-reach/generators/creaturePhoneProgram';
 

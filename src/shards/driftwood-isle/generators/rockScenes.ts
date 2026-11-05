@@ -1,10 +1,10 @@
 /** Final rock geometry and native hulls. No sculpting or normal work survives admission. */
 import { BufferAttribute, BufferGeometry, Matrix4 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Rng } from '@wildshard/sdk/random';
+import { Rng } from '@wildshard/sharddev/random';
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
-import { bakeWorldHull as drawnHullWorld, bakePlacedGeometry as poseGeometry, bakePlacementPose as poseOf, bakeSupportPoints as supportPoints } from '@wildshard/sdk/bake/colliders';
-import type { AuthorPlacement as Placement, ColliderDesc } from '@wildshard/sdk/bake/placement';
+import { bakeWorldHull as drawnHullWorld, bakePlacedGeometry as poseGeometry, bakePlacementPose as poseOf, bakeSupportPoints as supportPoints } from '@wildshard/sharddev/bake/colliders';
+import type { AuthorPlacement as Placement, ColliderDesc } from '@wildshard/sharddev/bake/placement';
 import { authoredRockGeometry } from './rocks';
 import { REEF_ROCK, SHORE_ROCK } from './rockProfiles';
 

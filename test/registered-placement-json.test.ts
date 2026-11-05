@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
 import { registeredJsonContract, validateRegisteredJson, type RegisteredPlacementJsonName } from '@wildshard/format/registeredJson';
 import { WorldScenePlacementSchema, parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
-import { registeredJsonSchema, namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
-import { nameBlob } from '@wildshard/sdk/blobs';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { registeredJsonSchema, namedJsonSchema } from '@wildshard/sharddev/formatJsonSchema';
+import { nameBlob } from '@wildshard/sharddev/blobs';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import { createShardProduct } from '@wildshard/game/shardfile/shardProduct';
 
 const names: readonly RegisteredPlacementJsonName[] = ['world/placements/arch.rim.json', 'scenes/placements/roof.one.json', 'world/foliage/reeds-phone.json', 'world/piers/deck-2.json'];

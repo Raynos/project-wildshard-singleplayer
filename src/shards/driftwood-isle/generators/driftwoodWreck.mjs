@@ -1,4 +1,4 @@
-import { withFacetedAO } from '@wildshard/sdk/bake/facetedGeometry';
+import { withFacetedAO } from '@wildshard/sharddev/bake/facetedGeometry';
 import { ShipwreckBuilder } from './shipwreck.ts';
 import { wreckSite } from './wreckSite.ts';
 import { driftwoodGroundSampler } from './groundSampling.ts';

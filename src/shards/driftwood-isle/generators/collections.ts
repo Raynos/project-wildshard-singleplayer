@@ -1,4 +1,4 @@
-import { collectionDisplayRows as parseCollectionDisplays } from '@wildshard/sdk/rows';
+import { collectionDisplayRows as parseCollectionDisplays } from '@wildshard/sharddev/rows';
 import cards from '../data/collectionCards.json' with { type: 'json' };
 import keepsakes from '../data/collectionKeepsakes.json' with { type: 'json' };
 import { driftwoodChimeSlots, driftwoodTrophySlots } from './fixedFacts';

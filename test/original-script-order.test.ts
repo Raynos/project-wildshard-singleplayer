@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import rows from './fixtures/nalati-weather-original.json' with { type: 'json' };
 import { originalScriptOrder } from './fixtures/original-script-order';
-import { parseDecisionScripts } from '../src/sdk/decisionScripts';
+import { parseDecisionScripts } from '../src/sharddev/decisionScripts';
 
 test('original wire order survives admission without changing any script value', () => {
   const admitted = parseDecisionScripts([rows.script])[0];

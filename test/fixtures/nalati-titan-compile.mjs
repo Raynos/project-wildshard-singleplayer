@@ -1,8 +1,8 @@
 // GR6: compile Nalati's Storm Titan and pasture programmes in plain Node (a happy-dom test environment cannot feed the
 // compiler) through the product's own builder, and print { programs, titan, pasture } (bytes base64) as one JSON line.
-import { readDecisionSources } from '../../src/sdk/buildDecisionScripts.ts';
-import { compileReturnProjectionV2 } from '../../src/sdk/returnProjectionV2.ts';
-import { memoAssemblyScript } from '../../src/sdk/bake/assemblyscriptMemo.ts';
+import { readDecisionSources } from '../../src/sharddev/buildDecisionScripts.ts';
+import { compileReturnProjectionV2 } from '../../src/sharddev/returnProjectionV2.ts';
+import { memoAssemblyScript } from '../../src/sharddev/bake/assemblyscriptMemo.ts';
 import { nalatiTitanRows } from '../../src/shards/nalati-grasslands/generators/stormTitanRows.mjs';
 
 const { programs, titan, pasture } = await nalatiTitanRows((input, registries, authored, options) =>

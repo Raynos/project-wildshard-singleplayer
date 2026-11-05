@@ -1,4 +1,4 @@
-import { parseFirearmProfile, parseHeldFirearmRows, parseHeldFirearmView } from '@wildshard/sdk/weapons/firearmRows';
+import { parseFirearmProfile, parseHeldFirearmRows, parseHeldFirearmView } from '@wildshard/sharddev/weapons/firearmRows';
 import items from '../data/items.json' with { type: 'json' };
 import model from '../data/heldRifle.json' with { type: 'json' };
 

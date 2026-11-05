@@ -1,5 +1,5 @@
 import type { ProductFile, ShardProductInput } from '@wildshard/game/shardfile/shardProduct';
-import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { registeredJsonSchema } from '@wildshard/sharddev/formatJsonSchema';
 import { validateNamedJsonSchemaPaced } from '../../src/game/shared/shardfile/customSchema';
 
 /** These renderer-free authored fixtures run in Node even with happy-dom's

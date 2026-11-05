@@ -1,4 +1,4 @@
-import { ClientChannels } from '@wildshard/sdk/clientChannels';
+import { ClientChannels } from '@wildshard/sharddev/clientChannels';
 import { risingIsletRows } from '../risingIslets';
 import * as LAYOUT from '../layout';
 import { ISLET, ISLET_EDGES } from './isletDesign';

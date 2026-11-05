@@ -1,8 +1,8 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
-import { worldTargetRows, worldLightEmitters, worldEasedFields } from '../src/sdk/worldScenes';
-import { declaredQuestPageRows } from '../src/sdk/quests';
-import { readTerrainTileSource } from '../src/sdk/bake/terrain';
+import { worldTargetRows, worldLightEmitters, worldEasedFields } from '../src/sharddev/worldScenes';
+import { declaredQuestPageRows } from '../src/sharddev/quests';
+import { readTerrainTileSource } from '../src/sharddev/bake/terrain';
 import { parseWorldTargets } from '@wildshard/format/worldTargets';
 import { parseLightEmitters } from '@wildshard/format/lightEmitters';
 import { parseEasedFields } from '@wildshard/format/easedFields';

@@ -5,7 +5,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { resolve } from 'node:path';
 import { PLATFORM_FILE_FAMILIES, platformFileFamily, validatePlatformFile } from '@wildshard/format/platformFileFamilies';
 import { parseOutputIndex } from '@wildshard/format/outputIndex';
-import { registeredJsonSchema, namedFormatJsonSchemas } from '@wildshard/sdk/formatJsonSchema';
+import { registeredJsonSchema, namedFormatJsonSchemas } from '@wildshard/sharddev/formatJsonSchema';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { outputSections } from '../scripts/shard-platform-output.mjs';
 import { namedJsonRoutes, productSectionEntries, sectionInventory } from '../scripts/section-inventory';

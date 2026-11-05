@@ -5,7 +5,7 @@ import { Rng } from '../src/engine/shared/core/rng';
 import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { createSimHost } from '../src/engine/server/sim';
 import { createNativeCreatureRoster } from '../src/game/server/shardfile/homeKeeper';
-import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
+import { compileDecisionScripts } from '../src/sharddev/buildDecisionScripts';
 import { RETURN_PROGRAM } from './fixtures/driftwood-guest-programs';
 import { fixtureNativeRoster } from './fixtures/native-roster';
 import { SIM_LEVEL } from './fixtures/sim-level/level';

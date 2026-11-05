@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { skyNavigationProgram, skyNavigationRows, SKY_NAVIGATION_INPUT, SKY_NAVIGATION_HASH } from '../src/shards/far-reach/generators/navigation';
-import type { ProjectGenerationContext } from '../src/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '../src/sharddev/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
 const original = (): Uint8Array => new Uint8Array(readFileSync(`src/shards/far-reach/${SKY_NAVIGATION_INPUT}`));

@@ -12,7 +12,7 @@ import { TileStreamer, scopedTilePorts, type RingPorts, type RingTile } from '..
 import { ResidencyAllocator } from '../src/game/shared/grid/allocator';
 import { clientRingPorts, type PreparedRingTile } from '../src/game/client/shardfile/tileContent';
 import { ClientAssets } from '../src/game/client/shardfile/clientAssets';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { TileDecoder } from '../src/game/client/grid/tileDecoder';
 import { AssetService } from '../src/engine/client/app/assets';
 import { AssetResidencyBridge } from '../src/game/client/grid/assetResidency';

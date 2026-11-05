@@ -1,7 +1,7 @@
 /**
  * Built geometry written as Nine Dragon's bakes store it (G285): each attribute's typed array exactly as the builder made
  * it (float, half, normalized bytes), 4-byte aligned, then the index as int32 deltas; the rows the page reads them by
- * (@wildshard/sdk/kit/bakedGeometry `readBakedGeometry`). Shared by the layout bake (./layout.ts) and the specimens bake
+ * (@wildshard/sharddev/kit/bakedGeometry `readBakedGeometry`). Shared by the layout bake (./layout.ts) and the specimens bake
  * (./specimens.ts).
  */
 import { BufferAttribute, type BufferGeometry, Float16BufferAttribute } from 'three';
@@ -9,7 +9,7 @@ import type { LayoutRows } from './sections';
 
 type BakedType = LayoutRows['geometries'][number]['attrs'][number][1];
 
-/** one written geometry's row (@wildshard/sdk/kit/bakedGeometry `BakedGeometryRow`) */
+/** one written geometry's row (@wildshard/sharddev/kit/bakedGeometry `BakedGeometryRow`) */
 export interface WrittenRow { attrs: [string, BakedType, number, boolean][]; count: number; index: 'u16' | 'u32' | null; indexCount: number; box: boolean }
 
 function bakedType(attr: BufferAttribute, what: string): BakedType {

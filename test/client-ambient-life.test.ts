@@ -7,7 +7,7 @@ import { installClientAmbientLife } from '../src/game/client/shardfile/clientAmb
 import { entryOwner, lendEntryOwner, publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { parsePageLife } from '@wildshard/format/pageLife';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { FISH_DRAW } from '../src/shards/driftwood-isle/generators/fishDraw';
 import { PAGE_LIFE } from '../src/shards/driftwood-isle/generators/pageLife';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

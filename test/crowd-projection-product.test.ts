@@ -5,11 +5,11 @@ import {ReturnProgramSchema} from '@wildshard/format/namedJsonContracts';
 import {Scope} from '../src/engine/shared/app/scope';
 import {expect,test} from 'vitest';
 import {NALATI_SCRIPT_SECTIONS} from './fixtures/nalati-script-inventory';
-import {emitPlatformSections} from '../src/sdk/platformSections';
-import {outputScriptAdmissionRows} from '../src/sdk/outputProduct';
+import {emitPlatformSections} from '../src/sharddev/platformSections';
+import {outputScriptAdmissionRows} from '../src/sharddev/outputProduct';
 import {ReturnProgram} from '../src/game/shared/population/returnProgram';
 import {admitScriptV2} from '@wildshard/format/scriptAdmissionV2';
-import {contentHash} from '../src/sdk/project';
+import {contentHash} from '../src/sharddev/project';
 import {Rng} from '../src/engine/shared/core/rng';
 import {admission,admissionLegacy,admissionWitnessBytes,admissionModuleBytes,lendNalatiAdmission} from './fixtures/nalati-return-modules';
 

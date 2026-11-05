@@ -1,11 +1,11 @@
-import type { AuthorExternalElite as ExternalEliteData } from '@wildshard/sdk/rows';
+import type { AuthorExternalElite as ExternalEliteData } from '@wildshard/sharddev/rows';
 import type AqbarsProfile from './aqbarsProfile.json';
 import type KokboriProfile from './kokboriProfile.json';
 import type QyranProfile from './qyranProfile.json';
-import type { BrainedSpecies } from '@wildshard/sdk/speciesBrains';
-import type { SpeciesData } from '@wildshard/sdk/species';
-import type { Mount } from '@wildshard/sdk/modes';
-import type { FlockData } from '@wildshard/sdk/crowds';
+import type { BrainedSpecies } from '@wildshard/sharddev/speciesBrains';
+import type { SpeciesData } from '@wildshard/sharddev/species';
+import type { Mount } from '@wildshard/sharddev/modes';
+import type { FlockData } from '@wildshard/sharddev/crowds';
 
 /** Native population placement; the author resolves every layout anchor offline. */
 export interface WildlifeLayout {

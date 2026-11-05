@@ -1,6 +1,6 @@
 import { DRIFTWOOD_LAYOUTS } from './fixtures/driftwood-layout-source';
 import { expect, test } from 'vitest';
-import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { namedJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { QuestWorldSchema } from '@wildshard/format/questWorld';
 import { driftwoodQuestWorld } from '../src/shards/driftwood-isle/generators/questWorld';
 import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';

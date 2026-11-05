@@ -4,7 +4,7 @@ import {mkdirSync,mkdtempSync,readdirSync,readFileSync,rmSync,writeFileSync} fro
 import {resolve} from 'node:path';
 import {expect,test} from 'vitest';
 import {PortableBytesCache} from '../scripts/app-build/encodedBytes';
-import {encodePortableBytes,decodePortableBytes} from '../src/sdk/bake/portableBytes';
+import {encodePortableBytes,decodePortableBytes} from '../src/sharddev/bake/portableBytes';
 
 function scratch():string{mkdirSync('tmp',{recursive:true});return mkdtempSync(resolve('tmp/sp-x9-portable-cache-'));}
 test('cold and fresh-reader hits retain every current encoded byte and detached ownership',()=>{

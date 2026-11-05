@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Bind discovery to the same declared source/public roots as the CLI.
 import { resolve } from 'node:path';
-import { createProjectGeneration } from '../../src/sdk/projectGeneration';
+import { createProjectGeneration } from '../../src/sharddev/projectGeneration';
 import { nalatiBootProgram } from '../../src/shards/nalati-grasslands/generators/bootProgram';
 import { parseDiscoveryValues, type DiscoveryValues } from '@wildshard/format/discoveryValues';
 

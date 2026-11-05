@@ -2,7 +2,7 @@
 // binary stored and decoded as the page read them. `output.ts` (world/floor.json), the map assembly and the floor test
 // call `pineFloorLayout`; the retired pine-floor-placements job wrote the same rows to data/floorLayout.generated.json.
 // D65: the ground and the trunk rows come from the program's sources.
-import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
+import { readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
 import { decodeFloorRecords } from './floorRows.mjs';
 import { pineFloorPlacements } from './floorPlacements.ts';
 import { PHYSICS_SOURCE, TERRAIN_SOURCE, sourceJson } from './pineSources.ts';

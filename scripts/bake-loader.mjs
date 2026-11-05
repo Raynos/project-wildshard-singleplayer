@@ -2,7 +2,7 @@
 // (Node ≥ 23 strips types itself): extensionless relative imports resolve to `.ts`, and Vite-style
 // image imports (`import thumb from './thumbs/x.jpg'`) become a module whose default export is the path.
 //   node --import ./scripts/bake-loader.mjs scripts/bake-chunk.mjs
-import '../src/sdk/bake/format-hook.mjs';
+import '../src/sharddev/bake/format-hook.mjs';
 import { registerHooks } from 'node:module';
 import { existsSync, statSync, globSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

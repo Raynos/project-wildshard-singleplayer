@@ -1,6 +1,6 @@
 import { beforeAll, expect, test } from 'vitest';
 import { builtProduct } from '../fixtures/builtProduct';
-import { scenario, type DiskScriptScenario } from '../../src/sdk/test/scriptScenario';
+import { scenario, type DiskScriptScenario } from '../../src/sharddev/test/scriptScenario';
 import { loadHeadlessProduct } from '@wildshard/sdk/headlessProduct';
 
 const directories = new Map<string, string>();

@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import type { AdmittedProduct, ProductOptions } from '../src/game/client/shardfile/product';
 import { ProductInputs } from '../src/game/client/grid/productInputs';

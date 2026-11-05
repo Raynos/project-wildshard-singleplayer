@@ -5,8 +5,8 @@ import { DataTexture, NoColorSpace } from 'three';
 import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 import { parseKtx2 } from '@wildshard/format/ktx2Cost';
 import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
-import { bakeRawColourTexture } from '../src/sdk/bake/texture';
-import { writeImagePixels } from '../src/sdk/bake/image';
+import { bakeRawColourTexture } from '../src/sharddev/bake/texture';
+import { writeImagePixels } from '../src/sharddev/bake/image';
 
 it('samples numerical library channels at computed UVs without colour conversion', async () => {
   const raster = { width: 2, height: 1, pixels: new Uint8ClampedArray([32, 88, 0, 255, 210, 19, 0, 255]) };

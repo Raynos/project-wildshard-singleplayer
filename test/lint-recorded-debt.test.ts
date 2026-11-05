@@ -15,7 +15,7 @@ test.each([
   ['shard-game-plugins','src/shards/pine-hollow/runtime/example.ts',"import {a} from '@wildshard/game/shard/context';","import {b} from '@wildshard/game/shard/context';"],
   ['generator-imports','src/shards/pine-hollow/generators/example.ts',"import {a} from '@wildshard/engine/core/Game';","import {b} from '@wildshard/engine/core/Game';"],
   ['shard-engine-imports','src/shards/pine-hollow/generators/example.ts',"import {a} from '@wildshard/engine/core/Game';","import {b} from '@wildshard/engine/core/Game';"],
-  ['sdk-no-facade','src/sdk/example.ts',"export {a} from '@wildshard/game/shard/context';","export {b} from '@wildshard/game/shard/context';"],
+  ['sdk-no-facade','src/sharddev/example.ts',"export {a} from '@wildshard/game/shard/context';","export {b} from '@wildshard/game/shard/context';"],
 ])('%s preserves its recorded ceiling and the original raw detection', (name,file,first,second)=>{
   if(name===undefined||file===undefined||first===undefined||second===undefined)throw new Error('Incomplete rule fixture');
   mkdirSync('tmp',{recursive:true});const root=mkdtempSync(resolve('tmp/lint-debt-rule-'));

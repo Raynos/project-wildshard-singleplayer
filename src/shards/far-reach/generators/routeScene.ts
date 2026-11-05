@@ -1,4 +1,4 @@
-import { privateSceneRows as parsePrivateScene, worldSceneRecipe as parseWorldScene, worldSceneBindings as parseWorldSceneBindings } from '@wildshard/sdk/worldScenes';
+import { privateSceneRows as parsePrivateScene, worldSceneRecipe as parseWorldScene, worldSceneBindings as parseWorldSceneBindings } from '@wildshard/sharddev/worldScenes';
 import { bridgeRestValues } from './bridgeRest';
 import { restScenes } from './restScene';
 import { FALLEN_BRIDGE, NOTES, SPANS, UPDRAFT, VANES, WINCH } from "./layout";

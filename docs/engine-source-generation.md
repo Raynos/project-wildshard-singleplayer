@@ -3,7 +3,7 @@
 Build-time SDK capabilities, part of the [engine manual](ENGINE.md).
 
 Build functions receive `ProjectGenerationContext` from
-`@wildshard/sdk/projectGeneration`. `cached({id, inputs, native}, fn)` returns
+`@wildshard/sharddev/projectGeneration`. `cached({id, inputs, native}, fn)` returns
 detached bytes keyed by bundled source, compiler, explicit inputs and native
 host; hits still read inputs. `asset(bytes)`
 publishes owned bytes. Injected `compileScript`, `compileScriptV2`,
@@ -55,21 +55,21 @@ damaged optional storage recomputes; author filesystem access is never lent.
 retaining its complete raster checks, original KTX2 assembly and KTX2 admission.
 Older contexts and omitted encoders use the original uncached path.
 
-`bakeForestPlacements(source, variants)` from `@wildshard/sdk/bake/forest`
+`bakeForestPlacements(source, variants)` from `@wildshard/sharddev/bake/forest`
 uses the engine's defining forest algorithm with explicit seed, count, policy
 and native terrain queries. It returns owned numeric tree records (RGB tuples,
 not runtime color objects) and the original padded spatial query over those
 same records. Nothing selects a level or installs terrain. The author owns
 the result and keys its native cache on all supplied source policies/samplers.
 
-`bakeMeadowField(source)` from `@wildshard/sdk/bake/meadow` bakes the
+`bakeMeadowField(source)` from `@wildshard/sharddev/bake/meadow` bakes the
 original four-metre, eight-channel meadow lattice from explicit native
 samplers and authored policy. It returns an owned numeric snapshot and the
 original field queries; snapshot edits do not change query state. Independent
 builds share no mutable samples and never configure the page grass singleton.
 The author includes all supplied policy/samplers in its native source cache.
 
-`readNativeScalarField(rows, blocks)` in `@wildshard/sdk/bake/terrain`
+`readNativeScalarField(rows, blocks)` in `@wildshard/sharddev/bake/terrain`
 admits the existing bounded f32 scalar lattice and declared compressed blocks
 without a page world. It returns owned native values and the defining clamped
 bilinear query over that storage; separate calls share no mutable samples.
@@ -108,7 +108,7 @@ it adds no runtime section, asset or source-file handoff. Missing or invalid
 program bindings refuse. Executable generator references remain forbidden in
 authored discovery metadata.
 
-`encodeBuildBytes(input, codec, level?, deflateBackend?)` in `@wildshard/sdk/bake/byteCodec`
+`encodeBuildBytes(input, codec, level?, deflateBackend?)` in `@wildshard/sharddev/bake/byteCodec`
 provides deterministic build-only compression for cache-owned results. Deflate
 defaults to level 9 (range 0–9); Zstd defaults to level 19 (range 1–22). Deflate
 keeps the portable backend by default; an explicit `native` backend preserves
@@ -118,7 +118,7 @@ must be unshared, attached byte views of at most 256,000,000 bytes. It copies
 the selected view and returns independent bytes, without installing a service
 or adding runtime decoding or asset authority.
 
-`bakeRawColourPixels(image, options)` in `@wildshard/sdk/bake/rawTexture`
+`bakeRawColourPixels(image, options)` in `@wildshard/sharddev/bake/rawTexture`
 packs bounded, unshared RGBA pixels into the existing single-level Zstd
 KTX2 format. It keeps the supplied row order and explicit linear/sRGB
 transfer without loading an image decoder or a filesystem service. The
@@ -126,7 +126,7 @@ existing image-file adapter retains its decoding and flip semantics and
 uses this same packer. Both paths preserve the original complete bytes.
 
 `GeneratedProject.map` supplies a 1000 × 1000 RGBA lattice and optional
-logical name. `@wildshard/sdk/bake/groundMap.rasterGroundMap` paints actual
+logical name. `@wildshard/sharddev/bake/groundMap.rasterGroundMap` paints actual
 L0 terrain and placed GLBs; `rasterSceneMap(settings, readers)` adds declared
 props/private scenes using owned bytes and decoded JSON. Readers retain
 model URL authority; neither operation infers file roots. Both preserve
@@ -138,7 +138,7 @@ legacy images retain their pixel check. Authored minimaps pack the same
 in-memory bytes; the builder then publishes the verified product image and
 receipt at its existing URL. No shard-source metadata is emitted.
 
-`@wildshard/sdk/bake/mapAssembly.MapAssembly` collects ordered map shapes
+`@wildshard/sharddev/bake/mapAssembly.MapAssembly` collects ordered map shapes
 and their float32 instance placements. `pack()` returns independent scene
 JSON and raw packed geometry bytes without compression, file reads or
 publication. The caller retains geometry/material disposal ownership.
@@ -155,13 +155,13 @@ traversal, encoded separators, ambiguous roots and symlink escapes refuse.
 The bounded bytes are detached and hashed on every hit, like project-relative
 inputs. No repository layout, shard name or ambient parent path grants access.
 
-`@wildshard/sdk/decisionScripts` admits decision and return-projection metadata
+`@wildshard/sharddev/decisionScripts` admits decision and return-projection metadata
 with `parseDecisionScripts` and `parseReturnProjectionV2`. These pure admission
 functions carry no compiler or filesystem dependency into author programs.
 
 ## Named tile surfaces
 
-`PropsBakeSource.materialName` in `@wildshard/sdk/bake/props` names merged
+`PropsBakeSource.materialName` in `@wildshard/sharddev/bake/props` names merged
 GLB surfaces for the existing `props.materials` adapter. A whole shape can
 override it through `PropWhole.materialName`. Names select admitted
 materials without changing channels or transforms; omitted names keep
@@ -179,39 +179,39 @@ the GLB and the generic props installer. Omitted flags keep the existing
 true default and unchanged bytes. A whole scene mesh that received no
 shadows can move onto tiles with `receiveShadow: false`.
 
-`@wildshard/sdk/rows` supplies complete author atlas, external-elite and
+`@wildshard/sharddev/rows` supplies complete author atlas, external-elite and
 keyed-look types (`AuthorFigureAtlas`, `AuthorExternalElite`, `AuthorDayLook`).
 These retain native readonly, recursive and discriminated fields without
 constructing presentation owners. `scriptV1ReferenceKinds()` in
-`@wildshard/sdk/decisionScripts` returns the defining reference-map tuple
-for default elision. `ridingPracticeRows()` in `@wildshard/sdk/bake/practiceCourse`
+`@wildshard/sharddev/decisionScripts` returns the defining reference-map tuple
+for default elision. `ridingPracticeRows()` in `@wildshard/sharddev/bake/practiceCourse`
 admits the complete native course, including controller and return-program
 checks; `AuthorRidingPracticeLayout` retains its full output shape.
 
-`carriedQuestRows()` in `@wildshard/sdk/rows` retains native JSON,
+`carriedQuestRows()` in `@wildshard/sharddev/rows` retains native JSON,
 continuation-state and event-identity admission before construction.
-`paintedTerrainAttributes()` in `@wildshard/sdk/bake/terrain` lends the
+`paintedTerrainAttributes()` in `@wildshard/sharddev/bake/terrain` lends the
 actual native mask, track and zone layout without renderer dependencies;
 it changes neither terrain samples nor channel ownership.
 
-`manifestFieldRows(keys, input)` in `@wildshard/sdk/rows` admits explicitly
+`manifestFieldRows(keys, input)` in `@wildshard/sharddev/rows` admits explicitly
 selected manifest metadata with native types, defaults and issue paths.
-`specimenShapeSources(input)` in `@wildshard/sdk/bake/specimenCatalogue`
+`specimenShapeSources(input)` in `@wildshard/sharddev/bake/specimenCatalogue`
 admits painter-produced key/name/geometry envelopes while preserving opaque
 geometry identity. The receiving specimen grammar still admits geometry
 and owns publication; source admission creates no model or runtime service.
 
 `creatureSurfaceFrame(input, defaults, observations)` in
-`@wildshard/sdk/clientChannels` admits ordered smoothing, floor and look
+`@wildshard/sharddev/clientChannels` admits ordered smoothing, floor and look
 inputs before author expression compilation. Native safe keys, finite
 scalars and the 16/32 bank ceilings remain. `namePopulationHabitat()` in
-`@wildshard/sdk/nativePopulationRows` publishes canopy heights, ledges and
+`@wildshard/sharddev/nativePopulationRows` publishes canopy heights, ledges and
 the native forager continuation with source-supplied exact tree count and
 ledge limit, sharing the exact grammar with its named JSON reader.
 Neither operation constructs an animation or habitat runtime owner.
 
 `defineNamedRows(description, refinement?, message?)` in
-`@wildshard/sdk/formatJsonSchema` compiles a source-owned finite grammar once.
+`@wildshard/sharddev/formatJsonSchema` compiles a source-owned finite grammar once.
 Its `parse(input)` retains complete mutable object/tuple/literal/exact-optional
 types and native defaults, stripping and issue paths. Its `schema` can be
 lent as a nested native leaf; lazy `jsonSchema` comes from that same grammar.

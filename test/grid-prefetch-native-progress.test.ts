@@ -1,5 +1,5 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { parseOutputIndex } from '@wildshard/format/outputIndex';
 import { installTitleManifests, titleManifests, type TitleManifest } from '../src/game/client/shard/titleList';

@@ -1,5 +1,5 @@
-import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import { encodeBuildBytes } from '@wildshard/sharddev/bake/byteCodec';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { bakeDressing } from './dressingGeometryRows';
 import { encodeNalatiPart } from './placeWire';
 

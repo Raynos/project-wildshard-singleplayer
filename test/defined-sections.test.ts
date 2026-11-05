@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
-import * as sectionApi from '../src/sdk/sections';
+import { namedJsonSchema } from '../src/sharddev/formatJsonSchema';
+import * as sectionApi from '../src/sharddev/sections';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { validateNamedJsonSchema, validateNamedJsonSchemaPaced } from '../src/game/shared/shardfile/customSchema';
 

@@ -4,10 +4,10 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { nameBlob, type EmittedBlobs } from '../src/sdk/blobs';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { nameBlob, type EmittedBlobs } from '../src/sharddev/blobs';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import { skyCreatureRigOutput } from '../src/shards/far-reach/generators/creatureRigOutput';
 import { originalSkyRigs } from './fixtures/sky-original-rigs';
 

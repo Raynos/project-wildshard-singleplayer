@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
-import { worldSceneSurface } from '../src/sdk/worldScenes';
+import { worldSceneSurface } from '../src/sharddev/worldScenes';
 
 test('surface intake hints keep legacy rows byte-compatible and remain closed', () => {
   const original = { id: 'living-door', kind: 'surface', scan: 'authored-wood',

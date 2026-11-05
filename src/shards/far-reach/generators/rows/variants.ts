@@ -1,4 +1,4 @@
-import type { SpeciesData } from '@wildshard/sdk/species';
+import type { SpeciesData } from '@wildshard/sharddev/species';
 import STRINGS from '../../data/strings.json' with { type: 'json' };
 
 // The one variant of the ray, the goat and the Storm Roc, renderer-free (SF72): their species rows (species/, which build

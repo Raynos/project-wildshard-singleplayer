@@ -11,7 +11,7 @@ import { installWeatherFields, settleWeatherFields } from '../src/game/client/sh
 import { sceneScalar, sceneScalarValue } from '../src/game/client/shardfile/sceneInputs';
 import { graphParamFeeds } from '../src/game/client/shardfile/clientGraphs';
 import type { ShardContext } from '../src/game/client/plugin/context';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 
 /** The sealed dusk law (sunscar-dunes-legacy look/dusk.ts, E399): the target set per quest step, eased at 0.02 a second. */

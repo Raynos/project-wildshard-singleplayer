@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { NALATI_KOKPAR } from './fixtures/nalati-kokpar';
 import { afterEach, beforeAll, expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
-import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
+import { compileDecisionScripts } from '../src/sharddev/buildDecisionScripts';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { ProjectedState, ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { NumericCourse } from '../src/game/client/practice/numericCourse';

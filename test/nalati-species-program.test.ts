@@ -4,10 +4,10 @@ import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { build } from 'vite';
 import { expect, test } from 'vitest';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import { nalatiSpeciesProgram } from '../src/shards/nalati-grasslands/generators/speciesProgram';
-import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
-import { compileReturnProjectionV2 } from '../src/sdk/returnProjectionV2';
+import { compileDecisionScripts } from '../src/sharddev/buildDecisionScripts';
+import { compileReturnProjectionV2 } from '../src/sharddev/returnProjectionV2';
 import { NALATI_ADMISSION_PROGRAM } from './fixtures/nalati-admission';
 
 test('cold, persistent and rebuilt species preserve all five original files and detached loans', () => {
@@ -17,8 +17,8 @@ test('cold, persistent and rebuilt species preserve all five original files and 
     import {resolve} from 'node:path';
     import * as v from 'valibot';
     import {CreatureGuestSchema} from '@wildshard/format/speciesBookRows';
-    import {readDecisionSources} from './src/sdk/buildDecisionScripts.ts';
-    import {createProjectGeneration} from './src/sdk/projectGeneration.ts';
+    import {readDecisionSources} from './src/sharddev/buildDecisionScripts.ts';
+    import {createProjectGeneration} from './src/sharddev/projectGeneration.ts';
     import {hashImmutableBytes} from './src/sdk/immutable.ts';
     import {nalatiSpeciesProgram} from './src/shards/nalati-grasslands/generators/speciesProgram.ts';
     import {originalSpeciesFile,prepareOriginalSpeciesFiles} from './test/fixtures/nalati-original-species.ts';

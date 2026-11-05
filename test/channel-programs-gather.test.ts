@@ -1,5 +1,5 @@
 import {expect,test} from 'vitest';
-import {ClientChannels} from '@wildshard/sdk/clientChannels';
+import {ClientChannels} from '@wildshard/sharddev/clientChannels';
 import {parseClientChannels,type ClientChannelProgram} from '@wildshard/format/clientChannels';
 import {installChannelPrograms} from '@wildshard/game/plugin/channelPrograms';
 import {onFault,type Fault} from '../src/engine/shared/core/faults';

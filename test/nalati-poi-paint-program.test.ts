@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Declare exact authored URL roots.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
+import { createProjectGeneration, type ProjectGenerationContext } from '../src/sharddev/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nalatiPoiPaintProgram, POI_PAINT_INPUTS } from '../src/shards/nalati-grasslands/generators/poiPaintProgram';
 import { originalPoiPaintFiles } from './fixtures/nalati-poi-paint-original';

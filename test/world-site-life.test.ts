@@ -1,5 +1,5 @@
 import { DRIFTWOOD_ORIGINAL_LAYOUTS } from './fixtures/driftwood-layout-source';
-import { formatJsonSchema, namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { formatJsonSchema, namedJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { validateFixtureJsonValue } from './fixtures/defined-json-value';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { expect, test, vi } from 'vitest';

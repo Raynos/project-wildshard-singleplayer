@@ -1,7 +1,7 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
 import { fireRest, wellRest, oilRest } from './restScene';
-import type { ClientSceneBake } from '@wildshard/sdk/bake/glb';
+import type { ClientSceneBake } from '@wildshard/sharddev/bake/glb';
 
 function readParts(value: unknown): string[] {
   if (!Array.isArray(value) || value.length === 0 || value.length > 128) throw new Error('Invalid rest-pool parts');

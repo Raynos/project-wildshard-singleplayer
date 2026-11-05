@@ -1,5 +1,5 @@
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { bakeFireBook, fireBookFile, type FireBookFile } from './fireBookPixels';
 
 const input = 'generators/fireBook.webp';

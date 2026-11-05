@@ -1,6 +1,6 @@
 import { Scope } from '../src/engine/shared/app/scope';
 import { mockPackedFetch } from './fake/packedGeometry';
-import { GeometryPackWriter } from '../src/sdk/kit/geometryPack';
+import { GeometryPackWriter } from '../src/sharddev/kit/geometryPack';
 import { zlibSync } from 'fflate';
 import packed from '../src/shards/pine-hollow/data/codeParts.json' with { type: 'json' };
 import { expect, test } from 'vitest';
@@ -10,13 +10,13 @@ import { heldToolRows } from '../src/game/client/plugin/heldTool';
 import { heldGear } from '../src/game/client/models/heldGear';
 import { HeldPlayback } from '../src/game/client/plugin/weaponFamily';
 import { paintedPrimitives } from '../src/game/client/plugin/geometry';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { SkinLocker } from '../src/game/client/cosmetics/locker';
 import { saves } from '../src/engine/shared/saves/runtime';
 import { appIdentity } from '../src/engine/shared/app/identity';
 import { PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';
-import { outputPlatformPayloads } from '../src/sdk/outputProduct';
+import { outputPlatformPayloads } from '../src/sharddev/outputProduct';
 
 function product(slug: string, rows: unknown) {
   const shardfile = emptyShardfile({ slug, name: slug, author: 'Fixture', revision: 1, seed: 1 });

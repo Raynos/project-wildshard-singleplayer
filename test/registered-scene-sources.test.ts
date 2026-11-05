@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
-import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
-import { modelSceneSourceFile, bakedSceneSourceFile } from '@wildshard/sdk/worldScenes';
-import { nameBlob } from '@wildshard/sdk/blobs';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { registeredJsonSchema } from '@wildshard/sharddev/formatJsonSchema';
+import { modelSceneSourceFile, bakedSceneSourceFile } from '@wildshard/sharddev/worldScenes';
+import { nameBlob } from '@wildshard/sharddev/blobs';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import { createShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { prepareSceneSources, sceneModelDefinition } from '@wildshard/game/shardfile/sceneSources';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';

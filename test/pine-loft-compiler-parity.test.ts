@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
 import { BufferAttribute, type BufferGeometry } from 'three';
 import * as nativeGeometry from '../src/engine/client/entities/species/loft';
-import { Rng } from '../src/sdk/random';
+import { Rng } from '../src/sharddev/random';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { withSpeciesGeometry, isLowPoly, toonPaint, type AnimalSpecies, type Paint, type VariantDef } from '../src/sdk/bake/species';
+import { withSpeciesGeometry, isLowPoly, toonPaint, type AnimalSpecies, type Paint, type VariantDef } from '../src/sharddev/bake/species';
 import { pineLofts, PINE_LOFTS } from '../src/shards/pine-hollow/generators/creatureLofts';
 import { DEER } from '../src/shards/pine-hollow/generators/deerRows';
 import { ELK } from '../src/shards/pine-hollow/generators/elkRows';

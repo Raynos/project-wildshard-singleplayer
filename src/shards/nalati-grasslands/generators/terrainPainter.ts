@@ -1,7 +1,7 @@
 /** Build-only native terrain painter. The client consumes its lossless geometry. */
 import * as THREE from 'three';
-import { Noise2D } from '@wildshard/sdk/noise';
-import { paintedTerrainAttributes, type NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
+import { Noise2D } from '@wildshard/sharddev/noise';
+import { paintedTerrainAttributes, type NativeTerrainSource } from '@wildshard/sharddev/bake/terrain';
 import type { groundColor, surfaceAt } from './terrainRecipe';
 import { zoneWeights } from './zones';
 

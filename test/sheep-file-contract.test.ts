@@ -6,9 +6,9 @@ import { SpeciesActorsFileSchema } from '@wildshard/format/speciesActorsFile';
 import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { ReturnProgramWireDocumentSchema } from '@wildshard/format/returnProgramDocument';
 import { ReturnProjectionV2Schema } from '@wildshard/format/returnProjectionV2';
-import { namedJsonSchema, registeredJsonSchema } from '../src/sdk/formatJsonSchema';
+import { namedJsonSchema, registeredJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { platformFileFamily, validatePlatformFile } from '@wildshard/format/platformFileFamilies';
-import { nameBlob } from '../src/sdk/blobs';
+import { nameBlob } from '../src/sharddev/blobs';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import fixture from './fixtures/approved-sheep-root.json' with { type: 'json' };
 

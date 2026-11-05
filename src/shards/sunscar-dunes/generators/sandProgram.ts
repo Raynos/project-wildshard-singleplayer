@@ -1,5 +1,5 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { encodeBuildBytes } from '@wildshard/sharddev/bake/byteCodec';
 import { bakeSignalSandSources } from './sandSources';
 import { signalSandMetadata, type SignalSandMetadata } from './sandMetadata';
 import { SAND_ZSTD_LEVEL } from './sand';

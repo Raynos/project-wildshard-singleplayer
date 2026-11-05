@@ -16,6 +16,9 @@
       "path": "../../tsconfig.sdk.json"
     },
     {
+      "path": "../../tsconfig.sharddev.json"
+    },
+    {
       "path": "../../tsconfig.engine.json"
     }
   ]

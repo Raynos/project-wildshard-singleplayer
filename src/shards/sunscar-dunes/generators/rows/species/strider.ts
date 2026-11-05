@@ -1,7 +1,7 @@
-import type { SpeciesData, StrikeData } from '@wildshard/sdk/species';
+import type { SpeciesData, StrikeData } from '@wildshard/sharddev/species';
 import STRINGS from '../../../data/strings.json' with { type: 'json' };
 import { STRIDER_DIMS } from './bodies';
-import type { SpeciesClips } from '@wildshard/sdk/species/clips';
+import type { SpeciesClips } from '@wildshard/sharddev/species/clips';
 
 export const STRIDE = { notice: 24, charge: 17, walk: 1.1, approach: 2.4, homeR: 16, lose: 40, face: 0.7 } as const;
 

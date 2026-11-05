@@ -4,9 +4,9 @@ import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import { signalRestFire } from '../src/shards/sunscar-dunes/generators/restPoolProgram';
 
 const parts = ['fire-flame', 'fire-wisp', 'fire-glow', 'pool-caravan-lamp', 'pool-cook', 'pool-keeper-lamp', 'pool-brazier-0', 'pool-brazier-1', 'pool-brazier-2'];

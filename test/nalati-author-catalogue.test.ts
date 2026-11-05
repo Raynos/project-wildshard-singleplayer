@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
 import { defineSpecimenCatalogue } from '@wildshard/game/models/specimenCatalogue';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import * as author from '../src/shards/nalati-grasslands/generators/catalogue';
 import rows from '../src/shards/nalati-grasslands/data/campCatalogue.json' with { type: 'json' };
 import type { CatalogueParams } from '../src/shards/nalati-grasslands/generators/campParams';

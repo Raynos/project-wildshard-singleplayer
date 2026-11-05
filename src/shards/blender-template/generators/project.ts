@@ -1,4 +1,4 @@
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import SOURCE from '../data/source.json' with { type: 'json' };
 import content from '../data/content.json' with { type: 'json' };
 import ROWS from '../data/rows.json' with { type: 'json' };

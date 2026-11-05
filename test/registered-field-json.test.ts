@@ -1,8 +1,8 @@
 import {expect,test} from 'vitest';
 import {SceneBuffersSchema,parseSceneBuffers} from '@wildshard/format/sceneBuffers';
 import {registeredJsonContract,validateRegisteredJson} from '@wildshard/format/registeredJson';
-import {registeredJsonSchema,namedJsonSchema} from '@wildshard/sdk/formatJsonSchema';
-import {nameBlob} from '@wildshard/sdk/blobs';
+import {registeredJsonSchema,namedJsonSchema} from '@wildshard/sharddev/formatJsonSchema';
+import {nameBlob} from '@wildshard/sharddev/blobs';
 import {admitSceneBuffers} from '../src/game/client/shardfile/sceneBuffers';
 
 const raw={version:1,buffers:[{id:'position',storage:'f32',file:'world/fields/flowers.bin',byteLength:12}],

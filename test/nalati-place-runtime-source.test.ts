@@ -8,7 +8,7 @@ import * as v from 'valibot';
 import { placeRuntimeRows, type PlaceRuntimeInput } from '../src/shards/nalati-grasslands/generators/placeRuntimeSource.mjs';
 import { jsonBytes } from '../scripts/bake-output.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import { nalatiRuntimeWire } from './fixtures/nalati-runtime-wire';
 import shapeBook from './fixtures/nalati-shape-book-original.json' with { type: 'json' };
 import pins from './fixtures/nalati-place-runtime-files.json' with { type: 'json' };

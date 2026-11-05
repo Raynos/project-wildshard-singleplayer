@@ -1,11 +1,11 @@
 import { Mesh, MeshStandardMaterial, type Object3D } from 'three';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { bakeQueryTerrain, readNativeTerrain } from '@wildshard/sdk/bake/terrain';
-import { assetCost } from '@wildshard/sdk/assets';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
+import { bakeQueryTerrain, readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
+import { assetCost } from '@wildshard/sharddev/assets';
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { nameBlob } from '@wildshard/sdk/blobs';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import { nameBlob } from '@wildshard/sharddev/blobs';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import type { Shardfile } from '@wildshard/sdk/shardfile';
 import { castawayHead } from './castawayHead';
 import { driftwoodOwnedScene } from './scene';

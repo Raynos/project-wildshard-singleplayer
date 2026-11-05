@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import { skyStaticSceneBytes, skyStaticScenes } from '../src/shards/far-reach/generators/staticScene';
 import { fixedWorld, skyFixedWorldValues } from '../src/shards/far-reach/generators/fixedWorld';
 import { STATIC_SCENE_INPUTS, skyStaticSceneSource } from '../src/shards/far-reach/generators/staticSceneProgram';

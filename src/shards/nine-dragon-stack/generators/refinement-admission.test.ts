@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import type { AuthorWorldScenes } from '@wildshard/sdk/worldScenes';
+import type { AuthorWorldScenes } from '@wildshard/sharddev/worldScenes';
 import { nineRefinementFiles } from './refinementAdmission';
 
 test('only exclusive refinement files leave the upfront library, with stable deduplicated hashes', () => {

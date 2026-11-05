@@ -4,10 +4,10 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { resolve } from 'node:path';
 import { expect, test, vi } from 'vitest';
 import { build } from 'vite';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { readImagePixels } from '../src/sdk/bake/image';
+import { readImagePixels } from '../src/sharddev/bake/image';
 import { nalatiModelParts } from '../src/shards/nalati-grasslands/generators/modelParts';
 import { nalatiModelPartsProgram } from '../src/shards/nalati-grasslands/generators/modelPartsProgram';
 import originals from './fixtures/nalati-model-paint.json' with { type: 'json' };

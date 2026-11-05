@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { AuthorPlacement as Placement } from '@wildshard/sdk/bake/placement';
+import type { AuthorPlacement as Placement } from '@wildshard/sharddev/bake/placement';
 import type { CargoCopy } from './shipwreck';
 import { cargoBox } from './cargo';
 import { driftLogBox } from './driftLogs';

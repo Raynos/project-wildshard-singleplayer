@@ -1,7 +1,7 @@
 import { nalatiAdmissionProgram } from './admissionProgram';
 import { nalatiWeatherProgram } from './weatherProgram';
 import { nalatiNavigationProgram } from './navigation';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { nalatiProductRows } from './product';
 import { prepareSpecies } from './output';
 import { nalatiRenderTileProgram } from './renderTileProgram';

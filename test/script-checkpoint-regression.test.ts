@@ -1,7 +1,7 @@
 import { beforeAll, expect, test } from 'vitest';
 import { ScriptHost, type ScriptHostState } from '../src/engine/shared/script/host';
 import { ScriptWorld } from '../src/engine/shared/script/effects';
-import { compileScript } from '@wildshard/sdk/compileScript';
+import { compileScript } from '@wildshard/sharddev/compileScript';
 
 let bytes: Uint8Array = new Uint8Array();
 beforeAll(async () => {

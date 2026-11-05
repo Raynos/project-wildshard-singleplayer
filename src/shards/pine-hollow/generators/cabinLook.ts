@@ -1,6 +1,6 @@
 // Pine Hollow's cabin looks as data (SHARD-PLATFORM M3, look-family rows): the look.materials ids the door and the
 // moss-bound kinds wear (their SF59 graphs are authored JSON, data/lookGraphs.json) and how the
-// homestead moves and lights (CABIN_LIFE: @wildshard/sdk/props/buildingLife).
+// homestead moves and lights (CABIN_LIFE: @wildshard/sharddev/props/buildingLife).
 /** the look.materials id the cabin doors wear */
 export const CABIN_DOOR_LOOK = 'pine-cabin-door';
 
@@ -8,7 +8,7 @@ export const CABIN_DOOR_LOOK = 'pine-cabin-door';
 export const CABIN_MOSS_LOOKS = { roof: 'pine-cabin-moss-roof', stone: 'pine-cabin-moss-stone' } as const;
 
 /**
- * The homestead as a living place (world/homestead.ts hands it to @wildshard/sdk/props/buildingLife): a door swings in
+ * The homestead as a living place (world/homestead.ts hands it to @wildshard/sharddev/props/buildingLife): a door swings in
  * 0.6 s to 1.85 rad; fires and lamps flicker by 28 % on three waves; fires read 0.7 + 0.3 × night, lamps 0.1 + 0.9 ×
  * night, the window glass 0.2 + 0.8 × night; hung lanterns sway; indoors (over a room or within 3 m of the door) the room
  * lamp (rank 2) and the hearth (rank 3) take the phone's pooled pair first.

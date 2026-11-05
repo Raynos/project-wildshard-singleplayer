@@ -1,4 +1,4 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { NALATI_RIDING_SOURCES, nalatiRidingRows, type NalatiRidingPrograms } from './ridingRows.mjs';
 import { NALATI_ECOLOGY } from './ecology.mjs';
 

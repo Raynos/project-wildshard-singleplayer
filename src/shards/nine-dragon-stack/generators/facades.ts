@@ -1,4 +1,4 @@
-import type { Rng } from '@wildshard/sdk/random';
+import type { Rng } from '@wildshard/sharddev/random';
 // The Kowloon wall generator: a wall plane filled with bays of stacked blocks at random setbacks, each ruled with its
 // windows, then dressed with balconies, window cages, air-con boxes, pipes and laundry. Used for the towers around the
 // square and for the four walls of the Yamen Well, top to bottom.

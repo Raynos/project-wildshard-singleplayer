@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
 import { REGISTERED_JSON, validateRegisteredJson } from '@wildshard/format/registeredJson';
 import { PageLifeSchema, parsePageLife } from '@wildshard/format/pageLife';
-import { registeredJsonSchema, namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { registeredJsonSchema, namedJsonSchema } from '@wildshard/sharddev/formatJsonSchema';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
-import { nameBlob } from '@wildshard/sdk/blobs';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { nameBlob } from '@wildshard/sharddev/blobs';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import { createShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { PAGE_LIFE as coast } from '../src/shards/driftwood-isle/generators/pageLife';
 import { PAGE_LIFE as forest } from '../src/shards/pine-hollow/generators/pageLife';

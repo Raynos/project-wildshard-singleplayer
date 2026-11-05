@@ -2,7 +2,7 @@ import {beforeAll,expect,test} from 'vitest';
 import mainSource from '../src/shards/pine-hollow/behaviour/contracts.as?raw';
 import randomSource from '../src/shards/pine-hollow/behaviour/contractsRandom.as?raw';
 import rulesSource from '../src/shards/pine-hollow/behaviour/contractsRules.as?raw';
-import {compileDecisionScripts} from '../src/sdk/buildDecisionScripts';
+import {compileDecisionScripts} from '../src/sharddev/buildDecisionScripts';
 import {ReturnProgram} from '../src/game/shared/population/returnProgram';
 import {CONTRACT_PROGRAM_SCRIPT,contractProgramRegistries} from '../src/shards/pine-hollow/generators/contractProgram';
 import {contractFor,loadBoard,saveBoard,contractKill,newBoard,claim,draw} from '../src/game/shared/quest/contracts';

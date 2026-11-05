@@ -1,7 +1,7 @@
 import { skyBridgePhysicsPlacements } from './bridgeColliders';
 import { skyPhysicsPlacements } from './physicsPlacements';
 import { skyGroundValues, type SkyGroundValues } from './groundScene';
-import { worldSceneRecipe as parseWorldScene, type bakedSceneSourceFile } from '@wildshard/sdk/worldScenes';
+import { worldSceneRecipe as parseWorldScene, type bakedSceneSourceFile } from '@wildshard/sharddev/worldScenes';
 
 import { restScenes } from './restScene';
 import { isletScenes } from './isletScene';

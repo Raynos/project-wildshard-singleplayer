@@ -1,6 +1,6 @@
 import { Scene } from 'three';
-import type { BakedTerrain, TerrainBakeSource } from '@wildshard/sdk/bake/terrain';
-import { bakeOwned } from '@wildshard/sdk/bake';
+import type { BakedTerrain, TerrainBakeSource } from '@wildshard/sharddev/bake/terrain';
+import { bakeOwned } from '@wildshard/sharddev/bake';
 import { signalHeightAt, signalTrailDistance } from './landscape';
 import { signalManifestGround } from './manifestGround';
 import { SAND_TINT } from "./duneRows";
@@ -10,7 +10,7 @@ export const signalDunesField = (): { heightAt: (x: number, z: number) => number
 
 /**
  * SHARD-PLATFORM M3 (G227, "the shardfile is the bake"): Signal Dunes' code-built heightfield compiled into the shardfile's
- * 62.5 m terrain tiles (64 L0 + 16 L1 and the 257² critical collider; `@wildshard/sdk/bake/terrain`). The heights are the
+ * 62.5 m terrain tiles (64 L0 + 16 L1 and the 257² critical collider; `@wildshard/sharddev/bake/terrain`). The heights are the
  * manifest's own field (entry roads and graded trails included), so the tiles, the collider and the edge rows read exactly
  * the ground the runtime builds today. The vertex colours are the sand's drawn tint (data/duneField.ts SAND_TINT): each
  * vertex's stored f32 height against the exact f64 mean of its `ring` m ring (generators/manifestGround.ts) lerps the

@@ -1,5 +1,5 @@
 import { nalatiNativeAssembly } from './fixtures/nalati-native-assembly';
-import { outputPlatformPayloads } from '../src/sdk/outputProduct';
+import { outputPlatformPayloads } from '../src/sharddev/outputProduct';
 import { ForestWeatherSchema } from '@wildshard/format/forestWeather';
 import {parseHeldSlots} from '@wildshard/format/heldArms';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare emitted slot metadata with its exact generated authoring input.

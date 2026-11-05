@@ -1,6 +1,6 @@
-import { defineNamedRows } from '@wildshard/sdk/formatJsonSchema';
+import { defineNamedRows } from '@wildshard/sharddev/formatJsonSchema';
 import * as DUNES from '../duneRows';
-import type { AuthorDayClock as DayClockRow } from '@wildshard/sdk/rows';
+import type { AuthorDayClock as DayClockRow } from '@wildshard/sharddev/rows';
 import { DUSK_CURVES } from './dusk';
 import { KEY_DIR, SKIRT_GRID, SKIRT_SWELL, type SkirtGridRow, type SwellSkirtRow } from './sand';
 import { SKY_LOOK, type DuskSkyRow } from './familyLook';

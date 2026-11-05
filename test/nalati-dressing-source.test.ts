@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 
 const native = ['--experimental-transform-types', '--import', './scripts/bake-loader.mjs'];
 
@@ -25,8 +25,8 @@ test('source dressing leaves native forest and meadow inputs unchanged', () => {
     import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
     import { selectedLevel } from '@wildshard/engine/level/selection';
     import { TIER_CONFIG } from '@wildshard/engine/core/tier';
-    import { bakeForestPlacements } from '@wildshard/sdk/bake/forest';
-    import { bakeMeadowField } from '@wildshard/sdk/bake/meadow';
+    import { bakeForestPlacements } from '@wildshard/sharddev/bake/forest';
+    import { bakeMeadowField } from '@wildshard/sharddev/bake/meadow';
     import { hashImmutableBytes } from '@wildshard/sdk/immutable';
     const hash=value=>hashImmutableBytes(new TextEncoder().encode(JSON.stringify(value)));
     for(const mask of [undefined,(x,z)=>inSpruceClearing(x,z)?0:Math.max(loneSpruceMask(x,z),edgeSpruceMask(x,z,edgeBermAt(x,z)))]){

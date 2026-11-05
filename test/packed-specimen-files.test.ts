@@ -1,4 +1,4 @@
-import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
+import { registeredJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import {zlibSync} from 'fflate';
 import * as THREE from 'three';
@@ -14,8 +14,8 @@ import {modelContext} from '../src/engine/client/models/model';
 import {SkyRig} from '../src/engine/client/world/skyRig';
 import {WorldRegistry} from '../src/engine/client/world/registry';
 import {parseExplorerCatalogue} from '@wildshard/format/explorerCatalogue';
-import {emptyShardfile} from '../src/sdk/author';
-import {emitNamedBlobs,nameBlob} from '../src/sdk/blobs';
+import {emptyShardfile} from '../src/sharddev/author';
+import {emitNamedBlobs,nameBlob} from '../src/sharddev/blobs';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {SceneDressing} from '../src/game/client/shardfile/sceneDressing';
 import type {ShardContext} from '../src/game/client/plugin/context';

@@ -1,7 +1,7 @@
 
 /** Compile the roaming projection from its existing encounter, rig and look rows. */
 import { Color } from 'three';
-import { roamingProjectionRows as admitProjection } from '@wildshard/sdk/bossProfiles';
+import { roamingProjectionRows as admitProjection } from '@wildshard/sharddev/bossProfiles';
 import { NATIVE_VIEW } from './nativeView';
 import { pineKingCollision } from './kingCollision';
 import type { KingKitRows } from './kingKit';

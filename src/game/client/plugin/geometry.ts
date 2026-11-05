@@ -50,7 +50,7 @@ type AnimalSpecies = ReturnType<SpeciesLook['build']>;
  *
  * A file that fails to load is a page fault (`console.error`; the boot smoke and the tests fail on it), never a silent
  * stand-in: the caller's copy is null and the thing it would draw stands undrawn. The helpers below (`fitGeometry`,
- * `undrawnRig`) shape the copies; generators bind rigid bodies with `bindRigid` (`@wildshard/sdk/bake/skinned`).
+ * `undrawnRig`) shape the copies; generators bind rigid bodies with `bindRigid` (`@wildshard/sharddev/bake/skinned`).
  *
  * Creature bodies (`creatureBodies`, over `skinnedModel`): standard skinned GLBs a generator baked (bones with their bind
  * positions, parts, clips and the shard's extras), copied per spawn, each with its stand-in skeleton when it did not load.
@@ -552,7 +552,7 @@ export interface SkinnedAsset {
   readonly extras: unknown;
 }
 /**
- * An offline skinned model (`@wildshard/sdk/bake/skinned` writes it): load once behind the loading screen, then take
+ * An offline skinned model (`@wildshard/sharddev/bake/skinned` writes it): load once behind the loading screen, then take
  * copies. Each `copy()` hands out independent geometry (safe to merge, scale or dispose) bit-exact to what the generator
  * baked: every channel as written, the weights never renormalized, an authored triangle soup restored, the joints' exact
  * bind positions. The maps, clips and extras are shared. No services are installed on import.

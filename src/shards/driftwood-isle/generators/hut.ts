@@ -12,9 +12,9 @@
  */
 import * as THREE from 'three';
 import { SEED } from './landscapeRows';
-import { siteFloor, type BoxSpec as Collider, type FloorRect, boxDesc, type ColliderDesc } from '@wildshard/sdk/bake/placement';
-import { bakeLog as log, bakePlank as plank, bakeRope as rope, bakeTriangles as tris } from '@wildshard/sdk/bake/primitives';
-import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
+import { siteFloor, type BoxSpec as Collider, type FloorRect, boxDesc, type ColliderDesc } from '@wildshard/sharddev/bake/placement';
+import { bakeLog as log, bakePlank as plank, bakeRope as rope, bakeTriangles as tris } from '@wildshard/sharddev/bake/primitives';
+import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sharddev/bake/facetedGeometry';
 import { bakeLight, type BakedLight } from './lowpolyPlants';
 
 /** Where a hut stands: its centre (world xz) and which way its door faces (rot, radians; 0 = −z). */

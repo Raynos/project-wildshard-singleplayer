@@ -6,7 +6,7 @@ import { bindRuntimeState } from '../src/game/shared/plugin/runtimeRows';
 import { installShards, shards } from '../src/game/client/shard/list';
 import { sourceManifest, type ShardContext } from '../src/game/client/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import { FIXTURE_RUNTIME_COST } from './fixtures/clientPlanRuntime';
 // A five-field state source versus a twenty-field one: an explicit state-law fixture (LD6 retired the frozen Nine config
 // it was copied from, and with it the copy's content-identity remap).

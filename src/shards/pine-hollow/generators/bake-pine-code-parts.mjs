@@ -8,8 +8,8 @@
 // Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/pine-hollow/generators/bake-pine-code-parts.mjs
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
-import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
+import { encodeBuildBytes } from '@wildshard/sharddev/bake/byteCodec';
+import { readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
 import { bakePineCodeParts, hollowLogColliders } from './codeParts.ts';
 import { pineScriptSources } from './scriptSources.mjs';
 import { timberWorld } from './timberWorldRows.ts';

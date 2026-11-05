@@ -10,7 +10,7 @@ import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor'
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
 import { createNativeProofResident, prepareProductPlan } from './fixtures/headless-native';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { canoeMover } from '../src/shards/pine-hollow/generators/canoe';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { PINE_SOURCES } from './fixtures/pine-sources';

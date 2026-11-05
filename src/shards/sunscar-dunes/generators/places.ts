@@ -4,8 +4,8 @@ import { COOK, CRATES, HD, HORSE, LANTERN, WELL_RIG } from './rows/places';
 import { DUNE_FIELD } from "./duneRows";
 import { signalDunesField } from './tiles';
 import { foldKinds, signalPiece, boxDesc, type ColliderDesc } from './kinds';
-import { colliderRows } from '@wildshard/sdk/bake/kinds';
-import type { BakedPiece } from '@wildshard/sdk/bake';
+import { colliderRows } from '@wildshard/sharddev/bake/kinds';
+import type { BakedPiece } from '@wildshard/sharddev/bake';
 
 /**
  * Build-time only (SHARD-PLATFORM SF72, SF67 fix 3 "bake the code-built worlds"): the caravan's, the well's and the

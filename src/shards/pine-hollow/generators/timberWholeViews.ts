@@ -1,6 +1,6 @@
 /** Reassemble Pine's already-published timber source channels before the final offline weld. */
 import { BufferAttribute, BufferGeometry, InterleavedBufferAttribute, type Mesh } from 'three';
-import { parseWholePartition, parseWholeSourceChannels } from '@wildshard/sdk/bake/wholePartition';
+import { parseWholePartition, parseWholeSourceChannels } from '@wildshard/sharddev/bake/wholePartition';
 
 const semantics: Readonly<Record<string, string>> = { POSITION: 'position', NORMAL: 'normal', COLOR_0: 'color', TEXCOORD_0: 'uv', TANGENT: 'tangent' };
 const identities = ['fire-lookout-', 'zipline-landing-', 'creek-footbridge-'];

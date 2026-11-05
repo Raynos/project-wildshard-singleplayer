@@ -7,7 +7,7 @@
 //   luminance with saturated hue classes picked out, or, for metal, reduced to a luminance that modulates one wash;
 // - the AO darkens the colour (crevices read darker), then drops.
 import { BufferGeometry, Color, Matrix4, Mesh, Vector3 } from 'three';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
 import { SweptKit, type SweptLook } from './kit/sweptKit';
 
 /** How a generated prop becomes kit geometry (the swept kit's attribute set). */

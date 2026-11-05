@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { prepareGeometrySimplifier, simplifyPaintedGeometry } from '@wildshard/sdk/bake/simplifier';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { bakeArmColour as lin, bakeArmPalette as armPalette, bakeGloveFist as gloveFist, bakeRiderArm as riderArm } from '@wildshard/sdk/bake/riderArms';
+import { prepareGeometrySimplifier, simplifyPaintedGeometry } from '@wildshard/sharddev/bake/simplifier';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
+import { bakeArmColour as lin, bakeArmPalette as armPalette, bakeGloveFist as gloveFist, bakeRiderArm as riderArm } from '@wildshard/sharddev/bake/riderArms';
 import BASE_ARM_STYLE from '../data/armsStyle.json' with {type:'json'};
 import { LONGBOW_LOOK, type ArrowLook, type StaveBowLook } from './longbowLook';
 import { BUCKSKIN, HUNTER_HANDS, HANDS_MATERIAL, COAT_MATERIAL, type ArmPaletteRow, type GloveHandsLook, type HandSpec } from './handsLook';

@@ -12,7 +12,7 @@ import {SIM_LEVEL} from './fixtures/sim-level/level';
 import {fixtureBytes} from '@wildshard/engine/test/nativeBytes';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {sha256} from '../src/game/shared/plugin/moduleHash';
-import {emptyShardfile} from '../src/sdk/author';
+import {emptyShardfile} from '../src/sharddev/author';
 import { parseOutputIndex } from '@wildshard/format/outputIndex';
 import { outputSectionPayloads } from '@wildshard/format/outputFields';
 import {parseShardfile} from '@wildshard/format/shardSchema';

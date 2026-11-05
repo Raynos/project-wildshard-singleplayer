@@ -1,4 +1,4 @@
-import type { StrikeData } from '@wildshard/sdk/species';
+import type { StrikeData } from '@wildshard/sharddev/species';
 
 /** Shipping finite contact shapes, clocks and damage, admitted by the existing native strike adapter. */
 export const NALATI_STRIKE_ROWS = {

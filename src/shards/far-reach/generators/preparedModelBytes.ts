@@ -1,6 +1,6 @@
 import { MeshStandardMaterial, type BufferGeometry } from 'three';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { staticGlb, type GlbPrimitive } from '@wildshard/sdk/bake/glb';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
+import { staticGlb, type GlbPrimitive } from '@wildshard/sharddev/bake/glb';
 import { HD_URLS, SKY_HD, type SkyHdName } from './fileInventory';
 import { fitModel, hdGeometry, type ModelFrame } from './modelIntake';
 import { bakeKeeperFigure } from './keeperFigure';

@@ -1,4 +1,4 @@
-import { worldScenePlacement, worldScenePlacementPages } from '@wildshard/sdk/worldScenes';
+import { worldScenePlacement, worldScenePlacementPages } from '@wildshard/sharddev/worldScenes';
 import { driftwoodPierScenes } from './pierScenesBank';
 import { driftwoodFoliageScenes, foliageLogPlacements } from './foliageScenesBank';
 import type { DriftwoodFixedLayouts } from './fixedLayouts';

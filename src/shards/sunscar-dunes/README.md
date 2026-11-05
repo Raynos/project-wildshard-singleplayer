@@ -44,7 +44,7 @@ alone (E357 Z3, round 4). No engine edits.
 | `species/duneRay.ts` | a `flight` species (`above: 'ground'`) with a five-bone custom rig (`body`, `head`, two wings, tail) and `DuneRayBrain`: glide circles over the player, a dive at the chest with a `sphere` swoop (`SWOOP`, 14 damage), a climb out, a rest |
 | `generators/tower.ts`, `world/tower.ts`, `world/build.ts` | the signal tower: its frame (legs, braces, deck, rail, crown, antenna, a 30-tread stair) and colliders an offline bake (`baked/tower.glb` + `data/tower.json`, eight instanced kinds; SF72), its keeper lamp, brazier and signal fire live in `world/tower.ts`; `buildWorld` registers every piece and interactable, the crackables and the quest state |
 | `quest/install.ts` | "The signal", four steps: the caravan's logbook → oil from the dry well → the three waymarks → the signal fire (it summons the Matriarch); five coins once |
-| `look/render.ts`, `data/sky.ts` | the `extend` look: the clean engine chain, the platform dusk dome (`@wildshard/sdk/looks/duskDome`) with stars, violet fog, a low warm key light, sand painted by hollow / crest with a ripple patch |
+| `look/render.ts`, `data/sky.ts` | the `extend` look: the clean engine chain, the platform dusk dome (`@wildshard/sharddev/looks/duskDome`) with stars, violet fog, a low warm key light, sand painted by hollow / crest with a ripple patch |
 | `audio/cues.ts` | the whip's cues on kit voices until its own crack is generated |
 
 The fixed coordinate recipes in `generators/layout.ts` and `generators/duneRows.ts`

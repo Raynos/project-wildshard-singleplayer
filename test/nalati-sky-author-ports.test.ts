@@ -1,6 +1,6 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
-import { authorFormatSchema } from '../src/sdk/formatJsonSchema';
+import { authorFormatSchema } from '../src/sharddev/formatJsonSchema';
 import { ManifestMetadataSchema } from '@wildshard/format/minimap';
 import type { ClientChannelProgram } from '@wildshard/format/clientChannels';
 import { skyRows, skyChannels } from '../src/shards/nalati-grasslands/generators/skyPresentation';

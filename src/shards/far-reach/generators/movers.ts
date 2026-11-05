@@ -1,7 +1,7 @@
 import { AnimationClip, Euler, Group, Quaternion, QuaternionKeyframeTrack, Vector3, VectorKeyframeTrack } from 'three';
-import type { ColliderDesc } from '@wildshard/sdk/bake/placement';
+import type { ColliderDesc } from '@wildshard/sharddev/bake/placement';
 import type { MoverData } from '@wildshard/format/movers';
-import { Mover } from '@wildshard/sdk/movers';
+import { Mover } from '@wildshard/sharddev/movers';
 import { SPANS, FALLEN_BRIDGE, APOTHEM } from "./layout";
 import { FALLEN_ANGLE } from './rows/moverBindings';
 import FLAGS from '../data/flags.json' with { type: 'json' };

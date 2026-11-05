@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { ClientAssets } from '../src/game/client/shardfile/clientAssets';
 import { prepareClientTile } from '../src/game/client/shardfile/tileContent';
 

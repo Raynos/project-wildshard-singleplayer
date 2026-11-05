@@ -1,6 +1,6 @@
 import { expectTypeOf, test } from 'vitest';
-import type { modelSceneSourceFile, bakedSceneSourceFile } from '../src/sdk/worldScenes';
-import type { readManifestSource } from '../src/sdk/projectManifest';
+import type { modelSceneSourceFile, bakedSceneSourceFile } from '../src/sharddev/worldScenes';
+import type { readManifestSource } from '../src/sharddev/projectManifest';
 import type { RigLibraryRows, ModelSpecimenRow, ModelLibraryRows } from '../src/game/client/plugin/geometry';
 import type { BakedColliderInput, WorldPieceRow } from '../src/game/client/shardfile/bakedKinds';
 import type { ChunkHorizon } from '../src/game/server/shard/manifest';

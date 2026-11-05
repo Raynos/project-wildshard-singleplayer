@@ -5,7 +5,7 @@ import {loadRapier} from '../src/engine/shared/physics/rapier';
 import {rideable} from '../src/engine/shared/physics/CharacterMotor';
 import {groups} from '../src/engine/shared/physics/groups';
 import {createShardfileSim} from '../src/game/server/plugin/simulation';
-import {emptyShardfile} from '../src/sdk/author';
+import {emptyShardfile} from '../src/sharddev/author';
 import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 test.each([true,false])('native moving-body ride and jump (carry=%s)',async(carry)=>{

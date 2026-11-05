@@ -3,8 +3,8 @@
 
 /** Final model/placement rows. All shape, rest-pose and contact work belongs to the offline producers. */
 import { Matrix4, Quaternion, Vector3 } from 'three';
-import { bakeModelPose as modelPoseMatrix } from '@wildshard/sdk/bake/placement';
-import { worldSceneModels as parseWorldSceneModels, worldSceneRows as parseWorldScenes, worldScenePlacement as parseWorldScenePlacement,worldScenePlacementPages } from '@wildshard/sdk/worldScenes';
+import { bakeModelPose as modelPoseMatrix } from '@wildshard/sharddev/bake/placement';
+import { worldSceneModels as parseWorldSceneModels, worldSceneRows as parseWorldScenes, worldScenePlacement as parseWorldScenePlacement,worldScenePlacementPages } from '@wildshard/sharddev/worldScenes';
 import heroRows from '../data/heroRows.json' with { type: 'json' };
 import { timberWorld } from './timberWorldRows';
 
@@ -17,7 +17,7 @@ import { pinePropScenes } from './bake-prop-scenes.mjs';
 import { pineHeroScenes } from './bake-hero-scenes.mjs';
 import { heroMaterialAliases } from './heroMaterialFiles.mjs';
 import { perSources, type PineSources } from './pineSources';
-import { nameBlob, nameMeshoptBlob, type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
+import { nameBlob, nameMeshoptBlob, type NamedBlob as NamedBlobType } from '@wildshard/sharddev/blobs';
 
 type WorldSceneModelsType = ReturnType<typeof parseWorldSceneModels>;
 type ParsedWorldScenesType = ReturnType<typeof parseWorldScenes>;

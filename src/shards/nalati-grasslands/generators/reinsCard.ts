@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { reinPresentationRows, bakeReinsGeometry } from '@wildshard/sdk/bake/riderArms';
-import { defineSpecimenCatalogue } from '@wildshard/sdk/bake/specimenCatalogue';
+import { reinPresentationRows, bakeReinsGeometry } from '@wildshard/sharddev/bake/riderArms';
+import { defineSpecimenCatalogue } from '@wildshard/sharddev/bake/specimenCatalogue';
 import reins from '../data/reins.json' with { type: 'json' };
 import { join, writeGeometry } from './geometryWriter';
 

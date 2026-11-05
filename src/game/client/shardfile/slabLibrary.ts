@@ -14,7 +14,7 @@ import type { ControlRefinement } from './controlRefinement';
 
 type WholeLibrary = Extract<WorldScenesSection['libraries'][number], { kind: 'whole' }>;
 type SlabTile = WorldSceneSlabLibrary['tiles'][number];
-/** the bake's tag on each slab mesh (`sdk/bake/slabs.ts`): its key, tile and place in its file */
+/** the bake's tag on each slab mesh (`sharddev/bake/slabs.ts`): its key, tile and place in its file */
 const SlabTag = v.object({ key: v.string(), tile: v.number(), chunk: v.number() });
 const EMPTY: ReadonlySet<number> = new Set();
 

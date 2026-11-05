@@ -2,7 +2,7 @@
 import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bind only the real author project's source root.
 import { resolve } from 'node:path';
-import { createProjectGeneration } from '../../src/sdk/projectGeneration';
+import { createProjectGeneration } from '../../src/sharddev/projectGeneration';
 import { readNineProductInputs } from '../../src/shards/nine-dragon-stack/generators/product';
 import { nineProductFrom } from '../../src/shards/nine-dragon-stack/generators/productDefinition';
 import { courseProgramInputs } from '../../src/commons/courseProgram';

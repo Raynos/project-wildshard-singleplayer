@@ -1,8 +1,8 @@
 /** Original full chime, including wind weights and collectible vertex ranges; offline only. */
 import * as THREE from 'three';
 import { recordVertexSlots, type SlotRange } from './slotRanges';
-import { bakeLog as log, bakeRock as rock, bakeRope as rope } from '@wildshard/sdk/bake/primitives';
-import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
+import { bakeLog as log, bakeRock as rock, bakeRope as rope } from '@wildshard/sharddev/bake/primitives';
+import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sharddev/bake/facetedGeometry';
 
 /** pieces the chime can hold (the beach's sea glass: DRIFTWOOD-LOOT) */
 export const CHIME_PIECES = 15;

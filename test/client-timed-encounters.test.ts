@@ -27,7 +27,7 @@ import { entryOwner, publishEntryOwner } from '../src/game/shared/shardfile/entr
 import { installClientTimedEncounters } from '../src/game/client/shardfile/clientTimedEncounters';
 import { lendLooks } from '../src/game/client/shardfile/lentLooks';
 import { sha256 } from '../src/game/shared/plugin/moduleHash';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { withWeatherWitness } from './fixtures/weatherInlineWitness';
 

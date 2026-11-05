@@ -3,7 +3,7 @@ import { PinePhysicsSchema } from '../src/shards/pine-hollow/generators/sections
 import { expect, test } from 'vitest';
 import { parseUiStrings } from '@wildshard/format/uiStrings';
 import { parseWorldPhysics } from '@wildshard/format/worldPhysics';
-import { emitPlatformSections, worldPhysicsSection } from '../src/sdk/platformSections';
+import { emitPlatformSections, worldPhysicsSection } from '../src/sharddev/platformSections';
 import { nativeBodySchema, nativeColliderRecordSchema, nativeGroundRecordSchema } from '@wildshard/format/nativePhysics';
 import * as v from 'valibot';
 import PINE_STRINGS from '../src/shards/pine-hollow/data/strings.json' with { type: 'json' };

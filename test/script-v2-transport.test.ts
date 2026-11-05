@@ -5,12 +5,12 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep fixtures under the repository scratch directory.
 import { resolve } from 'node:path';
 import swaySource from '../src/shards/driftwood-isle/behaviour/bridgeSway.as?raw';
-import { compileScriptV2 } from '@wildshard/sdk/compileScriptV2';
-import { emptyShardfile } from '../src/sdk/author';
-import { nameBlob, emitNamedBlobs } from '../src/sdk/blobs';
-import { prepareProjectOutput, mergeProjectBlobs } from '../src/sdk/projectOutput';
-import { emitPlatformSections } from '../src/sdk/platformSections';
-import { writeOutputProduct, validateOutputProduct } from '../src/sdk/outputProduct';
+import { compileScriptV2 } from '@wildshard/sharddev/compileScriptV2';
+import { emptyShardfile } from '../src/sharddev/author';
+import { nameBlob, emitNamedBlobs } from '../src/sharddev/blobs';
+import { prepareProjectOutput, mergeProjectBlobs } from '../src/sharddev/projectOutput';
+import { emitPlatformSections } from '../src/sharddev/platformSections';
+import { writeOutputProduct, validateOutputProduct } from '../src/sharddev/outputProduct';
 import { scriptAdmissionRows, decisionModuleContracts, ViewModulesSchema } from '@wildshard/format/scriptContract';
 import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
 import { validateShardfileAssets } from '@wildshard/format/assetAdmission';

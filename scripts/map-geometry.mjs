@@ -2,7 +2,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { deflateSync } from 'node:zlib';
-import { MapAssembly as OwnedMapAssembly, mapModelBytes } from '../src/sdk/bake/mapAssembly.ts';
+import { MapAssembly as OwnedMapAssembly, mapModelBytes } from '../src/sharddev/bake/mapAssembly.ts';
 
 export const readMapJson = file => JSON.parse(readFileSync(file, 'utf8'), (_key, value) => value === '-0' ? -0 : value === 'Infinity' ? Infinity : value === '-Infinity' ? -Infinity : value);
 

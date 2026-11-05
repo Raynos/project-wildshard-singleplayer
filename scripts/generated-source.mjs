@@ -210,5 +210,5 @@ export function checkGeneratedSourceTree(root) {
   const policy = generatedSourcePolicy(JSON.parse(readFileSync(policyFile, 'utf8')));
   const read = (/** @type {string} */ file) => existsSync(resolve(root, file)) ? readFileSync(resolve(root, file), 'utf8') : undefined;
   // build-sdk.mjs's gitignored package output: a tree that ran it must not fail this. It can never be committed.
-  return failures(generatedSourceFiles(root).filter(file => !file.startsWith('src/sdk/dist/')), policy, exemptSources(read));
+  return failures(generatedSourceFiles(root).filter(file => !file.startsWith('src/sharddev/dist/') && !file.startsWith('src/sdk/dist/')), policy, exemptSources(read));
 }

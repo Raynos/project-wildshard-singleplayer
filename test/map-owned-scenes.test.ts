@@ -8,7 +8,7 @@ import { BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMateri
 import { expect, test } from 'vitest';
 import { MapAssembly } from '../scripts/map-geometry.mjs';
 import { paintDataMap, rasterDataMap } from '../scripts/bake-data-maps.mjs';
-import { clientSceneGlb } from '../src/sdk/bake/glb';
+import { clientSceneGlb } from '../src/sharddev/bake/glb';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
 // No scene or pack file is published. The normal painter must read both from

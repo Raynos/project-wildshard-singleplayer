@@ -2,8 +2,8 @@
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bind only the existing author/public roots.
 import { resolve } from 'node:path';
-import type { NamedBlob } from '../../src/sdk/blobs';
-import { createProjectGeneration } from '../../src/sdk/projectGeneration';
+import type { NamedBlob } from '../../src/sharddev/blobs';
+import { createProjectGeneration } from '../../src/sharddev/projectGeneration';
 import { nineCastsProgram } from '../../src/shards/nine-dragon-stack/generators/castsProgram';
 import { CAST_BLOBS } from '../../src/shards/nine-dragon-stack/generators/castSources';
 

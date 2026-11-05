@@ -1,4 +1,4 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { courseProgramInputs } from '@wildshard/commons/courseProgram';
 import { KOKPAR } from './layout';
 import { OVAL, LINE_X, HORSE_START, RIDER_START, FIELD_AT, RIDER_PITCH, SHOULDER } from './horseCourse';

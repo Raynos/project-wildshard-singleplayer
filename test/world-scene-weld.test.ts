@@ -19,7 +19,7 @@ import { Rng } from '../src/engine/shared/core/rng';
 import { withOwner } from '../src/engine/shared/app/ownership';
 import { installWorldScenes } from '../src/game/client/shardfile/worldScenes';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { WorldRegistry } from '../src/engine/client/world/registry';
 import type { ShardContext } from '../src/game/client/plugin/context';
 

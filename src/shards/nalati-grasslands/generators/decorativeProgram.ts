@@ -1,4 +1,4 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { decorativeRows } from './decorativeInput';
 

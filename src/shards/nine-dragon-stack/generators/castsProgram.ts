@@ -1,9 +1,9 @@
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { compressGlb, pairedChannelGlb } from '@wildshard/sdk/bake/glbCompression';
-import { compactPhoneGlb } from '@wildshard/sdk/bake/compactGlb';
-import { parseGlb } from '@wildshard/sdk/assets';
+import { compressGlb, pairedChannelGlb } from '@wildshard/sharddev/bake/glbCompression';
+import { compactPhoneGlb } from '@wildshard/sharddev/bake/compactGlb';
+import { parseGlb } from '@wildshard/sharddev/assets';
 import { bakeCasts, bakeFixedKits, readFixedSlots } from './casts';
 import { bakeLods } from './lods';
 import { hookProduct, type HookProduct } from './hookProduct';

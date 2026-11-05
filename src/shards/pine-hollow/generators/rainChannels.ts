@@ -3,7 +3,7 @@
 // clock and alpha, and the lens drops' clock (three times as fast under a roof) and smoothed wetness, read from the frame's
 // reading the rain fills (`rain`: on, rain, dry, cover, lookY, room, radius, slots, windX, windZ). The CPU splashes, the
 // cover map and the draw range stay in game/weather/rainPresentation.ts.
-import { numericChannelPrograms, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
+import { numericChannelPrograms, type NumericChannelOutput } from '@wildshard/sharddev/clientChannels';
 import weather from '../data/weatherLook.json' with { type: 'json' };
 
 const { PINE_RAIN_PROGRAMS } = weather;

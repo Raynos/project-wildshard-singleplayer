@@ -11,9 +11,9 @@ import {AggressionDirector} from '../src/engine/shared/ai/director';
 import {GroupStepV2,prepareGroupNativeV2,type GroupStepNativeOwnersV2,type GroupStepReferenceV2} from '../src/engine/shared/script/groupStepV2';
 import type {V2ColumnOwners} from '../src/engine/shared/script/observationColumnsV2';
 import {parseGroupStepV2,groupStepLayoutV2,GroupStepV2Schema} from '@wildshard/format/scriptGroupStepV2';
-import {compileScriptV2} from '../src/sdk/bake/compileScriptV2';
-import {v2CoreSource} from '../src/sdk/as/wsV2';
-import {namedJsonSchema} from '../src/sdk/formatJsonSchema';
+import {compileScriptV2} from '../src/sharddev/bake/compileScriptV2';
+import {v2CoreSource} from '../src/sharddev/as/wsV2';
+import {namedJsonSchema} from '../src/sharddev/formatJsonSchema';
 import {validateNamedJsonSchema} from '../src/game/shared/shardfile/customSchema';
 
 const rows=parseGroupStepV2({bank:[{name:'calls',kind:'number'}],columns:[],members:1,signals:['pack','herd','bad','prefix','environment','notifications','groupClaim','badFlight','badMask','senses','nearest','sharedInit','twoStreams'],actions:[

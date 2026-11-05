@@ -1,5 +1,5 @@
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
-import { defineNamedRows, type NamedRows } from '@wildshard/sdk/formatJsonSchema';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
+import { defineNamedRows, type NamedRows } from '@wildshard/sharddev/formatJsonSchema';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { packDressingTable } from './dressingTable';
 

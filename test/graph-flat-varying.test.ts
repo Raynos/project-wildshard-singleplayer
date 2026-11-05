@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { attribute, varying } from 'three/tsl';
 import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
-import { graph as authorGraph } from '../src/sdk/materials';
+import { graph as authorGraph } from '../src/sharddev/materials';
 import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 
 /** a graph's classic program sources (a clone's, as a drawn variant's) */

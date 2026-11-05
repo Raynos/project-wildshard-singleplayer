@@ -1,4 +1,4 @@
-import { readProjectAssets } from '../../src/sdk/project';
+import { readProjectAssets } from '../../src/sharddev/project';
 import { runSnapshot } from './runSnapshot';
 
 /** Nalati's project read over its author folder and public/assets, as the shipped-product suites read it (CI7: once per

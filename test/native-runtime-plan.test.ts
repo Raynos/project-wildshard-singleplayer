@@ -10,7 +10,7 @@ import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
 import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { readCreatureStrikes } from '@wildshard/format/creatures';
-import { outputPlatformPayloads } from '../src/sdk/outputProduct';
+import { outputPlatformPayloads } from '../src/sharddev/outputProduct';
 import { headlessSections } from '../src/sdk/headlessSections';
 import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';
 import { clientHomeBytes } from '../src/game/client/shardfile/clientResidency';
@@ -23,7 +23,7 @@ import { SKY_CLIENT_PLAN } from '../src/shards/far-reach/generators/clientPlan';
 import { clientOwnershipRules } from '@wildshard/format/clientOwnership';
 import { skyProductRows } from '../src/shards/far-reach/generators/product';
 import { signalProductRows, client as SIGNAL_CLIENT_PLAN } from './fixtures/sunscar-source-program';
-import { emitPlatformSections } from '../src/sdk/platformSections';
+import { emitPlatformSections } from '../src/sharddev/platformSections';
 import { SKY_NATIVE_WORLD } from '../src/shards/far-reach/generators/rows/nativeWorld';
 import { SIGNAL_NATIVE_WORLD } from '../src/shards/sunscar-dunes/generators/rows/nativeWorld';
 

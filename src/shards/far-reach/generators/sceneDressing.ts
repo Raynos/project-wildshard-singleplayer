@@ -1,5 +1,5 @@
-import { ClientChannels } from '@wildshard/sdk/clientChannels';
-import type { AuthorSceneMotion as SceneMotion } from '@wildshard/sdk/worldScenes';
+import { ClientChannels } from '@wildshard/sharddev/clientChannels';
+import type { AuthorSceneMotion as SceneMotion } from '@wildshard/sharddev/worldScenes';
 import { skyVaneRows } from './routeScene';
 
 const deck = new ClientChannels('far.dressing.deck');

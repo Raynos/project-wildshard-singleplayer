@@ -1,5 +1,5 @@
 import { skyHeroLibrarySource, HERO_LIBRARY_INPUTS } from './heroLibrary.ts';
-import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
+import { encodeBuildBytes } from '@wildshard/sharddev/bake/byteCodec';
 import { skyMapWorldSources } from './mapWorldSources.ts';
 import { PREPARED_MODEL_INPUTS, preparedModelSource } from './preparedModelProgram.ts';
 import { BRIDGE_REST_INPUTS, skyBridgeRestSource } from './bridgeRestProgram.ts';
@@ -11,7 +11,7 @@ import { restPoolGlbs } from './restScene.ts';
 import { REST_URLS, ISLET_POOL } from './restFiles.ts';
 import { isletGlb, isletScenes } from './isletScene.ts';
 import { isletMotionRows } from './isletMotion.ts';
-import { mapSceneRest } from '@wildshard/sdk/bake/mapRest';
+import { mapSceneRest } from '@wildshard/sharddev/bake/mapRest';
 import { fixedLayoutFiles } from './fixedLayouts.ts';
 import { crownInstances } from './crownInstances.ts';
 import { risingIsletRows } from './risingIslets.ts';

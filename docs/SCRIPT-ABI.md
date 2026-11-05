@@ -24,14 +24,14 @@ requires the exported `on…` handlers to match `on` exactly, generates binding
 constants and glue, compiles with `abi: 1`, admits the actual bytes, and names
 immutable Wasm blobs. Glue is virtual compiler input, not shard runtime TS.
 Project intake replaces `sim/scripts` with these freshly compiled rows.
-[sdk/buildDecisionScripts.ts:27](../src/sdk/buildDecisionScripts.ts#L27) [sdk/buildDecisionScripts.ts:40](../src/sdk/buildDecisionScripts.ts#L40) [sdk/buildDecisionScripts.ts:91](../src/sdk/buildDecisionScripts.ts#L91) [sdk/decisionSource.ts:48](../src/sdk/decisionSource.ts#L48) [sdk/projectDecisions.ts:37](../src/sdk/projectDecisions.ts#L37)
+[sharddev/buildDecisionScripts.ts:27](../src/sharddev/buildDecisionScripts.ts#L27) [sharddev/buildDecisionScripts.ts:40](../src/sharddev/buildDecisionScripts.ts#L40) [sharddev/buildDecisionScripts.ts:91](../src/sharddev/buildDecisionScripts.ts#L91) [sharddev/decisionSource.ts:48](../src/sharddev/decisionSource.ts#L48) [sharddev/projectDecisions.ts:37](../src/sharddev/projectDecisions.ts#L37)
 
 `compileScript` defaults to **v0** unless passed `abi: 1`. For v1 it uses fixed
 initial/maximum memory (default one page, allowed 1–4), the stub AS runtime,
 imported memory, `-O3`, explicit `__start` and disabled bulk-memory lowering.
 The pinned toolchain is AssemblyScript 0.28.20 / Binaryen 132.0.0.
 `buildBehaviour` is the retained v0/native build path, not the v1 row compiler.
-[sdk/bake/compileScript.ts:99](../src/sdk/bake/compileScript.ts#L99) [format/scriptAbi.ts:2](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbi.ts#L2) [sdk/buildBehaviour.ts:29](../src/sdk/buildBehaviour.ts#L29) [sdk/buildBehaviour.ts:57](../src/sdk/buildBehaviour.ts#L57)
+[sharddev/bake/compileScript.ts:99](../src/sharddev/bake/compileScript.ts#L99) [format/scriptAbi.ts:2](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbi.ts#L2) [sharddev/buildBehaviour.ts:29](../src/sharddev/buildBehaviour.ts#L29) [sharddev/buildBehaviour.ts:57](../src/sharddev/buildBehaviour.ts#L57)
 
 Admission reads bytes without running them: it checks signatures, structural
 meter/depth wrappers, function and loop fuel charges, finite-float guards and
@@ -48,9 +48,9 @@ import. These are the complete v1 function interfaces. [format/scriptAbiV1.ts:45
 | Direction | Name | Signature / meaning | Source |
 |---|---|---|---|
 | Export | `ws_abi` | `() → i32`, must return 1 | [engine/shared/script/decisionModule.ts:37](../src/engine/shared/script/decisionModule.ts#L37) |
-| Export | `ws_init` | `(lo: i32, hi: i32) → void`; generated glue initializes IO, ignores seed arguments | [sdk/decisionScriptBindings.ts:89](../src/sdk/decisionScriptBindings.ts#L89) |
+| Export | `ws_init` | `(lo: i32, hi: i32) → void`; generated glue initializes IO, ignores seed arguments | [sharddev/decisionScriptBindings.ts:89](../src/sharddev/decisionScriptBindings.ts#L89) |
 | Export | `ws_io` | `() → i32`, aligned byte address of IO | [engine/shared/script/decisionModule.ts:39](../src/engine/shared/script/decisionModule.ts#L39) |
-| Export | `ws_handle` | `() → i32`, returns command count | [sdk/decisionScriptBindings.ts:92](../src/sdk/decisionScriptBindings.ts#L92) |
+| Export | `ws_handle` | `() → i32`, returns command count | [sharddev/decisionScriptBindings.ts:92](../src/sharddev/decisionScriptBindings.ts#L92) |
 | Import | `ws_read` | `(op: i32, a: f64, b: f64) → f64` | [format/scriptAbiV1.ts:52](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L52) |
 | Import | `ws_list` | `(op: i32, a: f64, b: f64, out: i32, cap: i32) → i32`; count is f64 slots, not points | [format/scriptAbiV1.ts:52](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L52) [engine/server/script/decision.ts:344](../src/engine/server/script/decision.ts#L344) |
 | Import | `enter`, `leave` | `() → void`, metered call-depth guards | [format/scriptAbiV1.ts:50](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L50) [engine/shared/script/decisionModule.ts:27](../src/engine/shared/script/decisionModule.ts#L27) |
@@ -66,11 +66,11 @@ a DecisionHost**, shared by that host's bindings. [engine/shared/script/decision
 Before each call it rewinds the entire memory image and globals, writes inputs,
 then invokes `ws_handle` once for the event batch. Generated glue dispatches
 handlers in inbox order. Scratch globals/heap changes do not survive to the next
-call. [engine/shared/script/decisionModule.ts:70](../src/engine/shared/script/decisionModule.ts#L70) [engine/server/script/decision.ts:260](../src/engine/server/script/decision.ts#L260) [sdk/decisionScriptBindings.ts:88](../src/sdk/decisionScriptBindings.ts#L88)
+call. [engine/shared/script/decisionModule.ts:70](../src/engine/shared/script/decisionModule.ts#L70) [engine/server/script/decision.ts:260](../src/engine/server/script/decision.ts#L260) [sharddev/decisionScriptBindings.ts:88](../src/sharddev/decisionScriptBindings.ts#L88)
 
 | IO area | Little-endian f64 slots, relative to `ws_io()` | Source |
 |---|---|---|
-| Header | 0 tick; 1 elapsed seconds since last successful call (first: tick/60); 2 binding id; 3 self handle; 4 event count; 5–7 zeroed/reserved | [engine/server/script/decision.ts:263](../src/engine/server/script/decision.ts#L263) [sdk/as/ws.ts:9](../src/sdk/as/ws.ts#L9) |
+| Header | 0 tick; 1 elapsed seconds since last successful call (first: tick/60); 2 binding id; 3 self handle; 4 event count; 5–7 zeroed/reserved | [engine/server/script/decision.ts:263](../src/engine/server/script/decision.ts#L263) [sdk/as/ws.ts:9](../src/sharddev/as/ws.ts#L9) |
 | State | Starts at slot 8, in row declaration order; bool is 0/1 | [format/scriptAbiV1.ts:34](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L34) [engine/server/script/decision.ts:72](../src/engine/server/script/decision.ts#L72) [engine/server/script/decision.ts:265](../src/engine/server/script/decision.ts#L265) |
 | Params | After actual state slots, names sorted lexically | [format/decisionBindings.ts:40](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionBindings.ts#L40) [engine/server/script/decision.ts:181](../src/engine/server/script/decision.ts#L181) |
 | Inbox | After actual params; 16 reserved records of `[kind, subject, a, b, c, d]` | [format/scriptAbiV1.ts:27](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L27) [format/scriptAbiV1.ts:31](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L31) [format/scriptAbiV1.ts:34](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L34) |
@@ -88,7 +88,7 @@ IDs are defined by `scriptAbiV1.ts:2`; handler argument positions come from the
 generated bindings (`Event.subject` remains available for implicit subjects).
 **Works** means a production route exists, not that every shard subscribes.
 **Not wired** means an id/handler exists but lacks its delivering lane or producer.
-[format/scriptAbiV1.ts:2](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L2) [sdk/decisionScriptBindings.ts:34](../src/sdk/decisionScriptBindings.ts#L34)
+[format/scriptAbiV1.ts:2](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L2) [sharddev/decisionScriptBindings.ts:34](../src/sharddev/decisionScriptBindings.ts#L34)
 
 | Id | Event / generated handler | Status and actual payload / producer | Source |
 |---|---|---|---|
@@ -105,14 +105,14 @@ generated bindings (`Event.subject` remains available for implicit subjects).
 | 11 | `strike.done` / `onStrikeDone(strike, hit)` | Works: runner finished or start refused; subject actor | [game/server/shardfile/decisions.ts:300](../src/game/server/shardfile/decisions.ts#L300) [game/server/shardfile/decisions.ts:380](../src/game/server/shardfile/decisions.ts#L380) |
 | 12 | `flag` / `onFlag(flag, value)` | Works: world flag change; subject flag / a 0 or 1; player-flag writes do not emit this event | [game/server/shardfile/decisions.ts:165](../src/game/server/shardfile/decisions.ts#L165) [game/server/shardfile/decisions.ts:305](../src/game/server/shardfile/decisions.ts#L305) |
 | 13 | `signal` / `onSignal(signal, value, source)` | Works: signal command or mover end; subject signal / a value / b source actor (0 for mover end) | [game/server/shardfile/decisions.ts:309](../src/game/server/shardfile/decisions.ts#L309) [game/server/shardfile/decisions.ts:406](../src/game/server/shardfile/decisions.ts#L406) |
-| 14 | `strike.target` / `onStrikeTarget(target, by, strike)` | Not wired: handler/id reserved; decision owner has no strike-target event producer | [sdk/decisionScriptBindings.ts:42](../src/sdk/decisionScriptBindings.ts#L42) [game/server/shardfile/decisions.ts:380](../src/game/server/shardfile/decisions.ts#L380) |
+| 14 | `strike.target` / `onStrikeTarget(target, by, strike)` | Not wired: handler/id reserved; decision owner has no strike-target event producer | [sharddev/decisionScriptBindings.ts:42](../src/sharddev/decisionScriptBindings.ts#L42) [game/server/shardfile/decisions.ts:380](../src/game/server/shardfile/decisions.ts#L380) |
 | 15 | `player.join` / `onPlayerJoin(player)` | Works as binding activation notification for the local player; not a network membership event | [game/server/shardfile/decisions.ts:348](../src/game/server/shardfile/decisions.ts#L348) |
 | 16 | `player.leave` / `onPlayerLeave(player)` | Works as binding deactivation notification | [game/server/shardfile/decisions.ts:348](../src/game/server/shardfile/decisions.ts#L348) |
 | 17 | `spawned` / `onSpawned(spawn)` | Spawn-owned programs deliver it to the declared actor binding after a committed spawn | [game/server/population/spawnScript.ts:225](../src/game/server/population/spawnScript.ts#L225) |
 | 18 | `stop` / `onStop()` | Works: binding deactivates | [game/server/shardfile/decisions.ts:349](../src/game/server/shardfile/decisions.ts#L349) |
-| 30 | `field` / `onField(actor, field, value)` | Not wired: no v1 view lane; refused by sim host | [engine/server/script/decision.ts:138](../src/engine/server/script/decision.ts#L138) [engine/server/script/decision.ts:157](../src/engine/server/script/decision.ts#L157) [sdk/decisionScriptBindings.ts:45](../src/sdk/decisionScriptBindings.ts#L45) |
-| 31 | `cue` / `onCue(cue, actor)` | Not wired: same view-lane restriction | [engine/server/script/decision.ts:157](../src/engine/server/script/decision.ts#L157) [sdk/decisionScriptBindings.ts:45](../src/sdk/decisionScriptBindings.ts#L45) |
-| 32 | `channel` / `onChannel(channel, value)` | Not wired: same view-lane restriction | [engine/server/script/decision.ts:157](../src/engine/server/script/decision.ts#L157) [sdk/decisionScriptBindings.ts:46](../src/sdk/decisionScriptBindings.ts#L46) |
+| 30 | `field` / `onField(actor, field, value)` | Not wired: no v1 view lane; refused by sim host | [engine/server/script/decision.ts:138](../src/engine/server/script/decision.ts#L138) [engine/server/script/decision.ts:157](../src/engine/server/script/decision.ts#L157) [sharddev/decisionScriptBindings.ts:45](../src/sharddev/decisionScriptBindings.ts#L45) |
+| 31 | `cue` / `onCue(cue, actor)` | Not wired: same view-lane restriction | [engine/server/script/decision.ts:157](../src/engine/server/script/decision.ts#L157) [sharddev/decisionScriptBindings.ts:45](../src/sharddev/decisionScriptBindings.ts#L45) |
+| 32 | `channel` / `onChannel(channel, value)` | Not wired: same view-lane restriction | [engine/server/script/decision.ts:157](../src/engine/server/script/decision.ts#L157) [sharddev/decisionScriptBindings.ts:46](../src/sharddev/decisionScriptBindings.ts#L46) |
 
 Enqueue never calls Wasm synchronously. Unsubscribed events are ignored; active
 game bindings receive publications, and the decision scheduler drains up to
@@ -130,7 +130,7 @@ body ownership. Each scalar/list query charges 256 fuel. [engine/server/script/d
 
 Scalar op IDs are a separate namespace from list op IDs. Generated `Read`
 methods have these argument shapes; omitted wire arguments are zero.
-[format/scriptAbiV1.ts:8](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L8) [format/scriptAbiV1.ts:14](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L14) [sdk/decisionScriptBindings.ts:7](../src/sdk/decisionScriptBindings.ts#L7) [sdk/as/ws.ts:27](../src/sdk/as/ws.ts#L27)
+[format/scriptAbiV1.ts:8](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L8) [format/scriptAbiV1.ts:14](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L14) [sharddev/decisionScriptBindings.ts:7](../src/sharddev/decisionScriptBindings.ts#L7) [sdk/as/ws.ts:27](../src/sharddev/as/ws.ts#L27)
 
 | Id | Scalar `Read` | Result as built | Source |
 |---|---|---|---|
@@ -158,7 +158,7 @@ methods have these argument shapes; omitted wire arguments are zero.
 generated `Read` list calls return the slot count and `List.at(index)` retrieves
 values until the next list call. Ground/navigation xz inputs must stay within
 ±250; navigation requires the supplied navigation owner.
-[engine/server/script/decision.ts:344](../src/engine/server/script/decision.ts#L344) [sdk/as/ws.ts:28](../src/sdk/as/ws.ts#L28) [game/server/shardfile/decisions.ts:219](../src/game/server/shardfile/decisions.ts#L219)
+[engine/server/script/decision.ts:344](../src/engine/server/script/decision.ts#L344) [sdk/as/ws.ts:28](../src/sharddev/as/ws.ts#L28) [game/server/shardfile/decisions.ts:219](../src/game/server/shardfile/decisions.ts#L219)
 
 | Id | List `Read` | Response | Source |
 |---|---|---|---|
@@ -180,7 +180,7 @@ actors, observed targets and mechanic-specific bounds are checked before the
 batch can stage. Generated `Do` helpers write the following records (unused
 trailing slots are zero). The game handlers currently read `[op,target,a,b]`;
 this does not promise validation of every unused slot.
-[engine/server/script/decision.ts:286](../src/engine/server/script/decision.ts#L286) [engine/server/script/decision.ts:359](../src/engine/server/script/decision.ts#L359) [sdk/decisionScriptBindings.ts:21](../src/sdk/decisionScriptBindings.ts#L21) [sdk/as/ws.ts:23](../src/sdk/as/ws.ts#L23) [game/server/shardfile/decisions.ts:274](../src/game/server/shardfile/decisions.ts#L274)
+[engine/server/script/decision.ts:286](../src/engine/server/script/decision.ts#L286) [engine/server/script/decision.ts:359](../src/engine/server/script/decision.ts#L359) [sharddev/decisionScriptBindings.ts:21](../src/sharddev/decisionScriptBindings.ts#L21) [sdk/as/ws.ts:23](../src/sharddev/as/ws.ts#L23) [game/server/shardfile/decisions.ts:274](../src/game/server/shardfile/decisions.ts#L274)
 
 | Id | Command / record after op | Status and authority | Source |
 |---|---|---|---|
@@ -198,13 +198,13 @@ this does not promise validation of every unused slot.
 | 12 | `cue`: `[actorOr0, cue, 0, 0]` | Works: publishes cue event for presentation | [game/server/shardfile/decisions.ts:315](../src/game/server/shardfile/decisions.ts#L315) [game/server/shardfile/decisions.ts:438](../src/game/server/shardfile/decisions.ts#L438) |
 | 13 | `channel`: `[0, channel, value, 0]` | Works: publishes declared numeric channel | [game/server/shardfile/decisions.ts:318](../src/game/server/shardfile/decisions.ts#L318) [game/server/shardfile/decisions.ts:438](../src/game/server/shardfile/decisions.ts#L438) |
 | 14 | `impulse`: `[target, impulse, 0, 0]` | Refused at installation; **boss host** feature commit must own it; registry has no impulse IDs yet | [game/server/shardfile/decisions.ts:132](../src/game/server/shardfile/decisions.ts#L132) [format/decisionBindings.ts:58](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionBindings.ts#L58) [docs/plans/decisions.md:200](plans/decisions.md#L200) |
-| 15 | `encounter`: `[0, verb, value, 0]` | Works only for own encounter binding: 1 phase, 2 win, 3 fail; encounter validates value | [engine/server/script/decision.ts:376](../src/engine/server/script/decision.ts#L376) [game/server/shardfile/decisions.ts:320](../src/game/server/shardfile/decisions.ts#L320) [sdk/decisionScriptBindings.ts:84](../src/sdk/decisionScriptBindings.ts#L84) |
+| 15 | `encounter`: `[0, verb, value, 0]` | Works only for own encounter binding: 1 phase, 2 win, 3 fail; encounter validates value | [engine/server/script/decision.ts:376](../src/engine/server/script/decision.ts#L376) [game/server/shardfile/decisions.ts:320](../src/game/server/shardfile/decisions.ts#L320) [sharddev/decisionScriptBindings.ts:84](../src/sharddev/decisionScriptBindings.ts#L84) |
 | 16 | `weather`: `[0, weather, 0, 0]` | Refused at installation; **weather reactions** feature commit must own it | [game/server/shardfile/decisions.ts:132](../src/game/server/shardfile/decisions.ts#L132) [docs/plans/decisions.md:200](plans/decisions.md#L200) |
-| 100 | `view.channel`: `[0, channel, value, 0]` | Not wired: no v1 view runner; refused by sim host | [engine/server/script/decision.ts:138](../src/engine/server/script/decision.ts#L138) [engine/server/script/decision.ts:160](../src/engine/server/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:30](../src/sdk/decisionScriptBindings.ts#L30) |
-| 101 | `view.clip`: `[actor, clip, 0, 0]` | Not wired: same restriction | [engine/server/script/decision.ts:160](../src/engine/server/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:30](../src/sdk/decisionScriptBindings.ts#L30) |
-| 102 | `view.vfx`: `[actor, cue, 0, 0]` | Not wired: same restriction | [engine/server/script/decision.ts:160](../src/engine/server/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:31](../src/sdk/decisionScriptBindings.ts#L31) |
-| 103 | `view.sound`: `[actor, cue, 0, 0]` | Not wired: same restriction | [engine/server/script/decision.ts:160](../src/engine/server/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:31](../src/sdk/decisionScriptBindings.ts#L31) |
-| 104 | `view.visible`: `[actor, bool, 0, 0]` | Not wired: same restriction | [engine/server/script/decision.ts:160](../src/engine/server/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:32](../src/sdk/decisionScriptBindings.ts#L32) |
+| 100 | `view.channel`: `[0, channel, value, 0]` | Not wired: no v1 view runner; refused by sim host | [engine/server/script/decision.ts:138](../src/engine/server/script/decision.ts#L138) [engine/server/script/decision.ts:160](../src/engine/server/script/decision.ts#L160) [sharddev/decisionScriptBindings.ts:30](../src/sharddev/decisionScriptBindings.ts#L30) |
+| 101 | `view.clip`: `[actor, clip, 0, 0]` | Not wired: same restriction | [engine/server/script/decision.ts:160](../src/engine/server/script/decision.ts#L160) [sharddev/decisionScriptBindings.ts:30](../src/sharddev/decisionScriptBindings.ts#L30) |
+| 102 | `view.vfx`: `[actor, cue, 0, 0]` | Not wired: same restriction | [engine/server/script/decision.ts:160](../src/engine/server/script/decision.ts#L160) [sharddev/decisionScriptBindings.ts:31](../src/sharddev/decisionScriptBindings.ts#L31) |
+| 103 | `view.sound`: `[actor, cue, 0, 0]` | Not wired: same restriction | [engine/server/script/decision.ts:160](../src/engine/server/script/decision.ts#L160) [sharddev/decisionScriptBindings.ts:31](../src/sharddev/decisionScriptBindings.ts#L31) |
+| 104 | `view.visible`: `[actor, bool, 0, 0]` | Not wired: same restriction | [engine/server/script/decision.ts:160](../src/engine/server/script/decision.ts#L160) [sharddev/decisionScriptBindings.ts:32](../src/sharddev/decisionScriptBindings.ts#L32) |
 | 105 | `view.field`: `[0, fieldId, value, 0]` | Reserved; no runtime adapter after Z9. Simulation bindings refuse it. | [eased weather fields](../src/engine/shared/world/easedFields.ts) |
 
 These four refused sim commands fail even if never executed: listing the
@@ -266,7 +266,7 @@ of binding identity, seed stream and save compatibility.
 | Depth/structure | Depth 64; ≤ 256 KiB module, 512 functions/types, 128 globals, 1,024 locals/function | [format/scriptAbi.ts:2](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbi.ts#L2) [format/scriptAdmission.ts:61](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAdmission.ts#L61) [format/scriptAdmission.ts:72](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAdmission.ts#L72) [format/scriptAdmission.ts:88](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAdmission.ts#L88) [format/scriptAdmission.ts:95](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAdmission.ts#L95) |
 | Memory | Fixed 1–4 × 64 KiB per module; memory.grow refused; initialized image retained alongside live memory, plus module/global bookkeeping; not v0's three-copy 24 MB policy | [format/scriptAdmission.ts:85](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAdmission.ts#L85) [format/scriptAdmission.ts:126](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAdmission.ts#L126) [engine/shared/script/decisionModule.ts:21](../src/engine/shared/script/decisionModule.ts#L21) [engine/shared/script/decisionModule.ts:41](../src/engine/shared/script/decisionModule.ts#L41) |
 | State/params | ≤ 16 declared slots, ≤ 32 finite parameters | [format/decisionScripts.ts:34](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L34) [engine/server/script/decision.ts:140](../src/engine/server/script/decision.ts#L140) |
-| AS source | Compiler requires explicit standalone ceiling or floor(legacy lines / 10); counts every authored .as including unused imports/sources, excluding comments/blank lines | [sdk/buildDecisionScripts.ts:19](../src/sdk/buildDecisionScripts.ts#L19) [sdk/buildDecisionScripts.ts:30](../src/sdk/buildDecisionScripts.ts#L30) [sdk/buildDecisionScripts.ts:70](../src/sdk/buildDecisionScripts.ts#L70) [sdk/decisionSource.ts:43](../src/sdk/decisionSource.ts#L43) |
+| AS source | Compiler requires explicit standalone ceiling or floor(legacy lines / 10); counts every authored .as including unused imports/sources, excluding comments/blank lines | [sharddev/buildDecisionScripts.ts:19](../src/sharddev/buildDecisionScripts.ts#L19) [sharddev/buildDecisionScripts.ts:30](../src/sharddev/buildDecisionScripts.ts#L30) [sharddev/buildDecisionScripts.ts:70](../src/sharddev/buildDecisionScripts.ts#L70) [sharddev/decisionSource.ts:43](../src/sharddev/decisionSource.ts#L43) |
 | Failure budget | Third accumulated refusal disables binding; successful calls do not clear prior failures; fallback is invoked once on disable | [engine/server/script/decision.ts:299](../src/engine/server/script/decision.ts#L299) [engine/server/script/decision.ts:303](../src/engine/server/script/decision.ts#L303) |
 
 Metering is deliberately coarse: compilation inserts a positive charge at every
@@ -274,7 +274,7 @@ implementation entry and loop header (`bytes.length * 4 + 128 * functionCount +
 1024`); every function is wrapped with enter/leave. No optimization follows
 instrumentation. Finite guards also charge one fuel. Fuel is an accounting
 budget, not milliseconds or an exact instruction count.
-[sdk/bake/compileScript.ts:38](../src/sdk/bake/compileScript.ts#L38) [sdk/bake/compileScript.ts:47](../src/sdk/bake/compileScript.ts#L47) [sdk/bake/compileScript.ts:60](../src/sdk/bake/compileScript.ts#L60) [sdk/bake/compileScript.ts:69](../src/sdk/bake/compileScript.ts#L69) [engine/shared/script/decisionModule.ts:58](../src/engine/shared/script/decisionModule.ts#L58)
+[sharddev/bake/compileScript.ts:38](../src/sharddev/bake/compileScript.ts#L38) [sharddev/bake/compileScript.ts:47](../src/sharddev/bake/compileScript.ts#L47) [sharddev/bake/compileScript.ts:60](../src/sharddev/bake/compileScript.ts#L60) [sharddev/bake/compileScript.ts:69](../src/sharddev/bake/compileScript.ts#L69) [engine/shared/script/decisionModule.ts:58](../src/engine/shared/script/decisionModule.ts#L58)
 
 The game's fallback behavior is literal: `hold` leaves existing mechanics alone;
 `reset` stops owned actors and retries an encounter binding; `skip` stops owned
@@ -333,7 +333,7 @@ not v1 command/event IDs: the director admits event-only effects, can dispatch
 at zero elapsed time using the same tick allowances, and saves guest memory/
 globals with its host checkpoint. V0 is retired per shard and deleted with its
 last user (G484), not silently reinterpreted as v1.
-[format/scriptAbi.ts:4](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbi.ts#L4) [game/server/shardfile/scriptComposition.ts:17](../src/game/server/shardfile/scriptComposition.ts#L17) [game/client/shardfile/clientScripts.ts:17](../src/game/client/shardfile/clientScripts.ts#L17) [sdk/buildBehaviour.ts:29](../src/sdk/buildBehaviour.ts#L29) [game/shared/plugin/director.ts:21](../src/game/shared/plugin/director.ts#L21) [game/shared/plugin/director.ts:48](../src/game/shared/plugin/director.ts#L48) [game/shared/plugin/director.ts:75](../src/game/shared/plugin/director.ts#L75) [game/shared/plugin/director.ts:97](../src/game/shared/plugin/director.ts#L97) [docs/plans/decisions.md:200](plans/decisions.md#L200)
+[format/scriptAbi.ts:4](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbi.ts#L4) [game/server/shardfile/scriptComposition.ts:17](../src/game/server/shardfile/scriptComposition.ts#L17) [game/client/shardfile/clientScripts.ts:17](../src/game/client/shardfile/clientScripts.ts#L17) [sharddev/buildBehaviour.ts:29](../src/sharddev/buildBehaviour.ts#L29) [game/shared/plugin/director.ts:21](../src/game/shared/plugin/director.ts#L21) [game/shared/plugin/director.ts:48](../src/game/shared/plugin/director.ts#L48) [game/shared/plugin/director.ts:75](../src/game/shared/plugin/director.ts#L75) [game/shared/plugin/director.ts:97](../src/game/shared/plugin/director.ts#L97) [docs/plans/decisions.md:200](plans/decisions.md#L200)
 
 ## Gaps between the design and code
 
@@ -347,7 +347,7 @@ These are findings, not additional API promises or code changes:
   despite the design's “id only” status. They do not prove multiplayer joins.
   Spawn-owned programs produce `spawned`; `strike.target` still lacks a
   producer in the decision owner.
-  [progress/shard-platform/wasm-api-design-2026-10-17/README.md:88](../progress/shard-platform/wasm-api-design-2026-10-17/README.md#L88) [game/server/shardfile/decisions.ts:336](../src/game/server/shardfile/decisions.ts#L336) [game/server/shardfile/decisions.ts:380](../src/game/server/shardfile/decisions.ts#L380) [sdk/decisionScriptBindings.ts:42](../src/sdk/decisionScriptBindings.ts#L42)
+  [progress/shard-platform/wasm-api-design-2026-10-17/README.md:88](../progress/shard-platform/wasm-api-design-2026-10-17/README.md#L88) [game/server/shardfile/decisions.ts:336](../src/game/server/shardfile/decisions.ts#L336) [game/server/shardfile/decisions.ts:380](../src/game/server/shardfile/decisions.ts#L380) [sharddev/decisionScriptBindings.ts:42](../src/sharddev/decisionScriptBindings.ts#L42)
 - **Group API:** G484(a)'s spawn-group binding and skitterer port landed in
   `9c6361f6b` / `74c87e851`. A `{ spawnGroup: id }` binding expands into one
   logical binding per declared actor, with actor-scoped slots and an owned
@@ -452,7 +452,7 @@ not change any existing v0/v1 compilation, admission, module hash or save.
 H13 owns the later cutover. See [WASM-HOST](plans/WASM-HOST.md).
 
 The implemented build entry is
-[`compileScriptV2(source, { lane, maximumPages, ioBytes, sources })`](../src/sdk/bake/compileScriptV2.ts).
+[`compileScriptV2(source, { lane, maximumPages, ioBytes, sources })`](../src/sharddev/bake/compileScriptV2.ts).
 Select `sim`, `project` or `view`; inference is allowed only when one authored
 work export exists. The compiler keeps that work export, init and the getters.
 [`admitScriptV2(bytes, { lane, ioBytes })`](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAdmissionV2.ts)

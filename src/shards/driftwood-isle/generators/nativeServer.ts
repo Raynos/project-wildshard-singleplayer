@@ -1,4 +1,4 @@
-import { nativeAssemblyFiles, type NativeAssemblyPlan, type ServerBlob } from '@wildshard/sdk/blobs';
+import { nativeAssemblyFiles, type NativeAssemblyPlan, type ServerBlob } from '@wildshard/sharddev/blobs';
 import keeper from '../data/nativeKeeper.json' with { type: 'json' };
 import mixedPopulation from '../data/mixedPopulation.json' with { type: 'json' };
 import nativePopulationPolicy from '../data/nativePopulationPolicy.json' with { type: 'json' };

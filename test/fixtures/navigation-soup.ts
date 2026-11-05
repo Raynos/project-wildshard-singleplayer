@@ -1,4 +1,4 @@
-import type { NavigationLayer, NavigationSettings, NavigationSoup } from '../../src/sdk/bake/navigation';
+import type { NavigationLayer, NavigationSettings, NavigationSoup } from '../../src/sharddev/bake/navigation';
 
 /** Retained native baker defaults, before the CPU extraction at 92603cc43. */
 export const NAVIGATION_SETTINGS: NavigationSettings = {

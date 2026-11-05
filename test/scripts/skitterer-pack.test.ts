@@ -11,7 +11,7 @@ import { readCreatureStrikes } from '@wildshard/format/creatures';
 import { buildDecisionRegistries, decisionBindingMap, DECISION_PLAYER_HANDLE } from '@wildshard/format/decisionBindings';
 import { DecisionHost, type DecisionScript, type DecisionTrace } from '../../src/engine/server/script/decision';
 import { DecisionModule } from '../../src/engine/shared/script/decisionModule';
-import { ScenarioWorld, scenario } from '../../src/sdk/test/scriptScenario';
+import { ScenarioWorld, scenario } from '../../src/sharddev/test/scriptScenario';
 import { SCRIPT_V1_READS, SCRIPT_V1_LISTS, type ScriptV1ReadName, type ScriptV1ListName } from '@wildshard/format/scriptAbiV1';
 import { outputDescriptor } from '../../src/game/shared/shardfile/outputDescriptor';
 import { loadRapier } from '../../src/engine/shared/physics/rapier';

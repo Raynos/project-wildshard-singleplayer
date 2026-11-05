@@ -1,5 +1,5 @@
 import { MeshStandardMaterial } from 'three';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
 import { bakeRockScenes, type RockSceneBake, type SmallPlacement } from './rockScenes';
 import { compactChannels } from './compactChannels';
 import { shoreBoulderFacts } from './shoreBoulders';

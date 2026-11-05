@@ -1,8 +1,8 @@
-import { clientSceneGlb } from '@wildshard/sdk/bake/glb';
+import { clientSceneGlb } from '@wildshard/sharddev/bake/glb';
 import { MILL_REST_URL } from './restFiles';
 import { Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, type BufferGeometry } from 'three';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
+import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sharddev/kit/geometryPack';
 import { hdGeometry, fitModel } from './modelIntake';
 import { MILL_COURSES, MILL_TOWER, MODELLED } from './rows/millShape';
 import { HD_URLS } from './fileInventory';
@@ -10,7 +10,7 @@ import { HD_URLS } from './fileInventory';
 /**
  * Build-time only (SHARD-PLATFORM M3, offline bakes): the windmill's modelled tower and rock foot (E410; world/mill.ts
  * draws them), fitted from their generated GLBs as the page used to fit them on load, baked by `bake-sky-world.mjs` into
- * `baked/mill-model.bin` (a deflated `@wildshard/sdk/kit/geometryPack`) + `data/millModel.json`: the tower turned so its
+ * `baked/mill-model.bin` (a deflated `@wildshard/sharddev/kit/geometryPack`) + `data/millModel.json`: the tower turned so its
  * windshaft stub faces +z and scaled so the stub sits at the code hub's height, the painted stone's course UVs on it; the
  * foot squashed, sunk and its lip flattened past the walk; and the hub's place on the stub. The page keeps the GLBs' maps.
  */

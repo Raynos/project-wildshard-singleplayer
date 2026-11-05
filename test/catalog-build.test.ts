@@ -4,12 +4,12 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, 
 import { basename, dirname, resolve } from 'node:path';
 import { afterEach, expect, it, vi } from 'vitest';
 import { build as viteBuild } from 'vite';
-import { emptyShardfile } from '@wildshard/sdk/author';
-import { runCli } from '../src/sdk/cli';
-import { writeOutputProduct } from '@wildshard/sdk/outputProduct';
-import { writeRuntimeFiles } from '@wildshard/sdk/outputRuntime';
-import { mergeProjectBlobs } from '@wildshard/sdk/projectOutput';
-import { manifestImages, packManifestImages } from '@wildshard/sdk/projectManifest';
+import { emptyShardfile } from '@wildshard/sharddev/author';
+import { runCli } from '../src/sharddev/cli';
+import { writeOutputProduct } from '@wildshard/sharddev/outputProduct';
+import { writeRuntimeFiles } from '@wildshard/sharddev/outputRuntime';
+import { mergeProjectBlobs } from '@wildshard/sharddev/projectOutput';
+import { manifestImages, packManifestImages } from '@wildshard/sharddev/projectManifest';
 import { parseManifestMetadata } from '@wildshard/format/minimap';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { parseOutputIndex } from '@wildshard/format/outputIndex';

@@ -12,7 +12,7 @@ None directly; it finishes the path the Crate Titan uses (phases with layers of 
 
 Research:
 
-- `src/game/server/plugin/bossPhase.ts` (1,007 lines) is plugin scaffolding reached through `src/sdk/phasedBoss.ts` (34
+- `src/game/server/plugin/bossPhase.ts` (1,007 lines) is plugin scaffolding reached through `src/sharddev/phasedBoss.ts` (34
   lines), imported by Pine's `generators/kingFight.ts` and Nalati's `generators/goldenKingArena.ts`.
 - Pine's King also uses `bossRow.ts` (retired in E12a), `custom/kingKit` (a live custom section, migration map §7) and
   boss music `layers` with phase gains (the audio plan §1: "a boss slot adds layers (bass, drums) with gains per phase
@@ -22,7 +22,7 @@ Research:
 
 Work: express both bosses as E12a's boss rows (phases, moves, adds, reward, intro seconds) with their per-boss logic as
 AS (`king.as` stays, re-bound to the host's ABI v1 ports; the Golden King's script likewise); move `custom/kingKit`'s
-data into the boss rows and the shard's model rows; delete `plugin/bossPhase.ts` and `sdk/phasedBoss.ts`.
+data into the boss rows and the shard's model rows; delete `plugin/bossPhase.ts` and `sharddev/phasedBoss.ts`.
 
 Host bar: no new host. Guards: `shard-game-plugins`, the custom-section freeze (`kingKit` gone), ratchet. Tests: Pine
 King tests (grep `test/*king*`), Nalati kurgan / Golden King tests, `test/fixtures/pine-headless.ts`.

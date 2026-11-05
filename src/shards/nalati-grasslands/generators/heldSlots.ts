@@ -1,4 +1,4 @@
-import { mountedLoadoutRows, bowVariantRows, heldSlotsRows as parseHeldSlots } from '@wildshard/sdk/rows';
+import { mountedLoadoutRows, bowVariantRows, heldSlotsRows as parseHeldSlots } from '@wildshard/sharddev/rows';
 
 /** Compile the original native arsenal order and reward identities to finite
  * held slot rows. No native owner, view builder or callable leaves this bake. */

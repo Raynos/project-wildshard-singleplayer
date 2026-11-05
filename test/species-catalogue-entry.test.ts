@@ -5,7 +5,7 @@ import { ClientSpeciesProgramSchema } from '@wildshard/format/clientNative';
 import { HullLookBookSchema, PackedCreatureLooksSchema } from '@wildshard/format/speciesLooks';
 import { SpeciesPresentationSchema } from '@wildshard/format/speciesBookRows';
 import { Scope } from '../src/engine/shared/app/scope';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';
 import { entryOwner } from '../src/game/shared/shardfile/entryOwners';

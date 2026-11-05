@@ -5,8 +5,8 @@ import {mkdirSync,mkdtempSync,writeFileSync,rmSync,symlinkSync} from 'node:fs';
 import {resolve,dirname} from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the actual emitted-byte identity.
 import {createHash} from 'node:crypto';
-import {emptyShardfile} from '../src/sdk/author';
-import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
+import {emptyShardfile} from '../src/sharddev/author';
+import {registeredJsonSchema} from '../src/sharddev/formatJsonSchema';
 import {productSectionEntries,sectionInventory,platformSchemaBindings,sectionReaders,hostGroupBindings,renderSectionInventory} from '../scripts/section-inventory';
 
 const hash=(wire:string):string=>createHash('sha256').update(wire).digest('hex');

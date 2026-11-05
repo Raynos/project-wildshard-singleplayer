@@ -3,7 +3,7 @@ import { expect, it } from 'vitest';
 import { BufferGeometry, Mesh, MeshStandardMaterial } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import { modelContext } from '@wildshard/engine/models/model';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
 import { Scope } from '../src/engine/shared/app/scope';
 import { createOwnedGeometry } from '../src/engine/client/models/ownedGeometry';
 import { defineWorldSceneCatalogue, bindWorldSceneModelSources } from '../src/game/client/models/worldSceneCatalogue';

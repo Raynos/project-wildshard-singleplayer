@@ -20,7 +20,7 @@ import { installTerrainTile } from '@wildshard/engine/world/terrainTileView';
 import { ToonLook } from '@wildshard/engine/render/families/toon';
 import { PainterlyLook } from '@wildshard/engine/render/families/painterly';
 import { familyCompileJobs, familyMaterial } from '@wildshard/engine/render/families/registry';
-import { staticGlb } from '../../src/sdk/bake/glb';
+import { staticGlb } from '../../src/sharddev/bake/glb';
 import { defineWorldSceneCatalogue } from '../../src/game/client/models/worldSceneCatalogue';
 import { driftwoodPierScenes } from '../../src/shards/driftwood-isle/generators/pierScenesBank';
 import layout from '../../src/shards/_template/data/layout.json' with { type: 'json' };

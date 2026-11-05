@@ -1,5 +1,5 @@
 
-import { explorerCatalogueRows as parseExplorerCatalogue } from '@wildshard/sdk/rows';
+import { explorerCatalogueRows as parseExplorerCatalogue } from '@wildshard/sharddev/rows';
 import { ANTLER_KING_CARD } from './kingCard';
 
 /** Ordered references retain the original native specimen order. */

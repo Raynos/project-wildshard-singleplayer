@@ -4,7 +4,7 @@
 // binary's hash and size, the geometries, the buildings) to the cabin scenes, cabin living and the ambience, instead of
 // the retired pine-cabins job's baked/cabins.bin and data/cabins.json. D65: the grid comes from the program's sources.
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
+import { readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
 import { bakePineCabins } from './logCabin.ts';
 import { TERRAIN_SOURCE, perSources } from './pineSources.ts';
 

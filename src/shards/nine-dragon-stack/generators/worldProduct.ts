@@ -1,11 +1,11 @@
-import { completeEmptyL1Tiles } from '@wildshard/sdk/bake/tileGrid';
+import { completeEmptyL1Tiles } from '@wildshard/sharddev/bake/tileGrid';
 import { projectNineLayout } from './layoutSource';
-import { parseGlb } from '@wildshard/sdk/assets';
+import { parseGlb } from '@wildshard/sharddev/assets';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
-import { brotliBytes } from '@wildshard/sdk/bake/compactGlb';
+import { compressGlb } from '@wildshard/sharddev/bake/glbCompression';
+import { brotliBytes } from '@wildshard/sharddev/bake/compactGlb';
 import { nineScene } from './scene';
-import type { BakedScene } from '@wildshard/sdk/bake';
+import type { BakedScene } from '@wildshard/sharddev/bake';
 import type { NineSpillAtlas } from './spillBake';
 
 export interface NineWorldProduct {

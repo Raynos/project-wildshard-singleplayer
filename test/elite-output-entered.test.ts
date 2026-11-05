@@ -39,8 +39,8 @@ import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { mockCanvas } from '@wildshard/engine/test/weaponParity';
 
 import { SpawnScript } from '../src/game/server/population/spawnScript';
-import { compileScript } from '../src/sdk/bake/compileScript';
-import { compileSimV2 } from '../src/sdk/test/compileSimV2';
+import { compileScript } from '../src/sharddev/bake/compileScript';
+import { compileSimV2 } from '../src/sharddev/test/compileSimV2';
 import { layoutV2 } from '@wildshard/format/scriptWireV2';
 import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
 import { sha256 } from '../src/game/shared/plugin/moduleHash';

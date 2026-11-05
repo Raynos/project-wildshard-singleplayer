@@ -1,4 +1,4 @@
-import type { NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
+import type { NativeTerrainSource } from '@wildshard/sharddev/bake/terrain';
 import { PineSeedStream as Rng } from './seedStream';
 import { Noise2D, smoothstep, lerp } from './floorNoise';
 import { pineCragQueries } from './cragGround';

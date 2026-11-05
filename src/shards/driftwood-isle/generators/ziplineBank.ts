@@ -1,5 +1,5 @@
 import { Matrix4, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import spots from '../data/spotsRows.json' with { type: 'json' };
 import { buildZiplineGeometry } from './lookout';

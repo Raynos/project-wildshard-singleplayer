@@ -1,8 +1,8 @@
 // GR (Pine map assembly): the map assembly's rest world over owned bytes only (scripts/map-world.mjs's MapWorld, mapGround
 // and mapPool, which read source paths from disk). Every blob, recipe and model arrives as bytes; nothing is read from a file.
 import { BufferGeometry, Euler, Float32BufferAttribute, Matrix4, Quaternion, Vector3 } from 'three';
-import { mapModelBytes } from '@wildshard/sdk/bake/mapAssembly';
-import { MapRaster } from '@wildshard/sdk/bake/mapRaster';
+import { mapModelBytes } from '@wildshard/sharddev/bake/mapAssembly';
+import { MapRaster } from '@wildshard/sharddev/bake/mapRaster';
 
 /** Prepared specimens borrow local geometry, ignoring the source node's pose; raw sculpts opt into the node transform. */
 const mapModel = (bytes, slot = 0, world = false) => mapModelBytes(bytes, slot, world);

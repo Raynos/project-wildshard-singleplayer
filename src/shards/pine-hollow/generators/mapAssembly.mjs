@@ -1,10 +1,10 @@
 // G508: complete map rest assembly, exclusively from shipping source data. A pure producer: its caller owns every read
 // (`sources`, Pine's program sources) and the map's painter takes its files (`pineMapFiles`).
 import { BufferGeometry, Color, Float32BufferAttribute, Matrix4, Quaternion, Vector3 } from 'three';
-import { MapAssembly } from '@wildshard/sdk/bake/mapAssembly';
-import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
-import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
-import { bakeForestPlacements, nativeTerrainQueries } from '@wildshard/sdk/bake/forest';
+import { MapAssembly } from '@wildshard/sharddev/bake/mapAssembly';
+import { encodeBuildBytes } from '@wildshard/sharddev/bake/byteCodec';
+import { readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
+import { bakeForestPlacements, nativeTerrainQueries } from '@wildshard/sharddev/bake/forest';
 import { MapWorld, mapGround, mapPool } from './mapWorld.mjs';
 import { TERRAIN_SOURCE } from './pineSources.ts';
 import manifest from '../manifest.json' with { type: 'json' };

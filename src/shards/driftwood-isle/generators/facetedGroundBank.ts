@@ -1,4 +1,4 @@
-import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
+import { readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { OCEAN } from './worldSites';
 import { TRAILS, WORLD_DROP } from './landscapeRows';

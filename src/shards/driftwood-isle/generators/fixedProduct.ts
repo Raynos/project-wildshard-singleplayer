@@ -1,5 +1,5 @@
 import { parseShardfileField, type Shardfile } from '@wildshard/sdk/shardfile';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { driftwoodFixedFiles } from './fixedProgram';
 
 /** Original fixed world fields used by the declaration, validated at the owned-byte boundary. */

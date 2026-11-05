@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { writtenBundle } from '../scripts/app-build/writtenBundle';
 import { buildWithBootModules } from './fixtures/written-build';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own and remove the tiny compiler fixture.
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve fixture files without changing cwd.

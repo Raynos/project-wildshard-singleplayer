@@ -1,9 +1,9 @@
 import { MeshStandardMaterial } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
+import { readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { Rng } from '@wildshard/sdk/random';
+import { Rng } from '@wildshard/sharddev/random';
 import { WRECK, OCEAN } from './worldSites';
 import foliagePolicy from '../data/foliagePolicy.json' with { type: 'json' };
 import { SEED, WORLD_DROP } from './landscapeRows';

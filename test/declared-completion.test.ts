@@ -6,7 +6,7 @@ import { Flags } from '../src/engine/shared/world/interact/flags';
 import { createQuestPlacements } from '../src/engine/shared/world/interact/types';
 import { parseCompletion } from '@wildshard/format/completion';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { completionProjection, fmtPlayTime, installCompletion, type CompletionContext } from '../src/game/client/complete/declared';
 import { completeEntry } from '../src/game/client/complete/ShardComplete';
 import { completionRows, COMPLETE_CONTENT } from '../src/shards/driftwood-isle/generators/completion';

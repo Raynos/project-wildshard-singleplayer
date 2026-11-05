@@ -1,5 +1,5 @@
 // The same checked SDK installer used by author contexts, outside the product CPU pool.
-import { prepareBasisTool } from '../src/sdk/bake/basisTool.ts';
+import { prepareBasisTool } from '../src/sharddev/bake/basisTool.ts';
 
 const started = performance.now();
 const tool = await prepareBasisTool();

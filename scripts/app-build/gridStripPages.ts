@@ -4,7 +4,7 @@ import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import { BufferAttribute, BufferGeometry } from 'three';
-import { GeometryPackWriter } from '../../src/sdk/kit/geometryPack';
+import { GeometryPackWriter } from '../../src/sharddev/kit/geometryPack';
 import { gridLookBytes } from './encodedBytes';
 import type { GeneratedStrip } from '../../src/engine/shared/sim/strips';
 import { GRID_STRIP_FEATURE_KINDS, decodeCompiledGridLook, gridStripPageKey, parseCompiledGridHeader, type CompiledGridAddress, type CompiledGridHeader, type CompiledGridPage, type CompiledGridSelector, type GridStripPhase } from '../../src/game/shared/grid/compiledStrips';

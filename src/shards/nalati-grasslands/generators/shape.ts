@@ -1,4 +1,4 @@
-import { loft, type Paint, type Station } from '@wildshard/sdk/bake/species';
+import { loft, type Paint, type Station } from '@wildshard/sharddev/bake/species';
 import * as THREE from 'three';
 
 

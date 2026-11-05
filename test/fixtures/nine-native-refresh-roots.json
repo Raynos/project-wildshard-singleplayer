@@ -2,9 +2,9 @@
   "package.json",
   "pnpm-lock.yaml",
   "scripts/bake-output.mjs",
-  "src/sdk/bake/source-loader.mjs",
-  "src/sdk/bake/image.ts",
-  "src/sdk/bake/worldImage.ts",
+  "src/sharddev/bake/source-loader.mjs",
+  "src/sharddev/bake/image.ts",
+  "src/sharddev/bake/worldImage.ts",
   "src/shards/nine-dragon-stack/generators/bake-sign-atlas.mjs",
   "src/shards/nine-dragon-stack/generators/signAtlasPage.ts",
   "src/shards/nine-dragon-stack/generators/signAtlas.ts",
@@ -16,6 +16,7 @@
   "src/shards/nine-dragon-stack/generators",
   "src/shards/nine-dragon-stack/data",
   "src/sdk",
+  "src/sharddev",
   "src/engine",
   "src/commons"
 ]

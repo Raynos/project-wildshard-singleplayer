@@ -1,5 +1,5 @@
-import type { BakedProps } from '@wildshard/sdk/bake/props';
-import { completeL0Tiles, completeEmptyL1Tiles } from '@wildshard/sdk/bake/tileGrid';
+import type { BakedProps } from '@wildshard/sharddev/bake/props';
+import { completeL0Tiles, completeEmptyL1Tiles } from '@wildshard/sharddev/bake/tileGrid';
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { skyIsleProps } from './isleProps';
 

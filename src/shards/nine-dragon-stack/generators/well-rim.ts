@@ -12,7 +12,7 @@ import { relief } from './gate';
 import { placeLion } from './props3d';
 import type { KitX } from './kitx';
 import { NEON } from './util';
-import { Rng } from '@wildshard/sdk/random';
+import { Rng } from '@wildshard/sharddev/random';
 import { NEONS } from './towers';
 import { WORDS } from './words';
 import paint from '../data/paint.json' with { type: 'json' };

@@ -9,7 +9,7 @@ import { SceneBakedGeometrySchema } from '@wildshard/format/sceneDressing';
 import { PrivateSceneSchema } from '@wildshard/format/clientChannels';
 import { expect, it } from 'vitest';
 import { MeshBasicMaterial } from 'three';
-import { readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
+import { readBakedGeometry } from '@wildshard/sharddev/kit/bakedGeometry';
 import { createClientScene } from '@wildshard/game/plugin/scene';
 import { unshuffleLanes as unshuffleBodyLanes, decodeLaneBytes } from '../src/engine/client/core/deflate';
 import oracle from './fixtures/nalati-crag-bake.json';

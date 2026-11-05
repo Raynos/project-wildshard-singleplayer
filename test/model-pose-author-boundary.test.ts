@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
 import { modelPoseMatrix } from '../src/engine/client/models/modelPose';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 
 test('model pose owns independent matrices and the original YXZ placement convention', () => {
   const pose = { x: 4, y: -2, z: 8, yaw: Math.PI / 2, scale: 3 };

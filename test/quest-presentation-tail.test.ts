@@ -3,7 +3,7 @@ import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { installQuestHintFile } from '../src/game/client/quest/hints';
 import { requireQuestPageOwners } from '../src/game/client/quest/pageComposition';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

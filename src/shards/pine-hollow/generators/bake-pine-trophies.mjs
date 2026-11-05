@@ -3,11 +3,11 @@
 // hash-named and immutable, to public/assets/pine-hollow/baked/trophies-<sha12>.bin and its rows (url, byte size, hash,
 // geometry rows, each mount slot's geometry) to src/shards/pine-hollow/data/trophyMounts.json, which the page
 // reads (runtime/compendium/trophyWall.ts). `--check` refuses stale outputs.
-// Usage: node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs src/shards/pine-hollow/generators/bake-pine-trophies.mjs
+// Usage: node --experimental-transform-types --import ./src/sharddev/bake/source-loader.mjs src/shards/pine-hollow/generators/bake-pine-trophies.mjs
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
-import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
+import { encodeBuildBytes } from '@wildshard/sharddev/bake/byteCodec';
+import { readImagePixels, writeImagePixels } from '@wildshard/sharddev/bake/image';
 import { bakePineTrophies } from './trophyMounts.ts';
 
 const root = new URL('../../../../', import.meta.url), check = process.argv.includes('--check');

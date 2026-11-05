@@ -3,7 +3,7 @@ import { buildFarProxy, edgeLeanDrop, type FarEdgeLean, type FarGrid, type FarLo
 
 /**
  * G348 (Jake: the near and far placeholders are generic for any shard the MMO loads): the one placeholder mesh the bakes
- * build, for the SDK build (`wildshard build`, `@wildshard/sdk/bake/placeholders`) and the repo's bake runners alike.
+ * build, for the SDK build (`wildshard build`, `@wildshard/sharddev/bake/placeholders`) and the repo's bake runners alike.
  * A far proxy and a near placeholder are the same single-draw shape (4 × 4 regions in TEXCOORD_0.x, skirts, the cell's
  * cliff face, the shard's look in vertex colours); the near one is denser, carries the shard's own world as parts and
  * reduces its ground by geometric error. Node-safe; nothing here knows a shard.

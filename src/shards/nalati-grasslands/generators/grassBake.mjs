@@ -2,10 +2,10 @@
 // lattices and both tiers' blade, flower and card scenes as owned bytes, and the rows that name them. Pure: the caller
 // supplies the native lattice and the dressing placements (the cover the grass keeps out of).
 import { DataUtils } from 'three';
-import { smoothstep } from '@wildshard/sdk/noise';
-import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
-import { bakeMeadowField } from '@wildshard/sdk/bake/meadow';
-import { encodePortableBytes } from '@wildshard/sdk/bake/portableBytes';
+import { smoothstep } from '@wildshard/sharddev/noise';
+import { readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
+import { bakeMeadowField } from '@wildshard/sharddev/bake/meadow';
+import { encodePortableBytes } from '@wildshard/sharddev/bake/portableBytes';
 import view from '../data/grassView.json' with { type: 'json' };
 import NALATI_GRASS_LAYOUT from '../data/grassFieldLayout.json' with { type: 'json' };
 import { TERRAIN, SEED, RIVER, groundColor } from './terrainRecipe.ts';

@@ -1,4 +1,4 @@
-import type { PreparedProjectOutput } from '../../src/sdk/projectOutput';
+import type { PreparedProjectOutput } from '../../src/sharddev/projectOutput';
 import { hashImmutableBytes } from '../../src/sdk/immutable';
 
 /** Whole original admission inventory: contracts plus the hash and length of every complete physical byte array. */

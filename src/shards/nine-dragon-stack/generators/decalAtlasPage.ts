@@ -1,4 +1,4 @@
-import { canvasAtlasRows, paintCanvasAtlas } from '@wildshard/sdk/bake/canvasAtlas';
+import { canvasAtlasRows, paintCanvasAtlas } from '@wildshard/sharddev/bake/canvasAtlas';
 import decals from '../data/decals.json' with { type: 'json' };
 import plumbing from '../data/plumbing.json' with { type: 'json' };
 

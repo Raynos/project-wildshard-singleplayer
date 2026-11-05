@@ -9,12 +9,12 @@ import paint from '../data/paint.json' with { type: 'json' };
 import { BOOTHS, PARASOLS, PAVILIONS, hawkerStall, marketDiners, marketRow, noodleStall, pavilionDiners, pavilions, stallDiners } from './stalls';
 import { K, type Kit, type Look } from './kit';
 import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
-import { numberTupleRows } from '@wildshard/sdk/rows';
+import { numberTupleRows } from '@wildshard/sharddev/rows';
 import { walkable } from './layoutMath';
 import { dragonHook, scooter } from './props';
 import { WELL_RUNS, balustrade, mahjongTable } from './squareParts';
 import dims from '../data/specimenDims.json' with { type: 'json' };
-import { Rng } from '@wildshard/sdk/random';
+import { Rng } from '@wildshard/sharddev/random';
 
 const GATE = { ...NINE_LAYOUT_PLAN.GATE, posts: numberTupleRows(NINE_LAYOUT_PLAN.GATE.posts, 4) };
 

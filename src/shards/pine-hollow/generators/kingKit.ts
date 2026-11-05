@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { readRigRest } from '@wildshard/sdk/bake/rig';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
+import { readRigRest } from '@wildshard/sharddev/bake/rig';
 import { buildPrimitive, mergePrimitives } from './kingPrimitives';
 
 /**

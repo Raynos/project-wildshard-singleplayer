@@ -1,6 +1,6 @@
 // Temporary build-time discovery bridge until catalog activation owns placement.
 // Execute only the declared generator export and its bounded local dependencies.
-import '../src/sdk/bake/format-hook.mjs';
+import '../src/sharddev/bake/format-hook.mjs';
 import { realpathSync, readFileSync, statSync } from 'node:fs';
 import { registerHooks } from 'node:module';
 import { basename, dirname, sep } from 'node:path';

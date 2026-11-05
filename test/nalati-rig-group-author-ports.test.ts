@@ -1,6 +1,6 @@
 import { expect, expectTypeOf, test } from 'vitest';
-import type { AuthorGroupStepProfile } from '../src/sdk/decisionScripts';
-import type { AuthorRiggedHullBook, AuthorRiggedHullUrls } from '../src/sdk/bake/skinned';
+import type { AuthorGroupStepProfile } from '../src/sharddev/decisionScripts';
+import type { AuthorRiggedHullBook, AuthorRiggedHullUrls } from '../src/sharddev/bake/skinned';
 import type { GroupStepProfileV2 } from '@wildshard/format/scriptGroupStepV2';
 import type { ObservationColumnV2 } from '@wildshard/format/scriptObservationColumnsV2';
 import type { RiggedHullBook, RiggedHullUrls } from '@wildshard/format/riggedHulls';

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { Rng } from '@wildshard/sdk/random';
+import type { Rng } from '@wildshard/sharddev/random';
 // ── the rock pieces ─────────────────────────────────────────────────────────────────────────────────────────────
 
 /**

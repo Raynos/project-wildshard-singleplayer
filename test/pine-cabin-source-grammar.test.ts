@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { CABIN_SCENE_ROWS } from '../src/shards/pine-hollow/generators/cabinSceneContribution';
 import { cabinSceneBake } from '../src/shards/pine-hollow/generators/bake-cabin-scenes.mjs';
-import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { namedJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { PINE_SOURCES } from './fixtures/pine-sources';
 
 const text = v.string(), words = v.array(v.number()), contacts = v.array(v.unknown());

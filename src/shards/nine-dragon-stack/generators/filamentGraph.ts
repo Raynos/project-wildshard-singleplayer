@@ -1,4 +1,4 @@
-import type { AuthorGraph as GraphIr } from '@wildshard/sdk/bake/materialGraph';
+import type { AuthorGraph as GraphIr } from '@wildshard/sharddev/bake/materialGraph';
 import { LookGraph } from './lookGraph';
 
 /** The existing fixed-topology rope ribbon, expanded in camera pixels. */

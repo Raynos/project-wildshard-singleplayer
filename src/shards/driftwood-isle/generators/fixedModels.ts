@@ -1,6 +1,6 @@
-import { emitNamedBlobs, nameMeshoptBlob, type BlobOptions, type EmittedBlobs, type NamedBlob } from '@wildshard/sdk/blobs';
-import { nameCompactBlob } from '@wildshard/sdk/bake/compactGlb';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import { emitNamedBlobs, nameMeshoptBlob, type BlobOptions, type EmittedBlobs, type NamedBlob } from '@wildshard/sharddev/blobs';
+import { nameCompactBlob } from '@wildshard/sharddev/bake/compactGlb';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { FIXED_MODEL_NAMES } from './modelFiles';
 import { driftwoodFixedFiles } from './fixedProgram';

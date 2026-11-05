@@ -1,6 +1,6 @@
 import { Group } from 'three';
-import { BoxCollider, type BoxColliderData } from '@wildshard/sdk/physics';
-import { readScene } from '@wildshard/sdk/scene';
+import { BoxCollider, type BoxColliderData } from '@wildshard/sharddev/physics';
+import { readScene } from '@wildshard/sharddev/scene';
 import NINE_FLOOR_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 
 const { Y0, PLAZA, STAIR, STREET, WELL, FRONTS: fronts } = NINE_FLOOR_PLAN;

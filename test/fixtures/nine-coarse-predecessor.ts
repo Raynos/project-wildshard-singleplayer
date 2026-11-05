@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Search asset bytes natively.
 import { Buffer } from 'node:buffer';
-import type { PreparedProjectOutput } from '../../src/sdk/projectOutput';
+import type { PreparedProjectOutput } from '../../src/sharddev/projectOutput';
 import { encodeCanonicalJson, hashImmutableBytes } from '../../src/sdk/immutable';
 
 /** NR12's predecessor layer: Nine's coarse L1 parents draw in the `nine-coarse-facade` graph, its props family. Its

@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import { createNativeProofAdapter, createNativeProofResident } from '../headless-native.ts';
 import { prepareHeadlessRuntime } from './trustedRuntime.ts';
 import { createShardProduct } from '../../../src/game/shared/shardfile/shardProduct.ts';
-import { emptyShardfile } from '../../../src/sdk/author.ts';
+import { emptyShardfile } from '../../../src/sharddev/author.ts';
 import { loadRapier } from '../../../src/engine/shared/physics/rapier.ts';
 import { serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/shared/sim/snapshot.ts';
 import catalogue from '../../../src/game/shared/grid/singleplayer.json' with { type: 'json' };

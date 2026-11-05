@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import { ForestNativeInputsSchema } from '@wildshard/format/forestNativeInputs';
 import { platformFileFamily, validatePlatformFile } from '@wildshard/format/platformFileFamilies';
 import { registeredJsonContract, validateRegisteredJson } from '@wildshard/format/registeredJson';
-import { namedJsonSchema, registeredJsonSchema } from '../src/sdk/formatJsonSchema';
+import { namedJsonSchema, registeredJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 
 const name = 'data/physics.generated.json';

@@ -1,6 +1,6 @@
 
 
-import { questPropRows, questAutomaticFlag as autoFlag } from '@wildshard/sdk/quests';
+import { questPropRows, questAutomaticFlag as autoFlag } from '@wildshard/sharddev/quests';
 import { DRIFTWOOD_INTERACT } from './interactables';
 import { DECLARED_SEA } from './sea';
 import { DRIFTWOOD_SPOTS as spots } from './spots';

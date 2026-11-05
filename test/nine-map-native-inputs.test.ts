@@ -3,8 +3,8 @@ import { existsSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bind each actual native root explicitly.
 import { resolve } from 'node:path';
 import { afterAll, expect, test } from 'vitest';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
-import { generatedProjectMap } from '../src/sdk/projectMap';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
+import { generatedProjectMap } from '../src/sharddev/projectMap';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nineMap } from '../src/shards/nine-dragon-stack/generators/mapProgram';
 

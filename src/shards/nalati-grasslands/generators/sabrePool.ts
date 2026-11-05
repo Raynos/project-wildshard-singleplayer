@@ -1,5 +1,5 @@
 import { MeshBasicMaterial } from 'three';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
 import { buildSabre, SABRE_MOVES, PASS_LEFT, PASS_RIGHT } from './sabre';
 
 type SabreKey = typeof SABRE_MOVES.rest;

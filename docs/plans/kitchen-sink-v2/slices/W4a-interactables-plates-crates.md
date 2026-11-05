@@ -24,7 +24,7 @@ Research:
   by: 'player'|'barrel'|'any' }` (line 173). `plateOverlap` (`interact/barrel.ts`) sees groups `PLAYER`, `ITEM`.
 - **But it ships as named JSON, three ways.** Driftwood writes a data table (`src/shards/driftwood-isle/generators/interactables.ts`
   → `interactables.generated.json`, a named blob, no platform section); Pine builds on Driftwood's kit through
-  `@wildshard/sdk/interactions` (`generators/questTable.ts:17`); Signal declares `format/questInteractions` rows
+  `@wildshard/sharddev/interactions` (`generators/questTable.ts:17`); Signal declares `format/questInteractions` rows
   (`generators/signalInteractions.ts:23`). The engine kit: `src/engine/world/interact/` (1,535 lines).
 - **Dynamic props are declarable.** `sim/bodies` (`src/format/bodySlots.ts:25` `DeclaredBodyOpsRows { bodies, floors,
   colliders }`, G566) with `BodySpec` shapes `ball | cylinder | cuboid` (`src/engine/shared/physics/bodies.ts:43`), material,
@@ -52,7 +52,7 @@ Tests: `test/interact-placement-rows.test.ts`, `test/driftwood-barrel-saves.test
 | Shard | Today | Migration | Deleted | Parity proof | Save risk |
 |---|---|---|---|---|---|
 | Driftwood | named `interactables.generated.json`; `barrels.as` | section rows; commons `pushable.as` with its params | the named blob, `behaviour/barrels.as` | tide-gate puzzle: `test/driftwood-barrel-*.test.ts`; physics walk 0 stuck; push the barrel onto the plate in game | **medium**: flags are named after row ids (`types.ts` "persisted (flags are named after it)"); ids stay identical |
-| Pine Hollow | kit via `sdk/interactions` | section rows | its named table | resin, tokens and doors: `test/isolated-shard-pine-weather-quest-values.test.ts`; a look in game | medium, same id rule |
+| Pine Hollow | kit via `sharddev/interactions` | section rows | its named table | resin, tokens and doors: `test/isolated-shard-pine-weather-quest-values.test.ts`; a look in game | medium, same id rule |
 | Signal Dunes | `questInteractions` rows | the same rows in the section | the second grammar | `test/quest-page-interactions.test.ts`; braziers in game | low |
 | Templates | `door.as`, `items.as`, `idle.as` (×3–4 copies) | one commons copy each where identical | duplicates | `wildshard validate`, `test/scripts/_template-boss.test.ts` | none |
 

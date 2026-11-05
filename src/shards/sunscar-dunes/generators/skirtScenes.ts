@@ -1,10 +1,10 @@
-import {registeredJsonSchema} from '@wildshard/sdk/formatJsonSchema';
+import {registeredJsonSchema} from '@wildshard/sharddev/formatJsonSchema';
 import { MeshBasicMaterial } from 'three';
-import { GeometryPack, packedRows } from '@wildshard/sdk/kit/geometryPack';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
-import { worldSceneRecipe as parseWorldScene, type AuthorWorldScenes as WorldScenesSection } from '@wildshard/sdk/worldScenes';
+import { GeometryPack, packedRows } from '@wildshard/sharddev/kit/geometryPack';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
+import { compressGlb } from '@wildshard/sharddev/bake/glbCompression';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
+import { worldSceneRecipe as parseWorldScene, type AuthorWorldScenes as WorldScenesSection } from '@wildshard/sharddev/worldScenes';
 import { bakeSignalSkirt } from './skirt';
 
 // Read the original pack at build time. Lossless GLB encoding retains every

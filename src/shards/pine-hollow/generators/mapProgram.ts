@@ -1,7 +1,7 @@
-import { rasterSceneMap } from '@wildshard/sdk/bake/groundMap';
+import { rasterSceneMap } from '@wildshard/sharddev/bake/groundMap';
 import { pineMapFiles } from './mapAssembly.mjs';
 import type { PineSources } from './pineSources';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { cachedMapPixels } from './mapPixelsCache';
 import settings from '../data/map.json' with { type: 'json' };
 

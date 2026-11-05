@@ -1,13 +1,13 @@
 import { beforeAll,expect,test,vi } from 'vitest';
 import { onFault,type Fault } from '../src/engine/shared/core/faults';
-import { compileReturnProjectionV2 } from '../src/sdk/returnProjectionV2';
-import { readDecisionSources } from '../src/sdk/buildDecisionScripts';
+import { compileReturnProjectionV2 } from '../src/sharddev/returnProjectionV2';
+import { readDecisionSources } from '../src/sharddev/buildDecisionScripts';
 import { ReturnProjectionV2 } from '../src/game/shared/population/returnProjectionV2';
 import { ProjectedState,ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { Rng } from '../src/engine/shared/core/rng';
 import { parseReturnProjectionV2,returnProjectionV2Layout,type ReturnProjectionV2Rows } from '@wildshard/format/returnProjectionV2';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
-import { v2CoreSource } from '../src/sdk/as/wsV2';
+import { compileScriptV2 } from '../src/sharddev/bake/compileScriptV2';
+import { v2CoreSource } from '../src/sharddev/as/wsV2';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
 import { TITAN_SCRIPT } from '../src/shards/nalati-grasslands/generators/stormTitanFight';

@@ -6,7 +6,7 @@ import { Dressing } from './facadeDressing';
 import { KitX } from './kitx';
 import { KitSet } from './kit/kitSet';
 import type { SignSink } from './contracts/signPlacement';
-import { Rng } from '@wildshard/sdk/random';
+import { Rng } from '@wildshard/sharddev/random';
 import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import type { AuthoredPlacement } from './contracts/modelPlacement';
 
@@ -24,7 +24,7 @@ const WHITE = new Color(1, 1, 1);
 const ZAX = new Vector3(0, 0, 1);
 
 /** a model drawn into a kit (E306 M4, models/inKit.ts): the world records where each copy stands and registers them on the
- *  kit's mesh once it is built (world/inKit.ts, @wildshard/sdk/kit/drawnInto) */
+ *  kit's mesh once it is built (world/inKit.ts, @wildshard/sharddev/kit/drawnInto) */
 export type InKit = DrawnCopy<Kit>;
 
 export interface MapRect { x0: number; z0: number; x1: number; z1: number; kind: 'block' | 'street' | 'well' | 'plaza' | 'green' | 'gate' }

@@ -1,6 +1,6 @@
 import { expect, expectTypeOf, test } from 'vitest';
-import { questStoryRows, questHostRows, panelDefinitionRows, type AuthorPanelTemplate, type AuthorPanelValue } from '../src/sdk/quests';
-import { worldEntryRows } from '../src/sdk/worldScenes';
+import { questStoryRows, questHostRows, panelDefinitionRows, type AuthorPanelTemplate, type AuthorPanelValue } from '../src/sharddev/quests';
+import { worldEntryRows } from '../src/sharddev/worldScenes';
 import { parseQuestStory } from '@wildshard/format/questStory';
 import { parseQuestHost } from '@wildshard/format/questHost';
 import { parsePanelDefinition, type PanelTemplate, type PanelValue } from '@wildshard/format/panelTemplate';

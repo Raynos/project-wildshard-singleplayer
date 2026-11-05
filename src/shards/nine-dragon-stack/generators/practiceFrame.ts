@@ -1,4 +1,4 @@
-import type { AuthorHookPracticeLayout } from '@wildshard/sdk/bake/practiceCourse';
+import type { AuthorHookPracticeLayout } from '@wildshard/sharddev/bake/practiceCourse';
 
 /** Numeric observations for the admitted course guest; static checkpoint facing is baked once. */
 export function practiceFrame(row: AuthorHookPracticeLayout['course']): Readonly<Record<string, number>> {

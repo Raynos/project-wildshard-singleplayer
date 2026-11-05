@@ -4,9 +4,9 @@ import * as v from 'valibot';
 import {createHash} from 'node:crypto';
 import {PopulationProjectionSchema} from '@wildshard/format/populationProjection';
 import {PerchBodyFileSchema} from '@wildshard/format/mixedPopulation';
-import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
+import {registeredJsonSchema} from '../src/sharddev/formatJsonSchema';
 import {platformFileFamily,validatePlatformFile} from '@wildshard/format/platformFileFamilies';
-import {nameBlob} from '../src/sdk/blobs';
+import {nameBlob} from '../src/sharddev/blobs';
 import {encodeCanonicalJson} from '../src/sdk/immutable';
 import fixture from './fixtures/approved-population-returns.json' with {type:'json'};
 

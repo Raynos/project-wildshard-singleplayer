@@ -1,7 +1,7 @@
 import { PINE_HELD_BOW } from './longbow';
 import { HANDS_MATERIAL, COAT_MATERIAL } from './handsLook';
-import {parseClientChannels} from '@wildshard/sdk/rows';
-import {privateSceneRows as parsePrivateScene} from '@wildshard/sdk/worldScenes';
+import {parseClientChannels} from '@wildshard/sharddev/rows';
+import {privateSceneRows as parsePrivateScene} from '@wildshard/sharddev/worldScenes';
 import playback from '../data/heldPlayback.json' with {type:'json'};
 import inputs from '../data/heldInputs.json' with {type:'json'};
 import sights from '../data/heldSights.json' with {type:'json'};
@@ -12,7 +12,7 @@ import painted from '../data/paintedTextures.json' with {type:'json'};
 import trophies from '../data/trophyMounts.json' with {type:'json'};
 import { crossbowPool } from './crossbowPool';
 import { CROSSBOW_ROWS } from './crossbowRows';
-import { nameMeshoptBlob } from '@wildshard/sdk/blobs';
+import { nameMeshoptBlob } from '@wildshard/sharddev/blobs';
 import { HANDS_POOL } from './handsPoolProduct';
 import { CLIENT_BY_URL } from './clientInputs';
 

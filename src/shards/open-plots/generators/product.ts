@@ -1,4 +1,4 @@
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import declared from '../outputs.json' with { type: 'json' };
 import source from '../data/source.json' with { type: 'json' };
 import glowFlicker from '../data/glowFlicker.graph.json' with { type: 'json' };
@@ -17,8 +17,8 @@ import lagoon from '../data/lagoon.graph.json' with { type: 'json' };
 import mapSettings from '../data/map.json' with { type: 'json' };
 import audioBindings from '../data/audioBindings.json' with { type: 'json' };
 import { generatePlotAudioProject, type PlotAudioBinding } from './audioProject';
-import type { OutputProgramResult, ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { rasterSceneMap } from '@wildshard/sdk/bake/groundMap';
+import type { OutputProgramResult, ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { rasterSceneMap } from '@wildshard/sharddev/bake/groundMap';
 import { ideaWorld, type PlotIdea } from './plotBake.mjs';
 
 /** One declared tiled plot per idea. The shared look contains only materials

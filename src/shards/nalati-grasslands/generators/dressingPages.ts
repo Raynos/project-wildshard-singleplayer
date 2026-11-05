@@ -1,7 +1,7 @@
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
-import { authorFormatSchema, namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
-import { parseSectionValue } from '@wildshard/sdk/sections';
+import { authorFormatSchema, namedJsonSchema } from '@wildshard/sharddev/formatJsonSchema';
+import { parseSectionValue } from '@wildshard/sharddev/sections';
 import { DRESSING_SCHEMAS } from './dressingSchemas';
 
 // First two pages contain the live layer lists in their existing first-use

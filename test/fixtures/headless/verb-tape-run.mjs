@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {HeadlessSimulation} from '../../../src/sdk/headless.ts';
-import {emptyShardfile} from '../../../src/sdk/author.ts';
+import {emptyShardfile} from '../../../src/sharddev/author.ts';
 import {decodeSimSnapshotBytes, leadSnapshot } from '../../../src/engine/shared/sim/snapshot.ts';
 const source=emptyShardfile({slug:'verb-tape-fixture',name:'Verb tape',author:'Test',revision:1,seed:435});
 source.serverBudget.commandsPerTick=1;

@@ -15,7 +15,7 @@ import type { Ctx } from './ctx';
 import { curvedRoof, relief } from './gate';
 import { E, K, type Kit, type Look } from './kit';
 import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
-import { Rng } from '@wildshard/sdk/random';
+import { Rng } from '@wildshard/sharddev/random';
 import paint from '../data/paint.json' with { type: 'json' };
 import { type KitX, curve } from './kitx';
 import { type BanyanPlan, type CanopyLump, banyanOut } from './banyanPlan';

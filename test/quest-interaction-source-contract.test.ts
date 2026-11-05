@@ -9,10 +9,10 @@ import {REGISTERED_JSON, validateRegisteredJson} from '@wildshard/format/registe
 import {platformFileFamily, validatePlatformFile} from '@wildshard/format/platformFileFamilies';
 import {bindInteractPlacements} from '@wildshard/engine/world/interact/types';
 import {validateTable} from '@wildshard/engine/world/interact/validate';
-import {registeredJsonSchema, namedJsonSchema} from '@wildshard/sdk/formatJsonSchema';
+import {registeredJsonSchema, namedJsonSchema} from '@wildshard/sharddev/formatJsonSchema';
 import {encodeCanonicalJson} from '@wildshard/sdk/immutable';
-import {nameBlob} from '@wildshard/sdk/blobs';
-import {emptyShardfile} from '@wildshard/sdk/author';
+import {nameBlob} from '@wildshard/sharddev/blobs';
+import {emptyShardfile} from '@wildshard/sharddev/author';
 import {createShardProduct} from '@wildshard/game/shardfile/shardProduct';
 import {DRIFTWOOD_INTERACT} from '../src/shards/driftwood-isle/generators/interactables';
 import spots from '../src/shards/driftwood-isle/data/spotsRows.json';

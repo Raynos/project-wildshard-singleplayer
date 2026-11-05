@@ -6,7 +6,7 @@ import { parseGlbData, prepareGlbCost } from '@wildshard/format/glbCost';
 import { glbBuffers } from '@wildshard/format/glbBuffers';
 import { glbImageCost } from '@wildshard/format/glbImages';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { nameBlob } from '../src/sdk/blobs';
+import { nameBlob } from '../src/sharddev/blobs';
 
 const original = readFileSync('test/fixtures/sky-rigs/storm-roc.glb');
 const record = v.record(v.string(), v.unknown());

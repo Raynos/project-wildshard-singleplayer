@@ -1,6 +1,6 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { emitNamedBlobs, nameBlob, nameMeshoptBlob, type EmittedBlobs } from '@wildshard/sdk/blobs';
-import { nameCompactBlob } from '@wildshard/sdk/bake/compactGlb';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { emitNamedBlobs, nameBlob, nameMeshoptBlob, type EmittedBlobs } from '@wildshard/sharddev/blobs';
+import { nameCompactBlob } from '@wildshard/sharddev/bake/compactGlb';
 import { DRIFTWOOD_FIXED_INPUTS, driftwoodFixedBytes, driftwoodFixedFiles } from './fixedProgram';
 import { driftwoodCargoBank, type DriftwoodCargoBank } from './cargoBank';
 import { driftwoodFixedLayouts, type DriftwoodFixedLayouts } from './fixedLayouts';

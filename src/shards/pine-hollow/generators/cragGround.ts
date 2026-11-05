@@ -1,5 +1,5 @@
 /** Explicit original renderer queries and authored exclusion rows, without active levels or engine services. */
-import type { NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
+import type { NativeTerrainSource } from '@wildshard/sharddev/bake/terrain';
 import * as LAYOUT from './layout';
 
 /** Queries the original crag recipe uses; heights and normals come from the retained renderer lattice. */

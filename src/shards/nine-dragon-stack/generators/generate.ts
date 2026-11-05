@@ -1,5 +1,5 @@
 import type { NineNavigation } from './navigationProgram';
-import type { GeneratedProject, ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { GeneratedProject, ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { readNineProductInputs } from './product';
 import { nineProductFrom } from './productDefinition';
 import { NINE_MOVERS_CONTRACT } from './moversProgram';

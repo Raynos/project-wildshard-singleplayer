@@ -1,5 +1,5 @@
 import { BufferGeometry, Color, Float32BufferAttribute } from 'three';
-import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
+import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sharddev/kit/geometryPack';
 import { ISLES, type Isle } from "./layout";
 import { ISLET } from './rows/isletDesign';
 import { apothem } from "./layoutMath";
@@ -8,7 +8,7 @@ import { COSMETIC_SEED, ISLE_RIM, fbm, isleRim, isleStream, lastOf, ringNoise, s
 
 /**
  * Build-time only (SHARD-PLATFORM M3, offline bakes): every island Sky Reach draws from its builder, baked by
- * `generators/bake-sky-world.mjs` into `baked/isles.bin` (a deflated `@wildshard/sdk/kit/geometryPack`) + `data/isles.json`;
+ * `generators/bake-sky-world.mjs` into `baked/isles.bin` (a deflated `@wildshard/sharddev/kit/geometryPack`) + `data/isles.json`;
  * the page draws each in the painted island material (world/isle.ts `islandMesh`, normals computed there).
  *
  * A floating island, loop 4 (the targets: a rounded meadow top that rolls over a soil lip, a lumpy keel of warm

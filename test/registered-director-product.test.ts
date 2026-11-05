@@ -1,12 +1,12 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { DirectorProductSchema } from '@wildshard/format/directorProduct';
-import { composeNamedJsonSchema, namedJsonSchema, registeredJsonSchema, namedFormatJsonSchema } from '../src/sdk/formatJsonSchema';
+import { composeNamedJsonSchema, namedJsonSchema, registeredJsonSchema, namedFormatJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
-import { nameBlob } from '../src/sdk/blobs';
+import { nameBlob } from '../src/sharddev/blobs';
 import { REGISTERED_JSON, validateRegisteredJson } from '@wildshard/format/registeredJson';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import driftwood from '../src/shards/driftwood-isle/data/director.json';
 import driftwoodStages from '../src/shards/driftwood-isle/data/finaleStages.json';
 import pine from '../src/shards/pine-hollow/data/director.json';

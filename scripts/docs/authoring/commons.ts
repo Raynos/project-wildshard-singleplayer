@@ -1,5 +1,5 @@
 import { createCatalogue, catalogueRef } from '@wildshard/commons/catalogue';
-import { commonsRequirements, type CommonsPack } from '@wildshard/sdk/commons';
+import { commonsRequirements, type CommonsPack } from '@wildshard/sharddev/commons';
 
 /** A v1 pack: stable entry ids, the original bytes and their provenance. Commons holds only content two real shards use. */
 const sharedRows: CommonsPack = { id: 'shared-rows', version: '1.0.0', entries: [{ id: 'harvest', kind: 'binary',

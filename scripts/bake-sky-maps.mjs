@@ -3,7 +3,7 @@
 // src/shards/far-reach/data/skyMaps.json from the pinned KTX2 assets (--encode re-encodes the sources, --check verifies
 // the committed file); it lives here, not in the shard, because it reads its own command line. Run it by hand:
 // node --import ./scripts/bake-loader.mjs scripts/bake-sky-maps.mjs --check
-import { bakeColourTexture } from '@wildshard/sdk/bake/texture';
+import { bakeColourTexture } from '@wildshard/sharddev/bake/texture';
 import { bakeTextureLibrary } from '../src/shards/far-reach/generators/bake-sky-world.mjs';
 
 await bakeTextureLibrary(new URL('../', import.meta.url).pathname,

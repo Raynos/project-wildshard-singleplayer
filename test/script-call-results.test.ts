@@ -1,5 +1,5 @@
 import { beforeAll, expect, test } from 'vitest';
-import { compileScript } from '@wildshard/sdk/compileScript';
+import { compileScript } from '@wildshard/sharddev/compileScript';
 import { ScriptHost, type ScriptDisabled } from '../src/engine/shared/script/host';
 import { ScriptWorld, type ScriptEffect, type EffectTransaction } from '../src/engine/shared/script/effects';
 

@@ -17,7 +17,7 @@ import { clientCosmeticFinishes, installClientCosmeticFinishes } from '../src/ga
 import { publishBoundPersistence } from '../src/game/shared/quest/chapterBindings';
 import type { AdventurePersistence } from '../src/game/shared/quest/persistence';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import rows from '../src/shards/nalati-grasslands/data/worldUpdates.json' with { type:'json' };
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 

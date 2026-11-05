@@ -9,9 +9,9 @@ import { pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import * as v from 'valibot';
 import { namedBlobOutput } from '../scripts/named-blob-output.mjs';
-import { compileScript } from '@wildshard/sdk/compileScript';
-import { scriptSource } from '../src/sdk/test/scriptSource';
-import { prepareProjectOutput } from '../src/sdk/projectOutput';
+import { compileScript } from '@wildshard/sharddev/compileScript';
+import { scriptSource } from '../src/sharddev/test/scriptSource';
+import { prepareProjectOutput } from '../src/sharddev/projectOutput';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
 test.each(['binary', 'schema'])('%s producer loads the CommonJS compiler only for an actual schema', kind => {
@@ -29,7 +29,7 @@ test.each(['binary', 'schema'])('%s producer loads the CommonJS compiler only fo
     const commonjs = trace.inventory.filter(probe => probe.startsWith('R commonjs-'));
     if (kind === 'binary') expect(commonjs).toEqual([]);
     else expect(commonjs).toContain('R commonjs-resolution');
-    expect(trace.execution).not.toContain('src/sdk/sections.ts');
+    expect(trace.execution).not.toContain('src/sharddev/sections.ts');
     expect(new Uint8Array(readFileSync(resolve(project, 'assets', hashImmutableBytes(bytes))))).toEqual(bytes);
   } finally { rmSync(project, { recursive: true }); }
 });

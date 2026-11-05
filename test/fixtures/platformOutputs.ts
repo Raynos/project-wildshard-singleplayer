@@ -4,7 +4,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Inventory hashes bind exactly the emitted fixture bytes.
 import { createHash } from 'node:crypto';
-import { emptyShardfile } from '../../src/sdk/author';
+import { emptyShardfile } from '../../src/sharddev/author';
 
 export function platformOutput(root:string,slug:string,files:Readonly<Record<string,string>>={},sections:Readonly<Record<string,string>>={}):void {
   const put=(path:string,value:string):void=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,value);};

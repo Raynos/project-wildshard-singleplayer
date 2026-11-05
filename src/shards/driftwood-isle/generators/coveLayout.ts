@@ -1,6 +1,6 @@
 /** One authored layout and floor law for the offline mesh and live collision owner. */
 import { WORLD_DROP } from './landscapeRows';
-import { yawWorld, type FloorRect } from '@wildshard/sdk/bake/placement';
+import { yawWorld, type FloorRect } from '@wildshard/sharddev/bake/placement';
 
 export interface CaveBounds { x: number; z: number; r: number; yMin: number; yMax: number }
 export interface CoveAnchor { x: number; y: number; z: number; yaw: number }

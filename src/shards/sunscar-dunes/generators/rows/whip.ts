@@ -110,7 +110,7 @@ export const PLAIT = { size: 128, columns: 4, rows: 4, crease: [12, 8, 7], crown
 export const LOOP = { cord: 0.075, from: [-0.613, 0.922, -0.537], start: 1.8, rx: 0.8, ry: 0.85, face: 0.4, turns: 2, step: [-0.35, 0.2, 0.06], tail: [[-0.45, -0.4, -1.0], [-0.15, -1.8, -1.1]] } as const;
 
 /**
- * The held whip's motion on the lash weapon (`@wildshard/sdk/items/lashWeapon`): mockup D's hold (the fist whole at the
+ * The held whip's motion on the lash weapon (`@wildshard/sharddev/items/lashWeapon`): mockup D's hold (the fist whole at the
  * right above the DODGE / JUMP discs, the coil beside it, the centre clear; loop 3 tune G: half a metre out so the
  * generated glove reads a hand's size; round 1: lower), a soft view spring, the hand's snap forward on each lash, the
  * slack lash's fall, and the pull's wrap round a caught lever (after the check pass: the board showed no lash round the crank).
@@ -124,7 +124,7 @@ export const WHIP_VIEW: LashView = {
 
 /**
  * The held whip (E374 polish, after Jake's "the custom whip we built was a lot better") on the lash item's held view
- * (`@wildshard/sdk/items/lashHold`): the first build's warm brown code fist and hand-sized loop, the rebuild's braided
+ * (`@wildshard/sharddev/items/lashHold`): the first build's warm brown code fist and hand-sized loop, the rebuild's braided
  * coil; the generated gloved fist on the braided handle (loop 2, P3: `art/sunscar-dunes/round-11-loop-2/ref-glove.jpg` →
  * Hunyuan3D-2, painted facets) replacing the code fist when its file loads, and the textured hero glove-and-coiled-whip
  * (loop 6, mockup D) replacing both, its coil the plaited LOOP.

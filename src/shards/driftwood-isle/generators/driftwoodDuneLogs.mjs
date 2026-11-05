@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { withFacetedAO } from '@wildshard/sdk/bake/facetedGeometry';
-import { nativeTerrainQueries } from '@wildshard/sdk/bake/forest';
+import { withFacetedAO } from '@wildshard/sharddev/bake/facetedGeometry';
+import { nativeTerrainQueries } from '@wildshard/sharddev/bake/forest';
 import { driftwoodGroundSampler } from './groundSampling.ts';
 import { SEED, TRAILS, PLATEAU, HEADLAND } from './landscapeRows.ts';
 import SHRINE_SITES from '../data/shrineSites.json' with { type: 'json' };

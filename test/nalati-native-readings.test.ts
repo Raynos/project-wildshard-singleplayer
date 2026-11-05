@@ -5,7 +5,7 @@ import * as v from 'valibot';
 import {loadRapier} from '../src/engine/shared/physics/rapier';
 import {createSimHost} from '../src/engine/server/sim';
 import {trustedLevel} from '../src/game/server/plugin/simulation';
-import {emptyShardfile} from '../src/sdk/author';
+import {emptyShardfile} from '../src/sharddev/author';
 import {parseQuestData} from '@wildshard/format/quests';
 import {FigureGroupSchema} from '@wildshard/format/figures';
 import {NpcDialogueRowSchema} from '@wildshard/format/npcs';

@@ -12,7 +12,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import * as boot from '../src/engine/client/boot/plan';
 import * as model from '../src/engine/client/models/model';
 import * as plugin from '../src/game/client/shardfile/worldBuildYield';
-import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { namedJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 import * as gpu from '../src/engine/client/core/gpuOnly';
 import { WorldConstructionSchema, WorldAssemblySchema } from '@wildshard/format/worldAssembly';

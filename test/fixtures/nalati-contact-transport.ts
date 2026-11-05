@@ -1,5 +1,5 @@
 import {base64Bytes,unshuffleLanes} from '../../src/engine/client/core/deflate';
-import {nameBlob,type NamedBlob} from '../../src/sdk/blobs';
+import {nameBlob,type NamedBlob} from '../../src/sharddev/blobs';
 import {encodeCanonicalJson} from '../../src/sdk/immutable';
 import {SceneDressingSchema,type SceneDressingRows} from '@wildshard/format/sceneDressing';
 import * as v from 'valibot';

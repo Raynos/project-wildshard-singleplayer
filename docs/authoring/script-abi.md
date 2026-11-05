@@ -1,8 +1,8 @@
 # Typed AssemblyScript ABI (OS-F4)
 
-Use `generateScriptModule(state, handler)` from `@wildshard/sdk/directorAbi`,
+Use `generateScriptModule(state, handler)` from `@wildshard/sharddev/directorAbi`,
 then compile its `source` with `compileBehaviourModule` from
-`@wildshard/sdk/buildBehaviour`. The retained
+`@wildshard/sharddev/buildBehaviour`. The retained
 [`numericScriptExample`](../../scripts/docs/authoring/director-script.ts) declares
 the numeric module. The existing
 `generateDirectorAbi` remains the typed observation accessor for director AS

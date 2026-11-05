@@ -2,7 +2,7 @@
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 
 // The source program now owns the native map bake. Keep its allowed pure bake
 // separate from the effect-only boundary and the original injected native control.

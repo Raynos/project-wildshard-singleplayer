@@ -1,4 +1,4 @@
-import { creaturePoseRows, numericChannelPrograms, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
+import { creaturePoseRows, numericChannelPrograms, type NumericChannelOutput } from '@wildshard/sharddev/clientChannels';
 
 const outputs: NumericChannelOutput[] = [];
 for (const name of ['FL_carpus', 'FR_carpus', 'FL_fetlock', 'FR_fetlock', 'BL_stifle', 'BR_stifle', 'BL_hock', 'BR_hock']) {

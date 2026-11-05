@@ -1,5 +1,5 @@
 /** GR6: the riding program builder's typed surface (`ridingRows.mjs`). */
-import type { compileReturnProjectionV2 } from '@wildshard/sdk/returnProjectionV2';
+import type { compileReturnProjectionV2 } from '@wildshard/sharddev/returnProjectionV2';
 import type rules from '../data/ridingRules.json';
 import type reins from '../data/reins.json';
 import type forager from '../data/marmotForager.json';

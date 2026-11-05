@@ -1,5 +1,5 @@
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { bakeOwned, type BakedScene } from '@wildshard/sdk/bake';
+import { bakeOwned, type BakedScene } from '@wildshard/sharddev/bake';
 import { signalDunesScene } from './scene';
 import { signalTerrainSource } from './tiles';
 import { facetModel, wellShell } from './facets';

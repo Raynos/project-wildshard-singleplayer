@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { afterEach, expect, it, vi } from 'vitest';
 import * as rigLoader from '../src/engine/client/anim/rig';
 import { SkyRig } from '../src/engine/client/world/skyRig';
-import { readSourceModel } from '../src/sdk/bake/skinned';
+import { readSourceModel } from '../src/sharddev/bake/skinned';
 import { atlasFigureSkin } from '../src/game/client/systems/npc/figureSkins';
 import { Scope } from '../src/engine/shared/app/scope';
 import { peopleRows as population } from '../src/shards/nalati-grasslands/generators/peopleRows.mjs';

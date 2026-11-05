@@ -4,10 +4,10 @@ import {expect,test} from 'vitest';
 import {carriedQuestRows} from './fixtures/nalati-carried-quest';
 import {prepareSpecimenCatalogue} from '../src/game/client/models/specimenCatalogue';
 import {hashImmutableBytes} from '../src/sdk/immutable';
-import {nameBlob} from '../src/sdk/blobs';
+import {nameBlob} from '../src/sharddev/blobs';
 import {Scope} from '../src/engine/shared/app/scope';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
-import {emptyShardfile} from '../src/sdk/author';
+import {emptyShardfile} from '../src/sharddev/author';
 
 test('the carried specimen prepares the exact original geometry through its named product file',async()=>{
   const source={name:'models/specimens/quest-prop.bin'};

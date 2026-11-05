@@ -3,7 +3,7 @@ import { expect, test, vi } from 'vitest';
 import { constants, zstdCompressSync, zstdDecompressSync } from 'node:zlib';
 import { plainKtx2, prepareKtx2Zstd, unsupercompressKtx2, zstdLevels } from './ktx2Zstd';
 
-/** A raw RGBA8 KTX2 with one zstd level, laid out as sdk/bake/texture.ts `bakeRawColourTexture` writes it. */
+/** A raw RGBA8 KTX2 with one zstd level, laid out as sharddev/bake/texture.ts `bakeRawColourTexture` writes it. */
 function rawZstdKtx2(pixels: Uint8Array, width: number, height: number, vkFormat = 43): Uint8Array {
   const packed = zstdCompressSync(pixels, { params: { [constants.ZSTD_c_compressionLevel]: 19 } });
   const descriptor = 92, offset = 104 + descriptor, out = new Uint8Array(offset + packed.length), view = new DataView(out.buffer);

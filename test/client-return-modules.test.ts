@@ -9,7 +9,7 @@ import {clientNativeBook} from '../src/game/client/shardfile/clientNativeBook';
 import * as descriptors from '../src/game/shared/shardfile/outputDescriptor';
 import type {OutputDescriptor} from '../src/game/shared/shardfile/outputDescriptor';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
-import {emptyShardfile} from '../src/sdk/author';
+import {emptyShardfile} from '../src/sharddev/author';
 import type {ShardContext} from '../src/game/client/plugin/context';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {titanPrograms as programs} from './fixtures/titanInlineWitness';

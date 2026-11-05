@@ -2,13 +2,13 @@ import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { CabinAppearanceSchema as CabinRowsSchema } from './sections';
 import { staticOutput } from './sourceOutput';
-import { readImagePixels } from '@wildshard/sdk/bake/image';
+import { readImagePixels } from '@wildshard/sharddev/bake/image';
 import { CABIN_LIFE } from './cabinLook';
 import { CABIN_LIGHT } from './cabinAssembly';
 import { HEARTH_LOOKS } from './hearthLook';
 import { pineScriptSources } from './scriptSources.mjs';
-import { forestPageRows, worldSceneRows } from '@wildshard/sdk/worldScenes';
-import { outputPlatformPayloads } from '@wildshard/sdk/outputProduct';
+import { forestPageRows, worldSceneRows } from '@wildshard/sharddev/worldScenes';
+import { outputPlatformPayloads } from '@wildshard/sharddev/outputProduct';
 
 // the program's sources (GR8 G37: the timber world is baked in the program, so no disk file holds it)
 const output = await staticOutput(await pineScriptSources('pine-cabin-product-test'), readImagePixels);

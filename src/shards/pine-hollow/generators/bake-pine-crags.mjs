@@ -10,7 +10,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
+import { readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
 import { pineCragQueries } from './cragGround.ts';
 import { bakePineCrags, canonicalCragTiltX } from './crags.ts';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';

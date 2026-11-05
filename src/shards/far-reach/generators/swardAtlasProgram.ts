@@ -1,4 +1,4 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { bakeSwardAtlasTexture } from './swardAtlas';
 
 /** Cache the complete original numerical atlas under its author program and native lossless codec. */

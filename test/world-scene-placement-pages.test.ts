@@ -2,12 +2,12 @@ import { expect, test } from 'vitest';
 import { parseWorldScenePlacement, parseWorldScenePlacementPage, WorldScenePlacementPageSchema } from '@wildshard/format/worldScenePlacement';
 import { parseWorldScenes, worldScenesForTier } from '@wildshard/format/worldScenes';
 import { registeredJsonContract } from '@wildshard/format/registeredJson';
-import { registeredJsonSchema, namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
-import { worldScenePlacementPages } from '@wildshard/sdk/worldScenes';
+import { registeredJsonSchema, namedJsonSchema } from '@wildshard/sharddev/formatJsonSchema';
+import { worldScenePlacementPages } from '@wildshard/sharddev/worldScenes';
 import { parseSampledAudioPlacement } from '@wildshard/format/audioScene';
-import { nameBlob } from '@wildshard/sdk/blobs';
+import { nameBlob } from '@wildshard/sharddev/blobs';
 import { createShardProduct } from '@wildshard/game/shardfile/shardProduct';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 
 const encode = (input: unknown) => new TextEncoder().encode(JSON.stringify(input));
 const decode = (bytes: Uint8Array): unknown => JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));

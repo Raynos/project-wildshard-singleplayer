@@ -1,4 +1,4 @@
-import { parseFigureCatalogue } from '@wildshard/sdk/rows';
+import { parseFigureCatalogue } from '@wildshard/sharddev/rows';
 import castaway from '../data/castawayFigure.json' with { type: 'json' };
 import trader from '../data/traderFigure.json' with { type: 'json' };
 import { npcRestScenes } from './npcScenes';

@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { formatJsonSchemas, namedFormatJsonSchemas } from '../src/sdk/formatJsonSchema.ts';
+import { formatJsonSchemas, namedFormatJsonSchemas } from '../src/sharddev/formatJsonSchema.ts';
 
 /** Build the migrated format documents into an ignored authoring-output folder, never into committed source.
  * @param {string} root

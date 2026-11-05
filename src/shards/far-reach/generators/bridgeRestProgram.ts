@@ -1,4 +1,4 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { MODEL_URLS } from './fileInventory';
 import { bridgeRestFiles } from './bridgeRest';
 

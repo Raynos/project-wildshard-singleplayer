@@ -7,7 +7,7 @@ import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
 import { restoreSimHost, snapshotSimHost } from '../src/engine/shared/sim/snapshot';
 import { MoverScriptDriver, playerGrounds, type MoverRuntime } from '../src/game/server/plugin/mover';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { canoeMover } from '../src/shards/pine-hollow/generators/canoe';
 import { PINE_SOURCES } from './fixtures/pine-sources';
 import { SIM_LEVEL } from './fixtures/sim-level/level';

@@ -1,6 +1,6 @@
 /** Build-only admission of the retained timber oracle. Play code reads admitted scenes and facts. */
 import * as v from 'valibot';
-import { admitContactRows as readColliderRows } from '@wildshard/sdk/bake/contactRows';
+import { admitContactRows as readColliderRows } from '@wildshard/sharddev/bake/contactRows';
 
 const num = v.pipe(v.number(), v.finite());
 const TimberFloorSchema = v.strictObject({ x: num, z: num, rot: num, hw: num, hd: num, y: num });

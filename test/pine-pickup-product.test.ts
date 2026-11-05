@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { parseItems } from '@wildshard/format/items';
 import { pinePickups } from '../src/shards/pine-hollow/generators/pickups';

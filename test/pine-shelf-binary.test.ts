@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { PickupCatalogueSchema } from '@wildshard/format/specimenCatalogue';
-import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
+import { readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
 import { bakePineCodeParts, readShelfToken } from '../src/shards/pine-hollow/generators/codeParts';
 import { PINE_SOURCES } from './fixtures/pine-sources';
 import { timberWorld } from '../src/shards/pine-hollow/generators/timberWorldRows';

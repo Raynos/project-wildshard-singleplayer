@@ -1,4 +1,4 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { assertSkyWorldTileFiles, skyWorldTileSource } from './worldTileBytes';
 
 /** Cache procedural island tiles under the complete author-program identity, with no file inputs. */

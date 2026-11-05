@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node
 // oxlint-disable-next-line import/no-nodejs-modules -- Scratch paths never touch the shared gen cache.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { encodePortableBytes } from '../src/sdk/bake/portableBytes';
+import { encodePortableBytes } from '../src/sharddev/bake/portableBytes';
 
 // The portable deflate's memo (portableBytesMemo.ts, the build's encodePortableBytes capability): a cold call, a hit, a
 // damaged memo and another level all return the uncached deflate's bytes.
@@ -12,7 +12,7 @@ test('the portable deflate memo returns the exact deflate bytes cold, warm and a
   const root = mkdtempSync(resolve('tmp/sp-o3-portable-deflate-'));
   process.env['WILDSHARD_PORTABLE_DEFLATE_CACHE'] = root;
   try {
-    const { encodePortableBytesMemo } = await import('../src/sdk/bake/portableBytesMemo');
+    const { encodePortableBytesMemo } = await import('../src/sharddev/bake/portableBytesMemo');
     const data = Uint8Array.from({ length: 96 * 64 * 4 }, (_v, i) => ((i * 2654435761) >>> 0) % 251 & (i % 7 === 0 ? 0xff : 0x3f));
     const reference = encodePortableBytes(data, 9);
     const cold = encodePortableBytesMemo(data, 9);

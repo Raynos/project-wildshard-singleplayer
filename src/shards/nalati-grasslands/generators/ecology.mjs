@@ -4,8 +4,8 @@ import kokbori from '../data/kokboriProfile.json' with { type: 'json' };
 import author from '../data/ecology.json' with { type: 'json' };
 import * as world from './layout.ts';
 import * as places from './poiLayout.ts';
-import { flock } from '@wildshard/sdk/crowds';
-import { species, speciesFieldReader } from '@wildshard/sdk/species';
+import { flock } from '@wildshard/sharddev/crowds';
+import { species, speciesFieldReader } from '@wildshard/sharddev/species';
 
 /** Resolve symbolic placement once; no native clock, id allocation or RNG runs here. */
 export function ecologyRows() {

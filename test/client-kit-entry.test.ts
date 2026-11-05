@@ -3,7 +3,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import type { SpeciesDecisionAuthority } from '../src/game/server/plugin/brain';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { CLIENT_FEATURES, admitClientPlan, installClientPhase } from '../src/game/client/shardfile/clientPlan';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import * as claims from '../src/game/client/shardfile/heldClaimsEntry';

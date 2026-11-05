@@ -1,4 +1,4 @@
-import { defineSpecimenCatalogue } from '@wildshard/sdk/bake/specimenCatalogue';
+import { defineSpecimenCatalogue } from '@wildshard/sharddev/bake/specimenCatalogue';
 import gear from '../data/gear.json' with { type: 'json' };
 
 /** The eight prepared gear cards are data; their original packed shapes own every draw and paint variant. */

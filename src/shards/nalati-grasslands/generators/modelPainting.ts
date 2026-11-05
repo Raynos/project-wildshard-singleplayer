@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { bakeVoxelOcclusion as voxelAO, bakeOcclusionDirections as hemisphere } from '@wildshard/sdk/bake/facetedGeometry';
+import { bakeVoxelOcclusion as voxelAO, bakeOcclusionDirections as hemisphere } from '@wildshard/sharddev/bake/facetedGeometry';
 
 /** a float copy of an attribute (de-quantises normalized ints) */
 function floatAttr(a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute): THREE.BufferAttribute {

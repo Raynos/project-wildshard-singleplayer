@@ -1,4 +1,4 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 
 export type PastelBehaviour = Record<'door' | 'items' | 'idle', { hash: string; compressed: number }>;

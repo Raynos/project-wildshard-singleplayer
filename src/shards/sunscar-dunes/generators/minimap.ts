@@ -1,6 +1,6 @@
 import * as LAYOUT from './layout';
 import STRINGS from '../data/strings.json' with { type: 'json' };
-import type { AuthorMapPalette as MapPaletteRow } from '@wildshard/sdk/bake/mapRaster';
+import type { AuthorMapPalette as MapPaletteRow } from '@wildshard/sharddev/bake/mapRaster';
 
 type MapMark = MapPaletteRow['marks'][number];
 

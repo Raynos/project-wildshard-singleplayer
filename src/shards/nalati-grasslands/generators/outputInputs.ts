@@ -1,6 +1,6 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import type { ProjectOutput } from '@wildshard/sdk/projectOutput';
-import { emitNamedBlobs, nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import type { ProjectOutput } from '@wildshard/sharddev/projectOutput';
+import { emitNamedBlobs, nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
 
 type Source = NonNullable<ProjectOutput['blobs']>[number];
 

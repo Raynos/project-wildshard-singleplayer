@@ -1,9 +1,9 @@
-import {registeredJsonSchema} from '@wildshard/sdk/formatJsonSchema';
+import {registeredJsonSchema} from '@wildshard/sharddev/formatJsonSchema';
 import { CircleGeometry, Matrix4, MeshBasicMaterial, TorusGeometry } from 'three';
-import { worldSceneBuffers as parseSceneBuffers, worldSceneRecipe as parseWorldScene, worldSceneRows as parseWorldScenes } from '@wildshard/sdk/worldScenes';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
+import { worldSceneBuffers as parseSceneBuffers, worldSceneRecipe as parseWorldScene, worldSceneRows as parseWorldScenes } from '@wildshard/sharddev/worldScenes';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
+import { compressGlb } from '@wildshard/sharddev/bake/glbCompression';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
 import { portalPlanRows } from './portalEntries';
 
 type WorldScenesSection = ReturnType<typeof parseWorldScenes>;

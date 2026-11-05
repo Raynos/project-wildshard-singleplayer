@@ -1,6 +1,6 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
-import { authorCatalogueRows, composeNamedJsonSchema, namedJsonSchema, registeredJsonSchema } from '../src/sdk/formatJsonSchema';
+import { authorCatalogueRows, composeNamedJsonSchema, namedJsonSchema, registeredJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { ClaimedPickupSchema } from '@wildshard/format/lootEconomy';
 import { ContractBoardPageSchema } from '@wildshard/format/contracts';
 import { QuestStoryBindingsSchema } from '@wildshard/format/questStoryBindings';

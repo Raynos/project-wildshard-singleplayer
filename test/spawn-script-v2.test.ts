@@ -19,8 +19,8 @@ import { parseSpawnScript,spawnScriptRegistries } from '@wildshard/format/spawnS
 import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
 import { scriptAdmissionRows,decisionModuleContracts } from '@wildshard/format/scriptContract';
 import { layoutV2 } from '@wildshard/format/scriptWireV2';
-import { compileSimV2 } from '../src/sdk/test/compileSimV2';
-import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
+import { compileSimV2 } from '../src/sharddev/test/compileSimV2';
+import { compileDecisionScripts } from '../src/sharddev/buildDecisionScripts';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const capacities = [{ kind: 1,capacity: 1 },{ kind: 2,capacity: 1 },{ kind: 3,capacity: 1 },{ kind: 5,capacity: 1 },{ kind: 6,capacity: 3 },{ kind: 7,capacity: 1 },{ kind: 9,capacity: 32 },{ kind: 10,capacity: 32 },{ kind: 21,capacity: 1 },{ kind: 22,capacity: 1 }];

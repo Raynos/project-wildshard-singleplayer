@@ -1,4 +1,4 @@
-import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
+import { readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
 import { decorativeRowsOnGround } from './decorative';
 
 /** Freeze both device profiles on the same admitted terrain used by play. */

@@ -123,7 +123,7 @@
   "test/platform-json-code.test.ts": [],
   "test/boss-fight-platform.test.ts": [],
   "src/engine/client/app/parked-viewmodels.test.ts": [],
-  "src/sdk/bake/whole-geometry-pacing.test.ts": [],
+  "src/sharddev/bake/whole-geometry-pacing.test.ts": [],
   "test/hybrid-product-rows.test.ts": [
     "far-reach",
     "sunscar-dunes"

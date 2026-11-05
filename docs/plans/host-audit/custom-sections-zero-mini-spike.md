@@ -67,7 +67,7 @@ E = emitting generator (`src/shards/<slug>/generators/`); R = route or reader.
 
 | Host | Shard: families (count, bytes) | E | R | State |
 |---|---|---|---|---|
-| R0 | DW+Pine `world/placement-pages/*` (12, 1.26 MB) | Pine bake, DW productPageFiles | `sdk/worldScenes.ts` | shared |
+| R0 | DW+Pine `world/placement-pages/*` (12, 1.26 MB) | Pine bake, DW productPageFiles | `sharddev/worldScenes.ts` | shared |
 | R0 | All `scenes/*`, `world/scenes/*` recipes: DW 11, Pine 3, Nine 3+1 portal, Far 15, Sun 9 (42, 142 KB) | worldScenes.ts | `world/scenes` steps | shared |
 | R0 | `world/fields/*`, `world/cards/*`, portal sparks: Far 1, Sun 4, Nine 4 (9, 150 KB) | meadowScene / emberBuffers / worldScenes | `world/scenes[buffered]` | shared |
 | R0 | `models/world-scenes` DW, Pine, Nine (3, 385 KB) | worldScenes.ts | `world/scenes`, `client/plan[world.assembly]` | shared |
@@ -99,7 +99,7 @@ means a game or SDK module already reads this data for at least one shard.
 | Host | What it is | Kills | Exists today | Host-bar fit | Lane | Days | Proof |
 |---|---|---:|---|---|---|---:|---|
 | **R0 Platform file families** | A registry in `@wildshard/format` beside `PLATFORM_DATA_SECTIONS`: a name pattern → one format schema, for streamed named files. The measure counts a named file only if its family is unregistered. A family registers only after its reader scores 6/6 | 98 | Schemas and readers exist; registry does not | Good: every family has ≥ 2 shard users | Codex | 2 | Payload bytes identical; index metadata only |
-| **H1 Streamed scene pages** | One paged placement family; tier and shadow variants derived at load, not shipped as copies | 142 | `sdk/worldScenes.ts`, `WorldScenePlacementPageSchema` (DW + Pine) | Good once Nine and the Pine cabins adopt it | Opus | 7 | Zero-pixel A/A + A/B per affected pose, both tiers and shadow modes; no-worse loading; walk 0 stuck |
+| **H1 Streamed scene pages** | One paged placement family; tier and shadow variants derived at load, not shipped as copies | 142 | `sharddev/worldScenes.ts`, `WorldScenePlacementPageSchema` (DW + Pine) | Good once Nine and the Pine cabins adopt it | Opus | 7 | Zero-pixel A/A + A/B per affected pose, both tiers and shadow modes; no-worse loading; walk 0 stuck |
 | **H2 Scene source envelopes** | One complete bake / model source root (CS3-E5) | 6 | `game/client/shardfile/sceneSources.ts` (Far + Sun) | Good: two users | Codex | 1.5 | Byte-identical payloads, same parse |
 | **H3 Ground pages** | Ground layout, caves and collision as a `world/ground` family; big grids as binary packets with row headers | 9 | `forestPage.ts`, `caveInterior.ts` (Pine only), `world/physics` | Weak: forest grammar is Pine-only (test 1) | Opus | 3.5 | Zero-pixel; Pine walk 75/75, 0 stuck |
 | **H4 Instanced scatter rows** | Typed scatter pages for dressing and props | 9 | `game/client/shardfile/sceneDressing.ts` (Nalati) | Fits once Pine props is user two | Opus | 3 | Zero-pixel both tiers; collider walk |
@@ -135,8 +135,8 @@ Steps 0–3 take 9 lane-days and remove 241 of 342 (70 %). Codex starts R0, H2, 
 ## End state
 
 - `shard.json` holds platform sections, registered file families and binary blobs. Nothing else is admitted.
-- **Deleted:** shard `SECTIONS` and both `runtime/productSections.d.ts`; the custom branches in `sdk/outputRuntime.ts`,
-  `sdk/outputProduct.ts`, `game/shared/shardfile/shardProduct.ts`, `clientPlan.ts`, `game/quest/{pageComposition,
+- **Deleted:** shard `SECTIONS` and both `runtime/productSections.d.ts`; the custom branches in `sharddev/outputRuntime.ts`,
+  `sharddev/outputProduct.ts`, `game/shared/shardfile/shardProduct.ts`, `clientPlan.ts`, `game/quest/{pageComposition,
   continuation,chapterDirector,questPageViews}.ts`, `game/models/{islandLibrary,kitFigureCard}.ts`; shard-built
   inline schemas (`driftwood-isle/generators/namedSchemas.ts` and the rest); `scripts/custom-section-policy.mjs`,
   `scripts/check-custom-section-growth.mjs`, `lint/custom-sections.json` and the 28 `custom-sections/*` ceilings.

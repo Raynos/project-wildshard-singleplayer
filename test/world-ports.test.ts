@@ -11,7 +11,7 @@ import { netNeighbourRegion } from '../src/game/client/grid/neighbourRows';
 import { netCreatureCount } from '../src/game/client/population/netCounts';
 import { netMoverPoses } from '../src/game/client/plugin/moverViews';
 import { MoverScriptDriver, type MoverView } from '../src/game/server/plugin/mover';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { canoeMover } from '../src/shards/pine-hollow/generators/canoe';
 import { timberWorld } from '../src/shards/pine-hollow/generators/timberWorldRows';
 import { PINE_SOURCES } from './fixtures/pine-sources';

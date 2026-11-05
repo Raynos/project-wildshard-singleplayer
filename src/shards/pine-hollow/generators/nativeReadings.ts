@@ -1,4 +1,4 @@
-import { parseNpcDialogueRow } from '@wildshard/sdk/questGraph';
+import { parseNpcDialogueRow } from '@wildshard/sharddev/questGraph';
 import { pineQuestNpcs } from './questNpcs';
 
 // GR8: called, not read from a scheduler job's output

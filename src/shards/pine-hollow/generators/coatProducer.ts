@@ -1,5 +1,5 @@
-import { readRigRest } from '@wildshard/sdk/bake/rig';
-import type { ImagePixels } from '@wildshard/sdk/bake/image';
+import { readRigRest } from '@wildshard/sharddev/bake/rig';
+import type { ImagePixels } from '@wildshard/sharddev/bake/image';
 import * as THREE from 'three';
 import { PINE_HULLS } from './creatureHulls';
 import { coatVariant, COAT_PALETTES } from './coatRecipes';

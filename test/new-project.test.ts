@@ -3,10 +3,10 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, 
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only owned author and output paths.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { buildProject } from '@wildshard/sdk/project';
-import { validateOutputProduct } from '@wildshard/sdk/outputProduct';
-import { writeNewProject } from '../src/sdk/newProject';
-import { runCli } from '../src/sdk/cli';
+import { buildProject } from '@wildshard/sharddev/project';
+import { validateOutputProduct } from '@wildshard/sharddev/outputProduct';
+import { writeNewProject } from '../src/sharddev/newProject';
+import { runCli } from '../src/sharddev/cli';
 import { checkShardLayout } from '../scripts/check-shards.mjs';
 import layout from '../lint/shard-layout.json';
 
@@ -21,7 +21,7 @@ test('new projects build v2 from build-only data without a custom runtime', asyn
     expect(() => writeNewProject(project, 'new-world')).toThrow('fresh directory');
     expect(checkShardLayout({ 'new-world': ['README.md', 'assets/', 'behaviour/', 'data/', 'generators/', 'shard.config.ts'] }, layout)).toEqual([]);
     // Add a real platform row through the generated sidecar, as an author would.
-    writeFileSync(resolve(project, 'generators/output.ts'), `import { emitPlatformSections } from '@wildshard/sdk/platformSections';
+    writeFileSync(resolve(project, 'generators/output.ts'), `import { emitPlatformSections } from '@wildshard/sharddev/platformSections';
 export const output = { platform: emitPlatformSections(new Map([['actors/moves', [
   { id: 'new-world.approach', kind: 'stalk', speed: 1, turn: 4, ground: true,
     above: 0, standOff: 0, ready: { kind: 'range' } }

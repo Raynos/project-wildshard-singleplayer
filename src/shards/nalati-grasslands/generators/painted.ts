@@ -1,5 +1,5 @@
 import type * as THREE from 'three';
-import type { BoxSpec, ContactSurface as Material, ColliderDesc } from '@wildshard/sdk/bake/placement';
+import type { BoxSpec, ContactSurface as Material, ColliderDesc } from '@wildshard/sharddev/bake/placement';
 import type { Board } from './campParams';
 import { PaintKit, v3, type ColorLike, type FinishOpts, type Painter, type PaintOpts, type NalatiTexName } from './paint';
 

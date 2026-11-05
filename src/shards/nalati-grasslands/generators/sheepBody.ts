@@ -1,5 +1,5 @@
 import { BufferAttribute } from 'three';
-import type { BakedGeometryRow } from '@wildshard/sdk/kit/bakedGeometry';
+import type { BakedGeometryRow } from '@wildshard/sharddev/kit/bakedGeometry';
 import { buildSheepGeometry, SHEEP_PIVOTS, SHEEP_PART_NAMES } from './sheep';
 
 /** Exact static fallback geometry; no loft or wool paint runs while a flock loads. */

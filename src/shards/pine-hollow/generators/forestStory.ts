@@ -3,8 +3,8 @@
 import water from '../data/waterLook.json' with { type: 'json' };
 import { contractCatalogue } from './contractRows';
 import { WEAPON_FINISHES } from './weaponFinishes';
-import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
-import { yawWorld } from '@wildshard/sdk/bake/placement';
+import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sharddev/blobs';
+import { yawWorld } from '@wildshard/sharddev/bake/placement';
 import loadout from '../data/loadout.json' with { type: 'json' };
 import policy from '../data/forestStory.json' with { type: 'json' };
 import { timberWorld } from './timberWorldRows';
@@ -14,9 +14,9 @@ import { pineQuestNpcs } from './questNpcs';
 import * as layout from './layout';
 import sky from '../data/sky.json' with { type: 'json' };
 import { BEATS, beatFlags, type Beat } from './questBeats';
-import { contractBoardPageRows as parseContractBoardPage, numberTupleRows } from '@wildshard/sdk/rows';
+import { contractBoardPageRows as parseContractBoardPage, numberTupleRows } from '@wildshard/sharddev/rows';
 import { PINE_PANELS } from './panels';
-import { authorFormatRows, registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { authorFormatRows, registeredJsonSchema } from '@wildshard/sharddev/formatJsonSchema';
 
 type QuestPageTalksRowsType = ReturnType<typeof authorFormatRows<'npcs.QuestPageTalksSchema'>>;
 

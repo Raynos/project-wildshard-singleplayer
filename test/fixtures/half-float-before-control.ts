@@ -1,11 +1,11 @@
 import { BufferAttribute, type BufferGeometry, Float16BufferAttribute } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { vi } from 'vitest';
-import * as glb from '../../src/sdk/bake/glb';
+import * as glb from '../../src/sharddev/bake/glb';
 import * as sweptKit from '../../src/shards/nine-dragon-stack/generators/kit/sweptKit';
 import * as kitx from '../../src/shards/nine-dragon-stack/generators/kitx';
-import * as compression from '../../src/sdk/bake/glbCompression';
-import * as compact from '../../src/sdk/bake/compactGlb';
+import * as compression from '../../src/sharddev/bake/glbCompression';
+import * as compact from '../../src/sharddev/bake/compactGlb';
 import { hashImmutableBytes } from '../../src/sdk/immutable';
 
 /** NR2's former merge: three's merger rebuilt a kit's half aFace / aPat as plain Uint16 words (written as integers). */

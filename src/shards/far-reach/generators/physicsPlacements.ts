@@ -1,4 +1,4 @@
-import type { BoxColliderData, ColliderData } from '@wildshard/sdk/physics';
+import type { BoxColliderData, ColliderData } from '@wildshard/sharddev/physics';
 import { APOTHEM, DECK, ISLES, MILL, MILL_DRUM, NOTES, VANES, WINCH, type Isle } from "./layout";
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import { risingIsletRows } from './risingIslets';

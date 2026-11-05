@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { Mesh } from 'three';
 import { bakeNalatiGround, nalatiGroundSource } from '../src/shards/nalati-grasslands/generators/nalatiGroundSource';
-import { readSourceModel } from '../src/sdk/bake/skinned';
+import { readSourceModel } from '../src/sharddev/bake/skinned';
 
 test('Nalati ground error bounds every actual Float64-to-Float32 position conversion', async () => {
   const source = nalatiGroundSource(new Uint8Array(readFileSync('public/assets/baked/nalati-grasslands/terrain.bin')));

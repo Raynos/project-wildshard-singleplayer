@@ -48,7 +48,7 @@ The player's root `spawn` is `{ x, y, z, yaw }`; a creature's `at` is a three-nu
 coordinate spelling as universal.
 
 In TypeScript, use `schemaDeclaration(ShardfileSchema)` and `schemaAt(document,
-pointer)` from `@wildshard/sdk/formatJsonSchema`, as in the retained, executed
+pointer)` from `@wildshard/sharddev/formatJsonSchema`, as in the retained, executed
 [`formatExample`](../../scripts/docs/authoring/format.ts). Import the declaration
 you need through its defining public export. Editor **Go to definition** follows
 the installed package's `exports.types` location. The SDK tarball places its
@@ -65,9 +65,9 @@ The SDK's retained publication map uses these paths relative to its package:
 
 | Binding | Public module | SDK declaration path |
 |---|---|---|
-| `staticGlb` | `@wildshard/sdk/bake/glb` | `dist/types/sdk/bake/glb.d.ts` |
-| `skinnedGlb`, `sampleSkinClip` | `@wildshard/sdk/bake/export` | `dist/types/sdk/bake/export.d.ts` |
-| `readRigRest`, `readRigMotion` | `@wildshard/sdk/bake/rig` | `dist/types/sdk/bake/rig.d.ts` |
+| `staticGlb` | `@wildshard/sharddev/bake/glb` | `dist/types/sdk/bake/glb.d.ts` |
+| `skinnedGlb`, `sampleSkinClip` | `@wildshard/sharddev/bake/export` | `dist/types/sdk/bake/export.d.ts` |
+| `readRigRest`, `readRigMotion` | `@wildshard/sharddev/bake/rig` | `dist/types/sdk/bake/rig.d.ts` |
 | Skin contracts | `@wildshard/format/skins` | Follow the format package export; the SDK's referenced copy is `dist/types/format/skins.d.ts` |
 | `createCatalogue`, `catalogueRef` | `@wildshard/commons/catalogue` | Follow the commons package export; the workspace currently names `catalogue.ts` |
 

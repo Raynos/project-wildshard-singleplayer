@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { driftwoodReefBank } from '../src/shards/driftwood-isle/generators/reefBank';
 import { scatterLagoon, type LagoonField } from '../src/shards/driftwood-isle/generators/reefScatter';
 import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/groundRows';
-import { readNativeTerrain } from '../src/sdk/bake/terrain';
+import { readNativeTerrain } from '../src/sharddev/bake/terrain';
 import { SEED, WORLD_DROP } from '../src/shards/driftwood-isle/generators/landscapeRows';
 import { WRECK, OCEAN } from '../src/shards/driftwood-isle/generators/worldSites';
 import { CHUNK_HALF, ROAD_WIDTH } from '../src/engine/shared/core/config';

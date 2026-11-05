@@ -1,4 +1,4 @@
-import type { GeneratedProject, ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { GeneratedProject, ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { pineProduct } from './product';
 import { pineJournal } from './journal';

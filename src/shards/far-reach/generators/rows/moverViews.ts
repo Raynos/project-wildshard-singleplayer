@@ -1,4 +1,4 @@
-import { ClientChannels } from '@wildshard/sdk/clientChannels';
+import { ClientChannels } from '@wildshard/sharddev/clientChannels';
 import { SKY_MOVER_BINDING } from './moverBindings';
 import { isletMotionRows } from '../isletMotion';
 

@@ -1,8 +1,8 @@
 // The kit figures' attention as client channel programs (G570): the turn to face the player and the head's focus, idle
 // glance and gesture look, compiled from each NPC's profile (npcFocus.ts) for game/systems/npc/kitFigure, which fills
 // owner `focus` natively each frame and keeps the pose in owner `figure` (Nalati's camp people move the same way).
-import { ClientChannels } from '@wildshard/sdk/clientChannels';
-import { parseClientChannels, type ClientChannelProgram } from '@wildshard/sdk/rows';
+import { ClientChannels } from '@wildshard/sharddev/clientChannels';
+import { parseClientChannels, type ClientChannelProgram } from '@wildshard/sharddev/rows';
 import { CASTAWAY_FACING, CASTAWAY_HEAD_FOCUS, TRADER_FACING, TRADER_HEAD_FOCUS } from './npcFocus';
 
 interface Facing { readonly range: number; readonly rate: number; readonly maxSpeed?: number; readonly wrapTarget?: boolean; readonly wrapOutput?: boolean }

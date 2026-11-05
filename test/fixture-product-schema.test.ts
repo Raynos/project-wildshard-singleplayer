@@ -1,9 +1,9 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
-import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { registeredJsonSchema } from '@wildshard/sharddev/formatJsonSchema';
 import { createShardProduct } from '@wildshard/game/shardfile/shardProduct';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 
 test('positive product fixtures retain declared identity and use the real registered schema', () => {
   const file = { hash: 'a'.repeat(64), url: '/original' };

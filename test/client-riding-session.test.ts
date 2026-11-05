@@ -10,7 +10,7 @@ import { entryOwner } from '../src/game/shared/shardfile/entryOwners';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { lendNalatiRiding } from './fixtures/nalati-return-modules';
 import { Scope } from '../src/engine/shared/app/scope';
 

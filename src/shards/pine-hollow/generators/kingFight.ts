@@ -1,4 +1,4 @@
-import type { RoamingBossRow } from '@wildshard/sdk/phasedBoss';
+import type { RoamingBossRow } from '@wildshard/sharddev/phasedBoss';
 import * as LAYOUT from './layout';
 import bossRows from '../data/bossEncounter.json' with { type: 'json' };
 import KING_ATTACK_TIMING from '../data/kingTiming.json' with { type: 'json' };

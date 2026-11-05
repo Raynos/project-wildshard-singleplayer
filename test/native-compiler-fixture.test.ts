@@ -4,7 +4,7 @@ import { expect, test } from 'vitest';
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture's cache stays inside the repository scratch root.
 import { resolve } from 'node:path';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { driftwoodGuestFiles } from '../src/shards/driftwood-isle/generators/guestPrograms';
 import { nativeCompilers } from './fixtures/nativeCompilers';

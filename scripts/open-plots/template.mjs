@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // OP3: source-only, deterministic plot scaffolds. Run the ordinary producer to qualify their bytes.
-import '../../src/sdk/bake/format-hook.mjs';
+import '../../src/sharddev/bake/format-hook.mjs';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { createHash } from 'node:crypto';

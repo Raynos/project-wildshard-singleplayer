@@ -1,5 +1,5 @@
 import { expect, expectTypeOf, test } from 'vitest';
-import type { AnimalDims, AnimalSpecies, BoneDef, VariantDef } from '../src/sdk/bake/species';
+import type { AnimalDims, AnimalSpecies, BoneDef, VariantDef } from '../src/sharddev/bake/species';
 import type { AnimalDims as NativeDims, AnimalSpecies as NativeSpecies, BoneDef as NativeBone, VariantDef as NativeVariant } from '../src/engine/shared/entities/species/registry';
 import { bakeNalatiBodies } from '../src/shards/nalati-grasslands/generators/bodies';
 import { hashImmutableBytes } from '../src/sdk/immutable';

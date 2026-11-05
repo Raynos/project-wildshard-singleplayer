@@ -6,7 +6,7 @@ import { expect, test } from 'vitest';
 import { CAST_SOURCES } from '../src/shards/nine-dragon-stack/generators/castSources';
 import {nineCastBlobs, rawCast} from './fixtures/nine-cast-blobs';
 import { createModelLibrary } from '../src/game/client/plugin/geometry';
-import { readSourceModel } from '../src/sdk/bake/skinned';
+import { readSourceModel } from '../src/sharddev/bake/skinned';
 import { parseWorldSceneWeld } from '@wildshard/format/worldSceneWeld';
 import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import { createOwnedGeometry } from '../src/engine/client/models/ownedGeometry';

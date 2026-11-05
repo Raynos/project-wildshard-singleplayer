@@ -1,7 +1,7 @@
 import { BoxGeometry, BufferGeometry, Color, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, Matrix4, Mesh, MeshStandardMaterial, Vector3 } from 'three';
-import { boxDesc, type ColliderDesc } from '@wildshard/sdk/bake/placement';
+import { boxDesc, type ColliderDesc } from '@wildshard/sharddev/bake/placement';
 import { STEP, WINCH_HOUSE } from "./layout";
-import { foldKinds, type KindExtra } from '@wildshard/sdk/bake/kinds';
+import { foldKinds, type KindExtra } from '@wildshard/sharddev/bake/kinds';
 import { SkyPiece } from './piece';
 import { beam, leanAbove, quad, shackMesh, shackPart, strut, tri, type ShackPart } from './shackKit';
 

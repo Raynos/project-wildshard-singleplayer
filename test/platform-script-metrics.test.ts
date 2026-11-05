@@ -31,7 +31,7 @@ test('net lines subtract platform growth once and retain increases and missing e
  const result=netLineReport({one:{customLines:120,basis:'output'},two:{customLines:10,basis:'source'}},baseline,platform)[0];
  expect(result).toMatchObject({customCut:20,platformGrowth:25,netCut:-5,layers:{format:{before:10,after:15,growth:5}},shards:{one:{cut:-20},two:{cut:40,basis:'source'}}});
  expect(netLineReport({one:{customLines:10,basis:'output'}},baseline,platform)[0]?.netCut).toBeNull();
- expect(platformLineFile('src/sdk/project.ts')).toBe(true);
+ expect(platformLineFile('src/sharddev/project.ts')).toBe(true);
  expect(platformLineFile('src/format/questStory.ts')).toBe(true);
  expect(platformLineFile('src/format/types.d.ts')).toBe(false);
  expect(platformLineFile('src/engine/look.glsl')).toBe(true);

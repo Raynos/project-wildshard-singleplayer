@@ -1,6 +1,6 @@
-import { nameSpecimenBook } from '@wildshard/sdk/bake/specimenCatalogue';
-import { nameBlob } from '@wildshard/sdk/blobs';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import { nameSpecimenBook } from '@wildshard/sharddev/bake/specimenCatalogue';
+import { nameBlob } from '@wildshard/sharddev/blobs';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { COVER_INPUTS, coverBinName, nalatiCoverBake, type NalatiCover } from './coverBake.mjs';
 import { GEAR_BOOK } from './gear';
 import { reinsCardBinary } from './reinsCard';

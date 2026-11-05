@@ -19,21 +19,21 @@ Every candidate that must stay, with its actual reader (file:line). Readers are 
 | `src/engine/client/boot/liveJsonParser.worker.ts` | `src/engine/client/boot/liveJsonParser.ts:28` | worker entry |
 | `src/engine/client/core/ktx2Zstd.worker.ts` | `src/engine/client/core/ktx2Zstd.ts:50` | worker entry |
 | `src/engine/client/player/viewmodelTextures.worker.ts` | `src/engine/client/combat/view/ranged.ts:116` (`?worker&inline`) | worker entry |
-| `src/sdk/bin/wildshard.mjs` → `src/sdk/cli.ts` | `src/sdk/package.json` `bin`; `scripts/build-sdk.mjs`, `scripts/bake-check.mjs` (string) | SDK CLI root |
-| `src/sdk/bake/source-loader.mjs` | `src/sdk/bake/native-scalar.test.ts:48` (`--import ./src/sdk/bake/source-loader.mjs`); CLI usage `src/shards/pine-hollow/generators/bake-pine-trophies.mjs:6`, `scripts/bake-captain-coat.mjs:4` | Node author loader |
-| `src/sdk/bake/{json,navigation-json}.mjs` | `src/sdk/bake/source-loader.mjs:18` (string dispatch), `test/json-output-guard.test.ts` (`new URL`) | drivers of the loader |
+| `src/sharddev/bin/wildshard.mjs` → `src/sharddev/cli.ts` | `src/sdk/package.json` `bin`; `scripts/build-sdk.mjs`, `scripts/bake-check.mjs` (string) | SDK CLI root |
+| `src/sharddev/bake/source-loader.mjs` | `src/sharddev/bake/native-scalar.test.ts:48` (`--import ./src/sharddev/bake/source-loader.mjs`); CLI usage `src/shards/pine-hollow/generators/bake-pine-trophies.mjs:6`, `scripts/bake-captain-coat.mjs:4` | Node author loader |
+| `src/sharddev/bake/{json,navigation-json}.mjs` | `src/sharddev/bake/source-loader.mjs:18` (string dispatch), `test/json-output-guard.test.ts` (`new URL`) | drivers of the loader |
 | `src/sdk/bake/headlessWorker.ts` | `scripts/build-sdk.mjs` (string entry), `src/sdk/headlessCodec.test.ts` | built worker entry |
 | `src/game/client/boot/{audio,bytes,packs,versions}.generated.ts`, `src/game/server/shard/portShares.generated.ts`, `src/game/client/systems/effects/starter.generated.ts` | generators `scripts/app-build/gen.ts`, `scripts/source-generators.mjs`, `scripts/gen-starter-effects.mjs` (string); app via dynamic imports | generated outputs |
 | 17 `*.d.ts` / `*.merge.d.ts` (orphans.md §1) | tsconfig `include` of each layer project | declaration roots (AGENTS.md E434) |
 | 23 `src/sdk/**` modules read only by `src/shards/*/generators/**` (e.g. `bake/compactGlb` 16 generators, `bake/groundMap` 15, `speciesBrains` 9, `bootInventory` 9) | shard generators (author roots) | author/bake API |
-| `src/sdk/outputRuntime.ts`, `src/sdk/executeBundle.ts`, `src/sdk/runtimePerformance.ts` | `src/sdk/project.ts`, `src/sdk/cli.ts` (type), `scripts/bake-template-shardfile.mjs`, `src/sdk/synth.ts` | **LD9b** decides (copied-runtime arm), not LD10 |
+| `src/sharddev/outputRuntime.ts`, `src/sharddev/executeBundle.ts`, `src/sharddev/runtimePerformance.ts` | `src/sharddev/project.ts`, `src/sharddev/cli.ts` (type), `scripts/bake-template-shardfile.mjs`, `src/sharddev/synth.ts` | **LD9b** decides (copied-runtime arm), not LD10 |
 | `src/game/client/shardfile/hybrid.ts` (`prepareHybridShard`) | `src/game/client/shard/declaredEntry.ts:2,15`, `src/game/client/grid/liveSession.ts`, `src/game/client/grid/regionalRuntime.ts`, `src/game/client/shardfile/clientWorldAssembly.ts` | live entry composite; its runtime-TS arm is LD9b |
 | `src/game/shared/quest/legacyRecords.ts`, `test/fixtures/quest-step-legacy-saves.*`, `test/fake/legacy{Actor,Hurt,Source}.ts`, `test/fixtures/legacy-oracles/**` | modern save migration and native oracles (plan text) | historical fixtures, not loading paths |
 | `scripts/g571-hosts.mjs`, `scripts/listed-view-code.mjs` | `scripts/shard-platform.mjs:13,17` (G294 attribution and listed-view register), `scripts/platform-chargebacks.mjs`, `scripts/precommit-jobs.mjs:72` | not copied-runtime paths (orphans.md §7) |
 
 `lint/ratchet.json` `wildshard/sdk-no-facade` rows that stay after the audio wrappers go (each still has a real
-author/tool caller): `src/sdk/kit/bakedGeometry.ts` 7, `src/sdk/phasedBoss.ts` 9, `src/sdk/species/clips.ts` 11,
-`src/sdk/speciesBrains.ts` 3, `src/sdk/weapons/bowProfile.ts` 4, `src/sdk/weapons/meleeProfile.ts` 2.
+author/tool caller): `src/sharddev/kit/bakedGeometry.ts` 7, `src/sharddev/phasedBoss.ts` 9, `src/sharddev/species/clips.ts` 11,
+`src/sharddev/speciesBrains.ts` 3, `src/sharddev/weapons/bowProfile.ts` 4, `src/sharddev/weapons/meleeProfile.ts` 2.
 
 ## ShardContext / ShardPlugin / LevelContext members that stay
 
@@ -75,7 +75,7 @@ see orphans.md §3 for the retirement rule if LD10 chooses to drop them.
 | `engine/shared/physics/terrain.ts#EDGE_WALL_INSET` | scripts/shard-components.mjs:55 | review set |
 | `game/client/shard/retainedHooks.ts#installEnteredRuntimeUpdate` | scripts/shard-components.mjs:137 | review set |
 | `game/client/shardfile/bakedKinds.ts#loadBakedKinds` | scripts/shard-components.mjs:75 | review set |
-| `sdk/crowds.ts#FlockData` | src/shards/nalati-grasslands/data/ecologyTypes.d.ts:8 | review set |
+| `sharddev/crowds.ts#FlockData` | src/shards/nalati-grasslands/data/ecologyTypes.d.ts:8 | review set |
 | `engine/client/render/fogPatches.ts#NodeFogPanorama` | src/engine/client/world/Atmosphere.ts:6 | NF18 importer gone |
 | `engine/client/world/Atmosphere.ts#fogUniforms` | src/engine/client/core/Volumetrics.ts:7, src/engine/client/entities/AnimalFactory.ts:10 (+9 more) | NF18 importer gone |
 | `engine/client/world/Atmosphere.ts#weatherFogUniforms` | src/game/client/grid/regionLight.ts:18 | NF18 importer gone |
@@ -104,7 +104,7 @@ see orphans.md §3 for the retirement rule if LD10 chooses to drop them.
 | `format/materialGraph.ts#SUN_OPS` | src/engine/client/render/graph/glsl.ts:31 | NF18 importer gone |
 | `format/materialGraph.ts#validateGraph` | src/engine/client/render/graph/colourFunction.ts:2, src/engine/client/render/graph/glsl.ts:31 (+9 more) | NF18 importer gone |
 | `format/materialGraph.ts#graphUsesMeshMap` | src/engine/client/render/graph/glslMaterial.ts:17, src/format/propMaterials.ts:1 (+1 more) | NF18 importer gone |
-| `format/materialGraph.ts#GraphArrayParam` | src/sdk/bake/materialGraph.ts:1 | NF18 importer gone |
+| `format/materialGraph.ts#GraphArrayParam` | src/sharddev/bake/materialGraph.ts:1 | NF18 importer gone |
 | `format/materialGraph.ts#GraphBinding` | src/engine/client/render/graph/glsl.ts:32, src/engine/client/render/graph/glslMaterial.ts:17 (+2 more) | NF18 importer gone |
 | `format/materialGraph.ts#GraphCost` | src/engine/client/render/graph/glsl.ts:31, src/engine/client/render/graph/glslMaterial.ts:17 | NF18 importer gone |
 | `format/materialGraph.ts#GraphIr` | src/engine/client/render/dataLook.ts:20, src/engine/client/render/graph/glsl.ts:31 (+12 more) | NF18 importer gone |
@@ -113,7 +113,7 @@ see orphans.md §3 for the retirement rule if LD10 chooses to drop them.
 | `format/materialGraph.ts#GraphRef` | src/engine/client/render/graph/colourFunction.ts:2, src/engine/client/render/graph/glsl.ts:31 (+4 more) | NF18 importer gone |
 | `format/materialGraph.ts#GraphValidation` | src/engine/client/render/graph/glsl.ts:31, src/engine/client/render/graphBackend.ts:10 | NF18 importer gone |
 | `format/materialGraph.ts#GraphValidationOptions` | src/engine/client/render/graph/glsl.ts:32, src/engine/client/render/graphBackend.ts:10 | NF18 importer gone |
-| `format/materialGraph.ts#GraphValueType` | src/engine/client/render/graph/glsl.ts:32, src/sdk/materials.ts:8 | NF18 importer gone |
+| `format/materialGraph.ts#GraphValueType` | src/engine/client/render/graph/glsl.ts:32, src/sharddev/materials.ts:8 | NF18 importer gone |
 | `game/client/shardfile/hybrid.ts#prepareHybridShard` | src/game/client/shard/declaredEntry.ts:2 | LD9a importer gone |
 | `game/client/plugin/context.ts#ShardContext` | lint/wildshard-plugin.js:811, scripts/gen-api.mjs:24 (+129 more) | LD9a importer gone |
 | `game/client/plugin/context.ts#ShardPlugin` | src/game/client/grid/pageShell.ts:3, src/game/client/shard/declaredEntry.ts:1 (+2 more) | LD9a importer gone |

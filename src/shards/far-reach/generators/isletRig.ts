@@ -1,6 +1,6 @@
-import { boxDesc, type ColliderDesc } from '@wildshard/sdk/bake/placement';
+import { boxDesc, type ColliderDesc } from '@wildshard/sharddev/bake/placement';
 import { BoxGeometry, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three';
-import type { PieceBake } from '@wildshard/sdk/bake/kinds';
+import type { PieceBake } from '@wildshard/sharddev/bake/kinds';
 import { SkyPiece } from './piece';
 import { RISING_ISLETS } from './risingIslets';
 import type { RisingIslet } from './rows/isletDesign';

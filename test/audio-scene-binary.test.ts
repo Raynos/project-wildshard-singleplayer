@@ -5,7 +5,7 @@ import {Vector3} from 'three';
 import {unzlibSync} from 'fflate';
 import {bakedSamplers} from '@wildshard/format/bakedTerrainSampling';
 import {AudioSceneSchema} from '@wildshard/format/audioScene';
-import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
+import {registeredJsonSchema} from '../src/sharddev/formatJsonSchema';
 import {fixtureJsonCheck} from './fixtures/productFile';
 import {preparedProductEnvelope} from './fixtures/prepared-product-envelope';
 import {admitClientPlan} from '../src/game/client/shardfile/clientPlan';
@@ -18,7 +18,7 @@ import type {Player} from '../src/engine/client/player/Player';
 import {AudioSceneDirector,clientAudioScene,installClientAudioScene} from '../src/game/client/audio/sceneDirector';
 import type {ShardContext} from '../src/game/client/plugin/context';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
-import {emptyShardfile} from '../src/sdk/author';
+import {emptyShardfile} from '../src/sharddev/author';
 
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 

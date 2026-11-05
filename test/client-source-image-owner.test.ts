@@ -6,7 +6,7 @@ import { parseStillImage } from '@wildshard/format/stillImage';
 import { shardfileSource } from '../src/game/client/shardfile/clientSource';
 import type { ShardfileClientBindings } from '../src/game/client/shardfile/client';
 import type { ProductOptions } from '../src/game/client/shardfile/product';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { OUTPUT_SECTIONS, outputSectionPayloads } from '@wildshard/format/outputFields';
 import { parseOutputIndex } from '@wildshard/format/outputIndex';

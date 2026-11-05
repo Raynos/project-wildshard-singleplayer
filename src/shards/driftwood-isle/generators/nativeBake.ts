@@ -1,4 +1,4 @@
-import { authorFormatSchema, defineNamedRows, type NamedRowValue , type NamedRows } from '@wildshard/sdk/formatJsonSchema';
+import { authorFormatSchema, defineNamedRows, type NamedRowValue , type NamedRows } from '@wildshard/sharddev/formatJsonSchema';
 import DRIFTWOOD_TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
 
 const DRIFTWOOD_GROUND_RES = DRIFTWOOD_TERRAIN.res;

@@ -1,8 +1,8 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { courseProgramInputs, type CourseProgramInputs } from '@wildshard/commons/courseProgram';
 import courseSource from '@wildshard/commons/scripts/course.as?raw';
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
 
 /** The original admitted ABI-1 course row and independently owned raw module. */
 export interface NinePracticeProgram { readonly script: CourseProgramInputs['row']; readonly blob: NamedBlob }

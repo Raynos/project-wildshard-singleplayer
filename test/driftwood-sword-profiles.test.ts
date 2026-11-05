@@ -2,7 +2,7 @@ import { sameRuntimeProfile } from '../src/game/shared/plugin/runtimeRows';
 import { parseItems } from '@wildshard/format/items';
 import { expect, test } from 'vitest';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { DRIFTWOOD as source } from './fixtures/driftwood-program';
 

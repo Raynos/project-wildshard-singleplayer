@@ -1,4 +1,4 @@
-import { parseFindsCatalogue } from '@wildshard/sdk/finds';
+import { parseFindsCatalogue } from '@wildshard/sharddev/finds';
 import policy from '../data/finds.json' with { type: 'json' };
 import ecology from '../data/ecology.json' with { type: 'json' };
 import feats from '../data/feats.json' with { type: 'json' };

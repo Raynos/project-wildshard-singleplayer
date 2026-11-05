@@ -1,6 +1,6 @@
 import { nalatiGeographyProgram } from './geographyProgram';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { encodeBuildBytes } from '@wildshard/sharddev/bake/byteCodec';
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { bakeNalatiPlacesOnTerrain } from './places';
 import { encodeNalatiPart } from './placeWire';

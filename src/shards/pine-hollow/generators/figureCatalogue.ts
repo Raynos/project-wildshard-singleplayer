@@ -1,5 +1,5 @@
 
-import { parseFigureCatalogue, type FigureCatalogue as FigureCatalogueRowType } from '@wildshard/sdk/rows';
+import { parseFigureCatalogue, type FigureCatalogue as FigureCatalogueRowType } from '@wildshard/sharddev/rows';
 import { NPC_FIGURE } from './peopleLook';
 import { NATIVE_VIEW } from './nativeView';
 import { LEG_BONE_NAMES } from './npcSkin';

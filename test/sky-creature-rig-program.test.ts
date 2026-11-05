@@ -5,8 +5,8 @@ import { dirname, resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
-import { createProjectGeneration, type ProjectGenerationContext } from '../src/sdk/projectGeneration';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
+import { createProjectGeneration, type ProjectGenerationContext } from '../src/sharddev/projectGeneration';
 import { originalSkyRigs } from './fixtures/sky-original-rigs';
 import { CREATURE_RIG_INPUTS, CREATURE_RIG_FILES, skyCreatureRigSource, skyCreatureRigProgram } from '../src/shards/far-reach/generators/creatureRigProgram';
 

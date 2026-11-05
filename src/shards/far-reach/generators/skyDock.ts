@@ -1,6 +1,6 @@
 import { ENTRY_ASPHALT } from '@wildshard/format/contentBounds';
 import { BoxGeometry, Color, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three';
-import type { PieceBake } from '@wildshard/sdk/bake/kinds';
+import type { PieceBake } from '@wildshard/sharddev/bake/kinds';
 import { SkyPiece } from './piece';
 import { RISING_ISLETS } from './risingIslets';
 import { ISLET, type EntryEdge, type RisingIslet } from './rows/isletDesign';

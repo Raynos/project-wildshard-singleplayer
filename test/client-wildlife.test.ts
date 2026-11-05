@@ -2,7 +2,7 @@ import {fixtureProductFile,fixtureJsonCheck} from './fixtures/productFile';
 import {nalatiWetBlock} from './fixtures/nalati-wet';
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import { createShardProduct, type ShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { expect, test, vi } from 'vitest';
 import { BufferGeometry, Scene, Vector3 } from 'three';
 import { App } from '../src/engine/client/app/app';

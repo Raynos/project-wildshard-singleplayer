@@ -1,7 +1,7 @@
 import { BufferAttribute, type BufferGeometry, MeshBasicMaterial } from 'three';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
-import { worldSceneRows, type AuthorWorldScenes } from '@wildshard/sdk/worldScenes';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
+import { worldSceneRows, type AuthorWorldScenes } from '@wildshard/sharddev/worldScenes';
 import { buildHalo } from './jianHalo';
 import { buildViewmodelParts, mergedPendantParts } from './viewmodelParts';
 

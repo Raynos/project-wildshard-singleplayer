@@ -43,11 +43,11 @@ The cold-loading model is unique playable bytes / 1 MB/s + 1 s setup. This is an
 explicit estimate, not observed device performance. Measure cold-cache fetch,
 decode, compile, admission and first playable frame separately. See
 [the author targets, good/bad cards and completion checklist](SHARDS.md#performance-comes-first).
-`@wildshard/sdk/reportCard` provides the same structured report for author tooling.
+`@wildshard/sharddev/reportCard` provides the same structured report for author tooling.
 
 `SHARDFILE_VERSION = "0.1"` covers both the format and script ABI. This is the provisional
 author contract, published by `@wildshard/sdk/shardfile` (`ShardfileSchema`,
-`parseShardfile`, `Shardfile`, `shardfileRules`) and `@wildshard/sdk/version`.
+`parseShardfile`, `Shardfile`, `shardfileRules`) and `@wildshard/sharddev/version`.
 The build product is `shard.json` plus immutable files named by SHA-256. No placement,
 three.js object, function, closure, custom shader or source generator appears in it.
 
@@ -194,11 +194,11 @@ bodies. Identifiers are at most 128 characters and free text at most 4,096.
 Distinct declared wire bytes, including commons, total at most 256,000,000;
 the same hash is counted once and conflicting size declarations are refused.
 These bounds supplement the per-bundle content budgets and exact byte checks.
-`@wildshard/sdk/admission` publishes `SHARDFILE_ADMISSION_LIMITS` and
+`@wildshard/sharddev/admission` publishes `SHARDFILE_ADMISSION_LIMITS` and
 `preflightShardfile` for checking author output before opening assets; full
 `parseShardfile` and product validation still follow.
 
-HUD accent (`@wildshard/sdk/accent`) is one required palette ID: `ember`, `coral`,
+HUD accent (`@wildshard/sharddev/accent`) is one required palette ID: `ember`, `coral`,
 `tangerine`, `apricot`, `marigold`, `citron`, `lime`, `moss`, `jade`, `mint`, `teal`,
 `azure`, `cornflower`, `periwinkle`, `iris`, `lilac`, `orchid`, `pink`, `rose`, or
 `sand`. Missing IDs, unknown IDs and raw colours fail validation. The road and
@@ -395,7 +395,7 @@ Bound post params move like the material graphs' (`graphParamFeeds`): a day bind
 samples the shard's look keys at the frame owner's hour, a state binding reads the
 live public state (its declared default until the simulation binds).
 
-`@wildshard/sdk/commonsCosts` exposes the defining cost schemas and
+`@wildshard/sharddev/commonsCosts` exposes the defining cost schemas and
 `assertCommonsCosts(hashes, table)`. A product declares one entry per required
 commons hash (at most 1024), matching `commonsWire` exactly. Decoded/GPU values
 are bytes; triangles/draws are counts. The SDK derives these costs from the pinned
@@ -443,7 +443,7 @@ another field. Declaration reordering and new fields are allowed. Outside author
 must assign an ID to every pre-existing v0 field before rebuilding; an empty
 world has no fields to migrate. This is a provisional v0 refinement before freeze.
 
-`@wildshard/sdk/migrations` exposes `MigrationsSchema`, `parseMigrations` and
+`@wildshard/sharddev/migrations` exposes `MigrationsSchema`, `parseMigrations` and
 `DeclaredMigrations`. Each row has `{from, to: from+1, fields, asHook: null}`;
 admission rejects future target versions, duplicate version steps and ambiguous
 field edits. At most 64 rows contain at most 256 edits each. `default` supplies a
@@ -461,7 +461,7 @@ clocks have complete ordered schedules. Species rows carry collision dimensions 
 each variant's health and modifiers. View and animation recipes are registered IDs
 with numeric/text parameters, resolved by the loader's injected catalogue. Compendium
 stamps/stats are constants and loot presentation selects the purse/cue mechanisms.
-`@wildshard/sdk/rows` exposes the schemas and numeric sim catalogue helpers.
+`@wildshard/sharddev/rows` exposes the schemas and numeric sim catalogue helpers.
 The legacy row-function ratchet stays until its old types lose their closure fields.
 
 `sim.bindings` optionally binds a declared script module to a positive entity ID,
@@ -516,7 +516,7 @@ only to its private draw transforms. It passes no player, physics, state writer
 or event authority. `createClientChannels` in `@wildshard/game/plugin/ui` copies
 the reads and exposes a frozen frame; a failed calculation leaves the previous
 frame intact. The native-runtime binding prevents a second data installation.
-Authoring uses `@wildshard/sdk/clientChannels`; for example:
+Authoring uses `@wildshard/sharddev/clientChannels`; for example:
 
 ```ts
 const orbit = new ClientChannels('orbit');
@@ -601,7 +601,7 @@ costs against declarations. The worst 150 m disc includes lookahead, three neigh
 at caps, deduplicated libraries/commons, L1, far, four sims and streaming overlap.
 The engine base is 300 MB, playing envelope 850 MB, loading envelope 1.8 GB.
 
-`assetOverdraw(kind, bytes)` in `@wildshard/sdk/assets` returns byte-derived
+`assetOverdraw(kind, bytes)` in `@wildshard/sharddev/assets` returns byte-derived
 `layers`, `blendedLayers` and `maskedLayers`, with `basis: "primitive-bounds"`.
 For each GLB primitive it takes the largest projected triangle-area / bounding-
 rectangle ratio over three local orthographic axes, then conservatively stacks
@@ -632,7 +632,7 @@ The legacy reader is replaced explicitly at the next revision, never carried
 forward as a general old-format or external-content bypass.
 
 The author CLI is built with `node scripts/build-sdk.mjs` in this checkout and run
-as `node src/sdk/bin/wildshard.mjs`. Outside projects get `wildshard` from the SDK
+as `node src/sharddev/bin/wildshard.mjs`. Outside projects get `wildshard` from the SDK
 tarball. Commands: `new <fresh-directory>`, `build <project> [output-directory]`,
 `validate <project|shard.json>`. Default output is the project's
 `public/shardfiles/<slug>/`. Source assets live at `assets/<sha256>`; declared
@@ -642,7 +642,7 @@ verifies wire hashes and parser costs, rejects understated transitive budgets an
 critical wire >2 MB, then writes stable sorted-key JSON and unchanged immutable
 bytes. Configs and generators execute only on the author's machine.
 
-SDK distribution (SF8b): `pnpm --dir src/sdk pack --pack-destination <directory>`
+SDK distribution (SF8b): `pnpm --dir src/sharddev pack --pack-destination <directory>`
 builds portable ESM author tools, their complete declaration closure and the normal
 Game client. An outside project installs the tarball with a `file:` dependency;
 `wildshard build` copies that prebuilt client and embeds its validated shardfile in
@@ -697,7 +697,7 @@ full content costs stay unchanged; pack hashes and grouping may change.
 
 ## Authored world source (SF55a, build input)
 
-`@wildshard/sdk/worldSource` exports `WorldSourceSchema`, `WorldSource` and
+`@wildshard/sharddev/worldSource` exports `WorldSourceSchema`, `WorldSource` and
 `parseWorldSource`. This validates the build-only `world` declaration planned for
 `shard.config.ts`; `world` is not a compiled `Shardfile` field. This first contract
 slice does not yet make `wildshard build` ingest a world GLB: the CLI currently still
@@ -705,7 +705,7 @@ requires compiled shardfile data. The normalization API below is available;
 texture/LOD tools, mesh collision and the build adapter follow in SF55a before
 the Blender Template (SF55).
 
-`@wildshard/sdk/bake/world` now exposes the memory-only normalization stage:
+`@wildshard/sharddev/bake/world` now exposes the memory-only normalization stage:
 `await normalizeWorldGlb(bytes, world, admittedMaterialIds)`. It takes one embedded
 static GLB and checks mapped output IDs against the supplied admitted material
 catalogue. It returns indexed static and collision primitives, independent panels,
@@ -735,7 +735,7 @@ unmapped materials, unused mapping names, invalid samplers and missing UV0 fail.
 Repeated normalization leaves the caller's bytes unchanged and produces equal data.
 
 ```ts
-import { parseWorldSource } from '@wildshard/sdk/worldSource';
+import { parseWorldSource } from '@wildshard/sharddev/worldSource';
 
 const world = parseWorldSource({
   glb: 'assets/world.glb',
@@ -782,7 +782,7 @@ the platform draws the asphalt socket after admission. Add the build-only `world
 key to the default declaration in `shard.config.ts`:
 
 ```ts
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 const shard = emptyShardfile({ slug: 'my-world', name: 'My world', author: 'Me', revision: 1, seed: 1 });
 export default { ...shard, world };
 ```
@@ -803,7 +803,7 @@ export const behaviour = [{ id: 'door', source: 'behaviour/door.as', maximumPage
 ```
 
 The SDK pins AssemblyScript 0.28.20 and Binaryen 132.0.0. Its public
-`@wildshard/sdk/compileScript` module also compiles virtual source text in memory.
+`@wildshard/sharddev/compileScript` module also compiles virtual source text in memory.
 Fuel, call-depth and finite-number guards use the existing ABI-v0 admission;
 the product contains Wasm, and runs no compiler or author source code at boot.
 
@@ -1110,7 +1110,7 @@ All aliases count toward the one `serverBudget.entities` allowance.
 
 The `stalker` archetype (SF82) admits `pattern: 'skirmish'` with exactly the old flat `skirmisher` fields,
 bounds, ordered perception/strike checks and optional six-tick cadence. `@wildshard/format/brains` defines
-`StalkerSchema`, `parseStalker` and `stalkerPreset`; `@wildshard/sdk/brains` emits the validated row with
+`StalkerSchema`, `parseStalker` and `stalkerPreset`; `@wildshard/sharddev/brains` emits the validated row with
 `stalker(data)`. Full-factory rows and species catalogues (`archetype: 'stalker'`) canonicalize to the existing
 skirmisher native adapter, removing only the pattern and restoring the legacy kind and parsed key order.
 This preserves existing continuation bytes and restore without running a decision, allocating a body or drawing RNG.
@@ -1123,7 +1123,7 @@ The flat fields, numeric bounds, cue ids, ordered-range checks and optional six-
 the old `guardian` and `perch-hunter` rows. Cross-pattern fields and unknown patterns refuse. A `guardian` row without
 `pattern` keeps the existing interior spelling unchanged; the old `perch-hunter` spelling also keeps loading.
 `@wildshard/format/brains` defines `GuardianPatternsSchema`, `parseGuardianPattern` and `guardianPreset`;
-`@wildshard/sdk/brains` emits validated author data through `guardianPattern(data)`. Canonicalization removes only
+`@wildshard/sharddev/brains` emits validated author data through `guardianPattern(data)`. Canonicalization removes only
 the pattern tag and restores the legacy row kind and parsed key order, preserving existing save-contract bytes.
 Both full-factory and species-catalogue hosts select the same native body ports as the old spelling. Interior floor,
 rise/sink and perch selection, drop/climb, projectiles and shared attack RNG remain trusted ownership; absent ports
@@ -1134,14 +1134,14 @@ The `grazer` archetype (SF82) selects a strict `pattern`: `wander-ram` or
 six-tick `thinkDivisor` are exactly those of `ram-grazer` or `challenge-grazer`,
 respectively. No field from the other pattern is admitted. `@wildshard/format/grazers`
 defines `GrazerSchema`, `parseGrazer` and the pure `grazerPreset` canonicalization;
-`@wildshard/sdk/grazers` emits the validated row through `grazer(data)`.
+`@wildshard/sharddev/grazers` emits the validated row through `grazer(data)`.
 The existing legacy row names remain admitted presets of this one policy host.
 The full-schema lane/arc strike checks and existing trusted body recipes apply to
 both spellings before registration. Stable row ids, actor ids, decision cadence,
 RNG and continuation bytes remain identical when only the spelling is changed.
 
 The two grazer families use `shardfile/grazers` and the author adapter
-`@wildshard/sdk/grazers`. A ram grazer names a `rows.strikes` lane profile with
+`@wildshard/sharddev/grazers`. A ram grazer names a `rows.strikes` lane profile with
 positive windup and range; a challenge grazer names distinct lane-charge and
 arc-close profiles plus distinct windup/recovery actor-memory fields. Both
 default to a six-tick decision divisor. The full factory and client require
@@ -1157,7 +1157,7 @@ The `diver` archetype (SF82) selects a strict `pattern`: `orbit`, `patrol` or
 `burst`. Its flat tuning, home, named strike and default six-tick `thinkDivisor`
 are exactly those of the corresponding historical flight row; fields from a
 different pattern refuse. `@wildshard/format/flyers` defines `DiverSchema`,
-`parseDiver` and `diverPreset`; `@wildshard/sdk/flyers` emits the row through
+`parseDiver` and `diverPreset`; `@wildshard/sharddev/flyers` emits the row through
 `diver(data)`. The shared policy preserves each pattern's state and contact laws.
 The pure canonicalization is also used by full-shard strike/home/flight admission
 and installation, so the existing trusted ports and save contracts remain exact.
@@ -1361,7 +1361,7 @@ installer consumes the same audio data once. This transition avoids duplicate
 cues, beds and scores; ordinary authored products use the declared installer.
 
 Crowd declarations use optional top-level `crowds` (default `[]`), an ordered array
-of flock rows from `@wildshard/sdk/crowds`. Each row names its stable ID, home x/z,
+of flock rows from `@wildshard/sharddev/crowds`. Each row names its stable ID, home x/z,
 member count, seed, roaming range, run/walk/graze speeds and bleat cue. Admission
 allows at most 64 unique rows and 4,096 members, requires home centres in the cell,
 and counts members alongside creature spawns against `serverBudget.entities`.
@@ -1372,7 +1372,7 @@ admission succeeds. Each crowd owns one fixed callback and snapshot adapter;
 restore skips setup draws and resumes its ordered member state/private RNG. The
 minimal empty client refuses crowd content. No live shard changes selection here.
 
-The authored-world texture encoder is `@wildshard/sdk/bake/textureWasm`:
+The authored-world texture encoder is `@wildshard/sharddev/bake/textureWasm`:
 `bakeWorldTexture(bytes, 'srgb' | 'linear')` reads a bounded still PNG/JPEG/WebP,
 then emits UASTC KTX2 with a complete mip chain. The SDK pins
 `@loaders.gl/textures` 4.5.3 (its packaged Basis Universal encoder JS and WASM),
@@ -1386,7 +1386,7 @@ The existing generator helper `bakeColourTexture` keeps its historical system-to
 output; this additive helper is the portable authored-world path. The subsequent
 world bake will call it and charge its output through ordinary KTX2 admission.
 
-Authored-world LODs use `@wildshard/sdk/bake/worldLod` and pinned meshoptimizer
+Authored-world LODs use `@wildshard/sharddev/bake/worldLod` and pinned meshoptimizer
 1.2.0 WASM. `simplifyWorldPrimitive(primitive, ratio, maxErrorMetres)` runs per
 material, locks topological borders, weights normals/UV/colours/tangents and
 retains original float64 positions and attributes for every surviving vertex.
@@ -1400,7 +1400,7 @@ a triangle target is never treated as proof that the output fits a cap.
 
 ### Authored-world material bindings (SF55a)
 
-Native world conversions can use `@wildshard/sdk/bake/nativeLattice`:
+Native world conversions can use `@wildshard/sharddev/bake/nativeLattice`:
 `sliceNativeLattice(source, lod)` accepts the original 256 or 257 vertex lattice,
 explicit triangle indices (including its diagonal and holes) and bounded named
 vertex channels. It clips those triangles into all 64 L0 or 16 L1 squares without
@@ -1409,7 +1409,7 @@ samples remain exact; cut vertices interpolate the original triangle attributes.
 Supported channels include normal, UV, colour, splat and Nalati's `surf` vec4,
 `rdir` vec2 and `zone` vec3. Collision retains its original native bake; this is
 render geometry only. `simplifyNativeLatticeTile` from
-`@wildshard/sdk/bake/worldLod` then simplifies L1 with locked tile and hole
+`@wildshard/sharddev/bake/worldLod` then simplifies L1 with locked tile and hole
 borders, retaining exact surviving channel values. Report its actual count and
 appearance-error estimate (not an independent Hausdorff bound), and charge the
 emitted geometry; the target ratio is not a guaranteed reduction.
@@ -1439,7 +1439,7 @@ records and their renderer residency remain a separate pending product seam.
 
 ### Authored-world collision bake (SF55a)
 
-`@wildshard/sdk/bake/worldCollision` exposes `bakeWorldCollision(normalized)`.
+`@wildshard/sharddev/bake/worldCollision` exposes `bakeWorldCollision(normalized)`.
 It clips actual collision triangles to the 62.5 m L0 lattice and emits nonempty,
 ordered tile rows plus independent interactive collider rows and content-addressed
 WMC1 bytes. It applies panel root matrices (including mirrored winding) into the
@@ -1482,7 +1482,7 @@ products until native restore, entry-footprint and client integration land.
 
 ### Socket lift declarations (SF8c)
 
-`@wildshard/sdk/socketLift` defines the bounded data link
+`@wildshard/sharddev/socketLift` defines the bounded data link
 `{mover, roadStop, topStop, route, gate, rideTicks}`. Both ids resolve to admitted
 SF30 mover rows; stops and route points are shard-local feet coordinates. The
 route begins at the top stop and continues to playable ground; at most 32 points
@@ -1551,7 +1551,7 @@ Mesh entry admission clips every actual WMC1 triangle to the canonical 8 × 15 m
 
 ### Portal entry links (SF8c, G224)
 
-An entry may declare `kind: "portalLink"` and `portal: {road, destination, exit, links, route}`. Each endpoint is `{id, at: [x,y,z], floor, yaw?}`; yaw defaults to zero and is bounded to ±π. The road endpoint sits at y=0 on the centreline of its canonical 8×15 m deck. Exactly two directed links are admitted: `road.id -> destination.id` and `exit.id -> road.id`. Unknown, missing, duplicate or conflicting bindings refuse. The 2–32-point cell-local route starts at the arrival and ends at the exit; this route is walked, not teleported. `@wildshard/sdk/portalLink` supplies the strict schema and parser.
+An entry may declare `kind: "portalLink"` and `portal: {road, destination, exit, links, route}`. Each endpoint is `{id, at: [x,y,z], floor, yaw?}`; yaw defaults to zero and is bounded to ±π. The road endpoint sits at y=0 on the centreline of its canonical 8×15 m deck. Exactly two directed links are admitted: `road.id -> destination.id` and `exit.id -> road.id`. Unknown, missing, duplicate or conflicting bindings refuse. The 2–32-point cell-local route starts at the arrival and ends at the exit; this route is walked, not teleported. `@wildshard/sharddev/portalLink` supplies the strict schema and parser.
 
 Every endpoint names an active permanent static prop collider or `mesh.tile.x.z`; a moving, hidden, target-controlled or platform collider cannot bind it. Exact projected collision triangles must cover the entire road deck and every endpoint's capsule footprint. Existing footprint admission also refuses above-road dressing and water (intersecting water needs its canonical dry-entry exclusion). Above or below a stacked floor, a transfer queries only its named collision owner, never an implicit plane.
 
@@ -1654,7 +1654,7 @@ Material and look authoring waits for DS1.4.
 
 ## Authoring scene input (DS1.3)
 
-`@wildshard/sdk/scene.readScene` synthesizes an inspectable, JSON-only
+`@wildshard/sharddev/scene.readScene` synthesizes an inspectable, JSON-only
 `SceneDescription` from real three.js objects in Node. This is compiler input,
 not an additional field in `shard.json`. The compiler owns asset encoding and
 final schema validation. A generator can use the same scene graph operations as
@@ -1662,10 +1662,10 @@ three.js, adding SDK game concepts to it:
 
 ```ts
 import { Scene, Mesh, BoxGeometry, MeshStandardMaterial } from 'three';
-import { BoxCollider } from '@wildshard/sdk/physics';
-import { PlayerStart } from '@wildshard/sdk/spawns';
-import { Entry } from '@wildshard/sdk/entries';
-import { readScene } from '@wildshard/sdk/scene';
+import { BoxCollider } from '@wildshard/sharddev/physics';
+import { PlayerStart } from '@wildshard/sharddev/spawns';
+import { Entry } from '@wildshard/sharddev/entries';
+import { readScene } from '@wildshard/sharddev/scene';
 
 const scene = new Scene();
 const floor = new Mesh(new BoxGeometry(8, 1, 12), new MeshStandardMaterial());
@@ -1700,7 +1700,7 @@ does not yet replace any page-bound physics producer.
 exports are transitional alongside the existing default shardfile declaration;
 missing scenes refuse. The command writes canonical JSON to
 `.wildshard/cache/<slug>/scene.json` and retains an immutable copy under its
-SHA256 directory. `@wildshard/sdk/synth` defines `synthProject(project)` and
+SHA256 directory. `@wildshard/sharddev/synth` defines `synthProject(project)` and
 `synthScene(scene, project, slug)`; each returns the description, digest and path.
 The latter also accepts an already generated graph, including Template 1's
 retained generator. Geometry, material and node traversal use the DS1.3 reader;
@@ -1719,13 +1719,13 @@ three.js author project without drawing a frame.
 
 `@wildshard/format/edgeProfiles` defines the unchanged Valibot boundary contract: 256 or 257 finite height/colour samples and zero road height. The format workspace imports only Valibot; the loader imports its defining schema directly. The SDK package declaration copier and author-input audit include this layer. The migrated pure roots are all listed in the generated format API and JSON Schema inventory; material-dependent root composition remains pending DS1.4.
 
-The scoped input/knob/Debug wire contract is now defined by `@wildshard/format/plumbing`: both loader admission and SDK author validation consume it. Namespace ownership, duplicate IDs, touch-action references and Debug defaults retain their existing checks. `@wildshard/sdk/plumbing` is author-time Valibot parsing; it no longer calls a game module.
+The scoped input/knob/Debug wire contract is now defined by `@wildshard/format/plumbing`: both loader admission and SDK author validation consume it. Namespace ownership, duplicate IDs, touch-action references and Debug defaults retain their existing checks. `@wildshard/sharddev/plumbing` is author-time Valibot parsing; it no longer calls a game module.
 
 ### Generated format JSON Schema (DS1.1)
 
 `pnpm gen` writes `.wildshard/format/*.schema.json` for every migrated root
 (including edge profiles, plumbing, directors, movers, weapon and brain
-profiles) through `@wildshard/sdk/formatJsonSchema` and the pinned
+profiles) through `@wildshard/sharddev/formatJsonSchema` and the pinned
 `@valibot/to-json-schema` converter. These ignored build outputs carry DO-NOT-EDIT
 provenance. Only the migrated `@wildshard/format` roots are included; the mixed
 whole-shard contract still awaits extraction. No game or renderer is imported.
@@ -1795,7 +1795,7 @@ Pine watch/dawn rows demonstrate an AS-backed stage lane with identical native o
 
 ### Clip-authored fixed mover rows
 
-`@wildshard/sdk/movers` exposes `Mover`, an ordinary three.js `Object3D` wrapping a named body.
+`@wildshard/sharddev/movers` exposes `Mover`, an ordinary three.js `Object3D` wrapping a named body.
 Its `toMoverData(rest)` reads a real `AnimationClip` into numeric `track`, `trigger` and `driver` rows.
 Track/pendulum policies supplement the original fixed policies. The winch policies accept two linear position stops for a ride winch, or two local pitch quaternion
 stops for a hinge winch. An `always` trigger drives the waves policy or a static chain; an `interact`
@@ -1811,7 +1811,7 @@ build/admission inputs and are absent from the executable continuation contract.
 
 SF81 Pine night: `data/nightStages.json` selects the fixed lifecycle events from the typed author `behaviour/night.as`, bound by `data/nightDirector.json`. The retained author-only producer `generators/bake-pine-night-director.mjs` emits the immutable module and DO-NOT-EDIT embedded representation through the shared content-hash build cache. No generated module is committed. The native population stores the complete AS/stage continuation with its exact actor identities; pre-row population continuations refuse explicitly.
 
-`@wildshard/sdk/compileMovers` compiles the readable fixed ride, hinge and wave kernels with the
+`@wildshard/sharddev/compileMovers` compiles the readable fixed ride, hinge and wave kernels with the
 portable metered compiler. Their hashes are part of the continuation ABI; accidental changes refuse.
 Sky's generator authors its exact f64 stops in real three.js clips, including the stationary gate
 clip and the local-pitch winch clip. Its former per-shard lift and bridge guests are unnecessary.
@@ -1840,7 +1840,7 @@ and therefore use the same guest, physics and host snapshot/restore fences. No s
 
 SF84's `@wildshard/format/modes` admits the following declarations:
 zipline floor endpoints/sag/hang/flight; board-only updraft endpoints/width/lift;
-ride gait speeds; grapple selection/range/timing. `@wildshard/sdk/modes` provides
+ride gait speeds; grapple selection/range/timing. `@wildshard/sharddev/modes` provides
 ordinary three.js `Zipline`, `Updraft`, `Mount`, `Grapple` and `Ladder` objects.
 `toModeData()` validates their rows, including world-space endpoint transforms.
 Zipline, updraft, ride and grapple require `runtime.binds: ['modes']`: actual native
@@ -1904,7 +1904,7 @@ their damage contact, as in the existing page law.
 SF84 traversal rows are declared as optional `modes.traverse` data. Zipline and updraft rows require
 `runtime.binds: ['modes']`; pure-data or unbound native traversal rows refuse admission. Ladder is the installed data-host exception. The native owner reads the admitted
 row at its existing player phase and the data client removes it, preventing a second owner. Sky Reach consumes its
-updraft geometry/force this way in both browser and trusted headless hosts. `@wildshard/sdk/modes` exposes the data types
+updraft geometry/force this way in both browser and trusted headless hosts. `@wildshard/sharddev/modes` exposes the data types
 `ModeRows`, `ZiplineRow`, `UpdraftRow` alongside the ordinary three.js author objects.
 
 
@@ -2003,7 +2003,7 @@ Use `wildshard schema list`, then `wildshard schema <root> [JSON-pointer]`. The 
 
 ## Typed numeric script modules (OS-F4)
 
-Use `generateScriptModule` from `@wildshard/sdk/directorAbi` instead of inventing buffer capacities, event offsets or effect opcodes. The [ABI guide](authoring/script-abi.md) documents the generated typed module: in_cap is bytes, out_cap is records, state is stable-ID ordered, and player writes require real native actor binding. The retained numericScriptExample runs in the actual host and restores exactly.
+Use `generateScriptModule` from `@wildshard/sharddev/directorAbi` instead of inventing buffer capacities, event offsets or effect opcodes. The [ABI guide](authoring/script-abi.md) documents the generated typed module: in_cap is bytes, out_cap is records, state is stable-ID ordered, and player writes require real native actor binding. The retained numericScriptExample runs in the actual host and restores exactly.
 
 ## Standalone author bootstrap (OS-F10)
 
@@ -2021,7 +2021,7 @@ Use wildshard prove with a version-1 finite command tape, checkpointTick and req
 
 
 OS-F8 vertical ladder contract (data-only shards): `Ladder(bottom, top, exit, { reach?, speed? })` in
-`@wildshard/sdk/modes` emits `kind: 'ladder'` in `modes.traverse`. Set its stable
+`@wildshard/sharddev/modes` emits `kind: 'ladder'` in `modes.traverse`. Set its stable
 `.name` and local `.normal` (outward, horizontal, unit length). `bottom` and `top`
 are vertically aligned capsule-feet positions; `exit` is an authored upper floor
 behind the outward normal, at top.y and within two metres. World positions must
@@ -2121,7 +2121,7 @@ For example, a goat may use `['body', 'head', 'legLeft', 'legRight']`, a hawk
 `row.rig.clips`; `binding.loops` is a subset, not a source of additional clips.
 
 Use ordinary three.js `Bone`, `Skeleton`, `SkinnedMesh` and named clips, then
-`sampleSkinClip` / `skinnedGlb` from `@wildshard/sdk/bake/export`. Derive costs and
+`sampleSkinClip` / `skinnedGlb` from `@wildshard/sharddev/bake/export`. Derive costs and
 hashes from the emitted bytes. A `Root` joint does not satisfy `body`; an empty
 socket list does not satisfy either required joint. Both `wildshard build` and
 `wildshard validate` check the same defining contract before any view allocation:
@@ -2219,7 +2219,7 @@ Legacy entries retain their original map path while those folders exist.
 
 ### CPU navigation authoring (G320)
 
-`@wildshard/sdk/bake/navigation` defines
+`@wildshard/sharddev/bake/navigation` defines
 `bakeNavigation({positions, indices}, layers, settings)`. It runs the
 retained navcat tiled compiler and emits WSNM v1 bytes plus ordered layer
 counts. Positions are world-space authored triangles; walkable faces
@@ -2280,7 +2280,7 @@ space. It is a fragment-only vec4 input and costs one sampler even when reused;
 post, points and vertex stages refuse it. Unmapped meshes read white RGBA.
 `meshMap` with `name: 'bump'` reads the material's bump map instead (on its own
 UV set); a material without one reads white.
-`@wildshard/sdk/materials.meshMap` authors this input. The client compiler's
+`@wildshard/sharddev/materials.meshMap` authors this input. The client compiler's
 optional second texture argument and declared props' colour slots bind it via
 `bindGraphMeshMap` in the existing engine graph backend. Equal graph/map pairs
 share a scope-owned material; different maps remain separate. Original textures
@@ -2305,13 +2305,13 @@ keep their existing byte path. Omission retains pinned native tile bytes.
 The codec preserves every buffer-view byte, triangle, node and material;
 this option performs no quantization, welding or geometry simplification.
 Offline reconstruction can validate the producer's original/run-form topology
-and compact channel declarations through `@wildshard/sdk/bake/wholePartition`.
+and compact channel declarations through `@wildshard/sharddev/bake/wholePartition`.
 Its optional position grid is the whole shape's shared grid; consumers restore
 that grid before welding, and keep completeness and duplicate-vertex checks.
 
 ### Exact ordinary meshes in a baked piece
 
-`BakedPiece` (`@wildshard/sdk/bake`) accepts named `Mesh` children as well
+`BakedPiece` (`@wildshard/sharddev/bake`) accepts named `Mesh` children as well
 as `InstancedMesh` kinds. Ordinary meshes always use native attributes and compact indices: their float32 position/normal/colour/uv/tangent channels,
 original index type and double-precision world matrix survive the bake.
 `MeshBasicMaterial` is emitted with `KHR_materials_unlit`; its linear HDR colour
@@ -2320,7 +2320,7 @@ materials preserve their linear colour and emissive channels too.
 
 ```ts
 import { BoxGeometry, Mesh, MeshBasicMaterial, Scene } from 'three';
-import { bake, BakedPiece } from '@wildshard/sdk/bake';
+import { bake, BakedPiece } from '@wildshard/sharddev/bake';
 const glass = new MeshBasicMaterial({ color: 0xffb24a });
 glass.color.multiplyScalar(3.2);
 const scene = new Scene();
@@ -2339,7 +2339,7 @@ variant. `scene.json` also restores the basic material declaration exactly.
 
 ### Exact rest hierarchies and geometry pools
 
-`@wildshard/sdk/bake/glb.clientSceneGlb` emits an ordinary named three.js
+`@wildshard/sharddev/bake/glb.clientSceneGlb` emits an ordinary named three.js
 `Group`/`Mesh` hierarchy as the existing V1 client scene rows plus a standard
 GLB of its mesh-local geometry. The client lends the original materials by
 name; shader graphs and motion owners stay with those ports. The named-node

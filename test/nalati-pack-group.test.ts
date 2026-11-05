@@ -1,13 +1,13 @@
-import {readDecisionSources} from '../src/sdk/buildDecisionScripts';
+import {readDecisionSources} from '../src/sharddev/buildDecisionScripts';
 import { Vector3 } from 'three';
 import { expect, test,vi } from 'vitest';
 import {GroupBankV2} from '../src/engine/shared/script/groupBankV2';
 import type {V2ColumnOwners} from '../src/engine/shared/script/observationColumnsV2';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
+import { compileScriptV2 } from '../src/sharddev/bake/compileScriptV2';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { v2CoreSource } from '../src/sdk/as/wsV2';
-import { groupStepSourceV2 } from '../src/sdk/as/groupStepV2';
-import { groupBankSourceV2 } from '../src/sdk/as/groupBankV2';
+import { v2CoreSource } from '../src/sharddev/as/wsV2';
+import { groupStepSourceV2 } from '../src/sharddev/as/groupStepV2';
+import { groupBankSourceV2 } from '../src/sharddev/as/groupBankV2';
 import { groupStepLayoutV2, parseGroupStepV2 } from '@wildshard/format/scriptGroupStepV2';
 import { GroupStepV2,type GroupStepNativeResultV2 } from '../src/engine/shared/script/groupStepV2';
 import { Scope } from '../src/engine/shared/app/scope';

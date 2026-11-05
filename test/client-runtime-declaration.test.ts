@@ -10,10 +10,10 @@ import { RuntimeSchema } from '@wildshard/format/runtime';
 import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';
 import { parseManifestMetadata } from '@wildshard/format/minimap';
 import { parseOutputIndex } from '@wildshard/format/outputIndex';
-import { emptyShardfile } from '../src/sdk/author';
-import { writeOutputProduct, validateOutputProduct } from '../src/sdk/outputProduct';
-import { writeRuntimeFiles } from '../src/sdk/outputRuntime';
-import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
+import { emptyShardfile } from '../src/sharddev/author';
+import { writeOutputProduct, validateOutputProduct } from '../src/sharddev/outputProduct';
+import { writeRuntimeFiles } from '../src/sharddev/outputRuntime';
+import { formatJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 import metadata from '../src/shards/pine-hollow/manifest.json' with {type:'json'};
 

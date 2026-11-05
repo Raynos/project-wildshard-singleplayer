@@ -1,5 +1,5 @@
 import type { Vector3 } from 'three';
-import type { ThrownProfile } from '@wildshard/sdk/weapons/thrownProfile';
+import type { ThrownProfile } from '@wildshard/sharddev/weapons/thrownProfile';
 
 // Historical Nalati flight law, retained only as a test oracle after G885.
 export class Thrown {

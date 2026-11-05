@@ -3,7 +3,7 @@
 // play folders into runtime/ wholesale (G450 (5)). That ceiling is shrink-only: it falls as W3 converts sim and data out,
 // and it rises only with a new `raises` line naming the slug, the old and new ceiling and why. Third-party projects, the
 // Template and any slug without a line keep the 128 default. The author CLI reads the ceiling only for trusted checkout
-// provenance (src/sdk/performancePolicy.ts 'warn'); every other project refuses above 128.
+// provenance (src/sharddev/performancePolicy.ts 'warn'); every other project refuses above 128.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 

@@ -60,7 +60,7 @@ it('preserves author-source edges for tests consuming complete disk products', (
   const registry = { 'test/npc.test.ts': ['pine-hollow'], 'test/scripts/captain.test.ts': ['driftwood-isle', 'pine-hollow'] };
   expect(productReaderTests(['src/shards/pine-hollow/generators/sourceOutput.ts'], registry)).toEqual(Object.keys(registry));
   expect(productReaderTests(['src/shards/driftwood-isle/assets/removed'], registry)).toEqual(['test/scripts/captain.test.ts']);
-  expect(productReaderTests(['src/sdk/project.ts'], registry)).toEqual(Object.keys(registry));
+  expect(productReaderTests(['src/sharddev/project.ts'], registry)).toEqual(Object.keys(registry));
   expect(productReaderTests(['scripts/test-products.json'], registry)).toEqual(Object.keys(registry));
   expect(productReaderTests(['src/shards/far-reach/data/rows.json', 'docs/ENGINE.md'], registry)).toEqual([]);
 });

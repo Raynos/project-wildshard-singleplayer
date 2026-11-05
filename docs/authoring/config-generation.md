@@ -12,7 +12,7 @@ Retained repository jobs can emit a standard GLB or another byte product through
 the same confined SDK driver, without filesystem imports in the recipe:
 
 ```sh
-node --import ./src/sdk/bake/source-loader.mjs src/sdk/bake/json.mjs \
+node --import ./src/sharddev/bake/source-loader.mjs src/sharddev/bake/json.mjs \
   src/shards/far-reach/generators/preparedModels.ts bakePreparedModels \
   public/assets/far-reach/baked/prepared-models.glb --bytes
 ```

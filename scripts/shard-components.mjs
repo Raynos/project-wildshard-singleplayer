@@ -76,17 +76,17 @@ const reviewedW2Owners = new Map([
   ['src/engine/shared/physics/box.ts#FloorRect', 'C1'],
   ['src/game/client/shardfile/caveInterior.ts', 'C1'],
   // Material/rig look decoding and authored appearance rows.
-  ['src/sdk/bake/rig.ts', 'C2'],
+  ['src/sharddev/bake/rig.ts', 'C2'],
   // Weather and visual fight effects.
   // C3 review: private ambient orchestration and weather remain counted custom.
   ['src/game/client/weather/forest.ts', 'C3'],
   ...['src/game/server/weather/continuation.ts', 'src/game/server/weather/reactions.ts', 'src/game/client/shardfile/weatherFields.ts'].map(path => [path, 'C3']),
   // Animal/boss goals, bodies, pose and ambient wildlife.
   ['src/engine/client/entities/lowpoly.ts#crestSpikes', 'C4'],
-  ['src/sdk/phasedBoss.ts#RoamingBossRow', 'C4'],
+  ['src/sharddev/phasedBoss.ts#RoamingBossRow', 'C4'],
   ...['NativeCreaturePoseRecipe', 'NativeCreaturePose', 'attachNativeCreaturePose'].map(name => [`src/game/shared/plugin/animation.ts#${name}`, 'C4']),
   // Journal, onboarding, discovery and quest presentation.
-  ['src/sdk/interactions.ts#interactionRules', 'C5'],
+  ['src/sharddev/interactions.ts#interactionRules', 'C5'],
   // Equipment, combat feel, held viewmodels, loot and owned rewards.
   ['src/engine/shared/combat/ammo.ts', 'C6'],
   ['src/engine/client/combat/cues.ts#resolveHitStop', 'C6'],
@@ -159,15 +159,15 @@ const w3SharedOwners = new Map([
   ...['src/engine/shared/combat/targets.ts', 'src/engine/client/combat/effects/types.ts',
     'src/engine/client/player/firstPersonArms.ts', 'src/game/client/weapons/heldLauncher.ts',
     'src/game/client/systems/viewmodel/armRig.ts'].map(path => [path, 'C6']),
-  ...['src/sdk/crowds.ts',
-    'src/game/shared/shardfile/crowdRuntime.ts', 'src/sdk/phasedBoss.ts'].map(path => [path, 'C4']),
-  ...['src/engine/client/core/gpuOnly.ts', 'src/sdk/kit/bakedGeometry.ts',
-    'src/sdk/kit/geometryPack.ts'].map(path => [path, 'C1']),
+  ...['src/sharddev/crowds.ts',
+    'src/game/shared/shardfile/crowdRuntime.ts', 'src/sharddev/phasedBoss.ts'].map(path => [path, 'C4']),
+  ...['src/engine/client/core/gpuOnly.ts', 'src/sharddev/kit/bakedGeometry.ts',
+    'src/sharddev/kit/geometryPack.ts'].map(path => [path, 'C1']),
   ['src/engine/client/core/ktx2.ts', 'C2'],
   ...['src/game/shared/plugin/quests.ts'].map(path => [path, 'C5']),
   ['src/game/server/shardfile/portalLinkProof.ts', 'C7'],
-  ...['src/game/shared/grid/pageMode.ts', 'src/sdk/assets.ts',
-    'src/sdk/buildBehaviour.ts', 'src/engine/client/app/systems.ts'].map(path => [path, 'C9']),
+  ...['src/game/shared/grid/pageMode.ts', 'src/sharddev/assets.ts',
+    'src/sharddev/buildBehaviour.ts', 'src/engine/client/app/systems.ts'].map(path => [path, 'C9']),
 ]);
 function w3FileRole(path) {
   const match = /^src\/shards\/(?:nalati-grasslands|nine-dragon-stack)\/(.+)$/u.exec(path);
@@ -186,8 +186,8 @@ function fileRole(path, name = '') {
   if(path==='src/engine/shared/world/interact/flags.ts'&&name==='bindInteractionState')return 'C5';
   if (path === 'src/game/client/plugin/ui.ts' && ['WorldSceneBoundParts', 'bindWorldSceneParts'].includes(name)) return 'C1';
   if (path === 'src/game/client/plugin/ui.ts' && ['moverChannelValues', 'moverChannelView', 'moverChannelViews', 'moverChannelPrompts'].includes(name)) return 'C7';
-  if (path === 'src/sdk/questGraph.ts' && name === 'parseNpcRow') return 'C5';
-  if (path === 'src/sdk/bake/texture.ts') return 'C2';
+  if (path === 'src/sharddev/questGraph.ts' && name === 'parseNpcRow') return 'C5';
+  if (path === 'src/sharddev/bake/texture.ts') return 'C2';
   if (name && /PivotNpc|NpcSurface|NpcLevel/iu.test(name)) return 'C5';
   if (name && /SocketLift|Updraft/iu.test(name)) return 'C7';
   if (name && /bindRuntimeItemContexts/iu.test(name)) return 'C6';
@@ -239,7 +239,7 @@ function runtimeTags(source, path, fallback) {
     for(const spec of node.specifiers) {
       // Shared cable construction is quest binding or static rest geometry, not a private mover law.
       const cable = ['ZiplineDriver', 'CableLayout', 'ZiplineSpec', 'ZiplineRideState'].includes(spec.local.name)
-        && node.source.value === '@wildshard/sdk/movers';
+        && node.source.value === '@wildshard/sharddev/movers';
       const bindingOwner = /\/quest\//u.test(path) ? 'C5' : null;
       const admittedBoot = path === 'src/shards/driftwood-isle/shard.config.ts' && node.source.value === './data/movers';
       const owner = admittedBoot ? 'C9' : cable && bindingOwner !== null ? bindingOwner : namedRole(spec.local.name,path) ?? from;

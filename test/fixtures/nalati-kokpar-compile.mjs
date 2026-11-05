@@ -1,7 +1,7 @@
 // GR6: compile Nalati's kokpar round and course in plain Node (a happy-dom test environment cannot feed the compiler)
 // through the product's own builder, and print { rows, wasm: base64 } as one JSON line.
 import { readFileSync } from 'node:fs';
-import { compileDecisionScripts, readDecisionSources } from '../../src/sdk/buildDecisionScripts.ts';
+import { compileDecisionScripts, readDecisionSources } from '../../src/sharddev/buildDecisionScripts.ts';
 import { nalatiKokparRows } from '../../src/shards/nalati-grasslands/generators/kokparRows.ts';
 
 const course = readFileSync(new URL('../../src/commons/scripts/course.as', import.meta.url), 'utf8');

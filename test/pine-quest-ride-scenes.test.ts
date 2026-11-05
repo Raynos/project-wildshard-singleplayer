@@ -9,7 +9,7 @@ import { Buffer } from 'node:buffer';
 import { URL as FileURL } from 'node:url';
 import { expect, test } from 'vitest';
 import { MeshStandardMaterial, type BufferGeometry } from 'three';
-import { GeometryPack, packedRows } from '../src/sdk/kit/geometryPack';
+import { GeometryPack, packedRows } from '../src/sharddev/kit/geometryPack';
 import { createOwnedGeometry } from '../src/engine/client/models/ownedGeometry';
 import { createWorldScene } from '../src/game/client/plugin/scene';
 import { parseWorldScene } from '@wildshard/format/clientChannels';

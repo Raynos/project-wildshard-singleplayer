@@ -1,5 +1,5 @@
 import type { BufferGeometry, Matrix4 } from 'three';
-import type { MapAssembly } from '@wildshard/sdk/bake/mapAssembly';
+import type { MapAssembly } from '@wildshard/sharddev/bake/mapAssembly';
 
 export function mapPose(pose: unknown): Matrix4;
 export class MapWorld {

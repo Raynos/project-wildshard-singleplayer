@@ -15,9 +15,9 @@ test('primary authoring law refuses runtime, executable configs and runtime impo
     'far-reach/runtime/index.ts': 'export const run = () => 1;',
     'sample/data/logic.ts': 'export const run = () => 1;',
     'sample/shard.config.ts': 'export default (() => ({}))();',
-    'sample/generators/build.ts': "import { run } from '@wildshard/sdk/runtime/sim'; export default run;",
+    'sample/generators/build.ts': "import { run } from '@wildshard/sharddev/runtime/sim'; export default run;",
     'sample/generators/type.ts': "type Host = import('../../../sdk/runtime/sim').Host;",
-    'sample/generators/late.ts': "export const run = () => import('@wildshard/sdk/runtime/sim');",
+    'sample/generators/late.ts': "export const run = () => import('@wildshard/sharddev/runtime/sim');",
     'sample-legacy/runtime/index.ts': 'export default {};',
     'nine-dragon-stack-legacy/unregistered.ts': 'export default {};',
     // LD6 retired the last inventoried copy: its old runtime path is an ordinary refusal now.
@@ -47,7 +47,7 @@ test('primary authoring law refuses runtime, executable configs and runtime impo
     expect(output.diagnostics.map(row => resolve(row.filename)).sort()).toEqual(Object.keys(files).slice(0, 11)
       .map(file => resolve(root, 'src/shards', file)).sort());
     const registered = resolve(root, 'src/shards/driftwood-isle/blender/fp-arms/gate.mjs');
-    writeFileSync(registered, "import '@wildshard/sdk/runtime/sim';");
+    writeFileSync(registered, "import '@wildshard/sharddev/runtime/sim';");
     const runtimeImport = spawnSync(process.execPath, [resolve('node_modules/oxlint/bin/oxlint'), '-c', config,
       '--no-ignore', registered], { encoding: 'utf8' });
     expect(runtimeImport.status, runtimeImport.stdout + runtimeImport.stderr).toBe(1);

@@ -1,5 +1,5 @@
 /**
- * Exported skins in the client (SHARD-PLATFORM SF9c, the playback half). The export half (`@wildshard/sdk/bake/export`)
+ * Exported skins in the client (SHARD-PLATFORM SF9c, the playback half). The export half (`@wildshard/sharddev/bake/export`)
  * turns a procedural creature or person into a self-contained GLB (geometry, joint order, weights, inverse binds, sampled
  * clips) plus a rig row (`skins.json`); its textures are separate KTX2 files. Here the client admits those bytes with the
  * shared GLB parser, loads them with three's GLTFLoader, checks them against the row with the engine's `bindRig` and plays

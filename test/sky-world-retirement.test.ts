@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine expanded omission descriptors to repository scratch.
 import { dirname, resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
 import { MILL_REST_INPUTS, skyMillRestProgram, skyMillRestSource } from '../src/shards/far-reach/generators/millRestProgram';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 

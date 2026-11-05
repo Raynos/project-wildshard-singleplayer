@@ -1,6 +1,6 @@
 import { unzlibSync } from 'fflate';
 import { SceneDressingSchema, type SceneDressingRows } from '@wildshard/format/sceneDressing';
-import { nameBlob, type NamedBlob } from '../../src/sdk/blobs';
+import { nameBlob, type NamedBlob } from '../../src/sharddev/blobs';
 import { encodeCanonicalJson, hashImmutableBytes } from '../../src/sdk/immutable';
 import * as v from 'valibot';
 

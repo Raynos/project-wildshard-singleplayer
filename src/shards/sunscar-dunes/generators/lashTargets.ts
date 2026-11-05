@@ -1,4 +1,4 @@
-import { worldTargetRows as parseWorldTargets } from '@wildshard/sdk/worldScenes';
+import { worldTargetRows as parseWorldTargets } from '@wildshard/sharddev/worldScenes';
 import { WHIP_ITEM } from './rows/items';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import { SIGNAL_PHYSICS as baked } from './physics';

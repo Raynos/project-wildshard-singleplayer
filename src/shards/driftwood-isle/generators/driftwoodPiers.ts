@@ -1,7 +1,7 @@
-import {Rng} from '@wildshard/sdk/random';
+import {Rng} from '@wildshard/sharddev/random';
 import {SEED} from './landscapeRows';
 import type {BufferGeometry} from 'three';
-import type { ColliderDesc } from '@wildshard/sdk/bake/placement';
+import type { ColliderDesc } from '@wildshard/sharddev/bake/placement';
 import {pierParamsKey,type PierParams} from './pierContract';
 import { PIER_ROWS as authoredPierRows } from './pierRows';
 import { DECLARED_SEA } from './sea';

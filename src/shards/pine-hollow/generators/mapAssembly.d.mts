@@ -1,4 +1,4 @@
-import type { MapAssembly } from '@wildshard/sdk/bake/mapAssembly';
+import type { MapAssembly } from '@wildshard/sharddev/bake/mapAssembly';
 import type { PineSources } from './pineSources.ts';
 
 /** The map's rest assembly over Pine's program sources (the caller owns every read: a pure producer). */

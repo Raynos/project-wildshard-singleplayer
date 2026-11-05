@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';
 import { realGc } from '../src/engine/test/realGc';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { shardProductFromAdmission } from '../src/game/client/shardfile/runtimeProduct';
 import type { ProductOptions } from '../src/game/client/shardfile/product';
 

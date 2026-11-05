@@ -1,5 +1,5 @@
-import { ARENA_VIEW, arenaFunnel, type ArenaWhirlsRows } from '@wildshard/sdk/arenaView';
-import { strike } from '@wildshard/sdk/species';
+import { ARENA_VIEW, arenaFunnel, type ArenaWhirlsRows } from '@wildshard/sharddev/arenaView';
+import { strike } from '@wildshard/sharddev/species';
 import { nalatiStrikeRows } from './kurganRows';
 import { CAIRN } from './layout';
 

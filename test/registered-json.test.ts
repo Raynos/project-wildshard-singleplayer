@@ -1,11 +1,11 @@
 import { expect, test } from 'vitest';
 import { REGISTERED_JSON, isRegisteredJsonName, validateRegisteredJson, type RegisteredJsonName } from '@wildshard/format/registeredJson';
 import { QuestServiceActionsSchema } from '@wildshard/format/questSteps';
-import { registeredJsonSchema, namedJsonSchema, namedFormatJsonSchemas } from '@wildshard/sdk/formatJsonSchema';
+import { registeredJsonSchema, namedJsonSchema, namedFormatJsonSchemas } from '@wildshard/sharddev/formatJsonSchema';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
-import { nameBlob } from '@wildshard/sdk/blobs';
-import { validateDefinedJson } from '@wildshard/sdk/sections';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { nameBlob } from '@wildshard/sharddev/blobs';
+import { validateDefinedJson } from '@wildshard/sharddev/sections';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import { createShardProduct, type ShardProductInput } from '@wildshard/game/shardfile/shardProduct';
 import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 

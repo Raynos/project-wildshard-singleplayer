@@ -1,4 +1,4 @@
-import { worldLightEmitters as parseLightEmitters } from '@wildshard/sdk/worldScenes';
+import { worldLightEmitters as parseLightEmitters } from '@wildshard/sharddev/worldScenes';
 import { placeEffects } from './placeEffects';
 import { FIRE_GRAPH_IDS } from './rows/fire';
 import { signalEmberBuffer } from './emberBuffers';

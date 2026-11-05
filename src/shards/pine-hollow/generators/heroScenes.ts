@@ -1,6 +1,6 @@
 /** Hero rest transforms, LOD pivots, hull samples and arch cuts belong to the bake. */
 import { BufferAttribute, BufferGeometry, Material, Mesh, PlaneGeometry, Vector3, type Object3D } from 'three';
-import type { SourceModel } from '@wildshard/sdk/bake/skinned';
+import type { SourceModel } from '@wildshard/sharddev/bake/skinned';
 import type { TimberWorld } from './timberWorldRows';
 
 interface HeroMesh extends Object3D {

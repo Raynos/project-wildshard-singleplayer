@@ -1,4 +1,4 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { bakeSkyCreatures } from './creatures';
 import { SKY_CREATURES } from './fileInventory';
 import { SKY_CREATURE_SOURCES } from './rows/creatures';

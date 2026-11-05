@@ -12,9 +12,9 @@
  */
 import * as THREE from 'three';
 import { SEED } from './landscapeRows';
-import { siteFloor, type BoxSpec as Collider, type FloorRect, boxDesc, type ColliderDesc } from '@wildshard/sdk/bake/placement';
-import { bakeLog as log, bakeBeam as beam, bakePlank as plank, bakeRope as rope, bakeRock as rock, bakeSagLine as sagLine, bakeTriangles as tris } from '@wildshard/sdk/bake/primitives';
-import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
+import { siteFloor, type BoxSpec as Collider, type FloorRect, boxDesc, type ColliderDesc } from '@wildshard/sharddev/bake/placement';
+import { bakeLog as log, bakeBeam as beam, bakePlank as plank, bakeRope as rope, bakeRock as rock, bakeSagLine as sagLine, bakeTriangles as tris } from '@wildshard/sharddev/bake/primitives';
+import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sharddev/bake/facetedGeometry';
 
 /** Where a lookout stands: its centre (world xz) and which side its stair descends toward (rot, radians). */
 export interface LookoutSite { readonly x: number; readonly z: number; readonly rot: number }

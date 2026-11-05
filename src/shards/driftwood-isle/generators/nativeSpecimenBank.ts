@@ -1,7 +1,7 @@
-import { worldSceneGraphPages } from '@wildshard/sdk/worldScenes';
-import type { NamedBlob } from '@wildshard/sdk/blobs';
+import { worldSceneGraphPages } from '@wildshard/sharddev/worldScenes';
+import type { NamedBlob } from '@wildshard/sharddev/blobs';
 import { Mesh, type BufferGeometry } from 'three';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
 import inventory from '../data/fixedGeometry.json' with { type: 'json' };
 import { nativeSpecimenCatalogue } from './nativeSpecimens';
 

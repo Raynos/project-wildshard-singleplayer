@@ -1,6 +1,6 @@
-import { compileDecisionScripts } from '@wildshard/sdk/buildDecisionScripts';
-import { authorFormatRows, defineNamedRows } from '@wildshard/sdk/formatJsonSchema';
-import { compileReturnProjectionV2 } from '@wildshard/sdk/returnProjectionV2';
+import { compileDecisionScripts } from '@wildshard/sharddev/buildDecisionScripts';
+import { authorFormatRows, defineNamedRows } from '@wildshard/sharddev/formatJsonSchema';
+import { compileReturnProjectionV2 } from '@wildshard/sharddev/returnProjectionV2';
 import { nalatiSpeciesProgram } from './speciesProgram.ts';
 
 const text = { kind: 'string' }, number = { kind: 'number' }, opaque = { kind: 'unknown' };

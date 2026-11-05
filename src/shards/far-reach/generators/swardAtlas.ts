@@ -1,4 +1,4 @@
-import { bakeRawColourPixels } from '@wildshard/sdk/bake/rawTexture';
+import { bakeRawColourPixels } from '@wildshard/sharddev/bake/rawTexture';
 import { SWARD_ATLAS } from './rows/swardAtlas';
 
 /**

@@ -1,7 +1,7 @@
 import { BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial } from 'three';
 import { expect, test } from 'vitest';
-import { clientSceneGlb } from '../src/sdk/bake/glb';
-import { rasterSceneMap } from '../src/sdk/bake/groundMap';
+import { clientSceneGlb } from '../src/sharddev/bake/glb';
+import { rasterSceneMap } from '../src/sharddev/bake/groundMap';
 import { rasterDataMap } from '../scripts/bake-data-maps.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 

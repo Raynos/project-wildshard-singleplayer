@@ -11,7 +11,7 @@ import { AmbientGroup } from '../src/game/shared/ambient/flock';
 import { publishEntryOwner, lendEntryOwner, entryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { prepareQuestWorldEntry } from '../src/game/client/shardfile/questWorld';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { questPageWorld } from '../src/game/shared/quest/pageResources';
 import { QuestWorldSchema } from '@wildshard/format/questWorld';
 import { driftwoodQuestWorld } from '../src/shards/driftwood-isle/generators/questWorld';

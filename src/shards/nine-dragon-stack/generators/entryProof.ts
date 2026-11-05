@@ -1,5 +1,5 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import { portalEntryRows } from './portalEntries';
 import { portalFloorRows } from './portalFloors';
 import { headlessConstants } from './headless';

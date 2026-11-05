@@ -1,6 +1,6 @@
 import { test, expect } from 'vitest';
 import * as v from 'valibot';
-import { ClientChannels } from '@wildshard/sdk/clientChannels';
+import { ClientChannels } from '@wildshard/sharddev/clientChannels';
 import { createClientChannels } from '@wildshard/game/plugin/channels';
 import { parseClientChannels } from '@wildshard/format/clientChannels';
 import { isJsonData } from '@wildshard/format/json';

@@ -1,7 +1,7 @@
 import { Group, Matrix4, Mesh, MeshStandardMaterial } from 'three';
-import { GeometryPack, packedRows } from '@wildshard/sdk/kit/geometryPack';
-import { bakeProps, type BakedProps } from '@wildshard/sdk/bake/props';
-import { coarseCopy } from '@wildshard/sdk/bake/coarseCopy';
+import { GeometryPack, packedRows } from '@wildshard/sharddev/kit/geometryPack';
+import { bakeProps, type BakedProps } from '@wildshard/sharddev/bake/props';
+import { coarseCopy } from '@wildshard/sharddev/bake/coarseCopy';
 import { ISLES } from "./layout";
 import { RISING_ISLETS } from './risingIslets';
 import { bakeSkyIsles } from './isles';

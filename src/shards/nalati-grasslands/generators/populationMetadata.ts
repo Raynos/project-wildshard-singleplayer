@@ -1,5 +1,5 @@
-import type { NamedBlob } from '@wildshard/sdk/blobs';
-import { namePopulationHabitat } from '@wildshard/sdk/nativePopulationRows';
+import type { NamedBlob } from '@wildshard/sharddev/blobs';
+import { namePopulationHabitat } from '@wildshard/sharddev/nativePopulationRows';
 import rows from '../data/physicsRows.json' with {type:'json'};
 
 /** Population metadata is admitted by the existing named JSON reader. The

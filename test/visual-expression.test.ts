@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import original from './fixtures/nalati-weatherChannels-original.json' with { type: 'json' };
-import { parseClientChannels } from '../src/sdk/rows';
+import { parseClientChannels } from '../src/sharddev/rows';
 import { visualExpression } from '../src/shards/nalati-grasslands/generators/visualExpression';
 import { visualPack, weatherFxChannels } from '../src/shards/nalati-grasslands/generators/weatherFxChannels';
 import { skyChannels } from '../src/shards/nalati-grasslands/generators/skyPresentation';

@@ -8,10 +8,10 @@ import { REGISTERED_JSON,validateRegisteredJson } from '@wildshard/format/regist
 import { CreatureInstallSchema } from '@wildshard/format/speciesLooks';
 import { PopulationProjectionSchema } from '@wildshard/format/populationProjection';
 import { PopulationShelterSchema,parsePopulationShelter } from '@wildshard/format/herdShelter';
-import { registeredJsonSchema,namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { registeredJsonSchema,namedJsonSchema } from '@wildshard/sharddev/formatJsonSchema';
 import { encodeCanonicalJson,hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { nameBlob } from '@wildshard/sdk/blobs';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { nameBlob } from '@wildshard/sharddev/blobs';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import { createShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { readBuiltShardfile } from '../scripts/build-shardfiles.mjs';
 

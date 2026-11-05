@@ -1,6 +1,6 @@
 import { beforeAll, expect, test } from 'vitest';
-import { compileReturnProjectionV2 } from '../src/sdk/returnProjectionV2';
-import { readDecisionSources } from '../src/sdk/buildDecisionScripts';
+import { compileReturnProjectionV2 } from '../src/sharddev/returnProjectionV2';
+import { readDecisionSources } from '../src/sharddev/buildDecisionScripts';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { Rng } from '../src/engine/shared/core/rng';
 import {titanPrograms as programs,pastureWitness as pasture} from './fixtures/titanInlineWitness';

@@ -4,8 +4,8 @@ import { mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, existsSync, w
 import { resolve, dirname } from 'node:path';
 import * as v from 'valibot';
 import { CreatureGuestSchema } from '@wildshard/format/speciesBookRows';
-import { compileReturnProjectionV2 } from '../../src/sdk/returnProjectionV2';
-import { compileDecisionScripts } from '../../src/sdk/buildDecisionScripts';
+import { compileReturnProjectionV2 } from '../../src/sharddev/returnProjectionV2';
+import { compileDecisionScripts } from '../../src/sharddev/buildDecisionScripts';
 import { hashImmutableBytes } from '../../src/sdk/immutable';
 import { nalatiSpeciesProgram } from '../../src/shards/nalati-grasslands/generators/speciesProgram';
 import pins from './nalati-species-files.json' with { type: 'json' };

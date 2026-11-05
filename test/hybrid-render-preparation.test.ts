@@ -10,7 +10,7 @@ import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { parseShardSlug } from '../src/game/shared/shard/slug';
 import { HybridRuntimeSession, type HybridResident } from '../src/game/client/shardfile/hybrid';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 
 function deferred() {

@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import * as THREE from 'three';
 import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
 import { captureFogUniforms, ColourRampFog, fogUniforms } from '../src/engine/client/world/Atmosphere';
-import { graph as authorGraph, graphInputs } from '../src/sdk/materials';
+import { graph as authorGraph, graphInputs } from '../src/sharddev/materials';
 import type { GraphIr } from '@wildshard/format/materialGraph';
 
 test('atmosphere and ramp graph inputs borrow the live day owners and define a no-ramp default', () => {

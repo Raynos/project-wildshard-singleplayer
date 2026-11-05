@@ -1,6 +1,6 @@
 import { installCatalogueFixture } from './fixtures/bootSetup';
 import { afterEach, expect, test, vi } from 'vitest';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { Scope } from '@wildshard/engine/app/scope';
 import { postStackCost } from '@wildshard/format/postStack';

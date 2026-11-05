@@ -1,3 +1,3 @@
-import type { FormatJsonSchema } from '../src/sdk/formatJsonSchema';
+import type { FormatJsonSchema } from '../src/sharddev/formatJsonSchema';
 /** Emit a standalone TypeScript value type from a structural output schema. */
 export function sectionType(schema: FormatJsonSchema | boolean,options?:{records?:boolean}): string;

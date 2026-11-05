@@ -3,7 +3,7 @@
 // far.json, and G539's camera-facing impostor far-impostor.png) from its height grid and its own far look; prints each
 // proxy's resident MB, wire KB and triangles.
 // G348: the shards are the ones that declare a far row in their own `data/placeholder.json` (look, and a grid or model
-// parts when their land is not a height field); the baker is the SDK's (`@wildshard/sdk/bake/placeholders`), the same
+// parts when their land is not a height field); the baker is the SDK's (`@wildshard/sharddev/bake/placeholders`), the same
 // one `wildshard build` runs for any shardfile. No shard table lives here.
 // SF49: a shard whose land is models (floating islands) merges them in decimated; this runner hands it the SDK's model
 // tools (`placeholderModelTools`: a GLB reader that samples the base colour per vertex, and meshoptimizer's simplifier),
@@ -22,7 +22,7 @@ const req = createRequire(realpathSync(join(repo, 'node_modules/@gltf-transform/
 const shards = (await placeholderShards(repo)).filter(shard => shard.source.far !== undefined);
 // one bundle: the SDK baker and every declared module, imported by the shard's own data (generated, never committed)
 const modules = [...new Set(shards.flatMap(({ dir, source }) => ['look', 'grid', 'parts'].flatMap(key => source.far[key] === undefined ? [] : [join(dir, source.far[key].module)])))];
-const entry = [`export * as sdk from ${JSON.stringify(join(repo, 'src/sdk/bake/placeholders.ts'))};`, `export const modules = { ${modules.map((path) => `${JSON.stringify(path)}: () => import(${JSON.stringify(path)})`).join(', ')} };`].join('\n');
+const entry = [`export * as sdk from ${JSON.stringify(join(repo, 'src/sharddev/bake/placeholders.ts'))};`, `export const modules = { ${modules.map((path) => `${JSON.stringify(path)}: () => import(${JSON.stringify(path)})`).join(', ')} };`].join('\n');
 try {
   symlinkSync(join(repo, 'node_modules'), join(scratch, 'node_modules'));
   writeFileSync(join(scratch, 'entry.ts'), entry);

@@ -16,10 +16,10 @@ test('Nine held arms are one admitted GraphArms row', () => {
 });
 
 test('held view admission preserves rows and refuses malformed named payloads', async () => {
-  const { namedJsonSchema, registeredJsonSchema } = await import('../src/sdk/formatJsonSchema');
-  const { nameBlob } = await import('../src/sdk/blobs');
+  const { namedJsonSchema, registeredJsonSchema } = await import('../src/sharddev/formatJsonSchema');
+  const { nameBlob } = await import('../src/sharddev/blobs');
   const { createShardProduct } = await import('../src/game/shared/shardfile/shardProduct');
-  const { emptyShardfile } = await import('../src/sdk/author');
+  const { emptyShardfile } = await import('../src/sharddev/author');
   const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
   const row = parseGraphArms(heldView(inputs.held)), schema = namedJsonSchema(GraphArmsSchema);
   const pool = row.pendants.geometry[0], file = pool?.files[0];

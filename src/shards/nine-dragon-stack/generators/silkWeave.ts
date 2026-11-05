@@ -1,4 +1,4 @@
-import { Rng } from '@wildshard/sdk/random';
+import { Rng } from '@wildshard/sharddev/random';
 
 /** Exact R8 slub weave, baked once into the product instead of rebuilding on entry. */
 export function silkWeaveBytes(size = 256, seed = 77): Uint8Array {

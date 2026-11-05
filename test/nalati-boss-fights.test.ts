@@ -56,7 +56,7 @@ import { createLevelInstallation } from '../src/engine/client/level/installation
 import { WorldRegistry } from '../src/engine/client/world/registry';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { installViewProgram } from '../src/game/client/shardfile/clientViewProgram';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { nalatiTitanView } from '../src/shards/nalati-grasslands/generators/titanView';
 import { nalatiViewBytes } from './fixtures/nalati-view-modules';

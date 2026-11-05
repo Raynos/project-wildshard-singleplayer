@@ -7,7 +7,7 @@
  *     the hand font, white chalk as alpha over a warm chalk colour.
  * No game, no level, no shard runtime is loaded.
  */
-import { Rng } from '@wildshard/sdk/random';
+import { Rng } from '@wildshard/sharddev/random';
 import { JOURNAL } from './journalContent';
 import { sendPaintedCanvas, type PaintedBake } from './paintedBytes';
 

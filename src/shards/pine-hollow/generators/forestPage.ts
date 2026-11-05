@@ -1,9 +1,9 @@
 import { cabinLiving } from './cabinLivingContribution';
 
 
-import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
-import { forestPageRows } from '@wildshard/sdk/worldScenes';
-import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
+import { registeredJsonSchema } from '@wildshard/sharddev/formatJsonSchema';
+import { forestPageRows } from '@wildshard/sharddev/worldScenes';
+import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sharddev/blobs';
 import { CABIN_LIFE } from './cabinLook';
 import { CABIN_LIGHT } from './cabinAssembly';
 import { HEARTH_LOOKS } from './hearthLook';
@@ -12,7 +12,7 @@ import { timberWorld } from './timberWorldRows';
 import FOREST_LOOKS from '../data/forestLook.json' with { type: 'json' };
 import water from '../data/waterLook.json' with { type: 'json' };
 import { pineLookMaterials } from './lookMaterials';
-import { wholePartitionFiles } from '@wildshard/sdk/bake/wholePartition';
+import { wholePartitionFiles } from '@wildshard/sharddev/bake/wholePartition';
 import { perSources, type PineSources } from './pineSources';
 import { HAMLET } from './layout';
 

@@ -2,8 +2,8 @@
 import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
-import { bakeRock as rock, bakeTriangles as tris } from '@wildshard/sdk/bake/primitives';
-import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
+import { bakeRock as rock, bakeTriangles as tris } from '@wildshard/sharddev/bake/primitives';
+import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sharddev/bake/facetedGeometry';
 import { fern, hibiscus, grassTuft, broadClump, openEnded, PLANT, type Part } from './lowpolyPlants';
 import { authoredRockGeometry as rockGeometry } from './rocks';
 import { triAreas } from './coverTris';

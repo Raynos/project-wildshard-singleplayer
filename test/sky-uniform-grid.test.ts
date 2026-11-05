@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
-import { completeL0Tiles, completeEmptyL1Tiles } from '@wildshard/sdk/bake/tileGrid';
+import { completeL0Tiles, completeEmptyL1Tiles } from '@wildshard/sharddev/bake/tileGrid';
 import { FilesSchema, TilesSchema } from '@wildshard/format/shardSections';
 import { PropsSchema } from '@wildshard/format/props';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare the retained producer's actual metadata without importing a generated module.
@@ -8,9 +8,9 @@ import { readFileSync } from 'node:fs';
 import { skyIsleProps } from '../src/shards/far-reach/generators/isleProps';
 import { tileBakeCensus } from '../scripts/tile-bakes.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { parseGlb } from '../src/sdk/assets';
+import { parseGlb } from '../src/sharddev/assets';
 import { MeshoptSimplifier } from 'meshoptimizer/simplifier';
-import { GeometryPack, packedRows } from '../src/sdk/kit/geometryPack';
+import { GeometryPack, packedRows } from '../src/sharddev/kit/geometryPack';
 import { bakeSkyIsles } from '../src/shards/far-reach/generators/isles';
 import { ISLES } from '../src/shards/far-reach/generators/layout';
 import { RISING_ISLETS } from '../src/shards/far-reach/generators/risingIslets';

@@ -1,8 +1,8 @@
-import {encodePortableBytes} from '@wildshard/sdk/bake/portableBytes';
+import {encodePortableBytes} from '@wildshard/sharddev/bake/portableBytes';
 import * as THREE from 'three';
 import type { InstancedBufferGeometry } from 'three';
-import { tileFieldGeometry, type TileCardRow } from '@wildshard/sdk/looks/tileField';
-import type { worldSceneBuffers } from '@wildshard/sdk/worldScenes';
+import { tileFieldGeometry, type TileCardRow } from '@wildshard/sharddev/looks/tileField';
+import type { worldSceneBuffers } from '@wildshard/sharddev/worldScenes';
 
 type SceneBuffers = ReturnType<typeof worldSceneBuffers>;
 

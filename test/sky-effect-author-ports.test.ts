@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { worldColourFunction, worldTargetRows } from '../src/sdk/worldScenes';
-import { declaredQuestPageRows } from '../src/sdk/quests';
+import { worldColourFunction, worldTargetRows } from '../src/sharddev/worldScenes';
+import { declaredQuestPageRows } from '../src/sharddev/quests';
 import { parseColourFunction } from '@wildshard/format/colourFunction';
 import { parseWorldTargets } from '@wildshard/format/worldTargets';
 import { parseDeclaredQuestPage } from '@wildshard/format/declaredQuestPage';

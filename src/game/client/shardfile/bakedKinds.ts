@@ -5,7 +5,7 @@ import { BufferGeometry, DoubleSide, FrontSide, Group, InstancedBufferAttribute,
 
 /**
  * SHARD-PLATFORM SF72 (SF67 fix 3, "bake the code-built worlds"): the client side of a shard's instanced-kinds bake
- * (`@wildshard/sdk/bake/kinds`). A piece is one static GLB (one instanced node per kind, one draw each, never multi-draw)
+ * (`@wildshard/sharddev/bake/kinds`). A piece is one static GLB (one instanced node per kind, one draw each, never multi-draw)
  * and its rows (`data/<piece>.json`: the kinds' materials, the collider boxes). The client reads the GLB's geometry and
  * transforms and puts its own materials on them; the colliders never wait on the GLB, so a GLB that fails to load leaves
  * the piece undrawn but solid. Promoted from Signal Dunes' `world/baked.ts`.

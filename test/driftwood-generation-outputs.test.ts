@@ -4,7 +4,7 @@ import { driftwoodFixedBank } from './fixtures/driftwood-fixed-bank';
 // oxlint-disable-next-line import/no-nodejs-modules -- Admit the defining producer's committed native input bytes.
 import { readFileSync } from 'node:fs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import type { ProjectGenerationContext } from '../src/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '../src/sharddev/projectGeneration';
 import { DRIFTWOOD_FIXED_INPUTS, driftwoodFixedFiles, driftwoodMapFixedFiles } from '../src/shards/driftwood-isle/generators/fixedProgram';
 import { driftwoodMap, DRIFTWOOD_MAP_INPUTS } from '../src/shards/driftwood-isle/generators/mapProgram';
 

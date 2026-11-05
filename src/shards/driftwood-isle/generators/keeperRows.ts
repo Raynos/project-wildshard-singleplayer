@@ -1,11 +1,11 @@
 import { DECLARED_SEA } from './sea';
-import { Rng } from '@wildshard/sdk/random';
+import { Rng } from '@wildshard/sharddev/random';
 import { ENEMY_SPECIES_METADATA } from './enemySpecies';
 import { ISLAND_BOAR as BOAR, ISLAND_BEAR as BEAR } from './faunaSpecies';
 import { driftwoodPhysics } from './physics';
 import { DRIFTWOOD_NATIVE_FAUNA } from './nativeFauna';
 import type { enemyPlacements } from './enemyPlacement';
-import type { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
+import type { authorFormatRows } from '@wildshard/sharddev/formatJsonSchema';
 import ecology from '../data/ecology.json' with { type: 'json' };
 import type { DriftwoodGuestRows } from './guestPrograms';
 

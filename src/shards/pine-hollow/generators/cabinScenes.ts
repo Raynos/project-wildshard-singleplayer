@@ -1,7 +1,7 @@
 /** Frozen native cabin world/specimen topology; all merging ends at author time. */
 import * as THREE from 'three';
 import { worldSceneSurfaceProperties, buildingLookRows, emptyBuildingLifeRows, buildingLifeRows as parseBuildingLifeRows,
-  type worldSceneWeldRows, type AuthorBuildingAssembly } from '@wildshard/sdk/worldScenes';
+  type worldSceneWeldRows, type AuthorBuildingAssembly } from '@wildshard/sharddev/worldScenes';
 import type { CabinRows, BakedBuilding, PropKind } from './cabinShapes';
 import look from '../data/buildingLook.json' with { type: 'json' };
 import plumbing from '../data/plumbing.json' with { type: 'json' };

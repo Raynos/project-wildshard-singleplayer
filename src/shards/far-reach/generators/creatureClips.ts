@@ -1,4 +1,4 @@
-import type { SpeciesClips } from '@wildshard/sdk/species/clips';
+import type { SpeciesClips } from '@wildshard/sharddev/species/clips';
 
 /** The drift ray's clips (SHARD-PLATFORM M3): a slow wingbeat and a lazy tail; dead, the wings fold up. */
 export const DRIFT_RAY_CLIPS: SpeciesClips = [

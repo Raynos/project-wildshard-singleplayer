@@ -1,7 +1,7 @@
 /** Static scatter matrices and collision descriptors, authored in the native registration order. */
 import { Matrix4, Quaternion, Vector3 } from 'three';
-import { placeContactRows } from '@wildshard/sdk/bake/contactRows';
-import type { ColliderDesc } from '@wildshard/sdk/bake/placement';
+import { placeContactRows } from '@wildshard/sharddev/bake/contactRows';
+import type { ColliderDesc } from '@wildshard/sharddev/bake/placement';
 import type { PropPose, PropRows } from './propRows';
 import type { PinePropShapes } from './propShapes';
 

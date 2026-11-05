@@ -20,7 +20,7 @@ import { shardContext } from '../src/game/client/plugin/context';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { installViewProgram } from '../src/game/client/shardfile/clientViewProgram';
 import { lendLooks } from '../src/game/client/shardfile/lentLooks';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { parseArenaScriptData } from '@wildshard/format/arenaScriptRows';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { nalatiTitanView } from '../src/shards/nalati-grasslands/generators/titanView';

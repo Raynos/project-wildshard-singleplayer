@@ -3,7 +3,7 @@ import { BoxGeometry, InstancedMesh, Matrix4, MeshBasicMaterial, Object3D, Persp
 import { Scope } from '../src/engine/shared/app/scope';
 import { viewProgram } from '../src/engine/client/script/viewProgram';
 import { ARENA_VIEW, arenaFunnel } from '@wildshard/format/arenaView';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
+import { compileScriptV2 } from '../src/sharddev/bake/compileScriptV2';
 import { nalatiTitanWhirlsView } from '../src/shards/nalati-grasslands/generators/titanWhirlsView';
 import { TITAN_WHIRLS } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import source from '../src/shards/nalati-grasslands/behaviour/titanWhirlsView.as?raw';

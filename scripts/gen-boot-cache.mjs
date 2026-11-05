@@ -136,7 +136,7 @@ export function generateBootTablesCached(inputRoot, cache, run) {
     outputs[file] = hash; entries.push(`F ${file}`);
   }
   for (const file of ['scripts/gen-boot-cache.mjs', 'scripts/input-snapshot.mjs', 'pnpm-lock.yaml', 'package.json',
-    ...['engine', 'game', 'sdk', 'commons'].map(layer => `src/${layer}/package.json`)]) {
+    ...['engine', 'game', 'sdk', 'sharddev', 'commons'].map(layer => `src/${layer}/package.json`)]) {
     if (existsSync(resolve(root, file))) entries.push(`F ${file}`);
   }
   const inputs = Object.fromEntries([...new Set(entries)].map(entry => [entry, inputValue(root, entry)]));

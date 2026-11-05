@@ -1,5 +1,5 @@
-import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
-import { readRigRest } from '@wildshard/sdk/bake/rig';
+import { readImagePixels, writeImagePixels } from '@wildshard/sharddev/bake/image';
+import { readRigRest } from '@wildshard/sharddev/bake/rig';
 import * as THREE from 'three';
 import { nalatiRigFile } from './rigSources';
 

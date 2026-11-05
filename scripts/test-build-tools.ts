@@ -17,7 +17,7 @@ const preparers: TestBuildToolPreparers = { basis: () => {
   // Keep native installation outside author bundles and individual test clocks.
   // This is the existing pinned installer: corrupt tools still refuse, never use PATH.
   // Its own process: the Vitest configs bundle this module, and format's raw .ts cannot join a bundled config (J82).
-  const install = "await (await import('./src/sdk/bake/basisTool.ts')).prepareBasisTool();";
+  const install = "await (await import('./src/sharddev/bake/basisTool.ts')).prepareBasisTool();";
   const run = spawnSync(process.execPath, ['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', install], { stdio: 'inherit' });
   return run.status === 0 ? Promise.resolve() : Promise.reject(new Error('Basis tool install failed'));
 } };

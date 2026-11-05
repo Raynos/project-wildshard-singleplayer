@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { BufferAttribute, BufferGeometry, Group, Matrix4, Mesh, MeshStandardMaterial } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
 import { installDeclaredProps } from '../src/engine/client/world/declaredProps';
-import { bakeProps } from '../src/sdk/bake/props';
+import { bakeProps } from '../src/sharddev/bake/props';
 
 test.each([undefined, false, true])('whole tile rendering preserves explicit receiveShadow=%s and its default', async receiveShadow => {
   const geometry = new BufferGeometry(), material = new MeshStandardMaterial(), scope = new Scope('whole-shadow');

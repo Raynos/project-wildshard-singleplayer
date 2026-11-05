@@ -8,8 +8,8 @@
 import * as LAYOUT from './layout';
 import { creekSpan, creekSurfaceAt } from './geography';
 import * as THREE from 'three';
-import { WholeShape } from '@wildshard/sdk/bake';
-import type { NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
+import { WholeShape } from '@wildshard/sharddev/bake';
+import type { NativeTerrainSource } from '@wildshard/sharddev/bake/terrain';
 import { streamGeometry } from './streamCodec';
 
 type XZ = [number, number];

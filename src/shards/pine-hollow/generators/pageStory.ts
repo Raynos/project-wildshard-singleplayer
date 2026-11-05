@@ -3,7 +3,7 @@ import { QUEST_PRESENTATION } from './questPresentation';
 import journal from '../data/questJournal.json' with { type: 'json' };
 import bench from '../data/questBench.json' with { type: 'json' };
 import page from '../data/forestStory.json' with { type: 'json' };
-import { questStoryRows as parseQuestStory } from '@wildshard/sdk/quests';
+import { questStoryRows as parseQuestStory } from '@wildshard/sharddev/quests';
 import steps from '../data/questSteps.json' with { type: 'json' };
 import { PINE_QUEST_SERVICES } from './questConsequences';
 

@@ -32,10 +32,10 @@ future hook for a third-person shot).
 | Boss intro state | `src/engine/shared/ai/BossBrain.ts` (`intro` state, `SKIP_HOLD = 0.6`) | locks input, asks the script's `intro(t, short)` for a focus point each frame, HOLD TO SKIP, a short intro on every retry |
 | Boss camera ease | `src/game/server/Boss.ts` `faceToward` | eases player yaw / pitch toward the focus (k = 1 − e^(−3.2 dt)); stays first person |
 | Letterbox + name card | `src/engine/client/ui/BossBar.ts` (`showNameCard`, `setSkip`, `fade`) | letterbox bands, the engraved name card, the skip ring, a black fade |
-| Platform bosses | `src/sdk/phasedBoss.ts`, `src/sdk/markedBoss.ts` → `src/game/server/plugin/bossPhase.ts`, `src/game/shardfile/markedBoss.ts` | boss rows as data; `intro` / `introShort` seconds are data |
+| Platform bosses | `src/sharddev/phasedBoss.ts`, `src/sharddev/markedBoss.ts` → `src/game/server/plugin/bossPhase.ts`, `src/game/shardfile/markedBoss.ts` | boss rows as data; `intro` / `introShort` seconds are data |
 | Quest reward view | `src/game/client/quest/reward.ts` `QuestRewardBeat` + `rewardMotion.ts` | carries the player, 2.5 s camera ease to an authored pose, 3.5 s clock ease (to golden hour), 7 s hold, caption, HUD hidden, weapon away |
 | Dialogue | `src/engine/client/quest/view/ui.ts` `DialogueBox`, `src/engine/shared/quest/dialogueClock.ts` | NPC lines typed out, tap to advance (the quest-giver panel) |
-| Shard director | `src/sdk/director.ts` → `src/game/shardfile/director.ts` | bounded numeric events between a shard script and the host (Driftwood's finale `reward.start` / `reward.finish`) |
+| Shard director | `src/sharddev/director.ts` → `src/game/shardfile/director.ts` | bounded numeric events between a shard script and the host (Driftwood's finale `reward.start` / `reward.finish`) |
 | Explore hub orbit | `src/engine/client/explore/Explore.ts` ~l. 582 | a slow orbit of the island behind the hub cards (the one non-player camera) |
 
 **Per shard**
@@ -104,7 +104,7 @@ general; the game knows bosses, quests and saves; a shard supplies cutscenes as 
 - **`src/game/cutscene/`**: binds the triggers (boss intro, quest step, reward, shard arrival, place entered), the seen
   flags in the shard's save, and ports `BossBrain`'s intro and `QuestRewardBeat` onto the timeline (IC2: no visible
   change).
-- **`@wildshard/sdk/cutscenes`**: `cutscene(data)` validated with valibot (bounded shots, finite numbers, string keys),
+- **`@wildshard/sharddev/cutscenes`**: `cutscene(data)` validated with valibot (bounded shots, finite numbers, string keys),
   a `cutscenes` table in the shardfile, a boss row's `intro` naming a cutscene id. Lands through SHARD-PLATFORM's
   shardfile route (its coordinator owns the SDK and the schema); ENGINE.md and SHARDS.md sections in the same rows.
 
@@ -141,7 +141,7 @@ The trailer pipeline (CINEMATICS §3), changed for the game:
 | IC0 | **Inventory at HEAD**: a portrait clip of each moment in §1 (five boss intros, Driftwood's finale, the Pine rides), a labelled board; §1 corrected | the board and clips are in `progress/cutscenes/ic0/`; §1 matches them | cutscene lane |
 | IC1 | **Engine timeline core**: `src/engine/cinematic/` Timeline, camera owner, `pov` / `rig` / `hold` / cut, letterbox lifted from BossBar, control track (input lock, HUD hide, skip), snapshot / restore; unit tests on the clock; ENGINE.md section | the tests pass; no shard uses it yet; the guards are green | cutscene lane |
 | IC2 | **Port today's moments** onto the timeline: `BossBrain` intro and `QuestRewardBeat` | the five intros and the finale look as in IC0's clips (side-by-side frames) | cutscene lane |
-| IC3 | **SDK data**: `@wildshard/sdk/cutscenes`, the shardfile `cutscenes` table, a boss row's `intro` naming a cutscene; the template's example; SHARDS.md section | the template builds and validates a cutscene from data alone; SHARD-PLATFORM's coordinator signs off the schema | cutscene lane + SHARD-PLATFORM |
+| IC3 | **SDK data**: `@wildshard/sharddev/cutscenes`, the shardfile `cutscenes` table, a boss row's `intro` naming a cutscene; the template's example; SHARDS.md section | the template builds and validates a cutscene from data alone; SHARD-PLATFORM's coordinator signs off the schema | cutscene lane + SHARD-PLATFORM |
 | IC4 | **Caption and cue tracks**: timed lines in the dialogue style, music / SFX events on the timeline clock | a test cutscene on the template plays two lines and a sting | cutscene lane |
 | IC5 | **First in-engine cutscene, A**: the Golden King, 3–4 shots, behind Developer; Debug row *intro: today · in engine* | a portrait clip sent to Jake; physics walk unaffected (no colliders change) | cutscene lane |
 | IC6 | **Video track**: the `<video>` overlay, muted with sound on the audio bus, preload on arm, poster, fallback; memory read on the Simulator (`scripts/sim-lane.sh`) | plays a test clip on the template; default-off behind a Debug row until a physical-device memory reading (AGENTS.md, Rendering) | cutscene lane |

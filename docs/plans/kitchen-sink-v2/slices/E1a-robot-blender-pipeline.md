@@ -23,7 +23,7 @@ Research:
 - **The client already plays exported skins** (SHARD-PLATFORM SF9c): `src/game/client/shardfile/skinPlayback.ts` admits a GLB
   (geometry, joint order, weights, inverse binds, sampled clips) against a rig row (`skins.json`), binds it with the
   engine's `bindRig` and plays named clips through one `AnimMachine` / `AnimationMixer`. Its producer today is the SDK
-  bake export of a *procedural* creature (`@wildshard/sdk/bake/export`); users are the three templates
+  bake export of a *procedural* creature (`@wildshard/sharddev/bake/export`); users are the three templates
   (`src/shards/_template/generators/product.ts`, `pastel-plain`, `ink-cel-valley`), read by
   `src/game/client/shardfile/clientSkins.ts`.
 - The showcase starts from `src/shards/_template/`, so its creatures already go through exported skins: a Blender-made

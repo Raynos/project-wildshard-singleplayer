@@ -13,7 +13,7 @@ import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import { mockCanvas } from '@wildshard/engine/test/weaponParity';
 import type { HeldFirearmRows } from '../src/game/client/plugin/heldFirearm';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { parseHeldFirearmRows } from '@wildshard/format/weaponProfiles';
 import { parseItems } from '@wildshard/format/items';
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };

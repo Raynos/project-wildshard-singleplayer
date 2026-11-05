@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { recurveBase, recurvePool } from '../src/shards/nalati-grasslands/generators/recurvePool';
 import { BOW } from '../src/game/shared/weapons/starterBowProfile';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { parseBowProfile } from '../src/sdk/weapons/bowProfile';
+import { parseBowProfile } from '../src/sharddev/weapons/bowProfile';
 import { HeldBowBaseSchema } from '@wildshard/format/weaponProfiles';
 import { parse } from 'valibot';
 import policy from '../src/shards/nalati-grasslands/data/recurvePolicy.json' with { type: 'json' };

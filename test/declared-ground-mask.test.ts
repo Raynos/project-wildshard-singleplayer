@@ -7,7 +7,7 @@ import * as v from 'valibot';
 import { declaredGround } from '../src/game/server/shard/manifest';
 import { GroundRowsSchema } from '@wildshard/format/terrain';
 import { WaterSchema } from '@wildshard/format/water';
-import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
+import { formatJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { createBakedTerrainField,installDeclaredBakedTerrain,bakedTerrainSource } from '../src/engine/shared/world/bakedTerrainField';
 import { basinBody } from '../src/engine/shared/world/water/body';
 import { readScalarChannel,ScalarLatticeBindings } from '../src/engine/shared/world/scalarChannel';

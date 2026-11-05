@@ -1,5 +1,5 @@
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { nalatiRenderTileSources } from './renderTileSources';
 
 const terrain = '/assets/baked/nalati-grasslands/terrain.bin';

@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { SceneDressingSchema } from '@wildshard/format/sceneDressing';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { controlFiles, lateFiles } from '../src/game/client/shardfile/controlFiles';
 import { nalatiLatePaintedNames, nalatiDeferredCatalogueScene, nalatiLateDressingNames } from '../src/shards/nalati-grasslands/generators/modelBindings';
 

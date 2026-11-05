@@ -1,5 +1,5 @@
-import { parseBossProfile } from '@wildshard/sdk/bossProfiles';
-import { strike } from '@wildshard/sdk/species';
+import { parseBossProfile } from '@wildshard/sharddev/bossProfiles';
+import { strike } from '@wildshard/sharddev/species';
 import * as layout from './kurganLayout';
 import { GOLDEN_KING_BOSS_PROFILE } from './goldenKingArena';
 import { KING_ENCOUNTER, KING_REWARD, KING_TUNING, KING_PORTAL } from './goldenKingFight';

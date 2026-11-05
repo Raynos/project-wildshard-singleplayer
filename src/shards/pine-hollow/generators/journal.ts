@@ -1,7 +1,7 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { parseJournalRow, type JournalRow } from '@wildshard/sdk/rows';
+import { parseJournalRow, type JournalRow } from '@wildshard/sharddev/rows';
 import { JOURNAL } from './journalContent';
 
 /** The journal's admitted row, its image files (as the declaration lists them) and their named blobs. */

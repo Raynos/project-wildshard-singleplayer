@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { expect, it } from 'vitest';
-import { readSourceModel } from '../src/sdk/bake/skinned';
+import { readSourceModel } from '../src/sharddev/bake/skinned';
 import frames from '../src/shards/nalati-grasslands/data/peopleFrames.json' with { type: 'json' };
 // The original conditioned skins (game figureRig fitNpcFigure + mergeNpcFigures over the source GLBs), frozen
 import FROZEN from './fixtures/legacy-oracles/nalati-people.json' with { type: 'json' };

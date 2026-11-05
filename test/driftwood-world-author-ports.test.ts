@@ -1,10 +1,10 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
-import { roadSocketMetrics } from '../src/sdk/entries';
-import { collectionDisplayRows } from '../src/sdk/rows';
-import { chapterWakeRows } from '../src/sdk/quests';
-import { speciesProgramRows } from '../src/sdk/species';
-import { toonSceneLook } from '../src/sdk/worldScenes';
+import { roadSocketMetrics } from '../src/sharddev/entries';
+import { collectionDisplayRows } from '../src/sharddev/rows';
+import { chapterWakeRows } from '../src/sharddev/quests';
+import { speciesProgramRows } from '../src/sharddev/species';
+import { toonSceneLook } from '../src/sharddev/worldScenes';
 import { CHUNK_HALF, ENTRY_WIDTH, ENTRY_ASPHALT } from '@wildshard/format/contentBounds';
 import { parseCollectionDisplays } from '@wildshard/format/collectionDisplay';
 import { parseChapterWake } from '@wildshard/format/chapterDirector';

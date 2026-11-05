@@ -31,7 +31,7 @@ import {SAILOR_CLIPS,CAPTAIN_CLIPS} from './driftwood-isle/generators/humanoidCl
 import {ISLAND_BOAR,ISLAND_BEAR} from './driftwood-isle/generators/faunaSpecies';
 import {driftwoodNativeRows} from './driftwood-isle/generators/nativeBake';
 import {deriveSpecies} from '@wildshard/engine/ai/species';
-import {creaturePoseRows} from '@wildshard/sdk/clientChannels';
+import {creaturePoseRows} from '@wildshard/sharddev/clientChannels';
 export const boar:ReturnType<typeof deriveSpecies>=ISLAND_BOAR;
 export const bear:ReturnType<typeof deriveSpecies>=ISLAND_BEAR;
 export const crab:ReturnType<typeof creaturePoseRows>=CRAB_CLIPS;

@@ -11,7 +11,7 @@ import { unzlibSync } from 'fflate';
 import { InstancedBufferGeometry, Mesh, MeshBasicMaterial } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
 import { createSceneBuffers } from '../src/game/client/shardfile/sceneBuffers';
-import { ClientChannels } from '../src/sdk/clientChannels';
+import { ClientChannels } from '../src/sharddev/clientChannels';
 import { installChannelPrograms } from '../src/game/shared/plugin/channelPrograms';
 import { compactChannels } from '../src/shards/nalati-grasslands/generators/channelRows';
 import { isJsonData } from '@wildshard/format/json';

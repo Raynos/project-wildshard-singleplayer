@@ -58,7 +58,7 @@ const vite = resolve(import.meta.dirname, '../node_modules/vite/bin/vite.js');
 const buildId = newBuildId();
 const deferPublic = deferredPublicCopy(process.cwd(), outDir, args);
 // vite.config.ts bundles to one module whose static imports reach @wildshard/format, so the hook comes first (J82).
-const build = spawnSync(process.execPath, ['--import', resolve(import.meta.dirname, '../src/sdk/bake/format-hook.mjs'), vite, 'build', ...args], {
+const build = spawnSync(process.execPath, ['--import', resolve(import.meta.dirname, '../src/sharddev/bake/format-hook.mjs'), vite, 'build', ...args], {
   stdio: 'inherit', env: {...process.env, WS_APP_DEFER_PUBLIC_COPY: deferPublic ? '1' : '0', WS_BUILD_ID: buildId},
 });
 if (build.error !== undefined) throw build.error;
@@ -115,7 +115,7 @@ if (mode !== 'native') {
 // the standalone shell and its server worker under the build's folder, unused until the flip (J129)
 if (mode !== 'native') await (await import('./app-build/standaloneOutput.mjs')).writeStandaloneOutput(outDir, buildId, process.cwd());
 
-// the compiled DEVSERVER mode, as a machine-readable artifact beside the bundle (scripts/check-devserver.mjs, sdk/dev.ts);
+// the compiled DEVSERVER mode, as a machine-readable artifact beside the bundle (scripts/check-devserver.mjs, sharddev/dev.ts);
 // the bundle itself takes it from the __DEVSERVER__ define (was vite/devserver.ts)
 mkdirSync(outDir, { recursive: true });
 writeFileSync(resolve(outDir, 'build-flags.json'), JSON.stringify({ devserver: mode === 'devserver' }));

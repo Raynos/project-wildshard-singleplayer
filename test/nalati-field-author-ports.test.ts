@@ -1,6 +1,6 @@
 import { expect, expectTypeOf, test } from 'vitest';
-import { createTerrainField, terrainFieldPolicy } from '../src/sdk/bake/nativeTerrainField';
-import { forestDefaultTreeSpecs } from '../src/sdk/bake/forest';
+import { createTerrainField, terrainFieldPolicy } from '../src/sharddev/bake/nativeTerrainField';
+import { forestDefaultTreeSpecs } from '../src/sharddev/bake/forest';
 import { buildTerrain } from '../src/engine/shared/world/terrainField';
 import { CHUNK_HALF, ROAD_WIDTH, ROAD_LENGTH } from '../src/engine/shared/core/config';
 import { TREE_SPECS } from '../src/engine/shared/world/forest/treeSpec';

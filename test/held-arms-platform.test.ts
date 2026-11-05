@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the native loader on the shipped rig bytes.
 import { readFileSync } from 'node:fs';
-import { readSourceModel } from '../src/sdk/bake/skinned';
+import { readSourceModel } from '../src/sharddev/bake/skinned';
 import * as rigLoader from '../src/engine/client/anim/rig';
 import * as lookCompiler from '../src/game/client/shardfile/runtimeProduct';
 import { ToonLook } from '../src/engine/client/render/families/toon';

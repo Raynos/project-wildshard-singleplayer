@@ -1,5 +1,5 @@
-import type { MapAssembly } from '@wildshard/sdk/bake/mapAssembly';
-import type { NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
+import type { MapAssembly } from '@wildshard/sharddev/bake/mapAssembly';
+import type { NativeTerrainSource } from '@wildshard/sharddev/bake/terrain';
 
 /** Every input by its repository path (the caller owns all reads: GR6, a pure producer). */
 export type NalatiMapSource = (path: string) => Uint8Array;

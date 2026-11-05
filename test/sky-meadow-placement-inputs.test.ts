@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { build } from 'vite';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import { meadowHoles, meadowPaths } from '../src/shards/far-reach/generators/placements';
 import { heroStoneDiscs } from '../src/shards/far-reach/generators/dressing';
 

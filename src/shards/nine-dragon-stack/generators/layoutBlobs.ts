@@ -1,7 +1,7 @@
-import { parseSectionValue } from '@wildshard/sdk/sections';
-import { worldSceneTileFiles } from '@wildshard/sdk/worldScenes';
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
-import { formatJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { parseSectionValue } from '@wildshard/sharddev/sections';
+import { worldSceneTileFiles } from '@wildshard/sharddev/worldScenes';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
+import { formatJsonSchema } from '@wildshard/sharddev/formatJsonSchema';
 import type { NineSourceWorld } from './worldProgram';
 import { GeometryBootSchema } from './sections';
 import { bakedLayout } from './layoutProjection';

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { clientRingCatalogue } from '../src/game/client/shardfile/tileContent';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 

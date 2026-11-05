@@ -1,6 +1,6 @@
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { HD_URLS, SKY_HD } from './fileInventory';
 import { hdGeometry } from './modelIntake';
 import { bakeKeeperFigure } from './keeperFigure';

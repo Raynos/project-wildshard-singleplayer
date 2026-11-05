@@ -1,4 +1,4 @@
-import { questTraderRows } from '@wildshard/sdk/rows';
+import { questTraderRows } from '@wildshard/sharddev/rows';
 import stall from '../data/traderStall.json' with { type: 'json' };
 import { GOODS } from './economy';
 

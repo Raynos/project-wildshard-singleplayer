@@ -4,13 +4,13 @@ import {mkdirSync,readFileSync,renameSync,rmSync,writeFileSync} from 'node:fs';
 import {homedir} from 'node:os';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {encodePortableBytes} from '../../src/sdk/bake/portableBytes';
+import {encodePortableBytes} from '../../src/sharddev/bake/portableBytes';
 
 const hash=(bytes:string|Uint8Array):string=>createHash('sha256').update(bytes).digest('hex');
 // Raw encoder and dependency bytes, including local patches, own the transform.
 // The caller still certifies the decoded channels against its native geometry.
 const codec=hash(JSON.stringify({schema:'portable-deflate/1',node:process.version,platform:process.platform,arch:process.arch,
-  encoder:hash(readFileSync(new URL('../../src/sdk/bake/portableBytes.ts',import.meta.url))),
+  encoder:hash(readFileSync(new URL('../../src/sharddev/bake/portableBytes.ts',import.meta.url))),
   implementation:encodePortableBytes.toString(),
   fflate:hash(readFileSync(fileURLToPath(import.meta.resolve('fflate')))),level:9}));
 

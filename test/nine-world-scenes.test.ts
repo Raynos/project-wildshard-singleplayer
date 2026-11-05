@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { parseWorldScenes, worldScenesForTier } from '@wildshard/format/worldScenes';
 import { controlFileHashes } from '@wildshard/format/admissionControl';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { defineWorldSceneCatalogue } from '../src/game/client/models/worldSceneCatalogue';
 import { NINE_SCENE_BLOBS, NINE_WORLD_SCENES, world, inputs, layout as sourceLayout } from './fixtures/nine-product-inputs';
 import { LayoutRowsSchema } from '../src/shards/nine-dragon-stack/generators/sections';

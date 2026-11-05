@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { JournalRowSchema, journalImageRefs, journalRowRules } from '@wildshard/format/compendiumRows';
 import { parseRows } from '@wildshard/format/rows';
 import { preflightAssetGraph } from '@wildshard/format/product';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { declaredCompendium } from '../src/game/shared/shard/declaredRows';
 import templateRows from '../src/shards/_template/data/rows.json' with { type: 'json' };
 import { PINE_JOURNAL as emitted } from './fixtures/pine-program';

@@ -2,7 +2,7 @@ import { installAssetFixture } from './fixtures/bootSetup';
 import { DRIFTWOOD_ISLAND_FACTS } from './fixtures/driftwood-island-facts';
 import {expect,it,vi} from 'vitest';
 import {Scope} from '@wildshard/engine/app/scope';
-import {emptyShardfile} from '@wildshard/sdk/author';
+import {emptyShardfile} from '@wildshard/sharddev/author';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import * as runtime from '../src/game/client/shardfile/runtimeProduct';
 import {productAudioCatalogue} from '../src/game/server/shardfile/audioCatalogue';

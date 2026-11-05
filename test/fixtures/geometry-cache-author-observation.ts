@@ -1,6 +1,6 @@
 import { withPortableMath } from '../../src/commons/bake/portableMath';
 import { hashImmutableBytes } from '../../src/sdk/immutable';
-import { Rng } from '../../src/sdk/random';
+import { Rng } from '../../src/sharddev/random';
 import { graniteBlock } from '../../src/shards/nalati-grasslands/generators/granite';
 import { blob } from '../../src/shards/nalati-grasslands/generators/smoothGeometry';
 

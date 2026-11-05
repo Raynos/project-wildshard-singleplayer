@@ -1,4 +1,4 @@
-// The swept kit is the SDK's (@wildshard/sdk/kit/sweptKit, SHARD-PLATFORM M3, the kit system), under the names the
+// The swept kit is the SDK's (@wildshard/sharddev/kit/sweptKit, SHARD-PLATFORM M3, the kit system), under the names the
 // hero's and the layout's builders use.
 import { SweptKit, type SweptLook, curve as sweptCurve, mergeKits } from './kit/sweptKit';
 

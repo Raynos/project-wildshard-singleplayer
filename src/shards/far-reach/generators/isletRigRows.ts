@@ -1,4 +1,4 @@
-import { boxDesc } from '@wildshard/sdk/bake/placement';
+import { boxDesc } from '@wildshard/sharddev/bake/placement';
 import { Vector3 } from 'three';
 import { apothem } from './layoutMath';
 import { RISING_ISLETS } from './risingIslets';

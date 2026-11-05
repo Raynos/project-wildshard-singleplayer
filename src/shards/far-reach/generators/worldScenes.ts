@@ -1,6 +1,6 @@
-import {registeredJsonSchema} from '@wildshard/sdk/formatJsonSchema';
-import { worldSceneRecipe as parseWorldScene, worldSceneBindings as parseWorldSceneBindings, worldSceneRows as parseWorldScenes } from '@wildshard/sdk/worldScenes';
-import { nameBlob } from '@wildshard/sdk/blobs';
+import {registeredJsonSchema} from '@wildshard/sharddev/formatJsonSchema';
+import { worldSceneRecipe as parseWorldScene, worldSceneBindings as parseWorldSceneBindings, worldSceneRows as parseWorldScenes } from '@wildshard/sharddev/worldScenes';
+import { nameBlob } from '@wildshard/sharddev/blobs';
 import type { SkyRouteValues } from './routeScene';
 import { isletScenes } from './isletScene';
 import type { HeroLibraryRows } from './heroLibrary';

@@ -1,6 +1,6 @@
-import { privateSceneRows as parsePrivateScene, modelSceneSourceFile, bakedSceneSourceFile } from '@wildshard/sdk/worldScenes';
+import { privateSceneRows as parsePrivateScene, modelSceneSourceFile, bakedSceneSourceFile } from '@wildshard/sharddev/worldScenes';
 import { QUEST_NPC } from './questNpc';
-import type { NamedBlob } from '@wildshard/sdk/blobs';
+import type { NamedBlob } from '@wildshard/sharddev/blobs';
 import * as files from './fileInventory';
 import { SKY_AO_FLOOR } from './modelFrames';
 import { BRIDGE_REST_URL, MILL_REST_URL, ISLET_POOL } from './restFiles';

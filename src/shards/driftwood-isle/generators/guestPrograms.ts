@@ -1,7 +1,7 @@
-import { generateDirectorAbi } from '@wildshard/sdk/directorAbi';
-import { generateDecisionBindings } from '@wildshard/sdk/decisionScriptBindings';
+import { generateDirectorAbi } from '@wildshard/sharddev/directorAbi';
+import { generateDecisionBindings } from '@wildshard/sharddev/decisionScriptBindings';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 
 const text = new TextEncoder(), decode = new TextDecoder('utf-8', { fatal: true });
 type GuestCompiler = Pick<ProjectGenerationContext, 'compileDecisionRows' | 'compileScriptV2' | 'compileScript'>;
@@ -48,7 +48,7 @@ export async function driftwoodGuestBytes(inputs: ReadonlyMap<string, Uint8Array
   const director = { bytes: directorBytes, module: hashImmutableBytes(directorBytes) };
   if (typeof declaration !== 'object' || declaration === null || !('module' in declaration) || declaration.module !== director.module)
     throw new Error('Driftwood director author module hash differs');
-  const notice = 'DO NOT EDIT: behaviour/director.as -> scripts/bake/directorSource.ts (@wildshard/sdk/compileScript); regenerate with node scripts/bake/directors.mjs';
+  const notice = 'DO NOT EDIT: behaviour/director.as -> scripts/bake/directorSource.ts (@wildshard/sharddev/compileScript); regenerate with node scripts/bake/directors.mjs';
   files.set(`assets/${director.module}`, director.bytes);
   files.set('behaviour/director.json', text.encode(`${JSON.stringify({ generated: notice, module: director.module, bytes: '' }, null, 2)}\n`));
   return files;

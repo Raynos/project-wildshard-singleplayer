@@ -8,7 +8,7 @@ import { build } from 'vite';
 import * as v from 'valibot';
 import { nalatiPoiScenes, type NalatiPoiScenePlaces } from '../src/shards/nalati-grasslands/generators/poiScenes';
 import { jsonBytes } from '../scripts/bake-output.mjs';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import original from './fixtures/nalati-poi-scenes.json' with { type: 'json' };
 

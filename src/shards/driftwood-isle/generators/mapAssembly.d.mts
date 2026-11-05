@@ -1,5 +1,5 @@
 import type { Matrix4 } from 'three';
-import type { MapAssembly } from '@wildshard/sdk/bake/mapAssembly';
+import type { MapAssembly } from '@wildshard/sharddev/bake/mapAssembly';
 
 /** Every input by its repository path (the caller owns all reads: GR7, a pure producer). */
 export type DriftwoodMapSource = (path: string) => Uint8Array;

@@ -2,7 +2,7 @@
 import { execFileSync } from 'node:child_process';
 import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
-import { questPropRows, questAutomaticFlag } from '../src/sdk/quests';
+import { questPropRows, questAutomaticFlag } from '../src/sharddev/quests';
 import { NativeQuestPropsSchema } from '@wildshard/format/questInteractions';
 import { autoFlag, type InteractDef, type Cond } from '../src/engine/shared/world/interact/types';
 import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/generators/interactables';
@@ -32,7 +32,7 @@ test('complete physical quest facts preserve the original pin and full condition
 });
 
 test('quest author admission executes in native Node without a physical or renderer owner', () => {
-  const source = `import {questPropRows,questAutomaticFlag} from './src/sdk/quests.ts';
+  const source = `import {questPropRows,questAutomaticFlag} from './src/sharddev/quests.ts';
     console.log(JSON.stringify({rows:questPropRows({floors:[],gates:[]}),flag:questAutomaticFlag({kind:'door',id:'gate'})}));`;
   const result = execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/sim-node-loader.mjs', '--input-type=module', '-e', source], { encoding: 'utf8', timeout: 30_000 });
   expect(JSON.parse(result)).toEqual({ rows: { floors: [], gates: [], drops: [], bodies: [] }, flag: 'open:gate' });

@@ -1,7 +1,7 @@
-import {registeredJsonSchema} from '@wildshard/sdk/formatJsonSchema';
+import {registeredJsonSchema} from '@wildshard/sharddev/formatJsonSchema';
 import type { placeBindings } from './restScene';
-import { worldSceneBindings as parseWorldSceneBindings, worldSceneRecipe as parseWorldScene, worldSceneRows as parseWorldScenes } from '@wildshard/sdk/worldScenes';
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
+import { worldSceneBindings as parseWorldSceneBindings, worldSceneRecipe as parseWorldScene, worldSceneRows as parseWorldScenes } from '@wildshard/sharddev/worldScenes';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
 import { SIGNAL_PIECES as pieces } from './rows/pieces';
 import { SIGNAL_SOURCE_LIBRARIES, type SceneWorldBakes } from './sceneSources';
 import { SIGNAL_SKIRT_BLOBS, SIGNAL_SKIRT_LIBRARY, SIGNAL_SKIRT_STEPS } from './skirtScenes';

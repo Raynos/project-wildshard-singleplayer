@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Actual admitted inert image bytes exercise the reader.
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { parseStillImage } from '@wildshard/format/stillImage';
 import { Scope } from '../src/engine/shared/app/scope';
 import { ResidencyAllocator } from '../src/game/shared/grid/allocator';

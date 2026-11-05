@@ -1,4 +1,4 @@
-import { bakeRawColourTexture } from '@wildshard/sdk/bake/texture';
+import { bakeRawColourTexture } from '@wildshard/sharddev/bake/texture';
 import { nalatiModelSourceParts } from './modelSourceParts';
 
 /** The prepared model keeps its exact geometry buffer; its original atlas becomes a separately admitted texture. */

@@ -2,11 +2,11 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { BuildingLifeDocumentSchema, BuildingLifeLookSchema, BuildingLifeRowsSchema } from '@wildshard/format/buildings';
 import { REGISTERED_JSON, validateRegisteredJson } from '@wildshard/format/registeredJson';
-import { namedJsonSchema, registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { namedJsonSchema, registeredJsonSchema } from '@wildshard/sharddev/formatJsonSchema';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
-import { nameBlob } from '@wildshard/sdk/blobs';
+import { nameBlob } from '@wildshard/sharddev/blobs';
 import { driftwoodJsonBlob } from '../src/shards/driftwood-isle/generators/namedSchemas';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import { createShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import rows from '../src/shards/driftwood-isle/data/buildingLife.json' with { type: 'json' };
 

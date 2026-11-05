@@ -1,5 +1,5 @@
 /** GR6: the Storm Titan and pasture program builder's typed surface (`stormTitanRows.mjs`). */
-import type { compileReturnProjectionV2 } from '@wildshard/sdk/returnProjectionV2';
+import type { compileReturnProjectionV2 } from '@wildshard/sharddev/returnProjectionV2';
 
 type Dual = Awaited<ReturnType<typeof compileReturnProjectionV2>>;
 /** One compiled programme: the ABI-1 row and its ABI-2 projection, both with empty inline bytes. */

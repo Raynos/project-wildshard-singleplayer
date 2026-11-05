@@ -1,9 +1,9 @@
 import { BufferAttribute, BufferGeometry, Float16BufferAttribute, Group, InterleavedBuffer, InterleavedBufferAttribute, Mesh, MeshBasicMaterial } from 'three';
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
-import { readScene } from '../src/sdk/scene';
-import { worldSceneSourceRecords } from '../src/sdk/worldScenes';
-import { glbWholePartitionIds } from '../src/sdk/bake/glb';
+import { readScene } from '../src/sharddev/scene';
+import { worldSceneSourceRecords } from '../src/sharddev/worldScenes';
+import { glbWholePartitionIds } from '../src/sharddev/bake/glb';
 
 const rows = v.strictObject({ count: v.number(), label: v.optional(v.string(), 'original') });
 const oldBook = v.strictObject({ rows, records: v.array(v.pipe(v.number(), v.finite())),

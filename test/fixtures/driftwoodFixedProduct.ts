@@ -7,14 +7,14 @@ import { readFile } from 'node:fs/promises';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native fixture paths resolve from the test repository.
 import { resolve } from 'node:path';
 import { createShardProduct } from '../../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../../src/sdk/author';
+import { emptyShardfile } from '../../src/sharddev/author';
 import { DRIFTWOOD_BANK_BLOBS, DRIFTWOOD_OUTPUT } from '../../src/shards/driftwood-isle/generators/assets';
 import { DRIFTWOOD_CLIENT_SECTIONS } from '../../src/shards/driftwood-isle/generators/clientSections';
 import { FIGURE_CATALOGUE } from '../../src/shards/driftwood-isle/generators/figureCatalogue';
 import { NPC_FOCUS_PROGRAMS } from '../../src/shards/driftwood-isle/generators/npcFocusPrograms';
-import { createProjectGeneration } from '../../src/sdk/projectGeneration';
+import { createProjectGeneration } from '../../src/sharddev/projectGeneration';
 import { driftwoodFixedModelOutput } from '../../src/shards/driftwood-isle/generators/fixedModels';
-import { nameMeshoptBlob } from '../../src/sdk/blobs';
+import { nameMeshoptBlob } from '../../src/sharddev/blobs';
 import { driftwoodSceneBanks } from './driftwoodSceneBanks';
 import { fixtureProductFile, fixtureJsonCheck } from './productFile';
 

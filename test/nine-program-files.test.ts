@@ -13,10 +13,10 @@ import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import * as descriptors from '../src/game/shared/shardfile/outputDescriptor';
 import type { OutputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import type { ShardContext } from '../src/game/client/plugin/context';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { ninePracticeRows,ninePracticeBytes } from './fixtures/nine-practice-product';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
+import { compileScriptV2 } from '../src/sharddev/bake/compileScriptV2';
 import { NINE_MOVERS_CONTRACT } from '../src/shards/nine-dragon-stack/generators/moversProgram';
 
 test('both actual raw executables name their shipped module and pass their contracts',async()=>{

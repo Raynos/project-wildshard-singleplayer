@@ -1,7 +1,7 @@
-import { bakeRawColourPixels } from '@wildshard/sdk/bake/rawTexture';
-import type { ImagePixels } from '@wildshard/sdk/bake/image';
+import { bakeRawColourPixels } from '@wildshard/sharddev/bake/rawTexture';
+import type { ImagePixels } from '@wildshard/sharddev/bake/image';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { parseKtx2 } from '@wildshard/sdk/assets';
+import { parseKtx2 } from '@wildshard/sharddev/assets';
 
 /** The original admitted single-level texture, including generated mip residency. */
 export interface FireBookFile { hash: string; kind: 'ktx2'; compressed: number; decoded: number; gpu: number; triangles: number; draws: number; dependencies: string[]; critical: false }

@@ -1,8 +1,8 @@
 // GR6: Nalati's ambient cover at build time (the retired nalati-cover job's construction): the small models' packed
 // shapes, catalogue and life rows per tier, and the boulder atlases. The client borrows the packed shapes as product files.
 import * as THREE from 'three';
-import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
+import { encodeBuildBytes } from '@wildshard/sharddev/bake/byteCodec';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
 import { fitRock } from './fittedRock.ts';
 import { wingGeo, halfBirdGeo, buildMarmotGeometry } from './ambientGeometry.ts';
 import { writeGeometry, join } from './geometryWriter.ts';

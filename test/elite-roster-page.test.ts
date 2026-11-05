@@ -23,7 +23,7 @@ import { ELITE_CONDITION_COLUMNS } from '@wildshard/format/eliteEntryRows';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';
 import { parseExternalElite } from '@wildshard/format/eliteFeature';
-import { strike } from '../src/sdk/species';
+import { strike } from '../src/sharddev/species';
 import strikes from './fixtures/nalati-strikeProfiles-original.json' with { type: 'json' };
 
 test('a marsh roster binds its own herd, drop and identities without author callbacks', () => {

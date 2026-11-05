@@ -1,7 +1,7 @@
 import { skyMapPixels, skyMapProgram } from '../src/shards/far-reach/generators/mapProgram';
 import { SKY_MAP_INPUTS } from '../src/shards/far-reach/generators/bake-map.mjs';
 import { originalSkyMapInputs } from './fixtures/sky-map-source';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own the isolated cache and inspect declared source input authority.
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Confine omission catalogues and producer outputs to repository scratch.
@@ -9,7 +9,7 @@ import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Match the original native level-nine pack writer byte for byte.
 import { deflateSync } from 'node:zlib';
 import { build } from 'vite';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import { skyMapWorldSources } from '../src/shards/far-reach/generators/mapWorldSources';
 import { BAKED_PIECES } from '../src/shards/far-reach/generators/fileInventory';
 import { expect, test } from 'vitest';

@@ -1,7 +1,7 @@
 import {expect,it} from 'vitest';
 import {onFault,type Fault} from '../src/engine/shared/core/faults';
 import {Color} from 'three';
-import {ClientChannels} from '@wildshard/sdk/clientChannels';
+import {ClientChannels} from '@wildshard/sharddev/clientChannels';
 import {parseClientChannels,type ClientChannelProgram} from '@wildshard/format/clientChannels';
 import {installChannelPrograms} from '@wildshard/game/plugin/channelPrograms';
 import {PINE_WEATHER_PROGRAMS} from '../src/shards/pine-hollow/generators/weatherChannels';

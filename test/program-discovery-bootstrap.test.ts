@@ -10,9 +10,9 @@ import { InputHashMemo } from '../scripts/bake-input-hashes.mjs';
 import { shardfileValidationRevision } from '../scripts/shardfile-validation-revision.mjs';
 import { readProgramDiscovery, usesProgramDiscovery } from '../scripts/program-discovery.mjs';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
-import { emptyShardfile } from '../src/sdk/author';
-import { writeOutputProduct } from '../src/sdk/outputProduct';
-import { readProjectAssets } from '../src/sdk/project';
+import { emptyShardfile } from '../src/sharddev/author';
+import { writeOutputProduct } from '../src/sharddev/outputProduct';
+import { readProjectAssets } from '../src/sharddev/project';
 
 const owned: string[] = [];
 afterEach(() => { for (const root of owned.splice(0)) rmSync(root, { recursive: true, force: true }); });

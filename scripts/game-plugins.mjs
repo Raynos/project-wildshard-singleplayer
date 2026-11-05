@@ -31,10 +31,10 @@ function specifiers(path, source) {
 /** Follow current primary runtime closures through SDK facades, stopping at each defining game module. */
 export function gamePluginInventory(root = ROOT) {
   const manifest = layer => JSON.parse(readFileSync(resolve(root, `src/${layer}/package.json`), 'utf8'));
-  const game = manifest('game'), sdk = manifest('sdk');
+  const game = manifest('game'), sdk = manifest('sdk'), sharddev = manifest('sharddev');
   const modules = new Map();
   const target = (layer, specifier) => {
-    const entry = (layer === 'game' ? game : sdk).exports?.[`.${specifier.slice(`@wildshard/${layer}`.length)}`];
+    const entry = (layer === 'game' ? game : layer === 'sharddev' ? sharddev : sdk).exports?.[`.${specifier.slice(`@wildshard/${layer}`.length)}`];
     return typeof entry === 'string' ? resolve(root, `src/${layer}`, entry) : null;
   };
   for (const entry of readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })) {
@@ -49,14 +49,14 @@ export function gamePluginInventory(root = ROOT) {
           if (!modules.has(specifier)) modules.set(specifier, { specifier, target: target('game', specifier), facades: new Set(), shards: new Set() });
           const row = modules.get(specifier);
           row.shards.add(entry.name);
-          if (path.startsWith(`${resolve(root, 'src/sdk')}/`)) row.facades.add(relative(root, path));
+          if (['src/sdk', 'src/sharddev'].some(dir => path.startsWith(`${resolve(root, dir)}/`))) row.facades.add(relative(root, path));
           continue;
         }
-        const base = specifier.startsWith('@wildshard/sdk/') ? target('sdk', specifier)
+        const base = specifier.startsWith('@wildshard/sdk/') ? target('sdk', specifier) : specifier.startsWith('@wildshard/sharddev/') ? target('sharddev', specifier)
           : specifier.startsWith('.') ? resolve(dirname(path), specifier) : null;
         if (base === null) continue;
         const next = [base, `${base}.ts`, `${base}.tsx`, `${base}.mjs`, `${base}/index.ts`].find(candidate => existsSync(candidate) && /\.[cm]?[jt]sx?$/u.test(candidate));
-        if (next !== undefined && (next.startsWith(`${shard}/`) || next.startsWith(`${resolve(root, 'src/sdk')}/`))) queue.push(next);
+        if (next !== undefined && (next.startsWith(`${shard}/`) || ['src/sdk', 'src/sharddev'].some(dir => next.startsWith(`${resolve(root, dir)}/`)))) queue.push(next);
       }
     }
   }
@@ -131,7 +131,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     try {
       const config = resolve(scratch, 'config.json');
       writeFileSync(config, JSON.stringify({ jsPlugins: [resolve(ROOT, 'lint/wildshard-plugin.js')], categories: { correctness: 'off' }, rules: { 'wildshard/shard-game-plugins': 'warn', 'wildshard/generator-imports': 'warn', 'wildshard/shard-engine-imports': 'warn', 'wildshard/sdk-no-facade': 'warn' } }));
-      const result = spawnSync(process.execPath, [resolve(ROOT, 'node_modules/oxlint/bin/oxlint'), '-c', config, ...(process.argv.includes('--json') ? ['-f', 'json'] : []), 'src/shards', 'src/sdk'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
+      const result = spawnSync(process.execPath, [resolve(ROOT, 'node_modules/oxlint/bin/oxlint'), '-c', config, ...(process.argv.includes('--json') ? ['-f', 'json'] : []), 'src/shards', 'src/sdk', 'src/sharddev'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
       process.stdout.write(result.stdout);
       process.stderr.write(result.stderr);
       if (result.error) throw result.error;

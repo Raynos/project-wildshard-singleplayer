@@ -1,8 +1,8 @@
 
 
 /** Native living graphs are separate from the sealed shell/specimen inventory. */
-import { type worldSceneWeldData, worldSceneLivingBakeRows, worldSceneGraphPages, type AuthorLivingSceneProfile } from '@wildshard/sdk/worldScenes';
-import type { NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
+import { type worldSceneWeldData, worldSceneLivingBakeRows, worldSceneGraphPages, type AuthorLivingSceneProfile } from '@wildshard/sharddev/worldScenes';
+import type { NamedBlob as NamedBlobType } from '@wildshard/sharddev/blobs';
 import { cabinLivingBake } from './bake-cabin-living.mjs';
 import { pineCabins } from './bake-pine-cabins.mjs';
 import { perSources, type PineSources } from './pineSources';

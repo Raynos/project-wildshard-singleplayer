@@ -1,5 +1,5 @@
 import { Matrix4, Quaternion, Vector3, Vector4, type BufferGeometry } from 'three';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
 import { hdGeometry } from './modelIntake';
 import { DAIS, FALLEN_BRIDGE, ISLES, MILL, MILL_DRUM, NEST, NOTES, PINES, SPANS, SPIRES, UPDRAFT, VANES, WINCH, WINCH_HOUSE, type Isle } from "./layout";
 import { ISLE_KEEL_CUT, KEEL_TOP, SKY_ISLES, SKY_ISLE_HD, SKY_ISLE_MODELS, SKY_ISLE_WEAR, type SkyIsle, type SkyIsleModel, type SkyIsleFrame } from './rows/skyIsles';

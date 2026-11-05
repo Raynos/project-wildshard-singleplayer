@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
-import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
-import { emitPlatformSections } from '../src/sdk/platformSections';
+import { namedJsonSchema } from '../src/sharddev/formatJsonSchema';
+import { emitPlatformSections } from '../src/sharddev/platformSections';
 import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import * as materialCompiler from '../src/game/client/shardfile/clientMaterials';
@@ -21,7 +21,7 @@ import * as completionClock from '../src/engine/shared/core/clock';
 import { constructionCheckpoint } from '../src/game/client/shardfile/constructionCheckpoint';
 import fixture from './fixtures/client-plan.json' with { type: 'json' };
 import { Scope } from '../src/engine/shared/app/scope';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { createShardProduct, ProductError } from '../src/game/shared/shardfile/shardProduct';
 import * as questPreparation from '../src/game/client/shardfile/clientQuestComposition';
 import * as questWorldPreparation from '../src/game/client/shardfile/questWorld';

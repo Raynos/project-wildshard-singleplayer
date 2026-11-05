@@ -7,7 +7,7 @@ import {Scope} from '@wildshard/engine/app/scope';
 import {audioRandom} from '@wildshard/engine/audio/util';
 import {installDeclaredAudio} from '@wildshard/engine/audio/declared';
 import {parseAudioData,AudioDataSchema} from '@wildshard/format/audio';
-import {formatJsonSchema} from '@wildshard/sdk/formatJsonSchema';
+import {formatJsonSchema} from '@wildshard/sharddev/formatJsonSchema';
 import {DeclaredAmbience} from '@wildshard/engine/audio/declaredAmbience';
 import {AmbienceMix,type AmbienceMixPorts} from '@wildshard/engine/audio/ambience';
 import pineSource from '../src/shards/pine-hollow/data/audioSource.json' with {type:'json'};

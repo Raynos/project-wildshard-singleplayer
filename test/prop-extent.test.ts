@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { BoxGeometry, MeshBasicMaterial } from 'three';
-import { emptyShardfile } from '../src/sdk/author';
-import { staticGlb } from '../src/sdk/bake/glb';
+import { emptyShardfile } from '../src/sharddev/author';
+import { staticGlb } from '../src/sharddev/bake/glb';
 import { PropExtent, validatePropDrawBounds, visitGlbTriangles } from '@wildshard/format/product';
 
 // CI6: one visit's extents stand in for the draw-bounds point test exactly; any check they fail visits again and refuses

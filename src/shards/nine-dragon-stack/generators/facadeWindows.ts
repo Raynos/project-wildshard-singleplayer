@@ -1,4 +1,4 @@
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
 import type { LayoutRows } from './sections';
 
 /** The original window packet depends only on these ordered layout counts and record words. */

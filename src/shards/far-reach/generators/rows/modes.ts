@@ -1,4 +1,4 @@
-import type { ModeRows } from '@wildshard/sdk/modes';
+import type { ModeRows } from '@wildshard/sharddev/modes';
 import * as LAYOUT from '../layout';
 
 type UpdraftMode = Extract<ModeRows['traverse'][number], { kind: 'updraft' }>;

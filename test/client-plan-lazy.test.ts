@@ -3,7 +3,7 @@ import {Scope} from '../src/engine/shared/app/scope';
 import type {ShardContext} from '../src/game/client/plugin/context';
 import {CLIENT_FEATURES,installClientPhase} from '../src/game/client/shardfile/clientPlan';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
-import {emptyShardfile} from '../src/sdk/author';
+import {emptyShardfile} from '../src/sharddev/author';
 import * as meadow from '../src/game/client/shardfile/clientMeadow';
 import * as scenes from '../src/game/client/shardfile/worldScenes';
 

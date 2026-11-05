@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
-import { worldSceneLivingBakeRows, worldSceneWeldData, buildingLifeRows } from '../src/sdk/worldScenes';
+import { worldSceneLivingBakeRows, worldSceneWeldData, buildingLifeRows } from '../src/sharddev/worldScenes';
 import type { CabinLivingProfile } from '../src/shards/pine-hollow/generators/cabinLivingContribution';
 import { cabinLivingBake } from '../src/shards/pine-hollow/generators/bake-cabin-living.mjs';
 import { PINE_SOURCES } from './fixtures/pine-sources';

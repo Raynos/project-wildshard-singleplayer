@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import type { BoxColliderData } from '@wildshard/sdk/physics';
+import type { BoxColliderData } from '@wildshard/sharddev/physics';
 import { BRAZIERS, CARAVAN, WELL } from "./layout";
 import { CRATES, HORSE, WELL_RIG } from './rows/places';
 import STRINGS from '../data/strings.json' with { type: 'json' };

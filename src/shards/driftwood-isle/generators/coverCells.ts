@@ -1,5 +1,5 @@
 import { Color } from 'three';
-import { Rng } from '@wildshard/sdk/random';
+import { Rng } from '@wildshard/sharddev/random';
 import geometryPolicy from '../data/groundGeometryPolicy.json' with { type: 'json' };
 import * as authoredCoverLook from './coverRows';
 import { facetColour } from './facetedGround';

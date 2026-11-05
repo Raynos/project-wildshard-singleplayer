@@ -1,5 +1,5 @@
-import { Rng } from '@wildshard/sdk/random';
-import { authorCellBounds } from '@wildshard/sdk/bake/tileGrid';
+import { Rng } from '@wildshard/sharddev/random';
+import { authorCellBounds } from '@wildshard/sharddev/bake/tileGrid';
 import identity from '../data/identity.json' with { type: 'json' };
 import { PINE_ELITE_DEFS, PINE_ELITE_ANIMALS, ORDINARY } from './eliteRoster';
 import { PINE_LANES, PINE_STRIKES } from './strikes';

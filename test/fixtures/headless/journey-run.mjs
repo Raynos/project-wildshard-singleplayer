@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { HeadlessSimulation } from '../../../src/sdk/headless.ts';
-import { emptyShardfile } from '../../../src/sdk/author.ts';
+import { emptyShardfile } from '../../../src/sharddev/author.ts';
 import { PhysicsRouteCursor } from '../../../src/sdk/headlessJourney.ts';
 import { decodeSimSnapshotBytes, leadSnapshot } from '../../../src/engine/shared/sim/snapshot.ts';
 const source=emptyShardfile({slug:'journey-fixture',name:'Journey fixture',author:'Test',revision:1,seed:435});

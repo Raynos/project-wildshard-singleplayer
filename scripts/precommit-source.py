@@ -169,7 +169,7 @@ def required_sources(blobs, specification, tree=None, executable=None, staged_pa
         selected.update(name for name in blobs if re.search(r'/(?:generators/)?bake-[^/]+\.(?:mjs|ts)$', name))
         selected.add('scripts/source-generation-outputs.json')
     if 'test/schema-reference.test.ts' in specification.get('guards', []):
-        for layer in ['sdk']:
+        for layer in ['sdk', 'sharddev']:
             manifest = json.loads(blobs.get(f'src/{layer}/package.json', b'{}'))
             for target in manifest.get('exports', {}).values():
                 if isinstance(target, str) and target.startswith('./'):

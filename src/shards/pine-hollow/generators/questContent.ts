@@ -1,4 +1,4 @@
-import type { ContractCatalogue } from '@wildshard/sdk/rows';
+import type { ContractCatalogue } from '@wildshard/sharddev/rows';
 import type { Trade } from './trades';
 import { RANGER, MILLER, TRADER } from './nativeReadings';
 import { PINE_QUESTS } from './quests';

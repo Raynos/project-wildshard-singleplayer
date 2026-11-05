@@ -1,7 +1,7 @@
-import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
+import {registeredJsonSchema} from '../src/sharddev/formatJsonSchema';
 import { expect, test, vi } from 'vitest';
 import { build } from 'vite';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { outputSectionPayloads } from '@wildshard/format/outputFields';
 import type { resolveOutputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';

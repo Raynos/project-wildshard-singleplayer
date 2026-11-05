@@ -1,4 +1,4 @@
-import type { PhasedBossRow } from '@wildshard/sdk/phasedBoss';
+import type { PhasedBossRow } from '@wildshard/sharddev/phasedBoss';
 import { DUNGEON, CH, COFFIN, NICHES, STREAMS } from './kurganLayout';
 import { KING_DEF_PHASES, KING_LINES, KING_TUNING } from './goldenKingFight';
 

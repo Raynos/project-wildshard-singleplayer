@@ -1,5 +1,5 @@
 import { pineSpots } from './spots';
-import type { ModeRows } from '@wildshard/sdk/modes';
+import type { ModeRows } from '@wildshard/sharddev/modes';
 
 // GR8: called, not read from a scheduler job's output
 const spots = pineSpots();

@@ -1,4 +1,4 @@
-import type { parseMeleeWeaponProfile } from '@wildshard/sdk/weapons/meleeProfile';
+import type { parseMeleeWeaponProfile } from '@wildshard/sharddev/weapons/meleeProfile';
 
 type Swing = ReturnType<typeof parseMeleeWeaponProfile>['moves']['combo'][number];
 

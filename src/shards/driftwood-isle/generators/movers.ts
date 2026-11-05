@@ -1,7 +1,7 @@
 import { Group } from 'three';
-import { Mover } from '@wildshard/sdk/movers';
+import { Mover } from '@wildshard/sharddev/movers';
 import { WAVES, seaDamp } from '@wildshard/engine/world/waves';
-import type { ColliderDesc } from '@wildshard/sdk/bake/placement';
+import type { ColliderDesc } from '@wildshard/sharddev/bake/placement';
 import type { MoverData } from '@wildshard/format/movers';
 import { BRIDGE } from './worldSites';
 import authoredLayout from '../data/layout.json' with { type: 'json' };

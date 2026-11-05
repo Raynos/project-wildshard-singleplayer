@@ -5,7 +5,7 @@ import { pineKingCollision } from './kingCollision';
 import { ANTLER_KING_FIGHT, ANTLER_KING_BOSS_PROFILE } from './kingFight';
 import bossRows from '../data/bossEncounter.json' with { type: 'json' };
 import bossPresentation from '../data/bossPresentation.json' with { type: 'json' };
-import { roamingEncounterRows as parseRoamingEncounter } from '@wildshard/sdk/bossProfiles';
+import { roamingEncounterRows as parseRoamingEncounter } from '@wildshard/sharddev/bossProfiles';
 import { KING_FX_LOOKS } from './kingFxLook';
 import * as LAYOUT from './layout';
 import { CRAG_LOOK, CAVE_LOOK } from './cragLook';

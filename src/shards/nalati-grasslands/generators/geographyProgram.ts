@@ -1,4 +1,4 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import sourceRows from '../data/geographySources.json' with { type: 'json' };
 import { nalatiGeographySources } from './geographySource';
 

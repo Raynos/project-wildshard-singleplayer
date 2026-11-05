@@ -1,5 +1,5 @@
 import authoredArms from '../data/heldArms.json' with { type: 'json' };
-import { explorerCatalogueRows as parseExplorerCatalogue } from '@wildshard/sdk/rows';
+import { explorerCatalogueRows as parseExplorerCatalogue } from '@wildshard/sharddev/rows';
 
 /** Ordered references retain the original native specimen order. */
 export const EXPLORER_CATALOGUE: ReturnType<typeof parseExplorerCatalogue> = parseExplorerCatalogue({

@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { compareRuntimeFiles, readRuntimeFiles, runtimeFilesShape, runtimeFileCeiling, RUNTIME_FILE_DEFAULT } from '../lint/runtime-files.mjs';
-import { checkProjectRuntime } from '../src/sdk/runtimePerformance';
+import { checkProjectRuntime } from '../src/sharddev/runtimePerformance';
 
 const about = 'test policy';
 const policy = (ceilings: Record<string, number>, raises: { slug: string; from: number; to: number; why: string }[] = []) => ({ about, ceilings, default: 128, raises });

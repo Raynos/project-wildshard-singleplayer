@@ -6,7 +6,7 @@ three picks); nothing is built. Earlier: the plan is written ([../IN-GAME-CUTSCE
 built from a draft.
 
 **Recommendation:** hybrid, in engine first (D1). An engine camera timeline (`src/engine/cinematic/`, exposed as
-`@wildshard/sdk/cutscenes` data) carries every cutscene; generated LTX-2.5 portrait video only for one or two hero
+`@wildshard/sharddev/cutscenes` data) carries every cutscene; generated LTX-2.5 portrait video only for one or two hero
 moments per shard, always with an in-engine fallback. Generic hero in generated clips, no hero on screen in engine
 shots for v1; outfits out of scope (D2). Everything behind Developer; comparisons as one Debug row (D3).
 

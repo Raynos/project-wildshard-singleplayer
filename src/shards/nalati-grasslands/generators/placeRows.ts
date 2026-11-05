@@ -1,4 +1,4 @@
-import type { BakedGeometryRow } from '@wildshard/sdk/kit/bakedGeometry';
+import type { BakedGeometryRow } from '@wildshard/sharddev/kit/bakedGeometry';
 import type { Platform, PlaceAnchors, Box } from '../data/placeTypes';
 import type { ModelPlacement } from '../data/modelTypes';
 import type { CragLedgeFloor, LeopardCaveFloor, KurganEntranceFloor } from './placement';

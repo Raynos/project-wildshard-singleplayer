@@ -3,9 +3,9 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Bind the same public image root explicitly as the author CLI.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { readImagePixels } from '../src/sdk/bake/image';
+import { readImagePixels } from '../src/sharddev/bake/image';
 import { nineDecalBlobs, nineNativeDecals } from '../src/shards/nine-dragon-stack/generators/nativeDecals';
 import sources from '../src/shards/nine-dragon-stack/data/nativeDecals.json' with { type: 'json' };
 import { output } from './fixtures/nine-source-program';

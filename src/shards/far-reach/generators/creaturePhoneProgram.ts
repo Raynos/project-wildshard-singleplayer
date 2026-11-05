@@ -1,5 +1,5 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { basisGlbVariant, type GlbBasisEncoder } from '@wildshard/sdk/bake/basisGlb';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { basisGlbVariant, type GlbBasisEncoder } from '@wildshard/sharddev/bake/basisGlb';
 import { CREATURE_RIG_INPUTS, skyCreatureRigSource } from './creatureRigProgram';
 
 /** The complete original phone representation has its own cache name, separate from the WebP rig bank. */

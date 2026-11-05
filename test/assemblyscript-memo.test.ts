@@ -4,13 +4,13 @@ import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node
 import { resolve } from 'node:path';
 import { expect, test, vi } from 'vitest';
 import { build } from 'vite';
-import { memoAssemblyScript } from '../src/sdk/bake/assemblyscriptMemo';
-import * as identity from '../src/sdk/projectCompilerIdentity';
-import { compileScript } from '../src/sdk/bake/compileScript';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
-import type { AssemblyScriptMemo } from '../src/sdk/bake/assemblyscriptMemoPort';
-import * as finite from '../src/sdk/bake/v2Finite';
-import * as fuel from '../src/sdk/bake/v2Fuel';
+import { memoAssemblyScript } from '../src/sharddev/bake/assemblyscriptMemo';
+import * as identity from '../src/sharddev/projectCompilerIdentity';
+import { compileScript } from '../src/sharddev/bake/compileScript';
+import { compileScriptV2 } from '../src/sharddev/bake/compileScriptV2';
+import type { AssemblyScriptMemo } from '../src/sharddev/bake/assemblyscriptMemoPort';
+import * as finite from '../src/sharddev/bake/v2Finite';
+import * as fuel from '../src/sharddev/bake/v2Fuel';
 import * as admission from '@wildshard/format/scriptAdmissionV2';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 
@@ -94,7 +94,7 @@ test('native cold and raw-hit compilers preserve full final Wasm and run every v
 
 test('pure compiler bundles do not acquire host memo or filesystem imports', async () => {
   const built = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false,
-    lib: { entry: [resolve('src/sdk/bake/compileScript.ts'), resolve('src/sdk/bake/compileScriptV2.ts')], formats: ['es'] },
+    lib: { entry: [resolve('src/sharddev/bake/compileScript.ts'), resolve('src/sharddev/bake/compileScriptV2.ts')], formats: ['es'] },
     rolldownOptions: { external: [/^node:/u, 'binaryen', /^assemblyscript\//u] } } });
   const result = Array.isArray(built) ? built[0] : built;
   if (result === undefined || !('output' in result)) throw new Error('Missing pure compiler bundle');

@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type materials from '../data/campMaterials.json';
-import { Noise2D, smoothstep } from '@wildshard/sdk/noise';
-import { Rng } from '@wildshard/sdk/random';
-import { bakeGeometryBoundsSteps as geometryBoundsSteps } from '@wildshard/sdk/bake/geometryBounds';
-import { bakeVoxelOcclusion as voxelAO, bakeOcclusionTint as aoTint, bakeOcclusionDirections as hemisphere } from '@wildshard/sdk/bake/facetedGeometry';
+import { Noise2D, smoothstep } from '@wildshard/sharddev/noise';
+import { Rng } from '@wildshard/sharddev/random';
+import { bakeGeometryBoundsSteps as geometryBoundsSteps } from '@wildshard/sharddev/bake/geometryBounds';
+import { bakeVoxelOcclusion as voxelAO, bakeOcclusionTint as aoTint, bakeOcclusionDirections as hemisphere } from '@wildshard/sharddev/bake/facetedGeometry';
 
 export type NalatiTexName = Exclude<keyof typeof materials, 'poi'>;
 

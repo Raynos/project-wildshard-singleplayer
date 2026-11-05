@@ -3,7 +3,7 @@ import { CompendiumRules } from '../src/game/shared/compendium/rules';
 import * as v from 'valibot';
 import { JournalRowSchema } from '@wildshard/format/compendiumRows';
 import { declaredCompendium } from '../src/game/shared/shard/declaredRows';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { PINE_JOURNAL as journalRows } from './fixtures/pine-program';
 
 const row = v.parse(JournalRowSchema, journalRows.row);

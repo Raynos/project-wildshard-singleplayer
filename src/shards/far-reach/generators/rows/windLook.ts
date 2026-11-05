@@ -1,4 +1,4 @@
-import type { SceneEffectField } from '@wildshard/sdk/worldScenes';
+import type { SceneEffectField } from '@wildshard/sharddev/worldScenes';
 import * as LAYOUT from '../layout';
 
 /**

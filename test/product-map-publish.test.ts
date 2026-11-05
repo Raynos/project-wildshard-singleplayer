@@ -3,10 +3,10 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep both output destinations under repository scratch.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { emptyShardfile } from '../src/sdk/author';
-import { writeImagePixels } from '../src/sdk/bake/image';
-import { packProjectMap } from '../src/sdk/projectMap';
-import { writeOutputProduct } from '../src/sdk/outputProduct';
+import { emptyShardfile } from '../src/sharddev/author';
+import { writeImagePixels } from '../src/sharddev/bake/image';
+import { packProjectMap } from '../src/sharddev/projectMap';
+import { writeOutputProduct } from '../src/sharddev/outputProduct';
 import { publishProductMap } from '../scripts/built-product.mjs';
 
 test('the public map alias comes only from verified product map bytes with the current world key', async () => {

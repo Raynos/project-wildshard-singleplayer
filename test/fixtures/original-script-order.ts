@@ -1,4 +1,4 @@
-import { parseDecisionScripts, type DecisionScriptRow } from '../../src/sdk/decisionScripts';
+import { parseDecisionScripts, type DecisionScriptRow } from '../../src/sharddev/decisionScripts';
 import { encodeCanonicalJson } from '../../src/sdk/immutable';
 
 function matchesAdmitted(input: unknown, admitted: DecisionScriptRow): input is DecisionScriptRow {

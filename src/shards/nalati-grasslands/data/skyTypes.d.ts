@@ -1,5 +1,5 @@
 import type { Color, Vector3 } from 'three';
-import type { AuthorDayLook as DayLookRow } from '@wildshard/sdk/rows';
+import type { AuthorDayLook as DayLookRow } from '@wildshard/sharddev/rows';
 
 type RGB = [number, number, number];
 export interface SkyKey {

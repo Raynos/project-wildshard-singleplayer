@@ -2,7 +2,7 @@ import {expect,test} from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare retained native pixels without embedding any binary in JSON.
 import {createHash} from 'node:crypto';
 import {output} from './fixtures/nine-source-program';
-import {readImagePixels} from '../src/sdk/bake/image';
+import {readImagePixels} from '../src/sharddev/bake/image';
 import before from './fixtures/nine-decal-binary.json' with {type:'json'};
 
 for(const tier of ['phone','desktop'] as const)test(`${tier} decal uses the original PNG, costs and native pixels through declared file intake`,async()=>{

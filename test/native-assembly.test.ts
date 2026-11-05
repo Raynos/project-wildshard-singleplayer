@@ -6,11 +6,11 @@ import { resolve } from 'node:path';
 import { NATIVE_ASSEMBLY_DATA_SCHEMA, NATIVE_ASSEMBLY_FILE, NATIVE_ASSEMBLY_SCHEMA, parseNativeAssembly, type NativeAssemblyPlan } from '@wildshard/format/nativeAssembly';
 import { parseNativeRuntimePlan } from '@wildshard/format/nativeRuntimePlan';
 import { platformFileFamily, validatePlatformFile } from '@wildshard/format/platformFileFamilies';
-import { emptyShardfile } from '../src/sdk/author';
-import { serverBlob } from '../src/sdk/blobs';
+import { emptyShardfile } from '../src/sharddev/author';
+import { serverBlob } from '../src/sharddev/blobs';
 import { HeadlessSimulation } from '../src/sdk/headless';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
-import { validateOutputProduct, writeOutputProduct } from '../src/sdk/outputProduct';
+import { validateOutputProduct, writeOutputProduct } from '../src/sharddev/outputProduct';
 import { hasNativeAssembly } from '../src/game/server/shardfile/nativeAssembly';
 import { prepareProductRuntimePlan } from '../src/game/server/shardfile/nativePlan';
 

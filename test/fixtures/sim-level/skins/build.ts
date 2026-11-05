@@ -9,9 +9,9 @@ import { skinLayerDecoded } from '@wildshard/format/skinLayers';
 import { bakePoseLayers, type PoseLayer } from './layers';
 import type { ClipName } from '../../../../src/engine/client/anim/rig';
 import { creatureSkinSource, rangerSkinSource, type SkinSource } from './sources';
-import { sampleSkinClip, skinnedGlb, type SampledSkinClip } from '../../../../src/sdk/bake/export';
-import { contentHash, canonicalJson } from '../../../../src/sdk/project';
-import { parseGlb } from '../../../../src/sdk/assets';
+import { sampleSkinClip, skinnedGlb, type SampledSkinClip } from '../../../../src/sharddev/bake/export';
+import { contentHash, canonicalJson } from '../../../../src/sharddev/project';
+import { parseGlb } from '../../../../src/sharddev/assets';
 
 /** The three required export representatives, created independently for every clip to reset closure-owned state. */
 export type SkinFixtureKind = 'grey-blob' | 'boar' | 'pine-ranger';

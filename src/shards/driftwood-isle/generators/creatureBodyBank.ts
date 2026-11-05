@@ -1,6 +1,6 @@
 import { BufferAttribute, Float16BufferAttribute, Mesh, type BufferGeometry } from 'three';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
+import { encodeBuildBytes } from '@wildshard/sharddev/bake/byteCodec';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { bakeCreatureBodies, bakeCaptainBody, faceHeadOf } from './creatureBodies';
 import publicInputs from '../data/publicInputs.json' with { type: 'json' };
@@ -11,7 +11,7 @@ export const CREATURE_BODY_INPUTS: { readonly head: string; readonly captain: st
 export const CREATURE_BODY_FILE = 'models/creatures/bodies.bin';
 
 type Kind = 'f32' | 'f16' | 'u16' | 'i8' | 'u8';
-/** @wildshard/sdk/kit/bakedGeometry's element sizes (its reader decodes these blocks) */
+/** @wildshard/sharddev/kit/bakedGeometry's element sizes (its reader decodes these blocks) */
 const BAKED_BYTES: Readonly<Record<Kind, number>> = { f32: 4, f16: 2, u16: 2, i8: 1, u8: 1 };
 const pad4 = (n: number): number => Math.ceil(n / 4) * 4;
 interface PartRow { attrs: [string, Kind, number, boolean][]; count: number; index: 'u16' | 'u32' | null; indexCount: number; box: false }

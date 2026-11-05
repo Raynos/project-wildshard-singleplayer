@@ -11,7 +11,7 @@ import { build } from 'vite';
 import { bakeDressing } from '../src/shards/nalati-grasslands/generators/dressingGeometryRows';
 import { encodeNalatiPart } from '../src/shards/nalati-grasslands/generators/placeWire';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import pins from './fixtures/nalati-place-wires.json' with { type: 'json' };
 import coverPins from './fixtures/nalati-cover-files.json' with { type: 'json' };
 

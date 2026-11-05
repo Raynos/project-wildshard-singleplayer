@@ -19,8 +19,8 @@ import { SKY_ISLAND_BLOBS, SKY_ISLAND_LIBRARY, SKY_ISLE_TILES } from '../src/sha
 import { scenePartSpecimen } from '../src/game/client/models/scenePartSpecimen';
 import { drawSceneRows } from '../src/game/client/shardfile/sceneDraws';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
-import { emitNamedBlobs, nameBlob } from '../src/sdk/blobs';
+import { emptyShardfile } from '../src/sharddev/author';
+import { emitNamedBlobs, nameBlob } from '../src/sharddev/blobs';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { parseWorldScene } from '@wildshard/format/clientChannels';
 import { bindWorldSceneParts, createWorldScene } from '../src/game/client/plugin/scene';

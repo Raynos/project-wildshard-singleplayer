@@ -6,7 +6,7 @@
 // (sprayPuffs.ts) call. GR8 G23 retired the standalone outputs (streams.bin, streams.json, the streams Scene, its tiles and
 // named blobs): their only readers now call this. D65: the grid comes from the program's sources.
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
+import { readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
 import { bakePineStreams } from './streams.ts';
 import { TERRAIN_SOURCE } from './pineSources.ts';
 

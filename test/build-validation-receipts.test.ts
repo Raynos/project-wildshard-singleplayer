@@ -7,8 +7,8 @@ import { createHash } from 'node:crypto';
 import { afterEach, expect, test } from 'vitest';
 import { buildValidationReceipts } from '../scripts/app-build/validationReceipts.mjs';
 import { readValidationReceipt } from '@wildshard/format/validationReceipt';
-import {emptyShardfile} from '../src/sdk/author';
-import {writeOutputProduct} from '../src/sdk/outputProduct';
+import {emptyShardfile} from '../src/sharddev/author';
+import {writeOutputProduct} from '../src/sharddev/outputProduct';
 import {productResidentBytes} from '../src/game/client/shardfile/productCost';
 import {postStackCost} from '@wildshard/format/postStack';
 

@@ -1,5 +1,5 @@
 
-import { treeSetRows, type NativeForestSpecies } from '@wildshard/sdk/bake/forest';
+import { treeSetRows, type NativeForestSpecies } from '@wildshard/sharddev/bake/forest';
 import FOREST_LOOKS from '../data/forestLook.json' with { type: 'json' };
 
 type TreeSetVariant = Omit<ReturnType<typeof treeSetRows>['variants'][number], 'label'>;

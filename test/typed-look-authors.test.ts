@@ -1,7 +1,7 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
-import { authorFormatSchema } from '../src/sdk/formatJsonSchema';
-import type { modelSceneSourceFile } from '../src/sdk/worldScenes';
+import { authorFormatSchema } from '../src/sharddev/formatJsonSchema';
+import type { modelSceneSourceFile } from '../src/sharddev/worldScenes';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { SpeciesLookBookSchema } from '@wildshard/format/speciesBookRows';
 import { PaintedLookSchema } from '@wildshard/format/paintedLook';

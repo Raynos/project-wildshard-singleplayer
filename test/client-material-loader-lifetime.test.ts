@@ -10,7 +10,7 @@ import { resolve as resolvePath } from 'node:path';
 import * as ktx2 from '../src/engine/client/core/ktx2';
 import { Scope } from '../src/engine/shared/app/scope';
 import type { Renderer } from '../src/engine/client/render/renderer';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import { clientMaterials } from '../src/game/client/shardfile/clientMaterials';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

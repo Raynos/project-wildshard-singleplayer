@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import * as v from 'valibot';
 import { Scope } from '../src/engine/shared/app/scope';
 import { installDeclaredProps } from '../src/engine/client/world/declaredProps';
-import { staticGlb } from '../src/sdk/bake/glb';
+import { staticGlb } from '../src/sharddev/bake/glb';
 import { splatSurface, withSplatSurface } from '../src/game/client/shardfile/clientSplatTerrain';
 import { SplatTerrainSchema, checkTileMaterialNames, splatTextureRefs, type SplatTerrain } from '@wildshard/format/splatTerrain';
 

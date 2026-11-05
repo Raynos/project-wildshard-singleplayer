@@ -1,4 +1,4 @@
-import type { StrikeData } from '@wildshard/sdk/species';
+import type { StrikeData } from '@wildshard/sharddev/species';
 
 /** The goat runner owns motion: the empty motion row preserves the native charge's distance stop. */
 export const RAM_DATA: StrikeData = { id: 'far.goat.ram', shape: { kind: 'lane', length: 4, width: 1.4 },

@@ -1,6 +1,6 @@
-import { nameBlob, emitNamedBlobs, type EmittedBlobs } from '@wildshard/sdk/blobs';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { nativeColliderSourceRows } from '@wildshard/sdk/formatJsonSchema';
+import { nameBlob, emitNamedBlobs, type EmittedBlobs } from '@wildshard/sharddev/blobs';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { nativeColliderSourceRows } from '@wildshard/sharddev/formatJsonSchema';
 import rows from '../data/physicsRows.json' with { type: 'json' };
 import { driftwoodGroundRows } from './groundRows';
 

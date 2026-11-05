@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import { Scope } from '../src/engine/shared/app/scope';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { CatalogueEconomySchema, type CatalogueEconomy } from '@wildshard/format/catalogueEconomy';
-import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { namedJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { validateFixtureJsonValue } from './fixtures/defined-json-value';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';

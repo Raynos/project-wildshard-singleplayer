@@ -3,7 +3,7 @@ import { templateHeightAt } from './landscape';
 import { templateScatterRandom } from './landscapeNoise';
 import { buildCellFill, cellCoarse, cellFar, CELL_PIECES } from './cell';
 import { buildTemplateWorld, jumpCoursePads, lanternModel, measureBox, type TemplatePart } from './world';
-import type { PropsBakeSource } from '@wildshard/sdk/bake/props';
+import type { PropsBakeSource } from '@wildshard/sharddev/bake/props';
 
 /** Actual template generators, captured before merging. Water remains owned by the water declaration. */
 export function templateProps(count = 20): { source: PropsBakeSource; original: Group; dispose: () => void } {

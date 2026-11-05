@@ -8,7 +8,7 @@ import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSyn
 import { join, relative, resolve } from 'node:path';
 
 // Reuse the SDK's pinned Node image decoder; root scripts have no separate Sharp dependency.
-const sharp = createRequire(new URL('../src/sdk/package.json', import.meta.url))('sharp');
+const sharp = createRequire(new URL('../src/sharddev/package.json', import.meta.url))('sharp');
 
 /** Hash decoded sRGB RGBA8 pixels and their dimensions, independent of image encoding and metadata.
  * This binds a stamp to its raster; world freshness still requires the official map bake.

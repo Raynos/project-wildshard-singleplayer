@@ -1,4 +1,4 @@
-import type { BakedGeometryRow } from '@wildshard/sdk/kit/bakedGeometry';
+import type { BakedGeometryRow } from '@wildshard/sharddev/kit/bakedGeometry';
 import type { ModelPlacement } from './modelTypes';
 
 export interface PlaceGeometryRow extends BakedGeometryRow { readonly expand: boolean }

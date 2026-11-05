@@ -4,7 +4,7 @@
 import { Color, IcosahedronGeometry, Vector3 } from 'three';
 import { K, type Kit, type Look } from './kit';
 import paint from '../data/paint.json' with { type: 'json' };
-import type { Rng } from '@wildshard/sdk/random';
+import type { Rng } from '@wildshard/sharddev/random';
 
 const SURF = paint.surfaces;
 

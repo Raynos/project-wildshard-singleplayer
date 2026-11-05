@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { projectPlaceholders } from '../src/sdk/bake/placeholders';
+import { projectPlaceholders } from '../src/sharddev/bake/placeholders';
 import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { prepareAssetDecoders } from '@wildshard/format/product';

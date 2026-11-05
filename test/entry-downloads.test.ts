@@ -5,7 +5,7 @@ import {mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync} f
 import {resolve} from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin original metadata bytes exactly like the compiler.
 import {createHash} from 'node:crypto';
-import {emptyShardfile} from '@wildshard/sdk/author';
+import {emptyShardfile} from '@wildshard/sharddev/author';
 import {outputSectionPayloads} from '@wildshard/format/outputFields';
 import {writeEntryBootstrap} from '../scripts/app-build/entryDownloads';
 import {writeSpawnManifests} from '../scripts/app-build/entryTotals';

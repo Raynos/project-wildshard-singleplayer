@@ -1,4 +1,4 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { BRIDGE_REST_INPUTS } from './bridgeRestProgram';
 import { skyRouteValues } from './routeScene';
 

@@ -1,6 +1,6 @@
 import type { NalatiWeather } from './weatherProgram';
-import type { PlatformSectionName as PlatformDataSectionName } from '@wildshard/sdk/platformSections';
-import { scriptV2Revisions } from '@wildshard/sdk/decisionScripts';
+import type { PlatformSectionName as PlatformDataSectionName } from '@wildshard/sharddev/platformSections';
+import { scriptV2Revisions } from '@wildshard/sharddev/decisionScripts';
 import type { NalatiKokpar } from './kokparRows';
 import type { NalatiAdmission } from './admissionProgram';
 import type { NalatiRidingPrograms } from './ridingRows.mjs';

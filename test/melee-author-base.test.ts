@@ -2,8 +2,8 @@
 import { execFileSync } from 'node:child_process';
 import { expect, test } from 'vitest';
 import { Vector3, Quaternion, Color } from 'three';
-import { sharedMeleeAuthorBase } from '../src/sdk/weapons/meleeProfile';
-import { parseThrownWeaponProfile } from '../src/sdk/weapons/thrownProfile';
+import { sharedMeleeAuthorBase } from '../src/sharddev/weapons/meleeProfile';
+import { parseThrownWeaponProfile } from '../src/sharddev/weapons/thrownProfile';
 import { SWORD_WOOD } from '../src/game/shared/weapons/starterMeleeProfile';
 import { parse } from 'valibot';
 import { ThrownWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
@@ -39,7 +39,7 @@ test('the thrown author parser retains the complete native item policy and refus
 });
 
 test('the actual shared author base is renderer-free in a fresh Node realm', () => {
-  const source = `import {sharedMeleeAuthorBase} from './src/sdk/weapons/meleeProfile.ts';
+  const source = `import {sharedMeleeAuthorBase} from './src/sharddev/weapons/meleeProfile.ts';
     import {hashImmutableBytes} from './src/sdk/immutable.ts';const value=sharedMeleeAuthorBase();
     console.log(JSON.stringify({hash:hashImmutableBytes(new TextEncoder().encode(JSON.stringify(value))),
       rich:value.moves.rest.pos.isVector3&&value.moves.rest.q.isQuaternion&&value.moves.heavy.trail.color.isColor}));`;

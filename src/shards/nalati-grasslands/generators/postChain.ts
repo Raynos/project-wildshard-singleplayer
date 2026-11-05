@@ -1,4 +1,4 @@
-import type { AuthorGraph as GraphIr, AuthorPostGraphLook as PostGraphLookRow } from '@wildshard/sdk/bake/materialGraph';
+import type { AuthorGraph as GraphIr, AuthorPostGraphLook as PostGraphLookRow } from '@wildshard/sharddev/bake/materialGraph';
 import * as THREE from 'three';
 import { PANO_FOG_SRGB } from './panoramaData';
 

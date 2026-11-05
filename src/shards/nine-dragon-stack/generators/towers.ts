@@ -17,7 +17,7 @@ import { buildStairStreet } from './stairstreet';
 import { SQ_DEPTH } from './stairPlan';
 import { buildStairUpper } from './stairstreet-upper';
 import { NEON, chars } from './util';
-import { Rng } from '@wildshard/sdk/random';
+import { Rng } from '@wildshard/sharddev/random';
 
 const { PLAZA, STAIR, STREET, WELL, Y0 } = NINE_LAYOUT_PLAN;
 

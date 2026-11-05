@@ -1,6 +1,6 @@
-import { readNativeTerrain, readNativeScalarField } from '@wildshard/sdk/bake/terrain';
-import { bakeForestPlacements } from '@wildshard/sdk/bake/forest';
-import { bakeMeadowField } from '@wildshard/sdk/bake/meadow';
+import { readNativeTerrain, readNativeScalarField } from '@wildshard/sharddev/bake/terrain';
+import { bakeForestPlacements } from '@wildshard/sharddev/bake/forest';
+import { bakeMeadowField } from '@wildshard/sharddev/bake/meadow';
 import authored from '../manifest.json' with { type: 'json' };
 import meadowLayout from '../data/grassFieldLayout.json' with { type: 'json' };
 import { TERRAIN, SEED, RIVER, inSpruceClearing, loneSpruceMask, edgeBermAt } from './terrainRecipe';

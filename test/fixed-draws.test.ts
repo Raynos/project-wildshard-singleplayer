@@ -1,5 +1,5 @@
 import { FixedDrawRowsSchema } from '@wildshard/format/fixedDraws';
-import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { namedJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 import { driftwoodFixedModel } from './fixtures/driftwood-fixed-bank';
 import { expect, test, vi } from 'vitest';

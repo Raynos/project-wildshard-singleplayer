@@ -57,6 +57,7 @@ __pycache__/
 /public/shardfiles/
 
 # Portable author tools are rebuilt for pack.
+/src/sharddev/dist/
 /src/sdk/dist/
 
 # SF74 W13 (Jake, G281): API docs and the surface are build outputs of `pnpm gen` (scripts/gen-api.mjs), never committed

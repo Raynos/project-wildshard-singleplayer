@@ -6,7 +6,7 @@ import { resolve } from 'node:path';
 import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nalatiRenderTileProgram } from '../src/shards/nalati-grasslands/generators/renderTileProgram';
 import { FilesSchema, TilesSchema } from '@wildshard/format/shardSections';

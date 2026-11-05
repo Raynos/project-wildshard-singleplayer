@@ -1,8 +1,8 @@
 // Run through scripts/browser-lane.sh. Native WebKit pixels are committed; product intake is portable.
 import { resolve } from 'node:path';
-import { readBoundedFile } from '@wildshard/sdk/sourceReader';
-import { openNativeRaster, bundleNativeRaster } from '@wildshard/sdk/bake/nativeRaster';
-import { decodeBuildDeflate } from '@wildshard/sdk/bake/byteCodec';
+import { readBoundedFile } from '@wildshard/sharddev/sourceReader';
+import { openNativeRaster, bundleNativeRaster } from '@wildshard/sharddev/bake/nativeRaster';
+import { decodeBuildDeflate } from '@wildshard/sharddev/bake/byteCodec';
 import { byteWriter, jsonBytes, outputHash, browserBakeBytes } from '../../../../scripts/bake-output.mjs';
 
 const root = resolve(import.meta.dirname, '../../../..');

@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import type { BufferAttribute, InterleavedBufferAttribute } from 'three';
 import { admittedSheepProduct, admittedSheepBody } from './fake/admittedSheep';
 import { FlockBrain } from '../src/engine/shared/ai/flock';
-import { flock } from '../src/sdk/crowds';
+import { flock } from '../src/sharddev/crowds';
 import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';
 // The original Nalati sheep and flock rows, frozen from the legacy copy (fixtures/legacy-oracles/nalati-sheep.json)
 import FROZEN from './fixtures/legacy-oracles/nalati-sheep.json' with { type: 'json' };

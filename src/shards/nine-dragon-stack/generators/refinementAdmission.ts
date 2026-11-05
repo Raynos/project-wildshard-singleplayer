@@ -1,4 +1,4 @@
-import type { AuthorWorldScenes } from '@wildshard/sdk/worldScenes';
+import type { AuthorWorldScenes } from '@wildshard/sharddev/worldScenes';
 import { parseShardfileField, type Shardfile } from '@wildshard/sdk/shardfile';
 
 /** D179 B's fine library already has a controlled refinement reader and coarse

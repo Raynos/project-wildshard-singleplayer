@@ -72,7 +72,7 @@ async function main(args){
   const report=memoryReportFromManifest(readMemoryJson(input),dirname(resolve(input))), out=resolve(output);
   const svgOnly=args.includes('--svg-only');
   // The already-declared SDK sharp dependency renders static SVG; no browser/GPU context is created.
-  const sharp=svgOnly?null:createRequire(new URL('../src/sdk/package.json',import.meta.url))('sharp');
+  const sharp=svgOnly?null:createRequire(new URL('../src/sharddev/package.json',import.meta.url))('sharp');
   mkdirSync(out); // Refuse an existing directory, so no prior evidence can be overwritten.
   // `noOwner` is derived (SF64's < 10 % target); a re-import recomputes it, it is never read back as evidence
   writeFileSync(join(out,'report.json'),`${JSON.stringify({...report,poses:report.poses.map(pose=>({...pose,noOwner:memoryNoOwner(pose)}))},null,2)}\n`);

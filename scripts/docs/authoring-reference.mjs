@@ -44,7 +44,7 @@ export function checkAuthoringExamples(root, files = authoringExamples().map(exa
 /** Exact public binding coverage for SDK/format tables; absent/duplicate/stale entries or missing doc lines fail. */
 export function authoringApiCoverage(surface, documents) {
   const failures = [], coverage = {};
-  for (const layer of ['sdk', 'format']) {
+  for (const layer of ['sharddev', 'format']) {
     const expected = surface.indexes[layer];
     if (expected === undefined || expected.length === 0) throw new Error(`Missing public ${layer} inventory`);
     const page = documents[`docs/api/${layer.toUpperCase()}.md`];

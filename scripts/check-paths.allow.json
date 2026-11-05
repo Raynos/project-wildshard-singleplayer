@@ -827,6 +827,11 @@
   {
     "path": "src/sdk/dist/",
     "file": "scripts/generated-source.mjs",
+    "why": "An output build-sdk.mjs wrote before P1-F4: a checkout may still hold it."
+  },
+  {
+    "path": "src/sharddev/dist/",
+    "file": "scripts/generated-source.mjs",
     "why": "build-sdk.mjs's gitignored package output: the generated-source check names the folder to skip, so it exists only in a tree that built the SDK and never in a clean CI checkout."
   }
 ]

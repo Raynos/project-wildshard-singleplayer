@@ -1,9 +1,9 @@
 import {expect,expectTypeOf,test} from 'vitest';
 import {WorldSceneModelsSchema,parseWorldSceneModels} from '@wildshard/format/worldSceneModels';
 import {registeredJsonContract,validateRegisteredJson} from '@wildshard/format/registeredJson';
-import {namedJsonSchema,registeredJsonSchema} from '@wildshard/sdk/formatJsonSchema';
-import {nameBlob} from '@wildshard/sdk/blobs';
-import {emptyShardfile} from '@wildshard/sdk/author';
+import {namedJsonSchema,registeredJsonSchema} from '@wildshard/sharddev/formatJsonSchema';
+import {nameBlob} from '@wildshard/sharddev/blobs';
+import {emptyShardfile} from '@wildshard/sharddev/author';
 import {createShardProduct} from '@wildshard/game/shardfile/shardProduct';
 
 const name='models/world-scenes.json';

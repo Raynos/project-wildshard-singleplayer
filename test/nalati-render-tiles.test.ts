@@ -1,5 +1,5 @@
 import { nalatiRenderTileProgram } from '../src/shards/nalati-grasslands/generators/renderTileProgram';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
 // oxlint-disable-next-line import/no-nodejs-modules -- The actual source publication owns its isolated cache.
 import { resolve } from 'node:path';
 import { BufferGeometry, Float32BufferAttribute } from 'three';
@@ -13,7 +13,7 @@ import * as v from 'valibot';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { bakeNalatiWorldRows } from '../src/shards/nalati-grasslands/generators/nalatiWorldRows';
 import { createOwnedGeometry } from '../src/engine/client/models/ownedGeometry';
-import { readNativeTerrain } from '../src/sdk/bake/terrain';
+import { readNativeTerrain } from '../src/sharddev/bake/terrain';
 import { RIVER, TERRAIN } from '../src/shards/nalati-grasslands/generators/terrainRecipe';
 import { buildPainterlyGeometry, buildPainterlySlab } from '../src/shards/nalati-grasslands/generators/terrainPainter';
 import { TERRAIN_PAINT_SOURCE } from '../src/shards/nalati-grasslands/generators/nalatiGroundSource';

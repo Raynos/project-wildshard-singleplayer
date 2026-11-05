@@ -1,7 +1,7 @@
-import { nameBlob } from '@wildshard/sdk/blobs';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import { nameBlob } from '@wildshard/sharddev/blobs';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { parseDecisionScripts, parseReturnProjectionV2, type DecisionScriptRow, type ReturnProjectionV2Rows } from '@wildshard/sdk/decisionScripts';
+import { parseDecisionScripts, parseReturnProjectionV2, type DecisionScriptRow, type ReturnProjectionV2Rows } from '@wildshard/sharddev/decisionScripts';
 import { NALATI_DECISION_SOURCES } from './decisionSourceInventory';
 
 export interface NalatiAdmission {

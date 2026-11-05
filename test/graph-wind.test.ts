@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { vec2 } from 'three/tsl';
 import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
 import { windGustAt, windUniforms } from '../src/engine/client/world/wind';
-import { graph, windGustAt as windOp } from '../src/sdk/materials';
+import { graph, windGustAt as windOp } from '../src/sharddev/materials';
 import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 import { evalGlsl } from './fixtures/glslEval';
 

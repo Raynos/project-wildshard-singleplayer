@@ -1,5 +1,5 @@
 import type { BufferGeometry } from 'three';
-import type { MapAssembly as OwnedMapAssembly } from '../src/sdk/bake/mapAssembly';
+import type { MapAssembly as OwnedMapAssembly } from '../src/sharddev/bake/mapAssembly';
 
 export function readMapJson(file: string): unknown;
 export function mapModel(file: string | Uint8Array, slot?: number, world?: boolean): Promise<BufferGeometry>;

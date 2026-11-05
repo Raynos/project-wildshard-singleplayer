@@ -1,4 +1,4 @@
-import { parseContractCatalogue, type ContractCatalogue } from '@wildshard/sdk/rows';
+import { parseContractCatalogue, type ContractCatalogue } from '@wildshard/sharddev/rows';
 import data from '../data/contracts.json' with {type:'json'};
 
 const rows=parseContractCatalogue(data);

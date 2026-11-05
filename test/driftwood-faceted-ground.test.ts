@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, it } from 'vitest';
-import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
+import { readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
 import { bindLevelSelection } from '@wildshard/engine/level/selection';
 import type { LevelSpec } from '@wildshard/engine/level/spec';
 import { HeightfieldBinding, bindHeightfield } from '@wildshard/engine/world/Heightfield';

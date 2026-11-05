@@ -1,5 +1,5 @@
-import { specimenShapeSources } from '@wildshard/sdk/bake/specimenCatalogue';
-import { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
+import { specimenShapeSources } from '@wildshard/sharddev/bake/specimenCatalogue';
+import { authorFormatRows } from '@wildshard/sharddev/formatJsonSchema';
 import rows from '../data/mountedFigure.json' with { type: 'json' };
 
 /** The shepherd's seat rows with his two painted shape files (the riding session's figure and his Explorer card). */

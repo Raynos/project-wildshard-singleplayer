@@ -4,7 +4,7 @@
  * share `world`, the Explorer shows `deep` and `shallow`. The specimen catalogue job and the world scenes section import it.
  */
 import type * as THREE from 'three';
-import { authorFormatRows } from '@wildshard/sdk/formatJsonSchema';
+import { authorFormatRows } from '@wildshard/sharddev/formatJsonSchema';
 import { entryDeckGeometries } from './entryDeckGeometry';
 
 const raw = (geometry: THREE.BufferGeometry) => {

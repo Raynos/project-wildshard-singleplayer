@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { namedJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 import * as v from 'valibot';
 import { Group, Vector3 } from 'three';

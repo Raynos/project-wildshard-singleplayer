@@ -42,7 +42,7 @@ import type { PageTamingOwner } from '../src/game/client/riding/client';
 import { ChapterViewSchema, type ChapterViewRows } from '@wildshard/format/questPageComposition';
 import { installQuestPageComposition } from '../src/game/client/quest/pageComposition';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { namedJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 import { installEntryChapterView } from '../src/game/client/shardfile/clientQuestComposition';
 import { publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';

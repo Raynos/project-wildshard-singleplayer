@@ -1,5 +1,5 @@
-import { Rng } from '@wildshard/sdk/random';
-import { encodePortableBytes } from '@wildshard/sdk/bake/portableBytes';
+import { Rng } from '@wildshard/sharddev/random';
+import { encodePortableBytes } from '@wildshard/sharddev/bake/portableBytes';
 import type { GeographyRows } from '../data/geographyTypes';
 import sourceRows from '../data/geographySources.json' with { type: 'json' };
 import meadow from '../data/grassFieldLayout.json' with { type: 'json' };

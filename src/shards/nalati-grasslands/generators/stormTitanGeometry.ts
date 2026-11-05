@@ -1,6 +1,6 @@
-import { numericChannelPrograms, type ClientChannels, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
-import { privateSceneRows as parsePrivateScene } from '@wildshard/sdk/worldScenes';
-import type { ClientChannelProgram } from '@wildshard/sdk/rows';
+import { numericChannelPrograms, type ClientChannels, type NumericChannelOutput } from '@wildshard/sharddev/clientChannels';
+import { privateSceneRows as parsePrivateScene } from '@wildshard/sharddev/worldScenes';
+import type { ClientChannelProgram } from '@wildshard/sharddev/rows';
 import * as THREE from 'three';
 import { TITAN_ARENA, TITAN_CHAINS, TITAN_PLACE, TITAN_TUNING } from './stormTitanFight';
 

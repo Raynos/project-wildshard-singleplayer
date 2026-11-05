@@ -1,4 +1,4 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import manifest from '../data/manifest.json' with { type: 'json' };
 import discovery from '../data/discovery.json' with { type: 'json' };
 import { bootSources } from './bootFiles';

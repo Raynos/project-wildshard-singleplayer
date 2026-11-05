@@ -2,7 +2,7 @@ import { PropMaterialsSchema } from '@wildshard/format/propMaterials';
 import * as v from 'valibot';
 import { AdmissionLateSchema } from '@wildshard/format/admissionLate';
 import { expect, test } from 'vitest';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { controlFiles, deferredFiles, lateFiles } from '../src/game/client/shardfile/controlFiles';
 
 test('control transport keeps critical and library dependencies but leaves distant tiles declared', () => {

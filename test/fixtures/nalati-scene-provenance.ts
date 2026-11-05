@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { nameBlob, type NamedBlob } from '../../src/sdk/blobs';
+import { nameBlob, type NamedBlob } from '../../src/sharddev/blobs';
 import { encodeCanonicalJson } from '../../src/sdk/immutable';
 
 const scalar = v.number();

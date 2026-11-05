@@ -1,6 +1,6 @@
 import barrelSource from '../src/shards/driftwood-isle/behaviour/barrels.as?raw';
 import { expect, test } from 'vitest';
-import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
+import { compileDecisionScripts } from '../src/sharddev/buildDecisionScripts';
 import { decisionBindingMap } from '@wildshard/format/decisionBindings';
 import { DecisionHost, type DecisionScript } from '../src/engine/server/script/decision';
 import { SCRIPT_V1_READS, type ScriptV1ReadName, type ScriptV1Command } from '@wildshard/format/scriptAbiV1';

@@ -8,8 +8,8 @@ import { expect, test } from 'vitest';
 import { build } from 'vite';
 import * as v from 'valibot';
 import { nalatiRoadSignSites, nalatiRoadSignposts } from '../src/shards/nalati-grasslands/generators/roadSigns';
-import { readNativeTerrain } from '../src/sdk/bake/terrain';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { readNativeTerrain } from '../src/sharddev/bake/terrain';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 
 test('native sign anchors retain every original coordinate, label and bearing in order', () => {
   const scalar = v.pipe(v.number(), v.finite());

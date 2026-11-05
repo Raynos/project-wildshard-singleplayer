@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Search asset bytes natively.
 import { Buffer } from 'node:buffer';
-import type { PreparedProjectOutput } from '../../src/sdk/projectOutput';
+import type { PreparedProjectOutput } from '../../src/sharddev/projectOutput';
 import { encodeCanonicalJson, hashImmutableBytes } from '../../src/sdk/immutable';
 
 /** D179 B's predecessor layer (as T8's and I3's): Nine's city fabric moved from the resident 'native' whole library into

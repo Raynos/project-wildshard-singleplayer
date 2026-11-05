@@ -3,7 +3,7 @@ import {Scope} from '../src/engine/shared/app/scope';
 import {readDirectorProduct,prepareEmbeddedDirector,embeddedDirectorBytes} from '../src/game/shared/plugin/director';
 import {parseDirector} from '@wildshard/format/director';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
-import {emptyShardfile} from '../src/sdk/author';
+import {emptyShardfile} from '../src/sharddev/author';
 import {sha256} from '../src/game/shared/plugin/moduleHash';
 import {pineDirector,driftwoodDirector} from './fixtures/director-modules';
 import pine from '../src/shards/pine-hollow/data/director.json' with {type:'json'};

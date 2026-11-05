@@ -1,4 +1,4 @@
-import { worldAssemblyRows } from '@wildshard/sdk/worldScenes';
+import { worldAssemblyRows } from '@wildshard/sharddev/worldScenes';
 import { nineBuildBlocks } from './worldEntry';
 import { MOVER_STAGES } from './moversView';
 import type { NineWorldScenes } from './worldScenes';

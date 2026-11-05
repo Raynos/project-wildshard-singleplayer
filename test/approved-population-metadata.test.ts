@@ -5,8 +5,8 @@ import {createHash} from 'node:crypto';
 import {PopulationHabitatSchema} from '@wildshard/format/populationEnvironment';
 import {TamingPoseFileSchema} from '@wildshard/format/populationRoster';
 import {platformFileFamily,validatePlatformFile} from '@wildshard/format/platformFileFamilies';
-import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
-import {namePopulationHabitat} from '../src/sdk/nativePopulationRows';
+import {registeredJsonSchema} from '../src/sharddev/formatJsonSchema';
+import {namePopulationHabitat} from '../src/sharddev/nativePopulationRows';
 import roots from './fixtures/approved-population-metadata.json' with {type:'json'};
 
 test('the habitat and taming documents retain all original native fields and body hashes',()=>{

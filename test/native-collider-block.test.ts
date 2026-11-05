@@ -9,7 +9,7 @@ import { createNativeBakeReader } from '@wildshard/game/population/nativeBake';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { schemaInventory } from '../scripts/docs/schema-reference.mjs';
 import { nalatiPhysicsSources } from '../src/shards/nalati-grasslands/generators/physics';
-import { readNamedBlob } from '../src/sdk/blobs';
+import { readNamedBlob } from '../src/sharddev/blobs';
 
 const options = { label:'Orchard', resolution:2, size:4, parked:false, rig:'segments', provenance:'piece', shapes:[1,2,6,9] };
 const file = 'data/colliders.bin';

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { namedFormatJsonSchema, namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { namedFormatJsonSchema, namedJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { WorldSceneSchema } from '@wildshard/format/clientChannels';
 import { FigureCatalogueSchema } from '@wildshard/format/figures';
 import { QuestStepRowsSchema } from '@wildshard/format/questSteps';

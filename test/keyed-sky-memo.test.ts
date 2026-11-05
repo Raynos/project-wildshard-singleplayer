@@ -12,7 +12,7 @@ test('the gain-key memo returns the exact gzip bytes cold, warm and after damage
   const root = mkdtempSync(resolve('tmp/sp-o5-gain-key-'));
   process.env['WILDSHARD_GAIN_KEY_CACHE'] = root;
   try {
-    const { encodeGainKeyMemo: encodeGainKey } = await import('../src/sdk/bake/keyedSkyMemo');
+    const { encodeGainKeyMemo: encodeGainKey } = await import('../src/sharddev/bake/keyedSkyMemo');
     const data = Uint16Array.from({ length: 64 * 32 * 3 }, (_v, i) => (i * 2654435761) % 31744);
     const reference = gzipSync(new Uint8Array(data.buffer), { level: 9 }); reference[9] = 19;
     const cold = encodeGainKey(data);

@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
 import { parseHeldFirearmRows, parseHeldFirearmView } from '@wildshard/format/weaponProfiles';
-import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { registeredJsonSchema } from '@wildshard/sharddev/formatJsonSchema';
 import { fixtureJsonCheck } from './fixtures/productFile';
-import { nameBlob } from '@wildshard/sdk/blobs';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { nameBlob } from '@wildshard/sharddev/blobs';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import source from './fixtures/nalati-rifle-original.json' with { type: 'json' };
 

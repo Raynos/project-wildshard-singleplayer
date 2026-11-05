@@ -3,7 +3,7 @@ import { Material, ShaderMaterial, Vector3 } from 'three';
 import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
 import { classicLookCompiler } from './fixtures/classicLookCompiler';
 import { clientGraphs } from '../src/game/client/shardfile/clientGraphs';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { validateGraph } from '@wildshard/format/materialGraph';
 
 test('runtime graph uniforms move in place and refuse invalid writes atomically', () => {

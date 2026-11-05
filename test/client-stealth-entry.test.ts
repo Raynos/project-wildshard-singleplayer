@@ -17,7 +17,7 @@ import { bindStealthWeapons, installClientStealthEntry } from '../src/game/clien
 import { publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { lendNalatiAdmission } from './fixtures/nalati-return-modules';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

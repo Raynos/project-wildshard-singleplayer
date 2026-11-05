@@ -5,7 +5,7 @@ import { ResolvedIslandLibrarySchema } from '@wildshard/format/islandLibrary';
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Matrix4 } from 'three';
 import { zlibSync } from 'fflate';
-import { GeometryPackWriter } from '../src/sdk/kit/geometryPack';
+import { GeometryPackWriter } from '../src/sharddev/kit/geometryPack';
 import { FigureRows } from '../src/game/client/systems/npc/figureRows';
 import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import { Scope } from '../src/engine/shared/app/scope';
@@ -14,7 +14,7 @@ import { FigureCatalogue, ProductFigureCatalogue } from '../src/game/client/mode
 import { CollectionCatalogue } from '../src/game/client/models/collectionDisplay';
 import * as runtime from '../src/game/client/shardfile/runtimeProduct';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { collectionRows } from '../src/shards/driftwood-isle/generators/collections';
 import * as v from 'valibot';
 import * as wholeGeometry from '../src/game/client/plugin/geometry';

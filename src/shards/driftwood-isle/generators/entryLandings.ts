@@ -1,4 +1,4 @@
-import { defineNamedRows , type NamedRows } from '@wildshard/sdk/formatJsonSchema';
+import { defineNamedRows , type NamedRows } from '@wildshard/sharddev/formatJsonSchema';
 import { driftwoodEntryFloorRows } from './entryFloors';
 import { ENTRY_ROWS as authoredEntryRows } from './entryRows';
 

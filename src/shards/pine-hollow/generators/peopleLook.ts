@@ -6,7 +6,7 @@
  * toward the old-growth 5.5 – 8 s into every 9 s of talk; the stand-in breathes and sways as it talks. Encoded into the
  * product's people/catalogue.json; the shared figure host admits the same rows.
  */
-import { npcFigureRows } from '@wildshard/sdk/rows';
+import { npcFigureRows } from '@wildshard/sharddev/rows';
 
 export const NPC_FIGURE: ReturnType<typeof npcFigureRows> = npcFigureRows({
   collider: { half: 0.28, top: 1.8, bottom: 0.3 },

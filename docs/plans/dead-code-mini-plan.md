@@ -396,7 +396,7 @@ signal: a live plan, a process doc, a commit this week, or a runtime name.
    - `scripts/witness-{manifests,generation,checkpoints}.mjs` (GIT.md: "the pusher's"; `test/proof/*` reads them)
    - `scripts/shards.mjs`, `scripts/gen-shard-layout-doc.mjs` (SHARDS.md)
    - `scripts/section-inventory.ts` (PLATFORM-FILE-FAMILIES.md)
-   - `scripts/proof-rig-normalization.mjs` with `src/sdk/bake/normalizeRig.ts` (ENGINE.md)
+   - `scripts/proof-rig-normalization.mjs` with `src/sharddev/bake/normalizeRig.ts` (ENGINE.md)
    - `scripts/pine-hollow-{views,nan-scan}.mjs`, `scripts/docs/proof-standalone.mjs`
 6. **Touched this week** (364 lines): `scripts/generated-files.mjs` and `scripts/legacy-explorer-lists.ts` (both
    11-04), `scripts/push-tables.mjs` (11-03, only `test/discovery-output-placement.test.mjs` reads it),
@@ -405,7 +405,7 @@ signal: a live plan, a process doc, a commit this week, or a runtime name.
 7. **Headless proof hosts**: `bindHeadlessCommands`, `headlessSpecCatalogue` and `PrepareHeadlessRuntime` in
    `src/sdk/headlessRuntime.ts`, and `productHeadlessSections` in `src/sdk/headlessSections.ts` (~80 of 274 lines). Only the
    `test/proof/*` headless witnesses and fixtures use them. Delete them only if those proofs are retired too.
-8. **AssemblyScript ABI export**: `queryPoints` in `src/sdk/as/wsV2.ts`. Hosts and scripts call it by name, so no
+8. **AssemblyScript ABI export**: `queryPoints` in `src/sharddev/as/wsV2.ts`. Hosts and scripts call it by name, so no
    import is expected. Check the host binding table before deleting.
 9. **Oracle and provenance test fixtures from the custom-TS port**: 256 files and ~11 MB in `test/fixtures/` whose names
    contain oracle, original, legacy, provenance or before. Many name the deleted `src/shards/*/runtime|species|combat`
@@ -414,7 +414,7 @@ signal: a live plan, a process doc, a commit this week, or a runtime name.
 10. **Small loose ends:**
     - `'item.reaction'` is asked by `src/game/server/plugin/nativeItems.ts`, but only a test answers it.
     - The empty untracked folder `src/shards/far-reach-legacy/` sits on disk, not in git: `rmdir` it locally.
-    - The `src/engine/test/`, `src/sdk/test/` and `src/game/test/` helpers stay with their live tests.
+    - The `src/engine/test/`, `src/sharddev/test/` and `src/game/test/` helpers stay with their live tests.
 11. **Docs about deleted systems** (low priority, list only): the AGENTS.md soak mention (DC14),
     `docs/tasks/asks/E388.md`'s soak table, `docs/MOVED.md` entries for files deleted since.
 
@@ -496,15 +496,15 @@ deleting it.
 - `src/game/client/shardfile/portalRideBinding.ts`: installPortalRide*, installHostPortalRide* (37)
 - `src/game/client/shardfile/sceneDressing.ts`: readSceneNumericTable* (4)
 - `src/game/shared/shardfile/shardProduct.ts`: CustomSectionSchemas (3)
-- `src/sdk/bake/contactRows.ts`: admitContactRows* (6)
-- `src/sdk/bake/export.ts`: sampleSkinClip* (19)
-- `src/sdk/bake/mapRaster.ts`: mapPixel* (3)
-- `src/sdk/bake/wholePieceJoin.ts`: joinWholePieces* (13)
-- `src/sdk/formatJsonSchema.ts`: composeNamedJsonSchema* (7)
-- `src/sdk/outputRuntime.ts`: runtimeCodeLines* (16)
-- `src/sdk/productOutput.ts`: writeAuthoredProduct (14)
-- `src/sdk/rows.ts`: questStepRows* (3)
-- `src/sdk/sections.ts`: defineSection* (13)
+- `src/sharddev/bake/contactRows.ts`: admitContactRows* (6)
+- `src/sharddev/bake/export.ts`: sampleSkinClip* (19)
+- `src/sharddev/bake/mapRaster.ts`: mapPixel* (3)
+- `src/sharddev/bake/wholePieceJoin.ts`: joinWholePieces* (13)
+- `src/sharddev/formatJsonSchema.ts`: composeNamedJsonSchema* (7)
+- `src/sharddev/outputRuntime.ts`: runtimeCodeLines* (16)
+- `src/sharddev/productOutput.ts`: writeAuthoredProduct (14)
+- `src/sharddev/rows.ts`: questStepRows* (3)
+- `src/sharddev/sections.ts`: defineSection* (13)
 
 
 ### DC11 (render, world, looks, weapons; Opus)
@@ -653,13 +653,13 @@ deleting it.
 - `src/game/client/systems/viewmodel/armRig.ts`: GRIP, solveArm (43)
 - `src/game/server/weapons/Sword.ts`: REACH (4)
 - `src/game/server/weapons/starterBowProfile.ts`: BOW* (6)
-- `src/sdk/bake/placeholders.ts`: placeholderJson, bakedTerrainGrid (11)
-- `src/sdk/buildDecisionScripts.ts`: buildDecisionScripts* (7)
-- `src/sdk/director.ts`: DirectorData (4)
-- `src/sdk/interactions.ts`: InteractionRows (3)
-- `src/sdk/kit/geometryPack.ts`: fetchDeflated (9)
-- `src/sdk/speciesBrains.ts`: speciesBrains* (10)
-- `src/sdk/weapons/thrownProfile.ts`: ThrownProfile* (4)
+- `src/sharddev/bake/placeholders.ts`: placeholderJson, bakedTerrainGrid (11)
+- `src/sharddev/buildDecisionScripts.ts`: buildDecisionScripts* (7)
+- `src/sharddev/director.ts`: DirectorData (4)
+- `src/sharddev/interactions.ts`: InteractionRows (3)
+- `src/sharddev/kit/geometryPack.ts`: fetchDeflated (9)
+- `src/sharddev/speciesBrains.ts`: speciesBrains* (10)
+- `src/sharddev/weapons/thrownProfile.ts`: ThrownProfile* (4)
 - `src/shards/_template/generators/farLook.ts`: farLook (16)
 - `src/shards/driftwood-isle/generators/far.ts`: farLook (9)
 - `src/shards/driftwood-isle/generators/questStory.ts`: QUEST_EXTERNAL* (4)

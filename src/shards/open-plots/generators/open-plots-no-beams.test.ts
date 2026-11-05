@@ -4,8 +4,8 @@ import { NodeIO } from '@gltf-transform/core';
 import { expect, test } from 'vitest';
 import declared from '../outputs.json' with { type: 'json' };
 import { outputs } from './product';
-import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
-import { normalizeWorldGlb } from '@wildshard/sdk/bake/world';
+import { readImagePixels, writeImagePixels } from '@wildshard/sharddev/bake/image';
+import { normalizeWorldGlb } from '@wildshard/sharddev/bake/world';
 import { ideaWorld } from './plotBake.mjs';
 
 test('every plot product has no beam graph or beam-height rows', () => {

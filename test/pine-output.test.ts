@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {parseSpawnScript, SpawnScriptsSchema} from '@wildshard/format/spawnScripts';
 import {parseEliteFeature} from '@wildshard/format/eliteFeature';
 import { PINE_ELITES as elites } from './fixtures/pine-elites';
-import {outputPlatformPayloads} from '../src/sdk/outputProduct';
+import {outputPlatformPayloads} from '../src/sharddev/outputProduct';
 import {HeldEquipmentSchema} from '@wildshard/format/heldEquipment';
 import {expect,test} from 'vitest';
 import * as v from 'valibot';

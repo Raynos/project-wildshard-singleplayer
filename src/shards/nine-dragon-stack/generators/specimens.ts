@@ -5,7 +5,7 @@
  */
 import { type BufferGeometry, Vector3 } from 'three';
 import { lanternLathe } from './lanternGeometry';
-import { Rng } from '@wildshard/sdk/random';
+import { Rng } from '@wildshard/sharddev/random';
 import NINE_LAYOUT_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import { Ctx } from './ctx';
 import { Kit } from './kit';

@@ -1,8 +1,8 @@
-import { worldSceneRecipe as parseWorldScene, type AuthorWorldSceneRecipe as WorldSceneRecipe } from '@wildshard/sdk/worldScenes';
+import { worldSceneRecipe as parseWorldScene, type AuthorWorldSceneRecipe as WorldSceneRecipe } from '@wildshard/sharddev/worldScenes';
 import { LECTERN } from './rows/bookStand';
 import { REST_URLS } from './restFiles';
 import { BoxGeometry, BufferGeometry, CylinderGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, RingGeometry, SphereGeometry } from 'three';
-import { clientSceneGlb, type ClientSceneBake } from '@wildshard/sdk/bake/glb';
+import { clientSceneGlb, type ClientSceneBake } from '@wildshard/sharddev/bake/glb';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { CROWN, SPANS, UPDRAFT } from "./layout";
 import { STORM } from './rows/storm';

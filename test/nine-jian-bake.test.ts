@@ -6,7 +6,7 @@ import pendantsBaseline from './fixtures/nine-jian-pendants.json' with { type: '
 import { parseGraphArms } from '@wildshard/format/graphArmsRows';
 import { worldScenePool } from '../src/game/client/shardfile/scenePools';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 
 async function hash(bytes: Uint8Array): Promise<string> {
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', Uint8Array.from(bytes)));

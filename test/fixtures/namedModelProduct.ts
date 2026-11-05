@@ -3,8 +3,8 @@ import { HELD_ARMS } from './driftwood-layout-source';
 import { DRIFTWOOD_CLIENT_SECTIONS } from './driftwoodLegacyLayouts';
 import { encodeCanonicalJson } from '../../src/sdk/immutable';
 import { createShardProduct } from '../../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../../src/sdk/author';
-import { nameBlob } from '../../src/sdk/blobs';
+import { emptyShardfile } from '../../src/sharddev/author';
+import { nameBlob } from '../../src/sharddev/blobs';
 
 /** A verified named-byte source for cold Explorer fixtures, with no public URL transport. */
 export function namedModelProduct(models: ReadonlyMap<string, Uint8Array>, check = true): ReturnType<typeof createShardProduct> {

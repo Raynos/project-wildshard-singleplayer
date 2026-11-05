@@ -2,7 +2,7 @@ import { terrainFieldFor } from '../src/engine/shared/world/groundField';
 import { expect, test } from 'vitest';
 import { parseCapturePoses } from '@wildshard/format/minimap';
 import { installDeclaredBakedTerrain } from '../src/engine/shared/world/bakedTerrainField';
-import { readNativeTerrain } from '../src/sdk/bake/terrain';
+import { readNativeTerrain } from '../src/sharddev/bake/terrain';
 import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/groundRows';
 import { driftwoodCapturePoses } from '../src/shards/driftwood-isle/generators/capturePoses';
 import { declaredGround } from '../src/game/server/shard/manifest';

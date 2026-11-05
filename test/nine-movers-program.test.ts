@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only explicit fixture and author directories.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { compileNineMovers, nineMoversProgram } from '../src/shards/nine-dragon-stack/generators/moversProgram';
 

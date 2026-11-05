@@ -16,7 +16,7 @@ import { CLIENT_FEATURES, admitClientPlan, installClientPhase } from '../src/gam
 import { entryOwner, lendEntryOwner, publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { parseItems } from '@wildshard/format/items';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
 import loadout from '../src/shards/nalati-grasslands/data/loadout.json' with { type: 'json' };
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

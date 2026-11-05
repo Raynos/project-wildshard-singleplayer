@@ -1,5 +1,5 @@
 import { Group } from 'three';
-import type { BoxColliderData, ColliderPoint } from '@wildshard/sdk/physics';
+import type { BoxColliderData, ColliderPoint } from '@wildshard/sharddev/physics';
 import NINE_FLOOR_PLAN from '../data/layoutPlan.json' with { type: 'json' };
 import { floorBoxRows } from './floorBoxes';
 import { frontRows } from './fronts';

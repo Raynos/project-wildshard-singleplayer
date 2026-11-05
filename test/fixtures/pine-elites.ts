@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
-import { compileDecisionScripts } from '../../src/sdk/buildDecisionScripts';
-import { parseEliteFeature, spawnRegistries } from '../../src/sdk/rows';
+import { compileDecisionScripts } from '../../src/sharddev/buildDecisionScripts';
+import { parseEliteFeature, spawnRegistries } from '../../src/sharddev/rows';
 import { ELITE_FEATURE_ROWS } from '../../src/shards/pine-hollow/generators/eliteFeatureRows';
 
 // GR8: the product compiles the four elite guests (output.ts eliteModules); tests compile the same sources the same way.

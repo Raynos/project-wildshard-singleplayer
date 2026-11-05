@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
-import { riggedHullRecipeRows } from '../src/sdk/bake/riggedHullRecipes';
+import { riggedHullRecipeRows } from '../src/sharddev/bake/riggedHullRecipes';
 import { PINE_HULLS, type RiggedHullsRow } from '../src/shards/pine-hollow/generators/creatureHulls';
 import authored from '../src/shards/pine-hollow/data/creatureHulls.json' with { type: 'json' };
 

@@ -10,7 +10,7 @@ import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { HybridResidentWorld } from '../src/game/client/shardfile/hybrid';
 import { bindResidentWorldScope } from '../src/game/client/shardfile/hybridPresentation';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 
 test('entered adventure references retire while the resident world survives re-entry', async () => {

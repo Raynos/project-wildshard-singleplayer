@@ -6,7 +6,7 @@ import {dirname,join} from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- The scratch project lives in the OS temp directory.
 import {tmpdir} from 'node:os';
 import {NALATI_PASTURE as pasture,NALATI_TITAN,NALATI_TITAN_PROGRAMS as programs} from './fixtures/nalati-titan';
-import {prepareProjectOutput} from '../src/sdk/projectOutput';
+import {prepareProjectOutput} from '../src/sharddev/projectOutput';
 import {hashImmutableBytes} from '../src/sdk/immutable';
 import {Scope} from '../src/engine/shared/app/scope';
 import {ReturnProgram} from '../src/game/shared/population/returnProgram';

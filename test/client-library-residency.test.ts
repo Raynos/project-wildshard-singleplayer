@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { Scope } from '../src/engine/shared/app/scope';
 import { ResidencyAllocator } from '../src/game/shared/grid/allocator';

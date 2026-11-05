@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { meshoptGlb } from '@wildshard/sdk/bake/glbCompression';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
+import { meshoptGlb } from '@wildshard/sharddev/bake/glbCompression';
 
 type TreeSetPart = 'trunk' | 'trunkLo' | 'hi' | 'lo' | 'twigs' | 'far';
 const PARTS = ['trunk','trunkLo','hi','lo','twigs','far'] as const;

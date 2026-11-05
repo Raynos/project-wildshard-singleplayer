@@ -1,4 +1,4 @@
-import { parseNativeGroupRows, parsePopulationField, parsePageGroupRows, parseWildlifePopulation, parsePopulationKnockdownSource, parsePopulationForagerSource } from '@wildshard/sdk/nativePopulationRows';
+import { parseNativeGroupRows, parsePopulationField, parsePageGroupRows, parseWildlifePopulation, parsePopulationKnockdownSource, parsePopulationForagerSource } from '@wildshard/sharddev/nativePopulationRows';
 import packBinding from '../data/packGuest.json' with {type:'json'};
 import herdBinding from '../data/herdGuest.json' with {type:'json'};
 import type { NalatiTitanProgram } from './stormTitanRows.mjs';

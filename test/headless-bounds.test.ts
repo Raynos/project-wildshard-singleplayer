@@ -4,7 +4,7 @@ import {expect,test} from 'vitest';
 import {loadRapier} from '../src/engine/shared/physics/rapier';
 import {floorBelow} from '../src/engine/shared/physics/query';
 import {createShardfileSim} from '../src/game/server/plugin/simulation';
-import {emptyShardfile} from '../src/sdk/author';
+import {emptyShardfile} from '../src/sharddev/author';
 import {installNativeWalkBounds,registerNativeWalkBounds} from './fixtures/headless/nativeBounds';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 

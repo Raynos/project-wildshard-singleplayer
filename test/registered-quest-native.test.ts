@@ -2,10 +2,10 @@ import {expect,test} from 'vitest';
 import {QuestStepRowsSchema,QuestHintRowsSchema,parseQuestStepRows,parseQuestHintRows} from '@wildshard/format/questSteps';
 import {ChapterWakeSchema,parseChapterWake} from '@wildshard/format/chapterDirector';
 import {REGISTERED_JSON,validateRegisteredJson} from '@wildshard/format/registeredJson';
-import {registeredJsonSchema,namedJsonSchema} from '../src/sdk/formatJsonSchema';
+import {registeredJsonSchema,namedJsonSchema} from '../src/sharddev/formatJsonSchema';
 import {encodeCanonicalJson} from '../src/sdk/immutable';
-import {nameBlob} from '../src/sdk/blobs';
-import {emptyShardfile} from '../src/sdk/author';
+import {nameBlob} from '../src/sharddev/blobs';
+import {emptyShardfile} from '../src/sharddev/author';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {fixtureJsonCheck} from './fixtures/productFile';
 

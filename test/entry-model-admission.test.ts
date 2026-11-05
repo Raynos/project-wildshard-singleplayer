@@ -3,8 +3,8 @@ import { BoxGeometry, BufferGeometry, Mesh, MeshStandardMaterial, type Object3D 
 import { Scope } from '../src/engine/shared/app/scope';
 import { parseItems } from '@wildshard/format/items';
 import { loadItemModels } from '../src/game/client/shardfile/itemModels';
-import { staticGlb } from '../src/sdk/bake/glb';
-import { compressGlb } from '../src/sdk/bake/glbCompression';
+import { staticGlb } from '../src/sharddev/bake/glb';
+import { compressGlb } from '../src/sharddev/bake/glbCompression';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import ITEMS from '../src/shards/_template/data/items.json' with { type: 'json' };
 

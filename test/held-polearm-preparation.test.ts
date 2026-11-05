@@ -3,7 +3,7 @@ import { BoxGeometry, MeshLambertMaterial, MeshPhysicalMaterial, PerspectiveCame
 import { Scope } from '../src/engine/shared/app/scope';
 import { legacyDouble } from '../src/engine/test/FakeGame';
 import { parseItems } from '@wildshard/format/items';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import * as geometry from '../src/game/client/plugin/geometry';
 import * as paint from '../src/engine/client/world/painterly';
 import * as ranged from '../src/engine/client/combat/view/ranged';

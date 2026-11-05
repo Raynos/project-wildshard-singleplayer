@@ -1,5 +1,5 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { emitNamedBlobs, nameBlob, nameMeshoptBlob, type EmittedBlobs } from '@wildshard/sdk/blobs';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { emitNamedBlobs, nameBlob, nameMeshoptBlob, type EmittedBlobs } from '@wildshard/sharddev/blobs';
 import declared from '../data/publicInputs.json' with { type: 'json' };
 import { GPU_FILES } from '../ktx2.generated';
 import { bakeBirds, parseBirdSidecar, type PackedRange } from './birds';

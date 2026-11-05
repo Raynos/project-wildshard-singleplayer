@@ -1,7 +1,7 @@
-import { authorFormatSchema, nativeColliderSourceRows } from '@wildshard/sdk/formatJsonSchema';
-import { parseSectionValue } from '@wildshard/sdk/sections';
+import { authorFormatSchema, nativeColliderSourceRows } from '@wildshard/sharddev/formatJsonSchema';
+import { parseSectionValue } from '@wildshard/sharddev/sections';
 import { PinePhysicsSchema, PinePhysicsOwnersSchema } from './sections';
-import { worldPhysicsSection } from '@wildshard/sdk/platformSections';
+import { worldPhysicsSection } from '@wildshard/sharddev/platformSections';
 import PINE_TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
 import rows from '../data/physicsRows.json' with { type: 'json' };
 

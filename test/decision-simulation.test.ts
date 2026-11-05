@@ -1,8 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The actual host consumes the shipped native physics bytes.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test, vi } from 'vitest';
-import { emptyShardfile } from '../src/sdk/author';
-import { compileScript } from '@wildshard/sdk/compileScript';
+import { emptyShardfile } from '../src/sharddev/author';
+import { compileScript } from '@wildshard/sharddev/compileScript';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { buildDecisionRegistries } from '@wildshard/format/decisionBindings';
@@ -17,7 +17,7 @@ import { borrowedDecisionAuthority } from '../src/game/server/shardfile/borrowed
 import { ShardDecisions, type DecisionRuntime } from '../src/game/server/shardfile/decisions';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import * as v from 'valibot';
-import { ClientChannels } from '../src/sdk/clientChannels';
+import { ClientChannels } from '../src/sharddev/clientChannels';
 import { SaveStore } from '../src/engine/shared/saves/store';
 import { GridRegionDurability } from '../src/game/server/grid/durability';
 import { FIXTURE_RUNTIME_COST } from './fixtures/clientPlanRuntime';
@@ -281,8 +281,8 @@ test('fresh-host restore retains a staged strike catalogue and logical decision 
 
 test('SDK worker executes the declared v1 section and reports its real fuel rather than admitting it as v0', async () => {
   const { HeadlessSimulation } = await import('../src/sdk/headless');
-  const { nameBlob } = await import('../src/sdk/blobs');
-  const { mergeProjectBlobs } = await import('../src/sdk/projectOutput');
+  const { nameBlob } = await import('../src/sharddev/blobs');
+  const { mergeProjectBlobs } = await import('../src/sharddev/projectOutput');
   const f = fixture(); f.source.budgets.sim.resident = 1_000_000;
   const blob = nameBlob('behaviour/controller.wasm', 'wasm', bytes, { script: { abi: 1, pages: 1 }, critical: true });
   const product = mergeProjectBlobs(f.source, new Map(), [blob]);

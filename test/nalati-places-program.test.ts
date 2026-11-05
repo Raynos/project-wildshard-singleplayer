@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import { nalatiPlacesProgram } from '../src/shards/nalati-grasslands/generators/placesProgram';
 
 function runOwnedPlaceCheck(checks: string): void {
@@ -13,7 +13,7 @@ function runOwnedPlaceCheck(checks: string): void {
     import assert from 'node:assert/strict';
     import { mkdtempSync,rmSync } from 'node:fs';
     import { resolve } from 'node:path';
-    import { createProjectGeneration } from './src/sdk/projectGeneration.ts';
+    import { createProjectGeneration } from './src/sharddev/projectGeneration.ts';
     import { selectedLevel } from '@wildshard/engine/level/selection';
     import { nalatiPlacesProgram } from './src/shards/nalati-grasslands/generators/placesProgram.ts';
     assert.equal(selectedLevel(),null);

@@ -4,7 +4,7 @@ import { runtimeBoundWorldFiles, withoutRuntimeRows } from '../src/game/shared/p
 import { DRIFTWOOD_LOOT as LOOT } from '../src/shards/driftwood-isle/generators/loot';
 import { parseRows } from '@wildshard/format/rows';
 import { expect, test } from 'vitest';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import { ShardfileClient } from '../src/game/client/shardfile/client';
 import { ClientAssets } from '../src/game/client/shardfile/clientAssets';
 import NINE from './fixtures/nine-product-inputs';

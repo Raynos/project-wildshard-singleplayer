@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { MapRaster } from '../src/sdk/bake/mapRaster';
-import { paintMapGeometry } from '../src/sdk/bake/mapScenes';
+import { MapRaster } from '../src/sharddev/bake/mapRaster';
+import { paintMapGeometry } from '../src/sharddev/bake/mapScenes';
 
 
 test('output notes remain metadata while malformed selected exclusions refuse', async () => {

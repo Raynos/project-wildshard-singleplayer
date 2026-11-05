@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import type { ProjectGenerationContext } from '../src/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '../src/sharddev/projectGeneration';
 import { controlFiles, lateFiles } from '../src/game/client/shardfile/controlFiles';
 import { driftwoodPhysicsOwnedSources, driftwoodPhysicsSources, driftwoodPhysicsFloor, driftwoodProofLateRoots } from '../src/shards/driftwood-isle/generators/physics';
 

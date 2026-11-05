@@ -9,9 +9,9 @@ import { resolve } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { BufferAttribute, BufferGeometry, MeshStandardMaterial } from 'three';
 import { expect, test, vi } from 'vitest';
-import { staticGlb } from '../src/sdk/bake/glb';
-import { compressGlb } from '../src/sdk/bake/glbCompression';
-import { meshoptNoLarger, nameMeshoptBlob } from '../src/sdk/blobs';
+import { staticGlb } from '../src/sharddev/bake/glb';
+import { compressGlb } from '../src/sharddev/bake/glbCompression';
+import { meshoptNoLarger, nameMeshoptBlob } from '../src/sharddev/blobs';
 
 /** a GLB of `count` triangles on a grid, offset by `shift` so each call is distinct bytes */
 function glb(count: number, shift: number): Uint8Array {
@@ -50,7 +50,7 @@ test('the gen-cache memo answers the comparison cold, warm and after damage', as
   const root = mkdtempSync(resolve('tmp/meshopt-choice-'));
   process.env['WILDSHARD_MESHOPT_CHOICE_CACHE'] = root;
   try {
-    const { meshoptNoLargerMemo } = await import('../src/sdk/bake/meshoptChoiceMemo');
+    const { meshoptNoLargerMemo } = await import('../src/sharddev/bake/meshoptChoiceMemo');
     const pairs = [glb(300, 3), glb(300, 4)].map(input => [compressGlb(input), input] as const);
     for (const [packed, input] of pairs) {
       const want = await meshoptNoLarger(packed, input);

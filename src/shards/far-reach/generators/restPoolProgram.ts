@@ -1,4 +1,4 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { ISLET_POOL, REST_URLS } from './restFiles';
 import { restPoolGlbs } from './restScene';
 import { isletGlb } from './isletScene';

@@ -2,7 +2,7 @@
 import { execFileSync } from 'node:child_process';
 import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
-import { mountedLoadoutRows, bowVariantRows, heldSlotsRows } from '../src/sdk/rows';
+import { mountedLoadoutRows, bowVariantRows, heldSlotsRows } from '../src/sharddev/rows';
 import { MountedLoadoutSchema } from '@wildshard/format/loadout';
 import { BowVariantSchema } from '@wildshard/format/bowVariantRows';
 import { parseHeldSlots } from '@wildshard/format/heldArms';
@@ -40,7 +40,7 @@ test('native registration, destination, refill, upgrade and JSON refusals still 
 });
 
 test('actual loadout row admission imports no native renderer or weapon service', () => {
-  const source = `import {mountedLoadoutRows,bowVariantRows,heldSlotsRows} from './src/sdk/rows.ts';
+  const source = `import {mountedLoadoutRows,bowVariantRows,heldSlotsRows} from './src/sharddev/rows.ts';
     const results=[mountedLoadoutRows,bowVariantRows,heldSlotsRows].map(read=>{try{read({});return false;}catch{return true;}});
     console.log(JSON.stringify(results));`;
   const result = execFileSync(process.execPath, ['--experimental-transform-types', '--import', './scripts/sim-node-loader.mjs', '--input-type=module', '-e', source], { encoding: 'utf8', timeout: 30_000 });

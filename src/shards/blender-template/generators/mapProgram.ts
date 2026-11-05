@@ -1,5 +1,5 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { rasterSceneMap } from '@wildshard/sdk/bake/groundMap';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { rasterSceneMap } from '@wildshard/sharddev/bake/groundMap';
 import settings from '../data/map.json' with { type: 'json' };
 
 /** GR9: the map's one declared input, the authored world GLB its painter reads. */

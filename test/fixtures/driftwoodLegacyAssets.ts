@@ -1,5 +1,5 @@
 import { IslandLibrary } from '@wildshard/game/models/islandLibrary';
-import type { NamedRowValue } from '../../src/sdk/formatJsonSchema';
+import type { NamedRowValue } from '../../src/sharddev/formatJsonSchema';
 import type { FixedGeometryGroupsSchema } from '../../src/shards/driftwood-isle/generators/sections';
 type FixedGeometryGroups = NamedRowValue<typeof FixedGeometryGroupsSchema>;
 

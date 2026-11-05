@@ -22,7 +22,7 @@ import { withOwner } from '../src/engine/shared/app/ownership';
 import { worldSceneSurfaceMaterial } from '../src/game/client/shardfile/worldSceneSurface';
 import { SkyRig } from '../src/engine/client/world/skyRig';
 import type { ShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { WorldRegistry } from '../src/engine/client/world/registry';
 import * as colliderReader from '../src/engine/client/models/colliders';
 import { WorldScenePlacement } from '../src/game/client/shardfile/worldScenePlacement';

@@ -1,5 +1,5 @@
 // 2D simplex noise (Stefan Gustavson's reference implementation, seeded permutation).
-import { Rng } from '@wildshard/sdk/random';
+import { Rng } from '@wildshard/sharddev/random';
 
 const F2 = 0.5 * (Math.sqrt(3) - 1);
 const G2 = (3 - Math.sqrt(3)) / 6;

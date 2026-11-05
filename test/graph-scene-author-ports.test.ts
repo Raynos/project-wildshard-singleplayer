@@ -1,12 +1,12 @@
 import { expect, expectTypeOf, test } from 'vitest';
-import type { AuthorGraph, AuthorGraphNode, AuthorGraphRef, AuthorGraphParam, AuthorPostGraphLook } from '../src/sdk/bake/materialGraph';
+import type { AuthorGraph, AuthorGraphNode, AuthorGraphRef, AuthorGraphParam, AuthorPostGraphLook } from '../src/sharddev/bake/materialGraph';
 import type { GraphIr, GraphNode, GraphRef, GraphParam } from '@wildshard/format/materialGraph';
 import type { PostGraphLookRow } from '@wildshard/format/postGraphLook';
 import type { WorldSceneModels } from '@wildshard/format/worldSceneModels';
-import type { worldSceneModels } from '../src/sdk/worldScenes';
-import type { AuthorSpawnTables } from '../src/sdk/spawns';
+import type { worldSceneModels } from '../src/sharddev/worldScenes';
+import type { AuthorSpawnTables } from '../src/sharddev/spawns';
 import type { SpawnTables } from '@wildshard/format/spawnTables';
-import type { AuthorExchangeRows } from '../src/sdk/rows';
+import type { AuthorExchangeRows } from '../src/sharddev/rows';
 import type { ExchangeRows } from '@wildshard/format/exchange';
 import { graphSceneAuthorObservation } from './fixtures/graph-scene-author-observation';
 import original from './fixtures/graph-scene-author-original.json' with { type: 'json' };

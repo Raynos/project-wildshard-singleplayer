@@ -1,4 +1,4 @@
-import { strike } from '@wildshard/sdk/species';
+import { strike } from '@wildshard/sharddev/species';
 import authored from '../data/strikes.json' with { type: 'json' };
 
 /** The seven original authored strikes, admitted before native gameplay construction. */

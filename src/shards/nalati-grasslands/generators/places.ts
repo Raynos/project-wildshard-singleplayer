@@ -1,14 +1,14 @@
 import { nalatiRoadSignSites, nalatiRoadSignposts } from './roadSigns';
 import { nalatiKurganLayout } from './kurganRows';
-import { annulus } from '@wildshard/sdk/bake/annulus';
+import { annulus } from '@wildshard/sharddev/bake/annulus';
 import { finGeometry, ribGeometry, towerGeometry, type CragKind } from './cragGeometry';
 import type { DressPlan } from './dressingPlan';
 import * as THREE from 'three';
 import { paramsOf, type ModelDef, type ModelBuild, type ModelContext, type Placement } from '@wildshard/engine/models/model';
-import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
+import { readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
 import { PaintKit, M, v3 } from './paint';
 import { pole, lathe, blob, mergeVerticesByPos } from './smoothGeometry';
-import { specimenKey, type ColliderDesc, type Draw, type BoxSpec as Collider } from '@wildshard/sdk/bake/placement';
+import { specimenKey, type ColliderDesc, type Draw, type BoxSpec as Collider } from '@wildshard/sharddev/bake/placement';
 import { graniteBlock } from './granite';
 import { painted, paintedSpecimen, isPainted, rememberPainted, type Paint, type PaintCtx, type Made, type Kit, type PaintAt } from './painted';
 import { cragLedgeFloor, leopardCaveFloor, kurganEntranceFloor, generatedBounds, instanceTris, type MemberData, type InstanceData, type GeneratedSpec } from './placement';
@@ -29,7 +29,7 @@ import { LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, WATCHTOWER, KOKPAR, PASTURE,
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '@wildshard/engine/core/rng';
 import { inPoiClearing,zoneAt,glacierMask,brookMask,riverMask,rimZAt,RIVER,outcropAt,edgeBermAt,TERRAIN } from './terrainRecipe';
-import { Noise2D, smoothstep } from '@wildshard/sdk/noise';
+import { Noise2D, smoothstep } from '@wildshard/sharddev/noise';
 
 const dungeonLayout = nalatiKurganLayout();
 

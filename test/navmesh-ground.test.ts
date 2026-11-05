@@ -4,7 +4,7 @@ import { unzlibSync,zlibSync } from 'fflate';
 import { navmeshGroundExclusion as exclusionInput } from '../scripts/bake/navmeshGround';
 import {ScalarLatticeBindings} from '../src/engine/shared/world/scalarChannel';
 import { NavmeshGroundSchema } from '@wildshard/format/navigation';
-import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
+import { formatJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { GROUND } from './fixtures/nalati-terrain';
 import { readNalatiGeography } from './fixtures/nalati-geography';

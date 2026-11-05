@@ -6,7 +6,7 @@
  * stipple and roads. The
  * map-01 places (NALATI_MAP.pois) are the full map's pins (named once explored, "?" before); no pines or cabins.
  */
-import { smoothstep } from '@wildshard/sdk/noise';
+import { smoothstep } from '@wildshard/sharddev/noise';
 import * as layoutRows from './layout';
 import { riverMask } from './terrainRecipe';
 import { nalatiWetAt } from './wetRecipe';

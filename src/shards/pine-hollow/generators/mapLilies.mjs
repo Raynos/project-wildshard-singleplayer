@@ -1,7 +1,7 @@
 // G508: the shared pond pads, evaluated offline over native Pine data.
 import * as THREE from 'three';
-import { Rng } from '@wildshard/sdk/random';
-import { Noise2D } from '@wildshard/sdk/noise';
+import { Rng } from '@wildshard/sharddev/random';
+import { Noise2D } from '@wildshard/sharddev/noise';
 
 export function mapLilies(seed       ,pond                                          ,heightAt                            ,exclusions                                        ){
   const wl = pond.level, rng = new Rng(seed + 4411), cluster = new Noise2D(seed + 4412);

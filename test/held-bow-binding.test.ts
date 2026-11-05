@@ -4,7 +4,7 @@ import { expect, test } from 'vitest';
 import { BufferGeometry } from 'three';
 import { bindHeldBow } from '../src/game/client/weapons/heldLauncher';
 import { HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
-import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
+import { formatJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { PINE_HELD_BOW } from '../src/shards/pine-hollow/generators/longbow';
 import { recurveBase } from '../src/shards/nalati-grasslands/generators/recurvePool';
 import * as v from 'valibot';

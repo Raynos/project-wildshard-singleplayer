@@ -2,9 +2,9 @@
 
 
 import debugLap from '../data/perfLap.json' with { type: 'json' };
-import { parseRangedPage, parseForestWeatherObservation, parseRainPresentation } from '@wildshard/sdk/rows';
-import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sdk/blobs';
-import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
+import { parseRangedPage, parseForestWeatherObservation, parseRainPresentation } from '@wildshard/sharddev/rows';
+import { nameBlob , type NamedBlob as NamedBlobType } from '@wildshard/sharddev/blobs';
+import { registeredJsonSchema } from '@wildshard/sharddev/formatJsonSchema';
 import { PINE_OUTPUT } from './outputInputs';
 import { tradeCatalogue } from './trades';
 import { cragScene } from './cragSceneContribution';

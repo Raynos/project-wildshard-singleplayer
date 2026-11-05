@@ -1,6 +1,6 @@
 import { BufferAttribute, BufferGeometry, Float16BufferAttribute, Matrix4 } from 'three';
 import { bindHomeBuildCache, saveHomeBuildGeometry, readHomeBuildGeometry, homeBuildGeometryKeys, HOME_BUILD_CACHE_BYTES } from '../../src/game/client/shardfile/homeBuildCache';
-import { emptyShardfile } from '../../src/sdk/author';
+import { emptyShardfile } from '../../src/sharddev/author';
 const source = emptyShardfile({slug:'cache-proof',name:'Cache proof',author:'Fixture',revision:1,seed:1});
 const other = emptyShardfile({slug:'not-home',name:'Not home',author:'Fixture',revision:1,seed:1});
 function check(value: boolean, message: string): void { if (!value) throw new Error(message); }

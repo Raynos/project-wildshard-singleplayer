@@ -1,4 +1,4 @@
-import type { AuthorGraph as GraphIr, AuthorGraphRef as GraphRef, AuthorScaledPost as ScaledPostRow } from '@wildshard/sdk/bake/materialGraph';
+import type { AuthorGraph as GraphIr, AuthorGraphRef as GraphRef, AuthorScaledPost as ScaledPostRow } from '@wildshard/sharddev/bake/materialGraph';
 import { Screen } from './screenGraph';
 import { compositeRow } from './compositeGraph';
 

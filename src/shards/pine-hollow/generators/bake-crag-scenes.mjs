@@ -1,7 +1,7 @@
 // D65: the crag kit, the cave and the crag bake come from the program's sources.
 import { Matrix4, MeshStandardMaterial, Vector3 } from 'three';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
 import { cragNodeGeometry, cragFixedRows } from './cragWorldScenes.ts';
 import { CragSkin } from './cragCodec.ts';
 import { timberWorld } from './timberWorldRows.ts';

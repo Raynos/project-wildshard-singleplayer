@@ -6,7 +6,7 @@ import {createHash} from 'node:crypto';
 import * as v from 'valibot';
 import {expect,test} from 'vitest';
 import {BufferAttribute} from 'three';
-import {nameBlob} from '../src/sdk/blobs';
+import {nameBlob} from '../src/sharddev/blobs';
 import {originalPoiPaintFiles} from './fixtures/nalati-poi-paint-original';
 import {FixedDrawRowsSchema} from '@wildshard/format/fixedDraws';
 import {SceneBakedGeometrySchema} from '@wildshard/format/sceneDressing';

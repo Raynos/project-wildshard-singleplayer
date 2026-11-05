@@ -172,12 +172,12 @@
     "src/shards/nalati-grasslands/generators/horseBody.ts": 1
   },
   "wildshard/sdk-no-facade": {
-    "src/sdk/kit/bakedGeometry.ts": 7,
-    "src/sdk/phasedBoss.ts": 9,
-    "src/sdk/species/clips.ts": 11,
-    "src/sdk/speciesBrains.ts": 3,
-    "src/sdk/weapons/bowProfile.ts": 4,
-    "src/sdk/weapons/meleeProfile.ts": 2
+    "src/sharddev/kit/bakedGeometry.ts": 7,
+    "src/sharddev/phasedBoss.ts": 9,
+    "src/sharddev/species/clips.ts": 11,
+    "src/sharddev/speciesBrains.ts": 3,
+    "src/sharddev/weapons/bowProfile.ts": 4,
+    "src/sharddev/weapons/meleeProfile.ts": 2
   },
   "wildshard/shard-engine-imports": {
     "src/shards/driftwood-isle/generators/groundCover.ts": 2,

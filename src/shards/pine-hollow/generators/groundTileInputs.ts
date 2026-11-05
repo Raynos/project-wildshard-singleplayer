@@ -1,7 +1,7 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { bakePlantedForest } from '@wildshard/sdk/bake/forest';
-import { bakeSplatGround, splatGroundSource, splatLayerFiles } from '@wildshard/sdk/bake/splatGround';
-import { assetCost, parseKtx2 } from '@wildshard/sdk/assets';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { bakePlantedForest } from '@wildshard/sharddev/bake/forest';
+import { bakeSplatGround, splatGroundSource, splatLayerFiles } from '@wildshard/sharddev/bake/splatGround';
+import { assetCost, parseKtx2 } from '@wildshard/sharddev/assets';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import declared from '../data/publicInputs.json' with { type: 'json' };
 import bindings from '../data/terrainBindings.json' with { type: 'json' };
@@ -12,7 +12,7 @@ import { pineGeographyRows } from './geographyRows';
 import { PINE_GROUND, type PineGroundRows } from './groundTiles';
 import * as LAYOUT from './layout';
 import { cachedGroundTile } from './phoneGeometryCache';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 
 /** The retained terrain's URL (its public path under `/assets/`). */
 const TERRAIN_URL = `/${bindings.terrain.replace(/^public\//u, '')}`;

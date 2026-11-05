@@ -1,6 +1,6 @@
 import { Scene, type InstancedMesh } from 'three';
-import { bake, BakedPiece } from '@wildshard/sdk/bake';
-import type { KindBakeOptions, KindCollider, PieceBake } from '@wildshard/sdk/bake/kinds';
+import { bake, BakedPiece } from '@wildshard/sharddev/bake';
+import type { KindBakeOptions, KindCollider, PieceBake } from '@wildshard/sharddev/bake/kinds';
 
 /** The shard Sky Reach's scene bakes into (shard.config.ts's identity). */
 export const SKY_IDENTITY = { slug: 'far-reach', name: 'Sky Reach' } as const;

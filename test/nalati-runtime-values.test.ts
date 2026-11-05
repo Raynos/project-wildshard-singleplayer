@@ -6,7 +6,7 @@ import { expect, test } from 'vitest';
 import { build } from 'vite';
 import * as v from 'valibot';
 import { nalatiRuntimeRows } from '../src/shards/nalati-grasslands/generators/runtimeRows';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nalatiRuntimeWire } from './fixtures/nalati-runtime-wire';
 import {nalatiRuntimePacket} from './fixtures/nalati-runtime';

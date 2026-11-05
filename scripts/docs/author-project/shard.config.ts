@@ -1,7 +1,7 @@
 import script from './data/generated-script.json' with { type: 'json' };
-import { emptyShardfile } from '@wildshard/sdk/author';
-import { readScene } from '@wildshard/sdk/scene';
-import { commonsRequirements } from '@wildshard/sdk/commons';
+import { emptyShardfile } from '@wildshard/sharddev/author';
+import { readScene } from '@wildshard/sharddev/scene';
+import { commonsRequirements } from '@wildshard/sharddev/commons';
 import { createCatalogue } from '@wildshard/commons/catalogue';
 import { starterSpearPack } from './generators/spear.ts';
 import { buildWorld, disposeWorld } from './generators/world.ts';

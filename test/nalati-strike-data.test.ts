@@ -1,5 +1,5 @@
 import {expect,test} from 'vitest';
-import {strike} from '@wildshard/sdk/species';
+import {strike} from '@wildshard/sharddev/species';
 import {encodeCanonicalJson} from '@wildshard/sdk/immutable';
 import {NALATI_STRIKE_ROWS as original} from './fixtures/originalNalatiStrikeRows';
 import rows from '../src/shards/nalati-grasslands/data/strikeProfiles.json' with {type:'json'};

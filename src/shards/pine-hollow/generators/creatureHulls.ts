@@ -1,5 +1,5 @@
 /**
- * Pine Hollow's generated creature hulls as a rigged-hull row (`@wildshard/sdk/looks/riggedHulls`; PINE-HOLLOW-REMASTER
+ * Pine Hollow's generated creature hulls as a rigged-hull row (`@wildshard/sharddev/looks/riggedHulls`; PINE-HOLLOW-REMASTER
  * PH-M1 / PH-M2, Jake's PH-U11), authored as plain data in ../data/creatureHulls.json: each photoreal TRELLIS.2 /
  * Hunyuan3D-2 hull (art/pine-hollow/round-9-creature-refs/) fitted to its species' skeleton by
  * `scripts/creature-rig-bake.mjs --chunk pine-hollow`, worn by every variant listed there in its own coat. The Antler King
@@ -14,7 +14,7 @@
  *
  * The runtime reads the same JSON (runtime/species/hulls.ts); the generators read it through this typed, checked view.
  */
-import { riggedHullRecipeRows, type AuthorHullFlap, type AuthorHullRecipe } from '@wildshard/sdk/bake/riggedHullRecipes';
+import { riggedHullRecipeRows, type AuthorHullFlap, type AuthorHullRecipe } from '@wildshard/sharddev/bake/riggedHullRecipes';
 import authored from '../data/creatureHulls.json' with { type: 'json' };
 
 const PALETTES = ['deer', 'elk', 'boar', 'bear'] as const;

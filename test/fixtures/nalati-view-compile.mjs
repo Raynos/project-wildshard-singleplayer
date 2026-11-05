@@ -1,7 +1,7 @@
 // GR6: compile Nalati's five view modules in plain Node (a happy-dom test environment cannot feed the compiler's
 // WebAssembly streaming) and print them as one JSON line: { "<id>": "<base64 wasm>" }.
 import { readFileSync } from 'node:fs';
-import { compileScriptV2 } from '../../src/sdk/bake/compileScriptV2.ts';
+import { compileScriptV2 } from '../../src/sharddev/bake/compileScriptV2.ts';
 import { NALATI_VIEW_MODULES } from '../../src/shards/nalati-grasslands/generators/viewPrograms.ts';
 
 const out = {};

@@ -7,7 +7,7 @@ import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Give Node an exact absolute source module URL.
 import { pathToFileURL } from 'node:url';
 import { expect, test } from 'vitest';
-import { executeBundle } from '../src/sdk/executeBundle';
+import { executeBundle } from '../src/sharddev/executeBundle';
 
 function native(source: string): string {
   mkdirSync('tmp', { recursive: true });
@@ -21,7 +21,7 @@ function native(source: string): string {
       const {executeBundle}=await import(process.argv[1]);
       const project=process.argv[2];
       ${source}
-    `, pathToFileURL(resolve('src/sdk/executeBundle.ts')).href, project], { encoding: 'utf8', timeout: 15_000 });
+    `, pathToFileURL(resolve('src/sharddev/executeBundle.ts')).href, project], { encoding: 'utf8', timeout: 15_000 });
   } finally { rmSync(project, { recursive: true, force: true }); }
 }
 

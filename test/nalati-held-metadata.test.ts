@@ -6,7 +6,7 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nalatiHeldMetadata, nalatiHeldSource } from '../src/shards/nalati-grasslands/generators/heldMetadata';
 import { originalSpeciesJson } from './fixtures/nalati-original-species';
 import pins from './fixtures/nalati-held-files.json' with { type: 'json' };
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 
 const source = v.parse(v.object({
   program: ReturnProgramSchema,

@@ -4,7 +4,7 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { BufferAttribute } from 'three';
 import { createModelLibrary } from '../../src/game/client/plugin/geometry';
-import { readSourceModel } from '../../src/sdk/bake/skinned';
+import { readSourceModel } from '../../src/sharddev/bake/skinned';
 import { parseKtx2 } from '@wildshard/format/ktx2Cost';
 import { textureMipBytes } from '@wildshard/format/contentBounds';
 import { rawKtx2, bakeSignalSand } from '../../src/shards/sunscar-dunes/generators/sand';

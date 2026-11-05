@@ -1,8 +1,8 @@
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { bakeWholeSlabs, readSlabLibrary } from '@wildshard/sdk/bake/slabs';
-import { nameBlob } from '@wildshard/sdk/blobs';
-import { worldSceneRows } from '@wildshard/sdk/worldScenes';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import { bakeWholeSlabs, readSlabLibrary } from '@wildshard/sharddev/bake/slabs';
+import { nameBlob } from '@wildshard/sharddev/blobs';
+import { worldSceneRows } from '@wildshard/sharddev/worldScenes';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import type { NineSourceWorld } from './worldProgram';
 import type { NineWorldScenes } from './worldScenes';
 

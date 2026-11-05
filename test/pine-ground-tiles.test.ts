@@ -2,8 +2,8 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { canopyMapOf } from '../src/engine/shared/world/forest/placement';
-import { parseGlb } from '../src/sdk/assets';
-import { bakeSplatGround, splatGroundSource } from '../src/sdk/bake/splatGround';
+import { parseGlb } from '../src/sharddev/assets';
+import { bakeSplatGround, splatGroundSource } from '../src/sharddev/bake/splatGround';
 import { PINE_GROUND, PINE_GROUND_MATERIAL } from '../src/shards/pine-hollow/generators/groundTiles';
 
 // Tile streaming P1 (sdk/bake/splatGround): Pine's ground as 64 L0 + 16 L1 splat tiles cut from the live chunk's own mesh, with the canopy as a

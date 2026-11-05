@@ -14,7 +14,7 @@ import { shardContext } from '../src/game/client/plugin/context';
 import { RetainedRuntimeHooks } from '../src/game/client/shard/retainedHooks';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { installRuntimeAudioEntry,installRuntimeGameplayAudio,type RuntimeGameplayAudioEnvironment } from '../src/game/client/plugin/audio';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { afterEach,beforeEach,expect,it,vi } from 'vitest';
 import { Group,PerspectiveCamera,Vector3 } from 'three';

@@ -1,5 +1,5 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { rasterSceneMap } from '@wildshard/sdk/bake/groundMap';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { rasterSceneMap } from '@wildshard/sharddev/bake/groundMap';
 import { nalatiMapFiles } from './mapAssembly.mjs';
 import { nalatiTerrainScene } from './terrainSceneProgram';
 import settings from '../data/map.json' with { type: 'json' };

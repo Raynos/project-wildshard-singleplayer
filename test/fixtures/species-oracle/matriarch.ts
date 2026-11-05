@@ -1,6 +1,6 @@
 // Shipping policy oracle captured from 050198889:src/shards/sunscar-dunes/runtime/species/matriarch.ts (SF27: the Matriarch now runs
 // the phased-flyer brain, data/brains.ts MATRIARCH_BRAIN); test/shards/sunscar-dunes/matriarch-brain.test.ts holds the row to it.
-import { strike as admitStrike } from '../../../src/sdk/species';
+import { strike as admitStrike } from '../../../src/sharddev/species';
 import { strikeFromData } from '../../../src/engine/shared/ai/strikeRows';
 import { MAW_DATA, TAIL_SWEEP_DATA, BUFFET_DATA, MATRIARCH } from '../../../src/shards/sunscar-dunes/generators/rows/species/matriarch';
 import { CreatureBrain } from '../../../src/engine/server/ai/CreatureBrain';

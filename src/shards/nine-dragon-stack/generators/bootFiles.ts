@@ -1,4 +1,4 @@
-import { bootFilePolicy, sharedBootPhysics, type BootSources, type BootTextures, type BootTier } from '@wildshard/sdk/bootInventory';
+import { bootFilePolicy, sharedBootPhysics, type BootSources, type BootTextures, type BootTier } from '@wildshard/sharddev/bootInventory';
 import { GPU_FILES } from '../ktx2.generated';
 
 /** The structure-first world's original counted inventory, authored beside its manifest. */

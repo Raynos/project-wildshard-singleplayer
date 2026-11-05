@@ -1,7 +1,7 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import * as v from 'valibot';
-import { actorProjectionRows } from '../src/sdk/decisionScripts';
-import { authorFormatSchema, authorFormatRows } from '../src/sdk/formatJsonSchema';
+import { actorProjectionRows } from '../src/sharddev/decisionScripts';
+import { authorFormatSchema, authorFormatRows } from '../src/sharddev/formatJsonSchema';
 import type { TreeSetSchema } from '@wildshard/format/treeSetRows';
 import { MountedSpecimenSeatSchema } from '@wildshard/format/mountedSpecimenRows';
 import { ClientRidingSessionSchema } from '@wildshard/format/riding';

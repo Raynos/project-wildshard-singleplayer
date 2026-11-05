@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Scope } from '../../src/engine/shared/app/scope';
-import { emptyShardfile } from '../../src/sdk/author';
+import { emptyShardfile } from '../../src/sharddev/author';
 import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import { clientMaterials } from '../../src/game/client/shardfile/clientMaterials';
 import { splatArray } from '../../src/game/client/shardfile/clientSplatTerrain';

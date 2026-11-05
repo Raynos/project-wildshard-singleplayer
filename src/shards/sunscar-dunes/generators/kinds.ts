@@ -1,9 +1,9 @@
 import { Scene, type InstancedMesh, type MeshStandardMaterial, type Object3D } from 'three';
-import { foldKinds as foldSdkKinds, type KindExtra, type PieceBake } from '@wildshard/sdk/bake/kinds';
-import { bakeOwned, BakedPiece, type BakedSceneParts } from '@wildshard/sdk/bake';
+import { foldKinds as foldSdkKinds, type KindExtra, type PieceBake } from '@wildshard/sharddev/bake/kinds';
+import { bakeOwned, BakedPiece, type BakedSceneParts } from '@wildshard/sharddev/bake';
 
 /**
- * Build-time only (SHARD-PLATFORM SF72): Signal Dunes' use of the SDK's instanced-kinds baker (`@wildshard/sdk/bake/kinds`).
+ * Build-time only (SHARD-PLATFORM SF72): Signal Dunes' use of the SDK's instanced-kinds baker (`@wildshard/sharddev/bake/kinds`).
  * A piece's GLB is named `sunscar.<piece>`, and a kind whose material a builder marked `userData.warm` (lit by the fires,
  * `world/meshes.ts` warmByFire) keeps `warm: true` in its row, which the client reads back (`world/baked.ts`); a waymark's
  * own kind keeps its `brazier` index (`userData.brazier`), so the client lights one waymark's logs alone.
@@ -28,7 +28,7 @@ export function boxDesc(c: { x: number; z: number; hw: number; hd: number; rot: 
   return { kind: 'box', x: c.x, y: (c.yTop + c.yBottom) / 2, z: c.z, hx: c.hw, hy: Math.max(0.005, (c.yTop - c.yBottom) / 2), hz: c.hd, yaw: -c.rot, ...(surface === undefined ? {} : { surface }) };
 }
 
-/** One Signal piece as a scene node (`@wildshard/sdk/bake`): its instanced kinds baked into `sunscar.<piece>`, its colliders and rows. */
+/** One Signal piece as a scene node (`@wildshard/sharddev/bake`): its instanced kinds baked into `sunscar.<piece>`, its colliders and rows. */
 export const signalPiece = (piece: string, meshes: readonly (readonly [string, InstancedMesh])[], colliders: readonly ColliderDesc[], rows: Readonly<Record<string, unknown>> = {}): BakedPiece<ColliderDesc> =>
   new BakedPiece(`sunscar.${piece}`, meshes, colliders, { extra: warm }, rows);
 

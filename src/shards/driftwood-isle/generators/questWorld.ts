@@ -1,5 +1,5 @@
 import type { DriftwoodFixedLayouts } from './fixedLayouts';
-import type { AuthorQuestWorld as QuestWorldRows } from '@wildshard/sdk/quests';
+import type { AuthorQuestWorld as QuestWorldRows } from '@wildshard/sharddev/quests';
 import page from '../data/questPageComposition.json' with { type: 'json' };
 
 interface Site { readonly origin: { readonly x: number; readonly y: number; readonly z: number }; readonly anchors: Readonly<Record<string, { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number }>> }

@@ -1,4 +1,4 @@
-import type { AuthorWorldScenes } from '@wildshard/sdk/worldScenes';
+import type { AuthorWorldScenes } from '@wildshard/sharddev/worldScenes';
 
 // Scene admission already defines every uniform variant and read-only vector.
 type SceneUniformRows = NonNullable<AuthorWorldScenes['uniforms']>[number]['rows'];

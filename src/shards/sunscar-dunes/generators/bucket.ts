@@ -1,5 +1,5 @@
-import { compileMoverMotion as lowerMoverMotion, parseMoverRows as parseMovers } from '@wildshard/sdk/movers';
-import { ClientChannels } from '@wildshard/sdk/clientChannels';
+import { compileMoverMotion as lowerMoverMotion, parseMoverRows as parseMovers } from '@wildshard/sharddev/movers';
+import { ClientChannels } from '@wildshard/sharddev/clientChannels';
 import { FLAG } from './rows/flags';
 import STRINGS from '../data/strings.json' with { type: 'json' };
 import { WELL_RIG } from './rows/places';

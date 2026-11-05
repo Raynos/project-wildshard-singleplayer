@@ -1,4 +1,4 @@
-import { creaturePoseRows, numericChannelPrograms, type NumericChannelOutput, type ClientChannels } from '@wildshard/sdk/clientChannels';
+import { creaturePoseRows, numericChannelPrograms, type NumericChannelOutput, type ClientChannels } from '@wildshard/sharddev/clientChannels';
 // Build-time scalar algebra. Only bounded numeric DAG rows ship to the pose owner.
 type E = number | { read: string; path: readonly string[] } | { unary: 'sin' | 'cos' | 'abs'; a: E }
   | { binary: 'add' | 'sub' | 'mul' | 'div' | 'min' | 'max' | 'gt'; a: E; b: E } | { test: E; yes: E; no: E };

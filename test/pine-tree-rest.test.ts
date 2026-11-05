@@ -6,7 +6,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { bakeTreeRest } from '../src/shards/pine-hollow/generators/treeRest';
 import { loadTreeSetGeometry } from '../src/engine/client/world/forest/treeSet';
-import { readSourceModel } from '../src/sdk/bake/skinned';
+import { readSourceModel } from '../src/sharddev/bake/skinned';
 import { createModelLibrary } from '../src/game/client/plugin/geometry';
 import { PINE_TREE_SET, pineTreeRestRows } from '../src/shards/pine-hollow/generators/treeSet';
 
@@ -41,7 +41,7 @@ it('bakes every original tree part and borrows its exact graph channels and boun
 // its positions lie within half its node's grid step, its normals within one Int8 step (the intake renormalizes the
 // decoded normal under the node's matrix), its colours within half a Uint8 step.
 it('the shipped rest pool reads every part back within its storage step',async()=>{
-  const { compactPhoneGlb } = await import('../src/sdk/bake/compactGlb');
+  const { compactPhoneGlb } = await import('../src/sharddev/bake/compactGlb');
   const bytes=readFileSync('public/assets/models/pine-hollow-trees/trees.glb');
   const source = await readSourceModel(bytes);
   vi.spyOn(GLTFLoader.prototype,'loadAsync').mockResolvedValue(source.gltf);

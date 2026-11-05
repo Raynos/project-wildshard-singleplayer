@@ -1,5 +1,5 @@
 import nativeStoryFixture from './fixtures/pine-native-story.json' with { type: 'json' };
-import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
+import { registeredJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { hashImmutableBytes, encodeCanonicalJson } from '../src/sdk/immutable';
 import { expect, test } from 'vitest';
 import { PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';

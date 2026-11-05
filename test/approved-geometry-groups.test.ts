@@ -4,8 +4,8 @@ import * as v from 'valibot';
 import {createHash} from 'node:crypto';
 import {FixedGeometryGroupsSchema as Root} from '@wildshard/format/islandLibrary';
 import {platformFileFamily,validatePlatformFile} from '@wildshard/format/platformFileFamilies';
-import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
-import {parseSectionValue} from '../src/sdk/sections';
+import {registeredJsonSchema} from '../src/sharddev/formatJsonSchema';
+import {parseSectionValue} from '../src/sharddev/sections';
 import {FixedGeometryGroupsSchema as AuthorRoot} from '../src/shards/driftwood-isle/generators/sections';
 import roots from './fixtures/approved-geometry-groups.json' with {type:'json'};
 

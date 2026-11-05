@@ -4,8 +4,8 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { basisGlbVariant } from '../src/sdk/bake/basisGlb';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { basisGlbVariant } from '../src/sharddev/bake/basisGlb';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
 const original = readFileSync('test/fixtures/sky-rigs/storm-roc.glb');
@@ -79,7 +79,7 @@ test('an individually bounded image cannot overflow the combined GLB allocation'
 
 test('the unused writer bundles as one config-safe chunk with no file, process or generated imports', async () => {
   const result = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false,
-    lib: { entry: resolve('src/sdk/bake/basisGlb.ts'), formats: ['es'] },
+    lib: { entry: resolve('src/sharddev/bake/basisGlb.ts'), formats: ['es'] },
     rolldownOptions: { external: [/^node:/u], output: { codeSplitting: false } } } });
   const output = Array.isArray(result) ? result[0] : result;
   if (output === undefined || !('output' in output)) throw new Error('Missing variant writer bundle');

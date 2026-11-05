@@ -136,7 +136,7 @@ test('legacy mid-night identities and placement stream migrate without spawn or 
 });
 
 test('an unrelated salt-marsh script spawns and retires its own species and site rows', async () => {
-  const { compileDecisionScripts } = await import('../src/sdk/buildDecisionScripts');
+  const { compileDecisionScripts } = await import('../src/sharddev/buildDecisionScripts');
   const { spawnScriptRegistries } = await import('@wildshard/format/spawnScripts');
   const { legacy: _legacy, ...template } = parseSpawnScript(night);
   const script = { ...template.script, id: 'marsh.watch', source: 'behaviour/watch.as', on: ['start', 'tick'],

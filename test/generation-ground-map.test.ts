@@ -2,14 +2,14 @@
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { rasterGroundMap } from '../src/sdk/bake/groundMap';
+import { rasterGroundMap } from '../src/sharddev/bake/groundMap';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { templateTerrain } from '../src/shards/_template/generators/terrain';
 import { templatePropRows } from '../src/shards/_template/generators/props';
 import { pastelTerrain } from '../src/shards/pastel-plain/generators/terrain';
 import { pastelProps } from '../src/shards/pastel-plain/generators/props';
-import { bakeProps, type BakedProps } from '../src/sdk/bake/props';
-import { assertConfigBoundary } from '../src/sdk/configBoundary';
+import { bakeProps, type BakedProps } from '../src/sharddev/bake/props';
+import { assertConfigBoundary } from '../src/sharddev/configBoundary';
 import templateSettings from '../src/shards/_template/data/map.json' with { type: 'json' };
 import pastelSettings from '../src/shards/pastel-plain/data/map.json' with { type: 'json' };
 
@@ -31,7 +31,7 @@ test('source-only Template and Pastel ground maps preserve every original RGBA p
 
 test('the pure ground map baker fits the unchanged author config import boundary', async () => {
   const result = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false,
-    lib: { entry: resolve('src/sdk/bake/groundMap.ts'), formats: ['es'], fileName: 'map' }, rolldownOptions: { external: [/^node:/u], output: { codeSplitting: false } } } });
+    lib: { entry: resolve('src/sharddev/bake/groundMap.ts'), formats: ['es'], fileName: 'map' }, rolldownOptions: { external: [/^node:/u], output: { codeSplitting: false } } } });
   const built = Array.isArray(result) ? result[0] : result;
   if (built === undefined || !('output' in built)) throw new Error('Missing ground map bundle');
   const chunks = built.output.filter(row => row.type === 'chunk'); expect(chunks).toHaveLength(1);

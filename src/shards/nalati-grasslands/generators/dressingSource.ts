@@ -1,6 +1,6 @@
-import { Noise2D, smoothstep, clamp, lerp } from '@wildshard/sdk/noise';
-import type { NativeForestPlacements } from '@wildshard/sdk/bake/forest';
-import type { NativeMeadowField } from '@wildshard/sdk/bake/meadow';
+import { Noise2D, smoothstep, clamp, lerp } from '@wildshard/sharddev/noise';
+import type { NativeForestPlacements } from '@wildshard/sharddev/bake/forest';
+import type { NativeMeadowField } from '@wildshard/sharddev/bake/meadow';
 import { dressingRecipe, dressingPoiColliders, type DressPlan } from './dressingPlan';
 import { bakeNalatiPoiKeepouts, dressingRockColliders } from './places';
 import view from '../data/worldView.json' with { type: 'json' };

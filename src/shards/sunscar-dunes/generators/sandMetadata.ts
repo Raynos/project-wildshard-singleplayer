@@ -1,4 +1,4 @@
-import { parseKtx2 } from '@wildshard/sdk/assets';
+import { parseKtx2 } from '@wildshard/sharddev/assets';
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
 import type { bakeSandFiles } from './sand';
 

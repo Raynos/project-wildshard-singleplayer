@@ -9,7 +9,7 @@ import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Launch the isolated Node proof with this runtime.
 import process from 'node:process';
 import { afterEach, expect, it } from 'vitest';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { outputSectionPayloads } from '@wildshard/format/outputFields';
 import { structuralGridEvidence } from '@wildshard/format/gridReadiness';
 import { MILESTONE_SHARDS } from '../scripts/shard-milestones.mjs';

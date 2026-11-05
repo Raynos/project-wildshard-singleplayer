@@ -1,6 +1,6 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import type * as v from 'valibot';
-import { authorFormatSchema } from '../src/sdk/formatJsonSchema';
+import { authorFormatSchema } from '../src/sharddev/formatJsonSchema';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { worldScenes } from '../src/shards/driftwood-isle/generators/worldScenes';
 import { driftwoodLootBag, driftwoodQuestContinuation } from '../src/shards/driftwood-isle/generators/lootBag';

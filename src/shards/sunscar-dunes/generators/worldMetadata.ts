@@ -1,4 +1,4 @@
-import type { BakedKind } from '@wildshard/sdk/bake/kinds';
+import type { BakedKind } from '@wildshard/sharddev/bake/kinds';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import type { SignalBox, SignalSurface } from './kinds';
 

@@ -1,6 +1,6 @@
 import type { HookProduct } from './hookProduct';
-import type { NamedBlob } from '@wildshard/sdk/blobs';
-import { worldSceneWeldFile, worldSceneWeldRows as parseWorldSceneWeld } from '@wildshard/sdk/worldScenes';
+import type { NamedBlob } from '@wildshard/sharddev/blobs';
+import { worldSceneWeldFile, worldSceneWeldRows as parseWorldSceneWeld } from '@wildshard/sharddev/worldScenes';
 import castRows from '../data/casts.json' with { type: 'json' };
 import crowdRows from '../data/crowdModels.json' with { type: 'json' };
 import lodRows from '../data/lod.json' with { type: 'json' };

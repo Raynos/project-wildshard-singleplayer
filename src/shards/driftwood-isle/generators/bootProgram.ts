@@ -1,4 +1,4 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { driftwoodBootInventory } from './bootInventory';
 import { driftwoodCapturePoses } from './capturePoses';
 import inputs from '../data/publicInputs.json' with { type: 'json' };

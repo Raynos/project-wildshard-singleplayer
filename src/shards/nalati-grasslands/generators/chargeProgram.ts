@@ -1,4 +1,4 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { nalatiChargeRows, type NalatiCharge } from './chargeRows';
 import { NALATI_DECISION_SOURCES } from './decisionSourceInventory';
 

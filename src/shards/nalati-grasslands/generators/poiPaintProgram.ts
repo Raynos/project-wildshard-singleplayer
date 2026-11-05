@@ -1,5 +1,5 @@
 import type { Board } from './campParams';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import catalogue from '../data/campCatalogue.json' with { type: 'json' };
 import contacts from '../data/poiContacts.json' with { type: 'json' };
 import { bakeModelPaint } from './modelPaint.mjs';

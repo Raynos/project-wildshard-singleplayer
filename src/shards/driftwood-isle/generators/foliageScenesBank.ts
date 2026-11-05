@@ -1,9 +1,9 @@
 import { MeshStandardMaterial } from 'three';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { compactPhoneGlb } from '@wildshard/sdk/bake/compactGlb';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
+import { compactPhoneGlb } from '@wildshard/sharddev/bake/compactGlb';
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
-import { emitNamedBlobs, nameMeshoptBlob, type EmittedBlobs } from '@wildshard/sdk/blobs';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import { emitNamedBlobs, nameMeshoptBlob, type EmittedBlobs } from '@wildshard/sharddev/blobs';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import inventory from '../data/fixedGeometry.json' with { type: 'json' };
 import { decodePalmWorld, decodeHibiscusWorld, decodeReefWorld } from './foliageGeometry';
 import { DRIFT_SPECIMENS } from './driftLogs';

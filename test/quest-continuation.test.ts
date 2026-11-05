@@ -17,7 +17,7 @@ import { publishEntryOwner, entryOwner } from '../src/game/shared/shardfile/entr
 import { installClientPlaceSets, bindClientPlaceSets } from '../src/game/client/shardfile/clientPlaceSets';
 import { installQuestContinuation, installQuestContinuationFile } from '../src/game/client/quest/continuation';
 import { QuestContinuationSchema } from '@wildshard/format/questContinuation';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { parseRows } from '@wildshard/format/rows';
 import { Owned } from '../src/game/shared/loot/Owned';
 import { collectionRows } from '../src/shards/driftwood-isle/generators/collections';

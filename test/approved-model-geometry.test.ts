@@ -5,9 +5,9 @@ import {createHash} from 'node:crypto';
 import {FixedGeometryGroupsSchema as GeometryRoot} from '@wildshard/format/islandLibrary';
 import {FixedPracticeFileSchema as PracticeRoot} from '@wildshard/format/practiceCourseRows';
 import {platformFileFamily,validatePlatformFile} from '@wildshard/format/platformFileFamilies';
-import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
+import {registeredJsonSchema} from '../src/sharddev/formatJsonSchema';
 import {parseFixedPractice} from '../src/shards/nine-dragon-stack/generators/sections';
-import {parseSectionValue} from '../src/sdk/sections';
+import {parseSectionValue} from '../src/sharddev/sections';
 import {FixedGeometryGroupsSchema} from '../src/shards/driftwood-isle/generators/sections';
 import roots from './fixtures/approved-model-geometry-roots.json' with {type:'json'};
 

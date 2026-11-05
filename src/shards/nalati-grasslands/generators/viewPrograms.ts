@@ -1,5 +1,5 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
 
 /** The script compiler / admission revisions a view module is admitted under (the caller's SCRIPT_V2_REVISIONS). */
 export interface NalatiViewRevisions { readonly compiler: 1; readonly admission: 1 }

@@ -3,7 +3,7 @@ import { isJsonData, isJsonDataSteps, jsonDataHeapBytes } from '@wildshard/forma
 import { assertCellBounds, assertCellBoundsSteps } from '@wildshard/format/cellBounds';
 import { preflightShardfile, preflightShardfileSteps } from '@wildshard/format/preflight';
 import { productResidentBytes, productResidentBytesSteps } from '../src/game/client/shardfile/productCost';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 
 // T10: product admission's walks run in steps between drawn frames; each must give exactly its one-shot original's verdict,
 // refusal message and bytes, and must actually pause on a large value.

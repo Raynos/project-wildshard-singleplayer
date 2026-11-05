@@ -1,6 +1,6 @@
 /** Nalati's retained authored stone construction; no runtime bake lookup. */
 import * as THREE from 'three';
-import type { Rng } from '@wildshard/sdk/random';
+import type { Rng } from '@wildshard/sharddev/random';
 import { Noise2D } from './dressingNoise';
 
 /** a smooth lumpy stone: an icosphere (detail 2 = 320 faces, 1 = 80) displaced by seeded noise, squashed. A shard that adds

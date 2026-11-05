@@ -1,4 +1,4 @@
-// The layout's ruled kit is the SDK's (@wildshard/sdk/kit/ruledKit, SHARD-PLATFORM M3, the kit system): this keeps the
+// The layout's ruled kit is the SDK's (@wildshard/sharddev/kit/ruledKit, SHARD-PLATFORM M3, the kit system): this keeps the
 // names the builders use, and the pattern kinds the Jiehua material draws (vPat.x).
 import { EDGE, RuledKit, type RuledLook } from './kit/ruledKit';
 

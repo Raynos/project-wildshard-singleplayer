@@ -8,7 +8,7 @@ import { SkyRig } from '../src/engine/client/world/skyRig';
 import { WorldRegistry } from '../src/engine/client/world/registry';
 import { Rng } from '../src/engine/shared/core/rng';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { installWorldScenes } from '../src/game/client/shardfile/worldScenes';

@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read immutable authored payloads, never a renderer.
 import { readFileSync } from 'node:fs';
-import { readProjectAssets } from '../../../src/sdk/project.ts';
+import { readProjectAssets } from '../../../src/sharddev/project.ts';
 import catalogue from '../../../src/game/shared/grid/singleplayer.json' with { type: 'json' };
 import { createShardfileSim, bindShardfileSim } from '../../../src/game/server/plugin/simulation.ts';
 import { loadRapier } from '../../../src/engine/shared/physics/rapier.ts';

@@ -1,5 +1,5 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { emptyShardfile } from '@wildshard/sdk/author';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { emptyShardfile } from '@wildshard/sharddev/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { nineWorldProduct, nineLayoutWord } from './worldProduct';

@@ -13,7 +13,7 @@ import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import { installWorldScenes } from '../src/game/client/shardfile/worldScenes';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
-import { staticGlb } from '../src/sdk/bake/glb';
+import { staticGlb } from '../src/sharddev/bake/glb';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { DRIFTWOOD as drift } from './fixtures/driftwood-program';
 import { PAGE_STORY as story } from '../src/shards/driftwood-isle/generators/pageStory';

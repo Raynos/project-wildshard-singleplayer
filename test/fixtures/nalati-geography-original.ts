@@ -1,8 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Complete original scalar publication captured before retirement.
 import { readFileSync } from 'node:fs';
 import { hashImmutableBytes } from '../../src/sdk/immutable';
-import { nameBlob, type NamedBlob } from '../../src/sdk/blobs';
-import type { ProjectOutput } from '../../src/sdk/projectOutput';
+import { nameBlob, type NamedBlob } from '../../src/sharddev/blobs';
+import type { ProjectOutput } from '../../src/sharddev/projectOutput';
 import pins from './nalati-geography-files.json' with { type: 'json' };
 
 /** Fresh complete predecessor loans, checked against all fifteen original file pins. */

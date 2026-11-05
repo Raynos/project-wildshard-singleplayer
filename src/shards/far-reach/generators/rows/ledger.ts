@@ -1,4 +1,4 @@
-import { parseLedgerRules } from '@wildshard/sdk/ledger';
+import { parseLedgerRules } from '@wildshard/sharddev/ledger';
 import STRINGS from '../../data/strings.json' with { type: 'json' };
 
 /** Completion witnesses own the profile grants; Sky has no legacy visible title table to replace. */

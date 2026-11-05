@@ -54,7 +54,7 @@ export interface ModelFrame {
  * Fit a loaded model into a frame (turned `pitch` radians about +X first): centred on x / z, its lowest point at `floor` (or
  * its middle at `middle`), scaled so its largest horizontal extent (or its height) is `size` metres. `centre: 'base'`
  * centres it on its footing (the lowest tenth) instead. Moves the geometry in place and returns it. Without `pitch` and
- * `middle` it is the SDK's `fitGeometry` (`@wildshard/sdk/looks/modelLibrary`), which the page uses.
+ * `middle` it is the SDK's `fitGeometry` (`@wildshard/sharddev/looks/modelLibrary`), which the page uses.
  */
 export function fitModel(g: BufferGeometry, o: ModelFrame): BufferGeometry {
   if (o.pitch !== undefined) g.rotateX(o.pitch);

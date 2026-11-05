@@ -8,7 +8,7 @@ import { clientWaterSurfaces, installClientWaterSurfaces } from '../src/game/cli
 import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 
 function deferred<T>() {
   let resolve = (_value: T): void => { throw new Error('Missing deferred resolver'); };

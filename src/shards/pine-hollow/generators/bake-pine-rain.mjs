@@ -2,17 +2,17 @@
 // SHARD-PLATFORM W2 C2: Pine Hollow's rain, the static half, baked offline (generators/rainBake.ts): the crowns' cover map
 // (from explicit native candidates, ground masks and the retained terrain, without selecting or installing a level)
 // and each tier's merged puddle discs over those same terrain samplers. One geometry pack per
-// tier (@wildshard/sdk/kit/geometryPack: the puddles' positions, `aWater` and index, then the cover's floats), its 4-byte words in four lanes and
+// tier (@wildshard/sharddev/kit/geometryPack: the puddles' positions, `aWater` and index, then the cover's floats), its 4-byte words in four lanes and
 // zlib-compressed, to public/assets/pine-hollow/baked/rain[.phone].bin, and the packs' rows to
 // src/shards/pine-hollow/data/rain.json; the page reads them (runtime/looks/rainFx.ts `loadRainBake`). `--check` refuses a
 // stale bake.
 // Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/pine-hollow/generators/bake-pine-rain.mjs [--check]
 import weather from '../data/weatherLook.json' with { type: 'json' };
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { encodeBuildBytes } from '@wildshard/sdk/bake/byteCodec';
-import { GeometryPackWriter } from '@wildshard/sdk/kit/geometryPack';
-import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
-import { bakePlantedForest, nativeTerrainQueries } from '@wildshard/sdk/bake/forest';
+import { encodeBuildBytes } from '@wildshard/sharddev/bake/byteCodec';
+import { GeometryPackWriter } from '@wildshard/sharddev/kit/geometryPack';
+import { readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
+import { bakePlantedForest, nativeTerrainQueries } from '@wildshard/sharddev/bake/forest';
 import manifest from '../manifest.json' with { type: 'json' };
 import terrainBindings from '../data/terrainBindings.json' with { type: 'json' };
 import { pineGeographyRows } from './geographyRows.ts';

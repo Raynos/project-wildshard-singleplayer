@@ -6,8 +6,8 @@
 //
 //   const { Surface, Collider } = bakedColliderSchemas(['wood', 'stone']);
 //   const colliders = v.parse(v.array(Collider), piece.colliders).map(bakedColliderDesc);
-import { sourceColliderSchemas, type SourceColliderSchemas, type SourceCollider } from '@wildshard/sdk/bake/contactRows';
-import type { ContactSurface, ColliderDesc } from '@wildshard/sdk/bake/placement';
+import { sourceColliderSchemas, type SourceColliderSchemas, type SourceCollider } from '@wildshard/sharddev/bake/contactRows';
+import type { ContactSurface, ColliderDesc } from '@wildshard/sharddev/bake/placement';
 
 /** A bake's strict surface picklist and recorded shape grammar. */
 export type BakedColliderSchemas = SourceColliderSchemas;

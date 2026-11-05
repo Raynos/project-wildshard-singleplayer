@@ -1,8 +1,8 @@
 import { BufferGeometry, Float32BufferAttribute, Group, Matrix4, Mesh, MeshStandardMaterial } from 'three';
-import { bakeProps, type BakedProps } from '@wildshard/sdk/bake/props';
-import { coarseCopy } from '@wildshard/sdk/bake/coarseCopy';
-import { compressGlb } from '@wildshard/sdk/bake/glbCompression';
-import { assetCost } from '@wildshard/sdk/assets';
+import { bakeProps, type BakedProps } from '@wildshard/sharddev/bake/props';
+import { coarseCopy } from '@wildshard/sharddev/bake/coarseCopy';
+import { compressGlb } from '@wildshard/sharddev/bake/glbCompression';
+import { assetCost } from '@wildshard/sharddev/assets';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { driftwoodFixedSource } from './fixedSource';
 import { pierCoarse } from './pierCoarse';

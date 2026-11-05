@@ -31,9 +31,9 @@
 import type { WreckSpec, WreckAnchor, HoldBounds } from './wreckContract';
 import * as THREE from 'three';
 import { SEED } from './landscapeRows';
-import { boxDesc, type ColliderDesc, type BoxSpec as Collider, type FloorRect } from '@wildshard/sdk/bake/placement';
-import { bakeLog as log, bakeBeam as beam, bakePlank as plank, bakeRope as rope, bakeSagLine as sagLine, bakeTriangles as tris } from '@wildshard/sdk/bake/primitives';
-import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
+import { boxDesc, type ColliderDesc, type BoxSpec as Collider, type FloorRect } from '@wildshard/sharddev/bake/placement';
+import { bakeLog as log, bakeBeam as beam, bakePlank as plank, bakeRope as rope, bakeSagLine as sagLine, bakeTriangles as tris } from '@wildshard/sharddev/bake/primitives';
+import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sharddev/bake/facetedGeometry';
 import { bakeLight, type BakedLight } from './lowpolyPlants';
 import { addBarrel, addCoil, addCrate } from './cargo';
 

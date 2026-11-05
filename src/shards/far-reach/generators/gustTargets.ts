@@ -1,4 +1,4 @@
-import { worldTargetRows as parseWorldTargets } from '@wildshard/sdk/worldScenes';
+import { worldTargetRows as parseWorldTargets } from '@wildshard/sharddev/worldScenes';
 import { FAN_GUST, FAN_ID } from './rows/items';
 import { VANES } from "./layout";
 import { SKY_ACTIONS } from './questGraph';

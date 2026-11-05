@@ -4,9 +4,9 @@ import { Scope } from '../src/engine/shared/app/scope';
 import { Rng } from '../src/engine/shared/core/rng';
 import { GroupStepV2 } from '../src/engine/shared/script/groupStepV2';
 import { parseGroupStepV2, groupStepLayoutV2, GroupStepV2Schema } from '@wildshard/format/scriptGroupStepV2';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
-import { v2CoreSource } from '../src/sdk/as/wsV2';
-import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
+import { compileScriptV2 } from '../src/sharddev/bake/compileScriptV2';
+import { v2CoreSource } from '../src/sharddev/as/wsV2';
+import { namedJsonSchema } from '../src/sharddev/formatJsonSchema';
 import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 
 const rows = parseGroupStepV2({ bank: ['firstA','secondA','firstB','secondB'].map(name => ({name,kind:'number'})),

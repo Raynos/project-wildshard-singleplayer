@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { defineSpecimenCatalogue, nameSpecimenBook } from '../src/sdk/bake/specimenCatalogue';
+import { defineSpecimenCatalogue, nameSpecimenBook } from '../src/sharddev/bake/specimenCatalogue';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { GEAR_BOOK, bow, arrow, sabre, spear, javelin, goldenBow, naizagai, ar15 } from '../src/shards/nalati-grasslands/generators/gear';
 import original from '../src/shards/nalati-grasslands/data/gear.json' with { type: 'json' };

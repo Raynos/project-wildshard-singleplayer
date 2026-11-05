@@ -1,6 +1,6 @@
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { assetCost } from '@wildshard/sdk/assets';
-import type { AuthorGraph as GraphIr } from '@wildshard/sdk/bake/materialGraph';
+import { assetCost } from '@wildshard/sharddev/assets';
+import type { AuthorGraph as GraphIr } from '@wildshard/sharddev/bake/materialGraph';
 import { kindGraph } from './architectureGraphs';
 import { KIT_KINDS } from './kitKinds';
 

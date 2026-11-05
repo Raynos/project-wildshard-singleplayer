@@ -1,4 +1,4 @@
-import type { AuthorGraph as GraphIr, AuthorGraphRef as GraphRef, AuthorGraphStages as GraphStages } from '@wildshard/sdk/bake/materialGraph';
+import type { AuthorGraph as GraphIr, AuthorGraphRef as GraphRef, AuthorGraphStages as GraphStages } from '@wildshard/sharddev/bake/materialGraph';
 import { LookGraph } from './lookGraph';
 import { CROWD_LIGHT_DYE } from './crowdPalette';
 import SHARED from '../data/sharedUniforms.json' with { type: 'json' };

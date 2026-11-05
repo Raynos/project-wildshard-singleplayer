@@ -1,6 +1,6 @@
 import { Euler, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3, type BufferGeometry } from 'three';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
+import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sharddev/kit/geometryPack';
 import { facetedGeometry, fitModel } from './modelIntake';
 import { FALLEN_BRIDGE, SPANS, ROPE_SAG, type Span } from "./layout";
 import { bridgeSine } from './bridgeSine';
@@ -10,7 +10,7 @@ import { MODEL_URLS } from './fileInventory';
 
 /**
  * Build-time only (SHARD-PLATFORM M3, offline bakes): Sky Reach's rope bridges, baked by `scripts/bake-sky-world.mjs` into
- * `baked/bridges.bin` (a deflated `@wildshard/sdk/kit/geometryPack`) + `data/bridges.json`; the client (world/shapes.ts
+ * `baked/bridges.bin` (a deflated `@wildshard/sharddev/kit/geometryPack`) + `data/bridges.json`; the client (world/shapes.ts
  * `ropeBridge`) draws each span from its record in its own materials. Every rope span is baked as the page built it: the
  * generated deck segment (Hunyuan3D-2, `art/far-reach/round-9-bridge/`) fitted and greyed once, stretched per span and laid
  * along the rope sag; the textured anchor posts' places at the four corners; the hand ropes' control points; the ties'.

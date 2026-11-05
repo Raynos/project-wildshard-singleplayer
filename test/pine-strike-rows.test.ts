@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { StrikeContext, StrikeSpec } from '../src/engine/shared/ai/strikes';
 import { PINE_LANES as lanes, PINE_STRIKES as contacts } from '../src/shards/pine-hollow/generators/strikes';
 import { strikeFromData } from '../src/engine/shared/ai/strikeRows';
-import { strike } from '../src/sdk/species';
+import { strike } from '../src/sharddev/species';
 
 const PINE_LANES = Object.fromEntries(Object.entries(lanes).map(([key, row]) => [key, strikeFromData(strike(row))]));
 const PINE_STRIKES = Object.fromEntries(Object.entries(contacts).map(([key, row]) => [key, strikeFromData(strike(row))]));

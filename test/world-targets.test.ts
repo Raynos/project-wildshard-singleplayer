@@ -9,11 +9,11 @@ import { ContactFamily, type ContactMoveRow, type WeaponContactMove } from '../s
 import { WorldTargetHost } from '../src/game/shared/shardfile/worldTargets';
 import { parseWorldTargets, worldTargetSpots, worldTargetRules } from '@wildshard/format/worldTargets';
 import { buildDecisionRegistries } from '@wildshard/format/decisionBindings';
-import { emptyShardfile } from '../src/sdk/author';
-import { emitPlatformSections } from '../src/sdk/platformSections';
+import { emptyShardfile } from '../src/sharddev/author';
+import { emitPlatformSections } from '../src/sharddev/platformSections';
 import { parsePlatformDataSection } from '@wildshard/format/platformDataSections';
 import { headlessSections } from '../src/sdk/headlessSections';
-import { writeOutputProduct, validateOutputProduct } from '../src/sdk/outputProduct';
+import { writeOutputProduct, validateOutputProduct } from '../src/sharddev/outputProduct';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { FAN_CONTACTS } from '../src/shards/far-reach/generators/rows/fanContacts';
 import { WHIP_CONTACT_MOVES } from '../src/shards/sunscar-dunes/generators/rows/whipContacts';

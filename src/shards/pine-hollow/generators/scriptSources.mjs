@@ -1,6 +1,6 @@
 // GR8 G37: Pine's sources for a Node script, read and baked exactly as the program reads them (readPineSources over the
 // SDK's generation context and its shared cache): the timber world is the program's, so a script cannot read it from disk.
-import { createProjectGeneration } from '@wildshard/sdk/projectGeneration';
+import { createProjectGeneration } from '@wildshard/sharddev/projectGeneration';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { readPineSources } from './programSources.ts';
 

@@ -4,7 +4,7 @@ import { Vector3 } from 'three';
 import { AnimalSim } from '../src/engine/server/entities/AnimalSim';
 import { createMemoryActionBrain, type MemoryActionRows } from '../src/game/server/plugin/brain';
 import { bindPerchBody, PerchBodyBinding, type PerchBodyPorts } from '../src/game/server/population/perchBody';
-import { speciesBrains } from '../src/sdk/speciesBrains';
+import { speciesBrains } from '../src/sharddev/speciesBrains';
 import { Scope } from '../src/engine/shared/app/scope';
 import { DRIFTWOOD_ENEMY_PROGRAM } from '../src/shards/driftwood-isle/generators/speciesPrograms';
 import { RETURN_PROGRAM } from './fixtures/driftwood-guest-programs';

@@ -1,4 +1,4 @@
-import { bakeProps, type BakedProps } from '@wildshard/sdk/bake/props';
+import { bakeProps, type BakedProps } from '@wildshard/sharddev/bake/props';
 import { encodeCanonicalJson as canonicalJson } from '@wildshard/sdk/immutable';
 import { inkProps } from './props';
 import { inkTerrain } from './terrain';

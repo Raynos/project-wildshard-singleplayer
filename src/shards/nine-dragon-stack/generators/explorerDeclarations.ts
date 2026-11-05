@@ -1,4 +1,4 @@
-import { worldSceneWeldRows } from '@wildshard/sdk/worldScenes';
+import { worldSceneWeldRows } from '@wildshard/sharddev/worldScenes';
 import type { NineWorldScenes } from './worldScenes';
 import primary from '../data/heldPrimary.json' with { type: 'json' };
 

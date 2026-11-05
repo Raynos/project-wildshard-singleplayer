@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { decorativeRows } from '../src/shards/nalati-grasslands/generators/decorativeInput';
 import { decorativeRowsOnGround } from '../src/shards/nalati-grasslands/generators/decorative';
-import { readNativeTerrain } from '../src/sdk/bake/terrain';
+import { readNativeTerrain } from '../src/sharddev/bake/terrain';
 import { withPortableMath } from '../src/commons/bake/portableMath';
 import { jsonBytes } from '../scripts/bake-output.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';

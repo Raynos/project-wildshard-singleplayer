@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
+import { compileDecisionScripts } from '../src/sharddev/buildDecisionScripts';
 import { decisionScriptContract, parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { decisionBindingMap } from '@wildshard/format/decisionBindings';
 import { DecisionHost, type DecisionScript } from '../src/engine/server/script/decision';

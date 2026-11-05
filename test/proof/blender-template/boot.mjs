@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the immutable platform physics binary.
 import { readFileSync } from 'node:fs';
-import { readProjectAssets } from '../../../src/sdk/project.ts';
+import { readProjectAssets } from '../../../src/sharddev/project.ts';
 import { loadRapier } from '../../../src/engine/shared/physics/rapier.ts';
 import { createShardfileSim } from '../../../src/game/server/plugin/simulation.ts';
 import { leadCommands, leadPlayer } from '../../../src/engine/shared/sim/leadPlayer.ts';

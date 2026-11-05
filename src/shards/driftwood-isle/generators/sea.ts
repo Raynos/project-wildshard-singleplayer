@@ -1,4 +1,4 @@
-import { roadSocketMetrics } from '@wildshard/sdk/entries';
+import { roadSocketMetrics } from '@wildshard/sharddev/entries';
 import { ENTRY_ROWS as authoredEntryRows } from './entryRows';
 
 const { asphalt: ENTRY_ASPHALT } = roadSocketMetrics();

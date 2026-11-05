@@ -4,11 +4,11 @@ import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node
 import { resolve } from 'node:path';
 import { afterEach, expect, test, vi } from 'vitest';
 import { createBuildCacheCounters, observeBuildCache, buildCacheReportReader, formatBuildCacheReport, BUILD_CACHE_REPORT_PREFIX } from '../scripts/build-cache-report.mjs';
-import { reportBuildCache } from '../src/sdk/buildCacheMetrics';
-import { encodeZstdBytesMemo } from '../src/sdk/bake/zstdBytesMemo';
-import { memoAssemblyScript } from '../src/sdk/bake/assemblyscriptMemo';
-import { createProjectGeneration } from '../src/sdk/projectGeneration';
-import * as compiler from '../src/sdk/projectCompilerIdentity';
+import { reportBuildCache } from '../src/sharddev/buildCacheMetrics';
+import { encodeZstdBytesMemo } from '../src/sharddev/bake/zstdBytesMemo';
+import { memoAssemblyScript } from '../src/sharddev/bake/assemblyscriptMemo';
+import { createProjectGeneration } from '../src/sharddev/projectGeneration';
+import * as compiler from '../src/sharddev/projectCompilerIdentity';
 
 const owned:string[]=[];
 afterEach(()=>{vi.restoreAllMocks();vi.unstubAllEnvs();for(const root of owned.splice(0))rmSync(root,{recursive:true,force:true});});

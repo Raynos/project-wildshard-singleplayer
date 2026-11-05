@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Rng } from '@wildshard/sdk/random';
+import { Rng } from '@wildshard/sharddev/random';
 import { BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL, N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, CAMP_SPUR } from './layout';
 
 const inChunk=(x:number,z:number,margin:number):boolean=>Math.abs(x)<250-margin&&Math.abs(z)<250-margin;

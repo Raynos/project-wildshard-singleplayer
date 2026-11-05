@@ -1,8 +1,8 @@
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { parseGlb } from '@wildshard/sdk/assets';
+import { parseGlb } from '@wildshard/sharddev/assets';
 import { CAST_NAMES } from './castSources';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { rasterSceneMap } from '@wildshard/sdk/bake/groundMap';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { rasterSceneMap } from '@wildshard/sharddev/bake/groundMap';
 import { nineCastFiles } from './castsProgram';
 import { nineMapAssemblyFrom } from './mapAssemblySource';
 import { admitNativeSignAtlas } from './nativeSignAtlas';

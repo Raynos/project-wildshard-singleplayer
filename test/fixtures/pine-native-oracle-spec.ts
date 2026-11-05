@@ -4,7 +4,7 @@ import type { NativeProgramSpec } from './native-program';
  * independent typed comparison. Neither caller may narrow its input inventory. */
 const PINE_NATIVE_ORACLE: NativeProgramSpec = {
   id: 'pine-native-oracle', script: 'test/fixtures/pine-native-oracle.mjs',
-  inputs: ['src/engine', 'src/game', 'src/sdk', 'src/commons',
+  inputs: ['src/engine', 'src/game', 'src/sdk', 'src/sharddev', 'src/commons',
     'src/shards/pine-hollow', 'test/fixtures', 'package.json', 'pnpm-lock.yaml',
     'scripts/native-recorder-cache.mjs', 'scripts/bake-input-hashes.mjs'],
   transformTypes: true, loader: 'simulation',

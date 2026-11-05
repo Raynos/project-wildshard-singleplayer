@@ -1,5 +1,5 @@
 
-import { questHostRows as parseQuestHost } from '@wildshard/sdk/quests';
+import { questHostRows as parseQuestHost } from '@wildshard/sharddev/quests';
 import { pineTableFromPlacements } from './questTable';
 import { PINE_GRAPH, pineQuestRows } from './questGraph';
 import { pineSpots } from './spots';

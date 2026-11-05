@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import * as THREE from 'three';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
 import { bakeModelPaint } from '../src/shards/nalati-grasslands/generators/modelPaint.mjs';
 import { fitRock } from '../src/shards/nalati-grasslands/generators/fittedRock.ts';
 import { hullCandidates, hullAt } from '../src/shards/nalati-grasslands/generators/solid.ts';

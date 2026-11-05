@@ -19,7 +19,7 @@ import { installClientMoverOwners } from '../src/game/client/shardfile/clientMov
 import { publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { parseMovers } from '@wildshard/format/movers';
 import { validateGraph } from '@wildshard/format/materialGraph';
 import { lendLooks, type LentLooks } from '../src/game/client/shardfile/lentLooks';

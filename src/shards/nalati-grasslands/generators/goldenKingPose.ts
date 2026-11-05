@@ -1,6 +1,6 @@
 import speciesFrameRows from '../data/speciesRows.json' with {type:'json'};
-import { creaturePoseRows, creatureSurfaceFrame, numericChannelPrograms, type ClientChannels, type NumericChannelOutput } from '@wildshard/sdk/clientChannels';
-import type { ClipChannel, ClipFactor, ClipTerm, ClipWhen } from '@wildshard/sdk/species/clips';
+import { creaturePoseRows, creatureSurfaceFrame, numericChannelPrograms, type ClientChannels, type NumericChannelOutput } from '@wildshard/sharddev/clientChannels';
+import type { ClipChannel, ClipFactor, ClipTerm, ClipWhen } from '@wildshard/sharddev/species/clips';
 
 // Ordered scalar rows retain the original procedural pose's arithmetic. The
 // page supplies only frame observations, floor smoothing and look angles.

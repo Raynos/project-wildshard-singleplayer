@@ -1,6 +1,6 @@
 /**
  * G639 frame floor: a KTX2 whose levels are raw texels (a GPU or plain format, not Basis) zstd-supercompressed
- * (scheme 2: the SDK's byte-exact RGBA8 / R8 bakes, sdk/bake/texture.ts) is decoded by three's KTX2Loader on the page's
+ * (scheme 2: the SDK's byte-exact RGBA8 / R8 bakes, sharddev/bake/texture.ts) is decoded by three's KTX2Loader on the page's
  * thread (`createRawTexture` → zstddec, ~100 ms of one Nalati drive frame at phone 4x). `unsupercompressKtx2` decodes its
  * levels in one page-owned worker first and hands three the same file with those levels stored plain (scheme 0), so its
  * parse only copies them. Anything else (Basis, no supercompression, a failed worker) passes through unchanged: three then

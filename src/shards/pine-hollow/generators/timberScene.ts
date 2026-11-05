@@ -1,7 +1,7 @@
 /** Pine's retained timber builders, expressed as real world meshes in one author Scene. */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { WholeShape } from '@wildshard/sdk/bake';
+import { WholeShape } from '@wildshard/sharddev/bake';
 import type { TimberBuilder } from './timberKit';
 import { TimberRecorder } from './timberBake';
 import { bakeFireLookout } from './fireLookout';

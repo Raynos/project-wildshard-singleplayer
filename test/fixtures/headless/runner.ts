@@ -1,6 +1,6 @@
 import { TickWorkerHost, HeadlessDeadlineError } from '../../../src/sdk/tickWorkerHost';
 import { HeadlessSimulation, validateSimulation } from '../../../src/sdk/headless';
-import { emptyShardfile } from '../../../src/sdk/author';
+import { emptyShardfile } from '../../../src/sharddev/author';
 import { numericScriptEntityId } from '../../../src/game/server/plugin/simulation';
 // oxlint-disable-next-line import/no-nodejs-modules -- Hash admitted worker fixture bytes without loading author build tooling.
 import { createHash } from 'node:crypto';

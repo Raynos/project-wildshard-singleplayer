@@ -7,7 +7,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
 import { Scope } from '../src/engine/shared/app/scope';
 import type { Renderer } from '../src/engine/client/render/renderer';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { clientMaterials } from '../src/game/client/shardfile/clientMaterials';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

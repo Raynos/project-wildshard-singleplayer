@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { nameBlob, type NamedBlob } from '../../src/sdk/blobs';
+import { nameBlob, type NamedBlob } from '../../src/sharddev/blobs';
 import { encodeCanonicalJson, hashImmutableBytes } from '../../src/sdk/immutable';
 import { SceneDressingSchema, type SceneDressingRows } from '@wildshard/format/sceneDressing';
 import pins from './nalati-cover-files.json' with { type: 'json' };

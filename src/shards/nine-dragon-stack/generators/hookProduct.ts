@@ -1,6 +1,6 @@
 import { Color, Mesh, MeshStandardMaterial, type Object3D, type Side } from 'three';
-import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
+import { readSourceModel } from '@wildshard/sharddev/bake/skinned';
+import { staticGlb } from '@wildshard/sharddev/bake/glb';
 import { hookGeometry } from './hookGeometry';
 import rows from '../data/hookSpecimen.json' with { type: 'json' };
 

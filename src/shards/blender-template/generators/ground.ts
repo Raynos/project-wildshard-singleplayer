@@ -2,8 +2,8 @@
 // AO and sun-bounce lightmaps, in the `ground` look. world.glb keeps the same ground as collision, edge and far-proxy
 // ground only (`undrawn` in shard.config.ts). The build program returns this output (`generate`, shard.config.ts); the CLI
 // reads the declared blobs and this module opens no file.
-import { emitPlatformSections } from '@wildshard/sdk/platformSections';
-import type { ProjectOutput } from '@wildshard/sdk/projectOutput';
+import { emitPlatformSections } from '@wildshard/sharddev/platformSections';
+import type { ProjectOutput } from '@wildshard/sharddev/projectOutput';
 
 type SectionName = Parameters<typeof emitPlatformSections>[0] extends ReadonlyMap<infer Name, unknown> ? Name : never;
 const lightmap = (param: string, file: string) => ({ param, source: { phone: { file }, desktop: { file } }, channel: 0, anisotropy: 4 } as const);

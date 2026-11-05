@@ -3,7 +3,7 @@ import type * as THREE from 'three';
 import { vec3 } from 'three/tsl';
 import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
 import { ToonLook } from '../src/engine/client/render/families/toon';
-import { graph as authorGraph } from '../src/sdk/materials';
+import { graph as authorGraph } from '../src/sharddev/materials';
 import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 
 /** a toon graph's classic program: its sources and the uniform objects it reads */

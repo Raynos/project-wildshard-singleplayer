@@ -1,4 +1,4 @@
-import type { AuthorRiggedHullBook as RiggedHullBook, AuthorRiggedHullUrls as RiggedHullUrls } from '@wildshard/sdk/bake/skinned';
+import type { AuthorRiggedHullBook as RiggedHullBook, AuthorRiggedHullUrls as RiggedHullUrls } from '@wildshard/sharddev/bake/skinned';
 import coatPages from './bake-nalati-coats.json' with { type: 'json' };
 import rows from '../data/creatureRigs.json' with { type: 'json' };
 import { nalatiBootAssets } from './bootFiles';

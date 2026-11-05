@@ -1,4 +1,4 @@
-import {registeredJsonSchema,namedJsonSchema} from '../src/sdk/formatJsonSchema';
+import {registeredJsonSchema,namedJsonSchema} from '../src/sharddev/formatJsonSchema';
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Group, Mesh, MeshStandardMaterial, Points } from 'three';
@@ -7,8 +7,8 @@ import { WorldRegistry } from '../src/engine/client/world/registry';
 import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { parseWorldScene, WorldSceneSchema } from '@wildshard/format/clientChannels';
-import { emptyShardfile } from '../src/sdk/author';
-import { nameBlob, emitNamedBlobs } from '../src/sdk/blobs';
+import { emptyShardfile } from '../src/sharddev/author';
+import { nameBlob, emitNamedBlobs } from '../src/sharddev/blobs';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import { ProductFigureCatalogue } from '../src/game/client/models/figureCatalogue';

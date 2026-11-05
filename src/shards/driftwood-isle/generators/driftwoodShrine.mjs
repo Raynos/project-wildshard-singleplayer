@@ -1,4 +1,4 @@
-import { withFacetedAO } from '@wildshard/sdk/bake/facetedGeometry';
+import { withFacetedAO } from '@wildshard/sharddev/bake/facetedGeometry';
 import { ShrineBuilder } from './shrine.ts';
 import { driftwoodGroundSampler } from './groundSampling.ts';
 import SHRINE_SITES from '../data/shrineSites.json' with { type: 'json' };

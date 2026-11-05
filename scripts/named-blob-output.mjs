@@ -1,10 +1,10 @@
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
-import { nameBlobBytes } from '@wildshard/sdk/blobBytes';
-import { validateNamedJson } from '@wildshard/sdk/schemaValidation';
+import { nameBlobBytes } from '@wildshard/sharddev/blobBytes';
+import { validateNamedJson } from '@wildshard/sharddev/schemaValidation';
 import { byteWriter } from './bake-output.mjs';
 
-const requireSchema = createRequire(new URL('../src/sdk/package.json', import.meta.url));
+const requireSchema = createRequire(new URL('../src/sharddev/package.json', import.meta.url));
 /** @param {Uint8Array} schemaBytes @param {Uint8Array} bytes */
 function validateJson(schemaBytes, bytes) {
   const Ajv = /** @type {Parameters<typeof validateNamedJson>[2]} */ (requireSchema('ajv'));
@@ -19,7 +19,7 @@ function validateJson(schemaBytes, bytes) {
 export function namedBlobOutput(project, label, directory = 'assets') {
   if (!/^assets(?:\/[A-Za-z0-9_-]+)*$/u.test(directory) || directory.length > 120) throw new Error('Invalid blob source directory');
   const writer = byteWriter(process.argv.includes('--check'), label);
-  /** @type {Map<string,NonNullable<import('../src/sdk/projectOutput').ProjectOutput['blobs']>[number]>} */
+  /** @type {Map<string,NonNullable<import('../src/sharddev/projectOutput').ProjectOutput['blobs']>[number]>} */
   const rows = new Map();
   /** @type {Map<string,string>} */
   const aliases = new Map();

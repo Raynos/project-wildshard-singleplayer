@@ -6,7 +6,7 @@
  * stale gate. Each shape's stream is the level seed's (1337, the page's engine SEED while the floor builds) + 606 / 607 / 608.
  */
 import * as THREE from 'three';
-import { BakedPiece } from '@wildshard/sdk/bake';
+import { BakedPiece } from '@wildshard/sharddev/bake';
 import { PineSeedStream as Rng } from './seedStream';
 
 /** Original Float32-exact shape channels, retained beside the standard GLB for the native field. */

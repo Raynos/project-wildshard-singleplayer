@@ -6,8 +6,8 @@
 import type * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { mergeVerticesByPos } from './smoothGeometry';
-import { Noise2D } from '@wildshard/sdk/noise';
-import { bakeCachedGeometry as bakedGeometry } from '@wildshard/sdk/bake/facetedGeometry';
+import { Noise2D } from '@wildshard/sharddev/noise';
+import { bakeCachedGeometry as bakedGeometry } from '@wildshard/sharddev/bake/facetedGeometry';
 
 export function graniteBlock(w: number, h: number, d: number, seed: number, rough = 0.18, segs = 3): THREE.BufferGeometry {
   // built at `wildshard build` time and read back at load (SF67: src/engine/client/world/geometryBake.ts, scripts/bake-geometry.mjs);

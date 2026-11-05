@@ -1,6 +1,6 @@
 /** The real crag-face skin shapes, in their native world coordinates and view profiles, through one author Scene. */
 import * as THREE from 'three';
-import { BakedPiece } from '@wildshard/sdk/bake';
+import { BakedPiece } from '@wildshard/sharddev/bake';
 import type { SkinBake } from './crags';
 import type { CragTier } from './cragRows';
 import { skinGeometry } from './cragCodec';

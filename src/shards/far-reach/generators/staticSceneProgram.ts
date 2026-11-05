@@ -1,4 +1,4 @@
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import { skyStaticSceneBytes } from './staticScene';
 import { WORLD_PLACEMENT_INPUTS } from './worldPlacementBytes';
 import { MILL_SCENE_INPUTS } from './millSceneProgram';

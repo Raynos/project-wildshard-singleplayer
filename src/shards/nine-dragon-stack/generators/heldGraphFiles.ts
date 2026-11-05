@@ -1,6 +1,6 @@
 import type { NineHeldProfile } from './heldProfile';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import { assetCost } from '@wildshard/sdk/assets';
+import { assetCost } from '@wildshard/sharddev/assets';
 import { viewmodelGraphs } from './viewmodelGraphs';
 
 interface HeldFile extends ReturnType<typeof assetCost> {

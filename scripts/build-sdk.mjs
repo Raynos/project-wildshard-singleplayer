@@ -14,13 +14,14 @@ assertHeavyLease('build');
 const root = resolve(import.meta.dirname, '..');
 process.chdir(root);
 execFileSync('node', ['scripts/gen.mjs', '--inputs-only'], { cwd: root, stdio: 'inherit' });
-const sdk = JSON.parse(readFileSync(resolve(root, 'src/sdk/package.json'), 'utf8'));
-const modules = Object.entries(sdk.exports).map(([specifier, target]) => {
+// P1-F4: the package is @wildshard/sharddev; the host stays @wildshard/sdk until P3 and ships bundled inside it.
+const layers = ['sharddev', 'sdk'].map(layer => ({ layer, manifest: JSON.parse(readFileSync(resolve(root, `src/${layer}/package.json`), 'utf8')) }));
+const modules = layers.flatMap(({ layer, manifest }) => Object.entries(manifest.exports).map(([specifier, target]) => {
   if (!specifier.startsWith('./') || typeof target !== 'string' || !target.endsWith('.ts')) throw new Error('SDK workspace exports must name defining TypeScript modules');
-  return { name: specifier.slice(2), source: resolve(root, 'src/sdk', target), declaration: target.slice(2, -3) };
-});
-await build({ configFile: false, publicDir: false, resolve: { alias: rapierAlias }, logLevel: 'warn', define: { __SHARDFILE_VALIDATOR__: JSON.stringify(shardfileValidationRevision(root)) }, build: { outDir: resolve(root, 'src/sdk', 'dist') /* build output, git-ignored: check-paths only checks committed paths */, emptyOutDir: true, minify: false, lib: {
-  entry: Object.fromEntries([...modules.map(({ name, source }) => [name, source]), ['cli', resolve(root, 'src/sdk/cli.ts')], ['headlessWorker', resolve(root, 'src/sdk/bake/headlessWorker.ts')]]), formats: ['es'], fileName: (_format, name) => `${name}.js`,
+  return { layer, name: specifier.slice(2), source: resolve(root, `src/${layer}`, target), declaration: target.slice(2, -3) };
+}));
+await build({ configFile: false, publicDir: false, resolve: { alias: rapierAlias }, logLevel: 'warn', define: { __SHARDFILE_VALIDATOR__: JSON.stringify(shardfileValidationRevision(root)) }, build: { outDir: resolve(root, 'src/sharddev', 'dist') /* build output, git-ignored: check-paths only checks committed paths */, emptyOutDir: true, minify: false, lib: {
+  entry: Object.fromEntries([...modules.map(({ name, source }) => [name, source]), ['cli', resolve(root, 'src/sharddev/cli.ts')], ['headlessWorker', resolve(root, 'src/sdk/bake/headlessWorker.ts')]]), formats: ['es'], fileName: (_format, name) => `${name}.js`,
 }, rolldownOptions: { platform: 'node', external: SDK_EXTERNALS } } });
 
 // Ship declarations without requiring the repository's internal workspace packages.
@@ -39,17 +40,17 @@ function declaration(layer, module) {
   if (seen.has(key)) return;
   seen.add(key);
   const source = resolve(root, `.tsc-layers/${layer}/src/${layer}/${module}.d.ts`);
-  const output = resolve(root, `src/sdk/dist/types/${key}.d.ts`);
+  const output = resolve(root, `src/sharddev/dist/types/${key}.d.ts`);
   // Ambient defining leaves are compiler inputs, so tsc does not emit a second copy of them.
   let text = readFileSync(existsSync(source) ? source : resolve(root, `src/${layer}/${module}.d.ts`), 'utf8');
   // Relative import declarations are illegal inside ambient modules; the equivalent type query remains portable.
   if (key === 'engine/client/types/n8ao') text = text.replace("import type { Renderer } from '@wildshard/engine/render/renderer';", "type Renderer = import('@wildshard/engine/render/renderer').Renderer;");
   // @wildshard/format stays a package import: the SDK depends on the shardfile repo's own files.
-  text = text.replaceAll(/(['"])@wildshard\/(engine|game|sdk)\/([^'"]+)\1/gu, (_match, quote, dependencyLayer, specifier) => {
+  text = text.replaceAll(/(['"])@wildshard\/(engine|game|sdk|sharddev)\/([^'"]+)\1/gu, (_match, quote, dependencyLayer, specifier) => {
     const dependency = defining(dependencyLayer, specifier);
     declaration(dependencyLayer, dependency);
-    const from = resolve(root, `src/sdk/dist/types/${layer}`, module, '..');
-    const to = resolve(root, `src/sdk/dist/types/${dependencyLayer}/${dependency}`);
+    const from = resolve(root, `src/sharddev/dist/types/${layer}`, module, '..');
+    const to = resolve(root, `src/sharddev/dist/types/${dependencyLayer}/${dependency}`);
     // Public declarations may only refer to packaged files or third-party dependencies.
     return `${quote}${relative(from, to).replaceAll('\\', '/')}${quote}`;
   });
@@ -63,26 +64,31 @@ function declaration(layer, module) {
   if (/from\s*['"]n8ao['"]/u.test(text)) {
     declaration('engine', 'types/n8ao');
     // declaration() above generates this packaged output; only src/sdk is a committed input path.
-    const vendor = relative(resolve(output, '..'), resolve(root, 'src/sdk', 'dist', 'types/engine/types/n8ao.d.ts')).replaceAll('\\', '/');
+    const vendor = relative(resolve(output, '..'), resolve(root, 'src/sharddev', 'dist', 'types/engine/types/n8ao.d.ts')).replaceAll('\\', '/');
     text = `/// <reference path="${vendor}" />\n${text}`;
   }
   mkdirSync(resolve(output, '..'), { recursive: true }); writeFileSync(output, text);
 }
-for (const module of modules) declaration('sdk', module.declaration);
+for (const module of modules) declaration(module.layer, module.declaration);
 
 // Both clients use the normal Game bundle. Author dev is a separate compiled mode, never enabled by requests. They build
 // through the app build script, as every app build does (its generators, tables, boot bank and worker, D24), with the
 // repo's config minus the public/ copy; the hidden source maps its checks read do not ship.
 for (const [mode, folder] of [['production', 'client'], ['devserver', 'client-devserver']]) {
-  const outDir = resolve(root, `src/sdk/dist/${folder}`), config = resolve(root, 'tmp', `sdk-${folder}.vite.mjs`);
+  const outDir = resolve(root, `src/sharddev/dist/${folder}`), config = resolve(root, 'tmp', `sdk-${folder}.vite.mjs`);
   mkdirSync(resolve(root, 'tmp'), { recursive: true });
   writeFileSync(config, `import { mergeConfig } from 'vite';\nimport base from ${JSON.stringify(resolve(root, 'vite.config.ts'))};\n`
     + `export default async env => mergeConfig(typeof base === 'function' ? await base(env) : base, { build: { copyPublicDir: false } });\n`);
   execFileSync(process.execPath, ['scripts/build-app.mjs', '--mode', mode, '--config', config, '--outDir', outDir, '--emptyOutDir'], { cwd: root, stdio: 'inherit' });
   rmSync(config, { force: true });
   for (const entry of readdirSync(outDir, { recursive: true, withFileTypes: true })) if (entry.isFile() && entry.name.endsWith('.map')) rmSync(join(entry.parentPath, entry.name));
-  for (const entry of ['fonts', 'favicon.png', 'apple-touch-icon.png', 'manifest.webmanifest', 'basis/r186', 'assets/physics', 'assets/sfx/best', 'assets/music/piano', 'assets/music/orchestral', 'assets/music/folk']) cpSync(resolve(root, 'public', entry), resolve(root, `src/sdk/dist/${folder}`, entry), { recursive: true });
+  for (const entry of ['fonts', 'favicon.png', 'apple-touch-icon.png', 'manifest.webmanifest', 'basis/r186', 'assets/physics', 'assets/sfx/best', 'assets/music/piano', 'assets/music/orchestral', 'assets/music/folk']) cpSync(resolve(root, 'public', entry), resolve(root, `src/sharddev/dist/${folder}`, entry), { recursive: true });
 }
 
 // Ship retained readable author inputs, not one-time baked outputs or workspace symlinks.
-cpSync(resolve(root, 'scripts/docs/author-project'), resolve(root, 'src/sdk', 'dist', 'author-template'), { recursive: true });
+cpSync(resolve(root, 'scripts/docs/author-project'), resolve(root, 'src/sharddev', 'dist', 'author-template'), { recursive: true });
+// The host ships bundled in this package until P3, so a packed project names one package.
+for (const name of readdirSync(resolve(root, 'src/sharddev/dist/author-template'), { recursive: true, encoding: 'utf8' })) {
+  const file = resolve(root, 'src/sharddev/dist/author-template', name);
+  if (/\.(?:ts|mjs)$/u.test(name)) writeFileSync(file, readFileSync(file, 'utf8').replaceAll('@wildshard/sdk/', '@wildshard/sharddev/'));
+}

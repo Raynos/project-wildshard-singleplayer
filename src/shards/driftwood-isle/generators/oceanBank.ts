@@ -1,4 +1,4 @@
-import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
+import { readNativeTerrain } from '@wildshard/sharddev/bake/terrain';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import publicInputs from '../data/publicInputs.json' with { type: 'json' };
 import { OCEAN } from './worldSites';

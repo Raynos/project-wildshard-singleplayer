@@ -1,8 +1,8 @@
-import { compactPhoneGlb, compactClearGlb, nameCompactBlobs } from '@wildshard/sdk/bake/compactGlb';
+import { compactPhoneGlb, compactClearGlb, nameCompactBlobs } from '@wildshard/sharddev/bake/compactGlb';
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
 import type { Shardfile } from '@wildshard/sdk/shardfile';
-import { nameBlob, type NamedBlob } from '@wildshard/sdk/blobs';
+import { nameBlob, type NamedBlob } from '@wildshard/sharddev/blobs';
 
 function owned(input: Uint8Array): Uint8Array {
   if (!(input instanceof Uint8Array) || input.byteLength > 256_000_000) throw new Error('Invalid Pine phone geometry input');

@@ -17,7 +17,7 @@ import { BagMenu } from '../src/game/client/bag/tabs';
 import { Inventory } from '../src/game/client/Inventory';
 import { Progress } from '../src/game/client/Progress';
 import { declaredCompendium } from '../src/game/shared/shard/declaredRows';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { pineJournal } from '../src/shards/pine-hollow/generators/journal';
 import { pineGeneration } from './fixtures/pine-generation';
 import { installCatalogueFixture } from './fixtures/bootSetup';

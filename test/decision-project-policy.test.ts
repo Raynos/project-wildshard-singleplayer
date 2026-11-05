@@ -3,11 +3,11 @@ import { afterEach, expect, test } from 'vitest';
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep policy and source together under tmp.
 import { resolve } from 'node:path';
-import { readProjectAssets } from '../src/sdk/project';
-import { emptyShardfile } from '../src/sdk/author';
-import { projectDecisionBudget } from '../src/sdk/projectPolicy';
-import { assertProductTargets } from '../src/sdk/productOutput';
-import { decisionLineCeiling } from '../src/sdk/buildDecisionScripts';
+import { readProjectAssets } from '../src/sharddev/project';
+import { emptyShardfile } from '../src/sharddev/author';
+import { projectDecisionBudget } from '../src/sharddev/projectPolicy';
+import { assertProductTargets } from '../src/sharddev/productOutput';
+import { decisionLineCeiling } from '../src/sharddev/buildDecisionScripts';
 import { decisionLegacyLines, shardLineBaselines } from '../scripts/decision-legacy-lines.mjs';
 
 const directories: string[] = [];
@@ -21,7 +21,7 @@ test('external project readers use their sealed policy instead of a standalone c
   const shard = emptyShardfile({ slug: 'example', name: 'Example', author: 'Test', revision: 1, seed: 1 });
   const row = { id: 'example.main', abi: '1.0', side: 'sim', module: `blobs/wasm/${'0'.repeat(64)}.wasm`, source: 'behaviour/main.as',
     binding: { shard: true }, on: ['start'], onFail: 'reset', reads: [], commands: [], stateVersion: 1, state: [], params: {} };
-  writeFileSync(resolve(project, 'shard.config.ts'), `import {emitPlatformSections} from '@wildshard/sdk/platformSections';
+  writeFileSync(resolve(project, 'shard.config.ts'), `import {emitPlatformSections} from '@wildshard/sharddev/platformSections';
 export default ${JSON.stringify(shard)};
 export const buildOptions={asLineCeiling:10000};
 export const output={platform:emitPlatformSections(new Map([['sim/scripts',${JSON.stringify([row])}]]))};`);
@@ -56,7 +56,7 @@ test('all six declared AS budgets compile with no legacy registry or folders', a
     mkdirSync(resolve(project, 'behaviour'), { recursive: true });
     expect(projectDecisionBudget(project)).toBeUndefined();
     writeFileSync(resolve(project, 'behaviour/main.as'), 'export function onStart():void {}');
-    writeFileSync(resolve(project, 'shard.config.ts'), `import {emitPlatformSections} from '@wildshard/sdk/platformSections';
+    writeFileSync(resolve(project, 'shard.config.ts'), `import {emitPlatformSections} from '@wildshard/sharddev/platformSections';
 export default ${JSON.stringify(shard)};
 export const output={platform:emitPlatformSections(new Map([['sim/scripts',${JSON.stringify([row])}]]))};`);
     expect((await readProjectAssets(project, undefined, undefined, { decisionLegacyLines: budget })).shard.files.some(file => file.kind === 'wasm')).toBe(true);

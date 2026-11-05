@@ -9,7 +9,7 @@ import {readFileSync} from 'node:fs';
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
 import {unzlibSync} from 'fflate';
-import {readNamedBlob} from '../src/sdk/blobs';
+import {readNamedBlob} from '../src/sharddev/blobs';
 import { dressingScene } from './fixtures/nalati-dressing-scene';
 import { DRESSING_CONTACT_SOURCES } from '../src/shards/nalati-grasslands/generators/dressingScene';
 import reference from './fixtures/nalati-contact-blocks.json' with {type:'json'};

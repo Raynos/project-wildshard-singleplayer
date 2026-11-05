@@ -5,7 +5,7 @@ manual preparation and visible roots keep normal updates.
 
 `@wildshard/game/plugin/audio` owns the sample-first weapon recipes (`sharedWeaponVoices`,
 `declaredWeaponVoices`) and `WeaponSynth`; boot (`src/entry.ts`) imports it directly (LD10 retired the
-`@wildshard/sdk/runtime/audio/*` wrappers). The recipes retain oscillator parameters, cue taps and audio
+`@wildshard/sharddev/runtime/audio/*` wrappers). The recipes retain oscillator parameters, cue taps and audio
 random-draw order. `@wildshard/game/systems/audio/silentScore.installSilentScore` scopes a score-only
 gain mute and restores the previous value at disposal. Both install only when called.
 
@@ -184,7 +184,7 @@ beginTick once for the entire tick. Parameter opcode 410 reads immutable declare
 host's trusted calling entity; the mover host delegates physics opcodes 1–4 to the existing query adapter.
 The 32-number input limit, query count/fuel and bounded memory buffers stay unchanged. Full Wasm state and
 entity fields belong to that shared host; pending mover interactions have a separate continuation adapter.
-`@wildshard/sdk/movers.parseMoverRows` admits numeric headers. Its `compileMoverMotion` lowers an authored
+`@wildshard/sharddev/movers.parseMoverRows` admits numeric headers. Its `compileMoverMotion` lowers an authored
 stop/trigger/driver recipe and caller-owned rest coordinates to the native fixed-step ABI, retaining all numeric
 limits and cross-field refusals. Trusted legacy views only project published poses.
 
@@ -195,7 +195,7 @@ limits and cross-field refusals. Trusted legacy views only project published pos
 `directors/main.json`: declaration, module, stages, bindings and seed.
 It preserves the authored grammar; native executable admission stays separate.
 Shard subscriptions deliver declared payloads on the next fixed tick; grid subscriptions are reserved
-data and reject delivery in v1. `@wildshard/sdk/director` validates author declarations without installing code.
+data and reject delivery in v1. `@wildshard/sharddev/director` validates author declarations without installing code.
 Legacy entries keep their original native clocks and event recipes; their unshipped script comparison installer is retired.
 An external director borrows the existing owner's clock instead of registering a second fixed callback. `DirectorLane.dispatch` delivers at
 zero elapsed time on the current tick and shares its remaining allowances; `step` accepts a bounded
@@ -230,7 +230,8 @@ import { Bow } from '@wildshard/game/weapons/Bow';
 |---|---|---|
 | `@wildshard/engine` | `src/engine/package.json` `exports` | The engine: app, scopes, events, saves, input, UI, render, physics, audio, combat, AI |
 | `@wildshard/game` | `src/game/package.json` `exports` | The Wildshard game: the manifest and plugin types, Bag, coins, loot, compendium, feats, travel |
-| `@wildshard/sdk` | `src/sdk/package.json` `exports` | The authoring SDK; existing trusted runtime facades are transitional and being deleted under G307 |
+| `@wildshard/sharddev` | `src/sharddev/package.json` `exports` | The authoring SDK and the `wildshard` CLI; existing trusted runtime facades are transitional and being deleted under G307 |
+| `@wildshard/sdk` | `src/sdk/package.json` `exports` | The headless and standalone host, which leaves for `engine` at P3 |
 | `@wildshard/commons` | `src/commons/package.json` `exports` | Build-time packs that emit hash-named content; no commons code runs in the game |
 
 `@wildshard/commons/bake/portableMath` supplies author-only portable
@@ -239,7 +240,7 @@ transcendentals. `withPortableMath(fn)` is synchronous and restores on failure;
 Imports change no Math bindings or rendering. Bit-exact producers use
 portable output and retain its immutable hash.
 
-`@wildshard/sdk/assetHandle` owns author-only snapshots. Hash reuse compares
+`@wildshard/sharddev/assetHandle` owns author-only snapshots. Hash reuse compares
 every current byte; mutation rehashes. All format/IO/cost checks remain.
 
 [docs/api/ENGINE.md](api/ENGINE.md), [GAME.md](api/GAME.md), [SDK.md](api/SDK.md) and [COMMONS.md](api/COMMONS.md) (generated) list every export
@@ -259,7 +260,7 @@ The composition root (`src/*.ts`, outside the layers) and the tests import by re
 
 | Rule | What it means for you |
 |---|---|
-| **Layers** | `src/engine/` → `src/game/` → `src/sdk/` → `src/commons/` → `src/shards/<slug>/`. Imports point down the arrow only. A shard never imports another shard |
+| **Layers** | `src/engine/` → `src/game/` → `src/sdk/` → `src/sharddev/` → `src/commons/` → `src/shards/<slug>/`. Imports point down the arrow only. A shard never imports another shard |
 | **Public modules only** | A shard imports the modules `@wildshard/engine`, `@wildshard/game` and `@wildshard/sdk` list in their `exports`, by the module that defines each name (`@wildshard/engine/physics/query`), nothing else. Inside your own folder, use `./` |
 | **Composition root** | `src/entry.ts` and `src/main.ts` sit outside the layers. You never edit them for a shard |
 | **Node-safe manifest** | `manifest.ts` imports only data and types: node-safe engine modules (`@wildshard/engine/world/terrainField`, `@wildshard/engine/core/config`, `@wildshard/engine/core/noise` …), `@wildshard/game` types and its own data files; `lint/manifest-closure-budget.json` caps the files it pulls. Code arrives through lazy thunks (`load`, `render`, `cues`, `roster`, `preload`) |
@@ -337,7 +338,7 @@ const random = ctx.app.rng.stream('cosmetic');   // prop scatter: may stay unsee
 
 
 
-Build-only `Rng`/`RngState` (`@wildshard/sdk/random`) preserve engine
+Build-only `Rng`/`RngState` (`@wildshard/sharddev/random`) preserve engine
 Mulberry32 draws, forks and continuations. Live gameplay uses `app.rng`. `core/rng.RngPort` is the
 structural draw/fork/snapshot/restore contract for geometry builders and
 bake recorders; implementations own their storage.
@@ -2463,7 +2464,7 @@ fictional harbour pouch and ownership rows, and resumes an existing Pine v1 save
 `held/finishes` through `format/heldFinishes`; `HeldFinishes.prepare(product,
 scope, geometrySourceId)` resolves owned copies through the engine's scoped
 geometry source registry. Shards register pack rows through
-`@wildshard/sdk/models/geometrySources`. Finish order, card order, material overrides,
+`@wildshard/sharddev/models/geometrySources`. Finish order, card order, material overrides,
 drop identities and optional named extras are rows. The existing SkinLocker owns
 v1 ownership/worn continuation. `game/models/heldGear` reads `format/heldGear`
 rows for cold Explorer cards, variants and native ammunition counts. Its builders
@@ -2946,13 +2947,13 @@ ordinary G441 pending-user entries retain the current/completed-wave rule.
 ## 21. Shared content (the kit's, now the game's)
 
 SF54 dissolved `@wildshard/kit`: content that 2+ shards use (the rule of two) lives in `@wildshard/game`, its trusted
-existing transitional runtime facades in `@wildshard/sdk/runtime/*` (deleted under G307), and content one shard uses stays in that shard. Trusted `runtime/` callers migrate to the defining game plugin exports, not a replacement wrapper package. Shard files outside
+existing transitional runtime facades in `@wildshard/sharddev/runtime/*` (deleted under G307), and content one shard uses stays in that shard. Trusted `runtime/` callers migrate to the defining game plugin exports, not a replacement wrapper package. Shard files outside
 `runtime/` import the defining game modules; `runtime/` files import the SDK facades. Ids are unchanged (`kit.creature.*`,
 `kit.look.*`, the declared `kit.melee` / `kit.lantern` item families, `shared/*` model ids).
 
 | Content | Defining module (runtime facade) |
 |---|---|
-| starter weapons | `@wildshard/game/weapons/{Sword,Bow,starterMoves,starterMeleeProfile,starterBowProfile,starterEquipment,starterGlyphs}` (`@wildshard/sdk/runtime/weapons/*`); the families themselves are the engine's (`@wildshard/engine/combat/{Melee,bowDraw}`, `combat/view/*`) |
+| starter weapons | `@wildshard/game/weapons/{Sword,Bow,starterMoves,starterMeleeProfile,starterBowProfile,starterEquipment,starterGlyphs}` (`@wildshard/sharddev/runtime/weapons/*`); the families themselves are the engine's (`@wildshard/engine/combat/{Melee,bowDraw}`, `combat/view/*`) |
 | species, creatures | `@wildshard/game/systems/species/*` (`installKitSpecies`), `@wildshard/game/systems/species/view/{boar,bear}` |
 | icons | `@wildshard/game/icons` (`installKitIcons`, `BAG_ICONS`); their ids merge into `IconMap` from `src/game/client/icons.merge.d.ts` |
 | interactables, pickups | `@wildshard/game/models/{interact,pickups}` (`installKitProps`, `installKitPickups`) |
@@ -2960,9 +2961,9 @@ existing transitional runtime facades in `@wildshard/sdk/runtime/*` (deleted und
 | NPCs | `@wildshard/game/systems/npc/{npcRig,figureRig,figureMotion,faceHeads}` |
 | declared items | `@wildshard/game/plugin/weaponFamily` (`declaredKitItemFamilies`: `kit.melee`, `kit.lantern`) |
 | tools | `@wildshard/game/systems/tools/hoverboard` (`Hoverboard`, `HOVERBOARD_TOOL`; all shards; its `board` movement mode stays engine) |
-| viewmodel, looks, audio | `@wildshard/game/systems/{viewmodel,looks,audio}/*` (`@wildshard/sdk/runtime/{viewmodel,audio}/*`) |
+| viewmodel, looks, audio | `@wildshard/game/systems/{viewmodel,looks,audio}/*` (`@wildshard/sharddev/runtime/{viewmodel,audio}/*`) |
 
-**A dusk look (SHARD-PLATFORM M3).** `@wildshard/game/systems/looks/duskLook` (`@wildshard/sdk/looks/duskLook`)
+**A dusk look (SHARD-PLATFORM M3).** `@wildshard/game/systems/looks/duskLook` (`@wildshard/sharddev/looks/duskLook`)
 `duskLook(row, parts)` is a whole `extend` look from one `DuskLookRow` (pure data: the scene fog, the key light's
 direction / colour / deepest-dusk colour / intensity, the held day clock, the dusk curves of the key, the sky fill, the
 fog's sun tint, the far rings' haze and the aerial fog, the sand's height tint `DuskTintRow`, the skirt's grid and
@@ -3034,7 +3035,7 @@ Their authoring contracts live in `@wildshard/format/dayLook`; live colour
 presets remain in `@wildshard/game/looks/dayLookPresets`.
 Day-clock dusk/lamps readers are numeric preset field ids, with no caller
 callbacks.
-`@wildshard/sdk/bake/keyedSky.packGainKey` owns the pure colour/gain compiler and
+`@wildshard/sharddev/bake/keyedSky.packGainKey` owns the pure colour/gain compiler and
 unrounded horizon sampling; `encodeGainKey` encodes the selected half-float view
 with the original level-9 gzip/OS-marker contract. Neither reads files or installs a renderer.
 
@@ -3054,7 +3055,7 @@ fills the `clock` owner (`phase`, `day`, `night`, `sunX…Z`, `moonX…Z`), eval
 `owners` (its blended preset, uniforms) and the backdrop targets (`sky.fog` `{ color }`, `sky.fogSun`, `sky.disc`,
 `sky.discColour` `{ color }`, `sky.planetSun`, `sky.planetHaze`), then pushes every sky-graph param an output names
 (target = a graph id, path `[param]` or `[param, x|y|z|w]`). Build-time authoring is
-`@wildshard/sdk/clientChannels#numericChannelPrograms` (twelve outputs a program, each read a declared owner path).
+`@wildshard/sharddev/clientChannels#numericChannelPrograms` (twelve outputs a program, each read a declared owner path).
 Pine Hollow's keyed sky (`runtime/looks/keyedSky.ts`, group `pine.sky`) and Driftwood's faceted day
 (`runtime/looks/facetedDayBackdrop.ts`, group `driftwood.sky`) are its users.
 
@@ -3354,7 +3355,7 @@ collision, and proves damage and quest completion without a renderer, DOM or act
 | `wildshard/no-shard-branch` | outside `src/shards/`: a branch on a slug or a style (`slug ===`, `style ===`, `isNalati`, a slug literal in a comparison or `case`) | hard error |
 | `wildshard/no-level-identity` | outside `src/shards/`: comparing, switching on, or keying a table by a level's `id`, `slug`, `kitLook`, `style`, `biome` … Pass a capability or a data strategy instead | ratchet (4 at HEAD) |
 | `wildshard/runtime-standalone` | source `runtime/` imports leaving its own folder, non-public packages, JSON/assets and raw/URL transforms; includes type/re-export/lazy/glob/resource forms | G450 per-file ratchet; new files start at zero |
-| runtime/ file ceiling (`src/sdk/runtimePerformance.ts` `checkProjectRuntime`, `lint/runtime-files.json`) | an author build whose `runtime/` holds more source files than its ceiling: 128 for third-party projects, the Template and any slug without a line; a first-party checkout shard (`performancePolicy` 'warn') reads its own ceiling, seeded for the W2 client moves (G450 (5): Pine 152, Driftwood 128). `pnpm build` (the push gate) builds every shardfile project, so it refuses there | shrink-only: lower a ceiling as files leave `runtime/`; a rise needs a new `raises` line `{slug, from, to, why}`, checked by pre-commit (`scripts/precommit-inputs.mjs`) and `scripts/check-platform-ratchets.mjs` |
+| runtime/ file ceiling (`src/sharddev/runtimePerformance.ts` `checkProjectRuntime`, `lint/runtime-files.json`) | an author build whose `runtime/` holds more source files than its ceiling: 128 for third-party projects, the Template and any slug without a line; a first-party checkout shard (`performancePolicy` 'warn') reads its own ceiling, seeded for the W2 client moves (G450 (5): Pine 152, Driftwood 128). `pnpm build` (the push gate) builds every shardfile project, so it refuses there | shrink-only: lower a ceiling as files leave `runtime/`; a rise needs a new `raises` line `{slug, from, to, why}`, checked by pre-commit (`scripts/precommit-inputs.mjs`) and `scripts/check-platform-ratchets.mjs` |
 | `wildshard/no-build-time-import` | play imports of shard `data/`, `generators/`, `behaviour/`, `assets/`, `blender/` or `shard.config`; same-shard build composition and SDK CLI/bakers stay legal | G450 per-file ratchet |
 | `wildshard/no-runtime-in-build` | build inputs importing `runtime/` or legacy play folders/root modules; G297 bridges remain measured migration debt | G450 per-file ratchet |
 | `wildshard/shard-sandbox` | in `src/shards/`: `window` / `globalThis` / `self` reads or writes, window or document input listeners, `setting(key)` for a key you don't own, an `/assets/…` path outside your `assetGlobs` and the shared folders | ratchet (new files at 0) |
@@ -3431,7 +3432,7 @@ engine/game/kit access. Generators never ship. SDK `version` owns provisional v0
 SDK `shardfile.parseShardfileField(field, input)` returns the defining schema's typed value;
 the assembled declaration still passes `parseShardfile` and its cross-field rules.
 
-Build-only `@wildshard/sdk/noise`: seeded simplex, `fbm`, `ridged`,
+Build-only `@wildshard/sharddev/noise`: seeded simplex, `fbm`, `ridged`,
 `smoothstep`, `clamp`, `lerp`. `bake/annulus` retains ring channel order;
 `bake/primitives` owns rocks, timbers, planks, ropes, sag lines and triangles.
 `bake/simplifier.prepareGeometrySimplifier` retains the explicit asynchronous author readiness boundary;
@@ -3562,7 +3563,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### Declared props and author baking
 
-`@wildshard/sdk/bake/props` merges opaque rough prop surfaces into the canonical tile grid, clips edge-crossing triangles, keeps interior scatter as `EXT_mesh_gpu_instancing` transform lists and produces a self-contained coarse/far mesh. Named panels and gear remain library GLBs. `bakeColourTexture` in `bake/texture` invokes the trusted local Basis encoder for mipmapped UASTC KTX2; the existing loader chooses ASTC on supported GPUs. Declared costs include CPU buffers, GPU buffers, instance matrices and shadow draws. Every resulting row must fit the content caps.
+`@wildshard/sharddev/bake/props` merges opaque rough prop surfaces into the canonical tile grid, clips edge-crossing triangles, keeps interior scatter as `EXT_mesh_gpu_instancing` transform lists and produces a self-contained coarse/far mesh. Named panels and gear remain library GLBs. `bakeColourTexture` in `bake/texture` invokes the trusted local Basis encoder for mipmapped UASTC KTX2; the existing loader chooses ASTC on supported GPUs. Declared costs include CPU buffers, GPU buffers, instance matrices and shadow draws. Every resulting row must fit the content caps.
 
 Shader patches that inject sampler uniforms declare their borrowed textures in `patchShader(..., { textures })`
 (`@wildshard/engine/render/shaderPatches`). Warm-up includes these resources before the callback compiles;
@@ -3574,7 +3575,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 
 ### Declared props and author baking
 
-`@wildshard/sdk/bake/props` merges opaque rough prop surfaces into the canonical tile grid, clips edge-crossing triangles, keeps interior scatter as `EXT_mesh_gpu_instancing` transform lists and produces a self-contained coarse/far mesh. Named panels and gear remain library GLBs. `bakeColourTexture` in `bake/texture` invokes the trusted local Basis encoder for mipmapped UASTC KTX2; the existing loader chooses ASTC on supported GPUs. Declared costs include CPU buffers, GPU buffers, instance matrices and shadow draws. Every resulting row must fit the content caps.
+`@wildshard/sharddev/bake/props` merges opaque rough prop surfaces into the canonical tile grid, clips edge-crossing triangles, keeps interior scatter as `EXT_mesh_gpu_instancing` transform lists and produces a self-contained coarse/far mesh. Named panels and gear remain library GLBs. `bakeColourTexture` in `bake/texture` invokes the trusted local Basis encoder for mipmapped UASTC KTX2; the existing loader chooses ASTC on supported GPUs. Declared costs include CPU buffers, GPU buffers, instance matrices and shadow draws. Every resulting row must fit the content caps.
 
 `@wildshard/game/shardfile/props` validates file, tile, library and texture dependencies. The admitted bytes enter `installDeclaredProps` from `@wildshard/engine/world/declaredProps`; `selectedTiles` contains `lod/x/z` keys, `includeLibrary:false` skips subsequent panel/model loads, and `disposeTile(key)` removes and disposes a streamed tile. Family materials and textures come from resolved catalogues; each prop mesh draws with a shared, counted `familyVariant` (`@wildshard/engine/render/families/registry`) of its family material, which keeps the family's shader patches, program key and uniforms (`copyShaderPatches` in `@wildshard/engine/render/shaderPatches`), so toon and painterly props shade as their family and equal surfaces are one material. Stable panel roots expose visibility and pose ports to admitted scripts; collision remains separate declared data. `propColliderDescriptors` passes bounded box/stair shapes into `installDeclaredPropColliders` in `@wildshard/engine/physics/declaredProps`. Its stable-ID owners serialize without callbacks; activation ports have handle snapshots, a lazy Physics getter and a restoring mode that allocates no duplicate colliders. Scope cleanup removes render and collision resources.
 
@@ -3603,11 +3604,11 @@ projectile or script lane. Existing families without it keep their previous row.
 
 
 
-`@wildshard/engine/ai/strikeRows` binds admitted `StrikeData` to the existing `StrikeRunner`. Scores are data (`constant` or `horizontal-distance` with a strict `above` boundary), evaluated without RNG, rendering or actor memory; `range: null` explicitly preserves an unlimited native contact range. `@wildshard/sdk/species` validates these rows and gameplay-only species data before native registration. Brain callbacks and view recipes stay with the trusted runtime.
+`@wildshard/engine/ai/strikeRows` binds admitted `StrikeData` to the existing `StrikeRunner`. Scores are data (`constant` or `horizontal-distance` with a strict `above` boundary), evaluated without RNG, rendering or actor memory; `range: null` explicitly preserves an unlimited native contact range. `@wildshard/sharddev/species` validates these rows and gameplay-only species data before native registration. Brain callbacks and view recipes stay with the trusted runtime.
 
 `StrikeRunner.contains(spec, { actor, target, origin?, ringRadius?, airborne?, direction? })` is the native overlap query for owners that apply cover and damage themselves. The actor supplies only position, scale and yaw. It runs the same shape, scale and eligibility checks as `contact`, without invoking callbacks or changing runner clocks, deadlines or hit state. Pine and Driftwood use it before their existing cover check and damage call.
 
-**Species brains (SF27).** `@wildshard/game/plugin/brain` (SDK `@wildshard/sdk/speciesBrains`) puts a
+**Species brains (SF27).** `@wildshard/game/plugin/brain` (SDK `@wildshard/sharddev/speciesBrains`) puts a
 platform brain on a species row: `brain: { archetype, data }`, today `challenge-grazer` (with `phaseSlots`: the actor
 seed's slot in `[0, phaseSlots)` is its circling phase, `seedSlot`) or `patrol-diver`, its data the archetype's strict
 schema (`shardfile/grazers`, `shardfile/flyers`). `speciesBrains(species, strikes)` admits a catalogue: each strike row
@@ -3708,7 +3709,7 @@ Matriarch uses `behaviour/matriarch.as` on the same borrowed authority as the
 Roc. `test/matriarch-borrowed-body.test.ts` exercises its live native body,
 three phases, checkpoint replacement and logical continuation.
 
-**Phased boss fights (SF27).** `@wildshard/game/shardfile/phasedBoss` (SDK `@wildshard/sdk/phasedBoss`)
+**Phased boss fights (SF27).** `@wildshard/game/shardfile/phasedBoss` (SDK `@wildshard/sharddev/phasedBoss`)
 `bossFight({kind: 'boss', pattern, fight}, ports)` is the defining parametric fight entry. `arena` and `roaming` retain the existing phase/strike/add/hazard policies; `spawned` binds a real fresh body per checkpoint with phase memory and eased weather; `held` binds one retained body and its native brain restart. Pattern/host mismatches refuse before allocation, RNG or actor/view effects. The spawned and held patterns replace the unused shard preset wrappers; `phasedBossFight` retains the phase presets. Their native clocks, callback order, body ownership and serialized continuations stay unchanged. This entry does not replace the outer `BossBrain`/director encounter clock or an admitted AS body policy.
 
 `phasedBossFight(row, ports)` is the richer sibling of `markedBossFight`: one body fought through a declared state machine.
@@ -3912,9 +3913,9 @@ entry walk are data in its product, and it enters through the declared client-pl
 
 ### Exported creature skins and clips
 
-`@wildshard/sdk/bake/export` samples poses at 30–120 Hz, preserving root motion, joint order and local TRS. `skinnedGlb` writes deterministic geometry, weights, inverse binds and named clips with explicit external KTX2 bindings. Playback uses `GLTFLoader`, `bindRig` and `AnimationMixer`. Runtime: await `prepareGlbCost()` from `@wildshard/format/glbCost`, then `parseGlbData(bytes)` without whole-product initialization. Admission checks node trees, skin indices/normalized weights, finite inverse binds, ordered clip times and rotations. Residency includes palettes/matrices and decoded tracks; clip accessors remain GPU-counted. Embedded WebP/Basis KTX2 needs matching declared extensions, MIME, bounded images and valid sampler/material references. URIs, ambiguous/non-Basis bindings refuse. Decoded images and RGBA8 mip bounds share the 25 MB GLB cap. Library commons keep byte-derived costing.
+`@wildshard/sharddev/bake/export` samples poses at 30–120 Hz, preserving root motion, joint order and local TRS. `skinnedGlb` writes deterministic geometry, weights, inverse binds and named clips with explicit external KTX2 bindings. Playback uses `GLTFLoader`, `bindRig` and `AnimationMixer`. Runtime: await `prepareGlbCost()` from `@wildshard/format/glbCost`, then `parseGlbData(bytes)` without whole-product initialization. Admission checks node trees, skin indices/normalized weights, finite inverse binds, ordered clip times and rotations. Residency includes palettes/matrices and decoded tracks; clip accessors remain GPU-counted. Embedded WebP/Basis KTX2 needs matching declared extensions, MIME, bounded images and valid sampler/material references. URIs, ambiguous/non-Basis bindings refuse. Decoded images and RGBA8 mip bounds share the 25 MB GLB cap. Library commons keep byte-derived costing.
 
-`@wildshard/sdk/bake/basisGlb`: `basisGlbVariant(source, encode)` copies WebP to admitted Basis GLBs with matching full mips/dimensions. Build `ctx.basisEncoder()` pins tools/decoder/recipe. `@wildshard/format/glbBuffers` decodes views and mutates caller JSON.
+`@wildshard/sharddev/bake/basisGlb`: `basisGlbVariant(source, encode)` copies WebP to admitted Basis GLBs with matching full mips/dimensions. Build `ctx.basisEncoder()` pins tools/decoder/recipe. `@wildshard/format/glbBuffers` decodes views and mutates caller JSON.
 
 
 ### Traversal readiness (SHARD-PLATFORM SF18d)
@@ -3997,7 +3998,7 @@ replays cover both real fights, damage ranges and save continuation.
 
 ### Author dev client (SF8c)
 
-`buildProject` in `@wildshard/sdk/project` accepts an optional third argument choosing the compiled client or a product-only build. `wildshard dev` rebuilds admitted static products and reloads the normal client, using a separate compiled author mode. `__DEVSERVER__` is false in production/native modes; the production artifact checker refuses an enabled flag. See [SDK-DEV.md](SDK-DEV.md) for commands, cleanup and build-mode checks.
+`buildProject` in `@wildshard/sharddev/project` accepts an optional third argument choosing the compiled client or a product-only build. `wildshard dev` rebuilds admitted static products and reloads the normal client, using a separate compiled author mode. `__DEVSERVER__` is false in production/native modes; the production artifact checker refuses an enabled flag. See [SDK-DEV.md](SDK-DEV.md) for commands, cleanup and build-mode checks.
 
 ### Declared simulation composition and author validation (SF8c)
 
@@ -4209,7 +4210,7 @@ entry and hiding it again on leave.
 
 Game plugins are the `src/game/package.json` exports: trusted shard `runtime/` and type imports name defining modules, with no second runtime SDK, wrappers or allowlist. Authoring uses SDK/commons, never game runtime modules; frozen legacy inputs remain.
 
-`@wildshard/sdk/bake/byteCodec.decodeBuildDeflate` returns owned bounded zlib bytes. `ProjectGenerationContext.compileReturnProjection` injects dual AS compilation with unchanged source/ABI checks.
+`@wildshard/sharddev/bake/byteCodec.decodeBuildDeflate` returns owned bounded zlib bytes. `ProjectGenerationContext.compileReturnProjection` injects dual AS compilation with unchanged source/ABI checks.
 `bake/sourceMetadata.cachedBlobSources(input,kinds)` re-admits cached author
 source metadata against an explicit file-kind vocabulary. Rows/options stay
 strict, dependency order is retained, and output arrays are owned; actual byte
@@ -4359,11 +4360,11 @@ directory. This applies on every project build and `--check`, so a later
 build cannot reintroduce inline transport after canonical generation.
 Omitted `raw` preserves the historical embedded representation.
 
-`@wildshard/sdk/buildBehaviour` defines `BehaviourBuildSchema`, `compileBehaviourModule(source, maximumPages)` and `buildBehaviourProject(project)`. A project may retain `behaviour/build.json` with source `.as` files, maximum pages, an immutable asset directory, JSON module bindings and optional embedded outputs for its trusted native plugin. `wildshard build <project>` generates these declared outputs before compiling the project; `wildshard build <project> --behaviour-only` regenerates just the modules; append `--check` to regenerate in memory and compare every declared output without writes. `bake-check --node-only --only=directors` checks all three native consumers. Every read and write stays inside the project. All modules compile before writes begin. There is no shard-name dispatch, runtime installation, or implicit source discovery. Driftwood, Nalati and Pine use the same retained compiler declaration; their Wasm and embedded bytes stay identical. Historical embedded notices remain unchanged for byte identity; the build descriptor and CLI are the current regeneration authority.
+`@wildshard/sharddev/buildBehaviour` defines `BehaviourBuildSchema`, `compileBehaviourModule(source, maximumPages)` and `buildBehaviourProject(project)`. A project may retain `behaviour/build.json` with source `.as` files, maximum pages, an immutable asset directory, JSON module bindings and optional embedded outputs for its trusted native plugin. `wildshard build <project>` generates these declared outputs before compiling the project; `wildshard build <project> --behaviour-only` regenerates just the modules; append `--check` to regenerate in memory and compare every declared output without writes. `bake-check --node-only --only=directors` checks all three native consumers. Every read and write stays inside the project. All modules compile before writes begin. There is no shard-name dispatch, runtime installation, or implicit source discovery. Driftwood, Nalati and Pine use the same retained compiler declaration; their Wasm and embedded bytes stay identical. Historical embedded notices remain unchanged for byte identity; the build descriptor and CLI are the current regeneration authority.
 
 ### Node scene authoring core (DS1.3)
 
-`@wildshard/sdk/bake` compiles an authored scene with `bake(scene, identity)`.
+`@wildshard/sharddev/bake` compiles an authored scene with `bake(scene, identity)`.
 `bakeOwned(scene, identity, inputs)` uses the same compiler without file
 publication; its inputs omit `project` and its returned scene hash/path stay
 null. Source programs own/cache the returned rows and bytes. Existing `bake`
@@ -4378,7 +4379,7 @@ and `nativeAttributes`, as `props.whole` does.
 
 Full-world `bake` and authored-GLB builds declare all 64 L0 squares. Vacant
 squares have no files and zero costs; render/terrain payload rows stay sparse.
-`@wildshard/sdk/bake/tileGrid` exposes `completeL0Tiles` for full-world
+`@wildshard/sharddev/bake/tileGrid` exposes `completeL0Tiles` for full-world
 metadata emitters; it validates existing addresses/bounds before filling gaps.
 `completeEmptyL1Tiles` requires all 64 explicit validated L0 rows and adds
 only parents whose four children have no files, costs or geometric error. It
@@ -4390,7 +4391,7 @@ explicit references keep their original validation and order.
 Library-only packers retain their sparse inventories. The runtime treats explicit
 zero-cost, no-file squares as empty readiness without allocating or fetching.
 
-The SDK authors ordinary three.js objects in Node. `@wildshard/sdk/scene` defines
+The SDK authors ordinary three.js objects in Node. `@wildshard/sharddev/scene` defines
 `readScene(root)` and its JSON-only `SceneDescription`: local graph matrices,
 geometry channels/index/groups/draw ranges, shared material references, instance
 matrices/colors, LOD links, ordinary lights and fog. Unique object names remain
@@ -4399,7 +4400,7 @@ root includes its actual world transform. No UUID, rendering context or game
 service enters the description. The SDK library keeps `three` external so its
 Object3D subclasses and the caller share the same installed constructors.
 
-`@wildshard/sdk/physics` defines Object3D subclasses `BoxCollider(width, height,
+`@wildshard/sharddev/physics` defines Object3D subclasses `BoxCollider(width, height,
 depth, surface?)`, `CapsuleCollider(radius, length, surface?)`,
 `HullCollider(geometry, surface?)` and `MeshCollider(geometry, surface?)`. Box
 dimensions are full extents; capsule length excludes its caps. Named collider
@@ -4410,9 +4411,9 @@ collapsed axes and nonfinite values refuse. Geometry channels retain their order
 optional yaw/quaternion encoding for byte-stable migrations. `clone`/`copy` keep
 the subclass's dimensions, surface and shared geometry references.
 
-`@wildshard/sdk/spawns` defines `PlayerStart` and `Spawn(kind)` as Object3D
+`@wildshard/sharddev/spawns` defines `PlayerStart` and `Spawn(kind)` as Object3D
 subclasses. Starts are unique; actor spawns need unique names and keep traversal
-order. They require upright unscaled placement. `@wildshard/sdk/entries` defines
+order. They require upright unscaled placement. `@wildshard/sharddev/entries` defines
 `Entry(edge, kind?)`; `Entry.midpoints()` returns north/east/south/west objects.
 Their exact 8 m road-height openings cannot be moved, rotated, scaled or sheared.
 They declare an opening, never supply ground or create platform socket floors.
@@ -4439,7 +4440,7 @@ cap before allocation, detects growth and always closes its descriptor. Importin
 `bake/practiceCourse.AuthorPracticeScene` / `AuthorHookPracticeLayout` preserve the entire authored
 course/contact/map and route contracts. `spawns.AuthorSpawnTables` carries native population/placement data only.
 
-`@wildshard/sdk/materials` defines the authoring materials a generator puts on its
+`@wildshard/sharddev/materials` defines the authoring materials a generator puts on its
 three.js meshes. Each is an ordinary three.js material (a generator previews in
 any three.js renderer) that also knows its shardfile catalogue entry,
 `toMaterialEntry()`; `readScene` writes that entry into `SceneMaterial.entry`
@@ -4539,7 +4540,7 @@ Templates do not make a one-user system public; AssemblyScript remains its own u
 exports are transitional alongside the existing default shardfile declaration;
 missing scenes refuse. The command writes canonical JSON to
 `.wildshard/cache/<slug>/scene.json` and retains an immutable copy under its
-SHA256 directory. `@wildshard/sdk/synth` defines `synthProject(project)` and
+SHA256 directory. `@wildshard/sharddev/synth` defines `synthProject(project)` and
 `synthScene(scene, project, slug)`; each returns the description, digest and path.
 The latter also accepts an already generated graph, including Template 1's
 retained generator. Geometry, material and node traversal use the DS1.3 reader;
@@ -4560,7 +4561,7 @@ three.js author project without drawing a frame.
 
 `@wildshard/format/edgeProfiles` defines the unchanged Valibot boundary contract: 256 or 257 finite height/colour samples and zero road height. The format workspace imports only Valibot; the loader imports its defining schema directly. The SDK package declaration copier and author-input audit include this layer. This first extraction does not complete the full shardfile contract migration or JSON Schema generation.
 
-The scoped input/knob/Debug wire contract is now defined by `@wildshard/format/plumbing`: both loader admission and SDK author validation consume it. Namespace ownership, duplicate IDs, touch-action references and Debug defaults retain their existing checks. `@wildshard/sdk/plumbing` is author-time Valibot parsing; it no longer calls a game module.
+The scoped input/knob/Debug wire contract is now defined by `@wildshard/format/plumbing`: both loader admission and SDK author validation consume it. Namespace ownership, duplicate IDs, touch-action references and Debug defaults retain their existing checks. `@wildshard/sharddev/plumbing` is author-time Valibot parsing; it no longer calls a game module.
 
 **Declared controls and quality (G486).** `combat/items.contexts[].extra`
 adds action/key rows, blocks, relabels, two existing touch verbs,
@@ -4585,7 +4586,7 @@ Game `./plugin/mover` defines the admitted static approach data used by native l
 ### Generated format JSON Schema (DS1.1)
 
 `pnpm gen` writes `.wildshard/format/edge-profiles.schema.json` and
-`plumbing.schema.json` through `@wildshard/sdk/formatJsonSchema` and the pinned
+`plumbing.schema.json` through `@wildshard/sharddev/formatJsonSchema` and the pinned
 `@valibot/to-json-schema` converter. These ignored build outputs carry DO-NOT-EDIT
 provenance. Only the migrated `@wildshard/format` roots are included; the mixed
 whole-shard contract still awaits extraction. No game or renderer is imported.
@@ -4630,11 +4631,11 @@ DS1.1: `@wildshard/format/shardSections` owns identity, requirements, budgets, s
 
 ### Node authoring: retained rig and raster readers (DS1.3 / G320)
 
-`@wildshard/sdk/bake/rig` defines `readRigRest(glb)`: a bounded, single-skin triangle GLB becomes real Three `BufferGeometry`, ordered world-space rest joints and embedded colour image bytes. Positions stay mesh-local; normalized channels become Float32 exactly as in Three's GLTF loader. Meshopt and embedded WebP extensions are supported. Multiple skins/primitives, absent indices or atlas, and malformed input refuse. No renderer, registry or game service is installed.
+`@wildshard/sharddev/bake/rig` defines `readRigRest(glb)`: a bounded, single-skin triangle GLB becomes real Three `BufferGeometry`, ordered world-space rest joints and embedded colour image bytes. Positions stay mesh-local; normalized channels become Float32 exactly as in Three's GLTF loader. Meshopt and embedded WebP extensions are supported. Multiple skins/primitives, absent indices or atlas, and malformed input refuse. No renderer, registry or game service is installed.
 
-`@wildshard/sdk/bake/image` defines `readImagePixels(bytes, {flipY?})` and `writeImagePixels({width,height,pixels})`: PNG/JPEG/WebP ≤4096², lossless PNG, exact RGBA. Row order stays unless flipped.
+`@wildshard/sharddev/bake/image` defines `readImagePixels(bytes, {flipY?})` and `writeImagePixels({width,height,pixels})`: PNG/JPEG/WebP ≤4096², lossless PNG, exact RGBA. Row order stays unless flipped.
 
-`@wildshard/sdk/bake/groundMap.rasterSceneMap` paints owned geometry bytes with ground or void palettes. Void retains height bands, grass classification, edge ink and integer relief.
+`@wildshard/sharddev/bake/groundMap.rasterSceneMap` paints owned geometry bytes with ground or void palettes. Void retains height bands, grass classification, edge ink and integer relief.
 
 Starter equipment rows (`SWORD`, `WOODEN_SWORD`, `IRON_SWORD`) and melee profiles
 share the defining `game/weapons/starterMeleeProfile` module. Native simulations
@@ -4650,7 +4651,7 @@ these modules retain their existing singleton and lifecycle identities.
 SF25: `plugin/ui.createClientChannels(program)` evaluates the bounded
 `format/clientChannels` numeric grammar over copied `{time, delta, values}`
 observations. Its frozen visual frame publishes atomically and provides no
-shared-state, player, physics or event write port. `sdk/clientChannels` defines
+shared-state, player, physics or event write port. `sharddev/clientChannels` defines
 the author builder; SHARDFILE.md documents the executed example and limits.
 Optional bounded private recurrence slots retain first-frame copied seeds and
 finite next-node values atomically. They expose no storage or state setter;
@@ -4662,25 +4663,25 @@ sinks without a new clock/body. Private value/turn outputs remain read-only.
 
 DS1.3: the scene reader now includes `SkinnedMesh` bind mode/matrices, ordered joint references and inverse binds, typed skin channels, and standard `AnimationClip` / `KeyframeTrack` interpolation, times and values. Raw integer channels stay raw even when normalized or interleaved. Named targets and all rest joints must belong to the author graph; UUID-bound tracks, duplicate joints, malformed influences and custom interpolants refuse. Local TRS is retained alongside matrices so clips remain executable without a decomposition changing the rest pose.
 
-`@wildshard/sdk/sceneGraph` defines `restoreSceneGraph(description)`: reconstruct the real three.js draw/animation hierarchy from persisted JSON, retaining shared geometry/materials, ordered skeletons, explicit LODs, instance data, lights and fog. Collider/spawn/entry sections remain data for their existing compilers, not simulated objects. SDK catalogue materials (DS1.4, `@wildshard/sdk/materials`) restore from their entries; texture and physical-material serialization remain open. Both shipping template geometry byte gates use this reader; an added animated rig in each pilot also regenerates identical sampled channels and skin GLB bytes.
+`@wildshard/sharddev/sceneGraph` defines `restoreSceneGraph(description)`: reconstruct the real three.js draw/animation hierarchy from persisted JSON, retaining shared geometry/materials, ordered skeletons, explicit LODs, instance data, lights and fog. Collider/spawn/entry sections remain data for their existing compilers, not simulated objects. SDK catalogue materials (DS1.4, `@wildshard/sharddev/materials`) restore from their entries; texture and physical-material serialization remain open. Both shipping template geometry byte gates use this reader; an added animated rig in each pilot also regenerates identical sampled channels and skin GLB bytes.
 
 
-DS1.3 audio authoring: `@wildshard/sdk/sceneAudio` defines `Cue(id, voice)`, `AmbienceZone(recipe)` and `Score(recipe)` as ordinary Object3D declarations. `Score.fromData(profile)` adopts cue/zone registration order; `toAudioData()` emits the defining format contract. `readScene` collects one profile and its graph declarations into optional `SceneDescription.audio`. These objects never create an AudioContext, decode or play a sound. Cues bind named events to catalogue voices; event owners supply moving sound positions. Zones move their centres and scale their circular radii through horizontal similarity transforms; tilt, shear, nonfinite or elliptic frames refuse. A zone requires its real mixer profile. Existing Template 1 and Pastel profiles emit identical bytes through persisted scene JSON.
+DS1.3 audio authoring: `@wildshard/sharddev/sceneAudio` defines `Cue(id, voice)`, `AmbienceZone(recipe)` and `Score(recipe)` as ordinary Object3D declarations. `Score.fromData(profile)` adopts cue/zone registration order; `toAudioData()` emits the defining format contract. `readScene` collects one profile and its graph declarations into optional `SceneDescription.audio`. These objects never create an AudioContext, decode or play a sound. Cues bind named events to catalogue voices; event owners supply moving sound positions. Zones move their centres and scale their circular radii through horizontal similarity transforms; tilt, shear, nonfinite or elliptic frames refuse. A zone requires its real mixer profile. Existing Template 1 and Pastel profiles emit identical bytes through persisted scene JSON.
 
-`@wildshard/sdk/entries` also defines `Portal(edge, link)` and `SocketLift(edge, lift)` as Entry subclasses. Both occupy the existing exact road-height midpoint socket and emit its existing `portalLink` or `socketLift` entry row. Portal data retains the named road/arrival/exit floors, two directed links and walked static route. Lift data retains named mover/gate, road/top stops, approach colliders, onward route and ride ticks. Link coordinates remain cell-local, independent of the socket's Object3D transform; moving a socket still refuses. Constructors and emission use the single defining format schemas. Clone/copy keep independent mutable author rows; missing/malformed bindings refuse. No floor, mover, teleport, physics or native owner is invented. Both pilots retain identical original compiled geometry bytes, and their added entry fixtures preserve every independently admitted entry byte through JSON.
-
-
-`@wildshard/sdk/audio` remains the pure data contract and parser: shard audio rows and native simulation never import three.js author objects through it. Scene audio objects are defined separately in `@wildshard/sdk/sceneAudio`.
+`@wildshard/sharddev/entries` also defines `Portal(edge, link)` and `SocketLift(edge, lift)` as Entry subclasses. Both occupy the existing exact road-height midpoint socket and emit its existing `portalLink` or `socketLift` entry row. Portal data retains the named road/arrival/exit floors, two directed links and walked static route. Lift data retains named mover/gate, road/top stops, approach colliders, onward route and ride ticks. Link coordinates remain cell-local, independent of the socket's Object3D transform; moving a socket still refuses. Constructors and emission use the single defining format schemas. Clone/copy keep independent mutable author rows; missing/malformed bindings refuse. No floor, mover, teleport, physics or native owner is invented. Both pilots retain identical original compiled geometry bytes, and their added entry fixtures preserve every independently admitted entry byte through JSON.
 
 
-SF81 DIR-1: `@wildshard/sdk/director` defines `new Director({ id, inputs, stages, script? }).toJSON()`. `@wildshard/format/directorStages` owns the v2 wire contract; v1 numeric AssemblyScript declarations remain unchanged. Inputs are at most 16 named booleans bound to `flag:`, `zone:`, `event:` or `actor:<id>.dead/present` sources. Native installers supply actual observations from those owners; the row does not create or grant actor authority.
+`@wildshard/sharddev/audio` remains the pure data contract and parser: shard audio rows and native simulation never import three.js author objects through it. Scene audio objects are defined separately in `@wildshard/sharddev/sceneAudio`.
+
+
+SF81 DIR-1: `@wildshard/sharddev/director` defines `new Director({ id, inputs, stages, script? }).toJSON()`. `@wildshard/format/directorStages` owns the v2 wire contract; v1 numeric AssemblyScript declarations remain unchanged. Inputs are at most 16 named booleans bound to `flag:`, `zone:`, `event:` or `actor:<id>.dead/present` sources. Native installers supply actual observations from those owners; the row does not create or grant actor authority.
 
 `@wildshard/game/plugin/director` defines `DirectorStageLane`: `step(tick, observations)` returns ordered entry actions, and `snapshot()` / `restore(text)` preserve the immutable contract and active cursor. The first stage is unconditional and enters on the first accepted tick. Each later tick enters at most one successor whose `when` is true; without `next` the successor is the next listed stage, and the final stage is terminal. Explicit `next` permits cycles, including a guarded self transition. Each entry emits its actions once; restore emits none. Actions are only `spawn`, `despawn`, `flag: { key, value }`, `score`, `weather`, `toast`, `reward`, and `emit` (bounded boolean/numeric payload). Their existing native/presentation owners apply them; the interpreter installs no service. A non-null script requires the subsequent typed-script installation and is refused by the row-only lane.
 
 `@wildshard/format/directorWhen` compiles `!`, `&&`, `||`, parentheses and boolean literals over declared names, in that precedence order, to JSON instructions. Limits: 1,024 source code units, 128 tokens, 16 nested unary/parenthesized operations, 64 stages and 32 actions per entry. No eval, method calls, arithmetic, property access or undeclared name is accepted. All named observations must be present and boolean before any cursor mutation. The native proof installs the row on a real SimHost, quietly restores its checkpoint, and compares exact native continuation plus the complete suffix effect/hash tape.
 
 
-SF81 DIR-2: `@wildshard/sdk/directorAbi` defines `generateDirectorAbi(declaration)`, an allocation-free AssemblyScript source generator for the unchanged ABI-v0 input packing. v1 numeric input keys become camelCase `inputs.<name>: f64` getters, retaining fractional channels even at bounds 0..1; v2 stage inputs retain their declared names and become `bool` getters. Declaration order defines offsets in both versions. Ambiguous aliases and reserved AS identifiers refuse before compilation. `clock.tick`, `clock.dt`, `clock.self` and `incomingEvents.count/type(index)` expose the existing host channels. Native admission validates observations and incoming event counts before author code runs.
+SF81 DIR-2: `@wildshard/sharddev/directorAbi` defines `generateDirectorAbi(declaration)`, an allocation-free AssemblyScript source generator for the unchanged ABI-v0 input packing. v1 numeric input keys become camelCase `inputs.<name>: f64` getters, retaining fractional channels even at bounds 0..1; v2 stage inputs retain their declared names and become `bool` getters. Declaration order defines offsets in both versions. Ambiguous aliases and reserved AS identifiers refuse before compilation. `clock.tick`, `clock.dt`, `clock.self` and `incomingEvents.count/type(index)` expose the existing host channels. Native admission validates observations and incoming event counts before author code runs.
 
 `behaviour/build.json` modules may declare `director: "data/director.json"`. `wildshard build --behaviour-only` admits that confined declaration and supplies the generated `./wildshard-director` module to the pinned compiler in memory. The generated module is build-time source, never a runtime facade or manually maintained offset table. `compileBehaviourModule(source, maximumPages, virtualSources)` also accepts these named virtual AS sources. All declared modules compile before publishing outputs; `--check` compares existing immutable outputs without writing. Driftwood, Pine and Nalati now read named input getters; their original event/parameter writers and host bindings remain unchanged. Rebuilt metered Wasm bytes, hashes, fuel behavior and embedded declarations are byte-identical.
 
@@ -4698,18 +4699,18 @@ Scripted row continuations are version 3: original row contract, stage cursor an
 
 The optional shardfile `directors` root contains at most sixteen uniquely named stage machines. Its generic native binding presently admits only declared quest-flag observations and flag actions; other observations/actions and AS handlers require an explicit trusted installation and refuse here. Template 1 observes its actual door script condition through the existing quest owner, then the shipped creature's death flag. Its director cursor survives a real native checkpoint and the existing weapon/quest/ledger suffix.
 
-`@wildshard/sdk/bake/rig` also defines `readRigMotion(glb)`: Meshopt-decoded Float32
+`@wildshard/sharddev/bake/rig` also defines `readRigMotion(glb)`: Meshopt-decoded Float32
 transform keys become standard Three `AnimationClip`, `VectorKeyframeTrack` and
 `QuaternionKeyframeTrack` objects, with owned local node transforms. STEP and LINEAR
 interpolation stay exact. Duplicate/unnamed targets, morphs, cubic splines, non-finite,
 normalized or integer keys refuse. This is a Node authoring reader, not a playback service.
 
-`@wildshard/sdk/sceneAnimation` defines `readSceneAnimations` and
+`@wildshard/sharddev/sceneAnimation` defines `readSceneAnimations` and
 `restoreSceneAnimations` for exact standard Three track data;
 `@wildshard/sdk/immutable` defines canonical JSON encoding and exact byte hashing.
 Author generators import these defining author-only modules directly.
 
-`@wildshard/sdk/bake/normalizeRig` defines `normalizeRigSource(glb)`, an author-only
+`@wildshard/sharddev/bake/normalizeRig` defines `normalizeRigSource(glb)`, an author-only
 compiler for embedded Meshopt/quantized glTF rigs. It decodes to ordinary accessor
 buffers and externalizes the original WebP/PNG/JPEG files under exact SHA-256 names,
 without re-encoding. Joint indices and skin-weight encoding are retained because
@@ -4892,7 +4893,7 @@ viewmodel set (`walnut`, `brushed-steel`, `leather`, `cord`, `bolt` beside the m
 `engine/player/firstPersonArms`: `gloveFist`, `riderArm`, `forearm`
 consume `ArmStyle`; `armPalette` returns fresh colours and `riderArmSteps`
 keeps style across yields. Hex conversion and linear RGB triples stay exact.
-Author `@wildshard/sdk/bake/riderArms` supplies `bakeGloveFist`,
+Author `@wildshard/sharddev/bake/riderArms` supplies `bakeGloveFist`,
 `bakeRiderArm`, `bakeForearm`, `bakeArmColour` and `bakeArmPalette`.
 Pine/Nalati own JSON styles; client `placeArm` poses geometry. `nalatiArms`
 serves only frozen legacy callers until NEXT N5.
@@ -5006,15 +5007,15 @@ The adapter supplies the existing pattern ports: the ram's live home and shared 
 `bake/species`, `bootInventory`, `rows`, `weapons/meleeProfile` and `formatJsonSchema` are offline APIs.
 `bake/placement.figureColliderRows` admits the complete figure row, then compiles its original box/capsule anchor contacts. It constructs no figure, skin, scene or service; missing colliders retain empty contact ownership.
 
-`@wildshard/sdk/bake/colliders` compiles successive placement poses and stepwise Float32 geometry transforms, relative world hulls and ordered support points. `bakePlacedGeometry` mutates caller-owned geometry; the other kernels return owned matrices/contact storage. Explicit matrices apply once. These offline kernels construct no renderer, registry or physics service.
+`@wildshard/sharddev/bake/colliders` compiles successive placement poses and stepwise Float32 geometry transforms, relative world hulls and ordered support points. `bakePlacedGeometry` mutates caller-owned geometry; the other kernels return owned matrices/contact storage. Explicit matrices apply once. These offline kernels construct no renderer, registry or physics service.
 
 `sharedMeleeAuthorBase` returns the shared melee author policy as detached data with owned native Vector3/Quaternion/Color poses, preserving every field and property order. `sdk/weapons/thrownProfile.parseThrownWeaponProfile` admits complete finite throw/flight/damage/pickup tuning before view authoring. Neither operation creates a runtime view or owner.
 
-`@wildshard/sdk/bake/simplifier` provides `simplifyPaintedGeometry`: explicit vertex target, colour/normal weights and relative error reduce indexed authored geometry into detached position/normal/colour channels and first-use ordered indices. The caller retains the source and owns the result.
+`@wildshard/sharddev/bake/simplifier` provides `simplifyPaintedGeometry`: explicit vertex target, colour/normal weights and relative error reduce indexed authored geometry into detached position/normal/colour channels and first-use ordered indices. The caller retains the source and owns the result.
 
-`@wildshard/sdk/bake/riderArms` admits complete attachment policy with `reinPresentationRows` and bakes paired strap geometry with `bakeReinsGeometry`. Supply two finite six-anchor camera-space paths; the returned geometry is owned, with no live material or riding view.
+`@wildshard/sharddev/bake/riderArms` admits complete attachment policy with `reinPresentationRows` and bakes paired strap geometry with `bakeReinsGeometry`. Supply two finite six-anchor camera-space paths; the returned geometry is owned, with no live material or riding view.
 
-`@wildshard/sdk/bake/facetedGeometry` provides `FacetedGeometryBuilder` for offline seeded face painting, wobble, topped parts, sway attributes, AO and hidden-face removal. Added parts are consumed; `finish` returns owned geometry and clears the pending parts. Terrain contacts are explicit callbacks; no renderer, material or live level is constructed.
+`@wildshard/sharddev/bake/facetedGeometry` provides `FacetedGeometryBuilder` for offline seeded face painting, wobble, topped parts, sway attributes, AO and hidden-face removal. Added parts are consumed; `finish` returns owned geometry and clears the pending parts. Terrain contacts are explicit callbacks; no renderer, material or live level is constructed.
 
 `bake/primitives.bakeWobble` mutates distinct shared corners with the caller's RNG stream. `bake/facetedGeometry.cullFacetedParts` consumes only parts whose hidden triangles are removed; unchanged parts retain identity, and retained channel bits, normalized flags, part order and userData ownership are preserved. Ground samples are explicit callbacks.
 
@@ -5028,7 +5029,7 @@ The same faceted bake module offers bakeCachedGeometry for the native
 scoped geometry-bake protocol. Existing IDs, numeric-key quantization,
 recording-producer hooks, detached attribute/index/group copies, fallback
 compilation and complete RNG continuation retain their defining behavior.
-`@wildshard/sdk/bake/questPlacement.createAuthorQuestPlacements` compiles bounded authored frames, explicit/model anchors and borrowed floor callbacks with the native anchor precedence and strict registry reach. It owns only its validated anchor map, never a physical, prompt or save service. `quests.completionCardRows` and `platformSections.clientPlanSection` retain the defining complete schema/reference checks; admitted client plans keep their original immutable identity.
+`@wildshard/sharddev/bake/questPlacement.createAuthorQuestPlacements` compiles bounded authored frames, explicit/model anchors and borrowed floor callbacks with the native anchor precedence and strict registry reach. It owns only its validated anchor map, never a physical, prompt or save service. `quests.completionCardRows` and `platformSections.clientPlanSection` retain the defining complete schema/reference checks; admitted client plans keep their original immutable identity.
 
 `quests.questPropRows` admits captured quest floor grids, drops, body identities and gate contacts through the defining strict schema. `quests.questAutomaticFlag` compiles the shared interaction kind/id flag policy without raising flags or constructing physical or page owners.
 
@@ -5062,15 +5063,15 @@ service or ad-hoc validator is installed.
 validator subset, retaining exact output types, defaults, custom checks and issue
 order. Grammar factories, structural documents and unknown names refuse.
 
-`toonHeldArmsRows(value)` in `@wildshard/sdk/rows` admits the complete original
+`toonHeldArmsRows(value)` in `@wildshard/sharddev/rows` admits the complete original
 toon rig, Explorer card and world-claim grammar with native issue ordering.
-`AuthorMapPalette` in `@wildshard/sdk/bake/mapRaster` is the complete source
+`AuthorMapPalette` in `@wildshard/sharddev/bake/mapRaster` is the complete source
 paint-band and ordered-overlay declaration type.
 
 The native physics body/collider grammar factories retain exact rig, shape, range and provenance signatures;
 selecting or using them allocates no runtime body, collider, registry or world.
 
-`@wildshard/sdk/decisionScripts.actorProjectionRows(input)` admits the complete
+`@wildshard/sharddev/decisionScripts.actorProjectionRows(input)` admits the complete
 native JSON actor projection. ABI2, declared signal/field/channel names and
 operation references are checked by the defining parser before publication;
 no compiler, live actor or continuation is created. The finite author format
@@ -5103,11 +5104,11 @@ creates no view, tell or lifetime.
 bank, observation columns, signals and actions, including mutable profile
 arrays. Its type has no compiler, runtime or continuation dependency.
 
-The author CLI `wildshard schema list` lists format schemas and the shardfile declaration. `wildshard schema shardfile /properties` discovers all sections without Valibot internals. `schemaDeclaration` and `schemaAt` are defined in `@wildshard/sdk/formatJsonSchema`; discovery preserves native semantic checks and grants no admission. See [schema discovery](authoring/schema-discovery.md) for pointers, tuple arity, identifier grammars and installed declaration locations.
+The author CLI `wildshard schema list` lists format schemas and the shardfile declaration. `wildshard schema shardfile /properties` discovers all sections without Valibot internals. `schemaDeclaration` and `schemaAt` are defined in `@wildshard/sharddev/formatJsonSchema`; discovery preserves native semantic checks and grants no admission. See [schema discovery](authoring/schema-discovery.md) for pointers, tuple arity, identifier grammars and installed declaration locations.
 
 ## Typed numeric author scripts (OS-F4)
 
-`@wildshard/sdk/directorAbi.generateScriptModule` produces the complete ABI-v0 AS module from admitted state rows and an on_tick body. It allocates memory, emits typed stable-ID state accessors, and documents byte versus record capacities and native actor provenance. The [typed ABI guide](authoring/script-abi.md) and executed numericScriptExample are checked against ScriptLane, including rollback and exact restore. Existing director accessor bytes remain unchanged.
+`@wildshard/sharddev/directorAbi.generateScriptModule` produces the complete ABI-v0 AS module from admitted state rows and an on_tick body. It allocates memory, emits typed stable-ID state accessors, and documents byte versus record capacities and native actor provenance. The [typed ABI guide](authoring/script-abi.md) and executed numericScriptExample are checked against ScriptLane, including rollback and exact restore. Existing director accessor bytes remain unchanged.
 
 ## Director day observations (OS-F5)
 
@@ -5118,7 +5119,7 @@ Stage inputs admit day:FROM..TO as a bounded boolean over the declared look cloc
 The public SDK headless.proveAuthorSimulation and CLI prove run a fixed native worker: the real GridSimulation admission/save/unload/restore contract, uninterrupted regional suffix comparison, and quest-derived facts filed by Ledger through serialized SaveStore storage. No author host modules or synthetic facts are accepted. See [the author proof workflow](authoring/author-proof.md); validate still owns the full entry walk.
 
 
-OS-F8: SDK `@wildshard/sdk/modes` adds the ordinary three.js `Ladder` authoring
+OS-F8: SDK `@wildshard/sharddev/modes` adds the ordinary three.js `Ladder` authoring
 object and its `LadderOptions` data. The defining format modes module validates
 vertical floors, outward direction, reach, speed and a bounded upper exit. The
 normal data client/Node simulation installs the existing `climb` traversal;
@@ -5203,13 +5204,13 @@ Sky and Signal use it for native cue aliases and silent-score selection.
 
 ### CPU navigation authoring (G320)
 
-`@wildshard/sdk/bake/navigation.bakeNavigation({positions, indices}, layers, settings)`
+`@wildshard/sharddev/bake/navigation.bakeNavigation({positions, indices}, layers, settings)`
 runs navcat and emits WSNM v1 bytes and layer counts. Positions face up in world
 space; settings give metre-based edge and voxel sizes. Clearance, erosion,
 tile order, centimetre detail and neighbour packing retain native semantics.
 Runtime reading and path queries stay unchanged.
 
-`@wildshard/sdk/bake/navigationAsset.navigationSourceRows(bytes, slug)` admits
+`@wildshard/sharddev/bake/navigationAsset.navigationSourceRows(bytes, slug)` admits
 original bytes and returns navigation, costs, critical hashes and the platform's
 conventional public URL. The owner must be a bounded shard slug.
 
@@ -5298,7 +5299,7 @@ once.
 
 ### Typed whole-shape GLBs
 
-`PropWhole` (`sdk/bake/props`) maps application semantics to source channels
+`PropWhole` (`sharddev/bake/props`) maps application semantics to source channels
 with `customAttributes`. `nativeAttributes`, also accepted by `staticGlb`, retains typed
 `_WS_RAW_*` beside portable float32 semantics. Extras name each channel
 and its storage/width/normalization; float16 uses uint16 bits. Clients
@@ -5306,7 +5307,7 @@ restore channels before material use.
 `matrix64`/`instances64` preserve transform doubles. All bytes count in
 admission; omitted options retain original output.
 
-`@wildshard/sdk/bake/forest.treeSetRows` admits tree pools, material slots
+`@wildshard/sharddev/bake/forest.treeSetRows` admits tree pools, material slots
 and ordered variants; `NativeForestSpecies` names planting traits.
 
 ### Tile geometric error
@@ -5314,12 +5315,12 @@ and ordered variants; `NativeForestSpecies` names planting traits.
 `measuredCoarseGeometry` returns original geometry plus meshopt's achieved
 metre estimate (not Hausdorff). `coarseCopy.errorMetres`,
 `PropWhole.geometricError` and `PropsBakeSource.coarseErrorMetres` propagate
-it through scale. `sdk/bake/geometryError` adds float32 loss or transformed
+it through scale. `sharddev/bake/geometryError` adds float32 loss or transformed
 quantization-cell radius; lossless data keeps zero. Payloads stay exact.
 
 ### Static tile slabs
 
-`sdk/bake/slabs` retains the exact join as a bake oracle. Runtime fine
+`sharddev/bake/slabs` retains the exact join as a bake oracle. Runtime fine
 rows may use `storage: 'slabs'` with model ids only, requiring complete
 paired slab keys and explicit logical tile `covers`. One real bank
 publication serves overlapping holds; verified mounting makes them
@@ -5343,7 +5344,7 @@ decimation. `wholePartition` extras retain source id, vertex/triangle
 ordinals, original vertex/index counts and index width; unreferenced
 vertices enter the first occupied tile. Clients reconstruct original
 draws/materials using `assembleWholeGeometryViews` below.
-`partitionWholeGeometry` lives in `sdk/bake/props`; omission keeps the old
+`partitionWholeGeometry` lives in `sharddev/bake/props`; omission keeps the old
 byte path. Application extras are charged and cannot overwrite reserved
 storage keys.
 
@@ -5402,7 +5403,7 @@ waive hashes, critical costs, entry checks or native collision ownership.
 
 ### Original native terrain queries
 
-`readNativeTerrain(bytes)` in `@wildshard/sdk/bake/terrain` admits an
+`readNativeTerrain(bytes)` in `@wildshard/sharddev/bake/terrain` admits an
 original bounded WSTR lattice for author placements. It copies the supplied
 view and exposes the defining bilinear height, normal and splat queries.
 It does not substitute the physics ground or install runtime services.
@@ -5426,7 +5427,7 @@ the temporary assembler registration. The scope disposes draws that
 have not been adopted.
 
 `bakeQueryTerrain(source, { normalEpsilon: 0.6, datum: -0.8 })` in
-`@wildshard/sdk/bake/terrain` encodes the original 256/257 native lattice
+`@wildshard/sharddev/bake/terrain` encodes the original 256/257 native lattice
 as one charged critical WTT root. It evaluates no landscape, performs no
 resampling and creates no render tiles or colliders. Its query-only
 terrain requires `runtime.binds: ['terrain']`; the runtime keeps its
@@ -5449,11 +5450,11 @@ the existing whole-geometry reader; do not draw its subsets separately.
 
 ### Author-only complete product jobs (SF87)
 
-`@wildshard/sdk/productOutput` shares deterministic admission and emission
+`@wildshard/sharddev/productOutput` shares deterministic admission and emission
 with `wildshard build`: `admitProduct` checks actual immutable asset bytes
 and costs; `assertProductTargets` applies the same target policy;
 `writeProduct` writes canonical `shard.json`, every charged asset, and an
-informational validation receipt. `@wildshard/sdk/projectMap` supplies `packProjectMap` and its
+informational validation receipt. `@wildshard/sharddev/projectMap` supplies `packProjectMap` and its
 `ProjectMap` input to retain the exact bounded map raster in the library.
 
 A registered complete product job lists `shard.json` and every charged
@@ -5759,8 +5760,8 @@ host's current tick. Continuation field order and encoding are declared
 explicitly so existing JSON and object contracts survive a restore unchanged.
 Absent `item.native` preserves existing item and product bytes.
 
-The public `@wildshard/sdk/compileScript` module is implemented by the Node
-authoring host `sdk/bake/compileScript.ts`; gameplay never loads it.
+The public `@wildshard/sharddev/compileScript` module is implemented by the Node
+authoring host `sharddev/bake/compileScript.ts`; gameplay never loads it.
 
 The Sky page fan constructs one `bindMeleeContacts` controller from its
 admitted item rows. Its GUST hook uses the existing mover composition's
@@ -5798,7 +5799,7 @@ target, pass, draw or texture read is allocated for this mark.
 contract to an opaque native material. The engine chain attaches the AO
 and colour-pass protections, including AO material reconfiguration.
 Existing unlit graphs keep their legacy raw output when this is absent.
-`@wildshard/sdk/materials.meshMap` authors this input. The client compiler's
+`@wildshard/sharddev/materials.meshMap` authors this input. The client compiler's
 optional second texture argument and declared props' colour slots bind it via
 `bindGraphMeshMap` in the existing engine graph backend. Equal graph/map pairs
 share a scope-owned material; different maps remain separate. Original textures
@@ -5876,7 +5877,7 @@ admission and library allocator claims use the selected footprint. The
 
 ### Bounded held playback
 
-`@wildshard/sdk/clientChannels.ClientChannels.sample(a, keys, interpolation)`
+`@wildshard/sharddev/clientChannels.ClientChannels.sample(a, keys, interpolation)`
 compiles 2–32 finite, strictly ordered scalar keys into the existing visual
 DAG. `linear` and `smoothstep` retain the original segment arithmetic, including
 the 1e-6 interval denominator floor. The first and final endpoints clamp the
@@ -6000,7 +6001,7 @@ brain construction phase, install order and the final `keeper.settle()`;
 no extra host, clock or body is created.
 
 **Creature Model Explorer specimens (W1 C4).**
-`@wildshard/sdk/looks/modelLibrary#creatureSpecimen`
+`@wildshard/sharddev/looks/modelLibrary#creatureSpecimen`
 `(actualBodyCopy, { parts, material, scale? })` builds an
 unposed specimen from the body's original hard-part geometries. `all`
 retains every part in order inside a Group, with a distinct standard
@@ -6087,7 +6088,7 @@ through `varying` to a point fragment; `pointCoord` is Y up. No source code
 or camera matrix comes from the shard. Existing ops and absent effect
 state keep their programs unchanged.
 
-`@wildshard/sdk/bake/texture#bakeRawColourTexture` stores decoded bounded
+`@wildshard/sharddev/bake/texture#bakeRawColourTexture` stores decoded bounded
 PNG/JPEG/WebP RGBA pixels in Zstd RGBA8-sRGB KTX2 without lossy encoding.
 Its explicit `flipY` option selects row order. A graph texture param names
 the admitted file hash; the file belongs to the charged library. A sampler
@@ -6124,13 +6125,13 @@ packed?,materials?,files?,prepare?)` registers params/colliders and GLB/packed s
 Unknown params refuse pre-IO. `loadSpecimenAsset`/`loadBoundSpecimen` take
 bytes/prepared files, legacy URLs or `{file,bytes}`; tier size/header/resource checks stay. No owned URL fallback; disposal/failure releases inputs.
 Schemas reject accessors/cycles/callbacks, invalid JSON, paths and bounds.
-SDK `@wildshard/sdk/bake/specimenCatalogue`: strict `defineSpecimenCatalogue`
+SDK `@wildshard/sharddev/bake/specimenCatalogue`: strict `defineSpecimenCatalogue`
 book/model lookup, canonical `nameSpecimenBook` JSON/schema, and fresh
 `sharedPickupCatalogue()` metadata without runtime/I/O.
-`@wildshard/sdk/bake/canvasAtlas`: `canvasAtlasRows` admits JSON;
+`@wildshard/sharddev/bake/canvasAtlas`: `canvasAtlasRows` admits JSON;
 `paintSteps` replays ordered expressions/RNG; browser-only
 `paintCanvasAtlas` returns a mipmapped sRGB texture.
-`@wildshard/sdk/bake/nativeRaster.openNativeRaster` lends a phone WebKit
+`@wildshard/sharddev/bake/nativeRaster.openNativeRaster` lends a phone WebKit
 page under browser-lane. Setup refusal/`dispose()` close it.
 `openNativeRasterPage` lends an unprepared route-owned page on explicit
 WebKit or Chromium, with copied launch flags and the same phone context.
@@ -6443,7 +6444,7 @@ spot callback or paired lift/gate commands; a retired mover is inert.
 The original function binding remains supported. Sky lift prompts and
 Signal well prompts use these rows on their existing input owners.
 
-`sdk/rows` admits page composition (`parseRangedPage`), bounded rain
+`sharddev/rows` admits page composition (`parseRangedPage`), bounded rain
 (`parseRainPresentation`) and page/audio/guide observations
 (`parseForestWeatherObservation`) through the original row grammars.
 `explorerCatalogueRows` admits ordered model references with the defining JSON/identity checks and no runtime installer.
@@ -6487,7 +6488,7 @@ geometry waits for explicit model construction. Catalogue admission stays
 complete. Real placements and direct scene references still prepare their
 inputs before publication; cold model views await verified input reads.
 
-`sdk/worldScenes` admits recipes (`worldSceneRecipe`), ports
+`sharddev/worldScenes` admits recipes (`worldSceneRecipe`), ports
 (`worldSceneBindings`), sections (`worldSceneRows`), model catalogues
 (`worldSceneModels`), typed draw buffers (`worldSceneBuffers`), frozen
 welds (`worldSceneWeldRows`) and surface properties
@@ -6909,7 +6910,7 @@ borrows the live flags and submits through the existing event/count owner,
 with optional one-shot suppression and a caller presentation callback. It
 installs no clock, subscription or save owner.
 
-`@wildshard/sdk/movers` defines `CableLayout` and `ZiplineDriver`: one
+`@wildshard/sharddev/movers` defines `CableLayout` and `ZiplineDriver`: one
 renderer-free cable/deck geometry and gravity/drag ride law used by Pine
 and Driftwood. A bounded optional direct-anchor profile selects start,
 release and landing values; absent profile keeps the deck ride law.
@@ -7098,7 +7099,7 @@ shard's day clock calls `looks.toon.set(partialLook)` to update bands,
 lift, rim, cloud shade and caustics without rebuilding shaders. The
 catalogue's existing `tick(dt)` advances its cloud/caustic time once.
 The SDK author route is `graph({ model: 'toon', surface: ... })` from
-`@wildshard/sdk/materials`: the compiler supplies the existing toon
+`@wildshard/sharddev/materials`: the compiler supplies the existing toon
 lighting preset, so shards need no engine preset import. An authored
 lighting stage uses `model:'standard'` instead.
 
@@ -7375,7 +7376,7 @@ headless state).
 
 ### Water surfaces (G466 H7)
 
-`@wildshard/sdk/looks/waterSurface` is the water-surface host: one water body
+`@wildshard/sharddev/looks/waterSurface` is the water-surface host: one water body
 drawn on a look.materials graph from a row
 (`@wildshard/format/water#WaterSurfaceSchema`). `new WaterSurface(row, look)`
 validates the row; `look` is the compiled graph (`material`, plus `param` /
@@ -8803,7 +8804,7 @@ validation remains available independently of the retired custom transport.
 
 ### Verbatim runtime output (P3)
 
-`@wildshard/sdk/outputRuntime.writeRuntimeFiles(project, destination,
+`@wildshard/sharddev/outputRuntime.writeRuntimeFiles(project, destination,
 {check})` copies only the project's `runtime/**/*.ts` bytes, including
 local declarations, into the owned output's `runtime/`. The required
 checker receives project-relative paths and decoded source; build
@@ -8855,7 +8856,7 @@ property keys. `world/physics` uses `WorldPhysicsSchema`: raw native ground,
 colliders, actors, optional parked actors and herds, with explicit contact
 rig and collider provenance. It preserves actor order and encoded buffers.
 
-Build-time `@wildshard/sdk/platformSections.worldPhysicsSection(bake,
+Build-time `@wildshard/sharddev/platformSections.worldPhysicsSection(bake,
 {rig, provenance})` extracts those common fields from an unchanged producer
 output. Owner-specific encounter, habitat, shelter and hit-volume metadata
 must use complete registered native contracts and retain their existing owner validation. The
@@ -8898,7 +8899,7 @@ compiled into the app and never imported from a remote JavaScript URL.
 
 ### Named author blobs (P2b)
 
-`@wildshard/sdk/blobs.nameBlob(name, kind, bytes, options)` owns and
+`@wildshard/sharddev/blobs.nameBlob(name, kind, bytes, options)` owns and
 admits binary assets, derives their content hash, measured minimum costs
 and `blobs/<kind>/<hash>.<extension>` path. Logical names remain in the
 index. `emitNamedBlobs(rows)` revalidates the bytes and returns sorted
@@ -8909,7 +8910,7 @@ fatal UTF-8 and JSON syntax, and the existing async consumer must parse
 the verified `product.file(name)` bytes with its strict defining schema.
 Textual glTF cannot enter as a JSON blob.
 
-`@wildshard/sdk/blobBytes.nameBlobBytes` is the shared byte-admission core.
+`@wildshard/sharddev/blobBytes.nameBlobBytes` is the shared byte-admission core.
 Binary-only Node producers avoid the schema compiler; a declared JSON schema
 requires a validator. The ordinary `nameBlob` API always supplies the defining
 validator. `schemaValidation` keeps the same canonical draft-07 policy with an
@@ -8995,7 +8996,7 @@ A3/A6 supply those real registries while building/resolving scripts; missing
 registries refuse. Byte admission uses `admitScript(bytes,1)` and the v1
 compiler contract; existing v0 bindings remain separate until their Z row.
 
-`@wildshard/sdk/decisionBindingMap.decisionBindingMap(row, registries)` is
+`@wildshard/sharddev/decisionBindingMap.decisionBindingMap(row, registries)` is
 the common generated-binding/resolver/scenario map. It uses authoritative
 per-kind positive handles and refuses missing, duplicate or unsafe ids.
 Actor handles are never allocated from alias order or hashes. Timers alone
@@ -9067,13 +9068,13 @@ share native physics and strict command admission.
 
 ### Declared decision author compilation (KA3)
 
-`@wildshard/sdk/decisionScriptBindings.generateDecisionBindings(row, registries)`
+`@wildshard/sharddev/decisionScriptBindings.generateDecisionBindings(row, registries)`
 uses the defining format binding map to generate only declared constants,
 state/parameter accessors, reads, commands and subscribed event dispatch. The
-`@wildshard/sdk/as/ws` core owns the v1 IO layout and bounded list/command buffers.
+`@wildshard/sharddev/as/ws` core owns the v1 IO layout and bounded list/command buffers.
 Guest sources stay virtual compiler inputs, outside the host TypeScript program.
 
-`@wildshard/sdk/buildDecisionScripts.compileDecisionScripts(rows, registries,
+`@wildshard/sharddev/buildDecisionScripts.compileDecisionScripts(rows, registries,
 authoredSources, options)` compiles and meters those inputs, then admits each
 module with its declared v1 page contract. `buildDecisionScripts` reads bounded
 project-owned `.as` files and refuses symlinks. The parser checks handler
@@ -9110,23 +9111,6 @@ the worker. Ordinary `step`, restore, fuel and runtime deadlines are unchanged.
 The defining schemas, cursor and result types live in
 `@wildshard/sdk/headlessJourney`; no caller-selected code or synthetic facts
 enter the worker.
-
-### Declared decision author compilation (KA3)
-
-`@wildshard/sdk/decisionScriptBindings.generateDecisionBindings(row, registries)`
-uses the defining format binding map to generate only declared constants,
-state/parameter accessors, reads, commands and subscribed event dispatch. The
-`@wildshard/sdk/as/ws` core owns the v1 IO layout and bounded list/command buffers.
-Guest sources stay virtual compiler inputs, outside the host TypeScript program.
-
-`@wildshard/sdk/buildDecisionScripts.compileDecisionScripts(rows, registries,
-authoredSources, options)` compiles and meters those inputs, then admits each
-module with its declared v1 page contract. `buildDecisionScripts` reads bounded
-project-owned `.as` files and refuses symlinks. The parser checks handler
-subscriptions and counts all authored `.as`, including unused sources, without
-comments or blank lines. Generated code never counts. Root adapters supply the
-sealed `decisionLegacyLines` denominator (10 percent); standalone projects must
-declare `asLineCeiling`. No SDK module reads repository policy.
 
 ### Simulation decision wiring (KA6)
 
@@ -9655,7 +9639,7 @@ creature card through its original strict schema before any body is built.
 rig and gameplay policy before its owned body builder is attached.
 Equipment author types derive from `rows.equipmentRows` admission.
 
-`@wildshard/sdk/bake/species.bakeSpecies(row, id)` admits ordered gameplay
+`@wildshard/sharddev/bake/species.bakeSpecies(row, id)` admits ordered gameplay
 fields, strips visual variants and refuses think/act callbacks.
 `commonSpeciesRows(kind,id)` admits fresh boar/bear metadata;
 `deriveSpeciesRows(parent,patch)` merges tuning and strictly admits the result.
@@ -10311,7 +10295,7 @@ marked `required` returning false stops the purchase before grants.
 Panels keep their original hold lifetimes; native modal saves retain
 `{ version: 1, open }`, with silent validation before restore.
 
-`@wildshard/sdk/quests.parsePersistedQuestPage` validates compiled saved-page JSON
+`@wildshard/sharddev/quests.parsePersistedQuestPage` validates compiled saved-page JSON
 for the shared persisted-quest host: places, markers, model, reward persistence,
 held camera beat, transient startup repair and bounded capture steps. It adds no
 quest state or callbacks; both Sky Reach and Signal Dunes use the same reader.
@@ -10522,7 +10506,7 @@ registers a URL, pack rows and label under an owner-local id. The SDK alone
 constructs the decoder. `engine/models/geometrySources.readGeometrySource`
 borrows fresh owned copies using that id and geometry indices; disposal
 retires the registration. A shard supplies no decoder object or callback.
-The canonical authoring codec remains in `sdk/kit/geometryPack`, preserving
+The canonical authoring codec remains in `sharddev/kit/geometryPack`, preserving
 the isolated baker's existing dependencies.
 
 Host bar: **5/6**, passing tests 1–5. Both collection presenters use admitted
@@ -11479,7 +11463,7 @@ refuse admission.
 
 `engine/fx/lightEmitters.LightEmitters` materialises ordered numeric rows
 as irradiance sources or a bounded live uniform. Author code uses
-`@wildshard/sdk/bake/lightSources.bakeLightSources(rows)` for detached initial
+`@wildshard/sharddev/bake/lightSources.bakeLightSources(rows)` for detached initial
 sources with the same strict identity, numeric and 16384-row bounds.
 Ground `pools.source` resolves once through `FamilyContext.emitterPools`;
 dusk keeps uniform identity without copies or shader recompilation.

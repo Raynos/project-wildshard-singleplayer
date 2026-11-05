@@ -29,7 +29,7 @@ import type { PageWildEnvironment } from '../src/game/server/population/pageGrou
 import type { HUD } from '../src/engine/client/ui/HUD';
 import type { Audio } from '../src/engine/client/audio/Audio';
 import type { Music } from '../src/engine/client/audio/Music';
-import { strike } from '../src/sdk/species';
+import { strike } from '../src/sharddev/species';
 import strikes from './fixtures/nalati-strikeProfiles-original.json' with { type: 'json' };
 import { BorrowedElite, prepareEliteEntry, DeclaredEliteEntry, type EliteEntryLifecycle } from '../src/engine/client/ai/view/eliteEntry';
 import { NativeEliteController } from '../src/engine/client/ai/view/eliteController';

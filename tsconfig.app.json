@@ -13,6 +13,7 @@
     { "path": "./tsconfig.engine.json" },
     { "path": "./tsconfig.game.json" },
     { "path": "./tsconfig.sdk.json" },
+    { "path": "./tsconfig.sharddev.json" },
     { "path": "./tsconfig.commons.json" },
     { "path": "./tsconfig.shards.json" }
   ],

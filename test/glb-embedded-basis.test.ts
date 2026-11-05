@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { parseGlbData, prepareGlbCost } from '@wildshard/format/glbCost';
-import { nameBlob } from '../src/sdk/blobs';
+import { nameBlob } from '../src/sharddev/blobs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
 const original = readFileSync('public/assets/gpu/far-reach/rigs/storm-roc-70e5655f.glb');

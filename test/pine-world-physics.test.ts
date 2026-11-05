@@ -4,7 +4,7 @@ import {expect,test} from 'vitest';
 import * as v from 'valibot';
 import {pinePhysicsBytes,pinePhysicsOwnersBytes,pinePhysicsOwners,pineWorldPhysics} from '../src/shards/pine-hollow/generators/physics';
 import {PinePhysicsSchema,PinePhysicsOwnersSchema} from '../src/shards/pine-hollow/generators/sections';
-import {worldPhysicsSection,emitPlatformSections} from '@wildshard/sdk/platformSections';
+import {worldPhysicsSection,emitPlatformSections} from '@wildshard/sharddev/platformSections';
 import {createNativeBakeReader} from '@wildshard/game/population/nativeBake';
 import terrain from '../src/shards/pine-hollow/data/terrainBindings.json' with {type:'json'};
 

@@ -23,10 +23,10 @@
  */
 import * as THREE from 'three';
 import { SEED } from './landscapeRows';
-import { Rng } from '@wildshard/sdk/random';
-import { siteFloor, boxDesc, type BoxSpec as Collider, type FloorRect, type ColliderDesc } from '@wildshard/sdk/bake/placement';
-import { bakeRock as rock, bakeTriangles as tris } from '@wildshard/sdk/bake/primitives';
-import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sdk/bake/facetedGeometry';
+import { Rng } from '@wildshard/sharddev/random';
+import { siteFloor, boxDesc, type BoxSpec as Collider, type FloorRect, type ColliderDesc } from '@wildshard/sharddev/bake/placement';
+import { bakeRock as rock, bakeTriangles as tris } from '@wildshard/sharddev/bake/primitives';
+import { FacetedGeometryBuilder as LowPolyKit } from '@wildshard/sharddev/bake/facetedGeometry';
 import { addOpenEnded, bakeLight, fern, broadClump, hibiscusBush, hibiscus, lilyPad, lotus, vineStrand, PLANT } from './lowpolyPlants';
 
 import type { ShrineSite, ShrineAnchor, ShrineParams } from './shrineTypes';

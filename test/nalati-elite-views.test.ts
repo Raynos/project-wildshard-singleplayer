@@ -9,9 +9,9 @@ import { shardContext } from '../src/game/client/plugin/context';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { installViewProgram, lendViewTell, lendViewValues } from '../src/game/client/shardfile/clientViewProgram';
 import { eliteViewSource, eliteViewTell } from '@wildshard/format/eliteFeature';
-import { emptyShardfile } from '../src/sdk/author';
+import { emptyShardfile } from '../src/sharddev/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
-import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
+import { compileScriptV2 } from '../src/sharddev/bake/compileScriptV2';
 import { nalatiEliteViews } from '../src/shards/nalati-grasslands/generators/eliteViews';
 import source from '../src/shards/nalati-grasslands/behaviour/eliteViews.as?raw';
 

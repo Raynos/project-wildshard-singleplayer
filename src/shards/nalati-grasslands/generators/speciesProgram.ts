@@ -1,7 +1,7 @@
 import { nalatiAdmissionProgram } from './admissionProgram';
 import { nalatiStrikeRows, nalatiGoldenKingPose } from './kurganRows';
-import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
-import { decodeBuildDeflate } from '@wildshard/sdk/bake/byteCodec';
+import type { ProjectGenerationContext } from '@wildshard/sharddev/projectGeneration';
+import { decodeBuildDeflate } from '@wildshard/sharddev/bake/byteCodec';
 import type { prepareNalatiSpecies, NalatiSpeciesSourceInputs } from './speciesPreparation';
 
 const body = '/assets/nalati/baked/bodies.bin';
