@@ -37,6 +37,7 @@ const product = readBuiltShardfile(ROOT, slug), physics = join(ROOT, 'public/ass
 const resolvePath = path => {
   const inside = (root, tail) => { const file = resolveFile(root, `.${tail}`); return file === root || file.startsWith(root + sep) ? file : null; };
   if (path.startsWith(`/shards/${slug}/`)) return inside(resolveFile(product), path.slice(`/shards/${slug}`.length));
+  if (path.startsWith(`/server-class/${slug}/`)) return inside(resolveFile(product), path.slice(`/server-class/${slug}`.length)); // J91: outside the tree a page reads, as a build copies it
   if (path.startsWith('/assets/physics/')) return inside(physics, path.slice('/assets/physics'.length));
   for (const id of [firstBuild, nextBuild]) if (path.startsWith(`/${codeDirectory(id)}/`)) return inside(join(output, codeDirectory(firstBuild)), path.slice(`/${codeDirectory(id)}`.length));
   return inside(OUT, path);
