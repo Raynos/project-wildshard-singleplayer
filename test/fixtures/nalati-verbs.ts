@@ -14,6 +14,7 @@ import {stepFigureOrbit} from '../../src/game/quest/figureOrbit';
 import {prepareProductPlan as prepareNalati} from './headless-native';
 import {installNalatiMountInputs} from './nalati-mount-inputs';
 import {installNalatiChapterObservation} from './nalati-chapter-observation';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const finite=v.pipe(v.number(),v.finite());
 const FigureSave=v.array(v.strictObject({id:v.string(),x:finite,y:finite,z:finite,phase:finite,ring:finite,idleYaw:finite}));
@@ -57,7 +58,7 @@ export function installNalatiReadings(host:SimHost,context:Pick<HeadlessRuntimeI
       for(const row of moving){
         if(row.orbit===undefined)throw new Error('Missing moving speaker orbit');
         row.state.phase+=dt;row.state.talking=readers.get(row.npc.id)?.active===true;
-        const distance=Math.hypot(host.player.position.x-row.feet.x,host.player.position.z-row.feet.z);
+        const distance=Math.hypot(leadPlayer(host).position.x-row.feet.x,leadPlayer(host).position.z-row.feet.z);
         stepFigureOrbit(row.orbit,row.state,row.feet,dt,distance,(x,z)=>host.groundHeightAt(x,z));publish(row);
       }
     },{snapshot:()=>moving.map(row=>({id:row.id,...row.feet,phase:row.state.phase,ring:row.state.ring,idleYaw:row.state.idleYaw})),
@@ -73,9 +74,9 @@ export function installNalatiReadings(host:SimHost,context:Pick<HeadlessRuntimeI
         if(command.value===-1){readings.dismiss();continue;}
         const speaker=speakers.find(row=>row.index===command.value);
         if(speaker===undefined)throw new Error('Unknown Nalati reading speaker');
-        const eye={x:host.player.position.x,y:host.player.position.y+1.68,z:host.player.position.z};
+        const eye={x:leadPlayer(host).position.x,y:leadPlayer(host).position.y+1.68,z:leadPlayer(host).position.z};
         if(readings.active||eyeReaches(host,{...speaker.position,radius:speaker.radius})&&pickPrompt([speaker],eye,host.physics)!==undefined)readings.press(speaker.id);
       }
-      readings.advanceReading(dt,host.player.position);
+      readings.advanceReading(dt,leadPlayer(host).position);
     },{snapshot:()=>readings.snapshot(),restore:value=>readings.prepareRestore(value)()});
 }

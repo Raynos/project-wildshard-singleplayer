@@ -17,6 +17,7 @@ import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProto
 import type { HeadlessTapeObservation, HeadlessTapeSegment } from '../../../src/sdk/headlessTape';
 import {outputDescriptor} from '../../../src/game/shardfile/outputDescriptor';
 import {TradeHandoffSchema,tradeWire,tradeRead,tradeHash,tradeSnapshotHashes,checkTradeLedger,checkTradeHandoff,type TradeHandoff,type TradePart} from './tradeHandoff';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const [stage,outputPath,inputPath,inputHash]=process.argv.slice(2);assert.ok(stage==='counter'||stage==='purse'||stage==='buy');assert.ok(outputPath);
 let inherited:TradeHandoff|undefined;
@@ -47,7 +48,7 @@ try {
   const buy:HeadlessCommand={kind:'script',actorId:NATIVE_TRADE,value:cape};
   if(inherited!==undefined)assert.equal(inherited.omitted,inherited.parts.reduce((sum,part)=>sum+part.plan.segments.reduce((n,segment)=>n+(segment.frames??[]).flat().filter(command=>command.kind==='script'&&command.actorId===NATIVE_TRADE&&command.value===cape).length,0),0));
   const history:TradePart[]=inherited?.parts??[],parts:HeadlessTapeSegment[]=history.map(part=>{const segment=part.plan.segments[0];assert.ok(segment);return segment;}),encoder=new TextEncoder();
-  let frames:HeadlessCommand[][]=[],effects:HeadlessEffect[]=[],peakY=host.player.position.y,ticks=host.state.tick,commandsCount=parts.reduce((sum,part)=>sum+(part.frames??[]).reduce((n,frame)=>n+frame.length,0),0),bytes=history.reduce((sum,part)=>sum+encoder.encode(JSON.stringify(part.expected.observations[0])).byteLength,0),omitted=inherited?.omitted??0;
+  let frames:HeadlessCommand[][]=[],effects:HeadlessEffect[]=[],peakY=leadPlayer(host).position.y,ticks=host.state.tick,commandsCount=parts.reduce((sum,part)=>sum+(part.frames??[]).reduce((n,frame)=>n+frame.length,0),0),bytes=history.reduce((sum,part)=>sum+encoder.encode(JSON.stringify(part.expected.observations[0])).byteLength,0),omitted=inherited?.omitted??0;
   let identicalPhysics=inherited?.identicalPhysics??0,canonicalPhysics=inherited?.canonicalPhysics??0,finalSnapshot=inherited?.positive??'',negativeSnapshot=inherited?.negative??'';
   const comparePhysics=(a:ArrayLike<number>,b:ArrayLike<number>)=>{if(sameBytes(a,b))identicalPhysics++;else{canonicalPhysics++;assert.deepEqual(physicsState(a),physicsState(b));}};
   const compareSaved=(actual:string,expected:string)=>{
@@ -102,17 +103,17 @@ try {
   const flush=async(id:string)=>{
     if(frames.length===0)return;
     const segment:HeadlessTapeSegment={id,ticks:frames.length,commands:[],frames};frames=[];parts.push(segment);
-    const wanted:HeadlessTapeObservation={id,tick:host.state.tick,position:host.player.position.toArray(),peakY,grounded:host.player.motor.snapshot().result.grounded,flags:[...host.flags.all],
+    const wanted:HeadlessTapeObservation={id,tick:host.state.tick,position:leadPlayer(host).position.toArray(),peakY,grounded:leadPlayer(host).motor.snapshot().result.grounded,flags:[...host.flags.all],
       quests:host.quests.map(row=>({id:row.def.id,currentId:row.current?.id??null,started:row.snapshot().started,complete:row.isComplete})),effects,adapters:[]};
-    effects=[];peakY=host.player.position.y;bytes+=encoder.encode(JSON.stringify(wanted)).byteLength;assert.ok(bytes<=8_000_000&&parts.length<=128);
+    effects=[];peakY=leadPlayer(host).position.y;bytes+=encoder.encode(JSON.stringify(wanted)).byteLength;assert.ok(bytes<=8_000_000&&parts.length<=128);
     await pipeline.offer({segment,wanted,snapshot:snapshotSimHostBytes(host)});
   };
   const step=async(commands:HeadlessCommand[])=>{pipeline.check();ticks++;commandsCount+=commands.length;assert.ok(ticks<=30_000&&commandsCount<=60_000);
-    active.step(commands);frames.push(structuredClone(commands));effects.push(...structuredClone(active.effects));peakY=Math.max(peakY,host.player.position.y);
+    active.step(commands);frames.push(structuredClone(commands));effects.push(...structuredClone(active.effects));peakY=Math.max(peakY,leadPlayer(host).position.y);
     if(frames.length===512)await flush(`part-${parts.length}`);
   };
   const go=async(x:number,z:number)=>{let best=Infinity,stall=0;for(let i=0;i<3600;i++){
-    const p=host.player.position,dx=x-p.x,dz=z-p.z,d=Math.hypot(dx,dz);if(d<.25)return;
+    const p=leadPlayer(host).position,dx=x-p.x,dz=z-p.z,d=Math.hypot(dx,dz);if(d<.25)return;
     if(d<best-.02){best=d;stall=0;}else stall++;
     const k=Math.min(1,d/.8)/Math.max(.01,d);await step([{kind:'player',moveX:dx*k,moveZ:dz*k,yaw:Math.atan2(-dx,-dz),...(stall>60&&stall%30===0?{jump:true}:{})}]);
   }throw new Error(`Trade walk stuck ${x},${z}`);};
@@ -126,10 +127,10 @@ try {
   await step([{kind:'script',actorId:NATIVE_TRADE,value:-1}]);
   for(let kill=0;kill<16&&economy.purse().coins<price;kill++){
     const targets=[...host.entities].filter(([,a])=>a.alive&&(a.kind==='crab'||a.kind==='monkey'||a.kind==='boar'));
-    targets.sort(([,a],[,b])=>a.position.distanceToSquared(host.player.position)-b.position.distanceToSquared(host.player.position));
+    targets.sort(([,a],[,b])=>a.position.distanceToSquared(leadPlayer(host).position)-b.position.distanceToSquared(leadPlayer(host).position));
     const selected=targets[0];assert.ok(selected);const [id,a]=selected;
     for(let frame=0;frame<3000&&a.alive;frame++){
-      const p=host.player.position,dx=a.position.x-p.x,dz=a.position.z-p.z,d=Math.hypot(dx,dz),k=d>1.2?1/Math.max(d,.01):0;
+      const p=leadPlayer(host).position,dx=a.position.x-p.x,dz=a.position.z-p.z,d=Math.hypot(dx,dz),k=d>1.2?1/Math.max(d,.01):0;
       await step([{kind:'player',moveX:dx*k,moveZ:dz*k,yaw:Math.atan2(-dx,-dz),...(frame%40===0?{attack:{targetId:id}}:{})}]);
     }assert.equal(a.alive,false);await flush(`kill-${kill}`);
     for(let wait=0;wait<180;wait++)await step([]);await flush(`earned-${kill}`);
@@ -155,14 +156,14 @@ try {
   assert.ok(omitted>=4);const before=economy.purse().coins+price;
   restoredSession=await beginProductSession('driftwood-isle','driftwood-trade',finalSnapshot);
   const restored=await restoredSession.ready(),suffixTicks=120,suffixEffects:HeadlessEffect[]=[];
-  let suffixPeakY=host.player.position.y;assert.ok(parts.length+1<=128);
-  for(let i=0;i<suffixTicks;i++){ticks++;assert.ok(ticks<=30_000);active.step([]);suffixEffects.push(...structuredClone(active.effects));suffixPeakY=Math.max(suffixPeakY,host.player.position.y);}
+  let suffixPeakY=leadPlayer(host).position.y;assert.ok(parts.length+1<=128);
+  for(let i=0;i<suffixTicks;i++){ticks++;assert.ok(ticks<=30_000);active.step([]);suffixEffects.push(...structuredClone(active.effects));suffixPeakY=Math.max(suffixPeakY,leadPlayer(host).position.y);}
   // A constant-input suffix resumes the saved native world without asking the
   // walk adapter to allocate another set of already-saved rope colliders.
   const segment:HeadlessTapeSegment={id:'fresh-purchased-suffix',ticks:suffixTicks,commands:[]};
   const replies=await Promise.allSettled([sim.verbTapePart({version:1,observe:[],segments:[segment]}),restored.verbTapePart({version:1,observe:[],segments:[segment]})]);
-  const wanted=snapshotSimHostBytes(host),suffixWanted:HeadlessTapeObservation={id:segment.id,tick:host.state.tick,position:host.player.position.toArray(),peakY:suffixPeakY,
-    grounded:host.player.motor.snapshot().result.grounded,flags:[...host.flags.all],quests:host.quests.map(row=>({id:row.def.id,currentId:row.current?.id??null,started:row.snapshot().started,complete:row.isComplete})),effects:suffixEffects,adapters:[]};
+  const wanted=snapshotSimHostBytes(host),suffixWanted:HeadlessTapeObservation={id:segment.id,tick:host.state.tick,position:leadPlayer(host).position.toArray(),peakY:suffixPeakY,
+    grounded:leadPlayer(host).motor.snapshot().result.grounded,flags:[...host.flags.all],quests:host.quests.map(row=>({id:row.def.id,currentId:row.current?.id??null,started:row.snapshot().started,complete:row.isComplete})),effects:suffixEffects,adapters:[]};
   bytes+=encoder.encode(JSON.stringify(suffixWanted)).byteLength;assert.ok(bytes<=8_000_000);
   for(const reply of replies){if(reply.status==='rejected')throw reply.reason;assert.deepEqual(reply.value.report.observations,[suffixWanted]);const {physics,...actual}=decodeSimSnapshot(reply.value.commit.snapshot),{physics:expectedPhysics,...expected}=wanted;assert.deepEqual(actual,expected);comparePhysics(physics,expectedPhysics);}
   assert.equal(restored.quarantined,false);trace('fresh-purchased-suffix');

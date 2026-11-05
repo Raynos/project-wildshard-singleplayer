@@ -8,13 +8,14 @@ import { decodeSimSnapshot, decodeSimSnapshotBytes, snapshotSimHostBytes, serial
   prepareSimHostRestore, restoreSimHost, SnapshotBasisMismatchError } from '../src/engine/sim/snapshot';
 import { canonicalSimDigest } from './fake/simState';
 import { SIM_LEVEL, fightCommand } from './fixtures/sim-level/level';
+import { leadCommands } from '@wildshard/engine/sim/leadPlayer';
 
 const rapier = loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
 let checkpoint: string;
 beforeAll(async () => {
   const host = createSimHost(SIM_LEVEL, { rapier: await rapier });
   try {
-    for (let tick = 0; tick < 12; tick++) host.step(fightCommand(tick));
+    for (let tick = 0; tick < 12; tick++) host.step(leadCommands(host, fightCommand(tick)));
     checkpoint = serializeSimSnapshot(snapshotSimHostBytes(host));
   } finally { host.dispose(); }
 });
@@ -75,7 +76,7 @@ test('typed offset-view restore preserves DB1 transaction, detached native world
     expect(serializeSimSnapshot(snapshotSimHostBytes(target.host))).toBe(checkpoint);
     expect(offset.byteOffset).toBe(7); offset.fill(0); backing.fill(0);
     for (let tick = 12; tick < 24; tick++) {
-      target.host.step(fightCommand(tick)); expected.step(fightCommand(tick));
+      target.host.step(leadCommands(target.host, fightCommand(tick))); expected.step(leadCommands(expected, fightCommand(tick)));
       expect(serializeSimSnapshot(snapshotSimHostBytes(target.host))).toBe(serializeSimSnapshot(snapshotSimHostBytes(expected)));
     }
   } finally { target.host.dispose(); expected.dispose(); }

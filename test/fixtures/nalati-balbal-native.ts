@@ -25,6 +25,7 @@ import {readNalatiWeaponObservation} from './nalati-weapon-observation';
 import {restoreEncounterBrains} from './restoreEncounterBrains';
 import type {NalatiEncounterIntake} from './nalati-world';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const finite=v.pipe(v.number(),v.finite()),natural=v.pipe(finite,v.integer(),v.minValue(0));
 const Saved=v.strictObject({version:v.literal(1),law:v.unknown(),sites:v.array(v.boolean()),view:v.unknown(),
@@ -115,7 +116,7 @@ export async function prepareNalatiBalbals(preparation:Parameters<PrepareHeadles
     if(context.restoring)onSimHostRestored(host,()=>{restoreEncounterBrains(ownedBrains,elite.brains,
       body=>!host.scope.disposed&&!host.scope.disposing&&host.entities.get(body.entityId)===body&&body.kind===entry.metadata.kind&&presented.has(body.entityId));});
     const viewOwner=new NalatiCreatureView(module,view.rows,host.scope,()=>population.bodies,(x,z)=>host.groundHeightAt(x,z));
-    host.events.on('damage.dealt',event=>{if(event.req.target===host.player.health)contacts++;},host.scope);
+    host.events.on('damage.dealt',event=>{if(event.req.target===leadPlayer(host).health)contacts++;},host.scope);
     const update=(dt:number):void=>{
       for(const change of law.update(dt,{kind:Number(timing.phases.slots.includes(clock.dayPhase))}))standing.set(change.index,change.awake===1);
     };
@@ -136,7 +137,7 @@ export async function prepareNalatiBalbals(preparation:Parameters<PrepareHeadles
     poseUpdates.set(host,dt=>{
       viewOwner.frame(dt);
       for(const [id,pose]of presented){const body=host.entities.get(id),step=host.bodyDt(id);if(body===undefined)throw new Error('Balbal contact owner retired unexpectedly');
-        if(step<=0)continue;pose.advance(step,host.clock.now,body.position.distanceToSquared(host.player.position)<140*140);pose.publish();}
+        if(step<=0)continue;pose.advance(step,host.clock.now,body.position.distanceToSquared(leadPlayer(host).position)<140*140);pose.publish();}
     });
     owners.set(host,{law,contacts:()=>contacts,adoptAdd:body=>{
       if(host.scope.disposed||host.scope.disposing||body.kind!==entry.metadata.kind||host.entities.get(body.entityId)!==body

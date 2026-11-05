@@ -7,6 +7,7 @@ import {buildingDoor,toggleBuildingDoor,stepBuildingDoor,buildingDoorYaw,buildin
 import {eyeReaches} from '../../src/game/quest/interactionRows';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
 import {prepareProductPlan} from './headless-native';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const finite=v.pipe(v.number(),v.finite());
 const savedDoor=v.strictObject({id:v.string(),open:v.boolean(),t:v.pipe(finite,v.minValue(0),v.maxValue(1)),enabled:v.boolean(),handle:finite});
@@ -56,7 +57,7 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
       }
       for(const door of doors){
         stepBuildingDoor(door.state,dt,look.seconds);
-        buildingDoorCollides(door.state,()=>door.position.distanceToSquared(host.player.position)>collision.rearmRadius**2);
+        buildingDoorCollides(door.state,()=>door.position.distanceToSquared(leadPlayer(host).position)>collision.rearmRadius**2);
         if(door.body===undefined)throw new Error('Missing native door body');door.body.setPose(pose(door));
       }
     },{snapshot:()=>doors.map(door=>{

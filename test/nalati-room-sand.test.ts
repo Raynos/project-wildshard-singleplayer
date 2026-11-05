@@ -8,6 +8,7 @@ import {snapshotSimHostBytes,restoreSimHost} from '../src/engine/sim/snapshot';
 import {physicsState} from './fake/simState';
 import {NativeArenaSand} from './fixtures/nalati-room-sand-native';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
+import { leadCommands } from '@wildshard/engine/sim/leadPlayer';
 
 const room={origin:{x:0,y:5,z:0},halfWidth:5,corridorHalfWidth:1,corridorEnd:8,sandCells:4,
   cover:{x:0,z:0,wid:2,len:3,plinthH:.3,h:.6},pedestal:{x:1,z:1},beams:[]};
@@ -41,7 +42,7 @@ test('room sand preserves original heightfields and a quiet complete native cont
   try{
     for(let tick=0;tick<180;tick++){
       apply(original,tick);apply(sand.ground,tick);if(copy!==undefined)apply(copy.ground,tick);
-      page.step({moveX:0,moveZ:0,yaw:0});native.step({moveX:0,moveZ:0,yaw:0});restored?.step({moveX:0,moveZ:0,yaw:0});
+      page.step(leadCommands(page, {moveX:0,moveZ:0,yaw:0}));native.step(leadCommands(native, {moveX:0,moveZ:0,yaw:0}));restored?.step(leadCommands(restored, {moveX:0,moveZ:0,yaw:0}));
       expect(sand.ground.snapshot()).toStrictEqual(original.snapshot());
       expect(physicsState(native.physics.snapshot())).toStrictEqual(physicsState(page.physics.snapshot()));
       if(restored!==undefined&&copy!==undefined){expect(snapshotSimHostBytes(restored)).toStrictEqual(snapshotSimHostBytes(native));expect(copy.snapshot()).toStrictEqual(sand.snapshot());}

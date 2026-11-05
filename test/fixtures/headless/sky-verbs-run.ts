@@ -14,6 +14,7 @@ import {SkyTape} from '../../proof/far-reach/tape';
 import type {HeadlessCommand,HeadlessEffect} from '../../../src/sdk/tickProtocol';
 import type {HeadlessTapeSegment} from '../../../src/sdk/headlessTape';
 import {WINCH} from '../../../src/shards/far-reach/generators/layout';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const mode=process.argv[2]??'priority';
 if(mode!=='priority'&&mode!=='gust')throw new Error('Unknown Sky verb tape');
@@ -42,13 +43,13 @@ try{
   const flush=(id:string)=>{
     if(frames.length===0)return;
     segments.push({id,ticks:frames.length,commands:[],frames});frames=[];
-    expected.push({id,flags:[...host.flags.all],current:quest.current?.id??null,position:host.player.position.toArray(),effects});effects=[];
+    expected.push({id,flags:[...host.flags.all],current:quest.current?.id??null,position:leadPlayer(host).position.toArray(),effects});effects=[];
   };
   const step=(commands:HeadlessCommand[])=>{
     total++;commandCount+=commands.length;
     if(total>30_000||commandCount>60_000)throw new Error('Sky verbs exceed the admitted command allowance');
     active.step(commands);frames.push(commands);effects.push(...structuredClone(active.effects));
-    if(host.playerBoard.on)boardTicks++;
+    if(leadPlayer(host).board.on)boardTicks++;
     if(frames.length===18_000)flush(`slice-${total}`);
   };
   step([{kind:'script',actorId:'far.interact',value:0},controls({kind:'player',moveX:0,moveZ:0,yaw:0})]);
@@ -65,9 +66,9 @@ try{
   assert.equal(quest.current?.id,'roost');assert.equal(quest.isComplete,false);
   for(const flag of ['far.roost','far.vanes','far.bridge','far.complete','far.roc.down'])assert.equal(host.flags.has(flag),false,flag);
   if(mode==='priority'){
-    assert.ok(controller.finished,JSON.stringify({position:host.player.position,tape:controller.state}));
+    assert.ok(controller.finished,JSON.stringify({position:leadPlayer(host).position,tape:controller.state}));
     assert.ok(boardTicks>0,'actual HOVER input must ride the updraft');
-    assert.ok(Math.hypot(host.player.position.x-WINCH.x,host.player.position.z-WINCH.z)<3,'the locked winch is actually in reach');
+    assert.ok(Math.hypot(leadPlayer(host).position.x-WINCH.x,leadPlayer(host).position.z-WINCH.z)<3,'the locked winch is actually in reach');
     assert.ok(host.flags.has('seen:far.windmill'),'real bridge walk discovers the windmill');
     // The native prompt owner guards progression; its toast belongs to page presentation.
     const winch=expected.find(row=>row.id==='leg-8-act');assert.ok(winch,'actual in-reach winch interaction committed');

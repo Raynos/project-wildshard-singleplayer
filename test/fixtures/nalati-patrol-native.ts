@@ -27,6 +27,7 @@ import {pinBrain} from '../../src/engine/ai/pinning';
 import {readNalatiPatrolIntake} from './nalati-patrol-intake';
 import {readNalatiPatrolPoses} from './nalati-patrol-poses';
 import {prepareNalatiWorld,type NalatiEncounterIntake,type NalatiWorldLoans} from './nalati-world';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const finite=v.pipe(v.number(),v.finite()),natural=v.pipe(finite,v.integer(),v.minValue(0));
 const vector=v.tuple([finite,finite,finite]);
@@ -106,7 +107,7 @@ export async function prepareNalatiPatrol(preparation:Parameters<PrepareHeadless
       body.sampleTerrain=()=>{pose.sampleTerrain();};body.headWorld=out=>{pose.headWorld(out);return out;};
       return pose;
     };
-    const law=new PatrolLaw(rows.patrol,rows.motion,brain,{player:host.player,random:host.rng.stream('ai'),aimRandom:()=>host.rng.stream('ai'),present});
+    const law=new PatrolLaw(rows.patrol,rows.motion,brain,{player:leadPlayer(host),random:host.rng.stream('ai'),aimRandom:()=>host.rng.stream('ai'),present});
     law.attachActors({factory:{model:(kind,variant)=>{population.validateSpawn(kind,variant);return kind;}},
       spawn:population.spawnElite,retire:body=>{population.retireElite(body);poses.delete(body.entityId);scopes.get(body.entityId)?.dispose();scopes.delete(body.entityId);}});
     const seat=new Vector3(),aim=new Vector3(),direction=new Vector3(),contact=new StrikeRunner(),strike=strikeFromData(rows.contact.strike);
@@ -115,7 +116,7 @@ export async function prepareNalatiPatrol(preparation:Parameters<PrepareHeadless
     const sourceHead=new Vector3();
     const {geometry:_geometry,colour:_colour,renderOrder:_order,...arrowKind}=rows.ride.arrow;
     const arrows=new ProjectileLaw(arrowKind,{
-      feet:host.player.position,extent:CHUNK_HALF+80,
+      feet:leadPlayer(host).position,extent:CHUNK_HALF+80,
       floorAt:(x,y,z)=>floorBelow(host.physics,x,z,y+.3,60)??host.groundHeightAt(x,z),
       world:(from,to,radius)=>worldHit(host.physics,from,to,radius),targets:()=>null,wind:()=>null,
       surface:wall=>wall.material==='flesh'?'flesh':wall.material==='wood'||wall.material==='planks'?'wood':'ground',
@@ -129,7 +130,7 @@ export async function prepareNalatiPatrol(preparation:Parameters<PrepareHeadless
         const body=population.bodies.find(row=>row.entityId===id),dt=host.bodyDt(id);
         if(body===undefined)throw new Error('Patrol contact pose lost its original body');
         if(dt<=0)continue;
-        const near=body.position.distanceToSquared(host.player.position)<140*140;
+        const near=body.position.distanceToSquared(leadPlayer(host).position)<140*140;
         pose.advance(dt,host.clock.now,near);if(near)poseRows.postPose(pose.context,poseWind);pose.publish();
       }
     },undefined,'afterBodies');
@@ -153,8 +154,8 @@ export async function prepareNalatiPatrol(preparation:Parameters<PrepareHeadless
       arrows.update(dt);
       for(const hit of hits){
         const actor=hit.from??law.riders[0]?.a;if(actor===undefined)continue;
-        if(!contact.contains(strike,{actor,target:host.player.position,...(rows.contact.origin==='player'?{origin:host.player.position}:{})})||!canReach(actor,host.player.position,host.physics))continue;
-        host.combat.hit({source:'env',sourceTags:rows.contact.tags,target:host.player.health,amount:rows.ride.damage,point:actor.position,dir:direction.set(0,0,0),cause:{kind:actor.kind,label:actor.label}});totalHits++;
+        if(!contact.contains(strike,{actor,target:leadPlayer(host).position,...(rows.contact.origin==='player'?{origin:leadPlayer(host).position}:{})})||!canReach(actor,leadPlayer(host).position,host.physics))continue;
+        host.combat.hit({source:'env',sourceTags:rows.contact.tags,target:leadPlayer(host).health,amount:rows.ride.damage,point:actor.position,dir:direction.set(0,0,0),cause:{kind:actor.kind,label:actor.label}});totalHits++;
       }
     };
     host.onStep('nalati.patrol',()=>undefined,{snapshot:()=>JSON.stringify({law:law.snapshot(),readiness:readiness.snapshot(),poses:[...poses].map(([id,pose])=>[id,pose.snapshot()]),shooter:shooter===null?null:{id:shooter.entityId,kind:shooter.kind,label:shooter.label,at:shooter.position.toArray(),

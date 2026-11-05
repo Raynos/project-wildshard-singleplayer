@@ -8,6 +8,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { createSimHost } from '../src/engine/sim';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 
 test('mixed orchard roster replaces the practice slot and restores its reserved body and volley owner', async () => {
@@ -18,8 +19,8 @@ test('mixed orchard roster replaces the practice slot and restores its reserved 
     lendDriftwoodReturns(host.scope);
     const population = installMixedPopulation(host, input), first = population.bodies()[0]?.actor;
     if (first === null || first === undefined) throw new Error('Missing orchard practice body');
-    first.alive = false; first.hp = 0; host.player.position.set(-10, 0, -10);
-    for (let i = 0; i < 60; i++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    first.alive = false; first.hp = 0; leadPlayer(host).position.set(-10, 0, -10);
+    for (let i = 0; i < 60; i++) host.step(leadCommands(host, { moveX: 0, moveZ: 0, yaw: 0 }));
     expect(population.bodies()).toHaveLength(1);
     expect(population.bodies()[0]?.id).toBe('creature:1');
     expect(population.bodies()[0]?.actor?.alive).toBe(true);
@@ -34,7 +35,7 @@ test('mixed orchard roster replaces the practice slot and restores its reserved 
       expect(resumed.captain()?.entityId).toBe('creature:2');
     });
     expect(snapshotSimHost(restored)).toEqual(saved);
-    for (let i = 0; i < 6; i++) { host.step({ moveX: 0, moveZ: 0, yaw: 0 }); restored.step({ moveX: 0, moveZ: 0, yaw: 0 }); }
+    for (let i = 0; i < 6; i++) { host.step(leadCommands(host, { moveX: 0, moveZ: 0, yaw: 0 })); restored.step(leadCommands(restored, { moveX: 0, moveZ: 0, yaw: 0 })); }
     expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(host));
   } finally { host.dispose(); restored?.dispose(); }
 });

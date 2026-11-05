@@ -9,6 +9,7 @@ import {mountedPlayerOf} from '../../../src/game/riding/native';
 import {nativeTamingOf} from '../../../src/game/riding/nativeTaming';
 import {SKY_ROAD} from '../../../src/shards/nalati-grasslands/generators/layout';
 import type {KingObservation,KingBodyObservation} from '../../fixtures/nalati-king-continuation';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** A walking destination inside the actual door program's observed strip. */
 export function kingEntryPoint(e:Pick<NalatiKingData['entrance'],'x'|'z'|'facing'>):{readonly x:number;readonly z:number} {
@@ -59,13 +60,13 @@ export function* kingEntryInputs(host:SimHost,read:()=>KingObservation,rows:Nala
   for(const flag of ['clue:1','clue:2','clue:3'])assert.ok(host.flags.has(flag),flag);
   assert.equal(host.flags.has('dead:golden-king'),false);
   const e=rows.entrance;
-  for(const commands of chapterWalkInputs(host,'earned-king-door',kingWalkingRoute(host.player.position,kingEntryPoint(e)),2400)){
+  for(const commands of chapterWalkInputs(host,'earned-king-door',kingWalkingRoute(leadPlayer(host).position,kingEntryPoint(e)),2400)){
     if(read().inside)break;yield commands;
   }
   for(let tick=0;tick<120&&!read().inside;tick++)yield [{kind:'player',moveX:0,moveZ:0,yaw:e.facing,commandVersion:1,steer:{keyX:0,keyY:0,stickX:0,stickY:0}}];
   assert.equal(read().inside,true,'the original door program must actually enter');
   const p=rows.profile.fight.origin;
-  for(const commands of chapterWalkInputs(host,'entered-king-corridor',kingWalkingRoute(host.player.position,{x:p.x,z:p.z+rows.room.halfWidth-2}),1800)){
+  for(const commands of chapterWalkInputs(host,'entered-king-corridor',kingWalkingRoute(leadPlayer(host).position,{x:p.x,z:p.z+rows.room.halfWidth-2}),1800)){
     if(read().state!=='armed')break;yield commands;
   }
   for(let tick=0;tick<600&&read().state!=='fight';tick++)yield [];
@@ -77,8 +78,8 @@ export function* kingEntryInputs(host:SimHost,read:()=>KingObservation,rows:Nala
  * victory. The enclosing tape retains its original combined ledger/caps. */
 export interface KingFightRead {
   readonly flags:{readonly has:(name:string)=>boolean};
-  readonly player:{readonly position:{readonly x:number;readonly y:number;readonly z:number;readonly toArray:()=>number[]};
-    readonly health:{readonly attributes:{readonly health:number}}};
+  readonly players:ReadonlyMap<string,{readonly position:{readonly x:number;readonly y:number;readonly z:number;readonly toArray:()=>number[]};
+    readonly health:{readonly attributes:{readonly health:number}}}>;
   readonly state:{readonly tick:number};
   readonly adapters:{readonly get:(id:string)=>Pick<SimStateAdapter,'snapshot'>|undefined};
 }
@@ -93,21 +94,21 @@ export function* kingPhaseInputs(host:KingFightRead,read:()=>KingObservation,row
   assert.equal(weapons().slot,blade.id);
   let dodged=-120;
   const point=(body:KingBodyObservation):{x:number;z:number}=>({x:body.position[0],z:body.position[2]});
-  const distance=(body:KingBodyObservation):number=>{const at=point(body),p=host.player.position;return Math.hypot(at.x-p.x,at.z-p.z);};
+  const distance=(body:KingBodyObservation):number=>{const at=point(body),p=leadPlayer(host).position;return Math.hypot(at.x-p.x,at.z-p.z);};
   for(let tick=0;tick<12_000;tick++){
     const seen=read();assert.equal(seen.inside,true,'combat inputs cannot leave their actual encounter');
     if(through==='victory'?seen.state==='victory':seen.phase>=through)break;
     const king=seen.body;assert.ok(king);
     if(tick%300===0)console.info(JSON.stringify({story:'king-input',tick:host.state.tick,through,state:seen.state,phase:seen.phase,
-      mode:seen.mode,shielded:seen.shielded,armour:seen.armourBroken,hp:king.hp,player:host.player.health.attributes.health,
-      at:host.player.position.toArray(),target:king.position,head:king.head,adds:seen.adds.filter(body=>body.alive).length}));
+      mode:seen.mode,shielded:seen.shielded,armour:seen.armourBroken,hp:king.hp,player:leadPlayer(host).health.attributes.health,
+      at:leadPlayer(host).position.toArray(),target:king.position,head:king.head,adds:seen.adds.filter(body=>body.alive).length}));
     const adds=seen.adds.filter(body=>body.alive).sort((a,b)=>distance(a)-distance(b));
     // Invulnerable contacts still stagger in the original weapon law. Let
     // the actual goto finish and spawn its adds instead of shoving the King
     // away from his coffin while no damage can be earned.
     const waiting=seen.shielded&&adds.length===0;
     const target=seen.shielded&&adds.length>0?adds[0]:king;assert.ok(target);
-    const at=point(target),p=host.player.position,dx=at.x-p.x,dz=at.z-p.z,d=Math.hypot(dx,dz),
+    const at=point(target),p=leadPlayer(host).position,dx=at.x-p.x,dz=at.z-p.z,d=Math.hypot(dx,dz),
       gazeX=target.head[0]-p.x,gazeZ=target.head[2]-p.z,pitch=Math.atan2(target.head[1]-p.y-1.68,Math.hypot(gazeX,gazeZ));
     const windup=target.attackPhase>=.35&&target.attackPhase<.68,dodge=!waiting&&windup&&d<rows.profile.fight.attacks.combo.reach+1
       &&host.state.tick-dodged>=60;
@@ -135,9 +136,9 @@ export function* kingPhaseInputs(host:KingFightRead,read:()=>KingObservation,row
 export function* kingHomeInputs(host:SimHost,read:()=>KingObservation,rows:NalatiKingData):Generator<readonly HeadlessCommand[]> {
   assert.ok(host.flags.has('dead:golden-king'));assert.equal(host.flags.has('told:king'),false);
   assert.equal(host.flags.has('quest:golden-king'),false);assert.equal(read().state,'victory');assert.equal(read().inside,true);
-  const trace=(phase:string):void=>{console.info(JSON.stringify({story:'king-home-input',phase,tick:host.state.tick,at:host.player.position.toArray()}));};
+  const trace=(phase:string):void=>{console.info(JSON.stringify({story:'king-home-input',phase,tick:host.state.tick,at:leadPlayer(host).position.toArray()}));};
   trace('victory-exit');
-  for(const commands of chapterWalkInputs(host,'earned-king-exit',kingWalkingRoute(host.player.position,kingExitPoint(rows.room,rows.encounter.portal.end)),2400)){
+  for(const commands of chapterWalkInputs(host,'earned-king-exit',kingWalkingRoute(leadPlayer(host).position,kingExitPoint(rows.room,rows.encounter.portal.end)),2400)){
     if(!read().inside)break;yield commands;
   }
   for(let tick=0;tick<120&&read().inside;tick++)yield [];
@@ -147,12 +148,12 @@ export function* kingHomeInputs(host:SimHost,read:()=>KingObservation,rows:Nalat
   const horse=taming.companion;
   // The companion has its real collider. Stop the route before its centre;
   // the original mount input below approaches the actual interaction range.
-  for(const commands of chapterWalkInputs(host,'return-to-field-horse',kingWalkingRoute(host.player.position,horse.position),2400)){
-    if(Math.hypot(host.player.position.x-horse.position.x,host.player.position.z-horse.position.z)<4)break;
+  for(const commands of chapterWalkInputs(host,'return-to-field-horse',kingWalkingRoute(leadPlayer(host).position,horse.position),2400)){
+    if(Math.hypot(leadPlayer(host).position.x-horse.position.x,leadPlayer(host).position.z-horse.position.z)<4)break;
     yield commands;
   }
   for(let tick=0;tick<600&&!mount.mounted;tick++){
-    const p=host.player.position,dx=horse.position.x-p.x,dz=horse.position.z-p.z,d=Math.hypot(dx,dz);
+    const p=leadPlayer(host).position,dx=horse.position.x-p.x,dz=horse.position.z-p.z,d=Math.hypot(dx,dz);
     yield [{kind:'player',moveX:d>2.5?dx/d:0,moveZ:d>2.5?dz/d:0,yaw:Math.atan2(-dx,-dz)},
       ...(d<3.2&&tick%20===0?[{kind:'script' as const,actorId:'nalati.ride',value:1}]:[])];
   }

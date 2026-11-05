@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs';
 import { readProjectAssets } from '../../../src/sdk/project.ts';
 import { loadRapier } from '../../../src/engine/physics/rapier.ts';
 import { createShardfileSim } from '../../../src/game/plugin/simulation.ts';
+import { leadCommands, leadPlayer } from '../../../src/engine/sim/leadPlayer.ts';
 
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
 const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
@@ -15,10 +16,10 @@ try {
   assert.equal(source.runtime, null); assert.equal(source.terrain, null);
   assert.notEqual(source.meshCollision, null); assert.equal(sim.host.entities.has('guardian.1'), true);
   const door = sim.colliders.get('blender.door.collider'); assert.equal(door.active(), true);
-  for (let tick = 0; tick < 180; tick++) sim.host.step({ moveX: 0, moveZ: 1, yaw: 0 });
-  const stopped = sim.host.player.position.z;
+  for (let tick = 0; tick < 180; tick++) sim.host.step(leadCommands(sim.host, { moveX: 0, moveZ: 1, yaw: 0 }));
+  const stopped = leadPlayer(sim.host).position.z;
   assert.ok(stopped > 14 && stopped < 15.5, 'Closed authored door stops the capsule before the panel');
-  const toggle = () => { sim.lane.enqueue({ type: 201, target: sim.actors.get(sim.host.player.id), value: 1 }); sim.host.step(); };
+  const toggle = () => { sim.lane.enqueue({ type: 201, target: sim.actors.get(leadPlayer(sim.host).id), value: 1 }); sim.host.step(); };
   toggle(); assert.equal(door.active(), false);
   toggle(); assert.equal(door.active(), true);
   console.info(JSON.stringify({ native: true, meshCollision: true, creature: 'guardian.1', stopped, opened: true, reclosed: true }));

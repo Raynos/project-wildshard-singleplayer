@@ -16,6 +16,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
 import { admitNativeRosterServices, createNativeCreatureRoster } from '../src/game/shardfile/homeKeeper';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 test('orchard roster phases keep native charge order and reject dead, stunned or foreign movement', async () => {
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
@@ -33,7 +34,7 @@ test('orchard roster phases keep native charge order and reject dead, stunned or
     expect(intake.beforeBody('foreign', .1)).toBe(false);
     expect(intake.beforeBody(body.id, .1)).toBe(true); intake.afterBody(body.id, .1);
     expect(order).toEqual(['motion', 'contact']);
-    expect(motion).toHaveBeenCalledWith(actor, .1, host.player.position); expect(contact).toHaveBeenCalledWith(actor, host.player.position);
+    expect(motion).toHaveBeenCalledWith(actor, .1, leadPlayer(host).position); expect(contact).toHaveBeenCalledWith(actor, leadPlayer(host).position);
     actor.stagger(new Vector3(0, 0, 1), 1);
     expect(intake.beforeBody(body.id, .1)).toBe(false); intake.afterBody(body.id, .1); expect(order).toHaveLength(2);
     actor.alive = false; expect(intake.beforeBody(body.id, .1)).toBe(false); intake.afterBody(body.id, .1); expect(order).toHaveLength(2);
@@ -94,7 +95,7 @@ test('native continuation resolves real identities and preserves detached ordere
       wetAt: () => false, trees: () => [], treeless: () => true, terrain: () => true, chunkHalf: 16 },
     nav: () => null, reach: () => true, wanderGoal: () => null, unaware: () => false,
     now: () => 0, sound: () => undefined, charge: () => undefined,
-  }, host.player.position);
+  }, leadPlayer(host).position);
   const services = admitNativeRosterServices(host, 'fixture.roster', hunt);
   const intake = createNativeCreatureRoster(host, { specs: [sample.spec], variants: new Map(), rng, services, hunted: 'every', spawnY: 10 });
   try {

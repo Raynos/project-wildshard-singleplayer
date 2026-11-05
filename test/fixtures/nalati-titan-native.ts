@@ -27,6 +27,7 @@ import {withNalatiWeapons,nalatiWeaponsOf} from './nalati-weapons-native';
 import {prepareNalatiChapterRecords,type NalatiChapterRecords} from './nalati-chapter-records';
 import {titanNativeViews} from './nalati-titan-views';
 import {TitanSaved} from './nalati-titan-state';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 export interface NativeNalatiTitan {readonly fight:OpenArenaFight;readonly boss:BossBrain;readonly locked:()=>boolean;readonly reward:()=>boolean;readonly storm:()=>boolean;
   readonly records:NalatiChapterRecords;readonly weather:()=>{state:string;left:number};readonly rewardPrompt:()=>{position:Vector3;radius:number;label:string}|null}
@@ -80,19 +81,19 @@ export async function prepareNalatiTitan(preparation:Parameters<PrepareHeadlessR
       const hit=(name:string,origin:Vector3,amount:number,why:string):boolean=>{
         if(!data.whole.includes(name)){
           const row=contacts.get(name);if(row===undefined)throw new Error('Missing admitted Titan contact');
-          if(!strikes.contains(row,{actor:{position:origin,scale:1,yaw:0},target:host.player.position}))return false;
+          if(!strikes.contains(row,{actor:{position:origin,scale:1,yaw:0},target:leadPlayer(host).position}))return false;
           if(!row.tags.includes('cover.exempt')&&!canReach({position:origin,scale:1,dims:{bodyY:1.2,bodyRadius:.1},
-            headWorld:out=>out.copy(origin).add(new Vector3(0,1.2,0))},host.player.position,host.physics))return false;
+            headWorld:out=>out.copy(origin).add(new Vector3(0,1.2,0))},leadPlayer(host).position,host.physics))return false;
         }
-        host.combat.hit({source:'env',sourceTags:[`boss.${data.record.kind}`,'feel.jolt','cover.checked'],target:host.player.health,
-          amount,point:host.player.position.clone(),dir:new Vector3(),cause:{kind:data.record.kind,label:data.definition.name},toast:why});
+        host.combat.hit({source:'env',sourceTags:[`boss.${data.record.kind}`,'feel.jolt','cover.checked'],target:leadPlayer(host).health,
+          amount,point:leadPlayer(host).position.clone(),dir:new Vector3(),cause:{kind:data.record.kind,label:data.definition.name},toast:why});
         totalContacts++;return true;
       };
       const rider=(body:HuntBody):ArenaSupportRider=>({body,share:law=>{if(law===null)damageShares.delete(body);else damageShares.set(body,law);},
         dissolve:()=>{patrolOwner.law.dissolve(body);}});
       const encounter:{boss?:BossBrain}={};
       const fight=new OpenArenaFight({scope:host.scope,weather:actual.storm,tieSpot:null,ai:()=>host.rng.stream('ai'),fog:()=>null,
-        camera,wild:env,phone:true,ground:(x,z)=>host.groundHeightAt(x,z),wind:actual.wind},{player:host.player,
+        camera,wild:env,phone:true,ground:(x,z)=>host.groundHeightAt(x,z),wind:actual.wind},{player:leadPlayer(host),
         get boss(){return encounter.boss??null;},get engaged(){return encounter.boss?.engaged??false;},mounted:()=>mount.mounted,
         contact:hit,throwRider:()=>{mount.dismount(true);},horseSteed:amount=>{mount.body.steed=Math.max(0,mount.body.steed+amount);},feed,toast,
         riderOwner:()=>({spawnRider:at=>{
@@ -100,29 +101,29 @@ export async function prepareNalatiTitan(preparation:Parameters<PrepareHeadlessR
           const site=data.supportSites.findIndex(row=>row.x===at.x&&row.z===at.z);
           if(site===-1)throw new Error('Titan support spawned outside its admitted site');support.set(site,body);return rider(body);
         }})},data,titanNativeViews(host,data));
-      bindArenaPoseView(fight,module,view.rows,{scope:host.scope,player:{position:host.player.position,velocity:mount.rider.velocity,get yaw(){return host.player.yaw;}},camera});
+      bindArenaPoseView(fight,module,view.rows,{scope:host.scope,player:{position:leadPlayer(host).position,velocity:mount.rider.velocity,get yaw(){return leadPlayer(host).yaw;}},camera});
       const ui:BossPresentation={update:()=>undefined,get barShown(){return bar;},hideBar:()=>{bar=false;},hideNameCard:()=>undefined,
         hideReward:()=>undefined,showRetry:()=>undefined,showNameCard:()=>undefined,setSkip:()=>undefined,showBar:()=>{bar=true;},
         setHp:()=>undefined,setShield:()=>undefined,setPhase:()=>undefined};
       const current=records.bosses.read()[data.definition.id]??{defeated:false,rewardTaken:false,kills:0};
       const weapons=():NonNullable<ReturnType<typeof nalatiWeaponsOf>>=>{const owner=nalatiWeaponsOf(host);
         if(owner===undefined)throw new Error('Titan requires its actual held equipment owner');return owner;};
-      const boss=new BossBrain({...data.definition,reward:{}},fight,{events:host.events,player:host.player,lockInput:on=>{
-        locked=on;host.playerMoveScale=on?0:1;weapons().setEnabled(!on);},
+      const boss=new BossBrain({...data.definition,reward:{}},fight,{events:host.events,player:leadPlayer(host),lockInput:on=>{
+        locked=on;leadPlayer(host).moveScale=on?0:1;weapons().setEnabled(!on);},
         respawn:(position,yaw)=>{respawnNativeMounted(host,position,yaw,data.view.respawn);weapons().refill();},
         skipHeld:()=>context.commands().some(command=>command.kind==='script'&&command.actorId==='nalati.titan.skip'&&command.value===1),
-        faceToward:(target,dt)=>{const p=host.player.position;camera.position.set(p.x,p.y+1.68,p.z);
+        faceToward:(target,dt)=>{const p=leadPlayer(host).position;camera.position.set(p.x,p.y+1.68,p.z);
           easeViewToward(weapons().look,camera.position,target,dt);},spawnReward:()=>{
           const at=itemPickupFloor(host.physics,fight.rewardPoint());rewardPoint=new Vector3(at.x,at.y+ITEM_PICKUP_HOVER+.5,at.z);reward=true;
         },persist:saved=>{records.bosses.write({...records.bosses.read(),[data.definition.id]:saved});},toast,feed},ui,current);
-      encounter.boss=boss;host.player.health.checkpoint(host.scope,()=>boss.onPlayerDeath());
-      const boundaryPorts={boss,fight,prompt,player:host.player.position,toast,
-        wall:()=>{hit('wall',host.player.position,data.view.wallDamage,data.lines.wall);},clear:()=>{actual.storm.weather.force(data.weather.clearing);},
+      encounter.boss=boss;leadPlayer(host).health.checkpoint(host.scope,()=>boss.onPlayerDeath());
+      const boundaryPorts={boss,fight,prompt,player:leadPlayer(host).position,toast,
+        wall:()=>{hit('wall',leadPlayer(host).position,data.view.wallDamage,data.lines.wall);},clear:()=>{actual.storm.weather.force(data.weather.clearing);},
         persistence:records.outcomes};
       const run=(dt:number):void=>{
         for(const command of context.commands())if(command.kind==='script'&&command.actorId==='nalati.titan.use'){
           if(command.value!==1)throw new Error('Invalid Titan interaction input');
-          const p=host.player.position;
+          const p=leadPlayer(host).position;
           if(pickPrompt([prompt],{x:p.x,y:p.y+1.68,z:p.z},host.physics)===prompt)
             arenaTie(fight.life,{engaged:boss.engaged,victory:boss.state==='victory',hit:reward,mounted:mount.mounted,storm:actual.storm.stormActive},data.tieLines,{boss,fight,toast});
         }
@@ -155,7 +156,7 @@ export async function prepareNalatiTitan(preparation:Parameters<PrepareHeadlessR
           fight.restore(saved.fight,site=>{const body=restored.get(site);return body===undefined?null:rider(body);});boss.restore(saved.boss);
           support.clear();for(const [site,body]of restored)support.set(site,body);locked=saved.locked;reward=saved.reward;rewardPoint=saved.rewardPoint===null?null:new Vector3().fromArray(saved.rewardPoint);bar=saved.bar;
           if(extras?.closedInputOwner===undefined){
-            if(host.playerMoveScale!==(locked?0:1))throw new Error('Titan input lock differs from the restored native motor owner');
+            if(leadPlayer(host).moveScale!==(locked?0:1))throw new Error('Titan input lock differs from the restored native motor owner');
             weapons().setEnabled(!locked);
           }
           prompt.radius=saved.prompt.radius;prompt.label=saved.prompt.label;toasts.splice(0,toasts.length,...saved.toasts);feeds.splice(0,feeds.length,...saved.feeds);totalContacts=saved.contacts;

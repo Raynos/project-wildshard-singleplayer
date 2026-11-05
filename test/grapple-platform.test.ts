@@ -30,6 +30,7 @@ import { filamentGeometry } from '../src/shards/nine-dragon-stack/generators/fil
 import source from '../src/shards/nine-dragon-stack/data/grappleProfile.json' with { type: 'json' };
 import filament from '../src/shards/nine-dragon-stack/data/filament.json' with { type: 'json' };
 import room from '../src/shards/nine-dragon-stack/data/grappleCourse.json' with { type: 'json' };
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 // A made-up quarry drives the same native tool from its own x-axis rail and timing.
 const quarry = parseGrappleProfile({ ...source, id: 'tool.quarry-claw', course: {
@@ -58,7 +59,7 @@ test('quarry lock and fire use the real capsule, clear the rail and release the 
   const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
   const rail = host.physics.world.createCollider(rapier.ColliderDesc.cuboid(.2, 1, 4).setTranslation(0, 1, 0));
   tagCollider(rail, 'stone', 'quarry.rail'); host.physics.step();
-  host.player.position.set(4, .12, 0); host.player.yaw = Math.PI / 2;
+  leadPlayer(host).position.set(4, .12, 0); leadPlayer(host).yaw = Math.PI / 2;
   let commands: ReturnType<Parameters<typeof installGrapple>[1]['commands']> = [];
   const effects: { kind: 'fact'; name: string; actorId: string }[] = [];
   const tick = { commands: () => commands, emit: (effect: { kind: 'fact'; name: string; actorId: string }): void => { effects.push(effect); } };

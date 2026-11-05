@@ -7,6 +7,7 @@ import { advanceKingPose, newPose, type KingPose, type KingPoseRest } from './ki
 import { readLimbCollisionBake as readKingCollisionBake } from '@wildshard/format/limbCollision';
 import { bindNativeRangedVolumes } from '@wildshard/game/plugin/nativeItems';
 import { pineKingCollision } from '../../../src/shards/pine-hollow/generators/kingCollision';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 // GR8: called, not read from a scheduler job's output
 const raw = pineKingCollision();
@@ -88,7 +89,7 @@ export function installKingPoseKeeper(host: SimHost): {
   });
   host.useBodyStep({ before: (id, body) => {
     const entry = byId.get(id);
-    if (entry?.body === body) entry.near = body.position.distanceToSquared(host.player.position) < NEAR_SQUARED;
+    if (entry?.body === body) entry.near = body.position.distanceToSquared(leadPlayer(host).position) < NEAR_SQUARED;
   }, after: (id, body, dt) => {
     const entry = byId.get(id);
     if (entry === undefined || entry.body !== body || body.harnessHold || entry.body.hidden) return;

@@ -10,6 +10,7 @@ import {parseHeldSlots} from '@wildshard/format/heldArms';
 import {ItemCatalogue} from '../../src/game/loadout/itemCatalogue';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
 import {prepareProductPlan as prepareNalati} from './headless-native';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** The inventory port borrows admitted equipment identities only. Weapon
  * arithmetic belongs to the separate real combat proofs, never this owner. */
@@ -52,7 +53,7 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
     };
     let equipment=make();
     const frames:v.InferOutput<typeof Frame>[]=[];
-    const player={setHover:(on:boolean)=>{host.setBoard(on);},spawn:(x:number,z:number,yaw:number,y=0)=>{host.resetPlayerPose({x,y,z},yaw);},
+    const player={setHover:(on:boolean)=>{leadPlayer(host).setBoard(on);},spawn:(x:number,z:number,yaw:number,y=0)=>{leadPlayer(host).resetPose({x,y,z},yaw);},
       get pitch(){return pitch;},set pitch(value:number){pitch=value;}};
     const centre=ARENA_LINEUP[1];if(centre===undefined)throw new Error('Missing actual practice lineup');
     // Initial bow hip uses the page's 72-degree ranged base before Hor+.
@@ -71,7 +72,7 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
     };
     const state=()=>({open,pitch,current:equipment.current.row.id,available:equipment.available.map(weapon=>weapon.row.id),
       swapping:equipment.swappingNow,slots:equipment.list.map(weapon=>({id:weapon.row.id,held:weapon===equipment.current,enabled:weapon.enabled,holster:weapon.holster})),
-      rifle:rifle.id,at,board:host.playerBoard.on});
+      rifle:rifle.id,at,board:leadPlayer(host).board.on});
     host.onStep('nalati.practice',(dt)=>{
       const ops:v.InferOutput<typeof Op>[]=[];
       for(const command of context.commands()){

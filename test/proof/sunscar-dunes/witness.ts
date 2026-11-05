@@ -27,6 +27,7 @@ import { BASIN } from "../../../src/shards/sunscar-dunes/generators/layout";
 import { SIGNAL_PHYSICS } from '../../../src/shards/sunscar-dunes/generators/physics';
 import { bindHeadlessPrompts, createHeadlessPromptPicker, parsePromptRegistrations, type HeadlessPrompt } from '../../../src/game/quest/interactionRows';
 import * as v from 'valibot';
+import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 // Preserve the original plain JSON boundary, including signed-zero normalization.
 const physicsDocument = JSON.stringify(SIGNAL_PHYSICS);
@@ -99,9 +100,9 @@ function step(session: Session, commands: readonly HeadlessCommand[]): HeadlessE
   session.tape = commands; session.tick = [];
   try {
     const player = commands.find(command => command.kind === 'player');
-    session.host.step(player?.kind === 'player' ? { moveX: player.moveX, moveZ: player.moveZ, yaw: player.yaw, ...(player.attack === undefined ? {} : { attack: player.attack }) } : undefined);
+    session.host.step(leadCommands(session.host, player?.kind === 'player' ? { moveX: player.moveX, moveZ: player.moveZ, yaw: player.yaw, ...(player.attack === undefined ? {} : { attack: player.attack }) } : undefined));
   } finally { session.tape = []; }
-  if (![session.host.player.position, ...[...session.host.entities.values()].map(entity => entity.position)].every(point => [point.x, point.y, point.z].every(Number.isFinite))) throw new Error('Nonfinite trusted simulation state');
+  if (![leadPlayer(session.host).position, ...[...session.host.entities.values()].map(entity => entity.position)].every(point => [point.x, point.y, point.z].every(Number.isFinite))) throw new Error('Nonfinite trusted simulation state');
   session.effects.push(...session.tick); return session.tick;
 }
 
@@ -128,7 +129,7 @@ function selected(host: SimHost): number | null | undefined {
   return picker.pick(prompts)?.act;
 }
 function sees(host: SimHost, spot: SignalSpot, reach = 0): boolean {
-  eye.copy(host.player.position); eye.y += EYE;
+  eye.copy(leadPlayer(host).position); eye.y += EYE;
   if (at.set(spot.x, spot.y, spot.z).distanceTo(eye) >= spot.radius + reach) return false;
   if (reach > 0) return true; // world cracks are selected by the actual lash owner
   const row = SIGNAL_INTERACTIONS.rows.find(entry => entry.at === spot.id && entry.crack === undefined);
@@ -136,7 +137,7 @@ function sees(host: SimHost, spot: SignalSpot, reach = 0): boolean {
 }
 function lashable(host: SimHost, actor: AnimalSim): boolean {
   if (!actor.alive) return false;
-  at.copy(actor.position); at.y += actor.dims.bodyY * actor.scale; eye.copy(host.player.position); eye.y += EYE;
+  at.copy(actor.position); at.y += actor.dims.bodyY * actor.scale; eye.copy(leadPlayer(host).position); eye.y += EYE;
   ray.subVectors(at, eye); const length = ray.length(); if (length < 1e-6) return true; ray.multiplyScalar(1 / length);
   actor.headWorld(volumes.head); actor.bodyCapsule(volumes.a, volumes.b);
   volumes.headRadius = actor.dims.headRadius * actor.scale; volumes.bodyRadius = actor.dims.bodyRadius * actor.scale;
@@ -175,10 +176,10 @@ export class SignalTape {
   private readonly route = legs();
   private leg = 0;
   next(host: SimHost): HeadlessCommand[] {
-    const p = host.player.position, her = host.entities.get(MATRIARCH_ID);
+    const p = leadPlayer(host).position, her = host.entities.get(MATRIARCH_ID);
     const route = this.route[this.leg];
     if (route !== undefined) {
-      if (route.act !== undefined && route.ready?.(host) === true) { this.leg++; return [{ kind: 'script', actorId: SIGNAL_INTERACT, value: route.act }, { kind: 'player', moveX: 0, moveZ: 0, yaw: host.player.yaw }]; }
+      if (route.act !== undefined && route.ready?.(host) === true) { this.leg++; return [{ kind: 'script', actorId: SIGNAL_INTERACT, value: route.act }, { kind: 'player', moveX: 0, moveZ: 0, yaw: leadPlayer(host).yaw }]; }
       const dx = route.to[0] - p.x, dz = route.to[1] - p.z, d = Math.hypot(dx, dz);
       if (route.act === undefined && d < 1) this.leg++;
       const target = [...host.entities.values()].find(actor => actor.entityId !== MATRIARCH_ID && lashable(host, actor));
@@ -189,7 +190,7 @@ export class SignalTape {
     if (her !== undefined && her.alive && (her.mem['phase'] ?? 0) >= 2) { goal = { x: her.position.x, z: her.position.z }; near = 7; }
     const dx = goal.x - p.x, dz = goal.z - p.z, d = Math.hypot(dx, dz), walk = d > near;
     const strike = her !== undefined && lashable(host, her);
-    return [{ kind: 'player', moveX: walk ? dx / d : 0, moveZ: walk ? dz / d : 0, yaw: host.player.yaw, ...(strike ? { attack: { targetId: MATRIARCH_ID } } : {}) }];
+    return [{ kind: 'player', moveX: walk ? dx / d : 0, moveZ: walk ? dz / d : 0, yaw: leadPlayer(host).yaw, ...(strike ? { attack: { targetId: MATRIARCH_ID } } : {}) }];
   }
   get walked(): boolean { return this.leg >= this.route.length; }
 }
@@ -224,16 +225,16 @@ function play(session: Session, tape: SignalTape, until: (host: SimHost) => bool
     if (victoryTick === null && session.host.flags.has(MATRIARCH_FLAG)) victoryTick = session.host.state.tick;
     if (victoryTick !== null && session.host.state.tick >= Math.max(MIN_TICKS, victoryTick + AFTER)) return { victoryTick };
   }
-  throw new Error(`The tape did not finish within ${String(LIMIT)} ticks: ${JSON.stringify({ encounter: encounter(session.host), flags: session.host.flags.all, player: session.host.player.position.toArray(), quest: session.host.quests.map(q => q.current?.id) })}`);
+  throw new Error(`The tape did not finish within ${String(LIMIT)} ticks: ${JSON.stringify({ encounter: encounter(session.host), flags: session.host.flags.all, player: leadPlayer(session.host).position.toArray(), quest: session.host.quests.map(q => q.current?.id) })}`);
 }
 
 export async function headlessProof(rapier: Rapier): Promise<object> {
   const plan = await signalPlan(rapier), session = boot(plan, rapier), tape = new SignalTape();
   let blows = 0, shoved = 0;
   // observation only: how many creature blows landed on the player, and how many ticks a knockback was running
-  session.host.events.on('damage.dealt', ({ req }) => { if (req.target === session.host.player.health && req.sourceTags.includes('feel.blow')) blows++; }, session.host.scope);
+  session.host.events.on('damage.dealt', ({ req }) => { if (req.target === leadPlayer(session.host).health && req.sourceTags.includes('feel.blow')) blows++; }, session.host.scope);
   try {
-    const { victoryTick } = play(session, tape, host => { if (host.playerShove.t > 0) shoved++; return false; }), host = session.host, done = encounter(host);
+    const { victoryTick } = play(session, tape, host => { if (leadPlayer(host).shove.t > 0) shoved++; return false; }), host = session.host, done = encounter(host);
     const quest = host.quests.find(q => q.def.id === 'sunscar.signal');
     if (victoryTick === null || done.state !== 'victory' || !tape.walked || quest?.isComplete !== true) throw new Error('No gameplay victory');
     const entries = requireValue(plan.proveEntries, 'Missing entry proof')(host);

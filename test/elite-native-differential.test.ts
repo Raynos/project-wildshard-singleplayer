@@ -1,3 +1,4 @@
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 import { nativeEliteCore } from './fixtures/nativeEliteCore';
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
@@ -69,7 +70,7 @@ for (const pattern of ['pouncer', 'howler'] as const) test(`${pattern} native ro
         if (tick === 200) f.script.enterPhase2();
         f.script.tick(.1, tick / 10, true, false);
         const binding = f.bindings.brains.get(f.actor); if (binding === undefined) throw new Error('Missing native body binding');
-        binding.think(f.actor, { dt: .1, player: f.host.player.position, pathYaw: () => 0 }); binding.act(f.actor);
+        binding.think(f.actor, { dt: .1, player: leadPlayer(f.host).position, pathYaw: () => 0 }); binding.act(f.actor);
         if (tick === 80) f.saved.restore(f.saved.snapshot());
       }
       expect(JSON.stringify(live.saved.snapshot())).toBe(JSON.stringify(old.saved.snapshot()));

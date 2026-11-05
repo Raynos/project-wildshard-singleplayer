@@ -19,6 +19,7 @@ import { BARREL_BODY, BARREL_HALF } from '../src/engine/world/interact/barrel';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { BARREL_BODIES, BARREL_DECISION } from '../src/shards/driftwood-isle/generators/barrelDecision';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 // G566: Driftwood's tide barrel moved from the quest props' kit watch into its decision script over a declared body. The
 // body scripts add no snapshot adapter and the quest envelope keeps the barrel's native handle (plus, since G566, the
@@ -71,7 +72,7 @@ test('an old save adopts its barrel body: same body count, handle and position, 
   const R = await rapier, host = createSimHost(level, { rapier: R });
   try {
     // the pre-G566 props spawned and saved their own barrel body, with the kit watch clocks (now dropped)
-    const service = new Bodies(host.physics, host.player.position);
+    const service = new Bodies(host.physics, leadPlayer(host).position);
     const body = service.spawn({ ...BARREL_BODY, owner: { kind: 'barrel', id: OWNER } }, { x: HOME.x, y: LIFT, z: HOME.z }, undefined,
       { x: 0, y: Math.sin(declared.yaw / 2), z: 0, w: Math.cos(declared.yaw / 2) });
     host.onStep('quest.props', dt => { service.post(dt); service.pre(dt); }, {

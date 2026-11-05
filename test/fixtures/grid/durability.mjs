@@ -13,6 +13,7 @@ import { generatePlatform } from '../../../src/engine/sim/strips.ts';
 import { installStripCollider } from '../../../src/engine/physics/stripColliders.ts';
 import { GridAssembly } from '../../../src/game/grid/assembly.ts';
 import { CharacterMotor } from '../../../src/engine/physics/CharacterMotor.ts';
+import { leadPlayer } from '../../../src/engine/sim/leadPlayer.ts';
 
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
 class Storage {
@@ -33,9 +34,9 @@ const basis = sim.host.physics.snapshot(); durability.setPhysicsBasis(basis); du
 try {
   sim.host.step();
   local.fail = true;
-  sim.host.player.position.set(0, 0, -9); sim.host.step();
+  leadPlayer(sim.host).position.set(0, 0, -9); sim.host.step();
   const blob = sim.host.entities.get('grey-blob:1'); assert.ok(blob);
-  sim.host.combat.hit({ source: sim.host.player.health, sourceTags: ['dmg.melee', 'cover.checked'], target: blob.combatActor(),
+  sim.host.combat.hit({ source: leadPlayer(sim.host).health, sourceTags: ['dmg.melee', 'cover.checked'], target: blob.combatActor(),
     amount: 1000, point: new Vector3(), dir: new Vector3(0, 0, 1) }); sim.host.step();
   assert.equal(sim.host.flags.has('template.complete'), true);
   assert.equal(durability.wallet.coins(), 5);
@@ -72,10 +73,10 @@ try {
   const profileBasis = profileSim.host.physics.snapshot(); profileSave.setPhysicsBasis(profileBasis); profileSave.bind(profileSim.host, profileSim.colliders);
   try {
     profileSim.host.step(); profileLocal.failProfile = true;
-    profileSim.host.player.position.set(0, 0, -9); profileSim.host.step();
+    leadPlayer(profileSim.host).position.set(0, 0, -9); profileSim.host.step();
     const target = profileSim.host.entities.get('grey-blob:1'); assert.ok(target);
-    profileSim.host.combat.hit({ source: profileSim.host.player.health, sourceTags: ['dmg.melee', 'cover.checked'], target: target.combatActor(),
-      amount: 1000, point: target.position, from: profileSim.host.player.position, dir: new Vector3(0, 0, 1) }); profileSim.host.step();
+    profileSim.host.combat.hit({ source: leadPlayer(profileSim.host).health, sourceTags: ['dmg.melee', 'cover.checked'], target: target.combatActor(),
+      amount: 1000, point: target.position, from: leadPlayer(profileSim.host).position, dir: new Vector3(0, 0, 1) }); profileSim.host.step();
     const pending = snapshotSimHost(profileSim.host);
     assert.equal(profileSave.checkpoint(pending), false);
     const cold = new GridRegionDurability(new SaveStore({ local: profileLocal, session: null }), identity, source, []);
@@ -97,15 +98,15 @@ try {
       return region;
     };
     const attach = (host) => { host.attachPlayerMotor(new CharacterMotor(host.physics, { radius: 0.35, height: 1.8, step: 0.3, maxClimbDeg: 45, snap: 0.2,
-      group: 'PLAYER', blockedBy: ['WORLD', 'PLAYER', 'CREATURE'], owner: host.player.id })); };
+      group: 'PLAYER', blockedBy: ['WORLD', 'PLAYER', 'CREATURE'], owner: leadPlayer(host).id })); };
     const region = make(owner.quest);
     try {
       const immutable = region.host.physics.snapshot();
       if (mode === 'exact') owner.setPhysicsBasis(immutable);
       attach(region.host);
-      owner.bind(region.host, region.colliders); region.host.step(); region.host.player.position.set(0, 0, -9); region.host.step();
+      owner.bind(region.host, region.colliders); region.host.step(); leadPlayer(region.host).position.set(0, 0, -9); region.host.step();
       const target = region.host.entities.get('grey-blob:1'); assert.ok(target);
-      region.host.combat.hit({ source: region.host.player.health, sourceTags: ['dmg.melee', 'cover.checked'], target: target.combatActor(),
+      region.host.combat.hit({ source: leadPlayer(region.host).health, sourceTags: ['dmg.melee', 'cover.checked'], target: target.combatActor(),
         amount: 1000, point: target.position, dir: new Vector3(0, 0, 1) }); region.host.step();
       region.colliders.get('template.door').setActive(false);
       const checkpoint = snapshotSimHost(region.host);

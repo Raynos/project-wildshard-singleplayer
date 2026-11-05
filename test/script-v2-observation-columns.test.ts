@@ -8,6 +8,7 @@ import { PageWildEnvironment } from '../src/game/population/pageGroups';
 import { ObservationColumnsV2,type V2ColumnOwners,type V2ReferenceColumn } from '../src/engine/script/observationColumnsV2';
 import { parseObservationColumnsV2,ObservationColumnsV2Schema } from '@wildshard/format/scriptObservationColumnsV2';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 async function fixture() {
   const rapier = await loadRapier(Uint8Array.from(fixtureBytes(new URL('../public/assets/physics/rapier.wasm',import.meta.url))));
@@ -15,13 +16,13 @@ async function fixture() {
   const host = createSimHost({ ...SIM_LEVEL,quests: [],entities: [first,{ ...first,id: 'boar:2' }] },{ rapier });
   const actor = host.entities.get('boar:1'), other = host.entities.get('boar:2');
   if (actor === undefined || other === undefined) throw new Error('Missing native actors');
-  actor.position.set(4,2,7);host.player.position.set(20,3,30);
+  actor.position.set(4,2,7);leadPlayer(host).position.set(20,3,30);
   const environment = new PageWildEnvironment(), query = vi.spyOn(environment,'grassHeightAt').mockImplementation((x,z) => x+z);
   environment.playerCrouched = true;environment.playerFwdX = .6;environment.playerFwdZ = .8;
   environment.wind = { x: .8,z: -.6,strength: .7 };
   const clock = { hour: 22,dayPhase: 'night',night: .8 }, weather = { stormActive: false };
   const owners: V2ColumnOwners = { scope: host.scope,self: { group: 'roster',slot: 0,identity: actor.entityId,actor },
-    player: host.player,observed: new Map([[10,actor],[11,other]]),t: 121.25,dt: 1/60,environment,
+    player: leadPlayer(host),observed: new Map([[10,actor],[11,other]]),t: 121.25,dt: 1/60,environment,
     clock: { ...clock,dayPhase: 'night' },weather };
   return { host,actor,other,owners,environment,query,weather };
 }

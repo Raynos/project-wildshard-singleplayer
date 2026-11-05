@@ -8,6 +8,7 @@ import { snapshotSimHost } from '../src/engine/sim/snapshot';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { createTrustedHeadlessResident } from '../src/sdk/headlessRuntime';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const policySchema = v.object({ phase: v.number(), fighting: v.boolean(), decision: v.string(), strike: v.object({ clock: v.number(), currentId: v.nullable(v.string()) }) });
 const logicalSchema = v.object({ decision: v.object({ tick: v.number(), bindings: v.array(v.object({ slots: v.record(v.string(), v.union([v.number(), v.boolean()])), failures: v.number() })) }) });
@@ -31,8 +32,8 @@ test('the published Roc guest drives the retained native body through phases and
   try {
     const host = resident.host, body = host.entities.get('far.roc');
     if (body === undefined) throw new Error('Roc must use its admitted native body');
-    host.events.answer('damage.modify', request => request?.target === host.player.health ? null : request, host.scope);
-    host.player.position.set(0, 44.3, -184);
+    host.events.answer('damage.modify', request => request?.target === leadPlayer(host).health ? null : request, host.scope);
+    leadPlayer(host).position.set(0, 44.3, -184);
     for (let i = 0; i < 500; i++) resident.step([]);
     expect(host.entities.get('far.roc')).toBe(body); expect(policy(resident)).toMatchObject({ phase: 0, fighting: true });
     expect(body.mem['rocLean']).toBe(0);

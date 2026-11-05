@@ -13,6 +13,7 @@ import { createSimHost } from '../src/engine/sim';
 import { snapshotSimHost, serializeSimSnapshot, restoreSimHost } from '../src/engine/sim/snapshot';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { canonicalSimDigest } from './fake/simState';
+import { leadCommands } from '@wildshard/engine/sim/leadPlayer';
 
 const source = driftwoodPhysics(), admitted = driftwoodNativeRows(source).physics;
 const floorFile = 'data/physics-ground.generated.bin', hullFile = 'data/physics-colliders.bin';
@@ -78,12 +79,12 @@ test('the shipped assembly reads the raw files and retains native collision, sav
   try {
     installNativeCollision(original, baseline, { resolution: 256 }); plan.install(candidate, context);
     const command = { moveX: 0, moveZ: -1, yaw: 0 };
-    for (let tick = 0; tick < 3; tick++) { original.step(command); candidate.step(command); }
+    for (let tick = 0; tick < 3; tick++) { original.step(leadCommands(original, command)); candidate.step(leadCommands(candidate, command)); }
     const saved = snapshotSimHost(candidate);
     expect(serializeSimSnapshot(saved)).toBe(serializeSimSnapshot(snapshotSimHost(original)));
     const restored = restoreSimHost(plan.level, { ...plan.ports, rapier }, saved, host => plan.install(host, { ...context, restoring: true, snapshot: saved }));
     try {
-      for (let tick = 0; tick < 3; tick++) { original.step(command); candidate.step(command); restored.step(command); }
+      for (let tick = 0; tick < 3; tick++) { original.step(leadCommands(original, command)); candidate.step(leadCommands(candidate, command)); restored.step(leadCommands(restored, command)); }
       expect(canonicalSimDigest(snapshotSimHost(candidate))).toBe(canonicalSimDigest(snapshotSimHost(original)));
       expect(canonicalSimDigest(snapshotSimHost(restored))).toBe(canonicalSimDigest(snapshotSimHost(original)));
     } finally { restored.dispose(); }

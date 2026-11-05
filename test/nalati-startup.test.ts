@@ -7,6 +7,7 @@ import { builtProduct } from './fixtures/builtProduct';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { decodeSimSnapshot } from '../src/engine/sim/snapshot';
+import { leadSnapshot } from '@wildshard/engine/sim/snapshot';
 
 test('Nalati boots its admitted native assembly to the first frame',async()=>{
   const directory=builtProduct('nalati-grasslands'),product=await loadHeadlessProduct(directory),descriptor=outputDescriptor(product.shardfile);
@@ -15,6 +16,6 @@ test('Nalati boots its admitted native assembly to the first frame',async()=>{
   const simulation=await HeadlessSimulation.create(product.shardfile,assets,undefined,{deadline:'advisory',sections:productHeadlessSections(product)});
   try{
     const first=decodeSimSnapshot((await simulation.step()).snapshot);
-    expect(first.state.tick).toBeGreaterThan(0);expect(first.player.position.every(Number.isFinite)).toBe(true);expect(simulation.quarantined).toBe(false);
+    expect(first.state.tick).toBeGreaterThan(0);expect(leadSnapshot(first).position.every(Number.isFinite)).toBe(true);expect(simulation.quarantined).toBe(false);
   }finally{await simulation.dispose();}
 },120_000);

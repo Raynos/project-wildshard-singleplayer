@@ -12,6 +12,7 @@ import {runTrustedHeadlessTape} from '../../../src/sdk/headlessTape';
 import type {WalkPoint} from '../../../src/sdk/headlessJourney';
 import {createNativeProofResident} from '../headless-native';
 import {prepareHeadlessRuntime} from '../nalati-predators-native';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 interface EarnedPasture {
   resident:Awaited<ReturnType<typeof createNativeProofResident>>;
@@ -38,7 +39,7 @@ export async function earnNalatiPasture(interception?:readonly WalkPoint[]):Prom
       id:'walk-and-jump-to-pasture',ticks:6000,commands:[],route:[{x:-10,z:232,jump:true,jumpAt:6},{x:-30,z:228},{x:-60,z:222},{x:-100,z:212}],
     }]});
     let arrivalTick=resident.host.state.tick;
-    assert.ok(Math.hypot(resident.host.player.position.x-flock.cx,resident.host.player.position.z-flock.cz)<30);
+    assert.ok(Math.hypot(leadPlayer(resident.host).position.x-flock.cx,leadPlayer(resident.host).position.z-flock.cz)<30);
     if(interception!==undefined){
       runTrustedHeadlessTape(resident.host,commands=>resident.step(commands),()=>resident.effects,{version:1,observe:[],segments:[{
         id:'walk-to-interception',ticks:6000,commands:[],route:[...interception],

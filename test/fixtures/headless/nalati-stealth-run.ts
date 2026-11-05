@@ -11,6 +11,7 @@ import type {HeadlessCommand,HeadlessEffect} from '../../../src/sdk/tickProtocol
 import {createNativeProofResident} from '../headless-native';
 import {prepareHeadlessRuntime} from '../nalati-stealth-native';
 import {beginProductSession} from './productSession';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const session=await beginProductSession('nalati-grasslands','nalati-stealth'),{product,assets}=session;
 const hiddenCover=v.parse(v.number(),v.parse(StealthRowsSchema,product.section('player/stealth')).tuning['hiddenCover']);
@@ -45,7 +46,7 @@ try{
   assert.equal(state().law.latched,true,'the actual crouch disc latches the admitted owner');
   step([player({jump:true})]);advance(90);assert.equal(state().law.latched,false,'a real jump cancels the latch');
   advance(180,[player({crouch:true})]);const hidden=state();assert.equal(hidden.crouching,true);assert.equal(hidden.label,'Hidden');
-  assert.ok(hidden.law.cover>=hiddenCover);assert.equal(hidden.hints,1);assert.equal(resident.host.player.health.alive,true);
+  assert.ok(hidden.law.cover>=hiddenCover);assert.equal(hidden.hints,1);assert.equal(leadPlayer(resident.host).health.alive,true);
   const checkpoint=serializeSimSnapshot(snapshotSimHost(resident.host)),checkpointTick=frames.length;
   advance(60,[player()]);assert.equal(state().label,'Visible');
   runTrustedHeadlessTape(resident.host,step,()=>resident.effects,{version:1,observe:[],segments:[{id:'leave-real-grass-through-gate',ticks:2400,commands:[],

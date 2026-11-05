@@ -15,6 +15,7 @@ import { createNativeBakeReader } from '@wildshard/game/population/nativeBake';
 import { nativeTamingOf } from '@wildshard/game/riding/nativeTaming';
 import { mountedPlayerOf } from '@wildshard/game/riding/native';
 import { canonicalSimDigest } from '../../fake/simState';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const physics=(()=>{
  const rows:unknown=originalNalatiPhysics();
@@ -48,8 +49,8 @@ export async function nalatiTamingWitness(rapier: Rapier, assets: ReadonlyMap<st
   const first = await createNativeProofResident(preparation, entry);
   let restored: Awaited<ReturnType<typeof createNativeProofResident>> | undefined;
   try {
-    assert.equal(first.host.player.position.x, x, 'Fixture must start beside the authored living stallion');
-    assert.equal(first.host.player.position.z, z, 'Fixture must start beside the authored living stallion');
+    assert.equal(leadPlayer(first.host).position.x, x, 'Fixture must start beside the authored living stallion');
+    assert.equal(leadPlayer(first.host).position.z, z, 'Fixture must start beside the authored living stallion');
     const original = first.host.entities.get(actor.id); if (original === undefined) throw new Error('Missing native authored stallion');
     let previous = 0, breakingTicks = 0, prompt = false, checkpointTick = 0;
     for (let tick = 0; tick < 10_000 && law(first.host).phase !== 'bonded'; tick++) {

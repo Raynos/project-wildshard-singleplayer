@@ -12,6 +12,7 @@ import { builtProduct } from './fixtures/builtProduct';
 import { prepareProductPlan as prepareHeadlessRuntime } from './fixtures/headless-native';
 import { nalatiNativeAssets } from './proof/nalati-grasslands/nativeAssets';
 import { canonicalSimDigest } from './fake/simState';
+import { leadCommands } from '@wildshard/engine/sim/leadPlayer';
 
 test('Nalati declared assembly retains its native 100 + 30 tick continuation', async () => {
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
@@ -19,7 +20,7 @@ test('Nalati declared assembly retains its native 100 + 30 tick continuation', a
   const ports = { ...plan.ports, rapier }, effects = { commands: () => [], emit: () => undefined };
   const host = createSimHost(plan.level, ports);
   let restored: SimHost | undefined;
-  const step = (value: SimHost): void => { value.step({ moveX: 0.3 * Math.sin(value.state.tick / 90), moveZ: -1, yaw: 0 }); };
+  const step = (value: SimHost): void => { value.step(leadCommands(value, { moveX: 0.3 * Math.sin(value.state.tick / 90), moveZ: -1, yaw: 0 })); };
   try {
     plan.install(host, { restoring: false, ...effects });
     for (let tick = 0; tick < 100; tick++) step(host);

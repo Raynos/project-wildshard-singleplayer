@@ -8,7 +8,7 @@ import { productClosureFile } from '../../../src/game/shardfile/shardProduct';
 import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
-import { canonicalSimDigest } from '../../fake/simState';
+import { canonicalSimDigest, simWireV1 } from '../../fake/simState';
 import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
 import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/ledger';
 import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
@@ -19,6 +19,7 @@ import { DECK, STEP, VANES } from "../../../src/shards/far-reach/generators/layo
 import FLAGS from '../../../src/shards/far-reach/data/flags.json' with { type: 'json' };
 import {SkyTape} from './tape';
 import { ROC_STEP, ROC_ID } from '../../../src/shards/far-reach/generators/rows/rocFight';
+import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /**
  * Sky Reach's whole-shard witness (E435 §C / SF72) on its trusted renderer-free entry, `runtime/headless.ts`, composed
@@ -80,10 +81,10 @@ function step(session: Session, commands: readonly HeadlessCommand[]): HeadlessE
   try {
     let player: HeadlessCommand | undefined;
     for (const command of commands) if (command.kind === 'player') player = command;
-    session.host.step(player?.kind === 'player' ? { moveX: player.moveX, moveZ: player.moveZ, yaw: player.yaw,
-      ...(player.attack === undefined ? {} : { attack: player.attack }), ...(player.hover === undefined ? {} : { hover: player.hover }) } : undefined);
+    session.host.step(leadCommands(session.host, player?.kind === 'player' ? { moveX: player.moveX, moveZ: player.moveZ, yaw: player.yaw,
+      ...(player.attack === undefined ? {} : { attack: player.attack }), ...(player.hover === undefined ? {} : { hover: player.hover }) } : undefined));
   } finally { session.tape = []; }
-  if (![session.host.player.position, ...[...session.host.entities.values()].map(entity => entity.position)].every(point => [point.x, point.y, point.z].every(Number.isFinite))) throw new Error('Nonfinite trusted simulation state');
+  if (![leadPlayer(session.host).position, ...[...session.host.entities.values()].map(entity => entity.position)].every(point => [point.x, point.y, point.z].every(Number.isFinite))) throw new Error('Nonfinite trusted simulation state');
   session.effects.push(...session.tick); return session.tick;
 }
 
@@ -124,7 +125,7 @@ function play(session: Session, tape: SkyTape, until: (host: SimHost) => boolean
   for (let i = 0; i < LIMIT; i++) {
     if (until(session.host)) return { victoryTick };
     step(session, tape.next(session.host));
-    if (session.host.player.position.y < FLOOR) throw new Error(`The player fell at tick ${String(session.host.state.tick)}: ${JSON.stringify(tape.log.at(-1))}`);
+    if (leadPlayer(session.host).position.y < FLOOR) throw new Error(`The player fell at tick ${String(session.host.state.tick)}: ${JSON.stringify(tape.log.at(-1))}`);
     if (victoryTick === null && session.host.flags.has(FLAGS.roc)) victoryTick = session.host.state.tick;
     if (victoryTick !== null && session.host.state.tick >= victoryTick + AFTER) return { victoryTick };
   }
@@ -136,7 +137,7 @@ export async function questProof(rapier: Rapier): Promise<{ complete: boolean; r
   const session = boot(await skyPlan(rapier), rapier), tape = new SkyTape(); let updraftTicks = 0;
   try {
     play(session, tape, host => {
-      if (host.playerBoard.on && host.playerImpulse.y > 0) updraftTicks++;
+      if (leadPlayer(host).board.on && leadPlayer(host).impulse.y > 0) updraftTicks++;
       return host.flags.has(FLAGS.complete);
     });
     const complete = session.host.flags.has(FLAGS.complete), raised = session.host.flags.has(FLAGS.raised);
@@ -151,7 +152,7 @@ export async function headlessProof(rapier: Rapier): Promise<object> {
   try {
     // observation only: the ticks ridden, the ticks the updraft's lift ran, the highest the board flew
     const { victoryTick } = play(session, tape, host => {
-      if (host.playerBoard.on) { boardTicks++; peak = Math.max(peak, host.player.position.y); if (host.playerImpulse.y > 0) lifted++; }
+      if (leadPlayer(host).board.on) { boardTicks++; peak = Math.max(peak, leadPlayer(host).position.y); if (leadPlayer(host).impulse.y > 0) lifted++; }
       return false;
     }), host = session.host, done = encounter(host);
     const quest = host.quests.find(q => q.def.id === source.quests.quests[0]?.id) ?? null;
@@ -253,7 +254,7 @@ function playUntil(session: Session, tape: SkyTape, until: (host: SimHost) => bo
   for (let i = 0; i < limit; i++) {
     if (until(session.host)) return i;
     step(session, tape.next(session.host));
-    if (session.host.player.position.y < FLOOR) throw new Error(`The player fell at tick ${String(session.host.state.tick)}: ${JSON.stringify(tape.log.at(-1))}`);
+    if (leadPlayer(session.host).position.y < FLOOR) throw new Error(`The player fell at tick ${String(session.host.state.tick)}: ${JSON.stringify(tape.log.at(-1))}`);
   }
   throw new Error(`The slice did not finish within ${String(limit)} ticks: ${JSON.stringify(tape.log.at(-1))}`);
 }
@@ -273,7 +274,7 @@ export async function writeCheckpoints(rapier: Rapier, inputs: string): Promise<
     for (const name of CHECKPOINT_NAMES) {
       playUntil(session, tape, at[name], LIMIT);
       const state = tape.state, hold = state.hold === null ? null : [state.hold[0], state.hold[1]] satisfies [number, number];
-      const checkpoint: Checkpoint = { tick: session.host.state.tick, tape: { ...state, hold }, snapshot: serializeSimSnapshot(snapshotSimHost(session.host)) };
+      const checkpoint: Checkpoint = { tick: session.host.state.tick, tape: { ...state, hold }, snapshot: simWireV1(serializeSimSnapshot(snapshotSimHost(session.host))) };
       writeFileSync(checkpointFile(name), gzipSync(JSON.stringify(checkpoint), { level: 9 }));
       ticks[name] = checkpoint.tick;
     }
@@ -294,9 +295,9 @@ export async function stepSlice(rapier: Rapier): Promise<object> {
   let boardTicks = 0, lifted = 0, peak = -Infinity;
   try {
     const ticks = playUntil(session, tape, host => {
-      if (host.playerBoard.on) { boardTicks++; peak = Math.max(peak, host.player.position.y); if (host.playerImpulse.y > 0) lifted++; }
+      if (leadPlayer(host).board.on) { boardTicks++; peak = Math.max(peak, leadPlayer(host).position.y); if (leadPlayer(host).impulse.y > 0) lifted++; }
       return tape.atStep;
-    }, SLICE), host = session.host, p = host.player.position;
+    }, SLICE), host = session.host, p = leadPlayer(host).position;
     const onStep = Math.hypot(p.x - STEP.x, p.z - STEP.z) < STEP.r && Math.abs(p.y - STEP.y) < 0.6, stepTick = host.state.tick;
     const flags = { vanes: VANES.every(row => host.flags.has(row.flag)), roost: host.flags.has(FLAGS.roost) };
     if (!onStep || !flags.vanes || !flags.roost) throw new Error(`Not on the step with the vanes turned and the roost quiet: ${JSON.stringify({ at: p.toArray(), flags })}`);
@@ -305,7 +306,7 @@ export async function stepSlice(rapier: Rapier): Promise<object> {
     if (!host.flags.has(FLAGS.raised) || !host.flags.has(FLAGS.complete)) throw new Error('The winch did not raise the bridge');
     const entries = requireValue(plan.proveEntries, 'Missing entry proof')(host);
     if (entries.lanes < 1 || entries.steps < 1) throw new Error('Empty entry proof');
-    return { status: 'passed', ticksExecuted: ticks + more, stepTick, onStep, flags, raised: true, alive: host.player.health.attributes.health > 0, boardTicks, updraftTicks: lifted, boardPeak: Number(peak.toFixed(2)),
+    return { status: 'passed', ticksExecuted: ticks + more, stepTick, onStep, flags, raised: true, alive: leadPlayer(host).health.attributes.health > 0, boardTicks, updraftTicks: lifted, boardPeak: Number(peak.toFixed(2)),
       facts: facts(session.effects), legs: tape.log.map(row => row.kind), entries };
   } finally { session.host.dispose(); }
 }
@@ -344,7 +345,7 @@ export async function stormSlice(rapier: Rapier): Promise<object> {
   try {
     const hp = (): number => requireValue(session.host.entities.get(ROC_ID), 'missing Roc').hp, start = { encounter: encounter(session.host), hp: hp() };
     const ticks = playUntil(session, tape, fighting(tape, 2), SLICE), end = { encounter: encounter(session.host), hp: hp() };
-    if (end.hp >= start.hp || end.encounter.attempts !== start.encounter.attempts || session.host.player.health.attributes.health <= 0) throw new Error(`No storm phase by fan play: ${JSON.stringify({ start, end })}`);
+    if (end.hp >= start.hp || end.encounter.attempts !== start.encounter.attempts || leadPlayer(session.host).health.attributes.health <= 0) throw new Error(`No storm phase by fan play: ${JSON.stringify({ start, end })}`);
     return { status: 'passed', resumedFrom: 'gale', resumedTick: checkpoint.tick, ticksExecuted: ticks, from: { phase: start.encounter.phase, hp: start.hp }, to: { state: end.encounter.state, phase: end.encounter.phase, hp: end.hp }, attempts: end.encounter.attempts };
   } finally { session.host.dispose(); }
 }

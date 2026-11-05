@@ -11,6 +11,7 @@ import {canonicalSimDigest} from '../../fake/simState';
 import {createNativeProofResident} from '../headless-native';
 import {prepareHeadlessRuntime,nalatiPatrolOf} from '../nalati-patrol-native';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 let priorPhase = 0;
 const phase = (name: string, tick?: number): void => {
@@ -35,7 +36,7 @@ try{
   // Natural fixed time, original day schedule and actual default entry only.
   // No input exists for night, roster creation, kills or readiness.
   for(let tick=0;tick<60_000&&owner.law.riders.length===0;tick++){
-    first.step(commands);assert.equal(first.host.player.health.alive,true);
+    first.step(commands);assert.equal(leadPlayer(first.host).health.alive,true);
     assert.equal(owner.readiness.eligible,false);
     for(const effect of first.effects)assert.equal(effect.kind,'hint','waiting cannot grant quest completion or rewards');
     if(first.host.state.tick%6000===0)phase('waiting-for-natural-night',first.host.state.tick);
@@ -53,7 +54,7 @@ try{
   const observation=(resident:typeof first):unknown=>({
     patrol:resident.host.adapters.get('nalati.patrol')?.snapshot(),
     bodies:[...resident.host.entities].map(([id,body])=>[id,body.snapshot()]),
-    rng:resident.host.rng.snapshot(),feet:resident.host.player.position.toArray(),health:resident.host.player.health.snapshot(),
+    rng:resident.host.rng.snapshot(),feet:leadPlayer(resident.host).position.toArray(),health:leadPlayer(resident.host).health.snapshot(),
   });
   for(let tick=0;tick<120;tick++){
     first.step(commands);restored.step(commands);
@@ -62,6 +63,6 @@ try{
   assert.equal(canonicalSimDigest(snapshotSimHostBytes(restored.host)),canonicalSimDigest(snapshotSimHostBytes(first.host)),'the complete native world retains the same continuation'); phase('suffix-compared',first.host.state.tick);
   assert.equal(owner.readiness.eligible,false);assert.equal(continued.readiness.eligible,false);
   assert.equal(owner.law.killsTonight,0);assert.equal(continued.law.killsTonight,0);
-  assert.equal(first.host.player.health.alive,true);
+  assert.equal(leadPlayer(first.host).health.alive,true);
   console.info(JSON.stringify({story:'nalati-night-patrol',spawnTick,riders:owner.law.riders.length,kills:owner.law.killsTonight,ready:owner.readiness.eligible}));
 }finally{restored?.dispose();first.dispose();}

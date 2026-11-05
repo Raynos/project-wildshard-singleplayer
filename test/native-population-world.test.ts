@@ -18,6 +18,7 @@ import { parseWeatherProgram } from '@wildshard/format/weatherProgram';
 import pine from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
 import {weatherWitness as storm} from './fixtures/weatherInlineWitness';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { leadCommands } from '@wildshard/engine/sim/leadPlayer';
 
 const raster = (values: readonly number[],file:string) => ({row:{type:'f32',count:values.length,data:{file}},block:{file,bytes:zlibSync(new Uint8Array(Float32Array.from(values).buffer))}});
 const wet=raster([1,1,1,1],'test/orchard-wet.bin'),pond=raster([0,0,0,0],'test/orchard-pond.bin');
@@ -47,9 +48,9 @@ test('orchard native boot joins its own bake, raster senses and weather continua
       bake: { trees: [[3,4,1]],tops: [12] },rows: { step: 'orchard.weather',scareRadius: 20,windReference: 8,
         light: { base: .2,storm: .4,ramps: [[-10,10,.6]] },hit: { ask: 'weather.damage',tags: ['env.rain'],cause: { kind: 'rain',label: 'Rain',text: 'Rain' },toast: 'Rain' } } });
     expect(env.light).toBeCloseTo(.5); weather.storm.weather.force('rain',.2); weather.storm.weather.hold = true;
-    for (let tick = 0; tick < 12; tick++) host.step({ moveX: 0,moveZ: 0,yaw: 0 });
+    for (let tick = 0; tick < 12; tick++) host.step(leadCommands(host, { moveX: 0,moveZ: 0,yaw: 0 }));
     expect(env.storm).toBe(true); expect(env.light).toBe(.4);
     const adapter = host.adapters.get('orchard.weather'); if (adapter === undefined) throw new Error('Missing weather continuation');
-    const saved = adapter.snapshot(); host.step({ moveX: 0,moveZ: 0,yaw: 0 }); adapter.restore(saved); expect(adapter.snapshot()).toEqual(saved);
+    const saved = adapter.snapshot(); host.step(leadCommands(host, { moveX: 0,moveZ: 0,yaw: 0 })); adapter.restore(saved); expect(adapter.snapshot()).toEqual(saved);
   } finally { host.dispose(); }
 });

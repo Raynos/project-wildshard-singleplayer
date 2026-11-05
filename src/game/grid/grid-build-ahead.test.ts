@@ -7,8 +7,9 @@ import { createSimHost, type SimLevel } from '@wildshard/engine/sim';
 import { GridAssembly } from './assembly';
 import { LiveGridHost } from './live';
 import { PageResidency } from './pageResidency';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
-const level: SimLevel = { version: 1, id: 'platform', seed: 1, ground: { size: 500, height: 0 },
+const level: SimLevel = { version: 2, id: 'platform', seed: 1, ground: { size: 500, height: 0 },
   player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 30 }, entities: [], quests: [],
   weapon: { id: 'none', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
 
@@ -21,7 +22,7 @@ for (const [axis, side] of [['x', 1], ['x', -1], ['z', 1], ['z', -1]] as const) 
       && cell.origin[axis === 'x' ? 'z' : 'x'] === 0);
     if (target === undefined) throw new Error('Missing cardinal destination');
     const page = createSimHost(level, { rapier }), residency = new PageResidency();
-    const player = { position: page.player.position, yaw: 0, health: page.player.health, owner: page.player, motor: page.releasePlayerMotor() };
+    const player = { position: leadPlayer(page).position, yaw: 0, health: leadPlayer(page).health, owner: leadPlayer(page), motor: leadPlayer(page).releaseMotor() };
     const created: string[] = [];
     const live = new LiveGridHost(assembly, {
       home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },

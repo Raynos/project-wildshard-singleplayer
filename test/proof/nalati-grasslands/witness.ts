@@ -13,6 +13,7 @@ import { createNativeBakeReader } from '@wildshard/game/population/nativeBake';
 import { prepareProductPlan as prepareHeadlessRuntime } from '../../fixtures/headless-native';
 import { nalatiTamingWitness } from './taming';
 import { canonicalSimDigest, sameBytes } from '../../fake/simState';
+import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const physics:unknown=originalNalatiPhysics();
 const nalatiBake=()=>createNativeBakeReader(physics,{label:'Nalati',resolution:256,size:500,parked:false,rig:'segments',provenance:'piece',shapes:[1,2,6,9]},{file:'data/physics-ground.bin',bytes:readFileSync('src/shards/nalati-grasslands/data/physics-ground.bin')},[0,1].map(index=>({file:`data/physics-colliders-${index}.bin`,bytes:readFileSync(`src/shards/nalati-grasslands/data/physics-colliders-${index}.bin`)}))).read();
@@ -29,14 +30,14 @@ export async function nalatiNativeWitness(replay: boolean, gameplay = true): Pro
   const ports = { ...plan.ports, rapier };
   const effects = { commands: () => [], emit: (): never => { throw new Error('Partial native witness must not fabricate ledger ingress'); } };
   const first = createSimHost(plan.level, ports); let restored: SimHost | undefined;
-  const step = (host: SimHost): void => { host.step({ moveX: 0.3 * Math.sin(host.state.tick / 90), moveZ: -1, yaw: 0 }); };
+  const step = (host: SimHost): void => { host.step(leadCommands(host, { moveX: 0.3 * Math.sin(host.state.tick / 90), moveZ: -1, yaw: 0 })); };
   try {
     plan.install(first, { restoring: false, ...effects });
     assert.deepEqual([...first.entities.keys()], nalatiBake().actors.map(actor => actor.id));
-    const colliders = first.physics.world.colliders.len(), basis = first.physics.snapshot(), startZ = first.player.position.z;
+    const colliders = first.physics.world.colliders.len(), basis = first.physics.snapshot(), startZ = leadPlayer(first).position.z;
     assert.ok(colliders >= nalatiBake().solids.length);
     for (let tick = 0; tick < 120; tick++) step(first);
-    assert.ok(first.player.position.z < startZ);
+    assert.ok(leadPlayer(first).position.z < startZ);
     assert.ok([...first.entities.values()].every(actor => [actor.position.x, actor.position.y, actor.position.z].every(Number.isFinite)));
     const checkpoint = snapshotSimHostBytes(first), checkpointHash = canonicalSimDigest(checkpoint);
     let suffixHash: string | undefined;

@@ -6,6 +6,7 @@ import policy from '../../../src/shards/driftwood-isle/data/nativeQuest.json' wi
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { CableLayout } from '../../../src/engine/sim/cableTraversal';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const { step: QUEST_STEP } = policy;
 
@@ -21,27 +22,27 @@ export async function playDriftwood(host: SimHost, tick: (commands: HeadlessComm
   const go = async (x: number, z: number): Promise<void> => {
     let best = Infinity, stall = 0;
     for (let frame = 0; frame < 3600; frame++) {
-      const p = host.player.position, dx = x - p.x, dz = z - p.z, d = Math.hypot(dx, dz);
+      const p = leadPlayer(host).position, dx = x - p.x, dz = z - p.z, d = Math.hypot(dx, dz);
       if (d < 0.25) return;
       if (d < best - 0.02) { best = d; stall = 0; } else stall++;
       const k = Math.min(1, d / 0.8) / Math.max(0.01, d);
       await tick([{ kind: 'player', moveX: dx * k, moveZ: dz * k, yaw: Math.atan2(-dx, -dz), ...(stall > 60 && stall % 30 === 0 ? { jump: true as const } : {}) }]);
     }
-    throw new Error(`Driftwood tape stuck walking to ${String(x)},${String(z)} from ${JSON.stringify(host.player.position.toArray())}`);
+    throw new Error(`Driftwood tape stuck walking to ${String(x)},${String(z)} from ${JSON.stringify(leadPlayer(host).position.toArray())}`);
   };
   const walk = async (path: readonly Point[]): Promise<void> => { for (const [x, z] of path) await go(x, z); };
   const act = async (id: string, flag: string): Promise<void> => {
     await wait(60); const row = spots.rows.findIndex(r => r.id === id);
     if (row === -1) throw new Error(`No Driftwood prompt ${id}`);
     await tick([{ kind: 'script', actorId: 'driftwood.interact', value: 100 + row }]);
-    if (!host.flags.has(flag)) throw new Error(`Driftwood prompt ${id} did not raise ${flag}: ${JSON.stringify({p:host.player.position.toArray(),row:spots.rows[row],flags:host.flags.all})}`);
+    if (!host.flags.has(flag)) throw new Error(`Driftwood prompt ${id} did not raise ${flag}: ${JSON.stringify({p:leadPlayer(host).position.toArray(),row:spots.rows[row],flags:host.flags.all})}`);
   };
   const fight = async (id: string, gap: number, interval: number): Promise<void> => {
     let captured = false;
     for (let frame = 0; frame < 6000; frame++) {
       const a = host.entities.get(id); if (a === undefined) throw new Error(`Missing live actor ${id}`);
       if (!a.alive) return;
-      const p = host.player.position, dx = a.position.x - p.x, dz = a.position.z - p.z, d = Math.hypot(dx, dz), k = d > gap ? 1 / Math.max(d, 0.01) : 0;
+      const p = leadPlayer(host).position, dx = a.position.x - p.x, dz = a.position.z - p.z, d = Math.hypot(dx, dz), k = d > gap ? 1 / Math.max(d, 0.01) : 0;
       await tick([{ kind: 'player', moveX: dx * k, moveZ: dz * k, yaw: Math.atan2(-dx, -dz), ...(frame % interval === 0 ? { attack: { targetId: id } } : {}) }]);
       if (a.kind === 'captain' && a.hp < 200 && !captured) { await mark('captain'); captured = true; }
     }
@@ -96,7 +97,7 @@ export async function playDriftwood(host: SimHost, tick: (commands: HeadlessComm
   const plateCrabs = [...host.entities].filter(([, a]) => a.kind === 'crab' && a.alive && Math.hypot(a.position.x - 144.9, a.position.z - 9.9) < 12);
   const threats = plateCrabs.length;
   for (let i = 0; i < threats; i++) {
-    plateCrabs.sort(([, a], [, b]) => a.position.distanceToSquared(host.player.position) - b.position.distanceToSquared(host.player.position));
+    plateCrabs.sort(([, a], [, b]) => a.position.distanceToSquared(leadPlayer(host).position) - b.position.distanceToSquared(leadPlayer(host).position));
     const row = plateCrabs.shift(); if (row !== undefined) await fight(row[0], 1.2, 50);
   }
   const state = v.parse(v.object({ barrel: v.object({ handle: v.number() }) }), host.adapters.get(QUEST_STEP)?.snapshot());
@@ -114,12 +115,12 @@ export async function playDriftwood(host: SimHost, tick: (commands: HeadlessComm
       if (Math.abs(along) >= Math.abs(across)) { const s = Math.sign(along); ux = hx * s; uz = hz * s; far = Math.abs(along); }
       else { const s = Math.sign(across); ux = -hz * s; uz = hx * s; far = Math.abs(across); }
     }
-    const p = host.player.position, side = (p.x - c.x) * -uz + (p.z - c.z) * ux >= 0 ? 1 : -1;
+    const p = leadPlayer(host).position, side = (p.x - c.x) * -uz + (p.z - c.z) * ux >= 0 ? 1 : -1;
     if ((p.x - c.x) * ux + (p.z - c.z) * uz > -0.6) await walk([[c.x - uz * side * 1.4 + ux * 0.2, c.z + ux * side * 1.4 + uz * 0.2], [c.x - uz * side * 1.2 - ux * 1.2, c.z + ux * side * 1.2 - uz * 1.2]]);
     await go(c.x - ux * 1.3, c.z - uz * 1.3);
     let rest = 0, last = at();
     for (let frame = 0; frame < 900 && rest < 30; frame++) {
-      const b = at(), feet = host.player.position, gone = (b.x - c.x) * ux + (b.z - c.z) * uz;
+      const b = at(), feet = leadPlayer(host).position, gone = (b.x - c.x) * ux + (b.z - c.z) * uz;
       if (gone >= far - 0.05) break;
       const lat = (feet.x - b.x) * -uz + (feet.z - b.z) * ux, speed = far - gone > 1.2 ? 0.3 : 0.12;
       await tick([{ kind: 'player', moveX: ux * speed + uz * lat * 2, moveZ: uz * speed - ux * lat * 2, yaw: 0 }]);
@@ -128,7 +129,7 @@ export async function playDriftwood(host: SimHost, tick: (commands: HeadlessComm
     await wait(45); const moved = at(); stuck = Math.hypot(moved.x - c.x, moved.z - c.z) < 0.1 ? stuck + 1 : 0;
     if (stuck < 2) continue;
     for (let frame = 0; frame < 400; frame++) {
-      const b = at(), feet = host.player.position, dx2 = b.x - feet.x, dz2 = b.z - feet.z, d2 = Math.hypot(dx2, dz2);
+      const b = at(), feet = leadPlayer(host).position, dx2 = b.x - feet.x, dz2 = b.z - feet.z, d2 = Math.hypot(dx2, dz2);
       if (Math.hypot(b.x - home.x, b.z - home.z) < 0.5) break;
       await tick([{ kind: 'player', moveX: dx2 / d2, moveZ: dz2 / d2, yaw: 0 }]);
     }
@@ -137,7 +138,7 @@ export async function playDriftwood(host: SimHost, tick: (commands: HeadlessComm
   if (!host.flags.has('plate:tide-plate-b')) throw new Error('Barrel did not hold plate B'); await mark('barrel');
   const r = 1.9, k = r * Math.SQRT1_2, ring: Point[] = [[plate.x, plate.z + r], [plate.x + k, plate.z + k], [plate.x + r, plate.z], [plate.x + k, plate.z - k], [plate.x, plate.z - r], [plate.x - k, plate.z - k]];
   let from = 0, best = Infinity;
-  ring.forEach(([x, z], i) => { const d = Math.hypot(x - host.player.position.x, z - host.player.position.z); if (d < best) { best = d; from = i; } });
+  ring.forEach(([x, z], i) => { const d = Math.hypot(x - leadPlayer(host).position.x, z - leadPlayer(host).position.z); if (d < best) { best = d; from = i; } });
   await walk([...ring.slice(from), [143.3, 9], [140, 9.05], [139.1, 9.9]]); await wait(10);
   if (!host.flags.has('open:sluice')) throw new Error('Two physical plates did not open the sluice');
   await walk([[140, 9.05], [143.3, 9], ...ring.slice(0, 4).reverse(), [146.8, 12.6], [142, 13.4], [142, 19.2], [142, 21.3]]); await act('shard-cave', 'shard:cave');

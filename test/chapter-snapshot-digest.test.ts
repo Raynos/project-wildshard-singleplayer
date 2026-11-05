@@ -7,6 +7,7 @@ import {createSimHost} from '../src/engine/sim';
 import {decodeSimSnapshot,decodeSimSnapshotBytes,serializeSimSnapshot,snapshotSimHostBytes} from '../src/engine/sim/snapshot';
 import {chapterSnapshotDigest} from './fixtures/headless/chapterHandoff';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
+import { leadSnapshot } from '@wildshard/engine/sim/snapshot';
 
 let rapier:Rapier;
 beforeAll(async()=>{rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));});
@@ -14,15 +15,15 @@ beforeAll(async()=>{rapier=await loadRapier(readFileSync('public/assets/physics/
 test('chapter digest retains every field and numeric bit for array, bytes and stored wire',()=>{
   const host=createSimHost({...SIM_LEVEL,entities:[]},{rapier});
   try{
-    host.step();const saved=snapshotSimHostBytes(host);saved.player.yaw=-0;
+    host.step();const saved=snapshotSimHostBytes(host);leadSnapshot(saved).yaw=-0;
     const wire=serializeSimSnapshot(saved),array=decodeSimSnapshot(wire),bytes=decodeSimSnapshotBytes(wire);
-    expect(Object.is(bytes.player.yaw,-0)).toBe(true);
+    expect(Object.is(leadSnapshot(bytes).yaw,-0)).toBe(true);
     const expected=chapterSnapshotDigest(array);
     expect(chapterSnapshotDigest(saved)).toBe(expected);
     expect(chapterSnapshotDigest(bytes)).toBe(expected);
     expect(chapterSnapshotDigest(wire)).toBe(expected);
-    bytes.player.yaw=0;expect(chapterSnapshotDigest(bytes)).not.toBe(expected);
-    bytes.player.yaw=Number.EPSILON;expect(chapterSnapshotDigest(bytes)).not.toBe(chapterSnapshotDigest({...saved,player:{...saved.player,yaw:0}}));
+    leadSnapshot(bytes).yaw=0;expect(chapterSnapshotDigest(bytes)).not.toBe(expected);
+    leadSnapshot(bytes).yaw=Number.EPSILON;expect(chapterSnapshotDigest(bytes)).not.toBe(chapterSnapshotDigest({...saved,players:[{...leadSnapshot(saved),yaw:0}]}));
   }finally{host.dispose();}
 });
 

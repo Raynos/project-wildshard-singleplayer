@@ -12,6 +12,7 @@ import { parseModes } from '@wildshard/format/modes';
 import { PINE_MODES } from '../src/shards/pine-hollow/generators/zipline';
 import { DRIFTWOOD_MODES } from '../src/shards/driftwood-isle/generators/modes';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const rows = [...PINE_MODES.traverse, ...DRIFTWOOD_MODES.traverse].filter(row => row.kind === 'zipline');
 test('mode setup installs once, isolates page/native scopes and refuses missing owners', () => {
@@ -95,7 +96,7 @@ test('both native carry policies keep release positions, impulses and original s
       for (let tick = 0; reference.isRiding && tick < 2400; tick++) {
         reference.update(1 / 60, expected);
         owner.updateNative(row.id, 1 / 60, host);
-        expect(host.player.position).toEqual(expected.position);
+        expect(leadPlayer(host).position).toEqual(expected.position);
         expect(owner.snapshot(row.id)).toEqual(reference.snapshot());
         if (tick === 40) {
           const legacy = reference.snapshot(), current = owner.snapshot(row.id);
@@ -107,7 +108,7 @@ test('both native carry policies keep release positions, impulses and original s
       }
       expect(reference.isRiding).toBe(false);
       expect(flags.has(row.lifecycle?.endFlag ?? '')).toBe(true);
-      if (row.lifecycle?.native === 'motor') expect(host.playerImpulse).toEqual(expected.velocity);
+      if (row.lifecycle?.native === 'motor') expect(leadPlayer(host).impulse).toEqual(expected.velocity);
       else expect(rider.velocity).toEqual(expected.velocity);
       expect(owner.takeTransitions(row.id)).toEqual([]);
     } finally { host.dispose(); }

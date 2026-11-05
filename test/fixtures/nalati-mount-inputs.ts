@@ -2,6 +2,7 @@ import type {SimHost} from '../../src/engine/sim';
 import type {HeadlessRuntimeInstallation} from '../../src/sdk/headlessRuntime';
 import {mountedPlayerOf} from '../../src/game/riding/native';
 import {pickPrompt} from '../../src/engine/world/interact/prompts';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** Fixture input edge for the actual registered camp mounts. No actor id or
  * forced mount crosses the tape: USE must reach a visible native prompt. */
@@ -16,7 +17,7 @@ export function installNalatiMountInputs(host:SimHost,context:Pick<HeadlessRunti
       if(mounted.mountables.length>64)throw new Error('Native camp mount roster exceeds its bound');
       const candidates=mounted.mountables.map(actor=>({actor,position:actor.position,
         radius:!actor.alive?0:mounted.horse===actor?3.6:mounted.mounted?0:3.3}));
-      const at=host.player.position,selected=pickPrompt(candidates,{x:at.x,y:at.y+1.68,z:at.z},host.physics);
+      const at=leadPlayer(host).position,selected=pickPrompt(candidates,{x:at.x,y:at.y+1.68,z:at.z},host.physics);
       if(selected===undefined)continue;
       if(mounted.horse===selected.actor)mounted.dismount();else mounted.mount(selected.actor.entityId);
     }

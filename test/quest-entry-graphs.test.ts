@@ -19,6 +19,7 @@ import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { PINE_FEAT_COUNTERS } from '../src/shards/pine-hollow/generators/questInventory';
 import { DRIFTWOOD_FEAT_COUNTERS } from '../src/shards/driftwood-isle/generators/questInventory';
 import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/generators/interactables';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 // GR8: called, not read from a scheduler job's output
 const people = pineQuestNpcs();
@@ -170,10 +171,10 @@ test('Pine admitted routes preserve same-tick modal priority, actor values, canc
     expect(calls.slice(-3)).toEqual(['quest.trade.use/10', 'quest.ammo.cycle/0', 'quest.board.use/0']);
     modal['riding'] = true; expect(command(-1)).toBe(false); expect(command(10, 'pine.trade')).toBe(false);
     modal['riding'] = false;
-    host.player.position.set(0, 0, 4); expect(command(0)).toBe(false); // Exactly three metres: still outside.
-    host.player.position.z = 3.99; expect(command(0)).toBe(true);
+    leadPlayer(host).position.set(0, 0, 4); expect(command(0)).toBe(false); // Exactly three metres: still outside.
+    leadPlayer(host).position.z = 3.99; expect(command(0)).toBe(true);
     expect(command(0, 'unrelated')).toBe(false);
-    host.player.position.set(0, 0, 0); modal['reading'] = false; calls.length = 0;
+    leadPlayer(host).position.set(0, 0, 0); modal['reading'] = false; calls.length = 0;
     graph.dispatch([{ actorId: 'pine.interact', value: 0 }, { actorId: 'pine.interact', value: 1 }]);
     expect(calls).toEqual(['talk.ranger/0', 'quest.reading.next/1']);
     modal['reading'] = false; calls.length = 0;
@@ -207,8 +208,8 @@ test('native entries share direct and graph pickup transitions over their origin
         mechanics: { cables: { state: () => ({ riding: false, atEnd: false }), start: () => undefined } },
         observations: new Map(declared.observations.flatMap(value => value.kind === 'owner' ? [[value.owner, () => true] as const] : [])),
         actions: new Map(declared.commands.routes.flatMap(route => route.action.kind === 'owner' ? [[route.action.id, () => undefined] as const] : [])) });
-      host.player.position.set(sample.radius, 0, 0); transitions.step(); expect(host.flags.has(sample.flag)).toBe(false);
-      host.player.position.x -= 0.001; transitions.step(); expect(host.flags.has(sample.flag)).toBe(true);
+      leadPlayer(host).position.set(sample.radius, 0, 0); transitions.step(); expect(host.flags.has(sample.flag)).toBe(false);
+      leadPlayer(host).position.x -= 0.001; transitions.step(); expect(host.flags.has(sample.flag)).toBe(true);
       expect(entry.pack.count('amber-resin')).toBe(sample.granted);
       transitions.step(); expect(entry.pack.count('amber-resin')).toBe(sample.granted);
     } finally { host.dispose(); }

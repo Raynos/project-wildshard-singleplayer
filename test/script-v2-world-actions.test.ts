@@ -12,6 +12,7 @@ import { prepareV2WorldActions, type V2WorldActionLoan } from '../src/game/shard
 import { applyV2WorldActions } from './fixtures/applyWorldActionsV2';
 import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const layout = layoutV2(1024,1,new Map([[1,1],[4,1],[5,1],[10,4]]));
 function at(index = 0): number { const region = layout.regions[9];if (region === undefined) throw new Error('Missing fixture action bank');return layout.io+region.offset+index*64; }
@@ -151,10 +152,10 @@ test('native impulse uses the same owned SimHost without stepping clocks/RNG or 
   try {
     const action: V2WorldAction = { binding: 'a',target: 'player',kind: 'impulse',x: 1,y: 2,z: 3 }, rng = host.rng.snapshot(), tick = host.state.tick;
     const loan: V2WorldActionLoan = { binding: 'a',target: 'player',scope: host.scope,kind: 'native-player',owner: host };
-    applyV2WorldActions([action,action],[loan]);direct.impulsePlayer(new Vector3(1,2,3));direct.impulsePlayer(new Vector3(1,2,3));
-    expect(host.playerImpulse).toEqual(direct.playerImpulse);expect(host.rng.snapshot()).toEqual(rng);expect(host.state.tick).toBe(tick);
+    applyV2WorldActions([action,action],[loan]);leadPlayer(direct).addImpulse(new Vector3(1,2,3));leadPlayer(direct).addImpulse(new Vector3(1,2,3));
+    expect(leadPlayer(host).impulse).toEqual(leadPlayer(direct).impulse);expect(host.rng.snapshot()).toEqual(rng);expect(host.state.tick).toBe(tick);
     expect(() => applyV2WorldActions([action],[{ ...loan,scope: foreign }])).toThrow('Borrowed');
-    const embedded = createSimHost({ ...SIM_LEVEL,entities: [],quests: [] },{ rapier,physics: host.physics,player: host.player,events: host.events,clock: host.clock,combat: host.combat });
+    const embedded = createSimHost({ ...SIM_LEVEL,entities: [],quests: [] },{ rapier,physics: host.physics,player: leadPlayer(host),events: host.events,clock: host.clock,combat: host.combat });
     try {
       expect(() => applyV2WorldActions([{ binding: 'a',target: 'cells',kind: 'ignite',x: 0,z: 0 },action],[{ binding: 'a',target: 'cells',scope: host.scope,kind: 'cell-field',owner: { activate: effect } },{ ...loan,scope: embedded.scope,owner: embedded }])).toThrow('Borrowed');
       expect(effect).not.toHaveBeenCalled();

@@ -27,6 +27,7 @@ import type {HeadlessCommand,HeadlessEffect,HeadlessTickCommit} from '../../../s
 import type {HeadlessTapeObservation,HeadlessTapeReport} from '../../../src/sdk/headlessTape';
 import {packChapterReport,unpackChapterReport} from './chapterReportCodec';
 import {PACKED_CHAPTER_TAMING,unpackChapterTaming} from './chapterObservation';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const [stage,outputPath,inputPath,inputHash]=process.argv.slice(2);assert.ok(stage==='plains'||stage==='approach'||stage==='bond'||stage==='goat'||stage==='return'||stage==='home'||stage==='carving-road'||stage==='carving-arrival'||stage==='carvings'||stage==='king-entry'||stage==='king-phase-one'||stage==='king-phase-two'||stage==='king-victory'||stage==='king-home');
 const kingStage=stage==='king-entry'||stage==='king-phase-one'||stage==='king-phase-two'||stage==='king-victory'||stage==='king-home';assert.ok(outputPath);
@@ -84,7 +85,7 @@ try{
   let initialized=false;
   // Private replay decode only; no recorder loan or mutable snapshot escapes.
   let finalSnapshot:{wire:string;saved:SimSnapshotBytes}|undefined;
-  let final:HeadlessTickCommit|undefined,replayedTicks=0,frames:HeadlessCommand[][]=[],effects:HeadlessEffect[]=[],peakY=host.player.position.y;
+  let final:HeadlessTickCommit|undefined,replayedTicks=0,frames:HeadlessCommand[][]=[],effects:HeadlessEffect[]=[],peakY=leadPlayer(host).position.y;
   pipeline=checkedReplayPipeline<ChapterPart>(async part=>{
     const worker=await ready;
     if(!initialized&&inherited!==undefined){
@@ -110,8 +111,8 @@ try{
   const checked=pipeline;
   const flush=async():Promise<void>=>{
     if(frames.length===0)return;
-    const id=`chapter-${history.length}`,observation:HeadlessTapeObservation={id,tick:host.state.tick,position:host.player.position.toArray(),peakY,
-      grounded:host.player.motor.snapshot().result.grounded,flags:[...host.flags.all],
+    const id=`chapter-${history.length}`,observation:HeadlessTapeObservation={id,tick:host.state.tick,position:leadPlayer(host).position.toArray(),peakY,
+      grounded:leadPlayer(host).motor.snapshot().result.grounded,flags:[...host.flags.all],
       quests:host.quests.map(quest=>({id:quest.def.id,currentId:quest.current?.id??null,started:quest.snapshot().started,complete:quest.isComplete})),effects,
       adapters:observed.map(identity=>{const adapter=host.adapters.get(identity);assert.ok(adapter);const state=adapter.snapshot();
         return {id:identity,state:typeof state==='string'?state:JSON.stringify(state)};})};
@@ -121,7 +122,7 @@ try{
     const part:ChapterPart={plan:{version:1,observe:[...observed],segments:[{id,ticks:frames.length,commands:[],frames}]},
       expected:expectedReport,digest:chapterSnapshotDigest(snapshotSimHostBytes(host))};
     rawReports.set(part,raw);previousReport=raw;
-    history.push(part);checkChapterLedger(history,host.state.tick,reportStart);frames=[];effects=[];peakY=host.player.position.y;
+    history.push(part);checkChapterLedger(history,host.state.tick,reportStart);frames=[];effects=[];peakY=leadPlayer(host).position.y;
     await checked.offer(part);
   };
   let bondTicks=0;
@@ -143,13 +144,13 @@ try{
   const recordInput=(commands:readonly HeadlessCommand[]):void=>{
     checked.check();commandsCount+=commands.length;assert.ok(commandsCount<=60_000&&host.state.tick<60_000);
     frames.push(structuredClone([...commands]));active.step(commands);effects.push(...structuredClone(active.effects));
-    assert.ok(host.player.health.alive);peakY=Math.max(peakY,host.player.position.y);
+    assert.ok(leadPlayer(host).health.alive);peakY=Math.max(peakY,leadPlayer(host).position.y);
   };
   for(const commands of inputs){recordInput(commands);if(host.state.tick%512===0)await flush();}
   await flush();
   if(stage==='king-victory'){
     for(const commands of kingCheckpointSettleInputs(()=>{
-      const hit=host.player.motor.result.groundCollider;
+      const hit=leadPlayer(host).motor.result.groundCollider;
       return hit===null||host.physics.world.colliders.contains(hit.handle)&&host.physics.world.getCollider(hit.handle)?.handle===hit.handle;
     })){recordInput(commands);if(host.state.tick%512===0)await flush();}
     await flush();

@@ -19,6 +19,7 @@ import { GridSimulation } from '../../../src/game/grid/simulation.ts';
 import { ResidencyAllocator } from '../../../src/game/grid/allocator.ts';
 import { createTrustedHeadlessResident } from '../../../src/sdk/headlessRuntime.ts';
 import { createNativeProofResident } from '../../fixtures/headless-native.ts';
+import { leadPlayer } from '../../../src/engine/sim/leadPlayer.ts';
 
 /** The same catalogue grid is used in public and Developer modes (G972). */
 const CATALOGUE_MODE = Object.freeze({ developer: false, devserver: false });
@@ -89,7 +90,7 @@ export async function proveTrustedGridReady(source, mode = CATALOGUE_MODE, prepa
     assert.equal(grid.host(), resident.host);
     const [actorId, actor] = [...resident.host.entities].find(([, entity]) => entity.alive && entity.hp > 2) ?? [], admittedDigest = regionDigest(resident.host);
     // A region with fauna takes a hurt creature; one without (Nine) takes a lent weapon swing on its runtime's own controller.
-    if (actor === undefined) tape = [{ kind: 'player', moveX: 0, moveZ: 0, yaw: resident.host.player.yaw, attack: { targetId: 'grid-ready.swing' } }];
+    if (actor === undefined) tape = [{ kind: 'player', moveX: 0, moveZ: 0, yaw: leadPlayer(resident.host).yaw, attack: { targetId: 'grid-ready.swing' } }];
     else actor.applyFinalDamage(1, actor.position, actor.position);
     for (let i = 0; i < 4; i++) grid.step();
     tape = [];

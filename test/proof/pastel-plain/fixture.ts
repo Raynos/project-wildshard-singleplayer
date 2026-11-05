@@ -10,6 +10,7 @@ import { Ledger, installLedgerEmitter, type LedgerEmitter } from '../../../src/g
 import { snapshotSimHost, restoreSimHost } from '../../../src/engine/sim/snapshot';
 import type { SimHost } from '../../../src/engine/sim';
 import { ItemRuntime, scriptItemHook } from '../../../src/engine/combat/items';
+import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 type ProofSimulation = ShardfileSimulation & { items: ReadonlyMap<string, ItemRuntime> };
 
@@ -43,8 +44,8 @@ function ports(rapier: Rapier, ledger: Ledger): { ports: ShardfileSimPorts; inst
 function itemRuntimes(sim: ShardfileSimulation): ProofSimulation {
   const lane = requireValue(sim.lane, 'Items require the admitted script lane'), items = new Map<string, ItemRuntime>();
   for (const row of source.items.rows) {
-    const runtime = new ItemRuntime(row, { actor: sim.host.player.health, combat: sim.host.combat,
-      hook: row.hook === null ? null : scriptItemHook(lane.host, row.hook.module, row.hook.entity, row.hook.event, sim.host.player.id),
+    const runtime = new ItemRuntime(row, { actor: leadPlayer(sim.host).health, combat: sim.host.combat,
+      hook: row.hook === null ? null : scriptItemHook(lane.host, row.hook.module, row.hook.entity, row.hook.event, leadPlayer(sim.host).id),
       targets: () => [...sim.host.entities.values()].map((actor) => Object.assign(sim.host.combat.targetPort(actor.combatActor(), actor), { aimPoint: actor.position.clone().add(new Vector3(0, actor.dims.bodyY * actor.scale, 0)) })),
       effect: () => { throw new Error('This suffix uses light contacts; heavy effects have their separate SF7e proof'); },
     });
@@ -52,7 +53,7 @@ function itemRuntimes(sim: ShardfileSimulation): ProofSimulation {
     sim.host.onStep(`item.${row.id}`, (dt) => {
       runtime.step(sim.host.state.tick, dt);
       if (row.kind === 'tool') {
-        const handle = requireValue(sim.actors.get(sim.host.player.id), 'Missing item owner');
+        const handle = requireValue(sim.actors.get(leadPlayer(sim.host).id), 'Missing item owner');
         lane.world.prepare([{ op: 6, a: 201, b: runtime.remainingFuel, c: 0, d: 0 }, { op: 6, a: 202, b: Number(runtime.lightOn), c: 0, d: 0 }], handle, 0, 0).commit();
       }
     }, { snapshot: () => JSON.stringify(runtime.snapshot()), restore: (value) => {
@@ -66,17 +67,17 @@ function boot(rapier: Rapier, local = new ProfileStorage()): { sim: ProofSimulat
   const ledger = profile(local), hooks = ports(rapier, ledger), sim = itemRuntimes(createShardfileSim(source, assets, hooks.ports)); hooks.install(sim.host);
   return { sim, ledger, local };
 }
-function tick(sim: ShardfileSimulation, count: number): void { for (let i = 0; i < count; i++) sim.host.step({ moveX: 0, moveZ: 0, yaw: sim.host.player.yaw }); }
+function tick(sim: ShardfileSimulation, count: number): void { for (let i = 0; i < count; i++) sim.host.step(leadCommands(sim.host, { moveX: 0, moveZ: 0, yaw: leadPlayer(sim.host).yaw })); }
 function hit(sim: ProofSimulation, id: string): void {
   const actor = requireValue(sim.host.entities.get(id), 'Missing declared creature');
-  const aimOrigin = sim.host.player.position.clone().add(new Vector3(0, 1.2, 0)), point = actor.position.clone().add(new Vector3(0, actor.dims.bodyY * actor.scale, 0));
+  const aimOrigin = leadPlayer(sim.host).position.clone().add(new Vector3(0, 1.2, 0)), point = actor.position.clone().add(new Vector3(0, actor.dims.bodyY * actor.scale, 0));
   requireValue(sim.items.get('weapon.pastel-whip'), 'Missing whip').queue(1, { origin: aimOrigin, direction: point.sub(aimOrigin).normalize() });
 }
 function finishQuest(sim: ProofSimulation): void {
-  sim.host.player.position.set(0, 0.3, -9); tick(sim, 2);
+  leadPlayer(sim.host).position.set(0, 0.3, -9); tick(sim, 2);
   const blob = requireValue(sim.host.entities.get('grey-blob:1'), 'Missing quest blob');
   for (let contact = 0; contact < Math.ceil(blob.maxHp / 18); contact++) {
-    sim.host.player.position.copy(blob.position).add(new Vector3(0, 0, 2)); hit(sim, blob.entityId); tick(sim, 25);
+    leadPlayer(sim.host).position.copy(blob.position).add(new Vector3(0, 0, 2)); hit(sim, blob.entityId); tick(sim, 25);
   }
   tick(sim, 2);
   if (!sim.host.quests[0]?.isComplete || sim.host.slots.ledgerDedupe.length !== 1) throw new Error('Real quest/death/ledger pipeline did not complete');
@@ -93,13 +94,13 @@ export function bootProof(rapier: Rapier): object {
 export function headlessProof(rapier: Rapier): object {
   const { sim } = boot(rapier);
   try {
-    const lane = requireValue(sim.lane, 'Missing script lane'), handle = requireValue(sim.actors.get(sim.host.player.id), 'Missing actor handle');
+    const lane = requireValue(sim.lane, 'Missing script lane'), handle = requireValue(sim.actors.get(leadPlayer(sim.host).id), 'Missing actor handle');
     lane.enqueue({ type: 201, target: handle, value: 1 }); requireValue(sim.items.get('tool.pastel-lantern'), 'Missing lantern').queue(3); tick(sim, 10_000);
-    if (sim.host.state.tick !== 10_000 || lane.world.view(sim.host.player.id).shared['pastel.door.open'] !== 1 || lane.host.checkpoint().modules.some((module) => module.failures !== 0 || module.disabled)) throw new Error('Headless script failed');
+    if (sim.host.state.tick !== 10_000 || lane.world.view(leadPlayer(sim.host).id).shared['pastel.door.open'] !== 1 || lane.host.checkpoint().modules.some((module) => module.failures !== 0 || module.disabled)) throw new Error('Headless script failed');
     if (sim.colliders.get('pastel.door')?.active() !== false) throw new Error('Door event did not open its actual physics collider');
     const lamp = requireValue(sim.items.get('tool.pastel-lantern'), 'Missing lantern');
     if (lamp.lightOn || lamp.remainingFuel !== 0) throw new Error('Single-owner lantern did not exhaust its fixed-step fuel');
-    if (![sim.host.player.position, ...[...sim.host.entities.values()].map((entity) => entity.position)].every((point) => [point.x, point.y, point.z].every(Number.isFinite))) throw new Error('Nonfinite headless position');
+    if (![leadPlayer(sim.host).position, ...[...sim.host.entities.values()].map((entity) => entity.position)].every((point) => [point.x, point.y, point.z].every(Number.isFinite))) throw new Error('Nonfinite headless position');
     return { ticks: sim.host.state.tick, hash: digest(sim.host) };
   } finally { sim.dispose(); }
 }
@@ -108,11 +109,11 @@ export function replayProof(rapier: Rapier): object {
   try {
     finishQuest(first.sim);
     requireValue(first.sim.items.get('tool.pastel-lantern'), 'Missing lantern').queue(3);
-    first.sim.host.player.position.set(-15, 0.3, -18); tick(first.sim, 90);
+    leadPlayer(first.sim.host).position.set(-15, 0.3, -18); tick(first.sim, 90);
     const boss = requireValue(first.sim.encounters.get('pastel.boss'), 'Missing declared Big Blob');
     if (boss.boss.state !== 'fight') throw new Error(`Expected Big Blob fight, received ${boss.boss.state}`);
     hit(first.sim, 'big-blob'); tick(first.sim, 2);
-    const lane = requireValue(first.sim.lane, 'Missing script lane'), handle = requireValue(first.sim.actors.get(first.sim.host.player.id), 'Missing actor');
+    const lane = requireValue(first.sim.lane, 'Missing script lane'), handle = requireValue(first.sim.actors.get(leadPlayer(first.sim.host).id), 'Missing actor');
     lane.enqueue({ type: 201, target: handle, value: 1 });
     const lamp = requireValue(first.sim.items.get('tool.pastel-lantern'), 'Missing lantern');
     if (!lamp.lightOn || lamp.remainingFuel >= 1) throw new Error('Checkpoint lacks live lantern continuation');
@@ -130,7 +131,7 @@ export function replayProof(rapier: Rapier): object {
     }
     const hash = digest(first.sim.host), replayHash = digest(host);
     if (hash !== replayHash || JSON.stringify(first.ledger.state()) !== JSON.stringify(ledger.state())) throw new Error('Full pastel plain continuation diverged');
-    if (boss.boss.phase !== 1 || lane.world.view(first.sim.host.player.id).shared['pastel.door.open'] !== 1 || first.sim.colliders.get('pastel.door')?.active() !== false || restored.colliders.get('pastel.door')?.active() !== false) throw new Error('Suffix did not enter the second phase and open the actual door collider');
+    if (boss.boss.phase !== 1 || lane.world.view(leadPlayer(first.sim.host).id).shared['pastel.door.open'] !== 1 || first.sim.colliders.get('pastel.door')?.active() !== false || restored.colliders.get('pastel.door')?.active() !== false) throw new Error('Suffix did not enter the second phase and open the actual door collider');
     return { ticks: 600, hash, replayHash, checkpointTick: checkpoint.state.tick, questComplete: first.sim.host.quests[0]?.isComplete, ledgerDedupe: first.sim.host.slots.ledgerDedupe.length, boss: boss.boss.state, phase: boss.boss.phase };
   } finally { restored?.dispose(); first.sim.dispose(); }
 }

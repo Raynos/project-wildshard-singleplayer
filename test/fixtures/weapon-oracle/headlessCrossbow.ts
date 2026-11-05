@@ -13,6 +13,7 @@ import { projectileFlightStep } from '../../../src/engine/combat/projectileFligh
 export interface BoltFlight { gravity: number; drag: number }
 const PLAIN_FLIGHT: BoltFlight = { gravity: 1, drag: 1 };
 import { aimAt, bodyHit } from './headlessRanged';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 type BoltKind = 'iron' | 'pitch' | 'broadhead';
 const boltDamage = (kind: BoltKind, animal: string): number => kind === 'broadhead' && (animal === 'deer' || animal === 'boar') ? 1.4 : 1;
 /** Frozen shipping flight law, independent of the adopted item rows. */
@@ -68,7 +69,7 @@ export interface PineCrossbowPorts {
  * a stowed bow still reloads itself and its bolts fly on, as the page updates every weapon. Stuck bolts are the page's view alone.
  */
 export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { readonly state: { loaded: boolean; quiver: number; reloading: boolean }; readonly flying: () => number; readonly addBolts: (count: number) => void } {
-  const p = CROSSBOW_PROFILE, random = (): number => host.rng.stream('gameplay').next(), player = host.player;
+  const p = CROSSBOW_PROFILE, random = (): number => host.rng.stream('gameplay').next(), player = leadPlayer(host);
   if (p.maxFlying !== MAX_FLYING) throw new Error('Pine crossbow profile changed its bolt pool');
   const state = { loaded: true, quiver: p.quiver, reloading: false, reloadT: 0, cooldown: 0, sinceFire: 99 };
   const bolts: Bolt[] = Array.from({ length: p.maxFlying }, () => ({ active: false, pos: new Vector3(), vel: new Vector3(), age: 0, glanced: false, ammo: 'iron' }));

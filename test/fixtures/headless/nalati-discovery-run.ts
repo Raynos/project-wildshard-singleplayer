@@ -12,6 +12,7 @@ import type {HeadlessTapeObservation} from '../../../src/sdk/headlessTape';
 import {PhysicsRouteCursor} from '../../../src/sdk/headlessJourney';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import {checkedReplayPipeline} from './checkedReplayPipeline';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const session=await beginProductSession('nalati-grasslands','nalati-world');
 let first:Awaited<ReturnType<typeof createNativeProofResident>>|undefined;
@@ -46,7 +47,7 @@ try{
     if(marks.at(-1)?.tick===frames.length)return;
     assert.equal(host.adapters.get('nalati.world'),owner,'the recorder retains its actual observation owner');
     const state=owner.snapshot();if(typeof state!=='string')throw new Error('Discovery owner requires its actual JSON wire');
-    const expected={tick:frames.length,position:host.player.position.toArray(),flags:[...host.flags.all],state};
+    const expected={tick:frames.length,position:leadPlayer(host).position.toArray(),flags:[...host.flags.all],state};
     const chunk=frames.slice(offset);assert.ok(chunk.length>0&&chunk.length<=512);
     assert.equal(expected.tick,offset+chunk.length,'every recorded boundary is consumed once, in order');
     const index=marks.length;marks.push(expected);
@@ -67,8 +68,8 @@ try{
     });
     const prior=host.state.tick;frames.push(structuredClone(input));active.step(input);
     assert.equal(host.state.tick,prior+1,'each recorded input commits exactly one native tick');
-    assert.equal(host.player.health.alive,true,'discovery input must keep the real traveller alive');
-    const p=host.player.position;
+    assert.equal(leadPlayer(host).health.alive,true,'discovery input must keep the real traveller alive');
+    const p=leadPlayer(host).position;
     assert.ok([p.x,p.y,p.z].every(Number.isFinite),'native feet stay finite');
     for(const row of rows)if(host.flags.has(`seen:${row.id}`)&&!arrived.has(row.id)){
       assert.ok((p.x-row.x)**2+(p.z-row.z)**2<row.r**2,`only actual arrival discovers ${row.id}`);
@@ -88,56 +89,56 @@ try{
   const camp=new PhysicsRouteCursor([{x:0,z:216},{x:20,z:216},{x:40,z:218},{x:60,z:214}],{once:true});
   let campEffects=0;
   for(let tick=0;tick<3600;tick++){
-    const p=host.player.position,command=camp.command([p.x,p.y,p.z],tick);
+    const p=leadPlayer(host).position,command=camp.command([p.x,p.y,p.z],tick);
     if(camp.complete)break;
     assert.equal(camp.stuck.length,0,'the unchanged native camp route must progress');
     await step([command]);campEffects+=active.effects.length;assert.ok(campEffects<=1024,'the original route effect allowance stays bounded');
   }
-  if(!camp.complete){const p=host.player.position;camp.command([p.x,p.y,p.z],3600);}
+  if(!camp.complete){const p=leadPlayer(host).position;camp.command([p.x,p.y,p.z],3600);}
   assert.equal(camp.complete,true,'the original 3600-tick camp route must complete');
   await step([{kind:'player',moveX:0,moveZ:0,yaw:0,commandVersion:1,hover:true,
     steer:{keyX:0,keyY:0,stickX:0,stickY:0}}]);
   for(let tick=0;tick<30;tick++)await step([]);
-  assert.equal(host.playerBoard.on,true,'the ordinary input must engage the real board');
+  assert.equal(leadPlayer(host).board.on,true,'the ordinary input must engage the real board');
   const discover=async(place:typeof rows[number]):Promise<void>=>{
     if(arrived.has(place.id))return;
     // Keep driving instead of waiting for a full coast to rest at every
     // place. When momentum points away, the player's ordinary stick brakes
     // and turns it before the next unchanged waypoint progress window.
     for(let turn=0;turn<120&&!arrived.has(place.id);turn++){
-      const at=host.player.position,dx=place.x-at.x,dz=place.z-at.z,distance=Math.hypot(dx,dz);
-      if(host.boardVelocity.x*dx+host.boardVelocity.z*dz>=0)break;
+      const at=leadPlayer(host).position,dx=place.x-at.x,dz=place.z-at.z,distance=Math.hypot(dx,dz);
+      if(leadPlayer(host).boardVelocity.x*dx+leadPlayer(host).boardVelocity.z*dz>=0)break;
       assert.ok(distance>0);
       await step([{kind:'player',moveX:dx/distance,moveZ:dz/distance,yaw:Math.atan2(-dx,-dz)}]);alignmentTicks++;
     }
-    {const at=host.player.position;assert.ok(arrived.has(place.id)||host.boardVelocity.x*(place.x-at.x)+host.boardVelocity.z*(place.z-at.z)>=0,
+    {const at=leadPlayer(host).position;assert.ok(arrived.has(place.id)||leadPlayer(host).boardVelocity.x*(place.x-at.x)+leadPlayer(host).boardVelocity.z*(place.z-at.z)>=0,
       'ordinary steering must turn momentum within the original 120-tick progress allowance');}
     if(arrived.has(place.id))return;
-    const origin=host.player.position,distance=Math.hypot(place.x-origin.x,place.z-origin.z);
+    const origin=leadPlayer(host).position,distance=Math.hypot(place.x-origin.x,place.z-origin.z);
     // The west crag wall is solid; approach its real discovery circle from
     // the open east side instead of repeatedly jumping into that wall.
     const detour=place.id==='the-crags'?[{x:-140,z:-20},{x:-140,z:-115}]:[];
     const points=[{x:origin.x,z:origin.z},...detour,{x:place.x,z:place.z}];
     try{
       const cursor=new PhysicsRouteCursor(points,{once:true}),limit=Math.min(18_000,Math.max(1200,Math.ceil(distance*90)));
-      const previous=host.player.position.clone();let stopped=0;
+      const previous=leadPlayer(host).position.clone();let stopped=0;
       for(let tick=0;tick<limit&&!arrived.has(place.id);tick++){
-        const p=host.player.position,command=cursor.command([p.x,p.y,p.z],tick);
+        const p=leadPlayer(host).position,command=cursor.command([p.x,p.y,p.z],tick);
         assert.equal(cursor.stuck.length,0,'the unchanged native route must progress until actual discovery');
         if(cursor.complete)break;
         stopped=p.distanceToSquared(previous)<.0004?stopped+1:0;previous.copy(p);
         const jump=stopped>=45&&stopped%30===15;
         await step([jump?{...command,jump:true}:command]);
       }
-    }catch(error){throw new Error(`Native discovery approach ${place.id} at ${JSON.stringify({feet:host.player.position,board:host.playerBoard,velocity:host.boardVelocity,ground:host.groundHeightAt(host.player.position.x,host.player.position.z),motor:host.player.motor.snapshot().result})} via ${JSON.stringify(points)}`,{cause:error});}
+    }catch(error){throw new Error(`Native discovery approach ${place.id} at ${JSON.stringify({feet:leadPlayer(host).position,board:leadPlayer(host).board,velocity:leadPlayer(host).boardVelocity,ground:host.groundHeightAt(leadPlayer(host).position.x,leadPlayer(host).position.z),motor:leadPlayer(host).motor.snapshot().result})} via ${JSON.stringify(points)}`,{cause:error});}
     await step([]);assert.ok(arrived.has(place.id),`the real approach must discover ${place.id}`);
-    console.error(JSON.stringify({place:place.id,tick:frames.length,at:host.player.position}));
+    console.error(JSON.stringify({place:place.id,tick:frames.length,at:leadPlayer(host).position}));
   }
   // Visit the pasture along the north bank before touring the plateau.
   const pasture=rows.find(row=>row.id==='sheep-pasture');assert.ok(pasture);await discover(pasture);
   while(arrived.size<rows.length){
     const pending=rows.filter(row=>!arrived.has(row.id)).sort((a,b)=>
-      Math.hypot(a.x-host.player.position.x,a.z-host.player.position.z)-Math.hypot(b.x-host.player.position.x,b.z-host.player.position.z));
+      Math.hypot(a.x-leadPlayer(host).position.x,a.z-leadPlayer(host).position.z)-Math.hypot(b.x-leadPlayer(host).position.x,b.z-leadPlayer(host).position.z));
     const place=pending[0];assert.ok(place);await discover(place);
   }
   for(const row of rows)assert.equal(notices.get(`Discovered · ${row.label}`)??0,row.quiet===true?0:1,`one original notice for ${row.id}`);
@@ -149,7 +150,7 @@ try{
     await pipeline.finish();
     assert.equal(partCount,marks.length);assert.equal(replayed,frames.length);assert.ok(end);
     assert.equal(end.tick,host.state.tick,'replay commits every original movement tick');
-    assert.deepEqual(end.position,host.player.position.toArray(),'replay retains the exact final native feet');
+    assert.deepEqual(end.position,leadPlayer(host).position.toArray(),'replay retains the exact final native feet');
     assert.deepEqual(end.flags,[...host.flags.all],'fresh native input replay preserves every earned discovery');
     const observed=end.adapters.find(row=>row.id==='nalati.world');assert.ok(observed);
     assert.equal(observed.state,owner.snapshot(),'replay retains the actual motor, water and discovery observations');

@@ -23,6 +23,7 @@ import {NativeArenaSand} from './nalati-room-sand-native';
 import {KingContinuation,type KingObservation} from './nalati-king-continuation';
 import {nativeKingSeal} from './nalati-king-seal';
 import {readNalatiWeaponObservation} from './nalati-weapon-observation';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const finite=v.pipe(v.number(),v.finite()),text=v.pipe(v.string(),v.maxLength(4096));
 const UI=v.strictObject({bar:v.boolean(),hp:finite,shield:v.boolean(),phase:finite,skip:finite,name:text,title:text,
@@ -84,16 +85,16 @@ export function installNativeKing(host:SimHost,context:Pick<HeadlessRuntimeInsta
       live();if(actor!==body)throw new Error('King decision identity differs');
       if(body.mem[initial.flag]!==1){body.mem[initial.flag]=1;for(const row of initial.defaults)
         body.mem[row.field]??=row.source==='height'?host.groundHeightAt(body.position.x,body.position.z):row.value;}
-      brain.think(body,{dt:frame.dt,player:host.player.position});
-    },act:actor=>{live();if(actor!==body)throw new Error('King act identity differs');brain.act(body,{player:host.player.position});}};
+      brain.think(body,{dt:frame.dt,player:leadPlayer(host).position});
+    },act:actor=>{live();if(actor!==body)throw new Error('King act identity differs');brain.act(body,{player:leadPlayer(host).position});}};
     owned.set(body,owner);bindings.brains.set(body,owner);body.combatActor().damageMul=request=>brain.damageMul(body,request.point);
   };
   for(const body of population.bodies)if(body.kind===data.declared.kind)attach(body);
   const strike=new StrikeRunner(),cuts=data.encounter.page.cuts.map(strikeFromData),hazards=new Map(Object.entries(data.encounter.page.hazards).map(([id,row])=>[id,strikeFromData(row)]));
   const encounter:{core?:KingContinuation<KingBody>}={};
-  const player={position:host.player.position,velocity:mount.rider.velocity,get yaw(){return host.player.yaw;},set yaw(value:number){host.player.yaw=value;},
+  const player={position:leadPlayer(host).position,velocity:mount.rider.velocity,get yaw(){return leadPlayer(host).yaw;},set yaw(value:number){leadPlayer(host).yaw=value;},
     get pitch(){return weapons.look.pitch;},set pitch(value:number){weapons.look.pitch=value;}};
-  const publishPlayer=():void=>{host.player.motor.resetAt(host.player.position);host.playerFall.vy=player.velocity.y;};
+  const publishPlayer=():void=>{leadPlayer(host).motor.resetAt(leadPlayer(host).position);leadPlayer(host).fall.vy=player.velocity.y;};
   const ui:BossPresentation={update:()=>undefined,get barShown(){return uiState.bar;},hideBar:()=>{uiState.bar=false;},hideNameCard:()=>{uiState.name='';uiState.title='';},
     hideReward:()=>{uiState.reward=false;},showRetry:(retry,attempts)=>{uiState.retry=retry;uiState.attempts=attempts;},
     showNameCard:(name,title)=>{uiState.name=name;uiState.title=title;},setSkip:value=>{uiState.skip=value;},showBar:name=>{uiState.name=name;uiState.bar=true;},
@@ -102,11 +103,11 @@ export function installNativeKing(host:SimHost,context:Pick<HeadlessRuntimeInsta
   if(record.rewardTaken)throw new Error('King reward equipment loan remains closed');
   const hurt=(amount:number,throughWalls=false):void=>{
     const read=encounter.core?.observe(),body=read?.body===null||read?.body===undefined?undefined:host.entities.get(read.body.id);
-    if(body===undefined||!throughWalls&&!canReach(body,host.player.position,host.physics))return;
-    host.combat.hit({source:'env',sourceTags:[data.encounter.page.damageTag,'feel.blow','cover.checked'],target:host.player.health,amount,
+    if(body===undefined||!throughWalls&&!canReach(body,leadPlayer(host).position,host.physics))return;
+    host.combat.hit({source:'env',sourceTags:[data.encounter.page.damageTag,'feel.blow','cover.checked'],target:leadPlayer(host).health,amount,
       point:body.position,dir:new Vector3(),cause:{kind:body.kind,label:body.label}});
   };
-  const core=new KingContinuation<KingBody>(data,{scope:host.scope,ground:sand.ground,player,population,moveScale:{read:()=>host.playerMoveScale,write:value=>{host.playerMoveScale=value;}},
+  const core=new KingContinuation<KingBody>(data,{scope:host.scope,ground:sand.ground,player,population,moveScale:{read:()=>leadPlayer(host).moveScale,write:value=>{leadPlayer(host).moveScale=value;}},
     fight:{arena:{floorAt:(x,z)=>sand.ground.floorAt(x,z),pile:(...args)=>{sand.ground.addSand(...args);},clear:()=>{sand.ground.clearSand();},
       drain:(dt,rate)=>{sand.ground.drainSand(dt,rate);},inArena:p=>sand.ground.inChamber(p)&&p.z<data.encounter.page.maxZ,seal:on=>{seal.set(on);}},
       body:{spawn:()=>{const body=population.spawnElite(data.declared.kind,data.declared.at[0],data.declared.at[1],data.declared.yaw,data.declared.look);
@@ -115,21 +116,21 @@ export function installNativeKing(host:SimHost,context:Pick<HeadlessRuntimeInsta
       spawnAdd:(_index,x,z,yaw)=>{const row=data.encounter.page.add,body=population.spawnElite(row.kind,x,z,yaw,row.variant);
         body.herd=-1;body.levelGround=true;
         balbals.adoptAdd(body);nativeBody(body).sampleTerrain();Object.assign(body.mem,row.memory);body.yOffset=data.room.origin.y-body.position.y;return nativeBody(body);},
-      player:{position:host.player.position,dash:(x,z,seconds)=>{host.dashPlayer(x,z,seconds);}},hurt,
-      cut:(index,body,onHit)=>{const row=cuts[index]??cuts[0];return row!==undefined&&strike.contact(row,{actor:body,target:host.player.position,hit:onHit,
-        canReach:()=>canReach(body,host.player.position,host.physics)});},hazard:(id,from,onHit,options)=>{
+      player:{position:leadPlayer(host).position,dash:(x,z,seconds)=>{leadPlayer(host).dashAt(x,z,seconds);}},hurt,
+      cut:(index,body,onHit)=>{const row=cuts[index]??cuts[0];return row!==undefined&&strike.contact(row,{actor:body,target:leadPlayer(host).position,hit:onHit,
+        canReach:()=>canReach(body,leadPlayer(host).position,host.physics)});},hazard:(id,from,onHit,options)=>{
         const row=hazards.get(id);if(row===undefined)throw new Error('King hazard lost its actual strike');
         const no=():void=>undefined,actor={position:from,scale:1,yaw:0,alive:true,dims:{bodyY:1.2,bodyRadius:.1},
           headWorld:(out:Vector3)=>out.copy(from).add(new Vector3(0,1.2,0)),startAttack:no,cancelAttack:no,setMotion:no};
-        strike.contact(row,{actor,target:host.player.position,hit:onHit,...options,canReach:()=>canReach(actor,host.player.position,host.physics)});
+        strike.contact(row,{actor,target:leadPlayer(host).position,hit:onHit,...options,canReach:()=>canReach(actor,leadPlayer(host).position,host.physics)});
       },rng:()=>host.rng.stream('ai').next(),feed:value=>{line('feed',value);},
       views:Object.fromEntries(data.profile.fight.views.map(id=>[id,(...values:number[])=>{visual.set(id,[...values]);}])),
       rewardPoint:()=>new Vector3().fromArray(data.encounter.page.reward),respawnPoint:()=>({pos:new Vector3().fromArray(data.encounter.page.respawn),yaw:data.encounter.page.yaw})},
-    boss:{events:host.events,player:host.player,lockInput:on=>{weapons.setEnabled(!on);},respawn:(position,yaw)=>{
-      host.player.position.copy(position);player.velocity.set(0,0,0);host.player.yaw=yaw;weapons.look.pitch=0;publishPlayer();weapons.refill();},
+    boss:{events:host.events,player:leadPlayer(host),lockInput:on=>{weapons.setEnabled(!on);},respawn:(position,yaw)=>{
+      leadPlayer(host).position.copy(position);player.velocity.set(0,0,0);leadPlayer(host).yaw=yaw;weapons.look.pitch=0;publishPlayer();weapons.refill();},
       skipHeld:()=>context.commands().some(command=>command.kind==='player'?command.jump===true:command.kind==='script'&&
         (command.actorId==='nalati.king.skip'||command.actorId==='nalati.king.use')&&command.value===1),
-      faceToward:(target,dt)=>{const eye=host.player.position.clone();eye.y+=1.68;easeViewToward(weapons.look,eye,target,dt);},
+      faceToward:(target,dt)=>{const eye=leadPlayer(host).position.clone();eye.y+=1.68;easeViewToward(weapons.look,eye,target,dt);},
       spawnReward:()=>{uiState.reward=true;},persist:value=>{if(value.rewardTaken)throw new Error('King reward equipment loan remains closed');
         records.bosses.write({...records.bosses.read(),[data.encounter.definition.id]:value});},toast:value=>{line('toast',value);},feed:value=>{line('feed',value);}},
     ui,saved:record,identify:body=>body.entityId,find:id=>{const body=host.entities.get(id);return body===undefined?null:nativeBody(body);},publishPlayer,
@@ -140,7 +141,7 @@ export function installNativeKing(host:SimHost,context:Pick<HeadlessRuntimeInsta
   if(context.restoring)onSimHostRestored(host,()=>{restoreEncounterBrains(owned,bindings.brains,
     body=>host.entities.get(body.entityId)===body&&body.kind===data.declared.kind&&poses.has(body.entityId)&&!host.scope.disposed);
     for(const body of owned.keys())bindings.pinned.add(body);});
-  host.player.health.checkpoint(host.scope,()=>active&&ownedCore.onPlayerDeath());
+  leadPlayer(host).health.checkpoint(host.scope,()=>active&&ownedCore.onPlayerDeath());
   host.onStep('nalati.king.poses',()=>{if(!active)return;for(const [id,pose]of poses){const body=host.entities.get(id),dt=host.bodyDt(id);
     if(body===undefined)throw new Error('King pose body disappeared');if(dt>0){pose.advance(dt,host.clock.now,true);pose.publish();}}},undefined,'afterBodies');
   const owner:NativeKingOwner={update:dt=>{live();for(const command of context.commands())if(command.kind==='script'&&command.actorId==='nalati.king.use')

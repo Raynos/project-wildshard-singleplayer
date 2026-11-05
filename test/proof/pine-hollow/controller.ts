@@ -15,6 +15,7 @@ import wardens from '../../../src/shards/pine-hollow/data/wardensHollow.json' wi
 import bossRows from '../../../src/shards/pine-hollow/data/bossEncounter.json' with {type:'json'};
 import {LEVER_FLAG,LOADOUT_STEP,PINE_WEAPON,WEAPON_COMMAND} from '../../fixtures/weapon-oracle/nativeLoadout';
 import {AIM_COMMAND,AIM_RIBS} from '../../fixtures/weapon-oracle/headlessRanged';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const requireValue=<T>(value:T|undefined|null,message:string):T=>{if(value===undefined||value===null)throw new Error(message);return value;};
 const LEAD=parseQuestLeadRows(leadJson),EYE=1.68,LEVER_STEP='pine.lever',CROSSBOW_STEP='pine.crossbow';
@@ -120,22 +121,22 @@ export class PineTape {
   get current(): Leg['kind'] | null { return this.legs[this.leg]?.kind ?? null; }
   next(host: SimHost): HeadlessCommand[] {
     const leg = this.legs[this.leg];
-    if (leg === undefined) return [{ kind: 'player', moveX: 0, moveZ: 0, yaw: host.player.yaw }];
+    if (leg === undefined) return [{ kind: 'player', moveX: 0, moveZ: 0, yaw: leadPlayer(host).yaw }];
     // a creature hunting the player (a bear's pursuit, a boar's charge) is shot down with the crossbow before the tape goes on
     if (leg.kind !== 'ride' && leg.kind !== 'king') { const defend = defence(host); if (defend !== null) return defend; }
     this.ticks++;
-    if (this.ticks > LEG_LIMIT) throw new Error(`The tape is stuck on leg ${String(this.leg)} (${leg.kind}, waypoint ${String(this.waypoint)}) at ${host.player.position.toArray().map(n => n.toFixed(2)).join(', ')} (health ${String(host.player.health.attributes.health)}, night ${night(host).toFixed(2)})`);
+    if (this.ticks > LEG_LIMIT) throw new Error(`The tape is stuck on leg ${String(this.leg)} (${leg.kind}, waypoint ${String(this.waypoint)}) at ${leadPlayer(host).position.toArray().map(n => n.toFixed(2)).join(', ')} (health ${String(leadPlayer(host).health.attributes.health)}, night ${night(host).toFixed(2)})`);
     const commands = this.play(host, leg);
     if (commands === null) { this.done(host, leg); return this.next(host); }
     return commands;
   }
   private done(host: SimHost, leg: Leg): void {
-    const p = host.player.position;
+    const p = leadPlayer(host).position;
     this.log.push({ leg: this.leg, kind: leg.kind, tick: host.state.tick, x: p.x, y: p.y, z: p.z });
     this.leg++; this.waypoint = 0; this.ticks = 0; this.best = Number.MAX_VALUE; this.stall = 0;
   }
   private play(host: SimHost, leg: Leg): HeadlessCommand[] | null {
-    const p = host.player.position;
+    const p = leadPlayer(host).position;
     switch (leg.kind) {
       case 'go': {
         const target = leg.path[this.waypoint];
@@ -154,12 +155,12 @@ export class PineTape {
       case 'act': {
         if (leg.done(host)) return null;
         const eye = new Vector3(p.x, p.y + EYE, p.z), d = eye.distanceTo(new Vector3(leg.at.x, leg.at.y, leg.at.z));
-        if (d < leg.reach - 0.2) return [{ kind: 'script', actorId: PINE_INTERACT, value: leg.value }, move(0, 0, host.player.yaw)];
+        if (d < leg.reach - 0.2) return [{ kind: 'script', actorId: PINE_INTERACT, value: leg.value }, move(0, 0, leadPlayer(host).yaw)];
         const dx = leg.at.x - p.x, dz = leg.at.z - p.z, h = Math.max(1e-6, Math.hypot(dx, dz));
         return [move(dx / h, dz / h, Math.atan2(-dx, -dz))];
       }
-      case 'ride': return host.flags.has('used:ph-zip') ? null : [move(0, 0, host.player.yaw)];
-      case 'wait': return leg.until(host) ? null : [move(0, 0, host.player.yaw)];
+      case 'ride': return host.flags.has('used:ph-zip') ? null : [move(0, 0, leadPlayer(host).yaw)];
+      case 'wait': return leg.until(host) ? null : [move(0, 0, leadPlayer(host).yaw)];
       case 'king': return host.flags.has(bossRows.record.defeated) ? null : kingPlay(host);
       default: return null;
     }
@@ -196,7 +197,7 @@ const RIBS = AIM_RIBS;
  * rounds are spent.
  */
 function kingPlay(host: SimHost): HeadlessCommand[] {
-  const p = host.player.position, row = kingRow(host), C = LAYOUT.KINGS_CLEARING;
+  const p = leadPlayer(host).position, row = kingRow(host), C = LAYOUT.KINGS_CLEARING;
   const king = row.fight.king === null ? undefined : host.entities.get(row.fight.king);
   const cx = C.x - p.x, cz = C.z - p.z, toCentre = Math.hypot(cx, cz);
   if (king === undefined || row.boss.state !== 'fight') {
@@ -229,7 +230,7 @@ function kingPlay(host: SimHost): HeadlessCommand[] {
   // An empty trigger starts the page's reload; waiting for a chambered round would deadlock the tape.
   const fire = ready && (!onKing || !gun.chambered || row.fight.open > 0.5);
   if (fire && onKing) commands.push({ kind: 'script', actorId: AIM_COMMAND, value: RIBS });
-  commands.push({ kind: 'player', moveX: mx / m, moveZ: mz / m, yaw, ...(fire ? { attack: { targetId: target.id } } : {}), ...(jump && host.playerFall.grounded ? { jump: true } : {}) });
+  commands.push({ kind: 'player', moveX: mx / m, moveZ: mz / m, yaw, ...(fire ? { attack: { targetId: target.id } } : {}), ...(jump && leadPlayer(host).fall.grounded ? { jump: true } : {}) });
   return commands;
 }
 
@@ -238,7 +239,7 @@ const CrossbowRow = v.object({ loaded: v.boolean(), quiver: v.number() });
 /** Stand and shoot the nearest hunter within 18 m. Use the first pickup's crossbow while it has ammunition;
  * an owned, supplied rifle takes over when the bow is dry, through the ordinary loadout swap and trigger. */
 function defence(host: SimHost): HeadlessCommand[] | null {
-  const p = host.player.position;
+  const p = leadPlayer(host).position;
   let near: { id: string; x: number; z: number; d: number } | null = null;
   for (const body of host.entities.values()) {
     if (!body.alive || !HUNTING.has(body.state)) continue;

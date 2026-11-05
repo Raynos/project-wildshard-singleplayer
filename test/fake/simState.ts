@@ -82,11 +82,37 @@ export function physicsDifference(a: PhysicsState, b: PhysicsState): string | nu
   return null;
 }
 
+/** A one-player snapshot's fields in the version 1 shape, in order: the form every recorded digest and checkpoint hash was
+ *  taken in. Comparing there is what proves the version 2 engine reaches exactly the state version 1 did. A room keeps
+ *  its `players`: no version 1 record of one exists. */
+function versionOneFields(fields: Readonly<Record<string, unknown>>): Record<string, unknown> {
+  const players = fields['players'], out: Record<string, unknown> = {};
+  if (!Array.isArray(players) || players.length !== 1) return { ...fields };
+  for (const [key, value] of Object.entries(fields)) {
+    if (key === 'version' || key === 'apiVersion') out[key] = 1;
+    else if (key === 'players') out['player'] = (players as readonly unknown[])[0];
+    else out[key] = value;
+  }
+  return out;
+}
+// The wire's number form: JSON.stringify would lose a -0.
+function wireText(value: unknown): string {
+  if (typeof value === 'number' && Object.is(value, -0)) return '-0';
+  if (Array.isArray(value)) return `[${value.map(wireText).join(',')}]`;
+  if (value !== null && typeof value === 'object') return `{${Object.entries(value).map(([key, item]) => `${JSON.stringify(key)}:${wireText(item)}`).join(',')}}`;
+  return JSON.stringify(value);
+}
+/** A one-player wire as the version 1 writer left it, byte for byte: what a witness records, so its checkpoints stay real
+ *  version 1 saves that every continuation proof loads through the migration. */
+export function simWireV1(wire: string): string {
+  const { format, snapshot } = JSON.parse(wire) as { format: string; snapshot: Record<string, unknown> };
+  return wireText({ format, version: 1, snapshot: versionOneFields(snapshot) });
+}
 /**
  * The sha256 of a snapshot in canonical form, a witness's continuation hash: every field but the physics bytes as JSON,
  * then the physics as restored world state, each value's exact float64 bits (so -0, NaN payloads and 1 ULP all count).
  */
 export function canonicalSimDigest(snapshot: SimSnapshot | SimSnapshotBytes | string): string {
   const { physics, ...rest } = typeof snapshot === 'string' ? decodeSimSnapshot(snapshot) : snapshot;
-  return createHash('sha256').update(JSON.stringify(rest)).update('\0').update(new Uint8Array(Float64Array.from(physicsState(physics).values).buffer)).digest('hex');
+  return createHash('sha256').update(JSON.stringify(versionOneFields(rest))).update('\0').update(new Uint8Array(Float64Array.from(physicsState(physics).values).buffer)).digest('hex');
 }

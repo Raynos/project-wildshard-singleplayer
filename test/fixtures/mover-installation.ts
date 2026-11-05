@@ -1,6 +1,7 @@
 import { MoverScriptDriver, type MoverRuntime } from '../../src/game/plugin/mover';
 import type { MoverData } from '@wildshard/format/movers';
 import type { SimHost } from '../../src/engine/sim';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 export interface FixtureMovers { runtime: MoverRuntime; failures: () => number }
 export function installMoverFixture(host: SimHost, rows: MoverData, modules: ReadonlyMap<string, Uint8Array>, options: {
@@ -12,7 +13,7 @@ export function installMoverFixture(host: SimHost, rows: MoverData, modules: Rea
     { rules: { fields: {}, archetypes: [], events: [], maxEntities: 32 }, entities: [], actors: new Map(), query: () => [] }, undefined,
     options.permissions ?? (() => options.initialPermissions ?? new Map()));
   const runtime = driver.install(host, lane, { id: options.systemId, restoring: options.restoring, drive: true,
-    ...(options.activation === false ? {} : { activation: { ground: () => host.hasPlayerMotor ? host.player.motor.result : undefined,
+    ...(options.activation === false ? {} : { activation: { ground: () => leadPlayer(host).hasMotor ? leadPlayer(host).motor.result : undefined,
       ...(options.sharedState === undefined ? {} : { shared: options.sharedState }) } }) });
   return { runtime, failures: () => lane.host.failureCount };
 }

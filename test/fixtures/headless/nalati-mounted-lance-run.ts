@@ -10,6 +10,7 @@ import type {HeadlessCommand,HeadlessEffect,HeadlessTapePartReport} from '../../
 import {beginProductSession} from './productSession';
 import {checkedReplayPipeline} from './checkedReplayPipeline';
 import {earnNalatiMountedRaid} from './nalati-mounted-raid';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const State=v.object({slot:v.string(),thrusts:v.number(),throws:v.number(),ammo:v.number(),
   polearm:v.object({lanceActive:v.boolean(),rehit:v.array(v.tuple([v.string(),v.number()]))})});
@@ -74,7 +75,7 @@ try{
   const rear=new Vector3(),front=new Vector3(),aimPoint=new Vector3(),lookLimit=Math.PI*140/180;
   for(let tick=0;tick<1800;tick++){
     if(contact!==undefined)break;
-    const p=host.player.position,target=pack.members.filter(actor=>actor.alive).sort((a,b)=>a.position.distanceToSquared(p)-b.position.distanceToSquared(p))[0];assert.ok(target);
+    const p=leadPlayer(host).position,target=pack.members.filter(actor=>actor.alive).sort((a,b)=>a.position.distanceToSquared(p)-b.position.distanceToSquared(p))[0];assert.ok(target);
     const dx=target.position.x-p.x,dz=target.position.z-p.z,distance=Math.hypot(dx,dz),direct=Math.atan2(dx,dz);
     const heading=Math.atan2(target.position.x+Math.cos(direct)*2-p.x,target.position.z-Math.sin(direct)*2-p.z);
     const delta=Math.atan2(Math.sin(mount.body.heading-heading),Math.cos(mount.body.heading-heading));
@@ -89,7 +90,7 @@ try{
   for(let tick=0;tick<12;tick++)await step([reins(0,0)]);
   const final=read();assert.equal(final.thrusts,initial.thrusts);assert.equal(final.throws,initial.throws);assert.equal(final.ammo,initial.ammo);
   assert.equal(final.polearm.rehit.find(([id])=>id===landed.id)?.[1],landed.stamp,'the spent contact retains its original rehit clock');
-  assert.equal(mount.horse,ridden);assert.equal(ridden.hp,riddenHealth);assert.equal(host.player.health.alive,true);
+  assert.equal(mount.horse,ridden);assert.equal(ridden.hp,riddenHealth);assert.equal(leadPlayer(host).health.alive,true);
   assert.ok(frames.every(frame=>frame.every(command=>command.kind==='player'&&command.attack===undefined&&command.heavy===undefined||command.kind==='script'&&
     (command.actorId==='nalati.weapon.swap'||command.actorId==='nalati.weapon.pitch'))),'the input tape cannot request attacks, hits, damage or throws');
   await flush();await pipeline.finish();assert.equal(replayed,frames.length);assert.equal(replay.quarantined,false);

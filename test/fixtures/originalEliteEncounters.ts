@@ -11,6 +11,7 @@ import { canReach } from '@wildshard/engine/ai/reach';
 import { StalkerBrain, type PouncerContext, type PouncerLedge, type PouncerSpec, type HowlerSpec, type HowlerPorts } from '@wildshard/engine/ai/stalker';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
 import { EliteCore, memoryElitePersistence, type EliteCoreDef, type EliteCoreScript } from '../../src/game/eliteSystem';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const silent = (): void => undefined;
 const finite = v.pipe(v.number(), v.finite());
@@ -106,7 +107,7 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
   readonly initialize: () => void;
 } {
   const conditions = spec.conditions;
-  const core = new EliteCore<EliteCoreScript<AnimalSim>>({ player: host.player, condition: rule => {
+  const core = new EliteCore<EliteCoreScript<AnimalSim>>({ player: leadPlayer(host), condition: rule => {
     if (rule === 'always') return true;
     if (conditions.mode === 'weights') return rule === 'dusk' ? conditions.dusk() > 0.5 : rule === 'night' && conditions.night() > 0.5;
     const phase = conditions.phase();
@@ -122,21 +123,21 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
     const def = row.def;
     const live: { animal: AnimalSim | null; phase2: boolean; pack: PackBrain<AnimalSim> | null; adopted: boolean; detached: boolean } = { animal: null, phase2: false, pack: null, adopted: false, detached: false };
     let striking: AnimalSim | null = null;
-    const hit = { source: 'env' as const, sourceTags: [`elite.${def.id}`, 'feel.blow', 'cover.checked'] as `${string}.${string}`[], target: host.player.health,
+    const hit = { source: 'env' as const, sourceTags: [`elite.${def.id}`, 'feel.blow', 'cover.checked'] as `${string}.${string}`[], target: leadPlayer(host).health,
       amount: 0, point: head, dir, cause: { kind: row.member.kind, label: '' } };
-    const strikeReach = (): boolean => striking !== null && canReach(striking, host.player.position, host.physics);
+    const strikeReach = (): boolean => striking !== null && canReach(striking, leadPlayer(host).position, host.physics);
     const deliver = (): void => { if (strikeReach()) host.combat.hit(hit); };
     const strikePorts = { reach: strikeReach };
     const hurt = (a: AnimalSim, amount: number): void => {
       striking = a; hit.amount = amount; hit.point = a.position; hit.cause.kind = a.kind; hit.cause.label = a.label;
       const strike = row.keeper === 'howler' ? ports.strikes.bite : amount === ports.swipeDamage ? ports.strikes.swipe : ports.strikes.pounce;
-      ports.strike(strike, a, host.player.position, deliver, strikePorts);
+      ports.strike(strike, a, leadPlayer(host).position, deliver, strikePorts);
     };
     const signature = (): void => { core.signature(def.id); };
-    const common = { player: host.player, lair: def.lair, phase2: () => live.phase2, feed: silent, sound: silent, signature };
+    const common = { player: leadPlayer(host), lair: def.lair, phase2: () => live.phase2, feed: silent, sound: silent, signature };
     const pouncerPorts = { ...common, ledges: ports.ledges, heightAt: ports.heightAt, awareRadius: def.awareR, ring: tells,
       isHead: (a: AnimalSim, p: Vector3): boolean => a.headWorld(head).distanceTo(p) < a.dims.headRadius * a.scale + 0.12,
-      hurt, knock: (dx: number, dz: number): void => { const d = Math.hypot(dx, dz) || 1; ports.knock.dash(dx / d, dz / d, 1, knocked); host.dashPlayer(knocked.x, knocked.z, ports.knock.duration); },
+      hurt, knock: (dx: number, dz: number): void => { const d = Math.hypot(dx, dz) || 1; ports.knock.dash(dx / d, dz / d, 1, knocked); leadPlayer(host).dashAt(knocked.x, knocked.z, ports.knock.duration); },
       opened: silent, growl: silent };
     const howlerPorts = { ...common, pack: () => live.pack, environment: ports.environment, random: () => host.rng.stream('ai').next(), rings: tells,
       hurt, regrouped: silent, interrupted: silent, closed: silent, howl: silent };
@@ -186,7 +187,7 @@ export function installEliteEncounters(host: SimHost, spec: EliteEncounterSpec):
         if ('think' in controller) controller.advance(member.animal, dt, t, engaged, leashing);
         else {
           const animal=member.animal,herd=member.detached?null:ports.herd();if(animal===null||herd===null)return;
-          const taming=ports.taming?.(),at=animal.position,player=host.player.position;
+          const taming=ports.taming?.(),at=animal.position,player=leadPlayer(host).position;
           const effects=controller.advance(dt,{state:herd.stallionState,phase2:member.phase2,engaged,bonded:taming?.phase==='bonded',same:herd.stallion===animal,health:animal.hp/animal.maxHp,at:[at.x,at.y,at.z],player:[player.x,player.y,player.z]});
           if(effects.signature)signature();if(effects.lead)herd.leadAway(player.x,player.z);
           const adopted=taming?.tulpar;

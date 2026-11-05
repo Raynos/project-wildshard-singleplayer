@@ -12,6 +12,7 @@ import { ProjectileContact, StoppedProjectileSlots, stoppedProjectileSaved } fro
 import { drawnSpreadDegrees, shotSpread } from '@wildshard/engine/combat/shotSpread';
 import { worldHit, floorBelow } from '@wildshard/engine/physics/query';
 import { EYE, aimAt, bodyHit, type BodyHit } from './headlessRanged';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** The longbow's fixed-step id; its continuation is the draw, the quiver, the aim and every arrow in flight. */
 export const LONGBOW_STEP = 'pine.longbow';
@@ -69,7 +70,7 @@ export interface PineLongbowPorts {
  */
 export function installPineLongbow(host: SimHost, ports: PineLongbowPorts): { readonly draw: BowDraw; readonly state: { arrows: number; aim: string | null }; readonly flying: () => number; readonly stuck: StoppedProjectileSlots<null, string> } {
   const profile = v.parse(BowWeaponProfileSchema, ports.profile ?? BOW_PROFILE);
-  const random = (): number => host.rng.stream('gameplay').next(), player = host.player;
+  const random = (): number => host.rng.stream('gameplay').next(), player = leadPlayer(host);
   const draw = new BowDraw(profile.draw), state: { arrows: number; aim: string | null } = { arrows: profile.quiver, aim: null };
 
   const eye = new Vector3(), dir = new Vector3(), across = new Vector3(), seg = new Vector3(), wind = new Vector3();

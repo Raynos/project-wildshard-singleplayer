@@ -11,6 +11,7 @@ import { snapshotSimHost,serializeSimSnapshot,decodeSimSnapshot,restoreSimHost }
 import { loadRapier } from '../src/engine/physics/rapier';
 import { canonicalSimDigest } from './fake/simState';
 import { nalatiNativeAssets } from './proof/nalati-grasslands/nativeAssets';
+import { leadCommands } from '@wildshard/engine/sim/leadPlayer';
 
 // Frozen pre-consolidation decoder: the independent old sampling admission and storage law.
 function originalTerrain(bytes: Uint8Array | undefined,seed: number,row: { resolution: number;size: number }): BakedGrid {
@@ -29,7 +30,7 @@ test('declared sampling rows retain the original native checkpoint and restore s
   const candidate=await prepareHeadlessRuntime(context);
   const oldHost = createSimHost(baseline.level,{ ...baseline.ports,rapier }),nextHost = createSimHost(candidate.level,{ ...candidate.ports,rapier });
   let restored: SimHost | undefined;
-  const effects = { commands: () => [],emit: () => undefined },step = (host: SimHost): void => { host.step({ moveX: .3*Math.sin(host.state.tick/90),moveZ: -1,yaw: 0 }); };
+  const effects = { commands: () => [],emit: () => undefined },step = (host: SimHost): void => { host.step(leadCommands(host, { moveX: .3*Math.sin(host.state.tick/90),moveZ: -1,yaw: 0 })); };
   try {
     baseline.install(oldHost,{ restoring: false,...effects });candidate.install(nextHost,{ restoring: false,...effects });
     for (let i=0;i<100;i++) { step(oldHost);step(nextHost); }

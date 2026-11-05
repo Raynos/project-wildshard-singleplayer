@@ -6,6 +6,8 @@ import {loadRapier,type Rapier} from '../src/engine/physics/rapier';
 import {decodeSimSnapshot,restoreSimHost,serializeSimSnapshot,snapshotSimHost} from '../src/engine/sim/snapshot';
 import {localWalkingMove,walkVelocity} from '../src/engine/player/walk';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
+import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
+import { leadSnapshot } from '@wildshard/engine/sim/snapshot';
 
 let rapier:Rapier;
 beforeAll(async()=>{rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));});
@@ -42,36 +44,36 @@ test('raw keyboard and stick axes preserve the page clamp, turn and partial stre
 test('versioned native walking consumes sprint, crouch and raw direction through its motor',()=>{
   const host=flat();
   try{
-    const start=host.player.position.x;
-    host.step({...forward,sprint:true});
-    expect(host.playerWalk.x).toBe(walkVelocity(0,7.2,14,1/60));
-    expect(host.player.position.x).toBeGreaterThan(start);
-    const running=host.playerWalk.x;
-    host.step({...forward,sprint:true,crouch:true});
-    expect(host.playerWalk.x).toBe(walkVelocity(running,2.2,14,1/60));
-    const crouched=host.playerWalk.x;
-    host.step({...forward,sprint:true,steer:{keyX:0,keyY:-1,stickX:0,stickY:0}});
-    expect(host.playerWalk.x).toBe(walkVelocity(crouched,-4.3,14,1/60));
-    const back=host.playerWalk.x;
-    host.step({...forward,steer:{keyX:0,keyY:0,stickX:0,stickY:.25}});
-    expect(host.playerWalk.x).toBe(walkVelocity(back,4.3*.25,14,1/60));
+    const start=leadPlayer(host).position.x;
+    host.step(leadCommands(host, {...forward,sprint:true}));
+    expect(leadPlayer(host).walk.x).toBe(walkVelocity(0,7.2,14,1/60));
+    expect(leadPlayer(host).position.x).toBeGreaterThan(start);
+    const running=leadPlayer(host).walk.x;
+    host.step(leadCommands(host, {...forward,sprint:true,crouch:true}));
+    expect(leadPlayer(host).walk.x).toBe(walkVelocity(running,2.2,14,1/60));
+    const crouched=leadPlayer(host).walk.x;
+    host.step(leadCommands(host, {...forward,sprint:true,steer:{keyX:0,keyY:-1,stickX:0,stickY:0}}));
+    expect(leadPlayer(host).walk.x).toBe(walkVelocity(crouched,-4.3,14,1/60));
+    const back=leadPlayer(host).walk.x;
+    host.step(leadCommands(host, {...forward,steer:{keyX:0,keyY:0,stickX:0,stickY:.25}}));
+    expect(leadPlayer(host).walk.x).toBe(walkVelocity(back,4.3*.25,14,1/60));
   }finally{host.dispose();}
 });
 
 test('release and a serialized mid-stride continuation keep the same native motion',()=>{
   const host=flat();let restored:SimHost|undefined;
   try{
-    for(let tick=0;tick<30;tick++)host.step({...forward,sprint:true});
+    for(let tick=0;tick<30;tick++)host.step(leadCommands(host, {...forward,sprint:true}));
     const saved=decodeSimSnapshot(serializeSimSnapshot(snapshotSimHost(host)));
     restored=restoreSimHost(level,{rapier},saved);
-    const prior=host.playerWalk.x;host.step();restored.step();
-    expect(host.playerWalk.x).toBeLessThan(prior);expect(host.playerWalk.x).toBeGreaterThan(0);
+    const prior=leadPlayer(host).walk.x;host.step();restored.step();
+    expect(leadPlayer(host).walk.x).toBeLessThan(prior);expect(leadPlayer(host).walk.x).toBeGreaterThan(0);
     for(let tick=0;tick<30;tick++){
       const command=tick<10?{...forward,crouch:true}:tick<20?{...forward,yaw:0}:undefined;
-      host.step(command);restored.step(command);
-      expect(restored.player.position.toArray()).toEqual(host.player.position.toArray());
-      expect(restored.playerWalk).toEqual(host.playerWalk);
-      expect(restored.playerFall).toEqual(host.playerFall);
+      host.step(leadCommands(host, command));restored.step(leadCommands(restored, command));
+      expect(leadPlayer(restored).position.toArray()).toEqual(leadPlayer(host).position.toArray());
+      expect(leadPlayer(restored).walk).toEqual(leadPlayer(host).walk);
+      expect(leadPlayer(restored).fall).toEqual(leadPlayer(host).fall);
     }
   }finally{restored?.dispose();host.dispose();}
 });
@@ -79,11 +81,11 @@ test('release and a serialized mid-stride continuation keep the same native moti
 test('legacy commands retain their ordinary law and omit versioned continuation',()=>{
   const host=flat();
   try{
-    expect(snapshotSimHost(host).player.walk).toBeUndefined();
-    host.step({moveX:1,moveZ:0,yaw:0});expect(snapshotSimHost(host).player.walk).toBeUndefined();
-    host.step(forward);expect(snapshotSimHost(host).player.walk).toBeDefined();
-    host.step({moveX:1,moveZ:0,yaw:0});expect(snapshotSimHost(host).player.walk).toBeUndefined();
-    expect(host.playerWalk).toEqual({active:false,x:0,z:0});
+    expect(leadSnapshot(snapshotSimHost(host)).walk).toBeUndefined();
+    host.step(leadCommands(host, {moveX:1,moveZ:0,yaw:0}));expect(leadSnapshot(snapshotSimHost(host)).walk).toBeUndefined();
+    host.step(leadCommands(host, forward));expect(leadSnapshot(snapshotSimHost(host)).walk).toBeDefined();
+    host.step(leadCommands(host, {moveX:1,moveZ:0,yaw:0}));expect(leadSnapshot(snapshotSimHost(host)).walk).toBeUndefined();
+    expect(leadPlayer(host).walk).toEqual({active:false,x:0,z:0});
   }finally{host.dispose();}
 });
 
@@ -91,12 +93,12 @@ test('native delegated motion keeps first authority and malformed input changes 
   const host=flat();
   try{
     let commands=0;
-    host.usePlayerDriver({input:command=>{expect(command?.steer).toEqual(forward.steer);commands++;return true;},step:()=>undefined});
-    host.step(forward);expect(commands).toBe(1);expect(host.playerWalk.active).toBe(false);
+    leadPlayer(host).useDriver({input:command=>{expect(command?.steer).toEqual(forward.steer);commands++;return true;},step:()=>undefined});
+    host.step(leadCommands(host, forward));expect(commands).toBe(1);expect(leadPlayer(host).walk.active).toBe(false);
     const before=snapshotSimHost(host);
-    expect(()=>host.step({...forward,steer:{keyX:0,keyY:Infinity,stickX:0,stickY:0}})).toThrow('Invalid raw movement axes');
+    expect(()=>host.step(leadCommands(host, {...forward,steer:{keyX:0,keyY:Infinity,stickX:0,stickY:0}}))).toThrow('Invalid raw movement axes');
     expect(snapshotSimHost(host)).toEqual(before);
-    const invalid={...before,player:{...before.player,walk:{x:Number.NaN,z:0}}};
+    const invalid={...before,players:[{...leadSnapshot(before),walk:{x:Number.NaN,z:0}}]};
     expect(()=>restoreSimHost(level,{rapier},invalid)).toThrow('Snapshot instance registrations');
   }finally{host.dispose();}
 });

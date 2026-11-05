@@ -1,6 +1,7 @@
 import type {SimHost} from '../../../src/engine/sim';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import {PhysicsRouteCursor} from '../../../src/sdk/headlessJourney';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 // Desired walking inputs around the steep south bank and bowl shelves. These
 // are route targets, not asserted geometry; the real motor resolves every step.
@@ -29,7 +30,7 @@ export function* nalatiHorsePlainsInputs(host:SimHost):Generator<readonly Headle
   if(host.scope.disposed||host.scope.disposing)throw new Error('Tape owner retired');
   const cursor=new PhysicsRouteCursor([{x:0,z:216},{x:0,z:200},{x:0,z:190},{x:0,z:183},{x:0,z:170},{x:0,z:158},{x:0,z:150},{x:0,z:146}],{once:true});
   for(let tick=0;tick<6000;tick++){
-    const p=host.player.position,command=cursor.command([p.x,p.y,p.z],tick);
+    const p=leadPlayer(host).position,command=cursor.command([p.x,p.y,p.z],tick);
     if(cursor.complete)break;
     if(cursor.stuck.length>0)throw new Error('Tape route stuck walk-the-river-bridge');
     const prior=host.state.tick;yield [command];
@@ -38,14 +39,14 @@ export function* nalatiHorsePlainsInputs(host:SimHost):Generator<readonly Headle
     if(![p.x,p.y,p.z].every(Number.isFinite))throw new Error('Nonfinite tape feet');
   }
   if(!cursor.complete){
-    const p=host.player.position;cursor.command([p.x,p.y,p.z],6000);
+    const p=leadPlayer(host).position;cursor.command([p.x,p.y,p.z],6000);
     if(!cursor.complete)throw new Error('Tape route incomplete walk-the-river-bridge');
   }
   for(const [x,z] of bank){
-    const budget=Math.max(300,Math.ceil(Math.hypot(x-host.player.position.x,z-host.player.position.z)*90));
+    const budget=Math.max(300,Math.ceil(Math.hypot(x-leadPlayer(host).position.x,z-leadPlayer(host).position.z)*90));
     let reached=false;
     for(let tick=0;tick<budget;tick++){
-      const at=host.player.position,dx=x-at.x,dz=z-at.z,distance=Math.hypot(dx,dz);
+      const at=leadPlayer(host).position,dx=x-at.x,dz=z-at.z,distance=Math.hypot(dx,dz);
       if(distance<.18){reached=true;break;}
       yield [{kind:'player',moveX:dx/distance,moveZ:dz/distance,yaw:Math.atan2(-dx,-dz),commandVersion:1,
         steer:{keyX:0,keyY:Math.min(1,distance*2),stickX:0,stickY:0},sprint:true}];

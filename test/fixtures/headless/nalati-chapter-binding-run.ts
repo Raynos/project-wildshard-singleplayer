@@ -12,6 +12,8 @@ import {createNativeProofWorker} from '../headless-worker';
 import {productHeadlessSections} from '../../../src/sdk/headlessSections';
 import {builtProduct} from '../builtProduct';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
+import { leadSnapshot } from '@wildshard/engine/sim/snapshot';
 
 let priorPhase=0;
 const phase=(name:string,tick?:number):void=>{const now=performance.now();console.info(JSON.stringify({diagnostic:'nalati-chapter-binding-phase',phase:name,atMs:Math.round(now),phaseMs:Math.round(now-priorPhase),...(tick===undefined?{}:{tick})}));priorPhase=now;};
@@ -42,7 +44,7 @@ try{
   // A continuation cannot turn the explicit closed loan into a free King
   // entrance. The altered state is negative intake only, never a played tape.
   const saved=snapshotSimHost(host),door=product.shardfile.quests.quests.find(row=>row.id==='golden-king')?.steps.find(row=>row.id==='door')?.markers?.[0]?.at;assert.ok(door);
-  const forged={...saved,player:{...saved.player,position:[door.x,host.player.position.y,door.z] as [number,number,number]}};
+  const forged={...saved,players:[{...leadSnapshot(saved),position:[door.x,leadPlayer(host).position.y,door.z] as [number,number,number]}]};
   await assert.rejects(async()=>{const bad=await createNativeProofWorker(product.shardfile,assets,'nalati-chapter',serializeSimSnapshot(forged),productHeadlessSections(product),builtProduct('nalati-grasslands'));await bad.dispose();},/Closed King loan/u);
   phase('forged-continuation-refused',host.state.tick);
   console.info(JSON.stringify({story:'nalati-chapter-binding',ticks:frames.length,closed:true,replayed:true}));

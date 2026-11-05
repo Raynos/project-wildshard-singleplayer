@@ -3,6 +3,7 @@ import {placesWithDiscovery} from '../../src/engine/quest/discovery';
 import {parsePersistedQuestPage} from '@wildshard/format/questStory';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
 import {prepareHeadlessRuntime as prepareSky} from '../proof/far-reach/worker';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** The page's discovery kernel observes actual native feet and admitted page
  * places. No authored capture, progression flag or player pose is applied. */
@@ -16,7 +17,7 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
     base.install(host,context);
     const places=placesWithDiscovery(structuredClone(page.places),host.flags,text=>context.emit({kind:'hint',text}),()=>[]);
     host.onStep('far.verbs.discovery',()=>{
-      const p=host.player.position;places.update(p.x,p.z,p.y);
+      const p=leadPlayer(host).position;places.update(p.x,p.z,p.y);
     },undefined,'afterBodies');
   }};
 };

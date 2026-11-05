@@ -22,6 +22,7 @@ import {checkedReplayPipeline} from './checkedReplayPipeline';
 import type {HeadlessTapeObservation} from '../../../src/sdk/headlessTape';
 import {TitanHandoffSchema,checkTitanLedger,titanWireHash,titanInputDigest,titanObservationDigest,type TitanHandoff,type TitanPart} from './titanHandoff';
 import type {HeadlessCommand,HeadlessEffect} from '../../../src/sdk/tickProtocol';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const [stage,handoffPath,handoffHash,outputPath]=process.argv.slice(2);
 assert.ok(stage==='entry'||stage==='opening'||stage==='retry'||stage==='victory','name the bounded Titan case');assert.ok(handoffPath);
@@ -53,7 +54,7 @@ try{
     assert.equal(host.state.tick,inherited.captureTicks);assert.equal(historyTick(inherited.parts)??inherited.checkpointTick,host.state.tick);
     assert.equal(titan.fight.phase,inherited.stage==='storm'?0:2);
     if(inherited.stage!=='retry')assert.equal(titan.fight.tied,inherited.stage==='fire');
-    else{assert.ok(titan.boss.attempts>1);assert.ok(host.player.health.attributes.health>0);assert.equal(titan.boss.state,'fight');assert.equal(titan.fight.body.visible,true);}
+    else{assert.ok(titan.boss.attempts>1);assert.ok(leadPlayer(host).health.attributes.health>0);assert.equal(titan.boss.state,'fight');assert.equal(titan.fight.body.visible,true);}
     if(inherited.stage==='storm'){assert.equal(titan.boss.state,'dormant');assert.equal(titan.storm(),true);}}
   assert.equal(initial?.defeated??false,false);assert.equal(initial?.rewardTaken??false,false);
   const deaths:{tick:number;phase:number;checkpoint:boolean}[]=structuredClone(inherited?.deaths??[]);
@@ -62,15 +63,15 @@ try{
   const fenceTick=fireTick??host.state.tick;
   const observed=['nalati.titan','nalati.weapons','nalati.chapter-records'];
   const history:Part[]=inherited?.parts??[];
-  let captureTicks=inherited?.captureTicks??0,checkpointTick=inherited?.checkpointTick??0,partTicks=0,partNumber=history.length,replayedTicks=0,replayMs=0,peakY=host.player.position.y;
+  let captureTicks=inherited?.captureTicks??0,checkpointTick=inherited?.checkpointTick??0,partTicks=0,partNumber=history.length,replayedTicks=0,replayMs=0,peakY=leadPlayer(host).position.y;
   let captureStepMs=0,captureDigestMs=0,replayCheckMs=0;
   const phases:{id:string;tick:number;ms:number}[]=[];
   const mark=(id:string):void=>{phases.push({id,tick:host.state.tick,ms:performance.now()-started});};
   let frames:HeadlessCommand[][]=[],effects:HeadlessEffect[]=[];
   const flush=async():Promise<void>=>{
     if(frames.length===0)return;assert.ok(pipeline);
-    const id=`titan-${partNumber++}`,p=host.player.position;
-    const expected:HeadlessTapeObservation={id,tick:host.state.tick,position:[p.x,p.y,p.z],peakY,grounded:host.player.motor.snapshot().result.grounded,
+    const id=`titan-${partNumber++}`,p=leadPlayer(host).position;
+    const expected:HeadlessTapeObservation={id,tick:host.state.tick,position:[p.x,p.y,p.z],peakY,grounded:leadPlayer(host).motor.snapshot().result.grounded,
       flags:[...host.flags.all],quests:host.quests.map(quest=>({id:quest.def.id,currentId:quest.current?.id??null,started:quest.snapshot().started,complete:quest.isComplete})),effects,
       adapters:observed.map(identity=>{const owner=host.adapters.get(identity);assert.ok(owner);const state=owner.snapshot();assert.equal(typeof state,'string');
         if(typeof state!=='string')throw new Error('Missing native Titan observation');return {id:identity,state};})};
@@ -87,7 +88,7 @@ try{
       return {...command,commandVersion:1 as const,steer:{keyX:0,keyY:0,stickX:clamp(command.moveX*c-command.moveZ*s),stickY:clamp(-command.moveX*s-command.moveZ*c)}};
     });
     const beforeStep=performance.now();resident.step(actual);captureStepMs+=performance.now()-beforeStep;
-    if(pipeline!==undefined){frames.push(structuredClone(actual));effects.push(...structuredClone(resident.effects));partTicks++;peakY=Math.max(peakY,host.player.position.y);
+    if(pipeline!==undefined){frames.push(structuredClone(actual));effects.push(...structuredClone(resident.effects));partTicks++;peakY=Math.max(peakY,leadPlayer(host).position.y);
       if((host.state.tick-fenceTick)%512===0)await flush();}
   };
   if(inherited===undefined){
@@ -95,7 +96,7 @@ try{
     assert.equal(deaths.length,0,'the entry and borrowed-horse route must be earned without a checkpoint teleport');
     checkpointTick=host.state.tick;
   }
-  const checkpoint=snapshotSimHostBytes(host),checkpointDigest=canonicalSimDigest(checkpoint);peakY=host.player.position.y;
+  const checkpoint=snapshotSimHostBytes(host),checkpointDigest=canonicalSimDigest(checkpoint);peakY=leadPlayer(host).position.y;
   pending=(async()=>{try{return {ok:true as const,worker:await createNativeProofWorker(shard,assets,'nalati-titan',serializeSimSnapshot(checkpoint),productHeadlessSections(product),directory)};}
     catch(error){return {ok:false as const,error};}})();
   const ready=pending;
@@ -136,7 +137,7 @@ try{
       assert.ok(inherited);assert.equal(inherited.stage,'fire');assert.equal(deaths.length,0);
       const cursor=await titanBowPilot(product,host,step,3,{pauseAfterRetry:true});assert.ok(cursor);
       assert.ok(deaths.length>0);assert.ok(deaths.every(event=>event.checkpoint&&event.phase===2));
-      assert.equal(titan.fight.phase,2);assert.ok(titan.boss.attempts>1);assert.ok(host.player.health.attributes.health>0);
+      assert.equal(titan.fight.phase,2);assert.ok(titan.boss.attempts>1);assert.ok(leadPlayer(host).health.attributes.health>0);
       assert.equal(titan.boss.state,'fight');assert.equal(titan.fight.body.visible,true);
       mark('earned-retry');await flush();await pipeline.finish();assert.equal(replayedTicks,partTicks);assert.ok(replay);assert.equal(replay.quarantined,false);
       assert.ok(outputPath);publish('retry',outputPath,cursor);
@@ -148,7 +149,7 @@ try{
       for(let tick=0;tick<120;tick++)await step([]);
       assert.equal(titan.boss.state,'victory');assert.equal(titan.fight.dead,true);assert.equal(titan.fight.hp,0);
       assert.equal(titan.fight.tied,false,'the real arena clear must release the storm tie');
-      assert.equal(titan.locked(),false);assert.equal(host.playerMoveScale,1);
+      assert.equal(titan.locked(),false);assert.equal(leadPlayer(host).moveScale,1);
       assert.ok(deaths.length>0,'the tape must exercise the real phase checkpoint, remount and refill');
       assert.ok(deaths.every(event=>event.checkpoint&&event.phase===2),'retry must retain the earned final phase');
       const saved=titan.records.bosses.read()[rows.definition.id];assert.ok(saved);

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {HeadlessSimulation} from '../../../src/sdk/headless.ts';
 import {emptyShardfile} from '../../../src/sdk/author.ts';
-import {decodeSimSnapshotBytes} from '../../../src/engine/sim/snapshot.ts';
+import {decodeSimSnapshotBytes, leadSnapshot } from '../../../src/engine/sim/snapshot.ts';
 const source=emptyShardfile({slug:'verb-tape-fixture',name:'Verb tape',author:'Test',revision:1,seed:435});
 source.serverBudget.commandsPerTick=1;
 const input={kind:'player',moveX:.2,moveZ:0,yaw:0};
@@ -18,8 +18,8 @@ try {
   for(let tick=0;tick<72;tick++)last=decodeSimSnapshotBytes((await control.step([{source:'control',commands:tick<12?[input]:[]}])).snapshot);
   const report=await sim.verbTape(plan);
   assert.equal(report.ticks,72);assert.deepEqual(report.observations.map(row=>row.tick),[12,72]);
-  assert.deepEqual(report.observations.at(-1).position,last.player.position,'batch must use exactly the normal native ticks');
-  assert.equal(report.observations.at(-1).grounded,last.player.motor.result.grounded);
+  assert.deepEqual(report.observations.at(-1).position,leadSnapshot(last).position,'batch must use exactly the normal native ticks');
+  assert.equal(report.observations.at(-1).grounded,leadSnapshot(last).motor.result.grounded);
   assert.deepEqual(sim.checkpoint,initial,'terminal observations cannot become a resumable checkpoint');
   assert.equal(sim.quarantined,false);
   await assert.rejects(sim.step(),/validation finished/);
@@ -47,7 +47,7 @@ try {
   assert.deepEqual(recorded.checkpoint,initial,'every explicit frame retains the ordinary command budget');
   for(const commands of frames)await ordinary.step([{source:'recording',commands}]);
   const report=await recorded.verbTape({version:1,observe:[],segments:[{id:'recorded',ticks:frames.length,commands:[],frames}]});
-  assert.deepEqual(report.observations[0].position,decodeSimSnapshotBytes(ordinary.checkpoint.snapshot).player.position,'explicit frames must run the same actual native ticks');
+  assert.deepEqual(report.observations[0].position,leadSnapshot(decodeSimSnapshotBytes(ordinary.checkpoint.snapshot)).position,'explicit frames must run the same actual native ticks');
   assert.equal(report.ticks,72);assert.equal(recorded.quarantined,false);
 }finally{await recorded.dispose();await ordinary.dispose();}
 console.log('native per-tick input replay and frame budget pass');

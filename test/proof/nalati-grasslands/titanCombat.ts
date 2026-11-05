@@ -18,6 +18,7 @@ import type {ShardProduct} from '../../../src/game/shardfile/shardProduct';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import {parseHeldSlots} from '@wildshard/format/heldArms';
 import {nalatiPatrolOf} from '../../fixtures/nalati-patrol-native';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 function snapshotValue(owner:{readonly snapshot:()=>unknown}):unknown{
  const wire=owner.snapshot();assert.equal(typeof wire,'string');if(typeof wire!=='string')throw new Error('Missing native combat continuation');
@@ -49,11 +50,11 @@ export async function titanBowPilot(product:ShardProduct,host:SimHost,step:(comm
  let lastShots=continuation?.cursor?.lastShots??0,lastDodge=continuation?.cursor?.lastDodge??false;
  const initialAttempts=titan.boss.attempts;
  const aim=()=>{
-  titan.fight.body.focusWorld(focus);eye.copy(host.player.position);eye.y+=1.68;
+  titan.fight.body.focusWorld(focus);eye.copy(leadPlayer(host).position);eye.y+=1.68;
   const actualFocus=focus.clone(),actualPose=JSON.stringify(titan.fight.pose);
-  const saddle=bowMount(bow.base,host.player.yaw,mount.mounted?{speed:mount.body.speed,yaw:mount.body.heading-Math.PI}:null);assert.ok(saddle);
+  const saddle=bowMount(bow.base,leadPlayer(host).yaw,mount.mounted?{speed:mount.body.speed,yaw:mount.body.heading-Math.PI}:null);assert.ok(saddle);
   const state=v.parse(v.object({wind:WindStateSchema}),actualWind.snapshot()).wind;
-  let forecast=focus.distanceTo(eye)/bowLaunchSpeed(bow.base,1),yaw=host.player.yaw,pitch=0;
+  let forecast=focus.distanceTo(eye)/bowLaunchSpeed(bow.base,1),yaw=leadPlayer(host).yaw,pitch=0;
   for(let pass=0;pass<3;pass++){
    Object.assign(predictedPose,titan.fight.pose);predictor.update(host.clock.now+forecast,camera);predictor.focusWorld(focus);
    const delta=focus.clone().sub(eye),distance=Math.hypot(delta.x,delta.z),ux=delta.x/distance,uz=delta.z/distance;
@@ -85,16 +86,16 @@ export async function titanBowPilot(product:ShardProduct,host:SimHost,step:(comm
   assert.equal(JSON.stringify(titan.fight.pose),actualPose,'aim prediction cannot pose the actual fight');
   focus.copy(predictedFocus);return {yaw,pitch,flight:forecast};
  };
- let currentAim=continuation?.cursor?.currentAim??{yaw:host.player.yaw,pitch:0,flight:1};
+ let currentAim=continuation?.cursor?.currentAim??{yaw:leadPlayer(host).yaw,pitch:0,flight:1};
  for(let tick=continuation?.cursor?.tick??0;tick<9600&&(goal===3?titan.boss.state!=='victory':titan.fight.phase<goal);tick++){
   const clocks=titan.fight.clocks,mode=clocks.value('mode'),time=clocks.value('t'),weapons=savedWeapon();
-  if(tick%30===0){titan.fight.body.focusWorld(focus);const p=host.player.position,dx=focus.x-p.x,dz=focus.z-p.z;
+  if(tick%30===0){titan.fight.body.focusWorld(focus);const p=leadPlayer(host).position,dx=focus.x-p.x,dz=focus.z-p.z;
    currentAim={yaw:Math.atan2(-dx,-dz),pitch:Math.atan2(focus.y-p.y-1.68,Math.hypot(dx,dz)),flight:currentAim.flight};}
   let release=weapons.draw.drawT>=1&&(titan.fight.phase===1||mode===3&&time>.6);
   if(release){currentAim=aim();release=titan.fight.phase===1||time+currentAim.flight<2.75;}
   const held=titan.boss.state==='fight'&&!release&&!weapons.draw.needLift&&weapons.draw.tiredT<=0&&(titan.fight.phase===1||mode!==0||clocks.value('cd')<1.4);
   if(release){console.error(JSON.stringify({stage:'predict-shot',focus:focus.toArray(),...currentAim,mode,time}));}
-  const p=host.player.position,dx=p.x-data.arena.center.x,dz=p.z-data.arena.center.z,r=Math.max(1,Math.hypot(dx,dz));
+  const p=leadPlayer(host).position,dx=p.x-data.arena.center.x,dz=p.z-data.arena.center.z,r=Math.max(1,Math.hypot(dx,dz));
   const vx=dz/r-dx/r*(r-40)*.06,vz=-dx/r-dz/r*(r-40)*.06,heading=Math.atan2(vx,vz),turn=Math.atan2(Math.sin(mount.body.heading-heading),Math.cos(mount.body.heading-heading));
   const empty=weapons.bolts===0;
   const dodge=!empty&&mode===1&&time>1.05&&!lastDodge;lastDodge=mode===1&&time>1.05;
@@ -103,7 +104,7 @@ export async function titanBowPilot(product:ShardProduct,host:SimHost,step:(comm
     ...(!mount.mounted&&dodge?{dodge:true}:{}),...(held?{heavy:{}}:{})};
   await step([command,{kind:'script',actorId:'nalati.weapon.aim',value:1},{kind:'script',actorId:'nalati.weapon.pitch',value:currentAim.pitch}]);
   if(weapons.shots!==lastShots||tick%300===0){lastShots=weapons.shots;console.error(JSON.stringify({stage:'heart-bow',tick:host.state.tick,hp:titan.fight.hp,phase:titan.fight.phase,
-   health:host.player.health.attributes.health,mounted:mount.mounted,speed:mount.body.speed,bolts:weapons.bolts,shots:weapons.shots,mode,time,at:host.player.position.toArray()}));}
+   health:leadPlayer(host).health.attributes.health,mounted:mount.mounted,speed:mount.body.speed,bolts:weapons.bolts,shots:weapons.shots,mode,time,at:leadPlayer(host).position.toArray()}));}
   if(titan.boss.state==='armed')await step([{kind:'script',actorId:'nalati.titan.use',value:1}]);
   if(continuation?.pauseAfterRetry===true&&titan.boss.attempts>initialAttempts&&titan.boss.state==='fight'
    &&titan.fight.body.visible&&(tick+1)%30!==0&&savedWeapon().draw.drawT<1)
@@ -121,7 +122,7 @@ export async function titanRidersPilot(product:ShardProduct,host:SimHost,step:(c
  const weapon=()=>v.parse(v.object({slot:v.string(),blade:v.object({contacts:v.number()})}),snapshotValue(equipment));
  const support=()=>v.parse(v.object({support:v.array(v.tuple([v.number(),v.string()]))}),snapshotValue(encounter)).support;
  const head=new Vector3(),horse=mount.horse;assert.ok(horse);
- for(let tick=0;tick<60&&mount.mounted;tick++)await step([{kind:'player',moveX:0,moveZ:0,yaw:host.player.yaw,commandVersion:1,steer:{keyX:0,keyY:0,stickX:0,stickY:-.3}}]);
+ for(let tick=0;tick<60&&mount.mounted;tick++)await step([{kind:'player',moveX:0,moveZ:0,yaw:leadPlayer(host).yaw,commandVersion:1,steer:{keyX:0,keyY:0,stickX:0,stickY:-.3}}]);
  if(mount.mounted)await step([{kind:'script',actorId:'nalati.companion.use',value:1}]);
  assert.equal(mount.mounted,false);
  for(let swap=0;swap<slots.registration.length&&weapon().slot!==blade.id;swap++)await step([{kind:'script',actorId:'nalati.weapon.swap',value:1}]);
@@ -130,27 +131,27 @@ export async function titanRidersPilot(product:ShardProduct,host:SimHost,step:(c
  for(let tick=0;tick<6000&&titan.fight.phase===1;tick++){
   const saved=support(),bodies=saved.map(([,id])=>{const body=patrol.law.riders.find(row=>row.a.entityId===id)?.a;
     assert.ok(body);assert.equal(host.entities.get(id),body);return body;}).filter(body=>body.alive);
-  bodies.sort((a,b)=>a.position.distanceToSquared(host.player.position)-b.position.distanceToSquared(host.player.position));
+  bodies.sort((a,b)=>a.position.distanceToSquared(leadPlayer(host).position)-b.position.distanceToSquared(leadPlayer(host).position));
   const target=bodies[0];
   if(target===undefined){if(saved.length===0)break;await step([]);continue;}
   if(mount.mounted){await step([{kind:'script',actorId:'nalati.companion.use',value:1}]);continue;}
-  const at=host.player.position,dx=target.position.x-at.x,dz=target.position.z-at.z,d=Math.max(.01,Math.hypot(dx,dz));
+  const at=leadPlayer(host).position,dx=target.position.x-at.x,dz=target.position.z-at.z,d=Math.max(.01,Math.hypot(dx,dz));
   patrol.aimPoint(target,head);
   await step([{kind:'player',moveX:0,moveZ:0,yaw:Math.atan2(-dx,-dz),commandVersion:1,sprint:d>7,
    steer:{keyX:0,keyY:0,stickX:d<3?.25:0,stickY:d>2?1:0},...(tick%120===100?{dodge:true}: {})},
    {kind:'script',actorId:'nalati.weapon.pitch',value:Math.atan2(head.y-at.y-1.68,d)},
    ...(tick%24===0?[{kind:'script' as const,actorId:'nalati.weapon.attack',value:1}]:[])]);
   const hits=weapon().blade.contacts;
-  if(tick%120===0||hits!==lastContacts){lastContacts=hits;console.error(JSON.stringify({stage:'support-melee',tick:host.state.tick,health:host.player.health.attributes.health,
-    boss:titan.boss.state,phase:titan.fight.phase,hp:titan.fight.hp,at:host.player.position.toArray(),contacts:hits,
-    riders:bodies.map(body=>({id:body.entityId,hp:body.hp,distance:body.position.distanceTo(host.player.position)}))}));}
+  if(tick%120===0||hits!==lastContacts){lastContacts=hits;console.error(JSON.stringify({stage:'support-melee',tick:host.state.tick,health:leadPlayer(host).health.attributes.health,
+    boss:titan.boss.state,phase:titan.fight.phase,hp:titan.fight.hp,at:leadPlayer(host).position.toArray(),contacts:hits,
+    riders:bodies.map(body=>({id:body.entityId,hp:body.hp,distance:body.position.distanceTo(leadPlayer(host).position)}))}));}
  }
  assert.equal(support().length,0,'three actual support deaths must break the dome');
  for(let tick=0;tick<60&&titan.fight.shielded;tick++)await step([]);
  assert.equal(titan.fight.shielded,false);
  await step([{kind:'script',actorId:'nalati.whistle',value:1}]);
  for(let tick=0;tick<1800&&!mount.mounted;tick++){
-  const at=host.player.position,dx=horse.position.x-at.x,dz=horse.position.z-at.z,d=Math.hypot(dx,dz);
+  const at=leadPlayer(host).position,dx=horse.position.x-at.x,dz=horse.position.z-at.z,d=Math.hypot(dx,dz);
   await step([{kind:'player',moveX:0,moveZ:0,yaw:Math.atan2(-dx,-dz),commandVersion:1,steer:{keyX:0,keyY:0,stickX:0,stickY:d>1.5?1:0}},
     ...(d<4?[{kind:'script' as const,actorId:'nalati.companion.use',value:1}]:[])]);
  }

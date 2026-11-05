@@ -226,7 +226,7 @@ test('combat inputs release attacks while the original shield approach spawns it
     // These detached unplayed reads have no damage, flag, reset or pose
     // setter. They never enter a native tape or an earned continuation.
     const read:KingFightRead={flags:{has:name=>['clue:1','clue:2','clue:3'].includes(name)},
-      player:{position:a.player.position,health:{attributes:{health:100}}},state:{get tick(){return tick;}},
+      players:new Map([['actor.player',{position:a.player.position,health:{attributes:{health:100}}}]]),state:{get tick(){return tick;}},
       adapters:{get:id=>id==='nalati.weapons'?{snapshot:()=>JSON.stringify({version:1,slot:'blade',bolts:17})}:undefined}};
     const inputs=kingPhaseInputs(read,()=>a.owner.observe(),rows,{slots:[{kind:'blade',id:'blade'}],registration:['blade']},2);
     let waited=0;

@@ -16,6 +16,7 @@ import {walkNalatiHorsePlains} from '../../proof/nalati-grasslands/horsePlainsWa
 import {createNalatiTamingPilot} from '../../proof/nalati-grasslands/tamingPilot';
 import {TickCommandSchema,type HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import type {PrepareHeadlessRuntime} from '../../../src/sdk/headlessRuntime';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 interface BondedObservation {
   readonly phase:string;readonly upgraded:boolean;readonly flags:readonly string[];
@@ -47,7 +48,7 @@ export async function runNalatiFieldTaming(options:TamingProofOptions={}):Promis
   let restored:Awaited<ReturnType<typeof createNativeProofResident>>|undefined;
   try{
     const taming=nativeTamingOf(first.host),mounted=mountedPlayerOf(first.host);assert.ok(taming);assert.ok(mounted);
-    assert.equal(first.host.player.position.x,shard.spawn.x);assert.equal(first.host.player.position.z,shard.spawn.z);
+    assert.equal(leadPlayer(first.host).position.x,shard.spawn.x);assert.equal(leadPlayer(first.host).position.z,shard.spawn.z);
     const original=[...first.host.entities.values()].find(actor=>actor.kind==='horse'&&actor.variant==='stallion');assert.ok(original);
     let inputs=0;
     const step=(commands:readonly HeadlessCommand[]):void=>{
@@ -78,7 +79,7 @@ export async function runNalatiFieldTaming(options:TamingProofOptions={}):Promis
       'the same real post-bond inputs retain the restored continuation');
     const observe=(owner:typeof first):BondedObservation=>{
       const state=nativeTamingOf(owner.host);assert.ok(state);
-      const at=owner.host.player.position,companion=state.companion,observation=owner.host.adapters.get('nalati.companions')?.snapshot();
+      const at=leadPlayer(owner.host).position,companion=state.companion,observation=owner.host.adapters.get('nalati.companions')?.snapshot();
       return {phase:state.phase,upgraded:state.upgraded,flags:[...owner.host.flags.all],player:{x:at.x,y:at.y,z:at.z},
         companion:companion===null?null:{id:companion.entityId,x:companion.position.x,y:companion.position.y,z:companion.position.z},
         companions:observation===undefined?null:typeof observation==='string'?observation:JSON.stringify(observation),

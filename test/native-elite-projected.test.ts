@@ -1,3 +1,4 @@
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 import {admissionNative,admission} from './fixtures/nalati-return-modules';
 import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
@@ -50,7 +51,7 @@ test('projected native binding matches the frozen original keeper, wire, RNG and
     for (let i = 0; i < 400; i++) {
       const state = i < 70 ? 'display' : i < 160 ? 'charge' : i < 300 ? 'watch' : 'beaten';
       for (const f of [old, next]) {
-        f.group.stallionState = state; f.actor.position.set(i % 7, -0, i / 13); f.host.player.position.set(-i / 9, 2, i % 11);
+        f.group.stallionState = state; f.actor.position.set(i % 7, -0, i / 13); leadPlayer(f.host).position.set(-i / 9, 2, i % 11);
         if (i === 80) f.script.enterPhase2();
         if (i === 301) { f.bond.phase = 'bonded'; f.bond.companion = f.reward; f.group.stallion = null; }
         f.script.tick([.017,.031,.09,.004][i % 4] ?? 0, i / 60, i % 5 !== 0, false);

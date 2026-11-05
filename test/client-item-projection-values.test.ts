@@ -10,6 +10,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const current = (source: Parameters<typeof projectItemFields>[0], runtimes: Parameters<typeof projectItemFields>[1]) =>
   (lane: Parameters<typeof projectItemFields>[2], player: number): void => { projectItemFields(source, runtimes, lane, player); };
@@ -30,7 +31,7 @@ class RuntimeReads extends Map<string, ItemRuntime> {
 async function fixture(make: typeof current) {
   const host = createSimHost(SIM_LEVEL, { rapier: await rapier });
   const item = new ItemRuntime({ id: 'light', kind: 'tool', action: null, fuelSeconds: 4, intensity: 1 }, {
-    actor: host.player.health, combat: host.combat, hook: null, targets: () => [],
+    actor: leadPlayer(host).health, combat: host.combat, hook: null, targets: () => [],
     effect: () => { throw new Error('Projection must not apply a combat effect'); },
   });
   const source = emptyShardfile({ slug: 'projection', name: 'Projection', author: 'Test', revision: 1, seed: 1 });
@@ -39,7 +40,7 @@ async function fixture(make: typeof current) {
     { id: 2, name: 'lit', type: 'i32', privacy: 'public', default: 0, min: 0, max: 1 }] satisfies ScriptStateDeclaration['player'];
   source.state.player = player;
   const world = new DeclaredScriptWorld({ fields: {}, archetypes: [], events: [], maxEntities: 1 },
-    [{ id: 1, name: 'owner', position: [0, 0, 0], fields: {}, frozen: false, interactive: false }], { shared: [], player }, new Map([[1, host.player.id]]));
+    [{ id: 1, name: 'owner', position: [0, 0, 0], fields: {}, frozen: false, interactive: false }], { shared: [], player }, new Map([[1, leadPlayer(host).id]]));
   const runtimes = new RuntimeReads([['light', item]]), project = make(source, runtimes);
   return { host, item, source, world, runtimes, project: () => { project({ world }, 1); } };
 }

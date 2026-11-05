@@ -18,6 +18,7 @@ import {nativeGroupCollection} from '../../../src/game/shardfile/groupRuntime';
 import {mountedPlayerOf} from '../../../src/game/riding/native';
 import {runTrustedHeadlessTape} from '../../../src/sdk/headlessTape';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 type Mounted=NonNullable<ReturnType<typeof mountedPlayerOf>>;
 interface EarnedMountedRaid {
@@ -39,7 +40,7 @@ const CachedRaid=v.object({version:v.literal(1),product:v.string(),snapshot:v.st
 function mountedControls(resident:EarnedMountedRaid['resident'],start=0):Pick<ConstructedMountedRaid,'move'|'reins'|'inputs'>{
   const host=resident.host;let inputs=start;
   const move=(commands:readonly HeadlessCommand[]):void=>{assert.ok(inputs++<24_000,'mounted inputs retain their finite allowance');resident.step(commands);};
-  const reins=(forward:number,turn:number,sprint=false,jump=false,yaw=host.player.yaw):HeadlessCommand=>{
+  const reins=(forward:number,turn:number,sprint=false,jump=false,yaw=leadPlayer(host).yaw):HeadlessCommand=>{
     const length=Math.max(1,Math.hypot(forward,turn));return {kind:'player',moveX:0,moveZ:0,yaw,commandVersion:1,
       steer:{keyX:0,keyY:0,stickX:turn/length,stickY:forward/length},sprint,...(jump?{jump:true}:{})};
   };
@@ -94,7 +95,7 @@ async function buildNalatiMountedRaid(preparation:Parameters<typeof createNative
     const drive=(x:number,z:number):void=>{
       for(let tick=0;tick<1800;tick++){
         assert.equal(mount.mounted,true);
-        const p=host.player.position,dx=x-p.x,dz=z-p.z,distance=Math.hypot(dx,dz);if(distance<2.5)return;
+        const p=leadPlayer(host).position,dx=x-p.x,dz=z-p.z,distance=Math.hypot(dx,dz);if(distance<2.5)return;
         const target=Math.atan2(dx,dz),delta=Math.atan2(Math.sin(mount.body.heading-target),Math.cos(mount.body.heading-target));
         const brake=Math.abs(delta)>.7&&Math.abs(mount.body.speed)>1.5;
         move([reins(brake?-.3:Math.abs(delta)>.7?0:1,brake?0:Math.max(-1,Math.min(1,delta*2.5)),!brake,tick>120&&tick%60===0&&mount.body.speed<1)]);
@@ -105,7 +106,7 @@ async function buildNalatiMountedRaid(preparation:Parameters<typeof createNative
     for(let tick=0;tick<300&&mount.body.speed>.15;tick++)move([reins(-1,0)]);
     const flock=population.flocks[0];assert.ok(flock);
     for(let tick=0;tick<600;tick++){
-      const p=host.player.position,heading=Math.atan2(flock.cx-p.x,flock.cz-p.z),delta=Math.atan2(Math.sin(mount.body.heading-heading),Math.cos(mount.body.heading-heading));
+      const p=leadPlayer(host).position,heading=Math.atan2(flock.cx-p.x,flock.cz-p.z),delta=Math.atan2(Math.sin(mount.body.heading-heading),Math.cos(mount.body.heading-heading));
       if(Math.abs(delta)<.08)break;move([reins(0,Math.max(-1,Math.min(1,delta*2.5)))]);
     }
     for(let tick=0;tick<300&&mount.body.speed>.15;tick++)move([reins(-1,0)]);

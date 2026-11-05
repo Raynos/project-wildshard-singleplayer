@@ -11,6 +11,7 @@ import { restoreSimHost } from '../../../src/engine/sim/snapshot.ts';
 import { GridAssembly } from '../../../src/game/grid/assembly.ts';
 import { GridSimulation } from '../../../src/game/grid/simulation.ts';
 import { ResidencyAllocator } from '../../../src/game/grid/allocator.ts';
+import { leadPlayer } from '../../../src/engine/sim/leadPlayer.ts';
 
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
 const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
@@ -48,7 +49,7 @@ try {
   admitted = true; assert.equal(grid.ready(instance), true); assert.equal(loads, 1);
   const enter = await grid.prepare(null, instance); enter.commit();
   const actor = resident.host.entities.get('guardian.1'); actor.applyFinalDamage(5, actor.position, actor.position);
-  resident.lane.enqueue({ type: 201, target: resident.actors.get(resident.host.player.id), value: 1 });
+  resident.lane.enqueue({ type: 201, target: resident.actors.get(leadPlayer(resident.host).id), value: 1 });
   for (let i = 0; i < 4; i++) grid.step();
   assert.equal(resident.colliders.get('blender.door.collider').active(), false);
   assert.equal(grid.checkpoint(instance), false); assert.equal(saved.size, 0);

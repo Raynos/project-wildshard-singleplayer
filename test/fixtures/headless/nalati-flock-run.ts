@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {runTrustedHeadlessTape} from '../../../src/sdk/headlessTape';
 import {earnNalatiPasture} from './nalati-pasture-session';
 import {beginProductSession} from './productSession';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const {resident,population,flock,sheep,originalWolves,delay,arrivalTick,checkpoint,checkpointTick}=await earnNalatiPasture();
 let replay:Awaited<ReturnType<Awaited<ReturnType<typeof beginProductSession>>['ready']>>|undefined;
@@ -16,7 +17,7 @@ try{
   assert.equal(population.raid.raids,1);assert.equal(population.raid.raiding,false);
   assert.equal(population.raid.taken,0);assert.equal(population.raid.drivenOff,1);assert.ok(population.raid.cracks>0);
   assert.equal(flock.alive,sheep,'the actual shepherd preserves the living flock');
-  assert.ok(population.raid.shepherd?.alive);assert.equal(resident.host.player.health.alive,true);
+  assert.ok(population.raid.shepherd?.alive);assert.equal(leadPlayer(resident.host).health.alive,true);
   const raiders=[...resident.host.entities.values()].filter(actor=>actor.kind==='wolf'&&!originalWolves.includes(actor.entityId));
   assert.ok(raiders.length>0,'only the ordinary raid allocates the real raiders');
   const repeated=await replay.verbTape({version:1,observe:['nalati.predators'],segments:[{

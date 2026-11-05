@@ -8,6 +8,7 @@ import {FAN_ACT,FAN_ACTOR,FAN_AIM} from '../../../src/shards/far-reach/generator
 import {ROOST_IDS,SKY_ACT,SKY_INTERACT} from '../../../src/shards/far-reach/generators/questPrompts';
 import {ROC_ID} from '../../../src/shards/far-reach/generators/rows/rocFight';
 import FLAGS from '../../../src/shards/far-reach/data/flags.json' with {type:'json'};
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const EYE=1.68;
 const requireValue=<T>(value:T|undefined|null,message:string):T=>{if(value===undefined||value===null)throw new Error(message);return value;};
@@ -86,10 +87,10 @@ function priorityRoute(): Leg[] {
 /** Within the fan's light reach of the player's eye (its arc aims at the body): a creature the player swings at. */
 const swingable = (host: SimHost, actor: AnimalSim): boolean => {
   if (!actor.alive) return false;
-  const p = host.player.position, dy = actor.position.y + actor.dims.bodyY * actor.scale - (p.y + EYE);
+  const p = leadPlayer(host).position, dy = actor.position.y + actor.dims.bodyY * actor.scale - (p.y + EYE);
   return Math.hypot(actor.position.x - p.x, dy, actor.position.z - p.z) < FAN_SWING.reach + actor.dims.bodyRadius * actor.scale;
 };
-const facing = (host: SimHost, x: number, z: number): number => Math.atan2(host.player.position.x - x, host.player.position.z - z);
+const facing = (host: SimHost, x: number, z: number): number => Math.atan2(leadPlayer(host).position.x - x, leadPlayer(host).position.z - z);
 /** The browser's light swing aims along the camera: the player turns to what it swings at. */
 const CROWN_REACH = 17, ARRIVE = 0.8, ARRIVE_BOARD = 1.5, REST = 0.25, CRUISE = 9, STICK = 3;
 
@@ -119,22 +120,22 @@ export class SkyTape {
   get atStep(): boolean { return this.leg >= this.legs.findIndex(leg => leg.kind === 'act' && leg.value === SKY_ACT.winch) - 1; }
   next(host: SimHost): HeadlessCommand[] {
     const leg = this.legs[this.leg];
-    if (leg === undefined) return [{ kind: 'player', moveX: 0, moveZ: 0, yaw: host.player.yaw }];
+    if (leg === undefined) return [{ kind: 'player', moveX: 0, moveZ: 0, yaw: leadPlayer(host).yaw }];
     this.ticks++;
-    if (this.ticks > 60 * 600) throw new Error(`The tape is stuck on leg ${String(this.leg)} (${leg.kind}) at ${host.player.position.toArray().map(n => n.toFixed(2)).join(', ')}`);
+    if (this.ticks > 60 * 600) throw new Error(`The tape is stuck on leg ${String(this.leg)} (${leg.kind}) at ${leadPlayer(host).position.toArray().map(n => n.toFixed(2)).join(', ')}`);
     const commands = this.play(host, leg);
     if (commands === null) { this.done(host, leg); return this.next(host); }
     return commands;
   }
   get walked(): boolean { return this.leg >= this.legs.length - 1; }
   private done(host: SimHost, leg: Leg): void {
-    const p = host.player.position;
+    const p = leadPlayer(host).position;
     this.log.push({ leg: this.leg, kind: leg.kind, tick: host.state.tick, x: p.x, y: p.y, z: p.z });
     this.leg++; this.waypoint = 0; this.ticks = 0;
   }
   /** This leg's commands for the tick, or null once it is complete. */
   private play(host: SimHost, leg: Leg): HeadlessCommand[] | null {
-    const p = host.player.position, board = host.playerBoard.on;
+    const p = leadPlayer(host).position, board = leadPlayer(host).board.on;
     switch (leg.kind) {
       case 'go': {
         const target = leg.path[this.waypoint];
@@ -147,13 +148,13 @@ export class SkyTape {
       case 'mode': {
         if (board === leg.board) return null;
         // a rider brakes onto the leg's last point before stepping off; a walker stands still and steps on
-        const bv = host.boardVelocity, moving = board && Math.hypot(bv.x, bv.z) > REST;
+        const bv = leadPlayer(host).boardVelocity, moving = board && Math.hypot(bv.x, bv.z) > REST;
         if (moving && this.hold !== null) return [this.ride(host, this.hold, true)];
-        return [{ kind: 'player', moveX: 0, moveZ: 0, yaw: host.player.yaw, ...(moving ? {} : { hover: true as const }) }];
+        return [{ kind: 'player', moveX: 0, moveZ: 0, yaw: leadPlayer(host).yaw, ...(moving ? {} : { hover: true as const }) }];
       }
       case 'act': {
         if (this.ticks > 1) return null;
-        return [{ kind: 'script', actorId: SKY_INTERACT, value: leg.value }, { kind: 'player', moveX: 0, moveZ: 0, yaw: host.player.yaw }];
+        return [{ kind: 'script', actorId: SKY_INTERACT, value: leg.value }, { kind: 'player', moveX: 0, moveZ: 0, yaw: leadPlayer(host).yaw }];
       }
       case 'gust': {
         if (host.flags.has(`far.vane.${leg.vane}`)) return null;
@@ -164,12 +165,12 @@ export class SkyTape {
         const live = ROOST_IDS.flatMap(id => { const a = host.entities.get(id); return a !== undefined && swingable(host, a) ? [a] : []; });
         const dx = leg.stand[0] - p.x, dz = leg.stand[1] - p.z, d = Math.hypot(dx, dz), walk = d > ARRIVE;
         const target = live[0];
-        return [{ kind: 'player', moveX: walk ? dx / d : 0, moveZ: walk ? dz / d : 0, yaw: target === undefined ? host.player.yaw : facing(host, target.position.x, target.position.z),
+        return [{ kind: 'player', moveX: walk ? dx / d : 0, moveZ: walk ? dz / d : 0, yaw: target === undefined ? leadPlayer(host).yaw : facing(host, target.position.x, target.position.z),
           ...(target === undefined ? {} : { attack: { targetId: target.entityId } }) }];
       }
       case 'winch': {
         if (host.flags.has(FLAGS.raised)) return null;
-        return [this.walk(host, 0, 0, host.player.yaw)];
+        return [this.walk(host, 0, 0, leadPlayer(host).yaw)];
       }
       case 'crown': {
         if (host.flags.has(FLAGS.roc)) return null;
@@ -189,13 +190,13 @@ export class SkyTape {
    * toward CRUISE m/s along the line to the point (slowing into the last one), full stick against any larger error.
    */
   private ride(host: SimHost, to: Point, last: boolean): HeadlessCommand {
-    const p = host.player.position, bv = host.boardVelocity, dx = to[0] - p.x, dz = to[1] - p.z, d = Math.max(1e-6, Math.hypot(dx, dz));
+    const p = leadPlayer(host).position, bv = leadPlayer(host).boardVelocity, dx = to[0] - p.x, dz = to[1] - p.z, d = Math.max(1e-6, Math.hypot(dx, dz));
     const speed = last ? Math.min(CRUISE, d * 1.2) : CRUISE, ex = (dx / d) * speed - bv.x, ez = (dz / d) * speed - bv.z, e = Math.max(STICK, Math.hypot(ex, ez));
     return { kind: 'player', moveX: ex / e, moveZ: ez / e, yaw: Math.atan2(-dx, -dz) };
   }
   /** A move; on foot it also swings at the nearest creature in reach (never the Roc outside its fight). */
   private walk(host: SimHost, moveX: number, moveZ: number, yaw: number): HeadlessCommand {
-    if (host.playerBoard.on) return { kind: 'player', moveX, moveZ, yaw };
+    if (leadPlayer(host).board.on) return { kind: 'player', moveX, moveZ, yaw };
     const target = [...host.entities.values()].find(actor => actor.entityId !== ROC_ID && swingable(host, actor));
     return target === undefined ? { kind: 'player', moveX, moveZ, yaw } : { kind: 'player', moveX, moveZ, yaw: facing(host, target.position.x, target.position.z), attack: { targetId: target.entityId } };
   }

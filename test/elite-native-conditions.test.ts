@@ -1,3 +1,4 @@
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 import { nativeEliteCore as ridingEliteCore } from '../src/game/shardfile/nativeAssemblyHosts';
 import { NALATI_ELITE_CONDITIONS } from '../src/shards/nalati-grasslands/generators/nativeServer';
 import {admissionNative,admission} from './fixtures/nalati-return-modules';
@@ -16,7 +17,7 @@ test('actual native condition rows reuse the original AS owner and preserve ever
     try {
       const program = admissionNative(f.host);
       const core = ridingEliteCore(f.host,NALATI_ELITE_CONDITIONS,ReturnProgram.native(f.host,admission),clock,env);
-      expect(core.player).toBe(f.host.player); expect(reads).toEqual([]);
+      expect(core.player).toBe(leadPlayer(f.host)); expect(reads).toEqual([]);
       state.phase = phase; state.storm = storm;
       {
         let spawns = 0;

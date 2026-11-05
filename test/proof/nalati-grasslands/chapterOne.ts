@@ -12,6 +12,7 @@ import {nalatiHorsePlainsInputs} from './horsePlainsWalk';
 import {createNalatiTamingPilot} from './tamingPilot';
 import type {CarriedQuestRows} from '@wildshard/format/questSteps';
 import {SKY_ROAD} from '../../../src/shards/nalati-grasslands/generators/layout';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** Yield the existing trusted route's exact commands, allowing a checked
  * worker reply between ticks. The consumer must commit each yielded tick. */
@@ -21,7 +22,7 @@ function* planInputs(host:SimHost,plan:HeadlessTapePlan):Generator<readonly Head
     const moving=[...segment.commands];if(cursor!==null)moving.push({kind:'player',moveX:0,moveZ:0,yaw:0});
     for(let tick=0;tick<segment.ticks;tick++){
       if(cursor!==null){
-        const p=host.player.position,command=cursor.command([p.x,p.y,p.z],tick);
+        const p=leadPlayer(host).position,command=cursor.command([p.x,p.y,p.z],tick);
         if(cursor.complete)break;
         if(cursor.stuck.length>0)throw new Error(`Chapter route stuck ${segment.id}: ${JSON.stringify(cursor.stuck)}`);
         moving[moving.length-1]=command;
@@ -29,10 +30,10 @@ function* planInputs(host:SimHost,plan:HeadlessTapePlan):Generator<readonly Head
       const prior=host.state.tick;
       yield segment.frames?.[tick]??(cursor===null?segment.commands:moving);
       if(host.scope.disposed||host.scope.disposing||host.state.tick!==prior+1)throw new Error('Chapter input lost its live tick owner');
-      if(!host.player.position.toArray().every(Number.isFinite))throw new Error('Nonfinite chapter feet');
+      if(!leadPlayer(host).position.toArray().every(Number.isFinite))throw new Error('Nonfinite chapter feet');
     }
     if(cursor!==null&&!cursor.complete){
-      const p=host.player.position;cursor.command([p.x,p.y,p.z],segment.ticks);
+      const p=leadPlayer(host).position;cursor.command([p.x,p.y,p.z],segment.ticks);
       if(!cursor.complete)throw new Error(`Chapter route incomplete ${segment.id}`);
     }
   }
@@ -80,7 +81,7 @@ function* bondInputs(host:SimHost,approach:boolean,usedTicks:number):Generator<r
     }
     const commands=pilot(host,original.entityId);
     if(taming.phase==='wild'){
-      const dx=original.position.x-host.player.position.x,dz=original.position.z-host.player.position.z,d=Math.hypot(dx,dz),yaw=Math.atan2(-dx,-dz)+Math.PI/3;
+      const dx=original.position.x-leadPlayer(host).position.x,dz=original.position.z-leadPlayer(host).position.z,d=Math.hypot(dx,dz),yaw=Math.atan2(-dx,-dz)+Math.PI/3;
       if(original.position.x!==horseX||original.position.z!==horseZ){
         const elapsed=(host.state.tick-horseTick)/60;
         vx=(original.position.x-horseX)/elapsed;vz=(original.position.z-horseZ)/elapsed;
@@ -114,13 +115,13 @@ function* bondInputs(host:SimHost,approach:boolean,usedTicks:number):Generator<r
 }
 
 function reins(host:SimHost,forward:number,turn:number,sprint=false,jump=false):HeadlessCommand {
-  return {kind:'player',moveX:0,moveZ:0,yaw:host.player.yaw,commandVersion:1,
+  return {kind:'player',moveX:0,moveZ:0,yaw:leadPlayer(host).yaw,commandVersion:1,
     steer:{keyX:0,keyY:0,stickX:turn,stickY:forward},sprint,...(jump?{jump:true}:{})};
 }
 function* drive(host:SimHost,x:number,z:number,sprint=false,radius=2.5):Generator<readonly HeadlessCommand[]> {
   const mount=mountedPlayerOf(host);assert.ok(mount);
   for(let tick=0;tick<1800;tick++){
-    const p=host.player.position,dx=x-p.x,dz=z-p.z,distance=Math.hypot(dx,dz);
+    const p=leadPlayer(host).position,dx=x-p.x,dz=z-p.z,distance=Math.hypot(dx,dz);
     if(distance<radius)return;
     assert.equal(mount.mounted,true,'the earned horse must carry the actual rider');
     const target=Math.atan2(dx,dz),delta=Math.atan2(Math.sin(mount.body.heading-target),Math.cos(mount.body.heading-target));
@@ -169,7 +170,7 @@ export function* chapterReturnInputs(host:SimHost):Generator<readonly HeadlessCo
   for(const [x,z]of [[-20,54],[20,40],[65,55],[95,65],...SKY_ROAD.slice(8).reverse()]){
     assert.ok(x!==undefined&&z!==undefined);yield* drive(host,x,z);
   }
-  assert.equal(mount.mounted,true);assert.ok(Math.hypot(host.player.position.x-12,host.player.position.z-96)<2.5);
+  assert.equal(mount.mounted,true);assert.ok(Math.hypot(leadPlayer(host).position.x-12,leadPlayer(host).position.z-96)<2.5);
   assert.equal(host.quests.find(quest=>quest.def.id==='tulpar')?.current?.id,'home');
   assert.equal(host.flags.has('told:tulpar'),false);assert.equal(host.flags.has('quest:tulpar'),false);
 }
@@ -179,7 +180,7 @@ export function* chapterHomeInputs(host:SimHost,fromReturn=false):Generator<read
   if(!fromReturn)yield* chapterReturnInputs(host);
   const mount=mountedPlayerOf(host),taming=nativeTamingOf(host);assert.ok(mount);assert.ok(taming?.companion);
   assert.equal(mount.horse,taming.companion);assert.equal(mount.mounted,true);assert.ok(host.flags.has('won:kokpar'));
-  assert.ok(Math.hypot(host.player.position.x-12,host.player.position.z-96)<2.5);
+  assert.ok(Math.hypot(leadPlayer(host).position.x-12,leadPlayer(host).position.z-96)<2.5);
   yield* chapterCampReturnInputs(host);
   for(let tick=0;tick<360&&!host.flags.has('told:tulpar');tick++)yield tick%16===0?[{kind:'script',actorId:'nalati.talk',value:0}]:[];
   assert.ok(host.flags.has('told:tulpar'));
@@ -193,7 +194,7 @@ export function* chapterHomeInputs(host:SimHost,fromReturn=false):Generator<read
 export function* chapterCampReturnInputs(host:SimHost):Generator<readonly HeadlessCommand[]> {
   const mount=mountedPlayerOf(host),taming=nativeTamingOf(host);assert.ok(mount);assert.ok(taming?.companion);
   assert.equal(mount.horse,taming.companion);assert.equal(mount.mounted,true);
-  assert.ok(Math.hypot(host.player.position.x-12,host.player.position.z-96)<2.5);
+  assert.ok(Math.hypot(leadPlayer(host).position.x-12,leadPlayer(host).position.z-96)<2.5);
   const road:readonly (readonly [number,number])[]=[...SKY_ROAD.slice(4,8).reverse(),[40,133],[57,134],[57,136],[53,139],[39,141],[27,142],[23,146],[1,146],
     [0,147],[0,158],[0,170],[0,183],[0,190],[0,200],[0,205],[0,216],[20,216],[40,218],[60,214]];
   for(const [x,z] of road)yield* drive(host,x,z);
@@ -201,7 +202,7 @@ export function* chapterCampReturnInputs(host:SimHost):Generator<readonly Headle
   yield [{kind:'script',actorId:'nalati.ride',value:2}];assert.equal(mount.mounted,false);
   // Dismount places the player beside the actual horse. Returning to its
   // former centre walks into its collider; walk out and around it instead.
-  const horse=taming.companion,p=host.player.position,cx=horse.position.x,cz=horse.position.z;
+  const horse=taming.companion,p=leadPlayer(host).position,cx=horse.position.x,cz=horse.position.z;
   const start=Math.atan2(p.z-cz,p.x-cx),target=Math.atan2(209.5-cz,66-cx),turn=Math.atan2(Math.sin(target-start),Math.cos(target-start));
   const clear=[{x:p.x,z:p.z},{x:cx+Math.cos(start)*4,z:cz+Math.sin(start)*4}],steps=Math.max(1,Math.ceil(Math.abs(turn)/(Math.PI/6)));
   for(let step=1;step<=steps;step++){const angle=start+turn*step/steps;clear.push({x:cx+Math.cos(angle)*4,z:cz+Math.sin(angle)*4});}

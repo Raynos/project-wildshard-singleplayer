@@ -1,6 +1,7 @@
 import type {SimHost} from '../../../src/engine/sim';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import {nativeTamingOf} from '../../../src/game/riding/nativeTaming';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** The pilot observes only the living horse position, live prompt and balance gauge. No trust/position grants or forceBreak. */
 export function nalatiTamingPilot(host: SimHost, stallionId: string, previousBalance: number): { balance: number; commands: HeadlessCommand[] } {
@@ -9,7 +10,7 @@ export function nalatiTamingPilot(host: SimHost, stallionId: string, previousBal
   if (original === undefined) throw new Error('Missing original living stallion');
   let x = 0, z = 0;
   if (taming.phase !== 'breaking') {
-    const dx = original.position.x - host.player.position.x, dz = original.position.z - host.player.position.z, length = Math.hypot(dx, dz);
+    const dx = original.position.x - leadPlayer(host).position.x, dz = original.position.z - leadPlayer(host).position.z, length = Math.hypot(dx, dz);
     if (length > 2.2) { x = dx / length; z = dz / length; }
   }
   const balance = taming.view.balance, lean = Math.max(-1, Math.min(1, balance * 12 + (balance - previousBalance) * 60 * 3));

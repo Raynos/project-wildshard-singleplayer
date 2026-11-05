@@ -11,6 +11,7 @@ import {mountedPlayerOf} from '../../../src/game/riding/native';
 import {runTrustedHeadlessTape,type HeadlessTapeSegment} from '../../../src/sdk/headlessTape';
 import {BladeRowsSchema} from '@wildshard/format/heldMelee';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const input=(actorId:string):HeadlessCommand=>({kind:'script',actorId,value:1});
 const player=(heavy=false,sprint=false):HeadlessCommand=>({kind:'player',moveX:0,moveZ:0,yaw:0,commandVersion:1,
@@ -59,7 +60,7 @@ try{
     route:[{x:20,z:216},{x:40,z:218},{x:60,z:214},{x:66,z:209.5},{x:66,z:211.5},{x:66.8,z:213.4}]}]});
   step([input('nalati.companion.use')]);assert.equal(mounted.mounted,true);mark('mount-real-horse');
   const ridden=mounted.horse;assert.ok(ridden);const riddenHealth=ridden.hp;
-  const reins=(forward:number,turn:number,sprint=false):HeadlessCommand=>({kind:'player',moveX:0,moveZ:0,yaw:resident.host.player.yaw,
+  const reins=(forward:number,turn:number,sprint=false):HeadlessCommand=>({kind:'player',moveX:0,moveZ:0,yaw:leadPlayer(resident.host).yaw,
     commandVersion:1,steer:{keyX:0,keyY:forward,stickX:turn,stickY:0},sprint});
   advance(90,()=>[reins(-1,0)]);
   advance(240,()=>{const delta=Math.atan2(Math.sin(mounted.body.heading+Math.PI/2),Math.cos(mounted.body.heading+Math.PI/2));

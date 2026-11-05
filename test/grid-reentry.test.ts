@@ -13,6 +13,7 @@ import { ScriptHost } from '../src/engine/script/host';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
 import { createNativeProofResident, prepareProductPlan } from './fixtures/headless-native';
 import { prepareHeadlessRuntime as ninePlan } from './fixtures/nine-headless';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const shards = ['_template', 'blender-template', 'ink-cel-valley', 'pastel-plain', 'driftwood-isle', 'pine-hollow', 'nalati-grasslands',
   'nine-dragon-stack', 'sunscar-dunes', 'far-reach'] as const;
@@ -91,7 +92,7 @@ test('generic grid data destinations restore exact modules with one installation
     try{
       expect(install).toHaveBeenCalledTimes(installs);prepared.restore(saved);expect(install).toHaveBeenCalledTimes(installs);
       expect(snapshotSimHost(prepared.host)).toEqual(saved);prepared.host.step();expect(prepared.host.state.tick).toBe(saved.state.tick+1);
-      prepared.host.detachPlayerMotor();expect(prepared.host.hasPlayerMotor).toBe(false);dataCells++;
+      leadPlayer(prepared.host).detachMotor();expect(leadPlayer(prepared.host).hasMotor).toBe(false);dataCells++;
     }finally{prepared.host.dispose();install.mockRestore();}
   }
   expect(dataCells).toBeGreaterThan(0);

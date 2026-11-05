@@ -10,6 +10,7 @@ import { instantSpreadDegrees, shotSpread } from '@wildshard/engine/combat/shotS
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { LeverAction, parseLeverProfile } from './leverBridge';
 import { aimAt, bodyHit } from './headlessRanged';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** The lever-action's fixed-step id; its continuation is the action, the reserve and the dry pull's clock. */
 export const LEVER_STEP = 'pine.lever';
@@ -51,7 +52,7 @@ export function installPineLever(host: SimHost, ports: PineLeverPorts): { readon
   const Saved = v.strictObject({ tube: v.pipe(count, v.maxValue(profile.magazine - 1)), chambered: v.boolean(), caseInChamber: v.boolean(), hammerCocked: v.boolean(),
   phase: v.picklist(['idle', 'beat', 'cycle', 'reload']), phaseT: finite, fed: count, planned: count, stopAfter: v.boolean(), dryAtStart: v.boolean(),
   reloadProgress: finite, reserve: count, sinceEmpty: finite });
-  const random = (): number => host.rng.stream('gameplay').next(), player = host.player;
+  const random = (): number => host.rng.stream('gameplay').next(), player = leadPlayer(host);
   const store = { reserve: profile.reserve }, act = new LeverAction(store, profile);
   const cone = { radius: profile.spreadRadius, axisScale: 1 } as const;
   let sinceEmpty = 99;

@@ -16,6 +16,7 @@ import type { HuntBody } from '../../src/engine/ai/hunt';
 import type { StalkerBrain } from '../../src/engine/ai/stalker';
 import type { Rng } from '../../src/engine/core/rng';
 import type { SimHost } from '../../src/engine/sim';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 export interface NativeDriverRows {
   tokens: string; program: unknown; packKind: string; dogKind: string; eliteKinds: readonly string[]; dispatch: string; projection?:unknown;
 }
@@ -46,7 +47,7 @@ export class OriginalNativePopulationDriver {
       else if (actor.kind === rows.packKind) { const pack = packs.get(actor); if (pack !== undefined) { const c = this.context(actor, dt); pack.drive(actor, c, true); c.confine(actor); } }
       else { const herd = herds.get(actor); if (herd !== undefined) herd.drive(actor, this.context(actor, dt), true); }
     }, after: (_id, body) => {
-      const actor = this.bodies.find(candidate => candidate === body); if (actor?.alive === true && !actor.hidden && !actor.stunned && actor.state === 'charge') hunt.chargeContact(actor, host.player.position);
+      const actor = this.bodies.find(candidate => candidate === body); if (actor?.alive === true && !actor.hidden && !actor.stunned && actor.state === 'charge') hunt.chargeContact(actor, leadPlayer(host).position);
     } });
   }
   private required(actor: AnimalSim): HuntBody { const body = this.bodies.find(candidate => candidate === actor); if (body === undefined) throw this.missing; return body; }
@@ -58,7 +59,7 @@ export class OriginalNativePopulationDriver {
       const director = this.tokens.get(a); if (director !== undefined && !(director instanceof AggressionDirector)) throw this.missing; return director?.take(a) ?? true;
     }, pathYaw: (a: AnimalSim, x: number, z: number, every = 1): number => this.hunt.pathYawFor(this.required(a), x, z, every),
       steer: (a: AnimalSim, yaw: number, speed: number, turn: number): void => { this.hunt.steerAny(this.required(a), yaw, speed, turn); },
-      confine: (a: AnimalSim): void => { this.hunt.confine(this.required(a)); }, reach: (a: AnimalSim): boolean => canReach(a, this.host.player.position, this.host.physics) };
+      confine: (a: AnimalSim): void => { this.hunt.confine(this.required(a)); }, reach: (a: AnimalSim): boolean => canReach(a, leadPlayer(this.host).position, this.host.physics) };
   }
   admit(actor: HuntBody): void {
     if (this.host.entities.get(actor.entityId) !== actor || this.contexts.has(actor)) throw new Error('Invalid native driver actor');
@@ -84,7 +85,7 @@ export class OriginalNativePopulationDriver {
     const elite = this.elites.brains.get(actor);
     if (!actor.alive) { actor.lookWeight = 0; return; }
     if (this.rows.eliteKinds.includes(actor.kind) && elite === undefined) throw this.missing;
-    if (actor.stunned) { actor.setMotion(actor.yaw, 0, 1); actor.setStrafe(0); actor.lookTarget.copy(this.host.player.position); actor.lookWeight = 1; return; }
+    if (actor.stunned) { actor.setMotion(actor.yaw, 0, 1); actor.setStrafe(0); actor.lookTarget.copy(leadPlayer(this.host).position); actor.lookWeight = 1; return; }
     Object.assign(this.route, { elite: Number(elite !== undefined), wolf: Number(actor.kind === this.rows.packKind), dog: Number(actor.kind === this.rows.dogKind), held: Number(actor.mem['ridden'] === 1 || actor.mem['owned'] === 1) });
     const route = this.author.project(this.rows.dispatch, this.route)['state'];
     if (route === 0) return;
@@ -102,11 +103,11 @@ export class OriginalNativePopulationDriver {
   }
   /** Advance after world and riding observations, before the native body phase. */
   update(dt: number): void {
-    const player = this.host.player.position, speed = this.manager.noise, hunt = this.hunt;
+    const player = leadPlayer(this.host).position, speed = this.manager.noise, hunt = this.hunt;
     if (!speed.seen) { speed.prev.set(player.x, 0, player.z); speed.seen = true; }
     const moved = Math.hypot(player.x-speed.prev.x, player.z-speed.prev.z); speed.prev.set(player.x, 0, player.z);
     speed.speed += (Math.min(moved/dt, 9)-speed.speed)*(1-0.5**(dt*10)); this.manager.advance(dt); hunt.resetRepaths();
-    const dodged = this.host.playerDodge.cd > this.dodgeCd; this.dodgeCd = this.host.playerDodge.cd;
+    const dodged = leadPlayer(this.host).dodge.cd > this.dodgeCd; this.dodgeCd = leadPlayer(this.host).dodge.cd;
     if (dodged) for (const actor of this.bodies) {
       if (!actor.alive || actor.harnessHold || actor.hidden || (!actor.aggressive && !hunt.sensed(actor))) continue;
       const step = this.takeStep(actor, true); if (step > 0) this.decide(actor, step);

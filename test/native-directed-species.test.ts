@@ -23,6 +23,7 @@ import { createNativeProofResident } from './fixtures/headless-native';
 import { prepareNalatiWorld } from './fixtures/nalati-world';
 import { readNalatiPatrolIntake } from './fixtures/nalati-patrol-intake';
 import { canonicalSimDigest } from './fake/simState';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 test('a bound ghost rider decides and scales hits through its law natively, and binding alone changes nothing', async () => {
   const directory = builtProduct('nalati-grasslands'), product = await loadHeadlessProduct(directory), shard = product.shardfile;
@@ -46,7 +47,7 @@ test('a bound ghost rider decides and scales hits through its law natively, and 
     }
     expect(canonicalSimDigest(snapshotSimHost(bound.host))).toBe(canonicalSimDigest(snapshotSimHost(plain.host)));
     // a rider, its target and the player written into its memory as the patrol director does
-    const p = bound.host.player.position, variant = input.recipes[0]?.variant ?? 'rider';
+    const p = leadPlayer(bound.host).position, variant = input.recipes[0]?.variant ?? 'rider';
     const rider = population.spawnElite('ghost-rider', p.x + 14, p.z + 9, 1.2, variant);
     const decisions: { inputs: { x: number; z: number; yaw: number; mem: Record<string, number>; t: number; player: Vector3 }; motion: number[]; state: string; look: number }[] = [];
     const decide = law.decide.bind(law);

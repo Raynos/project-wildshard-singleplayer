@@ -11,6 +11,7 @@ import { borrowedDecisionControl } from '@wildshard/game/shardfile/borrowedDecis
 import { outputDescriptor } from '@wildshard/game/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '@wildshard/sdk/headlessProduct';
 import { createNativeProofResident, prepareProductPlan } from './fixtures/headless-native';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const savedControl = v.object({ version:v.literal(1),actor:v.string(),phase:v.number(),fighting:v.boolean(),decision:v.string(),strike:v.unknown() });
 const logical = v.object({ decision: v.object({ bindings: v.array(v.object({ failures: v.number() })) }) });
@@ -31,11 +32,11 @@ for (const [slug,kind] of [['driftwood-isle','captain'],['pine-hollow','antler-k
       if(spawn===undefined)throw new Error('Missing retained boss row');
       const incoming: number[] = [];
       host.events.answer('damage.modify',request=>{
-        if(request?.target!==host.player.health)return request;
+        if(request?.target!==leadPlayer(host).health)return request;
         if(request.cause?.kind===kind)incoming.push(request.amount);
         return null;
       },host.scope);
-      host.player.position.set(spawn.at[0]+4,host.groundHeightAt(spawn.at[0],spawn.at[1])+.1,spawn.at[1]);
+      leadPlayer(host).position.set(spawn.at[0]+4,host.groundHeightAt(spawn.at[0],spawn.at[1])+.1,spawn.at[1]);
       if(kind==='captain')host.flags.set('used:altar');else host.dayClock?.setTime('night');
       for(let i=0;i<600;i++)resident.step([]);
       const body=[...host.entities.values()].find(actor=>actor.kind===kind);
@@ -62,7 +63,7 @@ for (const [slug,kind] of [['driftwood-isle','captain'],['pine-hollow','antler-k
       expect(body.stunned).toBe(true);
       const saved=snapshotSimHost(host),before=control.snapshot();
       resumed=await createNativeProofResident(preparation,prepareProductPlan,saved);
-      resumed.host.events.answer('damage.modify',request=>request?.target===resumed?.host.player.health?null:request,resumed.host.scope);
+      { const live = resumed; live.host.events.answer('damage.modify',request=>request?.target===leadPlayer(live.host).health?null:request,live.host.scope); }
       const restored=resumed.host.entities.get(body.entityId);if(restored===undefined)throw new Error('Missing restored body');
       expect(borrowedDecisionControl(restored).snapshot()).toBe(before);
       for(let i=0;i<90;i++){

@@ -7,6 +7,7 @@ import {nativeTamingOf} from '../../src/game/riding/nativeTaming';
 import {practiceRoom} from '../../src/engine/core/practiceRoom';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
 import {prepareProductPlan as prepareNalati} from './headless-native';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const finite=v.pipe(v.number(),v.finite()),truth=v.boolean();
 const Threat=v.strictObject({x:finite,z:finite,awareness:finite,alert:finite,hunting:finite});
@@ -33,16 +34,16 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
         if(command.value!==1)throw new Error('Invalid crouch disc input');law.press();
       }
       const forward=player?.steer===undefined?0:player.steer.keyY+player.steer.stickY;
-      const feet=host.player.position;
-      law.step(dt,{sprint:player?.sprint===true&&forward>0,jump:player?.jump===true,hover:host.playerBoard.on,
-        swimming:host.playerSwim.on,practice:practiceRoom.open,crouching:mounted.rider.crouching,x:feet.x,z:feet.z});
+      const feet=leadPlayer(host).position;
+      law.step(dt,{sprint:player?.sprint===true&&forward>0,jump:player?.jump===true,hover:leadPlayer(host).board.on,
+        swimming:leadPlayer(host).swim.on,practice:practiceRoom.open,crouching:mounted.rider.crouching,x:feet.x,z:feet.z});
       answer=law.answer({want:player?.crouch===true,via:'hold'});
-      const observation=sampleStealthSources(sources,host.player,{population:groups,riding:{mounted:mounted.mounted,taming:{view:taming.view}},grass});
+      const observation=sampleStealthSources(sources,leadPlayer(host),{population:groups,riding:{mounted:mounted.mounted,taming:{view:taming.view}},grass});
       law.observe(host.clock.now,observation);
       if(law.takeHint()){hints++;context.emit({kind:'hint',text:rows.hint});}
     },{
       snapshot:()=>JSON.stringify({law:law.snapshot(),answer,hints,label:rows.labels[law.state]??rows.labels['visible']??'',hint:rows.hint,
-        crouching:mounted.rider.crouching,grass:grass.grassStandingAt(host.player.position.x,host.player.position.z)}),
+        crouching:mounted.rider.crouching,grass:grass.grassStandingAt(leadPlayer(host).position.x,leadPlayer(host).position.z)}),
       restore:input=>{const saved=v.parse(Saved,typeof input==='string'?JSON.parse(input):input);law.restore(saved.law);answer=saved.answer;hints=saved.hints;},
     },'afterBodies');
   }};

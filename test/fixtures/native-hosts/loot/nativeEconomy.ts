@@ -17,6 +17,7 @@ import { createHeadlessPromptPicker, type HeadlessPrompt } from '../../../../src
 import { nativeQuestInputs } from '../../../../src/game/quest/nativeInputs';
 import type { MixedPopulationBody } from '@wildshard/game/population/mixedRoster';
 import { nativeQuestPromptRoster } from '@wildshard/game/quest/nativeComposition';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const integer = v.pipe(v.number(), v.finite(), v.integer(), v.minValue(0));
 const counts = v.pipe(v.record(v.string(), integer), v.check(rows => Object.keys(rows).length <= 64));
@@ -65,13 +66,13 @@ export function installNativeEconomy(host: SimHost, product: ShardProduct, roste
     if (amount > 0 && bounty.claim(body)) burst.spawn(body.actor.position, amount, callbacks.onCoin, callbacks.onDone);
   }, host.scope, { order: DEATH_ORDER.loot });
   host.onStep(NATIVE_TRADE, dt => {
-    if (exchange.active && host.player.position.distanceTo(original.position) > closeDistance) exchange.close();
+    if (exchange.active && leadPlayer(host).position.distanceTo(original.position) > closeDistance) exchange.close();
     for (const command of input.scripts()) if (command.actorId === NATIVE_TRADE) {
       if (command.value === -2) { if (picker.pick(candidates) === trade) exchange.open(); }
       else if (command.value === -1) exchange.close();
       else if (exchange.active) exchange.use(command.value);
     }
-    burst.update(dt, host.player.position);
+    burst.update(dt, leadPlayer(host).position);
   }, {
     snapshot: (): SimValue => {
       const b = burst.snapshot();

@@ -13,7 +13,7 @@ import { zlibSync } from 'fflate';
 import { Vector3 } from 'three';
 import { createSimHost, type SimHost } from '@wildshard/engine/sim';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
-import { restoreSimHost, snapshotSimHost, serializeSimSnapshot, decodeSimSnapshot } from '@wildshard/engine/sim/snapshot';
+import { restoreSimHost, snapshotSimHost, serializeSimSnapshot, decodeSimSnapshot, leadSnapshot } from '@wildshard/engine/sim/snapshot';
 import { NativeGroupCollection as FixtureNativeGroups, nativeGroupCollection as fixtureGroup, nativeHerdCollection } from '@wildshard/game/shardfile/groupRuntime';
 import { Rng as FixtureRandom } from '@wildshard/engine/core/rng';
 import { nativeGroupBrain as fixtureBrain } from '@wildshard/format/groupBrains';
@@ -23,6 +23,7 @@ import { respawnNativeMounted } from '@wildshard/game/riding/nativeTaming';
 import { NALATI_RIDING_PROGRAMS as programs } from './fixtures/nalati-riding';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { installWorldFixture } from './fixtures/worldSetup';
+import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 await installWorldFixture();
 
@@ -62,17 +63,17 @@ test('G478 orchard native fixture owns and restores its actual mounted capsule',
   try {
     expect(mounted.mount('foreign')).toBe(false);
     expect(mounted.mount('boar:1')).toBe(true);
-    expect(host.modes.current()).toBe('ride');
+    expect(leadPlayer(host).modes.current()).toBe('ride');
     const command = { moveX: 0, moveZ: 0, yaw: 0, commandVersion: 1 as const, steer: { keyX: 0, keyY: 1, stickX: 0, stickY: 0 } };
-    for (let tick = 0; tick < 30; tick++) host.step(command);
+    for (let tick = 0; tick < 30; tick++) host.step(leadCommands(host, command));
     const snapshot = snapshotSimHost(host);
     restored = restoreSimHost(level, { rapier }, snapshot, fresh => { install(fresh); });
     for (let tick = 0; tick < 12; tick++) {
-      host.step(command); restored.step(command);
-      expect(restored.player.position.distanceTo(host.player.position)).toBeLessThan(1e-6);
+      host.step(leadCommands(host, command)); restored.step(leadCommands(restored, command));
+      expect(leadPlayer(restored).position.distanceTo(leadPlayer(host).position)).toBeLessThan(1e-6);
     }
     expect(mounted.body.speed).toBeGreaterThan(0);
-    mounted.dismount(); expect(host.modes.current()).toBe('foot');
+    mounted.dismount(); expect(leadPlayer(host).modes.current()).toBe('foot');
     mounted.removeMountable('boar:1'); expect(mounted.mountables).toEqual([]);
     mounted.addMountable('boar:1'); expect(mounted.mountables.map(actor => actor.entityId)).toEqual(['boar:1']);
   } finally { restored?.dispose(); host.dispose(); }
@@ -84,44 +85,44 @@ test('an input lock holds the walk and the reins through a save, and a respawn r
   let restored: SimHost | undefined;
   try {
     // on foot: the page Player's moveScale 0 stands the version-1 walk still, and a save keeps the lock
-    const walk = { moveX: 0, moveZ: -1, yaw: 0, commandVersion: 1 as const }, start = host.player.position.clone();
-    host.playerMoveScale = 0;
-    for (let tick = 0; tick < 20; tick++) host.step(walk);
-    expect(Math.hypot(host.player.position.x - start.x, host.player.position.z - start.z)).toBeLessThan(1e-3);
+    const walk = { moveX: 0, moveZ: -1, yaw: 0, commandVersion: 1 as const }, start = leadPlayer(host).position.clone();
+    leadPlayer(host).moveScale = 0;
+    for (let tick = 0; tick < 20; tick++) host.step(leadCommands(host, walk));
+    expect(Math.hypot(leadPlayer(host).position.x - start.x, leadPlayer(host).position.z - start.z)).toBeLessThan(1e-3);
     const saved = snapshotSimHost(host);
-    expect(saved.player.moveScale).toBe(0);
-    expect(decodeSimSnapshot(serializeSimSnapshot({...saved,player:{...saved.player,moveScale:.35}})).player.moveScale).toBe(.35);
-    for(const moveScale of [-1,1,Infinity,Number.NaN])expect(()=>serializeSimSnapshot({...saved,player:{...saved.player,moveScale}})).toThrow();
+    expect(leadSnapshot(saved).moveScale).toBe(0);
+    expect(leadSnapshot(decodeSimSnapshot(serializeSimSnapshot({...saved,players:[{...leadSnapshot(saved),moveScale:.35}]}))).moveScale).toBe(.35);
+    for(const moveScale of [-1,1,Infinity,Number.NaN])expect(()=>serializeSimSnapshot({...saved,players:[{...leadSnapshot(saved),moveScale}]})).toThrow();
     restored = restoreSimHost(level, { rapier }, decodeSimSnapshot(serializeSimSnapshot(saved)), fresh => { install(fresh); });
-    expect(restored.playerMoveScale).toBe(0);
-    host.playerMoveScale = 1;
-    for (let tick = 0; tick < 20; tick++) host.step(walk);
-    expect(host.player.position.distanceTo(start)).toBeGreaterThan(1);
+    expect(leadPlayer(restored).moveScale).toBe(0);
+    leadPlayer(host).moveScale = 1;
+    for (let tick = 0; tick < 20; tick++) host.step(leadCommands(host, walk));
+    expect(leadPlayer(host).position.distanceTo(start)).toBeGreaterThan(1);
     const unlocked=snapshotSimHost(host);
-    expect(unlocked.player.moveScale).toBeUndefined();
+    expect(leadSnapshot(unlocked).moveScale).toBeUndefined();
     expect(decodeSimSnapshot(serializeSimSnapshot(unlocked))).toEqual(unlocked);
     // mounted: the reins read the same scale (a boss intro's lock reins the horse in)
     expect(mounted.mount('boar:1')).toBe(true);
     const gallop = { moveX: 0, moveZ: 0, yaw: 0, sprint: true, commandVersion: 1 as const, steer: { keyX: 0, keyY: 1, stickX: 0, stickY: 0 } };
-    for (let tick = 0; tick < 20; tick++) host.step(gallop);
+    for (let tick = 0; tick < 20; tick++) host.step(leadCommands(host, gallop));
     expect(mounted.body.target).toBeGreaterThan(0);
-    host.playerMoveScale = 0;
-    host.step(gallop); expect(mounted.body.target).toBe(0);
-    host.playerMoveScale = 1;
-    host.step(gallop); expect(mounted.body.target).toBeGreaterThan(0);
+    leadPlayer(host).moveScale = 0;
+    host.step(leadCommands(host, gallop)); expect(mounted.body.target).toBe(0);
+    leadPlayer(host).moveScale = 1;
+    host.step(leadCommands(host, gallop)); expect(mounted.body.target).toBeGreaterThan(0);
     // the arena's respawn: off the horse, at the point at rest, and back on the first horse the rules take
     const at = new Vector3(4, host.groundHeightAt(4, -3), -3);
     respawnNativeMounted(host, at, .7, { yaw: .5, steed: 40 });
     expect(mounted.mounted).toBe(true); expect(mounted.horse?.entityId).toBe('boar:1');
     expect(mounted.body.speed).toBe(0); expect(mounted.body.steed).toBe(40); expect(mounted.body.winded).toBe(false);
-    expect(mounted.body.heading).toBeCloseTo(1.2); expect(host.player.yaw).toBeCloseTo(1.2 - Math.PI);
+    expect(mounted.body.heading).toBeCloseTo(1.2); expect(leadPlayer(host).yaw).toBeCloseTo(1.2 - Math.PI);
     expect([mounted.body.feet.x, mounted.body.feet.z]).toEqual([4, -3]);
-    for (let tick = 0; tick < 10; tick++) host.step(gallop);
+    for (let tick = 0; tick < 10; tick++) host.step(leadCommands(host, gallop));
     expect(Math.hypot(mounted.body.feet.x - 4, mounted.body.feet.z + 3)).toBeLessThan(5);
     // no horse the rules take: the player stands at the point on foot
     mounted.dismount(); mounted.removeMountable('boar:1');
     respawnNativeMounted(host, at, .2, { yaw: .5, steed: 40 });
-    expect(mounted.mounted).toBe(false); expect(host.player.position.toArray()).toEqual(at.toArray()); expect(host.player.yaw).toBe(.2);
+    expect(mounted.mounted).toBe(false); expect(leadPlayer(host).position.toArray()).toEqual(at.toArray()); expect(leadPlayer(host).yaw).toBe(.2);
   } finally { restored?.dispose(); host.dispose(); }
 });
 
@@ -160,7 +161,7 @@ test('G478 orchard fixture owns companion allocation, retirement and native tami
     expect(actor.entityId).toBe('creature:0'); expect(bodies).toEqual([actor]); expect(sight).toEqual([false]);
     expect(() => roster.spawn(4, 3, 0, false)).toThrow(); expect(random.snapshot()).toEqual(before);
     mounted.addMountable(actor.entityId); expect(mounted.mount(actor.entityId)).toBe(true);
-    taming.update(.1); host.step({ moveX: 0, moveZ: 0, yaw: 0, commandVersion: 1, steer: { keyX: 0, keyY: 1, stickX: 0, stickY: 0 } });
+    taming.update(.1); host.step(leadCommands(host, { moveX: 0, moveZ: 0, yaw: 0, commandVersion: 1, steer: { keyX: 0, keyY: 1, stickX: 0, stickY: 0 } }));
     mounted.dismount(); mounted.removeMountable(actor.entityId); roster.retire(actor.entityId);
     expect(host.entities.has(actor.entityId)).toBe(false); expect(bodies).toEqual([]); expect(sight).toEqual([]); expect(retired.has(actor.entityId)).toBe(true);
     expect(random.snapshot()).toEqual(before); expect(roster.spawn(2, 3, 0, true).entityId).toBe('creature:1');
@@ -193,10 +194,10 @@ test('orchard native manager drives the admitted roster at ten Hz across body fr
   host.onStep('orchard.population', dt => { driver.update(dt); });
   try {
     actor.setMotion(1, 3, 1);
-    for (let i = 0; i < 3; i++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    for (let i = 0; i < 3; i++) host.step(leadCommands(host, { moveX: 0, moveZ: 0, yaw: 0 }));
     const decision = actor.mem['groupThinkAt'];
     expect(decision).toBeGreaterThanOrEqual(0); expect(actor.speed).toBeLessThan(.1);
-    for (let i = 0; i < 2; i++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    for (let i = 0; i < 2; i++) host.step(leadCommands(host, { moveX: 0, moveZ: 0, yaw: 0 }));
     expect(actor.mem['groupThinkAt']).toBe(decision);
     driver.restore(2.5); expect(driver.snapshot()).toBe(2.5);
     expect(() => driver.restore(-1)).toThrow(); expect(() => driver.admit(actor)).toThrow();
@@ -235,7 +236,7 @@ test('an admitted always species retains every original fixed decision without a
     const times:number[]=[],calm:boolean[]=[];
     for(let tick=0;tick<60;tick++){
       if(tick===20)driver.calm=true;if(tick===40)driver.calm=false;
-      host.step({moveX:0,moveZ:0,yaw:0});times.push(host.clock.now);calm.push(driver.calm);
+      host.step(leadCommands(host, {moveX:0,moveZ:0,yaw:0}));times.push(host.clock.now);calm.push(driver.calm);
     }
     expect(decisions.map(row=>row.calm)).toStrictEqual(calm);
     expect(decisions.map(row=>row.t)).toStrictEqual(times);
@@ -297,14 +298,14 @@ test('orchard wildlife frame continues real foragers and tramples through numeri
   const environment = new NativeWildEnvironment(field, trample, { wind: { x: 1, z: 0, strength: .3 }, flatten: .5 }, admissionNative(host));
   expect(() => environment.onEvent('scare', 0, 0)).toThrow('Unbound'); environment.bind(host, frame);
   host.events.on('creature.signal', event => { signals.push(event.name); }, host.scope);
-  host.onStep('orchard.wildlife', dt => { trample.update(dt, host.player.position); frame.update(dt, false); });
+  host.onStep('orchard.wildlife', dt => { trample.update(dt, leadPlayer(host).position); frame.update(dt, false); });
   try {
-    for (let i = 0; i < 12; i++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    for (let i = 0; i < 12; i++) host.step(leadCommands(host, { moveX: 0, moveZ: 0, yaw: 0 }));
     const saved = frame.snapshot(); expect(saved.wild.at).toBeGreaterThan(0); expect(population.rows.length).toBeGreaterThan(0);
     expect(trample.amountAt(actor.position.x, actor.position.z)).toBeGreaterThan(0);
     const standing = environment.grassStandingAt(actor.position.x, actor.position.z);
     expect(environment.grassHeightAt(actor.position.x, actor.position.z)).toBeLessThan(standing);
-    environment.onEvent('scare', 3, 4); host.step({ moveX: 0, moveZ: 0, yaw: 0 }); expect(signals).toEqual(['scare']);
+    environment.onEvent('scare', 3, 4); host.step(leadCommands(host, { moveX: 0, moveZ: 0, yaw: 0 })); expect(signals).toEqual(['scare']);
     frame.update(.1, true); frame.restore(saved); expect(frame.snapshot()).toEqual(saved);
     host.clock.tick(.11);
     const before = frame.snapshot(), beforeTrample = trample.snapshot(), faults: Fault[] = [];
@@ -410,7 +411,7 @@ test('orchard fixture installs the complete native population through data rows'
     population.restore(initialCalm);expect(owner.calm).toBe(false);
     expect(()=>population.restore({...initialCalm,calm:1})).toThrow();
     expect(population.snapshot()).toEqual(initialCalm);
-    for (let i = 0; i < 12; i++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    for (let i = 0; i < 12; i++) host.step(leadCommands(host, { moveX: 0, moveZ: 0, yaw: 0 }));
     expect(owner.marmots.rows).toHaveLength(2); expect(owner.raid.raids).toBe(0); expect(host.adapters.has('orchard.population')).toBe(true);
     const { bondedMountRoster } = await import('@wildshard/game/riding/roster');
     const companions = bondedMountRoster(host, 'orchard.companion');
@@ -484,11 +485,11 @@ test('v2 thrown dismount uses the original mounted capsule once, without a secon
     const action = { binding: 'rider', target: 'player.mount', kind: 'dismount' as const, thrown: true };
     applyV2WorldActions([action,action], [{ binding: 'rider',target: 'player.mount',scope: host.scope,kind: 'mount',owner: mounted }]);
     original.dismount(true);
-    expect(mounted.mounted).toBe(false);expect(host.modes.current()).toBe('foot');
+    expect(mounted.mounted).toBe(false);expect(leadPlayer(host).modes.current()).toBe('foot');
     expect(snapshotSimHost(host)).toEqual(snapshotSimHost(direct));
-    expect(host.playerImpulse.toArray()).toEqual(direct.playerImpulse.toArray());
+    expect(leadPlayer(host).impulse.toArray()).toEqual(leadPlayer(direct).impulse.toArray());
     const command = { moveX: 0,moveZ: 0,yaw: 0,commandVersion: 1 as const };
-    for (let step = 0; step < 6; step++) { host.step(command);direct.step(command);expect(snapshotSimHost(host)).toEqual(snapshotSimHost(direct)); }
+    for (let step = 0; step < 6; step++) { host.step(leadCommands(host, command));direct.step(leadCommands(direct, command));expect(snapshotSimHost(host)).toEqual(snapshotSimHost(direct)); }
   } finally { host.dispose();direct.dispose(); }
 });
 
@@ -526,7 +527,7 @@ test('native shared cadence retains the original driver noise, terrain, dodge an
         if (frame === 60) world.actor.stagger(new Vector3(1, 0, 0), .2);
         if (frame === 90 || frame === 95) world.actor.alive = frame === 95;
         if (frame === 120) world.driver.restore(0);
-        world.host.step({ moveX: frame % 20 < 10 ? .4 : -.4, moveZ: .2, yaw: .3, ...(frame === 10 || frame === 130 ? { dodge: true } : {}) });
+        world.host.step(leadCommands(world.host, { moveX: frame % 20 < 10 ? .4 : -.4, moveZ: .2, yaw: .3, ...(frame === 10 || frame === 130 ? { dodge: true } : {}) }));
       }
       const capture = (world: ReturnType<typeof make>) => ({
         common: world.manager.snapshot([world.actor.entityId], [world.actor.entityId]), driver: world.driver.snapshot(),
@@ -552,7 +553,7 @@ test('named riding pond retains the predecessor native capsule, effects and save
   const original=hosts[0],raw=hosts[1];if(original===undefined||raw===undefined)throw new Error('Missing native comparison');
   try{
     const command={moveX:0,moveZ:0,yaw:0,commandVersion:1 as const,steer:{keyX:0,keyY:1,stickX:0,stickY:0}};
-    for(let tick=0;tick<90;tick++){for(const f of hosts)f.host.step(command);const snapshot=serializeSimSnapshot(snapshotSimHost(original.host));expect(serializeSimSnapshot(snapshotSimHost(raw.host))).toBe(snapshot);}
+    for(let tick=0;tick<90;tick++){for(const f of hosts)f.host.step(leadCommands(f.host, command));const snapshot=serializeSimSnapshot(snapshotSimHost(original.host));expect(serializeSimSnapshot(snapshotSimHost(raw.host))).toBe(snapshot);}
     expect(raw.mounted.body.speed).toBeGreaterThan(0);raw.mounted.dismount();original.mounted.dismount();
     const dismounted=serializeSimSnapshot(snapshotSimHost(original.host));
     expect(serializeSimSnapshot(snapshotSimHost(raw.host))).toBe(dismounted);
@@ -565,7 +566,7 @@ test('malformed raw riding ponds refuse before mode, capsule or save ownership c
     herdService(host,rows.herds);const before=serializeSimSnapshot(snapshotSimHost(host)),file='world/riding-pond.bin';
     const profile={...rows,world:{...rows.world,pond:{type:'f32',count:4,data:{file}}}};
     for(const block of [undefined,{file:'other.bin',bytes:zlibSync(new Uint8Array(16))},{file,bytes:zlibSync(new Uint8Array(20))}]){
-      expect(()=>installMountedPlayer(host,profile,block,zeroWet)).toThrow();expect(serializeSimSnapshot(snapshotSimHost(host))).toBe(before);expect(host.modes.current()).toBe('foot');
+      expect(()=>installMountedPlayer(host,profile,block,zeroWet)).toThrow();expect(serializeSimSnapshot(snapshotSimHost(host))).toBe(before);expect(leadPlayer(host).modes.current()).toBe('foot');
     }
   }finally{host.dispose();}
 });
@@ -584,7 +585,7 @@ test('raw riding wet mask retains native capsule, effects and save continuation'
   const old=hosts[0],raw=hosts[1];if(old===undefined||raw===undefined)throw new Error('Missing wet comparison');
   try{
     const command={moveX:0,moveZ:0,yaw:0,commandVersion:1 as const,steer:{keyX:0,keyY:1,stickX:0,stickY:0}};
-    for(let tick=0;tick<90;tick++){for(const f of hosts)f.host.step(command);const snapshot=serializeSimSnapshot(snapshotSimHost(old.host));expect(serializeSimSnapshot(snapshotSimHost(raw.host))).toBe(snapshot);}
+    for(let tick=0;tick<90;tick++){for(const f of hosts)f.host.step(leadCommands(f.host, command));const snapshot=serializeSimSnapshot(snapshotSimHost(old.host));expect(serializeSimSnapshot(snapshotSimHost(raw.host))).toBe(snapshot);}
     expect(raw.mounted.body.speed).toBeGreaterThan(0);raw.mounted.dismount();old.mounted.dismount();
     const dismounted=serializeSimSnapshot(snapshotSimHost(old.host));
     expect(serializeSimSnapshot(snapshotSimHost(raw.host))).toBe(dismounted);
@@ -597,7 +598,7 @@ test('malformed raw riding wet masks refuse before mode, capsule or save ownersh
     herdService(host,rows.herds);const before=serializeSimSnapshot(snapshotSimHost(host)),file='world/riding-wet.bin';
     const profile={...rows,world:{...rows.world,wet:{type:'f32',count:4,data:{file}}}};
     for(const block of [undefined,{file:'other.bin',bytes:zlibSync(new Uint8Array(16))},{file,bytes:zlibSync(new Uint8Array(20))}]){
-      expect(()=>installMountedPlayer(host,profile,zeroPond,block)).toThrow();expect(serializeSimSnapshot(snapshotSimHost(host))).toBe(before);expect(host.modes.current()).toBe('foot');
+      expect(()=>installMountedPlayer(host,profile,zeroPond,block)).toThrow();expect(serializeSimSnapshot(snapshotSimHost(host))).toBe(before);expect(leadPlayer(host).modes.current()).toBe('foot');
     }
   }finally{host.dispose();}
 });

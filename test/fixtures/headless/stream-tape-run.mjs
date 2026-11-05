@@ -5,7 +5,7 @@ import {TickWorkerHost} from '../../../src/sdk/tickWorkerHost.ts';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {emptyShardfile} from '../../../src/sdk/author.ts';
-import {decodeSimSnapshotBytes} from '../../../src/engine/sim/snapshot.ts';
+import {decodeSimSnapshotBytes, leadSnapshot } from '../../../src/engine/sim/snapshot.ts';
 const source=emptyShardfile({slug:'stream-tape-fixture',name:'Stream tape',author:'Test',revision:1,seed:435});
 source.serverBudget.commandsPerTick=1024;
 const open=()=>HeadlessSimulation.create(source,new Map(),undefined,{deadline:'advisory'});
@@ -19,7 +19,7 @@ try{
  for(const commands of frames)await ordinary.step([{source:'control',commands}]);
  const report=await stream.streamVerbTape([],parts([0,24,48].map((from,index)=>({id:String(index),ticks:24,commands:[],frames:frames.slice(from,from+24)}))));
  assert.equal(report.ticks,72);assert.deepEqual(report.observations.map(row=>row.tick),[24,48,72]);
- assert.deepEqual(report.observations.at(-1).position,decodeSimSnapshotBytes(ordinary.checkpoint.snapshot).player.position);
+ assert.deepEqual(report.observations.at(-1).position,leadSnapshot(decodeSimSnapshotBytes(ordinary.checkpoint.snapshot)).position);
  assert.deepEqual(stream.checkpoint,initial);assert.equal(stream.quarantined,false);
  await assert.rejects(stream.step(),/validation finished/);await assert.rejects(stream.verbTape({version:1,observe:[],segments:[{id:'later',ticks:1,commands:[]}]}),/already finished/);
 }finally{await stream.dispose();await ordinary.dispose();}

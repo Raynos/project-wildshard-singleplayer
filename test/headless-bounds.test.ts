@@ -6,6 +6,7 @@ import {floorBelow} from '../src/engine/physics/query';
 import {createShardfileSim} from '../src/game/plugin/simulation';
 import {emptyShardfile} from '../src/sdk/author';
 import {installNativeWalkBounds,registerNativeWalkBounds} from './fixtures/headless/nativeBounds';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 test('walk bounds activation is explicit and installs one owner per resident',async()=>{
   const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
@@ -26,13 +27,13 @@ test('ordered walk legs retain the actual grounded floor for fall recovery',asyn
   try{
     const {host}=sim;
     registerNativeWalkBounds(host,{x0:-20,x1:20,z0:-20,z1:20,floor:-3});installNativeWalkBounds(host);
-    host.resetPlayerPose({x:4,y:1,z:3},0);
+    leadPlayer(host).resetPose({x:4,y:1,z:3},0);
     for(let tick=0;tick<120;tick++)host.step();
-    expect(host.playerFall.grounded).toBe(true);
-    const stood=host.player.position.clone(),floor=floorBelow(host.physics,stood.x,stood.z,stood.y+0.6,1.2,host.player.motor.collider);
+    expect(leadPlayer(host).fall.grounded).toBe(true);
+    const stood=leadPlayer(host).position.clone(),floor=floorBelow(host.physics,stood.x,stood.z,stood.y+0.6,1.2,leadPlayer(host).motor.collider);
     expect(floor).toBeDefined();
-    host.resetPlayerPose({x:4,y:-4,z:3},0);host.step();
-    expect(host.player.position.x).toBe(stood.x);expect(host.player.position.z).toBe(stood.z);
-    expect(host.player.position.y).toBe(floor);
+    leadPlayer(host).resetPose({x:4,y:-4,z:3},0);host.step();
+    expect(leadPlayer(host).position.x).toBe(stood.x);expect(leadPlayer(host).position.z).toBe(stood.z);
+    expect(leadPlayer(host).position.y).toBe(floor);
   }finally{sim.dispose();}
 });

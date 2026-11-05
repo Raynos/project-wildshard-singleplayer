@@ -22,6 +22,7 @@ import {nalatiPatrolOf} from '../nalati-patrol-native';
 import {beginProductSession} from './productSession';
 import {checkedReplayPipeline} from './checkedReplayPipeline';
 import {QaraHandoffSchema,checkQaraLedger,qaraWireHash,qaraObservationHash,qaraCommandHash,type QaraHandoff,type QaraPart} from './qaraHandoff';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const [stage,inputPath,outputPath,inputHash]=process.argv.slice(2);
 assert.ok(stage==='night'||stage==='patrol'||stage==='bow'||stage==='victory');assert.ok(inputPath);assert.ok(outputPath);
@@ -56,7 +57,7 @@ try{
       id:'camp-road',ticks:3600,commands:[],route:[{x:0,z:216},{x:20,z:216},{x:40,z:218},{x:60,z:214}],
     }]});
     for(let tick=0;tick<60_000&&patrol.law.riders.length===0;tick++){
-      resident.step(idle);assert.equal(host.player.health.alive,true);assert.equal(patrol.readiness.eligible,false);assert.equal(qara.captain(),null);
+      resident.step(idle);assert.equal(leadPlayer(host).health.alive,true);assert.equal(patrol.readiness.eligible,false);assert.equal(qara.captain(),null);
     }
     assert.ok(patrol.law.riders.length>0);assert.equal(host.dayClock?.dayPhase,'night');assert.equal(patrol.law.killsTonight,0);
   }else{assert.ok(inherited);assert.equal(canonicalSimDigest(snapshotSimHost(host)),inherited.digest,'the recorder restores the exact earned state');}
@@ -88,18 +89,18 @@ try{
     trace('worker-reply',repeated.commit.tick);assert.deepEqual(repeated.report,part.expected,'fresh worker must reproduce all native observations and ordered effects');
     trace('report-compared',expected.tick);final=repeated.commit;replayedTicks+=repeated.report.ticks;
   });
-  let frames:HeadlessCommand[][]=[],effects:HeadlessEffect[]=[],peakY=host.player.position.y;
+  let frames:HeadlessCommand[][]=[],effects:HeadlessEffect[]=[],peakY=leadPlayer(host).position.y;
   const firstTick=ticks;
   const flush=async():Promise<void>=>{
     if(frames.length===0)return;assert.ok(pipeline);
     const id=`fight-${history.length}`;
-    const expected:HeadlessTapeObservation={id,tick:host.state.tick,position:host.player.position.toArray(),peakY,grounded:host.player.motor.snapshot().result.grounded,
+    const expected:HeadlessTapeObservation={id,tick:host.state.tick,position:leadPlayer(host).position.toArray(),peakY,grounded:leadPlayer(host).motor.snapshot().result.grounded,
       flags:[...host.flags.all],quests:host.quests.map(quest=>({id:quest.def.id,currentId:quest.current?.id??null,started:quest.snapshot().started,complete:quest.isComplete})),
       effects,adapters:observed.map(identity=>{const adapter=host.adapters.get(identity);assert.ok(adapter);const state=adapter.snapshot();assert.equal(typeof state,'string');
         if(typeof state!=='string')throw new Error('Missing native fight observation');return {id:identity,state};})};
     const part:QaraPart={plan:{version:1,observe:observed,segments:[{id,ticks:frames.length,commands:[],frames}]},expected:{version:1,ticks:frames.length,observations:[expected]}};
     history.push(part);checkQaraLedger(history,nightTick,ticks);
-    frames=[];effects=[];peakY=host.player.position.y;
+    frames=[];effects=[];peakY=leadPlayer(host).position.y;
     trace('offer-part',host.state.tick);await pipeline.offer(part);trace('offered-part',host.state.tick);
   };
   const complete=async():Promise<void>=>{
@@ -112,34 +113,34 @@ try{
     console.info(JSON.stringify({stage,phases,captureMs,replayMs,ticks,parts:history.length}));
   };
   const step=async(commands:readonly HeadlessCommand[]):Promise<void>=>{
-    pipeline?.check();frames.push(structuredClone([...commands]));const before=performance.now();resident.step(commands);captureMs+=performance.now()-before;effects.push(...resident.effects);ticks++;peakY=Math.max(peakY,host.player.position.y);
+    pipeline?.check();frames.push(structuredClone([...commands]));const before=performance.now();resident.step(commands);captureMs+=performance.now()-before;effects.push(...resident.effects);ticks++;peakY=Math.max(peakY,leadPlayer(host).position.y);
     for(const rider of patrol.law.riders){
       const p=rider.a.position,old=motion.get(rider.a.entityId);
       motion.set(rider.a.entityId,{x:p.x,z:p.z,vx:old===undefined?0:(p.x-old.x)*60,vz:old===undefined?0:(p.z-old.z)*60});
     }
-    assert.equal(host.player.health.alive,true,'ordinary combat must keep the player alive');assert.ok(ticks<=60_000,'one fight retains the original tape tick budget');
+    assert.equal(leadPlayer(host).health.alive,true,'ordinary combat must keep the player alive');assert.ok(ticks<=60_000,'one fight retains the original tape tick budget');
     if(ticks%512===0)await flush();
   };
   const nearest=()=>patrol.law.riders.filter(row=>row.a.alive&&!row.a.hidden&&row.a!==qara.captain())
-    .sort((a,b)=>a.a.position.distanceToSquared(host.player.position)-b.a.position.distanceToSquared(host.player.position))[0]?.a;
+    .sort((a,b)=>a.a.position.distanceToSquared(leadPlayer(host).position)-b.a.position.distanceToSquared(leadPlayer(host).position))[0]?.a;
   const approach=async(captain:boolean):Promise<void>=>{
     const target=captain?qara.captain():patrol.law.riders.find(row=>row.a.alive&&!row.a.hidden&&row.a!==qara.captain())?.a;
     assert.ok(target,'the approach must select a real living body');
-    if(!host.playerBoard.on)await step([{kind:'player',moveX:0,moveZ:0,yaw:0,hover:true}]);
+    if(!leadPlayer(host).board.on)await step([{kind:'player',moveX:0,moveZ:0,yaw:0,hover:true}]);
     let arrived=false;
     for(let tick=0;tick<3600;tick++){
       if(!target.alive)break;
-      const p=host.player.position,dx=target.position.x-p.x,dz=target.position.z-p.z,d=Math.hypot(dx,dz);
+      const p=leadPlayer(host).position,dx=target.position.x-p.x,dz=target.position.z-p.z,d=Math.hypot(dx,dz);
       if(d<20){arrived=true;break;}
       await step([{kind:'player',moveX:dx/d,moveZ:dz/d,yaw:Math.atan2(-dx,-dz),...(tick%90===60?{jump:true}:{})}]);
     }
-    if(host.playerBoard.on)await step([{kind:'player',moveX:0,moveZ:0,yaw:0,hover:true}]);
+    if(leadPlayer(host).board.on)await step([{kind:'player',moveX:0,moveZ:0,yaw:0,hover:true}]);
     for(let tick=0;tick<90;tick++)await step(idle);
     assert.ok(arrived,'actual hover inputs must approach the live target');
   };
   const aim=(held:boolean,captain:boolean):HeadlessCommand[]=>{
     const target=captain?qara.captain():nearest();if(target===undefined||target===null)return idle;
-    const feet=host.player.position;patrol.aimPoint(target,head);
+    const feet=leadPlayer(host).position;patrol.aimPoint(target,head);
     const time=Math.hypot(head.x-feet.x,head.z-feet.z)/bowLaunchSpeed(bow.base,1);
     const velocity=motion.get(target.entityId);
     head.x+=(velocity?.vx??0)*time;head.z+=(velocity?.vz??0)*time;head.y+=.5*bow.rows.arrow.gravity*time*time;
@@ -157,10 +158,10 @@ try{
   for(let shot=0;shot<bow.base.quiver&&patrol.law.killsTonight<5;shot++){
     if(nearest()===undefined){for(let tick=0;tick<4200&&nearest()===undefined;tick++)await step(idle);}
     const target=nearest();assert.ok(target,'the next ordinary patrol must materialize its own riders');
-    if(target.position.distanceTo(host.player.position)>60)await approach(false);
+    if(target.position.distanceTo(leadPlayer(host).position)>60)await approach(false);
     for(let tick=0;tick<hold;tick++)await step(aim(true,false));await step(aim(false,false));for(let tick=0;tick<75;tick++)await step(idle);
-    console.error(JSON.stringify({stage:'rider-shot',shot,kills:patrol.law.killsTonight,tick:host.state.tick,feet:host.player.position.toArray(),
-      riders:patrol.law.riders.map(row=>({id:row.a.entityId,hp:row.a.hp,distance:row.a.position.distanceTo(host.player.position)}))}));
+    console.error(JSON.stringify({stage:'rider-shot',shot,kills:patrol.law.killsTonight,tick:host.state.tick,feet:leadPlayer(host).position.toArray(),
+      riders:patrol.law.riders.map(row=>({id:row.a.entityId,hp:row.a.hp,distance:row.a.position.distanceTo(leadPlayer(host).position)}))}));
   }
   assert.ok(patrol.law.killsTonight>=5,'five actual rider deaths must open the gate');
   for(let tick=0;tick<12;tick++)await step(idle);
@@ -186,7 +187,7 @@ try{
       await step([...idle,{kind:'script',actorId:'nalati.weapon.swap',value:1}]);
     assert.equal(weaponState().slot,blade.id,'empty arrows require a real weapon swap, not an ammo grant');
     for(let tick=0;tick<3600&&captain.alive;tick++){
-      const p=host.player.position,dx=captain.position.x-p.x,dz=captain.position.z-p.z,d=Math.max(.01,Math.hypot(dx,dz));
+      const p=leadPlayer(host).position,dx=captain.position.x-p.x,dz=captain.position.z-p.z,d=Math.max(.01,Math.hypot(dx,dz));
       patrol.aimPoint(captain,head);
       // Version-one movement is the real local stick, resolved against this
       // facing. World move fields cannot substitute for a released stick.
@@ -194,7 +195,7 @@ try{
         steer:{keyX:0,keyY:0,stickX:d>2?0:.3,stickY:d>2?1:0}},
         {kind:'script',actorId:'nalati.weapon.pitch',value:Math.atan2(head.y-p.y-1.68,d)},
         ...(tick%24===0?[{kind:'script' as const,actorId:'nalati.weapon.attack',value:1}]:[])]);
-      if(tick%120===0)console.error(JSON.stringify({stage:'captain-sabre',hp:captain.hp,health:host.player.health.attributes.health,
+      if(tick%120===0)console.error(JSON.stringify({stage:'captain-sabre',hp:captain.hp,health:leadPlayer(host).health.attributes.health,
         distance:d,tick:host.state.tick,weapon:weaponState()}));
     }
   }

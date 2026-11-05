@@ -7,6 +7,7 @@ import { checkSimSnapshotWire, snapshotSimHostBytes, serializeSimSnapshot, type 
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { Rng } from '../src/engine/core/rng';
 import { MAX_TICK_SNAPSHOT_CHARS } from '../src/sdk/tickProtocol';
+import { leadSnapshot } from '@wildshard/engine/sim/snapshot';
 
 let initial: SimSnapshotBytes;
 beforeAll(async () => {
@@ -36,7 +37,7 @@ test('a conservative bound never refuses a large but compressible valid continua
 
 test.each(['pose', 'identity', 'accessor', 'cycle', 'legacy-byte', 'empty', 'too-large'] as const)('the observation keeps the writer refusal for %s', kind => {
   const saved = structuredClone(initial);
-  if (kind === 'pose') saved.player.position[0] = Number.NaN;
+  if (kind === 'pose') leadSnapshot(saved).position[0] = Number.NaN;
   if (kind === 'identity') saved.flags.push('duplicate', 'duplicate');
   if (kind === 'accessor') Object.defineProperty(saved, 'unexpected', { enumerable: true, get: () => 1 });
   if (kind === 'cycle') Reflect.set(saved, 'unexpected', saved);

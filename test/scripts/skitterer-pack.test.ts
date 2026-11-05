@@ -20,6 +20,7 @@ import { snapshotSimHost, restoreSimHost } from '../../src/engine/sim/snapshot';
 import { prepareRuntimeWorld } from '../../src/game/plugin/simulation';
 import { nativeRuntimeActorIds, parseNativeRuntimePlan } from '@wildshard/format/nativeRuntimePlan';
 import { borrowedDecisionControl } from '../../src/game/shardfile/borrowedDecisions';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 let directory: string;
 beforeAll(() => { directory = builtProduct('sunscar-dunes'); });
@@ -96,8 +97,8 @@ test('native pack uses one module, real contacts and an exact fresh-host continu
   try {
     world.install(host, { restoring: false, emit: () => undefined }).keeper.settle();
     const actor = host.entities.get('sunscar.home:1'); if (actor === undefined) throw new Error('Missing pack member');
-    host.player.position.copy(actor.position); host.player.position.z += 1;
-    let hits = 0; host.events.on('damage.dealt', event => { if (event.req.target === host.player.health) hits++; }, host.scope);
+    leadPlayer(host).position.copy(actor.position); leadPlayer(host).position.z += 1;
+    let hits = 0; host.events.on('damage.dealt', event => { if (event.req.target === leadPlayer(host).health) hits++; }, host.scope);
     const calls = vi.spyOn(DecisionModule.prototype, 'invoke');
     try {
       for (let i = 0; i < 240; i++) host.step();

@@ -12,6 +12,7 @@ import {prepareHeadlessRuntime} from '../nalati-stealth-native';
 import {nalatiHorsePlainsInputs} from '../../proof/nalati-grasslands/horsePlainsWalk';
 import {beginProductSession} from './productSession';
 import {checkedReplayPipeline} from './checkedReplayPipeline';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 console.info(JSON.stringify({phase:'prepare-start'}));
 const session=await beginProductSession('nalati-grasslands','nalati-stealth'),{product,assets}=session;
@@ -54,7 +55,7 @@ try{
   const flush=async(id:string):Promise<void>=>{
     if(offset===frames.length)return;
     assert.equal(resident.host.adapters.get('nalati.stealth'),owner,'capture retains its original awareness owner');
-    const part={id,start:offset,tick:frames.length,state:read(),position:resident.host.player.position.toArray(),flags:[...resident.host.flags.all]};
+    const part={id,start:offset,tick:frames.length,state:read(),position:leadPlayer(resident.host).position.toArray(),flags:[...resident.host.flags.all]};
     assert.ok(part.tick-part.start>0&&part.tick-part.start<=512);
     parts.push(part);
     const started=performance.now();await pipeline.offer(part);backpressureMs+=performance.now()-started;
@@ -83,7 +84,7 @@ try{
   for(const commands of nalatiHorsePlainsInputs(resident.host))await step(commands);
   for(let tick=0;tick<120;tick++)await step([]);
   assert.ok(seen.has('visible'));assert.ok(seen.has('noticed'));assert.ok(seen.has('detected'));assert.ok(checkpoint);
-  assert.equal(resident.host.player.health.alive,true);
+  assert.equal(leadPlayer(resident.host).health.alive,true);
   const final=read();marks.push({id:'after-real-awareness',tick:frames.length,state:final});
   await flush('after-real-awareness');await pipeline.finish();
   assert.equal(replayed,frames.length,'every original input is replayed once');

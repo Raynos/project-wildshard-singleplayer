@@ -13,6 +13,7 @@ import { speciesBrains } from '../src/sdk/speciesBrains';
 import { SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES } from '../src/shards/sunscar-dunes/generators/rows/brains';
 import { MATRIARCH_DATA } from '../src/shards/sunscar-dunes/generators/rows/species/matriarch';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const savedPolicy = v.object({ phase: v.number(), fighting: v.boolean(), decision: v.string() });
 const logical = v.object({ decision: v.object({ bindings: v.array(v.object({ failures: v.number(), slots: v.record(v.string(), v.union([v.number(), v.boolean()])) })) }) });
@@ -33,8 +34,8 @@ test('the Matriarch guest borrows each encounter body and resumes its grounded c
   };
   try {
     const environment = world.install(host, { restoring: false, emit: () => undefined }); environment.keeper.settle();
-    host.events.answer('damage.modify', request => request?.target === host.player.health ? null : request, host.scope);
-    host.player.position.set(-14, 0.1, -141); environment.encounter.summon();
+    host.events.answer('damage.modify', request => request?.target === leadPlayer(host).health ? null : request, host.scope);
+    leadPlayer(host).position.set(-14, 0.1, -141); environment.encounter.summon();
     for (let i = 0; i < 600; i++) host.step();
     const body = host.entities.get('sunscar.matriarch'); if (body === undefined) throw new Error('Encounter did not spawn its body');
     expect(policy(host)).toMatchObject({ phase: 0, fighting: true });
@@ -53,7 +54,8 @@ test('the Matriarch guest borrows each encounter body and resumes its grounded c
     restored = restoreSimHost(world.level, { ...world.ports, rapier }, saved, fresh => {
       world.install(fresh, { restoring: true, emit: () => undefined, snapshot: saved }).keeper.settle();
     });
-    restored.events.answer('damage.modify', request => request?.target === restored?.player.health ? null : request, restored.scope);
+    const restoredHealth = leadPlayer(restored).health;
+    restored.events.answer('damage.modify', request => request?.target === restoredHealth ? null : request, restored.scope);
     expect(policy(restored)).toEqual(policy(host));
     for (let i = 0; i < 360; i++) { host.step(); restored.step(); }
     expect(policy(restored)).toEqual(policy(host));

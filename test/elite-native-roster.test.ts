@@ -117,7 +117,7 @@ test('owner and callable replacements after borrowed construction publish no Cor
     const f = fixture();
     try {
       const roster = new NativeEliteRoster(f.input, f.loans), borrowed = f.borrowed(); roster.bindBorrowed(1, borrowed.member, borrowed.script);
-      if (change === 'player') Object.defineProperty(f.host, 'player', { value: {} });
+      if (change === 'player') Object.defineProperty(f.host, 'players', { value: new Map([['actor.player', {}]]) });
       else if (change === 'clock') Object.defineProperty(f.host, 'clock', { value: {} });
       else if (change === 'initialize') Object.defineProperty(f.core, 'initialize', { value: () => undefined });
       else if (change === 'rows') f.input.rows.reverse();

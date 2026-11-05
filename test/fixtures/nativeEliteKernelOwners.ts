@@ -2,6 +2,7 @@ import {lendNalatiAdmission} from './nalati-return-modules';
 import { vi, type Mock } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../../src/engine/app/scope';
+import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 import type { SimHost } from '../../src/engine/sim';
 import { RngService } from '../../src/engine/core/rng';
 import { StrikeRunner } from '../../src/engine/ai/strikes';
@@ -19,11 +20,12 @@ interface NativeKernelOwners {
 
 export function nativeKernelOwners(scope = new Scope('native-elites')): NativeKernelOwners {
   lendNalatiAdmission(scope);
-  const rng = new RngService(19), health = legacyDouble<SimHost['player']['health']>({});
+  const rng = new RngService(19), health = legacyDouble<PlayerSim['health']>({});
   const hit = vi.fn(), dash = vi.fn(), signature = vi.fn();
+  const player = legacyDouble<PlayerSim>({ id: 'actor.player', position: new Vector3(0, 0, .5), health, dashAt: dash });
   const host = legacyDouble<SimHost>({ scope, entities: new Map(), clock: legacyDouble<SimHost['clock']>({ now: 0 }), hasStep: () => false, level: legacyDouble<SimHost['level']>({ id: 'marsh' }),
-    player: legacyDouble<SimHost['player']>({ position: new Vector3(0, 0, .5), health }), physics: legacyDouble<SimHost['physics']>({}),
-    combat: legacyDouble<SimHost['combat']>({ hit }), rng, dashPlayer: dash });
+    players: new Map([[player.id, player]]), physics: legacyDouble<SimHost['physics']>({}),
+    combat: legacyDouble<SimHost['combat']>({ hit }), rng });
   const loans: NativeEliteKernelLoans = { scope, host, lifecycle: { signature }, contacts: new StrikeRunner(),
     strikes: [NALATI_STRIKES.swipe, NALATI_STRIKES.pounce, NALATI_STRIKES.bite], terrain: { heightAt: () => 0 },
     environment: { playerCrouched: false, playerFwdX: 0, playerFwdZ: 1, playerMounted: false, playerHealth01: 1,

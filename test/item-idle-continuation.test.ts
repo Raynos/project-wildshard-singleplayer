@@ -5,13 +5,14 @@ import { ItemRuntime, type ItemPorts } from '../src/engine/combat/items';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const rapier = loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
 
 test('idle tool clocks still consume fuel and process depletion callbacks before the current command snapshot', async () => {
   const host = createSimHost(SIM_LEVEL, { rapier: await rapier }), log: unknown[] = [];
   let active = true;
-  const ports: ItemPorts = { actor: host.player.health, combat: host.combat, active: () => active, hook: null,
+  const ports: ItemPorts = { actor: leadPlayer(host).health, combat: host.combat, active: () => active, hook: null,
     targets: () => { throw new Error('A light must not acquire a weapon target'); }, effect: () => { throw new Error('A light must not install a combat effect'); },
     changed(item, phase) {
       log.push([phase, item.remainingFuel, item.lightOn]);
@@ -40,7 +41,7 @@ test('an empty weapon queue still advances held charge and cooldown through nati
   const host = createSimHost(SIM_LEVEL, { rapier: await rapier }), log: string[] = [];
   const attack = { id: 'swing', damage: 1, cooldown: 0.5, range: 3, width: 1, tags: [], effect: null };
   const item = new ItemRuntime({ id: 'weapon', kind: 'weapon', light: attack, heavy: attack, charge: 0.2 }, {
-    actor: host.player.health, combat: host.combat, targets: () => [], hook: null,
+    actor: leadPlayer(host).health, combat: host.combat, targets: () => [], hook: null,
     effect: () => { throw new Error('No contacted target'); }, changed: (_item, phase) => { log.push(phase); },
   });
   const aim = { origin: { x: 0, y: 1, z: 0 }, direction: { x: 0, y: 0, z: -1 } };

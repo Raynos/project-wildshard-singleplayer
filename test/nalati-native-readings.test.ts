@@ -15,6 +15,7 @@ import content from '../src/shards/nalati-grasslands/data/questContent.json' wit
 import chapters from '../src/shards/nalati-grasslands/data/chapterStory.json' with {type:'json'};
 import {peopleRows} from '../src/shards/nalati-grasslands/generators/peopleRows.mjs';
 import type {HeadlessCommand,HeadlessEffect} from '../src/sdk/tickProtocol';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 test('the elder only grants his authored introduction when the real reading completes in reach',async()=>{
   const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
@@ -26,16 +27,16 @@ test('the elder only grants his authored introduction when the real reading comp
     installNalatiReadings(host,{commands:()=>commands,emit:effect=>{effects.push(effect);}},parseQuestData(content.quests),fixture,parseChapterStoryPresentation(chapters));
     commands=[{kind:'script',actorId:'nalati.talk',value:0}];host.step();
     expect(host.flags.has('talked:elder')).toBe(false);expect(host.adapters.get('nalati.talk')?.snapshot()).toBeNull();
-    host.resetPlayerPose({x:86.6,y:0,z:219.5},0);host.step();
+    leadPlayer(host).resetPose({x:86.6,y:0,z:219.5},0);host.step();
     expect(host.adapters.get('nalati.talk')?.snapshot()).not.toBeNull();expect(host.flags.has('talked:elder')).toBe(false);
     const reading=host.adapters.get('nalati.talk');if(reading===undefined)throw new Error('Missing actual reading owner');
     const saved=reading.snapshot();
     commands=[{kind:'script',actorId:'nalati.talk',value:-1}];host.step();
     expect(host.flags.has('talked:elder')).toBe(false);
     reading.restore(saved);expect(reading.snapshot()).toEqual(saved);expect(host.flags.has('talked:elder')).toBe(false);
-    commands=[];host.resetPlayerPose({x:0,y:0,z:0},0);host.step();
+    commands=[];leadPlayer(host).resetPose({x:0,y:0,z:0},0);host.step();
     expect(reading.snapshot()).toBeNull();expect(host.flags.has('talked:elder')).toBe(false);
-    host.resetPlayerPose({x:86.6,y:0,z:219.5},0);
+    leadPlayer(host).resetPose({x:86.6,y:0,z:219.5},0);
     commands=[{kind:'script',actorId:'nalati.talk',value:0}];
     for(let tick=0;tick<64&&!host.flags.has('talked:elder');tick++)host.step();
     expect(host.flags.has('talked:elder')).toBe(true);
@@ -67,9 +68,9 @@ test('the moving child uses his live orbit prompt and restores its actual contin
     expect(figures.snapshot()).toEqual(advanced);
     expect(()=>figures.restore([{id:'foreign',x:child.x,y:0,z:child.z,phase:0,ring:0,idleYaw:0}])).toThrow('Moving speaker continuation differs');
     expect(figures.snapshot()).toEqual(advanced);
-    host.resetPlayerPose({x:initial.x,y:0,z:initial.z},0);commands=[{kind:'script',actorId:'nalati.talk',value:3}];host.step();
+    leadPlayer(host).resetPose({x:initial.x,y:0,z:initial.z},0);commands=[{kind:'script',actorId:'nalati.talk',value:3}];host.step();
     expect(reading.snapshot()).toBeNull();
-    host.resetPlayerPose({x:child.x,y:0,z:child.z+1},0);host.step();
+    leadPlayer(host).resetPose({x:child.x,y:0,z:child.z+1},0);host.step();
     expect(reading.snapshot()).toMatchObject({kind:'child'});
     const stopped=figures.snapshot();commands=[];for(let tick=0;tick<30;tick++)host.step();
     const xy=(input:unknown)=>v.parse(v.array(v.object({x:v.number(),z:v.number()})),input).map(row=>[row.x,row.z]);

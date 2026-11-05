@@ -6,6 +6,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
 import { ScriptStrikes } from '../src/game/population/scriptStrikes';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { leadCommands } from '@wildshard/engine/sim/leadPlayer';
 
 const marshStrike = (exempt = false) => [{ id: 'marsh.bite', row: { id: 'strike.marsh.bite', shape: { kind: 'point', radius: 3 },
   windup: 0.1, active: 0.2, recover: 0.2, cooldown: 0, range: 3, damage: 7,
@@ -101,7 +102,7 @@ test('a made-up reed guardian drives different species, slots and laws through t
         program: { ...program, script: compiled, bytes: btoa(String.fromCodePoint(...blob.bytes)) },
         legacy: { fields: [], rivals: [], lanes: [], phase: 'p2', actorPrefix: 'creature:', rivalMode: 0 } }] });
     feature.initialize();
-    for (let i = 0; i < 20; i++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    for (let i = 0; i < 20; i++) host.step(leadCommands(host, { moveX: 0, moveZ: 0, yaw: 0 }));
     const script = feature.scripts[0]; if (script === undefined) throw new Error('Missing guardian');
     expect(script.program.failure).toBeNull(); expect(script.program.channel(1)).toBe(3); expect(script.program.channel(2)).toBe(1);
     expect(slots.map(slot => script.program.body(slot)?.variant)).toEqual(variants);

@@ -21,6 +21,7 @@ import { ClientChannels } from '../src/sdk/clientChannels';
 import { SaveStore } from '../src/engine/saves/store';
 import { GridRegionDurability } from '../src/game/grid/durability';
 import { FIXTURE_RUNTIME_COST } from './fixtures/clientPlanRuntime';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const rapier = loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
 const io = scriptV1Layout(1, 0), state = 16384 + io.state * 8, out = 16384 + io.outbox * 8;
@@ -204,7 +205,7 @@ test('spawnGroupAlive counts the whole declared pack across death and return', a
   const owner = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier: await rapier });
   for (const recipe of recipes) owner.spawn(recipe);
   const runtime: DecisionRuntime = { scope: owner.scope, events: owner.events, flags: owner.flags, get physics() { return owner.physics; },
-    player: owner.player, state: owner.state, slots: owner.slots, entities: owner.entities, strikes: owner.strikes,
+    player: leadPlayer(owner), state: owner.state, slots: owner.slots, entities: owner.entities, strikes: owner.strikes,
     borrowedActors: new Set(recipes.map(recipe => recipe.id)), groundHeightAt: (x, z) => owner.groundHeightAt(x, z),
     registerStrikeCatalogue: (id, strikes) => { owner.registerStrikeCatalogue(id, strikes); },
     startDeclaredStrike: (actor, target, strike) => owner.startDeclaredStrike(actor, target, strike),
@@ -406,7 +407,7 @@ test('retained actors lend their actual body, public memory and strike owner wit
     };
     const row = f.scripts[0]; if (row === undefined) throw new Error('Missing retained binding'); row.actors = { a: 'retained.actor.a', b: 'retained.actor.b' };
     const runtime: DecisionRuntime = { scope: owner.scope, events: owner.events, flags: owner.flags, physics: owner.physics,
-      player: owner.player, state: owner.state, slots: owner.slots, entities, strikes,
+      player: leadPlayer(owner), state: owner.state, slots: owner.slots, entities, strikes,
       borrowedActors: new Set(entities.keys()), groundHeightAt: owner.groundHeightAt.bind(owner),
       registerStrikeCatalogue: (id, specs) => {
         owner.registerStrikeCatalogue(actual(id), specs);
@@ -511,7 +512,7 @@ test('retained pose and eased depth read one admitted body and refuse a bad fram
     const script=f.scripts[0];if(script===undefined)throw new Error('Missing pose fixture guest');
     script.actors={a:'actor.a'};script.commands=[];script.fields={};script.flags={};script.moves={};script.strikes={};
     const owner=sim.host,authority=borrowedDecisionAuthority(source,f.assets,f.sections,{scope:owner.scope,events:owner.events,
-      flags:owner.flags,physics:owner.physics,player:owner.player,groundHeightAt:(x,z)=>owner.groundHeightAt(x,z),
+      flags:owner.flags,physics:owner.physics,player:leadPlayer(owner),groundHeightAt:(x,z)=>owner.groundHeightAt(x,z),
       live:body=>owner.entities.get(body.entityId)===body,fixed:(id,run,scope)=>{scope.onDispose(owner.onStep(id,run));}});
     const control=authority.bind(actor,{script:'controller',actor:'actor.a',strikeEffects:[]},{kind:'animal',motion:'ground',attack:'keeper',stunned:'none',
       contact:{kind:'environment',halfArc:Math.PI},actions:{stateKey:'phase',states:['hide','attack','idle','perch'],actions:[]},offset:{field:'lift',from:-2.8,to:0}});
@@ -541,7 +542,7 @@ test('a yielded spawn-group build publishes its step only after every declared b
     for (const slot of script.state) slot.scope = 'actor';
     const owner = sim.host, fixed = new Map<string, () => void>();
     const authority = borrowedDecisionAuthority(source, f.assets, f.sections, { scope: owner.scope, events: owner.events,
-      flags: owner.flags, physics: owner.physics, player: owner.player, groundHeightAt: (x, z) => owner.groundHeightAt(x, z),
+      flags: owner.flags, physics: owner.physics, player: leadPlayer(owner), groundHeightAt: (x, z) => owner.groundHeightAt(x, z),
       live: body => owner.entities.get(body.entityId) === body,
       fixed: (id, run, scope) => { if (fixed.has(id)) throw new Error('Duplicate group step'); fixed.set(id, run); scope.onDispose(() => { fixed.delete(id); }); },
     });

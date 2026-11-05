@@ -12,6 +12,7 @@ import { createNativeCombatFrame } from '../src/game/plugin/nativeItems';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { prepareProductPlan } from './fixtures/headless-native';
 import { canonicalSimDigest } from './fake/simState';
+import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const Value: v.GenericSchema<SimValue> = v.lazy(() => v.union([v.null(), v.boolean(), v.number(), v.string(), v.array(Value), v.record(v.string(), Value)]));
 const object = v.record(v.string(), v.unknown());
@@ -24,7 +25,7 @@ for (const [slug, prepare, step] of [['pine-hollow', prepareProductPlan, 'pine.e
     const plan = await prepare({ shard: product.shardfile, assets, rapier, product }), ports = { ...plan.ports, rapier };
     const context = { combat: createNativeCombatFrame(), commands: () => [], emit: () => undefined }, host = createSimHost(plan.level, ports);
     let replay: SimHost | undefined;
-    const advance = (h: SimHost): void => { h.step({ moveX: 0, moveZ: 0, yaw: 0 }); };
+    const advance = (h: SimHost): void => { h.step(leadCommands(h, { moveX: 0, moveZ: 0, yaw: 0 })); };
     try {
       installCableModes(host.scope, product.shardfile.modes?.traverse ?? [], host.flags).bindNative(host);
       plan.install(host, { restoring: false, ...context });
@@ -32,8 +33,8 @@ for (const [slug, prepare, step] of [['pine-hollow', prepareProductPlan, 'pine.e
       if (host.dayClock !== undefined) await host.dayClock.set(slug === 'pine-hollow' ? 0.9 : 20);
       const opponent = [...host.entities.values()].find(a => a.variant === (slug === 'pine-hollow' ? 'ghost' : 'aqbars'));
       if (opponent === undefined) throw new Error('Missing live elite');
-      host.player.position.copy(opponent.position); host.player.position.x += 8;
-      host.player.motor.resetAt(host.player.position); opponent.hp = opponent.maxHp * 0.4;
+      leadPlayer(host).position.copy(opponent.position); leadPlayer(host).position.x += 8;
+      leadPlayer(host).motor.resetAt(leadPlayer(host).position); opponent.hp = opponent.maxHp * 0.4;
       for (let tick = 0; tick < 4; tick++) advance(host);
       const adapter = host.adapters.get(step); if (adapter === undefined) throw new Error('Missing encounter owner');
       const state = adapter.snapshot(), saved = v.parse(object, state);

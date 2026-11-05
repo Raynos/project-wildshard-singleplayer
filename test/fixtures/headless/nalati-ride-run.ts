@@ -15,6 +15,7 @@ import {runTrustedHeadlessTape,type HeadlessTapeSegment} from '../../../src/sdk/
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import {prepareHeadlessRuntime} from '../nalati-verbs';
 import {nalatiCampTalkTape} from '../../proof/nalati-grasslands/verbTape';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const directory=builtProduct('nalati-grasslands'),product=await loadHeadlessProduct(directory),source=product.shardfile;
 const descriptor=outputDescriptor(source);assert.ok(descriptor);
@@ -38,7 +39,7 @@ try{
   }]});
   step([{kind:'script',actorId:'nalati.ride',value:1}]);assert.equal(mounted.mounted,true);mark('mount-camp-horse');
   const reins=(forward:number,turn:number,sprint=false):HeadlessCommand=>({kind:'player',moveX:0,moveZ:0,
-    yaw:resident.host.player.yaw,commandVersion:1,steer:{keyX:0,keyY:forward,stickX:turn,stickY:0},sprint});
+    yaw:leadPlayer(resident.host).yaw,commandVersion:1,steer:{keyX:0,keyY:forward,stickX:turn,stickY:0},sprint});
   // Back clear of the actual hitching rail, then turn with the native reins.
   for(let tick=0;tick<90;tick++)step([reins(-1,0)]);assert.ok(mounted.body.speed<0);mark('back-clear-of-rail');
   for(let tick=0;tick<240;tick++){

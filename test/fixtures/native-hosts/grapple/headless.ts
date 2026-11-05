@@ -6,6 +6,7 @@ import * as v from 'valibot';
 import { PerspectiveCamera, Vector3 } from 'three';
 import { fovForAspect } from '@wildshard/engine/combat/blocks/melee';
 import { grappleCourse } from '../../../../src/game/grapple/course';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** Standard tick services; content supplies profile rows, never authored handlers. */
 export interface GrappleTickContext {
@@ -23,24 +24,24 @@ const Saved = v.strictObject({
 
 /** Install traversal on the server's actual player motor and tick boundary. */
 export function installGrapple(host: SimHost, context: GrappleTickContext, profile: GrappleProfile, mode: GrappleMode, hooks: readonly { readonly x: number; readonly y: number; readonly z: number }[], guardHandles: readonly number[], rise = false): { readonly sim: GrappleSim; readonly guardOpen: () => boolean } {
-  const state = { pitch: 0, last: host.player.position.clone(), fall: { vy: host.playerFall.vy, grounded: host.playerFall.grounded }, guard: [...guardHandles] };
+  const state = { pitch: 0, last: leadPlayer(host).position.clone(), fall: { vy: leadPlayer(host).fall.vy, grounded: leadPlayer(host).fall.grounded }, guard: [...guardHandles] };
   const velocity = new Vector3();
   const body: GrappleBody = {
-    get position() { return host.player.position; },
+    get position() { return leadPlayer(host).position; },
     velocity,
-    get onGround() { return host.playerFall.grounded; },
-    set onGround(on) { host.playerFall.grounded = on; },
+    get onGround() { return leadPlayer(host).fall.grounded; },
+    set onGround(on) { leadPlayer(host).fall.grounded = on; },
     // the motor is read each time: a restore rebuilds the player's motor on the restored physics after install
-    get motor() { return host.player.motor; },
+    get motor() { return leadPlayer(host).motor; },
   };
   const ports: GrapplePorts = { get physics() { return host.physics; }, body };
   const camera = new PerspectiveCamera(fovForAspect(profile.headless.portraitFov, profile.headless.aspect), profile.headless.aspect, 0.08, 2600);
   const view: GrappleView = {
     eye: camera.position,
     update: () => {
-      const p = host.player.position;
+      const p = leadPlayer(host).position;
       camera.position.set(p.x, p.y + profile.headless.eye, p.z);
-      camera.rotation.set(state.pitch, host.player.yaw, 0, 'YXZ');
+      camera.rotation.set(state.pitch, leadPlayer(host).yaw, 0, 'YXZ');
       camera.updateMatrixWorld(true);
     },
     project: (point, out) => out.copy(point).project(camera),
@@ -68,7 +69,7 @@ export function installGrapple(host: SimHost, context: GrappleTickContext, profi
     setGuard(sim.guardOpen());
     if (fired || sim.phase !== 'idle') {
       // the grapple answers before the walk: run it from where the tick began, and keep the walk only if it declines
-      const p = host.player.position, fall = host.playerFall;
+      const p = leadPlayer(host).position, fall = leadPlayer(host).fall;
       moved.copy(p); walked.vy = fall.vy; walked.grounded = fall.grounded;
       p.copy(state.last); fall.vy = state.fall.vy; fall.grounded = state.fall.grounded;
       velocity.set(0, fall.vy, 0);
@@ -78,8 +79,8 @@ export function installGrapple(host: SimHost, context: GrappleTickContext, profi
       if (settling && sim.phase === 'idle' && profile.fact !== undefined) context.emit({ kind: 'fact', name: profile.fact.name, actorId: profile.fact.entity });
     }
     setGuard(sim.guardOpen()); sim.drainEvents();
-    const p = host.player.position;
-    state.last.set(p.x, p.y, p.z); state.fall.vy = host.playerFall.vy; state.fall.grounded = host.playerFall.grounded;
+    const p = leadPlayer(host).position;
+    state.last.set(p.x, p.y, p.z); state.fall.vy = leadPlayer(host).fall.vy; state.fall.grounded = leadPlayer(host).fall.grounded;
   }, { snapshot: () => JSON.stringify({ ...state, velocity: { x: velocity.x, y: velocity.y, z: velocity.z }, sim: sim.snapshot() }), restore: (value) => {
     if (typeof value !== 'string') throw new Error('Invalid grapple continuation');
     const saved = v.parse(Saved, JSON.parse(value));

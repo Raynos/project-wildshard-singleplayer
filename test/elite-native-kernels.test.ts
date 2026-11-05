@@ -1,3 +1,4 @@
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 // oxlint-disable-next-line import/no-nodejs-modules -- Real native restore regression loads the shipped physics runtime.
 import { readFileSync } from 'node:fs';
 import { createSimHost } from '../src/engine/sim';
@@ -118,7 +119,7 @@ test('sliced ancestor retirement closes native callbacks before the child is dis
     expect(retirement.next().done).toBe(false); expect(child.disposed).toBe(false); expect(child.disposing).toBe(true);
     expect(() => kernels.create(row.id, state)).toThrow('owner');
     f.loans.brains.get(f.actor)?.act(f.actor);
-    expect(f.combat.damageMul?.({ source: 'env', sourceTags: [], target: f.host.player.health, amount: 1, point: f.actor.position, dir: f.actor.position })).toBe(1);
+    expect(f.combat.damageMul?.({ source: 'env', sourceTags: [], target: leadPlayer(f.host).health, amount: 1, point: f.actor.position, dir: f.actor.position })).toBe(1);
     expect(f.hit).not.toHaveBeenCalled();
   } finally { for (const _step of retirement) { /* complete the original owner retirement */ } }
 });

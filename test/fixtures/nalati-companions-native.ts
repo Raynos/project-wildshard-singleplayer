@@ -8,6 +8,7 @@ import {pickPrompt} from '../../src/engine/world/interact/prompts';
 import type {AnimalSim} from '../../src/engine/entities/AnimalSim';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
 import {prepareProductPlan as prepareNalati} from './headless-native';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const finite=v.pipe(v.number(),v.finite());
 const id=v.pipe(v.string(),v.minLength(1),v.maxLength(128));
@@ -46,17 +47,17 @@ export function withNalatiCompanions(prepare:PrepareHeadlessRuntime):PrepareHead
     sync();
     host.onStep('nalati.companions',dt=>{
       sync();
-      companions.update(dt,host.player.position,{ridden:()=>mounted.horse,now:()=>host.clock.now,
+      companions.update(dt,leadPlayer(host).position,{ridden:()=>mounted.horse,now:()=>host.clock.now,
         throwRider:()=>{
           mounted.dismount(true);
-          host.combat.hit({source:'env',sourceTags:['env.ride'],target:host.player.health,amount:rows.profile.thrownDamage,
-            point:host.player.position,dir:mounted.rider.velocity,cause:{kind:'env.ride',label:rows.profile.thrownLabel,text:rows.profile.thrownLabel}});
+          host.combat.hit({source:'env',sourceTags:['env.ride'],target:leadPlayer(host).health,amount:rows.profile.thrownDamage,
+            point:leadPlayer(host).position,dir:mounted.rider.velocity,cause:{kind:'env.ride',label:rows.profile.thrownLabel,text:rows.profile.thrownLabel}});
         },bolted:()=>{ /* The page owns its bolt sound and caption. */ }});
       clock+=dt;
       if(clock+1e-9>=.1){
         clock=0;candidate=null;radius=0;
         if(!mounted.mounted&&open===null){
-          const selected=companionToName(companions.list,(signal,frame)=>rules.project(signal,frame),rows.taming.rail,host.player.position);
+          const selected=companionToName(companions.list,(signal,frame)=>rules.project(signal,frame),rows.taming.rail,leadPlayer(host).position);
           if(selected!==null){candidate=selected.actor;point.x=selected.row['x']??candidate.position.x;point.z=selected.row['z']??candidate.position.z;
             point.y=host.groundHeightAt(point.x,point.z)+1.5;radius=selected.row['radius']??0;}
         }
@@ -65,7 +66,7 @@ export function withNalatiCompanions(prepare:PrepareHeadlessRuntime):PrepareHead
         if(command.kind!=='script')continue;
         if(command.actorId==='nalati.name.open'){
           if(command.value!==1)throw new Error('Invalid name-open input');
-          const at=host.player.position;
+          const at=leadPlayer(host).position;
           const namePrompt={position:point,radius},mountPrompts=companions.list.map(entry=>({position:entry.a.position,radius:entry.it.radius}));
           const selected=pickPrompt([...mountPrompts,namePrompt],{x:at.x,y:at.y+1.68,z:at.z},host.physics);
           if(open===null&&!mounted.mounted&&candidate!==null&&selected===namePrompt){open=candidate.entityId;draft=companions.nameOf(open)??candidate.label;}
@@ -81,12 +82,12 @@ export function withNalatiCompanions(prepare:PrepareHeadlessRuntime):PrepareHead
           if(command.value!==1)throw new Error('Invalid name-close input');open=null;draft='';
         }else if(command.actorId==='nalati.whistle'){
           if(command.value!==1)throw new Error('Invalid whistle input');
-          const called=mounted.mounted?null:companions.whistle(host.player.position,actor=>actor.alive&&companions.free(actor));
-          lastCalled=called?.entityId??null;calledDistance=called?.position.distanceTo(host.player.position)??0;
+          const called=mounted.mounted?null:companions.whistle(leadPlayer(host).position,actor=>actor.alive&&companions.free(actor));
+          lastCalled=called?.entityId??null;calledDistance=called?.position.distanceTo(leadPlayer(host).position)??0;
         }else if(command.actorId==='nalati.companion.use'){
           if(command.value!==1)throw new Error('Invalid companion-use input');
           if(mounted.mounted){mounted.dismount();continue;}
-          const prompts=companions.list.map(entry=>({entry,position:entry.a.position,radius:entry.it.radius})),at=host.player.position;
+          const prompts=companions.list.map(entry=>({entry,position:entry.a.position,radius:entry.it.radius})),at=leadPlayer(host).position;
           const selected=pickPrompt(prompts,{x:at.x,y:at.y+1.68,z:at.z},host.physics);
           if(selected!==undefined&&companions.free(selected.entry.a))mounted.mount(selected.entry.a.entityId);
         }

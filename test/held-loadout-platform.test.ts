@@ -70,7 +70,7 @@ test('harbour native ammunition keeps swaps, caps, fallback and atomic continuat
   const rows = { ...pineRows, pouch: { kinds: ['harpoon', 'flare'], fallback: 'harpoon', capacity: 12 },
     firearm: { ...pineRows.firearm, ammo: 'canister' }, bow: { ...pineRows.bow, ammo: 'line' } };
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-  const host = createSimHost({ version: 1, id: 'harbour-ammunition', seed: 7, ground: { size: 20, height: 0 },
+  const host = createSimHost({ version: 2, id: 'harbour-ammunition', seed: 7, ground: { size: 20, height: 0 },
     player: { at: { x: 0, y: 1, z: 0 }, yaw: 0, speed: 5 }, weapon: HOST_PROBE, entities: [], quests: [] }, { rapier });
   const frame = createNativeCombatFrame(), items = parseItems(itemRows);
   let crossbowState: { quiver: number; loaded: boolean; reloading: boolean } | undefined;

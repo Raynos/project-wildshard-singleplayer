@@ -11,6 +11,7 @@ import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
 import { parseItems } from '@wildshard/format/items';
 import { pineItems } from '../src/shards/pine-hollow/generators/channelSections';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 // GR8: called, not read from a scheduler job's output
 const items = pineItems();
@@ -51,7 +52,7 @@ test('the concrete frame receives the original motion factor before gameplay and
     const saved = snapshotSimHost(host);
     prepared.install(host, context);
     expect(snapshotSimHost(host)).toEqual(saved);
-    host.usePlayerDriver({ input: () => true, step: () => undefined, motionSample: () => sample });
+    leadPlayer(host).useDriver({ input: () => true, step: () => undefined, motionSample: () => sample });
     const observed: (number | null)[] = [];
     host.onStep('motion.read', () => { observed.push(frame.speedFactor); });
     const states: SimPlayerMotionSample[] = [sample,
@@ -70,7 +71,7 @@ test('missing combat refuses before registering; delegated motion without a samp
     expect(() => prepared.install(host, {})).toThrow('requires its combat frame');
     expect(snapshotSimHost(host)).toEqual(saved);
     prepared.install(host, { combat: frame });
-    host.usePlayerDriver({ input: () => true, step: () => undefined });
+    leadPlayer(host).useDriver({ input: () => true, step: () => undefined });
     host.step(); expect(frame.speedFactor).toBeNull();
     const weapon = parseItems(items).rows.find(row => row.id === 'weapon.lever');
     if (weapon?.kind !== 'weapon' || weapon.ranged === undefined || weapon.profile === undefined) throw new Error('Missing fixture lever');

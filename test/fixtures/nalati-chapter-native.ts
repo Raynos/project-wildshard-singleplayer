@@ -22,6 +22,7 @@ import {installNalatiChapterObservation} from './nalati-chapter-observation';
 import type {NalatiChapterRecords} from './nalati-chapter-records';
 import {installPackedChapterTaming} from './headless/chapterObservation';
 import {createNalatiChapterPresentation} from './nalati-chapter-presentation';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 interface ChapterLoans {
   /** These methods must read their original entered encounters, or an explicit
@@ -104,7 +105,7 @@ export async function prepareNalatiChapter(preparation:Parameters<PrepareHeadles
     const closed=Object.freeze({kind:'closed' as const});
     const check=():void=>{
       if(nalatiTitanOf(host)!==titan||host.scope.disposed||host.scope.disposing)throw new Error('Chapter encounter loan retired');
-      const at=host.player.position,r=room.halfWidth;
+      const at=leadPlayer(host).position,r=room.halfWidth;
       if(Math.hypot(at.x-door.x,at.z-door.z)<r||Math.abs(at.x-room.origin.x)<r+1&&Math.abs(at.z-room.origin.z)<room.corridorEnd+1&&Math.abs(at.y-room.origin.y)<8)
         throw new Error('Closed King loan cannot enter its doorway or room');
       const saved=titan.records.bosses.read()['golden-king'];

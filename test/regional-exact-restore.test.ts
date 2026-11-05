@@ -20,6 +20,7 @@ import {fnv1a32} from '../src/engine/core/rng';
 import * as v from 'valibot';
 import {encodeMeshCollision} from '@wildshard/format/meshCollisionBytes';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
+import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const rapier=loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
 let fixed:Uint8Array=new Uint8Array(),grown:Uint8Array=new Uint8Array();
@@ -63,14 +64,14 @@ test.each([false,true])('fresh basis and single module installation are identica
     platform(original.host);platform(target.host);
     expect(install).toHaveBeenCalledTimes(1);
     expect(Buffer.compare(original.host.physics.snapshot(),target.host.physics.snapshot())).toBe(0);
-    expect(target.keep()).toBe(target.simulation.host);expect(target.host.hasPlayerMotor).toBe(false);
+    expect(target.keep()).toBe(target.simulation.host);expect(leadPlayer(target.host).hasMotor).toBe(false);
     expect(()=>target.keep()).toThrow('consumed');expect(()=>onSimHostRestored(target.host,()=>undefined)).toThrow('not restoring');
   }finally{install.mockRestore();original.dispose();target.host.dispose();}
 });
 
 test.each([false,true])('exact restore installs once and preserves complete state and subsequent replay (grown=%s)',async grow=>{
   const f=fixture(grow?grown:fixed),R=await rapier,original=createShardfileSim(f.source,f.assets,{rapier:R});
-  for(let tick=0;tick<8;tick++)original.host.step({moveX:.25,moveZ:0,yaw:.4});
+  for(let tick=0;tick<8;tick++)original.host.step(leadCommands(original.host, {moveX:.25,moveZ:0,yaw:.4}));
   original.host.flags.set('kept');const saved=snapshotSimHost(original.host),install=vi.spyOn(ScriptHost.prototype,'install');
   const target=prepareShardfileSimRestore(f.source,f.assets,{rapier:R}),lane=target.simulation.lane;
   try{
@@ -83,7 +84,7 @@ test.each([false,true])('exact restore installs once and preserves complete stat
     expect(serializeSimSnapshot(snapshotSimHost(target.host))).toBe(serializeSimSnapshot(saved));
     expect(lane.host.checkpoint().modules[0]?.memory.length).toBe(grow?131072:65536);
     expect(checkpoint.modules[0]?.memory.length).toBe(65536);
-    for(let tick=0;tick<6;tick++){const command={moveX:0,moveZ:.25,yaw:1};original.host.step(command);target.host.step(command);}
+    for(let tick=0;tick<6;tick++){const command={moveX:0,moveZ:.25,yaw:1};original.host.step(leadCommands(original.host, command));target.host.step(leadCommands(target.host, command));}
     expect(serializeSimSnapshot(snapshotSimHost(target.host))).toBe(serializeSimSnapshot(snapshotSimHost(original.host)));
     expect(()=>target.restore(saved)).toThrow('consumed');
   }finally{install.mockRestore();target.host.dispose();original.dispose();}
@@ -94,11 +95,11 @@ test('bodyless regional target restores saved native walls and motor before deta
   const saved=snapshotSimHost(original.host),target=prepareShardfileSimRestore(f.source,f.assets,{rapier:R,playerBody:false}),restoredWalls=platform(target.host);
   const constructorPhysics=target.host.physics,free=vi.spyOn(constructorPhysics,'dispose');
   try{
-    target.restore(saved);expect(target.host.hasPlayerMotor).toBe(true);restoredWalls.sync();
-    expect(restoredWalls.snapshot()).toEqual(walls.snapshot());expect(target.host.playerMotorOptions()).toEqual(original.host.player.motor.opts);
+    target.restore(saved);expect(leadPlayer(target.host).hasMotor).toBe(true);restoredWalls.sync();
+    expect(restoredWalls.snapshot()).toEqual(walls.snapshot());expect(target.host.playerMotorOptions(leadPlayer(target.host))).toEqual(leadPlayer(original.host).motor.opts);
     expect(serializeSimSnapshot(snapshotSimHost(target.host))).toBe(serializeSimSnapshot(saved));
     expect(target.simulation.colliders.get('mesh.tile.4.4')?.active()).toBe(true);
-    expect(free).toHaveBeenCalledTimes(1);target.host.detachPlayerMotor();expect(target.host.hasPlayerMotor).toBe(false);
+    expect(free).toHaveBeenCalledTimes(1);leadPlayer(target.host).detachMotor();expect(leadPlayer(target.host).hasMotor).toBe(false);
     expect(()=>target.host.dispose()).not.toThrow();expect(free).toHaveBeenCalledTimes(1);
   }finally{free.mockRestore();target.host.dispose();original.dispose();}
 });

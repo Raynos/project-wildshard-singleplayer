@@ -18,6 +18,7 @@ import { app } from '../src/engine/app/runtime';
 import type { ShardContext } from '../src/game/plugin/context';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { installKitWorldFixture } from './fixtures/kit-world';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 await installKitWorldFixture();
 
@@ -149,9 +150,9 @@ test('intent samples remain requested motion and floors preserve captured null/b
       { x: 0, z: 0, step: 2, width: 1, height: 1, values: [5] },
     ] });
     expect(() => ops.read(26, 0, 0)).toThrow('unavailable');
-    const requested = { x: 1.5, z: -2 }; const before = host.player.position.clone();
+    const requested = { x: 1.5, z: -2 }; const before = leadPlayer(host).position.clone();
     ops.setPlayerIntent(requested); requested.x = 0;
-    expect(host.player.position).toMatchObject(before);
+    expect(leadPlayer(host).position).toMatchObject(before);
     expect(ops.read(26, 0, 0)).toBe(1.5); expect(ops.read(26, 1, 0)).toBe(-2);
     expect(() => ops.read(26, 2, 0)).toThrow(); expect(() => ops.read(26, 0, 1)).toThrow();
     expect(() => ops.setPlayerIntent({ x: Infinity, z: 0 })).toThrow(); expect(ops.read(26, 0, 0)).toBe(1.5);

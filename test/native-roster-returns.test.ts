@@ -9,6 +9,7 @@ import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
 import { RETURN_PROGRAM } from './fixtures/driftwood-guest-programs';
 import { fixtureNativeRoster } from './fixtures/native-roster';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 test('salt-marsh native returns retain predecessor identities, queue order and quiet restore', async () => {
   const declaration = { ...RETURN_PROGRAM.script, id: 'marsh.returns', source: 'behaviour/marsh.as' };
@@ -43,7 +44,7 @@ test('salt-marsh native returns retain predecessor identities, queue order and q
     expect(state.pending.map(row => row.id)).toEqual(['sentry.left', 'sentry.right']);
     expect(state.pending.map(row => row.due)).toEqual([2, 2]);
     expect(returns.take(1)).toEqual([]); expect(returns.take(1)).toEqual([]);
-    host.player.position.x = 11;
+    leadPlayer(host).position.x = 11;
     expect(returns.take(1).map(row => returns.place(row)).map(row => [row?.id, row?.x, row?.z])).toEqual([['sentry.right', 6, 2], ['sentry.left', 4, 2]]);
     returns.restore(state);
     expect(returns.snapshot()).toEqual(state); expect(host.rng.stream('spawn').snapshot()).toEqual(stream);

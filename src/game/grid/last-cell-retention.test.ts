@@ -9,8 +9,9 @@ import { LiveGridHost } from './live';
 import { PageResidency } from './pageResidency';
 import { ApproachInputsDeferredError } from './productInputs';
 import { NearPlaceholders } from './nearPlaceholderView';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
-const level: SimLevel = { version: 1, id: 'platform', seed: 1, ground: { size: 500, height: 0 },
+const level: SimLevel = { version: 2, id: 'platform', seed: 1, ground: { size: 500, height: 0 },
   player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 30 }, entities: [], quests: [],
   weapon: { id: 'none', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
 
@@ -23,7 +24,7 @@ async function fixture(options: { cap?: number; isolated?: boolean; beforeAdmit?
   const objects = new Map<string, object>(), allocated: { instance: string; owners: string[] }[] = [];
   const expiries: { run: () => void; delay: number; cancelled: boolean }[] = [];
   const control = { dispose: true, checkpoint: true };
-  const player = { position: page.player.position, yaw: 0, health: page.player.health, owner: page.player, motor: page.releasePlayerMotor() };
+  const player = { position: leadPlayer(page).position, yaw: 0, health: leadPlayer(page).health, owner: leadPlayer(page), motor: leadPlayer(page).releaseMotor() };
   const live = new LiveGridHost(assembly, {
     home: { mode: 'owned', instance: home.instance, bytes: 50_000_000, residency: residency.admitHome(home.instance, 50_000_000) },
     player, allocator: residency.allocator, continuations: 'durable', save: () => true,

@@ -8,6 +8,7 @@ import {prepareNalatiWorld} from './nalati-world';
 import {withNalatiCompanions} from './nalati-companions-native';
 import {withNalatiWeapons} from './nalati-weapons-native';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const Signal=v.strictObject({name:v.string(),x:v.pipe(v.number(),v.finite()),z:v.pipe(v.number(),v.finite()),tick:v.pipe(v.number(),v.integer(),v.minValue(0))});
 const Cue=v.strictObject({kind:v.string(),text:v.string(),sound:v.nullable(v.string()),actor:v.nullable(v.string())});
@@ -42,7 +43,7 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
       snapshot:()=>JSON.stringify({signals,cues,notices:notices.snapshot(),raid:population.raid.snapshot(),
         flocks:population.flocks.map(flock=>({count:flock.n,alive:flock.alive,x:flock.cx,z:flock.cz})),
         wolves:[...host.entities.values()].filter(actor=>actor.kind==='wolf').map(actor=>actor.snapshot()),
-        shepherd:population.raid.shepherd?.snapshot()??null,health:host.player.health.attributes}),
+        shepherd:population.raid.shepherd?.snapshot()??null,health:leadPlayer(host).health.attributes}),
       restore:input=>{
         const saved=v.parse(Saved,typeof input==='string'?JSON.parse(input):input);
         signals.splice(0,signals.length,...saved.signals);

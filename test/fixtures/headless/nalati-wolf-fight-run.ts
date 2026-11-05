@@ -9,6 +9,7 @@ import {runTrustedHeadlessTape} from '../../../src/sdk/headlessTape';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import {beginProductSession} from './productSession';
 import {earnNalatiPasture} from './nalati-pasture-session';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const {resident,product,population,flock,sheep,originalWolves,checkpoint,checkpointTick}=await earnNalatiPasture();
 let replay:Awaited<ReturnType<Awaited<ReturnType<typeof beginProductSession>>['ready']>>|undefined;
@@ -22,7 +23,7 @@ try{
   const raiders=()=>[...resident.host.entities.values()].filter(actor=>actor.kind==='wolf'&&!originalWolves.includes(actor.entityId));
   const initial=new Map(raiders().map(actor=>[actor.entityId,actor.hp]));assert.ok(initial.size>0);
   const aim=(held:boolean):HeadlessCommand[]=>{
-    const feet=resident.host.player.position;
+    const feet=leadPlayer(resident.host).position;
     const target=raiders().filter(actor=>actor.alive).sort((a,b)=>a.position.distanceToSquared(feet)-b.position.distanceToSquared(feet))[0];
     if(target===undefined)return [];
     target.headWorld(head);
@@ -45,7 +46,7 @@ try{
   assert.ok(raiders().some(actor=>actor.hp<(initial.get(actor.entityId)??0)),'real full-draw arrows damage an actual raider');
   assert.ok(raiders().some(actor=>!actor.alive),'an actual raider dies through the projectile contact law');
   assert.equal(flock.alive,sheep);assert.equal(population.raid.taken,0);assert.equal(population.raid.drivenOff,1);
-  assert.equal(resident.host.player.health.alive,true);
+  assert.equal(leadPlayer(resident.host).health.alive,true);
   const owner=resident.host.adapters.get('nalati.weapons');assert.ok(owner);
   const saved=owner.snapshot();assert.equal(typeof saved,'string');
   if(typeof saved!=='string')throw new Error('Missing actual native bow continuation');

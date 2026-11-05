@@ -11,6 +11,7 @@ import { inNormalizedDayRange } from '../src/engine/world/dayCycle';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { SimHost } from '../src/engine/sim';
 import { snapshotSimHost } from '../src/engine/sim/snapshot';
+import { leadCommands } from '@wildshard/engine/sim/leadPlayer';
 
 const data = (): DirectorStagesData => ({ version: 2, id: 'loop', script: null,
   inputs: { ready: 'flag:ready', window: 'day:0.2..0.6', other: 'flag:other' },
@@ -65,7 +66,7 @@ test('live native director observations retain every original host byte across m
       row.inputs['window'] = `day:0.${String(tick % 40).padStart(2, '0')}..1`;
       for (const host of [current.host, reference.host]) {
         host.flags.set('ready', tick % 7 < 4); host.flags.set('fresh', tick % 11 < 6); host.flags.set('other', tick % 3 === 0);
-        host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+        host.step(leadCommands(host, { moveX: 0, moveZ: 0, yaw: 0 }));
       }
       deepStrictEqual(snapshotSimHost(current.host), snapshotSimHost(reference.host));
       if (tick === 32) saved = newAdapter.snapshot();
@@ -77,14 +78,14 @@ test('live native director observations retain every original host byte across m
     }
     for (const invalid of ['day:0.8..0.2', 'day:invalid']) {
       row.inputs['window'] = invalid;
-      expect(() => current.host.step({ moveX: 0, moveZ: 0, yaw: 0 })).toThrow();
-      expect(() => reference.host.step({ moveX: 0, moveZ: 0, yaw: 0 })).toThrow();
+      expect(() => current.host.step(leadCommands(current.host, { moveX: 0, moveZ: 0, yaw: 0 }))).toThrow();
+      expect(() => reference.host.step(leadCommands(reference.host, { moveX: 0, moveZ: 0, yaw: 0 }))).toThrow();
       deepStrictEqual(snapshotSimHost(current.host), snapshotSimHost(reference.host));
     }
     row.inputs['window'] = 'day:0..1';
     Object.defineProperty(row.inputs, '__proto__', { value: 'flag:ready', enumerable: true, configurable: true });
-    expect(() => current.host.step({ moveX: 0, moveZ: 0, yaw: 0 })).toThrow('Invalid stage director observation');
-    expect(() => reference.host.step({ moveX: 0, moveZ: 0, yaw: 0 })).toThrow('Invalid stage director observation');
+    expect(() => current.host.step(leadCommands(current.host, { moveX: 0, moveZ: 0, yaw: 0 }))).toThrow('Invalid stage director observation');
+    expect(() => reference.host.step(leadCommands(reference.host, { moveX: 0, moveZ: 0, yaw: 0 }))).toThrow('Invalid stage director observation');
     deepStrictEqual(snapshotSimHost(current.host), snapshotSimHost(reference.host));
   } finally { onStep.mockRestore(); current.dispose(); before?.dispose(); }
 });

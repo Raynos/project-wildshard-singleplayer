@@ -10,7 +10,7 @@ import { outputDescriptor } from '../../../src/game/shardfile/outputDescriptor';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify native blobs against the admitted output inventory.
 import { createHash } from 'node:crypto';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
-import { canonicalSimDigest } from '../../fake/simState';
+import { canonicalSimDigest, simWireV1 } from '../../fake/simState';
 import { decodeSimSnapshot } from '../../../src/engine/sim/snapshot';
 import { createNativeProofAdapter } from '../../fixtures/headless-native';
 import { prepareHeadlessRuntime } from '../../fixtures/nine-headless';
@@ -127,7 +127,7 @@ export async function writeCheckpoints(rapier: Rapier, inputs: string): Promise<
     for (const name of ['ride', 'crossing'] as const) {
       const tick = SLICES[name].from, snapshot = run(sim, from, tick);
       checkCheckpoint(name, snapshot);
-      writeFileSync(checkpointFile(name), gzipSync(JSON.stringify({ tick, snapshot }), { level: 9 }));
+      writeFileSync(checkpointFile(name), gzipSync(JSON.stringify({ tick, snapshot: simWireV1(snapshot) }), { level: 9 }));
       from = tick;
     }
     const manifest = v.parse(ManifestSchema, { inputs, ticks: { ride: SLICES.ride.from, crossing: SLICES.crossing.from } });

@@ -9,6 +9,7 @@ import {runTrustedHeadlessTape} from '../../../src/sdk/headlessTape';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import {earnNalatiPasture} from './nalati-pasture-session';
 import {beginProductSession} from './productSession';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const mode=process.argv[2];if(mode!=='thrust'&&mode!=='javelin')throw new Error('Unknown fixed native polearm proof');
 const {resident,product,population,checkpoint,checkpointTick}=await earnNalatiPasture([
@@ -26,11 +27,11 @@ try{
   const groups=nativeGroupCollection(resident.host,'nalati.groups'),pack=groups.packs[population.raid.snapshot().raiders];assert.ok(pack);
   const initial=new Map(pack.members.map(actor=>[actor.entityId,actor.hp]));assert.ok(initial.size>0);
   const damaged=()=>pack.members.some(actor=>actor.hp<(initial.get(actor.entityId)??0));
-  const nearest=()=>pack.members.filter(actor=>actor.alive).sort((a,b)=>a.position.distanceToSquared(resident.host.player.position)-b.position.distanceToSquared(resident.host.player.position))[0];
+  const nearest=()=>pack.members.filter(actor=>actor.alive).sort((a,b)=>a.position.distanceToSquared(leadPlayer(resident.host).position)-b.position.distanceToSquared(leadPlayer(resident.host).position))[0];
   for(let swap=0;swap<2;swap++)step([{kind:'script',actorId:'nalati.weapon.swap',value:1}]);
   if(mode==='thrust'){
     for(let tick=0;tick<1800&&!damaged();tick++){
-      const feet=resident.host.player.position,target=nearest();assert.ok(target);
+      const feet=leadPlayer(resident.host).position,target=nearest();assert.ok(target);
       const dx=target.position.x-feet.x,dz=target.position.z-feet.z,gap=Math.hypot(dx,dz);
       const commands:HeadlessCommand[]=[{kind:'player',moveX:0,moveZ:0,yaw:Math.atan2(-dx,-dz),commandVersion:1,
         steer:{keyX:0,keyY:gap>2?1:0,stickX:0,stickY:0}},
@@ -42,7 +43,7 @@ try{
     // Walk toward a real moving raider before raising AIM. Only observed body
     // motion is led; no target identity, pose or damage crosses the input port.
     for(let tick=0;tick<1200;tick++){
-      const feet=resident.host.player.position,target=nearest();assert.ok(target);
+      const feet=leadPlayer(resident.host).position,target=nearest();assert.ok(target);
       const dx=target.position.x-feet.x,dz=target.position.z-feet.z;if(Math.hypot(dx,dz)<6)break;
       step([{kind:'player',moveX:0,moveZ:0,yaw:Math.atan2(-dx,-dz),commandVersion:1,steer:{keyX:0,keyY:1,stickX:0,stickY:0}}]);
     }
@@ -51,7 +52,7 @@ try{
       velocities.set(actor.entityId,actor.position.clone().sub(last).multiplyScalar(60));last.copy(actor.position);}};
     const rear=new Vector3(),front=new Vector3(),center=new Vector3();
     const aim=(held:boolean):HeadlessCommand[]=>{
-      const feet=resident.host.player.position,target=nearest();assert.ok(target);
+      const feet=leadPlayer(resident.host).position,target=nearest();assert.ok(target);
       target.bodyCapsule(rear,front);center.addVectors(rear,front).multiplyScalar(.5);
       const time=Math.hypot(center.x-feet.x,center.z-feet.z)/thrown.speed,velocity=velocities.get(target.entityId);
       if(velocity!==undefined)center.addScaledVector(velocity,time);center.y+=.5*thrown.gravity*time*time;
@@ -66,7 +67,7 @@ try{
     }
   }
   assert.ok(damaged(),`real ${mode} inputs damage an actual moving raider`);
-  assert.equal(resident.host.player.health.alive,true);
+  assert.equal(leadPlayer(resident.host).health.alive,true);
   const owner=resident.host.adapters.get('nalati.weapons');assert.ok(owner);const saved=owner.snapshot();assert.equal(typeof saved,'string');
   if(typeof saved!=='string')throw new Error('Missing actual polearm continuation');
   const state=v.parse(v.object({thrusts:v.number(),throws:v.number(),ammo:v.number()}),JSON.parse(saved));

@@ -13,19 +13,20 @@ import {createNativeProofAdapter,createNativeProofResident} from './fixtures/hea
 import {prepareHeadlessRuntime} from './fixtures/headless/trustedRuntime';
 import type {HeadlessCommand} from '../src/sdk/tickProtocol';
 import type {TickWorkerAdapter} from '../src/sdk/tickWorkerLoop';
+import { leadCommands } from '@wildshard/engine/sim/leadPlayer';
 
 test('byte capture retains exact native fight checkpoint wire and restored suffix',async()=>{
  const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
  const host=createSimHost(SIM_LEVEL,{rapier});let restored:SimHost|undefined;
  try{
-  for(let tick=0;tick<120;tick++)host.step(fightCommand(tick));
+  for(let tick=0;tick<120;tick++)host.step(leadCommands(host, fightCommand(tick)));
   const legacy=serializeSimSnapshot(snapshotSimHost(host)),bytes=snapshotSimHostBytes(host);
   expect(bytes.physics).toBeInstanceOf(Uint8Array);
   expect(serializeSimSnapshot(bytes)).toBe(legacy);
   const frozen=bytes.physics.slice();
   restored=restoreSimHost(SIM_LEVEL,{rapier},decodeSimSnapshot(legacy));
   for(let tick=120;tick<132;tick++){
-   host.step(fightCommand(tick));restored.step(fightCommand(tick));
+   host.step(leadCommands(host, fightCommand(tick)));restored.step(leadCommands(restored, fightCommand(tick)));
    const checkpoint=serializeSimSnapshot(snapshotSimHostBytes(host));
    expect(checkpoint).toBe(serializeSimSnapshot(snapshotSimHost(host)));
    expect(serializeSimSnapshot(snapshotSimHostBytes(restored))).toBe(checkpoint);

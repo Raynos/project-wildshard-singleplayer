@@ -36,6 +36,7 @@ import { netTickCommands } from '../src/sdk/standalone/netInput';
 import { tickCommands, type HeadlessCommand } from '../src/sdk/tickProtocol';
 import { canonicalSimDigest } from './fake/simState';
 import { builtProduct } from './fixtures/builtProduct';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 // P1-E3.2: hits and damage settled by the shipped headless host (`createTrustedHeadlessResident`, what the standalone
 // worker runs) on real shards: Driftwood's swept swords, Pine's bow and lever rifle. Each is held against the browser's own
@@ -56,7 +57,7 @@ const body = (resident: TrustedHeadlessResident, id: string): AnimalSim => {
   const actor = resident.host.entities.get(id); if (actor === undefined) throw new Error(`No creature ${id}`); return actor;
 };
 const nearest = (resident: TrustedHeadlessResident, kind: string): AnimalSim => {
-  const p = resident.host.player.position, rows = [...resident.host.entities.values()].filter(row => row.kind === kind && row.alive);
+  const p = leadPlayer(resident.host).position, rows = [...resident.host.entities.values()].filter(row => row.kind === kind && row.alive);
   const best = rows.sort((a, b) => a.position.distanceTo(p) - b.position.distanceTo(p))[0];
   if (best === undefined) throw new Error(`No ${kind}`); return best;
 };
@@ -64,14 +65,14 @@ const nearest = (resident: TrustedHeadlessResident, kind: string): AnimalSim => 
 const hold = (resident: TrustedHeadlessResident): void => { for (const actor of resident.host.entities.values()) actor.harnessHold = true; };
 /** The player's feet and yaw at `gap` metres short of a body, facing it. */
 const facing = (resident: TrustedHeadlessResident, target: AnimalSim, gap: number): void => {
-  const { host } = resident, p = host.player.position, dx = target.position.x - p.x, dz = target.position.z - p.z, span = Math.hypot(dx, dz), yaw = Math.atan2(-dx, -dz);
+  const { host } = resident, p = leadPlayer(host).position, dx = target.position.x - p.x, dz = target.position.z - p.z, span = Math.hypot(dx, dz), yaw = Math.atan2(-dx, -dz);
   const x = target.position.x - dx / span * gap, z = target.position.z - dz / span * gap;
-  host.resetPlayerPose({ x, y: host.groundHeightAt(x, z), z }, yaw);
+  leadPlayer(host).resetPose({ x, y: host.groundHeightAt(x, z), z }, yaw);
 };
 /** A body's chest, where a page crosshair and `nativeRangedAim`'s default rest. */
 const chest = (target: AnimalSim): Vector3 => { const rear = new Vector3(), front = new Vector3(); target.bodyCapsule(rear, front); return rear.add(front).multiplyScalar(0.5); };
 const triple = v.tuple([v.number(), v.number(), v.number()]);
-const stand = (resident: TrustedHeadlessResident): StandCommand => ({ kind: 'player', moveX: 0, moveZ: 0, yaw: resident.host.player.yaw });
+const stand = (resident: TrustedHeadlessResident): StandCommand => ({ kind: 'player', moveX: 0, moveZ: 0, yaw: leadPlayer(resident.host).yaw });
 const tick = (resident: TrustedHeadlessResident, count: number, commands: readonly HeadlessCommand[] = [stand(resident)]): void => {
   for (let at = 0; at < count; at++) { hold(resident); resident.step(commands); }
 };
@@ -80,7 +81,7 @@ const tick = (resident: TrustedHeadlessResident, count: number, commands: readon
 function pageTargets(resident: TrustedHeadlessResident): Targets {
   const { host } = resident, bodies = new CreatureBodies<Creature & { readonly sim: AnimalSim }>(host.physics);
   bodies.sync([...host.entities.values()].map(sim => ({ sim, position: sim.position, get alive() { return sim.alive; }, hidden: false, scale: sim.scale, dims: sim.dims,
-    headWorld: (out: Vector3) => sim.headWorld(out), bodyCapsule: (a: Vector3, b: Vector3) => { sim.bodyCapsule(a, b); }, motor: null, driven: false, simulationBound: true })), host.player.position);
+    headWorld: (out: Vector3) => sim.headWorld(out), bodyCapsule: (a: Vector3, b: Vector3) => { sim.bodyCapsule(a, b); }, motor: null, driven: false, simulationBound: true })), leadPlayer(host).position);
   host.physics.step(); // a query reads the world as of its last step
   return { raycast: (origin, dir, maxDist): TargetHit | null => {
     const hit = bodies.cast(origin, dir, maxDist);
@@ -92,9 +93,9 @@ function pageWorld(resident: TrustedHeadlessResident, aimAt: Vector3) {
   const was = app.physics, aimed = app.aimTargets, { host } = resident, game = new FakeGame().asGame();
   app.physics = host.physics; app.aimTargets = legacyDouble<typeof app.aimTargets>([...host.entities.values()]);
   restore = () => { app.physics = was; app.aimTargets = aimed; };
-  const position = host.player.position, eye = new Vector3(position.x, position.y + 1.68, position.z), direction = aimAt.clone().sub(eye).normalize();
-  const player = legacyDouble<Player>({ position, yaw: host.player.yaw, pitch: Math.asin(direction.y), fovKick: 0, speedFactor: 0, bobTime: 0, sprinting: false, dashing: false, swinging: false,
-    motor: host.player.motor, dashTo: () => true, sampleAimCommand: () => ({ origin: { x: eye.x, y: eye.y, z: eye.z }, direction: { x: direction.x, y: direction.y, z: direction.z } }) });
+  const position = leadPlayer(host).position, eye = new Vector3(position.x, position.y + 1.68, position.z), direction = aimAt.clone().sub(eye).normalize();
+  const player = legacyDouble<Player>({ position, yaw: leadPlayer(host).yaw, pitch: Math.asin(direction.y), fovKick: 0, speedFactor: 0, bobTime: 0, sprinting: false, dashing: false, swinging: false,
+    motor: leadPlayer(host).motor, dashTo: () => true, sampleAimCommand: () => ({ origin: { x: eye.x, y: eye.y, z: eye.z }, direction: { x: direction.x, y: direction.y, z: direction.z } }) });
   return { game, player, eye, direction, sky: legacyDouble<SkyRig>({}), forest: legacyDouble<Forest>({}) };
 }
 /** The page's own sword over `profile`, ready to swing. */
@@ -118,7 +119,7 @@ test('Driftwood: a real walk, free swings and the page\'s own Sword land the sam
   const { product, resident } = await shipped('driftwood-isle');
   const live = await resident(), wire = new CombatWire(live.host);
   try {
-    const crab = nearest(live, 'crab'), start = live.host.player.position, owner = nativeMeleeItem(live.host, 'item.driftwood-isle.swords');
+    const crab = nearest(live, 'crab'), start = leadPlayer(live.host).position, owner = nativeMeleeItem(live.host, 'item.driftwood-isle.swords');
     const journey = runHeadlessJourney(live.host, input => { hold(live); live.step(input); }, { ticks: 1500, points: [{ x: start.x, z: start.z }, { x: crab.position.x, z: crab.position.z + 4 }], once: true });
     expect(journey.complete).toBe(true);
     facing(live, crab, 1.4); wire.drain();
@@ -132,9 +133,9 @@ test('Driftwood: a real walk, free swings and the page\'s own Sword land the sam
     const rows = wire.drain(), hits = rows.filter(row => row.kind === 'hit');
     expect(owner.swings()).toBe(server.length);
     expect(hits.map(row => row.killed)).toEqual([...Array.from({ length: hits.length - 1 }, () => false), true]);
-    expect(hits.every(row => row.target === crab.entityId && row.by === live.host.player.id)).toBe(true);
+    expect(hits.every(row => row.target === crab.entityId && row.by === leadPlayer(live.host).id)).toBe(true);
     expect(hits.reduce((sum, row) => sum + row.amount, 0)).toBeGreaterThanOrEqual(hpBefore);
-    expect(rows.find(row => row.kind === 'died')).toMatchObject({ id: crab.entityId, by: live.host.player.id });
+    expect(rows.find(row => row.kind === 'died')).toMatchObject({ id: crab.entityId, by: leadPlayer(live.host).id });
     expect(crab.alive).toBe(false);
 
     // the browser: the same taps from the same pose, by the page's own class, over a world restored from just before them
@@ -158,7 +159,7 @@ test('Pine: arrows and rifle rounds fly and strike on the tick, and match the pa
   const { product, resident } = await shipped('pine-hollow');
   const live = await resident(), wire = new CombatWire(live.host), { host } = live;
   try {
-    const boar = nearest(live, 'boar'), start = host.player.position, frame = readNativeRangedItem(host, 2).frame, bow = readNativeRangedItem(host, 2), rifle = readNativeRangedItem(host, 1);
+    const boar = nearest(live, 'boar'), start = leadPlayer(host).position, frame = readNativeRangedItem(host, 2).frame, bow = readNativeRangedItem(host, 2), rifle = readNativeRangedItem(host, 1);
     if (bow.kind !== 'bow' || rifle.kind !== 'cycle') throw new Error('Pine declares a bow and a lever rifle');
     const journey = runHeadlessJourney(host, input => { hold(live); live.step(input); }, { ticks: 1500, points: [{ x: start.x, z: start.z }, { x: boar.position.x, z: boar.position.z - 20 }], once: true });
     expect(journey.stuck).toEqual([]);
@@ -176,7 +177,7 @@ test('Pine: arrows and rifle rounds fly and strike on the tick, and match the pa
     const midFlight = serializeSimSnapshot(snapshotSimHostBytes(host)), ticksInFlight = countUntil(live, () => bow.item.flying() === 0, 120);
     expect(ticksInFlight).toBeGreaterThan(3);
     const arrow = wire.drain().find(row => row.kind === 'hit');
-    expect(arrow).toMatchObject({ kind: 'hit', target: boar.entityId, by: host.player.id });
+    expect(arrow).toMatchObject({ kind: 'hit', target: boar.entityId, by: leadPlayer(host).id });
     expect(boar.hp).toBe(hpBefore - (arrow?.kind === 'hit' ? arrow.amount : 0));
 
     // the page's Projectiles: the same flight from the same world
@@ -197,7 +198,7 @@ test('Pine: arrows and rifle rounds fly and strike on the tick, and match the pa
     tick(live, 1, [{ ...stand(live), attack: { targetId: boar.entityId } }]); tick(live, 1);
     const round = wire.drain().find(row => row.kind === 'hit');
     if (round?.kind !== 'hit') throw new Error('The rifle did not settle a hit');
-    expect(round).toMatchObject({ target: boar.entityId, by: host.player.id });
+    expect(round).toMatchObject({ target: boar.entityId, by: leadPlayer(host).id });
     const shot = await resident(beforeShot), twinShot = body(shot, boar.entityId), rifleRays = pageTargets(shot), aimed = pageWorld(shot, chest(twinShot));
     try {
       const stream = vi.spyOn(app.rng, 'stream').mockImplementation(name => shot.host.rng.stream(name));
@@ -208,18 +209,18 @@ test('Pine: arrows and rifle rounds fly and strike on the tick, and match the pa
     } finally { shot.dispose(); }
 
     // free aim: no named target, only the yaw and the look pitch, from the server's own eye
-    const eye = host.player.position.clone().setY(host.player.position.y + 1.68), pitch = Math.asin(chest(boar).sub(eye).normalize().y), free: StandCommand = { ...stand(live), pitch, swing: true };
+    const eye = leadPlayer(host).position.clone().setY(leadPlayer(host).position.y + 1.68), pitch = Math.asin(chest(boar).sub(eye).normalize().y), free: StandCommand = { ...stand(live), pitch, swing: true };
     const hpFree = boar.hp;
     countUntil(live, () => { tick(live, 1, [free]); return boar.hp < hpFree; }, 240);
-    expect(wire.drain().find(row => row.kind === 'hit')).toMatchObject({ target: boar.entityId, by: host.player.id });
+    expect(wire.drain().find(row => row.kind === 'hit')).toMatchObject({ target: boar.entityId, by: leadPlayer(host).id });
 
     // and a free loose at the next boar: the held draw names nothing, the release leaves along the look
     const next = nearest(live, 'boar'); facing(live, next, 14); pick(2); wire.drain();
-    const lookAt = Math.asin(chest(next).sub(host.player.position.clone().setY(host.player.position.y + 1.68)).normalize().y), hpLoose = next.hp;
+    const lookAt = Math.asin(chest(next).sub(leadPlayer(host).position.clone().setY(leadPlayer(host).position.y + 1.68)).normalize().y), hpLoose = next.hp;
     tick(live, 70, [{ ...stand(live), pitch: lookAt, heavy: {}, swing: true }]); tick(live, 1, [{ ...stand(live), pitch: lookAt }]);
     countUntil(live, () => bow.item.flying() === 0, 120);
     expect(next.hp).toBeLessThan(hpLoose);
-    expect(wire.drain().find(row => row.kind === 'hit')).toMatchObject({ target: next.entityId, by: host.player.id });
+    expect(wire.drain().find(row => row.kind === 'hit')).toMatchObject({ target: next.entityId, by: leadPlayer(host).id });
   } finally { live.dispose(); }
 }, 180_000);
 
@@ -267,7 +268,7 @@ test('Sunscar: a free whip crack lands what a named one does', async () => {
     const crack = (live: TrustedHeadlessResident, command: StandCommand): CombatEvent | undefined => {
       const wire = new CombatWire(live.host), target = nearest(live, 'sandSkitterer');
       hold(live); facing(live, target, 2); tick(live, 2); wire.drain();
-      tick(live, 1, [{ ...command, yaw: live.host.player.yaw }]); tick(live, 40);
+      tick(live, 1, [{ ...command, yaw: leadPlayer(live.host).yaw }]); tick(live, 40);
       return wire.drain().find(row => row.kind === 'hit');
     };
     const target = nearest(named, 'sandSkitterer');
@@ -289,7 +290,7 @@ test('hit and died reach a client over the loopback, in order, confirming the sw
     hold(live); facing(live, crab, 1.4);
     room.join(link.server); client.hello(); link.pump(); room.open(); link.pump();
     client.onCombat(event => { events.push(event); });
-    const { yaw } = live.host.player, aim = { origin: { x: 0, y: 0, z: 0 }, direction: { x: 0, y: 0, z: -1 } }, idle = { viewTick: 0, steer: { keyX: 0, keyY: 0, stickX: 0, stickY: 0 }, yaw, pitch: 0, buttons: 0 };
+    const { yaw } = leadPlayer(live.host), aim = { origin: { x: 0, y: 0, z: 0 }, direction: { x: 0, y: 0, z: -1 } }, idle = { viewTick: 0, steer: { keyX: 0, keyY: 0, stickX: 0, stickY: 0 }, yaw, pitch: 0, buttons: 0 };
     const seqs: number[] = [];
     for (let at = 0; at < 200 && crab.alive; at++) {
       const seq = client.command({ ...idle, ...(at % 30 === 0 ? { attack: { aim } } : {}) });

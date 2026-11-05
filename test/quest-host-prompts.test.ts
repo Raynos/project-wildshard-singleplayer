@@ -8,6 +8,7 @@ import { installQuestHost } from '../src/game/plugin/simulation';
 import { bindHeadlessPrompts, type HeadlessPrompt } from '../src/game/quest/interactionRows';
 import { parseQuestHost } from '@wildshard/format/questHost';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const quests = { flags: [], quests: [], triggers: [], dialogue: [] };
 const declaration = parseQuestHost({ version: 1, drive: 'external', actors: { ids: [], error: 'Missing body' },
@@ -43,7 +44,7 @@ test('external routes borrow live prompt order, strict reach, weak priority and 
     live.radius = 4; at.z = 5; expect(graph.near('key')).toBe(false);
     at.z = 1; prompts[0] = { ...competitor, position: { x: 0, y: 1.68, z: 0.5 }, weak: true };
     host.step(); expect(deliveries()).toBe(2); // A strong prompt wins over the closer weak row.
-    at.x = host.player.position.x + 4; at.y = host.player.position.y + 1.68; at.z = host.player.position.z;
+    at.x = leadPlayer(host).position.x + 4; at.y = leadPlayer(host).position.y + 1.68; at.z = leadPlayer(host).position.z;
     expect(graph.near('key')).toBe(false); // Reach is strict, not inclusive.
     at.x = 0; at.z = 1;
     prompts.push({ id: 'key', act: 1, position: { x: 0, y: 1.68, z: 8 }, radius: 4 });

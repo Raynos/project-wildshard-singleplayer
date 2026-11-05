@@ -9,6 +9,7 @@ import {practiceRoomState} from '../../src/engine/core/practiceRoomState';
 import {carriedRound,carriedRoundDue,carriedRoundFrame,carriedRoundOutputs,carriedRoundHome,
   carriedRoundGoal,carriedRoundCarrying} from '../../src/game/quest/carriedRound';
 import {prepareHeadlessRuntime as prepareNalati} from './nalati-verbs';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** Dedicated proof variant: ordinary camp/taming consumers keep their installs. */
 export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
@@ -45,7 +46,7 @@ export function installNalatiKokpar(host:SimHost,context:Pick<HeadlessRuntimeIns
   host.onStep('nalati.kokpar',dt=>{
     if(mountedPlayerOf(host)!==mount)throw new Error('Kokpar mounted owner changed');
     const elapsed=carriedRoundDue(rows,round,dt);if(elapsed===null)return;
-    const player=host.player.position,carrier=mount.horse;
+    const player=leadPlayer(host).position,carrier=mount.horse;
     const output=brain.project(rows.signals.step,carriedRoundFrame(rows,round,elapsed,{
       playerX:player.x,playerZ:player.z,mounted:mount.mounted,carrier:carrier!==null,
       fast:mount.body.gait==='canter'||mount.body.gait==='gallop',practice:practiceRoomState.open,

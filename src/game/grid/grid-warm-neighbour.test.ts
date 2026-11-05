@@ -9,10 +9,11 @@ import { createSimHost, type SimLevel } from '@wildshard/engine/sim';
 import { GridAssembly } from './assembly';
 import { LiveGridHost } from './live';
 import { PageResidency } from './pageResidency';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 // T7 neighbours admit inert metadata and render tiles only. Actual entry retires
 // the departed whole source before allocating its destination and publishing it.
-const level: SimLevel = { version: 1, id: 'platform', seed: 1, ground: { size: 500, height: 0 },
+const level: SimLevel = { version: 2, id: 'platform', seed: 1, ground: { size: 500, height: 0 },
   player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 30 }, entities: [], quests: [],
   weapon: { id: 'none', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
 
@@ -109,7 +110,7 @@ async function fixture(options: { paired?: boolean; loading?: number; isolation?
     dispose: true, holdIncoming: false, finish: undefined, reject: undefined, aborted: [], ownedYield: false, yielding: false,
   };
   const budget = { playing: 1_200_000_000, loading: options.loading ?? 1_800_000_000 };
-  const player = { position: page.player.position, yaw: -Math.PI / 2, health: page.player.health, owner: page.player, motor: page.releasePlayerMotor() };
+  const player = { position: leadPlayer(page).position, yaw: -Math.PI / 2, health: leadPlayer(page).health, owner: leadPlayer(page), motor: leadPlayer(page).releaseMotor() };
   const live = new LiveGridHost(assembly, {
     home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },
     player, allocator: residency.allocator, continuations: 'durable', save: () => true,

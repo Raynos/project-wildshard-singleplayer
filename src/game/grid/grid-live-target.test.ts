@@ -6,8 +6,9 @@ import { GridAssembly, type GridPoint } from './assembly';
 import { LiveGridHost } from './live';
 import { PageResidency } from './pageResidency';
 import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
-const level: SimLevel = { version: 1, id: 'platform', seed: 1, ground: { size: 500, height: 0 },
+const level: SimLevel = { version: 2, id: 'platform', seed: 1, ground: { size: 500, height: 0 },
   player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 30 }, entities: [], quests: [],
   weapon: { id: 'none', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
 
@@ -23,7 +24,7 @@ for (const mode of [{ developer: false, devserver: false }, { developer: true, d
     const R = await loadRapier(Uint8Array.from(fixtureBytes(new URL('../../../node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm', import.meta.url))));
     const assembly = new GridAssembly(mode), cells = assembly.cells, home = assembly.cell('driftwood-isle');
     const page = createSimHost(level, { rapier: R }), residency = new PageResidency();
-    const player = { position: page.player.position, yaw: 0, health: page.player.health, owner: page.player, motor: page.releasePlayerMotor() };
+    const player = { position: leadPlayer(page).position, yaw: 0, health: leadPlayer(page).health, owner: leadPlayer(page), motor: leadPlayer(page).releaseMotor() };
     const live = new LiveGridHost(assembly, {
       home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },
       player, allocator: residency.allocator, continuations: 'durable', save: () => true,

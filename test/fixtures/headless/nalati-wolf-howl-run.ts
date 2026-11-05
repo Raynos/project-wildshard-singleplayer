@@ -10,6 +10,7 @@ import {runTrustedHeadlessTape} from '../../../src/sdk/headlessTape';
 import type {HeadlessCommand,HeadlessEffect} from '../../../src/sdk/tickProtocol';
 import {earnNalatiPasture} from './nalati-pasture-session';
 import {beginProductSession} from './productSession';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const {resident,product,population,flock,sheep,checkpoint,checkpointTick,arrivalTick}=await earnNalatiPasture([
   {x:-135,z:214},{x:-157,z:212,jump:true,jumpAt:7},{x:-175,z:206},
@@ -27,7 +28,7 @@ try{
   const groups=nativeGroupCollection(resident.host,'nalati.groups'),pack=groups.packs[population.raid.snapshot().raiders];
   assert.ok(pack);const leader=pack.alpha;assert.ok(leader);assert.equal(leader.alive,true);
   const aim=(held:boolean):HeadlessCommand[]=>{
-    const feet=resident.host.player.position;
+    const feet=leadPlayer(resident.host).position;
     const target=pack.members.filter(actor=>actor.alive&&actor!==leader)
       .sort((a,b)=>a.position.distanceToSquared(feet)-b.position.distanceToSquared(feet))[0];
     if(target===undefined)return [];
@@ -48,7 +49,7 @@ try{
   assert.ok(pack.members.some(actor=>actor!==leader&&!actor.alive),'real arrows kill a non-leader before the regroup');
   assert.equal(leader.alive,true);
   for(let tick=0;tick<1800;tick++)step([]);
-  assert.equal(flock.alive,sheep);assert.equal(population.raid.taken,0);assert.equal(resident.host.player.health.alive,true);
+  assert.equal(flock.alive,sheep);assert.equal(population.raid.taken,0);assert.equal(leadPlayer(resident.host).health.alive,true);
   for(const text of ['Wolves are raiding the flock — the shepherd rides out','A wolf howls — the pack has your scent'])
     assert.ok(effects.some(effect=>effect.kind==='hint'&&effect.text===text),'only real native events deliver each admitted message');
   const observed=['nalati.predators','nalati.weapons'];

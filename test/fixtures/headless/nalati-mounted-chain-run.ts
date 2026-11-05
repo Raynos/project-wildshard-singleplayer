@@ -10,6 +10,7 @@ import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import {beginProductSession} from './productSession';
 import {checkedReplayPipeline} from './checkedReplayPipeline';
 import {earnNalatiMountedRaid} from './nalati-mounted-raid';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const State=v.object({passes:v.number(),moves:v.array(v.string()),pass:v.object({passChain:v.number(),chainT:v.number()}),
   blade:v.object({contacts:v.number(),struck:v.array(v.string())})});
@@ -56,7 +57,7 @@ try{
   };
   await step([{kind:'script',actorId:'nalati.weapon.swap',value:1}]);
   for(let tick=0;tick<1800&&read().pass.passChain<2;tick++){
-    const p=host.player.position,target=pack.members.filter(actor=>actor.alive).sort((a,b)=>a.position.distanceToSquared(p)-b.position.distanceToSquared(p))[0];assert.ok(target);
+    const p=leadPlayer(host).position,target=pack.members.filter(actor=>actor.alive).sort((a,b)=>a.position.distanceToSquared(p)-b.position.distanceToSquared(p))[0];assert.ok(target);
     const dx=target.position.x-p.x,dz=target.position.z-p.z,distance=Math.hypot(dx,dz),direct=Math.atan2(dx,dz);
     const heading=Math.atan2(target.position.x+Math.cos(direct)*2-p.x,target.position.z-Math.sin(direct)*2-p.z);
     const delta=Math.atan2(Math.sin(mount.body.heading-heading),Math.cos(mount.body.heading-heading));

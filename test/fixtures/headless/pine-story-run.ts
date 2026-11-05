@@ -17,6 +17,7 @@ import {installAppIdentity} from '../../../src/engine/app/identity';
 import {WILDSHARD_IDENTITY} from '../../../src/game/identity';
 import {ForestPageSchema} from '@wildshard/format/forestPage';
 import {prepareHeadlessRuntime} from '../pine-verbs';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const started=performance.now();let phaseStart=started;
 const measured=(phase:string)=>{const now=performance.now();console.info(JSON.stringify({phase:'timing',stage:phase,milliseconds:now-phaseStart}));phaseStart=now;};
@@ -63,7 +64,7 @@ try{
   measured('recorder-setup');
   for(let tick=0;tick<60_000;tick++){
     const commands=structuredClone(controller.next(host));
-    const [x,y,z]=door.at,p=host.player.position;
+    const [x,y,z]=door.at,p=leadPlayer(host).position;
     if(Math.hypot(p.x-x,p.y+1.68-y,p.z-z)<door.reach){
       const first=v.parse(statesSchema,host.adapters.get('pine.doors')?.snapshot())[0];assert.ok(first);
       if(!first.open)commands.push({kind:'script',actorId:'pine.door',value:0});
@@ -78,7 +79,7 @@ try{
     if(controller.walked&&quest.isComplete){const segment=flush();if(segment!==undefined)yield await Promise.resolve(segment);break;}
   }
   const final=flush();if(final!==undefined)yield await Promise.resolve(final);
-  assert.equal(controller.walked,true,JSON.stringify({current:quest.current?.id,position:host.player.position,tape:controller.state}));
+  assert.equal(controller.walked,true,JSON.stringify({current:quest.current?.id,position:leadPlayer(host).position,tape:controller.state}));
   assert.equal(quest.isComplete,true);
   for(const flag of ['talked:ranger','owned:lever-rifle','open:dam-sluice','taken:pond-glass','lit:pond','taken:ridge-flint',
     'lit:ridge','used:ph-zip','lit:den','followed:stag','dead:king','seen:dawn','quest:warden-done'])assert.ok(host.flags.has(flag),flag);

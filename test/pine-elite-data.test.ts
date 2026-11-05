@@ -17,6 +17,7 @@ import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/spec
 import { PINE_ELITES as data, PINE_ELITE_MODULES } from './fixtures/pine-elites';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { Rng } from '../src/engine/core/rng';
+import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 async function fixture() {
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
@@ -53,9 +54,9 @@ test('Pine elite identities and streams are rows; all four v1 guests run without
       expect(script.spawnStream.snapshot()).toEqual(stream.snapshot());
       expect(script.row.program.seed).toBe(new Rng(1337).fork(`pine.elite.${script.def.id}`).snapshot().initial);
       const body = script.animal; if (body === null) throw new Error('Missing lair body');
-      host.player.position.copy(body.position); host.player.position.z += 8;
+      leadPlayer(host).position.copy(body.position); leadPlayer(host).position.z += 8;
       feature.core.devSpawn(script.def.id);
-      for (let tick = 0; tick < 140; tick++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+      for (let tick = 0; tick < 140; tick++) host.step(leadCommands(host, { moveX: 0, moveZ: 0, yaw: 0 }));
       expect(script.program.failure).toBeNull(); expect(script.program.host.metrics().every(row => row.refusals === 0)).toBe(true);
     }
   } finally { host.dispose(); }
@@ -65,9 +66,9 @@ test('a running Imperial call keeps rival identities and restores quietly and at
   const { host, feature } = await fixture();
   try {
     const script = feature.scripts.find(row => row.def.id === 'imperial-bull'); if (script?.animal === null || script === undefined) throw new Error('Missing bull');
-    host.player.position.copy(script.animal.position); host.player.position.z += 20;
+    leadPlayer(host).position.copy(script.animal.position); leadPlayer(host).position.z += 20;
     feature.core.devSpawn(script.def.id);
-    for (let tick = 0; tick < 160; tick++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    for (let tick = 0; tick < 160; tick++) host.step(leadCommands(host, { moveX: 0, moveZ: 0, yaw: 0 }));
     expect(script.program.failure).toBeNull();
     const ids = ['rival0', 'rival1'].map(slot => script.program.body(slot)?.entityId);
     expect(ids.every(id => id !== undefined)).toBe(true); expect(new Set(ids).size).toBe(2);
@@ -84,7 +85,7 @@ test('a running Imperial call keeps rival identities and restores quietly and at
     previousMain.alive = false; feature.core.devSpawn(script.def.id);
     expect(script.animal.entityId).not.toBe(previousMain.entityId);
     expect(['rival0', 'rival1'].map(slot => script.program.body(slot))).toEqual([null, null]);
-    for (let tick = 0; tick < 180; tick++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    for (let tick = 0; tick < 180; tick++) host.step(leadCommands(host, { moveX: 0, moveZ: 0, yaw: 0 }));
     expect(script.program.failure).toBeNull();
     expect(['rival0', 'rival1'].map(slot => script.program.body(slot)?.entityId).every(id => id !== undefined && !ids.includes(id))).toBe(true);
   } finally { host.dispose(); }
@@ -95,9 +96,9 @@ test('ending a concealed encounter restores visibility before saving', async () 
   try {
     const ghost = feature.scripts.find(row => row.def.id === 'ghost-stag');
     if (ghost?.animal === null || ghost === undefined) throw new Error('Missing stag');
-    feature.core.devSpawn(ghost.def.id); host.player.position.copy(ghost.animal.position); host.player.position.z += 8;
+    feature.core.devSpawn(ghost.def.id); leadPlayer(host).position.copy(ghost.animal.position); leadPlayer(host).position.z += 8;
     ghost.force('fade');
-    for (let tick = 0; tick < 8; tick++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });
+    for (let tick = 0; tick < 8; tick++) host.step(leadCommands(host, { moveX: 0, moveZ: 0, yaw: 0 }));
     const body = ghost.animal; if (!('hidden' in body)) throw new Error('Missing visibility owner');
     expect(body.hidden).toBe(true); ghost.trophy(); expect(body.hidden).toBe(false);
     const saved = ghost.program.snapshot(); ghost.program.prepareRestore(saved)(); expect(body.hidden).toBe(false);

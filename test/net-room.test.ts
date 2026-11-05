@@ -18,6 +18,7 @@ import { createTrustedHeadlessResident, type TrustedHeadlessResident } from '../
 import { netTickCommands } from '../src/sdk/standalone/netInput';
 import { tickCommands } from '../src/sdk/tickProtocol';
 import { builtProduct } from './fixtures/builtProduct';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 // P1-E5.2 (E5-REPLICATION §3.3, §9): a real room over the shipped Sunscar Dunes product, on the real codec. Only the carrier
 // is a test double: the same room runs over a MessagePort in test/standalone-server.test.ts and in a Web Worker.
@@ -73,7 +74,7 @@ test('frames carry every creature within one quantisation step, and the owner bl
     room.tick(); link.pump();
     if (resident.host.state.tick % 2 === 0) {
       expect(checkRows(resident, client)).toBe(resident.host.entities.size);
-      const { player } = resident.host, owner = client.latest === null ? null : client.owner(client.latest);
+      const player = leadPlayer(resident.host), owner = client.latest === null ? null : client.owner(client.latest);
       for (const [field, axis] of [['px', 'x'], ['py', 'y'], ['pz', 'z']] as const) expect(owner?.[field]).toBe(Math.fround(player.position[axis]));
     }
   }
@@ -95,8 +96,8 @@ test('commands over the wire drive today\'s host exactly as the same tick comman
     const delivered = { seq, ...walk(Math.round(1 / (Math.PI * 2) * 0x10000) / 0x10000 * Math.PI * 2), buttons: tick === 60 ? NET_BUTTONS.jump | NET_BUTTONS.sprint : NET_BUTTONS.sprint };
     direct.step(netTickCommands(delivered, []));
   }
-  expect(wired.host.player.position.distanceTo(direct.host.player.position)).toBe(0);
-  expect(wired.host.player.position.length()).toBeGreaterThan(1);
+  expect(leadPlayer(wired.host).position.distanceTo(leadPlayer(direct.host).position)).toBe(0);
+  expect(leadPlayer(wired.host).position.length()).toBeGreaterThan(1);
   direct.dispose(); wired.dispose();
 });
 
@@ -113,7 +114,7 @@ test('a bad link heals: loss, jitter and reordering never corrupt a row', async 
   const near = (at: Vector3, from: Vector3): boolean => { const cell = (value: number): number => -260 + Math.round((value + 260) / step) * step; return Math.hypot(cell(at.x) - cell(from.x), cell(at.y) - cell(from.y), cell(at.z) - cell(from.z)) <= 160; };
   const remember = (): void => {
     const { host } = resident;
-    truth.set(host.state.tick, new Map([...host.entities].filter(([, sim]) => near(sim.position, host.player.position)).map(([id, sim]) => [id, sim.position.clone()])));
+    truth.set(host.state.tick, new Map([...host.entities].filter(([, sim]) => near(sim.position, leadPlayer(host).position)).map(([id, sim]) => [id, sim.position.clone()])));
   };
   let decoded = 0, deltas = 0;
   client.onFrame(frame => {
@@ -178,14 +179,14 @@ test('relevance and handles: entities come and go with their spawn, and a retire
   expect(shown()).toEqual(ids.filter(id => id !== last).sort());
 
   // out of the class's 160 m: a `gone` row, while its identity stays for when it returns
-  const inRange = (at: number): string[] => ids.filter(id => id !== last && (host.entities.get(id)?.position.distanceTo(host.player.position) ?? Infinity) <= at);
-  host.player.position.set(240, 40, 240);
+  const inRange = (at: number): string[] => ids.filter(id => id !== last && (host.entities.get(id)?.position.distanceTo(leadPlayer(host).position) ?? Infinity) <= at);
+  leadPlayer(host).position.set(240, 40, 240);
   run();
   expect(inRange(159).length).toBeLessThan(ids.length - 1);
   expect(shown()).toEqual(expect.arrayContaining(inRange(159)));
   expect(shown().every(id => inRange(161).includes(id))).toBe(true);
   expect(client.entities.size).toBe(ids.length - 1);
-  host.player.position.set(0, 40, 0);
+  leadPlayer(host).position.set(0, 40, 0);
   run();
   expect(shown()).toEqual(ids.filter(id => id !== last).sort());
 

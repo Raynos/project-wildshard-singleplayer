@@ -7,6 +7,7 @@ import { decodeSimSnapshot, restoreSimHost, snapshotSimHostBytes } from '../src/
 import { canonicalSimDigest } from './fake/simState';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import recorded from './fixtures/sim-snapshot-v1.json';
+import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 // P1-E5.2a: old saves load. Every wire here came out of the real version 1 writer, and each tape was played on from it by
 // the version 1 engine: the digest and end state are what that engine reached, so a pass means nothing about the
@@ -30,9 +31,9 @@ test.each(recorded.states)('the $name save continues exactly as the version 1 en
     if (state.water) fresh.useWater({ surfaceAt: x => x > 6 ? 2 : null });
   });
   try {
-    for (let tick = 0; tick < state.tail; tick++) host.step(tape(state.ticks + tick));
-    const p = host.player.position;
-    expect({ tick: host.state.tick, position: [p.x, p.y, p.z], hp: host.player.health.attributes.health, flags: host.flags.all }).toEqual(state.end);
+    for (let tick = 0; tick < state.tail; tick++) host.step(leadCommands(host, tape(state.ticks + tick)));
+    const p = leadPlayer(host).position;
+    expect({ tick: host.state.tick, position: [p.x, p.y, p.z], hp: leadPlayer(host).health.attributes.health, flags: host.flags.all }).toEqual(state.end);
     expect(canonicalSimDigest(snapshotSimHostBytes(host))).toBe(state.digest);
   } finally { host.dispose(); }
 });

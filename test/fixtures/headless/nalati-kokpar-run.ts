@@ -19,6 +19,7 @@ import {runTrustedHeadlessTape,type HeadlessTapeSegment} from '../../../src/sdk/
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import {nalatiCampTalkTape} from '../../proof/nalati-grasslands/verbTape';
 import {SKY_ROAD} from '../../../src/shards/nalati-grasslands/generators/layout';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const directory=builtProduct('nalati-grasslands'),product=await loadHeadlessProduct(directory);
 const descriptor=outputDescriptor(product.shardfile);assert.ok(descriptor);
@@ -52,7 +53,7 @@ try{
     const previous=marks.at(-1);
     if(previous?.tick===frames.length){previous.id=id;return;}
     marks.push({id,tick:frames.length,state:state(),flags:[...host.flags.all]});
-    console.error(JSON.stringify({mark:id,tick:frames.length,at:host.player.position}));
+    console.error(JSON.stringify({mark:id,tick:frames.length,at:leadPlayer(host).position}));
   };
   step([]);assert.equal(round().carrying,false);assert.equal(host.flags.has('won:kokpar'),false);mark('unmounted-entry');
   const camp=nalatiCampTalkTape(product.shardfile.spawn),end=camp.segments.findIndex(row=>row.id==='walk-to-herderRail')+1;assert.ok(end>0);
@@ -63,12 +64,12 @@ try{
   }]});
   step([{kind:'script',actorId:'nalati.ride',value:1}]);assert.equal(mount.mounted,true);
   const reins=(forward:number,turn:number,sprint=false,jump=false):HeadlessCommand=>({kind:'player',moveX:0,moveZ:0,
-    yaw:host.player.yaw,commandVersion:1,steer:{keyX:0,keyY:0,stickX:turn,stickY:forward},sprint,...(jump?{jump:true as const}:{})});
+    yaw:leadPlayer(host).yaw,commandVersion:1,steer:{keyX:0,keyY:0,stickX:turn,stickY:forward},sprint,...(jump?{jump:true as const}:{})});
   for(let tick=0;tick<90;tick++)step([reins(-1,0)]);
   mark('mounted-clear-of-rail');
   const drive=(x:number,z:number,sprint=false,radius=2.5):void=>{
     for(let tick=0;tick<1800;tick++){
-      const p=host.player.position,dx=x-p.x,dz=z-p.z,distance=Math.hypot(dx,dz);
+      const p=leadPlayer(host).position,dx=x-p.x,dz=z-p.z,distance=Math.hypot(dx,dz);
       if(distance<radius)return;
       assert.equal(mount.mounted,true,'ordinary rider must stay mounted');
       const target=Math.atan2(dx,dz),delta=Math.atan2(Math.sin(mount.body.heading-target),Math.cos(mount.body.heading-target));
@@ -79,7 +80,7 @@ try{
       const jump=tick>120&&tick%60===0&&mount.body.speed<1;
       step([reins(forward,brake?0:Math.max(-1,Math.min(1,delta*2.5)),sprint&&!brake,jump)]);
     }
-    throw new Error(`Native Kokpar reins stuck ${JSON.stringify({target:[x,z],at:host.player.position,heading:mount.body.heading,
+    throw new Error(`Native Kokpar reins stuck ${JSON.stringify({target:[x,z],at:leadPlayer(host).position,heading:mount.body.heading,
       speed:mount.body.speed,ground:host.groundHeightAt(x,z),motor:mount.body.motor?.snapshot().result})}`);
   };
   const goal=rows.goals[0];assert.ok(goal);

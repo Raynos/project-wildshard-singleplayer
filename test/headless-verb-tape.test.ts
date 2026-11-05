@@ -8,6 +8,7 @@ import {createSimHost} from '../src/engine/sim';
 import {headlessTapePlanSchema,runTrustedHeadlessTape,createTrustedHeadlessTape,type HeadlessTapePlan} from '../src/sdk/headlessTape';
 import {TickCommandSchema,simPlayerCommand} from '../src/sdk/tickProtocol';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
+import { leadCommands } from '@wildshard/engine/sim/leadPlayer';
 
 let rapier:Rapier;
 beforeAll(async()=>{rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));});
@@ -45,7 +46,7 @@ test('compact tape executes every native tick and reads actual owners at each se
   host.onStep('counter',()=>{count++;},{snapshot:()=>({count}),restore:()=>undefined});
   try {
     const report=runTrustedHeadlessTape(host,commands=>{
-      const player=commands.find(command=>command.kind==='player');host.step(player===undefined?undefined:simPlayerCommand(player));
+      const player=commands.find(command=>command.kind==='player');host.step(leadCommands(host, player===undefined?undefined:simPlayerCommand(player)));
     },()=>[],v.parse(schema,plan));
     expect(report.ticks).toBe(180);expect(count).toBe(180);
     expect(report.observations.map(row=>row.tick)).toEqual([120,180]);
@@ -73,7 +74,7 @@ test('a declared route uses actual movement and refuses a blocked endpoint inste
   const host=createSimHost({...SIM_LEVEL,entities:[]},{rapier});
   const route:HeadlessTapePlan={version:1,observe:[],segments:[{id:'approach',ticks:600,commands:[],route:[{x:0,z:0},{x:2,z:0}]}]};
   try {
-    const report=runTrustedHeadlessTape(host,commands=>{const command=commands.find(row=>row.kind==='player');host.step(command===undefined?undefined:simPlayerCommand(command));},()=>[],v.parse(schema,route));
+    const report=runTrustedHeadlessTape(host,commands=>{const command=commands.find(row=>row.kind==='player');host.step(leadCommands(host, command===undefined?undefined:simPlayerCommand(command)));},()=>[],v.parse(schema,route));
     expect(report.ticks).toBeGreaterThan(0);expect(report.ticks).toBeLessThan(600);
     expect(report.observations[0]?.position[0]).toBeGreaterThan(1.2);
     const blocked=createSimHost({...SIM_LEVEL,entities:[]},{rapier});

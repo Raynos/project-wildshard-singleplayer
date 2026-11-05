@@ -27,9 +27,10 @@ import { QUEST_STEP } from '../../../src/shards/pine-hollow/generators/questProm
 import { nativeInventorySchema } from '../../../src/game/inventoryLaw';
 import wardens from '../../../src/shards/pine-hollow/data/wardensHollow.json' with { type: 'json' };
 import bossRows from '../../../src/shards/pine-hollow/data/bossEncounter.json' with { type: 'json' };
-import { canonicalSimDigest } from '../../fake/simState';
+import { canonicalSimDigest, simWireV1 } from '../../fake/simState';
 import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
 import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/ledger';
+import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 
 /**
@@ -113,10 +114,10 @@ function step(session: Session, commands: readonly HeadlessCommand[]): HeadlessE
   try {
     let player: HeadlessCommand | undefined;
     for (const command of commands) if (command.kind === 'player') player = command;
-    session.host.step(player?.kind === 'player' ? { moveX: player.moveX, moveZ: player.moveZ, yaw: player.yaw, ...(player.attack === undefined ? {} : { attack: player.attack }),
-      ...(player.hover === undefined ? {} : { hover: player.hover }), ...(player.jump === undefined ? {} : { jump: player.jump }), ...(player.dodge === undefined ? {} : { dodge: player.dodge }) } : undefined);
+    session.host.step(leadCommands(session.host, player?.kind === 'player' ? { moveX: player.moveX, moveZ: player.moveZ, yaw: player.yaw, ...(player.attack === undefined ? {} : { attack: player.attack }),
+      ...(player.hover === undefined ? {} : { hover: player.hover }), ...(player.jump === undefined ? {} : { jump: player.jump }), ...(player.dodge === undefined ? {} : { dodge: player.dodge }) } : undefined));
   } finally { session.tape = []; }
-  if (![session.host.player.position, ...[...session.host.entities.values()].map(entity => entity.position)].every(point => [point.x, point.y, point.z].every(Number.isFinite))) throw new Error('Nonfinite trusted simulation state');
+  if (![leadPlayer(session.host).position, ...[...session.host.entities.values()].map(entity => entity.position)].every(point => [point.x, point.y, point.z].every(Number.isFinite))) throw new Error('Nonfinite trusted simulation state');
   session.effects.push(...session.tick); return session.tick;
 }
 
@@ -145,8 +146,8 @@ export async function tapeProof(rapier: Rapier, limit = 60_000): Promise<object>
     }
     const host = session.host, quest = host.quests.find(q => q.def.id === 'wardens-hollow'), row = kingRow(host);
     const body = row.fight.king === null ? undefined : host.entities.get(row.fight.king);
-    const alive = host.player.health.attributes.health > 0, status = tape.walked ? 'walked' : fought >= KING_PROBE && alive ? 'at-king' : 'failed';
-    return { status, at: host.player.position.toArray().map(n => Number(n.toFixed(2))), tape: tape.state, ticksExecuted: host.state.tick, step: quest?.current?.id ?? null, hash: digest(host),
+    const alive = leadPlayer(host).health.attributes.health > 0, status = tape.walked ? 'walked' : fought >= KING_PROBE && alive ? 'at-king' : 'failed';
+    return { status, at: leadPlayer(host).position.toArray().map(n => Number(n.toFixed(2))), tape: tape.state, ticksExecuted: host.state.tick, step: quest?.current?.id ?? null, hash: digest(host),
       king: { state: row.boss.state, phase: row.boss.phase, attempts: row.boss.attempts, hp: body?.hp ?? null, maxHp: body?.maxHp ?? null, foughtTicks: fought },
       facts: facts(session.effects), legs: tape.log.map(entry => ({ leg: entry.kind, tick: entry.tick, at: [entry.x, entry.y, entry.z].map(n => Number(n.toFixed(2))) })) };
   } finally { session.host.dispose(); }
@@ -183,7 +184,7 @@ function playUntil(session: Session, tape: PineTape, until: (host: SimHost) => b
   for (let i = 0; i < limit; i++) {
     if (until(session.host)) return i;
     step(session, tape.next(session.host));
-    if (session.host.player.health.attributes.health <= 0) throw new Error(`The witness player died at ${String(session.host.state.tick)}`);
+    if (leadPlayer(session.host).health.attributes.health <= 0) throw new Error(`The witness player died at ${String(session.host.state.tick)}`);
   }
   throw new Error(`Pine tape exceeded ${String(limit)} ticks at ${JSON.stringify(tape.state)}`);
 }
@@ -205,7 +206,7 @@ export async function writeCheckpoints(rapier: Rapier, inputs: string): Promise<
     for (const name of CHECKPOINT_NAMES) {
       playUntil(session, tape, host => atCheckpoint(name, host), 60_000);
       const state = snapshotSimHost(session.host);
-      const checkpoint = { tick: session.host.state.tick, tape: tape.state, snapshot: serializeSimSnapshot(state, basis) };
+      const checkpoint = { tick: session.host.state.tick, tape: tape.state, snapshot: simWireV1(serializeSimSnapshot(state, basis)) };
       hashes[name] = canonicalSimDigest(state);
       writeFileSync(checkpointFile(name), gzipSync(JSON.stringify(checkpoint), { level: 9 })); ticks[name] = checkpoint.tick;
     }
@@ -232,7 +233,7 @@ export async function walkSlice(rapier: Rapier, to: CheckpointName | 'dawn'): Pr
     const manifest = v.parse(ManifestSchema, readWitnessManifest(MANIFEST));
     if (hash !== manifest.hashes[to]) throw new Error(`Inexact ${to} gameplay continuation`);
     return { status: 'passed', resumedFrom: from ?? 'spawn', resumedTick: start.tick, ticksExecuted: ticks, to, tick: host.state.tick,
-      alive: host.player.health.attributes.health > 0, flags: host.flags.all, facts: facts(start.session.effects), king: kingRow(host).boss, hash };
+      alive: leadPlayer(host).health.attributes.health > 0, flags: host.flags.all, facts: facts(start.session.effects), king: kingRow(host).boss, hash };
   } finally { start.session.host.dispose(); }
 }
 /** Exact continuation of the King's phase-II checkpoint, with the identical player commands in both worlds. */
@@ -294,7 +295,7 @@ async function collectGameplayProof(rapier: Rapier, from?: 'night') {
         if (ledger.flush() || Object.keys(profile(local).state().facts).length > 0) throw new Error('Refused fact became durable');
         local.refuse = false; if (!ledger.flush()) throw new Error('Fact retry failed'); refused = true;
       } else receipts.push(...ingress.ingest(effects));
-      if (session.host.player.health.attributes.health <= 0) throw new Error('Player died');
+      if (leadPlayer(session.host).health.attributes.health <= 0) throw new Error('Player died');
     }
     if (!tape.walked || !session.host.flags.has(wardens.QUEST_DONE) || !session.host.flags.has(bossRows.record.defeated)) throw new Error('King/dawn tape unfinished');
     const durable = ledger.state(), rows = Object.values(durable.facts), reopened = profile(local);

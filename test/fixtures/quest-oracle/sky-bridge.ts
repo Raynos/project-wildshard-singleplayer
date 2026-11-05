@@ -5,6 +5,7 @@ import { DeclaredQuests } from '@wildshard/game/quest/declared';
 import { DECK, NOTES, ROOST_RAYS, VANES, WINCH } from "../../../src/shards/far-reach/generators/layout";
 import { KEEPER_AT } from '../../../src/shards/far-reach/generators/quests';
 import FLAGS from '../../../src/shards/far-reach/data/flags.json' with { type: 'json' };
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** The script command actor that carries Sky's [E] prompts (`{ kind: 'script', actorId: SKY_INTERACT, value: SKY_ACT.* }`). */
 export const SKY_INTERACT = 'far.interact';
@@ -61,7 +62,7 @@ export function installSkyQuest(host: SimHost, ports: SkyQuestPorts): DeclaredQu
   const quests = new DeclaredQuests(host, ports.quests, { fact: ports.fact, coins: ports.coins });
   const flags = host.flags, eye = new Vector3();
   const near = (prompt: { at: Vector3; radius: number }): boolean => {
-    eye.copy(host.player.position); eye.y += EYE;
+    eye.copy(leadPlayer(host).position); eye.y += EYE;
     return prompt.at.distanceTo(eye) < prompt.radius;
   };
   const act = (value: number): void => {

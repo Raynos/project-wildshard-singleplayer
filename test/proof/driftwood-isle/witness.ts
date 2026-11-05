@@ -25,9 +25,11 @@ import { createNativeProofResident, prepareProductPlan } from '../../fixtures/he
 import type { TickWorkerHost } from '../../../src/sdk/tickWorkerHost';
 import { createNativeProofWorker } from '../../fixtures/headless-worker';
 import { TickCommandSchema, TickEffectSchema, type HeadlessCommand, type HeadlessEffect } from '../../../src/sdk/tickProtocol';
-import { canonicalSimDigest } from '../../fake/simState';
+import { canonicalSimDigest, simWireV1 } from '../../fake/simState';
 import { simMismatchError } from '../../fake/simMismatch';
 import { playDriftwood } from './tape';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
+import { leadSnapshot } from '@wildshard/engine/sim/snapshot';
 
 const { actions: DRIFTWOOD_ACT, actor: DRIFTWOOD_INTERACT, step: QUEST_STEP } = policy;
 
@@ -55,7 +57,7 @@ const Manifest = v.strictObject({ inputs: v.string(), tape: v.string(), ticks: n
 type Recorded = v.InferOutput<typeof Manifest>;
 const hash = (bytes: Uint8Array | string): string => createHash('sha256').update(bytes).digest('hex');
 const digest = (session: TrustedHeadlessResident): string => canonicalSimDigest(snapshotSimHost(session.host));
-const save = (session: TrustedHeadlessResident): string => serializeSimSnapshot(snapshotSimHost(session.host));
+const save = (session: TrustedHeadlessResident): string => simWireV1(serializeSimSnapshot(snapshotSimHost(session.host)));
 const identity = { instance: 'driftwood-witness', shard: source.identity.slug, revision: source.identity.revision };
 
 /** Every named result is scoped; the remaining page laws below keep whole-shard admission closed. */
@@ -123,7 +125,7 @@ function play(session: TrustedHeadlessResident, frames: readonly HeadlessCommand
   for (let i = from; i < until; i++) {
     const commands = frames[i]; if (commands === undefined) throw new Error('Missing recorded player tick');
     session.step(commands); effects.push(...session.effects.map(effect => ({ tick: session.host.state.tick, effect })));
-    if (session.host.player.health.attributes.health <= 0) throw new Error('Player died during recorded play');
+    if (leadPlayer(session.host).health.attributes.health <= 0) throw new Error('Player died during recorded play');
   }
   return effects;
 }
@@ -221,15 +223,15 @@ export async function reefProof(rapier: Rapier): Promise<object> {
   if (spot === undefined) { session.dispose(); throw new Error('Missing real reef treasure'); }
   let swimTicks = 0;
   const step = (commands: HeadlessCommand[]): void => {
-    session.step(commands); if (session.host.playerSwim.on) swimTicks++;
-    if (session.host.player.health.attributes.health <= 0) throw new Error('Reef journey player died');
+    session.step(commands); if (leadPlayer(session.host).swim.on) swimTicks++;
+    if (leadPlayer(session.host).health.attributes.health <= 0) throw new Error('Reef journey player died');
     ingress.ingest(session.host.state.tick, session.effects);
     if (!ledger.flush()) throw new Error('Reef journey ledger write refused');
   };
   const go = (x: number, z: number): void => {
     let best = Infinity, stalled = 0;
     for (let frame = 0; frame < 10_000; frame++) {
-      const p = session.host.player.position, dx = x - p.x, dz = z - p.z, d = Math.hypot(dx, dz);
+      const p = leadPlayer(session.host).position, dx = x - p.x, dz = z - p.z, d = Math.hypot(dx, dz);
       if (d < 0.2) return;
       if (d < best - 0.01) { best = d; stalled = 0; } else stalled++;
       if (stalled > 240 || session.host.state.tick > 20_000) throw new Error(`Reef swim stuck at ${JSON.stringify(p.toArray())} toward ${String(x)},${String(z)}`);
@@ -243,10 +245,10 @@ export async function reefProof(rapier: Rapier): Promise<object> {
     // Cross the east approach over its dry asphalt socket, avoiding the solid jetty and its shallow sandbar.
     for (const [x, z] of [[28, -200], [215, -200], [240, -12], [240, 0], [240, 12], [spot.x + 1, spot.z]] as const) go(x, z);
     for (let tick = 0; tick < 90; tick++) step([still]);
-    if (!session.host.playerSwim.on || swimTicks < 1000 || session.host.flags.has('open:reef-treasure')) throw new Error('Reef checkpoint was not earned by swimming');
+    if (!leadPlayer(session.host).swim.on || swimTicks < 1000 || session.host.flags.has('open:reef-treasure')) throw new Error('Reef checkpoint was not earned by swimming');
     const journeyTicks = session.host.state.tick;
     for (let tick = 0; tick < 45; tick++) step([{ ...still, dive: true }]);
-    if (!session.host.playerSwim.diving) throw new Error('Real held DIVE never entered a dive');
+    if (!leadPlayer(session.host).swim.diving) throw new Error('Real held DIVE never entered a dive');
     const restoreTick = session.host.state.tick, checkpoint = save(session);
     fork = await boot(rapier, checkpoint);
     const product = witnessProduct;
@@ -257,7 +259,7 @@ export async function reefProof(rapier: Rapier): Promise<object> {
       step(commands);
       if (fork !== undefined) {
         fork.step(commands);
-        if (!fork.host.player.position.equals(session.host.player.position) || JSON.stringify(fork.host.playerSwim) !== JSON.stringify(session.host.playerSwim)
+        if (!leadPlayer(fork.host).position.equals(leadPlayer(session.host).position) || JSON.stringify(leadPlayer(fork.host).swim) !== JSON.stringify(leadPlayer(session.host).swim)
           || JSON.stringify(fork.effects) !== JSON.stringify(session.effects)) throw new Error('Restored reef gameplay diverged');
       }
       // As with the Captain witness, one 60-tick SDK window covers both held controls and the actual treasure pickup.
@@ -279,8 +281,8 @@ export async function reefProof(rapier: Rapier): Promise<object> {
     await wetStep([{ ...still, dive: false, surface: false }]);
     const end = save(session);
     if (digest(fork) !== canonicalSimDigest(end)) throw new Error('Reef restore final native physics diverged');
-    const swim = snapshotSimHost(session.host).player.swim;
-    if (canonicalSimDigest(end) !== digest(session) || swim?.on !== true || swim.diving || session.host.player.position.y < -2) throw new Error('Reef worker did not surface exactly');
+    const swim = leadSnapshot(snapshotSimHost(session.host)).swim;
+    if (canonicalSimDigest(end) !== digest(session) || swim?.on !== true || swim.diving || leadPlayer(session.host).position.y < -2) throw new Error('Reef worker did not surface exactly');
     const reloaded = profile(local), earned = Object.values(reloaded.state().achievements).find(row => row.id === 'treasure');
     if (earned?.count !== 1) throw new Error('Gameplay treasure fact was not durable');
     return { status: 'passed', journeyTicks, swimTicks, workerTicks, restoreTick, suffixTicks: session.host.state.tick - restoreTick, workerExact: true, pack: pack.counts,
@@ -307,16 +309,16 @@ export async function ziplineProof(rapier: Rapier): Promise<object> {
       if (!ledger.flush()) throw new Error('Zipline gameplay ledger write was refused');
       if (fork !== undefined) {
         const replay = fork; replay.step(commands);
-        if (!replay.host.player.position.equals(session.host.player.position) || JSON.stringify(ride(replay)) !== JSON.stringify(ride(session))) throw new Error('Restored zipline carry diverged');
+        if (!leadPlayer(replay.host).position.equals(leadPlayer(session.host).position) || JSON.stringify(ride(replay)) !== JSON.stringify(ride(session))) throw new Error('Restored zipline carry diverged');
         sameEffects(replay.effects.map(effect => ({ tick: replay.host.state.tick, effect })), session.effects.map(effect => ({ tick: session.host.state.tick, effect })));
         if (frames.length < 60) frames.push({ commands, effects: session.effects.map(effect => ({ tick: session.host.state.tick, effect })),
           hash: (frames.length + 1) % 30 === 0 ? digest(session) : null });
       }
     }, async name => {
       if (name === 'zipline-launch') {
-        launchTick = session.host.state.tick; launch = session.host.player.position.toArray();
+        launchTick = session.host.state.tick; launch = leadPlayer(session.host).position.toArray();
         const point = readNativeQuestSpots(nativeQuestSpots).zipline.prompt;
-        if (Math.abs(session.host.player.position.y + 1.68 - point.y) > 2.4 || session.host.flags.has('used:zipline')) throw new Error('Real walk did not reach the launch deck');
+        if (Math.abs(leadPlayer(session.host).position.y + 1.68 - point.y) > 2.4 || session.host.flags.has('used:zipline')) throw new Error('Real walk did not reach the launch deck');
       } else if (name === 'zipline-mid') {
         restoreTick = session.host.state.tick; checkpoint = save(session); fork = await boot(rapier, checkpoint);
         if (digest(fork) !== digest(session) || session.host.flags.has('used:zipline')) throw new Error('Mid-ride restore or unearned feat diverged');
@@ -397,7 +399,7 @@ export async function replayProof(rapier: Rapier, workerTicks = 60): Promise<obj
     if (endHash !== replayHash || !original.host.flags.has('dead:captain') || !original.host.flags.has('quest:driftwood-done')) throw new Error('Captain continuation/reward diverged');
     const reward = v.parse(v.object({ reward: v.object({ elapsed: v.literal(-2), player: v.object({ pitch: v.number(), carried: v.literal(true) }) }) }), original.host.adapters.get(QUEST_STEP)?.snapshot()).reward;
     const target = readNativeQuestSpots(nativeQuestSpots).reward;
-    if (!original.host.flags.has('seen:complete') || Math.hypot(original.host.player.position.x - target.x, original.host.player.position.y - target.y, original.host.player.position.z - target.z) !== 0 || original.host.player.yaw !== target.yaw || reward.player.pitch !== target.pitch || original.host.dayClock === undefined || original.host.dayClock.phase < target.phase) throw new Error('Native reward carry/pose/clock handoff diverged');
+    if (!original.host.flags.has('seen:complete') || Math.hypot(leadPlayer(original.host).position.x - target.x, leadPlayer(original.host).position.y - target.y, leadPlayer(original.host).position.z - target.z) !== 0 || leadPlayer(original.host).yaw !== target.yaw || reward.player.pitch !== target.pitch || original.host.dayClock === undefined || original.host.dayClock.phase < target.phase) throw new Error('Native reward carry/pose/clock handoff diverged');
     return { status: 'passed', resumedFrom: cp.name, prefixTicks: 0, checkpointCaptured: true, checkpointTick: cp.tick, hp, encounter: JSON.parse(encounter) as unknown, suffixTicksExecuted: until - cp.tick, hash: endHash, replayHash, effects: a, workerTicks, workerExact: true, victory: true, reward };
   } finally { await worker?.dispose(); restored?.dispose(); original.dispose(); }
 }

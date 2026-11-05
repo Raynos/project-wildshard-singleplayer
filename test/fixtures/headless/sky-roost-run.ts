@@ -17,6 +17,7 @@ import {BOSS_REWARD,ROC_FACT,ROC_ID} from '../../../src/shards/far-reach/generat
 import {ROOST_IDS,SKY_ACT,SKY_INTERACT} from '../../../src/shards/far-reach/generators/questPrompts';
 import type {HeadlessCommand,HeadlessEffect} from '../../../src/sdk/tickProtocol';
 import type {HeadlessTapeObservation,HeadlessTapeSegment} from '../../../src/sdk/headlessTape';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const stage=process.argv[2]??'roost';
 if(stage!=='roost'&&stage!=='vanes'&&stage!=='winch'&&stage!=='roc')throw new Error('Unknown Sky progression tape');
@@ -51,19 +52,19 @@ try{
   })();
   let removedSwings=0,removedGusts=0,removedWinches=0,removedRocAttacks=0,negativeFinished=false;
   const controller=new SkyTape(),expected:HeadlessTapeObservation[]=[],encoder=new TextEncoder(),sim=await session.ready();
-  let frames:HeadlessCommand[][]=[],effects:HeadlessEffect[]=[],total=0,commandsCount=0,bytes=0,peakY=host.player.position.y,last=quest.current?.id;
+  let frames:HeadlessCommand[][]=[],effects:HeadlessEffect[]=[],total=0,commandsCount=0,bytes=0,peakY=leadPlayer(host).position.y,last=quest.current?.id;
   const flush=():HeadlessTapeSegment|undefined=>{
     if(frames.length===0)return undefined;
     const id=`roost-${expected.length}`,segment:HeadlessTapeSegment={id,ticks:frames.length,commands:[],frames};frames=[];
-    const observation:HeadlessTapeObservation={id,tick:host.state.tick,position:host.player.position.toArray(),peakY,
-      grounded:host.player.motor.snapshot().result.grounded,flags:[...host.flags.all],
+    const observation:HeadlessTapeObservation={id,tick:host.state.tick,position:leadPlayer(host).position.toArray(),peakY,
+      grounded:leadPlayer(host).motor.snapshot().result.grounded,flags:[...host.flags.all],
       quests:host.quests.map(row=>({id:row.def.id,currentId:row.current?.id??null,started:row.snapshot().started,complete:row.isComplete})),
-      effects,adapters:[]};effects=[];peakY=host.player.position.y;
+      effects,adapters:[]};effects=[];peakY=leadPlayer(host).position.y;
     bytes+=encoder.encode(JSON.stringify(observation)).byteLength;assert.ok(bytes<=8_000_000);
     expected.push(observation);assert.ok(expected.length<=128);
     if(stage==='roc'&&firstRocDamagePart===undefined&&roc.alive&&roc.hp<roc.maxHp)firstRocDamagePart=id;
     console.info(JSON.stringify({phase:'record',id,tick:host.state.tick,leg:controller.state.leg,current:quest.current?.id,
-      alive:actors.filter(actor=>actor.alive).length,rocHp:roc.hp,rocY:roc.position.y,position:host.player.position.toArray(),milliseconds:performance.now()-started}));
+      alive:actors.filter(actor=>actor.alive).length,rocHp:roc.hp,rocY:roc.position.y,position:leadPlayer(host).position.toArray(),milliseconds:performance.now()-started}));
     return segment;
   };
   const counterfactual=async(part:HeadlessTapeSegment):Promise<void>=>{
@@ -118,7 +119,7 @@ try{
     const results=await Promise.allSettled([positive(),counterfactual(segment)]);
     for(const result of results)if(result.status==='rejected')throw result.reason;
   };
-  const complete=()=>host.flags.has(earned)&&(stage!=='roc'||host.player.motor.snapshot().result.grounded);
+  const complete=()=>host.flags.has(earned)&&(stage!=='roc'||leadPlayer(host).motor.snapshot().result.grounded);
   while(total<30_000&&!complete()){
     const commands=structuredClone(controller.next(host).map(controls));commandsCount+=commands.length;assert.ok(commandsCount<=60_000);
     const priorHp=roc.hp;active.step(commands);
@@ -128,7 +129,7 @@ try{
       rocDamageChanges++;
     }
     total++;frames.push(commands);effects.push(...structuredClone(active.effects));
-    peakY=Math.max(peakY,host.player.position.y);
+    peakY=Math.max(peakY,leadPlayer(host).position.y);
     if(frames.length===512||quest.current?.id!==last){last=quest.current?.id;await submit();}
   }
   await submit();
@@ -137,7 +138,7 @@ try{
   assert.ok(actors.every(actor=>!actor.alive),'the quest cannot clear a live roost');
   assert.equal(quest.current?.id,stage==='roost'?'vanes':stage==='vanes'?'raise':undefined);assert.equal(quest.isComplete,stage==='winch'||stage==='roc');
   if(stage!=='roost')for(const id of ['grove','keeper','ruin'])assert.ok(host.flags.has(`far.vane.${id}`));
-  assert.equal(host.player.motor.snapshot().result.grounded,true,'the completed Sky stage ends on its actual island floor');
+  assert.equal(leadPlayer(host).motor.snapshot().result.grounded,true,'the completed Sky stage ends on its actual island floor');
   for(const flag of [...(stage==='roost'?['far.vanes']:[]),...(['winch','roc'].includes(stage)?[]:['far.bridge','far.complete']),...(stage==='roc'?[]:['far.roc.down'])])assert.equal(host.flags.has(flag),false,flag);
   if(stage==='winch'||stage==='roc'){
     assert.ok(host.flags.has('far.complete'));

@@ -15,6 +15,7 @@ import { canoeMover } from '../src/shards/pine-hollow/generators/canoe';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { PINE_SOURCES } from './fixtures/pine-sources';
 import { timberWorld } from '../src/shards/pine-hollow/generators/timberWorldRows';
+import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const row = canoeMover(() => 2, timberWorld(PINE_SOURCES).landmarks), level = { ...SIM_LEVEL, entities: [] };
 function install(host: SimHost): MoverRuntime {
@@ -28,24 +29,24 @@ test.each([180, 539])('native ride at tick %i owns carry/release, blocks walking
   let restored: SimHost | undefined, resumed: MoverRuntime | undefined;
   try {
     motion.command(row.id, 1);
-    for (let tick = 0; tick < savedTick; tick++) host.step({ moveX: 1, moveZ: 1, yaw: 0 });
+    for (let tick = 0; tick < savedTick; tick++) host.step(leadCommands(host, { moveX: 1, moveZ: 1, yaw: 0 }));
     expect(motion.riding(row.id)).toBe(true);
     const state = snapshotSimHost(host);
     restored = restoreSimHost(level, { rapier }, state, fresh => { resumed = install(fresh); });
     if (resumed === undefined) throw new Error('Missing restored mover');
     for (let tick = savedTick; tick < 550; tick++) {
-      host.step({ moveX: 0, moveZ: 0, yaw: 0 }); restored.step({ moveX: 0, moveZ: 0, yaw: 0 });
-      expect(restored.player.position.distanceTo(host.player.position)).toBeLessThan(1e-6);
+      host.step(leadCommands(host, { moveX: 0, moveZ: 0, yaw: 0 })); restored.step(leadCommands(restored, { moveX: 0, moveZ: 0, yaw: 0 }));
+      expect(leadPlayer(restored).position.distanceTo(leadPlayer(host).position)).toBeLessThan(1e-6);
       if (!motion.riding(row.id)) break;
     }
     expect(motion.riding(row.id)).toBe(false); expect(host.flags.has('secret:islet')).toBe(true);
     const landing = row.carry?.landings[1]; if (landing === undefined) throw new Error('Missing landing');
-    expect(host.player.position.distanceTo(new Vector3(...landing))).toBeLessThan(1e-6);
+    expect(leadPlayer(host).position.distanceTo(new Vector3(...landing))).toBeLessThan(1e-6);
     motion.command(row.id, 2);
     for (let tick = 0; tick < 550 && motion.riding(row.id); tick++) host.step();
     expect(motion.riding(row.id)).toBe(false);
     const shore = row.carry?.landings[0]; if (shore === undefined) throw new Error('Missing shore');
-    expect(host.player.position.distanceTo(new Vector3(...shore))).toBeLessThan(1e-6);
+    expect(leadPlayer(host).position.distanceTo(new Vector3(...shore))).toBeLessThan(1e-6);
   } finally { restored?.dispose(); host.dispose(); }
 });
 
@@ -65,7 +66,7 @@ test('built Pine installs and commands its admitted carry without a shard ride i
       expect(resident.host.events.ask('player.carrying', false)).toBe(true);
       for (let tick = 0; tick < 545 && resident.host.events.ask('player.carrying', false); tick++) resident.step([]);
       expect(resident.host.events.ask('player.carrying', false)).toBe(false);
-      expect(resident.host.player.position.distanceTo(new Vector3(...admitted.carry.landings[end]))).toBeLessThan(1e-6);
+      expect(leadPlayer(resident.host).position.distanceTo(new Vector3(...admitted.carry.landings[end]))).toBeLessThan(1e-6);
     }
     expect(resident.host.flags.has('secret:islet')).toBe(true);
   } finally { resident.dispose(); }

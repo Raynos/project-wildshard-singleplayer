@@ -10,10 +10,11 @@ import { prepareProductRuntimePlan } from '../../src/game/shardfile/nativePlan';
 import { MoverScriptDriver, type MoverRuntime } from '../../src/game/plugin/mover';
 import { installCableModes } from '../../src/engine/player/modes';
 import { createNativeCombatFrame } from '../../src/game/plugin/nativeItems';
-import { createSimHost, type SimHost } from '../../src/engine/sim';
+import { createSimHost, type SimHost , type SimCommand } from '../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '../../src/engine/sim/snapshot';
 import { simPlayerCommand, type HeadlessCommand, type HeadlessEffect } from '../../src/sdk/tickProtocol';
 import type { TickWorkerAdapter } from '../../src/sdk/tickWorkerLoop';
+import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** The world a product's own native plan builds: what the tick worker runs, for proofs that wrap or drive it. */
 export const prepareProductPlan: PrepareHeadlessRuntime = ({ product, assets, rapier }) => prepareProductRuntimePlan(product, assets, headlessAssemblyPorts(rapier));
@@ -75,10 +76,10 @@ export async function createNativeProofResident(preparation: HeadlessRuntimeInpu
     get effects() { return effects; },
     step: input => {
       lend(input);
-      let player: Parameters<SimHost['step']>[0];
+      let player: SimCommand | undefined;
       for (const command of input) if (command.kind === 'player') player = simPlayerCommand(command);
-      host.step(player);
-      if (![host.player.position, ...[...host.entities.values()].map(entity => entity.position)].every(point => [point.x, point.y, point.z].every(Number.isFinite))) throw new Error('Nonfinite trusted simulation state');
+      host.step(leadCommands(host, player));
+      if (![leadPlayer(host).position, ...[...host.entities.values()].map(entity => entity.position)].every(point => [point.x, point.y, point.z].every(Number.isFinite))) throw new Error('Nonfinite trusted simulation state');
     },
     proveEntries: () => {
       if (plan.proveEntries === undefined) throw new Error('Trusted runtime has no entry proof');

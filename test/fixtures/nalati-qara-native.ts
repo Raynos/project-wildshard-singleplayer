@@ -21,6 +21,7 @@ import {parseEliteEntryPageRows} from '@wildshard/format/eliteEntryRows';
 import {SpeciesActorsFileSchema} from '@wildshard/format/speciesBookRows';
 import type {EliteCoreScript} from '../../src/game/eliteSystem';
 import {nativePopulationOf} from '../../src/game/riding/nativePopulation';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const finite=v.pipe(v.number(),v.finite()),count=v.pipe(finite,v.integer(),v.minValue(0));
 const Saved=v.strictObject({version:v.literal(1),captain:v.nullable(v.string()),fight:v.nullable(v.string()),
@@ -86,15 +87,15 @@ const prepareQara:PrepareHeadlessRuntime=async preparation=>{
         if(captain===null||fight===null)return;
         const actor=captain;
         pin(engaged);elapsed+=dt;
-        const frame=eliteScriptFrame(external,decisions,fight,elapsed,dt,host.player.position,
+        const frame=eliteScriptFrame(external,decisions,fight,elapsed,dt,leadPlayer(host).position,
           {kills:patrol.law.killsTonight,engaged,leashing,phase2,time,line:line.filter(body=>body.alive).length,yaw:()=>actor.yaw});
         elapsed=frame.elapsed;
         for(const effect of frame.effects){
           if(effect.kind==='support'){line=patrol.law.spawnLine({count:effect.count});supports+=line.length;}
           else if(effect.kind==='hit'){
             const strike=strikes.find(row=>row.amount===effect.amount);if(strike===undefined)throw new Error('Undeclared captain contact');
-            contact.contact(strike.strike,{actor,target:host.player.position,canReach:()=>canReach(actor,host.player.position,host.physics),hit:()=>{
-            host.combat.hit({source:'env',sourceTags:[`elite.${actor.variant}`,'feel.blow','cover.checked'],target:host.player.health,
+            contact.contact(strike.strike,{actor,target:leadPlayer(host).position,canReach:()=>canReach(actor,leadPlayer(host).position,host.physics),hit:()=>{
+            host.combat.hit({source:'env',sourceTags:[`elite.${actor.variant}`,'feel.blow','cover.checked'],target:leadPlayer(host).health,
               amount:effect.amount,point:actor.position,dir:direction.set(0,0,0),cause:{kind:actor.kind,label:actor.label}});
             }});
             const length=Math.hypot(effect.knockX,effect.knockZ)||1;
@@ -112,7 +113,7 @@ const prepareQara:PrepareHeadlessRuntime=async preparation=>{
       if(captain!==null&&!captain.alive&&!population.bodies.includes(captain)){pin(false);fight?.interrupt();captain=null;fight=null;}
       core.update(dt,host.clock.now);
     },
-      scale:(actor,point)=>actor===captain?eliteDamageScale(external,decisions,Number(fight?.state('main')['mode']??0),point.distanceTo(host.player.position)):1};
+      scale:(actor,point)=>actor===captain?eliteDamageScale(external,decisions,Number(fight?.state('main')['mode']??0),point.distanceTo(leadPlayer(host).position)):1};
     owners.set(host,owner);host.scope.onDispose(()=>{owners.delete(host);pin(false);});
     host.onStep('nalati.qara',()=>undefined,{
       snapshot:()=>JSON.stringify({version:1,captain:captain?.entityId??null,fight:fight?.snapshot()??null,line:line.map(body=>body.entityId),elapsed,phase2,pinned:scope!==null,supports,signatures,hits,core:core.snapshot()}),

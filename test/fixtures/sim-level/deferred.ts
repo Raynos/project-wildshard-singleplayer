@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import type { SimHost, SimSpawn } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { SIM_LEVEL } from './level';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const Keeper = v.strictObject({ ticks: v.number(), born: v.number(), generation: v.number(), active: v.boolean() });
 export function deferredRecipe(generation: number): SimSpawn {
@@ -18,7 +19,7 @@ export function installDeferred(host: SimHost, saved?: Readonly<SimSnapshot>): v
     state.ticks++;
     if (!state.active && state.ticks === state.born + 20) {
       state.born = state.ticks; state.generation++; state.active = true; spawn();
-      host.startStrike(`deferred:${state.generation}`, host.player.id);
+      host.startStrike(`deferred:${state.generation}`, leadPlayer(host).id);
     }
     if (state.active && state.ticks === state.born + 12) { host.retire(`deferred:${state.generation}`); state.active = false; }
   }, { snapshot: () => ({ ...state }), restore: value => { state = v.parse(Keeper, value); } });

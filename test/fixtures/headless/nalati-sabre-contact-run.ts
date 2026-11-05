@@ -7,6 +7,7 @@ import {snapshotSimHost,serializeSimSnapshot} from '../../../src/engine/sim/snap
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import {earnNalatiPasture} from './nalati-pasture-session';
 import {beginProductSession} from './productSession';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const Weapons=v.object({blade:v.object({contacts:v.number(),struck:v.array(v.string())}),swing:v.object({move:v.nullable(v.number()),swingT:v.number()}),moves:v.array(v.string())});
 const {resident,population,checkpoint,checkpointTick}=await earnNalatiPasture([
@@ -24,7 +25,7 @@ try{
   const before=new Map(pack.members.map(actor=>[actor.entityId,actor.hp]));assert.ok(before.size>0);
   step([{kind:'script',actorId:'nalati.weapon.swap',value:1}]);
   for(let tick=0;tick<1800&&read().blade.contacts===0;tick++){
-    const feet=resident.host.player.position,target=pack.members.filter(actor=>actor.alive)
+    const feet=leadPlayer(resident.host).position,target=pack.members.filter(actor=>actor.alive)
       .sort((a,b)=>a.position.distanceToSquared(feet)-b.position.distanceToSquared(feet))[0];assert.ok(target);
     const dx=target.position.x-feet.x,dz=target.position.z-feet.z,gap=Math.hypot(dx,dz);
     const commands:HeadlessCommand[]=[{kind:'player',moveX:0,moveZ:0,yaw:Math.atan2(-dx,-dz),commandVersion:1,
@@ -36,7 +37,7 @@ try{
   const hit=read();assert.ok(hit.blade.contacts>0,'the ordinary sweep contacts an actual raider');assert.ok(hit.blade.struck.length>0);
   assert.ok(pack.members.some(actor=>actor.hp<(before.get(actor.entityId)??0)),'the real combat owner accepts sabre damage');
   assert.notEqual(hit.swing.move,null,'capture the actual swing while its struck set is live');
-  assert.equal(resident.host.player.health.alive,true);
+  assert.equal(leadPlayer(resident.host).health.alive,true);
   const middle=serializeSimSnapshot(snapshotSimHost(resident.host)),middleTick=frames.length;
   const pending=await beginProductSession('nalati-grasslands','nalati-predators',checkpoint);replay=await pending.ready();
   const observed=['nalati.predators','nalati.weapons'];

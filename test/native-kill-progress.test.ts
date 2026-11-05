@@ -11,6 +11,7 @@ import { DRIFTWOOD_FEATS } from '../src/shards/driftwood-isle/generators/questIn
 import { NativeInventory, creditNativeInventory, debitNativeInventory, type NativeInventoryProfile } from '../src/game/inventoryLaw';
 import { QuestStepRunner } from '../src/game/quest/steps';
 import { commitQuestEffects } from '../src/game/quest/effects';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 test('native kill counters resume old progress, keep flag/emission order and refuse malformed saves', async () => {
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
@@ -41,7 +42,7 @@ test('native kill counters resume old progress, keep flag/emission order and ref
     expect(() => saved.restore({ sailor: 1, crab10: Infinity, monkey6: 0 })).toThrow();
     expect(kills.count('crab10')).toBe(progress);
     expect(() => saved.restore({ sailor: 1, crab10: 10, monkey6: 0, extra: 1 })).toThrow();
-    host.step(); expect([host.player.position.x, host.player.position.y, host.player.position.z].every(Number.isFinite)).toBe(true);
+    host.step(); expect([leadPlayer(host).position.x, leadPlayer(host).position.y, leadPlayer(host).position.z].every(Number.isFinite)).toBe(true);
   } finally { host.dispose(); }
 });
 

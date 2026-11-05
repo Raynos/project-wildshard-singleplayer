@@ -6,6 +6,7 @@ import {PhysicsRouteCursor,type WalkPoint} from '../../../src/sdk/headlessJourne
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import {SKY_ROAD} from '../../../src/shards/nalati-grasslands/generators/layout';
 import {nalatiTitanOf} from '../../fixtures/nalati-titan-native';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** The real entry, borrowed horse and storm prefix. No wait advances a clock
  * directly; departure follows the admitted weather owner's remaining time. */
@@ -17,17 +18,17 @@ export async function reachTitanCairn(host:SimHost,step:(commands:readonly Headl
     {x:88,z:207},{x:83,z:206},{x:73,z:206.1},{x:72.4,z:212.9},{x:72,z:210},{x:68,z:210},{x:66,z:211.5},{x:66.8,z:213.4}];
   const cursor=new PhysicsRouteCursor(route,{once:true});
   for(let tick=0;tick<3600;tick++){
-    const p=host.player.position,command=cursor.command([p.x,p.y,p.z],tick);
+    const p=leadPlayer(host).position,command=cursor.command([p.x,p.y,p.z],tick);
     if(cursor.complete)break;assert.equal(cursor.stuck.length,0,'the camp route must remain a real walk');await step([command]);
   }
   assert.equal(cursor.complete,true);
   await step([{kind:'script',actorId:'nalati.companion.use',value:1}]);assert.equal(mount.mounted,true);
-  const reins=(forward:number,turn:number,jump=false):HeadlessCommand=>({kind:'player',moveX:0,moveZ:0,yaw:host.player.yaw,
+  const reins=(forward:number,turn:number,jump=false):HeadlessCommand=>({kind:'player',moveX:0,moveZ:0,yaw:leadPlayer(host).yaw,
     commandVersion:1,steer:{keyX:0,keyY:0,stickX:turn,stickY:forward},...(jump?{jump:true}:{})});
   for(let tick=0;tick<90;tick++)await step([reins(-1,0)]);
   const drive=async(x:number,z:number,radius=2.5):Promise<void>=>{
     for(let tick=0;tick<1800;tick++){
-      const p=host.player.position,dx=x-p.x,dz=z-p.z;if(Math.hypot(dx,dz)<radius)return;
+      const p=leadPlayer(host).position,dx=x-p.x,dz=z-p.z;if(Math.hypot(dx,dz)<radius)return;
       assert.equal(mount.mounted,true);
       const target=Math.atan2(dx,dz),delta=Math.atan2(Math.sin(mount.body.heading-target),Math.cos(mount.body.heading-target));
       const brake=Math.abs(delta)>.7&&Math.abs(mount.body.speed)>1.5;
