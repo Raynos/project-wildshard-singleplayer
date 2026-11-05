@@ -4,7 +4,7 @@
   "client → server": 91,
   "cook → client": 2,
   "cook → render": 1,
-  "server → client": 82,
+  "server → client": 81,
   "server → dom": 2,
   "server → render": 3,
   "shared → client": 3,
@@ -225,9 +225,6 @@
   },
   "src/game/server/plugin/placeholderGeometry.ts": {
    "server → render": 1
-  },
-  "src/game/server/population/directedSpecies.ts": {
-   "server → client": 1
   },
   "src/game/server/population/pageGroups.ts": {
    "server → client": 2
