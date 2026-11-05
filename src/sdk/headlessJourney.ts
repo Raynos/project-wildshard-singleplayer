@@ -91,12 +91,16 @@ export class PhysicsRouteCursor {
   }
 }
 
+/** One committed tick of a journey, for a replay (P1-E5.3-B3). The feet are copied; the capture may keep the sample. */
+export interface HeadlessJourneySample {readonly commands:readonly HeadlessCommand[];readonly x:number;readonly y:number;readonly z:number;readonly grounded:boolean}
 /** Terminal offline walk. Every tick runs the original native adapter and
  * its script/decision/finite-state refusals. The parent request watchdog still
- * preempts a blocked worker. This proof does not encode a resumable checkpoint. */
-export function runHeadlessJourney(host:SimHost,step:(commands:readonly HeadlessCommand[])=>void,input:HeadlessJourneyPlan):HeadlessJourneyReport {
+ * preempts a blocked worker. This proof does not encode a resumable checkpoint.
+ * `capture` sees the placed start with no commands, then every committed tick. */
+export function runHeadlessJourney(host:SimHost,step:(commands:readonly HeadlessCommand[])=>void,input:HeadlessJourneyPlan,capture?:(sample:HeadlessJourneySample)=>void):HeadlessJourneyReport {
   const player=leadPlayer(host),plan=v.parse(HeadlessJourneyPlanSchema,input),cursor=new PhysicsRouteCursor(plan.points,{once:plan.once===true,edge:plan.inside!==undefined}),initial=host.state.tick;
   let distance=0,maxTickMicros=0,out=0,ticks=0;
+  const observe=(commands:readonly HeadlessCommand[]):void=>{const p=player.position;capture?.({commands,x:p.x,y:p.y,z:p.z,grounded:player.fall.grounded});};
   const held=new Map<AnimalSim,boolean>();
   const holdActors=():void=>{
     for(const actor of host.entities.values()){
@@ -109,6 +113,7 @@ export function runHeadlessJourney(host:SimHost,step:(commands:readonly Headless
     const prior=host.state.tick,started=diagnosticNow();step(commands);maxTickMicros=Math.max(maxTickMicros,(diagnosticNow()-started)*1000);
     if(host.state.tick!==prior+1)throw new Error('Journey did not commit exactly one tick');
     const p=player.position;if(![p.x,p.y,p.z].every(Number.isFinite))throw new Error('Journey produced invalid feet');
+    observe(commands);
   };
   const preparationTicks=plan.start===undefined?0:36;
   const walking={speed:walkingSpeed(false,false,0,1,1),crouching:false,clientMotion:{x:0,z:0}};
@@ -125,6 +130,7 @@ export function runHeadlessJourney(host:SimHost,step:(commands:readonly Headless
     const motor=new CharacterMotor(host.physics,{...PLAYER_CAPSULE,...PLAYER_BODY,owner:player.id});
     player.attachMotor(motor);motor.resetAt(p);
     if(start.hover===true)player.setBoard(true);
+    observe([]);
     for(let at=0;at<preparationTicks;at++)tick([]);
   }
   for(let at=0;at<plan.ticks;at++){
