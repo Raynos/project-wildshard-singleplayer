@@ -54,7 +54,7 @@ export function pageClimate(ports: PageClimatePorts): PageClimate {
   }
   const world = policy.storm === undefined ? null : v.parse(WeatherWorldSchema, policy.storm.world), storm = reactions;
   const feed = net?.(declared) ?? null;
-  if (feed !== null && storm !== null) for (const event of new Set(storm.rows.steps.flatMap(step => step.emit.map(row => row.event)))) feed.storm?.on(event, record => { storm.raise(event, record); });
+  if (feed !== null && storm !== null) for (const event of new Set(storm.rows.steps.flatMap(step => step.emit.map(row => row.event)))) feed.storm?.on(event, ({ age: _age, ...fields }) => { storm.raise(event, fields); });
   return { weather, storm,
     setMode: (mode, at) => { weather.setMode(mode, at); },
     force: (phase, at) => { weather.force(phase, at); },

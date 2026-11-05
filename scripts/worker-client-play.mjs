@@ -42,7 +42,7 @@ async function walk(page, x, z, near, seconds) {
 }
 /** The nearest living row body, by kind if named. */
 const nearestBody = (page, kinds) => page.evaluate(wanted => {
-  const { world } = window.__wildshard, { player } = world, list = world.game.app.world?.animals?.animals ?? window.__wildshard.requireWorld?.().animals?.animals ?? [];
+  const { world } = window.__wildshard, { player } = world, list = world.animals?.animals ?? [];
   const live = list.filter(body => body.alive && body.rowDriven && (wanted.length === 0 || wanted.includes(body.kind)));
   live.sort((a, b) => a.position.distanceTo(player.position) - b.position.distanceTo(player.position));
   const body = live[0];

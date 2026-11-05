@@ -23,8 +23,11 @@ const installed=new WeakSet<Scope>();
 export const pageSim:PageSimFeed=pageSimFeed;
 /** J130: this page runs on a server. Motion and the sky come off rows; what else `pageSim` holds still builds, on nothing, and
  * stands down where a bar, a payout or a flag would otherwise have two drivers. */
+let wired=false;
 export function wirePageSim():void{
   wirePage.followBooks();
+  if(wired)return;
+  wired=true;
   const {installDeclaredMovers,climate}=pageSim;
   Object.assign(pageSim,{
     installDeclaredMovers:async(...[ctx,world,options]:Parameters<PageSimFeed['installDeclaredMovers']>)=>{
