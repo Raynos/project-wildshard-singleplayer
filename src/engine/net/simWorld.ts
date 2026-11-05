@@ -45,6 +45,8 @@ export class SimNetWorld implements NetWorld {
     const { bodies, state } = shardRows(host);
     for (const [id, read] of bodies) visitor.entity(id, SCRIPT_CLASS, read());
     if (state !== null) for (const row of state()) visitor.entity(`${STATE_PREFIX}${row.name}`, STATE_CLASS, row);
-    for (const flag of host.flags.all) visitor.entity(`${FLAG_PREFIX}${flag}`, FLAG_CLASS, flag);
+    // only the world's: a flag a quest row wrote is its player's alone (J106), and reaches that client as a phase event
+    const books = questBooks(host);
+    for (const flag of host.flags.all) if (!books.personal(flag)) visitor.entity(`${FLAG_PREFIX}${flag}`, FLAG_CLASS, flag);
   }
 }
