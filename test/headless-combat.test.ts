@@ -125,9 +125,10 @@ test('Driftwood: a real walk, free swings and the page\'s own Sword land the sam
     facing(live, crab, 1.4); wire.drain();
     const saved = serializeSimSnapshot(snapshotSimHostBytes(live.host)), hpBefore = crab.hp, pushes: number[][] = [], server: number[] = [];
 
-    // three free taps, one per swing: nothing names the crab, the server finds it
+    // three free taps, one per swing: nothing names the crab, the server finds it along the look the page holds below
+    const feet = leadPlayer(live.host).position, look = Math.asin(chest(crab).sub(new Vector3(feet.x, feet.y + 1.68, feet.z)).normalize().y);
     for (let swing = 0; swing < 3 && crab.alive; swing++) {
-      tick(live, 1, [{ ...stand(live), swing: true }]); tick(live, 29);
+      tick(live, 1, [{ ...stand(live), swing: true, pitch: look }]); tick(live, 29);
       server.push(crab.hp); pushes.push(crab.snapshot().pushDir);
     }
     const rows = wire.drain(), hits = rows.filter(row => row.kind === 'hit');

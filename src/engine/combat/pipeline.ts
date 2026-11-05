@@ -29,6 +29,8 @@ export interface DamageRequest {
   point: Vector3; dir: Vector3; surface?: string; weaponId?: string; moveId?: string;
   headshot?: boolean; stagger?: number; knockback?: number; throughWalls?: boolean;
   from?: Vector3; distance?: number; scale?: number; cause?: DeathCause; toast?: StringKey;
+  /** The command `seq` of the swing or shot behind this hit, which its `hit` event confirms (J47); 0 or absent off the wire. */
+  attackSeq?: number;
 }
 export interface DamageDealt { req: DamageRequest; dealt: number; killed: boolean }
 /** A simulation target shared by creature and practice weapon selection. */

@@ -1,7 +1,7 @@
 import { STARTER_MELEE_PROFILE, IRON_MELEE_PROFILE } from './starterCombat';
 import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
 import { SWAP_GLYPHS } from './starterGlyphs';
-import { REST, CHARGE, SPRINT, COMBO, HEAVY } from './starterMoves';
+import { REST, CHARGE, SPRINT, COMBO, HEAVY, CHARGE_BLEND } from './starterMoves';
 import type { MeleeProfile } from '@wildshard/engine/combat/meleeProfile';
 
 /** The starter wooden sword equipment row and existing UI metadata. */
@@ -55,7 +55,7 @@ export const SWORD_WOOD: MeleeProfile = {
   hitStop: { body: 0.06, head: 0.06, kill: 0.06 }, family: STARTER_MELEE_PROFILE.family, damage: STARTER_MELEE_PROFILE.damage, reach: STARTER_MELEE_PROFILE.reach, swingScale: STARTER_MELEE_PROFILE.swingScale,
   portraitPullX: 0.32, framing: { shrink: 0.33, dx: -0.03, dy: -0.055, tilt: 0.36, yaw: -0.02 },
   moves: { rest: REST, charge: CHARGE, sprint: SPRINT, combo: COMBO, heavy: HEAVY },
-  cooldown: STARTER_MELEE_PROFILE.cooldown, comboGap: STARTER_MELEE_PROFILE.comboGap, chainLag: STARTER_MELEE_PROFILE.chainLag, heavyCharge: STARTER_MELEE_PROFILE.heavyCharge, chargeBlend: 0.16,
+  cooldown: STARTER_MELEE_PROFILE.cooldown, comboGap: STARTER_MELEE_PROFILE.comboGap, chainLag: STARTER_MELEE_PROFILE.chainLag, heavyCharge: STARTER_MELEE_PROFILE.heavyCharge, chargeBlend: CHARGE_BLEND,
   lunge: STARTER_MELEE_PROFILE.lunge,
   sweep: STARTER_MELEE_PROFILE.sweep,
   trail: { samples: 20, subdivisions: 3 }, dodgeKick: { kick: 2.2, k: 160, c: 14 }, armFollow: 0.45,

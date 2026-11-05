@@ -200,6 +200,9 @@ export class SimHost {
   private readonly strikeCatalogues = new Map<string, ReadonlyMap<string, StrikeSpec>>();
   private readonly dynamicActors = new Set<string>();
   private readonly targetIds = new Map<string, string>();
+  /** The command `seq` behind each player's running strike, which its hit confirms (J47). A restored strike lands unconfirmed. */
+  private readonly strikeSeqs = new Map<string, number>();
+  private tickCommands: ReadonlyMap<string, SimTickCommand> | undefined;
   /**
    * A live view of the position of the player the body acting right now deals with: what a brain holds where it once held
    * "the player's" position. It follows `focusedPlayer`, which the host sets to the player nearest each body as it decides
@@ -310,7 +313,7 @@ export class SimHost {
     if (player === undefined || player === this.lead) return false;
     if (this.focused === player) this.focused = this.lead;
     player.disposeMotor(); this.playerScopes.get(id)?.dispose(); this.playerScopes.delete(id);
-    this.players.delete(id); this.strikes.delete(id); this.weapons.delete(id);
+    this.players.delete(id); this.strikes.delete(id); this.weapons.delete(id); this.strikeSeqs.delete(id);
     for (const [source, target] of this.targetIds) if (source === id || target === id) {
       this.strikes.get(source)?.cancel(); this.entities.get(source)?.cancelAttack(); this.targetIds.delete(source);
     }
@@ -566,6 +569,7 @@ export class SimHost {
     const { players } = this;
     for (const player of players.values()) if (!player.hasMotor) throw new Error('Frozen simulation cannot step');
     if (commands !== undefined) for (const id of commands.keys()) if (!players.has(id)) throw new RangeError(`Unknown simulation player ${id}`);
+    this.tickCommands = commands;
     for (const player of players.values()) player.take(commands?.get(player.id));
     this.events.beginFrame(); this.clock.tick(FIXED_STEP);
     for (const player of players.values()) player.input();
@@ -624,7 +628,9 @@ export class SimHost {
   }
   /** Start an authored strike; active/recovery/cooldown timing remains in StrikeRunner. */
   startStrike(sourceId: string, targetId: string): boolean {
-    return this.beginStrike(sourceId, targetId, this.weapons.get(sourceId));
+    const started = this.beginStrike(sourceId, targetId, this.weapons.get(sourceId)), input = this.tickCommands?.get(sourceId);
+    if (started && input !== undefined && 'seq' in input) this.strikeSeqs.set(sourceId, input.seq);
+    return started;
   }
   private beginStrike(sourceId: string, targetId: string, spec: StrikeSpec | undefined): boolean {
     const runner = this.strikes.get(sourceId), source = this.entities.get(sourceId), target = this.entities.get(targetId);
@@ -646,7 +652,7 @@ export class SimHost {
       this.hitOrigin.copy(actor.position); this.hitOrigin.y += source === undefined ? 1.2 : source.dims.bodyY * source.scale;
       this.hitPoint.copy(position); this.hitPoint.y += target === undefined ? 1.2 : target.dims.bodyY * target.scale;
       this.combat.hit({ source: source?.combatActor() ?? striker?.health ?? 'env', sourceTags: spec.tags, target: health,
-        amount: spec.damage, point: this.hitPoint, dir: this.direction, from: this.hitOrigin, moveId: spec.id });
+        amount: spec.damage, point: this.hitPoint, dir: this.direction, from: this.hitOrigin, moveId: spec.id, attackSeq: this.strikeSeqs.get(id) ?? 0 });
     } });
   }
   /** Timed attack targets are host state; snapshot restoration must reconnect them before replay. */

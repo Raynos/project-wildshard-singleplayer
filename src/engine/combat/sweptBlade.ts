@@ -11,6 +11,17 @@ import type { TargetHit } from './types';
 export interface BladeKey { readonly t: number; readonly pos: Vector3; readonly q: Quaternion }
 export interface BladeSweepProfile { readonly rays: number; readonly extensions: readonly number[]; readonly step: number; readonly maxSamples: number; readonly maxHits: number }
 
+/** One swing's keys, as a move holds them. */
+export interface BladeSwing { readonly keys: readonly [BladeKey, BladeKey, BladeKey]; readonly total: number }
+/** A blade's whole pose set: what a host needs to sweep it with no scene. */
+export interface SweptBladeRig {
+  readonly rest: BladeKey; readonly charge: BladeKey; readonly sprint: BladeKey;
+  readonly combo: readonly BladeSwing[]; readonly heavy: BladeSwing;
+  /** Seconds to rise into the charge pose. */
+  readonly chargeBlend: number;
+  readonly tipX: number; readonly tipY: number;
+}
+
 const clamp01 = (v: number): number => (v < 0 ? 0 : Math.min(1, v));
 const easeOut = (t: number): number => 1 - (1 - t) * (1 - t);
 const easeIn = (t: number): number => t * t;

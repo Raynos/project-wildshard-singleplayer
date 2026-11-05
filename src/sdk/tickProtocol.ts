@@ -15,10 +15,11 @@ export const TickCommandSchema: v.GenericSchema<BoundedTickCommandInput, Bounded
   // without it releases. The runtime's weapon reads it with its own law (SweptMeleeCore.step's `held`; a hold-to-release
   // weapon's charge); SimHost has no heavy of its own. `dive` / `surface` are held booleans read by the installed water law.
   // `swing: true` says this tick's press or hold names no target: a net client's free swing or shot (P1-E3.2), which the weapon
-  // resolves along `yaw` and the look `pitch` from the server's own eye.
+  // resolves along `yaw` and the look `pitch` from the server's own eye. `seq` is the NetCommand's: the hit a swing or shot started
+  // here lands confirms it (J47).
   v.pipe(v.strictObject({ kind: v.literal('player'), moveX: finite, moveZ: finite, yaw: finite, attack: v.optional(v.strictObject({ targetId: text })), hover: v.optional(v.literal(true)),
     jump: v.optional(v.literal(true)), dodge: v.optional(v.literal(true)), heavy: v.optional(v.strictObject({ targetId: v.optional(text) })),
-    swing: v.exactOptional(v.literal(true)), pitch: v.exactOptional(v.pipe(finite, v.minValue(-Math.PI / 2), v.maxValue(Math.PI / 2))), dive: v.exactOptional(v.boolean()), surface: v.exactOptional(v.boolean()),
+    swing: v.exactOptional(v.literal(true)), seq: v.exactOptional(natural), pitch: v.exactOptional(v.pipe(finite, v.minValue(-Math.PI / 2), v.maxValue(Math.PI / 2))), dive: v.exactOptional(v.boolean()), surface: v.exactOptional(v.boolean()),
     commandVersion: v.exactOptional(v.literal(1)), steer: v.exactOptional(v.strictObject({ keyX: v.pipe(finite, v.minValue(-1), v.maxValue(1)), keyY: v.pipe(finite, v.minValue(-1), v.maxValue(1)),
       stickX: v.pipe(finite, v.minValue(-1), v.maxValue(1)), stickY: v.pipe(finite, v.minValue(-1), v.maxValue(1)) })), sprint: v.exactOptional(v.boolean()), crouch: v.exactOptional(v.boolean()) }),
     v.check(command => command.commandVersion === 1 || (command.steer === undefined && command.sprint === undefined && command.crouch === undefined), 'Raw movement requires commandVersion 1')),
@@ -123,6 +124,7 @@ type BoundedTickCommand = {
         targetId?: string | undefined;
     } | undefined;
     swing?: true;
+    seq?: number;
     pitch?: number;
     dive?: boolean;
     surface?: boolean;

@@ -871,6 +871,7 @@
    "mixed": true
   },
   "src/game/eliteSystem.ts": "server",
+  "src/game/eliteView.ts": "client",
   "src/game/engineStrings.ts": "client",
   "src/game/generators/pickups.ts": "cook",
   "src/game/grapple/course.ts": "shared",
@@ -1130,7 +1131,9 @@
    "mixed": true
   },
   "src/game/plugin/nativeItems.ts": "server",
+  "src/game/plugin/nativeSwept.ts": "server",
   "src/game/plugin/placeholderGeometry.ts": "server",
+  "src/game/plugin/playerSeats.ts": "server",
   "src/game/plugin/quests.ts": "server",
   "src/game/plugin/scene.ts": "client",
   "src/game/plugin/shaderFamily.ts": "client",

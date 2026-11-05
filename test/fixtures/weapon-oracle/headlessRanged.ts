@@ -1,6 +1,7 @@
 import { nativeRangedAim, nativeRangedHit } from '@wildshard/game/plugin/nativeItems';
 import type { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 
 /** The page Player's eye over its feet (player/Player.ts EYE): every aim line starts there. */
@@ -25,5 +26,5 @@ export const aimShare = (value: number): number => (value === AIM_RIBS ? AIM_RIB
 /** The player's eye (`eye`) and the unit aim line from it to the point `along` the target's body capsule (`fwd`; its middle by
  *  default): the tape aims at a point of a body where the page aims along the camera. */
 export function aimAt(host: SimHost, target: AnimalSim, eye: Vector3, fwd: Vector3, along = AIM_MIDDLE): void {
-  nativeRangedAim(host, target, eye, fwd, along);
+  nativeRangedAim(leadPlayer(host), target, eye, fwd, along);
 }

@@ -49,7 +49,7 @@ export interface NetSpawn { readonly kind: 'spawn'; readonly handle: number; rea
 export interface NetDespawn { readonly kind: 'despawn'; readonly handle: number }
 /** A cell-local vector. */
 export type NetVector = readonly [number, number, number];
-/** The server settled a hit (J47): impact FX, hit-stop and damage numbers play from this. `confirmFor` is the attack's command seq, or 0. */
+/** The server settled a hit (J47): impact FX, hit-stop and damage numbers play from this. `confirmFor` is the seq of the command that swung or fired this very blow, or 0. */
 export interface NetHit { readonly kind: 'hit'; readonly tick: number; readonly target: number; readonly amount: number; readonly at: NetVector; readonly head: boolean; readonly killed: boolean; readonly confirmFor: number }
 /** An entity died (J33): `by` is the killer's handle or 0; each client throws its own ragdoll along `dir` from `impulse`. */
 export interface NetDied { readonly kind: 'died'; readonly tick: number; readonly id: number; readonly by: number; readonly dir: NetVector; readonly impulse: number }

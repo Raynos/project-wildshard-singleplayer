@@ -7,11 +7,13 @@ import { prepareAssetDecoders } from '@wildshard/format/product';
 import { parseNativeRuntimePlan } from '@wildshard/format/nativeRuntimePlan';
 import { MoverScriptDriver, type MoverRuntime } from '@wildshard/game/plugin/mover';
 import { installCableModes } from '@wildshard/engine/player/modes';
-import { createNativeCombatFrame, readNativeRangedItem, type NativeCombatFrame } from '@wildshard/game/plugin/nativeItems';
-import { prepareRuntimePlan, ledgerPorts, pickCommands, type NativeSweptMeleeInput } from '@wildshard/game/plugin/simulation';
+import { createNativeCombatFrame, otherCombatFrame, readNativeRangedItem, type NativeCombatFrame } from '@wildshard/game/plugin/nativeItems';
+import { prepareRuntimePlan, ledgerPorts, pickCommands } from '@wildshard/game/plugin/simulation';
+import type { NativeSweptMeleeInput } from '@wildshard/game/plugin/nativeSwept';
 import { createSimHost, type SimHost, type SimHostPorts, type SimLevel, type SimTickCommand } from '@wildshard/engine/sim';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
-import type { NetCommand } from '@wildshard/format/netCommand';
+import type { NetAct, NetCommand } from '@wildshard/format/netCommand';
+import { netTickCommands } from './standalone/netInput';
 import { checkSimSnapshotWire, decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import type { Shardfile } from './shardfile';
@@ -114,7 +116,7 @@ export interface TrustedHeadlessResident {
   lend: (commands: readonly HeadlessCommand[]) => void;
   readonly effects: readonly HeadlessEffect[];
   /** One tick: `commands` for the lead player and the systems bound to it, `others` for the room's other players. */
-  step: (commands: readonly HeadlessCommand[], others?: ReadonlyMap<string, NetCommand>) => void;
+  step: (commands: readonly HeadlessCommand[], others?: ReadonlyMap<string, NetCommand>, acts?: ReadonlyMap<string, readonly NetAct[]>) => void;
   proveEntries: () => ReturnType<NonNullable<HeadlessRuntimePlan['proveEntries']>>;
   dispose: () => void;
 }
@@ -193,11 +195,17 @@ export async function createTrustedHeadlessResident(preparation: HeadlessRuntime
   const lend = (input: readonly HeadlessCommand[]): void => {
     validateHeadlessCommandOwners(host,input);
     fillNativeCombatFrame(combat, input); commands = input; effects = []; };
+  /** Every other player's weapons read their own frame: a player who sent nothing this tick has let go of everything. */
+  const lendOthers = (others: ReadonlyMap<string, NetCommand> | undefined, acts: ReadonlyMap<string, readonly NetAct[]> | undefined): void => {
+    if (host.players.size === 1) { combat.others.clear(); return; }
+    for (const id of combat.others.keys()) if (!host.players.has(id)) combat.others.delete(id);
+    for (const id of host.players.keys()) if (id !== lead.id) fillNativeCombatFrame(otherCombatFrame(combat, id), netTickCommands(others?.get(id) ?? null, acts?.get(id) ?? []));
+  };
   return {
     host, lend,
     get effects() { return effects; },
-    step: (input, others) => {
-      lend(input);
+    step: (input, others, acts) => {
+      lend(input); lendOthers(others, acts);
       const tick = new Map<string, SimTickCommand>(others);
       for (const command of input) if (command.kind === 'player') tick.set(lead.id, simPlayerCommand(command));
       host.step(tick);
@@ -244,7 +252,7 @@ export function fillNativeCombatFrame(frame: NativeCombatFrame, commands: readon
   if (commands.length > 1024) throw new RangeError('Tick commands exceed the protocol allowance');
   frame.launchers.length=0; frame.attacks.length = 0; frame.heavy = null; frame.scripts.clear();
   frame.moveX = 0; frame.moveZ = 0; frame.yaw = 0; frame.pitch = 0;
-  frame.melee.attack = null; frame.melee.heavy = false; frame.melee.heavyTarget = null; frame.melee.swing = false;
+  frame.melee.attack = null; frame.melee.heavy = false; frame.melee.heavyTarget = null; frame.melee.swing = false; frame.melee.pitch = null; frame.melee.sprint = false; frame.melee.seq = 0; frame.seq = 0;
   for (const command of commands) {
     if (command.kind === 'script') frame.scripts.set(command.actorId, command.value);
     if(command.kind==='launcher')frame.launchers.push({slot:command.slot,ads:command.ads,pitch:command.pitch,
@@ -255,5 +263,6 @@ export function fillNativeCombatFrame(frame: NativeCombatFrame, commands: readon
     frame.moveX = command.moveX; frame.moveZ = command.moveZ; frame.yaw = command.yaw; frame.pitch = command.pitch ?? 0;
     frame.melee.attack = command.attack?.targetId ?? null; frame.melee.heavy = command.heavy !== undefined;
     frame.melee.heavyTarget = command.heavy?.targetId ?? null; frame.melee.swing = command.swing === true;
+    frame.melee.pitch = command.pitch ?? null; frame.melee.sprint = command.sprint === true; frame.melee.seq = frame.seq = command.seq ?? 0;
   }
 }

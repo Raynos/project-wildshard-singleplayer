@@ -1,5 +1,6 @@
 import { STARTER_MELEE_PROFILE } from './starterCombat';
 import type { Key, Move } from '@wildshard/engine/combat/view/melee';
+import type { SweptBladeRig } from '@wildshard/engine/combat/sweptBlade';
 import * as THREE from 'three';
 
 /**
@@ -90,3 +91,11 @@ export const HEAVY: Move = {
 
 /** The original light-combo order, preserving move object identities. */
 export const COMBO: Move[] = [SLASH, BACKHAND, FINISHER];
+
+/** Seconds the blade takes to rise into the charge pose. */
+export const CHARGE_BLEND = 0.16;
+/** The starter sword's tip up its blade (m from the grip): `buildSword`'s guard, step and blade length. */
+export const STARTER_SWORD_TIP: number = 0.085 + 0.014 + 0.52;
+/** Everything a blade sweep needs of the starter sword, renderer-free: its swings and where its tip sits. The page's `Sword`
+ * sweeps these; so does the native owner (P1-E3.5), since the shard's rows carry a move's numbers and never its keys. */
+export const STARTER_BLADE: SweptBladeRig = { rest: REST, charge: CHARGE, sprint: SPRINT, combo: COMBO, heavy: HEAVY, chargeBlend: CHARGE_BLEND, tipX: 0, tipY: STARTER_SWORD_TIP };

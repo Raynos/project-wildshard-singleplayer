@@ -1,7 +1,7 @@
 import { wetFlight } from '@wildshard/engine/combat/ammo';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
-import type { SimHost } from '@wildshard/engine/sim';
+import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
 import { RangedAction } from '@wildshard/engine/combat/Firearm';
@@ -14,8 +14,9 @@ import { worldHit, floorBelow } from '@wildshard/engine/physics/query';
 import { fieldGustAt, type WindFieldSpec } from '@wildshard/engine/world/windField';
 import { BowWeaponProfileSchema, parseNativeFirearmProfile } from '@wildshard/format/weaponProfiles';
 import { NativeRangedRowSchema } from '@wildshard/format/nativeItems';
-import { createNativeTargetQueries, installNativeMelee, type NativeTargetPose, type NativeSweptMeleeInput, type NativeSweptMeleeOwner, type NativeTargetHit } from './simulation';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
+import { createNativeTargetQueries, type NativeTargetPose, type NativeTargetHit } from './simulation';
+import { installNativeSweptMelee, type NativeSweptMeleeOwner } from './nativeSwept';
+import { playerSeats } from './playerSeats';
 import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 
 /** A bounded native launcher input. Its slot must resolve to an installed bolt
@@ -24,7 +25,11 @@ export interface NativeLauncherInput {readonly slot:number;readonly ads:number;r
 /** Mutable tick data owned by the native input boundary. It contains no clocks or executable shard hooks. */
 export interface NativeCombatFrame {
   launchers: NativeLauncherInput[]; attacks: string[]; heavy: { readonly targetId?: string | undefined } | null;
-  melee: { attack: string | null; heavy: boolean; heavyTarget: string | null; swing: boolean };
+  melee: { attack: string | null; heavy: boolean; heavyTarget: string | null; swing: boolean; pitch: number | null; sprint: boolean; seq: number };
+  /** The command `seq` this tick, which a shot fired on it confirms (J47); 0 off the wire. */
+  seq: number;
+  /** P1-E3.5: every other player's frame, by id. The lead's holds them; each is filled for its player alone. */
+  readonly others: Map<string, NativeCombatFrame>;
   scripts: Map<string, number>; moveX: number; moveZ: number; yaw: number;
   /** The look pitch a free shot leaves along (P1-E3.2). */
   pitch: number;
@@ -34,9 +39,16 @@ export interface NativeCombatFrame {
 }
 /** A fresh released input frame; a resident fills its same arrays at lend(), never retains a previous tick. */
 export function createNativeCombatFrame(): NativeCombatFrame {
-  return { launchers: [], attacks: [], heavy: null, melee: { attack: null, heavy: false, heavyTarget: null, swing: false }, scripts: new Map(),
+  return { launchers: [], attacks: [], heavy: null, melee: { attack: null, heavy: false, heavyTarget: null, swing: false, pitch: null, sprint: false, seq: 0 }, seq: 0, others: new Map(), scripts: new Map(),
     moveX: 0, moveZ: 0, yaw: 0, pitch: 0, live: new Set(), aim: 0.5, adsBlend: 0, aimed: 0,
     speedFactor: 0, extraSpread: 0, mountSpread: 0, ammo: '', rain: 0, wind: null };
+}
+/** Another player's frame, made on first use. The weather is the world's, read off the lead's. */
+export function otherCombatFrame(frame: NativeCombatFrame, id: string): NativeCombatFrame {
+  let own = frame.others.get(id);
+  if (own === undefined) { own = createNativeCombatFrame(); frame.others.set(id, own); }
+  own.rain = frame.rain; own.wind = frame.wind;
+  return own;
 }
 function motion(frame: NativeCombatFrame): number {
   if (frame.speedFactor === null) throw new Error('Native ranged motion requires an authoritative player sample');
@@ -65,9 +77,8 @@ function hasRibs(body: AnimalSim): body is AnimalSim & { ribsWorld: (out: Vector
   return 'ribsWorld' in body && typeof body.ribsWorld === 'function';
 }
 /** Aim at a capsule share or its declared chest. The default keeps the original half-sum arithmetic. */
-export function nativeRangedAim(host: SimHost, target: AnimalSim, eye: Vector3, forward: Vector3, along = 0.5, height = 1.68): void {
-  const lead = leadPlayer(host);
-  const p = lead.position; eye.set(p.x, p.y + height, p.z); target.bodyCapsule(capRear, capFront);
+export function nativeRangedAim(player: PlayerSim, target: AnimalSim, eye: Vector3, forward: Vector3, along = 0.5, height = 1.68): void {
+  const p = player.position; eye.set(p.x, p.y + height, p.z); target.bodyCapsule(capRear, capFront);
   if (along === 2 && hasRibs(target)) target.ribsWorld(forward);
   else if (along === 0.5) forward.addVectors(capRear, capFront).multiplyScalar(0.5);
   else forward.copy(capRear).lerp(capFront, along);
@@ -92,15 +103,16 @@ function windAt(frame: NativeCombatFrame, x: number, z: number, out: Vector3): V
 }
 
 function boltItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: unknown) : { state: { loaded: boolean; quiver: number; reloading: boolean; reloadProgress: number; ammo: undefined; reserve: number; bolts: number; }; flying: () => number; addBolts: (amount: number) => void; } {
-  const lead = leadPlayer(host);
   const raw = parseNativeFirearmProfile(input, 'bolt'), projectile = raw.projectile;
-  if (frame.ammo === '') frame.ammo = row.defaultAmmo;
   if (projectile.muzzle === undefined || raw.spreadAxisScale === undefined) throw new Error('Missing bolt launch');
-  const p = { ...raw, quiver: raw.magazine + raw.reserve, cooldown: raw.interval, speed: projectile.speed, radius: projectile.radius, muzzle: projectile.muzzle, substeps: projectile.substeps, lifetime: projectile.lifetime, maxFlying: projectile.pool, gravity: projectile.flight.gravity, drag: projectile.flight.drag, spreadAxisScale: raw.spreadAxisScale }, random = (): number => host.rng.stream('gameplay').next(), player = lead;
+  const p = { ...raw, quiver: raw.magazine + raw.reserve, cooldown: raw.interval, speed: projectile.speed, radius: projectile.radius, muzzle: projectile.muzzle, substeps: projectile.substeps, lifetime: projectile.lifetime, maxFlying: projectile.pool, gravity: projectile.flight.gravity, drag: projectile.flight.drag, spreadAxisScale: raw.spreadAxisScale }, random = (): number => host.rng.stream('gameplay').next();
   const Saved = v.strictObject({ loaded: v.boolean(), quiver: finite, reloading: v.boolean(), reloadT: finite, cooldown: finite, sinceFire: finite,
-  bolts: v.pipe(v.array(v.strictObject({ active: v.boolean(), pos: v.tuple([finite, finite, finite]), vel: v.tuple([finite, finite, finite]), age: finite, glanced: v.boolean(), ammo: v.optional(v.picklist(row.ammunition.map(ammo => ammo.id)), row.defaultAmmo) })),
+  bolts: v.pipe(v.array(v.strictObject({ active: v.boolean(), pos: v.tuple([finite, finite, finite]), vel: v.tuple([finite, finite, finite]), age: finite, glanced: v.boolean(), ammo: v.optional(v.picklist(row.ammunition.map(ammo => ammo.id)), row.defaultAmmo), seq: v.optional(count, 0) })),
     v.length(p.maxFlying)) });
   const cone = { radius: p.spreadRadius, axisScale: p.spreadAxisScale };
+  const seats = playerSeats(host, (player, first) => {
+  const own = first ? frame : otherCombatFrame(frame, player.id);
+  if (own.ammo === '') own.ammo = row.defaultAmmo;
   const state = { loaded: true, quiver: p.quiver, reloading: false, reloadProgress: 0, ammo: undefined, reserve: 0,
     get bolts() { return this.quiver; }, set bolts(value: number) { this.quiver = value; } };
   const action = new RangedAction({ state }, { mode: 'quiver', maximum: p.quiver, interval: p.cooldown, reload: p.reload, autoReload: p.autoReload, autoFrom: 'shot' });
@@ -117,15 +129,15 @@ function boltItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: u
     hit: (bolt, hit, direction) => {
       const body = hit.body; if (body === null) return;
       req.target = body.combatActor(); req.amount = body.damageFor(hit.head, hit.point.distanceTo(player.position)) * ammoDamage(row, bolt.ammo, body.kind) * p.damageScale;
-      req.point.copy(hit.point); req.dir.copy(direction); req.headshot = hit.head;
+      req.point.copy(hit.point); req.dir.copy(direction); req.headshot = hit.head; req.attackSeq = bolt.seq;
       host.combat.hit(req);
     },
     stop: () => { /* native bolts have no stopped display */ }, rest: () => { /* the spent flight ends here */ },
     impact: () => { /* page-only dust and sound */ }, expire: bolt => { bolt.active = false; },
   });
-  const pool = new ProjectileSlots<{ ammo: string }>(p.maxFlying, () => ({ ammo: row.defaultAmmo }), {
+  const pool = new ProjectileSlots<{ ammo: string; seq: number }>(p.maxFlying, () => ({ ammo: row.defaultAmmo, seq: 0 }), {
     substeps: p.substeps, extent: row.extent, floor: row.floor, lifetime: p.lifetime,
-    integrate: (slot, h) => { const mod = ammoFlight(row, slot.ammo, frame.rain);
+    integrate: (slot, h) => { const mod = ammoFlight(row, slot.ammo, own.rain);
       slot.vel.y -= p.gravity * mod.gravity * h;
       slot.vel.multiplyScalar(1 - p.drag * mod.drag * h * slot.vel.length() * 0.1);
       slot.pos.addScaledVector(slot.vel, h); },
@@ -134,7 +146,7 @@ function boltItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: u
   const bolts = pool.slots;
   const fire = (target: AnimalSim | null, aimInput?:NativeLauncherInput): void => {
     action.shot();
-    if(target!==null)nativeRangedAim(host, target, eye, fwd, frame.aim, row.eye);
+    if(target!==null)nativeRangedAim(player, target, eye, fwd, own.aim, row.eye);
     else {
       if(aimInput===undefined)throw new Error('Free launch requires admitted aim');
       eye.copy(player.position);eye.y+=row.eye;
@@ -142,66 +154,69 @@ function boltItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: u
       fwd.set(-Math.sin(player.yaw)*horizontal,Math.sin(aimInput.pitch),-Math.cos(player.yaw)*horizontal);
     }
     // the page's hip spread: a random axis across the line, a random fraction of 0.75°
-    const spread = (p.spreadAds + (1 - smoothstep(0, 1, aimInput?.ads ?? frame.adsBlend)) * (p.spreadHip - p.spreadAds)) * (Math.PI / 180);
+    const spread = (p.spreadAds + (1 - smoothstep(0, 1, aimInput?.ads ?? own.adsBlend)) * (p.spreadHip - p.spreadAds)) * (Math.PI / 180);
     dir.copy(fwd);
     shotSpread(dir, spread, random, cone, side);
-    const b = pool.take(); b.ammo = frame.ammo;
+    const b = pool.take(); b.ammo = own.ammo; b.seq = own.seq;
     b.pos.copy(eye).addScaledVector(fwd, p.muzzle); b.vel.copy(dir).multiplyScalar(p.speed);
   };
-  host.onStep(row.step, dt => {
-    const shots = frame.live.has(row.slot) ? frame.attacks : [];
+  return { item: { state, flying: () => bolts.filter(b => b.active).length, addBolts: (amount: number): void => {
+    if (!Number.isFinite(amount) || amount < 0) throw new RangeError('Invalid native bolt grant');
+    state.quiver = Math.min(p.quiver, state.quiver + amount);
+  } }, step: (dt: number): void => {
+    const shots = own.live.has(row.slot) ? own.attacks : [];
     for (let i = 0; i < 1024; i++) {
       const id = shots[i];
       if (id === undefined) break;
       const target = host.entities.get(id);
       if (target !== undefined && action.trigger()) fire(target);
     }
-    if(frame.live.has(row.slot))for(const control of frame.launchers){
+    if(own.live.has(row.slot))for(const control of own.launchers){
       if(control.slot!==row.slot)continue;
       if(control.reload===true)action.reload();
       if(control.fire===true&&action.trigger())fire(null,control);
     }
     action.advance(dt);
     pool.step(dt);
-  }, {
-    snapshot: () => ({ loaded: state.loaded, quiver: state.quiver, reloading: state.reloading, ...action.snapshot(), bolts: bolts.map(b => ({ active: b.active, pos: [b.pos.x, b.pos.y, b.pos.z], vel: [b.vel.x, b.vel.y, b.vel.z], age: b.age, glanced: b.glanced, ...(b.ammo === row.defaultAmmo ? {} : { ammo: b.ammo }) })) }),
-    restore: value => {
+  },
+    snapshot: (): SimValue => ({ loaded: state.loaded, quiver: state.quiver, reloading: state.reloading, ...action.snapshot(), bolts: bolts.map(b => ({ active: b.active, pos: [b.pos.x, b.pos.y, b.pos.z], vel: [b.vel.x, b.vel.y, b.vel.z], age: b.age, glanced: b.glanced, ...(b.ammo === row.defaultAmmo ? {} : { ammo: b.ammo }), ...(b.seq === 0 ? {} : { seq: b.seq }) })) }),
+    restore: (value: unknown): void => {
       const saved = v.parse(Saved, value);
       Object.assign(state, { loaded: saved.loaded, quiver: saved.quiver, reloading: saved.reloading }); action.restore(saved);
-      saved.bolts.forEach((s, i) => { const b = bolts[i]; if (b !== undefined) { b.active = s.active; b.pos.set(...s.pos); b.vel.set(...s.vel); b.age = s.age; b.glanced = s.glanced; b.ammo = s.ammo; } });
-    },
-  }, 'afterBodies');
-  return { state, flying: () => bolts.filter(b => b.active).length, addBolts: (amount: number) => {
-    if (!Number.isFinite(amount) || amount < 0) throw new RangeError('Invalid native bolt grant');
-    state.quiver = Math.min(p.quiver, state.quiver + amount);
-  } };
+      saved.bolts.forEach((s, i) => { const b = bolts[i]; if (b !== undefined) { b.active = s.active; b.pos.set(...s.pos); b.vel.set(...s.vel); b.age = s.age; b.glanced = s.glanced; b.ammo = s.ammo; b.seq = s.seq; } });
+    } };
+  });
+  host.onStep(row.step, seats.step, seats.adapter, 'afterBodies');
+  return seats.lead.item;
 }
 
 function cycleItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: unknown): NativeCycleItem {
-  const lead = leadPlayer(host);
   const profile = parseNativeFirearmProfile(input, 'lever');
-  if (profile.lever === undefined) throw new Error('Missing cycle profile');
+  const { lever } = profile;
+  if (lever === undefined) throw new Error('Missing cycle profile');
   const Saved = v.strictObject({ tube: v.pipe(count, v.maxValue(profile.magazine - 1)), chambered: v.boolean(), caseInChamber: v.boolean(), hammerCocked: v.boolean(),
   phase: v.picklist(['idle', 'beat', 'cycle', 'reload']), phaseT: finite, fed: count, planned: count, stopAfter: v.boolean(), dryAtStart: v.boolean(),
   reloadProgress: finite, reserve: count, sinceEmpty: finite });
-  const random = (): number => host.rng.stream('gameplay').next(), player = lead;
-  const store = { reserve: profile.reserve }, act = new RangedAction.Cycle(store, { magazine: profile.magazine, reload: profile.reload, ...profile.lever });
+  const random = (): number => host.rng.stream('gameplay').next();
   const cone = { radius: profile.spreadRadius, axisScale: 1 } as const;
+  const seats = playerSeats(host, (player, first) => {
+  const own = first ? frame : otherCombatFrame(frame, player.id);
+  const store = { reserve: profile.reserve }, act = new RangedAction.Cycle(store, { magazine: profile.magazine, reload: profile.reload, ...lever });
   let sinceEmpty = 99;
   const eye = new Vector3(), dir = new Vector3(), across = new Vector3(), end = new Vector3();
   const req: DamageRequest = { source: player.health, sourceTags: row.tags, target: player.health, amount: 0, point: new Vector3(), dir, headshot: false };
   const hitscan = (target: AnimalSim | null): void => {
-    if (target !== null) nativeRangedAim(host, target, eye, dir, frame.aim, row.eye);
-    else lookAlong(player, frame, row.eye, eye, dir);
-    const a = smoothstep(0, 1, frame.adsBlend);
+    if (target !== null) nativeRangedAim(player, target, eye, dir, own.aim, row.eye);
+    else lookAlong(player, own, row.eye, eye, dir);
+    const a = smoothstep(0, 1, own.adsBlend);
     const spread = instantSpreadDegrees(profile.spreadAds, profile.spreadHip, a, 0,
-      motion(frame), profile.movingSpread, profile.movingAimReduction) * (Math.PI / 180);
+      motion(own), profile.movingSpread, profile.movingAimReduction) * (Math.PI / 180);
     shotSpread(dir, spread, random, cone, across);
     const wall = worldHit(host.physics, eye, end.copy(eye).addScaledVector(dir, profile.range), 0);
     const hit = nativeRangedHit(bodies(host), eye, dir, wall ? wall.distance : profile.range), body = hit?.body ?? null;
     if (hit === null || body === null) return;
     req.target = body.combatActor(); req.amount = body.damageFor(hit.head, hit.distance) * profile.damageScale;
-    req.point.copy(hit.point); req.headshot = hit.head;
+    req.point.copy(hit.point); req.headshot = hit.head; req.attackSeq = own.seq;
     host.combat.hit(req);
   };
   const pull = (target: AnimalSim | null): void => {
@@ -211,43 +226,45 @@ function cycleItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: 
     act.dropHammer();
     hitscan(target);
   };
-  host.onStep(row.step, dt => {
-    const live = frame.live.has(row.slot), shots = live ? frame.attacks : [];
+  return { item: { act, store }, step: (dt: number): void => {
+    const live = own.live.has(row.slot), shots = live ? own.attacks : [];
     for (let i = 0; i < 1024; i++) {
       const id = shots[i];
       if (id === undefined) break;
       const target = host.entities.get(id);
       if (target !== undefined) pull(target);
     }
-    if (live && frame.melee.swing && !frame.melee.heavy) pull(null);
+    if (live && own.melee.swing && !own.melee.heavy) pull(null);
     sinceEmpty += dt;
-    for (const _event of act.events(dt, act.wantsAutoReload && sinceEmpty > profile.autoReload && sinceEmpty < (profile.lever?.autoReloadClose ?? 0) && frame.live.has(row.slot))) { /* Native effects have no presentation. */ }
-  }, {
-    snapshot: () => ({ tube: act.tube, chambered: act.chambered, caseInChamber: act.caseInChamber, hammerCocked: act.hammerCocked, phase: act.phase, phaseT: act.phaseT,
+    for (const _event of act.events(dt, act.wantsAutoReload && sinceEmpty > profile.autoReload && sinceEmpty < (lever.autoReloadClose ?? 0) && own.live.has(row.slot))) { /* Native effects have no presentation. */ }
+  },
+    snapshot: (): SimValue => ({ tube: act.tube, chambered: act.chambered, caseInChamber: act.caseInChamber, hammerCocked: act.hammerCocked, phase: act.phase, phaseT: act.phaseT,
       fed: act.fed, planned: act.planned, stopAfter: act.stopAfter, dryAtStart: act.dryAtStart, reloadProgress: act.reloadProgress, reserve: store.reserve, sinceEmpty }),
-    restore: value => {
+    restore: (value: unknown): void => {
       const s = v.parse(Saved, value);
       Object.assign(act, { tube: s.tube, chambered: s.chambered, caseInChamber: s.caseInChamber, hammerCocked: s.hammerCocked, phase: s.phase, phaseT: s.phaseT,
         fed: s.fed, planned: s.planned, stopAfter: s.stopAfter, dryAtStart: s.dryAtStart, reloadProgress: s.reloadProgress });
       store.reserve = s.reserve; sinceEmpty = s.sinceEmpty;
-    },
-  }, 'afterBodies');
-  return { act, store };
+    } };
+  });
+  host.onStep(row.step, seats.step, seats.adapter, 'afterBodies');
+  return seats.lead.item;
 }
 
 const bowSaved = (profile: v.InferOutput<typeof BowWeaponProfileSchema>, capacity: number) => v.strictObject({
   draw: v.strictObject({ drawT: finite, holdT: finite, renockT: finite, tiredT: finite, wasHeld: v.boolean(), needLift: v.boolean(), reachedFull: v.boolean() }),
   arrows: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(profile.quiver)), aim: v.nullable(v.string()),
-  flying: v.pipe(v.array(v.strictObject({ active: v.boolean(), pos: vec, vel: vec, origin: vec, age: finite, glanced: v.boolean() })), v.length(profile.pool)),
+  flying: v.pipe(v.array(v.strictObject({ active: v.boolean(), pos: vec, vel: vec, origin: vec, age: finite, glanced: v.boolean(), seq: v.optional(count, 0) })), v.length(profile.pool)),
   stuck: stoppedProjectileSaved(capacity),
 });
 
 function bowItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: unknown) : { draw: BowDraw; state: { arrows: number; aim: string | null; }; flying: () => number; stuck: StoppedProjectileSlots<null, string>; } {
-  const lead = leadPlayer(host);
   const profile = v.parse(BowWeaponProfileSchema, input);
   if (row.shaft === undefined) throw new Error('Missing stopped projectile policy');
   const shaft = row.shaft;
-  const random = (): number => host.rng.stream('gameplay').next(), player = lead;
+  const random = (): number => host.rng.stream('gameplay').next();
+  const seats = playerSeats(host, (player, first) => {
+  const own = first ? frame : otherCombatFrame(frame, player.id);
   const draw = new BowDraw(profile.draw), state: { arrows: number; aim: string | null } = { arrows: profile.quiver, aim: null };
 
   const eye = new Vector3(), dir = new Vector3(), across = new Vector3(), seg = new Vector3(), wind = new Vector3();
@@ -264,7 +281,7 @@ function bowItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: un
     hit: (arrow, hit, direction) => {
       const body = hit.body; if (body === null) return;
       req.target = body.combatActor(); req.amount = Math.max(1, Math.round(body.damageFor(hit.head, hit.point.distanceTo(arrow.origin)) * profile.damageScale));
-      req.point.copy(hit.point); req.dir.copy(direction); req.headshot = hit.head;
+      req.point.copy(hit.point); req.dir.copy(direction); req.headshot = hit.head; req.attackSeq = arrow.seq;
       host.combat.hit(req);
       stuck.stop(hit.point, direction, true, body.alive ? body.entityId : null);
       if (!body.alive) stuck.dropLast();
@@ -273,46 +290,47 @@ function bowItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: un
     rest: (_arrow, at, direction) => { stuck.settle(at, direction); },
     impact: () => { /* native contacts have no dust or sound */ }, expire: arrow => { arrow.active = false; },
   });
-  const pool = new ProjectileSlots<{ origin: Vector3 }>(profile.pool, () => ({ origin: new Vector3() }), {
+  const pool = new ProjectileSlots<{ origin: Vector3; seq: number }>(profile.pool, () => ({ origin: new Vector3(), seq: 0 }), {
     substeps: profile.substeps, extent: row.extent, floor: row.floor, lifetime: profile.lifetime,
     integrate: (slot, h) => { projectileFlightStep(slot.pos, slot.vel, h, profile.flight,
-      windAt(frame, slot.pos.x, slot.pos.z, wind)); }, contact: (arrow, previous) => contacts.step(arrow, previous, row.radius, shaft.length),
+      windAt(own, slot.pos.x, slot.pos.z, wind)); }, contact: (arrow, previous) => contacts.step(arrow, previous, row.radius, shaft.length),
   });
   const arrows = pool.slots;
   const loose = (): void => {
     const target = state.aim === null ? undefined : host.entities.get(state.aim);
-    if (target?.alive === true) nativeRangedAim(host, target, eye, dir, frame.aim, row.eye);
-    else lookAlong(player, frame, row.eye, eye, dir);
-    const spread = drawnSpreadDegrees(profile.spread.degrees, profile.spread.aimMultiplier, frame.aimed, profile.spread.motion,
-      motion(frame), frame.extraSpread, frame.mountSpread);
+    if (target?.alive === true) nativeRangedAim(player, target, eye, dir, own.aim, row.eye);
+    else lookAlong(player, own, row.eye, eye, dir);
+    const spread = drawnSpreadDegrees(profile.spread.degrees, profile.spread.aimMultiplier, own.aimed, profile.spread.motion,
+      motion(own), own.extraSpread, own.mountSpread);
     shotSpread(dir, spread * (Math.PI / 180), random, profile.spread, across);
     const a = pool.take();
-    a.pos.copy(eye).addScaledVector(dir, profile.muzzle); a.origin.copy(a.pos); a.vel.copy(dir).multiplyScalar(profile.speedBase + profile.speedDraw);
+    a.pos.copy(eye).addScaledVector(dir, profile.muzzle); a.origin.copy(a.pos); a.vel.copy(dir).multiplyScalar(profile.speedBase + profile.speedDraw); a.seq = own.seq;
     state.arrows--;
   };
-  host.onStep(row.step, dt => {
-    const live = frame.live.has(row.slot), heavy = live ? frame.heavy : null;
+  return { item: { draw, state, flying: () => arrows.filter(a => a.active).length, stuck }, step: (dt: number): void => {
+    const live = own.live.has(row.slot), heavy = live ? own.heavy : null;
     // the hold's named body is the aim the release looses at (a release tick has no hold to name it)
     if (heavy !== null) state.aim = heavy.targetId ?? null;
     if (draw.step(dt, heavy !== null, !live || state.arrows <= 0) === 'loose') loose();
     pool.step(dt);
     stuck.update();
-  }, {
-    snapshot: () => ({ draw: { ...draw.save() }, arrows: state.arrows, aim: state.aim,
-      flying: arrows.map(a => ({ active: a.active, pos: [a.pos.x, a.pos.y, a.pos.z], vel: [a.vel.x, a.vel.y, a.vel.z], origin: [a.origin.x, a.origin.y, a.origin.z], age: a.age, glanced: a.glanced })), stuck: stuck.snapshot(id => id) }),
-    restore: value => {
+  },
+    snapshot: (): SimValue => ({ draw: { ...draw.save() }, arrows: state.arrows, aim: state.aim,
+      flying: arrows.map(a => ({ active: a.active, pos: [a.pos.x, a.pos.y, a.pos.z], vel: [a.vel.x, a.vel.y, a.vel.z], origin: [a.origin.x, a.origin.y, a.origin.z], age: a.age, glanced: a.glanced, ...(a.seq === 0 ? {} : { seq: a.seq }) })), stuck: stuck.snapshot(id => id) }),
+    restore: (value: unknown): void => {
       const saved = v.parse(bowSaved(profile, shaft.capacity), value);
       draw.load(saved.draw); state.arrows = saved.arrows; state.aim = saved.aim;
       stuck.restore(saved.stuck, id => id);
-      saved.flying.forEach((s, i) => { const a = arrows[i]; if (a !== undefined) { a.active = s.active; a.pos.set(...s.pos); a.vel.set(...s.vel); a.origin.set(...s.origin); a.age = s.age; a.glanced = s.glanced; } });
-    },
-  }, 'afterBodies');
-  return { draw, state, flying: () => arrows.filter(a => a.active).length, stuck };
+      saved.flying.forEach((s, i) => { const a = arrows[i]; if (a !== undefined) { a.active = s.active; a.pos.set(...s.pos); a.vel.set(...s.vel); a.origin.set(...s.origin); a.age = s.age; a.glanced = s.glanced; a.seq = s.seq; } });
+    } };
+  });
+  host.onStep(row.step, seats.step, seats.adapter, 'afterBodies');
+  return seats.lead.item;
 }
 
 
-type Bolt = FlightSlot<{ ammo: string }>;
-type Arrow = FlightSlot<{ origin: Vector3 }>;
+type Bolt = FlightSlot<{ ammo: string; seq: number }>;
+type Arrow = FlightSlot<{ origin: Vector3; seq: number }>;
 function ammoRow(row: Policy, id: string): Policy['ammunition'][number] {
   const ammo = row.ammunition.find(candidate => candidate.id === id);
   if (ammo === undefined) throw new Error('Undeclared native ammunition');
@@ -355,8 +373,8 @@ export function installNativeItems(host: SimHost, frame: NativeCombatFrame, inpu
   if (input.kind === 'swept') {
     const id = v.parse(v.object({ step: v.string() }), input.policy).step, book = nativeMeleeItems.get(host) ?? new Map<string, NativeSweptMeleeOwner>();
     if (book.has(id)) throw new Error('Duplicate native melee owner');
-    const owner = installNativeMelee(host, input.items, input.policy, {
-    input: (): NativeSweptMeleeInput => frame.melee,
+    const owner = installNativeSweptMelee(host, input.items, input.policy, {
+    input: (player, first) => first ? frame.melee : otherCombatFrame(frame, player.id).melee,
     alarm: () => { host.events.ask('item.reaction', { kind: 'alarm' }); },
     staggered: (actor, strength, running) => { host.events.ask('item.reaction', { kind: 'stagger', actor, strength, running }); },
   });

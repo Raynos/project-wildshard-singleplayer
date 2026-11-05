@@ -5,7 +5,6 @@ import * as v from 'valibot';
 import { NetActSchema, type NetAct, type NetCommand } from '@wildshard/format/netCommand';
 import { BitWriter } from './bits';
 import type { CombatEvent } from './combatWire';
-import { NET_BUTTONS } from '../input/netButtons';
 import { decodeCommands } from './command';
 import { CommandQueue } from './commandQueue';
 import { encodeFrame, FRAME_RING, WorldFrameRing, type WorldFrame } from './frame';
@@ -51,15 +50,11 @@ export interface NetRoomOptions {
 interface ClientView { tick: number; readonly visible: Set<number> }
 /** A settled event in handles, kept until the next frame. */
 type RoomCombat = NetDied | (NetHit & { readonly landedBy: string | null });
-/** A command that starts or holds a swing or shot. */
-const attacks = (command: NetCommand): boolean => command.attack !== undefined || command.launcher?.fire === true || (command.buttons & NET_BUTTONS.heavy) !== 0;
 interface RoomClient {
   readonly id: number; readonly transport: Transport; readonly queue: CommandQueue; readonly player: NetPlayer;
   /** waiting: said hello before the room opened. live: welcomed. */
   state: 'new' | 'waiting' | 'live';
   ack: number; readonly acts: NetAct[]; readonly known: Set<number>;
-  /** The `seq` of this client's newest swing or shot, which the hits it lands confirm (J47). */
-  attackSeq: number;
   /** What this client could see at each recent frame: a baseline is the frame and this set. */
   readonly views: ClientView[]; nextView: number;
   readonly owner: Uint32Array; dispose: () => void;
@@ -98,7 +93,7 @@ export class NetRoom {
   /** Connect a client that owns `player`. It waits for its `hello`, and past that for `open`. Returns its id. */
   join(transport: Transport, player: NetPlayer = this.world.player): number {
     const id = ++this.clientIds, owner = new Uint32Array(player.cls.owner.length);
-    const client: RoomClient = { id, transport, player, queue: new CommandQueue(), state: 'new', ack: -1, acts: [], known: new Set(), attackSeq: 0, owner,
+    const client: RoomClient = { id, transport, player, queue: new CommandQueue(), state: 'new', ack: -1, acts: [], known: new Set(), owner,
       views: Array.from({ length: FRAME_RING }, () => ({ tick: -1, visible: new Set<number>() })), nextView: 0, dispose: () => undefined };
     const off = transport.onMessage((channel, bytes) => { this.receive(client, channel, bytes); });
     const closed = transport.onClose(() => { this.remove(client); });
@@ -118,9 +113,7 @@ export class NetRoom {
     this.inputs.length = 0;
     for (const client of this.clients) {
       if (client.state !== 'live') continue;
-      const command = client.queue.next();
-      if (command !== null && attacks(command)) client.attackSeq = command.seq;
-      this.inputs.push({ client: client.id, player: client.player.id, command, acts: client.acts.splice(0) });
+      this.inputs.push({ client: client.id, player: client.player.id, command: client.queue.next(), acts: client.acts.splice(0) });
     }
     this.step(this.inputs);
     this.settled();
@@ -131,7 +124,7 @@ export class NetRoom {
   private settled(): void {
     for (const row of this.world.combat?.() ?? []) {
       const { refs } = this.handles;
-      if (row.kind === 'hit') { const target = refs(row.target); if (target !== 0) { const { by, ...hit } = row; this.combat.push({ ...hit, target, confirmFor: 0, landedBy: by }); } }
+      if (row.kind === 'hit') { const target = refs(row.target); if (target !== 0) { const { by, seq, ...hit } = row; this.combat.push({ ...hit, target, confirmFor: seq, landedBy: by }); } }
       else { const id = refs(row.id); if (id !== 0) this.combat.push({ ...row, id, by: row.by === null ? 0 : refs(row.by) }); }
     }
   }
@@ -219,7 +212,7 @@ export class NetRoom {
       if (row.kind === 'died') { if (row.id === own || client.known.has(row.id)) events.push(row); continue; }
       const { landedBy, ...hit } = row, owned = landedBy === client.player.id;
       if (row.target !== own && !owned && !client.known.has(row.target)) continue;
-      events.push({ ...hit, confirmFor: owned ? client.attackSeq : 0 });
+      events.push({ ...hit, confirmFor: owned ? hit.confirmFor : 0 });
     }
     for (const handle of retired) if (client.known.delete(handle)) events.push({ kind: 'despawn', handle });
     if (events.length > 0) {

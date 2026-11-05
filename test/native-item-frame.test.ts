@@ -38,12 +38,12 @@ test('combat lending retains attacks, first ranged hold, last melee release and 
     { kind: 'script', actorId: 'pick', value: 0 },
   ]);
   expect(frame.attacks).toEqual(['a', 'b']); expect(frame.heavy).toEqual({ targetId: 'held' });
-  expect(frame.melee).toEqual({ attack: 'b', heavy: false, heavyTarget: null, swing: false });
+  expect(frame.melee).toEqual({ attack: 'b', heavy: false, heavyTarget: null, swing: false, pitch: null, sprint: false, seq: 0 });
   expect(frame.scripts.get('pick')).toBe(0); expect([frame.moveX, frame.moveZ, frame.yaw]).toEqual([0, 1, 2]);
   fillNativeCombatFrame(frame, []);
   expect(frame.attacks).toBe(attacks); expect(frame.scripts).toBe(scripts);
   expect(frame.attacks).toEqual([]); expect(frame.heavy).toBeNull(); expect(frame.scripts.size).toBe(0);
-  expect(frame.melee).toEqual({ attack: null, heavy: false, heavyTarget: null, swing: false });
+  expect(frame.melee).toEqual({ attack: null, heavy: false, heavyTarget: null, swing: false, pitch: null, sprint: false, seq: 0 });
   expect(() => { fillNativeCombatFrame(frame, Array.from({ length: 1025 }, () => ({ kind: 'script', actorId: 'pick', value: 0 }))); }).toThrow();
 });
 
@@ -104,8 +104,8 @@ test('native item rows preserve all three old continuations, contacts, RNG, stow
 }, 30_000);
 
 test('the second native user keeps swept phases, synchronous reaction order and its saved wire', async () => {
-  const [{ driftwoodItems }, { default: policy }, { installNativeMelee }] = await Promise.all([
-    import('../src/shards/driftwood-isle/generators/items'), import('../src/shards/driftwood-isle/data/nativeSwords.json'), import('../src/game/plugin/simulation'),
+  const [{ driftwoodItems }, { default: policy }, { installNativeSweptMelee }] = await Promise.all([
+    import('../src/shards/driftwood-isle/generators/items'), import('../src/shards/driftwood-isle/data/nativeSwords.json'), import('../src/game/plugin/nativeSwept'),
   ]);
   const DRIFTWOOD_SWORDS = driftwoodItems();
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
@@ -113,7 +113,7 @@ test('the second native user keeps swept phases, synchronous reaction order and 
   const frame = createNativeCombatFrame(), expected: string[] = [], actual: string[] = [];
   const old = createSimHost(level, { rapier }), current = createSimHost(level, { rapier });
   const record = (log: string[], host: SimHost, kind: string): void => { log.push(`${String(host.state.tick)}:${kind}:${String(host.entities.get('boar:1')?.hp)}`); };
-  const original = installNativeMelee(old, DRIFTWOOD_SWORDS.rows, policy, { input: () => frame.melee,
+  const original = installNativeSweptMelee(old, DRIFTWOOD_SWORDS.rows, policy, { input: () => frame.melee,
     alarm: () => { record(expected, old, 'alarm'); }, staggered: () => { record(expected, old, 'stagger'); } });
   current.events.answer('item.reaction', reaction => { record(actual, current, reaction.kind); return reaction; }, current.scope);
   const adopted = installNativeItems(current, frame, { kind: 'swept', policy, items: DRIFTWOOD_SWORDS.rows });
