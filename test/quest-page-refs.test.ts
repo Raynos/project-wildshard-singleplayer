@@ -17,7 +17,7 @@ import type { Interactable } from '../src/engine/shared/world/interact/types';
 import { parseDeclaredQuestPage } from '@wildshard/format/declaredQuestPage';
 import { parseShardfile } from '@wildshard/format/shardSchema';
 import { parseWorldTargets } from '@wildshard/format/worldTargets';
-import { bindDeclaredPage } from '../src/game/server/quest/declaredPage';
+import { bindDeclaredPage } from '../src/game/client/quest/declaredPage';
 import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import type { ShardContext } from '../src/game/client/plugin/context';

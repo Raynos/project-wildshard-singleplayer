@@ -34,7 +34,7 @@ G595) · SO = shard-only rows or AS · M = missing.
 | W2 | Interactables section | engine G, data SO | `world/interactables` platform section (bench, chest, key, door, lever, plate, barrel, altar, beacon) replacing Driftwood's named JSON | `engine/shared/world/interact/types.ts`, `format/sections.ts` | 8 |
 | W3 | Commons AS prefabs | SO | Promote `barrels.as` and `bridgeSway.as`; add a wave-director stage script beside `course.as` | `src/commons/scripts/`, `commons/catalogue.ts` | 12 |
 | W4 | Movers and director out of the plugin | G in scaffolding | N2/N5 slice: real game hosts reached from client-plan rows; save parity | `game/server/plugin/mover.ts`, `director.ts`, `format/directorStages.ts` | 20 |
-| W5 | Quests, dialogue, vendor, currency, shop | G, three quest paths | One author quest path (CS5, retire `custom/questRuntime`); trade rows with an upgrade effect; generic `Owned.ts` kinds | `format/questStory.ts`, `game/server/quest/trader.ts`, `game/shared/loot/Owned.ts`, `format/exchange.ts` | 28 |
+| W5 | Quests, dialogue, vendor, currency, shop | G, three quest paths | One author quest path (CS5, retire `custom/questRuntime`); trade rows with an upgrade effect; generic `Owned.ts` kinds | `format/questStory.ts`, `game/client/quest/trader.ts`, `game/shared/loot/Owned.ts`, `format/exchange.ts` | 28 |
 | W6 | Held weapons | sword, bow G; spear 1U; crossbow, rifle, ammo SO; parry M | `held/equipment` as weapon-family rows; `heldFirearm` out of the plugin; ammo rows; parry window + stagger on the melee profile | `format/heldEquipment.ts`, `game/client/plugin/heldFirearm.ts`, `engine/shared/combat/ammo.ts`, `meleeProfile.ts` | 36 |
 | W7 | Loaner mount | 1U (Nalati) | A given-mount roster row with no taming session | `game/server/riding/roster.ts`, `native.ts` | 14 |
 | W8 | Riding course | G | Docs and a template example | `game/client/practice/course.ts` | 2 |
@@ -49,7 +49,7 @@ G595) · SO = shard-only rows or AS · M = missing.
 | W17 | Shard-complete card required | G, two users | Backfill `ui/completion` in every product, then a validator rule that requires it (Jake 11-02) | `format/shardSchema.ts`, `format/completion.ts` | 14 |
 | W18 | Ladders, scramble, rope bridge | ladders G; scramble M; rope bridge 1U | Build the `climb` mode for scramble surfaces; generalise the rope-deck site | `engine/shared/player/modes.ts`, `engine/shared/physics/ropeChain.ts`, `game/client/models/ropeDeckSite.ts` | 28 |
 | W19 | Audio | G | Check elite and boss music states and stem layers exist as rows; small schema addition if not | `format/audio.ts`, `engine/client/audio/score/score.ts` | 7 |
-| W20 | Breadcrumb guide | built twice | Merge the two | `engine/client/quest/view.ts`, `game/server/quest/chapterDirector.ts` | 6 |
+| W20 | Breadcrumb guide | built twice | Merge the two | `engine/client/quest/view.ts`, `game/client/quest/chapterDirector.ts` | 6 |
 | W21 | Docs and template | — | A SHARDS.md section per feature; template example rows; Jake's approval sheet | `docs/SHARDS.md`, `src/shards/_template/` | 12 |
 | | **Subtotal** | | | | **~386** |
 | LV | Levels, XP, attributes, combat maths, hidden L1 parity, HUD | M | [levels-combat-mini-plan.md](levels-combat-mini-plan.md) | | tbd |

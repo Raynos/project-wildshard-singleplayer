@@ -178,7 +178,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
   } },
   'quest.world': { phase: 'prepare-play', rank: 15, lifetime: 'entered', sections: [], install: async (ctx, row) => {
     if (row.kind !== 'quest.world') throw new Error('Invalid quest world feature');
-    const { prepareQuestWorldEntry } = await import('../../server/shardfile/questWorld');
+    const { prepareQuestWorldEntry } = await import('./questWorld');
     await prepareQuestWorldEntry(ctx, row.file, row.ambient);
   } },
   'quest.reference': { phase: 'world', rank: 55, lifetime: 'entered', sections: [], install: async (ctx, row) => {
@@ -193,7 +193,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
   } },
   'quest.spawns': { phase: 'prepare-play', rank: 30, lifetime: 'entered', sections: [], install: async (ctx, row) => {
     if (row.kind !== 'quest.spawns') throw new Error('Invalid quest spawns feature');
-    const { installDeclaredQuestSpawns } = await import('../../server/quest/chapterDirector');
+    const { installDeclaredQuestSpawns } = await import('../quest/chapterDirector');
     const { publishEntryOwner } = await import('../../shared/shardfile/entryOwners');
     const { pageSim } = await import('./clientMoverOwners');
     v.parse(QuestRuntimeFileSchema,row.source);

@@ -6,7 +6,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import { createLevelInstallation } from '../src/engine/client/level/installation';
 import { WorldRegistry } from '../src/engine/client/world/registry';
 import { installCableModes } from '../src/engine/shared/player/modes';
-import { prepareQuestEntry } from '../src/game/server/quest/chapter';
+import { prepareQuestEntry } from '../src/game/client/quest/chapter';
 import { shardContext } from '../src/game/client/plugin/context';
 import { parseShardSlug } from '../src/game/shared/shard/slug';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';

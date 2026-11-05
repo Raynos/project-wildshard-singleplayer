@@ -15,7 +15,7 @@ import type { app as clientApp } from '@wildshard/engine/app/runtime';
 type FinaleHost = Pick<typeof clientApp, 'events' | 'encounters' | 'levelScope' | 'engineScope' | 'clock'>;
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { QuestRewardBeat } from '@wildshard/game/quest/reward';
-import type { QuestPageComposition as Adventure } from '../../../src/game/server/quest/pageComposition';
+import type { QuestPageComposition as Adventure } from '../../../src/game/client/quest/pageComposition';
 import type { Animal } from '../../../src/engine/client/entities/AnimalView';
 type AdvAnimal = Pick<Animal, 'kind' | 'position' | 'mem' | 'hp' | 'maxHp' | 'alive' | 'herd'>;
 import { DrownedCaptain } from './captain';

@@ -57,7 +57,7 @@ Named files are a tree. A root is routed by a generic row (mostly `client/plan` 
 steps, `explore/catalogue`), and the root names its children. Examples: DW `quests/page-composition` names nine
 quest files; Pine `world/forest-weather` names weather, rain, observations and shelter; Nalati `held/slots` names
 the four weapon pages. 306 of 342 are named by an emitted row; the other 36 are read by fixed name in a game
-module (`quests/story.json` in `game/server/quest/pageComposition.ts`), by the headless worker, or only by tests.
+module (`quests/story.json` in `game/client/quest/pageComposition.ts`), by the headless worker, or only by tests.
 So the readers are mostly generic row-kind hosts already. What is private is the **schema** of the document.
 
 ## The audit, grouped by the host that absorbs it

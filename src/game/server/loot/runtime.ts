@@ -10,7 +10,7 @@ import type { GearLoot, FindsView } from '../../client/bag/bag';
 import { CoinChip } from '../../client/loot/ui/CoinChip';
 import { CoinBurst } from './CoinBurst';
 import { Purse, publishPurse } from '../../shared/loot/Purse';
-import { installQuestShop } from '../quest/trader';
+import { installQuestShop } from '../../client/quest/trader';
 import { Bounty } from './Bounty';
 import { coinsFor, coinsOn, type LootGate } from './coins';
 import { OWNED,isCosmetic, isOwnedId, type Owned, type OwnedId } from '../../shared/loot/Owned';

@@ -8,10 +8,10 @@ import type { AnimalManager } from '../src/engine/server/entities/AnimalManager'
 import type { DeclaredSoundBank } from '../src/engine/client/audio/declaredBank';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import type { QuestPageComposition } from '../src/game/server/quest/pageComposition';
+import type { QuestPageComposition } from '../src/game/client/quest/pageComposition';
 import { publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
-import { installDeclaredQuestSpawns, type QuestSpawnCapability } from '../src/game/server/quest/chapterDirector';
+import { installDeclaredQuestSpawns, type QuestSpawnCapability } from '../src/game/client/quest/chapterDirector';
 import { pageSimFeed } from '../src/game/server/plugin/pageSimFeed';
 import * as spawn from '../src/game/server/population/spawnScript';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';

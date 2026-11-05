@@ -4,7 +4,7 @@ import { Flags } from '../src/engine/shared/world/interact/flags';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
-import type { QuestPageComposition } from '../src/game/server/quest/pageComposition';
+import type { QuestPageComposition } from '../src/game/client/quest/pageComposition';
 import { QuestPageReference } from '../src/game/client/quest/pageReference';
 import { ProductFigureCatalogue } from '../src/game/client/models/figureCatalogue';
 import { fixedDraws } from '../src/game/client/models/fixedDraws';
@@ -13,7 +13,7 @@ import { publishEntryOwner, lendEntryOwner, entryOwner } from '../src/game/share
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import { installEntryQuestComposition, installEntryQuestReference } from '../src/game/client/shardfile/clientQuestComposition';
-import * as composition from '../src/game/server/quest/pageComposition';
+import * as composition from '../src/game/client/quest/pageComposition';
 import * as enteredFigures from '../src/game/client/quest/figures';
 import * as worldScenes from '../src/game/client/shardfile/worldScenes';
 import { bindResidentWorldScope } from '../src/game/client/shardfile/hybridPresentation';

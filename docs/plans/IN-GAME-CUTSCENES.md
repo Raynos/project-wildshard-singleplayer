@@ -33,7 +33,7 @@ future hook for a third-person shot).
 | Boss camera ease | `src/game/server/Boss.ts` `faceToward` | eases player yaw / pitch toward the focus (k = 1 − e^(−3.2 dt)); stays first person |
 | Letterbox + name card | `src/engine/client/ui/BossBar.ts` (`showNameCard`, `setSkip`, `fade`) | letterbox bands, the engraved name card, the skip ring, a black fade |
 | Platform bosses | `src/sdk/phasedBoss.ts`, `src/sdk/markedBoss.ts` → `src/game/server/plugin/bossPhase.ts`, `src/game/shardfile/markedBoss.ts` | boss rows as data; `intro` / `introShort` seconds are data |
-| Quest reward view | `src/game/server/quest/reward.ts` `QuestRewardBeat` + `rewardMotion.ts` | carries the player, 2.5 s camera ease to an authored pose, 3.5 s clock ease (to golden hour), 7 s hold, caption, HUD hidden, weapon away |
+| Quest reward view | `src/game/client/quest/reward.ts` `QuestRewardBeat` + `rewardMotion.ts` | carries the player, 2.5 s camera ease to an authored pose, 3.5 s clock ease (to golden hour), 7 s hold, caption, HUD hidden, weapon away |
 | Dialogue | `src/engine/client/quest/view/ui.ts` `DialogueBox`, `src/engine/shared/quest/dialogueClock.ts` | NPC lines typed out, tap to advance (the quest-giver panel) |
 | Shard director | `src/sdk/director.ts` → `src/game/shardfile/director.ts` | bounded numeric events between a shard script and the host (Driftwood's finale `reward.start` / `reward.finish`) |
 | Explore hub orbit | `src/engine/client/explore/Explore.ts` ~l. 582 | a slow orbit of the island behind the hub cards (the one non-player camera) |

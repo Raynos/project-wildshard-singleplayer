@@ -2,17 +2,17 @@ import { Vector3 } from 'three';
 import { test, type Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { parseDeclaredQuestPage } from '@wildshard/format/declaredQuestPage';
-import type { ShardContext } from '../../client/plugin/context';
-import type { MoverRuntime } from '../plugin/mover';
-import type { SceneHandles } from '../../client/shardfile/sceneHandles';
+import type { ShardContext } from '../plugin/context';
+import type { MoverRuntime } from '../../server/plugin/mover';
+import type { SceneHandles } from '../shardfile/sceneHandles';
 import { WorldTargetHost, type WorldTargetLanding } from '../../shared/shardfile/worldTargets';
 import { InteractionRules } from '../../shared/quest/interactionRows';
 import { commitQuestEffects } from '../../shared/quest/effects';
 import type { QuestEffect } from '@wildshard/format/questSteps';
-import { lightEmitterPresentation } from '../../client/shardfile/lightEmitters';
-import { residentWorldScope } from '../../client/shardfile/hybridPresentation';
+import { lightEmitterPresentation } from '../shardfile/lightEmitters';
+import { residentWorldScope } from '../shardfile/hybridPresentation';
 import { readQuestObservation } from '../../shared/quest/chapterBindings';
-import type { PageQuestStages } from '../../client/plugin/ui';
+import type { PageQuestStages } from '../plugin/ui';
 
 /** Original owners installed by the compiled client features, never shard callbacks. */
 interface PageResources {

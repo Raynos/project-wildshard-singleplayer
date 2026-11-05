@@ -20,7 +20,7 @@ Research (IN-GAME-CUTSCENES §1, re-checked):
   `src/engine/cinematic/` exists.
 - Pieces to lift: the letterbox, name card, skip ring and fade in `src/engine/client/ui/BossBar.ts` (`showNameCard`, `setSkip`,
   `fade`); `BossBrain`'s intro state with `SKIP_HOLD = 0.6` (`src/engine/shared/ai/BossBrain.ts`); `QuestRewardBeat`'s
-  carried camera (`src/game/server/quest/reward.ts`); dialogue lines (`src/engine/client/quest/view/ui.ts` `DialogueBox`).
+  carried camera (`src/game/client/quest/reward.ts`); dialogue lines (`src/engine/client/quest/view/ui.ts` `DialogueBox`).
 - `src/engine/client/render/regionCinematic.ts` is a post-effect chain (shafts, fringe, grain) for cinematic regions, not a
   camera timeline.
 

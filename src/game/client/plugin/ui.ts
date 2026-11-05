@@ -35,7 +35,7 @@ import {placesWithDiscovery,type PlacePoint,type Places} from '@wildshard/engine
 import { DialogueBox } from '@wildshard/engine/quest/view/ui';
 import { InteractionRules } from '../../shared/quest/interactionRows';
 import { parseQuestPageInteractions, type QuestPageInteractionsData } from '@wildshard/format/questInteractions';
-import { QuestRewardBeat, type QuestRewardSpec, type QuestRewardPlayer } from '../../server/quest/reward';
+import { QuestRewardBeat, type QuestRewardSpec, type QuestRewardPlayer } from '../quest/reward';
 import { createLevelInstallation } from '@wildshard/engine/level/installation';
 import type { ShardContext } from './context';
 import type { BossDefinition, BossSaved, BossScript } from '@wildshard/engine/ai/BossBrain';

@@ -1186,7 +1186,7 @@
   "src/game/server/population/pageGroups.ts": "server",
   "src/game/shared/population/pageHomes.ts": "shared",
   "src/game/client/population/pageLife.ts": "client",
-  "src/game/server/population/pageReturns.ts": "server",
+  "src/game/client/population/pageReturns.ts": "client",
   "src/game/shared/population/pageRows.ts": "shared",
   "src/game/server/population/perchBody.ts": "server",
   "src/game/client/population/productCreatures.ts": "client",
@@ -1210,16 +1210,16 @@
   "src/game/client/Progress.ts": "client",
   "src/game/server/quest/bodyOps.ts": "server",
   "src/game/shared/quest/boundState.ts": "shared",
-  "src/game/server/quest/carriedProp.ts": {
-   "side": "server",
+  "src/game/client/quest/carriedProp.ts": {
+   "side": "client",
    "mixed": true
   },
   "src/game/shared/quest/carriedRound.ts": "shared",
-  "src/game/server/quest/chapter.ts": "server",
+  "src/game/client/quest/chapter.ts": "client",
   "src/game/shared/quest/chapterBindings.ts": "shared",
   "src/game/shared/quest/chapterClock.ts": "shared",
   "src/game/shared/quest/chapterDecision.ts": "shared",
-  "src/game/server/quest/chapterDirector.ts": "server",
+  "src/game/client/quest/chapterDirector.ts": "client",
   "src/game/shared/quest/chapterFlow.ts": "shared",
   "src/game/client/quest/chapterView.ts": "client",
   "src/game/client/quest/continuation.ts": "client",
@@ -1227,7 +1227,7 @@
   "src/game/client/quest/contractBoardPage.ts": "client",
   "src/game/shared/quest/contracts.ts": "shared",
   "src/game/shared/quest/declared.ts": "shared",
-  "src/game/server/quest/declaredPage.ts": "server",
+  "src/game/client/quest/declaredPage.ts": "client",
   "src/game/shared/quest/effectPresentation.ts": "shared",
   "src/game/shared/quest/effects.ts": "shared",
   "src/game/server/quest/eliteDecisions.ts": "server",
@@ -1252,12 +1252,12 @@
   "src/game/server/quest/nativeEntry.ts": "server",
   "src/game/server/quest/nativeInputs.ts": "server",
   "src/game/shared/quest/nativeProps.ts": "shared",
-  "src/game/server/quest/pageComposition.ts": {
-   "side": "server",
+  "src/game/client/quest/pageComposition.ts": {
+   "side": "client",
    "mixed": true
   },
-  "src/game/server/quest/pageDoors.ts": "server",
-  "src/game/server/quest/pageFacets.ts": "server",
+  "src/game/client/quest/pageDoors.ts": "client",
+  "src/game/client/quest/pageFacets.ts": "client",
   "src/game/shared/quest/pagePersistence.ts": "shared",
   "src/game/shared/quest/pageReads.ts": "shared",
   "src/game/client/quest/pageReference.ts": "client",
@@ -1270,14 +1270,14 @@
    "side": "client",
    "mixed": true
   },
-  "src/game/server/quest/reward.ts": {
-   "side": "server",
+  "src/game/client/quest/reward.ts": {
+   "side": "client",
    "mixed": true
   },
   "src/game/shared/quest/steps.ts": "shared",
-  "src/game/server/quest/story.ts": "server",
+  "src/game/client/quest/story.ts": "client",
   "src/game/shared/quest/storyLaw.ts": "shared",
-  "src/game/server/quest/trader.ts": "server",
+  "src/game/client/quest/trader.ts": "client",
   "src/game/server/roomRespawn.ts": "server",
   "src/game/server/riding/bindingTypes.ts": "server",
   "src/game/client/riding/client.ts": {
@@ -1480,7 +1480,7 @@
   "src/game/client/shardfile/productNavigation.ts": "client",
   "src/game/client/shardfile/productPreflight.ts": "client",
   "src/game/shared/shardfile/props.ts": "shared",
-  "src/game/server/shardfile/questWorld.ts": "server",
+  "src/game/client/shardfile/questWorld.ts": "client",
   "src/game/client/shardfile/readAsset.ts": "client",
   "src/game/shared/shardfile/resourceRole.ts": "shared",
   "src/game/client/shardfile/reusableWholeLibrary.ts": "client",

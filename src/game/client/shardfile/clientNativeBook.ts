@@ -5,7 +5,7 @@ import type { createDeclaredHeldMelee } from '../plugin/weaponFamily';
 import type { SpeciesBrains, SpeciesPageCatalogue, SpeciesDecisionAuthority } from '../../server/plugin/brain';
 import type { RuntimeHomes, RuntimeCoins } from '../../shared/plugin/runtimeRows';
 import type { PersistedQuest, bindDeclaredFight, PageQuestStages } from '../plugin/ui';
-import type { DeclaredPage } from '../../server/quest/declaredPage';
+import type { DeclaredPage } from '../quest/declaredPage';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
 
 /** Internal references shared by compiled feature installers. Every entry is

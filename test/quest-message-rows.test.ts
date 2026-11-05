@@ -7,7 +7,7 @@ import { createLevelInstallation } from '../src/engine/client/level/installation
 import { shardContext } from '../src/game/client/plugin/context';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
-import { buildQuestChapter, installQuestFlags } from '../src/game/server/quest/chapter';
+import { buildQuestChapter, installQuestFlags } from '../src/game/client/quest/chapter';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { PAGE_STORY as pineStory } from '../src/shards/pine-hollow/generators/pageStory';

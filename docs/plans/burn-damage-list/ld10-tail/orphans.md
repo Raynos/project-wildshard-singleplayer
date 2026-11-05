@@ -336,7 +336,7 @@ wrappers: the alias key `src/game/package.json:206` (its only importer is the we
   Readers: `scripts/shard-platform.mjs:13,684,813,890,895,912`, `scripts/platform-chargebacks.mjs`,
   `scripts/precommit-jobs.mjs:72`, `test/{g571-hosts,fixed-draws-approval,platform-chargebacks}.test.ts`. Not a copied-
   runtime path: it filters G294 attribution of platform modules. Keep.
-- `scripts/listed-view-code.mjs` + `lint/listed-view-code.json` (one row: Pine `src/game/server/quest/chapterDirector.ts#
+- `scripts/listed-view-code.mjs` + `lint/listed-view-code.json` (one row: Pine `src/game/client/quest/chapterDirector.ts#
   installChapterLead`, still exported and called at `src/game/client/quest/questPageViews.ts:62`). Readers:
   `scripts/shard-platform.mjs:17,932,936,992,996`, `scripts/shard-platform-cli.mjs:52`, `scripts/shard-output-report.mjs:72`,
   `test/listed-view-code.test.ts` (also asserts `docs/HOST-BAR.md` mentions the register). It consumes

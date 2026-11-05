@@ -1,7 +1,7 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ObservationRef } from '@wildshard/format/sceneRefs';
 import type { ShardContext } from '../../client/plugin/context';
-import type { QuestChapter } from '../../server/quest/chapter';
+import type { QuestChapter } from '../../client/quest/chapter';
 import { boundQuestState } from './boundState';
 import { questObservation } from './questObservation';
 import type { AdventurePersistence } from './persistence';

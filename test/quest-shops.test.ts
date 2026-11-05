@@ -18,7 +18,7 @@ import { TRADES } from '../src/shards/pine-hollow/generators/trades';
 import { FIGURE_CATALOGUE } from '../src/shards/pine-hollow/generators/figureCatalogue';
 import { Owned } from '../src/game/shared/loot/Owned';
 import { Purse, publishPurse, enteredPurse } from '../src/game/shared/loot/Purse';
-import { installQuestTrader, installQuestShop } from '../src/game/server/quest/trader';
+import { installQuestTrader, installQuestShop } from '../src/game/client/quest/trader';
 
 function page(loot: unknown = source.rows.loot) {
   const scope = new Scope('shop-entry'), host = new App(), events: string[] = [], owned = new Owned('shop-entry');

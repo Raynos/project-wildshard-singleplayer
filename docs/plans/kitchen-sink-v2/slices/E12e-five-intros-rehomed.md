@@ -20,7 +20,7 @@ Research (IN-GAME-CUTSCENES §1): the five intros, all first-person eases with t
 | the Storm Roc | Sky | 1.5 s / 0.3 s; `combat/stormRoc.ts` **snaps** the yaw, no ease |
 | the Dune Matriarch | Signal | rises from the basin (`data/matriarchFight.ts`) |
 
-Plus Driftwood's finale reward view (`QuestRewardBeat`, `src/game/server/quest/reward.ts`, 2.5 s ease, golden-hour clock ease,
+Plus Driftwood's finale reward view (`QuestRewardBeat`, `src/game/client/quest/reward.ts`, 2.5 s ease, golden-hour clock ease,
 7 s hold) and the template boss (1 s). Driftwood's Captain has a 0 s intro.
 
 Work: each intro becomes a cutscene row of `pov` shots reproducing today's ease (and the Roc's snap as a cut), named by

@@ -4,7 +4,7 @@ import { Vector3 } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
 import { Flags } from '../src/engine/shared/world/interact/flags';
 import type { ShardContext } from '../src/game/client/plugin/context';
-import type { QuestChapter } from '../src/game/server/quest/chapter';
+import type { QuestChapter } from '../src/game/client/quest/chapter';
 import { publishBoundChapter, publishChapterFlags } from '../src/game/shared/quest/chapterBindings';
 import { installQuestHints } from '../src/game/client/quest/hints';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

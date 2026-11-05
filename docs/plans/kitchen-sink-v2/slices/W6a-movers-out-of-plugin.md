@@ -25,7 +25,7 @@ Research:
 - **The host is still plugin scaffolding:** `src/game/server/plugin/mover.ts` (599 lines) holds `createMoverHost`,
   `MoverRuntime`, `installDeclaredMovers`, `MoverScriptDriver`, `createComposedMoverHost` and, unrelated,
   `proveTerrainEntries` (line 46). Importers: `game/client/shardfile/hybrid.ts`, `decisions.ts`, `sceneMotion.ts`,
-  `clientMoverOwners.ts`, `game/server/quest/pageFacets.ts`, `pageComposition.ts`, `declaredPage.ts`, `game/cook/bake/entryways.ts`.
+  `clientMoverOwners.ts`, `game/client/quest/pageFacets.ts`, `pageComposition.ts`, `declaredPage.ts`, `game/cook/bake/entryways.ts`.
   It also owns Driftwood's rope bridge (`RopeChain`, the `chain` mover kind), which W6c generalises.
 - **Users (built products, `world/movers`):** Sky Reach 40 KB (10 static, 9 winch, 9 interact, 5 platform, 3 always),
   Driftwood 6.4 KB (always, chain, platform, static, waves), Pine 1 KB (winch, interact, channel), Signal 0.6 KB (track,

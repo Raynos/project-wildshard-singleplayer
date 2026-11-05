@@ -145,7 +145,7 @@
       }
     },
     {
-      "module": "src/game/server/quest/pageComposition.ts",
+      "module": "src/game/client/quest/pageComposition.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "quest-step-runner",
@@ -217,7 +217,7 @@
       }
     },
     {
-      "module": "src/game/server/population/pageReturns.ts",
+      "module": "src/game/client/population/pageReturns.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",

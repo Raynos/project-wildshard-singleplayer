@@ -251,7 +251,7 @@ test('explicit admitted Bag rows retire only the former private projection spans
 
 
 test('optional chapter dispatch preserves the carried and merged-figure owners', () => {
-  const carried = 'src/game/server/quest/carriedProp.ts', figures = 'src/game/client/systems/npc/figureRows.ts';
+  const carried = 'src/game/client/quest/carriedProp.ts', figures = 'src/game/client/systems/npc/figureRows.ts';
   const shared = new Set(['pine-hollow', 'driftwood-isle', 'nalati-grasslands']);
   const moduleUsers = new Map([[carried, shared], [figures, shared]]);
   const bindings = new Map([[`${figures}\0FigureRows`, shared]]);

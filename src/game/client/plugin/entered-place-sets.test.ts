@@ -4,7 +4,7 @@ import { Scope } from '@wildshard/engine/app/scope';
 import type { Placed } from '@wildshard/engine/models/place';
 import { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { ShardContext } from './context';
-import type { QuestPageComposition } from '../../server/quest/pageComposition';
+import type { QuestPageComposition } from '../quest/pageComposition';
 import { bindEnteredClientPlaceSets,installClientPlaceSets,requireClientPlaceSetsBound } from '../shardfile/clientPlaceSets';
 import { lendEntryOwner,publishEntryOwner } from '../../shared/shardfile/entryOwners';
 import * as workSlice from '@wildshard/engine/core/workSlice';

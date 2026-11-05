@@ -1,5 +1,5 @@
-import type { ShardContext } from '../../client/plugin/context';
-import { FigureRows } from '../../client/systems/npc/figureRows';
+import type { ShardContext } from '../plugin/context';
+import { FigureRows } from '../systems/npc/figureRows';
 import { QuestTraderSchema } from '@wildshard/format/namedJsonContracts';
 import * as v from 'valibot';
 import { Vector3, type Object3D } from 'three';
@@ -10,11 +10,11 @@ import { isJsonData } from '@wildshard/format/json';
 import { declaredLootEconomy } from '../../shared/shard/declaredRows';
 import { enteredPurse } from '../../shared/loot/Purse';
 import { Exchange } from '../../shared/loot/exchange';
-import { ShopPanel, type ShopGood } from '../../client/loot/ui/ShopPanel';
-import { enteredHeldLoadout } from '../../client/loadout/held';
+import { ShopPanel, type ShopGood } from '../loot/ui/ShopPanel';
+import { enteredHeldLoadout } from '../loadout/held';
 import { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
-import { HeldFinishes } from '../../client/loadout/finishes';
-import { QuestViews, bindQuestPageInteractions } from '../../client/plugin/ui';
+import { HeldFinishes } from '../loadout/finishes';
+import { QuestViews, bindQuestPageInteractions } from '../plugin/ui';
 import type { QuestPageInteractionsData } from '@wildshard/format/questInteractions';
 import type { Scope } from '@wildshard/engine/app/scope';
 

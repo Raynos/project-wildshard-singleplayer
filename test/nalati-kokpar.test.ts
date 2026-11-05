@@ -6,7 +6,7 @@ import { expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { parseCarriedQuest } from '@wildshard/format/questSteps';
-import { CarriedQuestProp } from '../src/game/server/quest/carriedProp';
+import { CarriedQuestProp } from '../src/game/client/quest/carriedProp';
 import { carriedQuestRows } from './fixtures/nalati-carried-quest';
 import * as ridingService from '../src/game/client/riding/client';
 import { Mount } from '../src/game/server/riding/mount';

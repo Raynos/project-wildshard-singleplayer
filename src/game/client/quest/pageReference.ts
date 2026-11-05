@@ -1,6 +1,6 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { PlaceArea } from '@wildshard/engine/quest/lastPlace';
-import type { QuestPageComposition } from '../../server/quest/pageComposition';
+import type { QuestPageComposition } from './pageComposition';
 
 /** Stable entered publication for readers captured before composition exists.
  * It borrows the actual quest; its owner keeps all continuation and disposal. */

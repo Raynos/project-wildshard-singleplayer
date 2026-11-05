@@ -12,7 +12,7 @@ import { resolveSceneNpc } from '../models/sceneSpecimens';
 import { productPainterLight } from '../looks/paintedLook';
 import { clientNativeBook } from './clientNativeBook';
 import { sceneMotion } from './sceneMotion';
-import { bindDeclaredPage } from '../../server/quest/declaredPage';
+import { bindDeclaredPage } from '../quest/declaredPage';
 import { clientSceneHandles } from './clientSceneHandles';
 import { clientPopulationActor } from './clientPopulation';
 import { settleWeatherFields } from './weatherFields';

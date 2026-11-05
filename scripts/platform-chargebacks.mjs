@@ -27,7 +27,7 @@ const declarations = new Map([
 const chapterViewNativeOwners = new Map([
   // Remaining unapproved dependencies retain their actual optional-facet consumer.
   // G621 D4/R13 retires the approved figure, equipment and height-patch overrides.
-  ["src/game/server/quest/carriedProp.ts", null],
+  ["src/game/client/quest/carriedProp.ts", null],
   ["src/engine/client/combat/effects/types.ts", ["SourceMulDef", "anyTag", "sourceMultiplier"]],
 ]);
 

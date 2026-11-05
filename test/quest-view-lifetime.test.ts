@@ -4,7 +4,7 @@ import { App } from '../src/engine/client/app/app';
 import { Scope } from '../src/engine/shared/app/scope';
 import { createLevelInstallation } from '../src/engine/client/level/installation';
 import { shardContext } from '../src/game/client/plugin/context';
-import { installQuestInteractables } from '../src/game/server/quest/chapter';
+import { installQuestInteractables } from '../src/game/client/quest/chapter';
 import { QuestViews } from '../src/game/client/plugin/ui';
 import { RetainedRuntimeHooks } from '../src/game/client/shard/retainedHooks';
 import { DialogueBox } from '../src/engine/client/quest/view/ui';

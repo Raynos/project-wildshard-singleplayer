@@ -6,7 +6,7 @@ import { WorldRegistry } from '../src/engine/client/world/registry';
 import type { Interactable } from '../src/engine/shared/world/interact/types';
 import { FigureRows } from '../src/game/client/systems/npc/figureRows';
 import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
-import { installQuestTrader, openQuestTrader, type TraderShop, type QuestTraderContext } from '../src/game/server/quest/trader';
+import { installQuestTrader, openQuestTrader, type TraderShop, type QuestTraderContext } from '../src/game/client/quest/trader';
 import driftwood from '../src/shards/driftwood-isle/data/traderStall.json';
 import pine from '../src/shards/pine-hollow/data/traderStall.json';
 

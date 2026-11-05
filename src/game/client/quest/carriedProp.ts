@@ -5,12 +5,12 @@ import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import { Rng } from '@wildshard/engine/core/rng';
 import { modelContext } from '@wildshard/engine/models/model';
-import { defineSpecimenCatalogue } from '../../client/models/specimenCatalogue';
+import { defineSpecimenCatalogue } from '../models/specimenCatalogue';
 import { ReturnProgram } from '../../shared/population/returnProgram';
-import { pageRidingMount } from '../../client/riding/client';
+import { pageRidingMount } from '../riding/client';
 import { commitQuestEffects } from '../../shared/quest/effects';
 import { boundQuestState } from '../../shared/quest/boundState';
-import type { ShardContext } from '../../client/plugin/context';
+import type { ShardContext } from '../plugin/context';
 import { carriedRound, carriedRoundCarrying, carriedRoundDue, carriedRoundFrame, carriedRoundGoal, carriedRoundHome, carriedRoundOutputs, type CarriedRound } from '../../shared/quest/carriedRound';
 
 /** Client-only projection of an existing carried-prop guest. The entered world,

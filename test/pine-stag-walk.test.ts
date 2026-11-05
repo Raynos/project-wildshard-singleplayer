@@ -1,6 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { SkinnedMesh, Scene, Vector3 } from 'three';
-import { installChapterLead } from '../src/game/server/quest/chapterDirector';
+import { installChapterLead } from '../src/game/client/quest/chapterDirector';
 import { publishBoundChapter } from '../src/game/shared/quest/chapterBindings';
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { Scope } from '../src/engine/shared/app/scope';
@@ -10,7 +10,7 @@ import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { Animal } from '../src/engine/client/entities/AnimalView';
 import type { AnimalManager } from '../src/engine/server/entities/AnimalManager';
 import type { ShardContext } from '../src/game/client/plugin/context';
-import type { QuestChapter } from '../src/game/server/quest/chapter';
+import type { QuestChapter } from '../src/game/client/quest/chapter';
 import { parseQuestLeadPage } from '@wildshard/format/questSteps';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { PINE_LIFE_ORIGINAL as program } from './fixtures/pine-life';

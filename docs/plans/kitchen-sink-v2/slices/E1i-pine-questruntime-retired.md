@@ -15,7 +15,7 @@ Research (what is left after E1h):
 | Key | Bytes | What it is | Target |
 |---|---|---|---|
 | `content.chapters` | 2,690 | Pine's chapter list | the declared quest rows (W1b, E1g) |
-| `lead` + `leadPage` | 2,663 | a guide that walks ahead on a path (`first`, `near`, `past`, `gone`, `nightAbove`, `trot`, an AS `program`) | the merged breadcrumb guide (W20, `engine/client/quest/view.ts`, `game/server/quest/chapterDirector.ts`) |
+| `lead` + `leadPage` | 2,663 | a guide that walks ahead on a path (`first`, `near`, `past`, `gone`, `nightAbove`, `trot`, an AS `program`) | the merged breadcrumb guide (W20, `engine/client/quest/view.ts`, `game/client/quest/chapterDirector.ts`) |
 | `spawns`, `deaths`, `pageDeaths`, `events` | ~2,000 | quest-driven spawns (a channel, cues, a limit, a script) and death hooks | director stage rows (E11a's host) or quest step effects (`QuestEffectSchema`, `src/format/questSteps.ts`) |
 | `steps`, `policy` | ~450 | the step guard list and the reading delay | quest rows |
 

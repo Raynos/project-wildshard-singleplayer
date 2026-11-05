@@ -4,7 +4,7 @@ import type { ShardContext } from '../src/game/client/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import * as v from 'valibot';
 import { QuestPageCollectionsSchema, QuestPageDoorSchema, QuestPageMapSchema, QuestPageMoverSchema } from '@wildshard/format/questPageFacets';
-import { pageCollectionCalls, installPageMap } from '../src/game/server/quest/pageFacets';
+import { pageCollectionCalls, installPageMap } from '../src/game/client/quest/pageFacets';
 import { forestStory } from '../src/shards/pine-hollow/generators/forestStory';
 import { PINE_SOURCES } from './fixtures/pine-sources';
 

@@ -47,7 +47,7 @@ and run by another plan; no slice), **dropped** (no longer needed, reason given)
 | W17 | completion card required | E-complete (prov.) | | mapped |
 | W18 | ladders, scramble, rope bridge | W8b | W6c, W8a | mapped |
 | W19 | audio states | W11b | E-audio | mapped |
-| W20 | one breadcrumb guide (merge `engine/client/quest/view.ts` and `game/server/quest/chapterDirector.ts`) | W1b | E1i (Pine's `lead` half) | **orphan** in the west: README puts it in W1, no west file names it; E1i takes Pine's half. Proposal: W1b (+6 h) merges the two guides, proved by W1b's quest-shard parity list |
+| W20 | one breadcrumb guide (merge `engine/client/quest/view.ts` and `game/client/quest/chapterDirector.ts`) | W1b | E1i (Pine's `lead` half) | **orphan** in the west: README puts it in W1, no west file names it; E1i takes Pine's half. Proposal: W1b (+6 h) merges the two guides, proved by W1b's quest-shard parity list |
 | W21 | docs and template rows | W12 | E-finish | mapped (IMPACT Q11 recommends each slice adds its own template row) |
 
 ## 2. Migration rows (wave-1-migration-map.md M0–M9, §8 EC1)

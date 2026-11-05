@@ -4,7 +4,7 @@ import type { QuestPageRows } from '@wildshard/format/questPageComposition';
 import type { RangedPageRows } from '@wildshard/format/rangedPage';
 import { pageModeValue } from '../shard/pagePolicy';
 import { installRangedPage, rangedPage } from '../loadout/rangedPage';
-import { prepareQuestPageComposition, installQuestPageComposition } from '../../server/quest/pageComposition';
+import { prepareQuestPageComposition, installQuestPageComposition } from '../quest/pageComposition';
 import { QuestPageReference } from '../quest/pageReference';
 import { installQuestFigures } from '../quest/figures';
 import { parseQuestFiguresDocument } from '@wildshard/format/questFigures';

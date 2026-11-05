@@ -7,7 +7,7 @@ import { parseSceneMotion, type SceneMotion } from '@wildshard/format/sceneMotio
 import { bindClientChannels } from '../plugin/ui';
 import { createClientChannels } from '../../shared/plugin/channels';
 import type { ShardContext } from '../plugin/context';
-import type { DeclaredPage } from '../../server/quest/declaredPage';
+import type { DeclaredPage } from '../quest/declaredPage';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
 import type { SceneHandles } from './sceneHandles';
 

@@ -7,7 +7,7 @@ import type { Interactable } from '../src/engine/shared/world/interact/types';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import { FigureRows } from '../src/game/client/systems/npc/figureRows';
-import { installQuestTrader } from '../src/game/server/quest/trader';
+import { installQuestTrader } from '../src/game/client/quest/trader';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { TRADER_PAGE } from '../src/shards/driftwood-isle/generators/traderPage';
 

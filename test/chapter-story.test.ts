@@ -11,7 +11,7 @@ import type { MapQuest } from '../src/engine/client/ui/Map';
 import { shardContext } from '../src/game/client/plugin/context';
 import { RetainedRuntimeHooks } from '../src/game/client/shard/retainedHooks';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { bindStoryChapters, presentChapterStory, presentQuestStory } from '../src/game/server/quest/story';
+import { bindStoryChapters, presentChapterStory, presentQuestStory } from '../src/game/client/quest/story';
 import { parseChapterStoryPresentation } from '@wildshard/format/questStory';
 import { parseQuestData } from '@wildshard/format/quests';
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };
@@ -21,7 +21,7 @@ import { MANIFEST } from '../src/shards/_template/discovery.generated';
 import { PAGE_STORY } from '../src/shards/driftwood-isle/generators/pageStory';
 import { PAGE_STORY as PINE_STORY } from '../src/shards/pine-hollow/generators/pageStory';
 
-import { buildQuestChapter } from '../src/game/server/quest/chapter';
+import { buildQuestChapter } from '../src/game/client/quest/chapter';
 import { bindAdventurePersistence } from '../src/game/shared/quest/persistence';
 import { FigureRows } from '../src/game/client/systems/npc/figureRows';
 import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';

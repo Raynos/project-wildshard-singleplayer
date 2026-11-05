@@ -5,7 +5,7 @@ import type { ShardContext } from '../src/game/client/plugin/context';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { installQuestHintFile } from '../src/game/client/quest/hints';
-import { requireQuestPageOwners } from '../src/game/server/quest/pageComposition';
+import { requireQuestPageOwners } from '../src/game/client/quest/pageComposition';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import hintsRows from '../src/shards/driftwood-isle/data/questHints.json' with { type: 'json' };
 import {fixtureProductFile,fixtureJsonCheck} from './fixtures/productFile';

@@ -32,7 +32,7 @@ Work:
 | concealment sources | `stealth.cover: [{ kind: 'grass' \| 'shadow' \| 'volume', … }]`: Nalati's grass is one kind; `shadow` boxes and `volume` cover boxes are rows; the law reads "how hidden am I" from whichever applies | format `stealth.ts`, game `stealthLaw.ts` (no "grass" in the law: the grass reader becomes one provider) |
 | watcher sources | threats from any species with `sight` rows (already), plus a patrol's **lamp cone** (`sight: { cone, range, lamp: true }`): drawn as an additive cone, no real light | game + data |
 | alarm | a stealth `alarm` row: `{ on: 'seen', set: flag, seconds }` the director or quest reads (the gate shuts) | format + game |
-| carried item | the keycard is a carried quest item (Nalati's `carried` rows exist, `src/game/server/quest/carriedProp.ts`); `onSeen: 'return'` sends it home | format quests + game |
+| carried item | the keycard is a carried quest item (Nalati's `carried` rows exist, `src/game/client/quest/carriedProp.ts`); `onSeen: 'return'` sends it home | format quests + game |
 
 Host bar: stealth gets its second real user, test 2 fixed (no grass/riding nouns in the law). Guards: `engine-words`,
 `shard-names`. Tests: Nalati's stealth tests (grep `test/*stealth*`), new `stealth-cover-sources.test.ts` (shadow and

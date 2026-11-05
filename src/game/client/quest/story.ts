@@ -12,14 +12,14 @@ import type { MapPoi, MapQuest } from '@wildshard/engine/ui/Map';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { QuestLine, questMessageHandlers, type QuestState, type NpcDef } from '@wildshard/engine/quest/core';
-import type { Progress } from '../../client/Progress';
+import type { Progress } from '../Progress';
 import { progressSave } from '../../shared/saves';
 import { createAchievementCounters } from '../../shared/achievements';
 import { bindRuntimeQuest } from '../../shared/quest/pageState';
 import { bindRuntimeLedger, bindRuntimeJsonRecord, type RuntimeFacts } from '../../shared/plugin/runtimeRows';
 import { chapterFlow } from '../../shared/quest/chapterFlow';
-import type { ShardContext } from '../../client/plugin/context';
-import { QuestViews, installDeclaredNpcTalks, type QuestNpcTalkPorts, type QuestTalkFigure, type NpcTalkInstallation, presentQuest, type QuestPresentation, type QuestPresentationHost, type QuestPresentationOptions } from '../../client/plugin/ui';
+import type { ShardContext } from '../plugin/context';
+import { QuestViews, installDeclaredNpcTalks, type QuestNpcTalkPorts, type QuestTalkFigure, type NpcTalkInstallation, presentQuest, type QuestPresentation, type QuestPresentationHost, type QuestPresentationOptions } from '../plugin/ui';
 
 /** Bind an ordered chapter view over the original runtime quest states and fact owner.
  * Single-chapter stories use the same binding; no extra state or listener is installed. */

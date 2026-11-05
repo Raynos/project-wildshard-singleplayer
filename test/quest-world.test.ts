@@ -9,7 +9,7 @@ import { placeModelSite } from '../src/engine/client/models/place';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import { AmbientGroup } from '../src/game/shared/ambient/flock';
 import { publishEntryOwner, lendEntryOwner, entryOwner } from '../src/game/shared/shardfile/entryOwners';
-import { prepareQuestWorldEntry } from '../src/game/server/shardfile/questWorld';
+import { prepareQuestWorldEntry } from '../src/game/client/shardfile/questWorld';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { questPageWorld } from '../src/game/shared/quest/pageResources';

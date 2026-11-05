@@ -10,7 +10,7 @@ import { Audio } from '../src/engine/client/audio/Audio';
 import { Events } from '../src/engine/shared/events/events';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
-import type { QuestPageComposition } from '../src/game/server/quest/pageComposition';
+import type { QuestPageComposition } from '../src/game/client/quest/pageComposition';
 import { CollectionCatalogue } from '../src/game/client/models/collectionDisplay';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { publishEntryOwner, entryOwner } from '../src/game/shared/shardfile/entryOwners';
