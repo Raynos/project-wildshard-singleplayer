@@ -55,6 +55,8 @@ test('Nalati runs its whole population headless from the product: roster, wolves
     expect(born.kinds).toEqual({ wolf: { alive: 5, fallen: 0 }, horse: { alive: 27, fallen: 0 }, sheepdog: { alive: 1, fallen: 0 }, leopard: { alive: 1, fallen: 0 }, argymaq: { alive: 1, fallen: 0 } });
     expect(born.bodies.every(body => body.state === 'idle' && body.alive)).toBe(true);
     expect(structuredClone(born)).toEqual(born);
+    // every saved owner the plan installs, so a host left out fails here
+    expect([...live.host.adapters.keys()].filter(id => !id.startsWith('runtime.actor.')).sort((a, b) => a < b ? -1 : a > b ? 1 : 0)).toEqual(['nalati.creatures', 'nalati.elites', 'nalati.mounted', 'nalati.raid', 'nalati.taming', 'nalati.trample', 'nalati.weather']);
 
     // AI: stand the player by the den; the pack stalks him, and the dog keeps its own round on the fixed tick
     const journey = runHeadlessJourney(live.host, input => { live.step(input); }, { ticks: 900, start: { x: -125, z: 95, yaw: 0 }, points: [{ x: -125, z: 95 }, { x: -140, z: 90 }] });

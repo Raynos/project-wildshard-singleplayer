@@ -12,8 +12,6 @@ import type { SimHost } from '../src/engine/sim';
 import { eliteBindings, installEliteEncounters } from './fixtures/nativeEliteEncounters';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { AnimalSim } from '../src/engine/entities/AnimalSim';
-import {initializeNalatiElites} from './fixtures/nalati-headless';
-import type {NativeEliteRoster} from '../src/engine/ai/eliteRoster';
 
 function fixture(scope?: Scope) {
   const f = nativeKernelOwners(scope), bindings = eliteBindings();
@@ -107,18 +105,6 @@ test('foreign, duplicate, replaced and retiring population owners refuse before 
       else Object.defineProperty(f.row.def, 'lair', { value: { ...f.row.def.lair } });
       expect(() => f.script.spawn()).toThrow(); expect(f.state.adopted).toBe(false); expect(f.calls).toEqual([]); expect(f.bindings.brains.size).toBe(0);
     } finally { f.scope.dispose(); other.scope.dispose(); }
-  }
-});
-
-test('direct native factory binds concrete population before reading the original restoring branch', () => {
-  const creatures=legacyDouble<Parameters<NativeEliteRoster['bindPopulation']>[0]>({});
-  const taming=legacyDouble<Parameters<NativeEliteRoster['bindBond']>[0]>({});
-  for(const restoring of [false,true]){
-    const order:string[]=[];
-    initializeNalatiElites({bindPopulation:body=>{expect(body).toBe(creatures);order.push('population');},
-      bindBond:bond=>{expect(bond).toBe(taming);order.push('bond');},initialize:()=>{order.push('initialize');}},
-      creatures,taming,{get restoring(){order.push('restoring');return restoring;}});
-    expect(order).toEqual(restoring?['population','bond','restoring']:['population','bond','restoring','initialize']);
   }
 });
 

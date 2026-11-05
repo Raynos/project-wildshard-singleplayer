@@ -1,4 +1,5 @@
-import { nalatiEliteCore } from './fixtures/nalati-headless';
+import { nativeEliteCore as ridingEliteCore } from '../src/game/shardfile/nativeAssemblyHosts';
+import { NALATI_ELITE_CONDITIONS } from '../src/shards/nalati-grasslands/generators/nativeServer';
 import {admissionNative,admission} from './fixtures/nalati-return-modules';
 import { expect, test } from 'vitest';
 import type { EliteCoreRule } from '../src/game/eliteSystem';
@@ -14,7 +15,7 @@ test('actual native condition rows reuse the original AS owner and preserve ever
     const f = nativeKernelOwners(), before = f.host.rng.snapshot(); state.phase = 'day'; state.storm = false; reads.length = 0;
     try {
       const program = admissionNative(f.host);
-      const core = nalatiEliteCore(f.host,clock,env,ReturnProgram.native(f.host,admission));
+      const core = ridingEliteCore(f.host,NALATI_ELITE_CONDITIONS,ReturnProgram.native(f.host,admission),clock,env);
       expect(core.player).toBe(f.host.player); expect(reads).toEqual([]);
       state.phase = phase; state.storm = storm;
       {

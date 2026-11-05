@@ -4,8 +4,7 @@ import {PastureCues} from '../../src/game/riding/pastureCues';
 import {PastureActorSchema} from '../../src/format/wildlifePopulation';
 import {PopulationEffectsSchema} from '../../src/format/creatures';
 import {GroupNotices} from '../../src/game/population/groupNotices';
-import {decodeTerrainTile} from '../../src/format/terrainTileBytes';
-import {prepareHeadlessRuntime as prepareNalati} from './nalati-headless';
+import {prepareNalatiWorld} from './nalati-world';
 import {withNalatiCompanions} from './nalati-companions-native';
 import {withNalatiWeapons} from './nalati-weapons-native';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
@@ -21,7 +20,7 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
   const wildlife=v.parse(v.object({pastureActor:PastureActorSchema,groups:v.object({effects:PopulationEffectsSchema})}),
     await preparation.product.json('actors/wildlife.json'));
   const pasture=new PastureCues(wildlife.pastureActor.cues);
-  const prepare=withNalatiWeapons(withNalatiCompanions(input=>prepareNalati(input,decodeTerrainTile,undefined,pasture)));
+  const prepare=withNalatiWeapons(withNalatiCompanions(input=>prepareNalatiWorld(input,undefined,{pastureCues:pasture})));
   const base=await prepare(preparation);
   return {...base,install:(host,context)=>{
     base.install(host,context);

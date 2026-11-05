@@ -10,7 +10,6 @@ import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { snapshotSimHost } from '../src/engine/sim/snapshot';
-import { decodeTerrainTile } from '../src/format/terrainTileBytes';
 import { SpeciesActorsFileSchema } from '../src/format/speciesBookRows';
 import { nativePopulationOf } from '../src/game/riding/nativePopulation';
 import { DirectedLaw } from '../src/game/population/directedLaw';
@@ -21,7 +20,7 @@ import type { DamageRequest } from '../src/engine/combat/pipeline';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { builtProduct } from './fixtures/builtProduct';
 import { createNativeProofResident } from './fixtures/headless-native';
-import { prepareHeadlessRuntime } from './fixtures/nalati-headless';
+import { prepareNalatiWorld } from './fixtures/nalati-world';
 import { readNalatiPatrolIntake } from './fixtures/nalati-patrol-intake';
 import { canonicalSimDigest } from './fake/simState';
 
@@ -33,7 +32,7 @@ test('a bound ghost rider decides and scales hits through its law natively, and 
   const row = book.rows.find(candidate => candidate.metadata.kind === 'ghost-rider'), recipe = row?.directed;
   if (recipe === undefined || book.program === undefined) throw new Error('Missing the ghost riders\' directed recipe');
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')), preparation = { shard, assets, rapier, product };
-  const make = () => createNativeProofResident(preparation, context => prepareHeadlessRuntime(context, decodeTerrainTile, input));
+  const make = () => createNativeProofResident(preparation, context => prepareNalatiWorld(context, input));
   const plain = await make(), bound = await make();
   try {
     const plainPopulation = nativePopulationOf(plain.host), population = nativePopulationOf(bound.host);

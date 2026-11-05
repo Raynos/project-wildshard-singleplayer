@@ -12,8 +12,7 @@ import {parseChapterStoryPresentation} from '../src/format/questStory';
 import type {PrepareHeadlessRuntime} from '../src/sdk/headlessRuntime';
 import type {SimHost} from '../src/engine/sim';
 import {builtProduct} from './fixtures/builtProduct';
-import {createNativeProofResident} from './fixtures/headless-native';
-import {prepareHeadlessRuntime as prepareNalati} from './fixtures/nalati-headless';
+import {createNativeProofResident,prepareProductPlan as prepareNalati} from './fixtures/headless-native';
 import {prepareNalatiChapterRecords,type NalatiChapterRecords} from './fixtures/nalati-chapter-records';
 import {canonicalSimDigest} from './fake/simState';
 

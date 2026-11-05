@@ -42,7 +42,7 @@ await runTickWorker(async raw => {
   else if (payload.kind === 'sky-verbs') prepare = (await import('../sky-verbs')).prepareHeadlessRuntime;
   else if (payload.kind === 'nine-flat') prepare = (await import('../nine-headless')).nineHeadlessRuntime(false);
   else if (payload.kind === 'nine') prepare = (await import('../nine-headless')).prepareHeadlessRuntime;
-  else if (payload.kind === 'nalati') prepare = (await import('../nalati-headless')).prepareHeadlessRuntime;
+  else if (payload.kind === 'nalati') prepare = prepareProductPlan;
   else if (payload.kind === 'nalati-companions') prepare = (await import('../nalati-companions-native')).prepareHeadlessRuntime;
   else if (payload.kind === 'nalati-weapons') prepare = (await import('../nalati-weapons-native')).prepareHeadlessRuntime;
   else if (payload.kind === 'nalati-predators') prepare = (await import('../nalati-predators-native')).prepareHeadlessRuntime;

@@ -9,7 +9,8 @@ import {pinBrain} from '../../src/engine/ai/pinning';
 import {parseExternalElite} from '../../src/format/eliteFeature';
 import {ReturnProgram} from '../../src/game/population/returnProgram';
 import {SpawnScript,readSpawnScript} from '../../src/game/population/spawnScript';
-import {nalatiEliteCore} from './nalati-headless';
+import {nativeEliteCore} from '../../src/game/shardfile/nativeAssemblyHosts';
+import {NALATI_ELITE_CONDITIONS} from '../../src/shards/nalati-grasslands/generators/nativeServer';
 import {withNalatiWeapons} from './nalati-weapons-native';
 import {prepareNalatiPatrol,nalatiPatrolOf} from './nalati-patrol-native';
 import {StrikeRunner} from '../../src/engine/ai/strikes';
@@ -28,7 +29,7 @@ const Saved=v.strictObject({version:v.literal(1),captain:v.nullable(v.string()),
 export interface NativeNalatiQara {
   readonly captain:()=>HuntBody|null;
   readonly fight:()=>SpawnScript|null;
-  readonly core:ReturnType<typeof nalatiEliteCore>;
+  readonly core:ReturnType<typeof nativeEliteCore>;
   readonly advance:(dt:number)=>void;
   readonly scale:(actor:HuntBody,point:Vector3)=>number;
 }
@@ -58,7 +59,7 @@ const prepareQara:PrepareHeadlessRuntime=async preparation=>{
     if(patrol===undefined||population===undefined||clock===undefined||owners.has(host))throw new Error('Missing original captain population');
     const env=nativeGroupCollection(host,assembly.constants.groupRows.id).environment;
     if(env===undefined)throw new Error('Missing original captain world effects');
-    const decisions=ReturnProgram.native(host,program),core=nalatiEliteCore(host,clock,env,decisions),contact=new StrikeRunner();
+    const decisions=ReturnProgram.native(host,program),core=nativeEliteCore(host,NALATI_ELITE_CONDITIONS,decisions,clock,env),contact=new StrikeRunner();
     const strikes=rows.strikes?.map(row=>({amount:row.row.damage,strike:strikeFromData(row.row)}));
     if(strikes===undefined)throw new Error('Missing original captain contact shapes');
     let captain:HuntBody|null=null,fight:SpawnScript|null=null,line:readonly HuntBody[]=[],elapsed=0,phase2=false,supports=0,signatures=0,hits=0;

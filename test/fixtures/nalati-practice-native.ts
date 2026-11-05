@@ -9,7 +9,7 @@ import {practiceRoomState} from '../../src/engine/core/practiceRoomState';
 import {parseHeldSlots} from '../../src/format/heldArms';
 import {ItemCatalogue} from '../../src/game/loadout/itemCatalogue';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
-import {prepareHeadlessRuntime as prepareNalati} from './nalati-headless';
+import {prepareProductPlan as prepareNalati} from './headless-native';
 
 /** The inventory port borrows admitted equipment identities only. Weapon
  * arithmetic belongs to the separate real combat proofs, never this owner. */

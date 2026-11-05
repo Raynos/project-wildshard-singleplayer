@@ -9,7 +9,7 @@ import { snapshotSimHostBytes, serializeSimSnapshot, decodeSimSnapshot, restoreS
 import { loadRapier } from '../src/engine/physics/rapier';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
-import { prepareHeadlessRuntime } from './fixtures/nalati-headless';
+import { prepareProductPlan as prepareHeadlessRuntime } from './fixtures/headless-native';
 import { nalatiNativeAssets } from './proof/nalati-grasslands/nativeAssets';
 import { canonicalSimDigest } from './fake/simState';
 

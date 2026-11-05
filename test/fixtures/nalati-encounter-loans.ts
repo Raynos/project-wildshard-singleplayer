@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import type {NativePopulationBootRows,NativePopulationConfig} from '../../src/game/riding/nativePopulation';
-import type {NalatiEncounterIntake} from './nalati-headless';
+import type {NalatiEncounterIntake} from './nalati-world';
 
 const kinds=v.pipe(v.array(v.pipe(v.string(),v.minLength(1))),v.maxLength(16));
 function exact(a:unknown,b:unknown):boolean {

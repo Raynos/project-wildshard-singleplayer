@@ -10,7 +10,7 @@ import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '../../../src/engine/sim/snapshot';
 import { loadRapier } from '../../../src/engine/physics/rapier';
 import { createNativeBakeReader } from '@wildshard/game/population/nativeBake';
-import { prepareHeadlessRuntime } from '../../fixtures/nalati-headless';
+import { prepareProductPlan as prepareHeadlessRuntime } from '../../fixtures/headless-native';
 import { nalatiTamingWitness } from './taming';
 import { canonicalSimDigest, sameBytes } from '../../fake/simState';
 

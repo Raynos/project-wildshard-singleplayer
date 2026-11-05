@@ -11,12 +11,11 @@ import { installCableModes } from '../src/engine/player/modes';
 import { createNativeCombatFrame } from '../src/game/plugin/nativeItems';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { prepareProductPlan } from './fixtures/headless-native';
-import { prepareHeadlessRuntime as nalatiPlan } from './fixtures/nalati-headless';
 import { canonicalSimDigest } from './fake/simState';
 
 const Value: v.GenericSchema<SimValue> = v.lazy(() => v.union([v.null(), v.boolean(), v.number(), v.string(), v.array(Value), v.record(v.string(), Value)]));
 const object = v.record(v.string(), v.unknown());
-for (const [slug, prepare, step] of [['pine-hollow', prepareProductPlan, 'pine.elites'], ['nalati-grasslands', nalatiPlan, 'nalati.elites']] as const) {
+for (const [slug, prepare, step] of [['pine-hollow', prepareProductPlan, 'pine.elites'], ['nalati-grasslands', prepareProductPlan, 'nalati.elites']] as const) {
   test(`${slug}: encounter wire resumes fights and refuses malformed bindings quietly`, async () => {
     const directory = builtProduct(slug), product = await loadHeadlessProduct(directory), descriptor = outputDescriptor(product.shardfile);
     if (descriptor === undefined) throw new Error('Missing product inventory');

@@ -1,7 +1,7 @@
 import {expect,test} from 'vitest';
 import type {SpeciesData,SpeciesVariantData} from '../src/format/speciesPrograms';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
-import type {NalatiEncounterIntake} from './fixtures/nalati-headless';
+import type {NalatiEncounterIntake} from './fixtures/nalati-world';
 import {validateNalatiEncounterLoans,nalatiEncounterDriver} from './fixtures/nalati-encounter-loans';
 
 const variant:SpeciesVariantData={id:'king',label:'King',rarity:'legendary',weight:1,scale:[1.22,1.22],hp:2400};

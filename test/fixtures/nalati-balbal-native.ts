@@ -23,7 +23,7 @@ import {NalatiCreatureView} from './nalati-creature-view-native';
 import {nalatiSlotColliders} from './nalati-slot-colliders';
 import {readNalatiWeaponObservation} from './nalati-weapon-observation';
 import {restoreEncounterBrains} from './restoreEncounterBrains';
-import type {NalatiEncounterIntake} from './nalati-headless';
+import type {NalatiEncounterIntake} from './nalati-world';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
 
 const finite=v.pipe(v.number(),v.finite()),natural=v.pipe(finite,v.integer(),v.minValue(0));

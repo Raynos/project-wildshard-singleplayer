@@ -1,7 +1,7 @@
 import {scalarBlockBytes} from './fixtures/nalati-scalar-blocks';
 import {nalatiWetBlock,originalNalatiWet} from './fixtures/nalati-wet';
 import { expect,test,vi } from 'vitest';
-import { prepareNalatiPopulation } from './fixtures/nalati-headless';
+import { prepareNalatiPopulation } from './fixtures/nalati-world';
 import * as population from '../src/game/population/environment';
 import * as riding from '../src/game/riding/native';
 import type { SimHost } from '../src/engine/sim';

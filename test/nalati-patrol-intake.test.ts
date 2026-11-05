@@ -5,11 +5,10 @@ import {loadHeadlessProduct} from '../src/sdk/headlessProduct';
 import {outputDescriptor} from '../src/game/shardfile/outputDescriptor';
 import {loadRapier} from '../src/engine/physics/rapier';
 import {snapshotSimHost} from '../src/engine/sim/snapshot';
-import {decodeTerrainTile} from '../src/format/terrainTileBytes';
 import {nativePopulationOf} from '../src/game/riding/nativePopulation';
 import {builtProduct} from './fixtures/builtProduct';
-import {createNativeProofResident} from './fixtures/headless-native';
-import {prepareHeadlessRuntime} from './fixtures/nalati-headless';
+import {createNativeProofResident,prepareProductPlan as prepareHeadlessRuntime} from './fixtures/headless-native';
+import {prepareNalatiWorld} from './fixtures/nalati-world';
 import {readNalatiPatrolIntake} from './fixtures/nalati-patrol-intake';
 import {canonicalSimDigest} from './fake/simState';
 import {readNalatiPatrolPoses} from './fixtures/nalati-patrol-poses';
@@ -28,7 +27,7 @@ test('admitting conditional patrol recipes preserves the complete page-joined in
   const before=await createNativeProofResident(preparation,prepareHeadlessRuntime);
   let after:Awaited<ReturnType<typeof createNativeProofResident>>|undefined;
   try{
-    after=await createNativeProofResident(preparation,context=>prepareHeadlessRuntime(context,decodeTerrainTile,input));
+    after=await createNativeProofResident(preparation,context=>prepareNalatiWorld(context,input));
     const originalPopulation=nativePopulationOf(before.host),extended=nativePopulationOf(after.host);
     if(originalPopulation===undefined||extended===undefined)throw new Error('Missing original native population owners');
     expect(canonicalSimDigest(snapshotSimHost(after.host))).toBe(canonicalSimDigest(snapshotSimHost(before.host)));

@@ -3,7 +3,7 @@ import {placesWithDiscovery} from '../../src/engine/quest/discovery';
 import {ChapterViewSchema} from '../../src/format/questPageComposition';
 import {mountedPlayerOf} from '../../src/game/riding/native';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
-import {prepareHeadlessRuntime as prepareNalati} from './nalati-headless';
+import {prepareProductPlan as prepareNalati} from './headless-native';
 
 /** Observe the native motor/water modes and run the same admitted discovery
  * law as the page. No input command can assign a mode, pose or discovered flag. */

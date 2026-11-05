@@ -1,4 +1,4 @@
-import { prepareHeadlessRuntime } from './fixtures/nalati-headless';
+import { prepareProductPlan as prepareHeadlessRuntime } from './fixtures/headless-native';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native checkpoint regression uses the shipped physics module.
 import { readFileSync } from 'node:fs';
 import { expect,test } from 'vitest';
@@ -22,13 +22,10 @@ function originalTerrain(bytes: Uint8Array | undefined,seed: number,row: { resol
 test('declared sampling rows retain the original native checkpoint and restore suffix',async () => {
   const product = await loadHeadlessProduct(builtProduct('nalati-grasslands')),rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const context={shard:product.shardfile,assets:nalatiNativeAssets(product.shardfile),rapier,product};
-  // Only the decoder differs; all named product reads and native host calls stay on the same direct factory.
-  let terrainReads=0;
-  const baseline=await prepareHeadlessRuntime(context,(bytes,row)=>{
-    terrainReads++;expect(row).toEqual({resolution:256,size:500,seed:context.shard.identity.seed});
-    return originalTerrain(bytes,row.seed,row);
-  });
-  expect(terrainReads).toBe(1);
+  // The shipped decoder keeps the frozen admission and storage law, row for row.
+  const sampling=product.shardfile.terrain?.sampling,bytes=sampling===undefined?undefined:context.assets.get(sampling.file),row={resolution:256,size:500,seed:context.shard.identity.seed};
+  expect(decodeTerrainTile(bytes,row)).toEqual(originalTerrain(bytes,row.seed,row));
+  const baseline=await prepareHeadlessRuntime(context);
   const candidate=await prepareHeadlessRuntime(context);
   const oldHost = createSimHost(baseline.level,{ ...baseline.ports,rapier }),nextHost = createSimHost(candidate.level,{ ...candidate.ports,rapier });
   let restored: SimHost | undefined;

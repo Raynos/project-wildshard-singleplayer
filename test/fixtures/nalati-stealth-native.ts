@@ -6,7 +6,7 @@ import {mountedPlayerOf} from '../../src/game/riding/native';
 import {nativeTamingOf} from '../../src/game/riding/nativeTaming';
 import {practiceRoom} from '../../src/engine/core/practiceRoom';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
-import {prepareHeadlessRuntime as prepareNalati} from './nalati-headless';
+import {prepareProductPlan as prepareNalati} from './headless-native';
 
 const finite=v.pipe(v.number(),v.finite()),truth=v.boolean();
 const Threat=v.strictObject({x:finite,z:finite,awareness:finite,alert:finite,hunting:finite});

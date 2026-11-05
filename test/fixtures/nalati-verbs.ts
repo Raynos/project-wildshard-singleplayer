@@ -11,7 +11,7 @@ import {parseChapterStoryPresentation} from '../../src/format/questStory';
 import {createReadingRoster} from '../../src/game/plugin/quests';
 import {eyeReaches} from '../../src/game/quest/interactionRows';
 import {stepFigureOrbit} from '../../src/game/quest/figureOrbit';
-import {prepareHeadlessRuntime as prepareNalati} from './nalati-headless';
+import {prepareProductPlan as prepareNalati} from './headless-native';
 import {installNalatiMountInputs} from './nalati-mount-inputs';
 import {installNalatiChapterObservation} from './nalati-chapter-observation';
 

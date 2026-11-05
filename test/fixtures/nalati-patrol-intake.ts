@@ -4,7 +4,7 @@ import {TimedEncountersSchema} from '../../src/format/encounterRows';
 import {nativeBodySchema} from '../../src/format/nativePhysics';
 import {variantMods} from '../../src/engine/entities/species/registry';
 import type {ShardProduct} from '../../src/game/shardfile/shardProduct';
-import type {NalatiEncounterIntake} from './nalati-headless';
+import type {NalatiEncounterIntake} from './nalati-world';
 
 /** Conditional riders borrow the page's exact metadata and packed skeleton
  * dimensions. No body, random draw, model build or generated output is made. */

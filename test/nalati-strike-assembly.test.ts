@@ -16,7 +16,7 @@ import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/gener
 test('Nalati admitted elite contacts retain every original shape and cover refusal', async () => {
   const OriginalRoster = rosters.NativeEliteRoster;
   const capture = vi.spyOn(rosters, 'NativeEliteRoster').mockImplementation(class extends OriginalRoster {});
-  const { prepareHeadlessRuntime } = await import('./fixtures/nalati-headless');
+  const { prepareProductPlan: prepareHeadlessRuntime } = await import('./fixtures/headless-native');
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const plan = await prepareHeadlessRuntime({ shard: source, assets: nalatiNativeAssets(source), rapier,
     product: await loadHeadlessProduct(builtProduct('nalati-grasslands')) });

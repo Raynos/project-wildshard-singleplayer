@@ -7,7 +7,7 @@ import {ClientRidingSessionSchema,cleanMountName} from '../../src/format/riding'
 import {pickPrompt} from '../../src/engine/world/interact/prompts';
 import type {AnimalSim} from '../../src/engine/entities/AnimalSim';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
-import {prepareHeadlessRuntime as prepareNalati} from './nalati-headless';
+import {prepareProductPlan as prepareNalati} from './headless-native';
 
 const finite=v.pipe(v.number(),v.finite());
 const id=v.pipe(v.string(),v.minLength(1),v.maxLength(128));

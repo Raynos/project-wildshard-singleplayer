@@ -14,7 +14,7 @@ import {installClientWildlife} from '../src/game/population/wildlife';
 import * as groups from '../src/game/population/pageGroups';
 import { NALATI_HEADLESS_ASSEMBLY as headlessAssembly } from './fixtures/nalati-headless-assembly';
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
-import {prepareNalatiPopulation} from './fixtures/nalati-headless';
+import {prepareNalatiPopulation} from './fixtures/nalati-world';
 import {fixtureJsonCheck,fixtureProductFile} from './fixtures/productFile';
 import * as population from '../src/game/population/environment';
 import * as riding from '../src/game/riding/native';

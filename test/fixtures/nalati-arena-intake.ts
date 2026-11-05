@@ -3,7 +3,7 @@ import {SpeciesActorsFileSchema} from '../../src/format/speciesBookRows';
 import {nativeBodySchema} from '../../src/format/nativePhysics';
 import {variantMods} from '../../src/engine/entities/species/registry';
 import type {ShardProduct} from '../../src/game/shardfile/shardProduct';
-import type {NalatiEncounterIntake} from './nalati-headless';
+import type {NalatiEncounterIntake} from './nalati-world';
 
 /** Additional encounter recipes come from the page's complete admitted book.
  * This only preflights metadata: no actor, entropy or outcome is created. */

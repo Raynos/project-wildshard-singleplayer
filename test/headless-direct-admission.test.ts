@@ -2,7 +2,6 @@ import { expect, test } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { prepareHeadlessRuntime } from './fixtures/nine-headless';
-import { prepareHeadlessRuntime as prepareNalati } from './fixtures/nalati-headless';
 import { prepareProductPlan } from './fixtures/headless-native';
 import { NATIVE_ASSEMBLY_FILE } from '../src/format/nativeAssembly';
 import type { Rapier } from '../src/engine/physics/rapier';
@@ -11,7 +10,6 @@ import assembly from '../src/shards/nine-dragon-stack/data/headlessAssembly.json
 
 test.each([
   { prepare: prepareHeadlessRuntime, expectedReads: [] },
-  { prepare: prepareNalati, expectedReads: [] },
   { prepare: prepareProductPlan, expectedReads: [] },
 ])('direct native proof refuses malformed return admission before payload or host preparation (%#)', async ({ prepare, expectedReads }) => {
   const shard = emptyShardfile({ slug: 'native-proof', name: 'Native proof', author: 'Fixture', revision: 1, seed: 7 });
