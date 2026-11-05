@@ -34,10 +34,25 @@ export function generatedSourcePolicy(value) {
     || files.some(file => !sourcePath(file))) throw new Error(`GENERATED-SOURCE ${GENERATED_SOURCE_POLICY}: invalid policy`);
   return { schema, source, files };
 }
+/** A row follows its file across a side move (J122). This is lint/layer-exports.mjs's unsortedPath, repeated because the
+ * push gate copies this module and no-binary-json.mjs alone into a scratch folder, where a ../lint import cannot load;
+ * test/generated-source-guard.test.ts holds the two equal. @param {string} path */
+export const sidelessPath = path => path.replace(/^src\/(engine|game)\/(?:client|cook|server|shared)\//u, 'src/$1/');
+/** The rows of `after` past what `before` allowed under the same side-free path: a move keeps its one row, a second
+ * row beside it is growth. @param {readonly string[]} before @param {readonly string[]} after */
+export function grownRows(before, after) {
+  /** @type {Map<string,number>} */
+  const room = new Map();
+  for (const file of before) room.set(sidelessPath(file), (room.get(sidelessPath(file)) ?? 0) + 1);
+  return after.filter(file => {
+    const left = room.get(sidelessPath(file)) ?? 0;
+    room.set(sidelessPath(file), left - 1);
+    return left <= 0;
+  });
+}
 /** @param {SourcePolicy} before @param {SourcePolicy} after */
 export function generatedSourceIncreases(before, after) {
-  const allowed = new Set(before.files);
-  return after.files.filter(file => !allowed.has(file)).map(file => `GENERATED-SOURCE ${GENERATED_SOURCE_POLICY}: allowance grew for ${file}`);
+  return grownRows(before.files, after.files).map(file => `GENERATED-SOURCE ${GENERATED_SOURCE_POLICY}: allowance grew for ${file}`);
 }
 /** @param {(file:string)=>string|undefined} read */
 function exemptSources(read) {

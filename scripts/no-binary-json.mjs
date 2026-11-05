@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, lstatSync, readFileSync, readdirSync } from 'node:fs';
 import { isAbsolute, posix, resolve } from 'node:path';
 import process from 'node:process';
-import { checkGeneratedSourceRevision, checkGeneratedSourceTree, publishedPolicyRestoration } from './generated-source.mjs';
+import { checkGeneratedSourceRevision, checkGeneratedSourceTree, grownRows, publishedPolicyRestoration, sidelessPath } from './generated-source.mjs';
 
 export const BINARY_JSON_POLICY = 'lint/no-binary-json.json';
 const ROOTS = ['src', 'public', 'scripts', 'test', 'lint'];
@@ -163,8 +163,21 @@ function sourceDebtChanges(root, tree, parent, file, schema, roots, message, pre
     return outputs?.schema === 'source-generation-outputs/1' && Array.isArray(outputs.producers?.['scripts/gen-shards.mjs'])
       && outputs.producers['scripts/gen-shards.mjs'].includes(path);
   };
-  for(const path of after.sources)if(!before.sources.includes(path)&&!discoveryMigration(path))failures.push(`BINARY-JSON ${file}: app source exemption grew for ${path}`);
-  const grown = Object.entries(after.files).filter(([path,count]) => !Object.hasOwn(before.files,path) || count > (before.files[path] ?? 0));
+  for(const path of grownRows(before.sources,after.sources))if(!discoveryMigration(path))failures.push(`BINARY-JSON ${file}: app source exemption grew for ${path}`);
+  // A count follows its file across a side move (J122): rows compare under the side-free path, summed, so a move at an
+  // equal or lower count is no growth, a raised count still is, and a second row beside the first cannot add to it.
+  /** @param {Record<string,number>} files */
+  const totals = files => {
+    /** @type {Map<string,number>} */
+    const out = new Map();
+    for (const [path,count] of Object.entries(files)) out.set(sidelessPath(path),(out.get(sidelessPath(path)) ?? 0)+count);
+    return out;
+  };
+  const allowed = totals(before.files), held = totals(after.files);
+  const grown = Object.entries(after.files).filter(([path]) => {
+    const limit = allowed.get(sidelessPath(path));
+    return limit === undefined || (held.get(sidelessPath(path)) ?? 0) > limit;
+  });
   const increases = grown.filter(([path,count]) => !publishedPolicyRestoration(root, previous, file, schema, path, count));
   // Each debt file takes exact coordinator approval lines for its own increases, one per path at its new count. A line for a
   // grown row that a published-policy restoration already allows still matches, so its verdict cannot depend on `previous`.

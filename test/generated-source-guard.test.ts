@@ -8,7 +8,8 @@ import { resolve } from 'node:path';
 import { env as processEnv } from 'node:process';
 import { expect, test } from 'vitest';
 import { GENERATED_SOURCE_POLICY, checkGeneratedSourceRevision, checkGeneratedSourceTree,
-  generatedSourceIncreases, generatedSourcePolicy } from '../scripts/generated-source.mjs';
+  generatedSourceIncreases, generatedSourcePolicy, sidelessPath } from '../scripts/generated-source.mjs';
+import { unsortedPath } from '../lint/layer-exports.mjs';
 import { commitCheckFailed } from '../scripts/precommit-jobs.mjs';
 import { precommitInputs } from '../scripts/precommit-inputs.mjs';
 
@@ -45,7 +46,17 @@ test.each(['test/fixtures/**', 'test/fixtures/'])('fixture-only commits respect 
   await expect(precommitInputs(root, missing)).rejects.toThrow('typed lint: refused');
 }));
 
-test('new staged generated files and headers refuse even when the working copy is clean', () => fixture((root, git, put) => {
+test('a source debt row follows its file across a side move and nowhere else', () => {
+  const unmoved = 'src/game/shard/slugs.generated.ts', moved = 'src/game/server/shard/slugs.generated.ts';
+  expect(generatedSourceIncreases(policy([unmoved]), policy([moved]))).toEqual([]);
+  expect(generatedSourceIncreases(policy([moved]), policy(['src/game/client/shard/slugs.generated.ts']))).toEqual([]);
+  expect(generatedSourceIncreases(policy([unmoved]), policy([unmoved, moved]))).toHaveLength(1);
+  expect(generatedSourceIncreases(policy([unmoved]), policy(['src/game/server/shard/other.generated.ts']))).toHaveLength(1);
+  expect(generatedSourceIncreases(policy([unmoved]), policy(['src/engine/server/shard/slugs.generated.ts']))).toHaveLength(1);
+  for (const path of [moved, unmoved, 'src/sdk/server/a.ts', 'src/engine/cook/b.ts', 'src/shards/client/c.ts']) expect(sidelessPath(path)).toBe(unsortedPath(path));
+});
+
+test('new staged generated files and headers refuse even when the working copy is clean', () => fixture((root,git, put) => {
   put('src/authored.ts', 'export const rows = [];'); put('src/rows.json', '{"rows":[]}'); git('add', 'src/authored.ts', 'src/rows.json');
   expect(checkGeneratedSourceRevision(root, ':', 'HEAD', ['src/authored.ts', 'src/rows.json'])).toEqual([]);
   const file = 'src/new.generated.ts', renamed = 'src/renamed.ts';
