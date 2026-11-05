@@ -76,6 +76,32 @@ test('a released WebKit pass stops polling its deleted programs', async () => {
   }
 });
 
+// DL21: the pass runs to the end of its list (the tail is the spawn view's tiles' programs) and, paced, releases itself once
+// every link has completed: nothing stops it at the Shaders step any more
+test('a paced pass links its whole list, then releases itself with its level still alive', async () => {
+  const realGL = Reflect.get(globalThis, 'WebGL2RenderingContext'), agent = Object.getOwnPropertyDescriptor(navigator, 'userAgent');
+  const realRaf = Reflect.get(globalThis, 'requestAnimationFrame'), realCancel = Reflect.get(globalThis, 'cancelAnimationFrame');
+  Object.defineProperty(navigator, 'userAgent', { configurable: true, value: 'Mozilla/5.0 (iPhone) AppleWebKit/605.1.15 Version/18.0 Mobile Safari' });
+  Reflect.set(globalThis, 'requestAnimationFrame', (run: (t: number) => void) => setTimeout(() => { run(performance.now()); }, 0));
+  Reflect.set(globalThis, 'cancelAnimationFrame', (id: ReturnType<typeof setTimeout>) => { clearTimeout(id); });
+  class DoneGL extends FakeGL { getProgramParameter(): boolean { return true; } } // every link completes at once
+  Reflect.set(globalThis, 'WebGL2RenderingContext', DoneGL);
+  try {
+    const gl = new DoneGL(), level = new Scope('level');
+    Reflect.set(gl, 'getExtension', () => ({ COMPLETION_STATUS_KHR: 0x91b1 }));
+    const two: BakedPrograms = { version: 2, lines: ['void main() {}'], shaders: [[0], [0]], programs: [[0, 1], [1, 0]] };
+    queueBakedPrograms(Promise.resolve(two));
+    issueBakedPrograms({ renderer: { getContext: () => gl }, levelScope: level }); await settle();
+    expect(gl.made.length).toBe(4); // two shaders, both programs linked
+    expect(gl.made.every(o => gl.deleted.has(o))).toBe(true); // released with the level still alive
+    level.dispose();
+  } finally {
+    Reflect.set(globalThis, 'WebGL2RenderingContext', realGL);
+    Reflect.set(globalThis, 'requestAnimationFrame', realRaf); Reflect.set(globalThis, 'cancelAnimationFrame', realCancel);
+    if (agent === undefined) Reflect.deleteProperty(navigator, 'userAgent'); else Object.defineProperty(navigator, 'userAgent', agent);
+  }
+});
+
 // three's WebGLProgram.destroy() deletes the native program and leaves `.program` undefined: such an identity is settled
 test('a program three destroyed reads as retired; a live one does not', () => {
   expect(nativeRetired({ program: undefined })).toBe(true);

@@ -18,9 +18,7 @@ export function earlyProgramsOn(): boolean {
   return frozen;
 }
 
-let baked: Promise<BakedPrograms | null> | null = null, bakedStopped = false;
-/** The Shaders step starts: a baked pass still issuing stops; the step's own programs supersede what is left of it. */
-export function stopBakedPrograms(): void { bakedStopped = true; }
+let baked: Promise<BakedPrograms | null> | null = null;
 
 /** DL10 (same Debug row): the GLSL pairs a recorded entry of this level linked, as data from the level's files. WebKit's GPU
  *  process keeps what it compiled by source (Playwright WebKit: 70 entry programs link in 225 ms the first time, 128 ms
@@ -39,14 +37,17 @@ let held: Held | null = null;
 export function queueBakedPrograms(list: Promise<BakedPrograms | null>): void {
   // an optional list: a failed read (offline, an HTML fallback page) is no list, settled here at once, so it never reaches
   // the page's unhandled-rejection boot failure before the renderer step would have read it (sp-x8's C25)
-  baked = list.catch(() => null); bakedStopped = false;
+  baked = list.catch(() => null);
 }
 /** After the renderer step: link the queued list on the game's own context. Where links queue in the GPU process ahead
  *  of the page's own GL calls (WebKit), the next program is issued only once the last one reports complete
  *  (KHR_parallel_shader_compile's COMPLETION_STATUS, polled once a painted frame; a 600 ms beat without the extension):
  *  one a painted frame issued faster than the Simulator links (~0.5 s each), and Driftwood's next synchronous GL call in
- *  the Sky step waited 15 s behind the queue (throttled Sim pair, 11-04). Elsewhere all at once. The objects are kept
- *  until `releaseBakedPrograms` so no link is cut short. */
+ *  the Sky step waited 15 s behind the queue (throttled Sim pair, 11-04). Elsewhere all at once. The pass runs to the end
+ *  of its list: the Shaders step no longer stops it, because the list's tail is the programs the spawn view's tiles
+ *  build after Shaders (Nine's step 27: one parked warm's first program build held the card 0.9 s, `47932d1`), and with
+ *  one link in flight it costs the Shaders step at most one link. A paced pass releases itself once its last link has
+ *  completed; otherwise the objects are kept until its level goes, so no link is cut short. */
 export function issueBakedPrograms(game: Pick<Game, 'levelScope'> & { readonly renderer: { readonly getContext: () => unknown } }): void {
   const list = baked; baked = null;
   if (list === null) return;
@@ -66,7 +67,7 @@ export function issueBakedPrograms(game: Pick<Game, 'levelScope'> & { readonly r
     const settled = async (program: WebGLProgram): Promise<void> => {
       if (parallel === null) { await new Promise<void>(resolve => { owner.timeout(600, resolve); }); return; }
       // a released pass's programs are deleted: never ask about them (a deleted object only warns, and never completes)
-      const waiting = (): boolean => !bakedStopped && !mine.released && !gl.isContextLost() && gl.getProgramParameter(program, parallel.COMPLETION_STATUS_KHR) !== true;
+      const waiting = (): boolean => !mine.released && !gl.isContextLost() && gl.getProgramParameter(program, parallel.COMPLETION_STATUS_KHR) !== true;
       while (waiting()) await frame();
     };
     const compiled = new Map<number, WebGLShader>();
@@ -78,12 +79,14 @@ export function issueBakedPrograms(game: Pick<Game, 'levelScope'> & { readonly r
       return made;
     };
     for (const [vertex, fragment] of data.programs) {
-      if (bakedStopped || mine.released || owner.disposed || owner.disposing || held !== mine || gl.isContextLost()) return;
+      if (mine.released || owner.disposed || owner.disposing || held !== mine || gl.isContextLost()) return;
       const vs = shader(vertex, gl.VERTEX_SHADER), fs = shader(fragment, gl.FRAGMENT_SHADER), program = gl.createProgram();
       if (vs === null || fs === null) continue;
       gl.attachShader(program, vs); gl.attachShader(program, fs); gl.linkProgram(program); mine.programs.push(program);
       if (paced) await settled(program);
     }
+    // every link has completed: the GPU process holds the compiled sources, the copies can go
+    if (paced) release(mine);
   })();
 }
 /** DL10 (same Debug row): a cold Safari's first shader link pays a one-time start-up (1.0-1.4 s on the Simulator, whatever
