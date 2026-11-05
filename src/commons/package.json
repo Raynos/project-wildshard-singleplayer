@@ -11,7 +11,6 @@
     "./bake/portableMath": "./bake/portableMath.ts"
   },
   "dependencies": {
-    "@wildshard/sdk": "workspace:*",
     "@wildshard/sharddev": "workspace:*",
     "@wildshard/format": "github:project-wildshard/shardfile#v0.3.4",
     "three": "0.186.0"

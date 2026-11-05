@@ -150,9 +150,6 @@ importers:
       '@wildshard/format':
         specifier: github:project-wildshard/shardfile#v0.3.4
         version: git+ssh://git@github.com/project-wildshard/shardfile.git#711d608bcf30ddaa3a3f1a0cc695ceb35c3ad84a(typescript@7.0.2)
-      '@wildshard/sdk':
-        specifier: workspace:*
-        version: link:../sdk
       '@wildshard/sharddev':
         specifier: workspace:*
         version: link:../sharddev
@@ -251,9 +248,6 @@ importers:
       '@wildshard/format':
         specifier: github:project-wildshard/shardfile#v0.3.4
         version: git+ssh://git@github.com/project-wildshard/shardfile.git#711d608bcf30ddaa3a3f1a0cc695ceb35c3ad84a(typescript@7.0.2)
-      '@wildshard/sdk':
-        specifier: workspace:*
-        version: link:../sdk
       ajv:
         specifier: 6.15.0
         version: 6.15.0
@@ -287,6 +281,10 @@ importers:
       vite:
         specifier: ^8.3.0
         version: 8.3.0(@types/node@25.9.9)
+    devDependencies:
+      '@wildshard/sdk':
+        specifier: workspace:*
+        version: link:../sdk
 
 packages:
 

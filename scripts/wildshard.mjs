@@ -15,6 +15,8 @@ import { decisionLegacyLines } from './decision-legacy-lines.mjs';
 import { outputManifest, shardOutputs } from './shard-outputs.mjs';
 
 let runner;
+// The bundle's import.meta.dirname stays src/sdk: headless.ts finds bake/headlessWorker.ts beside it, and src/sdk keeps the
+// author tools' dependency links until the host leaves at P3 (P1-F4).
 const authorRequire = createRequire(resolve(import.meta.dirname, '../src/sharddev/package.json'));
 /** Compile the trusted CLI once before product children; later invocations
  * verify the same content-addressed compiler and replay its complete inputs. */
