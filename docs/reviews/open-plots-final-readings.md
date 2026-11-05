@@ -1939,3 +1939,40 @@ construction may still be in flight. The retained 1bc5 result lacks the
 necessary kinds and therefore remains unqualified, with no rerun or raw
 repinning in this window. Related checks passed 7 files / 97 cases in
 4.39 s, root types passed, and touched lint plus reader syntax passed.
+
+
+## Four officials — telemetry carrier admission (sp-x1, November 5 UTC)
+
+The next officials bind **a3a6feb97611240cbfef3a094f1fa9b07c8fa6ef**,
+containing `ec8ae9a59a`'s actual pending-kind telemetry. The normal shared
+all-product preview is **a3a6feb-mw2v0hnw** (:4401). This bridge joined
+sp-o4's existing process; it is **not** a fresh D223 official process and
+was used only for source/body/runtime reads by this lane. The own lease
+was released normally before any official admission.
+
+All **40** defining native-source roots remain byte-identical to the final
+`b752d49037` audio pin. The actual lattice is also exact to `1bc5e1758a`
+(SHA-256 `8c2784a6011363adab794eeb9668c1a1de17d23da220585f8506eadeb527601c`),
+so the four original pose sets and sixteen neighbour bindings are retained.
+The audit checks **825 bodies / 803 ordered pack entries**, plus **165**
+compiled runtime endpoints against served/disk bytes; no old compiled-JS
+byte-parity claim is made.
+
+The strict bridge first **refused**: each plot's 164 B `look/map` section
+and its containing pack 0 changed. The retained literal old section wires
+are hash-verified; replacing only the new `map.tilesHash` restores each old
+section byte-for-byte. Replacing entry 11 in each current pack reconstructs
+the original whole-pack hash, with offsets, sizes and member order exact.
+All other **817 bodies** and **799 pack-member hashes** are exact. The four
+map images remain exact: Clockwork 25,088 B, Desert 24,372 B, Race 13,100 B
+and Showcase 29,088 B. All eight old/current map rows pass the unchanged
+strict `MapSchema`. Every raw header delta remains listed.
+
+Wildshard-new's **G872** ruling admits this carrier under the same narrow
+map-stamp exception as Fossil / DL18 / Z15. The original strict refusal
+stays separate from the accepted admission under
+`tmp/sp-x1-open-plots/audio4-pending-{current,admitted}-carrier-a3a6feb976/`.
+No game visit, native sample or new official qualification follows from
+this bridge. The next quiet window remains after sp-o1's DL23 Nine turn: a
+real native preparation tap, one fresh Clockwork official, and the other
+three only if Clockwork qualifies. Full cohorts remain **6/10**.
