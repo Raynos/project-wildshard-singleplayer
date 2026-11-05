@@ -93,3 +93,19 @@ test('J107: a bot that falls goes back alone and the fight carries on for the re
     expect(['armed', 'intro']).toContain(boss.state); expect(arena.party.engaged).toBe(0);
   } finally { host.dispose(); }
 });
+
+test('the heart is earned by those in the arena when it falls, and each takes it once', () => {
+  const { host, bots, arena } = room();
+  try {
+    const bot = bots[0]; if (bot === undefined) throw new Error('No bot');
+    arena.heartFell();
+    expect(arena.bounty.owed, 'the lead stands off, the bot is in the arena').toEqual([bot.id]);
+    expect(arena.bounty.take(bot.id)).toBe(true); expect(arena.bounty.take(bot.id)).toBe(false);
+    expect(arena.bounty.owed).toEqual([]);
+  } finally { host.dispose(); }
+});
+
+test('alone, the heart names no earner and the row pays as it did', () => {
+  const { host, arena } = room(0);
+  try { arena.heartFell(); expect(arena.bounty.earned).toEqual([]); } finally { host.dispose(); }
+});

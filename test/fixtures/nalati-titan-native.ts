@@ -102,6 +102,7 @@ export async function prepareNalatiTitan(preparation:Parameters<PrepareHeadlessR
         skipHeld:()=>context.commands().some(command=>command.kind==='script'&&command.actorId==='nalati.titan.skip'&&command.value===1),
         faceToward:(target,dt)=>{const p=leadPlayer(host).position;camera.position.set(p.x,p.y+1.68,p.z);
           easeViewToward(weapons().look,camera.position,target,dt);},spawnReward:()=>{
+          room.heartFell();
           const at=itemPickupFloor(host.physics,fight.rewardPoint());rewardPoint=new Vector3(at.x,at.y+ITEM_PICKUP_HOVER+.5,at.z);reward=true;
         },persist:saved=>{records.bosses.write({...records.bosses.read(),[data.definition.id]:saved});},toast,feed},ui,current);
       encounter.boss=boss;room.bind(boss,fight);leadPlayer(host).health.checkpoint(host.scope,()=>room.party.died(boss));
@@ -136,7 +137,7 @@ export async function prepareNalatiTitan(preparation:Parameters<PrepareHeadlessR
         const state=fight.snapshot();
         return JSON.stringify({version:1,fight:state,boss:boss.snapshot(),locked,reward,...(rewardPoint===null?{}:{rewardPoint:rewardPoint.toArray()}),bar,prompt:{radius:prompt.radius,label:prompt.label},
           support:state.riders.map(({site})=>{const body=support.get(site);if(body===undefined)throw new Error('Titan support lost its actual site');return [site,body.entityId];}),
-          toasts:[...toasts],feeds:[...feeds],contacts:room.contacts,...(room.party.engaged===0?{}:{engaged:room.party.engaged})});},
+          toasts:[...toasts],feeds:[...feeds],contacts:room.contacts,...(room.party.engaged===0?{}:{engaged:room.party.engaged}),...(room.bounty.earned.length===0?{}:{earned:room.bounty.earned})});},
         restore:value=>{
           const saved=v.parse(TitanSaved,typeof value==='string'?JSON.parse(value):value);
           if(saved.reward!==(saved.rewardPoint!==null))throw new Error('Titan reward continuation lost its actual pickup point');
@@ -148,7 +149,7 @@ export async function prepareNalatiTitan(preparation:Parameters<PrepareHeadlessR
             if(leadPlayer(host).moveScale!==(locked?0:1))throw new Error('Titan input lock differs from the restored native motor owner');
             weapons().setEnabled(!locked);
           }
-          prompt.radius=saved.prompt.radius;prompt.label=saved.prompt.label;toasts.splice(0,toasts.length,...saved.toasts);feeds.splice(0,feeds.length,...saved.feeds);room.contacts=saved.contacts;room.party.restoreEngaged(saved.engaged??0);
+          prompt.radius=saved.prompt.radius;prompt.label=saved.prompt.label;toasts.splice(0,toasts.length,...saved.toasts);feeds.splice(0,feeds.length,...saved.feeds);room.contacts=saved.contacts;room.party.restoreEngaged(saved.engaged??0);room.bounty.restore(saved.earned??[]);
         }});
     }};
   }),(host,from,dir,distance,hit)=>nalatiPatrolOf(host)?.target(from,dir,distance,hit)??hit,{

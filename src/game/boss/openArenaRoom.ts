@@ -13,12 +13,15 @@ import { publishEncounter } from '@wildshard/engine/sim/encounterRows';
 import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 import type { ArenaScriptData } from '@wildshard/format/arenaScriptRows';
 import { mountedPlayerOf } from '../riding/native';
+import { BossBounty } from './bounty';
 
 type RoomBoss = Parameters<BossContenders['fell']>[1];
 const _up = new Vector3();
 
 export class OpenArenaRoom {
   readonly party: BossContenders;
+  /** J105: a heart is no creature in the damage book, so its earners are those in the arena when it falls. */
+  readonly bounty: BossBounty;
   /** Hits the fight has landed, on anyone. */
   contacts = 0;
   private readonly strikes = new StrikeRunner();
@@ -28,8 +31,15 @@ export class OpenArenaRoom {
   constructor(private readonly host: SimHost, private readonly data: ArenaScriptData, place: (player: PlayerSim, position: Vector3, yaw: number) => void) {
     const { center } = data.arena, radius = data.place.arenaRadius; this.centre = new Vector3(center.x, 0, center.z); this.tag = `boss.${data.record.kind}`;
     for (const [name, row] of Object.entries(data.contacts)) this.rows.set(name, strikeFromData(row));
-    this.party = new BossContenders(host.players, point => (point.x - center.x) ** 2 + (point.z - center.z) ** 2 < radius ** 2, place);
+    const inside = (point: { readonly x: number; readonly z: number }): boolean => (point.x - center.x) ** 2 + (point.z - center.z) ** 2 < radius ** 2;
+    this.party = new BossContenders(host.players, inside, place);
+    this.bounty = new BossBounty(host, () => null, data.definition.id); this.inside = inside;
   }
+  private readonly inside: (point: { readonly x: number; readonly z: number }) => boolean;
+  /** The heart has fallen: name who earned it. Alone there is no one to name. */
+  readonly heartFell = (): void => {
+    if (this.host.players.size > 1) this.bounty.award([...this.host.players.values()].filter(player => this.inside(player.position)).map(player => player.id));
+  };
   /** Whom the fight deals with now. */
   get near(): PlayerSim { return this.party.nearest(this.centre); }
   get player(): { readonly position: Vector3 } { return this.party.player; }

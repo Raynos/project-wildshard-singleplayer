@@ -20,4 +20,4 @@ const boss:v.GenericSchema<unknown,BossContinuation>=v.strictObject({state:v.pic
  * production owners retain their own row-specific validation on restore. */
 export const TitanSaved=v.strictObject({version:v.literal(1),fight,boss,locked:v.boolean(),reward:v.boolean(),rewardPoint:v.optional(v.nullable(vector),null),bar:v.boolean(),
   prompt:v.strictObject({radius:finite,label:v.string()}),support:v.array(v.tuple([natural,v.string()])),
-  toasts:v.array(v.string()),feeds:v.array(v.string()),contacts:natural,engaged:v.exactOptional(natural)});
+  toasts:v.array(v.string()),feeds:v.array(v.string()),contacts:natural,engaged:v.exactOptional(natural),earned:v.exactOptional(v.array(v.string()))});
