@@ -63,6 +63,10 @@ test('the recorded counts only fall from one commit to the next',()=>{
   expect(compareSideEdges(before,{files:{'src/game/a.ts':{'server → client':3}}})[0]).toContain('rose 2 → 3');
   expect(compareSideEdges(before,{files:{...before.files,'src/game/c.ts':{'client → server':1}}})[0]).toContain('src/game/c.ts client → server rose 0 → 1');
   expect(compareSideEdges(before,undefined)[0]).toContain('removed');
+  // A file that moves side trades its edges for the other side's; its total can't rise.
+  const moved={files:{'src/game/server/a.ts':{'server → client':6}}};
+  expect(compareSideEdges(moved,{files:{'src/game/client/a.ts':{'client → server':1}}})).toEqual([]);
+  expect(compareSideEdges(moved,{files:{'src/game/client/a.ts':{'client → server':7}}})[0]).toContain('rose 6 → 7 across its move');
   expect(compareSideEdges(before,{files:{'src/game/a.ts':{'client → shared':1}}})[0]).toContain('invalid');
 });
 

@@ -231,7 +231,9 @@ export function edgeTotals(files) {
   return Object.fromEntries(Object.entries(totals).sort(([a], [b]) => a.localeCompare(b)));
 }
 
-/** The commit/push comparison: a recorded count never rises and no file gains a new edge (shrink-only).
+/** The commit/push comparison: a recorded count never rises and no file gains a new edge (shrink-only). A file that moved
+ * side trades its edges for the other side's (a page fight's server → client for its client → server), so its total is what
+ * can't rise.
  * @param {unknown} before @param {unknown} after */
 export function compareSideEdges(before, after) {
   if (after === undefined) return before === undefined ? [] : [`${SIDE_EDGES_LIST}: the ratchet was removed; lower its counts instead`];
@@ -248,9 +250,19 @@ export function compareSideEdges(before, after) {
     return out;
   };
   const past = rows(previous), now = rows(next);
-  for (const [path, edges] of Object.entries(now)) for (const [edge, count] of Object.entries(edges)) {
-    const was = past[path]?.[edge] ?? 0;
-    if (count > was) failures.push(`${SIDE_EDGES_LIST}: ${path} ${edge} rose ${was} → ${count}`);
+  const sum = (/** @type {Record<string, number>} */ edges = {}) => Object.values(edges).reduce((total, count) => total + count, 0);
+  const homes = (/** @type {Record<string, unknown>} */ table) => { const out = new Map(); for (const path of Object.keys(table)) out.set(unsortedPath(path), path); return out; };
+  const homeBefore = homes(previous), homeAfter = homes(next);
+  for (const [path, edges] of Object.entries(now)) {
+    const moved = homeBefore.has(path) && homeBefore.get(path) !== homeAfter.get(path);
+    if (moved) {
+      if (sum(edges) > sum(past[path])) failures.push(`${SIDE_EDGES_LIST}: ${path} rose ${sum(past[path])} → ${sum(edges)} across its move`);
+      continue;
+    }
+    for (const [edge, count] of Object.entries(edges)) {
+      const was = past[path]?.[edge] ?? 0;
+      if (count > was) failures.push(`${SIDE_EDGES_LIST}: ${path} ${edge} rose ${was} → ${count}`);
+    }
   }
   return failures;
 }
