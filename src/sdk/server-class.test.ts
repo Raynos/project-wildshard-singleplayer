@@ -81,6 +81,10 @@ it('never publishes the server class to the app, and only a server reader can na
   expect(published.length).toBeGreaterThan(0);
   expect(published.filter(path => path.includes(`${slug}/server/`))).toEqual([]);
   for (const path of published) expect(holds(readFileSync(path))).toBe(false);
+  // standalone's server is a worker on the device: it reads them from their own tree until C2's server packs
+  const workerRead = every(resolve(dist, 'server-class', slug));
+  expect(workerRead.length).toBeGreaterThan(0);
+  expect(workerRead.some(path => holds(readFileSync(path)))).toBe(true);
 
   const headless = await loadHeadlessProduct(resolve(tree, 'out', slug));
   expect(headless.hasFile(server.file.name)).toBe(true);

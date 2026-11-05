@@ -142,6 +142,16 @@ const earlyProgramsRow: DebugRow = { id: 'earlyPrograms', group: 'loading', labe
   on: () => undefined,
   note: 'DL10: compile the spawn view\'s shader programs during loading, as soon as the world is built; default off until a Simulator / iPhone reading.',
   ask: 'E526', reviewBy: '2026-12-30' };
+/** J130: this page's real Game and Player on the server in its worker. A Developer's proof of the flip, and the flip commit deletes it. */
+const workerClientSlot = jsonSlot('debug.workerClient', 'device');
+export const workerClientOn = (): boolean => isDev() && workerClientSlot.read() === 'on';
+const workerClientRow: DebugRow = { purpose: 'developer', id: 'workerClient', group: 'tools', label: engineString('s_debug_worker_client'), reload: true, when: always,
+  choices: () => [{ v: 'off', text: engineString('s_ca7981b46ecf') }, { v: 'on', text: engineString('s_130011756125') }],
+  get: () => workerClientSlot.read() === 'on' ? 'on' : 'off',
+  set: (next) => { if (next === 'off' || next === 'on') workerClientSlot.write(next); },
+  on: () => undefined,
+  note: 'J130: run this page on the server in its worker. Saves stand apart from your real ones; the flip deletes this row.',
+  ask: 'E535', reviewBy: '2026-12-30' };
 const clearDownloadsRow = action('clearDownloads', 'tools', engineString('s_59cb301bb126'), engineString('s_59cb301bb126'), async (say) => {
   say('Clearing…', CLEAR_IDLE);
   const r = await clearDownloads();
@@ -174,6 +184,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   clearDownloadsRow,
 
   // ── Developer tools ──
+  workerClientRow,
 
 ];
 

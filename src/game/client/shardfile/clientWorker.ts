@@ -1,7 +1,7 @@
-// P1-E5.3 I6 (J126): the one-shot proof page. A proof build (`VITE_WORKER_CLIENT=1`) runs the real Game and Player against the
-// real server in its worker: the Player predicts and reconciles, and every creature is an interpolated row drawn by the real
-// views. No shipped build compiles this path. The page's other systems still run, on nothing: no blow goes to the server
-// yet, and movers, weapons, fights and riding wait for their own rows.
+// P1-E5.3 I6 (J126), J130: Settings ▸ Developer ▸ Worker client runs the real Game and Player against the real server in its
+// worker: the Player predicts and reconciles, and every creature is an interpolated row drawn by the real views. The flip commit
+// deletes the row and keeps this path. The page's other systems still run, on nothing: no blow goes to the server yet, and
+// movers, weapons, fights and riding wait for their own rows.
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { SystemSpec } from '@wildshard/engine/app/systems';
 import type { Player } from '@wildshard/engine/player/Player';

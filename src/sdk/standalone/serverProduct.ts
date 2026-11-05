@@ -12,9 +12,11 @@ import type { HeadlessRuntimeInput } from '../headlessRuntime';
  * addresses with the same checks; only where the bytes come from differs. C2's server packs replace this.
  */
 export async function fetchServerProduct(base: string, rapier: Rapier): Promise<HeadlessRuntimeInput> {
-  const root = new URL(base, globalThis.location.href).href;
+  const root = new URL(base, globalThis.location.href).href, slug = new URL('.', root).pathname.split('/').at(-2) ?? '';
+  // The server class sits outside the tree a client reads (J91): `copyOutputProducts` says where, until C2's server packs.
+  const serverRoot = new URL(`../../server-class/${slug}/`, root).href;
   const read = async (path: string): Promise<Uint8Array> => {
-    const response = await fetch(new URL(path, root));
+    const response = await fetch(new URL(path, path.startsWith('server/') ? serverRoot : root));
     if (!response.ok) throw new Error(`Missing server input ${path}`);
     return new Uint8Array(await response.arrayBuffer());
   };

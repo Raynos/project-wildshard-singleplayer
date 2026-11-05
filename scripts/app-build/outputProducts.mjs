@@ -3,17 +3,21 @@ import { basename, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
 /** The app publishes its data products, never their temporary TypeScript sources: each built product's folder under
  *  `<root>/out` (one with a shard.json) goes to `<outDir>/shardfiles`, without its runtime sources or its build key.
- *  The server class (J91, `<slug>/server/`) is not published either: no URL can serve it to a client.
+ *  The server class (J91, `<slug>/server/`) stays out of that tree, which is what a client reads. Standalone's server is a
+ *  worker on the same device, so until C2's server packs it reads those files from `<outDir>/server-class/<slug>/server/`:
+ *  nothing precaches that folder and no client pack or reader names it.
  * @param {string} root @param {string} outDir */
 export function copyOutputProducts(root, outDir) {
-  const products = resolve(root, 'out'), shardfiles = resolve(outDir, 'shardfiles');
+  const products = resolve(root, 'out'), shardfiles = resolve(outDir, 'shardfiles'), serverClass = resolve(outDir, 'server-class');
   rmSync(shardfiles, { recursive: true, force: true });
+  rmSync(serverClass, { recursive: true, force: true });
   if (!existsSync(products)) return;
   for (const entry of readdirSync(products, { withFileTypes: true })) {
     if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
     const source = resolve(products, entry.name);
     if (!existsSync(resolve(source, 'shard.json'))) continue;
-    cpSync(source, resolve(shardfiles, entry.name), { recursive: true, filter: path => basename(path) !== 'runtime' && basename(path) !== '.build-key' && (process.env.VITE_WORKER_CLIENT === '1' || relative(source, path) !== 'server') }); // a proof build's worker reads the server's files (J126); J91 keeps them from any other client
+    cpSync(source, resolve(shardfiles, entry.name), { recursive: true, filter: path => basename(path) !== 'runtime' && basename(path) !== '.build-key' && relative(source, path) !== 'server' });
+    if (existsSync(resolve(source, 'server'))) cpSync(resolve(source, 'server'), resolve(serverClass, entry.name, 'server'), { recursive: true });
   }
 }
 
