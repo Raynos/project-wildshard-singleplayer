@@ -84,7 +84,7 @@ const playerStateV2 = v.strictObject({ id, position: vector, yaw: finite, health
 const playerState = v.strictObject({ id, position: vector, yaw: finite, health: eventValue, motor, impulse: v.optional(vector),
   traversals: v.optional(v.pipe(v.array(v.picklist(['ride', 'grapple', 'glide', 'climb', 'drive'])), v.minLength(1), v.maxLength(5))),
   // `walking` was written for one day (A1, A2): every walker has run one law since
-  velocity: v.optional(vector), walking: v.optional(v.literal(true)), airborne: v.optional(v.literal(true)),
+  velocity: v.optional(vector), walking: v.optional(v.literal(true)), airborne: v.optional(v.literal(true)), carried: v.optional(v.literal(true)),
   moveScale: v.optional(v.pipe(nonnegative, v.check(value => value !== 1, 'Default move scale must stay omitted'))),
   shove: v.optional(v.strictObject({ t: finite, vx: finite, vz: finite })),
   board: v.optional(v.strictObject({ air: v.boolean(), bob: finite })),

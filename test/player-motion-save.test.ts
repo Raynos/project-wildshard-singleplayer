@@ -36,6 +36,19 @@ test('the depth a wade reads survives a restore', () => {
   } finally { restored.dispose(); host.dispose(); }
 });
 
+test('a seat on a cable survives a restore: its next tick takes no free step', () => {
+  const host = createSimHost(SIM_LEVEL, { rapier });
+  leadPlayer(host).carried = true;
+  const saved = snapshotSimHost(host), restored = restoreSimHost(SIM_LEVEL, { rapier }, saved);
+  try {
+    const seat = leadPlayer(restored), from = seat.position.clone();
+    expect(leadSnapshot(saved).carried).toBe(true);
+    expect(seat.carried).toBe(true); expect(seat.led).toBe(true);
+    restored.step(leadCommands(restored, walkEast));
+    expect(seat.position.distanceTo(from)).toBe(0);
+  } finally { restored.dispose(); host.dispose(); }
+});
+
 test('an older save rebuilds the feet from its pose', () => {
   const host = wading(), wire = simWireV1(serializeSimSnapshot(snapshotSimHost(host)));
   const restored = restoreSimHost(SIM_LEVEL, { rapier }, decodeSimSnapshot(wire), wet);

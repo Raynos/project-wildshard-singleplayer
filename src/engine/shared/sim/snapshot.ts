@@ -61,6 +61,8 @@ export interface SimPlayerSnapshot { id: string; position: number[]; yaw: number
     moveScale?: number | undefined;
     /** The feet left the ground; absent = they stand on it. */
     airborne?: true | undefined;
+    /** A cable's seat holds the position, as the host's `carried`: the owner's seat alone puts it back on its next tick, so without this a restore takes one free step. Absent = it does not. */
+    carried?: true | undefined;
     shove?: { t: number; vx: number; vz: number } | undefined;
     /** SF72: the riding hoverboard (SimHost.playerBoard); absent on foot, so a host that never boards keeps its bytes. */
     board?: { air: boolean; bob: number } | undefined;
@@ -282,6 +284,7 @@ function playerSnapshot(host: SimHost, player: PlayerSim): SimPlayerSnapshot {
     // a resting impulse is omitted (canonical: absent = zero), so a host that was never shoved keeps its exact bytes
     ...(player.impulse.lengthSq() > 0 ? { impulse: player.impulse.toArray() } : {}),
     ...(player.fall.grounded ? {} : { airborne: true as const }),
+    ...(player.carried ? { carried: true as const } : {}),
     ...(player.shove.t > 0 ? { shove: { ...player.shove } } : {}),
     ...(player.board.on ? { board: { air: player.board.hoverAir, bob: player.board.hoverBob } } : {}),
     ...swimField(player), ...footingField(player), ...(player.lockHeld === null ? {} : { lock: { target: player.lockHeld, r0: player.lock.r0 } }),
@@ -336,6 +339,7 @@ function restorePlayer(host: SimHost, saved: SimPlayerSnapshot): void {
   const { board } = saved;
   Object.assign(player.board, board === undefined ? { on: false, hoverAir: false, hoverBob: 0 } : { on: true, hoverAir: board.air, hoverBob: board.bob });
   player.fall.grounded = saved.airborne !== true;
+  player.carried = saved.carried === true;
   const { swim } = saved;
   if (swim?.on === true && (board !== undefined || !host.hasWater)) throw new RangeError('Snapshot swim does not match');
   Object.assign(player.swim, swim === undefined ? { on: false, diving: false, climbTo: null, climbCooldown: 0, strokeTime: 0, stood: false }
