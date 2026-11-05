@@ -209,6 +209,7 @@
     "./plugin/heldFirearm": "./plugin/heldFirearm.ts",
     "./weapons/heldLauncher": "./weapons/heldLauncher.ts",
     "./plugin/animation": "./plugin/animation.ts",
+    "./plugin/placeholderGeometry": "./plugin/placeholderGeometry.ts",
     "./plugin/simulation": "./plugin/simulation.ts",
     "./plugin/context": "./plugin/context.ts",
     "./plugin/headless": "./plugin/headless.ts",
