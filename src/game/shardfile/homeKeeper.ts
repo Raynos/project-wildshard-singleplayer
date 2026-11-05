@@ -1,5 +1,6 @@
 import { NativeActors } from '../population/actors';
 import { NativeReturns } from '../population/nativeReturns';
+import { registerPopulationHomes } from '../population/census';
 import { clearBody } from '@wildshard/engine/entities/bodyClear';
 import * as v from 'valibot';
 import { Rng, type RngState } from '@wildshard/engine/core/rng';
@@ -187,6 +188,8 @@ export function installHomeKeeper(host: SimHost, spec: HomeKeeperSpec, saved?: R
       const policy = state.boss?.policy; if (policy !== undefined && policy !== null) boss?.brain?.restore(v.parse(Value, JSON.parse(policy)));
     },
   });
+  // P1-E3.1: the census reads the homes, their bodies and refill clocks (never a live body) under the keeper's step id
+  registerPopulationHomes(host, step, () => homes.map(home => ({ id: home.id, kind: home.kind, body: home.actor?.entityId ?? null, wait: home.wait })));
   let settle = (): void => undefined;
   if (saved === undefined) homes.forEach(home => { if (!home.late) respawn(home); });
   else {

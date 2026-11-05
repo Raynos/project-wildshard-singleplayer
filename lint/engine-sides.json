@@ -1115,6 +1115,7 @@
   },
   "src/game/population/actorProjectionV2.ts": "server",
   "src/game/population/actors.ts": "server",
+  "src/game/population/census.ts": "shared",
   "src/game/population/directedLaw.ts": "server",
   "src/game/population/directedSpecies.ts": "server",
   "src/game/population/environment.ts": "server",
