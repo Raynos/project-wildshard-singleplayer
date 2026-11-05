@@ -3282,6 +3282,11 @@ entered with a driver: on the page a `PlayerModeDriver` takes the Player's `ride
 `exitHeadlessMode`; the entered driver is not snapshot state, so the installer re-enters it from its own adapter before
 restore. A headless host runs no traversal or input context yet. A mode-only piece collides only in its mode, one rule
 (`modeCollides`) on both hosts: `Piece.mode: 'board'` on the page, `boardColliders` headless, synced from `host.modes`.
+`player/motion.ts` `stepPlayerMotion` is the one step that composes these laws for a player: `PlayerSim` and the client
+`Player` both call it (P1-E4.1), over a `PlayerMotionState`, a command and a `MotionWorld` of injected queries, so it holds
+no renderer, DOM, `app` or device. The two callers' laws still differ. Inside the step each difference is one named
+`MotionLaw` row, and each caller runs its own table (`PAGE_MOTION`, `HOST_MOTION`).
+
 The water law (wade, then swim past 1.2 m of water over the ground, the dive and the haul-out) is `player/swim.ts`,
 run by the client Player and, once a runtime calls `host.useWater({ surfaceAt, bob? })` (once, in its install, before
 restore), by the headless player: the walk slows by the wade, the jump saps, a landing in water is soft, a dash stops
