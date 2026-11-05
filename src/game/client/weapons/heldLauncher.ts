@@ -11,7 +11,7 @@ import type { TargetHit, Targets } from '@wildshard/engine/combat/types';
 import { ProjectilePresentation, type ProjectileKind } from '@wildshard/engine/combat/view/projectile';
 import { impactSurfaceOf } from '@wildshard/engine/combat/impact';
 import { FOV_ADS, FOV_HIP, isMesh, mergeHeldParts, prepareWeaponView, Puffs, viewmodelRowMaterial, weaponDisplay, whiteColors, worldHit, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
-import { quiverState, Weapon, type ImpactSurface } from '@wildshard/engine/combat/Weapon';
+import { quiverState, Weapon, type ImpactSurface, type OwnHit } from '@wildshard/engine/combat/Weapon';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { HeldHandParts } from '@wildshard/engine/player/heldHandParts';
 import { sstep } from '@wildshard/engine/player/viewmodelTextures';
@@ -99,7 +99,7 @@ export interface HeldLauncherOptions<P extends HeldLauncherProfile> extends Rang
   profile: P; view: HeldLauncherView; rows: HeldLauncherRows; model: HeldFirearmModel; hands?: Omit<HeldFirearmHands, 'gate'>;
 }
 
-type BoltData = ReturnType<ProjectilePresentation['flight']> & { mod: HeldBolt; ammo?: AmmoRow | undefined };
+type BoltData = ReturnType<ProjectilePresentation['flight']> & { mod: HeldBolt; ammo?: AmmoRow | undefined; /** The command `seq` of an own shot off the wire, 0 for none. */ shot: number };
 type Bolt = FlightSlot<BoltData>;
 const need = <T>(value: T | null | undefined, what: string): T => { if (value === undefined || value === null) throw new Error(`Held launcher: missing ${what}`); return value; };
 const MAX_REST_ROWS = 64, MAX_PART_DEPTH = 32;
@@ -236,7 +236,7 @@ export class HeldLauncher<P extends HeldLauncherProfile = HeldLauncherProfile> e
       impact: (at, direction, wall) => { const surface = impactSurfaceOf(wall.material); this.puffs.emit(at, direction, surface); this.onImpact?.(surface, at); },
       expire: bolt => { bolt.active = false; bolt.mesh.visible = false; },
     });
-    this.flightPool = new ProjectileSlots<BoltData>(profile.maxFlying, () => ({ ...this.presentation.flight(), mod: PLAIN_BOLT }), {
+    this.flightPool = new ProjectileSlots<BoltData>(profile.maxFlying, () => ({ ...this.presentation.flight(), mod: PLAIN_BOLT, shot: 0 }), {
       substeps: profile.substeps ?? 4, extent: CHUNK_HALF + 60, floor: -150, lifetime: profile.lifetime ?? 12,
       integrate: (bolt, h) => {
         const mod = bolt.ammo && this.equipEvents ? this.equipEvents.ask('projectile.modify', { ammo: bolt.ammo, gravity: bolt.ammo.flight.gravity, drag: bolt.ammo.flight.drag }) : bolt.mod;
@@ -285,6 +285,11 @@ export class HeldLauncher<P extends HeldLauncherProfile = HeldLauncherProfile> e
     this.onFire?.();
   }
   override reload(): void { this.action.reload(); }
+  /** The server settled this own shot: no bolt of it flies on past its `hit` (P1-E5.3-E4). */
+  override serverHit(hit: OwnHit): void {
+    super.serverHit(hit);
+    for (const bolt of this.flightPool.slots) if (bolt.active && bolt.shot === hit.seq) { bolt.active = false; bolt.mesh.visible = false; this.presentation.finishTrace(bolt, bolt.pos, this.time); }
+  }
   override addBolts(n: number): void { this.state.bolts = Math.min(this.profile.quiver, this.state.bolts + n); }
   /** the plain bolt's material (special bolts dress a uniform-only clone of it) */
   get boltMaterial(): THREE.Material { return this.boltMat; }
@@ -302,7 +307,7 @@ export class HeldLauncher<P extends HeldLauncherProfile = HeldLauncherProfile> e
     this.wire?.fire(this.feel.adsBlend);
     b.pos.copy(_v3).addScaledVector(_fwd, p.muzzle ?? 0.35); // the command's origin, never the drawn bolt's
     b.vel.copy(_dir).multiplyScalar(p.speed);
-    b.roll = 0; b.mod = this.boltMod; b.ammo = this.selectedAmmo;
+    b.roll = 0; b.mod = this.boltMod; b.ammo = this.selectedAmmo; b.shot = this.wire?.nextSeq() ?? 0;
     this.presentation.launch(b, b.pos, _dir, b.mod.material ?? this.boltMat, getSetting('tracers'), this.time);
   }
 

@@ -32,6 +32,7 @@ export class NetPlayer implements PlayerLink {
     press: started => { this.pressed = true; this.pressStarted ||= started; },
     hold: heavy => { this.heavy = heavy; },
     fire: ads => { this.launcher = { slot: this.held, ads, fire: true }; },
+    afterStep: run => { this.afterStep = run; },
     nextSeq: () => (this.seq + 1) & 0xffff,
   };
   /** Biggest camera offset a correction has left, in metres: what a proof page reports. */
@@ -43,6 +44,7 @@ export class NetPlayer implements PlayerLink {
   private pressStarted = false;
   private heavy = false;
   private held = 0;
+  private afterStep: (() => void) | null = null;
   private launcher: NonNullable<NetCommand['launcher']> | null = null;
   private seq = 0;
   private weapons: NetWeapons | null = null;
@@ -72,7 +74,9 @@ export class NetPlayer implements PlayerLink {
     if (this.pressStarted || armed.launcher?.fire === true) this.attacks.started(seq);
     this.pressed = false; this.pressStarted = false; this.launcher = null;
     this.world.poseFor(seq, false);
-    return this.predictor.step(quantiseCommand({ ...armed, seq, viewTick: 0 }));
+    const stepped = this.predictor.step(quantiseCommand({ ...armed, seq, viewTick: 0 })), run = this.afterStep;
+    this.afterStep = null; run?.();
+    return stepped;
   }
   /** The step's controls, with what the weapon in hand has for this command. */
   private armed(input: PlayerWireInput): PlayerWireInput & Partial<Pick<NetCommand, 'attack' | 'launcher'>> {

@@ -22,7 +22,7 @@ export interface ProjectileLawKind extends ProjectileFlight {
 /** the wind the projectiles drift in: m/s in XZ at a world point */
 export interface ProjectileWind { vecAt: (x: number, z: number, out: Vector3) => Vector3 }
 /** A flight's own numbers: where it left, its damage scale and the hit's extra multiplier. */
-export interface ProjectileFlightData { readonly origin: Vector3; scale: number; hitScale: ((hit: TargetHit) => number) | undefined }
+export interface ProjectileFlightData { readonly origin: Vector3; scale: number; hitScale: ((hit: TargetHit) => number) | undefined; /** The command `seq` of an own shot off the wire, 0 for none. */ shot: number }
 export type LawFlight<V extends object> = FlightSlot<ProjectileFlightData & V>;
 export type LawStuck<S> = StoppedProjectile<S, TargetAnimal>;
 export interface ProjectileLawPorts<V extends object, S> {
@@ -77,7 +77,7 @@ export class ProjectileLaw<V extends object, S> {
   private readonly ports: ProjectileLawPorts<V, S>;
   constructor(kind: ProjectileLawKind, ports: ProjectileLawPorts<V, S>) {
     this.kind = kind; this.ports = ports;
-    this.pool = new ProjectileSlots<ProjectileFlightData & V>(kind.maxFlying, slot => Object.assign(ports.flight(slot), { origin: new Vector3(), scale: 1, hitScale: undefined }), {
+    this.pool = new ProjectileSlots<ProjectileFlightData & V>(kind.maxFlying, slot => Object.assign(ports.flight(slot), { origin: new Vector3(), scale: 1, hitScale: undefined, shot: 0 }), {
       substeps: kind.substeps ?? 4, extent: ports.extent, floor: -150, lifetime: kind.lifetime ?? 12,
       integrate: (slot, h) => { this.step(slot.pos, slot.vel, h); }, contact: (slot, previous) => this.testHit(slot, previous),
       expired: slot => { this.end(slot); }, moved: (slot, dt) => { ports.moved(slot, dt); },
@@ -117,12 +117,14 @@ export class ProjectileLaw<V extends object, S> {
     });
   }
   /** loose one from `origin` (world) with `velocity` (m/s, any carrier velocity already added); the flight it took */
-  launch(origin: Vector3, velocity: Vector3, opts: { readonly damageScale: number; readonly onHitScale?: ((hit: TargetHit) => number) | undefined }): LawFlight<V> {
+  launch(origin: Vector3, velocity: Vector3, opts: { readonly damageScale: number; readonly onHitScale?: ((hit: TargetHit) => number) | undefined; readonly shot?: number }): LawFlight<V> {
     const f = this.pool.take();
     f.pos.copy(origin); f.origin.copy(origin); f.vel.copy(velocity);
-    f.scale = opts.damageScale; f.hitScale = opts.onHitScale;
+    f.scale = opts.damageScale; f.hitScale = opts.onHitScale; f.shot = opts.shot ?? 0;
     return f;
   }
+  /** The server settled this own shot (J47): its predicted flight ends where it has got to. */
+  endShot(shot: number): void { for (const f of this.pool.slots) if (f.active && f.shot === shot) this.end(f); }
   /** one frame: every flight's substeps and contacts, then the stuck ones' attachments and recovery */
   update(dt: number): void { this.pool.step(dt); this.stopped.update(); }
   /** the one integrator (flight and the preview share it) */

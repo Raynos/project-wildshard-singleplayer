@@ -5,7 +5,7 @@ import type { Targets, TargetHit } from '../types';
 import { DropArc } from './DropArc';
 import { Projectiles, type WindField } from './projectile';
 import { fovForAspect, FOV_HIP, isMesh } from './ranged';
-import { Weapon, quiverState } from '../../../shared/combat/Weapon';
+import { Weapon, quiverState, type OwnHit } from '../../../shared/combat/Weapon';
 import type { Game } from '../../core/Game';
 import { weaponActionGate } from '../../input/weaponActions';
 import { placeArm } from '../../player/firstPersonArms';
@@ -182,6 +182,8 @@ export class Bow<Style extends string = string> extends Weapon {
     if (this.enabled && this.state.bolts <= 0) this.onDry?.();
   }
 
+  override serverHit(hit: OwnHit): void { super.serverHit(hit); this.arrows.endShot(hit.seq); }
+
   /** the loose — only ever from a full draw (bowDraw's 'loose') */
   private loose(): void {
     const p = 1;
@@ -191,7 +193,7 @@ export class Bow<Style extends string = string> extends Weapon {
     _dir.copy(_fwd);
     shotSpread(_dir, spread, this.shotDraws(gameplayRandom), this.profile.loose ?? { radius: 'sqrt', axisScale: 1 }, _v2);
     this.launchFrom(_dir, p, this.spawnPos, this.launchVel);
-    this.arrows.launch(this.spawnPos, this.launchVel, { damageScale: this.profile.damageScale, onHitScale: this.damageMultiplier });
+    this.arrows.launch(this.spawnPos, this.launchVel, { damageScale: this.profile.damageScale, onHitScale: this.damageMultiplier, ...(this.wire === null ? {} : { shot: this.wire.nextSeq() }) });
     this.state.bolts--;
     this.p = 0;
     this.releasePos.copy(this.handPos);

@@ -55,6 +55,8 @@ export interface ProjectileKind {
 
 export interface ProjectileWorld { game: Game; sky: Sky; player: Player; forest: Forest }
 export interface ShotOpts {
+  /** The command `seq` of an own shot off the wire. */
+  shot?: number;
   
   damageScale: number;
   /** optional extra multiplier decided at the hit (the sneak shot from HIDDEN, a Parthian stagger …) */
@@ -128,6 +130,9 @@ export class Projectiles {
     f.roll = app.rng.stream('cosmetic').next() * Math.PI * 2;
     this.writeFlying(f);
   }
+
+  /** The server settled this own shot: no flight of it goes on past its `hit` (P1-E5.3-E4). */
+  endShot(shot: number): void { this.law.endShot(shot); }
 
   get inFlight(): number { let n = 0; for (const f of this.flying) if (f.active) n++; return n; }
   get stuckCount(): number { return this.stuck.length; }

@@ -26,6 +26,8 @@ export interface WeaponWire {
   readonly hold: (heavy: boolean) => void;
   /** A launcher's trigger, at this aim. The server's slot is the one it says this player holds. */
   readonly fire: (ads: number) => void;
+  /** Run this once the next command has stepped: the server's seat starts a lunge after the tick's move, so a dash here waits too. */
+  readonly afterStep: (run: () => void) => void;
   /** The `seq` the next command takes. */
   readonly nextSeq: () => number;
 }

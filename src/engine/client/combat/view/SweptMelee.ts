@@ -337,7 +337,10 @@ export class SweptMelee extends Melee {
     if (lock) {
       // the dash onto it (sweptLunge, the law the headless runtimes hand to SimHost.dashTo)
       const p = this.player.position, dash = sweptLunge(this.profile.lunge, heavy, lock.position.x - p.x, lock.position.z - p.z, targetRadius(lock));
-      if (dash !== null) this.player.dashTo(lock.position.x, lock.position.z, dash.stopAt, dash.time);
+      if (dash !== null) {
+        const { x, z } = lock.position, go = (): void => { this.player.dashTo(x, z, dash.stopAt, dash.time); };
+        if (this.wire === null) go(); else this.wire.afterStep(go);
+      }
     }
     this.arms?.play(move.name);
     this.onSwingStart(move);
