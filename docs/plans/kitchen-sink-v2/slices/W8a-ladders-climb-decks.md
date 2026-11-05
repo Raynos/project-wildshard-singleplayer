@@ -18,7 +18,7 @@ The scramble wall up to deck A and the Rock's south scramble route are W8b.
 Research: ladders are rows already, with no user.
 
 - `src/format/modes.ts:27` `LadderModeSchema { kind: 'ladder', id, bottom, top, exit, normal, … }` with checks for a
-  vertical ascending route and a landing behind the normal; the law is `src/game/server/shardfile/ladder.ts` (108 lines,
+  vertical ascending route and a landing behind the normal; the law is `src/game/shared/shardfile/ladder.ts` (108 lines,
   `LadderDriver`: "fixed-step climb law shared by the real page and Node; every translation goes through the real
   capsule motor"; saved state `{ recipe, route, exit, latched }`). It landed in `52625b3406` (OS-F8, E435).
 - `src/format/shardSchema.ts:286`: "ladder traversal requires the data-only player owner" (a product with a runtime

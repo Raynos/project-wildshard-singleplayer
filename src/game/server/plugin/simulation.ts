@@ -64,7 +64,7 @@ import { createShardfileComposedLane, type DeclaredScriptBrainPorts } from "../s
 import { bindPlayerColumns, dataCreaturePorts } from "../shardfile/dataCreaturePorts";
 import { prepareDeclaredGroupBrains, type DeclaredGroupPorts, type DeclaredGroupPolicy } from "../shardfile/groupRuntime";
 import { prepareDeclaredCrowds, type DeclaredCrowdPorts, type PreparedCrowds } from "../../shared/shardfile/crowdRuntime";
-import { installLadders, type LadderClientPorts } from '../shardfile/ladder';
+import { installLadders, type LadderClientPorts } from '../../shared/shardfile/ladder';
 import { MoverScriptDriver, playerGrounds, verifiedMoverModules, proveTerrainEntries, type TerrainEntryWalk, type DeclaredMoverComposition, type MoverRuntime } from "./mover";
 import { socketLiftEntries } from "@wildshard/format/socketLiftAssets";
 import { portalLinkEntries, portalLinkRules } from "@wildshard/format/portalLinkAssets";

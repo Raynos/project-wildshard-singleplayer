@@ -4,7 +4,7 @@ import { expect, test } from 'vitest';
 import { createSimHost } from '@wildshard/engine/sim';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
-import { installLadders } from '../src/game/server/shardfile/ladder';
+import { installLadders } from '../src/game/shared/shardfile/ladder';
 import type { LadderMode } from '@wildshard/format/modes';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
