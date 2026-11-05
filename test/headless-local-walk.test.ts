@@ -3,11 +3,10 @@ import {readFileSync} from 'node:fs';
 import {beforeAll,expect,test} from 'vitest';
 import {createSimHost,type SimCommand,type SimHost} from '../src/engine/server/sim';
 import {loadRapier,type Rapier} from '../src/engine/shared/physics/rapier';
-import {decodeSimSnapshot,restoreSimHost,serializeSimSnapshot,snapshotSimHost} from '../src/engine/shared/sim/snapshot';
+import {decodeSimSnapshot,leadSnapshot,restoreSimHost,serializeSimSnapshot,snapshotSimHost} from '../src/engine/shared/sim/snapshot';
 import {localWalkingMove,walkVelocity} from '../src/engine/shared/player/walk';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
 import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
-import { leadSnapshot } from '@wildshard/engine/sim/snapshot';
 
 let rapier:Rapier;
 beforeAll(async()=>{rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));});

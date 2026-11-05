@@ -6,8 +6,7 @@ import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
 import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
-import { decodeSimSnapshot } from '../src/engine/shared/sim/snapshot';
-import { leadSnapshot } from '@wildshard/engine/sim/snapshot';
+import { decodeSimSnapshot, leadSnapshot } from '../src/engine/shared/sim/snapshot';
 
 test('Nalati boots its admitted native assembly to the first frame',async()=>{
   const directory=builtProduct('nalati-grasslands'),product=await loadHeadlessProduct(directory),descriptor=outputDescriptor(product.shardfile);

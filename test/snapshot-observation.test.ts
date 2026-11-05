@@ -3,11 +3,10 @@ import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
 import { createSimHost } from '../src/engine/server/sim';
 import { loadRapier } from '../src/engine/shared/physics/rapier';
-import { checkSimSnapshotWire, snapshotSimHostBytes, serializeSimSnapshot, type SimSnapshotBytes } from '../src/engine/shared/sim/snapshot';
+import { checkSimSnapshotWire, leadSnapshot, snapshotSimHostBytes, serializeSimSnapshot, type SimSnapshotBytes } from '../src/engine/shared/sim/snapshot';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { Rng } from '../src/engine/shared/core/rng';
 import { MAX_TICK_SNAPSHOT_CHARS } from '../src/sdk/tickProtocol';
-import { leadSnapshot } from '@wildshard/engine/sim/snapshot';
 
 let initial: SimSnapshotBytes;
 beforeAll(async () => {
