@@ -190,7 +190,7 @@
   "src/engine/combat/itemFamilies.ts": "server",
   "src/engine/combat/impact.ts": "shared",
   "src/engine/combat/items.ts": "server",
-  "src/engine/combat/lungeTarget.ts": "server",
+  "src/engine/combat/lungeTarget.ts": "shared",
   "src/engine/combat/Melee.ts": "server",
   "src/engine/combat/meleeProfile.ts": "server",
   "src/engine/combat/pipeline.ts": "server",
@@ -445,10 +445,7 @@
   "src/engine/player/MeleeSweep.ts": "client",
   "src/engine/player/modes.ts": "shared",
   "src/engine/player/motion.ts": "shared",
-  "src/engine/player/Player.ts": {
-   "side": "shared",
-   "mixed": true
-  },
+  "src/engine/player/Player.ts": "client",
   "src/engine/player/shove.ts": "shared",
   "src/engine/player/Skins.ts": "client",
   "src/engine/player/swim.ts": "shared",

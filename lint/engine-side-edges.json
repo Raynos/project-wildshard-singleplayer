@@ -1,15 +1,15 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 462,
+  "client → server": 458,
   "cook → client": 2,
   "cook → render": 1,
   "server → client": 206,
   "server → dom": 3,
   "server → render": 10,
-  "shared → client": 10,
+  "shared → client": 3,
   "shared → dom": 1,
-  "shared → server": 2
+  "shared → server": 1
  },
  "files": {
   "src/engine/ai/view/eliteController.ts": {
@@ -64,7 +64,7 @@
    "client → server": 1
   },
   "src/engine/combat/view/SweptMelee.ts": {
-   "client → server": 3
+   "client → server": 2
   },
   "src/engine/core/devMode.ts": {
    "client → server": 1
@@ -109,13 +109,6 @@
   },
   "src/engine/physics/navmeshLoad.ts": {
    "shared → client": 1
-  },
-  "src/engine/player/LockOnTarget.ts": {
-   "client → server": 1
-  },
-  "src/engine/player/Player.ts": {
-   "shared → client": 7,
-   "shared → server": 1
   },
   "src/engine/quest/view.ts": {
    "client → server": 1
@@ -163,9 +156,6 @@
    "client → server": 1
   },
   "src/engine/ui/Loading.ts": {
-   "client → server": 1
-  },
-  "src/engine/ui/LockOn.ts": {
    "client → server": 1
   },
   "src/engine/ui/Perf.ts": {
@@ -804,7 +794,7 @@
    "client → server": 3
   },
   "src/game/weapons/heldPolearm.ts": {
-   "client → server": 8
+   "client → server": 7
   },
   "src/game/weapons/mountedBlade.ts": {
    "client → server": 4
