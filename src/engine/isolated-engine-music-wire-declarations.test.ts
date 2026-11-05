@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["player/swim","audio/Music","script/groupStepV2","ui/icons"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["shared/player/swim","client/audio/Music","shared/script/groupStepV2","client/ui/icons"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/engine/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);
@@ -13,7 +13,7 @@ for(const name of ["player/swim","audio/Music","script/groupStepV2","ui/icons"])
 
 test('music, swimming and wire consumers retain their original signatures',()=>{
  const consumer=resolve('src/engine/t4-isolated-engine-music-wire-declarations-consumer.ts');
- let source="import {SWIM_IN,SWIM_OUT,FLOAT_DEPTH,SWIM_SPEED} from './player/swim';\nimport {iconParts} from './ui/icons';\nimport type {GroupStepV2} from './script/groupStepV2';\nimport type {Music} from './audio/Music';\nexport const depth:number=SWIM_IN+SWIM_OUT+FLOAT_DEPTH+SWIM_SPEED;\nexport const svg:string=iconParts.svg(''); export const legs:string=iconParts.legs([1,2],3,4);\nexport const stroke:string=iconParts.stroke;\ndeclare const step:GroupStepV2; export const bytes:number=step.layout.bytes;\ndeclare const music:Music; export const mode:'menu'|'calm'|'alert'|'combat'=music.state.mode;\n";
+ let source="import {SWIM_IN,SWIM_OUT,FLOAT_DEPTH,SWIM_SPEED} from './shared/player/swim';\nimport {iconParts} from './client/ui/icons';\nimport type {GroupStepV2} from './shared/script/groupStepV2';\nimport type {Music} from './client/audio/Music';\nexport const depth:number=SWIM_IN+SWIM_OUT+FLOAT_DEPTH+SWIM_SPEED;\nexport const svg:string=iconParts.svg(''); export const legs:string=iconParts.legs([1,2],3,4);\nexport const stroke:string=iconParts.stroke;\ndeclare const step:GroupStepV2; export const bytes:number=step.layout.bytes;\ndeclare const music:Music; export const mode:'menu'|'calm'|'alert'|'combat'=music.state.mode;\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};

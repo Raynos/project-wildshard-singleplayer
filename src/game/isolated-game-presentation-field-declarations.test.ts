@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["boss/encounterView","looks/keyedSky","models/collectionWall","plugin/heldFirearm","plugin/heldTool","plugin/mover","quest/eliteDecisions","riding/hud","riding/reins","riding/roster","shardfile/emptyEquipment","shardfile/sceneDressing","shardfile/sceneMotion","systems/looks/particles","systems/looks/waterSurface","systems/npc/figureRows","systems/npc/kitFigure","systems/tools/hoverboard"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["client/boss/encounterView","client/looks/keyedSky","client/models/collectionWall","client/plugin/heldFirearm","client/plugin/heldTool","server/plugin/mover","server/quest/eliteDecisions","client/riding/hud","client/riding/reins","server/riding/roster","client/shardfile/emptyEquipment","client/shardfile/sceneDressing","client/shardfile/sceneMotion","client/systems/looks/particles","client/systems/looks/waterSurface","client/systems/npc/figureRows","client/systems/npc/kitFigure","client/systems/tools/hoverboard"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/game/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);
@@ -13,7 +13,7 @@ for(const name of ["boss/encounterView","looks/keyedSky","models/collectionWall"
 
 test('game presentation owners retain mutable resources and readonly handles',()=>{
  const consumer=resolve('src/game/t4-isolated-game-presentation-field-declarations-consumer.ts');
- let source="import type {Group} from 'three';\nimport type {Scope} from '@wildshard/engine/app/scope';\nimport type {TrophyWall} from './models/collectionWall';\nimport type {HeldFirearm} from './plugin/heldFirearm';\nimport type {WaterSurface} from './systems/looks/waterSurface';\nimport type {Hoverboard} from './systems/tools/hoverboard';\ndeclare const wall:TrophyWall;\ndeclare const firearm:HeldFirearm;\ndeclare const water:WaterSurface;\ndeclare const board:Hoverboard;\nexport const owner:Scope=wall.scope;\nexport const root:Group=wall.group;\nexport const model:Group=board.model;\nwater.group.position.y=1;\nfirearm.inspectYaw=0;\n";
+ let source="import type {Group} from 'three';\nimport type {Scope} from '@wildshard/engine/app/scope';\nimport type {TrophyWall} from './client/models/collectionWall';\nimport type {HeldFirearm} from './client/plugin/heldFirearm';\nimport type {WaterSurface} from './client/systems/looks/waterSurface';\nimport type {Hoverboard} from './client/systems/tools/hoverboard';\ndeclare const wall:TrophyWall;\ndeclare const firearm:HeldFirearm;\ndeclare const water:WaterSurface;\ndeclare const board:Hoverboard;\nexport const owner:Scope=wall.scope;\nexport const root:Group=wall.group;\nexport const model:Group=board.model;\nwater.group.position.y=1;\nfirearm.inspectYaw=0;\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};

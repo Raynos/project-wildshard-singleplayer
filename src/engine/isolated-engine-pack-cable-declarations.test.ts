@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["ai/eliteRoster","ai/stalker","sim/cableTraversal"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["server/ai/eliteRoster","server/ai/stalker","shared/sim/cableTraversal"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/engine/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);
@@ -13,7 +13,7 @@ for(const name of ["ai/eliteRoster","ai/stalker","sim/cableTraversal"])test(`${n
 
 test('elite, pack and cable saves retain complete scalar and tuple laws',()=>{
  const consumer=resolve('src/engine/t4-isolated-engine-pack-cable-declarations-consumer.ts');
- let source="import type {NativeEliteProjection,NativeEliteRosterRows} from './ai/eliteRoster';\nimport type {HowlerSpec,PouncerSpec} from './ai/stalker';\nimport type {CableLayout,ZiplineDriver} from './sim/cableTraversal';\nimport type {Vector3} from 'three';\ndeclare const projection:NativeEliteProjection; const saved=projection.snapshot();\nexport const from:[number,number,number]=saved.laneFrom; export const elapsed:number=saved.elapsed;\ndeclare const rows:NativeEliteRosterRows; export const version:number=rows.version;\ndeclare const howler:HowlerSpec; export const speed:number=howler.speeds.hunt;\ndeclare const pouncer:PouncerSpec; export const field:string=pouncer.fields.leap;\ndeclare const layout:CableLayout; export const point:Vector3=layout.a; point.set(0,1,0);\ndeclare const driver:ZiplineDriver; const riding=driver.snapshot(); export const velocity:number=riding.v;\n";
+ let source="import type {NativeEliteProjection,NativeEliteRosterRows} from './server/ai/eliteRoster';\nimport type {HowlerSpec,PouncerSpec} from './server/ai/stalker';\nimport type {CableLayout,ZiplineDriver} from './shared/sim/cableTraversal';\nimport type {Vector3} from 'three';\ndeclare const projection:NativeEliteProjection; const saved=projection.snapshot();\nexport const from:[number,number,number]=saved.laneFrom; export const elapsed:number=saved.elapsed;\ndeclare const rows:NativeEliteRosterRows; export const version:number=rows.version;\ndeclare const howler:HowlerSpec; export const speed:number=howler.speeds.hunt;\ndeclare const pouncer:PouncerSpec; export const field:string=pouncer.fields.leap;\ndeclare const layout:CableLayout; export const point:Vector3=layout.a; point.set(0,1,0);\ndeclare const driver:ZiplineDriver; const riding=driver.snapshot(); export const velocity:number=riding.v;\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};

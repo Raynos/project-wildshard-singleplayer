@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["grid/catalogue","plugin/simulation","plugin/quests"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["server/grid/catalogue","server/plugin/simulation","server/plugin/quests"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/game/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);
@@ -13,7 +13,7 @@ for(const name of ["grid/catalogue","plugin/simulation","plugin/quests"])test(`$
 
 test('game metadata retains grid literals, quest overloads and NPC field contracts',()=>{
  const consumer=resolve('src/game/t4-isolated-game-metadata-declarations-consumer.ts');
- let source="import type * as v from 'valibot';\nimport type {GridCatalogue,CopyIdentity,GridEdgeLook} from './grid/catalogue';\nimport {readRuntimeWorldMetadata} from './plugin/simulation';\nimport {NpcMotionSchema,NpcDialogueRowSchema} from './plugin/quests';\ndeclare const grid:GridCatalogue;\ndeclare const motion:v.InferOutput<typeof NpcMotionSchema>;\ndeclare const dialogue:v.InferOutput<typeof NpcDialogueRowSchema>;\nexport const version:0=grid.version;\nexport const pitch:562.5=grid.pitch;\nexport const accent:CopyIdentity[\"accent\"]=\"ember\";\nexport const edge:GridEdgeLook={height:1};\nexport const turns:boolean=motion.turns;\nexport const talks=dialogue.dialogue;\nexport const world=readRuntimeWorldMetadata({});\nexport const quests=readRuntimeWorldMetadata({},true);\nexport const spots:readonly {id:string;x:number;y:number;z:number;radius:number}[]=quests.spots.interact;\n";
+ let source="import type * as v from 'valibot';\nimport type {GridCatalogue,CopyIdentity,GridEdgeLook} from './server/grid/catalogue';\nimport {readRuntimeWorldMetadata} from './server/plugin/simulation';\nimport {NpcMotionSchema,NpcDialogueRowSchema} from './server/plugin/quests';\ndeclare const grid:GridCatalogue;\ndeclare const motion:v.InferOutput<typeof NpcMotionSchema>;\ndeclare const dialogue:v.InferOutput<typeof NpcDialogueRowSchema>;\nexport const version:0=grid.version;\nexport const pitch:562.5=grid.pitch;\nexport const accent:CopyIdentity[\"accent\"]=\"ember\";\nexport const edge:GridEdgeLook={height:1};\nexport const turns:boolean=motion.turns;\nexport const talks=dialogue.dialogue;\nexport const world=readRuntimeWorldMetadata({});\nexport const quests=readRuntimeWorldMetadata({},true);\nexport const spots:readonly {id:string;x:number;y:number;z:number;radius:number}[]=quests.spots.interact;\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};

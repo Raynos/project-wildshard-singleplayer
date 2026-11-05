@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["titleDeck","complete/declared","grid/menu","grid/pageResidency","grid/roadRecovery","grid/roadSky","grid/tileDecoder","plugin/animation","plugin/director","population/actorProjectionV2","population/wildlife","quest/pagePersistence","quest/pageState","quest/story","riding/seatedFigure","shardfile/clientSource","shardfile/tileDriver","travel/travel"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["client/titleDeck","client/complete/declared","client/grid/menu","client/grid/pageResidency","shared/grid/roadRecovery","client/grid/roadSky","client/grid/tileDecoder","server/plugin/animation","server/plugin/director","server/population/actorProjectionV2","server/population/wildlife","server/quest/pagePersistence","server/quest/pageState","server/quest/story","client/riding/seatedFigure","client/shardfile/clientSource","client/shardfile/tileDriver","client/travel/travel"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/game/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);
@@ -13,7 +13,7 @@ for(const name of ["titleDeck","complete/declared","grid/menu","grid/pageResiden
 
 test('game defaults retain optional parameters and original argument kinds',()=>{
  const consumer=resolve('src/game/t4-isolated-game-default-declarations-consumer.ts');
- let source="import {titleCards} from './titleDeck';\nimport {gridEntryShown} from './grid/menu';\nimport {roadSunDir} from './grid/roadSky';\nimport {followRing} from './shardfile/tileDriver';\nimport {travelSlot} from './travel/travel';\nimport type {Vector3} from 'three';\nexport const cards=titleCards();\nexport const hidden=titleCards(true);\nexport const shown:boolean=gridEntryShown();\nexport const sun:Vector3=roadSunDir(0,0);\nexport const contains:boolean=followRing()({x:0,z:0})(0,0);\nexport const slot=travelSlot();\n";
+ let source="import {titleCards} from './client/titleDeck';\nimport {gridEntryShown} from './client/grid/menu';\nimport {roadSunDir} from './client/grid/roadSky';\nimport {followRing} from './client/shardfile/tileDriver';\nimport {travelSlot} from './client/travel/travel';\nimport type {Vector3} from 'three';\nexport const cards=titleCards();\nexport const hidden=titleCards(true);\nexport const shown:boolean=gridEntryShown();\nexport const sun:Vector3=roadSunDir(0,0);\nexport const contains:boolean=followRing()({x:0,z:0})(0,0);\nexport const slot=travelSlot();\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};

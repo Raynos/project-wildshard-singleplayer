@@ -7,7 +7,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["boot/bootTrace"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["client/boot/bootTrace"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/engine/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);
@@ -15,7 +15,7 @@ for(const name of ["boot/bootTrace"])test(`${name} emits isolated declarations`,
 
 test('trace aliases retain complete existing callable signatures',()=>{
  const consumer=resolve('src/engine/t4-isolated-engine-boot-trace-declarations-consumer.ts');
- let source="import {bootTraceActive,previousBootLevel,flushBootReports,recordBootCheckpoint,startBoot,recordGpuRecovery} from './boot/bootTrace';\nexport const active:boolean=bootTraceActive(); export const level:string=previousBootLevel();\nexport const flushed:Promise<void>=flushBootReports();\nrecordBootCheckpoint('unit',{count:1,ready:true,name:'unit'});\nrecordBootCheckpoint('unit'); startBoot({id:'unit',name:'unit'}); recordGpuRecovery('unit');\n";
+ let source="import {bootTraceActive,previousBootLevel,flushBootReports,recordBootCheckpoint,startBoot,recordGpuRecovery} from './client/boot/bootTrace';\nexport const active:boolean=bootTraceActive(); export const level:string=previousBootLevel();\nexport const flushed:Promise<void>=flushBootReports();\nrecordBootCheckpoint('unit',{count:1,ready:true,name:'unit'});\nrecordBootCheckpoint('unit'); startBoot({id:'unit',name:'unit'}); recordGpuRecovery('unit');\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};

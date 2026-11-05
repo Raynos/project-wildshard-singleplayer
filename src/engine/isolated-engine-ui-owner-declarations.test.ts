@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["ui/BossBar","ui/Combat","ui/DeathFade","ui/EliteBar","ui/HUD","ui/HurtArc","ui/Loading","ui/LockOn","ui/Map","ui/Menu","ui/Minimap","ui/Perf","ui/SpeedLines","ui/ToastStack","ui/WeaponStrip","ui/WindupWarn","ui/perfHud"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["client/ui/BossBar","client/ui/Combat","client/ui/DeathFade","client/ui/EliteBar","client/ui/HUD","client/ui/HurtArc","client/ui/Loading","client/ui/LockOn","client/ui/Map","client/ui/Menu","client/ui/Minimap","client/ui/Perf","client/ui/SpeedLines","client/ui/ToastStack","client/ui/WeaponStrip","client/ui/WindupWarn","client/ui/perfHud"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/engine/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);
@@ -13,7 +13,7 @@ for(const name of ["ui/BossBar","ui/Combat","ui/DeathFade","ui/EliteBar","ui/HUD
 
 test('UI scope owners retain readonly lifetime contracts',()=>{
  const consumer=resolve('src/engine/t4-engine-ui-owner-consumer.ts');
- let source="import type {Scope} from './app/scope';\nimport type {BossBar} from './ui/BossBar';\nimport type {HUD} from './ui/HUD';\nimport type {Loading} from './ui/Loading';\nimport type {Perf} from './ui/Perf';\nimport type {GameMenu} from './ui/Menu';\nimport type {PerfHud} from './ui/perfHud';\ndeclare const boss:BossBar;\ndeclare const hud:HUD;\ndeclare const loading:Loading;\ndeclare const perf:Perf;\ndeclare const menu:GameMenu;\ndeclare const perfHud:PerfHud;\nexport const owners:Scope[]=[boss.scope,hud.scope,loading.scope,perf.scope,menu.scope,perfHud.scope];\nexport const retired:boolean=boss.scope.disposed;\nexport const scope:Scope=loading.scope;\n";
+ let source="import type {Scope} from './shared/app/scope';\nimport type {BossBar} from './client/ui/BossBar';\nimport type {HUD} from './client/ui/HUD';\nimport type {Loading} from './client/ui/Loading';\nimport type {Perf} from './client/ui/Perf';\nimport type {GameMenu} from './client/ui/Menu';\nimport type {PerfHud} from './client/ui/perfHud';\ndeclare const boss:BossBar;\ndeclare const hud:HUD;\ndeclare const loading:Loading;\ndeclare const perf:Perf;\ndeclare const menu:GameMenu;\ndeclare const perfHud:PerfHud;\nexport const owners:Scope[]=[boss.scope,hud.scope,loading.scope,perf.scope,menu.scope,perfHud.scope];\nexport const retired:boolean=boss.scope.disposed;\nexport const scope:Scope=loading.scope;\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};

@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["compendium/rules","grid/recovery","looks/paintedLook","looks/painterlyLook","looks/postGraphLook","models/islandLibrary","quest/questPageViews","shardfile/homeKeeper"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["shared/compendium/rules","server/grid/recovery","client/looks/paintedLook","client/looks/painterlyLook","client/looks/postGraphLook","client/models/islandLibrary","client/quest/questPageViews","server/shardfile/homeKeeper"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/game/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);
@@ -13,7 +13,7 @@ for(const name of ["compendium/rules","grid/recovery","looks/paintedLook","looks
 
 test('game look and recovery data retain tuples, keys and literal revisions',()=>{
  const consumer=resolve('src/game/t4-isolated-game-look-save-declarations-consumer.ts');
- let source="import type * as v from 'valibot';\nimport type {CompendiumSnapshot} from './compendium/rules';\nimport type {GridSavedLocation} from './grid/recovery';\nimport {PaintedAirSchema} from '@wildshard/format/paintedResources';\nimport {PaintedPanoramaSchema} from '@wildshard/format/paintedResources';\nimport {IslandLibrarySchema} from './models/islandLibrary';\nimport type {QuestPageViewRows} from './quest/questPageViews';\ndeclare const air:v.InferOutput<typeof PaintedAirSchema>;\ndeclare const panorama:v.InferOutput<typeof PaintedPanoramaSchema>;\ndeclare const page:QuestPageViewRows;\nexport const drift:[number,number]=air.drift;\nexport const image:string=panorama.dome.image.phone;\nexport const road:GridSavedLocation={kind:\"road\"};\nexport const journal:CompendiumSnapshot={version:1,entries:{}};\nexport const content:QuestPageViewRows[\"content\"]=page.content;\n";
+ let source="import type * as v from 'valibot';\nimport type {CompendiumSnapshot} from './shared/compendium/rules';\nimport type {GridSavedLocation} from './server/grid/recovery';\nimport {PaintedAirSchema} from '@wildshard/format/paintedResources';\nimport {PaintedPanoramaSchema} from '@wildshard/format/paintedResources';\nimport {IslandLibrarySchema} from './client/models/islandLibrary';\nimport type {QuestPageViewRows} from './client/quest/questPageViews';\ndeclare const air:v.InferOutput<typeof PaintedAirSchema>;\ndeclare const panorama:v.InferOutput<typeof PaintedPanoramaSchema>;\ndeclare const page:QuestPageViewRows;\nexport const drift:[number,number]=air.drift;\nexport const image:string=panorama.dome.image.phone;\nexport const road:GridSavedLocation={kind:\"road\"};\nexport const journal:CompendiumSnapshot={version:1,entries:{}};\nexport const content:QuestPageViewRows[\"content\"]=page.content;\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};

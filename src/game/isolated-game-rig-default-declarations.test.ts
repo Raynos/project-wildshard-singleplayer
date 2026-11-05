@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["systems/looks/grassField","systems/viewmodel/rigArms","weapons/heldLauncher","weapons/heldPolearm","weather/rainPresentation","plugin/headless","plugin/geometry","grid/ghosts","grid/live","systems/species/view/boar","systems/species/view/bear"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["server/systems/looks/grassField","client/systems/viewmodel/rigArms","client/weapons/heldLauncher","client/weapons/heldPolearm","client/weather/rainPresentation","server/plugin/headless","client/plugin/geometry","server/grid/ghosts","server/grid/live","client/systems/species/view/boar","client/systems/species/view/bear"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/game/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);
@@ -13,7 +13,7 @@ for(const name of ["systems/looks/grassField","systems/viewmodel/rigArms","weapo
 
 test('game rigs and default diagnostics retain resource ownership and mutable tuple palettes',()=>{
  const consumer=resolve('src/game/t4-isolated-game-rig-default-declarations-consumer.ts');
- let source="import type {Group,Object3D} from 'three';\nimport {vmScale,type RigArms} from './systems/viewmodel/rigArms';\nimport type {GhostWorlds} from './grid/ghosts';\nimport type {HeldLauncher} from './weapons/heldLauncher';\nimport {BOAR_PALETTE} from './systems/species/view/boar';\ndeclare const arms:RigArms;\ndeclare const ghosts:GhostWorlds;\ndeclare const launcher:HeldLauncher;\nexport const root:Group=arms.root;\nexport const node:Object3D|undefined=arms.nodes.get(\"hand\");\nexport const model:Group=launcher.model;\nexport const scale:number=vmScale(60);\nexport const count:number=ghosts.count();\nexport const colour:[number,number,number]=BOAR_PALETTE.base;\nBOAR_PALETTE.base[0]=0;\n";
+ let source="import type {Group,Object3D} from 'three';\nimport {vmScale,type RigArms} from './client/systems/viewmodel/rigArms';\nimport type {GhostWorlds} from './server/grid/ghosts';\nimport type {HeldLauncher} from './client/weapons/heldLauncher';\nimport {BOAR_PALETTE} from './client/systems/species/view/boar';\ndeclare const arms:RigArms;\ndeclare const ghosts:GhostWorlds;\ndeclare const launcher:HeldLauncher;\nexport const root:Group=arms.root;\nexport const node:Object3D|undefined=arms.nodes.get(\"hand\");\nexport const model:Group=launcher.model;\nexport const scale:number=vmScale(60);\nexport const count:number=ghosts.count();\nexport const colour:[number,number,number]=BOAR_PALETTE.base;\nBOAR_PALETTE.base[0]=0;\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};

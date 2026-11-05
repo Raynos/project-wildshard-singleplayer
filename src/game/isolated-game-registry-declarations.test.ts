@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["Inventory","grid/budgetPoints","grid/cellEvents","grid/roadLayout","loot/Owned","models/interact","models/mountedSpecimen","shardfile/movers","systems/viewmodel/armRig","weapons/starterMoves"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["server/Inventory","client/grid/budgetPoints","server/grid/cellEvents","shared/grid/roadLayout","server/loot/Owned","client/models/interact","client/models/mountedSpecimen","shared/shardfile/movers","client/systems/viewmodel/armRig","server/weapons/starterMoves"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/game/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);
@@ -13,7 +13,7 @@ for(const name of ["Inventory","grid/budgetPoints","grid/cellEvents","grid/roadL
 
 test('game registries retain literal identities, readonly rows and live singletons',()=>{
  const consumer=resolve('src/game/t4-isolated-game-registry-declarations-consumer.ts');
- let source="import {PACK_SLOTS} from './Inventory';\nimport {ENTRY_ASPHALT,GAP_HALF} from './grid/roadLayout';\nimport {pageGridCells,type GridCellEvents} from './grid/cellEvents';\nimport {OWNED,type CosmeticId} from './loot/Owned';\nimport {MOVER_FIELDS} from './shardfile/movers';\nimport {BONES,LIMITS,TWISTS} from './systems/viewmodel/armRig';\nexport const slots:12=PACK_SLOTS;\nexport const asphalt:15=ENTRY_ASPHALT;\nexport const gap:number=GAP_HALF;\nexport const events:GridCellEvents=pageGridCells;\nexport const cosmetic:CosmeticId=\"cape\";\nexport const label:\"Sailcloth cape\"=OWNED.cape.label;\nexport const pitch:1=MOVER_FIELDS.pitch;\nexport const hand:\"R_hand\"=BONES.right[6];\nexport const twist:0.85=TWISTS[0].at;\nexport const low:-75=LIMITS.pronation[0];\n";
+ let source="import {PACK_SLOTS} from './server/Inventory';\nimport {ENTRY_ASPHALT,GAP_HALF} from './shared/grid/roadLayout';\nimport {pageGridCells,type GridCellEvents} from './server/grid/cellEvents';\nimport {OWNED,type CosmeticId} from './server/loot/Owned';\nimport {MOVER_FIELDS} from './shared/shardfile/movers';\nimport {BONES,LIMITS,TWISTS} from './client/systems/viewmodel/armRig';\nexport const slots:12=PACK_SLOTS;\nexport const asphalt:15=ENTRY_ASPHALT;\nexport const gap:number=GAP_HALF;\nexport const events:GridCellEvents=pageGridCells;\nexport const cosmetic:CosmeticId=\"cape\";\nexport const label:\"Sailcloth cape\"=OWNED.cape.label;\nexport const pitch:1=MOVER_FIELDS.pitch;\nexport const hand:\"R_hand\"=BONES.right[6];\nexport const twist:0.85=TWISTS[0].at;\nexport const low:-75=LIMITS.pronation[0];\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};

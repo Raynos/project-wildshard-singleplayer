@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["Elite"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["server/Elite"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/game/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);
@@ -13,7 +13,7 @@ for(const name of ["Elite"])test(`${name} emits isolated declarations`,()=>{
 
 test('optional presentation owners retain explicit undefined and constructor argument laws',()=>{
  const consumer=resolve('src/game/t4-isolated-game-optional-owner-declarations-consumer.ts');
- let source="import {Scene} from 'three';\nimport {GroundTell} from './eliteView';\ndeclare const scene:Scene;\nexport const omitted=new GroundTell(scene,\"ring\",0);\nexport const absent=new GroundTell(scene,\"ring\",0,undefined);\nexport const position:number=omitted.mesh.position.x;\n";
+ let source="import {Scene} from 'three';\nimport {GroundTell} from './client/eliteView';\ndeclare const scene:Scene;\nexport const omitted=new GroundTell(scene,\"ring\",0);\nexport const absent=new GroundTell(scene,\"ring\",0,undefined);\nexport const position:number=omitted.mesh.position.x;\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};

@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["entities/farHerd","explore/FreeCam","explore/fatLines","fx/LightPool","physics/ropeChain","physics/ropeDeck","player/WeaponPickup","player/heldHandParts","world/Boundary","world/Grass","world/Terrain","world/backdropLayer","world/pond","world/skyRig","render/calibrationGpu","physics/mover","quest/view"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["client/entities/farHerd","client/explore/FreeCam","client/explore/fatLines","client/fx/LightPool","shared/physics/ropeChain","client/physics/ropeDeck","client/player/WeaponPickup","client/player/heldHandParts","client/world/Boundary","client/world/Grass","client/world/Terrain","client/world/backdropLayer","client/world/pond","client/world/skyRig","client/render/calibrationGpu","shared/physics/mover","client/quest/view"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/engine/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);
@@ -13,7 +13,7 @@ for(const name of ["entities/farHerd","explore/FreeCam","explore/fatLines","fx/L
 
 test('object fields retain their borrowed types and mutability',()=>{
  const consumer=resolve('src/engine/t4-engine-object-field-consumer.ts');
- let source="import type {Group,Vector3} from 'three';\nimport type {Grass} from './world/Grass';\nimport type {SkyRig} from './world/skyRig';\nimport type {KinematicMover} from './physics/mover';\nimport type {Physics} from './physics/Physics';\nimport type {CalibrationGpu} from './render/calibrationGpu';\ndeclare const grass:Grass;\ndeclare const group:Group;\ndeclare const sky:SkyRig;\ndeclare const mover:KinematicMover;\ndeclare const calibration:CalibrationGpu;\ngrass.group=group;\nexport const radius:number=grass.radius;\nexport const direction:Vector3=sky.sunDir;\nexport const body:ReturnType<Physics['world']['getRigidBody']>=mover.body;\nexport const pixelRatio:number=calibration.renderer.getPixelRatio();\n";
+ let source="import type {Group,Vector3} from 'three';\nimport type {Grass} from './client/world/Grass';\nimport type {SkyRig} from './client/world/skyRig';\nimport type {KinematicMover} from './shared/physics/mover';\nimport type {Physics} from './shared/physics/Physics';\nimport type {CalibrationGpu} from './client/render/calibrationGpu';\ndeclare const grass:Grass;\ndeclare const group:Group;\ndeclare const sky:SkyRig;\ndeclare const mover:KinematicMover;\ndeclare const calibration:CalibrationGpu;\ngrass.group=group;\nexport const radius:number=grass.radius;\nexport const direction:Vector3=sky.sunDir;\nexport const body:ReturnType<Physics['world']['getRigidBody']>=mover.body;\nexport const pixelRatio:number=calibration.renderer.getPixelRatio();\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};

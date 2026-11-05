@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["app/sceneOwnership","boot/lastEnd","core/deflate","physics/navmeshLoad","render/precompile","script/inputInboxV2","world/geometryKit","ui/ownership","entities/AnimalManager","audio/AmbienceBeds","audio/Audio","audio/Stems","core/worldDepth","input/InputService","render/graph/glslMaterial"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["client/app/sceneOwnership","client/boot/lastEnd","client/core/deflate","shared/physics/navmeshLoad","client/render/precompile","server/script/inputInboxV2","client/world/geometryKit","client/ui/ownership","server/entities/AnimalManager","client/audio/AmbienceBeds","client/audio/Audio","client/audio/Stems","client/core/worldDepth","client/input/InputService","client/render/graph/glslMaterial"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/engine/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);
@@ -13,7 +13,7 @@ for(const name of ["app/sceneOwnership","boot/lastEnd","core/deflate","physics/n
 
 test('owner defaults retain DOM, promise and unshared output laws',()=>{
  const consumer=resolve('src/engine/t4-engine-owner-default-consumer.ts');
- let source="import {unshuffleLanes} from './core/deflate';\nimport {boundedLinkWait} from './render/precompile';\nimport {uiScope,mountUi} from './ui/ownership';\nimport type {Scope} from './app/scope';\ndeclare const owner:Scope;\ndeclare const lanes:Uint8Array;\nexport const restored:Uint8Array=unshuffleLanes(lanes);\nexport const explicit:Uint8Array=unshuffleLanes(lanes,new Uint8Array(16),0,4);\nexport const linked:Promise<boolean>=boundedLinkWait(()=>true,async()=>{});\nexport const timed:Promise<boolean>=boundedLinkWait(()=>true,async()=>{},100);\nexport const child:Scope=uiScope('child',owner);\nexport const implicit:Scope=uiScope('child');\nexport const element:HTMLElement=document.createElement('div');\nmountUi(element,child);\nmountUi(element,child,document.body);\n";
+ let source="import {unshuffleLanes} from './client/core/deflate';\nimport {boundedLinkWait} from './client/render/precompile';\nimport {uiScope,mountUi} from './client/ui/ownership';\nimport type {Scope} from './shared/app/scope';\ndeclare const owner:Scope;\ndeclare const lanes:Uint8Array;\nexport const restored:Uint8Array=unshuffleLanes(lanes);\nexport const explicit:Uint8Array=unshuffleLanes(lanes,new Uint8Array(16),0,4);\nexport const linked:Promise<boolean>=boundedLinkWait(()=>true,async()=>{});\nexport const timed:Promise<boolean>=boundedLinkWait(()=>true,async()=>{},100);\nexport const child:Scope=uiScope('child',owner);\nexport const implicit:Scope=uiScope('child');\nexport const element:HTMLElement=document.createElement('div');\nmountUi(element,child);\nmountUi(element,child,document.body);\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};

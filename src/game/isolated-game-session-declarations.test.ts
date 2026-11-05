@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["session/data","session/world","session/loadout","session/play"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["client/session/data","client/session/world","client/session/loadout","client/session/play"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/game/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);
@@ -13,7 +13,7 @@ for(const name of ["session/data","session/world","session/loadout","session/pla
 
 test('game session stages retain their full asynchronous composition contracts',()=>{
  const consumer=resolve('src/game/t4-isolated-game-session-declarations-consumer.ts');
- let source="import {dataStage} from './session/data';\nimport {worldStage} from './session/world';\nimport {loadoutStage} from './session/loadout';\nimport {playStage} from './session/play';\nimport type {Loading} from '@wildshard/engine/ui/Loading';\nimport type {SkyRig} from '@wildshard/engine/world/skyRig';\nimport type {AnimalManager} from '@wildshard/engine/entities/AnimalManager';\nimport type {GridSession} from './grid/session';\ndeclare const data:Awaited<ReturnType<typeof dataStage>>;\ndeclare const world:Awaited<ReturnType<typeof worldStage>>;\ndeclare const loadout:Awaited<ReturnType<typeof loadoutStage>>;\ndeclare const play:Awaited<ReturnType<typeof playStage>>;\nexport const loading:Loading=data.loading;\nexport const sky:SkyRig=world.sky;\nexport const animals:AnimalManager=loadout.animals;\nexport const grid:GridSession|null=play.grid;\nexport const slug:string=play.slug;\n";
+ let source="import {dataStage} from './client/session/data';\nimport {worldStage} from './client/session/world';\nimport {loadoutStage} from './client/session/loadout';\nimport {playStage} from './client/session/play';\nimport type {Loading} from '@wildshard/engine/ui/Loading';\nimport type {SkyRig} from '@wildshard/engine/world/skyRig';\nimport type {AnimalManager} from '@wildshard/engine/entities/AnimalManager';\nimport type {GridSession} from './client/grid/session';\ndeclare const data:Awaited<ReturnType<typeof dataStage>>;\ndeclare const world:Awaited<ReturnType<typeof worldStage>>;\ndeclare const loadout:Awaited<ReturnType<typeof loadoutStage>>;\ndeclare const play:Awaited<ReturnType<typeof playStage>>;\nexport const loading:Loading=data.loading;\nexport const sky:SkyRig=world.sky;\nexport const animals:AnimalManager=loadout.animals;\nexport const grid:GridSession|null=play.grid;\nexport const slug:string=play.slug;\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};

@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["summary","boss/arenaRoom","riding/pastureController","riding/physics","quest/nativeProps"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["client/summary","server/boss/arenaRoom","server/riding/pastureController","shared/riding/physics","server/quest/nativeProps"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/game/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);
@@ -13,7 +13,7 @@ for(const name of ["summary","boss/arenaRoom","riding/pastureController","riding
 
 test('game arena and riding saves retain original revisions, tags and fixed tuples',()=>{
  const consumer=resolve('src/game/t4-isolated-game-arena-recovery-declarations-consumer.ts');
- let source="import type * as v from 'valibot';\nimport type {WildshardSummary} from './summary';\nimport { ArenaRoomPortalSchema, type ArenaRoomRows } from './boss/arenaRoomRows';\nimport { ArenaFightPageSchema } from './boss/arenaRoomFight';\nimport type {RhythmSpurState,MountedReinsState} from './riding/physics';\ndeclare const room:ArenaRoomRows;\ndeclare const portal:v.InferOutput<typeof ArenaRoomPortalSchema>;\ndeclare const fight:v.InferOutput<typeof ArenaFightPageSchema>;\ndeclare const reins:MountedReinsState;\nexport const summary:WildshardSummary={v:1,shards:{}};\nexport const origin:number=room.origin.x;\nexport const fade:number=portal.fade.out;\nexport const reward:[number,number,number]=fight.reward;\nexport const spur:number=reins.spur.streak;\n";
+ let source="import type * as v from 'valibot';\nimport type {WildshardSummary} from './client/summary';\nimport { ArenaRoomPortalSchema, type ArenaRoomRows } from './shared/boss/arenaRoomRows';\nimport { ArenaFightPageSchema } from './server/boss/arenaRoomFight';\nimport type {RhythmSpurState,MountedReinsState} from './shared/riding/physics';\ndeclare const room:ArenaRoomRows;\ndeclare const portal:v.InferOutput<typeof ArenaRoomPortalSchema>;\ndeclare const fight:v.InferOutput<typeof ArenaFightPageSchema>;\ndeclare const reins:MountedReinsState;\nexport const summary:WildshardSummary={v:1,shards:{}};\nexport const origin:number=room.origin.x;\nexport const fade:number=portal.fade.out;\nexport const reward:[number,number,number]=fight.reward;\nexport const spur:number=reins.spur.streak;\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};

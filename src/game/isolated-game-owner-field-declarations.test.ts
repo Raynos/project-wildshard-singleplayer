@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["ambient/ambientFlock","ambient/wingField","bag/BagButton","compendium/Journal","cosmetics/bodyShadow","cosmetics/cosmetics","cosmetics/locker","grapple/ribbon","loadout/cosmeticFinishes","looks/forestGround","looks/streamedCover","loot/runtime","loot/ui/CoinChip","population/environment","population/perchBody","population/projection","quest/bodyOps","systems/effects/view"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["client/ambient/ambientFlock","client/ambient/wingField","client/bag/BagButton","client/compendium/Journal","client/cosmetics/bodyShadow","client/cosmetics/cosmetics","client/cosmetics/locker","client/grapple/ribbon","client/loadout/cosmeticFinishes","client/looks/forestGround","client/looks/streamedCover","server/loot/runtime","client/loot/ui/CoinChip","server/population/environment","server/population/perchBody","client/population/projection","server/quest/bodyOps","client/systems/effects/view"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/game/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);
@@ -13,7 +13,7 @@ for(const name of ["ambient/ambientFlock","ambient/wingField","bag/BagButton","c
 
 test('game owners retain exact borrowed fields and mutable contents',()=>{
  const consumer=resolve('src/game/t4-isolated-game-owner-field-declarations-consumer.ts');
- let source="import type {Group} from 'three';\nimport type {Scope} from '@wildshard/engine/app/scope';\nimport type {AmbientFlockDraw} from './ambient/ambientFlock';\nimport type {Journal} from './compendium/Journal';\nimport type {CosmeticsLocker} from './cosmetics/locker';\nimport type {DeclaredBodyOps} from './quest/bodyOps';\ndeclare const flock:AmbientFlockDraw;\ndeclare const journal:Journal;\ndeclare const locker:CosmeticsLocker<string,{id:string}>;\ndeclare const body:DeclaredBodyOps;\nexport const root:Group=flock.group;\nexport const scope:Scope=journal.scope;\nlocker.owned.add('example');\nexport const owned:Set<string>=locker.owned;\nexport const bodies:ReadonlyMap<string,number>=body.registries.bodies;\n";
+ let source="import type {Group} from 'three';\nimport type {Scope} from '@wildshard/engine/app/scope';\nimport type {AmbientFlockDraw} from './client/ambient/ambientFlock';\nimport type {Journal} from './client/compendium/Journal';\nimport type {CosmeticsLocker} from './client/cosmetics/locker';\nimport type {DeclaredBodyOps} from './server/quest/bodyOps';\ndeclare const flock:AmbientFlockDraw;\ndeclare const journal:Journal;\ndeclare const locker:CosmeticsLocker<string,{id:string}>;\ndeclare const body:DeclaredBodyOps;\nexport const root:Group=flock.group;\nexport const scope:Scope=journal.scope;\nlocker.owned.add('example');\nexport const owned:Set<string>=locker.owned;\nexport const bodies:ReadonlyMap<string,number>=body.registries.bodies;\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};
