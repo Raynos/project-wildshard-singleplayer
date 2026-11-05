@@ -1,6 +1,6 @@
 // Content-addressed trusted CLI compilation; product admission still runs per product.
 import { createHash, randomBytes } from 'node:crypto';
-import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import * as v from 'valibot';
 import { InputHashMemo } from './bake-input-hashes.mjs';
@@ -22,7 +22,9 @@ export async function authorBundleCached(root, recipe, compile, cacheRoot = shar
   const environment = Object.fromEntries(Object.entries(process.env)
     .filter(([name]) => name.startsWith('VITE_') || name === 'NODE_ENV' || name === 'NODE_OPTIONS')
     .sort(([left], [right]) => left.localeCompare(right)));
-  const args = ['author-bundle/3', root, JSON.stringify(environment), ...recipe];
+  // Receipts skip node_modules, so the installed format's real path (it names the commit) stands for its bytes.
+  const format = resolve(root, 'node_modules/@wildshard/format');
+  const args = ['author-bundle/4', root, JSON.stringify(environment), existsSync(format) ? realpathSync(format) : '', ...recipe];
   const namespace = digest(JSON.stringify(args)), directory = resolve(cacheRoot, '.author-bundles', namespace);
   /** @param {string} key */
   const used = key => {
