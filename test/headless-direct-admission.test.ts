@@ -3,7 +3,8 @@ import { emptyShardfile } from '../src/sdk/author';
 import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { prepareHeadlessRuntime } from './fixtures/nine-headless';
 import { prepareHeadlessRuntime as prepareNalati } from './fixtures/nalati-headless';
-import { prepareHeadlessRuntime as preparePine } from './fixtures/pine-headless';
+import { prepareProductPlan } from './fixtures/headless-native';
+import { NATIVE_ASSEMBLY_FILE } from '../src/format/nativeAssembly';
 import { prepareHeadlessRuntime as prepareDriftwood } from './fixtures/driftwood-headless';
 import type { Rapier } from '../src/engine/physics/rapier';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
@@ -12,14 +13,14 @@ import assembly from '../src/shards/nine-dragon-stack/data/headlessAssembly.json
 test.each([
   { prepare: prepareHeadlessRuntime, expectedReads: [] },
   { prepare: prepareNalati, expectedReads: [] },
-  { prepare: preparePine, expectedReads: [] },
+  { prepare: prepareProductPlan, expectedReads: [] },
   { prepare: prepareDriftwood, expectedReads: [] },
 ])('direct native proof refuses malformed return admission before payload or host preparation (%#)', async ({ prepare, expectedReads }) => {
   const shard = emptyShardfile({ slug: 'native-proof', name: 'Native proof', author: 'Fixture', revision: 1, seed: 7 });
   const reads: string[] = [];
   const product = createShardProduct({ slug: shard.identity.slug, revision: 1, shardfile: shard,
     sections: new Map([['actors/return-scripts', [{}]]]),
-    files: new Map([['sim/headless-assembly.json', { hash: 'assembly', url: 'assembly' }]]),
+    files: new Map([['sim/headless-assembly.json', { hash: 'assembly', url: 'assembly' }], [NATIVE_ASSEMBLY_FILE, { hash: 'plan', url: 'plan' }]]),
     read: hash => { reads.push(hash); return Promise.resolve(new TextEncoder().encode(JSON.stringify({constants:assembly.constants}))); } });
   await expect(prepare({ shard, product, assets: new Map(), rapier: legacyDouble<Rapier>({}) }))
     .rejects.toThrow(/Invalid (key|type)/u);

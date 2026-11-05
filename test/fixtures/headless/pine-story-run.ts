@@ -17,8 +17,6 @@ import {installAppIdentity} from '../../../src/engine/app/identity';
 import {WILDSHARD_IDENTITY} from '../../../src/game/identity';
 import {ForestPageSchema} from '../../../src/format/forestPage';
 import {prepareHeadlessRuntime} from '../pine-verbs';
-import {pineHeadlessAssets} from '../pine-headless';
-import CONTROLLER_TERRAIN from '../../../src/shards/pine-hollow/data/terrainBindings.json' with {type:'json'};
 
 const started=performance.now();let phaseStart=started;
 const measured=(phase:string)=>{const now=performance.now();console.info(JSON.stringify({phase:'timing',stage:phase,milliseconds:now-phaseStart}));phaseStart=now;};
@@ -27,7 +25,7 @@ const slug='pine-hollow',session=await beginProductSession(slug,'pine-verbs'),{p
 measured('product-session');
 let resident:Awaited<ReturnType<typeof createNativeProofResident>>|undefined,retireRopes=()=>{ /* Nothing is installed until the resident is ready. */ };
 try{
-  const assets=pineHeadlessAssets(session.assets);
+  const {assets}=session;
   const rapier=await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   // Retain the actual plan once so the controller reads its real nav/ground ports.
   let plan:HeadlessRuntimePlan|undefined;
@@ -36,7 +34,7 @@ try{
   });
   assert.ok(plan);const active=resident;measured('resident');
   const {pineTape,kingRow,kingSnapshotRow}=await import('../../proof/pine-hollow/controller');
-  const navBytes=assets.get(CONTROLLER_TERRAIN.navmesh);assert.ok(navBytes);
+  const navBytes=await product.file('server/navmesh.bin');
   const controller=pineTape(plan,navBytes),{host}=resident;measured('controller');
   retireRopes=installWalkRopeBodies(host,product);installNativeWalkBounds(host);
   const page=v.parse(ForestPageSchema,await product.json('world/forest-page.json'));

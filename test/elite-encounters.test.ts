@@ -10,20 +10,19 @@ import { builtProduct } from './fixtures/builtProduct';
 import { installCableModes } from '../src/engine/player/modes';
 import { createNativeCombatFrame } from '../src/game/plugin/nativeItems';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
-import { prepareHeadlessRuntime as pinePlan, pineHeadlessAssets } from './fixtures/pine-headless';
+import { prepareProductPlan } from './fixtures/headless-native';
 import { prepareHeadlessRuntime as nalatiPlan } from './fixtures/nalati-headless';
 import { canonicalSimDigest } from './fake/simState';
 
 const Value: v.GenericSchema<SimValue> = v.lazy(() => v.union([v.null(), v.boolean(), v.number(), v.string(), v.array(Value), v.record(v.string(), Value)]));
 const object = v.record(v.string(), v.unknown());
-for (const [slug, prepare, step] of [['pine-hollow', pinePlan, 'pine.elites'], ['nalati-grasslands', nalatiPlan, 'nalati.elites']] as const) {
+for (const [slug, prepare, step] of [['pine-hollow', prepareProductPlan, 'pine.elites'], ['nalati-grasslands', nalatiPlan, 'nalati.elites']] as const) {
   test(`${slug}: encounter wire resumes fights and refuses malformed bindings quietly`, async () => {
     const directory = builtProduct(slug), product = await loadHeadlessProduct(directory), descriptor = outputDescriptor(product.shardfile);
     if (descriptor === undefined) throw new Error('Missing product inventory');
     const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash, Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
     const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-    const supplied = slug === 'pine-hollow' ? pineHeadlessAssets(assets) : assets;
-    const plan = await prepare({ shard: product.shardfile, assets: supplied, rapier, product }), ports = { ...plan.ports, rapier };
+    const plan = await prepare({ shard: product.shardfile, assets, rapier, product }), ports = { ...plan.ports, rapier };
     const context = { combat: createNativeCombatFrame(), commands: () => [], emit: () => undefined }, host = createSimHost(plan.level, ports);
     let replay: SimHost | undefined;
     const advance = (h: SimHost): void => { h.step({ moveX: 0, moveZ: 0, yaw: 0 }); };

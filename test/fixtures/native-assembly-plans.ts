@@ -1,12 +1,7 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- The plan builders lend the original committed terrain and navigation bytes.
-import { readFileSync } from 'node:fs';
 import type { NativeAssemblyPlan } from '@wildshard/format/nativeAssembly';
 import type { ShardProduct } from '../../src/game/shardfile/shardProduct';
-import storyPolicy from './pine-native-story.json' with { type: 'json' };
 import keeper from '../../src/shards/driftwood-isle/data/nativeKeeper.json' with { type: 'json' };
-import TERRAIN from '../../src/shards/pine-hollow/data/terrainBindings.json' with { type: 'json' };
-import { need, readJson } from './headless-plan';
-import { readPineNativeOracle } from './pine-headless';
+import { need } from './headless-plan';
 import { readDriftwoodNativeOracle } from './driftwood-headless';
 import { nalatiEliteRows } from './nalati-headless';
 import { nalatiGroupInputs } from './nalati-group-inputs';
@@ -18,31 +13,6 @@ import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 
 /** A plan and the server-class files it names, as a shard's generator will emit them with `serverBlob`. */
 export interface EmittedAssembly { readonly plan: NativeAssemblyPlan; readonly json: ReadonlyMap<string, unknown>; readonly binary: ReadonlyMap<string, Uint8Array> }
-
-/** Pine Hollow's plan: the same inputs and install order as `pine-headless.ts`. */
-export async function pineAssembly(product: ShardProduct): Promise<EmittedAssembly> {
-  const constants = await readPineNativeOracle(), roster = await readJson<{ step: string }>(product, 'actors/roster.json');
-  const owners = await readJson<{ kingHit: { radius: number } }>(product, 'data/physics.generated.json');
-  const plan: NativeAssemblyPlan = { kind: 'native-assembly', level: { speed: 5, ground: { size: 500, height: 0 } },
-    terrain: { kind: 'baked', file: 'server/terrain.bin', rows: constants.terrain }, navigation: { file: 'server/navmesh.bin' },
-    bake: { rows: { section: 'world/physics' }, reader: { label: 'Pine', resolution: constants.terrain.res, size: constants.terrain.size, parked: true, rig: 'segments', shapes: [1, 2, 6, 9], provenance: 'piece' },
-      ground: 'data/physics-ground.bin', colliders: ['data/physics-colliders.bin'], read: 'bake', owners: { file: 'data/physics.generated.json' }, pick: ['kingHit', 'shelterTrees'] },
-    collision: { resolution: constants.terrain.res, provenance: { field: 'pineWorldOwner', step: 'pine.world-tags', fallback: 'wood' } },
-    entries: { walk: constants.entries, fresh: { omit: ['edge'] } },
-    features: [{ host: 'commands' }, { host: 'decisions' }, { host: 'day.keyed-sky' }, { host: 'collision' },
-      { host: 'boss.ground', encounter: { file: 'combat/roaming.json', path: ['projection', 'encounter'] },
-        binding: { population: roster.step, weakPoint: { radius: owners.kingHit.radius }, reward: { inventory: 'pack', grants: [{ item: 'amber-resin', count: 3 }] } } },
-      { host: 'loadout' }, { host: 'combat.motion', speed: 7.2 },
-      { host: 'item.ranged', kind: 'bolt', weapon: 'weapon.crossbow' }, { host: 'item.ranged', kind: 'cycle', weapon: 'weapon.lever' }, { host: 'item.ranged', kind: 'bow', weapon: 'weapon.longbow' },
-      { host: 'ammunition', step: 'pine.ammunition', refill: 'iron' },
-      { host: 'quest.composition', rows: { file: 'server/quest-policy.json' }, spots: { file: 'quests/native-spots.json' }, counters: { file: 'quests/achievements.json' },
-        document: { file: 'quests/runtime.json' }, contracts: { file: 'quests/contracts.json' }, barter: true, director: true },
-      { host: 'weather.program', program: { file: 'world/weather.json' } }, { host: 'population.environment', rows: { file: 'server/habitat.json' } },
-      { host: 'population.shelter', rows: { file: 'actors/shelter.json' } }, { host: 'population.roster', rows: { file: 'actors/roster.json' } },
-      { host: 'population.elites', file: 'actors/elites.json' }, { host: 'population.spawn-script', id: 'pine.night' }, { host: 'population.elites-ready' }] };
-  return { plan, json: new Map<string, unknown>([['server/quest-policy.json', storyPolicy], ['server/habitat.json', constants.environment]]),
-    binary: new Map([['server/terrain.bin', Uint8Array.from(readFileSync(TERRAIN.terrain))], ['server/navmesh.bin', Uint8Array.from(readFileSync(TERRAIN.navmesh))]]) };
-}
 
 /** Driftwood Isle's plan: the same inputs and install order as `driftwood-headless.ts`. */
 export async function driftwoodAssembly(): Promise<EmittedAssembly> {

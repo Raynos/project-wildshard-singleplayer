@@ -6,14 +6,14 @@ import {ForestPageSchema} from '../../src/format/forestPage';
 import {buildingDoor,toggleBuildingDoor,stepBuildingDoor,buildingDoorYaw,buildingDoorCollides} from '../../src/game/shardfile/buildingDoor';
 import {eyeReaches} from '../../src/game/quest/interactionRows';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
-import {prepareHeadlessRuntime as preparePine} from './pine-headless';
+import {prepareProductPlan} from './headless-native';
 
 const finite=v.pipe(v.number(),v.finite());
 const savedDoor=v.strictObject({id:v.string(),open:v.boolean(),t:v.pipe(finite,v.minValue(0),v.maxValue(1)),enabled:v.boolean(),handle:finite});
 /** The shipping door state and physics primitive over the admitted cabin
  * topology. Fixed test commands can use a real nearby door, never set a pose. */
 export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
-  const base=await preparePine(preparation),page=v.parse(ForestPageSchema,await preparation.product.json('world/forest-page.json'));
+  const base=await prepareProductPlan(preparation),page=v.parse(ForestPageSchema,await preparation.product.json('world/forest-page.json'));
   const variant=page.buildings.variants.find(row=>row.tier==='phone'&&!row.shadow&&!row.shared);
   if(variant===undefined)throw new Error('Missing admitted phone cabins');
   const living=sceneLivingBytes(await preparation.product.file(variant.file),variant);

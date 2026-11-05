@@ -3,7 +3,6 @@ import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { builtProduct } from './fixtures/builtProduct';
 import { Vector3 } from 'three';
-import PINE_TERRAIN from '../src/shards/pine-hollow/data/terrainBindings.json' with { type: 'json' };
 import * as v from 'valibot';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
 import type { SimValue } from '@wildshard/engine/sim';
@@ -11,9 +10,8 @@ import { snapshotSimHost } from '@wildshard/engine/sim/snapshot';
 import { borrowedDecisionControl } from '@wildshard/game/shardfile/borrowedDecisions';
 import { outputDescriptor } from '@wildshard/game/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '@wildshard/sdk/headlessProduct';
-import { createNativeProofResident } from './fixtures/headless-native';
+import { createNativeProofResident, prepareProductPlan } from './fixtures/headless-native';
 import { prepareHeadlessRuntime as driftwoodPlan } from './fixtures/driftwood-headless';
-import { prepareHeadlessRuntime as pinePlan } from './fixtures/pine-headless';
 
 const savedControl = v.object({ version:v.literal(1),actor:v.string(),phase:v.number(),fighting:v.boolean(),decision:v.string(),strike:v.unknown() });
 const logical = v.object({ decision: v.object({ bindings: v.array(v.object({ failures: v.number() })) }) });
@@ -27,8 +25,7 @@ for (const [slug,kind] of [['driftwood-isle','captain'],['pine-hollow','antler-k
     const rapier=await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
     const assets=new Map(descriptor.index.files.map(file=>[file.commons===true?`commons:${file.hash}`:file.hash,
       Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
-    if(slug==='pine-hollow')for(const file of [PINE_TERRAIN.terrain,PINE_TERRAIN.navmesh])assets.set(file,Uint8Array.from(readFileSync(file)));
-    const preparation={product,shard:product.shardfile,assets,rapier},entry=kind==='captain'?driftwoodPlan:pinePlan,resident=await createNativeProofResident(preparation,entry);
+    const preparation={product,shard:product.shardfile,assets,rapier},entry=kind==='captain'?driftwoodPlan:prepareProductPlan,resident=await createNativeProofResident(preparation,entry);
     let resumed:Awaited<ReturnType<typeof createNativeProofResident>>|undefined;
     try {
       const host=resident.host,spawn=product.shardfile.runtime?.spawns?.bosses.find(row=>row.kind===kind);

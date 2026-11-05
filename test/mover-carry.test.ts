@@ -9,8 +9,7 @@ import { MoverScriptDriver, type MoverRuntime } from '../src/game/plugin/mover';
 import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
-import { createNativeProofResident } from './fixtures/headless-native';
-import { pineHeadlessAssets, prepareHeadlessRuntime } from './fixtures/pine-headless';
+import { createNativeProofResident, prepareProductPlan } from './fixtures/headless-native';
 import { emptyShardfile } from '../src/sdk/author';
 import { canoeMover } from '../src/shards/pine-hollow/generators/canoe';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
@@ -57,8 +56,7 @@ test('built Pine installs and commands its admitted carry without a shard ride i
   const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash,
     Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
-  const resident = await createNativeProofResident({ shard: source, product, assets: pineHeadlessAssets(assets), rapier },
-    prepareHeadlessRuntime);
+  const resident = await createNativeProofResident({ shard: source, product, assets, rapier }, prepareProductPlan);
   try {
     const admitted = source.movers.find(value => value.id === 'pine.canoe');
     if (admitted?.carry === undefined) throw new Error('Missing admitted carry row');

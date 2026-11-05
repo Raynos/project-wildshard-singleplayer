@@ -2,10 +2,11 @@ import {createTrustedHeadlessTape} from '../../src/sdk/headlessTape';
 import { installNativeWalkBounds } from './headless/nativeBounds';
 import { installWalkRopeBodies } from './headless/ropeBodies';
 import { runHeadlessJourney } from '../../src/sdk/headlessJourney';
-import { fillNativeCombatFrame, validateHeadlessCommandOwners, type HeadlessRuntimeInput, type HeadlessRuntimeInstallation, type HeadlessRuntimePreparation, type HeadlessRuntimePlan, type PrepareHeadlessRuntime, type TrustedHeadlessResident } from '../../src/sdk/headlessRuntime';
+import { fillNativeCombatFrame, headlessAssemblyPorts, validateHeadlessCommandOwners, type HeadlessRuntimeInput, type HeadlessRuntimeInstallation, type HeadlessRuntimePreparation, type HeadlessRuntimePlan, type PrepareHeadlessRuntime, type TrustedHeadlessResident } from '../../src/sdk/headlessRuntime';
 import { prepareAssetDecoders } from '../../src/format/product';
 import { loadHeadlessProduct } from '../../src/sdk/headlessProduct';
 import { hasDeclaredClientPage } from '../../src/format/runtimeBinds';
+import { prepareProductRuntimePlan } from '../../src/game/shardfile/nativePlan';
 import { MoverScriptDriver, type MoverRuntime } from '../../src/game/plugin/mover';
 import { installCableModes } from '../../src/engine/player/modes';
 import { createNativeCombatFrame } from '../../src/game/plugin/nativeItems';
@@ -13,6 +14,9 @@ import { createSimHost, type SimHost } from '../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '../../src/engine/sim/snapshot';
 import { simPlayerCommand, type HeadlessCommand, type HeadlessEffect } from '../../src/sdk/tickProtocol';
 import type { TickWorkerAdapter } from '../../src/sdk/tickWorkerLoop';
+
+/** The world a product's own native plan builds: what the tick worker runs, for proofs that wrap or drive it. */
+export const prepareProductPlan: PrepareHeadlessRuntime = ({ product, assets, rapier }) => prepareProductRuntimePlan(product, assets, headlessAssemblyPorts(rapier));
 
 /** Direct typed proof composition; no module URL, dynamic code lookup or authored factory selection. */
 export async function prepareNativeProof(provided: HeadlessRuntimeInput, prepare: PrepareHeadlessRuntime): Promise<HeadlessRuntimePlan> {

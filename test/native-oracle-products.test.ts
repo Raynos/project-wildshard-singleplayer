@@ -2,13 +2,12 @@ import { expect, test } from 'vitest';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import scaffold from '../src/shards/driftwood-isle/data/headlessAssembly.json' with { type: 'json' };
 import { readDriftwoodNativeOracle } from './fixtures/driftwood-headless';
-import { readPineNativeOracle } from './fixtures/pine-headless';
 import { pineNativeOracleSpec } from './fixtures/pine-native-oracle-spec';
 import { pineNativeOracleInputs } from './fixtures/pine-native-oracle-inputs';
 import { fencedNativeOracle } from './fixtures/native-oracle';
 
 test('the fenced Pine oracle retains every former shipping fact byte', async () => {
-  const bytes = new TextEncoder().encode(encodeCanonicalJson({ constants: await readPineNativeOracle() }));
+  const bytes = new TextEncoder().encode(encodeCanonicalJson({ constants: await fencedNativeOracle(pineNativeOracleSpec(), pineNativeOracleInputs) }));
   expect(bytes.byteLength).toBe(64_095);
   expect(hashImmutableBytes(bytes)).toBe('5e6a851d41c1b82dd61558c6ac4cd2b7701954f1cc3869d37991feabff5513b2');
 });

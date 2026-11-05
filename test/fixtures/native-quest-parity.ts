@@ -4,12 +4,10 @@ import { ReturnProgram } from '../../src/game/population/returnProgram';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read only admitted product and native physics bytes.
 import { readFileSync } from 'node:fs';
 import { loadHeadlessProduct } from '../../src/sdk/headlessProduct';
-import { createNativeProofResident } from './headless-native';
+import { createNativeProofResident, prepareProductPlan } from './headless-native';
 import { prepareHeadlessRuntime as driftwoodPlan } from './driftwood-headless';
-import { prepareHeadlessRuntime as pinePlan } from './pine-headless';
 import { outputDescriptor } from '../../src/game/shardfile/outputDescriptor';
 import { loadRapier } from '../../src/engine/physics/rapier';
-import PINE_TERRAIN from '../../src/shards/pine-hollow/data/terrainBindings.json' with { type: 'json' };
 import legacy from './quest-step-legacy-saves.json' with { type: 'json' };
 import type { SimValue } from '../../src/engine/sim';
 
@@ -40,11 +38,9 @@ export function nativeQuestParity(slug: 'driftwood-isle' | 'pine-hollow', witnes
     if (descriptor === undefined) throw new Error('Missing admitted native product');
     const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash,
       Uint8Array.from(readFileSync(`out/${slug}/${file.path}`))]));
-    if (slug === 'pine-hollow') for (const path of [PINE_TERRAIN.terrain, PINE_TERRAIN.navmesh])
-      assets.set(path, Uint8Array.from(readFileSync(path)));
     const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
     const resident = await createNativeProofResident({ product, shard: product.shardfile, assets, rapier },
-      slug === 'driftwood-isle' ? driftwoodPlan : pinePlan);
+      slug === 'driftwood-isle' ? driftwoodPlan : prepareProductPlan);
     try {
       const fixture = legacy[slug], owner = resident.host.adapters.get(fixture.adapter);
       if (owner === undefined) throw new Error('Missing existing quest save owner');

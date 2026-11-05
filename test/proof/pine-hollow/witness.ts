@@ -19,10 +19,10 @@ import { createSimHost, type SimHost } from '../../../src/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost, type SimSnapshot } from '../../../src/engine/sim/snapshot';
 import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
 import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
-import { fillNativeCombatFrame, type HeadlessRuntimeInstallation, type HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
+import { fillNativeCombatFrame, headlessAssemblyPorts, type HeadlessRuntimeInstallation, type HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import PINE_TERRAIN from '../../../src/shards/pine-hollow/data/terrainBindings.json' with { type: 'json' };
-import { prepareHeadlessRuntime } from '../../fixtures/pine-headless';
+import { prepareProductRuntimePlan } from '../../../src/game/shardfile/nativePlan';
 import { QUEST_STEP } from '../../../src/shards/pine-hollow/generators/questPrompts';
 import { nativeInventorySchema } from '../../../src/game/inventoryLaw';
 import wardens from '../../../src/shards/pine-hollow/data/wardensHollow.json' with { type: 'json' };
@@ -33,7 +33,7 @@ import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/led
 
 
 /**
- * Pine Hollow's whole-shard witness (E435 §C / SF72), on its trusted renderer-free entry `test/fixtures/pine-headless.ts`, composed as
+ * Pine Hollow's whole-shard witness (E435 §C / SF72), on its trusted renderer-free entry, the product's `server/native-assembly.json`, composed as
  * the platform's trusted adapter composes it (the plan's level and ports, one install, the tick's commands lent to the
  * runtime, its effects buffered per tick). The player's tape is tick commands only (`player` moves and `script` prompt
  * presses, `pine.interact`), chosen each tick from where the player stands: from the spawn on the south road to Hale on
@@ -42,7 +42,7 @@ import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/led
  * lantern. Nothing writes health, flags or positions: every outcome is gameplay. The night (the stag's walk, the Antler
  * King and dawn) are walked on the same tape, with the remaining systems listed in OPEN.
  */
-export const ENTRY = 'test/fixtures/pine-headless.ts';
+export const ENTRY = 'server/native-assembly.json';
 const ROOT = new URL('../../../', import.meta.url);
 let productDirectory: string | undefined;
 /** One pinned actual product for record, restored sessions and replay. */
@@ -83,7 +83,7 @@ function nativeAssets(product: ShardProduct): Map<string, Uint8Array> {
 }
 export async function pinePlan(rapier: Rapier): Promise<HeadlessRuntimePlan> {
   const product = await loadHeadlessProduct(witnessProductDirectory());
-  const plan = await prepareHeadlessRuntime({ shard: product.shardfile, assets: nativeAssets(product), rapier, product });
+  const plan: HeadlessRuntimePlan = await prepareProductRuntimePlan(product, nativeAssets(product), headlessAssemblyPorts(rapier));
   return { ...plan, install: (host, installation) => {
     installCableModes(host.scope, product.shardfile.modes?.traverse ?? [], host.flags).bindNative(host);
     plan.install(host, installation);

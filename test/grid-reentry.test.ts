@@ -11,14 +11,13 @@ import { createTrustedHeadlessResident, type PrepareHeadlessRuntime } from '../s
 import { hasDeclaredClientPage } from '../src/format/runtimeBinds';
 import { ScriptHost } from '../src/engine/script/host';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
-import { createNativeProofResident } from './fixtures/headless-native';
+import { createNativeProofResident, prepareProductPlan } from './fixtures/headless-native';
 import { prepareHeadlessRuntime as driftwoodPlan } from './fixtures/driftwood-headless';
-import { prepareHeadlessRuntime as pinePlan, pineHeadlessAssets } from './fixtures/pine-headless';
 import { prepareHeadlessRuntime as ninePlan } from './fixtures/nine-headless';
 
 const shards = ['_template', 'blender-template', 'ink-cel-valley', 'pastel-plain', 'driftwood-isle', 'pine-hollow', 'nalati-grasslands',
   'nine-dragon-stack', 'sunscar-dunes', 'far-reach'] as const;
-const directPlans = new Map<string, PrepareHeadlessRuntime>([['driftwood-isle', driftwoodPlan], ['pine-hollow', pinePlan], ['nine-dragon-stack', ninePlan]]);
+const directPlans = new Map<string, PrepareHeadlessRuntime>([['driftwood-isle', driftwoodPlan], ['pine-hollow', prepareProductPlan], ['nine-dragon-stack', ninePlan]]);
 
 // G498: eviction, then return through the actual native installer/restore path.
 // All ten live products are tested; sealed legacy products are never grid destinations.
@@ -31,7 +30,7 @@ for (const slug of shards) test(`${slug}: evict and re-enter with kit, held item
     Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const trusted = product.has('sim/runtime-plan');
-  const preparation = { shard, assets: slug === 'pine-hollow' ? pineHeadlessAssets(assets) : assets, rapier, product };
+  const preparation = { shard, assets, rapier, product };
   const direct = trusted ? undefined : directPlans.get(slug);
   const sections = productHeadlessSections(product);
   const questPorts = { fact: () => undefined, coins: () => undefined };

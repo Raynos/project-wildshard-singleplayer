@@ -13,8 +13,7 @@ import { prepareProductRuntimePlan } from '../src/game/shardfile/nativePlan';
 import { serializeSimSnapshot, snapshotSimHost } from '../src/engine/sim/snapshot';
 import { builtProduct } from './fixtures/builtProduct';
 import { createNativeProofResident } from './fixtures/headless-native';
-import { driftwoodAssembly, nalatiAssembly, pineAssembly, type EmittedAssembly } from './fixtures/native-assembly-plans';
-import { pineHeadlessAssets, prepareHeadlessRuntime as preparePine } from './fixtures/pine-headless';
+import { driftwoodAssembly, nalatiAssembly, type EmittedAssembly } from './fixtures/native-assembly-plans';
 import { prepareHeadlessRuntime as prepareDriftwood } from './fixtures/driftwood-headless';
 import { prepareHeadlessRuntime as prepareNalati } from './fixtures/nalati-headless';
 
@@ -28,14 +27,13 @@ function withServerFiles(product: ShardProduct, emitted: EmittedAssembly): Shard
 const steps = [...Array.from({ length: 120 }, () => [{ kind: 'player' as const, moveX: 0.6, moveZ: -0.8, yaw: 0 }]), ...Array.from({ length: 60 }, () => [{ kind: 'player' as const, moveX: -1, moveZ: 0, yaw: 1.5 }])];
 
 test.each([
-  { slug: 'pine-hollow', direct: preparePine, emit: pineAssembly },
   { slug: 'driftwood-isle', direct: prepareDriftwood, emit: () => driftwoodAssembly() },
   { slug: 'nalati-grasslands', direct: prepareNalati as PrepareHeadlessRuntime, emit: nalatiAssembly },
 ])('$slug: its native assembly installs the same world as its direct fixture, tick for tick', async ({ slug, direct, emit }) => {
   const directory = builtProduct(slug), product = await loadHeadlessProduct(directory), shard = product.shardfile, descriptor = outputDescriptor(shard);
   if (descriptor === undefined) throw new Error(`Missing admitted ${slug} output`);
   const shipped = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash, Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
-  const assets = slug === 'pine-hollow' ? pineHeadlessAssets(shipped) : shipped, rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
+  const assets = shipped, rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const emitted = await emit(product);
   expect(parseNativeAssembly(emitted.plan).features.length).toBeGreaterThan(0);
   for (const value of emitted.json.values()) expect(() => v.parse(NativeAssemblyDataSchema, value)).not.toThrow();
