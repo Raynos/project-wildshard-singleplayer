@@ -1,7 +1,7 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 155,
+  "client → server": 144,
   "cook → client": 2,
   "cook → render": 1,
   "server → client": 131,
@@ -61,10 +61,7 @@
    "client → server": 2
   },
   "src/game/client/boss/roamingProjection.ts": {
-   "client → server": 7
-  },
-  "src/game/client/grapple/tool.ts": {
-   "client → server": 1
+   "client → server": 6
   },
   "src/game/client/grid/copyPrompts.ts": {
    "client → server": 1
@@ -97,7 +94,7 @@
    "client → server": 4
   },
   "src/game/client/loadout/held.ts": {
-   "client → server": 2
+   "client → server": 1
   },
   "src/game/client/loadout/rangedPage.ts": {
    "client → server": 6
@@ -115,7 +112,7 @@
    "client → server": 2
   },
   "src/game/client/plugin/ui.ts": {
-   "client → server": 13
+   "client → server": 12
   },
   "src/game/client/plugin/weaponFamily.ts": {
    "client → server": 1
@@ -130,7 +127,7 @@
    "client → server": 4
   },
   "src/game/client/quest/contractBoardPage.ts": {
-   "client → server": 2
+   "client → server": 1
   },
   "src/game/client/quest/questPageViews.ts": {
    "client → server": 1
@@ -157,7 +154,7 @@
    "client → server": 1
   },
   "src/game/client/shardfile/client.ts": {
-   "client → server": 6
+   "client → server": 5
   },
   "src/game/client/shardfile/clientCatalogue.ts": {
    "client → server": 1
@@ -172,7 +169,7 @@
    "client → server": 1
   },
   "src/game/client/shardfile/clientHeldMelee.ts": {
-   "client → server": 3
+   "client → server": 2
   },
   "src/game/client/shardfile/clientItems.ts": {
    "client → server": 1
@@ -190,7 +187,7 @@
    "client → server": 1
   },
   "src/game/client/shardfile/clientQuestPage.ts": {
-   "client → server": 3
+   "client → server": 2
   },
   "src/game/client/shardfile/clientSource.ts": {
    "client → server": 1
@@ -210,14 +207,8 @@
   "src/game/client/shardfile/hybrid.ts": {
    "client → server": 1
   },
-  "src/game/client/shardfile/portalRideBinding.ts": {
-   "client → server": 1
-  },
-  "src/game/client/shardfile/product.ts": {
-   "client → server": 1
-  },
   "src/game/client/shardfile/runtimeProduct.ts": {
-   "client → server": 2
+   "client → server": 1
   },
   "src/game/client/shardfile/walkInPortalRide.ts": {
    "client → server": 1
