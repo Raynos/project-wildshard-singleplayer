@@ -9,7 +9,8 @@ import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { Color, MeshBasicMaterial, Scene, Vector3, BoxGeometry, BufferGeometry, PlaneGeometry, Float32BufferAttribute, PerspectiveCamera, Group, InstancedMesh } from 'three';
-import { ArenaFightPageSchema, ArenaRoomEncounter, ArenaRoomPortal, BossArenaRoom, arenaRoomViews } from '../src/game/boss/arenaRoom';
+import { ArenaRoomEncounter, ArenaRoomPortal, BossArenaRoom, arenaRoomViews } from '../src/game/boss/arenaRoom';
+import { ArenaFightPageSchema } from '../src/game/boss/arenaRoomFight';
 import { ArenaFireView } from '../src/game/boss/arenaFire';
 import { arenaFireView } from './fake/arenaViews';
 import { ArenaFireSchema } from '@wildshard/format/encounterRows';

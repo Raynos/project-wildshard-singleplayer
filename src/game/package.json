@@ -293,6 +293,7 @@
     "./riding/hud": "./riding/hud.ts",
     "./riding/mount": "./riding/mount.ts",
     "./boss/arenaRoom": "./boss/arenaRoom.ts",
+    "./boss/arenaRoomFight": "./boss/arenaRoomFight.ts",
     "./looks/postGraphLook": "./looks/postGraphLook.ts",
     "./looks/scaledPost": "./looks/scaledPost.ts",
     "./grapple/tool": "./grapple/tool.ts",

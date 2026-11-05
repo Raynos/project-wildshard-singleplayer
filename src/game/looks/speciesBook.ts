@@ -1,6 +1,6 @@
 import { app } from '@wildshard/engine/app/runtime';
 import { thinkCrowdGuard } from '../ambient/crowdPage';
-import { arenaRoomSpeciesControl } from '../boss/arenaRoom';
+import { arenaRoomSpeciesControl } from '../boss/arenaRoomFight';
 import { eliteAct, eliteDamageMul, eliteThink } from '@wildshard/engine/entities/eliteBrain';
 import { ActorProjectionV2 } from '../population/actorProjectionV2';
 import { DirectedSpecies } from '../population/directedSpecies';
