@@ -22,6 +22,27 @@ export function prunable(deployments, { liveId, aliased, now }) {
       || (deployment.readySubstate === 'STAGED' && now - deployment.created > STAGED_GRACE_MS)));
 }
 
+/** Vercel answered, and the answer will not change on a retry. */
+class RefusedError extends Error {
+  name = 'RefusedError';
+}
+
+/** A timeout, a 429 or a 5xx is retried; a run that gives up names the request, so the warning says what to look at.
+ * @template T @param {string} label @param {() => Promise<T>} call
+ * @param {(milliseconds: number) => Promise<void>} [pause] @returns {Promise<T>} */
+export async function withRetries(label, call, pause = (milliseconds) => new Promise((resolve) => { setTimeout(resolve, milliseconds); })) {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      return await call();
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      if (error instanceof RefusedError || attempt >= 4) throw new Error(`${label}: ${reason} (attempt ${attempt})`, { cause: error });
+      console.log(`${label}: ${reason}; retrying`);
+      await pause(attempt * 5_000);
+    }
+  }
+}
+
 /** @param {string} name @returns {string} */
 function required(name) {
   const value = process.env[name];
@@ -32,16 +53,14 @@ function required(name) {
 async function main() {
   const token = required('VERCEL_BUILD_TOKEN'), team = required('VERCEL_ORG_ID'), project = required('VERCEL_PROJECT_ID');
   /** @param {string} path @param {string} [method] @returns {Promise<any>} */
-  const api = async (path, method = 'GET') => {
-    for (let attempt = 1; ; attempt += 1) {
-      const response = await fetch(`https://api.vercel.com${path}${path.includes('?') ? '&' : '?'}teamId=${team}`,
-        { method, headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(30_000) });
-      if (response.ok) return response.json();
-      if (method === 'DELETE' && response.status === 404) return undefined; // A parallel run's prune got there first.
-      if (attempt >= 4 || (response.status !== 429 && response.status < 500)) throw new Error(`${method} ${path}: HTTP ${response.status}`);
-      await new Promise((resolve) => { setTimeout(resolve, attempt * 5_000); });
-    }
-  };
+  const api = (path, method = 'GET') => withRetries(`${method} ${path}`, async () => {
+    const response = await fetch(`https://api.vercel.com${path}${path.includes('?') ? '&' : '?'}teamId=${team}`,
+      { method, headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(60_000) });
+    if (response.ok) return response.json();
+    if (method === 'DELETE' && response.status === 404) return undefined; // A parallel run's prune got there first.
+    const message = `HTTP ${response.status}`;
+    throw response.status === 429 || response.status >= 500 ? new Error(message) : new RefusedError(message);
+  });
   /** @param {string} path @param {string} key @returns {Promise<any[]>} */
   const pages = async (path, key) => {
     const rows = [];

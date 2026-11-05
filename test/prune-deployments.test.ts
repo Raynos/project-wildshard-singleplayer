@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { expect, test } from 'vitest';
-import { KEEP_PROMOTED, STAGED_GRACE_MS, prunable } from '../scripts/prune-deployments.mjs';
+import { KEEP_PROMOTED, STAGED_GRACE_MS, prunable, withRetries } from '../scripts/prune-deployments.mjs';
 import deploy from '../.github/workflows/deploy.yml?raw';
 
 const now = 1_000_000_000;
@@ -34,6 +34,20 @@ test('anything not understood stays', () => {
   const rows = [row('building', 9_000, 'PROMOTED', { state: 'BUILDING' }), row('preview', 9_000, 'PROMOTED', { target: null }),
     row('unknown', 9_000, 'ROLLED_BACK'), row('missing', 9_000, '', { readySubstate: undefined })];
   expect(prunable(rows, context)).toEqual([]);
+});
+
+const instant = () => Promise.resolve();
+
+test('a timed-out request is retried, which the first CI prune needed', async () => {
+  let calls = 0;
+  const call = () => { calls += 1; return calls < 3 ? Promise.reject(new Error('aborted due to timeout')) : Promise.resolve('listed'); };
+  await expect(withRetries('GET /list', call, instant)).resolves.toBe('listed');
+  expect(calls).toBe(3);
+});
+
+test('a run that gives up names the request', async () => {
+  await expect(withRetries('GET /list', () => Promise.reject(new Error('aborted due to timeout')), instant))
+    .rejects.toThrow('GET /list: aborted due to timeout (attempt 4)');
 });
 
 test('every stage prunes, so a red streak still clears stages, and a prune failure only warns', () => {
