@@ -76,6 +76,8 @@ export interface MoveResult {
   /** what the feet stand on (null in the air) — its owner tag says which piece */
   groundCollider: Collider | null;
 }
+/** Numbers in a flat `captureState`: the anchor, its body, and the last move's result. */
+export const MOTOR_WORDS = 10;
 interface MotorState {
   version: number; colliderHandle: number; filter: number; ghost: string; enabled: boolean; yaw: number;
   anchor: Vec3; anchorBodyHandle: number | null; climbAngle: number; slideAngle: number;
@@ -156,6 +158,25 @@ export class CharacterMotor {
       climbAngle: this.kcc.maxSlopeClimbAngle(), slideAngle: this.kcc.minSlopeSlideAngle(),
       result: { grounded: result.grounded, groundNormalY: result.groundNormalY, downhillX: result.downhillX, downhillZ: result.downhillZ,
         horizontalFreedom: result.horizontalFreedom, groundColliderHandle: result.groundCollider?.handle ?? null } };
+  }
+
+  /** What the next step reads of this motor (the deck it rides and the ground it last stood on) into a flat `out` at `at`,
+   *  for a predictor's ring (player/motionState.ts). It allocates nothing. A handle is -1 for none. */
+  captureState(out: Float64Array, at: number): void {
+    const { anchor: a, result: r } = this;
+    out[at] = a.x; out[at + 1] = a.y; out[at + 2] = a.z; out[at + 3] = this.anchorBody?.handle ?? -1;
+    out[at + 4] = Number(r.grounded); out[at + 5] = r.groundNormalY; out[at + 6] = r.downhillX; out[at + 7] = r.downhillZ;
+    out[at + 8] = r.horizontalFreedom; out[at + 9] = r.groundCollider?.handle ?? -1;
+  }
+  /** Put a `captureState` back. A body or collider the world has dropped since is let go. */
+  restoreState(from: Float64Array, at: number): void {
+    const { anchor: a, result: r } = this, { world } = this.physics, body = from[at + 3] ?? -1, ground = from[at + 9] ?? -1;
+    a.x = from[at] ?? 0; a.y = from[at + 1] ?? 0; a.z = from[at + 2] ?? 0;
+    // a handle's lookup boxes its number: the usual restore finds the wrapper it already holds
+    if ((this.anchorBody?.handle ?? -1) !== body) this.anchorBody = body !== -1 && world.bodies.contains(body) ? world.getRigidBody(body) : null;
+    r.grounded = from[at + 4] === 1; r.groundNormalY = from[at + 5] ?? 1; r.downhillX = from[at + 6] ?? 0; r.downhillZ = from[at + 7] ?? 0;
+    r.horizontalFreedom = from[at + 8] ?? 1;
+    if ((r.groundCollider?.handle ?? -1) !== ground) r.groundCollider = ground !== -1 && world.colliders.contains(ground) ? world.getCollider(ground) : null;
   }
 
   /** Prepare a motor in another world without retiring this one. World-bound ground/ride anchors are reacquired. */

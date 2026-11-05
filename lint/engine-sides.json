@@ -453,6 +453,7 @@
   "src/engine/client/player/MeleeSweep.ts": "client",
   "src/engine/shared/player/modes.ts": "shared",
   "src/engine/shared/player/motion.ts": "shared",
+  "src/engine/shared/player/motionState.ts": "shared",
   "src/engine/client/player/Player.ts": "client",
   "src/engine/shared/player/shove.ts": "shared",
   "src/engine/client/player/Skins.ts": "client",
