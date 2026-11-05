@@ -77,7 +77,7 @@ test('interact: the id a client names reaches the row for the player who sent it
   expect(host.flags.has('has:flint')).toBe(false);
   bot.client.act({ kind: 'interact', seq: 5, id: 'no.such.row' }); run(2);
   expect(bot.client.closed).toBeNull();
-  expect(room.stats.refused).toBe(0);
+  expect(room.stats.refused, 'an id no row answers to is counted, and ends nothing').toBe(1);
   room.dispose(); live.dispose();
 }, 60_000);
 
