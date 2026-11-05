@@ -210,6 +210,38 @@ test('required entry joined to pending passive metadata retries only typed defer
   } finally { f.close(); }
 });
 
+test.each(['radial', 'boulevard', 'explicit'] as const)('pending telemetry names %s metadata without claiming a world', async trigger => {
+  let begin = (): void => undefined, finish = (): void => undefined;
+  const began = new Promise<void>(resolve => { begin = resolve; });
+  const held = new Promise<void>(resolve => { finish = resolve; });
+  const f = await fixture({ beforeAdmit: () => { begin(); return held; } });
+  try {
+    const pending = f.live.prefetch([f.next.instance], trigger); await began;
+    expect(f.live.state().pending).toEqual([f.next.instance]);
+    expect(f.live.state().pendingWork).toEqual([{ instance: f.next.instance, kind: 'optional-metadata', trigger }]);
+    expect(f.created).toEqual([]);
+    finish(); await pending;
+    expect(f.live.state().pendingWork).toEqual([]);
+  } finally { finish(); f.close(); }
+});
+
+test('required entry telemetry keeps world and required metadata distinct', async () => {
+  let begin = (): void => undefined, finish = (): void => undefined;
+  const began = new Promise<void>(resolve => { begin = resolve; });
+  const held = new Promise<void>(resolve => { finish = resolve; });
+  const f = await fixture({ beforeAdmit: () => { begin(); return held; } });
+  try {
+    const pending = f.enter(f.home.instance); await began;
+    expect(f.live.state().pending).toEqual([f.home.instance]);
+    expect(f.live.state().pendingWork).toEqual([
+      { instance: f.home.instance, kind: 'world', trigger: 'entry' },
+      { instance: f.home.instance, kind: 'required-metadata', trigger: 'entry' },
+    ]);
+    finish(); await pending;
+    expect(f.live.state().pendingWork).toEqual([]);
+  } finally { finish(); f.close(); }
+});
+
 test('passive metadata corruption keeps its original refusal and is never promoted', async () => {
   const failure = new Error('Metadata hash mismatch'); let calls = 0;
   const f = await fixture({ beforeAdmit: () => { calls++; return Promise.reject(failure); } });

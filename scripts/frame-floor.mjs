@@ -28,6 +28,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node
 import { join, resolve as resolvePath } from 'node:path';
 import { createHash } from 'node:crypto';
 import { frameFloorStanding } from './frame-floor-standing.mjs';
+import { frameFloorPending } from './frame-floor-pending.mjs';
 import { createServer } from 'node:http';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { fixtureStorageCode, saveFixtureCode } from './debug-settings.mjs';
@@ -492,9 +493,17 @@ async function standingSample(driver, pose) {
     if (grid === undefined) return null;
     const live = grid.live?.live;
     return { pitch: grid.pitch, home: grid.home, cells: grid.cells,
-      current: live?.current ?? null, residents: live?.residents ?? [], pending: live?.pending ?? [], crossing: grid.live?.crossing?.phase ?? null };
+      current: live?.current ?? null, residents: live?.residents ?? [], pending: live?.pending ?? [],
+      pendingWork: live?.pendingWork, worldFeet: live?.worldFeet, gameplayReady: live?.gameplayReady,
+      crossing: grid.live?.crossing?.phase ?? null };
   })()`);
-  return { pose, ...value, ...assess(value, surface), scriptMemoryPool, ...(glFrames === undefined ? {} : { glByHook: glByHook(glFrames, []) }),
+  if (gridContext !== undefined && gridContext !== null) Object.assign(gridContext, frameFloorPending(gridContext));
+  const assessed = assess(value, surface);
+  // The caller-fixed junction bar does not treat the initial spawn's ordinary
+  // neighbour warm-up as a settled junction. Every later world/unknown request
+  // still refuses; only G872's evidenced optional metadata is listed apart.
+  const pendingPass = pose.name === 'spawn' || gridContext === undefined || gridContext === null || gridContext.pendingWorld.length === 0;
+  return { pose, ...value, ...assessed, pass: assessed.pass && pendingPass, scriptMemoryPool, ...(glFrames === undefined ? {} : { glByHook: glByHook(glFrames, []) }),
     ...(gridContext === undefined ? {} : {gridContext}),
     ...(cpuProfile === undefined ? {} : { cpuProfile }), ...(scriptProfile === undefined ? {} : { scriptProfile }) };
 }

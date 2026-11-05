@@ -101,6 +101,10 @@ export interface LiveGridState {
   retainedCell?: { readonly instance: string; readonly remainingMs: number; readonly playingBytes: number; readonly capBytes: number } | null;
   transitions: readonly { from: string | null; to: string | null }[];
   residents: readonly string[]; pending: readonly string[]; issues: Readonly<Record<string, string>>;
+  /** Exact request ownership, without changing the legacy pending union. A cancelled
+   * crossing may leave world construction running; settled alone cannot identify metadata. */
+  pendingWork: readonly { readonly instance: string; readonly kind: 'world' | 'required-metadata' | 'optional-metadata';
+    readonly trigger: 'entry' | 'explicit' | 'radial' | 'boulevard' }[];
   gameplayReady: boolean;
   continuations: { entries: number; storedChars: number; capacityChars: number; claimedBytes: number };
   /** O20: the latest region retirements, how long each one's checkpoint and disposal took (ms) */
@@ -174,7 +178,8 @@ export class LiveGridHost {
   private readonly products = new Map<string, LiveGridAdmission>();
   /** Verified render capability only; runtime import completion still gates products/readiness. */
   private readonly tileMetadata = new Set<string>();
-  private readonly productRequests = new Map<string, { work: Promise<LiveGridAdmission>; required: boolean }>();
+  private readonly productRequests = new Map<string, { work: Promise<LiveGridAdmission>; required: boolean;
+    trigger: 'entry' | 'explicit' | 'radial' | 'boulevard' }>();
   private readonly deferredProducts = new Map<string, number>();
   private readonly issues = new Map<string, string>();
   private readonly refusals = new Map<string, unknown>();
@@ -262,7 +267,7 @@ export class LiveGridHost {
     return resident !== undefined && !resident.evicting && !resident.disposalFailed && this.readiness.isReady(instance);
   }
   /** Submit whole-shard requests in stable order. Failed attempts remain closed until an explicit retry. */
-  prefetch(instances: readonly string[]): Promise<void> { return Promise.all([...new Set(instances)].sort().map((id) => this.residents.has(id) || (!this.disposed && this.constructing.has(id)) || this.deferredProducts.get(id) === this.ports.allocator.revision ? Promise.resolve() : this.prefetchProduct(id))).then(() => undefined); }
+  prefetch(instances: readonly string[], trigger: 'explicit' | 'radial' | 'boulevard' = 'explicit'): Promise<void> { return Promise.all([...new Set(instances)].sort().map((id) => this.residents.has(id) || (!this.disposed && this.constructing.has(id)) || this.deferredProducts.get(id) === this.ports.allocator.revision ? Promise.resolve() : this.prefetchProduct(id, false, trigger))).then(() => undefined); }
   private async requireProduct(instance: string, pending: Promise<LiveGridAdmission>): Promise<LiveGridAdmission> {
     try { return await pending; }
     catch (error) {
@@ -270,7 +275,7 @@ export class LiveGridHost {
       return this.prefetchProduct(instance, true);
     }
   }
-  private prefetchProduct(instance: string, required = false): Promise<LiveGridAdmission> {
+  private prefetchProduct(instance: string, required = false, trigger: 'entry' | 'explicit' | 'radial' | 'boulevard' = 'entry'): Promise<LiveGridAdmission> {
     this.assertAlive(); const cell = this.assembly.cell(instance);
     const product = this.products.get(instance); if (product !== undefined) return Promise.resolve(product);
     const pending = this.productRequests.get(instance);
@@ -299,7 +304,7 @@ export class LiveGridHost {
         throw error;
       } finally { this.productRequests.delete(instance); timing?.finish(); }
     })();
-    this.productRequests.set(instance, { work: request, required }); return request;
+    this.productRequests.set(instance, { work: request, required, trigger }); return request;
   }
   private tileApproach: { instance: string; tile: CellTile; controller: AbortController } | null = null;
   private transportApproach: { instance: string; controller: AbortController; work: Promise<void> } | null = null;
@@ -539,7 +544,7 @@ export class LiveGridHost {
     this.retireInactiveRegions();
     for (const cell of nearby) {
       const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell, feet);
-      if (this.assembly.approaching(distance, estimate.distance) && !this.issues.has(cell.instance) && this.ports.backgroundReady?.() !== false) void background(cell.instance, this.prefetch([cell.instance]), () => !this.disposed);
+      if (this.assembly.approaching(distance, estimate.distance) && !this.issues.has(cell.instance) && this.ports.backgroundReady?.() !== false) void background(cell.instance, this.prefetch([cell.instance], 'radial'), () => !this.disposed);
     }
     // Approach preparation owns render tiles only, never a regional world or gameplay hooks.
     const moving = !travelled ? undefined : candidates.find(cell => headsToEntry(cell, feet, previous)
@@ -572,7 +577,7 @@ export class LiveGridHost {
       }
       // Product metadata identifies bounded native alternatives even when the nearer opaque product filled
       // the radial prefetch count. This admits immutable products/modules, never their foundations.
-      for (const cell of boulevard) if (!this.issues.has(cell.instance)) void background(cell.instance, this.prefetch([cell.instance]), () => !this.disposed);
+      for (const cell of boulevard) if (!this.issues.has(cell.instance)) void background(cell.instance, this.prefetch([cell.instance], 'boulevard'), () => !this.disposed);
       // A unique next junction can prepare tiles. Equidistant sides wait for a turn.
       let predicted: GridCell | undefined, nextDistance = Infinity;
       for (const cell of boulevard) {
@@ -799,7 +804,10 @@ export class LiveGridHost {
       playingBytes: this.ports.allocator.ownerCost(last.instance).playing, capBytes: Math.min(CONTENT_CAPS.playing, policy.playingBytes) };
   }
   /** Read-only crossing evidence and failures for the real grid physics harness. */
-  state(): LiveGridState { return { current: this.active, worldFeet: this.worldFeet(), crossings: this.crossings, transitions: this.transitions.map((row) => ({ ...row })), residents: [...this.residents.keys()].sort(), pending: [...new Set([...this.requests.keys(), ...this.productRequests.keys()])].sort(), issues: Object.fromEntries(this.issues), gameplayReady: this.active === null || this.ports.gameplayReady(this.active), ...(this.ports.lastCell === undefined ? {} : { retainedCell: this.retainedState() }), retirements: this.retirements.map(row => ({ ...row })), retiring: [...this.retiring.keys()], ghosts: { count: this.ghosts.count(), regions: this.ghosts.regions() }, continuations: this.ports.continuations === 'durable' ? { entries: 0, storedChars: 0, capacityChars: 0, claimedBytes: 0 } : { ...this.saved.state(), claimedBytes: this.disposed ? 0 : GRID_CONTINUATION_CACHE_BYTES } }; }
+  state(): LiveGridState { return { current: this.active, worldFeet: this.worldFeet(), crossings: this.crossings, transitions: this.transitions.map((row) => ({ ...row })), residents: [...this.residents.keys()].sort(), pending: [...new Set([...this.requests.keys(), ...this.productRequests.keys()])].sort(), pendingWork: [
+    ...[...this.requests.keys()].sort().map(instance => ({ instance, kind: 'world' as const, trigger: 'entry' as const })),
+    ...[...this.productRequests].sort(([a], [b]) => a.localeCompare(b)).map(([instance, request]) => ({ instance, kind: request.required ? 'required-metadata' as const : 'optional-metadata' as const, trigger: request.trigger })),
+  ], issues: Object.fromEntries(this.issues), gameplayReady: this.active === null || this.ports.gameplayReady(this.active), ...(this.ports.lastCell === undefined ? {} : { retainedCell: this.retainedState() }), retirements: this.retirements.map(row => ({ ...row })), retiring: [...this.retiring.keys()], ghosts: { count: this.ghosts.count(), regions: this.ghosts.regions() }, continuations: this.ports.continuations === 'durable' ? { entries: 0, storedChars: 0, capacityChars: 0, claimedBytes: 0 } : { ...this.saved.state(), claimedBytes: this.disposed ? 0 : GRID_CONTINUATION_CACHE_BYTES } }; }
   /** Return the traveller to its page world before retiring regions. Failed disposals keep their full claims
    * and can be retried; the neutral highway disposer never owns the page physics or latest traveller motor. */
   dispose(): void {

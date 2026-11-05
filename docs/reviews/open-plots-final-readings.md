@@ -31,7 +31,7 @@ Clockwork, Floating Island Race, Desert and Showcase are admitted on
 | Sky Harbor | `open-plot-4-4` / (2,2) | `a8593f8ac6` / `a8593f8-mw176ax3` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
 | Starfall Observatory | `open-plot-3-4` / (1,2) | `aa33a361f5` / `aa33a36-mw17vdnh` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + standalone/grid official Sim complete |
 | Thin Ice | `open-plot-1-4` / (-1,2) | `6ce898ee5f`; admitted `6ce898e-mw1buojk`, fresh Sim `6ce898e-mw1fktul` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + fresh-process standalone/grid official Sim complete; original refusal retained |
-| Clockwork Canyon | `open-plot-4-3` / (2,1) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Chromium memory complete; clean standalone Sim 3 windows pass; grid configuration refusal retained (Safari purge; native-tap check queued); full official scope open |
+| Clockwork Canyon | `open-plot-4-3` / (2,1) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Chromium memory complete; native-tap official 8 windows and native envelopes pass; final Nalati pending witness refuses full scope; old Safari purge refusal retained |
 | Floating Island Race | `open-plot-2-0` / (0,-2) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, walk 0 stuck/out, goldens 8/8; accepted Far Reach neighbour state | Chromium memory complete; official Sim open |
 | Desert Ruin | `open-plot-3-0` / (1,-2) | `b752d49037`; C `b752d49-mw26ziu7`, walk/goldens `b752d49-mw2bzahj` | Complete: C/control, both walk legs 0 stuck/out, goldens 8/8; approved Nine neighbour change | Chromium memory complete; official Sim open |
 | Pastel Alien Plain | `open-plot-4-0` / (2,-2) | `5fcb0ac75a`; admitted `5fcb0ac-mw1c7hz2`, fresh Sim `5fcb0ac-mw1gxenk` | Complete: C/control, walk 0 stuck/out, goldens 8/8 | Memory + fresh-process standalone/grid official Sim complete |
@@ -1884,3 +1884,57 @@ Raw presence-only traces and offline log summaries are retained under
 22:02:03 UTC and all resources were released before the next lane's slot.
 It earns no floor/memory credit; the four full officials stay open and
 **6/10 fully qualified** remains unchanged.
+
+
+## Clockwork — native interaction passes, pending witness refuses (sp-x1, November 5 UTC)
+
+The approved real interaction was performed on a static preparation page
+before any game visit on fresh **1bc5e17-mw2sn5v1** (:4463), source
+**1bc5e1758a41f7324af1d9d2796844b50a35835c**. The tap was trusted, with
+active and historical user activation. Safari's ITP interaction timestamp
+advanced from 1793836950.625744 to 1793837745.2984 at **00:15:45 UTC**;
+its removal count stayed **16**. Tracking prevention was unchanged. The
+original configuration/readback gates passed for standalone and grid,
+without late fixture reseeding. A prior untimed tap diagnostic retained
+the fixtures on disk but timed out reading the final grid through Inspector;
+it earned no gameplay, floor or memory credit.
+
+The original official command completed in **90.534 s**, raw complete/pass:
+**8 × 120 frames, zero skips, 30.303 fps, p95 34 ms**, all floor PASS.
+The strict 33.3 ms flags remain false. Native-plus-GPU-ledger envelopes were
+**330.281 / 460.127 MB** standalone playing/loading and
+**938.032 / 855.803 MB** pooled grid. Phase coverage was **222/31** and
+**372/80** native samples, with **46/77** GPU samples and no Inspector
+errors. Pooled memory has no per-shard 1.2 GB cap (G556); logical pool
+capacity is not added again. The reader source fence was exact.
+
+Full qualification nevertheless **refused**: the final junction 135-degree
+witness listed `pending=[nalati-grasslands]`, although all four expected
+near views were drawn and the crossing was settled. The cohort stopped;
+Desert, Race and Showcase were not started. Resources were released at
+**00:17:21.651 UTC**: Simulator zero, quiet marker absent, model lock free,
+browser inventory zero, own preview stopped normally. Full cohorts stay
+**6/10**. Raw data and source-bound offline analysis are retained under
+`tmp/sp-x1-open-plots/audio4-native-interaction-officials/clockwork-canyon/`.
+
+The retained 500 ms native/GPU series shows Driftwood resident through
+page **44.481 s**, gone at **44.993 s**, then Nalati pending at **45.499 s**.
+The road departure was between **14.536 and 15.040 s**. Production
+`liveSession.ts:269` retains a departed world for 30 s; its expiry releases
+charged costs. `live.ts:265,295,527-542` permits optional radial metadata
+to retry after the allocator revision changes. This strongly supports a
+background-admission retry after that expiry, rather than a missing entered
+world: the player stays in the neutral highway frame, 44.194 m outside
+Nalati, with its near view drawn. The raw record does not distinguish the
+two pending maps, capture the triggering revision, or retain the last
+request's eventual outcome; those facts are not invented.
+
+Wildshard-new's **G872 junction ruling (November 4 local time)** lists
+optional radial product-metadata admission outside the neighbour separately,
+with its trigger; world, entered-content and visible-tile requests stay
+strict. The reader records actual request-map kinds through additive
+read-only telemetry and defaults unknown/old union-only records to blocking.
+A settled crossing alone cannot establish optional work: a cancelled
+construction may still be in flight. The retained 1bc5 result lacks the
+necessary kinds and therefore remains unqualified, with no rerun or raw
+repinning in this window. Related checks passed 7 files / 97 cases in
