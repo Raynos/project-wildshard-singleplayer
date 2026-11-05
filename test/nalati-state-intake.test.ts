@@ -26,7 +26,8 @@ import { createShardProduct } from '../src/game/shardfile/shardProduct';
 import { nodeNamedJsonCheck } from '../src/game/shardfile/outputChecksNode';
 import { ReturnProgram } from '../src/game/population/returnProgram';
 import {ReturnModulesSchema} from '@wildshard/format/scriptContract';
-import * as room from '../src/game/boss/arenaRoom';
+import * as room from '../src/game/boss/arenaRoomView';
+import type { ArenaRoomEncounter } from '../src/game/boss/arenaRoom';
 import { readNalatiProject } from './fixtures/nalati-project';
 import { fakeWorld } from '@wildshard/engine/test/world';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
@@ -68,7 +69,7 @@ test('the shipped world assembly King intake retains its attack owner before wea
   const realConstruct=WorldAssembly.construct.bind(WorldAssembly);
   const construct=vi.spyOn(WorldAssembly,'construct').mockImplementation((input,ports)=>realConstruct({stages:v.parse(WorldAssemblySchema,input).stages.filter(stage=>stage.kind==='arena-room'&&'mode' in stage)},ports));
   const dressing=vi.spyOn(SceneDressing,'current').mockReturnValue(legacyDouble<SceneDressing>({pieces:new Map()}));
-  const king=vi.spyOn(room,'buildArenaRoomEncounter').mockImplementation((_ctx,_rows,input)=>{
+  const king=vi.spyOn(room,'buildArenaRoomEncounter').mockImplementation((_owner,_ctx,_rows,input)=>{
     const row=v.parse(v.object({program:v.unknown()}),input);selected=ReturnProgram.page(row.program,scope);throw stop;
   });
   try{
@@ -79,4 +80,3 @@ test('the shipped world assembly King intake retains its attack owner before wea
   }finally{king.mockRestore();dressing.mockRestore();construct.mockRestore();prepare.mockRestore();scope.dispose();}
 });
 
-type ArenaRoomEncounter=room.ArenaRoomEncounter;

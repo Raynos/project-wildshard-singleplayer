@@ -10,7 +10,7 @@ import type { Player } from '../../../src/engine/player/Player';
 import * as THREE from 'three';
 import { GOLDEN_KING, bindGoldenKing } from './goldenKingControl';
 import { BALBAL as KURGAN_BALBAL } from '../originalBalbal';
-import type { BossArenaRoom } from '../../../src/game/boss/arenaRoom';
+import type { BossArenaRoom } from '../../../src/game/boss/arenaRoomView';
 import { DUNGEON, CH, COFFIN, PEDESTAL, NICHES, STREAMS, CHECKPOINT } from '../../../src/shards/nalati-grasslands/generators/kurganLayout';
 import type { BossScript } from '../../../src/engine/ai/BossBrain';
 import { KING_DEF_PHASES, KING_LINES, KING_TUNING } from '../../../src/shards/nalati-grasslands/generators/goldenKingFight';

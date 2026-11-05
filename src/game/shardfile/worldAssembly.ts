@@ -2,7 +2,8 @@ import { clientWaterSurfaces } from './clientWaterSurfaces';
 import { SceneDressing } from './sceneDressing';
 import { bindClientPlaceSets } from './clientPlaceSets';
 import { installFixedDrawsStage, installPaintedReseedStage, installPaintedWorldStage } from './paintedWorldStages';
-import {buildArenaRoomEncounter} from '../boss/arenaRoom';
+import {ArenaRoomEncounter} from '../boss/arenaRoom';
+import {buildArenaRoomEncounter} from '../boss/arenaRoomView';
 import type { ShardContext } from '../plugin/context';
 import { TIER } from '@wildshard/engine/core/tier';
 import { gpuOnlyTrees } from '@wildshard/engine/core/gpuOnly';
@@ -358,10 +359,10 @@ export class WorldAssembly {
         vacant();
         const data = v.parse(v.strictObject({room:v.unknown(),encounter:v.unknown()}), await product.json<unknown>(stage.file)); unchanged();
         const entrance = dressing.pieces.get(stage.entrance.part)?.anchors[stage.entrance.anchor]?.[0] ?? null;
-        const encounter = await buildArenaRoomEncounter(ctx, data.room, data.encounter, draws, entrance); unchanged(); vacant();
+        const encounter = await buildArenaRoomEncounter(ArenaRoomEncounter, ctx, data.room, data.encounter, draws, entrance); unchanged(); vacant();
         publishEntryOwner(scope, 'arena-room', stage.id, encounter); publishEntryOwner(scope, 'object', stage.id, encounter.dungeon.group);
       } else {
-        const encounter = await buildArenaRoomEncounter({kind:'open',ports:this.ports,rows:stage}); live(); publishEntryOwner(scope,'arena-room',stage.id,encounter);
+        const encounter = await buildArenaRoomEncounter(ArenaRoomEncounter,{kind:'open',ports:this.ports,rows:stage}); live(); publishEntryOwner(scope,'arena-room',stage.id,encounter);
       }
       return;
     }

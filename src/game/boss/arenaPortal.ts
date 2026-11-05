@@ -2,7 +2,7 @@
  * The arena room portal's decisions, renderer-free (CI12: the Nalati chapter reads `arena.inside` natively). The admitted
  * portal program decides at 10 Hz from what the room observes (the player against the room's volume, chamber sand and
  * floor, the entrance, whether the boss is engaged) whether to enter, leave (2: leave by teleport) or slow the player;
- * an entry or a teleporting exit first fades for `hold` seconds. `ArenaRoomPortal` (arenaRoom.ts) keeps the room's scene,
+ * an entry or a teleporting exit first fades for `hold` seconds. `ArenaRoomPortal` (arenaRoomView.ts) keeps the room's scene,
  * the player's move and the boss, and calls this with the same arithmetic in the same order.
  *
  *   const law = new ArenaPortalLaw(program, rows, entrance);

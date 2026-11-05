@@ -15,7 +15,8 @@ import type { ShardRuntime } from '../src/game/shard/runtime';
 import { createShardProduct, type ShardProduct } from '../src/game/shardfile/shardProduct';
 import { entryOwner } from '../src/game/shardfile/entryOwners';
 import { SceneDressing } from '../src/game/shardfile/sceneDressing';
-import * as arena from '../src/game/boss/arenaRoom';
+import * as arena from '../src/game/boss/arenaRoomView';
+import type { ArenaRoomEncounter } from '../src/game/boss/arenaRoom';
 import { emptyShardfile } from '../src/sdk/author';
 import { WorldAssembly, type WorldConstructionPorts } from '../src/game/shardfile/worldAssembly';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
@@ -145,7 +146,7 @@ function roomFixture(){
   const dressing=legacyDouble<SceneDressing>({pieces:new Map([['garden',piece]])});
   const borrowed=vi.spyOn(SceneDressing,'current').mockReturnValue(dressing),group=new Group();
   // Promise resolution inspects this proxy; all actual class reads remain strict.
-  const encounter=new Proxy(legacyDouble<arena.ArenaRoomEncounter>({dungeon:legacyDouble<arena.ArenaRoomEncounter['dungeon']>({group})}),{get(target,key,receiver):unknown{return key==='then'?undefined:Reflect.get(target,key,receiver);}});
+  const encounter=new Proxy(legacyDouble<ArenaRoomEncounter>({dungeon:legacyDouble<ArenaRoomEncounter['dungeon']>({group})}),{get(target,key,receiver):unknown{return key==='then'?undefined:Reflect.get(target,key,receiver);}});
   const build=vi.spyOn(arena,'buildArenaRoomEncounter').mockResolvedValue(encounter);
   return{...f,ctx,product,data,reads,entrance,encounter,group,build,borrowed,ports:{...f.ports,product},afterRead:(run:()=>void)=>{afterRead=run;}};
 }
@@ -156,9 +157,9 @@ test('a room stage passes the original fight, draws and facing before publishing
     await WorldAssembly.construct(roomRows,f.ports);
     expect(f.reads).toEqual(['room']);
     expect(f.build).toHaveBeenCalledTimes(1);const call=f.build.mock.calls[0];if(call===undefined)throw new Error('Missing room build');
-    expect(call[0]).toBe(f.ctx);expect(call[1]).toEqual(f.data.room);
-    expect(call[2]).toEqual(f.data.encounter);
-    expect(call[3]).toBe(f.draws);expect(call[4]).toBe(f.entrance);
+    expect(call[1]).toBe(f.ctx);expect(call[2]).toEqual(f.data.room);
+    expect(call[3]).toEqual(f.data.encounter);
+    expect(call[4]).toBe(f.draws);expect(call[5]).toBe(f.entrance);
     expect(entryOwner(f.scope,'arena-room','orchard.room')).toBe(f.encounter);
     expect(entryOwner(f.scope,'object','orchard.room')).toBe(f.group);
     const entered=f.scope.child('room-entry');WorldAssembly.lend(roomRows,f.scope,entered);

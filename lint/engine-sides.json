@@ -824,15 +824,14 @@
    "mixed": true
   },
   "src/game/boss/arenaAnswers.ts": "server",
-  "src/game/boss/arenaCollision.ts": "server",
+  "src/game/boss/arenaCollision.ts": "shared",
   "src/game/boss/arenaFire.ts": "client",
-  "src/game/boss/arenaGround.ts": "server",
-  "src/game/boss/arenaPortal.ts": "server",
-  "src/game/boss/arenaRoom.ts": {
-   "side": "server",
-   "mixed": true
-  },
+  "src/game/boss/arenaGround.ts": "shared",
+  "src/game/boss/arenaPortal.ts": "shared",
+  "src/game/boss/arenaRoom.ts": "server",
   "src/game/boss/arenaRoomFight.ts": "server",
+  "src/game/boss/arenaRoomRows.ts": "shared",
+  "src/game/boss/arenaRoomView.ts": "client",
   "src/game/boss/arenaWhirls.ts": "server",
   "src/game/boss/continuation.ts": "server",
   "src/game/boss/encounterView.ts": "client",

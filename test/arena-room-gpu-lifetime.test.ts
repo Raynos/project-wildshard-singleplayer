@@ -12,7 +12,8 @@ import { resolve as resolvePath } from 'node:path';
 import { Scope } from '../src/engine/app/scope';
 import { withOwner } from '../src/engine/app/ownership';
 import { WorldRegistry } from '../src/engine/world/registry';
-import { buildArenaRoomEncounter } from '../src/game/boss/arenaRoom';
+import { ArenaRoomEncounter } from '../src/game/boss/arenaRoom';
+import { buildArenaRoomEncounter } from '../src/game/boss/arenaRoomView';
 import type { ShardContext } from '../src/game/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { SHAPES } from './fixtures/nalatiShapes';
@@ -47,7 +48,7 @@ async function installed() {
     const handle = SHAPES.handle(id);
     return { ...handle, copy: () => { const geometry = handle.copy();copies.set(id, geometry);return geometry; } };
   } };
-  const encounter = await withOwner(scope, () => buildArenaRoomEncounter(ctx, { ...room, view }, encounterRows, draws, null));
+  const encounter = await withOwner(scope, () => buildArenaRoomEncounter(ArenaRoomEncounter, ctx, { ...room, view }, encounterRows, draws, null));
   return { scope, scene, registry, copies, encounter, dispose: () => {
     scope.dispose();for (const geometry of copies.values()) geometry.dispose();
     encounter.dungeon.group.traverse(node => { if (node instanceof Mesh) { const material: unknown = node.material;if (material instanceof Material) material.dispose(); } });

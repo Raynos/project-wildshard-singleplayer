@@ -1,5 +1,5 @@
 /** The arena room's sim half (P1-E4.2): its row-driven fight and the brain each body runs. Its looks are the view half's
- *  (arenaRoom.ts `arenaRoomViews`), passed in; nothing here draws. */
+ *  (arenaRoomView.ts `arenaRoomViews`), passed in; nothing here draws. */
 import { Vector3 } from 'three';
 import * as v from 'valibot';
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
@@ -15,7 +15,7 @@ import { ArenaRoomSpeciesControlSchema } from '@wildshard/format/speciesBookRows
 import { bossFight, type BossViewBinding, type PhasedBossBrain, type PhasedBossFight } from '../plugin/bossPhase';
 import type { ShardContext } from '../plugin/context';
 import { bindRuntimeBoss } from '../plugin/headless';
-import type { BossArenaRoom } from './arenaRoom';
+import type { BossArenaRoom } from './arenaRoomView';
 
 const finite = v.pipe(v.number(), v.finite());
 const rowId = v.pipe(v.string(), v.minLength(1), v.maxLength(512));

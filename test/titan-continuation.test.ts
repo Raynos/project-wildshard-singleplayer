@@ -8,6 +8,7 @@ import { lendNalatiPasture } from './fixtures/nalati-return-modules';
 import { nalatiViewBytes } from './fixtures/nalati-view-modules';
 import { titanPrograms as programs } from './fixtures/titanInlineWitness';
 import { ArenaRoomEncounter, type OpenArenaWorld } from '../src/game/boss/arenaRoom';
+import { ARENA_ROOM_PAGE } from '../src/game/boss/arenaRoomView';
 import { bindArenaPoseView } from './fixtures/native-hosts/boss/arenaPoseView';
 import type { OpenArenaFight, OpenArenaFightSnapshot } from '../src/game/boss/openArenaFight';
 import { app } from '../src/engine/app/runtime';
@@ -49,7 +50,7 @@ function fight(scope: Scope, view: 'page' | 'native'): { fight: OpenArenaFight; 
   lendNalatiPasture(scope);
   const data = parseArenaScriptData({ ...titanFightOwners, arenaScript: titan.TITAN_HOST, arenaFire: fireView, programs: { attack: programs.attack, wind: programs.wind } }, geometry);
   const weather = legacyDouble<OpenArenaWorld['weather']>({ flash: 0, raise: () => undefined, stormActive: true });
-  const owner = new ArenaRoomEncounter({ kind: 'open', world: { game, player: f.player, weather, air: legacyDouble<OpenArenaWorld['air']>({}), tieSpot: null }, rows: data });
+  const owner = new ArenaRoomEncounter({ kind: 'open', page: ARENA_ROOM_PAGE, world: { game, player: f.player, weather, air: legacyDouble<OpenArenaWorld['air']>({}), tieSpot: null }, rows: data });
   const rows = nalatiTitanView(), module = nalatiViewBytes('titan-view'), camera = new PerspectiveCamera();
   if (view === 'native') bindArenaPoseView(owner.openFight, module, rows, { scope, player: f.player, camera });
   else {

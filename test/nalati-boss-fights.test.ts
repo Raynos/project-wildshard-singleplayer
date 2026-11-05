@@ -11,7 +11,8 @@ import type { ModelDef } from '../src/engine/models/model';
 import { currentOwner } from '../src/engine/app/ownership';
 import finishes from '../src/shards/nalati-grasslands/data/skinFinishes.json' with {type:'json'};
 import {lendNalatiPasture} from './fixtures/nalati-titan-loan';
-import { ArenaRoomEncounter, arenaRoomViews, type OpenArenaWorld } from '../src/game/boss/arenaRoom';
+import { ArenaRoomEncounter, type OpenArenaWorld } from '../src/game/boss/arenaRoom';
+import { ARENA_ROOM_PAGE, arenaRoomViews } from '../src/game/boss/arenaRoomView';
 import { arenaRoomFight } from '../src/game/boss/arenaRoomFight';
 import type { Animal } from '../src/engine/entities/AnimalView';
 import { eliteDamageMul } from '../src/engine/entities/eliteBrain';
@@ -156,10 +157,10 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
     if(malformed==='retain')invalid.clocks.frame.retain['hostile']='missing';
     if(malformed==='clear'){const first=invalid.clocks.landings[0];if(first===undefined)throw new Error('Missing landing');delete invalid.clocks.clear[first.on];}
     if(malformed==='alias'){const first=invalid.clocks.landings[0],second=invalid.clocks.landings[1];if(first===undefined||second===undefined)throw new Error('Missing landing rows');second.on=first.on;}
-    expect(()=>new ArenaRoomEncounter({kind:'open',world:{game,player:f.player,weather:weather.weather,air:weather.air,tieSpot:null},rows:invalid})).toThrow('Invalid encounter clock bank');
+    expect(()=>new ArenaRoomEncounter({kind:'open',page:ARENA_ROOM_PAGE,world:{game,player:f.player,weather:weather.weather,air:weather.air,tieSpot:null},rows:invalid})).toThrow('Invalid encounter clock bank');
   }
   const invalidSnapshot=structuredClone(data);invalidSnapshot.script.fight.retainEvents.tell.bend='missing';
-  expect(()=>new ArenaRoomEncounter({kind:'open',world:{game,player:f.player,weather:weather.weather,air:weather.air,tieSpot:null},rows:invalidSnapshot})).toThrow('Missing projection state slot');
+  expect(()=>new ArenaRoomEncounter({kind:'open',page:ARENA_ROOM_PAGE,world:{game,player:f.player,weather:weather.weather,air:weather.air,tieSpot:null},rows:invalidSnapshot})).toThrow('Missing projection state slot');
   for(const bad of ['intro-clock-channel','clock-event','support-slot','member-slot','gate-slot','gate-input','gate-event','support-actors','support-commit','support-commit-finite','support-memory','whirl-slot','field-channel','field-signal']){
     const invalid=structuredClone(data);
     if(bad==='intro-clock-channel')invalid.script.fight.retainEvents.introClock.zzzzIntroTick='missing';
@@ -176,11 +177,11 @@ test.each([false,true])('arena script runs mounted phases, exposes its heart and
     if(bad==='whirl-slot'){const row=invalid.whirls.laws[0];if(row===undefined)throw new Error('Missing whirl');row.retain={missing:'missing'};}
     if(bad==='field-channel')invalid.field.channels.lifetime='missingChannel';
     if(bad==='field-signal')invalid.field.signals.activate='missingEvent';
-    expect(()=>new ArenaRoomEncounter({kind:'open',world:{game,player:f.player,weather:weather.weather,air:weather.air,tieSpot:null},rows:invalid})).toThrow();
+    expect(()=>new ArenaRoomEncounter({kind:'open',page:ARENA_ROOM_PAGE,world:{game,player:f.player,weather:weather.weather,air:weather.air,tieSpot:null},rows:invalid})).toThrow();
   }
   expect(allocate).not.toHaveBeenCalled();expect(add).not.toHaveBeenCalled();allocate.mockRestore();add.mockRestore();
   const intake=vi.spyOn(ReturnProgram,'page');
-  const owner = new ArenaRoomEncounter({kind:'open',world:{ game,player: f.player,weather: weather.weather,air: weather.air,tieSpot: null },rows:data});
+  const owner = new ArenaRoomEncounter({kind:'open',page:ARENA_ROOM_PAGE,world:{ game,player: f.player,weather: weather.weather,air: weather.air,tieSpot: null },rows:data});
   expect(intake.mock.calls).toStrictEqual([[data.programs.attack,scope],[data.programs.wind,scope]]);intake.mockRestore();
   verifyOpenArenaEntry(owner,scope);
   const riders = new PatrolEncounterView({ patrol: night.patrol,motion: night.motion,view: parse(PatrolViewSchema,night.ride) },ReturnProgram.page(night.program,scope),

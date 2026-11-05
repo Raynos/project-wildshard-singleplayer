@@ -2,12 +2,12 @@
  * An arena room's ground, renderer-free (CI12: the Nalati chapter tape observes the Golden King's kurgan natively): where
  * the chamber, the dromos and the room's volume are, the walkable floor (the drifted sand over the chamber floor, the coffin
  * plinth, the pedestal's step and the fallen beams' round tops) and the sand drifts themselves, piled, drained and cleared
- * by the fight, with the 15 Hz clock that publishes them. `BossArenaRoom` (arenaRoom.ts) keeps the drawn grid and the
+ * by the fight, with the 15 Hz clock that publishes them. `BossArenaRoom` (arenaRoomView.ts) keeps the drawn grid and the
  * walkable patch and writes them when `pace` says a write is due; every number is the room's as before.
  *
  *   const ground = new ArenaRoomGround(rows);   ground.addSand(1, 2, 1.5, .3);   ground.floorAt(x, z);   ground.snapshot();
  */
-import type { ArenaRoomRows } from './arenaRoom';
+import type { ArenaRoomRows } from './arenaRoomRows';
 
 type GroundRows = Pick<ArenaRoomRows, 'origin' | 'halfWidth' | 'corridorHalfWidth' | 'corridorEnd' | 'cover' | 'pedestal' | 'beams' | 'sandCells'>;
 interface Point { readonly x: number; readonly y: number; readonly z: number }

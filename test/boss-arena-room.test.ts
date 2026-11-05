@@ -9,7 +9,8 @@ import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { Color, MeshBasicMaterial, Scene, Vector3, BoxGeometry, BufferGeometry, PlaneGeometry, Float32BufferAttribute, PerspectiveCamera, Group, InstancedMesh } from 'three';
-import { ArenaRoomEncounter, ArenaRoomPortal, BossArenaRoom, arenaRoomViews } from '../src/game/boss/arenaRoom';
+import { ArenaRoomEncounter } from '../src/game/boss/arenaRoom';
+import { ARENA_ROOM_PAGE, ArenaRoomPortal, BossArenaRoom, arenaRoomViews, sliceArenaRoom } from '../src/game/boss/arenaRoomView';
 import { ArenaFightPageSchema } from '../src/game/boss/arenaRoomFight';
 import { ArenaFireView } from '../src/game/boss/arenaFire';
 import { arenaFireView } from './fake/arenaViews';
@@ -102,8 +103,8 @@ test('the reed vault portal owns fade, isolation, floor recovery and exit placem
  const entrance = { x: 200,y: 2,z: 200,facing: 0 };
  const encounter = new ArenaRoomEncounter(room,{ definition: { ...v.parse(BossEncounterDefinitionSchema,king.encounter),id: 'reed-warden',name: 'The Reed Warden' },reward: { tier: 'RARE',name: 'Reed bow',flavour: '',prompt: 'TAKE REED BOW' },
   page: { ...v.parse(ArenaFightPageSchema,king.page),body: 'marsh.warden',add: { kind: 'reed-guard',variant: 'green',memory: {} } },portal: portalRows,program: titan.rules,
-  client: { light: { colour: 0x88bb77,drop: 5 },prewarm: { kind: 'reed-guard',variant: 'green' },system: 'marsh.warden.power',debugZ: 9 } },entrance);
- await encounter.buildSliced({ scene: game.scene,registry: new WorldRegistry() });
+  client: { light: { colour: 0x88bb77,drop: 5 },prewarm: { kind: 'reed-guard',variant: 'green' },system: 'marsh.warden.power',debugZ: 9 } },entrance,ARENA_ROOM_PAGE);
+ await sliceArenaRoom(encounter,room,{ scene: game.scene,registry: new WorldRegistry() });
  expect(encounter.spareLight.position.toArray()).toEqual([30,15,40]); expect(game.scene.children).toContain(room.group);
  // The declaration borrows this actual world-built room; it never reconstructs it.
  const entryScope=new Scope('reed.entry'),ctx=legacyDouble<ShardContext>({scope:entryScope});

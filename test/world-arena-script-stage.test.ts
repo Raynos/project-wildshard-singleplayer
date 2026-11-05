@@ -1,6 +1,7 @@
 import { titanFightOwners } from './fixtures/titanFightOwners';
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import { ArenaRoomEncounter } from '../src/game/boss/arenaRoom';
+import { ARENA_ROOM_PAGE } from '../src/game/boss/arenaRoomView';
 import { readArenaScriptData } from '../src/game/boss/openArenaFight';
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
@@ -124,7 +125,7 @@ test('the real original constructor, storm, air, point, AS state and random cont
   try {
     const data = await readArenaScriptData(baseline.product, row.files), storm = baseline.rig.storm;
     if (storm === null) throw new Error('Missing actual weather reactions');
-    const original = new ArenaRoomEncounter({kind:'open',world:{ game: baseline.game, player: baseline.world.player, weather: storm, air: baseline.rig.weather, tieSpot: baseline.point },rows: data});
+    const original = new ArenaRoomEncounter({kind:'open',page:ARENA_ROOM_PAGE,world:{ game: baseline.game, player: baseline.world.player, weather: storm, air: baseline.rig.weather, tieSpot: baseline.point },rows: data});
     const originalShapes = shapes(baseline.game.scene), after = random.snapshot(); random.restore(before);
     const f = fixture();
     try {

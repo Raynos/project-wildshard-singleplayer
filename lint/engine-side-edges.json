@@ -4,9 +4,9 @@
   "client → server": 454,
   "cook → client": 2,
   "cook → render": 1,
-  "server → client": 168,
+  "server → client": 152,
   "server → dom": 2,
-  "server → render": 7,
+  "server → render": 6,
   "shared → client": 3,
   "shared → dom": 1,
   "shared → server": 1
@@ -203,10 +203,6 @@
   },
   "src/game/boss/arenaFire.ts": {
    "client → server": 1
-  },
-  "src/game/boss/arenaRoom.ts": {
-   "server → client": 16,
-   "server → render": 1
   },
   "src/game/boss/encounterView.ts": {
    "client → server": 6

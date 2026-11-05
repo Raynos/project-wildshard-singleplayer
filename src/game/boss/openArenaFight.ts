@@ -123,7 +123,7 @@ const _openV = new THREE.Vector3(), _openRAY = new THREE.Ray(), _openSPH = new T
 /** The open arena's fight (Nalati's Storm Titan) as numbers and rules: its life, clocks, support riders, grass fire,
  *  whirlwinds, spear and chains, the heart as a target and its damage. Its looks are ports the page fills (the cloud body,
  *  the arena's tells and lanes, the fire, the scorch and the whirl funnels) and the Node simulation fills with its own;
- *  moved from arenaRoom.ts unchanged, so the page fights the same numbers in the same order. */
+ *  moved from the encounter unchanged, so the page fights the same numbers in the same order. */
 export class OpenArenaFight implements BossScript {
   private readonly data: ArenaScriptData;
   readonly body: ArenaBodyPort;

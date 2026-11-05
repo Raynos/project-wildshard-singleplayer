@@ -1,4 +1,4 @@
-import { BossArenaRoom } from '../../src/game/boss/arenaRoom';
+import { BossArenaRoom } from '../../src/game/boss/arenaRoomView';
 import room from '../../src/shards/nalati-grasslands/data/bossArenaRoom.json' with { type: 'json' };
 import view from '../../src/shards/nalati-grasslands/data/kurganView.json' with { type: 'json' };
 import { SHAPES } from '../fixtures/nalatiShapes';

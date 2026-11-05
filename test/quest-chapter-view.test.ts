@@ -4,6 +4,7 @@ import {ReturnProgram} from '../src/game/population/returnProgram';
 import {carriedPropFiles,carriedPropBytes} from './fixtures/carriedPropFiles';
 import {lendNalatiPasture,lendNalatiKokpar} from './fixtures/nalati-return-modules';
 import { type OpenArenaWorld, ArenaRoomEncounter } from '../src/game/boss/arenaRoom';
+import { ARENA_ROOM_PAGE } from '../src/game/boss/arenaRoomView';
 // @vitest-environment happy-dom
 import { expect, test, vi, afterEach } from 'vitest';
 import * as v from 'valibot';
@@ -96,8 +97,8 @@ function fixture() {
   vi.spyOn(bindings, 'enteredAdventurePersistence').mockReturnValue(legacyDouble<ReturnType<typeof bindings.enteredAdventurePersistence>>({ kill }));
   const rows = v.parse(ChapterViewSchema, { npcs: content.npcs, places: content.places, program: guest.program, view });
   json.mockResolvedValueOnce({}).mockResolvedValueOnce(rows).mockResolvedValueOnce(carriedQuestRows);
-  const arena = new ArenaRoomEncounter(bossArena(), { ...king, definition: king.encounter, program: programs.rules }, null);
-  const fight = new ArenaRoomEncounter({kind:'open',world:{ game, player: f.player, tieSpot: null,
+  const arena = new ArenaRoomEncounter(bossArena(), { ...king, definition: king.encounter, program: programs.rules }, null, ARENA_ROOM_PAGE);
+  const fight = new ArenaRoomEncounter({kind:'open',page:ARENA_ROOM_PAGE,world:{ game, player: f.player, tieSpot: null,
     weather: legacyDouble<OpenArenaWorld['weather']>({}),
     air: legacyDouble<OpenArenaWorld['air']>({}) },rows:
     parseArenaScriptData({ ...titanFightOwners, arenaScript: titan.TITAN_HOST, programs:{attack:programs.attack,wind:programs.wind}, arenaFire }, geometry)});
@@ -149,8 +150,8 @@ test.each(['figures', 'taming', 'arena', 'fight'])('replacing %s during admissio
     const installing = installQuestPageComposition(f.ctx, { chapterView: 'quests/content.json', story: 'quests/chapters.json' }, f.owners);
     if (slot === 'figures') f.owners.figures = { replaced: true };
     else if (slot === 'taming') f.owners.taming = legacyDouble<PageTamingOwner>({ phase: 'wild', upgraded: false });
-    else if (slot === 'arena') f.owners.arena = new ArenaRoomEncounter(bossArena(), { ...king, definition: king.encounter, program: programs.rules }, null);
-    else f.owners.fight = new ArenaRoomEncounter({kind:'open',world:f.owners.fight.world,rows: f.owners.fight.data});
+    else if (slot === 'arena') f.owners.arena = new ArenaRoomEncounter(bossArena(), { ...king, definition: king.encounter, program: programs.rules }, null, ARENA_ROOM_PAGE);
+    else f.owners.fight = new ArenaRoomEncounter({kind:'open',page:ARENA_ROOM_PAGE,world:f.owners.fight.world,rows: f.owners.fight.data});
     if (finish === undefined) throw new Error('Missing deferred admission');
     finish(f.rows);
     await expect(installing).rejects.toThrow('left during admission');
