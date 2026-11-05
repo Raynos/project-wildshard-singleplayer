@@ -6,10 +6,6 @@ import { enteredLootPresentation, installRuntimeLoot } from '../loot/runtime';
 import { installDeclaredCollectionKeepsakes } from '../compendium/keepsakes';
 import { installItemEffects } from '../loadout/effects';
 import { Sword } from '../weapons/Sword';
-import { enteredLootPresentation, installRuntimeLoot } from '../loot/runtime';
-import { installDeclaredCollectionKeepsakes } from '../compendium/keepsakes';
-import { installItemEffects } from '../loadout/effects';
-import { Sword } from '../weapons/Sword';
 import { PageActorGroups, wildEnv } from '../population/pageGroups';
 import { PerchBodyBinding } from '../population/perchBody';
 import { pageSpeciesBehaviour } from '../population/speciesBehaviour';
@@ -24,12 +20,6 @@ export interface PageSimFeed {
   readonly installDeclaredMovers: typeof installDeclaredMovers;
   readonly declaredItemScriptBindings: typeof declaredItemScriptBindings;
   readonly commandSocketLift: typeof commandSocketLift;
-  /** The entered quest's continuation (E6 QUEST): its loot, keepsakes and item effects, and which held weapons are swords. */
-  readonly installRuntimeLoot: typeof installRuntimeLoot;
-  readonly enteredLootPresentation: typeof enteredLootPresentation;
-  readonly installDeclaredCollectionKeepsakes: typeof installDeclaredCollectionKeepsakes;
-  readonly installItemEffects: typeof installItemEffects;
-  readonly isSword: (weapon: unknown) => weapon is Sword;
   /** The entered quest's continuation (E6 QUEST): its loot, keepsakes and item effects, and which held weapons are swords. */
   readonly installRuntimeLoot: typeof installRuntimeLoot;
   readonly enteredLootPresentation: typeof enteredLootPresentation;
@@ -51,8 +41,6 @@ export interface PageSimFeed {
 /** The page sim's own owners. */
 export const pageSimFeed: PageSimFeed = {
   installDeclaredMovers, declaredItemScriptBindings, commandSocketLift, bindQuestWorldReactions,
-  installRuntimeLoot, enteredLootPresentation, installDeclaredCollectionKeepsakes, installItemEffects, isSword: (weapon): weapon is Sword => weapon instanceof Sword,
- 
   installRuntimeLoot, enteredLootPresentation, installDeclaredCollectionKeepsakes, installItemEffects, isSword: (weapon): weapon is Sword => weapon instanceof Sword,
   climate: pageClimate, speciesBehaviour: pageSpeciesBehaviour, registerLootTable,
   perchBody: (...args) => new PerchBodyBinding(...args), actorGroups: (...args) => new PageActorGroups(...args), wind: () => wildEnv.wind,
