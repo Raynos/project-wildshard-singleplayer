@@ -26,8 +26,6 @@ export interface GridSimulationPorts {
    */
   durable?: (instance: string, host: SimHost) => boolean;
   read?: (instance: string) => SimSnapshot | undefined;
-  /** A shard's authored board class (the manifest's `hoverSpeedClass`): an ordinary interior without one. */
-  hoverClass?: (slug: string) => 'shard' | 'road' | undefined;
   admitted?: (instance: string) => boolean;
   beforeMove?: (instance: string | null, host: SimHost) => void;
   /** Additional traveling body, normally the ridden mount, retained by its gameplay owner. */
@@ -293,7 +291,7 @@ export class GridSimulation {
     const feet = site === null ? seat.position : assembly.world(seat.position, assembly.cell(site));
     const p = assembly.pitch, cx = Math.round(feet.x / p), cz = Math.round(feet.z / p), cell = assembly.cells.find(row => row.cell[0] === cx && row.cell[1] === cz);
     return gridBoardLimit({ local: { x: feet.x - cx * p, y: feet.y, z: feet.z - cz * p }, shardCap: 14, onHighwayDeck: feet.y < 4,
-      speedClass: (cell === undefined ? undefined : this.ports.hoverClass?.(cell.slug)) ?? 'shard' });
+      speedClass: cell?.speedClass ?? 'shard' });
   }
   /** The empty seat a player takes on arrival. The lead's is always there; anyone else's is made for them. */
   private arrivalSeat(host: SimHost, player: string, traveller: PlayerSim): PlayerSim {

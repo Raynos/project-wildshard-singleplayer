@@ -470,7 +470,8 @@
               }
             ]
           }
-        }
+        },
+        "speedClass": "road"
       },
       {
         "instance": "sunscar-dunes",
@@ -513,7 +514,8 @@
         "cell": [
           -1,
           1
-        ]
+        ],
+        "speedClass": "road"
       },
       {
         "instance": "open-plot-sw",
@@ -521,7 +523,8 @@
         "cell": [
           -1,
           -1
-        ]
+        ],
+        "speedClass": "road"
       },
       {
         "instance": "nine-dragon-stack",
@@ -537,7 +540,8 @@
         "cell": [
           -2,
           -2
-        ]
+        ],
+        "speedClass": "road"
       },
       {
         "instance": "open-plot-1-0",
@@ -545,7 +549,8 @@
         "cell": [
           -1,
           -2
-        ]
+        ],
+        "speedClass": "road"
       },
       {
         "instance": "open-plot-2-0",
@@ -553,7 +558,8 @@
         "cell": [
           0,
           -2
-        ]
+        ],
+        "speedClass": "road"
       },
       {
         "instance": "open-plot-3-0",
@@ -561,7 +567,8 @@
         "cell": [
           1,
           -2
-        ]
+        ],
+        "speedClass": "road"
       },
       {
         "instance": "open-plot-4-0",
@@ -569,7 +576,8 @@
         "cell": [
           2,
           -2
-        ]
+        ],
+        "speedClass": "road"
       },
       {
         "instance": "open-plot-0-1",
@@ -577,7 +585,8 @@
         "cell": [
           -2,
           -1
-        ]
+        ],
+        "speedClass": "road"
       },
       {
         "instance": "open-plot-4-1",
@@ -585,7 +594,8 @@
         "cell": [
           2,
           -1
-        ]
+        ],
+        "speedClass": "road"
       },
       {
         "instance": "open-plot-0-2",
@@ -593,7 +603,8 @@
         "cell": [
           -2,
           0
-        ]
+        ],
+        "speedClass": "road"
       },
       {
         "instance": "open-plot-4-2",
@@ -601,7 +612,8 @@
         "cell": [
           2,
           0
-        ]
+        ],
+        "speedClass": "road"
       },
       {
         "instance": "open-plot-0-3",
@@ -609,7 +621,8 @@
         "cell": [
           -2,
           1
-        ]
+        ],
+        "speedClass": "road"
       },
       {
         "instance": "open-plot-4-3",
@@ -617,7 +630,8 @@
         "cell": [
           2,
           1
-        ]
+        ],
+        "speedClass": "road"
       },
       {
         "instance": "open-plot-0-4",
@@ -625,7 +639,8 @@
         "cell": [
           -2,
           2
-        ]
+        ],
+        "speedClass": "road"
       },
       {
         "instance": "open-plot-1-4",
@@ -633,7 +648,8 @@
         "cell": [
           -1,
           2
-        ]
+        ],
+        "speedClass": "road"
       },
       {
         "instance": "open-plot-2-4",
@@ -641,7 +657,8 @@
         "cell": [
           0,
           2
-        ]
+        ],
+        "speedClass": "road"
       },
       {
         "instance": "open-plot-3-4",
@@ -649,7 +666,8 @@
         "cell": [
           1,
           2
-        ]
+        ],
+        "speedClass": "road"
       },
       {
         "instance": "open-plot-4-4",
@@ -657,7 +675,8 @@
         "cell": [
           2,
           2
-        ]
+        ],
+        "speedClass": "road"
       }
     ],
     "emptyNeighbour": {
