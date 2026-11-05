@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { LootBagSchema } from '@wildshard/format/lootBag';
 import { bagMenu } from '../../client/bag/tabs';
 import * as THREE from 'three';
-import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
+import { practiceRoomState as practiceRoom } from '@wildshard/engine/core/practiceRoomState';
 import { ItemPickup } from '@wildshard/engine/player/WeaponPickup';
 import type { GameMenu } from '@wildshard/engine/ui/Menu';
 import type { MapMark } from '@wildshard/engine/ui/Minimap';
