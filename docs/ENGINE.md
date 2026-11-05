@@ -3731,6 +3731,14 @@ are unchanged. `continuation(identify)` / `restore(saved, find)` retain all cloc
 clocks. Quiet restore validates state and distinct bodies before rebinding; no reset, spawn, retirement, views or RNG.
 Native owners separately restore body memory, HP, attacks, physics and random streams.
 
+The arena room is cut in three (P1-E4.2): `game/boss/arenaRoomRows` (shared rows), `game/boss/arenaRoom` and
+`arenaRoomFight` (server), `game/boss/arenaRoomView` (the drawn room, portal and looks, lent as `ArenaRoomPage`).
+`arenaRoomFight(ports, rows, views)` serves whichever host lends its `ArenaFightPorts`: `pageArenaRoomFight` binds the
+page's one player, `installArenaRoom(host, rows, ports)` (`game/boss/arenaRoomNative`) a `SimHost`'s every player. The
+open arena's `OpenArenaRoom` (`game/boss/openArenaRoom`) does the same for `OpenArenaFight`. Both go through
+`BossContenders` (J104 health and targets, J107 lone return) and a boss's reward through `BossBounty` (J105, on the
+`DamageBook` and `slots.ledgerDedupe`). A lone player reads none of them.
+
 The same installer accepts a `RoamingBossRow` (`kind: 'roaming'`) for a pursuing boss: named mode policies,
 phase HP/reset checkpoints, authored strike clips, expanding rings, falling/burning hazards, lane chains and roaming
 adds. Its ports lend actual collision contacts, bodies, charge lanes, player state and independent summon/charge RNG

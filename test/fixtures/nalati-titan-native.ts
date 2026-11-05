@@ -104,7 +104,7 @@ export async function prepareNalatiTitan(preparation:Parameters<PrepareHeadlessR
           easeViewToward(weapons().look,camera.position,target,dt);},spawnReward:()=>{
           const at=itemPickupFloor(host.physics,fight.rewardPoint());rewardPoint=new Vector3(at.x,at.y+ITEM_PICKUP_HOVER+.5,at.z);reward=true;
         },persist:saved=>{records.bosses.write({...records.bosses.read(),[data.definition.id]:saved});},toast,feed},ui,current);
-      encounter.boss=boss;room.bind(boss);leadPlayer(host).health.checkpoint(host.scope,()=>room.party.died(boss));
+      encounter.boss=boss;room.bind(boss,fight);leadPlayer(host).health.checkpoint(host.scope,()=>room.party.died(boss));
       const boundaryPorts={boss,fight,prompt,get player(){return room.near.position;},toast,
         wall:()=>{hit('wall',room.near.position,data.view.wallDamage,data.lines.wall);},clear:()=>{actual.storm.weather.force(data.weather.clearing);},
         persistence:records.outcomes};

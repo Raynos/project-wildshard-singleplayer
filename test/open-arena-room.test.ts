@@ -45,7 +45,7 @@ function room(extra = 1): { host: SimHost; lead: PlayerSim; bots: PlayerSim[]; a
     throwRider: arena.throwRider, horseSteed: arena.horseSteed, heartScale: arena.heartScale, feed: () => undefined, toast: () => undefined, riderOwner: () => null }, data, titanNativeViews(host, data));
   const boss = new BossBrain({ ...data.definition, reward: {} }, fight, { events: host.events, player: arena.party.player, lockInput: () => undefined, respawn: arena.party.respawn,
     skipHeld: () => true, faceToward: () => undefined, spawnReward: () => undefined, persist: () => undefined }, silentBossPresentation(), { defeated: false, rewardTaken: false, kills: 0 });
-  owner.boss = boss; arena.bind(boss);
+  owner.boss = boss; arena.bind(boss, fight);
   host.events.answer('death.checkpoint', value => arena.party.died(boss) || value === true, host.scope);
   host.onStep('titan', dt => { arena.party.observe(boss); boss.update(dt, host.clock.now); });
   fight.tied = true; boss.arm();

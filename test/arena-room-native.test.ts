@@ -84,7 +84,8 @@ test('J104: two engaged at the start make his hits count for less, the row keeps
     expect(fight.party.engaged).toBe(2);
     const before = actor.hp;
     host.combat.hit({ source: 'env', sourceTags: ['actor.player'], target: actor.combatActor(), amount: 35, point: actor.position.clone(), dir: new Vector3(), cause: { kind: 'test', label: 'test' } });
-    expect(actor.hp).toBeLessThan(before); expect(before - actor.hp).toBeLessThanOrEqual(35 / 1.75 + 1);
+    // The body's own rule, then the curve: the row's armour takes its share of the hit before the players divide it.
+    expect(before - actor.hp).toBeCloseTo(Math.round(35 * fight.fight.brain.damageMul(actor, actor.position)) / 1.75, 0);
     expect(bot.health.alive).toBe(true);
   } finally { host.dispose(); }
 });
