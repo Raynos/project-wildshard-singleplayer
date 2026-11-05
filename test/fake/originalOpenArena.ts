@@ -34,7 +34,7 @@ import { setEliteDamage } from '@wildshard/engine/entities/eliteBrain';
 import { CellField } from '../../src/game/systems/cellField';
 import { ArenaFireView, ArenaWhirlsView } from './originalArenaFire';
 import { ArenaSceneView, CloudBody, type PatrolEncounterView } from '../../src/game/boss/encounterView';
-import type { GroundTell } from '../../src/game/Elite';
+import type { GroundTell } from '../../src/game/eliteView';
 import type { ArcWeaponPower } from '../../src/game/weapons/arcPower';
 import type { HeldClaims, HeldSlotKit } from '../../src/game/loadout/claims';
 import type { CosmeticFinishLocker } from '../../src/game/loadout/cosmeticFinishes';

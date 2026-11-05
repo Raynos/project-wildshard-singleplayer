@@ -12,7 +12,7 @@ import type { Player } from '@wildshard/engine/player/Player';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { meleeActor } from '@wildshard/engine/combat/Melee';
 import * as THREE from 'three';
-import { GroundTell } from '@wildshard/game/Elite';
+import { GroundTell } from '@wildshard/game/eliteView';
 import { fxMaterial, FX, annulus, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 
 export interface ArcWeaponDeps {

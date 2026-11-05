@@ -13,7 +13,7 @@ for(const name of ["Elite"])test(`${name} emits isolated declarations`,()=>{
 
 test('optional presentation owners retain explicit undefined and constructor argument laws',()=>{
  const consumer=resolve('src/game/t4-isolated-game-optional-owner-declarations-consumer.ts');
- let source="import {Scene} from 'three';\nimport {GroundTell} from './Elite';\ndeclare const scene:Scene;\nexport const omitted=new GroundTell(scene,\"ring\",0);\nexport const absent=new GroundTell(scene,\"ring\",0,undefined);\nexport const position:number=omitted.mesh.position.x;\n";
+ let source="import {Scene} from 'three';\nimport {GroundTell} from './eliteView';\ndeclare const scene:Scene;\nexport const omitted=new GroundTell(scene,\"ring\",0);\nexport const absent=new GroundTell(scene,\"ring\",0,undefined);\nexport const position:number=omitted.mesh.position.x;\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};

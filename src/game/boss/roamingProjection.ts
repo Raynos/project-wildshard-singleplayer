@@ -21,7 +21,7 @@ import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { fogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { FixedPageSpawnTable } from '../population/pageGroups';
-import { GroundTell } from '../Elite';
+import { GroundTell } from '../eliteView';
 import { effectField } from '@wildshard/engine/fx/effectField';
 import { lentLook, setLentParam } from '../shardfile/lentLooks';
 import type { ShardContext } from '../plugin/context';

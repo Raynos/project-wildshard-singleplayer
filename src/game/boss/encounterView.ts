@@ -19,7 +19,7 @@ import { boxDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { replaceSpecimenInstances } from '../models/specimenCatalogue';
 import type { CueDirector } from '../audio/cueDirector';
-import { GroundTell } from '../Elite';
+import { GroundTell } from '../eliteView';
 import { LightningStrip } from '../weapons/arcPower';
 import { nearestJointHit, type JointPorts } from './jointTargets';
 import { ProjectedState, type ReturnProgram } from '../population/returnProgram';

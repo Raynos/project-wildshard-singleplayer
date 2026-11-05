@@ -4,7 +4,7 @@ import * as v from 'valibot';
 import { RoamingCombatSchema } from '@wildshard/format/roamingCombat';
 import { bossEncounterPresentation } from '@wildshard/format/bossEncounter';
 import { installBossEncounter, PageCombatSession, type BossEncounter } from '../Boss';
-import { Elites, GroundTell, type EliteRule } from '../Elite';
+import { Elites, eliteGroundTell, type EliteRule } from '../Elite';
 import { installRoamingBossProjection } from '../boss/roamingProjection';
 import { prepareProductDecisionMemories } from '../shardfile/borrowedDecisions';
 import { enteredHeldLoadout } from '../loadout/held';
@@ -57,7 +57,7 @@ export async function installRoamingCombat(context: ShardContext, input: unknown
     const model = parked.get(id); if (model === undefined) return buildFinish(id);
     parked.delete(id); model.removeFromParent(); model.visible = true; return model;
   };
-  const tells = Array.from({ length: rows.tells.count }, () => context.scope.run(() => new GroundTell(game.scene, 'lane', new THREE.Color(...rows.tells.colour))));
+  const tells = Array.from({ length: rows.tells.count }, () => context.scope.run(() => eliteGroundTell(game.scene, 'lane', new THREE.Color(...rows.tells.colour))));
   installEnteredRuntimeService(context, scope => { scope.onDispose(() => { for (const tell of tells) tell.hide(); }); });
   const condition = (rule: EliteRule): boolean => rule === 'always' || (rule === 'dusk' ? ctx.dusk() > rows.availability : rule === 'night' ? ctx.night() > rows.availability : false);
   const persistence = bindAdventurePersistence(context, source, await context.product.json(rows.persistence), source.identity.slug);
