@@ -22,7 +22,7 @@ export interface NativeLauncherInput {readonly slot:number;readonly ads:number;r
 /** Mutable tick data owned by the native input boundary. It contains no clocks or executable shard hooks. */
 export interface NativeCombatFrame {
   launchers: NativeLauncherInput[]; attacks: string[]; heavy: { readonly targetId?: string | undefined } | null;
-  melee: { attack: string | null; heavy: boolean; heavyTarget: string | null };
+  melee: { attack: string | null; heavy: boolean; heavyTarget: string | null; swing: boolean };
   scripts: Map<string, number>; moveX: number; moveZ: number; yaw: number;
   live: Set<number>; aim: number; adsBlend: number; aimed: number; speedFactor: number | null;
   extraSpread: number; mountSpread: number; ammo: string; rain: number;
@@ -30,7 +30,7 @@ export interface NativeCombatFrame {
 }
 /** A fresh released input frame; a resident fills its same arrays at lend(), never retains a previous tick. */
 export function createNativeCombatFrame(): NativeCombatFrame {
-  return { launchers: [], attacks: [], heavy: null, melee: { attack: null, heavy: false, heavyTarget: null }, scripts: new Map(),
+  return { launchers: [], attacks: [], heavy: null, melee: { attack: null, heavy: false, heavyTarget: null, swing: false }, scripts: new Map(),
     moveX: 0, moveZ: 0, yaw: 0, live: new Set(), aim: 0.5, adsBlend: 0, aimed: 0,
     speedFactor: 0, extraSpread: 0, mountSpread: 0, ammo: '', rain: 0, wind: null };
 }

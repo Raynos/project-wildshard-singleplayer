@@ -18,7 +18,9 @@ export function netPlayerCommand(command: NetCommand): Extract<HeadlessCommand, 
     ...(attack?.targetId === undefined ? {} : { attack: { targetId: attack.targetId } }),
     ...(has(command, NET_BUTTONS.hover) ? { hover: true as const } : {}), ...(has(command, NET_BUTTONS.jump) ? { jump: true as const } : {}),
     ...(has(command, NET_BUTTONS.dodge) ? { dodge: true as const } : {}),
-    ...(has(command, NET_BUTTONS.heavy) ? { heavy: heavyTarget === undefined ? {} : { targetId: heavyTarget } } : {}) };
+    ...(has(command, NET_BUTTONS.heavy) ? { heavy: heavyTarget === undefined ? {} : { targetId: heavyTarget } } : {}),
+    // P1-E3.2: a swing that names nothing still swings; the server finds what it strikes (J41).
+    ...((attack !== undefined && attack.targetId === undefined) || (has(command, NET_BUTTONS.heavy) && heavyTarget === undefined) ? { swing: true as const } : {}) };
 }
 
 /** Every tick command one player's input becomes: the player command, then its launcher and acts. */

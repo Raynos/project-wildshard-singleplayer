@@ -58,7 +58,7 @@ export function bindHeadlessCommands(context: Pick<HeadlessRuntimeInstallation, 
     for (const command of commands()) if (command.kind === 'player') last = command;
     return last;
   };
-  const input: { attack: string | null; heavy: boolean; heavyTarget: string | null } = { attack: null, heavy: false, heavyTarget: null };
+  const input: { attack: string | null; heavy: boolean; heavyTarget: string | null; swing: boolean } = { attack: null, heavy: false, heavyTarget: null, swing: false };
   const bound: HeadlessCommandPorts = {
     ledger: ledgerPorts(context.emit),
     shots: pickCommands(commands, command => command.kind === 'player' ? command.attack?.targetId : undefined),
@@ -71,7 +71,7 @@ export function bindHeadlessCommands(context: Pick<HeadlessRuntimeInstallation, 
     },
     melee: () => {
       const current = player(); input.attack = current?.attack?.targetId ?? null;
-      input.heavy = current?.heavy !== undefined; input.heavyTarget = current?.heavy?.targetId ?? null; return input;
+      input.heavy = current?.heavy !== undefined; input.heavyTarget = current?.heavy?.targetId ?? null; input.swing = current?.swing === true; return input;
     },
     walk: speed => {
       const current = player(), x = current?.moveX ?? 0, z = current?.moveZ ?? 0, length = Math.hypot(x, z), scale = length > 1 ? speed / length : speed;
@@ -240,7 +240,7 @@ export function fillNativeCombatFrame(frame: NativeCombatFrame, commands: readon
   if (commands.length > 1024) throw new RangeError('Tick commands exceed the protocol allowance');
   frame.launchers.length=0; frame.attacks.length = 0; frame.heavy = null; frame.scripts.clear();
   frame.moveX = 0; frame.moveZ = 0; frame.yaw = 0;
-  frame.melee.attack = null; frame.melee.heavy = false; frame.melee.heavyTarget = null;
+  frame.melee.attack = null; frame.melee.heavy = false; frame.melee.heavyTarget = null; frame.melee.swing = false;
   for (const command of commands) {
     if (command.kind === 'script') frame.scripts.set(command.actorId, command.value);
     if(command.kind==='launcher')frame.launchers.push({slot:command.slot,ads:command.ads,pitch:command.pitch,
@@ -250,6 +250,6 @@ export function fillNativeCombatFrame(frame: NativeCombatFrame, commands: readon
     if (frame.heavy === null && command.heavy !== undefined) frame.heavy = command.heavy;
     frame.moveX = command.moveX; frame.moveZ = command.moveZ; frame.yaw = command.yaw;
     frame.melee.attack = command.attack?.targetId ?? null; frame.melee.heavy = command.heavy !== undefined;
-    frame.melee.heavyTarget = command.heavy?.targetId ?? null;
+    frame.melee.heavyTarget = command.heavy?.targetId ?? null; frame.melee.swing = command.swing === true;
   }
 }

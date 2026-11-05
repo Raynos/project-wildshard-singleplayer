@@ -18,7 +18,8 @@ import { weaponContactDistance, type ContactWorldTarget, ContactFamily, type Con
 import { parseItems, parseMeleeContacts, parseNativeMeleeBinding, parseNativeSweptMeleeBinding } from '@wildshard/format/items';
 import { scriptItemHook } from '@wildshard/engine/combat/items';
 import { flagValue, test as testQuestFlags, type Flags } from '@wildshard/engine/world/interact/flags';
-import { SweptMeleeCore, sweptLunge, sweptMoveDamage } from '@wildshard/engine/combat/sweptMeleeCore';
+import { SweptMeleeCore, sweptLunge, sweptMoveDamage, sweptStrikeDirection, sweptStrikePush } from '@wildshard/engine/combat/sweptMeleeCore';
+import { pickLunge } from '@wildshard/engine/combat/lungeTarget';
 import { Vector3 } from 'three';
 import { parsePromptRegistrations, createHeadlessPromptPicker } from '../quest/interactionRows';
 import { GridAssembly } from '../grid/assembly';
@@ -822,7 +823,11 @@ export interface NativeMeleeOwner { readonly family: ContactFamily<NativeMeleeTa
 const NativeHoldState = v.strictObject({version:v.literal(1),held:v.pipe(v.number(),v.finite(),v.minValue(0)),wasHeld:v.boolean(),
   target:v.nullable(v.pipe(v.string(),v.minLength(1),v.maxLength(128)))});
 /** Last sampled player input; target selection remains with the entered runtime. */
-export interface NativeSweptMeleeInput { readonly attack: string | null; readonly heavy: boolean; readonly heavyTarget: string | null }
+export interface NativeSweptMeleeInput {
+  readonly attack: string | null; readonly heavy: boolean; readonly heavyTarget: string | null;
+  /** The press or hold names no target (P1-E3.2): the server finds the body with the page's own lunge pick. */
+  readonly swing?: boolean;
+}
 type NativeSweptActor = NonNullable<ReturnType<SimHost['entities']['get']>>;
 /** Borrowed world reactions for swept phases; no secondary clock or body service is installed. */
 export interface NativeSweptMeleePorts {
@@ -853,7 +858,10 @@ function installNativeSweptMelee(host: SimHost, items: readonly unknown[], input
   type Profile = typeof profiles[number]; type Move = Profile['moves']['heavy'];
   const slots = profiles.map((_profile, index) => index);
   const loadout = createNativeLoadout(row.selection ?? { slots, initial: row.initial, lower: 0, raise: 0 }, { owned: () => true, locked: () => false });
-  const state = { queued: false, struck: false, opened: false, windows: 0, target: null as string | null, swings: 0, hits: 0 };
+  const state = { queued: false, struck: false, opened: false, windows: 0, target: null as string | null, aimed: false, swings: 0, hits: 0 };
+  /** The body a free swing takes: the page's `findLunge`, unlocked. A move past its reach after the dash lands on nothing. */
+  const aimedBody = (profile: Profile, move: Move): string | null => pickLunge(host.entities.values(), host.player.position, host.player.yaw,
+    move === profile.moves.heavy ? profile.lunge.heavyRange : profile.lunge.range, profile.lunge.cone)?.entityId ?? null;
   const yAxis = new Vector3(0, 1, 0);
   const lunge = (profile: Profile, move: Move): void => {
     const actor = state.target === null ? undefined : host.entities.get(state.target), player = host.player.position;
@@ -867,7 +875,7 @@ function installNativeSweptMelee(host: SimHost, items: readonly unknown[], input
   };
   const clocks = profiles.map(profile => new SweptMeleeCore<Move>(profile.moves, profile,
     { queue: () => { state.queued = true; }, consume: () => { const queued = state.queued; state.queued = false; return queued; } },
-    { start: (move, dash) => { state.struck = false; state.opened = false; state.swings++; if (dash) lunge(profile, move); ports.alarm(); }, charge: () => { /* presentation owns the charge tell */ } }));
+    { start: (move, dash) => { state.struck = false; state.opened = false; state.swings++; if (state.aimed) state.target = aimedBody(profile, move); if (dash) lunge(profile, move); ports.alarm(); }, charge: () => { /* presentation owns the charge tell */ } }));
   const eye = new Vector3(), centre = new Vector3(), point = new Vector3(), forward = new Vector3(), left = new Vector3(), direction = new Vector3(), push = new Vector3();
   const request: Parameters<SimHost['combat']['hit']>[0] = { source: row.source === 'env' ? 'env' : host.player.health,
     sourceTags: [], target: host.player.health, amount: 0, point, dir: direction, from: eye, weaponId: '', moveId: '' };
@@ -876,14 +884,12 @@ function installNativeSweptMelee(host: SimHost, items: readonly unknown[], input
     centre.copy(actor.position); centre.y += actor.dims.bodyY * actor.scale;
     forward.subVectors(centre, eye); if (forward.lengthSq() < 1e-12) forward.set(-Math.sin(host.player.yaw), 0, -Math.cos(host.player.yaw)); forward.normalize();
     left.copy(forward).applyAxisAngle(yAxis, Math.PI / 2);
-    direction.copy(forward).multiplyScalar(row.contact.direction[0]).addScaledVector(left, row.contact.direction[1] * move.sweep).normalize();
-    if (Math.abs(move.sweep) < 0.6) direction.y -= row.contact.direction[2] * (1 - Math.abs(move.sweep));
-    direction.normalize();
+    sweptStrikeDirection(direction, forward, left, move.sweep, row.contact);
     request.sourceTags = profile.tags; request.target = actor.combatActor(); request.weaponId = profile.weapon; request.moveId = move.id;
     request.amount = Math.round(sweptMoveDamage(profile.damage, move, move === profile.moves.heavy, 1));
     const dealt = host.combat.hit(request); if (dealt === null) return;
     state.hits++; if (dealt.killed) return;
-    push.set(forward.x, 0, forward.z).normalize().multiplyScalar(row.contact.push[0]).addScaledVector(left, row.contact.push[1] * move.sweep);
+    sweptStrikePush(push, forward, left, move.sweep, row.contact);
     const running = actor.speed > row.contact.running;
     actor.stagger(push, move.stagger); ports.staggered(actor, Math.max(0, Math.min(move.stagger, 1)), running);
   };
@@ -891,10 +897,13 @@ function installNativeSweptMelee(host: SimHost, items: readonly unknown[], input
     const index = loadout.held(), clock = clocks[index], profile = profiles[index];
     if (clock === undefined || profile === undefined) throw new Error('Missing selected swept melee slot');
     const command = ports.input(), target = command.attack;
-    if (command.heavy) state.target = command.heavyTarget;
+    if (command.heavy) { state.target = command.heavyTarget; state.aimed = command.swing === true; }
     if (target !== null) {
-      const idle = clock.move === null, swings = state.swings, previous = state.target;
-      state.target = target; clock.tryFire(); if (idle && state.swings === swings) state.target = previous;
+      const idle = clock.move === null, swings = state.swings, previous = state.target, aimed = state.aimed;
+      state.target = target; state.aimed = false; clock.tryFire(); if (idle && state.swings === swings) { state.target = previous; state.aimed = aimed; }
+    } else if (command.swing === true && !command.heavy) {
+      const idle = clock.move === null, swings = state.swings, aimed = state.aimed;
+      state.aimed = true; clock.tryFire(); if (idle && state.swings === swings) state.aimed = aimed;
     }
     const dt = 1 / 60, { move, active } = clock.step(dt, host.state.tick * dt, profile.swingScale, command.heavy);
     if (move !== null && active && !state.opened) { state.opened = true; state.windows++; }
@@ -904,21 +913,21 @@ function installNativeSweptMelee(host: SimHost, items: readonly unknown[], input
     queries.closest(actor, eye, Infinity, contact);
     if (contact.distance > (move.reach ?? profile.reach) || !lineOfSight(host.physics, eye, point, row.contact.slack, host.player.motor.collider)) return;
     state.struck = true; strike(actor, move, profile);
-  }, { snapshot: () => JSON.stringify({ held: loadout.held(), ...state, clocks: clocks.map(clock => clock.snapshot()) }), restore: value => {
+  }, { snapshot: () => JSON.stringify({ held: loadout.held(), ...state, aimed: state.aimed ? true : undefined, clocks: clocks.map(clock => clock.snapshot()) }), restore: value => {
     if (typeof value !== 'string') throw new Error('Invalid swept melee continuation');
     const finite = v.pipe(v.number(), v.finite()), count = v.pipe(finite, v.integer(), v.minValue(0));
     const clock = v.strictObject({ move: v.nullable(count), swingT: finite, comboIdx: count, lastSwingEnd: finite, cooldown: finite, charging: v.boolean(), chargeT: finite,
       releaseQueued: v.boolean(), chargePending: v.boolean(), heldPrev: v.boolean(), time: finite });
     const parsed = v.parse(v.union([
-      v.strictObject({ held: v.pipe(count, v.maxValue(profiles.length - 1)), queued: v.boolean(), struck: v.boolean(), target: v.nullable(v.string()),
+      v.strictObject({ held: v.pipe(count, v.maxValue(profiles.length - 1)), queued: v.boolean(), struck: v.boolean(), target: v.nullable(v.string()), aimed: v.optional(v.boolean(), false),
         opened: v.optional(v.boolean(), false), windows: v.optional(count, 0), swings: count, hits: count, clocks: v.pipe(v.array(clock), v.length(clocks.length)) }),
       v.strictObject({ queued: v.boolean(), struck: v.boolean(), swings: count, hits: count, clock }),
     ]), JSON.parse(value));
     if ('clock' in parsed && clocks.length !== 1) throw new Error('Single-clock continuation requires one swept slot');
-    const saved = 'clock' in parsed ? { held: 0, target: null, opened: parsed.struck, windows: parsed.hits,
+    const saved = 'clock' in parsed ? { held: 0, target: null, aimed: false, opened: parsed.struck, windows: parsed.hits,
       queued: parsed.queued, struck: false, swings: parsed.swings, hits: 0, clocks: [parsed.clock] } : parsed;
     loadout.restore({ held: saved.held, swap: null }); Object.assign(state, { queued: saved.queued, struck: saved.struck, opened: saved.opened,
-      windows: saved.windows, target: saved.target, swings: saved.swings, hits: saved.hits });
+      windows: saved.windows, target: saved.target, aimed: saved.aimed, swings: saved.swings, hits: saved.hits });
     for (const [index, savedClock] of saved.clocks.entries()) { const restoredClock = clocks[index]; if (restoredClock === undefined) throw new Error('Missing saved swept clock'); restoredClock.restore(savedClock); }
   } }, 'afterBodies');
   return { held: loadout.held,

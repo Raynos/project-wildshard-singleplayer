@@ -20,7 +20,7 @@ import type { Player } from '../../player/Player';
 import { type DrawingBuffer, viewmodel } from '../../render/viewmodelFeel';
 import type { SkyRig as Sky } from '../../world/skyRig';
 import { Melee } from '../Melee';
-import { SweptMeleeCore, sweptLunge, sweptMoveDamage } from '../sweptMeleeCore';
+import { SweptMeleeCore, sweptLunge, sweptMoveDamage, sweptStrikeDirection, sweptStrikePush } from '../sweptMeleeCore';
 import { BladeSweep, bladeInReach, sweptBladeDirs } from '../sweptBlade';
 import { SweptBasePose } from '../sweptBasePose';
 import type { MeleeProfile } from '../meleeProfile';
@@ -496,8 +496,7 @@ export class SweptMelee extends Melee {
     // strike direction = the sweep (across the forward, the move's way), not the ray: the flinch reads as a side-on blow;
     // an overhead chop (sweep ≈ 0) drives forward and down
     _v2.copy(_fwd).applyAxisAngle(Y_AXIS, Math.PI / 2);                                       // the player's left
-    _v1.copy(_fwd).multiplyScalar(0.7).addScaledVector(_v2, 0.7 * move.sweep).normalize();
-    if (Math.abs(move.sweep) < 0.6) _v1.y -= 0.35 * (1 - Math.abs(move.sweep)); _v1.normalize();
+    sweptStrikeDirection(_v1, _fwd, _v2, move.sweep);
     const dmg = Math.round(this.moveDamage(move));
     const point = _hitPoint.copy(hit.point); // the raycast result object is reused by the next ray
     const animal = hit.animal;
@@ -506,7 +505,7 @@ export class SweptMelee extends Melee {
     const killed = result.killed;
     animal.hitFlash?.(move === this.mv.heavy ? 1 : 0.8); // the white hit flash (C5, Animal.ts)
     // knockback: away from the player, biased the way the sweep travels (Animal.stagger flattens it)
-    _push.set(_fwd.x, 0, _fwd.z).normalize().multiplyScalar(0.8).addScaledVector(_v2, 0.5 * move.sweep);
+    sweptStrikePush(_push, _fwd, _v2, move.sweep);
     if (!killed) animal.stagger?.(_push, move.stagger);
     // hit-stop (C2): the first contact of a swing stops the WORLD (Game.hitStop — the swing, the target, the player) for the
     // move's 60 / 90 / 140 ms; the stars, trail fade and camera kick run on worldTime.realDt through it

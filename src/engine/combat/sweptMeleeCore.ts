@@ -1,3 +1,5 @@
+import type { Vector3 } from 'three';
+
 /**
  * The swept melee family's swing clock, renderer-free (SF72): which move a tap throws (the light combo, its gap and its
  * one-deep chain), the held heavy's charge and release, the running swing's clock and active window, the cooldown after a
@@ -63,6 +65,25 @@ export interface SweptMeleeState {
 /** A move's damage: the base × the move's factor, the heavy × `heavyMult` (a perk). */
 export function sweptMoveDamage(base: number, move: SwingTiming, heavy: boolean, heavyMult: number): number {
   return base * move.damage * (heavy ? heavyMult : 1);
+}
+
+/** A blow's frame: how a sweep's flinch and shove lean off the forward line. Page and server read one row (P1-E3.2). */
+export interface SweptContactRow { readonly direction: readonly [number, number, number]; readonly push: readonly [number, number] }
+/** The page's constants; a native policy declares the same numbers. */
+export const SWEPT_CONTACT: SweptContactRow = { direction: [0.7, 0.7, 0.35], push: [0.8, 0.5] };
+/** The strike's direction: across the forward line, the move's way (the flinch reads as a side-on blow); an overhead chop
+ *  (`sweep` near 0) drives forward and down. `left` is the striker's left. Writes and answers `out`. */
+export function sweptStrikeDirection(out: Vector3, forward: Readonly<Vector3>, left: Readonly<Vector3>, sweep: number, row: SweptContactRow = SWEPT_CONTACT): Vector3 {
+  const [ahead, across, down] = row.direction;
+  out.copy(forward).multiplyScalar(ahead).addScaledVector(left, across * sweep).normalize();
+  if (Math.abs(sweep) < 0.6) out.y -= down * (1 - Math.abs(sweep));
+  out.normalize();
+  return out;
+}
+/** The knockback: away along the ground from the striker, biased the way the sweep travels. Writes and answers `out`. */
+export function sweptStrikePush(out: Vector3, forward: Readonly<Vector3>, left: Readonly<Vector3>, sweep: number, row: SweptContactRow = SWEPT_CONTACT): Vector3 {
+  out.set(forward.x, 0, forward.z).normalize().multiplyScalar(row.push[0]).addScaledVector(left, row.push[1] * sweep);
+  return out;
 }
 
 /** The profile's lunge numbers (meleeProfile.ts `lunge`) the dash reads. */
