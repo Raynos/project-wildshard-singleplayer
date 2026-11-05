@@ -101,7 +101,7 @@ test('a stale local output never shadows the matching immutable cache product', 
 test('named-output map recipes resolve exactly and shared validation changes invalidate them', async () => {
   const f = await fixture(true);
   expect(readBuiltShardfile(f.root, f.name, f.options)).toBe(f.directory);
-  write(f.root, 'src/game/shardfile/new-law.ts', 'export const law=1;');
+  write(f.root, 'src/game/shared/shardfile/new-law.ts', 'export const law=1;');
   expect(() => readBuiltShardfile(f.root, f.name, f.options)).toThrow('Missing current product');
 });
 

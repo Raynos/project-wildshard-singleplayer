@@ -31,7 +31,7 @@ it('always runs a changed test file, even one the import walk did not return', (
 });
 
 it('does not claim changed MJS files outside the runner MJS include', () => {
-  for (const path of ['src/engine/shared/boot/waits.test.ts', 'admin/test/only.test.mjs', 'drafts/test/only.test.mjs']) {
+  for (const path of ['src/engine/shared/boot/waits.test.mjs', 'admin/test/only.test.mjs', 'drafts/test/only.test.mjs']) {
     expect(capRelated([], [path], durations, 0, 1)).toEqual({run: [], left: []});
   }
 });

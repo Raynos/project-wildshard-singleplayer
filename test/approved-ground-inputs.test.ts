@@ -16,7 +16,7 @@ const good = { version: 1, profile: 'native', notice: 'Original owner facts',
 test('G1004 admits the complete forest owner facts with the maintained native fixture as reader', () => {
   const before = JSON.stringify(good), value = structuredClone(good);
   expect(registeredJsonContract(name)?.schema).toBe(ForestNativeInputsSchema);
-  expect(platformFileFamily(name, source)?.reader).toBe('src/game/server/shardfile/nativeAssembly.ts');
+  expect(platformFileFamily(name, source)?.reader).toBe('src/game/shardfile/nativeAssembly.ts');
   expect(validatePlatformFile(name, source, value)).toBeDefined();
   validateRegisteredJson(name, value);
   expect(JSON.stringify(value)).toBe(before);

@@ -87,8 +87,8 @@ node.innerHTML=[label].map(value=>\`<b>\${value}</b>\`).join('');
 });
 
 test('imported scalar declarations and exact trusted port identities remain distinct',()=>{
- const f=fixture(`import type {Values} from './values';import {icon as draw} from './ui/icons';
-import type {DiscOpts} from './ui/hudSlots';import type {DiscOpts as Fake} from './fake';
+ const f=fixture(`import type {Values} from './values';import {icon as draw} from './client/ui/icons';
+import type {DiscOpts} from './client/ui/hudSlots';import type {DiscOpts as Fake} from './fake';
 declare const node:HTMLElement,data:Values,good:DiscOpts,bad:Fake;
 node.innerHTML=\`<b>\${data.count}</b>\`;
 node.innerHTML=data.label;
@@ -169,7 +169,7 @@ test('analysis-local import lookups recheck package targets and absent files',()
 });
 
 test('typed static record values remain safe through nested string helpers',()=>{
- const f=fixture(`import {engineString} from './strings';declare const node:HTMLElement;
+ const f=fixture(`import {engineString} from './shared/strings';declare const node:HTMLElement;
 const esc=(value:string):string=>value.replaceAll('&','&amp;').replaceAll('<','&lt;');
 const rows={title:engineString('title'),unrelated:()=>document.title};
 const labels:Record<string,string>={video:engineString('video'),unrelated:rows.title};
