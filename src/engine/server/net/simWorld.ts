@@ -3,6 +3,7 @@ import type { SimHost } from '../sim';
 import { leadPlayer } from '../../shared/sim/leadPlayer';
 import type { AnimalNetView } from '../../shared/net/animalNet';
 import { CombatWire, type CombatEvent } from './combatWire';
+import { keepHitHistory } from './hitHistory';
 import type { LedgerFiling } from './ledgerBook';
 import { questBooks, type QuestProgressRead } from '../quest/players';
 import { encounterRows } from '../../shared/sim/encounterRows';
@@ -24,7 +25,7 @@ export class SimNetWorld implements NetWorld {
   private readonly filings: (() => readonly LedgerFiling[]) | undefined;
   /** `frame` names the cell this host's positions are local to; 0 is the highway, and any world that is not on a grid. `filings` reads the tick's grants, which the host's owner holds: the sim keeps none. */
   constructor(host: SimHost, frame = 0, filings?: () => readonly LedgerFiling[]) {
-    this.host = host; this.frame = frame; this.filings = filings; this.wire = new CombatWire(host);
+    this.host = host; this.frame = frame; this.filings = filings; this.wire = new CombatWire(host); keepHitHistory(host);
     this.player = this.playerOf(leadPlayer(host).id);
   }
   /** A player, as the client that owns it reads it. */
