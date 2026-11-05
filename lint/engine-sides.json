@@ -481,6 +481,7 @@
   "src/engine/quest/core.ts": "server",
   "src/engine/quest/dialogueClock.ts": "server",
   "src/engine/quest/discovery.ts": "server",
+  "src/engine/quest/players.ts": "server",
   "src/engine/quest/view.ts": "client",
   "src/engine/quest/view/ui.ts": {
    "side": "client",
