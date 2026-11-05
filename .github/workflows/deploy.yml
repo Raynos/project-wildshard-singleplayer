@@ -949,6 +949,9 @@ jobs:
           import re
           import subprocess
           import sys
+          import time
+
+          READS, WAIT = 4, float(os.environ.get('FIXTURE_ADMISSION_WAIT', '3'))
 
           def admit(data, run, attempt, sha):
               if not isinstance(data, dict) or not isinstance(data.get('jobs'), list):
@@ -974,6 +977,21 @@ jobs:
                   return True, status, conclusion
               raise ValueError('Uncertain prepare verdict')
 
+          def read_prepare(repo, run, attempt, sha):
+              # prepare has its own concurrency group and can start seconds after this
+              # job, so an inventory that does not decide yet is read again. A failed
+              # read stays final, and a refusal after the last read fails closed.
+              for read in range(1, READS + 1):
+                  response = subprocess.run(['gh', 'api',
+                      f'repos/{repo}/actions/runs/{run}/attempts/{attempt}/jobs?per_page=100'],
+                      check=True, capture_output=True, text=True, timeout=30)
+                  try:
+                      return admit(json.loads(response.stdout), int(run), int(attempt), sha)
+                  except ValueError:
+                      if read == READS:
+                          raise
+                      time.sleep(WAIT)
+
           try:
               repo = os.environ['GITHUB_REPOSITORY']
               run, attempt, sha = (os.environ[name] for name in
@@ -989,10 +1007,7 @@ jobs:
                   # commit while the jobs API names the pull request's head.
                   allowed, status, conclusion = True, 'pull_request', None
               elif event == 'push':
-                  response = subprocess.run(['gh', 'api',
-                      f'repos/{repo}/actions/runs/{run}/attempts/{attempt}/jobs?per_page=100'],
-                      check=True, capture_output=True, text=True, timeout=30)
-                  allowed, status, conclusion = admit(json.loads(response.stdout), int(run), int(attempt), sha)
+                  allowed, status, conclusion = read_prepare(repo, run, attempt, sha)
               else:
                   raise ValueError('Unknown fixture event')
               decision = 'true' if allowed else 'false'
@@ -1003,7 +1018,8 @@ jobs:
               with Path(os.environ['GITHUB_OUTPUT']).open('a') as output:
                   output.write('run=' + decision + '\n')
           except (KeyError, OSError, ValueError, subprocess.SubprocessError) as error:
-              print('::error::Optional fixture admission unavailable: ' + type(error).__name__, file=sys.stderr)
+              reason = f': {error}' if isinstance(error, ValueError) else ''
+              print('::error::Optional fixture admission unavailable: ' + type(error).__name__ + reason, file=sys.stderr)
               sys.exit(1)
           PY
 

@@ -13,7 +13,7 @@ const job = (status: string, conclusion: string | null) => ({
 });
 const inventory = (jobs: unknown[]) => ({ total_count: jobs.length, jobs });
 
-function execute(data: unknown, apiExit = 0, event = 'push') {
+function execute(data: unknown, apiExit = 0, event = 'push', later?: unknown) {
   const section = workflow.split('\n  fixtures:\n')[1]?.split('\n  behaviour:\n')[0];
   const block = section?.split('      - name: Admit optional fixtures for this prepare\n')[1]?.split('\n      - ')[0];
   const code = block?.split('        run: |\n')[1]?.split('\n').map(line => line.startsWith('          ') ? line.slice(10) : line).join('\n');
@@ -23,15 +23,17 @@ function execute(data: unknown, apiExit = 0, event = 'push') {
     const bin = resolve(directory, 'bin'), output = resolve(directory, 'output'), summary = resolve(directory, 'summary');
     mkdirSync(bin);
     writeFileSync(resolve(directory, 'response'), JSON.stringify(data));
-    writeFileSync(resolve(bin, 'gh'), '#!/bin/sh\nprintf "%s\\n" "$@" >> "$ADMISSION_CALLS"\ncat "$ADMISSION_RESPONSE"\nexit "$ADMISSION_EXIT"\n', { mode: 0o755 });
+    if (later !== undefined) writeFileSync(resolve(directory, 'later'), JSON.stringify(later));
+    writeFileSync(resolve(bin, 'gh'), '#!/bin/sh\nprintf "%s\\n" "$@" >> "$ADMISSION_CALLS"\nif [ -f "$ADMISSION_LATER" ] && [ "$(grep -c "^api$" "$ADMISSION_CALLS")" -gt 1 ]; then cat "$ADMISSION_LATER"; else cat "$ADMISSION_RESPONSE"; fi\nexit "$ADMISSION_EXIT"\n', { mode: 0o755 });
     const calls = resolve(directory, 'calls');
     const result = spawnSync('bash', ['-e', '-c', code], {
       cwd: directory, encoding: 'utf8', timeout: 5000,
       env: { ...process.env, PATH: `${bin}:${process.env['PATH'] ?? ''}`,
         GITHUB_REPOSITORY: 'Raynos/project-wildshard-singleplayer', GITHUB_RUN_ID: '123', GITHUB_RUN_ATTEMPT: '2',
         GITHUB_EVENT_NAME: event,
-        GITHUB_SHA: sha, GITHUB_OUTPUT: output, GITHUB_STEP_SUMMARY: summary,
-        ADMISSION_RESPONSE: resolve(directory, 'response'), ADMISSION_CALLS: calls, ADMISSION_EXIT: String(apiExit) },
+        GITHUB_SHA: sha, GITHUB_OUTPUT: output, GITHUB_STEP_SUMMARY: summary, FIXTURE_ADMISSION_WAIT: '0',
+        ADMISSION_RESPONSE: resolve(directory, 'response'), ADMISSION_LATER: resolve(directory, 'later'),
+        ADMISSION_CALLS: calls, ADMISSION_EXIT: String(apiExit) },
     });
     return { status: result.status, stderr: result.stderr, stdout: result.stdout,
       output: existsSync(output) ? readFileSync(output, 'utf8') : '',
@@ -73,6 +75,18 @@ test('missing ambiguous foreign truncated and uncertain evidence cannot admit fi
     expect(result.output).toBe('');
     expect(result.stderr).toContain('Optional fixture admission unavailable');
   }
+});
+
+test('a prepare that has not settled yet is read again before it can refuse the run', () => {
+  const result = execute(inventory([{ name: 'fixtures' }]), 0, 'push', inventory([job('pending', null)]));
+  expect(result.status, result.stderr).toBe(0);
+  expect(result.output).toBe('run=true\n');
+  expect(result.calls.split('\n').filter(line => line === 'api')).toHaveLength(2);
+  const absent = execute(inventory([{ name: 'fixtures' }]));
+  expect(absent.status).not.toBe(0);
+  expect(absent.output).toBe('');
+  expect(absent.calls.split('\n').filter(line => line === 'api')).toHaveLength(4);
+  expect(absent.stderr).toContain('ValueError: Ambiguous prepare identity');
 });
 
 test('unavailable API evidence fails closed after one read without polling or exposing its body', () => {
