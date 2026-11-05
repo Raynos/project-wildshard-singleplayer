@@ -105,8 +105,10 @@ test('a bot rides Pine\'s cable on its motor', async () => {
   const from = bot.position.distanceTo(bottom);
   for (let tick = 0; tick < 60; tick++) live.step([]);
   expect(bot.position.distanceTo(bottom), 'the motor carries it down the wire').toBeLessThan(from - 1);
+  expect(bot.led, 'its client takes no step on the wire').toBe(true); expect(leadPlayer(host).led).toBe(false);
   for (let tick = 0; tick < 3600 && cables.seatState(policy.cable, 'bot:1').riding; tick++) live.step([]);
   expect(cables.seatState(policy.cable, 'bot:1').atEnd).toBe(true);
+  expect(bot.led).toBe(false);
   expect(cables.state(policy.cable).atEnd, 'the first player has not ridden').toBe(false);
   live.dispose();
 }, 60_000);

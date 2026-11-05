@@ -47,7 +47,7 @@ test('a bot locks, fires and crosses on its own claw while the lead stands idle'
     for (let frame = 0; frame < 240; frame++) host.step();
     expect(claw.phase).toBe('idle'); expect(grapple.guardOpen()).toBe(false); expect(rail.isEnabled()).toBe(true);
     expect(bot.led).toBe(false);
-    expect(bot.position.x).toBeLessThan(-1); expect(lead.position.distanceTo(leadAt)).toBeLessThan(.05);
+    expect(bot.position.x).toBeLessThan(-1); expect(Math.hypot(lead.position.x - leadAt.x, lead.position.z - leadAt.z)).toBeLessThan(.05); // it stands off the level, so it falls
     expect(facts).toEqual(['quarry.crossed']);
   } finally { host.dispose(); }
 });
