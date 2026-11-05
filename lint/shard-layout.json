@@ -27,7 +27,8 @@
       "creatures",
       "species",
       "quest",
-      "world"
+      "world",
+      "art"
     ]
   },
   "describe": {
@@ -53,6 +54,7 @@
     "creatures/": "authored data, source assets and generated outputs; executable TypeScript belongs in generators/",
     "species/": "authored data, source assets and generated outputs; executable TypeScript belongs in generators/",
     "quest/": "authored data, source assets and generated outputs; executable TypeScript belongs in generators/",
-    "world/": "authored data, source assets and generated outputs; executable TypeScript belongs in generators/"
+    "world/": "authored data, source assets and generated outputs; executable TypeScript belongs in generators/",
+    "art/": "the shard's mockup rounds (round-<n>-<label>/); the build never reads them"
   }
 }

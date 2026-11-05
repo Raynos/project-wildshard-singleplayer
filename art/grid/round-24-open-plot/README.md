@@ -36,7 +36,7 @@ new player sees from the pier.
 
 - Sources (real captures, no new browser session): `art/grid/round-21-refused-cell/a-void.jpg` (road-level, today's
   road HUD: PAUSE, fps, coins, minimap, quest chip, HOVER, DRAG TO MOVE, SAFE ZONE, dimmed ATTACK) for A / B / C;
-  `art/grid/round-23-open-plots/today-grid.jpg` (the real 3 × 3 aerial) and `art/_template/round-2-dev-look/board.jpg`
+  `art/grid/round-23-open-plots/today-grid.jpg` (the real 3 × 3 aerial) and `src/shards/_template/art/round-2-dev-look/board.jpg`
   for the map; `art/grid/round-12-vr-void/A-tron-grid-rail.jpg` for the void floor.
 - Finals: codex `image_gen` edits, one take each, none re-rolled; every string came back as quoted. Mockup liberties: the
   entry stub is drawn as the road's grey seam surface, and the map's shard cells are painted stand-ins, not their real
