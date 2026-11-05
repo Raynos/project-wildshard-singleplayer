@@ -7,7 +7,7 @@ import type { SystemSpec } from '@wildshard/engine/app/systems';
 import type { Player } from '@wildshard/engine/player/Player';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import type { NetClient } from '@wildshard/engine/net/client';
-import { NetPlayer } from '@wildshard/engine/net/netPlayer';
+import { NetPlayer, type NetWeapons } from '@wildshard/engine/net/netPlayer';
 import type { PredictedRow } from '@wildshard/engine/net/predictionWorld';
 import { ANIMAL_CLASS } from '@wildshard/engine/net/netSchemas';
 import type { Physics } from '@wildshard/engine/physics/Physics';
@@ -24,6 +24,8 @@ export interface WorkerClientPorts {
   readonly player: Player; readonly physics: Physics;
   /** The page's creature manager: its views draw rows, and its own population is retired. */
   readonly animals: Pick<AnimalManager, 'animals' | 'spawn' | 'retire'>;
+  /** The real weapons: they send their presses and take the server's word. */
+  readonly weapons: NetWeapons;
   readonly scope: Scope;
   readonly system: (system: SystemSpec) => void;
 }
@@ -38,7 +40,7 @@ const X = column('x'), Y = column('y'), Z = column('z'), YAW = column('yaw'), ST
 /** What the page measures, as I6 lists it. */
 export interface WorkerClientReport {
   frames: number; framesPerSecond: number; ticksPerSecond: number; correctionsPerMinute: number; corrections: number; worstOffset: number; queue: number; replaysPerFrame: number;
-  delayMs: number; jitterMs: number; mainMsP95: number; workerTickMs: number; rows: number; dropped: number; closed: string | null; x: number; z: number;
+  delayMs: number; jitterMs: number; mainMsP95: number; workerTickMs: number; rows: number; attacks: number; hits: number; kills: number; refused: number; dropped: number; closed: string | null; x: number; z: number;
 }
 declare global { interface Window { __workerClient?: () => WorkerClientReport } }
 
@@ -93,11 +95,12 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   const shell = startStandalone({ slug, base: `/shardfiles/${slug}/`, build, savePrefix: PROOF_SAVES, storage: storage as Storage }), { client } = shell;
   scope.onDispose(() => { shell.dispose(); });
   const net = new NetPlayer(client, player, physics), show = overlay(ports), row = new Float64Array(ANIMAL_CLASS.row.length), near: PredictedRow[] = [], costs = new Float64Array(240), bodies = new Map<number, Animal>();
-  player.link = net;
-  scope.onDispose(() => { player.link = null; net.dispose(); });
+  player.link = net; net.bindWeapons(ports.weapons);
+  scope.onDispose(() => { player.link = null; ports.weapons.bindWire(null); net.dispose(); });
   await shell.booted;
   shell.ready();
-  const started = diagnosticNow(), report: WorkerClientReport = { frames: 0, framesPerSecond: 0, ticksPerSecond: 0, correctionsPerMinute: 0, corrections: 0, worstOffset: 0, queue: 0, replaysPerFrame: 0, delayMs: 0, jitterMs: 0, mainMsP95: 0, workerTickMs: 0, rows: 0, dropped: 0, closed: null, x: 0, z: 0 };
+  const started = diagnosticNow(), report: WorkerClientReport = { frames: 0, framesPerSecond: 0, ticksPerSecond: 0, correctionsPerMinute: 0, corrections: 0, worstOffset: 0, queue: 0, replaysPerFrame: 0, delayMs: 0, jitterMs: 0, mainMsP95: 0, workerTickMs: 0, rows: 0, attacks: 0, hits: 0, kills: 0, refused: 0, dropped: 0, closed: null, x: 0, z: 0 };
+  scope.onDispose(client.onCombat(event => { if (event.kind === 'hit' && event.confirmFor !== 0) { report.hits++; if (event.killed) report.kills++; } }));
   let firstTick = -1, cost = 0, sampleAt = 0, framesAt = 0, sampledAt = started;
   system({ id: 'proof.worker.reconcile', phase: 'input', run: () => { const at = diagnosticNow(); net.reconcile(); cost = diagnosticNow() - at; } });
   system({ id: 'proof.worker.present', phase: 'update', run: dt => {
@@ -112,12 +115,13 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     report.ticksPerSecond = firstTick === -1 ? 0 : (tick - firstTick) / seconds;
     report.corrections = predictor.corrections; report.correctionsPerMinute = predictor.corrections / seconds * 60; report.worstOffset = net.worstOffset; report.queue = predictor.pending;
     report.replaysPerFrame = predictor.replays / report.frames; report.delayMs = client.clock.delayMs; report.jitterMs = client.clock.jitterMs;
+    report.refused = net.attacks.refused; report.attacks = net.attacks.pending;
     report.dropped = client.dropped; report.closed = client.closed; report.x = player.position.x; report.z = player.position.z;
     if (now - sampledAt < 1000) return;
     report.framesPerSecond = (report.frames - framesAt) / (now - sampledAt) * 1000; framesAt = report.frames; sampledAt = now;
     report.mainMsP95 = [...costs].sort((a, b) => a - b)[Math.floor(Math.min(report.frames, costs.length) * 0.95) + Math.max(0, costs.length - report.frames)] ?? 0;
     if (now - sampleAt > 2000) { sampleAt = now; void readWorker(shell, report); }
-    show(`worker client ${report.closed ?? 'open'}\n${report.framesPerSecond.toFixed(1)} fps  ${report.ticksPerSecond.toFixed(1)} ticks/s\ndelay ${report.delayMs.toFixed(0)} ms  jitter ${report.jitterMs.toFixed(1)} ms\ncorrections ${report.corrections} (${report.correctionsPerMinute.toFixed(1)}/min)  worst ${report.worstOffset.toFixed(2)} m\nqueue ${report.queue}  replays/frame ${report.replaysPerFrame.toFixed(2)}\nmain ${report.mainMsP95.toFixed(2)} ms  worker ${report.workerTickMs.toFixed(1)} ms  rows ${report.rows}`);
+    show(`worker client ${report.closed ?? 'open'}\n${report.framesPerSecond.toFixed(1)} fps  ${report.ticksPerSecond.toFixed(1)} ticks/s\ndelay ${report.delayMs.toFixed(0)} ms  jitter ${report.jitterMs.toFixed(1)} ms\ncorrections ${report.corrections} (${report.correctionsPerMinute.toFixed(1)}/min)  worst ${report.worstOffset.toFixed(2)} m\nqueue ${report.queue}  replays/frame ${report.replaysPerFrame.toFixed(2)}\nmain ${report.mainMsP95.toFixed(2)} ms  worker ${report.workerTickMs.toFixed(1)} ms  rows ${report.rows}\nhits ${report.hits}  kills ${report.kills}  refused ${report.refused}  waiting ${report.attacks}`);
   } });
   window.__workerClient = () => ({ ...report });
 }
