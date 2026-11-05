@@ -37,7 +37,7 @@ import { spawnViewThenNamed } from './readyFrame';
 
 /** What a grid page lends the worker client (J130). */
 function workerGrid({ grid, gridLive }: Pick<Awaited<ReturnType<typeof playStage>>, 'grid' | 'gridLive'>): WorkerClientGrid | null {
-  return grid === null || gridLive === null ? null : { cells: grid.assembly.cells, bindWire: wire => { gridLive.bindWire(wire); }, frame: () => gridLive.frame(), animals: () => gridLive.enteredAnimals() };
+  return grid === null || gridLive === null ? null : { cells: grid.assembly.cells, bindWire: wire => { gridLive.bindWire(wire); }, frame: () => gridLive.frame(), animals: () => gridLive.enteredAnimals(), items: () => gridLive.enteredItems() };
 }
 
 /** how often the in-play warm-up asks whether an arrival's Explorer has closed, and how long it waits for one to open */
@@ -310,7 +310,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   ctx.session.residency?.bindComposer(game, game.engineScope, TIER);
   game.captureLevelResources();
   game.levelScope.onDispose(() => { windupWarn?.dispose(); weapons.setEnabled(false); boot.runtime.hooks.dispose?.(); audio.unloadLevel(); });
-  if (workerClientOn()) void import('../shardfile/clientWorker').then(worker => worker.launchWorkerClient({ slug: ctx.grid?.home.slug ?? slug, player, physics: world.physics, animals, weapons, items: ctx.grid === null ? ctx.product.shardfile.items.rows : [], grid: workerGrid(ctx), scope: game.levelScope, system: spec => { app.addSystem(spec, game.levelScope); } }));
+  if (workerClientOn()) void import('../shardfile/clientWorker').then(worker => worker.launchWorkerClient({ slug: ctx.grid?.home.slug ?? slug, player, physics: world.physics, animals, weapons, items: ctx.product.shardfile.items.rows, grid: workerGrid(ctx), scope: game.levelScope, system: spec => { app.addSystem(spec, game.levelScope); } }));
   installProbe(handle, { leakPhysics, health: () => playerHealth.attributes.health, quest: () => ({ adventure: boot.runtime.hooks.adventureFlags?.() ?? [], quest: boot.runtime.hooks.questFlags?.() ?? [] }) });
   ctx.startExplore?.();
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/engine/client/native/boot.ts, via src/native.ts) waits for this

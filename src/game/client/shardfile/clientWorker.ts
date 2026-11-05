@@ -18,6 +18,7 @@ import { ANIMAL_STATES } from '@wildshard/engine/entities/animalStates';
 import { creatureBodyShape } from '@wildshard/engine/sim/bands';
 import { lockOn } from '@wildshard/engine/player/AimTargets';
 import { hudSlots } from '@wildshard/engine/ui/hudSlots';
+import { netNeighbourRegion } from '../grid/neighbourRows';
 import { mountOf } from '../../shared/riding/entered';
 import type { Mount } from '../riding/mount';
 
@@ -28,6 +29,8 @@ export interface WorkerClientGrid {
   readonly bindWire: (wire: LiveGridWire) => void;
   readonly frame: () => string | null;
   readonly animals: () => Creatures | null;
+  /** The entered cell's item rows; none on the road, which keeps the last cell's. */
+  readonly items: () => readonly WorkerItemRow[] | null;
 }
 /** The part of an item row that says where the server holds it. */
 export interface WorkerItemRow { readonly id: string; readonly ranged?: { readonly slot: number } | undefined }
@@ -40,7 +43,7 @@ export interface WorkerClientPorts {
   readonly grid: WorkerClientGrid | null;
   /** The real weapons: they send their presses and take the server's word. */
   readonly weapons: NetWeapons;
-  /** The shard's item rows: a ranged row names the server's slot for it. */
+  /** The page's own shard's item rows: a ranged row names the server's slot for it. */
   readonly items: readonly WorkerItemRow[];
   readonly scope: Scope;
   readonly system: (system: SystemSpec) => void;
@@ -134,13 +137,16 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     for (const [handle, { body }] of bodies) if (body === lockOn.target) return client.entities.get(handle)?.id;
     return undefined;
   };
-  player.link = net; net.bindWeapons(ports.weapons, new Map(ports.items.flatMap(item => item.ranged === undefined ? [] : [[item.id, item.ranged.slot] as const])));
+  // A crossing brings another shard's items, and each has its own slots.
+  let items = ports.items;
+  const slotsOf = (rows: readonly WorkerItemRow[]): Map<string, number> => new Map(rows.flatMap(item => item.ranged === undefined ? [] : [[item.id, item.ranged.slot] as const]));
+  player.link = net; net.bindWeapons(ports.weapons, slotsOf(items));
   // A frame names its world. A grid page crosses when one says so; a one-shard page has only the world it opened in, and waits there.
   const { grid } = ports, siteOf = (cell: number): string | null | undefined => cell === 0 ? null : grid?.cells[cell - 1]?.instance;
-  let opened: number | undefined;
+  let opened: number | undefined, renderTick = 0;
   if (grid === null) net.inCell = cell => (opened ??= cell) === cell;
   else {
-    grid.bindWire({ site: () => { const cell = client.latest?.cell; return cell === undefined ? undefined : siteOf(cell); }, rebound: next => { net.world.rebind(next); } });
+    grid.bindWire({ site: () => { const cell = client.latest?.cell; return cell === undefined ? undefined : siteOf(cell); }, rebound: next => { net.world.rebind(next); }, rows: netNeighbourRegion(client, () => renderTick) });
     net.inCell = cell => siteOf(cell) === grid.frame();
   }
   scope.onDispose(() => { player.link = null; ports.weapons.bindWire(null); net.dispose(); });
@@ -156,10 +162,14 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   scope.onDispose(client.onTravel(() => { firstTick = -1; ticksFrom = diagnosticNow(); }));
   system({ id: 'proof.worker.reconcile', phase: 'input', run: () => { const at = diagnosticNow(); net.reconcile(); cost = diagnosticNow() - at; } });
   system({ id: 'proof.worker.present', phase: 'update', run: dt => {
-    const at = diagnosticNow(), renderTick = client.present();
-    syncCreatures(client, grid === null ? ports.animals : grid.animals(), bodies);
+    const at = diagnosticNow(), animals = grid === null ? ports.animals : grid.animals();
+    renderTick = client.present();
+    const entered = grid?.items() ?? items;
+    if (entered !== items) { items = entered; net.bindSlots(slotsOf(items)); }
+    syncCreatures(client, animals, bodies);
     bindMount(); offerMounts();
-    report.rows = showRows(client, net, ports, bodies, renderTick, dt, row, near);
+    const shown = showRows(client, net, ports, bodies, renderTick, dt, row, near);
+    report.rows = animals === null ? [...client.entities.values()].filter(info => info.cls.cls === ANIMAL_CLASS.cls).length : shown; // a data cell's life draws them
     net.present(dt);
     const now = diagnosticNow(), { predictor } = net, seconds = (now - started) / 1000, tick = client.latest?.tick ?? 0;
     costs[report.frames % costs.length] = cost + now - at;

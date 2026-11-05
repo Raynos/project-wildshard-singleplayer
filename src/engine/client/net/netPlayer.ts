@@ -111,6 +111,8 @@ export class NetPlayer implements PlayerLink {
   }
   /** Draw this player's attacks on `weapons`: they stop settling their own contact and take the server's word. */
   bindWeapons(weapons: NetWeapons, slots: ReadonlyMap<string, number>): void { this.weapons = weapons; this.slots = slots; weapons.bindWire(this.wire); }
+  /** A world has its own items, and so its own slots. */
+  bindSlots(slots: ReadonlyMap<string, number>): void { this.slots = slots; }
   /** Where this player's ride lands. A page with none takes no ride's words. */
   bindRide(seat: NetRideSeat | null): void { this.seat = seat; }
   /** The slot the server says this player holds. */

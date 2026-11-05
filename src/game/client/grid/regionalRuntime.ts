@@ -4,6 +4,7 @@ import { freezeParkedMatrices } from '@wildshard/engine/render/precompile';
 import { timeClientPreparation } from '../shardfile/preparationTiming';
 import { isDev } from '@wildshard/engine/core/devMode';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { clientHomeBytes } from '../shardfile/clientResidency';
 import { Object3D, Vector3, type Texture } from 'three';
 import { ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
@@ -119,6 +120,8 @@ export interface PreparedRegionalRuntime {
   readonly aimAnimals: () => AnimalManager['animals'];
   /** Its creature manager once built, where a row is drawn (J130). */
   readonly animals: () => AnimalManager | null;
+  /** This cell's item rows: a ranged row names the server's slot for it. */
+  readonly items: Shardfile['items']['rows'];
   /** Its own scoped runtime's interact prompts (frame-local; emptied on entry, ended with the runtime); callers scan them
    *  only while this runtime is ready and entered (`enteredRuntime`). Empty before the runtime's context exists. */
   readonly interactables: () => readonly ShardRuntime['interactables'][number][];
@@ -452,7 +455,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
         return !scope.disposed && trace?.root === view.root.uuid ? trace : null;
       }, region: { ...foundation.region, dispose: () => { const nodes = treeNodes(view.root); scope.dispose(); const cut = severNodes(nodes); while (cut.next().done !== true) { /* whole */ } }, retire: () => retireRegion(view.root, scope),
         ghostRoots: [...foundation.region.ghostRoots ?? [], scope, view.root] }, queries: view.queries, checkpoint,
-        aimAnimals: () => localPlay?.animals.animals ?? [],
+        aimAnimals: () => localPlay?.animals.animals ?? [], items: request.admitted.source.items.rows,
         animals: () => localPlay?.animals ?? null,
         interactables: () => localRuntime?.interactables ?? [],
         park: () => { if (!parked) { parked = true; freezeParkedMatrices(view.root); } },

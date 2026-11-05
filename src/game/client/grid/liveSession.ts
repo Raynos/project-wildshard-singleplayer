@@ -1,4 +1,5 @@
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
 import { emitFault } from '@wildshard/engine/core/faults';
 import { crossingLoadingRows } from '../boot/loadingPaths';
@@ -46,6 +47,7 @@ import type { ReadinessWalls, ReadinessEdge } from '@wildshard/engine/physics/re
 import { TransferWalls, TRANSFER_WALL_BYTES } from '@wildshard/engine/physics/transferWalls';
 import type { ReadinessBundle, ReadinessLink } from '@wildshard/engine/sim/readiness';
 import type { GridAssembly, GridCell } from '../../shared/grid/assembly';
+import type { NeighbourRegion } from './neighbourLife';
 import type { ResidencyAllocator } from '../../shared/grid/allocator';
 import type { HomeResidencyClaim } from './pageResidency';
 import { LiveGridHost, type LiveGridAdmission, type LiveGridFrame, type LiveGridState } from './live';
@@ -162,6 +164,8 @@ export interface LiveGridWire {
   readonly site: () => string | null | undefined;
   /** The page took a new world's physics. */
   readonly rebound: (physics: Physics) => void;
+  /** The server's creatures in the world the page stands in, for a cell whose creatures no manager holds. */
+  readonly rows: NeighbourRegion;
 }
 /** The readout: the live host's crossing telemetry, the crossing coordinator and the safe-zone state. */
 export interface LiveGridSessionState {
@@ -222,7 +226,7 @@ export class LiveGridSession {
   private readonly applied = new Vector3();
   private readonly roadWallet: GridWallet;
   /** each admitted region's authored spawn (its level's player start) and its ground / water queries, local */
-  private readonly regions = new Map<string, { readonly spawn: LiveGridSpawn; readonly queries: PlayerFrameQueries; readonly simulation: ShardfileSimulation; readonly prompts: ReturnType<typeof copyPrompts> }>();
+  private readonly regions = new Map<string, { readonly spawn: LiveGridSpawn; readonly items: Shardfile['items']['rows']; readonly queries: PlayerFrameQueries; readonly simulation: ShardfileSimulation; readonly prompts: ReturnType<typeof copyPrompts> }>();
   private readonly runtimeScope: Scope;
   private readonly runtimeRegions = new Map<string, PreparedRegionalRuntime>();
   private readonly leaveTiming: { instance: string; leaveMs: number }[] = [];
@@ -424,6 +428,12 @@ export class LiveGridSession {
   enteredAnimals(): ReturnType<PreparedRegionalRuntime['animals']> {
     const instance = this.enteredRuntimeInstance();
     return instance === null ? null : this.runtimeRegions.get(instance)?.animals() ?? null;
+  }
+
+  /** The entered cell's item rows, for the slots the server knows its held items by; none on the road. */
+  enteredItems(): Shardfile['items']['rows'] | null {
+    const current = this.live.current();
+    return current === null ? null : this.runtimeRegions.get(current)?.items ?? this.regions.get(current)?.items ?? null;
   }
 
   /** Refresh unentered recovery sockets after the page publishes deferred platform seams. */
@@ -715,7 +725,7 @@ export class LiveGridSession {
         }, new Map([...host.entities.values()].map(actor => [actor.combatActor(), actor.position])));
         this.regions.set(cell.instance, { spawn: { x: start.at.x, y: undefined, z: start.at.z, yaw: start.yaw },
           // the admitted terrain inside the cell (one source of truth); its strips are road level (the terrain tile ends at the cell edge)
-          queries: { heightAt: (x, z) => (Math.max(Math.abs(x), Math.abs(z)) <= CHUNK_HALF ? host.groundHeightAt(x, z) : 0), waterSurfaceAt: (x, z) => water.restAt(x, z), platforms: [] }, simulation: region, prompts: copyPrompts(copySource, region) });
+          queries: { heightAt: (x, z) => (Math.max(Math.abs(x), Math.abs(z)) <= CHUNK_HALF ? host.groundHeightAt(x, z) : 0), waterSurfaceAt: (x, z) => water.restAt(x, z), platforms: [] }, simulation: region, items: copySource.items.rows, prompts: copyPrompts(copySource, region) });
         this.respawnCells.set(cell.instance, { instance: cell.instance, origin: cell.origin, entryways: source.entryways });
         // G321: its own sky inside its cell (its data look's dome and light), laid while it is resident
         {
@@ -973,6 +983,11 @@ export class LiveGridSession {
 
   /** The admitted native simulation for a browser witness; the page exposes this only when harness pins exist. */
   simulation(instance: string): ShardfileSimulation | undefined { return this.regions.get(instance)?.simulation; }
+  /** What draws a cell's life: its region here, or on a wire the server's rows, which exist only where the page stands. */
+  lifeRegion(instance: string): NeighbourRegion | undefined {
+    if (this.wire === null) return this.simulation(instance);
+    return this.wire.site() === instance ? this.wire.rows : undefined;
+  }
 
   /** Fresh per-frame travel facts; setup/final witnesses use the complete state readout. */
   travelState(): Pick<LiveGridSessionState, 'live' | 'crossing' | 'runtimeTiming'> {
