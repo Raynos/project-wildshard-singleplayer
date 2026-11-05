@@ -1,4 +1,5 @@
 import type { SimExternalPlayer, SimHost } from '@wildshard/engine/sim';
+import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 import { snapshotSimHost, snapshotSimHostBytes, finishSimSteps, type SimSnapshot, type SimSnapshotBytes } from '@wildshard/engine/sim/snapshot';
 import { prepareFrameMotors, type FrameMember } from '@wildshard/engine/physics/frame';
 import type { Physics } from '@wildshard/engine/physics/Physics';
@@ -17,7 +18,6 @@ import type { HomeResidencyClaim } from './pageResidency';
 import { ApproachInputsDeferredError } from './productInputs';
 import { clientPreparationBatch } from '../shardfile/preparationTiming';
 import { tileOf, type CellTile } from '../shardfile/tileOrder';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** An owned region has authored colliders and logical player state, but no second traveller capsule. */
 export interface LiveGridRegion { host: SimHost; dispose: () => void;
@@ -240,7 +240,13 @@ export class LiveGridHost {
     return lease;
   }
   private checkRegion(region: LiveGridRegion): void {
-    if (region.host.embedded || leadPlayer(region.host).hasMotor) throw new Error('Live regional host must be owned and bodyless');
+    if (region.host.embedded || this.traveller(region.host).hasMotor) throw new Error('Live regional host must be owned and bodyless');
+  }
+  /** The page's own traveller's seat in a host: this owner drives one named player, wherever it stands. */
+  private traveller(host: SimHost): PlayerSim {
+    const seat = host.players.get(this.ports.player.health.id);
+    if (seat === undefined) throw new Error('Live region holds no seat for its traveller');
+    return seat;
   }
   /** Null identifies the permanent highway/strip world. */
   current(): string | null { return this.active; }
@@ -630,12 +636,12 @@ export class LiveGridHost {
     const stale = (): boolean => this.disposed || generation !== this.checkpointGenerations.get(instance) || this.residents.get(instance) !== resident || (instance === this.active) !== active;
     let nativeSteps: Generator<undefined, boolean> | undefined;
     if (active) {
-      const host = resident.region.host; leadPlayer(host).position.copy(this.ports.player.position); leadPlayer(host).yaw = this.ports.player.yaw;
-      leadPlayer(host).attachMotor(this.ports.player.motor);
+      const host = resident.region.host; this.traveller(host).position.copy(this.ports.player.position); this.traveller(host).yaw = this.ports.player.yaw;
+      this.traveller(host).attachMotor(this.ports.player.motor);
       try {
         if (this.ports.continuations === 'durable' && this.ports.saveBytesSteps !== undefined) nativeSteps = this.ports.saveBytesSteps(instance, snapshotSimHostBytes(host));
         else snapshot = snapshotSimHost(host);
-      } finally { leadPlayer(host).releaseMotor(); }
+      } finally { this.traveller(host).releaseMotor(); }
     }
     if (nativeSteps !== undefined) return yield* this.writeCheckpointSteps(nativeSteps, stale);
     if (snapshot === undefined) return true; // Never-entered bodyless content is reconstructed from immutable admission.
@@ -773,7 +779,7 @@ export class LiveGridHost {
     current();
     if (this.active !== from || !this.ready(to)) throw new Error('Unready live frame preparation');
     const destination = this.region(to)?.host;
-    if (destination !== undefined && (leadPlayer(destination).hasMotor || leadPlayer(destination).id !== this.ports.player.health.id)) throw new Error('Invalid destination traveller');
+    if (destination !== undefined && (!destination.players.has(this.ports.player.health.id) || this.traveller(destination).hasMotor)) throw new Error('Invalid destination traveller');
     const resident = to === null ? undefined : this.residents.get(to), releaseHold = resident?.lease.hold();
     if (resident !== undefined) resident.reservations++;
     const source = this.origin(from), origin = this.origin(to), rider = { position: this.ports.player.position, motor: this.ports.player.motor }, mount = this.ports.mount?.();
@@ -792,7 +798,7 @@ export class LiveGridHost {
       this.ports.player.motor = rider.motor; this.active = to;
       if (to !== null) this.forgetLastCell();
       this.previousFeet = this.worldFeet(); // A committed spawn/frame placement is not the traveller's heading.
-      const host = this.region(to)?.host; if (host !== undefined) this.unbind = leadPlayer(host).bindExternal(this.ports.player);
+      const host = this.region(to)?.host; if (host !== undefined) this.unbind = this.traveller(host).bindExternal(this.ports.player);
       this.ports.bindFrame({ instance: to, physics: this.physics(to), motor: rider.motor, origin, ...(host === undefined ? {} : { host }) });
       this.residents.get(to ?? '')?.lease.update({ needed: true }); this.residents.get(from ?? '')?.lease.update({ needed: to === null });
       this.crossings++; this.transitions.push({ from, to }); if (this.transitions.length > 256) this.transitions.shift(); finish();
