@@ -56,13 +56,11 @@ export interface MotionLaw {
   readonly depthNow: boolean;
   /** A grounded, still player with no command takes no step at all (the host: a resting body's bytes do not move). */
   readonly restsIdle: boolean;
-  /** The stroke clock also runs on the step a swimmer stands up (the page). */
-  readonly strokeOnStand: boolean;
 }
 /** The law the client's Player has always run. */
-export const PAGE_MOTION: MotionLaw = { oneVelocity: true, momentum: true, depthNow: false, restsIdle: false, strokeOnStand: true };
+export const PAGE_MOTION: MotionLaw = { oneVelocity: true, momentum: true, depthNow: false, restsIdle: false };
 /** The law SimHost has always run. */
-export const HOST_MOTION: MotionLaw = { oneVelocity: false, momentum: false, depthNow: true, restsIdle: true, strokeOnStand: false };
+export const HOST_MOTION: MotionLaw = { oneVelocity: false, momentum: false, depthNow: true, restsIdle: true };
 
 /** What a step resolved about the ground and water under the feet, for the view and the next step. */
 export interface MotionFooting {
@@ -281,7 +279,7 @@ function stepOnBoard(s: PlayerMotionState, w: MotionWorld, run: MotionScratch, m
 }
 
 function stepInWater(s: PlayerMotionState, cmd: MotionCommand | undefined, w: MotionWorld, run: MotionScratch, mx: number, mz: number, len: number, dt: number): void {
-  const { fall, footing, swim, swimVelocity: v } = s, { oneVelocity, strokeOnStand } = w.law;
+  const { fall, footing, swim, swimVelocity: v } = s, { oneVelocity } = w.law;
   s.impulse.set(0, 0, 0);
   footing.onPlatform = false;
   const left = stepSwim(s.position, v, run.want, swim, { mx, mz, len, dive: cmd?.dive === true, surface: cmd?.surface === true }, run.swimPorts, dt, run.swimOut);
@@ -298,7 +296,7 @@ function stepInWater(s: PlayerMotionState, cmd: MotionCommand | undefined, w: Mo
   footing.depth = ws === null ? 0 : Math.max(0, ws - s.position.y);
   fall.grounded = left === 'stood';
   if (left === 'stood') { fall.vy = 0; if (!oneVelocity) v.set(0, 0, 0); swim.stood = true; }
-  if (left === 'swim' || strokeOnStand) swimStroke(swim, v, dt, w.stroked);
+  swimStroke(swim, v, dt, w.stroked); // on the step a swimmer stands up too
 }
 
 /** `MotionLaw.momentum`: the velocity the input asks for, or a slide, a shove or a dash in its place. */
