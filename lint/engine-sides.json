@@ -826,6 +826,7 @@
    "side": "server",
    "mixed": true
   },
+  "src/game/boss/arenaRoomFight.ts": "server",
   "src/game/boss/arenaWhirls.ts": "server",
   "src/game/boss/continuation.ts": "server",
   "src/game/boss/encounterView.ts": "client",
