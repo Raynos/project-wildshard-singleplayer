@@ -35,7 +35,7 @@ export const HeadlessJourneyReportSchema:v.GenericSchema<HeadlessJourneyReport> 
   stuck:v.pipe(v.array(v.strictObject({tick:natural,waypoint:natural,x:finite,y:finite,z:finite})),v.maxLength(512)),
   final:v.strictObject({tick:natural,position:v.tuple([finite,finite,finite]),grounded:v.boolean()}),maxTickMicros:v.pipe(finite,v.minValue(0)),
 });
-type PlayerCommand=Extract<HeadlessCommand,{kind:'player'}>;
+type JourneyCommand=Extract<HeadlessCommand,{kind:'player'}>;
 
 /** The browser walk's same waypoint tolerance and 0.3 m / 2 s progress rule,
  * driven by fixed ticks and actual committed feet. It never teleports or skips a blocked waypoint. */
@@ -58,7 +58,7 @@ export class PhysicsRouteCursor {
     this.points=points;this.options=options;
     if(points.length<2||points.some(point=>![point.x,point.z].every(Number.isFinite)))throw new Error('Walk needs two finite route points');
   }
-  command(position:readonly number[],tick:number):PlayerCommand {
+  command(position:readonly number[],tick:number):JourneyCommand {
     const [x,y,z]=position;
     if(x===undefined||y===undefined||z===undefined||![x,y,z].every(Number.isFinite))throw new Error('Invalid committed walk feet');
     if(this.complete)return {kind:'player',moveX:0,moveZ:0,yaw:0};

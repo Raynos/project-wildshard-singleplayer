@@ -1,8 +1,8 @@
 import { PerspectiveCamera } from 'three';
-import { Player } from '../../../src/engine/client/player/Player';
+import { Player, type PlayerWireInput } from '../../../src/engine/client/player/Player';
+import { NET_BUTTONS } from '../../../src/engine/shared/input/netButtons';
 import { legacyDouble } from '../../../src/engine/test/FakeGame';
 import { FIXED_STEP } from '../../../src/engine/shared/core/fixedStep';
-import type { PlayerCommand } from '../../../src/engine/shared/input/commands';
 import { leadPlayer } from '../../../src/engine/shared/sim/leadPlayer';
 import { runHeadlessJourney, type HeadlessJourneyPlan, type HeadlessJourneyReport, type HeadlessJourneySample } from '../../../src/sdk/headlessJourney';
 import type { TrustedHeadlessResident } from '../../../src/sdk/headlessRuntime';
@@ -22,7 +22,7 @@ export interface MotionReplayReport {
   /** each hundredth of the run's worst error, so a report reads as a curve */
   readonly curve: readonly number[];
 }
-const TOLERANCE = 0.02, NO_AIM = { origin: { x: 0, y: 0, z: 0 }, direction: { x: 0, y: 0, z: -1 } };
+const TOLERANCE = 0.02;
 
 /** One leg on the server, recorded. */
 export function captureJourney(resident: TrustedHeadlessResident, plan: HeadlessJourneyPlan, into: MotionCapture): HeadlessJourneyReport {
@@ -30,12 +30,11 @@ export function captureJourney(resident: TrustedHeadlessResident, plan: Headless
 }
 
 /** The tick's world-space move as the client's raw axes. A journey sends yaw with each move; a tick without one holds. */
-function clientCommand(sample: HeadlessJourneySample, yaw: number): PlayerCommand {
+function clientCommand(sample: HeadlessJourneySample, yaw: number): PlayerWireInput {
   const command = sample.commands.find(row => row.kind === 'player');
-  if (command?.kind !== 'player') return { moveX: 0, moveY: 0, yaw, pitch: 0, crouch: false, sprint: false, jump: false, dodge: false, dive: false, surface: false, aim: NO_AIM };
+  if (command?.kind !== 'player') return { steer: { keyX: 0, keyY: 0, stickX: 0, stickY: 0 }, yaw, pitch: 0, buttons: 0 };
   const sin = Math.sin(command.yaw), cos = Math.cos(command.yaw);
-  return { moveX: cos * command.moveX - sin * command.moveZ, moveY: -sin * command.moveX - cos * command.moveZ, yaw: command.yaw, pitch: 0, crouch: false, sprint: false,
-    jump: command.jump === true, dodge: false, dive: false, surface: false, aim: NO_AIM };
+  return { steer: { keyX: 0, keyY: 0, stickX: cos * command.moveX - sin * command.moveZ, stickY: -sin * command.moveX - cos * command.moveZ }, yaw: command.yaw, pitch: 0, buttons: command.jump === true ? NET_BUTTONS.jump : 0 };
 }
 
 /** Replay a capture on the client's step and report the error against the server's feet, tick by tick. A sample with no

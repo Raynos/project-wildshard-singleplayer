@@ -9,7 +9,7 @@ import { HOVER_HARD_LANDING } from '../../shared/player/board';
 import { createMotionState } from '../../shared/player/motionState';
 import { pressDodge, resetMotion, setBoard, sprints, stepPlayerMotion, type MotionOut, type MotionRide, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
 import type { MotionLock } from '../../shared/player/lockOrbit';
-import type { AimCommand, PlayerCommand, LocalSteer } from '../../shared/input/commands';
+import type { AimCommand, LocalSteer } from '../../shared/input/commands';
 import type { PlayerModeDriver } from '../../shared/player/modes';
 import { NET_BUTTONS } from '../../shared/input/netButtons';
 import type { InputService } from '../input/InputService';
@@ -46,7 +46,6 @@ export interface PlayerFrameQueries {
 }
 
 const EYE = 1.68;
-const NO_STEER: LocalSteer = { keyX: 0, keyY: 0, stickX: 0, stickY: 0 };
 
 // ── hoverboard (toggle: H / the HOVER touch button) ──
           // m/s cruise
@@ -216,14 +215,14 @@ export class Player {
   carried = false;
   // ── the fixed step (PHYSICS.md P2): input() reads intents, step() moves at 60 Hz, update() poses the camera ──
   private inFwd = 0; private inStr = 0; private jumpQueued = false;
-  private activeCommand: PlayerCommand | null = null;
+  private activeCommand: PlayerWireInput | null = null;
   /** The admitted input during this fixed step only; traversal reads it without sampling the device or allocating again. */
-  get traversalCommand(): PlayerCommand | null { return this.activeCommand; }
+  get traversalCommand(): PlayerWireInput | null { return this.activeCommand; }
   private commandJumpUsed = false;
   private commandDodgeUsed = false;
   private dodgeQueued = false;
   /** Optional recording sink; called once per fixed step, before the command is applied. */
-  recordCommand: ((command: PlayerCommand) => void) | null = null;
+  recordCommand: ((command: PlayerWireInput) => void) | null = null;
   /** Where a controls step goes when a server owns this body (P1-E5.3-C6). Null: the step is taken here, and nothing reconciles. */
   link: PlayerLink | null = null;
   /** A board press waiting for the next command: with a link the server rules on it, so the step toggles it, on both sides. */
@@ -451,31 +450,21 @@ export class Player {
     return { keyX: held('move.right', 'KeyD') - held('move.left', 'KeyA'), keyY: held('move.forward', 'KeyW') - held('move.back', 'KeyS'),
       stickX: this.touchMove.x, stickY: this.touchMove.y };
   }
-  /** Device edge. Version 1 adds detached raw steering; ordinary recordings keep their original shape. */
-  sampleCommand(commandVersion?: 1): PlayerCommand {
-    const input = this.inputService, k = this.keys;
-    const ride = commandVersion === 1 ? this.ride?.sampleCommand?.() : undefined;
-    return {
-      moveX: this.inStr, moveY: this.inFwd, yaw: this.yaw, pitch: this.pitch,
-      crouch: this.crouchWanted, aim: this.sampleAimCommand(),
-      sprint: ride?.sprint ?? ((input?.held('sprint') ?? k.has('ShiftLeft')) || this.touchSprint),
-      jump: ride?.jump ?? (input?.pressed('jump') ?? this.jumpQueued),
-      dodge: (input?.pressed('dodge') ?? false) || this.dodgeQueued,
-      dive: (input?.held('dive') ?? k.has('Space')) || this.touchDive,
-      surface: (input?.held('surface') ?? (k.has('ShiftLeft') || k.has('ShiftRight'))) || this.touchSurface,
-      ...(commandVersion === 1 ? { commandVersion, steer: ride === undefined ? this.sampleSteer() : { ...ride.steer } } : {}),
-    };
-  }
-
-  /** The controls as a wire command. The page's move wins: where a context holds the keys, or a stick and keys clamp, the steer says what the step will do. */
-  private wireCommand(sampled: PlayerCommand): PlayerWireInput {
-    const raw = sampled.steer ?? this.sampleSteer(), clamp = (value: number): number => Math.max(-1, Math.min(1, value));
-    const steer = sampled.steer !== undefined || (clamp(raw.keyX + raw.stickX) === sampled.moveX && clamp(raw.keyY + raw.stickY) === sampled.moveY) ? raw : { keyX: 0, keyY: 0, stickX: sampled.moveX, stickY: sampled.moveY };
-    const board = this.boardPressed;
+  /**
+   * The controls as a wire command, at the device edge (P1-E5.3-H1). The page's move wins: where a context holds the keys, or a
+   * stick and keys clamp, the steer says what the step will do. On a wire a ride hands over the controls it consumed.
+   */
+  sampleCommand(): PlayerWireInput {
+    const input = this.inputService, k = this.keys, ride = this.link === null ? undefined : this.ride?.sampleCommand?.();
+    const raw = ride?.steer ?? this.sampleSteer(), clamp = (value: number): number => Math.max(-1, Math.min(1, value));
+    const steer = ride !== undefined ? { ...raw } : clamp(raw.keyX + raw.stickX) === this.inStr && clamp(raw.keyY + raw.stickY) === this.inFwd ? raw : { keyX: 0, keyY: 0, stickX: this.inStr, stickY: this.inFwd };
+    const sprint = ride?.sprint ?? ((input?.held('sprint') ?? k.has('ShiftLeft')) || this.touchSprint), jump = ride?.jump ?? (input?.pressed('jump') ?? this.jumpQueued);
+    const dodge = (input?.pressed('dodge') ?? false) || this.dodgeQueued, dive = (input?.held('dive') ?? k.has('Space')) || this.touchDive;
+    const surface = (input?.held('surface') ?? (k.has('ShiftLeft') || k.has('ShiftRight'))) || this.touchSurface, board = this.boardPressed;
     this.boardPressed = false;
-    const buttons = (sampled.jump ? NET_BUTTONS.jump : 0) | (sampled.dodge ? NET_BUTTONS.dodge : 0) | (sampled.sprint ? NET_BUTTONS.sprint : 0) | (sampled.crouch ? NET_BUTTONS.crouch : 0)
-      | (sampled.dive ? NET_BUTTONS.dive : 0) | (sampled.surface ? NET_BUTTONS.surface : 0) | (board ? NET_BUTTONS.hover : 0);
-    return { steer, yaw: sampled.yaw, pitch: sampled.pitch, buttons };
+    const buttons = (jump ? NET_BUTTONS.jump : 0) | (dodge ? NET_BUTTONS.dodge : 0) | (sprint ? NET_BUTTONS.sprint : 0) | (this.crouchWanted ? NET_BUTTONS.crouch : 0)
+      | (dive ? NET_BUTTONS.dive : 0) | (surface ? NET_BUTTONS.surface : 0) | (board ? NET_BUTTONS.hover : 0);
+    return { steer, yaw: this.yaw, pitch: this.pitch, buttons };
   }
 
   /**
@@ -483,9 +472,9 @@ export class Player {
    * taken here and nothing reconciles. With one, it goes to the wire and through the predictor, which steps it back here.
    */
   stepDevice(dt: number): void {
-    const { link } = this, input = this.wireCommand(this.sampleCommand(link !== null && this.ride !== null ? 1 : undefined));
+    const { link } = this, input = this.sampleCommand();
     this.commandJumpUsed = false; this.commandDodgeUsed = false;
-    if (link === null) this.stepNet(dt, { ...input, seq: 0, viewTick: 0 }, false); else link.step(input);
+    if (link === null) this.stepNet(dt, input, false); else link.step(input);
     const { jump, dodge } = this.commandUse();
     if (jump) this.inputService?.consume('jump');
     if (dodge) this.inputService?.consume('dodge');
@@ -496,21 +485,19 @@ export class Player {
    * `replay` is that step's second run, which fires no moment. The view keeps the raw yaw and pitch, so a slow thumb is not
    * rounded away, unless the step itself turned it. False when a ride or a traversal owned the motion: nothing to replay.
    */
-  stepNet(dt: number, command: NetCommand, replay: boolean): boolean {
-    const { buttons, steer } = command, held = (button: number): boolean => (buttons & button) !== 0, { yaw, pitch } = this;
+  stepNet(dt: number, command: PlayerWireInput, replay: boolean): boolean {
+    const { yaw, pitch } = this;
     this.replaying = replay; this.stepping = true;
     try {
-      if (held(NET_BUTTONS.hover)) this.setHover(!this.hover);
-      this.step(dt, { moveX: Math.max(-1, Math.min(1, steer.keyX + steer.stickX)), moveY: Math.max(-1, Math.min(1, steer.keyY + steer.stickY)), yaw: command.yaw, pitch: command.pitch,
-        crouch: held(NET_BUTTONS.crouch), sprint: held(NET_BUTTONS.sprint), jump: held(NET_BUTTONS.jump), dodge: held(NET_BUTTONS.dodge), dive: held(NET_BUTTONS.dive), surface: held(NET_BUTTONS.surface),
-        aim: this.sampleAimCommand(), commandVersion: 1, steer });
+      if ((command.buttons & NET_BUTTONS.hover) !== 0) this.setHover(!this.hover);
+      this.step(dt, command);
     } finally { this.replaying = false; this.stepping = false; }
     if (!replay) { if (this.yaw === command.yaw) this.yaw = yaw; if (this.pitch === command.pitch) this.pitch = pitch; }
     return !this.lawless;
   }
 
   /** Live callers sample at the edge; Node replays pass a recorded command. */
-  step(dt: number, command?: PlayerCommand): void {
+  step(dt: number, command?: PlayerWireInput): void {
     const resolved = command ?? this.sampleCommand();
     if (!this.replaying) this.recordCommand?.({ ...resolved });
     this.commandJumpUsed = false; this.commandDodgeUsed = false;
@@ -524,19 +511,20 @@ export class Player {
   private commandUse(): { jump: boolean; dodge: boolean } { return { jump: this.commandJumpUsed, dodge: this.commandDodgeUsed }; }
 
   /** One fixed step (Game's `post` slot, dt = FIXED_STEP): the move, against the stepped physics world. */
-  private stepCommand(dt: number, command: PlayerCommand): void {
+  private stepCommand(dt: number, command: PlayerWireInput): void {
+    const { buttons, steer } = command, held = (button: number): boolean => (buttons & button) !== 0, jump = held(NET_BUTTONS.jump);
     this.yaw = command.yaw; this.pitch = command.pitch;
-    this.crouchWanted = command.crouch;
+    this.crouchWanted = held(NET_BUTTONS.crouch);
     this.motionState.tick++;
     if (!this.replaying) waveClock.stepped = this.swellSeconds;
-    const fwd = command.moveY, str = command.moveX, sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
+    const fwd = Math.max(-1, Math.min(1, steer.keyY + steer.stickY)), str = Math.max(-1, Math.min(1, steer.keyX + steer.stickX)), sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
     const moveX = -sin * fwd + cos * str, moveZ = -cos * fwd - sin * str;
     // locked on (E50 §2.4): the shared law bends the move and the dodge round it. The lock is this page's, and its radius is
     // LockOnTarget's until a step holds it; a replay runs on the radius it restored
     const lt = lockOn.state === 'locked' ? lockOn.target : null;
     const lock: MotionLock | undefined = lt === null ? undefined : { x: lt.position.x, z: lt.position.z, radius: targetRadius(lt), fwd, str };
     if (!this.replaying) this.motionState.lock.r0 = lockOn.r0;
-    if (command.dodge && pressDodge(this.motionState, { moveX, moveZ, yaw: this.yaw, lock }, this.motionWorld)) {
+    if (held(NET_BUTTONS.dodge) && pressDodge(this.motionState, { moveX, moveZ, yaw: this.yaw, lock }, this.motionWorld)) {
       this.dodgeQueued = false; this.commandDodgeUsed = true;
     }
     this.prevFeet.copy(this.position);
@@ -545,7 +533,7 @@ export class Player {
     if (this.ride !== null) {
       const { predicted } = this.ride;
       this.impulseVelocity.set(0, 0, 0); this.lawless = predicted === undefined;
-      predicted?.read({ steer: command.steer ?? NO_STEER, sprint: command.sprint, jump: command.jump }, dt);
+      predicted?.read({ steer, sprint: held(NET_BUTTONS.sprint), jump }, dt);
       stepPlayerMotion(this.motionState, undefined, this.motionWorld, dt);
       return;
     }
@@ -554,16 +542,16 @@ export class Player {
     const hover = this.hover;
     const swim = this.swimming && !hover;
     this.crouching = !hover && !swim && this.crouchWanted;
-    this.sprinting = sprints(this.motionState, command.sprint, fwd, this.crouching);
+    this.sprinting = sprints(this.motionState, held(NET_BUTTONS.sprint), fwd, this.crouching);
 
     this.jumpQueued = false;
     // while swimming Space / the DIVE disc and Shift / the SURFACE disc are HELD controls (the swim branch reads them)
-    this.diveHeld = swim && command.dive;
-    this.surfaceHeld = swim && command.surface;
+    this.diveHeld = swim && held(NET_BUTTONS.dive);
+    this.surfaceHeld = swim && held(NET_BUTTONS.surface);
     if (hover) { this.hoverLanded = 0; this.hoverJumpKick = Math.max(0, this.hoverJumpKick - dt * 4); }
 
     // the move: the one motion step SimHost also runs (player/motion.ts), on this Player's world
-    const out = stepPlayerMotion(this.motionState, { moveX, moveZ, yaw: this.yaw, jump: command.jump && !swim, dive: this.diveHeld, surface: this.surfaceHeld, lock }, this.motionWorld, dt);
+    const out = stepPlayerMotion(this.motionState, { moveX, moveZ, yaw: this.yaw, jump: jump && !swim, dive: this.diveHeld, surface: this.surfaceHeld, lock }, this.motionWorld, dt);
     if (!this.replaying) lockOn.r0 = this.motionState.lock.r0;
     this.afterMotion(out, hover, dt);
   }

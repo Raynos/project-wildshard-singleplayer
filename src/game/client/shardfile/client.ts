@@ -1,5 +1,6 @@
 import {readModuleGroups} from '@wildshard/engine/boot/download';
 import { whenControl } from '@wildshard/engine/boot/prefetch';
+import { NET_BUTTONS } from '@wildshard/engine/input/netButtons';
 import type * as ScriptPresentation from '../plugin/ui';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type * as LootPresentation from '../loot/runtime';
@@ -455,9 +456,10 @@ export class ShardfileClient {
       ladders: { modes: playerModes(world.player), enabled: () => simulationActive && !installing, command: () => {
         const command = world.player.traversalCommand;
         if (command === null) { ladderCommand.x = 0; ladderCommand.z = 0; ladderCommand.release = true; return ladderCommand; }
-        const sin = Math.sin(command.yaw), cos = Math.cos(command.yaw);
-        ladderCommand.x = cos * command.moveX - sin * command.moveY; ladderCommand.z = -sin * command.moveX - cos * command.moveY;
-        ladderCommand.release = command.jump || command.dodge || world.player.hover || world.player.swimming || world.player.ride !== null;
+        const sin = Math.sin(command.yaw), cos = Math.cos(command.yaw), { buttons, steer } = command;
+        const moveX = Math.max(-1, Math.min(1, steer.keyX + steer.stickX)), moveY = Math.max(-1, Math.min(1, steer.keyY + steer.stickY));
+        ladderCommand.x = cos * moveX - sin * moveY; ladderCommand.z = -sin * moveX - cos * moveY;
+        ladderCommand.release = (buttons & (NET_BUTTONS.jump | NET_BUTTONS.dodge)) !== 0 || world.player.hover || world.player.swimming || world.player.ride !== null;
         return ladderCommand;
       }, claimed: () => { world.player.velocity.set(0, 0, 0); world.player.onGround = false; } },
       events: ctx.app.events, clock: ctx.app.clock, combat: ctx.app.combat, scope: ctx.scope, water: ctx.app.world.water,

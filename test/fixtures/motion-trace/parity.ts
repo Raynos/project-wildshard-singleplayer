@@ -6,7 +6,6 @@ import { Scope } from '../../../src/engine/shared/app/scope';
 import { app } from '../../../src/engine/client/app/runtime';
 import { lockOn, type AimTarget } from '../../../src/engine/client/player/AimTargets';
 import { Player } from '../../../src/engine/client/player/Player';
-import type { PlayerCommand } from '../../../src/engine/shared/input/commands';
 import { NET_BUTTONS } from '../../../src/engine/shared/input/netButtons';
 import { FIXED_STEP } from '../../../src/engine/shared/core/fixedStep';
 import { Physics } from '../../../src/engine/shared/physics/Physics';
@@ -160,7 +159,6 @@ const flagWord = (s: { grounded: boolean; swimming: boolean; hover: boolean; wad
   `${s.grounded ? 'G' : '-'}${s.swimming ? 'S' : '-'}${s.hover ? 'B' : '-'}${s.wading ? 'W' : '-'}${s.sliding ? 'L' : '-'}${s.dashing ? 'D' : '-'}:${s.stroke.toFixed(3)}`;
 
 export const TARGET_ID = 'lock:1';
-const NO_AIM = { origin: { x: 0, y: 0, z: 0 }, direction: { x: 0, y: 0, z: -1 } };
 const axis = (key: number | undefined, stick: number | undefined): number => Math.max(-1, Math.min(1, (key ?? 0) + (stick ?? 0)));
 
 /** The real Player on the page's fixed step: movers, physics, then the step, with a replay command and a real device. */
@@ -198,9 +196,9 @@ export class PageSide implements MotionEvents {
     this.course.advance(tick);
     if (intent.hover === true) player.setHover(!player.hover);
     this.physics.step();
-    const command: PlayerCommand = { moveX, moveY, yaw: intent.yaw ?? player.yaw, pitch: intent.pitch ?? 0, crouch: intent.crouch === true, aim: NO_AIM,
-      sprint: intent.sprint === true, jump: intent.jump === true, dodge: intent.dodge === true, dive: intent.dive === true, surface: intent.surface === true };
-    player.step(FIXED_STEP, command);
+    const button = (held: boolean | undefined, which: number): number => held === true ? which : 0;
+    player.step(FIXED_STEP, { steer: { keyX: 0, keyY: 0, stickX: moveX, stickY: moveY }, yaw: intent.yaw ?? player.yaw, pitch: intent.pitch ?? 0,
+      buttons: button(intent.crouch, NET_BUTTONS.crouch) | button(intent.sprint, NET_BUTTONS.sprint) | button(intent.jump, NET_BUTTONS.jump) | button(intent.dodge, NET_BUTTONS.dodge) | button(intent.dive, NET_BUTTONS.dive) | button(intent.surface, NET_BUTTONS.surface) });
   }
   sample(): Sample {
     const { player: p } = this;

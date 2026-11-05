@@ -25,7 +25,7 @@ test('native dry walking keeps grounding without sampling an unused water floor'
   const f = await fixture(null);
   try {
     const command = f.player.sampleCommand();
-    for (let tick = 0; tick < 120; tick++) { f.physics.step(); f.player.step(1 / 60, { ...command, moveY: 1 }); }
+    for (let tick = 0; tick < 120; tick++) { f.physics.step(); f.player.step(1 / 60, { ...command, steer: { ...command.steer, stickY: 1 } }); }
     expect(f.player.onGround).toBe(true); expect(Math.abs(f.player.position.y)).toBeLessThan(.1);
     expect(f.player.position.z).toBeLessThan(-1);
     expect(f.player.waterSurface).toBeNull(); expect(f.player.depth).toBe(0);
