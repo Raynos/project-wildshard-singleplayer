@@ -160,7 +160,7 @@ export function startupModuleRoots(root: string): readonly string[] {
 /** Existing grid import requirements, shared by chunking and its bank. */
 export function gridModuleRoots(root: string): readonly string[] {
   const entry = resolve(root, 'src/entry.ts');
-  const grid = resolveImport('./game/grid/session', entry);
+  const grid = resolveImport('./game/client/grid/session', entry);
   if (grid === null) throw new Error('Missing grid session module');
   const gridRoots = [grid.id];
   for (const file of ['src/game/client/session/play.ts', 'src/game/client/session/loadout.ts']) {
@@ -176,7 +176,7 @@ export function gridModuleRoots(root: string): readonly string[] {
 
 /** The same literal feature roots feed code batching and the emitted preload bank. */
 function optionalModuleRoots(root: string): Record<string, string[]> {
-  const client = resolveImport('./game/shardfile/client', resolve(root, 'src/entry.ts'));
+  const client = resolveImport('./game/client/shardfile/client', resolve(root, 'src/entry.ts'));
   if (client === null) throw new Error('Missing compiled client module');
   const planFile = resolve(root, 'src/game/client/shardfile/clientPlan.ts'), featureRoots: Record<string, string[]> = {};
   const features = existsSync(planFile) ? clientFeatureImports(readFileSync(planFile, 'utf8')) : {};
@@ -249,7 +249,7 @@ export function writeBootModules(outDir: string, root: string, inlineLimit = 409
   const entry = resolve(root, 'src/entry.ts'), ids = startupModuleRoots(root);
   const htmlFile = join(outDir, 'index.html'), html = existsSync(htmlFile) ? readFileSync(htmlFile, 'utf8') : '';
   if (!html.includes('<head>')) throw new Error('Missing boot module document');
-  const client = resolveImport('./game/shardfile/client', entry);
+  const client = resolveImport('./game/client/shardfile/client', entry);
   if (client === null) throw new Error('Missing compiled client module');
   const gridRoots = gridModuleRoots(root);
   const featureRoots = optionalModuleRoots(root);

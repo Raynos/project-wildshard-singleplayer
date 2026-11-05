@@ -16,7 +16,7 @@ export function authoredManifestImports(root, folder, data, composed = false) {
   const bindings = data.bindings;
   if (typeof bindings !== 'object' || bindings === null || Array.isArray(bindings)) throw new Error('Missing manifest bindings');
   /** @type {string[]} */
-  const imports = ['../../game/shard/manifest', ...(composed ? [] : ['./manifest.json'])];
+  const imports = ['../../game/server/shard/manifest', ...(composed ? [] : ['./manifest.json'])];
   /** @param {unknown} value @returns {Record<string,unknown>} */
   const record = value => typeof value === 'object' && value !== null && !Array.isArray(value) ? Object.fromEntries(Object.entries(value)) : {};
   const b = record(bindings);
