@@ -778,5 +778,15 @@
     "path": "src/game/shardfile/buildingAssembly.ts",
     "file": "scripts/platform-chargebacks.mjs",
     "why": "G520 retired-module identity: an exact comparison prevents an obsolete pending-user ledger row from earning credit. This selector deliberately names the deleted host; no file is loaded."
+  },
+  {
+    "path": "src/engine/sim.ts",
+    "file": "test/sort-sides.test.ts",
+    "why": "J122: the pre-sort tree of the sort's own fixture; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/core/config.ts",
+    "file": "test/sort-sides.test.ts",
+    "why": "J122: the pre-sort tree of the sort's own fixture; not a checkout path and must retain its spelling."
   }
 ]

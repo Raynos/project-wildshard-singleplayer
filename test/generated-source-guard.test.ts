@@ -47,12 +47,12 @@ test.each(['test/fixtures/**', 'test/fixtures/'])('fixture-only commits respect 
 }));
 
 test('a source debt row follows its file across a side move and nowhere else', () => {
-  const unmoved = 'src/game/shard/slugs.generated.ts', moved = 'src/game/server/shard/slugs.generated.ts';
+  const unmoved = 'src/game/shard/fixture.generated.ts', moved = 'src/game/server/shard/fixture.generated.ts';
   expect(generatedSourceIncreases(policy([unmoved]), policy([moved]))).toEqual([]);
-  expect(generatedSourceIncreases(policy([moved]), policy(['src/game/client/shard/slugs.generated.ts']))).toEqual([]);
+  expect(generatedSourceIncreases(policy([moved]), policy(['src/game/client/shard/fixture.generated.ts']))).toEqual([]);
   expect(generatedSourceIncreases(policy([unmoved]), policy([unmoved, moved]))).toHaveLength(1);
   expect(generatedSourceIncreases(policy([unmoved]), policy(['src/game/server/shard/other.generated.ts']))).toHaveLength(1);
-  expect(generatedSourceIncreases(policy([unmoved]), policy(['src/engine/server/shard/slugs.generated.ts']))).toHaveLength(1);
+  expect(generatedSourceIncreases(policy([unmoved]), policy(['src/engine/server/shard/fixture.generated.ts']))).toHaveLength(1);
   for (const path of [moved, unmoved, 'src/sdk/server/a.ts', 'src/engine/cook/b.ts', 'src/shards/client/c.ts']) expect(sidelessPath(path)).toBe(unsortedPath(path));
 });
 
