@@ -13,12 +13,12 @@ import ts from '@typescript/typescript6';
 
 const ROOT = resolve(fileURLToPath(new URL('../', import.meta.url)));
 const FILE = resolve(ROOT, 'lint/sim-players.json');
-const ABOUT = 'P1-E5.2a: per-file reads of a one-player SimHost member, and leadPlayer calls, in non-test source (scripts/check-sim-players.mjs, by type, not by spelling). They never rise.';
+const ABOUT = 'P1-E5.2a: per-file reads of a one-player SimHost member (`members`, which ended at 0) and leadPlayer binds (`lead`: systems not yet per-player) in non-test source, by type, not by spelling (scripts/check-sim-players.mjs). They never rise.';
 /** The members that only make sense with exactly one player. */
 const MEMBERS = new Set(['player', 'playerImpulse', 'playerFall', 'playerWalk', 'playerMoveScale', 'playerShove', 'playerBoard', 'boardVelocity',
   'playerSwim', 'swimVelocity', 'playerJump', 'playerDash', 'playerDodge', 'modes', 'playerMode', 'playerWading', 'impulsePlayer', 'shovePlayer',
   'dashPlayer', 'dashTo', 'setBoard', 'resetPlayerPose', 'usePlayerDriver', 'useWalkingControl', 'observePlayerMotion', 'hasPlayerMotor',
-  'detachPlayerMotor', 'releasePlayerMotor', 'attachPlayerMotor', 'bindExternalPlayer', 'playerMotorOptions', 'isExternalPlayerObject', 'stepExternal']);
+  'detachPlayerMotor', 'releasePlayerMotor', 'attachPlayerMotor', 'bindExternalPlayer', 'isExternalPlayerObject']);
 
 /** @returns {string[]} */
 function sourceFiles() {
@@ -66,15 +66,17 @@ function main(/** @type {string[]} */ argv) {
   const limits = recorded?.files ?? counts, failures = [];
   for (const [path, count] of Object.entries(counts)) if (count > (limits[path] ?? 0)) failures.push(`${path}: ${limits[path] ?? 0} → ${count}`);
   if (failures.length > 0) { console.error(`check-sim-players (P1-E5.2a): one-player uses may only fall:\n  ${failures.join('\n  ')}`); return 1; }
-  const total = sites.length, was = Object.values(limits).reduce((sum, count) => sum + count, 0);
+  const lead = sites.filter(site => site.name === 'leadPlayer').length, members = sites.length - lead;
+  const summary = `${members} one-player members, ${lead} lead-player binds, in ${Object.keys(counts).length} files`;
+  const was = Object.values(limits).reduce((sum, count) => sum + count, 0);
   if (argv.includes('--update') || argv.includes('--seed')) {
     const files = Object.fromEntries(Object.entries(counts).sort(([a], [b]) => a.localeCompare(b)));
-    writeFileSync(FILE, `${JSON.stringify({ about: ABOUT, total, files }, null, 1)}\n`);
-    console.log(`check-sim-players: recorded ${total} uses in ${Object.keys(files).length} files`);
+    writeFileSync(FILE, `${JSON.stringify({ about: ABOUT, members, lead, files }, null, 1)}\n`);
+    console.log(`check-sim-players: recorded ${summary}`);
     return 0;
   }
-  if (total < was) console.warn(`check-sim-players: fell ${was} → ${total}; lower it with --update`);
-  console.log(`check-sim-players: ${total} one-player uses in ${Object.keys(counts).length} files; none rising`);
+  if (sites.length < was) console.warn(`check-sim-players: fell ${was} → ${sites.length}; lower it with --update`);
+  console.log(`check-sim-players: ${summary}; none rising`);
   return 0;
 }
 process.exitCode = main(process.argv.slice(2));
