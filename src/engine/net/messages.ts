@@ -1,6 +1,7 @@
 // P1-E5.2 (E5-REPLICATION §4.2–4.3): the small messages around `frame` and `cmds`. Every message starts with its id byte.
 import type { NetAct } from '@wildshard/format/netCommand';
 import { BitReader, bitsToFloat, floatToBits, NetDecodeError, type BitWriter } from './bits';
+import type { NetIdentity } from './identity';
 import type { QuestProgress } from '../quest/progress';
 
 export const MSG_HELLO = 1;
@@ -23,14 +24,18 @@ function guarded<T>(bytes: Uint8Array, id: number, read: (reader: BitReader) => 
   } catch (error) { if (error instanceof NetDecodeError) return null; throw error; }
 }
 
-/** `hello`: what the client was built from. A mismatch of either field is refused (J54). */
-export interface NetHello { readonly schemaHash: number; readonly build: string }
+/**
+ * `hello`: what the client was built from, a mismatch of either refused (J54), and who it is (J111). `ledger` is the last
+ * receipt serial it has, so a client that comes back hears only what it missed (M8).
+ */
+export interface NetHello extends NetIdentity { readonly schemaHash: number; readonly build: string; readonly ledger: number }
 export function encodeHello(writer: BitWriter, hello: NetHello): ArrayBuffer {
   writer.write(MSG_HELLO, 8); writer.write(hello.schemaHash, 32); writer.writeText(hello.build);
+  writer.writeText(hello.player); writer.writeText(hello.name); writer.write(hello.ledger, 32);
   return writer.finish();
 }
 export function decodeHello(bytes: Uint8Array): NetHello | null {
-  return guarded(bytes, MSG_HELLO, reader => ({ schemaHash: reader.read(32), build: reader.readText() }));
+  return guarded(bytes, MSG_HELLO, reader => ({ schemaHash: reader.read(32), build: reader.readText(), player: reader.readText(), name: reader.readText(), ledger: reader.read(32) }));
 }
 
 /** `welcome`: your player's handle, the server's tick and rates (sim 60, frame 30, J40). */

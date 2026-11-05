@@ -322,6 +322,7 @@
     "./saves/forwardedStorage": "./saves/forwardedStorage.ts",
     "./net/client": "./net/client.ts",
     "./net/combatWire": "./net/combatWire.ts",
+    "./net/identity": "./net/identity.ts",
     "./net/room": "./net/room.ts",
     "./net/serverClock": "./net/serverClock.ts",
     "./net/simWorld": "./net/simWorld.ts",

@@ -4,6 +4,7 @@
 import * as v from 'valibot';
 import { Scope } from '@wildshard/engine/app/scope';
 import { NetClient } from '@wildshard/engine/net/client';
+import { deviceIdentity, type NetIdentity } from '@wildshard/engine/net/identity';
 import type { SaveStorage } from '@wildshard/engine/saves/store';
 import { ServerMessageSchema, ShellMessageSchema, type ProbedRow, type ServerMessage, type ShellMessage } from '@wildshard/format/standaloneControl';
 import { WorkerLoopback } from './workerLoopback';
@@ -17,6 +18,8 @@ export interface StandaloneConfig {
   readonly build: string;
   /** Saves live under this prefix in `storage`, the page's durable storage. */
   readonly savePrefix: string; readonly storage: SaveStorage;
+  /** Who this player is (J111); absent, this device's own id. */
+  readonly identity?: NetIdentity;
 }
 /** A running standalone session. */
 export interface StandaloneShell {
@@ -61,7 +64,7 @@ export function connectStandalone(config: StandaloneConfig, control: MessagePort
   });
   control.onmessage = (event: MessageEvent<unknown>): void => {
     const message = v.parse(ServerMessageSchema, event.data);
-    if (message.kind === 'booted') { booted({ tick: message.tick, restored: message.restored }); client.hello(config.build); }
+    if (message.kind === 'booted') { booted({ tick: message.tick, restored: message.restored }); client.hello(config.build, config.identity ?? deviceIdentity(config.storage, config.savePrefix)); }
     else if (message.kind === 'write') post({ kind: 'written', seq: message.seq, ok: applyWrite(config.storage, message.key, message.value) });
     else if (message.kind === 'failed') { failed(new Error(message.reason)); client.closed ??= message.reason; }
     else waits.get(message.id)?.(message);

@@ -4,12 +4,14 @@
 import * as v from 'valibot';
 import { NetActSchema, type NetAct, type NetCommand } from '@wildshard/format/netCommand';
 import { BitWriter } from './bits';
+import { cleanName } from './chatFilter';
 import type { CombatEvent } from './combatWire';
 import type { QuestProgress } from '../quest/progress';
 import { decodeCommands } from './command';
 import { CommandQueue } from './commandQueue';
 import { encodeFrame, FRAME_RING, WorldFrameRing, type WorldFrame } from './frame';
 import { NetHandles } from './handles';
+import { GUEST, NetIdentitySchema, type NetIdentity } from './identity';
 import { decodeAct, decodeHello, encodeEvents, encodeWelcome, messageId, MSG_ACT, MSG_CMDS, MSG_HELLO, type InitialBits, type NetDied, type NetEvent, type NetHit, type NetReward } from './messages';
 import { NET_CLASSES, NET_SCHEMA_HASH } from './netSchemas';
 import type { NetClass, NetRefs } from './schema';
@@ -57,6 +59,8 @@ interface ClientView { tick: number; readonly visible: Set<number>; readonly due
 type RoomCombat = NetDied | (NetHit & { readonly landedBy: string | null }) | (NetReward & { readonly owner: string });
 interface RoomClient {
   readonly id: number; readonly transport: Transport; readonly queue: CommandQueue; readonly player: NetPlayer;
+  /** Who it said it is at `hello` (J111). A hand-off keeps it. */
+  identity: NetIdentity;
   /** waiting: said hello before the room opened. live: welcomed. */
   state: 'new' | 'waiting' | 'live';
   ack: number; readonly acts: NetAct[]; readonly known: Set<number>;
@@ -91,6 +95,8 @@ export class NetRoom {
   private serial = 0;
   private clientIds = 0;
   constructor(options: NetRoomOptions) { this.world = options.world; this.step = options.step; this.build = options.build ?? ''; }
+  /** Who a client said it is, its Name cleaned. */
+  identityOf(client: number): NetIdentity | null { return this.clients.find(entry => entry.id === client)?.identity ?? null; }
   /** The last command `seq` applied for a client, or 0. */
   lastSeq(client: number): number { return this.clients.find(entry => entry.id === client)?.queue.lastSeq ?? 0; }
   /** Commands refused and duplicated across every client. */
@@ -100,7 +106,7 @@ export class NetRoom {
   /** Connect a client that owns `player`. It waits for its `hello`, and past that for `open`. Returns its id. */
   join(transport: Transport, player: NetPlayer = this.world.player, queue: CommandQueue = new CommandQueue()): number {
     const id = ++this.clientIds, owner = new Uint32Array(player.cls.owner.length);
-    const client: RoomClient = { id, transport, player, queue, state: 'new', ack: -1, acts: [], known: new Set(), questVersion: -1, quests: new Map(), phased: new Set(), owner,
+    const client: RoomClient = { id, transport, player, queue, identity: GUEST, state: 'new', ack: -1, acts: [], known: new Set(), questVersion: -1, quests: new Map(), phased: new Set(), owner,
       views: Array.from({ length: FRAME_RING }, () => ({ tick: -1, visible: new Set<number>(), due: new Set<number>(), rows: new Map<number, number>() })), nextView: 0, dispose: () => undefined };
     const off = transport.onMessage((channel, bytes) => { this.receive(client, channel, bytes); });
     const closed = transport.onClose(() => { this.remove(client); });
@@ -118,11 +124,11 @@ export class NetRoom {
     const tick = this.world.tick(), travel: NetEvent = { kind: 'travel', tick, from: this.world.cell(), to: to.world.cell() };
     client.transport.send('reliable', encodeEvents(this.writer, tick, [travel], initialBits));
     this.remove(client);
-    return to.adopt(client.transport, player, client.queue);
+    return to.adopt(client.transport, player, client.queue, client.identity);
   }
-  private adopt(transport: Transport, player: NetPlayer, queue: CommandQueue): number {
+  private adopt(transport: Transport, player: NetPlayer, queue: CommandQueue, identity: NetIdentity): number {
     const id = this.join(transport, player, queue), client = this.clients.find(entry => entry.id === id);
-    if (client !== undefined) this.welcome(client); // it said hello to the room it came from
+    if (client !== undefined) { client.identity = identity; this.welcome(client); } // it said hello to the room it came from
     return id;
   }
   /** The client finished loading (§6.3.1): welcome everyone waiting and send each its full frame. */
@@ -175,6 +181,9 @@ export class NetRoom {
     if (hello === null || client.state !== 'new') { this.stats.refused++; return; }
     // J54: exact match only. Refused with `reload`, so a stale tab picks up the new build (§4.4).
     if (hello.schemaHash !== NET_SCHEMA_HASH || (this.build !== '' && hello.build !== this.build)) { client.transport.close('reload'); return; }
+    const said = v.safeParse(NetIdentitySchema, { player: hello.player, name: hello.name });
+    if (!said.success) { this.stats.refused++; client.transport.close('refused'); return; }
+    client.identity = { player: said.output.player, name: cleanName(said.output.name) };
     client.state = 'waiting';
     if (this.opened) this.welcome(client);
   }

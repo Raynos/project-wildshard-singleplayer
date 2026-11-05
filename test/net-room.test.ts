@@ -162,7 +162,7 @@ test('hello refuses a stale schema or build with `reload`, and garbage never rea
   const resident = await sunscar(), room = new NetRoom({ world: new SimNetWorld(resident.host), build: 'build-a', step: () => { resident.step([]); } });
   const wrong = directLoopback(), stale = new NetClient(wrong.client), writer = new BitWriter();
   room.join(wrong.server);
-  wrong.client.send('reliable', encodeHello(writer, { schemaHash: NET_SCHEMA_HASH ^ 1, build: 'build-a' })); wrong.pump();
+  wrong.client.send('reliable', encodeHello(writer, { schemaHash: NET_SCHEMA_HASH ^ 1, build: 'build-a', player: 'device:1', name: 'Ann', ledger: 0 })); wrong.pump();
   expect(stale.closed).toBe('reload');
   const old = directLoopback(), oldClient = new NetClient(old.client);
   room.join(old.server); oldClient.hello('build-b'); old.pump();

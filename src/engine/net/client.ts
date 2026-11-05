@@ -5,6 +5,7 @@ import type { QuestProgress } from '../quest/progress';
 import type { NetAct, NetCommand } from '@wildshard/format/netCommand';
 import { BitWriter } from './bits';
 import { encodeCommands, seqAfter } from './command';
+import { GUEST, type NetIdentity } from './identity';
 import { decodeFrame, FRAME_RING, NO_BASELINE, type DecodedFrame, type FrameTable } from './frame';
 import { decodeEvents, decodeWelcome, encodeAct, encodeHello, messageId, MSG_EVENTS, MSG_FRAME, MSG_WELCOME, type InitialBits, type NetCombatEvent, type NetTravel, type NetWelcome } from './messages';
 import { FLAG_CLASS, NET_CLASSES, NET_SCHEMA_HASH, PLAYER_CLASS } from './netSchemas';
@@ -60,8 +61,8 @@ export class NetClient {
     this.table = { ownerClass: PLAYER_CLASS, classOf: handle => this.entities.get(handle)?.cls, baseline: tick => this.frames.get(tick) ?? null };
     this.off = [transport.onMessage((_channel, bytes) => { this.receive(new Uint8Array(bytes)); }), transport.onClose(reason => { this.closed = reason; })];
   }
-  /** Begin the handshake. `build` is this client's engine build id. */
-  hello(build = ''): void { this.transport.send('reliable', encodeHello(this.writer, { schemaHash: NET_SCHEMA_HASH, build })); }
+  /** Begin the handshake. `build` is this client's engine build id; `identity` is who it says it is (J111). */
+  hello(build = '', identity: NetIdentity = GUEST): void { this.transport.send('reliable', encodeHello(this.writer, { schemaHash: NET_SCHEMA_HASH, build, ...identity, ledger: 0 })); }
   /** Call for every frame decoded; returns the unsubscribe. */
   onFrame(listener: (frame: DecodedFrame) => void): () => void { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; }
   /** Call for every settled hit and death (P1-E3.2); returns the unsubscribe. */
