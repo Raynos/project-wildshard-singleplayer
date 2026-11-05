@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.3.0",
   "type": "module",
+  "packageManager": "pnpm@10.34.9",
   "scripts": {
     "gen": "python3 scripts/heavy-lane.py build -- node scripts/gen.mjs",
     "gen:source": "node --import ./scripts/bake-loader.mjs scripts/gen-source.mjs",

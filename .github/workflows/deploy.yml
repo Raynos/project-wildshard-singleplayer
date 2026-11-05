@@ -349,7 +349,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && (steps.pin.outputs.recovery == 'true' && steps.live.outputs.skip != 'true') }}
         with:
-          version: 10
+          version: 10.34.9
       # Inline, not ./.github/actions/org-deps: this job runs the pin's tree, which
       # can predate that action.
       - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
@@ -488,7 +488,7 @@ jobs:
           sparse-checkout-cone-mode: false
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 10.34.9
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -540,7 +540,7 @@ jobs:
             !/sources/
           sparse-checkout-cone-mode: false
       - uses: pnpm/action-setup@v4
-        with: {version: 10}
+        with: {version: 10.34.9}
       - uses: actions/setup-node@v4
         with: {node-version: 24, cache: pnpm}
       - uses: ./.github/actions/org-deps
@@ -592,7 +592,7 @@ jobs:
             !/sources/
           sparse-checkout-cone-mode: false
       - uses: pnpm/action-setup@v4
-        with: {version: 10}
+        with: {version: 10.34.9}
       - uses: actions/setup-node@v4
         with: {node-version: 24, cache: pnpm}
       - uses: ./.github/actions/org-deps
@@ -881,7 +881,7 @@ jobs:
             !/sources/
           sparse-checkout-cone-mode: false
       - uses: pnpm/action-setup@v4
-        with: {version: 10}
+        with: {version: 10.34.9}
       - uses: actions/setup-node@v4
         with: {node-version: '24.22.2', cache: pnpm}
       - uses: ./.github/actions/org-deps
@@ -1053,7 +1053,7 @@ jobs:
           sparse-checkout-cone-mode: false
       - uses: pnpm/action-setup@v4
         if: steps.admission.outputs.run == 'true'
-        with: {version: 10}
+        with: {version: 10.34.9}
       - uses: actions/setup-node@v4
         if: steps.admission.outputs.run == 'true'
         with: {node-version: '24.22.2', cache: pnpm}
@@ -1143,7 +1143,7 @@ jobs:
             !/sources/
           sparse-checkout-cone-mode: false
       - uses: pnpm/action-setup@v4
-        with: {version: 10}
+        with: {version: 10.34.9}
       - uses: actions/setup-node@v4
         with: {node-version: '24.22.2', cache: pnpm}
       - uses: ./.github/actions/org-deps
@@ -1270,7 +1270,7 @@ jobs:
             !/public/
           sparse-checkout-cone-mode: false
       - uses: pnpm/action-setup@v4
-        with: {version: 10}
+        with: {version: 10.34.9}
       - uses: actions/setup-node@v4
         with: {node-version: 24, cache: pnpm}
       - uses: ./.github/actions/org-deps
@@ -1377,7 +1377,7 @@ jobs:
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 10.34.9
       - uses: actions/setup-node@v4
         with:
           node-version: 24
