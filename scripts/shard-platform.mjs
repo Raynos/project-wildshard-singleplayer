@@ -20,7 +20,6 @@ import { sectionHostImports } from './shard-platform-hosts.mjs';
 import { runtimeClosures } from './shard-runtime-closure.mjs';
 import { chargePlatformUsers, hasChargebackDeclarations, inlinePlatformPaths, inlinePlatformSpans, platformChargeback, recordPrivateCharge, retiredPlatformModule } from './platform-chargebacks.mjs';
 import { onDisk } from './format-package.mjs';
-import { unsortedPath } from '../lint/layer-exports.mjs';
 
 // The compiler's declarations globally replace Array.at's optional return with T. Load its JS API
 // behind a checked local contract, as compile-script.mjs does, so host JS keeps native Node types.
@@ -562,6 +561,7 @@ const PendingUsers = v.strictObject({ schema:v.literal('platform-pending-users/1
   const empty = entry.shard === undefined && entry.plan === undefined && entry['rechecked-by'] === undefined;
   return complete || (empty && entry.approvedFeature !== undefined);
 }), 'A pending user needs its shard, plan and recheck; an approved feature needs only its decision')) });
+const unsortedDoc=text=>text.replaceAll(/\b(engine|game)\/(?:client|server|shared|cook)\//gu,'$1/');
 /** Read documented general hosts backed by a real future user or an explicit day-one approval.
  * @param {string} root @returns {import('./shard-platform.mjs').PendingPlatformUser[]} */
 export function pendingPlatformUsers(root) {
@@ -588,8 +588,9 @@ function readPendingPlatformUsers(root,symbolsFor) {
       throw new Error(`Pending feature names a shard: ${entry.module}`);
     const symbols=symbolsFor(entry.module,source);
     if(entry.export!==undefined&&!symbols.exports.has(entry.export))throw new Error(`Missing pending platform export: ${key}`);
-    const documentation=readFileSync(resolve(root,entry.documentation),'utf8');
-    if(![entry.module,unsortedPath(entry.module)].some(path=>documentation.includes(path.replace(/^src\//u,'').replace(/\.ts$/u,''))))
+    // A retag moves the file between sides and leaves the doc's row true, so both are read without their side (J122).
+    const documentation=unsortedDoc(readFileSync(resolve(root,entry.documentation),'utf8'));
+    if(!documentation.includes(unsortedDoc(entry.module.replace(/^src\//u,'').replace(/\.ts$/u,''))))
       throw new Error(`Pending feature lacks documentation: ${key}`);
     if (entry.plan !== undefined && entry.shard !== undefined) {
       const row=readFileSync(resolve(root,entry.plan.path),'utf8').split('\n').find(line=>line.split('|')[1]?.trim()===entry.plan?.row);
