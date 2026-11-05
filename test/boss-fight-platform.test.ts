@@ -10,7 +10,8 @@ import { ANTLER_KING_BOSS_PROFILE as profile } from '../src/shards/pine-hollow/g
 import { readFileSync } from 'node:fs';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
 import { createSimHost, type SimHost } from '@wildshard/engine/sim';
-import { snapshotSimHost, restoreSimHost } from '@wildshard/engine/sim/snapshot';
+import { snapshotSimHost } from '@wildshard/engine/sim/snapshot';
+import { restoreSimHost } from '@wildshard/engine/sim/restore';
 import { installWakeBoss } from '@wildshard/game/boss/nativeWake';
 import { NativeInventory, grantNativeInventory } from '@wildshard/game/inventoryLaw';
 import { SIM_LEVEL } from './fixtures/sim-level/level';

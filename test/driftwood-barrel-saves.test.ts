@@ -13,7 +13,8 @@ import { declaredBodyRegistries, DeclaredBodyOpsSchema } from '@wildshard/format
 import { NativeQuestProps } from '../src/game/shared/quest/nativeProps';
 import { installNativeBodyScripts } from '@wildshard/game/quest/nativeBodyScripts';
 import { createSimHost, type SimHost } from '../src/engine/server/sim';
-import { snapshotSimHost, restoreSimHost } from '../src/engine/shared/sim/snapshot';
+import { snapshotSimHost } from '../src/engine/shared/sim/snapshot';
+import { restoreSimHost } from '../src/engine/server/sim/restore';
 import { Bodies } from '../src/engine/shared/physics/bodies';
 import { BARREL_BODY, BARREL_HALF } from '../src/engine/shared/world/interact/barrel';
 import { loadRapier } from '../src/engine/shared/physics/rapier';

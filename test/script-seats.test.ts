@@ -4,7 +4,8 @@ import { describe, expect, it } from 'vitest';
 import { PASTEL_SOURCE as source, pastelAssets } from './fixtures/pastelSource';
 import { bindShardfileSim, createShardfileSim, type ShardfileSimulation } from '../src/game/server/plugin/simulation';
 import { loadRapier } from '../src/engine/shared/physics/rapier';
-import { restoreSimHost, snapshotSimHost } from '../src/engine/shared/sim/snapshot';
+import { snapshotSimHost } from '../src/engine/shared/sim/snapshot';
+import { restoreSimHost } from '../src/engine/server/sim/restore';
 
 const WHIP = 'weapon.pastel-whip', BOT = 'bot.one';
 const rapier = await loadRapier(readFileSync(new URL('../public/assets/physics/rapier.wasm', import.meta.url)));

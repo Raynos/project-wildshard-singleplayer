@@ -24,9 +24,14 @@ function isLoadingWaitState(value: unknown): value is LoadingWaitState {
     && 'sequence' in value && typeof value.sequence === 'number' && Number.isSafeInteger(value.sequence)
     && 'pending' in value && Object.prototype.toString.call(value.pending) === '[object Map]';
 }
+/** The object the registry hangs on: the first document, read as an opaque key so a host without one uses its global. */
+function waitCarrier(): object {
+  const carrier: unknown = Reflect.get(globalThis, 'document');
+  return typeof carrier === 'object' && carrier !== null ? carrier : globalThis;
+}
 /** The first-document script installs this exact data contract. Bare harnesses
  * create it on first use; importing the module installs no service. */
-export function loadingWaitState(target: object = typeof document === 'undefined' ? globalThis : document): LoadingWaitState {
+export function loadingWaitState(target: object = waitCarrier()): LoadingWaitState {
   const value: unknown = Reflect.get(target, loadingWaitKey);
   if (value !== undefined) {
     if (!isLoadingWaitState(value)) throw new Error('Invalid loading wait registry');

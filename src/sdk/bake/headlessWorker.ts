@@ -8,7 +8,8 @@ import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
 import { proveAuthoredGrid, createShardfileSim, bindShardfileSim, type ShardfileSimulation } from '@wildshard/game/plugin/simulation';
-import { snapshotSimHostBytes, serializeSimSnapshot, decodeSimSnapshot, restoreSimHost, checkSimSnapshotWire } from '@wildshard/engine/sim/snapshot';
+import { snapshotSimHostBytes, serializeSimSnapshot, decodeSimSnapshot, checkSimSnapshotWire } from '@wildshard/engine/sim/snapshot';
+import { restoreSimHost } from '@wildshard/engine/sim/restore';
 
 import type { SimCommand } from '@wildshard/engine/sim';
 import { parseShardfile } from '../shardfile';

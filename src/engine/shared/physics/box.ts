@@ -1,20 +1,5 @@
-import { Quaternion, Vector3, type Object3D } from 'three';
-import { boxDesc, type ColliderDesc } from '../../client/world/registry';
-import type { Material } from './surface';
-
 /** A box specified in world space, rotated by −rot about +Y. */
 export interface BoxSpec { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number }
-
-/** Keep a world box aligned in its following frame; translate-only following uses the world's axes. */
-export function boxInFrame(box: BoxSpec, object: Object3D, surface: Material = 'wood', followRotation = true): Extract<ColliderDesc, { kind: 'box' }> {
-  object.updateWorldMatrix(true, false);
-  const d = boxDesc(box, surface);
-  const worldCentre = new Vector3(box.x, (box.yTop + box.yBottom) / 2, box.z);
-  const centre = followRotation ? object.worldToLocal(worldCentre) : worldCentre.sub(object.getWorldPosition(new Vector3()));
-  const inverse = followRotation ? object.getWorldQuaternion(new Quaternion()).invert() : new Quaternion();
-  const rotation = inverse.multiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -box.rot));
-  return { ...d, x: centre.x, y: centre.y, z: centre.z, rot: { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w } };
-}
 
 /** A horizontal deck rectangle, or a ramp rising `slope` metres per metre along its local +z and `tilt` along its local
  * +x (`y` at its centre); rot uses the same negative-Y convention as BoxSpec. */

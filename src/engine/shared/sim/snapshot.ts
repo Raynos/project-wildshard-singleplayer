@@ -2,7 +2,8 @@ import { Vector3 } from 'three';
 import { serializeSnapshotData, serializeSnapshotDataSteps, decodeSnapshotData, decodeSnapshotDataBytes, finishSteps, checkSnapshotDataWire } from './snapshotData';
 import { byteArray } from './snapshotPhysics';
 import type { QuestBookSaved } from '../quest/players';
-import { createSimHost, SIM_API_VERSION, type SimHost, type SimHostPorts, type SimLevel, type SimSlots, type SimValue } from '../../server/sim';
+import type { SimHost, SimLevel, SimSlots, SimValue } from '../../server/sim';
+import { SIM_API_VERSION } from './apiVersion';
 import { leadPlayer } from './leadPlayer';
 import type { PlayerSim } from '../../server/sim/playerSim';
 import { SHOVE_TIME } from '../player/shove';
@@ -359,7 +360,7 @@ function sameIds(actual: readonly string[], expected: Iterable<string>): boolean
   return wanted.size === actual.length && new Set(actual).size === actual.length && actual.every((id) => wanted.has(id));
 }
 
-const restoreChecks = new WeakMap<SimHost, (() => void)[]>();
+export const restoreChecks = new WeakMap<SimHost, (() => void)[]>();
 /** Reinstalled services may require native state that does not exist until the
  * restore transaction replaces physics and reconnects its tags and adapters.
  * Checks run once before the restored host escapes; ordinary hosts refuse. */
@@ -372,34 +373,6 @@ export function onSimHostRestored(host: SimHost, check: () => void): void {
 const restoringHosts = new WeakSet<SimHost>();
 /** True only during the unpublished native replacement transaction. */
 export function isSimHostRestoring(host: SimHost): boolean { return restoringHosts.has(host); }
-/** One fresh unpublished host may be retained or restored once, never restored after stepping. */
-export interface PreparedSimHostRestore {
-  readonly host: SimHost;
-  readonly keep: () => SimHost;
-  readonly restore: (saved: SimSnapshot | SimSnapshotBytes, install?: (host: SimHost) => void) => SimHost;
-}
-/** Create the restore-check context before installing services; no live host can be supplied. */
-export function prepareSimHostRestore(level: SimLevel, ports: SimHostPorts): PreparedSimHostRestore {
-  if (ports.physics !== undefined || ports.player !== undefined) throw new Error('Restore target must own its world');
-  const host = createSimHost(level, ports), checks: (() => void)[] = [];
-  restoreChecks.set(host, checks);
-  let open = true;
-  const forget = host.scope.capture('disposers', () => { open = false; checks.length = 0; restoreChecks.delete(host); });
-  const consume = (): void => {
-    if (!open) throw new Error('Restore target already consumed or disposed');
-    open = false; forget();
-    if (host.state.tick !== 0 || host.scope.disposed || host.scope.disposing) {
-      restoreChecks.delete(host); checks.length = 0; host.dispose(); throw new Error('Restore target is no longer fresh');
-    }
-  };
-  return { host, keep: () => { consume(); restoreChecks.delete(host); checks.length = 0; return host; },
-    restore: (saved, install) => {
-      consume();
-      try { validateSnapshot(level, saved); }
-      catch (error) { restoreChecks.delete(host); checks.length = 0; host.dispose(); throw error; }
-      return restoreInstalledHost(host, ports, saved, checks, install);
-    } };
-}
 function savedBooks(host: SimHost): { books?: QuestBookSaved[] } {
   const books = host.questStore?.save();
   return books === undefined ? {} : { books };
@@ -407,21 +380,15 @@ function savedBooks(host: SimHost): { books?: QuestBookSaved[] } {
 /** A level's identity in a save. The version is left out: every level version has held this content, so a new engine
  *  version does not orphan a save, and `apiVersion` already says which engine wrote it. */
 function levelFingerprint(level: SimLevel): number { return fnv1a32(JSON.stringify({ ...level, version: 1 })); }
-function validateSnapshot(level: SimLevel, saved: SimSnapshot | SimSnapshotBytes): void {
+export function validateSnapshot(level: SimLevel, saved: SimSnapshot | SimSnapshotBytes): void {
   if (saved.version !== SIM_SNAPSHOT_VERSION || saved.apiVersion !== SIM_API_VERSION || saved.levelId !== level.id
     || saved.levelFingerprint !== levelFingerprint(level) || !Number.isSafeInteger(saved.state.tick) || saved.state.tick < 0
     || !Number.isFinite(saved.state.accumulator) || saved.state.accumulator < -Number.EPSILON
     || !Object.values(saved.state.timers).every((value) => Number.isFinite(value) && value >= 0)
     || saved.physics.length === 0 || (!(saved.physics instanceof Uint8Array && ArrayBuffer.isView(saved.physics)) && saved.physics.some((byte) => !Number.isInteger(byte) || byte < 0 || byte > 255))) throw new RangeError('Incompatible simulation snapshot');
 }
-/** Boot a fresh matching level, reinstall scoped adapters, then restore every continuation before replay. */
-export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved: SimSnapshot | SimSnapshotBytes, install?: (host: SimHost) => void): SimHost {
-  validateSnapshot(level, saved);
-  const host = createSimHost(level, ports), checks: (() => void)[] = [];
-  restoreChecks.set(host, checks);
-  return restoreInstalledHost(host, ports, saved, checks, install);
-}
-function restoreInstalledHost(host: SimHost, ports: { rapier: Rapier }, saved: SimSnapshot | SimSnapshotBytes, checks: (() => void)[], install?: (host: SimHost) => void): SimHost {
+/** The restore transaction on a fresh host, which `sim/restore` boots. */
+export function restoreInstalledHost(host: SimHost, ports: { rapier: Rapier }, saved: SimSnapshot | SimSnapshotBytes, checks: (() => void)[], install?: (host: SimHost) => void): SimHost {
   restoringHosts.add(host);
   let replacement: Physics | null = null;
   try {

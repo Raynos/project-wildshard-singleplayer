@@ -7,7 +7,8 @@ import { TEMPLATE_SOURCE as source, templateAssets } from '../templateSource.ts'
 import { loadRapier } from '../../../src/engine/shared/physics/rapier.ts';
 import { SaveStore } from '../../../src/engine/shared/saves/store.ts';
 import { createShardfileSim, bindShardfileSim } from '../../../src/game/server/plugin/simulation.ts';
-import { snapshotSimHost, restoreSimHost } from '../../../src/engine/shared/sim/snapshot.ts';
+import { snapshotSimHost } from '../../../src/engine/shared/sim/snapshot.ts';
+import { restoreSimHost } from '../../../src/engine/server/sim/restore.ts';
 import { GridRegionDurability } from '../../../src/game/server/grid/durability.ts';
 import { generatePlatform } from '../../../src/engine/shared/sim/strips.ts';
 import { installStripCollider } from '../../../src/engine/shared/physics/stripColliders.ts';

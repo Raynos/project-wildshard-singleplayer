@@ -16,7 +16,8 @@ import { SCRIPT_V1_READS, SCRIPT_V1_LISTS, type ScriptV1ReadName, type ScriptV1L
 import { outputDescriptor } from '../../src/game/shared/shardfile/outputDescriptor';
 import { loadRapier } from '../../src/engine/shared/physics/rapier';
 import { createSimHost } from '../../src/engine/server/sim';
-import { snapshotSimHost, restoreSimHost } from '../../src/engine/shared/sim/snapshot';
+import { snapshotSimHost } from '../../src/engine/shared/sim/snapshot';
+import { restoreSimHost } from '../../src/engine/server/sim/restore';
 import { prepareRuntimeWorld } from '../../src/game/server/plugin/simulation';
 import { nativeRuntimeActorIds, parseNativeRuntimePlan } from '@wildshard/format/nativeRuntimePlan';
 import { borrowedDecisionControl } from '../../src/game/server/shardfile/borrowedDecisions';

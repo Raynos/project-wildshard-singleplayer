@@ -2,7 +2,8 @@
 import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
 import { createSimHost, type SimHost } from '../../../src/engine/server/sim';
-import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/shared/sim/snapshot';
+import { decodeSimSnapshot, serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/shared/sim/snapshot';
+import { restoreSimHost } from '../../../src/engine/server/sim/restore';
 import { loadRapier, type Rapier } from '../../../src/engine/shared/physics/rapier';
 import { canonicalSimDigest } from '../../fake/simState';
 import { SaveStore, type SaveStorage } from '../../../src/engine/shared/saves/store';

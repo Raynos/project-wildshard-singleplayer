@@ -2,7 +2,8 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { createSimHost, type SimHost } from '../src/engine/server/sim';
-import { snapshotSimHost, restoreSimHost } from '../src/engine/shared/sim/snapshot';
+import { snapshotSimHost } from '../src/engine/shared/sim/snapshot';
+import { restoreSimHost } from '../src/engine/server/sim/restore';
 import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { createNativeCombatFrame, installNativeItems } from '../src/game/server/plugin/nativeItems';
 import { fillNativeCombatFrame } from '../src/sdk/headlessRuntime';

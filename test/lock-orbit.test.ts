@@ -4,7 +4,8 @@ import { simCommandOf } from '../src/engine/server/sim/playerSim';
 import { GATE_Z, HostSide, loadCourseRapier, type MotionScenario } from './fixtures/motion-trace/parity';
 import { floorBelow } from '../src/engine/shared/physics/query';
 import type { Rapier } from '../src/engine/shared/physics/rapier';
-import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '../src/engine/shared/sim/snapshot';
+import { decodeSimSnapshot, serializeSimSnapshot, snapshotSimHost } from '../src/engine/shared/sim/snapshot';
+import { restoreSimHost } from '../src/engine/server/sim/restore';
 import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
 
 // P1-E5.3-A7, J116: the server takes a lock only for a real living body in reach. Parity covers the law; this covers the word.

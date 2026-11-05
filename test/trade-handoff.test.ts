@@ -5,7 +5,8 @@ import {TradeHandoffSchema,tradeWire,tradeRead,tradeHash,checkTradeLedger,checkT
 import {retainRestoredWalkBodies} from './fixtures/headless/ropeBodies';
 import {createSimHost} from '../src/engine/server/sim';
 import {loadRapier} from '../src/engine/shared/physics/rapier';
-import {restoreSimHost,snapshotSimHostBytes} from '../src/engine/shared/sim/snapshot';
+import { snapshotSimHostBytes } from '../src/engine/shared/sim/snapshot';
+import { restoreSimHost } from '../src/engine/server/sim/restore';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
 import * as v from 'valibot';
 

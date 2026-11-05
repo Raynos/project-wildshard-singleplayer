@@ -2,7 +2,8 @@ import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 // oxlint-disable-next-line import/no-nodejs-modules -- Real native restore regression loads the shipped physics runtime.
 import { readFileSync } from 'node:fs';
 import { createSimHost } from '../src/engine/server/sim';
-import { snapshotSimHost, restoreSimHost } from '../src/engine/shared/sim/snapshot';
+import { snapshotSimHost } from '../src/engine/shared/sim/snapshot';
+import { restoreSimHost } from '../src/engine/server/sim/restore';
 import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { expect, test, vi } from 'vitest';

@@ -2,7 +2,8 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
 import { loadRapier } from '../src/engine/shared/physics/rapier';
-import { snapshotSimHost, restoreSimHost, serializeSimSnapshot, decodeSimSnapshot } from '../src/engine/shared/sim/snapshot';
+import { snapshotSimHost, serializeSimSnapshot, decodeSimSnapshot } from '../src/engine/shared/sim/snapshot';
+import { restoreSimHost } from '../src/engine/server/sim/restore';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
 import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';

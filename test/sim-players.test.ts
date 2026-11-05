@@ -3,9 +3,11 @@ import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
 import { NET_BUTTONS } from '../src/engine/shared/input/netButtons';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
-import { createSimHost, SIM_API_VERSION, type SimCommand, type SimHost, type SimLevel } from '../src/engine/server/sim';
+import { createSimHost, type SimCommand, type SimHost, type SimLevel } from '../src/engine/server/sim';
+import { SIM_API_VERSION } from '../src/engine/shared/sim/apiVersion';
 import { leadCommands, leadPlayer } from '../src/engine/shared/sim/leadPlayer';
-import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, SIM_SNAPSHOT_VERSION, snapshotSimHost, snapshotSimHostBytes } from '../src/engine/shared/sim/snapshot';
+import { decodeSimSnapshot, serializeSimSnapshot, SIM_SNAPSHOT_VERSION, snapshotSimHost, snapshotSimHostBytes } from '../src/engine/shared/sim/snapshot';
+import { restoreSimHost } from '../src/engine/server/sim/restore';
 import { canonicalSimDigest } from './fake/simState';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 

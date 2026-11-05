@@ -11,7 +11,8 @@ import { MoverScriptDriver, type MoverRuntime } from '../../src/game/server/plug
 import { installCableModes } from '../../src/engine/shared/player/modes';
 import { createNativeCombatFrame } from '../../src/game/server/plugin/nativeItems';
 import { createSimHost, type SimHost , type SimCommand } from '../../src/engine/server/sim';
-import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '../../src/engine/shared/sim/snapshot';
+import { decodeSimSnapshot, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '../../src/engine/shared/sim/snapshot';
+import { restoreSimHost } from '../../src/engine/server/sim/restore';
 import { simPlayerCommand, type HeadlessCommand, type HeadlessEffect } from '../../src/sdk/tickProtocol';
 import type { TickWorkerAdapter } from '../../src/sdk/tickWorkerLoop';
 import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';

@@ -29,9 +29,8 @@ import type { QuestBookSaved } from '../shared/quest/players';
 import { QuestState, type QuestDef } from '../shared/quest/core';
 import type { DayCycle, DayCycleClock, DayCycleSpec } from '../shared/world/dayCycle';
 import { clockDayPhase, clockPeriod, wrapClock, type DayClockState } from '../shared/sim/dayClock';
+import { SIM_API_VERSION } from '../shared/sim/apiVersion';
 
-/** The embedded simulation contract. Versions change when level or command semantics change. */
-export const SIM_API_VERSION = 3;
 /** Serializable F1 extension values, without callbacks or renderer objects. */
 export type SimValue = null | boolean | number | string | SimValue[] | { [key: string]: SimValue };
 /** Script instance memory, module globals, authored quest data and ledger dedupe live on the host. */

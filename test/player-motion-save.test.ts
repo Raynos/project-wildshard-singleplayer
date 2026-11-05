@@ -4,7 +4,8 @@ import { beforeAll, expect, test } from 'vitest';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
 import { createSimHost, type SimCommand, type SimHost } from '../src/engine/server/sim';
 import { leadCommands, leadPlayer } from '../src/engine/shared/sim/leadPlayer';
-import { decodeSimSnapshot, leadSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost } from '../src/engine/shared/sim/snapshot';
+import { decodeSimSnapshot, leadSnapshot, serializeSimSnapshot, snapshotSimHost } from '../src/engine/shared/sim/snapshot';
+import { restoreSimHost } from '../src/engine/server/sim/restore';
 import { simWireV1 } from './fake/simState';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 

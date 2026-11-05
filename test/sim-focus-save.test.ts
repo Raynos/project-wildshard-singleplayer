@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
 import { createSimHost } from '../src/engine/server/sim';
-import { restoreSimHost, serializeSimSnapshot, snapshotSimHost, snapshotSimHostBytes } from '../src/engine/shared/sim/snapshot';
+import { serializeSimSnapshot, snapshotSimHost, snapshotSimHostBytes } from '../src/engine/shared/sim/snapshot';
+import { restoreSimHost } from '../src/engine/server/sim/restore';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 // Row 4: the player `playerFocus` follows is the sim's state. A body keeps reading it until the next `focusOn`.

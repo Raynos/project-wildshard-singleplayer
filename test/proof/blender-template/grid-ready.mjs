@@ -7,7 +7,7 @@ import { readProjectAssets } from '../../../src/sharddev/project.ts';
 import catalogue from '../../../src/game/shared/grid/singleplayer.json' with { type: 'json' };
 import { createShardfileSim, bindShardfileSim } from '../../../src/game/server/plugin/simulation.ts';
 import { loadRapier } from '../../../src/engine/shared/physics/rapier.ts';
-import { restoreSimHost } from '../../../src/engine/shared/sim/snapshot.ts';
+import { restoreSimHost } from '../../../src/engine/server/sim/restore.ts';
 import { GridAssembly } from '../../../src/game/shared/grid/assembly.ts';
 import { GridSimulation } from '../../../src/game/server/grid/simulation.ts';
 import { ResidencyAllocator } from '../../../src/game/shared/grid/allocator.ts';
