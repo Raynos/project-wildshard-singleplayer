@@ -47,6 +47,8 @@ const server = createServer((request, response) => {
   // The uncached pointer (J57): only these two responses say which build is live.
   if (path === '/') { response.writeHead(200, { 'content-type': 'text/html', 'cache-control': 'no-store' }).end(stampBuildHtml(html, pointer)); return; }
   if (path === '/version.json') { response.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' }).end(JSON.stringify({ build: pointer })); return; }
+  // WebKit asks for the page's service worker over the pointer's reload, and a build has one. This smoke's has nothing to cache.
+  if (path === '/sw.js') { response.writeHead(200, { 'content-type': 'text/javascript' }).end(); return; }
   const file = resolvePath(path);
   if (file === null || !existsSync(file) || !statSync(file).isFile()) { response.writeHead(404).end(); return; }
   response.writeHead(200, { 'content-type': TYPES[extname(file)] ?? 'application/octet-stream' }); // no COOP / COEP (J59 Q8)
@@ -63,6 +65,7 @@ try {
   const page = await context.newPage(), errors = [];
   page.on('pageerror', error => { errors.push(String(error)); });
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  page.on('response', response => { if (response.status() >= 400) errors.push(`${response.status()} ${response.url()}`); });
   await page.goto(origin);
   const first = await page.evaluate(name => window.standaloneProof.boot(name), slug);
   const report = await page.evaluate(run => window.standaloneProof.play(run), seconds);
