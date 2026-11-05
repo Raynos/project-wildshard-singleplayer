@@ -30,6 +30,8 @@ export interface WeaponWire {
   readonly afterStep: (run: () => void) => void;
   /** Commands this frame has sent: a swing's clock takes one step for each, so it keeps the server's count (P1-E5.3-E1). */
   readonly steps: () => number;
+  /** A reload this weapon started by itself or on a button: the server starts its own, for the slot it says this player holds. */
+  readonly reload: () => void;
   /** The `seq` the next command takes. */
   readonly nextSeq: () => number;
   /** A shot that left on a command already gone (a loose, on the step that let go): the server must confirm or refuse it. */

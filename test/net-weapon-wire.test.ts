@@ -52,7 +52,7 @@ function sword(wire: WeaponWire): { blade: SweptMelee; stops: ReturnType<typeof 
 }
 const wireSpy = (steps: () => number = () => 1): WeaponWire & { presses: boolean[]; holds: boolean[] } => {
   const presses: boolean[] = [], holds: boolean[] = [];
-  return { presses, holds, press: started => { presses.push(started); }, hold: held => { holds.push(held); }, fire: () => undefined, afterStep: run => { run(); }, steps: () => steps(), nextSeq: () => 1, shot: () => undefined, equip: () => undefined, interact: () => undefined };
+  return { presses, holds, press: started => { presses.push(started); }, reload: () => undefined, hold: held => { holds.push(held); }, fire: () => undefined, afterStep: run => { run(); }, steps: () => steps(), nextSeq: () => 1, shot: () => undefined, equip: () => undefined, interact: () => undefined };
 };
 
 test('a tap starts here at once, and tells the wire whether the server has a start to rule on', () => {

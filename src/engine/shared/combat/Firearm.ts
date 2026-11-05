@@ -1,4 +1,5 @@
-import { Weapon } from './Weapon';
+import { Weapon, type WeaponWire } from './Weapon';
+import { FIXED_STEP } from '../core/fixedStep';
 import * as v from 'valibot';
 
 /** Borrow only gameplay state and reload/dry hooks; no equipment or rendering owner is required. */
@@ -111,6 +112,11 @@ class CyclingAction {
       if (this.dryAtStart && !this.chambered && this.tube > 0) { this.throwLever(); yield 'cycle'; }
     }
   }
+}
+/** One frame of an action's clock: all of `dt`, or on a link one fixed step for each command the frame sent, so a round chambers on the command it does on the server (P1-E6). */
+export function stepActionClock(dt: number, wire: Pick<WeaponWire, 'steps'> | null, step: (seconds: number) => void): void {
+  if (wire === null) { step(dt); return; }
+  for (let at = 0, steps = wire.steps(); at < steps; at++) step(FIXED_STEP);
 }
 /** Trigger, cooldown and automatic reload owner, composing the existing transfer controller. */
 export class RangedAction {

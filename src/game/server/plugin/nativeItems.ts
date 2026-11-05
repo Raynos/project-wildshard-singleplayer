@@ -259,6 +259,7 @@ function cycleItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: 
     hitscan(target);
   };
   return { item: { act, store }, step: (dt: number): void => {
+    if (own.live.has(row.slot)) for (const control of own.launchers) if (control.slot === row.slot && control.reload === true) act.beginReload();
     const armed = own.armed.has(row.slot), shots = armed ? own.attacks : [];
     for (let i = 0; i < 1024; i++) {
       const id = shots[i];

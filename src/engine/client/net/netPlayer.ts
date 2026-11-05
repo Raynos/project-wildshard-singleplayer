@@ -53,6 +53,7 @@ export class NetPlayer implements PlayerLink {
       this.wanted = slot; this.asks = 0; this.askAt = 0; this.heavy = false;
     },
     interact: id => { this.client.act({ kind: 'interact', seq: this.seq, id }); },
+    reload: () => { this.client.act({ kind: 'reload', seq: this.seq, slot: this.held }); },
   };
   /** The body a lock holds, by the server's name for it (J116). */
   lockTarget: () => string | undefined = () => undefined;

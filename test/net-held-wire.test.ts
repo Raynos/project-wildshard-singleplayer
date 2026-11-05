@@ -160,3 +160,17 @@ test('the page\'s fire disc shoots what it holds: a pull on the raise of a swap 
     expect(held.refusals).toEqual([]);
   } finally { held.done(); }
 }, 120_000);
+
+test('a reload the page starts reaches the server, on the rifle in hand', async () => {
+  const held = await rig();
+  try {
+    held.run(10); held.live.host.flags.set('owned:lever-rifle'); held.net.wire.equip('weapon.lever'); held.run(45);
+    const { item, kind } = readNativeRangedItem(held.live.host, 1);
+    if (kind !== 'cycle') throw new Error('Not the rifle');
+    held.net.wire.press(true); held.run(1); held.net.wire.press(false); held.run(90);
+    const tube = item.act.tube;
+    expect(tube).toBeLessThan(item.act.tubeMax);
+    held.net.wire.reload(); held.run(2);
+    expect(item.act.phase).toBe('reload');
+  } finally { held.done(); }
+}, 120_000);

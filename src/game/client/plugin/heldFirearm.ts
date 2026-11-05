@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { app } from '@wildshard/engine/app/runtime';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
-import { Firearm, RangedAction, RangedReload, type RangedCycleEvent } from '@wildshard/engine/combat/Firearm';
+import { Firearm, RangedAction, RangedReload, stepActionClock, type RangedCycleEvent } from '@wildshard/engine/combat/Firearm';
 import type { Targets } from '@wildshard/engine/combat/types';
 import type { BrassEjectionRow } from '@wildshard/engine/combat/view/brass';
 import type { HitscanProfile } from '@wildshard/engine/combat/view/hitscan';
@@ -311,11 +311,15 @@ export class HeldFirearm<P extends HeldFirearmProfile = HeldFirearmProfile> exte
   }
   override reload(): void {
     if (this.act === null) this.reloadClock.begin(this, this.profile.magazine);
-    else if (this.act.beginReload()) this.event('reloadStart');
+    else if (this.act.beginReload()) { this.event('reloadStart'); this.wire?.reload(); }
   }
   addRounds(n: number): void { this.state.reserve += n; }
   override addBolts(n: number): void { this.addRounds(n); }
 
+  private readonly stepCycle = (seconds: number): void => {
+    this.sinceEmpty += seconds;
+    if (this.act !== null) for (const event of this.act.events(seconds, this.autoReloadDue())) this.event(event);
+  };
   /** One phase event of the action, at its original boundary. */
   private event(event: RangedCycleEvent): void {
     switch (event) {
@@ -346,14 +350,14 @@ export class HeldFirearm<P extends HeldFirearmProfile = HeldFirearmProfile> exte
   update(dt: number, t: number): void {
     this.time = t; this.posePlayback.beginFrame(dt);
     const p = this.player, cam = this.game.camera, act = this.act, s = this.state, sc = this.rows.playback.schedule, values = this.partValues;
-    this.sinceEmpty += dt;
+    if (act === null || this.freezeCycle !== null) this.sinceEmpty += dt;
     if (act === null) {
       this.cooldown = Math.max(0, this.cooldown - dt); this.bloom = Math.max(0, this.bloom - dt * 2.4);
       if (this.autoReloadDue()) this.reload();
       if (s.reloading && this.reloadClock.progress(this, dt, this.profile.reload) >= 1) this.reloadClock.finish(this, this.profile.magazine);
       values['reloading'] = Number(s.reloading); values['reloadProgress'] = s.reloadProgress;
     } else {
-      if (this.freezeCycle === null) { for (const event of act.events(dt, this.autoReloadDue())) this.event(event); s.reloadProgress = act.reloadProgress; this.syncState(); }
+      if (this.freezeCycle === null) { stepActionClock(dt, this.wire, this.stepCycle); s.reloadProgress = act.reloadProgress; this.syncState(); }
       values['cycleU'] = this.cycleU; values['cycling'] = Number(this.freezeCycle !== null || act.phase === 'cycle');
       values['cocked'] = Number(this.freezeCycle !== null ? this.cycleU >= 0.2 : act.hammerCocked); values['reloading'] = Number(act.phase === 'reload');
     }

@@ -284,7 +284,7 @@ export class HeldLauncher<P extends HeldLauncherProfile = HeldLauncherProfile> e
     this.spawnBolt();
     this.onFire?.();
   }
-  override reload(): void { this.action.reload(); }
+  override reload(): void { this.action.reload(); this.wire?.reload(); }
   /** The server settled this own shot: no bolt of it flies on past its `hit` (P1-E5.3-E4). */
   override serverHit(hit: OwnHit): void {
     super.serverHit(hit);

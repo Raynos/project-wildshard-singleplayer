@@ -285,7 +285,8 @@ export function validateHeadlessCommandOwners(host:SimHost,commands:readonly Hea
   if(commands.some(command=>command.kind==='interact'))throw new Error('Authored interaction commands require the data-only owner');
   for(const command of commands)if(command.kind==='launcher'){
     v.assert(TickCommandSchema,command);
-    if(readNativeRangedItem(host,command.slot).kind!=='bolt')throw new Error('Launcher input requires an installed bolt owner');
+    const {kind}=readNativeRangedItem(host,command.slot);
+    if(kind!=='bolt'&&!(kind==='cycle'&&command.reload===true&&command.fire!==true))throw new Error('Launcher input requires an installed bolt owner');
   }
 }
 
