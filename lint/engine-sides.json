@@ -292,7 +292,7 @@
   "src/engine/entities/species/loft.ts": "client",
   "src/engine/entities/species/look.ts": "client",
   "src/engine/entities/species/registry.ts": "shared",
-  "src/engine/entities/species/rigs.ts": "server",
+  "src/engine/entities/species/rigs.ts": "shared",
   "src/engine/events/events.ts": "shared",
   "src/engine/events/maps.ts": "client",
   "src/engine/explore/catalog.ts": "client",

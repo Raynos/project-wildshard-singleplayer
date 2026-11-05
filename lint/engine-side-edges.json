@@ -1,7 +1,7 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 340,
+  "client → server": 335,
   "cook → client": 2,
   "cook → render": 1,
   "server → client": 137,
@@ -74,9 +74,6 @@
   },
   "src/game/ambient/crowdPage.ts": {
    "server → client": 4
-  },
-  "src/game/animation/limbBlend.ts": {
-   "client → server": 1
   },
   "src/game/animation/limbCollision.ts": {
    "client → server": 1
@@ -251,10 +248,10 @@
    "server → client": 4
   },
   "src/game/plugin/creatureFrame.ts": {
-   "client → server": 2
+   "client → server": 1
   },
   "src/game/plugin/geometry.ts": {
-   "client → server": 3
+   "client → server": 2
   },
   "src/game/plugin/headless.ts": {
    "server → client": 1
@@ -452,13 +449,7 @@
   "src/game/shardfile/clientQuestPage.ts": {
    "client → server": 4
   },
-  "src/game/shardfile/clientRecipes.ts": {
-   "client → server": 1
-  },
   "src/game/shardfile/clientResidency.ts": {
-   "client → server": 1
-  },
-  "src/game/shardfile/clientSkins.ts": {
    "client → server": 1
   },
   "src/game/shardfile/clientSource.ts": {
