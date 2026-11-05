@@ -156,6 +156,13 @@ export interface LiveGridSessionPorts {
   readonly neighbourEdges: (cell: GridCell, origin: Readonly<{ x: number; z: number }>) => ReadinessEdge[];
   readonly rimEdges: (origin: Readonly<{ x: number; z: number }>) => ReadinessEdge[];
 }
+/** The worker client's line in (J130, E6): the server says where this client stands, and the page's crossing follows it. */
+export interface LiveGridWire {
+  /** The world the newest frame came from: a cell's instance, null for the road, undefined before the first. */
+  readonly site: () => string | null | undefined;
+  /** The page took a new world's physics. */
+  readonly rebound: (physics: Physics) => void;
+}
 /** The readout: the live host's crossing telemetry, the crossing coordinator and the safe-zone state. */
 export interface LiveGridSessionState {
   /** G580 T2: the distinct compiled programs kept across retired cells (null: the Developer row is off) */
@@ -202,6 +209,7 @@ function regionTransferWalls(host: SimHost, radius: number, restoring = false): 
 export class LiveGridSession {
   readonly live: LiveGridHost;
   private crossing: GridCrossingSession;
+  private wire: LiveGridWire | null = null;
   private readonly ports: LiveGridSessionPorts;
   private readonly page: LiveGridPage;
   private readonly durability = new Map<string, GridRegionDurability>();
@@ -373,12 +381,14 @@ export class LiveGridSession {
   private installCrossing(): GridCrossingSession {
     return installGridCrossing({ current: () => this.live.current(), prepare: (from, to) => this.prepareCrossing(from, to),
       ready: (instance) => this.live.ready(instance), checkpoint: (instance) => {
+        if (this.wire !== null) return true; // the server's saves are the session's
         const readiness = this.page.crossingSaveReady?.(instance) ?? true;
         return readiness === true ? this.live.checkpoint(instance) : readiness;
-      }, target: (feet) => this.live.target(feet) },
+      }, target: (feet) => this.wire === null ? this.live.target(feet) : this.wireTarget() },
     this.ports.assembly, (instance) => {
-      const runtime = this.runtimeRegions.get(instance), flush = (): boolean => this.regionSave(instance).flush();
+      const runtime = this.runtimeRegions.get(instance), flush = (): boolean => this.wire !== null || this.regionSave(instance).flush();
       if (runtime === undefined) return { checkpoint: flush, stow: () => { stowGridMount(this.page.traveller); }, interior: () => undefined };
+      if (this.wire !== null) return { ...runtime.loadout, checkpoint: flush };
       // rt3-crossing2: a committed runtime the traveller never entered never ran its hooks and never played: it saves as
       // the stored resident. Its own checkpoint refuses until its hooks restore, so turning back on the strip after the
       // commit held the crossing in save-failed for good.
@@ -392,6 +402,27 @@ export class LiveGridSession {
       // Keep at most this complete world until a bounded return, expiry or pressure.
       // Its independently owned neighbour tiles remain with the page's distance streamer.
     });
+  }
+
+  /** Where the server has this client. A page crosses between cells over the road, as the server's own session does. */
+  private wireTarget(): string | null {
+    const site = this.wire?.site(), current = this.live.current();
+    if (site === undefined) return current;
+    return current !== null && site !== null && site !== current ? null : site;
+  }
+
+  /** J130: the server decides crossings from here on and keeps the saves, so the page's own go quiet. Its preparation, walls
+   *  and commit stay as they are (G828, G1011). */
+  bindWire(wire: LiveGridWire): void {
+    this.wire = wire; this.checkpointsSuppressed = true; this.autosave?.return(false); this.autosave = null;
+    this.homeSim?.suppressCheckpoint?.();
+    this.ports.scope.onDispose(() => { this.wire = null; });
+  }
+
+  /** The entered region's creature manager, where this cell's rows are drawn; none on the road or in a data cell. */
+  enteredAnimals(): ReturnType<PreparedRegionalRuntime['animals']> {
+    const instance = this.enteredRuntimeInstance();
+    return instance === null ? null : this.runtimeRegions.get(instance)?.animals() ?? null;
   }
 
   /** Refresh unentered recovery sockets after the page publishes deferred platform seams. */
@@ -876,6 +907,7 @@ export class LiveGridSession {
       waterSurfaceAt: (x: number, z: number) => Math.max(Math.abs(x), Math.abs(z)) <= CHUNK_HALF ? runtime.queries.waterSurfaceAt(x, z) : null };
     this.page.traveller.bindFrame(frame.physics, frame.motor, frame.instance === null ? HIGHWAY_QUERIES : runtimeQueries ?? this.regions.get(frame.instance)?.queries ?? HIGHWAY_QUERIES);
     this.page.setPhysics(frame.physics);
+    this.wire?.rebound(frame.physics);
     this.offset.set(frame.origin.x - this.ports.home.origin.x, 0, frame.origin.z - this.ports.home.origin.z);
     if (this.homeSim?.disposed() === true) this.homeSim = null;
     this.homeSim?.setActive(false);   // the live grid drives every owned region

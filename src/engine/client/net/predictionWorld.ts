@@ -33,7 +33,7 @@ export interface PredictedRow {
 
 /** The client's prediction world over one Physics. */
 export class PredictionWorld {
-  private readonly physics: Physics;
+  private physics: Physics;
   private readonly movers = new Set<PredictedMover>();
   private readonly capsules = new Map<number, Collider>();
   private readonly seen = new Set<number>();
@@ -41,6 +41,11 @@ export class PredictionWorld {
   private frameSeq = 0;
   constructor(physics: Physics) { this.physics = physics; }
 
+  /** The page has moved to another world's physics, on a crossing: what stood in the last one stays behind. */
+  rebind(physics: Physics): void {
+    this.removeCapsules();
+    this.physics = physics;
+  }
   /** The newest frame: the server stood at `tick` having stepped `lastSeq`. */
   frame(tick: number, lastSeq: number): void { this.frameTick = tick; this.frameSeq = lastSeq; }
   /** The server tick command `seq` will reach: one command, one server step (J125), from the newest frame. */
@@ -77,10 +82,11 @@ export class PredictionWorld {
     phased.clear();
     for (const handle of handles) phased.add(handle);
   }
-  dispose(): void {
+  private removeCapsules(): void {
     for (const capsule of this.capsules.values()) this.physics.world.removeCollider(capsule, false);
-    this.capsules.clear(); this.movers.clear();
+    this.capsules.clear();
   }
+  dispose(): void { this.removeCapsules(); this.movers.clear(); }
 }
 
 /** The Player as a predictor drives it: every step, first run or replay, meets the movers at its own tick. */

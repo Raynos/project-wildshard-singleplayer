@@ -1,7 +1,7 @@
 // P1-E5.2 (J31, E5-REPLICATION §6.3): the page half of the standalone target. It composes the client with the server worker
-// and owns what only a page can do: start the worker, keep the real storage, and pause on a hidden tab. The page client
-// doesn't import it yet: build-app emits it, and SESSION's flip switches the shipped client onto it. This file must never
-// reach a `server`-tagged module (J2).
+// and owns what only a page can do: start the worker, keep the real storage, and pause on a hidden tab. Only the Developer row
+// (J130) imports it yet: build-app emits it, and SESSION's flip switches the shipped client onto it. This file must never reach
+// a `server`-tagged module (J2).
 import * as v from 'valibot';
 import { Scope } from '@wildshard/engine/app/scope';
 import { NetClient } from '@wildshard/engine/net/client';
@@ -23,6 +23,8 @@ export interface StandaloneConfig {
   readonly refused?: () => void;
   /** Saves live under this prefix in `storage`, the page's durable storage. */
   readonly savePrefix: string; readonly storage: SaveStorage;
+  /** Make one write durable, for a `storage` that only says so later. Absent, `storage`'s own answer stands. */
+  readonly write?: (key: string, value: string | null) => Promise<boolean>;
   /** Who this player is (J111); absent, this device's own id. */
   readonly identity?: NetIdentity;
 }
@@ -55,6 +57,32 @@ function applyWrite(storage: SaveStorage, key: string, value: string | null): bo
   try { if (value === null) storage.removeItem(key); else storage.setItem(key, value); return true; } catch { return false; }
 }
 
+/** Where a session's saves live on a page: a cell's continuation is about 3M characters, and an origin's localStorage holds 5.2M. */
+export interface IndexedSaves { readonly storage: SaveStorage; readonly write: NonNullable<StandaloneConfig['write']> }
+const SAVES = 'saves';
+const requested = <T>(request: IDBRequest<T>): Promise<T> => new Promise((resolve, reject) => {
+  request.onsuccess = (): void => { resolve(request.result); };
+  request.onerror = (): void => { reject(request.error ?? new Error('Save storage refused')); };
+});
+/** Read every save at boot, so a page starts a worker with them as it does from localStorage; a write is durable when its transaction commits. */
+export async function openIndexedSaves(name: string): Promise<IndexedSaves> {
+  const opening = indexedDB.open(name, 1);
+  opening.onupgradeneeded = (): void => { opening.result.createObjectStore(SAVES); };
+  const database = await requested(opening), reading = database.transaction(SAVES).objectStore(SAVES);
+  const [keys, values] = await Promise.all([requested(reading.getAllKeys()), requested(reading.getAll())]);
+  const documents = new Map<string, string>();
+  keys.forEach((key, index) => { const value: unknown = values[index]; if (typeof key === 'string' && typeof value === 'string') documents.set(key, value); });
+  const write = (key: string, value: string | null): Promise<boolean> => new Promise(resolve => {
+    if (value === null) documents.delete(key); else documents.set(key, value);
+    const transaction = database.transaction(SAVES, 'readwrite', { durability: 'strict' }), store = transaction.objectStore(SAVES);
+    if (value === null) store.delete(key); else store.put(value, key);
+    transaction.oncomplete = (): void => { resolve(true); };
+    transaction.onerror = transaction.onabort = (): void => { resolve(false); };
+  });
+  return { write, storage: { get length() { return documents.size; }, key: index => [...documents.keys()][index] ?? null, getItem: key => documents.get(key) ?? null,
+    setItem: (key, value) => { void write(key, value); }, removeItem: key => { void write(key, null); } } };
+}
+
 /** Run the page half over the two ports. `startStandalone` is this over a real worker; a Node test passes a MessageChannel. */
 export function connectStandalone(config: StandaloneConfig, control: MessagePort, game: MessagePort, end: () => void): StandaloneShell {
   const transport = new WorkerLoopback(game), client = new NetClient(transport);
@@ -68,10 +96,13 @@ export function connectStandalone(config: StandaloneConfig, control: MessagePort
     waits.set(id, message => { const out = read(message); if (out !== null) { waits.delete(id); resolve(out); } });
     post(send(id));
   });
+  const write = async (seq: number, key: string, value: string | null): Promise<void> => {
+    post({ kind: 'written', seq, ok: await (config.write?.(key, value) ?? applyWrite(config.storage, key, value)) });
+  };
   control.onmessage = (event: MessageEvent<unknown>): void => {
     const message = v.parse(ServerMessageSchema, event.data);
     if (message.kind === 'booted') { booted({ tick: message.tick, restored: message.restored }); client.hello(config.build, config.identity ?? deviceIdentity(config.storage, config.savePrefix)); }
-    else if (message.kind === 'write') post({ kind: 'written', seq: message.seq, ok: applyWrite(config.storage, message.key, message.value) });
+    else if (message.kind === 'write') void write(message.seq, message.key, message.value);
     else if (message.kind === 'failed') { failed(new Error(message.reason)); client.closed ??= message.reason; }
     else waits.get(message.id)?.(message);
   };

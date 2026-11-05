@@ -36,6 +36,8 @@ export class NetPlayer implements PlayerLink {
     steps: () => this.frameSteps,
     nextSeq: () => (this.seq + 1) & 0xffff,
   };
+  /** Whether this page stands in the world a frame came from. A crossing's frames wait behind this until the page has made it. */
+  inCell: (cell: number) => boolean = () => true;
   /** Biggest camera offset a correction has left, in metres: what a proof page reports. */
   worstOffset = 0;
   private readonly client: NetClient;
@@ -50,19 +52,21 @@ export class NetPlayer implements PlayerLink {
   private launcher: NonNullable<NetCommand['launcher']> | null = null;
   private seq = 0;
   private weapons: NetWeapons | null = null;
-  private readonly off: () => void;
+  private readonly off: readonly (() => void)[];
   constructor(client: NetClient, player: Player, physics: Physics) {
     this.client = client; this.player = player;
     this.world = new PredictionWorld(physics);
     this.predictor = new Predictor(predictedPlayer(player, this.world), PLAYER_CLASS.owner);
     this.attacks.onRefused(() => { this.weapons?.attackRefused(); });
-    this.off = client.onCombat(event => {
+    this.off = [client.onCombat(event => {
       // an own blow plays the moment it is heard: the predicted swing already ran (J47)
       if (event.kind !== 'hit' || event.confirmFor === 0) return;
       this.attacks.confirm(event.confirmFor);
       const kind = this.client.entities.get(event.target)?.initial['kind'];
       this.weapons?.serverHit({ kind: typeof kind === 'string' ? kind : '', at: new Vector3(...event.at), head: event.head, killed: event.killed, amount: event.amount, seq: event.confirmFor });
-    });
+    }),
+    // A crossing is a snap (§5.2): nothing is sent until the next world's first frame seats this body there, in its coordinates.
+    client.onTravel(() => { this.seen = null; })];
   }
   /** Draw this player's attacks on `weapons`: they stop settling their own contact and take the server's word. */
   bindWeapons(weapons: NetWeapons): void { this.weapons = weapons; weapons.bindWire(this.wire); }
@@ -90,7 +94,7 @@ export class NetPlayer implements PlayerLink {
   reconcile(): void {
     this.frameSteps = 0;
     const frame = this.client.latest;
-    if (frame === null || frame === this.seen) return;
+    if (frame === null || frame === this.seen || !this.inCell(frame.cell)) return;
     const first = this.seen === null;
     this.seen = frame;
     this.world.frame(frame.tick, frame.lastSeq);
@@ -106,5 +110,5 @@ export class NetPlayer implements PlayerLink {
     this.predictor.update(dt);
     this.worstOffset = Math.max(this.worstOffset, this.player.renderOffset.length());
   }
-  dispose(): void { this.off(); this.weapons?.bindWire(null); this.world.dispose(); }
+  dispose(): void { for (const off of this.off) off(); this.weapons?.bindWire(null); this.world.dispose(); }
 }
