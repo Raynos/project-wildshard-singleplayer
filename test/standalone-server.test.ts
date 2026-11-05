@@ -105,6 +105,20 @@ test('the worker pauses with a hidden tab: paused time is never simulated', asyn
   stop();
 });
 
+test('a server of another build refuses hello with reload, and the page is told', async () => {
+  const control = new MessageChannel(), game = new MessageChannel(), input = await sunscarInput();
+  const server = runStandaloneServer({ control: control.port1, game: game.port1, load: () => Promise.resolve(input) });
+  let refused = 0;
+  const shell = connectStandalone({ slug: 'sunscar-dunes', base: '/shards/sunscar-dunes/', build: 'stale', serverBuild: 'newer', savePrefix: 'wildshard.', storage: new PageStorage(),
+    refused: () => { refused++; } }, control.port2, game.port2, () => { server.dispose(); });
+  await shell.booted;
+  await until(() => shell.client.closed !== null);
+  expect(shell.client.closed).toBe('reload');
+  expect(refused).toBe(1);
+  shell.dispose();
+  expect(refused).toBe(1);
+});
+
 test('a server that cannot boot says so on the control port', async () => {
   const control = new MessageChannel(), game = new MessageChannel();
   const server = runStandaloneServer({ control: control.port1, game: game.port1, load: () => Promise.reject(new Error('no shard')) });

@@ -1,6 +1,7 @@
 // P1-E5.2 (J31, E5-REPLICATION §6.3): the page half of the standalone target. It composes the client with the server worker
-// and owns what only a page can do: start the worker, keep the real storage, and pause on a hidden tab. Nothing imports it
-// yet; E5.4 switches the shipped client onto it. This file must never reach a `server`-tagged module (J2).
+// and owns what only a page can do: start the worker, keep the real storage, and pause on a hidden tab. The page client
+// doesn't import it yet: build-app emits it, and SESSION's flip switches the shipped client onto it. This file must never
+// reach a `server`-tagged module (J2).
 import * as v from 'valibot';
 import { Scope } from '@wildshard/engine/app/scope';
 import { NetClient } from '@wildshard/engine/net/client';
@@ -16,6 +17,10 @@ export interface StandaloneConfig {
   readonly base: string;
   /** This engine build's id; empty where builds are not stamped. */
   readonly build: string;
+  /** The build the server runs, when it isn't `build`: `hello` then refuses this page (J54). */
+  readonly serverBuild?: string;
+  /** The server refused this build (`reload`). `startStandalone` reloads into the pointer's newer build. */
+  readonly refused?: () => void;
   /** Saves live under this prefix in `storage`, the page's durable storage. */
   readonly savePrefix: string; readonly storage: SaveStorage;
   /** Who this player is (J111); absent, this device's own id. */
@@ -53,6 +58,7 @@ function applyWrite(storage: SaveStorage, key: string, value: string | null): bo
 /** Run the page half over the two ports. `startStandalone` is this over a real worker; a Node test passes a MessageChannel. */
 export function connectStandalone(config: StandaloneConfig, control: MessagePort, game: MessagePort, end: () => void): StandaloneShell {
   const transport = new WorkerLoopback(game), client = new NetClient(transport);
+  transport.onClose(reason => { if (reason === 'reload') config.refused?.(); });
   const post = (message: ShellMessage): void => { control.postMessage(v.parse(ShellMessageSchema, message), []); };
   const waits = new Map<number, (message: ServerMessage) => void>();
   let requests = 0, booted: (value: { tick: number; restored: boolean }) => void = () => undefined, failed: (reason: Error) => void = () => undefined;
@@ -73,7 +79,7 @@ export function connectStandalone(config: StandaloneConfig, control: MessagePort
   const visibility = (): void => { post({ kind: document.visibilityState === 'hidden' ? 'pause' : 'resume' }); };
   const scope = new Scope('standalone.shell');
   if (typeof document !== 'undefined') scope.listen(document, 'visibilitychange', visibility);
-  post({ kind: 'boot', slug: config.slug, base: config.base, build: config.build, savePrefix: config.savePrefix, saves: saveDocuments(config.storage, config.savePrefix) });
+  post({ kind: 'boot', slug: config.slug, base: config.base, build: config.serverBuild ?? config.build, savePrefix: config.savePrefix, saves: saveDocuments(config.storage, config.savePrefix) });
   return { client, transport, booted: bootPromise,
     ready: () => { post({ kind: 'ready' }); }, pause: () => { post({ kind: 'pause' }); }, resume: () => { post({ kind: 'resume' }); },
     save: () => request(id => ({ kind: 'save', id }), message => message.kind === 'saved' ? { tick: message.tick, ok: message.ok } : null),
@@ -86,5 +92,8 @@ export function startStandalone(config: StandaloneConfig): StandaloneShell {
   const worker = new Worker(new URL('serverWorker.ts', import.meta.url), { type: 'module' });
   const control = new MessageChannel(), game = new MessageChannel();
   worker.postMessage(null, [control.port2, game.port2]);
-  return connectStandalone(config, control.port1, game.port1, () => { worker.terminate(); });
+  // The worker sits beside this module, so an emitted module's `/b/<build>/` folder is the server's real build (J57).
+  const served = /^\/b\/([\w.-]+)\//u.exec(new URL(import.meta.url).pathname)?.[1];
+  const refused = (): void => { void import('@wildshard/engine/boot/browserChunkRecovery').then(recovery => recovery.reloadRefusedBuild()); };
+  return connectStandalone({ refused, ...served === undefined ? {} : { serverBuild: served }, ...config }, control.port1, game.port1, () => { worker.terminate(); });
 }

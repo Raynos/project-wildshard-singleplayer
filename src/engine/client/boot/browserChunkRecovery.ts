@@ -3,7 +3,7 @@ import { saveStorage } from '../saves/slots';
 import { countReload } from '../core/reloadGuard';
 import { beginLoadingWait, finishLoadingWait } from '../../shared/boot/loadingWaits';
 import { markReload } from './lastEnd';
-import { createChunkRecovery } from './chunkRecovery';
+import { createChunkRecovery, reloadIntoNewerBuild, type ChunkRecoveryPorts } from './chunkRecovery';
 
 declare const __BUILD_ID__: string;
 function bootSelfReloadClaimed(): boolean {
@@ -19,8 +19,8 @@ let worldRunning = false;
 let documentLeaving = false;
 const recoveryAllowed = (): boolean => !worldRunning && !documentLeaving;
 let recover: ((error: unknown) => Promise<boolean>) | undefined;
-async function latestVersion(): Promise<string | null> {
-  if (!recoveryAllowed()) return null;
+async function latestVersion(allowed: () => boolean): Promise<string | null> {
+  if (!allowed()) return null;
   const owner = pageScope.child('chunk-version'), controller = new AbortController();
   const url = new URL('/version.json', location.href);
   const wait = beginLoadingWait('Checking updated application', { kind: 'file', resource: url.href });
@@ -36,19 +36,26 @@ async function latestVersion(): Promise<string | null> {
   } catch { return null; }
   finally { finishLoadingWait(wait); owner.dispose(); }
 }
+const recoveryPorts = (allowed: () => boolean): ChunkRecoveryPorts => ({allowed, base: location.href, runningBuild: __BUILD_ID__,
+  version: () => latestVersion(allowed), claimed: bootSelfReloadClaimed, claim: claimBootSelfReload,
+  prepare: async build => {
+    const wait = beginLoadingWait('Activating updated application', {kind: 'worker', resource: '/sw.js'});
+    try { return await (await import('./sw')).refreshWorkerForChunkRecovery(build, allowed); }
+    finally { finishLoadingWait(wait); }
+  },
+  reload: () => { countReload(); markReload('stale deployment code'); location.reload(); },
+});
 /** Only a confirmed newer deployment can replace a rejected boot/lazy module or stylesheet. */
 export function recoverChunkFailure(error: unknown): Promise<boolean> {
   if (typeof window === 'undefined' || typeof __BUILD_ID__ !== 'string') return Promise.resolve(false);
-  recover ??= createChunkRecovery({allowed: recoveryAllowed, base: location.href, runningBuild: __BUILD_ID__, version: latestVersion,
-    claimed: bootSelfReloadClaimed, claim: claimBootSelfReload,
-    prepare: async build => {
-      const wait = beginLoadingWait('Activating updated application', {kind: 'worker', resource: '/sw.js'});
-      try { return await (await import('./sw')).refreshWorkerForChunkRecovery(build, recoveryAllowed); }
-      finally { finishLoadingWait(wait); }
-    },
-    reload: () => { countReload(); markReload('stale deployment code'); location.reload(); },
-  });
+  recover ??= createChunkRecovery(recoveryPorts(recoveryAllowed));
   return recover(error);
+}
+/** J54 (E5-REPLICATION §4.4): a server refused this build at `hello`. A refused tab has no world left to protect, so this
+ * runs even with one on screen. The newer worker owns the next document first, or the reload lands on this build again. */
+export function reloadRefusedBuild(): Promise<boolean> {
+  if (typeof window === 'undefined' || typeof __BUILD_ID__ !== 'string') return Promise.resolve(false);
+  return reloadIntoNewerBuild(recoveryPorts(() => !documentLeaving));
 }
 
 let installed = false;

@@ -119,6 +119,7 @@
     "./boot/audioFiles": "./client/boot/audioFiles.ts",
     "./boot/bakedApi": "./client/boot/bakedApi.ts",
     "./boot/bootTrace": "./client/boot/bootTrace.ts",
+    "./boot/browserChunkRecovery": "./client/boot/browserChunkRecovery.ts",
     "./boot/bytes": "./client/boot/bytes.ts",
     "./boot/catalog": "./client/boot/catalog.ts",
     "./boot/extras": "./client/boot/extras.ts",
