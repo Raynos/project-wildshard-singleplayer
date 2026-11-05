@@ -9,6 +9,7 @@ import { SweptMeleeCore, sweptLunge, sweptMoveDamage, sweptStrikeDirection, swep
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 import { STARTER_BLADE } from '../../shared/weapons/starterMoves';
+import { seenBodies, seenRay, type SeenHit } from './nativeRewind';
 import { playerSeats } from './playerSeats';
 import { createNativeLoadout, createNativeTargetQueries } from './simulation';
 
@@ -22,6 +23,8 @@ export interface NativeSweptMeleeInput {
   readonly sprint?: boolean;
   /** The command `seq` a swing started here confirms (J47); 0 off the wire. */
   readonly seq?: number;
+  /** The tick this command saw the world at (J50); 0 or absent rewinds nothing. */
+  readonly viewTick?: number;
 }
 type NativeSweptActor = NonNullable<ReturnType<SimHost['entities']['get']>>;
 /** Borrowed world reactions for swept phases; no secondary clock or body service is installed. */
@@ -71,17 +74,22 @@ export function installNativeSweptMelee(host: SimHost, items: readonly unknown[]
     const seq = { swing: 0, queued: 0, chained: null as number | null, pressing: false };
     let blade: LiveBlade | null = null, current: NativeSweptMeleeInput = { attack: null, heavy: false, heavyTarget: null };
     /** The body a free swing takes: the page's `findLunge`, unlocked. A move past its reach after the dash lands on nothing. */
-    const aimedBody = (profile: Profile, move: Move): string | null => pickLunge(host.entities.values(), player.position, player.yaw,
-      move === profile.moves.heavy ? profile.lunge.heavyRange : profile.lunge.range, profile.lunge.cone)?.entityId ?? null;
+    const aimedBody = (profile: Profile, move: Move): string | null => {
+      const seen = seenBodies(host, current.viewTick), range = move === profile.moves.heavy ? profile.lunge.heavyRange : profile.lunge.range, { cone } = profile.lunge;
+      return (seen === null ? pickLunge(host.entities.values(), player.position, player.yaw, range, cone) : pickLunge(seen, player.position, player.yaw, range, cone))?.entityId ?? null;
+    };
     const lunge = (profile: Profile, move: Move): void => {
       const actor = state.target === null ? undefined : host.entities.get(state.target), at = player.position;
-      if (actor === undefined || !actor.alive || Math.abs(actor.position.y - at.y) > row.lunge.maxHeight) return;
-      const dx = actor.position.x - at.x, dz = actor.position.z - at.z, span = Math.hypot(dx, dz);
+      if (actor === undefined || !actor.alive) return;
+      // the dash goes where this command saw the body, so the client that predicted it dashes the same (P1-E5.3-E2)
+      const spot = seenBodies(host, current.viewTick)?.find(seen => seen.body === actor)?.position ?? actor.position;
+      if (Math.abs(spot.y - at.y) > row.lunge.maxHeight) return;
+      const dx = spot.x - at.x, dz = spot.z - at.z, span = Math.hypot(dx, dz);
       if (span < row.lunge.minDistance || Math.acos(Math.max(-1, Math.min(1,
         (-dx * Math.sin(player.yaw) - dz * Math.cos(player.yaw)) / span))) > profile.lunge.cone) return;
       const radius = Math.max(row.lunge.minRadius, Math.max(actor.dims.bodyRadius, actor.dims.bodyHalfLen * row.lunge.lengthScale)) * actor.scale;
       const dash = sweptLunge(profile.lunge, move === profile.moves.heavy, dx, dz, radius);
-      if (dash !== null) player.dashTo(actor.position.x, actor.position.z, dash.stopAt, dash.time);
+      if (dash !== null) player.dashTo(spot.x, spot.z, dash.stopAt, dash.time);
     };
     const clocks = profiles.map(profile => new SweptMeleeCore<Move>(profile.moves, profile,
       { queue: () => { state.queued = true; seq.queued = current.seq ?? 0; },
@@ -98,13 +106,14 @@ export function installNativeSweptMelee(host: SimHost, items: readonly unknown[]
     const request: Parameters<SimHost['combat']['hit']>[0] = { source: row.source === 'env' && first ? 'env' : player.health,
       sourceTags: [], target: player.health, amount: 0, point, dir: direction, from: eye, weaponId: '', moveId: '' };
     const contact = { distance: 0, point, head: false };
-    /** Land a blow along `forward`, at `point`. */
-    const strike = (actor: NativeSweptActor, move: Move, profile: Profile): void => {
+    /** Land a blow along `forward`, at `point`, or at a rewound contact: the seat has checked the cover it saw, and the body has moved on. */
+    const strike = (actor: NativeSweptActor, move: Move, profile: Profile, seen: SeenHit | null): void => {
       left.copy(forward).applyAxisAngle(yAxis, Math.PI / 2);
       sweptStrikeDirection(direction, forward, left, move.sweep, row.contact);
       request.sourceTags = profile.tags; request.target = actor.combatActor(); request.weaponId = profile.weapon; request.moveId = move.id; request.attackSeq = seq.swing;
       request.amount = Math.round(sweptMoveDamage(profile.damage, move, move === profile.moves.heavy, 1));
-      const dealt = host.combat.hit(request); if (dealt === null) return;
+      const dealt = host.combat.hit(seen === null ? request : { ...request, point: seen.point, seen: seen.seen, headshot: seen.head, sourceTags: [...profile.tags, 'cover.checked'] });
+      if (dealt === null) return;
       state.hits++; if (dealt.killed) return;
       sweptStrikePush(push, forward, left, move.sweep, row.contact);
       const running = actor.speed > row.contact.running;
@@ -115,7 +124,7 @@ export function installNativeSweptMelee(host: SimHost, items: readonly unknown[]
       pose.rest(rig.rest); return { pose, sweep: new BladeSweep(profile.sweep), struck: [], pitch: 0 };
     };
     const pos = new Vector3(), q = new Quaternion(), grip = new Vector3(), tip = new Vector3(), rotation = new Quaternion();
-    let met: NativeSweptActor | null = null;
+    let met: NativeSweptActor | null = null, past: SeenHit | null = null;
     /** The page's `sweepHit`: this tick's blade, and the sweep from the last one. */
     const sweepBlade = (live: LiveBlade, clock: SweptMeleeCore<Move>, profile: Profile, move: Move | null, active: boolean, t: number): void => {
       live.pose.blend(1 / 60, rig.chargeBlend, clock.chargingHeavy, current.sprint === true, move !== null);
@@ -123,12 +132,18 @@ export function installNativeSweptMelee(host: SimHost, items: readonly unknown[]
       if (move === null) return;
       sweptBladeDirs(live.pose.basePos, live.pose.baseQ, rig.tipX, rig.tipY, grip, tip);
       eye.copy(player.position); eye.y += row.eye;
-      if (!active || !live.sweep.have || !bladeInReach(eye, profile.reach, host.entities.values(), targetRadius)) { live.sweep.hold(grip, tip); return; }
+      // each tick of a swing reads the view of that tick's command (J50); a held tick reads the present
+      const seen = active ? seenBodies(host, current.viewTick) : null;
+      if (!active || !live.sweep.have || !(seen === null ? bladeInReach(eye, profile.reach, host.entities.values(), targetRadius) : bladeInReach(eye, profile.reach, seen, targetRadius))) { live.sweep.hold(grip, tip); return; }
       const cy = Math.cos(player.yaw / 2), sy = Math.sin(player.yaw / 2), cp = Math.cos(live.pitch / 2), sp = Math.sin(live.pitch / 2);
       rotation.set(sp * cy, cp * sy, -sp * sy, cp * cy);
       forward.set(-Math.sin(player.yaw) * Math.cos(live.pitch), Math.sin(live.pitch), -Math.cos(player.yaw) * Math.cos(live.pitch));
       live.sweep.sweep(grip, tip, eye, rotation, move.reach ?? profile.reach, {
         raycast: (origin, dir, reach) => {
+          if (seen !== null) {
+            past = seenRay(seen, origin, dir, reach); met = past?.body ?? null;
+            return past === null || met === null ? null : { animal: met, point: past.seen, distance: past.distance, headshot: past.head };
+          }
           const hit = rays.ray(bodies(), origin, dir, reach);
           met = hit?.body ?? null;
           return hit === null || met === null ? null : { animal: met, point: hit.point, distance: hit.distance, headshot: hit.head };
@@ -136,7 +151,7 @@ export function installNativeSweptMelee(host: SimHost, items: readonly unknown[]
         blocked: (origin, at) => !lineOfSight(host.physics, origin, at, row.contact.slack, player.motor.collider),
         strike: hit => {
           if (met === null) return;
-          live.struck.push(met.entityId); point.copy(hit.point); strike(met, move, profile);
+          live.struck.push(met.entityId); point.copy(hit.point); strike(met, move, profile, past);
         },
       });
     };
@@ -168,7 +183,7 @@ export function installNativeSweptMelee(host: SimHost, items: readonly unknown[]
         state.struck = true;
         centre.copy(actor.position); centre.y += actor.dims.bodyY * actor.scale;
         forward.subVectors(centre, eye); if (forward.lengthSq() < 1e-12) forward.set(-Math.sin(player.yaw), 0, -Math.cos(player.yaw)); forward.normalize();
-        strike(actor, move, profile);
+        strike(actor, move, profile, null);
       },
       snapshot: (): SimValue => JSON.stringify({ held: loadout.held(), ...state, aimed: state.aimed ? true : undefined, clocks: clocks.map(clock => clock.snapshot()),
         ...(seq.swing === 0 ? {} : { seq: seq.swing }), ...(seq.queued === 0 ? {} : { queuedSeq: seq.queued }),

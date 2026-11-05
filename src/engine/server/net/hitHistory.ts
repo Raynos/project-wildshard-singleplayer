@@ -12,7 +12,7 @@ const ROWS = REWIND_TICKS + 1;
 /** A row: x, y, z, yaw. */
 const FIELDS = 4;
 /** What one body costs: its rows, f32. */
-export const HIT_HISTORY_BYTES = ROWS * FIELDS * Float32Array.BYTES_PER_ELEMENT;
+export const HIT_HISTORY_BYTES: number = ROWS * FIELDS * Float32Array.BYTES_PER_ELEMENT;
 
 /**
  * A body as it stood on a past tick: its feet and facing from the history, its volumes from the live body carried there. The
@@ -25,6 +25,7 @@ export class RewoundBody {
   constructor(body: AnimalSim) { this.body = body; }
   get entityId(): string { return this.body.entityId; }
   get alive(): boolean { return this.body.alive; }
+  get hidden(): boolean { return 'hidden' in this.body && this.body.hidden === true; }
   get scale(): number { return this.body.scale; }
   get dims(): AnimalSim['dims'] { return this.body.dims; }
   /** Stand at a row of feet and yaw. */

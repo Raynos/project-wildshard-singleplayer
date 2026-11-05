@@ -31,6 +31,8 @@ export interface DamageRequest {
   from?: Vector3; distance?: number; scale?: number; cause?: DeathCause; toast?: StringKey;
   /** The command `seq` of the swing or shot behind this hit, which its `hit` event confirms (J47); 0 or absent off the wire. */
   attackSeq?: number;
+  /** A rewound blow's contact as its shooter saw it (J50): `point` is where it lands on the body now, which every rule reads. */
+  seen?: Vector3;
 }
 export interface DamageDealt { req: DamageRequest; dealt: number; killed: boolean }
 /** A simulation target shared by creature and practice weapon selection. */
@@ -122,7 +124,7 @@ export class CombatPipeline {
     if (!input.target.alive) return null;
     // Raycast/weapon scratch vectors are reused; queued listeners must see this hit's contact frame.
     const req: DamageRequest = { ...input, point: input.point.clone(), dir: input.dir.clone(),
-      ...(input.from === undefined ? {} : { from: input.from.clone() }),
+      ...(input.from === undefined ? {} : { from: input.from.clone() }), ...(input.seen === undefined ? {} : { seen: input.seen.clone() }),
       sourceTags: input.source === 'env' ? [...input.sourceTags] : [...input.sourceTags, ...input.source.tags, ...input.source.state, ...input.source.effectTags ?? []] };
     if (this.events.ask('damage.admit', req) === null) return null;
     const physics = this.physics();

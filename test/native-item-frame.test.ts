@@ -38,7 +38,7 @@ test('combat lending retains attacks, first ranged hold, last melee release and 
     { kind: 'script', actorId: 'pick', value: 0 },
   ]);
   expect(frame.attacks).toEqual(['a', 'b']); expect(frame.heavy).toEqual({ targetId: 'held' });
-  expect(frame.melee).toEqual({ attack: 'b', heavy: false, heavyTarget: null, swing: false, pitch: null, sprint: false, seq: 0 });
+  expect(frame.melee).toEqual({ attack: 'b', heavy: false, heavyTarget: null, swing: false, pitch: null, sprint: false, seq: 0, viewTick: 0 });
   expect(frame.scripts.get('pick')).toBe(0); expect([frame.moveX, frame.moveZ, frame.yaw]).toEqual([0, 1, 2]);
   fillNativeCombatFrame(frame, []);
   expect(frame.attacks).toBe(attacks); expect(frame.scripts).toBe(scripts);

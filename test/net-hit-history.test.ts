@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
 import { beforeAll, expect, test } from 'vitest';
 import { hitHistoryOf } from '../src/engine/server/combat/rewind';
+import { CommandQueue } from '../src/engine/server/net/commandQueue';
 import { HIT_HISTORY_BYTES, REWIND_TICKS, type HitHistory } from '../src/engine/server/net/hitHistory';
 import { SimNetWorld } from '../src/engine/server/net/simWorld';
 import { createSimHost, type SimHost } from '../src/engine/server/sim';
@@ -73,4 +74,11 @@ test('a body with fewer rows than the view reads its first; history moves nothin
   // 64 bodies: §6.2 estimated 18 KB
   expect(HIT_HISTORY_BYTES * 64).toBeLessThan(18 * 1024); expect(history.bytes).toBe(HIT_HISTORY_BYTES);
   host.dispose();
+});
+
+test('a held tick claims no view: its command is not what the client saw then', () => {
+  const queue = new CommandQueue();
+  queue.admit([{ seq: 1, viewTick: 9, steer: { keyX: 0, keyY: 0, stickX: 0, stickY: 0 }, yaw: 0, pitch: 0, buttons: 0 }]);
+  expect(queue.next().command?.viewTick).toBe(9);
+  expect(queue.next().command?.viewTick).toBe(0);
 });

@@ -68,7 +68,7 @@ export interface NetRoomOptions {
 /** What a client held at a frame. `due` are the rows this frame may send; `rows` is the world frame each held row came from. */
 interface ClientView { tick: number; readonly visible: Set<number>; readonly due: Set<number>; readonly rows: Map<number, number> }
 /** A settled event in handles, kept until the next frame. */
-type RoomCombat = NetDied | (NetHit & { readonly landedBy: string | null }) | (NetReward & { readonly owner: string });
+type RoomCombat = NetDied | (NetHit & { readonly landedBy: string | null; readonly seen?: readonly [number, number, number] }) | (NetReward & { readonly owner: string });
 interface RoomClient {
   readonly id: number; readonly transport: Transport; readonly queue: CommandQueue; readonly player: NetPlayer;
   /** Who it said it is at `hello` (J111). A hand-off keeps it. */
@@ -299,9 +299,10 @@ export class NetRoom {
     for (const row of combat) {
       if (row.kind === 'reward') { if (row.owner === client.player.id) { const { owner: _owner, ...reward } = row; events.push(reward); } continue; }
       if (row.kind === 'died') { if (row.id === own || client.known.has(row.id)) events.push(row); continue; }
-      const { landedBy, ...hit } = row, owned = landedBy === client.player.id;
+      const { landedBy, seen, ...hit } = row, owned = landedBy === client.player.id;
       if (row.target !== own && !owned && !client.known.has(row.target)) continue;
-      events.push({ ...hit, confirmFor: owned ? hit.confirmFor : 0 });
+      // the shooter's spark goes where it saw the body, everyone else's where the body is (J47, J50)
+      events.push({ ...hit, at: owned ? seen ?? hit.at : hit.at, confirmFor: owned ? hit.confirmFor : 0 });
     }
     const quests = world.quests?.(client.player.id, client.questVersion) ?? null;
     if (quests !== null) {

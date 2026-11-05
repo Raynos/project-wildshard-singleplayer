@@ -291,7 +291,7 @@ export function fillNativeCombatFrame(frame: NativeCombatFrame, commands: readon
   if (commands.length > 1024) throw new RangeError('Tick commands exceed the protocol allowance');
   frame.launchers.length=0; frame.attacks.length = 0; frame.heavy = null; frame.scripts.clear();
   frame.moveX = 0; frame.moveZ = 0; frame.yaw = 0; frame.pitch = 0;
-  frame.melee.attack = null; frame.melee.heavy = false; frame.melee.heavyTarget = null; frame.melee.swing = false; frame.melee.pitch = null; frame.melee.sprint = false; frame.melee.seq = 0; frame.seq = 0;
+  frame.melee.attack = null; frame.melee.heavy = false; frame.melee.heavyTarget = null; frame.melee.swing = false; frame.melee.pitch = null; frame.melee.sprint = false; frame.melee.seq = 0; frame.seq = 0; frame.melee.viewTick = 0; frame.viewTick = 0;
   for (const command of commands) {
     if (command.kind === 'script') frame.scripts.set(command.actorId, command.value);
     if(command.kind==='launcher')frame.launchers.push({slot:command.slot,ads:command.ads,pitch:command.pitch,
@@ -303,5 +303,6 @@ export function fillNativeCombatFrame(frame: NativeCombatFrame, commands: readon
     frame.melee.attack = command.attack?.targetId ?? null; frame.melee.heavy = command.heavy !== undefined;
     frame.melee.heavyTarget = command.heavy?.targetId ?? null; frame.melee.swing = command.swing === true;
     frame.melee.pitch = command.pitch ?? null; frame.melee.sprint = command.sprint === true; frame.melee.seq = frame.seq = command.seq ?? 0;
+    frame.melee.viewTick = frame.viewTick = command.viewTick ?? 0;
   }
 }

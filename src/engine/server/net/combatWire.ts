@@ -8,7 +8,9 @@ export type CombatEvent =
   | { readonly kind: 'hit'; readonly tick: number; readonly target: string; readonly amount: number; readonly at: readonly [number, number, number];
     readonly head: boolean; readonly killed: boolean; readonly by: string | null;
     /** The command seq of the swing or shot that landed it, 0 for none. */
-    readonly seq: number }
+    readonly seq: number;
+    /** Where its shooter saw the contact, on a rewound hit: `at` is where it landed on the body now. */
+    readonly seen?: readonly [number, number, number] }
   | { readonly kind: 'died'; readonly tick: number; readonly id: string; readonly by: string | null;
     readonly dir: readonly [number, number, number]; readonly impulse: number }
   | { readonly kind: 'reward'; readonly tick: number; readonly player: string; readonly coins: number; readonly body: string };
@@ -21,8 +23,8 @@ export class CombatWire {
     host.events.on('damage.dealt', ({ req, dealt, killed }) => {
       // A blow that dealt nothing has nothing to show: a real shard's zero-damage host probe lands beside its weapon.
       if (dealt <= 0 && !killed) return;
-      const { point: p } = req;
-      this.rows.push({ kind: 'hit', tick: host.state.tick, target: req.target.id, amount: dealt, at: [p.x, p.y, p.z], head: req.headshot ?? false, killed, by: landedBy(req, host.players), seq: req.attackSeq ?? 0 });
+      const { point: p, seen: s } = req;
+      this.rows.push({ kind: 'hit', tick: host.state.tick, target: req.target.id, amount: dealt, at: [p.x, p.y, p.z], head: req.headshot ?? false, killed, by: landedBy(req, host.players), seq: req.attackSeq ?? 0, ...(s === undefined ? {} : { seen: [s.x, s.y, s.z] as const }) });
     }, host.scope);
     host.events.on('actor.died', ({ actor, req }) => {
       const by = req.source !== 'env' ? req.source.id : landedBy(req, host.players), { dir: d } = req;
