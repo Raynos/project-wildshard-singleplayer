@@ -1,3 +1,4 @@
+import type {NativeSizeMatch, NativeSizeSnapshot} from './native-sizes.ts';
 import type {PostControl} from './post-control.ts';
 import type {PlayReading} from './play.ts';
 /** The measuring protocol is data, never a CI verdict or a game setting. */
@@ -16,7 +17,7 @@ export interface RequestRow {url: string; start: number; end: number | null; sou
   accounting?: 'pending' | 'complete' | 'incomplete'; accountingError?: string;
   sizeBasis?: 'native-encoded' | 'native-events';
   decodedBytes?: number; transferBytes?: number; bodyBasis?: 'native-data' | 'native-identity' | 'response-body' | 'http-no-body' | 'content-length-identity' | 'native-aborted' | 'native-body' | 'no-response'; nativeRequestId?: string; sizeComplete?: boolean;
-  nativeSizes?: {responseBodySize: number | null; responseHeadersSize: number | null}}
+  nativeSizes?: {responseBodySize: number | null; responseHeadersSize: number | null}; nativeMatch?: NativeSizeMatch; nativeResult?: NativeSizeSnapshot | null}
 /** Finished requests require real wire and decoded-body sizes. Still-running
  * requests retain their separate inFlight count; failures remain on each row. */
 export interface RequestAccounting {complete: boolean; pending: number; incomplete: number; deadlineMs: number; inFlight?: number;}

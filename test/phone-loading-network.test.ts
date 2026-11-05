@@ -2,6 +2,7 @@ import {afterEach, expect, test, vi} from 'vitest';
 import type {Request, Response} from 'playwright';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {observeRequests} from '../scripts/phone-loading/network';
+import {NativeSizeLedger} from '../scripts/phone-loading/native-sizes';
 
 afterEach(() => {vi.useRealTimers();});
 type Sizes = Awaited<ReturnType<Request['sizes']>>;
@@ -188,5 +189,65 @@ test('a canceled request with no response retains failure and measured absence w
     expect(network.rows).toMatchObject([{failure: 'net::ERR_ABORTED', status: 0, bytes: 0, decodedBytes: 0,
       transferBytes: 0, sizeComplete: false, bodyBasis: 'no-response'}]);
     expect(network.errors).toEqual([]);
+  } finally {network.stop();}
+});
+
+
+function workerPair(withWorker: boolean, bodyReader?: ConstructorParameters<typeof NativeSizeLedger>[0]) {
+  const ledger = new NativeSizeLedger(bodyReader), url = 'https://game.test/ktx2.worker.js',
+    headers = {etag: 'worker-exact', 'content-type': 'text/javascript', 'content-encoding': 'br', 'content-length': '17499'};
+  ledger.event('page', false, 'Network.requestWillBeSent', {requestId: 'facade', wallTime: .1, timestamp: 10, request: {url, method: 'GET'}});
+  ledger.event('page', false, 'Network.responseReceived', {requestId: 'facade', response: {status: 200, headers, fromServiceWorker: true, encodedDataLength: -1}});
+  ledger.event('page', false, 'Network.loadingFinished', {requestId: 'facade', timestamp: 10.108, encodedDataLength: -1});
+  if (withWorker) {
+    ledger.event('worker', true, 'Network.requestWillBeSent', {requestId: 'physical', wallTime: .101, timestamp: 10, request: {url, method: 'GET'}});
+    ledger.event('worker', true, 'Network.responseReceived', {requestId: 'physical', response: {status: 200, headers, encodedDataLength: 390}});
+    ledger.event('worker', true, 'Network.dataReceived', {requestId: 'physical', dataLength: 40385, encodedDataLength: 17499});
+    ledger.event('worker', true, 'Network.loadingFinished', {requestId: 'physical', timestamp: 10.103, encodedDataLength: 17889});
+  }
+  const fixtureRows = fixture((req, res) => ledger.observe(req, res));
+  const make = (worker: boolean): Request => legacyDouble<Request>({url: () => url, method: () => 'GET',
+    serviceWorker: () => worker ? legacyDouble<NonNullable<ReturnType<Request['serviceWorker']>>>({}) : null,
+    failure: () => null, timing: () => ({startTime: worker ? 101 : 100, domainLookupStart: 0, domainLookupEnd: 0,
+      connectStart: 0, connectEnd: 0, secureConnectionStart: 0, requestStart: 0, responseStart: 0, responseEnd: worker ? 103 : 108}),
+    response: () => Promise.resolve({...legacyDouble<Response>({status: () => 200, headers: () => headers, fromServiceWorker: () => !worker})}),
+    sizes: () => Promise.resolve({...sizes, responseBodySize: worker ? 17499 : -391, responseHeadersSize: 390})});
+  return {...fixtureRows, make};
+}
+
+test('minus-one facade bytes remain refused with native match/result retained before accounting', async () => {
+  const {network, finish, make} = workerPair(false);
+  try {
+    finish(make(false)); expect((await network.settle()).complete).toBe(false);
+    expect(network.rows[0], JSON.stringify(network.errors)).toMatchObject({bytes: null, accounting: 'incomplete', nativeSizes: {responseBodySize: -391, responseHeadersSize: 390},
+      nativeResult: {encodedBytes: null, transferBytes: null, facadeOf: null}, nativeMatch: {outcome: 'facade-unmatched', entry: {complete: true, fromServiceWorker: true, transfer: null}}});
+    expect(network.errors[0]?.message).toContain('Native encoded transfer is incomplete');
+  } finally {network.stop();}
+});
+
+test('minus-one SW facade plus worker records real wire exactly once through the native pair', async () => {
+  const {network, finish, make} = workerPair(true);
+  try {
+    finish(make(false)); finish(make(true)); const settled = await network.settle(); expect(settled, JSON.stringify(network.errors)).toMatchObject({complete: true, incomplete: 0});
+    expect(network.rows).toMatchObject([
+      {source: 'service-worker', bytes: 0, transferBytes: 0, decodedBytes: 40385, nativeSizes: {responseBodySize: -391, responseHeadersSize: 390},
+        nativeMatch: {outcome: 'facade-matched', workerFetch: {worker: true, transfer: 17889}},
+        nativeResult: {encodedBytes: 0, transferBytes: 0, facadeOf: expect.stringContaining('physical')}},
+      {source: 'worker', bytes: 17499, headerBytes: 390, transferBytes: 17889, decodedBytes: 40385},
+    ]);
+    expect(network.rows.reduce((sum, row) => sum + (row.transferBytes ?? -1), 0)).toBe(17889);
+    expect(network.errors).toEqual([]);
+  } finally {network.stop();}
+});
+
+
+test('unresolved facade keeps its original native body reader for an independently measured zero transfer', async () => {
+  const readBody = vi.fn(() => Promise.resolve(4)), {network, finish, make} = workerPair(false, readBody);
+  const facade: Request = {...make(false), sizes: () => Promise.resolve({...sizes, responseBodySize: -390, responseHeadersSize: 390})};
+  try {
+    finish(facade); expect((await network.settle()).complete).toBe(true);
+    expect(network.rows[0]).toMatchObject({bytes: 0, transferBytes: 0, decodedBytes: 4, bodyBasis: 'native-body',
+      nativeMatch: {outcome: 'facade-unmatched'}, nativeResult: {transferBytes: null, bodyReader: true}});
+    expect(readBody).toHaveBeenCalledOnce();
   } finally {network.stop();}
 });

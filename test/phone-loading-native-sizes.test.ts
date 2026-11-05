@@ -104,7 +104,7 @@ test('an uncached empty POST is zero body; a cached GET still requires body evid
 
 test('independent CDP clock drift joins only one overlapping, validated response', () => {
   const url = 'https://game.test/startup.js', headers = {etag: 'exact', 'content-type': 'text/javascript', 'content-encoding': 'br'};
-  const response = (values = headers, status = 200): Response => legacyDouble<Response>({headers: () => values, status: () => status});
+  const response = (values = headers, status = 200): Response => legacyDouble<Response>({headers: () => values, status: () => status, fromServiceWorker: () => false});
   const make = (ids = ['one'], validators: Record<string, string> = headers): NativeSizeLedger => {
     const ledger = new NativeSizeLedger();
     for (const id of ids) {
@@ -127,4 +127,80 @@ test('independent CDP clock drift joins only one overlapping, validated response
   expect(make().read(drifted, response({...headers, 'content-encoding': 'gzip'}))).toBeNull();
   expect(make().read(drifted, response(headers, 404))).toBeNull();
   expect(make(['one'], {}).read(drifted, response())).toBeNull();
+});
+
+const facadeHeaders = {etag: 'exact-worker-body', 'content-type': 'text/javascript', 'content-encoding': 'br', 'content-length': '17499'};
+function facadeResponse(headers: Record<string, string> = facadeHeaders, sw = true, status = 200): Response {
+  return legacyDouble<Response>({headers: () => headers, status: () => status, fromServiceWorker: () => sw});
+}
+function physicalWorker(ledger: NativeSizeLedger, id = 'physical', start = 1.001, end = 10.104, headers: Record<string, string> = facadeHeaders,
+  status = 200, method = 'GET', complete = true): void {
+  ledger.event('worker', true, 'Network.requestWillBeSent', {requestId: id, wallTime: start, timestamp: 10,
+    request: {url: 'https://game.test/ktx2.worker.js', method}});
+  ledger.event('worker', true, 'Network.responseReceived', {requestId: id, response: {status, headers, encodedDataLength: 390}});
+  ledger.event('worker', true, 'Network.dataReceived', {requestId: id, dataLength: 40385, encodedDataLength: 17499});
+  if (complete) ledger.event('worker', true, 'Network.loadingFinished', {requestId: id, timestamp: end, encodedDataLength: 17889});
+}
+function unknownFacade(ledger: NativeSizeLedger): Request {
+  const url = 'https://game.test/ktx2.worker.js';
+  ledger.event('page', false, 'Network.requestWillBeSent', {requestId: 'facade', wallTime: 1, timestamp: 10, request: {url, method: 'GET'}});
+  ledger.event('page', false, 'Network.responseReceived', {requestId: 'facade', response: {status: 200, headers: facadeHeaders,
+    fromServiceWorker: true, encodedDataLength: -1}});
+  ledger.event('page', false, 'Network.loadingFinished', {requestId: 'facade', timestamp: 10.108, encodedDataLength: -1});
+  return request(url, 1000, false, 'GET', 108);
+}
+
+test.each(['facade-first', 'worker-first'])('unknown SW facade counts physical wire once: %s', order => {
+  const ledger = new NativeSizeLedger(), facade = unknownFacade(ledger); physicalWorker(ledger);
+  const physicalRequest = request('https://game.test/ktx2.worker.js', 1001, true);
+  if (order === 'worker-first') ledger.read(physicalRequest);
+  const result = ledger.observe(facade, facadeResponse());
+  expect(result).toMatchObject({sizes: {decodedBytes: 40385, encodedBytes: 0, transferBytes: 0, facadeOf: expect.stringContaining('physical')},
+    match: {outcome: 'facade-matched', entry: {fromServiceWorker: true, transfer: null}, workerFetch: {worker: true, transfer: 17889}}});
+  const physical = ledger.read(physicalRequest);
+  expect(physical).toMatchObject({decodedBytes: 40385, encodedBytes: 17499, transferBytes: 17889});
+  expect((result.sizes?.transferBytes ?? -1) + (physical?.transferBytes ?? -1)).toBe(17889);
+  // A physical Request may be observed before its facade too.
+  expect(ledger.observe(facade, facadeResponse()).sizes?.facadeOf).toBe(physical?.requestId);
+});
+
+test('an absent page socket joins a facade only by a unique validated native worker lifetime', () => {
+  const ledger = new NativeSizeLedger(); physicalWorker(ledger);
+  const facade = request('https://game.test/ktx2.worker.js', 1000, false, 'GET', 108);
+  expect(ledger.observe(facade, facadeResponse())).toMatchObject({sizes: {encodedBytes: 0, transferBytes: 0},
+    match: {basis: 'validated-overlap', outcome: 'facade-matched', workerFetch: {decodedChunks: 40385}}});
+});
+
+test.each(['absent', 'ambiguous', 'validator', 'encoding', 'status', 'method', 'unfinished', 'failed', 'before', 'after', 'not-sw', 'facade-status', 'facade-validator'] as const)(
+  'unknown facade refuses %s physical evidence and retains bounded match diagnostics', reason => {
+    const ledger = new NativeSizeLedger(), facade = unknownFacade(ledger);
+    if (reason !== 'absent') physicalWorker(ledger, 'physical', reason === 'before' ? .999 : 1.001,
+      reason === 'after' ? 10.2 : 10.104,
+      reason === 'validator' ? {...facadeHeaders, etag: 'different'} : reason === 'encoding' ? {...facadeHeaders, 'content-encoding': 'gzip'} : facadeHeaders,
+      reason === 'status' ? 404 : 200, reason === 'method' ? 'POST' : 'GET', reason !== 'unfinished');
+    if (reason === 'ambiguous') physicalWorker(ledger, 'second');
+    if (reason === 'failed') ledger.event('worker', true, 'Network.loadingFailed', {requestId: 'physical', timestamp: 10.104});
+    if (reason === 'facade-status' || reason === 'facade-validator') ledger.event('page', false, 'Network.responseReceived', {
+      requestId: 'facade', response: {status: reason === 'facade-status' ? 404 : 200, fromServiceWorker: true,
+        headers: reason === 'facade-validator' ? {...facadeHeaders, etag: 'different'} : facadeHeaders, encodedDataLength: -1}});
+    const found = ledger.observe(facade, facadeResponse(facadeHeaders, reason !== 'not-sw'));
+    expect(found.sizes === null || found.sizes.transferBytes === undefined).toBe(true);
+    expect(found.match.outcome).not.toBe('facade-matched');
+    if (found.match.alternatives !== undefined) expect(found.match.alternatives.length).toBeLessThanOrEqual(2);
+  });
+
+test('same URL and time without validators cannot supply missing facade bytes', () => {
+  const ledger = new NativeSizeLedger(); physicalWorker(ledger, 'physical', 1.001, 10.104, {'content-type': 'text/javascript'});
+  const facade = request('https://game.test/ktx2.worker.js', 1000, false, 'GET', 108);
+  const found = ledger.observe(facade, facadeResponse({'content-type': 'text/javascript'}));
+  expect(found.sizes).toBeNull(); expect(found.match.outcome).toBe('facade-unmatched');
+});
+
+test('match diagnostics truncate retained native headers without truncating matching authority', () => {
+  const ledger = new NativeSizeLedger(), huge = 'x'.repeat(2000);
+  for (const id of ['one', 'two', 'three']) physicalWorker(ledger, id, 1.001, 10.104, {...facadeHeaders, etag: huge});
+  const found = ledger.observe(request('https://game.test/ktx2.worker.js', 1000, false, 'GET', 108), facadeResponse());
+  expect(found.sizes).toBeNull(); expect(found.match.alternatives).toHaveLength(2);
+  expect(found.match.alternatives?.[0]?.headers['etag']).toHaveLength(512);
+  expect(found.match.alternatives?.[0]?.truncated).toBe(true);
 });

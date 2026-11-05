@@ -1,5 +1,5 @@
 import type {Request, Response} from 'playwright';
-import type {NativeSizes} from './native-sizes.ts';
+import {nativeSizeSnapshot, type NativeSizes, type NativeSizeObservation} from './native-sizes.ts';
 import type {ErrorRow, RequestAccounting, RequestRow} from './model.ts';
 
 const ACCOUNTING_DEADLINE_MS = 5000;
@@ -48,11 +48,17 @@ async function accountSizes(row: RequestRow, request: Request, response: Respons
 }
 /** One context owns one request ledger, across both visits and their gap.
  * Native response/size metadata cannot hold the measured visit indefinitely. */
-export function observeRequests(attach: (start: (request: Request) => void, finish: (request: Request) => void) => () => void, nativeSizes?: (request: Request, response?: Response | null) => NativeSizes | null | Promise<NativeSizes | null>): {
+export function observeRequests(attach: (start: (request: Request) => void, finish: (request: Request) => void) => () => void, nativeSizes?: (request: Request, response?: Response | null) => NativeSizes | NativeSizeObservation | null | Promise<NativeSizes | NativeSizeObservation | null>): {
   readonly rows: RequestRow[]; readonly errors: ErrorRow[]; settle: (since?: number) => Promise<RequestAccounting>; stop: () => void;
 } {
   const rows: RequestRow[] = [], errors: ErrorRow[] = [], jobs = new Set<Job>();
   const starts = new Map<Request, RequestRow>();
+  const nativeResult = (row: RequestRow, observed: NativeSizes | NativeSizeObservation | null): NativeSizes | null => {
+    const sizes = observed !== null && 'sizes' in observed ? observed.sizes : observed;
+    if (observed !== null && 'match' in observed) row.nativeMatch = observed.match;
+    row.nativeResult = sizes === null ? null : nativeSizeSnapshot(sizes);
+    return sizes;
+  };
   let stopped = false;
   const incomplete = (job: Job, reason: string): void => {
     if (!job.active) return;
@@ -84,8 +90,9 @@ export function observeRequests(attach: (start: (request: Request) => void, fini
         row.source = request.serviceWorker() !== null ? 'worker' : response?.fromServiceWorker() ? 'service-worker' : 'network';
         row.status = response?.status() ?? 0;
         if (response === null && row.failure !== null) {
-          const partial = await nativeSizes?.(request, response);
+          const observed = await nativeSizes?.(request, response) ?? null;
           if (!job.active) return;
+          const partial = nativeResult(row, observed);
           const encoded = partial?.encodedBytes ?? 0, transfer = partial?.transferBytes ?? 0;
           Object.assign(row, {bytes: encoded, decodedBytes: partial?.decodedBytes ?? 0, transferBytes: transfer,
             headerBytes: transfer - encoded, bodyBasis: 'no-response', sizeBasis: partial === null || partial === undefined ? 'native-encoded' : 'native-events',
@@ -96,8 +103,9 @@ export function observeRequests(attach: (start: (request: Request) => void, fini
         const sizes = await request.sizes();
         if (!job.active) return;
         job.stage = 'native.events';
-        const native = await nativeSizes?.(request, response) ?? null;
+        const observed = await nativeSizes?.(request, response) ?? null;
         if (!job.active) return;
+        const native = nativeResult(row, observed);
         job.stage = 'request.sizes';
         const recovered = await accountSizes(row, request, response, sizes.responseBodySize, sizes.responseHeadersSize, native, value => {job.stage = value;});
         if (!job.active) return;

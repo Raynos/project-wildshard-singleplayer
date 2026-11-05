@@ -3,11 +3,11 @@ import {mkdir} from 'node:fs/promises';
 import {setImmediate} from 'node:timers/promises';
 import {chromium, type Browser, type Request, type Response} from 'playwright';
 import {nativeBodyBytes} from './native-body.ts';
-import {NativeSizeLedger, type NativeSizes} from './native-sizes.ts';
+import {NativeSizeLedger, type NativeSizeObservation} from './native-sizes.ts';
 import {record, type Profile} from './model.ts';
 import {startSharedLink, type SharedLink} from './link.ts';
 
-export interface ChromiumRun {browser: Browser; close: () => Promise<void>; workerNetwork: () => boolean; errors: string[]; nativeSizes: (request: Request, response?: Response | null) => Promise<NativeSizes | null>;
+export interface ChromiumRun {browser: Browser; close: () => Promise<void>; workerNetwork: () => boolean; errors: string[]; nativeSizes: (request: Request, response?: Response | null) => Promise<NativeSizeObservation>;
   /** The one downlink page and worker share; null when the preset is unthrottled. */
   link: SharedLink | null;
   /** CDP emulation for every target: its latency and upload, never its own download rate when the link carries that. */
@@ -100,7 +100,7 @@ export async function launchChromium(directory: string, profile: Profile): Promi
       // Playwright and the passive ledger use separate sockets. Let queued
       // native completion events arrive before asking for their bytes.
       await setImmediate();
-      return native.read(request, response);
+      return native.observe(request, response);
     }, workerNetwork: () => workers > 0, link, conditions, close: async () => {
       try {await browser.close();} finally {
         ws.close(); child.kill();
