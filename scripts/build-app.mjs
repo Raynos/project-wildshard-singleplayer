@@ -103,6 +103,9 @@ stampBuildDocuments(outDir, {validator, verdicts: buildValidationReceipts(valida
 
 writeTitleAssets(process.cwd(), outDir);
 
+// the standalone shell and its server worker under the build's folder, before the service worker, which precaches them (J130)
+if (mode !== 'native') await (await import('./app-build/standaloneOutput.mjs')).writeStandaloneOutput(outDir, buildId, process.cwd());
+
 if (mode !== 'native') {
   // the crossroads phone rig beside the bundle (was vite/crossroadsRig.ts); before the worker, which counts its files
   step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
@@ -111,9 +114,6 @@ if (mode !== 'native') {
   step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
     "(await import('./scripts/app-build/serviceWorker.ts')).writeServiceWorker(process.argv[1], process.cwd());", outDir]);
 }
-
-// the standalone shell and its server worker under the build's folder, unused until the flip (J129)
-if (mode !== 'native') await (await import('./app-build/standaloneOutput.mjs')).writeStandaloneOutput(outDir, buildId, process.cwd());
 
 // the compiled DEVSERVER mode, as a machine-readable artifact beside the bundle (scripts/check-devserver.mjs, sharddev/dev.ts);
 // the bundle itself takes it from the __DEVSERVER__ define (was vite/devserver.ts)
