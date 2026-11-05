@@ -64,4 +64,24 @@ describe('linkNodeModules', () => {
     expect(realpathSync(join(tree, 'src', 'sdk', 'node_modules', '@wildshard', 'format'))).toBe(installed);
     expect(existsSync(join(tree, 'src', 'commons', 'node_modules', '@wildshard', 'format'))).toBe(false);
   });
+
+  it('moves a reused slot to the installed release of a package', () => {
+    const root = scratch();
+    const repo = join(root, 'repo'), tree = join(root, 'tree');
+    const release = (version: string): string => {
+      const folder = join(repo, 'node_modules', '.pnpm', `format@${version}`, 'node_modules', '@wildshard', 'format');
+      mkdirSync(folder, { recursive: true });
+      writeFileSync(join(folder, 'package.json'), `{"name":"@wildshard/format","version":"${version}"}`);
+      return folder;
+    };
+    const older = release('0.3.0'), current = release('0.3.1');
+    mkdirSync(join(repo, 'node_modules', '@wildshard'), { recursive: true });
+    symlinkSync('../.pnpm/format@0.3.1/node_modules/@wildshard/format', join(repo, 'node_modules', '@wildshard', 'format'));
+    mkdirSync(join(tree, 'node_modules', '@wildshard'), { recursive: true });
+    symlinkSync(older, join(tree, 'node_modules', '@wildshard', 'format'));
+
+    linkNodeModules(repo, tree);
+
+    expect(realpathSync(join(tree, 'node_modules', '@wildshard', 'format'))).toBe(current);
+  });
 });

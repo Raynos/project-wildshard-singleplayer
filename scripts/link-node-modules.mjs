@@ -87,7 +87,12 @@ function linkInstalledScope(repo, tree, from, to) {
     if (!existsSync(join(from, name))) continue;
     for (const pkg of readdirSync(join(from, name))) {
       const link = join(to, name, pkg), target = resolve(join(from, name), readlinkSync(join(from, name, pkg)));
-      if (relative(resolve(repo), target).startsWith('src/') || present(link)) continue;
+      if (relative(resolve(repo), target).startsWith('src/')) continue;
+      if (present(link)) {
+        // A reused slot follows the install: a format release must reach it. A tree holding its own src/<pkg> keeps its link.
+        if (existsSync(resolve(tree, 'src', pkg, 'package.json')) || !lstatSync(link).isSymbolicLink() || realpathSync(link) === realpathSync(target)) continue;
+        unlinkSync(link);
+      }
       mkdirSync(dirname(link), { recursive: true });
       symlinkSync(target, link);
     }
