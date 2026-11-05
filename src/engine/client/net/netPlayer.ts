@@ -7,6 +7,7 @@ import type { OwnHit, WeaponWire } from '../../shared/combat/Weapon';
 import { NET_BUTTONS } from '../../shared/input/netButtons';
 import { quantiseCommand } from '../../shared/net/command';
 import type { DecodedFrame } from '../../shared/net/frame';
+import type { NetRide } from '../../shared/net/messages';
 import { PLAYER_CLASS } from '../../shared/net/netSchemas';
 import type { Physics } from '../../shared/physics/Physics';
 import type { Player, PlayerLink, PlayerWireInput } from '../player/Player';
@@ -20,6 +21,9 @@ export interface NetWeapons { readonly bindWire: (wire: WeaponWire | null) => vo
 
 /** A traversal tool's line to the server. `lock` is a LOCK press naming its hook by index, and answers the `seq` that carries it. */
 export interface NetHookWire { readonly lock: (hook: number | undefined) => number; readonly fire: () => void }
+
+/** A page's ride: it gets on and off on the server's word (J48, P1-E5.3-D3). `mount` is the handle of the body under the rider. */
+export interface NetRideSeat { readonly enter: (mount: number) => void; readonly leave: () => void }
 
 /** The owner block's columns for the last attack the server started and the slot it says this player holds. */
 const LAST_SWING = PLAYER_CLASS.owner.findIndex(column => column.name === 'lastSwingSeq'), HELD = PLAYER_CLASS.owner.findIndex(column => column.name === 'held');
@@ -57,6 +61,8 @@ export class NetPlayer implements PlayerLink {
     lock: hook => { this.hookLocked = true; this.hookTarget = hook; return (this.seq + 1) & 0xffff; },
     fire: () => { this.hookFired = true; },
   };
+  /** A page's presses to get on or off. */
+  readonly ride = (action: 'offer' | 'mount' | 'dismount'): void => { this.client.act({ kind: 'ride', seq: this.seq, action }); };
   /** Biggest camera offset a correction has left, in metres: what a proof page reports. */
   worstOffset = 0;
   private readonly client: NetClient;
@@ -74,6 +80,9 @@ export class NetPlayer implements PlayerLink {
   private hookFired = false;
   private seq = 0;
   private weapons: NetWeapons | null = null;
+  private seat: NetRideSeat | null = null;
+  /** The ride this player has heard of and its page has not yet acted on: each frame takes them first. */
+  private readonly heard: NetRide[] = [];
   /** The server's slot for each row this page can hold. A row it has no slot for is the server's own business. */
   private slots: ReadonlyMap<string, number> = new Map<string, number>();
   /** The slot this page holds and the server has not yet said it does. */
@@ -93,11 +102,14 @@ export class NetPlayer implements PlayerLink {
       const kind = this.client.entities.get(event.target)?.initial['kind'];
       this.weapons?.serverHit({ kind: typeof kind === 'string' ? kind : '', at: new Vector3(...event.at), head: event.head, killed: event.killed, amount: event.amount, seq: event.confirmFor });
     }),
+    client.onRide(event => { if (event.rider === client.welcome?.handle) this.heard.push(event); }),
     // A crossing is a snap (§5.2): nothing is sent until the next world's first frame seats this body there, in its coordinates.
     client.onTravel(() => { this.seen = null; })];
   }
   /** Draw this player's attacks on `weapons`: they stop settling their own contact and take the server's word. */
   bindWeapons(weapons: NetWeapons, slots: ReadonlyMap<string, number>): void { this.weapons = weapons; this.slots = slots; weapons.bindWire(this.wire); }
+  /** Where this player's ride lands. A page with none takes no ride's words. */
+  bindRide(seat: NetRideSeat | null): void { this.seat = seat; }
   /** The slot the server says this player holds. */
   get heldSlot(): number { return this.held; }
   /** The server has put this body somewhere: a frame has been heard. */
@@ -131,11 +143,13 @@ export class NetPlayer implements PlayerLink {
     this.frameSteps = 0;
     const frame = this.client.latest;
     if (frame === null || frame === this.seen || !this.inCell(frame.cell)) return;
-    const first = this.seen === null;
+    const first = this.seen === null, { seat } = this;
     this.seen = frame;
     this.world.frame(frame.tick, frame.lastSeq);
-    if (first) { this.predictor.adopt(frame.lastSeq, frame.owner, frame.tick); return; }
-    this.predictor.reconcile(frame.lastSeq, frame.owner, frame.tick);
+    for (const event of this.heard.splice(0)) if (event.kind === 'mount') seat?.enter(event.mount); else seat?.leave();
+    const ridden = seat === null ? null : frame.ride;
+    if (first) { this.predictor.adopt(frame.lastSeq, frame.owner, frame.tick, ridden); return; }
+    this.predictor.reconcile(frame.lastSeq, frame.owner, frame.tick, ridden);
     const swung = PLAYER_CLASS.owner[LAST_SWING]?.value(frame.owner[LAST_SWING] ?? 0), held = PLAYER_CLASS.owner[HELD]?.value(frame.owner[HELD] ?? 0);
     this.attacks.frame(frame.lastSeq, typeof swung === 'number' ? swung : 0);
     if (typeof held === 'number') this.heldIs(held, frame.tick);

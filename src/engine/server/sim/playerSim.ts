@@ -280,6 +280,10 @@ export class PlayerSim implements PlayerMotionState {
   /** Nothing the client commands moves this player now: a traversal or carry has them (a boat, a cable, a grapple's pull), or
    *  a fall's fade. Its client takes no step and compares nothing until this ends; the client's own moves wait. */
   get led(): boolean { return this.traversed || this.carried || this.host.respawn.fading(this.id) || this.host.leading.some(leads => leads(this)); }
+  /** The body under this player, or null on foot. */
+  get ridden(): string | null { return this.ride?.mount() ?? null; }
+  /** The ride as the wire's flat words, and how many. 0 on foot. */
+  rideWords(out: Float64Array): number { return this.ride?.capture(out, 0) ?? 0; }
   /** The registry's view of this player: the ride slot and the motor state. */
   private modePlayer(): ModePlayer<SimRide> {
     const read = (): SimRide | null => this.ride, write = (ride: SimRide | null): void => { this.ride = ride; };

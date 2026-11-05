@@ -9,7 +9,8 @@ import { HOVER_HARD_LANDING } from '../../shared/player/board';
 import { createMotionState } from '../../shared/player/motionState';
 import { pressDodge, resetMotion, setBoard, sprints, stepPlayerMotion, type MotionOut, type MotionRide, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
 import type { MotionLock } from '../../shared/player/lockOrbit';
-import type { AimCommand, PlayerCommand, LocalSteer, RideCommandSample } from '../../shared/input/commands';
+import type { AimCommand, PlayerCommand, LocalSteer } from '../../shared/input/commands';
+import type { PlayerModeDriver } from '../../shared/player/modes';
 import { NET_BUTTONS } from '../../shared/input/netButtons';
 import type { InputService } from '../input/InputService';
 import type { Events } from '../../shared/events/events';
@@ -45,6 +46,7 @@ export interface PlayerFrameQueries {
 }
 
 const EYE = 1.68;
+const NO_STEER: LocalSteer = { keyX: 0, keyY: 0, stickX: 0, stickY: 0 };
 
 // ── hoverboard (toggle: H / the HOVER touch button) ──
           // m/s cruise
@@ -176,7 +178,7 @@ export class Player {
   /** riding (Nalati B7, src/shards/nalati-grasslands/ride/Mount.ts): while set, the frame is handed to it — `drive` reads the input (input
    *  phase), `step` moves the horse on its own motor (each fixed step), `pose` places the rider and the camera from the
    *  interpolated saddle (update, `alpha`) — and walking / swimming / the board are skipped */
-  ride: { drive: (dt: number) => void; step: (dt: number) => void; pose: (dt: number, alpha: number) => void; sampleCommand?: () => RideCommandSample; dismount: () => void } | null = null;
+  ride: PlayerModeDriver | null = null;
   private lastBobPhase = 0;
   // ── dash: dodge + lunge (see `dodge()` / `dash()`) ──
   /** the DODGE disc was tapped (TouchControls) — consumed next update, like `touchJump` */
@@ -467,8 +469,8 @@ export class Player {
 
   /** The controls as a wire command. The page's move wins: where a context holds the keys, or a stick and keys clamp, the steer says what the step will do. */
   private wireCommand(sampled: PlayerCommand): PlayerWireInput {
-    const raw = this.sampleSteer(), clamp = (value: number): number => Math.max(-1, Math.min(1, value));
-    const steer = clamp(raw.keyX + raw.stickX) === sampled.moveX && clamp(raw.keyY + raw.stickY) === sampled.moveY ? raw : { keyX: 0, keyY: 0, stickX: sampled.moveX, stickY: sampled.moveY };
+    const raw = sampled.steer ?? this.sampleSteer(), clamp = (value: number): number => Math.max(-1, Math.min(1, value));
+    const steer = sampled.steer !== undefined || (clamp(raw.keyX + raw.stickX) === sampled.moveX && clamp(raw.keyY + raw.stickY) === sampled.moveY) ? raw : { keyX: 0, keyY: 0, stickX: sampled.moveX, stickY: sampled.moveY };
     const board = this.boardPressed;
     this.boardPressed = false;
     const buttons = (sampled.jump ? NET_BUTTONS.jump : 0) | (sampled.dodge ? NET_BUTTONS.dodge : 0) | (sampled.sprint ? NET_BUTTONS.sprint : 0) | (sampled.crouch ? NET_BUTTONS.crouch : 0)
@@ -481,7 +483,7 @@ export class Player {
    * taken here and nothing reconciles. With one, it goes to the wire and through the predictor, which steps it back here.
    */
   stepDevice(dt: number): void {
-    const input = this.wireCommand(this.sampleCommand()), { link } = this;
+    const { link } = this, input = this.wireCommand(this.sampleCommand(link !== null && this.ride !== null ? 1 : undefined));
     this.commandJumpUsed = false; this.commandDodgeUsed = false;
     if (link === null) this.stepNet(dt, { ...input, seq: 0, viewTick: 0 }, false); else link.step(input);
     const { jump, dodge } = this.commandUse();
@@ -501,7 +503,7 @@ export class Player {
       if (held(NET_BUTTONS.hover)) this.setHover(!this.hover);
       this.step(dt, { moveX: Math.max(-1, Math.min(1, steer.keyX + steer.stickX)), moveY: Math.max(-1, Math.min(1, steer.keyY + steer.stickY)), yaw: command.yaw, pitch: command.pitch,
         crouch: held(NET_BUTTONS.crouch), sprint: held(NET_BUTTONS.sprint), jump: held(NET_BUTTONS.jump), dodge: held(NET_BUTTONS.dodge), dive: held(NET_BUTTONS.dive), surface: held(NET_BUTTONS.surface),
-        aim: this.sampleAimCommand() });
+        aim: this.sampleAimCommand(), commandVersion: 1, steer });
     } finally { this.replaying = false; this.stepping = false; }
     if (!replay) { if (this.yaw === command.yaw) this.yaw = yaw; if (this.pitch === command.pitch) this.pitch = pitch; }
     return !this.lawless;
@@ -540,7 +542,13 @@ export class Player {
     this.prevFeet.copy(this.position);
     this.lawless = false;
     // in the saddle the horse carries you (Mount.step, on the horse's own motor): no walk, no motor of yours
-    if (this.ride !== null) { this.impulseVelocity.set(0, 0, 0); this.lawless = true; stepPlayerMotion(this.motionState, undefined, this.motionWorld, dt); return; }
+    if (this.ride !== null) {
+      const { predicted } = this.ride;
+      this.impulseVelocity.set(0, 0, 0); this.lawless = predicted === undefined;
+      predicted?.read({ steer: command.steer ?? NO_STEER, sprint: command.sprint, jump: command.jump }, dt);
+      stepPlayerMotion(this.motionState, undefined, this.motionWorld, dt);
+      return;
+    }
     if (this.traversalEvents?.ask('player.traversal', dt) === true) { this.impulseVelocity.set(0, 0, 0); this.jumpQueued = false; this.lawless = true; return; }
     if (this.carried || this.effectMoveLocked) { this.impulseVelocity.set(0, 0, 0); this.velocity.set(0, 0, 0); this.onGround = false; return; }
     const hover = this.hover;

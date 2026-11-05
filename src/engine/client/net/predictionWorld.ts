@@ -7,6 +7,7 @@
 import type { Collider } from '@dimforge/rapier3d-simd';
 import type { CharacterMotor } from '../../shared/physics/CharacterMotor';
 import type { Physics } from '../../shared/physics/Physics';
+import type { PredictedRide } from '../../shared/player/modes';
 import { groups } from '../../shared/physics/groups';
 import { tagCollider } from '../../shared/physics/surface';
 import { creatureBodyDistance, keepsCreatureBody } from '../../shared/sim/bands';
@@ -91,7 +92,7 @@ export class PredictionWorld {
 
 /** The Player as a predictor drives it: every step, first run or replay, meets the movers at its own tick. */
 export function predictedPlayer(player: Player, world: PredictionWorld): PredictedBody {
-  return { motionState: player.motionState, get motor(): CharacterMotor { return player.motor; }, renderOffset: player.renderOffset,
+  return { motionState: player.motionState, get motor(): CharacterMotor { return player.motor; }, get ride(): PredictedRide | null { return player.ride?.predicted ?? null; }, renderOffset: player.renderOffset,
     step: (command, replay) => {
       if (replay) world.poseFor(command.seq, true);
       return player.stepNet(FIXED_STEP, command, replay);

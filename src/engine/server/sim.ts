@@ -92,6 +92,10 @@ export interface SimPlayerMotionSample {
 export interface SimRide extends MotionRide {
   read: (command: Readonly<SimCommand> | undefined, dt: number) => void;
   readonly motionSample: () => SimPlayerMotionSample;
+  /** The body under the rider, by id. */
+  readonly mount: () => string;
+  /** The ride as flat words only its law reads (P1-E5.3-D3), and how many. */
+  capture: (out: Float64Array, at: number) => number;
 }
 /** One owned host's alternative player-motion law, without changing its single physics/system authority.
  * Input runs before physics and returns true only while it owns motion; step then runs after physics instead of the

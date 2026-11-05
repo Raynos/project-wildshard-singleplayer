@@ -1,4 +1,4 @@
-import { type RoadXZ, type ReinsFrame, MountedBody, mountedMotorOptions, type MountedWorld } from '@wildshard/game/riding/physics';
+import { commandReins, MountedBody, mountedMotorOptions, RIDE_WORDS, type MountedWorld, type ReinsFrame, type ReinsFrameRow, type RoadXZ } from '@wildshard/game/riding/physics';
 import * as THREE from 'three';
 import { app } from '@wildshard/engine/app/runtime';
 import { Animal } from '@wildshard/engine/entities/AnimalView';
@@ -6,7 +6,7 @@ import type { InputService } from '@wildshard/engine/input/InputService';
 import type { RideCommandSample } from '@wildshard/engine/input/commands';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import { lockOn } from '@wildshard/engine/player/AimTargets';
-import { playerModes } from '@wildshard/engine/player/modes';
+import { playerModes, type PredictedRide } from '@wildshard/engine/player/modes';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import type { MountProfile, MountActorRef } from '@wildshard/format/riding';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
@@ -61,7 +61,7 @@ export class Mount extends MountedBody {
     get physics() { return app.physics; }, heightAt, waterLevel,
     wetAt: () => this.wet,
     stampede: (owner, horse) => {
-      if (!(owner instanceof Animal) || owner === horse) return null;
+      if (this.wire !== null || !(owner instanceof Animal) || owner === horse) return null; // on a wire a throw is the server's, and its `dismount` says so
       return this.stampedes.has(owner.entityId) ? owner : null;
     },
     thrown: () => { this.dismount(true); this.hurt(); },
@@ -69,6 +69,25 @@ export class Mount extends MountedBody {
   private readonly reinsFrame: ReinsFrame;
   private readonly consumedCommand = { steer: { keyX: 0, keyY: 0, stickX: 0, stickY: 0 }, sprint: false, jump: false };
   sampleCommand(): RideCommandSample { return this.consumedCommand; }
+  /** On a wire (J48): a press goes to the server, the ride starts and ends on its word, and each fixed step reads its command. */
+  private wire: ((action: 'mount' | 'dismount') => void) | null = null;
+  bindWire(wire: ((action: 'mount' | 'dismount') => void) | null): void { this.wire = wire; }
+  private readonly wireFrame: ReinsFrameRow = { forward: 0, turn: 0, touchX: 0, touchY: 0, gallop: false, jump: false, drawing: false, moveScale: 1, phase: 0, feet: this.feet, roads: undefined, inBounds: inChunk, refuses: () => false, wet: false };
+  private readonly saddle: PredictedRide = { feet: this.feet,
+    read: (command, dt) => {
+      const a = this.horse, frame = this.wireFrame;
+      if (a === null) return;
+      commandReins(frame, command); this.consumedCommand.jump = false;
+      // the gait's clock runs in the view, so a step carries on the server's phase at the stride the reins have measured
+      frame.phase = (this.lastPhase + this.strideHz * dt) % 1; frame.moveScale = this.player.moveScale; frame.roads = this.roadsOverride ?? this.opts.roads;
+      frame.wet = this.wet || heightAt(this.feet.x, this.feet.z) < waterLevel() - 0.2;
+      this.read(dt, frame); a.mem['turnLead'] = this.turnLead; a.lookWeight = 0;
+    },
+    capture: (out, at) => { this.captureRide(out, at); this.motor?.captureState(out, at + RIDE_WORDS); },
+    restore: (from, at) => { this.restoreRide(from, at); this.motor?.restoreState(from, at + RIDE_WORDS); },
+    adopt: words => { this.restoreRide(words, 0); } };
+  /** Present on a wire: `Player` reads the fixed step's controls off the command through this. */
+  get predicted(): PredictedRide | undefined { return this.wire === null ? undefined : this.saddle; }
   constructor(private readonly ctx: LevelContext, player: Player, private readonly animals: AnimalManager, private readonly opts: MountProfile) {
     super(opts.speeds);
     this.companions = new MountCompanions(opts);
@@ -92,7 +111,7 @@ export class Mount extends MountedBody {
     };
     this.reinsFrame = makeFrame(this);
   }
-  gallopTap(): void { if (this.horse !== null) this.tapQueued = true; }
+  gallopTap(): void { if (this.horse !== null && this.wire === null) this.tapQueued = true; }
   private hurt(): void {
     const target = this.ctx.app.player; if (target === null) return;
     this.ctx.app.combat.hit({ source: 'env', sourceTags: ['env.ride'], target, amount: this.opts.thrownDamage,
@@ -119,8 +138,13 @@ export class Mount extends MountedBody {
     return a.alive && this.companions.free(a);
   }
   mount(id: MountActorRef, breaking = false): boolean {
+    if (this.wire !== null) { if (this.horse === null) this.wire('mount'); return false; }
+    return this.canRide(this.actor(id).entityId) && this.enter(id, breaking);
+  }
+  /** Get on: the page's own say, or on a wire the server's `mount`. */
+  enter(id: MountActorRef, breaking = false): boolean {
     const a = this.actor(id);
-    if (this.horse !== null || !this.canRide(a.entityId)) return false;
+    if (this.horse !== null) return false;
     const p = this.player;
     p.setHover(false);
     this.horse = a; p.mountedOn = a;
@@ -151,6 +175,10 @@ export class Mount extends MountedBody {
   }
   private settle(): void { this.settleBody(); this.poseHeading = this.heading; }
   dismount(thrown = false): void {
+    if (this.wire === null) this.leave(thrown); else if (this.horse !== null) this.wire('dismount');
+  }
+  /** Get off: the page's own say, or on a wire the server's `dismount`. */
+  leave(thrown = false): void {
     const a = this.horse;
     if (a === null) return;
     const p = this.player;
@@ -206,16 +234,17 @@ export class Mount extends MountedBody {
   drive(dt: number): void {
     const a = this.horse, p = this.player;
     if (a === null) { playerModes(p).exit('ride'); return; }
-    if (!a.alive || a.hidden) { this.dismount(true); return; }
+    if (this.wire === null && (!a.alive || a.hidden)) { this.dismount(true); return; }
     if (Math.abs(angDiff(p.yaw, this.camYaw)) > 1e-4 || Math.abs(p.pitch - this.camPitch) > 1e-4) this.lookIdle = 0;
     else this.lookIdle += dt;
     const used = this.consumedCommand, frame = this.reinsFrame;
     used.steer.keyX = frame.turn; used.steer.keyY = frame.forward;
     used.steer.stickX = frame.touchX; used.steer.stickY = frame.touchY;
-    used.sprint = frame.gallop; used.jump = frame.jump;
-    this.read(dt, this.reinsFrame);
+    used.sprint = frame.gallop; used.jump = this.wire === null ? frame.jump : used.jump || frame.jump;
+    if (this.wire === null) this.read(dt, this.reinsFrame);
     this.input?.consume('jump');
     p.touchJump = false;
+    if (this.wire !== null) return;
     a.mem['turnLead'] = this.turnLead;
     a.lookWeight = 0;   // no alert look-at under a rider (a stale one from the wait at the rail pulled the neck aside)
   }
@@ -227,7 +256,9 @@ export class Mount extends MountedBody {
     const a = this.horse, p = this.player;
     if (a === null) return;
     const locked = lockOn.state === 'locked';
-    const heading = this.placeRider(dt, alpha, a, p, this.bodyWorld), px = a.position.x, pz = a.position.z;
+    const heading = this.placeRider(dt, alpha, a, p, this.bodyWorld);
+    if (this.wire !== null) a.position.add(p.renderOffset); // a correction glides, as it does on foot
+    const px = a.position.x, pz = a.position.z;
     const sp = Math.abs(this.speed);
     const dHead = angDiff(heading, this.poseHeading);
     this.poseHeading = heading;

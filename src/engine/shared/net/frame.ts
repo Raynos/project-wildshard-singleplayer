@@ -1,7 +1,7 @@
 // P1-E5.2 (E5-REPLICATION §3.3): the world frame and its per-client delta, Quake 3 / Source style. The server builds one
 // quantised frame per snapshot tick, keeps the last 32, and encodes each client's frame against the last one that
 // client acked. State needs no reliable channel: a lost frame heals at the next acked one.
-import { BitReader, NetDecodeError, type BitWriter } from './bits';
+import { BitReader, bitsToFloat, floatToBits, NetDecodeError, type BitWriter } from './bits';
 import type { NetClass } from './schema';
 import { MSG_FRAME } from './messages';
 
@@ -52,6 +52,8 @@ export class WorldFrameRing {
 export interface FrameInput {
   readonly frame: WorldFrame; readonly cell: number; readonly lastSeq: number;
   readonly ownerClass: NetClass<never>; readonly owner: Uint32Array;
+  /** The first `rideWords` of this are the ride under the owner (P1-E5.3-D3): flat words only its law reads. Absent or 0: on foot, and it costs one bit. */
+  readonly ride?: Float64Array; readonly rideWords?: number;
   /** The handles this client should see now, and the same set as of its baseline. */
   readonly visible: ReadonlySet<number>;
   /** `rowFrom` is the world frame a baseline row's values came from: its tier may have left it older than the baseline. */
@@ -79,6 +81,9 @@ export function encodeFrame(writer: BitWriter, input: FrameInput): ArrayBuffer {
   writer.write(MSG_FRAME, 8); writer.write(frame.tick, 32); writer.write(baseline?.frame.tick ?? NO_BASELINE, 32);
   writer.write(input.cell, 16); writer.write(input.lastSeq, 16);
   input.ownerClass.owner.forEach((column, index) => { writer.write(input.owner[index] ?? 0, column.bits); });
+  const rideWords = input.rideWords ?? 0;
+  writer.writeBool(rideWords > 0);
+  if (rideWords > 0) { writer.write(rideWords, 8); for (let index = 0; index < rideWords; index++) writer.write(floatToBits(input.ride?.[index] ?? 0), 32); }
   const changed: number[] = [], left: number[] = [];
   for (const handle of visible) {
     const cls = classOf(handle), at = frame.offset(handle);
@@ -109,6 +114,8 @@ export function encodeFrame(writer: BitWriter, input: FrameInput): ArrayBuffer {
 export interface DecodedFrame {
   readonly tick: number; readonly baselineTick: number; readonly cell: number; readonly lastSeq: number;
   readonly owner: Uint32Array; readonly rows: Map<number, Uint32Array>;
+  /** The ride under this client's player, or null on foot. */
+  readonly ride: Float64Array | null;
   /** The rows that are a true sample of this tick, sent or standing still. Any other row is a held copy of an older one. */
   readonly fresh: ReadonlySet<number>;
 }
@@ -124,6 +131,8 @@ function readFrame(reader: BitReader, table: FrameTable): DecodedFrame | null {
   const tick = reader.read(32), baselineTick = reader.read(32), cell = reader.read(16), lastSeq = reader.read(16);
   const owner = new Uint32Array(table.ownerClass.owner.length);
   table.ownerClass.owner.forEach((column, index) => { owner[index] = reader.read(column.bits); });
+  const ride = reader.readBool() ? new Float64Array(reader.read(8)) : null;
+  if (ride !== null) for (let index = 0; index < ride.length; index++) ride[index] = bitsToFloat(reader.read(32));
   const base = baselineTick === NO_BASELINE ? null : table.baseline(baselineTick);
   if (baselineTick !== NO_BASELINE && base === null) return null; // not held any more: wait for the full frame that follows
   const rows = new Map(base?.rows), fresh = new Set<number>(), count = reader.read(16);
@@ -140,7 +149,7 @@ function readFrame(reader: BitReader, table: FrameTable): DecodedFrame | null {
   }
   for (const handle of [...rows.keys()].sort(ascending)) if (!fresh.has(handle) && reader.readBool()) fresh.add(handle);
   reader.end();
-  return { tick, baselineTick, cell, lastSeq, owner, rows, fresh };
+  return { tick, baselineTick, cell, lastSeq, owner, ride, rows, fresh };
 }
 
 /** Decode a frame. Malformed bytes or a frame that cannot apply yet give null; nothing throws past this boundary. */

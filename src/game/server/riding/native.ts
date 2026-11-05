@@ -2,7 +2,7 @@ import { ReturnProgram } from '@wildshard/game/population/returnProgram';
 import { NativeRidingSchema } from '@wildshard/format/nativeRiding';
 import { nativeHerdCollection } from '../shardfile/groupRuntime';
 import { readScalarLattice } from '@wildshard/engine/world/scalarChannel';
-import { MountedBody, mountedMotorOptions, type MountedRider, type MountedWorld, type ReinsFrame } from '@wildshard/game/riding/physics';
+import { commandReins, MountedBody, mountedMotorOptions, RIDE_WORDS, type MountedRider, type MountedWorld, type ReinsFrameRow } from '@wildshard/game/riding/physics';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { SimHost, SimPlayerDriver, SimPlayerMotionSample, SimRide, SimValue } from '@wildshard/engine/sim';
@@ -175,7 +175,7 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
       host.combat.hit({ source: 'env', sourceTags: [], target: player.health, amount: rows.thrownDamage, point: player.position,
         dir: rider.velocity, cause: { kind: 'env.ride', label: rows.thrownLabel, text: rows.thrownLabel } });
     } };
-  const frame: { -readonly [K in keyof ReinsFrame]: ReinsFrame[K] } = {
+  const frame: ReinsFrameRow = {
     forward: 0, turn: 0, touchX: 0, touchY: 0, gallop: false, jump: false, drawing: false, moveScale: 1,
     phase: 0, feet: body.feet, roads: rows.roads, inBounds, refuses: () => false, wet: false };
   const motion = { velocityX: 0, velocityZ: 0, grounded: true, swimming: false, hover: false };
@@ -201,7 +201,7 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
     return false;
   }, step: () => undefined };
   /** In the saddle (P1-E5.3-D1): the step dispatches here, so a ride is a mode of the one motion step. */
-  const ride: SimRide = { motionSample: sampleMotion, read: (command, dt) => {
+  const ride: SimRide = { motionSample: sampleMotion, mount: () => horse?.entityId ?? '', capture: (out, at) => { body.captureRide(out, at); return RIDE_WORDS; }, read: (command, dt) => {
     if (horse?.alive === false) dismount(true);
     const a = horse;
     if (a === null) return;
@@ -209,9 +209,7 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
     if (command !== undefined && (command.commandVersion !== 1 || command.steer === undefined)) throw new Error('Mounted reins require versioned raw local controls');
     if (command !== undefined) player.yaw = command.yaw;
     player.impulse.set(0, 0, 0); rider.crouching = false;
-    frame.forward = command?.steer?.keyY ?? 0; frame.turn = command?.steer?.keyX ?? 0;
-    frame.touchX = command?.steer?.stickX ?? 0; frame.touchY = command?.steer?.stickY ?? 0;
-    frame.gallop = command?.sprint === true; frame.jump = command?.jump === true; frame.phase = phase(a.entityId); frame.moveScale = player.moveScale;
+    commandReins(frame, command); frame.phase = phase(a.entityId); frame.moveScale = player.moveScale;
     frame.wet = wetAt(body.feet.x, body.feet.z) || heightAt(body.feet.x, body.feet.z) < waterLevel() - 0.2;
     body.read(dt, frame); a.mem['turnLead'] = body.turnLead; a.lookWeight = 0;
   }, step: dt => {

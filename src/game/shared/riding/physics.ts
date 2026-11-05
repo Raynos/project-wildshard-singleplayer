@@ -1,4 +1,4 @@
-import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
+import type { ANIMAL_STATES } from '@wildshard/engine/entities/animalStates';
 import { castRay, floorBelow } from '@wildshard/engine/physics/query';
 import { MathUtils, Vector3 } from 'three';
 import { tagOf } from '@wildshard/engine/physics/surface';
@@ -112,6 +112,10 @@ export class RhythmSpur {
 
   reset(): void { this.streak = 0; this.latchT = 0; this.lastTap = -1e9; }
 
+  /** The rhythm as flat words (P1-E5.3-D2). */
+  captureRide(out: Float64Array, at: number): void { out[at] = this.streak; out[at + 1] = this.latchT; out[at + 2] = this.good; out[at + 3] = this.lastTap; }
+  restoreRide(from: ArrayLike<number>, at: number): void { this.streak = from[at] ?? 0; this.latchT = from[at + 1] ?? 0; this.good = from[at + 2] ?? 0; this.lastTap = from[at + 3] ?? -1e9; }
+
   /** Exact rhythm continuation, including the previous press that makes a rapid repeat count as mashing. */
   snapshot(): RhythmSpurState { return v.parse(roadSpurState, { version: 1, streak: this.streak, latchT: this.latchT, good: this.good, lastTap: this.lastTap }); }
   restore(value: unknown): void { const s = v.parse(roadSpurState, value); this.streak = s.streak; this.latchT = s.latchT; this.good = s.good; this.lastTap = s.lastTap; }
@@ -122,6 +126,19 @@ export class RhythmSpur {
   get boost(): number { return this.latched ? 1 + SPUR_BOOST_PER * this.streak : 1; }
 }
 
+/** The controls of one command, as the reins read them. */
+export interface ReinsCommand {
+  readonly steer?: { readonly keyX: number; readonly keyY: number; readonly stickX: number; readonly stickY: number } | undefined;
+  readonly sprint?: boolean | undefined; readonly jump?: boolean | undefined;
+}
+/** A frame a caller fills per command. */
+export type ReinsFrameRow = { -readonly [K in keyof ReinsFrame]: ReinsFrame[K] };
+/** What a command is to the reins: the server's one reading, and a page's on the wire (P1-E5.3-D1). */
+export function commandReins(frame: ReinsFrameRow, command: ReinsCommand | undefined): void {
+  frame.forward = command?.steer?.keyY ?? 0; frame.turn = command?.steer?.keyX ?? 0;
+  frame.touchX = command?.steer?.stickX ?? 0; frame.touchY = command?.steer?.stickY ?? 0;
+  frame.gallop = command?.sprint === true; frame.jump = command?.jump === true;
+}
 /** Resolved input and the admitted world queries; the caller owns a persistent frame port. */
 export interface ReinsFrame {
   readonly forward: number; readonly turn: number; readonly touchX: number; readonly touchY: number;
@@ -276,13 +293,21 @@ export class MountedReins {
 }
 
 
+/** What a ride reads and writes of the animal under it: a body on the server, a view on a page. */
+export interface MountedAnimal {
+  readonly position: Vector3; readonly scale: number; readonly mem: Record<string, number>;
+  yaw: number; speed: number; state: (typeof ANIMAL_STATES)[number]; levelGround: boolean;
+  setMotion: (yaw: number, speed: number, turn: number) => void;
+}
+/** What a jostle reads of the body it met. */
+export interface MountedContact { readonly position: { readonly x: number; readonly z: number }; readonly yaw: number; readonly speed: number }
 /** Explicit world queries and contact classification, shared by the page and trusted native host. */
 export interface MountedWorld {
   readonly physics: Physics | null;
   readonly heightAt: (x: number, z: number) => number;
   readonly waterLevel: () => number;
   readonly wetAt: ((x: number, z: number) => boolean) | undefined;
-  readonly stampede: (owner: unknown, horse: AnimalSim) => AnimalSim | null;
+  readonly stampede: (owner: unknown, horse: MountedAnimal) => MountedContact | null;
   readonly thrown: () => void;
 }
 /** Physical rider outputs; camera, HUD and equipment stay with presentation. */
@@ -314,12 +339,15 @@ const mountBodyState = v.strictObject({ version: v.literal(1), reins: v.unknown(
   jostles: v.pipe(mountNum, v.integer(), v.minValue(0)), thrownBy: v.nullable(v.literal('stampede')) });
 
 /** The shipping lying PLAYER capsule, including its native deck weight and gait-dependent slope rule. */
-export function mountedMotorOptions(scale: number, owner: AnimalSim): MotorOptions {
+export function mountedMotorOptions(scale: number, owner: MountedAnimal): MotorOptions {
   return { radius: mountBODY.radius * scale, height: mountBODY.radius * 2 * scale, length: mountBODY.length * scale,
     step: mountBODY.step * scale, maxClimbDeg: mountCLIMB.walk, snap: mountBODY.snap, group: 'PLAYER',
     blockedBy: ['WORLD', 'CREATURE', 'ITEM'], owner, weight: mountBODY.kg };
 }
 
+const RIDE_GAITS = ['stand', 'walk', 'trot', 'canter', 'gallop'] as const;
+/** The words of a ride's flat state (`MountedBody.captureRide`). The feet come first, then whether they stand on ground. */
+export const RIDE_WORDS = 38;
 /** All scalar history needed by the physical motor and rider projection; the capsule belongs to native continuation. */
 export interface MountedBodyState {
   readonly version: 1; readonly reins: ReturnType<MountedReins['snapshot']>;
@@ -333,7 +361,7 @@ export interface MountedBodyState {
 /** The actual shipping mounted motor law, renderer-free; its native resources are explicitly installed by the caller. */
 export class MountedBody extends MountedReins {
 
-  gait: 'stand' | 'walk' | 'trot' | 'canter' | 'gallop' = 'stand';
+  gait: (typeof RIDE_GAITS)[number] = 'stand';
   jostles = 0; thrownBy: string | null = null;
   motor: CharacterMotor | null = null;
   readonly feet: Vector3 = new Vector3(); readonly prevFeet: Vector3 = new Vector3();
@@ -341,9 +369,9 @@ export class MountedBody extends MountedReins {
   airT = -1; blockedT = 0; shoveX = 0; shoveZ = 0; jostleCd = 0;
   eyeY = 0; bobY = 0;
   private readonly vel = new Vector3();
-  private contactHorse: AnimalSim | null = null; private contactWorld: MountedWorld | null = null;
-  private contactHit: AnimalSim | null = null;
-  private contactResult(): AnimalSim | null { return this.contactHit; }
+  private contactHorse: MountedAnimal | null = null; private contactWorld: MountedWorld | null = null;
+  private contactHit: MountedContact | null = null;
+  private contactResult(): MountedContact | null { return this.contactHit; }
   private readonly contact: Parameters<CharacterMotor['touching']>[2] = c => {
     const world = this.contactWorld, a = this.contactHorse;
     if (world === null || a === null) return true;
@@ -369,6 +397,39 @@ export class MountedBody extends MountedReins {
     this.prevHeading = s.prevHeading; this.yawRate = s.yawRate; this.vy = s.vy; this.onDeck = s.onDeck; this.swimming = s.swimming;
     this.airT = s.airT; this.blockedT = s.blockedT; this.shoveX = s.shoveX; this.shoveZ = s.shoveZ; this.jostleCd = s.jostleCd;
     this.eyeY = s.eyeY; this.bobY = s.bobY; this.gait = s.gait; this.jostles = s.jostles; this.thrownBy = s.thrownBy;
+  }
+
+  /**
+   * The ride as flat words (P1-E5.3-D2): everything the next read and step take from the last, for a predictor's ring and the
+   * owner block. No valibot and no allocation: it runs per command. `eyeY`, `bobY` and `jolt` are the view's, and what a read
+   * writes before its step reads it (`target`, `rateIn`, `sector`, `galloping`) is not state. `RIDE_FEET` and `RIDE_GROUNDED` are
+   * what a predictor compares. Its capsule's words are the motor's, and its handles mean nothing on the wire.
+   */
+  captureRide(out: Float64Array, at: number): void {
+    const { feet: f } = this;
+    out[at] = f.x; out[at + 1] = f.y; out[at + 2] = f.z; out[at + 3] = Number(this.grounded);
+    out[at + 4] = this.heading; out[at + 5] = this.speed; out[at + 6] = this.yawRate; out[at + 7] = this.vy;
+    out[at + 8] = this.steed; out[at + 9] = Number(this.winded); out[at + 10] = Number(this.breaking); out[at + 11] = this.wUp; out[at + 12] = this.cruise;
+    out[at + 13] = Number(this.gallopWas); out[at + 14] = Number(this.jumpWas); out[at + 15] = Number(this.jumpQueued); out[at + 16] = Number(this.tapQueued);
+    out[at + 17] = this.clock; out[at + 18] = this.lastPhase; out[at + 19] = this.strideHz; out[at + 20] = this.sectorWas; out[at + 21] = this.skidT;
+    out[at + 22] = this.panicT; out[at + 23] = this.panicRear; out[at + 24] = this.panicYaw; out[at + 25] = this.spurFlash;
+    this.spur.captureRide(out, at + 26);
+    out[at + 30] = Number(this.onDeck); out[at + 31] = Number(this.swimming); out[at + 32] = this.airT; out[at + 33] = this.blockedT;
+    out[at + 34] = this.shoveX; out[at + 35] = this.shoveZ; out[at + 36] = this.jostleCd; out[at + 37] = RIDE_GAITS.indexOf(this.gait);
+  }
+  /** Put a `captureRide` back, with the capsule where and as it stood. */
+  restoreRide(from: ArrayLike<number>, at: number): void {
+    const word = (index: number): number => from[at + index] ?? 0, on = (index: number): boolean => word(index) !== 0;
+    this.feet.set(word(0), word(1), word(2)); this.grounded = on(3);
+    this.heading = word(4); this.speed = word(5); this.yawRate = word(6); this.vy = word(7);
+    this.steed = word(8); this.winded = on(9); this.breaking = on(10); this.wUp = word(11); this.cruise = word(12);
+    this.gallopWas = on(13); this.jumpWas = on(14); this.jumpQueued = on(15); this.tapQueued = on(16);
+    this.clock = word(17); this.lastPhase = word(18); this.strideHz = word(19); this.sectorWas = word(20); this.skidT = word(21);
+    this.panicT = word(22); this.panicRear = word(23); this.panicYaw = word(24); this.spurFlash = word(25);
+    this.spur.restoreRide(from, at + 26);
+    this.onDeck = on(30); this.swimming = on(31); this.airT = word(32); this.blockedT = word(33);
+    this.shoveX = word(34); this.shoveZ = word(35); this.jostleCd = word(36); this.gait = RIDE_GAITS[word(37)] ?? 'stand';
+    this.motor?.standAt(this.feet, this.heading);
   }
 
   settleBody(): void {
@@ -426,7 +487,7 @@ export class MountedBody extends MountedReins {
     }
     return false;
   }
-  stepBody(dt: number, a: AnimalSim, p: MountedRider, world: MountedWorld): void {
+  stepBody(dt: number, a: MountedAnimal, p: MountedRider, world: MountedWorld): void {
     const HORSE_SPEED = this.bodySpeeds, heightAt = world.heightAt, waterLevel = world.waterLevel;
     const f = this.feet;
     this.prevFeet.copy(f); this.prevHeading = this.heading;
@@ -524,7 +585,7 @@ export class MountedBody extends MountedReins {
     p.velocity.copy(this.vel);
     p.onGround = true; p.sprinting = this.speed > 10; p.crouching = false; p.speedFactor = 0;
   }
-  jostleBody(o: AnimalSim): boolean {
+  jostleBody(o: MountedContact): boolean {
     this.jostleCd = mountJOSTLE_CD; this.jostles++;
     const ox = Math.sin(o.yaw) * o.speed, oz = Math.cos(o.yaw) * o.speed;
     const mx = Math.sin(this.heading) * this.speed, mz = Math.cos(this.heading) * this.speed;
@@ -542,7 +603,7 @@ export class MountedBody extends MountedReins {
     return false;
   }
   /** The shipping feet/eye-height projection, called once after fixed motion; it owns no camera or renderer. */
-  placeRider(dt: number, alpha: number, a: AnimalSim, p: Pick<MountedRider, 'position'>, world: MountedWorld): number {
+  placeRider(dt: number, alpha: number, a: MountedAnimal, p: Pick<MountedRider, 'position'>, world: MountedWorld): number {
     const t = MathUtils.clamp(alpha, 0, 1);
     const pf = this.prevFeet, f = this.feet;
     const glide = pf.distanceToSquared(f) < 25;   // a teleport is not a glide

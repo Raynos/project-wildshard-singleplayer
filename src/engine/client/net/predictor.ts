@@ -8,6 +8,7 @@ import { seqAfter } from '../../shared/net/command';
 import type { NetColumn } from '../../shared/net/schema';
 import { CAPTURED, captureMotion, MOTION_WORDS, restoreMotion } from '../../shared/player/motionState';
 import type { PlayerMotionState } from '../../shared/player/motion';
+import type { PredictedRide } from '../../shared/player/modes';
 import type { CharacterMotor, MoveResult } from '../../shared/physics/CharacterMotor';
 
 /** Saved moves: about a second. A full ring means the server has stopped answering, and the player holds still. */
@@ -16,6 +17,10 @@ export const PREDICTION_RING = 64;
 export const PREDICTION_TOLERANCE = 0.02;
 /** A correction this far is a teleport: it snaps rather than glides. */
 export const PREDICTION_SNAP = 3;
+/** Room for a ride's words and its capsule's in a saved move. */
+const RIDE_ROOM = 64;
+/** One saved move. */
+const SAVED_WORDS: number = MOTION_WORDS + RIDE_ROOM;
 /** Seconds the camera takes to lose about two thirds of a correction. */
 const SMOOTH_TIME = 0.1;
 
@@ -23,6 +28,8 @@ const SMOOTH_TIME = 0.1;
 export interface PredictedBody {
   readonly motionState: PlayerMotionState;
   readonly motor: CharacterMotor;
+  /** What carries it now, or null on foot. */
+  readonly ride: PredictedRide | null;
   /** Added to the camera's feet. */
   readonly renderOffset: Vector3;
   /** One step of a quantised command. `replay`: the second run of a step, which fires no sound, event or view moment. False
@@ -75,13 +82,16 @@ export class Predictor {
   private readonly seqs = new Uint16Array(PREDICTION_RING);
   private readonly owned = new Uint8Array(PREDICTION_RING);
   private readonly commands: (NetCommand | null)[] = Array.from({ length: PREDICTION_RING }, () => null);
-  private readonly states = new Float64Array(PREDICTION_RING * MOTION_WORDS);
+  private readonly rode = new Uint8Array(PREDICTION_RING);
+  private readonly states = new Float64Array(PREDICTION_RING * SAVED_WORDS);
   private head = 0;
   private count = 0;
   private acked: number | null = null;
   /** The server is carrying this body (the owner block's `led`), as of the newest frame: nothing here steps it. */
   private led = false;
   private resets: number | null = null;
+  /** The newest frame has this body on a ride. */
+  private aboard = false;
   constructor(body: PredictedBody, columns: readonly NetColumn<never>[]) {
     this.body = body; this.columns = columns; this.table = ownerTable(columns);
   }
@@ -97,55 +107,66 @@ export class Predictor {
     const { body } = this, slot = (this.head + this.count) % PREDICTION_RING;
     this.owned[slot] = this.led || body.step(command, false) ? 1 : 0;
     this.seqs[slot] = command.seq; this.commands[slot] = command;
-    captureMotion(body.motionState, body.motor, this.states, slot * MOTION_WORDS);
+    this.save(slot);
     this.count++;
     return true;
+  }
+  private save(slot: number): void {
+    const { body, states } = this, at = slot * SAVED_WORDS, { ride } = body;
+    captureMotion(body.motionState, body.motor, states, at);
+    this.rode[slot] = ride === null ? 0 : 1;
+    ride?.capture(states, at + MOTION_WORDS);
   }
 
   /**
    * A frame: `lastSeq` is the newest command the server has stepped, `owner` its state after it. True when it corrected.
    * While the owner block says `led` the server's state is taken as it comes, with no compare and no replay. The frame that
    * ends the lead, or that says the server reset this body, always takes the server's state, whatever `lastSeq` it brings.
-   * `tick`: the frame's, which the client's swell clock takes on every correction.
+   * `tick`: the frame's, which the client's swell clock takes on every correction. `ridden`: the frame's ride words, null on foot.
+   * A frame ahead of the `mount` or `dismount` that explains it waits for it.
    */
-  reconcile(lastSeq: number, owner: ArrayLike<number>, tick?: number): boolean {
+  reconcile(lastSeq: number, owner: ArrayLike<number>, tick?: number, ridden: ArrayLike<number> | null = null): boolean {
     const { acked, table } = this;
-    if (acked !== null && seqAfter(acked, lastSeq)) return false;
+    if ((acked !== null && seqAfter(acked, lastSeq)) || (this.body.ride === null) !== (ridden === null)) return false;
     const led = this.flag(table.led, owner) === 1, resets = this.value(table.resets, owner);
-    const forced = led || this.led || (this.resets !== null && this.resets !== resets);
-    this.led = led; this.resets = resets;
+    const boarded = (ridden !== null) !== this.aboard; // getting on or off is the server's word, not a wrong guess
+    const forced = led || this.led || boarded || (this.resets !== null && this.resets !== resets);
+    this.led = led; this.resets = resets; this.aboard = ridden !== null;
     if (!forced && acked === lastSeq) return false;
     const { body, seqs, states, count, head } = this, offset = count === 0 ? -1 : (lastSeq - (seqs[head] ?? 0)) & 0xffff;
     this.acked = lastSeq;
-    const saved = offset >= 0 && offset < count, slot = (head + offset) % PREDICTION_RING, at = slot * MOTION_WORDS; // else older than the ring, or nothing saved
+    const saved = offset >= 0 && offset < count, slot = (head + offset) % PREDICTION_RING, at = slot * SAVED_WORDS; // else older than the ring, or nothing saved
     if (saved) { this.head = (slot + 1) % PREDICTION_RING; this.count = count - offset - 1; }
-    if (!forced && (!saved || this.matches(at, owner))) return false;
-    const s = body.motionState, feet = s.position, x = feet.x + body.renderOffset.x, y = feet.y + body.renderOffset.y, z = feet.z + body.renderOffset.z, { yaw } = s;
+    if (!forced && (!saved || this.matches(slot, owner, ridden))) return false;
+    const s = body.motionState, { ride } = body, feet = ride?.feet ?? s.position, x = feet.x + body.renderOffset.x, y = feet.y + body.renderOffset.y, z = feet.z + body.renderOffset.z, { yaw } = s;
     if (saved) restoreMotion(s, body.motor, states, at);
+    if (saved && this.rode[slot] === 1) ride?.restore(states, at + MOTION_WORDS);
     this.write(s, owner);
+    if (ridden !== null) ride?.adopt(ridden);
     if (tick !== undefined) s.tick = tick;
     if (!led) for (let left = 0, run = this.head; left < this.count; left++, run = (run + 1) % PREDICTION_RING) {
       const command = this.commands[run];
       if (command !== null && command !== undefined && this.owned[run] === 1) { body.step(command, true); this.replays++; }
-      captureMotion(s, body.motor, states, run * MOTION_WORDS);
+      this.save(run);
     }
     s.yaw = yaw; // the view is this client's own: the server sends it back later than the thumb has moved
-    if (!led) this.corrections++;
+    if (!led && !boarded) this.corrections++;
     const offsetX = x - feet.x, offsetY = y - feet.y, offsetZ = z - feet.z, far = offsetX * offsetX + offsetY * offsetY + offsetZ * offsetZ > PREDICTION_SNAP * PREDICTION_SNAP;
     body.renderOffset.set(far ? 0 : offsetX, far ? 0 : offsetY, far ? 0 : offsetZ);
-    return !led;
+    return !led && !boarded;
   }
 
   /** A session's first frame: this body stands where the server says, with nothing to compare it to. */
-  adopt(lastSeq: number, owner: ArrayLike<number>, tick?: number): void {
+  adopt(lastSeq: number, owner: ArrayLike<number>, tick?: number, ridden: ArrayLike<number> | null = null): void {
     const { body, table } = this, s = body.motionState, { yaw } = s;
     if (tick !== undefined) s.tick = tick;
-    this.acked = lastSeq; this.led = this.flag(table.led, owner) === 1; this.resets = this.value(table.resets, owner);
+    this.acked = lastSeq; this.led = this.flag(table.led, owner) === 1; this.resets = this.value(table.resets, owner); this.aboard = ridden !== null;
     this.head = 0; this.count = 0;
     this.write(s, owner);
     s.yaw = yaw;
     body.motor.resetAt(s.position);
     this.write(s, owner); // the reset cleared the ground the owner block had just landed
+    if (ridden !== null) body.ride?.adopt(ridden);
     body.renderOffset.set(0, 0, 0);
   }
 
@@ -157,8 +178,13 @@ export class Predictor {
     if (renderOffset.lengthSq() < 1e-8) renderOffset.set(0, 0, 0);
   }
 
-  private matches(at: number, owner: ArrayLike<number>): boolean {
-    const { states, table } = this;
+  private matches(slot: number, owner: ArrayLike<number>, ridden: ArrayLike<number> | null): boolean {
+    const { states, table } = this, at = slot * SAVED_WORDS;
+    if ((this.rode[slot] === 1) !== (ridden !== null)) return false;
+    if (ridden !== null) {
+      const from = at + MOTION_WORDS, gapX = (ridden[0] ?? 0) - (states[from] ?? 0), gapY = (ridden[1] ?? 0) - (states[from + 1] ?? 0), gapZ = (ridden[2] ?? 0) - (states[from + 2] ?? 0);
+      return gapX * gapX + gapY * gapY + gapZ * gapZ <= PREDICTION_TOLERANCE * PREDICTION_TOLERANCE && ridden[3] === states[from + 3];
+    }
     const x = this.value(table.x, owner) - (states[at + CAPTURED.x] ?? 0), y = this.value(table.y, owner) - (states[at + CAPTURED.y] ?? 0), z = this.value(table.z, owner) - (states[at + CAPTURED.z] ?? 0);
     if (x * x + y * y + z * z > PREDICTION_TOLERANCE * PREDICTION_TOLERANCE) return false;
     return this.flag(table.grounded, owner) === states[at + CAPTURED.grounded] && this.flag(table.board, owner) === states[at + CAPTURED.board] && this.flag(table.swim, owner) === states[at + CAPTURED.swim];

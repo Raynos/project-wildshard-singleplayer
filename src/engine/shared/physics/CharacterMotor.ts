@@ -203,6 +203,13 @@ export class CharacterMotor {
     this.collider.setTranslation({ x: feet.x, y: feet.y + this.lift + 0.005, z: feet.z });
   }
 
+  /** Stand where and as a predictor saved this capsule, unchecked: it stood there. */
+  standAt(feet: Vec3, yaw: number): void {
+    this.yaw = yaw;
+    if (this.opts.length !== undefined) { this.layAlong(yaw); this.collider.setRotation(this.rot); }
+    this.collider.setTranslation({ x: feet.x, y: feet.y + this.lift + 0.005, z: feet.z });
+  }
+
   /** the quaternion for a lying capsule along `yaw` (animal convention: forward = (sin yaw, 0, cos yaw)): Rapier's
    *  capsule runs along Y — tip it onto +Z (90° about X), then turn it about Y */
   private layAlong(yaw: number): void {

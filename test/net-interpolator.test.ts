@@ -19,7 +19,7 @@ const BODY: NetClass<never> = COMPILED, ANIMAL: NetClass<never> = ANIMAL_CLASS, 
 const STEP = BODY.row[0]?.step ?? 0;
 const quantise = (body: Body): Uint32Array => Uint32Array.from(COMPILED.row.map(column => column.sample(body, () => 0)));
 const frameOf = (tick: number, rows: Record<number, Body>, fresh: readonly number[] = Object.keys(rows).map(Number)): DecodedFrame =>
-  ({ tick, baselineTick: 0, cell: 0, lastSeq: 0, owner: new Uint32Array(0), rows: new Map(Object.entries(rows).map(([handle, body]) => [Number(handle), quantise(body)])), fresh: new Set(fresh) });
+  ({ tick, baselineTick: 0, cell: 0, lastSeq: 0, owner: new Uint32Array(0), ride: null, rows: new Map(Object.entries(rows).map(([handle, body]) => [Number(handle), quantise(body)])), fresh: new Set(fresh) });
 const still = (over: Partial<Body>): Body => ({ x: 0, y: 0, z: 0, yaw: 0, state: 'idle', flinch: 0, ...over });
 const stack = (): Interpolator => new Interpolator(() => BODY);
 const read = (lerp: Interpolator, handle: number, tick: number): Float64Array => { const out = new Float64Array(BODY.row.length); expect(lerp.sample(handle, tick, out)).toBe(true); return out; };

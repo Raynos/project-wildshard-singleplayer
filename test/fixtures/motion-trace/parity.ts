@@ -93,7 +93,7 @@ function buildCourse(physics: Physics): Course {
       world.propagateModifiedBodyPositionsToColliders();
     } };
 }
-const courseHeightAt = (x: number, z: number): number => terrainHeight(x, z);
+export const courseHeightAt = (x: number, z: number): number => terrainHeight(x, z);
 const courseWaterAt = (x: number, _z: number): number | null => x < POOL_X ? 0 : null;
 const courseFloors: readonly ((x: number, z: number) => number | undefined)[] = [
   (x, z) => Math.abs(x - FLOOR_DECK.x) < FLOOR_DECK.half && Math.abs(z - FLOOR_DECK.z) < FLOOR_DECK.half ? FLOOR_DECK.y : undefined,
@@ -159,7 +159,7 @@ interface Sample { x: number; y: number; z: number; flags: string }
 const flagWord = (s: { grounded: boolean; swimming: boolean; hover: boolean; wading: boolean; sliding: boolean; dashing: boolean; stroke: number }): string =>
   `${s.grounded ? 'G' : '-'}${s.swimming ? 'S' : '-'}${s.hover ? 'B' : '-'}${s.wading ? 'W' : '-'}${s.sliding ? 'L' : '-'}${s.dashing ? 'D' : '-'}:${s.stroke.toFixed(3)}`;
 
-const TARGET_ID = 'lock:1';
+export const TARGET_ID = 'lock:1';
 const NO_AIM = { origin: { x: 0, y: 0, z: 0 }, direction: { x: 0, y: 0, z: -1 } };
 const axis = (key: number | undefined, stick: number | undefined): number => Math.max(-1, Math.min(1, (key ?? 0) + (stick ?? 0)));
 

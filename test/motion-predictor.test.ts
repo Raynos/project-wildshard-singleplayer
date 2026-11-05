@@ -115,7 +115,7 @@ test('a full ring holds still', () => {
 
 test('an old frame is ignored, and seq wraps', () => {
   const state = createMotionState(), steps: number[] = [];
-  const body: PredictedBody = { motionState: state, motor: legacyDouble<CharacterMotor>({ result: { grounded: false, groundNormalY: 1, downhillX: 0, downhillZ: 0, horizontalFreedom: 1, groundCollider: null }, captureState: () => undefined, restoreState: () => undefined }), renderOffset: new Vector3(),
+  const body: PredictedBody = { motionState: state, motor: legacyDouble<CharacterMotor>({ result: { grounded: false, groundNormalY: 1, downhillX: 0, downhillZ: 0, horizontalFreedom: 1, groundCollider: null }, captureState: () => undefined, restoreState: () => undefined }), ride: null, renderOffset: new Vector3(),
     step: command => { steps.push(command.seq); return true; } };
   const predictor = new Predictor(body, PLAYER_CLASS.owner), owner = new Uint32Array(PLAYER_CLASS.owner.length);
   for (const seq of [0xfffe, 0xffff, 0, 1]) predictor.step({ seq, viewTick: 0, steer: standing, yaw: 0, pitch: 0, buttons: 0 });
@@ -129,7 +129,7 @@ test('an old frame is ignored, and seq wraps', () => {
 
 test('a step and a frame within tolerance allocate nothing', async () => {
   const state = createMotionState();
-  const body: PredictedBody = { motionState: state, motor: legacyDouble<CharacterMotor>({ result: { grounded: false, groundNormalY: 1, downhillX: 0, downhillZ: 0, horizontalFreedom: 1, groundCollider: null }, captureState: () => undefined, restoreState: () => undefined }), renderOffset: new Vector3(), step: () => true };
+  const body: PredictedBody = { motionState: state, motor: legacyDouble<CharacterMotor>({ result: { grounded: false, groundNormalY: 1, downhillX: 0, downhillZ: 0, horizontalFreedom: 1, groundCollider: null }, captureState: () => undefined, restoreState: () => undefined }), ride: null, renderOffset: new Vector3(), step: () => true };
   const predictor = new Predictor(body, PLAYER_CLASS.owner), owner = new Uint32Array(PLAYER_CLASS.owner.length);
   PLAYER_CLASS.owner.forEach((column, index) => { if (column.name === 'grounded') owner[index] = 1; });
   const commands = Array.from({ length: 0x10000 }, (_, seq) => ({ seq, viewTick: 0, steer: standing, yaw: 0, pitch: 0, buttons: 0 }));
@@ -220,7 +220,7 @@ test('a reset is heard with no command on its way', () => {
 
 test('the swell clock joins the server on the first frame and on a correction, and a replay keeps its phase', () => {
   const state = createMotionState(), replayed: number[] = [];
-  const body: PredictedBody = { motionState: state, renderOffset: new Vector3(), motor: legacyDouble<CharacterMotor>({ result: { grounded: false, groundNormalY: 1, downhillX: 0, downhillZ: 0, horizontalFreedom: 1, groundCollider: null }, captureState: () => undefined, restoreState: () => undefined, resetAt: () => undefined }),
+  const body: PredictedBody = { motionState: state, ride: null, renderOffset: new Vector3(), motor: legacyDouble<CharacterMotor>({ result: { grounded: false, groundNormalY: 1, downhillX: 0, downhillZ: 0, horizontalFreedom: 1, groundCollider: null }, captureState: () => undefined, restoreState: () => undefined, resetAt: () => undefined }),
     step: (_command, replay) => { state.tick++; if (replay) replayed.push(state.tick); return true; } };
   const predictor = new Predictor(body, PLAYER_CLASS.owner), owner = new Uint32Array(PLAYER_CLASS.owner.length);
   predictor.adopt(0, owner, 500);

@@ -11,7 +11,7 @@ import { encodeCommands, seqAfter } from '../../shared/net/command';
 import { GUEST, type NetIdentity } from '../../shared/net/identity';
 import type { NetLedger } from '../../shared/net/ledgerWire';
 import { decodeFrame, FRAME_RING, NO_BASELINE, type DecodedFrame, type FrameTable } from '../../shared/net/frame';
-import { decodeEvents, decodeWelcome, encodeAct, encodeHello, messageId, MSG_EVENTS, MSG_FRAME, MSG_WELCOME, type InitialBits, type NetCombatEvent, type NetTravel, type NetWelcome } from '../../shared/net/messages';
+import { decodeEvents, decodeWelcome, encodeAct, encodeHello, messageId, MSG_EVENTS, MSG_FRAME, MSG_WELCOME, type InitialBits, type NetCombatEvent, type NetRide, type NetTravel, type NetWelcome } from '../../shared/net/messages';
 import { FLAG_CLASS, NET_CLASSES, NET_SCHEMA_HASH, PLAYER_CLASS } from '../../shared/net/netSchemas';
 import { FLAG_PREFIX, STATE_PREFIX } from '../../shared/net/shardNet';
 import type { NetClass, NetValue } from '../../shared/net/schema';
@@ -60,6 +60,7 @@ export class NetClient {
   private readonly listeners = new Set<(frame: DecodedFrame) => void>();
   private readonly fights = new Set<(event: NetCombatEvent) => void>();
   private readonly travels = new Set<(event: NetTravel) => void>();
+  private readonly rides = new Set<(event: NetRide) => void>();
   /** The last ledger serial this client has: pass it to `hello` when it comes back, and it hears only what it missed. */
   ledgerSerial = 0;
   private readonly receipts = new Set<(receipt: NetLedger) => void>();
@@ -67,6 +68,8 @@ export class NetClient {
   private readonly granted = new Set<string>();
   /** This client's own player's quests, newest row each (P1-E3.3): what a QuestReplica reads. */
   readonly quests: Map<string, QuestProgress> = new Map<string, QuestProgress>();
+  /** Who rides what, in handles, as far as this client has heard (J48). */
+  readonly riders: Map<number, number> = new Map<number, number>();
   /** The flags up in this client's own world (J106): what its view of a gate or a key reads. */
   readonly phased: Set<string> = new Set<string>();
   private readonly table: FrameTable;
@@ -89,6 +92,8 @@ export class NetClient {
   onFrame(listener: (frame: DecodedFrame) => void): () => void { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; }
   /** Call for every settled hit and death (P1-E3.2); returns the unsubscribe. */
   onCombat(listener: (event: NetCombatEvent) => void): () => void { this.fights.add(listener); return () => { this.fights.delete(listener); }; }
+  /** Call when anyone it can see gets on or off a ride; returns the unsubscribe. */
+  onRide(listener: (event: NetRide) => void): () => void { this.rides.add(listener); return () => { this.rides.delete(listener); }; }
   /** Call when this client's player crosses, before the new cell's `welcome`; returns the unsubscribe. */
   onTravel(listener: (event: NetTravel) => void): () => void { this.travels.add(listener); return () => { this.travels.delete(listener); }; }
   /** Call for every line of chat this client hears, its own included, as others read it; returns the unsubscribe. */
@@ -164,6 +169,11 @@ export class NetClient {
       if (event.kind === 'ledger') { this.receipt(event); continue; }
       if (event.kind === 'chat') { for (const listener of this.lines) listener(event); continue; }
       if (event.kind === 'travel') { this.left(); for (const listener of this.travels) listener(event); continue; }
+      if (event.kind === 'mount' || event.kind === 'dismount') {
+        if (event.kind === 'mount') this.riders.set(event.rider, event.mount); else this.riders.delete(event.rider);
+        for (const listener of this.rides) listener(event);
+        continue;
+      }
       if (event.kind === 'phase') { if (event.on) this.phased.add(event.flag); else this.phased.delete(event.flag); continue; }
       if (event.kind === 'despawn') {
         const id = this.entities.get(event.handle)?.id;
@@ -180,7 +190,7 @@ export class NetClient {
     }
   }
   /** Everything it holds named the cell it left. Commands stand: the player's own stream goes on. */
-  private left(): void { this.welcome = null; this.latest = null; this.clock.reset(); this.interpolator.clear(); this.delivery.clear(); this.frames.clear(); this.entities.clear(); this.ids.clear(); this.quests.clear(); this.phased.clear(); this.ledgerSerial = 0; }
+  private left(): void { this.welcome = null; this.latest = null; this.clock.reset(); this.interpolator.clear(); this.delivery.clear(); this.frames.clear(); this.entities.clear(); this.ids.clear(); this.quests.clear(); this.phased.clear(); this.riders.clear(); this.ledgerSerial = 0; }
   private receipt(event: NetLedger): void {
     if (event.serial <= this.ledgerSerial || this.granted.has(event.id)) return;
     this.ledgerSerial = event.serial; this.granted.add(event.id);

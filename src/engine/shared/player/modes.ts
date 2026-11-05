@@ -32,6 +32,24 @@ export type PlayerModeId = MotorMode | DrivenMode;
  *  JUMP disc, or nothing. Changing which control or where it sits is a HUD change (E332), never a mode's own call. */
 export type ModeHud = 'ride' | 'hover' | 'lock' | 'jump' | 'none';
 
+/**
+ * A ride a predictor drives (J48, P1-E5.3-D3). The engine holds no riding law, so its state is flat words it does not read,
+ * but for the feet, which it compares. On the wire the words are the server's (`SimRide.capture`), and in a saved move they
+ * run on past them with the capsule's. Neither allocates.
+ */
+export interface PredictedRide {
+  /** The feet, live: words 0 to 2. Word 3 says whether they stand on ground. */
+  readonly feet: { readonly x: number; readonly y: number; readonly z: number };
+  /** One fixed step's controls, off the command rather than the device, so a replay reads what the first run read. */
+  read: (command: RideCommandSample, dt: number) => void;
+  /** Write the ride and its capsule into `out` at `at`. */
+  capture: (out: Float64Array, at: number) => void;
+  /** Put a `capture` back. */
+  restore: (from: Float64Array, at: number) => void;
+  /** Take the server's words, over what `restore` put back. */
+  adopt: (words: ArrayLike<number>) => void;
+}
+
 /** A driver that owns the player's frame while its mode is entered (the Player's `ride` slot). */
 export interface PlayerModeDriver {
   /** The input phase: read the controls into this mode's intents. */
@@ -44,6 +62,8 @@ export interface PlayerModeDriver {
   sampleCommand?: () => RideCommandSample;
   /** Leave the mode (the driver's own way off: dismount). */
   dismount: () => void;
+  /** Present on a wire: the fixed step reads the command, and a predictor keeps it. */
+  readonly predicted?: PredictedRide | undefined;
 }
 
 /** A driven mode's declaration: its input context, its HUD slot and its hooks. */

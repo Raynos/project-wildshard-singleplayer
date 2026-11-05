@@ -23,11 +23,15 @@ import type { NetChannel, Transport } from '../../shared/net/transport';
 /** Sim steps per world frame: 60 Hz sim, 30 Hz frames (J40). */
 export const TICKS_PER_FRAME = 2;
 const SIM_HZ = 60, FRAME_HZ = 30;
+/** The most words a ride may put on the wire. */
+const RIDE_WORDS = 64;
 /** Acts one client gets a tick, and the most it may have waiting. */
 const ACTS_PER_TICK = 2, MAX_QUEUED_ACTS = 16;
 
 /** The player a client owns. */
-export interface NetPlayer { readonly id: string; readonly cls: NetClass<never>; sample: (out: Uint32Array, refs: NetRefs) => void }
+export interface NetPlayer { readonly id: string; readonly cls: NetClass<never>; sample: (out: Uint32Array, refs: NetRefs) => void;
+  /** The ride under this player as flat words, and how many. 0: on foot. */
+  readonly ride?: (out: Float64Array) => number }
 /** Hands the room each entity, with a view its class's accessors read. A view is valid only during the call. */
 export interface NetVisitor { entity: <S>(id: string, cls: NetClass<S>, view: S) => void }
 /** The world a room replicates. */
@@ -43,6 +47,8 @@ export interface NetWorld {
   quests?: (player: string, since: number) => { readonly version: number; readonly rows: readonly QuestProgress[]; readonly flags: readonly string[] } | null;
   /** What the tick granted (M8), each to its player. A world with no ledger leaves it out. */
   ledger?: () => readonly LedgerFiling[];
+  /** Who rides what, by id, as of this tick (J48). A world with no riding leaves it out. */
+  riders?: () => ReadonlyMap<string, string>;
   /** Hears who steps this tick, just before `step` (J125). A world whose players commands do not move leaves it out. */
   commanded?: (inputs: readonly NetTickInput[]) => void;
   /** The player a client owns unless it joins as another. */
@@ -80,6 +86,8 @@ interface RoomClient {
   ack: number; readonly acts: NetTickAct[]; readonly known: Set<number>;
   /** The quest rows this client holds, and the book version they came from. */
   questVersion: number; readonly quests: Map<string, string>; readonly phased: Set<string>;
+  /** Who it has heard riding what, in handles: what the next `mount` and `dismount` are a change from. */
+  readonly rides: Map<number, number>;
   /** What this client could see at each recent frame: a baseline is the frame and this set. */
   readonly views: ClientView[]; nextView: number;
   readonly owner: Uint32Array; dispose: () => void;
@@ -100,6 +108,7 @@ export class NetRoom {
   private readonly handles = new NetHandles();
   private readonly ring = new WorldFrameRing();
   private readonly writer = new BitWriter(4096);
+  private readonly rideOut = new Float64Array(RIDE_WORDS);
   private readonly world: NetWorld;
   private readonly step: NetRoomOptions['step'];
   private readonly build: string;
@@ -122,7 +131,7 @@ export class NetRoom {
   /** Connect a client that owns `player`. It waits for its `hello`, and past that for `open`. Returns its id. */
   join(transport: Transport, player: NetPlayer = this.world.player, queue: CommandQueue = new CommandQueue()): number {
     const id = ++this.clientIds, owner = new Uint32Array(player.cls.owner.length);
-    const client: RoomClient = { id, transport, player, queue, identity: GUEST, ledgerSeen: 0, state: 'new', ack: -1, acts: [], known: new Set(), questVersion: -1, quests: new Map(), phased: new Set(), owner,
+    const client: RoomClient = { id, transport, player, queue, identity: GUEST, ledgerSeen: 0, state: 'new', ack: -1, acts: [], known: new Set(), questVersion: -1, quests: new Map(), phased: new Set(), rides: new Map(), owner,
       views: Array.from({ length: FRAME_RING }, () => ({ tick: -1, visible: new Set<number>(), due: new Set<number>(), rows: new Map<number, number>() })), nextView: 0, dispose: () => undefined };
     const off = transport.onMessage((channel, bytes) => { this.receive(client, channel, bytes); });
     const closed = transport.onClose(() => { this.remove(client); });
@@ -251,8 +260,9 @@ export class NetRoom {
       const row = handles.touch(id, cls, view, serial), at = frame.claim(row.handle, cls.row.length);
       cls.row.forEach((column, index) => { frame.data[at + index] = column.sample(view, handles.refs); });
     } });
-    const retired = handles.sweep(serial), combat = this.combat.splice(0), lines = this.chat.drain();
-    for (const client of this.clients) if (client.state === 'live') this.send(client, frame, retired, combat, lines);
+    const retired = handles.sweep(serial), combat = this.combat.splice(0), lines = this.chat.drain(), riders = new Map<number, number>();
+    for (const [rider, mount] of this.world.riders?.() ?? []) riders.set(handles.refs(rider), handles.refs(mount));
+    for (const client of this.clients) if (client.state === 'live') this.send(client, frame, retired, combat, lines, riders);
   }
   /** Every entity in range of this client, itself excluded: its own state is the owner block. */
   private view(client: RoomClient, frame: WorldFrame, own: number): ClientView {
@@ -286,7 +296,16 @@ export class NetRoom {
       if (kept) this.stats.tierSkips++;
     }
   }
-  private send(client: RoomClient, frame: WorldFrame, retired: readonly number[], combat: readonly RoomCombat[], lines: readonly ChatLine[]): void {
+  /** A client hears every ride it can see start and end, its own first: a new client hears who already rides by the same diff. */
+  private rideEvents(client: RoomClient, own: number, riders: ReadonlyMap<number, number>, tick: number, events: NetEvent[]): void {
+    const { rides } = client, seq = client.queue.lastSeq, said = (kind: 'mount' | 'dismount', rider: number, mount: number): void => { events.push({ kind, tick, rider, mount, seq: rider === own ? seq : 0 }); };
+    for (const [rider, mount] of rides) if (riders.get(rider) !== mount) { rides.delete(rider); said('dismount', rider, mount); }
+    for (const [rider, mount] of riders) {
+      if (rides.has(rider) || (rider !== own && !client.known.has(rider))) continue;
+      rides.set(rider, mount); said('mount', rider, mount);
+    }
+  }
+  private send(client: RoomClient, frame: WorldFrame, retired: readonly number[], combat: readonly RoomCombat[], lines: readonly ChatLine[], riders: ReadonlyMap<number, number>): void {
     const { handles, writer, world } = this, own = handles.refs(client.player.id), view = this.view(client, frame, own), events: NetEvent[] = [];
     for (const handle of view.visible) {
       if (client.known.has(handle)) continue;
@@ -295,6 +314,7 @@ export class NetRoom {
       client.known.add(handle);
       events.push({ kind: 'spawn', handle, cls: row.cls.id, id: row.id, initial: row.initial, text: row.text });
     }
+    this.rideEvents(client, own, riders, frame.tick, events);
     // Spawns, then what happened, then who left: a body's last hit and its death arrive before its despawn.
     for (const row of combat) {
       if (row.kind === 'reward') { if (row.owner === client.player.id) { const { owner: _owner, ...reward } = row; events.push(reward); } continue; }
@@ -331,7 +351,8 @@ export class NetRoom {
     const base = acked === frame || seen === undefined ? null : acked;
     this.heldRows(view, frame, base === null ? null : seen ?? null);
     client.player.sample(client.owner, handles.refs);
-    const bytes = encodeFrame(writer, { frame, cell: world.cell(), lastSeq: client.queue.lastSeq, ownerClass: client.player.cls, owner: client.owner,
+    const { rideOut } = this, rideWords = client.player.ride?.(rideOut) ?? 0;
+    const bytes = encodeFrame(writer, { frame, cell: world.cell(), lastSeq: client.queue.lastSeq, ownerClass: client.player.cls, owner: client.owner, ride: rideOut, rideWords,
       visible: view.visible, baseline: base === null || seen === undefined ? null : { frame: base, visible: seen.visible, rowFrom: handle => this.ring.at(seen.rows.get(handle) ?? -1) },
       due: handle => view.rows.get(handle) === frame.tick, classOf: handle => handles.row(handle)?.cls });
     this.stats.frames++; this.stats.frameBytes += bytes.byteLength;
