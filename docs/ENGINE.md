@@ -3224,6 +3224,13 @@ keyboard-plus-stick world axes, preserving partial strength, then page speed and
 acceleration. Delegated drivers retain authority. Optional snapshot `player.walk`
 retains velocity through turns and release. Legacy commands retain their law and
 omit that field; a legacy command or pose reset clears versioned continuation.
+
+**Free swings and shots (P1-E3.2).** A net client's swing names no target until something is struck, so the tick's
+player command carries `swing: true` for a press or hold that names none, and `pitch` for the look (radians, within
+±π/2). The server resolves it: a swept owner takes the page's own `pickLunge`, a contact family its declared shape
+along the look, the lever rifle and a free bow release a line from the server's eye. The client's aim origin is never
+read. `hit` and `died` leave the room through `engine/net/combatWire`, one event per `damage.dealt` and `actor.died`,
+so a client sees what the sim settled and nothing else (J33, J47). Spawns go first and despawns last in a message.
 The default `beforeBodies` phase preserves existing fixed-step order; `afterBodies` runs after every creature
 body and its contact hook, for equipment that follows the creature loop. `useBodyStep({ before, after })`
 wraps each actual body step once, in actor order; paused bodies run neither hook. Installation and restore
