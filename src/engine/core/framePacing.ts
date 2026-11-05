@@ -10,11 +10,15 @@
  * Not presenting (the loading screen, a frozen title, Node bakers and tests): nothing changes, every yield is the caller's
  * own macrotask and `presenting()` is false, so a loader keeps its own budgets. Quiet frame floors back pacing on by default.
  * Pacing follows the loop's recent drawn frames; importing this module does not draw or schedule a frame.
+ *
+ * The drawn-frame reports are the pacing port (P1-E1): the browser loop feeds `noteFrameDrawn`, a headless host never does,
+ * so it never presents and its builds keep their own yields at its fixed tick. A frame wait goes through the scope
+ * environment the page installs (`framesAvailable`), so this module reads no DOM global.
  */
 import type { Scope } from '../app/scope';
 import { resourceScope } from '../app/resources';
+import { framesAvailable } from '../app/scopeEnvironment';
 import { diagnosticNow } from './clock';
-import { isDev } from './devMode';
 
 /** A page that drew a frame within this long is presenting: its builds pace themselves to its frames (ms). */
 const PRESENTING_MS = 250;
@@ -46,20 +50,10 @@ const HELD_SLICE_MIN_MS = 4;
 let heldSliceAt = Number.NEGATIVE_INFINITY;
 /** Frames drawn while held, for `heldFrameTurn`. */
 let heldFrames = 0;
-/** Whether the traveller waits for the build (a grid cell's loading screen shows); the grid sets it, off by default. */
+/** Whether the traveller waits for the build (a grid cell's loading screen shows); the grid sets it, off by default.
+ *  The page sets it through `setBuildHeldTimed` (`heldTiming.ts`), which also times each held interval on Developer pages. */
 export function setBuildHeld(on: boolean): void {
-  if (on !== held) noteHeldInterval(on);
   held = on; heldSliceAt = Number.NEGATIVE_INFINITY;
-}
-let heldSince = Number.NEGATIVE_INFINITY, heldIntervals = 0;
-/** Developer pages time each held interval (`wildshard.prepare:grid:held.<n>`, beside the preparation spans the crossing
- *  readers collect), so a reading shows when the held budgets applied. Public mode reads no clock. */
-function noteHeldInterval(on: boolean): void {
-  if (!isDev()) return;
-  const now = diagnosticNow();
-  if (on) { heldSince = now; return; }
-  if (Number.isFinite(heldSince)) performance.measure(`wildshard.prepare:grid:held.${String(heldIntervals++)}`, { start: heldSince, end: now });
-  heldSince = Number.NEGATIVE_INFINITY;
 }
 /** The latest a held frame may start: HELD_FRAME_FLOOR_MS after the last drawn one started, less the due slack. A capped
  *  loop's cadence anchor (`lastFrameAt`) can precede the vsync the frame actually ran at (`lastVsyncAt`) by up to a vsync,
@@ -146,7 +140,7 @@ export function nextDrawnFrame(owner?: Scope): Promise<void> {
     forget = scope.capture('disposers', finish);
     const check = (): void => {
       if (done) return;
-      if (lastDrawn > since || diagnosticNow() - start >= WAIT_CAP_MS || typeof globalThis.requestAnimationFrame !== 'function') { finish(); return; }
+      if (lastDrawn > since || diagnosticNow() - start >= WAIT_CAP_MS || !framesAvailable()) { finish(); return; }
       // A task after rAF leaves paint first. A nested timer costs 4 ms of the next build's frame before any work starts.
       frame = scope.raf(() => {
         if (done) return;

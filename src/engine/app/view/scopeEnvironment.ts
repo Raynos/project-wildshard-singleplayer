@@ -33,5 +33,7 @@ export function installBrowserScopeEnvironment(classes?: { Mesh: typeof Mesh; In
         : typeof HTMLCanvasElement !== 'undefined' && target instanceof HTMLCanvasElement ? 'canvas' : 'other',
     frame: render => sharedFrames().frame(render), cancelFrame: id => {frames?.cancel(id);},
     sharedFrames: true, framePending: () => frames?.pending ?? false,
+    // a renderer-free fixture installs this page environment in Node, where no native frame exists
+    framesAvailable: () => typeof requestAnimationFrame === 'function',
   });
 }

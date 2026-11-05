@@ -93,7 +93,7 @@ import { clientMaterials } from '../shardfile/clientMaterials';
 import { clientTileViews, type ClientTileViews } from '../shardfile/clientViews';
 import type { ClientSkin } from '../shardfile/clientSkins';
 import { setParkedMatricesFrozen, setWarmUpHeld } from '@wildshard/engine/render/precompile';
-import { setBuildHeld } from '@wildshard/engine/core/framePacing';
+import { setBuildHeldTimed } from '@wildshard/engine/core/heldTiming';
 import { NeighbourLife, type NeighbourLifeCell } from './neighbourLife';
 import { NeighbourPanels } from './neighbourPanels';
 import { copyMarks } from './copyIdentity';
@@ -682,7 +682,7 @@ export class GridSession {
       return edge === undefined ? null : { edge: { instance: waiting, x: edge.x, z: edge.z, axis: edge.axis, halfLength: edge.halfLength }, cell: centre, ground: edge.floor };
     });
     setParkedMatricesFrozen(true); // G580 T2: a hidden parked world skips matrix updates during its warm-up
-    host.scope.onDispose(() => { this.cellLoading.close(); if (host.heldFrame !== undefined) host.heldFrame.enabled = false; setWarmUpHeld(false); setParkedMatricesFrozen(false); setBuildHeld(false); });
+    host.scope.onDispose(() => { this.cellLoading.close(); if (host.heldFrame !== undefined) host.heldFrame.enabled = false; setWarmUpHeld(false); setParkedMatricesFrozen(false); setBuildHeldTimed(false); });
     // G78: a shimmer line at every shard border on its real ground; G119: SAVING… / SAVE FAILED, RETRY while a crossing waits
     const rows = new Map((edges ?? []).map((cell) => [cell.instance, cell.edges]));
     let status: CrossingSaveStatus = null, polled = 0;
@@ -995,7 +995,7 @@ export class GridSession {
     // G580 T2 (Developer): the traveller waits at the wall while its screen shows, so its warm-up may issue more a frame
     // G580 T2 / T5: a held traveller's warm-up issues more programs a frame and its builds run a bigger budget
     setWarmUpHeld(this.cellLoading.open !== null);
-    setBuildHeld(this.cellLoading.open !== null);
+    setBuildHeldTimed(this.cellLoading.open !== null);
   }
   private refusal(instance: string): ShardRefusal | null {
     const live = this.live?.refusal(instance);
