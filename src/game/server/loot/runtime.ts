@@ -10,7 +10,6 @@ import type { GearLoot, FindsView } from '../../client/bag/bag';
 import { CoinChip } from '../../client/loot/ui/CoinChip';
 import { CoinBurst } from './CoinBurst';
 import { Purse, publishPurse } from '../../shared/loot/Purse';
-import { installQuestShop } from '../../client/quest/trader';
 import { Bounty } from './Bounty';
 import { coinsFor, coinsOn, type LootGate } from './coins';
 import { OWNED,isCosmetic, isOwnedId, type Owned, type OwnedId } from '../../shared/loot/Owned';
@@ -140,12 +139,12 @@ export function enteredLootPresentation(ctx:ShardContext,id:string,bag?:unknown)
 }
 
 /** Install ordinary loot against the admitted world services without exposing a raw scene to runtime content. */
-export function installRuntimeLoot(ctx: ShardContext, presentation: LootPresentation, options: { readonly minimap?: boolean; readonly before?: readonly string[]; readonly shop?: unknown } = {}): ScopedLoot | null {
+export function installRuntimeLoot(ctx: ShardContext, presentation: LootPresentation, options: { readonly minimap?: boolean; readonly before?: readonly string[] } = {}): ScopedLoot | null {
   const runtime = ctx.game.runtime;
   if (runtime?.play === null || runtime?.play === undefined || runtime.world === null) return null;
   return installLoot({ ctx, manifest: ctx.manifest, owned: runtime.play.owned, scene: runtime.world.game.scene,
     player: runtime.world.player, camera: runtime.world.game.camera, animals: () => runtime.play?.animals.animals ?? [],
-    menu: runtime.play.menu, presentation: options.shop === undefined ? presentation : { ...presentation, shop: () => installQuestShop(ctx, options.shop)() },
+    menu: runtime.play.menu, presentation,
     ...(options.minimap === true ? { minimap: runtime.play.minimap ?? null } : {}),
     ...(options.before === undefined ? {} : { before: options.before }) });
 }

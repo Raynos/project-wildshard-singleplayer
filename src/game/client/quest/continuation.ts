@@ -13,6 +13,7 @@ import { sharedModelContext, type ModelDef } from '@wildshard/engine/models/mode
 import { Sword } from '../../server/weapons/Sword';
 import { installItemEffects } from '../../server/loadout/effects';
 import { enteredLootPresentation, installRuntimeLoot } from '../../server/loot/runtime';
+import { installQuestShop } from './trader';
 
 const ended = (ctx: ShardContext): boolean => ctx.scope.disposed || ctx.scope.disposing;
 
@@ -38,7 +39,7 @@ export async function installQuestContinuation(ctx: ShardContext, input: unknown
   const shop = await ctx.product.json(row.loot.shop);
   if (ended(ctx)) return;
   const presentation = enteredLootPresentation(ctx, row.loot.id, row.loot.bag);
-  installRuntimeLoot(ctx, presentation, { shop, minimap: row.loot.minimap, before: row.loot.before });
+  installRuntimeLoot(ctx, { ...presentation, shop: () => installQuestShop(ctx, shop)() }, { minimap: row.loot.minimap, before: row.loot.before });
 }
 
 /** Finite entry dispatch. The admitted file owns quest and collection ids; no
