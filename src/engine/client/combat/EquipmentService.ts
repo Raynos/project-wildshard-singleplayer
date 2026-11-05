@@ -64,6 +64,7 @@ export class EquipmentService implements WeaponHooks {
       pickup.onPickup = () => {
         if (!live || granted) return;
         granted = true;
+        this.interact(spec.owned); // the server judges a linked pickup by this name, and holds it or says otherwise
         host.owned.grant(spec.owned);
         this.unlock(weapon.id); this.select(weapon.id);
         host.onPickup(row, spec.toast);

@@ -1,20 +1,27 @@
 // @vitest-environment happy-dom
 // oxlint-disable-next-line import/no-nodejs-modules -- The room runs the shipped product bytes and physics module.
 import { readFileSync } from 'node:fs';
+import { Group } from 'three';
 import { beforeAll, expect, test } from 'vitest';
 import type { NetCommand } from '@wildshard/format/netCommand';
+import { EquipmentService } from '../src/engine/client/combat/EquipmentService';
 import { NetClient } from '../src/engine/client/net/client';
 import { NetPlayer } from '../src/engine/client/net/netPlayer';
 import { NetRoom, type NetTickInput } from '../src/engine/server/net/room';
 import { SimNetWorld } from '../src/engine/server/net/simWorld';
-import type { OwnHit } from '../src/engine/shared/combat/Weapon';
+import type { EquipmentPickup } from '../src/engine/server/combat/EquipmentPickup';
+import { Scope } from '../src/engine/shared/app/scope';
+import type { EquipmentRow } from '../src/engine/shared/combat/Equipment';
+import { Weapon, type OwnHit, type WeaponWire } from '../src/engine/shared/combat/Weapon';
 import { FIXED_STEP } from '../src/engine/shared/core/fixedStep';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
 import { actRoutes } from '../src/engine/shared/sim/actRoutes';
 import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
+import { legacyDouble } from '../src/engine/test/FakeGame';
 import { directLoopback } from '../src/engine/test/netLoopback';
 import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { readNativeRangedItem } from '../src/game/server/plugin/nativeItems';
+import { SWORD_WOOD } from '../src/game/shared/weapons/starterMeleeProfile';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { createTrustedHeadlessResident, type TrustedHeadlessResident } from '../src/sdk/headlessRuntime';
 import { netTickCommands } from '../src/sdk/standalone/netInput';
@@ -27,11 +34,17 @@ import { loadCourseRapier, PageSide, type MotionScenario } from './fixtures/moti
 // way into a server's hands is its own pickup, by name, in reach: a page that unlocks one by itself holds nothing.
 let R: Rapier, serverR: Rapier;
 beforeAll(async () => { R = await loadCourseRapier(); serverR = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
+class HeldRow extends Weapon {
+  readonly model = new Group(); readonly state = { ammo: 1, magazine: 1, reserve: 0, loaded: true, reloading: false, reloadProgress: 0, ads: false };
+  adsHeld = false; aimInfo = null; enabled = true; holster = 0;
+  tryFire(): void { /* Held only. */ }
+  update(): void { /* Held only. */ }
+}
 const SLOTS = new Map([['weapon.crossbow', 0], ['weapon.lever', 1], ['weapon.longbow', 2]]);
 const scenario: MotionScenario = { id: 'net-held', start: { x: -10, z: 0, yaw: 0 }, ticks: 0, intent: () => ({}), bodyAt: { x: -5, z: 30 } };
 
-async function resident(): Promise<TrustedHeadlessResident> {
-  const directory = builtProduct('pine-hollow'), product = await loadHeadlessProduct(directory), descriptor = outputDescriptor(product.shardfile);
+async function resident(shard = 'pine-hollow'): Promise<TrustedHeadlessResident> {
+  const directory = builtProduct(shard), product = await loadHeadlessProduct(directory), descriptor = outputDescriptor(product.shardfile);
   if (descriptor === undefined) throw new Error('Missing output');
   const assets = new Map(descriptor.index.files.map(file => [file.commons === true ? `commons:${file.hash}` : file.hash, Uint8Array.from(readFileSync(`${directory}/${file.path}`))]));
   return createTrustedHeadlessResident({ shard: product.shardfile, assets, rapier: serverR, product });
@@ -115,4 +128,21 @@ test('a bow held to full and let go looses on the server, on the command that le
     expect(held.net.attacks.pending).toBe(0);
     expect(held.refusals).toEqual([]);
   } finally { held.done(); }
+}, 120_000);
+
+test('a pickup the page places tells the server its name, and Driftwood\'s sword has a route of that name', async () => {
+  const live = await resident('driftwood-isle'), scope = new Scope('net-pickup'), wire: string[] = [];
+  try {
+    expect(actRoutes(live.host).interactions.has('iron-sword')).toBe(true);
+    const row = (id: string, pickup?: EquipmentRow['pickup']): EquipmentRow => ({ ...SWORD_WOOD, id: `weapon.${id}`, legacySlot: id, ...(pickup === undefined ? {} : { pickup }) });
+    let drop: EquipmentPickup | null = null;
+    const made: EquipmentPickup = { interactable: legacyDouble<EquipmentPickup['interactable']>({}), update: () => undefined, dispose: () => undefined };
+    const service = new EquipmentService(new HeldRow(row('sword')), { scope });
+    service.add(new HeldRow(row('sword-iron', { owned: 'iron-sword', prompt: '', toast: '', create: () => { drop = made; return made; } })), { locked: true });
+    service.bindWire(legacyDouble<WeaponWire>({ equip: () => undefined, interact: id => { wire.push(id); } }));
+    service.placePickups({ pickups: [{ id: 'weapon.sword-iron', at: 'wreck.deck' }] }, { prompts: [], owned: { has: () => false, grant: () => undefined }, onNear: () => undefined, onPickup: () => undefined });
+    if (drop === null) throw new Error('No drop');
+    made.onPickup?.();
+    expect(wire).toEqual(['iron-sword']);
+  } finally { scope.dispose(); live.dispose(); }
 }, 120_000);
