@@ -1,4 +1,4 @@
-import { pinePhysicsOwnersBytes, pinePhysicsSources, pineWorldPhysics } from './physics';
+import { pinePhysicsOwners, pinePhysicsOwnersBytes, pinePhysicsSources, pineWorldPhysics } from './physics';
 import { TREE_REST_FILE, TREE_SET } from './treeSet';
 import { parseNativeQuestServiceSpots } from '@wildshard/format/nativeQuestComposition';
 import forestWeather from '../data/forestWeather.json' with { type: 'json' };
@@ -56,9 +56,9 @@ import { parseQuestPageInteractions } from '@wildshard/format/questInteractions'
 import { PINE_LANTERN_PAGE } from './questPageInteractions';
 import { PINE_QUEST_SERVICES, PINE_MILL_DOOR } from './questConsequences';
 import {CabinSeedsSchema,parseFloorRows,PoolGroundSchema} from './sections';
-import { nameBlob, emitNamedBlobs, type BlobSourceOptions, type NamedBlob, type NamedBlobKind } from '@wildshard/sdk/blobs';
+import { nameBlob, emitNamedBlobs, serverBlob, type BlobSourceOptions, type NamedBlob, type NamedBlobKind, type ServerBlob } from '@wildshard/sdk/blobs';
 import { pineTreeRest } from './bake-tree-rest.mjs';
-import type { PineSources } from './pineSources';
+import { NAVMESH_SOURCE, TERRAIN_SOURCE, type PineSources } from './pineSources';
 import { readPineSources } from './programSources';
 import { heroMaterialFiles, materialTier, materialVariantOf } from './heroMaterialFiles.mjs';
 import type { ProjectOutput } from '@wildshard/sdk/projectOutput';
@@ -81,6 +81,11 @@ import manifest from '../manifest.json' with { type: 'json' };
 import publicInputs from '../data/publicInputs.json' with { type: 'json' };
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { cachedTreeRest, cachedCompactShapes } from './phoneGeometryCache';
+import { NATIVE_ASSEMBLY_DATA_SCHEMA, NATIVE_ASSEMBLY_FILE, NATIVE_ASSEMBLY_SCHEMA, type NativeAssemblyPlan } from '@wildshard/format/nativeAssembly';
+import { PINE_NATIVE_QUEST } from './nativeQuest';
+import { POPULATION_ENVIRONMENT } from './populationEnvironment';
+import TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
+import ENTRIES from '../data/entryWalk.json' with { type: 'json' };
 
 // GR8: called, not read from a scheduler job's output
 const spots = pineSpots();
@@ -115,7 +120,7 @@ const heldEquipment = { ...heldTuning,
 };
 
 /** Pine's output before the program's producers add theirs (`prepareOutput`). */
-export interface PineStaticOutput { platform: ReturnType<typeof emitPlatformSections>; namedFiles: ReturnType<typeof emitNamedBlobs>["files"]; assets: ReturnType<typeof emitNamedBlobs>["assets"]; blobs: NonNullable<ProjectOutput['blobs']>; late?: NonNullable<ProjectOutput['late']>; }
+export interface PineStaticOutput { platform: ReturnType<typeof emitPlatformSections>; namedFiles: ReturnType<typeof emitNamedBlobs>["files"]; assets: ReturnType<typeof emitNamedBlobs>["assets"]; blobs: NonNullable<ProjectOutput['blobs']>; late?: NonNullable<ProjectOutput['late']>; server?: readonly ServerBlob[]; }
 
 /** D65: the output rows over the program's sources (the scene, page and story rows, the props, the floor, the keyed sky);
  *  the platform rows go to `prepareOutput`, which adds the compiled return and spawn scripts. */
@@ -265,6 +270,32 @@ async function eliteModules(ctx: ProjectGenerationContext) {
   return { files: emitNamedBlobs(blobs), programs: feature.fights.map(fight => fight.program) };
 }
 
+/** P1-E3.1b (J90, J91): the plan a headless host builds Pine from, in the world's install order, and the files only it reads. */
+const NATIVE_ASSEMBLY: NativeAssemblyPlan = { kind: 'native-assembly', level: { speed: 5, ground: { size: 500, height: 0 } },
+  terrain: { kind: 'baked', file: 'server/terrain.bin', rows: { res: TERRAIN.res, size: TERRAIN.size, seed: TERRAIN.seed } }, navigation: { file: 'server/navmesh.bin' },
+  bake: { rows: { section: 'world/physics' }, reader: { label: 'Pine', resolution: TERRAIN.res, size: TERRAIN.size, parked: true, rig: 'segments', shapes: [1, 2, 6, 9], provenance: 'piece' },
+    ground: 'data/physics-ground.bin', colliders: ['data/physics-colliders.bin'], read: 'bake', owners: { file: 'data/physics.generated.json' }, pick: ['kingHit', 'shelterTrees'] },
+  collision: { resolution: TERRAIN.res, provenance: { field: 'pineWorldOwner', step: 'pine.world-tags', fallback: 'wood' } },
+  entries: { walk: ENTRIES, fresh: { omit: ['edge'] } },
+  features: [{ host: 'commands' }, { host: 'decisions' }, { host: 'day.keyed-sky' }, { host: 'collision' },
+    { host: 'boss.ground', encounter: { file: 'combat/roaming.json', path: ['projection', 'encounter'] },
+      binding: { population: POPULATION_ROSTER.step, weakPoint: { radius: pinePhysicsOwners().kingHit.radius }, reward: { inventory: 'pack', grants: [{ item: 'amber-resin', count: 3 }] } } },
+    { host: 'loadout' }, { host: 'combat.motion', speed: 7.2 },
+    { host: 'item.ranged', kind: 'bolt', weapon: 'weapon.crossbow' }, { host: 'item.ranged', kind: 'cycle', weapon: 'weapon.lever' }, { host: 'item.ranged', kind: 'bow', weapon: 'weapon.longbow' },
+    { host: 'ammunition', step: 'pine.ammunition', refill: 'iron' },
+    { host: 'quest.composition', rows: { file: 'server/quest-policy.json' }, spots: { file: 'quests/native-spots.json' }, counters: { file: 'quests/achievements.json' },
+      document: { file: 'quests/runtime.json' }, contracts: { file: 'quests/contracts.json' }, barter: true, director: true },
+    { host: 'weather.program', program: { file: 'world/weather.json' } }, { host: 'population.environment', rows: { file: 'server/habitat.json' } },
+    { host: 'population.shelter', rows: { file: 'actors/shelter.json' } }, { host: 'population.roster', rows: { file: 'actors/roster.json' } },
+    { host: 'population.elites', file: 'actors/elites.json' }, { host: 'population.spawn-script', id: 'pine.night' }, { host: 'population.elites-ready' }] };
+/** The server-class files: named in `admission.server`, never in the client's files, packs or Shardfile. */
+function serverFiles(sources: PineSources): ServerBlob[] {
+  return [serverBlob(NATIVE_ASSEMBLY_FILE, { schema: NATIVE_ASSEMBLY_SCHEMA, value: NATIVE_ASSEMBLY }),
+    serverBlob('server/terrain.bin', { bytes: sources.bytes(TERRAIN_SOURCE) }), serverBlob('server/navmesh.bin', { bytes: sources.bytes(NAVMESH_SOURCE) }),
+    serverBlob('server/quest-policy.json', { schema: NATIVE_ASSEMBLY_DATA_SCHEMA, value: PINE_NATIVE_QUEST }),
+    serverBlob('server/habitat.json', { schema: NATIVE_ASSEMBLY_DATA_SCHEMA, value: POPULATION_ENVIRONMENT })];
+}
+
 /** Preserve the original named inventory and its ordering while compiling both existing slots. */
 export async function prepareOutput(ctx: ProjectGenerationContext): Promise<PineStaticOutput> {
   // the return modules need the build's compiler: refuse before the whole static output is built, not after it
@@ -305,5 +336,5 @@ export async function prepareOutput(ctx: ProjectGenerationContext): Promise<Pine
   // the keyed sky decodes only the keys around the clock's phase (game looks/keyedSky.ts), read on demand, so no key is prefetched
   const skyKeys = output.namedFiles.filter(file => file.name?.startsWith('look/sky/') === true && file.kind === 'bin').map(file => ({ hash: file.hash }));
   const late = [...(await cabinScene(sources)).CABIN_LATE, ...skyKeys];
-  return { ...output, platform, namedFiles: [...namedFiles, shelter.file], assets: new Map([...sortedAssets, [shelter.file.hash, shelter.bytes]]), late };
+  return { ...output, platform, namedFiles: [...namedFiles, shelter.file], assets: new Map([...sortedAssets, [shelter.file.hash, shelter.bytes]]), late, server: serverFiles(sources) };
 }

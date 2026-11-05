@@ -23,6 +23,8 @@ export interface PineSources {
 
 /** The retained terrain's URL (its public path under `/assets/`). */
 export const TERRAIN_SOURCE = `/${bindings.terrain.replace(/^public\//u, '')}`;
+/** The retained navmesh's URL: the server-class input the native plan walks. */
+export const NAVMESH_SOURCE = `/${bindings.navmesh.replace(/^public\//u, '')}`;
 /** The authored trunk rows (`shelterTrees`). */
 export const PHYSICS_SOURCE = 'data/physicsRows.json';
 /** The timber world's rows (baked by the program, bake-timber-world.mjs); its hash-named assets are `assets/<hash>`. */
@@ -43,7 +45,7 @@ export function propScanSource(id: string): string {
 export const skyKeySource = (template: string, id: string): string => template.replaceAll('{id}', id);
 
 const FIXED: readonly string[] = [
-  TERRAIN_SOURCE, PHYSICS_SOURCE, ...HERO_TABLES, declared.trees.glb, declared.trees.sidecar, codeParts.url,
+  TERRAIN_SOURCE, NAVMESH_SOURCE, PHYSICS_SOURCE, ...HERO_TABLES, declared.trees.glb, declared.trees.sidecar, codeParts.url,
   ...Object.values(inputs.crags), ...Object.values(inputs.propScans), ...inputs.cabinModels,
   ...Object.values(sky.keys).flatMap(key => [skyKeySource(sky.keyFiles.color, key.id), skyKeySource(sky.keyFiles.gain, key.id)]),
 ];
