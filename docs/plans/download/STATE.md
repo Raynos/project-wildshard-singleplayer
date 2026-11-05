@@ -22,4 +22,4 @@
 
 **Rules:** G844, G848, G1001, G1006, G1008; goldens before any look change (G998); no reverts; never herdr wildshard-v.
 
-**LIVE b435fe3692 (b435fe3-mw2t7da8, 19:52):** 6th green today. DL5 rerun with gzip parts: Driftwood Shardfile 27.8-32.9 s vs packs 34.4-34.7 s (was 69 s); one packs run stalled after Shaders. DL20 gaps closed. Plots: witness split ec8ae9a59a, officials next.
+**LIVE b28a44a5e6 (21:15, fully entry-verified):** 7 greens today; WebKit deleted-program fix 54c8ed0c52 + 9d6b2e3e7e in CI. DL5 gzip: Pine packs +7.1 s vs Shardfile (fails). DL21 Nine cold 18.9 -> 15.2 s. D227 mip row deleted. OP24 done. Plots: Clockwork QUALIFIES on a3a6feb976.
