@@ -154,6 +154,8 @@ export interface MoverInstallation {
   prompts?: Interactable[];
   data: MoverData; modules: ReadonlyMap<string, string>; views?: ReadonlyMap<string, MoverView>; systemId: string;
   shared?: { host: ScriptHost; tick: () => number };
+  /** A server's rows pose these (J130): no fixed step here. */
+  followed?: boolean;
   /** Additional consuming item roles join this installer's single host and tick. Incompatible with an injected shared host. */
   composition?: MoverRoleComposition;
   /** A grid cell's admitted product bytes by module hash (`runtimeProduct(...).assets.retained`): a module present here is
@@ -267,6 +269,8 @@ export class MoverRuntime {
       }
     }
   }
+  /** Pose a mover off a server's row: its collider and its view, as a step would. No script ran. */
+  follow(id: string, pose: MoverPose): void { this.sinks.get(id)?.(pose); }
   /** Queue a host-validated interact command; scene dispatch resolves the stable mover id, never an arbitrary function export. */
   command(id: string, action: 1 | 2 | 3, player?: string): void {
     const row = this.data.find(m => m.id === id); if (row === undefined) throw new Error('Unknown mover');

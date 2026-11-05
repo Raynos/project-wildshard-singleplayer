@@ -53,6 +53,8 @@ export class NetQuestView implements QuestView {
     this.observers.add(observer);
     return () => { this.observers.delete(observer); };
   }
+  /** Take the rows as they stand, telling nobody: what a save opened with is no news. */
+  settle(): void { this.lastStarted = this.isStarted; this.lastStep = this.step(); }
   /** Tell observers what the newest row changed, as the server's quest told its own: the finish, then the step. */
   sync(): void {
     const started = this.isStarted, next = this.step(), previous = this.lastStarted ? this.lastStep : null;
@@ -81,4 +83,6 @@ export class QuestViewFeed {
     return view;
   }
   sync(): void { for (const view of this.views.values()) view.sync(); }
+  /** Take every row as it stands: the first frame of a session. */
+  settle(): void { for (const view of this.views.values()) view.settle(); }
 }

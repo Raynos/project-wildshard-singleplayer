@@ -8,6 +8,7 @@ import type * as CompendiumPresentation from '../compendium/install';
 
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { timeClientPreparation } from './preparationTiming';
+import { wirePage } from './wirePage';
 import { admitClientPlan, installClientPhase, type AdmittedClientPlan, type ClientPhase } from './clientPlan';
 import { materialTextureRefs } from '@wildshard/format/materials';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
@@ -469,7 +470,8 @@ export class ShardfileClient {
         return clock;
       },
       fixedStep: clientSimStep({ scope: ctx.scope, app: ctx.app, active: () => simulationActive && !installing, freeCamera: () => world.freeCamera, system: ctx.system }), hud: ui,
-      quest: { fact: (name, entity) => { fact(name, entity, 'quest.complete'); }, coins: (amount, entity) => {
+      quest: { fact: (name, entity) => { if (!wirePage.on) fact(name, entity, 'quest.complete'); }, coins: (amount, entity) => {
+        if (wirePage.on) return; // the server pays, and its ledger reaches the page
         if (loot?.purse !== null && loot?.purse !== undefined) { loot.purse.add(amount); return; }
         const host = this.sim?.host; if (host === undefined) throw new Error('Missing local coin host');
         const key = `coins.${entity}`, prior = host.slots.questState[key]; host.slots.questState[key] = (typeof prior === 'number' ? prior : 0) + amount;

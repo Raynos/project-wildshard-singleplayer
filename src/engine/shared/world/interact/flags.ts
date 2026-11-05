@@ -16,22 +16,43 @@ const flagsSave = saves.define({ key: 'flags', scope: 'shard', version: 1, schem
 
 
 export type FlagListener = (flag: string, on: boolean) => void;
+/** How long a page's own write stands before the server's word replaces it: a round trip and a retry. */
+const FLAG_ANSWER_TICKS = 120;
 
 export class Flags {
+  /** J130: told of every book made, on a page whose books follow a server. */
+  static made: ((book: Flags) => void) | null = null;
   private set_ = new Set<string>();
   private listeners: FlagListener[] = [];
   private persist: boolean;
+  /** A client's copy: a page's own write stands only until the server has had time to answer it, by frame tick. */
+  private following: { readonly wish: (flag: string) => void; readonly held: Map<string, number>; tick: number } | null = null;
   readonly level: string;
 
   // no parameter property: node's type stripping (the bakers' loader) rejects them
   constructor(level: string, persist = true) {
     this.level = level;
     this.persist = persist;
-    if (!persist) return;
-    try {
+    if (persist) try {
       const mine = flagsSave.read(level.replace(/^chunk:\/\/local\//u, ''));
       if (Array.isArray(mine)) for (const f of mine) if (typeof f === 'string') this.set_.add(f);
     } catch { /* fresh */ }
+    Flags.made?.(this);
+  }
+  /** Follow a server's copy of this book. It keeps the saves; `wish` hears each write this page makes. */
+  follow(wish: (flag: string) => void): void { this.persist = false; this.following = { wish, held: new Map(), tick: 0 }; }
+  /** The server's flags as of frame `tick`. A page's own write stands for `FLAG_ANSWER_TICKS`, then the server's word does. */
+  mirror(server: ReadonlySet<string>, tick: number): void {
+    const { following } = this;
+    if (following === null) return;
+    following.tick = tick;
+    const changed = (flag: string, on: boolean): void => {
+      if (on) this.set_.add(flag); else this.set_.delete(flag);
+      for (const l of this.listeners) l(flag, on);
+    };
+    for (const [flag, at] of following.held) if (server.has(flag) === this.set_.has(flag) || Math.abs(tick - at) > FLAG_ANSWER_TICKS) following.held.delete(flag);
+    for (const flag of this.set_) if (!server.has(flag) && !following.held.has(flag)) changed(flag, false);
+    for (const flag of server) if (!this.set_.has(flag) && !following.held.has(flag)) changed(flag, true);
   }
 
   has(flag: string): boolean { return this.set_.has(flag); }
@@ -47,6 +68,7 @@ export class Flags {
   set(flag: string, on = true): void {
     if (this.set_.has(flag) === on) return;
     if (on) this.set_.add(flag); else this.set_.delete(flag);
+    if (this.following !== null) { this.following.held.set(flag, this.following.tick); if (on) this.following.wish(flag); }
     if (!TRANSIENT_PREFIXES.some((p) => flag.startsWith(p))) this.save();
     for (const l of this.listeners) l(flag, on);
   }

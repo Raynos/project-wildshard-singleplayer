@@ -1,4 +1,5 @@
 
+import { wirePage } from '../shardfile/wirePage';
 import type { GridSession as DeclarationGridSession } from '../grid/session';
 import { exitSessionToTitle } from './exitToTitle';
 import { initialHomeMetadataRequired } from '../grid/homeMetadata';
@@ -638,7 +639,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
   let carcass: (typeof animals.animals)[number] | undefined;
   app.input.bind('use', () => {
     if (!hud.entered) return;
-    if (nearest) { tap.use?.(nearest.label); nearest.onInteract(); }
+    if (nearest) { tap.use?.(nearest.label); if (nearest.wireId !== undefined) wirePage.send(nearest.wireId); nearest.onInteract(); }
     else if (carcass && boot.runtime.hooks.harvestBusy?.() !== true) {
       const selectedCarcass = carcass;
       harvested.add(selectedCarcass);

@@ -64,7 +64,7 @@ class NetStorm implements StormReading {
 /** The climate a client's view reads: the server's, off the `weather.*` rows it publishes. It stands in for the page's
  * `pageClimate` at the flip, and steps nothing: a frame only reads the newest rows. A server keeps a setting's mode and a
  * dev's phase jump to itself until a command can carry them. */
-export function netClimate(client: NetClient, rows: { readonly weather: WeatherProgram; readonly reactions?: WeatherReactionRows }): ClimateFeed {
+export function netClimate(client: Pick<NetClient, 'latest' | 'stateField'>, rows: { readonly weather: WeatherProgram; readonly reactions?: WeatherReactionRows }): ClimateFeed {
   const weather = new NetWeather(rows.weather), storm = rows.reactions === undefined ? null : new NetStorm(rows.reactions, weather);
   return { weather, storm, setMode: () => undefined, force: () => undefined,
     frame: dt => {

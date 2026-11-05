@@ -9,6 +9,7 @@ import type { MoverView, MoverRuntime, MoverRoleComposition } from '../../server
 import type { installDeclaredMovers } from '../../server/plugin/moverInstall';
 import type { QuestWorldReactions, declaredItemScriptBindings } from '../../server/plugin/simulation';
 import { pageSim } from '../shardfile/clientMoverOwners';
+import { wirePage } from '../shardfile/wirePage';
 import { WorldTargetHost, type WorldTargetLanding } from '../../shared/shardfile/worldTargets';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
 import { parseWorldTargets, type WorldTargets } from '@wildshard/format/worldTargets';
@@ -448,7 +449,9 @@ export function questCard(quest: QuestView, introTitle?: string): MapQuest {
 }
 /** Shared wiring for older adventures that own their frame order. New shards use installQuestPresentation.
  * The chip, card, pins and marks read a `QuestView`; only places and talks write flags, so only they need `flags`. */
-export function presentQuest<Q extends QuestView & { readonly flags?: Flags }>(host: QuestPresentationHost, quest: Q, options: QuestPresentationOptions = {}): QuestPresentation<Q> {
+export function presentQuest<Q extends QuestView & { readonly flags?: Flags }>(host: QuestPresentationHost, source: Q, options: QuestPresentationOptions = {}): QuestPresentation<Q> {
+  // J130: on the wire a view reads the server's rows, and the page's quest only carries its flag book
+  const quest: QuestView & { readonly flags?: Flags | undefined } = wirePage.on ? Object.assign(Object.create(wirePage.quest(source.def)) as QuestView, { flags: source.flags }) : source;
   const messages=options.messages===undefined?null:questMessageHandlers(quest,options.messages,{toast:host.toast,sting:host.sting,
     ...(options.afterStep===undefined?{}:{afterStep:options.afterStep})});
   const scope = host.scope.child(`quest.${quest.def.id}`);
@@ -533,7 +536,7 @@ export function presentQuest<Q extends QuestView & { readonly flags?: Flags }>(h
     if (talking !== stowed) { stowed = talking; host.stowWeapon?.(stowed); }
     reward?.update(dt);
   };
-  return { quest, chip, markers, places, reward, update, dispose: () => { scope.dispose(); } };
+  return { quest: source, chip, markers, places, reward, update, dispose: () => { scope.dispose(); } };
 }
 
 /** One call in play(ctx): Wendell's chip, MAP card, diamonds, world pins, discovery, dialogue and reward. */

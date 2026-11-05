@@ -35,6 +35,7 @@ export function netPlayerCommand(command: NetCommand): Extract<HeadlessCommand, 
 export function netInteractCommands(routes: ActRoutes, acts: readonly NetTickAct[], player: string): HeadlessCommand[] {
   return acts.flatMap(act => {
     if (act.kind !== 'interact') return [];
+    if (act.id.startsWith('seen:') && routes.seen !== null) { routes.seen(player, act.id); return []; }
     const route = routes.interactions.get(act.id);
     if (route === undefined) { routes.refused++; return []; }
     return [{ kind: 'script' as const, ...route, playerId: player }];

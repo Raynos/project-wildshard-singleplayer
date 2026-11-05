@@ -60,7 +60,7 @@ export class QuestBook {
   dispose(): void { this.unwatch(); for (const quest of this.quests) quest.dispose(); }
 }
 
-/** What a player's client reads: its quests, and which of the flags that shape its own world are up. */
+/** What a player's client reads: its quests, and which of its own flags are up: a personal flag reaches nobody else. */
 export interface QuestProgressRead { readonly version: number; readonly rows: readonly QuestProgress[]; readonly flags: readonly string[] }
 /** Every player's book on one host, made as a player is first read. */
 export class QuestBooks {
@@ -114,7 +114,7 @@ export class QuestBooks {
   progressOf(id: string, since: number): QuestProgressRead | null {
     if (!this.host.players.has(id)) return null;
     const book = this.of(id), { flags } = book;
-    return book.version === since ? null : { version: book.version, rows: book.quests.map(quest => quest.progress()), flags: [...this.shown].filter(flag => flags.has(flag)) };
+    return book.version === since ? null : { version: book.version, rows: book.quests.map(quest => quest.progress()), flags: [...new Set([...this.shown, ...this.claimed])].filter(flag => flags.has(flag)) };
   }
   /** Every other player's book, or undefined: a one-player save never holds this. */
   save(): QuestBookSaved[] | undefined {

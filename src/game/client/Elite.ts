@@ -20,6 +20,8 @@ import { app } from '@wildshard/engine/app/runtime';
 import type { CrowdTargets } from '../shared/shardfile/crowdRuntime';
 import { eliteViewSource, eliteViewTell, parseEliteOutputActions, parseEliteOutputBank, type EliteEnteredPresentation, type EliteOutputAction, type EliteOutput } from '@wildshard/format/eliteFeature';
 import { pageSim } from './shardfile/clientMoverOwners';
+import { wirePage } from './shardfile/wirePage';
+import { EliteRowBar } from './boss/barFeed';
 import { lendViewTell, lendViewValues } from './shardfile/clientViewProgram';
 import { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
@@ -132,6 +134,7 @@ export class Elites {
   private readonly core: EliteCore<EliteScript>;
   private entered: (EliteViewEntered & { readonly outputs?: EliteOutputPrepare; readonly actions?: readonly EliteOutputAction[]; readonly validateOutputs?: () => void; readonly drainOutputs?: () => void }) | null = null;
   private readonly view: EliteView;
+  private rowBar: EliteRowBar | null = null;
   /** the elite whose bar is up (nearest aware / engaged) */
   get focus(): Entry | null { return this.view.focus; }
 
@@ -254,7 +257,11 @@ export class Elites {
   /** a once elite won for good (Argymaq tamed): the trophy + the "skin" (the horse is the reward), the lair retires */
   won(id: string): void { this.core.won(id); }
 
-  update(dt: number, t: number): void { this.view.update(dt, t, this.core.update(dt, t), this.core.entries); }
+  update(dt: number, t: number): void {
+    // J130: a bar has one driver. On the wire the rows draw it and this page's lairs never wake.
+    if (wirePage.on) { this.rowBar ??= new EliteRowBar(this.bar, this.core.entries.map(entry => entry.script.def), { player: this.host.player, camera: this.host.camera, head: wirePage.head }); this.rowBar.draw(wirePage.encounters(), dt); return; }
+    this.view.update(dt, t, this.core.update(dt, t), this.core.entries);
+  }
 }
 
 /** Compiled native admission produces these tags beside the real controller;

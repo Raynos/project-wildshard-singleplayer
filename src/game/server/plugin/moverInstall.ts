@@ -30,7 +30,8 @@ export async function installDeclaredMovers(ctx: LevelContext, world: World, opt
   options.prompts?.push(...runtime.ridePrompts());
   ctx.scope.onDispose(() => { if (runtime.riding()) world.player.carried = false; });
   const installedHost = host;
-  ctx.system({ id: options.systemId, phase: 'fixed.pre', before: ['physics.movers'], run: () => {
+  // A page on a server poses these off rows (J130), so its own scripts never step.
+  if (options.followed !== true) ctx.system({ id: options.systemId, phase: 'fixed.pre', before: ['physics.movers'], run: () => {
     const current = options.shared === undefined ? ++tick : options.shared.tick();
     if (options.shared === undefined) { if (composition === undefined) installedHost.beginTick(current); else composition.step(current); }
     runtime.step(current, options.permissions?.());

@@ -6,7 +6,11 @@ import { app } from '../app/runtime';
 import { markReload } from '../boot/lastEnd';
 import { SAVE_STRINGS as strings } from './saveStrings';
 import { buildOfflineRow } from './offlineDownload';
+import { exportServerSaves, importServerSaves } from '../saves/indexed';
+import { workerClientOn } from './debugOptions';
 
+/** The save file: a server's documents hold the session, on a page that runs one. */
+const exported = (): Promise<string> => workerClientOn() ? exportServerSaves(appIdentity().savePrefix, appIdentity().saveFormat) : Promise.resolve(app.saves.exportAll());
 function download(name: string, contents: string): void {
   const url = URL.createObjectURL(new Blob([contents], { type: 'application/json' }));
   const link = document.createElement('a'); link.href = url; link.download = name; link.click();
@@ -36,11 +40,11 @@ export function buildSavePanel(): HTMLDivElement & { refresh: () => void } {
       item.append(text, button(scope, strings.export, () => { download(`${appIdentity().fileSlug}-corrupt-${copy.key}-${copy.at}.json`, app.saves.exportCorrupt(copy)); })); aside.append(item);
     }
   };
-  row.append(button(scope, strings.export, () => { download(`${appIdentity().fileSlug}-save-${new Date().toISOString().slice(0, 10)}.json`, app.saves.exportAll()); renderAside(); }), button(scope, strings.import, () => { picker.value = ''; picker.click(); }));
+  row.append(button(scope, strings.export, () => { void exported().then(json => { download(`${appIdentity().fileSlug}-save-${new Date().toISOString().slice(0, 10)}.json`, json); renderAside(); return undefined; }).catch(() => { status.textContent = strings.failed; }); }), button(scope, strings.import, () => { picker.value = ''; picker.click(); }));
   scope.listen(picker, 'change', () => {
     const file = picker.files?.[0]; if (!file) return;
-    void file.text().then((json) => {
-      const report = app.saves.importAll(json);
+    void file.text().then(async (json) => {
+      const report = workerClientOn() ? await importServerSaves(json, appIdentity().savePrefix, appIdentity().saveFormat) : app.saves.importAll(json);
       status.textContent = [strings.imported(report.imported.length), strings.skipped(report.skipped.length), ...report.skipped.map((skip) => `${skip.key}: ${skip.reason}`)].join('\n');
       reload.hidden = report.imported.length === 0; renderAside(); return undefined;
     }).catch(() => { status.textContent = strings.failed; });

@@ -1,4 +1,5 @@
 import { bagMenu } from '../bag/tabs';
+import { wirePageSim } from '../shardfile/clientMoverOwners';
 import * as THREE from 'three';
 import { type LevelSequence, bootLevel } from '@wildshard/engine/boot';
 import { retried } from '@wildshard/engine/boot/retry';
@@ -35,7 +36,7 @@ import { LevelLoadError } from '@wildshard/engine/level/load';
 import { registerPlayground } from '@wildshard/engine/practice/playground/catalog';
 import { textureBytes } from '@wildshard/engine/render/textureBytes';
 import { installErrorModal, showError } from '@wildshard/engine/ui/ErrorModal';
-import { registerLevelDebugRow } from '@wildshard/engine/ui/debugOptions';
+import { registerLevelDebugRow, workerClientOn } from '@wildshard/engine/ui/debugOptions';
 import { showLoadFailure } from '@wildshard/engine/ui/errorScreen';
 import { installWorldRegistry } from '@wildshard/engine/world/registry';
 
@@ -121,6 +122,7 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts, optio
 }
 
 async function buildSession(manifest: ShardManifest, stage: LoadStage, kit: KitPorts, session: SessionState): Promise<BuiltWorld> {
+  if (workerClientOn()) wirePageSim(); // J130: before anything this session installs reads the page's sim
   const boot: StagedBoot = { handoff: null, items: new Map(), featTotal: undefined, skins: [],
     runtime: { world: null, step: null, play: null, interactables: [], overhead: [], objects: {}, hooks: {}, viewer: () => new THREE.Vector3(), horizonVeil: null },
     progress: { set: () => undefined, detail: () => undefined }, worldHook: (work) => work() };

@@ -345,6 +345,7 @@
     "./net/command": "./shared/net/command.ts",
     "./net/transport": "./shared/net/transport.ts",
     "./saves/slots": "./client/saves/slots.ts",
+    "./saves/indexed": "./client/saves/indexed.ts",
     "./saves/store": "./shared/saves/store.ts",
     "./strings": "./shared/strings.ts",
     "./ui/BossBar": "./client/ui/BossBar.ts",

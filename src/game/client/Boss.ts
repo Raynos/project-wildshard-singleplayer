@@ -1,4 +1,6 @@
 import type { Game } from '@wildshard/engine/core/Game';
+import { BossRowBar } from './boss/barFeed';
+import { wirePage } from './shardfile/wirePage';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -323,5 +325,7 @@ export function installBossEncounter<S extends BossScript>(rows: BossEncounterRo
     ...(ports.feed === undefined ? {} : { feed: ports.feed }), ...(ports.pickupHum === undefined ? {} : { pickupHum: ports.pickupHum }), ...(music === undefined ? {} : { music }),
   }, ui, ports.chunkId, ports.persistence);
   if (ports.scope !== null) app.encounters.boss(rows.definition.id, boss, ports.scope);
-  return { fight, boss, ui, update: (dt, t) => { if (ports.advance === undefined) boss.update(dt, t); else ports.advance(boss, fight, dt, t); }, onPlayerDeath: () => boss.onPlayerDeath() };
+  // J130: a bar has one driver. On the wire the row draws it and this page's brain never arms.
+  const rowBar = wirePage.on ? new BossRowBar(ui, rows.definition) : null;
+  return { fight, boss, ui, update: (dt, t) => { if (rowBar !== null) rowBar.draw(wirePage.encounters(), dt); else if (ports.advance === undefined) boss.update(dt, t); else ports.advance(boss, fight, dt, t); }, onPlayerDeath: () => rowBar === null && boss.onPlayerDeath() };
 }

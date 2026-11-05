@@ -3,6 +3,7 @@ import * as v from 'valibot';
 import { PopulationProjectionSchema, type PopulationProjectionRows } from '@wildshard/format/populationProjection';
 import type { PageActorGroups } from '../../server/population/pageGroups';
 import { pageSim } from '../shardfile/clientMoverOwners';
+import { wirePage } from '../shardfile/wirePage';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { Rng } from '@wildshard/engine/core/rng';
@@ -95,7 +96,7 @@ export class PopulationProjection {
     return this;
   }
   private counts(): void {
-    for (const [id, row] of Object.entries(this.rows.counts)) this.placed[id] = this.creatures.count(row.kind, row.groups) - Number(row.practice && this.practice !== null);
+    for (const [id, row] of Object.entries(this.rows.counts)) this.placed[id] = wirePage.creatures(row.kind) ?? this.creatures.count(row.kind, row.groups) - Number(row.practice && this.practice !== null);
   }
   splash(at: THREE.Vector3, strength = 1): void {
     const row = this.rows.splash, n = Math.round(row.count * strength), rng = app.rng.stream('cosmetic');

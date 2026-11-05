@@ -5,6 +5,7 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { ShardContext } from '../plugin/context';
 import { forestPage } from '../shardfile/forestPage';
 import { QuestFlagGates } from '../../shared/quest/flagGates';
+import { wirePage } from '../shardfile/wirePage';
 
 /**
  * Borrow the forest page's declared door (its prompt and use, for the door page's owners) and bar it with the page's flag
@@ -18,7 +19,8 @@ export function installPageDoor(ctx: ShardContext, input: unknown): { readonly p
   if (rows.gates.gates.some(gate => gate.target.kind !== 'piece' || gate.target.piece !== piece.id)) throw new Error('Page door gates bar its own registered piece');
   // I2: a late cabin weld registers its doors after control; the gate binds the registered piece then
   const lateDoors = forestPage(ctx.scope, rows.forest).cabins.lateDoors;
-  if (lateDoors === null) new QuestFlagGates(ctx, rows.gates);
-  else void (async () => { await lateDoors; if (!ctx.scope.disposed && !ctx.scope.disposing) new QuestFlagGates(ctx, rows.gates); })();
+  const view = wirePage.on ? wirePage.gates : undefined; // J106: on the wire a gate is this player's, off its `phase` events
+  if (lateDoors === null) new QuestFlagGates(ctx, rows.gates, false, view);
+  else void (async () => { await lateDoors; if (!ctx.scope.disposed && !ctx.scope.disposing) new QuestFlagGates(ctx, rows.gates, false, view); })();
   return { prompt, use: piece.use };
 }

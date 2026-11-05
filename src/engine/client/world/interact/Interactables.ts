@@ -418,6 +418,7 @@ export class Interactables {
         position: pos,
         get radius() { return radius(); },
         get label() { return label(); },
+        wireId: d.id,
         onInteract: () => { this.interact(lv); },
       };
       lv.prompt = prompt;

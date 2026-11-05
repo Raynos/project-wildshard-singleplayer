@@ -17,7 +17,8 @@ import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import type { HeadlessRuntimeInput } from '../src/sdk/headlessRuntime';
 import type { StandaloneGrid } from '../src/sdk/standalone/gridServer';
 import { runStandaloneServer } from '../src/sdk/standalone/serverHost';
-import { connectStandalone, importPageSaves, type IndexedSaves, type StandaloneShell } from '../src/sdk/standalone/shell';
+import { importPageSaves, type IndexedSaves } from '../src/engine/client/saves/indexed';
+import { connectStandalone, type StandaloneShell } from '../src/sdk/standalone/shell';
 import { builtProduct } from './fixtures/builtProduct';
 
 // A player's saves are the page's: the server opens them, with its own world rebuilt, and carries on from what they say.

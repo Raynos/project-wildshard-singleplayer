@@ -6,6 +6,8 @@ import { bindRuntimeBoss } from '../../shared/plugin/runtimeRows';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { WakeBossEncounter } from '../../shared/boss/wake';
 import { presentWakeBoss } from '../boss/presentation';
+import { BossRowBar } from '../boss/barFeed';
+import { wirePage } from '../shardfile/wirePage';
 import type { ShardContext } from '../plugin/context';
 import { readDirectorProduct } from '../../shared/plugin/director';
 import { enteredCompletion } from '../complete/declared';
@@ -38,8 +40,10 @@ export async function installChapterWakeEncounter(ctx: ShardContext, input: unkn
     || director.rewardAt === null || director.rewardPose === undefined) throw new Error('Chapter encounter requires its entered world and reward');
   const encounter = new WakeBossEncounter(rows.encounter, pool), bar = ctx.scope.run(() => new BossBar());
   let actor: Animal | null = null;
+  // J130: a bar has one driver. On the wire the row draws it, and the body under it is the server's.
+  const rowBar = wirePage.on ? new BossRowBar(bar, { id: rows.encounter.id, name: rows.encounter.name, title: '', retryTitle: '', phases: [{ at: 1, caption: '' }, ...rows.encounter.presentation.cuts.map(at => ({ at, caption: '' }))] }) : null;
   const spawn = (): void => {
-    if (actor !== null) return;
+    if (actor !== null || rowBar !== null) return;
     try {
       actor = spawnOwner.spawn(); if (actor === null) throw new Error('Declared chapter body unavailable');
       actor.herd = -1; actor.mem[rows.encounter.fields.poolX] = pool.x; actor.mem[rows.encounter.fields.poolZ] = pool.z;
@@ -61,10 +65,10 @@ export async function installChapterWakeEncounter(ctx: ShardContext, input: unkn
   ctx.scope.onDispose(flags.onChange(cues));
   ctx.app.encounters.register({ id: rows.encounter.id, displayName: rows.encounter.name }, ctx.scope);
   ctx.app.encounters.boss(rows.encounter.id, encounter, ctx.scope);
-  ctx.on('player.died', () => { encounter.onPlayerDeath(world.player.position); present(); });
+  ctx.on('player.died', () => { if (rowBar !== null) return; encounter.onPlayerDeath(world.player.position); present(); });
   cues();
   ctx.system({ id: rows.systems.encounter, phase: 'update', before: rows.systems.before,
-    run: dt => { bar.update(dt); encounter.update(observation()); present(); } });
+    run: dt => { if (rowBar !== null) { rowBar.draw(wirePage.encounters(), dt); return; } bar.update(dt); encounter.update(observation()); present(); } });
   ctx.system({ id: rows.systems.director, phase: 'update', before: rows.systems.before, run: dt => { director.update(dt); cues(); } });
   return { get actor() { return actor; }, rewardAt: director.rewardAt, rewardPose: director.rewardPose };
 }

@@ -11,6 +11,7 @@ import { CoinBurst } from './CoinBurst';
 import { Purse, publishPurse } from '../../shared/loot/Purse';
 import { coinsOn, type LootGate } from './coins';
 import { pageLootFeed, type LootFeed } from './feed';
+import { wirePage } from '../shardfile/wirePage';
 import { OWNED,isCosmetic, isOwnedId, type Owned, type OwnedId } from '../../shared/loot/Owned';
 import { declaredLootPresentation } from '../../shared/shard/declaredRows';
 import { createFindsCatalogue } from '../../shared/bag/findsCatalogue';
@@ -68,7 +69,8 @@ export function installLoot<A extends LootBody>(h: ScopedLootHost<A>): ScopedLoo
   const flush = (): void => { purse.flush(); };
   const onHidden = (): void => { if (document.visibilityState === 'hidden') flush(); };
   lifetime.listen(window, 'pagehide', flush); lifetime.listen(document, 'visibilitychange', onHidden);
-  const feed = h.feed ?? pageLootFeed(ctx, h.manifest, h.animals, view.lateKinds ?? []);
+  // the page's law stays until the flip deletes it; a page with a wire has one payer, the server (J105)
+  const feed = h.feed ?? (wirePage.on ? wirePage.lootFeed(lifetime) : pageLootFeed(ctx, h.manifest, h.animals, view.lateKinds ?? []));
   const projected = new THREE.Vector3(), fell = new THREE.Vector3();
   const offPayouts = feed.onPayout(({ at, coins: n }) => {
     if (!live) return;

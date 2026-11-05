@@ -9,14 +9,19 @@ import './saves.css';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { app } from '@wildshard/engine/app/runtime';
 import { exitSessionToTitle } from './session/exitToTitle';
+import { appIdentity } from '@wildshard/engine/app/identity';
 import { markReload } from '@wildshard/engine/boot/lastEnd';
 import { isDev } from '@wildshard/engine/core/devMode';
+import { forgetServerInstance, openIndexedSaves, SERVER_SAVES } from '@wildshard/engine/saves/indexed';
+import { SaveStore } from '@wildshard/engine/saves/store';
+import { workerClientOn } from '@wildshard/engine/ui/debugOptions';
 import type { GameMenu } from '@wildshard/engine/ui/Menu';
 import { mountUi } from '@wildshard/engine/ui/ownership';
 import catalogue from '../shared/grid/singleplayer.json' with { type: 'json' };
 import { previewNewGame, resetNewGame, type NewGameProgress, type NewGameSummary } from '../shared/newGame';
 import type { LocalSaveInstance } from '../shared/instanceSaves';
 import { catalogueManifests } from './shard/titleList';
+import { wirePage } from './shardfile/wirePage';
 import type { ShardManifest } from './shard/manifest';
 
 /** Every string the section and the sheet show, quoted from the G83 board. */
@@ -103,6 +108,15 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text = '
 const preview = (instance: LocalSaveInstance): NewGameSummary | null => { try { return previewNewGame(app.saves, instance); } catch { return null; } };
 const reset = (instance: LocalSaveInstance): boolean => { try { return resetNewGame(app.saves, instance).applied; } catch { return false; } };
 
+/** J130: a page on a server has a second copy, and the server would reopen it. Stop the server first: it saves as a page hides. */
+async function resetServerCopy(instance: LocalSaveInstance): Promise<void> {
+  wirePage.stop();
+  const saves = await openIndexedSaves(SERVER_SAVES), { savePrefix } = appIdentity();
+  resetNewGame(new SaveStore({ local: saves.storage, session: saves.storage }), instance);
+  await saves.write(`${savePrefix}${instance.id}`, saves.storage.getItem(`${savePrefix}${instance.id}`)); // answers when that reset is durable
+  await forgetServerInstance(saves, savePrefix, instance.id);
+}
+
 /** The New game sheet over the menu: before → after, what is kept, NEW GAME / KEEP PLAYING. `done` re-renders the cards. */
 function openSheet(card: SaveCardSpec, opts: SavesSettingsOptions, done: () => void): void {
   const summary = preview(card.instance);
@@ -136,8 +150,12 @@ function openSheet(card: SaveCardSpec, opts: SavesSettingsOptions, done: () => v
     if (!reset(card.instance)) { status.textContent = SAVES_STRINGS.refused; status.hidden = false; confirm.disabled = false; return; }
     // MF10: no live standalone bindings survive any applied reset. The grid
     // retains its own recovery checkpoint and fresh-document reload.
-    if (!opts.grid) { (opts.toTitle ?? exitSessionToTitle)(); return; }
-    afterReset?.(); markReload('new game', 'new-game'); location.reload();
+    const leave = (): void => {
+      if (!opts.grid) { (opts.toTitle ?? exitSessionToTitle)(); return; }
+      afterReset?.(); markReload('new game', 'new-game'); location.reload();
+    };
+    if (!workerClientOn()) { leave(); return; }
+    void resetServerCopy(card.instance).then(leave, leave);
   });
   scope.raf(() => { root.classList.add('show'); });
 }

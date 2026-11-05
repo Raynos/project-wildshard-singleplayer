@@ -5,7 +5,9 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { LiveGridWire } from '../grid/liveSession';
 import type { SystemSpec } from '@wildshard/engine/app/systems';
 import type { Player } from '@wildshard/engine/player/Player';
+import type { Vector3 } from 'three';
 import { appIdentity } from '@wildshard/engine/app/identity';
+import { importPageSaves, openIndexedSaves, SERVER_SAVES, type IndexedSaves } from '@wildshard/engine/saves/indexed';
 import { saveEnvironment } from '@wildshard/engine/saves/environment';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import type { NetClient } from '@wildshard/engine/net/client';
@@ -13,7 +15,6 @@ import { NetPlayer, type NetWeapons } from '@wildshard/engine/net/netPlayer';
 import type { PredictedRow } from '@wildshard/engine/net/predictionWorld';
 import { ANIMAL_CLASS } from '@wildshard/engine/net/netSchemas';
 import type { Physics } from '@wildshard/engine/physics/Physics';
-import type { SaveStorage } from '@wildshard/engine/saves/store';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { ANIMAL_STATES } from '@wildshard/engine/entities/animalStates';
@@ -25,11 +26,13 @@ import { mountOf } from '../../shared/riding/entered';
 import { GrappleTool } from '../grapple/tool';
 import { netClaw } from '../grapple/netClaw';
 import type { Mount } from '../riding/mount';
+import { netMoverPoses } from '../plugin/moverViews';
+import { wirePage } from './wirePage';
 
 type Creatures = Pick<AnimalManager, 'animals' | 'spawn' | 'retire'>;
 /** What a grid page lends: its crossing follows the server, and its creatures are the entered cell's. */
 export interface WorkerClientGrid {
-  readonly cells: readonly { readonly instance: string }[];
+  readonly cells: readonly { readonly instance: string; readonly slug: string }[];
   readonly bindWire: (wire: LiveGridWire) => void;
   readonly frame: () => string | null;
   readonly animals: () => Creatures | null;
@@ -55,17 +58,17 @@ export interface WorkerClientPorts {
   readonly died: () => void;
   /** The page's own shard's item rows: a ranged row names the server's slot for it. */
   readonly items: readonly WorkerItemRow[];
+  /** A creature kind's body measures, where a page knows them: what a row with no body here stands as in the predicted world. */
+  readonly dims: (kind: string) => Parameters<typeof creatureBodyShape>[0] | null;
   /** The tools this page holds now: a hook tool's claw goes on the wire. */
   readonly tools: () => readonly object[];
   readonly scope: Scope;
   readonly system: (system: SystemSpec) => void;
 }
-interface Saves { readonly storage: SaveStorage; readonly write: (key: string, value: string | null) => Promise<boolean> }
-interface ShellModule { readonly openIndexedSaves: (name: string) => Promise<Saves>; readonly importPageSaves: (saves: Saves, page: SaveStorage, prefix: string) => Promise<void>; readonly startStandalone: (config: { slug: string; base: string; build: string; savePrefix: string; lone?: true } & Saves) => Shell }
+interface ShellModule { readonly startStandalone: (config: { slug: string; base: string; build: string; savePrefix: string; lone?: true } & IndexedSaves) => Shell }
 interface Shell { readonly client: NetClient; readonly booted: Promise<{ readonly restored: boolean }>; ready: () => void; save: () => Promise<{ readonly tick: number; readonly ok: boolean }>; probe: () => Promise<{ readonly tickMs: number }>; dispose: () => void }
 
-/** The server's saves: the page's own, read once into IndexedDB and left in place. A session outgrows localStorage at its first cell. */
-const SAVES_DATABASE = 'wildshard-saves', SAVE_EVERY_MS = 30_000;
+const SAVE_EVERY_MS = 30_000;
 const column = (name: string): number => ANIMAL_CLASS.row.findIndex(entry => entry.name === name);
 const X = column('x'), Y = column('y'), Z = column('z'), YAW = column('yaw'), STATE = column('state'), ATTACK = column('attackT'), FLINCH = column('flinch'), HP = column('hp'), ALIVE = column('alive');
 
@@ -93,6 +96,16 @@ function syncCreatures(client: NetClient, animals: Creatures | null, bodies: Map
   for (const body of animals.animals.filter(entry => !entry.rowDriven)) animals.retire(body); // what the page's own population made
 }
 
+type BodyDims = Parameters<typeof creatureBodyShape>[0];
+/** Measures of a kind this page has no species for, which only stop a walk a little early or late. A kind's measures never change, and building them isn't cheap. */
+const SOME_CREATURE: BodyDims = { bodyRadius: 0.45, bodyHalfLen: 0.7, bodyY: 0.9 }, KIND_DIMS = new Map<string, BodyDims>();
+/** The head over a body, as an elite's bar reads it. */
+function headOf(body: Animal | undefined, to: Vector3): boolean {
+  if (body === undefined) return false;
+  to.copy(body.mesh.position); to.y += body.dims.bodyY * body.scale * 1.6;
+  return true;
+}
+
 /** Rows onto the bodies, and the near ones into the predicted world as capsules. */
 function showRows(client: NetClient, net: NetPlayer, ports: WorkerClientPorts, bodies: ReadonlyMap<number, RowBody>, renderTick: number, dt: number, row: Float64Array, near: PredictedRow[]): number {
   const { interpolator } = client, own = client.welcome?.handle ?? 0, under = client.riders.get(own);
@@ -103,6 +116,14 @@ function showRows(client: NetClient, net: NetPlayer, ports: WorkerClientPorts, b
     body.showRow({ x: row[X] ?? 0, y: row[Y] ?? 0, z: row[Z] ?? 0, yaw: row[YAW] ?? 0, state: ANIMAL_STATES[row[STATE] ?? 0] ?? 'idle', attack: row[ATTACK] ?? 0, flinch: row[FLINCH] ?? 0, hp: row[HP] ?? 0, alive: row[ALIVE] === 1 }, dt);
     shown++;
     const { radius, height } = creatureBodyShape(body.dims, body.scale);
+    near.push({ handle, x: row[X] ?? 0, y: row[Y] ?? 0, z: row[Z] ?? 0, alive: row[ALIVE] === 1, driven: false, radius, height });
+  }
+  // A data cell's life draws its own bodies, and a crossing has none yet: the rows still stand in the predicted world, or walking into one corrects.
+  for (const [handle, info] of client.entities) {
+    if (info.cls.cls !== ANIMAL_CLASS.cls || bodies.has(handle) || handle === under || !interpolator.sample(handle, renderTick, row)) continue;
+    const kind = String(info.initial['kind']), dims = KIND_DIMS.get(kind) ?? ports.dims(kind) ?? SOME_CREATURE;
+    KIND_DIMS.set(kind, dims);
+    const { radius, height } = creatureBodyShape(dims, Number(info.initial['scale'] ?? 1));
     near.push({ handle, x: row[X] ?? 0, y: row[Y] ?? 0, z: row[Z] ?? 0, alive: row[ALIVE] === 1, driven: false, radius, height });
   }
   net.world.syncRows(near, ports.player.position);
@@ -124,12 +145,15 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   await import(/* @vite-ignore */ `${root}/identity.js`);
   const environment = await import(/* @vite-ignore */ `${root}/storage.js`) as { installBrowserSaveEnvironment: () => void };
   environment.installBrowserSaveEnvironment();
-  const { importPageSaves, openIndexedSaves, startStandalone } = await import(/* @vite-ignore */ `${root}/shell.js`) as ShellModule;
-  const saves = await openIndexedSaves(SAVES_DATABASE), { savePrefix } = appIdentity();
+  const { startStandalone } = await import(/* @vite-ignore */ `${root}/shell.js`) as ShellModule;
+  // The server's saves: the page's own, read once into IndexedDB and left in place. A session outgrows localStorage at its first cell.
+  const saves = await openIndexedSaves(SERVER_SAVES), { savePrefix } = appIdentity();
   const page = saveEnvironment().storage('shard');
   if (page !== null) await importPageSaves(saves, page, savePrefix);
   const shell = startStandalone({ slug, base: `/shardfiles/${slug}/`, build, savePrefix, ...ports.grid === null ? { lone: true as const } : {}, ...saves }), { client } = shell;
-  scope.onDispose(() => { shell.dispose(); });
+  let ended = false;
+  const stop = (): void => { if (!ended) { ended = true; shell.dispose(); } };
+  scope.onDispose(stop);
   const net = new NetPlayer(client, player, physics), show = overlay(ports), row = new Float64Array(ANIMAL_CLASS.row.length), near: PredictedRow[] = [], costs = new Float64Array(240), bodies = new Map<number, RowBody>();
   // the ride: a press goes up, and it starts and ends on the server's word. The body under the rider leaves its row for it
   let mount: Mount | null = null;
@@ -155,6 +179,8 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     tool?.useClaw(course => netClaw(client, id, net.hooks, course));
   };
   scope.onDispose(() => { clawed?.useClaw(null); clawed = null; });
+  wirePage.bind(client, id => { net.wire.interact(id); }, stop, (handle, to) => headOf(bodies.get(handle)?.body, to));
+  scope.onDispose(() => { wirePage.unbind(); });
   // J116: the lock's body by the server's name for it
   net.lockTarget = () => {
     if (lockOn.state !== 'locked' || lockOn.target === null) return undefined;
@@ -166,7 +192,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   const slotsOf = (rows: readonly WorkerItemRow[]): Map<string, number> => new Map(rows.flatMap(item => item.ranged === undefined ? [] : [[item.id, item.ranged.slot] as const]));
   player.link = net; net.bindWeapons(ports.weapons, slotsOf(items));
   // A frame names its world. A grid page crosses when one says so; a one-shard page has only the world it opened in, and waits there.
-  const { grid } = ports, siteOf = (cell: number): string | null | undefined => cell === 0 ? null : grid?.cells[cell - 1]?.instance;
+  const { grid } = ports, bookOf = (cell: number | undefined): string | null => cell === undefined || cell === 0 ? null : grid?.cells[cell - 1]?.slug ?? null, siteOf = (cell: number): string | null | undefined => cell === 0 ? null : grid?.cells[cell - 1]?.instance;
   let opened: number | undefined, renderTick = 0;
   if (grid === null) net.inCell = cell => (opened ??= cell) === cell;
   else {
@@ -201,6 +227,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     syncCreatures(client, animals, bodies);
     bindMount(); offerMounts(); bindClaw();
     const shown = showRows(client, net, ports, bodies, renderTick, dt, row, near);
+    wirePage.frame(here ? bookOf(client.latest?.cell) : null, here); netMoverPoses(client, wirePage.movers, renderTick);
     report.rows = animals === null ? [...client.entities.values()].filter(info => info.cls.cls === ANIMAL_CLASS.cls).length : shown; // a data cell's life draws them
     net.present(dt);
     const now = diagnosticNow(), { predictor } = net, seconds = (now - started) / 1000, tick = client.latest?.tick ?? 0;

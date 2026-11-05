@@ -267,7 +267,8 @@ export function flagsRead(d: InteractDef): string[] {
 export const TRANSIENT_PREFIXES: string[] = ['plate:'];
 
 /** Weak actions yield to another reachable prompt. */
-export interface Interactable { position: Vector3; radius: number; label: string; onInteract: () => void; weak?: boolean }
+/** `wireId`, when a server knows this prompt: what a client's press of it sends. */
+export interface Interactable { position: Vector3; radius: number; label: string; onInteract: () => void; weak?: boolean; wireId?: string }
 
 /** A pickup's look (E405: content registers its own — the game's specimen catalogue): its batched model, and the
  *  parts drawn up close, each on the lit or the glow batch, bobbing and spinning (`bob`: rest height, amplitude, spin) */

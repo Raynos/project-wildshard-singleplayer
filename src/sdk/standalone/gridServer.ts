@@ -17,6 +17,8 @@ import { addEdgeWalls } from '@wildshard/engine/physics/terrain';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimLevel } from '@wildshard/engine/sim';
 import { actRoutes } from '@wildshard/engine/sim/actRoutes';
+import type { PlaceArea } from '@wildshard/engine/quest/lastPlace';
+import { questBooks } from '@wildshard/engine/quest/players';
 import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import type { ForwardedStorage } from '@wildshard/engine/saves/forwardedStorage';
@@ -33,6 +35,7 @@ import { bindShardfileSim, createShardfileSim, HOST_PROBE, type ShardfileSimPort
 import { installRoomRespawn } from '@wildshard/game/roomRespawn';
 import { hasNativeAssembly } from '@wildshard/game/shardfile/nativeAssembly';
 import { createQuestLedger } from '@wildshard/game/quest/ledger';
+import { serverPlaces } from '@wildshard/game/quest/serverPlaces';
 import { createTrustedHeadlessResident, type HeadlessRuntimeInput } from '../headlessRuntime';
 import type { HeadlessEffect } from '../tickProtocol';
 import { cellDocuments, CONTINUATION, ContinuationSlots, SITE, siteDocuments, type SavedContinuation, type SavedSite } from './continuation';
@@ -148,6 +151,19 @@ function capture(host: SimHost): string {
   try { return serializeSimSnapshot(snapshotSimHostBytes(host)); } finally { near?.resume(position.x, position.z); }
 }
 
+/** How far past a place's own radius a client's word for it holds: it saw it a frame ago, and the server is a command behind. */
+const SEEN_SLACK = 1.5;
+/** A named place is the page's to notice, and the server's to check. One the page resolves against a placed object has no world position here, so its word stands: a `seen:` flag draws a map, and pays nothing. */
+function bindDiscovery(host: SimHost, places: readonly PlaceArea[]): void {
+  const areas = new Map(places.map(place => [`seen:${place.id}`, place]));
+  actRoutes(host).seen = (player, flag) => {
+    const area = areas.get(flag), feet = host.players.get(player)?.position;
+    if (feet === undefined || (area !== undefined && Math.hypot(feet.x - area.x, feet.z - area.z) > area.r * SEEN_SLACK)) return;
+    const books = questBooks(host);
+    books.claim([flag]); books.of(player).flags.set(flag);
+  };
+}
+
 /** Whether this output runs on the trusted headless owner. */
 const nativeCell = (input: HeadlessRuntimeInput): boolean => input.product !== undefined && (hasNativeAssembly(input.product) || input.product.has('sim/runtime-plan'));
 
@@ -244,6 +260,7 @@ export class StandaloneGrid {
       const near = input.product !== undefined && hasNativeAssembly(input.product) ? new NearColliders() : undefined, around = near === undefined ? { room: true } : { room: true, near };
       if (near !== undefined && snapshot !== undefined) (await createTrustedHeadlessResident(input, undefined, around)).dispose();
       const resident = await createTrustedHeadlessResident(input, snapshot, around), { host } = resident;
+      bindDiscovery(host, input.product === undefined ? [] : await serverPlaces(input.product));
       if (snapshot === undefined) addEdge(host, options.lone === true);
       host.respawn.served = true;
       return { host, dispose: () => { resident.dispose(); }, fact, effects: () => resident.effects,
@@ -255,13 +272,15 @@ export class StandaloneGrid {
     }
     const effects: HeadlessEffect[] = [], { host, dispose, sim } = await openDataCell(input, snapshot, effects, options.lone === true);
     installRoomRespawn(host, []);
+    bindDiscovery(host, input.product === undefined ? [] : await serverPlaces(input.product));
     host.respawn.served = true;
     return { host, dispose, fact, effects: () => effects, adopt: () => { const held = sim(); return held === undefined || importPageProgress(options.saves, placed, input.shard, held); }, step: inputs => {
       effects.length = 0;
       // A data shard's prompts answer whoever stands at them; an id they don't offer that player is dropped, since an input may not end the server.
       const routes = actRoutes(host);
       for (const { player, acts } of inputs) for (const act of acts) {
-        if (act.kind === 'interact' && sim()?.selectedInteraction(player) === act.id) sim()?.interact(act.id, player);
+        if (act.kind === 'interact' && act.id.startsWith('seen:') && routes.seen !== null) routes.seen(player, act.id);
+        else if (act.kind === 'interact' && sim()?.selectedInteraction(player) === act.id) sim()?.interact(act.id, player);
         else routes.refused++;
       }
       host.step(commandsOf(inputs));

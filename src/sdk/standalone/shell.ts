@@ -6,6 +6,7 @@ import * as v from 'valibot';
 import { Scope } from '@wildshard/engine/app/scope';
 import { NetClient } from '@wildshard/engine/net/client';
 import { deviceIdentity, type NetIdentity } from '@wildshard/engine/net/identity';
+import { saveDocuments } from '@wildshard/engine/saves/indexed';
 import type { SaveStorage } from '@wildshard/engine/saves/store';
 import { ServerMessageSchema, ShellMessageSchema, type ProbedRow, type ServerMessage, type ShellMessage } from '@wildshard/format/standaloneControl';
 import { WorkerLoopback } from './workerLoopback';
@@ -46,55 +47,8 @@ export interface StandaloneShell {
   dispose: () => void;
 }
 
-/** Every save document under `prefix`, to pre-fill the worker's storage (§6.3.3). */
-function saveDocuments(storage: SaveStorage, prefix: string): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (let index = 0; index < storage.length; index++) {
-    const key = storage.key(index), value = key === null ? null : storage.getItem(key);
-    if (key?.startsWith(prefix) === true && value !== null) out[key] = value;
-  }
-  return out;
-}
 function applyWrite(storage: SaveStorage, key: string, value: string | null): boolean {
   try { if (value === null) storage.removeItem(key); else storage.setItem(key, value); return true; } catch { return false; }
-}
-
-/** Where a session's saves live on a page: a cell's continuation is about 3M characters, and an origin's localStorage holds 5.2M. */
-export interface IndexedSaves { readonly storage: SaveStorage; readonly write: NonNullable<StandaloneConfig['write']> }
-const SAVES = 'saves';
-const requested = <T>(request: IDBRequest<T>): Promise<T> => new Promise((resolve, reject) => {
-  request.onsuccess = (): void => { resolve(request.result); };
-  request.onerror = (): void => { reject(request.error ?? new Error('Save storage refused')); };
-});
-/** Read every save at boot, so a page starts a worker with them as it does from localStorage; a write is durable when its transaction commits. */
-export async function openIndexedSaves(name: string): Promise<IndexedSaves> {
-  const opening = indexedDB.open(name, 1);
-  opening.onupgradeneeded = (): void => { opening.result.createObjectStore(SAVES); };
-  const database = await requested(opening), reading = database.transaction(SAVES).objectStore(SAVES);
-  const [keys, values] = await Promise.all([requested(reading.getAllKeys()), requested(reading.getAll())]);
-  const documents = new Map<string, string>();
-  keys.forEach((key, index) => { const value: unknown = values[index]; if (typeof key === 'string' && typeof value === 'string') documents.set(key, value); });
-  const write = (key: string, value: string | null): Promise<boolean> => new Promise(resolve => {
-    if (value === null) documents.delete(key); else documents.set(key, value);
-    const transaction = database.transaction(SAVES, 'readwrite', { durability: 'strict' }), store = transaction.objectStore(SAVES);
-    if (value === null) store.delete(key); else store.put(value, key);
-    transaction.oncomplete = (): void => { resolve(true); };
-    transaction.onerror = transaction.onabort = (): void => { resolve(false); };
-  });
-  return { write, storage: { get length() { return documents.size; }, key: index => [...documents.keys()][index] ?? null, getItem: key => documents.get(key) ?? null,
-    setItem: (key, value) => { void write(key, value); }, removeItem: key => { void write(key, null); } } };
-}
-
-/** Marks a store as holding the page's saves. It sits outside the prefix, because no server reads it. */
-const IMPORTED = 'imported-page-saves';
-/**
- * Copy a page's saves in, once, so a server opens the session the page had. The copy leaves the page's alone. A key the store has already
- * stands: it is newer. A failed write leaves the mark off, and the next boot finishes the job.
- */
-export async function importPageSaves({ storage, write }: IndexedSaves, page: SaveStorage, prefix: string): Promise<void> {
-  if (storage.getItem(IMPORTED) !== null) return;
-  const held = saveDocuments(page, prefix), wrote = await Promise.all(Object.entries(held).map(async ([key, value]) => storage.getItem(key) !== null || await write(key, value)));
-  if (wrote.every(Boolean)) await write(IMPORTED, '1');
 }
 
 /** Run the page half over the two ports. `startStandalone` is this over a real worker; a Node test passes a MessageChannel. */
