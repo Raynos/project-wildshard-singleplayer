@@ -3,22 +3,20 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { SimHost } from '@wildshard/engine/sim';
 import { DeclaredBodyOps } from './bodyOps';
 import { lendQuestBodyScripts } from './nativeProps';
-import { ShardDecisions, type DecisionRuntime } from '../shardfile/decisions';
+import { focusPlayer, ShardDecisions, type DecisionRuntime } from '../shardfile/decisions';
 import { outputDescriptor } from '../shardfile/outputDescriptor';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** G566: a native world's shard-bound body scripts (sim/scripts rows over sim/bodies, Driftwood's tide barrel watch) on
  *  its own fixed step. They add no snapshot adapter, so old saves keep their exact adapter set: the quest props envelope
  *  carries each body's native handle and the scripts' continuation. Install before the quest props. */
 export function installNativeBodyScripts(host: SimHost, shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, restoring: boolean,
   sections: ReadonlyMap<string, unknown> = outputDescriptor(shard)?.sections ?? new Map()): void {
-  const lead = leadPlayer(host);
   const declared = sections.get('sim/bodies');
   const rows = parseDecisionScripts(sections.get('sim/scripts') ?? []).filter(row => 'shard' in row.binding && Object.keys(row.bodies ?? {}).length > 0);
   if (declared === undefined || rows.length === 0) return;
   const bodies = DeclaredBodyOps.native(host, declared), before: (() => void)[] = [], after: (() => void)[] = [];
   const runtime: DecisionRuntime = { scope: host.scope, events: host.events, get physics() { return host.physics; }, groundHeightAt: (x, z) => host.groundHeightAt(x, z),
-    flags: host.flags, player: lead, state: host.state, slots: host.slots, entities: new Map(), strikes: new Map(),
+    flags: host.flags, player: focusPlayer(host), state: host.state, slots: host.slots, entities: new Map(), strikes: new Map(),
     registerStrikeCatalogue: () => { throw new Error('Body scripts own no strikes'); }, startDeclaredStrike: () => false,
     onStep: (_id, run, _adapter, phase) => { const callbacks = phase === 'afterBodies' ? after : before; callbacks.push(run);
       return () => { const index = callbacks.indexOf(run); if (index !== -1) callbacks.splice(index, 1); }; } };

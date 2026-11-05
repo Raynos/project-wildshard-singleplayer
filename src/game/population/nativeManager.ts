@@ -120,6 +120,7 @@ export class NativePopulationDriver {
   private readonly missing = new Error('Missing native population context');
   private readonly always:ReadonlySet<string>;
   private dodgeCd = 0;
+  private readonly otherDodges = new Map<string, number>();
   private calmState = false;
   /** The entered population owner's current calm state, as on the page. */
   get calm(): boolean {
@@ -153,8 +154,7 @@ export class NativePopulationDriver {
       player: host.playerFocus, noise: manager.noise, sight: manager.sight,
       reach: actor => canReach(actor, host.nearestPlayer(actor.position).position, host.physics), brainDt: (id, urgent) => this.takeStep(id, urgent === true),
       policy: () => this.policy, beforeDecisions: () => {
-        const { dodge } = leadPlayer(host), dodged = dodge.cd > this.dodgeCd; this.dodgeCd = dodge.cd;
-        if (dodged) for (const actor of bodies) if (actor.alive && !actor.harnessHold && !actor.hidden && (actor.aggressive || hunt.sensed(actor))) this.cadence.wake(actor);
+        if (this.dodged()) for (const actor of bodies) if (actor.alive && !actor.harnessHold && !actor.hidden && (actor.aggressive || hunt.sensed(actor))) this.cadence.wake(actor);
       } });
     host.useBodyStep({ before: (_id, body, dt) => {
       this.focused();
@@ -249,7 +249,21 @@ export class NativePopulationDriver {
     this.cadence.observe(dt); this.manager.noise.prev.y = 0;
     this.manager.advance(dt); this.cadence.decide();
   }
+  /** Did any player start a dodge? A cooldown only rises on one. A player who has not been seen has not dodged yet. */
+  private dodged(): boolean {
+    let any = false, first = true;
+    for (const { id, dodge } of this.host.players.values()) {
+      const was = first ? this.dodgeCd : this.otherDodges.get(id) ?? dodge.cd;
+      if (dodge.cd > was) any = true;
+      if (first) this.dodgeCd = dodge.cd; else this.otherDodges.set(id, dodge.cd);
+      first = false;
+    }
+    return any;
+  }
   snapshot(): number { return this.dodgeCd; }
+  /** Other players' last cooldowns, saved beside the first's. */
+  otherCooldowns(): Readonly<Record<string, number>> { return Object.fromEntries(this.otherDodges); }
+  restoreOthers(rows: Readonly<Record<string, number>> | undefined): void { this.otherDodges.clear(); for (const [id, value] of Object.entries(rows ?? {})) this.otherDodges.set(id, value); }
   restore(value: number): void { if (!Number.isFinite(value) || value < 0) throw this.missing; this.dodgeCd = value; }
 }
 
@@ -310,7 +324,7 @@ export class NativeWildlifeFrame {
   private readonly knocked={x:0,z:0};
   knockdown(x: number, z: number, strength: number): void {
     const row=this.rows.knockdown;knockdownVelocity(row,x,z,strength,this.knocked);
-    this.host.nearestPlayer({x,y:leadPlayer(this.host).position.y,z}).dashAt(this.knocked.x,this.knocked.z,row.seconds);
+    this.host.nearestPlayer({x,y:this.host.playerFocus.y,z}).dashAt(this.knocked.x,this.knocked.z,row.seconds);
   }
   snapshot(): { wild: { init: boolean; x: number; z: number; v: number; at: number }; flocks: string[]; marmots: ReturnType<ForagerPopulation['snapshot']> } {
     return { wild: { ...this.state, at: this.state.at ?? 0 }, flocks: this.flocks.map(flock => flock.snapshot()), marmots: this.foragers.snapshot() };

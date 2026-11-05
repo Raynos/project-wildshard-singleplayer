@@ -44,7 +44,7 @@ const PopulationSaved = v.strictObject({ calm: v.exactOptional(v.boolean()), rng
   wild: v.strictObject({ init: v.boolean(), x: finite, z: finite, v: finite, at: v.exactOptional(finite) }), flocks: v.array(v.string()),
   marmots: MarmotContinuation, placement: Stream, raids: v.array(PopulationPack), elitePacks: v.array(PopulationPack), dormant: v.array(v.string()), elites: v.array(EliteSpawn),
   bonded: v.exactOptional(v.pipe(v.array(BondedSpawn), v.maxLength(32))), hiddenStallions: v.exactOptional(v.pipe(v.array(v.string()), v.maxLength(32))),
-  retired: v.array(v.string()), nextId: v.pipe(finite, v.integer(), v.minValue(0)), dodgeCd: v.pipe(finite, v.minValue(0)) });
+  retired: v.array(v.string()), nextId: v.pipe(finite, v.integer(), v.minValue(0)), dodgeCd: v.pipe(finite, v.minValue(0)), otherDodges: v.exactOptional(v.record(v.string(), finite)) });
 type SavedMemory = v.InferOutput<typeof Memory>;
 
 
@@ -350,14 +350,14 @@ export function installNativePopulation(host: SimHost, hunt: StalkerBrain<HuntBo
     snapshot: () => {
       const ids = bodies.map(a => a.entityId), common = manager.snapshot(ids, ids);
       return ({ ...(driver.calm ? { calm: true } : {}), ...(bonded.length === 0 ? {} : { bonded: bonded.map(row => ({ upgraded: row.upgraded, body: { ...row.body, at: [...row.body.at], adopted: { ...row.body.adopted } } })) }),
-      ...(hiddenStallions.size === 0 ? {} : { hiddenStallions: [...hiddenStallions] }), elitePacks: savePacks(elitePacks), dormant: [...ports.elites.absent].map(a => a.entityId), dodgeCd: driver.snapshot(), nextId: nextId(), retired: [...retired], elites: eliteSpawns.map(row => ({ kind: row.kind, body: { ...row.body, at: [...row.body.at], adopted: { ...row.body.adopted } } })), rng: common.rng, clock: common.clock, speed: { init: speed.seen, x: speed.prev.x, z: speed.prev.z, v: speed.speed }, seen: common.sight.map(value => value === true),
+      ...(hiddenStallions.size === 0 ? {} : { hiddenStallions: [...hiddenStallions] }), elitePacks: savePacks(elitePacks), dormant: [...ports.elites.absent].map(a => a.entityId), dodgeCd: driver.snapshot(), ...(Object.keys(driver.otherCooldowns()).length === 0 ? {} : { otherDodges: driver.otherCooldowns() }), nextId: nextId(), retired: [...retired], elites: eliteSpawns.map(row => ({ kind: row.kind, body: { ...row.body, at: [...row.body.at], adopted: { ...row.body.adopted } } })), rng: common.rng, clock: common.clock, speed: { init: speed.seen, x: speed.prev.x, z: speed.prev.z, v: speed.speed }, seen: common.sight.map(value => value === true),
       memories: bodies.flatMap((a, i) => { const memory = common.memories[i]; return memory === null || memory === undefined ? [] : [[a.entityId, memory] as [string, SavedMemory]]; }),
       herds: common.herds, groups: decided().map(g => g.snapshot()), ...frame.snapshot(), placement: { ...placement.snapshot() }, raids: savePacks(raids) });
     },
     restore: value => {
       const saved = v.parse(PopulationSaved, value);
       if (saved.seen.length !== bodies.length || saved.herds.length !== hunt.herds.length || saved.groups.length !== decided().length || saved.flocks.length !== flocks.length) throw new Error('Incompatible native population creatures continuation');
-      driver.restore(saved.dodgeCd); driver.calm = saved.calm ?? false;
+      driver.restore(saved.dodgeCd); driver.restoreOthers(saved.otherDodges); driver.calm = saved.calm ?? false;
       frame.restore(saved); placement.restore(saved.placement);
       const memories = new Map(saved.memories), ids = bodies.map(a => a.entityId);
       manager.restore({ rng: saved.rng, clock: saved.clock, noise: { seen: saved.speed.init, speed: saved.speed.v,

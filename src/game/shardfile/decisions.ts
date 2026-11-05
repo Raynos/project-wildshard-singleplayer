@@ -23,7 +23,6 @@ import type { MoverRuntime } from '../plugin/mover';
 import { simStrikes } from '../plugin/brain';
 import type { ShardScriptPorts } from './scripts';
 import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 interface Motion { move: number; target: number; runner: ActorMoveRunner; binding: number }
 interface Strike { strike: number; target: number; binding: number; hit: boolean }
@@ -47,9 +46,14 @@ export interface DecisionRuntime extends Pick<SimHost, 'scope' | 'events' | 'phy
   readonly borrowedControls?: ReadonlyMap<string, { readonly fighting: boolean; readonly phase: number; readonly calm?: boolean; readonly leanField?: string }>;
   onStep: (id: string, run: () => void, adapter?: SimStateAdapter, phase?: 'beforeBodies' | 'afterBodies') => () => void;
 }
-/** A host's decision runtime: its scripts deal with the lead player. */
+/** The player a host's scripts deal with: the one its body turned to. Its id stays the script's one player handle. */
+export function focusPlayer(host: SimHost): DecisionRuntime['player'] {
+  const { id } = host.focusedPlayer;
+  return { id, position: host.playerFocus, get yaw() { return host.focusedPlayer.yaw; }, get health() { return host.focusedPlayer.health; }, get motor() { return host.focusedPlayer.motor; } };
+}
+/** A host's decision runtime: its scripts deal with the player nearest the body that runs them. */
 export function decisionRuntime(host: SimHost): DecisionRuntime {
-  return { scope: host.scope, events: host.events, flags: host.flags, get physics() { return host.physics; }, groundHeightAt: (x, z) => host.groundHeightAt(x, z), player: leadPlayer(host),
+  return { scope: host.scope, events: host.events, flags: host.flags, get physics() { return host.physics; }, groundHeightAt: (x, z) => host.groundHeightAt(x, z), player: focusPlayer(host),
     state: host.state, slots: host.slots, entities: host.entities, strikes: host.strikes,
     registerStrikeCatalogue: (id, specs) => { host.registerStrikeCatalogue(id, specs); }, startDeclaredStrike: (source, target, strike) => host.startDeclaredStrike(source, target, strike),
     onStep: (id, run, adapter, phase) => host.onStep(id, run, adapter, phase) };

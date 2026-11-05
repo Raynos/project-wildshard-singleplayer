@@ -6,7 +6,6 @@
  */
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import * as schema from 'valibot';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const SIZE = 256;
 const TEXEL = 0.5;
@@ -33,6 +32,8 @@ const TrailContinuation: schema.ObjectSchema<{ readonly trail: schema.NullableSc
   origin: schema.nullable(trailPair), centre: trailPair, anyFlat: schema.boolean(), dirty: schema.boolean(), tick: schema.number() }) });
 /** Player trail observations over a concrete map. Pushes precede the owner's
  * existing map update; teleport filtering never advances another clock. */
+/** The other players' trails, beside the first's. */
+const TrailSeats = schema.object({ others: schema.optional(schema.record(schema.string(), schema.nullable(schema.tuple([schema.number(), schema.number()])))) });
 export class TrampleTrail {
   private lastX = Number.NaN;
   private lastZ = Number.NaN;
@@ -49,6 +50,10 @@ export class TrampleTrail {
   snapshot(): schema.InferOutput<typeof TrailContinuation> {
     return { trail: Number.isNaN(this.lastX) ? null : [this.lastX, this.lastZ], map: { ...this.map.snapshot() } };
   }
+  /** Where this trail last was, for another player's line in the save. */
+  last(): [number, number] | null { return Number.isNaN(this.lastX) ? null : [this.lastX, this.lastZ]; }
+  /** Set a trail saved beside the first. */
+  resume(at: readonly [number, number] | null): void { [this.lastX, this.lastZ] = at ?? [Number.NaN, Number.NaN]; }
   /** Refuse the whole map before changing the saved trail position. */
   restore(input: SimValue): void {
     const saved = schema.parse(TrailContinuation, input);
@@ -59,11 +64,24 @@ export class TrampleTrail {
 /** Server-safe fixed-step binding of numeric trail rows to the native player.
  * The map and its trail retain one snapshot adapter under the declared id. */
 export function installTrampleTrail(host: SimHost, map: TrampleField, rows: { id: string; radius: number; strength: number; speedLimit: number }): void {
-  const trail = new TrampleTrail(map, rows.speedLimit);
+  const limit = rows.speedLimit, trail = new TrampleTrail(map, limit), others = new Map<string, TrampleTrail>();
   host.onStep(rows.id, dt => {
-    const at = leadPlayer(host).position;
-    trail.push(dt, at, rows.radius, rows.strength); map.update(dt, at);
-  }, { snapshot: () => trail.snapshot(), restore: saved => { trail.restore(saved); } });
+    // the window follows one player, as it does on a page; everyone flattens what falls inside it
+    let window: { readonly x: number; readonly z: number } | null = null;
+    for (const player of host.players.values()) {
+      const at = player.position;
+      if (window === null) { window = at; trail.push(dt, at, rows.radius, rows.strength); continue; }
+      let own = others.get(player.id);
+      if (own === undefined) { own = new TrampleTrail(map, limit); others.set(player.id, own); }
+      own.push(dt, at, rows.radius, rows.strength);
+    }
+    if (window !== null) map.update(dt, window);
+  }, { snapshot: () => others.size === 0 ? trail.snapshot() : { ...trail.snapshot(), others: Object.fromEntries([...others].map(([id, own]) => [id, own.last()])) },
+    restore: saved => {
+      trail.restore(saved); others.clear();
+      const { others: seats } = schema.parse(TrailSeats, saved);
+      for (const [id, at] of Object.entries(seats ?? {})) { const own = new TrampleTrail(map, limit); own.resume(at); others.set(id, own); }
+    } });
 }
 
 /**
