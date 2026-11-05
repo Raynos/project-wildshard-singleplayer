@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { preparationAdmission } from '../src/game/client/grid/preparationAdmission';
-import type { LiveGridAdmission, LiveGridRegion } from '../src/game/server/grid/live';
+import type { LiveGridAdmission, LiveGridRegion } from '../src/game/client/grid/live';
 import { ResidencyAllocator } from '../src/game/shared/grid/allocator';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { SimHost } from '@wildshard/engine/sim';

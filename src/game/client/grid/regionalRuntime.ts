@@ -28,7 +28,7 @@ import { admittedRuntimeProduct, shardProductFromAdmission } from '../shardfile/
 import type { GridCell } from '../../shared/grid/assembly';
 import { enteredFullMap, shiftedFullMap, shiftedMinimap } from './mapFrame';
 import type { ResidencyAllocator, ResidencyLease } from '../../shared/grid/allocator';
-import type { LiveGridRegion } from '../../server/grid/live';
+import type { LiveGridRegion } from './live';
 import type { GridLoadout } from '../../shared/grid/wallet';
 import { runtimeAccountedBytes, type RuntimeCost } from '@wildshard/format/runtimeCost';
 import { createRegionalView, type RegionalView } from './regionalView';

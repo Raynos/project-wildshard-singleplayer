@@ -1,4 +1,4 @@
-import type { LiveGridAdmission } from '../../server/grid/live';
+import type { LiveGridAdmission } from './live';
 
 /** Prefetch has no world constructor and owns no regional durability registration. */
 export type GridAdmissionMetadata = Pick<LiveGridAdmission, 'bytes' | 'exclusiveRuntime' | 'isolatedPreparation' | 'tilePreparation' | 'reloadsCheckpoint' | 'prepareRuntime' | 'cancel'>;

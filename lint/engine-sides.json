@@ -952,7 +952,7 @@
   "src/game/client/grid/homeMetadata.ts": "client",
   "src/game/shared/grid/instances.ts": "shared",
   "src/game/server/grid/intent.ts": "server",
-  "src/game/server/grid/live.ts": "server",
+  "src/game/client/grid/live.ts": "client",
   "src/game/client/grid/liveSession.ts": "client",
   "src/game/client/grid/mapAtlas.ts": "client",
   "src/game/client/grid/mapFrame.ts": "client",

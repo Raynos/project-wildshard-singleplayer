@@ -14,9 +14,9 @@ import type { GridAssembly, GridCell, GridPoint } from '../../shared/grid/assemb
 import type { ResidencyAllocator, ResidencyLease, ResidencyEviction } from '../../shared/grid/allocator';
 import type { PreparedGridCrossing } from '../../shared/grid/crossing';
 import { GridContinuationCache, GRID_CONTINUATION_CACHE_BYTES } from '../../shared/grid/continuations';
-import type { HomeResidencyClaim } from '../../client/grid/pageResidency';
-import { ApproachInputsDeferredError } from '../../client/grid/productInputs';
-import { clientPreparationBatch } from '../../client/shardfile/preparationTiming';
+import type { HomeResidencyClaim } from './pageResidency';
+import { ApproachInputsDeferredError } from './productInputs';
+import { clientPreparationBatch } from '../shardfile/preparationTiming';
 import { tileOf, type CellTile } from '../../shared/shardfile/tileOrder';
 
 /** An owned region has authored colliders and logical player state, but no second traveller capsule. */

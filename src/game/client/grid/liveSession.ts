@@ -48,7 +48,7 @@ import type { ReadinessBundle, ReadinessLink } from '@wildshard/engine/sim/readi
 import type { GridAssembly, GridCell } from '../../shared/grid/assembly';
 import type { ResidencyAllocator } from '../../shared/grid/allocator';
 import type { HomeResidencyClaim } from './pageResidency';
-import { LiveGridHost, type LiveGridAdmission, type LiveGridFrame, type LiveGridState } from '../../server/grid/live';
+import { LiveGridHost, type LiveGridAdmission, type LiveGridFrame, type LiveGridState } from './live';
 import { prepareApproachProductInputs } from './approachProductInputs';
 import { installGridCrossing, type GridCheckpointResult, type GridCrossingSession, type GridCrossingState } from '../../shared/grid/crossing';
 import { GridWallet, stowGridMount } from '../../shared/grid/wallet';

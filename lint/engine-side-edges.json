@@ -1,12 +1,11 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 91,
+  "client → server": 87,
   "cook → client": 2,
   "cook → render": 1,
-  "server → client": 81,
-  "server → dom": 2,
-  "server → render": 3,
+  "server → client": 70,
+  "server → render": 2,
   "shared → client": 3,
   "shared → dom": 1,
   "shared → server": 1
@@ -55,7 +54,7 @@
    "client → server": 5
   },
   "src/game/client/grid/liveSession.ts": {
-   "client → server": 3
+   "client → server": 2
   },
   "src/game/client/grid/pageEntry.ts": {
    "client → server": 1
@@ -82,7 +81,7 @@
    "client → server": 1
   },
   "src/game/client/loadout/rangedPage.ts": {
-   "client → server": 6
+   "client → server": 4
   },
   "src/game/client/plugin/audio.ts": {
    "client → server": 1
@@ -115,7 +114,7 @@
    "client → server": 1
   },
   "src/game/client/shardfile/client.ts": {
-   "client → server": 4
+   "client → server": 3
   },
   "src/game/client/shardfile/clientCatalogue.ts": {
    "client → server": 1
@@ -188,9 +187,6 @@
    "server → client": 9,
    "server → render": 1
   },
-  "src/game/server/compendium/keepsakes.ts": {
-   "server → client": 1
-  },
   "src/game/server/Elite.ts": {
    "server → client": 5
   },
@@ -200,25 +196,11 @@
   "src/game/server/grid/intent.ts": {
    "server → client": 1
   },
-  "src/game/server/grid/live.ts": {
-   "server → client": 2
-  },
   "src/game/server/Inventory.ts": {
    "server → client": 2
   },
   "src/game/server/loadout/effects.ts": {
    "server → client": 4
-  },
-  "src/game/server/loot/CoinBurst.ts": {
-   "server → client": 2
-  },
-  "src/game/server/loot/runtime.ts": {
-   "server → client": 5,
-   "server → dom": 2,
-   "server → render": 1
-  },
-  "src/game/server/loot/tables.ts": {
-   "server → client": 1
   },
   "src/game/server/plugin/headless.ts": {
    "server → client": 1
