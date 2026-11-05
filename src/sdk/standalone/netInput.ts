@@ -1,6 +1,6 @@
 import type { NetCommand } from '@wildshard/format/netCommand';
 import type { NetTickAct } from '@wildshard/engine/net/acts';
-import type { ActRoutes } from '@wildshard/engine/sim/actRoutes';
+import { lockValue, type ActRoutes } from '@wildshard/engine/sim/actRoutes';
 import { NET_BUTTONS } from '@wildshard/engine/input/netButtons';
 import { netSimCommand } from '@wildshard/engine/sim/netMotion';
 import type { HeadlessCommand } from '../tickProtocol';
@@ -45,7 +45,7 @@ export function netTickCommands(command: NetCommand | null, acts: readonly NetTi
   const out: HeadlessCommand[] = [];
   if (command !== null) {
     out.push(netPlayerCommand(command));
-    if (has(command, NET_BUTTONS.lock) && routes?.lock !== null && routes?.lock !== undefined) out.push({ kind: 'script', actorId: routes.lock, value: 1 });
+    if (has(command, NET_BUTTONS.lock) && routes?.lock !== null && routes?.lock !== undefined) out.push({ kind: 'script', actorId: routes.lock, value: lockValue(command.hookTarget) });
     const { launcher } = command;
     if (launcher !== undefined) out.push({ kind: 'launcher', slot: launcher.slot, ads: launcher.ads, pitch: lookPitch(command), ...(launcher.fire === undefined ? {} : { fire: launcher.fire }) });
   }

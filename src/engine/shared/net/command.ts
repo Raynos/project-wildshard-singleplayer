@@ -45,17 +45,18 @@ export function quantiseCommand<C extends Pick<NetCommand, 'steer' | 'yaw' | 'pi
 
 /** Write one command. A target the receiver has no handle for goes as none. */
 export function writeCommand(writer: BitWriter, command: NetCommand, refs: NetRefs): void {
-  const { steer, attack, launcher, heavyTarget, lockTarget } = command;
+  const { steer, attack, launcher, heavyTarget, lockTarget, hookTarget } = command;
   writer.write(command.seq, 16); writer.write(command.viewTick, 16);
   for (const value of [steer.keyX, steer.keyY, steer.stickX, steer.stickY]) writer.write(packAxis(value), 8);
   writer.write(Math.round((((command.yaw % TAU) + TAU) % TAU) / TAU * YAW_STEPS) % YAW_STEPS, 16);
   writer.write(Math.round((command.pitch / Math.PI + 0.5) * PITCH_TOP), 16);
   // the common eight, then the rare ones only when one is down: a plain command stays at its design size
   writer.write(command.buttons & 0xff, 8); writer.writeBool(command.buttons > 0xff); if (command.buttons > 0xff) writer.write(command.buttons >> 8, 8);
-  writer.writeBool(attack !== undefined); writer.writeBool(heavyTarget !== undefined); writer.writeBool(lockTarget !== undefined); writer.writeBool(launcher !== undefined);
+  writer.writeBool(attack !== undefined); writer.writeBool(heavyTarget !== undefined); writer.writeBool(lockTarget !== undefined); writer.writeBool(hookTarget !== undefined); writer.writeBool(launcher !== undefined);
   if (attack !== undefined) { writer.writeBool(attack.targetId !== undefined); if (attack.targetId !== undefined) writeRef(writer, attack.targetId, refs); writeAim(writer, attack.aim); }
   if (heavyTarget !== undefined) writeRef(writer, heavyTarget, refs);
   if (lockTarget !== undefined) writeRef(writer, lockTarget, refs);
+  if (hookTarget !== undefined) writer.write(hookTarget, 16);
   if (launcher !== undefined) { writer.write(launcher.slot, 5); writer.write(Math.round(launcher.ads * 255), 8); writer.writeBool(launcher.fire === true); }
 }
 
@@ -64,11 +65,11 @@ export function readCommand(reader: BitReader, ids: NetIds): NetCommand {
   const seq = reader.read(16), viewTick = reader.read(16);
   const steer = { keyX: unpackAxis(reader.read(8)), keyY: unpackAxis(reader.read(8)), stickX: unpackAxis(reader.read(8)), stickY: unpackAxis(reader.read(8)) };
   const yaw = reader.read(16) / YAW_STEPS * TAU, pitch = (reader.read(16) / PITCH_TOP - 0.5) * Math.PI, low = reader.read(8), buttons = reader.readBool() ? low | (reader.read(8) << 8) : low;
-  const hasAttack = reader.readBool(), hasHeavy = reader.readBool(), hasLock = reader.readBool(), hasLauncher = reader.readBool();
+  const hasAttack = reader.readBool(), hasHeavy = reader.readBool(), hasLock = reader.readBool(), hasHook = reader.readBool(), hasLauncher = reader.readBool();
   const attack = hasAttack ? (() => { const targeted = reader.readBool(), targetId = targeted ? readRef(reader, ids) : undefined, aim = readAim(reader); return targetId === undefined ? { aim } : { targetId, aim }; })() : undefined;
-  const heavyTarget = hasHeavy ? readRef(reader, ids) : undefined, lockTarget = hasLock ? readRef(reader, ids) : undefined;
+  const heavyTarget = hasHeavy ? readRef(reader, ids) : undefined, lockTarget = hasLock ? readRef(reader, ids) : undefined, hookTarget = hasHook ? reader.read(16) : undefined;
   const launcher = hasLauncher ? (() => { const slot = reader.read(5), ads = reader.read(8) / 255; return reader.readBool() ? { slot, ads, fire: true as const } : { slot, ads }; })() : undefined;
-  return { seq, viewTick, steer, yaw, pitch, buttons, ...(attack === undefined ? {} : { attack }), ...(heavyTarget === undefined ? {} : { heavyTarget }), ...(lockTarget === undefined ? {} : { lockTarget }), ...(launcher === undefined ? {} : { launcher }) };
+  return { seq, viewTick, steer, yaw, pitch, buttons, ...(attack === undefined ? {} : { attack }), ...(heavyTarget === undefined ? {} : { heavyTarget }), ...(lockTarget === undefined ? {} : { lockTarget }), ...(hookTarget === undefined ? {} : { hookTarget }), ...(launcher === undefined ? {} : { launcher }) };
 }
 
 /** The `cmds` message: the newest frame the client holds, then its bundle. */

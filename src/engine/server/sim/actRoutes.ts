@@ -16,6 +16,10 @@ export interface ActRoutes {
   /** A player's lean and look while they ride, on a shard with taming. */
   lean: ((player: string, lean: number, pitch: number) => void) | null;
 }
+/** A LOCK press as a script value: 1 picks nothing, and a hook the client named (its index in the course) is that plus 2. */
+export const lockValue = (hook: number | undefined): number => hook === undefined ? 1 : hook + 2;
+/** The hook a LOCK's script value names. */
+export const lockedHook = (value: number): number | undefined => value < 2 ? undefined : value - 2;
 const routes = new WeakMap<SimHost, ActRoutes>();
 /** One host's routes (P1-E5.2c). */
 export function actRoutes(host: SimHost): ActRoutes {

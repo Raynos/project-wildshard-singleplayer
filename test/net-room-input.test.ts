@@ -4,7 +4,7 @@ import { decodeCommands, encodeCommands } from '../src/engine/shared/net/command
 import { BitWriter } from '../src/engine/shared/net/bits';
 import { decodeAct, encodeAct } from '../src/engine/shared/net/messages';
 import { NET_BUTTONS } from '../src/engine/shared/input/netButtons';
-import type { ActRoutes } from '../src/engine/server/sim/actRoutes';
+import { lockedHook, type ActRoutes } from '../src/engine/server/sim/actRoutes';
 import { netRide, netTickCommands } from '../src/sdk/standalone/netInput';
 
 // What the room's input gained in format v0.3.0: LOCK has a bit, J116's target has a place, and riding is on the wire.
@@ -26,6 +26,16 @@ test('every button survives the wire, LOCK with them', () => {
 test('a command carries its lock-on target, and leaves it out when it has none', () => {
   expect(roundTrip(command({ lockTarget: 'creature.1' }))?.lockTarget).toBe('creature.1');
   expect(roundTrip(command())).not.toHaveProperty('lockTarget');
+});
+
+test('a command carries the hook it picked, and LOCK takes it to the shard\'s script actor', () => {
+  expect(roundTrip(command({ hookTarget: 0 }))?.hookTarget).toBe(0);
+  expect(roundTrip(command({ hookTarget: 0xffff }))?.hookTarget).toBe(0xffff);
+  expect(roundTrip(command())).not.toHaveProperty('hookTarget');
+  const scripts = (hookTarget?: number): number[] => netTickCommands(command({ buttons: NET_BUTTONS.lock, ...(hookTarget === undefined ? {} : { hookTarget }) }), [], routes({ lock: 'grapple.lock' })).flatMap(row => row.kind === 'script' ? [row.value] : []);
+  expect(scripts().map(lockedHook)).toEqual([undefined]);
+  expect(scripts(0).map(lockedHook)).toEqual([0]);
+  expect(scripts(7).map(lockedHook)).toEqual([7]);
 });
 
 test.each(['offer', 'mount', 'dismount'] as const)('a ride act %s survives the wire and is not a report', action => {

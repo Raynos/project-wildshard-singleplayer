@@ -27,7 +27,7 @@ export interface CommandTurn {
 
 /** A command with nothing left in it that could fire twice. */
 function holdsOf(command: NetCommand): NetCommand {
-  const { attack: _attack, launcher, ...rest } = command;
+  const { attack: _attack, hookTarget: _hook, launcher, ...rest } = command;
   return { ...rest, viewTick: 0, buttons: command.buttons & ~NET_PRESSES, ...(launcher === undefined ? {} : { launcher: { slot: launcher.slot, ads: launcher.ads } }) };
 }
 /** Only a tick's first command reaches the weapon systems, so one that fires anything waits for a tick of its own. */

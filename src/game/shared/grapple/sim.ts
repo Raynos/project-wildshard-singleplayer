@@ -166,6 +166,20 @@ export function nearestHook(ports: GrapplePorts, course: GrappleCourse, view: Gr
   return chosen;
 }
 
+/**
+ * The hook a client named, by its index in the course, if the claw can bite it from here: real, in range, in sight and with a
+ * landing. The aim window is left out: it is the client's camera, and the server has none.
+ */
+export function namedHook(ports: GrapplePorts, course: GrappleCourse, view: GrappleView, index: number): GrappleTarget | null {
+  const hook = course.hooks[index], mode = course.mode ?? DEFAULT_GRAPPLE_MODE;
+  if (hook === undefined) return null;
+  view.update?.();
+  const reach = view.eye.distanceTo(hook), landing = new Vector3();
+  if (reach < mode.minRange || reach > mode.maxRange || !hookVisible(ports, course, view.eye, hook)) return null;
+  const side = landingFor(ports, ports.body.position, hook, landing);
+  return side === NONE ? null : targetFor(ports, course, hook, landing, side);
+}
+
 /** The outcome of a LOCK press: nothing to do (fall through to the plain lock-on), held (a crossing in flight), let go, armed for a miss shot, or locked on a hook. */
 export type LockResult = 'pass' | 'busy' | 'released' | 'armed' | 'locked';
 
@@ -229,6 +243,9 @@ export class GrappleSim {
     this.target = pick;
     return 'locked';
   }
+
+  /** a net client's LOCK press: `index` is the hook it picked (a bad one is as good as none) */
+  lockHook(view: GrappleView, index: number): LockResult { return this.lock(view, namedHook(this.ports, this.course, view, index), false); }
 
   /** the JUMP press: fire at the locked hook (or the armed miss shot along the view); false when nothing is held */
   fire(view: GrappleView): boolean {

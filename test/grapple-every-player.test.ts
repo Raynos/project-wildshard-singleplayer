@@ -52,6 +52,26 @@ test('a bot locks, fires and crosses on its own claw while the lead stands idle'
   } finally { host.dispose(); }
 });
 
+test('P1-E5.3: the hook a client names is bitten, though the server has no camera to pick it with, and a bad one is nothing', async () => {
+  const { host, bot, grapple } = await quarryRoom();
+  try {
+    bot.yaw = -Math.PI / 2; // the server's own eye looks away from the only hook
+    host.step(); grapple.press(bot.id, { lock: true }); host.step();
+    const claw = grapple.clawOf(bot.id); if (claw === undefined) throw new Error('Missing bot claw');
+    expect(claw.target).toBeNull(); expect(claw.armedMiss).toBe(true);
+    claw.release();
+    grapple.press(bot.id, { lock: true, hook: 9 }); host.step();
+    expect(claw.target).toBeNull();
+    claw.release();
+    grapple.press(bot.id, { lock: true, hook: 0 }); host.step();
+    expect(claw.target?.hook.x).toBe(-4);
+    claw.release();
+    bot.position.x = 900; bot.motor.resetAt(bot.position); // past the claw's range, whatever a client says
+    grapple.press(bot.id, { lock: true, hook: 0 }); host.step();
+    expect(claw.target).toBeNull();
+  } finally { host.dispose(); }
+});
+
 test('a mid-air claw saves with its player, one player saves no extra row', async () => {
   const { host, bot, grapple } = await quarryRoom();
   try {

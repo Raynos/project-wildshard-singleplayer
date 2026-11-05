@@ -82,13 +82,14 @@ test('redundancy cannot repeat a press: each seq applies once, across the 16-bit
 
 test('an empty tick steps nothing, and only the holds last through it', () => {
   const queue = new CommandQueue();
-  queue.admit([command(1, { buttons: NET_BUTTONS.jump | NET_BUTTONS.sprint | NET_BUTTONS.dive | NET_BUTTONS.lock, attack: { aim }, launcher: { slot: 2, ads: 0.5, fire: true } })]);
+  queue.admit([command(1, { buttons: NET_BUTTONS.jump | NET_BUTTONS.sprint | NET_BUTTONS.dive | NET_BUTTONS.lock, hookTarget: 2, attack: { aim }, launcher: { slot: 2, ads: 0.5, fire: true } })]);
   expect(queue.next().command?.buttons).toBe(NET_BUTTONS.jump | NET_BUTTONS.sprint | NET_BUTTONS.dive | NET_BUTTONS.lock);
   const empty = queue.next();
   expect(empty.still).toBe(true); // J125: no command, no server step
   expect(empty.command?.buttons).toBe(NET_BUTTONS.sprint | NET_BUTTONS.dive);
   expect(empty.command?.attack).toBeUndefined();
   expect(empty.command?.launcher).toEqual({ slot: 2, ads: 0.5 });
+  expect(empty.command).not.toHaveProperty('hookTarget');
   expect(queue.lastSeq).toBe(1); // an empty tick acks nothing new
 });
 

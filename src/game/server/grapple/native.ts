@@ -5,7 +5,7 @@ import { Euler, MathUtils, Matrix4, Quaternion, Vector3 } from 'three';
 import { fovForAspect } from '@wildshard/engine/combat/blocks/melee';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
-import { actRoutes } from '@wildshard/engine/sim/actRoutes';
+import { actRoutes, lockedHook } from '@wildshard/engine/sim/actRoutes';
 import { grappleCourse } from '../../shared/grapple/course';
 import { type GrappleBody, type GrapplePorts, GrappleSim, type GrappleView } from '../../shared/grapple/sim';
 
@@ -17,7 +17,11 @@ export interface GrappleTickContext {
   commandsOf?: (id: string) => readonly ({ readonly kind: 'script'; readonly actorId: string; readonly value: number } | { readonly kind: string; readonly jump?: boolean })[];
 }
 /** One player's grapple controls this tick. */
-export interface GrapplePress { readonly lock?: boolean; readonly fire?: boolean; readonly pitch?: number }
+export interface GrapplePress {
+  readonly lock?: boolean; readonly fire?: boolean; readonly pitch?: number;
+  /** The hook a LOCK press picked, by index: a client's own camera chose it, and the server has none to choose with. */
+  readonly hook?: number;
+}
 /** A world's grapple: one claw a player. */
 export interface NativeGrapple {
   /** the first player's claw */
@@ -105,22 +109,23 @@ export function installGrapple(host: SimHost, context: GrappleTickContext, profi
   const setGuard = (): void => { const opened = open(); guard.forEach(handle => { host.physics.world.getCollider(handle).setEnabled(!opened); }); };
   const moved = new Vector3(), walked = { vy: 0, grounded: true };
   const tape = (commands: ReturnType<GrappleTickContext['commands']>): GrapplePress => {
-    let lock = false, fire = false, pitch: number | undefined;
+    let lock = false, fire = false, pitch: number | undefined, hook: number | undefined;
     for (const command of commands) {
       if ('jump' in command && command.kind === 'player' && command.jump) fire = true;
       if ('actorId' in command) {
-        if (command.actorId === profile.headless.lock) lock = true;
+        if (command.actorId === profile.headless.lock) { lock = true; hook = lockedHook(command.value); }
         if (command.actorId === profile.headless.aim) pitch = command.value;
       }
     }
-    return { lock, fire, ...(pitch === undefined ? {} : { pitch }) };
+    return { lock, fire, ...(pitch === undefined ? {} : { pitch }), ...(hook === undefined ? {} : { hook }) };
   };
   const stepClaw = (claw: PlayerClaw, press: GrapplePress, dt: number): void => {
     const { player, sim, state, velocity, view } = claw;
     if (press.pitch !== undefined) state.pitch = press.pitch;
     view.update?.();
     // no lock-on headless (SimHost has none), so an empty LOCK arms the miss shot as the page's does with no enemy locked
-    if (press.lock === true) sim.lock(view, null, false);
+    if (press.lock === true && press.hook !== undefined) sim.lockHook(view, press.hook);
+    else if (press.lock === true) sim.lock(view, null, false);
     const fired = press.fire === true && sim.fire(view);
     setGuard();
     if (fired || sim.phase !== 'idle') {
