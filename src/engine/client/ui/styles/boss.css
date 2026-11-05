@@ -1,4 +1,4 @@
-/* ─── the boss system (src/engine/client/ui/BossBar.ts, driven by src/game/server/Boss.ts): the wide top bar, the intro name card + letterbox,
+/* ─── the boss system (src/engine/client/ui/BossBar.ts, driven by src/game/client/Boss.ts): the wide top bar, the intro name card + letterbox,
    the retry card, the legendary reward card, the door fade ─── prefix ws-boss- ───
    Antique gold on dark, engraved serif capitals (art/nalati-grasslands/round-2/5-bosses/boss-1…4). */
 .ws-boss {

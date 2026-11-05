@@ -1,4 +1,4 @@
-/* ─── named elites (src/engine/client/ui/EliteBar.ts, driven by src/game/server/Elite.ts): the named bar (over the head → pinned top-centre),
+/* ─── named elites (src/engine/client/ui/EliteBar.ts, driven by src/game/client/Elite.ts): the named bar (over the head → pinned top-centre),
    the NAMED ELITE NEARBY banner, the edge chevron, the minimap skulls ─── prefix ws-elite- ───
    The boss bar's antique gold (boss.css), lighter and smaller (art/nalati-grasslands/round-2/4-named-elites/*.png). */
 .ws-elite {

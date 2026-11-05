@@ -697,7 +697,7 @@
     "src/engine/player/hunterHands.ts",
     "src/engine/client/player/LockOnTarget.ts",
     "src/engine/player/Longbow.ts",
-    "src/engine/client/player/MeleeSweep.ts",
+    "src/engine/shared/player/MeleeSweep.ts",
     "src/engine/client/player/Player.ts",
     "src/engine/player/Projectiles.ts",
     "src/engine/player/riding.ts",
@@ -4336,7 +4336,7 @@
     },
     {
       "from": "src/player/MeleeSweep.ts",
-      "to": "src/engine/client/player/MeleeSweep.ts"
+      "to": "src/engine/shared/player/MeleeSweep.ts"
     },
     {
       "from": "src/player/Mount.ts",
