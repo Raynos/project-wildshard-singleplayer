@@ -15,10 +15,10 @@ import { physicsRoutes } from './fixtures/headless/physicsRoutes';
 import { captureJourney, replayOnClient, type MotionCapture } from './fixtures/headless/motion-replay';
 
 // P1-E5.3 B3: a real Driftwood walk on the server, replayed on the client's step in a second world from the same product.
-// This reports its error per tick; I1 holds it to 2 cm. Until then the limit only says the two steps are walking the same
-// route: 32 cm at this row's landing, on A1's law.
+// This reports its error per tick; I1 holds it to 2 cm. It runs exact for 2,640 ticks, then 180 of 4,234 are over, by 11 cm at
+// worst, on one climb near (26, 24). Until that has a cause the limit only says the two steps walk the same route.
 
-const SLUG = 'driftwood-isle', LIMIT = 1;
+const SLUG = 'driftwood-isle', LIMIT = .2;
 
 test('a Driftwood journey replays on the client step', async () => {
   const directory = builtProduct(SLUG), product = await loadHeadlessProduct(directory), shard = product.shardfile, descriptor = outputDescriptor(shard);

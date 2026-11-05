@@ -44,6 +44,7 @@ export function replayOnClient(resident: TrustedHeadlessResident, capture: Motio
   const lead = leadPlayer(host), { samples } = capture, errors = new Float64Array(samples.length);
   player.bindFrame(host.physics, player.motor, { heightAt: (x, z) => host.groundHeightAt(x, z), waterSurfaceAt: (x, z) => host.waterSurfaceAt(x, z), platforms: [] });
   let worst = 0, worstTick = 0, overTolerance = 0, groundTicks = 0, yaw = lead.yaw, previous: HeadlessJourneySample | undefined;
+  lead.motor.setEnabled(false);
   try {
     for (const [tick, sample] of samples.entries()) {
       for (const actor of host.entities.values()) actor.harnessHold = true;
@@ -52,6 +53,7 @@ export function replayOnClient(resident: TrustedHeadlessResident, capture: Motio
       if (placed) { player.spawn(sample.x, sample.z, yaw, sample.y); player.motor.resetAt(player.position); continue; }
       const command = clientCommand(sample, yaw);
       yaw = command.yaw;
+      lead.position.copy(player.position); // the host's bands stand bodies near its player: here, that is the client's feet
       resident.step([]);
       player.step(FIXED_STEP, command);
       const p = player.position, error = Math.hypot(p.x - sample.x, p.y - sample.y, p.z - sample.z);
