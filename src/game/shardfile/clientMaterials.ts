@@ -7,7 +7,7 @@ import { sceneVectors, sceneScalarValue } from './sceneInputs';
  */
 import { MeshStandardMaterial, ClampToEdgeWrapping, CompressedTexture, DataTexture, LinearFilter, LinearMipmapLinearFilter, MirroredRepeatWrapping, NearestFilter, NearestMipmapNearestFilter, RepeatWrapping, SRGBColorSpace, NoColorSpace, type Texture, type Material } from 'three';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
-import { BASIS_PATH, releaseAfterUpload, detectKtx2Support, prepareKtx2Decode, retireCompressedMipsAtFirstDraw } from '@wildshard/engine/core/ktx2';
+import { BASIS_PATH, releaseAfterUpload, detectKtx2Support, prepareKtx2Decode } from '@wildshard/engine/core/ktx2';
 import { markGpuOnly } from '@wildshard/engine/core/gpuOnly';
 import { ToonLook } from '@wildshard/engine/render/families/toon';
 import { PainterlyLook } from '@wildshard/engine/render/families/painterly';
@@ -161,9 +161,7 @@ export async function clientMaterials(shard: Shardfile, input: ReadonlyMap<strin
       // a splat layer is copied into its array, never uploaded itself (clientSplatTerrain)
       texture.flipY = false; texture.name = `shardfile:${ref}`;
       const sampler = shard.look.samplers?.[ref]; if (sampler !== undefined) applyTextureSampler(texture, sampler);
-      // D227 (Debug 'Retire texture mips at first draw', default off): these maps' samplers are final before their upload, so
-      // they retire when it completes (a loader upload of a prop never drawn yet kept its mips for good)
-      if (texture instanceof CompressedTexture && !splatRefs.has(ref)) releaseAfterUpload(texture, false, retireCompressedMipsAtFirstDraw());
+      if (texture instanceof CompressedTexture && !splatRefs.has(ref)) releaseAfterUpload(texture);
       // a raw-texel file (uncompressed KTX2) arrives as a DataTexture: its decoded texels go once it is on the GPU too
       else if (texture instanceof DataTexture) releaseRawAfterUpload(texture);
       scope.own(texture); textures.set(ref, texture);
