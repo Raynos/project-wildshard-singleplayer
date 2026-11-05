@@ -30,6 +30,7 @@ import { boxInFrame, type BoxSpec } from '@wildshard/engine/physics/box';
 import type { MoverPose } from '@wildshard/engine/physics/mover';
 import type { Place, QuestPlace, Interactable } from '@wildshard/engine/world/interact/types';
 import { questMessageHandlers, type QuestMessageRows, QuestState, type QuestDef, type QuestStep, type NpcDef } from '@wildshard/engine/quest/core';
+import type { QuestView } from '@wildshard/engine/quest/viewPort';
 import { QuestChip, NpcTalk, type LiveMarker, type NpcTalkOpts } from '@wildshard/engine/quest/view';
 import {placesWithDiscovery,type PlacePoint,type Places} from '@wildshard/engine/quest/discovery';
 import { DialogueBox } from '@wildshard/engine/quest/view/ui';
@@ -381,9 +382,9 @@ export interface QuestPresentationOptions {
   messages?: QuestMessageRows;
   /** A borrowed page beat follows the sting, without owning a cursor or save. */
   afterStep?: (step: QuestStep | null) => void;
-  stepToast?: (step: QuestStep, previous: QuestStep | null, quest: QuestState) => string;
+  stepToast?: (step: QuestStep, previous: QuestStep | null, quest: QuestView) => string;
   stepCompleteToast?: false | ((step: QuestStep) => string);
-  completeToast?: (quest: QuestState) => string;
+  completeToast?: (quest: QuestView) => string;
   chip?: () => { label: string; count: string };
   markers?: () => LiveMarker[];
   worldPins?: boolean;
@@ -405,8 +406,8 @@ export interface QuestPresentationHost {
   dayNight?: { phase: number } | null;
 }
 /** The live quest presentation and its entered-scope update/disposal ports. */
-export interface QuestPresentation {
-  quest: QuestState;
+export interface QuestPresentation<Q extends QuestView = QuestState> {
+  quest: Q;
   chip: QuestChip;
   markers: () => LiveMarker[];
   places: Places | null;
@@ -441,8 +442,13 @@ function legacyQuestPlace(at: QuestPlace): Place {
   throw new Error('Authored quest frame requires a live frame resolver');
 }
 
-/** Shared wiring for older adventures that own their frame order. New shards use installQuestPresentation. */
-export function presentQuest(host: QuestPresentationHost, quest: QuestState, options: QuestPresentationOptions = {}): QuestPresentation {
+/** The MAP card a quest shows: read from the view, so the page's quest and a client's replica draw the same card. */
+export function questCard(quest: QuestView, introTitle?: string): MapQuest {
+  return { title: quest.isStarted ? quest.def.title : introTitle ?? quest.def.title, objective: quest.objective(), hint: quest.isComplete ? '' : quest.hint() };
+}
+/** Shared wiring for older adventures that own their frame order. New shards use installQuestPresentation.
+ * The chip, card, pins and marks read a `QuestView`; only places and talks write flags, so only they need `flags`. */
+export function presentQuest<Q extends QuestView & { readonly flags?: Flags }>(host: QuestPresentationHost, quest: Q, options: QuestPresentationOptions = {}): QuestPresentation<Q> {
   const messages=options.messages===undefined?null:questMessageHandlers(quest,options.messages,{toast:host.toast,sting:host.sting,
     ...(options.afterStep===undefined?{}:{afterStep:options.afterStep})});
   const scope = host.scope.child(`quest.${quest.def.id}`);
@@ -464,7 +470,7 @@ export function presentQuest(host: QuestPresentationHost, quest: QuestState, opt
   });
   const chip = new QuestChip({ chip: options.chip ?? (() => quest.chip()), markers: options.markers ?? markers });
   scope.onDispose(() => { chip.line.scope.dispose(); });
-  const onStep: NonNullable<QuestState['onStep']> = (step, prev) => {
+  const onStep = (step: QuestStep | null, prev: QuestStep | null): void => {
     if (prev && typeof options.stepCompleteToast === 'function') host.toast(options.stepCompleteToast(prev));
     if(messages!==null){messages.step(step,prev);return;}
     if (step) host.toast(options.stepToast?.(step, prev, quest) ?? (prev === null ? `New quest · ${quest.def.title}` : `Objective · ${quest.objective()}`));
@@ -472,11 +478,12 @@ export function presentQuest(host: QuestPresentationHost, quest: QuestState, opt
   };
   const onComplete = (): void => { if(messages!==null)messages.complete();else host.toast(options.completeToast?.(quest) ?? `Quest complete · ${quest.def.title}`); };
   scope.onDispose(quest.observe({ step: onStep, complete: onComplete }));
-  const card = (): MapQuest => ({ title: quest.isStarted ? quest.def.title : options.introTitle ?? quest.def.title, objective: quest.objective(), hint: quest.isComplete ? '' : quest.hint() });
+  const card = (): MapQuest => questCard(quest, options.introTitle);
   if (host.fullMap?.addQuest) scope.onDispose(host.fullMap.addQuest(card));
   else host.fullMap?.setQuest?.(card);
   const flags = options.flags ?? quest.flags;
-  const places = options.places ? placesWithDiscovery(options.places, flags, host.toast, markers) : null;
+  if (flags === undefined && (options.places !== undefined || options.npc !== undefined || (options.npcs?.length ?? 0) > 0)) throw new Error('Quest places and talks write flags: they need an owner');
+  const places = options.places && flags ? placesWithDiscovery(options.places, flags, host.toast, markers) : null;
   if (options.mapMarkers !== false && host.fullMap?.addPois) scope.onDispose(host.fullMap.addPois(() => places?.mapPois() ?? markers().map((m) => ({ x: m.x, z: m.z, label: m.label, short: m.short, kind: 'quest' }))));
   if (options.minimapMarks !== false && host.minimap) scope.onDispose(host.minimap.addMarks(() => markers().map((m) => ({ x: m.x, z: m.z, color: '#8fe3ff' }))));
 
@@ -503,7 +510,7 @@ export function presentQuest(host: QuestPresentationHost, quest: QuestState, opt
   }
   const npcs = [...(options.npc ? [options.npc] : []), ...(options.npcs ?? [])];
   const dialogue = npcs.length > 0 ? new DialogueBox(scope.child('dialogue')) : null;
-  const talks = dialogue ? npcs.map((npc) => {
+  const talks = dialogue && flags ? npcs.map((npc) => {
     const talk = new NpcTalk({ ...npc, radius: npc.radius ?? 3.2, flags, dialogue });
     const prompt = { ...talk.prompt, get radius() { return npc.step === undefined || quest.current?.id === npc.step || talk.talking ? talk.prompt.radius : 0; } };
     host.prompts?.push(prompt);

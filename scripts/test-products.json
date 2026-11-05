@@ -32,6 +32,7 @@
   "test/nalati-chapter-records.test.ts": ["nalati-grasslands"],
   "test/nalati-kokpar-verbs.test.ts": ["nalati-grasslands"],
   "test/driftwood-zipline-verbs.test.ts": ["driftwood-isle"],
+  "test/quest-view-port.test.ts": ["driftwood-isle"],
   "test/driftwood-story-verbs.test.ts": ["driftwood-isle"],
   "test/driftwood-optional-verbs.test.ts": ["driftwood-isle"],
   "test/driftwood-trade-verbs.test.ts": ["driftwood-isle"],
