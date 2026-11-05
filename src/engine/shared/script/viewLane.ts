@@ -11,9 +11,9 @@
  */
 import { readV2Module } from '@wildshard/format/scriptModuleV2';
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
-import type { Scope } from '../../shared/app/scope';
-import { FixedMemory } from '../../shared/script/fixedMemory';
-import { prepareScriptMemory, consumeScriptStorage } from '../../shared/script/moduleV2';
+import type { Scope } from '../app/scope';
+import { FixedMemory } from './fixedMemory';
+import { prepareScriptMemory, consumeScriptStorage } from './moduleV2';
 
 /** A native reservation kept opaque until its original view slot binds. */
 export interface PreparedViewMemory { readonly pages: number }

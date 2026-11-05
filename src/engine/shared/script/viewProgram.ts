@@ -12,9 +12,9 @@
 import { Color, Matrix4, Quaternion, Vector3, type BufferAttribute, type BufferGeometry, type Camera, type InstancedMesh, type InterleavedBufferAttribute,
   type Material, type Object3D, type ShaderMaterial } from 'three';
 import { viewTellShape, type ViewProgramRows, type ViewTargetRef, type ViewTellShape } from '@wildshard/format/viewProgram';
-import type { Scope } from '../../shared/app/scope';
+import type { Scope } from '../app/scope';
 import { ViewLane, type PreparedViewMemory } from './viewLane';
-import { diagnosticNow } from '../../shared/core/clock';
+import { diagnosticNow } from '../core/clock';
 
 /** The actor bound to one slot: its identity (a new one starts uninterpolated), pose, life, the ground under it, its
  *  named finite fields, the visual fields a program may set, and its drawn object. */

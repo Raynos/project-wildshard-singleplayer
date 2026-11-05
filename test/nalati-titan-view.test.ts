@@ -4,7 +4,7 @@ import { App } from '../src/engine/client/app/app';
 import { Scope } from '../src/engine/shared/app/scope';
 import { createLevelInstallation } from '../src/engine/client/level/installation';
 import { WorldRegistry } from '../src/engine/client/world/registry';
-import type { ViewTell } from '../src/engine/client/script/viewProgram';
+import type { ViewTell } from '../src/engine/shared/script/viewProgram';
 import { shardContext } from '../src/game/client/plugin/context';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { installViewProgram, lendViewCell, lendViewFrame, lendViewTell, lendViewValues } from '../src/game/client/shardfile/clientViewProgram';

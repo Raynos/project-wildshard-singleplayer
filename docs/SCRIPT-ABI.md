@@ -677,7 +677,7 @@ with first and changed zero (a call that writes nothing keeps the draw); after i
 changed count above the batch's capacity, a changed range past the total, a nonzero pad, a written matrix outside the
 program's bounds or a non-finite attribute value refuses the whole frame. A landed batch draws `total` copies and
 writes the `changed` copies from `first` (their matrices and, with an attribute, its first `itemSize` components).
-[engine/client/script/viewProgram.ts](../src/engine/client/script/viewProgram.ts) [game/client/shardfile/clientViewProgram.ts](../src/game/client/shardfile/clientViewProgram.ts)
+[engine/shared/script/viewProgram.ts](../src/engine/shared/script/viewProgram.ts) [game/client/shardfile/clientViewProgram.ts](../src/game/client/shardfile/clientViewProgram.ts)
 
 ### Query operation and reply records
 

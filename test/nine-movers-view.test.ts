@@ -4,7 +4,7 @@ import { expect, test, vi } from 'vitest';
 import { Object3D, PerspectiveCamera, Quaternion, Vector3 } from 'three';
 import { parse } from 'valibot';
 import { Scope } from '../src/engine/shared/app/scope';
-import { viewProgram } from '../src/engine/client/script/viewProgram';
+import { viewProgram } from '../src/engine/shared/script/viewProgram';
 import { ViewProgramSchema } from '@wildshard/format/viewProgram';
 import { compileScriptV2 } from '../src/sharddev/bake/compileScriptV2';
 import plan from '../src/shards/nine-dragon-stack/data/layoutPlan.json' with { type: 'json' };

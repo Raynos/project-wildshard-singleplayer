@@ -3,7 +3,7 @@ import {BufferGeometry,Mesh,MeshBasicMaterial,Object3D,PerspectiveCamera,Vector3
 import {createSimHost} from '../src/engine/server/sim';
 import {loadRapier} from '../src/engine/shared/physics/rapier';
 import {fixtureBytes} from '@wildshard/engine/test/nativeBytes';
-import {viewProgram} from '../src/engine/client/script/viewProgram';
+import {viewProgram} from '../src/engine/shared/script/viewProgram';
 import {speciesViewSlots} from '../src/game/client/population/speciesViewSlots';
 import {compileScriptV2} from '../src/sharddev/bake/compileScriptV2';
 import {nalatiCreatureViews} from '../src/shards/nalati-grasslands/generators/creatureViews';

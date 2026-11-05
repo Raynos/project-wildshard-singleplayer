@@ -12,7 +12,7 @@ import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generate
 import { installViewProgram, lendViewCell, lendViewFrame, lendViewValues } from '../src/game/client/shardfile/clientViewProgram';
 import { compileScriptV2 } from '../src/sharddev/bake/compileScriptV2';
 import { ViewProgramSchema } from '@wildshard/format/viewProgram';
-import { ViewLane, prepareViewMemory, type ViewLaneRows } from '../src/engine/client/script/viewLane';
+import { ViewLane, prepareViewMemory, type ViewLaneRows } from '../src/engine/shared/script/viewLane';
 import { scriptMemoryCensus } from '../src/engine/shared/script/moduleV2';
 import { FixedMemory } from '../src/engine/shared/script/fixedMemory';
 
