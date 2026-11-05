@@ -542,7 +542,7 @@ export class SweptMelee extends Melee {
     }
 
     // heavy: the hold (RMB / touch HEAVY latch) — edge on = start charging (after the running swing, if any), edge off = release;
-    // then the swing clock (a hit-stop slows it with the whole world: dt is scaled, Game.hitStop): a queued combo swing
+    // then the swing clock (a hit-stop is visual and never slows it, so the server's runs level with it): a queued combo swing
     // chains the moment the active window closes (combat/sweptMeleeCore.ts, with the cooldown)
     if (!this.enabled) this.mouseHeld = false; // pause / holster drop the RMB toggle
     const held = (this.mouseHeld || this.adsHeld) && this.enabled;

@@ -8,14 +8,13 @@ import { NetClient } from '../src/engine/client/net/client';
 import { NetRoom } from '../src/engine/server/net/room';
 import { SimNetWorld } from '../src/engine/server/net/simWorld';
 import { shotRandom, shotSpread } from '../src/engine/shared/combat/shotSpread';
-import { HitStopClock, SweptMeleeCore } from '../src/engine/shared/combat/sweptMeleeCore';
+import { SweptMeleeCore } from '../src/engine/shared/combat/sweptMeleeCore';
 import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
 import { directLoopback } from '../src/engine/test/netLoopback';
 import { readNativeRangedItem } from '../src/game/server/plugin/nativeItems';
 import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { STARTER_MELEE_PROFILE } from '../src/game/shared/weapons/starterCombat';
-import { COMBO } from '../src/game/shared/weapons/starterMoves';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { createTrustedHeadlessResident, type TrustedHeadlessResident } from '../src/sdk/headlessRuntime';
 import { netTickCommands } from '../src/sdk/standalone/netInput';
@@ -36,7 +35,7 @@ const hold = (live: TrustedHeadlessResident): void => { for (const actor of live
 const FREE = { aim: { origin: { x: 0, y: 0, z: 0 }, direction: { x: 0, y: 0, z: -1 } } };
 
 /** A three-swing chain, played by the server and by a client's own clock from one command stream. */
-async function chain(hits: boolean): Promise<{ apart: number; server: number; client: number; stops: number; last: number }> {
+async function chain(hits: boolean): Promise<{ apart: number; server: number; client: number; hitsHeard: number }> {
   const live = await shard('driftwood-isle'), { host } = live, player = leadPlayer(host), link = directLoopback(), client = new NetClient(link.client);
   const crab = [...host.entities.values()].filter(row => row.kind === 'crab' && row.alive).sort((a, b) => a.position.distanceTo(player.position) - b.position.distanceTo(player.position))[0];
   if (crab === undefined) throw new Error('No crab');
@@ -50,43 +49,41 @@ async function chain(hits: boolean): Promise<{ apart: number; server: number; cl
   } });
   room.join(link.server); client.hello(); link.pump(); room.open(); link.pump();
   // the client's own clock, on the same moves and the same law
-  let queued = false, serverEnd = -1, clientEnd = -1, stops = 0, last = -1;
-  const { moves, swingScale } = STARTER_MELEE_PROFILE, stop = new HitStopClock();
+  let queued = false, serverEnd = -1, clientEnd = -1, hitsHeard = 0, last = -1;
+  const { moves, swingScale } = STARTER_MELEE_PROFILE;
   const clock = new SweptMeleeCore(moves, STARTER_MELEE_PROFILE, { queue: () => { queued = true; }, consume: () => { const was = queued; queued = false; return was; } }, { start: () => undefined, charge: () => undefined });
   const phases = new Map<number, number>();
   let phaseApart = 0;
-  client.onCombat(event => {
-    const { move } = clock; if (event.kind !== 'hit' || event.confirmFor === 0 || move === null) return;
-    stops++; stop.stop((COMBO[moves.combo.indexOf(move)]?.hitStop ?? 0) * swingScale);
-  });
+  client.onCombat(event => { if (event.kind === 'hit' && event.confirmFor !== 0) hitsHeard++; });
   client.onFrame(frame => {
     const phase = client.owner(frame)['swingPhase'], mine = phases.get(frame.lastSeq);
-    if (typeof phase === 'number' && !Number.isNaN(phase) && mine !== undefined && stop.left === 0) phaseApart = Math.max(phaseApart, Math.abs(phase - mine));
+    if (typeof phase === 'number' && !Number.isNaN(phase) && mine !== undefined) phaseApart = Math.max(phaseApart, Math.abs(phase - mine));
   });
   for (let at = 0; at < 150; at++) {
     const press = at === 0 || at === 16 || at === 34;
     const command: Omit<NetCommand, 'seq'> = { viewTick: 0, steer: { keyX: 0, keyY: 0, stickX: 0, stickY: 0 }, yaw: 0, pitch, buttons: 0, ...(press ? { attack: FREE } : {}) };
     const seq = client.command(command);
     if (press) clock.tryFire();
-    const { move } = clock.step(stop.step(DT), at * DT, swingScale, false);
+    const { move } = clock.step(DT, at * DT, swingScale, false);
     if (move !== null) { phases.set(seq, clock.swingTime); last = at; } else phases.delete(seq);
     if (move === null && clientEnd === -1 && last !== -1 && at > 40) clientEnd = at;
     client.flush(); link.pump(); room.tick(); link.pump();
     if (player.swing.t === null && serverEnd === -1 && at > 40) serverEnd = at;
   }
   room.dispose(); client.dispose(); live.dispose();
-  return { apart: phaseApart, server: serverEnd, client: clientEnd, stops, last };
+  return { apart: phaseApart, server: serverEnd, client: clientEnd, hitsHeard };
 }
 
-test('over a chain, with hits and without, the client\'s clock and the server\'s end a tick apart', async () => {
+test('over a chain, with hits and without, the client\'s clock and the server\'s stay a tick apart', async () => {
   const struck = await chain(true), swung = await chain(false);
   process.stdout.write(`swing clocks ${JSON.stringify({ struck, swung })}\n`);
-  expect(struck.stops).toBeGreaterThan(1); expect(swung.stops).toBe(0);
+  expect(struck.hitsHeard).toBeGreaterThan(1); expect(swung.hitsHeard).toBe(0);
   expect(Math.abs(struck.server - struck.client)).toBeLessThanOrEqual(1);
   expect(Math.abs(swung.server - swung.client)).toBeLessThanOrEqual(1);
   expect(swung.apart).toBeLessThanOrEqual(DT + 1e-6);
   expect(struck.apart).toBeLessThanOrEqual(DT + 1e-6);
-  expect(struck.server).toBeGreaterThan(swung.server);
+  // a hit-stop is visual (Game.hitStop): neither clock serves one
+  expect(struck.server).toBe(swung.server);
 }, 120_000);
 
 /** Where a shot on `seq` goes on a fresh Pine, once the world's own stream has been drawn from `burn` times. */
