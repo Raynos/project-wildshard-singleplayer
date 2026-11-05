@@ -239,7 +239,7 @@ export function validateHeadlessCommandOwners(host:SimHost,commands:readonly Hea
 export function fillNativeCombatFrame(frame: NativeCombatFrame, commands: readonly HeadlessCommand[]): void {
   if (commands.length > 1024) throw new RangeError('Tick commands exceed the protocol allowance');
   frame.launchers.length=0; frame.attacks.length = 0; frame.heavy = null; frame.scripts.clear();
-  frame.moveX = 0; frame.moveZ = 0; frame.yaw = 0;
+  frame.moveX = 0; frame.moveZ = 0; frame.yaw = 0; frame.pitch = 0;
   frame.melee.attack = null; frame.melee.heavy = false; frame.melee.heavyTarget = null; frame.melee.swing = false;
   for (const command of commands) {
     if (command.kind === 'script') frame.scripts.set(command.actorId, command.value);
@@ -248,7 +248,7 @@ export function fillNativeCombatFrame(frame: NativeCombatFrame, commands: readon
     if (command.kind !== 'player') continue;
     if (command.attack !== undefined) frame.attacks.push(command.attack.targetId);
     if (frame.heavy === null && command.heavy !== undefined) frame.heavy = command.heavy;
-    frame.moveX = command.moveX; frame.moveZ = command.moveZ; frame.yaw = command.yaw;
+    frame.moveX = command.moveX; frame.moveZ = command.moveZ; frame.yaw = command.yaw; frame.pitch = command.pitch ?? 0;
     frame.melee.attack = command.attack?.targetId ?? null; frame.melee.heavy = command.heavy !== undefined;
     frame.melee.heavyTarget = command.heavy?.targetId ?? null; frame.melee.swing = command.swing === true;
   }

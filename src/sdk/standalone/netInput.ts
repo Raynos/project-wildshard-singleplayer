@@ -4,6 +4,8 @@ import { localWalkingMove } from '@wildshard/engine/player/walk';
 import type { HeadlessCommand } from '../tickProtocol';
 
 const has = (command: NetCommand, button: number): boolean => (command.buttons & button) !== 0;
+/** Admission allows a hair past straight up; the tick's grammar does not, and an input may not end the server. */
+const lookPitch = (command: NetCommand): number => Math.max(-Math.PI / 2, Math.min(Math.PI / 2, command.pitch));
 
 /**
  * P1-E5.2: today's one-player SimHost through a NetCommand adapter (§8), until E5.2a has it take commands directly. The
@@ -12,7 +14,7 @@ const has = (command: NetCommand, button: number): boolean => (command.buttons &
 export function netPlayerCommand(command: NetCommand): Extract<HeadlessCommand, { kind: 'player' }> {
   const move = { x: 0, z: 0 }, { steer, attack, heavyTarget } = command;
   localWalkingMove(steer, command.yaw, move);
-  return { kind: 'player', moveX: move.x, moveZ: move.z, yaw: command.yaw, commandVersion: 1, steer: { ...steer },
+  return { kind: 'player', moveX: move.x, moveZ: move.z, yaw: command.yaw, pitch: lookPitch(command), commandVersion: 1, steer: { ...steer },
     sprint: has(command, NET_BUTTONS.sprint), crouch: has(command, NET_BUTTONS.crouch),
     dive: has(command, NET_BUTTONS.dive), surface: has(command, NET_BUTTONS.surface),
     ...(attack?.targetId === undefined ? {} : { attack: { targetId: attack.targetId } }),
@@ -29,9 +31,9 @@ export function netTickCommands(command: NetCommand | null, acts: readonly NetAc
   if (command !== null) {
     out.push(netPlayerCommand(command));
     const { launcher } = command;
-    if (launcher !== undefined) out.push({ kind: 'launcher', slot: launcher.slot, ads: launcher.ads, pitch: command.pitch, ...(launcher.fire === undefined ? {} : { fire: launcher.fire }) });
+    if (launcher !== undefined) out.push({ kind: 'launcher', slot: launcher.slot, ads: launcher.ads, pitch: lookPitch(command), ...(launcher.fire === undefined ? {} : { fire: launcher.fire }) });
   }
   // `interact` waits for its data-only owner: today's trusted resident refuses it, and an input may not end the server.
-  for (const act of acts) if (act.kind === 'reload') out.push({ kind: 'launcher', slot: act.slot, ads: 0, pitch: command?.pitch ?? 0, reload: true });
+  for (const act of acts) if (act.kind === 'reload') out.push({ kind: 'launcher', slot: act.slot, ads: 0, pitch: command === null ? 0 : lookPitch(command), reload: true });
   return out;
 }

@@ -6,7 +6,7 @@ import { BoxGeometry, MeshBasicMaterial, Vector3 } from 'three';
 import { app } from '../src/engine/app/runtime';
 import { BowWeaponProfileSchema, MeleeWeaponProfileSchema, parseNativeFirearmProfile } from '../src/format/weaponProfiles';
 import { NetClient } from '../src/engine/net/client';
-import { CombatWire } from '../src/engine/net/combatWire';
+import { CombatWire, type CombatEvent } from '../src/engine/net/combatWire';
 import type { NetCombatEvent } from '../src/engine/net/messages';
 import { NetRoom } from '../src/engine/net/room';
 import { SimNetWorld } from '../src/engine/net/simWorld';
@@ -206,6 +206,20 @@ test('Pine: arrows and rifle rounds fly and strike on the tick, and match the pa
       stream.mockRestore();
       expect(result.surface).toBe('flesh'); expect(result.hit?.animal).toBe(twinShot); expect(hpShot - twinShot.hp).toBeCloseTo(round.amount, 5);
     } finally { shot.dispose(); }
+
+    // free aim: no named target, only the yaw and the look pitch, from the server's own eye
+    const eye = host.player.position.clone().setY(host.player.position.y + 1.68), pitch = Math.asin(chest(boar).sub(eye).normalize().y), free: StandCommand = { ...stand(live), pitch, swing: true };
+    const hpFree = boar.hp;
+    countUntil(live, () => { tick(live, 1, [free]); return boar.hp < hpFree; }, 240);
+    expect(wire.drain().find(row => row.kind === 'hit')).toMatchObject({ target: boar.entityId, owned: true });
+
+    // and a free loose at the next boar: the held draw names nothing, the release leaves along the look
+    const next = nearest(live, 'boar'); facing(live, next, 14); pick(2); wire.drain();
+    const lookAt = Math.asin(chest(next).sub(host.player.position.clone().setY(host.player.position.y + 1.68)).normalize().y), hpLoose = next.hp;
+    tick(live, 70, [{ ...stand(live), pitch: lookAt, heavy: {}, swing: true }]); tick(live, 1, [{ ...stand(live), pitch: lookAt }]);
+    countUntil(live, () => bow.item.flying() === 0, 120);
+    expect(next.hp).toBeLessThan(hpLoose);
+    expect(wire.drain().find(row => row.kind === 'hit')).toMatchObject({ target: next.entityId, owned: true });
   } finally { live.dispose(); }
 }, 180_000);
 
@@ -245,6 +259,23 @@ test('a swing and an arrow restored mid-air finish exactly as the live ones do',
     } finally { restored.dispose(); }
   } finally { archer.dispose(); }
 }, 180_000);
+
+test('Sunscar: a free whip crack lands what a named one does', async () => {
+  const { resident } = await shipped('sunscar-dunes');
+  const named = await resident(), free = await resident();
+  try {
+    const crack = (live: TrustedHeadlessResident, command: StandCommand): CombatEvent | undefined => {
+      const wire = new CombatWire(live.host), target = nearest(live, 'sandSkitterer');
+      hold(live); facing(live, target, 2); tick(live, 2); wire.drain();
+      tick(live, 1, [{ ...command, yaw: live.host.player.yaw }]); tick(live, 40);
+      return wire.drain().find(row => row.kind === 'hit');
+    };
+    const target = nearest(named, 'sandSkitterer');
+    const by = crack(named, { ...stand(named), attack: { targetId: target.entityId } }), aimed = crack(free, { ...stand(free), swing: true });
+    expect(by).toMatchObject({ kind: 'hit', target: target.entityId });
+    expect(aimed).toMatchObject({ target: target.entityId, amount: by?.kind === 'hit' ? by.amount : Number.NaN });
+  } finally { named.dispose(); free.dispose(); }
+}, 120_000);
 
 test('hit and died reach a client over the loopback, in order, confirming the swing that landed them', async () => {
   const { resident } = await shipped('driftwood-isle');

@@ -768,9 +768,10 @@ type NativeMeleeTarget = ReturnType<SimHost['combat']['targetPort']>;
 type NativeMeleeHook = NonNullable<ReturnType<DeclaredItemPorts['runtime']>['hook']>;
 type NativeMeleeContact = ReturnType<typeof parseMeleeContacts>[number];
 
-/** One native move or the tick's aim input; commands remain in the owner's authoritative order. */
+/** One native move or the tick's aim input; commands remain in the owner's authoritative order. `free` is a move that names
+ *  nothing (P1-E3.2): the look pitch it leaves along, the contact shape finding what it meets. */
 export type NativeMeleeCommand = { readonly kind: 'aim'; readonly pitch: number }
-  | { readonly kind: 'move'; readonly action: number; readonly targetId?: string; readonly world?: number };
+  | { readonly kind: 'move'; readonly action: number; readonly targetId?: string; readonly world?: number; readonly free?: number };
 /** A world contact's admitted outcome: a light crack answers its first contact, a heavy crack its second. */
 export interface NativeMeleeWorld { readonly act: number; readonly at: Readonly<{ x: number; y: number; z: number }>;
   readonly radius: number; readonly crack: 'light' | 'heavy' }
@@ -804,6 +805,7 @@ export interface NativeHeldCommand { readonly kind:string; readonly heavy?: { re
 /** Admitted page/script fields consumed by the declared native command mapping. */
 export interface NativeMeleeInput extends NativeHeldCommand {
   readonly attack?: {readonly targetId?:string|undefined}|undefined; readonly actorId?:string|undefined; readonly value?:number|undefined;
+  readonly swing?:true|undefined; readonly pitch?:number|undefined;
 }
 /** Runtime authority and command ports are injected; no imported module installs a host. */
 export interface NativeMeleePorts {
@@ -961,6 +963,7 @@ function installNativeContactMelee(host: SimHost, weapon: { readonly id: string;
     mapped.length=0;
     for(const command of inputCommands()){
       if(command.kind==='player'&&command.attack!==undefined)mapped.push({kind:'move',action:policy.attack,...(command.attack.targetId===undefined?{}:{targetId:command.attack.targetId})});
+      else if(command.kind==='player'&&command.swing===true&&command.heavy===undefined)mapped.push({kind:'move',action:policy.attack,free:command.pitch??0});
       else if(command.kind==='script'){
         if(command.actorId===policy.aimActor&&command.value!==undefined)mapped.push({kind:'aim',pitch:command.value});
         else if(policy.world!==undefined&&command.actorId===worldActor){const target=worldTargets.find(entry=>entry.act===command.value);if(target!==undefined)mapped.push({kind:'move',world:target.act,action:target.crack==='heavy'?policy.world.heavy:policy.world.light});}
@@ -1084,7 +1087,8 @@ function installNativeContactMelee(host: SimHost, weapon: { readonly id: string;
   const processCommand=(command:NativeMeleeCommand,dt:number):void=>{
       if (command.kind === 'aim') return;
       const action = row.actions.find(candidate => candidate.action === command.action); if (action === undefined) return;
-      if (action.aim === 'selected' && command.world === undefined && (command.targetId === undefined || !host.entities.has(command.targetId))) return;
+      if (command.free !== undefined) { const cos = Math.cos(command.free); aimed.dir.set(-Math.sin(host.player.yaw) * cos, Math.sin(command.free), -Math.cos(host.player.yaw) * cos); }
+      else if (action.aim === 'selected' && command.world === undefined && (command.targetId === undefined || !host.entities.has(command.targetId))) return;
       if (row.mode === 'immediate' && action.aim === 'selected') { aimed.target = command.targetId ?? null; aimed.world = command.world ?? null; if (!selected(from, direction)) return; }
       const claimed = action.hook === null ? row.mode === 'timed' ? family.swing(action.move) : family.claim(action.move)
         : startMeleeSecondary(family, ports.hook ?? null, { tick: ports.hookTick?.() ?? host.state.tick, dt, action: action.hook, move: action.move }) !== null;

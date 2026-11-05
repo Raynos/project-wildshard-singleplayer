@@ -24,6 +24,8 @@ export interface NativeCombatFrame {
   launchers: NativeLauncherInput[]; attacks: string[]; heavy: { readonly targetId?: string | undefined } | null;
   melee: { attack: string | null; heavy: boolean; heavyTarget: string | null; swing: boolean };
   scripts: Map<string, number>; moveX: number; moveZ: number; yaw: number;
+  /** The look pitch a free shot leaves along (P1-E3.2). */
+  pitch: number;
   live: Set<number>; aim: number; adsBlend: number; aimed: number; speedFactor: number | null;
   extraSpread: number; mountSpread: number; ammo: string; rain: number;
   wind: { clock: Readonly<{ time: number; gust: number }>; field: WindFieldSpec; base: number; scale: number } | null;
@@ -31,7 +33,7 @@ export interface NativeCombatFrame {
 /** A fresh released input frame; a resident fills its same arrays at lend(), never retains a previous tick. */
 export function createNativeCombatFrame(): NativeCombatFrame {
   return { launchers: [], attacks: [], heavy: null, melee: { attack: null, heavy: false, heavyTarget: null, swing: false }, scripts: new Map(),
-    moveX: 0, moveZ: 0, yaw: 0, live: new Set(), aim: 0.5, adsBlend: 0, aimed: 0,
+    moveX: 0, moveZ: 0, yaw: 0, pitch: 0, live: new Set(), aim: 0.5, adsBlend: 0, aimed: 0,
     speedFactor: 0, extraSpread: 0, mountSpread: 0, ammo: '', rain: 0, wind: null };
 }
 function motion(frame: NativeCombatFrame): number {
@@ -74,6 +76,11 @@ const queryBodies = new WeakMap<SimHost, AnimalSim[]>();
 function bodies(host: SimHost): AnimalSim[] {
   let buffer = queryBodies.get(host); if (buffer === undefined) { buffer = []; queryBodies.set(host, buffer); }
   buffer.length = 0; for (const body of host.entities.values()) buffer.push(body); return buffer;
+}
+/** A free shot's line (P1-E3.2): from the server's own eye, along the commanded look. The client's aim origin is not trusted. */
+function lookAlong(player: SimHost['player'], frame: NativeCombatFrame, height: number, eye: Vector3, dir: Vector3): void {
+  const p = player.position, level = Math.cos(frame.pitch);
+  eye.set(p.x, p.y + height, p.z); dir.set(-Math.sin(player.yaw) * level, Math.sin(frame.pitch), -Math.cos(player.yaw) * level);
 }
 function windAt(frame: NativeCombatFrame, x: number, z: number, out: Vector3): Vector3 | null {
   const wind = frame.wind; if (wind === null) return null;
@@ -178,8 +185,9 @@ function cycleItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: 
   let sinceEmpty = 99;
   const eye = new Vector3(), dir = new Vector3(), across = new Vector3(), end = new Vector3();
   const req: DamageRequest = { source: player.health, sourceTags: row.tags, target: player.health, amount: 0, point: new Vector3(), dir, headshot: false };
-  const hitscan = (target: AnimalSim): void => {
-    nativeRangedAim(host, target, eye, dir, frame.aim, row.eye);
+  const hitscan = (target: AnimalSim | null): void => {
+    if (target !== null) nativeRangedAim(host, target, eye, dir, frame.aim, row.eye);
+    else lookAlong(player, frame, row.eye, eye, dir);
     const a = smoothstep(0, 1, frame.adsBlend);
     const spread = instantSpreadDegrees(profile.spreadAds, profile.spreadHip, a, 0,
       motion(frame), profile.movingSpread, profile.movingAimReduction) * (Math.PI / 180);
@@ -191,7 +199,7 @@ function cycleItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: 
     req.point.copy(hit.point); req.headshot = hit.head;
     host.combat.hit(req);
   };
-  const pull = (target: AnimalSim): void => {
+  const pull = (target: AnimalSim | null): void => {
     if (act.phase === 'reload') { act.triggerWhileReloading(); return; }
     if (act.phase !== 'idle') return;
     if (!act.chambered) { sinceEmpty = 0; if (act.tube > 0) act.throwLever(); else act.beginReload(); return; }
@@ -206,6 +214,7 @@ function cycleItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: 
       const target = host.entities.get(id);
       if (target !== undefined) pull(target);
     }
+    if (live && frame.melee.swing && !frame.melee.heavy) pull(null);
     sinceEmpty += dt;
     for (const _event of act.events(dt, act.wantsAutoReload && sinceEmpty > profile.autoReload && sinceEmpty < (profile.lever?.autoReloadClose ?? 0) && frame.live.has(row.slot))) { /* Native effects have no presentation. */ }
   }, {
@@ -267,7 +276,7 @@ function bowItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: un
   const loose = (): void => {
     const target = state.aim === null ? undefined : host.entities.get(state.aim);
     if (target?.alive === true) nativeRangedAim(host, target, eye, dir, frame.aim, row.eye);
-    else { const p = player.position; eye.set(p.x, p.y + row.eye, p.z); dir.set(-Math.sin(player.yaw), 0, -Math.cos(player.yaw)); }
+    else lookAlong(player, frame, row.eye, eye, dir);
     const spread = drawnSpreadDegrees(profile.spread.degrees, profile.spread.aimMultiplier, frame.aimed, profile.spread.motion,
       motion(frame), frame.extraSpread, frame.mountSpread);
     shotSpread(dir, spread * (Math.PI / 180), random, profile.spread, across);
