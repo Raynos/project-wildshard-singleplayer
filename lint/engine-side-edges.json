@@ -1,7 +1,7 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 371,
+  "client → server": 359,
   "cook → client": 2,
   "cook → render": 1,
   "server → client": 144,
@@ -70,16 +70,10 @@
    "shared → server": 1
   },
   "src/engine/world/interact/Interactables.ts": {
-   "client → server": 2
-  },
-  "src/game/ambient/ambientFlock.ts": {
    "client → server": 1
   },
   "src/game/ambient/crowdPage.ts": {
    "server → client": 4
-  },
-  "src/game/ambient/wingField.ts": {
-   "client → server": 1
   },
   "src/game/animation/limbBlend.ts": {
    "client → server": 1
@@ -168,7 +162,7 @@
    "server → client": 2
   },
   "src/game/grid/liveSession.ts": {
-   "client → server": 15
+   "client → server": 14
   },
   "src/game/grid/nearPlaceholderView.ts": {
    "client → server": 1
@@ -316,9 +310,6 @@
   "src/game/population/pageHomes.ts": {
    "server → client": 1
   },
-  "src/game/population/pageLife.ts": {
-   "client → server": 1
-  },
   "src/game/population/pageReturns.ts": {
    "server → client": 1
   },
@@ -441,7 +432,7 @@
    "client → server": 1
   },
   "src/game/shardfile/client.ts": {
-   "client → server": 15
+   "client → server": 12
   },
   "src/game/shardfile/clientBossFight.ts": {
    "client → server": 2
@@ -504,7 +495,7 @@
    "client → server": 3
   },
   "src/game/shardfile/clientState.ts": {
-   "client → server": 4
+   "client → server": 3
   },
   "src/game/shardfile/clientStealthEntry.ts": {
    "client → server": 2
@@ -534,10 +525,10 @@
    "server → client": 1
   },
   "src/game/shardfile/portalRideBinding.ts": {
-   "client → server": 2
+   "client → server": 1
   },
   "src/game/shardfile/product.ts": {
-   "client → server": 4
+   "client → server": 3
   },
   "src/game/shardfile/productCost.ts": {
    "client → server": 1
@@ -546,7 +537,7 @@
    "server → client": 1
   },
   "src/game/shardfile/runtimeProduct.ts": {
-   "client → server": 3
+   "client → server": 2
   },
   "src/game/shardfile/sceneBuffers.ts": {
    "client → server": 1
