@@ -33,7 +33,8 @@ test('ordered walk legs retain the actual grounded floor for fall recovery',asyn
     const stood=leadPlayer(host).position.clone(),floor=floorBelow(host.physics,stood.x,stood.z,stood.y+0.6,1.2,leadPlayer(host).motor.collider);
     expect(floor).toBeDefined();
     leadPlayer(host).resetPose({x:4,y:-4,z:3},0);host.step();
-    expect(leadPlayer(host).position.x).toBe(stood.x);expect(leadPlayer(host).position.z).toBe(stood.z);
-    expect(leadPlayer(host).position.y).toBe(floor);
+    // J112: a resting body steps every tick and settles by microns, so the 0.2 s checkpoint sits just behind the last stand.
+    expect(leadPlayer(host).position.x).toBeCloseTo(stood.x,4);expect(leadPlayer(host).position.z).toBeCloseTo(stood.z,4);
+    expect(leadPlayer(host).position.y).toBeCloseTo(floor??Number.NaN,4);
   }finally{sim.dispose();}
 });
