@@ -95,7 +95,7 @@ test('the worker runs Driftwood from its built product, tick for tick with the r
     expect(last?.snapshot).toBe(serializeSimSnapshot(snapshotSimHostBytes(live.host)));
     expect(live.host.entities.size).toBe(34);
   } finally { await sim.dispose(); live.dispose(); }
-}, 120_000);
+}, 240_000); // every tick commits a full continuation; 50 s on a laptop passed 120 s on a CI runner
 
 test("Driftwood's server files stay off every client path", async () => {
   const { descriptor, directory } = await shipped(), { admission, files, packs } = descriptor.index;
