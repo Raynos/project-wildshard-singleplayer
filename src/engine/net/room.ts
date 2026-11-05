@@ -98,14 +98,31 @@ export class NetRoom {
     return this.clients.reduce((sum, client) => ({ refused: sum.refused + client.queue.refused, duplicates: sum.duplicates + client.queue.duplicates }), { refused: 0, duplicates: 0 });
   }
   /** Connect a client that owns `player`. It waits for its `hello`, and past that for `open`. Returns its id. */
-  join(transport: Transport, player: NetPlayer = this.world.player): number {
+  join(transport: Transport, player: NetPlayer = this.world.player, queue: CommandQueue = new CommandQueue()): number {
     const id = ++this.clientIds, owner = new Uint32Array(player.cls.owner.length);
-    const client: RoomClient = { id, transport, player, queue: new CommandQueue(), state: 'new', ack: -1, acts: [], known: new Set(), questVersion: -1, quests: new Map(), phased: new Set(), owner,
+    const client: RoomClient = { id, transport, player, queue, state: 'new', ack: -1, acts: [], known: new Set(), questVersion: -1, quests: new Map(), phased: new Set(), owner,
       views: Array.from({ length: FRAME_RING }, () => ({ tick: -1, visible: new Set<number>(), due: new Set<number>(), rows: new Map<number, number>() })), nextView: 0, dispose: () => undefined };
     const off = transport.onMessage((channel, bytes) => { this.receive(client, channel, bytes); });
     const closed = transport.onClose(() => { this.remove(client); });
     client.dispose = () => { off(); closed(); };
     this.clients.push(client);
+    return id;
+  }
+  /**
+   * A player crossed (P1-E3.9): their client leaves this world for the room of the one they stand in, on the same link and
+   * with the same command stream. It hears `travel`, then the new room's `welcome`, then a full frame at that room's next.
+   */
+  handOff(id: number, to: NetRoom, player: NetPlayer): number {
+    const client = this.clients.find(entry => entry.id === id);
+    if (client === undefined || client.state !== 'live' || !to.opened) throw new Error('Invalid net hand-off');
+    const tick = this.world.tick(), travel: NetEvent = { kind: 'travel', tick, from: this.world.cell(), to: to.world.cell() };
+    client.transport.send('reliable', encodeEvents(this.writer, tick, [travel], initialBits));
+    this.remove(client);
+    return to.adopt(client.transport, player, client.queue);
+  }
+  private adopt(transport: Transport, player: NetPlayer, queue: CommandQueue): number {
+    const id = this.join(transport, player, queue), client = this.clients.find(entry => entry.id === id);
+    if (client !== undefined) this.welcome(client); // it said hello to the room it came from
     return id;
   }
   /** The client finished loading (§6.3.1): welcome everyone waiting and send each its full frame. */
