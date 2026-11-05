@@ -2,7 +2,7 @@
 // arenaBoundary, renderer-free), apply exactly as the encounter's inline code did: the same calls in the same order (arm,
 // disarm, toast, prompt, the player held, the wall, the clear, the kill and the feat) over every kind of answer.
 import { expect, test } from 'vitest';
-import { arenaBoundary, arenaTie, type ArenaTieObservation } from '../src/game/server/boss/arenaAnswers';
+import { arenaBoundary, arenaTie, type ArenaTieObservation } from '../src/game/shared/boss/arenaAnswers';
 
 const tieLines = ['Tied: ride him down', 'Tied on foot', 'The storm hides the line'], lines = { tie: 'TIE', tieOnFoot: 'TIE ON FOOT', tieQuiet: 'TIE QUIETLY' };
 const record = { kind: 'storm-titan', variant: 'jel-ata' };

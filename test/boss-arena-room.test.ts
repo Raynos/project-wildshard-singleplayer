@@ -11,7 +11,7 @@ import { expect, test, vi } from 'vitest';
 import { Color, MeshBasicMaterial, Scene, Vector3, BoxGeometry, BufferGeometry, PlaneGeometry, Float32BufferAttribute, PerspectiveCamera, Group, InstancedMesh } from 'three';
 import { ArenaRoomEncounter } from '../src/game/client/boss/arenaRoom';
 import { ARENA_ROOM_PAGE, ArenaRoomPortal, BossArenaRoom, arenaRoomViews, sliceArenaRoom } from '../src/game/client/boss/arenaRoomView';
-import { ArenaFightPageSchema } from '../src/game/server/boss/arenaRoomFight';
+import { ArenaFightPageSchema } from '../src/game/shared/boss/arenaRoomRows';
 import { ArenaFireView } from '../src/game/client/boss/arenaFire';
 import { arenaFireView } from './fake/arenaViews';
 import { ArenaFireSchema } from '@wildshard/format/encounterRows';

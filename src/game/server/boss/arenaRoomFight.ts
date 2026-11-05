@@ -7,17 +7,13 @@ import type { BossScript } from '@wildshard/engine/ai/BossBrain';
 import { canReach, type ReachActor } from '@wildshard/engine/ai/reach';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { StrikeRunner, type StrikeContext } from '@wildshard/engine/ai/strikes';
-import type { CombatPipeline, CombatTag, DamageRequest } from '@wildshard/engine/combat/pipeline';
+import type { CombatPipeline, DamageRequest } from '@wildshard/engine/combat/pipeline';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import type { SpeciesDef } from '@wildshard/engine/entities/species/registry';
 import { parseBossProfile } from '@wildshard/format/bossProfiles';
-import { CreatureStrikeSchema } from '@wildshard/format/creatures';
 import { ArenaRoomSpeciesControlSchema } from '@wildshard/format/speciesBookRows';
+import type { BoundedArenaFight } from '../../shared/boss/arenaRoomRows';
 import { bossFight, type BossViewBinding, type PhasedBossBody, type PhasedBossBrain, type PhasedBossFight, type PhasedBossPorts } from '../plugin/bossPhase';
-
-const finite = v.pipe(v.number(), v.finite());
-const rowId = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
-const triple = v.tuple([finite,finite,finite]);
 
 /** The body of an arena fight, the page's or a host's: what the strike rows and the reach test read of it. */
 export type ArenaFightBody = PhasedBossBody & StrikeContext['actor'] & ReachActor & { readonly kind: string; readonly label: string };
@@ -48,15 +44,6 @@ export function arenaRoomSpeciesControl(input:unknown):Pick<SpeciesDef,'think'|'
   };
 }
 
-export const ArenaFightPageSchema: v.GenericSchema<BoundedArenaFightInput, BoundedArenaFight> = v.strictObject({
-  profile: v.unknown(), body: rowId, identity: v.picklist(['runtime', 'declared']),
-  add: v.strictObject({ kind: rowId, variant: rowId, memory: v.record(rowId, finite) }),
-  damageTag: v.custom<CombatTag>(value => typeof value === 'string' && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.*-]+$/u.test(value)),
-  maxZ: finite, reward: triple, respawn: triple, yaw: finite,
-  presentation: v.strictObject({ reach: finite, ringMax: finite, beamRadius: finite }),
-  cuts: v.pipe(v.array(CreatureStrikeSchema), v.minLength(1), v.maxLength(16)),
-  hazards: v.record(rowId, CreatureStrikeSchema),
-});
 /** The fight's world from wherever it runs. `target` is whom the fight deals with right now; a lone player always. */
 export interface ArenaFightTarget {
   readonly position: Vector3; readonly dash: (x: number, z: number, seconds: number) => void;
@@ -115,195 +102,3 @@ export function arenaRoomFight<A extends ArenaFightBody>(ports: ArenaFightPorts<
   return { phased, script: phased.script, body: phased.body, devKill: phased.kill };
 }
 
-type BoundedArenaFightInput = BoundedArenaFight;
-interface BoundedArenaFightFields {
-    profile: unknown;
-    body: string;
-    identity: "runtime" | "declared";
-    add: {
-        kind: string;
-        variant: string;
-        memory: Record<string, number>;
-    };
-    damageTag: `${string}.${string}`;
-    maxZ: number;
-    reward: [
-        number,
-        number,
-        number
-    ];
-    respawn: [
-        number,
-        number,
-        number
-    ];
-    yaw: number;
-    presentation: {
-        reach: number;
-        ringMax: number;
-        beamRadius: number;
-    };
-    cuts: {
-        id: string;
-        shape: {
-            kind: "arc";
-            radius: number;
-            halfAngle: number;
-            yawOffset?: number;
-        } | {
-            kind: "lane";
-            length: number;
-            width: number;
-        } | {
-            kind: "ring";
-            inner: number;
-            outer: number;
-        } | {
-            kind: "wedge";
-            length: number;
-            halfAngle: number;
-        } | {
-            kind: "point";
-            radius: number;
-            exclusive?: boolean;
-        } | {
-            kind: "sphere";
-            radius: number;
-        };
-        windup: number;
-        active: number;
-        recover: number;
-        cooldown: number;
-        range: number | null;
-        damage: number;
-        tags: `${string}.${string}`[];
-        weight: {
-            kind: "constant";
-            value: number;
-        } | {
-            kind: "horizontal-distance";
-            above: number;
-            far: number;
-            near: number;
-        };
-        units?: "world" | "actor";
-        alternatives?: ({
-            kind: "arc";
-            radius: number;
-            halfAngle: number;
-            yawOffset?: number;
-        } | {
-            kind: "lane";
-            length: number;
-            width: number;
-        } | {
-            kind: "ring";
-            inner: number;
-            outer: number;
-        } | {
-            kind: "wedge";
-            length: number;
-            halfAngle: number;
-        } | {
-            kind: "point";
-            radius: number;
-            exclusive?: boolean;
-        } | {
-            kind: "sphere";
-            radius: number;
-        })[];
-        motion?: {
-            speed?: number;
-            delay?: number;
-            track?: "none" | "lead" | "follow";
-            overshoot?: number;
-            skid?: number;
-        };
-        eligibility?: {
-            maxDy?: number;
-            jumpDodges?: boolean;
-        };
-    }[];
-    hazards: Record<string, {
-            id: string;
-            shape: {
-                kind: "arc";
-                radius: number;
-                halfAngle: number;
-                yawOffset?: number;
-            } | {
-                kind: "lane";
-                length: number;
-                width: number;
-            } | {
-                kind: "ring";
-                inner: number;
-                outer: number;
-            } | {
-                kind: "wedge";
-                length: number;
-                halfAngle: number;
-            } | {
-                kind: "point";
-                radius: number;
-                exclusive?: boolean;
-            } | {
-                kind: "sphere";
-                radius: number;
-            };
-            windup: number;
-            active: number;
-            recover: number;
-            cooldown: number;
-            range: number | null;
-            damage: number;
-            tags: `${string}.${string}`[];
-            weight: {
-                kind: "constant";
-                value: number;
-            } | {
-                kind: "horizontal-distance";
-                above: number;
-                far: number;
-                near: number;
-            };
-            units?: "world" | "actor";
-            alternatives?: ({
-                kind: "arc";
-                radius: number;
-                halfAngle: number;
-                yawOffset?: number;
-            } | {
-                kind: "lane";
-                length: number;
-                width: number;
-            } | {
-                kind: "ring";
-                inner: number;
-                outer: number;
-            } | {
-                kind: "wedge";
-                length: number;
-                halfAngle: number;
-            } | {
-                kind: "point";
-                radius: number;
-                exclusive?: boolean;
-            } | {
-                kind: "sphere";
-                radius: number;
-            })[];
-            motion?: {
-                speed?: number;
-                delay?: number;
-                track?: "none" | "lead" | "follow";
-                overshoot?: number;
-                skid?: number;
-            };
-            eligibility?: {
-                maxDy?: number;
-                jumpDodges?: boolean;
-            };
-        }>;
-}
-export type BoundedArenaFight = { [Key in keyof BoundedArenaFightFields]: BoundedArenaFightFields[Key] };

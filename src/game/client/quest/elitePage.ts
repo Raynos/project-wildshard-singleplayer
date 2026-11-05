@@ -10,8 +10,8 @@ import { Impacts } from '@wildshard/engine/fx/Impacts';
 import { GroundTell } from '@wildshard/engine/fx/groundTell';
 import type { Elites, EliteScript } from '../Elite';
 import { DomePuffs } from '@wildshard/engine/fx/groundFx';
-import { SpawnScript } from '../../server/population/spawnScript';
-import { EliteDecisions } from '../../server/quest/eliteDecisions';
+import { pageSim } from '../shardfile/clientMoverOwners';
+import { EliteDecisions } from '../../shared/quest/eliteDecisions';
 import { parseEliteFeature } from '@wildshard/format/eliteFeature';
 
 
@@ -31,7 +31,7 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
     if (group !== undefined) { const index = group.members.indexOf(body); if (index === -1) group.members.push(ordinary); else group.members[index] = ordinary; }
   }
   const puffs = new DomePuffs(game.scene, new THREE.Color(...view.puffColor), view.puffPool.capacity, view.puffPool.segments, view.puffPool.order), color = new THREE.Color(...view.tellColor);
-  const controllers = rows.fights.map(row => new EliteDecisions(row, SpawnScript.page(animals, row.program, game.app.physics), rows, seed));
+  const controllers = rows.fights.map(row => new EliteDecisions(row, pageSim.spawnScript.page(animals, row.program, game.app.physics), rows, seed));
   const point = new THREE.Vector3(), direction = new THREE.Vector3(), tells = new Map<string, GroundTell>();
   // PF5: a body is checked against the roster once a frame (the rules, the bar and the page read it several times a frame)
   const checked = new WeakMap<object, { frame: number; real: Animal }>();

@@ -2,7 +2,7 @@ import { nativeEliteCore as ridingEliteCore } from '../src/game/server/shardfile
 import { NALATI_ELITE_CONDITIONS } from '../src/shards/nalati-grasslands/generators/nativeServer';
 import {admissionNative,admission} from './fixtures/nalati-return-modules';
 import { expect, test } from 'vitest';
-import type { EliteCoreRule } from '../src/game/server/eliteSystem';
+import type { EliteCoreRule } from '../src/game/shared/eliteSystem';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { NativeEliteRoster, nativeEliteBindings } from '../src/engine/server/ai/eliteRoster';
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';

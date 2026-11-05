@@ -9,7 +9,7 @@ import {presentEntryOwner,publishEntryOwner} from '../../shared/shardfile/entryO
 import {preflightViewLends,lendViewArray,lendViewCell,lendViewValues,lendViewDraw,lendViewFrame,lendViewTell} from '../shardfile/clientViewProgram';
 import type { ArenaWhirlsRows,ArenaFireRows } from '@wildshard/format/encounterRows';
 import { ARENA_VIEW, arenaChainTell } from '@wildshard/format/arenaView';
-import type { OpenArenaFight } from '../../server/boss/openArenaFight';
+import type { OpenArenaFight } from '../../shared/boss/openArenaFight';
 
 const POSE_CELLS = ['bend', 'raise', 'castL', 'struck', 'alpha'] as const;
 /** The open arena's view half: lend its view module (format/arenaView) what it samples and writes, then the frame slot it

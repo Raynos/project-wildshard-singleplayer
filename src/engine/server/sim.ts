@@ -10,7 +10,7 @@ import { RngService } from '../shared/core/rng';
 import { FIXED_STEP } from '../shared/core/fixedStep';
 import { AnimalSim, type AnimalSimSpec } from './entities/AnimalSim';
 import { StrikeRunner, type StrikeSpec } from '../shared/ai/strikes';
-import { canReach } from './ai/reach';
+import { canReach } from '../shared/ai/reach';
 import { CombatPipeline } from './combat/pipeline';
 import { DamageBook } from './combat/damageBook';
 import { RespawnBook } from './sim/respawn';

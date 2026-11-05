@@ -12,7 +12,7 @@ import {projectileFlightStep} from '../../../src/engine/shared/combat/projectile
 import {Wind} from '../../../src/engine/shared/world/steppeWind';
 import {mountedPlayerOf} from '../../../src/game/server/riding/native';
 import {nalatiTitanOf} from '../../fixtures/nalati-titan-native';
-import {readArenaScriptData} from '../../../src/game/server/boss/openArenaFight';
+import {readArenaScriptData} from '../../../src/game/shared/boss/openArenaFight';
 import type {SimHost} from '../../../src/engine/server/sim';
 import type {ShardProduct} from '../../../src/game/shared/shardfile/shardProduct';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';

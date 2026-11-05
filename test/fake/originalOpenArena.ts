@@ -31,7 +31,7 @@ import { installBossEncounter, type Boss } from '../../src/game/client/Boss';
 import { ProjectedState, ReturnProgram } from '../../src/game/shared/population/returnProgram';
 import { wildEnv } from '../../src/game/server/population/pageGroups';
 import { setEliteDamage } from '@wildshard/engine/entities/eliteBrain';
-import { CellField } from '../../src/game/server/systems/cellField';
+import { CellField } from '../../src/game/shared/systems/cellField';
 import { ArenaFireView, ArenaWhirlsView } from './originalArenaFire';
 import { ArenaSceneView, CloudBody, type PatrolEncounterView } from '../../src/game/client/boss/encounterView';
 import type { GroundTell } from '../../src/game/client/eliteView';

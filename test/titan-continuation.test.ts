@@ -10,7 +10,7 @@ import { titanPrograms as programs } from './fixtures/titanInlineWitness';
 import { ArenaRoomEncounter, type OpenArenaWorld } from '../src/game/client/boss/arenaRoom';
 import { ARENA_ROOM_PAGE } from '../src/game/client/boss/arenaRoomView';
 import { bindArenaPoseView } from './fixtures/native-hosts/boss/arenaPoseView';
-import type { OpenArenaFight, OpenArenaFightSnapshot } from '../src/game/server/boss/openArenaFight';
+import type { OpenArenaFight, OpenArenaFightSnapshot } from '../src/game/shared/boss/openArenaFight';
 import { app } from '../src/engine/client/app/runtime';
 import { App } from '../src/engine/client/app/app';
 import { Scope } from '../src/engine/shared/app/scope';

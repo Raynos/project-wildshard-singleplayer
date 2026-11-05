@@ -8,7 +8,7 @@ import { silentBossPresentation } from '../src/engine/server/ai/phases';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
 import { createSimHost, type SimCommand, type SimHost } from '../src/engine/server/sim';
 import type { PlayerSim } from '../src/engine/server/sim/playerSim';
-import { OpenArenaFight } from '../src/game/server/boss/openArenaFight';
+import { OpenArenaFight } from '../src/game/shared/boss/openArenaFight';
 import { OpenArenaRoom } from '../src/game/server/boss/openArenaRoom';
 import fireView from '../src/shards/nalati-grasslands/data/arenaFire.json' with { type: 'json' };
 import * as titan from '../src/shards/nalati-grasslands/generators/stormTitanFight';

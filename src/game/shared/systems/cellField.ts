@@ -4,7 +4,7 @@
 import * as v from 'valibot';
 import { CellFieldSchema,type CellFieldRows } from '@wildshard/format/cellField';
 import { isJsonData } from '@wildshard/format/json';
-import { ProjectedState,type ProjectedSnapshot,type ReturnProgram } from '../../shared/population/returnProgram';
+import { ProjectedState,type ProjectedSnapshot,type ReturnProgram } from '../population/returnProgram';
 import type { Rng } from '@wildshard/engine/core/rng';
 
 function freeze(value: unknown): void {

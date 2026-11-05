@@ -7,7 +7,7 @@ import { Vector3 } from 'three';
 import type { PackBrain } from '../../src/engine/server/ai/pack';
 import type { HerdBrain } from '../../src/engine/server/ai/herd';
 import type { FlockBrain, FlockThreat } from '../../src/engine/shared/ai/flock';
-import { canReach } from '../../src/engine/server/ai/reach';
+import { canReach } from '../../src/engine/shared/ai/reach';
 import { createNativeSpeciesContext } from '../../src/game/server/plugin/brain';
 import type { NativeEliteBindings } from '../../src/engine/server/ai/eliteRoster';
 import { ReturnProgram } from '../../src/game/shared/population/returnProgram';

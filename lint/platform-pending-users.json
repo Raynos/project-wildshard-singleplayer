@@ -1749,7 +1749,7 @@
       }
     },
     {
-      "module": "src/game/server/quest/eliteDecisions.ts",
+      "module": "src/game/shared/quest/eliteDecisions.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",

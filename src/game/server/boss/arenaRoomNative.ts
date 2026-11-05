@@ -13,9 +13,9 @@ import type { PhasedBossFight } from '../plugin/bossPhase';
 import { installBossRow } from '../shardfile/bossRow';
 import type { ArenaRoomGround } from '../../shared/boss/arenaGround';
 import { ArenaPortalLaw, type ArenaPortalEntrance } from '../../shared/boss/arenaPortal';
-import type { ArenaRoomPortalRows } from '../../shared/boss/arenaRoomRows';
+import type { ArenaRoomPortalRows, BoundedArenaFight } from '../../shared/boss/arenaRoomRows';
 import type { BossBounty } from './bounty';
-import { arenaRoomFight, type ArenaFightBody, type ArenaFightTarget, type BoundedArenaFight } from './arenaRoomFight';
+import { arenaRoomFight, type ArenaFightBody, type ArenaFightTarget } from './arenaRoomFight';
 import { NativeArenaSand } from './nativeArenaSand';
 
 /** A body as a SimHost's roster keeps it. */

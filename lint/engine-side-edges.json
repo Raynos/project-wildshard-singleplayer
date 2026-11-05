@@ -1,7 +1,7 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 74,
+  "client → server": 60,
   "cook → client": 2,
   "cook → render": 1,
   "server → client": 28,
@@ -47,19 +47,7 @@
   "src/game/client/Boss.ts": {
    "client → server": 1
   },
-  "src/game/client/boss/arenaRoom.ts": {
-   "client → server": 5
-  },
   "src/game/client/boss/roamingProjection.ts": {
-   "client → server": 3
-  },
-  "src/game/client/boss/timedEncounters.ts": {
-   "client → server": 2
-  },
-  "src/game/client/combat/roamingSession.ts": {
-   "client → server": 2
-  },
-  "src/game/client/Elite.ts": {
    "client → server": 3
   },
   "src/game/client/grid/liveSession.ts": {
@@ -85,9 +73,6 @@
   },
   "src/game/client/plugin/weaponFamily.ts": {
    "client → server": 1
-  },
-  "src/game/client/quest/elitePage.ts": {
-   "client → server": 2
   },
   "src/game/client/riding/client.ts": {
    "client → server": 5

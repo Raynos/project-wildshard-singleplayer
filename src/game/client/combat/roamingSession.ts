@@ -6,7 +6,7 @@ import { bossEncounterPresentation } from '@wildshard/format/bossEncounter';
 import { installBossEncounter, PageCombatSession, type BossEncounter } from '../Boss';
 import { Elites, eliteGroundTell, type EliteRule } from '../Elite';
 import { installRoamingBossProjection } from '../boss/roamingProjection';
-import { prepareProductDecisionMemories } from '../../server/shardfile/borrowedDecisions';
+import { pageSim } from '../shardfile/clientMoverOwners';
 import { enteredHeldLoadout } from '../loadout/held';
 import { HeldFinishes } from '../loadout/finishes';
 import { HeldLauncher } from '../weapons/heldLauncher';
@@ -23,7 +23,6 @@ import { CatalogueScore } from '@wildshard/engine/audio/SetScore';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
 import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import { installEliteFeaturePage } from '../quest/elitePage';
-import { readEliteFeature } from '../../server/quest/eliteFeature';
 import { bindAdventurePersistence } from '../../shared/quest/persistence';
 import type { ShardContext } from '../plugin/context';
 import { installEnteredRuntimeAttachment, installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
@@ -65,9 +64,9 @@ export async function installRoamingCombat(context: ShardContext, input: unknown
     ownSkin: id => { if (HeldFinishes.current(source.identity.slug).has(id)) ctx.ownSkin(id); },
     canSee: (from, to) => context.app.physics === null || lineOfSight(context.app.physics, from, to, .6),
   }, eliteUi, source.identity.slug, persistence.elites));
-  const eliteRows = await readEliteFeature(context.product, rows.elites);
+  const eliteRows = await pageSim.readEliteFeature(context.product, rows.elites);
   // The elite fights' spawn scripts take the prepared memories the boss projection's authority would prepare after them.
-  await prepareProductDecisionMemories(context);
+  await pageSim.prepareProductDecisionMemories(context);
   const eliteFeature = context.scope.run(() => installEliteFeaturePage(game, animals, player, sky, elites, parked, eliteRows, source.identity.seed, play.hud, rows.session.god));
   elites.bindEnteredPresentation({ scope: context.scope, interactables: runtime.interactables, hud: play.hud, audio, music }, rows.elitePresentation);
   const fight = await installRoamingBossProjection(context, rows.projection);

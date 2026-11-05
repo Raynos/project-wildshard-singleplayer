@@ -5,7 +5,7 @@
  * weather, then the kill and the feat recorded). `ArenaRoomEncounter` (arenaRoom.ts) applies them through these, in this
  * order; a native host passes its own boss, player, weather and persistence.
  */
-import type { ProjectedState } from '../../shared/population/returnProgram';
+import type { ProjectedState } from '../population/returnProgram';
 
 type Answer = Readonly<Record<string, number>>;
 /** what the tie event reads of the encounter */

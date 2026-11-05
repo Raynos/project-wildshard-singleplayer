@@ -1,6 +1,8 @@
 /** The arena room's admitted rows (P1-E4.2): the room and its portal as data, read by the page's view half and the fight's
  *  server half alike. No owner, scene or callback lives here. */
 import * as v from 'valibot';
+import type { CombatTag } from '@wildshard/engine/combat/pipeline';
+import { CreatureStrikeSchema } from '@wildshard/format/creatures';
 
 const finite = v.pipe(v.number(), v.finite());
 const positive = v.pipe(finite, v.minValue(Number.MIN_VALUE));
@@ -198,3 +200,204 @@ interface BoundedArenaRoomFields {
     };
 }
 type BoundedArenaRoom = { [Key in keyof BoundedArenaRoomFields]: BoundedArenaRoomFields[Key] };
+export const ArenaFightPageSchema: v.GenericSchema<BoundedArenaFightInput, BoundedArenaFight> = v.strictObject({
+  profile: v.unknown(), body: rowId, identity: v.picklist(['runtime', 'declared']),
+  add: v.strictObject({ kind: rowId, variant: rowId, memory: v.record(rowId, finite) }),
+  damageTag: v.custom<CombatTag>(value => typeof value === 'string' && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.*-]+$/u.test(value)),
+  maxZ: finite, reward: triple, respawn: triple, yaw: finite,
+  presentation: v.strictObject({ reach: finite, ringMax: finite, beamRadius: finite }),
+  cuts: v.pipe(v.array(CreatureStrikeSchema), v.minLength(1), v.maxLength(16)),
+  hazards: v.record(rowId, CreatureStrikeSchema),
+});
+type BoundedArenaFightInput = BoundedArenaFight;
+interface BoundedArenaFightFields {
+    profile: unknown;
+    body: string;
+    identity: "runtime" | "declared";
+    add: {
+        kind: string;
+        variant: string;
+        memory: Record<string, number>;
+    };
+    damageTag: `${string}.${string}`;
+    maxZ: number;
+    reward: [
+        number,
+        number,
+        number
+    ];
+    respawn: [
+        number,
+        number,
+        number
+    ];
+    yaw: number;
+    presentation: {
+        reach: number;
+        ringMax: number;
+        beamRadius: number;
+    };
+    cuts: {
+        id: string;
+        shape: {
+            kind: "arc";
+            radius: number;
+            halfAngle: number;
+            yawOffset?: number;
+        } | {
+            kind: "lane";
+            length: number;
+            width: number;
+        } | {
+            kind: "ring";
+            inner: number;
+            outer: number;
+        } | {
+            kind: "wedge";
+            length: number;
+            halfAngle: number;
+        } | {
+            kind: "point";
+            radius: number;
+            exclusive?: boolean;
+        } | {
+            kind: "sphere";
+            radius: number;
+        };
+        windup: number;
+        active: number;
+        recover: number;
+        cooldown: number;
+        range: number | null;
+        damage: number;
+        tags: `${string}.${string}`[];
+        weight: {
+            kind: "constant";
+            value: number;
+        } | {
+            kind: "horizontal-distance";
+            above: number;
+            far: number;
+            near: number;
+        };
+        units?: "world" | "actor";
+        alternatives?: ({
+            kind: "arc";
+            radius: number;
+            halfAngle: number;
+            yawOffset?: number;
+        } | {
+            kind: "lane";
+            length: number;
+            width: number;
+        } | {
+            kind: "ring";
+            inner: number;
+            outer: number;
+        } | {
+            kind: "wedge";
+            length: number;
+            halfAngle: number;
+        } | {
+            kind: "point";
+            radius: number;
+            exclusive?: boolean;
+        } | {
+            kind: "sphere";
+            radius: number;
+        })[];
+        motion?: {
+            speed?: number;
+            delay?: number;
+            track?: "none" | "lead" | "follow";
+            overshoot?: number;
+            skid?: number;
+        };
+        eligibility?: {
+            maxDy?: number;
+            jumpDodges?: boolean;
+        };
+    }[];
+    hazards: Record<string, {
+            id: string;
+            shape: {
+                kind: "arc";
+                radius: number;
+                halfAngle: number;
+                yawOffset?: number;
+            } | {
+                kind: "lane";
+                length: number;
+                width: number;
+            } | {
+                kind: "ring";
+                inner: number;
+                outer: number;
+            } | {
+                kind: "wedge";
+                length: number;
+                halfAngle: number;
+            } | {
+                kind: "point";
+                radius: number;
+                exclusive?: boolean;
+            } | {
+                kind: "sphere";
+                radius: number;
+            };
+            windup: number;
+            active: number;
+            recover: number;
+            cooldown: number;
+            range: number | null;
+            damage: number;
+            tags: `${string}.${string}`[];
+            weight: {
+                kind: "constant";
+                value: number;
+            } | {
+                kind: "horizontal-distance";
+                above: number;
+                far: number;
+                near: number;
+            };
+            units?: "world" | "actor";
+            alternatives?: ({
+                kind: "arc";
+                radius: number;
+                halfAngle: number;
+                yawOffset?: number;
+            } | {
+                kind: "lane";
+                length: number;
+                width: number;
+            } | {
+                kind: "ring";
+                inner: number;
+                outer: number;
+            } | {
+                kind: "wedge";
+                length: number;
+                halfAngle: number;
+            } | {
+                kind: "point";
+                radius: number;
+                exclusive?: boolean;
+            } | {
+                kind: "sphere";
+                radius: number;
+            })[];
+            motion?: {
+                speed?: number;
+                delay?: number;
+                track?: "none" | "lead" | "follow";
+                overshoot?: number;
+                skid?: number;
+            };
+            eligibility?: {
+                maxDy?: number;
+                jumpDodges?: boolean;
+            };
+        }>;
+}
+export type BoundedArenaFight = { [Key in keyof BoundedArenaFightFields]: BoundedArenaFightFields[Key] };

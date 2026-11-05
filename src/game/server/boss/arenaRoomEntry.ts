@@ -7,9 +7,8 @@ import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { isArenaSeal } from '../../shared/boss/arenaCollision';
 import type { SimHost, SimSpawn } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
-import { ArenaFightPageSchema } from './arenaRoomFight';
 import { installArenaRoom, type ArenaRoomBody } from './arenaRoomNative';
-import { ArenaRoomSchema } from '../../shared/boss/arenaRoomRows';
+import { ArenaFightPageSchema, ArenaRoomSchema } from '../../shared/boss/arenaRoomRows';
 import { ReturnProgram } from '../../shared/population/returnProgram';
 
 const Entry = v.object({ room: v.unknown(), encounter: v.object({ definition: v.record(v.string(), v.unknown()), page: v.unknown(), portal: v.unknown(), program: v.unknown() }) });

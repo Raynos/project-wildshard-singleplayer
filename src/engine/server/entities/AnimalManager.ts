@@ -4,7 +4,7 @@ import { EntityIds } from '../../shared/entities/ids';
 import { emitFault } from '../../shared/core/faults';
 import { MathUtils, Vector3, type PerspectiveCamera } from 'three';
 import type { SpeciesFlight } from '../ai/flight';
-import { canReach } from '../ai/reach';
+import { canReach } from '../../shared/ai/reach';
 import { brainPinned } from '../../shared/ai/pinning';
 import { TickScheduler, type InterruptReason, type TickRate } from '../../shared/app/scheduler';
 import { dodgeFx } from '../../shared/player/dodge';

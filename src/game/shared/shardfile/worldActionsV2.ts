@@ -4,9 +4,9 @@ import { Vector3 } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { Player } from '@wildshard/engine/player/Player';
-import type {TamingHorse,TamingHerd,TamingServices} from '../riding/bindingTypes';
+import type {TamingHorse,TamingHerd,TamingServices} from '../../server/riding/bindingTypes';
 import {validV2TamingAction,type V2WorldAction} from '@wildshard/format/scriptActionsV2';
-import type { NativeMountedPlayer } from '../riding/native';
+import type { NativeMountedPlayer } from '../../server/riding/native';
 
 /** Cell-field storage lends its SAME concrete activate method. Its AS law,
  * delayed writes and update cadence remain with that field owner. */

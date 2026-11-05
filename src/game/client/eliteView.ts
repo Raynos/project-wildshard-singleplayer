@@ -15,7 +15,7 @@ import type { EliteBar } from '@wildshard/engine/ui/EliteBar';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { EliteEnteredPresentation } from '@wildshard/format/eliteFeature';
 import type { EliteHost, EliteScript } from './Elite';
-import type { EliteCoreEntry, EliteCoreHooks, EliteCoreRecord } from '../server/eliteSystem';
+import type { EliteCoreEntry, EliteCoreHooks, EliteCoreRecord } from '../shared/eliteSystem';
 
 /** Concrete entered owners; no author callbacks or service-name resolution. */
 export interface EliteEnteredOwners {

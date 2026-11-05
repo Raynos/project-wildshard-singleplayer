@@ -5,8 +5,8 @@ import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { EliteCoreScript } from '../eliteSystem';
 import { Rng, type RngState } from '@wildshard/engine/core/rng';
 import type { EliteFeatureRows } from '@wildshard/format/eliteFeature';
-import { eliteStream } from '../../shared/quest/eliteStreams';
-import type { SpawnScript } from '../population/spawnScript';
+import { eliteStream } from './eliteStreams';
+import type { SpawnScript } from '../../server/population/spawnScript';
 
 type Fight = EliteFeatureRows['fights'][number];
 /** Internal lifecycle adapter. Only built-in page/native feature factories supply an already bound script owner. */

@@ -3,7 +3,7 @@ import { installArenaBoundary, arenaBoundaryBlocked } from '../src/game/client/r
 import { beforeEach,afterEach,expect,test } from 'vitest';
 import { parse } from 'valibot';
 import { CellFieldSchema } from '@wildshard/format/cellField';
-import { CellField } from '../src/game/server/systems/cellField';
+import { CellField } from '../src/game/shared/systems/cellField';
 import { Scope } from '../src/engine/shared/app/scope';
 import { ProjectedState,ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { Rng } from '../src/engine/shared/core/rng';

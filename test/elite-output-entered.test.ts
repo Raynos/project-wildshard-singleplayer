@@ -1,5 +1,5 @@
 // @vitest-environment node
-import * as reach from '../src/engine/server/ai/reach';
+import * as reach from '../src/engine/shared/ai/reach';
 import type { PageWildlife } from '../src/game/server/population/wildlife';
 import type { PatrolEncounterView } from '../src/game/client/boss/encounterView';
 import type { ReturnProgram } from '../src/game/shared/population/returnProgram';

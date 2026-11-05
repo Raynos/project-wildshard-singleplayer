@@ -1,5 +1,5 @@
 import { titanFightOwners } from './fixtures/titanFightOwners';
-import { readArenaScriptData } from '../src/game/server/boss/openArenaFight';
+import { readArenaScriptData } from '../src/game/shared/boss/openArenaFight';
 import { expect,test } from 'vitest';
 import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob } from '@wildshard/sdk/blobs';

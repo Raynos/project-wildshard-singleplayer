@@ -10,7 +10,7 @@ import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { StalkerBrain, type PouncerContext, type PouncerLedge, type PouncerSpec, type HowlerSpec, type HowlerPorts } from '@wildshard/engine/ai/stalker';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
-import { EliteCore, memoryElitePersistence, type EliteCoreDef, type EliteCoreScript } from '../../src/game/server/eliteSystem';
+import { EliteCore, memoryElitePersistence, type EliteCoreDef, type EliteCoreScript } from '../../src/game/shared/eliteSystem';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const silent = (): void => undefined;

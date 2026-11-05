@@ -2,7 +2,7 @@ import { titanFightOwners } from './fixtures/titanFightOwners';
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import { ArenaRoomEncounter } from '../src/game/client/boss/arenaRoom';
 import { ARENA_ROOM_PAGE } from '../src/game/client/boss/arenaRoomView';
-import { readArenaScriptData } from '../src/game/server/boss/openArenaFight';
+import { readArenaScriptData } from '../src/game/shared/boss/openArenaFight';
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import * as v from 'valibot';

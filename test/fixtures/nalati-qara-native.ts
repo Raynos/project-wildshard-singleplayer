@@ -15,11 +15,11 @@ import {withNalatiWeapons} from './nalati-weapons-native';
 import {prepareNalatiPatrol,nalatiPatrolOf} from './nalati-patrol-native';
 import {StrikeRunner} from '../../src/engine/shared/ai/strikes';
 import {strikeFromData} from '../../src/engine/shared/ai/strikeRows';
-import {canReach} from '../../src/engine/server/ai/reach';
+import {canReach} from '../../src/engine/shared/ai/reach';
 import {nativeGroupCollection} from '../../src/game/server/shardfile/groupRuntime';
 import {parseEliteEntryPageRows} from '@wildshard/format/eliteEntryRows';
 import {SpeciesActorsFileSchema} from '@wildshard/format/speciesBookRows';
-import type {EliteCoreScript} from '../../src/game/server/eliteSystem';
+import type {EliteCoreScript} from '../../src/game/shared/eliteSystem';
 import {nativePopulationOf} from '../../src/game/server/riding/nativePopulation';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 

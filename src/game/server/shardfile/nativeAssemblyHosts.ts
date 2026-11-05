@@ -16,7 +16,7 @@ import { TOON_DAY_PRESET } from '@wildshard/format/toonLook';
 import { parseWeatherProgram } from '@wildshard/format/weatherProgram';
 import { parse } from 'valibot';
 import { installGroundBoss } from '../boss/native';
-import { EliteCore, memoryElitePersistence, type EliteCoreRule, type EliteCoreScript } from '../eliteSystem';
+import { EliteCore, memoryElitePersistence, type EliteCoreRule, type EliteCoreScript } from '../../shared/eliteSystem';
 import { installNativeHeldAmmunition } from '../loadout/nativeAmmunition';
 import { prepareHeldArms } from '../weapons/nativeHeld';
 import { dayClock } from '../../shared/looks/dayClock';
@@ -236,6 +236,7 @@ export async function prepareAssemblyFeature<C extends NativeAssemblyContext>(ro
       const captain = rows['captain'] as { pool: { x: number; z: number }; arena: unknown };
       return run => { installNativeChapterDirector(run.host, director, { id: row.id, rows: input, reward: row.reward, wake: { population: row.population, encounter: wake.encounter, placement: { pool: { x: captain.pool.x, z: captain.pool.z }, arena: captain.arena }, cues: wake.cues.map(({ id, operation }) => ({ id, operation })) } }, run.context.restoring); };
     }
+    case 'boss.open-arena': case 'encounter.patrol': throw new Error(`Native assembly host ${row.host} is not built yet`);
     default: throw new Error('Unknown native assembly host');
   }
 }

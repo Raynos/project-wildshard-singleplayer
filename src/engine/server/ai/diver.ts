@@ -4,7 +4,7 @@ import type { AnimalSim } from '../entities/AnimalSim';
 import type { SimValue } from '../sim';
 import { inspectBrain } from './inspect';
 import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../shared/ai/strikes';
-import { readStrikeState } from './strikeState';
+import { readStrikeState } from '../../shared/ai/strikeState';
 import { emitFault } from '../../shared/core/faults';
 
 /** Circle, overhead stalk, telegraphed chest dive and rising rest tuning, in metres, seconds and m/s. */

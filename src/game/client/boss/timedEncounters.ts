@@ -14,7 +14,7 @@ import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { CueDirector } from '../audio/cueDirector';
 import { ReturnProgram } from '../../shared/population/returnProgram';
-import { wildEnv } from '../../server/population/pageGroups';
+import { pageSim } from '../shardfile/clientMoverOwners';
 import { PatrolEncounterView, SlotEncounterView, type EncounterSites } from './encounterView';
 
 interface TimedEncounterContext {
@@ -64,7 +64,7 @@ export class TimedEncounters {
       app.combat.hit({ source: 'env', sourceTags: rows.contact.tags, target, amount: damage,
         point: actor.position, dir: this.direction.set(0, 0, 0), cause: { kind: actor.kind, label: actor.label } });
     }
-    this.cues.setLight(Math.max(rows.lightFloor, wildEnv.light)); this.cues.update(dt);
+    this.cues.setLight(Math.max(rows.lightFloor, pageSim.wild.light)); this.cues.update(dt);
   }
   attach(animals: AnimalManager): void {
     try { this.slots.attachActors(animals); } catch (cause) { console.error('[encounters] slot actors disabled:', cause); }

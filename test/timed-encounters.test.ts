@@ -1,4 +1,4 @@
-import * as reachQueries from '../src/engine/server/ai/reach';
+import * as reachQueries from '../src/engine/shared/ai/reach';
 import type { PlayerHealth } from '../src/engine/server/combat/health';
 import type { Animal } from '../src/engine/client/entities/AnimalView';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';

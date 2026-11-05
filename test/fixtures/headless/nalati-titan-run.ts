@@ -13,7 +13,7 @@ import {canonicalSimDigest} from '../../fake/simState';
 import {createNativeProofResident} from '../headless-native';
 import {createNativeProofWorker} from '../headless-worker';
 import {prepareHeadlessRuntime,nalatiTitanOf} from '../nalati-titan-native';
-import {readArenaScriptData} from '../../../src/game/server/boss/openArenaFight';
+import {readArenaScriptData} from '../../../src/game/shared/boss/openArenaFight';
 import {questObservation} from '../../../src/game/shared/quest/questObservation';
 import {parseChapterStoryPresentation} from '@wildshard/format/questStory';
 import {reachTitanCairn} from '../../proof/nalati-grasslands/titanTravel';

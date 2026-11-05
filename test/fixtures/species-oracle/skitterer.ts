@@ -7,7 +7,7 @@ import { CreatureBrain } from '../../../src/engine/server/ai/CreatureBrain';
 import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../../src/engine/shared/ai/strikes';
 import type { Animal } from '../../../src/engine/client/entities/AnimalView';
 import type { AnimalSim } from '../../../src/engine/server/entities/AnimalSim';
-import { readStrikeState } from '../../../src/engine/server/ai/strikeState';
+import { readStrikeState } from '../../../src/engine/shared/ai/strikeState';
 import * as v from 'valibot';
 import type { SimValue } from '../../../src/engine/server/sim';
 

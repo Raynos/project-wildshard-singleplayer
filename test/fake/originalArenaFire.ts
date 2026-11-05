@@ -6,7 +6,7 @@ import { TIER } from '@wildshard/engine/core/tier';
 import { terrainHeight as heightAt, terrainNormal as normalAt } from '@wildshard/engine/world/terrainHeight';
 import { lentLook, setLentParam } from '../../src/game/client/shardfile/lentLooks';
 import { ProjectedState, type ReturnProgram } from '../../src/game/shared/population/returnProgram';
-import type { CellField } from '../../src/game/server/systems/cellField';
+import type { CellField } from '../../src/game/shared/systems/cellField';
 import type { ArenaWhirlsRows,ArenaFireRows } from '@wildshard/format/encounterRows';
 
 interface SmokeP { x: number; y: number; z: number; vx: number; vy: number; vz: number; age: number; life: number; r0: number; r1: number; glow: number; seed: number; on: boolean }

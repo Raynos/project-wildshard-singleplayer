@@ -25,14 +25,13 @@ import type { AimTarget } from '@wildshard/engine/player/AimTargets';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
 import type { WeatherReactions } from '../../server/weather/reactions';
-import { wildEnv } from '../../server/population/pageGroups';
-import { arenaBoundary, arenaTie } from '../../server/boss/arenaAnswers';
-import { OpenArenaFight, readArenaScriptData, type ArenaRiderOwner, type OpenArenaViews } from '../../server/boss/openArenaFight';
-import { ArenaFightPageSchema, arenaRoomFight, bindArenaBrain, type BoundedArenaFight } from '../../server/boss/arenaRoomFight';
+import { arenaBoundary, arenaTie } from '../../shared/boss/arenaAnswers';
+import { OpenArenaFight, readArenaScriptData, type ArenaRiderOwner, type OpenArenaViews } from '../../shared/boss/openArenaFight';
+import { pageSim } from '../shardfile/clientMoverOwners';
 import { bindRuntimeBoss } from '../../shared/plugin/runtimeRows';
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import { ArenaRoomPortalSchema } from '../../shared/boss/arenaRoomRows';
+import { ArenaFightPageSchema, ArenaRoomPortalSchema, type BoundedArenaFight } from '../../shared/boss/arenaRoomRows';
 import type { ArenaRoomPortal, ArenaRoomPortalWorld, BossArenaRoom } from './arenaRoomView';
 import { setEliteDamage } from '@wildshard/engine/entities/eliteBrain';
 import type { PatrolEncounterView } from './encounterView';
@@ -88,14 +87,14 @@ export function pageArenaRoomFight(ctx: ShardContext, dungeon: BossArenaRoom, in
   if (world === undefined || world === null || play === undefined || play === null) throw new Error('Arena fight requires its actual page owners');
   const { animals } = play, { player } = world, owner = bindRuntimeBoss(ctx, ctx.product.shardfile, rows.body, undefined, { identity: rows.identity });
   const floor = (actor: Animal): void => { actor.levelGround = true; actor.sampleTerrain(); };
-  const fight = arenaRoomFight<Animal>({ room: dungeon,
+  const fight = pageSim.arenaRoomFight<Animal>({ room: dungeon,
     body: { spawn: () => { const actor = owner.spawn(); if (actor === null) return null; dungeon.actor = actor; actor.herd = -1; floor(actor); return actor; },
       retire: actor => {
         if (dungeon.actor === actor) dungeon.actor = null;
         actor.hidden = true; actor.mesh.visible = false; actor.position.y = -9999;
         const index = animals.animals.indexOf(actor); if (index !== -1) animals.animals.splice(index, 1);
         actor.mesh.removeFromParent();
-      }, bind: (actor, brain) => { bindArenaBrain(actor, brain); },
+      }, bind: (actor, brain) => { pageSim.bindArenaBrain(actor, brain); },
       ready: (actor, floorY) => { actor.yOffset = floorY - actor.position.y; actor.mesh.visible = true; } },
     spawnAdd: (_i, x, z, yaw) => {
       const actor = animals.spawn(rows.add.kind, x, z, yaw, rows.add.variant);
@@ -156,7 +155,7 @@ export class ArenaRoomEncounter {
       // looks, the world's parts read when the fight uses them (the weather owner publishes after the arena is built)
       const world=source.world,rows=source.rows,scene=world.game.scene,page=source.page;
       const projection=this.projection=new OpenArenaFight({scope:world.game.levelScope,get weather(){return world.weather;},get tieSpot(){return world.tieSpot;},ai:page.ai,
-        fog:()=>world.game.scene.fog,get camera(){return world.game.camera;},wild:wildEnv,phone:page.phone},this,rows,page.openViews(scene,rows));
+        fog:()=>world.game.scene.fog,get camera(){return world.game.camera;},wild:pageSim.wild,phone:page.phone},this,rows,page.openViews(scene,rows));
       this.spareLight=page.openLight(source.world.game.scene,source.rows.view.light.colour,new Vector3(source.rows.arena.body.x,source.rows.view.light.y,source.rows.arena.body.z));
       const spot=projection.cairnSpot();this.prompt={position:new Vector3(spot.x,spot.y+source.rows.view.promptLift,spot.z),radius:0,label:source.rows.lines.tie,onInteract:()=>{this.tie();}};
     }

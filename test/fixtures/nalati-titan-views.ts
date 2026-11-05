@@ -4,7 +4,7 @@ import type {SimHost} from '../../src/engine/server/sim';
 import {parsePrivateScene} from '@wildshard/format/clientChannels';
 import {HeadlessCloudBody} from './native-hosts/boss/cloudRig';
 import {ArenaWhirls} from '../../src/game/shared/boss/arenaWhirls';
-import type {ArenaTell,OpenArenaViews} from '../../src/game/server/boss/openArenaFight';
+import type {ArenaTell,OpenArenaViews} from '../../src/game/shared/boss/openArenaFight';
 
 /** Only the drawing ports are silent. Heart matrices, pose feedback and every
  * whirlwind decision run their real owners. No drawn object is a target. */

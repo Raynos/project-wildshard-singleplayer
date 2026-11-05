@@ -33,7 +33,7 @@ import { playerModes } from '@wildshard/engine/player/modes';
 import { ReturnProgram } from '../../shared/population/returnProgram';
 import { RideHUD } from './hud';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
-import type {CellField} from '../../server/systems/cellField';
+import type {CellField} from '../../shared/systems/cellField';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 
 function nativeHerds(value: unknown): value is readonly HerdBrain<Animal>[] {

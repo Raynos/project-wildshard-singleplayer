@@ -3,7 +3,7 @@ import {Vector3} from 'three';
 import {easeViewToward,type BossPresentation} from '../../src/engine/shared/ai/BossBrain';
 import {StrikeRunner} from '../../src/engine/shared/ai/strikes';
 import {strikeFromData} from '../../src/engine/shared/ai/strikeRows';
-import {canReach} from '../../src/engine/server/ai/reach';
+import {canReach} from '../../src/engine/shared/ai/reach';
 import type {NativeEliteBindings} from '../../src/engine/server/ai/eliteRoster';
 import type {AnimalSim} from '../../src/engine/server/entities/AnimalSim';
 import type {SimHost} from '../../src/engine/server/sim';

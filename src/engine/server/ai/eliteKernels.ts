@@ -10,7 +10,7 @@ import type { V2EnvironmentColumns } from '../../shared/script/observationColumn
 import { StalkerBrain, readPouncerSpec, readHowlerSpec, type PouncerContext, type PouncerLedge } from './stalker';
 import type { PackBrain } from './pack';
 import { StrikeRunner, type StrikeSpec } from '../../shared/ai/strikes';
-import { canReach } from './reach';
+import { canReach } from '../../shared/ai/reach';
 import { nearestOnGround } from '../../shared/sim/nearPlayer';
 
 const finite = v.pipe(v.number(), v.finite()), handle = HandleIdSchema;

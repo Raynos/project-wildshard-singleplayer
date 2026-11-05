@@ -7,7 +7,7 @@ import { eliteBindings, type EliteEncounterRow, type EliteEncounterSpec } from '
 
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import { nativeEliteCore } from './fixtures/nativeEliteCore';
-import type { EliteCoreDef } from '../src/game/server/eliteSystem';
+import type { EliteCoreDef } from '../src/game/shared/eliteSystem';
 
 test('canonical roster declarations retain the original readonly public definition and wire', () => {
   expectTypeOf<NativeEliteRosterRows['rows'][number]['def']>().toEqualTypeOf<EliteCoreDef>();

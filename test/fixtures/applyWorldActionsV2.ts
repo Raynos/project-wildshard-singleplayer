@@ -1,4 +1,4 @@
-import { prepareV2WorldActions, type V2WorldActionLoan } from '../../src/game/server/shardfile/worldActionsV2';
+import { prepareV2WorldActions, type V2WorldActionLoan } from '../../src/game/shared/shardfile/worldActionsV2';
 import type { V2WorldAction } from '@wildshard/format/scriptActionsV2';
 
 // Historical contract oracle; production consumers use the data-driven owners.

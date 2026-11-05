@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { EliteCore, memoryElitePersistence, type EliteCoreScript } from './eliteSystem';
+import { EliteCore, memoryElitePersistence, type EliteCoreScript } from '../shared/eliteSystem';
 import { onFault,type Fault } from '@wildshard/engine/core/faults';
 
 function fixture(): { core: EliteCore<EliteCoreScript>; effects: string[] } {

@@ -9,18 +9,18 @@ import { wind } from '@wildshard/engine/world/steppeWind';
 import type { ArenaScriptData, ArenaScriptFightFile, ArenaScriptRows } from '@wildshard/format/arenaScriptRows';
 import { ARENA_BURNT_PER_FRAME, ARENA_VIEW } from '@wildshard/format/arenaView';
 import { V2_ACTION_OPS, type V2ActionBinding } from '@wildshard/format/scriptActionsV2';
-import { ReturnProgram, ProjectedState, type ProjectedSnapshot } from '../../shared/population/returnProgram';
-import { installChannelPrograms } from '../../shared/plugin/channelPrograms';
+import { ReturnProgram, ProjectedState, type ProjectedSnapshot } from '../population/returnProgram';
+import { installChannelPrograms } from '../plugin/channelPrograms';
 import { CellField, type CellFieldSnapshot } from '../systems/cellField';
 import { prepareV2WorldActions, type V2WorldActionLoan } from '../shardfile/worldActionsV2';
 import type { ViewTell } from '@wildshard/engine/script/viewProgram';
-import type { ShardProduct } from '../../shared/shardfile/shardProduct';
+import type { ShardProduct } from '../shardfile/shardProduct';
 import type { Mount } from '../../client/riding/mount';
 import type { ArenaBoundary } from '../../client/riding/client';
-import type { WeatherReactions } from '../weather/reactions';
-import type { wildEnv } from '../population/pageGroups';
+import type { WeatherReactions } from '../../server/weather/reactions';
+import type { wildEnv } from '../../server/population/pageGroups';
 import type { ArenaFireView, ArenaWhirlsView } from '../../client/boss/arenaFire';
-import type { ArenaWhirlsSnapshot } from '../../shared/boss/arenaWhirls';
+import type { ArenaWhirlsSnapshot } from './arenaWhirls';
 import type { ArenaSceneView, CloudBody } from '../../client/boss/encounterView';
 
 /** The fight's rows: its fight file's arena script, programs and fire with its geometry file (the page's entered

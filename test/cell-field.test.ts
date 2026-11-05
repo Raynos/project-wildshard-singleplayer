@@ -2,7 +2,7 @@ import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import { beforeAll, expect, test, beforeEach, afterEach } from 'vitest';
 import { parse } from 'valibot';
 import { CellFieldSchema,type CellFieldRows } from '@wildshard/format/cellField';
-import { CellField } from '../src/game/server/systems/cellField';
+import { CellField } from '../src/game/shared/systems/cellField';
 import { OriginalArenaField } from './fixtures/original-cell-field';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { Rng } from '../src/engine/shared/core/rng';

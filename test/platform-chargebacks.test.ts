@@ -10,7 +10,7 @@ import { g571HostApprovals,approvedG571Host } from '../scripts/g571-hosts.mjs';
 import { onDisk } from '../scripts/format-package.mjs';
 
 test('optional shared dispatch does not invent another arena or keeper user', () => {
-  const arena = 'src/game/server/boss/openArenaFight.ts', phase = 'src/game/server/plugin/bossPhase.ts';
+  const arena = 'src/game/shared/boss/openArenaFight.ts', phase = 'src/game/server/plugin/bossPhase.ts';
   const groups = 'src/game/server/population/pageGroups.ts';
   const both = new Set(['nalati-grasslands', 'pine-hollow']);
   const modules = new Map([[arena, both], [phase, both], [groups, both]]);
@@ -122,7 +122,7 @@ test('the real Pine and Driftwood Explorer dispatcher no longer has a sole-user 
   }
   // Dispatch credit does not waive a private intake or presentation owner.
   expect(platformChargeback('src/engine/models/geometrySources.ts', 'registerPackedGeometrySource')).toBeNull();
-  expect(platformChargeback('src/game/server/boss/openArenaFight.ts','OpenArenaFight')).toBeNull();
+  expect(platformChargeback('src/game/shared/boss/openArenaFight.ts','OpenArenaFight')).toBeNull();
 });
 
 test('day-one feature credit cannot erase a G520 chargeback', () => {
@@ -393,7 +393,7 @@ test('G615 credits only timed encounters and its selected slot and patrol views'
 test('retired arsenal and variant modules leave no standalone item charge',()=>{
   expect(platformChargeback('src/game/loadout/mounted.ts')).toBeNull();
   expect(platformChargeback('src/game/weapons/bowVariant.ts')).toBeNull();
-  expect(platformChargeback('src/game/server/boss/openArenaFight.ts','OpenArenaFight')).toBeNull();
+  expect(platformChargeback('src/game/shared/boss/openArenaFight.ts','OpenArenaFight')).toBeNull();
 });
 
 test('G667 credits the crowd prey joins and keeps the original Pine ray consumer', () => {
@@ -470,7 +470,7 @@ test('G665 credits only the complete listed open-arena host',()=>{
   const rows = [
     ['src/game/client/boss/arenaRoom.ts',['OpenArenaWorld','_openW']],
     ['src/game/client/boss/arenaRoomView.ts',['buildOpenArenaEncounter','arenaScriptCloud']],
-    ['src/game/server/boss/openArenaFight.ts',['OpenArenaFight','SupportActor','Chain','_openV','_openRAY','_openSPH','_openHITP','readArenaScriptData','OpenArenaViews','OpenArenaFightWorld','OpenArenaFightHost','ArenaBodyPort','ArenaScenePort','ArenaFirePort','ArenaWhirlsPort']],
+    ['src/game/shared/boss/openArenaFight.ts',['OpenArenaFight','SupportActor','Chain','_openV','_openRAY','_openSPH','_openHITP','readArenaScriptData','OpenArenaViews','OpenArenaFightWorld','OpenArenaFightHost','ArenaBodyPort','ArenaScenePort','ArenaFirePort','ArenaWhirlsPort']],
     ['src/game/client/riding/client.ts',['ArenaBoundary','boundaries','arenaBlockedAt','installArenaBoundary','arenaBoundaryBlocked']],
   ] as const;
   const shared=new Set(['nalati-grasslands','pine-hollow']),approvals=g571HostApprovals('.');

@@ -19,7 +19,7 @@ import { strikeFromData, type StrikeData } from '@wildshard/engine/ai/strikeRows
 import { app } from '@wildshard/engine/app/runtime';
 import type { CrowdTargets } from '../shared/shardfile/crowdRuntime';
 import { eliteViewSource, eliteViewTell, parseEliteOutputActions, parseEliteOutputBank, type EliteEnteredPresentation, type EliteOutputAction, type EliteOutput } from '@wildshard/format/eliteFeature';
-import { SpawnScript } from '../server/population/spawnScript';
+import { pageSim } from './shardfile/clientMoverOwners';
 import { lendViewTell, lendViewValues } from './shardfile/clientViewProgram';
 import { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
@@ -31,7 +31,7 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { EliteBar } from '@wildshard/engine/ui/EliteBar';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import { EliteCore, type EliteCoreEntry, type EliteCoreRule, type EliteCoreScript } from '../server/eliteSystem';
+import { EliteCore, type EliteCoreEntry, type EliteCoreRule, type EliteCoreScript } from '../shared/eliteSystem';
 import { EliteView, GroundTell, type EliteEnteredOwners, type EliteViewEntered } from './eliteView';
 
 /**
@@ -164,7 +164,7 @@ export class Elites {
       return { row, model };
     }) : [];
     const fight = owners.fight, spawnOwners = { scope: entered.scope, environment: owners.environment, clock: owners.clock, weather: owners.weather, ...(owners.fightModule === undefined ? {} : { module: owners.fightModule }) };
-    const pages = fight === undefined ? undefined : { page: () => fight.v2 === undefined ? SpawnScript.page(animals, fight, game.app.physics, owners.fightModule === undefined ? undefined : spawnOwners) : SpawnScript.page(animals, fight, game.app.physics, spawnOwners, this) };
+    const pages = fight === undefined ? undefined : { page: () => fight.v2 === undefined ? pageSim.spawnScript.page(animals, fight, game.app.physics, owners.fightModule === undefined ? undefined : spawnOwners) : pageSim.spawnScript.page(animals, fight, game.app.physics, spawnOwners, this) };
     const controllers = owners.controllers ?? selected.map(({ row, model }) => new BorrowedElite(row,
       { game, player, elites: this, ...(row.mode === 'script' && pages !== undefined ? { fight: pages } : {}) }, program.value, model, true));
     if (controllers.length !== rows.borrowed.length || controllers.some((controller, index) => !(controller instanceof BorrowedElite)

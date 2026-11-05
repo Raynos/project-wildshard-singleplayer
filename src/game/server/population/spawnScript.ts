@@ -4,7 +4,7 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { Elites } from '../../client/Elite';
 import { readEliteOutputV2,ELITE_OUTPUT_OPERATION,type EliteOutput } from '@wildshard/format/eliteFeature';
 import { readV2WorldAction,V2_ACTION_OPS,type V2ActionBinding,type V2WorldAction } from '@wildshard/format/scriptActionsV2';
-import { prepareV2WorldActions,type V2WorldActionLoan } from '../shardfile/worldActionsV2';
+import { prepareV2WorldActions,type V2WorldActionLoan } from '../../shared/shardfile/worldActionsV2';
 import * as v from 'valibot';
 import { OwnedSimBatchV2,type OwnedV2Binding,type OwnedV2Frame } from '@wildshard/engine/script/ownedSimBatchV2';
 import { ObservationColumnsV2,type V2ColumnOwners } from '@wildshard/engine/script/observationColumnsV2';

@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
-import type { Physics } from '../../shared/physics/Physics';
-import { lineOfSight } from '../../shared/physics/query';
+import type { Physics } from '../physics/Physics';
+import { lineOfSight } from '../physics/query';
 
 export interface ReachActor {
   readonly position: { x: number; y: number; z: number }; readonly scale: number;

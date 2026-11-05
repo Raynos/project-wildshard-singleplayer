@@ -13,7 +13,7 @@ import { emitFault } from '../../shared/core/faults';
 import type { SimValue } from '../sim';
 import { inspectBrain } from './inspect';
 import { StrikeRunner, type StrikeSpec, type StrikeContext } from '../../shared/ai/strikes';
-import { readStrikeState } from './strikeState';
+import { readStrikeState } from '../../shared/ai/strikeState';
 
 /** One native call owns this scratch; nested calls receive independent rows. */
 interface HerdGuestColumns<A extends AnimalSim> {

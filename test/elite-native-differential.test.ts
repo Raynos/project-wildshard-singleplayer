@@ -5,7 +5,7 @@ import { Vector3 } from 'three';
 import { PackBrain, type PackPorts } from '../src/engine/server/ai/pack';
 import { nativeGroupBrain } from '@wildshard/format/groupBrains';
 import brainRows from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };
-import * as reach from '../src/engine/server/ai/reach';
+import * as reach from '../src/engine/shared/ai/reach';
 import { NALATI_STRIKES } from './fixtures/nalati-strikes';
 import { installEliteEncounters, eliteBindings, type EliteEncounterPorts, type EliteEncounterRow } from './fixtures/nativeEliteEncounters';
 import { installEliteEncounters as originalInstall, type EliteEncounterPorts as OriginalPorts, type EliteEncounterRow as OriginalRow } from './fixtures/originalEliteEncounters';
