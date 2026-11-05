@@ -249,6 +249,7 @@ export class LiveGridHost {
     return seat;
   }
   /** Null identifies the permanent highway/strip world. */
+  private followingServer = false;
   current(): string | null { return this.active; }
   private origin(instance: string | null): { x: number; z: number } { return instance === null ? { x: 0, z: 0 } : this.assembly.cell(instance).origin; }
   private region(instance: string | null): LiveGridRegion | undefined { return instance === null ? undefined : this.residents.get(instance)?.region; }
@@ -615,8 +616,11 @@ export class LiveGridHost {
     const walls = this.active === null ? this.highway.walls : this.region(this.active)?.walls;
     walls?.sync(this.readiness);
   }
+  /** The server runs these worlds now (J130): a region's own law stands still, and its views draw what the wire says. */
+  followServer(): void { this.followingServer = true; }
   /** Once after the existing player move; paused hook installation does not advance the region's simulation. */
   afterPlayerStep(): void {
+    if (this.followingServer) return;
     if (this.disposed || (this.active !== null && !this.ports.gameplayReady(this.active))) return;
     if (this.active === null) this.highway.afterPlayerStep?.();
     else this.region(this.active)?.host.stepExternal();

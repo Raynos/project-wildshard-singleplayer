@@ -411,10 +411,11 @@ export class LiveGridSession {
     return current !== null && site !== null && site !== current ? null : site;
   }
 
-  /** J130: the server decides crossings from here on and keeps the saves, so the page's own go quiet. Its preparation, walls
-   *  and commit stay as they are (G828, G1011). */
+  /** J130: the server decides crossings from here on, keeps the saves and runs the worlds, so the page's own law goes quiet.
+   *  Its preparation, walls and commit stay as they are (G828, G1011). */
   bindWire(wire: LiveGridWire): void {
     this.wire = wire; this.checkpointsSuppressed = true; this.autosave?.return(false); this.autosave = null;
+    this.live.followServer();
     this.homeSim?.suppressCheckpoint?.();
     this.ports.scope.onDispose(() => { this.wire = null; });
   }
