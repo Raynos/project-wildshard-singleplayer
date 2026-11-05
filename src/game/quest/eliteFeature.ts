@@ -9,6 +9,7 @@ import { EliteDecisions } from './eliteDecisions';
 import { SpawnScript, readSpawnScript } from '../population/spawnScript';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import { nearestOnGround } from '@wildshard/engine/sim/nearPlayer';
+import { eliteNetView, publishEncounter } from '@wildshard/engine/net/encounterNet';
 
 const finite = v.pipe(v.number(), v.finite());
 const uint = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(0xffffffff));
@@ -36,7 +37,7 @@ export function installNativeEliteFeature(host: SimHost, day: DayCycleClock, inp
   const core = new EliteCore<EliteDecisions>({ players: host.players, condition: rule => rule === 'always'
     || (rule === 'dusk' ? day.dusk > 0.5 : rule === 'night' ? day.night > 0.5 : false) }, {}, host.level.id, memoryElitePersistence());
   const scripts = rows.fights.map(row => new EliteDecisions(row, SpawnScript.native(host, row.program), rows, host.level.seed));
-  for (const script of scripts) core.add(script);
+  for (const script of scripts) { const entry = core.add(script); publishEncounter(host, script.def.id, () => eliteNetView(entry)); }
   const saved = v.strictObject({ version: v.literal(rows.version), ...EliteCoreContinuationSchema.entries, scripts: v.array(savedScript), stun: v.nullable(root), others: v.exactOptional(v.record(v.string(), root)) });
   type Stun = v.InferOutput<typeof root>;
   let restored: SimValue | undefined;

@@ -3,7 +3,8 @@ import type { SimHost } from '../sim';
 import { leadPlayer } from '../sim/leadPlayer';
 import type { AnimalNetView } from './animalNet';
 import { CombatWire, type CombatEvent } from './combatWire';
-import { ANIMAL_CLASS, PLAYER_CLASS } from './netSchemas';
+import { encounterRows } from './encounterNet';
+import { ANIMAL_CLASS, ENCOUNTER_CLASS, PLAYER_CLASS } from './netSchemas';
 import type { NetRefs } from './schema';
 import type { NetPlayer, NetVisitor, NetWorld } from './room';
 
@@ -36,5 +37,6 @@ export class SimNetWorld implements NetWorld {
       const view: AnimalNetView = { sim, pose, target: targets.get(id) ?? null };
       visitor.entity(id, ANIMAL_CLASS, view);
     }
+    for (const [id, read] of encounterRows(host)) visitor.entity(id, ENCOUNTER_CLASS, read());
   }
 }

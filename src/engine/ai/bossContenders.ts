@@ -15,7 +15,7 @@ interface ContendedBoss {
  */
 export class BossContenders {
   private readonly fallen = new Set<string>();
-  private returning: PlayerSim | null = null;
+  private returning: readonly PlayerSim[] | null = null;
   private readonly players: ReadonlyMap<string, PlayerSim>;
   private readonly inArena: (point: Vector3) => boolean;
   private readonly place: (player: PlayerSim, position: Vector3, yaw: number) => void;
@@ -35,10 +35,9 @@ export class BossContenders {
     if (this.players.size > 1) for (const player of this.players.values()) if (this.inArena(player.position)) return player;
     return this.first();
   }
-  /** The brain's respawn: the one who fell, or everyone on a reset. */
+  /** The brain's respawn: who fell, or a lone player. */
   readonly respawn = (position: Vector3, yaw: number): void => {
-    if (this.returning !== null) { this.place(this.returning, position, yaw); return; }
-    for (const player of this.players.values()) this.place(player, position, yaw);
+    for (const player of this.returning ?? this.players.values()) this.place(player, position, yaw);
   };
   /** Every player turns with the intro's camera. */
   readonly faceToward = (target: Vector3): void => {
@@ -51,12 +50,12 @@ export class BossContenders {
     this.fallen.add(id);
     for (const other of this.players.values()) if (!this.fallen.has(other.id) && this.inArena(other.position)) {
       const { pos, yaw } = boss.script.respawnPoint();
-      this.returning = player;
+      this.returning = [player];
       try { this.respawn(pos, yaw); } finally { this.returning = null; }
       return true;
     }
-    this.fallen.clear();
-    return boss.onPlayerDeath();
+    this.returning = [...this.fallen].flatMap(fallen => this.players.get(fallen) ?? []); this.fallen.clear();
+    try { return boss.onPlayerDeath(); } finally { this.returning = null; }
   }
   /** Who is out until the next reset, for a continuation; empty in any one-player fight. */
   get out(): readonly string[] { return [...this.fallen]; }

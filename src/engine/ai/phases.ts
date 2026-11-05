@@ -4,6 +4,7 @@ import { BossBrain, type BossSaved, type BossPresentation } from './BossBrain';
 import type { AnimalSim } from '../entities/AnimalSim';
 import type { SimHost, SimValue } from '../sim';
 import { BossContenders } from './bossContenders';
+import { publishEncounter } from '../net/encounterNet';
 
 /** One ordered phase: health threshold, steering and a presentation caption, authored without callbacks. */
 export interface EncounterPhase { at: number; name: string; caption: string; speed: number; stopDistance: number; turnRate: number }
@@ -18,7 +19,7 @@ export interface PhaseEncounterPorts { saved: BossSaved; persist: (saved: BossSa
 const finite = v.pipe(v.number(), v.finite(), v.minValue(0));
 const natural = v.pipe(finite, v.integer());
 const continuation = v.strictObject({ state: v.picklist(['dormant', 'armed', 'intro', 'fight', 'beat', 'victory']), phase: natural, checkpoint: natural, attempts: natural, t: finite, skipT: finite, short: v.boolean(), saved: v.strictObject({ defeated: v.boolean(), rewardTaken: v.boolean(), kills: natural }) });
-const checkpointSchema = v.strictObject({ contract: v.string(), boss: continuation, shield: v.boolean() });
+const checkpointSchema = v.strictObject({ contract: v.string(), boss: continuation, shield: v.boolean(), out: v.exactOptional(v.array(v.string())) });
 /** Renderer-free boss presentation records; the real declared panel can implement exactly the same ports. */
 export function silentBossPresentation(): BossPresentation {
   let shown = false;
@@ -33,6 +34,7 @@ export class PhaseEncounter {
   private readonly contract: string;
   private readonly actor: AnimalSim;
   private readonly presentation: BossPresentation;
+  private readonly party: BossContenders;
   constructor(sim: SimHost, spec: PhaseEncounterSpec, ports: PhaseEncounterPorts, decisionOwned = false) {
     const actor = sim.entities.get(spec.entity);
     if (![ports.saved.defeated, ports.saved.rewardTaken].every((n) => typeof n === 'boolean') || !Number.isSafeInteger(ports.saved.kills) || ports.saved.kills < 0) throw new Error('Invalid encounter persistence');
@@ -40,7 +42,7 @@ export class PhaseEncounter {
       || !Number.isFinite(spec.arena.radius) || spec.arena.radius <= 0 || spec.arena.radius > 500 || ![...spec.arena.at, ...spec.respawn.at, spec.respawn.yaw, spec.intro, spec.introShort].every(Number.isFinite) || spec.intro < 0 || spec.introShort < 0) throw new Error('Invalid phase encounter');
     this.actor = actor; this.spec = structuredClone(spec); this.contract = JSON.stringify(this.spec); this.presentation = ports.presentation ?? silentBossPresentation();
     const focus = new Vector3(...spec.arena.at), saved = { ...ports.saved };
-    const party = new BossContenders(sim.players, (point) => point.distanceTo(focus) < spec.arena.radius, (player, position, yaw) => {
+    const party = this.party = new BossContenders(sim.players, (point) => point.distanceTo(focus) < spec.arena.radius, (player, position, yaw) => {
       player.position.copy(position); player.yaw = yaw; player.health.attributes.health = player.health.attributes.maxHealth;
     });
     const phase = (): EncounterPhase => { const value = this.spec.phases[this.boss.phase]; if (!value) throw new Error('Missing encounter phase'); return value; };
@@ -73,15 +75,16 @@ export class PhaseEncounter {
     sim.events.on('actor.died', ({ actor: dead }) => { if (sim.players.size > 1) party.fell(dead.id, this.boss); else if (sim.players.has(dead.id)) this.boss.onPlayerDeath(); }, sim.scope);
     sim.onStep(`encounter.${spec.id}`, (_dt) => { this.boss.update(1 / 60, sim.clock.now); }, { snapshot: () => this.snapshot(), restore: (value) => { this.restore(value); } });
     sim.scope.onDispose(() => { this.boss.disarm(); }); this.boss.arm();
+    publishEncounter(sim, spec.id, () => ({ kind: spec.kind === 'boss' ? 'boss' : 'elite', state: this.boss.state, hp: actor.hp / actor.maxHp, phase: this.boss.phase, shield: this.shield, body: actor.entityId }));
   }
   /** Damage modification and phase transitions use the existing shared combat/clock; no raw health callback is authored. */
-  snapshot(): SimValue { return JSON.stringify({ contract: this.contract, boss: this.boss.snapshot(), shield: this.shield }); }
+  snapshot(): SimValue { const out = this.party.out; return JSON.stringify({ contract: this.contract, boss: this.boss.snapshot(), shield: this.shield, ...(out.length === 0 ? {} : { out }) }); }
   /** Restore does not grant rewards or persist again; presentation is refreshed from the recovered phase. */
   restore(value: SimValue): void {
     if (typeof value !== 'string') throw new Error('Invalid encounter snapshot');
     const input: unknown = JSON.parse(value), saved = v.parse(checkpointSchema, input);
     if (saved.contract !== this.contract) throw new Error('Incompatible encounter snapshot');
-    this.boss.restore(saved.boss); this.shield = saved.shield;
+    this.boss.restore(saved.boss); this.shield = saved.shield; this.party.restoreOut(saved.out ?? []);
     this.presentation.hideBar(); this.presentation.hideNameCard(); this.presentation.hideReward();
     if (this.boss.state === 'fight' || this.boss.state === 'beat') {
       const phase = this.spec.phases[this.boss.phase];

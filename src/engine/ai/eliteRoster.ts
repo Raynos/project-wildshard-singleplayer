@@ -10,6 +10,7 @@ import { NativeEliteLifecycle, type NativeElitePopulation } from './eliteLifecyc
 import { GrazerBrain } from './grazer';
 import { NativeEliteContinuation, type EliteContinuationCore, type EliteContinuationGroups, type EliteContinuationMember } from './eliteContinuation';
 import { nearestOnGround } from '../sim/nearPlayer';
+import { eliteNetView, publishEncounter } from '../net/encounterNet';
 
 const finite = v.pipe(v.number(), v.finite());
 const projectionRows = v.strictObject({ signal: v.pipe(v.string(), v.minLength(1), v.maxLength(128)),
@@ -225,6 +226,7 @@ export class NativeEliteRoster {
   install(): void {
     this.validate(); if (this.installed || this.members.length !== this.rows.length || this.host.hasStep(this.input.step)) throw new Error('Incomplete or duplicate elite roster installation');
     Object.freeze(this.prepared); for (const script of this.prepared) this.core.add(script);
+    this.prepared.forEach((script, i) => { publishEncounter(this.host, script.def.id, () => { const entry = this.entries[i]; if (entry === undefined) throw new Error('Missing elite entry'); return eliteNetView({ state: entry.state, phase2: entry.phase2, beatT: entry.beatT, script }); }); });
     this.installed = true;
     const continuation = new NativeEliteContinuation({ version: this.input.version, wire: this.input.wire, rows: this.rows }, {
       host: this.host, core: this.core, members: this.members, bindings: this.bindings, kernels: this.kernels,
