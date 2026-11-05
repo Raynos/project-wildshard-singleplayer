@@ -215,7 +215,7 @@ export class PageSide implements MotionEvents {
 }
 
 /** The real PlayerSim on the real tick. A wire scenario sends what a client would. */
-class HostSide implements MotionEvents {
+export class HostSide implements MotionEvents {
   readonly host: SimHost;
   readonly player: PlayerSim;
   private readonly course: Course;

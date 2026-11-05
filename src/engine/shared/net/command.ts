@@ -35,6 +35,14 @@ function readRef(reader: BitReader, ids: NetIds): string {
   return id;
 }
 
+/** The steer, yaw and pitch the server will decode from `command`, so a client steps what it sends (P1-E5.3-C4). The yaw keeps
+ *  its turns: the server's is the same angle, and the view must not jump a turn. */
+export function quantiseCommand<C extends Pick<NetCommand, 'steer' | 'yaw' | 'pitch'>>(command: C): C {
+  const axis = (value: number): number => unpackAxis(packAxis(value)), { steer } = command;
+  return { ...command, steer: { keyX: axis(steer.keyX), keyY: axis(steer.keyY), stickX: axis(steer.stickX), stickY: axis(steer.stickY) },
+    yaw: Math.round(command.yaw / TAU * YAW_STEPS) / YAW_STEPS * TAU, pitch: (Math.round((command.pitch / Math.PI + 0.5) * PITCH_TOP) / PITCH_TOP - 0.5) * Math.PI };
+}
+
 /** Write one command. A target the receiver has no handle for goes as none. */
 export function writeCommand(writer: BitWriter, command: NetCommand, refs: NetRefs): void {
   const { steer, attack, launcher, heavyTarget, lockTarget } = command;

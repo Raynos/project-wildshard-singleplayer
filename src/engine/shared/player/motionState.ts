@@ -16,6 +16,8 @@ import type { BoardState } from './board';
 import type { PlayerMotionState } from './motion';
 
 const STATE_WORDS = 34;
+/** The words a predictor compares (`matches`). */
+export const CAPTURED = { x: 0, y: 1, z: 2, grounded: 11, board: 22, swim: 25 } as const;
 /** The length of one capture. */
 export const MOTION_WORDS: number = STATE_WORDS + MOTOR_WORDS;
 
