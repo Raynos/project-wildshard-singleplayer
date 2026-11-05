@@ -22,4 +22,4 @@
 
 **Rules:** G844, G848, G1001, G1006, G1008; goldens before any look change (G998); no reverts; never herdr wildshard-v.
 
-**PAUSED 11-04 ~21:35 (Jake's stop, 21:10):** live d5ec8c2feb (9 greens today; WebKit fixes live). Restart: o4 DL5 Sim confirm (5efc04414a); o1 DL21 Nine cold x2; x2 DL15 seven-flow DL17; x6 D234 repeats; x1 reviews; ci-deploy 5ad1 watch + d5ec entry QA. Plots 10/10.
+**PAUSED 11-04 ~21:35 (Jake's stop, 21:10):** live d5ec8c2feb. Restart: o4 DL5 Driftwood fence opt-in, pairs; o1 DL21 Nine cold x2; x2 DL15 seven-flow DL17; x6 D234 repeats; x1 reviews; ci-deploy 5ad1 watch + d5ec entry QA. Plots 10/10.
