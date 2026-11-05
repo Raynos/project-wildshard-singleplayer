@@ -14,13 +14,13 @@ import { COYOTE_MS, type JumpState } from '../../shared/player/jump';
 import { pondBob, type SwimState } from '../../shared/player/swim';
 import { localWalkingMove, wadeScale } from '../../shared/player/walk';
 import { PlayerModes, type ModePlayer } from '../../shared/player/modes';
-import { commandedWalk, pressDodge, resetMotion, setBoard, stepPlayerMotion, type MotionFooting, type MotionPlatform, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
+import { commandedWalk, pressDodge, resetMotion, setBoard, stepPlayerMotion, type MotionFooting, type MotionPlatform, type MotionRide, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
 import { LOCK_REACH, type LockState, type MotionLock } from '../../shared/player/lockOrbit';
 import { targetRadius } from '../../shared/combat/lungeTarget';
 import { dashToward, startDash, type DashState, type DodgeState } from '../../shared/player/dash';
 import { validateLocalMovement } from '../../shared/input/commands';
 import { netSimCommand } from '../../shared/sim/netMotion';
-import type { SimCommand, SimExternalPlayer, SimHost, SimPlayerBody, SimPlayerDriver, SimPlayerMotionSample, SimTickCommand, SimWalkingControl } from '../sim';
+import type { SimCommand, SimExternalPlayer, SimHost, SimPlayerBody, SimPlayerDriver, SimPlayerMotionSample, SimRide, SimTickCommand, SimWalkingControl } from '../sim';
 
 /** The world-space command a tick's input means. */
 export function simCommandOf(input: SimTickCommand): SimCommand { return 'seq' in input ? netSimCommand(input) : input; }
@@ -74,11 +74,10 @@ export class PlayerSim implements PlayerMotionState {
   /**
    * SF34: this player's modes, the page Player's own registry (player/modes.ts): the motor mode (foot, board, swim, wade)
    * read from this state, and a driven mode a runtime declares and enters (`modes.register(def, scope)`,
-   * `modes.enter('ride', driver)`), whose SimPlayerDriver then owns the motion ahead of any useDriver driver until
-   * `modes.exit`. The entered driver is not snapshot state: the installer re-enters it from its own adapter's
-   * continuation before native restore, as useDriver's.
+   * `modes.enter('ride', ride)`), whose SimRide then owns the step ahead of any useDriver driver until `modes.exit`. The
+   * entered ride is not snapshot state: the installer re-enters it from its own adapter's continuation before native restore.
    */
-  readonly modes: PlayerModes<SimPlayerDriver>;
+  readonly modes: PlayerModes<SimRide>;
   /** The on-foot jump clocks (player/jump.ts), the client Player's. Saved once they differ from a fresh player's. */
   readonly jump: JumpState = { ago: Infinity, left: 0 };
   /** The running dash: a dodge's burst or a lunge (dashTo), the client Player's dash law (player/dash.ts). */
@@ -109,7 +108,8 @@ export class PlayerSim implements PlayerMotionState {
   private walkingControl: SimWalkingControl | undefined;
   private motionObserver: { receive: (sample: SimPlayerMotionSample | null) => void; sample: { velocityX: number; velocityZ: number; grounded: boolean; swimming: boolean; hover: boolean } } | undefined;
   private external: { value: SimExternalPlayer; health: PlayerHealth; scope: Scope } | undefined;
-  private modeDriver: SimPlayerDriver | null = null;
+  /** What carries this player now (P1-E5.3-D1): the motion step dispatches to it. */
+  private ride: SimRide | null = null;
   private readonly commanded = { speed: 4.3, crouching: false };
   private readonly localMove = { x: 0, z: 0 };
   /** The motion step's world (player/motion.ts): this player's motor, the host's queries, and the host's moments. */
@@ -117,6 +117,7 @@ export class PlayerSim implements PlayerMotionState {
   // This tick's command and what `input` decided, for `move`.
   private command: SimCommand | undefined;
   private tickDriver: SimPlayerDriver | undefined;
+  private tickRide: SimRide | null = null;
   private delegated = false;
   /** A traversal owned this player's last move. */
   private traversed = false;
@@ -126,7 +127,7 @@ export class PlayerSim implements PlayerMotionState {
 
   constructor(host: SimHost, body: PlayerSimBody, scope: Scope) {
     this.host = host; this.id = body.id;
-    this.modes = new PlayerModes<SimPlayerDriver>(this.modePlayer(), () => host.traversing === null || host.traversing === this);
+    this.modes = new PlayerModes<SimRide>(this.modePlayer(), () => host.traversing === null || host.traversing === this);
     if (body.borrowed !== undefined) {
       this.borrowed = true; this.body = body.borrowed; this.position = body.borrowed.position;
     } else {
@@ -230,7 +231,7 @@ export class PlayerSim implements PlayerMotionState {
    * after it exactly as the client Player's `impulse` (player/impulse.ts). A borrowed player owns its impulse. */
   addImpulse(velocity: Readonly<Vector3>): void {
     this.refuseBorrowed('impulse');
-    applyImpulse(this, velocity, this.modeDriver !== null || this.carried || this.moveLocked);
+    applyImpulse(this, velocity, this.ride !== null || this.carried || this.moveLocked);
   }
   /** Knock this player `speed` m/s away from (fromX, fromZ), exactly as the client Player's `shove`: the knockback
    * overrides the walk input and fades over SHOVE_TIME through the motor, and a grounded player hops off the ground. */
@@ -279,9 +280,9 @@ export class PlayerSim implements PlayerMotionState {
   /** Nothing the client commands moves this player now: a traversal or carry has them (a boat, a cable, a grapple's pull), or
    *  a fall's fade. Its client takes no step and compares nothing until this ends; the client's own moves wait. */
   get led(): boolean { return this.traversed || this.carried || this.host.respawn.fading(this.id) || this.host.leading.some(leads => leads(this)); }
-  /** The registry's view of this player: the mode driver slot and the motor state. */
-  private modePlayer(): ModePlayer<SimPlayerDriver> {
-    const read = (): SimPlayerDriver | null => this.modeDriver, write = (driver: SimPlayerDriver | null): void => { this.modeDriver = driver; };
+  /** The registry's view of this player: the ride slot and the motor state. */
+  private modePlayer(): ModePlayer<SimRide> {
+    const read = (): SimRide | null => this.ride, write = (ride: SimRide | null): void => { this.ride = ride; };
     const hover = (): boolean => this.board.on, swimming = (): boolean => this.swim.on, wading = (): boolean => this.wading;
     return { get ride() { return read(); }, set ride(driver) { write(driver); }, get hover() { return hover(); }, get swimming() { return swimming(); }, get wading() { return wading(); } };
   }
@@ -315,11 +316,12 @@ export class PlayerSim implements PlayerMotionState {
    *  coyote window. */
   private motionWorld(): MotionWorld {
     const motor = (): CharacterMotor => this.motor, water = (): boolean => this.host.water !== undefined;
-    const walking = (): SimWalkingControl => this.walking;
+    const walking = (): SimWalkingControl => this.walking, ride = (): MotionRide | null => this.ride;
     const floors = (): readonly MotionPlatform[] => this.host.floors;
     const coyote = (): number => this.host.level.player.coyoteMs ?? COYOTE_MS;
     return {
       get motor() { return motor(); },
+      get ride() { return ride(); },
       get hasWater() { return water(); },
       // the level's water (useWater): the board rides its surface, as the client's; none without it
       water: (x, z) => this.host.water?.surfaceAt(x, z) ?? null,
@@ -363,9 +365,11 @@ export class PlayerSim implements PlayerMotionState {
   /** The tick's input phase, before the world steps: the drivers, the walk's speed and the HOVER press. */
   input(): void {
     const { command } = this;
-    // an entered driven mode's driver (SF34, modes.enter) owns the motion ahead of a useDriver driver
-    const driver = this.modeDriver ?? this.driver, delegated = driver?.input(command, FIXED_STEP, this.host) === true;
-    this.tickDriver = driver; this.delegated = delegated;
+    // an entered ride (SF34, modes.enter) owns the motion ahead of a useDriver driver. Its read may throw the rider: then the
+    // tick goes on, on foot. Commands drive a ride as they drive a walk (J125), so a tick with none reads nothing
+    if (!this.still) this.ride?.read(command, FIXED_STEP);
+    const ride = this.ride, driver = ride === null ? this.driver : undefined, delegated = ride !== null || driver?.input(command, FIXED_STEP, this.host) === true;
+    this.tickDriver = driver; this.tickRide = ride; this.delegated = delegated;
     const observe = this.motionObserver;
     if (observe !== undefined) { observe.sample.velocityX = 0; observe.sample.velocityZ = 0; }
     commandedWalk(this, command, this.commanded);
@@ -384,7 +388,8 @@ export class PlayerSim implements PlayerMotionState {
     const traversal: unknown = delegated ? false : host.askTraversal(this);
     const traversed = traversal === true;
     this.traversed = traversed;
-    if (delegated) driver?.step(FIXED_STEP, host);
+    if (this.tickRide !== null) { if (this.ride !== null && !this.still) stepPlayerMotion(this, command, this.world, FIXED_STEP); }
+    else if (delegated) driver?.step(FIXED_STEP, host);
     else if (traversed) this.impulse.set(0, 0, 0);
     else if (this.carried || this.moveLocked) { this.impulse.set(0, 0, 0); this.velocity.set(0, 0, 0); this.fall.grounded = false; }
     else if (!this.still) stepPlayerMotion(this, command, this.world, FIXED_STEP);
@@ -392,7 +397,7 @@ export class PlayerSim implements PlayerMotionState {
     if (observe !== undefined) {
       let sample: SimPlayerMotionSample | null;
       if (delegated || traversed) {
-        sample = delegated ? driver?.motionSample?.() ?? null : null;
+        sample = !delegated ? null : this.tickRide?.motionSample() ?? driver?.motionSample?.() ?? null;
         if (sample !== null && (![sample.velocityX, sample.velocityZ].every(Number.isFinite)
           || typeof sample.grounded !== 'boolean' || typeof sample.swimming !== 'boolean' || typeof sample.hover !== 'boolean')) throw new RangeError('Invalid delegated player motion sample');
       } else {
@@ -405,10 +410,10 @@ export class PlayerSim implements PlayerMotionState {
     }
     this.command = undefined;
   }
-  /** A second step this tick, after the world's, for a client catching up (J125). A driver or traversal keeps its one step
-   *  a tick: its motion is not this command's. */
+  /** A second step this tick, after the world's, for a client catching up (J125). A ride is the command's motion, so it takes one. A driver or a
+   *  traversal leads the body at its own pace, one step a tick, and the client predicts none of it (`led`). */
   catchUp(input: SimTickCommand): void {
-    if (this.delegated || this.traversed) return;
+    if ((this.delegated && this.tickRide === null) || this.traversed) return;
     this.take(input); this.input(); this.move();
   }
   /** The strike actor view of this player. */

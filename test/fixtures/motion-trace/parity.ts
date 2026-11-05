@@ -9,7 +9,6 @@ import { Player } from '../../../src/engine/client/player/Player';
 import type { PlayerCommand } from '../../../src/engine/shared/input/commands';
 import { NET_BUTTONS } from '../../../src/engine/shared/input/netButtons';
 import { FIXED_STEP } from '../../../src/engine/shared/core/fixedStep';
-import { CharacterMotor, PLAYER_BODY, PLAYER_CAPSULE } from '../../../src/engine/shared/physics/CharacterMotor';
 import { Physics } from '../../../src/engine/shared/physics/Physics';
 import { groups } from '../../../src/engine/shared/physics/groups';
 import { loadRapier, type Rapier } from '../../../src/engine/shared/physics/rapier';

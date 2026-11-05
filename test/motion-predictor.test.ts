@@ -220,7 +220,7 @@ test('a reset is heard with no command on its way', () => {
 
 test('the swell clock joins the server on the first frame and on a correction, and a replay keeps its phase', () => {
   const state = createMotionState(), replayed: number[] = [];
-  const body: PredictedBody = { motionState: state, renderOffset: new Vector3(), motor: legacyDouble<CharacterMotor>({ result: { grounded: false, groundNormalY: 1, downhillX: 0, downhillZ: 0, horizontalFreedom: 1 }, captureState: () => undefined, restoreState: () => undefined, resetAt: () => undefined }),
+  const body: PredictedBody = { motionState: state, renderOffset: new Vector3(), motor: legacyDouble<CharacterMotor>({ result: { grounded: false, groundNormalY: 1, downhillX: 0, downhillZ: 0, horizontalFreedom: 1, groundCollider: null }, captureState: () => undefined, restoreState: () => undefined, resetAt: () => undefined }),
     step: (_command, replay) => { state.tick++; if (replay) replayed.push(state.tick); return true; } };
   const predictor = new Predictor(body, PLAYER_CLASS.owner), owner = new Uint32Array(PLAYER_CLASS.owner.length);
   predictor.adopt(0, owner, 500);

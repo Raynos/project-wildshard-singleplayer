@@ -1,4 +1,4 @@
-import type { MotionPlatform } from '../shared/player/motion';
+import type { MotionPlatform, MotionRide } from '../shared/player/motion';
 import { validateLocalMovement, type LocalMovementCommand } from '../shared/input/commands';
 import type { NetCommand } from '@wildshard/format/netCommand';
 import { Vector3 } from 'three';
@@ -87,6 +87,11 @@ export interface SimWalkingControl {
 export interface SimPlayerMotionSample {
   readonly velocityX: number; readonly velocityZ: number;
   readonly grounded: boolean; readonly swimming: boolean; readonly hover: boolean;
+}
+/** The ride a mode holds (P1-E5.3-D1): what the step dispatches to, its read of the command ahead of the world's step, and the motion it reports. */
+export interface SimRide extends MotionRide {
+  read: (command: Readonly<SimCommand> | undefined, dt: number) => void;
+  readonly motionSample: () => SimPlayerMotionSample;
 }
 /** One owned host's alternative player-motion law, without changing its single physics/system authority.
  * Input runs before physics and returns true only while it owns motion; step then runs after physics instead of the

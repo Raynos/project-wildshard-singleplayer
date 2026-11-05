@@ -10,8 +10,8 @@
  * The two callers ran two composers until E4.1. There is one law now, the page's (J112, P1-E5.3), so the step can be replayed
  * on the client to the server's 2 cm: a resting body steps too, because slopes slide and decks carry.
  *
- * The dispatch at the end of `stepPlayerMotion` is the seam for a riding mode (E5.3): today a ride is a driver its caller
- * runs instead of this step.
+ * A ride is the one mode whose law is not here: `MotionWorld.ride`, a neutral port (J48, P1-E5.3-D1). The engine holds no
+ * riding law and names no animal; the game's sits behind the port on both sides, and the step hands it the tick.
  */
 import { Vector3 } from 'three';
 import type { LocalMovementCommand } from '../input/commands';
@@ -100,10 +100,18 @@ export interface MotionFoot {
   readonly coyoteMs: number;
 }
 
+/** A body that carries its player, in place of the player's own step. It reads the command on its own side of the world's step. */
+export interface MotionRide {
+  /** Move the body one fixed step, and the rider with it. */
+  step: (dt: number) => void;
+}
+
 /** What a step reads of the world and tells it, injected by each caller. */
 export interface MotionWorld {
   /** this player's capsule */
   readonly motor: Pick<CharacterMotor, 'move' | 'carry' | 'result'>;
+  /** what carries this player now, read live: it owns the step, and no clock of the player's own runs under it. Null on foot */
+  readonly ride: MotionRide | null;
   /** false: this world has no water and asks nothing of it */
   readonly hasWater: boolean;
   /** the rest water surface at (x, z), or null */
@@ -143,7 +151,7 @@ export interface MotionWorld {
 /** What a step did, reused from step to step: read it before the next. */
 export interface MotionOut {
   /** the motion mode this step ran */
-  mode: 'board' | 'swim' | 'foot';
+  mode: 'board' | 'swim' | 'foot' | 'ride';
   /** a jump left the ground or the board */
   jumped: boolean;
   /** how a swim step ended: still floating, drifted off the water, or stood up */
@@ -360,10 +368,11 @@ function stepOnFoot(s: PlayerMotionState, cmd: MotionCommand | undefined, w: Mot
 }
 
 /** One fixed step of one player's own motion (`cmd` undefined: no input this tick). Reuses and returns the world's
- *  `MotionOut`. The world has stepped first; a driven mode that owns the step keeps its caller from calling this. */
+ *  `MotionOut`. The world has stepped first. A ride owns the step; a driver or a traversal keeps its caller from calling this. */
 export function stepPlayerMotion(s: PlayerMotionState, cmd: MotionCommand | undefined, w: MotionWorld, dt: number): MotionOut {
   const run = w.scratch ??= motionScratch(s, w), { out } = run, { board, dash, swim } = s;
   out.jumped = false; out.left = null;
+  if (w.ride !== null) { out.mode = 'ride'; w.ride.step(dt); return out; }
   if (cmd !== undefined) s.yaw = cmd.yaw;
   stepDodge(s.dodge, dash.t > 0, dt);
   if (!swim.on) swim.stood = false; // last tick's stand-up is over

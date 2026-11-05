@@ -5,7 +5,7 @@ import { readScalarLattice } from '@wildshard/engine/world/scalarChannel';
 import { MountedBody, mountedMotorOptions, type MountedRider, type MountedWorld, type ReinsFrame } from '@wildshard/game/riding/physics';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
-import type { SimHost, SimPlayerDriver, SimPlayerMotionSample, SimValue } from '@wildshard/engine/sim';
+import type { SimHost, SimPlayerDriver, SimPlayerMotionSample, SimRide, SimValue } from '@wildshard/engine/sim';
 import { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { AnimalPoseLaw } from '@wildshard/engine/entities/animalPose';
 import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
@@ -184,24 +184,28 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
     motion.velocityX = rider.velocity.x; motion.velocityZ = rider.velocity.z; motion.grounded = rider.onGround;
     return motion;
   };
-  const driver: SimPlayerDriver = { motionSample: sampleMotion, input: (command, dt) => {
-    if (horse?.alive === false) dismount(true);
+  /** On foot the law only watches the walk: this owns no motion. */
+  const onFoot: SimPlayerDriver = { input: (command, dt) => {
     previousFoot.copy(player.position);
-    const a = horse;
-    if (a === null) {
-      const versioned = command?.commandVersion === 1;
-      const board = command?.hover === true ? !player.board.on : player.board.on;
-      const surface = surfaceAt(rider.position.x, rider.position.z);
-      const depth = surface === null ? 0 : Math.max(0, surface - rider.position.y);
-      const forward = command === undefined ? 0 : -Math.sin(command.yaw) * command.moveX - Math.cos(command.yaw) * command.moveZ;
-      decisionClock += dt;
-      if (decisionClock + 1e-9 >= .1) {
-        decisionClock = 0;
-        const row = rules.project('walk', { version: Number(versioned), board: Number(board), swim: Number(player.swim.on), depth, forward, crouched: Number(command?.crouch === true), sprint: Number(command?.sprint === true), grounded: Number(player.fall.grounded) });
-        rider.crouching = row['crouched'] === 1; rider.sprinting = row['sprinting'] === 1;
-      }
-      return false;
+    const versioned = command?.commandVersion === 1;
+    const board = command?.hover === true ? !player.board.on : player.board.on;
+    const surface = surfaceAt(rider.position.x, rider.position.z);
+    const depth = surface === null ? 0 : Math.max(0, surface - rider.position.y);
+    const forward = command === undefined ? 0 : -Math.sin(command.yaw) * command.moveX - Math.cos(command.yaw) * command.moveZ;
+    decisionClock += dt;
+    if (decisionClock + 1e-9 >= .1) {
+      decisionClock = 0;
+      const row = rules.project('walk', { version: Number(versioned), board: Number(board), swim: Number(player.swim.on), depth, forward, crouched: Number(command?.crouch === true), sprint: Number(command?.sprint === true), grounded: Number(player.fall.grounded) });
+      rider.crouching = row['crouched'] === 1; rider.sprinting = row['sprinting'] === 1;
     }
+    return false;
+  }, step: () => undefined };
+  /** In the saddle (P1-E5.3-D1): the step dispatches here, so a ride is a mode of the one motion step. */
+  const ride: SimRide = { motionSample: sampleMotion, read: (command, dt) => {
+    if (horse?.alive === false) dismount(true);
+    const a = horse;
+    if (a === null) return;
+    previousFoot.copy(player.position);
     if (command !== undefined && (command.commandVersion !== 1 || command.steer === undefined)) throw new Error('Mounted reins require versioned raw local controls');
     if (command !== undefined) player.yaw = command.yaw;
     player.impulse.set(0, 0, 0); rider.crouching = false;
@@ -210,13 +214,12 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
     frame.gallop = command?.sprint === true; frame.jump = command?.jump === true; frame.phase = phase(a.entityId); frame.moveScale = player.moveScale;
     frame.wet = wetAt(body.feet.x, body.feet.z) || heightAt(body.feet.x, body.feet.z) < waterLevel() - 0.2;
     body.read(dt, frame); a.mem['turnLead'] = body.turnLead; a.lookWeight = 0;
-    return true;
   }, step: dt => {
     const a = horse; if (a === null) return;
     body.stepBody(dt, a, rider, world);
     if (horse !== null) body.placeRider(dt, 1, a, rider, world);
   } };
-  player.useDriver(driver);
+  player.useDriver(onFoot);
   const accepts = (id: string, breaking: boolean): boolean => {
     const a = host.entities.get(id);
     const allowed = rules.project('mount', { mounted: Number(horse !== null), present: Number(a !== undefined), alive: Number(a?.alive === true), driven: Number(a?.driven === true), available: Number(available.has(id) && (owners.get(id) ?? player.id) === player.id), breaking: Number(breaking), stallion: Number(herds.some(h => h.stallion === a)) });
@@ -237,7 +240,7 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
     body.motor = withOwner(null, () => new CharacterMotor(host.physics, mountedMotorOptions(a.scale, a)));
     body.settleBody(); body.landBody(world); body.eyeY = body.feet.y;
     player.motor.setEnabled(false);
-    player.modes.enter('ride', driver);
+    player.modes.enter('ride', ride);
     return true;
   };
   const teleport = (x: number, z: number, yaw: number): void => {
@@ -271,7 +274,7 @@ export function installMountedPlayer(host: SimHost, profile: unknown, pondBlock?
       body.restoreBody(state.body); decisionClock = state.decisionClock; horse = a; savedMotor = state.motor;
       rider.velocity.fromArray(state.rider.velocity); rider.onGround = state.rider.onGround; rider.sprinting = state.rider.sprinting;
       rider.crouching = state.rider.crouching; rider.speedFactor = state.rider.speedFactor;
-      if (a === null) player.modes.exit('ride'); else player.modes.enter('ride', driver);
+      if (a === null) player.modes.exit('ride'); else player.modes.enter('ride', ride);
     },
     reconnect: () => {
       if (horse === null || savedMotor === null) return;

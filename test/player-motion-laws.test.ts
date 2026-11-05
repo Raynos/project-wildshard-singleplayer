@@ -6,7 +6,7 @@ import { stepPlayerMotion, type MotionWorld, type PlayerMotionState } from '../s
 
 const DT = 1 / 60;
 function player(): PlayerMotionState {
-  return { position: new Vector3(), yaw: 0, moveScale: 1, impulse: new Vector3(), velocity: new Vector3(), fall: { grounded: true },
+  return { position: new Vector3(), yaw: 0, tick: 0, lock: { r0: 0 }, moveScale: 1, impulse: new Vector3(), velocity: new Vector3(), fall: { grounded: true },
     shove: { t: 0, vx: 0, vz: 0 }, dash: { t: 0, vx: 0, vz: 0 }, dodge: { cd: 0, t: 0 }, jump: { ago: Infinity, left: 0 },
     board: { on: false, hoverAir: false, hoverBob: 0, onGround: false },
     swim: { on: false, stood: false, diving: false, climbTo: null, climbCooldown: 0, strokeTime: 0 },
@@ -20,8 +20,8 @@ function world(): MotionWorld & { moves: number } {
       w.moves++; feet.x += want.x; feet.z += want.z; feet.y = Math.max(0, feet.y + want.y); result.grounded = feet.y === 0; return result;
     } },
     foot: { speed: () => 4, crouching: false, coyoteMs: 100 },
-    boardTop: () => 14, boardCapped: () => false, jumped: () => undefined, dodged: () => undefined, landed: () => undefined, boardLanded: () => undefined,
-    swimChanged: () => undefined, stroked: () => undefined, scratch: null };
+    boardTop: () => 14, boardCapped: () => false, jumped: () => undefined, dodged: () => undefined, landed: () => undefined, boardLanded: () => undefined, lunged: () => undefined, dodgeScale: () => 1,
+    swimChanged: () => undefined, stroked: () => undefined, ride: null, scratch: null };
   return w;
 }
 const still = { moveX: 0, moveZ: 0, yaw: 0 };

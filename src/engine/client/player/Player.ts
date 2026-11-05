@@ -7,7 +7,7 @@ import { waveClock } from '../../shared/world/waves';
 import { combatSpeedFactor } from '../../shared/player/combatMotion';
 import { HOVER_HARD_LANDING } from '../../shared/player/board';
 import { createMotionState } from '../../shared/player/motionState';
-import { pressDodge, resetMotion, setBoard, sprints, stepPlayerMotion, type MotionOut, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
+import { pressDodge, resetMotion, setBoard, sprints, stepPlayerMotion, type MotionOut, type MotionRide, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
 import type { MotionLock } from '../../shared/player/lockOrbit';
 import type { AimCommand, PlayerCommand, LocalSteer, RideCommandSample } from '../../shared/input/commands';
 import { NET_BUTTONS } from '../../shared/input/netButtons';
@@ -276,9 +276,10 @@ export class Player {
   /** The step's world: this Player's motor, the level's queries, and the moments the view hangs off. */
   private pageMotionWorld(): MotionWorld {
     const motor = (): CharacterMotor => this.motor, walkable = (): readonly ((x: number, z: number) => number | undefined)[] => this.walkableSurfaces();
-    const crouching = (): boolean => this.crouching, coyote = (): number => this.coyoteMs;
+    const crouching = (): boolean => this.crouching, coyote = (): number => this.coyoteMs, ride = (): MotionRide | null => this.ride;
     return {
       get motor() { return motor(); },
+      get ride() { return ride(); },
       hasWater: true,
       water: (x, z) => this.waterSurfaceAt(x, z),
       heightAt: (x, z) => this.groundHeightAt(x, z),
@@ -539,7 +540,7 @@ export class Player {
     this.prevFeet.copy(this.position);
     this.lawless = false;
     // in the saddle the horse carries you (Mount.step, on the horse's own motor): no walk, no motor of yours
-    if (this.ride !== null) { this.impulseVelocity.set(0, 0, 0); this.lawless = true; this.ride.step(dt); return; }
+    if (this.ride !== null) { this.impulseVelocity.set(0, 0, 0); this.lawless = true; stepPlayerMotion(this.motionState, undefined, this.motionWorld, dt); return; }
     if (this.traversalEvents?.ask('player.traversal', dt) === true) { this.impulseVelocity.set(0, 0, 0); this.jumpQueued = false; this.lawless = true; return; }
     if (this.carried || this.effectMoveLocked) { this.impulseVelocity.set(0, 0, 0); this.velocity.set(0, 0, 0); this.onGround = false; return; }
     const hover = this.hover;

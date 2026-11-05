@@ -120,6 +120,7 @@ interface BoundedGridCatalogueInputFields {
         edgeLook?: {
             height: number;
         };
+        speedClass?: 'road';
     }[];
     emptyNeighbour: {
         kind: "sea";
@@ -172,6 +173,7 @@ interface BoundedGridCatalogueFields {
         edgeLook?: {
             height: number;
         };
+        speedClass?: 'road';
     }[];
     emptyNeighbour: {
         kind: "sea";
