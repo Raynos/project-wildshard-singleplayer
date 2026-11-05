@@ -12,6 +12,7 @@ import type { QuestPageComposition } from '../src/game/server/quest/pageComposit
 import { publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { installDeclaredQuestSpawns, type QuestSpawnCapability } from '../src/game/server/quest/chapterDirector';
+import { pageSimFeed } from '../src/game/server/plugin/pageSimFeed';
 import * as spawn from '../src/game/server/population/spawnScript';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
 import { parseSpawnScript, spawnScriptRegistries, type SpawnScriptRows } from '@wildshard/format/spawnScripts';
@@ -63,11 +64,11 @@ function fixture(omit?: 'quest' | 'animals' | 'sounds') {
 }
 for (const kind of ['quest', 'animals', 'sounds'] as const) test(`declared spawn capability refuses a missing ${kind} loan before guest admission`, async () => {
   const f = fixture(kind);
-  await expect(installDeclaredQuestSpawns(f.ctx, f.capability)).rejects.toThrow('Missing live entry owner');
+  await expect(installDeclaredQuestSpawns(f.ctx, f.capability, pageSimFeed.spawnScript)).rejects.toThrow('Missing live entry owner');
   expect(f.read).not.toHaveBeenCalled(); expect(f.events).toEqual([]);
 });
 test('declared spawn effects retain completion-before-cues order and stop with their owner', async () => {
-  const f = fixture(), result = await installDeclaredQuestSpawns(f.ctx, f.capability);
+  const f = fixture(), result = await installDeclaredQuestSpawns(f.ctx, f.capability, pageSimFeed.spawnScript);
   // Decisions stage at tick 6 and commit on the next native tick.
   result.update(7 / 60, new Vector3(3, 2, 4));
   expect(f.events).toEqual(['flag', 'complete', 'sound']); expect(result.count).toBe(1);
@@ -81,14 +82,14 @@ test('restored quest flags and v1 envelope stay quiet during capability construc
   const f = fixture(); f.flags.restore(['done:watch']);
   const saved: ReturnType<QuestState['snapshot']> = { version: 1, id: f.quest.def.id, started: true, currentId: null };
   f.quest.restore(saved); const flags = f.flags.all;
-  const result = await installDeclaredQuestSpawns(f.ctx, f.capability);
+  const result = await installDeclaredQuestSpawns(f.ctx, f.capability, pageSimFeed.spawnScript);
   expect(f.quest.snapshot()).toEqual(saved); expect(f.flags.all).toEqual(flags); expect(f.events).toEqual([]);
   result.update(.1, new Vector3()); expect(result.takePuffs()).toEqual([]); expect(f.events).toEqual([]);
 });
 test('leaving during admitted byte read constructs no guest or publication', async () => {
   const f = fixture(); let finish: ((value: SpawnScriptRows) => void) | undefined;
   f.read.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
-  const page = vi.spyOn(spawn.SpawnScript, 'page'), pending = installDeclaredQuestSpawns(f.ctx, f.capability);
+  const page = vi.spyOn(spawn.SpawnScript, 'page'), pending = installDeclaredQuestSpawns(f.ctx, f.capability, pageSimFeed.spawnScript);
   const refusal = expect(pending).rejects.toThrow('Quest left during spawn director admission');
   await vi.waitFor(() => expect(f.read).toHaveBeenCalled());
   f.scope.dispose(); if (finish === undefined) throw new Error('Missing pending admission'); finish(f.source);
@@ -98,7 +99,7 @@ test('leaving during admitted byte read constructs no guest or publication', asy
 test('leaving during complete runtime admission constructs no spawn guest', async () => {
   const f = fixture(); let finish: ((value: unknown) => void) | undefined;
   f.json.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
-  const pending = installDeclaredQuestSpawns(f.ctx, f.capability);
+  const pending = installDeclaredQuestSpawns(f.ctx, f.capability, pageSimFeed.spawnScript);
   const refusal = expect(pending).rejects.toThrow('Quest left during runtime admission');
   f.scope.dispose();
   if (finish === undefined) throw new Error('Missing pending runtime admission');
@@ -109,7 +110,7 @@ test('leaving during complete runtime admission constructs no spawn guest', asyn
 test('a changed product during runtime admission publishes no spawn owner', async () => {
   const f = fixture(); let finish: ((value: unknown) => void) | undefined;
   f.json.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
-  const pending = installDeclaredQuestSpawns(f.ctx, f.capability);
+  const pending = installDeclaredQuestSpawns(f.ctx, f.capability, pageSimFeed.spawnScript);
   const refusal = expect(pending).rejects.toThrow('Quest left during runtime admission');
   Object.defineProperty(f.ctx, 'product', { value: legacyDouble<ShardProduct>({}), configurable: true });
   if (finish === undefined) throw new Error('Missing pending runtime admission');

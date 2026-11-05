@@ -8,7 +8,7 @@ import { INTERACT_SOUNDS } from '@wildshard/engine/audio/gen';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { InteractEvent } from '@wildshard/engine/world/interact/Interactables';
 import type { MoverRuntime } from '../plugin/mover';
-import { enterMovers } from '../plugin/moverInstall';
+import type { enterMovers } from '../plugin/moverInstall';
 import type { ShardContext } from '../../client/plugin/context';
 import type { SceneHandles } from '../../client/shardfile/sceneHandles';
 import { forestPage } from '../../client/shardfile/forestPage';
@@ -23,11 +23,11 @@ function entered(ctx: ShardContext) {
 /** Enter the page's declared mover on its scene mesh; `update` (the page's quest system) presents each ride transition:
  *  the held weapons stow while riding, the rest stand-in hides while the mover is away, boarding sounds, hints toast. */
 export async function installPageMover(ctx: ShardContext, input: unknown, ports: { readonly scenes: SceneHandles; readonly flags: Flags;
-  readonly sfx: Pick<InteractSfx, 'interact'> }): Promise<{ readonly motion: MoverRuntime; readonly update: () => void }> {
+  readonly sfx: Pick<InteractSfx, 'interact'>; readonly enter: typeof enterMovers }): Promise<{ readonly motion: MoverRuntime; readonly update: () => void }> {
   const rows = v.parse(QuestPageMoverSchema, input), { runtime, world, play } = entered(ctx);
   const board = INTERACT_SOUNDS.find(sound => sound === rows.board.sound);
   if (board === undefined) throw new Error(`Unknown mover boarding sound: ${rows.board.sound}`);
-  const motion = await enterMovers(ctx, world, ctx.product.shardfile.movers, rows.binding,
+  const motion = await ports.enter(ctx, world, ctx.product.shardfile.movers, rows.binding,
     { [rows.target]: { group: ports.scenes.mesh(rows.mesh) } }, { flags: ports.flags, prompts: runtime.interactables });
   const update = (): void => {
     for (const event of motion.takeRideTransitions(rows.id)) {

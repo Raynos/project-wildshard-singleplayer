@@ -6,8 +6,9 @@ import { residentWorldScope } from '../shardfile/hybridPresentation';
 import { readBorrowedOwner, type BorrowedOwnerPath } from '../../shared/plugin/borrowed';
 import { createClientChannels, type ClientChannelObservation, type ClientChannelFrame } from '../../shared/plugin/channels';
 import type { MoverView, MoverRuntime, MoverRoleComposition } from '../../server/plugin/mover';
-import { installDeclaredMovers } from '../../server/plugin/moverInstall';
-import { bindQuestWorldReactions, type QuestWorldReactions, commandSocketLift, declaredItemScriptBindings } from '../../server/plugin/simulation';
+import type { installDeclaredMovers } from '../../server/plugin/moverInstall';
+import type { QuestWorldReactions, declaredItemScriptBindings } from '../../server/plugin/simulation';
+import { pageSim } from '../shardfile/clientMoverOwners';
 import { WorldTargetHost, type WorldTargetLanding } from '../../shared/shardfile/worldTargets';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
 import { parseWorldTargets, type WorldTargets } from '@wildshard/format/worldTargets';
@@ -640,14 +641,14 @@ export function bindClientChannels(programs: readonly ClientChannelProgram[], po
           || new Set(grant.flags.map(flag => flag.name)).size !== grant.flags.length
           || grant.flags.some(flag => flag.name.length === 0 || !Number.isSafeInteger(flag.bit) || flag.bit < 0 || flag.bit > 65536))) throw new Error('Invalid client mover flag grants');
       installed = true;
-      const items = row.itemRole === undefined ? undefined : declaredItemScriptBindings(source.items, 'actor.player');
+      const items = row.itemRole === undefined ? undefined : pageSim.declaredItemScriptBindings(source.items, 'actor.player');
       const modules = items === undefined ? undefined : await items.modules(hash => assets.read(hash));
       const composed = row.itemRole === undefined || items === undefined || modules === undefined ? composition : {
         modules: new Map([...(composition?.modules ?? []), ...modules]), roles: composition?.roles ?? [],
         declarations: [...(composition?.declarations ?? []), { row: row.itemRole, entities: items.entities, actors: items.actors }],
         ...(composition?.schedules === undefined ? {} : { schedules: composition.schedules }), seed: composition?.seed ?? source.identity.seed,
       };
-      runtime = await installDeclaredMovers(ctx, world, { data: source.movers, modules: new Map(), views: movers,
+      runtime = await pageSim.installDeclaredMovers(ctx, world, { data: source.movers, modules: new Map(), views: movers,
         restoreFlags: new Set(source.movers.flatMap(mover => mover.restoreFrom !== undefined && flags.has(mover.restoreFrom.flag) ? [mover.restoreFrom.flag] : [])),
         admitted: assets.retained, read: hash => assets.read(hash), systemId: row.systemId,
         ...(composed === undefined ? {} : { composition: composed }),
@@ -722,7 +723,7 @@ export function createClientChannelPrompt(input: unknown,
     if (row.kind === 'named') { const handler = bind.named?.get(row.name); if (handler === undefined) throw new Error('Unknown named prompt action'); return handler; }
     const ports = bind.socketLifts, entry = ports?.entryways.find(value => value.kind === 'socketLift' && value.edge === row.edge), lift = entry?.lift;
     if (ports === undefined || lift === undefined) throw new Error('Unknown socket lift prompt action');
-    return () => { const runtime = ports.runtime(); if (runtime !== null) commandSocketLift(runtime, lift, row.action); };
+    return () => { const runtime = ports.runtime(); if (runtime !== null) pageSim.commandSocketLift(runtime, lift, row.action); };
   };
   const action = resolve(Object.freeze(declaration.action));
   const lane = createClientChannels(program);
@@ -965,6 +966,9 @@ export function installRewardedQuest(ctx: ShardContext, source: Shardfile, o: Re
   return { quest, reward, view };
 }
 
+/** Enter a page's declared movers: the feed's owner, lent to the quest page's mover facet. */
+export const enterPageMovers = (...args: Parameters<typeof pageSim.enterMovers>): ReturnType<typeof pageSim.enterMovers> => pageSim.enterMovers(...args);
+
 /** A real prompt awaiting its admitted page action; using it before binding refuses. */
 export function questPagePrompt(label:string,position:Vector3,radius:number):Interactable {
   return {label,position,radius,onInteract:()=>{throw new Error('Quest prompt is not bound');}};
@@ -1109,7 +1113,7 @@ export function bindQuestPageInteractions(source:QuestPageSource,ports:QuestPage
     return ()=>{prompt.receiver[prompt.key]=()=>{action();};};
   });
   for(const row of data.world??[])if(row.action!==undefined)read(row.action);
-  const world=bindQuestWorldReactions(data.world??[],{flags:{has:id=>rules.has(id),set:id=>{ports.flags.set(id);}},run:id=>read(id)(),toast:ports.toast,
+  const world=pageSim.bindQuestWorldReactions(data.world??[],{flags:{has:id=>rules.has(id),set:id=>{ports.flags.set(id);}},run:id=>read(id)(),toast:ports.toast,
     point:row=>{const pointField=readBorrowedOwner(owners,row);if(!(pointField?.value instanceof Vector3))throw new Error('Quest world reaction needs its actual point');return pointField.value;}});
   const targetData = worldTargets ?? ('files' in source && typeof source['files'] === 'object' && source['files'] !== null
     ? outputDescriptor({files:source['files']})?.sections.get('world/targets') : undefined);

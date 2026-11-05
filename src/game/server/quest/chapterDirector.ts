@@ -15,7 +15,7 @@ import { commitQuestEffects } from '../../shared/quest/effects';
 import { QuestRewardController } from '../../shared/plugin/quests';
 import { parseQuestSpawnPage, parseQuestLeadPage, QuestLeadPageSchema, type QuestSpawnPageRows, type QuestLeadPageRows } from '@wildshard/format/questSteps';
 import * as v from 'valibot';
-import { readSpawnScript, SpawnScript } from '../population/spawnScript';
+import type { PageSimFeed } from '../plugin/pageSimFeed';
 import { boundQuestState } from '../../shared/quest/boundState';
 import { TIER } from '@wildshard/engine/core/tier';
 import { entryOwner } from '../../client/shardfile/entryOwners';
@@ -139,7 +139,7 @@ export interface QuestSpawnResult {
 
 /** Construct only after the entry has published its quest, animal and sound
  * loans. The complete named runtime contributes .spawns; there is no selector. */
-export async function installDeclaredQuestSpawns(ctx: ShardContext, capability: QuestSpawnCapability): Promise<QuestSpawnResult> {
+export async function installDeclaredQuestSpawns(ctx: ShardContext, capability: QuestSpawnCapability, spawns: PageSimFeed['spawnScript']): Promise<QuestSpawnResult> {
   const quest = entryOwner(ctx.scope, 'quest', capability.quest), animals = entryOwner(ctx.scope, 'animals', capability.animals);
   const bank = entryOwner(ctx.scope, 'sounds', capability.sounds);
   const product = ctx.product;
@@ -149,7 +149,7 @@ export async function installDeclaredQuestSpawns(ctx: ShardContext, capability: 
     || entryOwner(ctx.scope, 'sounds', capability.sounds) !== bank) throw new Error('Quest spawn loan changed during runtime admission');
   const rows = parseQuestSpawnPage(runtime.spawns);
   if (boundQuestState(ctx.scope, rows.quest).flags !== quest.flags) throw new Error('Quest spawn loan differs from its bound quest');
-  const source = await readSpawnScript(ctx.product, rows.script);
+  const source = await spawns.read(ctx.product, rows.script);
   if (ctx.scope.disposed || ctx.scope.disposing || ctx.product !== product) throw new Error('Quest left during spawn director admission');
   if (entryOwner(ctx.scope, 'quest', capability.quest) !== quest || entryOwner(ctx.scope, 'animals', capability.animals) !== animals
     || entryOwner(ctx.scope, 'sounds', capability.sounds) !== bank) throw new Error('Quest spawn loan changed during admission');
@@ -158,7 +158,7 @@ export async function installDeclaredQuestSpawns(ctx: ShardContext, capability: 
   if (rows.cues.some(cue => cue.kind === 'sound' && !bank.acceptsShot(cue.name))) throw new Error('Unknown quest spawn sound');
   const flags = quest.flags, world = ctx.game.runtime?.world;
   if (world === undefined || world === null) throw new Error('Quest spawn director requires its entered world');
-  const brain = SpawnScript.page(animals, source);
+  const brain = spawns.page(animals, source);
   let puffs: { readonly x: number; readonly y: number; readonly z: number }[] = [];
   ctx.scope.onDispose(() => { puffs.length = 0; });
   return { puffs: rows.puffs, get count() { return brain.channel(rows.channel); }, force: () => { if (!ctx.scope.disposed) brain.force(); },

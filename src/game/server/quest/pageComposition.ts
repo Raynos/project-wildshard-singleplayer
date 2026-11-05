@@ -26,7 +26,7 @@ import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { ITEMS, isItemId } from '../../shared/bag/itemCatalog';
 import type { ItemId } from '../Inventory';
 import type { ShardContext } from '../../client/plugin/context';
-import { QuestViews, bindQuestPageInteractions, type QuestPageInteractions } from '../../client/plugin/ui';
+import { QuestViews, bindQuestPageInteractions, enterPageMovers, type QuestPageInteractions } from '../../client/plugin/ui';
 import type { MoverRuntime } from '../plugin/mover';
 import type { DialogueBox } from '@wildshard/engine/quest/view/ui';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
@@ -268,7 +268,7 @@ export async function installQuestPageComposition(ctx: ShardContext, input: Ques
     adventure.zipline = { ...cable, placed: cable.placed, a: scenes.vector(ends.a), b: scenes.vector(ends.b) };
     setAnchor(ends.publish, { x: scenes.vector(ends.anchor).x, z: scenes.vector(ends.anchor).z });
   }
-  const mover = rows.mover === undefined ? null : await installPageMover(ctx, rows.mover, { scenes, flags, sfx: kit.sfx });
+  const mover = rows.mover === undefined ? null : await installPageMover(ctx, rows.mover, { scenes, flags, sfx: kit.sfx, enter: enterPageMovers });
   facets.motion = mover?.motion ?? null;
   const director = facets.director = rows.files.director === undefined ? null : await readChapterDirector(ctx, rows.files.director);
   if (director !== null) { ui.retainRoot(director.caption.root, () => { director.caption.show(false); }); scope.onDispose(() => { director.caption.root.remove(); }); }

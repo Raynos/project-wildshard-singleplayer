@@ -2,7 +2,7 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardContext } from '../plugin/context';
 import type { MoverRuntime, MoverView } from '../../server/plugin/mover';
-import { installDeclaredMovers } from '../../server/plugin/moverInstall';
+import { pageSimFeed, type PageSimFeed } from '../../server/plugin/pageSimFeed';
 import { entryOwner } from './entryOwners';
 import { boundResidentWorldScope } from './hybridPresentation';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
@@ -16,6 +16,8 @@ export type MoverOwnerBinding =
   | {readonly id:string;readonly kind:'chain';readonly owner:string};
 export interface MoverOwnerRows {readonly system:string;readonly bindings:readonly MoverOwnerBinding[]}
 const installed=new WeakSet<Scope>();
+/** The client's one seat on the page sim's feed. The flip replaces this binding; views only read it. */
+export const pageSim:PageSimFeed=pageSimFeed;
 
 /** Every mover id and original target is admitted before effects. The existing
  * native mover host owns tick, collider, script and save identities. No authored
@@ -81,7 +83,7 @@ export async function installClientMoverOwners(ctx:ShardContext,rows:MoverOwnerR
   current();installed.add(scope);scope.onDispose(()=>{installed.delete(scope);});
   for(const row of rows.bindings)if(row.kind==='object')scope.expose(entryOwner(scope,'object',row.owner).userData,'declaredMotion',true);
   const index=outputDescriptor(ctx.product.shardfile)?.index;
-  const result=await installDeclaredMovers(ctx,world,{data,modules:new Map(),views,systemId:rows.system,read:async hash=>{
+  const result=await pageSim.installDeclaredMovers(ctx,world,{data,modules:new Map(),views,systemId:rows.system,read:async hash=>{
     current();const file=index?.files.find(row=>row.hash===hash);
     if(file?.name===undefined)throw new Error('Mover module requires its admitted logical file');
     const bytes=await ctx.product.file(file.name);current();return bytes;
