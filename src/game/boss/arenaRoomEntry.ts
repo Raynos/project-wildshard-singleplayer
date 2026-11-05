@@ -4,7 +4,7 @@
 import * as v from 'valibot';
 import type { BossSaved } from '@wildshard/engine/ai/BossBrain';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
-import { tagOf } from '@wildshard/engine/physics/surface';
+import { isArenaSeal } from './arenaCollision';
 import type { SimHost, SimSpawn } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { ArenaFightPageSchema } from './arenaRoomFight';
@@ -56,7 +56,7 @@ export function installArenaEntry(host: SimHost, input: unknown, row: ArenaEntry
   let adds = 0, door: (() => void) | null = null;
   const seal = (on: boolean): void => {
     door ??= (): void => undefined;
-    for (const collider of host.physics.world.colliders.getAll()) if (tagOf(collider)?.owner === room.sealId) collider.setEnabled(on);
+    for (const collider of host.physics.world.colliders.getAll()) if (isArenaSeal(collider, room)) collider.setEnabled(on);
   };
   const [x, , z, facing] = row.entrance, { encounter } = data;
   const fight = installArenaRoom<ArenaRoomBody>(host, { step: row.id, room, definition: { ...encounter.definition, reward: {} } as Parameters<typeof installArenaRoom>[1]['definition'], fight: page,

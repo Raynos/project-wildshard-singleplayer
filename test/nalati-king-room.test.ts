@@ -55,3 +55,27 @@ test('a room meets the King from the product, and each earner gets the bow', asy
   expect(paid).toEqual(expect.arrayContaining([`${lead.id}:goldenBow`, 'bot:1:goldenBow']));
   live.dispose();
 });
+
+test('the door\'s colliders close on a room fight and open at its end', async () => {
+  const live = await nalati(true), { host } = live, fight = arenaEntryOf(host);
+  if (fight === undefined) throw new Error('No room fight');
+  const lead = [...host.players.values()][0]; if (lead === undefined) throw new Error('No lead');
+  const seal = host.physics.world.colliders.getAll().filter(collider => !collider.isEnabled());
+  expect(seal.length, 'the door is one real collider, baked open').toBe(1);
+  const shut = (): boolean[] => seal.map(collider => collider.isEnabled());
+  expect(shut().every(on => !on), 'a quiet room stands open').toBe(true);
+  const { x, y, z } = KING_ORIGIN;
+  lead.resetPose({ x, y: y + 0.2, z: z + 2 }, 0);
+  for (let tick = 0; tick < 3600 && fight.boss.state !== 'fight'; tick++) live.step([]);
+  expect(fight.boss.state).toBe('fight');
+  expect(shut().every(Boolean), 'the fight shuts it').toBe(true);
+  const body = fight.fight.body(); if (body === null) throw new Error('No King');
+  body.hp = body.maxHp * 0.05; fight.boss.phase = 2; fight.boss.checkpoint = 2;
+  for (let tick = 0; tick < 3600 && fight.boss.state !== 'victory'; tick++) {
+    if (body.alive) host.combat.hit({ source: lead.health, sourceTags: ['actor.player'], target: body.combatActor(), amount: 400, point: body.position.clone(), dir: new Vector3(0, 0, 1) });
+    live.step([]);
+  }
+  expect(fight.boss.state).toBe('victory');
+  expect(shut().every(on => !on), 'the win opens it').toBe(true);
+  live.dispose();
+}, 60_000);
