@@ -30,8 +30,9 @@ test('the page half of the standalone target reaches no server code', () => {
   expect([...reached].filter(path => sides.get(path)?.side === 'server')).toEqual([]);
 });
 
-test('the shipped client does not reach the standalone target yet', () => {
+// J130: a Developer row runs the worker client, so the page reaches the client half of the wire. The server half stays out.
+test('the shipped client does not reach the standalone target or the server wire', () => {
   const reached = closure('src/entry.ts');
   expect(reached.size).toBeGreaterThan(100);
-  expect([...reached].filter(path => path.includes('/standalone/') || /^src\/engine\/(?:(?:client|cook|server|shared)\/)?net\//u.test(path))).toEqual([]);
+  expect([...reached].filter(path => path.includes('/standalone/') || path.startsWith('src/engine/server/net/'))).toEqual([]);
 });
