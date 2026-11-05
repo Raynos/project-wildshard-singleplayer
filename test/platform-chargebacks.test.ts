@@ -7,6 +7,7 @@ import { pendingPlatformUsers, partitionPendingPlatformUsers } from '../scripts/
 import type { PendingPlatformUser } from '../scripts/shard-platform.d.mts';
 import { componentInventory } from '../scripts/shard-components.mjs';
 import { g571HostApprovals,approvedG571Host } from '../scripts/g571-hosts.mjs';
+import { onDisk } from '../scripts/format-package.mjs';
 
 test('optional shared dispatch does not invent another arena or keeper user', () => {
   const arena = 'src/game/boss/openArenaFight.ts', phase = 'src/game/plugin/bossPhase.ts';
@@ -43,7 +44,7 @@ test('Nine pool spans charge actual source lines while instance packets remain s
   const reports: string[] = [], selected: string[] = [];
   const charges = new Map<string, { path: string; name: string; lines: number }[]>([['nine-dragon-stack', []]]);
   for (const path of ['src/game/shardfile/worldScenes.ts', 'src/game/shardfile/scenePools.ts', 'src/format/worldScenes.ts']) {
-    const source = readFileSync(path, 'utf8'), lines = source.split('\n');
+    const source = readFileSync(onDisk('.', path), 'utf8'), lines = source.split('\n');
     for (const span of inlinePlatformSpans(path, source, line => { reports.push(line); })) {
       expect(platformChargeback(path, span.name)).toBe('C1');
       recordPrivateCharge(charges, 'fixture-only-user', { path, name: span.name, lines: span.lines.length });
@@ -59,7 +60,7 @@ test('reviewed Pine and Driftwood branches charge their actual owners', () => {
   const reports: string[] = [];
   const charges = new Map<string, {path: string; name: string; lines: number}[]>([['pine-hollow', []], ['driftwood-isle', []]]);
   for (const path of inlinePlatformPaths().filter(file => !file.endsWith('/worldScenes.ts') && file !== 'src/game/shardfile/scenePools.ts')) {
-    const source = readFileSync(path, 'utf8');
+    const source = readFileSync(onDisk('.', path), 'utf8');
     for (const span of inlinePlatformSpans(path, source, line => { reports.push(line); })) {
       expect(span.lines.length).toBeGreaterThan(0);
       expect(platformChargeback(path, span.name)).not.toBeNull();
@@ -243,7 +244,7 @@ test('G571 placed actors and G667 group bindings keep broad ownership without ch
 
 test('explicit admitted Bag rows retire only the former private projection spans',()=>{
  for(const path of ['src/game/loot/runtime.ts','src/format/lootEconomy.ts']){
-  const reports:string[]=[],spans=inlinePlatformSpans(path,readFileSync(path,'utf8'),line=>{reports.push(line);});
+  const reports:string[]=[],spans=inlinePlatformSpans(path,readFileSync(onDisk('.', path),'utf8'),line=>{reports.push(line);});
   expect(spans.some(span=>span.name==='LootBagProjection')).toBe(false);expect(reports).toEqual([]);
  }
 });
@@ -333,7 +334,7 @@ test('the hardened CORE scene host credits all fourteen inline lines without cha
   // G601 C2's former volume description already named the whole format module.
   const previous = new Map<string, Set<string> | null>([['src/format/worldScenes.ts', null]]);
   let before = 0, chargedBefore = 0, after = 0;
-  for (const path of paths) for (const span of inlinePlatformSpans(path, readFileSync(path, 'utf8'))) {
+  for (const path of paths) for (const span of inlinePlatformSpans(path, readFileSync(onDisk('.', path), 'utf8'))) {
     expect(platformChargeback(path, span.name)).toBe('C1');
     before += span.lines.length;
     if (!approvedG571Host(previous, path, span.name)) chargedBefore += span.lines.length;
@@ -345,7 +346,7 @@ test('the hardened CORE scene host credits all fourteen inline lines without cha
 
 
 test('C11 shares one native row controller and retires the separate entry classes', () => {
-  const approvals=g571HostApprovals('.'),path='src/game/practice/course.ts',source=readFileSync(path,'utf8');
+  const approvals=g571HostApprovals('.'),path='src/game/practice/course.ts',source=readFileSync(onDisk('.', path),'utf8');
   expect(approvedG571Host(approvals,path,'CourseController')).toBe(true);
   for(const name of ['MountedCourseEntry','GrappleCourseEntry','MountEntryRows','GrappleEntryRows']){
     expect(approvedG571Host(approvals,path,name)).toBe(false);
@@ -402,7 +403,7 @@ test('G667 credits the crowd prey joins and keeps the original Pine ray consumer
   expect(readFileSync('src/game/population/pageLife.ts', 'utf8')).toContain('new CrowdWeaponTarget(new CrowdRoster([], [new ForagerTargets(population, row.combat, row.scale)]), row.combat.target)');
   for (const name of ['CrowdWeaponTarget', 'CrowdRoster']) expect(platformChargeback(path, name)).toBeNull();
   for (const name of ['CrowdPrey', 'CrowdTargets']) expect(platformChargeback(path, name)).toBeNull();
-  const reports: string[] = [], spans = inlinePlatformSpans(path, readFileSync(path, 'utf8'), line => { reports.push(line); });
+  const reports: string[] = [], spans = inlinePlatformSpans(path, readFileSync(onDisk('.', path), 'utf8'), line => { reports.push(line); });
   expect(reports).toEqual([]);
   expect(spans).toEqual([]);
 });
@@ -501,9 +502,9 @@ test('pending native continuation receipts name the actual defining schema and t
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync('tmp/native-continuation-receipts-');
   try {
-    mkdirSync(`${root}/lint`); mkdirSync(`${root}/src/format`, { recursive: true }); mkdirSync(`${root}/docs/plans/host-audit`, { recursive: true });
+    mkdirSync(`${root}/lint`); mkdirSync(`${root}/node_modules/@wildshard/format/src/format`, { recursive: true }); mkdirSync(`${root}/docs/plans/host-audit`, { recursive: true });
     writeFileSync(`${root}/lint/platform-pending-users.json`, JSON.stringify({ schema: pendingRows.schema, entries: rows }));
-    writeFileSync(`${root}/src/format/eliteContinuation.ts`, readFileSync('src/format/eliteContinuation.ts', 'utf8'));
+    writeFileSync(`${root}/node_modules/@wildshard/format/src/format/eliteContinuation.ts`, readFileSync('node_modules/@wildshard/format/src/format/eliteContinuation.ts', 'utf8'));
     writeFileSync(`${root}/docs/ENGINE.md`, 'format/eliteContinuation');
     writeFileSync(`${root}/docs/plans/host-audit/shard-platform-rows.md`, '| W3 Nalati elite rule continuation (G441) | Nalati |');
     expect(pendingPlatformUsers(root)).toEqual(rows);

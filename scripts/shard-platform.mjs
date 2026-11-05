@@ -19,7 +19,7 @@ import { createOutputReader } from './shard-platform-output.mjs';
 import { sectionHostImports } from './shard-platform-hosts.mjs';
 import { runtimeClosures } from './shard-runtime-closure.mjs';
 import { chargePlatformUsers, hasChargebackDeclarations, inlinePlatformPaths, inlinePlatformSpans, platformChargeback, recordPrivateCharge, retiredPlatformModule } from './platform-chargebacks.mjs';
-import { formatSource } from './format-package.mjs';
+import { onDisk } from './format-package.mjs';
 
 // The compiler's declarations globally replace Array.at's optional return with T. Load its JS API
 // behind a checked local contract, as compile-script.mjs does, so host JS keeps native Node types.
@@ -569,10 +569,8 @@ export function pendingPlatformUsers(root) {
 function readPendingPlatformUsers(root,symbolsFor) {
   const file=resolve(root,'lint/platform-pending-users.json');
   if(!existsSync(file))return [];
-  // Format rows keep their logical path; the source is the installed package.
-  const modulePath=(/** @type {string} */ module)=>module.startsWith('src/format/')?formatSource(root,module.slice('src/format/'.length)):resolve(root,module);
   const entries=v.parse(PendingUsers,JSON.parse(readFileSync(file,'utf8'))).entries
-    .filter(entry => !retiredPlatformModule(entry.module) || existsSync(modulePath(entry.module)));
+    .filter(entry => !retiredPlatformModule(entry.module) || existsSync(onDisk(root,entry.module)));
   const seen=new Set();
   const names={'driftwood-isle':'Driftwood','pine-hollow':'Pine','nalati-grasslands':'Nalati','nine-dragon-stack':'Nine'};
   for(const entry of entries){
@@ -584,7 +582,7 @@ function readPendingPlatformUsers(root,symbolsFor) {
       if(!readFileSync(resolve(root,decision.path),'utf8').split('\n').some(line=>line.split('|')[1]?.trim()===decision.row))
         throw new Error(`Missing platform feature decision: ${key}`);
     }
-    const source=readFileSync(modulePath(entry.module),'utf8');
+    const source=readFileSync(onDisk(root,entry.module),'utf8');
     if(/src\/shards\/|@wildshard\/shards\/|sunscar-dunes|far-reach|driftwood-isle|pine-hollow|nalati-grasslands|nine-dragon-stack/u.test(source))
       throw new Error(`Pending feature names a shard: ${entry.module}`);
     const symbols=symbolsFor(entry.module,source);
@@ -654,7 +652,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
   const platform = path => /^src\/(?:engine|game|sdk|commons)\//u.test(path) || attributed(path);
   // One measurement reads one immutable tree: memoize file probes, package targets and edges (pnpm gen, ~3 s).
   const {probes,targets,edges,texts,graphs,sources,masks}=memo;
-  const exists = (path) => { let hit = probes.get(path); if (hit === undefined) { hit = existsSync(resolve(root, path)); probes.set(path, hit); } return hit; };
+  const exists = (path) => { let hit = probes.get(path); if (hit === undefined) { hit = existsSync(onDisk(root, path)); probes.set(path, hit); } return hit; };
   const counts = new Map();
   const baselines = shardLineBaselines(root);
   /** @type {Set<string>} */
@@ -671,7 +669,7 @@ function countOutput(root, includeSources, products, slugs, sourceProgress = fal
     if (!exists(path)) throw new Error(`Source census requires generated discovery: ${path}; restore generation before counting`);
   }
   const text = (path) => {
-    if (!texts.has(path)) texts.set(path, readFileSync(resolve(root, path), 'utf8'));
+    if (!texts.has(path)) texts.set(path, readFileSync(onDisk(root, path), 'utf8'));
     return texts.get(path);
   };
   // G458 alone retains the predecessor source-progress reading. It is never an

@@ -1,6 +1,7 @@
 // Credit only exact G571 entries or explicitly tagged Jake-picked hosts.
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { onDisk } from './format-package.mjs';
 
 /** Read exact selectors from G571 entries or unconditional G599-G603 or exact G614/G665/G667/G677 entries
  * tagged "Jake-approved host:". Only G599-G603 may include a row id.
@@ -23,7 +24,7 @@ export function g571HostApprovals(root) {
       if (module === undefined) throw new Error('Invalid G571 host selector');
       if (module.split('/').some(part => part === '.' || part === '..' || part === '') || module.endsWith('.ts')) throw new Error(`Invalid G571 host selector: ${module}`);
       const path = `src/${module}.ts`;
-      if (!existsSync(resolve(root, path))) { console.warn(`Missing G571 host: ${path}; approval skipped`); continue; }
+      if (!existsSync(onDisk(root, path))) { console.warn(`Missing G571 host: ${path}; approval skipped`); continue; }
       if (name === undefined) {
         if (result.has(path)) throw new Error(`Overlapping G571 host: ${path}`);
         result.set(path, null);
