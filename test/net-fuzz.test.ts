@@ -10,7 +10,8 @@ import { CommandQueue } from '../src/engine/server/net/commandQueue';
 import { CLIENT_FLOOD_DEBT, CLIENT_MESSAGES_PER_TICK, MAX_CLIENT_MESSAGES, MAX_CLIENT_MESSAGE_BYTES, NetRoom } from '../src/engine/server/net/room';
 import { SimNetWorld } from '../src/engine/server/net/simWorld';
 import { BitWriter } from '../src/engine/shared/net/bits';
-import { encodeCommands, seqAfter } from '../src/engine/shared/net/command';
+import { encodeAct, type NetTravel } from '../src/engine/shared/net/messages';
+import { encodeCommands } from '../src/engine/shared/net/command';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
 import type { SaveStorage } from '../src/engine/shared/saves/store';
 import { actRoutes } from '../src/engine/shared/sim/actRoutes';
@@ -71,7 +72,7 @@ test.each(['pine-hollow', 'nalati-grasslands', 'sunscar-dunes', 'driftwood-isle'
   if (rival === undefined || honest === undefined) throw new Error('Missing seat');
   const hostile = [new Hostile(first.net), new Hostile(second.net)], links = [first.link, second.link], places = spots(live), start = honest.position.clone();
   const pump = (): void => { for (const { pump: run } of [...links, clean.link]) run(); };
-  const seqs: (number | undefined)[] = [undefined, undefined], step = (): void => { room.tick(); pump(); };
+  const step = (): void => { room.tick(); pump(); };
   let sent = 0, frames = 0, worst = 0;
   clean.net.onFrame(() => { frames++; });
   for (let tick = 0; tick < TICKS; tick++) {
@@ -91,11 +92,6 @@ test.each(['pine-hollow', 'nalati-grasslands', 'sunscar-dunes', 'driftwood-isle'
     const before = rewinds.mock.calls.length;
     step();
     worst = Math.max(worst, rewinds.mock.calls.length - before);
-    [first, second].forEach(({ id }, at) => {
-      const now = room.lastSeq(id), was = seqs[at];
-      if (was !== undefined) expect(seqAfter(was, now), 'lastSeq never runs backwards').toBe(false);
-      if (now !== 0) seqs[at] = now;
-    });
   }
   // The room kept ticking, and refused what it should have, and said so.
   expect(host.state.tick).toBe(TICKS);
@@ -121,6 +117,33 @@ test.each(['pine-hollow', 'nalati-grasslands', 'sunscar-dunes', 'driftwood-isle'
     expect(new Set(rows.map(row => row.id)).size).toBe(rows.length);
     expect(rows.at(-1)?.serial ?? 0).toBe(serial);
   }
+});
+
+// M8's half that a refusal touches: what a client's own state says it has applied, and nothing else, while it sends rubbish.
+test('refusals leave lastSeq exact, and the good half of a refused command stands', async () => {
+  const { live, room, seat } = await roomOn('pine-hollow'), plain = seat('bot:plain'), mixed = seat('bot:mixed'), { host } = live, writer = new BitWriter();
+  const walk = { viewTick: 0, steer: { keyX: 0, keyY: 1, stickX: 0, stickY: 0 }, yaw: 1, pitch: 0, buttons: 0 };
+  const start = (id: string): Vector3 => { const body = host.players.get(id); if (body === undefined) throw new Error('Missing seat'); return body.position; };
+  start('bot:mixed').copy(start('bot:plain')).add(new Vector3(3, 0, 0));
+  const a = start('bot:plain').clone(), b = start('bot:mixed').clone();
+  for (let tick = 0; tick < 120; tick++) {
+    plain.net.command(walk); plain.net.flush();
+    const seq = mixed.net.command({ ...walk, launcher: { slot: 29, ads: 1, fire: true } }); mixed.net.flush();
+    const { client } = mixed.link;
+    client.send('reliable', encodeAct(writer, { kind: 'reload', seq, slot: 29 }));
+    client.send('reliable', encodeAct(writer, { kind: 'interact', seq, id: 'nobody' }));
+    client.send('reliable', Uint8Array.of(2, 1).buffer);
+    client.send('unreliable', encodeCommands(writer, { ackFrame: 0, commands: [{ ...walk, seq: seq - 1 }, { ...walk, seq, yaw: Number.NaN }] }, () => 0));
+    plain.link.pump(); mixed.link.pump();
+    room.tick();
+    plain.link.pump(); mixed.link.pump();
+    expect(room.lastSeq(mixed.id)).toBe(seq);
+  }
+  const walked = (from: Vector3, id: string): number => from.distanceTo(start(id));
+  expect(walked(b, 'bot:mixed')).toBeCloseTo(walked(a, 'bot:plain'), 1);
+  expect(room.lastSeq(mixed.id)).toBe(room.lastSeq(plain.id));
+  expect(room.stats.refused).toBeGreaterThanOrEqual(240);
+  expect(room.admission.duplicates).toBeGreaterThanOrEqual(120);
 });
 
 test('a flood is refused unread, then its sender is dropped, and the room goes on', async () => {
@@ -187,7 +210,7 @@ test.each([['native', 'pine-hollow'], ['data', 'pastel-plain']])('the %s worker 
     const bytes = hostile.any(fuzz, client.latest?.tick ?? 0, ['nobody', 'castaway.talk']);
     if (fuzz.chance(0.9)) shell.transport.send('reliable', bytes);
     else game.postMessage(fuzz.pick([null, 7, 'bytes', { channel: 'reliable' }, { channel: 'sideways', bytes: new ArrayBuffer(1) }, { channel: 'reliable', bytes: 'none' }]), []);
-    if (fuzz.chance(0.2)) control.postMessage(fuzz.pick([null, 7, { kind: 'nope' }, { kind: 'save' }, { kind: 'probe', id: -1 }, { kind: 'written', seq: 1e9, ok: true }, { kind: 'written', seq: 'a', ok: 1 }, { kind: 'boot', slug: 'other', base: '/', build: '', savePrefix: 'x', saves: {} }, { kind: 'ready' }, { kind: 'resume' }]), []);
+    if (fuzz.chance(0.2)) control.postMessage(fuzz.pick([null, 7, { kind: 'nope' }, { kind: 'save' }, { kind: 'probe', id: -1 }, { kind: 'probe', id: 9 }, { kind: 'written', seq: 1e9, ok: true }, { kind: 'written', seq: 'a', ok: 1 }, { kind: 'boot', slug: 'other', base: '/', build: '', savePrefix: 'x', saves: {} }, { kind: 'ready' }, { kind: 'resume' }]), []);
     if (index % 40 === 0) await new Promise(resolve => { setTimeout(resolve, 0); });
   }
   await until(() => (client.latest?.tick ?? 0) > last + 30);
@@ -199,6 +222,39 @@ test.each([['native', 'pine-hollow'], ['data', 'pastel-plain']])('the %s worker 
   const again = worker(slug, storage, input);
   expect((await again.shell.booted).restored).toBe(true);
   again.shell.dispose();
+});
+
+test('a client that hangs up leaves a server that still saves', { timeout: 60_000 }, async () => {
+  const input = await product('pine-hollow'), storage = new PageStorage(), { shell } = worker('pine-hollow', storage, input);
+  await shell.booted; shell.ready();
+  await until(() => shell.client.latest !== null);
+  shell.transport.close('hostile');
+  const before = (await shell.probe()).tick;
+  await new Promise(resolve => { setTimeout(resolve, 100); });
+  expect((await shell.probe()).tick).toBeGreaterThan(before);
+  expect(await shell.save()).toMatchObject({ ok: true });
+  shell.dispose();
+});
+
+// A crossing under fire: the acts and commands in flight when a player changes rooms belong to neither, and neither minds.
+test('a client crosses a seam while it fuzzes both rooms', { timeout: 120_000 }, async () => {
+  const control = new MessageChannel(), game = new MessageChannel(), storage = new PageStorage();
+  const server = runStandaloneServer({ control: control.port1, game: game.port1, load: (_boot, slug) => product(slug), proof: { arrival: { x: -259, y: 0, z: 0 } } });
+  const shell = connectStandalone({ slug: 'sunscar-dunes', base: '/shards/sunscar-dunes/', build: 'test', savePrefix: 'wildshard.', storage }, control.port2, game.port2, () => { server.dispose(); });
+  const { client } = shell, travels: NetTravel[] = [], hostile = new Hostile(client), fuzz = new Fuzz(SEEDS[0] ?? 1);
+  client.onTravel(event => { travels.push(event); });
+  await shell.booted; shell.ready();
+  await until(() => client.latest !== null);
+  const timer = setInterval(() => {
+    client.command({ viewTick: 0, steer: { keyX: 0, keyY: 1, stickX: 0, stickY: 0 }, yaw: -Math.PI / 2, pitch: 0, buttons: 0 }); client.flush();
+    shell.transport.send('reliable', fuzz.chance(0.5) ? hostile.act(fuzz, []) : hostile.broken(fuzz, client.latest?.tick ?? 0));
+  }, 16);
+  try { await until(() => travels.length === 1); } finally { clearInterval(timer); }
+  const { tick } = await shell.probe();
+  await new Promise(resolve => { setTimeout(resolve, 100); });
+  expect((await shell.probe()).tick).toBeGreaterThan(tick);
+  expect(client.closed).toBeNull();
+  shell.dispose();
 });
 
 test('a save asked for before boot is told no, and the server still boots', async () => {

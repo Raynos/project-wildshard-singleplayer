@@ -61,7 +61,7 @@ export class Hostile {
   /** An `act` message: real interaction ids, slots in and out of range, rides in any state, chat, reports of anything. */
   act(fuzz: Fuzz, interactions: readonly string[]): ArrayBuffer {
     const seq = fuzz.int(0x10000), acts: readonly NetRoomAct[] = [
-      { kind: 'interact', seq, id: interactions.length > 0 && fuzz.chance(0.8) ? fuzz.pick(interactions) : `nobody.${String(fuzz.int(100))}` },
+      { kind: 'interact', seq, id: interactions.length > 0 && fuzz.chance(0.8) ? fuzz.pick(interactions) : fuzz.pick([`nobody.${String(fuzz.int(100))}`, 'a'.repeat(200), '../door']) },
       { kind: 'reload', seq, slot: fuzz.int(32) }, { kind: 'reload', seq, slot: fuzz.int(256) }, { kind: 'equip', seq, slot: fuzz.int(32) }, { kind: 'equip', seq, slot: fuzz.int(256) },
       { kind: 'ride', seq, action: fuzz.pick(RIDES) },
       { kind: 'chat', seq, channel: fuzz.pick(CHANNELS), text: fuzz.text() }, { kind: 'report', seq, line: fuzz.chance(0.5) ? fuzz.int(32) : fuzz.int(0x7fffffff) },
