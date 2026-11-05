@@ -1,12 +1,12 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 455,
+  "client → server": 454,
   "cook → client": 2,
   "cook → render": 1,
-  "server → client": 193,
+  "server → client": 179,
   "server → dom": 2,
-  "server → render": 8,
+  "server → render": 7,
   "shared → client": 3,
   "shared → dom": 1,
   "shared → server": 1
@@ -490,8 +490,7 @@
    "server → render": 1
   },
   "src/game/quest/chapter.ts": {
-   "server → client": 15,
-   "server → render": 1
+   "server → client": 1
   },
   "src/game/quest/chapterDirector.ts": {
    "server → client": 6
@@ -512,7 +511,7 @@
    "server → client": 4
   },
   "src/game/quest/figures.ts": {
-   "client → server": 2
+   "client → server": 1
   },
   "src/game/quest/pageComposition.ts": {
    "server → client": 13
