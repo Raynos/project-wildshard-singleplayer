@@ -14,7 +14,7 @@ import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { defineModel, modelContext, type ModelDef } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { OwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
-import { RopeDeck, type RopeDeckPoses } from '@wildshard/engine/physics/ropeChain';
+import { RopeDeck, type RopeDeckPoses } from '@wildshard/engine/physics/ropeDeck';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';

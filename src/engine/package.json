@@ -243,6 +243,7 @@
     "./physics/wasmUrl": "./physics/wasmUrl.ts",
     "./physics/queryBatchV2": "./physics/queryBatchV2.ts",
     "./physics/ropeChain": "./physics/ropeChain.ts",
+    "./physics/ropeDeck": "./physics/ropeDeck.ts",
     "./physics/surface": "./physics/surface.ts",
     "./physics/terrain": "./physics/terrain.ts",
     "./player/AimTargets": "./player/AimTargets.ts",
