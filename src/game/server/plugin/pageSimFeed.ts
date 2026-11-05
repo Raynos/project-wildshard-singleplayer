@@ -18,5 +18,5 @@ export interface PageSimFeed {
 /** The page sim's own owners. */
 export const pageSimFeed: PageSimFeed = {
   enterMovers, installDeclaredMovers, declaredItemScriptBindings, commandSocketLift, bindQuestWorldReactions,
-  spawnScript: { read: readSpawnScript, page: (...args) => SpawnScript.page(...args) },
+  spawnScript: { read: (...args) => readSpawnScript(...args), page: (...args) => SpawnScript.page(...args) },
 };
