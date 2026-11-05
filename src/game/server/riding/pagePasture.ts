@@ -1,21 +1,20 @@
 import * as v from 'valibot';
-import { app } from '@wildshard/engine/app/runtime';
+import type { Rng } from '@wildshard/engine/core/rng';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
-import { PageWildlife } from '../population/wildlife';
+import type { PageWildlife } from '../population/wildlife';
 import type { CrowdTargets } from '../../shared/shardfile/crowdRuntime';
 import { PastureActorSchema } from '@wildshard/format/wildlifePopulation';
 import { NativePastureRaid } from './pastureController';
-import { PastureCues, type PastureCue } from '../../client/riding/pastureCues';
+import { PastureCues, type PastureCue } from '../../shared/riding/pastureCues';
 /** Client-only entry to the same native pasture controller. Only concrete
  * manager/population authorities and actor/cue rows cross the boundary. */
 export class PagePastureRaid<T extends CrowdTargets> extends NativePastureRaid<Animal,PackBrain<Animal>> {
   private readonly cues: PastureCues;
-  constructor(animals: AnimalManager,population: PageWildlife<T>,input: unknown) {
+  constructor(animals: AnimalManager,population: PageWildlife<T>,input: unknown,random: Rng) {
     const rows = v.parse(PastureActorSchema,input),cues = new PastureCues(rows.cues);
-    if (!(population instanceof PageWildlife)) throw new Error('Missing page population owner');
-    const flock = population.flocks[0] ?? null,random = app.rng.stream('ai'),program = population.pastureAuthor;
+    const flock = population.flocks[0] ?? null,program = population.pastureAuthor;
     const delay = program.project('raidFirst',{},random)['raidT'] ?? 0;
     const site = program.project('shepherdSite',{ cx: flock?.cx ?? 10000,cz: flock?.cz ?? 10000 });
     const shepherd = site['accept'] === 1 ? animals.spawn(rows.kind,site['x'] ?? 0,site['z'] ?? 0,site['yaw'] ?? 0,rows.variant) : null;

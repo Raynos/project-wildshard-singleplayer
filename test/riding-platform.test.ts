@@ -7,7 +7,7 @@ import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import {tamingRig} from './fixtures/tamingServices';
-import type {TamingHorse} from '../src/game/server/riding/bindingTypes';
+import type {TamingHorse} from '../src/game/shared/riding/bindingTypes';
 import { PerspectiveCamera, Vector3, SkinnedMesh } from 'three';
 import { app as pageApp } from '@wildshard/engine/app/runtime';
 import { OriginalPracticeCourse } from './fixtures/course-controller.oracle';

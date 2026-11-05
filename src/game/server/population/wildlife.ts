@@ -10,6 +10,8 @@ import type { SpeciesActorsFileRows } from '@wildshard/format/speciesBookRows';
 import type { CrowdDraw } from '../../client/ambient/crowdDraw';
 import { prepareForagerDraw, type ForagerDraw } from '../../client/ambient/foragerDraw';
 import { pageRidingMounted } from '../../shared/riding/entered';
+import { lendRidingPopulation, type PageRidingPopulation } from '../../shared/riding/pagePopulation';
+import { PagePastureRaid } from '../riding/pagePasture';
 import { PopulationRelations } from './relations';
 import * as v from 'valibot';
 import type { RayTargets } from '@wildshard/engine/combat/targets';
@@ -128,6 +130,12 @@ export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
 }
 
 const clientPopulations = new WeakMap<Scope, { wildlife: PageWildlife<CrowdDraw> | null }>();
+/** The riding page's port on this population (E6). */
+function ridingPort(population: PageWildlife<CrowdDraw>): PageRidingPopulation {
+  return { get herds() { return population.herds; }, mountables: population.mountables, predators: population.predators, get wind() { return wildEnv.wind; },
+    wetAt: (x, z) => wildEnv.wetAt(x, z), rider: mounted => { wildEnv.playerMounted = mounted; },
+    raid: animals => new PagePastureRaid(animals, population, population.pastureProfile, app.rng.stream('ai')) };
+}
 /** Borrow the actual population assembled by the declared animal stage. */
 export function clientWildlifeState(ctx: Pick<ShardContext, 'scope'>): { readonly wildlife: PageWildlife<CrowdDraw> | null } {
   if (ctx.scope.disposed) throw new Error('Wildlife owner is disposed');
@@ -172,6 +180,7 @@ export async function installClientWildlife(ctx: ShardContext, feature: ClientFe
   const owner: { wildlife: PageWildlife<CrowdDraw> | null } = { wildlife: null };
   let draw: ForagerDraw | null = null;
   clientPopulations.set(ctx.scope, owner);
+  lendRidingPopulation(ctx.scope, () => owner.wildlife === null ? null : ridingPort(owner.wildlife));
   // Registered at feature install, before later state reducers. The same
   // mutable owner is empty until animalsBuilt and retires with this scope.
   ctx.answer('combat.targets.ray',(request:RayTargets):RayTargets=>({...request,

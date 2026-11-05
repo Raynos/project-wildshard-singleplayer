@@ -5,25 +5,24 @@ import { publishEntryOwner, presentEntryOwner, type WorldFrameOwner } from '../.
 import { DataPanel } from '../ui/dataPanels';
 import { enteredAdventurePersistence } from '../../shared/quest/chapterBindings';
 import type { HeldClaims } from '../loadout/claims';
-import { clientWildlife } from '../../server/population/wildlife';
 import type { CrowdDraw } from '../ambient/crowdDraw';
-import { wildEnv } from '../../server/population/pageGroups';
 import { companionToName } from '../../shared/riding/companions';
 import { MountedReins } from './reins';
-import { PagePastureRaid } from '../../server/riding/pagePasture';
+import type { PagePastureRaid } from '../../server/riding/pagePasture';
+import { ridingPopulation } from '../../shared/riding/pagePopulation';
 import { app } from '@wildshard/engine/app/runtime';
 import * as THREE from 'three';
 import * as v from 'valibot';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
-import { HerdBrain } from '@wildshard/engine/ai/herd';
+import type { HerdBrain } from '@wildshard/engine/ai/herd';
 import type { InputService } from '@wildshard/engine/input/InputService';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import type { Player } from '@wildshard/engine/player/Player';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
-import { TamingSession, type TamingPrograms } from '../../server/riding/taming';
-import type { TamingObservation } from '../../server/riding/bindingTypes';
+import { TamingSession, type TamingPrograms } from '../../shared/riding/taming';
+import type { TamingObservation } from '../../shared/riding/bindingTypes';
 import { Mount } from './mount';
 import { enteredMount } from '../../shared/riding/entered';
 import { RidingControlsSchema, PageTamingBindingSchema, ClientRidingSessionSchema, cleanMountName, type RidingControls, type MountProfile } from '@wildshard/format/riding';
@@ -36,9 +35,9 @@ import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import type {CellField} from '../../shared/systems/cellField';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 
-function nativeHerds(value: unknown): value is readonly HerdBrain<Animal>[] {
-  return Array.isArray(value) && value.length <= 8 && value.every((herd: unknown) => herd instanceof HerdBrain
-    && Object.getPrototypeOf(herd) === HerdBrain.prototype && herd.members.every((actor: unknown) => actor instanceof Animal));
+/** A herd by its shape: the brain is the population's, and the port lends it. Its members are this page's bodies. */
+function nativeHerds(value: readonly HerdBrain<Animal>[]): boolean {
+  return value.length <= 8 && value.every((herd: object) => 'stallion' in herd && 'trust' in herd && 'members' in herd && Array.isArray(herd.members) && herd.members.every((actor: unknown) => actor instanceof Animal));
 }
 /** Exact entered population owners, borrowed without a second service book. */
 export interface PageRidingOwners {
@@ -313,11 +312,11 @@ export function enterClientRiding(ctx: ShardContext, arsenal: HeldClaims): PageR
   const owner = clientSessions.get(ctx.scope), runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
   if (owner === undefined || ctx.scope.disposed || runtime === undefined || world === undefined || world === null || play === undefined || play === null) throw new Error('Riding feature is not ready');
   if (owner.view !== null || owner.id !== undefined && (presentEntryOwner(ctx.scope, 'riding-view', owner.id) !== null || presentEntryOwner(ctx.scope, 'riding-play', owner.id) !== null)) throw new Error('Riding feature is already entered');
-  const population = clientWildlife(ctx); if (population === null) throw new Error('Riding requires built wildlife');
+  const population = ridingPopulation(ctx.scope); if (population === null) throw new Error('Riding requires built wildlife');
   const { rows } = owner, persistence = enteredAdventurePersistence(ctx.scope), kit = arsenal.pageKit(ctx);
   if (kit === null) throw new Error('Riding requires its built equipment owner');
   const names = persistence.names.read(), preset = rows.preset;
-  const owners = { id: preset.taming.herds, herds: population.herds, wind: wildEnv.wind };
+  const owners = { id: preset.taming.herds, herds: population.herds, wind: population.wind };
   const session = createPageRiding(ctx, world.player, play.animals, world.game.camera, {
     profile: { ...rows.profile, names, roads: rows.roads, restAt: rows.rest }, mode: preset.mode, ...(preset.controls === undefined ? {} : { controls: preset.controls }),
     taming: { ...preset.taming, programs: rows.programs, binding: rows.taming.binding, savedBond: persistence.bond.read(), rest: rows.rest },
@@ -325,7 +324,7 @@ export function enterClientRiding(ctx: ShardContext, arsenal: HeldClaims): PageR
     mountables: population.mountables.map(actor => ({ id: actor.entityId, name: preset.mountableLabel })),
   }, owners);
   const { mount, taming, hud, interactable } = session, reins = new MountedReins(world.game.camera, rows.programs.reins, ctx.scope);
-  const namer = new DataPanel(rows.naming.panel), raid = new PagePastureRaid(play.animals, population, population.pastureProfile), nameValues = { current: '' };
+  const namer = new DataPanel(rows.naming.panel), raid = population.raid(play.animals), nameValues = { current: '' };
   let namingActor: string | null = null;
   const actions = new Map<string, (value: unknown) => void>([[rows.naming.action, value => {
     if (typeof value !== 'string') throw new Error('Mount name input requires text');
@@ -341,7 +340,7 @@ export function enterClientRiding(ctx: ShardContext, arsenal: HeldClaims): PageR
     mount, taming, hud, interactable, reins, raid, get mounted() { return mount.mounted; },
     noteShot: (x, z) => { taming.noteShot(x, z); },
     update: dt => {
-      session.update(dt, wildEnv.wetAt(mount.feet.x, mount.feet.z), false, namer.isOpen); wildEnv.playerMounted = mount.mounted;
+      session.update(dt, population.wetAt(mount.feet.x, mount.feet.z), false, namer.isOpen); population.rider(mount.mounted);
       for (const event of session.drainEvents()) {
         if (event.kind === 'notice') play.hud.toast(event.text);
         else if (event.kind === 'bond') persistence.bond.write(event.value);

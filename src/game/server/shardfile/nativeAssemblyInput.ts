@@ -12,7 +12,7 @@ import type { BakedGrid } from '@wildshard/format/bakedTerrainBytes';
 import type { NativeAssemblyPlan, NativeAssemblyRead } from '@wildshard/format/nativeAssembly';
 import type { NativeCombatFrame } from '../plugin/nativeItems';
 import type { NativePopulationField } from '../population/environment';
-import type { PastureCues } from '../../client/riding/pastureCues';
+import type { PastureCues } from '../../shared/riding/pastureCues';
 import type { WeatherReactions } from '../weather/reactions';
 import type { NativeCollisionBake } from '../population/nativeBake';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';

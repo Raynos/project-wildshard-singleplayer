@@ -2,9 +2,9 @@ import { afterEach, beforeEach, expect, test } from 'vitest';
 import {lendNalatiRiding} from './fixtures/nalati-return-modules';
 import { Vector3 } from 'three';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
-import { TamingSession as TamingBinding } from '../src/game/server/riding/taming';
+import { TamingSession as TamingBinding } from '../src/game/shared/riding/taming';
 import { Scope } from '../src/engine/shared/app/scope';
-import type { TamingServices, TamingHorse, TamingHerd } from '../src/game/server/riding/bindingTypes';
+import type { TamingServices, TamingHorse, TamingHerd } from '../src/game/shared/riding/bindingTypes';
 import rows from '../src/shards/nalati-grasslands/data/headlessAssembly.json' with { type: 'json' };
 import { NALATI_RIDING_PROGRAMS as programs } from './fixtures/nalati-riding';
 

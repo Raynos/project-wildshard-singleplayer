@@ -1,5 +1,5 @@
 import { NativePastureRaid } from './pastureController';
-import type { PastureCues } from '../../client/riding/pastureCues';
+import type { PastureCues } from '../../shared/riding/pastureCues';
 import * as v from 'valibot';
 import { ATTACK_TURN, type HuntBody, type HuntNav } from '@wildshard/engine/ai/hunt';
 import type { StalkerBrain } from '@wildshard/engine/ai/stalker';

@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import * as v from 'valibot';
 import type {Scope} from '@wildshard/engine/app/scope';
 import {V2_ACTION_OPS,type V2ActionBinding,type V2ActionOperation,type V2ActionTarget} from '@wildshard/format/scriptActionsV2';
-import {ReturnProgram} from '../../shared/population/returnProgram';
-import type {PreparedProjectionV2} from '../../shared/population/returnProjectionV2';
-import {prepareV2WorldActions,type PreparedV2WorldActions,type TamingActionResult,type V2WorldActionLoan} from '../../shared/shardfile/worldActionsV2';
+import {ReturnProgram} from '../population/returnProgram';
+import type {PreparedProjectionV2} from '../population/returnProjectionV2';
+import {prepareV2WorldActions,type PreparedV2WorldActions,type TamingActionResult,type V2WorldActionLoan} from '../shardfile/worldActionsV2';
 import type {TamingHorse,TamingHerd,TamingServices,TamingObservation} from './bindingTypes';
 /** Admitted dual projections and the original historical numeric defaults. */
 export interface TamingPrograms {approach:unknown;breaking:unknown;riding:unknown;initial:Record<string,number>}

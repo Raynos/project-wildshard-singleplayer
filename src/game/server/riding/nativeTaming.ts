@@ -8,8 +8,8 @@ import { nativeHerdCollection } from '../shardfile/groupRuntime';
 import { bondedMountRoster } from './roster';
 import { mountedPlayerOf, type NativeMountedPlayer } from './native';
 import { actRoutes } from '@wildshard/engine/sim/actRoutes';
-import { TamingSession,type TamingPrograms } from './taming';
-import type { TamingBindingProfile, TamingObservation } from './bindingTypes';
+import { TamingSession,type TamingPrograms } from '../../shared/riding/taming';
+import type { TamingBindingProfile, TamingObservation } from '../../shared/riding/bindingTypes';
 import { createNativeCreaturePoses, type NativeCreaturePoseRecipe } from '../../shared/plugin/animation';
 import { numericCreaturePose } from '../../shared/plugin/channelPrograms';
 import { poseRidingEnvelopes, type RidingPresentationRows } from '../../shared/riding/presentation';
@@ -17,7 +17,7 @@ import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 
 /** Engine-owned tick input, shared by native modes; authors supply only rows. */
 export interface NativeTamingContext {
-  commands: () => readonly ({ kind: 'player'; steer?: { keyX: number } } | { kind: 'script'; actorId: string; value: number } | { kind: 'action' })[];
+  commands: () => readonly ({ kind: 'player'; steer?: { keyX: number } | undefined; seq?: number | undefined; pitch?: number | undefined } | { kind: 'script'; actorId: string; value: number } | { kind: 'action' })[];
 }
 export interface NativeTamingRows {
   step: string; herds: string; roster: string; kinds: readonly string[]; programs: TamingPrograms; binding: TamingBindingProfile;

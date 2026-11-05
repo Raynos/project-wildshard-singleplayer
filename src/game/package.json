@@ -71,7 +71,7 @@
     "./riding/roster": "./server/riding/roster.ts",
     "./shardfile/groupRuntime": "./server/shardfile/groupRuntime.ts",
     "./riding/native": "./server/riding/native.ts",
-    "./riding/taming": "./server/riding/taming.ts",
+    "./riding/taming": "./shared/riding/taming.ts",
     "./riding/physics": "./shared/riding/physics.ts",
     "./population/nativeManager": "./server/population/nativeManager.ts",
     "./quest/chapterDirector": "./client/quest/chapterDirector.ts",
