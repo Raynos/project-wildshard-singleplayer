@@ -54,7 +54,7 @@ import { profiles } from './phone-loading/model.ts';
 
 // the service worker's own fetches reach context 'request' events (Chromium), as scripts/bench-load.mjs does
 process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS ??= '1';
-const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach', 'sw', 'warm', 'link', 'level-download', 'textures', 'trace', 'dist', 'frames', 'profile', 'heap', 'probe'].map(key => [key, { type: 'string' }])) });
+const { values } = parseArgs({ options: Object.fromEntries(['base', 'rev', 'flow', 'engine', 'lap', 'out', 'reach', 'sw', 'warm', 'link', 'level-download', 'textures', 'trace', 'dist', 'frames', 'profile', 'heap', 'probe', 'device-save'].map(key => [key, { type: 'string' }])) });
 const base = values.base, rev = values.rev, flow = values.flow;
 if (!base || !rev || !/^[0-9a-f]{7,40}$/u.test(rev) || !flow || !/^(grid|[a-z0-9]+(?:-[a-z0-9]+)*)$/u.test(flow)) {
   console.error('usage: complete-at-control.mjs --base=URL --rev=SHA --flow=<shard slug>|grid [--engine=chromium|webkit] [--sw=on|off] [--link=none|phone] [--warm=on] [--lap=<s>] [--reach=220] [--out=tmp/<file>.json]');
@@ -191,6 +191,12 @@ try {
   await saveFixture(context, { scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } });
   // DL16's Debug ▸ Loading & memory ▸ Level download (src/engine/boot/loadingPacks.ts), read once at boot
   if (values['level-download'] !== undefined) for (const fixture of levelDownloadFixtures(values['level-download'])) await saveFixture(context, fixture);
+  // --device-save=<key>=<value>: a Debug row's device slot before boot (a row's A / B with a probe; used for D227's mip probe)
+  if (values['device-save'] !== undefined) {
+    const at = values['device-save'].indexOf('=');
+    if (at < 1) { console.error('bad --device-save (key=value)'); process.exit(2); }
+    await saveFixture(context, { scope: 'device', key: values['device-save'].slice(0, at), data: values['device-save'].slice(at + 1) });
+  }
   await context.addInitScript(hideDeveloperOverlays);
   await harnessPins(context, { seed: 357, browser: `${engine} / iPhone 16 Pro`, lane: 'dl17', sha: rev, ...(values.textures === undefined ? {} : { textures: values.textures }) });
   const control = { at: null };
