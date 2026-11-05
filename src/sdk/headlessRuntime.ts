@@ -149,7 +149,7 @@ function grappleCommand(command: HeadlessCommand): ReturnType<GrappleTickContext
 /** J105: a shard whose kills pay coins or items pays a room's players each their own roll. */
 function installRoomLoot(host: SimHost, economy: unknown, context: HeadlessRuntimeInstallation): void {
   const coins = personalCoinTable(economy), items = personalItemTable(economy);
-  if (coins !== null || items !== null) installPersonalLoot(host, { coins, ...(items === null ? {} : { items }), grant: (player, amount) => { context.emit({ kind: 'coins', amount, actorId: player }); },
+  if (coins !== null || items !== null) installPersonalLoot(host, { coins, alone: context.room === true, ...(items === null ? {} : { items }), grant: (player, amount) => { context.emit({ kind: 'coins', amount, actorId: player }); },
     grantItem: (player, item, count) => { context.emit({ kind: 'item', item, count, actorId: player }); } });
 }
 /** The tick protocol's loans to a native assembly (`@wildshard/game/shardfile/nativeAssembly`). */

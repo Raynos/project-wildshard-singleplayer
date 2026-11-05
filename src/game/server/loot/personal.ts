@@ -15,6 +15,8 @@ export interface PersonalLootPorts {
   readonly items?: ((context: LootContext, next: () => number) => readonly TableDrop<string>[]) | undefined;
   /** File an item grant the same way. */
   readonly grantItem?: ((player: string, item: string, count: number) => void) | undefined;
+  /** A room pays a lone player too: nothing else will once the page's feed goes. Off a room, the page pays one player. */
+  readonly alone?: boolean | undefined;
 }
 const Economy: v.GenericSchema<unknown, { rows: { loot: { economy?: { tables?: unknown } | undefined }[] } }> = v.object({ rows: v.object({ loot: v.array(v.object({ economy: v.optional(v.object({ tables: v.optional(v.unknown()) })) })) }) });
 /** A shard's coin roll, from its `economy/loot` rows: the table the page pays from. Null on a shard whose kills pay nothing. */
@@ -43,7 +45,7 @@ const itemKey = (player: string, item: string): string => `loot:${player}:item:$
  * Each player's bounty is its own: a slot pays them as many times as the shard started with it, counted in
  * `slots.ledgerDedupe`, so a replayed death grants nothing twice.
  *
- * Alone, this does nothing: a lone player's drops stay exactly what the page pays today, and a one-player save keeps its bytes.
+ * Off a room, a lone player's drops stay exactly what the page pays today, and a one-player save keeps its bytes.
  */
 export function installPersonalLoot(host: SimHost, ports: PersonalLootPorts): void {
   const caps = new Map<string, number>();
@@ -52,7 +54,7 @@ export function installPersonalLoot(host: SimHost, ports: PersonalLootPorts): vo
   host.events.on('actor.died', ({ actor }) => {
     const body = host.entities.get(actor.id), rollers = host.damage.meaningful(actor.id);
     host.damage.forget(actor.id);
-    if (body === undefined || host.players.size < 2) return;
+    if (body === undefined || (host.players.size < 2 && ports.alone !== true)) return;
     const key = bountyKey(body), cap = caps.get(key) ?? 1;
     for (const player of rollers) {
       const paid = paidKey(player, key);

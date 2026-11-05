@@ -51,6 +51,20 @@ test('a server\'s reward reaches the player it was rolled for, once, through the
   } finally { live.done(); }
 });
 
+test('a room pays a lone player, who has no page feed once the flip takes it, and off a room the page still does', () => {
+  for (const alone of [true, false]) {
+    const host = createSimHost(SIM_LEVEL, { rapier }), granted: number[] = [], [lead] = host.players.values(), body = [...host.entities.values()][0];
+    if (lead === undefined || body === undefined) throw new Error('No room');
+    try {
+      installPersonalLoot(host, { coins: () => 5, grant: (_player, coins) => { granted.push(coins); }, alone });
+      host.damage.record({ source: lead.health, sourceTags: [], target: body.combatActor(), amount: 10, point: new Vector3(), dir: new Vector3() }, 10, host.players);
+      host.events.emit('actor.died', { actor: body.combatActor(), req: { source: 'env', sourceTags: [], target: body.combatActor(), amount: 10, point: new Vector3(), dir: new Vector3() } });
+      host.step(new Map()); // the tick's flush hears the death
+      expect(granted).toEqual(alone ? [5] : []);
+    } finally { host.dispose(); }
+  }
+});
+
 test('the page\'s feed pays a death once, against its bounty, and stops with its listener', () => {
   const actor = legacyDouble<Actor>({}), body = { kind: 'crab', herd: 0, alive: true, position: { x: 1, y: 2, z: 3 }, combatActor: () => actor };
   let died: (event: never) => void = () => undefined;
