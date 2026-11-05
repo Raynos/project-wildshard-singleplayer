@@ -1,7 +1,7 @@
 import {expect, test} from 'vitest';
 import {Scope} from '../app/scope';
 import {nativeRetired} from '../render/precompile';
-import {issueBakedPrograms, queueBakedPrograms, type BakedPrograms} from './earlyPrograms';
+import {issueBakedPrograms, queueBakedPrograms, releaseBakedPrograms, type BakedPrograms} from './earlyPrograms';
 
 /** Just enough of a WebGL2 context for the baked pass: every object it creates, and which of them were deleted. */
 class FakeGL {
@@ -37,6 +37,42 @@ test('a level disposing releases only its own baked pass, not the next level\'s'
     expect(secondObjects.every(o => gl.deleted.has(o))).toBe(true);
   } finally {
     Reflect.set(globalThis, 'WebGL2RenderingContext', realGL);
+  }
+});
+
+// sp-x2's review gap: the paced branch (WebKit, KHR_parallel_shader_compile) polls each link's COMPLETION_STATUS once a
+// painted frame. Released while its level still lives (the first frame is drawn), it must never ask about its deleted
+// programs again; a disposed level's cancelled frames stop it anyway.
+test('a released WebKit pass stops polling its deleted programs', async () => {
+  const realGL = Reflect.get(globalThis, 'WebGL2RenderingContext'), agent = Object.getOwnPropertyDescriptor(navigator, 'userAgent');
+  Reflect.set(globalThis, 'WebGL2RenderingContext', FakeGL);
+  Object.defineProperty(navigator, 'userAgent', { configurable: true, value: 'Mozilla/5.0 (iPhone) AppleWebKit/605.1.15 Version/18.0 Mobile Safari' });
+  // a frame clock for the pass's once-a-painted-frame poll (Node has none)
+  const realRaf = Reflect.get(globalThis, 'requestAnimationFrame'), realCancel = Reflect.get(globalThis, 'cancelAnimationFrame');
+  Reflect.set(globalThis, 'requestAnimationFrame', (run: (t: number) => void) => setTimeout(() => { run(performance.now()); }, 0));
+  Reflect.set(globalThis, 'cancelAnimationFrame', (id: ReturnType<typeof setTimeout>) => { clearTimeout(id); });
+  try {
+    const asked: object[] = [];
+    class PacedGL extends FakeGL {
+      override getExtension(): null { return null; }
+      readonly parallel = { COMPLETION_STATUS_KHR: 0x91b1 };
+      // links never complete, so the pass keeps polling until something stops it
+      getProgramParameter(program: object): boolean { asked.push(program); return false; }
+    }
+    Reflect.set(globalThis, 'WebGL2RenderingContext', PacedGL);
+    const gl = new PacedGL(), level = new Scope('level');
+    Reflect.set(gl, 'getExtension', () => gl.parallel);
+    const game = (levelScope: Scope): Parameters<typeof issueBakedPrograms>[0] => ({ renderer: { getContext: () => gl }, levelScope });
+    queueBakedPrograms(Promise.resolve(LIST)); issueBakedPrograms(game(level)); await settle();
+    expect(asked.length).toBeGreaterThan(0); // it is polling the first link
+    releaseBakedPrograms();
+    const before = asked.length; await settle();
+    expect(asked.length).toBe(before); // released: no query of a deleted program
+    level.dispose();
+  } finally {
+    Reflect.set(globalThis, 'WebGL2RenderingContext', realGL);
+    Reflect.set(globalThis, 'requestAnimationFrame', realRaf); Reflect.set(globalThis, 'cancelAnimationFrame', realCancel);
+    if (agent === undefined) Reflect.deleteProperty(navigator, 'userAgent'); else Object.defineProperty(navigator, 'userAgent', agent);
   }
 });
 
