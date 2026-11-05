@@ -3,7 +3,8 @@
 // the road and back in, and fails unless the page followed `--crossings=` of the server's crossings.
 // Then it reloads on the cache that walk left (Chromium refuses a whole-cache query that size), and with the link cut. --chunk= proves a one-shard page.
 // --play is the flip's checklist: one playthrough on the row, a line for every step, and it fails on any step that didn't work.
-//   scripts/browser-lane.sh node scripts/worker-client-proof.mjs --base=http://127.0.0.1:4401/ [--seconds=150] [--crossings=2] [--route=x,z;x,z] [--chunk=slug] [--play]
+// --hook on a chunk with a grapple proves the claw: LOCK and JUMP pressed on the page, and the server's bite and zip carrying the body.
+//   scripts/browser-lane.sh node scripts/worker-client-proof.mjs --base=http://127.0.0.1:4401/ [--seconds=150] [--crossings=2] [--route=x,z;x,z] [--chunk=slug] [--play [--only=driftwood|nalati|nine|grid]] [--hook]
 import { chromium, devices } from 'playwright';
 import { saveFixture } from './debug-settings.mjs';
 import { floorGridBenchmarkUrl, FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
@@ -11,12 +12,56 @@ import { floorGridBenchmarkUrl, FLOOR_GRID_ENTER } from './frame-floor-navigatio
 const arg = (key, fallback) => process.argv.find(value => value.startsWith(`--${key}=`))?.slice(key.length + 3) ?? fallback;
 const chunk = arg('chunk', ''), base = arg('base', ''), seconds = Number(arg('seconds', '150')), crossings = Number(arg('crossings', '2')), route = arg('route', '0,-285;0,-235').split(';').map(leg => { const [x, z] = leg.split(',').map(Number); return { x, z }; });
 if (base === '') throw new Error('Requires --base');
+const hookProof = process.argv.includes('--hook');
 const { defaultBrowserType: _engine, ...phone } = devices['iPhone 16 Pro'];
+/** LOCK a hook the spawn can reach and JUMP at it, through the page's own input and the wire. The server's rows report every phase. */
+async function proveHook(page, failures) {
+  const claw = () => page.evaluate(() => {
+    const { world } = window.__wildshard, tool = world.game.app.equipment?.tools.find(item => 'guardOpen' in item), { sim } = tool ?? {}, report = window.__workerClient();
+    return { kind: sim?.constructor?.name, phase: sim?.phase, target: sim?.target?.hook === undefined ? null : [sim.target.hook.x, sim.target.hook.y, sim.target.hook.z], at: [world.player.position.x, world.player.position.y, world.player.position.z], server: [report.serverX, report.serverZ], closed: report.closed, corrections: report.corrections };
+  });
+  for (let tries = 0; tries < 40 && (await claw()).kind === 'GrappleSim'; tries++) await page.waitForTimeout(250);
+  const start = await claw();
+  if (start.kind === undefined || start.kind === 'GrappleSim') { failures.push(`the claw never went on the wire: ${String(start.kind)}`); return; }
+  // Aim the camera at the nearest reachable hook, and let the page's own scan find it.
+  const hook = await page.evaluate(() => {
+    const { world } = window.__wildshard, { player } = world, tool = world.game.app.equipment.tools.find(item => 'guardOpen' in item), { position: p } = player;
+    const near = tool.hooks.map(row => ({ row, away: Math.hypot(row.x - p.x, row.y - p.y, row.z - p.z) })).filter(({ away, row }) => away > 12 && away < 34 && row.y > p.y + 3).sort((a, b) => a.away - b.away)[0]?.row;
+    if (near === undefined) return null;
+    const dx = near.x - p.x, dz = near.z - p.z;
+    player.yaw = Math.atan2(-dx, -dz); player.pitch = Math.atan2(near.y - p.y - 1.68, Math.hypot(dx, dz));
+    return near;
+  });
+  if (hook === null) { failures.push('no hook in reach of the spawn'); return; }
+  await page.waitForTimeout(1500);
+  const press = action => page.evaluate(name => { window.__wildshard.world.game.app.input.press(name); }, action);
+  await press('lock');
+  await page.waitForTimeout(600);
+  const locked = await claw();
+  console.log(JSON.stringify({ hook, locked }));
+  if (locked.target === null) { failures.push('LOCK held no hook'); return; }
+  await press('jump');
+  const seen = [];
+  let last = locked;
+  const started = Date.now();
+  while (Date.now() - started < 15_000) {
+    await page.waitForTimeout(50);
+    last = await claw();
+    if (seen.at(-1) !== last.phase) { seen.push(last.phase); console.log(JSON.stringify({ at: Date.now() - started, phase: last.phase, page: last.at.map(Math.round), server: last.server.map(Math.round) })); }
+    if (seen.length > 1 && last.phase === 'idle') break;
+  }
+  const moved = Math.hypot(last.at[0] - locked.at[0], last.at[2] - locked.at[2]);
+  console.log(JSON.stringify({ seen, moved, corrections: [locked.corrections, last.corrections] }));
+  for (const phase of ['bite', 'zip']) if (!seen.includes(phase)) failures.push(`the server never said ${phase}: ${seen.join(' -> ')}`);
+  if (moved < 3) failures.push(`the crossing moved the body ${moved.toFixed(1)} m`);
+  if (Math.hypot(last.at[0] - last.server[0], last.at[2] - last.server[1]) > 3) failures.push('the page and the server parted on the crossing');
+  if (last.closed !== null) failures.push(`the wire closed: ${last.closed}`);
+}
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const failures = [];
 if (process.argv.includes('--play')) {
   const { play } = await import('./worker-client-play.mjs');
-  const steps = await play(browser, phone, base);
+  const steps = await play(browser, phone, base, arg('only', ''));
   await browser.close();
   console.log(JSON.stringify({ gate: 'worker-client-play', pass: steps.every(step => step.ok), failed: steps.filter(step => !step.ok).map(step => step.name) }));
   process.exit(steps.every(step => step.ok) ? 0 : 1);
@@ -33,6 +78,15 @@ try {
     await page.waitForFunction(() => window.__wildshard?.world?.player !== undefined, undefined, { timeout: 90_000 });
     await page.waitForFunction(() => window.__workerClient !== undefined, undefined, { timeout: 60_000 }).catch(() => { failures.push('the row did not start'); });
     await page.evaluate(FLOOR_GRID_ENTER);
+    if (hookProof) {
+      await page.waitForFunction(() => window.__workerClient().frames > 30, undefined, { timeout: 60_000 }).catch(() => { failures.push('no frames arrived'); });
+      if (failures.length === 0) await proveHook(page, failures);
+      await page.screenshot({ path: arg('shot', 'tmp/session/worker-hook.png') });
+      if (errors.length > 0) failures.push(...errors.slice(0, 6));
+      console.log(JSON.stringify({ gate: 'worker-client-proof', chunk, hook: true, pass: failures.length === 0, failures }));
+      await browser.close();
+      process.exit(failures.length === 0 ? 0 : 1);
+    }
     let report = null, last = Number.NaN, still = 0;
     const started = Date.now();
     while (failures.length === 0 && Date.now() - started < seconds * 1000) {

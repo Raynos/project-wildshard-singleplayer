@@ -24,7 +24,7 @@ export function installDeclaredTargets(data: ShardTargets, ports: {
   sync();
   if (bindings.length > 0) ports.system({ id: 'game.shardfile.targets', phase: 'fixed.post', after: ['game.shardfile.sim'], run: sync });
   for (const row of data.interactions) {
-    const interaction = { position: new Vector3(...row.at), radius: row.radius, label: row.label, onInteract: () => { ports.scene(row.scene); } };
+    const interaction = { position: new Vector3(...row.at), radius: row.radius, label: row.label, wireId: row.id, onInteract: () => { ports.scene(row.scene); } };
     ports.interactables.push(interaction);
     ports.scope.onDispose(() => { const index = ports.interactables.indexOf(interaction); if (index !== -1) ports.interactables.splice(index, 1); });
   }
