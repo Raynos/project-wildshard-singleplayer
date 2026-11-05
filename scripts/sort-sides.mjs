@@ -658,14 +658,14 @@ export function candidateCommit(root, tree, plan, scratch) {
   });
   execFileSync('git', ['fast-import', '--quiet', `--export-marks=${marks}`], { cwd: root, env, input: Buffer.concat(stream) });
   const oids = new Map(readFileSync(marks, 'utf8').trim().split('\n').map(row => { const [mark, oid] = row.split(' '); return [blobs[Number(mark?.slice(1)) - 1], oid]; }));
-  run(['read-tree', 'HEAD']);
+  run(['read-tree', tree.head]);
   const headOids = new Map(run(['ls-files', '-s', '-z']).split('\0').filter(Boolean).map(row => { const [meta, path] = row.split('\t'); return [path, meta?.split(' ')[1]]; }));
   const row = (path, to) => `${tree.modes.get(path)} ${oids.get(path) ?? headOids.get(path)}\t${to}`, rows = [];
   for (const [path, to] of plan.moves) rows.push(`0 ${'0'.repeat(40)}\t${path}`, row(path, to));
   for (const path of blobs) if (!plan.moves.has(path)) rows.push(row(path, path));
   run(['update-index', '-z', '--index-info'], `${rows.join('\0')}\0`);
   const candidate = run(['write-tree']).trim();
-  const commit = run(['-c', 'user.name=sort-sides', '-c', 'user.email=sort@local', 'commit-tree', candidate, '-p', 'HEAD', '-m', 'sort-sides candidate']).trim();
+  const commit = run(['-c', 'user.name=sort-sides', '-c', 'user.email=sort@local', 'commit-tree', candidate, '-p', tree.head, '-m', 'sort-sides candidate']).trim();
   return { env, commit };
 }
 
