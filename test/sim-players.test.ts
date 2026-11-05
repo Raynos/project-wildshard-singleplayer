@@ -38,7 +38,7 @@ test('one tick moves each player on its own command and leaves the idle one alon
   for (let tick = 0; tick < 60; tick++) host.step(commands);
   expect(lead.position.z).toBeCloseTo(-4.06, 1); expect(lead.position.x).toBeCloseTo(0, 2);
   expect(bot.position.x).toBeCloseTo(2 + 4.06, 1); expect(bot.position.z).toBeCloseTo(0, 2);
-  expect(idle.position.distanceTo(start)).toBeLessThan(1e-9);
+  expect(idle.position.distanceTo(start)).toBeLessThan(.01); // a resting body steps, so it settles on the ground
   expect(host.state.tick).toBe(60);
   host.dispose();
 });
@@ -67,7 +67,7 @@ test('a NetCommand drives a player directly, and the world law matches the one t
 test('each player owns its strike, and a hit lands from whoever swung', () => {
   const host = hostWithPlayers(2), bot = player(host, 'bot:1'), boar = host.entities.get(target);
   if (boar === undefined) throw new Error('No boar');
-  boar.harnessHold = true; bot.position.copy(boar.position); bot.position.x += 1; bot.motor.resetAt(bot.position);
+  boar.harnessHold = true; bot.position.copy(boar.position); bot.position.x += 1; bot.position.z -= .5; bot.motor.resetAt(bot.position); // inside the arc, not on its edge
   const before = boar.hp, sources: string[] = [];
   host.events.on('damage.dealt', ({ req }) => { if (req.source !== 'env') sources.push(req.source.id); }, host.scope);
   host.step(new Map([[bot.id, walk(0, 0, { attack: { targetId: target } })]]));

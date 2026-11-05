@@ -1,9 +1,8 @@
 import { Vector3 } from 'three';
 import { describe, expect, test } from 'vitest';
-import { HOST_MOTION, PAGE_MOTION, stepPlayerMotion, type MotionLaw, type MotionWorld, type PlayerMotionState } from '../src/engine/shared/player/motion';
+import { stepPlayerMotion, type MotionWorld, type PlayerMotionState } from '../src/engine/shared/player/motion';
 
-// P1-E4.1: one step, two laws. Each row of MotionLaw is a difference the two callers really have, kept on purpose until
-// E5.3 converges it. These pin what a row does, so one cannot disappear without someone choosing that.
+// P1-E5.3: one step, one law, the page's (J112). What the law table's rows did, held.
 
 const DT = 1 / 60;
 function player(): PlayerMotionState {
@@ -14,9 +13,9 @@ function player(): PlayerMotionState {
     footing: { water: null, depth: 0, wading: false, onPlatform: false, sliding: false } };
 }
 /** Flat ground at y = 0 with a slope normal the test sets, and a capsule that records its moves. */
-function world(law: MotionLaw): MotionWorld & { moves: number } {
+function world(): MotionWorld & { moves: number } {
   const result = { grounded: true, groundNormalY: 1, downhillX: 0, downhillZ: 0, horizontalFreedom: 1, groundCollider: null };
-  const w: MotionWorld & { moves: number } = { moves: 0, law, hasWater: false, water: () => null, heightAt: () => 0, platforms: [], floor: () => undefined, bob: () => 0,
+  const w: MotionWorld & { moves: number } = { moves: 0, hasWater: false, water: () => null, heightAt: () => 0, platforms: [], floor: () => undefined, bob: () => 0,
     motor: { result, carry: () => false, move: (feet, want) => {
       w.moves++; feet.x += want.x; feet.z += want.z; feet.y = Math.max(0, feet.y + want.y); result.grounded = feet.y === 0; return result;
     } },
@@ -27,37 +26,30 @@ function world(law: MotionLaw): MotionWorld & { moves: number } {
 }
 const still = { moveX: 0, moveZ: 0, yaw: 0 };
 
-describe('the page law and the host law', () => {
-  test('a dash leaves momentum on both laws', () => {
-    const page = player(), host = player();
-    const pageWorld = world(PAGE_MOTION), hostWorld = world(HOST_MOTION);
-    for (const s of [page, host]) Object.assign(s.dash, { t: DT * 2, vx: 12, vz: 0 });
-    stepPlayerMotion(page, still, pageWorld, DT); stepPlayerMotion(host, still, hostWorld, DT);
-    expect(page.velocity.x).toBe(12);
-    expect(host.velocity.x).toBe(12);
+describe('the one law', () => {
+  test('a dash leaves momentum', () => {
+    const s = player();
+    Object.assign(s.dash, { t: DT * 2, vx: 12, vz: 0 });
+    stepPlayerMotion(s, still, world(), DT);
+    expect(s.velocity.x).toBe(12);
   });
-  test('both laws slide down ground too steep to stand on', () => {
-    for (const law of [PAGE_MOTION, HOST_MOTION]) {
-      const s = player(), w = world(law);
-      Object.assign(w.motor.result, { groundNormalY: .5, downhillX: 1 });
-      stepPlayerMotion(s, still, w, DT);
-      expect(s.footing.sliding).toBe(true);
-    }
+  test('ground too steep to stand on slides', () => {
+    const s = player(), w = world();
+    Object.assign(w.motor.result, { groundNormalY: .5, downhillX: 1 });
+    stepPlayerMotion(s, still, w, DT);
+    expect(s.footing.sliding).toBe(true);
   });
-  test('a resting host player takes no step at all; a resting page player still falls into the ground', () => {
-    const host = player(), page = player(), hostWorld = world(HOST_MOTION), pageWorld = world(PAGE_MOTION);
-    expect(stepPlayerMotion(host, undefined, hostWorld, DT).mode).toBe('rest');
-    expect(hostWorld.moves).toBe(0);
-    expect(stepPlayerMotion(page, still, pageWorld, DT).mode).toBe('foot');
-    expect(pageWorld.moves).toBe(1);
+  test('a resting body steps, with or without a command', () => {
+    const s = player(), w = world();
+    expect(stepPlayerMotion(s, undefined, w, DT).mode).toBe('foot');
+    stepPlayerMotion(s, still, w, DT);
+    expect(w.moves).toBe(2);
   });
-  test('one velocity: on the board a walk\'s speed is kept on both laws', () => {
-    const page = player(), host = player();
-    const pageWorld = world(PAGE_MOTION), hostWorld = world(HOST_MOTION);
-    page.velocity.x = 3; host.velocity.x = 3;
-    Object.assign(page.board, { on: true }); Object.assign(host.board, { on: true });
-    stepPlayerMotion(page, still, pageWorld, DT); stepPlayerMotion(host, still, hostWorld, DT);
-    expect(host.velocity.x).toBe(page.velocity.x);
-    expect(page.velocity.x).toBeGreaterThan(2); // it coasts down from 3, and is not dropped
+  test('on the board a walk\'s speed is kept', () => {
+    const s = player();
+    s.velocity.x = 3;
+    Object.assign(s.board, { on: true });
+    stepPlayerMotion(s, still, world(), DT);
+    expect(s.velocity.x).toBeGreaterThan(2); // it coasts down from 3, and is not dropped
   });
 });

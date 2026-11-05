@@ -5,7 +5,7 @@ import { pondBob } from '../../shared/player/swim';
 import { combatSpeedFactor } from '../../shared/player/combatMotion';
 import { boardShoved, HOVER_HARD_LANDING } from '../../shared/player/board';
 import { createMotionState } from '../../shared/player/motionState';
-import { leaveSwim, PAGE_MOTION, setBoard, sprints, stepPlayerMotion, type MotionOut, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
+import { leaveSwim, setBoard, sprints, stepPlayerMotion, type MotionOut, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
 import type { AimCommand, PlayerCommand, LocalSteer, RideCommandSample } from '../../shared/input/commands';
 import { NET_BUTTONS } from '../../shared/input/netButtons';
 import type { InputService } from '../input/InputService';
@@ -265,7 +265,6 @@ export class Player {
     const motor = (): CharacterMotor => this.motor, walkable = (): readonly ((x: number, z: number) => number | undefined)[] => this.walkableSurfaces();
     const crouching = (): boolean => this.crouching, coyote = (): number => this.coyoteMs;
     return {
-      law: PAGE_MOTION,
       get motor() { return motor(); },
       hasWater: true,
       water: (x, z) => this.waterSurfaceAt(x, z),
@@ -556,7 +555,7 @@ export class Player {
     this.surfaceHeld = swim && command.surface;
     if (hover) { this.hoverLanded = 0; this.hoverJumpKick = Math.max(0, this.hoverJumpKick - dt * 4); }
 
-    // the move: the one motion step SimHost also runs (player/motion.ts), on this Player's law (PAGE_MOTION). dodge()
+    // the move: the one motion step SimHost also runs (player/motion.ts), on this Player's world. dodge()
     // above pressed its own dodge, because the lock-on's side-hop is client-only.
     const out = stepPlayerMotion(this.motionState, { moveX: mx, moveZ: mz, yaw: this.yaw, jump: command.jump && !swim, dive: this.diveHeld, surface: this.surfaceHeld }, this.motionWorld, dt);
     this.afterMotion(out, hover, dt);

@@ -7,10 +7,8 @@
  * no DOM, no `app`, no device. What a caller does around it stays with the caller: reading devices, the lock-on's orbit
  * and side-hop, camera, bob and FOV on the client; drivers, traversal asks and the weapon's strike on the server.
  *
- * The two callers ran two composers until E4.1, and they do not agree. Where the difference is inside the step it is one
- * row of `MotionLaw`, read by name at its branch point; each caller keeps its own behaviour through its table
- * (`PAGE_MOTION`, `HOST_MOTION`). Nothing here hides one: E5.3's 2 cm parity is met by converging these rows, one at a
- * time, on the page's law (J112).
+ * The two callers ran two composers until E4.1. There is one law now, the page's (J112, P1-E5.3), so the step can be replayed
+ * on the client to the server's 2 cm: a resting body steps too, because slopes slide and decks carry.
  *
  * The dispatch at the end of `stepPlayerMotion` is the seam for a riding mode (E5.3): today a ride is a driver its caller
  * runs instead of this step.
@@ -33,19 +31,6 @@ const SLOPE_SLIDE = 0.6;
 const SLIDE_SPEED = 3.2;
 /** … reached at this rate (/s). */
 const SLIDE_ACCEL = 5;
-
-/**
- * Where the two callers' motion differs inside the step. Each row names one difference; `PAGE_MOTION` and `HOST_MOTION`
- * are the two laws in force. A row exists only because a caller's recorded behaviour depends on it.
- */
-export interface MotionLaw {
-  /** A grounded, still player with no command takes no step at all (the host: a resting body's bytes do not move). */
-  readonly restsIdle: boolean;
-}
-/** The law the client's Player has always run. */
-export const PAGE_MOTION: MotionLaw = { restsIdle: false };
-/** The law SimHost has always run. */
-export const HOST_MOTION: MotionLaw = { restsIdle: true };
 
 /** What a step resolved about the ground and water under the feet, for the view and the next step. */
 export interface MotionFooting {
@@ -107,7 +92,6 @@ export interface MotionFoot {
 
 /** What a step reads of the world and tells it, injected by each caller. */
 export interface MotionWorld {
-  readonly law: MotionLaw;
   /** this player's capsule */
   readonly motor: Pick<CharacterMotor, 'move' | 'carry' | 'result'>;
   /** false: this world has no water and asks nothing of it */
@@ -144,8 +128,8 @@ export interface MotionWorld {
 
 /** What a step did, reused from step to step: read it before the next. */
 export interface MotionOut {
-  /** the motion mode this step ran; 'rest' took no step (`MotionLaw.restsIdle`) */
-  mode: 'board' | 'swim' | 'foot' | 'rest';
+  /** the motion mode this step ran */
+  mode: 'board' | 'swim' | 'foot';
   /** a jump left the ground or the board */
   jumped: boolean;
   /** how a swim step ended: still floating, drifted off the water, or stood up */
@@ -198,7 +182,7 @@ export function sprints(s: PlayerMotionState, sprint: boolean, forward: number, 
 
 function motionScratch(s: PlayerMotionState, w: MotionWorld): MotionScratch {
   const ground = (): number => groundUnderFeet(s, w);
-  const out: MotionOut = { mode: 'rest', jumped: false, left: null, board: { lat: 0, fwd: 0, accel: 0, water: null }, entryKeep: 0.3 };
+  const out: MotionOut = { mode: 'foot', jumped: false, left: null, board: { lat: 0, fwd: 0, accel: 0, water: null }, entryKeep: 0.3 };
   return { out, ground, want: new Vector3(), heading: { x: 0, z: 0 }, swimOut: { water: null },
     deep: (x, z) => w.hasWater && deepWater(x, z, s.position.y, w.water(x, z), w.heightAt(x, z), w.platforms, w.floor),
     boardPorts: { move: (feet, want) => { w.motor.move(feet, want, true); }, ground, water: (x, z) => w.water(x, z),
@@ -298,8 +282,7 @@ function steerFoot(s: PlayerMotionState, w: MotionWorld, run: MotionScratch, mx:
 }
 
 function stepOnFoot(s: PlayerMotionState, cmd: MotionCommand | undefined, w: MotionWorld, run: MotionScratch, mx: number, mz: number, dt: number): void {
-  const { law, foot } = w, { out, want } = run, { dash, fall, footing, impulse, position: p, shove, velocity } = s;
-  if (law.restsIdle && cmd === undefined && impulse.lengthSq() === 0 && !(shove.t > 0) && !(dash.t > 0) && fall.grounded && velocity.lengthSq() === 0) { out.mode = 'rest'; return; }
+  const { foot } = w, { out, want } = run, { dash, fall, footing, impulse, position: p, velocity } = s;
   // the wade: water over the grounded feet slows the walk and saps the jump
   const wadeT = wadeFraction(fall.grounded, footing.depth);
   steerFoot(s, w, run, mx, mz, wadeT, dt);

@@ -14,7 +14,7 @@ import { COYOTE_MS, type JumpState } from '../../shared/player/jump';
 import { pondBob, type SwimState } from '../../shared/player/swim';
 import { localWalkingMove, wadeScale } from '../../shared/player/walk';
 import { PlayerModes, type ModePlayer } from '../../shared/player/modes';
-import { commandedWalk, HOST_MOTION, leaveSwim, setBoard, stepPlayerMotion, type MotionFooting, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
+import { commandedWalk, leaveSwim, setBoard, stepPlayerMotion, type MotionFooting, type MotionWorld, type PlayerMotionState } from '../../shared/player/motion';
 import { dashToward, startDash, type DashState, type DodgeState } from '../../shared/player/dash';
 import { validateLocalMovement } from '../../shared/input/commands';
 import { netSimCommand } from '../../shared/sim/netMotion';
@@ -277,14 +277,12 @@ export class PlayerSim implements PlayerMotionState {
     footing.wading = !this.swim.on && !this.swim.stood && this.fall.grounded && footing.depth > 0.02;
     footing.onPlatform = false; footing.sliding = false;
   }
-  /** This host's side of the motion step, built before the constructor runs, so every read of the host is lazy. Its law
-   *  is `HOST_MOTION`; what it has no way to know is absent here: floor functions, a grid limit on the board, an authored
+  /** This host's side of the motion step, built before the constructor runs, so every read of the host is lazy. What it has no way to know is absent here: floor functions, a grid limit on the board, an authored
    *  coyote window. */
   private motionWorld(): MotionWorld {
     const motor = (): CharacterMotor => this.motor, water = (): boolean => this.host.water !== undefined;
     const walking = (): SimWalkingControl => this.walking;
     return {
-      law: HOST_MOTION,
       get motor() { return motor(); },
       get hasWater() { return water(); },
       // the level's water (useWater): the board rides its surface, as the client's; none without it
