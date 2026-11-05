@@ -2,7 +2,7 @@
 import type { ImagePixels } from '@wildshard/sdk/bake/image';
 import type { normalizeWorldGlb } from '@wildshard/sdk/bake/world';
 
-export interface PlotIdea { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string; readonly layout?: string; readonly placeholder?: boolean; readonly scaffold?: boolean; readonly coarseLandmark?: string; readonly pool?: string }
+export interface PlotIdea { readonly slug: string; readonly idea: string; readonly name: string; readonly accent: string; readonly layout?: string; readonly scaffold?: boolean; readonly coarseLandmark?: string; readonly pool?: string }
 /** The build context's image codecs and world reader (no native codec enters the config bundle). */
 export interface PlotBakeTools {
   readonly readImagePixels: (bytes: Uint8Array) => Promise<ImagePixels>;

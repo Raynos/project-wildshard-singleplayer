@@ -13,7 +13,7 @@ for(const name of ["worldSource","tickProtocol"])test(`${name} emits isolated de
 
 test('SDK wire contracts retain command variants, worker proofs and normalized source defaults',()=>{
  const consumer=resolve('src/sdk/t4-isolated-sdk-wire-declarations-consumer.ts');
- let source="import type * as v from 'valibot';\nimport {WorldSourceSchema} from './worldSource';\nimport {TickCommandSchema,TickCommitSchema,AuthorProofReportSchema,WorkerRequestSchema} from './tickProtocol';\nexport const player:v.InferOutput<typeof TickCommandSchema>={kind:\"player\",moveX:0,moveZ:0,yaw:0,hover:true};\nexport const finish:v.InferOutput<typeof WorkerRequestSchema>={kind:\"finish\"};\ndeclare const report:v.InferOutput<typeof AuthorProofReportSchema>;\ndeclare const source:v.InferOutput<typeof WorldSourceSchema>;\ndeclare const commit:v.InferOutput<typeof TickCommitSchema>;\nexport const saved:true=report.grid.refusedSave;\nexport const ticks:5=report.grid.frozenTicks;\nexport const mode:\"add\"|\"replace\"=source.farMode;\nexport const objects:Record<string,string>=source.objects;\nexport const micros:number|undefined=commit.scriptMicros;\n";
+ let source="import type * as v from 'valibot';\nimport {WorldSourceSchema} from './worldSource';\nimport {TickCommandSchema,TickCommitSchema,AuthorProofReportSchema,WorkerRequestSchema} from './tickProtocol';\nexport const player:v.InferOutput<typeof TickCommandSchema>={kind:\"player\",moveX:0,moveZ:0,yaw:0,hover:true};\nexport const finish:v.InferOutput<typeof WorkerRequestSchema>={kind:\"finish\"};\ndeclare const report:v.InferOutput<typeof AuthorProofReportSchema>;\ndeclare const source:v.InferOutput<typeof WorldSourceSchema>;\ndeclare const commit:v.InferOutput<typeof TickCommitSchema>;\nexport const saved:true=report.grid.refusedSave;\nexport const ticks:5=report.grid.frozenTicks;\nexport const mode:\"replace\"|undefined=source.farMode;\nexport const objects:Record<string,string>=source.objects;\nexport const micros:number|undefined=commit.scriptMicros;\n";
  const options:ts.CompilerOptions={strict:true,exactOptionalPropertyTypes:true,noUncheckedIndexedAccess:true,
   target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
   types:[],skipLibCheck:true,noEmit:true};
@@ -26,9 +26,9 @@ test('SDK wire contracts retain command variants, worker proofs and normalized s
   return program.getSemanticDiagnostics(file);
  };
  expect(diagnostics()).toEqual([]);
- source+="export const wrongKind:v.InferOutput<typeof TickCommandSchema>[\"kind\"]=\"draw\";\nexport const wrongHover:Extract<v.InferOutput<typeof TickCommandSchema>,{kind:\"player\"}>[\"hover\"]=false;\nexport const wrongProof:v.InferOutput<typeof AuthorProofReportSchema>[\"grid\"][\"refusedSave\"]=false;\nexport const wrongTicks:v.InferOutput<typeof AuthorProofReportSchema>[\"grid\"][\"frozenTicks\"]=6;\nexport const wrongMode:v.InferOutput<typeof WorldSourceSchema>[\"farMode\"]=\"blend\";\nexport const absent=commit.undeclared;\n";
+ source+="export const wrongKind:v.InferOutput<typeof TickCommandSchema>[\"kind\"]=\"draw\";\nexport const wrongHover:Extract<v.InferOutput<typeof TickCommandSchema>,{kind:\"player\"}>[\"hover\"]=false;\nexport const wrongProof:v.InferOutput<typeof AuthorProofReportSchema>[\"grid\"][\"refusedSave\"]=false;\nexport const wrongTicks:v.InferOutput<typeof AuthorProofReportSchema>[\"grid\"][\"frozenTicks\"]=6;\nexport const wrongMode:v.InferOutput<typeof WorldSourceSchema>[\"farMode\"]=\"blend\";\nexport const retiredMode:v.InferOutput<typeof WorldSourceSchema>[\"farMode\"]=\"add\";\nexport const absent=commit.undeclared;\n";
  const refused=diagnostics().map(diagnostic=>diagnostic.code);
- expect(refused.filter(code=>code===2322)).toHaveLength(5);
+ expect(refused.filter(code=>code===2322)).toHaveLength(6);
  expect(refused.filter(code=>code===2339)).toHaveLength(1);
- expect(refused).toHaveLength(6);
+ expect(refused).toHaveLength(7);
 });

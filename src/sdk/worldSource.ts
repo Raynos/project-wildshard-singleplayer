@@ -41,14 +41,14 @@ export const WorldSourceSchema: v.GenericSchema<BoundedWorldSourceInput, Bounded
   /** RM8.2: nodes under this name prefix draw only in the coarse (L1) tiles, as they are (the detail's stand-ins):
    *  never an L0 tile, a collider, an edge sample or the far proxy */
   coarse: v.optional(name),
-  /** NM0 (Night Market pilot): `add` (default) builds the far proxy from every static, undrawn and far-only node; `replace`
-   *  from the far-only nodes alone (a world of many small pieces whose own simplification cannot reach the far budget) */
-  farMode: v.optional(v.picklist(['add', 'replace']), 'add'),
+  /** NM0: replace uses only the declared far stand-ins. Without a mode, retain
+   *  the normal proxy made from static, undrawn and far-only nodes. */
+  farMode: v.optional(v.literal('replace')),
   /** NM5 (Night Market pilot): the world's own near view, baked from its coarse (L1) tiles over a flat floor, so a cell
    *  seen from the road draws its tiles in vertex colours instead of its far proxy (colour maps are not sampled: a
    *  textured surface carries its picture's colours in its vertex colours, which its own textured material ignores) */
   near: v.optional(v.literal('coarse')),
-}), v.check((source) => source.farMode === 'add' || source.far !== undefined, 'farMode replace needs a far prefix'), v.check((source) => {
+}), v.check((source) => source.farMode !== 'replace' || source.far !== undefined, 'farMode replace needs a far prefix'), v.check((source) => {
   const nodes = [...Object.keys(source.objects), ...source.interactive.map((row) => row.node)];
   const ids = [...Object.values(source.objects), ...source.interactive.map((row) => row.id)];
   return new Set(nodes).size === nodes.length && new Set(ids).size === ids.length && new Set(source.interactive.map((row) => row.colliderId)).size === source.interactive.length;
@@ -76,7 +76,7 @@ interface BoundedWorldSourceFields {
     far?: string | undefined;
     detail?: string | undefined;
     coarse?: string | undefined;
-    farMode: "add" | "replace";
+    farMode?: "replace" | undefined;
     near?: "coarse" | undefined;
 }
 type BoundedWorldSource = { [Key in keyof BoundedWorldSourceFields]: BoundedWorldSourceFields[Key] };

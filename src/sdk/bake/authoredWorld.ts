@@ -49,9 +49,9 @@ function edges(world: NormalizedWorld): Shardfile['edge'] {
   } finally { meshes.forEach(mesh => mesh.geometry.dispose()); material.dispose(); }
 }
 
-/** The far proxy's source rows: every static, undrawn and far-only node (`add`), or the far-only nodes alone (`replace`, NM0);
+/** The far proxy's source rows: every static, undrawn and far-only node (the default), or the far-only nodes alone (`replace`, NM0);
  *  never an additive light surface (`light`: material indices). */
-export function farSources(world: Pick<NormalizedWorld, 'static' | 'undrawn' | 'far'>, light: ReadonlySet<number>, mode: 'add' | 'replace'): WorldPrimitive[] {
+export function farSources(world: Pick<NormalizedWorld, 'static' | 'undrawn' | 'far'>, light: ReadonlySet<number>, mode?: 'replace'): WorldPrimitive[] {
   return (mode === 'replace' ? world.far : [...world.static, ...world.undrawn, ...world.far]).filter(row => !light.has(row.material));
 }
 

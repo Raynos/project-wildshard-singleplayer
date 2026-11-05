@@ -5,9 +5,8 @@ The grid's open plots are one data-only source shard with one product per
 reads those rows through `scripts/shard-outputs.mjs`; `shard.config.ts`
 exports their declarations and build programs.
 
-`generators/plotBake.mjs` dispatches to the layout's tiled builder, or the
-generic inactive placeholder. The retired hologram showroom is no longer
-an accepted fallback for a missing layout. The same build program paints
+`generators/plotBake.mjs` dispatches to the layout's tiled builder. A missing
+layout or a retired placeholder flag refuses before reading art. The same build program paints
 its map from the generated world and emits the normal tiles, collision,
 edges and far proxy.
 
@@ -16,7 +15,8 @@ poster image. Art lives under `public/assets/open-plots/<idea>/`. Poster
 filenames identify author inputs; SHARD SELECT art stays in `thumbs/`.
 Real landmarks, posters, card art and their live generation tools remain.
 
-OP24 still tracks the emitted legacy look-material catalogue and its
-hologram graph, plus the shared SDK's explicit `farMode: 'add'` contract.
-Those are outside this unread-showroom/asset cleanup; no runtime look or
-shared importer policy is changed by this slice.
+The look retains the tiled materials and the live poster graph. The retired
+showroom's hologram, floor, kerb, plinth, frame, rim and sign materials are
+not emitted. Each plot still uses `farMode: 'replace'` for its stand-ins;
+the SDK rejects the retired explicit `add` option. Other authored worlds
+that omit a mode retain the normal static, undrawn and far-node proxy.

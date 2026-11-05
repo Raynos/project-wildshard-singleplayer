@@ -25,10 +25,11 @@ test('far-prefixed nodes are far only: no tile, no collision', async () => {
   await expect(normalizeWorldGlb(bytes, source('none_'), ['ground', 'glow'])).rejects.toThrow('far prefix none_ matches no meshes');
 });
 
-test('NM0: farMode replace builds the far proxy from the far-only nodes alone; add (default) from everything', async () => {
+test('far stand-ins replace the default proxy; the retired add option refuses', async () => {
   const bytes = await world(), normalized = await normalizeWorldGlb(bytes, source('far_'), ['ground', 'glow']);
-  expect(parseWorldSource(source('far_')).farMode).toBe('add');
-  expect(farSources(normalized, new Set(), 'add').map(row => row.node)).toEqual(['ground', 'far_glow']);
+  expect(parseWorldSource(source('far_')).farMode).toBeUndefined();
+  expect(() => parseWorldSource({...source('far_'),farMode:'add'})).toThrow();
+  expect(farSources(normalized, new Set()).map(row => row.node)).toEqual(['ground', 'far_glow']);
   expect(farSources(normalized, new Set(), 'replace').map(row => row.node)).toEqual(['far_glow']);
   expect(() => parseWorldSource({ glb: 'world.glb', colliders: 'nodes:collide_', farMode: 'replace', materials: { Ground: 'ground' } })).toThrow('farMode replace needs a far prefix');
 });

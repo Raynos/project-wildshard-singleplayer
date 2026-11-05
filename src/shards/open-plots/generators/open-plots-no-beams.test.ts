@@ -3,17 +3,20 @@ import { readFileSync } from 'node:fs';
 import { NodeIO } from '@gltf-transform/core';
 import { expect, test } from 'vitest';
 import declared from '../outputs.json' with { type: 'json' };
-import plot from '../data/plot.json' with { type: 'json' };
 import { outputs } from './product';
 import { readImagePixels, writeImagePixels } from '@wildshard/sdk/bake/image';
 import { normalizeWorldGlb } from '@wildshard/sdk/bake/world';
 import { ideaWorld } from './plotBake.mjs';
 
 test('every plot product has no beam graph or beam-height rows', () => {
-  expect(plot).not.toHaveProperty('beam');
   expect(Object.keys(outputs)).toEqual(declared.outputs.map(row => row.slug));
   for (const output of Object.values(outputs)) {
-    expect(output.look.materials).not.toHaveProperty('beam');
+    for (const retired of ['beam', 'hologram', 'floor', 'kerb', 'plinth', 'frame', 'rim', 'sign'])
+      expect(output.look.materials).not.toHaveProperty(retired);
+    expect(Object.values(output.world.materials).some(id =>
+      ['hologram', 'floor', 'kerb', 'plinth', 'frame', 'rim', 'sign'].includes(id))).toBe(false);
+    expect(output.look.materials).toHaveProperty('billboard');
+    expect(output.world.farMode).toBe('replace');
     expect(output.world.materials).not.toHaveProperty('Beam');
     expect(output.world.far).toBe('far_');
   }
@@ -22,15 +25,12 @@ test('every plot product has no beam graph or beam-height rows', () => {
 test('all baked plot worlds omit corner beacons and near/far beam geometry', async () => {
   const io = new NodeIO(), read = (path: string): Uint8Array => new Uint8Array(readFileSync(path));
   for (const row of declared.outputs) {
+    expect(row, row.slug).toHaveProperty('layout');
     const bytes = await ideaWorld(row, read, { readImagePixels, writeImagePixels, normalizeWorldGlb });
     const doc = await io.readBinary(bytes), nodes = doc.getRoot().listNodes(), names = nodes.map(node => node.getName());
     // G641: a tiled plot (a row with a layout) stands its landmark and its tiles in the far proxy instead of a hologram
-    const placeholder = 'placeholder' in row && row.placeholder === true;
-    for (const name of placeholder ? ['far_placeholder'] : 'layout' in row ? ['far_landmark', 'far_tiles'] : ['far_hologram']) expect(names, row.slug).toContain(name);
-    if (placeholder) {
-      expect(names, row.slug).not.toContain('far_hologram');
-      expect(doc.getRoot().listMaterials().map(material => material.getName()).sort()).toEqual(['Floor', 'Kerb']);
-    }
+    for (const name of ['far_landmark', 'far_tiles']) expect(names, row.slug).toContain(name);
+    expect(names, row.slug).not.toContain('far_hologram');
     expect(names, row.slug).toContain('ws_terrain_floor');
     expect(names, row.slug).toContain('collide_plot');
     expect(names.some(name => /beam|beacon/iu.test(name)), row.slug).toBe(false);
@@ -63,5 +63,15 @@ test('a plot without a tiled layout refuses before reading retired art', async (
   const read = (): Uint8Array => { reads++; return new Uint8Array(); };
   await expect(ideaWorld({ slug: 'open-plot-test', idea: 'test', name: 'Test', accent: 'periwinkle' }, read,
     { readImagePixels, writeImagePixels, normalizeWorldGlb })).rejects.toThrow('a plot needs its tiled layout');
+  expect(reads).toBe(0);
+});
+
+
+test.each([false, true])('the retired placeholder flag refuses before art reads (%s)', async placeholder => {
+  let reads = 0;
+  const read = (): Uint8Array => { reads++; return new Uint8Array(); };
+  const retired = { slug: 'open-plot-test', idea: 'test', name: 'Test', accent: 'periwinkle', layout: 'test', placeholder };
+  await expect(ideaWorld(retired, read, { readImagePixels, writeImagePixels, normalizeWorldGlb }))
+    .rejects.toThrow('placeholder worlds are retired');
   expect(reads).toBe(0);
 });

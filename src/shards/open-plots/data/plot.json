@@ -1,6 +1,0 @@
-{
-  "why": "G608/G615: every plot's hologram is 72 m (6x), with the floor tinted in the idea's accent. G637 removes all corner beacons and beams. The generator and shard.config.ts read these rows.",
-  "hologramScale": 6,
-  "farHologramTriangles": 500,
-  "floorTint": 0.35
-}
