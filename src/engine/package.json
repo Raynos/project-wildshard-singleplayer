@@ -316,6 +316,7 @@
     "./render/displayColour": "./render/displayColour.ts",
     "./render/textureBytes": "./render/textureBytes.ts",
     "./core/memoryAttribution": "./core/memoryAttribution.ts",
+    "./core/practiceRoomState": "./core/practiceRoomState.ts",
     "./render/viewmodelFeel": "./render/viewmodelFeel.ts",
     "./saves/runtime": "./saves/runtime.ts",
     "./saves/environment": "./saves/environment.ts",

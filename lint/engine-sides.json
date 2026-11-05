@@ -858,10 +858,8 @@
   "src/game/compendium/install.ts": "client",
   "src/game/compendium/Journal.ts": "client",
   "src/game/compendium/journalView.ts": "client",
-  "src/game/compendium/keepsakes.ts": {
-   "side": "server",
-   "mixed": true
-  },
+  "src/game/compendium/keepsakes.ts": "server",
+  "src/game/compendium/keepsakesView.ts": "client",
   "src/game/compendium/registry.ts": "shared",
   "src/game/compendium/rules.ts": "shared",
   "src/game/compendium/state.ts": "shared",

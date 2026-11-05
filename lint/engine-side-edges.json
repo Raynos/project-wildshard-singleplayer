@@ -4,7 +4,7 @@
   "client → server": 396,
   "cook → client": 2,
   "cook → render": 1,
-  "server → client": 150,
+  "server → client": 144,
   "server → dom": 2,
   "server → render": 6,
   "shared → client": 3,
@@ -119,7 +119,7 @@
    "server → render": 1
   },
   "src/game/compendium/keepsakes.ts": {
-   "server → client": 7
+   "server → client": 1
   },
   "src/game/Elite.ts": {
    "server → client": 5
