@@ -289,7 +289,7 @@ export class NetRoom {
     const { handles } = this, serial = ++this.serial;
     this.world.visit({ entity: (id, cls, view) => { handles.touch(id, cls, view, serial); } });
     const handle = handles.refs(client.player.id);
-    client.transport.send('reliable', encodeWelcome(this.writer, { handle, tick: this.world.tick(), cell: this.world.cell(), schemaHash: NET_SCHEMA_HASH, simHz: SIM_HZ, frameHz: FRAME_HZ }));
+    client.transport.send('reliable', encodeWelcome(this.writer, { handle, player: client.player.id, tick: this.world.tick(), cell: this.world.cell(), schemaHash: NET_SCHEMA_HASH, simHz: SIM_HZ, frameHz: FRAME_HZ }));
   }
   private snapshot(tick: number): void {
     const frame = this.ring.claim(tick), serial = ++this.serial, { handles } = this;

@@ -40,15 +40,15 @@ export function decodeHello(bytes: Uint8Array): NetHello | null {
   return guarded(bytes, MSG_HELLO, reader => ({ schemaHash: reader.read(32), build: reader.readText(), player: reader.readText(), name: reader.readText(), ledger: reader.read(32) }));
 }
 
-/** `welcome`: your player's handle, the server's tick and rates (sim 60, frame 30, J40). */
-export interface NetWelcome { readonly handle: number; readonly tick: number; readonly cell: number; readonly schemaHash: number; readonly simHz: number; readonly frameHz: number }
+/** `welcome`: your player's handle and id, the server's tick and rates (sim 60, frame 30, J40). A frame's rows leave its own player out, so nothing else names it. */
+export interface NetWelcome { readonly handle: number; readonly player: string; readonly tick: number; readonly cell: number; readonly schemaHash: number; readonly simHz: number; readonly frameHz: number }
 export function encodeWelcome(writer: BitWriter, welcome: NetWelcome): ArrayBuffer {
-  writer.write(MSG_WELCOME, 8); writer.write(welcome.handle, 16); writer.write(welcome.tick, 32); writer.write(welcome.cell, 16);
+  writer.write(MSG_WELCOME, 8); writer.write(welcome.handle, 16); writer.writeText(welcome.player); writer.write(welcome.tick, 32); writer.write(welcome.cell, 16);
   writer.write(welcome.schemaHash, 32); writer.write(welcome.simHz, 8); writer.write(welcome.frameHz, 8);
   return writer.finish();
 }
 export function decodeWelcome(bytes: Uint8Array): NetWelcome | null {
-  return guarded(bytes, MSG_WELCOME, reader => ({ handle: reader.read(16), tick: reader.read(32), cell: reader.read(16), schemaHash: reader.read(32), simHz: reader.read(8), frameHz: reader.read(8) }));
+  return guarded(bytes, MSG_WELCOME, reader => ({ handle: reader.read(16), player: reader.readText(), tick: reader.read(32), cell: reader.read(16), schemaHash: reader.read(32), simHz: reader.read(8), frameHz: reader.read(8) }));
 }
 
 /** An entity entering a client's relevance: its identity and initial fields, once (§3.4). */

@@ -189,7 +189,7 @@ test('fuzzed bytes never throw past any decoder boundary', () => {
   const seeds = [
     encodeFrame(writer, input(frame, null)),
     encodeCommands(writer, { ackFrame: 2, commands: [{ seq: 1, viewTick: 2, steer, yaw: 1, pitch: 0, buttons: NET_BUTTONS.jump, attack: { targetId: 'one', aim: { origin: { x: 1, y: 2, z: 3 }, direction: { x: 0, y: 0, z: 1 } } }, launcher: { slot: 1, ads: 0.5, fire: true } }] }, () => 1),
-    encodeHello(writer, { schemaHash: 1, build: 'b', player: 'device:1', name: 'Ann', ledger: 3 }), encodeWelcome(writer, { handle: 1, tick: 2, cell: 3, schemaHash: 4, simHz: 60, frameHz: 30 }),
+    encodeHello(writer, { schemaHash: 1, build: 'b', player: 'device:1', name: 'Ann', ledger: 3 }), encodeWelcome(writer, { handle: 1, player: 'actor.player', tick: 2, cell: 3, schemaHash: 4, simHz: 60, frameHz: 30 }),
     encodeEvents(writer, 4, [{ kind: 'spawn', handle: 1, cls: 0, id: 'one', initial: [1, 2], text: ['a', 'b'] }, { kind: 'despawn', handle: 1 }], bits),
     encodeAct(writer, { kind: 'interact', seq: 1, id: 'door' }),
   ].map(buffer => new Uint8Array(buffer));

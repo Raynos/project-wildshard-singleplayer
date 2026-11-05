@@ -177,7 +177,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   // J116: a hook tool's claw reads this player's rows, so it waits for the server to name them. A grid cell holds its own tool.
   let clawed: GrappleTool | null = null;
   const bindClaw = (): void => {
-    const tool = ports.tools().find(item => item instanceof GrappleTool) ?? null, id = client.entities.get(client.welcome?.handle ?? 0)?.id;
+    const tool = ports.tools().find(item => item instanceof GrappleTool) ?? null, id = client.welcome?.player;
     if (tool === clawed || id === undefined) return;
     clawed?.useClaw(null); clawed = tool;
     tool?.useClaw(course => netClaw(client, id, net.hooks, course));

@@ -66,7 +66,8 @@ test('a client locks a hook and rides it over the wire, and the save holds the c
       client.command({ steer: { keyX: 0, keyY: 0, stickX: 0, stickY: 0 }, yaw, pitch, buttons, ...(hookTarget === undefined ? {} : { hookTarget }) }); client.flush();
       link.pump(); room.tick(); link.pump();
     };
-    const field = (name: Parameters<typeof grappleRow>[1]): number | undefined => client.latest === null ? undefined : client.stateField(client.latest, grappleRow(lead.id, name));
+    // a frame's rows leave this client's own player out, so the welcome is the only thing that names it
+    const field = (name: Parameters<typeof grappleRow>[1]): number | undefined => client.latest === null ? undefined : client.stateField(client.latest, grappleRow(client.welcome?.player ?? '', name));
     for (let tick = 0; tick < 4; tick++) send(0);
     expect(field('hook')).toBe(NO_HOOK);
     send(NET_BUTTONS.lock, index); send(0);
