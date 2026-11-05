@@ -7,13 +7,13 @@ import { PlayerHealth } from '@wildshard/engine/combat/health';
 import { EffectService } from '@wildshard/engine/combat/effects/EffectService';
 import type { DamageDealt } from '@wildshard/engine/combat/pipeline';
 import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
-import { PageCombatSession } from '../server/Boss';
-import type { ShardContext } from './plugin/context';
+import { PageCombatSession } from '../src/game/server/Boss';
+import type { ShardContext } from '../src/game/client/plugin/context';
 import { manager } from '@wildshard/engine/test/manager';
 import { registerSpecies } from '@wildshard/engine/entities/species/registry';
 import { speciesWithLook } from '@wildshard/engine/entities/species/look';
-import { BOAR } from './systems/species/boar';
-import { BOAR_LOOK } from './systems/species/view/boar';
+import { BOAR } from '../src/game/client/systems/species/boar';
+import { BOAR_LOOK } from '../src/game/client/systems/species/view/boar';
 
 beforeEach(() => { registerSpecies(speciesWithLook(BOAR, BOAR_LOOK)); });
 

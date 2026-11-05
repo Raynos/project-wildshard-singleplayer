@@ -2,10 +2,10 @@
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
-import type { ShardContext } from '../../client/plugin/context';
-import type { ShardRuntime } from '../../shared/shard/runtime';
-import { CLIENT_FEATURES } from '../../client/shardfile/clientPlan';
-import * as population from '../population/wildlife';
+import type { ShardContext } from '../src/game/client/plugin/context';
+import type { ShardRuntime } from '../src/game/shared/shard/runtime';
+import { CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';
+import * as population from '../src/game/server/population/wildlife';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 

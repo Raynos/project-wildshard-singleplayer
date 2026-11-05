@@ -1,10 +1,10 @@
 import { expect, test, vi } from 'vitest';
-import { preparationAdmission } from '../../client/grid/preparationAdmission';
-import type { LiveGridAdmission, LiveGridRegion } from './live';
-import { ResidencyAllocator } from '../../shared/grid/allocator';
+import { preparationAdmission } from '../src/game/client/grid/preparationAdmission';
+import type { LiveGridAdmission, LiveGridRegion } from '../src/game/server/grid/live';
+import { ResidencyAllocator } from '../src/game/shared/grid/allocator';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { SimHost } from '@wildshard/engine/sim';
-import { GridCrossing } from './crossing';
+import { GridCrossing } from '../src/game/server/grid/crossing';
 
 function prepareFixture(prepare: () => Promise<LiveGridAdmission>) { return preparationAdmission(prepare, prepare); }
 

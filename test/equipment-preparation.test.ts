@@ -4,9 +4,9 @@ import { Scope } from '@wildshard/engine/app/scope';
 import { Weapon } from '@wildshard/engine/combat/Weapon';
 import { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
-import { SWORD_WOOD } from '../weapons/starterMeleeProfile';
+import { SWORD_WOOD } from '../src/game/server/weapons/starterMeleeProfile';
 import {NumericInputError, onFault} from '@wildshard/engine/core/faults';
-import {bindClientChannelInputs} from '../../shared/plugin/channels';
+import {bindClientChannelInputs} from '../src/game/shared/plugin/channels';
 
 type Slot = 'sword' | 'bow' | 'spear';
 const row = (slot: Slot): EquipmentRow => ({ ...SWORD_WOOD, id: `weapon.${slot}`, legacySlot: slot });

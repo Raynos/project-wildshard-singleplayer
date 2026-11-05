@@ -6,9 +6,9 @@ import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
 import { createSimHost, type SimLevel } from '@wildshard/engine/sim';
-import { GridAssembly } from '../../shared/grid/assembly';
-import { LiveGridHost } from './live';
-import { PageResidency } from '../../client/grid/pageResidency';
+import { GridAssembly } from '../src/game/shared/grid/assembly';
+import { LiveGridHost } from '../src/game/server/grid/live';
+import { PageResidency } from '../src/game/client/grid/pageResidency';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 // T7 neighbours admit inert metadata and render tiles only. Actual entry retires

@@ -4,11 +4,11 @@ import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
 import { createSimHost, type SimLevel } from '@wildshard/engine/sim';
 import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
-import { GridAssembly } from '../../shared/grid/assembly';
-import { LiveGridHost } from '../../server/grid/live';
-import { PageResidency } from './pageResidency';
-import { ApproachInputsDeferredError } from './productInputs';
-import { NearPlaceholders } from './nearPlaceholderView';
+import { GridAssembly } from '../src/game/shared/grid/assembly';
+import { LiveGridHost } from '../src/game/server/grid/live';
+import { PageResidency } from '../src/game/client/grid/pageResidency';
+import { ApproachInputsDeferredError } from '../src/game/client/grid/productInputs';
+import { NearPlaceholders } from '../src/game/client/grid/nearPlaceholderView';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const level: SimLevel = { version: 3, id: 'platform', seed: 1, ground: { size: 500, height: 0 },
@@ -16,7 +16,7 @@ const level: SimLevel = { version: 3, id: 'platform', seed: 1, ground: { size: 5
   weapon: { id: 'none', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
 
 async function fixture(options: { cap?: number; isolated?: boolean; beforeAdmit?: (instance: string, required: boolean) => Promise<void> } = {}) {
-  const rapier = await loadRapier(Uint8Array.from(fixtureBytes(new URL('../../../../node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm', import.meta.url))));
+  const rapier = await loadRapier(Uint8Array.from(fixtureBytes(new URL('../node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm', import.meta.url))));
   const assembly = new GridAssembly({ developer: false, devserver: false }), home = assembly.cell('driftwood-isle');
   const next = assembly.cells.find(cell => cell.instance !== home.instance);
   if (next === undefined) throw new Error('Missing second cell');

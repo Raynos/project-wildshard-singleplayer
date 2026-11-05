@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
 import { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
-import { bindEquipmentActors, equipmentActorOwner } from '../../client/loadout/actors';
+import { bindEquipmentActors, equipmentActorOwner } from '../src/game/client/loadout/actors';
 
 function manager(): AnimalManager {
   const value: unknown = Object.create(AnimalManager.prototype);

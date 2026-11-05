@@ -1,4 +1,4 @@
-import { installKitSpecies } from '../systems/species/install';
+import { installKitSpecies } from '../src/game/client/systems/species/install';
 import { installWorldRegistry } from '@wildshard/engine/world/registry';
 import { afterEach, expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
@@ -7,7 +7,7 @@ import { app } from '@wildshard/engine/app/runtime';
 import { Rng } from '@wildshard/engine/core/rng';
 import { pinBrain } from '@wildshard/engine/ai/pinning';
 import { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import { followRing } from './tileDriver';
+import { followRing } from '../src/game/client/shardfile/tileDriver';
 import { manager } from '@wildshard/engine/test/manager';
 import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 
