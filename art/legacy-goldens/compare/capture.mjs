@@ -76,6 +76,11 @@ try{for(const slug of slugs){
   await saveFixture(context,{scope:'global',key:'gfx',data:{dpr:'2',aa:'auto'}});
   await saveFixture(context,{scope:'device',key:'debug.global.holdLoading',data:'off'});
   if (LEVEL_DOWNLOAD!=='') for (const fixture of levelDownloadFixtures(LEVEL_DOWNLOAD)) await saveFixture(context,fixture);
+  // --device-save=<key>=<value>: a Debug row's device slot for a look A / B (D227's debug.gltfMips=on); repeatable
+  for (const pair of process.argv.filter(x=>x.startsWith('--device-save=')).map(x=>x.slice(14))) {
+    const at=pair.indexOf('='); if (at<1) throw Error(`--device-save=${pair}: key=value`);
+    await saveFixture(context,{scope:'device',key:pair.slice(0,at),data:pair.slice(at+1)});
+  }
   await context.addInitScript(hideDeveloperOverlays);
   await context.addInitScript(textures=>{window.__wildshardHarness={seed:357,capture:null,...(textures===''?{}:{textures})};},TEXTURES);
   if (slug==='nine-dragon-stack'&&nativeBinding!==null) await context.addInitScript(`window.__installGoldenResidency=()=>window.__goldenResidencyPromise??=(async()=>{
