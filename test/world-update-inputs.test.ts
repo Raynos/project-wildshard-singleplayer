@@ -11,7 +11,7 @@ import type { ArenaRoomEncounter } from '../src/game/client/boss/arenaRoom';
 import type { ForestWeatherRig } from '../src/game/client/weather/forest';
 import type { PaintedSky } from '../src/game/client/looks/keyedSky';
 import { WorldUpdatesSchema } from '@wildshard/format/worldUpdates';
-import { installWorldUpdates } from '../src/game/server/shardfile/worldUpdates';
+import { installWorldUpdates } from '../src/game/client/shardfile/worldUpdates';
 import { publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { clientCosmeticFinishes, installClientCosmeticFinishes } from '../src/game/client/shardfile/clientCosmeticFinishes';
 import { publishBoundPersistence } from '../src/game/shared/quest/chapterBindings';

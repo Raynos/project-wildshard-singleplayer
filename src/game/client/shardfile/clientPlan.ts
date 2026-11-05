@@ -77,7 +77,7 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
   } },
   'world.updates': { phase: 'world-bindings', rank: -10, lifetime: 'entered', sections: ['look/toon'], install: async (ctx, row) => {
     if (row.kind !== 'world.updates') throw new Error('Invalid world updates feature');
-    const { installWorldUpdates } = await import('../../server/shardfile/worldUpdates');
+    const { installWorldUpdates } = await import('./worldUpdates');
     installWorldUpdates(ctx, row.rows);
   } },
   'combat.targets': {phase:'world-bindings',rank:0,lifetime:'entered',sections:[],install:async(ctx,row)=>{

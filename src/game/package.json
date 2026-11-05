@@ -31,7 +31,7 @@
     "./shardfile/worldAssembly": "./client/shardfile/worldAssembly.ts",
     "./shardfile/islandBook": "./client/shardfile/islandBook.ts",
     "./shardfile/clientWorldAssembly": "./client/shardfile/clientWorldAssembly.ts",
-    "./shardfile/worldUpdates": "./server/shardfile/worldUpdates.ts",
+    "./shardfile/worldUpdates": "./client/shardfile/worldUpdates.ts",
     "./looks/riggedHulls": "./client/looks/riggedHulls.ts",
     "./audio/forestPage": "./client/audio/forestPage.ts",
     "./audio/cueDirector": "./client/audio/cueDirector.ts",

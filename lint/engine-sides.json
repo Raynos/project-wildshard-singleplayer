@@ -1508,7 +1508,7 @@
   "src/game/client/shardfile/worldSceneUniforms.ts": "client",
   "src/game/client/shardfile/worldSceneWeld.ts": "client",
   "src/game/shared/shardfile/worldTargets.ts": "shared",
-  "src/game/server/shardfile/worldUpdates.ts": "server",
+  "src/game/client/shardfile/worldUpdates.ts": "client",
   "src/game/client/stealth/controller.ts": "client",
   "src/game/shared/stealth/stealthLaw.ts": "shared",
   "src/game/shared/strings.ts": "shared",

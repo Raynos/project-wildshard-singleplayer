@@ -6,15 +6,15 @@ import { wind } from '@wildshard/engine/world/steppeWind';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { clientWildlife } from '../../shared/population/wildlifeOwner';
 import type { DeclaredEliteEntry } from '@wildshard/engine/ai/view/eliteEntry';
-import type { ArenaRoomEncounter } from '../../client/boss/arenaRoom';
-import type { ShardContext } from '../../client/plugin/context';
-import { followToonLook } from '../../client/looks/toonLook';
-import { toonLightingOf } from '../../client/looks/toonLighting';
+import type { ArenaRoomEncounter } from '../boss/arenaRoom';
+import type { ShardContext } from '../plugin/context';
+import { followToonLook } from '../looks/toonLook';
+import { toonLightingOf } from '../looks/toonLighting';
 import { entryOwner, lateEntryOwner, presentEntryOwner } from '../../shared/shardfile/entryOwners';
-import { lentToon } from '../../client/shardfile/lentLooks';
-import { boundResidentWorldScope } from '../../client/shardfile/hybridPresentation';
-import { paintedWorldUpdate } from '../../client/shardfile/paintedWorldStages';
-import { clientCosmeticFinishes } from '../../client/shardfile/clientCosmeticFinishes';
+import { lentToon } from './lentLooks';
+import { boundResidentWorldScope } from './hybridPresentation';
+import { paintedWorldUpdate } from './paintedWorldStages';
+import { clientCosmeticFinishes } from './clientCosmeticFinishes';
 
 /** Original construction owners; ids in rows select only these typed loans. */
 export interface WorldUpdateLoans {
