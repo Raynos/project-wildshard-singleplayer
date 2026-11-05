@@ -13,7 +13,7 @@ export function copyOutputProducts(root, outDir) {
     if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
     const source = resolve(products, entry.name);
     if (!existsSync(resolve(source, 'shard.json'))) continue;
-    cpSync(source, resolve(shardfiles, entry.name), { recursive: true, filter: path => basename(path) !== 'runtime' && basename(path) !== '.build-key' && relative(source, path) !== 'server' });
+    cpSync(source, resolve(shardfiles, entry.name), { recursive: true, filter: path => basename(path) !== 'runtime' && basename(path) !== '.build-key' && (process.env.VITE_WORKER_CLIENT === '1' || relative(source, path) !== 'server') }); // a proof build's worker reads the server's files (J126); J91 keeps them from any other client
   }
 }
 

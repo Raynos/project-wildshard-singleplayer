@@ -45,7 +45,7 @@ declare global { interface Window { __workerClient?: () => WorkerClientReport } 
 /** Every creature on this page is a row: a new one spawns through the real manager, one the server dropped retires. */
 function syncCreatures(client: NetClient, { animals }: WorkerClientPorts, bodies: Map<number, Animal>): void {
   for (const [handle, info] of client.entities) {
-    if (info.cls !== ANIMAL_CLASS || bodies.has(handle)) continue;
+    if (info.cls.cls !== ANIMAL_CLASS.cls || bodies.has(handle)) continue; // the shell's bundle has its own copy of the class
     const { x = 0, y = 0, z = 0, yaw = 0 } = client.interpolator.fields(handle, Number.MAX_SAFE_INTEGER) ?? {};
     if (typeof x !== 'number' || typeof y !== 'number' || typeof z !== 'number' || typeof yaw !== 'number') continue;
     const body = animals.spawn(String(info.initial['kind']), x, z, yaw, String(info.initial['variant']), { y });
@@ -74,7 +74,7 @@ function showRows(client: NetClient, net: NetPlayer, ports: WorkerClientPorts, b
 
 function overlay({ scope }: Pick<WorkerClientPorts, 'scope'>): (text: string) => void {
   const line = document.createElement('pre');
-  line.style.cssText = 'margin:0;padding:4px 6px;pointer-events:none;font:11px/1.3 ui-monospace,monospace;color:#fff;background:#0009;white-space:pre';
+  line.style.cssText = 'position:fixed;left:8px;top:150px;margin:0;padding:4px 6px;pointer-events:none;font:11px/1.3 ui-monospace,monospace;color:#fff;background:#0009;white-space:pre';
   hudSlots.widget('band.3', line, 90, scope);
   return text => { line.textContent = text; };
 }
