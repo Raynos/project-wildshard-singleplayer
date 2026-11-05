@@ -510,6 +510,9 @@ jobs:
         # Generated inputs above are verified for this exact run. Both checks
         # finish, even when one fails; typed lint includes every fast rule.
         run: python3 scripts/ci-fail-fast.py -- /usr/bin/time -v bash scripts/typecheck-lint.sh
+      - name: Check tooling paths and code globs
+        if: ${{ !cancelled() }}
+        run: python3 scripts/ci-fail-fast.py -- node scripts/check-paths.mjs
 
       - name: Publish exact failure paths
         if: failure()
