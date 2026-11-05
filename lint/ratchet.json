@@ -120,7 +120,6 @@
     "src/shards/nalati-grasslands/generators/yurt.ts": 1,
     "src/shards/nine-dragon-stack/generators/bake-glyphs.mjs": 2,
     "src/shards/nine-dragon-stack/generators/bake-sign-atlas.mjs": 2,
-    "src/shards/open-plots/generators/plotBake.mjs": 2,
     "src/shards/open-plots/generators/tiledPlot.mjs": 3,
     "src/shards/pine-hollow/generators/bake-hdri-keys.mjs": 4,
     "src/shards/pine-hollow/generators/bake-pine-code-parts.mjs": 1,
