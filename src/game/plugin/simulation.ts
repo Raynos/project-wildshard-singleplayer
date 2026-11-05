@@ -61,7 +61,7 @@ import { bindPlayerImpulse, dataCreaturePorts } from "../shardfile/dataCreatureP
 import { prepareDeclaredGroupBrains, type DeclaredGroupPorts, type DeclaredGroupPolicy } from "../shardfile/groupRuntime";
 import { prepareDeclaredCrowds, type DeclaredCrowdPorts, type PreparedCrowds } from "../shardfile/crowdRuntime";
 import { installLadders, type LadderClientPorts } from '../shardfile/ladder';
-import { MoverScriptDriver, verifiedMoverModules, proveTerrainEntries, type TerrainEntryWalk, type DeclaredMoverComposition, type MoverRuntime } from "./mover";
+import { MoverScriptDriver, playerGrounds, verifiedMoverModules, proveTerrainEntries, type TerrainEntryWalk, type DeclaredMoverComposition, type MoverRuntime } from "./mover";
 import { socketLiftEntries } from "@wildshard/format/socketLiftAssets";
 import { portalLinkEntries, portalLinkRules } from "@wildshard/format/portalLinkAssets";
 import { validatePortalFloors } from "@wildshard/format/portalFloor";
@@ -515,7 +515,7 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
       if (moverDriver !== undefined) {
         const stateWorld = lane.world;
         const runtime = moverDriver.install(host, lane, { id: 'movers.declared', restoreFlags: new Set(host.flags.all),
-          activation: { ground: () => lead.hasMotor ? lead.motor.result : undefined, shared: id => {
+          activation: { ground: () => playerGrounds(host), shared: id => {
             const field = shard.state.shared.find(row => row.id === id);
             const value = field === undefined ? undefined : stateWorld.viewField(lead.id, 'shared', field.name);
             return typeof value === 'number' || typeof value === 'boolean' ? value : undefined;

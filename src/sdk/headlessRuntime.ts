@@ -162,7 +162,7 @@ export async function prepareNativeRuntime(provided: HeadlessRuntimeInput): Prom
         if (motion === null) throw new Error('Missing installed mover owner');
         for (const command of context.commands()) if (command.kind === 'script' && carried.some(row => row.id === command.actorId)) {
           if (command.value !== 1 && command.value !== 2) throw new Error('Invalid mover ride command');
-          motion.command(command.actorId, command.value);
+          motion.command(command.actorId, command.value, command.playerId);
         }
       });
       motion = new MoverScriptDriver(carried, host).install(host, { content: { identity: source.identity,
