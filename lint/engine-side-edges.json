@@ -1,10 +1,10 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 357,
+  "client → server": 340,
   "cook → client": 2,
   "cook → render": 1,
-  "server → client": 143,
+  "server → client": 137,
   "server → dom": 2,
   "server → render": 4,
   "shared → client": 3,
@@ -116,9 +116,6 @@
   "src/game/grapple/tool.ts": {
    "client → server": 2
   },
-  "src/game/grid/approachProductInputs.ts": {
-   "server → client": 6
-  },
   "src/game/grid/budgetPoints.ts": {
    "client → server": 1
   },
@@ -143,14 +140,11 @@
   "src/game/grid/enteredInteract.ts": {
    "server → client": 1
   },
-  "src/game/grid/farImpostorDecodeWorker.ts": {
-   "client → server": 1
-  },
   "src/game/grid/farImpostorView.ts": {
    "client → server": 1
   },
   "src/game/grid/farView.ts": {
-   "client → server": 2
+   "client → server": 1
   },
   "src/game/grid/frame.ts": {
    "client → server": 1
@@ -162,10 +156,7 @@
    "server → client": 2
   },
   "src/game/grid/liveSession.ts": {
-   "client → server": 14
-  },
-  "src/game/grid/nearPlaceholderView.ts": {
-   "client → server": 1
+   "client → server": 13
   },
   "src/game/grid/pageEntry.ts": {
    "client → server": 4
@@ -177,7 +168,7 @@
    "client → server": 2
   },
   "src/game/grid/prefetchIndexCore.ts": {
-   "client → server": 2
+   "client → server": 1
   },
   "src/game/grid/products.ts": {
    "client → server": 3
@@ -194,11 +185,8 @@
   "src/game/grid/roadSky.ts": {
    "client → server": 1
   },
-  "src/game/grid/roadTileArchive.ts": {
-   "client → server": 1
-  },
   "src/game/grid/session.ts": {
-   "client → server": 15
+   "client → server": 14
   },
   "src/game/grid/titleOrder.ts": {
    "client → server": 1
@@ -217,9 +205,6 @@
   },
   "src/game/loadout/rangedPage.ts": {
    "client → server": 10
-  },
-  "src/game/looks/forestGround.ts": {
-   "client → server": 1
   },
   "src/game/looks/forestWeather.ts": {
    "client → server": 1
@@ -243,7 +228,7 @@
    "server → client": 2
   },
   "src/game/loot/CoinMotion.ts": {
-   "client → server": 3
+   "client → server": 2
   },
   "src/game/loot/runtime.ts": {
    "server → client": 6,
@@ -254,12 +239,6 @@
    "server → client": 1
   },
   "src/game/models/socketRigCreature.ts": {
-   "client → server": 1
-  },
-  "src/game/models/specimenCatalogue.ts": {
-   "client → server": 1
-  },
-  "src/game/models/worldSceneCatalogue.ts": {
    "client → server": 1
   },
   "src/game/plugin/audio.ts": {
@@ -426,7 +405,7 @@
    "client → server": 1
   },
   "src/game/shardfile/client.ts": {
-   "client → server": 11
+   "client → server": 10
   },
   "src/game/shardfile/clientBossFight.ts": {
    "client → server": 2
@@ -509,9 +488,6 @@
   "src/game/shardfile/emptyEquipment.ts": {
    "client → server": 1
   },
-  "src/game/shardfile/forestPage.ts": {
-   "client → server": 1
-  },
   "src/game/shardfile/hybrid.ts": {
    "client → server": 3
   },
@@ -522,19 +498,13 @@
    "client → server": 1
   },
   "src/game/shardfile/product.ts": {
-   "client → server": 3
-  },
-  "src/game/shardfile/productCost.ts": {
-   "client → server": 1
+   "client → server": 2
   },
   "src/game/shardfile/questWorld.ts": {
    "server → client": 1
   },
   "src/game/shardfile/runtimeProduct.ts": {
    "client → server": 2
-  },
-  "src/game/shardfile/sceneBuffers.ts": {
-   "client → server": 1
   },
   "src/game/shardfile/sceneInstances.ts": {
    "client → server": 1
@@ -549,9 +519,6 @@
    "client → server": 1
   },
   "src/game/shardfile/worldAssembly.ts": {
-   "client → server": 1
-  },
-  "src/game/shardfile/worldSceneWeld.ts": {
    "client → server": 1
   },
   "src/game/shardfile/worldUpdates.ts": {
