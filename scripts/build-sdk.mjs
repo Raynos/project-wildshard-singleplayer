@@ -86,9 +86,10 @@ for (const [mode, folder] of [['production', 'client'], ['devserver', 'client-de
 }
 
 // Ship retained readable author inputs, not one-time baked outputs or workspace symlinks.
-cpSync(resolve(root, 'scripts/docs/author-project'), resolve(root, 'src/sharddev', 'dist', 'author-template'), { recursive: true });
+const template = resolve(root, 'src/sharddev', 'dist', 'author-template');
+cpSync(resolve(root, 'scripts/docs/author-project'), template, { recursive: true });
 // The host ships bundled in this package until P3, so a packed project names one package.
-for (const name of readdirSync(resolve(root, 'src/sharddev/dist/author-template'), { recursive: true, encoding: 'utf8' })) {
-  const file = resolve(root, 'src/sharddev/dist/author-template', name);
+for (const name of readdirSync(template, { recursive: true, encoding: 'utf8' })) {
+  const file = resolve(template, name);
   if (/\.(?:ts|mjs)$/u.test(name)) writeFileSync(file, readFileSync(file, 'utf8').replaceAll('@wildshard/sdk/', '@wildshard/sharddev/'));
 }
