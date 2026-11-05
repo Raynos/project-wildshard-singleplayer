@@ -5,7 +5,6 @@ import { Vector3 } from 'three';
 import type { NetCommand } from '@wildshard/format/netCommand';
 import { beforeAll, expect, test } from 'vitest';
 import { PREDICTION_RING, Predictor, type PredictedBody } from '../src/engine/client/net/predictor';
-import { FIXED_STEP } from '../src/engine/shared/core/fixedStep';
 import { NET_BUTTONS } from '../src/engine/shared/input/netButtons';
 import { BitReader, BitWriter } from '../src/engine/shared/net/bits';
 import { quantiseCommand, readCommand, writeCommand } from '../src/engine/shared/net/command';
@@ -14,10 +13,10 @@ import type { CharacterMotor } from '../src/engine/shared/physics/CharacterMotor
 import type { Rapier } from '../src/engine/shared/physics/rapier';
 import { createMotionState } from '../src/engine/shared/player/motionState';
 import { legacyDouble } from '../src/engine/test/FakeGame';
-import { HostSide, loadCourseRapier, PageSide, type MotionScenario } from './fixtures/motion-trace/parity';
+import { linkedPlayer, type LinkedPlayer } from './fixtures/motion-trace/link';
+import { loadCourseRapier, type MotionScenario } from './fixtures/motion-trace/parity';
 
-// P1-E5.3-C4: the predictor on the real Player against the real PlayerSim. The server here is a tick and a queue, not a room:
-// each command reaches it `delay` ticks after the client stepped it, and its owner block comes back `delay` ticks after that.
+// P1-E5.3-C4: the predictor on the real Player against the real PlayerSim.
 
 let R: Rapier;
 beforeAll(async () => { R = await loadCourseRapier(); });
@@ -25,35 +24,7 @@ beforeAll(async () => { R = await loadCourseRapier(); });
 const DELAY = 3, EAST = -Math.PI / 2;
 const scenario: MotionScenario = { id: 'predict', start: { x: -10, z: 0, yaw: EAST }, ticks: 0, intent: () => ({}) };
 const forward = { keyX: 0, keyY: 1, stickX: 0, stickY: 0 }, standing = { keyX: 0, keyY: 0, stickX: 0, stickY: 0 };
-
-/** A client and a server one `delay` apart. */
-function linked() {
-  const page = new PageSide(R, scenario), host = new HostSide(R, scenario), { player } = page;
-  const body: PredictedBody = { motionState: player.motionState, get motor(): CharacterMotor { return player.motor; }, renderOffset: player.renderOffset,
-    step: (command, replay) => player.stepNet(FIXED_STEP, command, replay) };
-  const predictor = new Predictor(body, PLAYER_CLASS.owner), up: NetCommand[][] = [], down: { seq: number; owner: Uint32Array }[][] = [];
-  let seq = 0, tick = 0;
-  for (let at = 0; at < DELAY; at++) { up.push([]); down.push([]); }
-  /** One tick: the client steps `input`, the link moves, the server steps what reached it, and what came back reconciles. */
-  const run = (input: Partial<Pick<NetCommand, 'steer' | 'buttons'>> = {}): { corrected: boolean; acked: number } => {
-    seq++; tick++;
-    const command = quantiseCommand({ seq, viewTick: 0, steer: forward, yaw: EAST, pitch: 0, buttons: 0, ...input });
-    page.stepWorld(); predictor.step(command);
-    up.push([command]);
-    const arrived: { seq: number; owner: Uint32Array }[] = [];
-    for (const held of up.shift() ?? []) {
-      host.host.step(new Map([[host.player.id, held]]));
-      const owner = new Uint32Array(PLAYER_CLASS.owner.length);
-      PLAYER_CLASS.owner.forEach((column, index) => { owner[index] = column.sample(host.player, () => 0); });
-      arrived.push({ seq: held.seq, owner });
-    }
-    down.push(arrived);
-    let corrected = false, acked = 0;
-    for (const frame of down.shift() ?? []) { corrected = predictor.reconcile(frame.seq, frame.owner) || corrected; acked = frame.seq; }
-    return { corrected, acked };
-  };
-  return { page, host, player, predictor, run, get tick(): number { return tick; }, dispose: (): void => { page.dispose(); host.dispose(); } };
-}
+const linked = (): LinkedPlayer => linkedPlayer(R, scenario, DELAY);
 
 test('a walk the server agrees with writes nothing', () => {
   const link = linked();
@@ -132,6 +103,7 @@ test('the client steps what the server decodes', () => {
 test('a full ring holds still', () => {
   const link = linked(), { predictor, player } = link;
   try {
+    expect(predictor.pending).toBe(0);
     const command = (seq: number): NetCommand => ({ seq, viewTick: 0, steer: forward, yaw: EAST, pitch: 0, buttons: 0 });
     for (let seq = 1; seq <= PREDICTION_RING; seq++) expect(predictor.step(command(seq))).toBe(true);
     expect(predictor.full).toBe(true);

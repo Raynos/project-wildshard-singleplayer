@@ -43,6 +43,8 @@ export const GAP_Z = -40;
 export const LEDGE = { x: 12, z: 12, half: 4, top: 3 } as const;
 /** The kinematic deck: its pose at a tick, a slow carry in x with a bob. */
 export const DECK = { x: 0, y: 1, z: -70, half: 3 } as const;
+/** A deck low enough to walk onto, sliding in x. */
+export const LOW_DECK = { x: 72, z: 70, half: 3, top: .2 } as const;
 /** The floor function: a 30 cm deck with no collider. */
 export const FLOOR_DECK = { x: -20, z: -70, half: 3, y: 0.3 } as const;
 /** The bars a phased capsule walks through: `Course.gate`. */
@@ -60,11 +62,15 @@ function courseGrid(): Float32Array {
   return grid;
 }
 const deckAt = (tick: number): { x: number; y: number; z: number } => ({ x: DECK.x + Math.sin(tick * FIXED_STEP * .8) * 3, y: DECK.y + Math.sin(tick * FIXED_STEP * 1.3) * .2, z: DECK.z });
+const lowDeckAt = (tick: number): { x: number; y: number; z: number } => ({ x: LOW_DECK.x + Math.sin(tick * FIXED_STEP * .9) * 2, y: LOW_DECK.top - .1, z: LOW_DECK.z });
 
 /** The same static and moving world, built into one side's physics. Queries are the same functions on both. */
 export interface Course {
   readonly gate: number;
+  /** The decks at `tick`, for the next physics step. */
   advance: (tick: number) => void;
+  /** The decks at `tick`, now: nothing will step. */
+  place: (tick: number) => void;
 }
 function buildCourse(physics: Physics): Course {
   const { R, world } = physics, grid = courseGrid();
@@ -79,7 +85,14 @@ function buildCourse(physics: Physics): Course {
   const gate = box(3, 2, .25, -32, 2, GATE_Z);
   const rest = deckAt(0), deck = world.createRigidBody(R.RigidBodyDesc.kinematicPositionBased().setTranslation(rest.x, rest.y, rest.z));
   tagCollider(world.createCollider(R.ColliderDesc.cuboid(DECK.half, .1, DECK.half).setCollisionGroups(groups('WORLD')), deck), 'wood');
-  return { gate, advance: tick => { deck.setNextKinematicTranslation(deckAt(tick)); } };
+  const low = lowDeckAt(0), lowDeck = world.createRigidBody(R.RigidBodyDesc.kinematicPositionBased().setTranslation(low.x, low.y, low.z));
+  tagCollider(world.createCollider(R.ColliderDesc.cuboid(LOW_DECK.half, .1, LOW_DECK.half).setCollisionGroups(groups('WORLD')), lowDeck), 'wood');
+  return { gate, advance: tick => { deck.setNextKinematicTranslation(deckAt(tick)); lowDeck.setNextKinematicTranslation(lowDeckAt(tick)); },
+    place: tick => {
+      deck.setTranslation(deckAt(tick), false); lowDeck.setTranslation(lowDeckAt(tick), false);
+      deck.setNextKinematicTranslation(deckAt(tick)); lowDeck.setNextKinematicTranslation(lowDeckAt(tick));
+      world.propagateModifiedBodyPositionsToColliders();
+    } };
 }
 const courseHeightAt = (x: number, z: number): number => terrainHeight(x, z);
 const courseWaterAt = (x: number, _z: number): number | null => x < POOL_X ? 0 : null;
@@ -135,6 +148,8 @@ export interface MotionScenario {
   readonly lockAt?: { readonly x: number; readonly z: number; readonly r0: number };
   /** The sea's swell instead of the pond's bob. */
   readonly sea?: boolean;
+  /** A real held creature on the host, in the way: what the client knows of it is its row. */
+  readonly bodyAt?: { readonly x: number; readonly z: number };
   /** Keep the host's own capsule. Every other scenario gives it the page's, as a physics route does, so a row that lands
    *  ahead of A6 reads only its own difference, not every seam the two capsules meet differently. A6 ends this. */
   readonly hostCapsule?: boolean;
@@ -218,12 +233,12 @@ export class PageSide implements MotionEvents {
 export class HostSide implements MotionEvents {
   readonly host: SimHost;
   readonly player: PlayerSim;
-  private readonly course: Course;
+  readonly course: Course;
   private readonly scenario: MotionScenario;
   private seq = 0;
   constructor(R: Rapier, scenario: MotionScenario) {
-    const { start, lockAt } = scenario;
-    const level: SimLevel = { ...SIM_LEVEL, entities: lockAt === undefined ? [] : [{ ...SIM_CREATURE_RECIPE, id: TARGET_ID, at: { x: lockAt.x, y: 0, z: lockAt.z } }], quests: [],
+    const { start, lockAt, bodyAt } = scenario, body = lockAt ?? bodyAt;
+    const level: SimLevel = { ...SIM_LEVEL, entities: body === undefined ? [] : [{ ...SIM_CREATURE_RECIPE, id: TARGET_ID, at: { x: body.x, y: 0, z: body.z } }], quests: [],
       // a level's own walking speed, as Sunscar authors one: A2's 18th difference
       ground: { size: SIZE, height: 0 }, player: { at: { x: start.x, y: start.y ?? courseHeightAt(start.x, start.z), z: start.z }, yaw: start.yaw, speed: 5 } };
     const host = this.host = createSimHost(level, { rapier: R, ground: false, heightAt: courseHeightAt });

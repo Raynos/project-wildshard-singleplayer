@@ -377,6 +377,7 @@
   "src/engine/shared/net/chatWire.ts": "shared",
   "src/engine/server/net/chatWords.ts": "server",
   "src/engine/client/net/client.ts": "client",
+  "src/engine/client/net/predictionWorld.ts": "client",
   "src/engine/client/net/predictor.ts": "client",
   "src/engine/server/net/combatWire.ts": "server",
   "src/engine/shared/net/command.ts": "shared",
