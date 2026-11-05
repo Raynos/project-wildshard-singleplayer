@@ -450,3 +450,22 @@ test('settlingTiles counts the fence tiles while the loader settles, and nothing
     expect(Math.max(...seen.map(count => count.done))).toBeGreaterThan(0);
   } finally { scope.dispose(); }
 });
+
+// DL21 (Nine HEAD recording: 'tiles 0 of 64' held 2.6 s): a tile completes only at its last content stage, so the settle's
+// stages count before any tile does
+test('settlingTiles counts content stages before the tiles they complete', async () => {
+  const scope = new Scope('tiles'), first = content(), second = content(), seen: { done: number; total: number; stages: number; stagesTotal: number }[] = [];
+  const counting: TileContent = { ...second, attach: (tile, owner) => {
+    const count = settlingTiles(); if (count !== null) seen.push({ ...count });
+    return second.attach(tile, owner);
+  } };
+  const driver = new TileDriver(scope, [first, counting], () => 1, () => Promise.resolve());
+  try {
+    driver.step(-40, -40);
+    await settleTileDrivers(undefined, 5000);
+    expect(seen.length).toBeGreaterThan(0);
+    expect(seen.every(count => count.stagesTotal === count.total * 2 && count.stages <= count.stagesTotal)).toBe(true);
+    // while a tile's second stage attaches, its first already counts: more stages than two per complete tile
+    expect(seen.some(count => count.stages > count.done * 2)).toBe(true);
+  } finally { scope.dispose(); }
+});

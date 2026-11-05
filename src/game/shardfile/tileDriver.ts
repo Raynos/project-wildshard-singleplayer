@@ -51,11 +51,13 @@ export async function settleTileDrivers(frame?: () => void, stallMs = 20000): Pr
 }
 /** DL21: while the loader settles, the render tiles inside its fence across the live drivers and how many are complete (the
  *  spawn view's card counts them); null outside the settle. */
-export function settlingTiles(): { readonly done: number; readonly total: number } | null {
+export function settlingTiles(): { readonly done: number; readonly total: number; readonly stages: number; readonly stagesTotal: number } | null {
   if (!loaderMode) return null;
-  let done = 0, total = 0;
-  for (const driver of liveDrivers) { const count = driver.fenceTiles(); done += count.done; total += count.total; }
-  return { done, total };
+  let done = 0, total = 0, stages = 0, stagesTotal = 0;
+  for (const driver of liveDrivers) {
+    const count = driver.fenceTiles(); done += count.done; total += count.total; stages += count.stages; stagesTotal += count.stagesTotal;
+  }
+  return { done, total, stages, stagesTotal };
 }
 
 type Layer = 'render' | 'colliders';
@@ -134,16 +136,19 @@ export class TileDriver {
     }
   }
 
-  /** The render tiles inside the loader's fence (the settle's `open` rule) and how many are complete (`settlingTiles`). */
-  fenceTiles(): { readonly done: number; readonly total: number } {
-    if (this.last === null || this.plan === null) return { done: 0, total: 0 };
-    const view = spawnViewUsesCamera() ? this.streamingView?.() ?? null : null;
-    let done = 0, total = 0;
+  /** The render tiles inside the loader's fence (the settle's `open` rule), how many are complete, and their content stages
+   *  done (`settlingTiles`). DL21: on Nine's HEAD recording the card sat 2.6 s on 'tiles 0 of 64' while the settle's tiles
+   *  read, decoded and warmed in parallel: a tile is complete only at its last stage, so the stages count first. */
+  fenceTiles(): { readonly done: number; readonly total: number; readonly stages: number; readonly stagesTotal: number } {
+    if (this.last === null || this.plan === null) return { done: 0, total: 0, stages: 0, stagesTotal: 0 };
+    const view = spawnViewUsesCamera() ? this.streamingView?.() ?? null : null, per = this.contents.length;
+    let done = 0, total = 0, stages = 0;
     for (const key of this.plan.nearest.render) {
       if (!this.inView(key, view)) continue;
       total++; if (this.complete(key)) done++;
+      stages += Math.min(this.attached.render.get(key)?.done.size ?? 0, per);
     }
-    return { done, total };
+    return { done, total, stages, stagesTotal: total * per };
   }
 
   /** The tiles attached now, by layer (the overlay and tests read them). */

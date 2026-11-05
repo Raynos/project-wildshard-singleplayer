@@ -32,7 +32,7 @@ const queues = new Set<ControlRefinement>();
 export function spawnViewUsesCamera(): boolean { return spawnView?.reference !== 'player'; }
 /** Run every queue's spawn-view jobs now and resolve once none is left (a failure rejects, as the job's own promise does). */
 export async function prepareSpawnView(radius: number = spawnViewRadius(), settle?: () => void | Promise<void>, reference: 'camera' | 'player' = 'camera',
-  tiles?: () => { readonly done: number; readonly total: number } | null): Promise<void> {
+  tiles?: () => { readonly done: number; readonly total: number; readonly stages: number; readonly stagesTotal: number } | null): Promise<void> {
   spawnView = { radius, reference };
   // DL17: a queue whose refinement failed refuses the fence (the job's error, not an incomplete level at control)
   const refused = (): void => { for (const queue of queues) { const failure = queue.refusal(); if (failure !== undefined) throw failure; } };
@@ -53,7 +53,9 @@ export async function prepareSpawnView(radius: number = spawnViewRadius(), settl
     // DL21: the settle's tiles count too ('tiles 31 of 48'): with packs on the whole cell attaches here while the fence
     // holds one job, and Nine's cold Simulator card sat 2.5 s on 'Spawn view · 1 of 1' (8985b4e)
     const settled = tiles?.() ?? null;
-    const tileCount = settled === null || settled.total === 0 ? '' : ` · tiles ${String(settled.done)} of ${String(settled.total)}`;
+    // the tiles' content stages count first (a tile completes at its last one): 'tiles 0 of 64 · stages 37 of 192'
+    const stageCount = settled === null || settled.stagesTotal <= settled.total ? '' : ` · stages ${String(settled.stages)} of ${String(settled.stagesTotal)}`;
+    const tileCount = settled === null || settled.total === 0 ? '' : ` · tiles ${String(settled.done)} of ${String(settled.total)}${stageCount}`;
     const counted = `${fenceDone} of ${known}${tileCount} · ${(reads.bytes() / 1e6).toFixed(1)} MB`;
     reportLoadingWait(wait, { label: `Spawn view · ${counted}`, progress: counted });
   };
