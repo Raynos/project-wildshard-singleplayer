@@ -1,10 +1,10 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 401,
+  "client → server": 396,
   "cook → client": 2,
   "cook → render": 1,
-  "server → client": 151,
+  "server → client": 150,
   "server → dom": 2,
   "server → render": 6,
   "shared → client": 3,
@@ -118,14 +118,8 @@
    "server → client": 10,
    "server → render": 1
   },
-  "src/game/compendium/install.ts": {
-   "client → server": 3
-  },
   "src/game/compendium/keepsakes.ts": {
    "server → client": 7
-  },
-  "src/game/compendium/rules.ts": {
-   "server → client": 1
   },
   "src/game/Elite.ts": {
    "server → client": 5
@@ -359,7 +353,7 @@
    "client → server": 1
   },
   "src/game/Progress.ts": {
-   "client → server": 2
+   "client → server": 1
   },
   "src/game/quest/carriedProp.ts": {
    "server → client": 4,
@@ -606,9 +600,6 @@
    "server → client": 9
   },
   "src/game/stealth/controller.ts": {
-   "client → server": 1
-  },
-  "src/game/summary.ts": {
    "client → server": 1
   },
   "src/game/systems/items/declaredSword.ts": {
