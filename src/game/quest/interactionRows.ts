@@ -4,7 +4,7 @@ import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import { test, type Flags } from '@wildshard/engine/world/interact/flags';
 import { pickPrompt, setPromptSight, type PromptTarget } from '@wildshard/engine/world/interact/prompts';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
+import { questBooks } from '@wildshard/engine/quest/players';
 
 
 /** The defining pure interaction contract, shared by author admission and native rules. */
@@ -78,6 +78,8 @@ export class InteractionRules {
   }
 }
 
+/** Where a player stands. */
+interface Feet { x: number; y: number; z: number }
 /** A placed point a row answers at: a prompt reaches `radius` from the player's eye, a crack `radius` plus its reach. */
 export interface InteractionSpot { readonly x: number; readonly y: number; readonly z: number; readonly radius: number }
 /** What `installInteractionRows` is lent. */
@@ -88,7 +90,7 @@ export interface InteractionRowPorts {
   readonly stepId: string;
   /** every row's spot by its `at` name (the built world's placements, baked) */
   readonly spots: Readonly<Record<string, InteractionSpot>>;
-  readonly commands: () => readonly { readonly actorId: string; readonly value: number }[];
+  readonly commands: () => readonly { readonly actorId: string; readonly value: number; readonly playerId?: string | undefined }[];
   /** Actual page registration order, including live reach/position and native sight identity. */
   readonly prompts?: readonly HeadlessPrompt[];
   /** the item that cracks: its light / heavy reach, and the act its lash reached this tick (null: none); its step runs before this one */
@@ -101,13 +103,26 @@ export interface InteractionRowPorts {
 const EYE = 1.68;
 const eye = new Vector3(), at = new Vector3();
 /** Whether the player's eye stands within the spot's radius plus `reach` (a prompt's pick, a crack's lash). */
-export function eyeReaches(host: Pick<SimHost, 'players'>, spot: InteractionSpot, reach = 0): boolean {
-  const lead = leadPlayer(host);
-  eye.copy(lead.position); eye.y += EYE;
+export function eyeReaches(feet: Readonly<Feet>, spot: InteractionSpot, reach = 0): boolean {
+  eye.set(feet.x, feet.y + EYE, feet.z);
   return at.set(spot.x, spot.y, spot.z).distanceTo(eye) < spot.radius + reach;
 }
 /** The tick protocol's command allowance (sdk/tickProtocol.ts). */
 const MAX_COMMANDS = 1024;
+
+/** Each player's rules over the same rows: a player's marks and flags are its own, and the book saves their marks. */
+export function playerInteractionRules(host: Pick<SimHost, 'flags' | 'quests' | 'players' | 'level' | 'questStore'>, rules: InteractionRules): (player: string) => InteractionRules {
+  const books = questBooks(host), held = new Map<string, InteractionRules>([[books.lead.player, rules]]);
+  books.claim(rules.data.rows.flatMap(row => row.sets));
+  books.install(book => {
+    const own = new InteractionRules(book.flags, rules.data); held.set(book.player, own);
+    if (rules.data.marks.length > 0) book.part(`marks:${rules.data.rows[0]?.id ?? ''}`, { read: () => own.snapshot(), write: saved => { own.restore(saved); } });
+  });
+  return player => {
+    books.of(player);
+    const own = held.get(player); if (own === undefined) throw new Error(`Unknown interaction player ${player}`); return own;
+  };
+}
 
 /**
  * The renderer-free host's interaction step (SF72): each tick's `script` commands on `actorId` run the prompt row whose
@@ -124,24 +139,27 @@ export function installInteractionRows(host: SimHost, rules: InteractionRules, p
     if (entry.crack !== undefined && ports.crack === undefined) throw new Error(`Interaction row ${entry.id} needs a cracking item`);
     return [entry.act, { entry, spot }] as const;
   }));
-  const picker = createHeadlessPromptPicker(host);
-  const act = (value: number, lashed: boolean): void => {
-    if (!lashed && ports.prompts !== undefined && picker.pick(ports.prompts)?.act !== value) return;
+  const picker = createHeadlessPromptPicker(host), books = questBooks(host), rulesOf = playerInteractionRules(host, rules);
+  const act = (value: number, lashed: boolean, player: string): void => {
+    const feet = host.players.get(player)?.position;
+    if (feet === undefined) return;
+    if (!lashed && ports.prompts !== undefined && picker.pick(ports.prompts, feet)?.act !== value) return;
     const found = byAct.get(value); if (found === undefined) return;
     const { entry, spot } = found, crack = ports.crack;
     if ((entry.crack !== undefined) !== lashed) return;
     const reach = entry.crack !== undefined && crack !== undefined ? crack.reach[entry.crack] : 0;
-    if (!eyeReaches(host, spot, reach)) return;
-    if (rules.run(entry.id).ok) ports.done?.(entry.id);
+    if (!eyeReaches(feet, spot, reach)) return;
+    if (rulesOf(player).run(entry.id).ok) ports.done?.(entry.id);
   };
   host.onStep(ports.stepId, () => {
     const list = ports.commands();
     for (let i = 0; i < MAX_COMMANDS; i++) {
       const command = list[i]; if (command === undefined) break;
-      if (command.actorId === ports.actorId) act(command.value, false);
+      if (command.actorId === ports.actorId) act(command.value, false, command.playerId ?? books.lead.player);
     }
+    // the cracking item is the lead's: weapons are not per-player yet (P1-E3.5)
     const reached = ports.crack?.cracked() ?? null;
-    if (reached !== null) act(reached, true);
+    if (reached !== null) act(reached, true, books.lead.player);
   }, { snapshot: () => rules.snapshot(), restore: value => { rules.restore(v.parse(v.string(), value)); } });
 }
 
@@ -159,7 +177,7 @@ export function parsePromptRegistrations(input: unknown): PromptRegistration[] {
 /** A live prompt in actual page registration order; null acts still compete but have no hosted command. */
 export interface HeadlessPrompt extends PromptTarget { readonly act: number | null; readonly id?: string | null }
 /** A host borrows the authoritative eye and world; selection never performs the prompt's action. */
-export interface HeadlessPromptPicker { pick: <T extends HeadlessPrompt>(candidates: readonly T[]) => T | undefined }
+export interface HeadlessPromptPicker { pick: <T extends HeadlessPrompt>(candidates: readonly T[], feet: Readonly<Feet>) => T | undefined }
 
 /** Bind the captured registration order to live native positions/reach; unhosted prompts still compete. */
 export function bindHeadlessPrompts(registrations: readonly PromptRegistration[], resolve: (id: string) => HeadlessPrompt | undefined): HeadlessPrompt[] {
@@ -172,11 +190,10 @@ export function bindHeadlessPrompts(registrations: readonly PromptRegistration[]
 }
 
 /** Use the client prompt law against native host collision, from the player's eye 1.68 m above their feet. */
-export function createHeadlessPromptPicker(host: Pick<SimHost, 'players' | 'physics'>): HeadlessPromptPicker {
-  const lead = leadPlayer(host);
+export function createHeadlessPromptPicker(host: Pick<SimHost, 'physics'>): HeadlessPromptPicker {
   const promptEye = { x: 0, y: 0, z: 0 };
-  return { pick: candidates => {
-    promptEye.x = lead.position.x; promptEye.y = lead.position.y + 1.68; promptEye.z = lead.position.z;
+  return { pick: (candidates, feet) => {
+    promptEye.x = feet.x; promptEye.y = feet.y + 1.68; promptEye.z = feet.z;
     for (const candidate of candidates) if (candidate.sight !== undefined) setPromptSight(candidate, candidate.sight);
     return pickPrompt(candidates, promptEye, host.physics);
   } };

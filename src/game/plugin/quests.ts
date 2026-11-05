@@ -7,7 +7,8 @@ import * as graphContracts from '@wildshard/format/questGraph';
 import type { NpcDef } from "@wildshard/engine/quest/core";
 import type { SimHost } from "@wildshard/engine/sim";
 import { DeclaredQuests } from "../quest/declared";
-import { bindHeadlessPrompts, createHeadlessPromptPicker, type HeadlessPrompt, type PromptRegistration, eyeReaches, installInteractionRows, InteractionRules, parseInteractionRows, type InteractionRowsData, type InteractionSpot } from "../quest/interactionRows";
+import { questBooks } from '@wildshard/engine/quest/players';
+import { playerInteractionRules, bindHeadlessPrompts, createHeadlessPromptPicker, type HeadlessPrompt, type PromptRegistration, eyeReaches, installInteractionRows, InteractionRules, parseInteractionRows, type InteractionRowsData, type InteractionSpot } from "../quest/interactionRows";
 import { autoFlag, type InteractTable } from "@wildshard/engine/world/interact/types";
 import { bindInteractionState, type Flags } from "@wildshard/engine/world/interact/flags";
 import type { QuestData } from "@wildshard/format/quests";
@@ -163,7 +164,7 @@ export interface QuestGraphPorts {
   readonly spots: { readonly interact: readonly QuestGraphSpot[]; readonly crack: readonly QuestGraphSpot[] };
   /** the item that cracks: its light / heavy reach and the act its lash reached this tick */
   readonly crack?: { readonly reach: { readonly light: number; readonly heavy: number }; readonly cracked: () => number | null };
-  readonly commands: () => readonly { readonly actorId: string; readonly value: number }[];
+  readonly commands: () => readonly { readonly actorId: string; readonly value: number; readonly playerId?: string | undefined }[];
   /** Optional actual page roster; commands can answer only its selected visible nearest prompt. */
   readonly promptRegistrations?: readonly PromptRegistration[];
   /** Already-bound live rows, including unhosted competitors; external routes use their actual sight and order. */
@@ -182,15 +183,15 @@ export interface QuestGraphPorts {
  * the platform's interaction step, at the baked spots and each quest-giver's talk spot over the ground; a row's run starts
  * its declared actions. A `summon` action with no summon port refuses at install.
  */
-export function installQuestGraph(host: SimHost, rows: QuestGraphRows, ports: QuestGraphPorts): { quests: DeclaredQuests; rules: InteractionRules; run: (id: string, changed?: () => void) => ReturnType<InteractionRules['run']>;
-  /** Whether the player's eye stands within the named spot's prompt radius (an externally driven graph's prompts). */
-  near: (spot: string) => boolean } {
+export function installQuestGraph(host: SimHost, rows: QuestGraphRows, ports: QuestGraphPorts): { quests: DeclaredQuests; rules: InteractionRules; run: (id: string, changed?: () => void, player?: string) => ReturnType<InteractionRules['run']>;
+  /** Whether a player's eye stands within the named spot's prompt radius (an externally driven graph's prompts). */
+  near: (spot: string, player?: string) => boolean } {
   const actions = new Map(rows.graph.actions.map(action => [action.row, action] as const)), summon = ports.summon;
   if (actions.size > 0 && summon === undefined) throw new Error('A quest graph summons a boss but has no summon port');
   if (ports.drive === 'external' && rows.interactions.marks.length > 0) throw new Error('Externally driven quest marks need an explicit continuation owner');
   if (ports.prompts !== undefined && ports.prompts.length > 1024) throw new Error('Quest prompt roster exceeds its finite bound');
   const quests = new DeclaredQuests(host, rows.quests, { fact: ports.fact, coins: ports.coins });
-  const rules = new InteractionRules(host.flags, rows.interactions);
+  const rules = new InteractionRules(host.flags, rows.interactions), books = questBooks(host), rulesOf = playerInteractionRules(host, rules);
   const groundAt = (x: number, z: number): number => host.groundHeightAt(x, z);
   const spots = Object.fromEntries([...rows.npcs.map(npc => [npc.spot, npcSpot(npc, groundAt)] as const),
     ...ports.spots.interact.map(s => [s.id, s] as const), ...ports.spots.crack.map(s => [`crack.${s.id}`, s] as const)]);
@@ -205,14 +206,16 @@ export function installQuestGraph(host: SimHost, rows: QuestGraphRows, ports: Qu
     ...(prompts === undefined ? {} : { prompts }),
     ...(ports.crack === undefined ? {} : { crack: ports.crack }),
     done });
-  return { quests, rules, run: (id, changed) => { const result = rules.run(id, changed); if (result.ok) done(id); return result; },
-    near: (id) => {
+  return { quests, rules, run: (id, changed, player = books.lead.player) => { const result = rulesOf(player).run(id, changed); if (result.ok) done(id); return result; },
+    near: (id, player = books.lead.player) => {
+      const feet = host.players.get(player)?.position;
+      if (feet === undefined) return false;
       if (ports.prompts !== undefined) {
         const prompt = ports.prompts.reduce<HeadlessPrompt | undefined>((last, row) => row.id === id ? row : last, undefined);
         if (prompt === undefined) throw new Error(`Undeclared quest prompt ${id}`);
-        return prompt.act !== null && picker.pick(ports.prompts)?.act === prompt.act && eyeReaches(host, { ...prompt.position, radius: prompt.radius });
+        return prompt.act !== null && picker.pick(ports.prompts, feet)?.act === prompt.act && eyeReaches(feet, { ...prompt.position, radius: prompt.radius });
       }
-      const spot = spots[id]; if (spot === undefined) throw new Error(`Undeclared quest spot ${id}`); return eyeReaches(host, spot);
+      const spot = spots[id]; if (spot === undefined) throw new Error(`Undeclared quest spot ${id}`); return eyeReaches(feet, spot);
     } };
 }
 

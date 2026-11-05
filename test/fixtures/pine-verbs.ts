@@ -53,7 +53,7 @@ export const prepareHeadlessRuntime:PrepareHeadlessRuntime=async preparation=>{
         if(command.kind!=='script'||command.actorId!=='pine.door')continue;
         const door=doors[command.value];if(door===undefined)throw new Error('Unknown admitted Pine door');
         const [x,y,z]=door.row.at;
-        if(eyeReaches(host,{x,y,z,radius:door.row.reach}))toggleBuildingDoor(door.state);
+        if(eyeReaches(leadPlayer(host).position,{x,y,z,radius:door.row.reach}))toggleBuildingDoor(door.state);
       }
       for(const door of doors){
         stepBuildingDoor(door.state,dt,look.seconds);

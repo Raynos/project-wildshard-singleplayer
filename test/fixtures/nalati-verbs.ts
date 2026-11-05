@@ -75,7 +75,7 @@ export function installNalatiReadings(host:SimHost,context:Pick<HeadlessRuntimeI
         const speaker=speakers.find(row=>row.index===command.value);
         if(speaker===undefined)throw new Error('Unknown Nalati reading speaker');
         const eye={x:leadPlayer(host).position.x,y:leadPlayer(host).position.y+1.68,z:leadPlayer(host).position.z};
-        if(readings.active||eyeReaches(host,{...speaker.position,radius:speaker.radius})&&pickPrompt([speaker],eye,host.physics)!==undefined)readings.press(speaker.id);
+        if(readings.active||eyeReaches(leadPlayer(host).position,{...speaker.position,radius:speaker.radius})&&pickPrompt([speaker],eye,host.physics)!==undefined)readings.press(speaker.id);
       }
       readings.advanceReading(dt,leadPlayer(host).position);
     },{snapshot:()=>readings.snapshot(),restore:value=>readings.prepareRestore(value)()});

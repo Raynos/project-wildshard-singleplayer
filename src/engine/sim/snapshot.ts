@@ -1,6 +1,7 @@
 import { Vector3 } from 'three';
 import { serializeSnapshotData, serializeSnapshotDataSteps, decodeSnapshotData, decodeSnapshotDataBytes, finishSteps, checkSnapshotDataWire } from './snapshotData';
 import { byteArray } from './snapshotPhysics';
+import type { QuestBookSaved } from '../quest/players';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimHostPorts, type SimLevel, type SimSlots, type SimValue } from '../sim';
 import { leadPlayer } from './leadPlayer';
 import type { PlayerSim } from './playerSim';
@@ -84,6 +85,8 @@ export interface SimSnapshot {
   events: { version: number; queue: { name: keyof EventMap; payload: EventValue }[]; frameCount: number; frameBound: boolean };
   physics: number[]; colliderTags: { handle: number; material: Material; owner: EventValue }[];
   flags: string[]; quests: ReturnType<QuestState['snapshot']>[];
+  /** P1-E3.3: every player's quest book but the lead's, whose are `flags` and `quests`. A one-player save holds none. */
+  books?: QuestBookSaved[];
   slots: SimSlots; adapters: { id: string; state: SimValue }[];
   /** SF72 body band clocks (SimHost.useBodyBands); absent for a host without bands, so its bytes are unchanged. */
   bands?: BandsState | undefined;
@@ -206,7 +209,7 @@ export function regionalContinuation(host: SimHost): string {
   return JSON.stringify({ level: host.level, state: host.state, clock: host.clock.snapshot(), rng: host.rng.snapshot(),
     entities: [...host.entities].sort(([a], [b]) => a.localeCompare(b)).map(([id, entity]) => [id, entity.snapshot(), motorState(entityMotor(entity))]),
     strikes: [...host.strikes].filter(([id]) => !host.players.has(id)).sort(([a], [b]) => a.localeCompare(b)).map(([id, runner]) => [id, runner.snapshot()]),
-    targets: host.attackTargets().filter(([id]) => !host.players.has(id)), flags: host.flags.all.sort((a, b) => a.localeCompare(b)), quests: host.quests.map((quest) => quest.snapshot()), slots: cloneSlots(host.slots),
+    targets: host.attackTargets().filter(([id]) => !host.players.has(id)), flags: host.flags.all.sort((a, b) => a.localeCompare(b)), quests: host.quests.map((quest) => quest.snapshot()), ...savedBooks(host), slots: cloneSlots(host.slots),
     events: host.events.snapshot((value) => encode(value, host)),
     adapters: [...host.adapters].sort(([a], [b]) => a.localeCompare(b)).map(([id, adapter]) => [id, cloneValue(adapter.snapshot())]),
     ...bandsField(host), ...dayField(host) });
@@ -237,7 +240,7 @@ function captureSimHost<Bytes extends number[] | Uint8Array>(host: SimHost, phys
     players: [...host.players.values()].map(player => playerSnapshot(host, player)),
     strikes: [...host.strikes].map(([id, runner]) => ({ id, state: runner.snapshot() })), targets: host.attackTargets(),
     events: host.events.snapshot((value) => encode(value, host)), physics: physics(host.physics.snapshot()), colliderTags,
-    flags: host.flags.all, quests: host.quests.map((quest) => quest.snapshot()), slots: cloneSlots(host.slots),
+    flags: host.flags.all, quests: host.quests.map((quest) => quest.snapshot()), ...savedBooks(host), slots: cloneSlots(host.slots),
     adapters: [...host.adapters].map(([id, adapter]) => ({ id, state: cloneValue(adapter.snapshot()) })), ...bandsField(host),
     ...(host.boardColliderHandles().length > 0 ? { boardColliders: [...host.boardColliderHandles()] } : {}), ...dayField(host) };
 }
@@ -362,6 +365,10 @@ export function prepareSimHostRestore(level: SimLevel, ports: SimHostPorts): Pre
       return restoreInstalledHost(host, ports, saved, checks, install);
     } };
 }
+function savedBooks(host: SimHost): { books?: QuestBookSaved[] } {
+  const books = host.questStore?.save();
+  return books === undefined ? {} : { books };
+}
 /** A level's identity in a save. The version is left out: every level version has held this content, so a new engine
  *  version does not orphan a save, and `apiVersion` already says which engine wrote it. */
 function levelFingerprint(level: SimLevel): number { return fnv1a32(JSON.stringify({ ...level, version: 1 })); }
@@ -395,6 +402,7 @@ function restoreInstalledHost(host: SimHost, ports: { rapier: Rapier }, saved: S
     for (const entry of saved.strikes) host.strikes.get(entry.id)?.restore(entry.state, host.strikeSpecifications(entry.id));
     host.flags.restore(saved.flags);
     for (const quest of host.quests) { const state = saved.quests.find((entry) => entry.id === quest.def.id); if (state !== undefined) quest.restore(state); }
+    host.questStore?.restore(saved.books);
     host.rng.restore(saved.rng); host.clock.restore(saved.clock);
     host.state.tick = saved.state.tick; host.state.accumulator = saved.state.accumulator;
     for (const key of Object.keys(host.state.timers)) delete host.state.timers[key];

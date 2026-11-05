@@ -22,6 +22,7 @@ import type { Rapier } from './physics/rapier';
 import { groups } from './physics/groups';
 import { tagCollider } from './physics/surface';
 import { Flags } from './world/interact/flags';
+import type { QuestBookSaved } from './quest/players';
 import { QuestState, type QuestDef } from './quest/core';
 import type { DayCycle, DayCycleClock, DayCycleSpec } from './world/dayCycle';
 import { clockDayPhase, clockPeriod, wrapClock, type DayClockState } from './sim/dayClock';
@@ -179,6 +180,8 @@ export class SimHost {
   readonly rng: RngService;
   readonly flags: Flags;
   readonly quests: QuestState[];
+  /** P1-E3.3: other players' quest books, which the save carries; engine/quest/players sets it. */
+  questStore: { save: () => QuestBookSaved[] | undefined; restore: (saved: readonly QuestBookSaved[] | undefined) => void } | undefined = undefined;
   readonly entities: Map<string, AnimalSim> = new Map<string, AnimalSim>();
   readonly strikes: Map<string, StrikeRunner> = new Map<string, StrikeRunner>();
   readonly adapters: Map<string, SimStateAdapter> = new Map<string, SimStateAdapter>();

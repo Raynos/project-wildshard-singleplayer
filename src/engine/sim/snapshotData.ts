@@ -18,6 +18,7 @@ const integer = v.pipe(nonnegative, v.safeInteger());
 const uint32 = v.pipe(integer, v.maxValue(0xffffffff));
 const id = v.pipe(v.string(), v.minLength(1));
 const version = v.literal(1);
+const quest = v.strictObject({ version, id, started: v.boolean(), currentId: v.nullable(id) });
 // A regional continuation is bounded independently of compressed input size. Each block
 // decodes into a fixed buffer plus one overflow byte; no inflater can grow the allocation.
 const maxPhysicsBytes = MAX_PHYSICS_BYTES, physicsBlockBytes = 65_536;
@@ -94,7 +95,8 @@ const entries = {
     frameCount: v.pipe(integer, v.maxValue(1000)), frameBound: v.boolean() }),
   colliderTags: v.array(v.strictObject({ handle: nonnegative,
     material: v.picklist(['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water', 'wood', 'metal', 'flesh', 'shell', 'ground', 'edge', 'felt', 'earth']), owner: eventValue })),
-  flags: v.array(id), quests: v.array(v.strictObject({ version, id, started: v.boolean(), currentId: v.nullable(id) })),
+  flags: v.array(id), quests: v.array(quest),
+  books: v.exactOptional(v.array(v.strictObject({ player: id, flags: v.array(id), quests: v.array(quest), parts: v.record(v.string(), v.string()) }))),
   slots: v.strictObject({ scriptMemory: v.record(v.string(), simValue), scriptGlobals: v.record(v.string(), simValue),
     questState: v.record(v.string(), simValue), ledgerDedupe: v.array(v.string()) }),
   adapters: v.array(v.strictObject({ id, state: simValue })),

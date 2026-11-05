@@ -126,7 +126,7 @@ const prompts = bindHeadlessPrompts(registrations, id => {
 const promptPickers = new WeakMap<SimHost, ReturnType<typeof createHeadlessPromptPicker>>();
 function selected(host: SimHost): number | null | undefined {
   let picker = promptPickers.get(host); if (picker === undefined) { picker = createHeadlessPromptPicker(host); promptPickers.set(host, picker); }
-  return picker.pick(prompts)?.act;
+  return picker.pick(prompts, leadPlayer(host).position)?.act;
 }
 function sees(host: SimHost, spot: SignalSpot, reach = 0): boolean {
   eye.copy(leadPlayer(host).position); eye.y += EYE;

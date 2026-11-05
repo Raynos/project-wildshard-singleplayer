@@ -3,7 +3,7 @@ import type { SimHost } from '@wildshard/engine/sim';
 /** Platform command adapter installed by the native worker, never by shard
  * composition. Scripts and ledger methods retain their existing tape owner. */
 export interface NativeQuestInputs {
-  readonly scripts: () => readonly { readonly actorId: string; readonly value: number }[];
+  readonly scripts: () => readonly { readonly actorId: string; readonly value: number; readonly playerId?: string | undefined }[];
   readonly walk: (speed: number) => { readonly x: number; readonly z: number };
   readonly ledger: { readonly fact: (name: string, entity: string) => void; readonly coins: (amount: number, entity: string) => void };
 }

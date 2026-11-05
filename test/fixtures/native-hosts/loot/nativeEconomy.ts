@@ -68,7 +68,7 @@ export function installNativeEconomy(host: SimHost, product: ShardProduct, roste
   host.onStep(NATIVE_TRADE, dt => {
     if (exchange.active && leadPlayer(host).position.distanceTo(original.position) > closeDistance) exchange.close();
     for (const command of input.scripts()) if (command.actorId === NATIVE_TRADE) {
-      if (command.value === -2) { if (picker.pick(candidates) === trade) exchange.open(); }
+      if (command.value === -2) { if (picker.pick(candidates, leadPlayer(host).position) === trade) exchange.open(); }
       else if (command.value === -1) exchange.close();
       else if (exchange.active) exchange.use(command.value);
     }

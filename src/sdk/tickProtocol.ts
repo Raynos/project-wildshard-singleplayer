@@ -26,7 +26,8 @@ export const TickCommandSchema: v.GenericSchema<BoundedTickCommandInput, Bounded
     ads:v.pipe(finite,v.minValue(0),v.maxValue(1)), pitch:v.pipe(finite,v.minValue(-Math.PI/2),v.maxValue(Math.PI/2)),
     fire:v.exactOptional(v.literal(true)), reload:v.exactOptional(v.literal(true)) }),
   v.strictObject({ kind: v.literal('interact'), id: text }),
-  v.strictObject({ kind: v.literal('script'), actorId: text, value: finite }),
+  // `playerId` names who acted when it is not the lead (P1-E3.3); a tape of one player never carries it
+  v.strictObject({ kind: v.literal('script'), actorId: text, value: finite, playerId: v.exactOptional(text) }),
   v.strictObject({ kind: v.literal('event'), type: natural, target: natural, value: finite }),
 ]);
 /** A detached input admitted before the fixed tick; every source shares the shard's one command allowance. */
@@ -143,6 +144,7 @@ type BoundedTickCommand = {
     kind: "script";
     actorId: string;
     value: number;
+    playerId?: string;
 } | {
     kind: "event";
     type: number;

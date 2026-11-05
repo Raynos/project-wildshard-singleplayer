@@ -22,6 +22,7 @@ import { SweptMeleeCore, sweptLunge, sweptMoveDamage, sweptStrikeDirection, swep
 import { pickLunge } from '@wildshard/engine/combat/lungeTarget';
 import { Vector3 } from 'three';
 import { parsePromptRegistrations, createHeadlessPromptPicker } from '../quest/interactionRows';
+import { questBooks } from '@wildshard/engine/quest/players';
 import { GridAssembly } from '../grid/assembly';
 import { GridSimulation } from '../grid/simulation';
 import { ResidencyAllocator } from '../grid/allocator';
@@ -246,7 +247,7 @@ export async function prepareRuntimePlan(shard: Shardfile, assets: ReadonlyMap<s
       commands: pickCommands(context.commands, command => {
         if (command.kind !== 'script') return undefined;
         if (command.actorId === undefined || command.value === undefined || !Number.isFinite(command.value)) throw new Error('Invalid admitted native script command');
-        return { actorId: command.actorId, value: command.value };
+        return { actorId: command.actorId, value: command.value, ...(command.playerId === undefined ? {} : { playerId: command.playerId }) };
       }), mechanics: { ...(environment.motion === undefined ? {} : { motion: environment.motion }),
         encounters: new Map([[parseBossOwnerRow(recipe.population.owner).actor, encounter]]) },
     });
@@ -613,7 +614,7 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     const crowds = preparedCrowds.install(host, ports.restoring ?? false);
     const picker = createHeadlessPromptPicker(host);
     const prompts = shard.targets.interactions.map((row, act) => ({ act, id: row.id, position: { x: row.at[0], y: row.at[1], z: row.at[2] }, radius: row.radius }));
-    const selectedInteraction = (): string | null => picker.pick(prompts)?.id ?? null;
+    const selectedInteraction = (): string | null => picker.pick(prompts, lead.position)?.id ?? null;
     const interact = (id: string): boolean => {
       const row = shard.targets.interactions.find(target => target.id === id);
       if (row === undefined) throw new Error('Unknown authored interaction');
@@ -808,7 +809,7 @@ export function nativeMeleeVolumeHit(from: Vector3, dir: Vector3, reach: number,
 export interface NativeHeldCommand { readonly kind:string; readonly heavy?: { readonly targetId?:string|undefined }|undefined }
 /** Admitted page/script fields consumed by the declared native command mapping. */
 export interface NativeMeleeInput extends NativeHeldCommand {
-  readonly attack?: {readonly targetId?:string|undefined}|undefined; readonly actorId?:string|undefined; readonly value?:number|undefined;
+  readonly attack?: {readonly targetId?:string|undefined}|undefined; readonly actorId?:string|undefined; readonly value?:number|undefined; readonly playerId?:string|undefined;
   readonly swing?:true|undefined; readonly pitch?:number|undefined;
 }
 /** Runtime authority and command ports are injected; no imported module installs a host. */
@@ -1137,7 +1138,7 @@ export interface QuestHostPorts extends Omit<QuestGraphPorts, 'drive' | 'summon'
   /** Boolean observations such as a mover's enabled pose, keyed by the authored owner id. */
   readonly observations?: ReadonlyMap<string, () => boolean>;
   /** Accepted external commands delivered to their original native owner. */
-  readonly actions?: ReadonlyMap<string, (value: number) => void>;
+  readonly actions?: ReadonlyMap<string, (value: number, player: string) => void>;
   /** Stage actions retain their native effect owner, keyed by director id. Flag actions are bound automatically. */
   readonly directorActions?: ReadonlyMap<string, readonly DirectorActionBinding[]>;
   readonly mechanics?: QuestMechanics;
@@ -1176,16 +1177,18 @@ function questObservation(host: SimHost, row: QuestHostRow['observations'][numbe
  * a transient flag stage introduces no saved cursor. The caller still owns all body, mover and encounter lifetimes. */
 export interface NativeQuestHost extends ReturnType<typeof installQuestGraph> {
   /** Dispatch one accepted command at its existing owner's phase; adds no step or saved cursor. */
-  readonly accept: (command: { readonly actorId: string; readonly value: number }) => boolean;
+  readonly accept: (command: QuestHostCommand) => boolean;
   /** Deliver the protocol-bounded batch in order, observing each preceding command's effects. */
-  readonly dispatch: (commands: readonly { readonly actorId: string; readonly value: number }[]) => void;
+  readonly dispatch: (commands: readonly QuestHostCommand[]) => void;
 }
+/** One script command for a quest: `playerId` names who acted, the lead when absent. */
+export interface QuestHostCommand { readonly actorId: string; readonly value: number; readonly playerId?: string | undefined }
 export function installQuestHost(host: SimHost, quests: QuestData, input: QuestHostRow, ports: QuestHostPorts): NativeQuestHost {
   const row = parseQuestHost(input);
   if (ports.prompts !== undefined && ports.prompts.length > 1024) throw new Error('Quest prompt roster exceeds its finite bound');
   if (row.actors.ids.some(id => host.entities.get(id) === undefined)) throw new Error(row.actors.error);
   const observations = new Map(row.observations.map(observation => [observation.binding, questObservation(host, observation, ports)]));
-  const actions = new Map<QuestHostRow['commands']['routes'][number], (value: number) => void>();
+  const actions = new Map<QuestHostRow['commands']['routes'][number], (value: number, player: string) => void>(), books = questBooks(host);
   for (const route of row.commands.routes) {
     if (route.spot !== null && !(ports.prompts === undefined ? [...row.npcs.map(npc => npc.spot), ...ports.spots.interact.map(spot => spot.id), ...ports.spots.crack.map(spot => `crack.${spot.id}`)] : ports.prompts.map(prompt => prompt.id)).includes(route.spot)) throw new Error(`Undeclared quest spot ${route.spot}`);
     if (route.action.kind === 'owner') {
@@ -1199,9 +1202,10 @@ export function installQuestHost(host: SimHost, quests: QuestData, input: QuestH
     } else if (route.action.kind === 'cable') {
       const action = route.action, cables = ports.mechanics?.cables;
       if (cables === undefined) throw new Error(`Unbound quest cable ${action.cable}`);
-      cables.state(action.cable); actions.set(route, () => { cables.start(action.cable); });
+      // the cable carries one traveller, the lead (a player's ride is P1-E3.6's)
+      cables.state(action.cable); actions.set(route, (_value, player) => { if (player === books.lead.player) cables.start(action.cable); });
     } else if (route.action.kind === 'flag') {
-      const action = route.action; actions.set(route, () => { host.flags.set(action.flag, action.value); });
+      const action = route.action; books.claim([action.flag]); actions.set(route, (_value, player) => { books.of(player).flags.set(action.flag, action.value); });
     }
   }
   const observe = (binding: string): boolean => {
@@ -1235,14 +1239,18 @@ export function installQuestHost(host: SimHost, quests: QuestData, input: QuestH
     ...ports, drive: row.drive, summon: target => { requests.get(target)?.advance(); },
   });
   const accept: NativeQuestHost['accept'] = command => {
+    const player = command.playerId ?? books.lead.player;
+    // a player the host no longer holds has no command to run
+    if (!host.players.has(player)) return false;
+    const { flags } = books.of(player);
     for (const route of routes) {
       if (command.actorId !== (route.actor ?? row.graph.actor) || route.value !== null && route.value !== command.value) continue;
-      if (route.spot !== null && !graph.near(route.spot)) continue;
-      const values = Object.fromEntries(Object.entries(row.commands.inputs).map(([key, binding]) => [key, binding.startsWith('flag:') ? host.flags.has(binding.slice(5)) : observe(binding)]));
+      if (route.spot !== null && !graph.near(route.spot, player)) continue;
+      const values = Object.fromEntries(Object.entries(row.commands.inputs).map(([key, binding]) => [key, binding.startsWith('flag:') ? flags.has(binding.slice(5)) : observe(binding)]));
       if (!evaluateDirectorWhen(route.condition, values)) continue;
-      if (route.action.kind === 'row') graph.run(route.action.id);
+      if (route.action.kind === 'row') graph.run(route.action.id, undefined, player);
       else {
-        actions.get(route.authored)?.(command.value);
+        actions.get(route.authored)?.(command.value, player);
       }
       return true;
     }

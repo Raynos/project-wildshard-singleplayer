@@ -145,7 +145,7 @@ try{
     await wait(120);await flush('reef-surface');assert.equal(leadPlayer(host).swim.on,true);assert.ok(boardTicks>0);
     await step([use]);await flush('reef-surface-use');assert.equal(host.flags.has(earned),false);assert.equal(host.flags.has('found:reef-treasure'),false);assert.equal(pack()['doubloon']??0,0);
     const range=v.parse(v.pipe(v.number(),v.minValue(0)),REEF_TREASURE.reach);
-    const reach=()=>eyeReaches(host,{...prompt,radius:range});
+    const reach=()=>eyeReaches(leadPlayer(host).position,{...prompt,radius:range});
     for(let i=0;i<180&&!reach();i++)await step([{kind:'player',moveX:0,moveZ:0,yaw:leadPlayer(host).yaw,dive:true}]);
     await flush('reef-dived');assert.ok(reach(),'actual DIVE must bring the underwater chest within reach');assert.ok(divingTicks>0);
     assert.equal(host.flags.has(earned),false);
