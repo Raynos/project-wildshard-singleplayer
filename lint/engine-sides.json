@@ -267,10 +267,8 @@
   "src/engine/debug/probe.ts": "client",
   "src/engine/debug/timerBaseline.ts": "client",
   "src/engine/entities/AnimalFactory.ts": "client",
-  "src/engine/entities/AnimalManager.ts": {
-   "side": "server",
-   "mixed": true
-  },
+  "src/engine/entities/AnimalHerdView.ts": "client",
+  "src/engine/entities/AnimalManager.ts": "server",
   "src/engine/entities/animalMatrices.ts": "client",
   "src/engine/entities/animalPose.ts": "server",
   "src/engine/entities/animalRig.ts": "server",

@@ -1,18 +1,14 @@
 import { clearBody as clearNativeBody } from './bodyClear';
 import { poseEvery } from './poseCadence';
-import { publishShellLevels } from './animalShells';
 import { EntityIds } from './ids';
-import { app } from '../app/runtime';
 import { emitFault } from '../core/faults';
-import { ParticlePool } from '../fx/ParticlePool';
-import * as THREE from 'three';
+import { MathUtils, Vector3, type PerspectiveCamera } from 'three';
+import type { SpeciesFlight } from '../ai/flight';
 import { canReach } from '../ai/reach';
 import { brainPinned } from '../ai/pinning';
 import { TickScheduler, type InterruptReason, type TickRate } from '../app/scheduler';
 import { dodgeFx } from '../player/dodge';
-import { castRay, floorBelow } from '../physics/query';
 import { CreatureBodies } from '../physics/creatures';
-import type { Physics } from '../physics/Physics';
 import type { CharacterMotor } from '../physics/CharacterMotor';
 import { SEED, CHUNK_HALF } from '../core/config';
 import { spawnRolls, fallbackSound, ATTACK_TURN, HURT_ARC, type HuntGround, type HuntHerd } from '../ai/hunt';
@@ -20,24 +16,19 @@ import { StalkerBrain } from '../ai/stalker';
 import { Rng } from '../core/rng';
 import { heightAt, normalAt, trailDistance, cabinMask, inChunk, waterLevel, hasPond, POND, streamAt } from '../world/Heightfield';
 import type { Forest } from '../world/forest/Forest';
-import type { SkyRig as Sky } from '../world/skyRig';
 import { speciesDef, type EnemyWorld, type ThinkCtx } from './species/registry';
-import { AnimalFactory, type AnimalKind, type AnimalModel, type AnimalStyle } from './AnimalFactory';
-import { Animal, damageFor } from './AnimalView';
+import type { AnimalFactory, AnimalKind } from './AnimalFactory';
+import type { Animal } from './AnimalView';
+import { damageFor } from './AnimalSim';
 import { creatureFloor } from './creatureFloor';
 import { killBelowWorld } from './killHeight';
-import { attachShadowCaster } from './animalShadow';
-import { FarHerd, type FarMember } from './farHerd';
 import { activeLevel } from '../level/selection';
-import type { CreatureRenderSpec } from '../level/spec';
+import type { App } from '../app/app';
+import type { Physics } from '../physics/Physics';
 import type { LevelFrameBinding } from '../level/frame';
-import { TIER, TIER_CONFIG } from '../core/tier';
-import { worldTime } from '../core/time';
 import { frameCost } from '../core/frameCost';
-import { practiceRoom } from '../core/practiceRoom';
-import { AnimalGroup } from './animalMatrices';
-/** the live WORLD physics, read in one place (blood decals, the spawn floor) */
-const worldPhysics = (): typeof app.physics => app.physics;
+import { practiceRoomState } from '../core/practiceRoomState';
+import type { AnimalGroup } from './animalMatrices';
 
 export interface WanderGoalQuery { herd: number; goal: { x: number; z: number; r: number } | null }
 declare module '../events/maps' {
@@ -132,7 +123,40 @@ declare module '../events/maps' {
  *     the off-screen warning from it.
  */
 
-export interface AnimalHit { animal: Animal; point: THREE.Vector3; distance: number; headshot: boolean; damage: number }
+/** What the herd sim reads of the running app, live at each call: a region's frame swaps these under it. */
+export type AnimalHost = Pick<App, 'aggression' | 'clock' | 'combat' | 'equipmentHost' | 'events' | 'levelScope' | 'navmesh' | 'physics' | 'rng' | 'scheduler' | 'world'>;
+
+/**
+ * The herd's presentation (AnimalHerdView.ts on the page). The sim half decides who exists, who thinks and what a hit
+ * does; everything about a rig, a batch, a shadow or a drop of blood goes through here, and nothing here feeds back
+ * into a decision. `rig` is the one place an actor is made, so the sim half never names a model.
+ */
+export interface AnimalDraw {
+  readonly group: AnimalGroup;
+  readonly factory: AnimalFactory;
+  shadowBatch: boolean | null;
+  debug: boolean;
+  /** this tier's tick overrides of `level`, or of the running render level */
+  tierTicks: (level?: LevelFrameBinding['terrain']['level']) => Readonly<Record<string, TickRate>> | undefined;
+  start: () => void;
+  finish: () => void;
+  park: () => void;
+  show: () => void;
+  inFrame: <T>(frame: LevelFrameBinding, run: () => T) => T;
+  rig: (kind: AnimalKind, variant: string, rigSeed: number, seed: number, scale: number, id: string) => { actor: Animal; flight: SpeciesFlight | undefined };
+  adopt: (a: Animal, player: Vector3, asleep: (a: Animal) => boolean) => void;
+  hide: (a: Animal) => void;
+  remove: (a: Animal) => void;
+  trample: (animals: readonly Animal[], player: Vector3) => void;
+  beginDraw: (camera: PerspectiveCamera | null) => void;
+  reach: (a: Animal, from: Vector3, asleep: (a: Animal) => boolean) => void;
+  sleep: (a: Animal) => void;
+  draw: (a: Animal, index: number, distanceSquared: number) => void;
+  endDraw: (animals: readonly Animal[], count: number, dt: number) => void;
+  bloodBurst: (at: Vector3, dir: Vector3, strength: number) => void;
+}
+
+export interface AnimalHit { animal: Animal; point: Vector3; distance: number; headshot: boolean; damage: number }
 /** a species' own sound id (SpeciesDef.sounds); the engine names none (E405) */
 type AnimalSound = string;
 
@@ -142,158 +166,49 @@ type Herd = HuntHerd<Animal>;
 const ANIM_LOD = 140;
 /** E297 body clearance: the player's capsule radius (Player.ts RADIUS) + a margin for the camera's near plane (m) */
 
-const SHELL_DIST = 18, SHELL_MAX = 4;   // fur shells: nearest SHELL_MAX animals within SHELL_DIST m
-
-const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _d = new THREE.Vector3(), _p = new THREE.Vector3();
+const _a = new Vector3(), _b = new Vector3(), _c = new Vector3(), _d = new Vector3(), _p = new Vector3();
 
 /** What `clearBody` needs of an animal (Animal implements it). */
 export interface BodyClearable {
-  readonly position: THREE.Vector3;
+  readonly position: Vector3;
   readonly yaw: number;
   readonly scale: number;
   readonly dims: { readonly bodyRadius: number; readonly headRadius: number };
   /** its physics body: src/engine/physics/creatures.ts hands every live, shown, un-ridden animal within 45 m one */
   readonly motor: CharacterMotor | null;
-  readonly mesh: { readonly position: THREE.Vector3 };
-  bodyCapsule: (a: THREE.Vector3, b: THREE.Vector3) => void;
-  headWorld: (out: THREE.Vector3) => THREE.Vector3;
+  readonly mesh: { readonly position: Vector3 };
+  bodyCapsule: (a: Vector3, b: Vector3) => void;
+  headWorld: (out: Vector3) => Vector3;
 }
 
 /** Shared renderer-free law; the page mesh follows the same native displacement. */
-export function clearBody(a: BodyClearable, player: THREE.Vector3): boolean { return clearNativeBody(a, player); }
-
-// ─────────────────────────────────────────────────────────────────────────────────────────
-// Blood: a pooled particle burst + pooled ground decals
-// ─────────────────────────────────────────────────────────────────────────────────────────
-
-function makeDropTexture(): THREE.CanvasTexture {
-  const c = document.createElement('canvas'); c.width = c.height = 32;
-  const g = c.getContext('2d');
-  if (g === null) throw new Error('BloodFX: could not get a 2d canvas context');
-  const grad = g.createRadialGradient(16, 16, 2, 16, 16, 15);
-  grad.addColorStop(0, 'rgba(255,255,255,1)'); grad.addColorStop(0.7, 'rgba(255,255,255,0.9)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
-  g.fillStyle = grad; g.fillRect(0, 0, 32, 32);
-  return new THREE.CanvasTexture(c);
-}
-
-const MAX_P = 384, MAX_DECALS = 24;
-/** blood lands on the first world surface within this far under the burst (m) */
-const BLOOD_DROP = 4;
-const DOWN = { x: 0, y: -1, z: 0 } as const;
-
-class BloodFX {
-  group = new THREE.Group();
-  private readonly pool: ParticlePool;
-  /** where each droplet lands (PHYSICS P7: one ray down per burst) */
-  private floor = new Float32Array(MAX_P);
-  private decals: THREE.Mesh[] = [];
-  private decalNext = 0;
-  private active = 0;
-
-  private readonly physics: Physics | undefined;
-  constructor(sky: Sky, physics?: Physics) {
-    this.physics = physics;
-    const mat = new THREE.PointsMaterial({ color: new THREE.Color(0.09, 0.004, 0.003), size: 0.035, sizeAttenuation: true, transparent: true, opacity: 0.95, depthWrite: false, map: makeDropTexture(), alphaTest: 0.3 });
-    this.pool = new ParticlePool({ capacity: MAX_P, material: mat, renderOrder: 5, attributes: {}, parkY: -1000 }); // PointsMaterial draws every slot: the free ones wait far below
-    this.group.add(this.pool.points);
-    const dmat = new THREE.MeshStandardMaterial({ color: new THREE.Color(0.035, 0.002, 0.002), roughness: 0.35, metalness: 0, transparent: true, opacity: 0.9, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
-    sky.setupMaterial(dmat);
-    const dgeo = new THREE.CircleGeometry(1, 18);
-    // irregular splat outline
-    const pa = dgeo.attributes['position'] as THREE.BufferAttribute;
-    for (let i = 1; i < pa.count; i++) { const k = 0.6 + 0.4 * Math.abs(Math.sin(i * 7.3) * Math.cos(i * 3.1)); pa.setXY(i, pa.getX(i) * k, pa.getY(i) * k); }
-    for (let i = 0; i < MAX_DECALS; i++) {
-      const m = new THREE.Mesh(dgeo, dmat);
-      m.visible = false; m.receiveShadow = true; m.renderOrder = 2;
-      this.decals.push(m); this.group.add(m);
-    }
-  }
-
-  burst(at: THREE.Vector3, dir: THREE.Vector3, strength = 1): void {
-    const n = Math.round(22 * strength);
-    const physics = this.physics ?? worldPhysics();
-    const fl = (physics ? floorBelow(physics, at.x, at.z, at.y + 0.3, BLOOD_DROP) : undefined) ?? heightAt(at.x, at.z);
-    const { vel, life } = this.pool;
-    for (let i = 0; i < n; i++) {
-      const k = this.pool.claim();
-      this.floor[k] = fl;
-      this.pool.place(k, at);
-      // spray mostly along the shot direction (exit) with a wide cone
-      const s = 1.5 + Math.random() * 3.5;
-      vel[k * 3] = (dir.x * 0.6 + (Math.random() - 0.5) * 1.2) * s;
-      vel[k * 3 + 1] = (dir.y * 0.6 + (Math.random() - 0.2) * 1.2) * s;
-      vel[k * 3 + 2] = (dir.z * 0.6 + (Math.random() - 0.5) * 1.2) * s;
-      life[k] = 0.45 + Math.random() * 0.45;
-    }
-    this.active = Math.min(MAX_P, this.active + n);
-    // ground patch
-    const d = this.decals[this.decalNext]; this.decalNext = (this.decalNext + 1) % MAX_DECALS;
-    if (d === undefined) return;
-    const gx = at.x + dir.x * 0.4, gz = at.z + dir.z * 0.4;
-    // the patch lands on what is under it: a deck, a rock, the hold floor — not the terrain beneath them
-    const hit = physics ? castRay(physics, _c.set(gx, at.y + 0.3, gz), DOWN, BLOOD_DROP) : null;
-    if (hit) { d.position.set(gx, hit.point.y + 0.015, gz); _d.set(hit.normal.x, hit.normal.y, hit.normal.z); }
-    else { const nrm = normalAt(gx, gz); d.position.set(gx, heightAt(gx, gz) + 0.015, gz); _d.set(nrm[0], nrm[1], nrm[2]); }
-    d.quaternion.setFromUnitVectors(_c.set(0, 0, 1), _d);
-    d.rotateZ(Math.random() * Math.PI * 2);
-    const r = 0.14 + Math.random() * 0.14 * strength;
-    d.scale.set(r, r * (0.7 + Math.random() * 0.5), 1);
-    d.visible = true;
-  }
-
-  update(dt: number): void {
-    if (this.active === 0) return;
-    let alive = 0;
-    const { life, pos, vel } = this.pool;
-    for (let k = 0; k < MAX_P; k++) {
-      const l0 = life[k] ?? 0;
-      if (l0 <= 0) continue;
-      life[k] = l0 - dt;
-      if ((life[k] ?? 0) <= 0) { pos[k * 3 + 1] = -1000; continue; }
-      alive++;
-      const j = k * 3;
-      vel[j + 1] = (vel[j + 1] ?? 0) - 9.8 * dt;
-      pos[j] = (pos[j] ?? 0) + (vel[j] ?? 0) * dt; pos[j + 1] = (pos[j + 1] ?? 0) + (vel[j + 1] ?? 0) * dt; pos[j + 2] = (pos[j + 2] ?? 0) + (vel[j + 2] ?? 0) * dt;
-      const fl = this.floor[k] ?? -1e9;
-      if ((pos[j + 1] ?? 0) < fl) { pos[j + 1] = fl + 0.01; vel[j] = vel[j + 1] = vel[j + 2] = 0; } // landed: it soaks in where it fell
-    }
-    this.active = alive;
-    this.pool.posAttr.needsUpdate = true;
-  }
-}
-
-/** a rig as the far herd sees it (its model: the batch's material) */
-interface FarRig extends FarMember {
-  readonly model: AnimalModel;
-  /** the rig's own layer mask while the far herd draws it (its layers are 0 then: the rig is not drawn, its children are) */
-  mask: number | null;
-}
-/** E322 F-L4: the grass a body parts (m, the trample's radius) */
+export function clearBody(a: BodyClearable, player: Vector3): boolean { return clearNativeBody(a, player); }
 
 export class AnimalManager {
   private readonly reportedDecisions = new WeakSet<Animal>();
-  /** the animals' own world-matrix pass: a still, far animal's bones are not recomputed (animalMatrices.ts) */
-  group: AnimalGroup = new AnimalGroup();
+  /** the page's scene graph of the herd (AnimalHerdView.ts) */
+  get group(): AnimalGroup { return this.draw.group; }
   animals: Animal[] = [];
   private readonly entityIds = new EntityIds('creature');
   private readonly spawnedActors = new WeakSet<Animal>();
   private readonly retiredActors = new WeakSet<Animal>();
   /** the herds (the hunting brain's: placement and external spawners add to it) */
   get herds(): Herd[] { return this.hunt.herds; }
-  factory: AnimalFactory;
+  get factory(): AnimalFactory { return this.draw.factory; }
   onKill?: (animal: Animal) => void;
   onCharge?: (animal: Animal, damage: number) => void;
-  onSound?: (name: AnimalSound, position: THREE.Vector3) => void;
+  onSound?: (name: AnimalSound, position: Vector3) => void;
   /** melee shards: an attack's wind-up began (see the header) */
   onWindup?: ((animal: Animal, dur: number) => void) | undefined;
   /** every non-lethal AND lethal hit: amount actually dealt, world hit point, whether it was the head (Combat draws the numbers) */
-  onDamage?: (animal: Animal, amount: number, hitPoint: THREE.Vector3, headshot: boolean, died: boolean) => void;
-  debug = false;
+  onDamage?: (animal: Animal, amount: number, hitPoint: Vector3, headshot: boolean, died: boolean) => void;
+  get debug(): boolean { return this.draw.debug; }
+  set debug(on: boolean) { this.draw.debug = on; }
   /** dev: animals ignore the player (no alert / flee) */
   calm = false;
   /** the player is not among them: `calm`, or a practice room is up (the arena, a playground — 1–3 km over the shard at the
    *  same x / z: no pack hunts, no horse bolts, no boar charges from under it; E321) */
-  private get unaware(): boolean { return this.calm || practiceRoom.open; }
+  private get unaware(): boolean { return this.calm || practiceRoomState.open; }
   /** the shard's pieces for the self-thinking enemy species (see the header; Enemies.ts fills it) */
   enemyWorld: EnemyWorld = {};
   get habitat(): EnemyWorld { return this.enemyWorld; }
@@ -302,19 +217,15 @@ export class AnimalManager {
    *  Pine Hollow's rain sends the grazers in under the big trees (src/shards/pine-hollow/world/weather.ts, PH-C7) */
   wanderGoal: ((a: Animal) => { x: number; z: number; r: number } | null) | null = null;
   private rng = new Rng(SEED + 31);
-  readonly scheduler: TickScheduler = new TickScheduler(app.scheduler);
+  readonly scheduler: TickScheduler;
   private readonly visibility = new WeakMap<Animal, boolean>();
   /** Tile streaming T6: from the viewer, which animals stay awake (a resident ring); null: every animal */
-  private residency: ((viewer: THREE.Vector3) => (x: number, z: number) => boolean) | null = null;
+  private residency: ((viewer: Vector3) => (x: number, z: number) => boolean) | null = null;
   private resident: ((x: number, z: number) => boolean) | null = null;
   private dodgeId = dodgeFx.id;
   private playerSprinting = false;
-  private blood!: BloodFX;
-  private debugMeshes: THREE.Mesh[] = [];
-  private playerPos = new THREE.Vector3();
-  private playerPrev = new THREE.Vector3(); private playerSpeed = 0; private playerInit = false;
-  private shellDist = new Float64Array(SHELL_MAX);
-  private shellIdx = new Int32Array(SHELL_MAX);
+  private playerPos = new Vector3();
+  private playerPrev = new Vector3(); private playerSpeed = 0; private playerInit = false;
   /** the stalker hunt pattern (src/engine/ai/stalker.ts, SF72/82): every herd animal's decisions, its memory, the herds and the tokens */
   private readonly hunt: StalkerBrain<Animal>;
   /** a melee shard (the sword): telegraphed charges, attacks on an arc (see the header) — Driftwood's swords, Nalati's sabre / spear */
@@ -329,63 +240,44 @@ export class AnimalManager {
   /** E297: an attack is coming from `a` — a charge's wind-up or run, a strike before it lands (WindupWarn reads it) */
   readonly isThreat = (a: Animal): boolean =>
     a.alive && !a.hidden && !a.stunned && (speciesDef(a.kind).think !== undefined ? a.attackPhase >= 0 && a.attackPhase < 1 : a.state === 'charge');
-  /** each multi-group rig's one-draw shadow caster (animalShadow.ts); the per-frame shadow distance switches it */
-  private readonly casters = new Map<Animal, THREE.SkinnedMesh>();
-  /** PH-P2: the far animals drawn per model (farHerd.ts), desktop past TIER_CONFIG.animalFarBatchDist; each rig's entry.
-   *  PF7b: a hull's coat variants whose coats are one layer array draw as one batch (AnimalFactory.farKey) */
-  private readonly farHerd = new FarHerd<FarRig>((m) => this.factory.farMaterial(m.model), { keyOf: (m) => this.factory.farKey(m.model),
-    pageSlots: () => TIER_CONFIG.animalFarPageSlots });
-  private readonly farRigs = new Map<Animal, FarRig>();
-  /** the rigs holding a far-herd slot now (holdFarSlot) */
-  private readonly farHeld = new Set<Animal>();
-  /** PH-P2: the casting animals' shadows per model (farHerd.ts { shadow }), within animalShadowDist */
-  private readonly shadowHerd = new FarHerd<FarRig>((m) => m.model.fur, { shadow: true });
-  /**
-   * A level's override of TIER_CONFIG.animalShadowBatch (null: the tier's): false casts each animal from its own visible
-   * rig (its one-draw caster) instead of the shadow herd's skinned copies — one shadow draw per animal per cascade, and
-   * none of the batch's geometry (G180 B5, Pine Hollow's memory trim: ~−7.9 MB of GL, −12.8 MB of JS arrays)
-   */
-  shadowBatch: boolean | null = null;
-  private readonly pbr: boolean;
+  /** A level's override of the tier's shadow batching (AnimalHerdView.ts). */
+  get shadowBatch(): boolean | null { return this.draw.shadowBatch; }
+  set shadowBatch(batch: boolean | null) { this.draw.shadowBatch = batch; }
 
-  private readonly scene: THREE.Scene;
-  private readonly sky: Sky;
+  private readonly draw: AnimalDraw;
+  private readonly host: AnimalHost;
   private readonly forest: Forest;
   /** Regional construction retains its own physics; omitted preserves the active-page legacy path. */
   private readonly physics: Physics | undefined;
-  /** `opts.style` forces the render style (dev harness); production reads `ShardManifest.style` ('pbr' | 'lowpoly') */
-  constructor(scene: THREE.Scene, sky: Sky, forest: Forest, opts: { style?: AnimalStyle | undefined; render?: CreatureRenderSpec | undefined; physics?: Physics } = {}) {
-    this.scene = scene;
-    this.sky = sky;
+  constructor(draw: AnimalDraw, host: AnimalHost, forest: Forest, physics?: Physics) {
+    this.draw = draw;
+    this.host = host;
     this.forest = forest;
-    this.physics = opts.physics;
+    this.physics = physics;
+    this.scheduler = new TickScheduler(host.scheduler);
     // the hunting brain's world: the live Heightfield (its exports are live bindings: read at call time), the forest, the app
     const ground: HuntGround = {
       heightAt: (x, z) => heightAt(x, z), normalY: (x, z) => normalAt(x, z)[1], trailDistance: (x, z) => trailDistance(x, z),
       cabinMask: (x, z) => cabinMask(x, z), inChunk: (x, z, margin) => inChunk(x, z, margin), streamAt: (x, z) => streamAt(x, z),
-      waterLevel: () => waterLevel(), pond: () => hasPond() ? POND : null, sea: () => app.world.water.sea !== null,
+      waterLevel: () => waterLevel(), pond: () => hasPond() ? POND : null, sea: () => host.world.water.sea !== null,
       wetAt: (x, z) => this.wetAt?.(x, z) === true, trees: (x, z, r) => this.forest.nearby(x, z, r),
       treeless: () => this.forest.trees.length === 0, // Driftwood Isle: palms are not Forest trees
       terrain: () => activeLevel().ground.terrain !== undefined, chunkHalf: CHUNK_HALF,
     };
     this.hunt = new StalkerBrain<Animal>({ pattern: 'hunt', config: { rng: this.rng, fight: activeLevel().fight, faunaTuning: () => activeLevel().faunaTuning }, ports: {
-      ground, nav: () => app.navmesh, reach: (a, player) => this.canReach(a, player),
-      wanderGoal: (a) => app.events.ask('creature.wander-goal', { herd: a.herd, goal: this.wanderGoal?.(a) ?? null }).goal,
+      ground, nav: () => host.navmesh, reach: (a, player) => this.canReach(a, player),
+      wanderGoal: (a) => host.events.ask('creature.wander-goal', { herd: a.herd, goal: this.wanderGoal?.(a) ?? null }).goal,
       unaware: () => this.unaware, now: () => performance.now(),
       sound: (name, a) => { this.onSound?.(name, a.position); }, charge: (a, damage) => { this.onCharge?.(a, damage); },
     }, player: this.playerPos, sampleTerrain: actor => { actor.sampleTerrain(); } });
-    const style = opts.style ?? activeLevel().creatureStyle ?? 'pbr';
-    this.factory = new AnimalFactory(sky, { style, render: opts.render ?? activeLevel().creatures });
-    this.pbr = this.factory.render.furRim;
-    this.group.name = 'animals';
     // Legacy authored species keep their brain/strike callback until S3.4 / S4.2 migrates it.
-    this.configureTicks(app.render?.level.tiers?.[TIER]?.ticks);
-    const scope = app.levelScope;
+    this.configureTicks(draw.tierTicks());
+    const scope = host.levelScope;
     if (scope) {
-      app.combat.registerTargets(scope, () => app.levelScope !== scope ? [] : this.animals.map((animal) =>
-        app.combat.targetPort(animal.combatActor(), animal, (velocity) => { animal.impulse(velocity); },
-          () => !scope.disposed && app.levelScope === scope && !animal.hidden && animal !== app.equipmentHost?.player.mountedOn)));
-      app.events.on('weapon.fired', () => { if (app.levelScope === scope) this.interruptTargets('target.attack'); }, scope);
+      host.combat.registerTargets(scope, () => host.levelScope !== scope ? [] : this.animals.map((animal) =>
+        host.combat.targetPort(animal.combatActor(), animal, (velocity) => { animal.impulse(velocity); },
+          () => !scope.disposed && host.levelScope === scope && !animal.hidden && animal !== host.equipmentHost?.player.mountedOn)));
+      host.events.on('weapon.fired', () => { if (host.levelScope === scope) this.interruptTargets('target.attack'); }, scope);
       scope.onDispose(() => { this.scheduler.reset(); });
     }
   }
@@ -398,8 +290,7 @@ export class AnimalManager {
   get alive(): number { let n = 0; for (const a of this.animals) if (a.alive) n++; return n; }
 
   build(): this {
-    this.blood = new BloodFX(this.sky, this.physics);
-    this.group.add(this.blood.group);
+    this.draw.start();
     for (const _herd of this.spawnHerds()) { /* all herds in one go */ }
     return this.finish();
   }
@@ -412,32 +303,28 @@ export class AnimalManager {
    * services/owner; the frame is restored while awaiting models or yielding between herds.
    */
   async buildAsync(pause: () => Promise<void>, frame?: LevelFrameBinding): Promise<this> {
-    const start = (): void => {
-      this.blood = new BloodFX(this.sky, this.physics);
-      this.group.add(this.blood.group);
-    };
-    if (frame === undefined) start();
-    else frame.run(app, () => { start(); this.configureTicks(frame.terrain.level.tiers?.[TIER]?.ticks); });
-    await this.factory.ready;   // Pine Hollow's generated hulls (pineCreatures.ts) before the first herd: a model is made once
+    const draw = this.draw;
+    if (frame === undefined) draw.start();
+    else draw.inFrame(frame, () => { draw.start(); this.configureTicks(draw.tierTicks(frame.terrain.level)); });
+    await draw.factory.ready;   // Pine Hollow's generated hulls (pineCreatures.ts) before the first herd: a model is made once
     if (frame === undefined) {
       for (const _herd of this.spawnHerds()) await pause();
-      await this.factory.settled();   // the herds' coats, painted in slices (SpeciesLook.settle), before any animal is shown
+      await draw.factory.settled();   // the herds' coats, painted in slices (SpeciesLook.settle), before any animal is shown
       return this.finish();
     }
     // Each resumed herd reads its retained level/terrain/services, never the intervening page frame.
     // Keep the ambient binding synchronous: another region may enter while pause() is pending.
     // The hidden group joins its region first, so the region's draw watch takes each herd as it spawns, between the
     // pauses, instead of the whole population in one task when it finishes (Pine's ~180 ms afterKit task at 4x CPU).
-    frame.run(app, () => { this.group.visible = false; this.scene.add(this.group); });
+    draw.inFrame(frame, () => { draw.park(); });
     const herds = this.spawnHerds();
-    while (!frame.run(app, () => herds.next()).done) await pause();
-    await frame.run(app, () => this.factory.settled());
-    return frame.run(app, () => { this.finish(); this.group.visible = true; return this; });
+    while (!draw.inFrame(frame, () => herds.next()).done) await pause();
+    await draw.inFrame(frame, () => draw.factory.settled());
+    return draw.inFrame(frame, () => { this.finish(); draw.show(); return this; });
   }
 
   private finish(): this {
-    this.group.add(this.farHerd.group, this.shadowHerd.group);
-    if (this.group.parent !== this.scene) this.scene.add(this.group);
+    this.draw.finish();
     return this;
   }
 
@@ -471,13 +358,13 @@ export class AnimalManager {
   /** Retire a scripted creature through the same body and manager ownership boundary. */
   retire(a: Animal): void {
     if (this.spawnedActors.has(a) && this.animals.includes(a)) this.retiredActors.add(a);
-    a.hidden = true; a.mesh.visible = false;
+    a.hidden = true; this.draw.hide(a);
     if (!a.simulationBound) { a.alive = false; a.position.y = -9999; }
     const i = this.animals.indexOf(a); if (i !== -1) this.animals.splice(i, 1);
-    this.hunt.forget(a); this.holdFarSlot(a, false); this.farRigs.delete(a); this.casters.delete(a); this.tokens.release(a); this.scheduler.forget(a);
+    this.hunt.forget(a); this.tokens.release(a); this.scheduler.forget(a);
     this.bodies?.remove(a);
     a.retireBody();
-    a.mesh.removeFromParent();
+    this.draw.remove(a);
   }
 
   /** Spawn below a WORLD ray origin (fromY), or at an exact initial world feet height (y). */
@@ -497,14 +384,11 @@ export class AnimalManager {
   private spawnAnimal(kind: AnimalKind, x: number, z: number, yaw: number, variant?: string | string[], placement?: { y?: number; fromY?: number; entityId?: string }, identity?: string): Animal {
     if ((placement?.y !== undefined && !Number.isFinite(placement.y)) || (placement?.fromY !== undefined && !Number.isFinite(placement.fromY))) throw new Error('Creature spawn placement must be finite');
     const { variant: v, scale, rigSeed, seed } = spawnRolls(this.rng, kind, variant, this.hasLegendary(kind)); // the shared stream's spawn rolls (hunt.ts)
-    const model = this.factory.model(kind, v.id);
-    const rig = this.factory.instantiate(model, rigSeed);
-    const a = new Animal(rig, model, seed, scale, identity ?? this.entityIds.allocate(placement?.entityId));
+    const { actor: a, flight } = this.draw.rig(kind, v.id, rigSeed, seed, scale, identity ?? this.entityIds.allocate(placement?.entityId));
     a.maxHp = a.hp = v.hp ?? this.tuningFor(a).hp;
-    const physics = this.physics ?? worldPhysics();
+    const physics = this.physics ?? this.host.physics;
     const fromY = placement?.fromY ?? Math.max(activeLevel().spawn.y ?? heightAt(x, z), heightAt(x, z)) + 1;
     const floor = creatureFloor(physics, x, z, fromY);
-    const flight = model.species.flight;
     const y = placement?.y ?? (flight === undefined ? floor.y : flight.altitude + (flight.above === 'world' ? 0 : floor.y));
     a.place(x, z, yaw, y);
     a.levelGround = floor.structure;
@@ -520,24 +404,11 @@ export class AnimalManager {
       const dt = this.scheduler.takeBrainDt(this.tickRate(a), a);
       this.think(a, dt, this.playerPos, this.playerSprinting);
     });
-    if (model.shells.length > 0) a.makeShells = () => this.factory.createShells(rig, model);   // none in 'lowpoly'
-    a.prepareMaterial = (m) => this.sky.setupMaterial(m);
     a.sampleTerrain();
-    // one shadow draw per animal instead of one per material group (animalShadow.ts; PINE-HOLLOW PH-P1 / P2)
-    const caster = attachShadowCaster(a.mesh);
-    if (caster !== null) this.casters.set(a, caster);
-    const fur = rig.materials[0];
-    if (fur !== undefined) {
-      const slotData = this.factory.farSlotData(model);
-      const far: FarRig = { mesh: a.mesh, tint: fur.color, model, mask: null, ...(slotData === undefined ? {} : { slotData }) };
-      this.farRigs.set(a, far);
-      // its far-herd page, opened now so the entry warm-up uploads it (farHerd.ts reserve), when it can draw from here
-      if (TIER_CONFIG.animalFarBatchDist > 0) this.holdFarSlot(a, this.inFarReach(a, this.playerPos));
-    }
-    this.group.add(a.mesh); this.group.own(a);
+    this.draw.adopt(a, this.playerPos, this.asleepNow);
     this.animals.push(a);
     this.spawnedActors.add(a);
-    app.aggression.register(a, this.tokens, app.levelScope ?? undefined);
+    this.host.aggression.register(a, this.tokens, this.host.levelScope ?? undefined);
     this.hunt.adopt(a, x, z); // its memory: three more draws on the shared stream
     if (this.melee) { a.attackTurnCap = ATTACK_TURN; a.onAttack = (who, dur) => { this.onWindup?.(who, dur); }; }
     return a;
@@ -560,24 +431,13 @@ export class AnimalManager {
    * hitboxes and the footfalls stay on `playerPos`. Explore parks the player 3 km away, so a player-measured cull
    * hid every animal there. `camera`: the view — the far herd skips the far animals outside it (PH-P2).
    */
-  /** E322 F-L4: every moving animal within 70 m of the player parts the grass and flattens a track (Nalati's trample map) */
-  private trampleGrass(p: THREE.Vector3): void {
-    for (const a of this.animals) {
-      if (!a.alive || a.hidden || Math.abs(a.speed) < 0.4) continue;
-      const dx = a.position.x - p.x, dz = a.position.z - p.z;
-      if (dx * dx + dz * dz > 70 * 70) continue;
-      const r = speciesDef(a.kind).trampleRadius ?? 0.4;
-      app.world.trample?.push(a.position.x, a.position.z, r, Math.min(1, 0.35 + Math.abs(a.speed) / 5), Math.sin(a.yaw) * a.speed, Math.cos(a.yaw) * a.speed);
-    }
-  }
-
   /**
    * Tile streaming T6: `follow(viewer)` answers which animals stay awake, by their position (the shard's resident ring
    * around the player). Outside it an animal is dormant: no decision, no body step, not drawn, its state left exactly as it
    * was (a save stays exact), until the ring reaches it again. A pinned, driven, harness-held or simulation-bound animal
    * never sleeps. Null: every animal awake, as before.
    */
-  setResidency(follow: ((viewer: THREE.Vector3) => (x: number, z: number) => boolean) | null): void {
+  setResidency(follow: ((viewer: Vector3) => (x: number, z: number) => boolean) | null): void {
     this.residency = follow; this.resident = null;
   }
   /** outside the resident ring (and free to doze there) */
@@ -590,30 +450,13 @@ export class AnimalManager {
   /** `dormant` as a reusable callback (CreatureBodies.sync's `asleep`) */
   private readonly asleepNow = (a: Animal): boolean => this.dormant(a);
 
-  /** whether `a` can be drawn from `from`: shown, awake and within animalHideDist */
-  private inFarReach(a: Animal, from: THREE.Vector3): boolean {
-    const hide = TIER_CONFIG.animalHideDist;
-    return !a.hidden && !this.dormant(a) && a.position.distanceToSquared(from) < hide * hide;
-  }
-
-  /**
-   * PF7b: a rig holds a far-herd slot (farHerd.ts reserve) only while it can be drawn. Its page stays open for the next,
-   * so the herd's geometry follows the most rigs ever in reach at once, not every rig spawned (Pine's phone: ~200 spawned
-   * rigs reserved ~91 MB of pages).
-   */
-  private holdFarSlot(a: Animal, hold: boolean): void {
-    const far = this.farRigs.get(a);
-    if (far === undefined || hold === this.farHeld.has(a)) return;
-    if (hold) { this.farHerd.reserve(far); this.farHeld.add(a); } else { this.farHerd.unreserve(far); this.farHeld.delete(a); }
-  }
-
-  update(dt: number, t: number, playerPos: THREE.Vector3, playerSprinting = false, viewPos: THREE.Vector3 = playerPos, camera: THREE.PerspectiveCamera | null = null): void {
+  update(dt: number, t: number, playerPos: Vector3, playerSprinting = false, viewPos: Vector3 = playerPos, camera: PerspectiveCamera | null = null): void {
     this.playerPos.copy(playerPos);
     this.resident = this.residency === null ? null : this.residency(playerPos);
     this.playerSprinting = playerSprinting;
     this.scheduler.beginFrame(dt, playerPos);
     this.hunt.beginTick(dt);
-    if (app.world.trample !== null && !practiceRoom.open) this.trampleGrass(playerPos); // E322 F-L4: Pine Hollow's grass trample
+    this.draw.trample(this.animals, playerPos);
     // hitboxes posed from last frame's bones, bodies handed out / back by distance (PHYSICS P6)
     this.bodiesFor()?.sync(this.animals, playerPos, this.asleepNow);
     // Decisions and bodies have independent per-subject clocks; the free camera never wakes a herd.
@@ -641,20 +484,14 @@ export class AnimalManager {
       }
       if (frameCost.on) frameCost.sub('think', t0);
     }
-    // fur shells: pick the SHELL_MAX nearest animals inside SHELL_DIST (tiny insertion sort, no allocs)
-    const sd = this.shellDist, si = this.shellIdx;
-    sd.fill(Infinity); si.fill(-1);
-    const farD = TIER_CONFIG.animalFarBatchDist, far2 = farD > 0 ? farD * farD : Infinity;
-    if (farD > 0) this.farHerd.begin(camera);
-    const herdShadows = (this.shadowBatch ?? TIER_CONFIG.animalShadowBatch) && this.pbr;
-    if (herdShadows) this.shadowHerd.begin(null);
+    this.draw.beginDraw(camera);
     const poseT0 = frameCost.on ? performance.now() : 0;
     for (let i = 0; i < n; i++) {
       const a = this.animals[i];
       if (a === undefined) continue;
-      if (farD > 0) this.holdFarSlot(a, this.inFarReach(a, viewPos));
+      this.draw.reach(a, viewPos, this.asleepNow);
       if (a.hidden) continue;
-      if (this.dormant(a)) { a.mesh.visible = false; (this.casters.get(a) ?? a.mesh).castShadow = false; continue; }   // T6: asleep outside the ring
+      if (this.dormant(a)) { this.draw.sleep(a); continue; }   // T6: asleep outside the ring
       const d2 = a.position.distanceToSquared(viewPos);
       const near = d2 < ANIM_LOD * ANIM_LOD;
       a.poseEvery = poseEvery(d2);
@@ -664,49 +501,14 @@ export class AnimalManager {
         const act = speciesDef(a.kind).act;
         if (!a.simulationBound && act !== undefined && a.alive && !a.stunned) act(a, this.customContext(a, bodyDt, playerPos, this.playerSprinting));
         a.update(bodyDt, t, near);
-        if (!a.simulationBound && a.alive) killBelowWorld(a, activeLevel().world, app.combat);
+        if (!a.simulationBound && a.alive) killBelowWorld(a, activeLevel().world, this.host.combat);
         if (!a.simulationBound && this.melee && a.state === 'charge' && a.alive && !a.stunned) this.hunt.chargeContact(a, playerPos);
         if (!a.simulationBound && this.rules !== null && a.alive && a.position.distanceToSquared(playerPos) < 36) this.clearBody(a, playerPos);
       }
-      // draw / shadow distance by tier: a deer at 150 m is a few pixels on a phone, and only near animals shadow
-      // … shrinking away over the last 15 % of the draw distance rather than blinking out at it (E117: no pop)
-      const hide = TIER_CONFIG.animalHideDist;
-      // … except a pinned body (a boss row's): a 19 m boss must not vanish mid-fight past the phone's 150 m
-      const fade = a.drawPinned || d2 < (hide * 0.85) ** 2 ? 1 : Math.max(0, Math.min(1, (hide - Math.sqrt(d2)) / (hide * 0.15)));
-      a.mesh.visible = fade > 0;
-      const sc = a.scale * fade * fade * (3 - 2 * fade);
-      if (a.mesh.scale.x !== sc) a.mesh.scale.setScalar(sc);
-      const fr = this.farRigs.get(a);
-      // the rig's cull sphere: the model's bind-pose sphere + 0.6 m, as AnimalFactory.instantiate pads it
-      const radius = fr === undefined ? 0 : ((fr.model.geometry.boundingSphere?.radius ?? 3) + 0.6) * a.scale;
-      // the far herd draws it (or leaves it out of view): the rig's layers go to 0 — it is not drawn, what hangs on its
-      // bones still is (the King's kit, a stuck bolt)
-      // a generated hull (one group, no shells, no draw LOD) is the same pixels in the batch at any distance (desktop:
-      // animalHullBatch); a procedural rig only once it is one draw (past animalOneDrawDist ≤ animalFarBatchDist)
-      const from2 = fr?.model.hull !== undefined && TIER_CONFIG.animalHullBatch && herdShadows ? 0 : far2; // its shadow: the shadow herd
-      const batched = fr !== undefined && farD > 0 && a.mesh.visible && d2 >= from2 && !a.fading && this.farHerd.take(fr, a.position, radius);
-      if (fr !== undefined) {
-        if (batched && fr.mask === null) { fr.mask = a.mesh.layers.mask; a.mesh.layers.mask = 0; }
-        else if (!batched && fr.mask !== null) { a.mesh.layers.mask = fr.mask; fr.mask = null; }
-      }
-      // shadows within animalShadowDist: one draw per model per cascade (the shadow herd), else the rig's own caster
-      let cast = d2 < TIER_CONFIG.animalShadowDist * TIER_CONFIG.animalShadowDist;
-      if (cast && herdShadows && fr !== undefined && a.mesh.visible && !a.fading && this.shadowHerd.take(fr, a.position, radius)) cast = false;
-      (this.casters.get(a) ?? a.mesh).castShadow = cast;
-      a.setDrawLod(d2 < TIER_CONFIG.animalEyeDist * TIER_CONFIG.animalEyeDist ? 0 : d2 < TIER_CONFIG.animalOneDrawDist * TIER_CONFIG.animalOneDrawDist ? 1 : 2);
-      if (TIER_CONFIG.furShells && d2 < SHELL_DIST * SHELL_DIST) {
-        for (let k = 0; k < SHELL_MAX; k++) if (d2 < (sd[k] ?? Infinity)) {
-          for (let m = SHELL_MAX - 1; m > k; m--) { sd[m] = sd[m - 1] ?? Infinity; si[m] = si[m - 1] ?? -1; }
-          sd[k] = d2; si[k] = i; break;
-        }
-      }
+      this.draw.draw(a, i, d2);
     }
     if (frameCost.on) frameCost.sub('pose', poseT0);
-    if (farD > 0) this.farHerd.end();
-    if (herdShadows) this.shadowHerd.end();
-    publishShellLevels(this.animals, si, sd, n);
-    this.blood.update(worldTime.realDt || dt); // blood keeps flying through a hit-stop (worldTime, Game.hitStop)
-    if (this.debug) this.updateDebug();
+    this.draw.endDraw(this.animals, n, dt);
   }
 
   private tickRate(a: Animal): string {
@@ -725,16 +527,16 @@ export class AnimalManager {
   }
 
   /** Decision and body callbacks share exactly the same sensing/reach/director ports. */
-  private customContext(a: Animal, dt: number, player: THREE.Vector3, sprinting: boolean): ThinkCtx {
+  private customContext(a: Animal, dt: number, player: Vector3, sprinting: boolean): ThinkCtx {
     const c = this.thinkCtx, herd = a.herd >= 0 ? this.herds[a.herd] ?? null : null;
-    c.dt = dt; c.t = app.clock.now; c.player = player; c.playerSpeed = sprinting ? 7.2 : this.playerSpeed;
+    c.dt = dt; c.t = this.host.clock.now; c.player = player; c.playerSpeed = sprinting ? 7.2 : this.playerSpeed;
     c.calm = this.unaware; c.herd = herd?.members ?? null; c.world = this.enemyWorld;
     c.hurt = (damage) => { if ((!this.melee || this.hunt.facing(a, player, HURT_ARC)) && this.canReach(a, player)) this.onCharge?.(a, damage); };
     c.sound = (name) => { this.onSound?.(name, a.position); };
     return c;
   }
 
-  private think(a: Animal, dt: number, player: THREE.Vector3, sprinting: boolean): void {
+  private think(a: Animal, dt: number, player: Vector3, sprinting: boolean): void {
     try { this.thinkFrame(a, dt, player, sprinting); }
     catch (error) {
       if (!this.reportedDecisions.has(a)) { this.reportedDecisions.add(a); emitFault({system: 'animals.think', error, verdict: 'retry'}); }
@@ -742,7 +544,7 @@ export class AnimalManager {
   }
   /** Keep refused observations local to one actor, including interrupt wakes.
    * Accepted native state/effects are never rolled back or replayed. */
-  private thinkFrame(a: Animal, dt: number, player: THREE.Vector3, sprinting: boolean): void {
+  private thinkFrame(a: Animal, dt: number, player: Vector3, sprinting: boolean): void {
     if (a.simulationBound) return;
     if (this.hunt.memory(a) === undefined) throw new Error(`AnimalManager: ${a.kind} has no brain (not spawned through spawn())`);
     const self = speciesDef(a.kind).think;
@@ -766,7 +568,7 @@ export class AnimalManager {
   }
 
   /** E297: a big animal's body never swallows the camera (the module's `clearBody`). Self-thinking species keep their own spacing. */
-  private clearBody(a: Animal, player: THREE.Vector3): void {
+  private clearBody(a: Animal, player: Vector3): void {
     if (a.hidden || speciesDef(a.kind).think !== undefined) return;
     clearBody(a, player);
   }
@@ -777,25 +579,25 @@ export class AnimalManager {
    * short of the attacker's own body (so one brushing a wall, or a big one half inside a rock, still reaches you). Creatures
    * never block. Asked on the frame a hit would land (and by `ThinkCtx.reach` before a swing): one ray, not per frame.
    */
-  private canReach(a: Animal, player: THREE.Vector3): boolean { return canReach(a, player, app.physics); }
+  private canReach(a: Animal, player: Vector3): boolean { return canReach(a, player, this.host.physics); }
 
   private thinkCtx: ThinkCtx = {
-    dt: 0.1, t: 0, player: new THREE.Vector3(), playerSpeed: 0, rng: this.rng, calm: false, herd: null,
+    dt: 0.1, t: 0, player: new Vector3(), playerSpeed: 0, rng: this.rng, calm: false, herd: null,
     hurt: () => undefined, sound: () => undefined, world: {}, heightAt, waterLevel,
     steer: (a, yaw, speed, turnRate) => { this.hunt.steerAny(a, yaw, speed, turnRate); },
     flight: { steer: (a, yaw, speed, altitude, turnRate) => { a.fly(yaw, speed, altitude, turnRate); } },
     pathYaw: (a, tx, tz, every = 1) => this.hunt.pathYawFor(a, tx, tz, every),
     confine: (a) => { this.hunt.confine(a); },
     reach: (a) => this.canReach(a, this.thinkCtx.player),
-    claim: (a) => app.events.ask('ai.claim', a),
-    mayAttack: (a) => app.events.ask('ai.mayAttack', a),
+    claim: (a) => this.host.events.ask('ai.claim', a),
+    mayAttack: (a) => this.host.events.ask('ai.mayAttack', a),
   };
 
   /**
    * Something loud landed at `point` (a bolt in a tree or the dirt): animals within impactSpook m bolt after a
    * short start, within impactAlert m their heads come up. `strength` scales both radii (1 = a bolt).
    */
-  disturb(point: THREE.Vector3, strength = 1): void { this.hunt.disturb(this.animals, point, strength); }
+  disturb(point: Vector3, strength = 1): void { this.hunt.disturb(this.animals, point, strength); }
 
   /** A shard's own thinkers steer by the navmesh (Nalati: set by src/shards/nalati-grasslands/index.ts — NALATI-MERGE P3; hunt.ts `steerNav`). */
   get navSteer(): boolean { return this.hunt.navSteer; }
@@ -807,18 +609,18 @@ export class AnimalManager {
   private hitResult: AnimalHit | null = null;
 
   /** the DAMAGE model (Animal.ts): a body bolt from `dist` m (falloff past 40 m), ×headMul for the head */
-  damageFor(headshot: boolean, dist: number): number { return damageFor(headshot, dist); }
+  damageFor(headshot: boolean, dist: number): number { return damageFor(headshot, dist, () => this.host.rng.stream('gameplay').next()); }
 
   /**
    * Ray vs every living animal's head sphere + body capsule. Returns the nearest hit
    * (the returned object is reused between calls — copy what you need).
    */
-  raycast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number, aliveOnly = true): AnimalHit | null {
+  raycast(origin: Vector3, dir: Vector3, maxDist: number, aliveOnly = true): AnimalHit | null {
     // PHYSICS P6: the animals' head / body hitboxes in the physics world (posed every update); dead ones have none
     void aliveOnly;
-    const hit = this.bodiesFor()?.cast(origin, dir, maxDist, app.equipmentHost?.player.mountedOn ?? null) ?? null;
+    const hit = this.bodiesFor()?.cast(origin, dir, maxDist, this.host.equipmentHost?.player.mountedOn ?? null) ?? null;
     if (hit === null) return null;
-    const h = this.hitResult ??= { animal: hit.creature, point: new THREE.Vector3(), distance: 0, headshot: false, damage: 0 };
+    const h = this.hitResult ??= { animal: hit.creature, point: new Vector3(), distance: 0, headshot: false, damage: 0 };
     h.animal = hit.creature; h.distance = hit.distance; h.headshot = hit.head;
     h.point.copy(hit.point);
     h.damage = this.damageFor(hit.head, h.point.distanceTo(this.playerPos));
@@ -828,7 +630,7 @@ export class AnimalManager {
   private bodies: CreatureBodies<Animal> | null = null;
   /** the physics side of the herds (src/engine/physics/creatures.ts), made once the shard's world exists */
   private bodiesFor(): CreatureBodies<Animal> | null {
-    if (this.bodies === null) { const p = this.physics ?? app.physics; if (p !== null) this.bodies = new CreatureBodies<Animal>(p); }
+    if (this.bodies === null) { const p = this.physics ?? this.host.physics; if (p !== null) this.bodies = new CreatureBodies<Animal>(p); }
     return this.bodies;
   }
   /** how many animals have a physics body (the near LOD) — the bench reads it */
@@ -838,10 +640,10 @@ export class AnimalManager {
    * The living animal whose head sphere or body capsule passes within `tol` m of the ray (nearest along the ray),
    * or null. Cheap (one closest-point test per animal in range) — Combat asks every frame for the crosshair target.
    */
-  nearRay(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number, tol: number): Animal | null {
+  nearRay(origin: Vector3, dir: Vector3, maxDist: number, tol: number): Animal | null {
     let best = maxDist, bestA: Animal | null = null;
     for (const a of this.animals) {
-      if (!a.alive || a.hidden || a === app.equipmentHost?.player.mountedOn) continue;
+      if (!a.alive || a.hidden || a === this.host.equipmentHost?.player.mountedOn) continue;
       _c.copy(a.position); _c.y += a.dims.bodyY * a.scale;
       _d.subVectors(_c, origin);
       const t = _d.dot(dir);
@@ -866,14 +668,14 @@ export class AnimalManager {
   }
 
   /** Convenience: apply a raycast hit with its modelled damage. Returns true if it died. */
-  hit(hit: AnimalHit, dir: THREE.Vector3): boolean {
+  hit(hit: AnimalHit, dir: Vector3): boolean {
     return hit.animal.applyDamage(hit.damage, hit.point, dir);
   }
 
   /** every applyDamage lands here: blood, sounds, AI reaction, kill event */
-  private damaged = (a: Animal, amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3, died: boolean): void => {
+  private damaged = (a: Animal, amount: number, hitPoint: Vector3, dir: Vector3, died: boolean): void => {
     const sp = speciesDef(a.kind);
-    if (sp.blood !== false) this.blood.burst(hitPoint, dir, amount >= 80 ? 1.5 : 1);
+    if (sp.blood !== false) this.draw.bloodBurst(hitPoint, dir, amount >= 80 ? 1.5 : 1);
     this.onSound?.((sp.sounds?.hurt ?? fallbackSound(a.aggressive, 'hurt')), a.position);
     // headshot = the hit point sits inside the head sphere (a hair of slack for the ray step)
     a.headWorld(_p);
@@ -895,44 +697,22 @@ export class AnimalManager {
     if (speciesDef(a.kind).think !== undefined) return;
     this.hunt.staggered(a, strength, running);
   };
-
-  // ── debug ──────────────────────────────────────────────────────────────────────────────
-
-  private updateDebug(): void {
-    if (this.debugMeshes.length === 0) {
-      const mat = new THREE.MeshBasicMaterial({ color: 0x8fe3ff, wireframe: true });
-      for (const a of this.animals) {
-        const h = new THREE.Mesh(new THREE.SphereGeometry(a.dims.headRadius * a.scale, 10, 8), mat);
-        const b = new THREE.Mesh(new THREE.CapsuleGeometry(a.dims.bodyRadius * a.scale, a.dims.bodyHalfLen * 2 * a.scale, 4, 10), mat);
-        this.debugMeshes.push(h, b); this.group.add(h, b);
-      }
-    }
-    this.animals.forEach((a, i) => {
-      const h = this.debugMeshes[i * 2], b = this.debugMeshes[i * 2 + 1];
-      if (h === undefined || b === undefined) return;
-      a.headWorld(h.position);
-      a.bodyCapsule(_a, _b);
-      b.position.lerpVectors(_a, _b, 0.5);
-      _d.subVectors(_b, _a).normalize();
-      b.quaternion.setFromUnitVectors(_c.set(0, 1, 0), _d);
-    });
-  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────────────────
 // Ray helpers
 // ─────────────────────────────────────────────────────────────────────────────────────────
 
-const _ab = new THREE.Vector3(), _ao = new THREE.Vector3();
+const _ab = new Vector3(), _ao = new Vector3();
 
 
 /** squared distance between a ray (o, d unit) and a segment a-b (closest points, clamped to the segment and t ≥ 0) */
-function segRayDist2(o: THREE.Vector3, d: THREE.Vector3, a: THREE.Vector3, b: THREE.Vector3): number {
+function segRayDist2(o: Vector3, d: Vector3, a: Vector3, b: Vector3): number {
   _ab.subVectors(b, a); _ao.subVectors(a, o);
   const abab = _ab.dot(_ab), abd = _ab.dot(d), aod = _ao.dot(d), abao = _ab.dot(_ao);
   const den = abab - abd * abd;
   let u = den > 1e-6 ? (abd * aod - abao) / den : 0;            // param on the segment
-  u = THREE.MathUtils.clamp(u, 0, 1);
+  u = MathUtils.clamp(u, 0, 1);
   let t = aod + u * abd;                                        // param on the ray
   if (t < 0) t = 0;
   const px = a.x + _ab.x * u - (o.x + d.x * t), py = a.y + _ab.y * u - (o.y + d.y * t), pz = a.z + _ab.z * u - (o.z + d.z * t);

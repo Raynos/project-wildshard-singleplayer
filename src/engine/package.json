@@ -417,6 +417,7 @@
     "./entities/AnimalSim": "./entities/AnimalSim.ts",
     "./entities/animalStates": "./entities/animalStates.ts",
     "./entities/killHeight": "./entities/killHeight.ts",
+    "./entities/AnimalHerdView": "./entities/AnimalHerdView.ts",
     "./script/host": "./script/host.ts",
     "./script/effects": "./script/effects.ts",
     "./script/queries": "./script/queries.ts",

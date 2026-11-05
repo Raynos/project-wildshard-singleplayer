@@ -144,7 +144,7 @@
     "src/engine/core/GpuRecovery.ts": 2,
     "src/engine/core/webglStartup.ts": 2,
     "src/engine/debug/probe.ts": 3,
-    "src/engine/entities/AnimalManager.ts": 12,
+    "src/engine/entities/AnimalManager.ts": 4,
     "src/engine/explore/catalog.ts": 4,
     "src/engine/explore/ModelExplorer.ts": 1,
     "src/engine/explore/Select.ts": 2,

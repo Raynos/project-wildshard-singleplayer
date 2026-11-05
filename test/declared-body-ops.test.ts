@@ -8,6 +8,7 @@ import { DeclaredBodyOps } from '../src/game/quest/bodyOps';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { createSimHost } from '../src/engine/sim';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
+import { AnimalHerdView } from '../src/engine/entities/AnimalHerdView';
 import { AnimalManager } from '../src/engine/entities/AnimalManager';
 import { Animal } from '../src/engine/entities/AnimalView';
 import { Forest } from '../src/engine/world/forest/Forest';
@@ -97,7 +98,7 @@ test('page actors are real native rigs, excluded from target lists and retired e
   if (!(sky instanceof SkyRig) || !(forest instanceof Forest)) throw new Error('Missing native test services');
   const material = vi.spyOn(sky, 'setupMaterial').mockImplementation(() => undefined);
   const preloads = vi.spyOn(app.species, 'preloads').mockReturnValue([]);
-  const manager = owner.run(() => new AnimalManager(new Scene(), sky, forest, { style: 'toon', render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true } }));
+  const manager = owner.run(() => new AnimalManager(new AnimalHerdView(new Scene(), sky, { style: 'toon', render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true } }), app, forest));
   const ctx = { scope: owner, app, game: { runtime: { play: { animals: manager } } } } as ShardContext;
   const retire = vi.spyOn(manager, 'retire');
   try {

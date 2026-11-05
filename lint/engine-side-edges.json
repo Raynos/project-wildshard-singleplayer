@@ -4,9 +4,9 @@
   "client → server": 458,
   "cook → client": 2,
   "cook → render": 1,
-  "server → client": 206,
-  "server → dom": 3,
-  "server → render": 10,
+  "server → client": 196,
+  "server → dom": 2,
+  "server → render": 9,
   "shared → client": 3,
   "shared → dom": 1,
   "shared → server": 1
@@ -83,11 +83,6 @@
   },
   "src/engine/debug/probe.ts": {
    "client → server": 1
-  },
-  "src/engine/entities/AnimalManager.ts": {
-   "server → client": 10,
-   "server → dom": 1,
-   "server → render": 1
   },
   "src/engine/entities/AnimalView.ts": {
    "client → server": 3

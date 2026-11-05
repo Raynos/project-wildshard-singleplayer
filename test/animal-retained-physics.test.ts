@@ -2,6 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
 import { Scene } from 'three';
+import { AnimalHerdView } from '../src/engine/entities/AnimalHerdView';
 import { AnimalManager } from '../src/engine/entities/AnimalManager';
 import { Forest } from '../src/engine/world/forest/Forest';
 import { SkyRig } from '../src/engine/world/skyRig';
@@ -33,9 +34,11 @@ test.each([true, false])('animal floors retain destination physics across source
       host.physics.world.step();
     }
     app.physics = source.physics;
-    const manager = owner.run(() => new AnimalManager(new Scene(), sky, forest, { style: 'toon',
-      render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },
-      ...(retained ? { physics: destination.physics } : {}) }));
+    const manager = owner.run(() => {
+      const physics = retained ? destination.physics : undefined;
+      return new AnimalManager(new AnimalHerdView(new Scene(), sky, { style: 'toon', physics,
+        render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true } }), app, forest, physics);
+    });
     const animal = owner.run(() => manager.spawn('bear', 0, 0, 0, 'brown', { fromY: 12 }));
     expect(animal.position.y).toBeCloseTo(retained ? 4 : 9);
     if (retained) {

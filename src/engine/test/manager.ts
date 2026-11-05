@@ -1,6 +1,8 @@
+import { AnimalHerdView } from '../entities/AnimalHerdView';
 import { AnimalManager } from '../entities/AnimalManager';
 import { StalkerBrain } from '../ai/stalker';
 import { fakeWorld } from './world';
+import { app } from '../app/runtime';
 import { TickScheduler, type TickActor } from '../app/scheduler';
 import type { Animal } from '../entities/AnimalView';
 
@@ -19,8 +21,9 @@ class LegacyClock extends TickScheduler {
 
 /** Real manager without the canvas-only blood presentation. The caller owns active-shard/physics cleanup. */
 export function manager({ legacyClock = false } = {}): ReturnType<typeof fakeWorld> & { manager: AnimalManager; advance: (n: number) => void } {
-  const f = fakeWorld(), m = new AnimalManager(f.game.scene, f.sky, f.forest, { style: 'toon', render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0.3, oneMaterial: true } });
-  Reflect.set(m, 'blood', { update: (): void => undefined, burst: (): void => undefined });
+  const f = fakeWorld(), view = new AnimalHerdView(f.game.scene, f.sky, { style: 'toon', render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0.3, oneMaterial: true } });
+  const m = new AnimalManager(view, app, f.forest);
+  Reflect.set(view, 'blood', { update: (): void => undefined, burst: (): void => undefined });
   if (legacyClock) {
     const scheduler = new LegacyClock(), prev = f.player.position.clone();
     let initialized = false, speed = 0;

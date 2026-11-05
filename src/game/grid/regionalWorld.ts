@@ -53,6 +53,7 @@ import { withOwner } from '@wildshard/engine/app/ownership';
 import { TexturePolicyBinding, registerGpuFiles, texMode } from '@wildshard/engine/boot/gpuFiles';
 import { ownSceneResource, ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
+import { AnimalHerdView } from '@wildshard/engine/entities/AnimalHerdView';
 import { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { LevelFrameBinding, type LevelFrameOptions } from '@wildshard/engine/level/frame';
 import type { LevelSpec } from '@wildshard/engine/level/spec';
@@ -523,7 +524,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
         },
         afterKit: async () => {
           if (resident.disposed) throw new Error('Regional world left before its creatures');
-          const animals = frame.run(app, () => new AnimalManager(scene, sky, forest, { physics: host.physics }));
+          const animals = frame.run(app, () => new AnimalManager(new AnimalHerdView(scene, sky, { physics: host.physics }), app, forest, host.physics));
           await animals.buildAsync(ports.pause, frame);
           if (left()) throw new Error('Regional world left while building creatures');
           animals.setResidency(followRing()); // T6: the animals outside the player's 5 x 5 sleep
