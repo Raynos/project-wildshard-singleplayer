@@ -47,7 +47,8 @@ export function importerFiles(root, changed) {
 /** Literal imports and repository paths must not point at an outgoing deletion.
  * @param {string} root @param {readonly string[]} deleted @returns {string[]} */
 export function deletedReferences(root, deleted) {
-  const removed = new Set(deleted), errors = [];
+  // Format moved to the shardfile repo: its package imports are good, and its old paths live on as logical labels.
+  const removed = new Set(deleted.filter(path => !path.startsWith('src/format/'))), errors = [];
   if (removed.size === 0) return errors;
   const allowFile = resolve(root, 'scripts/check-paths.allow.json');
   /** @type {{file: string, path: string}[]} */

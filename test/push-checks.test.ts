@@ -25,20 +25,20 @@ test('outgoing deletion grep covers imports, JSON and process paths, ignoring co
     const path = resolve(root, name); mkdirSync(resolve(path, '..'), { recursive: true }); writeFileSync(path, value);
   };
   try {
-    put('src/reader.ts', "// import './gone';\nimport './gone'; import '@wildshard/format/gone';");
-    put('src/rows.json', '{"file":"src/format/gone.ts"}');
+    put('src/reader.ts', "// import './gone';\nimport './gone'; import '@wildshard/engine/gone';");
+    put('src/rows.json', '{"file":"src/engine/gone.ts"}');
     put('scripts/job.py', "# 'src/gone.ts'\nrun('src/gone.ts')");
     put('scripts/job.sh', "node 'src/gone.ts'");
     put('test/fixtures/negative.ts', "import '../../src/gone';");
-    put('scripts/check-paths.allow.json', JSON.stringify([{ file: 'src/rows.json', path: 'src/format/gone.ts', why: 'negative fixture' }]));
-    const deleted = ['src/gone.ts', 'src/format/gone.ts'];
+    put('scripts/check-paths.allow.json', JSON.stringify([{ file: 'src/rows.json', path: 'src/engine/gone.ts', why: 'negative fixture' }]));
+    const deleted = ['src/gone.ts', 'src/engine/gone.ts'];
     const found = deletedReferences(root, deleted);
     expect(found).toHaveLength(4);
     expect(found).toContain('src/reader.ts:2: deleted path src/gone.ts');
-    expect(found).toContain('src/reader.ts:2: deleted path src/format/gone.ts');
+    expect(found).toContain('src/reader.ts:2: deleted path src/engine/gone.ts');
     expect(found.some(line => line.includes('job.py:2'))).toBe(true);
     expect(found.some(line => line.includes('job.sh:1'))).toBe(true);
-    put('src/gone.ts', 'export {};'); put('src/format/gone.ts', 'export {};');
+    put('src/gone.ts', 'export {};'); put('src/engine/gone.ts', 'export {};');
     expect(deletedReferences(root, deleted).sort()).toEqual([]);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
