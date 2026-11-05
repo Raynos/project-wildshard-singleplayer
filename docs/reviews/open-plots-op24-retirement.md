@@ -1,7 +1,8 @@
 # OP24 material and schema retirement
 
-Status: qualified locally, 2026-11-04 (sp-x6, G1012). Publication is held
-for the coordinator's timed window. Source: 2f65287f6124c91ea340f1b0107a95ad9d962a52.
+Status: done, published 2026-11-04 (sp-x6, G1012). Source 2f65287f61 and
+qualification c92387efbd are both verified ancestors of origin/main at
+5ad17f7c754dca69e2c20090bbee6fd6bb6bace1. No live-build claim.
 
 Seven unused look entries and the hologram graph no longer ship. Their
 inactive placeholder consumer and two inputs are deleted. The SDK rejects
