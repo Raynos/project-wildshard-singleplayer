@@ -15,7 +15,7 @@ import { fixedDraws } from '../src/game/models/fixedDraws';
 import { ProductFigureCatalogue } from '../src/game/models/figureCatalogue';
 import { KitFigure } from '../src/game/systems/npc/kitFigure';
 import { FigureRows } from '../src/game/systems/npc/figureRows';
-import { ownQuestTree } from '../src/game/quest/chapter';
+import { ownQuestTree } from '../src/game/quest/chapterView';
 import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
 import { driftwoodQuestFigures } from '../src/shards/driftwood-isle/generators/questFigures';
 import { castawayFigure } from './fixtures/driftwoodCastawayOracle';

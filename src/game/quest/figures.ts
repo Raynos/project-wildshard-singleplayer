@@ -29,7 +29,7 @@ import { place as placeModel } from '@wildshard/engine/models/place';
 import type { ShardContext } from '../plugin/context';
 import { FigureRows } from '../systems/npc/figureRows';
 import { stepFigureOrbit } from './figureOrbit';
-import { ownQuestTree } from './chapter';
+import { ownQuestTree } from './chapterView';
 
 interface Place { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number }
 /** What the composition host lends the installer: its one placement, the page's scene resources, the fixed-draw owner,

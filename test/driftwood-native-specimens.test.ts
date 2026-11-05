@@ -16,7 +16,7 @@ import type { QuestFigureRows } from '@wildshard/format/questFigures';
 import { driftwoodQuestFigures } from '../src/shards/driftwood-isle/generators/questFigures';
 import { castawayFigure } from './fixtures/driftwoodCastawayOracle';
 import { FigureRows } from '@wildshard/game/systems/npc/figureRows';
-import { ownQuestTree } from '@wildshard/game/quest/chapter';
+import { ownQuestTree } from '@wildshard/game/quest/chapterView';
 import { clientMaterials } from '../src/game/shardfile/clientMaterials';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';

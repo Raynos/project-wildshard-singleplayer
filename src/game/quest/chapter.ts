@@ -1,17 +1,10 @@
 import * as v from 'valibot';
-import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
-import { StreamingCamera } from '../shardfile/streamingView';
-import { BatchedMesh, Vector3, type Object3D, type Mesh } from 'three';
-import { withOwner } from '@wildshard/engine/app/ownership';
-import { WORK_SLICE_MS, workSlice, buildYield } from '@wildshard/engine/core/workSlice';
-import type { Interactables } from '@wildshard/engine/world/interact/Interactables';
+import type { Vector3 } from 'three';
 import { bindInteractPlacements, createQuestPlacements, type InteractTable } from '@wildshard/engine/world/interact/types';
 import { validateTable } from '@wildshard/engine/world/interact/validate';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { isJsonData } from '@wildshard/format/json';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
-import { app } from '@wildshard/engine/app/runtime';
-import { ownSceneTree, sceneObjectOwner } from '@wildshard/engine/app/sceneOwnership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { QuestLine, QuestState } from '@wildshard/engine/quest/core';
 import type {LiveMarker} from '@wildshard/engine/quest/view';
@@ -20,35 +13,28 @@ import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { FullMap } from '@wildshard/engine/ui/Map';
 import type { DialogueBox, ObjectiveLine } from '@wildshard/engine/quest/view/ui';
 import { parseQuestStory, parseChapterStoryPresentation } from '@wildshard/format/questStory';
-import { FigureRows } from '../systems/npc/figureRows';
 import { NpcDialogueRowSchema, bindQuestDeathEffects } from '../plugin/quests';
-import { installContractBoardPage, type ContractBoardPage } from './contractBoardPage';
+import { chapterTalkFigures, completionMarkers, installInteractablesView, installQuestCableView, questBoardPage, questTalkFigures, questViews, type QuestCableView } from './chapterView';
+import type { ContractBoardPage } from './contractBoardPage';
 import type { ContractBoardPageRows } from '@wildshard/format/contracts';
 import { ReturnProgram } from '../population/returnProgram';
 import { boundChapter, hasBoundChapter, publishBoundChapter, readQuestObservation, enteredAdventurePersistence } from './chapterBindings';
 import { commitQuestEffects, readQuestServiceActions } from './effects';
 import { QuestEffectSchema } from '@wildshard/format/questSteps';
 import type { ShardContext } from '../plugin/context';
-import { completionProjection, type CompletionProgress } from '../complete/declared';
-import { QuestViews, type QuestNpcTalkPorts, type QuestPresentationHost, type QuestPresentationOptions } from '../plugin/ui';
+import type { FigureRows } from '../systems/npc/figureRows';
+import type { CompletionProgress } from '../complete/declared';
+import type { QuestPresentationHost, QuestPresentationOptions } from '../plugin/ui';
 import { boundQuestServices, findBoundQuestState, installBoundQuestFlags } from './boundState';
 import { bindRuntimeQuest } from '../plugin/headless';
 import { bindStoryAchievements, bindStoryChapters, presentChapterStory, presentQuestStory, installStoryTalks } from './story';
 import { questPageWorld } from './pageResources';
 import { questBenchPose } from './storyLaw';
 import type { QuestPageTalksRows } from '@wildshard/format/npcs';
-import { ProductFigureCatalogue } from '../models/figureCatalogue';
-import { SceneHandles } from '../shardfile/sceneHandles';
-import { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
 import { QuestStepRunner } from './steps';
 import { chapterDecide } from './chapterDecision';
 import { openQuestTrader, installQuestTrader, parseQuestTrader, type QuestTrader } from './trader';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import { cableModes } from '@wildshard/engine/player/modes';
-import type { Placed } from '@wildshard/engine/models/place';
-import { installWorldScenes } from '../shardfile/worldScenes';
-import { residentWorldScope } from '../shardfile/hybridPresentation';
-import { ControlRefinement } from '../shardfile/controlRefinement';
 
 const finite = v.pipe(v.number(), v.finite());
 const point = v.strictObject({ x: finite, y: finite, z: finite });
@@ -93,13 +79,6 @@ export interface QuestChapter {
 export function boundQuestChapter(scope: Scope, id: string): QuestChapter {
   return boundChapter(scope, id);
 }
-/** Respect a piece's owner when a quest borrows it; own only the entry's unowned subtree. */
-export function ownQuestTree(object: Object3D, scope: Scope): void {
-  const mine = sceneObjectOwner(object);
-  if (mine !== null && mine !== (object.parent === null ? null : sceneObjectOwner(object.parent))) return;
-  ownSceneTree(object, scope, app.assets);
-}
-
 /** Bind the existing saved flag book by declared quest id and its original level key. */
 export function installQuestFlags(ctx: Pick<QuestChapterContext, 'scope' | 'product'>, id: string, level: string): Flags {
   if (!ctx.product.shardfile.quests.quests.some(row => row.id === id)) throw new Error('Quest flags require a declared quest');
@@ -126,14 +105,6 @@ const entryTrader = v.strictObject({ rows: v.unknown(), resources: v.exactOption
   figure: entryId, counter: entryId, offer: entryId, label: entryId,
   radius: v.pipe(finite, v.minValue(0), v.maxValue(100)), before: v.pipe(v.array(entryId), v.maxLength(64)), page: v.exactOptional(v.unknown()),
 })) });
-/** Client cable view borrows the existing scene and mode continuation. */
-export interface QuestCableView {
-  readonly group: Object3D; readonly placed: Placed | null; readonly trolley: Mesh;
-  readonly prompt: ReturnType<ReturnType<typeof cableModes>['bindView']>;
-  readonly cables: ReturnType<typeof cableModes>; readonly mode: string;
-  /** Advance the original mode and drain its feedback once at the caller's phase. */
-  readonly update: (dt: number) => void;
-}
 /** Prepared services retain the entered story's original state owners. */
 export interface QuestEntry extends ReturnType<typeof createQuestPlacements> {
   readonly story: ReturnType<typeof parseQuestStory>; readonly flags: Flags;
@@ -174,7 +145,7 @@ export async function prepareQuestEntry(ctx: ShardContext, input: unknown): Prom
   return { story, flags, services, ...placement,
     board: boardInput => {
       if (boardInstalled || interaction === null || achievements === null || ctx.scope.disposed) throw new Error('Quest board requires its live table and achievement owners');
-      const board = installContractBoardPage(ctx, story.quest.id, boardInput, interaction.sfx, achievements);
+      const board = questBoardPage(ctx, story.quest.id, boardInput, interaction.sfx, achievements);
       boardInstalled = true; return board;
     },
     trader: traderInput => {
@@ -190,37 +161,8 @@ export async function prepareQuestEntry(ctx: ShardContext, input: unknown): Prom
     },
     cable: async cableInput => {
       if (!isJsonData(cableInput)) throw new Error('Quest cable requires JSON rows');
-      const cable = v.parse(entryCable, cableInput), runtime = ctx.game.runtime;
-      if (runtime === undefined) throw new Error('Quest cable requires its entered world');
-      const requireLive = (): void => { if (ctx.scope.disposed) throw new Error('Quest cable left during scene admission'); };
-      requireLive();
-      const cables = cableModes(ctx.scope); cables.state(cable.mode);
-      const scenes = await installWorldScenes(ctx, ctx.product.section('world/scenes'), residentWorldScope(ctx));
-      const placed = cable.scene.kind === 'placement' ? await scenes.place(cable.scene.id) : null;
-      requireLive();
-      const feedback = cable.feedback, play = runtime.play;
-      if (feedback !== undefined && play === null) throw new Error('Cable feedback requires its entered play owners');
-      const audio = feedback?.shot === undefined ? null : runtime.objects[feedback.shot.audio];
-      if (feedback?.shot !== undefined && (!(audio instanceof DeclaredAmbience) || !audio.sfx.acceptsShot(feedback.shot.family))) throw new Error('Cable feedback requires its declared sound bank');
-      const at = (value: string | v.InferOutput<typeof point>): Vector3 => typeof value === 'string' ? scenes.vector(value) : new Vector3(value.x, value.y, value.z);
-      const start = feedback === undefined ? null : at(feedback.start.at), end = feedback === undefined ? null : at(feedback.end.at);
-      const shotAt = feedback?.shot === undefined ? null : at(feedback.shot.at), sfx = play === null ? null : new InteractSfx(play.audio);
-      const group = placed?.object ?? scenes.object(cable.scene.id), trolley = scenes.mesh(cable.carriage);
-      const position = typeof cable.prompt === 'string' ? scenes.vector(cable.prompt) : new Vector3(cable.prompt.x, cable.prompt.y, cable.prompt.z);
-      const prompt = cables.bindView(cable.mode, trolley, world.player, { position, radius: cable.radius, label: cable.label }, cable.camera ? world.game.camera : undefined);
-      world.game.scene.add(group); runtime.interactables.push(prompt);
-      return { group, placed, trolley, prompt, cables, mode: cable.mode, update: dt => {
-        if (ctx.scope.disposed) return;
-        cables.update(cable.mode, dt);
-        if (feedback === undefined || play === null || sfx === null) return;
-        for (const on of cables.takeTransitions(cable.mode)) {
-          play.weapons.visible = !on;
-          if (feedback.weapons === 'enabled') play.weapons.setEnabled(!on);
-          if (on && audio instanceof DeclaredAmbience && feedback.shot !== undefined && shotAt !== null) audio.sfx.shot(feedback.shot.family, { at: shotAt });
-          sfx.interact(on ? feedback.start.sound : feedback.end.sound, (on ? start : end) ?? undefined);
-          if (!on && feedback.arrival !== undefined) play.hud.toast(feedback.arrival);
-        }
-      } };
+      const view = await installQuestCableView(ctx, v.parse(entryCable, cableInput), world);
+      return view;
     },
     deaths: deathInput => {
       if (!isJsonData(deathInput)) throw new Error('Quest deaths require JSON rows');
@@ -245,39 +187,7 @@ export async function prepareQuestEntry(ctx: ShardContext, input: unknown): Prom
       requireLive();
       if (talksInstalled) throw new Error('Quest talks already installed');
       talksInstalled = true;
-      let skinQueue: ControlRefinement | undefined;
-      let skinSequence = 0;
-      const immediate: Promise<void>[] = [];
-      const figures = new Map<string, QuestNpcTalkPorts<FigureRows>['figures'] extends ReadonlyMap<string, infer Model> ? Model : never>();
-      for (const row of talkRows.models) {
-        if (row.source === 'catalogue') {
-          const book = await ProductFigureCatalogue.fromProduct(ctx.product, row.library), audio = runtime.objects[row.bark.audio];
-          requireLive();
-          if (!(audio instanceof DeclaredAmbience)) throw new Error('Quest talk lost its figure or audio owner');
-          const scene = new SceneHandles(world.sky);
-          figures.set(row.id, { kind: 'posed', create: (at, yaw) => {
-            const figure = book.create(row.id, scene, [at.x, at.y, at.z], yaw, ctx.scope, { viewer: world.player.position,
-              later: (id, position, run) => {
-                if (skinQueue === undefined) {
-                  const camera = new StreamingCamera(ctx.root, () => world.game.camera);
-                  skinQueue = new ControlRefinement(ctx.scope, world.game.levelScope, () => world.player.position, () => buildYield(ctx.scope), () => camera.read());
-                }
-                return skinQueue.add(`${id}:${String(skinSequence++)}`, position, run);
-              } });
-            if (!figure.skinDeferred) immediate.push(figure.ready);
-            return figure;
-          },
-            bark: figure => { audio.sfx.bark(row.bark.group, figure.talkPoint); } });
-        } else {
-          const figure = FigureRows.entered(ctx.scope, row.id);
-          figures.set(row.id, { kind: 'borrowed', create: () => figure,
-            own: (value, register) => { ownQuestTree(value.group, ctx.scope); ctx.scope.run(register); },
-            at: value => value.headWorld(new Vector3()), advance: value => { value.syncAnchors(); },
-            open: () => { if (row.swap) play.audio.weaponSwap(); }, stow: on => { if (row.stow) play.weapons.stowed = on; },
-            approach: { at: value => value.group.position, run: value => { value.signal(row.approach); } },
-          });
-        }
-      }
+      const { figures, immediate } = await questTalkFigures(ctx, talkRows, world, runtime, play, requireLive);
       const steps = Object.values(talkRows.calls).some(call => call.kind === 'talk') ? new QuestStepRunner(talkRows.steps) : null;
       const calls = new Map(Object.entries(talkRows.calls).map(([id, row]) => [id, () => {
         if (row.kind === 'trader') { openQuestTrader(ctx.scope, row.trader); return; }
@@ -287,7 +197,7 @@ export async function prepareQuestEntry(ctx: ShardContext, input: unknown): Prom
           inventory: Object.fromEntries(play.inventory.items.map(item => [item.id, item.count])) }));
         if (row.after !== undefined && !paid && flags.has(row.after.flag)) services.run(row.after.service);
       }]));
-      const talks = installStoryTalks(new QuestViews(ctx), ctx.product.shardfile, { flags, scene: world.game.scene, registry: world.registry,
+      const talks = installStoryTalks(questViews(ctx), ctx.product.shardfile, { flags, scene: world.game.scene, registry: world.registry,
         prompts: runtime.interactables, groundAt: placement.floorAt, figures, calls });
       await Promise.all(immediate); requireLive(); return talks;
     },
@@ -357,7 +267,7 @@ export function buildQuestChapter(ctx: ShardContext, storyInput: unknown, input:
   }
   const complete = rows.completion === true ? ctx.product.section('ui/completion') : null;
   const left = (): LiveMarker[] | null => complete === null || !quest.isComplete ? null
-    : completionProjection(complete, quest.flags, play.progress, undefined, undefined, anchors).markers;
+    : completionMarkers(complete, quest.flags, play.progress, anchors);
   const markers = (): LiveMarker[] => quest.markers().map(marker => {
     const at = rows.placements?.[JSON.stringify(marker.at)] ?? marker.at;
     return { id: marker.id, label: marker.label, short: marker.short ?? marker.label, x: at.x, z: at.z };
@@ -371,10 +281,7 @@ export function buildQuestChapter(ctx: ShardContext, storyInput: unknown, input:
   const presentation = line === null || story.chapters === undefined
     ? presentQuestStory(parseQuestStory(story), { scope: ctx.scope, player: world.player, fullMap, toast, sting }, quest, options)
     : presentChapterStory(line, story.chapters, { ...(completeStory === null ? { ctx } : {}), scope: ctx.scope, flags: quest.flags,
-      figures: Object.fromEntries(story.chapters.talks.map(row => {
-        const figure = FigureRows.entered(ctx.scope, row.figure ?? row.id);
-        return [row.id, { headWorld: figure.talkPoint, get talking() { return figure.talking; }, set talking(value: boolean) { figure.talking = value; } }];
-      })), npcs: rows.content?.npcs ?? {}, places: rows.content?.places ?? [], prompts: ctx.game.runtime?.interactables ?? [],
+      figures: chapterTalkFigures(ctx.scope, story.chapters.talks), npcs: rows.content?.npcs ?? {}, places: rows.content?.places ?? [], prompts: ctx.game.runtime?.interactables ?? [],
       open: () => { ctx.game.runtime?.play?.audio.weaponSwap(); },
       ...(persistence === null ? {} : { feat: persistence.feat }), fullMap, toast, sting, ...(completeStory === null ? {} : options) });
   let places: Places | null = completeStory === null && 'places' in presentation ? presentation.places : null;
@@ -429,7 +336,7 @@ export function buildQuestChapter(ctx: ShardContext, storyInput: unknown, input:
  * retains its update phase and event wiring; this owns no clock or save wire.
  */
 export async function installQuestInteractables(ctx: ShardContext, id: string,
-  input: { readonly table: InteractTable; readonly placements?: unknown; readonly platforms?: boolean; readonly registryReach?: number }): Promise<Interactables & { readonly sfx: InteractSfx }> {
+  input: { readonly table: InteractTable; readonly placements?: unknown; readonly platforms?: boolean; readonly registryReach?: number }): ReturnType<typeof installInteractablesView> {
   if (!isJsonData(input)) throw new Error('Quest interactables require plain JSON data');
   v.parse(v.strictObject({ table: v.unknown(), placements: v.exactOptional(v.unknown()),
     platforms: v.exactOptional(v.boolean()), registryReach: v.exactOptional(v.pipe(finite, v.minValue(Number.MIN_VALUE))) }), input);
@@ -443,17 +350,6 @@ export async function installQuestInteractables(ctx: ShardContext, id: string,
   const { floorAt, place } = createQuestPlacements({ terrain: terrainHeight, registry: world.registry,
     ...(input.platforms === true ? { platforms: world.player.platforms } : {}),
     ...(input.registryReach === undefined ? {} : { registryReach: input.registryReach }) });
-  const { Interactables } = await import('@wildshard/engine/world/interact/Interactables');
-  if (ctx.scope.disposed) throw new Error('Quest left while admitting interactables');
-  const before = new Set(world.game.scene.children);
-  const kit = withOwner(ctx.scope, () => new Interactables({ scene: world.game.scene, sky: world.sky,
-    player: world.player, flags, place, floorAt, prompts: runtime.interactables }));
-  // the rows' shapes are made a slice at a time: all at once they were ~60 ms of Driftwood's play task at phone CPU
-  const slice = workSlice(WORK_SLICE_MS, ctx.scope);
-  for (const row of table.rows) { withOwner(ctx.scope, () => kit.addRows([row])); await slice.check(); }
-  withOwner(ctx.scope, () => kit.finish());
-  for (const node of world.game.scene.children) if (!before.has(node) && node instanceof BatchedMesh) ownQuestTree(node, ctx.scope);
-  ctx.scope.onDispose(() => { kit.dispose({ batches: false }); });
-  const audio = runtime.play?.audio; if (audio === undefined) throw new Error('Quest interactions require entered audio');
-  return Object.assign(kit, { sfx: new InteractSfx(audio) });
+  const kit = await installInteractablesView(ctx, table, flags, world, runtime, { floorAt, place });
+  return kit;
 }

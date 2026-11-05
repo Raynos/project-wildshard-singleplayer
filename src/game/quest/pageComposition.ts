@@ -30,7 +30,8 @@ import { QuestViews, bindQuestPageInteractions, type QuestPageInteractions } fro
 import type { MoverRuntime } from '../plugin/mover';
 import type { DialogueBox } from '@wildshard/engine/quest/view/ui';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
-import { prepareQuestEntry, buildQuestChapter, type QuestCableView, type QuestChapter } from './chapter';
+import { prepareQuestEntry, buildQuestChapter, type QuestChapter } from './chapter';
+import type { QuestCableView } from './chapterView';
 import { bindRuntimeQuest } from '../plugin/headless';
 import { installQuestShop, type QuestTrader } from './trader';
 import { PlaceGuide } from '@wildshard/engine/quest/view';

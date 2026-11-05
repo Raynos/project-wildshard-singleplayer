@@ -252,6 +252,7 @@
     "./loadout/nativeAmmunition": "./loadout/nativeAmmunition.ts",
     "./quest/steps": "./quest/steps.ts",
     "./quest/chapter": "./quest/chapter.ts",
+    "./quest/chapterView": "./quest/chapterView.ts",
     "./quest/hints": "./quest/hints.ts",
     "./plugin/heldEquipment": "./plugin/heldEquipment.ts",
     "./loadout/held": "./loadout/held.ts",
