@@ -51,7 +51,7 @@ const X = column('x'), Y = column('y'), Z = column('z'), YAW = column('yaw'), ST
 /** What the page measures, as I6 lists it. */
 export interface WorkerClientReport {
   frames: number; framesPerSecond: number; ticksPerSecond: number; correctionsPerMinute: number; corrections: number; worstOffset: number; queue: number; replaysPerFrame: number;
-  delayMs: number; jitterMs: number; mainMsP95: number; workerTickMs: number; rows: number; attacks: number; hits: number; kills: number; refused: number; dropped: number; closed: string | null; x: number; z: number;
+  delayMs: number; jitterMs: number; mainMsP95: number; workerTickMs: number; rows: number; attacks: number; hits: number; kills: number; refused: number; dropped: number; closed: string | null; x: number; z: number; cell: number; serverX: number; serverZ: number;
 }
 declare global { interface Window { __workerClient?: () => WorkerClientReport } }
 
@@ -119,7 +119,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   scope.onDispose(() => { player.link = null; ports.weapons.bindWire(null); net.dispose(); });
   await shell.booted;
   shell.ready();
-  const started = diagnosticNow(), report: WorkerClientReport = { frames: 0, framesPerSecond: 0, ticksPerSecond: 0, correctionsPerMinute: 0, corrections: 0, worstOffset: 0, queue: 0, replaysPerFrame: 0, delayMs: 0, jitterMs: 0, mainMsP95: 0, workerTickMs: 0, rows: 0, attacks: 0, hits: 0, kills: 0, refused: 0, dropped: 0, closed: null, x: 0, z: 0 };
+  const started = diagnosticNow(), report: WorkerClientReport = { frames: 0, framesPerSecond: 0, ticksPerSecond: 0, correctionsPerMinute: 0, corrections: 0, worstOffset: 0, queue: 0, replaysPerFrame: 0, delayMs: 0, jitterMs: 0, mainMsP95: 0, workerTickMs: 0, rows: 0, attacks: 0, hits: 0, kills: 0, refused: 0, dropped: 0, closed: null, x: 0, z: 0, cell: 0, serverX: 0, serverZ: 0 };
   scope.onDispose(client.onCombat(event => { if (event.kind === 'hit' && event.confirmFor !== 0) { report.hits++; if (event.killed) report.kills++; } }));
   let firstTick = -1, cost = 0, sampleAt = 0, framesAt = 0, sampledAt = started;
   system({ id: 'proof.worker.reconcile', phase: 'input', run: () => { const at = diagnosticNow(); net.reconcile(); cost = diagnosticNow() - at; } });
@@ -137,6 +137,8 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     report.replaysPerFrame = predictor.replays / report.frames; report.delayMs = client.clock.delayMs; report.jitterMs = client.clock.jitterMs;
     report.refused = net.attacks.refused; report.attacks = net.attacks.pending;
     report.dropped = client.dropped; report.closed = client.closed; report.x = player.position.x; report.z = player.position.z;
+    const { latest } = client;
+    if (latest !== null) { const { px, pz } = client.owner(latest); report.cell = latest.cell; report.serverX = Number(px); report.serverZ = Number(pz); }
     if (now - sampledAt < 1000) return;
     report.framesPerSecond = (report.frames - framesAt) / (now - sampledAt) * 1000; framesAt = report.frames; sampledAt = now;
     report.mainMsP95 = [...costs].sort((a, b) => a - b)[Math.floor(Math.min(report.frames, costs.length) * 0.95) + Math.max(0, costs.length - report.frames)] ?? 0;
