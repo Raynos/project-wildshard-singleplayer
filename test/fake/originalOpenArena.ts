@@ -24,7 +24,7 @@ import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { modelContext, type ModelDef } from '@wildshard/engine/models/model';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { ShardContext } from '../../src/game/server/plugin/context';
-import { installChannelPrograms } from '../../src/game/server/plugin/channelPrograms';
+import { installChannelPrograms } from '../../src/game/shared/plugin/channelPrograms';
 import type { WeatherReactions } from '../../src/game/server/weather/reactions';
 import type { ShardProduct } from '../../src/game/shared/shardfile/shardProduct';
 import { installBossEncounter, type Boss } from '../../src/game/server/Boss';

@@ -4,7 +4,7 @@ import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { PerchHunterPorts } from '@wildshard/engine/ai/guardianPolicy';
 import { Scope } from '@wildshard/engine/app/scope';
-import { numericCreaturePose } from '../plugin/channelPrograms';
+import { numericCreaturePose } from '../../shared/plugin/channelPrograms';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';

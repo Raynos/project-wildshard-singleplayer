@@ -13,7 +13,7 @@ import { ForestRoofMask } from '../looks/forestRoofMask';
 import { forestPage } from '../shardfile/forestPage';
 import type { ShardContext } from '../../server/plugin/context';
 import { rainCurtainGeometry } from '../systems/looks/rainCurtain';
-import { installChannelPrograms } from '../../server/plugin/channelPrograms';
+import { installChannelPrograms } from '../../shared/plugin/channelPrograms';
 import { graphParamRoots } from '../looks/graphDaySky';
 import { RainPresentationSchema, type RainPresentationRows } from '@wildshard/format/rainPresentation';
 import { GeometryPack } from '@wildshard/engine/models/geometryPack';

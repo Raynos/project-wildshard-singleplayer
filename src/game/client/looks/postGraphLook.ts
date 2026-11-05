@@ -37,7 +37,7 @@ import { GrassPresentation, GrassPresentationProfile } from './grassPresentation
 import { GrassPresentationSchema, grassPresentationFiles } from '@wildshard/format/fieldPresentation';
 import { readFileInputs } from '../../shared/shardfile/fileInputs';
 import { StaticCapture, staticCaptureUniforms, type StaticCaptureUniforms } from './staticCapture';
-import { installChannelPrograms } from '../../server/plugin/channelPrograms';
+import { installChannelPrograms } from '../../shared/plugin/channelPrograms';
 import { graphParamRoots } from './graphDaySky';
 
 /** a side target no pass drew reads as black */

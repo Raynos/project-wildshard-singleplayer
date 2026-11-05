@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { Vector3 } from 'three';
-import { installChannelPrograms } from '../src/game/server/plugin/channelPrograms';
+import { installChannelPrograms } from '../src/game/shared/plugin/channelPrograms';
 import { dayLookPresets } from '../src/game/shared/looks/dayLookPresets';
 import { nalatiDayChannels } from '../src/shards/nalati-grasslands/generators/dayChannels';
 import { skyRows, skyChannels } from '../src/shards/nalati-grasslands/generators/skyPresentation';

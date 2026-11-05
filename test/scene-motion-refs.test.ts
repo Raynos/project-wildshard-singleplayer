@@ -3,7 +3,7 @@ import { Group } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
 import { parseSceneMotion } from '@wildshard/format/sceneMotion';
 import { ClientChannels } from '../src/sdk/clientChannels';
-import { createClientChannels } from '../src/game/server/plugin/channels';
+import { createClientChannels } from '../src/game/shared/plugin/channels';
 import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import { SceneMotionBinding } from '../src/game/client/shardfile/sceneMotion';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';

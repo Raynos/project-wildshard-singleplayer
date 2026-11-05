@@ -5,7 +5,7 @@ import {TimedEncountersSchema} from '@wildshard/format/encounterRows';
 import type {ShardProduct} from '../../src/game/shared/shardfile/shardProduct';
 import type {NativeCreaturePoseRecipe} from '../../src/game/shared/plugin/animation';
 import type {AnimalRigContext} from '../../src/engine/shared/entities/animalRig';
-import {numericCreaturePoseFromBook} from '../../src/game/server/plugin/channelPrograms';
+import {numericCreaturePoseFromBook} from '../../src/game/shared/plugin/channelPrograms';
 import {poseRidingEnvelopes} from '../../src/game/shared/riding/presentation';
 
 const finite=v.pipe(v.number(),v.finite());

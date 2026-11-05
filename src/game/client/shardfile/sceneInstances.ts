@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { SceneInstancesRows } from '@wildshard/format/sceneInstances';
-import { createClientChannels, type ClientChannelFrame } from '../../server/plugin/channels';
+import { createClientChannels, type ClientChannelFrame } from '../../shared/plugin/channels';
 import { Rng } from '@wildshard/engine/core/rng';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { setLentParam } from './lentLooks';

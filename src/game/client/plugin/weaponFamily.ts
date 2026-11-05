@@ -1,6 +1,6 @@
 import { createClientChannelView, type ClientGeometryKernels } from './clientChannelView';
 import { admitHeldRecipe } from './heldRecipe';
-import { createClientChannels, bindClientChannelInputs } from '../../server/plugin/channels';
+import { createClientChannels, bindClientChannelInputs } from '../../shared/plugin/channels';
 import { readBorrowedOwner, type BorrowedOwnerPath } from '../../shared/plugin/borrowed';
 import { bindMeleeContacts } from '../../server/plugin/simulation';
 import { createClientScene, createHeldMeleeBinding, type ClientScene, type ClientScenePorts } from './scene';

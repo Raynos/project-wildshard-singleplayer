@@ -87,7 +87,7 @@ async function prepareWorld(): Promise<void> {
   const { SPECIES_LOOKS } = await import('../../src/shards/pine-hollow/generators/nativeView');
   const pineBook = new HullLookBook(SPECIES_LOOKS);
   const { THRALL_CLIPS } = await import('../../src/shards/pine-hollow/generators/thrallClips');
-  const { numericCreaturePose } = await import('../../src/game/server/plugin/channelPrograms');
+  const { numericCreaturePose } = await import('../../src/game/shared/plugin/channelPrograms');
   registerSpecies(speciesWithLook(PINE_BOAR, { ...pineBook.look('boar'), postPose: numericCreaturePose(THRALL_CLIPS) }));
   // and its elk thrall (E405: Pine's, derived from the kit's elk)
   const { pineElk } = await import('../../src/shards/pine-hollow/generators/speciesRows');

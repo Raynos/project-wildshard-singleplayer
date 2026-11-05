@@ -3,7 +3,7 @@
 import { forestWeatherObservations, type ForestWeatherObservations } from '../looks/forestWeather';
 import { ReturnProgram } from '../../shared/population/returnProgram';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { installChannelPrograms } from '../../server/plugin/channelPrograms';
+import { installChannelPrograms } from '../../shared/plugin/channelPrograms';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
 import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';

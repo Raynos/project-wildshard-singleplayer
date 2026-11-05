@@ -25,7 +25,7 @@ import fog from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { ty
 
 import { lendUniforms as lendGrade } from '../src/game/client/shardfile/lentLooks';
 import { NINE_FRAME_CHANNELS, NINE_FRAME_GROUP } from '../src/shards/nine-dragon-stack/generators/frameChannels';
-import { installChannelPrograms } from '../src/game/server/plugin/channelPrograms';
+import { installChannelPrograms } from '../src/game/shared/plugin/channelPrograms';
 import { graphParamRoots } from '../src/game/client/looks/graphDaySky';
 import sharedRows from '../src/shards/nine-dragon-stack/data/sharedUniforms.json' with { type: 'json' };
 import paint from '../src/shards/nine-dragon-stack/data/paint.json' with { type: 'json' };

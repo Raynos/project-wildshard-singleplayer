@@ -14,7 +14,7 @@ import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/regist
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { TIER } from '@wildshard/engine/core/tier';
 import { FigureRowSchema } from '@wildshard/format/figures';
-import { installChannelPrograms } from '../../server/plugin/channelPrograms';
+import { installChannelPrograms } from '../../shared/plugin/channelPrograms';
 import { atlasFigureSkin, productSkinUrl } from '../systems/npc/figureSkins';
 import { QuestFiguresSchema, type QuestFigureRows, type QuestFiguresRows } from '@wildshard/format/questFigures';
 import type { Scope } from '@wildshard/engine/app/scope';

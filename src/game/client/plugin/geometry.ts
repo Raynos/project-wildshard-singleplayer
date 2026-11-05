@@ -32,7 +32,7 @@ import { Rng } from "@wildshard/engine/core/rng";
 import type { SpeciesLook } from "@wildshard/engine/entities/species/look";
 import { NO_FUR } from "@wildshard/engine/entities/species/rigs";
 import { clipAnimate, stepCreatureLift, type SpeciesClips } from "../../shared/plugin/animation";
-import { numericCreaturePoseFromBook } from '../../server/plugin/channelPrograms';
+import { numericCreaturePoseFromBook } from '../../shared/plugin/channelPrograms';
 import { parsePackedCreatureLooks } from '@wildshard/format/speciesLooks';
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { NpcMotion, NpcRow } from "../../server/plugin/quests";

@@ -4,7 +4,7 @@ import { PopulationKeeperRowsSchema } from '@wildshard/format/populationKeeper';
 import type { SpeciesPrograms } from '@wildshard/format/speciesPrograms';
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import { createNativeCreaturePoses, stepCreatureLift, type NativeCreaturePoseRecipe } from '../../shared/plugin/animation';
-import { numericCreaturePose } from '../plugin/channelPrograms';
+import { numericCreaturePose } from '../../shared/plugin/channelPrograms';
 import { createNativeHunt, createNativeSpeciesContext, admitSpeciesProgram } from '../plugin/brain';
 import { bindPerchBody, stepPerchRoot, nativePerchProgram } from './perchBody';
 import { installPopulationEnvironment, populationEnvironment } from './environment';

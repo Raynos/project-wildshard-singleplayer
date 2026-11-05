@@ -2,7 +2,7 @@ import type { InferOutput } from 'valibot';
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import { lookAngles } from '@wildshard/engine/entities/species/rigs';
 import type { LookFrameSchema } from '@wildshard/format/speciesLooks';
-import { installChannelPrograms, numericCreaturePose } from '../../server/plugin/channelPrograms';
+import { installChannelPrograms, numericCreaturePose } from '../../shared/plugin/channelPrograms';
 
 type LookFrameRow = InferOutput<typeof LookFrameSchema>;
 interface FrameRig { frame: AnimalRigContext; look: { yaw: number; pitch: number }; surface: { ground: number; alive: number }; visual: { yOffset: number };

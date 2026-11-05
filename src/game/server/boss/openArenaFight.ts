@@ -10,7 +10,7 @@ import type { ArenaScriptData, ArenaScriptFightFile, ArenaScriptRows } from '@wi
 import { ARENA_BURNT_PER_FRAME, ARENA_VIEW } from '@wildshard/format/arenaView';
 import { V2_ACTION_OPS, type V2ActionBinding } from '@wildshard/format/scriptActionsV2';
 import { ReturnProgram, ProjectedState, type ProjectedSnapshot } from '../../shared/population/returnProgram';
-import { installChannelPrograms } from '../plugin/channelPrograms';
+import { installChannelPrograms } from '../../shared/plugin/channelPrograms';
 import { CellField, type CellFieldSnapshot } from '../systems/cellField';
 import { prepareV2WorldActions, type V2WorldActionLoan } from '../shardfile/worldActionsV2';
 import type { ViewTell } from '@wildshard/engine/script/viewProgram';

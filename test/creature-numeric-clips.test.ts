@@ -7,7 +7,7 @@ import { AnimalSim } from '../src/engine/server/entities/AnimalSim';
 import { Bone, Euler, Vector3 } from 'three';
 import { expect, test } from 'vitest';
 import type { AnimalRigContext } from '../src/engine/shared/entities/animalRig';
-import { numericCreaturePose } from '../src/game/server/plugin/channelPrograms';
+import { numericCreaturePose } from '../src/game/shared/plugin/channelPrograms';
 import {onFault,type Fault} from '../src/engine/shared/core/faults';
 import { CRAB_CLIPS } from '../src/shards/driftwood-isle/generators/crabClips';
 import { THRALL_CLIPS } from '../src/shards/pine-hollow/generators/thrallClips';

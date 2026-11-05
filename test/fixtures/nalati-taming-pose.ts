@@ -7,7 +7,7 @@ import { AnimalPoseLaw } from '@wildshard/engine/entities/animalPose';
 import { QuadrupedRigPose, applyAnimalRoot, type AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import { bodySpecies } from '../../src/shards/nalati-grasslands/generators/speciesRows';
 import { poseRidingEnvelopes } from '../../src/game/shared/riding/presentation';
-import { numericCreaturePose } from '../../src/game/server/plugin/channelPrograms';
+import { numericCreaturePose } from '../../src/game/shared/plugin/channelPrograms';
 import envelopes from '../../src/shards/nalati-grasslands/data/horsePresentation.json' with { type: 'json' };
 import { bodyKey } from '../../src/shards/nalati-grasslands/generators/bodyKey';
 import rows from '../../src/shards/nalati-grasslands/data/bodies.json' with { type: 'json' };

@@ -11,7 +11,7 @@ import { painterlyUniforms, syncPainterlySun } from '@wildshard/engine/world/pai
 import * as v from 'valibot';
 import type { DayLookRow, DayLookSchema } from '@wildshard/format/dayLook';
 import type { PaintedSkyRows } from '@wildshard/format/forestWeather';
-import { installChannelPrograms } from '../../server/plugin/channelPrograms';
+import { installChannelPrograms } from '../../shared/plugin/channelPrograms';
 import { lentLook, pushLentParams } from '../shardfile/lentLooks';
 import { publishSkyClock } from '../session/clockSettings';
 import { dayLookPresets, type DayLookPreset } from '../../shared/looks/dayLookPresets';

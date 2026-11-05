@@ -1,6 +1,6 @@
 import { NumericInputError } from '@wildshard/engine/core/faults';
 import { parseClientChannelInputs, parseClientChannels, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
-import { checkBorrowedOwnerPath, resolveBorrowedValue } from '../../shared/plugin/borrowed';
+import { checkBorrowedOwnerPath, resolveBorrowedValue } from './borrowed';
 
 /** Detached coordinate outputs for a private geometry kernel. */
 export interface ClientTubeFrame { readonly fromX: number; readonly fromY: number; readonly fromZ: number;

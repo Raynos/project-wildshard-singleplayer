@@ -5,7 +5,7 @@ import { eliteAct, eliteDamageMul, eliteThink } from '@wildshard/engine/entities
 import { ActorProjectionV2 } from '../../server/population/actorProjectionV2';
 import { DirectedSpecies } from '../../server/population/directedSpecies';
 import { groupSpecies } from '../../server/population/groupSpecies';
-import { numericCreaturePose, numericCreaturePoseFromBook } from '../../server/plugin/channelPrograms';
+import { numericCreaturePose, numericCreaturePoseFromBook } from '../../shared/plugin/channelPrograms';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { creatureFrame } from '../plugin/creatureFrame';
 import { poseRidingEnvelopes } from '../../shared/riding/presentation';

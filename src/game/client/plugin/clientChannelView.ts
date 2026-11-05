@@ -3,7 +3,7 @@
 import { BufferAttribute, BufferGeometry, InstancedMesh, Material, Matrix4, Mesh, Object3D, Quaternion, Vector3 } from 'three';
 import { compileTubeCurve, parseClientChannels, type ClientChannelProgram } from '@wildshard/format/clientChannels';
 import type { MoverPose } from '@wildshard/engine/physics/mover';
-import { createClientChannels, type ClientTubeFrame, type ClientConnectorFrame, type ClientChannelObservation } from '../../server/plugin/channels';
+import { createClientChannels, type ClientTubeFrame, type ClientConnectorFrame, type ClientChannelObservation } from '../../shared/plugin/channels';
 
 function clientInstance(value: unknown): value is InstancedMesh {
   return value instanceof InstancedMesh && value.geometry instanceof BufferGeometry

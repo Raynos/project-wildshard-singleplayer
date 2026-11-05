@@ -4,7 +4,7 @@ import { bindPagePersistence, bindPageBossRecord, type PagePersistenceRows, type
 import { lightEmitterPresentation } from '../shardfile/lightEmitters';
 import { residentWorldScope } from '../shardfile/hybridPresentation';
 import { readBorrowedOwner, type BorrowedOwnerPath } from '../../shared/plugin/borrowed';
-import { createClientChannels, type ClientChannelObservation, type ClientChannelFrame } from '../../server/plugin/channels';
+import { createClientChannels, type ClientChannelObservation, type ClientChannelFrame } from '../../shared/plugin/channels';
 import type { MoverView, MoverRuntime, MoverRoleComposition } from '../../server/plugin/mover';
 import { installDeclaredMovers } from '../../server/plugin/moverInstall';
 import { bindQuestWorldReactions, type QuestWorldReactions, commandSocketLift, declaredItemScriptBindings } from '../../server/plugin/simulation';

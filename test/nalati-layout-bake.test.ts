@@ -12,7 +12,7 @@ import { InstancedBufferGeometry, Mesh, MeshBasicMaterial } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
 import { createSceneBuffers } from '../src/game/client/shardfile/sceneBuffers';
 import { ClientChannels } from '../src/sdk/clientChannels';
-import { installChannelPrograms } from '../src/game/server/plugin/channelPrograms';
+import { installChannelPrograms } from '../src/game/shared/plugin/channelPrograms';
 import { compactChannels } from '../src/shards/nalati-grasslands/generators/channelRows';
 import { isJsonData } from '@wildshard/format/json';
 import * as authoredLayout from '../src/shards/nalati-grasslands/generators/layout';

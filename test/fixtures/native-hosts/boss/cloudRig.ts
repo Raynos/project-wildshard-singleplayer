@@ -10,7 +10,7 @@
 import * as THREE from 'three';
 import { parsePrivateScene } from '@wildshard/format/clientChannels';
 import type { CloudBodyRows } from '@wildshard/format/encounterRows';
-import { installChannelPrograms } from '../../../../src/game/server/plugin/channelPrograms';
+import { installChannelPrograms } from '../../../../src/game/shared/plugin/channelPrograms';
 
 /** The scene's parts as groups (createClientScene's transforms, visibility and child order), by node id. */
 function rigParts(input: unknown, geometry: ReadonlySet<string>): ReadonlyMap<string, THREE.Object3D> {

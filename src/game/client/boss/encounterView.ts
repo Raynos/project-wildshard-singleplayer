@@ -26,7 +26,7 @@ import { ProjectedState, type ReturnProgram } from '../../shared/population/retu
 import { PatrolLaw, type PatrolRider } from '../../server/boss/patrolLaw';
 import { SlotEncounterLaw } from '../../server/boss/slotLaw';
 import { createClientScene } from '../plugin/scene';
-import { installChannelPrograms } from '../../server/plugin/channelPrograms';
+import { installChannelPrograms } from '../../shared/plugin/channelPrograms';
 import { lentLook, lentLookInstance, setLentParam, type LookInstance } from '../shardfile/lentLooks';
 import { CloudSpecimenSchema, EncounterSitesSchema, type EncounterSlotsRows, type EncounterPatrolRows, type EncounterScheduleRows, type SlotViewRows, type PatrolViewRows, type CloudBodyRows, type ArenaSceneRows, type EncounterMaterialRows } from '@wildshard/format/encounterRows';
 

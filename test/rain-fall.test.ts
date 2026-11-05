@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { installChannelPrograms } from '../src/game/server/plugin/channelPrograms';
+import { installChannelPrograms } from '../src/game/shared/plugin/channelPrograms';
 import { graphParamRoots } from '../src/game/client/looks/graphDaySky';
 import pineWeatherRows from '../src/shards/pine-hollow/data/weatherLook.json' with { type: 'json' };
 import { pineRainChannels } from '../src/shards/pine-hollow/generators/rainChannels';

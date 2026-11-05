@@ -8,7 +8,7 @@ import {EquipmentService} from '../src/engine/client/combat/EquipmentService';
 import {installErrorModal} from '../src/engine/client/ui/ErrorModal';
 import {isDev,setDev} from '../src/engine/client/core/devMode';
 import {emitFault,setLoopState,onFault,type Fault} from '../src/engine/shared/core/faults';
-import {bindClientChannelInputs} from '../src/game/server/plugin/channels';
+import {bindClientChannelInputs} from '../src/game/shared/plugin/channels';
 import {SWORD_WOOD} from '../src/game/server/weapons/starterMeleeProfile';
 
 class TestWeapon extends Weapon {

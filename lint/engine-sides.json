@@ -1126,9 +1126,9 @@
   "src/game/server/plugin/bossPhase.ts": "server",
   "src/game/client/plugin/bossStorm.ts": "client",
   "src/game/server/plugin/brain.ts": "server",
-  "src/game/server/plugin/channelPrograms.ts": "server",
-  "src/game/server/plugin/channels.ts": {
-   "side": "server",
+  "src/game/shared/plugin/channelPrograms.ts": "shared",
+  "src/game/shared/plugin/channels.ts": {
+   "side": "shared",
    "mixed": true
   },
   "src/game/client/plugin/clientChannelView.ts": "client",

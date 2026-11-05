@@ -1,7 +1,7 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 185,
+  "client → server": 169,
   "cook → client": 2,
   "cook → render": 1,
   "server → client": 137,
@@ -58,7 +58,7 @@
    "client → server": 1
   },
   "src/game/client/boss/encounterView.ts": {
-   "client → server": 3
+   "client → server": 2
   },
   "src/game/client/boss/roamingProjection.ts": {
    "client → server": 7
@@ -105,38 +105,20 @@
   "src/game/client/looks/forestWeather.ts": {
    "client → server": 1
   },
-  "src/game/client/looks/graphDaySky.ts": {
-   "client → server": 1
-  },
-  "src/game/client/looks/keyedSky.ts": {
-   "client → server": 1
-  },
-  "src/game/client/looks/postGraphLook.ts": {
-   "client → server": 1
-  },
   "src/game/client/looks/speciesBook.ts": {
-   "client → server": 7
+   "client → server": 6
   },
   "src/game/client/plugin/audio.ts": {
-   "client → server": 1
-  },
-  "src/game/client/plugin/clientChannelView.ts": {
-   "client → server": 1
-  },
-  "src/game/client/plugin/creatureFrame.ts": {
-   "client → server": 1
-  },
-  "src/game/client/plugin/geometry.ts": {
    "client → server": 1
   },
   "src/game/client/plugin/heldEquipment.ts": {
    "client → server": 2
   },
   "src/game/client/plugin/ui.ts": {
-   "client → server": 14
+   "client → server": 13
   },
   "src/game/client/plugin/weaponFamily.ts": {
-   "client → server": 2
+   "client → server": 1
   },
   "src/game/client/population/productCreatures.ts": {
    "client → server": 2
@@ -149,9 +131,6 @@
   },
   "src/game/client/quest/contractBoardPage.ts": {
    "client → server": 2
-  },
-  "src/game/client/quest/figures.ts": {
-   "client → server": 1
   },
   "src/game/client/quest/questPageViews.ts": {
    "client → server": 1
@@ -252,19 +231,10 @@
   "src/game/client/shardfile/runtimeProduct.ts": {
    "client → server": 2
   },
-  "src/game/client/shardfile/sceneInstances.ts": {
-   "client → server": 1
-  },
-  "src/game/client/shardfile/sceneMotion.ts": {
-   "client → server": 1
-  },
   "src/game/client/shardfile/walkInPortalRide.ts": {
    "client → server": 1
   },
   "src/game/client/shardfile/worldAssembly.ts": {
-   "client → server": 1
-  },
-  "src/game/client/systems/npc/kitFigure.ts": {
    "client → server": 1
   },
   "src/game/client/weapons/heldPolearm.ts": {
@@ -274,10 +244,7 @@
    "client → server": 3
   },
   "src/game/client/weather/forest.ts": {
-   "client → server": 6
-  },
-  "src/game/client/weather/rainPresentation.ts": {
-   "client → server": 1
+   "client → server": 5
   },
   "src/game/cook/generators/pickups.ts": {
    "cook → client": 2,

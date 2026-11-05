@@ -286,12 +286,12 @@ test('system window refuses mixed or duplicate observation identities before mut
 
 test('game gather functions remain visible without inflating draw-wrapper attribution', () => {
   const profile = {nodes:[
-    {id:1,callFrame:{source:'/src/game/server/plugin/channelPrograms.ts',name:'evaluate'},children:[2]},
-    {id:2,callFrame:{source:'/src/game/server/plugin/channels.ts',name:'evaluate'}},
+    {id:1,callFrame:{source:'/src/game/shared/plugin/channelPrograms.ts',name:'evaluate'},children:[2]},
+    {id:2,callFrame:{source:'/src/game/shared/plugin/channels.ts',name:'evaluate'}},
   ],samples:[1,2],timeDeltas:[1000,2000]};
   const result=sampledCpu(profile,frame=>frame,2);
   expect(result.functions.map(row=>[row.source,row.selfMsPerFrame,row.inclusiveMsPerFrame])).toEqual([
-    ['/src/game/server/plugin/channels.ts',1,1],['/src/game/server/plugin/channelPrograms.ts',.5,1.5],
+    ['/src/game/shared/plugin/channels.ts',1,1],['/src/game/shared/plugin/channelPrograms.ts',.5,1.5],
   ]);
   expect(result.msPerFrame['drawWrappers']).toBeNull();
   expect(result.msPerFrame['propertyHooks']).toBeNull();
