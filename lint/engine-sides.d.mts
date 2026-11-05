@@ -21,6 +21,7 @@ export function readSides(raw: unknown): Map<string, SideEntry>;
 export function readEdges(raw: unknown): SideEdges;
 export function edgeName(edge: string): boolean;
 export function importCandidates(path: string, specifier: string): string[];
+export function sideFacts(program: ESTree.Program): {imports: {node: object; source: string}[]; render: {node: object; token: string}[]; dom: {node: object; token: string}[]};
 export function sideViolations(path: string, program: ESTree.Program, sides: ReadonlyMap<string, SideEntry>): SideViolation[];
 export function sideSources(root: string): string[];
 export function sideCensus(root: string, sides: ReadonlyMap<string, SideEntry>): SideCensus;

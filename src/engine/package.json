@@ -310,6 +310,8 @@
     "./core/memoryAttribution": "./core/memoryAttribution.ts",
     "./render/viewmodelFeel": "./render/viewmodelFeel.ts",
     "./saves/runtime": "./saves/runtime.ts",
+    "./saves/environment": "./saves/environment.ts",
+    "./saves/forwardedStorage": "./saves/forwardedStorage.ts",
     "./net/client": "./net/client.ts",
     "./net/room": "./net/room.ts",
     "./net/serverClock": "./net/serverClock.ts",

@@ -10,7 +10,7 @@
   "shared → client": 13,
   "shared → dom": 1,
   "shared → render": 1,
-  "shared → server": 5
+  "shared → server": 4
  },
  "files": {
   "src/engine/ai/view/eliteController.ts": {
@@ -145,9 +145,6 @@
    "client → server": 2
   },
   "src/engine/sim/snapshot.ts": {
-   "shared → server": 1
-  },
-  "src/engine/sim/snapshotData.ts": {
    "shared → server": 1
   },
   "src/engine/telemetry/crossroads.ts": {

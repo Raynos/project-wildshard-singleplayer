@@ -577,6 +577,7 @@
   "src/engine/render/viewmodel.ts": "client",
   "src/engine/render/viewmodelFeel.ts": "client",
   "src/engine/saves/environment.ts": "server",
+  "src/engine/saves/forwardedStorage.ts": "server",
   "src/engine/saves/legacy.ts": "server",
   "src/engine/saves/runtime.ts": "server",
   "src/engine/saves/slots.ts": "server",

@@ -122,6 +122,7 @@
     "./shardfile/outputChecksNode": "./shardfile/outputChecksNode.ts",
     "./shardfile/calibrationScripts": "./shardfile/calibrationScripts.ts",
     "./shardfile/productData": "./shardfile/productData.ts",
+    "./shardfile/contentHash": "./shardfile/contentHash.ts",
     "./systems/looks/fogProgram": "./systems/looks/fogProgram.ts",
     "./systems/looks/grassField": "./systems/looks/grassField.ts",
     "./systems/looks/particles": "./systems/looks/particles.ts",
