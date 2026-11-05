@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { afterEach, expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { BoxGeometry, MeshBasicMaterial, Vector3 } from 'three';
+import type { NetCommand } from '@wildshard/format/netCommand';
 import { app } from '../src/engine/app/runtime';
 import { BowWeaponProfileSchema, MeleeWeaponProfileSchema, parseNativeFirearmProfile } from '@wildshard/format/weaponProfiles';
 import { NetClient } from '../src/engine/net/client';
@@ -310,4 +311,99 @@ test('hit and died reach a client over the loopback, in order, confirming the sw
     expect(died).toMatchObject([{ kind: 'died', id: handle, by: client.welcome?.handle }]);
     expect(events.at(-1)).toBe(died[0]); expect(died[0]?.impulse).toBe(hits.at(-1)?.amount);
   } finally { room.dispose(); client.dispose(); live.dispose(); }
+}, 120_000);
+
+/** A NetCommand's idle thumb for `yaw`, looking along `pitch`. */
+const thumb = (seq: number, yaw: number, pitch = 0): NetCommand => ({ seq, viewTick: 0, steer: { keyX: 0, keyY: 0, stickX: 0, stickY: 0 }, yaw, pitch, buttons: 0 });
+const freeAim = { aim: { origin: { x: 0, y: 0, z: 0 }, direction: { x: 0, y: 0, z: -1 } } };
+/** A second player `gap` metres short of `target`, facing it; answers its yaw. */
+function joinFacing(live: TrustedHeadlessResident, id: string, target: AnimalSim, gap: number): number {
+  const { host } = live, spawn = leadPlayer(host).position, dx = target.position.x - spawn.x, dz = target.position.z - spawn.z, span = Math.hypot(dx, dz), yaw = Math.atan2(-dx, -dz);
+  const x = target.position.x - dx / span * gap, z = target.position.z - dz / span * gap;
+  host.addPlayer(id, { x, y: host.groundHeightAt(x, z), z }, yaw);
+  return yaw;
+}
+
+test('Driftwood: a bot\'s swing lands the sword\'s real damage as its own, and survives a save mid-swing', async () => {
+  const { resident } = await shipped('driftwood-isle');
+  const live = await resident(), wire = new CombatWire(live.host), bot = 'bot:1';
+  try {
+    const crab = nearest(live, 'crab'), yaw = joinFacing(live, bot, crab, 1.4), owner = nativeMeleeItem(live.host, 'item.driftwood-isle.swords'), hp = crab.hp;
+    const lead = (commands: Map<string, NetCommand>): void => { hold(live); live.step([stand(live)], commands); };
+    lead(new Map([[bot, { ...thumb(41, yaw), attack: freeAim }]]));
+    for (let at = 0; at < 2; at++) lead(new Map([[bot, thumb(42 + at, yaw)]]));
+    // saved mid-swing with two players: the bot's clock and blade sit in the lead's adapter
+    const restored = await resident(serializeSimSnapshot(snapshotSimHostBytes(live.host)));
+    try {
+      expect(canonicalSimDigest(snapshotSimHost(restored.host))).toBe(canonicalSimDigest(snapshotSimHost(live.host)));
+      const twin = body(restored, crab.entityId);
+      for (let at = 0; at < 30; at++) {
+        lead(new Map([[bot, thumb(44 + at, yaw)]]));
+        hold(restored); restored.step([stand(restored)], new Map([[bot, thumb(44 + at, yaw)]]));
+      }
+      expect(twin.hp).toBe(crab.hp);
+      expect(restored.host.adapters.get('item.driftwood-isle.swords')?.snapshot()).toEqual(live.host.adapters.get('item.driftwood-isle.swords')?.snapshot());
+    } finally { restored.dispose(); }
+    const hits = wire.drain().filter(row => row.kind === 'hit');
+    expect(hits).toMatchObject([{ target: crab.entityId, by: bot, seq: 41, amount: 12 }]);
+    expect(crab.hp).toBe(hp - 12); expect(owner.swings()).toBe(0);
+  } finally { live.dispose(); }
+}, 120_000);
+
+test('Driftwood: a free swing strikes every body the page\'s blade sweep strikes', async () => {
+  const { product, resident } = await shipped('driftwood-isle');
+  const live = await resident(), wire = new CombatWire(live.host), { host } = live;
+  try {
+    const crabs = [...host.entities.values()].filter(row => row.kind === 'crab' && row.alive).slice(0, 5), first = crabs[0];
+    if (first === undefined || crabs.length < 3) throw new Error('Driftwood has its crabs');
+    facing(live, first, 1.3);
+    const { position: feet, yaw } = leadPlayer(host), spread = [0, -0.45, 0.45, -0.9, 0.9];
+    crabs.forEach((crab, at) => {
+      const angle = yaw + (spread[at] ?? 0), x = feet.x - Math.sin(angle) * 1.3, z = feet.z - Math.cos(angle) * 1.3;
+      crab.place(x, z, angle, host.groundHeightAt(x, z)); crab.harnessHold = false;
+    });
+    live.step([stand(live)]); hold(live); wire.drain(); // one free step poses each moved body's hit volumes
+    const saved = serializeSimSnapshot(snapshotSimHostBytes(host)), look = -0.45;
+    tick(live, 1, [{ ...stand(live), swing: true, pitch: look }]); tick(live, 40);
+    const server = wire.drain().flatMap(row => row.kind === 'hit' ? [row.target] : []).sort();
+
+    const browser = await resident(saved), rays = pageTargets(browser), eye = new Vector3(feet.x, feet.y + 1.68, feet.z), page = pageWorld(browser, eye.clone().add(new Vector3(-Math.sin(yaw) * Math.cos(look), Math.sin(look), -Math.cos(yaw) * Math.cos(look))));
+    try {
+      const row = v.parse(MeleeWeaponProfileSchema, weaponRow(product.shardfile, 'weapon.driftwood-isle.wood').profile);
+      const sword = pageSword(page, rays, applyMeleeCombatProfile(SWORD_WOOD, row)), before = new Map(crabs.map(crab => [crab.entityId, body(browser, crab.entityId).hp]));
+      sword.tryFire();
+      for (let at = 0; at < 40; at++) sword.update(1 / 60, at / 60);
+      const shown = crabs.flatMap(crab => body(browser, crab.entityId).hp < (before.get(crab.entityId) ?? 0) ? [crab.entityId] : []).sort();
+      expect(shown).toEqual(server); expect(server.length).toBeGreaterThan(1);
+    } finally { browser.dispose(); }
+  } finally { live.dispose(); }
+}, 120_000);
+
+test('Sunscar: a bot\'s whip cracks for the same damage as the lead\'s', async () => {
+  const { resident } = await shipped('sunscar-dunes');
+  const live = await resident(), wire = new CombatWire(live.host), bot = 'bot:1';
+  try {
+    const target = nearest(live, 'sandSkitterer'), yaw = joinFacing(live, bot, target, 2), hp = target.hp;
+    hold(live); live.step([stand(live)], new Map([[bot, { ...thumb(9, yaw), attack: freeAim }]]));
+    for (let at = 0; at < 40; at++) { hold(live); live.step([stand(live)], new Map([[bot, thumb(10 + at, yaw)]])); }
+    expect(wire.drain().find(row => row.kind === 'hit')).toMatchObject({ target: target.entityId, by: bot, seq: 9 });
+    expect(target.hp).toBeLessThan(hp);
+  } finally { live.dispose(); }
+}, 120_000);
+
+test('Pine: a bot fires its own crossbow, and an arrow confirms the shot that loosed it, not a later swing', async () => {
+  const { resident } = await shipped('pine-hollow');
+  const live = await resident(), wire = new CombatWire(live.host), bot = 'bot:1', { host } = live;
+  try {
+    const boar = nearest(live, 'boar'), yaw = joinFacing(live, bot, boar, 6), hp = boar.hp, feet = host.players.get(bot)?.position;
+    if (feet === undefined) throw new Error('No bot');
+    const look = Math.asin(chest(boar).sub(new Vector3(feet.x, feet.y + 1.68, feet.z)).normalize().y);
+    tick(live, 3); const lever = readNativeRangedItem(host, 1), crossbow = readNativeRangedItem(host, 0);
+    if (crossbow.kind !== 'bolt' || lever.kind !== 'cycle') throw new Error('Pine declares a crossbow and a lever rifle');
+    const quiver = crossbow.item.state.quiver;
+    hold(live); live.step([stand(live)], new Map([[bot, { ...thumb(20, yaw, look), launcher: { slot: 0, ads: 1, fire: true } }]]));
+    for (let at = 0; at < 60 && boar.hp === hp; at++) { hold(live); live.step([stand(live)], new Map([[bot, { ...thumb(21 + at, yaw, look), attack: freeAim }]])); }
+    expect(wire.drain().find(row => row.kind === 'hit')).toMatchObject({ target: boar.entityId, by: bot, seq: 20 });
+    expect(boar.hp).toBeLessThan(hp); expect(crossbow.item.state.quiver).toBe(quiver);
+  } finally { live.dispose(); }
 }, 120_000);

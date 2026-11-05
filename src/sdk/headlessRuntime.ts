@@ -35,6 +35,8 @@ export interface HeadlessRuntimeInstallation {
   /** Strictly decoded continuation; reinstall its dynamic actor roster before native restore. Never step here. */
   snapshot?: Readonly<SimSnapshot>;
   commands: () => readonly HeadlessCommand[];
+  /** Another player's commands this tick. */
+  playerCommands?: (id: string) => readonly HeadlessCommand[];
   emit: (effect: HeadlessEffect) => void;
 }
 /** Tick readers borrow the current admitted tape; no input state or simulation clock is retained. */
@@ -180,7 +182,8 @@ export async function createTrustedHeadlessResident(preparation: HeadlessRuntime
   let commands: readonly HeadlessCommand[] = [], effects: HeadlessEffect[] = [];
   const saved = snapshot === undefined ? undefined : decodeSimSnapshot(typeof snapshot === 'string' ? snapshot : serializeSimSnapshot(snapshot));
   const combat = createNativeCombatFrame();
-  const context: HeadlessRuntimeInstallation = { combat, restoring: saved !== undefined, ...(saved === undefined ? {} : { snapshot: saved }), commands: () => commands, emit: effect => { effects.push(effect); } };
+  const otherCommands = new Map<string, readonly HeadlessCommand[]>();
+  const context: HeadlessRuntimeInstallation = { combat, restoring: saved !== undefined, ...(saved === undefined ? {} : { snapshot: saved }), commands: () => commands, playerCommands: id => otherCommands.get(id) ?? [], emit: effect => { effects.push(effect); } };
   const ports = { ...plan.ports, rapier: preparation.rapier };
   let installing: SimHost | undefined;
   let host: SimHost;
@@ -197,9 +200,14 @@ export async function createTrustedHeadlessResident(preparation: HeadlessRuntime
     fillNativeCombatFrame(combat, input); commands = input; effects = []; };
   /** Every other player's weapons read their own frame: a player who sent nothing this tick has let go of everything. */
   const lendOthers = (others: ReadonlyMap<string, NetCommand> | undefined, acts: ReadonlyMap<string, readonly NetAct[]> | undefined): void => {
+    otherCommands.clear();
     if (host.players.size === 1) { combat.others.clear(); return; }
     for (const id of combat.others.keys()) if (!host.players.has(id)) combat.others.delete(id);
-    for (const id of host.players.keys()) if (id !== lead.id) fillNativeCombatFrame(otherCombatFrame(combat, id), netTickCommands(others?.get(id) ?? null, acts?.get(id) ?? []));
+    for (const id of host.players.keys()) {
+      if (id === lead.id) continue;
+      const input = netTickCommands(others?.get(id) ?? null, acts?.get(id) ?? []);
+      otherCommands.set(id, input); fillNativeCombatFrame(otherCombatFrame(combat, id), input);
+    }
   };
   return {
     host, lend,

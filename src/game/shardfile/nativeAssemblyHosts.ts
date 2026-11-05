@@ -21,7 +21,7 @@ import { installNativeHeldAmmunition } from '../loadout/nativeAmmunition';
 import { dayClock } from '../looks/dayClock';
 import { keyedSkyDaySpec } from '../looks/keyedSkyClock';
 import { readDirectorProduct } from '../plugin/director';
-import { installNativeItems } from '../plugin/nativeItems';
+import { installNativeItems, otherCombatFrame } from '../plugin/nativeItems';
 import { bindNativeLoadout, weaponRow } from '../plugin/simulation';
 import { installPopulationEnvironment } from '../population/environment';
 import { installMixedPopulation, type MixedPopulationInput } from '../population/mixedRoster';
@@ -173,7 +173,11 @@ export async function prepareAssemblyFeature<C extends NativeAssemblyContext>(ro
       const policy = need(shard.items.loadout.native, 'Missing native loadout'), input = need(policy.input, 'Missing native equipment input policy');
       return run => { const combat = combatOf(run); bindNativeLoadout(run.host, policy, { flags: run.host.flags, frame: combat,
         locked: () => run.boss?.locked() === true || run.quest?.riding() === true || run.quest?.talking() === true,
-        step: { id: input.step, phase: input.phase, pick: () => { const taken = run.quest?.takePickup() === true ? 1 : null; return combat.scripts.get(input.command) ?? taken; } } }); };
+        others: { frame: player => otherCombatFrame(combat, player.id), locked: () => run.boss?.locked() === true },
+        step: { id: input.step, phase: input.phase, pick: (player, first) => {
+          if (!first) return otherCombatFrame(combat, player.id).scripts.get(input.command) ?? null;
+          const taken = run.quest?.takePickup() === true ? 1 : null; return combat.scripts.get(input.command) ?? taken;
+        } } }); };
     }
     case 'ammunition': {
       const held = product.section('held/loadout');

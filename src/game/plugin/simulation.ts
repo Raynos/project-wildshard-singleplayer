@@ -44,6 +44,8 @@ import type { EffectRules, ScriptEntity } from "@wildshard/engine/script/effects
 import { declaredWaterBody } from "@wildshard/engine/world/water/declared";
 import { WaterBodies } from "@wildshard/engine/world/water/body";
 import { floorBelow } from "@wildshard/engine/physics/query";
+import { playerSeats } from './playerSeats';
+import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 import { installShardfileColliders, shardfileColliderIds } from "../shardfile/collisionBindings";
 import { validateMeshCollisionAssets } from "@wildshard/format/meshCollisionAssets";
 import { validateMeshEntryways } from "@wildshard/format/meshEntryways";
@@ -201,6 +203,8 @@ export interface NativeRuntimeRecipe extends RuntimeWorldRecipe {
 interface NativeRuntimeContext {
   readonly restoring: boolean; readonly snapshot?: Readonly<SimSnapshot>;
   readonly emit: (effect: NativeRuntimeEffect) => void; readonly commands: () => readonly NativeMeleeInput[];
+  /** Another player's commands this tick. */
+  readonly playerCommands?: (id: string) => readonly NativeMeleeInput[];
 }
 /** Native quest facts, rewards and bounded player-facing contact hints publish only with a completed tick. */
 export type NativeRuntimeEffect = Parameters<Parameters<typeof ledgerPorts>[0]>[0] | { readonly kind: 'hint'; readonly text: string };
@@ -234,8 +238,11 @@ export async function prepareRuntimePlan(shard: Shardfile, assets: ReadonlyMap<s
     const loadout = bindNativeLoadout(host, { slots: [0], initial: 0, lower: 0, raise: 0 }, {
       owned: () => true, locked: () => encounter.locked() || (row.weapon.stowOnBoard === true && lead.board.on),
     });
+    const playerCommands = context.playerCommands;
     const melee = installNativeMelee(host, weapon, weapon.native, { inputCommands: context.commands,
       enabled: () => loadout.live(0),
+      ...(playerCommands === undefined ? {} : { others: { commands: player => playerCommands(player.id),
+        enabled: player => !encounter.locked() && !(row.weapon.stowOnBoard === true && player.board.on) } }),
       ...(row.weapon.questWorld ? { questWorld: { row: quest, spots } } : {}),
       hook: environment.hooks.get(weapon.id) ?? null, hookTick: environment.hookTick,
       ...(reactions === undefined ? {} : { landed: (action: number, from: Vector3, dir: Vector3) => { if (action === row.weapon.worldReactionAction) reactions.scan(from, dir); } }),
@@ -811,7 +818,7 @@ export interface NativeHeldCommand { readonly kind:string; readonly heavy?: { re
 /** Admitted page/script fields consumed by the declared native command mapping. */
 export interface NativeMeleeInput extends NativeHeldCommand {
   readonly attack?: {readonly targetId?:string|undefined}|undefined; readonly actorId?:string|undefined; readonly value?:number|undefined; readonly playerId?:string|undefined;
-  readonly swing?:true|undefined; readonly pitch?:number|undefined;
+  readonly swing?:true|undefined; readonly pitch?:number|undefined; readonly seq?:number|undefined;
 }
 /** Runtime authority and command ports are injected; no imported module installs a host. */
 export interface NativeMeleePorts {
@@ -819,6 +826,8 @@ export interface NativeMeleePorts {
   readonly inputCommands?: () => readonly NativeMeleeInput[]; readonly worldActor?: string;
   /** Full admitted player input; sampled once when the owner declares held release. */
   readonly heldCommands?: () => readonly NativeHeldCommand[]; readonly enabled?: () => boolean;
+  /** Every other player's input and stowed state; absent, only the first player holds this weapon. */
+  readonly others?: { readonly commands: (player: PlayerSim) => readonly NativeMeleeInput[]; readonly enabled: (player: PlayerSim) => boolean };
   readonly world?: readonly NativeMeleeWorld[];
   readonly questWorld?:{readonly row:QuestHostRow;readonly spots:QuestGraphPorts['spots']};
   readonly hook?: NativeMeleeHook | null;
@@ -832,20 +841,27 @@ const NativeHoldState = v.strictObject({version:v.literal(1),held:v.pipe(v.numbe
   target:v.nullable(v.pipe(v.string(),v.minLength(1),v.maxLength(128)))});
 /** Install immediate and delayed item contacts on one renderer-free owner, retaining ordered commands and wire bindings. */
 export function installNativeMelee(host: SimHost, weapon: { readonly id: string; readonly contacts?: readonly NativeMeleeContact[] },
-  input: unknown, ports: NativeMeleePorts): NativeMeleeOwner {
-  const lead = leadPlayer(host);
+  input: unknown, given: NativeMeleePorts): NativeMeleeOwner {
   const { native: row, contacts } = parseNativeMeleeBinding(input, weapon.contacts);
-  if(row.held!==undefined&&ports.heldCommands===undefined&&ports.inputCommands===undefined)throw new Error('Held input requires its admitted player stream');
-  if(row.input===undefined?ports.commands===undefined:ports.inputCommands===undefined)throw new Error('Native melee requires its declared command stream');
-  const questWorld=ports.questWorld,worldActor=ports.worldActor??questWorld?.row.graph.actor;
-  const worldTargets=ports.world??questWorld?.row.interactions.rows.flatMap((entry):NativeMeleeWorld[]=>{
+  if(row.held!==undefined&&given.heldCommands===undefined&&given.inputCommands===undefined)throw new Error('Held input requires its admitted player stream');
+  if(row.input===undefined?given.commands===undefined:given.inputCommands===undefined)throw new Error('Native melee requires its declared command stream');
+  const questWorld=given.questWorld,worldActor=given.worldActor??questWorld?.row.graph.actor;
+  const firstTargets=given.world??questWorld?.row.interactions.rows.flatMap((entry):NativeMeleeWorld[]=>{
     if(entry.crack===undefined)return [];
     const spot=questWorld.spots.crack.find(point=>`crack.${point.id}`===entry.at);
     if(spot===undefined)throw new Error(`Missing admitted melee world spot ${entry.id}`);
     return [{act:entry.act,at:spot,radius:spot.radius,crack:entry.crack}];
   })??[];
-  if(worldTargets.length>1024)throw new RangeError('Native melee world roster exceeds its bound');
+  if(firstTargets.length>1024)throw new RangeError('Native melee world roster exceeds its bound');
   if(row.input?.world!==undefined&&worldActor===undefined)throw new Error('Native world commands require their quest actor');
+  const noTargets:readonly NativeMeleeWorld[]=[];
+  const holdStepped=row.held?.continuation.kind==='step';
+  // P1-E3.5: a seat per player. Quest cracks, world reactions and item scripts stay the first player's.
+  const seats=playerSeats(host,(player,first)=>{
+  const ports:NativeMeleePorts=first?given:{inputCommands:()=>given.others?.commands(player)??[],enabled:()=>given.others?.enabled(player)??false};
+  const worldTargets=first?firstTargets:noTargets;
+  /** The seq this tick's player command carries, and the one the running move took (J47). */
+  let tickSeq=0,attackSeq=0;
   let inputTick=-1, inputStream:readonly NativeMeleeInput[]=[];
   const inputCommands=():readonly NativeMeleeInput[]=>{
     if(inputTick!==host.state.tick){inputStream=ports.inputCommands?.()??[];if(inputStream.length>MAX_TICK_COMMANDS)throw new RangeError('Native melee input exceeds its tick bound');inputTick=host.state.tick;}
@@ -856,6 +872,7 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
     const policy=row.input;if(policy===undefined)return ports.commands?.()??mapped;
     mapped.length=0;
     for(const command of inputCommands()){
+      if(command.kind==='player')tickSeq=command.seq??0;
       if(command.kind==='player'&&command.attack!==undefined)mapped.push({kind:'move',action:policy.attack,...(command.attack.targetId===undefined?{}:{targetId:command.attack.targetId})});
       else if(command.kind==='player'&&command.swing===true&&command.heavy===undefined)mapped.push({kind:'move',action:policy.attack,free:command.pitch??0});
       else if(command.kind==='script'){
@@ -873,7 +890,7 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
   const port = (id: string): NativeMeleeTarget | null => {
     const actor = host.entities.get(id); return actor === undefined ? null : host.combat.targetPort(actor.combatActor(), actor, velocity => { actor.impulse(velocity); });
   };
-  const eye = (out: Vector3): Vector3 => { out.copy(lead.position); out.y += row.eye; return out; };
+  const eye = (out: Vector3): Vector3 => { out.copy(player.position); out.y += row.eye; return out; };
   const selected = (out: Vector3, dir: Vector3): boolean => {
     eye(out);
     const actor = aimed.target === null ? undefined : host.entities.get(aimed.target), spot = aimed.world === null ? undefined : targets.find(target => target.act === aimed.world);
@@ -889,7 +906,7 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
       if (heavy && second) cracked = target.act;
       return true;
     } }));
-  const family = bindMeleeContacts<NativeMeleeTarget>(weapon.id, contacts, { owner: lead.health, hit: request => host.combat.hit(request),
+  const family = bindMeleeContacts<NativeMeleeTarget>(weapon.id, contacts, { owner: player.health, hit: request => host.combat.hit(attackSeq===0?request:{...request,attackSeq}),
     world: () => world, aim: selected,
     targets: () => [...host.entities.keys()].flatMap(id => { const target = port(id); return target === null || row.liveTargetsOnly && !target.hittable ? [] : [target]; }),
     react: target => ({ actor: target.actor, ...(target.impulse === undefined ? {} : { impulse: target.impulse }), stagger: (dir, strength) => { target.target.stagger?.(dir, strength); } }),
@@ -930,8 +947,7 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
     if(!state.wasHeld&&(state.held!==0||state.target!==null))throw new Error('Invalid inactive melee hold');
     family.hold.elapsed=state.held;family.hold.held=state.wasHeld;heldTarget=state.target;
   };
-  if(holdRow?.continuation.kind==='step')host.onStep(holdRow.continuation.id,sampleHeld,{snapshot:holdSnapshot,restore:restoreHold});
-  const snapshot = (): SimValue => {
+    const snapshot = (): SimValue => {
     const state: Record<string, SimValue> = {};
     for (const field of row.continuation.fields) {
       switch (field.source) {
@@ -948,6 +964,7 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
       }
     }
     if(holdRow?.continuation.kind==='field')state[holdRow.continuation.key]=holdSnapshot();
+    if(attackSeq!==0)state['attackSeq']=attackSeq;
     return row.continuation.encoding === 'json' ? JSON.stringify(state) : state;
   };
   const restore = (inputState: unknown): void => {
@@ -955,7 +972,8 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
     const saved = v.parse(v.record(v.string(), v.unknown()), typeof inputState === 'string' && row.continuation.encoding === 'json' ? JSON.parse(inputState) : inputState);
     const holdKey=holdRow?.continuation.kind==='field'?holdRow.continuation.key:undefined;
     if(holdKey!==undefined)restoreHold(saved[holdKey]);
-    if (Object.keys(saved).length !== row.continuation.fields.length+(holdKey!==undefined&&Object.hasOwn(saved,holdKey)?1:0)) throw new Error('Unexpected native melee continuation field');
+    attackSeq=v.parse(v.optional(v.pipe(v.number(),v.integer(),v.minValue(0)),0),saved['attackSeq']);
+    if (Object.keys(saved).length !== row.continuation.fields.length+(holdKey!==undefined&&Object.hasOwn(saved,holdKey)?1:0)+(Object.hasOwn(saved,'attackSeq')?1:0)) throw new Error('Unexpected native melee continuation field');
     const values = { primary: 0, secondary: 0, time: -1, heavy: false, landed: 0, target: null as string | null, world: null as number | null, direction: [0, 0, -1] };
     for (const field of row.continuation.fields) {
       const value = saved[field.key];
@@ -981,21 +999,22 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
   const processCommand=(command:NativeMeleeCommand,dt:number):void=>{
       if (command.kind === 'aim') return;
       const action = row.actions.find(candidate => candidate.action === command.action); if (action === undefined) return;
-      if (command.free !== undefined) { const cos = Math.cos(command.free); aimed.dir.set(-Math.sin(lead.yaw) * cos, Math.sin(command.free), -Math.cos(lead.yaw) * cos); }
+      if (command.free !== undefined) { const cos = Math.cos(command.free); aimed.dir.set(-Math.sin(player.yaw) * cos, Math.sin(command.free), -Math.cos(player.yaw) * cos); }
       else if (action.aim === 'selected' && command.world === undefined && (command.targetId === undefined || !host.entities.has(command.targetId))) return;
       if (row.mode === 'immediate' && action.aim === 'selected') { aimed.target = command.targetId ?? null; aimed.world = command.world ?? null; if (!selected(from, direction)) return; }
       const claimed = action.hook === null ? row.mode === 'timed' ? family.swing(action.move) : family.claim(action.move)
         : startMeleeSecondary(family, ports.hook ?? null, { tick: ports.hookTick?.() ?? host.state.tick, dt, action: action.hook, move: action.move }) !== null;
       if (!claimed) return;
+      attackSeq=tickSeq;
       if (row.mode === 'timed') { aimed.target = command.targetId ?? null; aimed.world = command.world ?? null; }
       else {
-        if (action.aim === 'facing') { eye(from); const cos = Math.cos(pitch); direction.set(-Math.sin(lead.yaw) * cos, Math.sin(pitch), -Math.cos(lead.yaw) * cos); }
+        if (action.aim === 'facing') { eye(from); const cos = Math.cos(pitch); direction.set(-Math.sin(player.yaw) * cos, Math.sin(pitch), -Math.cos(player.yaw) * cos); }
         family.land(action.move, 0, from, direction); ports.landed?.(command.action, from, direction);
       }
   };
-  host.onStep(row.step, dt => {
+  const step=(dt:number):void=>{
     if (row.commandsAfterCool) family.cool(dt);
-    if(holdRow?.continuation.kind==='field')sampleHeld(dt);
+    if(holdRow?.continuation.kind==='field'||(holdStepped&&!first))sampleHeld(dt);
     let commands=ports.enabled?.()===false?none:mappedCommands();
     if(holdRow?.mode==='replace'&&release.released&&release.target!==null){family.cooldown=0;heavy.targetId=release.target;commands=releasedCommands;}
     if (commands.length > MAX_TICK_COMMANDS) throw new RangeError('Native melee commands exceed the protocol allowance');
@@ -1004,8 +1023,16 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
     for(const command of commands)processCommand(command,dt);
     if(holdRow?.mode==='after'&&release.released){family.cooldown=0;heavy.targetId=release.target??'';processCommand(heavy,dt);}
     if (row.mode === 'timed') family.advance(dt);
-  }, { snapshot, restore });
-  return { family, cracked: () => cracked };
+  };
+  return { family, cracked: () => cracked, sampleHeld, holdSnapshot, restoreHold, step,
+    // the first player's hold keeps its own adapter; another's rides with its seat
+    snapshot: ():SimValue => first||!holdStepped?snapshot():{melee:snapshot(),hold:holdSnapshot()},
+    restore: (value:unknown):void => { if(first||!holdStepped){restore(value);return;} const saved=v.parse(v.strictObject({melee:v.unknown(),hold:v.string()}),value); restore(saved.melee); restoreHold(saved.hold); } };
+  });
+  const {lead}=seats;
+  if(row.held?.continuation.kind==='step')host.onStep(row.held.continuation.id,lead.sampleHeld,{snapshot:lead.holdSnapshot,restore:lead.restoreHold});
+  host.onStep(row.step, seats.step, seats.adapter);
+  return { family: lead.family, cracked: lead.cracked };
 }
 
 /** A named cable service lends its existing driver, fixed step and continuation. Missing ids must refuse in state. */
@@ -1240,28 +1267,37 @@ export interface NativeLoadout<Slot extends number> {
   readonly select: (slot: Slot) => void; readonly step: (dt: number, pick: Slot | null) => void;
   readonly snapshot: () => NativeLoadoutSnapshot<Slot>; readonly restore: (value: unknown) => void;
 }
+/** The frame a kit publishes what is in hand to. */
+export interface NativeLoadoutFrame { readonly scripts: ReadonlyMap<string, number>; readonly live: Set<number>; aim: number }
 /** Bind one or several native item slots without taking over weapon/ammunition
  * continuations. Optional stepping keeps the existing id, phase and save shape;
  * the body list and aim reader remain live while ranged items are stowed.
  */
 export function bindNativeLoadout<Slot extends number>(host: SimHost, row: NativeLoadoutRow<Slot>,
   ports: NativeLoadoutPorts<Slot> & { readonly aim?: () => number;
-    readonly frame?: { readonly scripts: ReadonlyMap<string, number>; readonly live: Set<number>; aim: number };
-    readonly step?: { readonly id: string; readonly phase: 'beforeBodies' | 'afterBodies'; readonly pick: () => number | null } }):
+    readonly frame?: NativeLoadoutFrame;
+    /** P1-E3.5: another player's frame and lock. Absent, only the first player holds this kit. */
+    readonly others?: { readonly frame: (player: PlayerSim) => NativeLoadoutFrame; readonly locked: (player: PlayerSim) => boolean };
+    readonly step?: { readonly id: string; readonly phase: 'beforeBodies' | 'afterBodies'; readonly pick: (player: PlayerSim, first: boolean) => number | null } }):
   NativeLoadout<Slot> & { readonly aim: () => number; readonly bodies: () => readonly NonNullable<ReturnType<SimHost['entities']['get']>>[] } {
-  const publication = row.input?.publication, frame = ports.frame, step = ports.step;
+  const publication = row.input?.publication, frame = ports.frame, step = ports.step, others = ports.others;
   if (publication !== undefined && frame === undefined) throw new Error('Native input publication requires its combat frame');
-  const loadout = createNativeLoadout(row, ports);
-  if (step !== undefined) host.onStep(step.id, dt => {
-    const picked = step.pick(); loadout.step(dt, row.slots.find(slot => slot === picked) ?? null);
-  }, { snapshot: loadout.snapshot, restore: loadout.restore }, step.phase);
+  const seats = playerSeats(host, (player, first) => {
+    const loadout = createNativeLoadout(row, first ? ports : { ...ports, locked: () => others?.locked(player) ?? true }), own = first ? frame : others?.frame(player);
+    return { loadout,
+      step: (dt: number): void => { if (step === undefined || (!first && others === undefined)) return; const picked = step.pick(player, first); loadout.step(dt, row.slots.find(slot => slot === picked) ?? null); },
+      snapshot: (): SimValue => loadout.snapshot(), restore: loadout.restore,
+      publish: (): void => {
+        if (publication === undefined || own === undefined) return;
+        const aim = publication.aim, value = own.scripts.get(aim.command) ?? aim.initial;
+        own.aim = value === aim.sentinel ? value : Number.isFinite(value) ? Math.min(aim.max, Math.max(aim.min, value)) : aim.initial;
+        own.live.clear();
+        for (let index = 0; index < 32; index++) { const slot = row.slots[index]; if (slot === undefined) break; if (loadout.live(slot)) own.live.add(slot); }
+      } };
+  }), { loadout } = seats.lead;
+  if (step !== undefined) host.onStep(step.id, seats.step, seats.adapter, step.phase);
   if (publication !== undefined && frame !== undefined) {
-    host.onStep(publication.step, () => {
-      const aim = publication.aim, value = frame.scripts.get(aim.command) ?? aim.initial;
-      frame.aim = value === aim.sentinel ? value : Number.isFinite(value) ? Math.min(aim.max, Math.max(aim.min, value)) : aim.initial;
-      frame.live.clear();
-      for (let index = 0; index < 32; index++) { const slot = row.slots[index]; if (slot === undefined) break; if (loadout.live(slot)) frame.live.add(slot); }
-    }, undefined, publication.phase);
+    host.onStep(publication.step, () => { for (const player of host.players.values()) seats.of(player).publish(); }, undefined, publication.phase);
   }
   const bodies: NonNullable<ReturnType<SimHost['entities']['get']>>[] = [];
   return { ...loadout, aim: ports.aim ?? (() => 0.5), bodies: () => {
