@@ -7,12 +7,10 @@ import type { ShardContext } from '../plugin/context';
 import { requireClientPlaceSetsBound } from '../shardfile/clientPlaceSets';
 import { entryOwner } from '../../shared/shardfile/entryOwners';
 import { declaredLootEconomy } from '../../shared/shard/declaredRows';
-import { installDeclaredCollectionKeepsakes } from '../../server/compendium/keepsakes';
 import { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
 import { sharedModelContext, type ModelDef } from '@wildshard/engine/models/model';
-import { Sword } from '../../server/weapons/Sword';
-import { installItemEffects } from '../../server/loadout/effects';
-import { enteredLootPresentation, installRuntimeLoot } from '../../server/loot/runtime';
+import type { Sword } from '../../server/weapons/Sword';
+import { pageSim } from '../shardfile/clientMoverOwners';
 import { installQuestShop } from './trader';
 
 const ended = (ctx: ShardContext): boolean => ctx.scope.disposed || ctx.scope.disposing;
@@ -23,23 +21,23 @@ export async function installQuestContinuation(ctx: ShardContext, input: unknown
   const row = v.parse(QuestContinuationSchema, input), adventure = entryOwner(ctx.scope, 'quest', row.quest);
   const catalogue = entryOwner(ctx.scope, 'collection', row.collection), shell = ctx.game.runtime, world = shell?.world, play = shell?.play;
   if (world === undefined || world === null || play === undefined || play === null) throw new Error('Quest continuation needs its entered world');
-  const swords = play.weapons.list.map(({ id }) => play.weapons.get(id)).filter((weapon): weapon is Sword => weapon instanceof Sword);
+  const swords = play.weapons.list.map(({ id }) => play.weapons.get(id)).filter((weapon): weapon is Sword => pageSim.isSword(weapon));
   const economy = declaredLootEconomy(ctx.product.section('economy/loot').rows.loot);
-  installItemEffects(ctx);
+  pageSim.installItemEffects(ctx);
   const cosmeticRows = await ctx.product.json(row.cosmetics.file);
   if (ended(ctx)) return;
   const cosmetics = defineWorldSceneCatalogue(cosmeticRows), sources = sharedModelContext(world.sky);
   const bind = (model: ModelDef<Record<string, unknown>>): ModelDef<Record<string, unknown>> => ({ ...model,
     build: (_context, params, rng) => model.build({ ...sources, specimenScope: ctx.scope }, params, rng) });
   const collections = v.parse(CollectionDisplaysSchema, ctx.product.section(row.collections));
-  await installDeclaredCollectionKeepsakes(ctx, collections.keepsakes, economy,
+  await pageSim.installDeclaredCollectionKeepsakes(ctx, collections.keepsakes, economy,
     new Map([['collection', { adventure, world, play, swords, catalogue,
       models: new Map(Object.entries(row.cosmetics.models).map(([id, key]) => [id, bind(cosmetics.model(key))])) }]]));
   if (ended(ctx)) return;
   const shop = await ctx.product.json(row.loot.shop);
   if (ended(ctx)) return;
-  const presentation = enteredLootPresentation(ctx, row.loot.id, row.loot.bag);
-  installRuntimeLoot(ctx, { ...presentation, shop: () => installQuestShop(ctx, shop)() }, { minimap: row.loot.minimap, before: row.loot.before });
+  const presentation = pageSim.enteredLootPresentation(ctx, row.loot.id, row.loot.bag);
+  pageSim.installRuntimeLoot(ctx, { ...presentation, shop: () => installQuestShop(ctx, shop)() }, { minimap: row.loot.minimap, before: row.loot.before });
 }
 
 /** Finite entry dispatch. The admitted file owns quest and collection ids; no
