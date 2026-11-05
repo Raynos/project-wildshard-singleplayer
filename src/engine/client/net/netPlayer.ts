@@ -98,8 +98,8 @@ export class NetPlayer implements PlayerLink {
     const first = this.seen === null;
     this.seen = frame;
     this.world.frame(frame.tick, frame.lastSeq);
-    if (first) { this.predictor.adopt(frame.lastSeq, frame.owner); return; }
-    this.predictor.reconcile(frame.lastSeq, frame.owner);
+    if (first) { this.predictor.adopt(frame.lastSeq, frame.owner, frame.tick); return; }
+    this.predictor.reconcile(frame.lastSeq, frame.owner, frame.tick);
     const swung = PLAYER_CLASS.owner[LAST_SWING]?.value(frame.owner[LAST_SWING] ?? 0), held = PLAYER_CLASS.owner[HELD]?.value(frame.owner[HELD] ?? 0);
     this.attacks.frame(frame.lastSeq, typeof swung === 'number' ? swung : 0);
     if (typeof held === 'number') this.held = held;
