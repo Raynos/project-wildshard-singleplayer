@@ -13,6 +13,7 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseSync } from 'vite';
+import { exportedPath } from '../lint/layer-exports.mjs';
 import { checkSimRuntime } from './sim-in-runtime.mjs';
 
 const ROOT = resolve(fileURLToPath(new URL('../', import.meta.url)));
@@ -49,6 +50,8 @@ export function resolveSpecifier(from, spec, exists) {
   else if (spec.startsWith('.')) base = relative(ROOT, resolve(ROOT, dirname(from), spec)).replaceAll('\\', '/');
   else return null;
   if (!base.startsWith('src/')) return null;
+  const exported = pkg ? exportedPath(pkg[1], pkg[2]) : null; // J122: a sorted file's export names its folder; a past commit's tree may not hold it
+  if (exported !== null && SOURCE.test(exported) && exists(exported)) return exported;
   if (/\.(?:css|jpg|jpeg|png|webp|svg|json|glsl|wgsl|txt)(?:\?.*)?$/u.test(base)) return null;
   const stripped = base.replace(/\.js$/u, '');
   for (const candidate of [base, `${stripped}.ts`, `${stripped}.tsx`, `${stripped}.mjs`, `${stripped}.js`, `${stripped}/index.ts`]) if (exists(candidate) && SOURCE.test(candidate)) return candidate;

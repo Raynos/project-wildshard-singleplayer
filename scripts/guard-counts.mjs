@@ -4,6 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { unsortedPath } from '../lint/layer-exports.mjs';
 import { guardIndexTree } from './guard-index-tree.mjs';
 import { parseSync } from 'vite';
 
@@ -36,10 +37,15 @@ export function hardRules(file) {
 /** Only the supplied paths participate in a staged check; omitted paths mean the whole tree. */
 export function compareCounts(baseline, current, hard, paths, update = false, defer = false, strictIncreases = false) {
   const failures = [], warnings = [];
-  const selected = paths ? new Set(paths) : null;
+  const selected = paths ? new Set(paths.map(unsortedPath)) : null;
+  const rows = table => { // a row follows its file across a side move (J122)
+    const out = {};
+    for (const [file, count] of Object.entries(table)) out[unsortedPath(file)] = (out[unsortedPath(file)] ?? 0) + count;
+    return out;
+  };
   for (const key of new Set([...Object.keys(baseline), ...Object.keys(current)])) {
     if (!key.startsWith('wildshard/')) continue;
-    const previous = baseline[key] ?? {}, now = current[key] ?? {};
+    const previous = rows(baseline[key] ?? {}), now = rows(current[key] ?? {});
     for (const file of new Set([...Object.keys(previous), ...Object.keys(now)])) {
       if (selected && !selected.has(file)) continue;
       const was = previous[file] ?? 0, count = now[file] ?? 0;

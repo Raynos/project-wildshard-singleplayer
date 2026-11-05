@@ -1,11 +1,12 @@
 import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname, posix } from 'node:path';
 import { homedir } from 'node:os';
+import { exportedPath } from '../../lint/layer-exports.mjs';
 
 /** @param {string} root @param {string} path @param {string} spec */
 function imported(root, path, spec) {
   const alias = /^@wildshard\/(engine|game|kit)(?:\/(.*))?$/.exec(spec); // E432: the layers' workspace packages
-  const base = spec.startsWith('.') ? posix.join(posix.dirname(path), spec) : alias ? `src/${alias[1]}/${alias[2] || 'index'}` : '';
+  const base = spec.startsWith('.') ? posix.join(posix.dirname(path), spec) : alias ? (alias[2] === undefined ? null : exportedPath(alias[1], alias[2], root)) ?? `src/${alias[1]}/${alias[2] ?? 'index'}` : '';
   return base ? [base, `${base}.ts`, `${base}/index.ts`].find((p) => existsSync(join(root, p))) : undefined;
 }
 /** Import reachability gives shared-system changes a reproducible score; direct shard changes take priority.

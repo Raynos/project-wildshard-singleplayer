@@ -1,3 +1,4 @@
+import { exportedPath } from './layer-exports.mjs';
 import { currentSources, sourceStamp } from './source-stamps.mjs';
 // SF3a: runtime dependency graph shared by oxlint and the measured, shrink-only baseline.
 import { existsSync, readFileSync, globSync, statSync } from 'node:fs';
@@ -24,7 +25,8 @@ function target(root, file, source, observed) {
   const pkg = /^@wildshard\/(engine|format|game|sdk|commons)\/(.+)$/u.exec(source);
   const base = pkg ? resolve(root, 'src', pkg[1], pkg[2]) : source.startsWith('.') ? resolve(dirname(file), source) : null;
   if (base === null) return null;
-  return [base, `${base}.ts`, `${base}.js`, base.replace(/\.js$/u, '.ts'), `${base}/index.ts`].find((p) => { observed.set(p, sourceStamp(p)); return existsSync(p) && statSync(p).isFile(); }) ?? null;
+  const exported = pkg ? exportedPath(pkg[1], pkg[2], root) : null;
+  return [...exported === null ? [] : [resolve(root, exported)], base, `${base}.ts`, `${base}.js`, base.replace(/\.js$/u, '.ts'), `${base}/index.ts`].find((p) => { observed.set(p, sourceStamp(p)); return existsSync(p) && statSync(p).isFile(); }) ?? null;
 }
 const value = (node) => node?.type === 'Literal' && typeof node.value === 'string' ? node.value : null;
 function walk(node, visit, parent = null) {

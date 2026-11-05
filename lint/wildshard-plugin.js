@@ -1,3 +1,4 @@
+import { exportedPath } from './layer-exports.mjs';
 import { noGeneratedImportRule, noGeneratedJsonImportRule } from './no-generated-import.mjs';
 import { execMaxBufferRule } from './exec-max-buffer.mjs';
 import { recordedDebtRule } from './recorded-debt.mjs';
@@ -41,7 +42,7 @@ const packageTarget = (source) => {
   const m = LAYER_PACKAGE.exec(source);
   if (!m) return null;
   const [, layer, sub = 'index'] = m;
-  return `src/${layer}/${sub}`;
+  return exportedPath(layer, m[2])?.replace(/\.ts$/u, '') ?? `src/${layer}/${sub}`;
 };
 /** a package subpath its package.json `exports` lists (the URL-param resolver follows only those) */
 const packageExports = new Map();

@@ -2,6 +2,7 @@
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import ts from '@typescript/typescript6';
+import { exportedPath } from '../lint/layer-exports.mjs';
 import { pushGuards } from './gate-related-tests.mjs';
 
 /** @param {string} root @param {boolean} codeOnly @returns {string[]} */
@@ -65,6 +66,9 @@ export function deletedReferences(root, deleted) {
     /** @param {string} literal @param {number} line */
     const check = (literal, line) => {
       if (allow.some(row => row.file === file && row.path === literal)) return;
+      const layer = /^@wildshard\/(engine|game)\/(.+)$/u.exec(literal), exported = layer === null ? null : exportedPath(layer[1], layer[2], root);
+      if (exported !== null && existsSync(resolve(root, exported))) return; // J122: the export, not the folder, names it
+      if (/^src\/[^/]+\/package\.json$/u.test(file) && literal.startsWith('./')) return; // the file's `exports` table: resolve checks it
       const name = literal.startsWith('.') ? relative(root, resolve(dirname(path), literal))
         : literal.replace(/^@wildshard\//u, 'src/');
       const matches = [name, `${name}.ts`, `${name}.mts`, `${name}.mjs`, `${name}/index.ts`,

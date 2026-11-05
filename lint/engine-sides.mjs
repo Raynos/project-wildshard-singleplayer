@@ -7,6 +7,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import { parseSync } from 'vite';
+import { exportedPath, unsortedPath } from './layer-exports.mjs';
 import { DOM as SIM_DOM, MATH as SIM_MATH, reference } from './sim-closure.mjs';
 
 export const SIDES_FILE = resolve(import.meta.dirname, 'engine-sides.json');
@@ -76,8 +77,8 @@ export function importCandidates(path, specifier) {
   if (pkg) base = `src/${pkg[1]}/${pkg[2] ?? 'index'}`;
   else if (specifier.startsWith('.')) base = relative('/', resolve('/', dirname(path), specifier.replace(/[?#].*$/u, ''))).replaceAll('\\', '/');
   else return [];
-  const stem = base.replace(/\.[cm]?js$/u, '');
-  return [base, `${stem}.ts`, `${stem}.tsx`, `${stem}.js`, `${stem}.mjs`, `${base}/index.ts`];
+  const stem = base.replace(/\.[cm]?js$/u, ''), exported = pkg ? exportedPath(pkg[1], pkg[2]) : null;
+  return [...exported === null ? [] : [exported], base, `${stem}.ts`, `${stem}.tsx`, `${stem}.js`, `${stem}.mjs`, `${base}/index.ts`];
 }
 
 const literal = node => node?.type === 'Literal' && typeof node.value === 'string' ? node.value
@@ -238,8 +239,17 @@ export function compareSideEdges(before, after) {
   let next, previous;
   try { next = readEdges(after); previous = before === undefined ? undefined : readEdges(before); } catch (error) { return [`${SIDE_EDGES_LIST}: ${error instanceof Error ? error.message : String(error)}`]; }
   if (previous === undefined) return failures; // P1-E2 seeds the ratchet once
-  for (const [path, edges] of Object.entries(next)) for (const [edge, count] of Object.entries(edges)) {
-    const was = previous[path]?.[edge] ?? 0;
+  const rows = table => { // a row follows its file across a side move (J122), and two halves of a split add up
+    const out = {};
+    for (const [path, edges] of Object.entries(table)) for (const [edge, count] of Object.entries(edges)) {
+      const row = out[unsortedPath(path)] ??= {};
+      row[edge] = (row[edge] ?? 0) + count;
+    }
+    return out;
+  };
+  const past = rows(previous), now = rows(next);
+  for (const [path, edges] of Object.entries(now)) for (const [edge, count] of Object.entries(edges)) {
+    const was = past[path]?.[edge] ?? 0;
     if (count > was) failures.push(`${SIDE_EDGES_LIST}: ${path} ${edge} rose ${was} → ${count}`);
   }
   return failures;
