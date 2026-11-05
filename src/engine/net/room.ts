@@ -170,7 +170,10 @@ export class NetRoom {
   }
   private welcome(client: RoomClient): void {
     client.state = 'live';
-    const refs = this.handles.refs, handle = refs(this.world.player.id);
+    // Handles are handed out by frames, and the welcome comes first: without this a first client's own handle reads 0.
+    const { handles } = this, serial = ++this.serial;
+    this.world.visit({ entity: (id, cls, view) => { handles.touch(id, cls, view, serial); } });
+    const handle = handles.refs(this.world.player.id);
     client.transport.send('reliable', encodeWelcome(this.writer, { handle, tick: this.world.tick(), cell: this.world.cell(), schemaHash: NET_SCHEMA_HASH, simHz: SIM_HZ, frameHz: FRAME_HZ }));
   }
   private snapshot(tick: number): void {
