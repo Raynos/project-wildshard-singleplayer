@@ -446,3 +446,65 @@ the post-control publication overlap stays flagged as in the DL5 report.
 No recovered facade pairs occurred. This narrows Pine's same-build warm
 behavior only: **Driftwood's warm/deploy browser acceptance remains open**.
 Audit: `tmp/sp-x2-dl5-gzip/dl18-pine-warm-audit.json`.
+
+### DL2 title dwell / DL1 supplement — 2026-11-04, sp-x2
+
+One immutable build `ac562d9-mw2x7n23` / source `ac562d9bd1`, grid home
+Driftwood, Runtime packs, original Chromium phone preset (shared 10 Mb/s,
+100 ms, page CPU 10×). Separate fresh-context CLI invocations at 0 and
+3,000 ms title dwell, each retaining its built-in warm companion. Both
+arms' app/book/manifest bindings and eleven CLI/helper hashes stayed fixed.
+No retries, source variant or extra browser run.
+
+| Title dwell | Cold tap → control | Warm companion | Cold accounting |
+|---|---|---|---|
+| 0 ms | 47.408 s | 27.449 s | refuses one ambiguous tileDecodeWorker facade |
+| 3,000 ms | 44.252 s | 27.422 s | same refusal |
+
+Raw cold delta **−3.156 s**; native control qualified on all four visits.
+Home-manifest requests completed before tap transferred **177,137 →
+1,902,945 B**. The physical shared link's entire title interval counted
+**1,287,735 → 4,718,323 B**; these include shell/code and are not all DL2
+bytes. Requests merely started before tap are not credited as fully
+transferred before it. This is n=1 in fixed order: the longer dwell can
+also admit default-on DL10's title shader warm-up, so the entire delta is
+not attributed exclusively to DL2. There is no recorded title-ready
+clock from which to invent a second end-to-end result.
+
+Each cold raw contains seven recovered SW facades, each backed by exactly
+one complete counted worker row. The remaining tileDecodeWorker facade
+has **two** completed, header/validator/lifetime-matching native worker
+candidates (2,743 B physical transfer and 0 B cached transfer); the reader
+correctly refuses the ambiguous identity. Both cold CLIs exit 1, with no
+5 s metadata deadline. Warm accounting is complete, with eleven in-flight
+requests retained separately; no full-response wire-total claim.
+
+DL1 current-policy supplement: both cold captures contain 35 worker-owned
+requests started before control (shell and entry-worker URLs described,
+not classified as PRECACHE by worker ownership alone). Each observed 4 s
+post-control window contains 73 new worker requests. There is no PRECACHE
+message timestamp and no old-policy arm: **DL1's historical −15 s causal
+reading remains open**. Raw source, native diagnostics, exact URL classes,
+post-control windows and refusals: `tmp/sp-x2-dl2/final-analysis.json`.
+Measurement/browser/owned preview use ended **02:27:50Z**; sp-o1 retained its
+independent shared preview lease. DL2's complete wire-accounting acceptance
+is not claimed from these cold refusals.
+
+### DL23 stable document identity — 2026-11-04, sp-x2
+
+Tool fix `621b77d9e3`: every recorder document owns a random sampler token,
+carried on card polls and frame drains. Joins use that identity, not URL or
+`performance.timeOrigin` equality. Exact retained Driftwood poll/counter
+sequences reproduced a +1 / −1 ms Safari origin jitter dropping 15 drawn
+frames; tests keep those batches and refuse a same-URL navigation even
+with the same origin and increasing counter. Sampler reinstallation keeps
+its token; a new document gets another. All 16 related cases, root types,
+named lint and script syntax checks pass; no frame threshold changed.
+
+Offline reanalysis preserves the original raw files and reports:
+**Driftwood packs 2: unqualified; Shardfile 3: unqualified**. Neither old
+recording has a document token, so the tool cannot retrospectively grant
+frame/play identity. Their original first-five results [29,30,15,31,29]
+and [30,30,30,17,28] remain historical, not promoted by a URL/clock tolerance.
+Exact original/counterfactual trace and new refusal reports are in
+`tmp/sp-x2-dl24-review/{origin-jitter,retained-reanalysis}.json`.
