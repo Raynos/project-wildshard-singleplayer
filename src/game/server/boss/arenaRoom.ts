@@ -42,7 +42,7 @@ import type { CosmeticFinishLocker } from '../../client/loadout/cosmeticFinishes
 import type { installEnteredRuntimeService } from '../../client/shard/retainedHooks';
 import type { pageRidingMount, respawnPageMounted, installArenaBoundary } from '../../client/riding/client';
 import type { lendOpenArenaView } from '../../client/boss/arenaFire';
-import type { Mount } from '../riding/mount';
+import type { Mount } from '../../client/riding/mount';
 /** ArenaRoomEncounter.contact's reach anchor (scratch) */
 const _openW = new Vector3();
 

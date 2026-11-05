@@ -15,7 +15,7 @@ import { CellField, type CellFieldSnapshot } from '../systems/cellField';
 import { prepareV2WorldActions, type V2WorldActionLoan } from '../shardfile/worldActionsV2';
 import type { ViewTell } from '@wildshard/engine/script/viewProgram';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
-import type { Mount } from '../riding/mount';
+import type { Mount } from '../../client/riding/mount';
 import type { ArenaBoundary } from '../../client/riding/client';
 import type { WeatherReactions } from '../weather/reactions';
 import type { wildEnv } from '../population/pageGroups';

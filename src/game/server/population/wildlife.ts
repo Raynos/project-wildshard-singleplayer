@@ -9,7 +9,7 @@ import { fixedDraws } from '../../client/models/fixedDraws';
 import type { SpeciesActorsFileRows } from '@wildshard/format/speciesBookRows';
 import type { CrowdDraw } from '../../client/ambient/crowdDraw';
 import { prepareForagerDraw, type ForagerDraw } from '../../client/ambient/foragerDraw';
-import { pageRidingMounted } from '../riding/mount';
+import { pageRidingMounted } from '../../shared/riding/entered';
 import { PopulationRelations } from './relations';
 import * as v from 'valibot';
 import type { RayTargets } from '@wildshard/engine/combat/targets';

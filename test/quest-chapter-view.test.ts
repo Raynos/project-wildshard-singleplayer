@@ -11,7 +11,7 @@ import * as v from 'valibot';
 import { Group, MeshBasicMaterial } from 'three';
 import { app } from '../src/engine/client/app/runtime';
 import { WorldRegistry } from '../src/engine/client/world/registry';
-import { Mount } from '../src/game/server/riding/mount';
+import { Mount } from '../src/game/client/riding/mount';
 import { parseArenaScriptData } from '@wildshard/format/arenaScriptRows';
 import { lendLooks } from '../src/game/client/shardfile/lentLooks';
 import { CarriedQuestProp } from '../src/game/client/quest/carriedProp';

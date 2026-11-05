@@ -15,7 +15,7 @@ import type {ShardContext} from '../src/game/client/plugin/context';
 import type {HeldClaims,HeldSlotKit} from '../src/game/client/loadout/claims';
 import type {CosmeticFinishLocker} from '../src/game/client/loadout/cosmeticFinishes';
 import {lendLooks} from '../src/game/client/shardfile/lentLooks';
-import {Mount} from '../src/game/server/riding/mount';
+import {Mount} from '../src/game/client/riding/mount';
 import {parseArenaScriptData} from '@wildshard/format/arenaScriptRows';
 import type {ModelDef} from '../src/engine/client/models/model';
 import type {BossBar} from '../src/engine/client/ui/BossBar';

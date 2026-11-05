@@ -36,7 +36,7 @@ import { parseArenaScriptData } from '@wildshard/format/arenaScriptRows';
 import { PatrolEncounterView } from '../src/game/client/boss/encounterView';
 import { CueDirector } from '../src/game/client/audio/cueDirector';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
-import { Mount } from '../src/game/server/riding/mount';
+import { Mount } from '../src/game/client/riding/mount';
 import type { LevelContext } from '../src/engine/server/level/context';
 import { NALATI_NIGHT as nightInput } from './fixtures/nalati-night';
 import {withWeatherWitness} from './fixtures/weatherInlineWitness';

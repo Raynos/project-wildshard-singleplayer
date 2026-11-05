@@ -40,7 +40,7 @@ import type { HeldClaims, HeldSlotKit } from '../../src/game/client/loadout/clai
 import type { CosmeticFinishLocker } from '../../src/game/client/loadout/cosmeticFinishes';
 import { enteredAdventurePersistence } from '../../src/game/shared/quest/chapterBindings';
 import {pageRidingMount,respawnPageMounted,arenaBlockedAt,installArenaBoundary,type ArenaBoundary} from '../../src/game/client/riding/client';
-import type { Mount } from '../../src/game/server/riding/mount';
+import type { Mount } from '../../src/game/client/riding/mount';
 
 /** Read schema-checked named products; no validator is imported into play. */
 export async function readArenaScriptData(product: Pick<ShardProduct,'json'>, files: { fight: string; geometry: string }): Promise<ArenaScriptData> {

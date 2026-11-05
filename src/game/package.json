@@ -304,7 +304,7 @@
     "./shardfile/hybridPresentation": "./client/shardfile/hybridPresentation.ts",
     "./practice/scene": "./client/practice/scene.ts",
     "./riding/hud": "./client/riding/hud.ts",
-    "./riding/mount": "./server/riding/mount.ts",
+    "./riding/mount": "./client/riding/mount.ts",
     "./boss/arenaRoom": "./server/boss/arenaRoom.ts",
     "./boss/arenaRoomFight": "./server/boss/arenaRoomFight.ts",
     "./boss/arenaRoomNative": "./server/boss/arenaRoomNative.ts",

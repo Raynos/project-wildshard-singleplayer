@@ -1273,8 +1273,9 @@
    "mixed": true
   },
   "src/game/shared/riding/companions.ts": "shared",
+  "src/game/shared/riding/entered.ts": "shared",
   "src/game/client/riding/hud.ts": "client",
-  "src/game/server/riding/mount.ts": "server",
+  "src/game/client/riding/mount.ts": "client",
   "src/game/server/riding/native.ts": "server",
   "src/game/server/riding/nativePopulation.ts": "server",
   "src/game/server/riding/nativeTaming.ts": "server",

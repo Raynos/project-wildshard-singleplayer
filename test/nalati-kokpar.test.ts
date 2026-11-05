@@ -9,7 +9,7 @@ import { parseCarriedQuest } from '@wildshard/format/questSteps';
 import { CarriedQuestProp } from '../src/game/client/quest/carriedProp';
 import { carriedQuestRows } from './fixtures/nalati-carried-quest';
 import * as ridingService from '../src/game/client/riding/client';
-import { Mount } from '../src/game/server/riding/mount';
+import { Mount } from '../src/game/client/riding/mount';
 import { WorldRegistry } from '../src/engine/client/world/registry';
 import { QuestState } from '../src/engine/shared/quest/core';
 import { Flags } from '../src/engine/shared/world/interact/flags';

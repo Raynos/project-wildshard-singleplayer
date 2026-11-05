@@ -1,4 +1,3 @@
-import type { Scope } from '@wildshard/engine/app/scope';
 import { type RoadXZ, type ReinsFrame, MountedBody, mountedMotorOptions, type MountedWorld } from '@wildshard/game/riding/physics';
 import * as THREE from 'three';
 import { app } from '@wildshard/engine/app/runtime';
@@ -15,14 +14,9 @@ import type { Player } from '@wildshard/engine/player/Player';
 import { inChunk, waterLevel } from '@wildshard/engine/world/Heightfield';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { Bow } from '@wildshard/game/weapons/Bow';
+import { Bow } from '@wildshard/engine/combat/view/Bow';
 import { MountCompanions, type Companion } from '../../shared/riding/companions';
-
-const enteredMounts = new WeakMap<Scope, Mount>();
-/** Borrow the native entered mount without constructing a riding controller. */
-export function enteredMount(scope: Scope): Mount | undefined { return scope.disposed ? undefined : enteredMounts.get(scope); }
-/** Population reads the actual mount, including before riding is installed. */
-export function pageRidingMounted(ctx: Pick<LevelContext, 'scope'>): boolean { return enteredMount(ctx.scope)?.mounted === true; }
+import { enterMount } from '../../shared/riding/entered';
 
 export type MountEvent = { kind: 'mount'; horse: string | null } | { kind: 'thrown' } | { kind: 'panic'; horse: string; seconds: number } | { kind: 'bolt'; horse: string; name: string };
 type Mountable = Companion<Animal, Interactable>;
@@ -78,8 +72,7 @@ export class Mount extends MountedBody {
   constructor(private readonly ctx: LevelContext, player: Player, private readonly animals: AnimalManager, private readonly opts: MountProfile) {
     super(opts.speeds);
     this.companions = new MountCompanions(opts);
-    const previous = enteredMounts.get(ctx.scope); enteredMounts.set(ctx.scope, this);
-    ctx.scope.onDispose(() => { if (enteredMounts.get(ctx.scope) === this) { if (previous === undefined) enteredMounts.delete(ctx.scope); else enteredMounts.set(ctx.scope, previous); } });
+    enterMount(ctx.scope, this);
     this.player = player; this.input = ctx.app.input;
     const p = this.player;
     const makeFrame = (m: Mount): ReinsFrame => {
