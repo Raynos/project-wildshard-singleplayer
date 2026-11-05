@@ -113,7 +113,7 @@ test('a client that drops hears what it missed when it comes back, once, and a g
 
 test('filings: coins by their player, a bot\'s quest by its prefix, the lead by default, and a duplicate files nothing', () => {
   const host = createSimHost(SIM_LEVEL, { rapier }), lead = leadPlayer(host).id; host.addPlayer('bot:1', { x: 3, y: 0, z: 0 });
-  const rows = ledgerFilings(host, [
+  const rows = ledgerFilings(host, lead, [
     { kind: 'coins', amount: 4, actorId: 'bot:1' }, { kind: 'fact', name: 'q.done', actorId: 'bot:1:quest' }, { kind: 'fact', name: 'q.done', actorId: 'quest' }, { kind: 'fact', name: 'q.twice', actorId: 'quest' },
   ], (name, entity) => ({ id: `${name}/${entity}`, status: name === 'q.twice' ? 'duplicate' : 'granted', recorded: true }));
   expect(rows.map(row => [row.player, row.grant, row.name])).toEqual([['bot:1', 'coins', 'coins'], ['bot:1', 'fact', 'q.done'], [lead, 'fact', 'q.done']]);

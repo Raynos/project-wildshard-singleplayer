@@ -167,6 +167,9 @@ test('hello refuses a stale schema or build with `reload`, and garbage never rea
   const old = directLoopback(), oldClient = new NetClient(old.client);
   room.join(old.server); oldClient.hello('build-b'); old.pump();
   expect(oldClient.closed).toBe('reload');
+  const garbled = directLoopback(), garbledClient = new NetClient(garbled.client);
+  room.join(garbled.server); garbled.client.send('reliable', Uint8Array.of(1, 0, 0).buffer); garbled.pump();
+  expect(garbledClient.closed, 'a hello this build cannot read is a stale tab too').toBe('reload');
   const good = directLoopback(), client = new NetClient(good.client);
   room.join(good.server); client.hello('build-a'); room.open(); good.pump();
   expect(client.welcome).not.toBeNull();
@@ -174,7 +177,7 @@ test('hello refuses a stale schema or build with `reload`, and garbage never rea
   good.client.send('unreliable', Uint8Array.of(2, 1).buffer);
   good.client.send('reliable', encodeCommands(writer, { ackFrame: 0xfffffff0, commands: [] }, () => 0)); // an ack from the future is ignored
   good.pump();
-  expect(room.stats.refused).toBe(2);
+  expect(room.stats.refused).toBe(3);
   room.tick(); room.tick(); good.pump();
   expect(client.latest?.baselineTick).toBe(0xffffffff);
   resident.dispose();

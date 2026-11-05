@@ -194,7 +194,9 @@ export class NetRoom {
   }
   private hello(client: RoomClient, view: Uint8Array): void {
     const hello = decodeHello(view);
-    if (hello === null || client.state !== 'new') { this.stats.refused++; return; }
+    if (client.state !== 'new') { this.stats.refused++; return; }
+    // A hello this build cannot read is a stale tab as surely as a wrong hash: it must reload, not wait for ever (§4.4).
+    if (hello === null) { this.stats.refused++; client.transport.close('reload'); return; }
     // J54: exact match only. Refused with `reload`, so a stale tab picks up the new build (§4.4).
     if (hello.schemaHash !== NET_SCHEMA_HASH || (this.build !== '' && hello.build !== this.build)) { client.transport.close('reload'); return; }
     const said = v.safeParse(NetIdentitySchema, { player: hello.player, name: hello.name });

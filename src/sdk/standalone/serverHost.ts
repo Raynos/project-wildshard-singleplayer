@@ -80,7 +80,7 @@ export function runStandaloneServer(options: StandaloneServerOptions): { dispose
     if (saved?.ledger !== undefined) book.restore(saved.ledger);
     // M8: this is where a grant becomes the profile's, as it is on the page; only a fact the shard declares has a rule to pay.
     const facts = createQuestLedger(saves, input.shard, slug), declared = new Set(input.shard.ledger.map(row => row.fact));
-    const world = new SimNetWorld(live.host, 0, () => ledgerFilings(live.host, live.effects, (name, entity) => declared.has(name) ? facts(name, entity) : null));
+    const world: SimNetWorld = new SimNetWorld(live.host, 0, () => ledgerFilings(live.host, world.player.id, live.effects, (name, entity) => declared.has(name) ? facts(name, entity) : null));
     room = new NetRoom({ world, step, build: message.build, book, ...(options.reports === undefined ? {} : { reports: options.reports }) });
     room.join(new WorkerLoopback(game));
     const tickRoom = room;
