@@ -65,16 +65,23 @@ export async function play(browser, phone, base, only = '') {
   };
 
   // Driftwood, one shard: the opening quest
-  if (runs('driftwood')) { const drift = await open(browser, phone, base, '/?chunk=driftwood-isle&mute=1');
+  if (runs('driftwood')) { const drift = await open(browser, phone, base, '/?chunk=driftwood-isle&mute=1&nolock=1');
   await step('driftwood boots on the row', async () => { await entered(drift.page); return started(drift.page); });
   await step('the page draws the server creatures', async () => { const r = await report(drift.page); return { ok: r.rows > 0, rows: r.rows, closed: r.closed }; });
   await step('walk to Wendell', async () => {
     for (const [x, z] of [[-8, -172], [-30, -142], [-30, -104], [-24, -80]]) await walk(drift.page, x, z, 3, 25); // the sand path up from the pier
-    return walk(drift.page, -22, -71.5, 2.5, 25);
+    const there = await walk(drift.page, -22, -71.5, 1.8, 25);
+    await drift.page.waitForTimeout(1000); // a press is judged where the server has the body, a command behind
+    return there;
   });
   await step('talk to Wendell: the server starts the quest', async () => {
     for (let i = 0; i < 14; i++) { await drift.page.keyboard.press('KeyE'); await drift.page.waitForTimeout(700); const r = await report(drift.page); if (r.quests['sealed-ring'] !== undefined && r.quests['sealed-ring'] !== 'unstarted') return { ok: true, quests: r.quests }; }
     const r = await report(drift.page); return { ok: false, quests: r.quests, flags: r.flags.slice(0, 12), x: r.x, z: r.z };
+  });
+  await step('read to the end of the talk', async () => {
+    const reading = () => drift.page.evaluate(() => window.__wildshard.shard['driftwood.adventure'].spine.dialogue.isOpen);
+    for (let i = 0; i < 30 && await reading(); i++) { await drift.page.keyboard.press('KeyE'); await drift.page.waitForTimeout(500); }
+    return !await reading();
   });
   await step('the chip shows the server step', async () => {
     await drift.page.waitForTimeout(1500);
@@ -88,34 +95,32 @@ export async function play(browser, phone, base, only = '') {
   await step('open the castaway chest: the server keeps it', async () => {
     const at = await drift.page.evaluate(() => { const live = window.__wildshard.shard['driftwood.adventure'].kit.lives.find(row => row.def.id === 'castaway-chest'); return live === undefined ? null : { x: live.position.x, z: live.position.z }; });
     if (at === null) return { ok: false, why: 'no chest row' };
-    await walk(drift.page, at.x, at.z, 1.8, 30);
+    await walk(drift.page, -14, -62, 2, 12); await walk(drift.page, at.x, at.z, 1.8, 12); // behind Wendell's fire
     for (let i = 0; i < 8; i++) { await drift.page.keyboard.press('KeyE'); await drift.page.waitForTimeout(700); const r = await report(drift.page), held = r.flags.filter(flag => flag.includes('castaway-chest')); if (held.length > 0) return { ok: true, held }; }
     const r = await report(drift.page); return { ok: false, at, x: r.x, z: r.z, flags: r.flags.slice(0, 14) };
   });
+  // Chase and swing: the sword reaches two metres, and a boar doesn't stand still.
+  const swing = async kinds => {
+    const body = await nearestBody(drift.page, kinds);
+    if (body === null) { await drift.page.waitForTimeout(400); return; }
+    await drift.page.evaluate(([x, z, away]) => { const { player, game } = window.__wildshard.world; player.yaw = Math.atan2(-(x - player.position.x), -(z - player.position.z)); player.pitch = -0.15; player.touchMove.y = away > 1.8 ? 1 : 0; player.touchSprint = away > 8; if (away < 2.6) game.app.input.press('attack'); }, [body.x, body.z, body.away]);
+    await drift.page.waitForTimeout(350);
+  };
   await step('a fight: the server takes a hit', async () => {
     const before = await report(drift.page);
-    for (let i = 0; i < 40; i++) {
-      const body = await nearestBody(drift.page, []);
-      if (body === null) { await drift.page.waitForTimeout(500); continue; }
-      if (body.away > 2.2) await walk(drift.page, body.x, body.z, 2, 3);
-      await drift.page.evaluate(([x, z]) => { const { player } = window.__wildshard.world; player.yaw = Math.atan2(-(x - player.position.x), -(z - player.position.z)); player.pitch = -0.1; window.__wildshard.world.game.app.input.press('attack'); }, [body.x, body.z]);
-      await drift.page.waitForTimeout(600);
-      const r = await report(drift.page);
-      if (r.hits > before.hits) return { ok: true, hits: r.hits, kills: r.kills, body };
-    }
-    const r = await report(drift.page); return { ok: false, hits: r.hits, attacks: r.attacks, refused: r.refused, held: r.held };
+    for (let i = 0; i < 200; i++) { await swing(['boar']); const r = await report(drift.page); if (r.hits > before.hits) return { ok: true, hits: r.hits, hp: r.hp }; }
+    const r = await report(drift.page); return { ok: false, hits: r.hits, refused: r.refused, held: r.held, falls: r.falls };
   });
   await step('a kill pays once', async () => {
-    const before = await drift.page.evaluate(() => window.__wildshard.shard['driftwood.loot']?.purse?.coins ?? null);
-    for (let i = 0; i < 60; i++) {
+    const coins = () => drift.page.evaluate(() => window.__wildshard.shard['driftwood.loot']?.purse?.coins ?? null), before = await coins();
+    for (let i = 0; i < 260; i++) {
       const r = await report(drift.page);
-      if (r.paid > 0) { await drift.page.waitForTimeout(2500); const coins = await drift.page.evaluate(() => window.__wildshard.shard['driftwood.loot']?.purse?.coins ?? null), done = await report(drift.page); return { ok: coins !== null && coins - (before ?? 0) <= done.paid + 1, before, coins, paid: done.paid, kills: done.kills }; }
-      const body = await nearestBody(drift.page, []);
-      if (body !== null) { if (body.away > 2.2) await walk(drift.page, body.x, body.z, 2, 3); await drift.page.evaluate(([x, z]) => { const { player } = window.__wildshard.world; player.yaw = Math.atan2(-(x - player.position.x), -(z - player.position.z)); window.__wildshard.world.game.app.input.press('attack'); }, [body.x, body.z]); }
-      await drift.page.waitForTimeout(700);
+      if (r.paid > 0) { await drift.page.evaluate(() => { window.__wildshard.world.player.touchMove.y = 0; }); await drift.page.waitForTimeout(4000); const after = await coins(), done = await report(drift.page); return { ok: after !== null && before !== null && after - before === done.paid, before, after, paid: done.paid, kills: done.kills }; }
+      await swing(['boar']);
     }
-    const r = await report(drift.page); return { ok: false, paid: r.paid, kills: r.kills, hits: r.hits };
+    const r = await report(drift.page); return { ok: false, paid: r.paid, kills: r.kills, hits: r.hits, falls: r.falls };
   });
+  await drift.page.evaluate(() => { const { player } = window.__wildshard.world; player.touchMove.y = 0; player.touchSprint = false; });
   await step('driftwood saves', async () => { await drift.page.evaluate(() => Promise.race([window.__workerClientSave(), new Promise(resolve => { setTimeout(resolve, 20_000); })])); const r = await report(drift.page); return { ok: r.savedOk, tick: r.savedTick }; });
   await step('driftwood resumes: the quest is where it stood', async () => {
     await drift.page.reload({ waitUntil: 'load' }); await entered(drift.page);
@@ -135,14 +140,14 @@ export async function play(browser, phone, base, only = '') {
     await drift.page.waitForTimeout(500);
     await drift.page.evaluate(() => { document.querySelector('.ws-saves-btn.confirm')?.click(); });
     await drift.page.waitForTimeout(4000);
-    await drift.page.goto(new URL('/?chunk=driftwood-isle&mute=1', base).href, { waitUntil: 'load' }); await entered(drift.page); await drift.page.waitForTimeout(2500);
+    await drift.page.goto(new URL('/?chunk=driftwood-isle&mute=1&nolock=1', base).href, { waitUntil: 'load' }); await entered(drift.page); await drift.page.waitForTimeout(2500);
     const r = await report(drift.page); return { ok: !r.restored && (r.quests['sealed-ring'] === undefined || r.quests['sealed-ring'] === 'unstarted'), restored: r.restored, quests: r.quests };
   });
   await step('driftwood raises no page error', () => ({ ok: drift.errors.length === 0, errors: [...new Set(drift.errors)].slice(0, 6) }));
   await drift.context.close(); }
 
   // Nalati: a ride
-  if (runs('nalati')) { const nalati = await open(browser, phone, base, '/?chunk=nalati-grasslands&mute=1');
+  if (runs('nalati')) { const nalati = await open(browser, phone, base, '/?chunk=nalati-grasslands&mute=1&nolock=1');
   await step('nalati boots on the row', async () => { await entered(nalati.page); return started(nalati.page); });
   await step('ride a horse', async () => {
     for (let i = 0; i < 240; i++) {
@@ -158,16 +163,34 @@ export async function play(browser, phone, base, only = '') {
   await nalati.context.close(); }
 
   // The grapple's shard
-  if (runs('nine')) { const nine = await open(browser, phone, base, '/?chunk=nine-dragon-stack&mute=1');
+  if (runs('nine')) { const nine = await open(browser, phone, base, '/?chunk=nine-dragon-stack&mute=1&nolock=1');
   await step('nine dragon boots on the row', async () => { await entered(nine.page); return started(nine.page); });
   await step('grapple: the claw is on the wire and answers', async () => {
     const claw = () => nine.page.evaluate(() => { const tool = window.__wildshard.world.game.app.equipment?.tools.find(item => 'guardOpen' in item); return tool === undefined ? null : { sim: tool.sim?.constructor?.name, phase: tool.sim?.phase, hooks: tool.sim?.course?.hooks?.length }; });
     for (let i = 0; i < 40 && (await claw())?.sim !== 'Object'; i++) await nine.page.waitForTimeout(250); // a claw on the wire is a plain object
     const held = await claw();
     const r = await report(nine.page);
-    return { ok: held !== null && held.sim === 'Object', held, clawed: r.clawed, own: r.own };
+    if (held === null || held.sim !== 'Object') return { ok: false, held, clawed: r.clawed, own: r.own };
+    // Fire at nothing: the server runs the shot, and its phases come back on rows.
+    await nine.page.evaluate(() => { const hook = window.__wildshard.world.game.app.equipment.tools.find(item => 'guardOpen' in item).sim, view = { eye: window.__wildshard.world.player.position, project: (point, out) => out.copy(point), forward: out => out.set(0, 0, -1) }; hook.lock(view, null, false); hook.fire(view); });
+    const phases = new Set();
+    for (let i = 0; i < 30; i++) { phases.add((await claw())?.phase); await nine.page.waitForTimeout(100); }
+    return { ok: phases.size > 1, phases: [...phases], own: r.own };
   });
   await nine.context.close(); }
+
+  // Every other shard boots on the row, its sky and fights on rows, with no page error
+  if (runs('shards')) for (const slug of ['pine-hollow', 'sunscar-dunes', 'far-reach']) {
+    const shard = await open(browser, phone, base, `/?chunk=${slug}&mute=1&nolock=1`);
+    await step(`${slug} plays on the row`, async () => {
+      await entered(shard.page);
+      await shard.page.evaluate(() => { const { player } = window.__wildshard.world; player.touchMove.y = 1; });
+      await shard.page.waitForTimeout(8000);
+      const r = await report(shard.page), rig = await shard.page.evaluate(() => { const held = Object.entries(window.__wildshard.shard).find(([key]) => key.includes('weather'))?.[1]; return held?.weather?.state ?? null; });
+      return { ok: shard.errors.length === 0 && r.closed === null && r.rows > 0, rows: r.rows, fights: r.fights.slice(0, 6), corrections: r.corrections, worst: r.worstOffset, sky: rig, errors: [...new Set(shard.errors)].slice(0, 4) };
+    });
+    await shard.context.close();
+  }
 
   // The grid: a crossing, a save, a reload
   if (runs('grid')) { const grid = await open(browser, phone, base, floorGridBenchmarkUrl(base).replace(base, '/'));

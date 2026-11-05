@@ -82,7 +82,10 @@ export async function forgetServerInstance({ storage, write }: IndexedSaves, pre
 /** Every server document, as a page's export writes its own. A save file is one file, whichever store it came from. */
 export async function exportServerSaves(prefix: string, format: string): Promise<string> {
   const { storage } = await openIndexedSaves(SERVER_SAVES), docs: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(saveDocuments(storage, prefix))) docs[key.slice(prefix.length)] = JSON.parse(value);
+  for (const [key, value] of Object.entries(saveDocuments(storage, prefix))) {
+    const scope = key.slice(prefix.length);
+    if (scope !== 'device' && scope !== 'session' && !scope.includes('.corrupt.')) docs[scope] = JSON.parse(value); // as a page's export leaves them out
+  }
   return JSON.stringify({ format, version: 2, server: true, exported: new Date().toISOString(), docs }, null, 2);
 }
 /** Take a server's export back, whole: a world's continuation is only readable by the server, which reads it next boot. */
