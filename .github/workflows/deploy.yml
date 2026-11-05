@@ -89,6 +89,7 @@ jobs:
             !/*/
             /scripts/prebuilt-output.py
             /scripts/deploy-source-maps.mjs
+            /scripts/prune-deployments.mjs
             /scripts/staged-deployment.py
           sparse-checkout-cone-mode: false
       - uses: actions/setup-node@v4
@@ -134,6 +135,13 @@ jobs:
           SOURCE_RUN: ${{ github.run_id }}
           SOURCE_ATTEMPT: ${{ github.run_attempt }}
         run: python3 scripts/staged-deployment.py complete --sha "$DEPLOY_SHA" --run "$SOURCE_RUN" --attempt "$SOURCE_ATTEMPT"
+      # Every push stages a full copy, so a red streak with no release must still clear them. Cleanup only warns.
+      - name: Prune superseded deployments
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        env:
+          VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
+        run: node scripts/prune-deployments.mjs
 
 
   build-and-deploy:
@@ -187,7 +195,6 @@ jobs:
             /scripts/deploy-version.mjs
             /scripts/deploy-source-maps.mjs
             /scripts/prebuilt-output.py
-            /scripts/prune-deployments.mjs
             /scripts/staged-deployment.py
           sparse-checkout-cone-mode: false
 
@@ -220,7 +227,7 @@ jobs:
           DEADLINE_RECOVERY_SOURCE_RUN: ${{ inputs.deadline_recovery_source_run }}
           DEADLINE_RECOVERY_PROOF: ${{ runner.temp }}/deadline-recovery-source.json
         run: |
-          cp scripts/deploy-pin.mjs scripts/deploy-version.mjs scripts/deploy-source-maps.mjs scripts/prebuilt-output.py scripts/prune-deployments.mjs scripts/staged-deployment.py "$RUNNER_TEMP/"
+          cp scripts/deploy-pin.mjs scripts/deploy-version.mjs scripts/deploy-source-maps.mjs scripts/prebuilt-output.py scripts/staged-deployment.py "$RUNNER_TEMP/"
           authorities=0
           for authority in "$READY_SOURCE_RUN" "$RECOVERY_SOURCE_RUN" "$DEADLINE_RECOVERY_SOURCE_RUN"; do
             if [ -n "$authority" ]; then authorities=$((authorities + 1)); fi
@@ -433,14 +440,6 @@ jobs:
           gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$DEPLOY_SHA" \
             -f context=production-live -f state=success -f description='Exact pin verified live in production' \
             -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-
-      # The release is already live; a storage cleanup only warns.
-      - name: Prune superseded deployments
-        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && (steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true') }}
-        continue-on-error: true
-        env:
-          VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
-        run: node "$RUNNER_TEMP/prune-deployments.mjs"
 
       - name: Publish exact failure paths
         if: ${{ !cancelled() && env.RELEASE_ALLOWED == 'true' && (failure()) }}

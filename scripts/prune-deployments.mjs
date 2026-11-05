@@ -1,4 +1,4 @@
-// Deletes superseded production deployments after a verified release. Every deployment is a full ~2.5 GB copy billed at
+// Deletes superseded production deployments on every push. Every deployment is a full ~2.5 GB copy billed at
 // $0.10 per GB-month, and Vercel's retention policy trails this release rate by days: a 1-day policy still held 250
 // deployments and $2 a day on 2026-11-05. Jake keeps the last five builds; rollback is a deploy forward.
 import { pathToFileURL } from 'node:url';
@@ -37,6 +37,7 @@ async function main() {
       const response = await fetch(`https://api.vercel.com${path}${path.includes('?') ? '&' : '?'}teamId=${team}`,
         { method, headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(30_000) });
       if (response.ok) return response.json();
+      if (method === 'DELETE' && response.status === 404) return undefined; // A parallel run's prune got there first.
       if (attempt >= 4 || (response.status !== 429 && response.status < 500)) throw new Error(`${method} ${path}: HTTP ${response.status}`);
       await new Promise((resolve) => { setTimeout(resolve, attempt * 5_000); });
     }

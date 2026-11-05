@@ -78,5 +78,5 @@ test('deployment archives build maps before stripping only the public artifact',
   expect(archive).toBeGreaterThan(0); expect(strip).toBeGreaterThan(archive);expect(upload).toBeGreaterThan(strip);
   expect(deploy.slice(archive,strip)).toContain('dist/**/*.map');
   const beforePin=deploy.split('      - name: Read the deploy pin')[1]?.split('      - name: Check out the pin')[0];
-  expect(beforePin).toContain('cp scripts/deploy-pin.mjs scripts/deploy-version.mjs scripts/deploy-source-maps.mjs scripts/prebuilt-output.py scripts/prune-deployments.mjs scripts/staged-deployment.py "$RUNNER_TEMP/"');
+  expect(beforePin).toContain('cp scripts/deploy-pin.mjs scripts/deploy-version.mjs scripts/deploy-source-maps.mjs scripts/prebuilt-output.py scripts/staged-deployment.py "$RUNNER_TEMP/"');
 });

@@ -5,7 +5,7 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
 - **GM1:** a running push run always finishes and lists every red; never cancel push CI or boot smoke by hand.
 - **DA1:** hidden source maps remain in local/CI builds and boot-smoke artifacts for module checks, profiles and stack decoding. A release retains its exact `dist` maps, `version.json` and chunk report in the `production-source-maps-<SHA>` Actions artifact for 30 days, then omits maps only from `.vercel/output/static` before upload. Original build maps survive symlinked Vercel output. Sentry release tagging stays unchanged; there is no existing source-map upload pipeline.
 - **Deployment storage:** each deployment is a full ~2.5 GB copy and every push stages one, while Vercel's retention
-  trails by days. After each verified release `scripts/prune-deployments.mjs` keeps the live deployment, every aliased
+  trails by days. On every push the stage job runs `scripts/prune-deployments.mjs`, so a red streak still clears them. It keeps the live deployment, every aliased
   one (v0.2, v0.3), the last five promoted builds and stages under an hour old (Jake, 2026-11-05). Roll forward, not back.
 - `.github/workflows/deploy.yml` runs the gates on every push and pull request. Production
   deploys as soon as CI and the exact six pass, or from `gh workflow run deploy`; the job skips if `/version.json` reports the **selected proven commit**. `gh workflow run deploy -f force=true`

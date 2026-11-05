@@ -36,10 +36,12 @@ test('anything not understood stays', () => {
   expect(prunable(rows, context)).toEqual([]);
 });
 
-test('the release prunes after production history and a prune failure cannot fail it', () => {
-  const step = deploy.slice(deploy.indexOf('- name: Prune superseded deployments'));
-  expect(deploy.indexOf('- name: Record verified production history')).toBeLessThan(deploy.indexOf('- name: Prune superseded deployments'));
-  expect(step.slice(0, step.indexOf('\n\n'))).toContain('continue-on-error: true');
-  expect(step).toContain('node "$RUNNER_TEMP/prune-deployments.mjs"');
-  expect(deploy).toContain('/scripts/prune-deployments.mjs\n');
+test('every stage prunes, so a red streak still clears stages, and a prune failure only warns', () => {
+  const job = deploy.slice(deploy.indexOf('  stage-prebuilt:\n'), deploy.indexOf('  build-and-deploy:\n'));
+  const step = job.slice(job.indexOf('- name: Prune superseded deployments'));
+  expect(job.indexOf('- name: Complete the exact protected stage receipt')).toBeLessThan(job.indexOf('- name: Prune superseded deployments'));
+  expect(step).toContain('!cancelled()');
+  expect(step).toContain('continue-on-error: true');
+  expect(step).toContain('node scripts/prune-deployments.mjs');
+  expect(job).toContain('/scripts/prune-deployments.mjs\n');
 });
