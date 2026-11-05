@@ -33,7 +33,7 @@ export interface BakedPrograms {
   readonly version: 2; readonly lines: readonly string[]; readonly shaders: readonly (readonly number[])[];
   readonly programs: readonly (readonly [number, number])[];
 }
-interface Held { readonly gl: WebGL2RenderingContext; readonly programs: WebGLProgram[]; readonly shaders: WebGLShader[] }
+interface Held { readonly gl: WebGL2RenderingContext; readonly programs: WebGLProgram[]; readonly shaders: WebGLShader[]; released: boolean }
 let held: Held | null = null;
 /** The game queues the level's list (fetched in parallel) before the renderer exists; `null` = none for this level. */
 export function queueBakedPrograms(list: Promise<BakedPrograms | null>): void {
@@ -47,14 +47,15 @@ export function queueBakedPrograms(list: Promise<BakedPrograms | null>): void {
  *  one a painted frame issued faster than the Simulator links (~0.5 s each), and Driftwood's next synchronous GL call in
  *  the Sky step waited 15 s behind the queue (throttled Sim pair, 11-04). Elsewhere all at once. The objects are kept
  *  until `releaseBakedPrograms` so no link is cut short. */
-export function issueBakedPrograms(game: Pick<Game, 'renderer' | 'levelScope'>): void {
+export function issueBakedPrograms(game: Pick<Game, 'levelScope'> & { readonly renderer: { readonly getContext: () => unknown } }): void {
   const list = baked; baked = null;
   if (list === null) return;
   const owner = game.levelScope, gl = game.renderer.getContext();
   if (!(gl instanceof WebGL2RenderingContext)) return;
-  const mine: Held = { gl, programs: [], shaders: [] };
+  const mine: Held = { gl, programs: [], shaders: [], released: false };
   held = mine;
-  owner.onDispose(() => { releaseBakedPrograms(); });
+  // each pass releases only itself: a road journey's old level must not delete the next level's pass (CI, fa1da6a58c)
+  owner.onDispose(() => { release(mine); });
   void (async () => {
     const data = await list;
     if (data === null || data.version !== 2) return;
@@ -64,7 +65,8 @@ export function issueBakedPrograms(game: Pick<Game, 'renderer' | 'levelScope'>):
     // a disposed scope cancels its frame or timer: the pass simply stops there
     const settled = async (program: WebGLProgram): Promise<void> => {
       if (parallel === null) { await new Promise<void>(resolve => { owner.timeout(600, resolve); }); return; }
-      const waiting = (): boolean => !bakedStopped && !gl.isContextLost() && gl.getProgramParameter(program, parallel.COMPLETION_STATUS_KHR) !== true;
+      // a released pass's programs are deleted: never ask about them (a deleted object only warns, and never completes)
+      const waiting = (): boolean => !bakedStopped && !mine.released && !gl.isContextLost() && gl.getProgramParameter(program, parallel.COMPLETION_STATUS_KHR) !== true;
       while (waiting()) await frame();
     };
     const compiled = new Map<number, WebGLShader>();
@@ -76,7 +78,7 @@ export function issueBakedPrograms(game: Pick<Game, 'renderer' | 'levelScope'>):
       return made;
     };
     for (const [vertex, fragment] of data.programs) {
-      if (bakedStopped || owner.disposed || owner.disposing || held !== mine || gl.isContextLost()) return;
+      if (bakedStopped || mine.released || owner.disposed || owner.disposing || held !== mine || gl.isContextLost()) return;
       const vs = shader(vertex, gl.VERTEX_SHADER), fs = shader(fragment, gl.FRAGMENT_SHADER), program = gl.createProgram();
       if (vs === null || fs === null) continue;
       gl.attachShader(program, vs); gl.attachShader(program, fs); gl.linkProgram(program); mine.programs.push(program);
@@ -107,9 +109,12 @@ export function warmShaderCompiler(scope: Pick<Scope, 'raf' | 'timeout'>): void 
 }
 
 /** The Shaders step has linked the level's own programs: the baked copies go. */
-export function releaseBakedPrograms(): void {
-  const mine = held; held = null;
-  if (mine === null || mine.gl.isContextLost()) return;
-  for (const program of mine.programs) mine.gl.deleteProgram(program);
-  for (const shader of mine.shaders) mine.gl.deleteShader(shader);
+export function releaseBakedPrograms(): void { if (held !== null) release(held); }
+function release(pass: Held): void {
+  if (pass.released) return;
+  pass.released = true;
+  if (held === pass) held = null;
+  if (pass.gl.isContextLost()) return;
+  for (const program of pass.programs) pass.gl.deleteProgram(program);
+  for (const shader of pass.shaders) pass.gl.deleteShader(shader);
 }

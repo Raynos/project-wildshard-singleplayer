@@ -297,6 +297,15 @@ function holdDrawnPrograms(renderer: Renderer, root: THREE.Object3D): () => void
   };
 }
 
+/** Whether three has destroyed this program across an await: its cache evicts an unused program (its last material
+ *  disposed, as a road journey retires a cell) by deleting the native program and setting `.program` to undefined. A
+ *  retired identity has nothing left to prepare, and any query of it would hand `getProgramParameter` an undefined
+ *  program (WebKit: 'Argument 1 ... is not a WebGLProgram', CI's road journey on fa1da6a58c). */
+export function nativeRetired(program: object): boolean {
+  const handle: unknown = Reflect.get(program, 'program');
+  return handle === undefined || handle === null;
+}
+
 /** How many programs the renderer holds (0 for a test double without `info.programs`). */
 function programCount(renderer: Renderer): number {
   const info: unknown = Reflect.get(renderer, 'info');
@@ -1129,7 +1138,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   // draw was their first use: a blocking link query (53-99 ms getProgramInfoLog on the Simulator) in one frame.
   const jobPrograms = new Set<unknown>();
   const issuedPrograms = new Set<unknown>();
-  const needsPreparation = (program: ProgramLike): boolean => !resolvedPrograms.has(program);
+  const needsPreparation = (program: ProgramLike): boolean => !resolvedPrograms.has(program) && !nativeRetired(program);
   // Holding at a wall can lend builders more shared frame time, but must not
   // enlarge this caller's explicit shader slice and join two slow native units.
   const spent = (start: number): boolean => performance.now() - start >= sliceMs || nativeBudgetSpent(sliceMs);
@@ -1148,7 +1157,8 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     // Completion queries and first-use queries are separate native units. A slow ready() must not admit a second
     // expensive query into the same continuation. Cheap queries still batch.
     if (spent(start)) await pauseIssue();
-    if (!resolvedPrograms.has(program)) { program.getUniforms(); reportLinkFailure(renderer.getContext(), program); }
+    // the pause above can outlive the program: a retired identity is settled, never queried
+    if (!resolvedPrograms.has(program) && !nativeRetired(program)) { program.getUniforms(); reportLinkFailure(renderer.getContext(), program); }
     resolvedPrograms.add(program);
   };
   // Keep issue and first use on one painted slice when the driver has already finished linking.
@@ -1161,6 +1171,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   const settleOne = async (start: number): Promise<void> => {
     const program = queued[settled];
     if (program === undefined || parallel && performance.now() - unreadyAt < linkPollMs()) return;
+    if (nativeRetired(program)) { enqueued.delete(program); settled++; return; }
     if (parallel && !program.isReady()) { unreadyAt = performance.now(); return; }
     await resolveProgram(program, start); enqueued.delete(program); settled++;
   };
@@ -1351,7 +1362,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       let ready = 0, askedAt = performance.now();
       for (const p of pending) {
         if (linked.has(p)) { ready++; continue; }
-        if (p.isReady()) { linked.add(p); ready++; }
+        if (nativeRetired(p) || p.isReady()) { linked.add(p); ready++; }
         if (spent(askedAt)) { await pause(); checkCurrent(); askedAt = performance.now(); }
       }
       onProgress?.(jobs.length + ready, jobs.length + units + textures.length, `${ready} / ${n} programs linked · parallel`);
@@ -1379,7 +1390,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     // (past LINK_WAIT_MS the resolve below links it synchronously). O14: each ask waits behind the GPU process's queued
     // compiles (~20 ms on the Simulator, a missed vsync), so a link still unfinished is asked less often each time
     let every = linkPollMs(), queryStart = performance.now();
-    if (parallel && isolateImageUploads) await boundedLinkWait(() => { queryStart = performance.now(); return p.isReady(); }, async () => {
+    if (parallel && isolateImageUploads) await boundedLinkWait(() => { queryStart = performance.now(); return nativeRetired(p) || p.isReady(); }, async () => {
       const asked = performance.now();
       do { await pause(); checkCurrent(); } while (performance.now() - asked < every);
       every = Math.min(every * 2, LIVE_LINK_POLL_MAX_MS);
@@ -1465,7 +1476,8 @@ export async function compileOffscreenPass(renderer: Renderer, pass: OffscreenPa
     const slice = workSlice(LIVE_PRECOMPILE_SLICE_MS, pageScope), pending: unknown[] = [];
     for (const material of materials) for (const program of materialPrograms(renderer, material)) {
       await slice.check(); checkCurrent();
-      const isReady: unknown = typeof program === 'object' && program !== null ? Reflect.get(program, 'isReady') : undefined;
+      if (typeof program !== 'object' || program === null || nativeRetired(program)) continue;
+      const isReady: unknown = Reflect.get(program, 'isReady');
       if (typeof isReady === 'function' && Reflect.apply(isReady, program, []) !== true) pending.push(program);
     }
     await slice.check(); checkCurrent();
@@ -1475,7 +1487,8 @@ export async function compileOffscreenPass(renderer: Renderer, pass: OffscreenPa
   const pending = await unready(), resolveSlice = workSlice(LIVE_PRECOMPILE_SLICE_MS, pageScope);
   for (const program of pending) {
     await resolveSlice.check(); checkCurrent();
-    const getUniforms: unknown = typeof program === 'object' && program !== null ? Reflect.get(program, 'getUniforms') : undefined;
+    if (typeof program !== 'object' || program === null || nativeRetired(program)) continue;
+    const getUniforms: unknown = Reflect.get(program, 'getUniforms');
     if (typeof getUniforms === 'function') Reflect.apply(getUniforms, program, []);
     await resolveSlice.check(); checkCurrent();
   }
