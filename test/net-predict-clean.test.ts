@@ -22,7 +22,7 @@ const press = (frame: number, page: Parameters<NonNullable<Parameters<typeof wir
 };
 
 test.each([['60 frames/s', () => 1000 / 60, 720], ['30 frames/s', () => 1000 / 30, 360]] as const)('%s: walk, jump, dodge, swim and board', (_name, frameMs, frames) => {
-  const run = wirePlay(R, journey, { seconds: frames * frameMs(0) / 1000, frameMs, press: (frame, page) => { press(frame * 720 / frames, page); } });
+  const run = wirePlay(R, journey, { seconds: frames * frameMs() / 1000, frameMs, press: (frame, page) => { press(frame * 720 / frames, page); } });
   expect([...run.seen].sort()).toEqual(['air', 'board', 'dodge', 'swim']);
   expect(run.steps).toBe(run.sent);
   expect(run.corrections).toBe(0);

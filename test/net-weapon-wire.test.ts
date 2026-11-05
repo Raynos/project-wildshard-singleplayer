@@ -35,7 +35,7 @@ class BookedBlade extends SweptMelee {
 }
 const HIT: OwnHit = { kind: 'crab', at: new Vector3(0, 1, -1), head: false, killed: false, amount: 12, seq: 9 };
 
-function sword(wire: WeaponWire): { blade: SweptMelee; stops: ReturnType<typeof vi.fn>; heard: string[]; player: Player; done: () => void } {
+function sword(wire: WeaponWire): { blade: BookedBlade; stops: ReturnType<typeof vi.fn>; heard: string[]; player: Player; done: () => void } {
   const physics = new Physics(R), was = app.physics, aimed = app.aimTargets, game = new FakeGame().asGame(), stops = vi.fn(), heard: string[] = [];
   app.physics = physics; app.aimTargets = legacyDouble<typeof app.aimTargets>([]);
   vi.spyOn(game, 'hitStop').mockImplementation(seconds => { stops(seconds); });
