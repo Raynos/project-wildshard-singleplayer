@@ -24,7 +24,7 @@ export interface ShardScriptContent {
   state: { shared: readonly ShardScriptField[]; player: readonly ShardScriptField[] };
 }
 /** Loader-provided identities and query ports: the actor mapping comes from the session, not the shardfile. */
-export interface ShardScriptPorts extends Omit<ScriptHostOptions, 'world'> { rules: EffectRules; entities: readonly ScriptEntity[]; actors: ReadonlyMap<number, string> }
+export interface ShardScriptPorts extends Omit<ScriptHostOptions, 'world'> { rules: EffectRules; entities: readonly ScriptEntity[]; actors: ReadonlyMap<number, string>; seatsFor?: string | undefined }
 /** Prepare declared state and admitted modules without allocating a host or executing author initialization. */
 export function prepareShardfileScriptOptions(content: ShardScriptContent, assets: ReadonlyMap<string, Uint8Array>, ports: ShardScriptPorts): ScriptLaneOptions {
   const errors = scriptBindingRules(content.sim.bindings, content.sim.scripts); if (errors.length > 0) throw new Error(errors.join('; '));

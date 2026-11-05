@@ -21,12 +21,14 @@ export function createShardfileComposedLane(content: ShardScriptContent, assets:
   if (rows.some(row => !content.sim.scripts.includes(row.brain.module))) throw new Error('Brain module must be declared in sim.scripts');
   const declared = extra?.declarations ?? [];
   if (declared.length > 128 || !Number.isSafeInteger(content.identity.seed) || content.identity.seed < 0) throw new Error('Invalid declared script roles');
+  const seatWorlds = [options.world];
   const roles = declared.map(({ row, entities, actors }) => {
     if (row.sim.scripts.some(name => !content.sim.scripts.includes(name)) || row.sim.bindings.length > 0
       || !['consume', 'deliver'].includes(row.events)) throw new Error('Invalid declared role modules or event policy');
     const driver = new ScriptDriver(prepareShardfileScriptOptions({ ...row, identity: content.identity }, assets, {
       rules: row.rules, entities, actors, query: () => { throw new Error('Declared action roles have no query grants'); },
     }));
+    seatWorlds.push(driver.world);
     return Object.assign(driver.role(row.id), { events: row.events });
   });
   const numeric = new ScriptDriver(options);
@@ -49,5 +51,7 @@ export function createShardfileComposedLane(content: ShardScriptContent, assets:
   return { host: composition.host, world: numeric.world, divisor: numeric.divisor,
     step: (tick, input = new Map()) => { commands = input; return composition.step(tick); },
     enqueue: event => { composition.enqueue(event); }, snapshot: () => composition.snapshot(), restore: text => { composition.restore(text); },
+    seat: (world, actorId, entities, handles) => { world.seat(actorId, entities, handles); composition.seatsChanged(); },
+    unseat: (world, actorId) => { composition.seatsChanged(world.unseat(actorId)); }, seatWorlds: () => seatWorlds,
   };
 }

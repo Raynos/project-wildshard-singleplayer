@@ -2,7 +2,7 @@ import { ReturnProgram } from '../../shared/population/returnProgram';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { parseNativeLoadoutRow, type NativeLoadoutRowSchema } from '@wildshard/format/nativeItems';
 import { borrowedDecisionAuthority } from '../shardfile/borrowedDecisions';
-import { decisionRuntime, ShardDecisions } from '../shardfile/decisions';
+import { decisionRuntime, focusPlayer, ShardDecisions } from '../shardfile/decisions';
 import { WorldTargetHost } from '../../shared/shardfile/worldTargets';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
 import { parseWorldTargets, worldTargetRules } from '@wildshard/format/worldTargets';
@@ -74,7 +74,8 @@ import { captureLiftRiders, parseLiftRiders, restoreLiftRider, type LiftRiders }
 import * as v from "valibot";
 import { installEntrySockets } from "@wildshard/engine/physics/entrySockets";
 import { addPiece, type AddedPiece } from "@wildshard/engine/physics/pieces";
-import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
+import { leadCommands } from '@wildshard/engine/sim/leadPlayer';
+import { scriptSeats, type ScriptSeats } from './scriptSeats';
 
 type Physics = SimHost['physics'];
 type PropColliderPort = NonNullable<ReturnType<ReturnType<typeof installShardfileColliders>['get']>>;
@@ -150,7 +151,7 @@ interface RuntimeWorldRecipe {
 export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, baked: unknown, recipe: RuntimeWorldRecipe, sections: ReadonlyMap<string, unknown> = outputDescriptor(shard)?.sections ?? new Map()): Promise<{
   level: SimLevel; ports: { ground: false; heightAt: (x: number, z: number) => number };
   install: (host: SimHost, context: { restoring: boolean; emit: Parameters<typeof ledgerPorts>[0]; snapshot?: Parameters<ReturnType<typeof prepareNativePopulation>['install']>[2] }) => ReturnType<ReturnType<typeof prepareNativePopulation>['install']> & { ledger: ReturnType<typeof ledgerPorts>; hooks: ReturnType<ReturnType<typeof declaredItemScriptBindings>['hooks']>;
-    hookTick: () => number; motion?: MoverRuntime };
+    hookTick: () => number; motion?: MoverRuntime; seats: ScriptSeats };
 }> {
   const { pieces } = v.parse(v.object({ pieces: v.unknown() }), baked);
   const terrain = recipe.terrain === 'collider' ? admittedTerrain(shard, assets) : undefined;
@@ -168,7 +169,7 @@ export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<
   const actors = policy.sources === 'actors+bosses' ? (() => { const rows = readRuntimeWorldMetadata(baked, true); return [...rows.actors, ...rows.bosses]; })() : readRuntimeWorldMetadata(baked).actors;
   const population = prepareNativePopulation(policy.seed === 'identity' ? { ...policy.rows, seed: shard.identity.seed } : policy.rows, actors, policy.owner);
   return { level: trustedLevel(shard, player, recipe.ground), ports: { ground: false, heightAt }, install: (host, context) => {
-  const lead = leadPlayer(host);
+  const seats = scriptSeats(host), { first } = seats;
     if(sections.has('actors/return-scripts')){
       const returns=v.parse(ReturnModulesSchema,sections.get('actors/return-scripts'));
       if(returns.some(candidate=>candidate.abi===2))ReturnProgram.lendModules(host.scope,assets,returns);
@@ -177,17 +178,21 @@ export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<
     if (!restoring) addBakedWorld(host, pieces, terrain?.bytes);
     if (recipe.floor === 'solids') host.setFloorQuery((x, z, fromY, maxDrop) => floorBelow(host.physics, x, z, fromY, maxDrop));
     const environment = (() => {
-      if (row === undefined) return { hooks: new Map(), hookTick: () => -1 };
-      const items = declaredItemScriptBindings(shard.items, lead.id);
+      if (row === undefined) return { hooks: new Map(), hookTick: () => -1, seats };
+      const items = declaredItemScriptBindings(shard.items, first.id);
       const motion = new MoverScriptDriver(data, host).install(host, { content: { ...row.composition, identity: shard.identity }, rules: row.rules, assets: modules,
         declarations: row.itemRole === undefined ? [] : [{ row: row.itemRole, entities: items.entities, actors: items.actors }] },
       { id: row.systemId, restoring, restoreFlags: new Set(host.flags.all), drive: true, permissions: () => new Map(row.permissions.map(grant => [grant.mover, flagValue(host.flags, grant.flags)])) });
       if (shard.questHost?.observations.some(binding => binding.kind === 'mover' && binding.state === 'at-end')) host.onStep(`${row.systemId}.endpoints`, () => { motion.drainEndEvents(); });
-      return { hooks: items.hooks(motion.scriptHost), hookTick: () => motion.scriptHost.currentTick, motion };
+      if (items.entities.length > 0 && motion.lane !== undefined) {
+        seats.bind({ lane: motion.lane, items: shard.items, handle: numericScriptEntityId });
+        host.onStep(`${row.systemId}.seats`, seats.step);
+      }
+      return { hooks: items.hooks(motion.scriptHost), hookTick: () => motion.scriptHost.currentTick, motion, seats };
     })();
     const ledger = ledgerPorts(context.emit);
     return { ...environment, ledger, ...population.install(host, ledger, context.snapshot, borrowedDecisionAuthority(shard, assets, sections, {
-      scope: host.scope, events: host.events, flags: host.flags, get physics() { return host.physics; }, player: lead, groundHeightAt: host.groundHeightAt.bind(host),
+      scope: host.scope, events: host.events, flags: host.flags, get physics() { return host.physics; }, player: focusPlayer(host), groundHeightAt: host.groundHeightAt.bind(host),
       live: actor => host.entities.get(actor.entityId) === actor, fixed: (id, run, scope) => { scope.onDispose(host.onStep(id, run)); },
     })) };
   } };
@@ -241,7 +246,8 @@ export async function prepareRuntimePlan(shard: Shardfile, assets: ReadonlyMap<s
     const melee = installNativeMelee(host, weapon, weapon.native, { inputCommands: context.commands,
       enabled: () => loadout.live(0),
       ...(playerCommands === undefined ? {} : { others: { commands: player => playerCommands(player.id),
-        enabled: player => !encounter.locked() && !(row.weapon.stowOnBoard === true && player.board.on) } }),
+        enabled: player => !encounter.locked() && !(row.weapon.stowOnBoard === true && player.board.on),
+        hook: player => environment.seats.hooks(player.id).get(weapon.id) ?? null } }),
       ...(row.weapon.questWorld ? { questWorld: { row: quest, spots } } : {}),
       hook: environment.hooks.get(weapon.id) ?? null, hookTick: environment.hookTick,
       ...(reactions === undefined ? {} : { landed: (action: number, from: Vector3, dir: Vector3) => { if (action === row.weapon.worldReactionAction) reactions.scan(from, dir); } }),
@@ -346,9 +352,11 @@ export interface ShardfileSimPorts extends SimHostPorts {
 /** Authoritative handles for UI, quests and the existing client fixed-step driver. */
 export interface ShardfileSimulation {
   /** Actual page-order prompt selected from native eye position, distance and world LOS. */
-  selectedInteraction: () => string | null;
-  /** Queue the selected authored scene only; absent, farther and occluded prompts refuse. */
-  interact: (id: string) => boolean;
+  selectedInteraction: (player?: string) => string | null;
+  /** Queue the selected authored scene only; absent, farther and occluded prompts refuse. `player` acts; the first player by default. */
+  interact: (id: string, player?: string) => boolean;
+  /** One player's item hooks, each acting as them. */
+  itemHooks: ScriptSeats['hooks'];
   decisions?: ShardDecisions;
   host: SimHost; lane: ScriptLanePort | undefined; actors: ReadonlyMap<string, number>; quest: DeclaredQuests;
   encounters: ReturnType<typeof installDeclaredEncounters>; water: WaterBodies; colliders: ReadonlyMap<string, PropColliderPort>; dispose: () => void;
@@ -392,7 +400,7 @@ function observationValue(entry: [string, unknown], value: boolean): asserts ent
 
 /** Reinstall matching adapters into a fresh standalone restore host; restoring skips collider allocation and stepping. */
 export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileSimPorts): ShardfileSimulation {
-  const lead = leadPlayer(host);
+  const seats = scriptSeats(host), { first } = seats;
   if (shard.nativeGround !== null) throw new Error('Native ground retains its trusted runtime simulation; a flat declared proxy is forbidden');
   const levelId = shard.identity.slug;
   if (host.level.id !== levelId || host.level.seed !== shard.identity.seed || host.entities.size !== shard.creatures.spawns.length || shard.creatures.spawns.some((row) => !host.entities.has(row.id))) throw new Error('Shardfile simulation host mismatch');
@@ -456,7 +464,7 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     });
     const hooks = ports.hooks ?? shard.hooks;
     const actors = new Map<string, number>(), reverse = new Map<number, string>();
-    for (const id of [lead.id, ...host.entities.keys()]) {
+    for (const id of [first.id, ...host.entities.keys()]) {
       const handle = numericScriptEntityId(id); if (reverse.has(handle)) throw new Error('Script actor handle collision');
       actors.set(id, handle); reverse.set(handle, id);
     }
@@ -477,11 +485,11 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     if (shard.sim.scripts.length > 0) {
       const entities = new Map<number, ScriptEntity>();
       for (const [id, handle] of actors) {
-        const position = id === lead.id ? lead.position : host.entities.get(id)?.position;
+        const position = id === first.id ? first.position : host.entities.get(id)?.position;
         if (position === undefined) throw new Error('Missing host actor');
         entities.set(handle, { id: handle, name: id, position: [position.x, position.y, position.z], fields: {}, frozen: false, interactive: true });
       }
-      const trusted = ports.scriptEntities ?? declaredItemScriptBindings(shard.items, lead.id);
+      const trusted = ports.scriptEntities ?? declaredItemScriptBindings(shard.items, first.id);
       for (const entity of trusted.entities) {
         if (entities.has(entity.id)) throw new Error('Duplicate trusted script entity'); entities.set(entity.id, entity);
       }
@@ -506,7 +514,7 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
       if (entities.size + aliases.size > shard.serverBudget.entities) throw new Error('Aggregate script entity allowance');
       const options: ShardScriptPorts = {
         rules: ports.scriptRules ?? { fields: {}, archetypes: [], events: [...new Set([...hooks.scenes.map((scene) => scene.type), ...shard.items.rows.flatMap((row) => row.hook === null ? [] : [row.hook.event])])], maxEntities: shard.serverBudget.entities },
-        entities: [...entities.values()], actors: reverse,
+        entities: [...entities.values()], actors: reverse, seatsFor: first.id,
         ...(ports.scriptDisabled === undefined ? {} : { onDisabled: ports.scriptDisabled }),
         query: ports.query ?? ((kind, input, entity) => scriptPhysicsQueries({ physics: host.physics, navigation: ports.navigation ?? { closestWalkable: () => null, findPath: () => null }, handle: (owner) => typeof owner === 'string' ? actors.get(owner) : undefined })(kind, input, entity)),
       };
@@ -523,11 +531,13 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
         const runtime = moverDriver.install(host, lane, { id: 'movers.declared', restoreFlags: new Set(host.flags.all),
           activation: { ground: () => playerGrounds(host), shared: id => {
             const field = shard.state.shared.find(row => row.id === id);
-            const value = field === undefined ? undefined : stateWorld.viewField(lead.id, 'shared', field.name);
+            const value = field === undefined ? undefined : stateWorld.publicField(field.name);
             return typeof value === 'number' || typeof value === 'boolean' ? value : undefined;
           } }, ...(ports.restoring === undefined ? {} : { restoring: ports.restoring }) });
         movers = runtime;
       }
+      seats.bind({ lane, items: shard.items, actors, handle: numericScriptEntityId });
+      if (!host.embedded) host.onStep('script.seats', seats.step);
       installScriptLane(host, 'script.declared', lane, ports.commands);
       const stateLane = lane;
       if (shard.state.shared.some(field => field.privacy === 'public')) publishShardState(host, () => stateLane.world.publicShared());
@@ -537,7 +547,8 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
       const sync = () => syncTargetColliders(shard.targets, colliders, (scope, id) => {
         const field = shard.state[scope].find((row) => row.id === id);
         if (field === undefined) throw new Error('Missing target state field');
-        const value = targetLane.world.viewField(lead.id, scope, field.name);
+        // One collider stands for everyone, so a player-scoped panel keeps the first player's view (shipped panels are shared).
+        const value = scope === 'shared' ? targetLane.world.publicField(field.name) : targetLane.world.viewField(first.id, scope, field.name);
         if (value === undefined) throw new Error('Unavailable target state field');
         return value;
       });
@@ -620,16 +631,19 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     const crowds = preparedCrowds.install(host, ports.restoring ?? false);
     const picker = createHeadlessPromptPicker(host);
     const prompts = shard.targets.interactions.map((row, act) => ({ act, id: row.id, position: { x: row.at[0], y: row.at[1], z: row.at[2] }, radius: row.radius }));
-    const selectedInteraction = (): string | null => picker.pick(prompts, lead.position)?.id ?? null;
-    const interact = (id: string): boolean => {
+    const selectedInteraction = (player: string = first.id): string | null => {
+      const body = host.players.get(player);
+      return body === undefined ? null : picker.pick(prompts, body.position)?.id ?? null;
+    };
+    const interact = (id: string, player: string = first.id): boolean => {
       const row = shard.targets.interactions.find(target => target.id === id);
       if (row === undefined) throw new Error('Unknown authored interaction');
-      if (selectedInteraction() !== id) return false;
+      if (selectedInteraction(player) !== id) return false;
       if (decisions?.interact(id) === true) return true;
       if (lane === undefined) throw new Error('Interaction requires an admitted scene lane');
-      createQuestScriptPorts(lane, hooks, actors).scene(row.scene, lead.id); return true;
+      seats.step(); createQuestScriptPorts(lane, hooks, actors).scene(row.scene, player); return true;
     };
-    return { selectedInteraction, interact, ...(decisions === undefined ? {} : { decisions }), host, lane, actors, quest, encounters, water, colliders, groups, crowds, movers, dispose: () => { host.dispose(); } };
+    return { selectedInteraction, interact, itemHooks: seats.hooks, ...(decisions === undefined ? {} : { decisions }), host, lane, actors, quest, encounters, water, colliders, groups, crowds, movers, dispose: () => { host.dispose(); } };
   } catch (error) { host.dispose(); throw error; }
 }
 
@@ -825,7 +839,8 @@ export interface NativeMeleePorts {
   /** Full admitted player input; sampled once when the owner declares held release. */
   readonly heldCommands?: () => readonly NativeHeldCommand[]; readonly enabled?: () => boolean;
   /** Every other player's input and stowed state; absent, only the first player holds this weapon. */
-  readonly others?: { readonly commands: (player: PlayerSim) => readonly NativeMeleeInput[]; readonly enabled: (player: PlayerSim) => boolean };
+  readonly others?: { readonly commands: (player: PlayerSim) => readonly NativeMeleeInput[]; readonly enabled: (player: PlayerSim) => boolean;
+    /** Their own actor-bound hook for this item, when it has one. */ readonly hook?: (player: PlayerSim) => NativeMeleeHook | null };
   readonly world?: readonly NativeMeleeWorld[];
   readonly questWorld?:{readonly row:QuestHostRow;readonly spots:QuestGraphPorts['spots']};
   readonly hook?: NativeMeleeHook | null;
@@ -854,9 +869,10 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
   if(row.input?.world!==undefined&&worldActor===undefined)throw new Error('Native world commands require their quest actor');
   const noTargets:readonly NativeMeleeWorld[]=[];
   const holdStepped=row.held?.continuation.kind==='step';
-  // P1-E3.5: a seat per player. Any player's lash cracks a quest's spots; world reactions and item scripts stay the first player's.
+  // P1-E3.5: a seat per player. Any player's lash cracks a quest's spots; world reactions stay the first player's.
   const seats=playerSeats(host,(player,first)=>{
-  const ports:NativeMeleePorts=first?given:{inputCommands:()=>given.others?.commands(player)??[],enabled:()=>given.others?.enabled(player)??false};
+  const ports:NativeMeleePorts=first?given:{inputCommands:()=>given.others?.commands(player)??[],enabled:()=>given.others?.enabled(player)??false,
+    ...(given.hookTick===undefined?{}:{hookTick:given.hookTick}),...(given.others?.hook===undefined?{}:{hook:given.others.hook(player)})};
   const worldTargets=first||given.world===undefined?firstTargets:noTargets;
   /** The seq this tick's player command carries, and the one the running move took (J47). */
   let tickSeq=0,attackSeq=0;

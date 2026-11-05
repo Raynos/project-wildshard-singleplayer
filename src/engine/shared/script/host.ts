@@ -253,6 +253,8 @@ export class ScriptHost {
     // Retained events occupy the same allowance as deliveries and newly emitted events.
     this.tick = tick; used.events = retained.length; this.pending = retained; return events;
   }
+  /** Drop what is queued for entities that have left, so it holds no allowance and no save names them. */
+  forget(handles: readonly number[]): void { if (handles.length > 0) this.pending = this.pending.filter(event => !handles.includes(event.target)); }
   /** Queue a declared gameplay/scene event for the next script tick, under the same bounded event allowance. */
   enqueue(event: ScriptEvent): void {
     if (this.active || this.pending.length >= this.limits.events) throw new Error('Script event queue allowance');
@@ -404,7 +406,7 @@ export class ScriptHost {
       const slots = float64(currentRunning.memory), at = ptr / 8, out = output / 8;
       slots.fill(0, at, at + inputBytes / 8);
       for (let i = 0; i < input.length; i++) slots[at + i] = input[i] ?? 0;
-      slots[at + 3] = entity; slots[at + 32] = events.length / 6;
+      slots[at + 3] = this.world.contentHandle(entity); slots[at + 32] = events.length / 6;
       for (let i = 0; i < events.length; i++) slots[at + 33 + i] = events[i] ?? 0;
       slots.fill(0, out, out + outputRecords * 5);
       invoke(currentRunning, 'on_tick'); const count = invoke(currentRunning, 'out_count');

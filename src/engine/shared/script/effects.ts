@@ -20,9 +20,11 @@ export class ScriptWorld {
   private next = 1;
   private revision = 0;
   private content = 0;
+  private seatedEntities = 0;
   private readonly rules: EffectRules;
-  constructor(rules: EffectRules, entities: readonly ScriptEntity[]) {
-    if (!Number.isSafeInteger(rules.maxEntities) || rules.maxEntities < 1 || rules.maxEntities > 10000 || entities.length > rules.maxEntities) throw new Error('Entity cap');
+  /** @param seated how many of `entities` the host seated for its players, which content's allowance does not count. */
+  constructor(rules: EffectRules, entities: readonly ScriptEntity[], seated = 0) {
+    if (!Number.isSafeInteger(rules.maxEntities) || rules.maxEntities < 1 || rules.maxEntities > 10000 || !Number.isSafeInteger(seated) || seated < 0 || entities.length > rules.maxEntities + seated) throw new Error('Entity cap');
     for (const [key, range] of Object.entries(rules.fields)) if (!id(Number(key)) || !range.every(Number.isFinite) || range[0] > range[1]) throw new Error('Invalid field declaration');
     for (const ids of [rules.archetypes, rules.events]) if (ids.length > 1024 || ids.some((n) => !id(n)) || new Set(ids).size !== ids.length) throw new Error('Invalid effect declarations');
     this.rules = { ...rules, fields: Object.fromEntries(Object.entries(rules.fields).map(([k, v]) => [k, [...v]])), archetypes: [...rules.archetypes], events: [...rules.events] };
@@ -31,6 +33,7 @@ export class ScriptWorld {
       for (const [key, value] of Object.entries(e.fields)) this.field(Number(key), value);
       this.entities.set(e.id, copy(e)); this.next = Math.max(this.next, e.id + 1);
     }
+    this.seatedEntities = seated;
   }
   /** Read-only copy, including the frozen/noninteractive quarantine state. */
   entity(handle: number): ScriptEntity | undefined { const e = this.entities.get(handle); return e ? copy(e) : undefined; }
@@ -38,12 +41,30 @@ export class ScriptWorld {
   callable(handle: number): boolean { const entity = this.entities.get(handle); return entity !== undefined && !entity.frozen; }
   /** Host-bound actor provenance for an entity; ordinary numeric/mover worlds grant no item owner. */
   actor(_handle: number): string | undefined { return undefined; }
+  /** The handle a script reads for this entity: a seated player's stands in for the one content declared. */
+  contentHandle(handle: number): number { return handle; }
   /** Snapshot of host-owned entity state, ordered by numeric handle. */
   state(): readonly ScriptEntity[] { return [...this.entities.values()].sort((a, b) => a.id - b.id).map(copy); }
+  /** How many entities the host seated for its players; content's allowance leaves them out. */
+  get seated(): number { return this.seatedEntities; }
   /** Restore validated host-owned state without publishing a partially checked entity list. */
-  restore(entities: readonly ScriptEntity[]): void {
-    const checked = new ScriptWorld(this.rules, entities);
-    this.entities = checked.entities; this.next = checked.next; this.revision++; this.content++;
+  restore(entities: readonly ScriptEntity[], seated = 0): void {
+    const checked = new ScriptWorld(this.rules, entities, seated);
+    this.entities = checked.entities; this.next = checked.next; this.seatedEntities = seated; this.revision++; this.content++;
+  }
+  /** A joining player's entities, between steps: never content's, so a full room leaves a script's spawns as they were. */
+  protected admit(entities: readonly ScriptEntity[]): void {
+    const checked = new ScriptWorld({ ...this.rules, maxEntities: 1 }, entities, entities.length);
+    for (const entity of checked.entities.values()) if (this.entities.has(entity.id)) throw new Error('Invalid entity');
+    const next = new Map(this.entities);
+    for (const entity of checked.entities.values()) next.set(entity.id, entity);
+    this.entities = next; this.next = Math.max(this.next, checked.next); this.seatedEntities += entities.length; this.revision++; this.content++;
+  }
+  /** A leaving player's entities. Handles run on from the greatest left, as after a restore. */
+  protected dismiss(handles: readonly number[]): void {
+    const next = new Map(this.entities);
+    for (const handle of handles) next.delete(handle);
+    this.entities = next; this.next = Math.max(1, ...next.keys()) + (next.size === 0 ? 0 : 1); this.seatedEntities -= handles.length; this.revision++; this.content++;
   }
   /** Quarantine or explicitly resume an entity after a failed script call. */
   freeze(handle: number, frozen: boolean): void { const e = this.entities.get(handle); if (e) { this.entities.set(handle, { ...e, frozen, interactive: !frozen }); this.revision++; this.content++; } }
@@ -73,7 +94,7 @@ export class ScriptWorld {
         if (!Object.is(entity.position[0], a) || !Object.is(entity.position[1], b) || !Object.is(entity.position[2], c)) (next === before ? (next = new Map(before)) : next).set(self, { ...entity, position: [a, b, c] });
       } else if (op === SCRIPT_OP.spawn) {
         if (!id(a) || !this.rules.archetypes.includes(a) || ![b, c, d].every(coord)) throw new Error('Spawn outside declared range');
-        if (++spawns > spawnAllowance || next.size >= this.rules.maxEntities || !id(nextId)) throw new Error('Spawn allowance');
+        if (++spawns > spawnAllowance || next.size >= this.rules.maxEntities + this.seatedEntities || !id(nextId)) throw new Error('Spawn allowance');
         (next === before ? (next = new Map(before)) : next).set(nextId, { id: nextId, name: `entity ${nextId}`, position: [b, c, d], fields: {}, frozen: false, interactive: true }); nextId++;
       } else if (op === SCRIPT_OP.event) {
         if (!id(a) || !this.rules.events.includes(a) || !next.has(b) || d !== 0) throw new Error('Event outside declared range');

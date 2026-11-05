@@ -7,6 +7,7 @@ import type { Physics } from "@wildshard/engine/physics/Physics";
 import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from "@wildshard/engine/core/config";
 import * as v from "valibot";
 import { ScriptHost, type ScriptQuery } from "@wildshard/engine/script/host";
+import type { ScriptLanePort } from "@wildshard/engine/script/lane";
 import { SCRIPT_PARAMETER_QUERY } from '@wildshard/format/scriptAbi';
 import { ScriptWorld } from "@wildshard/engine/script/effects";
 import { scriptPhysicsQueries } from "@wildshard/engine/script/queries";
@@ -174,7 +175,7 @@ export interface MoverActivationPorts {
   shared?: (field: number) => number | boolean | undefined;
 }
 /** The shared script host already owns modules, entity handles and one beginTick per fixed step. */
-export interface MoverPorts { flags?: Pick<Flags, 'has' | 'set'>; physics: Physics | (() => Physics); host: ScriptHost; scope: Scope; adopt?: (id: string) => MoverView | undefined; restoring?: boolean; activation?: MoverActivationPorts; restoreFlags?: ReadonlySet<string> }
+export interface MoverPorts { lane?: ScriptLanePort; flags?: Pick<Flags, 'has' | 'set'>; physics: Physics | (() => Physics); host: ScriptHost; scope: Scope; adopt?: (id: string) => MoverView | undefined; restoring?: boolean; activation?: MoverActivationPorts; restoreFlags?: ReadonlySet<string> }
 function nativeMotion(row: MoverData[number]): NativeMoverMotion {
   if (row.driver === undefined || row.trigger === undefined) throw new Error('Missing admitted native mover motion');
   return { driver: row.driver, trigger: row.trigger, at: row.at, euler: row.euler, ...(row.track === undefined ? {} : { track: row.track }), ...(row.carry === undefined ? {} : { carry: row.carry }) };
@@ -205,8 +206,11 @@ export class MoverRuntime {
   /** the presentation-only views (adopted rows), for {@link showRest} */
   private readonly views = new Map<string, (pose: MoverPose) => void>();
   private readonly host: ScriptHost;
+  private readonly composed: ScriptLanePort | undefined;
   /** Trusted item bindings use this already installed host's actor grants and current tick. */
   get scriptHost(): ScriptHost { return this.host; }
+  /** The lane it was installed on, where a seat may be taken. */
+  get lane(): ScriptLanePort | undefined { return this.composed; }
   private readonly physics: () => Physics;
   private readonly bodies = new Map<string, KinematicMover>();
   private bodyHandles = new Map<string, number>();
@@ -218,7 +222,7 @@ export class MoverRuntime {
   constructor(data: MoverData, ports: MoverPorts) {
     this.data = parseMovers(data); this.flags = ports.flags;
     for (const row of this.data) if (row.carry?.arrival !== undefined && this.flags === undefined) throw new Error('Mover arrival requires the actual flags owner');
-    this.host = ports.host; this.activation = ports.activation ?? {};
+    this.host = ports.host; this.composed = ports.lane; this.activation = ports.activation ?? {};
     for (const row of this.data) if (row.execution === 'native') this.mechanics.set(row.id, new MoverMechanic(nativeMotion(row)));
     this.lifecycle = new MoverLifecycle(this.data.map(row => ({ id: row.id,
       ...(row.atEnd === undefined ? {} : { atEnd: row.atEnd }), ...(row.restoreFrom === undefined ? {} : { restoreFrom: row.restoreFrom }) })));
@@ -500,7 +504,7 @@ export class MoverScriptDriver {
     const lane = 'host' in input ? input : this.compose({ ...input.content, sim: { ...input.content.sim, scripts: [...input.assets.keys()] } }, input.assets,
       { rules: input.rules, entities: [], actors: new Map(), query: () => [] }, undefined, options.permissions,
       { roles: [], ...(input.declarations === undefined ? {} : { declarations: input.declarations }) });
-    const runtime = new MoverRuntime(this.data, { flags: sim.flags, host: lane.host, physics: () => sim.physics, scope: sim.scope,
+    const runtime = new MoverRuntime(this.data, { lane, flags: sim.flags, host: lane.host, physics: () => sim.physics, scope: sim.scope,
       ...(options.restoring === undefined ? {} : { restoring: options.restoring }),
       ...(options.restoreFlags === undefined ? {} : { restoreFlags: options.restoreFlags }),
       activation: { ground: () => playerGrounds(sim), ...options.activation } });

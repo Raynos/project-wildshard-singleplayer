@@ -1158,6 +1158,7 @@
   "src/game/server/plugin/nativeSwept.ts": "server",
   "src/game/server/plugin/placeholderGeometry.ts": "server",
   "src/game/server/plugin/playerSeats.ts": "server",
+  "src/game/server/plugin/scriptSeats.ts": "server",
   "src/game/shared/plugin/quests.ts": "shared",
   "src/game/client/plugin/scene.ts": "client",
   "src/game/client/plugin/shaderFamily.ts": "client",

@@ -30,11 +30,11 @@ export interface ItemState { version: number; id: string; tick: number; cooldown
 const finiteAim = (aim: AimCommand): boolean => [aim.origin.x, aim.origin.y, aim.origin.z, aim.direction.x, aim.direction.y, aim.direction.z].every(Number.isFinite)
   && Math.hypot(aim.direction.x, aim.direction.y, aim.direction.z) > 1e-6;
 /** Compile a hook over the already installed, shared ScriptHost. An author cannot target another item or invent an action. */
-export function scriptItemHook(host: ScriptHost, module: string, entity: number, event: number, actorId: string): ItemHook {
+export function scriptItemHook(host: ScriptHost, module: string, entity: number, event: number, actorId: string, seat: number = entity): ItemHook {
   if (typeof actorId !== 'string' || actorId.length === 0 || actorId.length > 128
-    || host.world.actor(entity) !== actorId) throw new Error('Item hook requires its host-bound owner');
+    || host.world.actor(seat) !== actorId) throw new Error('Item hook requires its host-bound owner');
   return (input) => {
-    const call = host.call(module, entity, [input.tick, input.dt, input.action, entity, input.fuel, input.cooldown]);
+    const call = host.call(module, seat, [input.tick, input.dt, input.action, entity, input.fuel, input.cooldown]);
     if (!call.ok || call.events.length !== 1) return null;
     const request = call.events[0];
     if (request === undefined || request.type !== event || request.target !== entity || request.value !== input.action) return null;
