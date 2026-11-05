@@ -59,7 +59,7 @@ try{
   for(let tick=0;tick<1800&&read().pass.passChain<2;tick++){
     const p=leadPlayer(host).position,target=pack.members.filter(actor=>actor.alive).sort((a,b)=>a.position.distanceToSquared(p)-b.position.distanceToSquared(p))[0];assert.ok(target);
     const dx=target.position.x-p.x,dz=target.position.z-p.z,distance=Math.hypot(dx,dz),direct=Math.atan2(dx,dz);
-    const heading=Math.atan2(target.position.x+Math.cos(direct)*2-p.x,target.position.z-Math.sin(direct)*2-p.z);
+    const heading=Math.atan2(target.position.x+Math.cos(direct)*1.6-p.x,target.position.z-Math.sin(direct)*1.6-p.z);
     const delta=Math.atan2(Math.sin(mount.body.heading-heading),Math.cos(mount.body.heading-heading));
     const brake=(Math.abs(delta)>.9||distance<2.5)&&Math.abs(mount.body.speed)>3;
     target.bodyCapsule(rear,front);aimPoint.addVectors(rear,front).multiplyScalar(.5);
@@ -69,7 +69,7 @@ try{
     const base=mount.body.heading-Math.PI,look=Math.atan2(Math.sin(Math.atan2(-aimDx,-aimDz)-base),Math.cos(Math.atan2(-aimDx,-aimDz)-base));
     const commands:HeadlessCommand[]=[reins(brake?-.8:Math.abs(delta)>.9?0:distance<6?.85:1,brake?0:Math.max(-1,Math.min(1,delta*2.5)),!brake&&distance>=10,false,base+Math.max(-lookLimit,Math.min(lookLimit,look))),
       {kind:'script',actorId:'nalati.weapon.pitch',value:Math.atan2(aimPoint.y-p.y-1.68,Math.hypot(aimDx,aimDz))}];
-    if(gap<=pressRange&&Math.abs(look)<=lookLimit&&tick%20===0)commands.push({kind:'script',actorId:'nalati.weapon.attack',value:1});
+    if(gap<=pressRange&&Math.abs(look)<=lookLimit&&tick%10===0)commands.push({kind:'script',actorId:'nalati.weapon.attack',value:1});
     await step(commands);
   }
   assert.ok(read().pass.passChain>=2,'only actual accepted mounted contacts earn a two-hit chain');assert.ok(middle);
