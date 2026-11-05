@@ -85,6 +85,8 @@ export class PlayerSim implements PlayerMotionState {
   readonly dash: DashState = { t: 0, vx: 0, vz: 0 };
   /** The dodge clocks (cooldown, the burst's i-frames read by its health's `dodging`). */
   readonly dodge: DodgeState = { cd: 0, t: 0 };
+  /** The fixed step the swell reads: the host's own. */
+  get tick(): number { return this.host.state.tick; }
   /** The board's live speed cap where something rules one (the grid, GridSimulation): the page's `hoverSpeedLimit`. Never saved:
    *  its owner puts it back. */
   hoverSpeedLimit: (() => number) | null = null;

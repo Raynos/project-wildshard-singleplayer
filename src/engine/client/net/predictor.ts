@@ -106,8 +106,9 @@ export class Predictor {
    * A frame: `lastSeq` is the newest command the server has stepped, `owner` its state after it. True when it corrected.
    * While the owner block says `led` the server's state is taken as it comes, with no compare and no replay. The frame that
    * ends the lead, or that says the server reset this body, always takes the server's state, whatever `lastSeq` it brings.
+   * `tick`: the frame's, which the client's swell clock takes on every correction.
    */
-  reconcile(lastSeq: number, owner: ArrayLike<number>): boolean {
+  reconcile(lastSeq: number, owner: ArrayLike<number>, tick?: number): boolean {
     const { acked, table } = this;
     if (acked !== null && seqAfter(acked, lastSeq)) return false;
     const led = this.flag(table.led, owner) === 1, resets = this.value(table.resets, owner);
@@ -122,6 +123,7 @@ export class Predictor {
     const s = body.motionState, feet = s.position, x = feet.x + body.renderOffset.x, y = feet.y + body.renderOffset.y, z = feet.z + body.renderOffset.z, { yaw } = s;
     if (saved) restoreMotion(s, body.motor, states, at);
     this.write(s, owner);
+    if (tick !== undefined) s.tick = tick;
     if (!led) for (let left = 0, run = this.head; left < this.count; left++, run = (run + 1) % PREDICTION_RING) {
       const command = this.commands[run];
       if (command !== null && command !== undefined && this.owned[run] === 1) { body.step(command, true); this.replays++; }
@@ -135,8 +137,9 @@ export class Predictor {
   }
 
   /** A session's first frame: this body stands where the server says, with nothing to compare it to. */
-  adopt(lastSeq: number, owner: ArrayLike<number>): void {
+  adopt(lastSeq: number, owner: ArrayLike<number>, tick?: number): void {
     const { body, table } = this, s = body.motionState, { yaw } = s;
+    if (tick !== undefined) s.tick = tick;
     this.acked = lastSeq; this.led = this.flag(table.led, owner) === 1; this.resets = this.value(table.resets, owner);
     this.head = 0; this.count = 0;
     this.write(s, owner);

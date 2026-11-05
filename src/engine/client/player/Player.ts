@@ -2,6 +2,8 @@ import { hoverSpeed } from '../../shared/player/hoverSpeed';
 import { isDev } from '../core/devMode';
 import { walkingSpeed } from '../../shared/player/walk';
 import { pondBob } from '../../shared/player/swim';
+import { FIXED_STEP } from '../../shared/core/fixedStep';
+import { waveClock } from '../../shared/world/waves';
 import { combatSpeedFactor } from '../../shared/player/combatMotion';
 import { HOVER_HARD_LANDING } from '../../shared/player/board';
 import { createMotionState } from '../../shared/player/motionState';
@@ -138,8 +140,8 @@ export class Player {
   /** the eye went under / came back up (Audio.dive() plunge / Audio.surface() gasp) */
   onSubmerge?: () => void;
   onSurface?: () => void;
-  /** wave clock for the swim bob (seconds) */
-  waveTime = 0;
+  /** The swell's clock: the fixed step, as the server reads it (P1-E5.3-A14). */
+  private get swellSeconds(): number { return this.motionState.tick * FIXED_STEP; }
   /** feet dropped below the surface (splash; `impact` = entry speed m/s, ~0 walking in, 10+ off a pier) / came back out */
   onEnterWater?: (impact: number) => void;
   onExitWater?: () => void;
@@ -283,7 +285,10 @@ export class Player {
       get platforms() { return walkable(); },
       floor: (x, z, fromY, maxDrop) => floorBelow(this.physics, x, z, fromY, maxDrop, this.motor.collider),
       // the open sea: ride the Ocean's own Gerstner swell (DRIFTWOOD-REMASTER W3); the pond keeps its gentle sine bob
-      bob: (x, z) => { const sea = app.world.water.sea; return sea !== null ? sea.surfaceAt(x, z) - sea.level : pondBob(this.waveTime); },
+      bob: (x, z) => {
+        const sea = app.world.water.sea, seconds = this.swellSeconds;
+        return sea === null ? pondBob(seconds) : sea.swellAt?.(x, z, seconds) ?? sea.surfaceAt(x, z) - sea.level;
+      },
       foot: { speed: wadeT => walkingSpeed(this.crouching, this.sprinting, wadeT, this.moveScale, this.effectMoveScale),
         get crouching() { return crouching(); }, get coyoteMs() { return coyote(); } },
       boardTop: () => hoverSpeed(this.hoverSpeedLimit?.(), this.hoverBoost && isDev()),
@@ -519,6 +524,8 @@ export class Player {
   private stepCommand(dt: number, command: PlayerCommand): void {
     this.yaw = command.yaw; this.pitch = command.pitch;
     this.crouchWanted = command.crouch;
+    this.motionState.tick++;
+    if (!this.replaying) waveClock.stepped = this.swellSeconds;
     const fwd = command.moveY, str = command.moveX, sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
     const moveX = -sin * fwd + cos * str, moveZ = -cos * fwd - sin * str;
     // locked on (E50 §2.4): the shared law bends the move and the dodge round it. The lock is this page's, and its radius is
@@ -539,7 +546,6 @@ export class Player {
     const swim = this.swimming && !hover;
     this.crouching = !hover && !swim && this.crouchWanted;
     this.sprinting = sprints(this.motionState, command.sprint, fwd, this.crouching);
-    this.waveTime += dt;
 
     this.jumpQueued = false;
     // while swimming Space / the DIVE disc and Shift / the SURFACE disc are HELD controls (the swim branch reads them)
@@ -615,7 +621,7 @@ export class Player {
     const phase = Math.floor(this.bobTime / Math.PI);
     if (phase !== this.lastBobPhase && bobAmp > 0.005) { this.lastBobPhase = phase; this.onStep?.(this.sprinting); }
     // hover: roll gently into strafes / carves (from lateral velocity), nose down a hair at speed
-    const rollT = hover ? -Math.max(-1, Math.min(1, this.hoverLat / HOVER_ROLL_AT)) * HOVER_ROLL : swim ? Math.sin(this.waveTime * 1.1) * 0.012 : 0;
+    const rollT = hover ? -Math.max(-1, Math.min(1, this.hoverLat / HOVER_ROLL_AT)) * HOVER_ROLL : swim ? Math.sin(this.swellSeconds * 1.1) * 0.012 : 0;
     const pitchT = hover ? -(hSpeed / hoverSpeed(this.hoverSpeedLimit?.(), this.hoverBoost && isDev())) * HOVER_PITCH : 0;
     this.roll += (rollT - this.roll) * Math.min(1, dt * 5);
     this.pitchLean += (pitchT - this.pitchLean) * Math.min(1, dt * 3);

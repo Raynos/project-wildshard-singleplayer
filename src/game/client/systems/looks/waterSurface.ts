@@ -55,6 +55,8 @@ export class WaterSurface {
   level = 0;
   private drawn: THREE.Mesh | null = null;
   private time = 0;
+  /** the last fixed-step swell second this surface took */
+  private stepped = -1;
   /** a transition's normalized travel (0 full, 1 lowered) and the level it heads for */
   private travel = 0;
   private lowered = false;
@@ -142,7 +144,10 @@ export class WaterSurface {
       this.applyLevel();
     }
     this.time += dt;
-    if (this.row.waves) waveClock.t = this.time;
+    if (this.row.waves) {
+      if (waveClock.stepped !== null && waveClock.stepped !== this.stepped) this.time = this.stepped = waveClock.stepped;
+      waveClock.t = this.time;
+    }
     this.step();
   }
 

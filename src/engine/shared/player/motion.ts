@@ -63,6 +63,9 @@ export interface PlayerMotionState {
   readonly shove: ShoveState;
   readonly dash: DashState;
   readonly dodge: DodgeState;
+  /** The fixed step this state stands at: the swell's clock is `tick × FIXED_STEP` on both sides (P1-E5.3-A14). The law reads it
+   *  only through `MotionWorld.bob`. A client's counts its commands; the server's is its host's. */
+  tick: number;
   /** a lock-on's held orbit radius */
   readonly lock: LockState;
   /** the jump clocks */

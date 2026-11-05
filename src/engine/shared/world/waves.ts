@@ -4,7 +4,9 @@ import * as waterWaves from '@wildshard/format/waterWaves';
 /** Existing renderer/physics swell rows retain the same immutable format array. */
 export const WAVES: readonly (readonly [number, number, number, number, number, number])[] = waterWaves.WAVES;
 
-export const waveClock = { t: 0 };
+/** `t`: where the drawn surface stands. `stepped`: the fixed step's swell seconds, null until a player steps. A drawn sea takes
+ *  that when it moves, so a swimmer stays on the water they see; in a menu or a capture, with nothing stepping, it runs on. */
+export const waveClock: { t: number; stepped: number | null } = { t: 0, stepped: null };
 
 /** Unbounded open water (the standalone level's sea runs to the horizon). */
 export const WATER_UNBOUNDED = 1e9;

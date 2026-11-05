@@ -217,3 +217,20 @@ test('a reset is heard with no command on its way', () => {
     expect(player.position.z).toBeCloseTo(40, 3);
   } finally { link.dispose(); }
 });
+
+test('the swell clock joins the server on the first frame and on a correction, and a replay keeps its phase', () => {
+  const state = createMotionState(), replayed: number[] = [];
+  const body: PredictedBody = { motionState: state, renderOffset: new Vector3(), motor: legacyDouble<CharacterMotor>({ result: { grounded: false, groundNormalY: 1, downhillX: 0, downhillZ: 0, horizontalFreedom: 1 }, captureState: () => undefined, restoreState: () => undefined, resetAt: () => undefined }),
+    step: (_command, replay) => { state.tick++; if (replay) replayed.push(state.tick); return true; } };
+  const predictor = new Predictor(body, PLAYER_CLASS.owner), owner = new Uint32Array(PLAYER_CLASS.owner.length);
+  predictor.adopt(0, owner, 500);
+  expect(state.tick).toBe(500);
+  for (const seq of [1, 2, 3]) predictor.step({ seq, viewTick: 0, steer: standing, yaw: 0, pitch: 0, buttons: 0 });
+  expect(state.tick).toBe(503);
+  // the server has stepped command 1 at its own tick 520, and says it reset this body: a correction, with commands 2 and 3 to replay
+  const resets = PLAYER_CLASS.owner.findIndex(column => column.name === 'resets');
+  owner[resets] = 1;
+  predictor.reconcile(1, owner, 520);
+  expect(replayed).toEqual([521, 522]);
+  expect(state.tick).toBe(522);
+});

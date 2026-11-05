@@ -15,7 +15,7 @@ import { MOTOR_WORDS, type CharacterMotor } from '../physics/CharacterMotor';
 import type { BoardState } from './board';
 import type { PlayerMotionState } from './motion';
 
-const STATE_WORDS = 35;
+const STATE_WORDS = 36;
 /** The words a predictor compares (`matches`). */
 export const CAPTURED = { x: 0, y: 1, z: 2, yaw: 9, grounded: 11, board: 22, swim: 25 } as const;
 /** The length of one capture. */
@@ -32,7 +32,7 @@ function ridingOn(fall: { grounded: boolean }): BoardState & { on: boolean } {
 /** A motion state at rest at the origin, as a Player starts: on the ground, with its jump clocks running. */
 export function createMotionState(): PlayerMotionState {
   const fall = { grounded: true };
-  return { position: new Vector3(), yaw: 0, moveScale: 1, impulse: new Vector3(), velocity: new Vector3(), fall,
+  return { position: new Vector3(), yaw: 0, tick: 0, moveScale: 1, impulse: new Vector3(), velocity: new Vector3(), fall,
     shove: { t: 0, vx: 0, vz: 0 }, dash: { t: 0, vx: 0, vz: 0 }, dodge: { cd: 0, t: 0 }, lock: { r0: 0 }, jump: { ago: Infinity, left: 0 },
     board: ridingOn(fall), swim: { on: false, stood: false, diving: false, climbTo: null, climbCooldown: 0, strokeTime: 0 },
     footing: { water: null, depth: 0, wading: false, onPlatform: false, sliding: false } };
@@ -58,7 +58,7 @@ export function captureMotion(s: PlayerMotionState, motor: CharacterMotor, out: 
   out[at + 29] = swim.climbCooldown; out[at + 30] = swim.strokeTime;
   out[at + 31] = word(footing.water); out[at + 32] = footing.depth;
   out[at + 33] = Number(footing.wading) + 2 * Number(footing.onPlatform) + 4 * Number(footing.sliding);
-  out[at + 34] = s.lock.r0;
+  out[at + 34] = s.lock.r0; out[at + 35] = s.tick;
   motor.captureState(out, at + STATE_WORDS);
 }
 
@@ -77,6 +77,6 @@ export function restoreMotion(s: PlayerMotionState, motor: CharacterMotor, from:
   footing.water = nullable(read(from, at + 31)); footing.depth = read(from, at + 32);
   const flags = read(from, at + 33);
   footing.wading = (flags & 1) !== 0; footing.onPlatform = (flags & 2) !== 0; footing.sliding = (flags & 4) !== 0;
-  s.lock.r0 = read(from, at + 34);
+  s.lock.r0 = read(from, at + 34); s.tick = read(from, at + 35);
   motor.restoreState(from, at + STATE_WORDS);
 }

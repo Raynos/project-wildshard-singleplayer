@@ -101,5 +101,6 @@ export function declaredWaterBody(input: WaterDeclaration): WaterBody {
     return distance < data.width / 2 ? height : null;
   };
   const surfaceAt = (x: number, z: number): number => !Number.isFinite(x) || !Number.isFinite(z) ? level : (restAt(x, z) ?? level) + (data.kind === 'sea' && data.waves ? waveHeight(x, z) : 0);
-  return { id: data.id, level, restAt, surfaceAt, inside: (x, z, y) => Number.isFinite(y) && restAt(x, z) !== null && y < surfaceAt(x, z) };
+  return { id: data.id, level, restAt, surfaceAt, ...(data.kind === 'sea' && data.waves ? { swellAt: (x: number, z: number, seconds: number) => waveHeight(x, z, seconds) } : {}),
+    inside: (x, z, y) => Number.isFinite(y) && restAt(x, z) !== null && y < surfaceAt(x, z) };
 }

@@ -100,8 +100,6 @@ const courseFloors: readonly ((x: number, z: number) => number | undefined)[] = 
   (x, z) => Math.abs(x - FLOOR_DECK.x) < FLOOR_DECK.half && Math.abs(z - FLOOR_DECK.z) < FLOOR_DECK.half ? FLOOR_DECK.y : undefined,
 ];
 
-/** The page's sea runs on world time, a frame clock that keeps running in a menu: A14 takes it onto the tick. */
-const PAGE_SEA_LEAD = .4;
 /** A swell the sea scenario reads from both sides: it has a clock, so it needs one on each. */
 const seaSwell = (x: number, z: number, seconds: number): number => Math.sin(seconds * 1.1 + x * .2) * .18 + Math.sin(seconds * .7 + z * .3) * .09;
 
@@ -176,7 +174,6 @@ export class PageSide implements MotionEvents {
   readonly physics: Physics;
   readonly course: Course;
   private readonly scope = new Scope('motion-parity');
-  private readonly tickClock = { seconds: 0 };
   private readonly target: AimTarget | undefined;
   constructor(R: Rapier, scenario: MotionScenario) {
     const physics = this.physics = new Physics(R);
@@ -187,8 +184,8 @@ export class PageSide implements MotionEvents {
     player.motor.resetAt(player.position);
     physics.step();
     if (scenario.sea === true) {
-      const clock = this.tickClock;
-      app.world.water.add({ id: 'sea', level: 0, surfaceAt: (x, z) => seaSwell(x, z, clock.seconds + PAGE_SEA_LEAD), inside: () => false, restAt: () => null }, this.scope);
+      // the drawn surface stays on a frame clock of its own: the step reads `swellAt`
+      app.world.water.add({ id: 'sea', level: 0, surfaceAt: (x, z) => seaSwell(x, z, -1), swellAt: seaSwell, inside: () => false, restAt: () => null }, this.scope);
     }
     if (scenario.lockAt !== undefined) {
       this.target = { alive: true, kind: 'parity', position: new Vector3(scenario.lockAt.x, 0, scenario.lockAt.z), dims: SIM_CREATURE_RECIPE.spec.dims, lockable: true };
@@ -202,7 +199,7 @@ export class PageSide implements MotionEvents {
   }
   tick(tick: number, intent: MotionIntent): void {
     const { player } = this, moveX = axis(intent.keyX, intent.stickX), moveY = axis(intent.keyY, intent.stickY);
-    this.course.advance(tick); this.tickClock.seconds = tick * FIXED_STEP;
+    this.course.advance(tick);
     if (intent.hover === true) player.setHover(!player.hover);
     this.physics.step();
     const command: PlayerCommand = { moveX, moveY, yaw: intent.yaw ?? player.yaw, pitch: intent.pitch ?? 0, crouch: intent.crouch === true, aim: NO_AIM,

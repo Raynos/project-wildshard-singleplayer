@@ -14,6 +14,9 @@ export interface WaterBody {
   readonly level: number;
   /** the surface height at (x, z) now, swell included */
   readonly surfaceAt: (x: number, z: number) => number;
+  /** The swell at (x, z) at `seconds` on the fixed step, as the motion law floats on it: `surfaceAt` reads the drawn clock, which
+   *  a replay is not on. Omitted: a body with no swell of its own (P1-E5.3-A14). */
+  readonly swellAt?: (x: number, z: number, seconds: number) => number;
   /** whether the point (x, y, z) is under this body's surface */
   readonly inside: (x: number, z: number, y: number) => boolean;
   /** the rest surface over (x, z) — what the player swims and wades against — or null where the body doesn't reach */
