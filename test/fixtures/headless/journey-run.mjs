@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { HeadlessSimulation } from '../../../src/sdk/headless.ts';
 import { emptyShardfile } from '../../../src/sdk/author.ts';
 import { PhysicsRouteCursor } from '../../../src/sdk/headlessJourney.ts';
-import { decodeSimSnapshotBytes, leadSnapshot } from '../../../src/engine/sim/snapshot.ts';
+import { decodeSimSnapshotBytes, leadSnapshot } from '../../../src/engine/shared/sim/snapshot.ts';
 const source=emptyShardfile({slug:'journey-fixture',name:'Journey fixture',author:'Test',revision:1,seed:435});
 const plan={ticks:30,points:[{x:source.spawn.x,z:source.spawn.z},{x:source.spawn.x+5,z:source.spawn.z}]};
 const sim=await HeadlessSimulation.create(source,new Map(),undefined,{deadline:'advisory'});

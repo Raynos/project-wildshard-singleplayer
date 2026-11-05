@@ -23,7 +23,7 @@ import { grappleNeedsLift, grappleLiftTo } from '@wildshard/game/grapple/sim';
 import { grappleCourse } from '@wildshard/game/grapple/course';
 import { installGrapple } from '@wildshard/game/grapple/native';
 import { lendLooks } from '@wildshard/game/shardfile/lentLooks';
-import { Filament, Rope } from '../src/game/grapple/ribbon';
+import { Filament, Rope } from '../src/game/client/grapple/ribbon';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { filamentGeometry } from '../src/shards/nine-dragon-stack/generators/filamentGeometry';

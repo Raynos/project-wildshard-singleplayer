@@ -2,7 +2,7 @@ import {scalarBlockBytes} from './fixtures/nalati-scalar-blocks';
 import { expect,test } from 'vitest';
 import { unzlibSync,zlibSync } from 'fflate';
 import { navmeshGroundExclusion as exclusionInput } from '../scripts/bake/navmeshGround';
-import {ScalarLatticeBindings} from '../src/engine/world/scalarChannel';
+import {ScalarLatticeBindings} from '../src/engine/shared/world/scalarChannel';
 import { NavmeshGroundSchema } from '@wildshard/format/navigation';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';

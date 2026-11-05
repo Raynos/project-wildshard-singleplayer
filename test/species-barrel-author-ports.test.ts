@@ -5,7 +5,7 @@ import * as v from 'valibot';
 import { speciesFieldReader } from '../src/sdk/species';
 import { puzzleBarrelBody } from '../src/sdk/bake/nativeInteractionFacts';
 import { SpeciesSchema } from '@wildshard/format/speciesPrograms';
-import { BARREL_BODY, BARREL_HALF } from '../src/engine/world/interact/barrel';
+import { BARREL_BODY, BARREL_HALF } from '../src/engine/shared/world/interact/barrel';
 import { speciesBarrelAuthorObservation } from './fixtures/species-barrel-author-observation';
 import original from './fixtures/species-barrel-author-original.json' with { type: 'json' };
 

@@ -1,7 +1,7 @@
 import { AmbientLight, BoxGeometry, Color, DirectionalLight, Group, Mesh, MeshStandardMaterial, PerspectiveCamera, Scene, WebGLRenderer, RGBA_ASTC_4x4_Format, REVISION } from 'three';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
-import { Scope } from '../../../../src/engine/app/scope';
-import { installDeclaredProps } from '../../../../src/engine/world/declaredProps';
+import { Scope } from '../../../../src/engine/shared/app/scope';
+import { installDeclaredProps } from '../../../../src/engine/client/world/declaredProps';
 import { PropsSchema } from '@wildshard/format/props';
 import * as v from 'valibot';
 import { templateProps } from '../../../../src/shards/_template/generators/templatePropsSource';

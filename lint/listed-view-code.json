@@ -4,7 +4,7 @@
     "far-reach": [],
     "sunscar-dunes": [],
     "pine-hollow": [
-      { "path": "src/game/quest/chapterDirector.ts", "name": "installChapterLead", "reason": "The remaining lead presentation reads the existing AS channels and presents its view.", "decision": "G570" }
+      { "path": "src/game/server/quest/chapterDirector.ts", "name": "installChapterLead", "reason": "The remaining lead presentation reads the existing AS channels and presents its view.", "decision": "G570" }
     ],
     "driftwood-isle": [],
     "nalati-grasslands": [],

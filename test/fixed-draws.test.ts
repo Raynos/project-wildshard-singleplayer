@@ -1,13 +1,13 @@
 import { FixedDrawRowsSchema } from '@wildshard/format/fixedDraws';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 import { driftwoodFixedModel } from './fixtures/driftwood-fixed-bank';
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry } from 'three';
 import { zlibSync } from 'fflate';
-import { coldFixedDraws, fixedDraws, productFixedDraws } from '../src/game/models/fixedDraws';
-import { Scope } from '../src/engine/app/scope';
-import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
+import { coldFixedDraws, fixedDraws, productFixedDraws } from '../src/game/client/models/fixedDraws';
+import { Scope } from '../src/engine/shared/app/scope';
+import { createOwnedGeometry } from '../src/engine/client/models/ownedGeometry';
 
 // G571: a product's named fixed draws (Driftwood's fixed-model templates) loaded together as owned templates.
 const tri = (x: number): BufferGeometry => new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array([x, 0, 0, 1, 0, 0, 0, 1, 0]), 3));

@@ -1,14 +1,14 @@
 import {expect,test,vi} from 'vitest';
 import {Vector3} from 'three';
-import {ActorProjectionV2,type ActorProjectionContext} from '../src/game/population/actorProjectionV2';
+import {ActorProjectionV2,type ActorProjectionContext} from '../src/game/server/population/actorProjectionV2';
 import {ActorProjectionV2Schema,parseActorProjectionV2} from '@wildshard/format/actorProjectionV2';
-import {createSimHost} from '../src/engine/sim';
-import {loadRapier} from '../src/engine/physics/rapier';
-import type {AnimalSim} from '../src/engine/entities/AnimalSim';
+import {createSimHost} from '../src/engine/server/sim';
+import {loadRapier} from '../src/engine/shared/physics/rapier';
+import type {AnimalSim} from '../src/engine/server/entities/AnimalSim';
 import {fixtureBytes} from '@wildshard/engine/test/nativeBytes';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
 import {namedJsonSchema} from '../src/sdk/formatJsonSchema';
-import {validateNamedJsonSchema} from '../src/game/shardfile/customSchema';
+import {validateNamedJsonSchema} from '../src/game/shared/shardfile/customSchema';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {titanPrograms as programme} from './fixtures/titanInlineWitness';
 

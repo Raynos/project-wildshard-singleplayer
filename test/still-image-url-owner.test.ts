@@ -1,8 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the original admitted PNG bytes, not a synthetic image header.
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { stillImageObjectUrl } from '../src/game/shardfile/stillImage';
+import { Scope } from '../src/engine/shared/app/scope';
+import { stillImageObjectUrl } from '../src/game/client/shardfile/stillImage';
 
 const original = Uint8Array.from(readFileSync('test/fixtures/world-source/image.png'));
 

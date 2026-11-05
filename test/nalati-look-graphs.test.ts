@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { AdditiveBlending } from 'three';
-import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
+import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
 import { validateGraph } from '@wildshard/format/materialGraph';
 import lookGraphs from '../src/shards/nalati-grasslands/data/lookGraphs.json' with { type: 'json' };
 

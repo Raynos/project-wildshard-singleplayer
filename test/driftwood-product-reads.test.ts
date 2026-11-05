@@ -3,7 +3,7 @@ import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
-import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
+import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { builtProduct } from './fixtures/builtProduct';
 import { parseRows } from '@wildshard/format/rows';
 import { encodeCanonicalJson } from '../src/sdk/immutable';

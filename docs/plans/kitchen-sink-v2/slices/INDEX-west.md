@@ -28,7 +28,7 @@ Hours are estimates; a lane-day is about 8 h.
 | [W5a](W5a-hover-park-ramps.md) | Hover park ground (kickers, halfpipe, bowl…) | the board's look moves to game (HA4d); the law stays engine | every shard's board look (paths only) | **24** (4/4/16) | W0b |
 | [W5b](W5b-tricks-score.md) | Tricks and the trick score | board events; trick rows; `tricks.as`; toy upgrade effects | — | **19** (14/1/4) | W5a, W3a, W2b |
 | [W5c](W5c-grind-rails.md) | Grind rails | rail rows + a board rail law | — | **20** (16/0/4) | W5b (soft) |
-| [W6a](W6a-movers-out-of-plugin.md) | Sliders, spinner, lift | mover host out of `game/plugin/mover.ts` (N2/N5) | Sky, Driftwood, Pine, Signal (replays, saves) | **40** (18/16/6) | W0b |
+| [W6a](W6a-movers-out-of-plugin.md) | Sliders, spinner, lift | mover host out of `game/server/plugin/mover.ts` (N2/N5) | Sky, Driftwood, Pine, Signal (replays, saves) | **40** (18/16/6) | W0b |
 | [W6b](W6b-conveyor-jump-pad.md) | Conveyors, jump pads | `conveyor` and `launch` traverse rows beside Sky's updraft | Sky (updraft reader) | **22** (14/2/6) | W0b |
 | [W6c](W6c-rope-bridges.md) | Five swaying rope bridges | rope deck as a shared row; `bridgeSway.as` to commons | Driftwood | **22** (10/8/4) | W6a |
 | [W6d](W6d-world-course-timer.md) | The movers time | the course host in the world, off the plugin context, records | Nalati, Nine (Explore rooms on the same controller) | **26** (14/8/4) | W6a–c, W3a |

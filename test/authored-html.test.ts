@@ -97,8 +97,8 @@ node.innerHTML=good.icon;
 node.innerHTML=bad.icon;`);
  try{
   f.put('src/engine/values.ts','export interface Values{count:number;label:string}');
-  f.put('src/engine/ui/icons.ts','export function icon(_id:string):string{return "<svg/>";}');
-  f.put('src/engine/ui/hudSlots.ts','export interface DiscOpts{icon:string}');
+  f.put('src/engine/client/ui/icons.ts','export function icon(_id:string):string{return "<svg/>";}');
+  f.put('src/engine/client/ui/hudSlots.ts','export interface DiscOpts{icon:string}');
   f.put('src/engine/fake.ts','export interface DiscOpts{icon:string}');
   expect(authoredHtmlSites(f.root,f.file).map(row=>row.line)).toEqual([5,8]);
  }finally{f.close();}
@@ -176,7 +176,7 @@ const labels:Record<string,string>={video:engineString('video'),unrelated:rows.t
 function fill(html:string){node.innerHTML=html;}
 fill(esc(labels.video));`);
  try{
-  f.put('src/engine/strings.ts','export function engineString(_id:string):string{return "<i/>";}');
+  f.put('src/engine/shared/strings.ts','export function engineString(_id:string):string{return "<i/>";}');
   expect(authoredHtmlSites(f.root,f.file)).toEqual([]);
  }finally{f.close();}
 });

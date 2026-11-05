@@ -23,16 +23,16 @@ the polearm host's rows.
 
 Research:
 
-- **Dummies and a loan already exist, in a separate room.** The engine's practice room (`src/engine/practice/TrainingArena.ts`,
+- **Dummies and a loan already exist, in a separate room.** The engine's practice room (`src/engine/client/practice/TrainingArena.ts`,
   463 lines: "a 100 × 100 m enclosed grid room and three hit-reactive humanoid dummies") uses `TrainingDummy.ts`,
   `DummyMotion.ts`, `physics/trainingTargets.ts` and **`practiceLoan.ts`** (`enterPracticeLoan`: "lend every weapon …
   leaving ends the loan", E298 A) over `EquipmentService.lendAll`. None of it can be placed in a shard: the room is its
-  own space. Users: the practice room and the Weapon Explorer (`src/game/session/play.ts`, `loadout.ts`).
+  own space. Users: the practice room and the Weapon Explorer (`src/game/client/session/play.ts`, `loadout.ts`).
 - **World strike targets exist:** `src/format/worldTargets.ts` (`world/targets`, KA6): `{ id, weapon, at, radius, scan:
   cone|ray, effects: flag|interaction|hint }`. No score, no rings.
 - **Personal bests are not saved anywhere.** The course host keeps `best` in memory only
-  (`src/game/practice/numericCourse.ts:11,15` `ProjectedState { best: -1 }`); no board exists in the world.
-- **Spear:** `src/game/weapons/heldPolearm.ts`, one user (Nalati), a pending-user row in `lint/platform-pending-users.json`.
+  (`src/game/client/practice/numericCourse.ts:11,15` `ProjectedState { best: -1 }`); no board exists in the world.
+- **Spear:** `src/game/client/weapons/heldPolearm.ts`, one user (Nalati), a pending-user row in `lint/platform-pending-users.json`.
 
 Work:
 
@@ -75,7 +75,7 @@ reload; the practice room still lends its kit.
 ## 5. Risks
 
 - `TrainingDummy` was built for one room and three dummies; six in the open world plus W3b's targets need the body
-  cap (`BODY_CAP` phone 40, `engine/physics/bodies.ts:84`) checked: dummies are kinematic, not dynamic.
+  cap (`BODY_CAP` phone 40, `engine/shared/physics/bodies.ts:84`) checked: dummies are kinematic, not dynamic.
 
 ## 6. Questions for Jake
 

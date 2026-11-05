@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { loadTrainingDummy } from '../../src/engine/practice/TrainingDummyAssets';
-import { applyDummyStudio } from '../../src/engine/practice/DummyStudio';
+import { loadTrainingDummy } from '../../src/engine/client/practice/TrainingDummyAssets';
+import { applyDummyStudio } from '../../src/engine/client/practice/DummyStudio';
 
 window.captureFigure = async variant => {
   const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });

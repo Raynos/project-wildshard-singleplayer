@@ -22,7 +22,7 @@ Today (`scripts/shard-platform.mjs`, `-hosts.mjs`, `-sections.mjs`, `-output.mjs
 - 193 modules are listed in `lint/platform-pending-users.json` (2,612 lines); `lint/host-reviews.json` holds 1 review.
 
 Work (HA0 a–f, HA1, verbatim scope from HOST-AUDIT): follow only the client-plan kinds a product declares (the kind →
-module table already exists in `game/shardfile/clientPlan.ts:108`-style rows); treat `CLIENT_FEATURES` and other
+module table already exists in `game/client/shardfile/clientPlan.ts:108`-style rows); treat `CLIENT_FEATURES` and other
 dispatch tables as tables, not users; charge optional sub-rows by the products whose rows reach them; narrow the shell
 exemption by name; charge `src/format`; a host is platform only with ≥ 2 real users or a listed Jake-approved row. HA1:
 a ruler mode that prints every engine / game / format / sdk / commons module with lines, real users and which list

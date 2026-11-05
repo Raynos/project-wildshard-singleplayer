@@ -1,12 +1,12 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the shipped native physics binary.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { createSimHost } from '../src/engine/sim';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { installQuestGraph } from '../src/game/plugin/quests';
+import { createSimHost } from '../src/engine/server/sim';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { installQuestGraph } from '../src/game/server/plugin/quests';
 import { prepareNativeQuestEntry } from '@wildshard/game/quest/nativeEntry';
-import { registerNativeQuestInputs } from '../src/game/quest/nativeInputs';
-import { nativeInventorySchema } from '../src/game/inventoryLaw';
+import { registerNativeQuestInputs } from '../src/game/server/quest/nativeInputs';
+import { nativeInventorySchema } from '../src/game/server/inventoryLaw';
 import * as v from 'valibot';
 import { parseQuestHost, questHostBindingRules } from '@wildshard/format/questHost';
 import { PINE as pine } from './fixtures/pine-program';
@@ -14,7 +14,7 @@ import driftwood from './fixtures/driftwood-product-source';
 import { pineQuestNpcs } from '../src/shards/pine-hollow/generators/questNpcs';
 import { PINE_QUEST_RUNTIME, PINE_QUEST_PAYLOAD } from '../src/shards/pine-hollow/generators/questRuntime';
 import { parsePineQuestRows } from '../src/shards/pine-hollow/generators/sections';
-import type { QuestHostPorts } from '../src/game/plugin/simulation';
+import type { QuestHostPorts } from '../src/game/server/plugin/simulation';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { PINE_FEAT_COUNTERS } from '../src/shards/pine-hollow/generators/questInventory';
 import { DRIFTWOOD_FEAT_COUNTERS } from '../src/shards/driftwood-isle/generators/questInventory';

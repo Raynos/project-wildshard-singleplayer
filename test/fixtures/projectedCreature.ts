@@ -1,6 +1,6 @@
 import { originalSpeciesJson } from './nalati-original-species';
-import { app } from '../../src/engine/app/runtime';
-import { ActorProjectionV2 } from '../../src/game/population/actorProjectionV2';
+import { app } from '../../src/engine/client/app/runtime';
+import { ActorProjectionV2 } from '../../src/game/server/population/actorProjectionV2';
 import { actorProjection } from '../../src/shards/nalati-grasslands/generators/actorProjection';
 import { object, parse } from 'valibot';
 import { CreatureGuestSchema } from '@wildshard/format/speciesBookRows';

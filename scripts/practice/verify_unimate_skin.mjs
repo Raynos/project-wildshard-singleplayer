@@ -44,9 +44,9 @@ registerHooks({
     return next(url, context);
   },
 });
-const { DummyMotion, DummyPose } = await import('../../src/engine/practice/DummyMotion.ts');
-const { DummyClips } = await import('../../src/engine/practice/DummyClips.ts');
-const { DUMMY_BONE_NAMES } = await import('../../src/engine/practice/TrainingDummy.ts');
+const { DummyMotion, DummyPose } = await import('../../src/engine/client/practice/DummyMotion.ts');
+const { DummyClips } = await import('../../src/engine/client/practice/DummyClips.ts');
+const { DUMMY_BONE_NAMES } = await import('../../src/engine/client/practice/TrainingDummy.ts');
 const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
 await MeshoptDecoder.ready;
 const rawIO = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
@@ -342,7 +342,7 @@ for (const [variant, filename] of [['wood', 'wood-wood'], ['straw-cloth', 'straw
 }
 const report = { schema: 1, originalRevision, motionPath, motionSHA256: sha(motionPath),
   method: 'Three.js GLTFLoader with original Meshopt geometry and bind matrices; all vertices and all nondegenerate triangles, 61 samples per clip. Texture pixels substituted in memory only. Clips evaluated through AnimationMixer by bone name. Separate springComparison uses the actual DummyMotion, DummyPose and DummyClips TypeScript classes on four weapon hits at the arena material masses; existing springs alone and the new clips plus springs are sampled over two seconds at 30 Hz.',
-  runtimeSourceSHA256: { dummyMotion: sha('src/engine/practice/DummyMotion.ts'), dummyClips: sha('src/engine/practice/DummyClips.ts') },
+  runtimeSourceSHA256: { dummyMotion: sha('src/engine/client/practice/DummyMotion.ts'), dummyClips: sha('src/engine/client/practice/DummyClips.ts') },
   units: 'original GLB model units, before TrainingDummyAssets game scaling',
   limits: { maxBindPositionError: 0.0001, maxWeightSumError: 'half a storage quantum per weight, × 4 (float32: 4 × 2^-24)',
     deformationAndJointSpeed: 'no worse than the variant\'s shipped springs alone, measured in this run (springBaseline): max edge stretch, min triangle area ratio, max joint speed',

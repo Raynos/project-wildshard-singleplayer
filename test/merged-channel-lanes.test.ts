@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { parseClientChannels, type ClientChannelProgram } from '@wildshard/format/clientChannels';
-import { admittedClientChannels, planMergedChannels, publishMergedChannels } from '../src/game/plugin/channels';
-import { NumericInputError } from '../src/engine/core/faults';
+import { admittedClientChannels, planMergedChannels, publishMergedChannels } from '../src/game/server/plugin/channels';
+import { NumericInputError } from '../src/engine/shared/core/faults';
 import { CRAB_CLIPS } from '../src/shards/driftwood-isle/generators/crabClips';
 import { THRALL_CLIPS } from '../src/shards/pine-hollow/generators/thrallClips';
 

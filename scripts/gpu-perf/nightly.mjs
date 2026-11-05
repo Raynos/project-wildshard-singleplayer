@@ -32,7 +32,7 @@ let previousMemory = { path: '', sha: null, rejected: [] };
 const control = { abort: false };
 const steps = [], memory = [], measurements = [], artifacts = [], flakes = {};
 /** E388: the M5 ruler budget is derived, never typed in: budgets/ceiling-sources.json's gpuM5Ms for the shard and tier
- * (E357 S1.6, src/engine/render/budgets.ts: 1000 / fps / variability − the CPU share, ÷ the phone : M5 ratio of
+ * (E357 S1.6, src/engine/client/render/budgets.ts: 1000 / fps / variability − the CPU share, ÷ the phone : M5 ratio of
  * budgets/calibration.json; docs/design/engine-fit-v2/budget-design.md §2 and §6.1). A missing entry fails the run. */
 const RULER_FORMULA = 'budgets/ceiling-sources.json derived.<shard>.<tier>.gpuM5Ms (1000 / fps / variability − cpuMs, ÷ the phone : M5 ratio)';
 const rulerBudget = (root, shard, tier) => {

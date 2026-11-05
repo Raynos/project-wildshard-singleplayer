@@ -3,19 +3,19 @@ import { nativeColliderRecordSchema } from '@wildshard/format/nativePhysics';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { createNativeBakeReader, type NativePhysicsBake, type NativeBakeReader } from '@wildshard/game/population/nativeBake';
-import { trustedLevel } from '../src/game/plugin/simulation';
+import { trustedLevel } from '../src/game/server/plugin/simulation';
 import type { HeadlessRuntimePlan } from '../src/sdk/headlessRuntime';
 import { emptyShardfile } from '../src/sdk/author';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { createSimHost } from '../src/engine/sim';
-import { loadRapier } from '../src/engine/physics/rapier';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
+import { createSimHost } from '../src/engine/server/sim';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
 // oxlint-disable-next-line import/no-nodejs-modules -- The native fixture uses the shipped physics module.
 import { readFileSync } from 'node:fs';
 import terrain from '../src/shards/pine-hollow/data/terrainBindings.json' with { type: 'json' };
 import { PinePhysicsSchema } from '../src/shards/pine-hollow/generators/sections';
 import { namedJsonSchema, registeredJsonSchema } from '../src/sdk/formatJsonSchema';
 import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 import { pinePhysics, pinePhysicsBytes, pinePhysicsOwners, pinePhysicsOwnersBytes, pineWorldPhysics } from '../src/shards/pine-hollow/generators/physics';
 import { nameBlob } from '../src/sdk/blobs';
 

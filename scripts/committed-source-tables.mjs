@@ -18,7 +18,7 @@ if (published && (!check || args.some(arg => arg.startsWith('--tree=') || arg.st
 let artifactTables = {};
 if (published) {
   const result = JSON.parse(execFileSync(process.execPath, ['scripts/boot-publication-proof.mjs'], { cwd: root, encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 }));
-  const paths = ['src/game/boot/bytes.generated.ts', 'src/game/boot/versions.generated.ts', 'src/game/boot/packs.generated.ts'];
+  const paths = ['src/game/client/boot/bytes.generated.ts', 'src/game/client/boot/versions.generated.ts', 'src/game/client/boot/packs.generated.ts'];
   if (result === null || typeof result !== 'object' || Array.isArray(result) || JSON.stringify(Object.keys(result).sort()) !== JSON.stringify(paths.sort()) || Object.values(result).some(value => typeof value !== 'string')) throw new Error('Invalid verified publication table set');
   artifactTables = result;
 }

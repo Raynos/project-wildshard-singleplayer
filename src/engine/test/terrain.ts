@@ -1,8 +1,8 @@
-import { bindHeightfield, captureHeightfield, HeightfieldBinding } from '../world/Heightfield';
-import type { TerrainField } from '../level/data';
-import type { LevelSpec } from '../level/spec';
-import { bindLevelSelection } from '../level/selection';
-import { flatTerrainField } from '../world/groundField';
+import { bindHeightfield, captureHeightfield, HeightfieldBinding } from '../shared/world/Heightfield';
+import type { TerrainField } from '../server/level/data';
+import type { LevelSpec } from '../shared/level/spec';
+import { bindLevelSelection } from '../shared/level/selection';
+import { flatTerrainField } from '../shared/world/groundField';
 
 type TerrainOverride = Partial<Pick<TerrainField, 'heightAt' | 'normalAt' | 'splatAt' | 'trailDistance' | 'cabinMask' | 'pondMask' | 'waterLevel' | 'streamAt'>>;
 

@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Behavior assertions run in the bounded native child.
 import assert from 'node:assert/strict';
 import {beginProductSession} from './productSession';
-import {loadRapier} from '../../../src/engine/physics/rapier';
+import {loadRapier} from '../../../src/engine/shared/physics/rapier';
 import {createNativeProofResident} from '../headless-native';
 import {installWalkRopeBodies} from './ropeBodies';
 import {installNativeWalkBounds} from './nativeBounds';

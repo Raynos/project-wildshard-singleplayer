@@ -1,7 +1,7 @@
 // CI12 Nalati pasture raid: the raid's presentation cues, shared by the page (PagePastureRaid.nextCue) and a native tape
 // (the native population's pastureCues port), map the controller's cue keys through the admitted cue rows in order.
 import { expect, test } from 'vitest';
-import { PastureCues } from '../src/game/riding/pastureCues';
+import { PastureCues } from '../src/game/client/riding/pastureCues';
 
 test('cue keys become the admitted rows in order, naming the cueing actor', () => {
   const cues = new PastureCues({ start: { text: 'Wolves are raiding the flock!', sound: 'howl' }, taken: { text: 'A sheep is taken', sound: null },

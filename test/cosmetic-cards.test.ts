@@ -1,13 +1,13 @@
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { mockPackedFetch } from './fake/packedGeometry';
 import packed from '../src/shards/pine-hollow/data/codeParts.json' with { type: 'json' };
 import { expect, test } from 'vitest';
-import { CosmeticsLocker, SkinLocker, type CosmeticState } from '../src/game/cosmetics/locker';
-import { HeldFinishes } from '../src/game/loadout/finishes';
+import { CosmeticsLocker, SkinLocker, type CosmeticState } from '../src/game/client/cosmetics/locker';
+import { HeldFinishes } from '../src/game/client/loadout/finishes';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
 import { PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';
 import { emptyShardfile } from '../src/sdk/author';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { FINISH_CARDS } from '../src/shards/pine-hollow/generators/finishCards';
 
 test('Pine finish cards retain authored order, ownership and slot-exclusive wear choices', async () => {

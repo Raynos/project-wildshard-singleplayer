@@ -25,7 +25,7 @@ async function adopt(): Promise<void> {
   const w = drafts.waiting;
   if (!sw || !w || w.state === 'redundant') return;
   await new Promise<void>((resolve) => {
-    // the game's hand-over cap (src/engine/boot/sw.ts CAP_MS)
+    // the game's hand-over cap (src/engine/client/boot/sw.ts CAP_MS)
     const timer = setTimeout(resolve, 2500);
     sw.addEventListener('controllerchange', () => { clearTimeout(timer); location.reload(); }, { once: true });
     // oxlint-disable-next-line unicorn/require-post-message-target-origin -- a ServiceWorker's postMessage has no target origin

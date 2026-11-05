@@ -1,6 +1,6 @@
-import type { SpeciesRow } from '../../../../src/engine/ai/species';
-import type { SpeciesLook } from '../../../../src/engine/entities/species/look';
-import { NO_FUR } from '../../../../src/engine/entities/species/rigs';
+import type { SpeciesRow } from '../../../../src/engine/server/ai/species';
+import type { SpeciesLook } from '../../../../src/engine/client/entities/species/look';
+import { NO_FUR } from '../../../../src/engine/shared/entities/species/rigs';
 import { SphereGeometry, Float32BufferAttribute, Uint16BufferAttribute } from 'three';
 
 /**

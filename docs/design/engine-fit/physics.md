@@ -78,7 +78,7 @@ No entity / component layer is planned. The word "component" / "entity" / "regis
   plans `registerModel({id, name, file, object, anchor})` so "models self-register as their builders build them".
   PHYSICS.md adds a fifth, `src/physics/colliders/<structure>.ts`, one per builder. **Two agents plan two parallel
   per-builder registries over the same ~16–26 builders, and neither mentions the other.**
-- Existing registry-shaped code to build on: `src/game/shard/registry.ts` (shards), `world/interact/types.ts:100`
+- Existing registry-shaped code to build on: `src/game/client/shard/registry.ts` (shards), `world/interact/types.ts:100`
   (`InteractDef` union: a data table of kinds, the nearest thing to components the game has), `Game.onUpdate`
   (`Game.ts:129`, a flat closure list run in registration order, `Game.ts:220`).
 

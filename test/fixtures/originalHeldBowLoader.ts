@@ -1,8 +1,8 @@
 // Frozen raw-loader oracle from 8811fdc97f. Production never imports this fixture.
 import * as v from 'valibot';
 import { HeldBowBaseSchema, HeldBowRowsSchema } from '@wildshard/format/weaponProfiles';
-import { createModelLibrary } from '../../src/game/plugin/geometry';
-import { bindHeldBow } from '../../src/game/weapons/heldLauncher';
+import { createModelLibrary } from '../../src/game/client/plugin/geometry';
+import { bindHeldBow } from '../../src/game/client/weapons/heldLauncher';
 
 const names = v.pipe(v.array(v.pipe(v.string(), v.maxLength(256))), v.maxLength(32));
 const PoolSchema = v.strictObject({ url: v.pipe(v.string(), v.maxLength(512)), parts: names, channels: v.exactOptional(v.pipe(v.array(v.strictObject({

@@ -17,19 +17,19 @@ it('roots G294 in emitted section hosts and authored runtime, never build import
  try{
   put('src/game/package.json',JSON.stringify({name:'@wildshard/game',exports:{'./private':'./private.ts'}}));
   put('src/game/private.ts','export function live() { return 1; }\nexport function authored() { return 2; }');
-  put('src/game/shard/declaredRows.ts','export function declaredWeather() { return 1; }\nexport function unrelated() { return 2; }');
+  put('src/game/server/shard/declaredRows.ts','export function declaredWeather() { return 1; }\nexport function unrelated() { return 2; }');
   platformOutput(root,'pine-hollow',{'runtime/index.ts':"import {live} from '@wildshard/game/private'; export const value=live();"},{'world/weather':'{"rows":{"weather":[]}}'});
   platformOutput(root,'driftwood-isle',{'runtime/index.ts':'export const value=1;'});
   put('src/shards/driftwood-isle/data/build.ts',"import {live,authored} from '@wildshard/game/private'; export const table=[live(),authored()];");
   const pine=outputShardLines(root,true)['pine-hollow'];
   expect(pine?.measurement).toBe('built-output');
   expect(pine?.conversion.shardRuntimeLines).toBe(0);
-  expect(pine?.conversion.gameSystemAttribution.modules.map(row=>row.path)).toContain('src/game/shard/declaredRows.ts');
+  expect(pine?.conversion.gameSystemAttribution.modules.map(row=>row.path)).toContain('src/game/server/shard/declaredRows.ts');
   expect(pine?.customSources?.some(row=>row.kind==='runtime-ts'||row.path.includes('data/'))).toBe(false);
   const source=sourceProgressInventory(root)['pine-hollow'];
   expect(source?.conversion.shardRuntimeLines).toBe(1);
   expect(source?.conversion.gameSystemAttribution.modules.map(row=>row.path)).toContain('src/game/private.ts');
-  expect(source?.conversion.gameSystemAttribution.modules.map(row=>row.path)).toContain('src/game/shard/declaredRows.ts');
+  expect(source?.conversion.gameSystemAttribution.modules.map(row=>row.path)).toContain('src/game/server/shard/declaredRows.ts');
   // A real second runtime user, unlike the authoring import above, shares the module.
   platformOutput(root,'driftwood-isle',{'runtime/index.ts':"import {live} from '@wildshard/game/private'; export const value=live();"});
   expect(sourceProgressInventory(root)['pine-hollow']?.conversion.gameSystemAttribution.modules.map(row=>row.path)).not.toContain('src/game/private.ts');
@@ -51,7 +51,7 @@ it('attributes body sections to defining hosts without a native barrel adapter',
  const roots=sectionHostImports([{name:'sim/bodies'},{name:'sim/bodies'}]);
  expect(roots.split('\n')).toEqual([
   "import { DeclaredBodyOpsSchema as host0 } from '@wildshard/format/bodySlots'; void host0;",
-  "import { DeclaredBodyOps as host1 } from '../../src/game/quest/bodyOps'; void host1;",
+  "import { DeclaredBodyOps as host1 } from '../../src/game/server/quest/bodyOps'; void host1;",
  ]);
  expect(roots).not.toContain('nativeBodyScripts');
 });
@@ -59,18 +59,18 @@ it('attributes body sections to defining hosts without a native barrel adapter',
 it('attributes portable collection and island roots to their defining native owners',()=>{
  const roots=sectionHostImports([{name:'collections/displays'},{name:'models/island-library'},{name:'collections/displays'}]);
  expect(roots.split('\n')).toEqual([
-  "import { CollectionCatalogue as host0 } from '../../src/game/models/collectionDisplay'; void host0;",
-  "import { IslandLibrary as host1 } from '../../src/game/models/islandLibrary'; void host1;",
+  "import { CollectionCatalogue as host0 } from '../../src/game/client/models/collectionDisplay'; void host0;",
+  "import { IslandLibrary as host1 } from '../../src/game/client/models/islandLibrary'; void host1;",
  ]);
  const root=mkdtempSync(join('tmp/','platform-island-hosts-'));
  const put=(path:string,source:string):void=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,source);};
  try{
-  put('src/game/models/collectionDisplay.ts','export class CollectionCatalogue { prepare() { return 1; } }\nexport function authorOnly() { return 2; }');
-  put('src/game/models/islandLibrary.ts',"import {CollectionCatalogue} from './collectionDisplay'; export class IslandLibrary { collections=new CollectionCatalogue(); }");
+  put('src/game/client/models/collectionDisplay.ts','export class CollectionCatalogue { prepare() { return 1; } }\nexport function authorOnly() { return 2; }');
+  put('src/game/client/models/islandLibrary.ts',"import {CollectionCatalogue} from './collectionDisplay'; export class IslandLibrary { collections=new CollectionCatalogue(); }");
   platformOutput(root,'driftwood-isle',{'runtime/index.ts':'export const entry=1;'},
    {'collections/displays':'{}','models/island-library':'{}'});
   const charge=outputShardLines(root)['driftwood-isle']?.conversion.gameSystemAttribution;
-  expect(charge?.modules.map(row=>row.path)).toEqual(expect.arrayContaining(['src/game/models/collectionDisplay.ts','src/game/models/islandLibrary.ts']));
+  expect(charge?.modules.map(row=>row.path)).toEqual(expect.arrayContaining(['src/game/client/models/collectionDisplay.ts','src/game/client/models/islandLibrary.ts']));
   // Classes retain whole-module charges; their native owners must not vanish
   // merely because no explicit copied runtime import names them.
   expect(charge?.modules.filter(row=>row.lines>0)).toHaveLength(2);
@@ -94,8 +94,8 @@ it('keeps a data-selected native plan as a real user after its wrapper is remove
  const put=(path:string,source:string):void=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,source);};
  try{
   put('src/game/package.json',JSON.stringify({name:'@wildshard/game',exports:{'./plugin/simulation':'./plugin/simulation.ts'}}));
-  put('src/game/plugin/simulation.ts','export function prepareRuntimePlan() { return 1; }\nexport function unrelated() { return 2; }');
-  put('src/game/shardfile/nativePlan.ts',"import {prepareRuntimePlan} from '../plugin/simulation'; export function prepareProductRuntimePlan() { return prepareRuntimePlan(); }");
+  put('src/game/server/plugin/simulation.ts','export function prepareRuntimePlan() { return 1; }\nexport function unrelated() { return 2; }');
+  put('src/game/server/shardfile/nativePlan.ts',"import {prepareRuntimePlan} from '../plugin/simulation'; export function prepareProductRuntimePlan() { return prepareRuntimePlan(); }");
   platformOutput(root,'sunscar-dunes',{'runtime/index.ts':"import {prepareRuntimePlan} from '@wildshard/game/plugin/simulation'; export const plan=prepareRuntimePlan();"});
   platformOutput(root,'far-reach',{'runtime/index.ts':'export const view=1;'});
   const before=sourceProgressLines(root)['sunscar-dunes']?.customLines;
@@ -195,6 +195,6 @@ it.each([
 
 it('attributes held loadout only to the shipping installer',()=>{
  const rows=sectionHostImports([{name:'held/loadout'}]);
- expect(rows).toBe("import { installHeldLoadout as host0 } from '../../src/game/loadout/held'; void host0;");
+ expect(rows).toBe("import { installHeldLoadout as host0 } from '../../src/game/client/loadout/held'; void host0;");
  expect(rows).not.toContain('NativeHeldAmmunition');
 });

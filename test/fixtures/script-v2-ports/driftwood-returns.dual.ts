@@ -2,7 +2,7 @@
  * both shadow adapters. No public generator or shipped script is replaced. */
 import returns from '../../../src/shards/driftwood-isle/behaviour/returns.as?raw';
 import { expect } from 'vitest';
-import { ScriptModuleV2 } from '../../../src/engine/script/moduleV2';
+import { ScriptModuleV2 } from '../../../src/engine/shared/script/moduleV2';
 import type { DualPortFixture } from '../script-v2-port';
 
 const fields = ['candidates','away','draw','due','fixed','maximum','minimum','night','nocturnal','now','playerX','playerZ','water','x','z',

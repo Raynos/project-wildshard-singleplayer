@@ -50,9 +50,9 @@ What the site says today, what's true now, and the proof in the repo.
 | Page · block | The site says | True now | Proof |
 |---|---|---|---|
 | Home · journey intro | "Three weeks, one engine, seven shards" | Six weeks (16 Sep → 27 Oct) | git log |
-| Home · journey 7 | "The grid goes public: walk from one shard into the next" | The grid is real but **only with Settings ▸ Developer on**; the public title doesn't offer it yet | `src/game/grid/menu.ts` `GRID_GATES_PASSED = false` |
+| Home · journey 7 | "The grid goes public: walk from one shard into the next" | The grid is real but **only with Settings ▸ Developer on**; the public title doesn't offer it yet | `src/game/client/grid/menu.ts` `GRID_GATES_PASSED = false` |
 | Home · journey | Stops on 9 Oct | Missing: every shard rebuilt as data (23 Oct), the 5 × 5 grid with open plots (20 Oct), the road between shards with no loading panel (24 Oct), the new title (26 Oct) | 27dd969127, 8076aec207, 1a5ffecb7c, d8598ec213, 1873e9ca2c |
-| /mmo · status, grid | "a 3 × 3 grid you can walk across", "three open plots" | A **5 × 5**: seven shards in the middle ring, 18 open plots round them (14 plot ideas) | `src/game/grid/singleplayer.json` (`grid.cells`, 25) |
+| /mmo · status, grid | "a 3 × 3 grid you can walk across", "three open plots" | A **5 × 5**: seven shards in the middle ring, 18 open plots round them (14 plot ideas) | `src/game/shared/grid/singleplayer.json` (`grid.cells`, 25) |
 | /mmo · grid, seam | "centres sit 555 m apart", "a 20 m strip, the 15 m highway, a 20 m strip" | 562.5 m apart: a 62.5 m gap round each 500 m cell, 15 m of road in it | ae2dca27dc (G638 A) |
 | /mmo · layers "truth today" | "The six older shards still carry their own TypeScript … 80/20, then 90/10" | **Every shard is at zero custom code**: data, baked assets and sandboxed scripts; the old copies stay only until Jake's phone check | 27dd969127 (M3 100 %), SHARD-PLATFORM State |
 | /mmo · road 2 and 3 | "on iPhone, frame pacing still misses"; "none at 80/20 yet" | Format: done. Grid: 5 × 5 in testing, crossing and loading speed still being cut | STATE.md, grid-crossing and loading-speed mini plans (open) |

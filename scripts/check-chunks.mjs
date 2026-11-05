@@ -11,7 +11,7 @@ import { pathToFileURL } from 'node:url';
 /** Also runs inside the actual build, before a preview or deploy can publish. */
 export function gridSessionBudgetErrors(modules, budgets) {
   const errors = [];
-  for (const [file, row] of Object.entries(modules)) if (row.moduleIds.includes('src/game/grid/session.ts')) {
+  for (const [file, row] of Object.entries(modules)) if (row.moduleIds.includes('src/game/client/grid/session.ts')) {
     for (const [unit, field] of [['raw', 'rawBytes'], ['gzip', 'gzBytes']]) {
       const cap = budgets[`js/grid-session/${unit}`];
       if (!Number.isSafeInteger(cap) || cap <= 0) errors.push(`missing grid session ${unit} ceiling`);
@@ -22,7 +22,7 @@ export function gridSessionBudgetErrors(modules, budgets) {
   return errors;
 }
 
-const titleRoots = ['src/entry.ts', 'src/engine/ui/StartTitle.ts', 'src/game/mainMenu.ts', 'src/game/grid/pageEntry.ts', 'src/game/travel/travel.ts'];
+const titleRoots = ['src/entry.ts', 'src/engine/client/ui/StartTitle.ts', 'src/game/client/mainMenu.ts', 'src/game/client/grid/pageEntry.ts', 'src/game/client/travel/travel.ts'];
 const titleFormat = new Set(['accent.ts', 'admissionLimits.ts', 'builtIndexes.ts', 'contentBounds.ts', 'outputDownload.ts']);
 /** One entry's static closure (its roots' chunks and their static imports, a shared chunk counted once) against its
  *  raw / gzip ceilings in lint/ratchet.json budgets (js/<label>/raw and js/<label>/gzip) and a forbidden-module rule. */
@@ -65,13 +65,13 @@ export function titleClosureBudgetErrors(modules, budgets) {
   // module the cold title loads; it replaced the virtual:wildshard-title module
   return closureBudgetErrors(modules, budgets, 'title', titleRoots, id => /node_modules\/(?:three|@dimforge\/rapier[^/]*)(?:\/|$)/u.test(id)
     || /^src\/shards\/.*\.[cm]?[jt]sx?$/u.test(id) || (/\.generated(?:\.|$)/u.test(id) && id !== 'out/.app/titleCatalogue.generated.ts')
-    || /^src\/engine\/(?:explore|calibrate)\//u.test(id)
+    || /^src\/engine\/(?:(?:client|cook|server|shared)\/)?(?:explore|calibrate)\//u.test(id)
     || /\/@wildshard\/format\/src\/format\/.*\.ts$/u.test(id) && !titleFormat.has(id.slice(id.lastIndexOf('/') + 1)));
 }
 /** js-payload J10: the shard session entry's static closure (what every shardfile or grid entry loads before its shard):
  *  gzip / raw ceilings, and no shard folder's code (each shard, LEGACY included, stays behind its own dynamic root). */
 export function sessionClosureBudgetErrors(modules, budgets) {
-  return closureBudgetErrors(modules, budgets, 'session', ['src/game/session/session.ts'], id => /^src\/shards\/.*\.[cm]?[jt]sx?$/u.test(id));
+  return closureBudgetErrors(modules, budgets, 'session', ['src/game/client/session/session.ts'], id => /^src\/shards\/.*\.[cm]?[jt]sx?$/u.test(id));
 }
 
 export function checkChunks(manifest, modules, closures, budgets = {}) {
@@ -94,10 +94,10 @@ export function checkChunks(manifest, modules, closures, budgets = {}) {
   const beforeEntry = new Set(cold);
   for (const file of beforeEntry) for (const raw of modules[file]?.moduleIds ?? []) {
     const id = raw.replaceAll('\\', '/').split('?')[0];
-    if (id === 'src/engine/app/runtime.ts' || /node_modules\/three\/(?:build|src)\//.test(id)) errors.push(`${id} is in the pre-entry static graph (${file}); module downloads cannot reach retried()`);
+    if (id === 'src/engine/client/app/runtime.ts' || /node_modules\/three\/(?:build|src)\//.test(id)) errors.push(`${id} is in the pre-entry static graph (${file}); module downloads cannot reach retried()`);
   }
 
-  for (const [key, row] of Object.entries(manifest)) if (row.src === 'src/main.ts' || key === 'src/main.ts' || row.src === 'src/engine/boot/runtime.ts' || modules[row.file]?.name === 'three' || modules[row.file]?.name === 'engine') reach(key);
+  for (const [key, row] of Object.entries(manifest)) if (row.src === 'src/main.ts' || key === 'src/main.ts' || row.src === 'src/engine/client/boot/runtime.ts' || modules[row.file]?.name === 'three' || modules[row.file]?.name === 'engine') reach(key);
   const owners = new Map();
   for (const [file, row] of Object.entries(modules)) {
     for (const raw of row.moduleIds) {
@@ -136,7 +136,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   try {
     const dist = resolve(process.argv[2] ?? 'dist');
     const json = (path) => JSON.parse(readFileSync(path, 'utf8'));
-    const result = checkChunks(json(resolve(dist, '.vite/manifest.json')), json(resolve(dist, '.vite/chunk-modules.json')), json(resolve('src/game/shard/manifest-closure.generated.json')), json(resolve('lint/ratchet.json')).budgets);
+    const result = checkChunks(json(resolve(dist, '.vite/manifest.json')), json(resolve(dist, '.vite/chunk-modules.json')), json(resolve('src/game/server/shard/manifest-closure.generated.json')), json(resolve('lint/ratchet.json')).budgets);
     for (const row of result.table) console.log(`${row.name.padEnd(32)} ${(row.gzBytes / 1024).toFixed(1).padStart(8)} gz KB  ${String(row.modules).padStart(4)} modules  ${row.file}`);
     for (const error of result.errors) console.error(`check-chunks: ${error}`);
     if (result.errors.length > 0) process.exitCode = 1;

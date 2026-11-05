@@ -1,12 +1,12 @@
 import { MaterialsSchema } from '@wildshard/format/materials';
 import { parse } from 'valibot';
-import { runtimeBoundWorldFiles, withoutRuntimeRows } from '../src/game/plugin/headless';
+import { runtimeBoundWorldFiles, withoutRuntimeRows } from '../src/game/server/plugin/headless';
 import { DRIFTWOOD_LOOT as LOOT } from '../src/shards/driftwood-isle/generators/loot';
 import { parseRows } from '@wildshard/format/rows';
 import { expect, test } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { ShardfileClient } from '../src/game/shardfile/client';
-import { ClientAssets } from '../src/game/shardfile/clientAssets';
+import { ShardfileClient } from '../src/game/client/shardfile/client';
+import { ClientAssets } from '../src/game/client/shardfile/clientAssets';
 import NINE from './fixtures/nine-product-inputs';
 import NALATI from './fixtures/nalati-product-source';
 import { FIXTURE_RUNTIME_COST } from './fixtures/clientPlanRuntime';
@@ -105,8 +105,8 @@ test('explicit runtime loot ownership leaves inventory alone and does not instal
 
 test.each([false, true])('quality-only rows register once without a data simulation (runtime stages %s)', async runtimeStagesOnly => {
   const [{ App }, { Scope }, { createLevelInstallation }, { shardContext }, { createShardProduct }, { MANIFEST }, { parsePlumbing }] = await Promise.all([
-    import('../src/engine/app/app'), import('../src/engine/app/scope'), import('../src/engine/level/installation'),
-    import('../src/game/plugin/context'), import('../src/game/shardfile/shardProduct'), import('../src/shards/_template/discovery.generated'), import('@wildshard/format/plumbing'),
+    import('../src/engine/client/app/app'), import('../src/engine/shared/app/scope'), import('../src/engine/client/level/installation'),
+    import('../src/game/server/plugin/context'), import('../src/game/shared/shardfile/shardProduct'), import('../src/shards/_template/discovery.generated'), import('@wildshard/format/plumbing'),
   ]);
   const source = emptyShardfile({ slug: 'harbour', name: 'Harbour', author: 'Test', revision: 1, seed: 1 });
   source.plumbing = parsePlumbing({ namespace: 'harbour', input: [], debug: [], knobs: [{ id: 'harbour.spray', phone: 0.5, desktop: 0.5 }, { id: 'harbour.shadows', phone: false, desktop: false }] });
@@ -135,8 +135,8 @@ test.each([false, true])('quality-only rows register once without a data simulat
 
 test('look-only trusted hybrids retain native kit and play ownership', async () => {
   const [{ App }, { Scope }, { createLevelInstallation }, { shardContext }, { createShardProduct }, { MANIFEST }] = await Promise.all([
-    import('../src/engine/app/app'), import('../src/engine/app/scope'), import('../src/engine/level/installation'),
-    import('../src/game/plugin/context'), import('../src/game/shardfile/shardProduct'), import('../src/shards/_template/discovery.generated'),
+    import('../src/engine/client/app/app'), import('../src/engine/shared/app/scope'), import('../src/engine/client/level/installation'),
+    import('../src/game/server/plugin/context'), import('../src/game/shared/shardfile/shardProduct'), import('../src/shards/_template/discovery.generated'),
   ]);
   const source = emptyShardfile({ slug: 'look-only', name: 'Look only', author: 'Test', revision: 1, seed: 1 });
   source.look.materials = parse(MaterialsSchema, { smoke: { family: 'toon' } });

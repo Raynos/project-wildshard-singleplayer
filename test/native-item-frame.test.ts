@@ -1,14 +1,14 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The native item oracle uses the actual shipped Rapier module.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { createSimHost, type SimHost } from '../src/engine/sim';
-import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { createNativeCombatFrame, installNativeItems } from '../src/game/plugin/nativeItems';
+import { createSimHost, type SimHost } from '../src/engine/server/sim';
+import { snapshotSimHost, restoreSimHost } from '../src/engine/shared/sim/snapshot';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { createNativeCombatFrame, installNativeItems } from '../src/game/server/plugin/nativeItems';
 import { fillNativeCombatFrame } from '../src/sdk/headlessRuntime';
 import { parseItems } from '@wildshard/format/items';
 import { pineItems } from '../src/shards/pine-hollow/generators/channelSections';
-import { GustContinuation } from '../src/engine/world/weatherContinuation';
+import { GustContinuation } from '../src/engine/shared/world/weatherContinuation';
 import weatherProgram from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
 import { installPineCrossbow, boltFlight } from './fixtures/weapon-oracle/headlessCrossbow';
 import { installPineLongbow } from './fixtures/weapon-oracle/nativeLongbow';
@@ -105,7 +105,7 @@ test('native item rows preserve all three old continuations, contacts, RNG, stow
 
 test('the second native user keeps swept phases, synchronous reaction order and its saved wire', async () => {
   const [{ driftwoodItems }, { default: policy }, { installNativeSweptMelee }] = await Promise.all([
-    import('../src/shards/driftwood-isle/generators/items'), import('../src/shards/driftwood-isle/data/nativeSwords.json'), import('../src/game/plugin/nativeSwept'),
+    import('../src/shards/driftwood-isle/generators/items'), import('../src/shards/driftwood-isle/data/nativeSwords.json'), import('../src/game/server/plugin/nativeSwept'),
   ]);
   const DRIFTWOOD_SWORDS = driftwoodItems();
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));

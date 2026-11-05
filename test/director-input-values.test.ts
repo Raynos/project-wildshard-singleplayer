@@ -4,13 +4,13 @@ import { readFileSync } from 'node:fs';
 import { deepStrictEqual } from 'node:assert';
 import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
-import { createShardfileSim, type ShardfileSimulation } from '../src/game/plugin/simulation';
-import { DirectorStageLane } from '../src/game/plugin/director';
+import { createShardfileSim, type ShardfileSimulation } from '../src/game/server/plugin/simulation';
+import { DirectorStageLane } from '../src/game/server/plugin/director';
 import { directorDayRange, type DirectorStagesData } from '@wildshard/format/directorStages';
-import { inNormalizedDayRange } from '../src/engine/world/dayCycle';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { SimHost } from '../src/engine/sim';
-import { snapshotSimHost } from '../src/engine/sim/snapshot';
+import { inNormalizedDayRange } from '../src/engine/shared/world/dayCycle';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { SimHost } from '../src/engine/server/sim';
+import { snapshotSimHost } from '../src/engine/shared/sim/snapshot';
 import { leadCommands } from '@wildshard/engine/sim/leadPlayer';
 
 const data = (): DirectorStagesData => ({ version: 2, id: 'loop', script: null,

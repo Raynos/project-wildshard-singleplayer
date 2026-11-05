@@ -22,7 +22,7 @@ export async function enterPhysicsGrid(page, base, tier, timeout) {
 export function physicsEntryInventory() {
   const api = window.__wildshard, world = api.world, app = world.game.app, physics = app.physics;
   // The page's closed practice room remains on neutral page physics in the grid.
-  const pieces = app.registry.pieces.filter(piece => (piece.colliders?.length ?? 0) > 0 && !piece.file.startsWith('src/engine/practice/'));
+  const pieces = app.registry.pieces.filter(piece => (piece.colliders?.length ?? 0) > 0 && !piece.file.startsWith('src/engine/client/practice/'));
   const registered = Object.fromEntries(pieces.map(piece => [piece.id, piece.colliders.length]));
   const files = Object.fromEntries(pieces.map(piece => [piece.id, piece.file]));
   const native = {};

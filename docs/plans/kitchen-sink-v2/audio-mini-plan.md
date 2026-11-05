@@ -7,7 +7,7 @@ Music 3; every SFX is made with MOSS-SoundEffect v2 and Stable Audio 3 Medium an
 
 ## 1. What the shared host does today
 
-- **Score** (`format/audio.ts` `music`, `engine/audio/SetScore.ts`, `Stems.ts`): a slot is a bar-exact loop with a
+- **Score** (`format/audio.ts` `music`, `engine/client/audio/SetScore.ts`, `Stems.ts`): a slot is a bar-exact loop with a
   calm stem and a tension stem (one recording split by demucs); calm / alert / combat set the tension gain (0, 0.5, 1;
   combat falls back to alert 8 s after the last hit). `selection` rows pick the slot from scene fields (Nalati:
   `boss`, `storm`, `night`, `zone`, first match wins). A boss slot adds `layers` (bass, drums) with gains per phase 1–3
@@ -18,7 +18,7 @@ Music 3; every SFX is made with MOSS-SoundEffect v2 and Stable Audio 3 Medium an
   schedules; beds, winds and gusts.
 - **SFX:** one merged `best` set (154 files, 4.1 MB) plus per-shard folders; melee cues pick hits by material (`wood`,
   `ground`, `flesh`) and clangs (`wood`, `stone`); creature calls by `registerCalls`; buses music, ambience, sfx,
-  voice, ui. Credits come from `engine/audio/credits.ts`.
+  voice, ui. Credits come from `engine/client/audio/credits.ts`.
 
 ## 2. Music cue list
 

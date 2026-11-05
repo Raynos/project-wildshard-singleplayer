@@ -3,10 +3,10 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
 import { PerspectiveCamera } from 'three';
-import { Physics } from '../src/engine/physics/Physics';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { groups } from '../src/engine/physics/groups';
-import { Player } from '../src/engine/player/Player';
+import { Physics } from '../src/engine/shared/physics/Physics';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { groups } from '../src/engine/shared/physics/groups';
+import { Player } from '../src/engine/client/player/Player';
 
 async function fixture(surface: number | null) {
   const R = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm'))), physics = new Physics(R);

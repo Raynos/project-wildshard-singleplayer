@@ -3,8 +3,8 @@
 import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native proof mode and failure status are CLI results, not game configuration.
 import process from 'node:process';
-import { installAppIdentity } from '../../../src/engine/app/identity.ts';
-import { WILDSHARD_IDENTITY } from '../../../src/game/identity.ts';
+import { installAppIdentity } from '../../../src/engine/shared/app/identity.ts';
+import { WILDSHARD_IDENTITY } from '../../../src/game/client/identity.ts';
 import { ENTRY, signalRapier, headlessProof, replayProof, ledgerProof } from './witness.ts';
 
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');

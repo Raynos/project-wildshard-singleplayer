@@ -3,9 +3,9 @@
 // the portal law continue exactly from their checkpoints.
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { ArenaRoomGround } from '../src/game/boss/arenaGround';
-import { ArenaPortalLaw, type ArenaPortalFrame } from '../src/game/boss/arenaPortal';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+import { ArenaRoomGround } from '../src/game/shared/boss/arenaGround';
+import { ArenaPortalLaw, type ArenaPortalFrame } from '../src/game/shared/boss/arenaPortal';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { titanPrograms as titan } from './fixtures/titanInlineWitness';
 import marsh from './fixtures/boss-owner/marsh-room.json' with { type: 'json' };
 

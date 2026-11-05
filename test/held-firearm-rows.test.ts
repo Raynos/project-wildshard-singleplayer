@@ -7,7 +7,7 @@ import rifle from './fixtures/nalati-rifle-original.json' with { type: 'json' };
 import items from '../src/shards/nalati-grasslands/data/items.json' with { type: 'json' };
 import model from '../src/shards/nalati-grasslands/data/heldRifle.json' with { type: 'json' };
 import { AR15 } from './fixtures/weapon-oracle/nalatiRifleProfile';
-import { heldFirearmSettings } from '../src/game/plugin/heldEquipment';
+import { heldFirearmSettings } from '../src/game/client/plugin/heldEquipment';
 import leverDetails from '../src/shards/pine-hollow/data/leverDetails.json' with { type: 'json' };
 import { pineItems as pineItemsSection } from '../src/shards/pine-hollow/generators/channelSections';
 

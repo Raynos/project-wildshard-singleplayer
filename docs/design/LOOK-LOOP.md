@@ -276,7 +276,7 @@ can bring every region's ΔE00 down on a frame that still looks empty (Driftwood
 3. Tune the fit in the regions JSON:
    - `greyAnchor`: Driftwood 3 (the default). Pine Hollow 1, so the greys can move.
    - `fitWeights`: Pine Hollow 1.5 on sky / rock / trail and 2.5 on shadow.
-4. The runtime is `src/engine/world/lut.ts`, a `LUT3DEffect` as the **last** grade step. The file is 33³ RGBA8 (144 KB), sRGB
+4. The runtime is `src/engine/client/world/lut.ts`, a `LUT3DEffect` as the **last** grade step. The file is 33³ RGBA8 (144 KB), sRGB
    in and out.
 5. Re-measure in game with the LUT on (step 5). **Refit every round over all frames of all zones.** The fit tracks
    whatever the fixes changed.

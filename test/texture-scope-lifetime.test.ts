@@ -1,22 +1,22 @@
 import { expect, test, vi } from 'vitest';
 import { CompressedTexture, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, BufferGeometry, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { Scope } from '../src/engine/app/scope';
-import { App } from '../src/engine/app/app';
-import { AssetService } from '../src/engine/app/assets';
-import { createLevelInstallation } from '../src/engine/level/installation';
-import { app } from '../src/engine/app/runtime';
-import * as rig from '../src/engine/anim/rig';
-import { SkyRig } from '../src/engine/world/skyRig';
+import { Scope } from '../src/engine/shared/app/scope';
+import { App } from '../src/engine/client/app/app';
+import { AssetService } from '../src/engine/client/app/assets';
+import { createLevelInstallation } from '../src/engine/client/level/installation';
+import { app } from '../src/engine/client/app/runtime';
+import * as rig from '../src/engine/client/anim/rig';
+import { SkyRig } from '../src/engine/client/world/skyRig';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
-import { worldSceneSourceMaterial } from '../src/game/shardfile/worldSceneMaterials';
-import { UploadOwnership } from '../src/engine/render/uploadOwnership';
-import { patchShader } from '../src/engine/render/shaderPatches';
-import type { Renderer } from '../src/engine/render/renderer';
-import { linkStandIn, ownSceneResource, ownSceneTree, sceneResourceOwner } from '../src/engine/app/sceneOwnership';
-import { assertCompressedMipmapsUnchanged, compressedTextureKey, finalizeCompressedMipmaps, registerCompressedMipmaps } from '../src/engine/render/compressedMipmaps';
-import { uploadCompressedTexture } from '../src/engine/render/compressedUpload';
-import { pageScope } from '../src/engine/app/resources';
+import { worldSceneSourceMaterial } from '../src/game/client/shardfile/worldSceneMaterials';
+import { UploadOwnership } from '../src/engine/client/render/uploadOwnership';
+import { patchShader } from '../src/engine/client/render/shaderPatches';
+import type { Renderer } from '../src/engine/client/render/renderer';
+import { linkStandIn, ownSceneResource, ownSceneTree, sceneResourceOwner } from '../src/engine/client/app/sceneOwnership';
+import { assertCompressedMipmapsUnchanged, compressedTextureKey, finalizeCompressedMipmaps, registerCompressedMipmaps } from '../src/engine/client/render/compressedMipmaps';
+import { uploadCompressedTexture } from '../src/engine/client/render/compressedUpload';
+import { pageScope } from '../src/engine/shared/app/resources';
 /** A product whose file names are their own URLs: these rows' sources and aliases are /-rooted public URLs (d9cf71547f). */
 const identityProduct = { url: (name: string): string => name };
 

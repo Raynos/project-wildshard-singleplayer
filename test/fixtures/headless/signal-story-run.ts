@@ -5,14 +5,14 @@ import assert from 'node:assert/strict';
 import * as v from 'valibot';
 import {openProductSession} from './productSession';
 import {builtProduct} from '../builtProduct';
-import {outputDescriptor} from '../../../src/game/shardfile/outputDescriptor';
+import {outputDescriptor} from '../../../src/game/shared/shardfile/outputDescriptor';
 import {productHeadlessSections} from '../../../src/sdk/headlessSections';
 import {createTrustedHeadlessResident} from '../../../src/sdk/headlessRuntime';
 import type {HeadlessCommand,HeadlessEffect} from '../../../src/sdk/tickProtocol';
 import type {HeadlessTapeObservation,HeadlessTapeSegment} from '../../../src/sdk/headlessTape';
-import {loadRapier} from '../../../src/engine/physics/rapier';
-import {installAppIdentity} from '../../../src/engine/app/identity';
-import {WILDSHARD_IDENTITY} from '../../../src/game/identity';
+import {loadRapier} from '../../../src/engine/shared/physics/rapier';
+import {installAppIdentity} from '../../../src/engine/shared/app/identity';
+import {WILDSHARD_IDENTITY} from '../../../src/game/client/identity';
 import {MATRIARCH_ID} from '../../../src/shards/sunscar-dunes/generators/rows/matriarchEncounter';
 import {MATRIARCH_BOSS_PROFILE} from '../../../src/shards/sunscar-dunes/generators/rows/matriarchBoss';
 

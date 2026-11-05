@@ -2,14 +2,14 @@
 import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
 import { inkProofProduct } from './product';
-import { createShardfileSim, bindShardfileSim, type ShardfileSimulation, type ShardfileSimPorts } from '../../../src/game/plugin/simulation';
-import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
+import { createShardfileSim, bindShardfileSim, type ShardfileSimulation, type ShardfileSimPorts } from '../../../src/game/server/plugin/simulation';
+import { loadRapier, type Rapier } from '../../../src/engine/shared/physics/rapier';
 import { canonicalSimDigest } from '../../fake/simState';
-import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
-import { Ledger, installLedgerEmitter, type LedgerEmitter } from '../../../src/game/ledger';
-import { snapshotSimHost, restoreSimHost } from '../../../src/engine/sim/snapshot';
-import type { SimHost } from '../../../src/engine/sim';
-import { ItemRuntime, scriptItemHook } from '../../../src/engine/combat/items';
+import { SaveStore, type SaveStorage } from '../../../src/engine/shared/saves/store';
+import { Ledger, installLedgerEmitter, type LedgerEmitter } from '../../../src/game/server/ledger';
+import { snapshotSimHost, restoreSimHost } from '../../../src/engine/shared/sim/snapshot';
+import type { SimHost } from '../../../src/engine/server/sim';
+import { ItemRuntime, scriptItemHook } from '../../../src/engine/server/combat/items';
 import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 type ProofSimulation = ShardfileSimulation & { items: ReadonlyMap<string, ItemRuntime> };

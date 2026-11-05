@@ -3,16 +3,16 @@ import { flatPopulationEnvironment } from './fixtures/population-environment';
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test, vi } from 'vitest';
 import * as v from 'valibot';
-import { SpawnScript, installNativeSpawnScript } from '../src/game/population/spawnScript';
-import { createSimHost } from '../src/engine/sim';
-import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
-import { Rng } from '../src/engine/core/rng';
+import { SpawnScript, installNativeSpawnScript } from '../src/game/server/population/spawnScript';
+import { createSimHost } from '../src/engine/server/sim';
+import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
+import { Rng } from '../src/engine/shared/core/rng';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { PINE_NIGHT as rawNight, PINE_NIGHT_MODULE } from './fixtures/pine-night';
 import { readSpeciesPrograms } from '@wildshard/format/speciesPrograms';
 import { parseSpawnScript } from '@wildshard/format/spawnScripts';
-import type { AnimalSim } from '../src/engine/entities/AnimalSim';
-import { installPopulationRoster } from '../src/game/population/roster';
+import type { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import { installPopulationRoster } from '../src/game/server/population/roster';
 import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/speciesPrograms';
 
 const moduleBytes=Uint8Array.from(PINE_NIGHT_MODULE);
@@ -165,7 +165,7 @@ test('an unrelated salt-marsh script spawns and retires its own species and site
 });
 
 test('AS placement preserves the retired sampler coordinates, identity order and every placement draw', async () => {
-  const { sampleCreatureGroup } = await import('../src/game/plugin/brain');
+  const { sampleCreatureGroup } = await import('../src/game/server/plugin/brain');
   const { pineNightSpec } = await import('../src/shards/pine-hollow/generators/nightSpec');
   const old = { spec: pineNightSpec(3) };
   const { default: tuning } = await import('../src/shards/pine-hollow/data/populationWaves.json');
@@ -223,7 +223,7 @@ test('bad spawn recipes and forged saves refuse atomically without draws or gues
 
 test('published spawn catalogue admits v1 bytes without installing a second generic decision owner', async () => {
   const { loadHeadlessProduct } = await import('../src/sdk/headlessProduct');
-  const { readSpawnScript } = await import('../src/game/population/spawnScript');
+  const { readSpawnScript } = await import('../src/game/server/population/spawnScript');
   const { scriptAdmissionRows, decisionScriptsFromSections } = await import('@wildshard/format/scriptContract');
   const { SpawnScriptsSchema } = await import('@wildshard/format/spawnScripts');
   const { sectionHostImports } = await import('../scripts/shard-platform-hosts.mjs');

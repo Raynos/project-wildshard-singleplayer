@@ -1,23 +1,23 @@
 // @vitest-environment happy-dom
 import {expect,test} from 'vitest';
 import { Vector3 } from 'three';
-import { App } from '../src/engine/app/app';
-import { Scope } from '../src/engine/app/scope';
-import { createLevelInstallation } from '../src/engine/level/installation';
-import { shardContext } from '../src/game/plugin/context';
+import { App } from '../src/engine/client/app/app';
+import { Scope } from '../src/engine/shared/app/scope';
+import { createLevelInstallation } from '../src/engine/client/level/installation';
+import { shardContext } from '../src/game/server/plugin/context';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
-import { publishBoundQuest } from '../src/game/quest/boundState';
-import { buildQuestChapter, installQuestFlags } from '../src/game/quest/chapter';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { publishBoundQuest } from '../src/game/server/quest/boundState';
+import { buildQuestChapter, installQuestFlags } from '../src/game/server/quest/chapter';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { PAGE_STORY as pineStory } from '../src/shards/pine-hollow/generators/pageStory';
 import { PAGE_STORY as driftwoodStory } from '../src/shards/driftwood-isle/generators/pageStory';
 import { PINE_QUESTS } from '../src/shards/pine-hollow/generators/quests';
 import { DRIFTWOOD_QUESTS } from '../src/shards/driftwood-isle/generators/quests';
 import { completionRows } from '../src/shards/driftwood-isle/generators/completion';
-import type { MapQuest, MapPoi } from '../src/engine/ui/Map';
-import {QuestState,questMessageHandlers} from '../src/engine/quest/core';
-import {Flags} from '../src/engine/world/interact/flags';
+import type { MapQuest, MapPoi } from '../src/engine/client/ui/Map';
+import {QuestState,questMessageHandlers} from '../src/engine/server/quest/core';
+import {Flags} from '../src/engine/server/world/interact/flags';
 import {QUEST_PRESENTATION as pine} from '../src/shards/pine-hollow/generators/questPresentation';
 import {QUEST_PRESENTATION as driftwood} from '../src/shards/driftwood-isle/generators/questPresentation';
 

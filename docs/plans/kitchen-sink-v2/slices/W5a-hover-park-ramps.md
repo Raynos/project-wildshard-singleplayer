@@ -19,17 +19,17 @@ Zone 11, hover park 134 × 122 (`layout.js` `HOVER`):
 
 Research, and a correction to the old row:
 
-- **The board's motor law belongs in the engine.** `src/engine/player/board.ts` (129 lines) is a motor mode beside
-  walk / swim / wade (`src/engine/player/modes.ts:26` `MotorMode = 'foot' | 'board' | 'swim' | 'wade'`): ride height
+- **The board's motor law belongs in the engine.** `src/engine/shared/player/board.ts` (129 lines) is a motor mode beside
+  walk / swim / wade (`src/engine/shared/player/modes.ts:26` `MotorMode = 'foot' | 'board' | 'swim' | 'wade'`): ride height
   0.45 m on a spring over "terrain, platform, collider floor or water", jump 9.5 m/s, air gravity 15. Every shard and
   the highway use it. Moving it to game would break the engine's own movement set; HA4d's real target is the **board's
-  look**: `src/engine/models/hoverboard.ts` (29 lines) and `src/engine/render/hoverboardGeometry.ts` (55), a Wildshard
-  prop in the engine, imported by `game/models/explorerCatalogue.ts` and `game/systems/tools/hoverboard.ts` (the
-  `Hoverboard` tool, already in game). Move those two files to `src/game/models/` (Q3).
+  look**: `src/engine/client/models/hoverboard.ts` (29 lines) and `src/engine/client/render/hoverboardGeometry.ts` (55), a Wildshard
+  prop in the engine, imported by `game/client/models/explorerCatalogue.ts` and `game/client/systems/tools/hoverboard.ts` (the
+  `Hoverboard` tool, already in game). Move those two files to `src/game/client/models/` (Q3).
 - **The board can't ride a wall.** The spring tracks the floor straight below (`CharacterMotor.ts:92` "a move that
   ignores the terrain heightfield … they ride their own springs over it"), so a vertical halfpipe wall can't be ridden;
   a transition up to ~45° launches you instead. A true vert halfpipe needs surface-aligned riding: a new motor law.
-- **Board-only colliders** (`mode: 'board'` pieces in `src/game/plugin/simulation.ts:86-103`, Sky Reach's hover-only
+- **Board-only colliders** (`mode: 'board'` pieces in `src/game/server/plugin/simulation.ts:86-103`, Sky Reach's hover-only
   bridges) are plugin scaffolding with one user; the park doesn't need them (hover-only bridges are content-out, §2).
 
 Work: the park is geometry and colliders (Blender, Opus). Platform: move the two board-look files to game (no behaviour

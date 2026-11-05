@@ -1,19 +1,19 @@
 import originalPersistence from './fixtures/nalati-persistence-original.json' with { type: 'json' };
 import { expect, test,vi } from 'vitest';
-import { entryOwner } from '../src/game/shardfile/entryOwners';
-import { enteredAdventurePersistence } from '../src/game/quest/chapterBindings';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import type { ShardContext } from '../src/game/plugin/context';
-import type { ShardRuntime } from '../src/game/shard/runtime';
+import { entryOwner } from '../src/game/client/shardfile/entryOwners';
+import { enteredAdventurePersistence } from '../src/game/server/quest/chapterBindings';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
+import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardRuntime } from '../src/game/server/shard/runtime';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import { Scope } from '../src/engine/app/scope';
-import { app } from '../src/engine/app/runtime';
-import { bossesSave, elitesSave, progressSave } from '../src/game/saves';
-import { legacyAdventureNames,legacyAdventureCosmetics,legacyAdventureBond } from '../src/game/quest/legacyRecords';
-import { bindAdventurePersistence, installClientAdventurePersistence } from '../src/game/quest/persistence';
+import { Scope } from '../src/engine/shared/app/scope';
+import { app } from '../src/engine/client/app/runtime';
+import { bossesSave, elitesSave, progressSave } from '../src/game/shared/saves';
+import { legacyAdventureNames,legacyAdventureCosmetics,legacyAdventureBond } from '../src/game/server/quest/legacyRecords';
+import { bindAdventurePersistence, installClientAdventurePersistence } from '../src/game/server/quest/persistence';
 import source from './fixtures/nalati-product-source';
 import { nalatiPersistenceRows } from '../src/shards/nalati-grasslands/generators/persistence';
-import { CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
+import { CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';
 
 const rows = nalatiPersistenceRows();
 

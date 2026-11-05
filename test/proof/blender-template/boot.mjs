@@ -4,9 +4,9 @@ import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the immutable platform physics binary.
 import { readFileSync } from 'node:fs';
 import { readProjectAssets } from '../../../src/sdk/project.ts';
-import { loadRapier } from '../../../src/engine/physics/rapier.ts';
-import { createShardfileSim } from '../../../src/game/plugin/simulation.ts';
-import { leadCommands, leadPlayer } from '../../../src/engine/sim/leadPlayer.ts';
+import { loadRapier } from '../../../src/engine/shared/physics/rapier.ts';
+import { createShardfileSim } from '../../../src/game/server/plugin/simulation.ts';
+import { leadCommands, leadPlayer } from '../../../src/engine/shared/sim/leadPlayer.ts';
 
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
 const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));

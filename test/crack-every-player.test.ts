@@ -2,11 +2,11 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { parseInteractionRows } from '@wildshard/format/questInteractions';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { createSimHost } from '../src/engine/sim';
-import { leadPlayer } from '../src/engine/sim/leadPlayer';
-import { installNativeMelee, type NativeMeleeInput } from '../src/game/plugin/simulation';
-import { InteractionRules, installInteractionRows, playerInteractionRules } from '../src/game/quest/interactionRows';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost } from '../src/engine/server/sim';
+import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
+import { installNativeMelee, type NativeMeleeInput } from '../src/game/server/plugin/simulation';
+import { InteractionRules, installInteractionRows, playerInteractionRules } from '../src/game/server/quest/interactionRows';
 import { SIGNAL_MELEE_HOST } from '../src/shards/sunscar-dunes/generators/rows/nativeMelee';
 import { WHIP_CONTACT_MOVES } from '../src/shards/sunscar-dunes/generators/rows/whipContacts';
 import { SIM_LEVEL } from './fixtures/sim-level/level';

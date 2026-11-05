@@ -3,7 +3,7 @@ import {encodeCanonicalJson,hashImmutableBytes} from '@wildshard/sdk/immutable';
 import { driftwoodPhysics } from '../src/shards/driftwood-isle/generators/physics';
 import { RETURN_PROGRAM } from './fixtures/driftwood-guest-programs';
 import { expect, test } from 'vitest';
-import { Rng } from '../src/engine/core/rng';
+import { Rng } from '../src/engine/shared/core/rng';
 import { enemyPlacements } from '../src/shards/driftwood-isle/generators/enemyPlacement';
 import { keeperRows } from '../src/shards/driftwood-isle/generators/keeperRows';
 import * as v from 'valibot';

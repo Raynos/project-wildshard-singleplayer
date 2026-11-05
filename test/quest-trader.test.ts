@@ -1,12 +1,12 @@
 // @vitest-environment happy-dom
 import { Group, Vector3 } from 'three';
 import { expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { WorldRegistry } from '../src/engine/world/registry';
-import type { Interactable } from '../src/engine/world/interact/types';
-import { FigureRows } from '../src/game/systems/npc/figureRows';
-import { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { installQuestTrader, openQuestTrader, type TraderShop, type QuestTraderContext } from '../src/game/quest/trader';
+import { Scope } from '../src/engine/shared/app/scope';
+import { WorldRegistry } from '../src/engine/client/world/registry';
+import type { Interactable } from '../src/engine/shared/world/interact/types';
+import { FigureRows } from '../src/game/client/systems/npc/figureRows';
+import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
+import { installQuestTrader, openQuestTrader, type TraderShop, type QuestTraderContext } from '../src/game/server/quest/trader';
 import driftwood from '../src/shards/driftwood-isle/data/traderStall.json';
 import pine from '../src/shards/pine-hollow/data/traderStall.json';
 

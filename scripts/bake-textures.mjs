@@ -2,8 +2,8 @@
 // bake-textures.mjs — bake the sky's procedural textures once (project/archive/2026-09-22-load-perf.md §P2; SF87, G320).
 //
 // The sky's cloud field, banded planet and gas giant are painted on a canvas at runtime when the build has no file for
-// them (`bakedTexture(name, make)`, src/engine/boot/bakedTextures.ts). This bundles a bake page
-// (scripts/bake/skyTexturesPage.ts: the engine's pure painters, src/engine/world/skyTextures.ts, and nothing else), runs
+// them (`bakedTexture(name, make)`, src/engine/client/boot/bakedTextures.ts). This bundles a bake page
+// (scripts/bake/skyTexturesPage.ts: the engine's pure painters, src/engine/client/world/skyTextures.ts, and nothing else), runs
 // it on a blank page in headless Chromium (muted, as the iPhone 16 Pro), and writes the shard's
 // public/assets/baked/<slug>/tex/<name>.jpg plus textures.json with a hash of the output files. It boots no game page and
 // loads no shard runtime or legacy code. Every run bakes in memory; --check writes nothing.

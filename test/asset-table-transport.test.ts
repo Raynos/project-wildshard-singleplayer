@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { assetTableAsset, assetTableBanks, selectedPackTables } from '../scripts/app-build/assetTables.mjs';
 import { prepareAssetTables, prepareAssetPacks, readAssetTables } from '../src/assetTables';
-import { installAssetTables, publicBytes } from '../src/engine/boot/tables';
+import { installAssetTables, publicBytes } from '../src/engine/shared/boot/tables';
 import { openTitleSettings } from '../src/titleSettings';
 
 function fixture() {

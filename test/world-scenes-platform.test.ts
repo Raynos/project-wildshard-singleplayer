@@ -2,26 +2,26 @@
 import {nineCastBlobs} from './fixtures/nine-cast-blobs';
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-import { installBrowserScopeEnvironment } from '../src/engine/app/view/scopeEnvironment';
-import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
+import { installBrowserScopeEnvironment } from '../src/engine/client/app/view/scopeEnvironment';
+import { installScopeEnvironment, scopeEnvironment } from '../src/engine/shared/app/scopeEnvironment';
 import { Box3, BufferAttribute as NativeBufferAttribute, BufferGeometry as NativeBufferGeometry, Group, Mesh, MeshStandardMaterial, Object3D, PerspectiveCamera, Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { legacyDouble } from '../src/engine/test/FakeGame';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { AssetService } from '../src/engine/app/assets';
-import { WorldRegistry } from '../src/engine/world/registry';
-import { LivingBuildings } from '../src/game/shardfile/livingBuildings';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
+import { AssetService } from '../src/engine/client/app/assets';
+import { WorldRegistry } from '../src/engine/client/world/registry';
+import { LivingBuildings } from '../src/game/client/shardfile/livingBuildings';
 import { emptyBuildingLifeRows } from '@wildshard/format/buildings';
-import { installWorldScenes } from '../src/game/shardfile/worldScenes';
-import { constructionCheckpoint } from '../src/game/shardfile/constructionCheckpoint';
+import { installWorldScenes } from '../src/game/client/shardfile/worldScenes';
+import { constructionCheckpoint } from '../src/game/client/shardfile/constructionCheckpoint';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
-import type { ShardContext } from '../src/game/plugin/context';
+import type { ShardContext } from '../src/game/server/plugin/context';
 import { emptyShardfile } from '../src/sdk/author';
-import * as runtimeProducts from '../src/game/shardfile/runtimeProduct';
-import { recordSceneProfile } from '../src/game/shardfile/sceneProfile';
-import { isDev, setDev } from '../src/engine/core/devMode';
-import * as pacing from '../src/engine/core/framePacing';
-import * as work from '../src/engine/core/workSlice';
+import * as runtimeProducts from '../src/game/client/shardfile/runtimeProduct';
+import { recordSceneProfile } from '../src/game/client/shardfile/sceneProfile';
+import { isDev, setDev } from '../src/engine/client/core/devMode';
+import * as pacing from '../src/engine/shared/core/framePacing';
+import * as work from '../src/engine/shared/core/workSlice';
 // Late scene work now crosses the same controlled paint as the browser host.
 const nativeScopeEnvironment = scopeEnvironment();
 beforeEach(() => { installBrowserScopeEnvironment(); });
@@ -124,10 +124,10 @@ test('world profile changes refuse before geometry intake and a fresh admission 
 });
 
 test('resident worlds admit every frozen choice and load only requested specimen buffers', async () => {
-  const { defineWorldSceneCatalogue } = await import('../src/game/models/worldSceneCatalogue');
-  const { sharedModelContext } = await import('../src/engine/models/model');
-  const { Rng } = await import('../src/engine/core/rng');
-  const { SkyRig } = await import('../src/engine/world/skyRig');
+  const { defineWorldSceneCatalogue } = await import('../src/game/client/models/worldSceneCatalogue');
+  const { sharedModelContext } = await import('../src/engine/client/models/model');
+  const { Rng } = await import('../src/engine/shared/core/rng');
+  const { SkyRig } = await import('../src/engine/client/world/skyRig');
   const sky: unknown = Object.create(SkyRig.prototype);
   if (!(sky instanceof SkyRig)) throw new Error('Missing specimen fixture sky');
   const context = fixture(), rows = section(), reads: string[] = [];
@@ -170,7 +170,7 @@ test('resident worlds admit every frozen choice and load only requested specimen
 });
 
 test('fictional prewelded copies borrow named parts and keep independent contacts and picking boxes', async () => {
-  const { SkyRig } = await import('../src/engine/world/skyRig');
+  const { SkyRig } = await import('../src/engine/client/world/skyRig');
   const sky: unknown = Object.create(SkyRig.prototype);
   if (!(sky instanceof SkyRig)) throw new Error('Missing fixture sky');
   const context = fixture(), rows = section();
@@ -267,7 +267,7 @@ test('authored stairs retain their surface, native count and repeated world pose
 
 test('scene catalogue keeps fixed draws, authored floors and model collision ownership', async () => {
   const [{ defineWorldSceneCatalogue, bindWorldSceneModelSources }, { modelContext }, { Rng }, { BufferGeometry, BufferAttribute, MeshBasicMaterial }] = await Promise.all([
-    import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('three'),
+    import('../src/game/client/models/worldSceneCatalogue'), import('../src/engine/client/models/model'), import('../src/engine/shared/core/rng'), import('three'),
   ]);
   const owner = new Scope('scene-catalogue'), ctx = modelContext(null), registry = new WorldRegistry();
   const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]), 3));
@@ -299,7 +299,7 @@ test('scene catalogue keeps fixed draws, authored floors and model collision own
 
 test.each([false, true])('cold demand-loaded Explorer cards await geometry and borrow resident surfaces: %s', async borrowed => {
   const [{ defineWorldSceneCatalogue, bindWorldSceneModelSources }, { modelContext }, { Rng }, { withOwner }, runtime, assets, { parseWorldSceneModels }] = await Promise.all([
-    import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('../src/engine/app/ownership'), import('../src/game/shardfile/runtimeProduct'), import('../src/engine/core/assets'), import('@wildshard/format/worldSceneModels'),
+    import('../src/game/client/models/worldSceneCatalogue'), import('../src/engine/client/models/model'), import('../src/engine/shared/core/rng'), import('../src/engine/shared/app/ownership'), import('../src/game/client/shardfile/runtimeProduct'), import('../src/engine/client/core/assets'), import('@wildshard/format/worldSceneModels'),
   ]);
   const context = fixture(), owner = new Scope('cold-catalogue'), ctx = modelContext(null), rows = section();
   const catalogueRows = { product: 'fixture-harbour', models: [{ key: 'cold', id: 'fixture-harbour/cold', load: 'demand', name: 'Cold model', category: 'props', pipeline: 'code', file: 'models/cold.ts', defaults: {}, choices: [{ id: 'only', params: {}, size: [1, 1, 1], colliders: [], draws: [{ id: 'stone', library: 'shapes', model: 'stone', material: 'paint' }] }] }] };
@@ -369,7 +369,7 @@ test.each(['unplaced', 'placed', 'direct', 'shared'] as const)('demand catalogue
 
 test('trail scene collider rows retain the native decoder output exactly', async () => {
   const [{ readColliderRows }, { driftwoodTrailRows }] = await Promise.all([
-    import('../src/engine/models/colliders'), import('../src/shards/driftwood-isle/generators/fixedFacts'),
+    import('../src/engine/client/models/colliders'), import('../src/shards/driftwood-isle/generators/fixedFacts'),
   ]);
   const trail = driftwoodTrailRows();
   const context = fixture(), rows = section(), first = rows.steps[0];
@@ -384,7 +384,7 @@ test('trail scene collider rows retain the native decoder output exactly', async
 
 test('resident catalogue loans reach later world placements through the shared sky context', async () => {
   const [{ defineWorldSceneCatalogue }, { sharedModelContext }, { Rng }, { SkyRig }] = await Promise.all([
-    import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('../src/engine/world/skyRig'),
+    import('../src/game/client/models/worldSceneCatalogue'), import('../src/engine/client/models/model'), import('../src/engine/shared/core/rng'), import('../src/engine/client/world/skyRig'),
   ]);
   const sky: unknown = Object.create(SkyRig.prototype);
   if (!(sky instanceof SkyRig)) throw new Error('Missing fixture sky');
@@ -404,7 +404,7 @@ test('resident catalogue loans reach later world placements through the shared s
 
 test.each(['individual', 'page'] as const)('authored raw LODs and deferred %s placements retain their native model contract', async mode => {
   const [{ defineWorldSceneCatalogue }, { sharedModelContext }, { Rng }, { SkyRig }, { parseWorldSceneModels }] = await Promise.all([
-    import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('../src/engine/world/skyRig'), import('@wildshard/format/worldSceneModels'),
+    import('../src/game/client/models/worldSceneCatalogue'), import('../src/engine/client/models/model'), import('../src/engine/shared/core/rng'), import('../src/engine/client/world/skyRig'), import('@wildshard/format/worldSceneModels'),
   ]);
   const sky: unknown = Object.create(SkyRig.prototype);
   if (!(sky instanceof SkyRig)) throw new Error('Missing fixture sky');
@@ -470,9 +470,9 @@ test.each(['individual', 'page'] as const)('authored raw LODs and deferred %s pl
 
 test.each(['material', 'object'] as const)('source PBR %s intake shares original maps and owns retirement', async mode => {
   const [{ worldSceneSourceMaterial }, rig, { SkyRig }, { Texture, BufferGeometry }, { GLTFLoader }] = await Promise.all([
-    import('../src/game/shardfile/worldSceneMaterials'), import('../src/engine/anim/rig'), import('../src/engine/world/skyRig'), import('three'), import('three/examples/jsm/loaders/GLTFLoader.js'),
+    import('../src/game/client/shardfile/worldSceneMaterials'), import('../src/engine/client/anim/rig'), import('../src/engine/client/world/skyRig'), import('three'), import('three/examples/jsm/loaders/GLTFLoader.js'),
   ]);
-  const { SceneHandles } = await import('../src/game/shardfile/sceneHandles');
+  const { SceneHandles } = await import('../src/game/client/shardfile/sceneHandles');
   const handles = new SceneHandles();
   const owner = new Scope('pbr-source-fixture'), sky: unknown = Object.create(SkyRig.prototype);
   if (!(sky instanceof SkyRig)) throw new Error('Missing fixture sky');
@@ -500,7 +500,7 @@ test.each(['material', 'object'] as const)('source PBR %s intake shares original
 });
 
 test('deferred source slots decode at their named placement', async () => {
-  const [sources, { SkyRig }] = await Promise.all([import('../src/game/shardfile/worldSceneMaterials'), import('../src/engine/world/skyRig')]);
+  const [sources, { SkyRig }] = await Promise.all([import('../src/game/client/shardfile/worldSceneMaterials'), import('../src/engine/client/world/skyRig')]);
   const sky: unknown = Object.create(SkyRig.prototype);
   if (!(sky instanceof SkyRig)) throw new Error('Missing fixture sky');
   const context = fixture(), rejected = fixture(), retired = fixture(), material = new MeshStandardMaterial(), rows = section();
@@ -551,7 +551,7 @@ test('building presentation borrows the installed Z2 namespace', async () => {
 });
 
 test('inactive tier sources are skipped before blob admission and decoding', async () => {
-  const { TIER } = await import('../src/engine/core/tier');
+  const { TIER } = await import('../src/engine/client/core/tier');
   const context = fixture(), rows = section(), library = rows.libraries[0];
   if (library?.kind !== 'owned') throw new Error('Missing owned fixture library');
   const tier = TIER === 'phone' ? 'desktop' : 'phone';
@@ -637,8 +637,8 @@ test.each(['harbour.at', 'markers.east.enabled', 'absent'])('collision scalar %s
 
 test('a cold card reads a pool part from its declared file only, exactly as the resident pool decodes it', async () => {
   const [{ defineWorldSceneCatalogue, bindWorldSceneModelSources }, { modelContext }, { Rng }, { withOwner }, { parseWorldSceneModels }, { worldScenePool }, { CAST_SOURCES }] = await Promise.all([
-    import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('../src/engine/app/ownership'),
-    import('@wildshard/format/worldSceneModels'), import('../src/game/shardfile/scenePools'), import('../src/shards/nine-dragon-stack/generators/castSources'),
+    import('../src/game/client/models/worldSceneCatalogue'), import('../src/engine/client/models/model'), import('../src/engine/shared/core/rng'), import('../src/engine/shared/app/ownership'),
+    import('@wildshard/format/worldSceneModels'), import('../src/game/client/shardfile/scenePools'), import('../src/shards/nine-dragon-stack/generators/castSources'),
   ]);
   const context = fixture(), owner = new Scope('pool-card'), ctx = modelContext(null), base = section();
   // Nine's real cast pool holding the lion: its files, parts and channel rules, served from its shipped blobs
@@ -685,7 +685,7 @@ test('a cold card reads a pool part from its declared file only, exactly as the 
 
 test('a cold pool card under a retiring cell reads nothing more and publishes no geometry once its preload returns', async () => {
   const [{ defineWorldSceneCatalogue, bindWorldSceneModelSources }, { modelContext }, { Rng }, { withOwner }, { parseWorldSceneModels }, { CAST_SOURCES }] = await Promise.all([
-    import('../src/game/models/worldSceneCatalogue'), import('../src/engine/models/model'), import('../src/engine/core/rng'), import('../src/engine/app/ownership'),
+    import('../src/game/client/models/worldSceneCatalogue'), import('../src/engine/client/models/model'), import('../src/engine/shared/core/rng'), import('../src/engine/shared/app/ownership'),
     import('@wildshard/format/worldSceneModels'), import('../src/shards/nine-dragon-stack/generators/castSources'),
   ]);
   const context = fixture(), cell = new Scope('cell'), owner = cell.child('pool-card'), ctx = modelContext(null), base = section();
@@ -819,7 +819,7 @@ test.each(['disposed', 'disposing'] as const)('placement reads do not allocate a
 
 test('independent pool publications retain native geometry and retire on the supplied scene owner', async () => {
   const context = fixture(), bytes = triangle('tile'), reads: string[] = [];
-  const { TIER } = await import('../src/engine/core/tier');
+  const { TIER } = await import('../src/engine/client/core/tier');
   vi.spyOn(context.product, 'hasFile').mockReturnValue(true);
   vi.spyOn(context.product, 'file').mockImplementation(name => { reads.push(name); return Promise.resolve(bytes); });
   const rows = parseWorldScenes({ version: 1, materials: [], steps: [], libraries: [
@@ -843,7 +843,7 @@ test('a resident pool held across ancestor retirement publishes no native geomet
   const held = new Promise<Uint8Array>(resolve => { release = resolve; }), reading = new Promise<void>(resolve => { started = resolve; });
   vi.spyOn(context.product, 'hasFile').mockReturnValue(true);
   vi.spyOn(context.product, 'file').mockImplementation(() => { started(); return held; });
-  const { SceneHandles } = await import('../src/game/shardfile/sceneHandles');
+  const { SceneHandles } = await import('../src/game/client/shardfile/sceneHandles');
   const publish = vi.spyOn(SceneHandles.prototype, 'publish');
   const rows = parseWorldScenes({ version: 1, materials: [], steps: [], libraries: [{ id: 'tiles', kind: 'pool', publish: 'terrain', files: [{ file: 'tile.glb', parts: ['tile'] }] }] });
   const pending = installWorldScenes(context, rows, resident); await reading;
@@ -857,7 +857,7 @@ test('a resident pool held across ancestor retirement publishes no native geomet
 
 test('file-backed scene specimens prepare exact bytes before publishing resident resources',async()=>{
   const {entryDeckSpecimen,entryDeckFiles}=await import('../src/shards/driftwood-isle/generators/entryDeckSpecimen');
-  const specimen=await import('../src/game/models/specimenCatalogue'),{SkyRig}=await import('../src/engine/world/skyRig');
+  const specimen=await import('../src/game/client/models/specimenCatalogue'),{SkyRig}=await import('../src/engine/client/world/skyRig');
   for(const truncated of [false,true]){
     const context=fixture(),sky:unknown=Object.create(SkyRig.prototype);if(!(sky instanceof SkyRig))throw new Error('Missing fixture sky');
     Object.assign(context.game,{runtime:{world:{sky}}});
@@ -885,7 +885,7 @@ test('late material hints require unique finite declared texture sources', () =>
 });
 
 test.each(['late','played','published','retired','hinted','hinted-played','hinted-retired','hinted-living'] as const)('source maps shared with a cold specimen respect %s draw ownership',async mode=>{
-  const [sources,{SkyRig},{reachControl}]=await Promise.all([import('../src/game/shardfile/worldSceneMaterials'),import('../src/engine/world/skyRig'),import('../src/engine/boot/prefetch')]);
+  const [sources,{SkyRig},{reachControl}]=await Promise.all([import('../src/game/client/shardfile/worldSceneMaterials'),import('../src/engine/client/world/skyRig'),import('../src/engine/client/boot/prefetch')]);
   const sky:unknown=Object.create(SkyRig.prototype);if(!(sky instanceof SkyRig))throw new Error('Missing late material sky');
   const ctx=fixture(),level=ctx.scope.child('control'),material=new MeshStandardMaterial();
   Object.assign(ctx.game,{levelScope:level,runtime:{world:{sky,game:ctx.game,registry:ctx.app.registry,player:{position:new Vector3()}}}});
@@ -914,7 +914,7 @@ test.each(['late','played','published','retired','hinted','hinted-played','hinte
 });
 
 test.each(['late','resident','played','placed','alternate-placement','immediate','mapped','retired'] as const)('late surface scans preserve %s material consumers',async mode=>{
-  const [surfaces,{SkyRig},{reachControl},{buildTier}]=await Promise.all([import('../src/game/shardfile/worldSceneSurface'),import('../src/engine/world/skyRig'),import('../src/engine/boot/prefetch'),import('../src/engine/core/tier')]);
+  const [surfaces,{SkyRig},{reachControl},{buildTier}]=await Promise.all([import('../src/game/client/shardfile/worldSceneSurface'),import('../src/engine/client/world/skyRig'),import('../src/engine/client/boot/prefetch'),import('../src/engine/client/core/tier')]);
   const sky:unknown=Object.create(SkyRig.prototype);if(!(sky instanceof SkyRig))throw new Error('Missing late surface sky');
   const ctx=fixture(),level=ctx.scope.child('control'),material=new MeshStandardMaterial();
   Object.assign(ctx.game,{levelScope:level,runtime:{world:{sky,game:ctx.game,registry:ctx.app.registry,player:{position:new Vector3()}}}});

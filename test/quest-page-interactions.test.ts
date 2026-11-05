@@ -1,16 +1,16 @@
 // @vitest-environment happy-dom
-import { Scope } from '../src/engine/app/scope';
-import type { Interactable } from '../src/engine/world/interact/types';
+import { Scope } from '../src/engine/shared/app/scope';
+import type { Interactable } from '../src/engine/shared/world/interact/types';
 import { parseQuestPageInteractions, parseInteractionRows } from '@wildshard/format/questInteractions';
 import { PINE_LANTERN_PAGE } from '../src/shards/pine-hollow/generators/questPageInteractions';
 import { PINE_LANTERN_ROWS } from '../src/shards/pine-hollow/generators/interactions';
 import { output as traderOutput } from '../src/shards/driftwood-isle/generators/output';
-import { InteractionRules } from '../src/game/quest/interactionRows';
+import { InteractionRules } from '../src/game/server/quest/interactionRows';
 import { Vector3 } from 'three';
 import { expect, test, vi } from 'vitest';
-import { Flags } from '../src/engine/world/interact/flags';
+import { Flags } from '../src/engine/server/world/interact/flags';
 import { parseQuestHost } from '@wildshard/format/questHost';
-import { createQuestPagePrompts, bindQuestPageInteractions } from '../src/game/plugin/ui';
+import { createQuestPagePrompts, bindQuestPageInteractions } from '../src/game/client/plugin/ui';
 import { QUEST_HOST as signal } from '../src/shards/sunscar-dunes/generators/questHost';
 import { QUEST_HOST as sky } from '../src/shards/far-reach/generators/questHost';
 import { FLAG } from '../src/shards/sunscar-dunes/generators/rows/flags';

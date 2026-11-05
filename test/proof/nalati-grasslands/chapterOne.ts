@@ -1,12 +1,12 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- A failed real input route must refuse its proof.
 import assert from 'node:assert/strict';
 import * as v from 'valibot';
-import type {SimHost} from '../../../src/engine/sim';
+import type {SimHost} from '../../../src/engine/server/sim';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import type {HeadlessTapePlan} from '../../../src/sdk/headlessTape';
 import {PhysicsRouteCursor} from '../../../src/sdk/headlessJourney';
-import {nativeTamingOf} from '../../../src/game/riding/nativeTaming';
-import {mountedPlayerOf} from '../../../src/game/riding/native';
+import {nativeTamingOf} from '../../../src/game/server/riding/nativeTaming';
+import {mountedPlayerOf} from '../../../src/game/server/riding/native';
 import {nalatiCampIntroTape} from './verbTape';
 import {nalatiHorsePlainsInputs} from './horsePlainsWalk';
 import {createNalatiTamingPilot} from './tamingPilot';

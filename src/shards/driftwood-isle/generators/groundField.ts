@@ -90,7 +90,7 @@ function entryRoadMask(x: number, z: number): number {
 /**
  * A 32-bit fingerprint of a height field: FNV-1a over `heightAt` sampled on a 16 × 16 grid across the
  * chunk, quantised to millimetres. scripts/bake-chunk.mjs stores it in the bake's header and
- * src/engine/world/BakedTerrain.ts refuses a bake whose fingerprint differs from the live def's functions —
+ * src/engine/shared/world/BakedTerrain.ts refuses a bake whose fingerprint differs from the live def's functions —
  * so a stale terrain.bin (an old build in the service worker, a def edited since the last vite start)
  * can never be installed over the analytic field.
  */

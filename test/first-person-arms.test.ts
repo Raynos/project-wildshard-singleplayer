@@ -1,5 +1,5 @@
 import {expect,it} from 'vitest';
-import {armPalette,gloveFist,riderArm,riderArmSteps} from '../src/engine/player/firstPersonArms';
+import {armPalette,gloveFist,riderArm,riderArmSteps} from '../src/engine/client/player/firstPersonArms';
 import base from '../src/shards/nalati-grasslands/data/armsStyle.json' with {type:'json'};
 import {HUNTER_HANDS} from '../src/shards/pine-hollow/generators/handsLook';
 

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { BufferAttribute, BufferGeometry, HalfFloatType, Mesh } from 'three';
-import { loadVertexWear, wearBakedTiles } from '../src/game/looks/vertexWear';
+import { loadVertexWear, wearBakedTiles } from '../src/game/client/looks/vertexWear';
 import ISLAND_COVER_FILES from '../src/shards/driftwood-isle/data/islandCoverFiles.json' with { type: 'json' };
 
 // G571: a vertex wear file (Driftwood's island cover) worn by geometries the world already built.

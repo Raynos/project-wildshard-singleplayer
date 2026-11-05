@@ -9,7 +9,7 @@ import { resolve } from 'node:path';
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { unshuffleLanes } from '../src/engine/core/deflate';
+import { unshuffleLanes } from '../src/engine/client/core/deflate';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { CompactSpeciesBodiesSchema } from '@wildshard/format/speciesLooks';
 import { packNalatiSpeciesBodies, type SpeciesBodySource } from '../src/shards/nalati-grasslands/generators/speciesBodyPacking';

@@ -1,9 +1,9 @@
 import {expect,test,vi} from 'vitest';
-import {Scope} from '../src/engine/app/scope';
+import {Scope} from '../src/engine/shared/app/scope';
 import {layoutV2} from '@wildshard/format/scriptWireV2';
 import {readV2WorldActions,V2_ACTION_OPS,type V2ActionBinding} from '@wildshard/format/scriptActionsV2';
-import {prepareV2WorldActions,type V2WorldActionLoan} from '../src/game/shardfile/worldActionsV2';
-import {ReturnProjectionV2} from '../src/game/population/returnProjectionV2';
+import {prepareV2WorldActions,type V2WorldActionLoan} from '../src/game/server/shardfile/worldActionsV2';
+import {ReturnProjectionV2} from '../src/game/shared/population/returnProjectionV2';
 import {tamingRig} from './fixtures/tamingServices';
 
 const layout=layoutV2(1024,1,new Map([[10,16]]));

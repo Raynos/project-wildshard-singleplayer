@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { zlibSync } from 'fflate';
-import { Scope } from '../src/engine/app/scope';
-import { coldFixedDraws, fixedDraws, productFixedDraws } from '../src/game/models/fixedDraws';
+import { Scope } from '../src/engine/shared/app/scope';
+import { coldFixedDraws, fixedDraws, productFixedDraws } from '../src/game/client/models/fixedDraws';
 
 const raw = new Uint8Array(new Float32Array([0,0,0,1,0,0,0,1,0, 2,0,0,3,0,0,2,1,0]).buffer);
 const lanes = new Uint8Array(raw.length);

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { createQuestPlacements } from '../src/engine/world/interact/types';
+import { createQuestPlacements } from '../src/engine/shared/world/interact/types';
 import frames from '../src/shards/driftwood-isle/data/questFrames.json' with { type: 'json' };
 import policy from '../src/shards/driftwood-isle/data/nativeQuest.json' with { type: 'json' };
 import { HUT, LOOKOUT, WRECK, SHRINE, PIER } from '../src/shards/driftwood-isle/generators/worldSites';

@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { nativeDressingRows } from './fixtures/nalati-dressing-placements';
 import { nalatiDressingBlob, DRESSING_SCHEMAS } from '../src/shards/nalati-grasslands/generators/dressingSchemas';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 
 test('Nalati dressing schemas reject a corrupt field and an unregistered producer', async () => {
   const boulders = v.parse(v.array(v.record(v.string(), v.unknown())), await nativeDressingRows('boulder'));

@@ -1,22 +1,22 @@
 // @vitest-environment happy-dom
 import {expect,test,vi} from 'vitest';
 import {Vector3} from 'three';
-import {Scope} from '../src/engine/app/scope';
-import {Events} from '../src/engine/events/events';
-import {CLIENT_FEATURES} from '../src/game/shardfile/clientPlan';
+import {Scope} from '../src/engine/shared/app/scope';
+import {Events} from '../src/engine/shared/events/events';
+import {CLIENT_FEATURES} from '../src/game/client/shardfile/clientPlan';
 import {parseClientPlan} from '@wildshard/format/clientPlan';
-import {installCombatTargets} from '../src/game/shardfile/clientTargets';
-import {publishEntryOwner} from '../src/game/shardfile/entryOwners';
-import type {ShardContext} from '../src/game/plugin/context';
-import type {ShardRuntime} from '../src/game/shard/runtime';
-import type {TimedEncounters} from '../src/game/boss/timedEncounters';
-import type {ArenaRoomEncounter} from '../src/game/boss/arenaRoom';
-import type {ForestWeatherRig} from '../src/game/weather/forest';
-import {SceneDressing} from '../src/game/shardfile/sceneDressing';
-import * as population from '../src/game/population/wildlife';
+import {installCombatTargets} from '../src/game/client/shardfile/clientTargets';
+import {publishEntryOwner} from '../src/game/client/shardfile/entryOwners';
+import type {ShardContext} from '../src/game/server/plugin/context';
+import type {ShardRuntime} from '../src/game/server/shard/runtime';
+import type {TimedEncounters} from '../src/game/server/boss/timedEncounters';
+import type {ArenaRoomEncounter} from '../src/game/server/boss/arenaRoom';
+import type {ForestWeatherRig} from '../src/game/client/weather/forest';
+import {SceneDressing} from '../src/game/client/shardfile/sceneDressing';
+import * as population from '../src/game/server/population/wildlife';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {emptyShardfile} from '../src/sdk/author';
-import {createShardProduct} from '../src/game/shardfile/shardProduct';
+import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 
 function fixture(){
  const scope=new Scope('declared-targets'),events=new Events(),calls:string[]=[],objects:Record<string,unknown>={};

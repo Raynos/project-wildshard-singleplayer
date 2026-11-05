@@ -6,7 +6,7 @@
 // the physics service. Declared water bodies remove submerged ground; moving/disabled pieces are excluded.
 // Structure-first shards bake their registered floors without inventing a terrain plane.
 //
-// Output: public/assets/baked/<slug>/navmesh.bin (format below; src/engine/physics/navmesh.ts reads it) + navmesh.json (the
+// Output: public/assets/baked/<slug>/navmesh.bin (format below; src/engine/shared/physics/navmesh.ts reads it) + navmesh.json (the
 // output hash and stats). Every run bakes in memory and writes only differing bytes. Offline: run it after a builder / terrain change and commit the output.
 //
 //   node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-navmesh.mjs [--check] [slug…]
@@ -34,8 +34,8 @@ const only = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const VERSION = 1;
 
 /**
- * The agent classes per shard: a creature paths on the smallest layer whose radius covers its own (src/engine/physics/navmesh.ts;
- * the largest when none does). Motor capsule radii (src/engine/physics/creatures.ts: min(bodyRadius, bodyHalfLen) × scale): crab
+ * The agent classes per shard: a creature paths on the smallest layer whose radius covers its own (src/engine/shared/physics/navmesh.ts;
+ * the largest when none does). Motor capsule radii (src/engine/shared/physics/creatures.ts: min(bodyRadius, bodyHalfLen) × scale): crab
  * 0.22, monkey 0.16, sailor 0.26, captain 0.3, deer / boar 0.33, bear 0.36, elk 0.52. The erosion is whole voxels
  * (cellSize 0.25): round(radius / cellSize) — 0.3 erodes 0.25 m, 0.5 erodes 0.5 m; the motor absorbs the rest. Climb and slope are the motor's (step 0.3 m, the plan's 40°); height is
  * the clearance a creature needs under a deck or a hold's beams. Pine Hollow's herds are all big: one layer — a second
@@ -66,13 +66,13 @@ const src = (p) => import(pathToFileURL(resolve(ROOT, 'src', p)).href);
 
 const THREE = await import('three');
 const { ConvexHull } = await import('three/examples/jsm/math/ConvexHull.js');
-const registry = await src('game/shard/registry.ts');
+const registry = await src('game/client/shard/registry.ts');
 const { SHARDS } = await src('shards.generated.ts');
-const HF = await src('engine/world/Heightfield.ts');
-const BT = await src('engine/world/BakedTerrain.ts');
-const { bakedTerrainSource } = await src('engine/world/bakedTerrainField.ts');
-const { TERRAIN_RES, CHUNK_SIZE } = await src('engine/core/config.ts');
-const { treadBoxes } = await src('engine/physics/pieces.ts');
+const HF = await src('engine/shared/world/Heightfield.ts');
+const BT = await src('engine/shared/world/BakedTerrain.ts');
+const { bakedTerrainSource } = await src('engine/shared/world/bakedTerrainField.ts');
+const { TERRAIN_RES, CHUNK_SIZE } = await src('engine/shared/core/config.ts');
+const { treadBoxes } = await src('engine/shared/physics/pieces.ts');
 
 const sky = new Proxy({ setupMaterial: noop, csm: { lights: [new THREE.DirectionalLight()], update: noop }, hemi: new THREE.HemisphereLight(), sunDisc: new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshBasicMaterial()), planet: new THREE.Group(), clouds: null, dayNight: null, viewCamera: new THREE.PerspectiveCamera(), sunDir: new THREE.Vector3(0, 1, 0) },
   { get: (t, k) => k in t ? t[k] : typeof k === 'string' && k.endsWith('Color') ? new THREE.Color(1, 1, 1) : typeof k === 'string' && k.endsWith('Dir') ? new THREE.Vector3(0, 1, 0) : undefined });
@@ -162,7 +162,7 @@ function addDesc(soup, d) {
 }
 
 /**
- * Where the ground is under water: the sea (an ocean shard) or the pond — inside the square src/engine/world/pondGrid.ts draws
+ * Where the ground is under water: the sea (an ocean shard) or the pond — inside the square src/engine/client/world/pondGrid.ts draws
  * (2r + 30 m across) and below its surface; 0.25 m of margin, as AnimalManager's `isDry`. (A pond shard's valleys lower
  * than the pond elsewhere are dry land: no water is drawn there, though `isDry` still calls them wet.)
  */
@@ -175,7 +175,7 @@ function wetTest(def, exclusion) {
   return (x, z, y) => y <= wl && Math.abs(x - P.x) <= half && Math.abs(z - P.z) <= half;
 }
 
-/** The physics ground's triangles (src/engine/physics/terrain.ts: the mesh's vertices, the (x0,z1)–(x1,z0) diagonal), dry ones only. */
+/** The physics ground's triangles (src/engine/shared/physics/terrain.ts: the mesh's vertices, the (x0,z1)–(x1,z0) diagonal), dry ones only. */
 function addTerrain(soup, grid, wet) {
   const res = TERRAIN_RES, size = CHUNK_SIZE, d = size / (res - 1), half = size / 2;
   if (grid === null) return 0;
@@ -231,7 +231,7 @@ for (const def of SHARDS.filter(registry.playable)) {
   const soup = new Soup();
   const dropped = addTerrain(soup, ground, wetTest(def, exclusion));
   for (const d of colliders) addDesc(soup, d);
-  // the navmesh is baked in the authored frame (src/engine/physics/navmesh.ts queries `y − datum`): a level shifted at
+  // the navmesh is baked in the authored frame (src/engine/shared/physics/navmesh.ts queries `y − datum`): a level shifted at
   // runtime (its terrain field's `datum`, Driftwood's G164 drop) builds shifted, so its soup is raised back by the datum
   const datum = def.ground.terrain?.datum ?? 0;
   if (datum !== 0) for (let i = 1; i < soup.positions.length; i += 3) soup.positions[i] -= datum;
@@ -251,9 +251,9 @@ for (const def of SHARDS.filter(registry.playable)) {
 output.finish();
 
 // Runtime imports install page-lifetime services (for example the reload heartbeat). A CLI has no page.
-const { app: bakeApp } = await src('engine/app/runtime.ts');
+const { app: bakeApp } = await src('engine/client/app/runtime.ts');
 bakeApp.engineScope.dispose();
-const { pageScope } = await src('engine/app/resources.ts');
+const { pageScope } = await src('engine/shared/app/resources.ts');
 pageScope.dispose();
 
 environment.dispose();

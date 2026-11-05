@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { installChannelPrograms } from '../src/game/plugin/channelPrograms';
-import { graphParamRoots } from '../src/game/looks/graphDaySky';
+import { installChannelPrograms } from '../src/game/server/plugin/channelPrograms';
+import { graphParamRoots } from '../src/game/client/looks/graphDaySky';
 import pineWeatherRows from '../src/shards/pine-hollow/data/weatherLook.json' with { type: 'json' };
 import { pineRainChannels } from '../src/shards/pine-hollow/generators/rainChannels';
 import { Object3D, BufferGeometryLoader, Vector3 } from 'three';
 import { weatherFxChannels } from '../src/shards/nalati-grasslands/generators/weatherFxChannels';
 import { weatherPresentation } from '../src/shards/nalati-grasslands/generators/weatherPresentation';
 import { skyRows } from '../src/shards/nalati-grasslands/generators/skyPresentation';
-import { dayLookPresets } from '../src/game/looks/dayLookPresets';
+import { dayLookPresets } from '../src/game/shared/looks/dayLookPresets';
 
 const { PINE_RAIN_PROGRAMS } = pineWeatherRows;
 

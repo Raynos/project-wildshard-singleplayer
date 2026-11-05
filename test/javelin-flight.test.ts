@@ -3,10 +3,10 @@
 // many aims and a horse into turf, a pond, a plank deck, a stone outcrop and a deer.
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { JavelinFlight, type JavelinSlot, type JavelinTargetHit } from '../src/game/weapons/javelinFlight';
-import type { Hit } from '../src/engine/physics/query';
-import type { Material } from '../src/engine/physics/surface';
-import type { ImpactSurface } from '../src/engine/combat/Weapon';
+import { JavelinFlight, type JavelinSlot, type JavelinTargetHit } from '../src/game/shared/weapons/javelinFlight';
+import type { Hit } from '../src/engine/shared/physics/query';
+import type { Material } from '../src/engine/shared/physics/surface';
+import type { ImpactSurface } from '../src/engine/server/combat/Weapon';
 
 const profile = { speed: 26, gravity: 9.8, damage: 55, headMultiplier: 2, radius: .05, headOffset: .9, stagger: .6 };
 const Y = new THREE.Vector3(0, 1, 0);

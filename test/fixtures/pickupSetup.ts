@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the catalogue's original declared public files.
 import {readFileSync} from 'node:fs';
-import {installPickupCatalogue,preparePickupCatalogue} from '../../src/game/models/specimenCatalogue';
-import rows from '../../src/game/data/pickupCatalogue.json' with {type:'json'};
+import {installPickupCatalogue,preparePickupCatalogue} from '../../src/game/client/models/specimenCatalogue';
+import rows from '../../src/game/client/data/pickupCatalogue.json' with {type:'json'};
 
 /** UI/loot tests need the authored coin recipe, without species or a world. */
 export async function installPickupFixture():Promise<void>{

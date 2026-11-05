@@ -16,7 +16,7 @@ else breaks at run time only, or silently:
 
 So the move needs three things first: a path check, a typed probe and the parity baseline. After those, a codemod
 driven by one mapping table. The content pipeline already has the right pieces (packs, KTX2 sets, byte and version
-tables, a content-hashed SW). But `src/engine/boot/manifest.ts` infers each shard's files with slug branches. A node-safe
+tables, a content-hashed SW). But `src/engine/client/boot/manifest.ts` infers each shard's files with slug branches. A node-safe
 shard manifest should declare them instead.
 
 ## 1. Scripts that import `src/` (what breaks when files move)
@@ -112,7 +112,7 @@ Engine areas with no coverage:
 | Loop | 0 of 4 | `core/Game.ts`, `fixedStep.ts`, `time.ts`, `bootstrap.ts` |
 | Events | — | there is no event bus to test |
 | Weapons | 2 of 11 (only Crossbow and LeverRifle helpers) | `Sword`, `Bow`, `Longbow`, `Rifle`, `Spear`, `Weapons`, `meleeGeo` |
-| AI | 3 of 8 | `Animal.ts`, `eliteBrain.ts`, `game/Boss.ts`, `game/Elite.ts` |
+| AI | 3 of 8 | `Animal.ts`, `eliteBrain.ts`, `game/server/Boss.ts`, `game/server/Elite.ts` |
 | Quests | 18 of 29 | better covered. Gaps: `Spine`, `Finale`, `Feats`, Pine Hollow's `nightThralls`, `rides`, `stagLead` |
 | Saves | 1 of 4 | `loot/store.ts`, `native/saves.ts`, `BootSettings.ts`. 42 src files touch `localStorage` by hand |
 
@@ -160,7 +160,7 @@ Moving with the code:
 | `art/` | `driftwood-isle/` + ~30 cross-shard subject folders (1.3 GB in all) | `pine-hollow/` | `nalati-grasslands/` | `nine-dragon-stack/` |
 
 How a shard's files are known today:
-- **Files.** `src/engine/boot/manifest.ts` `chunkFiles(def)` infers them from `ChunkDef` fields with shard branches:
+- **Files.** `src/engine/client/boot/manifest.ts` `chunkFiles(def)` infers them from `ChunkDef` fields with shard branches:
   `def.slug === 'pine-hollow'` (sky keys, hero props, rigged hulls), a hand-kept Nalati list (`painterlyBoot()`,
   20 GLBs), and `ocean` / `painterly` / `structures` for "no cabins or props". Nine Dragon already declares its own
   files (`def.structures.files`): that is the model to follow.
@@ -237,7 +237,7 @@ M ≤ 2 days, L more.
 | TP9 | move | M | **The shard declares its assets**. The slug branches of `boot/manifest.ts` and `extras.ts` become manifest data. Packs, the download bar, the offline list and the asset audit derive from it. Explore becomes a declared engine feature, which fixes the `def.ocean` preload bug | `manifest.ts` has 0 slug / style branches, and each shard boots offline with Explore |
 | TP10 | move | S | `check-models.mjs` folder rules re-pointed to `engine/`, `kit/` and `shards/<slug>/models`, and generalised into `wildshard/layer` (shard ↛ shard, kit ↛ shard, engine ↛ kit / shard) with a ratchet (MW2) | the 81 allowlisted paths are re-mapped; the layer counts are in CI |
 | TP11 | move | S | **The tests move with the code**: 28 to `test/shards/<slug>/`. The 12 source-scanning tests get a non-empty assert or become contract tests | no vacuous pass: every glob asserts a non-empty set |
-| TP12 | move | S | **Generated files** to `src/engine/boot/`: the 4 `vite.config.ts` outputs, the `bake-packs` and `bake-ktx2` outputs, the lint ignore, the scorecard and unused-assets readers. The art module reads `src/shards/*/thumbs` | a clean build rewrites them in place; `git status` stays clean |
+| TP12 | move | S | **Generated files** to `src/engine/client/boot/`: the 4 `vite.config.ts` outputs, the `bake-packs` and `bake-ktx2` outputs, the lint ignore, the scorecard and unused-assets readers. The art module reads `src/shards/*/thumbs` | a clean build rewrites them in place; `git status` stays clean |
 | TP13 | move | S | **Delete `src/dev/` + `dev/*.html`** (6,590 lines): the `.oxlintrc` override, the dev exemptions, the `fei-zhua` target and its GLB. Keep `public/assets/nine-dragon/lab/` | no `src/dev`; the build and the harness are unchanged |
 | TP14 | move | S | **SW precache per shard**: decide whether lazy shard chunks stay precached at install (offline-safe, today's behaviour) or precache on the shard's first play | the decision is written in `docs/design/cache-policy.md`, with an offline boot per shard |
 | TP15 | move | M | **Actor-test layer** (MW4): a fake `Game` for the loop, weapons (the archetypes), strike timing, AI, bosses and the save store, which have 0–2 tests each today | each wave lands with its engine tests |

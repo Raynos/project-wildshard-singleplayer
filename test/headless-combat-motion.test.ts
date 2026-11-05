@@ -2,12 +2,12 @@
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
 import { installCombatMotion } from '@wildshard/game/shardfile/nativeRuntimeLoans';
-import { createSimHost, type SimPlayerMotionSample } from '../src/engine/sim';
-import { snapshotSimHost } from '../src/engine/sim/snapshot';
-import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
-import { createNativeCombatFrame, installNativeItems, otherCombatFrame } from '../src/game/plugin/nativeItems';
+import { createSimHost, type SimPlayerMotionSample } from '../src/engine/server/sim';
+import { snapshotSimHost } from '../src/engine/shared/sim/snapshot';
+import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
+import { createNativeCombatFrame, installNativeItems, otherCombatFrame } from '../src/game/server/plugin/nativeItems';
 import { HEADLESS_ASSEMBLY_JSON_SCHEMA } from '@wildshard/format/namedJsonContracts';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 import { parseItems } from '@wildshard/format/items';
 import { pineItems } from '../src/shards/pine-hollow/generators/channelSections';
 import { SIM_LEVEL } from './fixtures/sim-level/level';

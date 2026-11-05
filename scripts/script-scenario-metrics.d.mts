@@ -1,4 +1,4 @@
-import type {DecisionTrace} from '../src/engine/script/decision';
+import type {DecisionTrace} from '../src/engine/server/script/decision';
 
 export interface ScriptScenarioReceipt {schema:'script-scenario/1';slug:string;script:string;scenario:string;sectionHash:string;hostHash:string;passed:true;calls:number;fuel:number;maxFuel:number;refusals:number}
 export function scriptScenarioReceipt(input:{slug:string;script:string;scenario:string;sectionHash:string;hostHash:string;trace:readonly DecisionTrace[]}):ScriptScenarioReceipt;

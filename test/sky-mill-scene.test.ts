@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { BoxGeometry, Group, Mesh, MeshStandardMaterial, Texture } from 'three';
-import { bindWorldSceneParts, createWorldScene } from '../src/game/plugin/scene';
+import { bindWorldSceneParts, createWorldScene } from '../src/game/client/plugin/scene';
 import { originalSkySceneInputs } from './fixtures/sky-scene-source';
 
 const { mill: MILL_SCENE, routes: { SKY_ROUTE_FRAMES } } = await originalSkySceneInputs();

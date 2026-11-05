@@ -1,13 +1,13 @@
 import {admissionNative} from './fixtures/nalati-return-modules';
 import { expect, test, vi } from 'vitest';
-import { NativeEliteContinuation, type EliteContinuationMember } from '../src/engine/ai/eliteContinuation';
-import { nativeEliteBindings as eliteBindings, NativeEliteProjection } from '../src/engine/ai/eliteRoster';
-import { NativeEliteKernels } from '../src/engine/ai/eliteKernels';
-import { PackBrain, type PackPorts } from '../src/engine/ai/pack';
+import { NativeEliteContinuation, type EliteContinuationMember } from '../src/engine/server/ai/eliteContinuation';
+import { nativeEliteBindings as eliteBindings, NativeEliteProjection } from '../src/engine/server/ai/eliteRoster';
+import { NativeEliteKernels } from '../src/engine/server/ai/eliteKernels';
+import { PackBrain, type PackPorts } from '../src/engine/server/ai/pack';
 import { nativeGroupBrain } from '@wildshard/format/groupBrains';
 import brainRows from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };
-import { HerdBrain, type HerdPorts } from '../src/engine/ai/herd';
-import type { AnimalSim } from '../src/engine/entities/AnimalSim';
+import { HerdBrain, type HerdPorts } from '../src/engine/server/ai/herd';
+import type { AnimalSim } from '../src/engine/server/entities/AnimalSim';
 import type { EliteContinuationRows } from '@wildshard/format/eliteContinuation';
 
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';

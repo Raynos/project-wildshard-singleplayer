@@ -6,7 +6,7 @@ import { BufferAttribute, BufferGeometry, Material, Mesh, type Object3D } from '
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { assembleWholeGeometryViews } from '../src/game/plugin/geometry';
+import { assembleWholeGeometryViews } from '../src/game/client/plugin/geometry';
 import { driftwoodScene, exactShape } from '../src/shards/driftwood-isle/generators/scene';
 
 const ordinals = v.union([v.array(v.number()), v.strictObject({ runs: v.array(v.number()) })]);

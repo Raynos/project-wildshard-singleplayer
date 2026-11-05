@@ -28,8 +28,8 @@ test('the app build writes one atlas and its define, verifies source hashes, and
   const root = mkdtempSync(resolve('tmp', 'world-atlas-build-'));
   const digest = (value: Uint8Array | string): string => createHash('sha256').update(value).digest('hex');
   try {
-    mkdirSync(resolve(root, 'src/game/grid'), { recursive: true });
-    writeFileSync(resolve(root, 'src/game/grid/singleplayer.json'), JSON.stringify({ grid: { cells: [{ slug: 'base' }, { slug: 'plain' }, { slug: 'override' }] } }));
+    mkdirSync(resolve(root, 'src/game/shared/grid'), { recursive: true });
+    writeFileSync(resolve(root, 'src/game/shared/grid/singleplayer.json'), JSON.stringify({ grid: { cells: [{ slug: 'base' }, { slug: 'plain' }, { slug: 'override' }] } }));
     const image = await sharp({ create: { width: 8, height: 8, channels: 3, background: '#123456' } }).webp().toBuffer();
     for (const slug of ['base', 'override', 'plain']) {
       const map = JSON.stringify(slug === 'plain' ? {} : { map: { image: digest(image) } });
@@ -61,8 +61,8 @@ test('the native command prepares products before the atlas, and a cold atlas re
   expect(script.indexOf('writeWorldMapAtlas')).toBeLessThan(script.indexOf("vite, 'build'"));
   const root = mkdtempSync(resolve('tmp', 'world-atlas-native-'));
   try {
-    mkdirSync(resolve(root, 'src/game/grid'), { recursive: true });
-    writeFileSync(resolve(root, 'src/game/grid/singleplayer.json'), JSON.stringify({ grid: {
+    mkdirSync(resolve(root, 'src/game/shared/grid'), { recursive: true });
+    writeFileSync(resolve(root, 'src/game/shared/grid/singleplayer.json'), JSON.stringify({ grid: {
       cells: [{ slug: '_template' }, { slug: 'plain' }],
     } }));
     await expect(writeWorldMapAtlas(root)).rejects.toThrow(/ENOENT.*_template/u);

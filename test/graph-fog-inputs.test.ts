@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
-import { captureFogUniforms, ColourRampFog, fogUniforms } from '../src/engine/world/Atmosphere';
+import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
+import { captureFogUniforms, ColourRampFog, fogUniforms } from '../src/engine/client/world/Atmosphere';
 import { graph as authorGraph, graphInputs } from '../src/sdk/materials';
 import type { GraphIr } from '@wildshard/format/materialGraph';
 

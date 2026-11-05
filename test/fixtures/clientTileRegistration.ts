@@ -1,12 +1,12 @@
 import { Group, type Object3D } from 'three';
-import { Scope } from '../../src/engine/app/scope';
-import { TileStreamer } from '../../src/engine/world/tileStreamer';
+import { Scope } from '../../src/engine/shared/app/scope';
+import { TileStreamer } from '../../src/engine/client/world/tileStreamer';
 import { emptyShardfile } from '../../src/sdk/author';
 import { hashImmutableBytes } from '../../src/sdk/immutable';
-import { ResidencyAllocator } from '../../src/game/grid/allocator';
-import { TileDecoder } from '../../src/game/grid/tileDecoder';
-import { ClientAssets } from '../../src/game/shardfile/clientAssets';
-import { clientRingCatalogue, clientRingPorts, clientTileRegistration, type ClientRingInstance } from '../../src/game/shardfile/tileContent';
+import { ResidencyAllocator } from '../../src/game/server/grid/allocator';
+import { TileDecoder } from '../../src/game/client/grid/tileDecoder';
+import { ClientAssets } from '../../src/game/client/shardfile/clientAssets';
+import { clientRingCatalogue, clientRingPorts, clientTileRegistration, type ClientRingInstance } from '../../src/game/client/shardfile/tileContent';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
 function isGroup(object: Object3D): object is Group { return object instanceof Group; }

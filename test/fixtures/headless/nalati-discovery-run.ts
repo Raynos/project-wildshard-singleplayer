@@ -7,7 +7,7 @@ import {beginProductSession} from './productSession';
 import {createNativeProofResident} from '../headless-native';
 import {prepareHeadlessRuntime} from '../nalati-world-verbs';
 import {ChapterViewSchema} from '@wildshard/format/questPageComposition';
-import {loadRapier} from '../../../src/engine/physics/rapier';
+import {loadRapier} from '../../../src/engine/shared/physics/rapier';
 import type {HeadlessTapeObservation} from '../../../src/sdk/headlessTape';
 import {PhysicsRouteCursor} from '../../../src/sdk/headlessJourney';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';

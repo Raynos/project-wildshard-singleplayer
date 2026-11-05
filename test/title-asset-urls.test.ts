@@ -6,7 +6,7 @@ import {mkdirSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {join,resolve} from 'node:path';
 import {expect,test} from 'vitest';
 import {titleAssetTables,titleAssetURLs,writeTitleAssets} from '../scripts/title-assets.mjs';
-import {titleAssetURL} from '../src/game/titleAssets';
+import {titleAssetURL} from '../src/game/client/titleAssets';
 import {serviceWorkerCore} from '../scripts/app-build/serviceWorker';
 
 test('every title URL names its exact original bytes and shell/runtime use the same URL',()=>{

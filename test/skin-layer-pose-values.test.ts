@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { Bone, Euler } from 'three';
 import { parseSkinFile } from '@wildshard/format/skinAssets';
 import { withPortableMath } from './fake/portableMath';
-import { bindSkinPoseLayers, compileSkinPoseLayers } from '../src/game/shardfile/skinLayerPlayback';
+import { bindSkinPoseLayers, compileSkinPoseLayers } from '../src/game/client/shardfile/skinLayerPlayback';
 import { bindSkinPoseLayers as originalBinding, compileSkinPoseLayers as originalCompile } from './fixtures/skin-layer-before';
 
 for (const portable of [false, true]) test(`the shipped Template layers apply and restore every ${portable ? 'portable' : 'native'} pose component`, () => {

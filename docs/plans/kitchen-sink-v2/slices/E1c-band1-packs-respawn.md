@@ -21,8 +21,8 @@ Research:
   `variant`, `brain`, `strike`, `seed` (`:57`), coordinates bounded to ±250 (`:14`, the cube). Strikes have shapes
   `arc | lane | ring | wedge | point | sphere`, `windup`, `motion`, `eligibility.jumpDodges` (`:91`, `:160`): the
   Mite's 0.6 s crouch → 3 m lunge is a `lane` strike with a windup.
-- **Attack tokens** (`fight.attackers`, `src/engine/entities/fightRules.ts`, E297) cap simultaneous biters.
-- **Respawn is per kind, not per pack.** `RespawnQueue` (`src/game/population/respawn.ts:21`) keys rules by kind
+- **Attack tokens** (`fight.attackers`, `src/engine/server/entities/fightRules.ts`, E297) cap simultaneous biters.
+- **Respawn is per kind, not per pack.** `RespawnQueue` (`src/game/server/population/respawn.ts:21`) keys rules by kind
   (`RespawnRule { delay: { min, max }, night? }`, `src/format/populationRespawn.ts:19`) with one global out-of-sight
   distance; `ReturnGate.step` (`respawn.ts:7`) waits for `delay` and `away`. Users: Driftwood (4–15 min, the sailor
   after dark), Pine and Nalati through `nativeReturns.ts` / `pageReturns.ts`.
@@ -38,7 +38,7 @@ Work:
 | band strip | the band's packs, cover, chests as rows; the band's `pays` stays on (east) | showcase data |
 
 Host bar: creatures, groups and respawn are shared with Driftwood, Pine, Nalati and the templates; the new fields are
-optional. Guards: `shard-sandbox`, the cube bounds. Tests: `test/group-species.test.ts`, `src/game/population/*`
+optional. Guards: `shard-sandbox`, the cube bounds. Tests: `test/group-species.test.ts`, `src/game/*/population/*`
 tests, `test/fixed-page-spawn-table.test.ts`; new `pack-respawn.test.ts` (last kill + 90 s, never within 40 m, kind
 scope byte-identical).
 

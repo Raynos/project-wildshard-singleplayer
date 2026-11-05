@@ -1,13 +1,13 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
-import { App } from '../src/engine/app/app';
-import { Scope } from '../src/engine/app/scope';
-import { createLevelInstallation } from '../src/engine/level/installation';
-import { shardContext } from '../src/game/plugin/context';
-import { installQuestInteractables } from '../src/game/quest/chapter';
-import { QuestViews } from '../src/game/plugin/ui';
-import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
-import { DialogueBox } from '../src/engine/quest/view/ui';
+import { App } from '../src/engine/client/app/app';
+import { Scope } from '../src/engine/shared/app/scope';
+import { createLevelInstallation } from '../src/engine/client/level/installation';
+import { shardContext } from '../src/game/server/plugin/context';
+import { installQuestInteractables } from '../src/game/server/quest/chapter';
+import { QuestViews } from '../src/game/client/plugin/ui';
+import { RetainedRuntimeHooks } from '../src/game/client/shard/retainedHooks';
+import { DialogueBox } from '../src/engine/client/quest/view/ui';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 
 test('quest views borrow home ownership, recreate modal clocks and refuse stale or duplicate widgets', () => {

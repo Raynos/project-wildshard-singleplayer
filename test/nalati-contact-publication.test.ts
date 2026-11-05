@@ -1,6 +1,6 @@
 import {expect,test} from 'vitest';
 import {unzlibSync} from 'fflate';
-import {base64Bytes} from '../src/engine/core/deflate';
+import {base64Bytes} from '../src/engine/client/core/deflate';
 import {dressingScene,dressingSceneBlobs} from './fixtures/nalati-dressing-scene';
 import {nalatiSpecimens} from './fixtures/nalati-specimens';
 import {nalatiBalbal} from './fixtures/nalati-balbal';

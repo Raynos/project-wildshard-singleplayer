@@ -1,19 +1,19 @@
 import {admissionPage,admission} from './fixtures/nalati-return-modules';
-import { PopulationRelations } from '../src/game/population/relations';
-import { setTerrainHeight, setTerrainPlacement } from '../src/engine/world/terrainHeight';
+import { PopulationRelations } from '../src/game/server/population/relations';
+import { setTerrainHeight, setTerrainPlacement } from '../src/engine/shared/world/terrainHeight';
 import { afterEach, expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { PagePopulationPlanner, PageGroups, PageWildEnvironment, wildEnv, renderedPackOf, renderedHerdOf } from '../src/game/population/pageGroups';
-import { nearestPopulationActor } from '../src/game/shardfile/groupRuntime';
-import { Scope } from '../src/engine/app/scope';
+import { PagePopulationPlanner, PageGroups, PageWildEnvironment, wildEnv, renderedPackOf, renderedHerdOf } from '../src/game/server/population/pageGroups';
+import { nearestPopulationActor } from '../src/game/server/shardfile/groupRuntime';
+import { Scope } from '../src/engine/shared/app/scope';
 import { zlibSync } from 'fflate';
 import {bakedSamplers} from '@wildshard/format/bakedTerrainSampling';
 import brains from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };
 import strikes from './fixtures/nalati-strikeProfiles-original.json' with { type: 'json' };
 
-import { Rng } from '../src/engine/core/rng';
-import type { Animal } from '../src/engine/entities/AnimalView';
-import type { AnimalManager } from '../src/engine/entities/AnimalManager';
+import { Rng } from '../src/engine/shared/core/rng';
+import type { Animal } from '../src/engine/client/entities/AnimalView';
+import type { AnimalManager } from '../src/engine/server/entities/AnimalManager';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 afterEach(() => { setTerrainHeight(() => 0); setTerrainPlacement(() => [0, 1, 0], () => -1000); });

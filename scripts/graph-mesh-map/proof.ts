@@ -1,7 +1,7 @@
 /** Untimed GPU oracle: two original maps in one frame share one catalogue graph program. */
 import { Color, DataTexture, InstancedMesh, Matrix4, Mesh, NearestFilter, NoToneMapping, OrthographicCamera, PlaneGeometry, RGBAFormat, Scene, SRGBColorSpace, WebGLRenderer } from 'three';
-import { Scope } from '../../src/engine/app/scope';
-import { clientMaterials } from '../../src/game/shardfile/clientMaterials';
+import { Scope } from '../../src/engine/shared/app/scope';
+import { clientMaterials } from '../../src/game/client/shardfile/clientMaterials';
 import { emptyShardfile } from '../../src/sdk/author';
 import { graph, meshMap } from '../../src/sdk/materials';
 

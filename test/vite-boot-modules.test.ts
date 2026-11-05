@@ -5,7 +5,7 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin the miniature product's actual metadata bytes.
 import { createHash } from 'node:crypto';
-import { readModuleFiles } from '../src/engine/boot/download';
+import { readModuleFiles } from '../src/engine/client/boot/download';
 import { bootModuleFiles, bootModuleGroups, clientFeatureImports, startupImports } from '../scripts/app-build/bootModules';
 import { buildWithBootModules, writtenFiles } from './fixtures/written-build';
 import { writtenBundle } from '../scripts/app-build/writtenBundle';
@@ -72,14 +72,14 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
   mkdirSync('tmp/vite-boot-modules', { recursive: true });
   const root = mkdtempSync(resolve('tmp/vite-boot-modules/case-'));
   try {
-    mkdirSync(resolve(root, 'src/game/shardfile'), { recursive: true });
-    mkdirSync(resolve(root, 'src/game/grid'), { recursive: true });
-    mkdirSync(resolve(root, 'src/game/session'), { recursive: true });
-    mkdirSync(resolve(root, 'src/engine/practice'), { recursive: true });
-    mkdirSync(resolve(root, 'src/engine/models'), { recursive: true });
-    mkdirSync(resolve(root, 'src/engine/anim'), { recursive: true });
-    mkdirSync(resolve(root, 'src/game/shard'), { recursive: true });
-    mkdirSync(resolve(root, 'src/game/models'), { recursive: true });
+    mkdirSync(resolve(root, 'src/game/client/shardfile'), { recursive: true });
+    mkdirSync(resolve(root, 'src/game/client/grid'), { recursive: true });
+    mkdirSync(resolve(root, 'src/game/client/session'), { recursive: true });
+    mkdirSync(resolve(root, 'src/engine/client/practice'), { recursive: true });
+    mkdirSync(resolve(root, 'src/engine/client/models'), { recursive: true });
+    mkdirSync(resolve(root, 'src/engine/client/anim'), { recursive: true });
+    mkdirSync(resolve(root, 'src/game/client/shard'), { recursive: true });
+    mkdirSync(resolve(root, 'src/game/client/models'), { recursive: true });
     writeFileSync(resolve(root, 'index.html'), '<html><head></head><body><script type="module" src="/src/entry.ts"></script></body></html>');
     writeFileSync(resolve(root, 'src/entry.ts'), `
       window.optionalClient = () => import('./game/shardfile/client');
@@ -90,26 +90,26 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
       void startSelected().then(value => { window.value = value; });
     `);
     writeFileSync(resolve(root, 'src/first.ts'), 'import "./main.css"; import {dummy} from "./engine/models/trainingDummy"; import {prepare} from "./engine/anim/rig"; import {legacy} from "./game/shard/load"; window.parsers=[prepare,legacy]; window.dummy=dummy; window.practice = ()=>import("./engine/practice/TrainingArena").then(module=>module.practice()); export const value = "π";');
-    writeFileSync(resolve(root, 'src/engine/practice/TrainingArena.ts'), 'import {dummyFigure} from "../models/trainingDummyFigure"; export const practice=()=>Promise.all([import("./DummyClips"),dummyFigure()]);');
-    writeFileSync(resolve(root, 'src/engine/practice/DummyClips.ts'), 'export const clips = 1;');
-    writeFileSync(resolve(root, 'src/engine/anim/rig.ts'), 'export const prepare=()=>import("./rigParser");');
-    writeFileSync(resolve(root, 'src/engine/anim/rigParser.ts'), 'export const createRigLoader=()=>({kind:"bounded"});');
-    writeFileSync(resolve(root, 'src/game/shard/load.ts'), 'export const legacy=()=>import("./legacyParser");');
+    writeFileSync(resolve(root, 'src/engine/client/practice/TrainingArena.ts'), 'import {dummyFigure} from "../models/trainingDummyFigure"; export const practice=()=>Promise.all([import("./DummyClips"),dummyFigure()]);');
+    writeFileSync(resolve(root, 'src/engine/client/practice/DummyClips.ts'), 'export const clips = 1;');
+    writeFileSync(resolve(root, 'src/engine/client/anim/rig.ts'), 'export const prepare=()=>import("./rigParser");');
+    writeFileSync(resolve(root, 'src/engine/client/anim/rigParser.ts'), 'export const createRigLoader=()=>({kind:"bounded"});');
+    writeFileSync(resolve(root, 'src/game/client/shard/load.ts'), 'export const legacy=()=>import("./legacyParser");');
     writeFileSync(resolve(root, 'src/game/shard/legacyParser.ts'), 'export const loader="raw";');
-    writeFileSync(resolve(root, 'src/game/session/loadout.ts'), 'export const roster=()=>import("../models/explorerCatalogue");');
-    writeFileSync(resolve(root, 'src/game/models/explorerCatalogue.ts'), 'export const explorerRoster=()=>[];');
-    writeFileSync(resolve(root, 'src/engine/models/trainingDummy.ts'), 'export const dummy=()=>import("./trainingDummyFigure");');
-    writeFileSync(resolve(root, 'src/engine/models/trainingDummyFigure.ts'), 'export const dummyFigure=()=>import("../practice/TrainingDummyAssets");');
-    writeFileSync(resolve(root, 'src/engine/practice/TrainingDummyAssets.ts'), 'export const model = 1;');
+    writeFileSync(resolve(root, 'src/game/client/session/loadout.ts'), 'export const roster=()=>import("../models/explorerCatalogue");');
+    writeFileSync(resolve(root, 'src/game/client/models/explorerCatalogue.ts'), 'export const explorerRoster=()=>[];');
+    writeFileSync(resolve(root, 'src/engine/client/models/trainingDummy.ts'), 'export const dummy=()=>import("./trainingDummyFigure");');
+    writeFileSync(resolve(root, 'src/engine/client/models/trainingDummyFigure.ts'), 'export const dummyFigure=()=>import("../practice/TrainingDummyAssets");');
+    writeFileSync(resolve(root, 'src/engine/client/practice/TrainingDummyAssets.ts'), 'export const model = 1;');
     writeFileSync(resolve(root, 'src/main.css'), 'body { color: red; }');
     writeFileSync(resolve(root, 'src/title.ts'), 'export const title = "optional title";');
-    writeFileSync(resolve(root, 'src/game/shardfile/client.ts'), 'import {CLIENT_FEATURES} from "./clientPlan"; export const client = CLIENT_FEATURES;');
-    writeFileSync(resolve(root, 'src/game/shardfile/clientPlan.ts'), 'export const CLIENT_FEATURES = {"world.scenes":{install:()=>import("./optional-first")},"world.first":{install:()=>import("./optional-first")},"world.second":{install:()=>import("./optional-second")}};');
+    writeFileSync(resolve(root, 'src/game/client/shardfile/client.ts'), 'import {CLIENT_FEATURES} from "./clientPlan"; export const client = CLIENT_FEATURES;');
+    writeFileSync(resolve(root, 'src/game/client/shardfile/clientPlan.ts'), 'export const CLIENT_FEATURES = {"world.scenes":{install:()=>import("./optional-first")},"world.first":{install:()=>import("./optional-first")},"world.second":{install:()=>import("./optional-second")}};');
     writeFileSync(resolve(root, 'src/game/shardfile/optional-first.ts'), 'export const first = "first world";');
     writeFileSync(resolve(root, 'src/game/shardfile/optional-second.ts'), 'export const second = "second world";');
-    writeFileSync(resolve(root, 'src/game/grid/session.ts'), 'export const grid = () => import("./reveal");');
-    writeFileSync(resolve(root, 'src/game/grid/reveal.ts'), 'export const reveal = "grid reveal";');
-    writeFileSync(resolve(root, 'src/game/session/play.ts'), 'export const play = () => import("../grid/reveal");');
+    writeFileSync(resolve(root, 'src/game/client/grid/session.ts'), 'export const grid = () => import("./reveal");');
+    writeFileSync(resolve(root, 'src/game/client/grid/reveal.ts'), 'export const reveal = "grid reveal";');
+    writeFileSync(resolve(root, 'src/game/client/session/play.ts'), 'export const play = () => import("../grid/reveal");');
     const product = resolve(root,'out/example'); mkdirSync(product,{recursive:true});
     const sections = Object.entries({'client/plan':{version:1,features:[{kind:'world.scenes'}]},
       'look/materials':{rows:{looks:[{recipe:'platform.skin'}]}},'explore/catalogue':{version:1,entries:[]}}).map(([name,value]) => {
@@ -163,7 +163,7 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
 });
 
 test('feature module facts follow literal rows and share one file table', () => {
-  const actual = clientFeatureImports(readFileSync('src/game/shardfile/clientPlan.ts', 'utf8'));
+  const actual = clientFeatureImports(readFileSync('src/game/client/shardfile/clientPlan.ts', 'utf8'));
   // Hostless plans need the driver and its camera view before controls.
   // These explicit roots are already in the worldScenes static closure.
   expect(actual['world.scenes']).toEqual(['./worldScenes', './tileDriver', './streamingView']);

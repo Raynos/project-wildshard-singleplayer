@@ -1,7 +1,7 @@
 import { expect, onTestFinished, test, vi } from 'vitest';
-import { ReturnProgram } from '../src/game/population/returnProgram';
-import { DecisionModule } from '../src/engine/script/decisionModule';
-import { Rng } from '../src/engine/core/rng';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
+import { DecisionModule } from '../src/engine/shared/script/decisionModule';
+import { Rng } from '../src/engine/shared/core/rng';
 import { PINE_SHELTER_ORIGINAL as program } from './fixtures/pine-shelter';
 import look from '../src/shards/pine-hollow/data/populationShelter.json' with { type: 'json' };
 

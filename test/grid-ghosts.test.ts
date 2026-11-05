@@ -6,16 +6,16 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the installed runner and exact fixture without a shell.
 import { resolve as resolvePath } from 'node:path';
 import { Group } from 'three';
-import { GHOST_AFTER_MS, GhostWorlds } from '../src/game/grid/ghosts';
-import { Scope } from '../src/engine/app/scope';
-import { TileStreamer, scopedTilePorts, type RingPorts, type RingTile } from '../src/engine/world/tileStreamer';
-import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { clientRingPorts, type PreparedRingTile } from '../src/game/shardfile/tileContent';
-import { ClientAssets } from '../src/game/shardfile/clientAssets';
+import { GHOST_AFTER_MS, GhostWorlds } from '../src/game/server/grid/ghosts';
+import { Scope } from '../src/engine/shared/app/scope';
+import { TileStreamer, scopedTilePorts, type RingPorts, type RingTile } from '../src/engine/client/world/tileStreamer';
+import { ResidencyAllocator } from '../src/game/server/grid/allocator';
+import { clientRingPorts, type PreparedRingTile } from '../src/game/client/shardfile/tileContent';
+import { ClientAssets } from '../src/game/client/shardfile/clientAssets';
 import { emptyShardfile } from '../src/sdk/author';
-import { TileDecoder } from '../src/game/grid/tileDecoder';
-import { AssetService } from '../src/engine/app/assets';
-import { AssetResidencyBridge } from '../src/game/grid/assetResidency';
+import { TileDecoder } from '../src/game/client/grid/tileDecoder';
+import { AssetService } from '../src/engine/client/app/assets';
+import { AssetResidencyBridge } from '../src/game/client/grid/assetResidency';
 
 let childProved = false;
 function collectionRuntime(): (() => void) | null {

@@ -3,7 +3,7 @@ import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
 import { hashImmutableBytes, encodeCanonicalJson } from '../src/sdk/immutable';
 import { expect, test } from 'vitest';
 import { PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);

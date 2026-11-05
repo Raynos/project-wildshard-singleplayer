@@ -14,15 +14,15 @@ run here) and **M3.1**'s rifle half.
 
 Research:
 
-- `src/game/plugin/heldFirearm.ts` (391 lines) is the held-firearm host (H3): rows for parts, materials, pose,
+- `src/game/client/plugin/heldFirearm.ts` (391 lines) is the held-firearm host (H3): rows for parts, materials, pose,
   playback, hands, brass and tracers. Its own doc lists **owner paths the rows read on `weapon`** ("a data contract:
   move the JSON paths with any rename": `time`, `player`, `feel`, … `anchors.<id>`), i.e. reflection (test 6 fail). It
   lives in `game/plugin/`, the migration scaffolding N5 deletes (HOST-BAR "The plugin system is migration scaffolding").
-- Importers: `src/game/combat/roamingSession.ts`, `src/game/weapons/heldLauncher.ts`, `src/game/loadout/rangedPage.ts`,
+- Importers: `src/game/server/combat/roamingSession.ts`, `src/game/client/weapons/heldLauncher.ts`, `src/game/client/loadout/rangedPage.ts`,
   `claims.ts`, `held.ts`. It is not in `lint/platform-pending-users.json` (0 rows).
 - The lever rows are literally Pine's: `src/format/heldEquipment.ts` "The lever-action's rows on the held-firearm host
   (data/leverDetails.json)". `Owned.ts:24` even lists `lever-rifle` as a Pine owned id (moved to rows in W2a).
-- Engine side is fine: `src/engine/combat/Firearm.ts` (`RangedAction.Cycle` for a lever), `view/hitscan`, `view/brass`.
+- Engine side is fine: `src/engine/server/combat/Firearm.ts` (`RangedAction.Cycle` for a lever), `view/hitscan`, `view/brass`.
 
 Work: move the host to `src/game/weapons/heldFirearm.ts` (a game host), replace the owner-path reads with named
 channels the host itself owns (the same values, now addressed by channel id), keep the rows byte-compatible where
@@ -40,7 +40,7 @@ Wildshard weapon), engine untouched. Guards: the plugin-layer lint (`shard-game-
 
 ## 4. Done when, hours, blockers
 
-**Done when:** `game/plugin/heldFirearm.ts` is deleted; the showcase rifle cycles, aims and hits the three plates; the
+**Done when:** `game/client/plugin/heldFirearm.ts` is deleted; the showcase rifle cycles, aims and hits the three plates; the
 rifle drill writes a PB; Pine's rifle looks and times identically (goldens + tests).
 
 | Engine | Migration | Shard | Total |

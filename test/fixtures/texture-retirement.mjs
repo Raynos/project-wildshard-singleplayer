@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import { Scope } from '../../src/engine/app/scope';
+import { Scope } from '../../src/engine/shared/app/scope';
 import { emptyShardfile } from '../../src/sdk/author';
 import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
-import { clientMaterials } from '../../src/game/shardfile/clientMaterials';
-import { splatArray } from '../../src/game/shardfile/clientSplatTerrain';
-import { finalizeCompressedMipmaps } from '../../src/engine/render/compressedMipmaps';
+import { clientMaterials } from '../../src/game/client/shardfile/clientMaterials';
+import { splatArray } from '../../src/game/client/shardfile/clientSplatTerrain';
+import { finalizeCompressedMipmaps } from '../../src/engine/client/render/compressedMipmaps';
 
 // Raw RGBA8 KTX2, one 4x4 level. The actual loader supplies image.data and its mip alias.
 function rawKtx2() {

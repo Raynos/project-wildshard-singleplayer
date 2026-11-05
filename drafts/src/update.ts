@@ -1,4 +1,4 @@
-// The reload pill (E391, as the game's src/engine/ui/Update.ts). A home-screen app has no address bar, so this is the way to
+// The reload pill (E391, as the game's src/engine/client/ui/Update.ts). A home-screen app has no address bar, so this is the way to
 // take a new deploy: "<build> · reload", lit "New version · tap to update" when the server has a newer build (a waiting
 // worker, or /version.json says so). Shown on the title only, where the drafts are picked (E393), top right.
 import { drafts } from './pwa';

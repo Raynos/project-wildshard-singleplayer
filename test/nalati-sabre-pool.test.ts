@@ -1,12 +1,12 @@
-import { BladeSet } from '../src/game/weapons/mountedBlade';
-import { HeldClaims } from '../src/game/loadout/claims';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { Scope } from '../src/engine/app/scope';
-import { app } from '../src/engine/app/runtime';
+import { BladeSet } from '../src/game/client/weapons/mountedBlade';
+import { HeldClaims } from '../src/game/client/loadout/claims';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
+import { Scope } from '../src/engine/shared/app/scope';
+import { app } from '../src/engine/client/app/runtime';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import type { ShardContext } from '../src/game/plugin/context';
-import type { ShardRuntime } from '../src/game/shard/runtime';
-import * as geometryTools from '../src/game/plugin/geometry';
+import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import * as geometryTools from '../src/game/client/plugin/geometry';
 import loadout from '../src/shards/nalati-grasslands/data/loadout.json' with { type: 'json' };
 import { originalHeldMetadata } from './fixtures/nalati-held-original';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the emitted GLB against its original authoring geometry.
@@ -95,11 +95,11 @@ test('baked sabre preserves every move, contact, mounted coefficient and mutable
 test('Nalati gear rows decode all eight cards and independent bow paints', async () => {
   // oxlint-disable-next-line import/no-nodejs-modules -- Decode this job's portable packed geometry.
   const { inflateSync } = await import('node:zlib');
-  const { unshuffleLanes, bakedGeometryBytes } = await import('../src/game/plugin/geometry');
-  const { defineSpecimenCatalogue } = await import('../src/game/models/specimenCatalogue');
-  const { modelContext, paramsOf } = await import('../src/engine/models/model');
-  const { SkyRig } = await import('../src/engine/world/skyRig');
-  const { Rng } = await import('../src/engine/core/rng');
+  const { unshuffleLanes, bakedGeometryBytes } = await import('../src/game/client/plugin/geometry');
+  const { defineSpecimenCatalogue } = await import('../src/game/client/models/specimenCatalogue');
+  const { modelContext, paramsOf } = await import('../src/engine/client/models/model');
+  const { SkyRig } = await import('../src/engine/client/world/skyRig');
+  const { Rng } = await import('../src/engine/shared/core/rng');
   const { Object3D, Mesh, Vector3, BufferGeometry, BufferAttribute } = await import('three');
   const { default: gear } = await import('../src/shards/nalati-grasslands/data/gear.json');
   const bake = parse(PackedSpecimenSchema, gear.packed);

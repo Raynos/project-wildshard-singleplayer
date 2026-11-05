@@ -4,9 +4,9 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only files in the test's owned generated product.
 import { resolve } from 'node:path';
 import { Vector3 } from 'three';
-import { Flags } from '../src/engine/world/interact/flags';
-import { ContactFamily, type ContactMoveRow, type WeaponContactMove } from '../src/engine/combat/contactWeapon';
-import { WorldTargetHost } from '../src/game/shardfile/worldTargets';
+import { Flags } from '../src/engine/server/world/interact/flags';
+import { ContactFamily, type ContactMoveRow, type WeaponContactMove } from '../src/engine/server/combat/contactWeapon';
+import { WorldTargetHost } from '../src/game/server/shardfile/worldTargets';
 import { parseWorldTargets, worldTargetSpots, worldTargetRules } from '@wildshard/format/worldTargets';
 import { buildDecisionRegistries } from '@wildshard/format/decisionBindings';
 import { emptyShardfile } from '../src/sdk/author';

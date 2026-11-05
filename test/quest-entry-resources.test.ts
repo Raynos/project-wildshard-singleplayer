@@ -13,7 +13,7 @@ import frames from '../src/shards/driftwood-isle/data/questFrames.json' with { t
 import events from '../src/shards/driftwood-isle/data/questEvents.json' with { type: 'json' };
 import deaths from '../src/shards/driftwood-isle/data/questDeaths.json' with { type: 'json' };
 import continuation from '../src/shards/driftwood-isle/data/questContinuation.json' with { type: 'json' };
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 
 function document() {
   return { ...page, frames, events, deaths: deaths.page, entryResources: {

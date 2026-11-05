@@ -1,6 +1,6 @@
 import { BufferAttribute, BufferGeometry, InterleavedBuffer, InterleavedBufferAttribute, Matrix4, Mesh } from 'three';
 import { expect, test, vi } from 'vitest';
-import { assembleWholeGeometryViews } from '../src/game/plugin/geometry';
+import { assembleWholeGeometryViews } from '../src/game/client/plugin/geometry';
 
 const positions = [[0, 0, 0], [8, 0, 0], [0, 4, 0], [8, 4, 0]];
 function partition(vertices: number[], triangle: number, gridded: boolean): Mesh {

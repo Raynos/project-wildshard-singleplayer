@@ -16,23 +16,23 @@ export async function visitAuthoredWorld(manifest, options) {
   if ((options.visitPlacement !== undefined || options.visit !== undefined) && options.createTerrain === undefined) throw new Error('Authored world capture requires the real terrain builder');
   const src = (p) => import(pathToFileURL(resolve(ROOT, 'src', p)).href);
   const THREE = await import('three');
-  const HF = await src('engine/world/Heightfield.ts');
-  const { TERRAIN_RES, CHUNK_SIZE } = await src('engine/core/config.ts');
-  const { terrainGrid } = await src('engine/physics/terrain.ts');
-  const { pathRampDescs } = await src('engine/physics/paths.ts');
-  const { Forest } = await src('engine/world/forest/Forest.ts');
-  const { withModelPlacementVisitor } = await src('engine/models/model.ts');
+  const HF = await src('engine/shared/world/Heightfield.ts');
+  const { TERRAIN_RES, CHUNK_SIZE } = await src('engine/shared/core/config.ts');
+  const { terrainGrid } = await src('engine/shared/physics/terrain.ts');
+  const { pathRampDescs } = await src('engine/shared/physics/paths.ts');
+  const { Forest } = await src('engine/client/world/forest/Forest.ts');
+  const { withModelPlacementVisitor } = await src('engine/client/models/model.ts');
   const build = async () => {
-  const { app } = await src('engine/app/runtime.ts');
-  (await src('engine/app/view/scopeEnvironment.ts')).installBrowserScopeEnvironment({ Mesh: THREE.Mesh, InstancedMesh: THREE.InstancedMesh });
-  (await src('engine/world/registry.ts')).installWorldRegistry(); // the bake builds a level, as the session does (E434)
-  const { toLevelSpec } = await src('game/shard/spec.ts');
-  const { shardContext } = await src('game/plugin/context.ts');
-  const { TreeFactory } = await src('engine/world/TreeFactory.ts');
-  const { Physics } = await src('engine/physics/Physics.ts');
-  const { loadRapier } = await src('engine/physics/rapier.ts');
-  const { addTerrain: registerTerrain } = await src('engine/physics/terrain.ts');
-  const { needsTerrainCollider } = await src('engine/level/spec.ts');
+  const { app } = await src('engine/client/app/runtime.ts');
+  (await src('engine/client/app/view/scopeEnvironment.ts')).installBrowserScopeEnvironment({ Mesh: THREE.Mesh, InstancedMesh: THREE.InstancedMesh });
+  (await src('engine/client/world/registry.ts')).installWorldRegistry(); // the bake builds a level, as the session does (E434)
+  const { toLevelSpec } = await src('game/server/shard/spec.ts');
+  const { shardContext } = await src('game/server/plugin/context.ts');
+  const { TreeFactory } = await src('engine/client/world/TreeFactory.ts');
+  const { Physics } = await src('engine/shared/physics/Physics.ts');
+  const { loadRapier } = await src('engine/shared/physics/rapier.ts');
+  const { addTerrain: registerTerrain } = await src('engine/shared/physics/terrain.ts');
+  const { needsTerrainCollider } = await src('engine/shared/level/spec.ts');
   const renderer = new Proxy({ capabilities: { getMaxAnisotropy: () => 1 }, extensions: { has: () => false, get: () => null },
     domElement: el(), shadowMap: {}, info: { render: {}, memory: {} }, getRenderTarget: () => null,
     getSize: (v) => v.set(1, 1), getDrawingBufferSize: (v) => v.set(1, 1), getViewport: (v) => v.set(0, 0, 1, 1),
@@ -67,13 +67,13 @@ export async function visitAuthoredWorld(manifest, options) {
   const runtime = { world, step: (_name, fn) => Promise.resolve(fn({ detail: noop, set: noop })), play: null,
     interactables: [], overhead: [], objects: {}, hooks: {}, viewer: () => player.position, horizonVeil: null };
   const services = { runtime, shard: def, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } };
-  const addPaths = () => app.registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/engine/physics/paths.ts', surface: 'ground',
+  const addPaths = () => app.registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/engine/shared/physics/paths.ts', surface: 'ground',
     colliders: pathRampDescs(HF.TRAILS, HF.heightAt, (x, z) => HF.normalAt(x, z)[1], { carried: (x, z) => app.registry.floorAt(x, z) !== undefined }) });
   app.levelAdapters = { debugRow: () => noop, playground: () => noop };
   app.levelDriver = { progress: () => ({ detail: noop, set: noop }), data: noop,
     world: (_spec, ctx) => {
       game.levelScope = ctx.scope;
-      if (forest.trees.length > 0 && forest.drawer === 'self') ctx.piece({ id: 'forest', name: 'Forest', category: 'nature', file: 'src/engine/world/forest/Forest.ts', colliders: forest.colliderDescs() });
+      if (forest.trees.length > 0 && forest.drawer === 'self') ctx.piece({ id: 'forest', name: 'Forest', category: 'nature', file: 'src/engine/client/world/forest/Forest.ts', colliders: forest.colliderDescs() });
       if (def.ground.paths !== 'plugin' && def.ground.structures === undefined) addPaths();
     }, kit: noop, loadout: noop, play: noop, finish: noop };
   app.render = game; app.scene = scene; app.physics = physics;
@@ -83,7 +83,7 @@ export async function visitAuthoredWorld(manifest, options) {
     await app.loadLevel(spec, { world: (ctx) => plugin.world?.(shardContext(ctx, def, services)),
       kit: () => options.installKit?.() });
     if (options.practiceArena === true) {
-      const { TrainingArena } = await src('engine/practice/TrainingArena.ts');
+      const { TrainingArena } = await src('engine/client/practice/TrainingArena.ts');
       new TrainingArena(game, app.registry, physics, { x: def.spawn.x, z: def.spawn.z });
     }
     await options.visit?.({ scene, sky, forest, terrain, physics, registry: app.registry, camera, late });

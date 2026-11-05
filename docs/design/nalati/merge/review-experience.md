@@ -65,7 +65,7 @@ Measured live at 390×844 (`progress/nalati-merge/review/nalati-foot.jpg`, `nala
 
 | # | Element | File | Where it is now (phone) | State after the merge |
 |---|---|---|---|---|
-| 1 | **Weapon strip** 1 / 2 / 3 (bow · sabre · spear, ammo in the corner) | `src/engine/ui/WeaponStrip.ts`, touch.css | 3 × 42 px slots at (83, 623), above the bar left of centre | **Broken:** main's **SWAP pill still shows** beside it. The `.ws-touch.strip .ws-touch-disc.swap` rule misses main's `.ws-touch-pill`. The strip also sits over the move thumb's side. |
+| 1 | **Weapon strip** 1 / 2 / 3 (bow · sabre · spear, ammo in the corner) | `src/engine/client/ui/WeaponStrip.ts`, touch.css | 3 × 42 px slots at (83, 623), above the bar left of centre | **Broken:** main's **SWAP pill still shows** beside it. The `.ws-touch.strip .ws-touch-disc.swap` rule misses main's `.ws-touch-pill`. The strip also sits over the move thumb's side. |
 | 2 | **DRAW** (bow: the AIM disc relabelled, ring = draw) | TouchControls.ts, `src/engine/player/Bow.ts` | (269, 619) | **Broken:** the Nalati **DODGE override sits 37 px over DRAW** (`.ws-touch.nalati .ws-touch-disc.dodge`, written for the old layout). ATTACK reads **FIRE** and quick-fires, which is exactly what N18 rejects ("tap and hold to draw … AIM shouldn't be DRAW"). |
 | 3 | **THROW / BRACE** (spear, both held) | TouchControls.ts, `Spear.ts` | THROW in AIM's spot, BRACE in JUMP's spot | Works, but **no JUMP while the spear is held** and no LOCK (the spear is not in `MELEE`) |
 | 4 | **CROUCH** disc (long grass only, a toggle, pulses the first time) + the `TALL GRASS` hint chip | `src/shards/nalati-grasslands/stealth.ts`, touch.css | Above the JUMP column at `bar+44+disc+8` | **Broken:** main raised JUMP to `bar+58`, so CROUCH **overlaps JUMP by 6 px**. The hint chip's position is computed from the old layout. With the sabre, the Nalati DODGE override also overlaps **LOCK**, by about 40 px between centres. |
@@ -77,13 +77,13 @@ Measured live at 390×844 (`progress/nalati-merge/review/nalati-foot.jpg`, `nala
 | 10 | **STEED** strip (amber stamina bar + gait + the horse's name, amber `winded`) | RideHUD.ts | (12, 662), 162×22, above the bar, under the weapon strip | Orphaned. It was designed to ride on VITALS, and main moved VITALS to the top-left. |
 | 11 | **Taming**: TRUST arc (top centre), the stallion's ALERT ear, the HOLD ON gauge + `TAMING n/5`, LEAN L / R, OFFER | RideHUD.ts | Top centre / bottom centre above the bar | The arcs are OK. The discs have the item 8 bug. |
 | 12 | Horse name tags `TULPAR ♥` | RideHUD.ts | In the world | OK |
-| 13 | Crosshair target label | `src/engine/ui/Combat.ts` / AimTargets | — | **Bug:** in the saddle it reads **`HORSE · 1 M`** because it targets your own mount. |
-| 14 | **Elite**: a bar over its head that pins top-centre once the fight starts, the `NAMED ELITE NEARBY` banner, a gold edge chevron, skulls on the minimap | `src/engine/ui/EliteBar.ts`, elite.css, `src/game/Elite.ts` | Pinned at `ws-top + 34vw + 58px`; banner at `+34vw+44` | Stale maths: `34vw` is the **old** minimap size (main's is 27.2vw), which leaves about a 26 px dead gap. It also doubles up with lock-on's own name / health tag on the same enemy. |
-| 15 | **Boss**: a wide gold bar with phase notches, a letterbox name card, HOLD TO SKIP, retry, the reward card | `src/engine/ui/BossBar.ts`, boss.css | The phone bar is at `ws-top + 34vw + 58px`, **the same slot as the pinned elite bar** | Same stale `34vw` |
+| 13 | Crosshair target label | `src/engine/client/ui/Combat.ts` / AimTargets | — | **Bug:** in the saddle it reads **`HORSE · 1 M`** because it targets your own mount. |
+| 14 | **Elite**: a bar over its head that pins top-centre once the fight starts, the `NAMED ELITE NEARBY` banner, a gold edge chevron, skulls on the minimap | `src/engine/client/ui/EliteBar.ts`, elite.css, `src/game/server/Elite.ts` | Pinned at `ws-top + 34vw + 58px`; banner at `+34vw+44` | Stale maths: `34vw` is the **old** minimap size (main's is 27.2vw), which leaves about a 26 px dead gap. It also doubles up with lock-on's own name / health tag on the same enemy. |
+| 15 | **Boss**: a wide gold bar with phase notches, a letterbox name card, HOLD TO SKIP, retry, the reward card | `src/engine/client/ui/BossBar.ts`, boss.css | The phone bar is at `ws-top + 34vw + 58px`, **the same slot as the pinned elite bar** | Same stale `34vw` |
 | 16 | **Storm chip** (`STORM IN 0:45 · WIND 14 m/s`) + the amber `LIGHTNING — GET LOW` warning | HUD.ts `setWeather`, game.css | Chip under the minimap, centred on the **old** minimap's centre. GET LOW at `+34vw+70` ≈ y 208. | **Collides:** the chip takes main's **quest-chip** slot, and **GET LOW lands on the boss bar** (y ≈ 192–212). In the Jel Ata fight (a storm boss) both are up at once. |
 | 17 | **Hunter's eye** (the bow's dotted drop arc, in the world) | Bow.ts, Settings `huntersEye` (Nalati only, on by default on touch) | — | OK |
 | 18 | **Day clock** | `src/engine/world/DayClock.ts` | **No HUD exists** | Night changes play (ghost riders, the wolf chorus, stealth `light`) with no way to read the time |
-| 19 | **Hurt arc + trauma shake** | `src/engine/ui/HurtArc.ts`, main.ts:547–548 | — | **Not in Nalati:** gated `chunk.weapon === 'sword'`, although wolves, elites and bosses hurt you |
+| 19 | **Hurt arc + trauma shake** | `src/engine/client/ui/HurtArc.ts`, main.ts:547–548 | — | **Not in Nalati:** gated `chunk.weapon === 'sword'`, although wolves, elites and bosses hurt you |
 | 20 | **Lock-on** | LockOnTarget.ts | The LOCK disc shows with the sabre | **A dead button.** TouchControls' `MELEE` includes `sabre`, so LOCK shows. But `LockOnTarget.ts:47–48` only locks with `sword` / `sword-iron`, and its `HOSTILE` set has no Nalati kind (wolf, kokbori, leopard, eagle, ghost rider, balbal, Golden King). The spear gets no LOCK. The bow waits on E75 (ranged lock: the camera locks, aim stays manual). |
 | 21 | Minimap / MAP labels | Minimap.ts / Map.ts | — | N15 in flight ("too much text") |
 
@@ -246,20 +246,20 @@ Driftwood's systems are gated to `style === 'lowpoly'`:
 - `Game.buildComposer()` returns `buildLookV2Chain()` first when `LOOK_V2`.
 
 So Nalati never runs toon lighting, the colour lookup table (LUT) or the clean post chain. That is right: they are
-low-poly tools. What leaked in is the shared phone tier (`src/engine/core/tier.ts`), plus two bug classes Driftwood found that
+low-poly tools. What leaked in is the shared phone tier (`src/engine/client/core/tier.ts`), plus two bug classes Driftwood found that
 Nalati also has.
 
 | # | Driftwood technique (ask) | Files | Nalati today | Do | Why · size |
 |---|---|---|---|---|---|
-| 1 | Toon lighting: 2-band ramp, coloured shade, warm terminator, rim (L1 / E87) | `src/engine/world/stylize.ts` | `src/engine/world/painterly.ts`: 3 soft bands, `uPShade` coloured shade, `uPWarm`, rim, `uPFloor`, `uPWet`, and `look/light.ts` `LightCheat` | **Skip** | Already more than this, in one shader |
+| 1 | Toon lighting: 2-band ramp, coloured shade, warm terminator, rim (L1 / E87) | `src/engine/world/stylize.ts` | `src/engine/client/world/painterly.ts`: 3 soft bands, `uPShade` coloured shade, `uPWarm`, rim, `uPFloor`, `uPWet`, and `look/light.ts` `LightCheat` | **Skip** | Already more than this, in one shader |
 | 2 | Cloud shadows (L4) | stylize `toonCloud()` | `Atmosphere.ts` `patchCloudShadows()` | **Skip** | Has it |
 | 3 | Colour-ramp fog (L3) | stylize `RAMP_FOG` | `look/fog.ts`: fog coloured from the panorama by compass direction, through the grade's inverse | **Skip** | Stronger: 3D dissolves into the painting at every angle |
 | 4 | Stylized sky + faceted clouds (L2 / E83), painted horizon (X4 / E78) | `StylizedSky.ts`, `HorizonMatte.ts` | `SkyDomeV2`: one seamless painted 360° panorama | **Skip** | Faceted clouds clash with painting. The panorama is already the "painted only at infinity" rule. |
 | 5 | **Shadow step (E89)**: the sun's shadow direction moves in 0.25° steps, so shadows don't crawl | `src/engine/world/DayNight.ts` `SHADOW_STEP` | `DayClock` / `LightCheat` call `setKeyLight()` every frame, so shadows crawl ~0.24°/s. The bake re-bakes in 1.5° jumps about every 6 s. | **Adopt** | The same crawl the user filmed on Driftwood. S (+ M to fade between two bakes). |
 | 6 | **NaN clamp (E91)**: clamp `pow(1−N·V)` so an iPhone NaN pixel doesn't become a bloom-smeared black square | `StylizedSky.ts`, `Sky.ts`, `Ocean.ts` | Unclamped: `src/shards/nalati-grasslands/ghostRiders.ts:90`, `src/shards/nalati-grasslands/world/KurganDungeon.ts:110/131`, `src/world/GrassPainterly.ts:329` (v1 grass) | **Adopt** | Desktop Nalati has bloom. S. |
-| 7 | Learned LUT + ΔE colour-error score (X1 / E85) | `src/engine/world/lut.ts`, `scripts/fit-lut.py`, `scripts/palette-delta.py` | A formula grade (`GradeV2Effect`) + its exact inverse. **No numeric colour check;** the 9-angle sheets are judged by eye. | **Adapt** | (a) Copy `palette-delta.py` with Nalati camp regions: numbers against the targets (S). (b) Optionally fit a LUT and fold it into the grade pass, with the painted sky held unchanged (M, taste, as a Debug switch). |
+| 7 | Learned LUT + ΔE colour-error score (X1 / E85) | `src/engine/client/world/lut.ts`, `scripts/fit-lut.py`, `scripts/palette-delta.py` | A formula grade (`GradeV2Effect`) + its exact inverse. **No numeric colour check;** the 9-angle sheets are judged by eye. | **Adapt** | (a) Copy `palette-delta.py` with Nalati camp regions: numbers against the targets (S). (b) Optionally fit a LUT and fold it into the grade pass, with the painted sky held unchanged (M, taste, as a Debug switch). |
 | 8 | Clean post (L5 / E88): no haze / grain / fringe, bloom only above 1.0 | `Game.buildComposer` `chain(clean)` | Already clean (MSAA + grade; bloom on desktop only) | **Skip** | Optional vignette inside the grade (S, taste; look-pass lever 8 asked for one) |
-| 9 | Shared wind + swaying shadows (M5) | `src/engine/world/wind.ts` | `src/engine/world/steppeWind.ts`: moving gust fronts, GPU = CPU, driven by the weather | **Skip** | Nalati's wind is richer. Spruce shadow sway isn't worth the cost. |
+| 9 | Shared wind + swaying shadows (M5) | `src/engine/client/world/wind.ts` | `src/engine/shared/world/steppeWind.ts`: moving gust fronts, GPU = CPU, driven by the weather | **Skip** | Nalati's wind is richer. Spruce shadow sway isn't worth the cost. |
 | 10 | Ground cover (M4) | `GroundCover.ts` | v2 GPU grass rings + shader flowers + trample + dressing layers | **Skip** | Equivalent. N14's denser camp flowers are content, not a system. |
 | 11 | No pop-in (E90), and the same bug on Pine (E94) | `BlenderIsland.ts`, `tier.ts` | Spruce goes through the shared `Forest.ts` (phone `treeHiDist: 55`) | **Adapt** | Walk the spruce gullies at phone tier; push the swap out or fade it. S check / M fix. |
 | 12 | Low-poly model kit + voxel AO bake (M1) | `lowpolyKit.ts` | Built props: `PaintKit` + `bakeSmoothAO()`. **Generated GLBs (`glbPaint.ts`) get no AO.** | **Adapt** | Bake AO on the GLBs. This is the likely cause of N14's "boulders read blue-plastic in shade". S–M. |
@@ -281,7 +281,7 @@ Nalati also has.
 ## 3. Music and audio
 
 ### What main has
-- **Music** (`src/engine/audio/Music.ts`, `Stems.ts`, archived plan `project/archive/2026-09-23-music.md`): MiniMax Music 3 stems
+- **Music** (`src/engine/client/audio/Music.ts`, `Stems.ts`, archived plan `project/archive/2026-09-23-music.md`): MiniMax Music 3 stems
   in piano (default) / orchestral / folk, a synth fallback (`src/engine/audio/score/wildshard-theme.ts`), and an in-game style
   switch (Settings `musicStyle`).
   - **The adaptive score:** each slot is split by demucs into a *calm* stem and a *tension* stem (drums + half the bass).
@@ -289,9 +289,9 @@ Nalati also has.
     within 40 m.
   - **Stings:** `pickup`, `death`, `chunk`, cut from each style's takes.
   - **Only three hard-coded slots:** `SlotName = 'pine' | 'island' | 'title'` (Stems.ts:23). `wantSlot()`
-    (Music.ts:587) and the boot decode (`src/engine/boot/extras.ts:131`) choose `island` for an ocean shard and `pine` for
+    (Music.ts:587) and the boot decode (`src/engine/client/boot/extras.ts:131`) choose `island` for an ocean shard and `pine` for
     everything else.
-- **SFX** (`src/engine/audio/Audio.ts`): synth first; generated samples replace a sound where `public/assets/sfx/best/sfx.json`
+- **SFX** (`src/engine/client/audio/Audio.ts`): synth first; generated samples replace a sound where `public/assets/sfx/best/sfx.json`
   has one (82 files, 2.0 MB: MOSS v2 vs Stable Audio 3 takes, `scripts/music/gen/`). Settings `sfxSet` = `best` / `synth`.
 - **Driftwood only** (`main.ts:555, 571`, gated on `sea`): `IslandAmbience.ts` (9 zones, a surf line emitter, generated
   reverb rooms, an unused `onZone` hook for music), `IslandSfx.ts` + `Voices.ts` (surface footsteps and combat sounds
@@ -348,7 +348,7 @@ Nalati also has.
 | Piece | File | What it does |
 |---|---|---|
 | Quest as data | `src/game/quest/quest.ts` | `QuestDef`: steps with an objective (`{n}/{of}`), a `chip` of 18 characters or fewer (E51), a `hint`, a `done` condition over flags, a `count` and map `markers`. The NPC talk tables (`when` / `lines` / `sets`) live here too. |
-| Flags | `src/engine/world/interact/flags.ts` | Strings saved per shard (`ws.flags.v1`). Conditions are `{all, any, none}`. `?resetquest` clears them. |
+| Flags | `src/engine/server/world/interact/flags.ts` | Strings saved per shard (`ws.flags.v1`). Conditions are `{all, any, none}`. `?resetquest` clears them. |
 | Items / puzzles | `src/world/interact/*` | Chests, keys, doors, levers, plates, pickups, altars… All the models are **low-poly** and placed at Driftwood's named spots. |
 | Driftwood's line | `src/shards/driftwood-isle/quest/questLine.ts` | **THE SEALED RING:** Wendell → 3 glyph shards → the altar → the Drowned Captain → stand in the ring. Plus sea glass, dive treasure. |
 | Wiring | `src/game/quest/Adventure.ts` (`installAdventure`, **returns null unless `driftwood-isle`**, line 107), `Spine.ts` (NPC + talk prompt + dialogue panel + the quest chip + the MAP-tab quest card + kills chained on the first frame), `Places.ts` (walk-in discovery → a saved `seen:<id>` and a "Discovered · X" toast; names on the map once found), `Finale.ts` / `QuestUI.ts` (boss, reward, the golden-hour view), `Feats.ts` (flags → achievements) | — |
@@ -409,28 +409,28 @@ The **ghost riders** (night, `onRiderKilled`) and **Qara Batyr** fit as a later 
 | W4 | **Painterly NPCs** (elder, eagle hunter, healer): idle, talk, wave. The camp has **no people at all** today. | new `src/entities/npc/Nomad.ts` (procedural first; generated and rigged with N12 later) | M (L generated) |
 | W5 | **Places with saved discovery**: `Places.ts` over `NALATI_MAP.pois` (17 places, 3 zones) replaces main.ts:498–506. The fog stays for the ground only. Coordinate with N15 ("too much text"): names show only once found. | `Places.ts`, `main.ts` | S |
 | W6 | Painterly pickups (lotus, ovoo stone): a material hook in the item kit | `Interactables.ts`, `models.ts` | M |
-| W7 | Quest + discovery achievements in the NALATI table; tests | `src/game/achievements.ts`, `test/quest.test.ts` | S |
+| W7 | Quest + discovery achievements in the NALATI table; tests | `src/game/server/achievements.ts`, `test/quest.test.ts` | S |
 
-**Choose one boss bar.** Two boss-bar designs now exist: Nalati's gold `src/engine/ui/BossBar.ts` and main's `QuestUI` boss bar
+**Choose one boss bar.** Two boss-bar designs now exist: Nalati's gold `src/engine/client/ui/BossBar.ts` and main's `QuestUI` boss bar
 (the Drowned Captain). They should become one component.
 
 ## 5. Other player-facing things on main
 
 | Feature | File | Nalati today | Proposal | Size |
 |---|---|---|---|---|
-| Menu tabs (MAP / INVENTORY / ACHIEVEMENTS / SETTINGS / FEEDBACK, E26) | `src/engine/ui/Menu.ts` | All work. INVENTORY lists Nalati skins. MAP has no quest card (Q-layer). | Comes with W2 | – |
+| Menu tabs (MAP / INVENTORY / ACHIEVEMENTS / SETTINGS / FEEDBACK, E26) | `src/engine/client/ui/Menu.ts` | All work. INVENTORY lists Nalati skins. MAP has no quest card (Q-layer). | Comes with W2 | – |
 | Settings in two cards (E81): SETTINGS + dashed amber DEBUG | Menu.ts `buildSettings` | Hunter's eye is in Gameplay (Nalati only). **The Time-of-day picker and Look Lab are low-poly only.** | A Nalati Debug card: time of day (storms and dusk are hard to reach in a playtest), look switches | S |
 | Settings: Tracer bolts | Crossbow / Rifle | **Does nothing for the bow** | Hide it on Nalati, or give arrows a tracer | S |
 | Settings: Swing turn speed | Player.ts | The spear sets the swinging state; **the sabre never does** | Set it in `Sabre.ts` | S |
 | Settings: Music style / Sound effects | Music.ts / sfx | The style changes Pine's music; the sfx switch does nothing | §3 | – |
 | Lock-on settings (camera assist, auto re-lock) | LockOnTarget.ts | Dead: the LOCK button can't lock anything in Nalati (§1.2 #20) | Add `sabre` / `spear` + the Nalati kinds to `MELEE` / `HOSTILE` | S |
-| Death toast (`deathLine`) | `src/engine/ui/HurtArc.ts:72–88`, main.ts:761 | **No Nalati verbs**, so every death reads "Killed by a wolf". It says "respawning at the **south gate**", but Nalati's spawn is the north road. A lightning death has no killer and reads **"Fell too far"**. | Verbs ("Torn down by a wolf", "Stooped on by Qyran", "Ridden down by a ghost rider", "Crushed by a balbal"), a respawn name per shard ("back at the nomad camp"), "Struck by lightning" | S |
+| Death toast (`deathLine`) | `src/engine/client/ui/HurtArc.ts:72–88`, main.ts:761 | **No Nalati verbs**, so every death reads "Killed by a wolf". It says "respawning at the **south gate**", but Nalati's spawn is the north road. A lightning death has no killer and reads **"Fell too far"**. | Verbs ("Torn down by a wolf", "Stooped on by Qyran", "Ridden down by a ghost rider", "Crushed by a balbal"), a respawn name per shard ("back at the nomad camp"), "Struck by lightning" | S |
 | Hurt arc + trauma shake | HurtArc.ts, main.ts:547–548 | Gated `chunk.weapon === 'sword'` | Adopt it for Nalati (§1.3) | S |
 | Resume screen after an app switch (E61 / E96 / E98) | `src/engine/ui/Resume.ts`, `GpuRecovery.ts` | Works for any shard. Risks: a reload inside the kurgan (the dungeon floats at y 140, `KurganDungeon.ts:47`) likely restores you with the inside state unset; a reload in the saddle puts you on foot. | Save "inside kurgan" (or the door position) and "mounted" in the resume state | S |
 | Title / hero art | `src/shards/nalati-grasslands/manifest.ts:555–562`, `art/hero-images/round-3-nalati-in-engine` | Present (in-engine heroes, "Experimental" tag) | – | – |
 | EXPLORE WORLD / Model Explorer | `explore:` flag, `src/explore/*` | **Off for Nalati**; no Nalati models registered | Covered by the physics / explore review (N16, E72) | M |
 | Feedback note context | main.ts:410 | Works; the note context lacks mounted / storm / time of day / inside kurgan | Add those fields, so the user's notes say where they were | S |
-| Achievements UI | `src/game/achievements.ts:45` | 15 Nalati achievements (bosses, elites, tame, wolves, balbals, ghosts). None for discovery, collectibles or quests. | W7 | S |
+| Achievements UI | `src/game/server/achievements.ts:45` | 15 Nalati achievements (bosses, elites, tame, wolves, balbals, ghosts). None for discovery, collectibles or quests. | W7 | S |
 | The hoverboard | Player `setHover`, HOVER tab | Live on the steppe, and the tab stays up in the saddle | Decision below | S |
 
 ## Decisions for the user

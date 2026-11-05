@@ -4,20 +4,20 @@
 const modules = new Map([
   ...['game/boss/arenaScript', 'game/boss/arenaField'].map(path => [`src/${path}.ts`, 'C4']),
   // G530 O1: the seated-figure specimen's one user is Nalati's mounted shepherd (Explorer catalogue)
-  ['src/game/models/mountedSpecimen.ts', 'C1'],
+  ['src/game/client/models/mountedSpecimen.ts', 'C1'],
 ]);
 // G677 credits exact listed entry adapters through g571-hosts, without new
 // dispatch-user overrides or duplicate stealth/signal credit. Siblings stay charged.
 /** @type {Map<string,Map<string,import('./shard-components.mjs').Component>>} */
 // G665 R16: the listed open-arena host (including its boundary) is credited.
 const declarations = new Map([
-  ['src/game/shardfile/worldAssembly.ts', new Map([['installAssemblyArenaScript', 'C9']])],
-  ['src/game/looks/speciesBook.ts',new Map(['SpeciesLookBook','packedRows'].map(name=>[name,'C1']))],
-  ['src/game/practice/course.ts', new Map(['MountedCourseEntry', 'GrappleCourseEntry', 'MountEntryRows', 'GrappleEntryRows'].map(name => [name, 'C6']))],
-  ['src/game/boss/encounterView.ts', new Map(['SlotEncounterView','PatrolEncounterView'].map(name=>[name,'C4']))],
-  ['src/game/boss/slotLaw.ts', new Map([['SlotEncounterLaw','C4']])],
-  ['src/game/shardfile/worldScenes.ts', new Map([['WorldScenePoolPublications', 'C1']])],
-  ['src/game/shardfile/scenePools.ts', new Map([['WorldSceneTierPools', 'C1']])],
+  ['src/game/client/shardfile/worldAssembly.ts', new Map([['installAssemblyArenaScript', 'C9']])],
+  ['src/game/client/looks/speciesBook.ts',new Map(['SpeciesLookBook','packedRows'].map(name=>[name,'C1']))],
+  ['src/game/client/practice/course.ts', new Map(['MountedCourseEntry', 'GrappleCourseEntry', 'MountEntryRows', 'GrappleEntryRows'].map(name => [name, 'C6']))],
+  ['src/game/client/boss/encounterView.ts', new Map(['SlotEncounterView','PatrolEncounterView'].map(name=>[name,'C4']))],
+  ['src/game/server/boss/slotLaw.ts', new Map([['SlotEncounterLaw','C4']])],
+  ['src/game/client/shardfile/worldScenes.ts', new Map([['WorldScenePoolPublications', 'C1']])],
+  ['src/game/client/shardfile/scenePools.ts', new Map([['WorldSceneTierPools', 'C1']])],
   ['src/format/worldScenes.ts', new Map([['WorldSceneTierPools', 'C1'], ['WorldScenePoolPublications', 'C1']])],
 ]);
 
@@ -27,8 +27,8 @@ const declarations = new Map([
 const chapterViewNativeOwners = new Map([
   // Remaining unapproved dependencies retain their actual optional-facet consumer.
   // G621 D4/R13 retires the approved figure, equipment and height-patch overrides.
-  ["src/game/quest/carriedProp.ts", null],
-  ["src/engine/combat/effects/types.ts", ["SourceMulDef", "anyTag", "sourceMultiplier"]],
+  ["src/game/server/quest/carriedProp.ts", null],
+  ["src/engine/client/combat/effects/types.ts", ["SourceMulDef", "anyTag", "sourceMultiplier"]],
 ]);
 
 // Single-shard branches inside otherwise shared declarations. These spans select
@@ -36,11 +36,11 @@ const chapterViewNativeOwners = new Map([
 /** @type {Map<string,Map<string,[string,number][]>>} */
 const inline = new Map([
   // the tier-selected pool decoder the resident scenes and the catalogue's cold intake share
-  ['src/game/shardfile/scenePools.ts', new Map([['WorldSceneTierPools', [
+  ['src/game/client/shardfile/scenePools.ts', new Map([['WorldSceneTierPools', [
     ['geometryPools: files.map(file => ({ url: product.url(tierFile(file.file))', 1],
     ['const file = [...files.map(entry => tierFile(entry.file))', 1],
   ]]])],
-  ['src/game/shardfile/worldScenes.ts', new Map([
+  ['src/game/client/shardfile/worldScenes.ts', new Map([
     ['WorldScenePoolPublications', [
       ["for (const row of section.libraries) if (row.kind === 'pool' && row.publish !== undefined)", 3],
       ['if (row.publish !== undefined) for (const part of row.files.flatMap', 4],
@@ -58,8 +58,8 @@ const inline = new Map([
 
 /** @param {string} path @param {string} [name] */
 function reviewedOwner(path, name) {
-  if(path === 'src/game/practice/course.ts' && ['GrappleCourseEntry','GrappleEntryRows'].includes(name ?? '')) return 'nine-dragon-stack';
-  if (path.endsWith('/worldScenes.ts') || path === 'src/game/shardfile/scenePools.ts') return 'nine-dragon-stack';
+  if(path === 'src/game/client/practice/course.ts' && ['GrappleCourseEntry','GrappleEntryRows'].includes(name ?? '')) return 'nine-dragon-stack';
+  if (path.endsWith('/worldScenes.ts') || path === 'src/game/client/shardfile/scenePools.ts') return 'nine-dragon-stack';
   return 'nalati-grasslands';
 }
 

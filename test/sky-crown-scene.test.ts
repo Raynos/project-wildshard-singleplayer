@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { BoxGeometry, Group, InstancedMesh, MeshStandardMaterial } from 'three';
-import { bindWorldSceneParts, createWorldScene } from '../src/game/plugin/scene';
-import type { ColliderDesc } from '../src/engine/world/registry';
+import { bindWorldSceneParts, createWorldScene } from '../src/game/client/plugin/scene';
+import type { ColliderDesc } from '../src/engine/client/world/registry';
 import { crownScene } from '../src/shards/far-reach/generators/crownScene';
 import { crownInstances } from '../src/shards/far-reach/generators/crownInstances';
 import { hashImmutableBytes } from '../src/sdk/immutable';

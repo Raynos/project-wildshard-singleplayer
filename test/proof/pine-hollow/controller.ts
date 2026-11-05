@@ -2,10 +2,10 @@
  * No product, checkpoint or filesystem work runs on import. */
 import {Vector3} from 'three';
 import * as v from 'valibot';
-import type {SimHost} from '../../../src/engine/sim';
+import type {SimHost} from '../../../src/engine/server/sim';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import type {HeadlessRuntimePlan} from '../../../src/sdk/headlessRuntime';
-import {parseNavmesh,type Navmesh} from '../../../src/engine/physics/navmesh';
+import {parseNavmesh,type Navmesh} from '../../../src/engine/shared/physics/navmesh';
 import {nativeGroundBossObservation} from '@wildshard/game/boss/native';
 import {PINE_ACT,PINE_INTERACT,QUEST_STEP,pineSpots,type PineSpots} from '../../../src/shards/pine-hollow/generators/questPrompts';
 import * as LAYOUT from '../../../src/shards/pine-hollow/generators/layout';

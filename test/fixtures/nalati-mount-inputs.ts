@@ -1,7 +1,7 @@
-import type {SimHost} from '../../src/engine/sim';
+import type {SimHost} from '../../src/engine/server/sim';
 import type {HeadlessRuntimeInstallation} from '../../src/sdk/headlessRuntime';
-import {mountedPlayerOf} from '../../src/game/riding/native';
-import {pickPrompt} from '../../src/engine/world/interact/prompts';
+import {mountedPlayerOf} from '../../src/game/server/riding/native';
+import {pickPrompt} from '../../src/engine/shared/world/interact/prompts';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** Fixture input edge for the actual registered camp mounts. No actor id or

@@ -1,10 +1,10 @@
 import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { Scope } from '../src/engine/app/scope';
-import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { ClientAssets } from '../src/game/shardfile/clientAssets';
-import { leaseClientLibrary } from '../src/game/shardfile/clientLibrary';
+import { Scope } from '../src/engine/shared/app/scope';
+import { ResidencyAllocator } from '../src/game/server/grid/allocator';
+import { ClientAssets } from '../src/game/client/shardfile/clientAssets';
+import { leaseClientLibrary } from '../src/game/client/shardfile/clientLibrary';
 
 function fixture() {
   const source = emptyShardfile({ slug: 'resident-library', name: 'Library', author: 'Test', revision: 1, seed: 1 });

@@ -1,8 +1,8 @@
 import { beforeAll, expect, test } from 'vitest';
 import { compileReturnProjectionV2 } from '../src/sdk/returnProjectionV2';
 import { readDecisionSources } from '../src/sdk/buildDecisionScripts';
-import { ReturnProgram } from '../src/game/population/returnProgram';
-import { Rng } from '../src/engine/core/rng';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
+import { Rng } from '../src/engine/shared/core/rng';
 import {titanPrograms as programs,pastureWitness as pasture} from './fixtures/titanInlineWitness';
 
 // R10b (3): the shared pasture/wind/fire programme (nalati.pasture-wind) selected as v2 answers every original signal

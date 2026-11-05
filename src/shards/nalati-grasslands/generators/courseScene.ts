@@ -76,7 +76,7 @@ function build(o: THREE.Vector3): { root: THREE.Group; colliders: ColliderDesc[]
     return { root, colliders };
   }
 
-/** the field as map shapes, world x / z (src/engine/ui/roomMap.ts): what the minimap and the full map draw while the field is up */
+/** the field as map shapes, world x / z (src/engine/client/ui/roomMap.ts): what the minimap and the full map draw while the field is up */
 function fieldMap(o: THREE.Vector3): Omit<RoomMap, 'markers'> {
   const F = FIELD, w = (x: number, z: number): [number, number] => [o.x + x, o.z + z];
   const shapes: RoomShape[] = [

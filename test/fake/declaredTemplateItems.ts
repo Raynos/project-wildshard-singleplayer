@@ -1,13 +1,13 @@
-import { App } from '../../src/engine/app/app';
-import { EquipmentService } from '../../src/engine/combat/EquipmentService';
-import type { Actor } from '../../src/engine/combat/pipeline';
-import type { Scope } from '../../src/engine/app/scope';
-import type { Weapon } from '../../src/engine/combat/Weapon';
-import type { AimCommand } from '../../src/engine/input/commands';
-import type { ItemRuntime, ItemTarget } from '../../src/engine/combat/items';
-import { installDeclaredItems, type DeclaredItems } from '../../src/game/shardfile/items';
+import { App } from '../../src/engine/client/app/app';
+import { EquipmentService } from '../../src/engine/client/combat/EquipmentService';
+import type { Actor } from '../../src/engine/server/combat/pipeline';
+import type { Scope } from '../../src/engine/shared/app/scope';
+import type { Weapon } from '../../src/engine/server/combat/Weapon';
+import type { AimCommand } from '../../src/engine/shared/input/commands';
+import type { ItemRuntime, ItemTarget } from '../../src/engine/server/combat/items';
+import { installDeclaredItems, type DeclaredItems } from '../../src/game/server/shardfile/items';
 import { parseItems } from '@wildshard/format/items';
-import { declaredKitItemFamilies } from '../../src/game/plugin/weaponFamily';
+import { declaredKitItemFamilies } from '../../src/game/client/plugin/weaponFamily';
 import ITEMS from '../../src/shards/_template/data/items.json' with { type: 'json' };
 
 interface TemplateItemFixture {

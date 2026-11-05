@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import * as clock from '../src/engine/core/clock';
-import * as pacing from '../src/engine/core/framePacing';
-import * as work from '../src/engine/core/workSlice';
-import { constructionCheckpoint } from '../src/game/shardfile/constructionCheckpoint';
+import { Scope } from '../src/engine/shared/app/scope';
+import * as clock from '../src/engine/shared/core/clock';
+import * as pacing from '../src/engine/shared/core/framePacing';
+import * as work from '../src/engine/shared/core/workSlice';
+import { constructionCheckpoint } from '../src/game/client/shardfile/constructionCheckpoint';
 
 const originalDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
 beforeEach(() => {

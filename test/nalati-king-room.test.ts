@@ -2,9 +2,9 @@
 import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
 import { beforeAll, expect, test } from 'vitest';
-import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
-import { arenaEntryOf } from '../src/game/boss/arenaRoomEntry';
-import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
+import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
+import { arenaEntryOf } from '../src/game/server/boss/arenaRoomEntry';
+import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { createTrustedHeadlessResident, type TrustedHeadlessResident } from '../src/sdk/headlessRuntime';
 import { builtProduct } from './fixtures/builtProduct';

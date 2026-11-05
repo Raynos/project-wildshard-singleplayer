@@ -1,5 +1,5 @@
 {
-  "source": "5f63be75d:src/engine/world/BakedSky.ts WORKER_SRC; original RGB alpha removal",
+  "source": "5f63be75d:src/engine/client/world/BakedSky.ts WORKER_SRC; original RGB alpha removal",
   "width": 256,
   "height": 256,
   "texels": 65536,

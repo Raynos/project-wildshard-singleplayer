@@ -1,4 +1,4 @@
-import catalogue from '../../../src/game/grid/singleplayer.json' with { type: 'json' };
+import catalogue from '../../../src/game/shared/grid/singleplayer.json' with { type: 'json' };
 
 /**
  * The live-grid mechanism fixtures' grid: the shipped catalogue with a plain Template 1 copy, `template-3`, in the cell

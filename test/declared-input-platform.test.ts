@@ -1,13 +1,13 @@
 import { parseItems } from '@wildshard/format/items';
 import { migrateEquipmentSlots, parseMigrations } from '@wildshard/format/migrations';
-import { CosmeticsLocker, type CosmeticState } from '../src/game/cosmetics/locker';
-import { declaredItemContext } from '../src/game/shardfile/items';
+import { CosmeticsLocker, type CosmeticState } from '../src/game/client/cosmetics/locker';
+import { declaredItemContext } from '../src/game/server/shardfile/items';
 import { expect, test } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { InputService } from '../src/engine/input/InputService';
+import { Scope } from '../src/engine/shared/app/scope';
+import { InputService } from '../src/engine/client/input/InputService';
 import { parsePlumbing } from '@wildshard/format/plumbing';
 import { InputExtraSchema, inputWhenMatches } from '@wildshard/format/inputDeclarations';
-import { installDeclaredPlumbing, plumbingKnob } from '../src/game/shard/declaredPlumbing';
+import { installDeclaredPlumbing, plumbingKnob } from '../src/game/client/shard/declaredPlumbing';
 import * as v from 'valibot';
 
 // A fictional shard declares its own controls, conditional context and tier policy.
@@ -123,8 +123,8 @@ test('slot migration rows and saves reject executable properties before reading 
 
 
 test('Pine declared cabin policy survives GRID trim and alternate-tier construction', async () => {
-  const { TIER, TIER_CONFIG, initializeTier, applyLevelTier, buildTier } = await import('../src/engine/core/tier');
-  const { withTier } = await import('../src/engine/explore/tiers');
+  const { TIER, TIER_CONFIG, initializeTier, applyLevelTier, buildTier } = await import('../src/engine/client/core/tier');
+  const { withTier } = await import('../src/engine/client/explore/tiers');
   const { default: plumbing } = await import('../src/shards/pine-hollow/data/plumbing.json');
   const { default: nine } = await import('../src/shards/nine-dragon-stack/data/plumbing.json');
   const saved = { ...TIER_CONFIG }, savedTier = TIER;

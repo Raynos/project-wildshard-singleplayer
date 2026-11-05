@@ -1,4 +1,4 @@
-import { HullLookBook } from '../../src/game/looks/speciesBook';
+import { HullLookBook } from '../../src/game/client/looks/speciesBook';
 // oxlint-disable-next-line import/no-nodejs-modules -- The fake reads the bodies' committed head and captain.
 import { readFileSync } from 'node:fs';
 import { driftwoodCreatureBodyBank } from '../../src/shards/driftwood-isle/generators/creatureBodyBank';

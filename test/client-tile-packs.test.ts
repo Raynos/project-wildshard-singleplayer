@@ -1,11 +1,11 @@
 import { expect, test, vi } from 'vitest';
-import { runtimePacksOn } from '../src/engine/boot/loadingPacks';
-import { CELL_RING, ringRadius } from '../src/game/shardfile/tileContent';
-import { tileOf, tileOrder } from '../src/game/shardfile/tileOrder';
+import { runtimePacksOn } from '../src/engine/client/boot/loadingPacks';
+import { CELL_RING, ringRadius } from '../src/game/client/shardfile/tileContent';
+import { tileOf, tileOrder } from '../src/game/shared/shardfile/tileOrder';
 import { camera, clientTileFixture } from './fixtures/clientTileRegistration';
-import { Scope } from '../src/engine/app/scope';
-import { ControlRefinement, prepareSpawnView } from '../src/game/shardfile/controlRefinement';
-import { productTileRing, TileDriver } from '../src/game/shardfile/tileDriver';
+import { Scope } from '../src/engine/shared/app/scope';
+import { ControlRefinement, prepareSpawnView } from '../src/game/client/shardfile/controlRefinement';
+import { productTileRing, TileDriver } from '../src/game/client/shardfile/tileDriver';
 
 test('the shipped packs default holds every fine tile without changing arrival and critical ordering', async () => {
   expect(runtimePacksOn()).toBe(true);

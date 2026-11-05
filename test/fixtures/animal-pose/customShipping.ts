@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import type { AnimalRigContext, AnimalRigJoint } from '../../../src/engine/entities/animalRig';
-import { lookAngles, smooth01, bump, step, clamp, squashBody } from '../../../src/engine/entities/species/rigs';
+import type { AnimalRigContext, AnimalRigJoint } from '../../../src/engine/shared/entities/animalRig';
+import { lookAngles, smooth01, bump, step, clamp, squashBody } from '../../../src/engine/shared/entities/species/rigs';
 type CaptainMem=Record<string,number>&{init:number;rise:number;phase:number};
 import type { MonkeyMem } from '../species-oracle/monkeyPolicy';
 type Side='L'|'R';type LegIdx=0|1|2;

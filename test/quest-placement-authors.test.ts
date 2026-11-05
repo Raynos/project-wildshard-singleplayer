@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Offline placement and admission must retain the native renderer guard.
 import { execFileSync } from 'node:child_process';
 import { expect, expectTypeOf, test } from 'vitest';
-import { createQuestPlacements, type QuestPlace, type QuestPlaceAnchor, type QuestPlacementPorts, type Place } from '../src/engine/world/interact/types';
+import { createQuestPlacements, type QuestPlace, type QuestPlaceAnchor, type QuestPlacementPorts, type Place } from '../src/engine/shared/world/interact/types';
 import { createAuthorQuestPlacements, type AuthorQuestPlace, type AuthorQuestAnchor, type AuthorQuestPlacementPorts } from '../src/sdk/bake/questPlacement';
 import { completionCardRows } from '../src/sdk/quests';
 import { clientPlanSection } from '../src/sdk/platformSections';

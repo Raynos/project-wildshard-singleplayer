@@ -15,7 +15,7 @@
 //     R_weapon (`sword_wood`, `sword_iron`: the runtime shows one), R_weapon moved 6 cm down the grip (a 15 cm grip);
 //   - two looping clips on the same bones: `swimStroke` (the breaststroke, one cycle = one Player stroke) and `swimTread`
 //     (sculling when still), with the fingers' swim poses. Authored as wrist paths through the rig's own two-bone IK
-//     (src/game/systems/viewmodel/armRig.ts: twoBone, buildBones), like the 16.
+//     (src/game/client/systems/viewmodel/armRig.ts: twoBone, buildBones), like the 16.
 // Skin weights, per part rule (arms.py): 'hand' = the hand bone (blended into the forearm over the wrist), 'chain' = a
 // finger's bones by the nearest point on its bone line (a short blend at each knuckle), 'arm' = the bones along the
 // shoulder → elbow → wrist line (a baggy elbow blend, the twist bones interpolated along the forearm).

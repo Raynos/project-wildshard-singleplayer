@@ -1,8 +1,8 @@
 import { expect, it } from 'vitest';
 import { BoxGeometry, Group, InstancedMesh, MeshStandardMaterial } from 'three';
-import { createClientScene } from '../src/game/plugin/scene';
-import { worldPieces, type WorldPieceRow } from '../src/game/shardfile/bakedKinds';
-import type { Piece } from '../src/engine/world/registry';
+import { createClientScene } from '../src/game/client/plugin/scene';
+import { worldPieces, type WorldPieceRow } from '../src/game/client/shardfile/bakedKinds';
+import type { Piece } from '../src/engine/client/world/registry';
 // oxlint-disable-next-line import/no-nodejs-modules -- Supply the original authored native model directly to its owner.
 import { readFileSync } from 'node:fs';
 import { bridgeRestValues } from '../src/shards/far-reach/generators/bridgeRest';

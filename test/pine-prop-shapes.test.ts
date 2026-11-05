@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
 import { BoxGeometry, MeshStandardMaterial, Object3D } from 'three';
-import { Rng } from '../src/engine/core/rng';
-import { modelContext } from '../src/engine/models/model';
-import { Scope } from '../src/engine/app/scope';
-import { defineWorldSceneCatalogue, bindWorldSceneModelSources } from '../src/game/models/worldSceneCatalogue';
+import { Rng } from '../src/engine/shared/core/rng';
+import { modelContext } from '../src/engine/client/models/model';
+import { Scope } from '../src/engine/shared/app/scope';
+import { defineWorldSceneCatalogue, bindWorldSceneModelSources } from '../src/game/client/models/worldSceneCatalogue';
 import { sceneModelRows } from '../src/shards/pine-hollow/generators/sceneModelRows';
 import { PINE_SOURCES } from './fixtures/pine-sources';
 import { timberWorld } from '../src/shards/pine-hollow/generators/timberWorldRows';

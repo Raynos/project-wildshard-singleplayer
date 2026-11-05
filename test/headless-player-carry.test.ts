@@ -1,10 +1,10 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The real native world uses the shipped physics module.
 import {readFileSync} from 'node:fs';
 import {expect,test,vi} from 'vitest';
-import {loadRapier} from '../src/engine/physics/rapier';
-import {rideable} from '../src/engine/physics/CharacterMotor';
-import {groups} from '../src/engine/physics/groups';
-import {createShardfileSim} from '../src/game/plugin/simulation';
+import {loadRapier} from '../src/engine/shared/physics/rapier';
+import {rideable} from '../src/engine/shared/physics/CharacterMotor';
+import {groups} from '../src/engine/shared/physics/groups';
+import {createShardfileSim} from '../src/game/server/plugin/simulation';
 import {emptyShardfile} from '../src/sdk/author';
 import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 

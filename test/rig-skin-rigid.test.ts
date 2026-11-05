@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { BoxGeometry, DetachedBindMode, Group, Matrix4, Mesh, MeshBasicMaterial, Object3D, SkinnedMesh, Vector3 } from 'three';
-import { skinRigid } from '../src/game/systems/viewmodel/rigArms';
+import { skinRigid } from '../src/game/client/systems/viewmodel/rigArms';
 
 // NF15: a rigid held hull draws as a skinned mesh on one identity bone, so it shares the skinned hulls' program; the
 // skinning must leave every vertex exactly where it was

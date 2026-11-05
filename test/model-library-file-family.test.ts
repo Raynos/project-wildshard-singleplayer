@@ -2,7 +2,7 @@ import {expect,test} from 'vitest';
 import * as v from 'valibot';
 import {FixedDrawRowsSchema} from '@wildshard/format/fixedDraws';
 import {platformFileFamily,validatePlatformFile} from '@wildshard/format/platformFileFamilies';
-import {fixedDraws} from '../src/game/models/fixedDraws';
+import {fixedDraws} from '../src/game/client/models/fixedDraws';
 import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
 import roots from './fixtures/fixed-draw-root-users.json' with {type:'json'};
 

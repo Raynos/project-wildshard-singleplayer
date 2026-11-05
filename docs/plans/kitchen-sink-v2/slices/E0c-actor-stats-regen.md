@@ -16,14 +16,14 @@ after the last hit, full in 12 s.
 
 Research:
 
-- `PlayerHealth` is fixed at 100 / 100 (`src/engine/combat/health.ts:29`) with `setMaxHealth(max)` already there
+- `PlayerHealth` is fixed at 100 / 100 (`src/engine/server/combat/health.ts:29`) with `setMaxHealth(max)` already there
   (`:61`, it raises current HP by the gain). Regen is hard-coded: **4 HP/s after 6,000 ms** (`:77`). The snapshot is
   `version: 1` (`:41`); `restore` throws on any other version.
-- `HealthAttributes extends AttributeSet` (`pipeline.ts:12`, `engine/combat/effects/types.ts`): an open record, so the
+- `HealthAttributes extends AttributeSet` (`pipeline.ts:12`, `engine/client/combat/effects/types.ts`): an open record, so the
   seven attributes and `grade` can live on it without a schema break, but the snapshot copies every key, so a levelled
   player's snapshot grows (a levelled-only change).
 - Creature HP: `AnimalSim` exposes `health` / `maxHealth` / `damageTakenMul` from its variant row
-  (`src/engine/entities/AnimalSim.ts:243`). Strike damage is a flat authored number (`combat/strikes` rows, e.g. the
+  (`src/engine/server/entities/AnimalSim.ts:243`). Strike damage is a flat authored number (`combat/strikes` rows, e.g. the
   template's `template.blob.bump` damage 8).
 - **Leash and walk home already exist** in the `pursue` brain row (`awareRadius`, `leashRadius`, `returnSpeed`,
   `src/format/creatures.ts:15`) and in elites (`leashR`, `src/format/eliteFeature.ts:12`), but a creature that walks
@@ -33,7 +33,7 @@ Work:
 
 | Row / mechanic | Shape | Layer |
 |---|---|---|
-| player character | on first entry a roll from the `combat` stream: aptitudes per attribute, base values; saved per shard (`saves.define({ scope: 'shard' })`, `src/game/saves.ts:10`) as `experience` (with E0d's XP) | game `src/game/progression/character.ts` (new) |
+| player character | on first entry a roll from the `combat` stream: aptitudes per attribute, base values; saved per shard (`saves.define({ scope: 'shard' })`, `src/game/shared/saves.ts:10`) as `experience` (with E0d's XP) | game `src/game/progression/character.ts` (new) |
 | HP = VIT | levelled only: `setMaxHealth(VIT)` on entry and level-up; the snapshot gains the attributes (version 2, read only by levelled products; flat products keep writing version 1) | engine `health.ts` (a version-2 reader) + game |
 | regen | `regen: { after: 5, fill: 12 }` as a levelled row; the engine's `update` reads `after`/rate from attributes with today's 6 s / 4 HP/s as the default | engine `health.ts` (numbers only) |
 | species stats | `kinds` rows → each spawn's `AttributeSet` at its level (VIT × kind HP, DEF/MDEF × kind, STR/DEX from par); strike `damage` read as a **multiplier** of the level's strike base when levelled | game `src/game/combat/actorStats.ts` (new), format `creatures.ts` (a levelled reading, no new field) |

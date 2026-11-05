@@ -1,9 +1,9 @@
-import { sameRuntimeProfile } from '../src/game/plugin/headless';
+import { sameRuntimeProfile } from '../src/game/server/plugin/headless';
 import { parseItems } from '@wildshard/format/items';
 import { expect, test } from 'vitest';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { emptyShardfile } from '../src/sdk/author';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { DRIFTWOOD as source } from './fixtures/driftwood-program';
 
 const shardfile = emptyShardfile({ slug: 'sword-profiles-test', name: 'Sword', author: 'Wildshard', revision: 1, seed: 1 });

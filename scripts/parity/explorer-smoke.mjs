@@ -65,7 +65,7 @@ export function explorerState() {
     if(!(card instanceof HTMLElement))throw new Error('Invalid model card');
     return card.dataset.id??'';
   });
-  const probe = /** @type {import('../../src/engine/debug/probe').EngineProbe | undefined} */ (window.__wildshard);
+  const probe = /** @type {import('../../src/engine/client/debug/probe').EngineProbe | undefined} */ (window.__wildshard);
   const identity = {url:location.href,timeOrigin:performance.timeOrigin,slug:probe?.shard.slug??null};
   return {fatal,document:identity,empty:root?.querySelector('.ws-x-empty-models.show')!==null && root!==null,
     ready:cards!==undefined && cards.length>0 && readyIds.length===cards.length,readyIds};
@@ -82,7 +82,7 @@ export function explorerCapture(){
     if(!(card instanceof HTMLElement))throw new Error('Invalid model card');
     return card.dataset.id??'';
   });
-  const probe = /** @type {import('../../src/engine/debug/probe').EngineProbe | undefined} */ (window.__wildshard);
+  const probe = /** @type {import('../../src/engine/client/debug/probe').EngineProbe | undefined} */ (window.__wildshard);
   const identity = {url:location.href,timeOrigin:performance.timeOrigin,slug:probe?.shard.slug??null};
   return {fatal,document:identity,empty:root?.querySelector('.ws-x-empty-models.show')!==null && root!==null,
     ready:cards!==undefined && cards.length>0 && readyIds.length===cards.length,readyIds};
@@ -134,7 +134,7 @@ export function verifyExplorerDocument(observed,base,slug,previous){
 
 /** Passive native timings; no render calls, asset mocks or shader changes. */
 export function explorerDiagnostics(){
-  const probe = /** @type {import('../../src/engine/debug/probe').EngineProbe | undefined} */ (window.__wildshard);
+  const probe = /** @type {import('../../src/engine/client/debug/probe').EngineProbe | undefined} */ (window.__wildshard);
   const navigation=performance.getEntriesByType('navigation')[0];
   const resources=performance.getEntriesByType('resource').filter(row=>row instanceof PerformanceResourceTiming).map(row=>({
     url:row.name,type:row.initiatorType,durationMs:row.duration,transferBytes:row.transferSize,encodedBytes:row.encodedBodySize,

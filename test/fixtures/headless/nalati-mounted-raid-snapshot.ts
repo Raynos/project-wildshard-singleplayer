@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Prove the writer owns a genuinely earned native checkpoint.
 import assert from 'node:assert/strict';
 import { earnNalatiMountedRaid } from './nalati-mounted-raid';
-import { nativePopulationOf } from '../../../src/game/riding/nativePopulation';
+import { nativePopulationOf } from '../../../src/game/server/riding/nativePopulation';
 
 const earned = await earnNalatiMountedRaid();
 try {

@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
-import { absentShardProduct, createShardProduct } from '../src/game/shardfile/shardProduct';
-import {productAudioCatalogue} from '../src/game/shardfile/audioCatalogue';
+import { absentShardProduct, createShardProduct } from '../src/game/shared/shardfile/shardProduct';
+import {productAudioCatalogue} from '../src/game/server/shardfile/audioCatalogue';
 import { pineAudio } from '../src/shards/pine-hollow/generators/channelSections';
 import { parseAudioData } from '@wildshard/format/audio';
 

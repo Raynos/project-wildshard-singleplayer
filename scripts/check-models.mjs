@@ -1,21 +1,21 @@
 #!/usr/bin/env node
 /**
- * check-models — the model contract's static check (E306 / E315 row M8; the contract is src/engine/models/model.ts).
+ * check-models — the model contract's static check (E306 / E315 row M8; the contract is src/engine/client/models/model.ts).
  *
  * FAILS (exit 1) on a broken rule, anywhere:
- *   1. `defineModel(` outside `src/engine/models/` and `src/shards/<slug>/models/`
+ *   1. `defineModel(` outside `src/engine/client/models/` and `src/shards/<slug>/models/`
  *   2. a file under `src/shards/<slug>/models/` that defines no model and is not an exact declared model support module
- *   3. a model id not prefixed by its folder: `<slug>/…` in a shard's models, `shared/…` in src/engine/models/
+ *   3. a model id not prefixed by its folder: `<slug>/…` in a shard's models, `shared/…` in src/engine/client/models/
  *   4. a shard importing another shard's models (`src/shards/<a>/**` → `shards/<b>/models/`)
- *   5. `src/engine/models/` importing a shard (`shards/…`): the contract stays shard-agnostic
+ *   5. `src/engine/client/models/` importing a shard (`shards/…`): the contract stays shard-agnostic
  *   6. a file already on the contract (`ON_CONTRACT`) registering a built thing by hand again (a registry `.add({ … })` with
  *      an `object`, found by a balanced scan of the literal: `addsWithObject`)
  *   7. any area (`DONE`: every shard since its wave, the shared code since M6) drawing or registering a thing by hand
  *      outside a models folder — only the files it declares world may, each with its reason and its counts. The old
  *      registrations (`addBuilt`, `registerModel`, `registerSolid`) are gone, and a registry `add` with a `model` is
- *      `place` / `listModel`'s alone (src/engine/models/): each counts, and no area declares one. The dev labs were deleted in E357 F7; there is no dev exemption
+ *      `place` / `listModel`'s alone (src/engine/client/models/): each counts, and no area declares one. The dev labs were deleted in E357 F7; there is no dev exemption
  *   8. a species rig with no model (E315 M5): every kind a file registers (`registerSpecies({ … kind: '<kind>'` or a string
- *      constant) is some model's species rig — `creature(<kind>…)` (src/engine/models/creature.ts) or its `rig: { species }` — so a
+ *      constant) is some model's species rig — `creature(<kind>…)` (src/engine/client/models/creature.ts) or its `rig: { species }` — so a
  *      new creature can't slip past the Model Explorer
  *   9. a named place with no Set (E315 M12, Jake: "all four shards need to have models and sets"): every place in a
  *      shard's list of named places (`NAMED_PLACES`: Driftwood's DRIFTWOOD_PLACES, Nalati's map POIs = NALATI_PLACES,
@@ -73,49 +73,49 @@ export const DONE = {
   // M6: the code every shard shares — systems, effects, gear, the fields that scatter — declared, so a new thing drawn or
   // registered by hand here fails too
   'shared (src/world, src/player, src/entities, …)': {
-    'src/engine/render/scatterInstances.ts': { why: '2d917c567c: the existing bounded scatter draw moved from Nalati dressing; authored placements and collision remain data', counts: { InstancedMesh: 1 } },
-    'src/game/ambient/wingField.ts': { why: '2d917c567c: the former two ambient wing draws share one row-owned allocation site; creatures remain model-owned', counts: { InstancedMesh: 1 } },
-    'src/game/boss/arenaFire.ts': { why: 'f524ad70dc: the existing flame and smoke effect draws moved from stormTitanLook with their original ceiling', counts: { InstancedMesh: 2 } },
-    'src/game/boss/encounterView.ts': { why: 'Moved from Nalati: a cloud body\'s puffs (one row-sized draw) and an encounter site\'s empty stand-in for a variant no site wears; the sites themselves are placed through place()', counts: { InstancedMesh: 2 } },
-    'src/game/practice/course.ts': { why: 'The existing riding and grapple practice rooms share one row-owned registration; no shard world content', counts: { 'registry add with object': 1 } },
-    'src/game/weapons/heldPolearm.ts': { why: '90b6eb13ce: the held spear retains its original single thrown-javelin draw; the empty placeholder allocation is retired', counts: { InstancedMesh: 1 } },
-    'src/game/shardfile/worldSceneBatch.ts': { why: 'G483: one declared world-scene batch of fixed LOD instances, drawn instanced (E271 / E272: no multi-draw) and registered as one world piece; bounded rows own capacity and material, never shard drawing callbacks', counts: { 'registry add with object': 1 } },
-    'src/game/shardfile/clientForestPage.ts': { why: "G571: a forest page's cave lights (the interior's shaft and drips) added as world, without colliders, as Pine's landmarks did", counts: { 'registry add with object': 1 } },
-    'src/game/weather/forest.ts': { why: 'Weather particles and puddles are effects; the retained instance draw follows the prepared weather rows.', counts: { InstancedMesh: 1 } },
-    'src/game/shardfile/worldSceneWeld.ts': { why: 'Frozen Z2 instances hydrate declared capacity and matrix rows as Scope-owned native draws; no procedural shard content', counts: { InstancedMesh: 1 } },
-    'src/game/shardfile/worldScenes.ts': { why: 'G483: declared static scene parts own their collider rows through the resident registry; no procedural shard construction', counts: { 'registry add with object': 1 } },
+    'src/engine/client/render/scatterInstances.ts': { why: '2d917c567c: the existing bounded scatter draw moved from Nalati dressing; authored placements and collision remain data', counts: { InstancedMesh: 1 } },
+    'src/game/client/ambient/wingField.ts': { why: '2d917c567c: the former two ambient wing draws share one row-owned allocation site; creatures remain model-owned', counts: { InstancedMesh: 1 } },
+    'src/game/client/boss/arenaFire.ts': { why: 'f524ad70dc: the existing flame and smoke effect draws moved from stormTitanLook with their original ceiling', counts: { InstancedMesh: 2 } },
+    'src/game/client/boss/encounterView.ts': { why: 'Moved from Nalati: a cloud body\'s puffs (one row-sized draw) and an encounter site\'s empty stand-in for a variant no site wears; the sites themselves are placed through place()', counts: { InstancedMesh: 2 } },
+    'src/game/client/practice/course.ts': { why: 'The existing riding and grapple practice rooms share one row-owned registration; no shard world content', counts: { 'registry add with object': 1 } },
+    'src/game/client/weapons/heldPolearm.ts': { why: '90b6eb13ce: the held spear retains its original single thrown-javelin draw; the empty placeholder allocation is retired', counts: { InstancedMesh: 1 } },
+    'src/game/client/shardfile/worldSceneBatch.ts': { why: 'G483: one declared world-scene batch of fixed LOD instances, drawn instanced (E271 / E272: no multi-draw) and registered as one world piece; bounded rows own capacity and material, never shard drawing callbacks', counts: { 'registry add with object': 1 } },
+    'src/game/client/shardfile/clientForestPage.ts': { why: "G571: a forest page's cave lights (the interior's shaft and drips) added as world, without colliders, as Pine's landmarks did", counts: { 'registry add with object': 1 } },
+    'src/game/client/weather/forest.ts': { why: 'Weather particles and puddles are effects; the retained instance draw follows the prepared weather rows.', counts: { InstancedMesh: 1 } },
+    'src/game/client/shardfile/worldSceneWeld.ts': { why: 'Frozen Z2 instances hydrate declared capacity and matrix rows as Scope-owned native draws; no procedural shard content', counts: { InstancedMesh: 1 } },
+    'src/game/client/shardfile/worldScenes.ts': { why: 'G483: declared static scene parts own their collider rows through the resident registry; no procedural shard construction', counts: { 'registry add with object': 1 } },
     // 7def4ee68: same Sky chain / Signal rope instance draw, moved to its host.
-    'src/game/plugin/ui.ts': { why: '7def4ee68: the existing private-scene instance owner moved from Sky islet chains and Signal well rope; the called model owns the geometry, never a new world thing', counts: { InstancedMesh: 1 } },
+    'src/game/client/plugin/ui.ts': { why: '7def4ee68: the existing private-scene instance owner moved from Sky islet chains and Signal well rope; the called model owns the geometry, never a new world thing', counts: { InstancedMesh: 1 } },
     // 3b5ac8c9a: same authored cord merge, moved into the offline curve bake.
     'src/sdk/bake/glb.ts': { why: '3b5ac8c9a: the offline curve weld for the existing Sky fan tassels, replacing their private cord geometry; no runtime world registration', counts: { mergeGeometries: 1 } },
     // bf05c8c27: same Pine wildlife / Nalati flock instance draw, shared owner.
-    'src/game/looks/posedInstances.ts': { why: 'bf05c8c27: the existing posed creature instance owner shared by Pine wildlife and the Nalati flock (creatures, M5); geometry and poses stay with their model', counts: { InstancedMesh: 1 } },
+    'src/game/client/looks/posedInstances.ts': { why: 'bf05c8c27: the existing posed creature instance owner shared by Pine wildlife and the Nalati flock (creatures, M5); geometry and poses stay with their model', counts: { InstancedMesh: 1 } },
     'src/sdk/sceneGraph.ts': { why: 'DS1.2 authoring-only Node reconstruction of persisted scene data: restores the authored instance matrices for build compilers without a renderer, runtime host or newly placed world thing', counts: { InstancedMesh: 1 } },
-    'src/engine/render/precompile.ts': { why: 'Compile-only detached shader stand-in borrows the source instance layout and buffers; never placed or drawn as world content', counts: { InstancedMesh: 1 } },
-    'src/engine/render/calibrationGpu.ts': { why: 'E357 S1.6 synthetic unit-cost scene: temporary calibration geometry, never shard content or a Model Explorer asset', counts: { InstancedMesh: 1 } },
-    'src/engine/entities/AnimalFactory.ts': { why: "the species rigs' builder: a creature's parts merged per bone (creatures are models, M5: each shard's roster)", counts: { mergeGeometries: 4 } },
-    'src/engine/fx/Impacts.ts': { why: 'hit sparks and debris: an effect', counts: { InstancedMesh: 1 } },
-    'src/game/loot/CoinBurst.ts': { why: 'the coins bursting from a kill: an effect', counts: { InstancedMesh: 1 } },
-    'src/game/cosmetics/bodyShadow.ts': { why: "the player's own shadow-casting body: the player, not a thing in the world", counts: { mergeGeometries: 2 } },
-    'src/game/systems/items/declaredSword.ts': { why: "SF54: the declared kit.sword item view's private copy of the low-poly sword build (Gear), moved with the declared item families out of the kit; deleted when they graduate", counts: { mergeGeometries: 2 } },
-    'src/engine/combat/view/projectile.ts': { why: 'bolts and arrows in flight: an effect of the held gear', counts: { InstancedMesh: 1 } },
-    'src/engine/player/WeaponPickup.ts': { why: "a weapon lying in the world to pick up: its Gear model's display copy", counts: { mergeGeometries: 1 } },
-    'src/engine/practice/playground/devGrid.ts': { why: "the playgrounds' grid floor (a practice scene, not a shard)", counts: { mergeGeometries: 1 } },
-    'src/engine/practice/TrainingArena.ts': { why: "the practice room's walls and floor (the arena's world)", counts: { 'registry add with object': 1 } },
-    'src/engine/practice/TrainingDummy.ts': { why: "the shared training dummy's builder (the model shared/training-dummy, M5: listed on every shard)", counts: { mergeGeometries: 1 } },
-    'src/game/grid/roadLook.ts': { why: "the grid's boulevard (SF17b, G80 / G81): asphalt, kerbs, streetlights and signs generated along the platform deck's 24 km of road from its layout — world, welded to the deck (no fixed copies for place() to count)", counts: { InstancedMesh: 2 } },
-    'src/game/grid/voidLook.ts': { why: "the grid's edge (SF17b, G89): the VR void's floor, its rail and the rail's posts round the outer road — world, like the shard's edge in Boundary.ts", counts: { InstancedMesh: 2 } },
-    'src/engine/world/Boundary.ts': { why: "the shard's edge — cliffs, walls, the sea wall: world, welded to the ground", counts: { mergeGeometries: 6 } },
-    'src/engine/world/forest/Forest.ts': { why: 'the forest field: a scatter (world, §1); Pine Hollow places its trees as the forest tree model, the other forests are the field', counts: { InstancedMesh: 1, BatchedMesh: 1 } },
-    'src/engine/world/Grass.ts': { why: 'the grass blades: a shader-drawn field (world, §1)', counts: { InstancedMesh: 2 } },
-    'src/engine/render/streamedInstances.ts': { why: "G475 streamed cover: the existing twin instance tier draws a scatter field from admitted rows; streamed kinds have no fixed copies for place() to count", counts: { InstancedMesh: 1 } },
-    'src/game/systems/looks/particles.ts': { why: 'mist and needle fall: an effect', counts: { InstancedMesh: 2 } },
+    'src/engine/client/render/precompile.ts': { why: 'Compile-only detached shader stand-in borrows the source instance layout and buffers; never placed or drawn as world content', counts: { InstancedMesh: 1 } },
+    'src/engine/client/render/calibrationGpu.ts': { why: 'E357 S1.6 synthetic unit-cost scene: temporary calibration geometry, never shard content or a Model Explorer asset', counts: { InstancedMesh: 1 } },
+    'src/engine/client/entities/AnimalFactory.ts': { why: "the species rigs' builder: a creature's parts merged per bone (creatures are models, M5: each shard's roster)", counts: { mergeGeometries: 4 } },
+    'src/engine/client/fx/Impacts.ts': { why: 'hit sparks and debris: an effect', counts: { InstancedMesh: 1 } },
+    'src/game/server/loot/CoinBurst.ts': { why: 'the coins bursting from a kill: an effect', counts: { InstancedMesh: 1 } },
+    'src/game/client/cosmetics/bodyShadow.ts': { why: "the player's own shadow-casting body: the player, not a thing in the world", counts: { mergeGeometries: 2 } },
+    'src/game/client/systems/items/declaredSword.ts': { why: "SF54: the declared kit.sword item view's private copy of the low-poly sword build (Gear), moved with the declared item families out of the kit; deleted when they graduate", counts: { mergeGeometries: 2 } },
+    'src/engine/client/combat/view/projectile.ts': { why: 'bolts and arrows in flight: an effect of the held gear', counts: { InstancedMesh: 1 } },
+    'src/engine/client/player/WeaponPickup.ts': { why: "a weapon lying in the world to pick up: its Gear model's display copy", counts: { mergeGeometries: 1 } },
+    'src/engine/client/practice/playground/devGrid.ts': { why: "the playgrounds' grid floor (a practice scene, not a shard)", counts: { mergeGeometries: 1 } },
+    'src/engine/client/practice/TrainingArena.ts': { why: "the practice room's walls and floor (the arena's world)", counts: { 'registry add with object': 1 } },
+    'src/engine/client/practice/TrainingDummy.ts': { why: "the shared training dummy's builder (the model shared/training-dummy, M5: listed on every shard)", counts: { mergeGeometries: 1 } },
+    'src/game/client/grid/roadLook.ts': { why: "the grid's boulevard (SF17b, G80 / G81): asphalt, kerbs, streetlights and signs generated along the platform deck's 24 km of road from its layout — world, welded to the deck (no fixed copies for place() to count)", counts: { InstancedMesh: 2 } },
+    'src/game/client/grid/voidLook.ts': { why: "the grid's edge (SF17b, G89): the VR void's floor, its rail and the rail's posts round the outer road — world, like the shard's edge in Boundary.ts", counts: { InstancedMesh: 2 } },
+    'src/engine/client/world/Boundary.ts': { why: "the shard's edge — cliffs, walls, the sea wall: world, welded to the ground", counts: { mergeGeometries: 6 } },
+    'src/engine/client/world/forest/Forest.ts': { why: 'the forest field: a scatter (world, §1); Pine Hollow places its trees as the forest tree model, the other forests are the field', counts: { InstancedMesh: 1, BatchedMesh: 1 } },
+    'src/engine/client/world/Grass.ts': { why: 'the grass blades: a shader-drawn field (world, §1)', counts: { InstancedMesh: 2 } },
+    'src/engine/client/render/streamedInstances.ts': { why: "G475 streamed cover: the existing twin instance tier draws a scatter field from admitted rows; streamed kinds have no fixed copies for place() to count", counts: { InstancedMesh: 1 } },
+    'src/game/client/systems/looks/particles.ts': { why: 'mist and needle fall: an effect', counts: { InstancedMesh: 2 } },
     'src/sdk/bake/kinds.ts': { why: "SF72: the offline bake folds a shard's code-built world piece into instanced kinds (build time only, never in the client): world", counts: { InstancedMesh: 1 } },
-    'src/game/shardfile/bakedKinds.ts': { why: "SF72: a shard's baked world piece drawn from its bake, one InstancedMesh per kind on the bake's own transforms (world, like the bake it draws)", counts: { InstancedMesh: 1 } },
-    'src/engine/world/interact/Interactables.ts': { why: "draws the interactables' copies (models in src/engine/models/interact.ts, placed drawnInto its batches)", counts: { BatchedMesh: 2 } },
-    'src/engine/world/lowpolyKit.ts': { why: "a geometry kit the models' builders share (no thing of its own)", counts: { mergeGeometries: 1 } },
-    'src/engine/world/geometryKit.ts': { why: "the engine geometry kit's shape builders (a rope's segments merged; no thing of its own)", counts: { mergeGeometries: 1 } },
-    'src/game/plugin/geometry.ts': { why: "the kit system's merged primitives (SHARD-PLATFORM M3, from Pine Hollow's models/antlerKing.ts, a models file): a worn prop's primitive parts (a lantern frame, a ribcage) merged into one geometry, no thing of its own; and a scatter baked offline drawn as one instanced draw per set (Sky Reach's island dressing): a generator's placed copies, their float32 instance matrices and colours, in the caller's geometry and material", counts: { mergeGeometries: 1, InstancedMesh: 1 } },
+    'src/game/client/shardfile/bakedKinds.ts': { why: "SF72: a shard's baked world piece drawn from its bake, one InstancedMesh per kind on the bake's own transforms (world, like the bake it draws)", counts: { InstancedMesh: 1 } },
+    'src/engine/client/world/interact/Interactables.ts': { why: "draws the interactables' copies (models in src/engine/client/models/interact.ts, placed drawnInto its batches)", counts: { BatchedMesh: 2 } },
+    'src/engine/client/world/lowpolyKit.ts': { why: "a geometry kit the models' builders share (no thing of its own)", counts: { mergeGeometries: 1 } },
+    'src/engine/client/world/geometryKit.ts': { why: "the engine geometry kit's shape builders (a rope's segments merged; no thing of its own)", counts: { mergeGeometries: 1 } },
+    'src/game/client/plugin/geometry.ts': { why: "the kit system's merged primitives (SHARD-PLATFORM M3, from Pine Hollow's models/antlerKing.ts, a models file): a worn prop's primitive parts (a lantern frame, a ribcage) merged into one geometry, no thing of its own; and a scatter baked offline drawn as one instanced draw per set (Sky Reach's island dressing): a generator's placed copies, their float32 instance matrices and colours, in the caller's geometry and material", counts: { mergeGeometries: 1, InstancedMesh: 1 } },
   },
 };
 
@@ -167,14 +167,14 @@ const MODEL_RELOCATIONS = new Map([
 const modelPath = file => MODEL_RELOCATIONS.get(file) ?? MODEL_RELOCATIONS.get(`${file}.ts`) ?? file;
 const SHARD_FILE = /^src\/shards\/([^/]+)\//;
 /** Pine Hollow's remaining generic world builders retain their report area after the move. */
-const PINE_WORLD = /^src\/engine\/world\/(Cabin|Undergrowth|Props)\.ts$/;
+const PINE_WORLD = /^src\/engine\/(?:(?:client|cook|server|shared)\/)?world\/(Cabin|Undergrowth|Props)\.ts$/;
 
 /** which area a file belongs to, for the report */
 export function areaOf(file) {
   const m = SHARD_FILE.exec(file);
   if (m) return m[1];
   if (PINE_WORLD.test(file)) return 'pine-hollow';
-  if ((file.startsWith('src/engine/models/') || file.startsWith('src/game/models/'))) return 'models (contract)';
+  if ((file.startsWith('src/engine/client/models/') || file.startsWith('src/game/client/models/'))) return 'models (contract)';
   return 'shared (src/world, src/player, src/entities, …)';
 }
 
@@ -273,20 +273,20 @@ export function checkModels(files) {
     const code = strip(text), own = constsIn(code);
     const value = (lit, name) => lit ?? own.get(name) ?? globalConsts.get(name);
     for (const m of code.matchAll(/\bregisterSpecies\(\{[^}]*?\bkind:\s*(?:'([^']+)'|([A-Z][A-Z0-9_]*)\b)/g)) { const k = value(m[1], m[2]); if (k !== undefined) speciesKinds.set(k, file); }
-    if (SHARD_MODELS.test(modelPath(file)) || (file.startsWith('src/engine/models/') || file.startsWith('src/game/models/'))) for (const m of code.matchAll(/\b(?:creature\(\s*|species:\s*)(?:'([^']+)'|([A-Z][A-Z0-9_]*)\b)/g)) { const k = value(m[1], m[2]); if (k !== undefined) modelled.add(k); }
+    if (SHARD_MODELS.test(modelPath(file)) || (file.startsWith('src/engine/client/models/') || file.startsWith('src/game/client/models/'))) for (const m of code.matchAll(/\b(?:creature\(\s*|species:\s*)(?:'([^']+)'|([A-Z][A-Z0-9_]*)\b)/g)) { const k = value(m[1], m[2]); if (k !== undefined) modelled.add(k); }
   }
-  for (const [kind, file] of speciesKinds) if (!modelled.has(kind)) violations.push(`${file}: the species '${kind}' is no model — define it in a models folder with creature('${kind}') (src/engine/models/creature.ts) and list it in its shard's roster`);
+  for (const [kind, file] of speciesKinds) if (!modelled.has(kind)) violations.push(`${file}: the species '${kind}' is no model — define it in a models folder with creature('${kind}') (src/engine/client/models/creature.ts) and list it in its shard's roster`);
   const bump = (area, key, n) => { if (n === 0) return; const r = report.get(area) ?? {}; r[key] = (r[key] ?? 0) + n; report.set(area, r); };
   for (const [file, text] of Object.entries(texts)) {
     const code = text.replaceAll(/\/\*[\s\S]*?\*\//g, '').replaceAll(/^\s*\/\/.*$/gm, ''); // comments don't count
     const model = modelPath(file);
-    const inShardModels = SHARD_MODELS.exec(model), inShared = (file.startsWith('src/engine/models/') || file.startsWith('src/game/models/'));
+    const inShardModels = SHARD_MODELS.exec(model), inShared = (file.startsWith('src/engine/client/models/') || file.startsWith('src/game/client/models/'));
     const defines = [...code.matchAll(/define(?:Geometry)?Model(?:<[^(]*>)?\(\s*\{\s*id:\s*'([^']+)'/g)].map((m) => m[1]);
     // The typed geometry/catalogue factories now own these model definitions.
     // Recognize them only inside the existing model contract, not elsewhere.
     const calls = (code.match(/\bdefineModel(?:<[^(]*>)?\(/g) ?? []).length - (/export function defineModel/.test(code) ? 1 : 0)
       + (inShardModels ? (code.match(/\b(?:defineGeometryModel|modelCatalogue|defineSpecimenCatalogue)(?:<[^(]*>)?\(/g) ?? []).length : 0);
-    if (calls > 0 && !inShardModels && !inShared) violations.push(`${file}: defineModel outside src/engine/models/ and src/shards/<slug>/models/`);
+    if (calls > 0 && !inShardModels && !inShared) violations.push(`${file}: defineModel outside src/engine/client/models/ and src/shards/<slug>/models/`);
     if (inShardModels && calls === 0) violations.push(`${file}: a file in a models folder that defines no model`);
     for (const id of defines) {
       const want = inShardModels ? `${inShardModels[1]}/` : 'shared/';
@@ -296,7 +296,7 @@ export function checkModels(files) {
     for (const spec of importsOf(file, code)) {
       const target = /(?:^#?|\/)shards\/([^/]+)\/models\//.exec(modelPath(spec))?.[1];
       if (shard !== undefined && target !== undefined && target !== shard) violations.push(`${file}: imports another shard's models (${spec})`);
-      if (inShared && /(?:^#?|\/)shards\//.test(spec)) violations.push(`${file}: src/engine/models/ imports a shard (${spec})`);
+      if (inShared && /(?:^#?|\/)shards\//.test(spec)) violations.push(`${file}: src/engine/client/models/ imports a shard (${spec})`);
     }
     if (inShared || inShardModels) continue;
     // a shard's generators are build-time only (SHARDS.md: run by the bake, never imported by the runtime, never shipped):

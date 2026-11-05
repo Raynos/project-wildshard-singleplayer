@@ -34,7 +34,7 @@ Plan row: `project/archive/2026-09-23-nalati.md` B14 (it needs B7 riding, B10 we
 
 ## What already exists to build on
 
-- **`src/game/Boss.ts` + `src/engine/ui/BossBar.ts`** (B13): the generic boss.
+- **`src/game/server/Boss.ts` + `src/engine/client/ui/BossBar.ts`** (B13): the generic boss.
   - It owns the state machine (armed → intro → fight ⇄ beat → victory), the name card with HOLD TO SKIP, the wide bar
     with phase notches and the shield shimmer, and the phase captions.
   - It also owns checkpoints and the retry card, and the reward orb (a legendary `WeaponPickup` whose `grant()` runs once
@@ -51,7 +51,7 @@ Plan row: `project/archive/2026-09-23-nalati.md` B14 (it needs B7 riding, B10 we
   - A second boss follows the same shape: `src/shards/nalati-grasslands/stormTitan.ts` (`wireStormTitan`), plus its own marked section in
     `index.ts` and a bind block in main.ts. Those two files belong to the integrator, so keep each change to one small
     marked section.
-- **Only one boss bar is ever up**, and while a boss bar shows no elite bar may show. `src/game/Elite.ts` (B12) has no
+- **Only one boss bar is ever up**, and while a boss bar shows no elite bar may show. `src/game/server/Elite.ts` (B12) has no
   "boss active" gate yet; add one (for example `elites.suppress = boss.engaged`).
 - **Lightning and weather:** `src/shards/nalati-grasslands/weather.ts` exposes `w.weather` (`.stormActive`, `.onPhase(fn)`, `.onStrike(fn)`,
   `.hold`, `.force(phase)`), `w.clock`, and `w.fx` (rain etc.).
@@ -60,7 +60,7 @@ Plan row: `project/archive/2026-09-23-nalati.md` B14 (it needs B7 riding, B10 we
   - `wildEnv.wind` is the wind vector: the fire spreads downwind, and arrows drift in it.
 - **FX pieces to reuse** (no new shader programs):
   - `fxMaterial(mode, color, alpha, additive)`, `FX`, `annulus()` from `src/shards/nalati-grasslands/world/KurganDungeon.ts`.
-  - `GroundTell` from `src/game/Elite.ts`, a terrain-draped ring or lane. A ring does not depth-test (it reads over
+  - `GroundTell` from `src/game/server/Elite.ts`, a terrain-draped ring or lane. A ring does not depth-test (it reads over
     everything); a lane does. Use it for the Sky Spear's forked ring, the chain-lightning rings and the storm riders'
     Wind Charge lanes.
   - Qyran's gold beam line in `src/shards/nalati-grasslands/elites.ts` shows the "streak + edge chevron" pattern. `EliteBar.chevron()` is
@@ -68,7 +68,7 @@ Plan row: `project/archive/2026-09-23-nalati.md` B14 (it needs B7 riding, B10 we
 - **Storm riders (phase II adds):** B11's ghost-rider rig (`src/engine/entities/species/ghostRider.ts` +
   `src/shards/nalati-grasslands/ghostRiders.ts`: `spawnRider({x, z, yaw, variant})`, a puppet steered through `mem.tx/tz/v/turn`) is the
   closest thing. A cloud-grey tint and ×1.6 scale would give the 8 m cloud horsemen. For the ×3 flank window, use
-  `eliteDamageMul` / `setEliteDamage` (`src/engine/entities/eliteBrain.ts`), as Qara Batyr does.
+  `eliteDamageMul` / `setEliteDamage` (`src/engine/server/entities/eliteBrain.ts`), as Qara Batyr does.
 - **Hitting the heart:** the Titan stands 120–200 m out, beyond the rim, and is not an animal. Two ways:
   - (a) A hidden, floating `Animal` of a small custom species (body + head rig, `yOffset` to lift it, hp 2600) placed at
     the heart each frame. Arrows, the kill, `Progress.recordKill` and the achievement then all work unchanged. Check that
@@ -106,7 +106,7 @@ Plan row: `project/archive/2026-09-23-nalati.md` B14 (it needs B7 riding, B10 we
 6. **Victory.** The rain curtain, the fires out, the storm wall down, `weather.hold` released.
    - The reward orb at the cairn: `NAIZAGAI · Storm Sabre of Jel Ata`, prompt `TAKE NAIZAGAI`.
    - The Sky-Marked Saddle skin is owned. Achievement row *Weather Report*, title *Partly Cloudy*, in
-     `src/game/achievements.ts`'s NALATI table.
+     `src/game/server/achievements.ts`'s NALATI table.
 7. **`src/shards/nalati-grasslands/weapons/Naizagai.ts`** (a `Sabre` upgrade like `GoldenBow`).
    - Mounted at a full gallop, a slash throws a 15 m lightning crescent (40 damage, arcing to one more target within 6 m).
    - On foot, a full HEAVY charge calls a bolt within 25 m (a 0.6 s ring, then 60 damage in 3 m).
@@ -116,9 +116,9 @@ Plan row: `project/archive/2026-09-23-nalati.md` B14 (it needs B7 riding, B10 we
 
 ## Two small fixes from B12 still open (asked for with B14)
 
-- **Hide the combat nameplate for elites.** `src/engine/ui/Combat.ts` assigns a nameplate + cyan bar to the nearest animals (the
+- **Hide the combat nameplate for elites.** `src/engine/client/ui/Combat.ts` assigns a nameplate + cyan bar to the nearest animals (the
   loop around line 170–192). Skip animals that are a live elite (their own `EliteBar` shows). A cheap test: an exported
-  `isElite(a)` in `src/engine/entities/eliteBrain.ts` (the WeakMap there already holds every elite's damage rule).
+  `isElite(a)` in `src/engine/server/entities/eliteBrain.ts` (the WeakMap there already holds every elite's damage rule).
 - **Taming for the elites.** `wireRide` (`src/shards/nalati-grasslands/ride/ride.ts`, it returns `{ mount, taming, … }`) is only called from
   the dev harness `src/dev/nalati-ride.ts` today, not from the real game. Once the integrator wires it into
   `src/shards/nalati-grasslands/index.ts` / main.ts, replace `taming: null` in main.ts's `elites.bind({...})` with `ride.taming`. Argymaq

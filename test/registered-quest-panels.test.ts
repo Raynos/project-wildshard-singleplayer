@@ -5,8 +5,8 @@ import {registeredJsonContract,validateRegisteredJson} from '@wildshard/format/r
 import {registeredJsonSchema,namedJsonSchema} from '../src/sdk/formatJsonSchema';
 import {nameBlob} from '../src/sdk/blobs';
 import {emptyShardfile} from '../src/sdk/author';
-import {createShardProduct} from '../src/game/shardfile/shardProduct';
-import {readDataPanels} from '../src/game/ui/dataPanels';
+import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
+import {readDataPanels} from '../src/game/client/ui/dataPanels';
 import {PINE_PANELS} from '../src/shards/pine-hollow/generators/panels';
 import horsePanel from '../src/shards/nalati-grasslands/data/namePanel.json' with {type:'json'};
 import {fixtureJsonCheck} from './fixtures/productFile';

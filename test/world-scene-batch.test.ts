@@ -3,12 +3,12 @@ import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { BufferAttribute, BufferGeometry, Matrix4, MeshBasicMaterial, PerspectiveCamera, BatchedMesh, InstancedMesh, type Object3D } from 'three';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
-import { Scope } from '../src/engine/app/scope';
-import { AssetService } from '../src/engine/app/assets';
+import { Scope } from '../src/engine/shared/app/scope';
+import { AssetService } from '../src/engine/client/app/assets';
 import { WorldSceneBatchSchema } from '@wildshard/format/worldSceneBatch';
-import { WorldSceneBatch } from '../src/game/shardfile/worldSceneBatch';
-import { installWorldRegistry, WorldRegistry } from '../src/engine/world/registry';
-import type { ShardContext } from '../src/game/plugin/context';
+import { WorldSceneBatch } from '../src/game/client/shardfile/worldSceneBatch';
+import { installWorldRegistry, WorldRegistry } from '../src/engine/client/world/registry';
+import type { ShardContext } from '../src/game/server/plugin/context';
 
 installWorldRegistry();
 
@@ -106,8 +106,8 @@ test('batch rows reject executable values, missing fixed geometry and unbounded 
 
 test('resident rows share one native batch across a named model and fixed tail', async () => {
   const [{ installWorldScenes }, { parseWorldScenes }, { emptyShardfile }, { staticGlb }, { SkyRig }] = await Promise.all([
-    import('../src/game/shardfile/worldScenes'), import('@wildshard/format/worldScenes'), import('../src/sdk/author'),
-    import('../src/sdk/bake/glb'), import('../src/engine/world/skyRig'),
+    import('../src/game/client/shardfile/worldScenes'), import('@wildshard/format/worldScenes'), import('../src/sdk/author'),
+    import('../src/sdk/bake/glb'), import('../src/engine/client/world/skyRig'),
   ]);
   const owner = new Scope('harbour-resident'), registry = new WorldRegistry(), geometry = triangle(), material = new MeshBasicMaterial();
   const sky: unknown = Object.create(SkyRig.prototype);
@@ -139,7 +139,7 @@ test('resident rows share one native batch across a named model and fixed tail',
     await expect(installWorldScenes(anotherProduct(), tooSmall)).rejects.toThrow('instance capacity');
     await expect(installWorldScenes(anotherProduct(), incompatible)).rejects.toThrow('cannot share');
     const handles = await installWorldScenes(context, rows);
-    const [{ defineWorldSceneCatalogue }, { TIER }] = await Promise.all([import('../src/game/models/worldSceneCatalogue'), import('../src/engine/core/tier')]);
+    const [{ defineWorldSceneCatalogue }, { TIER }] = await Promise.all([import('../src/game/client/models/worldSceneCatalogue'), import('../src/engine/client/core/tier')]);
     expect(defineWorldSceneCatalogue(catalogue).model('marker').lods?.[0]?.from).toBe(TIER === 'phone' ? 2 : 4);
     const placed = await handles.place('marker'), batch = handles.object('shared');
     expect(await handles.place('marker')).toBe(placed);

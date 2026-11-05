@@ -1,13 +1,13 @@
 import {weatherWitness as weatherScript} from './fixtures/weatherInlineWitness';
 import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { expect, test } from 'vitest';
-import type { SystemSpec } from '../src/engine/app/systems';
-import { WeatherContinuation } from '../src/engine/world/weatherContinuation';
+import type { SystemSpec } from '../src/engine/client/app/systems';
+import { WeatherContinuation } from '../src/engine/shared/world/weatherContinuation';
 import { parseWeatherProgram } from '@wildshard/format/weatherProgram';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { installWeatherReactions, nativeWeatherBundle } from '../src/game/weather/reactions';
-import { installWeatherContinuation } from '../src/game/weather/continuation';
-import { Scope } from '../src/engine/app/scope';
+import { installWeatherReactions, nativeWeatherBundle } from '../src/game/server/weather/reactions';
+import { installWeatherContinuation } from '../src/game/server/weather/continuation';
+import { Scope } from '../src/engine/shared/app/scope';
 import nalati from '../src/shards/nalati-grasslands/data/weather.json' with {type:'json'};
 import pine from '../src/shards/pine-hollow/data/weather.json' with { type:'json' };
 import saved from './fixtures/weather-continuation.json' with { type:'json' };

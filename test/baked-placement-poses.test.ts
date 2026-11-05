@@ -1,6 +1,6 @@
 import { Color, Matrix4, Quaternion, Vector3 } from 'three';
 import { expect, test } from 'vitest';
-import { bakedPlacementPoses } from '../src/game/shardfile/bakedPlacementPoses';
+import { bakedPlacementPoses } from '../src/game/shared/shardfile/bakedPlacementPoses';
 
 // Retained scalar constructor from bakedTiles: compare native float64 matrix
 // words, not rounded JSON. This is the old allocation path's byte oracle.

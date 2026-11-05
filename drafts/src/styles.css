@@ -218,7 +218,7 @@ img { display: block; max-width: 100%; }
   .wd-card { flex-basis: 420px; }
 }
 
-/* The reload pill (E391), as the game's (src/engine/ui/styles/update.css): on the title only (E393), top right; lit when a new build waits. */
+/* The reload pill (E391), as the game's (src/engine/client/ui/styles/update.css): on the title only (E393), top right; lit when a new build waits. */
 .wd-update { position: fixed; right: 16px; top: calc(10px + var(--wd-safe-top)); z-index: 60; display: none; align-items: center; gap: 6px; padding: 3px 7px; background: rgba(8, 18, 27, 0.9); border: 1px solid var(--wd-line-dim); color: var(--wd-dim); font-family: var(--wd-mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; line-height: 1.4; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .wd-update.wd-visible { display: flex; }
 .wd-update-dot { width: 4px; height: 4px; background: rgba(196, 220, 232, 0.35); }

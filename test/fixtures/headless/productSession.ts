@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {HeadlessSimulation} from '../../../src/sdk/headless';
 import {loadHeadlessProduct} from '../../../src/sdk/headlessProduct';
 import {productHeadlessSections} from '../../../src/sdk/headlessSections';
-import {outputDescriptor} from '../../../src/game/shardfile/outputDescriptor';
+import {outputDescriptor} from '../../../src/game/shared/shardfile/outputDescriptor';
 import {builtProduct} from '../builtProduct';
 import {createNativeProofWorker,type NativeProofKind} from '../headless-worker';
 

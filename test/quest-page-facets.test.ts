@@ -1,10 +1,10 @@
 import { expect, it, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import type { ShardContext } from '../src/game/plugin/context';
+import { Scope } from '../src/engine/shared/app/scope';
+import type { ShardContext } from '../src/game/server/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import * as v from 'valibot';
 import { QuestPageCollectionsSchema, QuestPageDoorSchema, QuestPageMapSchema, QuestPageMoverSchema } from '@wildshard/format/questPageFacets';
-import { pageCollectionCalls, installPageMap } from '../src/game/quest/pageFacets';
+import { pageCollectionCalls, installPageMap } from '../src/game/server/quest/pageFacets';
 import { forestStory } from '../src/shards/pine-hollow/generators/forestStory';
 import { PINE_SOURCES } from './fixtures/pine-sources';
 

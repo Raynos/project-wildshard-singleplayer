@@ -1,9 +1,9 @@
 import { expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { FixedMemory, fixedMemoryCensus, prewarmFixedMemories, freshScriptMemory } from '../src/engine/script/fixedMemory';
-import { ScriptModuleV2, prepareScriptMemory } from '../src/engine/script/moduleV2';
+import { Scope } from '../src/engine/shared/app/scope';
+import { FixedMemory, fixedMemoryCensus, prewarmFixedMemories, freshScriptMemory } from '../src/engine/shared/script/fixedMemory';
+import { ScriptModuleV2, prepareScriptMemory } from '../src/engine/shared/script/moduleV2';
 import { titanModuleBytes, titanPrograms } from './fixtures/titanInlineWitness';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 
 const options = { seed: [0, 0] as const, initFuel: 400000, output: [] };
 test('boot reserves the entire observed 33-instance fixed demand without depending on any retirement', async () => {

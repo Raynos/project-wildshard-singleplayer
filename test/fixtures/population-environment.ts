@@ -1,5 +1,5 @@
-import type { SimHost } from '../../src/engine/sim';
-import { installPopulationEnvironment } from '../../src/game/population/environment';
+import type { SimHost } from '../../src/engine/server/sim';
+import { installPopulationEnvironment } from '../../src/game/server/population/environment';
 /** Flat habitat for native population tests; no callback fixtures bypass admission. */
 export function flatPopulationEnvironment(host: SimHost): void {
   installPopulationEnvironment(host, { res: 2, size: 500, heights: new Float32Array(4) }, {

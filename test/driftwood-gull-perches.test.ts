@@ -7,7 +7,7 @@ import { HeightfieldBinding, bindHeightfield } from '@wildshard/engine/world/Hei
 import { MANIFEST } from '../src/shards/driftwood-isle/discovery.generated';
 import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/groundRows';
 import { beachGullPerches } from '../src/shards/driftwood-isle/generators/islandDressing';
-import { CHUNK_HALF } from '../src/engine/core/config';
+import { CHUNK_HALF } from '../src/engine/shared/core/config';
 import { WORLD_STAGES } from './fixtures/driftwood-world-stages';
 import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import * as v from 'valibot';

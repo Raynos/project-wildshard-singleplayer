@@ -38,8 +38,8 @@ headless adapters and coverage are recorded in the per-shard reports, rather tha
 | Signal Dunes | `sunscar-dunes/runtime/headless.ts` | none: passes (headless, replay, ledger from gameplay) | 2 rules, both from gameplay |
 | Sky Reach | `far-reach/runtime/headless.ts` | none: passes (headless, replay, ledger from gameplay); CI runs it in checkpointed slices | 2 rules, both from gameplay |
 | Pine Hollow | `pine-hollow/runtime/index.ts` | `runtime/audio/score.ts` parameter property | Loads; 19 rules tested |
-| Driftwood | `driftwood-isle/runtime/hybrid.ts` | `game/shardfile/hybrid.ts` parameter property | Loads; 10 rules tested |
-| Nalati | `nalati-grasslands/runtime/index.ts` | `engine/app/runtime.ts` | Loads; 17 rules tested |
+| Driftwood | `driftwood-isle/runtime/hybrid.ts` | `game/client/shardfile/hybrid.ts` parameter property | Loads; 10 rules tested |
+| Nalati | `nalati-grasslands/runtime/index.ts` | `engine/client/app/runtime.ts` | Loads; 17 rules tested |
 | Nine Dragon | `tmp/headless-modules/nine-dragon-stack/modules.mjs` | none: passes (headless, replay, ledger from gameplay, G285) | 2 rules, both from gameplay |
 
 ## What the ledger checks establish
@@ -69,7 +69,7 @@ draws, body duplication or reward replay. Snapshot adapters must cover gameplay 
 
 ### Signal Dunes (passes)
 
-The legacy browser entry (`runtime/index.ts -> plugin.ts -> world/meshes.ts -> engine/anim/rig.ts`) is unchanged; the
+The legacy browser entry (`runtime/index.ts -> plugin.ts -> world/meshes.ts -> engine/client/anim/rig.ts`) is unchanged; the
 witness names the renderer-free trusted entry `runtime/headless.ts` instead. It owns the admitted terrain collider and
 baked pieces, the 13 declared homes (1 dune ray, 10 sand skitterers, 2 dune striders) with their shipping policies,
 stream and respawn clocks, the whip as its declared item row (contact on the head ball / body capsule, then the lane:
@@ -110,8 +110,8 @@ assert outcomes only, so x64 CI restores the data exactly without comparing cont
 
 First observed refusal is Node strip-only syntax in `runtime/audio/score.ts:42` (constructor parameter
 property). Removing that alone is insufficient: the entry imports `engine/ai/view/DebugOverlay.ts`,
-`combat/spawns.ts -> engine/app/runtime.ts`, `species/hulls.ts -> engine/anim/rig.ts`, and native weapons
-reach `engine/combat/view/ranged.ts`. Split the clock/audio/UI/model installation from gameplay.
+`combat/spawns.ts -> engine/client/app/runtime.ts`, `species/hulls.ts -> engine/client/anim/rig.ts`, and native weapons
+reach `engine/client/combat/view/ranged.ts`. Split the clock/audio/UI/model installation from gameplay.
 Native ownership: declared `pine.antler-king`, dynamic forest/lair/elite actors, King's thralls/adds,
 night-watch/dawn actors and the crossbow/rifle/longbow. Preserve actual forest spawn order and RNG,
 quest/night-dawn/director timers, inventory/ammo/loadout and item continuation. `runtime/antlerKing.ts`
@@ -123,10 +123,10 @@ real King encounter checkpoint/death/restore/victory suffix with the declared pr
 ### Driftwood
 
 Use the **actual declared `runtime/hybrid.ts`**, not legacy `runtime/index.ts` by itself. Its first
-observed refusal is the parameter property in `game/shardfile/hybrid.ts:304`. Its value closure continues
-`hybrid.ts -> game/grid/boot.ts -> engine/app/runtime.ts`; the browser resident-world wrapper must not be
-the headless installer. `world/build.ts -> world/Ocean.ts -> engine/render/shaderPatches.ts` and
-`creatures/install.ts -> creatures/Enemies.ts -> engine/fx/ParticlePool.ts` need view/FX separation.
+observed refusal is the parameter property in `game/client/shardfile/hybrid.ts:304`. Its value closure continues
+`hybrid.ts -> game/grid/boot.ts -> engine/client/app/runtime.ts`; the browser resident-world wrapper must not be
+the headless installer. `world/build.ts -> world/Ocean.ts -> engine/client/render/shaderPatches.ts` and
+`creatures/install.ts -> creatures/Enemies.ts -> engine/client/fx/ParticlePool.ts` need view/FX separation.
 Native ownership: declared `driftwood.captain`, crab/monkey/sailor ecology and practice actors, boar/bear,
 boat/rope bridge, native equipment and the altar/finale/reward sequence. Preserve night/out-of-sight/
 distance/random respawn rules, monkey perch/token/RNG and sailor rise. Capture spawn gates, native
@@ -136,8 +136,8 @@ Next target: real altar wake -> Captain mid-fight -> restored suffix -> one dura
 
 ### Nalati
 
-Cut `runtime/index.ts -> species/rows.ts -> engine/app/runtime.ts` and `species/hulls.ts ->
-engine/anim/rig.ts`; remove `engine/ui/Settings.ts` and bag/UI import requirements from the simulation
+Cut `runtime/index.ts -> species/rows.ts -> engine/client/app/runtime.ts` and `species/hulls.ts ->
+engine/client/anim/rig.ts`; remove `engine/client/ui/Settings.ts` and bag/UI import requirements from the simulation
 installer. `runtime/state.ts` currently builds the world and installs native wildlife/group controllers
 alongside views; the existing engine group/crowd policies do not install the whole shard into SimHost.
 Native ownership: declared `nalati.golden-king`, dynamic packs/herds/flocks, marmot/sheepdog/horse/riders
@@ -150,10 +150,10 @@ target: same real herd/raid encounter before/after restore plus durable chapter/
 
 ### Nine Dragon Stack
 
-Cut `runtime/index.ts -> plugin.ts -> kit/weapons/melee/SweptMelee.ts -> game/weapons/Sword.ts ->
-engine/combat/view/SweptMelee.ts`; the native Sword's combat continuation needs a view-independent port.
-The source also reaches `shard.config.ts -> world/entries.ts -> look/paint.ts -> engine/boot/bytes.ts ->
-engine/core/tier.ts -> engine/render/tiers.ts`: split collider/portal descriptors from paint/load/tier
+Cut `runtime/index.ts -> plugin.ts -> kit/weapons/melee/SweptMelee.ts -> game/server/weapons/Sword.ts ->
+engine/client/combat/view/SweptMelee.ts`; the native Sword's combat continuation needs a view-independent port.
+The source also reaches `shard.config.ts -> world/entries.ts -> look/paint.ts -> engine/client/boot/bytes.ts ->
+engine/client/core/tier.ts -> engine/client/render/tiers.ts`: split collider/portal descriptors from paint/load/tier
 selection. The world builder explicitly requires `ctx.app.render`; world/model placement, grade and
 specimen lighting cannot be prerequisites of native collision/traversal.
 Native ownership: prebuilt Jian, play-built Fei Zhua, portal rider/transfer and the `NdRuntime` traversal/

@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { deepStrictEqual } from 'node:assert';
 import { Frustum, Group, OrthographicCamera, PerspectiveCamera, Sphere, Vector3 } from 'three';
 import { CSM } from 'three/examples/jsm/csm/CSM.js';
-import { installCascadeCull } from '../src/engine/world/cascadeCull';
+import { installCascadeCull } from '../src/engine/client/world/cascadeCull';
 import { installCascadeCull as original } from './fixtures/cascade-cull-before';
 
 function create(install: typeof original): { camera: PerspectiveCamera; csm: CSM } {

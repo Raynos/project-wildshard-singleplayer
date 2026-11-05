@@ -19,7 +19,7 @@ Zone 03, physics yard 78 × 54 (`layout.js` `PHYSICS`), first half:
 
 Research:
 
-- **The plate puzzle is already data.** `src/engine/world/interact/types.ts:143-191`: `InteractDef = Chest | Key | Door |
+- **The plate puzzle is already data.** `src/engine/shared/world/interact/types.ts:143-191`: `InteractDef = Chest | Key | Door |
   Lever | Plate | Barrel | Pickup | Beacon | Bench | Altar`; `DoorDef.opensWhen` (cond) and `latch`; `PlateDef { size,
   by: 'player'|'barrel'|'any' }` (line 173). `plateOverlap` (`interact/barrel.ts`) sees groups `PLAYER`, `ITEM`.
 - **But it ships as named JSON, three ways.** Driftwood writes a data table (`src/shards/driftwood-isle/generators/interactables.ts`
@@ -27,7 +27,7 @@ Research:
   `@wildshard/sdk/interactions` (`generators/questTable.ts:17`); Signal declares `format/questInteractions` rows
   (`generators/signalInteractions.ts:23`). The engine kit: `src/engine/world/interact/` (1,535 lines).
 - **Dynamic props are declarable.** `sim/bodies` (`src/format/bodySlots.ts:25` `DeclaredBodyOpsRows { bodies, floors,
-  colliders }`, G566) with `BodySpec` shapes `ball | cylinder | cuboid` (`src/engine/physics/bodies.ts:43`), material,
+  colliders }`, G566) with `BodySpec` shapes `ball | cylinder | cuboid` (`src/engine/shared/physics/bodies.ts:43`), material,
   density, rolling. Driftwood's tide barrel is one (`generators/output.ts`). **Phone cap: 40 awake dynamic bodies**
   (`bodies.ts:84`).
 - `barrels.as` (Driftwood, 40 lines) is a generic "never-jam" watch (leash home, wedge timeout) with Driftwood-only
@@ -37,7 +37,7 @@ Work:
 
 | Row / host | Shape | Layer |
 |---|---|---|
-| `world/interactables` platform section | the `InteractTable` as a validated section (`format/sections.ts` entry + schema); questInteractions rows fold into it | format + game reader (`game/models/interact.ts`) |
+| `world/interactables` platform section | the `InteractTable` as a validated section (`format/sections.ts` entry + schema); questInteractions rows fold into it | format + game reader (`game/client/models/interact.ts`) |
 | plate `by` | `'player' | 'body' | 'any'` with `bodies?: [ids]` (a plate may name which bodies count); `'barrel'` kept as an alias read on load | engine `types.ts`, `barrel.ts` |
 | `refill` kind | `{ kind: 'refill', ammo, to }` | engine kit (no game nouns: "ammo" row id only) |
 | commons `pushable.as` | `barrels.as` with its constants as params (leash, wedge, lost-under); Driftwood binds it with its old numbers | commons AS (`src/commons/scripts/`) |

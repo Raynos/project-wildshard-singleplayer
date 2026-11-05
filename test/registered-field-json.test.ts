@@ -3,7 +3,7 @@ import {SceneBuffersSchema,parseSceneBuffers} from '@wildshard/format/sceneBuffe
 import {registeredJsonContract,validateRegisteredJson} from '@wildshard/format/registeredJson';
 import {registeredJsonSchema,namedJsonSchema} from '@wildshard/sdk/formatJsonSchema';
 import {nameBlob} from '@wildshard/sdk/blobs';
-import {admitSceneBuffers} from '../src/game/shardfile/sceneBuffers';
+import {admitSceneBuffers} from '../src/game/client/shardfile/sceneBuffers';
 
 const raw={version:1,buffers:[{id:'position',storage:'f32',file:'world/fields/flowers.bin',byteLength:12}],
   attributes:[{id:'position',buffer:'position',size:3}],geometries:[{id:'flowers',attributes:{position:'position'}}],

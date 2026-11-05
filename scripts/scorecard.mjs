@@ -512,7 +512,7 @@ async function measureShard(shard, vp, run, shots) {
     if (warm.status === 'ok') {
       // creatures keep walking, grazing and animating, but stop reacting to the player: an elite charging the pose (Pine
       // Hollow's Imperial Bull at the pond, Old Ironhide at the cabin) shakes the camera and kills the player mid-sample
-      // Pine Hollow's named elites run their own AI (src/game/Elite.ts): with no aware / engage radius they stay at their lairs
+      // Pine Hollow's named elites run their own AI (src/game/server/Elite.ts): with no aware / engage radius they stay at their lairs
       await page.evaluate(() => {
         const a = window.__wildshard?.world?.animals; if (a) a.calm = true;
         for (const e of window.__pineElites?.elites?.entries ?? []) { e.script.def.awareR = 0; e.script.def.engageR = 0; }
@@ -1059,9 +1059,9 @@ async function startPreview(distDir, port) {
   return p;
 }
 
-/** HEAD every boot pack part the served tree's table names (src/game/boot/packs.generated.ts); null without a tree */
+/** HEAD every boot pack part the served tree's table names (src/game/client/boot/packs.generated.ts); null without a tree */
 async function checkPacks() {
-  const table = SERVE ? join(SERVE, 'src/game/boot/packs.generated.ts') : '';
+  const table = SERVE ? join(SERVE, 'src/game/client/boot/packs.generated.ts') : '';
   if (!table || !existsSync(table)) return null;
   const parts = [...readFileSync(table, 'utf8').matchAll(/url: "(\/assets\/packs\/[^"]+)",\s*bytes: (\d+)/g)].map((m) => [m[1], Number(m[2])]);
   const missing = [];

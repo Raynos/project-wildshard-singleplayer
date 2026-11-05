@@ -2,10 +2,10 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { Euler, Quaternion, Vector3 } from 'three';
-import { Rng } from '../src/engine/core/rng';
-import { Bodies, Drop, RowBodySlots } from '../src/engine/physics/bodies';
-import { Physics } from '../src/engine/physics/Physics';
-import { loadRapier } from '../src/engine/physics/rapier';
+import { Rng } from '../src/engine/shared/core/rng';
+import { Bodies, Drop, RowBodySlots } from '../src/engine/shared/physics/bodies';
+import { Physics } from '../src/engine/shared/physics/Physics';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
 import coconutSlots from '../src/shards/driftwood-isle/data/coconutSlots.json' with { type: 'json' };
 import { parseItems } from '@wildshard/format/items';
 import { DRIFTWOOD_SWORDS } from '../src/shards/driftwood-isle/generators/items';

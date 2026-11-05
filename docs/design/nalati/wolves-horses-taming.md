@@ -168,13 +168,13 @@ awareness +0.3 to animals within 30 m), kites circling, cranes on the river.
 
 **Builds on:**
 
-- `src/engine/entities/species/registry.ts` + one file per species (`bear.ts`, `boar.ts`, `deer.ts`, …): a species is
+- `src/engine/shared/entities/species/registry.ts` + one file per species (`bear.ts`, `boar.ts`, `deer.ts`, …): a species is
   a single file with `registerSpecies({...})`, dropped in, no case to add. **New files**: `wolf.ts`,
   `horse.ts`, `sheep.ts`, `sheepdog.ts`, `marmot.ts`. The quadruped rig and pose generators in
   `src/engine/entities/Animal.ts` already have walk / trot / **gallop** gaits, alert look-at, flinch, stagger and death
   — a horse and a wolf are new proportions (`AnimalDims`), fur, tints and variants (`alpha`, `black-stallion`,
   `foal`) on the existing rig.
-- `src/engine/entities/AnimalManager.ts` — the 10 Hz AI tick, the `HuntTuning` awareness loop (sight cone / hearing
+- `src/engine/server/entities/AnimalManager.ts` — the 10 Hz AI tick, the `HuntTuning` awareness loop (sight cone / hearing
   by player speed / freeze / bolt / flee / herd alert), `herds`, `addHerd`, `onCharge` for damage to the player,
   the bear's `stalk` (the closest thing to a hunter). Horses use the tuning loop almost as-is (deer shape,
   sharper numbers) plus a boids pass in the herd; the stallion and the wolves are **`think` species** — the
@@ -195,7 +195,7 @@ awareness +0.3 to animals within 30 m), kites circling, cranes on the river.
   the rider's input. A first-person **horse head/neck/mane viewmodel** is a separate close-up mesh (the far
   rig's LOD is not good enough 1 m from the camera).
 - **Taming** — a `Taming.ts` state machine (approach → mount → 5 rounds → bonded) with the TRUST arc, ALERT
-  ear and HOLD ON gauge in the HUD; persistence of the tamed horse (name, saddle) in `game/Progress.ts`.
+  ear and HOLD ON gauge in the HUD; persistence of the tamed horse (name, saddle) in `game/client/Progress.ts`.
 - HUD: STEED bar, TRUST arc, HOLD ON gauge, threat chevrons, name banner, the horse's name tag, the whistle.
 - Species budget: a wolf / horse is the same lit program as the other animals; fur shells stay capped
   (`SHELL_DIST` 18 m, `SHELL_MAX` 4). A 15-horse herd + a 5-wolf pack + a 30-sheep flock in view at once

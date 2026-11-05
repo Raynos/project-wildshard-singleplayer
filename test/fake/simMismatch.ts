@@ -7,7 +7,7 @@ import { join } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- The CI artifact directory is an explicit failure-only output port.
 import process from 'node:process';
 import { capturedNumberPathProbe } from '../../scripts/number-path-probe.mjs';
-import { decodeSimSnapshot, type SimSnapshot } from '../../src/engine/sim/snapshot';
+import { decodeSimSnapshot, type SimSnapshot } from '../../src/engine/shared/sim/snapshot';
 import { canonicalSimDigest, physicsState } from './simState';
 
 interface FieldDifference { path: string; expected: unknown; actual: unknown; record?: string }

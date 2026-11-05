@@ -1,16 +1,16 @@
 import { afterEach, expect, test } from 'vitest';
 import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
-import { Scope } from '../src/engine/app/scope';
-import {onFault, type Fault} from '../src/engine/core/faults';
-import { WeatherContinuation } from '../src/engine/world/weatherContinuation';
+import { Scope } from '../src/engine/shared/app/scope';
+import {onFault, type Fault} from '../src/engine/shared/core/faults';
+import { WeatherContinuation } from '../src/engine/shared/world/weatherContinuation';
 import { parseWeatherProgram, parseWeatherReactions } from '@wildshard/format/weatherProgram';
-import { App } from '../src/engine/app/app';
-import { PlayerHealth } from '../src/engine/combat/health';
+import { App } from '../src/engine/client/app/app';
+import { PlayerHealth } from '../src/engine/server/combat/health';
 import { fakeWorld } from '@wildshard/engine/test/world';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import type { ShardContext } from '../src/game/plugin/context';
-import { applyWeatherCover,installWeatherReactions } from '../src/game/weather/reactions';
-import { bindPageWeatherHit } from '../src/game/weather/pageHit';
+import type { ShardContext } from '../src/game/server/plugin/context';
+import { applyWeatherCover,installWeatherReactions } from '../src/game/server/weather/reactions';
+import { bindPageWeatherHit } from '../src/game/client/weather/pageHit';
 import pine from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
 import {weatherWitness as storm} from './fixtures/weatherInlineWitness';
 

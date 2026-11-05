@@ -1,10 +1,10 @@
 import { titanFightOwners } from './fixtures/titanFightOwners';
-import { readArenaScriptData } from '../src/game/boss/openArenaFight';
+import { readArenaScriptData } from '../src/game/server/boss/openArenaFight';
 import { expect,test } from 'vitest';
 import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob } from '@wildshard/sdk/blobs';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import * as titan from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import { titanGeometryRows } from '../src/shards/nalati-grasslands/generators/stormTitanGeometry';

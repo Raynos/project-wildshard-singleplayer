@@ -2,15 +2,15 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { Object3D } from 'three';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { addPiece, type AddedPiece } from '../src/engine/physics/pieces';
-import { createSimHost } from '../src/engine/sim';
-import { WorldRegistry } from '../src/engine/world/registry';
-import { QuestState } from '../src/engine/quest/core';
-import { withOwner } from '../src/engine/app/ownership';
-import { QuestFlagGates } from '../src/game/quest/flagGates';
-import { publishBoundQuest } from '../src/game/quest/boundState';
-import type { ShardContext } from '../src/game/plugin/context';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { addPiece, type AddedPiece } from '../src/engine/shared/physics/pieces';
+import { createSimHost } from '../src/engine/server/sim';
+import { WorldRegistry } from '../src/engine/client/world/registry';
+import { QuestState } from '../src/engine/server/quest/core';
+import { withOwner } from '../src/engine/shared/app/ownership';
+import { QuestFlagGates } from '../src/game/server/quest/flagGates';
+import { publishBoundQuest } from '../src/game/server/quest/boundState';
+import type { ShardContext } from '../src/game/server/plugin/context';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 const rows = { gates: [{ id: 'sluice', opensWhen: { all: ['open:sluice'] },

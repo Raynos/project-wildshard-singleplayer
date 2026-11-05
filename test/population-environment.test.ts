@@ -1,18 +1,18 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Native environment tests use the shipped physics runtime.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
-import { createSimHost } from '../src/engine/sim';
-import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
-import { installPopulationEnvironment, populationEnvironment } from '../src/game/population/environment';
+import { createSimHost } from '../src/engine/server/sim';
+import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
+import { installPopulationEnvironment, populationEnvironment } from '../src/game/server/population/environment';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 import { POPULATION_ENVIRONMENT } from '../src/shards/pine-hollow/generators/populationEnvironment';
 import { pineGeographyRows } from '../src/shards/pine-hollow/generators/geographyRows';
-import { declaredGround } from '../src/game/shard/manifest';
-import { TreeGrid } from '../src/engine/world/forest/placement';
-import type { HuntTree } from '../src/engine/ai/hunt';
+import { declaredGround } from '../src/game/server/shard/manifest';
+import { TreeGrid } from '../src/engine/shared/world/forest/placement';
+import type { HuntTree } from '../src/engine/server/ai/hunt';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
-import { Rng } from '../src/engine/core/rng';
+import { Rng } from '../src/engine/shared/core/rng';
 
 // GR8 G33b: the program's declared ground rows
 const groundRows = pineGeographyRows().ground;

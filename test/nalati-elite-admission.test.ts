@@ -1,6 +1,6 @@
 import {admissionPage} from './fixtures/nalati-admission-loan';
 import { expect, test } from 'vitest';
-import { ProjectedMotionSample } from '../src/game/population/returnProgram';
+import { ProjectedMotionSample } from '../src/game/shared/population/returnProgram';
 
 test('AS owns named-elite gates, captain support and herd display/adoption decisions', () => {
   const policy = admissionPage();

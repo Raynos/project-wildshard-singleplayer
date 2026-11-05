@@ -1,11 +1,11 @@
-import { PolearmSet } from '../src/game/weapons/heldPolearm';
+import { PolearmSet } from '../src/game/client/weapons/heldPolearm';
 import loadout from '../src/shards/nalati-grasslands/data/loadout.json' with { type: 'json' };
 import ARM_STYLE from '../src/shards/nalati-grasslands/data/armsStyle.json' with {type:'json'};
 import { originalHeldMetadata } from './fixtures/nalati-held-original';
 import { afterAll, expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { gloveFist, riderArm } from '../src/engine/player/firstPersonArms';
+import { gloveFist, riderArm } from '../src/engine/client/player/firstPersonArms';
 import { installPortableMath } from './fake/portableMath';
 import { merge } from '../src/shards/nalati-grasslands/generators/meleeGeo';
 import { emptyShardfile } from '../src/sdk/author';

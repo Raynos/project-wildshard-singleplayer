@@ -2,15 +2,15 @@
 import {weatherRaw,weatherWitness,weatherModuleBytes,nightParameters} from './fixtures/weatherInlineWitness';
 import {parseReturnProjectionV2} from '@wildshard/format/returnProjectionV2';
 import {expect,test,vi} from 'vitest';
-import {Scope} from '../src/engine/app/scope';
-import {ReturnProgram} from '../src/game/population/returnProgram';
-import {prepareClientReturnModules} from '../src/game/shardfile/clientReturnModules';
-import {clientNativeBook} from '../src/game/shardfile/clientNativeBook';
-import * as descriptors from '../src/game/shardfile/outputDescriptor';
-import type {OutputDescriptor} from '../src/game/shardfile/outputDescriptor';
-import {createShardProduct} from '../src/game/shardfile/shardProduct';
+import {Scope} from '../src/engine/shared/app/scope';
+import {ReturnProgram} from '../src/game/shared/population/returnProgram';
+import {prepareClientReturnModules} from '../src/game/client/shardfile/clientReturnModules';
+import {clientNativeBook} from '../src/game/client/shardfile/clientNativeBook';
+import * as descriptors from '../src/game/shared/shardfile/outputDescriptor';
+import type {OutputDescriptor} from '../src/game/shared/shardfile/outputDescriptor';
+import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
-import type {ShardContext} from '../src/game/plugin/context';
+import type {ShardContext} from '../src/game/server/plugin/context';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 

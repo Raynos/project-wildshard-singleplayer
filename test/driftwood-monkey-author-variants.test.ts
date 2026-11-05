@@ -1,6 +1,6 @@
 import { expect, expectTypeOf, test } from 'vitest';
-import type { SpeciesVariant } from '../src/engine/ai/species';
-import { engineString } from '../src/engine/strings';
+import type { SpeciesVariant } from '../src/engine/server/ai/species';
+import { engineString } from '../src/engine/shared/strings';
 import { MONKEY_VARIANTS } from '../src/shards/driftwood-isle/generators/monkeyVariants';
 
 test('owned monkey variants retain native gameplay fields, labels and ordered weights', () => {

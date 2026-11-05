@@ -4,7 +4,7 @@ import {registeredJsonSchema,namedJsonSchema} from '../src/sdk/formatJsonSchema'
 import {ReturnProgramSchema} from '@wildshard/format/namedJsonContracts';
 import {ReturnProjectionV2Schema} from '@wildshard/format/returnProjectionV2';
 import {WildlifePopulationSchema} from '@wildshard/format/wildlifePopulation';
-import {validateNamedJsonSchema} from '../src/game/shardfile/customSchema';
+import {validateNamedJsonSchema} from '../src/game/shared/shardfile/customSchema';
 import roots from './fixtures/approved-population-families.json' with {type:'json'};
 
 const object=v.record(v.string(),v.unknown());

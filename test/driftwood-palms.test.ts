@@ -4,9 +4,9 @@ import { foliageTransport } from '../src/shards/driftwood-isle/generators/hibisc
 import { decodePalmWorld } from '../src/shards/driftwood-isle/generators/foliageGeometry';
 import { palm } from '../src/shards/driftwood-isle/generators/foliageModels';
 import { palmGeometry } from '../src/shards/driftwood-isle/generators/palm';
-import { Rng } from '../src/engine/core/rng';
-import { seedOf } from '../src/engine/models/model';
-import { buildTier } from '../src/engine/core/tier';
+import { Rng } from '../src/engine/shared/core/rng';
+import { seedOf } from '../src/engine/client/models/model';
+import { buildTier } from '../src/engine/client/core/tier';
 import { islandKnobs } from '../src/shards/driftwood-isle/generators/tiers';
 
 

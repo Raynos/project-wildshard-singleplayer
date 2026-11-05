@@ -6,7 +6,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 /**
  * meleeGeo — the smooth, vertex-painted geometry kit the Nalati melee viewmodels are built from (Sabre.ts, Spear.ts):
  * painterly style B (art/nalati-grasslands/round-1/1-art-style/style-B-painterly.jpg) — soft smooth shapes, colour
- * painted per vertex (gradients, bands), no textures; lit by the shared painterly material (src/engine/world/painterly.ts).
+ * painted per vertex (gradients, bands), no textures; lit by the shared painterly material (src/engine/client/world/painterly.ts).
  *
  *   tube(rings, colorAt, { capStart, capEnd })   indexed, smooth-normal tube through rings of equal vertex count
  *   section(n, rx, rz, y, rot?)                  one elliptical ring at height `y` (the usual ring for `tube`)

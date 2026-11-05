@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { AnimalPoseRecipe,AnimalPoseInput } from '../../../src/engine/entities/animalPose';
+import type { AnimalPoseRecipe,AnimalPoseInput } from '../../../src/engine/shared/entities/animalPose';
 
 // pose parameter indices
 const P_BODY_Y = 0, P_BODY_PITCH = 1, P_BODY_ROLL = 2;

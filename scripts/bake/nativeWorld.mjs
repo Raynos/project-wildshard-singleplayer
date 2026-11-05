@@ -22,7 +22,7 @@ export async function prepareNativeTerrain(def, options) {
   if (bytes.length < 24) throw new Error('Missing original native terrain');
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   if (view.getUint32(0, true) !== 0x52545357 || view.getUint32(4, true) !== 1 || view.getUint32(8, true) !== 256 || view.getFloat32(12, true) !== 500 || view.getUint32(16, true) !== def.seed) throw new Error('Authored world requires its original WSTR256 terrain and seed');
-  const { parseBakedTerrain, installBakedGrid } = await src('engine/world/BakedTerrain.ts');
+  const { parseBakedTerrain, installBakedGrid } = await src('engine/shared/world/BakedTerrain.ts');
   const end = 24 + 256 ** 2 * 8;
   if (bytes.length < end) throw new Error('Truncated original native terrain');
   if (bytes.length > end) {
@@ -32,10 +32,10 @@ export async function prepareNativeTerrain(def, options) {
   }
   const grid = parseBakedTerrain(Uint8Array.from(bytes).buffer);
   if (grid === null || grid.heights.some(value => !Number.isFinite(value) || Math.abs(value) > 250)) throw new Error('Invalid original native terrain');
-  const { _applyChunkConstants } = await src('engine/core/config.ts');
-  const { configureLevel } = await src('engine/level/selection.ts');
-  const { toLevelSpec } = await src('game/shard/spec.ts');
-  const { game } = await src('game/shard/registry.ts');
+  const { _applyChunkConstants } = await src('engine/shared/core/config.ts');
+  const { configureLevel } = await src('engine/shared/level/selection.ts');
+  const { toLevelSpec } = await src('game/server/shard/spec.ts');
+  const { game } = await src('game/client/shard/registry.ts');
   game.shard = def;
   _applyChunkConstants(def); configureLevel(toLevelSpec(def));
   installBakedGrid(grid);

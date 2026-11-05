@@ -1,5 +1,5 @@
 import {expect,it} from 'vitest';
-import {Synth} from '../src/engine/audio/synth';
+import {Synth} from '../src/engine/client/audio/synth';
 import {parseAudioData} from '@wildshard/format/audio';
 import {requireAudioProfile} from '@wildshard/engine/audio/audioProfiles';
 import audio from './fixtures/nalati-audio-original.json' with {type:'json'};

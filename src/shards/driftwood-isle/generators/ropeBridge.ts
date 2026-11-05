@@ -145,7 +145,7 @@ class RopeBridgeBuilder {
     return this;
   }
 
-  /** the deck for src/engine/physics/ropeChain.ts: the segments at rest, their size and weight, their holders as owners */
+  /** the deck for src/engine/shared/physics/ropeChain.ts: the segments at rest, their size and weight, their holders as owners */
   chainSpec(): { segments: DeckSegment[]; hx: number; hy: number; mass: number; owners: { id: string; name: string; follows: THREE.Object3D }[] } {
     return { segments: this.segs, hx: this.width / 2 + 0.15, hy: SEG_HY, mass: SEG_KG, owners: this.holders.map((follows) => ({ id: 'bridge', name: 'Rope bridge', follows })) };
   }

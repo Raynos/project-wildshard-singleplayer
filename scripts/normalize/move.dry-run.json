@@ -477,95 +477,95 @@
     "src/core/Volumetrics.ts",
     "src/core/webglStartup.ts",
     "src/core/worldDepth.ts",
-    "src/engine/audio/Audio.ts",
-    "src/engine/audio/audioLog.ts",
-    "src/engine/audio/credits.ts",
-    "src/engine/audio/dsp.ts",
-    "src/engine/audio/gen.ts",
+    "src/engine/client/audio/Audio.ts",
+    "src/engine/client/audio/audioLog.ts",
+    "src/engine/client/audio/credits.ts",
+    "src/engine/client/audio/dsp.ts",
+    "src/engine/client/audio/gen.ts",
     "src/engine/audio/IslandSfx.ts",
-    "src/engine/audio/Music.ts",
-    "src/engine/audio/preload.ts",
+    "src/engine/client/audio/Music.ts",
+    "src/engine/client/audio/preload.ts",
     "src/engine/audio/score/wildshard-theme.ts",
-    "src/engine/audio/Stems.ts",
+    "src/engine/client/audio/Stems.ts",
     "src/engine/audio/Surface.ts",
-    "src/engine/audio/Voices.ts",
+    "src/engine/client/audio/Voices.ts",
     "src/engine/boot/art.generated.ts",
     "src/engine/boot/audio.generated.ts",
-    "src/engine/boot/audioFiles.ts",
-    "src/engine/boot/bakedTextures.ts",
+    "src/engine/client/boot/audioFiles.ts",
+    "src/engine/client/boot/bakedTextures.ts",
     "src/engine/boot/bytes.generated.ts",
-    "src/engine/boot/bytes.ts",
-    "src/engine/boot/clearDownloads.ts",
-    "src/engine/boot/extras.ts",
+    "src/engine/client/boot/bytes.ts",
+    "src/engine/client/boot/clearDownloads.ts",
+    "src/engine/client/boot/extras.ts",
     "src/engine/boot/gpu.generated.ts",
-    "src/engine/boot/gpuFiles.ts",
-    "src/engine/boot/lastEnd.ts",
-    "src/engine/boot/manifest.ts",
+    "src/engine/client/boot/gpuFiles.ts",
+    "src/engine/client/boot/lastEnd.ts",
+    "src/engine/client/boot/manifest.ts",
     "src/engine/boot/nineBootTrace.ts",
     "src/engine/boot/nineGpuTrace.ts",
-    "src/engine/boot/pack.ts",
+    "src/engine/client/boot/pack.ts",
     "src/engine/boot/packs.generated.ts",
-    "src/engine/boot/perflog.ts",
-    "src/engine/boot/plan.ts",
+    "src/engine/client/boot/perflog.ts",
+    "src/engine/client/boot/plan.ts",
     "src/engine/boot/precompile.ts",
-    "src/engine/boot/prefetch.ts",
-    "src/engine/boot/shardPrefetch.ts",
-    "src/engine/boot/shell.ts",
-    "src/engine/boot/steps.ts",
-    "src/engine/boot/stuck.ts",
-    "src/engine/boot/sw.ts",
-    "src/engine/boot/titleArrival.ts",
+    "src/engine/client/boot/prefetch.ts",
+    "src/engine/client/boot/shardPrefetch.ts",
+    "src/engine/client/boot/shell.ts",
+    "src/engine/shared/boot/steps.ts",
+    "src/engine/client/boot/stuck.ts",
+    "src/engine/client/boot/sw.ts",
+    "src/engine/client/boot/titleArrival.ts",
     "src/engine/boot/versions.generated.ts",
-    "src/engine/core/assets.ts",
-    "src/engine/core/bootstrap.ts",
-    "src/engine/core/config.ts",
-    "src/engine/core/crashFlag.ts",
-    "src/engine/core/devMode.ts",
-    "src/engine/core/errorReport.ts",
-    "src/engine/core/faults.ts",
-    "src/engine/core/fixedStep.ts",
-    "src/engine/core/frameCost.ts",
-    "src/engine/core/Game.ts",
-    "src/engine/core/gpuOnly.ts",
-    "src/engine/core/GpuRecovery.ts",
-    "src/engine/core/Grade.ts",
-    "src/engine/core/harnessTap.ts",
-    "src/engine/core/KeepAlive.ts",
-    "src/engine/core/ktx2.ts",
-    "src/engine/core/noise.ts",
-    "src/engine/core/perfLap.ts",
-    "src/engine/core/practiceRoom.ts",
-    "src/engine/core/reloadGuard.ts",
-    "src/engine/core/rng.ts",
-    "src/engine/core/shadowLayer.ts",
+    "src/engine/client/core/assets.ts",
+    "src/engine/client/core/bootstrap.ts",
+    "src/engine/shared/core/config.ts",
+    "src/engine/client/core/crashFlag.ts",
+    "src/engine/client/core/devMode.ts",
+    "src/engine/client/core/errorReport.ts",
+    "src/engine/shared/core/faults.ts",
+    "src/engine/shared/core/fixedStep.ts",
+    "src/engine/shared/core/frameCost.ts",
+    "src/engine/client/core/Game.ts",
+    "src/engine/client/core/gpuOnly.ts",
+    "src/engine/client/core/GpuRecovery.ts",
+    "src/engine/client/core/Grade.ts",
+    "src/engine/shared/core/harnessTap.ts",
+    "src/engine/client/core/KeepAlive.ts",
+    "src/engine/client/core/ktx2.ts",
+    "src/engine/shared/core/noise.ts",
+    "src/engine/shared/core/perfLap.ts",
+    "src/engine/client/core/practiceRoom.ts",
+    "src/engine/client/core/reloadGuard.ts",
+    "src/engine/shared/core/rng.ts",
+    "src/engine/client/core/shadowLayer.ts",
     "src/engine/core/shardScope.ts",
     "src/engine/core/shardState.ts",
-    "src/engine/core/tier.ts",
-    "src/engine/core/time.ts",
-    "src/engine/core/Tour.ts",
-    "src/engine/core/viewport.ts",
-    "src/engine/core/Volumetrics.ts",
-    "src/engine/core/webglStartup.ts",
-    "src/engine/core/worldDepth.ts",
-    "src/engine/debug/probe.ts",
+    "src/engine/client/core/tier.ts",
+    "src/engine/shared/core/time.ts",
+    "src/engine/client/core/Tour.ts",
+    "src/engine/client/core/viewport.ts",
+    "src/engine/client/core/Volumetrics.ts",
+    "src/engine/client/core/webglStartup.ts",
+    "src/engine/client/core/worldDepth.ts",
+    "src/engine/client/debug/probe.ts",
     "src/engine/entities/Animal.ts",
-    "src/engine/entities/AnimalFactory.ts",
-    "src/engine/entities/AnimalManager.ts",
-    "src/engine/entities/animalMatrices.ts",
-    "src/engine/entities/animalShadow.ts",
+    "src/engine/client/entities/AnimalFactory.ts",
+    "src/engine/server/entities/AnimalManager.ts",
+    "src/engine/client/entities/animalMatrices.ts",
+    "src/engine/client/entities/animalShadow.ts",
     "src/engine/entities/bearFix.ts",
     "src/engine/entities/creatureCoats.ts",
     "src/engine/entities/creatureKit.ts",
     "src/engine/entities/creatureRigBake.ts",
     "src/engine/entities/creatureRigs.ts",
-    "src/engine/entities/eliteBrain.ts",
-    "src/engine/entities/farHerd.ts",
-    "src/engine/entities/fightRules.ts",
+    "src/engine/server/entities/eliteBrain.ts",
+    "src/engine/client/entities/farHerd.ts",
+    "src/engine/server/entities/fightRules.ts",
     "src/engine/entities/Flock.ts",
     "src/engine/entities/glbCreatures.ts",
     "src/engine/entities/Herd.ts",
     "src/engine/entities/humanoidRigBake.ts",
-    "src/engine/entities/lowpoly.ts",
+    "src/engine/client/entities/lowpoly.ts",
     "src/engine/entities/Marmots.ts",
     "src/engine/entities/Pack.ts",
     "src/engine/entities/painterlyAnimals.ts",
@@ -587,10 +587,10 @@
     "src/engine/entities/species/kokbori.ts",
     "src/engine/entities/species/kurganBalbal.ts",
     "src/engine/entities/species/leopard.ts",
-    "src/engine/entities/species/loft.ts",
+    "src/engine/client/entities/species/loft.ts",
     "src/engine/entities/species/monkey.ts",
-    "src/engine/entities/species/registry.ts",
-    "src/engine/entities/species/rigs.ts",
+    "src/engine/shared/entities/species/registry.ts",
+    "src/engine/shared/entities/species/rigs.ts",
     "src/engine/entities/species/sailor.ts",
     "src/engine/entities/species/sheep.ts",
     "src/engine/entities/species/sheepdog.ts",
@@ -598,243 +598,243 @@
     "src/engine/entities/species/wolf.ts",
     "src/engine/entities/wildEnv.ts",
     "src/engine/entities/Wildlife.ts",
-    "src/engine/explore/catalog.ts",
-    "src/engine/explore/Compare.ts",
-    "src/engine/explore/diorama.ts",
-    "src/engine/explore/Explore.ts",
-    "src/engine/explore/fatLines.ts",
-    "src/engine/explore/FreeCam.ts",
+    "src/engine/client/explore/catalog.ts",
+    "src/engine/client/explore/Compare.ts",
+    "src/engine/client/explore/diorama.ts",
+    "src/engine/client/explore/Explore.ts",
+    "src/engine/client/explore/fatLines.ts",
+    "src/engine/client/explore/FreeCam.ts",
     "src/engine/explore/img/mockups/driftwood-overlook-live.jpg",
     "src/engine/explore/img/mockups/driftwood-overlook-target.jpg",
     "src/engine/explore/img/mockups/driftwood-right-live.jpg",
     "src/engine/explore/img/mockups/driftwood-right-target.jpg",
     "src/engine/explore/img/mockups/driftwood-spawn-live.jpg",
     "src/engine/explore/img/mockups/driftwood-spawn-target.jpg",
-    "src/engine/explore/img/mockups/nalati-camp-live.jpg",
-    "src/engine/explore/img/mockups/nalati-camp-target.jpg",
-    "src/engine/explore/img/mockups/nalati-gully-live.jpg",
-    "src/engine/explore/img/mockups/nalati-gully-target.jpg",
-    "src/engine/explore/img/mockups/nalati-rail-live.jpg",
-    "src/engine/explore/img/mockups/nalati-rail-target.jpg",
-    "src/engine/explore/img/mockups/nine-gate-live.jpg",
-    "src/engine/explore/img/mockups/nine-gate-target.jpg",
-    "src/engine/explore/img/mockups/nine-stair-live.jpg",
-    "src/engine/explore/img/mockups/nine-stair-target.jpg",
+    "src/engine/client/explore/img/mockups/nalati-camp-live.jpg",
+    "src/engine/client/explore/img/mockups/nalati-camp-target.jpg",
+    "src/engine/client/explore/img/mockups/nalati-gully-live.jpg",
+    "src/engine/client/explore/img/mockups/nalati-gully-target.jpg",
+    "src/engine/client/explore/img/mockups/nalati-rail-live.jpg",
+    "src/engine/client/explore/img/mockups/nalati-rail-target.jpg",
+    "src/engine/client/explore/img/mockups/nine-gate-live.jpg",
+    "src/engine/client/explore/img/mockups/nine-gate-target.jpg",
+    "src/engine/client/explore/img/mockups/nine-stair-live.jpg",
+    "src/engine/client/explore/img/mockups/nine-stair-target.jpg",
     "src/engine/explore/img/mockups/pine-den-live.jpg",
     "src/engine/explore/img/mockups/pine-den-target.jpg",
     "src/engine/explore/img/mockups/pine-hamlet-live.jpg",
     "src/engine/explore/img/mockups/pine-hamlet-target.jpg",
     "src/engine/explore/img/mockups/pine-ridge-live.jpg",
     "src/engine/explore/img/mockups/pine-ridge-target.jpg",
-    "src/engine/explore/MiniMap.ts",
-    "src/engine/explore/ModelExplorer.ts",
-    "src/engine/explore/pick.ts",
-    "src/engine/explore/registry.ts",
-    "src/engine/explore/Select.ts",
-    "src/engine/explore/SetExplorer.ts",
-    "src/engine/explore/setView.ts",
-    "src/engine/explore/tiers.ts",
-    "src/engine/explore/TouchFly.ts",
-    "src/engine/explore/viewPoint.ts",
-    "src/engine/fx/Impacts.ts",
-    "src/engine/fx/LightPool.ts",
-    "src/engine/models/colliders.ts",
-    "src/engine/models/creature.ts",
+    "src/engine/client/explore/MiniMap.ts",
+    "src/engine/client/explore/ModelExplorer.ts",
+    "src/engine/client/explore/pick.ts",
+    "src/engine/client/explore/registry.ts",
+    "src/engine/client/explore/Select.ts",
+    "src/engine/client/explore/SetExplorer.ts",
+    "src/engine/client/explore/setView.ts",
+    "src/engine/client/explore/tiers.ts",
+    "src/engine/client/explore/TouchFly.ts",
+    "src/engine/client/explore/viewPoint.ts",
+    "src/engine/client/fx/Impacts.ts",
+    "src/engine/client/fx/LightPool.ts",
+    "src/engine/client/models/colliders.ts",
+    "src/engine/client/models/creature.ts",
     "src/engine/models/creatures.ts",
-    "src/engine/models/cull.ts",
-    "src/engine/models/gear.ts",
-    "src/engine/models/hoverboard.ts",
-    "src/engine/models/interact.ts",
-    "src/engine/models/live.ts",
-    "src/engine/models/model.ts",
-    "src/engine/models/place.ts",
-    "src/engine/models/roster.ts",
-    "src/engine/models/sets.ts",
-    "src/engine/models/slots.ts",
-    "src/engine/models/swimHands.ts",
-    "src/engine/models/trainingDummy.ts",
-    "src/engine/models/weld.ts",
-    "src/engine/native/boot.ts",
-    "src/engine/native/lifecycle.ts",
-    "src/engine/native/ota-config.ts",
-    "src/engine/native/ota.ts",
-    "src/engine/native/saves.ts",
-    "src/engine/native/updates.ts",
-    "src/engine/physics/active.ts",
-    "src/engine/physics/bodies.ts",
+    "src/engine/client/models/cull.ts",
+    "src/engine/client/models/gear.ts",
+    "src/engine/client/models/hoverboard.ts",
+    "src/engine/client/models/interact.ts",
+    "src/engine/client/models/live.ts",
+    "src/engine/client/models/model.ts",
+    "src/engine/client/models/place.ts",
+    "src/engine/client/models/roster.ts",
+    "src/engine/client/models/sets.ts",
+    "src/engine/client/models/slots.ts",
+    "src/engine/client/models/swimHands.ts",
+    "src/engine/client/models/trainingDummy.ts",
+    "src/engine/client/models/weld.ts",
+    "src/engine/client/native/boot.ts",
+    "src/engine/client/native/lifecycle.ts",
+    "src/engine/client/native/ota-config.ts",
+    "src/engine/client/native/ota.ts",
+    "src/engine/client/native/saves.ts",
+    "src/engine/client/native/updates.ts",
+    "src/engine/shared/physics/active.ts",
+    "src/engine/shared/physics/bodies.ts",
     "src/engine/physics/bridge.ts",
-    "src/engine/physics/CharacterMotor.ts",
-    "src/engine/physics/creatures.ts",
-    "src/engine/physics/debug.ts",
-    "src/engine/physics/groups.ts",
-    "src/engine/physics/heightPatch.ts",
-    "src/engine/physics/navmesh.ts",
-    "src/engine/physics/navmeshUrl.ts",
-    "src/engine/physics/paths.ts",
-    "src/engine/physics/Physics.ts",
-    "src/engine/physics/pieces.ts",
-    "src/engine/physics/query.ts",
-    "src/engine/physics/ragdoll.ts",
-    "src/engine/physics/rapier-bg.d.ts",
-    "src/engine/physics/rapier.ts",
-    "src/engine/physics/rapierBindings.ts",
-    "src/engine/physics/ropeChain.ts",
-    "src/engine/physics/surface.ts",
-    "src/engine/physics/terrain.ts",
-    "src/engine/physics/trainingTargets.ts",
-    "src/engine/physics/wasmUrl.ts",
-    "src/engine/player/AimAssist.ts",
-    "src/engine/player/AimTargets.ts",
-    "src/engine/player/bladeGlow.ts",
+    "src/engine/shared/physics/CharacterMotor.ts",
+    "src/engine/shared/physics/creatures.ts",
+    "src/engine/client/physics/debug.ts",
+    "src/engine/shared/physics/groups.ts",
+    "src/engine/shared/physics/heightPatch.ts",
+    "src/engine/shared/physics/navmesh.ts",
+    "src/engine/shared/physics/navmeshUrl.ts",
+    "src/engine/shared/physics/paths.ts",
+    "src/engine/shared/physics/Physics.ts",
+    "src/engine/shared/physics/pieces.ts",
+    "src/engine/shared/physics/query.ts",
+    "src/engine/client/physics/ragdoll.ts",
+    "src/engine/shared/physics/rapier-bg.d.ts",
+    "src/engine/shared/physics/rapier.ts",
+    "src/engine/server/physics/rapierBindings.ts",
+    "src/engine/shared/physics/ropeChain.ts",
+    "src/engine/shared/physics/surface.ts",
+    "src/engine/shared/physics/terrain.ts",
+    "src/engine/shared/physics/trainingTargets.ts",
+    "src/engine/shared/physics/wasmUrl.ts",
+    "src/engine/client/player/AimAssist.ts",
+    "src/engine/client/player/AimTargets.ts",
+    "src/engine/client/player/bladeGlow.ts",
     "src/engine/player/BodyShadow.ts",
     "src/engine/player/Bow.ts",
     "src/engine/player/bowDraw.ts",
-    "src/engine/player/CameraFX.ts",
+    "src/engine/client/player/CameraFX.ts",
     "src/engine/player/Cosmetics.ts",
     "src/engine/player/Crossbow.ts",
-    "src/engine/player/Hands.ts",
+    "src/engine/client/player/Hands.ts",
     "src/engine/player/Hoverboard.ts",
     "src/engine/player/hunterHands.ts",
-    "src/engine/player/LockOnTarget.ts",
+    "src/engine/client/player/LockOnTarget.ts",
     "src/engine/player/Longbow.ts",
-    "src/engine/player/MeleeSweep.ts",
-    "src/engine/player/Player.ts",
+    "src/engine/client/player/MeleeSweep.ts",
+    "src/engine/client/player/Player.ts",
     "src/engine/player/Projectiles.ts",
     "src/engine/player/riding.ts",
     "src/engine/player/Rifle.ts",
-    "src/engine/player/Skins.ts",
+    "src/engine/client/player/Skins.ts",
     "src/engine/player/Sword.ts",
     "src/engine/player/SwordMoves.ts",
-    "src/engine/player/TouchControls.ts",
-    "src/engine/player/viewmodelTextures.ts",
-    "src/engine/player/viewmodelTextures.worker.ts",
-    "src/engine/player/WaterLine.ts",
+    "src/engine/client/player/TouchControls.ts",
+    "src/engine/client/player/viewmodelTextures.ts",
+    "src/engine/client/player/viewmodelTextures.worker.ts",
+    "src/engine/client/player/WaterLine.ts",
     "src/engine/player/Weapon.ts",
-    "src/engine/player/WeaponPickup.ts",
+    "src/engine/client/player/WeaponPickup.ts",
     "src/engine/player/Weapons.ts",
-    "src/engine/practice/arena.css",
-    "src/engine/practice/DummyClips.ts",
-    "src/engine/practice/DummyMotion.ts",
-    "src/engine/practice/DummyStudio.ts",
-    "src/engine/practice/lineup.ts",
-    "src/engine/practice/playground/catalog.ts",
-    "src/engine/practice/playground/devGrid.ts",
-    "src/engine/practice/playground/hud.ts",
-    "src/engine/practice/playground/load.ts",
-    "src/engine/practice/playground/Playground.ts",
-    "src/engine/practice/TrainingArena.ts",
-    "src/engine/practice/TrainingDummy.ts",
-    "src/engine/practice/TrainingDummyAssets.ts",
-    "src/engine/pwa/sw.js",
+    "src/engine/client/practice/arena.css",
+    "src/engine/client/practice/DummyClips.ts",
+    "src/engine/client/practice/DummyMotion.ts",
+    "src/engine/client/practice/DummyStudio.ts",
+    "src/engine/client/practice/lineup.ts",
+    "src/engine/client/practice/playground/catalog.ts",
+    "src/engine/client/practice/playground/devGrid.ts",
+    "src/engine/client/practice/playground/hud.ts",
+    "src/engine/client/practice/playground/load.ts",
+    "src/engine/client/practice/playground/Playground.ts",
+    "src/engine/client/practice/TrainingArena.ts",
+    "src/engine/client/practice/TrainingDummy.ts",
+    "src/engine/client/practice/TrainingDummyAssets.ts",
+    "src/engine/client/pwa/sw.js",
     "src/engine/shard/disposeListeners.ts",
     "src/engine/shard/ShardHost.ts",
-    "src/engine/telemetry/bootInbox.ts",
-    "src/engine/telemetry/browserErrors.ts",
-    "src/engine/types/meshopt-simplifier.d.ts",
-    "src/engine/types/n8ao.d.ts",
-    "src/engine/ui/BootSettings.ts",
-    "src/engine/ui/BossBar.ts",
-    "src/engine/ui/cards.ts",
-    "src/engine/ui/Combat.ts",
-    "src/engine/ui/DeathFade.ts",
-    "src/engine/ui/DebugMenu.ts",
-    "src/engine/ui/debugOptions.ts",
-    "src/engine/ui/devSwitch.ts",
-    "src/engine/ui/EliteBar.ts",
-    "src/engine/ui/ErrorModal.ts",
-    "src/engine/ui/Feedback.ts",
-    "src/engine/ui/FirstHints.ts",
-    "src/engine/ui/haptics.ts",
-    "src/engine/ui/HUD.ts",
-    "src/engine/ui/hudSlots.ts",
-    "src/engine/ui/HurtArc.ts",
-    "src/engine/ui/icons.ts",
-    "src/engine/ui/loading.css",
-    "src/engine/ui/Loading.ts",
-    "src/engine/ui/LockOn.ts",
-    "src/engine/ui/Map.ts",
+    "src/engine/client/telemetry/bootInbox.ts",
+    "src/engine/client/telemetry/browserErrors.ts",
+    "src/engine/client/types/meshopt-simplifier.d.ts",
+    "src/engine/client/types/n8ao.d.ts",
+    "src/engine/client/ui/BootSettings.ts",
+    "src/engine/client/ui/BossBar.ts",
+    "src/engine/client/ui/cards.ts",
+    "src/engine/client/ui/Combat.ts",
+    "src/engine/client/ui/DeathFade.ts",
+    "src/engine/client/ui/DebugMenu.ts",
+    "src/engine/client/ui/debugOptions.ts",
+    "src/engine/client/ui/devSwitch.ts",
+    "src/engine/client/ui/EliteBar.ts",
+    "src/engine/client/ui/ErrorModal.ts",
+    "src/engine/client/ui/Feedback.ts",
+    "src/engine/client/ui/FirstHints.ts",
+    "src/engine/client/ui/haptics.ts",
+    "src/engine/client/ui/HUD.ts",
+    "src/engine/client/ui/hudSlots.ts",
+    "src/engine/client/ui/HurtArc.ts",
+    "src/engine/client/ui/icons.ts",
+    "src/engine/client/ui/loading.css",
+    "src/engine/client/ui/Loading.ts",
+    "src/engine/client/ui/LockOn.ts",
+    "src/engine/client/ui/Map.ts",
     "src/engine/ui/mapShapes.ts",
-    "src/engine/ui/Menu.ts",
-    "src/engine/ui/Minimap.ts",
-    "src/engine/ui/perf.css",
-    "src/engine/ui/Perf.ts",
-    "src/engine/ui/perfHud.ts",
-    "src/engine/ui/perfLap.ts",
-    "src/engine/ui/perfLapSummary.ts",
-    "src/engine/ui/perfProbe.ts",
-    "src/engine/ui/ReloadPrompt.ts",
-    "src/engine/ui/review.ts",
-    "src/engine/ui/roomMap.ts",
-    "src/engine/ui/RotateGate.ts",
-    "src/engine/ui/Settings.ts",
-    "src/engine/ui/SpeedLines.ts",
-    "src/engine/ui/StartTitle.ts",
-    "src/engine/ui/styles/base.css",
-    "src/engine/ui/styles/boss.css",
-    "src/engine/ui/styles/combat.css",
-    "src/engine/ui/styles/debug.css",
-    "src/engine/ui/styles/elite.css",
-    "src/engine/ui/styles/explore.css",
-    "src/engine/ui/styles/feedback.css",
-    "src/engine/ui/styles/game.css",
-    "src/engine/ui/styles/gmenu.css",
-    "src/engine/ui/styles/hints.css",
-    "src/engine/ui/styles/menu.css",
-    "src/engine/ui/styles/minimap.css",
-    "src/engine/ui/styles/playgrounds.css",
-    "src/engine/ui/styles/quest.css",
+    "src/engine/client/ui/Menu.ts",
+    "src/engine/client/ui/Minimap.ts",
+    "src/engine/client/ui/perf.css",
+    "src/engine/client/ui/Perf.ts",
+    "src/engine/client/ui/perfHud.ts",
+    "src/engine/client/ui/perfLap.ts",
+    "src/engine/client/ui/perfLapSummary.ts",
+    "src/engine/client/ui/perfProbe.ts",
+    "src/engine/client/ui/ReloadPrompt.ts",
+    "src/engine/client/ui/review.ts",
+    "src/engine/client/ui/roomMap.ts",
+    "src/engine/client/ui/RotateGate.ts",
+    "src/engine/client/ui/Settings.ts",
+    "src/engine/client/ui/SpeedLines.ts",
+    "src/engine/client/ui/StartTitle.ts",
+    "src/engine/client/ui/styles/base.css",
+    "src/engine/client/ui/styles/boss.css",
+    "src/engine/client/ui/styles/combat.css",
+    "src/engine/client/ui/styles/debug.css",
+    "src/engine/client/ui/styles/elite.css",
+    "src/engine/client/ui/styles/explore.css",
+    "src/engine/client/ui/styles/feedback.css",
+    "src/engine/client/ui/styles/game.css",
+    "src/engine/client/ui/styles/gmenu.css",
+    "src/engine/client/ui/styles/hints.css",
+    "src/engine/client/ui/styles/menu.css",
+    "src/engine/client/ui/styles/minimap.css",
+    "src/engine/client/ui/styles/playgrounds.css",
+    "src/engine/client/ui/styles/quest.css",
     "src/engine/ui/styles/reload.css",
-    "src/engine/ui/styles/rotate.css",
-    "src/engine/ui/styles/touch.css",
-    "src/engine/ui/styles/update.css",
-    "src/engine/ui/ToastStack.ts",
-    "src/engine/ui/Update.ts",
-    "src/engine/ui/WeaponStrip.ts",
-    "src/engine/ui/WindupWarn.ts",
-    "src/engine/world/Atmosphere.ts",
-    "src/engine/world/BakedSky.ts",
-    "src/engine/world/BakedTerrain.ts",
-    "src/engine/world/blenderArea.ts",
-    "src/engine/world/Boundary.ts",
+    "src/engine/client/ui/styles/rotate.css",
+    "src/engine/client/ui/styles/touch.css",
+    "src/engine/client/ui/styles/update.css",
+    "src/engine/client/ui/ToastStack.ts",
+    "src/engine/client/ui/Update.ts",
+    "src/engine/client/ui/WeaponStrip.ts",
+    "src/engine/client/ui/WindupWarn.ts",
+    "src/engine/client/world/Atmosphere.ts",
+    "src/engine/client/world/BakedSky.ts",
+    "src/engine/shared/world/BakedTerrain.ts",
+    "src/engine/client/world/blenderArea.ts",
+    "src/engine/client/world/Boundary.ts",
     "src/engine/world/Cabin.ts",
-    "src/engine/world/cascadeCull.ts",
+    "src/engine/client/world/cascadeCull.ts",
     "src/engine/world/DayClock.ts",
     "src/engine/world/DayNight.ts",
     "src/engine/world/faceHeads.ts",
-    "src/engine/world/forest/Forest.ts",
-    "src/engine/world/forest/placement.ts",
-    "src/engine/world/forest/treeSet.ts",
-    "src/engine/world/forest/treeSpecies.ts",
+    "src/engine/client/world/forest/Forest.ts",
+    "src/engine/shared/world/forest/placement.ts",
+    "src/engine/client/world/forest/treeSet.ts",
+    "src/engine/client/world/forest/treeSpecies.ts",
     "src/engine/world/fx.ts",
-    "src/engine/world/Grass.ts",
-    "src/engine/world/Heightfield.ts",
-    "src/engine/world/Horizon.ts",
-    "src/engine/world/HorizonMatte.ts",
-    "src/engine/world/interact/flags.ts",
-    "src/engine/world/interact/Interactables.ts",
+    "src/engine/client/world/Grass.ts",
+    "src/engine/shared/world/Heightfield.ts",
+    "src/engine/client/world/Horizon.ts",
+    "src/engine/client/world/HorizonMatte.ts",
+    "src/engine/server/world/interact/flags.ts",
+    "src/engine/client/world/interact/Interactables.ts",
     "src/engine/world/interact/models.ts",
-    "src/engine/world/interact/types.ts",
-    "src/engine/world/interact/validate.ts",
-    "src/engine/world/lookFlags.ts",
-    "src/engine/world/lowpolyKit.ts",
-    "src/engine/world/lut.ts",
-    "src/engine/world/painterly.ts",
+    "src/engine/shared/world/interact/types.ts",
+    "src/engine/shared/world/interact/validate.ts",
+    "src/engine/client/world/lookFlags.ts",
+    "src/engine/client/world/lowpolyKit.ts",
+    "src/engine/client/world/lut.ts",
+    "src/engine/client/world/painterly.ts",
     "src/engine/world/PainterlySky.ts",
-    "src/engine/world/pointLightSkip.ts",
-    "src/engine/world/registry.ts",
-    "src/engine/world/shadowChunks.ts",
-    "src/engine/world/shadowFade.ts",
-    "src/engine/world/shadowFilter.ts",
-    "src/engine/world/shadowVariants.ts",
+    "src/engine/client/world/pointLightSkip.ts",
+    "src/engine/client/world/registry.ts",
+    "src/engine/client/world/shadowChunks.ts",
+    "src/engine/client/world/shadowFade.ts",
+    "src/engine/client/world/shadowFilter.ts",
+    "src/engine/client/world/shadowVariants.ts",
     "src/engine/world/Sky.ts",
-    "src/engine/world/steppeWind.ts",
+    "src/engine/shared/world/steppeWind.ts",
     "src/engine/world/stylize.ts",
     "src/engine/world/StylizedSky.ts",
-    "src/engine/world/Terrain.ts",
-    "src/engine/world/terrainField.ts",
-    "src/engine/world/TreeFactory.ts",
-    "src/engine/world/waves.ts",
-    "src/engine/world/wind.ts",
+    "src/engine/client/world/Terrain.ts",
+    "src/engine/shared/world/terrainField.ts",
+    "src/engine/client/world/TreeFactory.ts",
+    "src/engine/shared/world/waves.ts",
+    "src/engine/client/world/wind.ts",
     "src/engine/world/WorldClock.ts",
     "src/entities/Animal.ts",
     "src/entities/AnimalFactory.ts",
@@ -948,29 +948,29 @@
     "src/explore/viewPoint.ts",
     "src/fx/Impacts.ts",
     "src/fx/LightPool.ts",
-    "src/game/achievements.ts",
-    "src/game/bag/bag.ts",
-    "src/game/bag/BagButton.ts",
-    "src/game/Boss.ts",
-    "src/game/compendium/compendium.css",
-    "src/game/compendium/finds.ts",
-    "src/game/compendium/install.ts",
-    "src/game/compendium/Journal.ts",
-    "src/game/compendium/registry.ts",
-    "src/game/compendium/state.ts",
-    "src/game/compendium/tracker.ts",
-    "src/game/compendium/types.ts",
-    "src/game/complete/complete.css",
-    "src/game/complete/ShardComplete.ts",
-    "src/game/Elite.ts",
-    "src/game/Inventory.ts",
-    "src/game/loot/CoinBurst.ts",
+    "src/game/server/achievements.ts",
+    "src/game/client/bag/bag.ts",
+    "src/game/client/bag/BagButton.ts",
+    "src/game/server/Boss.ts",
+    "src/game/client/compendium/compendium.css",
+    "src/game/shared/compendium/finds.ts",
+    "src/game/client/compendium/install.ts",
+    "src/game/client/compendium/Journal.ts",
+    "src/game/shared/compendium/registry.ts",
+    "src/game/shared/compendium/state.ts",
+    "src/game/shared/compendium/tracker.ts",
+    "src/game/shared/compendium/types.ts",
+    "src/game/client/complete/complete.css",
+    "src/game/client/complete/ShardComplete.ts",
+    "src/game/server/Elite.ts",
+    "src/game/server/Inventory.ts",
+    "src/game/server/loot/CoinBurst.ts",
     "src/game/loot/CoinChip.ts",
     "src/game/loot/finds.ts",
     "src/game/loot/install.ts",
     "src/game/loot/keepsakes.ts",
-    "src/game/loot/loot.css",
-    "src/game/loot/Owned.ts",
+    "src/game/client/loot/loot.css",
+    "src/game/server/loot/Owned.ts",
     "src/game/loot/perks.ts",
     "src/game/loot/shop.ts",
     "src/game/quest/Adventure.ts",
@@ -988,10 +988,10 @@
     "src/game/quest/QuestUI.ts",
     "src/game/quest/Spine.ts",
     "src/game/quest/TraderStall.ts",
-    "src/game/shard/manifest.ts",
-    "src/game/shard/registry.ts",
+    "src/game/server/shard/manifest.ts",
+    "src/game/client/shard/registry.ts",
     "src/game/Taming.ts",
-    "src/game/titleDeck.ts",
+    "src/game/client/titleDeck.ts",
     "src/game/travel/switch.ts",
     "src/kit/looks/grassField.ts",
     "src/kit/looks/particles.ts",
@@ -2012,15 +2012,15 @@
   "gitMoves": [
     {
       "from": "src/core/harnessTap.ts",
-      "to": "src/engine/core/harnessTap.ts"
+      "to": "src/engine/shared/core/harnessTap.ts"
     },
     {
       "from": "src/core/probe.ts",
-      "to": "src/engine/debug/probe.ts"
+      "to": "src/engine/client/debug/probe.ts"
     },
     {
       "from": "src/audio/Audio.ts",
-      "to": "src/engine/audio/Audio.ts"
+      "to": "src/engine/client/audio/Audio.ts"
     },
     {
       "from": "src/audio/ForestAmbience.ts",
@@ -2036,7 +2036,7 @@
     },
     {
       "from": "src/audio/Music.ts",
-      "to": "src/engine/audio/Music.ts"
+      "to": "src/engine/client/audio/Music.ts"
     },
     {
       "from": "src/audio/PineHollowSfx.ts",
@@ -2048,7 +2048,7 @@
     },
     {
       "from": "src/audio/Stems.ts",
-      "to": "src/engine/audio/Stems.ts"
+      "to": "src/engine/client/audio/Stems.ts"
     },
     {
       "from": "src/audio/SteppeAmbience.ts",
@@ -2064,27 +2064,27 @@
     },
     {
       "from": "src/audio/Voices.ts",
-      "to": "src/engine/audio/Voices.ts"
+      "to": "src/engine/client/audio/Voices.ts"
     },
     {
       "from": "src/audio/audioLog.ts",
-      "to": "src/engine/audio/audioLog.ts"
+      "to": "src/engine/client/audio/audioLog.ts"
     },
     {
       "from": "src/audio/credits.ts",
-      "to": "src/engine/audio/credits.ts"
+      "to": "src/engine/client/audio/credits.ts"
     },
     {
       "from": "src/audio/dsp.ts",
-      "to": "src/engine/audio/dsp.ts"
+      "to": "src/engine/client/audio/dsp.ts"
     },
     {
       "from": "src/audio/gen.ts",
-      "to": "src/engine/audio/gen.ts"
+      "to": "src/engine/client/audio/gen.ts"
     },
     {
       "from": "src/audio/preload.ts",
-      "to": "src/engine/audio/preload.ts"
+      "to": "src/engine/client/audio/preload.ts"
     },
     {
       "from": "src/audio/score/wildshard-theme.ts",
@@ -2100,11 +2100,11 @@
     },
     {
       "from": "src/boot/audioFiles.ts",
-      "to": "src/engine/boot/audioFiles.ts"
+      "to": "src/engine/client/boot/audioFiles.ts"
     },
     {
       "from": "src/boot/bakedTextures.ts",
-      "to": "src/engine/boot/bakedTextures.ts"
+      "to": "src/engine/client/boot/bakedTextures.ts"
     },
     {
       "from": "src/boot/bytes.generated.ts",
@@ -2112,11 +2112,11 @@
     },
     {
       "from": "src/boot/bytes.ts",
-      "to": "src/engine/boot/bytes.ts"
+      "to": "src/engine/client/boot/bytes.ts"
     },
     {
       "from": "src/boot/clearDownloads.ts",
-      "to": "src/engine/boot/clearDownloads.ts"
+      "to": "src/engine/client/boot/clearDownloads.ts"
     },
     {
       "from": "src/boot/entry.ts",
@@ -2124,7 +2124,7 @@
     },
     {
       "from": "src/boot/extras.ts",
-      "to": "src/engine/boot/extras.ts"
+      "to": "src/engine/client/boot/extras.ts"
     },
     {
       "from": "src/boot/gpu.generated.ts",
@@ -2132,15 +2132,15 @@
     },
     {
       "from": "src/boot/gpuFiles.ts",
-      "to": "src/engine/boot/gpuFiles.ts"
+      "to": "src/engine/client/boot/gpuFiles.ts"
     },
     {
       "from": "src/boot/lastEnd.ts",
-      "to": "src/engine/boot/lastEnd.ts"
+      "to": "src/engine/client/boot/lastEnd.ts"
     },
     {
       "from": "src/boot/manifest.ts",
-      "to": "src/engine/boot/manifest.ts"
+      "to": "src/engine/client/boot/manifest.ts"
     },
     {
       "from": "src/boot/nineBootTrace.ts",
@@ -2152,7 +2152,7 @@
     },
     {
       "from": "src/boot/pack.ts",
-      "to": "src/engine/boot/pack.ts"
+      "to": "src/engine/client/boot/pack.ts"
     },
     {
       "from": "src/boot/packs.generated.ts",
@@ -2160,11 +2160,11 @@
     },
     {
       "from": "src/boot/perflog.ts",
-      "to": "src/engine/boot/perflog.ts"
+      "to": "src/engine/client/boot/perflog.ts"
     },
     {
       "from": "src/boot/plan.ts",
-      "to": "src/engine/boot/plan.ts"
+      "to": "src/engine/client/boot/plan.ts"
     },
     {
       "from": "src/boot/precompile.ts",
@@ -2172,31 +2172,31 @@
     },
     {
       "from": "src/boot/prefetch.ts",
-      "to": "src/engine/boot/prefetch.ts"
+      "to": "src/engine/client/boot/prefetch.ts"
     },
     {
       "from": "src/boot/shardPrefetch.ts",
-      "to": "src/engine/boot/shardPrefetch.ts"
+      "to": "src/engine/client/boot/shardPrefetch.ts"
     },
     {
       "from": "src/boot/shell.ts",
-      "to": "src/engine/boot/shell.ts"
+      "to": "src/engine/client/boot/shell.ts"
     },
     {
       "from": "src/boot/steps.ts",
-      "to": "src/engine/boot/steps.ts"
+      "to": "src/engine/shared/boot/steps.ts"
     },
     {
       "from": "src/boot/stuck.ts",
-      "to": "src/engine/boot/stuck.ts"
+      "to": "src/engine/client/boot/stuck.ts"
     },
     {
       "from": "src/boot/sw.ts",
-      "to": "src/engine/boot/sw.ts"
+      "to": "src/engine/client/boot/sw.ts"
     },
     {
       "from": "src/boot/titleArrival.ts",
-      "to": "src/engine/boot/titleArrival.ts"
+      "to": "src/engine/client/boot/titleArrival.ts"
     },
     {
       "from": "src/boot/versions.generated.ts",
@@ -2204,7 +2204,7 @@
     },
     {
       "from": "src/chunks/ChunkDef.ts",
-      "to": "src/game/shard/manifest.ts"
+      "to": "src/game/server/shard/manifest.ts"
     },
     {
       "from": "src/chunks/driftwood-isle.ts",
@@ -3132,11 +3132,11 @@
     },
     {
       "from": "src/chunks/registry.ts",
-      "to": "src/game/shard/registry.ts"
+      "to": "src/game/client/shard/registry.ts"
     },
     {
       "from": "src/chunks/terrain.ts",
-      "to": "src/engine/world/terrainField.ts"
+      "to": "src/engine/shared/world/terrainField.ts"
     },
     {
       "from": "src/chunks/thumbs/driftwood-isle-landscape.jpg",
@@ -3188,95 +3188,95 @@
     },
     {
       "from": "src/core/Game.ts",
-      "to": "src/engine/core/Game.ts"
+      "to": "src/engine/client/core/Game.ts"
     },
     {
       "from": "src/core/GpuRecovery.ts",
-      "to": "src/engine/core/GpuRecovery.ts"
+      "to": "src/engine/client/core/GpuRecovery.ts"
     },
     {
       "from": "src/core/Grade.ts",
-      "to": "src/engine/core/Grade.ts"
+      "to": "src/engine/client/core/Grade.ts"
     },
     {
       "from": "src/core/KeepAlive.ts",
-      "to": "src/engine/core/KeepAlive.ts"
+      "to": "src/engine/client/core/KeepAlive.ts"
     },
     {
       "from": "src/core/Tour.ts",
-      "to": "src/engine/core/Tour.ts"
+      "to": "src/engine/client/core/Tour.ts"
     },
     {
       "from": "src/core/Volumetrics.ts",
-      "to": "src/engine/core/Volumetrics.ts"
+      "to": "src/engine/client/core/Volumetrics.ts"
     },
     {
       "from": "src/core/assets.ts",
-      "to": "src/engine/core/assets.ts"
+      "to": "src/engine/client/core/assets.ts"
     },
     {
       "from": "src/core/bootstrap.ts",
-      "to": "src/engine/core/bootstrap.ts"
+      "to": "src/engine/client/core/bootstrap.ts"
     },
     {
       "from": "src/core/config.ts",
-      "to": "src/engine/core/config.ts"
+      "to": "src/engine/shared/core/config.ts"
     },
     {
       "from": "src/core/crashFlag.ts",
-      "to": "src/engine/core/crashFlag.ts"
+      "to": "src/engine/client/core/crashFlag.ts"
     },
     {
       "from": "src/core/devMode.ts",
-      "to": "src/engine/core/devMode.ts"
+      "to": "src/engine/client/core/devMode.ts"
     },
     {
       "from": "src/core/errorReport.ts",
-      "to": "src/engine/core/errorReport.ts"
+      "to": "src/engine/client/core/errorReport.ts"
     },
     {
       "from": "src/core/faults.ts",
-      "to": "src/engine/core/faults.ts"
+      "to": "src/engine/shared/core/faults.ts"
     },
     {
       "from": "src/core/fixedStep.ts",
-      "to": "src/engine/core/fixedStep.ts"
+      "to": "src/engine/shared/core/fixedStep.ts"
     },
     {
       "from": "src/core/frameCost.ts",
-      "to": "src/engine/core/frameCost.ts"
+      "to": "src/engine/shared/core/frameCost.ts"
     },
     {
       "from": "src/core/gpuOnly.ts",
-      "to": "src/engine/core/gpuOnly.ts"
+      "to": "src/engine/client/core/gpuOnly.ts"
     },
     {
       "from": "src/core/ktx2.ts",
-      "to": "src/engine/core/ktx2.ts"
+      "to": "src/engine/client/core/ktx2.ts"
     },
     {
       "from": "src/core/noise.ts",
-      "to": "src/engine/core/noise.ts"
+      "to": "src/engine/shared/core/noise.ts"
     },
     {
       "from": "src/core/perfLap.ts",
-      "to": "src/engine/core/perfLap.ts"
+      "to": "src/engine/shared/core/perfLap.ts"
     },
     {
       "from": "src/core/practiceRoom.ts",
-      "to": "src/engine/core/practiceRoom.ts"
+      "to": "src/engine/client/core/practiceRoom.ts"
     },
     {
       "from": "src/core/reloadGuard.ts",
-      "to": "src/engine/core/reloadGuard.ts"
+      "to": "src/engine/client/core/reloadGuard.ts"
     },
     {
       "from": "src/core/rng.ts",
-      "to": "src/engine/core/rng.ts"
+      "to": "src/engine/shared/core/rng.ts"
     },
     {
       "from": "src/core/shadowLayer.ts",
-      "to": "src/engine/core/shadowLayer.ts"
+      "to": "src/engine/client/core/shadowLayer.ts"
     },
     {
       "from": "src/core/shardScope.ts",
@@ -3288,23 +3288,23 @@
     },
     {
       "from": "src/core/tier.ts",
-      "to": "src/engine/core/tier.ts"
+      "to": "src/engine/client/core/tier.ts"
     },
     {
       "from": "src/core/time.ts",
-      "to": "src/engine/core/time.ts"
+      "to": "src/engine/shared/core/time.ts"
     },
     {
       "from": "src/core/viewport.ts",
-      "to": "src/engine/core/viewport.ts"
+      "to": "src/engine/client/core/viewport.ts"
     },
     {
       "from": "src/core/webglStartup.ts",
-      "to": "src/engine/core/webglStartup.ts"
+      "to": "src/engine/client/core/webglStartup.ts"
     },
     {
       "from": "src/core/worldDepth.ts",
-      "to": "src/engine/core/worldDepth.ts"
+      "to": "src/engine/client/core/worldDepth.ts"
     },
     {
       "from": "src/entities/Animal.ts",
@@ -3312,11 +3312,11 @@
     },
     {
       "from": "src/entities/AnimalFactory.ts",
-      "to": "src/engine/entities/AnimalFactory.ts"
+      "to": "src/engine/client/entities/AnimalFactory.ts"
     },
     {
       "from": "src/entities/AnimalManager.ts",
-      "to": "src/engine/entities/AnimalManager.ts"
+      "to": "src/engine/server/entities/AnimalManager.ts"
     },
     {
       "from": "src/entities/Enemies.ts",
@@ -3344,11 +3344,11 @@
     },
     {
       "from": "src/entities/animalMatrices.ts",
-      "to": "src/engine/entities/animalMatrices.ts"
+      "to": "src/engine/client/entities/animalMatrices.ts"
     },
     {
       "from": "src/entities/animalShadow.ts",
-      "to": "src/engine/entities/animalShadow.ts"
+      "to": "src/engine/client/entities/animalShadow.ts"
     },
     {
       "from": "src/entities/bearFix.ts",
@@ -3372,15 +3372,15 @@
     },
     {
       "from": "src/entities/eliteBrain.ts",
-      "to": "src/engine/entities/eliteBrain.ts"
+      "to": "src/engine/server/entities/eliteBrain.ts"
     },
     {
       "from": "src/entities/farHerd.ts",
-      "to": "src/engine/entities/farHerd.ts"
+      "to": "src/engine/client/entities/farHerd.ts"
     },
     {
       "from": "src/entities/fightRules.ts",
-      "to": "src/engine/entities/fightRules.ts"
+      "to": "src/engine/server/entities/fightRules.ts"
     },
     {
       "from": "src/entities/glbCreatures.ts",
@@ -3392,7 +3392,7 @@
     },
     {
       "from": "src/entities/lowpoly.ts",
-      "to": "src/engine/entities/lowpoly.ts"
+      "to": "src/engine/client/entities/lowpoly.ts"
     },
     {
       "from": "src/entities/npc/Castaway.ts",
@@ -3480,7 +3480,7 @@
     },
     {
       "from": "src/entities/species/loft.ts",
-      "to": "src/engine/entities/species/loft.ts"
+      "to": "src/engine/client/entities/species/loft.ts"
     },
     {
       "from": "src/entities/species/monkey.ts",
@@ -3488,11 +3488,11 @@
     },
     {
       "from": "src/entities/species/registry.ts",
-      "to": "src/engine/entities/species/registry.ts"
+      "to": "src/engine/shared/entities/species/registry.ts"
     },
     {
       "from": "src/entities/species/rigs.ts",
-      "to": "src/engine/entities/species/rigs.ts"
+      "to": "src/engine/shared/entities/species/rigs.ts"
     },
     {
       "from": "src/entities/species/sailor.ts",
@@ -3520,47 +3520,47 @@
     },
     {
       "from": "src/explore/Compare.ts",
-      "to": "src/engine/explore/Compare.ts"
+      "to": "src/engine/client/explore/Compare.ts"
     },
     {
       "from": "src/explore/Explore.ts",
-      "to": "src/engine/explore/Explore.ts"
+      "to": "src/engine/client/explore/Explore.ts"
     },
     {
       "from": "src/explore/FreeCam.ts",
-      "to": "src/engine/explore/FreeCam.ts"
+      "to": "src/engine/client/explore/FreeCam.ts"
     },
     {
       "from": "src/explore/MiniMap.ts",
-      "to": "src/engine/explore/MiniMap.ts"
+      "to": "src/engine/client/explore/MiniMap.ts"
     },
     {
       "from": "src/explore/ModelExplorer.ts",
-      "to": "src/engine/explore/ModelExplorer.ts"
+      "to": "src/engine/client/explore/ModelExplorer.ts"
     },
     {
       "from": "src/explore/Select.ts",
-      "to": "src/engine/explore/Select.ts"
+      "to": "src/engine/client/explore/Select.ts"
     },
     {
       "from": "src/explore/SetExplorer.ts",
-      "to": "src/engine/explore/SetExplorer.ts"
+      "to": "src/engine/client/explore/SetExplorer.ts"
     },
     {
       "from": "src/explore/TouchFly.ts",
-      "to": "src/engine/explore/TouchFly.ts"
+      "to": "src/engine/client/explore/TouchFly.ts"
     },
     {
       "from": "src/explore/catalog.ts",
-      "to": "src/engine/explore/catalog.ts"
+      "to": "src/engine/client/explore/catalog.ts"
     },
     {
       "from": "src/explore/diorama.ts",
-      "to": "src/engine/explore/diorama.ts"
+      "to": "src/engine/client/explore/diorama.ts"
     },
     {
       "from": "src/explore/fatLines.ts",
-      "to": "src/engine/explore/fatLines.ts"
+      "to": "src/engine/client/explore/fatLines.ts"
     },
     {
       "from": "src/explore/img/mockups/driftwood-overlook-live.jpg",
@@ -3588,43 +3588,43 @@
     },
     {
       "from": "src/explore/img/mockups/nalati-camp-live.jpg",
-      "to": "src/engine/explore/img/mockups/nalati-camp-live.jpg"
+      "to": "src/engine/client/explore/img/mockups/nalati-camp-live.jpg"
     },
     {
       "from": "src/explore/img/mockups/nalati-camp-target.jpg",
-      "to": "src/engine/explore/img/mockups/nalati-camp-target.jpg"
+      "to": "src/engine/client/explore/img/mockups/nalati-camp-target.jpg"
     },
     {
       "from": "src/explore/img/mockups/nalati-gully-live.jpg",
-      "to": "src/engine/explore/img/mockups/nalati-gully-live.jpg"
+      "to": "src/engine/client/explore/img/mockups/nalati-gully-live.jpg"
     },
     {
       "from": "src/explore/img/mockups/nalati-gully-target.jpg",
-      "to": "src/engine/explore/img/mockups/nalati-gully-target.jpg"
+      "to": "src/engine/client/explore/img/mockups/nalati-gully-target.jpg"
     },
     {
       "from": "src/explore/img/mockups/nalati-rail-live.jpg",
-      "to": "src/engine/explore/img/mockups/nalati-rail-live.jpg"
+      "to": "src/engine/client/explore/img/mockups/nalati-rail-live.jpg"
     },
     {
       "from": "src/explore/img/mockups/nalati-rail-target.jpg",
-      "to": "src/engine/explore/img/mockups/nalati-rail-target.jpg"
+      "to": "src/engine/client/explore/img/mockups/nalati-rail-target.jpg"
     },
     {
       "from": "src/explore/img/mockups/nine-gate-live.jpg",
-      "to": "src/engine/explore/img/mockups/nine-gate-live.jpg"
+      "to": "src/engine/client/explore/img/mockups/nine-gate-live.jpg"
     },
     {
       "from": "src/explore/img/mockups/nine-gate-target.jpg",
-      "to": "src/engine/explore/img/mockups/nine-gate-target.jpg"
+      "to": "src/engine/client/explore/img/mockups/nine-gate-target.jpg"
     },
     {
       "from": "src/explore/img/mockups/nine-stair-live.jpg",
-      "to": "src/engine/explore/img/mockups/nine-stair-live.jpg"
+      "to": "src/engine/client/explore/img/mockups/nine-stair-live.jpg"
     },
     {
       "from": "src/explore/img/mockups/nine-stair-target.jpg",
-      "to": "src/engine/explore/img/mockups/nine-stair-target.jpg"
+      "to": "src/engine/client/explore/img/mockups/nine-stair-target.jpg"
     },
     {
       "from": "src/explore/img/mockups/pine-den-live.jpg",
@@ -3724,31 +3724,31 @@
     },
     {
       "from": "src/explore/pick.ts",
-      "to": "src/engine/explore/pick.ts"
+      "to": "src/engine/client/explore/pick.ts"
     },
     {
       "from": "src/explore/registry.ts",
-      "to": "src/engine/explore/registry.ts"
+      "to": "src/engine/client/explore/registry.ts"
     },
     {
       "from": "src/explore/setView.ts",
-      "to": "src/engine/explore/setView.ts"
+      "to": "src/engine/client/explore/setView.ts"
     },
     {
       "from": "src/explore/tiers.ts",
-      "to": "src/engine/explore/tiers.ts"
+      "to": "src/engine/client/explore/tiers.ts"
     },
     {
       "from": "src/explore/viewPoint.ts",
-      "to": "src/engine/explore/viewPoint.ts"
+      "to": "src/engine/client/explore/viewPoint.ts"
     },
     {
       "from": "src/fx/Impacts.ts",
-      "to": "src/engine/fx/Impacts.ts"
+      "to": "src/engine/client/fx/Impacts.ts"
     },
     {
       "from": "src/fx/LightPool.ts",
-      "to": "src/engine/fx/LightPool.ts"
+      "to": "src/engine/client/fx/LightPool.ts"
     },
     {
       "from": "src/game/Taming.ts",
@@ -3816,15 +3816,15 @@
     },
     {
       "from": "src/meshopt-simplifier.d.ts",
-      "to": "src/engine/types/meshopt-simplifier.d.ts"
+      "to": "src/engine/client/types/meshopt-simplifier.d.ts"
     },
     {
       "from": "src/models/colliders.ts",
-      "to": "src/engine/models/colliders.ts"
+      "to": "src/engine/client/models/colliders.ts"
     },
     {
       "from": "src/models/creature.ts",
-      "to": "src/engine/models/creature.ts"
+      "to": "src/engine/client/models/creature.ts"
     },
     {
       "from": "src/models/creatures.ts",
@@ -3832,59 +3832,59 @@
     },
     {
       "from": "src/models/cull.ts",
-      "to": "src/engine/models/cull.ts"
+      "to": "src/engine/client/models/cull.ts"
     },
     {
       "from": "src/models/gear.ts",
-      "to": "src/engine/models/gear.ts"
+      "to": "src/engine/client/models/gear.ts"
     },
     {
       "from": "src/models/hoverboard.ts",
-      "to": "src/engine/models/hoverboard.ts"
+      "to": "src/engine/client/models/hoverboard.ts"
     },
     {
       "from": "src/models/interact.ts",
-      "to": "src/engine/models/interact.ts"
+      "to": "src/engine/client/models/interact.ts"
     },
     {
       "from": "src/models/live.ts",
-      "to": "src/engine/models/live.ts"
+      "to": "src/engine/client/models/live.ts"
     },
     {
       "from": "src/models/model.ts",
-      "to": "src/engine/models/model.ts"
+      "to": "src/engine/client/models/model.ts"
     },
     {
       "from": "src/models/place.ts",
-      "to": "src/engine/models/place.ts"
+      "to": "src/engine/client/models/place.ts"
     },
     {
       "from": "src/models/roster.ts",
-      "to": "src/engine/models/roster.ts"
+      "to": "src/engine/client/models/roster.ts"
     },
     {
       "from": "src/models/sets.ts",
-      "to": "src/engine/models/sets.ts"
+      "to": "src/engine/client/models/sets.ts"
     },
     {
       "from": "src/models/slots.ts",
-      "to": "src/engine/models/slots.ts"
+      "to": "src/engine/client/models/slots.ts"
     },
     {
       "from": "src/models/swimHands.ts",
-      "to": "src/engine/models/swimHands.ts"
+      "to": "src/engine/client/models/swimHands.ts"
     },
     {
       "from": "src/models/trainingDummy.ts",
-      "to": "src/engine/models/trainingDummy.ts"
+      "to": "src/engine/client/models/trainingDummy.ts"
     },
     {
       "from": "src/models/weld.ts",
-      "to": "src/engine/models/weld.ts"
+      "to": "src/engine/client/models/weld.ts"
     },
     {
       "from": "src/n8ao.d.ts",
-      "to": "src/engine/types/n8ao.d.ts"
+      "to": "src/engine/client/types/n8ao.d.ts"
     },
     {
       "from": "src/nalati/adventure.ts",
@@ -4032,43 +4032,43 @@
     },
     {
       "from": "src/native/boot.ts",
-      "to": "src/engine/native/boot.ts"
+      "to": "src/engine/client/native/boot.ts"
     },
     {
       "from": "src/native/lifecycle.ts",
-      "to": "src/engine/native/lifecycle.ts"
+      "to": "src/engine/client/native/lifecycle.ts"
     },
     {
       "from": "src/native/ota-config.ts",
-      "to": "src/engine/native/ota-config.ts"
+      "to": "src/engine/client/native/ota-config.ts"
     },
     {
       "from": "src/native/ota.ts",
-      "to": "src/engine/native/ota.ts"
+      "to": "src/engine/client/native/ota.ts"
     },
     {
       "from": "src/native/saves.ts",
-      "to": "src/engine/native/saves.ts"
+      "to": "src/engine/client/native/saves.ts"
     },
     {
       "from": "src/native/updates.ts",
-      "to": "src/engine/native/updates.ts"
+      "to": "src/engine/client/native/updates.ts"
     },
     {
       "from": "src/physics/CharacterMotor.ts",
-      "to": "src/engine/physics/CharacterMotor.ts"
+      "to": "src/engine/shared/physics/CharacterMotor.ts"
     },
     {
       "from": "src/physics/Physics.ts",
-      "to": "src/engine/physics/Physics.ts"
+      "to": "src/engine/shared/physics/Physics.ts"
     },
     {
       "from": "src/physics/active.ts",
-      "to": "src/engine/physics/active.ts"
+      "to": "src/engine/shared/physics/active.ts"
     },
     {
       "from": "src/physics/bodies.ts",
-      "to": "src/engine/physics/bodies.ts"
+      "to": "src/engine/shared/physics/bodies.ts"
     },
     {
       "from": "src/physics/bridge.ts",
@@ -4076,75 +4076,75 @@
     },
     {
       "from": "src/physics/creatures.ts",
-      "to": "src/engine/physics/creatures.ts"
+      "to": "src/engine/shared/physics/creatures.ts"
     },
     {
       "from": "src/physics/debug.ts",
-      "to": "src/engine/physics/debug.ts"
+      "to": "src/engine/client/physics/debug.ts"
     },
     {
       "from": "src/physics/groups.ts",
-      "to": "src/engine/physics/groups.ts"
+      "to": "src/engine/shared/physics/groups.ts"
     },
     {
       "from": "src/physics/heightPatch.ts",
-      "to": "src/engine/physics/heightPatch.ts"
+      "to": "src/engine/shared/physics/heightPatch.ts"
     },
     {
       "from": "src/physics/navmesh.ts",
-      "to": "src/engine/physics/navmesh.ts"
+      "to": "src/engine/shared/physics/navmesh.ts"
     },
     {
       "from": "src/physics/navmeshUrl.ts",
-      "to": "src/engine/physics/navmeshUrl.ts"
+      "to": "src/engine/shared/physics/navmeshUrl.ts"
     },
     {
       "from": "src/physics/paths.ts",
-      "to": "src/engine/physics/paths.ts"
+      "to": "src/engine/shared/physics/paths.ts"
     },
     {
       "from": "src/physics/pieces.ts",
-      "to": "src/engine/physics/pieces.ts"
+      "to": "src/engine/shared/physics/pieces.ts"
     },
     {
       "from": "src/physics/query.ts",
-      "to": "src/engine/physics/query.ts"
+      "to": "src/engine/shared/physics/query.ts"
     },
     {
       "from": "src/physics/ragdoll.ts",
-      "to": "src/engine/physics/ragdoll.ts"
+      "to": "src/engine/client/physics/ragdoll.ts"
     },
     {
       "from": "src/physics/rapier-bg.d.ts",
-      "to": "src/engine/physics/rapier-bg.d.ts"
+      "to": "src/engine/shared/physics/rapier-bg.d.ts"
     },
     {
       "from": "src/physics/rapier.ts",
-      "to": "src/engine/physics/rapier.ts"
+      "to": "src/engine/shared/physics/rapier.ts"
     },
     {
       "from": "src/physics/rapierBindings.ts",
-      "to": "src/engine/physics/rapierBindings.ts"
+      "to": "src/engine/server/physics/rapierBindings.ts"
     },
     {
       "from": "src/physics/ropeChain.ts",
-      "to": "src/engine/physics/ropeChain.ts"
+      "to": "src/engine/shared/physics/ropeChain.ts"
     },
     {
       "from": "src/physics/surface.ts",
-      "to": "src/engine/physics/surface.ts"
+      "to": "src/engine/shared/physics/surface.ts"
     },
     {
       "from": "src/physics/terrain.ts",
-      "to": "src/engine/physics/terrain.ts"
+      "to": "src/engine/shared/physics/terrain.ts"
     },
     {
       "from": "src/physics/trainingTargets.ts",
-      "to": "src/engine/physics/trainingTargets.ts"
+      "to": "src/engine/shared/physics/trainingTargets.ts"
     },
     {
       "from": "src/physics/wasmUrl.ts",
-      "to": "src/engine/physics/wasmUrl.ts"
+      "to": "src/engine/shared/physics/wasmUrl.ts"
     },
     {
       "from": "src/pinehollow/ammo.ts",
@@ -4280,11 +4280,11 @@
     },
     {
       "from": "src/player/AimAssist.ts",
-      "to": "src/engine/player/AimAssist.ts"
+      "to": "src/engine/client/player/AimAssist.ts"
     },
     {
       "from": "src/player/AimTargets.ts",
-      "to": "src/engine/player/AimTargets.ts"
+      "to": "src/engine/client/player/AimTargets.ts"
     },
     {
       "from": "src/player/BodyShadow.ts",
@@ -4296,7 +4296,7 @@
     },
     {
       "from": "src/player/CameraFX.ts",
-      "to": "src/engine/player/CameraFX.ts"
+      "to": "src/engine/client/player/CameraFX.ts"
     },
     {
       "from": "src/player/Cosmetics.ts",
@@ -4312,7 +4312,7 @@
     },
     {
       "from": "src/player/Hands.ts",
-      "to": "src/engine/player/Hands.ts"
+      "to": "src/engine/client/player/Hands.ts"
     },
     {
       "from": "src/player/Hoverboard.ts",
@@ -4328,7 +4328,7 @@
     },
     {
       "from": "src/player/LockOnTarget.ts",
-      "to": "src/engine/player/LockOnTarget.ts"
+      "to": "src/engine/client/player/LockOnTarget.ts"
     },
     {
       "from": "src/player/Longbow.ts",
@@ -4336,7 +4336,7 @@
     },
     {
       "from": "src/player/MeleeSweep.ts",
-      "to": "src/engine/player/MeleeSweep.ts"
+      "to": "src/engine/client/player/MeleeSweep.ts"
     },
     {
       "from": "src/player/Mount.ts",
@@ -4348,7 +4348,7 @@
     },
     {
       "from": "src/player/Player.ts",
-      "to": "src/engine/player/Player.ts"
+      "to": "src/engine/client/player/Player.ts"
     },
     {
       "from": "src/player/Projectiles.ts",
@@ -4368,7 +4368,7 @@
     },
     {
       "from": "src/player/Skins.ts",
-      "to": "src/engine/player/Skins.ts"
+      "to": "src/engine/client/player/Skins.ts"
     },
     {
       "from": "src/player/Spear.ts",
@@ -4384,11 +4384,11 @@
     },
     {
       "from": "src/player/TouchControls.ts",
-      "to": "src/engine/player/TouchControls.ts"
+      "to": "src/engine/client/player/TouchControls.ts"
     },
     {
       "from": "src/player/WaterLine.ts",
-      "to": "src/engine/player/WaterLine.ts"
+      "to": "src/engine/client/player/WaterLine.ts"
     },
     {
       "from": "src/player/Weapon.ts",
@@ -4396,7 +4396,7 @@
     },
     {
       "from": "src/player/WeaponPickup.ts",
-      "to": "src/engine/player/WeaponPickup.ts"
+      "to": "src/engine/client/player/WeaponPickup.ts"
     },
     {
       "from": "src/player/Weapons.ts",
@@ -4404,7 +4404,7 @@
     },
     {
       "from": "src/player/bladeGlow.ts",
-      "to": "src/engine/player/bladeGlow.ts"
+      "to": "src/engine/client/player/bladeGlow.ts"
     },
     {
       "from": "src/player/bowDraw.ts",
@@ -4444,11 +4444,11 @@
     },
     {
       "from": "src/player/viewmodelTextures.ts",
-      "to": "src/engine/player/viewmodelTextures.ts"
+      "to": "src/engine/client/player/viewmodelTextures.ts"
     },
     {
       "from": "src/player/viewmodelTextures.worker.ts",
-      "to": "src/engine/player/viewmodelTextures.worker.ts"
+      "to": "src/engine/client/player/viewmodelTextures.worker.ts"
     },
     {
       "from": "src/playgrounds/GrapplePlayground.ts",
@@ -4460,15 +4460,15 @@
     },
     {
       "from": "src/playgrounds/Playground.ts",
-      "to": "src/engine/practice/playground/Playground.ts"
+      "to": "src/engine/client/practice/playground/Playground.ts"
     },
     {
       "from": "src/playgrounds/catalog.ts",
-      "to": "src/engine/practice/playground/catalog.ts"
+      "to": "src/engine/client/practice/playground/catalog.ts"
     },
     {
       "from": "src/playgrounds/devGrid.ts",
-      "to": "src/engine/practice/playground/devGrid.ts"
+      "to": "src/engine/client/practice/playground/devGrid.ts"
     },
     {
       "from": "src/playgrounds/grappleCourse.ts",
@@ -4480,47 +4480,47 @@
     },
     {
       "from": "src/playgrounds/hud.ts",
-      "to": "src/engine/practice/playground/hud.ts"
+      "to": "src/engine/client/practice/playground/hud.ts"
     },
     {
       "from": "src/playgrounds/load.ts",
-      "to": "src/engine/practice/playground/load.ts"
+      "to": "src/engine/client/practice/playground/load.ts"
     },
     {
       "from": "src/practice/DummyClips.ts",
-      "to": "src/engine/practice/DummyClips.ts"
+      "to": "src/engine/client/practice/DummyClips.ts"
     },
     {
       "from": "src/practice/DummyMotion.ts",
-      "to": "src/engine/practice/DummyMotion.ts"
+      "to": "src/engine/client/practice/DummyMotion.ts"
     },
     {
       "from": "src/practice/DummyStudio.ts",
-      "to": "src/engine/practice/DummyStudio.ts"
+      "to": "src/engine/client/practice/DummyStudio.ts"
     },
     {
       "from": "src/practice/TrainingArena.ts",
-      "to": "src/engine/practice/TrainingArena.ts"
+      "to": "src/engine/client/practice/TrainingArena.ts"
     },
     {
       "from": "src/practice/TrainingDummy.ts",
-      "to": "src/engine/practice/TrainingDummy.ts"
+      "to": "src/engine/client/practice/TrainingDummy.ts"
     },
     {
       "from": "src/practice/TrainingDummyAssets.ts",
-      "to": "src/engine/practice/TrainingDummyAssets.ts"
+      "to": "src/engine/client/practice/TrainingDummyAssets.ts"
     },
     {
       "from": "src/practice/arena.css",
-      "to": "src/engine/practice/arena.css"
+      "to": "src/engine/client/practice/arena.css"
     },
     {
       "from": "src/practice/lineup.ts",
-      "to": "src/engine/practice/lineup.ts"
+      "to": "src/engine/client/practice/lineup.ts"
     },
     {
       "from": "src/pwa/sw.js",
-      "to": "src/engine/pwa/sw.js"
+      "to": "src/engine/client/pwa/sw.js"
     },
     {
       "from": "src/shard/ShardHost.ts",
@@ -4536,23 +4536,23 @@
     },
     {
       "from": "src/telemetry/bootInbox.ts",
-      "to": "src/engine/telemetry/bootInbox.ts"
+      "to": "src/engine/client/telemetry/bootInbox.ts"
     },
     {
       "from": "src/telemetry/browserErrors.ts",
-      "to": "src/engine/telemetry/browserErrors.ts"
+      "to": "src/engine/client/telemetry/browserErrors.ts"
     },
     {
       "from": "src/ui/BagButton.ts",
-      "to": "src/game/bag/BagButton.ts"
+      "to": "src/game/client/bag/BagButton.ts"
     },
     {
       "from": "src/ui/BootSettings.ts",
-      "to": "src/engine/ui/BootSettings.ts"
+      "to": "src/engine/client/ui/BootSettings.ts"
     },
     {
       "from": "src/ui/BossBar.ts",
-      "to": "src/engine/ui/BossBar.ts"
+      "to": "src/engine/client/ui/BossBar.ts"
     },
     {
       "from": "src/ui/CoinChip.ts",
@@ -4560,35 +4560,35 @@
     },
     {
       "from": "src/ui/Combat.ts",
-      "to": "src/engine/ui/Combat.ts"
+      "to": "src/engine/client/ui/Combat.ts"
     },
     {
       "from": "src/ui/DeathFade.ts",
-      "to": "src/engine/ui/DeathFade.ts"
+      "to": "src/engine/client/ui/DeathFade.ts"
     },
     {
       "from": "src/ui/DebugMenu.ts",
-      "to": "src/engine/ui/DebugMenu.ts"
+      "to": "src/engine/client/ui/DebugMenu.ts"
     },
     {
       "from": "src/ui/EliteBar.ts",
-      "to": "src/engine/ui/EliteBar.ts"
+      "to": "src/engine/client/ui/EliteBar.ts"
     },
     {
       "from": "src/ui/ErrorModal.ts",
-      "to": "src/engine/ui/ErrorModal.ts"
+      "to": "src/engine/client/ui/ErrorModal.ts"
     },
     {
       "from": "src/ui/Feedback.ts",
-      "to": "src/engine/ui/Feedback.ts"
+      "to": "src/engine/client/ui/Feedback.ts"
     },
     {
       "from": "src/ui/FirstHints.ts",
-      "to": "src/engine/ui/FirstHints.ts"
+      "to": "src/engine/client/ui/FirstHints.ts"
     },
     {
       "from": "src/ui/HUD.ts",
-      "to": "src/engine/ui/HUD.ts"
+      "to": "src/engine/client/ui/HUD.ts"
     },
     {
       "from": "src/ui/HorseNamePrompt.ts",
@@ -4596,35 +4596,35 @@
     },
     {
       "from": "src/ui/HurtArc.ts",
-      "to": "src/engine/ui/HurtArc.ts"
+      "to": "src/engine/client/ui/HurtArc.ts"
     },
     {
       "from": "src/ui/Loading.ts",
-      "to": "src/engine/ui/Loading.ts"
+      "to": "src/engine/client/ui/Loading.ts"
     },
     {
       "from": "src/ui/LockOn.ts",
-      "to": "src/engine/ui/LockOn.ts"
+      "to": "src/engine/client/ui/LockOn.ts"
     },
     {
       "from": "src/ui/Map.ts",
-      "to": "src/engine/ui/Map.ts"
+      "to": "src/engine/client/ui/Map.ts"
     },
     {
       "from": "src/ui/Menu.ts",
-      "to": "src/engine/ui/Menu.ts"
+      "to": "src/engine/client/ui/Menu.ts"
     },
     {
       "from": "src/ui/Minimap.ts",
-      "to": "src/engine/ui/Minimap.ts"
+      "to": "src/engine/client/ui/Minimap.ts"
     },
     {
       "from": "src/ui/Perf.ts",
-      "to": "src/engine/ui/Perf.ts"
+      "to": "src/engine/client/ui/Perf.ts"
     },
     {
       "from": "src/ui/ReloadPrompt.ts",
-      "to": "src/engine/ui/ReloadPrompt.ts"
+      "to": "src/engine/client/ui/ReloadPrompt.ts"
     },
     {
       "from": "src/ui/RideHUD.ts",
@@ -4632,15 +4632,15 @@
     },
     {
       "from": "src/ui/RotateGate.ts",
-      "to": "src/engine/ui/RotateGate.ts"
+      "to": "src/engine/client/ui/RotateGate.ts"
     },
     {
       "from": "src/ui/Settings.ts",
-      "to": "src/engine/ui/Settings.ts"
+      "to": "src/engine/client/ui/Settings.ts"
     },
     {
       "from": "src/ui/ShardComplete.ts",
-      "to": "src/game/complete/ShardComplete.ts"
+      "to": "src/game/client/complete/ShardComplete.ts"
     },
     {
       "from": "src/ui/ShopPanel.ts",
@@ -4648,51 +4648,51 @@
     },
     {
       "from": "src/ui/SpeedLines.ts",
-      "to": "src/engine/ui/SpeedLines.ts"
+      "to": "src/engine/client/ui/SpeedLines.ts"
     },
     {
       "from": "src/ui/StartTitle.ts",
-      "to": "src/engine/ui/StartTitle.ts"
+      "to": "src/engine/client/ui/StartTitle.ts"
     },
     {
       "from": "src/ui/ToastStack.ts",
-      "to": "src/engine/ui/ToastStack.ts"
+      "to": "src/engine/client/ui/ToastStack.ts"
     },
     {
       "from": "src/ui/Update.ts",
-      "to": "src/engine/ui/Update.ts"
+      "to": "src/engine/client/ui/Update.ts"
     },
     {
       "from": "src/ui/WeaponStrip.ts",
-      "to": "src/engine/ui/WeaponStrip.ts"
+      "to": "src/engine/client/ui/WeaponStrip.ts"
     },
     {
       "from": "src/ui/WindupWarn.ts",
-      "to": "src/engine/ui/WindupWarn.ts"
+      "to": "src/engine/client/ui/WindupWarn.ts"
     },
     {
       "from": "src/ui/bag.ts",
-      "to": "src/game/bag/bag.ts"
+      "to": "src/game/client/bag/bag.ts"
     },
     {
       "from": "src/ui/cards.ts",
-      "to": "src/engine/ui/cards.ts"
+      "to": "src/engine/client/ui/cards.ts"
     },
     {
       "from": "src/ui/compendium/Journal.ts",
-      "to": "src/game/compendium/Journal.ts"
+      "to": "src/game/client/compendium/Journal.ts"
     },
     {
       "from": "src/ui/compendium/finds.ts",
-      "to": "src/game/compendium/finds.ts"
+      "to": "src/game/shared/compendium/finds.ts"
     },
     {
       "from": "src/ui/compendium/install.ts",
-      "to": "src/game/compendium/install.ts"
+      "to": "src/game/client/compendium/install.ts"
     },
     {
       "from": "src/ui/compendium/registry.ts",
-      "to": "src/game/compendium/registry.ts"
+      "to": "src/game/shared/compendium/registry.ts"
     },
     {
       "from": "src/ui/compendium/shards/pine-hollow.ts",
@@ -4700,39 +4700,39 @@
     },
     {
       "from": "src/ui/compendium/state.ts",
-      "to": "src/game/compendium/state.ts"
+      "to": "src/game/shared/compendium/state.ts"
     },
     {
       "from": "src/ui/compendium/tracker.ts",
-      "to": "src/game/compendium/tracker.ts"
+      "to": "src/game/shared/compendium/tracker.ts"
     },
     {
       "from": "src/ui/compendium/types.ts",
-      "to": "src/game/compendium/types.ts"
+      "to": "src/game/shared/compendium/types.ts"
     },
     {
       "from": "src/ui/debugOptions.ts",
-      "to": "src/engine/ui/debugOptions.ts"
+      "to": "src/engine/client/ui/debugOptions.ts"
     },
     {
       "from": "src/ui/devSwitch.ts",
-      "to": "src/engine/ui/devSwitch.ts"
+      "to": "src/engine/client/ui/devSwitch.ts"
     },
     {
       "from": "src/ui/haptics.ts",
-      "to": "src/engine/ui/haptics.ts"
+      "to": "src/engine/client/ui/haptics.ts"
     },
     {
       "from": "src/ui/hudSlots.ts",
-      "to": "src/engine/ui/hudSlots.ts"
+      "to": "src/engine/client/ui/hudSlots.ts"
     },
     {
       "from": "src/ui/icons.ts",
-      "to": "src/engine/ui/icons.ts"
+      "to": "src/engine/client/ui/icons.ts"
     },
     {
       "from": "src/ui/loading.css",
-      "to": "src/engine/ui/loading.css"
+      "to": "src/engine/client/ui/loading.css"
     },
     {
       "from": "src/ui/mapShapes.ts",
@@ -4740,91 +4740,91 @@
     },
     {
       "from": "src/ui/perf.css",
-      "to": "src/engine/ui/perf.css"
+      "to": "src/engine/client/ui/perf.css"
     },
     {
       "from": "src/ui/perfHud.ts",
-      "to": "src/engine/ui/perfHud.ts"
+      "to": "src/engine/client/ui/perfHud.ts"
     },
     {
       "from": "src/ui/perfLap.ts",
-      "to": "src/engine/ui/perfLap.ts"
+      "to": "src/engine/client/ui/perfLap.ts"
     },
     {
       "from": "src/ui/perfLapSummary.ts",
-      "to": "src/engine/ui/perfLapSummary.ts"
+      "to": "src/engine/client/ui/perfLapSummary.ts"
     },
     {
       "from": "src/ui/perfProbe.ts",
-      "to": "src/engine/ui/perfProbe.ts"
+      "to": "src/engine/client/ui/perfProbe.ts"
     },
     {
       "from": "src/ui/review.ts",
-      "to": "src/engine/ui/review.ts"
+      "to": "src/engine/client/ui/review.ts"
     },
     {
       "from": "src/ui/roomMap.ts",
-      "to": "src/engine/ui/roomMap.ts"
+      "to": "src/engine/client/ui/roomMap.ts"
     },
     {
       "from": "src/ui/styles/base.css",
-      "to": "src/engine/ui/styles/base.css"
+      "to": "src/engine/client/ui/styles/base.css"
     },
     {
       "from": "src/ui/styles/boss.css",
-      "to": "src/engine/ui/styles/boss.css"
+      "to": "src/engine/client/ui/styles/boss.css"
     },
     {
       "from": "src/ui/styles/combat.css",
-      "to": "src/engine/ui/styles/combat.css"
+      "to": "src/engine/client/ui/styles/combat.css"
     },
     {
       "from": "src/ui/styles/compendium.css",
-      "to": "src/game/compendium/compendium.css"
+      "to": "src/game/client/compendium/compendium.css"
     },
     {
       "from": "src/ui/styles/complete.css",
-      "to": "src/game/complete/complete.css"
+      "to": "src/game/client/complete/complete.css"
     },
     {
       "from": "src/ui/styles/debug.css",
-      "to": "src/engine/ui/styles/debug.css"
+      "to": "src/engine/client/ui/styles/debug.css"
     },
     {
       "from": "src/ui/styles/elite.css",
-      "to": "src/engine/ui/styles/elite.css"
+      "to": "src/engine/client/ui/styles/elite.css"
     },
     {
       "from": "src/ui/styles/explore.css",
-      "to": "src/engine/ui/styles/explore.css"
+      "to": "src/engine/client/ui/styles/explore.css"
     },
     {
       "from": "src/ui/styles/feedback.css",
-      "to": "src/engine/ui/styles/feedback.css"
+      "to": "src/engine/client/ui/styles/feedback.css"
     },
     {
       "from": "src/ui/styles/game.css",
-      "to": "src/engine/ui/styles/game.css"
+      "to": "src/engine/client/ui/styles/game.css"
     },
     {
       "from": "src/ui/styles/gmenu.css",
-      "to": "src/engine/ui/styles/gmenu.css"
+      "to": "src/engine/client/ui/styles/gmenu.css"
     },
     {
       "from": "src/ui/styles/hints.css",
-      "to": "src/engine/ui/styles/hints.css"
+      "to": "src/engine/client/ui/styles/hints.css"
     },
     {
       "from": "src/ui/styles/loot.css",
-      "to": "src/game/loot/loot.css"
+      "to": "src/game/client/loot/loot.css"
     },
     {
       "from": "src/ui/styles/menu.css",
-      "to": "src/engine/ui/styles/menu.css"
+      "to": "src/engine/client/ui/styles/menu.css"
     },
     {
       "from": "src/ui/styles/minimap.css",
-      "to": "src/engine/ui/styles/minimap.css"
+      "to": "src/engine/client/ui/styles/minimap.css"
     },
     {
       "from": "src/ui/styles/pinehollow.css",
@@ -4832,11 +4832,11 @@
     },
     {
       "from": "src/ui/styles/playgrounds.css",
-      "to": "src/engine/ui/styles/playgrounds.css"
+      "to": "src/engine/client/ui/styles/playgrounds.css"
     },
     {
       "from": "src/ui/styles/quest.css",
-      "to": "src/engine/ui/styles/quest.css"
+      "to": "src/engine/client/ui/styles/quest.css"
     },
     {
       "from": "src/ui/styles/reload.css",
@@ -4848,7 +4848,7 @@
     },
     {
       "from": "src/ui/styles/rotate.css",
-      "to": "src/engine/ui/styles/rotate.css"
+      "to": "src/engine/client/ui/styles/rotate.css"
     },
     {
       "from": "src/ui/styles/shop.css",
@@ -4860,27 +4860,27 @@
     },
     {
       "from": "src/ui/styles/touch.css",
-      "to": "src/engine/ui/styles/touch.css"
+      "to": "src/engine/client/ui/styles/touch.css"
     },
     {
       "from": "src/ui/styles/update.css",
-      "to": "src/engine/ui/styles/update.css"
+      "to": "src/engine/client/ui/styles/update.css"
     },
     {
       "from": "src/ui/titleDeck.ts",
-      "to": "src/game/titleDeck.ts"
+      "to": "src/game/client/titleDeck.ts"
     },
     {
       "from": "src/world/Atmosphere.ts",
-      "to": "src/engine/world/Atmosphere.ts"
+      "to": "src/engine/client/world/Atmosphere.ts"
     },
     {
       "from": "src/world/BakedSky.ts",
-      "to": "src/engine/world/BakedSky.ts"
+      "to": "src/engine/client/world/BakedSky.ts"
     },
     {
       "from": "src/world/BakedTerrain.ts",
-      "to": "src/engine/world/BakedTerrain.ts"
+      "to": "src/engine/shared/world/BakedTerrain.ts"
     },
     {
       "from": "src/world/BeaverPool.ts",
@@ -4900,7 +4900,7 @@
     },
     {
       "from": "src/world/Boundary.ts",
-      "to": "src/engine/world/Boundary.ts"
+      "to": "src/engine/client/world/Boundary.ts"
     },
     {
       "from": "src/world/Bushes.ts",
@@ -4924,11 +4924,11 @@
     },
     {
       "from": "src/world/Forest.ts",
-      "to": "src/engine/world/forest/Forest.ts"
+      "to": "src/engine/client/world/forest/Forest.ts"
     },
     {
       "from": "src/world/Grass.ts",
-      "to": "src/engine/world/Grass.ts"
+      "to": "src/engine/client/world/Grass.ts"
     },
     {
       "from": "src/world/GrassField.ts",
@@ -4948,15 +4948,15 @@
     },
     {
       "from": "src/world/Heightfield.ts",
-      "to": "src/engine/world/Heightfield.ts"
+      "to": "src/engine/shared/world/Heightfield.ts"
     },
     {
       "from": "src/world/Horizon.ts",
-      "to": "src/engine/world/Horizon.ts"
+      "to": "src/engine/client/world/Horizon.ts"
     },
     {
       "from": "src/world/HorizonMatte.ts",
-      "to": "src/engine/world/HorizonMatte.ts"
+      "to": "src/engine/client/world/HorizonMatte.ts"
     },
     {
       "from": "src/world/Hut.ts",
@@ -5036,7 +5036,7 @@
     },
     {
       "from": "src/world/Terrain.ts",
-      "to": "src/engine/world/Terrain.ts"
+      "to": "src/engine/client/world/Terrain.ts"
     },
     {
       "from": "src/world/Trailside.ts",
@@ -5044,7 +5044,7 @@
     },
     {
       "from": "src/world/TreeFactory.ts",
-      "to": "src/engine/world/TreeFactory.ts"
+      "to": "src/engine/client/world/TreeFactory.ts"
     },
     {
       "from": "src/world/TrophyWall.ts",
@@ -5084,11 +5084,11 @@
     },
     {
       "from": "src/world/blenderArea.ts",
-      "to": "src/engine/world/blenderArea.ts"
+      "to": "src/engine/client/world/blenderArea.ts"
     },
     {
       "from": "src/world/cascadeCull.ts",
-      "to": "src/engine/world/cascadeCull.ts"
+      "to": "src/engine/client/world/cascadeCull.ts"
     },
     {
       "from": "src/world/coverTint.ts",
@@ -5108,7 +5108,7 @@
     },
     {
       "from": "src/world/interact/Interactables.ts",
-      "to": "src/engine/world/interact/Interactables.ts"
+      "to": "src/engine/client/world/interact/Interactables.ts"
     },
     {
       "from": "src/world/interact/driftwood.ts",
@@ -5116,7 +5116,7 @@
     },
     {
       "from": "src/world/interact/flags.ts",
-      "to": "src/engine/world/interact/flags.ts"
+      "to": "src/engine/server/world/interact/flags.ts"
     },
     {
       "from": "src/world/interact/models.ts",
@@ -5124,23 +5124,23 @@
     },
     {
       "from": "src/world/interact/types.ts",
-      "to": "src/engine/world/interact/types.ts"
+      "to": "src/engine/shared/world/interact/types.ts"
     },
     {
       "from": "src/world/interact/validate.ts",
-      "to": "src/engine/world/interact/validate.ts"
+      "to": "src/engine/shared/world/interact/validate.ts"
     },
     {
       "from": "src/world/lookFlags.ts",
-      "to": "src/engine/world/lookFlags.ts"
+      "to": "src/engine/client/world/lookFlags.ts"
     },
     {
       "from": "src/world/lowpolyKit.ts",
-      "to": "src/engine/world/lowpolyKit.ts"
+      "to": "src/engine/client/world/lowpolyKit.ts"
     },
     {
       "from": "src/world/lut.ts",
-      "to": "src/engine/world/lut.ts"
+      "to": "src/engine/client/world/lut.ts"
     },
     {
       "from": "src/world/nalati/Balbals.ts",
@@ -5272,7 +5272,7 @@
     },
     {
       "from": "src/world/painterly.ts",
-      "to": "src/engine/world/painterly.ts"
+      "to": "src/engine/client/world/painterly.ts"
     },
     {
       "from": "src/world/pineHero.ts",
@@ -5284,15 +5284,15 @@
     },
     {
       "from": "src/world/placement.ts",
-      "to": "src/engine/world/forest/placement.ts"
+      "to": "src/engine/shared/world/forest/placement.ts"
     },
     {
       "from": "src/world/pointLightSkip.ts",
-      "to": "src/engine/world/pointLightSkip.ts"
+      "to": "src/engine/client/world/pointLightSkip.ts"
     },
     {
       "from": "src/world/registry.ts",
-      "to": "src/engine/world/registry.ts"
+      "to": "src/engine/client/world/registry.ts"
     },
     {
       "from": "src/world/rockKit.ts",
@@ -5300,23 +5300,23 @@
     },
     {
       "from": "src/world/shadowChunks.ts",
-      "to": "src/engine/world/shadowChunks.ts"
+      "to": "src/engine/client/world/shadowChunks.ts"
     },
     {
       "from": "src/world/shadowFade.ts",
-      "to": "src/engine/world/shadowFade.ts"
+      "to": "src/engine/client/world/shadowFade.ts"
     },
     {
       "from": "src/world/shadowFilter.ts",
-      "to": "src/engine/world/shadowFilter.ts"
+      "to": "src/engine/client/world/shadowFilter.ts"
     },
     {
       "from": "src/world/shadowVariants.ts",
-      "to": "src/engine/world/shadowVariants.ts"
+      "to": "src/engine/client/world/shadowVariants.ts"
     },
     {
       "from": "src/world/steppeWind.ts",
-      "to": "src/engine/world/steppeWind.ts"
+      "to": "src/engine/shared/world/steppeWind.ts"
     },
     {
       "from": "src/world/stylize.ts",
@@ -5324,19 +5324,19 @@
     },
     {
       "from": "src/world/treeSet.ts",
-      "to": "src/engine/world/forest/treeSet.ts"
+      "to": "src/engine/client/world/forest/treeSet.ts"
     },
     {
       "from": "src/world/treeSpecies.ts",
-      "to": "src/engine/world/forest/treeSpecies.ts"
+      "to": "src/engine/client/world/forest/treeSpecies.ts"
     },
     {
       "from": "src/world/waves.ts",
-      "to": "src/engine/world/waves.ts"
+      "to": "src/engine/shared/world/waves.ts"
     },
     {
       "from": "src/world/wind.ts",
-      "to": "src/engine/world/wind.ts"
+      "to": "src/engine/client/world/wind.ts"
     },
     {
       "from": "test/bag-tabs.test.ts",
@@ -5549,18 +5549,18 @@
       "lines": [
         118
       ],
-      "edit": "writeArtModule folders → src/shards/*/thumbs, src/shards/*/explore, src/engine/explore/img",
+      "edit": "writeArtModule folders → src/shards/*/thumbs, src/shards/*/explore, src/engine/client/explore/img",
       "literals": [
         "src/chunks/thumbs",
         "src/explore/img"
       ]
     },
     {
-      "file": "src/engine/boot/extras.ts",
+      "file": "src/engine/client/boot/extras.ts",
       "lines": [
         61
       ],
-      "edit": "ART_BYTES key: resolve the glob key against src/engine/boot/",
+      "edit": "ART_BYTES key: resolve the glob key against src/engine/client/boot/",
       "literals": [
         "src/${key.slice"
       ]

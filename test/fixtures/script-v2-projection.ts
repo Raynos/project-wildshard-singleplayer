@@ -1,5 +1,5 @@
 import { expect } from 'vitest';
-import { ScriptModuleV2 } from '../../src/engine/script/moduleV2';
+import { ScriptModuleV2 } from '../../src/engine/shared/script/moduleV2';
 import type { FloatColumnV2 } from '@wildshard/format/scriptMemoryV2';
 import type { DualPortFixture } from './script-v2-port';
 

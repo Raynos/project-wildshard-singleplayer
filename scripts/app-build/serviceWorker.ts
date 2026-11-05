@@ -2,7 +2,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve, sep } from 'node:path';
-import { ASSET_CACHE_NAME } from '../../src/engine/pwa/cacheNames';
+import { ASSET_CACHE_NAME } from '../../src/engine/client/pwa/cacheNames';
 import { titleAssetURLs } from '../title-assets.mjs';
 import { writtenBundle, type EmittedFile } from './writtenBundle';
 
@@ -42,8 +42,8 @@ export function serviceWorkerCore(bundle: Readonly<Record<string, EmittedFile>>,
   const hashed = Object.keys(bundle).filter(name => /^assets\/[^/]+-[\w-]{8}\.\w+$/u.test(name)).map(name => `/${name}`).sort();
   const sources = new Map(Object.entries(titleAssetURLs(root)).map(([source, url]) => [url, source]));
   const shell = shellFiles(html, root, sources), digest = createHash('sha256');
-  const owner = readFileSync(join(root, 'src/engine/app/workerScope.js'), 'utf8').replaceAll(/^export /gmu, '');
-  const worker = readFileSync(join(root, 'src/engine/pwa/sw.js'), 'utf8').replace("import { workerScope } from '../app/workerScope.js';\n", '');
+  const owner = readFileSync(join(root, 'src/engine/client/app/workerScope.js'), 'utf8').replaceAll(/^export /gmu, '');
+  const worker = readFileSync(join(root, 'src/engine/client/pwa/sw.js'), 'utf8').replace("import { workerScope } from '../app/workerScope.js';\n", '');
   const source = `${owner}\n${worker}`;
   digest.update(source);
   for (const name of [...hashed, '/index.html']) {

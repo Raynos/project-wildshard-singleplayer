@@ -11,13 +11,13 @@ export function loadingDevice(captures) {
 
 const phaseOwner = (name, shard) => {
   if (name === 'admission.modules') return 'src/entry.ts';
-  if (name === 'admission.descriptor') return 'src/game/plugin/ui.ts';
-  if (name.startsWith('admission.')) return 'src/game/shardfile/product.ts';
+  if (name === 'admission.descriptor') return 'src/game/client/plugin/ui.ts';
+  if (name.startsWith('admission.')) return 'src/game/client/shardfile/product.ts';
   if (name === 'props' || name === 'animals' || name === 'weapon') return `shard ${shard}: ${name} hook`;
-  if (name === 'shaders' || name === 'firstFrame') return 'src/engine/render/precompile.ts';
-  if (name === 'Ready') return 'src/game/session/finish.ts';
+  if (name === 'shaders' || name === 'firstFrame') return 'src/engine/client/render/precompile.ts';
+  if (name === 'Ready') return 'src/game/client/session/finish.ts';
   if (name === 'navigation') return 'document navigation and initial shell';
-  return `src/engine/core/bootstrap.ts: ${name}`;
+  return `src/engine/client/core/bootstrap.ts: ${name}`;
 };
 
 /** Convert measured navigation/trace clocks into the strict SF68 consumer contract. Failed runs stay missing;

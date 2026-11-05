@@ -1,18 +1,18 @@
 // The Golden King's shipped fight (combat/goldenKing.ts at 785f57f08), kept verbatim as the oracle the platform
 // phased boss fight (src/game/shardfile/phasedBoss.ts) is replayed against (SHARD-PLATFORM SF27).
 import { NALATI_STRIKES, sampleStrike, sampleArena } from '../nalati-strikes';
-import { canReach } from '../../../src/engine/ai/reach';
-import { app } from '../../../src/engine/app/runtime';
-import type { Animal } from '../../../src/engine/entities/AnimalView';
-import type { AnimalManager } from '../../../src/engine/entities/AnimalManager';
-import type { ThinkCtx } from '../../../src/engine/entities/species/registry';
-import type { Player } from '../../../src/engine/player/Player';
+import { canReach } from '../../../src/engine/server/ai/reach';
+import { app } from '../../../src/engine/client/app/runtime';
+import type { Animal } from '../../../src/engine/client/entities/AnimalView';
+import type { AnimalManager } from '../../../src/engine/server/entities/AnimalManager';
+import type { ThinkCtx } from '../../../src/engine/shared/entities/species/registry';
+import type { Player } from '../../../src/engine/client/player/Player';
 import * as THREE from 'three';
 import { GOLDEN_KING, bindGoldenKing } from './goldenKingControl';
 import { BALBAL as KURGAN_BALBAL } from '../originalBalbal';
-import type { BossArenaRoom } from '../../../src/game/boss/arenaRoomView';
+import type { BossArenaRoom } from '../../../src/game/client/boss/arenaRoomView';
 import { DUNGEON, CH, COFFIN, PEDESTAL, NICHES, STREAMS, CHECKPOINT } from '../../../src/shards/nalati-grasslands/generators/kurganLayout';
-import type { BossScript } from '../../../src/engine/ai/BossBrain';
+import type { BossScript } from '../../../src/engine/server/ai/BossBrain';
 import { KING_DEF_PHASES, KING_LINES, KING_TUNING } from '../../../src/shards/nalati-grasslands/generators/goldenKingFight';
 
 type Mode = 'coffin' | 'rising' | 'fight' | 'toCoffin' | 'shield' | 'stun' | 'kneel' | 'dead';

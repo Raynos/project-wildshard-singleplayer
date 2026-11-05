@@ -7,15 +7,15 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const CONTENT = [   // [the commit that moved it out, the engine path before]
-  ['0802b3d00', 'src/engine/audio/gen.ts'], ['dd2e42a12', 'src/engine/ui/icons.ts'], ['4c50424b9', 'src/engine/entities/species/elk.ts'],
-  ['4c50424b9', 'src/engine/entities/species/deer.ts'], ['d47cbc07b', 'src/engine/ai/NightBrain.ts'], ['fab438d4a', 'src/engine/world/blenderArea.ts'],
-  ['49ffd9fd4', 'src/engine/ui/HurtArc.ts'], ['668484797', 'src/engine/world/forest/treeSpecies.ts'], ['b804b4395', 'src/engine/models/creatures.ts'],
-  ['bd2e547d2', 'src/engine/audio/score/wildshard-theme.ts'], ['4c42cca55', 'src/engine/world/interact/models.ts'], ['2c2e229f9', 'src/engine/entities/AnimalManager.ts'],
+  ['0802b3d00', 'src/engine/client/audio/gen.ts'], ['dd2e42a12', 'src/engine/client/ui/icons.ts'], ['4c50424b9', 'src/engine/entities/species/elk.ts'],
+  ['4c50424b9', 'src/engine/entities/species/deer.ts'], ['d47cbc07b', 'src/engine/ai/NightBrain.ts'], ['fab438d4a', 'src/engine/client/world/blenderArea.ts'],
+  ['49ffd9fd4', 'src/engine/client/ui/HurtArc.ts'], ['668484797', 'src/engine/client/world/forest/treeSpecies.ts'], ['b804b4395', 'src/engine/models/creatures.ts'],
+  ['bd2e547d2', 'src/engine/audio/score/wildshard-theme.ts'], ['4c42cca55', 'src/engine/world/interact/models.ts'], ['2c2e229f9', 'src/engine/server/entities/AnimalManager.ts'],
 ];
 const GENERIC = [   // at HEAD: the cleaned files, and engine files E405 never touched
-  'src/engine/audio/gen.ts', 'src/engine/ui/icons.ts', 'src/engine/world/blenderArea.ts', 'src/engine/ui/HurtArc.ts',
-  'src/engine/world/forest/treeSpecies.ts', 'src/engine/audio/score/score.ts', 'src/engine/world/interact/types.ts', 'src/engine/entities/AnimalManager.ts',
-  'src/engine/physics/query.ts', 'src/engine/core/rng.ts', 'src/engine/world/lowpolyKit.ts', 'src/engine/input/InputService.ts',
+  'src/engine/client/audio/gen.ts', 'src/engine/client/ui/icons.ts', 'src/engine/client/world/blenderArea.ts', 'src/engine/client/ui/HurtArc.ts',
+  'src/engine/client/world/forest/treeSpecies.ts', 'src/engine/client/audio/score/score.ts', 'src/engine/shared/world/interact/types.ts', 'src/engine/server/entities/AnimalManager.ts',
+  'src/engine/shared/physics/query.ts', 'src/engine/shared/core/rng.ts', 'src/engine/client/world/lowpolyKit.ts', 'src/engine/client/input/InputService.ts',
 ];
 const show = (rev, path) => execFileSync('git', ['show', `${rev}:${path}`], { encoding: 'utf8', maxBuffer: 1 << 26 });
 const state = (path, code) => `Layer: engine. File: ${path}\n\n${code.slice(0, 13000)}`;

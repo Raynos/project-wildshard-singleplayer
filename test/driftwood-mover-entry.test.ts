@@ -3,7 +3,7 @@ import { driftwoodEmittedProduct } from './fixtures/driftwood-emitted-product';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { driftwoodMoverOwners } from '../src/shards/driftwood-isle/generators/moverOwners';
 import { STATIC_BOAT } from '../src/shards/driftwood-isle/generators/staticWorld';
-import { CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
+import { CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';
 
 test('the actual emitted mover row retains exact boat floats and original construction owners', async () => {
   const product = await driftwoodEmittedProduct(), plan = parseClientPlan(product.section('client/plan'));

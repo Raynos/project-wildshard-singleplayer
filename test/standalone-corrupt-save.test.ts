@@ -1,9 +1,9 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The server half runs the shipped product bytes and physics module.
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
-import { loadRapier } from '../src/engine/physics/rapier';
-import type { SaveStorage } from '../src/engine/saves/store';
-import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import type { SaveStorage } from '../src/engine/shared/saves/store';
+import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import type { HeadlessRuntimeInput } from '../src/sdk/headlessRuntime';
 import { runStandaloneServer } from '../src/sdk/standalone/serverHost';

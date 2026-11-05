@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { trailColliders } from '../src/shards/driftwood-isle/generators/trailColliders';
-import { readColliderRows } from '../src/engine/models/colliders';
+import { readColliderRows } from '../src/engine/client/models/colliders';
 import { driftwoodTrailRows } from '../src/shards/driftwood-isle/generators/fixedFacts';
 
 const facts = driftwoodTrailRows();

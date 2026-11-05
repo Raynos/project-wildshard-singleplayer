@@ -2,15 +2,15 @@ import { NALATI_ADMISSION, NALATI_ADMISSION_PROGRAM } from './fixtures/nalati-ad
 import { nalatiAdmissionBlobs } from '../src/shards/nalati-grasslands/generators/admissionProgram';
 import * as v from 'valibot';
 import {ReturnProgramSchema} from '@wildshard/format/namedJsonContracts';
-import {Scope} from '../src/engine/app/scope';
+import {Scope} from '../src/engine/shared/app/scope';
 import {expect,test} from 'vitest';
 import {NALATI_SCRIPT_SECTIONS} from './fixtures/nalati-script-inventory';
 import {emitPlatformSections} from '../src/sdk/platformSections';
 import {outputScriptAdmissionRows} from '../src/sdk/outputProduct';
-import {ReturnProgram} from '../src/game/population/returnProgram';
+import {ReturnProgram} from '../src/game/shared/population/returnProgram';
 import {admitScriptV2} from '@wildshard/format/scriptAdmissionV2';
 import {contentHash} from '../src/sdk/project';
-import {Rng} from '../src/engine/core/rng';
+import {Rng} from '../src/engine/shared/core/rng';
 import {admission,admissionLegacy,admissionWitnessBytes,admissionModuleBytes,lendNalatiAdmission} from './fixtures/nalati-return-modules';
 
 test('complete emitted return AND spawn admission replaces the admission witness one for one within the unchanged eight module cap',()=>{

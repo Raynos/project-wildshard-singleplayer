@@ -1,20 +1,20 @@
 import {admissionPage} from './fixtures/nalati-admission-loan';
-import { setTerrainHeight } from '../src/engine/world/terrainHeight';
+import { setTerrainHeight } from '../src/engine/shared/world/terrainHeight';
 
 import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';
 import { beforeEach, expect, test } from 'vitest';
 import { Group, Scene, Vector3, SkinnedMesh, BoxGeometry, MeshLambertMaterial } from 'three';
-import type { Game } from '../src/engine/core/Game';
-import type { Animal } from '../src/engine/entities/AnimalView';
-import type { AnimalManager } from '../src/engine/entities/AnimalManager';
-import type { Player } from '../src/engine/player/Player';
-import type { EliteBar } from '../src/engine/ui/EliteBar';
-import type { EliteDef, Elites } from '../src/game/Elite';
-import { NativeEliteController } from '../src/engine/ai/view/eliteController';
-import { BorrowedElite } from '../src/engine/ai/view/eliteEntry';
-import type { StallionState } from '../src/engine/ai/herd';
-import { eliteDamageMul } from '../src/engine/entities/eliteBrain';
-import { Scope } from '../src/engine/app/scope';
+import type { Game } from '../src/engine/client/core/Game';
+import type { Animal } from '../src/engine/client/entities/AnimalView';
+import type { AnimalManager } from '../src/engine/server/entities/AnimalManager';
+import type { Player } from '../src/engine/client/player/Player';
+import type { EliteBar } from '../src/engine/client/ui/EliteBar';
+import type { EliteDef, Elites } from '../src/game/server/Elite';
+import { NativeEliteController } from '../src/engine/client/ai/view/eliteController';
+import { BorrowedElite } from '../src/engine/client/ai/view/eliteEntry';
+import type { StallionState } from '../src/engine/server/ai/herd';
+import { eliteDamageMul } from '../src/engine/server/entities/eliteBrain';
+import { Scope } from '../src/engine/shared/app/scope';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import pouncer from '../src/shards/nalati-grasslands/data/aqbarsProfile.json' with { type: 'json' };
 

@@ -3,20 +3,20 @@ import { expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { FigureRowSchema, type FigureRow, type FigureCatalogueRow } from '@wildshard/format/figures';
-import { FigureRows } from '../src/game/systems/npc/figureRows';
-import { SceneHandles } from '../src/game/shardfile/sceneHandles';
+import { FigureRows } from '../src/game/client/systems/npc/figureRows';
+import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import { NPC_FIGURE } from '../src/shards/pine-hollow/generators/peopleLook';
 import { standInPerson } from './fixtures/npcFigureOracle';
-import { FigureSkins, type FigureRig } from '../src/game/systems/npc/figureSkins';
+import { FigureSkins, type FigureRig } from '../src/game/client/systems/npc/figureSkins';
 import { PINE_NPC_SKINS as skins } from './fixtures/pine-program';
-import { Scope } from '../src/engine/app/scope';
-import { reachControl } from '../src/engine/boot/prefetch';
-import { ControlRefinement } from '../src/game/shardfile/controlRefinement';
-import { FigureCatalogue, type FigureSkinTiming } from '../src/game/models/figureCatalogue';
-import { modelContext, specimenReady } from '../src/engine/models/model';
-import { live } from '../src/engine/models/live';
-import { Rng } from '../src/engine/core/rng';
-import { SkyRig } from '../src/engine/world/skyRig';
+import { Scope } from '../src/engine/shared/app/scope';
+import { reachControl } from '../src/engine/client/boot/prefetch';
+import { ControlRefinement } from '../src/game/client/shardfile/controlRefinement';
+import { FigureCatalogue, type FigureSkinTiming } from '../src/game/client/models/figureCatalogue';
+import { modelContext, specimenReady } from '../src/engine/client/models/model';
+import { live } from '../src/engine/client/models/live';
+import { Rng } from '../src/engine/shared/core/rng';
+import { SkyRig } from '../src/engine/client/world/skyRig';
 
 function row(): FigureRow {
   return v.parse(FigureRowSchema, { id: 'person', name: 'standing', feet: [2, 3, 4], yaw: 0.3,

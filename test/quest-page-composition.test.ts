@@ -2,19 +2,19 @@
 import { expect, test } from 'vitest';
 import { Group, Vector3 } from 'three';
 import * as v from 'valibot';
-import { Scope } from '../src/engine/app/scope';
-import { WorldRegistry } from '../src/engine/world/registry';
-import type { Interactable } from '../src/engine/world/interact/types';
-import type { ShardContext } from '../src/game/plugin/context';
-import { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { FigureRows } from '../src/game/systems/npc/figureRows';
-import { registerQuestPageWorld, questPageWorld } from '../src/game/quest/pageResources';
-import { installQuestTrader } from '../src/game/quest/trader';
+import { Scope } from '../src/engine/shared/app/scope';
+import { WorldRegistry } from '../src/engine/client/world/registry';
+import type { Interactable } from '../src/engine/shared/world/interact/types';
+import type { ShardContext } from '../src/game/server/plugin/context';
+import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
+import { FigureRows } from '../src/game/client/systems/npc/figureRows';
+import { registerQuestPageWorld, questPageWorld } from '../src/game/server/quest/pageResources';
+import { installQuestTrader } from '../src/game/server/quest/trader';
 import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
-import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
+import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { builtProduct } from './fixtures/builtProduct';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 import rows from '../src/shards/driftwood-isle/data/questPageComposition.json' with { type: 'json' };
 
 // The orchard fixture has a borrowed keeper, a fruit counter and an existing

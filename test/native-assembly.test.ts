@@ -11,8 +11,8 @@ import { serverBlob } from '../src/sdk/blobs';
 import { HeadlessSimulation } from '../src/sdk/headless';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { validateOutputProduct, writeOutputProduct } from '../src/sdk/outputProduct';
-import { hasNativeAssembly } from '../src/game/shardfile/nativeAssembly';
-import { prepareProductRuntimePlan } from '../src/game/shardfile/nativePlan';
+import { hasNativeAssembly } from '../src/game/server/shardfile/nativeAssembly';
+import { prepareProductRuntimePlan } from '../src/game/server/shardfile/nativePlan';
 
 const plan: NativeAssemblyPlan = { kind: 'native-assembly', level: { speed: 5, ground: { size: 500, height: 0 } }, terrain: { kind: 'bake-ground' }, navigation: 'shard',
   bake: { rows: { file: 'server/physics.json' }, reader: { label: 'Fixture', resolution: 256, size: 500 }, ground: 'data/ground.bin', colliders: [], read: 'bake' },
@@ -31,8 +31,8 @@ test('admits plain data plans in declared install order and refuses anything els
 });
 
 test('is a registered platform family for server names only, and held-melee stays its own schema', () => {
-  expect(platformFileFamily(NATIVE_ASSEMBLY_FILE, NATIVE_ASSEMBLY_SCHEMA)?.reader).toBe('src/game/shardfile/nativeAssembly.ts');
-  expect(platformFileFamily('server/physics.json', NATIVE_ASSEMBLY_DATA_SCHEMA)?.reader).toBe('src/game/shardfile/nativeAssembly.ts');
+  expect(platformFileFamily(NATIVE_ASSEMBLY_FILE, NATIVE_ASSEMBLY_SCHEMA)?.reader).toBe('src/game/server/shardfile/nativeAssembly.ts');
+  expect(platformFileFamily('server/physics.json', NATIVE_ASSEMBLY_DATA_SCHEMA)?.reader).toBe('src/game/server/shardfile/nativeAssembly.ts');
   expect(platformFileFamily('sim/native-assembly.json', NATIVE_ASSEMBLY_SCHEMA)).toBeUndefined();
   expect(platformFileFamily('data/physics.json', NATIVE_ASSEMBLY_DATA_SCHEMA)).toBeUndefined();
   expect(() => validatePlatformFile(NATIVE_ASSEMBLY_FILE, NATIVE_ASSEMBLY_SCHEMA, { kind: 'native-assembly' })).toThrow();

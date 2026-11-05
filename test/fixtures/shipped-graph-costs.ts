@@ -5,14 +5,14 @@ import {resolve,sep} from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Join measured programs to actual graph and lowered-code identities.
 import {createHash} from 'node:crypto';
 import {loadHeadlessProduct} from '../../src/sdk/headlessProduct';
-import {outputDescriptor} from '../../src/game/shardfile/outputDescriptor';
-import {emitClassicGraph} from '../../src/engine/render/graph/glslProgram';
+import {outputDescriptor} from '../../src/game/shared/shardfile/outputDescriptor';
+import {emitClassicGraph} from '../../src/engine/client/render/graph/glslProgram';
 import {graphFragmentIdentity} from './graph-fragment-identity';
-import {ToonLook} from '../../src/engine/render/families/toon';
-import {familyPresetGraph,PRESET_GRAPH_BUDGET} from '../../src/engine/render/graph/presets';
+import {ToonLook} from '../../src/engine/client/render/families/toon';
+import {familyPresetGraph,PRESET_GRAPH_BUDGET} from '../../src/engine/client/render/graph/presets';
 import {presetLooks} from '@wildshard/format/materials';
 import type {GraphBudget} from '@wildshard/format/materialGraph';
-import type {GraphGlsl,GraphGlslProgram} from '../../src/engine/render/graph/glsl';
+import type {GraphGlsl,GraphGlslProgram} from '../../src/engine/client/render/graph/glsl';
 
 export interface ShippedGraphCost {
  readonly slug:string;

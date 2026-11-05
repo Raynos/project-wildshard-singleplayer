@@ -1,5 +1,5 @@
-import type { Renderer } from '../render/renderer';
-import { installTextureUploadEvents } from '../render/textureUploadEvents';
+import type { Renderer } from '../client/render/renderer';
+import { installTextureUploadEvents } from '../client/render/textureUploadEvents';
 import { legacyDouble } from './FakeGame';
 
 /** Native-version fixture: callbacks run before the completed texture/source

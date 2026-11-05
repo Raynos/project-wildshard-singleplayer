@@ -14,7 +14,7 @@ gain mute and restores the previous value at disposal. Both install only when ca
 arm bakes and `measure` share; they moved unchanged from the kit (SF54). Shard code imports these
 defining game modules directly; no SDK viewmodel facade remains. Nothing installs on import.
 
-`@wildshard/game/models/{interact,pickups}` and `src/game/systems/props/interact.ts` hold the shared interactables' models
+`@wildshard/game/models/{interact,pickups}` and `src/game/client/systems/props/interact.ts` hold the shared interactables' models
 (sea chest, key, door, lever, plate, barrel, beacon, bench, glyph altar) and pickup looks with the low-poly prop
 geometry they are built from, moved unchanged from the kit (SF54). The composition root calls `installKitProps` /
 `installKitPickups`; nothing installs on import. Their baked commons entries are SF54 step 4.
@@ -74,12 +74,12 @@ for exact SF73-registered frozen callers only. Primaries own Nalati `models/npc/
 kept, and each definition/export is deleted with its last registered legacy consumer. No aliases or frozen edits.
 
 `@wildshard/game/loadout/effects` (`installStarterEffects` and its status-icon row), `@wildshard/game/plugin/weaponFamily` (`declaredKitItemFamilies`),
-`@wildshard/game/systems/tools/hoverboard` and `@wildshard/game/icons` (with `src/game/icons.merge.d.ts`) moved unchanged
+`@wildshard/game/systems/tools/hoverboard` and `@wildshard/game/icons` (with `src/game/client/icons.merge.d.ts`) moved unchanged
 from the kit, and its weapon compatibility names gave way to the defining `@wildshard/game/weapons/*` and engine
 modules (SF54). That emptied the kit: `@wildshard/kit`, its workspace entry and its guard layer are deleted.
 
 `@wildshard/game/loadout/effects.STARTER_EFFECTS` owns the typed runtime
-view of the authored rows in `game/systems/effects/starterRows.json`. The SDK exposes the same rows through
+view of the authored rows in `game/server/systems/effects/starterRows.json`. The SDK exposes the same rows through
 `game/loadout/effects`; `pnpm gen` and direct Vite/native builds generate their literal
 table before compilation. Runtime imports apply nothing.
 
@@ -88,8 +88,8 @@ status movement / periodic-damage / death bindings, with no second kit wrapper,
 HUD changes or import-time installation. `StatusMovement` callers derive the movement type from that port.
 
 `@wildshard/game/bag/items.normalizeItemRow` normalizes registered bag rows. Starter harvest content is authored once in
-`game/bag/starterItems.json` and expanded by `pnpm gen` into
-`game/bag/starter.generated.ts`; boot installs those rows explicitly. No import
+`game/server/bag/starterItems.json` and expanded by `pnpm gen` into
+`game/server/bag/starter.generated.ts`; boot installs those rows explicitly. No import
 registers a row.
 
 `@wildshard/game/plugin/audio` defines the shared equipment cue router,
@@ -610,7 +610,7 @@ are the row types; `EngineRows` is the verb set.
 
 ## 6. The shard manifest (`@wildshard/game`)
 
-`ShardManifest` (`src/game/shard/manifest.ts`) is the game's type. `manifest.ts` default-exports one, and
+`ShardManifest` (`src/game/server/shard/manifest.ts`) is the game's type. `manifest.ts` default-exports one, and
 `scripts/gen-shards.mjs` discovers it by folder. There is no `defineShard` helper: the manifest is a typed constant.
 
 **Identity and the title deck**
@@ -1732,7 +1732,7 @@ patchShader(material, 'template.linear-fog', PATCH_ORDER.decorate, (shader) => {
 }, { scope });
 ```
 
-The renderer type is named only in `src/engine/render/**` (`wildshard/no-renderer-type`). The handle is `Renderer`
+The renderer type is named only in `src/engine/client/render/**` (`wildshard/no-renderer-type`). The handle is `Renderer`
 (`probeRenderer`). No WebGPU. **Facade multi-draw is banned everywhere** (AGENTS.md E271).
 
 Coarse prop masks keep classic shader sources unchanged; graph programs are built on the same chunks, so the mask's
@@ -1855,7 +1855,7 @@ ctx.tiers.knobs({ id: 'template', defaults: { 'template.propCount': 10 } });
 ### 13.4 Budgets
 
 `manifest.budgets` (`BudgetInputs`) holds **inputs only**: per tier `{ fps, variability, cpuMs, gcMs, systems,
-vertexShare, lanes, linkMs }`, plus `load` and optional `ceilings`. `src/engine/render/budgets.ts` derives draws,
+vertexShare, lanes, linkMs }`, plus `load` and optional `ceilings`. `src/engine/client/render/budgets.ts` derives draws,
 triangles, programs, GPU MB, ms per system and download MB from them and the M5 calibration (`budgets/calibration/`; `budgets/calibration.json` once a stable one is published). The gate fails a
 shard over a derived number. `ceilings` are the recorded F2 maxima of the existing shards (`budgetCeilings.ts`); a new
 shard has none. Memory limits are hard: 1.8 GB loading, 1.0 GB in the world.
@@ -1996,7 +1996,7 @@ loops, score, listeners and credits.
 | `SampledAmbience` (`audio/AmbienceBeds`) | client sampled loops and seeded distant calls from `audio.zones.sampleMix` |
 | `VoicePool`, `VoiceTable`, `SampleVoice`, `SamplePolicy` | the positional voice engine |
 | `LevelAudioProfile` | a level's audio profile (the audio runtime loads lazily: `await import('@wildshard/engine/audio/Stems')` …, by the module a level uses). Optional `titleFiles(style)` identifies only recordings unused by played slots; direct phone play can defer those exact bytes through the existing after-control audio queue. |
-| `installScore`, `Score`, `Arrangement`, `Segment`, `NoteEv`, `ChordEv`, `MixEv`, `LayerId`, `MixKey`, `Mode`, `ChordName` | the synth score Music plays: the composition root installs the game's (src/game/audio/theme.ts, E405: the engine holds no theme) |
+| `installScore`, `Score`, `Arrangement`, `Segment`, `NoteEv`, `ChordEv`, `MixEv`, `LayerId`, `MixKey`, `Mode`, `ChordName` | the synth score Music plays: the composition root installs the game's (src/game/client/audio/theme.ts, E405: the engine holds no theme) |
 | `Synth`, `impact` | synth fallbacks, the impact generator, and the synthesis primitives (`noise`, `voice`, `strike`, `bubbles`, …) content voices build on (a shard's creature voices) |
 | `panFromYaw`, `loopAt`, `audioRandom`, `ownAudioSource` | helpers |
 
@@ -2100,7 +2100,7 @@ Subarray views, shared buffers and non-GLB inputs take the original parser copy
 after acquiring the same slot. Private scenes and geometry remain with each caller.
 
 `ClipName` is `idle · walk · run · attack · hit · die · turn · swim · fly`, optionally with `.suffix`. A raw
-`new AnimationMixer` outside `src/engine/anim` is a lint error (`wildshard/no-raw-animation-mixer`). The template's blob
+`new AnimationMixer` outside `src/engine/client/anim` is a lint error (`wildshard/no-raw-animation-mixer`). The template's blob
 declares its contract on its look row:
 
 ```ts
@@ -2251,7 +2251,7 @@ fifth argument of `addLamp`. The page publishes ignition before `step`;
 an omitted state means always lit. The host reads values and never invokes
 shard code. Pine waystones retain one box per stone; Sunscar publishes
 brazier ignition into boxes before updating its shared pool. Room ranking,
-anchor transforms and flicker stay in the light host. `src/engine/fx/site-lights.test.ts`
+anchor transforms and flicker stay in the light host. `src/engine/client/fx/site-lights.test.ts`
 checks both shipped lamp rows, ignition changes and an empty pool slot.
 
 **Damage request motion fields (G21).** These optional fields are currently metadata, not movement commands.
@@ -2440,7 +2440,7 @@ stack capacity, ownership identities, save fields, input, cues and presentation.
 `AmmoPouch` in `@wildshard/game/loadout/pouch` stashes the selected live stack,
 skips empty special stacks and preserves the fallback refill rule. Native weapon
 families retain their fire/reload clocks and live ammunition.
-`NativeHeldAmmunition` in `src/game/loadout/nativeAmmunition` adapts the
+`NativeHeldAmmunition` in `src/game/server/loadout/nativeAmmunition` adapts the
 same pouch to native proof continuations. Its constructor takes the native `SimHost`,
 loadout rows and item rows. `readNativeRangedItem` in `game/plugin/nativeItems`
 resolves platform-installed owners by declared slot. Bow capacity and the combat
@@ -2791,7 +2791,7 @@ runtime.play.animals.spawn('my-shard.wisp', x, z, yaw, undefined, { y: 32 });
 
 `CosmeticsLocker<Slot, Row>` (`@wildshard/game`) owns registered cosmetics, validates saved ownership and slot matches, and provides `own`, `wear`, `toggle`, `wearing`, `entries`, `version` and `onChange`. A `CosmeticProfile` supplies a slot selector, save slot and optional `autoWear` for empty slots. `SkinLocker` is the weapon-material profile (`SkinDef.weapon`), using the existing per-shard `skins` save with manual wear; Nalati supplies its own saved skin rows and auto-wear policy.
 
-`src/game/cosmetics/locker.ts` owns the cosmetic inventory card state.
+`src/game/client/cosmetics/locker.ts` owns the cosmetic inventory card state.
 `CosmeticsLocker.pick(id)` returns the registered owned row and its next
 `wear` / `off` action without changing state, saving or applying a look.
 `cardRows(cards)` combines authored card order, icon, name, owned blurb and
@@ -2954,7 +2954,7 @@ existing transitional runtime facades in `@wildshard/sdk/runtime/*` (deleted und
 |---|---|
 | starter weapons | `@wildshard/game/weapons/{Sword,Bow,starterMoves,starterMeleeProfile,starterBowProfile,starterEquipment,starterGlyphs}` (`@wildshard/sdk/runtime/weapons/*`); the families themselves are the engine's (`@wildshard/engine/combat/{Melee,bowDraw}`, `combat/view/*`) |
 | species, creatures | `@wildshard/game/systems/species/*` (`installKitSpecies`), `@wildshard/game/systems/species/view/{boar,bear}` |
-| icons | `@wildshard/game/icons` (`installKitIcons`, `BAG_ICONS`); their ids merge into `IconMap` from `src/game/icons.merge.d.ts` |
+| icons | `@wildshard/game/icons` (`installKitIcons`, `BAG_ICONS`); their ids merge into `IconMap` from `src/game/client/icons.merge.d.ts` |
 | interactables, pickups | `@wildshard/game/models/{interact,pickups}` (`installKitProps`, `installKitPickups`) |
 | effects | `@wildshard/game/loadout/effects` (`STARTER_EFFECTS`, `installStarterEffects`) |
 | NPCs | `@wildshard/game/systems/npc/{npcRig,figureRig,figureMotion,faceHeads}` |
@@ -2972,7 +2972,7 @@ when the ground is, the sand maps, the `TintedTileGround` and the held `CubeSkir
 fault)` uploads the dune-shadow, trail and grain maps with the grain tile's means. Signal Dunes' `look/render.ts` is its
 binding (row `data/renderLook.ts` SIGNAL_DUSK_LOOK).
 
-**Rigged creature hulls (SHARD-PLATFORM W2 C2).** `@wildshard/game/looks/riggedHulls` (`src/game/looks/riggedHulls.ts`)
+**Rigged creature hulls (SHARD-PLATFORM W2 C2).** `@wildshard/game/looks/riggedHulls` (`src/game/client/looks/riggedHulls.ts`)
 `riggedHulls(row, resources)` is a shard's family of generated creature hulls pre-skinned offline to the procedural species'
 skeletons, from one `RiggedHullFamilyRow` (pure data: the log label, the rigs to preload, `kind:variant` → hull, each
 hull's generator flap `RiggedHullFlap` and each coat's fur sheen and rim `RiggedHullFur`) and its data-only `RiggedHullUrls`:
@@ -3039,7 +3039,7 @@ unrounded horizon sampling; `encodeGainKey` encodes the selected half-float view
 with the original level-9 gzip/OS-marker contract. Neither reads files or installs a renderer.
 
 
-**Graph day skies (SHARD-PLATFORM W2 C2).** `@wildshard/game/looks/graphDaySky` (`src/game/looks/graphDaySky.ts`)
+**Graph day skies (SHARD-PLATFORM W2 C2).** `@wildshard/game/looks/graphDaySky` (`src/game/client/looks/graphDaySky.ts`)
 `graphDaySkyBackdrop(spec)` is a shard's day sky drawn on material graphs as a `SkyBackdropFactory`: the host compiles
 the sky's graphs (`spec.ids` from `spec.source`'s look catalogue, `DaySkyGraphs`), preloads the baked textures and LUT,
 adds the dome, owns the image-based light (`SkyEnvironment`; a scene source may build its first PMREM offscreen), runs
@@ -3058,7 +3058,7 @@ fills the `clock` owner (`phase`, `day`, `night`, `sunX…Z`, `moonX…Z`), eval
 Pine Hollow's keyed sky (`runtime/looks/keyedSky.ts`, group `pine.sky`) and Driftwood's faceted day
 (`runtime/looks/facetedDayBackdrop.ts`, group `driftwood.sky`) are its users.
 
-**Day air (SHARD-PLATFORM W2 C2).** `@wildshard/game/looks/daySky` (`src/game/looks/daySky.ts`) `driveDayAir(targets,
+**Day air (SHARD-PLATFORM W2 C2).** `@wildshard/game/looks/daySky` (`src/game/client/looks/daySky.ts`) `driveDayAir(targets,
 post, scene, row, frame)` writes the air a keyed day preset sets beside its key light (`driveDayLight`): the scene's
 `environmentIntensity`, the fog's colour, sun in-scatter and distance / height densities (left alone under water), the
 disc's colour and scale, the corona's colour and opacity, the cloud layer, the far ridges' haze and sea glint, and the
@@ -3068,7 +3068,7 @@ post chain's shafts, god rays and saturation. `DayAirRow` names the preset's fie
 share, disc scale, corona share). Uniforms only, no program changes. Pine Hollow's keyed sky is its user; G441's W3 match
 is Nalati `look/skyRig.ts` `SkyRig.apply`, whose environment, fog, disc, corona and cloud-light writes move onto it.
 
-**Overcast rows (SHARD-PLATFORM W2 C2).** `@wildshard/game/looks/overcast` (`src/game/looks/overcast.ts`)
+**Overcast rows (SHARD-PLATFORM W2 C2).** `@wildshard/game/looks/overcast` (`src/game/client/looks/overcast.ts`)
 `overcastOver(look, rows, s, level)` lays a cloud deck `s` (0 … 1) over the hour's blended look in place from
 `OvercastRow` data: `scale` (× 1 + by·s, optionally through a smoothstep `curve`), `add`, `atLeast`, `grey` (toward the
 colour's luminance × a tint) and `toward` (a storm palette colour, × the caller's light `level` when `lit`). Pine
@@ -3124,7 +3124,7 @@ A playground's pieces are registry pieces with `active: () => this.entered`, so 
 | `setting`, `getSetting`, `getNumber`, `onNumber`, `onSettingChange`, `OptionValue`, `MusicStyle` | the engine's saved options. A shard reads only keys it owns (`shard-sandbox`) |
 | `ENGINE_STRINGS`, `engineString`, `installEngineStrings`, `EngineStringKey` | the engine's string table |
 | `publicBytes`, `assetVersions`, `musicManifests`, `sfxManifests`, `bootPacks`, `installAssetTables`, `AssetTables`, `PackDef`, `PackPart`, `PackFile` | App-owned asset sizes, versions, audio and boot packs, installed after entry selection; the engine reads them at call time. `packFor` selects the tier; `streamPack` serves declared boot parts. `demandPack(pack, scope)` serves complete KTX2 parts ≤4 MiB only when all members are demanded together, verifying hashes and returning private responses without settled backing. Cached parts also serve later/offline members. |
-| `installAppIdentity`, `appIdentity`, `AppIdentity`, `EngineProbe`, `HarnessPins` | the app the engine runs in (E405 E414): its name, wordmark and tagline, the save keys' prefix and export format, the file-name prefix, where the probe is exposed and where the harness pins are read. Optional `errorReportOrigins` lists exact production origins for external browser errors; local/preview pages, webdriver and harness runs never report. The game's (`src/game/identity.ts`) is installed by `src/identity.ts`, the first module every page entry runs; nothing has a default, and a save with real storage throws without one rather than writing under another prefix |
+| `installAppIdentity`, `appIdentity`, `AppIdentity`, `EngineProbe`, `HarnessPins` | the app the engine runs in (E405 E414): its name, wordmark and tagline, the save keys' prefix and export format, the file-name prefix, where the probe is exposed and where the harness pins are read. Optional `errorReportOrigins` lists exact production origins for external browser errors; local/preview pages, webdriver and harness runs never report. The game's (`src/game/client/identity.ts`) is installed by `src/identity.ts`, the first module every page entry runs; nothing has a default, and a save with real storage throws without one rather than writing under another prefix |
 | `ctx.strings(table)` (`StringTable`) | registers your table; every player-facing line comes from it |
 
 **A Debug row** (`DebugRowSpec`): `{ id, group, label, choices: [{ value, text }], initial, change(value), reload?,
@@ -3301,7 +3301,7 @@ or `'sidestep'` body, else `'ai'`; `'legacy'` is the manager's self-thinking rat
 body holds a creature motor in the page's capsule only within 45 m of the player, released past 55 m. `bodyDt(id)` is
 the tick's update step (0 while paused or on the off tick of `'half'`) and `brainDt(id, urgent?)` takes the decision
 step on the same clocks, so a runtime's brains need no copy of the scheduler. The page's `TickScheduler` and
-`CreatureBodies` run on the same functions (`src/engine/sim/bands.ts`). The clocks ride `SimSnapshot.bands`, absent
+`CreatureBodies` run on the same functions (`src/engine/shared/sim/bands.ts`). The clocks ride `SimSnapshot.bands`, absent
 for a host without bands. An optional roster-owned `present(body)` predicate freezes absent bodies' brain and motion
 clocks and, with physics LOD enabled, releases their motors. The installer restores its roster state before the next
 tick; re-entry starts a fresh cadence without catching up the absent time. Omitted predicates retain the existing path.
@@ -3363,9 +3363,9 @@ collision, and proves damage and quest completion without a renderer, DOM or act
 | `wildshard/engine-internal` | a kit or shard import of a game-only `@wildshard/engine` export (`lint/engine-internal.json`: the session, boot, title and installers; marked "game only" in docs/api/ENGINE.md) — a shard asks for a ShardContext verb instead (AG6) | hard error |
 | `wildshard/no-module-mock` | `vi.mock` / `doMock` / `resetModules` / `hoisted` / `importActual` in test/, api-tests/, drafts/test/: a test drives the real module through its seams (a class, a factory, an injected loader or port; E422) | hard error |
 | `wildshard/no-raw-input` | DOM input listeners outside `src/engine/input`, including a helper call given `window` / `document` and an input event (AG18) | hard error |
-| `wildshard/no-raw-shader-patch` | `onBeforeCompile` / `customProgramCacheKey` outside `src/engine/render` | hard error |
+| `wildshard/no-raw-shader-patch` | `onBeforeCompile` / `customProgramCacheKey` outside `src/engine/client/render` | hard error |
 | `wildshard/no-raw-hud` | appending to `#hud` / `document.body` outside the HUD slots | hard error |
-| `wildshard/no-raw-animation-mixer` | `new AnimationMixer` outside `src/engine/anim` | hard error |
+| `wildshard/no-raw-animation-mixer` | `new AnimationMixer` outside `src/engine/client/anim` | hard error |
 | `wildshard/sim-no-render` | render / DOM imports in the simulation folders | hard error |
 | `wildshard/no-active-chunk` | `getActiveChunk()` outside `src/game/shard/` | hard error |
 | `wildshard/no-inline-ui-string` | player-facing literals in the engine | hard error |
@@ -3374,7 +3374,7 @@ collision, and proves damage and quest completion without a renderer, DOM or act
 | `wildshard/no-global-listener-patch` | raw `addEventListener` / timers / rAF / body appends outside `src/engine/app` | ratchet |
 | `wildshard/no-active-singleton` | `activeRegistry()`, `activePhysics()` … | ratchet |
 | `wildshard/no-hook-chain` | `const prev = x.onFoo` hook chaining | ratchet |
-| `wildshard/no-renderer-type` | `WebGLRenderer` outside `src/engine/render` | ratchet |
+| `wildshard/no-renderer-type` | `WebGLRenderer` outside `src/engine/client/render` | ratchet |
 
 **How the ratchet works.** `lint/ratchet.json` holds `{ rule: { file: count } }`. Builders commit source only; the
 serialized pusher measures and lowers debt from a clean HEAD export. A new file starts at 0; an increase warns in
@@ -3444,7 +3444,7 @@ borrowed stream/ground, native bounds and rejection/yaw/tie/spacing order.
 `bake/geometryBounds.bakeGeometryBoundsSteps`: native box/sphere scans,
 yield/publication order, bound identity and Three fallbacks.
 
-`src/engine/models/ownedGeometry.ts` defines `createOwnedGeometry(url, channels?)`:
+`src/engine/client/models/ownedGeometry.ts` defines `createOwnedGeometry(url, channels?)`:
 an explicit owned-template intake for a single identity-space offline GLB.
 `load(bytes?)` deduplicates fetch/parse, or clones an explicitly supplied
 `BufferGeometry`; `copy()` returns independent mutable attributes. `adopt()`
@@ -3955,7 +3955,7 @@ aliases. `bossEncounterPresentation` admits the reward card and music rows.
 `NativeBossBindingSchema` admits concrete population/inventory service ids and
 a weak-point joint/offset. Unknown keys and callback bags are rejected.
 
-`src/game/boss/native` takes the existing `SimHost`, encounter/profile
+`src/game/server/boss/native` takes the existing `SimHost`, encounter/profile
 rows, a species program and native binding rows. It resolves the population by
 its installed step id, the existing admitted decision authority and the retained
 actor's `NativeCreaturePose`. No shard callback, subclass or reflection binding
@@ -3973,7 +3973,7 @@ and an arena center. `update` observes plain player/body/flag data;
 `onPlayerDeath` take observations/positions, never hooks. Restoration is silent.
 `@wildshard/game/boss/presentation` is client-only: `presentWakeBoss` applies
 effect rows to the existing `BossBar` and `Events`, without renderer hooks.
-`src/game/boss/nativeWake` resolves the existing body's declared kind on
+`src/game/server/boss/nativeWake` resolves the existing body's declared kind on
 its actual `SimHost`; materialization stays with the existing AS director and
 roster command. It binds death flags, attempts and the exact save envelope.
 
@@ -3984,7 +3984,7 @@ API remains callback scaffolding (HOST-BAR 5/6), without new platform credit.
 `snapshot`/`restore` retain the strike clock and authored tell duration; a client
 adapter owns its decal and preserves the pre-transition drawing frame.
 
-Private `src/game/boss/roaming` and `src/game/boss/continuation` keep the seeded streams
+Private `src/game/server/boss/roaming` and `src/game/server/boss/continuation` keep the seeded streams
 and ordered wire aliases. They are not shard extension APIs. The older callback-driven
 `game/shardfile/phasedBossRoaming` and `game/plugin/bossPhase` remain migration
 scaffolding and receive no new approved-feature credit in this slice. The
@@ -4243,10 +4243,10 @@ The admitted product API is defined by `plugin/product`: bounded byte parsers, d
 ### Shared arm clips and starter bow (game content)
 
 The 16 arm aliases and two swim aliases Driftwood and Nine share are authored once in
-`game/systems/viewmodel/armAliases.json`; `scripts/gen-starter-arm-clips.mjs` expands the same
+`game/client/systems/viewmodel/armAliases.json`; `scripts/gen-starter-arm-clips.mjs` expands the same
 bytes into an ignored literal table before rig producers run and during ordinary boot-table
 generation. The game `armClips` path keeps the same names, key order and `armClipNames` behavior.
-The bow parameters Nalati and Pine share are authored in `game/weapons/starterBow.json` and
+The bow parameters Nalati and Pine share are authored in `game/server/weapons/starterBow.json` and
 expanded the same way by `scripts/gen-starter-weapons.mjs`; the starter profile keeps its mutable
 `wind` field and injected view strategies. Both were commons packs until G355 (a commons pack
 needs two real shard users of the pack itself; these shards read the game tables, not the pack).
@@ -7137,7 +7137,7 @@ Supply the actual owners to `createCueRouter` alongside those bindings.
 
 ### Native interaction transitions
 
-`engine/world/interact/flags.ts` defines `InteractionTransitionPorts`,
+`engine/server/world/interact/flags.ts` defines `InteractionTransitionPorts`,
 `InteractionTransitions` and `bindInteractionTransitions`. A preflighted,
 bounded table borrows graph-run, item-grant, touch and plate callbacks.
 Transitions preserve ordered automatic/explicit flags, physical door toggles,
@@ -7147,10 +7147,10 @@ and graph touch actions are explicit policies; no new clock or save is created.
 
 ### Authored quest notices
 
-`engine/quest/core.ts` defines `QuestMessageRows`, `QuestMessagePorts` and
+`engine/server/quest/core.ts` defines `QuestMessageRows`, `QuestMessagePorts` and
 `questMessageHandlers`. Bounded notice prefixes and an optional first-step id
 produce existing quest text; transition order is toast, sting, borrowed beat.
-`game/plugin/ui.ts`'s `QuestPresentationOptions.messages` consumes these rows.
+`game/client/plugin/ui.ts`'s `QuestPresentationOptions.messages` consumes these rows.
 Its optional `afterStep` preserves caller-owned dawn/stage timing. No quest,
 flag or save is created by the message handlers; existing options are unchanged.
 
@@ -7543,7 +7543,7 @@ the same configured variant, one job per source material, configured
 just before its compile (`CompileJob.prepare`), so the first shadow
 draw finds its program issued and linked (sp-o289: Pine Hollow's road
 entry built and queried them inside 107-164 ms travel frames).
-`src/engine/render/precompile-variants.test.ts`.
+`src/engine/client/render/precompile-variants.test.ts`.
 
 ### Conditional quest page prompts
 
@@ -7705,7 +7705,7 @@ decorator. Absence keeps the constructor defaults and existing scenes.
 
 
 **Native bake intake (W2 C9).** The test fixture
-`src/game/population/nativeBake` defines
+`src/game/server/population/nativeBake` defines
 `nativeBakeGround(row, resolution, size, label)` for owned Float32 heights
 and scale admission, and `nativeBakeActors(rows, label)` for ordered actor
 rows whose specs match their declared kind and variant. Pine and
@@ -8035,7 +8035,7 @@ This pending allowance is rechecked at the end of W3.
 
 ### Shader-posed instance owner
 
-`src/game/looks/posedInstances.ts` supplies `PosedInstances`: 1–4096
+`src/game/client/looks/posedInstances.ts` supplies `PosedInstances`: 1–4096
 instances, one/two named dynamic vec4 channels. `begin/add/commit` packs
 visible poses; `wrap` lends buffers to replacement geometry without copies.
 Callers own source arrays, looks, colours, bounds, clocks and visibility.
@@ -8049,7 +8049,7 @@ loads nothing; `preload()` prepares shared immutable arrays;
 until ready. World/Explorer share the library; rows own atlas/glow names,
 packing and rest poses. Source boxes stay exact.
 
-`PosedBufferPool` (`src/game/looks/posedBufferPool.ts`) optionally shares
+`PosedBufferPool` (`src/game/client/looks/posedBufferPool.ts`) optionally shares
 uploads within one Scope: disjoint CPU/geometry offsets, separate draws,
 counts and shadow flags. Updates precede rendering. Compatible page-owned
 guide/wildlife share; borrowed flocks and other libraries do not. Pool
@@ -8058,7 +8058,7 @@ refuses retirement.
 
 ### Cell-streamed instances
 
-`src/engine/render/streamedInstances.ts` holds the bookkeeping of a scatter
+`src/engine/client/render/streamedInstances.ts` holds the bookkeeping of a scatter
 streamed round a viewer. `CellWindow<T>(size, build)` keys square cells,
 builds a cell's contents once through `build`, keeps at most `cacheMax`
 of them (oldest dropped first) and lists the cells within a radius,
@@ -8090,7 +8090,7 @@ The texture clamps both axes, uses sRGB, trilinear mipmaps and anisotropy 8.
 
 ### First-person arm rigs
 
-`src/game/systems/viewmodel/rigArms.ts` plays a baked skinned arm rig
+`src/game/client/systems/viewmodel/rigArms.ts` plays a baked skinned arm rig
 (one GLB: the arms, weapons under `R_weapon`, clip metadata in `vm_root`'s
 extras). `RigArms.load(url, contract, bake, swimming, options)` parses a
 URL once and skeleton-clones it per rig, binds the clips through the
@@ -8110,7 +8110,7 @@ as the W3 adopter, rechecked at the end of W3.
 
 ### Ordered model placement batches
 
-`src/engine/models/modelPose.ts` defines the pure `modelPoseMatrix` and
+`src/engine/client/models/modelPose.ts` defines the pure `modelPoseMatrix` and
 `ModelPose` YXZ composition used by both authoring and runtime placement.
 It returns a fresh matrix in the original operation order and imports only
 Three, without registry, renderer or placement-service dependencies.
@@ -8219,7 +8219,7 @@ authored validator or cross-record callback extends the runtime reader.
 
 ### Ranged action clocks
 
-`engine/combat/Firearm.ts` defines `RangedAction` and `RangedActionRow`.
+`engine/server/combat/Firearm.ts` defines `RangedAction` and `RangedActionRow`.
 The bounded row selects quiver or magazine consumption and declares capacity,
 interval, reload duration, auto-reload delay and its shot/empty-trigger clock.
 `trigger` preserves reload/cooldown/empty refusals; `shot` claims consumption
@@ -8233,7 +8233,7 @@ phase; passing a callback retains the page path. `snapshot()` owns only
 finite clocks before a silent commit and ignores other owner-envelope fields.
 Ammunition, save version and flight stay with the caller. `RangedReload`
 also snapshots/restores its elapsed source-clock seconds independently.
-`engine/physics/query.ts#worldHit(physics, from, to, radius)` is the shared
+`engine/shared/physics/query.ts#worldHit(physics, from, to, radius)` is the shared
 page/native ranged query: a segment at radius zero or a ball sweep otherwise,
 passing up to four invisible edge strips in order and accumulating distance
 from the original start. The page wrapper alone allows missing physics.
@@ -8241,12 +8241,12 @@ The string spring remains caller-owned. W3's real matching consumer is
 Nalati’s generated rifle rows on `HeldFirearm`; its bloom,
 muzzle flash, shot callbacks and active-only automatic reload stay ordered.
 
-`src/engine/models/sets.ts#placedWithin(placed, x, z, radius, mode)` returns an Explorer-only copy view.
+`src/engine/client/models/sets.ts#placedWithin(placed, x, z, radius, mode)` returns an Explorer-only copy view.
 `bounds` selects intersecting horizontal boxes and uses box distance for nearest; `centre` selects box centres
 and uses squared centre distance. Whole selections keep the original placement; partial views borrow its
 object and boxes and own no colliders. Bounds views retain the original registration promise; centre views
 follow the source promise. Named places register as the client plan's `world.sets` rows
-(`game/shardfile/clientPlaceSets.ts`), which select their members with `placedWithin`.
+(`game/client/shardfile/clientPlaceSets.ts`), which select their members with `placedWithin`.
 
 **Declared panel lifetime (W2 C5).** `@wildshard/game/ui/panels` defines
 `DeclaredPanel` and `DeclaredPanelPolicy`. Persistent panels mount once and
@@ -8266,7 +8266,7 @@ actions; they cannot write gameplay state. Original claim/reroll payouts and
 horse-name cleaning stay with their callers. Open forms keep Enter/save,
 the first-input grace, synchronous focus, modal order and fresh scopes.
 
-`src/engine/models/colliders.ts#readColliderRows(rows, {kinds, surfaces, requireSurface?})` reads serialized
+`src/engine/client/models/colliders.ts#readColliderRows(rows, {kinds, surfaces, requireSurface?})` reads serialized
 box, capsule, ball, hull, trimesh and tread descriptors into fresh registry data. The caller explicitly
 admits kinds and surface names; an empty surface list permits only absent surfaces, while `requireSurface`
 refuses absence. Strict fields, finite numbers, positive integer tread counts and Uint32 indices refuse
@@ -8276,7 +8276,7 @@ the descriptors through the normal model/world registry and engine physics owner
 
 ### World display part transforms
 
-`engine/combat/view/ranged.ts#weaponDisplay` accepts a borrowed per-part
+`engine/client/combat/view/ranged.ts#weaponDisplay` accepts a borrowed per-part
 `matrix` as an alternative to `pos`/`rot`; crossed or non-finite transforms
 refuse. Direct parts apply it to the owned mesh; merged parts transform an
 owned geometry copy, leaving source buffers unchanged. The merged policy's
@@ -8285,7 +8285,7 @@ clones. Omission preserves existing direct/merged material ownership.
 Tree cloning, content selection and the crossbow's three cord-rest rows
 remain Pine-owned; there is no tree-copy host or extra pending-user credit.
 
-`src/game/bag/findsCatalogue.ts#createFindsCatalogue` prepares bounded
+`src/game/server/bag/findsCatalogue.ts#createFindsCatalogue` prepares bounded
 `FindsCatalogueRows` for the existing Bag FINDS renderer. Counters read
 declared flag sets (explicit IDs or a numbered prefix); stickers read
 flags or registered ownership, preserving authored labels, icons, prizes
@@ -8333,7 +8333,7 @@ evicts a newer one. The viewmodel's rig-file parse and Pine's cabin material set
 
 ### Bow shape publication (G441)
 
-`src/engine/combat/view/bowProfile.ts#BowShape` rewrites bounded dynamic
+`src/engine/client/combat/view/bowProfile.ts#BowShape` rewrites bounded dynamic
 limb/cap/string ranges in caller-owned Float32 position/normal attributes.
 Its row declares ring samples, side signs, radial counts, dynamic range,
 back-section scale, tip anchors, nock offsets and served-string dimensions.
@@ -8386,7 +8386,7 @@ W3 match: its binding bulges and ear bridge are also fixed per ring.
 
 ### Held weapon queue preparation (G441)
 
-`src/engine/combat/view/ranged.ts#prepareWeaponView(root, options)` prepares
+`src/engine/client/combat/view/ranged.ts#prepareWeaponView(root, options)` prepares
 up to 256 borrowed held meshes for the shipping transparent queue. It
 retains geometry/material identity, transforms, visibility and authored
 colour channels; vertex-coloured materials get the existing white channel
@@ -8406,7 +8406,7 @@ existing bones, meshes and groups. The reader writes only position,
 rotation and scale; it creates no pivots, materials or animation clock.
 NPC gesture acceptance, timers and head focus stay with their owners.
 
-`src/engine/combat/effects/EffectService.ts#selectEffectGrants` reads
+`src/engine/client/combat/effects/EffectService.ts#selectEffectGrants` reads
 `EffectGrantRow<Key>` declarations against the caller's current key
 predicate and returns ordered permanent grants for `EffectService.sync`.
 Each row names an effect, required key, optional excluding keys and
@@ -8418,7 +8418,7 @@ uses authored owned/worn rows; highest upgrades and grant order remain
 content facts. G441's W3 match is Nalati's worn-skin grant selection in
 `weapons/nalatiSkins.ts#NalatiSkinLocker.syncEffects`.
 
-**Declared deck floors.** `src/engine/physics/box.ts#floorAtRects(floors, x, z, policy)` queries inclusive
+**Declared deck floors.** `src/engine/shared/physics/box.ts#floorAtRects(floors, x, z, policy)` queries inclusive
 rectangles with x/z centre, half extents hw/hd, height y and optional rot (zero when absent). Rotation uses the
 BoxSpec negative-Y convention and the existing scalar inverse transform. `first` preserves authored priority;
 `highest` returns the uppermost matching floor; no match returns undefined. It creates no collision or clock.
@@ -8427,7 +8427,7 @@ The contact evaluator interpolates width and height within the profile and retur
 Pine keeps its floor rows and registration owners; Nine `world/floorRows.ts#entryDeckFloor` is the G441 W3
 adoption of its inclusive entry-slab loop, with first-match policy and the existing zero deck height.
 
-**Yaw frames and plan polygons.** `src/engine/world/yawFrame.ts` holds a ground frame turned about +Y
+**Yaw frames and plan polygons.** `src/engine/shared/world/yawFrame.ts` holds a ground frame turned about +Y
 (`YawFrame`: origin x/z and yaw, the BoxSpec / FloorRect `rot` convention): `yawLocal(frame, x, z)` maps world
 x/z into the frame and `yawWorld(frame, lx, lz)` maps back; `insidePolygon(points, x, z)` is the even-odd plan test
 against [x, z] corners (false under three). Pure scalar math: no clocks, heights or allocation beyond the returned
@@ -8492,7 +8492,7 @@ conflicting complete wire values refuse. It adds no admission or capability.
 
 ### Hitscan effect presentation
 
-`src/engine/render/viewmodelFeel.ts#HitscanPresentation` composes the existing
+`src/engine/client/render/viewmodelFeel.ts#HitscanPresentation` composes the existing
 `RangedFlash`, `RangedFrame`, brass, segment tracers and impact puffs from a
 `HitscanPresentationRow`. Profiles, muzzle source, geometry and materials
 are borrowed; counts use the existing 128-slot caps. Construct the flash/light
@@ -8551,7 +8551,7 @@ reader returns only the admitted factory, bytes and stage contract; it no
 longer publishes unused binding metadata. Product documents retain their
 existing compatibility key, so their names and section count do not change.
 
-`src/game/plugin/director.ts#DirectorScriptStageLane` also accepts
+`src/game/server/plugin/director.ts#DirectorScriptStageLane` also accepts
 `DirectorScriptStagePorts` with `emits: {source, actions}` instead of
 `publish`. The copied action map has at most 64 named callbacks. Every
 row action must be an emit with literal value zero and a bound name,
@@ -8669,7 +8669,7 @@ before committing live state. It invokes no spawn, reward or random draw.
 
 ### Borrowed held hand parts
 
-`src/engine/player/heldHandParts.ts#HeldHandParts` assembles 1..8
+`src/engine/client/player/heldHandParts.ts#HeldHandParts` assembles 1..8
 `HeldHandPartRow` fist/sleeve pairs from borrowed geometry and materials.
 It creates only meshes and an owned group; it never builds, copies or disposes
 geometry/material backing. Queue flags stay at 1000 with receive-shadow;
@@ -8687,7 +8687,7 @@ HandSpec/palette and grip-quaternion law. G441 pending W3 user: Nalati
 
 ### Native NPC facing
 
-`src/game/plugin/animation.ts#stepNpcFacing(current, target, profile, dt)`
+`src/game/server/plugin/animation.ts#stepNpcFacing(current, target, profile, dt)`
 advances the caller's yaw by the wrapped shortest-angle difference and its
 exponential response. `NpcFacingProfile.rate` sets that response;
 `maxSpeed` optionally caps the angular step. `wrapTarget` and `wrapOutput`
@@ -9342,7 +9342,7 @@ reuse their existing tick, effect and snapshot boundaries.
 
 A species brain `{archetype:'decision', data}` selects one verified
 `sim/scripts` binding and its actual `runtime.spawns` actor. The internal
-`borrowedDecisionAuthority` in `game/shardfile/borrowedDecisions.ts` lends
+`borrowedDecisionAuthority` in `game/server/shardfile/borrowedDecisions.ts` lends
 that same body to `ShardDecisions`, through the existing page/native fixed
 step and contact ports. It allocates no body, encounter or simulation host.
 BossBrain still owns fight/phase/retry/victory; the guest owns decisions,
@@ -9367,7 +9367,7 @@ or `data/movers.generated.json`; fixed driver admission is unchanged.
 
 ### Per-round ranged cycles
 
-`engine/combat/Firearm.ts#RangedAction.Cycle` takes borrowed reserve data
+`engine/server/combat/Firearm.ts#RangedAction.Cycle` takes borrowed reserve data
 and a `RangedCycleRow`: magazine size, round/reload-entry durations, cycle
 delay/duration and normalized ejection/cocking phases. It owns the tube,
 chamber, hammer, reload progress and phase clocks; it accepts no hooks.
@@ -11020,7 +11020,7 @@ return detached, deeply frozen rows. Ownership checks reuse only these private
 rows. `admittedProductClientPlan(product)` reuses immutable admission.
 Raw sections still pass all schema and product checks.
 
-The compiled registry in `src/game/shardfile/clientPlan.ts` owns the order:
+The compiled registry in `src/game/client/shardfile/clientPlan.ts` owns the order:
 
 | Kind | Phase / rank | Lifetime | Required section |
 |---|---|---|---|
@@ -11546,7 +11546,7 @@ world-matrix writes keep their original view phase.
 - `game/looks/forestWeather`: Client weather observations read the actual native page and quest owners.
 - `game/looks/forestGround`: Client ground cover reads admitted geometry and placement rows.
 - `game/quest/nativeInputs`: Native quest commands and typed channels share the worker-owned input service.
-- `src/game/quest/nativeComposition`: Native quest composition joins declared spots, stages, flags and inventory owners.
+- `src/game/server/quest/nativeComposition`: Native quest composition joins declared spots, stages, flags and inventory owners.
 - `game/combat/roamingSession`: Client roaming encounter composition binds admitted combat rows to entered services.
 - `game/boss/roamingProjection`: Client boss projection binds declared fight rows to the actual native actor and damage owner.
 - `game/boss/socketRig`: Client attachment rows bind actual actor joints, native weak-point queries and specimen cards.
@@ -11555,9 +11555,9 @@ world-matrix writes keep their original view phase.
 - `game/shardfile/clientPopulationProjection`: Client population rows bind the entered animal manager to native actor projections.
 - `game/population/projection`: Client population projection reads admitted body, pose and effect identities from native owners.
 - `game/population/perchBody`: Perch body rows bind existing decision guests, numeric poses and root motion to actual actors.
-- `src/game/population/mixedRoster`: Native mixed roster rows own policy selection, reserved slots, return gates, poses and volley continuation.
+- `src/game/server/population/mixedRoster`: Native mixed roster rows own policy selection, reserved slots, return gates, poses and volley continuation.
 
-- `src/game/population/nativeBake`: Strict readers bind admitted actor and physics bake rows to native population owners.
+- `src/game/server/population/nativeBake`: Strict readers bind admitted actor and physics bake rows to native population owners.
 - `game/boss/arenaRoom`: One row-selected open/closed encounter lifecycle binds native boss, reward, input and saved owners. Open-arena decisions remain in the selected AS projection; capture, native effects and inline views retain their original slots.
 
 ### Developer hover boost (G540)

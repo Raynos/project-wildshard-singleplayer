@@ -19,7 +19,7 @@ Research:
 
 - The `skirmisher` brain (Driftwood's crab, `src/shards/driftwood-isle/generators/brains.ts:3`) circles and darts in;
   the Sentry is a skirmisher with a combo.
-- **AS queries today** (`src/format/scriptQueriesV2.ts`, `src/engine/script/queriesV2.ts`): the decision host reads
+- **AS queries today** (`src/format/scriptQueriesV2.ts`, `src/engine/server/script/queriesV2.ts`): the decision host reads
   declared `reads` (`src/format/decisionScripts.ts:30`), with no grade, attributes or "facing the player" read.
 - The parry dress is E0b's stage (25 % of fails when the defender "parries and faces you"); the defender's "parries"
   flag and facing are what the Sentry needs.

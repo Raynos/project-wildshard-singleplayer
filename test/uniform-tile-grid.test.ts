@@ -6,9 +6,9 @@ import { bakeAuthoredWorld } from '../src/sdk/bake/authoredWorld';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { completeL0Tiles } from '../src/sdk/bake/tileGrid';
 import { emptyShardfile } from '../src/sdk/author';
-import { clientRingCatalogue } from '../src/game/shardfile/tileContent';
-import { TileStreamer } from '../src/engine/world/tileStreamer';
-import { ResidencyAllocator } from '../src/game/grid/allocator';
+import { clientRingCatalogue } from '../src/game/client/shardfile/tileContent';
+import { TileStreamer } from '../src/engine/client/world/tileStreamer';
+import { ResidencyAllocator } from '../src/game/server/grid/allocator';
 
 test('scene emitter adds 64 metadata squares without changing any occupied payload or props row', () => {
   const scene = new Group(), geometry = new BoxGeometry(2, 2, 2), material = new MeshStandardMaterial(), box = new Mesh(geometry, material);

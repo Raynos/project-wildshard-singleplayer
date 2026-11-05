@@ -1,8 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Original admitted image bytes exercise native Blob URL transport.
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { sourceManifest } from '../src/game/plugin/context';
+import { Scope } from '../src/engine/shared/app/scope';
+import { sourceManifest } from '../src/game/server/plugin/context';
 import { emptyShardfile } from '../src/sdk/author';
 
 const original = Uint8Array.from(readFileSync('test/fixtures/world-source/image.png'));

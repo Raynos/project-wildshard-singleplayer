@@ -1,11 +1,11 @@
 // Test-only adapter for pre-row callers; production constructs NativeEliteRoster directly.
 import { isJsonData } from '@wildshard/format/json';
-import { ReturnProgram } from '../../src/game/population/returnProgram';
+import { ReturnProgram } from '../../src/game/shared/population/returnProgram';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { NativeElitePopulation } from '@wildshard/engine/ai/eliteLifecycle';
 import { NativeEliteRoster, nativeEliteBindings, type NativeEliteRosterRows, type NativeEliteRosterLoans, type NativeEliteBond } from '@wildshard/engine/ai/eliteRoster';
-import { EliteCore, type EliteCoreScript } from '../../src/game/eliteSystem';
+import { EliteCore, type EliteCoreScript } from '../../src/game/server/eliteSystem';
 
 /** Manager-owned elite pins and decision bindings; the manager retains its single body-step installer. */
 export type EliteBindings = NativeEliteRosterLoans['bindings'] & { readonly absent: Set<AnimalSim> };

@@ -1,8 +1,8 @@
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
-import {Scope} from '../src/engine/app/scope';
+import {Scope} from '../src/engine/shared/app/scope';
 import { expect, test } from 'vitest';
-import { ProjectedState, ReturnProgram } from '../src/game/population/returnProgram';
-import { Rng } from '../src/engine/core/rng';
+import { ProjectedState, ReturnProgram } from '../src/game/shared/population/returnProgram';
+import { Rng } from '../src/engine/shared/core/rng';
 import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 import * as fight from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 

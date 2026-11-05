@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
-import { createPortalRide } from '../src/game/shardfile/walkInPortalRide';
+import { createPortalRide } from '../src/game/client/shardfile/walkInPortalRide';
 import type { PortalLinkEntry } from '@wildshard/format/portalLinkAssets';
 import { portalEntryRows, portalPlanRows } from '../src/shards/nine-dragon-stack/generators/portalEntries';
 import portals from '../src/shards/nine-dragon-stack/data/portals.json' with { type: 'json' };
 import portalStages from '../src/shards/nine-dragon-stack/data/portalStages.json' with { type: 'json' };
-import { bindPortalRide as walkInRide, type PortalRider } from '../src/game/shardfile/portalRideBinding';
+import { bindPortalRide as walkInRide, type PortalRider } from '../src/game/client/shardfile/portalRideBinding';
 
 const plan = portalPlanRows();
 

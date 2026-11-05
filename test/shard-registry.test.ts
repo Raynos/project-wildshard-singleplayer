@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { installShards, shards } from '../src/game/shard/list';
-import { findShard } from '../src/game/shard/registry';
+import { installShards, shards } from '../src/game/client/shard/list';
+import { findShard } from '../src/game/client/shard/registry';
 import { installCatalogueFixture } from './fixtures/bootSetup';
 
 await installCatalogueFixture();

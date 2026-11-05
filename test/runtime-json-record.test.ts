@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { Scope } from '../src/engine/app/scope';
-import { app } from '../src/engine/app/runtime';
-import { bossesSave, elitesSave } from '../src/game/saves';
-import { bindRuntimeJsonRecord } from '../src/game/plugin/headless';
-import { bindAdventurePersistence } from '../src/game/quest/persistence';
+import { Scope } from '../src/engine/shared/app/scope';
+import { app } from '../src/engine/client/app/runtime';
+import { bossesSave, elitesSave } from '../src/game/shared/saves';
+import { bindRuntimeJsonRecord } from '../src/game/server/plugin/headless';
+import { bindAdventurePersistence } from '../src/game/server/quest/persistence';
 import rows from '../src/shards/pine-hollow/data/persistence.json' with { type: 'json' };
 import { PINE as source } from './fixtures/pine-program';
 

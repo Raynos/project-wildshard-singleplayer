@@ -25,13 +25,13 @@ it('runs the files named after a changed source first, then the cheapest, and le
 });
 
 it('always runs a changed test file, even one the import walk did not return', () => {
-  for (const path of ['test/new.test.ts','test/tooling/example.test.mjs','src/engine/boot/waits.test.ts','src/game/quest/core.test.ts','src/format/rows.test.ts']) {
+  for (const path of ['test/new.test.ts','test/tooling/example.test.mjs','src/engine/shared/boot/waits.test.ts','src/game/quest/core.test.ts','src/format/rows.test.ts']) {
     expect(capRelated([], [path, 'src/a.ts'], durations, 0, 1)).toEqual({ run: [path], left: [] });
   }
 });
 
 it('does not claim changed MJS files outside the runner MJS include', () => {
-  for (const path of ['src/engine/boot/waits.test.mjs', 'admin/test/only.test.mjs', 'drafts/test/only.test.mjs']) {
+  for (const path of ['src/engine/shared/boot/waits.test.ts', 'admin/test/only.test.mjs', 'drafts/test/only.test.mjs']) {
     expect(capRelated([], [path], durations, 0, 1)).toEqual({run: [], left: []});
   }
 });

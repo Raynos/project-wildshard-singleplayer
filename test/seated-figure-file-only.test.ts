@@ -2,10 +2,10 @@ import {expect,test,vi} from 'vitest';
 import * as v from 'valibot';
 import {zlibSync} from 'fflate';
 import {MountedSpecimenSeatSchema} from '@wildshard/format/mountedSpecimenRows';
-import {prepareSeatedFigure,seatedFigureView} from '../src/game/riding/seatedFigure';
+import {prepareSeatedFigure,seatedFigureView} from '../src/game/client/riding/seatedFigure';
 import {MOUNTED_FIGURE} from './fixtures/nalati-poi-paint-original';
 import {SHAPE_BYTES} from './fixtures/nalatiShapes';
-import * as geometry from '../src/game/plugin/geometry';
+import * as geometry from '../src/game/client/plugin/geometry';
 import { installWorldFixture } from './fixtures/worldSetup';
 
 await installWorldFixture();

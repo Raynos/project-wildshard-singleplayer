@@ -1,10 +1,10 @@
 import {expect,test,vi} from 'vitest';
-import {Scope} from '../src/engine/app/scope';
-import {Rng} from '../src/engine/core/rng';
+import {Scope} from '../src/engine/shared/app/scope';
+import {Rng} from '../src/engine/shared/core/rng';
 import {V2_ACTION_OPS,type V2ActionBinding} from '@wildshard/format/scriptActionsV2';
 import {parseReturnProjectionV2} from '@wildshard/format/returnProjectionV2';
-import {ProjectedState,ReturnProgram} from '../src/game/population/returnProgram';
-import {prepareV2WorldActions,type V2WorldActionLoan} from '../src/game/shardfile/worldActionsV2';
+import {ProjectedState,ReturnProgram} from '../src/game/shared/population/returnProgram';
+import {prepareV2WorldActions,type V2WorldActionLoan} from '../src/game/server/shardfile/worldActionsV2';
 import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 
 function binding(kind:'cell-field'|'mount'):ReadonlyMap<number,V2ActionBinding>{

@@ -200,7 +200,7 @@ under-thought, so these may be revisited)
 
 **Platform**
 21. **Every shard gets a shard-complete card**, and a shardfile validator requires it. The "Killed by…" card and
-    respawn at the last discovered place are already generic (`engine/ui/HurtArc.ts`, `game/LastPlace.ts`).
+    respawn at the last discovered place are already generic (`engine/client/ui/HurtArc.ts`, `game/LastPlace.ts`).
 
 **Content out:** water (swim, dive, boats, canoe), the creature pen, taming, mounts as a feature, herds, the
 contracts board's rotating hunts, war fan, whip, mounted combat, lightning, hover-only bridges, kokpar, the dam

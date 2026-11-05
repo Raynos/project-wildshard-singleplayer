@@ -8,12 +8,12 @@ import { forestDefaultTreeSpecs } from '@wildshard/sdk/bake/forest';
  * leaves the trunk and sags to a ragged rim of branch tips, then a dark underside tucked back to the trunk — so
  * the crown reads as the painted bands of the mockups (art/nalati-grasslands/round-1/1-art-style/
  * style-B-painterly.png): light tier tops, deep shade under each one. No cards, no alpha, no textures: vertex colour
- * on the shared painterly material (`src/engine/world/painterly.ts`: cel bands, painted shade, rim light, wind sway).
+ * on the shared painterly material (`src/engine/client/world/painterly.ts`: cel bands, painted shade, rim light, wind sway).
  * Heights 10.5–18.5 m (× the forest's 0.8–1.2 scale): the design's 12–20 m forced-perspective spruce
  * (docs/design/nalati/geography-and-map.md §2 B) on a 40 m escarpment.
  *
  * It is a `TreeFactory` — the engine `Forest` draws it (placement, LOD bands, culling, collision, canopy map):
- *   ShardManifest.trees.factory = 'spruce'   → `TREE_FACTORIES.spruce` in src/engine/core/bootstrap.ts builds it
+ *   ShardManifest.trees.factory = 'spruce'   → `TREE_FACTORIES.spruce` in src/engine/client/core/bootstrap.ts builds it
  *   ShardManifest.forest.mask = a keep-probability function (Nalati's loneSpruceMask / edgeSpruceMask) plants it in the gullies only
  *
  * LODs per variant (tris for the 15 m variant; `SpruceFactory.lodTris` has all four):

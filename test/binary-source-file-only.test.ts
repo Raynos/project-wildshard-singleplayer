@@ -1,5 +1,5 @@
 import {expect,test,vi} from 'vitest';
-import {binarySourceBytes,prepareBinarySources} from '../src/game/models/binarySource';
+import {binarySourceBytes,prepareBinarySources} from '../src/game/client/models/binarySource';
 
 const inline={data:'eJxj+M/SAAADiQGE'};
 test('a later inline binary request refuses before product capabilities are read',async()=>{

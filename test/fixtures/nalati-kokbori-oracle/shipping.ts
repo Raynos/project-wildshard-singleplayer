@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import type { AnimalSim as Animal } from '../../../src/engine/entities/AnimalSim';
-import type { PouncerContext as ThinkCtx, HowlerPorts } from '../../../src/engine/ai/stalker';
-import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
+import type { AnimalSim as Animal } from '../../../src/engine/server/entities/AnimalSim';
+import type { PouncerContext as ThinkCtx, HowlerPorts } from '../../../src/engine/server/ai/stalker';
+import type { AnimalSim } from '../../../src/engine/server/entities/AnimalSim';
 type KokboriPorts<A extends AnimalSim> = Omit<HowlerPorts<A>, 'regrouped' | 'interrupted' | 'closed' | 'howl'> & { feed: (text: string) => void; sound: (name: 'wolf_howl', at: THREE.Vector3) => void };
 class Phase {
   protected p2 = false;

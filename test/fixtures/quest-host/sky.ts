@@ -1,6 +1,6 @@
-import { installDeclaredQuestHost } from '../../../src/game/plugin/simulation';
-import type { DeclaredQuests } from '../../../src/game/quest/declared';
-import type { SimHost } from '../../../src/engine/sim';
+import { installDeclaredQuestHost } from '../../../src/game/server/plugin/simulation';
+import type { DeclaredQuests } from '../../../src/game/server/quest/declared';
+import type { SimHost } from '../../../src/engine/server/sim';
 import type { SkyQuestPorts } from '../quest-oracle/sky-bridge';
 import { skyProductRows } from '../../../src/shards/far-reach/generators/product';
 import { originalSkyNavigation } from '../sky-navigation';

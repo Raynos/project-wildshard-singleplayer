@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
-import { LivingBuildings } from '../src/game/shardfile/livingBuildings';
-import { SceneHandles } from '../src/game/shardfile/sceneHandles';
+import { LivingBuildings } from '../src/game/client/shardfile/livingBuildings';
+import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import { swordEvents } from '@wildshard/game/weapons/Sword';
 import { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
@@ -10,10 +10,10 @@ import { AudioSurfaceMap } from '@wildshard/engine/audio/surface';
 import { setTerrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { App } from '@wildshard/engine/app/app';
 import { createLevelInstallation } from '@wildshard/engine/level/installation';
-import { shardContext } from '../src/game/plugin/context';
-import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { installRuntimeAudioEntry,installRuntimeGameplayAudio,type RuntimeGameplayAudioEnvironment } from '../src/game/plugin/audio';
+import { shardContext } from '../src/game/server/plugin/context';
+import { RetainedRuntimeHooks } from '../src/game/client/shard/retainedHooks';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
+import { installRuntimeAudioEntry,installRuntimeGameplayAudio,type RuntimeGameplayAudioEnvironment } from '../src/game/client/plugin/audio';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { afterEach,beforeEach,expect,it,vi } from 'vitest';

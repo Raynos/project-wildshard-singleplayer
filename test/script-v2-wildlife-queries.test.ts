@@ -1,11 +1,11 @@
 import { expect,test } from 'vitest';
-import { createSimHost } from '../src/engine/sim';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { lineOfSight } from '../src/engine/physics/query';
-import { groups } from '../src/engine/physics/groups';
-import { resolvePhysicsQueriesV2,type V2QueryWorld } from '../src/engine/physics/queryBatchV2';
-import { QueryRingV2,answerV2QueryBatch } from '../src/engine/script/queriesV2';
-import { SimBatchV2 } from '../src/engine/script/simBatchV2';
+import { createSimHost } from '../src/engine/server/sim';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { lineOfSight } from '../src/engine/shared/physics/query';
+import { groups } from '../src/engine/shared/physics/groups';
+import { resolvePhysicsQueriesV2,type V2QueryWorld } from '../src/engine/shared/physics/queryBatchV2';
+import { QueryRingV2,answerV2QueryBatch } from '../src/engine/server/script/queriesV2';
+import { SimBatchV2 } from '../src/engine/server/script/simBatchV2';
 import { compileSimV2 } from '../src/sdk/test/compileSimV2';
 import { layoutV2 } from '@wildshard/format/scriptWireV2';
 import { prepareV2QueryReplies,validateV2QueryRequest,type V2QueryBinding,type V2QueryOperation,type V2QueryRequest } from '@wildshard/format/scriptQueriesV2';

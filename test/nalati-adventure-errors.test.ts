@@ -1,8 +1,8 @@
 import { expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { app } from '../src/engine/app/runtime';
-import { bindAdventurePersistence } from '../src/game/quest/persistence';
-import { readQuestObservation } from '../src/game/quest/chapterBindings';
+import { Scope } from '../src/engine/shared/app/scope';
+import { app } from '../src/engine/client/app/runtime';
+import { bindAdventurePersistence } from '../src/game/server/quest/persistence';
+import { readQuestObservation } from '../src/game/server/quest/chapterBindings';
 import source from './fixtures/nalati-product-source';
 import { nalatiPersistenceRows } from '../src/shards/nalati-grasslands/generators/persistence';
 

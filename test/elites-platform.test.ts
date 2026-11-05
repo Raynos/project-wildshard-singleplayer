@@ -2,9 +2,9 @@ import { flatPopulationEnvironment } from './fixtures/population-environment';
 // oxlint-disable-next-line import/no-nodejs-modules -- Use the real native body/physics fixture without a renderer.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { createSimHost } from '../src/engine/sim';
-import { ScriptStrikes } from '../src/game/population/scriptStrikes';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost } from '../src/engine/server/sim';
+import { ScriptStrikes } from '../src/game/server/population/scriptStrikes';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { leadCommands } from '@wildshard/engine/sim/leadPlayer';
 
@@ -60,11 +60,11 @@ test('a made-up reed guardian drives different species, slots and laws through t
   const { compileDecisionScripts } = await import('../src/sdk/buildDecisionScripts');
   const { parseSpawnScript, spawnScriptRegistries } = await import('@wildshard/format/spawnScripts');
   const { readSpeciesPrograms } = await import('@wildshard/format/speciesPrograms');
-  const { installPopulationRoster } = await import('../src/game/population/roster');
-  const { installNativeEliteFeature } = await import('../src/game/quest/eliteFeature');
-  const { DayCycle } = await import('../src/engine/world/dayCycle');
+  const { installPopulationRoster } = await import('../src/game/server/population/roster');
+  const { installNativeEliteFeature } = await import('../src/game/server/quest/eliteFeature');
+  const { DayCycle } = await import('../src/engine/shared/world/dayCycle');
   // Pine's day: its keyed-sky row through the game's clock spec (as its headless assembly builds it)
-  const [{ keyedSkyDaySpec }, { default: PINE_SKY }] = await Promise.all([import('../src/game/looks/keyedSkyClock'), import('../src/shards/pine-hollow/data/sky.json', { with: { type: 'json' } })]);
+  const [{ keyedSkyDaySpec }, { default: PINE_SKY }] = await Promise.all([import('../src/game/shared/looks/keyedSkyClock'), import('../src/shards/pine-hollow/data/sky.json', { with: { type: 'json' } })]);
   const PINE_DAY = keyedSkyDaySpec(PINE_SKY), PINE_PHASES = PINE_SKY.phases;
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const host = createSimHost({ ...SIM_LEVEL, id: 'reed-marsh', entities: [] }, { rapier });
@@ -122,7 +122,7 @@ test('Nalati captain charges on the 10 Hz guest and leashing cancels its attack'
   const { parseSpawnScript, spawnScriptRegistries } = await import('@wildshard/format/spawnScripts');
   const { decisionBindingMap } = await import('@wildshard/format/decisionBindings');
   const { actorDecisionRows } = await import('@wildshard/format/decisionScripts');
-  const { DecisionHost } = await import('../src/engine/script/decision');
+  const { DecisionHost } = await import('../src/engine/server/script/decision');
   const rows = parseSpawnScript(charge), registry = spawnScriptRegistries(rows);
   const built = await compileDecisionScripts([rows.script], registry, new Map([[rows.script.source,
     readFileSync(`src/shards/nalati-grasslands/${rows.script.source}`, 'utf8')]]), { asLineCeiling: 2837 });

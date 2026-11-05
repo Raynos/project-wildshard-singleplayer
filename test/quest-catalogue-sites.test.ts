@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
-import { floorAtRects } from '../src/engine/physics/box';
+import { floorAtRects } from '../src/engine/shared/physics/box';
 import { parseItems } from '@wildshard/format/items';
 import { parseQuestData } from '@wildshard/format/quests';
-import { installQuestCatalogue } from '../src/game/shardfile/clientCatalogue';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { installQuestCatalogue } from '../src/game/client/shardfile/clientCatalogue';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { PINE as pine } from './fixtures/pine-program';
 import { DRIFTWOOD as driftwood } from './fixtures/driftwood-program';
 import { PINE_FEATS, PINE_BAG_ITEMS } from '../src/shards/pine-hollow/generators/questInventory';

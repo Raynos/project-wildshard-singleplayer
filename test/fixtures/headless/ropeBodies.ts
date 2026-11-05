@@ -1,9 +1,9 @@
-import {rideable} from '../../../src/engine/physics/CharacterMotor';
-import {tagOf} from '../../../src/engine/physics/surface';
-import {isSimHostRestoring} from '../../../src/engine/sim/snapshot';
-import {RopeChain} from '../../../src/engine/physics/ropeChain';
-import type {SimHost} from '../../../src/engine/sim';
-import type {ShardProduct} from '../../../src/game/shardfile/shardProduct';
+import {rideable} from '../../../src/engine/shared/physics/CharacterMotor';
+import {tagOf} from '../../../src/engine/shared/physics/surface';
+import {isSimHostRestoring} from '../../../src/engine/shared/sim/snapshot';
+import {RopeChain} from '../../../src/engine/shared/physics/ropeChain';
+import type {SimHost} from '../../../src/engine/server/sim';
+import type {ShardProduct} from '../../../src/game/shared/shardfile/shardProduct';
 import type {WorldAssemblyStage} from '@wildshard/format/worldAssembly';
 
 const restoredWalkBodies=new WeakSet<SimHost>();

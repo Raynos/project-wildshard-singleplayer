@@ -3,9 +3,9 @@ import {expect,test} from 'vitest';
 import assert from 'node:assert/strict';
 import type {HeadlessTapeReport} from '../src/sdk/headlessTape';
 import {packChapterReport,unpackChapterReport} from './fixtures/headless/chapterReportCodec';
-import {Scope} from '../src/engine/app/scope';
+import {Scope} from '../src/engine/shared/app/scope';
 import {packChapterTaming,unpackChapterTaming,chapterObservationWire,installPackedChapterTaming,PACKED_CHAPTER_TAMING} from './fixtures/headless/chapterObservation';
-import type {SimHost,SimStateAdapter,SimValue} from '../src/engine/sim';
+import type {SimHost,SimStateAdapter,SimValue} from '../src/engine/server/sim';
 // oxlint-disable-next-line import/no-nodejs-modules -- Construct an actual bounded decompression refusal, not a metadata-only substitute.
 import {deflateSync,brotliCompressSync} from 'node:zlib';
 

@@ -2,13 +2,13 @@
 import { readFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { afterAll, expect, test, vi } from 'vitest';
 import * as v from 'valibot';
-import { Scope } from '../src/engine/app/scope';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { createSimHost } from '../src/engine/sim';
-import { HerdShelter } from '../src/game/population/shelter';
+import { Scope } from '../src/engine/shared/app/scope';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost } from '../src/engine/server/sim';
+import { HerdShelter } from '../src/game/server/population/shelter';
 import { parsePopulationShelter } from '@wildshard/format/herdShelter';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { ReturnModulesSchema } from '@wildshard/format/scriptContract';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';

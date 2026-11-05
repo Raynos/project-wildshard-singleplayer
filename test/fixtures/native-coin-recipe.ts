@@ -1,9 +1,9 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the page catalogue's exact named public bake.
 import { readFile } from 'node:fs/promises';
-import pickupRows from '../../src/game/data/pickupCatalogue.json' with { type: 'json' };
-import { readPickupCatalogue } from '../../src/game/models/pickupRows';
-import { prepareBinarySources, binarySourceBytes } from '../../src/game/models/binarySource';
-import { bakedGeometryBytes, readBakedGeometry } from '../../src/game/plugin/bakedGeometry';
+import pickupRows from '../../src/game/client/data/pickupCatalogue.json' with { type: 'json' };
+import { readPickupCatalogue } from '../../src/game/client/models/pickupRows';
+import { prepareBinarySources, binarySourceBytes } from '../../src/game/client/models/binarySource';
+import { bakedGeometryBytes, readBakedGeometry } from '../../src/game/client/plugin/bakedGeometry';
 import type { BufferGeometry } from 'three';
 
 /** The page's admitted shared coin bake, decoded freshly for each original seed. */

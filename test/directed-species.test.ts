@@ -1,11 +1,11 @@
-import {Scope} from '../src/engine/app/scope';
-import {app} from '../src/engine/app/runtime';
+import {Scope} from '../src/engine/shared/app/scope';
+import {app} from '../src/engine/client/app/runtime';
 import {lendNalatiAdmission,admission} from './fixtures/nalati-admission-loan';
 import { afterEach, expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import type { Animal } from '../src/engine/entities/AnimalView';
-import type { ThinkCtx } from '../src/engine/entities/species/registry';
-import { DirectedSpecies } from '../src/game/population/directedSpecies';
+import type { Animal } from '../src/engine/client/entities/AnimalView';
+import type { ThinkCtx } from '../src/engine/shared/entities/species/registry';
+import { DirectedSpecies } from '../src/game/server/population/directedSpecies';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { riderGeometry } from '../src/shards/nalati-grasslands/generators/ghostFigure';
 import { SHAPES } from './fixtures/nalatiShapes';

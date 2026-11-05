@@ -1,8 +1,8 @@
 import { expect, it } from 'vitest';
 import { Group, Mesh, BoxGeometry, MeshBasicMaterial, type Object3D } from 'three';
-import { createWorldScene } from '../src/game/plugin/scene';
-import { worldPieces, type WorldPieceRow } from '../src/game/shardfile/bakedKinds';
-import type { Piece } from '../src/engine/world/registry';
+import { createWorldScene } from '../src/game/client/plugin/scene';
+import { worldPieces, type WorldPieceRow } from '../src/game/client/shardfile/bakedKinds';
+import type { Piece } from '../src/engine/client/world/registry';
 import { skyGroundValues } from '../src/shards/far-reach/generators/groundScene';
 import { skyPhysicsPlacements } from '../src/shards/far-reach/generators/physicsPlacements';
 import { hashImmutableBytes } from '../src/sdk/immutable';

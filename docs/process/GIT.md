@@ -154,7 +154,7 @@ rewrite still needs Jake's approval.
   generated paths, ≤ 10 MB of new binary per push and a 100 MB a week warning outside the runtime roots. Existing debt is
   grandfathered until it changes. `.gitattributes` marks binaries `-delta`.
 - **WHAT'S NEW is at most 24 h stale** (E482): pre-push runs `scripts/whats-new-fresh.mjs <sha>` on every push to
-  main and refuses when `src/game/whatsNew.json`'s `updated` is missing, unparseable, over 1 h ahead or over 24 h old;
+  main and refuses when `src/game/client/whatsNew.json`'s `updated` is missing, unparseable, over 1 h ahead or over 24 h old;
   rewrite its 3–5 lines with what changed in the playable build, set `date` / `updated` to now, commit and push again.
 - **Full-gate reference (G359/G363; local execution superseded by G568 above).** The retired local full gate
   builds the exact pushed commit in the build mirror's `gate` slot (Vercel's tree) and runs, in order:

@@ -2,7 +2,7 @@
 import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
 import { Matrix4, type BufferGeometry } from 'three';
-import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
+import { createOwnedGeometry } from '../src/engine/client/models/ownedGeometry';
 import { placedGeometryCollider } from './fixtures/placedGeometryCollider';
 import { bakeCragSceneSources, caveShellRows, pineCragScenes } from '../src/shards/pine-hollow/generators/bake-crag-scenes.mjs';
 import * as layout from '../src/shards/pine-hollow/generators/layout';

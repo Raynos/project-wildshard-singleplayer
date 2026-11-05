@@ -2,11 +2,11 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { createSimHost, type SimHost } from '../src/engine/sim';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
-import { MoverScriptDriver, type MoverRuntime } from '../src/game/plugin/mover';
-import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
+import { createSimHost, type SimHost } from '../src/engine/server/sim';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { snapshotSimHost, restoreSimHost } from '../src/engine/shared/sim/snapshot';
+import { MoverScriptDriver, type MoverRuntime } from '../src/game/server/plugin/mover';
+import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
 import { createNativeProofResident, prepareProductPlan } from './fixtures/headless-native';

@@ -1,14 +1,14 @@
 import { installCatalogueFixture } from './fixtures/bootSetup';
 import { afterEach, expect, test, vi } from 'vitest';
-import { SaveStore } from '../src/engine/saves/store';
-import { installSaveEnvironment, saveEnvironment } from '../src/engine/saves/environment';
-import { markReload, type LastEnd } from '../src/engine/boot/lastEnd';
-import { consumeTitleArrival, pendingTitleArrival, setTitleArrival } from '../src/engine/boot/titleArrival';
-import { GridAssembly, type GridCell } from '../src/game/grid/assembly';
-import { gridRecovery, initialGridReload, plannedGridReload } from '../src/game/grid/recovery';
-import { pageGridIntents } from '../src/game/grid/intent';
-import { bootPageMode, clearGridRecovery, consumeGridRecovery, gridRecoveryLoop } from '../src/game/grid/pageEntry';
-import { travelService, travelSlot } from '../src/game/travel/travel';
+import { SaveStore } from '../src/engine/shared/saves/store';
+import { installSaveEnvironment, saveEnvironment } from '../src/engine/shared/saves/environment';
+import { markReload, type LastEnd } from '../src/engine/client/boot/lastEnd';
+import { consumeTitleArrival, pendingTitleArrival, setTitleArrival } from '../src/engine/client/boot/titleArrival';
+import { GridAssembly, type GridCell } from '../src/game/server/grid/assembly';
+import { gridRecovery, initialGridReload, plannedGridReload } from '../src/game/server/grid/recovery';
+import { pageGridIntents } from '../src/game/server/grid/intent';
+import { bootPageMode, clearGridRecovery, consumeGridRecovery, gridRecoveryLoop } from '../src/game/client/grid/pageEntry';
+import { travelService, travelSlot } from '../src/game/client/travel/travel';
 
 await installCatalogueFixture();
 

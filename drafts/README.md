@@ -44,7 +44,7 @@ a tap takes it. A deploy is a new worker: it waits for that tap, never reloading
    page's files); publish `<dir>/index.html` with the Artifact tool, `root` = the dir, every `img/` file in `files`,
    to the draft's existing page (Thin Ice: https://claude.ai/artifact/1v5EE7bt75m3dGFAkVh7P1).
 
-The game's COMING SOON card (W9) comes from the same index: `atlas.ts` writes `src/game/draftTitles.ts`, which ships
+The game's COMING SOON card (W9) comes from the same index: `atlas.ts` writes `src/game/client/draftTitles.ts`, which ships
 with the next game deploy. Commit it with the rest.
 
 The Blob token is read from `BLOB_READ_WRITE_TOKEN` or `~/.config/wildshard-drafts/blob.env` (not in git). A new

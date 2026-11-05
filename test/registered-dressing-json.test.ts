@@ -4,7 +4,7 @@ import {registeredJsonContract,validateRegisteredJson} from '@wildshard/format/r
 import {registeredJsonSchema,namedJsonSchema} from '../src/sdk/formatJsonSchema';
 import {nameBlob} from '../src/sdk/blobs';
 import {encodeCanonicalJson,hashImmutableBytes} from '../src/sdk/immutable';
-import {createShardProduct} from '../src/game/shardfile/shardProduct';
+import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
 import {fixtureJsonCheck} from './fixtures/productFile';
 

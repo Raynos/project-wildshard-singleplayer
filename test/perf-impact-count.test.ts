@@ -1,10 +1,10 @@
 // @vitest-environment happy-dom
 import {expect,test,vi} from 'vitest';
-import type {Game} from '../src/engine/core/Game';
+import type {Game} from '../src/engine/client/core/Game';
 import type {WebGLInfo} from 'three';
 import {FakeGame,legacyDouble} from '../src/engine/test/FakeGame';
-import {Impacts} from '../src/engine/fx/Impacts';
-import {PerfHud} from '../src/engine/ui/perfHud';
+import {Impacts} from '../src/engine/client/fx/Impacts';
+import {PerfHud} from '../src/engine/client/ui/perfHud';
 
 test('an open perf HUD reads zero without installing an impact system',()=>{
   const fake=new FakeGame();

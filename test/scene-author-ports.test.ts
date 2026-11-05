@@ -1,12 +1,12 @@
 import { expectTypeOf, test } from 'vitest';
 import type { modelSceneSourceFile, bakedSceneSourceFile } from '../src/sdk/worldScenes';
 import type { readManifestSource } from '../src/sdk/projectManifest';
-import type { RigLibraryRows, ModelSpecimenRow, ModelLibraryRows } from '../src/game/plugin/geometry';
-import type { BakedColliderInput, WorldPieceRow } from '../src/game/shardfile/bakedKinds';
-import type { ChunkHorizon } from '../src/game/shard/manifest';
+import type { RigLibraryRows, ModelSpecimenRow, ModelLibraryRows } from '../src/game/client/plugin/geometry';
+import type { BakedColliderInput, WorldPieceRow } from '../src/game/client/shardfile/bakedKinds';
+import type { ChunkHorizon } from '../src/game/server/shard/manifest';
 import type { skyRigLibrary } from '../src/shards/far-reach/generators/rigLibrary';
 import type { BakedPiece } from '../src/shards/far-reach/generators/fileInventory';
-import type { UniformRows } from '../src/game/plugin/shaderFamily';
+import type { UniformRows } from '../src/game/client/plugin/shaderFamily';
 import type { DUNE_MODELS, DuneMeshName, DuneHdName } from '../src/shards/sunscar-dunes/generators/rows/files';
 import type { CardRow } from '../src/shards/sunscar-dunes/generators/rows/fireCards';
 

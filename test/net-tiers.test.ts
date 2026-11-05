@@ -1,13 +1,13 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Real Rapier bytes.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
-import { NetClient } from '../src/engine/net/client';
-import { NetRoom } from '../src/engine/net/room';
-import { SimNetWorld } from '../src/engine/net/simWorld';
-import { framesBetween, rowDue } from '../src/engine/net/tiers';
-import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
-import { createSimHost, type SimHost } from '../src/engine/sim';
-import { leadPlayer } from '../src/engine/sim/leadPlayer';
+import { NetClient } from '../src/engine/client/net/client';
+import { NetRoom } from '../src/engine/server/net/room';
+import { SimNetWorld } from '../src/engine/server/net/simWorld';
+import { framesBetween, rowDue } from '../src/engine/server/net/tiers';
+import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost, type SimHost } from '../src/engine/server/sim';
+import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
 import { ConditionedTransport, directLoopback } from '../src/engine/test/netLoopback';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 

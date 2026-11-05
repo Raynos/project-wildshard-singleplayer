@@ -2,7 +2,7 @@ import { nalatiStrikeRows, nalatiGoldenKingRows, nalatiKurganLayout, nalatiGolde
 import pose from './fixtures/nalati-goldenKingPose-original.json' with { type: 'json' };
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { ArenaFightPageSchema } from '../src/game/boss/arenaRoomFight';
+import { ArenaFightPageSchema } from '../src/game/server/boss/arenaRoomFight';
 import { ArenaBossProfileSchema } from '@wildshard/format/bossProfiles';
 import layout from './fixtures/nalati-kurganLayout-original.json' with { type: 'json' };
 import king from './fixtures/nalati-goldenKing-original.json' with { type: 'json' };

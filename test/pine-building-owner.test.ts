@@ -1,14 +1,14 @@
 import { expect, test } from 'vitest';
 import { type BufferGeometry, Group, Material, Mesh, MeshBasicMaterial, MeshStandardMaterial, type Object3D, Vector3 } from 'three';
-import { LivingBuildings } from '../src/game/shardfile/livingBuildings';
-import { SceneHandles } from '../src/game/shardfile/sceneHandles';
+import { LivingBuildings } from '../src/game/client/shardfile/livingBuildings';
+import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import { CABIN_LIFE } from '../src/shards/pine-hollow/generators/cabinLook';
 import { CabinSceneRecorder } from '../src/shards/pine-hollow/generators/cabinScenes';
 import { cabinSceneSources } from '../src/shards/pine-hollow/generators/cabinSceneSources.mjs';
 import { PINE_SOURCES } from './fixtures/pine-sources';
 import { installPortableMath } from '../src/commons/bake/portableMath';
-import { hydrateWorldSceneWeld } from '../src/game/shardfile/worldSceneWeld';
-import { Scope } from '../src/engine/app/scope';
+import { hydrateWorldSceneWeld } from '../src/game/client/shardfile/worldSceneWeld';
+import { Scope } from '../src/engine/shared/app/scope';
 import plumbing from '../src/shards/pine-hollow/data/plumbing.json' with { type: 'json' };
 import { parsePlumbing } from '@wildshard/format/plumbing';
 

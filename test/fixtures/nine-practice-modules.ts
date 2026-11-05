@@ -1,5 +1,5 @@
-import type { Scope } from '../../src/engine/app/scope';
-import { ReturnProgram } from '../../src/game/population/returnProgram';
+import type { Scope } from '../../src/engine/shared/app/scope';
+import { ReturnProgram } from '../../src/game/shared/population/returnProgram';
 import { ninePracticeBytes, ninePracticeRows } from './nine-practice-product';
 
 const assets = new Map([[ninePracticeRows.script.module.slice('blobs/wasm/'.length, -'.wasm'.length), ninePracticeBytes]]);

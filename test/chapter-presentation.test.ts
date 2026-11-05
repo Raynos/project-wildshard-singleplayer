@@ -1,5 +1,5 @@
 import {expect,test} from 'vitest';
-import {Scope} from '../src/engine/app/scope';
+import {Scope} from '../src/engine/shared/app/scope';
 import type {HeadlessCommand,HeadlessEffect} from '../src/sdk/tickProtocol';
 import {createNalatiChapterPresentation,nalatiChapterPresentationOf} from './fixtures/nalati-chapter-presentation';
 

@@ -1,6 +1,6 @@
 import {afterEach, expect, test, vi} from 'vitest';
-import {saves} from '../src/engine/saves/runtime';
-import {startGridPrefetch, gridPrefetchStatus} from '../src/game/grid/prefetch';
+import {saves} from '../src/engine/shared/saves/runtime';
+import {startGridPrefetch, gridPrefetchStatus} from '../src/game/client/grid/prefetch';
 
 afterEach(() => {vi.restoreAllMocks(); vi.unstubAllGlobals();});
 

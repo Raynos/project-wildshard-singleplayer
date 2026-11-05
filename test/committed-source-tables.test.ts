@@ -86,7 +86,7 @@ test('post-publication checking retains committed freshness and proves the live 
     }
     put('scripts/source-generators.mjs', `import {readFileSync} from 'node:fs';import {resolve} from 'node:path';
 import {bootPublicationTableSources} from './boot-publication.mjs';
-export const SOURCE_GENERATORS=[{id:'fixture',outputs:['src/game/boot/bytes.generated.ts','src/game/boot/versions.generated.ts','src/game/boot/packs.generated.ts','src/table.ts'],inputs:['scripts/boot-publication.generated.json','src/input.json'],committed:true,
+export const SOURCE_GENERATORS=[{id:'fixture',outputs:['src/game/client/boot/bytes.generated.ts','src/game/client/boot/versions.generated.ts','src/game/client/boot/packs.generated.ts','src/table.ts'],inputs:['scripts/boot-publication.generated.json','src/input.json'],committed:true,
 generate:async root=>({...bootPublicationTableSources(root),'src/table.ts':'export const value='+JSON.parse(readFileSync(resolve(root,'src/input.json'),'utf8')).value+';\\n'})}];
 export function selectSourceGenerators(){return SOURCE_GENERATORS;}`);
     put('src/input.json', '{"value":1}'); put('src/table.ts', 'export const value=1;\n'); publish('one');
@@ -95,7 +95,7 @@ export function selectSourceGenerators(){return SOURCE_GENERATORS;}`);
     publish('four');
     expect(run(false).status).toBe(1);
     const fresh = run(); expect(fresh.status, fresh.stdout + fresh.stderr).toBe(0);
-    put('src/game/boot/bytes.generated.ts', 'poisoned generated output');
+    put('src/game/client/boot/bytes.generated.ts', 'poisoned generated output');
     const poisoned = run(); expect(poisoned.status).toBe(1); expect(poisoned.stderr).toContain('Committed source output differs');
     publish('four'); put('public/assets/raw.bin', 'fake');
     const wrongBytes = run(); expect(wrongBytes.status).toBe(1); expect(wrongBytes.stderr).toContain('Publication content version differs');

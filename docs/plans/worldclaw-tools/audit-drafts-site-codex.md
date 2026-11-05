@@ -22,7 +22,7 @@ Done-when audit, applying J61/J67 and Jake’s explicit deferrals:
 
 | Item | Result | Evidence |
 |---|---|---|
-| 1 — Live from P0 | **Partly** | Thin Ice card/pages exist (`src/game/draftTitles.ts:14`; E387); new art-free P0 fails, finding 1. |
+| 1 — Live from P0 | **Partly** | Thin Ice card/pages exist (`src/game/client/draftTitles.ts:14`; E387); new art-free P0 fails, finding 1. |
 | 2 — Complete front history/artifact | **Partly** | Rebuild matches all 226 committed items; answers are selective manual copies, provenance/comparison/artifact gaps remain. |
 | 3 — Public spoiler protection | **Partly** | Current game card uses approved key art (`draftTitles.ts:21`); classification/output guard gaps, finding 13. Draft-page secrecy was superseded by J67. |
 | 4 — Map Lab agrees with build | **Partly** | Baseline reproduces 86.7% walkable and 35.8% close; movement does not regenerate terrain. Physical iPhone evidence absent. |
@@ -45,7 +45,7 @@ W-row audit:
 | W6 | **Partly** | Layers, relocation metrics and walk exist; A regeneration/C checks/phone FPS proof incomplete, findings 6–7. |
 | W7 | **Partly** | Three explanatory cards; **0 playable pages, 0 Simulator peaks**, finding 5. |
 | W8 | **Partly** | Run stage/waiting/next and limited lineage (`pages.ts:59,114`); no rows-done/total, last build, judge decisions, clips or comparison slider. |
-| W9 | **Partly** | Thin Ice card opens the drafts site (`src/game/titleDeck.ts:223`); generic day-zero creation fails. |
+| W9 | **Partly** | Thin Ice card opens the drafts site (`src/game/client/titleDeck.ts:223`); generic day-zero creation fails. |
 | W10 | **Not met; deferred J57** | Composition row todo (`WORLDCLAW-TOOLS.md:367`). |
 | W11 | **Not met; deferred J57** | Built Coverage row todo (`:368`). |
 | W12 | **Not met; deferred J57** | Place checkpoint row todo (`:369`). |

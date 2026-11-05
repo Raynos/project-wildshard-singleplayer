@@ -39,7 +39,7 @@ Read-only on `src/`; every claim cites file:line at `3580db5c`.
 7. **Creature attacks are 24 hand-rolled `startAttack` + `attackPhase >= x && !hit && d <= R` blocks** (crab.ts:266,
    sailor.ts:340, monkey.ts:296, captain.ts:279, balbal.ts:402, nalati/elites.ts:238–646, kurganBoss.ts:257–264 …).
    `LaneCharge` (ctx.ts:79, 17 uses) and `AttackTokens` (fightRules.ts:18) are the seeds of the engine's strike spec
-   and aggression director; `Boss` (game/Boss.ts:136) and `Elites` (game/Elite.ts:126) are already generic halves.
+   and aggression director; `Boss` (game/server/Boss.ts:136) and `Elites` (game/server/Elite.ts:126) are already generic halves.
 
 ## 1. Weapon inventory
 

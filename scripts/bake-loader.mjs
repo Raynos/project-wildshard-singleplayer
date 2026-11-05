@@ -14,7 +14,7 @@ const STYLE = /\.css(\?.*)?$/i;
 registerHooks({
   resolve(specifier, context, next) {
     if (specifier === '@dimforge/rapier3d-simd') return next('@dimforge/rapier3d-simd/rapier.js', context);
-    if (/^\.\/rapier_wasm3d(\.js)?$/.test(specifier)) return { url: new URL('../src/engine/physics/rapierBindings.ts', import.meta.url).href, shortCircuit: true };
+    if (/^\.\/rapier_wasm3d(\.js)?$/.test(specifier)) return { url: new URL('../src/engine/server/physics/rapierBindings.ts', import.meta.url).href, shortCircuit: true };
     // Let Node apply package.json's imports (including extension-preserving image entries) before image handling.
     // A raw # specifier in new URL() is a fragment, not an asset path.
     if (specifier.startsWith('#')) return next(specifier, context);
@@ -82,10 +82,10 @@ const optional = async (path) => {
   }
 };
 const [{ installAppIdentity }, { WILDSHARD_IDENTITY }, { installAssetTables }, { installShards }, bytes, versions, audio, packs] = await Promise.all([
-  import(here('../src/engine/app/identity.ts')), import(here('../src/game/identity.ts')), import(here('../src/engine/boot/tables.ts')),
-  import(here('../src/game/shard/list.ts')),
-  optional('../src/game/boot/bytes.generated.ts'), optional('../src/game/boot/versions.generated.ts'),
-  optional('../src/game/boot/audio.generated.ts'), optional('../src/game/boot/packs.generated.ts'),
+  import(here('../src/engine/shared/app/identity.ts')), import(here('../src/game/client/identity.ts')), import(here('../src/engine/shared/boot/tables.ts')),
+  import(here('../src/game/client/shard/list.ts')),
+  optional('../src/game/client/boot/bytes.generated.ts'), optional('../src/game/client/boot/versions.generated.ts'),
+  optional('../src/game/client/boot/audio.generated.ts'), optional('../src/game/client/boot/packs.generated.ts'),
 ]);
 installAppIdentity(WILDSHARD_IDENTITY);
 // the shard list (AG4) once it is generated: a manifest's imports are node-safe, the game's registry reads it

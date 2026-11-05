@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { chunkShadowCastersSliced } from '../src/engine/world/shadowChunks';
-import { duringShadowPass } from '../src/engine/world/cascadeCull';
+import { chunkShadowCastersSliced } from '../src/engine/client/world/shadowChunks';
+import { duringShadowPass } from '../src/engine/client/world/cascadeCull';
 import golden from './fixtures/shadow-chunks-golden.json' with { type: 'json' };
 
 // E153 / SF67: shadow casters split into the same pieces, the same index order and the same bounds as before the

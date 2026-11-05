@@ -1,8 +1,8 @@
 // Build only: explicit imports refuse missing generation rather than emitting empty banks.
-import { PUBLIC_BYTES } from '../src/game/boot/bytes.generated.ts';
-import { ASSET_VERSIONS } from '../src/game/boot/versions.generated.ts';
-import { MUSIC_MANIFESTS, SFX_MANIFESTS } from '../src/game/boot/audio.generated.ts';
-import { PACKS } from '../src/game/boot/packs.generated.ts';
+import { PUBLIC_BYTES } from '../src/game/client/boot/bytes.generated.ts';
+import { ASSET_VERSIONS } from '../src/game/client/boot/versions.generated.ts';
+import { MUSIC_MANIFESTS, SFX_MANIFESTS } from '../src/game/client/boot/audio.generated.ts';
+import { PACKS } from '../src/game/client/boot/packs.generated.ts';
 import { SHARDS } from '../src/shards.generated.ts';
 import { selectedPackTables } from './app-build/assetTables.mjs';
 

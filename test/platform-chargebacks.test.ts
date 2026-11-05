@@ -10,8 +10,8 @@ import { g571HostApprovals,approvedG571Host } from '../scripts/g571-hosts.mjs';
 import { onDisk } from '../scripts/format-package.mjs';
 
 test('optional shared dispatch does not invent another arena or keeper user', () => {
-  const arena = 'src/game/boss/openArenaFight.ts', phase = 'src/game/plugin/bossPhase.ts';
-  const groups = 'src/game/population/pageGroups.ts';
+  const arena = 'src/game/server/boss/openArenaFight.ts', phase = 'src/game/server/plugin/bossPhase.ts';
+  const groups = 'src/game/server/population/pageGroups.ts';
   const both = new Set(['nalati-grasslands', 'pine-hollow']);
   const modules = new Map([[arena, both], [phase, both], [groups, both]]);
   const bindings = new Map([[`${arena}\0OpenArenaFight`,both],[`${phase}\0bossFight`, both],
@@ -22,12 +22,12 @@ test('optional shared dispatch does not invent another arena or keeper user', ()
   expect(bindings.get(`${groups}\0PageGroups`)).toEqual(both);
   expect(bindings.get(`${phase}\0bossFight`)).toEqual(both);
   expect(bindings.get(`${groups}\0FixedPageSpawnTable`)).toEqual(both);
-  expect(platformChargeback('src/game/looks/staticCapture.ts', 'StaticCapture')).toBeNull();
-  expect(platformChargeback('src/game/systems/viewmodel/rigArms.ts', 'RigArms')).toBeNull();
+  expect(platformChargeback('src/game/client/looks/staticCapture.ts', 'StaticCapture')).toBeNull();
+  expect(platformChargeback('src/game/client/systems/viewmodel/rigArms.ts', 'RigArms')).toBeNull();
 });
 
 test('a non-shard sole user maps to its reviewed owner or reports its excluded lines', () => {
-  const arena = { path: 'src/game/boss/encounterView.ts',name:'SlotEncounterView', lines: 514 };
+  const arena = { path: 'src/game/client/boss/encounterView.ts',name:'SlotEncounterView', lines: 514 };
   const charges = new Map<string, { path: string; lines: number; name?: string }[]>([['nalati-grasslands', []]]);
   const reports: string[] = [], report = (line: string) => { reports.push(line); };
   expect(recordPrivateCharge(charges, 'fixture-only-user', arena, report)).toBe(true);
@@ -43,7 +43,7 @@ test('a non-shard sole user maps to its reviewed owner or reports its excluded l
 test('Nine pool spans charge actual source lines while instance packets remain shared', () => {
   const reports: string[] = [], selected: string[] = [];
   const charges = new Map<string, { path: string; name: string; lines: number }[]>([['nine-dragon-stack', []]]);
-  for (const path of ['src/game/shardfile/worldScenes.ts', 'src/game/shardfile/scenePools.ts', 'src/format/worldScenes.ts']) {
+  for (const path of ['src/game/client/shardfile/worldScenes.ts', 'src/game/client/shardfile/scenePools.ts', 'src/format/worldScenes.ts']) {
     const source = readFileSync(onDisk('.', path), 'utf8'), lines = source.split('\n');
     for (const span of inlinePlatformSpans(path, source, line => { reports.push(line); })) {
       expect(platformChargeback(path, span.name)).toBe('C1');
@@ -59,7 +59,7 @@ test('Nine pool spans charge actual source lines while instance packets remain s
 test('reviewed Pine and Driftwood branches charge their actual owners', () => {
   const reports: string[] = [];
   const charges = new Map<string, {path: string; name: string; lines: number}[]>([['pine-hollow', []], ['driftwood-isle', []]]);
-  for (const path of inlinePlatformPaths().filter(file => !file.endsWith('/worldScenes.ts') && file !== 'src/game/shardfile/scenePools.ts')) {
+  for (const path of inlinePlatformPaths().filter(file => !file.endsWith('/worldScenes.ts') && file !== 'src/game/client/shardfile/scenePools.ts')) {
     const source = readFileSync(onDisk('.', path), 'utf8');
     for (const span of inlinePlatformSpans(path, source, line => { reports.push(line); })) {
       expect(span.lines.length).toBeGreaterThan(0);
@@ -68,14 +68,14 @@ test('reviewed Pine and Driftwood branches charge their actual owners', () => {
     }
   }
   expect(reports).toEqual([]);
-  expect(platformChargeback('src/game/systems/looks/waterSurface.ts', 'WaterTransition')).toBeNull();
+  expect(platformChargeback('src/game/client/systems/looks/waterSurface.ts', 'WaterTransition')).toBeNull();
   expect(platformChargeback('src/format/water.ts', 'WaterTransition')).toBeNull();
-  const explorer = 'src/game/models/explorerCatalogue.ts', users = new Set(['pine-hollow', 'driftwood-isle']);
+  const explorer = 'src/game/client/models/explorerCatalogue.ts', users = new Set(['pine-hollow', 'driftwood-isle']);
   const metadataBindings = new Map([[`${explorer}\0Presentation`, users]]);
   chargePlatformUsers(new Map(), metadataBindings);
   expect(metadataBindings.get(`${explorer}\0Presentation`)).toEqual(users);
   expect(platformChargeback(explorer, 'Presentation')).toBeNull();
-  const figure = 'src/game/models/figureCatalogue.ts', hull = 'src/game/looks/speciesBook.ts';
+  const figure = 'src/game/client/models/figureCatalogue.ts', hull = 'src/game/client/looks/speciesBook.ts';
   const both = new Set(['pine-hollow', 'driftwood-isle']);
   const bindings = new Map(['admitted','ProductFigureCatalogue','ProductFigureImports','FigureCatalogue'].map(name=>[`${figure}\0${name}`,both]));
   chargePlatformUsers(new Map([[figure, both]]), bindings);
@@ -85,11 +85,11 @@ test('reviewed Pine and Driftwood branches charge their actual owners', () => {
   }
   expect(inlinePlatformPaths()).not.toContain(figure);
   expect(platformChargeback(hull, 'HullLookBook')).toBeNull();
-  expect(platformChargeback('src/engine/models/geometryPack.ts', 'GeometryPack')).toBeNull();
+  expect(platformChargeback('src/engine/client/models/geometryPack.ts', 'GeometryPack')).toBeNull();
 });
 
 test('the product posed loader has a real second user', () => {
-  const posed = 'src/game/looks/posedInstances.ts';
+  const posed = 'src/game/client/looks/posedInstances.ts';
   const both = new Set(['pine-hollow', 'nalati-grasslands']);
   const bindings = new Map([
     [`${posed}\0PosedLibrary`, both], [`${posed}\0PosedDraw`, both], [`${posed}\0PosedInstances`, both],
@@ -110,7 +110,7 @@ test('the product posed loader has a real second user', () => {
 
 test('the real Pine and Driftwood Explorer dispatcher no longer has a sole-user receipt', () => {
   const users = new Set(['pine-hollow', 'driftwood-isle']);
-  const paths = ['src/game/models/explorerCatalogue.ts', 'src/format/explorerCatalogue.ts'];
+  const paths = ['src/game/client/models/explorerCatalogue.ts', 'src/format/explorerCatalogue.ts'];
   const modules = new Map(paths.map(path => [path, users]));
   const bindings = new Map(paths.map(path => [`${path}\0ProductExplorerDispatch`, users]));
   chargePlatformUsers(modules, bindings);
@@ -122,11 +122,11 @@ test('the real Pine and Driftwood Explorer dispatcher no longer has a sole-user 
   }
   // Dispatch credit does not waive a private intake or presentation owner.
   expect(platformChargeback('src/engine/models/geometrySources.ts', 'registerPackedGeometrySource')).toBeNull();
-  expect(platformChargeback('src/game/boss/openArenaFight.ts','OpenArenaFight')).toBeNull();
+  expect(platformChargeback('src/game/server/boss/openArenaFight.ts','OpenArenaFight')).toBeNull();
 });
 
 test('day-one feature credit cannot erase a G520 chargeback', () => {
-  const path = 'src/game/boss/encounterView.ts';
+  const path = 'src/game/client/boss/encounterView.ts';
   const allowance: PendingPlatformUser = { module: path, documentation: 'docs/HOST-BAR.md',
     approvedFeature: { name: 'painterly look host', decision: { path: 'docs/plans/decisions.md', row: 'G478' } } };
   const painterly = { path, name: 'SlotEncounterView', exported: true, lines: 40 };
@@ -145,8 +145,8 @@ test('day-one feature credit cannot erase a G520 chargeback', () => {
 
 test('chargebacks retain their exact component after guest admission', () => {
   const sources = [
-    { path: 'src/game/models/mountedSpecimen.ts', kind: 'sole-module', lines: 27 },
-    { path: 'src/game/boss/encounterView.ts', name: 'SlotEncounterView', kind: 'sole-export', lines: 40 },
+    { path: 'src/game/client/models/mountedSpecimen.ts', kind: 'sole-module', lines: 27 },
+    { path: 'src/game/client/boss/encounterView.ts', name: 'SlotEncounterView', kind: 'sole-export', lines: 40 },
   ] as const;
   const inventory = componentInventory('.', 'nalati-grasslands', [...sources], 67);
   expect(inventory.counts.C2).toBe(0);
@@ -174,7 +174,7 @@ test('whole-module cuts retire their old receipts while unknown missing modules 
 
 
 test('shared numeric course preserves only each native entry charge', () => {
-  const path = 'src/game/practice/course.ts', both = new Set(['nalati-grasslands', 'nine-dragon-stack']);
+  const path = 'src/game/client/practice/course.ts', both = new Set(['nalati-grasslands', 'nine-dragon-stack']);
   const names = ['CourseController', 'PracticeCourse', 'MountedCourseEntry', 'GrappleCourseEntry', 'GrappleEntryRows'];
   const modules = new Map([[path, both]]), bindings = new Map(names.map(name => [`${path}\0${name}`, both]));
   chargePlatformUsers(modules, bindings);
@@ -196,7 +196,7 @@ test('shared numeric course preserves only each native entry charge', () => {
 });
 
 test('the single slot roster stays charged despite an optional dispatcher',()=>{
-  const path='src/game/boss/encounterView.ts',both=new Set(['nalati-grasslands','pine-hollow']);
+  const path='src/game/client/boss/encounterView.ts',both=new Set(['nalati-grasslands','pine-hollow']);
   const modules=new Map([[path,both]]),bindings=new Map([[`${path}\0SlotEncounterView`,both],[`${path}\0PatrolEncounterView`,both],[`${path}\0CloudBody`,both]]);
   chargePlatformUsers(modules,bindings);
   expect([...bindings.get(`${path}\0SlotEncounterView`)??[]]).toEqual(['nalati-grasslands']);
@@ -206,7 +206,7 @@ test('the single slot roster stays charged despite an optional dispatcher',()=>{
 
 
 test('shared hull imports grant no second user to the packed species adapter',()=>{
-  const path='src/game/looks/speciesBook.ts',format='src/format/speciesLooks.ts',both=new Set(['nalati-grasslands','pine-hollow']);
+  const path='src/game/client/looks/speciesBook.ts',format='src/format/speciesLooks.ts',both=new Set(['nalati-grasslands','pine-hollow']);
   const modules=new Map([[path,both],[format,both]]),bindings=new Map([
     [`${path}\0HullLookBook`,both],[`${path}\0SpeciesLookBook`,both],[`${path}\0packedRows`,both],
     [`${format}\0HullLookBookSchema`,both],
@@ -228,7 +228,7 @@ test('shared hull imports grant no second user to the packed species adapter',()
 
 
 test('G571 placed actors and G667 group bindings keep broad ownership without chargebacks',()=>{
-  const path='src/game/population/pageGroups.ts',broad=new Set(['nalati-grasslands','driftwood-isle','pine-hollow']);
+  const path='src/game/server/population/pageGroups.ts',broad=new Set(['nalati-grasslands','driftwood-isle','pine-hollow']);
   const names=['Placement','Counts','PageActorGroups','PagePopulationPlanner','PageGroups'];
   const bindings=new Map(names.map(name=>[`${path}\0${name}`,broad]));
   chargePlatformUsers(new Map(),bindings);
@@ -243,7 +243,7 @@ test('G571 placed actors and G667 group bindings keep broad ownership without ch
 
 
 test('explicit admitted Bag rows retire only the former private projection spans',()=>{
- for(const path of ['src/game/loot/runtime.ts','src/format/lootEconomy.ts']){
+ for(const path of ['src/game/server/loot/runtime.ts','src/format/lootEconomy.ts']){
   const reports:string[]=[],spans=inlinePlatformSpans(path,readFileSync(onDisk('.', path),'utf8'),line=>{reports.push(line);});
   expect(spans.some(span=>span.name==='LootBagProjection')).toBe(false);expect(reports).toEqual([]);
  }
@@ -251,7 +251,7 @@ test('explicit admitted Bag rows retire only the former private projection spans
 
 
 test('optional chapter dispatch preserves the carried and merged-figure owners', () => {
-  const carried = 'src/game/quest/carriedProp.ts', figures = 'src/game/systems/npc/figureRows.ts';
+  const carried = 'src/game/server/quest/carriedProp.ts', figures = 'src/game/client/systems/npc/figureRows.ts';
   const shared = new Set(['pine-hollow', 'driftwood-isle', 'nalati-grasslands']);
   const moduleUsers = new Map([[carried, shared], [figures, shared]]);
   const bindings = new Map([[`${figures}\0FigureRows`, shared]]);
@@ -265,7 +265,7 @@ test('optional chapter dispatch preserves the carried and merged-figure owners',
 
 
 test('optional chapter imports retain the remaining unapproved combat dependency owners', () => {
-  const rows: readonly (readonly [string, readonly string[] | null])[] = [["src/engine/combat/effects/types.ts", ["SourceMulDef", "anyTag", "sourceMultiplier"]]];
+  const rows: readonly (readonly [string, readonly string[] | null])[] = [["src/engine/client/combat/effects/types.ts", ["SourceMulDef", "anyTag", "sourceMultiplier"]]];
   const shared = new Set(['pine-hollow', 'driftwood-isle', 'nalati-grasslands']);
   const modules = new Map(rows.map(([path]) => [path, shared]));
   const bindings = new Map(rows.flatMap(([path, names]) => [...(names ?? []), 'unrelatedShared'].map(name => [`${path}\0${name}`, shared])));
@@ -278,17 +278,17 @@ test('optional chapter imports retain the remaining unapproved combat dependency
 });
 
 test('retired crowd geometry intake no longer claims a private reader', () => {
-  expect(platformChargeback('src/game/ambient/crowdPage.ts', 'readCrowdBody')).toBeNull();
-  expect(platformChargeback('src/game/models/fixedDraws.ts', 'fixedDraws')).toBeNull();
+  expect(platformChargeback('src/game/server/ambient/crowdPage.ts', 'readCrowdBody')).toBeNull();
+  expect(platformChargeback('src/game/client/models/fixedDraws.ts', 'fixedDraws')).toBeNull();
 });
 
 test('retired assembly weather has no private chargeback', () => {
-  expect(platformChargeback('src/game/shardfile/worldAssembly.ts', 'installAssemblyWeather')).toBeNull();
-  expect(platformChargeback('src/game/shardfile/clientForestPage.ts', 'installClientForestWeather')).toBeNull();
+  expect(platformChargeback('src/game/client/shardfile/worldAssembly.ts', 'installAssemblyWeather')).toBeNull();
+  expect(platformChargeback('src/game/client/shardfile/clientForestPage.ts', 'installClientForestWeather')).toBeNull();
 });
 
 test('ordered arena script construction retains its actual Nalati-only C9 owner', () => {
-  const path = 'src/game/shardfile/worldAssembly.ts', name = 'installAssemblyArenaScript', both = new Set(['nalati-grasslands', 'driftwood-isle']);
+  const path = 'src/game/client/shardfile/worldAssembly.ts', name = 'installAssemblyArenaScript', both = new Set(['nalati-grasslands', 'driftwood-isle']);
   const modules = new Map([[path, both]]), bindings = new Map([[`${path}\0${name}`, both], [`${path}\0WorldAssembly`, both]]);
   chargePlatformUsers(modules, bindings);
   expect(platformChargeback(path, name)).toBe('C9');
@@ -297,7 +297,7 @@ test('ordered arena script construction retains its actual Nalati-only C9 owner'
 });
 
 test('G614 approves exactly the bounds trio and removes only its Nine chargeback', () => {
-  const runtime = 'src/game/shardfile/clientRuntimeHooks.ts', format = 'src/format/clientPlan.ts';
+  const runtime = 'src/game/client/shardfile/clientRuntimeHooks.ts', format = 'src/format/clientPlan.ts';
   const selectors = [[runtime, 'runtimeLevelBounds'], [runtime, 'RuntimeBoundsRows'], [format, 'RuntimeBoundsSchema']] as const;
   const both = new Set(['nine-dragon-stack', 'nalati-grasslands']);
   const bindings = new Map(selectors.map(([path, name]) => [`${path}\0${name}`, both]));
@@ -317,9 +317,9 @@ test('G614 approves exactly the bounds trio and removes only its Nine chargeback
 test('C3 approvals select exactly the picked ground and engine primitives', () => {
   const approvals = g571HostApprovals('.');
   for (const [path,name] of [
-    ['src/engine/physics/heightPatch.ts','HeightPatch'],['src/engine/physics/heightPatch.ts','HeightPatchOpts'],
-    ['src/engine/core/gpuOnly.ts','rebakes'],['src/engine/core/gpuOnly.ts','onGpuRestored'],
-    ['src/engine/world/water/body.ts','basinBody'],['src/game/shard/manifest.ts','declaredGround'],
+    ['src/engine/shared/physics/heightPatch.ts','HeightPatch'],['src/engine/shared/physics/heightPatch.ts','HeightPatchOpts'],
+    ['src/engine/client/core/gpuOnly.ts','rebakes'],['src/engine/client/core/gpuOnly.ts','onGpuRestored'],
+    ['src/engine/shared/world/water/body.ts','basinBody'],['src/game/server/shard/manifest.ts','declaredGround'],
     ['src/format/terrain.ts','GroundRowsSchema'],
   ]) {
     if (path === undefined || name === undefined) throw new Error('Incomplete C3 selector');
@@ -330,7 +330,7 @@ test('C3 approvals select exactly the picked ground and engine primitives', () =
 
 
 test('the hardened CORE scene host credits all fourteen inline lines without changing their owner', () => {
-  const approvals = g571HostApprovals('.'), paths = ['src/game/shardfile/worldScenes.ts', 'src/game/shardfile/scenePools.ts', 'src/format/worldScenes.ts'];
+  const approvals = g571HostApprovals('.'), paths = ['src/game/client/shardfile/worldScenes.ts', 'src/game/client/shardfile/scenePools.ts', 'src/format/worldScenes.ts'];
   // G601 C2's former volume description already named the whole format module.
   const previous = new Map<string, Set<string> | null>([['src/format/worldScenes.ts', null]]);
   let before = 0, chargedBefore = 0, after = 0;
@@ -346,7 +346,7 @@ test('the hardened CORE scene host credits all fourteen inline lines without cha
 
 
 test('C11 shares one native row controller and retires the separate entry classes', () => {
-  const approvals=g571HostApprovals('.'),path='src/game/practice/course.ts',source=readFileSync(onDisk('.', path),'utf8');
+  const approvals=g571HostApprovals('.'),path='src/game/client/practice/course.ts',source=readFileSync(onDisk('.', path),'utf8');
   expect(approvedG571Host(approvals,path,'CourseController')).toBe(true);
   for(const name of ['MountedCourseEntry','GrappleCourseEntry','MountEntryRows','GrappleEntryRows']){
     expect(approvedG571Host(approvals,path,name)).toBe(false);
@@ -358,13 +358,13 @@ test('C11 shares one native row controller and retires the separate entry classe
 
 test('the completed G599 N1 second user grants the explicit post-graph host approval', () => {
   const approvals=g571HostApprovals('.');
-  expect(approvedG571Host(approvals,'src/game/looks/postGraphLook.ts','postGraphLook')).toBe(true);
+  expect(approvedG571Host(approvals,'src/game/client/looks/postGraphLook.ts','postGraphLook')).toBe(true);
   expect(approvedG571Host(approvals,'src/format/postGraphLook.ts')).toBe(true);
 });
 
 
 test('CORE fixed draws credit only their picked defining bindings', () => {
-  const approvals = g571HostApprovals('.'), path = 'src/game/models/fixedDraws.ts';
+  const approvals = g571HostApprovals('.'), path = 'src/game/client/models/fixedDraws.ts';
   expect(approvedG571Host(approvals, path, 'inlineFixedDraw')).toBe(false);
   expect(approvedG571Host(approvals, path, 'bakedFixedDraws')).toBe(false);
   expect(approvedG571Host(approvals, path, 'fixedDraws')).toBe(true);
@@ -374,15 +374,15 @@ test('CORE fixed draws credit only their picked defining bindings', () => {
 });
 
 test('the approved riding specimen module contains its factory boundary and retains its actual owner', () => {
-  const approvals = g571HostApprovals('.'), path = 'src/game/models/mountedSpecimen.ts';
+  const approvals = g571HostApprovals('.'), path = 'src/game/client/models/mountedSpecimen.ts';
   expect(approvedG571Host(approvals, path)).toBe(true);
   expect(platformChargeback(path)).toBe('C1');
   expect(approvedG571Host(approvals, 'src/game/models/unreviewedSpecimen.ts')).toBe(false);
 });
 
 test('G615 credits only timed encounters and its selected slot and patrol views', () => {
-  const approvals = g571HostApprovals('.'), path = 'src/game/boss/encounterView.ts';
-  expect(approvedG571Host(approvals, 'src/game/boss/timedEncounters.ts')).toBe(true);
+  const approvals = g571HostApprovals('.'), path = 'src/game/client/boss/encounterView.ts';
+  expect(approvedG571Host(approvals, 'src/game/server/boss/timedEncounters.ts')).toBe(true);
   for (const name of ['SlotEncounterView', 'PatrolEncounterView']) expect(approvedG571Host(approvals, path, name)).toBe(true);
   expect(approvedG571Host(approvals, path)).toBe(false);
   for (const name of ['CloudBody', 'ArenaSceneView', 'EncounterSites']) expect(approvedG571Host(approvals, path, name)).toBe(false);
@@ -393,14 +393,14 @@ test('G615 credits only timed encounters and its selected slot and patrol views'
 test('retired arsenal and variant modules leave no standalone item charge',()=>{
   expect(platformChargeback('src/game/loadout/mounted.ts')).toBeNull();
   expect(platformChargeback('src/game/weapons/bowVariant.ts')).toBeNull();
-  expect(platformChargeback('src/game/boss/openArenaFight.ts','OpenArenaFight')).toBeNull();
+  expect(platformChargeback('src/game/server/boss/openArenaFight.ts','OpenArenaFight')).toBeNull();
 });
 
 test('G667 credits the crowd prey joins and keeps the original Pine ray consumer', () => {
-  const path = 'src/game/shardfile/crowdRuntime.ts';
+  const path = 'src/game/shared/shardfile/crowdRuntime.ts';
   // Pine's generator declares its forager's combat row; the shared page life builds the weapon target over a roster from it
   expect(readFileSync('src/shards/pine-hollow/generators/pageLife.ts', 'utf8')).toMatch(/combat: \{ target: \{ kind: life\.forager\.id/u);
-  expect(readFileSync('src/game/population/pageLife.ts', 'utf8')).toContain('new CrowdWeaponTarget(new CrowdRoster([], [new ForagerTargets(population, row.combat, row.scale)]), row.combat.target)');
+  expect(readFileSync('src/game/client/population/pageLife.ts', 'utf8')).toContain('new CrowdWeaponTarget(new CrowdRoster([], [new ForagerTargets(population, row.combat, row.scale)]), row.combat.target)');
   for (const name of ['CrowdWeaponTarget', 'CrowdRoster']) expect(platformChargeback(path, name)).toBeNull();
   for (const name of ['CrowdPrey', 'CrowdTargets']) expect(platformChargeback(path, name)).toBeNull();
   const reports: string[] = [], spans = inlinePlatformSpans(path, readFileSync(onDisk('.', path), 'utf8'), line => { reports.push(line); });
@@ -410,7 +410,7 @@ test('G667 credits the crowd prey joins and keeps the original Pine ray consumer
 
 
 test('G615 encounter helpers follow the extracted slot owner without approving siblings', () => {
-  const path = 'src/game/boss/encounterView.ts', shared = new Set(['nalati-grasslands', 'pine-hollow']);
+  const path = 'src/game/client/boss/encounterView.ts', shared = new Set(['nalati-grasslands', 'pine-hollow']);
   const names = ['SlotViewActor', 'SlotSiteChange', 'PatrolViewActor', 'PatrolHit', 'Rider', 'PatrolActor', 'PatrolActorRoster'];
   const modules = new Map([[path, shared]]), bindings = new Map(names.map(name => [`${path}\0${name}`, shared]));
   chargePlatformUsers(modules, bindings);
@@ -425,7 +425,7 @@ test('G615 encounter helpers follow the extracted slot owner without approving s
   expect(platformChargeback(path, 'SlotEncounterView')).toBe('C4');
   expect(platformChargeback(path, 'PatrolEncounterView')).toBe('C4');
   expect(modules.get(path)).toEqual(shared);
-  const law='src/game/boss/slotLaw.ts';
+  const law='src/game/server/boss/slotLaw.ts';
   expect(approvedG571Host(approvals,path,'Awake')).toBe(false);
   expect(approvedG571Host(approvals,law,'Awake')).toBe(true);
   expect(approvedG571Host(approvals,law,'SlotEncounterLaw')).toBe(true);
@@ -441,9 +441,9 @@ test('G615 encounter helpers follow the extracted slot owner without approving s
 test('G621 D4 retires only the three already-approved chapter dependency overrides', () => {
   const shared = new Set(['pine-hollow', 'driftwood-isle', 'nalati-grasslands']);
   const rows = [
-    ['src/engine/physics/heightPatch.ts', ['HeightPatch', 'HeightPatchOpts']],
-    ['src/game/loadout/actors.ts', ['EquipmentActorOwner', 'owners', 'equipmentActorOwner']],
-    ['src/game/systems/npc/figureSkins.ts', ['atlasFigureSkin']],
+    ['src/engine/shared/physics/heightPatch.ts', ['HeightPatch', 'HeightPatchOpts']],
+    ['src/game/server/loadout/actors.ts', ['EquipmentActorOwner', 'owners', 'equipmentActorOwner']],
+    ['src/game/client/systems/npc/figureSkins.ts', ['atlasFigureSkin']],
   ] as const;
   const modules = new Map(rows.map(([path]) => [path, shared]));
   const bindings = new Map(rows.flatMap(([path, names]) => [...names, 'unreviewed'].map(name => [`${path}\0${name}`, shared])));
@@ -458,7 +458,7 @@ test('G621 D4 retires only the three already-approved chapter dependency overrid
     }
     expect(approvedG571Host(approvals, path, 'unreviewed')).toBe(false);
   }
-  const combat = 'src/engine/combat/effects/types.ts';
+  const combat = 'src/engine/client/combat/effects/types.ts';
   const native = new Map([[`${combat}\0sourceMultiplier`, shared]]);
   chargePlatformUsers(new Map(), native);
   expect(native.get(`${combat}\0sourceMultiplier`)).toEqual(new Set(['nalati-grasslands']));
@@ -468,10 +468,10 @@ test('G621 D4 retires only the three already-approved chapter dependency overrid
 
 test('G665 credits only the complete listed open-arena host',()=>{
   const rows = [
-    ['src/game/boss/arenaRoom.ts',['OpenArenaWorld','_openW']],
-    ['src/game/boss/arenaRoomView.ts',['buildOpenArenaEncounter','arenaScriptCloud']],
-    ['src/game/boss/openArenaFight.ts',['OpenArenaFight','SupportActor','Chain','_openV','_openRAY','_openSPH','_openHITP','readArenaScriptData','OpenArenaViews','OpenArenaFightWorld','OpenArenaFightHost','ArenaBodyPort','ArenaScenePort','ArenaFirePort','ArenaWhirlsPort']],
-    ['src/game/riding/client.ts',['ArenaBoundary','boundaries','arenaBlockedAt','installArenaBoundary','arenaBoundaryBlocked']],
+    ['src/game/server/boss/arenaRoom.ts',['OpenArenaWorld','_openW']],
+    ['src/game/client/boss/arenaRoomView.ts',['buildOpenArenaEncounter','arenaScriptCloud']],
+    ['src/game/server/boss/openArenaFight.ts',['OpenArenaFight','SupportActor','Chain','_openV','_openRAY','_openSPH','_openHITP','readArenaScriptData','OpenArenaViews','OpenArenaFightWorld','OpenArenaFightHost','ArenaBodyPort','ArenaScenePort','ArenaFirePort','ArenaWhirlsPort']],
+    ['src/game/client/riding/client.ts',['ArenaBoundary','boundaries','arenaBlockedAt','installArenaBoundary','arenaBoundaryBlocked']],
   ] as const;
   const shared=new Set(['nalati-grasslands','pine-hollow']),approvals=g571HostApprovals('.');
   const modules=new Map(rows.map(([path])=>[path,shared]));
@@ -487,9 +487,9 @@ test('G665 credits only the complete listed open-arena host',()=>{
     }
     expect(approvedG571Host(approvals,path,'unreviewed')).toBe(false);
   }
-  expect(approvedG571Host(approvals,'src/game/boss/arenaRoom.ts','ArenaRoomEncounter')).toBe(false);
-  expect(approvedG571Host(approvals,'src/game/riding/client.ts','installClientRiding')).toBe(false);
-  expect(platformChargeback('src/game/shardfile/worldAssembly.ts','installAssemblyArenaScript')).toBe('C9');
+  expect(approvedG571Host(approvals,'src/game/server/boss/arenaRoom.ts','ArenaRoomEncounter')).toBe(false);
+  expect(approvedG571Host(approvals,'src/game/client/riding/client.ts','installClientRiding')).toBe(false);
+  expect(platformChargeback('src/game/client/shardfile/worldAssembly.ts','installAssemblyArenaScript')).toBe('C9');
   expect(platformChargeback('src/game/boss/arenaScript.ts')).toBe('C4');
 });
 
@@ -514,15 +514,15 @@ test('pending native continuation receipts name the actual defining schema and t
 
 test('retired elite keeper selectors carry no chargeback after declared engine entry', () => {
   for (const name of ['keeperBrains','keeperActs','keeperDamage','setEliteBrain','setEliteAct','setEliteDamage','eliteThink','eliteAct','eliteDamageMul','KeeperEliteRow','KeeperEliteEffect','KeeperEliteServices','KeeperElitePage'])
-    expect(platformChargeback('src/game/quest/elitePage.ts', name)).toBeNull();
+    expect(platformChargeback('src/game/server/quest/elitePage.ts', name)).toBeNull();
 });
 
 test('G667 case three credits only its exact original binding selectors',()=>{
   const rows = [
-    ['src/game/looks/speciesBook.ts',['productSpeciesCatalogue', 'SpeciesCatalogue', 'speciesBehaviour']],
-    ['src/engine/entities/eliteBrain.ts',['current', 'eliteThink', 'eliteAct', 'eliteDamageMul']],
-    ['src/game/shardfile/crowdRuntime.ts',['CrowdPrey', 'CrowdTargets', 'CrowdRoster']],
-    ['src/game/ambient/crowdPage.ts',['thinkCrowdGuard']],
+    ['src/game/client/looks/speciesBook.ts',['productSpeciesCatalogue', 'SpeciesCatalogue', 'speciesBehaviour']],
+    ['src/engine/server/entities/eliteBrain.ts',['current', 'eliteThink', 'eliteAct', 'eliteDamageMul']],
+    ['src/game/shared/shardfile/crowdRuntime.ts',['CrowdPrey', 'CrowdTargets', 'CrowdRoster']],
+    ['src/game/server/ambient/crowdPage.ts',['thinkCrowdGuard']],
   ] as const;
   const shared=new Set(['nalati-grasslands','pine-hollow']),approvals=g571HostApprovals('.');
   const modules=new Map(rows.map(([path])=>[path,shared]));
@@ -537,18 +537,18 @@ test('G667 case three credits only its exact original binding selectors',()=>{
     expect(approvedG571Host(approvals,path,'unreviewed')).toBe(false);
     expect(bindings.get(`${path}\0unreviewed`)).toBe(shared);
   }
-  expect(approvedG571Host(approvals,'src/game/ambient/crowdPage.ts','createPageCrowds')).toBe(false);
-  expect(approvedG571Host(approvals,'src/game/shardfile/crowdRuntime.ts','CrowdWeaponTarget')).toBe(false);
-  expect(approvedG571Host(approvals,'src/engine/entities/eliteBrain.ts','setEliteBrain')).toBe(false);
+  expect(approvedG571Host(approvals,'src/game/server/ambient/crowdPage.ts','createPageCrowds')).toBe(false);
+  expect(approvedG571Host(approvals,'src/game/shared/shardfile/crowdRuntime.ts','CrowdWeaponTarget')).toBe(false);
+  expect(approvedG571Host(approvals,'src/engine/server/entities/eliteBrain.ts','setEliteBrain')).toBe(false);
 });
 
 
 test('G667 case 1 credits only the listed herd and pack host',()=>{
   const rows=[
-    ["src/game/population/pageGroups.ts", ["point", "whole", "PagePopulationPlanner", "PageWildEnvironment", "wildEnv", "renderedPacks", "renderedHerds", "renderedDamage", "bindPageGroups", "renderedPackOf", "renderedHerdOf", "observeHerdDamage", "PageGroups"]],
-    ["src/game/shardfile/groupRuntime.ts", ["collections", "nativeHerdCollection", "nativeGroupCollection", "NativeGroupCollection", "installNativeGroupRows"]],
-    ["src/game/population/directedSpecies.ts", ["DirectedSpecies"]],
-    ["src/game/population/groupSpecies.ts", ["groupSpecies"]],
+    ["src/game/server/population/pageGroups.ts", ["point", "whole", "PagePopulationPlanner", "PageWildEnvironment", "wildEnv", "renderedPacks", "renderedHerds", "renderedDamage", "bindPageGroups", "renderedPackOf", "renderedHerdOf", "observeHerdDamage", "PageGroups"]],
+    ["src/game/server/shardfile/groupRuntime.ts", ["collections", "nativeHerdCollection", "nativeGroupCollection", "NativeGroupCollection", "installNativeGroupRows"]],
+    ["src/game/server/population/directedSpecies.ts", ["DirectedSpecies"]],
+    ["src/game/server/population/groupSpecies.ts", ["groupSpecies"]],
   ] as const;
   const approvals=g571HostApprovals('.'),users=new Set(['nalati-grasslands','pine-hollow']);
   const modules=new Map(rows.map(([path])=>[path,users]));
@@ -564,16 +564,16 @@ test('G667 case 1 credits only the listed herd and pack host',()=>{
     }
     expect(approvedG571Host(approvals,path,'unreviewed')).toBe(false);
   }
-  expect(approvedG571Host(approvals,'src/game/shardfile/worldAssembly.ts','installAssemblyWeather')).toBe(false);
-  expect(platformChargeback('src/game/shardfile/worldAssembly.ts','installAssemblyWeather')).toBeNull();
+  expect(approvedG571Host(approvals,'src/game/client/shardfile/worldAssembly.ts','installAssemblyWeather')).toBe(false);
+  expect(platformChargeback('src/game/client/shardfile/worldAssembly.ts','installAssemblyWeather')).toBeNull();
 });
 
 
 test('G667 case two credits only the listed native driver roster and field',()=>{
  const rows=[
-  ['src/game/population/nativeManager.ts',['NativePopulationDriver','NativeDriverRows']],
-  ['src/game/shardfile/homeKeeper.ts',['NativeDeferredRoster','NativeDeferredSpawn']],
-  ['src/game/population/environment.ts',['NativePopulationField']],
+  ['src/game/server/population/nativeManager.ts',['NativePopulationDriver','NativeDriverRows']],
+  ['src/game/server/shardfile/homeKeeper.ts',['NativeDeferredRoster','NativeDeferredSpawn']],
+  ['src/game/server/population/environment.ts',['NativePopulationField']],
  ] as const;
  const approvals=g571HostApprovals('.'),users=new Set(['nalati-grasslands']);
  const modules=new Map(rows.map(([path])=>[path,users]));
@@ -584,16 +584,16 @@ test('G667 case two credits only the listed native driver roster and field',()=>
   for(const name of names){expect(approvedG571Host(approvals,path,name)).toBe(true);expect(platformChargeback(path,name)).toBeNull();expect(bindings.get(`${path}\0${name}`)).toBe(users);}
   expect(approvedG571Host(approvals,path,'unreviewed')).toBe(false);
  }
- expect(approvedG571Host(approvals,'src/game/population/nativeManager.ts','NativeManager')).toBe(false);
- expect(approvedG571Host(approvals,'src/game/shardfile/homeKeeper.ts','createNativeCreatureRoster')).toBe(false);
- expect(approvedG571Host(approvals,'src/game/population/environment.ts','installPopulationEnvironment')).toBe(false);
+ expect(approvedG571Host(approvals,'src/game/server/population/nativeManager.ts','NativeManager')).toBe(false);
+ expect(approvedG571Host(approvals,'src/game/server/shardfile/homeKeeper.ts','createNativeCreatureRoster')).toBe(false);
+ expect(approvedG571Host(approvals,'src/game/server/population/environment.ts','installPopulationEnvironment')).toBe(false);
 });
 
 test('G677 credits only the exact entered adapters and preserves their original authorities',()=>{
   const rows = [
-    ['src/game/shardfile/clientStealthEntry.ts',['EntryRows','bindStealthWeapons','installClientStealthEntry']],
-    ['src/game/shardfile/clientTimedEncounters.ts',['installClientTimedEncounters']],
-    ['src/game/shardfile/clientEliteConstruction.ts',['installClientEliteConstruction']],
+    ['src/game/client/shardfile/clientStealthEntry.ts',['EntryRows','bindStealthWeapons','installClientStealthEntry']],
+    ['src/game/client/shardfile/clientTimedEncounters.ts',['installClientTimedEncounters']],
+    ['src/game/client/shardfile/clientEliteConstruction.ts',['installClientEliteConstruction']],
   ] as const;
   const users=new Set(['nalati-grasslands','pine-hollow']),approvals=g571HostApprovals('.');
   const modules=new Map(rows.map(([path])=>[path,users]));
@@ -608,9 +608,9 @@ test('G677 credits only the exact entered adapters and preserves their original 
     expect(approvedG571Host(approvals,path,'unreviewed')).toBe(false);
   }
   // The original G571 module grant already covers these loan types; G677 must not duplicate it.
-  expect(approvedG571Host(approvals,'src/game/shardfile/entryOwners.ts','WorldFrameOwner')).toBe(true);
-  expect(approvedG571Host(approvals,'src/game/shardfile/entryOwners.ts','EliteEntryConstruction')).toBe(true);
-  expect(approvedG571Host(approvals,'src/game/riding/client.ts','enterClientRiding')).toBe(false);
+  expect(approvedG571Host(approvals,'src/game/client/shardfile/entryOwners.ts','WorldFrameOwner')).toBe(true);
+  expect(approvedG571Host(approvals,'src/game/client/shardfile/entryOwners.ts','EliteEntryConstruction')).toBe(true);
+  expect(approvedG571Host(approvals,'src/game/client/riding/client.ts','enterClientRiding')).toBe(false);
   const hostBar=readFileSync('docs/HOST-BAR.md','utf8').split('\n').filter(line=>line.startsWith('- G677 ')).join('\n');
   expect(hostBar).not.toContain('game/stealth/controller');expect(hostBar).not.toContain('game/population/pageGroups');
   expect(hostBar).not.toContain('game/shardfile/entryOwners');

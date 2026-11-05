@@ -6,8 +6,8 @@
  *
  * ── Axis convention (verified in code, 2026-09-24) ──────────────────────────────────────────────────────────────────
  * Origin at the slab centre, ±250 m. **+z = NORTH, +x = WEST, −x = EAST.**
- *   · src/engine/ui/HUD.ts `bearingTo` / the compass band: heading = 180 − yaw°, 0 = north = +Z, 90 = east = −X.
- *   · src/engine/ui/Minimap.ts paints u = HALF − x (east → right), v = HALF − z (north → up).
+ *   · src/engine/client/ui/HUD.ts `bearingTo` / the compass band: heading = 180 − yaw°, 0 = north = +Z, 90 = east = −X.
+ *   · src/engine/client/ui/Minimap.ts paints u = HALF − x (east → right), v = HALF − z (north → up).
  *   · ShardManifest.spawn: yaw π faces +Z, the compass' north. `yaw` faces (−sin yaw, −cos yaw) in x / z.
  * So a map-A pixel (col, row) on the 1254² board maps to x = 250 − col·0.41, z = 250 − row·0.41 (≈, the board's own rim
  * trimmed). Today's names were written before anyone checked: the old "East cabin" at x = +62 is WEST of the crossroads

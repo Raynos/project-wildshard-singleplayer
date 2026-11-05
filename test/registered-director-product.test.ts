@@ -5,7 +5,7 @@ import { composeNamedJsonSchema, namedJsonSchema, registeredJsonSchema, namedFor
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { nameBlob } from '../src/sdk/blobs';
 import { REGISTERED_JSON, validateRegisteredJson } from '@wildshard/format/registeredJson';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import driftwood from '../src/shards/driftwood-isle/data/director.json';
 import driftwoodStages from '../src/shards/driftwood-isle/data/finaleStages.json';

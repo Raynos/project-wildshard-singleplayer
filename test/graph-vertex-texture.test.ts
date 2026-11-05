@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
 import { frontFacing } from 'three/tsl';
-import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
+import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
 import { graph as authorGraph } from '../src/sdk/materials';
 import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 import paintedGraphs from '../src/shards/nalati-grasslands/data/painterlyGraphs.json' with { type: 'json' };

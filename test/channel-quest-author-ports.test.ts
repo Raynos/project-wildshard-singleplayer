@@ -22,8 +22,8 @@ test('the two classified current source labels retain their exact IDs and leave 
   const before = structuredClone(driftwood);
   expect(driftwood.entries.filter(row => row.kind === 'species' && row.id?.startsWith('shared/'))
     .map(row => row.kind === 'species' ? { id: row.id, file: row.file } : null)).toEqual([
-    { id: 'shared/boar', file: 'src/game/models/explorerCatalogue.ts' },
-    { id: 'shared/bear', file: 'src/game/models/explorerCatalogue.ts' },
+    { id: 'shared/boar', file: 'src/game/client/models/explorerCatalogue.ts' },
+    { id: 'shared/bear', file: 'src/game/client/models/explorerCatalogue.ts' },
   ]);
   historicalDriftwoodCatalogue(driftwood);
   expect(driftwood).toEqual(before);
@@ -37,7 +37,7 @@ test('historical reconstruction refuses foreign, missing and duplicate current p
   const missing = { ...driftwood, entries: driftwood.entries.map(row => {
     if (row.kind !== 'species' || row.id !== 'shared/boar') return row;
     const { file, ...withoutFile } = row;
-    expect(file).toBe('src/game/models/explorerCatalogue.ts');
+    expect(file).toBe('src/game/client/models/explorerCatalogue.ts');
     return withoutFile;
   }) };
   const missingRow = { ...driftwood, entries: driftwood.entries.filter(row => row.kind !== 'species' || row.id !== 'shared/boar') };

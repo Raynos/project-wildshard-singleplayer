@@ -6,7 +6,7 @@ import { KNIFE_LOOK } from '../src/shards/pine-hollow/generators/knifeLook';
 import playback from '../src/shards/pine-hollow/data/heldToolPlayback.json' with { type: 'json' };
 import { HeldEquipmentSchema } from '@wildshard/format/heldEquipment';
 import { outputPlatformPayloads } from '../src/sdk/outputProduct';
-import { heldToolRows } from '../src/game/plugin/heldTool';
+import { heldToolRows } from '../src/game/client/plugin/heldTool';
 
 // Generation is fixture preparation (readPineProject: the CLI's declared roots, b8a8db5fd4); the case reads the output.
 const pine = await readPineProject();

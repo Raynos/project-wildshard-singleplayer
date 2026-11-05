@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { BoxGeometry, InstancedMesh, Matrix4, MeshBasicMaterial, Object3D, PerspectiveCamera, Quaternion, Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { viewProgram } from '../src/engine/script/viewProgram';
+import { Scope } from '../src/engine/shared/app/scope';
+import { viewProgram } from '../src/engine/client/script/viewProgram';
 import { ARENA_VIEW, arenaFunnel } from '@wildshard/format/arenaView';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { nalatiTitanWhirlsView } from '../src/shards/nalati-grasslands/generators/titanWhirlsView';

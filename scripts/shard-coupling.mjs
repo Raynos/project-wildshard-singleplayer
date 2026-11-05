@@ -58,7 +58,7 @@ export function compareWeaponTransfers(before, after) {
   }
   return failures;
 }
-const CONTEXT_FILES = new Set(['src/game/plugin/context.ts', 'src/engine/level/context.ts']);
+const CONTEXT_FILES = new Set(['src/game/server/plugin/context.ts', 'src/engine/server/level/context.ts']);
 const initial = () => ({ 'ctx.app': 0, 'ctx.game': 0, 'ctx.game.runtime': 0, engineSubclasses: 0 });
 
 export function shardCoupling(root = ROOT) {
@@ -116,7 +116,7 @@ export function shardCoupling(root = ROOT) {
   const platformWeapon = (type, seen = new Set()) => {
     if (seen.has(type)) return false;
     const next = new Set(seen).add(type), symbol = type.getSymbol();
-    if (declarations(symbol).some((decl) => ts.isClassDeclaration(decl) && local(decl.getSourceFile().fileName) === 'src/engine/combat/Weapon.ts' && decl.name?.text === 'Weapon')) return true;
+    if (declarations(symbol).some((decl) => ts.isClassDeclaration(decl) && local(decl.getSourceFile().fileName) === 'src/engine/server/combat/Weapon.ts' && decl.name?.text === 'Weapon')) return true;
     if (declarations(symbol).some((decl) => ts.isClassDeclaration(decl))) {
       const declared = checker.getDeclaredTypeOfSymbol(symbol);
       if (declared !== type) return platformWeapon(declared, next);

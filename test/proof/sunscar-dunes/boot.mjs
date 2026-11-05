@@ -4,10 +4,10 @@ import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the shard's admitted in-tree bytes and the native physics module.
 import { readFileSync } from 'node:fs';
 import { source, sourceAssets } from '../../fixtures/sunscar-source-program.ts';
-import { loadRapier } from '../../../src/engine/physics/rapier.ts';
-import { decodeSimSnapshot } from '../../../src/engine/sim/snapshot.ts';
-import { installAppIdentity } from '../../../src/engine/app/identity.ts';
-import { WILDSHARD_IDENTITY } from '../../../src/game/identity.ts';
+import { loadRapier } from '../../../src/engine/shared/physics/rapier.ts';
+import { decodeSimSnapshot } from '../../../src/engine/shared/sim/snapshot.ts';
+import { installAppIdentity } from '../../../src/engine/shared/app/identity.ts';
+import { WILDSHARD_IDENTITY } from '../../../src/game/client/identity.ts';
 import { createTrustedHeadlessAdapter } from '../../../src/sdk/headlessRuntime.ts';
 import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct.ts';
 

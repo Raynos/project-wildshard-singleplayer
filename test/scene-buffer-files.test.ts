@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Group, MeshBasicMaterial, Points, type Object3D } from 'three';
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { parseSceneBuffers } from '@wildshard/format/sceneBuffers';
-import { admitSceneBuffers, createSceneBuffers } from '../src/game/shardfile/sceneBuffers';
-import { drawSceneRows, prepareSceneDrawRows } from '../src/game/shardfile/sceneDraws';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { admitSceneBuffers, createSceneBuffers } from '../src/game/client/shardfile/sceneBuffers';
+import { drawSceneRows, prepareSceneDrawRows } from '../src/game/client/shardfile/sceneDraws';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { emitNamedBlobs } from '../src/sdk/blobs';
 import { portalLookRows } from '../src/shards/nine-dragon-stack/generators/portalLook';

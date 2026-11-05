@@ -5,7 +5,7 @@
 //             species factory and their Animal pose (lowPolyMaterials), the ranger from the shared figure-row skin loader
 //             (ranger.phone.glb, its atlas + normal map material, npcRig.ts's pose closure)
 //   EXPORTED  the content-addressed GLB of public/assets/baked/skin-fixture/ through the client's skin player
-//             (src/game/shardfile/skinPlayback.ts: admission, GLTFLoader, bindRig, AnimMachine) with its bindings.json
+//             (src/game/client/shardfile/skinPlayback.ts: admission, GLTFLoader, bindRig, AnimMachine) with its bindings.json
 //             SF10a family material; the ranger's maps are the baked KTX2 files transcoded by three's KTX2Loader
 // Today steps its closure at 60 Hz, the export advances its mixer by 1/60 s (the engine's per-frame update); every second
 // step is a video frame. window.skinPlayback exposes: init(), segments(), frame(i) → { jpeg, err }, still(kind, clip, t).
@@ -16,9 +16,9 @@ import { Scope } from '@wildshard/engine/app/scope';
 import { BASIS_PATH } from '@wildshard/engine/core/ktx2';
 import { ToonLook } from '@wildshard/engine/render/families/toon';
 import { familyMaterial } from '@wildshard/engine/render/families/registry';
-import { loadSkin } from '../../src/game/shardfile/skinPlayback';
+import { loadSkin } from '../../src/game/client/shardfile/skinPlayback';
 import { parseSkinBindings, parseSkinRows } from '@wildshard/format/skinData';
-import { FigureSkins } from '../../src/game/systems/npc/figureSkins';
+import { FigureSkins } from '../../src/game/client/systems/npc/figureSkins';
 import { FIGURE_CATALOGUE } from '../../src/shards/pine-hollow/generators/figureCatalogue';
 import { creatureSkinSource } from '../../test/fixtures/sim-level/skins/sources';
 

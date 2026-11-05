@@ -4,7 +4,7 @@
 //   node scripts/site-facts.mjs --out <file>       writes <file> (`pnpm build` writes dist/site-facts.json)
 // The site lives in project-wildshard/www.wildshard.io, which commits a copy as src/site/facts.json and refreshes it by
 // hand at a release (its docs/dev.md). Nothing here checks that copy.
-// Sources: the single-player grid (src/game/grid/singleplayer.json), the cell size and memory caps
+// Sources: the single-player grid (src/game/shared/grid/singleplayer.json), the cell size and memory caps
 // (@wildshard/format/contentBounds), the road width (@wildshard/engine/core/config), the shard.json schema's path count
 // (@wildshard/format/shardSchema through scripts/docs/schema-reference.mjs) and an excerpt of the template's built
 // shard.json (out/_template/shard.json: run node scripts/build-shardfiles.mjs first). The site formats the numbers.
@@ -32,7 +32,7 @@ const json = (file) => record(JSON.parse(readFileSync(resolve(root, file), 'utf8
 
 /** the one single-player grid used by public and Developer alike (G972); a later row for a cell replaces an earlier */
 function grid() {
-  const g = record(json('src/game/grid/singleplayer.json').grid, 'grid');
+  const g = record(json('src/game/shared/grid/singleplayer.json').grid, 'grid');
   /** @type {Map<string, {x:number, z:number, slug:string, plot:boolean}>} */
   const at = new Map();
   for (const row of list(g.cells, 'grid.cells')) {

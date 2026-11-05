@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { NativeQuestCompositionSchema, NativeQuestServiceSpotsSchema, parseNativeQuestComposition, parseNativeQuestServiceSpots } from '@wildshard/format/nativeQuestComposition';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 import { PINE_NATIVE_QUEST } from '../src/shards/pine-hollow/generators/nativeQuest';
 import spots from '../src/shards/pine-hollow/data/spotsRows.json';
 

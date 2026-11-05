@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { Box3, BufferAttribute, BufferGeometry, Float16BufferAttribute, InterleavedBuffer, InterleavedBufferAttribute, Matrix4, Sphere, Vector3 } from 'three';
-import { homeGeometryBytes, restoreHomeGeometry, snapshotHomeGeometry } from '../src/game/shardfile/homeGeometrySnapshot';
+import { homeGeometryBytes, restoreHomeGeometry, snapshotHomeGeometry } from '../src/game/client/shardfile/homeGeometrySnapshot';
 
 test('a structured clone restores all native words, half semantics, topology, transforms and bounds', () => {
   const geometry = new BufferGeometry();

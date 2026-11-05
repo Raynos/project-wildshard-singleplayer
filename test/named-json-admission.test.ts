@@ -4,8 +4,8 @@ import { nameBlob } from '../src/sdk/blobs';
 import {validateDefinedJson} from '../src/sdk/sections';
 import {encodeCanonicalJson} from '../src/sdk/immutable';
 import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
-import { validateNamedJsonSchema, validateNamedJsonSchemaPaced } from '../src/game/shardfile/customSchema';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { validateNamedJsonSchema, validateNamedJsonSchemaPaced } from '../src/game/shared/shardfile/customSchema';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '@wildshard/sdk/author';
 
 const jsonSchema = { $schema: 'http://json-schema.org/draft-07/schema#', type: 'array', maxItems: 20000,

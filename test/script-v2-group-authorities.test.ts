@@ -1,20 +1,20 @@
 import {beforeAll,expect,expectTypeOf,test,vi} from 'vitest';
 import {Vector3} from 'three';
-import {Scope} from '../src/engine/app/scope';
-import {AnimalSim} from '../src/engine/entities/AnimalSim';
-import type {Animal} from '../src/engine/entities/AnimalView';
-import {Rng} from '../src/engine/core/rng';
-import {StalkerBrain,type CirclingPackContext,type CirclingPackPorts} from '../src/engine/ai/stalker';
-import {GrazerBrain,type GuardedHerdContext,type GuardedHerdPorts} from '../src/engine/ai/grazer';
-import {GroupBrain} from '../src/engine/ai/GroupBrain';
-import {AggressionDirector} from '../src/engine/ai/director';
-import {GroupStepV2,prepareGroupNativeV2,type GroupStepNativeOwnersV2,type GroupStepReferenceV2} from '../src/engine/script/groupStepV2';
-import type {V2ColumnOwners} from '../src/engine/script/observationColumnsV2';
+import {Scope} from '../src/engine/shared/app/scope';
+import {AnimalSim} from '../src/engine/server/entities/AnimalSim';
+import type {Animal} from '../src/engine/client/entities/AnimalView';
+import {Rng} from '../src/engine/shared/core/rng';
+import {StalkerBrain,type CirclingPackContext,type CirclingPackPorts} from '../src/engine/server/ai/stalker';
+import {GrazerBrain,type GuardedHerdContext,type GuardedHerdPorts} from '../src/engine/server/ai/grazer';
+import {GroupBrain} from '../src/engine/server/ai/GroupBrain';
+import {AggressionDirector} from '../src/engine/server/ai/director';
+import {GroupStepV2,prepareGroupNativeV2,type GroupStepNativeOwnersV2,type GroupStepReferenceV2} from '../src/engine/shared/script/groupStepV2';
+import type {V2ColumnOwners} from '../src/engine/shared/script/observationColumnsV2';
 import {parseGroupStepV2,groupStepLayoutV2,GroupStepV2Schema} from '@wildshard/format/scriptGroupStepV2';
 import {compileScriptV2} from '../src/sdk/bake/compileScriptV2';
 import {v2CoreSource} from '../src/sdk/as/wsV2';
 import {namedJsonSchema} from '../src/sdk/formatJsonSchema';
-import {validateNamedJsonSchema} from '../src/game/shardfile/customSchema';
+import {validateNamedJsonSchema} from '../src/game/shared/shardfile/customSchema';
 
 const rows=parseGroupStepV2({bank:[{name:'calls',kind:'number'}],columns:[],members:1,signals:['pack','herd','bad','prefix','environment','notifications','groupClaim','badFlight','badMask','senses','nearest','sharedInit','twoStreams'],actions:[
  {id:1,words:2,member:0,native:{kind:'start-attack'}},{id:2,words:1,member:0,native:{kind:'cancel-attack'}},

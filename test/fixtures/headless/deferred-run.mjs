@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createNativeProofWorker } from '../headless-worker.ts';
 import { emptyShardfile } from '../../../src/sdk/author.ts';
-import { decodeSimSnapshot } from '../../../src/engine/sim/snapshot.ts';
+import { decodeSimSnapshot } from '../../../src/engine/shared/sim/snapshot.ts';
 const source = emptyShardfile({slug:'deferred-fixture',name:'Deferred fixture',author:'Test',revision:1,seed:435});
 for(const checkpoint of [6,18]) {
   const original = await createNativeProofWorker(source,new Map(),'deferred');

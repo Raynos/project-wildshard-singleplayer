@@ -3,7 +3,7 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { DRAFT_TITLES } from '../../src/game/draftTitles.ts';
+import { DRAFT_TITLES } from '../../src/game/client/draftTitles.ts';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
 

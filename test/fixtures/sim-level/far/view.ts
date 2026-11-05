@@ -4,11 +4,11 @@
 // uv.x). A camera on the centre cell turns to each neighbour; scripts/bake/far-board.mjs captures them.
 import { BufferGeometry, Color, DirectionalLight, Group, HemisphereLight, Mesh, MeshLambertMaterial, PerspectiveCamera, PlaneGeometry, Scene, WebGLRenderer } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { CONTENT_CAPS as C } from '../../../../src/engine/core/config';
-import { ResidencyAllocator } from '../../../../src/game/grid/allocator';
-import { FAR_RING, type FarLookRuntime } from '../../../../src/game/grid/farProxy';
-import { farRingPorts, type FarPrepared } from '../../../../src/game/grid/farView';
-import { TileStreamer, type RingCell } from '../../../../src/engine/world/tileStreamer';
+import { CONTENT_CAPS as C } from '../../../../src/engine/shared/core/config';
+import { ResidencyAllocator } from '../../../../src/game/server/grid/allocator';
+import { FAR_RING, type FarLookRuntime } from '../../../../src/game/server/grid/farProxy';
+import { farRingPorts, type FarPrepared } from '../../../../src/game/client/grid/farView';
+import { TileStreamer, type RingCell } from '../../../../src/engine/client/world/tileStreamer';
 import templateGlb from '../../../../public/assets/baked/_template/far.glb?url';
 import template from '../../../../public/assets/baked/_template/far.json';
 import driftwoodGlb from '../../../../public/assets/baked/driftwood-isle/far.glb?url';

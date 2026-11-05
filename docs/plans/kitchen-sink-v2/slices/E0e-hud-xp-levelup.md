@@ -18,11 +18,11 @@ labelled board to Jake first (a HUD change that isn't a bug fix needs his pick).
 
 Research:
 
-- HUD slots: `src/engine/ui/HUD.ts` (686 lines) and `src/engine/ui/hudSlots.ts`; the bottom edge above the touch
+- HUD slots: `src/engine/client/ui/HUD.ts` (686 lines) and `src/engine/client/ui/hudSlots.ts`; the bottom edge above the touch
   controls is free in portrait (E319 layout: the left edge is HORSE · HOVER · SWAP; VITALS hide at full health).
-- The death card is `src/engine/ui/HurtArc.ts` ("Killed by…", KITCHEN-SINK §2.21: already generic). Toast and banner
+- The death card is `src/engine/client/ui/HurtArc.ts` ("Killed by…", KITCHEN-SINK §2.21: already generic). Toast and banner
   helpers exist in `HUD.ts`.
-- No XP, level or progression UI exists anywhere (grep `xp`, `LV`, `levelUp`: none in `src/engine/ui`).
+- No XP, level or progression UI exists anywhere (grep `xp`, `LV`, `levelUp`: none in `src/engine/client/ui`).
 
 Work:
 

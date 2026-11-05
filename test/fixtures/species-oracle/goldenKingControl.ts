@@ -2,9 +2,9 @@ import { originalSpeciesJson } from '../nalati-original-species';
 import * as v from 'valibot';
 // Original species controls frozen before removal of the test-only override API.
 // Source: ac921ef953aed56e11255743a8a0bb6df3658cc8:src/shards/nalati-grasslands/species/goldenKing.ts
-import { arenaRoomBrain } from '../../../src/game/boss/arenaRoomFight';
-import type { Animal } from '../../../src/engine/entities/AnimalView';
-import type { SpeciesDef,ThinkCtx } from '../../../src/engine/entities/species/registry';
+import { arenaRoomBrain } from '../../../src/game/server/boss/arenaRoomFight';
+import type { Animal } from '../../../src/engine/client/entities/AnimalView';
+import type { SpeciesDef,ThinkCtx } from '../../../src/engine/shared/entities/species/registry';
 import type { Vector3 } from 'three';
 
 const speciesRows = v.parse(v.object({ king: v.object({ kind: v.string() }) }), originalSpeciesJson('boot.json'));

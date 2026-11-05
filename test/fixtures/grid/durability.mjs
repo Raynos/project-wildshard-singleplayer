@@ -4,16 +4,16 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
 import { TEMPLATE_SOURCE as source, templateAssets } from '../templateSource.ts';
-import { loadRapier } from '../../../src/engine/physics/rapier.ts';
-import { SaveStore } from '../../../src/engine/saves/store.ts';
-import { createShardfileSim, bindShardfileSim } from '../../../src/game/plugin/simulation.ts';
-import { snapshotSimHost, restoreSimHost } from '../../../src/engine/sim/snapshot.ts';
-import { GridRegionDurability } from '../../../src/game/grid/durability.ts';
-import { generatePlatform } from '../../../src/engine/sim/strips.ts';
-import { installStripCollider } from '../../../src/engine/physics/stripColliders.ts';
-import { GridAssembly } from '../../../src/game/grid/assembly.ts';
-import { CharacterMotor } from '../../../src/engine/physics/CharacterMotor.ts';
-import { leadPlayer } from '../../../src/engine/sim/leadPlayer.ts';
+import { loadRapier } from '../../../src/engine/shared/physics/rapier.ts';
+import { SaveStore } from '../../../src/engine/shared/saves/store.ts';
+import { createShardfileSim, bindShardfileSim } from '../../../src/game/server/plugin/simulation.ts';
+import { snapshotSimHost, restoreSimHost } from '../../../src/engine/shared/sim/snapshot.ts';
+import { GridRegionDurability } from '../../../src/game/server/grid/durability.ts';
+import { generatePlatform } from '../../../src/engine/shared/sim/strips.ts';
+import { installStripCollider } from '../../../src/engine/shared/physics/stripColliders.ts';
+import { GridAssembly } from '../../../src/game/server/grid/assembly.ts';
+import { CharacterMotor } from '../../../src/engine/shared/physics/CharacterMotor.ts';
+import { leadPlayer } from '../../../src/engine/shared/sim/leadPlayer.ts';
 
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
 class Storage {

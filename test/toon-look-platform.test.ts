@@ -1,18 +1,18 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, Scene, Vector3 } from 'three';
 import * as v from 'valibot';
-import { Scope } from '../src/engine/app/scope';
-import type { PainterField, SkyBackdropContext, WorldLookContext } from '../src/engine/render/look';
-import type { Terrain } from '../src/engine/world/Terrain';
-import * as geometry from '../src/engine/models/ownedGeometry';
-import { ToonLook } from '../src/engine/render/families/toon';
+import { Scope } from '../src/engine/shared/app/scope';
+import type { PainterField, SkyBackdropContext, WorldLookContext } from '../src/engine/client/render/look';
+import type { Terrain } from '../src/engine/client/world/Terrain';
+import * as geometry from '../src/engine/client/models/ownedGeometry';
+import { ToonLook } from '../src/engine/client/render/families/toon';
 import { TOON_DAY_PRESET, ToonDaySchema, parseToonLook } from '@wildshard/format/toonLook';
 import { emptyShardfile } from '../src/sdk/author';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import * as materials from '../src/game/shardfile/runtimeProduct';
-import * as sky from '../src/game/looks/graphDaySky';
-import { toonLook, toonLookState } from '../src/game/looks/toonLook';
-import { dayClock } from '../src/game/looks/dayClock';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
+import * as materials from '../src/game/client/shardfile/runtimeProduct';
+import * as sky from '../src/game/client/looks/graphDaySky';
+import { toonLook, toonLookState } from '../src/game/client/looks/toonLook';
+import { dayClock } from '../src/game/shared/looks/dayClock';
 import DRIFTWOOD_SKY_DAY from '../src/shards/driftwood-isle/data/skyDay.json' with { type: 'json' };
 
 // A fictional chalk coast supplies its own graph names, files, puff positions, fog and lighting.

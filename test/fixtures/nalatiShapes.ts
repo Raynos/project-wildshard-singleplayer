@@ -1,5 +1,5 @@
 import { originalPoiPaintFiles } from './nalati-poi-paint-original';
-import { fixedDraws } from '../../src/game/models/fixedDraws';
+import { fixedDraws } from '../../src/game/client/models/fixedDraws';
 import shapeRows from './nalati-shape-book-original.json' with { type: 'json' };
 
 /** Nalati's frozen original shape book (the product's models/shape-book.json) as one fixed-draw library,

@@ -2,14 +2,14 @@ import {afterEach, expect, test, vi} from 'vitest';
 import {emptyShardfile} from '../src/sdk/author';
 import {hashImmutableBytes} from '../src/sdk/immutable';
 import {parseOutputIndex} from '@wildshard/format/outputIndex';
-import {installTitleManifests, titleManifests, type TitleManifest} from '../src/game/shard/titleList';
-import {Scope} from '../src/engine/app/scope';
-import {saves} from '../src/engine/saves/runtime';
+import {installTitleManifests, titleManifests, type TitleManifest} from '../src/game/client/shard/titleList';
+import {Scope} from '../src/engine/shared/app/scope';
+import {saves} from '../src/engine/shared/saves/runtime';
 
 afterEach(() => {vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.unstubAllEnvs();});
 
 test('Download everything reads every product past Save-Data in a fresh run, and reports its bytes (G727, I9)', async () => {
-  const {startGridPrefetch, gridPrefetchStatus, downloadEverything, remainingDownloadBytes} = await import('../src/game/grid/prefetch');
+  const {startGridPrefetch, gridPrefetchStatus, downloadEverything, remainingDownloadBytes} = await import('../src/game/client/grid/prefetch');
   const bodies = [new Uint8Array([1, 2]), new Uint8Array([3, 4, 5])], hashes = bodies.map(body => hashImmutableBytes(body));
   const indexOf = (slug: string, file: number) => {
     const source = emptyShardfile({slug, name: slug, author: 'Test', revision: 1, seed: 1});

@@ -1,12 +1,12 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
-import { installEntryQuestViews } from '../src/game/shardfile/clientQuestComposition';
-import { admitClientPlan, CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
-import { QuestPageViews } from '../src/game/quest/questPageViews';
-import type { ShardContext } from '../src/game/plugin/context';
+import { installEntryQuestViews } from '../src/game/client/shardfile/clientQuestComposition';
+import { admitClientPlan, CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';
+import { QuestPageViews } from '../src/game/client/quest/questPageViews';
+import type { ShardContext } from '../src/game/server/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 // This partial input exercises entry ordering before the mocked view host.

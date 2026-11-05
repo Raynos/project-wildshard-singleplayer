@@ -55,7 +55,7 @@ export function phoneLoadingObservation() {
   const observer = Reflect.get(window, '__phoneRouteObserver') ?? null;
   // Resource Timing contains settled reads only. Retain the existing registry's
   // live transport identities without importing code or invoking retry owners.
-  const state = /** @type {import('../../src/engine/boot/loadingWaits').LoadingWaitState|undefined} */ (Reflect.get(document, Symbol.for('engine.loading.waits.v1')));
+  const state = /** @type {import('../../src/engine/shared/boot/loadingWaits').LoadingWaitState|undefined} */ (Reflect.get(document, Symbol.for('engine.loading.waits.v1')));
   const waits = state?.version === 1 && typeof state.pending?.values === 'function'
     ? [...state.pending.values()].map(row => ({ id: row.id, label: row.label, kind: row.kind, step: row.step,
       resource: row.resource ?? null, startedAt: row.startedAt, ageMs: Math.max(0, at - row.startedAt),

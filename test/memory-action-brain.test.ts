@@ -1,17 +1,17 @@
 import {lendDriftwoodReturns} from './fixtures/driftwood-return-modules';
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { AnimalSim } from '../src/engine/entities/AnimalSim';
-import { createMemoryActionBrain, type MemoryActionRows } from '../src/game/plugin/brain';
-import { bindPerchBody, PerchBodyBinding, type PerchBodyPorts } from '../src/game/population/perchBody';
+import { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import { createMemoryActionBrain, type MemoryActionRows } from '../src/game/server/plugin/brain';
+import { bindPerchBody, PerchBodyBinding, type PerchBodyPorts } from '../src/game/server/population/perchBody';
 import { speciesBrains } from '../src/sdk/speciesBrains';
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { DRIFTWOOD_ENEMY_PROGRAM } from '../src/shards/driftwood-isle/generators/speciesPrograms';
 import { RETURN_PROGRAM } from './fixtures/driftwood-guest-programs';
 import perchRows from '../src/shards/driftwood-isle/data/mixedPopulation.json' with { type: 'json' };
 import { stepCreatureLift } from '@wildshard/game/plugin/animation';
-import { Rng } from '../src/engine/core/rng';
-import { onFault, type Fault } from '../src/engine/core/faults';
+import { Rng } from '../src/engine/shared/core/rng';
+import { onFault, type Fault } from '../src/engine/shared/core/faults';
 import { DRIFTWOOD_STRIKES } from './fixtures/species/driftwood';
 
 

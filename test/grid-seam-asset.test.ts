@@ -65,7 +65,7 @@ test('compiler edge costs retain the original bounded JSON charge and source ide
 test('the grid chunk guard refuses inline data, missing measurements and either exceeded ceiling', () => {
   const manifest = { 'index.html': { file: 'entry.js', isEntry: true } };
   const modules = { 'entry.js': { name: 'entry', moduleIds: [], rawBytes: 40, gzBytes: 30 },
-    'grid.js': { name: 'grid', moduleIds: ['src/game/grid/session.ts'], rawBytes: 300000, gzBytes: 50000 } };
+    'grid.js': { name: 'grid', moduleIds: ['src/game/client/grid/session.ts'], rawBytes: 300000, gzBytes: 50000 } };
   const caps = { 'js/grid-session/raw': 450000, 'js/grid-session/gzip': 100000 };
   expect(checkChunks(manifest, modules, {}, caps).errors).toEqual([]);
   expect(checkChunks(manifest, { ...modules, 'grid.js': { ...modules['grid.js'], rawBytes: 3853495 } }, {}, caps).errors).toContainEqual(expect.stringContaining('grid session raw 3853495 exceeds'));
@@ -77,15 +77,15 @@ test('the grid chunk guard refuses inline data, missing measurements and either 
 test('the app build\'s chunk report refuses a grid chunk above the ratchet', async () => {
   const root = mkdtempSync(resolve('tmp/js-grid-budget-'));
   try {
-    mkdirSync(resolve(root, 'src/game/grid'), { recursive: true }); mkdirSync(resolve(root, 'lint'));
-    writeFileSync(resolve(root, 'src/game/grid/session.ts'), `globalThis.grid = ${JSON.stringify('exact data'.repeat(100))};`);
+    mkdirSync(resolve(root, 'src/game/client/grid'), { recursive: true }); mkdirSync(resolve(root, 'lint'));
+    writeFileSync(resolve(root, 'src/game/client/grid/session.ts'), `globalThis.grid = ${JSON.stringify('exact data'.repeat(100))};`);
     const policy = resolve(root, 'lint/ratchet.json');
     writeFileSync(policy, JSON.stringify({ budgets: { 'js/grid-session/raw': 10, 'js/grid-session/gzip': 10 } }));
     const outDir = resolve(root, 'dist'), options: InlineConfig = { root, configFile: false, logLevel: 'silent',
-      build: { outDir, minify: false, manifest: true, sourcemap: 'hidden', rolldownOptions: { input: resolve(root, 'src/game/grid/session.ts') } } };
+      build: { outDir, minify: false, manifest: true, sourcemap: 'hidden', rolldownOptions: { input: resolve(root, 'src/game/client/grid/session.ts') } } };
     await build(options);
     expect(() => writeChunkReport(outDir, root)).toThrow('grid session raw');
     writeFileSync(policy, JSON.stringify({ budgets: { 'js/grid-session/raw': 2000, 'js/grid-session/gzip': 1000 } }));
-    expect(Object.values(writeChunkReport(outDir, root)).map(row => row.moduleIds)).toEqual([['src/game/grid/session.ts']]);
+    expect(Object.values(writeChunkReport(outDir, root)).map(row => row.moduleIds)).toEqual([['src/game/client/grid/session.ts']]);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

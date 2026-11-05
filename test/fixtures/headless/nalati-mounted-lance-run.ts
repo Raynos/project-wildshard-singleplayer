@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import {Vector3} from 'three';
 import * as v from 'valibot';
-import {decodeSimSnapshot,snapshotSimHost,serializeSimSnapshot} from '../../../src/engine/sim/snapshot';
+import {decodeSimSnapshot,snapshotSimHost,serializeSimSnapshot} from '../../../src/engine/shared/sim/snapshot';
 import {canonicalSimDigest} from '../../fake/simState';
 import {parseHeldSlots} from '@wildshard/format/heldArms';
 import {PolearmRowsSchema} from '@wildshard/format/heldMelee';

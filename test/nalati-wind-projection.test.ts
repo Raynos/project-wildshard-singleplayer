@@ -1,7 +1,7 @@
-import {Scope} from '../src/engine/app/scope';
+import {Scope} from '../src/engine/shared/app/scope';
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import { expect, test, beforeEach, afterEach } from 'vitest';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 
 let programmeScope:Scope;

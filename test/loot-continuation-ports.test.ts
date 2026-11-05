@@ -3,16 +3,16 @@ import { execFileSync } from 'node:child_process';
 import { prepareNativeCoinRecipe } from './fixtures/native-coin-recipe';
 import { expect, test } from 'vitest';
 import { Scene, Vector3 } from 'three';
-import { app } from '../src/engine/app/runtime';
-import { RngService } from '../src/engine/core/rng';
-import { installCoinModel } from '../src/game/loot/coinModel';
-import { coinGeometry } from '../src/game/generators/pickups';
-import { CoinMotion } from '../src/game/loot/CoinMotion';
-import { CoinBurst } from '../src/game/loot/CoinBurst';
-import { Purse } from '../src/game/loot/Purse';
-import { Owned } from '../src/game/loot/Owned';
-import { Bounty } from '../src/game/loot/Bounty';
-import { ownedSave, bountySave } from '../src/game/saves';
+import { app } from '../src/engine/client/app/runtime';
+import { RngService } from '../src/engine/shared/core/rng';
+import { installCoinModel } from '../src/game/client/loot/coinModel';
+import { coinGeometry } from '../src/game/cook/generators/pickups';
+import { CoinMotion } from '../src/game/client/loot/CoinMotion';
+import { CoinBurst } from '../src/game/server/loot/CoinBurst';
+import { Purse } from '../src/game/server/loot/Purse';
+import { Owned } from '../src/game/server/loot/Owned';
+import { Bounty } from '../src/game/server/loot/Bounty';
+import { ownedSave, bountySave } from '../src/game/shared/saves';
 
 function play(burst: CoinBurst) {
   const events: string[] = [], frames: number[][] = [];

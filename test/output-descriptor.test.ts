@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Device-cost source fixture uses one tracked bounded KTX2 file.
 import { readFileSync } from 'node:fs';
 import { parseKtx2, ktx2DeviceCosts, ktx2DeviceGpu } from '@wildshard/format/ktx2Cost';
-import { runtimeOnlyProductFiles, deviceLibraryCostPaced, productResidentBytes, productResidentBytesSteps, productPostCost } from '../src/game/shardfile/productCost';
+import { runtimeOnlyProductFiles, deviceLibraryCostPaced, productResidentBytes, productResidentBytesSteps, productPostCost } from '../src/game/client/shardfile/productCost';
 import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { encodeCanonicalJson as canonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
@@ -9,20 +9,20 @@ import { parseOutputIndex, type OutputIndex } from '@wildshard/format/outputInde
 import { OUTPUT_SECTIONS, outputSectionPayloads } from '@wildshard/format/outputFields';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
 import { parseStateLineage } from '@wildshard/format/stateLineage';
-import { readProductDescriptor, admitProduct, type CachedProduct, type ProductCache, type ProductOptions } from '../src/game/shardfile/product';
-import { provideHybridDeclaration, runtimeProduct, loadShardProduct, completeManifestCache } from '../src/game/shardfile/runtimeProduct';
-import { ClientAssets } from '../src/game/shardfile/clientAssets';
-import { isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
-import { saves } from '../src/engine/saves/runtime';
-import { installManifestShardfile, installShardfileProduct } from '../src/game/shardfile/clientSource';
+import { readProductDescriptor, admitProduct, type CachedProduct, type ProductCache, type ProductOptions } from '../src/game/client/shardfile/product';
+import { provideHybridDeclaration, runtimeProduct, loadShardProduct, completeManifestCache } from '../src/game/client/shardfile/runtimeProduct';
+import { ClientAssets } from '../src/game/client/shardfile/clientAssets';
+import { isBuildValidatedOutput, outputBlobUrl, outputDescriptor, resolveOutputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
+import { saves } from '../src/engine/shared/saves/runtime';
+import { installManifestShardfile, installShardfileProduct } from '../src/game/client/shardfile/clientSource';
 import { prepareBootImports } from '../src/bootDownloads';
-import { sourceManifest } from '../src/game/plugin/context';
-import { installShards, shards } from '../src/game/shard/list';
-import { game, setActiveChunk } from '../src/game/shard/registry';
-import { Scope } from '../src/engine/app/scope';
-import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { leaseClientLibrary } from '../src/game/shardfile/clientLibrary';
-import { entryReadPlan } from '../src/game/grid/entryReadPrefetch';
+import { sourceManifest } from '../src/game/server/plugin/context';
+import { installShards, shards } from '../src/game/client/shard/list';
+import { game, setActiveChunk } from '../src/game/client/shard/registry';
+import { Scope } from '../src/engine/shared/app/scope';
+import { ResidencyAllocator } from '../src/game/server/grid/allocator';
+import { leaseClientLibrary } from '../src/game/client/shardfile/clientLibrary';
+import { entryReadPlan } from '../src/game/client/grid/entryReadPrefetch';
 import { parseEntryReadSet } from '@wildshard/format/entryReads';
 import { installCatalogueFixture } from './fixtures/bootSetup';
 

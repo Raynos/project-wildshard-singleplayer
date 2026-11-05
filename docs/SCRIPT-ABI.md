@@ -47,32 +47,32 @@ import. These are the complete v1 function interfaces. [format/scriptAbiV1.ts:45
 
 | Direction | Name | Signature / meaning | Source |
 |---|---|---|---|
-| Export | `ws_abi` | `() → i32`, must return 1 | [engine/script/decisionModule.ts:37](../src/engine/script/decisionModule.ts#L37) |
+| Export | `ws_abi` | `() → i32`, must return 1 | [engine/shared/script/decisionModule.ts:37](../src/engine/shared/script/decisionModule.ts#L37) |
 | Export | `ws_init` | `(lo: i32, hi: i32) → void`; generated glue initializes IO, ignores seed arguments | [sdk/decisionScriptBindings.ts:89](../src/sdk/decisionScriptBindings.ts#L89) |
-| Export | `ws_io` | `() → i32`, aligned byte address of IO | [engine/script/decisionModule.ts:39](../src/engine/script/decisionModule.ts#L39) |
+| Export | `ws_io` | `() → i32`, aligned byte address of IO | [engine/shared/script/decisionModule.ts:39](../src/engine/shared/script/decisionModule.ts#L39) |
 | Export | `ws_handle` | `() → i32`, returns command count | [sdk/decisionScriptBindings.ts:92](../src/sdk/decisionScriptBindings.ts#L92) |
 | Import | `ws_read` | `(op: i32, a: f64, b: f64) → f64` | [format/scriptAbiV1.ts:52](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L52) |
-| Import | `ws_list` | `(op: i32, a: f64, b: f64, out: i32, cap: i32) → i32`; count is f64 slots, not points | [format/scriptAbiV1.ts:52](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L52) [engine/script/decision.ts:344](../src/engine/script/decision.ts#L344) |
-| Import | `enter`, `leave` | `() → void`, metered call-depth guards | [format/scriptAbiV1.ts:50](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L50) [engine/script/decisionModule.ts:27](../src/engine/script/decisionModule.ts#L27) |
+| Import | `ws_list` | `(op: i32, a: f64, b: f64, out: i32, cap: i32) → i32`; count is f64 slots, not points | [format/scriptAbiV1.ts:52](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L52) [engine/server/script/decision.ts:344](../src/engine/server/script/decision.ts#L344) |
+| Import | `enter`, `leave` | `() → void`, metered call-depth guards | [format/scriptAbiV1.ts:50](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L50) [engine/shared/script/decisionModule.ts:27](../src/engine/shared/script/decisionModule.ts#L27) |
 | Import | `fuel` | `(cost: i32) → void` | [format/scriptAbiV1.ts:50](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L50) |
-| Import | `abort` | `(i32, i32, i32, i32) → void`, traps | [format/scriptAbiV1.ts:50](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L50) [engine/script/decisionModule.ts:32](../src/engine/script/decisionModule.ts#L32) |
-| Import | `finite32`, `finite64` | `(f32) → f32`, `(f64) → f64`; charge and trap on NaN/infinity | [format/scriptAbiV1.ts:51](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L51) [engine/script/decisionModule.ts:58](../src/engine/script/decisionModule.ts#L58) |
+| Import | `abort` | `(i32, i32, i32, i32) → void`, traps | [format/scriptAbiV1.ts:50](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L50) [engine/shared/script/decisionModule.ts:32](../src/engine/shared/script/decisionModule.ts#L32) |
+| Import | `finite32`, `finite64` | `(f32) → f32`, `(f64) → f64`; charge and trap on NaN/infinity | [format/scriptAbiV1.ts:51](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L51) [engine/shared/script/decisionModule.ts:58](../src/engine/shared/script/decisionModule.ts#L58) |
 
 At module construction the host admits, instantiates, calls optional `__start`,
 checks `ws_abi`, calls `ws_init`, reads `ws_io`, then captures the initialized
 memory image and mutable globals. There is one instance per module key **within
-a DecisionHost**, shared by that host's bindings. [engine/script/decisionModule.ts:21](../src/engine/script/decisionModule.ts#L21) [engine/script/decision.ts:174](../src/engine/script/decision.ts#L174)
+a DecisionHost**, shared by that host's bindings. [engine/shared/script/decisionModule.ts:21](../src/engine/shared/script/decisionModule.ts#L21) [engine/server/script/decision.ts:174](../src/engine/server/script/decision.ts#L174)
 
 Before each call it rewinds the entire memory image and globals, writes inputs,
 then invokes `ws_handle` once for the event batch. Generated glue dispatches
 handlers in inbox order. Scratch globals/heap changes do not survive to the next
-call. [engine/script/decisionModule.ts:70](../src/engine/script/decisionModule.ts#L70) [engine/script/decision.ts:260](../src/engine/script/decision.ts#L260) [sdk/decisionScriptBindings.ts:88](../src/sdk/decisionScriptBindings.ts#L88)
+call. [engine/shared/script/decisionModule.ts:70](../src/engine/shared/script/decisionModule.ts#L70) [engine/server/script/decision.ts:260](../src/engine/server/script/decision.ts#L260) [sdk/decisionScriptBindings.ts:88](../src/sdk/decisionScriptBindings.ts#L88)
 
 | IO area | Little-endian f64 slots, relative to `ws_io()` | Source |
 |---|---|---|
-| Header | 0 tick; 1 elapsed seconds since last successful call (first: tick/60); 2 binding id; 3 self handle; 4 event count; 5–7 zeroed/reserved | [engine/script/decision.ts:263](../src/engine/script/decision.ts#L263) [sdk/as/ws.ts:9](../src/sdk/as/ws.ts#L9) |
-| State | Starts at slot 8, in row declaration order; bool is 0/1 | [format/scriptAbiV1.ts:34](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L34) [engine/script/decision.ts:72](../src/engine/script/decision.ts#L72) [engine/script/decision.ts:265](../src/engine/script/decision.ts#L265) |
-| Params | After actual state slots, names sorted lexically | [format/decisionBindings.ts:40](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionBindings.ts#L40) [engine/script/decision.ts:181](../src/engine/script/decision.ts#L181) |
+| Header | 0 tick; 1 elapsed seconds since last successful call (first: tick/60); 2 binding id; 3 self handle; 4 event count; 5–7 zeroed/reserved | [engine/server/script/decision.ts:263](../src/engine/server/script/decision.ts#L263) [sdk/as/ws.ts:9](../src/sdk/as/ws.ts#L9) |
+| State | Starts at slot 8, in row declaration order; bool is 0/1 | [format/scriptAbiV1.ts:34](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L34) [engine/server/script/decision.ts:72](../src/engine/server/script/decision.ts#L72) [engine/server/script/decision.ts:265](../src/engine/server/script/decision.ts#L265) |
+| Params | After actual state slots, names sorted lexically | [format/decisionBindings.ts:40](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionBindings.ts#L40) [engine/server/script/decision.ts:181](../src/engine/server/script/decision.ts#L181) |
 | Inbox | After actual params; 16 reserved records of `[kind, subject, a, b, c, d]` | [format/scriptAbiV1.ts:27](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L27) [format/scriptAbiV1.ts:31](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L31) [format/scriptAbiV1.ts:34](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L34) |
 | Outbox | After all 96 inbox slots; 32 reserved records of `[op, target, a, b, c]` | [format/scriptAbiV1.ts:28](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L28) [format/scriptAbiV1.ts:32](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L32) [format/scriptAbiV1.ts:40](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L40) |
 
@@ -80,7 +80,7 @@ Successful calls stage commands, declared slots, timers and RNG together; the
 **next fixed step** commits them. Every command and state value must validate
 before preparation succeeds. A trap/refusal publishes none of that call's
 staged changes; its consumed inbox batch is not retried automatically.
-[engine/script/decision.ts:227](../src/engine/script/decision.ts#L227) [engine/script/decision.ts:280](../src/engine/script/decision.ts#L280) [engine/script/decision.ts:298](../src/engine/script/decision.ts#L298) [engine/script/decision.ts:302](../src/engine/script/decision.ts#L302)
+[engine/server/script/decision.ts:227](../src/engine/server/script/decision.ts#L227) [engine/server/script/decision.ts:280](../src/engine/server/script/decision.ts#L280) [engine/server/script/decision.ts:298](../src/engine/server/script/decision.ts#L298) [engine/server/script/decision.ts:302](../src/engine/server/script/decision.ts#L302)
 
 ## Events
 
@@ -92,33 +92,33 @@ generated bindings (`Event.subject` remains available for implicit subjects).
 
 | Id | Event / generated handler | Status and actual payload / producer | Source |
 |---|---|---|---|
-| 1 | `start` / `onStart()` | Works: binding activates | [game/shardfile/decisions.ts:336](../src/game/shardfile/decisions.ts#L336) |
-| 2 | `tick` / `onTick(dt)` | Works: explicit `tick: 1, 2, 5, 10`; no subscription means no periodic event | [format/decisionScripts.ts:26](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L26) [engine/script/decision.ts:250](../src/engine/script/decision.ts#L250) |
-| 3 | `timer` / `onTimer(timer)` | Works: timer deadline reached; subject is timer id | [engine/script/decision.ts:237](../src/engine/script/decision.ts#L237) |
-| 4 | `zone.enter` / `onZoneEnter(zone, actor)` | Works: quest region boundary, subject zone / a actor | [game/shardfile/decisions.ts:386](../src/game/shardfile/decisions.ts#L386) |
-| 5 | `zone.leave` / `onZoneLeave(zone, actor)` | Works: same region observation | [game/shardfile/decisions.ts:386](../src/game/shardfile/decisions.ts#L386) |
-| 6 | `interact` / `onInteract(target, player, verb)` | Works in native simulation: picker validates selected target, then queues target / player / verb=0; G484 still requires its first-script proof | [game/plugin/simulation.ts:575](../src/game/plugin/simulation.ts#L575) [game/shardfile/decisions.ts:431](../src/game/shardfile/decisions.ts#L431) |
-| 7 | `hit` / `onHit(by, amount, hpShare)` | Works: damage dealt; subject damaged actor | [game/shardfile/decisions.ts:166](../src/game/shardfile/decisions.ts#L166) |
-| 8 | `threshold` / `onThreshold(index)` | Works: encounter/borrowed phase changes; subject actor; phase index in a | [game/shardfile/decisions.ts:395](../src/game/shardfile/decisions.ts#L395) |
-| 9 | `death` / `onDeath(by)` | Works: actor death; subject dead actor | [game/shardfile/decisions.ts:172](../src/game/shardfile/decisions.ts#L172) |
-| 10 | `move.done` / `onMoveDone(move, ok)` | Works: move completion; subject actor | [game/shardfile/decisions.ts:377](../src/game/shardfile/decisions.ts#L377) |
-| 11 | `strike.done` / `onStrikeDone(strike, hit)` | Works: runner finished or start refused; subject actor | [game/shardfile/decisions.ts:300](../src/game/shardfile/decisions.ts#L300) [game/shardfile/decisions.ts:380](../src/game/shardfile/decisions.ts#L380) |
-| 12 | `flag` / `onFlag(flag, value)` | Works: world flag change; subject flag / a 0 or 1; player-flag writes do not emit this event | [game/shardfile/decisions.ts:165](../src/game/shardfile/decisions.ts#L165) [game/shardfile/decisions.ts:305](../src/game/shardfile/decisions.ts#L305) |
-| 13 | `signal` / `onSignal(signal, value, source)` | Works: signal command or mover end; subject signal / a value / b source actor (0 for mover end) | [game/shardfile/decisions.ts:309](../src/game/shardfile/decisions.ts#L309) [game/shardfile/decisions.ts:406](../src/game/shardfile/decisions.ts#L406) |
-| 14 | `strike.target` / `onStrikeTarget(target, by, strike)` | Not wired: handler/id reserved; decision owner has no strike-target event producer | [sdk/decisionScriptBindings.ts:42](../src/sdk/decisionScriptBindings.ts#L42) [game/shardfile/decisions.ts:380](../src/game/shardfile/decisions.ts#L380) |
-| 15 | `player.join` / `onPlayerJoin(player)` | Works as binding activation notification for the local player; not a network membership event | [game/shardfile/decisions.ts:348](../src/game/shardfile/decisions.ts#L348) |
-| 16 | `player.leave` / `onPlayerLeave(player)` | Works as binding deactivation notification | [game/shardfile/decisions.ts:348](../src/game/shardfile/decisions.ts#L348) |
-| 17 | `spawned` / `onSpawned(spawn)` | Spawn-owned programs deliver it to the declared actor binding after a committed spawn | [game/population/spawnScript.ts:225](../src/game/population/spawnScript.ts#L225) |
-| 18 | `stop` / `onStop()` | Works: binding deactivates | [game/shardfile/decisions.ts:349](../src/game/shardfile/decisions.ts#L349) |
-| 30 | `field` / `onField(actor, field, value)` | Not wired: no v1 view lane; refused by sim host | [engine/script/decision.ts:138](../src/engine/script/decision.ts#L138) [engine/script/decision.ts:157](../src/engine/script/decision.ts#L157) [sdk/decisionScriptBindings.ts:45](../src/sdk/decisionScriptBindings.ts#L45) |
-| 31 | `cue` / `onCue(cue, actor)` | Not wired: same view-lane restriction | [engine/script/decision.ts:157](../src/engine/script/decision.ts#L157) [sdk/decisionScriptBindings.ts:45](../src/sdk/decisionScriptBindings.ts#L45) |
-| 32 | `channel` / `onChannel(channel, value)` | Not wired: same view-lane restriction | [engine/script/decision.ts:157](../src/engine/script/decision.ts#L157) [sdk/decisionScriptBindings.ts:46](../src/sdk/decisionScriptBindings.ts#L46) |
+| 1 | `start` / `onStart()` | Works: binding activates | [game/server/shardfile/decisions.ts:336](../src/game/server/shardfile/decisions.ts#L336) |
+| 2 | `tick` / `onTick(dt)` | Works: explicit `tick: 1, 2, 5, 10`; no subscription means no periodic event | [format/decisionScripts.ts:26](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L26) [engine/server/script/decision.ts:250](../src/engine/server/script/decision.ts#L250) |
+| 3 | `timer` / `onTimer(timer)` | Works: timer deadline reached; subject is timer id | [engine/server/script/decision.ts:237](../src/engine/server/script/decision.ts#L237) |
+| 4 | `zone.enter` / `onZoneEnter(zone, actor)` | Works: quest region boundary, subject zone / a actor | [game/server/shardfile/decisions.ts:386](../src/game/server/shardfile/decisions.ts#L386) |
+| 5 | `zone.leave` / `onZoneLeave(zone, actor)` | Works: same region observation | [game/server/shardfile/decisions.ts:386](../src/game/server/shardfile/decisions.ts#L386) |
+| 6 | `interact` / `onInteract(target, player, verb)` | Works in native simulation: picker validates selected target, then queues target / player / verb=0; G484 still requires its first-script proof | [game/server/plugin/simulation.ts:575](../src/game/server/plugin/simulation.ts#L575) [game/server/shardfile/decisions.ts:431](../src/game/server/shardfile/decisions.ts#L431) |
+| 7 | `hit` / `onHit(by, amount, hpShare)` | Works: damage dealt; subject damaged actor | [game/server/shardfile/decisions.ts:166](../src/game/server/shardfile/decisions.ts#L166) |
+| 8 | `threshold` / `onThreshold(index)` | Works: encounter/borrowed phase changes; subject actor; phase index in a | [game/server/shardfile/decisions.ts:395](../src/game/server/shardfile/decisions.ts#L395) |
+| 9 | `death` / `onDeath(by)` | Works: actor death; subject dead actor | [game/server/shardfile/decisions.ts:172](../src/game/server/shardfile/decisions.ts#L172) |
+| 10 | `move.done` / `onMoveDone(move, ok)` | Works: move completion; subject actor | [game/server/shardfile/decisions.ts:377](../src/game/server/shardfile/decisions.ts#L377) |
+| 11 | `strike.done` / `onStrikeDone(strike, hit)` | Works: runner finished or start refused; subject actor | [game/server/shardfile/decisions.ts:300](../src/game/server/shardfile/decisions.ts#L300) [game/server/shardfile/decisions.ts:380](../src/game/server/shardfile/decisions.ts#L380) |
+| 12 | `flag` / `onFlag(flag, value)` | Works: world flag change; subject flag / a 0 or 1; player-flag writes do not emit this event | [game/server/shardfile/decisions.ts:165](../src/game/server/shardfile/decisions.ts#L165) [game/server/shardfile/decisions.ts:305](../src/game/server/shardfile/decisions.ts#L305) |
+| 13 | `signal` / `onSignal(signal, value, source)` | Works: signal command or mover end; subject signal / a value / b source actor (0 for mover end) | [game/server/shardfile/decisions.ts:309](../src/game/server/shardfile/decisions.ts#L309) [game/server/shardfile/decisions.ts:406](../src/game/server/shardfile/decisions.ts#L406) |
+| 14 | `strike.target` / `onStrikeTarget(target, by, strike)` | Not wired: handler/id reserved; decision owner has no strike-target event producer | [sdk/decisionScriptBindings.ts:42](../src/sdk/decisionScriptBindings.ts#L42) [game/server/shardfile/decisions.ts:380](../src/game/server/shardfile/decisions.ts#L380) |
+| 15 | `player.join` / `onPlayerJoin(player)` | Works as binding activation notification for the local player; not a network membership event | [game/server/shardfile/decisions.ts:348](../src/game/server/shardfile/decisions.ts#L348) |
+| 16 | `player.leave` / `onPlayerLeave(player)` | Works as binding deactivation notification | [game/server/shardfile/decisions.ts:348](../src/game/server/shardfile/decisions.ts#L348) |
+| 17 | `spawned` / `onSpawned(spawn)` | Spawn-owned programs deliver it to the declared actor binding after a committed spawn | [game/server/population/spawnScript.ts:225](../src/game/server/population/spawnScript.ts#L225) |
+| 18 | `stop` / `onStop()` | Works: binding deactivates | [game/server/shardfile/decisions.ts:349](../src/game/server/shardfile/decisions.ts#L349) |
+| 30 | `field` / `onField(actor, field, value)` | Not wired: no v1 view lane; refused by sim host | [engine/server/script/decision.ts:138](../src/engine/server/script/decision.ts#L138) [engine/server/script/decision.ts:157](../src/engine/server/script/decision.ts#L157) [sdk/decisionScriptBindings.ts:45](../src/sdk/decisionScriptBindings.ts#L45) |
+| 31 | `cue` / `onCue(cue, actor)` | Not wired: same view-lane restriction | [engine/server/script/decision.ts:157](../src/engine/server/script/decision.ts#L157) [sdk/decisionScriptBindings.ts:45](../src/sdk/decisionScriptBindings.ts#L45) |
+| 32 | `channel` / `onChannel(channel, value)` | Not wired: same view-lane restriction | [engine/server/script/decision.ts:157](../src/engine/server/script/decision.ts#L157) [sdk/decisionScriptBindings.ts:46](../src/sdk/decisionScriptBindings.ts#L46) |
 
 Enqueue never calls Wasm synchronously. Unsubscribed events are ignored; active
 game bindings receive publications, and the decision scheduler drains up to
 16 events per binding per decision tick. Disabling a binding cancels staged
 work/timers but still allows queued lifecycle events to drain.
-[game/shardfile/decisions.ts:409](../src/game/shardfile/decisions.ts#L409) [engine/script/decision.ts:205](../src/engine/script/decision.ts#L205) [engine/script/decision.ts:211](../src/engine/script/decision.ts#L211) [engine/script/decision.ts:248](../src/engine/script/decision.ts#L248) [engine/script/decision.ts:269](../src/engine/script/decision.ts#L269)
+[game/server/shardfile/decisions.ts:409](../src/game/server/shardfile/decisions.ts#L409) [engine/server/script/decision.ts:205](../src/engine/server/script/decision.ts#L205) [engine/server/script/decision.ts:211](../src/engine/server/script/decision.ts#L211) [engine/server/script/decision.ts:248](../src/engine/server/script/decision.ts#L248) [engine/server/script/decision.ts:269](../src/engine/server/script/decision.ts#L269)
 
 ## Read whitelist
 
@@ -126,7 +126,7 @@ Only capabilities listed in the row's `reads` may run. The host checks finite
 arguments, declared namespace IDs and observed actor handles. Binding-owned
 actors are observed initially; event actors, `nearestPlayer` and actor/player
 lists extend visibility for the current call. Observation alone does not grant
-body ownership. Each scalar/list query charges 256 fuel. [engine/script/decision.ts:267](../src/engine/script/decision.ts#L267) [engine/script/decision.ts:318](../src/engine/script/decision.ts#L318) [engine/script/decision.ts:344](../src/engine/script/decision.ts#L344) [engine/script/decision.ts:359](../src/engine/script/decision.ts#L359) [engine/script/decisionModule.ts:33](../src/engine/script/decisionModule.ts#L33)
+body ownership. Each scalar/list query charges 256 fuel. [engine/server/script/decision.ts:267](../src/engine/server/script/decision.ts#L267) [engine/server/script/decision.ts:318](../src/engine/server/script/decision.ts#L318) [engine/server/script/decision.ts:344](../src/engine/server/script/decision.ts#L344) [engine/server/script/decision.ts:359](../src/engine/server/script/decision.ts#L359) [engine/shared/script/decisionModule.ts:33](../src/engine/shared/script/decisionModule.ts#L33)
 
 Scalar op IDs are a separate namespace from list op IDs. Generated `Read`
 methods have these argument shapes; omitted wire arguments are zero.
@@ -134,44 +134,44 @@ methods have these argument shapes; omitted wire arguments are zero.
 
 | Id | Scalar `Read` | Result as built | Source |
 |---|---|---|---|
-| 1 | `x(actor)` | Position x | [game/shardfile/decisions.ts:209](../src/game/shardfile/decisions.ts#L209) |
-| 2 | `y(actor)` | Position y | [game/shardfile/decisions.ts:210](../src/game/shardfile/decisions.ts#L210) |
-| 3 | `z(actor)` | Position z | [game/shardfile/decisions.ts:210](../src/game/shardfile/decisions.ts#L210) |
-| 4 | `yaw(actor)` | Actor/player yaw | [game/shardfile/decisions.ts:211](../src/game/shardfile/decisions.ts#L211) |
-| 5 | `hpShare(actor)` | Current/max health | [game/shardfile/decisions.ts:212](../src/game/shardfile/decisions.ts#L212) |
-| 6 | `alive(actor)` | bool | [game/shardfile/decisions.ts:213](../src/game/shardfile/decisions.ts#L213) |
-| 7 | `field(actor, field)` | Declared public numeric actor field; unavailable/private/string fields refuse | [game/shardfile/decisions.ts:244](../src/game/shardfile/decisions.ts#L244) [game/shardfile/decisions.ts:250](../src/game/shardfile/decisions.ts#L250) |
-| 8 | `distance(actor, target)` | Horizontal xz distance | [game/shardfile/decisions.ts:207](../src/game/shardfile/decisions.ts#L207) |
-| 9 | `nearestPlayer(actor)` | Local living player handle or 0; encounter bindings return 0 outside their spherical arena | [game/shardfile/decisions.ts:198](../src/game/shardfile/decisions.ts#L198) |
-| 10 | `flag(flag)` | World bool flag | [game/shardfile/decisions.ts:194](../src/game/shardfile/decisions.ts#L194) |
-| 11 | `timerLeft(timer)` | Nonnegative seconds remaining; local declared timer | [engine/script/decision.ts:330](../src/engine/script/decision.ts#L330) |
-| 12 | `random()` | Seeded [0,1), advances staged binding RNG counter | [engine/script/decision.ts:331](../src/engine/script/decision.ts#L331) |
-| 13 | `actorInZone(actor, zone)` | bool; circular xz quest region | [game/shardfile/decisions.ts:188](../src/game/shardfile/decisions.ts#L188) [game/shardfile/decisions.ts:208](../src/game/shardfile/decisions.ts#L208) |
-| 14 | `playersInZone(zone)` | 0 or 1 for the single local player | [game/shardfile/decisions.ts:196](../src/game/shardfile/decisions.ts#L196) |
-| 15 | `moving(actor)` | Whether decision owner has a move runner | [game/shardfile/decisions.ts:215](../src/game/shardfile/decisions.ts#L215) |
-| 16 | `strikeState(actor)` | 0 idle, 1 windup, 2 active, 3 recover, 4 cooldown | [game/shardfile/decisions.ts:216](../src/game/shardfile/decisions.ts#L216) |
-| 17 | `playerFlag(player, flag)` | Local player's decision-owned flag; another player refuses | [game/shardfile/decisions.ts:195](../src/game/shardfile/decisions.ts#L195) |
-| 18 | `spawnGroupAlive(spawn)` | Live member count for a declared creature group or script spawn group; an actor spawn id returns 0/1 | [game/shardfile/decisions.ts:200](../src/game/shardfile/decisions.ts#L200) [format/decisionBindings.ts:50](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionBindings.ts#L50) [format/decisionBindings.ts:76](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionBindings.ts#L76) |
-| 19 | `bearing(actor, target)` | `atan2(dx, dz)` | [game/shardfile/decisions.ts:207](../src/game/shardfile/decisions.ts#L207) |
+| 1 | `x(actor)` | Position x | [game/server/shardfile/decisions.ts:209](../src/game/server/shardfile/decisions.ts#L209) |
+| 2 | `y(actor)` | Position y | [game/server/shardfile/decisions.ts:210](../src/game/server/shardfile/decisions.ts#L210) |
+| 3 | `z(actor)` | Position z | [game/server/shardfile/decisions.ts:210](../src/game/server/shardfile/decisions.ts#L210) |
+| 4 | `yaw(actor)` | Actor/player yaw | [game/server/shardfile/decisions.ts:211](../src/game/server/shardfile/decisions.ts#L211) |
+| 5 | `hpShare(actor)` | Current/max health | [game/server/shardfile/decisions.ts:212](../src/game/server/shardfile/decisions.ts#L212) |
+| 6 | `alive(actor)` | bool | [game/server/shardfile/decisions.ts:213](../src/game/server/shardfile/decisions.ts#L213) |
+| 7 | `field(actor, field)` | Declared public numeric actor field; unavailable/private/string fields refuse | [game/server/shardfile/decisions.ts:244](../src/game/server/shardfile/decisions.ts#L244) [game/server/shardfile/decisions.ts:250](../src/game/server/shardfile/decisions.ts#L250) |
+| 8 | `distance(actor, target)` | Horizontal xz distance | [game/server/shardfile/decisions.ts:207](../src/game/server/shardfile/decisions.ts#L207) |
+| 9 | `nearestPlayer(actor)` | Local living player handle or 0; encounter bindings return 0 outside their spherical arena | [game/server/shardfile/decisions.ts:198](../src/game/server/shardfile/decisions.ts#L198) |
+| 10 | `flag(flag)` | World bool flag | [game/server/shardfile/decisions.ts:194](../src/game/server/shardfile/decisions.ts#L194) |
+| 11 | `timerLeft(timer)` | Nonnegative seconds remaining; local declared timer | [engine/server/script/decision.ts:330](../src/engine/server/script/decision.ts#L330) |
+| 12 | `random()` | Seeded [0,1), advances staged binding RNG counter | [engine/server/script/decision.ts:331](../src/engine/server/script/decision.ts#L331) |
+| 13 | `actorInZone(actor, zone)` | bool; circular xz quest region | [game/server/shardfile/decisions.ts:188](../src/game/server/shardfile/decisions.ts#L188) [game/server/shardfile/decisions.ts:208](../src/game/server/shardfile/decisions.ts#L208) |
+| 14 | `playersInZone(zone)` | 0 or 1 for the single local player | [game/server/shardfile/decisions.ts:196](../src/game/server/shardfile/decisions.ts#L196) |
+| 15 | `moving(actor)` | Whether decision owner has a move runner | [game/server/shardfile/decisions.ts:215](../src/game/server/shardfile/decisions.ts#L215) |
+| 16 | `strikeState(actor)` | 0 idle, 1 windup, 2 active, 3 recover, 4 cooldown | [game/server/shardfile/decisions.ts:216](../src/game/server/shardfile/decisions.ts#L216) |
+| 17 | `playerFlag(player, flag)` | Local player's decision-owned flag; another player refuses | [game/server/shardfile/decisions.ts:195](../src/game/server/shardfile/decisions.ts#L195) |
+| 18 | `spawnGroupAlive(spawn)` | Live member count for a declared creature group or script spawn group; an actor spawn id returns 0/1 | [game/server/shardfile/decisions.ts:200](../src/game/server/shardfile/decisions.ts#L200) [format/decisionBindings.ts:50](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionBindings.ts#L50) [format/decisionBindings.ts:76](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionBindings.ts#L76) |
+| 19 | `bearing(actor, target)` | `atan2(dx, dz)` | [game/server/shardfile/decisions.ts:207](../src/game/server/shardfile/decisions.ts#L207) |
 
 `ws_list` writes at most 96 finite f64 slots to an aligned in-memory range;
 generated `Read` list calls return the slot count and `List.at(index)` retrieves
 values until the next list call. Ground/navigation xz inputs must stay within
 ±250; navigation requires the supplied navigation owner.
-[engine/script/decision.ts:344](../src/engine/script/decision.ts#L344) [sdk/as/ws.ts:28](../src/sdk/as/ws.ts#L28) [game/shardfile/decisions.ts:219](../src/game/shardfile/decisions.ts#L219)
+[engine/server/script/decision.ts:344](../src/engine/server/script/decision.ts#L344) [sdk/as/ws.ts:28](../src/sdk/as/ws.ts#L28) [game/server/shardfile/decisions.ts:219](../src/game/server/shardfile/decisions.ts#L219)
 
 | Id | List `Read` | Response | Source |
 |---|---|---|---|
-| 1 | `actorsInZone(zone)` | Non-player actor handles, sorted ascending, truncated to capacity | [game/shardfile/decisions.ts:234](../src/game/shardfile/decisions.ts#L234) |
-| 2 | `playersWithin(actor, radius)` | Local living player handle if within 3D radius; radius ≥ 0 | [game/shardfile/decisions.ts:236](../src/game/shardfile/decisions.ts#L236) |
-| 3 | `groundHeight(x, z)` | One y value (or none at zero capacity) | [game/shardfile/decisions.ts:220](../src/game/shardfile/decisions.ts#L220) |
-| 4 | `nearestWalkable(x, z)` | xyz triple or empty | [game/shardfile/decisions.ts:224](../src/game/shardfile/decisions.ts#L224) |
-| 5 | `path(actor, target)` | At most 32 xyz triples / 96 slots; agent body radius, search bound 128 | [game/shardfile/decisions.ts:228](../src/game/shardfile/decisions.ts#L228) |
-| 6 | `radial(yaw, radius)` | xz offset `[sin(yaw) * radius, cos(yaw) * radius]`; radius 0–10,000 | [game/population/spawnScript.ts:108](../src/game/population/spawnScript.ts#L108) |
+| 1 | `actorsInZone(zone)` | Non-player actor handles, sorted ascending, truncated to capacity | [game/server/shardfile/decisions.ts:234](../src/game/server/shardfile/decisions.ts#L234) |
+| 2 | `playersWithin(actor, radius)` | Local living player handle if within 3D radius; radius ≥ 0 | [game/server/shardfile/decisions.ts:236](../src/game/server/shardfile/decisions.ts#L236) |
+| 3 | `groundHeight(x, z)` | One y value (or none at zero capacity) | [game/server/shardfile/decisions.ts:220](../src/game/server/shardfile/decisions.ts#L220) |
+| 4 | `nearestWalkable(x, z)` | xyz triple or empty | [game/server/shardfile/decisions.ts:224](../src/game/server/shardfile/decisions.ts#L224) |
+| 5 | `path(actor, target)` | At most 32 xyz triples / 96 slots; agent body radius, search bound 128 | [game/server/shardfile/decisions.ts:228](../src/game/server/shardfile/decisions.ts#L228) |
+| 6 | `radial(yaw, radius)` | xz offset `[sin(yaw) * radius, cos(yaw) * radius]`; radius 0–10,000 | [game/server/population/spawnScript.ts:108](../src/game/server/population/spawnScript.ts#L108) |
 
 There is **no v1 raycast/overlap query**. Those belong to v0's separate
 `env.query` protocol (`raycast=1`, `overlap=2`, `nearest=3`, `path=4`).
-[format/scriptAbiV1.ts:8](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L8) [format/scriptAbiV1.ts:14](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L14) [engine/script/queries.ts:7](../src/engine/script/queries.ts#L7)
+[format/scriptAbiV1.ts:8](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L8) [format/scriptAbiV1.ts:14](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L14) [engine/server/script/queries.ts:7](../src/engine/server/script/queries.ts#L7)
 
 ## Commands and authority
 
@@ -180,39 +180,39 @@ actors, observed targets and mechanic-specific bounds are checked before the
 batch can stage. Generated `Do` helpers write the following records (unused
 trailing slots are zero). The game handlers currently read `[op,target,a,b]`;
 this does not promise validation of every unused slot.
-[engine/script/decision.ts:286](../src/engine/script/decision.ts#L286) [engine/script/decision.ts:359](../src/engine/script/decision.ts#L359) [sdk/decisionScriptBindings.ts:21](../src/sdk/decisionScriptBindings.ts#L21) [sdk/as/ws.ts:23](../src/sdk/as/ws.ts#L23) [game/shardfile/decisions.ts:274](../src/game/shardfile/decisions.ts#L274)
+[engine/server/script/decision.ts:286](../src/engine/server/script/decision.ts#L286) [engine/server/script/decision.ts:359](../src/engine/server/script/decision.ts#L359) [sdk/decisionScriptBindings.ts:21](../src/sdk/decisionScriptBindings.ts#L21) [sdk/as/ws.ts:23](../src/sdk/as/ws.ts#L23) [game/server/shardfile/decisions.ts:274](../src/game/server/shardfile/decisions.ts#L274)
 
 | Id | Command / record after op | Status and authority | Source |
 |---|---|---|---|
-| 1 | `move`: `[actor, move, target, 0]` | Works: own body, declared engine move; target required for stalk/dive/takeoff/ring-run; engine runs motion each fixed step | [game/shardfile/decisions.ts:278](../src/game/shardfile/decisions.ts#L278) [game/shardfile/decisions.ts:286](../src/game/shardfile/decisions.ts#L286) [game/shardfile/decisions.ts:352](../src/game/shardfile/decisions.ts#L352) |
-| 2 | `strike`: `[actor, strike, target, 0]` | Works: own actor, declared strike, nonzero target; actual strike owner may decline and emit done/false | [game/shardfile/decisions.ts:300](../src/game/shardfile/decisions.ts#L300) |
-| 3 | `stop`: `[actor, 0, 0, 0]` | Works: stops own move; cancels a windup, does not forcibly cancel later strike phases | [game/shardfile/decisions.ts:280](../src/game/shardfile/decisions.ts#L280) [game/shardfile/decisions.ts:329](../src/game/shardfile/decisions.ts#L329) |
-| 4 | `field`: `[actor, field, value, 0]` | Works: own actor, declared public numeric shared field, type/bounds checked | [game/shardfile/decisions.ts:281](../src/game/shardfile/decisions.ts#L281) [game/shardfile/decisions.ts:244](../src/game/shardfile/decisions.ts#L244) |
-| 5 | `spawn`: `[0, spawn, 0, 0]` | Spawn owner resolves declared recipe/species/site and available capacity; a group binding creates only its own slot | [game/population/spawnScript.ts:207](../src/game/population/spawnScript.ts#L207) |
-| 6 | `despawn`: `[actor, 0, 0, 0]` | Spawn owner retires its bound body through the real roster/manager | [game/population/spawnScript.ts:229](../src/game/population/spawnScript.ts#L229) |
-| 7 | `flag`: `[playerOr0, flag, bool, 0]` | Works: 0 means world; otherwise only observed local player | [game/shardfile/decisions.ts:305](../src/game/shardfile/decisions.ts#L305) |
-| 8 | `timer`: `[0, timer, seconds, 0]` | Works: own declared timer, ≥ 0 seconds; 0 cancels, deadline must fit safe tick range | [engine/script/decision.ts:292](../src/engine/script/decision.ts#L292) [engine/script/decision.ts:369](../src/engine/script/decision.ts#L369) |
-| 9 | `signal`: `[0, signal, value, 0]` | Works: declared signal; game catalogue currently supplies mover-end IDs | [game/shardfile/decisions.ts:309](../src/game/shardfile/decisions.ts#L309) [format/decisionBindings.ts:67](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionBindings.ts#L67) |
-| 10 | `grant`: `[playerOr0, fact, 0, 0]` | Works with authoritative fact port; dedupe by binding, target, fact | [game/shardfile/decisions.ts:133](../src/game/shardfile/decisions.ts#L133) [game/shardfile/decisions.ts:311](../src/game/shardfile/decisions.ts#L311) |
-| 11 | `reward`: `[playerOr0, reward, 0, 0]` | Works through same ledger fact port/dedupe; only local player or 0 | [game/shardfile/decisions.ts:311](../src/game/shardfile/decisions.ts#L311) |
-| 12 | `cue`: `[actorOr0, cue, 0, 0]` | Works: publishes cue event for presentation | [game/shardfile/decisions.ts:315](../src/game/shardfile/decisions.ts#L315) [game/shardfile/decisions.ts:438](../src/game/shardfile/decisions.ts#L438) |
-| 13 | `channel`: `[0, channel, value, 0]` | Works: publishes declared numeric channel | [game/shardfile/decisions.ts:318](../src/game/shardfile/decisions.ts#L318) [game/shardfile/decisions.ts:438](../src/game/shardfile/decisions.ts#L438) |
-| 14 | `impulse`: `[target, impulse, 0, 0]` | Refused at installation; **boss host** feature commit must own it; registry has no impulse IDs yet | [game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) [format/decisionBindings.ts:58](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionBindings.ts#L58) [docs/plans/decisions.md:200](plans/decisions.md#L200) |
-| 15 | `encounter`: `[0, verb, value, 0]` | Works only for own encounter binding: 1 phase, 2 win, 3 fail; encounter validates value | [engine/script/decision.ts:376](../src/engine/script/decision.ts#L376) [game/shardfile/decisions.ts:320](../src/game/shardfile/decisions.ts#L320) [sdk/decisionScriptBindings.ts:84](../src/sdk/decisionScriptBindings.ts#L84) |
-| 16 | `weather`: `[0, weather, 0, 0]` | Refused at installation; **weather reactions** feature commit must own it | [game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) [docs/plans/decisions.md:200](plans/decisions.md#L200) |
-| 100 | `view.channel`: `[0, channel, value, 0]` | Not wired: no v1 view runner; refused by sim host | [engine/script/decision.ts:138](../src/engine/script/decision.ts#L138) [engine/script/decision.ts:160](../src/engine/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:30](../src/sdk/decisionScriptBindings.ts#L30) |
-| 101 | `view.clip`: `[actor, clip, 0, 0]` | Not wired: same restriction | [engine/script/decision.ts:160](../src/engine/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:30](../src/sdk/decisionScriptBindings.ts#L30) |
-| 102 | `view.vfx`: `[actor, cue, 0, 0]` | Not wired: same restriction | [engine/script/decision.ts:160](../src/engine/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:31](../src/sdk/decisionScriptBindings.ts#L31) |
-| 103 | `view.sound`: `[actor, cue, 0, 0]` | Not wired: same restriction | [engine/script/decision.ts:160](../src/engine/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:31](../src/sdk/decisionScriptBindings.ts#L31) |
-| 104 | `view.visible`: `[actor, bool, 0, 0]` | Not wired: same restriction | [engine/script/decision.ts:160](../src/engine/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:32](../src/sdk/decisionScriptBindings.ts#L32) |
-| 105 | `view.field`: `[0, fieldId, value, 0]` | Reserved; no runtime adapter after Z9. Simulation bindings refuse it. | [eased weather fields](../src/engine/world/easedFields.ts) |
+| 1 | `move`: `[actor, move, target, 0]` | Works: own body, declared engine move; target required for stalk/dive/takeoff/ring-run; engine runs motion each fixed step | [game/server/shardfile/decisions.ts:278](../src/game/server/shardfile/decisions.ts#L278) [game/server/shardfile/decisions.ts:286](../src/game/server/shardfile/decisions.ts#L286) [game/server/shardfile/decisions.ts:352](../src/game/server/shardfile/decisions.ts#L352) |
+| 2 | `strike`: `[actor, strike, target, 0]` | Works: own actor, declared strike, nonzero target; actual strike owner may decline and emit done/false | [game/server/shardfile/decisions.ts:300](../src/game/server/shardfile/decisions.ts#L300) |
+| 3 | `stop`: `[actor, 0, 0, 0]` | Works: stops own move; cancels a windup, does not forcibly cancel later strike phases | [game/server/shardfile/decisions.ts:280](../src/game/server/shardfile/decisions.ts#L280) [game/server/shardfile/decisions.ts:329](../src/game/server/shardfile/decisions.ts#L329) |
+| 4 | `field`: `[actor, field, value, 0]` | Works: own actor, declared public numeric shared field, type/bounds checked | [game/server/shardfile/decisions.ts:281](../src/game/server/shardfile/decisions.ts#L281) [game/server/shardfile/decisions.ts:244](../src/game/server/shardfile/decisions.ts#L244) |
+| 5 | `spawn`: `[0, spawn, 0, 0]` | Spawn owner resolves declared recipe/species/site and available capacity; a group binding creates only its own slot | [game/server/population/spawnScript.ts:207](../src/game/server/population/spawnScript.ts#L207) |
+| 6 | `despawn`: `[actor, 0, 0, 0]` | Spawn owner retires its bound body through the real roster/manager | [game/server/population/spawnScript.ts:229](../src/game/server/population/spawnScript.ts#L229) |
+| 7 | `flag`: `[playerOr0, flag, bool, 0]` | Works: 0 means world; otherwise only observed local player | [game/server/shardfile/decisions.ts:305](../src/game/server/shardfile/decisions.ts#L305) |
+| 8 | `timer`: `[0, timer, seconds, 0]` | Works: own declared timer, ≥ 0 seconds; 0 cancels, deadline must fit safe tick range | [engine/server/script/decision.ts:292](../src/engine/server/script/decision.ts#L292) [engine/server/script/decision.ts:369](../src/engine/server/script/decision.ts#L369) |
+| 9 | `signal`: `[0, signal, value, 0]` | Works: declared signal; game catalogue currently supplies mover-end IDs | [game/server/shardfile/decisions.ts:309](../src/game/server/shardfile/decisions.ts#L309) [format/decisionBindings.ts:67](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionBindings.ts#L67) |
+| 10 | `grant`: `[playerOr0, fact, 0, 0]` | Works with authoritative fact port; dedupe by binding, target, fact | [game/server/shardfile/decisions.ts:133](../src/game/server/shardfile/decisions.ts#L133) [game/server/shardfile/decisions.ts:311](../src/game/server/shardfile/decisions.ts#L311) |
+| 11 | `reward`: `[playerOr0, reward, 0, 0]` | Works through same ledger fact port/dedupe; only local player or 0 | [game/server/shardfile/decisions.ts:311](../src/game/server/shardfile/decisions.ts#L311) |
+| 12 | `cue`: `[actorOr0, cue, 0, 0]` | Works: publishes cue event for presentation | [game/server/shardfile/decisions.ts:315](../src/game/server/shardfile/decisions.ts#L315) [game/server/shardfile/decisions.ts:438](../src/game/server/shardfile/decisions.ts#L438) |
+| 13 | `channel`: `[0, channel, value, 0]` | Works: publishes declared numeric channel | [game/server/shardfile/decisions.ts:318](../src/game/server/shardfile/decisions.ts#L318) [game/server/shardfile/decisions.ts:438](../src/game/server/shardfile/decisions.ts#L438) |
+| 14 | `impulse`: `[target, impulse, 0, 0]` | Refused at installation; **boss host** feature commit must own it; registry has no impulse IDs yet | [game/server/shardfile/decisions.ts:132](../src/game/server/shardfile/decisions.ts#L132) [format/decisionBindings.ts:58](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionBindings.ts#L58) [docs/plans/decisions.md:200](plans/decisions.md#L200) |
+| 15 | `encounter`: `[0, verb, value, 0]` | Works only for own encounter binding: 1 phase, 2 win, 3 fail; encounter validates value | [engine/server/script/decision.ts:376](../src/engine/server/script/decision.ts#L376) [game/server/shardfile/decisions.ts:320](../src/game/server/shardfile/decisions.ts#L320) [sdk/decisionScriptBindings.ts:84](../src/sdk/decisionScriptBindings.ts#L84) |
+| 16 | `weather`: `[0, weather, 0, 0]` | Refused at installation; **weather reactions** feature commit must own it | [game/server/shardfile/decisions.ts:132](../src/game/server/shardfile/decisions.ts#L132) [docs/plans/decisions.md:200](plans/decisions.md#L200) |
+| 100 | `view.channel`: `[0, channel, value, 0]` | Not wired: no v1 view runner; refused by sim host | [engine/server/script/decision.ts:138](../src/engine/server/script/decision.ts#L138) [engine/server/script/decision.ts:160](../src/engine/server/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:30](../src/sdk/decisionScriptBindings.ts#L30) |
+| 101 | `view.clip`: `[actor, clip, 0, 0]` | Not wired: same restriction | [engine/server/script/decision.ts:160](../src/engine/server/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:30](../src/sdk/decisionScriptBindings.ts#L30) |
+| 102 | `view.vfx`: `[actor, cue, 0, 0]` | Not wired: same restriction | [engine/server/script/decision.ts:160](../src/engine/server/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:31](../src/sdk/decisionScriptBindings.ts#L31) |
+| 103 | `view.sound`: `[actor, cue, 0, 0]` | Not wired: same restriction | [engine/server/script/decision.ts:160](../src/engine/server/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:31](../src/sdk/decisionScriptBindings.ts#L31) |
+| 104 | `view.visible`: `[actor, bool, 0, 0]` | Not wired: same restriction | [engine/server/script/decision.ts:160](../src/engine/server/script/decision.ts#L160) [sdk/decisionScriptBindings.ts:32](../src/sdk/decisionScriptBindings.ts#L32) |
+| 105 | `view.field`: `[0, fieldId, value, 0]` | Reserved; no runtime adapter after Z9. Simulation bindings refuse it. | [eased weather fields](../src/engine/shared/world/easedFields.ts) |
 
 These four refused sim commands fail even if never executed: listing the
 capability is sufficient to refuse `ShardDecisions` construction. There is no
 `mover` command. G484 keeps winch/well behavior in interaction rows; `view.field`
 105 remains the optional future fallback. G484 keeps Signal dusk on an
 eased-field row by preference.
-[game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) [format/scriptAbiV1.ts:16](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L16) [docs/plans/decisions.md:200](plans/decisions.md#L200)
+[game/server/shardfile/decisions.ts:132](../src/game/server/shardfile/decisions.ts#L132) [format/scriptAbiV1.ts:16](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L16) [docs/plans/decisions.md:200](plans/decisions.md#L200)
 
 Z9 removes the unused isolated `ViewFieldHost` and its tests. The approved
 weather field table selects first-match flag targets, snaps on loaded saves
@@ -226,22 +226,22 @@ The built schema accepts exactly one of `{encounter: id}`, `{quest: id}`,
 choose the bodies it controls. Encounter self is its entity handle (which must
 also be owned); other built binding kinds use self=0. Therefore actor/player
 scoped slots currently require an encounter self, whereas binding-scoped slots
-work with any kind. [format/decisionScripts.ts:23](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L23) [game/shardfile/decisions.ts:118](../src/game/shardfile/decisions.ts#L118) [game/shardfile/decisions.ts:134](../src/game/shardfile/decisions.ts#L134) [engine/script/decision.ts:167](../src/engine/script/decision.ts#L167)
+work with any kind. [format/decisionScripts.ts:23](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L23) [game/server/shardfile/decisions.ts:118](../src/game/server/shardfile/decisions.ts#L118) [game/server/shardfile/decisions.ts:134](../src/game/server/shardfile/decisions.ts#L134) [engine/server/script/decision.ts:167](../src/engine/server/script/decision.ts#L167)
 
 | Binding | Active when | Source |
 |---|---|---|
-| Encounter | Boss state is `fight` | [game/shardfile/decisions.ts:336](../src/game/shardfile/decisions.ts#L336) |
-| Quest | Started and incomplete | [game/shardfile/decisions.ts:336](../src/game/shardfile/decisions.ts#L336) |
-| Zone | Local player is inside the declared region | [game/shardfile/decisions.ts:336](../src/game/shardfile/decisions.ts#L336) |
-| Shard | Always while installed | [game/shardfile/decisions.ts:336](../src/game/shardfile/decisions.ts#L336) |
-| Borrowed body | Existing body's controller says fighting; original owner supplies body, combat, fixed-step and save ports | [game/shardfile/decisions.ts:339](../src/game/shardfile/decisions.ts#L339) [game/shardfile/borrowedDecisions.ts:105](../src/game/shardfile/borrowedDecisions.ts#L105) [game/shardfile/borrowedDecisions.ts:149](../src/game/shardfile/borrowedDecisions.ts#L149) |
+| Encounter | Boss state is `fight` | [game/server/shardfile/decisions.ts:336](../src/game/server/shardfile/decisions.ts#L336) |
+| Quest | Started and incomplete | [game/server/shardfile/decisions.ts:336](../src/game/server/shardfile/decisions.ts#L336) |
+| Zone | Local player is inside the declared region | [game/server/shardfile/decisions.ts:336](../src/game/server/shardfile/decisions.ts#L336) |
+| Shard | Always while installed | [game/server/shardfile/decisions.ts:336](../src/game/server/shardfile/decisions.ts#L336) |
+| Borrowed body | Existing body's controller says fighting; original owner supplies body, combat, fixed-step and save ports | [game/server/shardfile/decisions.ts:339](../src/game/server/shardfile/decisions.ts#L339) [game/server/shardfile/borrowedDecisions.ts:105](../src/game/server/shardfile/borrowedDecisions.ts#L105) [game/server/shardfile/borrowedDecisions.ts:149](../src/game/server/shardfile/borrowedDecisions.ts#L149) |
 | Spawn group | One logical binding per declared actor, with actor-scoped slots and an owned self handle | [format/decisionScripts.ts:23](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L23) [format/decisionScripts.ts:98](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L98) |
 
 An actor/body cannot have two decision controllers. Native actors must have
 `brain: null`; borrowed actors must resolve to existing runtime spawn declarations.
 No row creates a replacement body. Borrowed decision owners can use separate
 DecisionHosts, so sharing one Wasm instance is not a shard-wide guarantee.
-[game/shardfile/decisions.ts:120](../src/game/shardfile/decisions.ts#L120) [game/shardfile/borrowedDecisions.ts:113](../src/game/shardfile/borrowedDecisions.ts#L113) [game/shardfile/borrowedDecisions.ts:166](../src/game/shardfile/borrowedDecisions.ts#L166)
+[game/server/shardfile/decisions.ts:120](../src/game/server/shardfile/decisions.ts#L120) [game/server/shardfile/borrowedDecisions.ts:113](../src/game/server/shardfile/borrowedDecisions.ts#L113) [game/server/shardfile/borrowedDecisions.ts:166](../src/game/server/shardfile/borrowedDecisions.ts#L166)
 
 Aliases resolve through real platform registries, not row order or guessed IDs.
 Most catalogues sort stable names and allocate positive handles; public field IDs
@@ -249,39 +249,39 @@ come directly from declared state. Player handle is `0x7fffffff`; 0 is the
 no-target sentinel. Timers are sorted local names with IDs starting at 1.
 The game allocates binding IDs as row index+1 and instance=0, so row order is part
 of binding identity, seed stream and save compatibility.
-[format/decisionBindings.ts:18](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionBindings.ts#L18) [format/decisionBindings.ts:37](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionBindings.ts#L37) [format/decisionBindings.ts:43](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionBindings.ts#L43) [format/decisionBindings.ts:54](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionBindings.ts#L54) [game/shardfile/decisions.ts:146](../src/game/shardfile/decisions.ts#L146)
+[format/decisionBindings.ts:18](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionBindings.ts#L18) [format/decisionBindings.ts:37](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionBindings.ts#L37) [format/decisionBindings.ts:43](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionBindings.ts#L43) [format/decisionBindings.ts:54](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionBindings.ts#L54) [game/server/shardfile/decisions.ts:146](../src/game/server/shardfile/decisions.ts#L146)
 
 ## Limits, cadence and failures
 
 | Limit | Built behavior | Source |
 |---|---|---|
-| Scheduling | Fixed steps are consecutive 60 Hz ticks; decisions only on every sixth tick (~10 Hz), only with queued events; optional tick events at 1/2/5/10 Hz | [format/scriptAbiV1.ts:28](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L28) [engine/script/decision.ts:222](../src/engine/script/decision.ts#L222) [engine/script/decision.ts:245](../src/engine/script/decision.ts#L245) |
-| Calls | At most 64 binding calls per decision tick, in ascending binding ID; fuel exhaustion carries later queues | [engine/script/decision.ts:199](../src/engine/script/decision.ts#L199) [engine/script/decision.ts:248](../src/engine/script/decision.ts#L248) |
-| Rows/modules | Schema ≤ 64 rows, ≤ 8 distinct modules; host ≤ 8 module instances | [format/decisionScripts.ts:82](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L82) [engine/script/decision.ts:174](../src/engine/script/decision.ts#L174) |
-| Inbox | ≤ 16 events delivered per call; remainder carried; **pending queue grows, no total queue cap here** | [engine/script/decision.ts:80](../src/engine/script/decision.ts#L80) [engine/script/decision.ts:269](../src/engine/script/decision.ts#L269) |
-| Commands | ≤ 32 per call, ≤ 128 per decision tick; quota excess refuses the call | [engine/script/decision.ts:280](../src/engine/script/decision.ts#L280) |
-| Spawns/timers | ≤ 4 spawn commands / ≤ 8 timer commands per call; spawn-owned recipe and capacity checks; ≤ 64 declared timer names | [engine/script/decision.ts:298](../src/engine/script/decision.ts#L298) [game/population/spawnScript.ts:207](../src/game/population/spawnScript.ts#L207) [format/decisionScripts.ts:33](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L33) |
-| Fuel | Default 400,000/call, 2,000,000/decision tick; configured ceilings 2,000,000 and 8,000,000 | [engine/script/decision.ts:131](../src/engine/script/decision.ts#L131) |
-| Query cost | 256 fuel per scalar/list; no separate v1 query-count quota | [engine/script/decisionModule.ts:33](../src/engine/script/decisionModule.ts#L33) [engine/script/decision.ts:318](../src/engine/script/decision.ts#L318) [engine/script/decision.ts:344](../src/engine/script/decision.ts#L344) |
+| Scheduling | Fixed steps are consecutive 60 Hz ticks; decisions only on every sixth tick (~10 Hz), only with queued events; optional tick events at 1/2/5/10 Hz | [format/scriptAbiV1.ts:28](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L28) [engine/server/script/decision.ts:222](../src/engine/server/script/decision.ts#L222) [engine/server/script/decision.ts:245](../src/engine/server/script/decision.ts#L245) |
+| Calls | At most 64 binding calls per decision tick, in ascending binding ID; fuel exhaustion carries later queues | [engine/server/script/decision.ts:199](../src/engine/server/script/decision.ts#L199) [engine/server/script/decision.ts:248](../src/engine/server/script/decision.ts#L248) |
+| Rows/modules | Schema ≤ 64 rows, ≤ 8 distinct modules; host ≤ 8 module instances | [format/decisionScripts.ts:82](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L82) [engine/server/script/decision.ts:174](../src/engine/server/script/decision.ts#L174) |
+| Inbox | ≤ 16 events delivered per call; remainder carried; **pending queue grows, no total queue cap here** | [engine/server/script/decision.ts:80](../src/engine/server/script/decision.ts#L80) [engine/server/script/decision.ts:269](../src/engine/server/script/decision.ts#L269) |
+| Commands | ≤ 32 per call, ≤ 128 per decision tick; quota excess refuses the call | [engine/server/script/decision.ts:280](../src/engine/server/script/decision.ts#L280) |
+| Spawns/timers | ≤ 4 spawn commands / ≤ 8 timer commands per call; spawn-owned recipe and capacity checks; ≤ 64 declared timer names | [engine/server/script/decision.ts:298](../src/engine/server/script/decision.ts#L298) [game/server/population/spawnScript.ts:207](../src/game/server/population/spawnScript.ts#L207) [format/decisionScripts.ts:33](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L33) |
+| Fuel | Default 400,000/call, 2,000,000/decision tick; configured ceilings 2,000,000 and 8,000,000 | [engine/server/script/decision.ts:131](../src/engine/server/script/decision.ts#L131) |
+| Query cost | 256 fuel per scalar/list; no separate v1 query-count quota | [engine/shared/script/decisionModule.ts:33](../src/engine/shared/script/decisionModule.ts#L33) [engine/server/script/decision.ts:318](../src/engine/server/script/decision.ts#L318) [engine/server/script/decision.ts:344](../src/engine/server/script/decision.ts#L344) |
 | Depth/structure | Depth 64; ≤ 256 KiB module, 512 functions/types, 128 globals, 1,024 locals/function | [format/scriptAbi.ts:2](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbi.ts#L2) [format/scriptAdmission.ts:61](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAdmission.ts#L61) [format/scriptAdmission.ts:72](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAdmission.ts#L72) [format/scriptAdmission.ts:88](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAdmission.ts#L88) [format/scriptAdmission.ts:95](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAdmission.ts#L95) |
-| Memory | Fixed 1–4 × 64 KiB per module; memory.grow refused; initialized image retained alongside live memory, plus module/global bookkeeping; not v0's three-copy 24 MB policy | [format/scriptAdmission.ts:85](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAdmission.ts#L85) [format/scriptAdmission.ts:126](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAdmission.ts#L126) [engine/script/decisionModule.ts:21](../src/engine/script/decisionModule.ts#L21) [engine/script/decisionModule.ts:41](../src/engine/script/decisionModule.ts#L41) |
-| State/params | ≤ 16 declared slots, ≤ 32 finite parameters | [format/decisionScripts.ts:34](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L34) [engine/script/decision.ts:140](../src/engine/script/decision.ts#L140) |
+| Memory | Fixed 1–4 × 64 KiB per module; memory.grow refused; initialized image retained alongside live memory, plus module/global bookkeeping; not v0's three-copy 24 MB policy | [format/scriptAdmission.ts:85](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAdmission.ts#L85) [format/scriptAdmission.ts:126](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAdmission.ts#L126) [engine/shared/script/decisionModule.ts:21](../src/engine/shared/script/decisionModule.ts#L21) [engine/shared/script/decisionModule.ts:41](../src/engine/shared/script/decisionModule.ts#L41) |
+| State/params | ≤ 16 declared slots, ≤ 32 finite parameters | [format/decisionScripts.ts:34](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L34) [engine/server/script/decision.ts:140](../src/engine/server/script/decision.ts#L140) |
 | AS source | Compiler requires explicit standalone ceiling or floor(legacy lines / 10); counts every authored .as including unused imports/sources, excluding comments/blank lines | [sdk/buildDecisionScripts.ts:19](../src/sdk/buildDecisionScripts.ts#L19) [sdk/buildDecisionScripts.ts:30](../src/sdk/buildDecisionScripts.ts#L30) [sdk/buildDecisionScripts.ts:70](../src/sdk/buildDecisionScripts.ts#L70) [sdk/decisionSource.ts:43](../src/sdk/decisionSource.ts#L43) |
-| Failure budget | Third accumulated refusal disables binding; successful calls do not clear prior failures; fallback is invoked once on disable | [engine/script/decision.ts:299](../src/engine/script/decision.ts#L299) [engine/script/decision.ts:303](../src/engine/script/decision.ts#L303) |
+| Failure budget | Third accumulated refusal disables binding; successful calls do not clear prior failures; fallback is invoked once on disable | [engine/server/script/decision.ts:299](../src/engine/server/script/decision.ts#L299) [engine/server/script/decision.ts:303](../src/engine/server/script/decision.ts#L303) |
 
 Metering is deliberately coarse: compilation inserts a positive charge at every
 implementation entry and loop header (`bytes.length * 4 + 128 * functionCount +
 1024`); every function is wrapped with enter/leave. No optimization follows
 instrumentation. Finite guards also charge one fuel. Fuel is an accounting
 budget, not milliseconds or an exact instruction count.
-[sdk/bake/compileScript.ts:38](../src/sdk/bake/compileScript.ts#L38) [sdk/bake/compileScript.ts:47](../src/sdk/bake/compileScript.ts#L47) [sdk/bake/compileScript.ts:60](../src/sdk/bake/compileScript.ts#L60) [sdk/bake/compileScript.ts:69](../src/sdk/bake/compileScript.ts#L69) [engine/script/decisionModule.ts:58](../src/engine/script/decisionModule.ts#L58)
+[sdk/bake/compileScript.ts:38](../src/sdk/bake/compileScript.ts#L38) [sdk/bake/compileScript.ts:47](../src/sdk/bake/compileScript.ts#L47) [sdk/bake/compileScript.ts:60](../src/sdk/bake/compileScript.ts#L60) [sdk/bake/compileScript.ts:69](../src/sdk/bake/compileScript.ts#L69) [engine/shared/script/decisionModule.ts:58](../src/engine/shared/script/decisionModule.ts#L58)
 
 The game's fallback behavior is literal: `hold` leaves existing mechanics alone;
 `reset` stops owned actors and retries an encounter binding; `skip` stops owned
 actors, without advancing a quest or encounter. All three leave the script
 disabled. A later `start` enqueue can clear disabled/failures, reset slots,
 timers and RNG; ordinary stop/start does not reset healthy slots/RNG.
-[game/shardfile/decisions.ts:149](../src/game/shardfile/decisions.ts#L149) [engine/script/decision.ts:211](../src/engine/script/decision.ts#L211) [engine/script/decision.ts:205](../src/engine/script/decision.ts#L205)
+[game/server/shardfile/decisions.ts:149](../src/game/server/shardfile/decisions.ts#L149) [engine/server/script/decision.ts:211](../src/engine/server/script/decision.ts#L211) [engine/server/script/decision.ts:205](../src/engine/server/script/decision.ts#L205)
 
 ## State, save behavior and determinism
 
@@ -289,7 +289,7 @@ Only declared bool/i32/f64 slots are durable guest state, stored by name per
 logical binding. Bounds and types are checked after the call and on restore.
 Scope (`binding`/`actor`/`player`) imposes ownership checks; the host does not
 create a separate player-indexed storage bank. `local` is accepted only by the
-isolated client view host, and never by the simulation owner. [format/decisionScripts.ts:13](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L13) [format/decisionScripts.ts:60](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L60) [engine/script/decision.ts:72](../src/engine/script/decision.ts#L72) [engine/script/decision.ts:167](../src/engine/script/decision.ts#L167) [engine/script/decision.ts:379](../src/engine/script/decision.ts#L379) [game/shardfile/decisions.ts:142](../src/game/shardfile/decisions.ts#L142)
+isolated client view host, and never by the simulation owner. [format/decisionScripts.ts:13](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L13) [format/decisionScripts.ts:60](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L60) [engine/server/script/decision.ts:72](../src/engine/server/script/decision.ts#L72) [engine/server/script/decision.ts:167](../src/engine/server/script/decision.ts#L167) [engine/server/script/decision.ts:379](../src/engine/server/script/decision.ts#L379) [game/server/shardfile/decisions.ts:142](../src/game/server/shardfile/decisions.ts#L142)
 
 The engine snapshot includes tick, binding/script/stateVersion identities,
 named slots, remaining timers, RNG counters, failures/disabled/enabled state,
@@ -298,7 +298,7 @@ RNG and observed handles. It excludes guest memory/globals and metrics. Restore
 validates and re-prepares staged transactions without invoking Wasm, then installs
 the continuation. It requires the **same** stateVersion; format migration-chain
 validation is not automatic migration of these snapshots.
-[engine/script/decision.ts:29](../src/engine/script/decision.ts#L29) [engine/script/decision.ts:391](../src/engine/script/decision.ts#L391) [engine/script/decision.ts:402](../src/engine/script/decision.ts#L402) [format/decisionScripts.ts:112](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L112)
+[engine/server/script/decision.ts:29](../src/engine/server/script/decision.ts#L29) [engine/server/script/decision.ts:391](../src/engine/server/script/decision.ts#L391) [engine/server/script/decision.ts:402](../src/engine/server/script/decision.ts#L402) [format/decisionScripts.ts:112](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L112)
 
 The game additionally saves enabled bindings, public actor fields, channels,
 player flags, zone/phase observations, move-runner state and strike tracking.
@@ -307,21 +307,21 @@ registers its continuation with `SimHost.onStep`. Borrowed owners explicitly
 save/restore both decision and real strike-runner continuation. Loading does not
 replay init, start handlers, rewards or presentation edges. Contract mismatches
 refuse, with a narrow exception for mechanically equivalent borrowed view-channel
-program edits. [game/shardfile/decisions.ts:173](../src/game/shardfile/decisions.ts#L173) [game/shardfile/decisions.ts:446](../src/game/shardfile/decisions.ts#L446) [game/shardfile/decisions.ts:451](../src/game/shardfile/decisions.ts#L451) [game/shardfile/decisions.ts:466](../src/game/shardfile/decisions.ts#L466) [game/shardfile/borrowedDecisions.ts:136](../src/game/shardfile/borrowedDecisions.ts#L136)
+program edits. [game/server/shardfile/decisions.ts:173](../src/game/server/shardfile/decisions.ts#L173) [game/server/shardfile/decisions.ts:446](../src/game/server/shardfile/decisions.ts#L446) [game/server/shardfile/decisions.ts:451](../src/game/server/shardfile/decisions.ts#L451) [game/server/shardfile/decisions.ts:466](../src/game/server/shardfile/decisions.ts#L466) [game/server/shardfile/borrowedDecisions.ts:136](../src/game/server/shardfile/borrowedDecisions.ts#L136)
 
 Simulation time is integer ticks; timers use tick deadlines and generated
 `Clock.dt` is elapsed simulation time. The production seed is
 `[identity.seed >>> 0, 0]`, with binding id, instance (currently 0) and saved RNG
 counter mixed into `Read.random()`. Failed calls discard the staged RNG advance;
 restoring preserves its continuation. Author globals cannot retain hidden RNG
-state because the module rewinds every call. [game/shardfile/decisions.ts:156](../src/game/shardfile/decisions.ts#L156) [engine/script/decision.ts:263](../src/engine/script/decision.ts#L263) [engine/script/decision.ts:330](../src/engine/script/decision.ts#L330) [engine/script/decision.ts:331](../src/engine/script/decision.ts#L331) [engine/script/decision.ts:233](../src/engine/script/decision.ts#L233) [engine/script/decisionModule.ts:70](../src/engine/script/decisionModule.ts#L70)
+state because the module rewinds every call. [game/server/shardfile/decisions.ts:156](../src/game/server/shardfile/decisions.ts#L156) [engine/server/script/decision.ts:263](../src/engine/server/script/decision.ts#L263) [engine/server/script/decision.ts:330](../src/engine/server/script/decision.ts#L330) [engine/server/script/decision.ts:331](../src/engine/server/script/decision.ts#L331) [engine/server/script/decision.ts:233](../src/engine/server/script/decision.ts#L233) [engine/shared/script/decisionModule.ts:70](../src/engine/shared/script/decisionModule.ts#L70)
 
 The import whitelist exposes no wall clock, entropy, DOM, filesystem or arbitrary
 host call. Deterministic continuation requires the same admitted bytes, binding
 identities, event order and authoritative read/list replies; it does not make
 physics/navigation or host `Math.atan2` results bit-identical across platforms.
 Lists sort returned handles; trace ports can record exact read/list replies.
-[format/scriptAbiV1.ts:49](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L49) [game/shardfile/decisions.ts:207](../src/game/shardfile/decisions.ts#L207) [game/shardfile/decisions.ts:219](../src/game/shardfile/decisions.ts#L219) [engine/script/decision.ts:44](../src/engine/script/decision.ts#L44) [engine/script/decision.ts:341](../src/engine/script/decision.ts#L341) [engine/script/decision.ts:356](../src/engine/script/decision.ts#L356)
+[format/scriptAbiV1.ts:49](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L49) [game/server/shardfile/decisions.ts:207](../src/game/server/shardfile/decisions.ts#L207) [game/server/shardfile/decisions.ts:219](../src/game/server/shardfile/decisions.ts#L219) [engine/server/script/decision.ts:44](../src/engine/server/script/decision.ts#L44) [engine/server/script/decision.ts:341](../src/engine/server/script/decision.ts#L341) [engine/server/script/decision.ts:356](../src/engine/server/script/decision.ts#L356)
 
 ## Legacy v0
 
@@ -333,7 +333,7 @@ not v1 command/event IDs: the director admits event-only effects, can dispatch
 at zero elapsed time using the same tick allowances, and saves guest memory/
 globals with its host checkpoint. V0 is retired per shard and deleted with its
 last user (G484), not silently reinterpreted as v1.
-[format/scriptAbi.ts:4](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbi.ts#L4) [game/shardfile/scriptComposition.ts:17](../src/game/shardfile/scriptComposition.ts#L17) [game/shardfile/clientScripts.ts:17](../src/game/shardfile/clientScripts.ts#L17) [sdk/buildBehaviour.ts:29](../src/sdk/buildBehaviour.ts#L29) [game/plugin/director.ts:21](../src/game/plugin/director.ts#L21) [game/plugin/director.ts:48](../src/game/plugin/director.ts#L48) [game/plugin/director.ts:75](../src/game/plugin/director.ts#L75) [game/plugin/director.ts:97](../src/game/plugin/director.ts#L97) [docs/plans/decisions.md:200](plans/decisions.md#L200)
+[format/scriptAbi.ts:4](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbi.ts#L4) [game/server/shardfile/scriptComposition.ts:17](../src/game/server/shardfile/scriptComposition.ts#L17) [game/client/shardfile/clientScripts.ts:17](../src/game/client/shardfile/clientScripts.ts#L17) [sdk/buildBehaviour.ts:29](../src/sdk/buildBehaviour.ts#L29) [game/server/plugin/director.ts:21](../src/game/server/plugin/director.ts#L21) [game/server/plugin/director.ts:48](../src/game/server/plugin/director.ts#L48) [game/server/plugin/director.ts:75](../src/game/server/plugin/director.ts#L75) [game/server/plugin/director.ts:97](../src/game/server/plugin/director.ts#L97) [docs/plans/decisions.md:200](plans/decisions.md#L200)
 
 ## Gaps between the design and code
 
@@ -342,31 +342,31 @@ These are findings, not additional API promises or code changes:
 - **Interaction:** the design says no caller, but native simulation already
   routes picker-selected interactions to `ShardDecisions.interact`. G484's
   first-script proof remains required.
-  [progress/shard-platform/wasm-api-design-2026-10-17/README.md:82](../progress/shard-platform/wasm-api-design-2026-10-17/README.md#L82) [game/plugin/simulation.ts:575](../src/game/plugin/simulation.ts#L575) [game/shardfile/decisions.ts:431](../src/game/shardfile/decisions.ts#L431) [docs/plans/decisions.md:200](plans/decisions.md#L200)
+  [progress/shard-platform/wasm-api-design-2026-10-17/README.md:82](../progress/shard-platform/wasm-api-design-2026-10-17/README.md#L82) [game/server/plugin/simulation.ts:575](../src/game/server/plugin/simulation.ts#L575) [game/server/shardfile/decisions.ts:431](../src/game/server/shardfile/decisions.ts#L431) [docs/plans/decisions.md:200](plans/decisions.md#L200)
 - **Membership:** `player.join/leave` are delivered on binding lifetime changes,
   despite the design's “id only” status. They do not prove multiplayer joins.
   Spawn-owned programs produce `spawned`; `strike.target` still lacks a
   producer in the decision owner.
-  [progress/shard-platform/wasm-api-design-2026-10-17/README.md:88](../progress/shard-platform/wasm-api-design-2026-10-17/README.md#L88) [game/shardfile/decisions.ts:336](../src/game/shardfile/decisions.ts#L336) [game/shardfile/decisions.ts:380](../src/game/shardfile/decisions.ts#L380) [sdk/decisionScriptBindings.ts:42](../src/sdk/decisionScriptBindings.ts#L42)
+  [progress/shard-platform/wasm-api-design-2026-10-17/README.md:88](../progress/shard-platform/wasm-api-design-2026-10-17/README.md#L88) [game/server/shardfile/decisions.ts:336](../src/game/server/shardfile/decisions.ts#L336) [game/server/shardfile/decisions.ts:380](../src/game/server/shardfile/decisions.ts#L380) [sdk/decisionScriptBindings.ts:42](../src/sdk/decisionScriptBindings.ts#L42)
 - **Group API:** G484(a)'s spawn-group binding and skitterer port landed in
   `9c6361f6b` / `74c87e851`. A `{ spawnGroup: id }` binding expands into one
   logical binding per declared actor, with actor-scoped slots and an owned
   self handle. `spawnGroupAlive` counts live members of creature groups or
   declared script groups; actor spawn ids retain their 0/1 behavior.
-  [format/decisionScripts.ts:23](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L23) [format/decisionScripts.ts:98](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L98) [format/decisionBindings.ts:50](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionBindings.ts#L50) [game/shardfile/decisions.ts:200](../src/game/shardfile/decisions.ts#L200)
+  [format/decisionScripts.ts:23](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L23) [format/decisionScripts.ts:98](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L98) [format/decisionBindings.ts:50](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionBindings.ts#L50) [game/server/shardfile/decisions.ts:200](../src/game/server/shardfile/decisions.ts#L200)
 - **Refused operations:** generic decision rows still refuse spawn/despawn;
   owned population/elite programs bind them to concrete native/page bodies.
   Impulse and weather remain install-time refusals. No mover command exists. View
   ids 100–105 lack runtime adapters after Z9; weather field tables supply
-  eased presentation state without a view guest. [game/shardfile/decisions.ts:132](../src/game/shardfile/decisions.ts#L132) [format/scriptAbiV1.ts:16](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L16) [engine/script/decision.ts:138](../src/engine/script/decision.ts#L138) [docs/plans/decisions.md:200](plans/decisions.md#L200)
+  eased presentation state without a view guest. [game/server/shardfile/decisions.ts:132](../src/game/server/shardfile/decisions.ts#L132) [format/scriptAbiV1.ts:16](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/scriptAbiV1.ts#L16) [engine/server/script/decision.ts:138](../src/engine/server/script/decision.ts#L138) [docs/plans/decisions.md:200](plans/decisions.md#L200)
 - **Saves:** migration chains are checked by format admission, but decision
   restore requires exact stateVersion; it does not run those migrations.
   Player-scoped state is per binding with owner validation, not a multiplayer
-  player map. [format/decisionScripts.ts:112](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L112) [engine/script/decision.ts:413](../src/engine/script/decision.ts#L413) [engine/script/decision.ts:167](../src/engine/script/decision.ts#L167) [engine/script/decision.ts:394](../src/engine/script/decision.ts#L394)
+  player map. [format/decisionScripts.ts:112](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/decisionScripts.ts#L112) [engine/server/script/decision.ts:413](../src/engine/server/script/decision.ts#L413) [engine/server/script/decision.ts:167](../src/engine/server/script/decision.ts#L167) [engine/server/script/decision.ts:394](../src/engine/server/script/decision.ts#L394)
 - **Bounds/fallbacks:** 16 events bounds a delivered batch, not total queued
   events. `hold` does not freeze an already-running move; `skip` does not
   advance story state. These are the actual implementations, not guarantees
-  of queue boundedness or story recovery. [engine/script/decision.ts:80](../src/engine/script/decision.ts#L80) [engine/script/decision.ts:269](../src/engine/script/decision.ts#L269) [game/shardfile/decisions.ts:149](../src/game/shardfile/decisions.ts#L149)
+  of queue boundedness or story recovery. [engine/server/script/decision.ts:80](../src/engine/server/script/decision.ts#L80) [engine/server/script/decision.ts:269](../src/engine/server/script/decision.ts#L269) [game/server/shardfile/decisions.ts:149](../src/game/server/shardfile/decisions.ts#L149)
 
 ## Stateless return projections (G475)
 
@@ -409,8 +409,8 @@ contact and movement. Finite observed fields expose encounter phase, engagement,
 leash and day weights. Data field steering remains bounded by the admitted
 move's speed and turn limits. Native/page authorities retain all identity,
 physics, damage and retirement operations; no shard TypeScript port is accepted.
-See [spawn owner](../src/game/population/spawnScript.ts),
-[strike owner](../src/game/population/scriptStrikes.ts), and
+See [spawn owner](../src/game/server/population/spawnScript.ts),
+[strike owner](../src/game/server/population/scriptStrikes.ts), and
 [elite admission](https://github.com/project-wildshard/shardfile/blob/v0.2.0/src/format/eliteFeature.ts).
 
 ### Client ambient projections
@@ -469,7 +469,7 @@ does not execute Wasm or verify the content hash: the native asset owner still
 verifies bytes and executable admission before constructing its selected lane. The host supplies the full trusted IO byte
 length (default 656 for header/directory only), also used to reserve compiler
 static data and stack outside the wire area. The
-[`ScriptModuleV2`](../src/engine/script/moduleV2.ts) primitive admits one sim or
+[`ScriptModuleV2`](../src/engine/shared/script/moduleV2.ts) primitive admits one sim or
 projection lane per instance and rewinds the complete image/globals before
 every call. Output domain/authority validation and the remaining lane
 integration below still belong to their defining hosts. Shipped v0/v1 loaders
@@ -677,7 +677,7 @@ with first and changed zero (a call that writes nothing keeps the draw); after i
 changed count above the batch's capacity, a changed range past the total, a nonzero pad, a written matrix outside the
 program's bounds or a non-finite attribute value refuses the whole frame. A landed batch draws `total` copies and
 writes the `changed` copies from `first` (their matrices and, with an attribute, its first `itemSize` components).
-[engine/script/viewProgram.ts](../src/engine/script/viewProgram.ts) [game/shardfile/clientViewProgram.ts](../src/game/shardfile/clientViewProgram.ts)
+[engine/client/script/viewProgram.ts](../src/engine/client/script/viewProgram.ts) [game/client/shardfile/clientViewProgram.ts](../src/game/client/shardfile/clientViewProgram.ts)
 
 ### Query operation and reply records
 
@@ -791,9 +791,9 @@ continuation, keyed by stable identities. Restore validates and re-prepares it
 without running init/start or replaying rewards. Contact goes through existing
 60 Hz strike/held-melee owners, never through the query ring.
 
-RNG algorithm 1 is the current `engine/core/rng.ts` Mulberry32 continuation:
+RNG algorithm 1 is the current `engine/shared/core/rng.ts` Mulberry32 continuation:
 state columns 0–2 are `state,initial,scrambledFork` (0/1); remaining columns zero.
-Algorithm 2 is `engine/script/decision.ts`'s current seed/binding/instance/counter
+Algorithm 2 is `engine/server/script/decision.ts`'s current seed/binding/instance/counter
 mix: columns are `seedLo,seedHi,counter,logicalBindingId,instance,0`. Seeds and
 Mulberry states are exact u32 values; logical ids/counters remain exact safe
 integers in f64. Input draws is zero; a candidate reports its u32 draw count.

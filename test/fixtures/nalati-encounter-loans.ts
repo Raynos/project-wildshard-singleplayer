@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import type {NativePopulationBootRows,NativePopulationConfig} from '../../src/game/riding/nativePopulation';
+import type {NativePopulationBootRows,NativePopulationConfig} from '../../src/game/server/riding/nativePopulation';
 import type {NalatiEncounterIntake} from './nalati-world';
 
 const kinds=v.pipe(v.array(v.pipe(v.string(),v.minLength(1))),v.maxLength(16));

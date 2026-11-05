@@ -3,10 +3,10 @@ import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseStillImage } from '@wildshard/format/stillImage';
-import { Scope } from '../src/engine/app/scope';
-import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { leaseMapImage } from '../src/game/shardfile/mapImage';
-import { ApproachInputsDeferredError } from '../src/game/grid/productInputs';
+import { Scope } from '../src/engine/shared/app/scope';
+import { ResidencyAllocator } from '../src/game/server/grid/allocator';
+import { leaseMapImage } from '../src/game/client/shardfile/mapImage';
+import { ApproachInputsDeferredError } from '../src/game/client/grid/productInputs';
 
 test('map admission hands off to only the retained bitmap or canvas pixels', () => {
   const bytes = Uint8Array.from(readFileSync('test/fixtures/world-source/image.png'));

@@ -1,7 +1,7 @@
 /**
  * Nalati's static collision as world-registry data (NALATI-MERGE P1, AGENTS.md "Physics"): the POI, rock and dressing
  * builders emit `ColliderDesc`s beside the geometry they draw, and each model placed carries its copies' into the one
- * world registry (E306 / E315: src/engine/models/place.ts; Nalati's `NalatiSet`, src/shards/nalati-grasslands/world/painted.ts). Nothing here
+ * world registry (E306 / E315: src/engine/client/models/place.ts; Nalati's `NalatiSet`, src/shards/nalati-grasslands/world/painted.ts). Nothing here
  * imports Rapier.
  *
  *   boxes.push({ x, z, hw, hd, rot, yBottom, yTop, surface: 'stone' });    // a P2-era box, now with what it is made of

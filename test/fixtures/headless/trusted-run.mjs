@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createNativeProofWorker } from '../headless-worker.ts';
 import { emptyShardfile } from '../../../src/sdk/author.ts';
-import { decodeSimSnapshot } from '../../../src/engine/sim/snapshot.ts';
+import { decodeSimSnapshot } from '../../../src/engine/shared/sim/snapshot.ts';
 const source = emptyShardfile({slug:'trusted-fixture',name:'Trusted fixture',author:'Test',revision:1,seed:435});
 const sim = await createNativeProofWorker(source,new Map(),'trusted');
 try {

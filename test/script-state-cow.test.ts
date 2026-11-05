@@ -1,6 +1,6 @@
 import {expect,test} from 'vitest';
-import {ScriptWorld} from '../src/engine/script/effects';
-import {DeclaredScriptWorld,type ScriptStateDeclaration} from '../src/engine/script/state';
+import {ScriptWorld} from '../src/engine/server/script/effects';
+import {DeclaredScriptWorld,type ScriptStateDeclaration} from '../src/engine/server/script/state';
 
 const entity={id:1,name:'actor',position:[0,0,0] as const,fields:{},frozen:false,interactive:true};
 const rules={fields:{},archetypes:[],events:[],maxEntities:1};

@@ -1,7 +1,7 @@
 import {expect,test} from 'vitest';
 import {installCatalogueFixture} from './fixtures/bootSetup';
-import {installShards,shards} from '../src/game/shard/list';
-import {selectedLevel} from '../src/engine/level/selection';
+import {installShards,shards} from '../src/game/client/shard/list';
+import {selectedLevel} from '../src/engine/shared/level/selection';
 
 test('a cached catalogue module restores its real rows without selecting a world',async()=>{
   const level=selectedLevel();

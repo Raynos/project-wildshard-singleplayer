@@ -3,8 +3,8 @@
 // fetch layer captures the network beneath it once per page, so every test here stubs the same network function. Page
 // reads name URLs against document.baseURI, as the downloads do (happy-dom's location is another origin).
 import {expect, test, vi} from 'vitest';
-import {releaseSpawnMembers, reportSpawnOutcomes, startSpawnDownload, type SpawnOutcome} from '../src/game/boot/spawnDownload';
-import {jsonSlot} from '../src/engine/saves/slots';
+import {releaseSpawnMembers, reportSpawnOutcomes, startSpawnDownload, type SpawnOutcome} from '../src/game/client/boot/spawnDownload';
+import {jsonSlot} from '../src/engine/client/saves/slots';
 
 const file = (slug: string, kind: string, fill: string, bytes: number): {url: string; bytes: number; hash: string} =>
   ({url: `/shardfiles/${slug}/blobs/${kind}/${fill.repeat(64)}.${kind}`, bytes, hash: fill.repeat(64)});

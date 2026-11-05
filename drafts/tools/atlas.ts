@@ -161,7 +161,7 @@ async function main(): Promise<void> {
   const prevTs = existsSync(GAME_CARDS) ? readFileSync(GAME_CARDS, 'utf8') : '';
   if (prevTs !== cardsTs && !failed) {
     if (check) {
-      console.error('src/game/draftTitles.ts is stale; run node drafts/tools/atlas.ts --all');
+      console.error('src/game/client/draftTitles.ts is stale; run node drafts/tools/atlas.ts --all');
       failed = true;
     } else writeFileSync(GAME_CARDS, cardsTs);
   }

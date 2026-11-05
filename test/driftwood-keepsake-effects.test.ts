@@ -1,12 +1,12 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { Events } from '../src/engine/events/events';
-import { PlayerHealth } from '../src/engine/combat/health';
-import { EffectService } from '../src/engine/combat/effects/EffectService';
-import type { OwnedId } from '../src/game/loot/Owned';
+import { Scope } from '../src/engine/shared/app/scope';
+import { Events } from '../src/engine/shared/events/events';
+import { PlayerHealth } from '../src/engine/server/combat/health';
+import { EffectService } from '../src/engine/client/combat/effects/EffectService';
+import type { OwnedId } from '../src/game/server/loot/Owned';
 import { bindFixtureEffects } from './fixtures/item-effects';
-import { STARTER_EFFECTS } from '../src/game/loadout/effects';
+import { STARTER_EFFECTS } from '../src/game/server/loadout/effects';
 import { DRIFTWOOD_EFFECTS } from '../src/shards/driftwood-isle/generators/economy';
 
 

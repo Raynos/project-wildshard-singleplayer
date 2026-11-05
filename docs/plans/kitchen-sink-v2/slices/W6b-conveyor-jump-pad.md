@@ -14,12 +14,12 @@ Movers run stations 1–2:
 
 ## 2. Engine / game / host work, just in time
 
-Research: the player has a transient-impulse law shared by client and headless sim (`src/engine/player/impulse.ts`:
+Research: the player has a transient-impulse law shared by client and headless sim (`src/engine/shared/player/impulse.ts`:
 "a shove (a wisp's burst, a gale wall, an updraft) adds world velocity in m/s … after each step the impulse decays";
-`src/engine/sim.ts:619` lifts the board on an upward shove). Sky Reach declares **updraft** columns as `state/modes`
-traverse rows (`src/format/modes.ts` `UpdraftModeSchema`, read in `src/game/shardfile/dataCreaturePorts.ts:22,33,48`).
-Kinematic decks carry the motor (`engine/physics/CharacterMotor.ts:339` `carry`). No surface velocity exists: colliders
-carry only a material tag (`engine/physics/surface.ts:13,22`).
+`src/engine/server/sim.ts:619` lifts the board on an upward shove). Sky Reach declares **updraft** columns as `state/modes`
+traverse rows (`src/format/modes.ts` `UpdraftModeSchema`, read in `src/game/server/shardfile/dataCreaturePorts.ts:22,33,48`).
+Kinematic decks carry the motor (`engine/shared/physics/CharacterMotor.ts:339` `carry`). No surface velocity exists: colliders
+carry only a material tag (`engine/shared/physics/surface.ts:13,22`).
 
 | Row / mechanic | Shape | Layer |
 |---|---|---|

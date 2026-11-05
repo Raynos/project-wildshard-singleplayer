@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { withFacetedAO } from '../src/sdk/bake/facetedGeometry';
-import { encodeVoxelAOBake, voxelAOBakeStats } from '../src/engine/world/voxelAO';
+import { encodeVoxelAOBake, voxelAOBakeStats } from '../src/engine/client/world/voxelAO';
 
 const table = () => encodeVoxelAOBake(new Map([['ba5e2026:feed0010', Float64Array.of(0.25, 0.5)]]));
 

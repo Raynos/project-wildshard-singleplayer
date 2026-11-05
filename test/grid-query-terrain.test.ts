@@ -1,8 +1,8 @@
 import { expect, it } from 'vitest';
 import { Group, MeshStandardMaterial, WebGLRenderer } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { clientMaterials } from '../src/game/shardfile/clientMaterials';
-import { clientTileViews } from '../src/game/shardfile/clientViews';
+import { Scope } from '../src/engine/shared/app/scope';
+import { clientMaterials } from '../src/game/client/shardfile/clientMaterials';
+import { clientTileViews } from '../src/game/client/shardfile/clientViews';
 import { DRIFTWOOD as driftwood } from './fixtures/driftwood-program';
 import nalati from './fixtures/nalati-product-source';
 import { skyProductRows } from '../src/shards/far-reach/generators/product';

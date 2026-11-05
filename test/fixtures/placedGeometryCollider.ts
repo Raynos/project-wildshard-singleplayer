@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import type { Material as SurfaceMaterial } from '../../src/engine/physics/surface';
-import type { ColliderDesc } from '../../src/engine/world/registry';
+import type { Material as SurfaceMaterial } from '../../src/engine/shared/physics/surface';
+import type { ColliderDesc } from '../../src/engine/client/world/registry';
 
 // Historical contract oracle; production consumers use the data-driven owners.
 /**

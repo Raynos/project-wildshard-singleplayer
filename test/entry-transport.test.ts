@@ -1,6 +1,6 @@
 // @vitest-environment node
 import {afterEach, expect, test, vi} from 'vitest';
-import {entryTransport, installEntryTransport, startEntryDownload} from '../src/game/shardfile/entryTransport';
+import {entryTransport, installEntryTransport, startEntryDownload} from '../src/game/client/shardfile/entryTransport';
 
 const key = Symbol.for('wildshard.entry-transport'), schedule = '/assets/entry-example-0123456789abcdef.json';
 const hash = 'a'.repeat(64), origin = 'https://example.test';

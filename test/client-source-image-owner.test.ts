@@ -1,17 +1,17 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Admit the complete original inert PNG through the real product reader.
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { parseStillImage } from '@wildshard/format/stillImage';
-import { shardfileSource } from '../src/game/shardfile/clientSource';
-import type { ShardfileClientBindings } from '../src/game/shardfile/client';
-import type { ProductOptions } from '../src/game/shardfile/product';
+import { shardfileSource } from '../src/game/client/shardfile/clientSource';
+import type { ShardfileClientBindings } from '../src/game/client/shardfile/client';
+import type { ProductOptions } from '../src/game/client/shardfile/product';
 import { emptyShardfile } from '../src/sdk/author';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { OUTPUT_SECTIONS, outputSectionPayloads } from '@wildshard/format/outputFields';
 import { parseOutputIndex } from '@wildshard/format/outputIndex';
-import { toLevelSpec } from '../src/game/shard/spec';
-import { bakedMapUrl } from '../src/game/shard/manifest';
+import { toLevelSpec } from '../src/game/server/shard/spec';
+import { bakedMapUrl } from '../src/game/server/shard/manifest';
 
 const original = Uint8Array.from(readFileSync('test/fixtures/world-source/image.png'));
 function fixture() {

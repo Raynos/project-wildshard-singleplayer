@@ -1,13 +1,13 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The server half runs the shipped product bytes and physics module.
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
-import type { NetChat } from '../src/engine/net/chatWire';
-import type { NetLedger } from '../src/engine/net/ledgerWire';
-import { loadRapier } from '../src/engine/physics/rapier';
-import type { SaveStorage } from '../src/engine/saves/store';
-import { leadPlayer } from '../src/engine/sim/leadPlayer';
-import { serializeSimSnapshot, snapshotSimHostBytes } from '../src/engine/sim/snapshot';
-import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
+import type { NetChat } from '../src/engine/shared/net/chatWire';
+import type { NetLedger } from '../src/engine/shared/net/ledgerWire';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import type { SaveStorage } from '../src/engine/shared/saves/store';
+import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
+import { serializeSimSnapshot, snapshotSimHostBytes } from '../src/engine/shared/sim/snapshot';
+import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { createTrustedHeadlessResident, type HeadlessRuntimeInput, type TrustedHeadlessResident } from '../src/sdk/headlessRuntime';
 import { runStandaloneServer } from '../src/sdk/standalone/serverHost';

@@ -6,7 +6,7 @@
 //
 // Time is virtual: a transfer resolves when the simulated clock reaches its
 // end, and the clock only moves when the JS event loop is idle. So the real
-// boot code (src/game/boot/spawnDownload.ts) runs against it in milliseconds
+// boot code (src/game/client/boot/spawnDownload.ts) runs against it in milliseconds
 // and its download time is exact for the model, with no wall-clock noise.
 
 /**

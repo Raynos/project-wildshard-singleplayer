@@ -4,7 +4,7 @@ import {registeredJsonContract,validateRegisteredJson} from '@wildshard/format/r
 import {registeredJsonSchema,namedJsonSchema} from '../src/sdk/formatJsonSchema';
 import {nameBlob} from '../src/sdk/blobs';
 import {emptyShardfile} from '../src/sdk/author';
-import {createShardProduct} from '../src/game/shardfile/shardProduct';
+import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {fixtureJsonCheck} from './fixtures/productFile';
 import pine from '../src/shards/pine-hollow/data/persistence.json' with {type:'json'};
 import {nalatiPersistenceRows} from '../src/shards/nalati-grasslands/generators/persistence';

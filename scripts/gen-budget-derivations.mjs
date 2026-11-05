@@ -16,8 +16,8 @@ export async function genBudgetDerivations(root = resolve(import.meta.dirname, '
   const before = readFileSync(file, 'utf8'), data = JSON.parse(before);
   if (!data.derived || typeof data.derived !== 'object' || Array.isArray(data.derived)) throw new Error('gen-budgets: invalid derived entries');
   await import('./bake-loader.mjs');
-  const { deriveBudget } = await import('../src/engine/render/budgets.ts');
-  const { parseCalibration } = await import('../src/engine/render/calibration.ts');
+  const { deriveBudget } = await import('../src/engine/client/render/budgets.ts');
+  const { parseCalibration } = await import('../src/engine/client/render/calibration.ts');
   const raw = readFileSync(resolve(root, 'budgets/calibration.json'), 'utf8'), calibration = parseCalibration(raw);
   const digest = createHash('sha256').update(raw).digest('hex');
   // A shard lane cannot silently reinterpret the rest of the file against another calibration.

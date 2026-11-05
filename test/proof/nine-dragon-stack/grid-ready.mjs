@@ -6,7 +6,7 @@ import { prepareHeadlessRuntime } from '../../fixtures/nine-headless.ts';
 import { readFileSync } from 'node:fs';
 import { builtProduct } from '../../fixtures/builtProduct.ts';
 import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct.ts';
-import { outputDescriptor } from '../../../src/game/shardfile/outputDescriptor.ts';
+import { outputDescriptor } from '../../../src/game/shared/shardfile/outputDescriptor.ts';
 import { proveTrustedGridReady } from '../compatibility/gridReady.mjs';
 
 const directory = builtProduct('nine-dragon-stack'), product = await loadHeadlessProduct(directory);

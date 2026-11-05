@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
-import { _buildAs, buildTier, TIER } from '../src/engine/core/tier';
-import { selectedLevel } from '../src/engine/level/selection';
-import { CHUNK_HALF, ROAD_WIDTH } from '../src/engine/core/config';
-import * as heightfield from '../src/engine/world/Heightfield';
+import { _buildAs, buildTier, TIER } from '../src/engine/client/core/tier';
+import { selectedLevel } from '../src/engine/shared/level/selection';
+import { CHUNK_HALF, ROAD_WIDTH } from '../src/engine/shared/core/config';
+import * as heightfield from '../src/engine/shared/world/Heightfield';
 import { bakeIslandFoliageBatches, bakeIslandFoliagePlacements, islandFoliageGround,
   islandFoliageBatches, islandFoliagePlacements } from '../src/shards/driftwood-isle/generators/islandDressing';
 import { hashImmutableBytes } from '../src/sdk/immutable';

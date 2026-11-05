@@ -4,7 +4,7 @@
 // Both worlds marched voxel AO for every painted model on the main thread at load (the audit's voxelAO.ts:62 owner, in
 // Driftwood's lowpolyKit models and Nalati's camps, outcrops, dressing and Kurgan). The AO is a pure function of each
 // geometry's inputs, so this builds the shard's real world in Node (scripts/bake/worldHost.mjs, the navmesh baker's host;
-// once per tier, a child process each, the tier set before the modules load) while src/engine/world/voxelAO.ts records
+// once per tier, a child process each, the tier set before the modules load) while src/engine/client/world/voxelAO.ts records
 // every result under a hash of its inputs, and writes one table (both tiers' entries) to the shard's own asset folder. At load the shard adds
 // the table before it builds (`addVoxelAOBake`); a geometry whose inputs hash differently (a miss) marches as before.
 // Every run bakes in memory and writes only differing bytes; --check (bake-check.mjs) fails when a source changed
@@ -38,7 +38,7 @@ if (tierArg === undefined) {
   // merges the tiers' entries into the shard's one table
   const only = process.argv.slice(2).filter((a) => !a.startsWith('--'));
   const verify = process.argv.includes('--verify'), check = process.argv.includes('--check');
-  const ao = await import(pathToFileURL(resolve(ROOT, 'src/engine/world/voxelAO.ts')).href);
+  const ao = await import(pathToFileURL(resolve(ROOT, 'src/engine/client/world/voxelAO.ts')).href);
   const output = byteWriter(check, 'bake-voxel-ao');
   const scratch = mkdtempSync(join(tmpdir(), 'bake-voxel-ao-'));
   let failed = false;
@@ -73,14 +73,14 @@ if (tierArg === undefined) {
   const environment = installBakeEnvironment(ROOT);
   try {
     const src = (p) => import(pathToFileURL(resolve(ROOT, 'src', p)).href);
-    if (tierArg !== 'desktop') (await src('engine/core/tier.ts')).initializeTier(tierArg); // desktop is Node's own tier (navigator 'node')
+    if (tierArg !== 'desktop') (await src('engine/client/core/tier.ts')).initializeTier(tierArg); // desktop is Node's own tier (navigator 'node')
     const THREE = await import('three');
     const { visitAuthoredWorld } = await import('./bake/worldHost.mjs');
-    const registry = await src('game/shard/registry.ts');
+    const registry = await src('game/client/shard/registry.ts');
     const { SHARDS } = await src('shards.generated.ts');
-    const HF = await src('engine/world/Heightfield.ts');
-    const BT = await src('engine/world/BakedTerrain.ts');
-    const ao = await src('engine/world/voxelAO.ts');
+    const HF = await src('engine/shared/world/Heightfield.ts');
+    const BT = await src('engine/shared/world/BakedTerrain.ts');
+    const ao = await src('engine/client/world/voxelAO.ts');
     const def = SHARDS.find((s) => s.slug === slugArg);
     if (def === undefined) throw new Error(`bake-voxel-ao: no shard ${slugArg}`);
     registry.setActiveChunk(def.slug);

@@ -14,7 +14,7 @@ test('publishes the existing census for every shard, including zero-native rows'
   const native=['native',...Array.from({length:22},(_,index)=>`native-${index}`)];
   const rows=componentSpanReports('',{
     ...Object.fromEntries(native.map(slug=>[slug,empty])),
-    [shard]:{customSources:[{path:'src/game/population/pageGroups.ts',kind:'sole-export',name:'PagePopulationPlanner',lines:7}],conversion:{customRuntimeLines:7}},
+    [shard]:{customSources:[{path:'src/game/server/population/pageGroups.ts',kind:'sole-export',name:'PagePopulationPlanner',lines:7}],conversion:{customRuntimeLines:7}},
   },[shard,...native],null);
   expect(Object.keys(rows)).toEqual([shard,...native]);
   expect(Object.keys(rows)).toHaveLength(24);

@@ -1,11 +1,11 @@
-import { terrainFieldFor } from '../src/engine/world/groundField';
+import { terrainFieldFor } from '../src/engine/shared/world/groundField';
 import { expect, test } from 'vitest';
 import { parseCapturePoses } from '@wildshard/format/minimap';
-import { installDeclaredBakedTerrain } from '../src/engine/world/bakedTerrainField';
+import { installDeclaredBakedTerrain } from '../src/engine/shared/world/bakedTerrainField';
 import { readNativeTerrain } from '../src/sdk/bake/terrain';
 import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/groundRows';
 import { driftwoodCapturePoses } from '../src/shards/driftwood-isle/generators/capturePoses';
-import { declaredGround } from '../src/game/shard/manifest';
+import { declaredGround } from '../src/game/server/shard/manifest';
 import { driftwoodGroundDeclaration } from '../src/shards/driftwood-isle/generators/groundDeclaration';
 import source from '../src/shards/driftwood-isle/manifest.json' with { type: 'json' };
 import original from './fixtures/driftwood-boot-original.json' with { type: 'json' };

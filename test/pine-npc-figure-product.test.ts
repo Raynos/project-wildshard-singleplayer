@@ -1,16 +1,16 @@
 import { expect, test, vi } from 'vitest';
 import { builtProduct } from './fixtures/builtProduct';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
-import type { ShardProduct } from '../src/game/shardfile/shardProduct';
-import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
+import type { ShardProduct } from '../src/game/shared/shardfile/shardProduct';
+import * as runtimeProduct from '../src/game/client/shardfile/runtimeProduct';
 import { NPC_FIGURE } from '../src/shards/pine-hollow/generators/peopleLook';
 import { ProductFigureCatalogue as FigureCatalogue } from '@wildshard/game/models/figureCatalogue';
-import * as packs from '../src/engine/core/deflate';
-import { FigureRows } from '../src/game/systems/npc/figureRows';
-import { Scope } from '../src/engine/app/scope';
-import { modelContext, specimenReady } from '../src/engine/models/model';
-import { SkyRig } from '../src/engine/world/skyRig';
-import { Rng } from '../src/engine/core/rng';
+import * as packs from '../src/engine/client/core/deflate';
+import { FigureRows } from '../src/game/client/systems/npc/figureRows';
+import { Scope } from '../src/engine/shared/app/scope';
+import { modelContext, specimenReady } from '../src/engine/client/models/model';
+import { SkyRig } from '../src/engine/client/world/skyRig';
+import { Rng } from '../src/engine/shared/core/rng';
 import { Group } from 'three';
 import packed from '../src/shards/pine-hollow/data/codeParts.json' with { type: 'json' };
 

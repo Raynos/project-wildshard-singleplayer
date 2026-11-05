@@ -1,22 +1,22 @@
-import {onFault,type Fault} from '../src/engine/core/faults';
+import {onFault,type Fault} from '../src/engine/shared/core/faults';
 import {GrazerBrain as OriginalGrazerBrain} from './fixtures/grazer-herd-original';
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 import {scriptAdmissionRows} from '@wildshard/format/scriptContract';
 import {NALATI_SCRIPT_SECTIONS} from './fixtures/nalati-script-inventory';
 import {expect,test,vi} from 'vitest';
-import {GroupStepV2,prepareGroupNativeV2,type GroupStepOperationV2,type GroupStepReferenceV2,type GroupStepNativeResultV2} from '../src/engine/script/groupStepV2';
-import {ObservationColumnsV2,type V2ColumnOwners} from '../src/engine/script/observationColumnsV2';
+import {GroupStepV2,prepareGroupNativeV2,type GroupStepOperationV2,type GroupStepReferenceV2,type GroupStepNativeResultV2} from '../src/engine/shared/script/groupStepV2';
+import {ObservationColumnsV2,type V2ColumnOwners} from '../src/engine/shared/script/observationColumnsV2';
 
 import * as v from 'valibot';
 import {Vector3} from 'three';
-import {AnimalSim} from '../src/engine/entities/AnimalSim';
-import {HerdBrain,type HerdSpec,type HerdPorts,type HerdContext} from '../src/engine/ai/herd';
-import {Scope} from '../src/engine/app/scope';
-import {Rng} from '../src/engine/core/rng';
-import {GroupBankV2} from '../src/engine/script/groupBankV2';
+import {AnimalSim} from '../src/engine/server/entities/AnimalSim';
+import {HerdBrain,type HerdSpec,type HerdPorts,type HerdContext} from '../src/engine/server/ai/herd';
+import {Scope} from '../src/engine/shared/app/scope';
+import {Rng} from '../src/engine/shared/core/rng';
+import {GroupBankV2} from '../src/engine/shared/script/groupBankV2';
 import type {GroupBankValueV2} from '@wildshard/format/scriptGroupBankV2';
-import type {GroupGuestFrameV2} from '../src/engine/ai/GroupBrain';
-import {ReturnProgram} from '../src/game/population/returnProgram';
+import type {GroupGuestFrameV2} from '../src/engine/server/ai/GroupBrain';
+import {ReturnProgram} from '../src/game/shared/population/returnProgram';
 import binding from '../src/shards/nalati-grasslands/data/herdGuest.json' with {type:'json'};
 import {NALATI_PASTURE as pasture} from './fixtures/nalati-titan';
 

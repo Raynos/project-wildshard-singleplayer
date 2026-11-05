@@ -1,11 +1,11 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the shipped native physics binary.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { createSimHost } from '../src/engine/sim';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { tagCollider } from '../src/engine/physics/surface';
-import { installQuestHost } from '../src/game/plugin/simulation';
-import { bindHeadlessPrompts, type HeadlessPrompt } from '../src/game/quest/interactionRows';
+import { createSimHost } from '../src/engine/server/sim';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { tagCollider } from '../src/engine/shared/physics/surface';
+import { installQuestHost } from '../src/game/server/plugin/simulation';
+import { bindHeadlessPrompts, type HeadlessPrompt } from '../src/game/server/quest/interactionRows';
 import { parseQuestHost } from '@wildshard/format/questHost';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';

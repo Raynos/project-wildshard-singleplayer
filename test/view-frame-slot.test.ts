@@ -1,20 +1,20 @@
 import { expect, test, vi } from 'vitest';
 import { PerspectiveCamera, Vector3 } from 'three';
 import { parse } from 'valibot';
-import { App } from '../src/engine/app/app';
-import { Scope } from '../src/engine/app/scope';
-import { createLevelInstallation } from '../src/engine/level/installation';
-import { WorldRegistry } from '../src/engine/world/registry';
-import { shardContext } from '../src/game/plugin/context';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { App } from '../src/engine/client/app/app';
+import { Scope } from '../src/engine/shared/app/scope';
+import { createLevelInstallation } from '../src/engine/client/level/installation';
+import { WorldRegistry } from '../src/engine/client/world/registry';
+import { shardContext } from '../src/game/server/plugin/context';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
-import { installViewProgram, lendViewCell, lendViewFrame, lendViewValues } from '../src/game/shardfile/clientViewProgram';
+import { installViewProgram, lendViewCell, lendViewFrame, lendViewValues } from '../src/game/client/shardfile/clientViewProgram';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { ViewProgramSchema } from '@wildshard/format/viewProgram';
-import { ViewLane, prepareViewMemory, type ViewLaneRows } from '../src/engine/script/viewLane';
-import { scriptMemoryCensus } from '../src/engine/script/moduleV2';
-import { FixedMemory } from '../src/engine/script/fixedMemory';
+import { ViewLane, prepareViewMemory, type ViewLaneRows } from '../src/engine/client/script/viewLane';
+import { scriptMemoryCensus } from '../src/engine/shared/script/moduleV2';
+import { FixedMemory } from '../src/engine/shared/script/fixedMemory';
 
 // G600 L7: an owner's inline frame slot. The program samples one lent value and writes it to one lent cell.
 const COPY = `

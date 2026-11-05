@@ -2,25 +2,25 @@ import {admissionPage,admission,admissionLegacy} from './fixtures/nalati-return-
 import {parse} from 'valibot';
 import {ActorProjectionStepV2Schema} from '@wildshard/format/actorProjectionV2';
 import {bindOriginalPageGuard,originalPageGuard,type OriginalGuardBinding} from './fixtures/originalPageGuard';
-import {Scope} from '../src/engine/app/scope';
-import {AnimalSim} from '../src/engine/entities/AnimalSim';
-import {app} from '../src/engine/app/runtime';
-import {ActorProjectionV2} from '../src/game/population/actorProjectionV2';
+import {Scope} from '../src/engine/shared/app/scope';
+import {AnimalSim} from '../src/engine/server/entities/AnimalSim';
+import {app} from '../src/engine/client/app/runtime';
+import {ActorProjectionV2} from '../src/game/server/population/actorProjectionV2';
 import guardProjection from '../src/shards/nalati-grasslands/data/crowdProjection.json' with {type:'json'};
 import {SIM_LEVEL} from './fixtures/sim-level/level';
-import type { Animal } from '../src/engine/entities/AnimalView';
-import type { ThinkCtx } from '../src/engine/entities/species/registry';
-import { ReturnProgram } from '../src/game/population/returnProgram';
-import { Rng } from '../src/engine/core/rng';
+import type { Animal } from '../src/engine/client/entities/AnimalView';
+import type { ThinkCtx } from '../src/engine/shared/entities/species/registry';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
+import { Rng } from '../src/engine/shared/core/rng';
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
-import { createPageCrowds, thinkCrowdGuard } from '../src/game/ambient/crowdPage';
-import type { SkyRig } from '../src/engine/world/skyRig';
+import { createPageCrowds, thinkCrowdGuard } from '../src/game/server/ambient/crowdPage';
+import type { SkyRig } from '../src/engine/client/world/skyRig';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { admittedSheepBody } from './fake/admittedSheep';
 import view from '../src/shards/nalati-grasslands/data/crowdView.json' with { type: 'json' };
-import { setTerrainHeight, setTerrainPlacement } from '../src/engine/world/terrainHeight';
-import { wildEnv } from '../src/game/population/pageGroups';
+import { setTerrainHeight, setTerrainPlacement } from '../src/engine/shared/world/terrainHeight';
+import { wildEnv } from '../src/game/server/population/pageGroups';
 
 /** The live Nalati sheep body, read through the page crowd's own product reader. */
 const sheepBody = admittedSheepBody;

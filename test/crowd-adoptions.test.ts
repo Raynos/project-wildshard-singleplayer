@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
-import { ForagerPopulation } from '../src/engine/ai/ambientForager';
-import { CrowdRoster, CrowdWeaponTarget, ForagerTargets } from '../src/game/shardfile/crowdRuntime';
+import { ForagerPopulation } from '../src/engine/shared/ai/ambientForager';
+import { CrowdRoster, CrowdWeaponTarget, ForagerTargets } from '../src/game/shared/shardfile/crowdRuntime';
 import { PAGE_LIFE } from '../src/shards/pine-hollow/generators/pageLife';
 import { NALATI_HEADLESS_ASSEMBLY as headlessAssembly } from './fixtures/nalati-headless-assembly';
 

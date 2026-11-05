@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { DataTexture, LinearFilter, LinearMipmapLinearFilter } from 'three';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
-import { applyTextureSampler } from '../src/game/shardfile/clientMaterials';
+import { applyTextureSampler } from '../src/game/client/shardfile/clientMaterials';
 import textures from '../src/shards/nine-dragon-stack/data/signTextureSources.json' with { type: 'json' };
 
 test('sign product rows bind the original three textures with the original GPU mip samplers', () => {

@@ -45,7 +45,7 @@ async function capture(){
   const plots=values.plots?.split(',')??CARD_PLOTS,views=values.views?.split(',')??Object.keys(CARD_VIEWS);
   for(const idea of plots)await withPlotPage({base:values.base,pin:values.pin,slug:`open-plot-${idea}`},async page=>{
     for(const orientation of ['portrait','landscape']){
-      // The rotate gate (src/engine/ui/RotateGate.ts) stops a coarse-pointer page from drawing in landscape; the landscape
+      // The rotate gate (src/engine/client/ui/RotateGate.ts) stops a coarse-pointer page from drawing in landscape; the landscape
       // backdrop is the desktop menu's, so that view drops touch (pointer: fine) and keeps the phone tier and 2x.
       if(orientation==='landscape')await (await page.context().newCDPSession(page)).send('Emulation.setTouchEmulationEnabled',{enabled:false});
       await page.setViewportSize(VIEWPORT[orientation]);

@@ -1,4 +1,4 @@
-import type { AnimalRigContext } from '../../../src/engine/entities/animalRig';
+import type { AnimalRigContext } from '../../../src/engine/shared/entities/animalRig';
 const STIFF: readonly string[] = ['FL_carpus', 'FR_carpus', 'FL_fetlock', 'FR_fetlock', 'BL_stifle', 'BR_stifle', 'BL_hock', 'BR_hock'];
 
 // Frozen before the numeric pose migration; no production dependency.

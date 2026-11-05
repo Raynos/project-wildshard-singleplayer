@@ -1,11 +1,11 @@
 import { expect, test, vi } from 'vitest';
 import { BufferGeometry, Float32BufferAttribute, MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { AmbientFlockDraw } from '../src/game/ambient/ambientFlock';
-import type { ShardContext } from '../src/game/plugin/context';
-import { installClientAmbientLife } from '../src/game/shardfile/clientAmbientLife';
-import { entryOwner, lendEntryOwner, publishEntryOwner } from '../src/game/shardfile/entryOwners';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { Scope } from '../src/engine/shared/app/scope';
+import { AmbientFlockDraw } from '../src/game/client/ambient/ambientFlock';
+import type { ShardContext } from '../src/game/server/plugin/context';
+import { installClientAmbientLife } from '../src/game/client/shardfile/clientAmbientLife';
+import { entryOwner, lendEntryOwner, publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { parsePageLife } from '@wildshard/format/pageLife';
 import { emptyShardfile } from '../src/sdk/author';
 import { FISH_DRAW } from '../src/shards/driftwood-isle/generators/fishDraw';

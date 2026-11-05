@@ -15,8 +15,8 @@ import { parseManifestMetadata } from '@wildshard/format/minimap';
 import { readProgramDiscovery, usesProgramDiscovery } from '../scripts/program-discovery.mjs';
 import { authoredManifestSource, shardManifestPath } from '../scripts/authored-manifest.mjs';
 import { refreshDiscovery, relocateDiscoverySource } from '../scripts/gen-shards.mjs';
-import { registerGpuFiles, standIn } from '../src/engine/boot/gpuFiles';
-import { TIER } from '../src/engine/core/tier';
+import { registerGpuFiles, standIn } from '../src/engine/client/boot/gpuFiles';
+import { TIER } from '../src/engine/client/core/tier';
 
 const slug = 'discovery-fixture';
 const sha = 'a'.repeat(40);

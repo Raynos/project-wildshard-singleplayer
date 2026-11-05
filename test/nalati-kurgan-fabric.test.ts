@@ -2,8 +2,8 @@
 import { createHash } from 'node:crypto';
 import { expect, test } from 'vitest';
 import { BufferAttribute, BufferGeometry, Mesh, type Object3D } from 'three';
-import { WorldRegistry } from '../src/engine/world/registry';
-import type { BossArenaRoom } from '../src/game/boss/arenaRoomView';
+import { WorldRegistry } from '../src/engine/client/world/registry';
+import type { BossArenaRoom } from '../src/game/client/boss/arenaRoomView';
 import { bossArena } from './fake/bossArena';
 import { ShippingKurganDungeon } from './fixtures/kurgan-oracle/dungeon';
 import { installWorldFixture } from './fixtures/worldSetup';

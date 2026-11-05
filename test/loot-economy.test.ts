@@ -1,14 +1,14 @@
 import { expect, test } from 'vitest';
-import { createFindsCatalogue } from '../src/game/bag/findsCatalogue';
+import { createFindsCatalogue } from '../src/game/server/bag/findsCatalogue';
 import { DRIFTWOOD_FINDS } from '../src/shards/driftwood-isle/generators/finds';
 import { parseLootEconomy } from '@wildshard/format/lootEconomy';
 import { parseRows } from '@wildshard/format/rows';
-import { declaredLootEconomy } from '../src/game/shard/declaredRows';
-import { Exchange } from '../src/game/loot/exchange';
+import { declaredLootEconomy } from '../src/game/server/shard/declaredRows';
+import { Exchange } from '../src/game/server/loot/exchange';
 import { fixtureLootPresentation } from './fixtures/loot-page';
-import { Flags } from '../src/engine/world/interact/flags';
-import { Scope } from '../src/engine/app/scope';
-import { Owned, type OwnedId } from '../src/game/loot/Owned';
+import { Flags } from '../src/engine/server/world/interact/flags';
+import { Scope } from '../src/engine/shared/app/scope';
+import { Owned, type OwnedId } from '../src/game/server/loot/Owned';
 import { DRIFTWOOD_LOOT as LOOT } from '../src/shards/driftwood-isle/generators/loot';
 import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/generators/interactables';
 

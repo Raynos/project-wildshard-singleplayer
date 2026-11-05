@@ -1,15 +1,15 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the same admitted products and native physics as the grid.
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { snapshotSimHost, restoreSimHost, serializeSimSnapshot, decodeSimSnapshot } from '../src/engine/sim/snapshot';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { snapshotSimHost, restoreSimHost, serializeSimSnapshot, decodeSimSnapshot } from '../src/engine/shared/sim/snapshot';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
-import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
-import { createShardfileSim, bindShardfileSim, prepareShardfileSimRestore } from '../src/game/plugin/simulation';
+import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
+import { createShardfileSim, bindShardfileSim, prepareShardfileSimRestore } from '../src/game/server/plugin/simulation';
 import { createTrustedHeadlessResident, type PrepareHeadlessRuntime } from '../src/sdk/headlessRuntime';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
-import { ScriptHost } from '../src/engine/script/host';
+import { ScriptHost } from '../src/engine/server/script/host';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
 import { createNativeProofResident, prepareProductPlan } from './fixtures/headless-native';
 import { prepareHeadlessRuntime as ninePlan } from './fixtures/nine-headless';

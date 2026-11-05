@@ -9,15 +9,15 @@ import * as THREE from 'three';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin original raw geometry bytes independently of the file names.
 import { createHash } from 'node:crypto';
-import { Scope } from '../src/engine/app/scope';
-import { Rng } from '../src/engine/core/rng';
-import { modelContext, type ModelPart } from '../src/engine/models/model';
-import { SkyRig } from '../src/engine/world/skyRig';
-import { pickupLook } from '../src/engine/world/interact/types';
-import { coinModel } from '../src/game/loot/coinModel';
-import { installPickupCatalogue, preparePickupCatalogue } from '../src/game/models/specimenCatalogue';
-import { authoredPickups } from '../src/game/generators/pickups';
-import data from '../src/game/data/pickupCatalogue.json' with { type: 'json' };
+import { Scope } from '../src/engine/shared/app/scope';
+import { Rng } from '../src/engine/shared/core/rng';
+import { modelContext, type ModelPart } from '../src/engine/client/models/model';
+import { SkyRig } from '../src/engine/client/world/skyRig';
+import { pickupLook } from '../src/engine/shared/world/interact/types';
+import { coinModel } from '../src/game/client/loot/coinModel';
+import { installPickupCatalogue, preparePickupCatalogue } from '../src/game/client/models/specimenCatalogue';
+import { authoredPickups } from '../src/game/cook/generators/pickups';
+import data from '../src/game/client/data/pickupCatalogue.json' with { type: 'json' };
 import { installWorldFixture } from './fixtures/worldSetup';
 
 await installWorldFixture();

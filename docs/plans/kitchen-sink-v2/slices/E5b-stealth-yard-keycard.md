@@ -16,7 +16,7 @@ unseen completes the step; being seen while carrying it resets it to the desk. T
 
 Research:
 
-- **Stealth is a game host with one user and an approval**: `src/game/stealth/stealthLaw.ts` + `controller.ts` (235
+- **Stealth is a game host with one user and an approval**: `src/game/shared/stealth/stealthLaw.ts` + `controller.ts` (235
   lines), approved as `stealth-and-detection` (G478, `lint/platform-pending-users.json:2247-2255`). Nalati ships its
   rows as `player/stealth.json` (the crouch disc, "Tall grass" hint, detected / hidden icons).
 - **Its sources are Nalati-shaped**: `StealthObservation { grass, mounted, forced, threats }` and owners `population
@@ -32,7 +32,7 @@ Work:
 | concealment sources | `stealth.cover: [{ kind: 'grass' \| 'shadow' \| 'volume', … }]`: Nalati's grass is one kind; `shadow` boxes and `volume` cover boxes are rows; the law reads "how hidden am I" from whichever applies | format `stealth.ts`, game `stealthLaw.ts` (no "grass" in the law: the grass reader becomes one provider) |
 | watcher sources | threats from any species with `sight` rows (already), plus a patrol's **lamp cone** (`sight: { cone, range, lamp: true }`): drawn as an additive cone, no real light | game + data |
 | alarm | a stealth `alarm` row: `{ on: 'seen', set: flag, seconds }` the director or quest reads (the gate shuts) | format + game |
-| carried item | the keycard is a carried quest item (Nalati's `carried` rows exist, `src/game/quest/carriedProp.ts`); `onSeen: 'return'` sends it home | format quests + game |
+| carried item | the keycard is a carried quest item (Nalati's `carried` rows exist, `src/game/server/quest/carriedProp.ts`); `onSeen: 'return'` sends it home | format quests + game |
 
 Host bar: stealth gets its second real user, test 2 fixed (no grass/riding nouns in the law). Guards: `engine-words`,
 `shard-names`. Tests: Nalati's stealth tests (grep `test/*stealth*`), new `stealth-cover-sources.test.ts` (shadow and

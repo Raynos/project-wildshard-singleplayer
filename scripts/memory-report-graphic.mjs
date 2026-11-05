@@ -7,7 +7,7 @@ const ACCENTS={'driftwood-isle':'#fbbb2d','pine-hollow':'#89c06a','nalati-grassl
 const escape=value=>value.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
 /** @param {number|null} value */
 const mb=value=>value===null?'unavailable':(value/1e6).toFixed(1);
-/** Domain palette follows SF64; shard colours are the HUD accents (game/shardfile/accent.ts). @param {string} owner */
+/** Domain palette follows SF64; shard colours are the HUD accents (game/client/shardfile/accent.ts). @param {string} owner */
 export function memoryOwnerColour(owner) {
   const name=owner.toLowerCase();
   if(/unattributed|unlabelled|unknown/u.test(name))return 'url(#unknown)';

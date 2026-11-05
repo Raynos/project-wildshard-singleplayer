@@ -2,14 +2,14 @@
 import { installPickupFixture } from './fixtures/pickupSetup';
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { App } from '../src/engine/app/app';
-import { Scope } from '../src/engine/app/scope';
-import { createLevelInstallation } from '../src/engine/level/installation';
-import { shardContext } from '../src/game/plugin/context';
-import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
-import { BagMenu, type BagMenuOptions } from '../src/game/bag/tabs';
-import { installLoot, type LootPresentation } from '../src/game/loot/runtime';
-import { Owned } from '../src/game/loot/Owned';
+import { App } from '../src/engine/client/app/app';
+import { Scope } from '../src/engine/shared/app/scope';
+import { createLevelInstallation } from '../src/engine/client/level/installation';
+import { shardContext } from '../src/game/server/plugin/context';
+import { RetainedRuntimeHooks } from '../src/game/client/shard/retainedHooks';
+import { BagMenu, type BagMenuOptions } from '../src/game/client/bag/tabs';
+import { installLoot, type LootPresentation } from '../src/game/server/loot/runtime';
+import { Owned } from '../src/game/server/loot/Owned';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 

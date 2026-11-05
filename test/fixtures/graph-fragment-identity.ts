@@ -1,8 +1,8 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The offline report joins exact emitted shader sources.
 import {createHash} from 'node:crypto';
-import type {GraphGlsl} from '../../src/engine/render/graph/glsl';
-import {graphShaders,graphUniformValues} from '../../src/engine/render/graph/glslProgram';
-import type {ToonLook} from '../../src/engine/render/families/toon';
+import type {GraphGlsl} from '../../src/engine/client/render/graph/glsl';
+import {graphShaders,graphUniformValues} from '../../src/engine/client/render/graph/glslProgram';
+import type {ToonLook} from '../../src/engine/client/render/families/toon';
 
 /** The same wrapper and admitted fog uniforms used by the classic material.
  * Texture values do not enter GLSL source; no replacement texture is supplied.

@@ -2,9 +2,9 @@ import { afterEach, expect, test, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { parseOutputIndex } from '@wildshard/format/outputIndex';
-import { installTitleManifests, titleManifests, type TitleManifest } from '../src/game/shard/titleList';
-import { startGridPrefetch, gridPrefetchStatus } from '../src/game/grid/prefetch';
-import { ASSET_CACHE_NAME } from '../src/engine/pwa/cacheNames';
+import { installTitleManifests, titleManifests, type TitleManifest } from '../src/game/client/shard/titleList';
+import { startGridPrefetch, gridPrefetchStatus } from '../src/game/client/grid/prefetch';
+import { ASSET_CACHE_NAME } from '../src/engine/client/pwa/cacheNames';
 
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 test('prefetch publishes canonical URL bytes and durable progress in the worker store', async () => {

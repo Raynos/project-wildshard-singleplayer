@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { parse } from 'valibot';
 import { ArenaScriptBossProfileSchema } from '@wildshard/format/arenaScriptRows';
-import { ProjectedState, ReturnProgram } from '../src/game/population/returnProgram';
+import { ProjectedState, ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { TITAN_SCRIPT } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 

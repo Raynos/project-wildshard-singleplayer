@@ -2,11 +2,11 @@ import { expect, test, vi } from 'vitest';
 import { Group } from 'three';
 import { parse } from 'valibot';
 import { HeldArmsSchema } from '@wildshard/format/heldArms';
-import { HeldClaims } from '../src/game/loadout/claims';
-import { Sword } from '../src/game/weapons/Sword';
-import { GrappleTool } from '../src/game/grapple/tool';
-import { EquipmentService } from '../src/engine/combat/EquipmentService';
-import type { SwordArms } from '../src/engine/combat/view/melee';
+import { HeldClaims } from '../src/game/client/loadout/claims';
+import { Sword } from '../src/game/server/weapons/Sword';
+import { GrappleTool } from '../src/game/client/grapple/tool';
+import { EquipmentService } from '../src/engine/client/combat/EquipmentService';
+import type { SwordArms } from '../src/engine/client/combat/view/melee';
 import { heldEntry, slottedEnteredRows as enteredRows } from './fixtures/nineHeldEntry';
 
 test('starter and tool slots lend the actual native sword and original entered grapple once',async()=>{

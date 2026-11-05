@@ -6,8 +6,8 @@
 import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- The tape's status is the CLI result.
 import process from 'node:process';
-import { installAppIdentity } from '../../../src/engine/app/identity.ts';
-import { WILDSHARD_IDENTITY } from '../../../src/game/identity.ts';
+import { installAppIdentity } from '../../../src/engine/shared/app/identity.ts';
+import { WILDSHARD_IDENTITY } from '../../../src/game/client/identity.ts';
 import { ENTRY, pineRapier, tapeProof } from './witness.ts';
 
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');

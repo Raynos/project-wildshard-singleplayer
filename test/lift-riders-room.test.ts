@@ -1,11 +1,11 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Real Rapier bytes.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { tagCollider } from '../src/engine/physics/surface';
-import { createSimHost } from '../src/engine/sim';
-import { leadPlayer } from '../src/engine/sim/leadPlayer';
-import { captureLiftRider, captureLiftRiders, firstLiftRider, parseLiftRiders, restoreLiftRider } from '../src/game/shardfile/liftRider';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { tagCollider } from '../src/engine/shared/physics/surface';
+import { createSimHost } from '../src/engine/server/sim';
+import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
+import { captureLiftRider, captureLiftRiders, firstLiftRider, parseLiftRiders, restoreLiftRider } from '../src/game/server/shardfile/liftRider';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 // P1-E3: a lift carries whoever stands on it, so a save names every rider. Alone, the wire stays the bare edge.

@@ -1,7 +1,7 @@
 import { expect,test } from 'vitest';
 import { parseHeldSlots } from '@wildshard/format/heldArms';
-import { Scope } from '../src/engine/app/scope';
-import { HeldClaims } from '../src/game/loadout/claims';
+import { Scope } from '../src/engine/shared/app/scope';
+import { HeldClaims } from '../src/game/client/loadout/claims';
 import { heldSlotRows } from '../src/shards/nalati-grasslands/generators/heldSlots';
 import loadout from '../src/shards/nalati-grasslands/data/loadout.json' with {type:'json'};
 import variants from '../src/shards/nalati-grasslands/data/legendaryWeapons.json' with {type:'json'};

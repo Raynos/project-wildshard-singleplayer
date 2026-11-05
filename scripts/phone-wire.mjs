@@ -12,7 +12,7 @@ import { BrotliSizeCache } from './brotli-size-cache.mjs';
 
 await import('./bake-loader.mjs');
 const { loadHeadlessProduct } = await import('../src/sdk/headlessProduct.ts');
-const { tierProductFilesPaced } = await import('../src/game/shardfile/productCost.ts');
+const { tierProductFilesPaced } = await import('../src/game/client/shardfile/productCost.ts');
 
 /** the budget key that holds `name`'s phone ceiling */
 export const phoneWireKey = name => `wire/${name}/phone`;

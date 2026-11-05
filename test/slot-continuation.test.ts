@@ -1,9 +1,9 @@
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
 import {SlotViewSchema} from '@wildshard/format/encounterRows';
-import {Rng} from '../src/engine/core/rng';
-import {ReturnProgram} from '../src/game/population/returnProgram';
-import {SlotEncounterLaw,type SlotActor} from '../src/game/boss/slotLaw';
+import {Rng} from '../src/engine/shared/core/rng';
+import {ReturnProgram} from '../src/game/shared/population/returnProgram';
+import {SlotEncounterLaw,type SlotActor} from '../src/game/server/boss/slotLaw';
 import {NALATI_NIGHT as nightInput} from './fixtures/nalati-night';
 import {withWeatherWitness} from './fixtures/weatherInlineWitness';
 

@@ -90,6 +90,6 @@ Sounds: the loose's twang (`audio.bowTwang`) is wired; the draw creak, the full-
 Stable Audio 3 Medium, the better take ships), which is its own task.
 
 Code: `src/engine/player/bowDraw.ts` (the state machine, unit-tested in `test/bow-draw.test.ts`), `src/engine/player/Bow.ts` (input,
-the AIM zoom and pose, the loose), `src/engine/player/TouchControls.ts` + `src/engine/ui/styles/touch.css` (FIRE = hold to draw with
+the AIM zoom and pose, the loose), `src/engine/client/player/TouchControls.ts` + `src/engine/client/ui/styles/touch.css` (FIRE = hold to draw with
 the ring, "HOLD = DRAW"; AIM stays AIM, a toggle). Evidence: `progress/nalati-merge/h4/sheet.jpg`
 (`scripts/nalati-bow-capture.mjs`).

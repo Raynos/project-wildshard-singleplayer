@@ -81,8 +81,8 @@ export function retryChunks(modules) {
   };
   return [...new Set([
     find('three', (id) => /node_modules\/three\/build\/three[^/]*\.js$/.test(id)),
-    find('engine', (id) => id === 'src/engine/core/Game.ts'),
-    find('client-plan', (id) => id === 'src/game/shardfile/clientPlan.ts'),
+    find('engine', (id) => id === 'src/engine/client/core/Game.ts'),
+    find('client-plan', (id) => id === 'src/game/client/shardfile/clientPlan.ts'),
   ])];
 }
 

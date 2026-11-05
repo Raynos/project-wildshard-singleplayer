@@ -2,7 +2,7 @@ import {expect,test} from 'vitest';
 import {hashImmutableBytes} from '../src/sdk/immutable';
 import {scriptScenarioMetrics,scriptScenarioReceipt} from '../scripts/script-scenario-metrics.mjs';
 import {netLineReport,platformLineFile,sourceLineDelta} from '../scripts/shard-net-lines.mjs';
-import type {DecisionTrace} from '../src/engine/script/decision';
+import type {DecisionTrace} from '../src/engine/server/script/decision';
 
 test('scenario metrics require matching actual section bytes and script identity',()=>{
  const section=new TextEncoder().encode('[{"id":"boss"}]'),sectionHash=hashImmutableBytes(section);

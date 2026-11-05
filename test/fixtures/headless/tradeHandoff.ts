@@ -2,7 +2,7 @@
 import {createHash} from 'node:crypto';
 import * as v from 'valibot';
 import {HeadlessTapePlanSchema,HeadlessTapeReportSchema,MAX_TICK_SNAPSHOT_CHARS} from '../../../src/sdk/tickProtocol';
-import type {SimSnapshot,SimSnapshotBytes} from '../../../src/engine/sim/snapshot';
+import type {SimSnapshot,SimSnapshotBytes} from '../../../src/engine/shared/sim/snapshot';
 
 const natural=v.pipe(v.number(),v.safeInteger(),v.minValue(0)),digest=v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u));
 export const TradePartSchema=v.strictObject({plan:HeadlessTapePlanSchema,expected:HeadlessTapeReportSchema,metadata:digest,physics:digest,positive:digest,negative:digest});

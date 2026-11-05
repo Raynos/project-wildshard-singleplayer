@@ -2,9 +2,9 @@ import { installWorldFixture } from './fixtures/worldSetup';
 // @vitest-environment happy-dom
 import { expect,test } from 'vitest';
 import { Vector3 } from 'three';
-import type { ThinkCtx } from '../src/engine/entities/species/registry';
-import { Rng } from '../src/engine/core/rng';
-import { arenaRoomSpeciesControl } from '../src/game/boss/arenaRoomFight';
+import type { ThinkCtx } from '../src/engine/shared/entities/species/registry';
+import { Rng } from '../src/engine/shared/core/rng';
+import { arenaRoomSpeciesControl } from '../src/game/server/boss/arenaRoomFight';
 import speciesRows from '../src/shards/nalati-grasslands/data/speciesLooks.json';
 import { GOLDENKING_SPECIES as original } from './fixtures/species-oracle/goldenKingControl';
 import { bindFlatTerrain } from '@wildshard/engine/test/terrain';

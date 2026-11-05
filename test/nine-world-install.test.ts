@@ -8,12 +8,12 @@ import { nineWorldInstallRows } from '../src/shards/nine-dragon-stack/generators
 import { deckCapRows } from '../src/shards/nine-dragon-stack/generators/portalFloors';
 import { fragmentFloor as authoredFloor } from '../src/shards/nine-dragon-stack/generators/fragmentFloor';
 import { LayoutRowsSchema } from '../src/shards/nine-dragon-stack/generators/sections';
-import { floorAtRects } from '../src/engine/physics/box';
+import { floorAtRects } from '../src/engine/shared/physics/box';
 import { stairFloor, stairPlanData } from '../src/shards/nine-dragon-stack/generators/stairPlan';
 import { BoxGeometry, InstancedMesh, MeshBasicMaterial, type Object3D, PerspectiveCamera } from 'three';
-import { defineModel, modelContext } from '../src/engine/models/model';
-import { place } from '../src/engine/models/place';
-import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
+import { defineModel, modelContext } from '../src/engine/client/models/model';
+import { place } from '../src/engine/client/models/place';
+import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
 import lookGraphs from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
 
 const rows = nineWorldInstallRows(), caps = deckCapRows(), stair = stairPlanData();

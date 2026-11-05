@@ -17,6 +17,6 @@ export function shardfileValidationRevision(root = resolve(import.meta.dirname, 
       else if (/\.(?:ts|json)$/u.test(entry.name) && !entry.name.includes('.generated.')) hash.update(relative(root, path)).update('\0').update(readFileSync(path)).update('\0');
     }
   };
-  for (const source of ['src/game/shardfile', 'src/engine/boot', 'src/engine/pwa']) if (existsSync(resolve(root, source))) visit(resolve(root, source));
+  for (const source of ['src/game/client/shardfile', 'src/game/shared/shardfile', 'src/game/server/shardfile', 'src/engine/client/boot', 'src/engine/shared/boot', 'src/engine/client/pwa']) if (existsSync(resolve(root, source))) visit(resolve(root, source));
   return hash.digest('hex');
 }

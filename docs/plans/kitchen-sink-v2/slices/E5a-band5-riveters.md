@@ -19,7 +19,7 @@ Research:
 - Strike `ring` shapes with `eligibility.jumpDodges` exist (`src/format/creatures.ts:91`, `:160`): the shockwave you
   jump needs only rows.
 - **No frontal block on a creature exists.** The nearest are boss shields: Signal's Matriarch refuses every hit while
-  shielded (`src/game/plugin/ui.ts:1322-1330`) and `bossRow`'s shield (`src/game/shardfile/bossRow.ts:89`), both
+  shielded (`src/game/client/plugin/ui.ts:1322-1330`) and `bossRow`'s shield (`src/game/server/shardfile/bossRow.ts:89`), both
   all-or-nothing, both bosses.
 - Heavy attacks are a move id on the request (`moveId`), parry is W3d's window; E4 added `zones` with `facing`.
 

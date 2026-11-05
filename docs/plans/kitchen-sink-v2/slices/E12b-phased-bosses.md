@@ -1,7 +1,7 @@
 # E12b: one boss path II: Pine's Antler King and Nalati's Golden King off `plugin/bossPhase`
 
 Slice rule: [README.md](README.md) · east index: [INDEX-east.md](INDEX-east.md). Absorbs **M5.2** (Pine's King: `king.as`,
-`custom/kingKit`, ~800 lines of `gen/king*`, `game/plugin/bossPhase.ts`) and the Golden King half of **M5.3**, plus the
+`custom/kingKit`, ~800 lines of `gen/king*`, `game/server/plugin/bossPhase.ts`) and the Golden King half of **M5.3**, plus the
 `bossPhase.ts` slice of SHARD-PLATFORM-NEXT **N2/N5**. A migration slice.
 
 ## 1. The showcase piece
@@ -12,7 +12,7 @@ None directly; it finishes the path the Crate Titan uses (phases with layers of 
 
 Research:
 
-- `src/game/plugin/bossPhase.ts` (1,007 lines) is plugin scaffolding reached through `src/sdk/phasedBoss.ts` (34
+- `src/game/server/plugin/bossPhase.ts` (1,007 lines) is plugin scaffolding reached through `src/sdk/phasedBoss.ts` (34
   lines), imported by Pine's `generators/kingFight.ts` and Nalati's `generators/goldenKingArena.ts`.
 - Pine's King also uses `bossRow.ts` (retired in E12a), `custom/kingKit` (a live custom section, migration map §7) and
   boss music `layers` with phase gains (the audio plan §1: "a boss slot adds layers (bass, drums) with gains per phase

@@ -1,18 +1,18 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the registered producers' actual outputs.
 import { readFileSync } from 'node:fs';
 import { expect,test,vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { buildCourseProgram } from '../src/commons/practiceCourse';
 import { admitScriptContract } from '@wildshard/format/scriptContract';
 import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
-import { prepareClientReturnModules } from '../src/game/shardfile/clientReturnModules';
-import { ReturnProgram } from '../src/game/population/returnProgram';
-import { clientNativeBook } from '../src/game/shardfile/clientNativeBook';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import * as descriptors from '../src/game/shardfile/outputDescriptor';
-import type { OutputDescriptor } from '../src/game/shardfile/outputDescriptor';
-import type { ShardContext } from '../src/game/plugin/context';
+import { prepareClientReturnModules } from '../src/game/client/shardfile/clientReturnModules';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
+import { clientNativeBook } from '../src/game/client/shardfile/clientNativeBook';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
+import * as descriptors from '../src/game/shared/shardfile/outputDescriptor';
+import type { OutputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
+import type { ShardContext } from '../src/game/server/plugin/context';
 import { emptyShardfile } from '../src/sdk/author';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { ninePracticeRows,ninePracticeBytes } from './fixtures/nine-practice-product';

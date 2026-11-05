@@ -1,11 +1,11 @@
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { mockPackedFetch } from './fake/packedGeometry';
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { emptyShardfile } from '../src/sdk/author';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { HeldFinishes } from '../src/game/loadout/finishes';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
+import { HeldFinishes } from '../src/game/client/loadout/finishes';
 import { WEAPON_FINISHES } from '../src/shards/pine-hollow/generators/weaponFinishes';
 import { HELD_GEAR } from '../src/shards/pine-hollow/generators/heldGear';
 import packed from '../src/shards/pine-hollow/data/codeParts.json' with { type: 'json' };

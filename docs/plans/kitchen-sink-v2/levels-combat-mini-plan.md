@@ -171,13 +171,13 @@ engine says `grade`, never "level" (its word for a map).
 |---|---|---|---|
 | LV1 | Progression rows: range, attributes, growth, cap, XP, kill and gap tables, ranks, dice, death | `format/progression.ts` (new), `shardSchema.ts` | 4 |
 | LV2 | Pure formula module; golden tests (the three examples, the gap table) | `game/combat/levelMath.ts` (new) | 4 |
-| LV3 | Engine: `DamageRequest.damageType`, `.outcome`; a miss emits `damage.missed`, applies nothing; regen an attribute (default 4); `combat` rng stream | `engine/combat/pipeline.ts`, `health.ts`, `engine/events/maps.ts`, `game/rng.merge.d.ts` | 4 |
-| LV4 | Stat stage: one `damage.modify` answer (order 30): roll, S, G, A, Q, streak guard; levelled shards only (needs W6) | `game/combat/statStage.ts` (new), `game/session/play.ts` | 5 |
-| LV5 | Actor stats: player max HP via `setMaxHealth`; grade and the eight on each `AttributeSet`; strike `damage` → multiplier when levelled; boss phases as attribute effects (needs W11) | `game/combat/actorStats.ts` (new), `format/creatures.ts`, `bossProfiles.ts`, `eliteFeature.ts`, `engine/entities/AnimalSim.ts` | 8 |
-| LV6 | Experience host: XP on `actor.died`, level-up with automatic growth, death XP loss, killer heal and reset, save keyed by shard (road = flat), achievements | `game/progression/experience.ts` (new), `game/saves.ts`, `Progress.ts` | 6 |
-| LV7 | `scaling`, `tier`, `requirement`, `damageType`, `pierce` on W6's weapon and ammo rows (×0.6, no crit under requirement); parry stays W6 | `format/weaponProfiles.ts`, `heldEquipment.ts`, `engine/combat/ammo.ts` | 4 |
-| LV8 | `pays: false` zones (no XP, no coins, with LE); quest `minLevel`; unlock-only rewards | `format/quests.ts`, `questSteps.ts`, `game/loot/Bounty.ts` | 4 |
-| LV9 | AS queries for grade and attributes (the Arc Sentry parries by PRE) | `format/scriptQueriesV2.ts`, `engine/script/queriesV2.ts` | 3 |
+| LV3 | Engine: `DamageRequest.damageType`, `.outcome`; a miss emits `damage.missed`, applies nothing; regen an attribute (default 4); `combat` rng stream | `engine/server/combat/pipeline.ts`, `health.ts`, `engine/client/events/maps.ts`, `game/shared/rng.merge.d.ts` | 4 |
+| LV4 | Stat stage: one `damage.modify` answer (order 30): roll, S, G, A, Q, streak guard; levelled shards only (needs W6) | `game/combat/statStage.ts` (new), `game/client/session/play.ts` | 5 |
+| LV5 | Actor stats: player max HP via `setMaxHealth`; grade and the eight on each `AttributeSet`; strike `damage` → multiplier when levelled; boss phases as attribute effects (needs W11) | `game/combat/actorStats.ts` (new), `format/creatures.ts`, `bossProfiles.ts`, `eliteFeature.ts`, `engine/server/entities/AnimalSim.ts` | 8 |
+| LV6 | Experience host: XP on `actor.died`, level-up with automatic growth, death XP loss, killer heal and reset, save keyed by shard (road = flat), achievements | `game/progression/experience.ts` (new), `game/shared/saves.ts`, `Progress.ts` | 6 |
+| LV7 | `scaling`, `tier`, `requirement`, `damageType`, `pierce` on W6's weapon and ammo rows (×0.6, no crit under requirement); parry stays W6 | `format/weaponProfiles.ts`, `heldEquipment.ts`, `engine/shared/combat/ammo.ts` | 4 |
+| LV8 | `pays: false` zones (no XP, no coins, with LE); quest `minLevel`; unlock-only rewards | `format/quests.ts`, `questSteps.ts`, `game/server/loot/Bounty.ts` | 4 |
+| LV9 | AS queries for grade and attributes (the Arc Sentry parries by PRE) | `format/scriptQueriesV2.ts`, `engine/server/script/queriesV2.ts` | 3 |
 | LV10 | 90 s band respawn; night-shift variant rows (L+1, XP ×1.25) | `format/populationRespawn.ts`, `eliteFeature.ts` | 3 |
 | LV11 | The whole system behind Developer until Jake plays it (E451) | `game/progression/experience.ts` | 1 |
 | LV12 | Flat-profile admission and the parity test (§5) | `test/levels-flat-parity.test.ts` (new) | 4 |
@@ -187,11 +187,11 @@ engine says `grade`, never "level" (its word for a map).
 
 | Row | What | Files | h |
 |---|---|---|---|
-| LVH1 | Level badge and XP bar | `engine/ui/HUD.ts`, `hudSlots.ts`, `styles/game.css` | 3 |
-| LVH2 | Lock-on nameplate: level in its con colour | `engine/ui/LockOn.ts`, `Combat.ts` | 2 |
-| LVH3 | Outcome numbers: MISS, grey glance, orange crit | `engine/ui/Combat.ts` | 2 |
-| LVH4 | Character tab in pause: level, XP and the eight values, read-only | `engine/ui/Menu.ts`, `tabs.ts`, `game/ui/panels.ts` | 4 |
-| LVH5 | Level-up banner; "−XP" on the death card | `engine/ui/HUD.ts`, `playerDeath.ts` | 2 |
+| LVH1 | Level badge and XP bar | `engine/client/ui/HUD.ts`, `hudSlots.ts`, `styles/game.css` | 3 |
+| LVH2 | Lock-on nameplate: level in its con colour | `engine/client/ui/LockOn.ts`, `Combat.ts` | 2 |
+| LVH3 | Outcome numbers: MISS, grey glance, orange crit | `engine/client/ui/Combat.ts` | 2 |
+| LVH4 | Character tab in pause: level, XP and the eight values, read-only | `engine/client/ui/Menu.ts`, `tabs.ts`, `game/client/ui/panels.ts` | 4 |
+| LVH5 | Level-up banner; "−XP" on the death card | `engine/client/ui/HUD.ts`, `playerDeath.ts` | 2 |
 | | **Subtotal** | | **13** |
 
 ## 7. Wave 2 showcase rows (data only)
@@ -226,12 +226,12 @@ whoosh, no stop; PARRY gold ring. Hits wordless: glance grey, clean white, crit 
 
 | Row | What | Files | h |
 |---|---|---|---|
-| LVF1 | Slip: push, no stun | `engine/entities/AnimalSim.ts` | 3 |
-| LVF2 | Deflect: clang path, recoil | `engine/combat/view/SweptMelee.ts` | 3 |
-| LVF3 | Words and colours (+LVH3) | `engine/ui/Combat.ts` | 2 |
+| LVF1 | Slip: push, no stun | `engine/server/entities/AnimalSim.ts` | 3 |
+| LVF2 | Deflect: clang path, recoil | `engine/client/combat/view/SweptMelee.ts` | 3 |
+| LVF3 | Words and colours (+LVH3) | `engine/client/ui/Combat.ts` | 2 |
 | LVF4 | Clang, whoosh, ring, thud, crack | `public/assets/sfx/best/` | 3 |
-| LVF5 | On you: silver arc, word | `engine/ui/HurtArc.ts` | 2 |
-| LVF6 | One-time DEFLECT hint | `engine/ui/FirstHints.ts` | 1 |
+| LVF5 | On you: silver arc, word | `engine/client/ui/HurtArc.ts` | 2 |
+| LVF6 | One-time DEFLECT hint | `engine/client/ui/FirstHints.ts` | 1 |
 
 ## 10. Later rulings (Jake, 2026-11-02 late)
 

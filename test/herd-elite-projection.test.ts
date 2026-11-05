@@ -1,7 +1,7 @@
 import {admissionPage} from './fixtures/nalati-admission-loan';
 import {expect,test} from 'vitest';
-import {Scope} from '../src/engine/app/scope';
-import {NativeEliteProjection,type NativeEliteFrame} from '../src/engine/ai/eliteRoster';
+import {Scope} from '../src/engine/shared/app/scope';
+import {NativeEliteProjection,type NativeEliteFrame} from '../src/engine/server/ai/eliteRoster';
 
 const rows={bondedState:'bonded',signal:'argymaqTick',states:{flaunt:1,rush:2,yield:3}};
 const frame:NativeEliteFrame={state:'flaunt',phase2:false,engaged:true,bonded:false,same:true,health:1,at:[1,2,3],player:[4,5,6]};

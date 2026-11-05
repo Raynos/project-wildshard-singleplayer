@@ -21,9 +21,9 @@ Optional dusk and lamp curves select numeric preset field ids. Both Pine
 and Driftwood use these data selectors; the old TS reader callbacks are
 removed in this landing.
 
-`src/game/looks/keyedSkyClock.ts` constructs a renderer-free `DayCycle` from
+`src/game/shared/looks/keyedSkyClock.ts` constructs a renderer-free `DayCycle` from
 these rows. The existing day clock owns snapshot/restore and normalized phase.
-`src/game/looks/keyedSky.ts` is client-only presentation. It lends the two
+`src/game/client/looks/keyedSky.ts` is client-only presentation. It lends the two
 resident textures to the existing material graphs, follows the viewer, applies
 the declared weather responses to copied presets, and uses the shared graph
 sky lifecycle for environment refresh, clock jumps and disposal. Context loss
@@ -73,9 +73,9 @@ callbacks, invalid frame references and incomplete packed-key sets.
 | Test | Score | Source evidence |
 |---|---:|---|
 | Two real users | 0 | `lint/platform-pending-users.json` names Nalati, G477, end of W3; G474 is the explicit day-one exception. |
-| No shard nouns | 1 | `src/game/looks/keyedSky.ts` reads image, graph and channel ids from the caller's rows. |
+| No shard nouns | 1 | `src/game/client/looks/keyedSky.ts` reads image, graph and channel ids from the caller's rows. |
 | Data-driven | 1 | `src/format/keyedSky.ts` defines frames, weather transforms, lunar and horizon responses. |
-| Server-safe / client-only | 1 | `src/game/looks/keyedSkyClock.ts` is renderer-free; the backdrop is client-only presentation. |
+| Server-safe / client-only | 1 | `src/game/shared/looks/keyedSkyClock.ts` is renderer-free; the backdrop is client-only presentation. |
 | Deletion test | 1 | `test/keyed-sky-platform.test.ts` supplies an invented sky with different images, timing and lighting. |
 | Data-only API | 1 | `keyedSkyBackdrop` accepts admitted rows, flags and graph/channel ids; `parseKeyedSky` rejects accessors and callbacks. |
 

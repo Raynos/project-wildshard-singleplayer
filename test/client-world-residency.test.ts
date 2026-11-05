@@ -1,18 +1,18 @@
 import { afterAll, beforeAll, expect, test } from 'vitest';
 import { Group, type Object3D } from 'three';
-import { TileStreamer } from '../src/engine/world/tileStreamer';
-import { TileDecoder } from '../src/game/grid/tileDecoder';
-import { tileOf } from '../src/game/shardfile/tileOrder';
-import { Scope } from '../src/engine/app/scope';
+import { TileStreamer } from '../src/engine/client/world/tileStreamer';
+import { TileDecoder } from '../src/game/client/grid/tileDecoder';
+import { tileOf } from '../src/game/shared/shardfile/tileOrder';
+import { Scope } from '../src/engine/shared/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { ClientAssets } from '../src/game/shardfile/clientAssets';
-import { clientRingCatalogue, clientRingPorts, clientTileRegistration, ring } from '../src/game/shardfile/tileContent';
-import type { ClientTileViews } from '../src/game/shardfile/clientViews';
+import { ResidencyAllocator } from '../src/game/server/grid/allocator';
+import { ClientAssets } from '../src/game/client/shardfile/clientAssets';
+import { clientRingCatalogue, clientRingPorts, clientTileRegistration, ring } from '../src/game/client/shardfile/tileContent';
+import type { ClientTileViews } from '../src/game/client/shardfile/clientViews';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { jsonSlot } from '../src/engine/saves/slots';
-import { LEVEL_DOWNLOAD_SLOT, runtimePacksOn } from '../src/engine/boot/loadingPacks';
+import { jsonSlot } from '../src/engine/client/saves/slots';
+import { LEVEL_DOWNLOAD_SLOT, runtimePacksOn } from '../src/engine/client/boot/loadingPacks';
 
 // These pending-read and retirement rulers require a moving device ring.
 const download = jsonSlot(LEVEL_DOWNLOAD_SLOT, 'device'), previous = download.read();

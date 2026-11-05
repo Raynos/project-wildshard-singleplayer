@@ -19,9 +19,9 @@ const domNames = new Set(['Element', 'HTMLElement', 'SVGElement', 'SVGSVGElement
 const numericMath = new Set(['abs','acos','acosh','asin','asinh','atan','atanh','atan2','cbrt','ceil','clz32','cos','cosh','exp','expm1','floor',
   'fround','hypot','imul','log','log1p','log2','log10','max','min','pow','random','round','sign','sin','sinh','sqrt','tan','tanh','trunc']);
 const trusted = new Map([
-  ['src/engine/combat/Equipment.ts#WeaponUi.swapIcon', true], ['src/engine/ui/hudSlots.ts#DiscOpts.icon', true],
-  ['src/engine/ui/hudSlots.ts#TouchRelabel.icon', true], ['src/engine/input/InputService.ts#TouchVerb.icon', true],
-  ['src/engine/practice/playground/catalog.ts#PlaygroundCard.icon', true], ['src/engine/app/identity.ts#AppIdentity.wordmark', true],
+  ['src/engine/server/combat/Equipment.ts#WeaponUi.swapIcon', true], ['src/engine/client/ui/hudSlots.ts#DiscOpts.icon', true],
+  ['src/engine/client/ui/hudSlots.ts#TouchRelabel.icon', true], ['src/engine/client/input/InputService.ts#TouchVerb.icon', true],
+  ['src/engine/client/practice/playground/catalog.ts#PlaygroundCard.icon', true], ['src/engine/shared/app/identity.ts#AppIdentity.wordmark', true],
 ]);
 
 /** Analyze the supplied oxlint AST; standalone callers parse only their file. */
@@ -219,8 +219,8 @@ export function authoredHtmlSites(root, filename, supplied = null) {
     if (node.type === 'CallExpression') {
       if (node.arguments.some(arg => arg.type === 'SpreadElement')) return false;
       const callee = unwrap(node.callee), refs = values(child(ref, callee)), name = memberNames(child(ref, callee))[0];
-      if (refs.some(value => value.unit.file === 'src/engine/ui/icons.ts' && (value.node.id?.name ?? value.exportName) === 'icon')) return true;
-      if (refs.some(value => value.unit.file === 'src/engine/strings.ts' && (value.node.id?.name ?? value.exportName) === 'engineString')) return node.arguments.every(check);
+      if (refs.some(value => value.unit.file === 'src/engine/client/ui/icons.ts' && (value.node.id?.name ?? value.exportName) === 'icon')) return true;
+      if (refs.some(value => value.unit.file === 'src/engine/shared/strings.ts' && (value.node.id?.name ?? value.exportName) === 'engineString')) return node.arguments.every(check);
       if (callee.type === 'Identifier' && ['Number','parseInt','parseFloat','Boolean'].some(id => global(child(ref, callee), id))) return true;
       if (global(child(ref, callee), 'String')) return node.arguments.every(check);
       if (callee.type === 'MemberExpression' && global(child(ref, callee.object), 'Math') && numericMath.has(name)) return true;

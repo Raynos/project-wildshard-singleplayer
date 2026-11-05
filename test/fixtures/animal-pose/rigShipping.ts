@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import { Animal } from '../../../src/engine/entities/AnimalView';
-import type { AnimalModel, AnimalRig } from '../../../src/engine/entities/AnimalFactory';
-import type { RigAnimCtx } from '../../../src/engine/entities/species/registry';
-import { heightAt } from '../../../src/engine/world/Heightfield';
+import { Animal } from '../../../src/engine/client/entities/AnimalView';
+import type { AnimalModel, AnimalRig } from '../../../src/engine/client/entities/AnimalFactory';
+import type { RigAnimCtx } from '../../../src/engine/shared/entities/species/registry';
+import { heightAt } from '../../../src/engine/shared/world/Heightfield';
 import { ShippingAnimalPoseOracle } from './shipping';
 import { shippingCrab, shippingMonkey, shippingSailor } from './customShipping';
 

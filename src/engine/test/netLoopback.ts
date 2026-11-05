@@ -1,4 +1,4 @@
-import type { NetChannel, Transport, TransportStats } from '../net/transport';
+import type { NetChannel, Transport, TransportStats } from '../shared/net/transport';
 
 // P1-E5.2 (J49, E5-REPLICATION §4.1): test-only transports. They live under src/engine/test/ so that
 // wildshard/no-production-test-import refuses them in production: a main-thread server can never ship.

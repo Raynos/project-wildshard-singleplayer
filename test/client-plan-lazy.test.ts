@@ -1,11 +1,11 @@
 import {expect,test,vi} from 'vitest';
-import {Scope} from '../src/engine/app/scope';
-import type {ShardContext} from '../src/game/plugin/context';
-import {CLIENT_FEATURES,installClientPhase} from '../src/game/shardfile/clientPlan';
-import {createShardProduct} from '../src/game/shardfile/shardProduct';
+import {Scope} from '../src/engine/shared/app/scope';
+import type {ShardContext} from '../src/game/server/plugin/context';
+import {CLIENT_FEATURES,installClientPhase} from '../src/game/client/shardfile/clientPlan';
+import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
-import * as meadow from '../src/game/shardfile/clientMeadow';
-import * as scenes from '../src/game/shardfile/worldScenes';
+import * as meadow from '../src/game/client/shardfile/clientMeadow';
+import * as scenes from '../src/game/client/shardfile/worldScenes';
 
 function fixture(){
   const root=new Scope('feature.root'),scope=root.child('entered'),resident=new Scope('feature.resident');

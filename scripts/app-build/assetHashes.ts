@@ -10,7 +10,7 @@
  * (`/assets/packs/<slug>.<tier>-<hash8>.bin`), the audio (`<name>-<sha1[:8]>.m4a`), `<name>-<hash8>.<ext>` and full
  * SHA-256 basenames (`<sha256>.<ext>`, the admitted named-blob contract)
  * (E157's KTX2). Such a URL is content-addressed as it stands: it gets no `?v=`, and the worker keeps it while the build
- * names it. The same rule lives in src/engine/pwa/sw.js (CONTENT_NAMED_RE) — keep the two in step.
+ * names it. The same rule lives in src/engine/client/pwa/sw.js (CONTENT_NAMED_RE) — keep the two in step.
  */
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';

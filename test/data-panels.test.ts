@@ -1,9 +1,9 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { parsePanelDefinition } from '@wildshard/format/panelTemplate';
-import { DataPanel, readDataPanels } from '../src/game/ui/dataPanels';
-import { expandPanelTemplates } from '../src/game/ui/panelTemplates';
+import { DataPanel, readDataPanels } from '../src/game/client/ui/dataPanels';
+import { expandPanelTemplates } from '../src/game/client/ui/panelTemplates';
 import { PINE_PANELS } from '../src/shards/pine-hollow/generators/panels';
 import horsePanel from '../src/shards/nalati-grasslands/data/namePanel.json' with { type: 'json' };
 

@@ -30,7 +30,7 @@ Research:
   W10 "approvals" are done for the grapple; the showcase is its second real user.
 - **Mode rows exist:** `state/modes` `grapple: [{ id, minRange 2.5, maxRange 38, zipSpeed 22, fireTime, biteTime,
   reelTime, windowX, windowY }]` (`src/format/modes.ts:45`). Hooks are a roster of ring centres
-  (`src/game/grapple/sim.ts:11` `GrappleCourse { mode?, name, hooks: Vector3[], clearance? }`).
+  (`src/game/shared/grapple/sim.ts:11` `GrappleCourse { mode?, name, hooks: Vector3[], clearance? }`).
 - **A gate a data-only shard must pass:** `src/format/shardSchema.ts:285` refuses `ride`, `grapple`, `zipline` and
   `updraft` rows unless the product has a runtime binding `modes` **or a declared client page**, which
   `src/format/runtimeBinds.ts:43` defines as a quest-host `page` with a version. The showcase declares one (W1b), so it

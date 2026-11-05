@@ -67,12 +67,12 @@ const sky = new Proxy({ setupMaterial: noop, csm: { lights: [new THREE.Direction
   planet: new THREE.Group(), clouds: null, dayNight: { dusk: 0, night: 0 }, viewCamera: new THREE.PerspectiveCamera(), sunDir: new THREE.Vector3(0, 1, 0) },
 { get: (target, key) => key in target ? target[key] : typeof key === 'string' && key.endsWith('Color')
   ? new THREE.Color(1, 1, 1) : typeof key === 'string' && key.endsWith('Dir') ? new THREE.Vector3(0, 1, 0) : undefined });
-(await at('src/engine/core/tier.ts')).initializeTier('phone');
+(await at('src/engine/client/core/tier.ts')).initializeTier('phone');
 const { default: manifest } = await at(shardManifestPath(root, slug));
 prepareNativeScalarBlocks(manifest, root);
-(await at('src/game/shard/list.ts')).installShards([manifest]);
-(await at('src/game/shard/registry.ts')).setActiveChunk(manifest.slug);
-const { Terrain, terrainChunkGeometry } = await at('src/engine/world/Terrain.ts');
+(await at('src/game/client/shard/list.ts')).installShards([manifest]);
+(await at('src/game/client/shard/registry.ts')).setActiveChunk(manifest.slug);
+const { Terrain, terrainChunkGeometry } = await at('src/engine/client/world/Terrain.ts');
 const terrainBin = resolve(root, 'public/assets/baked', slug, 'terrain.bin');
 // G348: the shard's own data says where its ground comes from (its data/placeholder.json row); no slug branch here
 const source = await placeholderOf(root, slug);
@@ -84,10 +84,10 @@ if (nativeTerrain !== undefined && !(nativeTerrain instanceof Uint8Array)) throw
 // a manifest ground declared by key (`createBakedTerrainField`, Signal's) is its shardfile's own terrain collider: the bake
 // installs it into the declared field as the session's required-ground loader would (`installProductGround`)
 if (nativeTerrain === undefined && manifest.ground?.terrain !== undefined) {
-  const { bakedTerrainSource, installDeclaredBakedTerrain } = await at('src/engine/world/bakedTerrainField.ts');
+  const { bakedTerrainSource, installDeclaredBakedTerrain } = await at('src/engine/shared/world/bakedTerrainField.ts');
   const declared = bakedTerrainSource(manifest.ground.terrain), collider = declared === null ? null : placeholderGridBytes(root, resolve(root, 'src/shards', slug), slug);
   if (collider?.kind === 'collider') {
-    const { clientGround } = await at('src/game/shardfile/clientGround.ts');
+    const { clientGround } = await at('src/game/shared/shardfile/clientGround.ts');
     const ground = clientGround({ terrain: { collider: 'collider' }, meshCollision: null }, new Map([['collider', collider.bytes]]));
     installDeclaredBakedTerrain(manifest.ground.terrain, { seed: declared.seed, heightAt: ground.heightAt, normalAt: ground.normalAt, splatAt: ground.splatAt });
   }
@@ -175,7 +175,7 @@ const harvestModels = () => {
 // is its shardfile tiles (`near.world: 'tiles'`, a world built from its product) has no authored host to visit either
 if (typeof manifest.load === 'function' && source.near?.world !== 'tiles') await visitAuthoredWorld(manifest, { root, sky, element: environment.element, tier: 'phone', nativeTerrain, collectLate: true, visitPlacement,
   createTerrain: async () => {
-    const field = await at('src/engine/world/Heightfield.ts');
+    const field = await at('src/engine/shared/world/Heightfield.ts');
     const terrain = new Terrain(); terrain.mesh = new THREE.Mesh(terrainChunkGeometry(field), new THREE.MeshBasicMaterial()); terrain.mesh.name = 'near-harvest-terrain';
     return terrain;
   },

@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import { Material, ShaderMaterial, Vector3 } from 'three';
-import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
+import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
 import { classicLookCompiler } from './fixtures/classicLookCompiler';
-import { clientGraphs } from '../src/game/shardfile/clientGraphs';
+import { clientGraphs } from '../src/game/client/shardfile/clientGraphs';
 import { emptyShardfile } from '../src/sdk/author';
 import { validateGraph } from '@wildshard/format/materialGraph';
 

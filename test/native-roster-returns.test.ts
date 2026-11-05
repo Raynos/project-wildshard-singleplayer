@@ -1,10 +1,10 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the real native roster over shipped Rapier.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { Rng } from '../src/engine/core/rng';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { createSimHost } from '../src/engine/sim';
-import { createNativeCreatureRoster } from '../src/game/shardfile/homeKeeper';
+import { Rng } from '../src/engine/shared/core/rng';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost } from '../src/engine/server/sim';
+import { createNativeCreatureRoster } from '../src/game/server/shardfile/homeKeeper';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
 import { RETURN_PROGRAM } from './fixtures/driftwood-guest-programs';
 import { fixtureNativeRoster } from './fixtures/native-roster';

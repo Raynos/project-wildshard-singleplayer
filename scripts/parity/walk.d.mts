@@ -1,5 +1,5 @@
 import type { Page } from 'playwright';
-import type { WalkResult, SoundLog } from '../../src/engine/debug/probe';
+import type { WalkResult, SoundLog } from '../../src/engine/client/debug/probe';
 
 export const TOUCH: Readonly<{ move: string; look: string; dodge: string; use: string; pause: string; attack: string }>;
 export function touch(page: Page, selector: string, opts?: { dx?: number; dy?: number; hold?: number; consume?: boolean }): Promise<void>;

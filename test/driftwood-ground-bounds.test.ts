@@ -1,7 +1,7 @@
 import { expect, expectTypeOf, test } from 'vitest';
-import type { PainterField } from '../src/engine/render/look';
-import type { BlenderArea } from '../src/engine/world/blenderArea';
-import { CHUNK_SIZE, TERRAIN_RES, CHUNK_DEPTH } from '../src/engine/core/config';
+import type { PainterField } from '../src/engine/client/render/look';
+import type { BlenderArea } from '../src/engine/client/world/blenderArea';
+import { CHUNK_SIZE, TERRAIN_RES, CHUNK_DEPTH } from '../src/engine/shared/core/config';
 import { area, inArea, BLENDER_MODELS } from '../src/shards/driftwood-isle/generators/blenderArea';
 import type { FacetedGroundField } from '../src/shards/driftwood-isle/generators/facetedGround';
 import { driftwoodFacetedGroundBank } from '../src/shards/driftwood-isle/generators/facetedGroundBank';

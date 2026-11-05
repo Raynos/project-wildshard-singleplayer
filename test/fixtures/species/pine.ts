@@ -1,5 +1,5 @@
 // Shipping declaration oracle captured from 539d18a9262151dbe28aa0656068065e9b3d0193:src/shards/pine-hollow/combat/strikes.ts; no hand-written policy.
-import type { StrikeSpec } from '../../../src/engine/ai/strikes';
+import type { StrikeSpec } from '../../../src/engine/server/ai/strikes';
 
 const lane = (id: string, windup: number, width: number, speed: number, overshoot: number, damage: number, recover: number, range: number): StrikeSpec => ({
   id, shape: { kind: 'lane', width, length: 0 }, windup, active: 0, recover, cooldown: 0, range, damage,

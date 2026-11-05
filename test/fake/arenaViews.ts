@@ -1,6 +1,6 @@
 import { PerspectiveCamera, Vector3, type InstancedMesh, type Object3D } from 'three';
-import type { Scope } from '../../src/engine/app/scope';
-import { viewProgram, type ViewProgram } from '../../src/engine/script/viewProgram';
+import type { Scope } from '../../src/engine/shared/app/scope';
+import { viewProgram, type ViewProgram } from '../../src/engine/client/script/viewProgram';
 import { ARENA_BURNT_PER_FRAME, ARENA_VIEW } from '@wildshard/format/arenaView';
 import { fireViewRows } from '../../src/shards/nalati-grasslands/generators/titanFireView';
 import { whirlsViewRows } from '../../src/shards/nalati-grasslands/generators/titanWhirlsView';

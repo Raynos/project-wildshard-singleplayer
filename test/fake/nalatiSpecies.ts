@@ -1,4 +1,4 @@
-import type { SpeciesCatalogue } from '../../src/game/looks/speciesBook';
+import type { SpeciesCatalogue } from '../../src/game/client/looks/speciesBook';
 
 let catalogue: SpeciesCatalogue | null = null;
 export function prepareNalatiSpecies(species: SpeciesCatalogue): void { catalogue ??= species; }

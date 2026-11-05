@@ -22,21 +22,21 @@ its first rule applies here too: **promise only what the game can ship.**
 
 Every camera moment in the game today is **first person**: something eases the player's own yaw and pitch, or carries
 the player. There is no shot system, no camera other than the player's, and **no player body** (the game is first
-person; worn cosmetics show only in the shadow: `src/game/cosmetics/cosmetics.ts`, the Wardrobe's `visible` mode is the
+person; worn cosmetics show only in the shadow: `src/game/client/cosmetics/cosmetics.ts`, the Wardrobe's `visible` mode is the
 future hook for a third-person shot).
 
 **The shared pieces**
 
 | Piece | File | What it does |
 |---|---|---|
-| Boss intro state | `src/engine/ai/BossBrain.ts` (`intro` state, `SKIP_HOLD = 0.6`) | locks input, asks the script's `intro(t, short)` for a focus point each frame, HOLD TO SKIP, a short intro on every retry |
-| Boss camera ease | `src/game/Boss.ts` `faceToward` | eases player yaw / pitch toward the focus (k = 1 − e^(−3.2 dt)); stays first person |
-| Letterbox + name card | `src/engine/ui/BossBar.ts` (`showNameCard`, `setSkip`, `fade`) | letterbox bands, the engraved name card, the skip ring, a black fade |
-| Platform bosses | `src/sdk/phasedBoss.ts`, `src/sdk/markedBoss.ts` → `src/game/plugin/bossPhase.ts`, `src/game/shardfile/markedBoss.ts` | boss rows as data; `intro` / `introShort` seconds are data |
-| Quest reward view | `src/game/quest/reward.ts` `QuestRewardBeat` + `rewardMotion.ts` | carries the player, 2.5 s camera ease to an authored pose, 3.5 s clock ease (to golden hour), 7 s hold, caption, HUD hidden, weapon away |
-| Dialogue | `src/engine/quest/view/ui.ts` `DialogueBox`, `src/engine/quest/dialogueClock.ts` | NPC lines typed out, tap to advance (the quest-giver panel) |
+| Boss intro state | `src/engine/server/ai/BossBrain.ts` (`intro` state, `SKIP_HOLD = 0.6`) | locks input, asks the script's `intro(t, short)` for a focus point each frame, HOLD TO SKIP, a short intro on every retry |
+| Boss camera ease | `src/game/server/Boss.ts` `faceToward` | eases player yaw / pitch toward the focus (k = 1 − e^(−3.2 dt)); stays first person |
+| Letterbox + name card | `src/engine/client/ui/BossBar.ts` (`showNameCard`, `setSkip`, `fade`) | letterbox bands, the engraved name card, the skip ring, a black fade |
+| Platform bosses | `src/sdk/phasedBoss.ts`, `src/sdk/markedBoss.ts` → `src/game/server/plugin/bossPhase.ts`, `src/game/shardfile/markedBoss.ts` | boss rows as data; `intro` / `introShort` seconds are data |
+| Quest reward view | `src/game/server/quest/reward.ts` `QuestRewardBeat` + `rewardMotion.ts` | carries the player, 2.5 s camera ease to an authored pose, 3.5 s clock ease (to golden hour), 7 s hold, caption, HUD hidden, weapon away |
+| Dialogue | `src/engine/client/quest/view/ui.ts` `DialogueBox`, `src/engine/server/quest/dialogueClock.ts` | NPC lines typed out, tap to advance (the quest-giver panel) |
 | Shard director | `src/sdk/director.ts` → `src/game/shardfile/director.ts` | bounded numeric events between a shard script and the host (Driftwood's finale `reward.start` / `reward.finish`) |
-| Explore hub orbit | `src/engine/explore/Explore.ts` ~l. 582 | a slow orbit of the island behind the hub cards (the one non-player camera) |
+| Explore hub orbit | `src/engine/client/explore/Explore.ts` ~l. 582 | a slow orbit of the island behind the hub cards (the one non-player camera) |
 
 **Per shard**
 

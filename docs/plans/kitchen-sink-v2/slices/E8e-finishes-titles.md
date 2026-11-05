@@ -16,11 +16,11 @@ and legendaries; retire `cosmeticFinishes`, HOST-AUDIT **H059**), the elite-drop
 
 Research:
 
-- Finishes are permanent cosmetic effects (`heldFinishEffect`, `src/game/loadout/effects.ts:15`). Nalati ships
-  `held/finishes` read by `src/game/shardfile/clientCosmeticFinishes.ts`; `src/game/loadout/cosmeticFinishes.ts` has
+- Finishes are permanent cosmetic effects (`heldFinishEffect`, `src/game/server/loadout/effects.ts:15`). Nalati ships
+  `held/finishes` read by `src/game/client/shardfile/clientCosmeticFinishes.ts`; `src/game/client/loadout/cosmeticFinishes.ts` has
   **one user** (H059). Pine ships `held/finishes` too; its two Mott finishes and its contract `skin`.
 - Titles exist: achievements have a `title` (`src/format/quests.ts:23`); `Progress` keeps `earned` and the worn `title`
-  per shard (`src/game/Progress.ts`, `progressSave`).
+  per shard (`src/game/client/Progress.ts`, `progressSave`).
 
 Work:
 

@@ -1,9 +1,9 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the native bounds owner with the shipped physics module.
 import {readFileSync} from 'node:fs';
 import {expect,test} from 'vitest';
-import {loadRapier} from '../src/engine/physics/rapier';
-import {floorBelow} from '../src/engine/physics/query';
-import {createShardfileSim} from '../src/game/plugin/simulation';
+import {loadRapier} from '../src/engine/shared/physics/rapier';
+import {floorBelow} from '../src/engine/shared/physics/query';
+import {createShardfileSim} from '../src/game/server/plugin/simulation';
 import {emptyShardfile} from '../src/sdk/author';
 import {installNativeWalkBounds,registerNativeWalkBounds} from './fixtures/headless/nativeBounds';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';

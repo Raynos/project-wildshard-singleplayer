@@ -1,14 +1,14 @@
-import { worldHit } from '../../../src/engine/physics/query';
+import { worldHit } from '../../../src/engine/shared/physics/query';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
-import type { SimHost } from '../../../src/engine/sim';
-import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
-import type { DamageRequest } from '../../../src/engine/combat/pipeline';
-import { shotSpread } from '../../../src/engine/combat/shotSpread';
-import { smoothstep } from '../../../src/engine/core/noise';
-import { sticksIn } from '../../../src/engine/physics/query';
+import type { SimHost } from '../../../src/engine/server/sim';
+import type { AnimalSim } from '../../../src/engine/server/entities/AnimalSim';
+import type { DamageRequest } from '../../../src/engine/server/combat/pipeline';
+import { shotSpread } from '../../../src/engine/shared/combat/shotSpread';
+import { smoothstep } from '../../../src/engine/shared/core/noise';
+import { sticksIn } from '../../../src/engine/shared/physics/query';
 import { CROSSBOW_PROFILE } from './crossbowProfile';
-import { projectileFlightStep } from '../../../src/engine/combat/projectileFlight';
+import { projectileFlightStep } from '../../../src/engine/shared/combat/projectileFlight';
 /** The flight multipliers a bolt carries (the ammo's, the weather's): 1 / 1 is the plain bolt. */
 export interface BoltFlight { gravity: number; drag: number }
 const PLAIN_FLIGHT: BoltFlight = { gravity: 1, drag: 1 };

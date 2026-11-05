@@ -5,10 +5,10 @@ import assert from 'node:assert/strict';
 import type {NetCommand} from '@wildshard/format/netCommand';
 import {builtProduct} from '../builtProduct';
 import {loadHeadlessProduct} from '../../../src/sdk/headlessProduct';
-import {outputDescriptor} from '../../../src/game/shardfile/outputDescriptor';
-import {loadRapier} from '../../../src/engine/physics/rapier';
-import {NET_BUTTONS} from '../../../src/engine/input/netButtons';
-import {mountedPlayerOf} from '../../../src/game/riding/native';
+import {outputDescriptor} from '../../../src/game/shared/shardfile/outputDescriptor';
+import {loadRapier} from '../../../src/engine/shared/physics/rapier';
+import {NET_BUTTONS} from '../../../src/engine/shared/input/netButtons';
+import {mountedPlayerOf} from '../../../src/game/server/riding/native';
 import {createNativeProofResident} from '../headless-native';
 import {prepareHeadlessRuntime} from '../nalati-verbs';
 

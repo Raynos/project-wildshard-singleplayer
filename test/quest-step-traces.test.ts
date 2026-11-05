@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { QuestState } from '../src/engine/quest/core';
-import { Flags } from '../src/engine/world/interact/flags';
+import { QuestState } from '../src/engine/server/quest/core';
+import { Flags } from '../src/engine/server/world/interact/flags';
 import { PINE_QUESTS } from '../src/shards/pine-hollow/generators/quests';
 import { DRIFTWOOD_QUESTS } from '../src/shards/driftwood-isle/generators/quests';
 import traces from './fixtures/quest-step-traces.json' with { type: 'json' };

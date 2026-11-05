@@ -7,7 +7,7 @@ import {flushCompileCache} from 'node:module';
 import { TickWorkerHost } from '../../src/sdk/tickWorkerHost';
 import type { Shardfile } from '../../src/sdk/shardfile';
 import { headlessSections } from '../../src/sdk/headlessSections';
-import { outputDescriptor } from '../../src/game/shardfile/outputDescriptor';
+import { outputDescriptor } from '../../src/game/shared/shardfile/outputDescriptor';
 import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { offlineMemoryAdmission, prepareAssetDecoders } from '@wildshard/format/product';
 import { scriptAdmissionRows } from '@wildshard/format/scriptContract';

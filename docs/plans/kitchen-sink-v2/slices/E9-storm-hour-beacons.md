@@ -17,12 +17,12 @@ each (an interaction under fire) brings its lamp on; the fourth clears the storm
 Research:
 
 - **A director stage can already set weather**: `directorStages` v2 actions include `{ weather: key }`
-  (`src/format/directorStages.ts:12`), keyed in the plugin director (`src/game/plugin/director.ts:243`); inputs include
+  (`src/format/directorStages.ts:12`), keyed in the plugin director (`src/game/server/plugin/director.ts:243`); inputs include
   `flag:` bindings (`:6`). Nobody uses the weather action today.
-- **Beacons are an interactable kind**: `BeaconDef { kind: 'beacon', label }` (`src/engine/world/interact/types.ts:187`),
+- **Beacons are an interactable kind**: `BeaconDef { kind: 'beacon', label }` (`src/engine/shared/world/interact/types.ts:187`),
   used by Driftwood's lookout beacon (`src/shards/driftwood-isle/generators/interactables.ts:57`).
 - Weather state lives in W11a's `world/weather` (states, odds, storms) with continuation across reloads
-  (`src/game/weather/continuation.ts`). Nothing *holds* a state against the schedule.
+  (`src/game/server/weather/continuation.ts`). Nothing *holds* a state against the schedule.
 
 Work:
 

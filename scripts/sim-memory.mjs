@@ -214,7 +214,7 @@ async function oneRun(udid, run, opts) {
         if (seconds >= 22) throw new Error(`missing three valid native/Inspector samples while settling ${phase}`);
       }
     };
-    // a first-visit origin, entered the way the start title's ENTER WORLD enters it (src/engine/boot/titleArrival.ts)
+    // a first-visit origin, entered the way the start title's ENTER WORLD enters it (src/engine/client/boot/titleArrival.ts)
     const settings = Object.fromEntries(opts.settings.map((s) => s.split('=')));
     const deviceSaves = opts.deviceSaves;
     const arrival = { slug: run.shard, mode: 'enter', at: Date.now() };

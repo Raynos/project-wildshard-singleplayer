@@ -1,14 +1,14 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { Flags } from '../src/engine/world/interact/flags';
-import { createQuestPlacements } from '../src/engine/world/interact/types';
+import { Scope } from '../src/engine/shared/app/scope';
+import { Flags } from '../src/engine/server/world/interact/flags';
+import { createQuestPlacements } from '../src/engine/shared/world/interact/types';
 import { parseCompletion } from '@wildshard/format/completion';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
-import { completionProjection, fmtPlayTime, installCompletion, type CompletionContext } from '../src/game/complete/declared';
-import { completeEntry } from '../src/game/complete/ShardComplete';
+import { completionProjection, fmtPlayTime, installCompletion, type CompletionContext } from '../src/game/client/complete/declared';
+import { completeEntry } from '../src/game/client/complete/ShardComplete';
 import { completionRows, COMPLETE_CONTENT } from '../src/shards/driftwood-isle/generators/completion';
 import { templateOutput } from '../src/shards/_template/generators/productOutput';
 import { installCatalogueFixture } from './fixtures/bootSetup';

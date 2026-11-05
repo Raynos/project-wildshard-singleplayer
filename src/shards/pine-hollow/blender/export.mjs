@@ -40,7 +40,7 @@ export function groundColor({ hf, def, area }) {
 
 export async function layout({ imp, hf, def, CACHE }) {
   writeFileSync(`${CACHE}/splat.bin`, splat);
-  const placement = await imp('src/engine/world/forest/placement.ts');
+  const placement = await imp('src/engine/shared/world/forest/placement.ts');
   const variants = def.trees.factory === 'none' ? [] : placement.TREE_SPECS.map((s) => ({ trunkRadius: s.trunk, height: s.height }));
   const { trees } = placement.placeForest(variants);
   const r3 = (v) => Math.round(v * 1000) / 1000;

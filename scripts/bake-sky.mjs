@@ -68,7 +68,7 @@ for (const def of SHARDS) {
 output.finish();
 
 /**
- * The HDR as a gain-mapped pair, decoded by src/engine/world/BakedSky.ts (keep GAIN_MAX in step) — what the phone downloads
+ * The HDR as a gain-mapped pair, decoded by src/engine/client/world/BakedSky.ts (keep GAIN_MAX in step) — what the phone downloads
  * instead of a 4–5 MB uncompressed RGBE file (LOAD-PERF.md §P1.4, ask P5):
  *   <hdri>_2k.sky.jpg   the colour, divided by the pixel's gain so its largest channel is ≤ 1, sRGB-encoded, q95 4:4:4
  *   <hdri>_2k.gain.png  8-bit gain g per pixel, value = colour × 2^(g / 255 × GAIN_MAX); 0 wherever the sky is ≤ 1

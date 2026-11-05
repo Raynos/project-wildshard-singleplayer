@@ -21,7 +21,7 @@ Research:
   (`src/format/eliteFeature.ts:13`) and observations `dusk`, `night` (`:25`). Directors: an input binding `day:a..b`
   (`src/format/directorStages.ts:6`, `directorDayRange`).
 - Pine runs its night shift through AS: `src/shards/pine-hollow/behaviour/night.as` and `director.as` /
-  `directorV2.as` with `director.json` (the night thralls), on the plugin director (`src/game/plugin/director.ts`).
+  `directorV2.as` with `director.json` (the night thralls), on the plugin director (`src/game/server/plugin/director.ts`).
   Nalati has night rows in its spawn page (`spawnPackDemand`, migration map §1).
 - Nothing swaps a variant by time; storms are not read by spawns.
 
@@ -30,7 +30,7 @@ Work:
 | Row / mechanic | Shape | Layer |
 |---|---|---|
 | shift variants | species `shifts: [{ when: 'night' \| 'storm' \| 'night-or-storm', variant, levels: +1, rewardMul: 1.25, salvageMul: 2 }]`; applied when a pack respawns (never mid-fight) | format `creatures.ts` + game spawn host |
-| one time read | a game "world phase" read `{ night, dusk, storm }` from the day clock (`engine/sim/dayClock.ts`) and W11a's `world/weather`, shared by spawns, elites and directors | game `src/game/world/phase.ts` (new, small) |
+| one time read | a game "world phase" read `{ night, dusk, storm }` from the day clock (`engine/shared/sim/dayClock.ts`) and W11a's `world/weather`, shared by spawns, elites and directors | game `src/game/world/phase.ts` (new, small) |
 | look | the night palette and the headlamp cone part (E1a's slots) | data + an additive cone mesh |
 | Pine | its night thrall swap through `night.as` becomes shift rows where it is a swap; the rest stays AS | Pine data / AS |
 

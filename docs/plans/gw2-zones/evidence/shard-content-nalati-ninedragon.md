@@ -29,8 +29,8 @@ about feel, difficulty or how long something takes is an estimate from the code'
 # Part 1 — Nalati Grasslands
 
 Code: `src/chunks/nalati-grasslands.ts` (the def), `src/chunks/nalatiLayout.ts` (every coordinate), `src/nalati/` (the
-systems), `src/world/nalati/` (POIs, dungeon), `src/game/quest/nalati.ts` (quest data and dialogue), `src/game/Elite.ts`,
-`src/game/Boss.ts`, `src/game/Taming.ts`, `src/entities/Wildlife.ts`, `src/player/nalatiKit.ts`.
+systems), `src/world/nalati/` (POIs, dungeon), `src/game/quest/nalati.ts` (quest data and dialogue), `src/game/server/Elite.ts`,
+`src/game/server/Boss.ts`, `src/game/Taming.ts`, `src/entities/Wildlife.ts`, `src/player/nalatiKit.ts`.
 Story: singleplayer `docs/Nalati-Grasslands-blow-by-blow.pdf`. Plans: `project/archive/2026-09-23-nalati.md`, `…-24-nalati-merge.md`,
 `…-30-nalati-finish.md` (archived; leftovers are N11 and N24). Design: `docs/design/nalati/*.md`.
 
@@ -81,7 +81,7 @@ previous one is complete *and* the elder has given it (`talked:elder:2` / `:3`).
   (`src/world/nalati/Bowl.ts:154-188`). "A rider snatches it back" is a timer, not an opponent. There are no races; a
   horse lap timer exists only in the dev-mode horse playground (E307).
 
-## 3. Bosses (`src/game/Boss.ts` + scripts)
+## 3. Bosses (`src/game/server/Boss.ts` + scripts)
 
 The shared Boss system works the same for both: an arena with a seal, a name-card intro, a top bar with phase segments,
 a checkpoint per phase (a death puts you back at the start of the phase you reached, at full health, ammo refilled), a
@@ -126,7 +126,7 @@ A re-fight's reward is a "trophy", but Nalati has no pack, so a re-fight pays no
 - **The end-game reward has little to be used on:** Naizagai arrives after the last boss. What is left to swing it at is
   the respawning elites, the nightly enemies, the wolves and a boss re-fight.
 
-## 4. Named elites (`src/nalati/elites.ts` over `src/game/Elite.ts`)
+## 4. Named elites (`src/nalati/elites.ts` over `src/game/server/Elite.ts`)
 
 Shared rules for all five: aware → engaged → leash (they reset and regenerate past the leash), a bar over the head that
 pins top-centre once engaged, phase 2 at 50 % (1 s invulnerable), a "NAMED ELITE NEARBY" banner, a gold skull on the
@@ -189,7 +189,7 @@ both are probably still true (unverified).
 - **Places:** 17 discoverable places (§1). FINDS in the Bag lists them (`src/nalati/bag.ts`).
 - **No other collectibles.** Nothing comparable to Driftwood's sea glass or treasure. I found no secrets or hidden items
   (grep for secret, collectible or treasure in the Nalati modules returns nothing).
-- **Achievements:** 17 (`src/game/achievements.ts` NALATI). 2 bosses, 5 elites, tame, kokpar, 3 chapters, then wolf5,
+- **Achievements:** 17 (`src/game/server/achievements.ts` NALATI). 2 bosses, 5 elites, tame, kokpar, 3 chapters, then wolf5,
   wolf25, the pack alpha, balbal5 and ghost10, each with a joke title (worn on the menu; single-player only shows it
   there). wolf25 needs several sessions of reloads: the den pack doesn't respawn and the raid pack respawns at most twice.
 - **Cosmetics:** 5 skins (`src/player/nalatiSkins.ts`): Irbis sabre, Sky-Wolf bow, Storm-Wing arrows, Night Rider mount,
@@ -224,7 +224,7 @@ both are probably still true (unverified).
 |---|---|
 | Weapons (`src/player/nalatiKit.ts`) | **Bow** (Skyrim-style: hold FIRE 0.75 s to draw, early release lets the arrow down, AIM is a 2× toggle, arms tire at 8 s; arrow drop + wind drift; recoverable arrows) · **Sabre** (the engine sword's sweep; lock-on) · **Spear** (thrust, BRACE against a charge, **javelins** thrown from the slot). Upgrades: Golden Bow and Naizagai. An AR-15 is in the kit but locked (main.ts; I found no Nalati pickup for it) |
 | Loot | first-kill elite skins, 2 boss legendaries. **No drops from ordinary enemies** |
-| Economy | **none**: no coins, purse, shop, bounty, pack or harvest (`src/game/Inventory.ts:87-88`; loot installs only with `loot.coins`, i.e. Driftwood) |
+| Economy | **none**: no coins, purse, shop, bounty, pack or harvest (`src/game/server/Inventory.ts:87-88`; loot installs only with `loot.coins`, i.e. Driftwood) |
 | Progression | the horse, 2 weapon upgrades, 5 skins, 17 titles. No XP, no stats, no levels |
 | Saves (localStorage, per shard) | quest + discovery flags (`ws.flags.v1`), bosses (`ws.boss.v1`), elites (`ws.elites.v1`), skins (`ws.nalati.skins.v1`), Tulpar (`ws.nalati.tulpar`), horse names, achievements (`ws.progress.v1`). **The clock and the weather are not saved**: every load starts at ~16:15 (late afternoon) with the first storm 12–18 min away |
 | Death | you respawn at the **shard spawn (the N gate)**: `LastPlace` is wired only for Driftwood's adventure (`main.ts:950-951`; `ADVENTURES` has only `driftwood-isle`). Boss deaths use the phase checkpoints |

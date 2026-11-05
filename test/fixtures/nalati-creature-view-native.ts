@@ -1,7 +1,7 @@
 import * as v from 'valibot';
-import type {Scope} from '../../src/engine/app/scope';
-import type {AnimalSim} from '../../src/engine/entities/AnimalSim';
-import {ViewLane} from '../../src/engine/script/viewLane';
+import type {Scope} from '../../src/engine/shared/app/scope';
+import type {AnimalSim} from '../../src/engine/server/entities/AnimalSim';
+import {ViewLane} from '../../src/engine/client/script/viewLane';
 import {admitScriptV2} from '@wildshard/format/scriptAdmissionV2';
 import {ViewProgramSchema} from '@wildshard/format/viewProgram';
 import {hashImmutableBytes} from '../../src/sdk/immutable';

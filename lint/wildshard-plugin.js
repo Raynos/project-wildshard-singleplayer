@@ -63,7 +63,7 @@ const ALLOWED = new Set([...allowlist.harness, ...allowlist.legacy]);
 const READERS = new Map(Object.entries(allowlist.readers ?? {}));
 
 const FIX =
-  'A variant, look, tuning or feature toggle goes in pause ▸ Settings ▸ Debug (a shard\'s own ctx.debugRow, or an engine-wide src/engine/ui/Settings.ts OPTION_VALUES key + one row in src/engine/ui/debugOptions.ts, under its group), ' +
+  'A variant, look, tuning or feature toggle goes in pause ▸ Settings ▸ Debug (a shard\'s own ctx.debugRow, or an engine-wide src/engine/client/ui/Settings.ts OPTION_VALUES key + one row in src/engine/client/ui/debugOptions.ts, under its group), ' +
   'never in the query string: Jake plays the iOS home-screen PWA and has no address bar. Harness params are a fixed allowlist in ' +
   'lint/url-params.json; adding one needs Jake\'s explicit OK. See AGENTS.md "No URL switches".';
 const MSG_NAME = (name) => `No URL switches, ever (Jake, 2026-09-25): \`?${name}\` is not an allowed query param. ${FIX}`;
@@ -367,9 +367,9 @@ const layerWalk = (kind) => (context) => {
       for (const match of text.matchAll(WORDS)) {
         const path = pathOf(context);
         // F10's save protocol names a shard scope; its one-time reset table necessarily names historical keys.
-        if (match[0].toLowerCase() === 'shard' && (path.startsWith('src/engine/saves/') || (node.type === 'Literal' && node.value === 'shard' && node.parent?.type === 'Property' && (node.parent.key?.name === 'scope' || node.parent.key?.value === 'scope')))) continue;
-        if (path === 'src/engine/core/errorReport.ts' && node.type === 'Identifier' && node.name === 'shard' && node.parent?.type === 'Property' && node.parent.key === node) continue; // Required external telemetry tag; save failures use their namespace.
-        if (path === 'src/engine/saves/legacy.ts' && node.type === 'Literal' && typeof node.value === 'string' && node.value.startsWith('ws.')) continue;
+        if (match[0].toLowerCase() === 'shard' && (/^src\/engine\/(?:(?:client|cook|server|shared)\/)?saves\//u.test(path) || (node.type === 'Literal' && node.value === 'shard' && node.parent?.type === 'Property' && (node.parent.key?.name === 'scope' || node.parent.key?.value === 'scope')))) continue;
+        if (path === 'src/engine/client/core/errorReport.ts' && node.type === 'Identifier' && node.name === 'shard' && node.parent?.type === 'Property' && node.parent.key === node) continue; // Required external telemetry tag; save failures use their namespace.
+        if (path === 'src/engine/shared/saves/legacy.ts' && node.type === 'Literal' && typeof node.value === 'string' && node.value.startsWith('ws.')) continue;
         // E405 (Jake): a wire contract's field is still named `shard` (telemetry tags, reports, the harness probe) — only as a
         // property name or key, only in the files lint/ratchet.json `allow['wildshard/engine-words']` lists with the reason
         if (match[0].toLowerCase() === 'shard' && Object.hasOwn(contractAllow, path) && contractField(node)) continue;
@@ -502,18 +502,18 @@ const noShardBranch = rule('Shard decisions belong in plugins (E357)', (context)
 });
 
 const noRawSave = rule('Storage access belongs in saves (E357)', (context) => {
-  if (/^src\/engine\/(?:saves|native)\//u.test(pathOf(context))) return {};
+  if (/^src\/engine\/(?:(?:client|cook|server|shared)\/)?(?:saves|native)\//u.test(pathOf(context))) return {};
   return { Identifier(node) { if (['localStorage', 'sessionStorage'].includes(node.name)) report(context, node, 'Use the save service instead of raw storage'); } };
 });
 export const TIME_ALLOW = Object.fromEntries([
-  'src/engine/core/frameCost.ts', 'src/engine/ui/perfHud.ts', 'src/engine/ui/perfProbe.ts', 'src/engine/ui/perfLap.ts', 'src/engine/ui/Perf.ts',
-  'src/engine/boot/plan.ts', 'src/engine/render/precompile.ts',
-  'src/engine/core/errorReport.ts', 'src/engine/boot/bootTrace.ts', 'src/engine/boot/gpuTrace.ts',
+  'src/engine/shared/core/frameCost.ts', 'src/engine/client/ui/perfHud.ts', 'src/engine/client/ui/perfProbe.ts', 'src/engine/client/ui/perfLap.ts', 'src/engine/client/ui/Perf.ts',
+  'src/engine/client/boot/plan.ts', 'src/engine/client/render/precompile.ts',
+  'src/engine/client/core/errorReport.ts', 'src/engine/client/boot/bootTrace.ts', 'src/engine/client/boot/gpuTrace.ts',
 ].map((path) => [path, 'performance.now measures elapsed cost or diagnostic timing; never gameplay state.']));
 const measurementAllow = existsSync(ratchetFile) ? JSON.parse(readFileSync(ratchetFile, 'utf8')).allow?.['wildshard/no-raw-random-time'] ?? TIME_ALLOW : TIME_ALLOW;
 const noRawRandomTime = rule('Randomness and time use engine services (E357)', (context) => {
   const path = pathOf(context);
-  if (/^src\/engine\/core\/(?:rng|clock)\.ts$/u.test(path)) return {};
+  if (/^src\/engine\/(?:(?:client|cook|server|shared)\/)?core\/(?:rng|clock)\.ts$/u.test(path)) return {};
   return { MemberExpression(node) {
     const object = unwrap(node.object), property = propName(node) ?? stringOf(node.property);
     if (object?.type !== 'Identifier') return;
@@ -523,7 +523,7 @@ const noRawRandomTime = rule('Randomness and time use engine services (E357)', (
 });
 const INPUT_EVENTS = new Set('keydown keyup keypress pointerdown pointerup pointermove pointercancel mousedown mouseup mousemove wheel contextmenu touchstart touchmove touchend touchcancel'.split(' '));
 const noRawInput = rule('Input listeners belong in the input service (E357)', (context) => {
-  if (pathOf(context).startsWith('src/engine/input/')) return {};
+  if (/^src\/engine\/(?:(?:client|cook|server|shared)\/)?input\//u.test(pathOf(context))) return {};
   // E362 AG18: a helper (`scope.listen(window, 'keydown')`, `listenDom(scope, document, 'pointermove')`) is the same raw
   // page-wide listener; a widget's listener on its own element stays legal.
   const page = (n) => { const u = unwrap(n); return u?.type === 'Identifier' && (u.name === 'window' || u.name === 'document'); };
@@ -533,12 +533,12 @@ const noRawInput = rule('Input listeners belong in the input service (E357)', (c
   } };
 });
 const noRendererType = rule('Renderer types stay inside rendering (E357)', (context) => {
-  if (/^src\/engine\/(?:render\/|core\/(?:Game|bootstrap)\.ts$)/u.test(pathOf(context))) return {};
+  if (/^src\/engine\/(?:(?:client|cook|server|shared)\/)?(?:render\/|core\/(?:Game|bootstrap)\.ts$)/u.test(pathOf(context))) return {};
   return { Identifier(node) { if (node.name === 'WebGLRenderer') report(context, node, 'Renderer types belong in engine/render'); } };
 });
 const SHADER_HOOKS = new Set(['onBeforeCompile', 'customProgramCacheKey']);
 const noRawShaderPatch = rule('Shader patches go through the one registry (E357 X6)', (context) => {
-  if (pathOf(context).startsWith('src/engine/render/')) return {};
+  if (pathOf(context).startsWith('src/engine/client/render/')) return {};
   return { AssignmentExpression(node) {
     const left = unwrap(node.left);
     if (left?.type === 'MemberExpression' && SHADER_HOOKS.has(propName(left) ?? stringOf(left.property) ?? '')) report(context, node, 'Patch shaders with patchShader / setProgramKey (@wildshard/engine)');
@@ -592,16 +592,16 @@ const noActiveSingleton = rule('Active service reads migrate to the app (E357)',
   CallExpression(node) { if (ACTIVE_SERVICES.has(calleeName(node.callee))) report(context, node, 'Read the typed app service instead of an active singleton'); },
 }));
 const noActiveChunk = rule('Current content data belongs in the game layer (E357)', (context) => {
-  if (pathOf(context).startsWith('src/game/shard/')) return {};
+  if (/^src\/game\/(?:(?:client|cook|server|shared)\/)?shard\//u.test(pathOf(context))) return {};
   return { CallExpression(node) { if (calleeName(node.callee) === 'getActiveChunk') report(context, node, 'Read explicit level data or the game content service'); } };
 });
 
 // Page overlays remain outside legacy level capture (legacyCapture's SHELL selector).
-export const CAPTURE_SHELL_FILES = new Set(['Loading', 'Resume', 'RotateGate', 'Update', 'ReloadPrompt', 'ErrorModal', 'BootSettings', 'errorScreen'].map((name) => `src/engine/ui/${name}.ts`));
+export const CAPTURE_SHELL_FILES = new Set(['Loading', 'Resume', 'RotateGate', 'Update', 'ReloadPrompt', 'ErrorModal', 'BootSettings', 'errorScreen'].map((name) => `src/engine/client/ui/${name}.ts`));
 const CAPTURE_CALLS = new Set(['addEventListener', 'setTimeout', 'setInterval', 'requestAnimationFrame']);
 const noGlobalListenerPatch = rule('Legacy global registrations migrate to explicit Scopes (E357 F11)', (context) => {
   const path = pathOf(context);
-  if (path.startsWith('src/engine/app/') || CAPTURE_SHELL_FILES.has(path)) return {};
+  if (/^src\/engine\/(?:(?:client|cook|server|shared)\/)?app\//u.test(path) || CAPTURE_SHELL_FILES.has(path)) return {};
   return { CallExpression(node) {
     const callee = unwrap(node.callee);
     if (CAPTURE_CALLS.has(calleeName(callee))) {
@@ -626,7 +626,7 @@ const noModuleMock = rule('Tests use seams, not module mocks (E422)', (context) 
 } }));
 const noRawAnimationMixer = rule('Animation mixers belong in engine/anim (E357 X4)', (context) => {
   // Offline Blender rig gates sample authored clips on CPU; they never install a runtime mixer.
-  if (pathOf(context).startsWith('src/engine/anim/') || /^src\/shards\/[^/]+\/blender\/.+\.mjs$/u.test(pathOf(context))) return {};
+  if (pathOf(context).startsWith('src/engine/client/anim/') || /^src\/shards\/[^/]+\/blender\/.+\.mjs$/u.test(pathOf(context))) return {};
   const names = new Set(['AnimationMixer']);
   const isMixer = (node) => {
     const value = unwrap(node);
@@ -689,7 +689,7 @@ const noAuthoredHtml = rule('Shardfile-sourced and unknown text uses textContent
 });
 
 const noRawHud = rule('HUD nodes mount through scope-owned numbered slots (E357 X2)', (context) => {
-  if (pathOf(context) === 'src/engine/ui/hudSlots.ts') return {};
+  if (pathOf(context) === 'src/engine/client/ui/hudSlots.ts') return {};
   const aliases = new Set();
   /** @returns {boolean} */
   const hudTarget = (value) => {
@@ -1096,7 +1096,7 @@ const noReexport = rule('No barrels: no module re-exports one of ours (E434)', (
 
 const clientPlanReflection = rule('Client features cannot reflect into shard TS owners (G483)', context => {
   // Format's clientPlan.ts lives in the shardfile repo now; its registry here carries the check.
-  if (pathOf(context) !== 'src/game/shardfile/clientPlan.ts') return {};
+  if (pathOf(context) !== 'src/game/client/shardfile/clientPlan.ts') return {};
   return { Program(node) { for (const failure of clientPlanSchemaViolations(REPO)) report(context, node, failure); } };
 });
 

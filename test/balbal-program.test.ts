@@ -1,13 +1,13 @@
 import { originalSpeciesJson } from './fixtures/nalati-original-species';
 import { afterEach,beforeEach,expect,test,vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { app } from '../src/engine/app/runtime';
+import { Scope } from '../src/engine/shared/app/scope';
+import { app } from '../src/engine/client/app/runtime';
 import { lendNalatiHeld } from './fixtures/nalati-return-modules';
 import { object, parse } from 'valibot';
 import { CreatureGuestSchema } from '@wildshard/format/speciesBookRows';
 import { program } from './fixtures/projectedCreature';
-import * as strikes from '../src/engine/ai/strikeRows';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+import * as strikes from '../src/engine/server/ai/strikeRows';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 
 const generated=parse(object({presentation:object({guest:CreatureGuestSchema})}),originalSpeciesJson('species.json'));
 

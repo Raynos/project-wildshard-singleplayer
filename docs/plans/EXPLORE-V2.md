@@ -13,7 +13,7 @@ screens are at the round-6 midway bar (E67).
 
 | # | Row | What it is | Size | Ask |
 |---|---|---|---|---|
-| V1 | **COMPARE viewpoints** | The four stored mockup cameras (src/engine/explore/Compare.ts) only roughly match the mockups' framing; line each up so SLIDE compares like for like | S | E68 — **dropped** (2026-09-23, Jake: "E68 close out") |
+| V1 | **COMPARE viewpoints** | The four stored mockup cameras (src/engine/client/explore/Compare.ts) only roughly match the mockups' framing; line each up so SLIDE compares like for like | S | E68 — **dropped** (2026-09-23, Jake: "E68 close out") |
 | V4 | **Jake: yes (E423 grill, 2026-10-03).** **Selection outline** | A cyan outline on the selected model (inverted hull or a post outline pass) on top of the box (round-5 04) | M | — |
 | V5 | **Jake: yes (E423 grill, 2026-10-03).** **Specimen framing** | Fresh props on the turntable: the fallen log lies along the view and reads tiny. Frame by the long axis and turn it side-on | S | — |
 | V7 | **Nalati** | Switch Explore on for Nalati: `ChunkDef.explore` + pois, and a `register…Models` call in main.ts. Its branch lives in ../wildshard-nalati-grasslands, so it lands when Nalati merges. Held back by Jake ("pine hollow only") | S | **done** outside this plan: the user's NALATI-MERGE wave 8 pick, `0bfc5bf5` (N16) |

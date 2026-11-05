@@ -3,16 +3,16 @@
 // decision ticks; the view over them shows the same funnels and returns the same hits.
 import { expect, test } from 'vitest';
 import { BoxGeometry, InstancedMesh, MeshBasicMaterial, Object3D } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { terrainHeight as heightAt } from '../src/engine/world/terrainHeight';
+import { Scope } from '../src/engine/shared/app/scope';
+import { terrainHeight as heightAt } from '../src/engine/shared/world/terrainHeight';
 import { parse } from 'valibot';
 import { ArenaWhirlsSchema, type ArenaWhirlsRows } from '@wildshard/format/encounterRows';
 import { TITAN_WHIRLS } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import { titanPrograms } from './fixtures/titanInlineWitness';
 import { lendNalatiPasture, lendNalatiTitan } from './fixtures/nalati-return-modules';
-import { ProjectedState, ReturnProgram } from '../src/game/population/returnProgram';
-import { ArenaWhirls } from '../src/game/boss/arenaWhirls';
-import { ArenaWhirlsView } from '../src/game/boss/arenaFire';
+import { ProjectedState, ReturnProgram } from '../src/game/shared/population/returnProgram';
+import { ArenaWhirls } from '../src/game/server/boss/arenaWhirls';
+import { ArenaWhirlsView } from '../src/game/client/boss/arenaFire';
 
 const rows: ArenaWhirlsRows = parse(ArenaWhirlsSchema, TITAN_WHIRLS);
 

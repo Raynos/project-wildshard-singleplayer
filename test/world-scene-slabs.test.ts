@@ -1,17 +1,17 @@
 // NF11: a refine library's baked slabs draw as plain chunk meshes under their key's anchor, one a frame, with no join.
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, type Object3D } from 'three';
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
-import { provideRuntimeProduct, runtimeProduct } from '../src/game/shardfile/runtimeProduct';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { ControlRefinement } from '../src/game/shardfile/controlRefinement';
-import { SlabLibrary } from '../src/game/shardfile/slabLibrary';
-import { readWholeLibrary } from '../src/game/shardfile/wholeLibrary';
-import * as work from '../src/engine/core/workSlice';
+import { provideRuntimeProduct, runtimeProduct } from '../src/game/client/shardfile/runtimeProduct';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
+import { ControlRefinement } from '../src/game/client/shardfile/controlRefinement';
+import { SlabLibrary } from '../src/game/client/shardfile/slabLibrary';
+import { readWholeLibrary } from '../src/game/client/shardfile/wholeLibrary';
+import * as work from '../src/engine/shared/core/workSlice';
 
 const triangle = (x: number): BufferGeometry => new BufferGeometry()
   .setAttribute('position', new BufferAttribute(Float32Array.of(x, 0, 0, x + 1, 0, 0, x, 0, 1), 3))

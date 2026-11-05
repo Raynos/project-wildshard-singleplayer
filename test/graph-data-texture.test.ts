@@ -4,7 +4,7 @@ import { expect, it, vi } from 'vitest';
 import { DataTexture, NoColorSpace } from 'three';
 import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 import { parseKtx2 } from '@wildshard/format/ktx2Cost';
-import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
+import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
 import { bakeRawColourTexture } from '../src/sdk/bake/texture';
 import { writeImagePixels } from '../src/sdk/bake/image';
 

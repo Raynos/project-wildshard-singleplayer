@@ -1,10 +1,10 @@
 import { expect,test } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import type { Game } from '../src/engine/core/Game';
-import type { ShardContext } from '../src/game/plugin/context';
-import { CueDirector } from '../src/game/audio/cueDirector';
-import { clientNativeBook } from '../src/game/shardfile/clientNativeBook';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { Scope } from '../src/engine/shared/app/scope';
+import type { Game } from '../src/engine/client/core/Game';
+import type { ShardContext } from '../src/game/server/plugin/context';
+import { CueDirector } from '../src/game/client/audio/cueDirector';
+import { clientNativeBook } from '../src/game/client/shardfile/clientNativeBook';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 

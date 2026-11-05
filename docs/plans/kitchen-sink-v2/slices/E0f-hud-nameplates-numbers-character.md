@@ -19,15 +19,15 @@ pick on a labelled board first).
 
 Research (this is mostly an extension, not new UI):
 
-- **Health bars over enemies already exist**: `src/engine/ui/Combat.ts` draws pooled bars within `BAR_DIST = 60` m
+- **Health bars over enemies already exist**: `src/engine/client/ui/Combat.ts` draws pooled bars within `BAR_DIST = 60` m
   (`:46`) for an animal hit in the last 4 s or under the crosshair, at most `BAR_MAX` 6 on phones (`:48`), with the kind
-  as a small mono label; bosses and named elites have their own wide bar (`src/game/Boss.ts`, `src/game/Elite.ts`;
+  as a small mono label; bosses and named elites have their own wide bar (`src/game/server/Boss.ts`, `src/game/server/Elite.ts`;
   `Combat.ts:195`).
 - **Floating damage text already exists** (`Combat.ts:239` `float(text, label, cls, kill)`, `FLOAT_MAX = 10`,
   `FLOAT_LIFE = 0.9`): the number, "HEADSHOT", red "KILL", grey "MISS" for aim misses.
-- The lock-on frame (`src/engine/ui/LockOn.ts`) carries the locked enemy's name + health tag through `Combat.ts`.
+- The lock-on frame (`src/engine/client/ui/LockOn.ts`) carries the locked enemy's name + health tag through `Combat.ts`.
 - **Pause tabs are a registry**: `TabRegistry.tab({ id, title, icon, order })` and `fragment()`
-  (`src/engine/ui/tabs.ts`); shards already add Bag tabs from rows (`src/game/shard/declaredUi.ts:19`). A Character tab
+  (`src/engine/client/ui/tabs.ts`); shards already add Bag tabs from rows (`src/game/client/shard/declaredUi.ts:19`). A Character tab
   needs no new menu code.
 
 Work:

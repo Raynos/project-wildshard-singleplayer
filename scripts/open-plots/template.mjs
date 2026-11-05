@@ -56,7 +56,7 @@ export function plotTemplate(root, raw, { activateExisting = false } = {}) {
   const base = read(root, 'src/shards/open-plots/data/layouts/night-market.json', before);
   for (const slot of Object.keys(base.palette)) if (recipe.palette[slot] === undefined) throw new Error(`Missing palette slot ${slot}`);
   const declared = read(root, 'src/shards/open-plots/outputs.json', before);
-  const grid = read(root, 'src/game/grid/singleplayer.json', before);
+  const grid = read(root, 'src/game/shared/grid/singleplayer.json', before);
   const previous = declared.outputs.find(row => row.slug === recipe.slug);
   const activate = previous === undefined || activateExisting;
   const existing = grid.grid.cells.filter(row => row.slug === recipe.slug);
@@ -110,7 +110,7 @@ export function plotTemplate(root, raw, { activateExisting = false } = {}) {
   }
   if (activate) {
     paths.set('src/shards/open-plots/outputs.json', json(declared));
-    paths.set('src/game/grid/singleplayer.json', json(grid));
+    paths.set('src/game/shared/grid/singleplayer.json', json(grid));
     paths.set('src/shards/open-plots/data/map.json', json(map));
     if (previous === undefined) registerProduct(paths, root, recipe.slug, before);
   }

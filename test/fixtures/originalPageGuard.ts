@@ -1,12 +1,12 @@
 import {Vector3} from 'three';
-import type {Animal} from '../../src/engine/entities/AnimalView';
-import type {ThinkCtx} from '../../src/engine/entities/species/registry';
-import {ANIMAL_STATES} from '../../src/engine/entities/animalStates';
-import {app} from '../../src/engine/app/runtime';
-import {terrainHeight as heightAt} from '../../src/engine/world/terrainHeight';
-import type {Rng} from '../../src/engine/core/rng';
-import type {ReturnProgram} from '../../src/game/population/returnProgram';
-import type {CrowdTargets} from '../../src/game/shardfile/crowdRuntime';
+import type {Animal} from '../../src/engine/client/entities/AnimalView';
+import type {ThinkCtx} from '../../src/engine/shared/entities/species/registry';
+import {ANIMAL_STATES} from '../../src/engine/shared/entities/animalStates';
+import {app} from '../../src/engine/client/app/runtime';
+import {terrainHeight as heightAt} from '../../src/engine/shared/world/terrainHeight';
+import type {Rng} from '../../src/engine/shared/core/rng';
+import type {ReturnProgram} from '../../src/game/shared/population/returnProgram';
+import type {CrowdTargets} from '../../src/game/shared/shardfile/crowdRuntime';
 export interface OriginalGuardBinding {
   row:{signal:string;clock:string;every:number;straggler:number;bark:string;soundHeight:number;
     memory:{bark:string;rest:string;snarl:string;low:string};states:string[]};

@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- the committed native Pine terrain is the tiles' source.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { canopyMapOf } from '../src/engine/world/forest/placement';
+import { canopyMapOf } from '../src/engine/shared/world/forest/placement';
 import { parseGlb } from '../src/sdk/assets';
 import { bakeSplatGround, splatGroundSource } from '../src/sdk/bake/splatGround';
 import { PINE_GROUND, PINE_GROUND_MATERIAL } from '../src/shards/pine-hollow/generators/groundTiles';

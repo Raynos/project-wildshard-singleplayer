@@ -10,8 +10,8 @@ import { shardProducts } from './shard-outputs.mjs';
 import { keptBudgets } from './budget-ratchet.mjs';
 
 await import('./bake-loader.mjs');
-const { deriveBudget } = await import('../src/engine/render/budgets');
-const { parseCalibration } = await import('../src/engine/render/calibration');
+const { deriveBudget } = await import('../src/engine/client/render/budgets');
+const { parseCalibration } = await import('../src/engine/client/render/calibration');
 /** @type {Record<string, string | undefined>} */
 const options = Object.fromEntries(process.argv.slice(2).map((s) => { const m = /^--(root|lanes|reports|accept)=(.+)$/.exec(s); if (!m) throw new Error(`Unknown argument ${s}`); return [m[1], m[2]]; }));
 const root = resolve(options.root ?? join(import.meta.dirname, '..')), lanes = (options.lanes ?? 'm5,gh-macos15').split(','), records = [], provenance = [];

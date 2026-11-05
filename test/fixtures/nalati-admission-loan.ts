@@ -1,10 +1,10 @@
 import { afterEach } from 'vitest';
 import * as v from 'valibot';
-import { Scope } from '../../src/engine/app/scope';
+import { Scope } from '../../src/engine/shared/app/scope';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { ReturnModulesSchema } from '@wildshard/format/scriptContract';
-import { ReturnProgram } from '../../src/game/population/returnProgram';
+import { ReturnProgram } from '../../src/game/shared/population/returnProgram';
 import { NALATI_ADMISSION, NALATI_ADMISSION_PROGRAM } from './nalati-admission';
 
 const input = v.parse(v.object({ ...ReturnProgramSchema.entries }), NALATI_ADMISSION);

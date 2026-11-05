@@ -16,12 +16,12 @@ Every equal-level Mite kill pays **3 Scrip** (night 4) with today's coin burst; 
 Research:
 
 - `Bounty` pays **each enemy once** (Jake 09-30, "cap per enemy"): keyed by herd slot or kind, counted from the starting
-  census, saved as `ws.bounty.v1` (`src/game/loot/Bounty.ts:1-20`, `bountySave` in `src/game/saves.ts:15`). Coin amounts
-  live in `src/game/loot/coinAmounts.ts`; the burst in `CoinBurst.ts`; death listeners are ordered (`loot: 40`,
-  `src/game/loot/deaths.ts:4`).
+  census, saved as `ws.bounty.v1` (`src/game/server/loot/Bounty.ts:1-20`, `bountySave` in `src/game/shared/saves.ts:15`). Coin amounts
+  live in `src/game/server/loot/coinAmounts.ts`; the burst in `CoinBurst.ts`; death listeners are ordered (`loot: 40`,
+  `src/game/server/loot/deaths.ts:4`).
 - Coins are `economy/loot` `coins: true` until W2a's currency row (`src/format/lootEconomy.ts:25`).
 - Chests: `ChestDef.contents: ChestItem[]` where an item is `{ item, n } | { key } | { flag }`
-  (`src/engine/world/interact/types.ts:138-141`, `:160`): **no currency content**.
+  (`src/engine/shared/world/interact/types.ts:138-141`, `:160`): **no currency content**.
 
 Work:
 

@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import sky from '../src/shards/pine-hollow/data/sky.json' with { type: 'json' };
 import { KEYED_SKY } from '@wildshard/format/keyedSky';
-import { keyedSkyDay } from '../src/game/looks/keyedSkyClock';
+import { keyedSkyDay } from '../src/game/shared/looks/keyedSkyClock';
 import { signalFireGraphs } from '../src/shards/sunscar-dunes/generators/fireLook';
 import { signalProductRows } from './fixtures/sunscar-source-program';
 

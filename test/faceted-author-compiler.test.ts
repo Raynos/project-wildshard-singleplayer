@@ -2,8 +2,8 @@
 import { execFileSync } from 'node:child_process';
 import { expect, expectTypeOf, test } from 'vitest';
 import { BoxGeometry, BufferAttribute, type BufferGeometry, Color, Matrix4, PlaneGeometry, SphereGeometry } from 'three';
-import { LowPolyKit } from '../src/engine/world/lowpolyKit';
-import { withoutHidden } from '../src/engine/world/geometryKit';
+import { LowPolyKit } from '../src/engine/client/world/lowpolyKit';
+import { withoutHidden } from '../src/engine/client/world/geometryKit';
 import { FacetedGeometryBuilder, cullFacetedParts, type FacetedGeometrySink } from '../src/sdk/bake/facetedGeometry';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 

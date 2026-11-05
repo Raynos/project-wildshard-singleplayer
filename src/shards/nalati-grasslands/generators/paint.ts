@@ -11,7 +11,7 @@ export type NalatiTexName = Exclude<keyof typeof materials, 'poi'>;
 
 /**
  * PaintKit — the model toolbox for Nalati's painterly POIs (B5). The painterly sibling of `lowpolyKit.ts`:
- * every static POI is one merged mesh on the ONE shared painterly material (`src/engine/world/painterly.ts`), so detail
+ * every static POI is one merged mesh on the ONE shared painterly material (`src/engine/client/world/painterly.ts`), so detail
  * costs triangles, never draw calls — but the shapes stay SMOOTH (normals are computed per part before merging, not
  * per face) and the colour is painted per vertex: a base colour × a soft brush-noise, a darker foot, optional
  * per-face patterns (yurt ornament bands, felt rugs) and a ground-contact shade baked from the terrain at the end.

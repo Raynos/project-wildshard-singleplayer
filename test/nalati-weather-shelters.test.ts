@@ -3,7 +3,7 @@ import { originalNalatiPhysics } from './fixtures/nalati-physics-original';
 import {readFileSync} from 'node:fs';
 import {array,finite,number,object,parse,pipe,tuple} from 'valibot';
 import {expect,test} from 'vitest';
-import {nativeWeatherBundle} from '../src/game/weather/reactions';
+import {nativeWeatherBundle} from '../src/game/server/weather/reactions';
 import weather from '../src/shards/nalati-grasslands/data/weather.json' with {type:'json'};
 import {weatherWitness as reactions} from './fixtures/weatherInlineWitness';
 import {nalatiNativeShelters} from '../src/shards/nalati-grasslands/generators/shelters';

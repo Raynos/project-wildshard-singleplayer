@@ -1,27 +1,27 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { Color, DataTexture, Group, Matrix4, MeshStandardMaterial, PointLight, Vector3, Vector4 } from 'three';
-import { LightEmitters } from '../src/engine/fx/lightEmitters';
-import { Scope } from '../src/engine/app/scope';
-import { applyGround, updateGround } from '../src/engine/render/families/ground';
+import { LightEmitters } from '../src/engine/client/fx/lightEmitters';
+import { Scope } from '../src/engine/shared/app/scope';
+import { applyGround, updateGround } from '../src/engine/client/render/families/ground';
 import { parseGroundLayer } from '@wildshard/format/materialFamilies';
 import { parseLightEmitters } from '@wildshard/format/lightEmitters';
 import { lightPoolRows } from '../src/shards/nine-dragon-stack/generators/lightVolumes';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { loadPostGraphLut, neutralLut } from '../src/game/looks/postGraphLook';
+import { loadPostGraphLut, neutralLut } from '../src/game/client/looks/postGraphLook';
 import SEALED from './fixtures/legacy-oracles/nine-light.json' with { type: 'json' };
-import { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { EmitterPresentation } from '../src/game/shardfile/lightEmitters';
-import { sceneVectors } from '../src/game/shardfile/sceneInputs';
+import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
+import { EmitterPresentation } from '../src/game/client/shardfile/lightEmitters';
+import { sceneVectors } from '../src/game/client/shardfile/sceneInputs';
 import { SIGNAL_EMITTERS } from '../src/shards/sunscar-dunes/generators/lightEmitters';
 import POOL from '../src/shards/nine-dragon-stack/data/lightPools.json' with { type: 'json' };
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
-import { lendWorldSceneTextures } from '../src/game/shardfile/worldSceneTextures';
+import { lendWorldSceneTextures } from '../src/game/client/shardfile/worldSceneTextures';
 import { plainWeaveBytes, silkWeaveBytes } from '../src/shards/nine-dragon-stack/generators/silkWeave';
 import NINE_GRAPHS from '../src/shards/nine-dragon-stack/data/lookGraphs.json' with { type: 'json' };
 import { validateGraph, type GraphRef } from '@wildshard/format/materialGraph';
-import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
-import type { ShardContext } from '../src/game/plugin/context';
+import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
+import type { ShardContext } from '../src/game/server/plugin/context';
 
 /** colours as linear [r, g, b], vectors as arrays: the frozen oracle's reading (fixtures/legacy-oracles/nine-light.json) */
 const plain = (value: unknown): unknown => value instanceof Color ? [value.r, value.g, value.b] : value instanceof Vector3 || value instanceof Vector4 ? value.toArray()

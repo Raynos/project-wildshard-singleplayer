@@ -1,16 +1,16 @@
 import { beforeAll, expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { AnimalSim } from '../src/engine/entities/AnimalSim';
-import { Rng } from '../src/engine/core/rng';
-import { GroupStepV2 } from '../src/engine/script/groupStepV2';
-import { ObservationColumnsV2, type V2ColumnOwners } from '../src/engine/script/observationColumnsV2';
+import { Scope } from '../src/engine/shared/app/scope';
+import { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import { Rng } from '../src/engine/shared/core/rng';
+import { GroupStepV2 } from '../src/engine/shared/script/groupStepV2';
+import { ObservationColumnsV2, type V2ColumnOwners } from '../src/engine/shared/script/observationColumnsV2';
 import { parseGroupStepV2, GroupStepV2Schema, groupStepLayoutV2 } from '@wildshard/format/scriptGroupStepV2';
 import { ObservationColumnsV2Schema } from '@wildshard/format/scriptObservationColumnsV2';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { v2CoreSource } from '../src/sdk/as/wsV2';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 
 const columns = [
   {id:1,name:'value',source:{kind:'memory',key:'hit',default:{value:0},encoding:{kind:'negative-infinity',part:'value'}}},

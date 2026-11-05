@@ -2,16 +2,16 @@ import {DRESSING_ATLAS_SOURCES} from '../src/shards/nalati-grasslands/generators
 import {readNamedBlob} from '../src/sdk/blobs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the exact committed atlas files through the product reader.
 import {readFileSync} from 'node:fs';
-import {prepareBinarySources} from '../src/game/models/binarySource';
+import {prepareBinarySources} from '../src/game/client/models/binarySource';
 // oxlint-disable-next-line import/no-nodejs-modules -- compare the pre-conversion runtime's exact attribute bytes
 import { createHash } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
 import { SHAPES,SHAPE_BYTES } from './fixtures/nalatiShapes';
-import { letteringMaterial } from '../src/game/looks/lettering';
+import { letteringMaterial } from '../src/game/client/looks/lettering';
 import atlases from '../src/shards/nalati-grasslands/data/signAtlases.json' with { type: 'json' };
-import { seatedFigureView } from '../src/game/riding/seatedFigure';
+import { seatedFigureView } from '../src/game/client/riding/seatedFigure';
 import { MOUNTED_FIGURE } from './fixtures/nalati-poi-paint-original';
-import { SkyRig } from '../src/engine/world/skyRig';
+import { SkyRig } from '../src/engine/client/world/skyRig';
 import { Mesh, BufferGeometry, BufferAttribute, Material, MeshLambertMaterial, DataTexture, Vector3, SRGBColorSpace, LinearFilter, LinearMipmapLinearFilter, ClampToEdgeWrapping } from 'three';
 import oracle from './fixtures/nalati-poi-paint.json';
 import staticOracle from './fixtures/nalati-static-contacts.json';

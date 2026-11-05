@@ -1,11 +1,11 @@
 // SF72 navmesh oracle: the recorded queries (test/navmesh-oracle.test.ts). Each shard's baked navmesh answers the same
 // seeded set of queries a creature asks (HuntBrain's steerTo path, its steerNav clear-ahead probe, a wander target, the
 // closest walkable point), on every layer plus a radius past the largest. source.json holds the answers the browser's
-// module gave (recorded before the app binding moved out of src/engine/physics/navmesh.ts); the vitest run and a plain
+// module gave (recorded before the app binding moved out of src/engine/shared/physics/navmesh.ts); the vitest run and a plain
 // Node run (scripts/sim-node-loader.mjs, no renderer) must both give them back exactly.
 import { DEFAULT_QUERY_FILTER, findRandomPoint } from 'navcat';
-import type { Navmesh } from '../../../src/engine/physics/navmesh';
-import { Rng } from '../../../src/engine/core/rng';
+import type { Navmesh } from '../../../src/engine/shared/physics/navmesh';
+import { Rng } from '../../../src/engine/shared/core/rng';
 
 type XYZ = readonly [number, number, number];
 export type OracleAnswer =

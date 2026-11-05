@@ -101,7 +101,7 @@ notices one at a time.
    biggest part is a 44-row interactables table (11.4 KB), then NPCs, readings, chapters and a guide. W1b Q5's reason
    for moving it east was wrong; M2.1 becomes two migration slices of its own (E1h, E1i) after the board (E1f).
 2. **Half the HUD rows exist.** Enemy health bars (60 m, 6 on phones) and floating damage text (HEADSHOT, KILL, aim
-   MISS) are already in `src/engine/ui/Combat.ts`; the pause menu is a tab registry. HC3 / HC4 / HC5 are providers on
+   MISS) are already in `src/engine/client/ui/Combat.ts`; the pause menu is a tab registry. HC3 / HC4 / HC5 are providers on
    today's pieces (E0f), not new UI.
 3. **Status effects exist.** `EffectService` runs timed effects with periodic `tickDamage`, and starter rows ship
    `effect.burn`, `stun`, `slow`, `poison`, `bleed`; W3b's "no burn outside one boss" was wrong. What's missing is a hit

@@ -2,20 +2,20 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the native loader on the shipped rig bytes.
 import { readFileSync } from 'node:fs';
 import { readSourceModel } from '../src/sdk/bake/skinned';
-import * as rigLoader from '../src/engine/anim/rig';
-import * as lookCompiler from '../src/game/shardfile/runtimeProduct';
-import { ToonLook } from '../src/engine/render/families/toon';
+import * as rigLoader from '../src/engine/client/anim/rig';
+import * as lookCompiler from '../src/game/client/shardfile/runtimeProduct';
+import { ToonLook } from '../src/engine/client/render/families/toon';
 import { BufferGeometry, InterleavedBufferAttribute, Color, Mesh, MeshBasicMaterial, PerspectiveCamera, Vector2, Vector3, Vector4 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import type { ShardContext } from '../src/game/plugin/context';
-import type { SkyRig } from '../src/engine/world/skyRig';
+import { Scope } from '../src/engine/shared/app/scope';
+import type { ShardContext } from '../src/game/server/plugin/context';
+import type { SkyRig } from '../src/engine/client/world/skyRig';
 import { parseToonArmsLook } from '@wildshard/format/heldArms';
-import { HeldView } from '../src/game/systems/viewmodel/heldView';
+import { HeldView } from '../src/game/client/systems/viewmodel/heldView';
 import { parseHeldView } from '@wildshard/format/heldView';
-import { toonLighting } from '../src/game/looks/toonLighting';
-import { heldArmsGear } from '../src/game/models/heldGear';
-import { RigArms } from '../src/game/systems/viewmodel/rigArms';
-import { ARM_CLIPS, armClipNames } from '../src/game/systems/viewmodel/armClips';
+import { toonLighting } from '../src/game/client/looks/toonLighting';
+import { heldArmsGear } from '../src/game/client/models/heldGear';
+import { RigArms } from '../src/game/client/systems/viewmodel/rigArms';
+import { ARM_CLIPS, armClipNames } from '../src/game/client/systems/viewmodel/armClips';
 
 // A fictional harbour look uses the native rig loader and resolver. Spies observe the file/compiler
 // seams; neither seam is a parameter of the held host's public API.

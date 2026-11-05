@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import {expect, test} from 'vitest';
-import {SaveStore} from '../src/engine/saves/store';
-import {titlePrefetchChoice, titlePrefetchFlow, titlePrefetchTargets} from '../src/game/grid/titlePrefetchChoice';
-import type {TitleManifest} from '../src/game/shard/titleList';
+import {SaveStore} from '../src/engine/shared/saves/store';
+import {titlePrefetchChoice, titlePrefetchFlow, titlePrefetchTargets} from '../src/game/client/grid/titlePrefetchChoice';
+import type {TitleManifest} from '../src/game/client/shard/titleList';
 import * as v from 'valibot';
 
 test('last product hint uses one save definition and survives blocked persistence', () => {

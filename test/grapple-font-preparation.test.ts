@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import type { GrappleRows } from '@wildshard/format/grapple';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import { prepareGrappleFonts } from '../src/game/grapple/fontPreparation';
+import { prepareGrappleFonts } from '../src/game/client/grapple/fontPreparation';
 
 const row = {
   mark: { style: { font: '700 15px monospace', lineHeight: '1' }, className: 'marker', glyph: '◇', color: '#abc' },

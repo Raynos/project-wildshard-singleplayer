@@ -1,9 +1,9 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Native witnesses assert there is no browser or DOM shim.
 import assert from 'node:assert/strict';
-import { installAppIdentity } from '../../../src/engine/app/identity';
-import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
-import { WILDSHARD_IDENTITY } from '../../../src/game/identity';
-import { Ledger } from '../../../src/game/ledger';
+import { installAppIdentity } from '../../../src/engine/shared/app/identity';
+import { SaveStore, type SaveStorage } from '../../../src/engine/shared/saves/store';
+import { WILDSHARD_IDENTITY } from '../../../src/game/client/identity';
+import { Ledger } from '../../../src/game/server/ledger';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
 
 /** Test storage is an actual SaveStore backend; refusal never replaces gameplay or fabricates a grant. */

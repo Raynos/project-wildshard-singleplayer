@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
 import { Quaternion, Ray, Sphere, Vector3 } from 'three';
-import { smoothstep } from '../src/engine/core/noise';
-import { Rng } from '../src/engine/core/rng';
-import type { TargetHit } from '../src/engine/combat/types';
-import { BladeSweep, bladeInReach, sweptSwingPose, type BladeKey } from '../src/engine/combat/sweptBlade';
+import { smoothstep } from '../src/engine/shared/core/noise';
+import { Rng } from '../src/engine/shared/core/rng';
+import type { TargetHit } from '../src/engine/client/combat/types';
+import { BladeSweep, bladeInReach, sweptSwingPose, type BladeKey } from '../src/engine/shared/combat/sweptBlade';
 
 // The swept blade's law (sweptBlade.ts) beside the loop SweptMelee ran inline before it, kept here as the reference: the
 // same blade motions over the same targets must strike the same targets, in the same order, at the same points.

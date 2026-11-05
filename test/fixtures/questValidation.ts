@@ -1,5 +1,5 @@
-import { CHIP_MAX, type QuestDef } from '../../src/engine/quest/core';
-import type { Cond } from '../../src/engine/world/interact/types';
+import { CHIP_MAX, type QuestDef } from '../../src/engine/server/quest/core';
+import type { Cond } from '../../src/engine/shared/world/interact/types';
 
 // Historical contract oracle; production consumers use the data-driven owners.
 /** checks a quest def is sound: unique step ids, every step reachable (a done condition that is not trivially true) */

@@ -426,7 +426,7 @@ Every stratum: 2–4 hero mockups → Jake picks → two domes per mockup → 3�
 | P5-L2 | Fauna: pigeons, cats, koi, eels, crows | todo |
 | P5-L3 | Enemies: Tong enforcers (a rigged humanoid — `humanoidRigBake` + TRELLIS / img2-character), Jiangshi (vertical hops via E5's off-mesh links), crane drones | todo |
 | P5-L4 | Elites: the Dentist, the Hotpot King, the Sky-Screen Warden | todo |
-| P5-L5 | The Well Dragon on the shared `Boss` (`src/game/Boss.ts`) | todo |
+| P5-L5 | The Well Dragon on the shared `Boss` (`src/game/server/Boss.ts`) | todo |
 
 ### P6 — quest, weather, audio
 

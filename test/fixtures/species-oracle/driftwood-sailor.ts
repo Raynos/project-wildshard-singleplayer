@@ -1,6 +1,6 @@
 // Original shipping decision captured at cc3d80266bde50259f7676b0e72e98b80b7229e0:src/shards/driftwood-isle-legacy/species/sailor.ts; native body/contact shell stays shipping; unused row/contact constants omitted.
-import type { Animal } from '../../../src/engine/entities/AnimalView';
-import type { ThinkCtx } from '../../../src/engine/entities/species/registry';
+import type { Animal } from '../../../src/engine/client/entities/AnimalView';
+import type { ThinkCtx } from '../../../src/engine/shared/entities/species/registry';
 type SailorMem = Record<string, number> & {
   init: number; hx: number; hz: number; cd: number; hitT: number; away: number;
   rise: number; rising: number; sinking: number; floor: number; floorS?: number;

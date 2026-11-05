@@ -1,7 +1,7 @@
 import { expect,test } from 'vitest';
 import * as v from 'valibot';
 import { zlibSync } from 'fflate';
-import { readScalarLattice } from '../src/engine/world/scalarChannel';
+import { readScalarLattice } from '../src/engine/shared/world/scalarChannel';
 import { ScalarLatticeSchema } from '@wildshard/format/scalarChannel';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import { GroundRowsSchema } from '@wildshard/format/terrain';

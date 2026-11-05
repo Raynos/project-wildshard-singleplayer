@@ -1,11 +1,11 @@
 import { BufferGeometry, Group } from 'three';
 import { expect, test } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
-import { ClientAssets } from '../src/game/shardfile/clientAssets';
-import { clientRingPorts, type PreparedRingTile } from '../src/game/shardfile/tileContent';
-import type { RingTile } from '../src/engine/world/tileStreamer';
-import { TileDecoder } from '../src/game/grid/tileDecoder';
+import { ClientAssets } from '../src/game/client/shardfile/clientAssets';
+import { clientRingPorts, type PreparedRingTile } from '../src/game/client/shardfile/tileContent';
+import type { RingTile } from '../src/engine/client/world/tileStreamer';
+import { TileDecoder } from '../src/game/client/grid/tileDecoder';
 
 const tile: RingTile = { key: 'home:l0/0/0', instance: 'home', type: 'level', level: 'l0', x: 0, z: 0 };
 function fixture() {

@@ -2,11 +2,11 @@ import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { readPineProject } from './fixtures/pine-project';
 import { parseQuestPageInteractions, parseInteractionRows } from '@wildshard/format/questInteractions';
-import { bindQuestPageInteractions } from '../src/game/plugin/ui';
-import { Flags } from '../src/engine/world/interact/flags';
-import { Scope } from '../src/engine/app/scope';
-import { QuestState } from '../src/engine/quest/core';
-import type { Interactable } from '../src/engine/world/interact/types';
+import { bindQuestPageInteractions } from '../src/game/client/plugin/ui';
+import { Flags } from '../src/engine/server/world/interact/flags';
+import { Scope } from '../src/engine/shared/app/scope';
+import { QuestState } from '../src/engine/server/quest/core';
+import type { Interactable } from '../src/engine/shared/world/interact/types';
 import { PINE_LANTERN_ROWS } from '../src/shards/pine-hollow/generators/interactions';
 
 // Generation is fixture preparation (readPineProject: the CLI's declared roots, b8a8db5fd4); the case reads the output.

@@ -1,7 +1,7 @@
 import {afterEach,beforeEach,expect,it} from 'vitest';
-import {Scope} from '../src/engine/app/scope';
+import {Scope} from '../src/engine/shared/app/scope';
 import {lendNalatiHeld,heldWitnessBytes} from './fixtures/nalati-return-modules';
-import {HeldDecision} from '../src/game/weapons/heldDecision';
+import {HeldDecision} from '../src/game/client/weapons/heldDecision';
 import { originalHeldMetadata } from './fixtures/nalati-held-original';
 
 const { held: rows } = originalHeldMetadata();
@@ -69,7 +69,7 @@ it('delays the bolt and applies the whole bounded area snapshot',()=>{
 
 it('binds unrelated native polearm, blade and power rows without shard callbacks',async()=>{
  const [{PolearmSet},{BladeSet},{staticGlb},{emptyShardfile},{parseItems},{GLTFLoader},three,{Player},{AnimalManager}]=await Promise.all([
-  import('../src/game/weapons/heldPolearm'),import('../src/game/weapons/mountedBlade'),import('../src/sdk/bake/glb'),import('../src/sdk/author'),import('@wildshard/format/items'),import('three/examples/jsm/loaders/GLTFLoader.js'),import('three'),import('../src/engine/player/Player'),import('../src/engine/entities/AnimalManager')]);
+  import('../src/game/client/weapons/heldPolearm'),import('../src/game/client/weapons/mountedBlade'),import('../src/sdk/bake/glb'),import('../src/sdk/author'),import('@wildshard/format/items'),import('three/examples/jsm/loaders/GLTFLoader.js'),import('three'),import('../src/engine/client/player/Player'),import('../src/engine/server/entities/AnimalManager')]);
  const [{nalatiSpearPool},{nalatiSabrePool},{default:items}]=await Promise.all([import('../src/shards/nalati-grasslands/generators/spearPool'),import('../src/shards/nalati-grasslands/generators/sabrePool'),import('../src/shards/nalati-grasslands/data/items.json')]);
  const {vi}=await import('vitest'),material=new three.MeshBasicMaterial(),geometry=new three.BoxGeometry(.1,1,.1);
  const pool={url:'/fixtures/orchard-tools.glb',parts:['handle','tip','grip','sleeve','world']};

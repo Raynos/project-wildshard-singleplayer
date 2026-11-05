@@ -1,9 +1,9 @@
 import { expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import type { ShardContext } from '../src/game/plugin/context';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { CLIENT_FEATURES, admitClientPlan, installClientPhase } from '../src/game/shardfile/clientPlan';
-import * as continuation from '../src/game/quest/continuation';
+import { Scope } from '../src/engine/shared/app/scope';
+import type { ShardContext } from '../src/game/server/plugin/context';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
+import { CLIENT_FEATURES, admitClientPlan, installClientPhase } from '../src/game/client/shardfile/clientPlan';
+import * as continuation from '../src/game/client/quest/continuation';
 import { emptyShardfile } from '../src/sdk/author';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 

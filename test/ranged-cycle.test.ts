@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { RangedAction, type RangedCycleEvent } from '../src/engine/combat/Firearm';
+import { RangedAction, type RangedCycleEvent } from '../src/engine/server/combat/Firearm';
 import { LeverAction, type LeverHooks } from './fixtures/weapon-oracle/leverBridge';
 import { LeverAction as OriginalAction } from './fixtures/weapon-oracle/leverAction';
 

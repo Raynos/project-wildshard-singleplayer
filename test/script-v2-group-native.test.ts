@@ -1,17 +1,17 @@
 import { beforeAll, expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { AnimalSim } from '../src/engine/entities/AnimalSim';
-import { Scope } from '../src/engine/app/scope';
-import { Events } from '../src/engine/events/events';
-import { AggressionDirector, AggressionService } from '../src/engine/ai/director';
-import { Rng } from '../src/engine/core/rng';
-import { GroupStepV2, prepareGroupNativeV2, type GroupStepNativeOwnersV2, type GroupStepOperationV2 } from '../src/engine/script/groupStepV2';
-import type { V2ColumnOwners } from '../src/engine/script/observationColumnsV2';
+import { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import { Scope } from '../src/engine/shared/app/scope';
+import { Events } from '../src/engine/shared/events/events';
+import { AggressionDirector, AggressionService } from '../src/engine/server/ai/director';
+import { Rng } from '../src/engine/shared/core/rng';
+import { GroupStepV2, prepareGroupNativeV2, type GroupStepNativeOwnersV2, type GroupStepOperationV2 } from '../src/engine/shared/script/groupStepV2';
+import type { V2ColumnOwners } from '../src/engine/shared/script/observationColumnsV2';
 import { parseGroupStepV2, GroupStepV2Schema, groupStepLayoutV2 } from '@wildshard/format/scriptGroupStepV2';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { v2CoreSource } from '../src/sdk/as/wsV2';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 
 const rows = parseGroupStepV2({ bank: ['phase','x','z','reply','random'].map(name => ({ name, kind: 'number' })),
   columns: [{ name: 'result', id: 1, source: { kind: 'result', channel: 'reply' } }], members: 16,

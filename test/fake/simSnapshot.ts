@@ -1,5 +1,5 @@
 import { expect } from 'vitest';
-import type { SimSnapshot } from '../../src/engine/sim/snapshot';
+import type { SimSnapshot } from '../../src/engine/shared/sim/snapshot';
 import { physicsDifference, physicsState, sameBytes } from './simState';
 
 /**

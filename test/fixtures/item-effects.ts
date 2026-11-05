@@ -1,14 +1,14 @@
 import { Vector3 } from 'three';
-import { app } from '../../src/engine/app/runtime';
-import type { Scope } from '../../src/engine/app/scope';
-import type { EffectService } from '../../src/engine/combat/effects/EffectService';
-import type { PlayerHealth } from '../../src/engine/combat/health';
-import type { EffectTarget } from '../../src/engine/combat/effects/types';
-import type { ShardContext } from '../../src/game/plugin/context';
-import type { Owned } from '../../src/game/loot/Owned';
+import { app } from '../../src/engine/client/app/runtime';
+import type { Scope } from '../../src/engine/shared/app/scope';
+import type { EffectService } from '../../src/engine/client/combat/effects/EffectService';
+import type { PlayerHealth } from '../../src/engine/server/combat/health';
+import type { EffectTarget } from '../../src/engine/client/combat/effects/types';
+import type { ShardContext } from '../../src/game/server/plugin/context';
+import type { Owned } from '../../src/game/server/loot/Owned';
 import { parseItems } from '@wildshard/format/items';
 import { DRIFTWOOD_SWORDS } from '../../src/shards/driftwood-isle/generators/items';
-import { installItemEffects } from '../../src/game/loadout/effects';
+import { installItemEffects } from '../../src/game/server/loadout/effects';
 
 export type FixtureOwned = Pick<Owned, 'has' | 'onChange'> & Partial<Pick<Owned, 'worn'>>;
 /** Keep the original effect scenarios on the real item rows and the public, data-only installer. */

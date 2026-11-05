@@ -26,16 +26,16 @@ export function assetIndex(): string {
   return JSON.stringify(out);
 }
 
-// src/game/boot/bytes.generated.ts: the same table as a committed TS module, so the boot plan's declared
+// src/game/client/boot/bytes.generated.ts: the same table as a committed TS module, so the boot plan's declared
 // denominators need no fetch and `pnpm tsc` fails when a file a chunk declares disappears.
 function bytesModule(): string {
   const rows = JSON.parse(assetIndex()) as Record<string, number>;
   return publicBytesTableSource(Object.fromEntries(Object.entries(rows).filter(([name]) => !name.endsWith('.DS_Store'))));
 }
 
-// src/game/boot/versions.generated.ts: a content hash per file under public/assets (E160; NALATI-MERGE F4 started it for
+// src/game/client/boot/versions.generated.ts: a content hash per file under public/assets (E160; NALATI-MERGE F4 started it for
 // public/assets/nalati/). Those files are unhashed and get edited or re-baked in place, so the network sees them as
-// `<path>?v=<hash8>` (src/engine/boot/bytes.ts `versionedUrl`): an edit is a new URL to the HTTP cache and the service worker
+// `<path>?v=<hash8>` (src/engine/client/boot/bytes.ts `versionedUrl`): an edit is a new URL to the HTTP cache and the service worker
 // (cache-first on `?v=`), an unchanged file keeps its URL — and its cached copy — across every deploy. Files whose name is
 // already content-addressed (the packs, the `<name>-<hash8>.m4a` audio, scripts/app-build/assetHashes.ts `contentNamed`) need no `?v=`.
 function versionsModule(): string {
@@ -51,7 +51,7 @@ export function assetVersionRows(): Record<string, string> {
 // this build names. The service worker reads it on activate to keep exactly those entries (a `?v=` key whose hash still
 // matches, a content-named file still shipped) and to drop everything else: old pack blobs, old versions, files removed.
 
-// src/game/boot/audio.generated.ts: every music style's music.json and every sound-effect set's sfx.json (public/assets/music/<style>/,
+// src/game/client/boot/audio.generated.ts: every music style's music.json and every sound-effect set's sfx.json (public/assets/music/<style>/,
 // public/assets/sfx/<set>/), compiled into the bundle minus their provenance notes (project/archive/2026-09-23-preload-offline.md). The boot
 // declares and downloads every file they list at the loading bar and decodes the selected style + set there, so nothing
 // fetches a manifest at runtime and the hashed bundle always carries the loop points of the files it ships with.
@@ -74,9 +74,9 @@ export function audioTableSource(root: string = process.cwd()): string {
     + `export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = ${JSON.stringify(read('sfx', 'sfx.json'), null, 1)};\n`;
 }
 
-// src/game/shard/art.generated.ts: the byte sizes of the title / explore art the manifests import (shard cards' thumbnails and
+// src/game/client/shard/art.generated.ts: the byte sizes of the title / explore art the manifests import (shard cards' thumbnails and
 // hero stills) by their bundled URL — Vite copies them to /assets/<name>-<hash>.<ext> byte for byte, so the source size is the
-// size the boot declares for the loading bar's "art" source (src/engine/boot/extras.ts).
+// size the boot declares for the loading bar's "art" source (src/engine/client/boot/extras.ts).
 export function artTableSource(root: string = process.cwd()): string {
   const closures = manifestClosure(root);
   const images = [...new Set(Object.values(closures).flat())].filter((path) => /\.(jpe?g|png|webp)$/.test(path)).sort((a, b) => a.localeCompare(b));
@@ -90,12 +90,12 @@ export function artTableSource(root: string = process.cwd()): string {
  *  (scripts/source-generators.mjs) registers. */
 export function bootTableSources(): Record<string, string> {
   return { ...bootTransportTableSources(),
-    'src/game/shard/art.generated.ts': artTableSource() };
+    'src/game/client/shard/art.generated.ts': artTableSource() };
 }
 
 /** Build-published public files stay separate from the committed source-art table. */
 export function bootTransportTableSources(): Record<string, string> {
-  return { 'src/game/boot/bytes.generated.ts': bytesModule(), 'src/game/boot/versions.generated.ts': versionsModule() };
+  return { 'src/game/client/boot/bytes.generated.ts': bytesModule(), 'src/game/client/boot/versions.generated.ts': versionsModule() };
 }
 
 
@@ -104,9 +104,9 @@ export function generateBootTables(): void {
   genStarterWeapons();
   genStarterBag();
   genStarterEffects();
-  mkdirSync('src/game/boot', { recursive: true });
+  mkdirSync('src/game/client/boot', { recursive: true });
   copyRapierWasm();
   copyBasisTranscoder();
-  for (const [out, src] of Object.entries({ ...bootTableSources(), 'src/game/boot/audio.generated.ts': audioTableSource() })) if (!existsSync(out) || readFileSync(out, 'utf8') !== src) writeFileSync(out, src);
+  for (const [out, src] of Object.entries({ ...bootTableSources(), 'src/game/client/boot/audio.generated.ts': audioTableSource() })) if (!existsSync(out) || readFileSync(out, 'utf8') !== src) writeFileSync(out, src);
   execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', 'scripts/bake-packs.mjs'], { stdio: 'inherit' });
 }

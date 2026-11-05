@@ -1,14 +1,14 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { Group, Mesh, MeshBasicMaterial, type Object3D } from 'three';
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { parseSceneBuffers } from '@wildshard/format/sceneBuffers';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { emitNamedBlobs } from '../src/sdk/blobs';
 import { emptyShardfile } from '../src/sdk/author';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
-import { prepareSceneDrawRows, drawSceneRows } from '../src/game/shardfile/sceneDraws';
+import { prepareSceneDrawRows, drawSceneRows } from '../src/game/client/shardfile/sceneDraws';
 import { SKY_MEADOW_BLOB, SKY_MEADOW_BLOBS, SKY_MEADOW_FILE, SKY_MEADOW_DATA_FILE, skyMeadowBlobs } from '../src/shards/far-reach/generators/meadowScene';
 import { bakeMeadowBlades } from '../src/shards/far-reach/generators/meadowBlades';
 import { meadowHash } from '../src/shards/far-reach/generators/meadowHash';

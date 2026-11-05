@@ -1,8 +1,8 @@
 import { beforeAll, expect, test } from 'vitest';
 import { compileScript } from '@wildshard/sdk/compileScript';
-import { createShardfileClientScripts as current, captureClientScriptPosition, type ShardfileClientScriptPorts } from '../src/game/shardfile/clientScripts';
+import { createShardfileClientScripts as current, captureClientScriptPosition, type ShardfileClientScriptPorts } from '../src/game/client/shardfile/clientScripts';
 import { createShardfileClientScripts as before } from './fixtures/client-script-bridge-before';
-import { DeclaredScriptWorld } from '../src/engine/script/state';
+import { DeclaredScriptWorld } from '../src/engine/server/script/state';
 import type { ClientScriptContent } from '@wildshard/format/clientScripts';
 
 let bytes: Uint8Array = new Uint8Array();

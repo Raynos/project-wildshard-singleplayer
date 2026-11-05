@@ -5,13 +5,13 @@
 // request: cheap over HTTP/2 on Wi-Fi, but ~80 of them are the whole "requests" budget four times over, and each
 // one pays the service worker's per-request cost on the phone. The pack is those same files — exactly the list
 // `bootFetches(def, chunkFiles(def))` returns for that tier, the bytes the boot would have fetched one by one —
-// concatenated in step order into one file the boot streams (src/engine/boot/pack.ts): each file is handed to its step
+// concatenated in step order into one file the boot streams (src/engine/client/boot/pack.ts): each file is handed to its step
 // the moment its last byte lands, so download ∥ build overlaps as it did with the per-file prefetch, in one request.
 //
 //   public/assets/packs/<slug>.<tier>-<hash8>.bin   content-addressed (a changed file makes a new name), cache-first
 //                                                   in the SW; gitignored and left out of the byte table — every
 //                                                   build regenerates it from the committed files
-//   src/game/boot/packs.generated.ts                     slug → tier → { parts: { url, bytes, files: [path, offset, size, type][] }[] }
+//   src/game/client/boot/packs.generated.ts                     slug → tier → { parts: { url, bytes, files: [path, offset, size, type][] }[] }
 //
 // PARTS (E160, the user: "don't invalidate those as much"): one pack per shard meant any edit to any of its files named a
 // new pack — Pine Hollow's phone players re-downloaded 18 MB for one repainted texture. A pack is now a few parts, each
@@ -24,10 +24,10 @@
 // demanded texture set, so mixing an unrelated set into its part would defeat the demand-only pack reader.
 //
 // glTF textures go before their .gltf: Safari's GLTFLoader loads textures through <img>, which the pack's fetch
-// interception cannot see — src/engine/boot/pack.ts hands those loaders a blob: URL instead, which only works when the
+// interception cannot see — src/engine/client/boot/pack.ts hands those loaders a blob: URL instead, which only works when the
 // texture has already landed by the time the .gltf asks for it.
 //
-// Run after the byte table is written (vite.config.ts): the tier's file names come from src/game/boot/bytes.generated.ts.
+// Run after the byte table is written (vite.config.ts): the tier's file names come from src/game/client/boot/bytes.generated.ts.
 //   node --import ./scripts/bake-loader.mjs scripts/bake-packs.mjs [--check]
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, unlinkSync } from 'node:fs';
@@ -41,24 +41,24 @@ import { lateAudioGroups } from './app-build/audioPacks.ts';
 const ROOT = resolve(import.meta.dirname, '..');
 const PUBLIC = resolve(ROOT, 'public');
 const PACK_DIR = resolve(PUBLIC, 'assets/packs');
-const OUT_TS = resolve(ROOT, 'src/game/boot/packs.generated.ts');
+const OUT_TS = resolve(ROOT, 'src/game/client/boot/packs.generated.ts');
 const CHECK = process.argv.includes('--check');
 const TIERS = ['phone', 'desktop'];
 
 // the modules read the tier / chunk from the page's URL at import time: stand in for a phone page (Node has `navigator`)
-const { initializeTier } = await import('../src/engine/core/tier.ts');
+const { initializeTier } = await import('../src/engine/client/core/tier.ts');
 initializeTier('phone');
 
 const imp = (p) => import(pathToFileURL(resolve(ROOT, p)).href);
 const { SHARDS } = await imp('src/shards.generated.ts');
-const { playable } = await imp('src/game/shard/registry.ts');
+const { playable } = await imp('src/game/client/shard/registry.ts');
 const PLAYABLE_SHARDS = SHARDS.filter(playable);
-const { prepareShardAssets } = await imp('src/game/shard/load.ts');
-const { imagesFirstPlayingBytes } = await imp('src/game/grid/runtimeCost.ts');
-const { registerGpuFiles, autoTexturePolicy } = await imp('src/engine/boot/gpuFiles.ts');
+const { prepareShardAssets } = await imp('src/game/client/shard/load.ts');
+const { imagesFirstPlayingBytes } = await imp('src/game/client/grid/runtimeCost.ts');
+const { registerGpuFiles, autoTexturePolicy } = await imp('src/engine/client/boot/gpuFiles.ts');
 await Promise.all(SHARDS.map((m) => prepareShardAssets(m, registerGpuFiles)));
-const { chunkFiles } = await imp('src/engine/boot/manifest.ts');
-const { bootFetches } = await imp('src/engine/boot/prefetch.ts');
+const { chunkFiles } = await imp('src/engine/client/boot/manifest.ts');
+const { bootFetches } = await imp('src/engine/client/boot/prefetch.ts');
 
 const TYPES = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', glb: 'model/gltf-binary', gltf: 'model/gltf+json', bin: 'application/octet-stream', json: 'application/json', m4a: 'audio/mp4', wav: 'audio/wav' };
 const typeOf = (p) => TYPES[/\.(\w+)$/.exec(p)?.[1] ?? ''] ?? 'application/octet-stream';
@@ -116,11 +116,11 @@ for (const def of PLAYABLE_SHARDS) {
 const publication = parseBootPublication({ schema: 'boot-publication/1',
   bytes: Object.fromEntries(Object.entries(JSON.parse(assetIndex())).filter(([name]) => !name.endsWith('.DS_Store'))),
   versions: assetVersionRows(), packs });
-const ts = publishedBootTableSources(publication)['src/game/boot/packs.generated.ts'];
+const ts = publishedBootTableSources(publication)['src/game/client/boot/packs.generated.ts'];
 const prev = existsSync(OUT_TS) ? readFileSync(OUT_TS, 'utf8') : '';
 if (CHECK) {
   if (JSON.stringify(readBootPublication(ROOT)) !== JSON.stringify(publication)) throw new Error('bake-packs: boot publication facts are stale');
-  if (prev !== ts) { console.error('[pack] src/game/boot/packs.generated.ts is stale — run the build'); process.exit(1); }
+  if (prev !== ts) { console.error('[pack] src/game/client/boot/packs.generated.ts is stale — run the build'); process.exit(1); }
 } else {
   if (prev !== ts) { mkdirSync(dirname(OUT_TS), { recursive: true }); writeFileSync(OUT_TS, ts); }
   for (const f of readdirSync(PACK_DIR)) if (!keep.has(f)) unlinkSync(resolve(PACK_DIR, f)); // a changed file made a new hash

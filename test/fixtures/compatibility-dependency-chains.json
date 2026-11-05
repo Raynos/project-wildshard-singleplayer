@@ -6,33 +6,33 @@
         "src/shards/sunscar-dunes/runtime/index.ts",
         "src/shards/sunscar-dunes/plugin.ts",
         "src/shards/sunscar-dunes/look/light.ts",
-        "src/engine/render/shaderPatches.ts"
+        "src/engine/client/render/shaderPatches.ts"
       ],
       [
         "src/shards/sunscar-dunes/runtime/index.ts",
         "src/shards/sunscar-dunes/plugin.ts",
         "src/shards/sunscar-dunes/world/meshes.ts",
-        "src/engine/anim/rig.ts"
+        "src/engine/client/anim/rig.ts"
       ],
       [
         "src/shards/sunscar-dunes/runtime/index.ts",
         "src/shards/sunscar-dunes/plugin.ts",
         "src/shards/sunscar-dunes/combat/matriarch.ts",
-        "src/engine/ui/BossBar.ts"
+        "src/engine/client/ui/BossBar.ts"
       ],
       [
         "src/shards/sunscar-dunes/runtime/index.ts",
         "src/shards/sunscar-dunes/plugin.ts",
-        "src/game/loot/runtime.ts",
-        "src/game/bag/tabs.ts",
-        "src/engine/ui/icons.ts"
+        "src/game/server/loot/runtime.ts",
+        "src/game/client/bag/tabs.ts",
+        "src/engine/client/ui/icons.ts"
       ],
       [
         "src/shards/sunscar-dunes/runtime/index.ts",
         "src/shards/sunscar-dunes/plugin.ts",
-        "src/game/loot/runtime.ts",
-        "src/game/loot/ui/CoinChip.ts",
-        "src/engine/ui/hudSlots.ts"
+        "src/game/server/loot/runtime.ts",
+        "src/game/client/loot/ui/CoinChip.ts",
+        "src/engine/client/ui/hudSlots.ts"
       ]
     ]
   },
@@ -41,28 +41,28 @@
     "chains": [
       [
         "src/shards/far-reach/runtime/index.ts",
-        "src/engine/render/shaderPatches.ts"
+        "src/engine/client/render/shaderPatches.ts"
       ],
       [
         "src/shards/far-reach/runtime/index.ts",
         "src/shards/far-reach/world/meshes.ts",
-        "src/engine/anim/rig.ts"
+        "src/engine/client/anim/rig.ts"
       ],
       [
         "src/shards/far-reach/runtime/index.ts",
         "src/shards/far-reach/look/image.ts",
-        "src/engine/render/memorySaver.ts"
+        "src/engine/client/render/memorySaver.ts"
       ],
       [
         "src/shards/far-reach/runtime/index.ts",
         "src/shards/far-reach/combat/stormRoc.ts",
-        "src/engine/ui/BossBar.ts"
+        "src/engine/client/ui/BossBar.ts"
       ],
       [
         "src/shards/far-reach/runtime/index.ts",
-        "src/game/loot/runtime.ts",
-        "src/game/bag/tabs.ts",
-        "src/engine/ui/icons.ts"
+        "src/game/server/loot/runtime.ts",
+        "src/game/client/bag/tabs.ts",
+        "src/engine/client/ui/icons.ts"
       ]
     ]
   },
@@ -76,22 +76,22 @@
       [
         "src/shards/pine-hollow/runtime/index.ts",
         "src/shards/pine-hollow/combat/spawns.ts",
-        "src/engine/app/runtime.ts"
+        "src/engine/client/app/runtime.ts"
       ],
       [
         "src/shards/pine-hollow/runtime/index.ts",
         "src/shards/pine-hollow/species/hulls.ts",
-        "src/engine/anim/rig.ts"
+        "src/engine/client/anim/rig.ts"
       ],
       [
         "src/shards/pine-hollow/runtime/index.ts",
         "src/kit/effects/install.ts",
-        "src/engine/ui/hudSlots.ts"
+        "src/engine/client/ui/hudSlots.ts"
       ],
       [
         "src/shards/pine-hollow/runtime/index.ts",
         "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts",
-        "src/engine/combat/view/ranged.ts"
+        "src/engine/client/combat/view/ranged.ts"
       ]
     ]
   },
@@ -100,35 +100,35 @@
     "chains": [
       [
         "src/shards/driftwood-isle/runtime/hybrid.ts",
-        "src/game/shardfile/hybrid.ts",
+        "src/game/client/shardfile/hybrid.ts",
         "src/game/grid/boot.ts",
-        "src/engine/app/runtime.ts"
+        "src/engine/client/app/runtime.ts"
       ],
       [
         "src/shards/driftwood-isle/runtime/hybrid.ts",
         "src/shards/driftwood-isle/world/build.ts",
         "src/shards/driftwood-isle/world/Ocean.ts",
-        "src/engine/render/shaderPatches.ts"
+        "src/engine/client/render/shaderPatches.ts"
       ],
       [
         "src/shards/driftwood-isle/runtime/hybrid.ts",
         "src/shards/driftwood-isle/creatures/install.ts",
         "src/shards/driftwood-isle/creatures/Enemies.ts",
-        "src/engine/fx/ParticlePool.ts"
+        "src/engine/client/fx/ParticlePool.ts"
       ],
       [
         "src/shards/driftwood-isle/runtime/hybrid.ts",
-        "src/game/shardfile/hybrid.ts",
+        "src/game/client/shardfile/hybrid.ts",
         "src/game/grid/boot.ts",
         "src/game/grid/debug.ts",
-        "src/engine/ui/authoredDebugRows.ts"
+        "src/engine/client/ui/authoredDebugRows.ts"
       ],
       [
         "src/shards/driftwood-isle/runtime/hybrid.ts",
-        "src/game/shardfile/hybrid.ts",
+        "src/game/client/shardfile/hybrid.ts",
         "src/game/shardfile/loader.ts",
-        "src/game/shardfile/look.ts",
-        "src/engine/render/dataLook.ts"
+        "src/game/client/shardfile/look.ts",
+        "src/engine/client/render/dataLook.ts"
       ]
     ]
   },
@@ -137,27 +137,27 @@
     "chains": [
       [
         "src/shards/nalati-grasslands/runtime/index.ts",
-        "src/engine/ui/Settings.ts"
+        "src/engine/client/ui/Settings.ts"
       ],
       [
         "src/shards/nalati-grasslands/runtime/index.ts",
         "src/shards/nalati-grasslands/species/rows.ts",
-        "src/engine/app/runtime.ts"
+        "src/engine/client/app/runtime.ts"
       ],
       [
         "src/shards/nalati-grasslands/runtime/index.ts",
         "src/shards/nalati-grasslands/species/hulls.ts",
-        "src/engine/anim/rig.ts"
+        "src/engine/client/anim/rig.ts"
       ],
       [
         "src/shards/nalati-grasslands/runtime/index.ts",
-        "src/game/bag/bag.ts",
-        "src/engine/ui/icons.ts"
+        "src/game/client/bag/bag.ts",
+        "src/engine/client/ui/icons.ts"
       ],
       [
         "src/shards/nalati-grasslands/runtime/index.ts",
-        "src/game/bag/bag.ts",
-        "src/engine/ui/ownership.ts"
+        "src/game/client/bag/bag.ts",
+        "src/engine/client/ui/ownership.ts"
       ]
     ]
   },
@@ -168,34 +168,34 @@
         "src/shards/nine-dragon-stack/runtime/index.ts",
         "src/shards/nine-dragon-stack/plugin.ts",
         "src/shards/nine-dragon-stack/vm/swordSupport.ts",
-        "src/engine/render/shaderPatches.ts"
+        "src/engine/client/render/shaderPatches.ts"
       ],
       [
         "src/shards/nine-dragon-stack/runtime/index.ts",
         "src/shards/nine-dragon-stack/plugin.ts",
         "src/shards/nine-dragon-stack/world/portalVeil.ts",
-        "src/engine/ui/ownership.ts"
+        "src/engine/client/ui/ownership.ts"
       ],
       [
         "src/shards/nine-dragon-stack/runtime/index.ts",
         "src/shards/nine-dragon-stack/plugin.ts",
         "src/kit/weapons/melee/SweptMelee.ts",
-        "src/game/weapons/Sword.ts",
-        "src/engine/combat/view/SweptMelee.ts"
+        "src/game/server/weapons/Sword.ts",
+        "src/engine/client/combat/view/SweptMelee.ts"
       ],
       [
         "src/shards/nine-dragon-stack/runtime/index.ts",
         "src/shards/nine-dragon-stack/plugin.ts",
         "src/shards/nine-dragon-stack/world/build.ts",
         "src/shards/nine-dragon-stack/look/light/grade.ts",
-        "src/engine/render/lut.ts"
+        "src/engine/client/render/lut.ts"
       ],
       [
         "src/shards/nine-dragon-stack/runtime/index.ts",
         "src/shards/nine-dragon-stack/plugin.ts",
         "src/shards/nine-dragon-stack/world/build.ts",
-        "src/engine/models/place.ts",
-        "src/engine/app/runtime.ts"
+        "src/engine/client/models/place.ts",
+        "src/engine/client/app/runtime.ts"
       ]
     ]
   }

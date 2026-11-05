@@ -18,7 +18,7 @@
 //
 // Heights come from the BAKED grid (public/assets/baked/<slug>/terrain.bin → Heightfield's bilinear lookups), i.e.
 // exactly the surface Player.groundAt() walks, so the Blender terrain never floats or sinks against collision. The area
-// is the shard manifest's `blender.area` (blenderAreaFor in src/engine/world/blenderArea.ts).
+// is the shard manifest's `blender.area` (blenderAreaFor in src/engine/client/world/blenderArea.ts).
 //
 //   node --import ./scripts/bake-loader.mjs scripts/blender/lib/export-scene.mjs [--chunk <slug>] [cacheDir]
 //   (--chunk defaults to driftwood-isle; cacheDir to ~/.cache/wildshard-blender/<slug>)
@@ -41,12 +41,12 @@ if (!('location' in globalThis)) Object.assign(globalThis, { location: new URL('
 const imp = (p) => import(pathToFileURL(resolve(ROOT, p)).href);
 const shardModule = resolve(ROOT, `src/shards/${SLUG}/blender/export.mjs`);
 if (!existsSync(shardModule)) throw new Error(`export-scene: no src/shards/${SLUG}/blender/export.mjs (the shard's ground colour + layout)`);
-const { CHUNK_SIZE, CHUNK_HALF, TERRAIN_RES, ROAD_LENGTH } = await imp('src/engine/core/config.ts');
-const registry = await imp('src/game/shard/registry.ts');
+const { CHUNK_SIZE, CHUNK_HALF, TERRAIN_RES, ROAD_LENGTH } = await imp('src/engine/shared/core/config.ts');
+const registry = await imp('src/game/client/shard/registry.ts');
 if (!registry.findChunk(SLUG)) throw new Error(`export-scene: unknown shard "${SLUG}"`);
 registry.setActiveChunk(SLUG);
-const hf = await imp('src/engine/world/Heightfield.ts');
-const baked = await imp('src/engine/world/BakedTerrain.ts');
+const hf = await imp('src/engine/shared/world/Heightfield.ts');
+const baked = await imp('src/engine/shared/world/BakedTerrain.ts');
 const def = registry.getActiveChunk();
 prepareNativeScalarBlocks(def, ROOT);
 const grid = baked.parseBakedTerrain(readFileSync(resolve(ROOT, `public/assets/baked/${SLUG}/terrain.bin`)).buffer.slice(0));
@@ -59,7 +59,7 @@ if (datum === 0) hf._installBakedTerrain(samplers);
 else hf.overrideTerrain({ heightAt: samplers.heightAt, normalAt: samplers.normalAt, splatAt: samplers.splatAt, waterLevel: () => field.waterLevel() - datum });
 const THREE = await import('three');
 const shard = await import(pathToFileURL(shardModule).href);
-const { blenderAreaFor, STEP } = await imp('src/engine/world/blenderArea.ts');
+const { blenderAreaFor, STEP } = await imp('src/engine/client/world/blenderArea.ts');
 const AREA = blenderAreaFor(def);
 if (!AREA) throw new Error(`export-scene: the manifest has no Blender area for "${SLUG}"`);
 const ctx = { ROOT, CACHE, SLUG, THREE, imp, hf, def, CHUNK_SIZE, CHUNK_HALF, ROAD_LENGTH };

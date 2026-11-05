@@ -2,7 +2,7 @@
 import {createHash} from 'node:crypto';
 import * as v from 'valibot';
 import {HeadlessTapePlanSchema,HeadlessTapeReportSchema} from '../../../src/sdk/tickProtocol';
-import {decodeSimSnapshotBytes,type SimSnapshot,type SimSnapshotBytes} from '../../../src/engine/sim/snapshot';
+import {decodeSimSnapshotBytes,type SimSnapshot,type SimSnapshotBytes} from '../../../src/engine/shared/sim/snapshot';
 import {physicsState} from '../../fake/simState';
 import {PACKED_CHAPTER_TAMING,unpackChapterTaming} from './chapterObservation';
 import {chapterReportUsesCodec,unpackChapterReport} from './chapterReportCodec';

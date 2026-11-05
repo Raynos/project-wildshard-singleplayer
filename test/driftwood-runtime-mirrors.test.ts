@@ -7,10 +7,10 @@ import { WORLD_STAGES } from './fixtures/driftwood-world-stages';
 import { driftwoodWorldEntry } from '../src/shards/driftwood-isle/generators/worldEntry';
 import { FIXED_MODEL_FILES, FIXED_MODEL_NAMES } from '../src/shards/driftwood-isle/generators/modelFiles';
 import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_BANK_BLOBS, DRIFTWOOD_OUTPUT, DRIFTWOOD_FIXED_SOURCES as NAMED_MODELS } from '../src/shards/driftwood-isle/generators/assets';
-import { prepareToonLook } from '../src/game/looks/toonLook';
+import { prepareToonLook } from '../src/game/client/looks/toonLook';
 import { TOON_LOOK } from '../src/shards/driftwood-isle/generators/toonPresentation';
 import { authoredRockGeometry } from '../src/shards/driftwood-isle/generators/rocks';
-import { Rng } from '../src/engine/core/rng';
+import { Rng } from '../src/engine/shared/core/rng';
 import { SHORE_ROCK } from '../src/shards/driftwood-isle/generators/rockProfiles';
 
 test('only the resolved book ships; native view facts stay in their defining producers', () => {

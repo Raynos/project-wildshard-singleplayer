@@ -3,7 +3,7 @@
 Slice rule: [README.md](README.md) · west index: [INDEX-west.md](INDEX-west.md). Absorbs the old **W13** (rename the
 `weather.forest` / `world.forest-page` kinds; unify Pine's and Nalati's weather envelopes, CS7's left-out weather
 union; the storm-hour trigger is east: E-slices), HOST-AUDIT **HA4b** for the forest family (H073, weather part) and
-**HA4d** for `engine/world/steppeWind.ts`, and **M7.1** (Pine), **M7.2** (Nalati), **M7.4** (days rows).
+**HA4d** for `engine/shared/world/steppeWind.ts`, and **M7.1** (Pine), **M7.2** (Nalati), **M7.4** (days rows).
 
 ## 1. The showcase piece
 
@@ -17,27 +17,27 @@ union; the storm-hour trigger is east: E-slices), HOST-AUDIT **HA4b** for the fo
 Research:
 
 - **Day clock rows already exist:** `src/format/dayCycle.ts` `DayClockRow { schedule [{phase, from, to, minutes}],
-  start, units, sun, fixed, presets, dayFraction?, pauseOnPin? }`; law `src/engine/sim/dayClock.ts`. Declared through
+  start, units, sun, fixed, presets, dayFraction?, pauseOnPin? }`; law `src/engine/shared/sim/dayClock.ts`. Declared through
   the manifest's `features: ['dayCycle', 'weather']` (`src/shards/driftwood-isle/manifest.json:8`, Pine `:8-9`, Nalati
   `:3-4`, the templates). The `world/days` and `world/weather` sections are empty shells in all six built products
   (21 and 24 bytes). **The day half needs nothing new.**
 - **The weather that draws is "forest" weather:** `src/format/forestWeather.ts` (339 lines: drawn parts, textures, a
-  channel lane, rain streaks, reaction cues), `src/game/weather/forest.ts` (318), `src/format/weatherProgram.ts`
-  (418, the weather world and wind state), `src/game/weather/continuation.ts` (saves weather across a reload with
+  channel lane, rain streaks, reaction cues), `src/game/client/weather/forest.ts` (318), `src/format/weatherProgram.ts`
+  (418, the weather world and wind state), `src/game/server/weather/continuation.ts` (saves weather across a reload with
   `engine/world/weatherContinuation`), client-plan kind `weather.forest` (`src/format/clientPlan.ts:112`, dispatched at
-  `src/game/shardfile/clientPlan.ts:108`). Emitted by Pine (`generators/forestPage.ts`) and Nalati
+  `src/game/client/shardfile/clientPlan.ts:108`). Emitted by Pine (`generators/forestPage.ts`) and Nalati
   (`generators/output.ts`). Signal Dunes has its own `weather.fields`.
-- **The wind is Nalati-named:** `src/engine/world/steppeWind.ts` ("The one wind of the world (Nalati: grass, arrows,
+- **The wind is Nalati-named:** `src/engine/shared/world/steppeWind.ts` ("The one wind of the world (Nalati: grass, arrows,
   clouds, flags, smoke, trees, storms)").
 
 Work:
 
 | Row / host | Shape | Layer |
 |---|---|---|
-| rename | `weather.forest` → `weather.drawn`, `forestWeather.ts` → `drawnWeather.ts`, `game/weather/forest.ts` → `drawn.ts`; the old kind read as an alias for one release of baked products | format, game, the client-plan dispatch |
+| rename | `weather.forest` → `weather.drawn`, `forestWeather.ts` → `drawnWeather.ts`, `game/client/weather/forest.ts` → `drawn.ts`; the old kind read as an alias for one release of baked products | format, game, the client-plan dispatch |
 | weather rows into `world/weather` | the envelope (states, odds per day, durations, the storm state) lives in the section instead of each shard's JSON | format `sections.ts` + game reader |
 | storm schedule | `world/weather.storms: { perDay: [min, max], minutes: [min, max], notDuring: ['night']? }` | data |
-| wind | `steppeWind.ts` → `engine/world/wind.ts`, no shard noun in its doc | engine |
+| wind | `steppeWind.ts` → `engine/client/world/wind.ts`, no shard noun in its doc | engine |
 | west lights | light emitters on the day clock (`light.emitters` kind exists) | data |
 
 Guards: `engine-words` (the wind doc names Nalati), `shard-names`. Tests: `test/weather-continuation.test.ts`,

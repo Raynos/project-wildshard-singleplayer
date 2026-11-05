@@ -6,7 +6,7 @@ import { join, resolve } from 'node:path';
 import { chromium } from 'playwright';
 import { exportTree, serve } from './parity/serve.mjs';
 
-/** @typedef {import('../src/engine/calibrate/run').CalibrationRun} CalibrationRun */
+/** @typedef {import('../src/engine/client/calibrate/run').CalibrationRun} CalibrationRun */
 const root = resolve(import.meta.dirname, '..');
 /** @type {Record<string, string | undefined>} */
 const args = Object.fromEntries(process.argv.slice(2).map((s) => { const m = /^--(export|url|out)=(.+)$/.exec(s); if (!m) throw new Error(`Unknown argument ${s}`); return [m[1], m[2]]; }));

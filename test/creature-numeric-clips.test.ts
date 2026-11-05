@@ -2,13 +2,13 @@ import { creaturePoseRows, numericChannelPrograms } from '../src/sdk/clientChann
 import { SAILOR_CLIPS, CAPTAIN_CLIPS } from '../src/shards/driftwood-isle/generators/humanoidClips';
 import { animateSailor as shippingSailorPose } from './fixtures/animal-pose/sailorPoseShipping';
 import { animateCaptain as shippingCaptainPose } from './fixtures/animal-pose/captainPoseShipping';
-import { NativeCreaturePose, stepCreatureLift, type NativeCreaturePoseRecipe } from '../src/game/plugin/animation';
-import { AnimalSim } from '../src/engine/entities/AnimalSim';
+import { NativeCreaturePose, stepCreatureLift, type NativeCreaturePoseRecipe } from '../src/game/server/plugin/animation';
+import { AnimalSim } from '../src/engine/server/entities/AnimalSim';
 import { Bone, Euler, Vector3 } from 'three';
 import { expect, test } from 'vitest';
-import type { AnimalRigContext } from '../src/engine/entities/animalRig';
-import { numericCreaturePose } from '../src/game/plugin/channelPrograms';
-import {onFault,type Fault} from '../src/engine/core/faults';
+import type { AnimalRigContext } from '../src/engine/shared/entities/animalRig';
+import { numericCreaturePose } from '../src/game/server/plugin/channelPrograms';
+import {onFault,type Fault} from '../src/engine/shared/core/faults';
 import { CRAB_CLIPS } from '../src/shards/driftwood-isle/generators/crabClips';
 import { THRALL_CLIPS } from '../src/shards/pine-hollow/generators/thrallClips';
 import { shippingCrab } from './fixtures/animal-pose/customShipping';

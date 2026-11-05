@@ -1,8 +1,8 @@
 /// <reference types="node" />
 import { expect, test } from 'vitest';
 import { BufferGeometry, Material, Mesh, type Object3D } from 'three';
-import { prepareRigLoader } from '../src/engine/anim/rig';
-import { assembleWholeGeometryViews } from '../src/game/plugin/geometry';
+import { prepareRigLoader } from '../src/engine/client/anim/rig';
+import { assembleWholeGeometryViews } from '../src/game/client/plugin/geometry';
 import { forestPage } from '../src/shards/pine-hollow/generators/forestPage';
 import { timberWorld } from '../src/shards/pine-hollow/generators/timberWorldRows';
 import { PINE_ASSETS } from './fixtures/pine-program';

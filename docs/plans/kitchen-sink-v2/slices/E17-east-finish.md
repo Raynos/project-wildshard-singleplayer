@@ -25,7 +25,7 @@ No new host. The heavy proofs AGENTS.md runs per milestone:
 | Boot smoke, grid entries | the exact-SHA boot smoke; `scripts/grid-ready-chromium.mjs`, `scripts/physics-grid-entry.mjs` | green |
 | One-frame looks | the goldens skill, the east cameras of the 24 | Opus reads every panel |
 
-Then the grid swap: the hologram plot at [−1,−1] (`open-plot-sw`, `src/game/grid/singleplayer.json`; W0a's finding) is
+Then the grid swap: the hologram plot at [−1,−1] (`open-plot-sw`, `src/game/shared/grid/singleplayer.json`; W0a's finding) is
 replaced by `showcase-template` once Jake's pass says so (G972 forbids a Developer-only cell: a public change, his call).
 
 ## 3. Other shards in this slice

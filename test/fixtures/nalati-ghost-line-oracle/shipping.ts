@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { AnimalSim as Animal } from '../../../src/engine/entities/AnimalSim';
+import type { AnimalSim as Animal } from '../../../src/engine/server/entities/AnimalSim';
 import { BOWL } from '../../../src/shards/nalati-grasslands/generators/layout';
 import { NALATI_ECOLOGY as ecology } from '../../../src/shards/nalati-grasslands/generators/ecology.mjs';
 /** One admitted night line; identity, death and body ownership remain with the real ghost roster. */

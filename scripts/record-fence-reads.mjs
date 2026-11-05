@@ -14,7 +14,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { parseArgs } from 'node:util';
-import { GPU_FILES } from '../src/engine/boot/ktx2.generated.ts';
+import { GPU_FILES } from '../src/engine/client/boot/ktx2.generated.ts';
 import { assetIdentities, audioTableRefs, bundlerSources, fenceReadAliases, identityFiles, standInRefs, fenceReadIdentities, joinRefs, packMembers, readFenceReads, sectionRefs } from '@wildshard/format/fenceReads';
 
 const { values } = parseArgs({ options: { run: { type: 'string' }, base: { type: 'string' }, dist: { type: 'string' }, slug: { type: 'string' },

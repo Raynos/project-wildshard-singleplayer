@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { CableLayout } from '../src/engine/sim/cableTraversal';
+import { CableLayout } from '../src/engine/shared/sim/cableTraversal';
 import { ZiplineCable } from '../src/shards/driftwood-isle/generators/ziplineCable';
 import spots from '../src/shards/driftwood-isle/data/spotsRows.json' with { type: 'json' };
 

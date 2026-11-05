@@ -33,7 +33,7 @@ layout v2 (`docs/design/nalati/layout-v2.md`) wait on the new landscape.
 Measured headless (390×844 @1.5, Metal) with `?perf=1` and a per-object draw probe; budget **≤ ~110 calls, ≤ 1.6 M
 triangles** at every pose (the real-phone 30 fps target can't be measured here). The frame meter's `?perf=1` adds the
 check: the worst calls / triangles of the last ~10 s vs that budget, `OK` / `OVER` (red when over), and
-`window.__perfBudget` for scripts (src/engine/ui/Perf.ts).
+`window.__perfBudget` for scripts (src/engine/client/ui/Perf.ts).
 
 | setting (phone) | value | where |
 |---|---|---|

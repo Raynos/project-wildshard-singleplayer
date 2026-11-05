@@ -21,7 +21,7 @@ code and git, and judge the strategy from first principles, not from the docs' o
   ONE-SHOT-REVIEW.md.
 - The code they describe: `src/engine/`, `src/game/`, `src/kit/`, `src/shards/<slug>/`, `lint/`, `scripts/`
   (especially `scripts/shard-platform.mjs`, `lint/shard-platform.json`, `lint/wildshard-plugin.js`,
-  `scripts/check-row-data.mjs`, `lint/row-functions.json`, `src/engine/saves/`, `src/engine/core/config.ts`,
+  `scripts/check-row-data.mjs`, `lint/row-functions.json`, `src/engine/saves/`, `src/engine/shared/core/config.ts`,
   `test/world/world-contract.test.ts`), and `git log`.
 - Note: a commit landed minutes ago removing every barrel index (src/engine/index.ts etc.); imports now name the
   defining module. Docs that still assume barrels are stale.

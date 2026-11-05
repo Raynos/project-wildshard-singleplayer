@@ -1,5 +1,5 @@
-import type {SimHost} from '../../../src/engine/sim';
-import type {AnimalSim} from '../../../src/engine/entities/AnimalSim';
+import type {SimHost} from '../../../src/engine/server/sim';
+import type {AnimalSim} from '../../../src/engine/server/entities/AnimalSim';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import {CROWN,FALLEN_BRIDGE,KEEPER,ROOST,RUIN,STEP,UPDRAFT,VANES,WINCH} from '../../../src/shards/far-reach/generators/layout';
 import {KEEPER_AT} from '../../../src/shards/far-reach/generators/quests';

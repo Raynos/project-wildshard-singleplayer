@@ -1,6 +1,6 @@
 import {readNalatiScalarBlocks} from './fixtures/nalati-scalar-blocks';
 import {grassBlock,GRASS_FILES} from './fixtures/nalatiGrass';
-import {GrassPresentationProfile} from '../src/game/looks/grassPresentation';
+import {GrassPresentationProfile} from '../src/game/client/looks/grassPresentation';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify the committed native lattice.
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
@@ -9,10 +9,10 @@ import { GrassPresentationSchema, type GrassPayload } from '@wildshard/format/fi
 import { expect, test } from 'vitest';
 import { unzlibSync } from 'fflate';
 import { InstancedBufferGeometry, Mesh, MeshBasicMaterial } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { createSceneBuffers } from '../src/game/shardfile/sceneBuffers';
+import { Scope } from '../src/engine/shared/app/scope';
+import { createSceneBuffers } from '../src/game/client/shardfile/sceneBuffers';
 import { ClientChannels } from '../src/sdk/clientChannels';
-import { installChannelPrograms } from '../src/game/plugin/channelPrograms';
+import { installChannelPrograms } from '../src/game/server/plugin/channelPrograms';
 import { compactChannels } from '../src/shards/nalati-grasslands/generators/channelRows';
 import { isJsonData } from '@wildshard/format/json';
 import * as authoredLayout from '../src/shards/nalati-grasslands/generators/layout';
@@ -21,9 +21,9 @@ import { riverZAt, riverHalfAt } from '../src/shards/nalati-grasslands/generator
 import { TERRAIN, zoneAt, snowValleyX, snowValleyHalf, snowValleyFloor, inPoiClearing, inSpruceClearing } from '../src/shards/nalati-grasslands/generators/terrainRecipe';
 import { parseBakedTerrain } from '@wildshard/format/bakedTerrainBytes';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
-import { installDeclaredBakedTerrain } from '../src/engine/world/bakedTerrainField';
+import { installDeclaredBakedTerrain } from '../src/engine/shared/world/bakedTerrainField';
 import { GROUND,forestMask } from './fixtures/nalati-terrain';
-import { readScalarLattice } from '../src/engine/world/scalarChannel';
+import { readScalarLattice } from '../src/engine/shared/world/scalarChannel';
 import { nalatiGrassJson } from './fixtures/nalati-grass-bake';
 
 const scalarBlocks=readNalatiScalarBlocks();

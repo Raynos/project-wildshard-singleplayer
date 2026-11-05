@@ -1,11 +1,11 @@
 import {expect, test} from 'vitest';
 import {Vector3} from 'three';
-import {AnimalSim} from '../src/engine/entities/AnimalSim';
-import {GuardianPolicy, type GuardianProfile, type GuardianObservation} from '../src/engine/ai/guardianPolicy';
-import {DiverBrain, type DiverProfile, type DiverObservation} from '../src/engine/ai/diver';
-import type {StrikeSpec} from '../src/engine/ai/strikes';
-import {Rng} from '../src/engine/core/rng';
-import {onFault, type Fault} from '../src/engine/core/faults';
+import {AnimalSim} from '../src/engine/server/entities/AnimalSim';
+import {GuardianPolicy, type GuardianProfile, type GuardianObservation} from '../src/engine/server/ai/guardianPolicy';
+import {DiverBrain, type DiverProfile, type DiverObservation} from '../src/engine/server/ai/diver';
+import type {StrikeSpec} from '../src/engine/server/ai/strikes';
+import {Rng} from '../src/engine/shared/core/rng';
+import {onFault, type Fault} from '../src/engine/shared/core/faults';
 
 function owner() {
   const actor = new AnimalSim({kind: 'native', label: 'Native', variant: 'common', rarity: 'common', hp: 30, aggressive: true,

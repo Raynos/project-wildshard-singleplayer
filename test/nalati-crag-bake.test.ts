@@ -11,7 +11,7 @@ import { expect, it } from 'vitest';
 import { MeshBasicMaterial } from 'three';
 import { readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
 import { createClientScene } from '@wildshard/game/plugin/scene';
-import { unshuffleLanes as unshuffleBodyLanes, decodeLaneBytes } from '../src/engine/core/deflate';
+import { unshuffleLanes as unshuffleBodyLanes, decodeLaneBytes } from '../src/engine/client/core/deflate';
 import oracle from './fixtures/nalati-crag-bake.json';
 import { nalatiCragRows } from './fixtures/nalati-crags';
 import { nalatiPhoneCragBank } from '../src/shards/nalati-grasslands/generators/cragRockProgram';

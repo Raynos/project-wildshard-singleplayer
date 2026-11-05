@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test } from 'vitest';
-import { installTitleManifests, type TitleManifest } from '../src/game/shard/titleList';
+import { installTitleManifests, type TitleManifest } from '../src/game/client/shard/titleList';
 import { bootCatalogue, bootCases } from '../scripts/parity/boot-smoke.mjs';
 
 const titleSlot = Symbol.for('game.titleManifests'), worldSlot = Symbol.for('game.shards');

@@ -1,12 +1,12 @@
 import { afterEach, expect, test } from 'vitest';
 import type { HookPracticeRow } from '@wildshard/format/practiceCourseRows';
 import { isJsonData } from '@wildshard/format/json';
-import { ProjectedState, ReturnProgram } from '../src/game/population/returnProgram';
+import { ProjectedState, ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { practiceFrame } from '../src/shards/nine-dragon-stack/generators/practiceFrame';
 import course from '../src/shards/nine-dragon-stack/data/grappleCourse.json' with { type: 'json' };
 import { ninePracticeRows as program } from './fixtures/nine-practice-product';
 import { lendNinePractice } from './fixtures/nine-practice-modules';
-import {Scope} from '../src/engine/app/scope';
+import {Scope} from '../src/engine/shared/app/scope';
 
 const owners:Scope[]=[];afterEach(()=>{for(const owner of owners.splice(0))owner.dispose();});
 

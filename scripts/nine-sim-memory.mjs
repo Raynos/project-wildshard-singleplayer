@@ -207,7 +207,7 @@ async function oneRun(udid, run, opts) {
     const samplerDone = new Promise((resolve) => { sampler?.on('exit', resolve); });
     await sleep(1000);
     const { evaluate } = page;
-    // a first-visit origin, entered the way the start title's ENTER WORLD enters it (src/engine/boot/titleArrival.ts)
+    // a first-visit origin, entered the way the start title's ENTER WORLD enters it (src/engine/client/boot/titleArrival.ts)
     const settings = Object.fromEntries(opts.settings.map((s) => s.split('=')));
     const arrival = { slug: 'nine-dragon-stack', mode: 'enter', at: Date.now() };
     await evaluate(`${saveFixtureCode({ scope: 'session', key: 'titleArrival', data: arrival })};${saveFixtureCode({ scope: 'device', key: 'titleArrival.once', data: arrival })};${saveFixtureCode({ scope: 'global', key: 'settings', data: settings, merge: true })};${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};${Object.entries(opts.deviceSaves).map(([key, data]) => `${saveFixtureCode({ scope: 'device', key, data })};`).join('')}1`); // developer mode: EXPLORE WORLD is developer-only (E386)

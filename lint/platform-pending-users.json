@@ -2,7 +2,7 @@
   "schema": "platform-pending-users/1",
   "entries": [
     {
-      "module": "src/game/shardfile/pageWater.ts",
+      "module": "src/game/client/shardfile/pageWater.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "declared runtime entry",
@@ -13,7 +13,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/pagePreparation.ts",
+      "module": "src/game/client/shardfile/pagePreparation.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "declared runtime entry",
@@ -24,7 +24,7 @@
       }
     },
     {
-      "module": "src/game/audio/forestPage.ts",
+      "module": "src/game/client/audio/forestPage.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "declared runtime entry",
@@ -35,7 +35,7 @@
       }
     },
     {
-      "module": "src/game/loadout/rangedPage.ts",
+      "module": "src/game/client/loadout/rangedPage.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "declared runtime entry",
@@ -46,7 +46,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/forestPage.ts",
+      "module": "src/game/client/shardfile/forestPage.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "declared runtime entry",
@@ -57,7 +57,7 @@
       }
     },
     {
-      "module": "src/game/looks/forestRoofMask.ts",
+      "module": "src/game/client/looks/forestRoofMask.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "declared runtime entry",
@@ -68,7 +68,7 @@
       }
     },
     {
-      "module": "src/game/looks/forestWeather.ts",
+      "module": "src/game/client/looks/forestWeather.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "declared runtime entry",
@@ -79,7 +79,7 @@
       }
     },
     {
-      "module": "src/game/looks/forestGround.ts",
+      "module": "src/game/client/looks/forestGround.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "declared runtime entry",
@@ -90,7 +90,7 @@
       }
     },
     {
-      "module": "src/game/quest/nativeInputs.ts",
+      "module": "src/game/server/quest/nativeInputs.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "quest-step-runner",
@@ -101,7 +101,7 @@
       }
     },
     {
-      "module": "src/game/combat/roamingSession.ts",
+      "module": "src/game/server/combat/roamingSession.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "boss fight host",
@@ -112,7 +112,7 @@
       }
     },
     {
-      "module": "src/game/boss/roamingProjection.ts",
+      "module": "src/game/client/boss/roamingProjection.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "boss fight host",
@@ -123,7 +123,7 @@
       }
     },
     {
-      "module": "src/game/boss/socketRig.ts",
+      "module": "src/game/client/boss/socketRig.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "boss fight host",
@@ -134,7 +134,7 @@
       }
     },
     {
-      "module": "src/game/quest/pageResources.ts",
+      "module": "src/game/server/quest/pageResources.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "quest-step-runner",
@@ -145,7 +145,7 @@
       }
     },
     {
-      "module": "src/game/quest/pageComposition.ts",
+      "module": "src/game/server/quest/pageComposition.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "quest-step-runner",
@@ -156,7 +156,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/clientPopulationProjection.ts",
+      "module": "src/game/client/shardfile/clientPopulationProjection.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "actor-spawn",
@@ -167,7 +167,7 @@
       }
     },
     {
-      "module": "src/game/population/projection.ts",
+      "module": "src/game/client/population/projection.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "actor-spawn",
@@ -178,7 +178,7 @@
       }
     },
     {
-      "module": "src/game/population/perchBody.ts",
+      "module": "src/game/server/population/perchBody.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "actor-spawn",
@@ -189,7 +189,7 @@
       }
     },
     {
-      "module": "src/game/audio/cueDirector.ts",
+      "module": "src/game/client/audio/cueDirector.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "audio-cue-director",
@@ -200,7 +200,7 @@
       }
     },
     {
-      "module": "src/game/population/returnProgram.ts",
+      "module": "src/game/shared/population/returnProgram.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -217,7 +217,7 @@
       }
     },
     {
-      "module": "src/game/population/pageReturns.ts",
+      "module": "src/game/server/population/pageReturns.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -234,7 +234,7 @@
       }
     },
     {
-      "module": "src/game/population/pageGroups.ts",
+      "module": "src/game/server/population/pageGroups.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -251,7 +251,7 @@
       }
     },
     {
-      "module": "src/game/ambient/flock.ts",
+      "module": "src/game/shared/ambient/flock.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -268,7 +268,7 @@
       }
     },
     {
-      "module": "src/game/plugin/animation.ts",
+      "module": "src/game/server/plugin/animation.ts",
       "export": "createNativeCreaturePoses",
       "shard": "nalati-grasslands",
       "plan": {
@@ -279,7 +279,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/plugin/bossStorm.ts",
+      "module": "src/game/client/plugin/bossStorm.ts",
       "export": "bossStorm",
       "shard": "nalati-grasslands",
       "plan": {
@@ -290,7 +290,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/looks/riggedHulls.ts",
+      "module": "src/game/client/looks/riggedHulls.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -307,7 +307,7 @@
       }
     },
     {
-      "module": "src/engine/ai/ambientFlight.ts",
+      "module": "src/engine/shared/ai/ambientFlight.ts",
       "export": "CirclingFlyer",
       "shard": "nalati-grasslands",
       "plan": {
@@ -318,7 +318,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/engine/combat/view/ranged.ts",
+      "module": "src/engine/client/combat/view/ranged.ts",
       "export": "weaponDisplay",
       "shard": "nalati-grasslands",
       "plan": {
@@ -329,7 +329,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/plugin/quests.ts",
+      "module": "src/game/server/plugin/quests.ts",
       "export": "createReadingRoster",
       "shard": "nalati-grasslands",
       "plan": {
@@ -347,7 +347,7 @@
       }
     },
     {
-      "module": "src/game/plugin/quests.ts",
+      "module": "src/game/server/plugin/quests.ts",
       "export": "QuestReading",
       "shard": "nalati-grasslands",
       "plan": {
@@ -365,7 +365,7 @@
       }
     },
     {
-      "module": "src/game/plugin/quests.ts",
+      "module": "src/game/server/plugin/quests.ts",
       "export": "QuestReadingSpot",
       "shard": "nalati-grasslands",
       "plan": {
@@ -383,7 +383,7 @@
       }
     },
     {
-      "module": "src/game/plugin/quests.ts",
+      "module": "src/game/server/plugin/quests.ts",
       "export": "QuestReadingRows",
       "shard": "nalati-grasslands",
       "plan": {
@@ -401,7 +401,7 @@
       }
     },
     {
-      "module": "src/game/plugin/quests.ts",
+      "module": "src/game/server/plugin/quests.ts",
       "export": "QuestReadingRoster",
       "shard": "nalati-grasslands",
       "plan": {
@@ -419,7 +419,7 @@
       }
     },
     {
-      "module": "src/game/looks/overcast.ts",
+      "module": "src/game/client/looks/overcast.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -436,7 +436,7 @@
       }
     },
     {
-      "module": "src/game/plugin/brain.ts",
+      "module": "src/game/server/plugin/brain.ts",
       "export": "createNativeSpeciesContext",
       "shard": "nalati-grasslands",
       "plan": {
@@ -447,7 +447,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/looks/posedInstances.ts",
+      "module": "src/game/client/looks/posedInstances.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -457,7 +457,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/Boss.ts",
+      "module": "src/game/server/Boss.ts",
       "export": "BossScoreAction",
       "shard": "nalati-grasslands",
       "plan": {
@@ -468,7 +468,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/Boss.ts",
+      "module": "src/game/server/Boss.ts",
       "export": "BossEncounterRows",
       "shard": "nalati-grasslands",
       "plan": {
@@ -479,7 +479,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/Boss.ts",
+      "module": "src/game/server/Boss.ts",
       "export": "BossEncounterScore",
       "shard": "nalati-grasslands",
       "plan": {
@@ -490,7 +490,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/Boss.ts",
+      "module": "src/game/server/Boss.ts",
       "export": "BossEncounterPorts",
       "shard": "nalati-grasslands",
       "plan": {
@@ -501,7 +501,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/Boss.ts",
+      "module": "src/game/server/Boss.ts",
       "export": "BossEncounter",
       "shard": "nalati-grasslands",
       "plan": {
@@ -512,7 +512,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/Boss.ts",
+      "module": "src/game/server/Boss.ts",
       "export": "installBossEncounter",
       "shard": "nalati-grasslands",
       "plan": {
@@ -523,7 +523,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/engine/combat/view/projectile.ts",
+      "module": "src/engine/client/combat/view/projectile.ts",
       "export": "ProjectilePresentation",
       "shard": "nalati-grasslands",
       "plan": {
@@ -541,7 +541,7 @@
       }
     },
     {
-      "module": "src/game/plugin/animation.ts",
+      "module": "src/game/server/plugin/animation.ts",
       "export": "NativeCreaturePose",
       "shard": "nalati-grasslands",
       "plan": {
@@ -552,7 +552,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/plugin/animation.ts",
+      "module": "src/game/server/plugin/animation.ts",
       "export": "NativeCreaturePoseRecipe",
       "shard": "nalati-grasslands",
       "plan": {
@@ -563,7 +563,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/plugin/animation.ts",
+      "module": "src/game/server/plugin/animation.ts",
       "export": "attachNativeCreaturePose",
       "shard": "nalati-grasslands",
       "plan": {
@@ -574,7 +574,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/cosmetics/locker.ts",
+      "module": "src/game/client/cosmetics/locker.ts",
       "export": "CosmeticsLocker",
       "shard": "nalati-grasslands",
       "plan": {
@@ -585,7 +585,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/engine/combat/Firearm.ts",
+      "module": "src/engine/server/combat/Firearm.ts",
       "export": "RangedAction",
       "shard": "nalati-grasslands",
       "plan": {
@@ -596,7 +596,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/engine/combat/Firearm.ts",
+      "module": "src/engine/server/combat/Firearm.ts",
       "export": "RangedActionRow",
       "shard": "nalati-grasslands",
       "plan": {
@@ -607,7 +607,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/engine/models/sets.ts",
+      "module": "src/engine/client/models/sets.ts",
       "export": "placedWithin",
       "shard": "nalati-grasslands",
       "plan": {
@@ -618,7 +618,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/engine/models/colliders.ts",
+      "module": "src/engine/client/models/colliders.ts",
       "export": "readColliderRows",
       "shard": "nine-dragon-stack",
       "plan": {
@@ -629,7 +629,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/bag/findsCatalogue.ts",
+      "module": "src/game/server/bag/findsCatalogue.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -646,7 +646,7 @@
       }
     },
     {
-      "module": "src/engine/app/cachedAssets.ts",
+      "module": "src/engine/client/app/cachedAssets.ts",
       "export": "ResourceMemo",
       "shard": "nalati-grasslands",
       "plan": {
@@ -657,7 +657,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/engine/combat/view/bowProfile.ts",
+      "module": "src/engine/client/combat/view/bowProfile.ts",
       "export": "BowShape",
       "shard": "nalati-grasslands",
       "plan": {
@@ -668,7 +668,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/plugin/geometry.ts",
+      "module": "src/game/client/plugin/geometry.ts",
       "export": "packedCreatureBodies",
       "shard": "nalati-grasslands",
       "plan": {
@@ -679,7 +679,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/plugin/geometry.ts",
+      "module": "src/game/client/plugin/geometry.ts",
       "export": "PackedCreatureBodies",
       "shard": "nalati-grasslands",
       "plan": {
@@ -697,7 +697,7 @@
       }
     },
     {
-      "module": "src/engine/combat/view/ranged.ts",
+      "module": "src/engine/client/combat/view/ranged.ts",
       "export": "prepareWeaponView",
       "shard": "nalati-grasslands",
       "plan": {
@@ -708,7 +708,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/engine/combat/effects/EffectService.ts",
+      "module": "src/engine/client/combat/effects/EffectService.ts",
       "export": "selectEffectGrants",
       "shard": "nalati-grasslands",
       "plan": {
@@ -726,7 +726,7 @@
       }
     },
     {
-      "module": "src/engine/combat/effects/EffectService.ts",
+      "module": "src/engine/client/combat/effects/EffectService.ts",
       "export": "EffectGrantRow",
       "shard": "nalati-grasslands",
       "plan": {
@@ -744,7 +744,7 @@
       }
     },
     {
-      "module": "src/engine/physics/box.ts",
+      "module": "src/engine/shared/physics/box.ts",
       "export": "floorAtRects",
       "shard": "nine-dragon-stack",
       "plan": {
@@ -755,7 +755,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/plugin/brain.ts",
+      "module": "src/game/server/plugin/brain.ts",
       "export": "createMemoryActionBrain",
       "shard": "nalati-grasslands",
       "plan": {
@@ -766,7 +766,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/plugin/brain.ts",
+      "module": "src/game/server/plugin/brain.ts",
       "export": "MemoryActionRows",
       "shard": "nalati-grasslands",
       "plan": {
@@ -777,7 +777,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/looks/daySky.ts",
+      "module": "src/game/client/looks/daySky.ts",
       "export": "driveDayAir",
       "shard": "nalati-grasslands",
       "plan": {
@@ -795,7 +795,7 @@
       }
     },
     {
-      "module": "src/game/looks/daySky.ts",
+      "module": "src/game/client/looks/daySky.ts",
       "export": "DayAirRow",
       "shard": "nalati-grasslands",
       "plan": {
@@ -813,7 +813,7 @@
       }
     },
     {
-      "module": "src/game/looks/daySky.ts",
+      "module": "src/game/client/looks/daySky.ts",
       "export": "DayAirFrame",
       "shard": "nalati-grasslands",
       "plan": {
@@ -831,7 +831,7 @@
       }
     },
     {
-      "module": "src/engine/render/viewmodelFeel.ts",
+      "module": "src/engine/client/render/viewmodelFeel.ts",
       "export": "HitscanPresentation",
       "shard": "nalati-grasslands",
       "plan": {
@@ -842,7 +842,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/engine/render/viewmodelFeel.ts",
+      "module": "src/engine/client/render/viewmodelFeel.ts",
       "export": "HitscanPresentationRow",
       "shard": "nalati-grasslands",
       "plan": {
@@ -853,7 +853,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/plugin/director.ts",
+      "module": "src/game/server/plugin/director.ts",
       "export": "DirectorScriptStageLane",
       "shard": "nalati-grasslands",
       "plan": {
@@ -864,7 +864,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/plugin/director.ts",
+      "module": "src/game/server/plugin/director.ts",
       "export": "DirectorScriptStagePorts",
       "shard": "nalati-grasslands",
       "plan": {
@@ -875,7 +875,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/systems/viewmodel/rigArms.ts",
+      "module": "src/game/client/systems/viewmodel/rigArms.ts",
       "shard": "nine-dragon-stack",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -914,7 +914,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/engine/player/heldHandParts.ts",
+      "module": "src/engine/client/player/heldHandParts.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -924,7 +924,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/plugin/brain.ts",
+      "module": "src/game/server/plugin/brain.ts",
       "export": "createCreatureSpawner",
       "shard": "nalati-grasslands",
       "plan": {
@@ -942,7 +942,7 @@
       }
     },
     {
-      "module": "src/game/plugin/brain.ts",
+      "module": "src/game/server/plugin/brain.ts",
       "export": "CreatureSpawner",
       "shard": "nalati-grasslands",
       "plan": {
@@ -960,7 +960,7 @@
       }
     },
     {
-      "module": "src/game/plugin/brain.ts",
+      "module": "src/game/server/plugin/brain.ts",
       "export": "CreatureSpawnRow",
       "shard": "nalati-grasslands",
       "plan": {
@@ -978,7 +978,7 @@
       }
     },
     {
-      "module": "src/game/plugin/animation.ts",
+      "module": "src/game/server/plugin/animation.ts",
       "export": "stepCreatureLift",
       "shard": "nalati-grasslands",
       "plan": {
@@ -989,7 +989,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/plugin/headless.ts",
+      "module": "src/game/server/plugin/headless.ts",
       "export": "bindRuntimeJsonRecord",
       "shard": "nalati-grasslands",
       "plan": {
@@ -1000,7 +1000,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/plugin/brain.ts",
+      "module": "src/game/server/plugin/brain.ts",
       "export": "sampleCreatureGroup",
       "shard": "nalati-grasslands",
       "plan": {
@@ -1018,7 +1018,7 @@
       }
     },
     {
-      "module": "src/game/plugin/brain.ts",
+      "module": "src/game/server/plugin/brain.ts",
       "export": "CreatureGroupSpec",
       "shard": "nalati-grasslands",
       "plan": {
@@ -1036,7 +1036,7 @@
       }
     },
     {
-      "module": "src/game/plugin/brain.ts",
+      "module": "src/game/server/plugin/brain.ts",
       "export": "CreatureGroupSample",
       "shard": "nalati-grasslands",
       "plan": {
@@ -1054,7 +1054,7 @@
       }
     },
     {
-      "module": "src/game/plugin/brain.ts",
+      "module": "src/game/server/plugin/brain.ts",
       "export": "selectCreatureSites",
       "shard": "nalati-grasslands",
       "plan": {
@@ -1072,7 +1072,7 @@
       }
     },
     {
-      "module": "src/engine/world/Atmosphere.ts",
+      "module": "src/engine/client/world/Atmosphere.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1089,7 +1089,7 @@
       }
     },
     {
-      "module": "src/engine/world/lowpolyKit.ts",
+      "module": "src/engine/client/world/lowpolyKit.ts",
       "shard": "nine-dragon-stack",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1106,7 +1106,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/hybrid.ts",
+      "module": "src/game/client/shardfile/hybrid.ts",
       "shard": "nine-dragon-stack",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1123,7 +1123,7 @@
       }
     },
     {
-      "module": "src/engine/world/water/ripples.ts",
+      "module": "src/engine/client/world/water/ripples.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1140,7 +1140,7 @@
       }
     },
     {
-      "module": "src/game/systems/viewmodel/heldView.ts",
+      "module": "src/game/client/systems/viewmodel/heldView.ts",
       "shard": "pine-hollow",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1157,7 +1157,7 @@
       }
     },
     {
-      "module": "src/game/population/actors.ts",
+      "module": "src/game/server/population/actors.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1174,7 +1174,7 @@
       }
     },
     {
-      "module": "src/game/population/respawn.ts",
+      "module": "src/game/server/population/respawn.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1191,7 +1191,7 @@
       }
     },
     {
-      "module": "src/game/quest/hints.ts",
+      "module": "src/game/client/quest/hints.ts",
       "shard": "pine-hollow",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1208,7 +1208,7 @@
       }
     },
     {
-      "module": "src/game/plugin/heldEquipment.ts",
+      "module": "src/game/client/plugin/heldEquipment.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1225,7 +1225,7 @@
       }
     },
     {
-      "module": "src/game/loadout/held.ts",
+      "module": "src/game/client/loadout/held.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1242,7 +1242,7 @@
       }
     },
     {
-      "module": "src/game/loadout/pouch.ts",
+      "module": "src/game/server/loadout/pouch.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1259,7 +1259,7 @@
       }
     },
     {
-      "module": "src/game/loadout/persistence.ts",
+      "module": "src/game/server/loadout/persistence.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1276,7 +1276,7 @@
       }
     },
     {
-      "module": "src/game/loadout/effects.ts",
+      "module": "src/game/server/loadout/effects.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1293,7 +1293,7 @@
       }
     },
     {
-      "module": "src/game/boss/lane.ts",
+      "module": "src/game/server/boss/lane.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1310,7 +1310,7 @@
       }
     },
     {
-      "module": "src/game/boss/wake.ts",
+      "module": "src/game/server/boss/wake.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1327,7 +1327,7 @@
       }
     },
     {
-      "module": "src/game/boss/presentation.ts",
+      "module": "src/game/client/boss/presentation.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1344,7 +1344,7 @@
       }
     },
     {
-      "module": "src/engine/models/slots.ts",
+      "module": "src/engine/client/models/slots.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1361,7 +1361,7 @@
       }
     },
     {
-      "module": "src/game/models/collectionDisplay.ts",
+      "module": "src/game/client/models/collectionDisplay.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1378,7 +1378,7 @@
       }
     },
     {
-      "module": "src/game/compendium/keepsakes.ts",
+      "module": "src/game/server/compendium/keepsakes.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1395,7 +1395,7 @@
       }
     },
     {
-      "module": "src/game/models/collectionWall.ts",
+      "module": "src/game/client/models/collectionWall.ts",
       "shard": "driftwood-isle",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1412,7 +1412,7 @@
       }
     },
     {
-      "module": "src/game/plugin/heldTool.ts",
+      "module": "src/game/client/plugin/heldTool.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1422,7 +1422,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/loadout/finishes.ts",
+      "module": "src/game/client/loadout/finishes.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1439,7 +1439,7 @@
       }
     },
     {
-      "module": "src/game/models/heldGear.ts",
+      "module": "src/game/client/models/heldGear.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1456,7 +1456,7 @@
       }
     },
     {
-      "module": "src/game/loadout/claims.ts",
+      "module": "src/game/client/loadout/claims.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1473,7 +1473,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/worldScenes.ts",
+      "module": "src/game/client/shardfile/worldScenes.ts",
       "shard": "pine-hollow",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1490,7 +1490,7 @@
       }
     },
     {
-      "module": "src/game/quest/contracts.ts",
+      "module": "src/game/server/quest/contracts.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1507,7 +1507,7 @@
       }
     },
     {
-      "module": "src/game/quest/contractBoard.ts",
+      "module": "src/game/server/quest/contractBoard.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1524,7 +1524,7 @@
       }
     },
     {
-      "module": "src/game/population/spawnScript.ts",
+      "module": "src/game/server/population/spawnScript.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1541,7 +1541,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/sceneHandles.ts",
+      "module": "src/game/client/shardfile/sceneHandles.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1558,7 +1558,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/livingBuildings.ts",
+      "module": "src/game/client/shardfile/livingBuildings.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1575,7 +1575,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/buildingCloud.ts",
+      "module": "src/game/client/shardfile/buildingCloud.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1592,7 +1592,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/clientPlan.ts",
+      "module": "src/game/client/shardfile/clientPlan.ts",
       "export": "installClientPhase",
       "shard": "nalati-grasslands",
       "plan": {
@@ -1610,7 +1610,7 @@
       }
     },
     {
-      "module": "src/game/animation/limbRig.ts",
+      "module": "src/game/client/animation/limbRig.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1627,7 +1627,7 @@
       }
     },
     {
-      "module": "src/game/animation/limbBlend.ts",
+      "module": "src/game/client/animation/limbBlend.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1644,7 +1644,7 @@
       }
     },
     {
-      "module": "src/game/animation/limbCollision.ts",
+      "module": "src/game/client/animation/limbCollision.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1661,7 +1661,7 @@
       }
     },
     {
-      "module": "src/game/animation/limbQueryPose.ts",
+      "module": "src/game/client/animation/limbQueryPose.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1671,7 +1671,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/animation/limbQueryView.ts",
+      "module": "src/game/client/animation/limbQueryView.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1681,7 +1681,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/game/animation/limbView.ts",
+      "module": "src/game/client/animation/limbView.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1698,7 +1698,7 @@
       }
     },
     {
-      "module": "src/game/animation/limbPopulation.ts",
+      "module": "src/game/client/animation/limbPopulation.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1715,7 +1715,7 @@
       }
     },
     {
-      "module": "src/game/models/worldSceneCatalogue.ts",
+      "module": "src/game/client/models/worldSceneCatalogue.ts",
       "shard": "pine-hollow",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1732,7 +1732,7 @@
       }
     },
     {
-      "module": "src/game/quest/eliteFeature.ts",
+      "module": "src/game/server/quest/eliteFeature.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1749,7 +1749,7 @@
       }
     },
     {
-      "module": "src/game/quest/eliteDecisions.ts",
+      "module": "src/game/server/quest/eliteDecisions.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1766,7 +1766,7 @@
       }
     },
     {
-      "module": "src/game/quest/elitePage.ts",
+      "module": "src/game/server/quest/elitePage.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1783,7 +1783,7 @@
       }
     },
     {
-      "module": "src/game/quest/eliteStreams.ts",
+      "module": "src/game/server/quest/eliteStreams.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1800,7 +1800,7 @@
       }
     },
     {
-      "module": "src/game/population/scriptStrikes.ts",
+      "module": "src/game/server/population/scriptStrikes.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1817,7 +1817,7 @@
       }
     },
     {
-      "module": "src/game/looks/keyedSky.ts",
+      "module": "src/game/client/looks/keyedSky.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1834,7 +1834,7 @@
       }
     },
     {
-      "module": "src/game/looks/keyedSkyClock.ts",
+      "module": "src/game/shared/looks/keyedSkyClock.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1851,7 +1851,7 @@
       }
     },
     {
-      "module": "src/engine/render/streamedInstances.ts",
+      "module": "src/engine/client/render/streamedInstances.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "streamed cover",
@@ -1862,7 +1862,7 @@
       }
     },
     {
-      "module": "src/game/looks/streamedCover.ts",
+      "module": "src/game/client/looks/streamedCover.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "streamed cover",
@@ -1873,7 +1873,7 @@
       }
     },
     {
-      "module": "src/game/looks/toonLighting.ts",
+      "module": "src/game/client/looks/toonLighting.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "toon look host",
@@ -1884,7 +1884,7 @@
       }
     },
     {
-      "module": "src/game/looks/toonLook.ts",
+      "module": "src/game/client/looks/toonLook.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "toon look host",
@@ -1895,7 +1895,7 @@
       }
     },
     {
-      "module": "src/game/looks/toonSky.ts",
+      "module": "src/game/client/looks/toonSky.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "toon look host",
@@ -1906,7 +1906,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/worldScenePlacement.ts",
+      "module": "src/game/client/shardfile/worldScenePlacement.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1923,7 +1923,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/worldSceneMaterials.ts",
+      "module": "src/game/client/shardfile/worldSceneMaterials.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1940,7 +1940,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/worldSceneBatch.ts",
+      "module": "src/game/client/shardfile/worldSceneBatch.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1957,7 +1957,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/worldSceneSurface.ts",
+      "module": "src/game/client/shardfile/worldSceneSurface.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "world scene assembly",
@@ -1968,7 +1968,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/worldSceneWeld.ts",
+      "module": "src/game/client/shardfile/worldSceneWeld.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "world scene assembly",
@@ -1979,7 +1979,7 @@
       }
     },
     {
-      "module": "src/engine/models/place.ts",
+      "module": "src/engine/client/models/place.ts",
       "export": "installWeldCulling",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
@@ -1991,7 +1991,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/lightEmitters.ts",
+      "module": "src/game/client/shardfile/lightEmitters.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "light emitters",
@@ -2002,7 +2002,7 @@
       }
     },
     {
-      "module": "src/engine/world/easedFields.ts",
+      "module": "src/engine/shared/world/easedFields.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "eased fields",
@@ -2013,7 +2013,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/weatherFields.ts",
+      "module": "src/game/client/shardfile/weatherFields.ts",
       "export": "installWeatherFields",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
@@ -2025,7 +2025,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/weatherFields.ts",
+      "module": "src/game/client/shardfile/weatherFields.ts",
       "export": "settleWeatherFields",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
@@ -2037,7 +2037,7 @@
       }
     },
     {
-      "module": "src/game/riding/hud.ts",
+      "module": "src/game/client/riding/hud.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "mounts-riding-taming",
@@ -2048,7 +2048,7 @@
       }
     },
     {
-      "module": "src/game/riding/mount.ts",
+      "module": "src/game/server/riding/mount.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "mounts-riding-taming",
@@ -2059,7 +2059,7 @@
       }
     },
     {
-      "module": "src/game/boss/arenaRoom.ts",
+      "module": "src/game/server/boss/arenaRoom.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "boss fight host",
@@ -2070,7 +2070,7 @@
       }
     },
     {
-      "module": "src/game/boss/arenaFire.ts",
+      "module": "src/game/client/boss/arenaFire.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "boss fight host",
@@ -2081,7 +2081,7 @@
       }
     },
     {
-      "module": "src/game/looks/paintedLook.ts",
+      "module": "src/game/client/looks/paintedLook.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "painterly look host",
@@ -2092,7 +2092,7 @@
       }
     },
     {
-      "module": "src/game/looks/painterlyLook.ts",
+      "module": "src/game/client/looks/painterlyLook.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "painterly look host",
@@ -2103,7 +2103,7 @@
       }
     },
     {
-      "module": "src/game/boss/encounterView.ts",
+      "module": "src/game/client/boss/encounterView.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "boss fight host",
@@ -2114,7 +2114,7 @@
       }
     },
     {
-      "module": "src/game/grapple/sim.ts",
+      "module": "src/game/shared/grapple/sim.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "grapple-traversal",
@@ -2125,7 +2125,7 @@
       }
     },
     {
-      "module": "src/game/grapple/course.ts",
+      "module": "src/game/shared/grapple/course.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "grapple-traversal",
@@ -2136,7 +2136,7 @@
       }
     },
     {
-      "module": "src/game/grapple/tool.ts",
+      "module": "src/game/client/grapple/tool.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "grapple-traversal",
@@ -2147,7 +2147,7 @@
       }
     },
     {
-      "module": "src/game/grapple/ribbon.ts",
+      "module": "src/game/client/grapple/ribbon.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "grapple-traversal",
@@ -2158,7 +2158,7 @@
       }
     },
     {
-      "module": "src/game/practice/course.ts",
+      "module": "src/game/client/practice/course.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "practice-courses",
@@ -2169,7 +2169,7 @@
       }
     },
     {
-      "module": "src/game/stealth/controller.ts",
+      "module": "src/game/client/stealth/controller.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "stealth-and-detection",
@@ -2180,7 +2180,7 @@
       }
     },
     {
-      "module": "src/game/weapons/heldDecision.ts",
+      "module": "src/game/client/weapons/heldDecision.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "held-arms",
@@ -2191,7 +2191,7 @@
       }
     },
     {
-      "module": "src/game/weapons/heldPolearm.ts",
+      "module": "src/game/client/weapons/heldPolearm.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "held-arms",
@@ -2202,7 +2202,7 @@
       }
     },
     {
-      "module": "src/game/weapons/mountedBlade.ts",
+      "module": "src/game/client/weapons/mountedBlade.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "held-arms",
@@ -2213,7 +2213,7 @@
       }
     },
     {
-      "module": "src/game/weapons/arcPower.ts",
+      "module": "src/game/client/weapons/arcPower.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "held-arms",
@@ -2224,7 +2224,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/walkInPortalRide.ts",
+      "module": "src/game/client/shardfile/walkInPortalRide.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "walk-in-portal-ride",
@@ -2235,7 +2235,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/portalRideBinding.ts",
+      "module": "src/game/client/shardfile/portalRideBinding.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "walk-in-portal-ride",
@@ -2246,7 +2246,7 @@
       }
     },
     {
-      "module": "src/game/audio/voicePatches.ts",
+      "module": "src/game/client/audio/voicePatches.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "audio-cue-director",
@@ -2257,7 +2257,7 @@
       }
     },
     {
-      "module": "src/game/audio/sceneDirector.ts",
+      "module": "src/game/client/audio/sceneDirector.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "audio-cue-director",
@@ -2268,7 +2268,7 @@
       }
     },
     {
-      "module": "src/game/looks/staticCapture.ts",
+      "module": "src/game/client/looks/staticCapture.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "toon look host",
@@ -2279,7 +2279,7 @@
       }
     },
     {
-      "module": "src/game/looks/grassPresentation.ts",
+      "module": "src/game/client/looks/grassPresentation.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "grass-field",
@@ -2290,7 +2290,7 @@
       }
     },
     {
-      "module": "src/engine/render/scatterInstances.ts",
+      "module": "src/engine/client/render/scatterInstances.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "streamed cover",
@@ -2301,7 +2301,7 @@
       }
     },
     {
-      "module": "src/game/ambient/wingField.ts",
+      "module": "src/game/client/ambient/wingField.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "H6 ambient life",
@@ -2312,7 +2312,7 @@
       }
     },
     {
-      "module": "src/game/riding/physics.ts",
+      "module": "src/game/shared/riding/physics.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "mounts-riding-taming",
@@ -2323,7 +2323,7 @@
       }
     },
     {
-      "module": "src/game/riding/taming.ts",
+      "module": "src/game/server/riding/taming.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "mounts-riding-taming",
@@ -2334,7 +2334,7 @@
       }
     },
     {
-      "module": "src/game/riding/native.ts",
+      "module": "src/game/server/riding/native.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "mounts-riding-taming",
@@ -2345,7 +2345,7 @@
       }
     },
     {
-      "module": "src/game/riding/roster.ts",
+      "module": "src/game/server/riding/roster.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "mounts-riding-taming",
@@ -2356,7 +2356,7 @@
       }
     },
     {
-      "module": "src/game/riding/presentation.ts",
+      "module": "src/game/shared/riding/presentation.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "mounts-riding-taming",
@@ -2367,7 +2367,7 @@
       }
     },
     {
-      "module": "src/game/riding/nativeTaming.ts",
+      "module": "src/game/server/riding/nativeTaming.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "mounts-riding-taming",
@@ -2378,7 +2378,7 @@
       }
     },
     {
-      "module": "src/game/riding/client.ts",
+      "module": "src/game/client/riding/client.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "mounts-riding-taming",
@@ -2389,7 +2389,7 @@
       }
     },
     {
-      "module": "src/game/loadout/cosmeticFinishes.ts",
+      "module": "src/game/client/loadout/cosmeticFinishes.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "loadout",
@@ -2400,7 +2400,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/clientCosmeticFinishes.ts",
+      "module": "src/game/client/shardfile/clientCosmeticFinishes.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "loadout",
@@ -2411,7 +2411,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/clientWaterSurfaces.ts",
+      "module": "src/game/client/shardfile/clientWaterSurfaces.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "declared runtime entry",
@@ -2422,7 +2422,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/clientPlaceSets.ts",
+      "module": "src/game/client/shardfile/clientPlaceSets.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "declared runtime entry",
@@ -2433,7 +2433,7 @@
       }
     },
     {
-      "module": "src/game/riding/nativePopulation.ts",
+      "module": "src/game/server/riding/nativePopulation.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "mounts-riding-taming",
@@ -2444,7 +2444,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/sceneDressing.ts",
+      "module": "src/game/client/shardfile/sceneDressing.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "world scene assembly",
@@ -2455,7 +2455,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/sceneInstances.ts",
+      "module": "src/game/client/shardfile/sceneInstances.ts",
       "documentation": "docs/HOST-BAR.md",
       "approvedFeature": {
         "name": "world scene assembly",
@@ -2466,7 +2466,7 @@
       }
     },
     {
-      "module": "src/game/weather/reactions.ts",
+      "module": "src/game/server/weather/reactions.ts",
       "export": "WeatherReactions",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
@@ -2478,7 +2478,7 @@
       }
     },
     {
-      "module": "src/game/weather/reactions.ts",
+      "module": "src/game/server/weather/reactions.ts",
       "export": "installWeatherReactions",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
@@ -2490,7 +2490,7 @@
       }
     },
     {
-      "module": "src/game/weather/rainPresentation.ts",
+      "module": "src/game/client/weather/rainPresentation.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "weather reactions + keyed sky",
@@ -2501,7 +2501,7 @@
       }
     },
     {
-      "module": "src/game/systems/npc/kitFigure.ts",
+      "module": "src/game/client/systems/npc/kitFigure.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "world scene assembly",
@@ -2512,7 +2512,7 @@
       }
     },
     {
-      "module": "src/game/models/treeSet.ts",
+      "module": "src/game/client/models/treeSet.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "world scene assembly",
@@ -2523,7 +2523,7 @@
       }
     },
     {
-      "module": "src/game/shardfile/caveInterior.ts",
+      "module": "src/game/client/shardfile/caveInterior.ts",
       "documentation": "docs/ENGINE.md",
       "approvedFeature": {
         "name": "world scene assembly",

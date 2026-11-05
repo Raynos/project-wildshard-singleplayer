@@ -1,4 +1,4 @@
-import type {TamingHorse} from '../src/game/riding/bindingTypes';
+import type {TamingHorse} from '../src/game/server/riding/bindingTypes';
 import {expect,test} from 'vitest';
 import {tamingRig as fixture} from './fixtures/tamingServices';
 

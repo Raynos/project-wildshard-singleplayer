@@ -7,7 +7,7 @@ import { stripTypeScriptTypes } from 'node:module';
 import { runInNewContext } from 'node:vm';
 
 function fixture(active: boolean, tier: 'phone' | 'desktop' = 'phone') {
-  const source = readFileSync('src/game/travel/travel.ts', 'utf8');
+  const source = readFileSync('src/game/client/travel/travel.ts', 'utf8');
   const start = source.indexOf('function navigate('), end = source.indexOf('\nexport function travel(', start);
   if (start === -1 || end < start) throw new Error('Missing navigation boundary');
   let finish = (): void => { throw new Error('Missing readiness promise'); };

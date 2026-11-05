@@ -2,12 +2,12 @@ import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
 import { withOwner } from '@wildshard/engine/app/ownership';
-import { AssetService } from '../src/engine/app/assets';
+import { AssetService } from '../src/engine/client/app/assets';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
-import { AssetResidencyBridge } from '../src/game/grid/assetResidency';
-import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { prepareSceneBufferDraws } from '../src/game/shardfile/sceneBuffers';
+import { AssetResidencyBridge } from '../src/game/client/grid/assetResidency';
+import { ResidencyAllocator } from '../src/game/server/grid/allocator';
+import { prepareSceneBufferDraws } from '../src/game/client/shardfile/sceneBuffers';
 
 function fixture(bytes = 1000) {
   const allocator = new ResidencyAllocator({ playing: CONTENT_CAPS.engineBase + CONTENT_CAPS.overlap + Math.ceil(bytes * CONTENT_CAPS.residentFactor), memory: new MemoryAdmission() });

@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { SceneDressingSchema } from '@wildshard/format/sceneDressing';
 import { emptyShardfile } from '../src/sdk/author';
-import { controlFiles, lateFiles } from '../src/game/shardfile/controlFiles';
+import { controlFiles, lateFiles } from '../src/game/client/shardfile/controlFiles';
 import { nalatiLatePaintedNames, nalatiDeferredCatalogueScene, nalatiLateDressingNames } from '../src/shards/nalati-grasslands/generators/modelBindings';
 
 test('desktop hints preserve native demand and critical dependency precedence', () => {

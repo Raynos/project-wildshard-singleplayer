@@ -24,10 +24,10 @@ Research:
   onComplete {fact, scene, coins ≤ 100}}`, steps `{objective, chip, hint, done, count, markers}`, conditions over flags
   (line 8). Several quests already coexist, each gated by `startWhen`. Users: Driftwood (4 KB), Pine (5.6 KB, plus its
   custom `questRuntime`, W1c), Nalati (8.2 KB, chapters), Sky (1.9 KB), Signal (2.9 KB), Nine (64 B, empty).
-- **The UI shows one quest.** The HUD has one objective chip (`src/engine/ui/HUD.ts:572` `.ws-quest-obj`) and the map tab
-  one quest card (`src/engine/ui/Menu.ts:352` `renderQuest()` reads a single `fullMap.quest`). No quest list, no accept,
+- **The UI shows one quest.** The HUD has one objective chip (`src/engine/client/ui/HUD.ts:572` `.ws-quest-obj`) and the map tab
+  one quest card (`src/engine/client/ui/Menu.ts:352` `renderQuest()` reads a single `fullMap.quest`). No quest list, no accept,
   no turn-in, no giver marker exists.
-- **Discovery** exists (`src/engine/quest/discovery.ts`, 45 lines); no "discover N of these places" step.
+- **Discovery** exists (`src/engine/server/quest/discovery.ts`, 45 lines); no "discover N of these places" step.
 
 Work (data-only rows, game layer):
 

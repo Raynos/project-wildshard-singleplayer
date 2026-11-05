@@ -5,8 +5,8 @@ import { retryChunks, type ChunkModules } from '../scripts/ios-retry-check.mjs';
 
 const modules: ChunkModules = {
   'assets/three.js': { name: 'three', moduleIds: ['node_modules/three/build/three.module.js'] },
-  'assets/engine.js': { name: 'engine', moduleIds: ['src/engine/core/Game.ts'] },
-  'assets/client-plan.js': { name: 'client-plan', moduleIds: ['src/game/shardfile/clientPlan.ts'] },
+  'assets/engine.js': { name: 'engine', moduleIds: ['src/engine/client/core/Game.ts'] },
+  'assets/client-plan.js': { name: 'client-plan', moduleIds: ['src/game/client/shardfile/clientPlan.ts'] },
 };
 
 test('retry selection uses the current data-only client plan module', () => {

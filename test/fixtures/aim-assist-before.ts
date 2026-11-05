@@ -1,5 +1,5 @@
 // Frozen 853835e607 AimAssist; only defining import paths are relocated.
-import { app } from '../../src/engine/app/runtime';
+import { app } from '../../src/engine/client/app/runtime';
 /**
  * AimAssist — console-style (CoD / GTA pad) aim help for TOUCH play. Mouse users never get it: only TouchControls
  * drives it. Three classic parts, all against alive animals within RANGE m and in front of the camera, all gated by
@@ -28,9 +28,9 @@ import { app } from '../../src/engine/app/runtime';
  * Targets come from AimTargets.ts (`setAimTargets(animals.animals)` in main.ts).
  */
 import * as THREE from 'three';
-import type { Player } from '../../src/engine/player/Player';
-import type { AimTarget } from '../../src/engine/player/AimTargets';
-import { getSetting } from '../../src/engine/ui/Settings';
+import type { Player } from '../../src/engine/client/player/Player';
+import type { AimTarget } from '../../src/engine/client/player/AimTargets';
+import { getSetting } from '../../src/engine/client/ui/Settings';
 
 const DEG = Math.PI / 180;
 const RANGE = 60;                                            // m — nothing farther gets any help

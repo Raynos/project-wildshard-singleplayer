@@ -1,18 +1,18 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Real Rapier bytes.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { CHUNK_HALF } from '../src/engine/core/config';
-import { NetClient } from '../src/engine/net/client';
-import type { NetTravel } from '../src/engine/net/messages';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { createSimHost, type SimHost, type SimLevel } from '../src/engine/sim';
-import { leadPlayer } from '../src/engine/sim/leadPlayer';
-import { restoreSimHost, type SimSnapshot } from '../src/engine/sim/snapshot';
+import { CHUNK_HALF } from '../src/engine/shared/core/config';
+import { NetClient } from '../src/engine/client/net/client';
+import type { NetTravel } from '../src/engine/shared/net/messages';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost, type SimHost, type SimLevel } from '../src/engine/server/sim';
+import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
+import { restoreSimHost, type SimSnapshot } from '../src/engine/shared/sim/snapshot';
 import { directLoopback } from '../src/engine/test/netLoopback';
-import { GridAssembly } from '../src/game/grid/assembly';
-import { GridRoom } from '../src/game/grid/room';
-import { GridNetRooms } from '../src/game/grid/roomNet';
-import { GridSimulation } from '../src/game/grid/simulation';
+import { GridAssembly } from '../src/game/server/grid/assembly';
+import { GridRoom } from '../src/game/server/grid/room';
+import { GridNetRooms } from '../src/game/server/grid/roomNet';
+import { GridSimulation } from '../src/game/server/grid/simulation';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 // P1-E3.9: a client over the real codec walks its player out of the road and into a cell. It hears `travel`, its frames name

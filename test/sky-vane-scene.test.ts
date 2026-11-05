@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { BoxGeometry, Group, Mesh, Vector3 } from 'three';
-import { bindWorldSceneParts, createWorldScene } from '../src/game/plugin/scene';
+import { bindWorldSceneParts, createWorldScene } from '../src/game/client/plugin/scene';
 import { originalSkySceneInputs } from './fixtures/sky-scene-source';
 
 const { routes: { SKY_VANES } } = await originalSkySceneInputs();

@@ -4,7 +4,7 @@ Surface: `git diff 1ea79c334 HEAD` on the brief's paths, register MC1–MC24, ba
 the fixes name was opened: `scripts/bench-load.mjs`, `scripts/sim-memory.mjs`, `scripts/parity.mjs`,
 `scripts/webkit-mem-reading.mjs`, `scripts/worldclaw/{capture-front.sh,spec-map.py,spec.ts,design-template.md}`,
 `src/shards/*/budgetCeilings.ts`, `lint/url-params.json` (`chunk`, `explore`, `cam` are harness params),
-`src/game/session/play.ts:364-369` (`cam=x,y,z,yaw,pitch` reaches Explore), 06 §5 / §9 / §10.2 / §10.4 / §10.7 / §11,
+`src/game/client/session/play.ts:364-369` (`cam=x,y,z,yaw,pitch` reaches Explore), 06 §5 / §9 / §10.2 / §10.4 / §10.7 / §11,
 `.github/deploy-pin.json`, `project/archive/game-normalization/03-harness-gate.md` §8 case 6 and §16.
 Nine Dragon's `design/spec.json` and its machine block parse against `spec.ts` (checked with node; 6 places,
 `scope: slice`, `run.mode: existing`). `node scripts/check-shards.mjs` passes with `design/` (MC3 landed).

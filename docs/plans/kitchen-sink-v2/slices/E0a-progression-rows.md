@@ -19,7 +19,7 @@ levels-combat §15 (locked, 19aa). Nothing in this slice changes a fight; E0b–
 Research (HEAD `83fe4ad845`):
 
 - Nothing levelled exists. The player is `PlayerHealth` with a fixed `{ health: 100, maxHealth: 100, incomingCap:
-  Infinity }` (`src/engine/combat/health.ts:29`); creatures carry their authored `hp` per species variant
+  Infinity }` (`src/engine/server/combat/health.ts:29`); creatures carry their authored `hp` per species variant
   (`out/_template/sections/actors/species.json`). No `progression` section is registered in `src/format/sections.ts`.
 - Opt-in works by section presence: a product that ships no section gets no reader (the custom-section freeze and the
   section registry in `src/format/sections.ts`, `src/format/platformFileFamilies.ts`). A missing `progression` section
@@ -27,8 +27,8 @@ Research (HEAD `83fe4ad845`):
 - Word guard: `lint/engine-words.json` (38 words) does not forbid "level", but the engine uses "level" for a map
   (`level.loaded`, `src/engine/level/`), so the engine-side field is `grade` (levels-combat §6); the format and game
   layers may say `level`.
-- RNG: named streams are `gameplay | ai | spawn | cosmetic` (`src/engine/core/rng.ts:68`) plus the game's `loot`
-  (`src/game/rng.merge.d.ts`); streams are created lazily, so a `combat` stream that is never created leaves every
+- RNG: named streams are `gameplay | ai | spawn | cosmetic` (`src/engine/shared/core/rng.ts:68`) plus the game's `loot`
+  (`src/game/shared/rng.merge.d.ts`); streams are created lazily, so a `combat` stream that is never created leaves every
   replay and snapshot as it is (E0b adds it).
 
 Work:

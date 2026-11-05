@@ -162,8 +162,8 @@ test.each(['G614', 'G665', 'G667', 'G677'])('%s credits the exact tagged binding
 
 test('the picked riding host approves its seated figure and exact cap/native-port declarations', () => {
   const approvals = g571HostApprovals('.');
-  expect(approvals.get('src/game/riding/seatedFigure.ts')).toEqual(new Set(['SeatedFigure','GESTURES','SIGNALS','Mount']));
-  expect(approvals.get('src/game/models/mountedSpecimen.ts')).toBeNull();
+  expect(approvals.get('src/game/client/riding/seatedFigure.ts')).toEqual(new Set(['SeatedFigure','GESTURES','SIGNALS','Mount']));
+  expect(approvals.get('src/game/client/models/mountedSpecimen.ts')).toBeNull();
 });
 
 

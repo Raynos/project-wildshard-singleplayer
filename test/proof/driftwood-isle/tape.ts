@@ -1,11 +1,11 @@
-import type { SimHost } from '../../../src/engine/sim';
+import type { SimHost } from '../../../src/engine/server/sim';
 import type { HeadlessCommand } from '../../../src/sdk/tickProtocol';
 import { readNativeQuestSpots } from '@wildshard/game/quest/nativeComposition';
 import { DRIFTWOOD_SPOTS as nativeQuestSpots } from '../../../src/shards/driftwood-isle/generators/spots';
 import policy from '../../../src/shards/driftwood-isle/data/nativeQuest.json' with { type: 'json' };
 import * as v from 'valibot';
 import { Vector3 } from 'three';
-import { CableLayout } from '../../../src/engine/sim/cableTraversal';
+import { CableLayout } from '../../../src/engine/shared/sim/cableTraversal';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const { step: QUEST_STEP } = policy;

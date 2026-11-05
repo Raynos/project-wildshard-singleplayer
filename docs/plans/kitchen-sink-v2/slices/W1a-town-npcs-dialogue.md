@@ -15,7 +15,7 @@ and **M2.5** (Sky / Signal / Nine NPC rows, nothing to move), parent §2 19e/19y
 | Stable hand | inside the Stable Gate | `talk` (the loaner horse in W10a) |
 
 Six dev-bot figures (Blender scripts, toon look, small idle loops), `figures` rows (`src/format/figures.ts`, host
-`src/game/systems/npc/figureRows.ts`), talk prompts, 3–6 dialogue nodes each with flag-conditioned lines. Robots chirp,
+`src/game/client/systems/npc/figureRows.ts`), talk prompts, 3–6 dialogue nodes each with flag-conditioned lines. Robots chirp,
 no voice lines (19k).
 
 ## 2. Engine / game / host work, just in time

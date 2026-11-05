@@ -11,7 +11,7 @@ import { gridFloorDocumentIdentity, stageFloorGrid } from '../frame-floor-grid.m
 import { installLegacyProbeAdapter } from './probe.mjs';
 
 function observe() {
-  const api = /** @type {import('../../src/engine/debug/probe').EngineProbe | undefined} */ (window.__wildshard), world = api?.world;
+  const api = /** @type {import('../../src/engine/client/debug/probe').EngineProbe | undefined} */ (window.__wildshard), world = api?.world;
   if (!world) return null;
   const exposed = api.shard.grid;
   const grid = /** @type {import('../frame-floor-grid.mjs').FloorGridState | undefined} */ (typeof exposed === 'object' && exposed !== null && 'state' in exposed && typeof exposed.state === 'function' ? exposed.state() : undefined);
@@ -75,7 +75,7 @@ async function run(browser, base, mode, out) {
     } else await page.locator('.ws-main-grid').tap();
     phase = 'world-play-ready';
     await page.waitForFunction(() => {
-      const api = /** @type {import('../../src/engine/debug/probe').EngineProbe | undefined} */ (window.__wildshard);
+      const api = /** @type {import('../../src/engine/client/debug/probe').EngineProbe | undefined} */ (window.__wildshard);
       return api?.world?.game.app.state === 'play' && !document.querySelector('#hud.intro,.ws-reveal');
     }, undefined, { timeout: 150000 });
     if (mode !== 'template') {
@@ -108,7 +108,7 @@ async function run(browser, base, mode, out) {
     await hover.tap();
     phase = 'hover-mounted';
     await page.waitForFunction(() => {
-      const api = /** @type {import('../../src/engine/debug/probe').EngineProbe | undefined} */ (window.__wildshard), world = api?.world;
+      const api = /** @type {import('../../src/engine/client/debug/probe').EngineProbe | undefined} */ (window.__wildshard), world = api?.world;
       return world?.player.hover === true && world.player.hoverBlend > 0.5 &&
         world.weapons.tools.some(tool => tool.id === 'tool.hoverboard' && tool.enabled && 'model' in tool && tool.model instanceof Object && 'visible' in tool.model && tool.model.visible === true);
     }, undefined, { timeout: 5000 });
@@ -116,7 +116,7 @@ async function run(browser, base, mode, out) {
     await hover.tap();
     phase = 'hover-unmounted';
     await page.waitForFunction(() => {
-      const api = /** @type {import('../../src/engine/debug/probe').EngineProbe | undefined} */ (window.__wildshard);
+      const api = /** @type {import('../../src/engine/client/debug/probe').EngineProbe | undefined} */ (window.__wildshard);
       return api?.world?.player.hover === false;
     }, undefined, { timeout: 5000 });
     unmounted = await page.evaluate(observe);

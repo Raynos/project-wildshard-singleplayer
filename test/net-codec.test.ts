@@ -1,11 +1,11 @@
 import { expect, test } from 'vitest';
-import { BitReader, BitWriter, NetDecodeError } from '../src/engine/net/bits';
-import { NET_BUTTONS } from '../src/engine/input/netButtons';
-import { decodeCommands, encodeCommands } from '../src/engine/net/command';
-import { decodeFrame, encodeFrame, WorldFrame, type DecodedFrame, type FrameInput } from '../src/engine/net/frame';
-import { decodeAct, decodeEvents, decodeHello, decodeWelcome, encodeAct, encodeEvents, encodeHello, encodeWelcome, type InitialBits, type NetEvent } from '../src/engine/net/messages';
-import { NET_SCHEMA_HASH } from '../src/engine/net/netSchemas';
-import { compileSchema, netSchema, netSchemaHash, schemaDescription, type NetClass } from '../src/engine/net/schema';
+import { BitReader, BitWriter, NetDecodeError } from '../src/engine/shared/net/bits';
+import { NET_BUTTONS } from '../src/engine/shared/input/netButtons';
+import { decodeCommands, encodeCommands } from '../src/engine/shared/net/command';
+import { decodeFrame, encodeFrame, WorldFrame, type DecodedFrame, type FrameInput } from '../src/engine/shared/net/frame';
+import { decodeAct, decodeEvents, decodeHello, decodeWelcome, encodeAct, encodeEvents, encodeHello, encodeWelcome, type InitialBits, type NetEvent } from '../src/engine/shared/net/messages';
+import { NET_SCHEMA_HASH } from '../src/engine/shared/net/netSchemas';
+import { compileSchema, netSchema, netSchemaHash, schemaDescription, type NetClass } from '../src/engine/shared/net/schema';
 
 // P1-E5.2 (E5-REPLICATION §9): the codec's properties, with a seeded stream so a failure reproduces.
 

@@ -3,7 +3,7 @@
 //
 // For every key in src/shards/pine-hollow/runtime/looks/sky.ts (`keys`): take `public/assets/hdri/<id>_2k.hdr` when the repo has it, else fetch the
 // 2k .hdr from Poly Haven (CC0) into the OS temp dir (the .hdr is not committed), paint the HDRI's own sun (or moon) disc
-// out, and write `public/assets/hdri/<id>_2k.key.jpg` + `<id>_2k.key.gain.png` — the pair src/engine/world/BakedSky.ts decodes
+// out, and write `public/assets/hdri/<id>_2k.key.jpg` + `<id>_2k.key.gain.png` — the pair src/engine/client/world/BakedSky.ts decodes
 // (~0.3 MB instead of a 4–5 MB RGBE file).
 //
 // GR8 / D2: a standalone asset tool, not a scheduler job: its 14 pairs are committed binaries the shard reads as

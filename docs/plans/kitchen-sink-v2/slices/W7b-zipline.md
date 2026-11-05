@@ -15,7 +15,7 @@ Gold ●10 waits on the roof (W9b).
 Research:
 
 - **The zipline is already a row:** `src/format/modes.ts:11` `ZiplineModeSchema { kind: 'zipline', id, top, bottom, … }`,
-  one of three traverse kinds (`modes.ts:54`: zipline, updraft, ladder). The law is `src/engine/sim/cableTraversal.ts`
+  one of three traverse kinds (`modes.ts:54`: zipline, updraft, ladder). The law is `src/engine/shared/sim/cableTraversal.ts`
   (286 lines, client and headless).
 - **The cable look is a Driftwood generator:** `src/shards/driftwood-isle/generators/ziplineCable.ts` (45 lines) builds
   the cable's geometry; Driftwood's quest host starts the ride with a `cable` command (`out/driftwood-isle/sections/

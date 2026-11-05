@@ -1,10 +1,10 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Real Rapier bytes.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { createSimHost } from '../src/engine/sim';
-import { leadPlayer } from '../src/engine/sim/leadPlayer';
-import { bindPlayerColumns } from '../src/game/shardfile/dataCreaturePorts';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost } from '../src/engine/server/sim';
+import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
+import { bindPlayerColumns } from '../src/game/server/shardfile/dataCreaturePorts';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 // P1-E3.10: a column of air lifts every player boarding through it, as it only ever lifted the lead, and a parked seat not at all.

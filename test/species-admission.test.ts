@@ -3,7 +3,7 @@ import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { fixtureJsonCheck } from './fixtures/productFile';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { admittedSheepProduct } from './fake/admittedSheep';
 
 const encode=(value:unknown):Uint8Array=>new TextEncoder().encode(JSON.stringify(value));

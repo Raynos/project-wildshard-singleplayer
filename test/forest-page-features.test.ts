@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
-import { CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
+import { CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';
 import plan from '../src/shards/pine-hollow/data/clientPlan.json' with { type: 'json' };
 
 // G571: a forest page, its cave, weather and life are declared client features (sp-x8 QX: inline page-mode caps,

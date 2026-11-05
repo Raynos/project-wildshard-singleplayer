@@ -1,17 +1,17 @@
 import {expect,test,vi} from 'vitest';
 import * as THREE from 'three';
 import * as v from 'valibot';
-import {createShardProduct} from '../src/game/shardfile/shardProduct';
-import {explorerRoster} from '../src/game/models/explorerCatalogue';
+import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
+import {explorerRoster} from '../src/game/client/models/explorerCatalogue';
 import {emptyShardfile} from '../src/sdk/author';
 import {nameBlob,emitNamedBlobs} from '../src/sdk/blobs';
 import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
 import {SpecimenBookSchema} from '@wildshard/format/specimenCatalogue';
 import {parseExplorerCatalogue} from '@wildshard/format/explorerCatalogue';
-import {initializeTier,TIER} from '../src/engine/core/tier';
-import {WorldRegistry} from '../src/engine/world/registry';
-import {modelContext} from '../src/engine/models/model';
-import {SkyRig} from '../src/engine/world/skyRig';
+import {initializeTier,TIER} from '../src/engine/client/core/tier';
+import {WorldRegistry} from '../src/engine/client/world/registry';
+import {modelContext} from '../src/engine/client/models/model';
+import {SkyRig} from '../src/engine/client/world/skyRig';
 
 function fixture(offset=false){
   const vertices=Float32Array.from([0,0,0,1,0,0,0,1,0]);

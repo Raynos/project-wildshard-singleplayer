@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import { AdmissionLateSchema } from '@wildshard/format/admissionLate';
 import { expect, test } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
-import { controlFiles, deferredFiles, lateFiles } from '../src/game/shardfile/controlFiles';
+import { controlFiles, deferredFiles, lateFiles } from '../src/game/client/shardfile/controlFiles';
 
 test('control transport keeps critical and library dependencies but leaves distant tiles declared', () => {
   const source = emptyShardfile({ slug: 'control-files', name: 'Control', author: 'Fixture', seed: 1, revision: 1 });

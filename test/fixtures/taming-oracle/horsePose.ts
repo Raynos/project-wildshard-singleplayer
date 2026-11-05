@@ -1,6 +1,6 @@
 // Frozen horse postPose at c7c6ddd9b; only its explicit wind port and renderer-free context type differ.
-import type { AnimalRigContext } from '../../../src/engine/entities/animalRig';
-import { smooth01, bump, clamp } from '../../../src/engine/entities/species/rigs';
+import type { AnimalRigContext } from '../../../src/engine/shared/entities/animalRig';
+import { smooth01, bump, clamp } from '../../../src/engine/shared/entities/species/rigs';
 const decayKnob = (m: Record<string, number>, k: string, dt: number, rate: number): number => {
   const v = m[k] ?? 0;
   if (v > 0) m[k] = Math.max(0, v - dt * rate);

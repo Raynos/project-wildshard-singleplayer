@@ -7,10 +7,10 @@ import {selectionCatalogueSource,selectionModules} from '../scripts/title-catalo
 import {bootModuleFiles} from '../scripts/app-build/bootModules';
 import {writtenBundle} from '../scripts/app-build/writtenBundle';
 import {buildWithBootModules} from './fixtures/written-build';
-import {readModuleFiles} from '../src/engine/boot/download';
-import {catalogueManifests,titleManifests,titleMetadata,installTitleManifests} from '../src/game/shard/titleList';
-import {shards,installShards} from '../src/game/shard/list';
-import {saveCards} from '../src/game/savesSettings';
+import {readModuleFiles} from '../src/engine/client/boot/download';
+import {catalogueManifests,titleManifests,titleMetadata,installTitleManifests} from '../src/game/client/shard/titleList';
+import {shards,installShards} from '../src/game/client/shard/list';
+import {saveCards} from '../src/game/client/savesSettings';
 import { installCatalogueFixture } from './fixtures/bootSetup';
 
 await installCatalogueFixture();
@@ -18,7 +18,7 @@ await installCatalogueFixture();
 test('one selected discovery graph excludes other worlds and full catalogue bytes',async()=>{
  mkdirSync('tmp/shard-selection',{recursive:true});const root=mkdtempSync(resolve('tmp/shard-selection/compiler-'));
  try{
-  for(const path of ['src/shards/first','src/shards/second','src/game/shardfile','src/game/grid'])mkdirSync(resolve(root,path),{recursive:true});
+  for(const path of ['src/shards/first','src/shards/second','src/game/client/shardfile', 'src/game/shared/shardfile', 'src/game/server/shardfile','src/game/client/grid', 'src/game/shared/grid', 'src/game/server/grid'])mkdirSync(resolve(root,path),{recursive:true});
   writeFileSync(resolve(root,'index.html'),'<html><head></head><body><script type="module" src="/src/entry.ts"></script></body></html>');
   writeFileSync(resolve(root,'src/shards/first/manifest.ts'),'export default {slug:"first",name:"The first world"};');
   writeFileSync(resolve(root,'src/shards/second/manifest.ts'),'export default {slug:"second",name:"The second world"};');
@@ -32,8 +32,8 @@ test('one selected discovery graph excludes other worlds and full catalogue byte
     window.client=()=>import('./game/shardfile/client');window.grid=()=>import('./game/grid/session');
     async function startSelected(){return (await import('./first')).ready;}void startSelected();`);
   writeFileSync(resolve(root,'src/first.ts'),'export const ready=true;');
-  writeFileSync(resolve(root,'src/game/shardfile/client.ts'),'export const ready=true;');
-  writeFileSync(resolve(root,'src/game/grid/session.ts'),'export const ready=true;');
+  writeFileSync(resolve(root,'src/game/client/shardfile/client.ts'),'export const ready=true;');
+  writeFileSync(resolve(root,'src/game/client/grid/session.ts'),'export const ready=true;');
   const outDir=await buildWithBootModules(root),bundle=writtenBundle(outDir,root);
   const match=/<script type="application\/json" id="boot-module-files">([^<]+)<\/script>/u.exec(readFileSync(resolve(outDir,'index.html'),'utf8'));
   if(match?.[1]===undefined)throw new Error('Missing module facts');

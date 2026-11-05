@@ -10,7 +10,7 @@ import { Noise2D } from '@wildshard/sdk/noise';
 import { bakeCachedGeometry as bakedGeometry } from '@wildshard/sdk/bake/facetedGeometry';
 
 export function graniteBlock(w: number, h: number, d: number, seed: number, rough = 0.18, segs = 3): THREE.BufferGeometry {
-  // built at `wildshard build` time and read back at load (SF67: src/engine/world/geometryBake.ts, scripts/bake-geometry.mjs);
+  // built at `wildshard build` time and read back at load (SF67: src/engine/client/world/geometryBake.ts, scripts/bake-geometry.mjs);
   // the bake holds the shape (position, index), and the smooth normals are exact arithmetic, so they are made here
   const g = bakedGeometry('nalati-grasslands/granite', [w, h, d, seed, rough, segs], null, () => graniteShape(w, h, d, seed, rough, segs));
   g.computeVertexNormals();

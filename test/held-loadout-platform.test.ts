@@ -1,18 +1,18 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the installed native families on shipped Rapier bytes.
 import { readFileSync } from 'node:fs';
-import { createSimHost } from '../src/engine/sim';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { HOST_PROBE } from '../src/game/plugin/simulation';
-import { createNativeCombatFrame, installNativeItems } from '../src/game/plugin/nativeItems';
+import { createSimHost } from '../src/engine/server/sim';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { HOST_PROBE } from '../src/game/server/plugin/simulation';
+import { createNativeCombatFrame, installNativeItems } from '../src/game/server/plugin/nativeItems';
 import { parseItems } from '@wildshard/format/items';
 import { pineItems } from '../src/shards/pine-hollow/generators/channelSections';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { AmmoPouch } from '../src/game/loadout/pouch';
+import { AmmoPouch } from '../src/game/server/loadout/pouch';
 import { NativeHeldAmmunition, installNativeHeldAmmunition, nativeHeldAmmunition } from '@wildshard/game/loadout/nativeAmmunition';
-import { loadoutLegacySlot } from '../src/game/loadout/persistence';
-import { restoreHeldOwnership } from '../src/game/loadout/held';
-import { SaveStore } from '../src/engine/saves/store';
+import { loadoutLegacySlot } from '../src/game/server/loadout/persistence';
+import { restoreHeldOwnership } from '../src/game/client/loadout/held';
+import { SaveStore } from '../src/engine/shared/saves/store';
 import { LoadoutSchema } from '@wildshard/format/loadout';
 import pineRows from '../src/shards/pine-hollow/data/loadout.json' with { type: 'json' };
 

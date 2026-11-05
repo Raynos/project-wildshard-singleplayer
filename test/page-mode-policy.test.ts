@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { currentPageMode, setPageMode } from '../src/game/grid/pageMode';
-import { pageModeValue, pageModeCap } from '../src/game/shard/pagePolicy';
+import { currentPageMode, setPageMode } from '../src/game/shared/grid/pageMode';
+import { pageModeValue, pageModeCap } from '../src/game/client/shard/pagePolicy';
 import policy from '../src/shards/pine-hollow/data/pagePolicy.json' with { type: 'json' };
 
 test('declared policy follows the chosen page without mutating its rows', () => {

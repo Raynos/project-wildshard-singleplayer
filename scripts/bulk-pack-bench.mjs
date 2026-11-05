@@ -9,7 +9,7 @@
 // --tree (brotli at --loose-q, today's served wire size) and the parts from --packs (their .br next to them when the
 // packer wrote one). A muted headless Chromium as the iPhone 16 Pro, throttled with the phone-loading preset's
 // network (100 ms latency, 10 Mb/s down) and a CPU rate, runs each path cold in a fresh context:
-//   loose-8    today's spawn download (src/game/boot/spawnDownload.ts): the manifest, then every file through 8 lanes,
+//   loose-8    today's spawn download (src/game/client/boot/spawnDownload.ts): the manifest, then every file through 8 lanes,
 //              each body read chunk by chunk with a progress paint, and each response put into Cache Storage (a cold
 //              first visit has no worker controller, so the page stores every file itself), then the session's
 //              re-read of every file from that cache

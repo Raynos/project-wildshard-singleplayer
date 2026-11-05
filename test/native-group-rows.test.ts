@@ -4,12 +4,12 @@ import {admissionNative} from './fixtures/nalati-return-modules';
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { createSimHost } from '../src/engine/sim';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { installNativeGroupRows, nativeGroupCollection, nativeHerdCollection } from '../src/game/shardfile/groupRuntime';
-import { NativeWildEnvironment } from '../src/game/population/nativeManager';
-import { GrassField } from '../src/game/systems/looks/grassField';
-import { TrampleField } from '../src/game/systems/looks/trampleField';
+import { createSimHost } from '../src/engine/server/sim';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { installNativeGroupRows, nativeGroupCollection, nativeHerdCollection } from '../src/game/server/shardfile/groupRuntime';
+import { NativeWildEnvironment } from '../src/game/server/population/nativeManager';
+import { GrassField } from '../src/game/server/systems/looks/grassField';
+import { TrampleField } from '../src/game/server/systems/looks/trampleField';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 const pack = { id: 'orchard.boars', kind: 'pack', members: ['orchard.scout'], home: [3,4], thinkDivisor: 6,

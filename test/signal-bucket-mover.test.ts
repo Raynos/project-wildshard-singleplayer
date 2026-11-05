@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { createMoverHost, MoverRuntime } from '../src/game/plugin/mover';
+import { Scope } from '../src/engine/shared/app/scope';
+import { createMoverHost, MoverRuntime } from '../src/game/server/plugin/mover';
 import { SIGNAL_BUCKET_MOVERS, SIGNAL_BUCKET_CHANNELS } from '../src/shards/sunscar-dunes/generators/bucket';
 import { FLAG } from '../src/shards/sunscar-dunes/generators/rows/flags';
 

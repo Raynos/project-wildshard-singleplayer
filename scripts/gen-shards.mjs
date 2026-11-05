@@ -78,7 +78,7 @@ export function shardFolders(root) {
 export function shardSource(root) {
   const products = shardProducts(root, shardFolders(root)), slugs = products.map((row) => row.slug);
   if (slugs.length === 0) throw new Error('gen-shards: no shard manifests');
-  const catalogue = resolve(root, 'src/game/grid/singleplayer.json');
+  const catalogue = resolve(root, 'src/game/shared/grid/singleplayer.json');
   const placements = existsSync(catalogue) ? JSON.parse(readFileSync(catalogue, 'utf8')).placements : null;
   if (placements !== null) {
     const seen = new Set();
@@ -167,7 +167,7 @@ export function manifestContract(root, closure, fields = false) {
     if (typeof budget === 'number' && size > budget) failures.push(`src/shards/${slug}/manifest.ts: its static closure is ${size} files, over its budget ${budget} (${BUDGET_FILE}); move the new imports behind load / a lazy thunk`);
   }
   if (fields) {
-    const file = resolve(root, 'src/game/shard/manifest.ts');
+    const file = resolve(root, 'src/game/server/shard/manifest.ts');
     const decl = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
     let names = [];
     decl.forEachChild((n) => { if (ts.isInterfaceDeclaration(n) && n.name.text === 'ShardManifest') names = n.members.filter(ts.isPropertySignature).map((m) => m.name.getText(decl)); });
@@ -261,13 +261,13 @@ function retireDiscoveryBank(root) {
 
 /** The committed slug tables (TS and JSON; GS3) by output path, from the shard folders' manifests alone. */
 export function slugTables(root) {
-  return { 'src/game/shard/slugs.generated.ts': slugSource(root), 'src/game/shard/slugs.generated.json': `${JSON.stringify(Object.fromEntries(shardSlugs(root).map(slug=>[slug,true])),null,2)}\n` };
+  return { 'src/game/server/shard/slugs.generated.ts': slugSource(root), 'src/game/server/shard/slugs.generated.json': `${JSON.stringify(Object.fromEntries(shardSlugs(root).map(slug=>[slug,true])),null,2)}\n` };
 }
 /** The build-written shard tables (the shard list, the manifest closure), which import and walk every product's
  *  discovery module, by output path. genShards writes them and the slug tables; gen:source registers both. */
 export function shardTables(root) {
   const closure = manifestClosure(root);
-  return { 'src/shards.generated.ts': shardSource(root), 'src/game/shard/manifest-closure.generated.json': `${JSON.stringify(closure, null, 2)}\n` };
+  return { 'src/shards.generated.ts': shardSource(root), 'src/game/server/shard/manifest-closure.generated.json': `${JSON.stringify(closure, null, 2)}\n` };
 }
 
 /** Emit the manifest/slug inputs the boot writer actually consumes. Title data
@@ -337,8 +337,8 @@ export function titleTables(root) {
   const selectionInput = read('TITLE-SELECTION ').replaceAll('import("/out/.app/', 'import("./').replaceAll('import("/src/', 'import("../../src/').replaceAll('.ts")', '")');
   const selection = swap(selectionInput,
     'export const SHARD_LOADERS=', 'export const SHARD_LOADERS: Readonly<Record<string, () => Promise<ShardManifest>>> = ');
-  return { 'out/.app/titleCatalogue.generated.ts': `import type { TitleManifest } from '../../src/game/shard/titleList';\n${catalogue}`,
-    'out/.app/shardSelection.generated.ts': `import type { ShardManifest } from '../../src/game/shard/manifest';\n${selection}` };
+  return { 'out/.app/titleCatalogue.generated.ts': `import type { TitleManifest } from '../../src/game/client/shard/titleList';\n${catalogue}`,
+    'out/.app/shardSelection.generated.ts': `import type { ShardManifest } from '../../src/game/server/shard/manifest';\n${selection}` };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {

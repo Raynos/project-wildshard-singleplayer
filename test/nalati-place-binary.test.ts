@@ -6,11 +6,11 @@ import {createHash} from 'node:crypto';
 import * as v from 'valibot';
 import {expect,test} from 'vitest';
 import {SceneFloorSchema} from '@wildshard/format/sceneDressing';
-import {readSceneFloors} from '../src/game/shardfile/sceneDressing';
-import {prepareBinarySources} from '../src/game/models/binarySource';
-import {createShardProduct} from '../src/game/shardfile/shardProduct';
+import {readSceneFloors} from '../src/game/client/shardfile/sceneDressing';
+import {prepareBinarySources} from '../src/game/client/models/binarySource';
+import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
-import {Scope} from '../src/engine/app/scope';
+import {Scope} from '../src/engine/shared/app/scope';
 
 const source=v.parse(v.object({places:v.object({rows:v.array(v.object({members:v.array(v.tuple([v.string(),v.object({floors:v.array(SceneFloorSchema)})]))}))})}),
   nalatiRuntime);

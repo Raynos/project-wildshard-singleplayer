@@ -35,12 +35,12 @@ export function controlChunkSelector(root: string, startup = startupModuleRoots(
   return (id, graph) => {
     if (controls === undefined) {
       controls = membership(graph, homes.length === 0 ? [startup] : homes);
-      const titleRoots = ['src/entry.ts', 'src/engine/ui/StartTitle.ts', 'src/game/mainMenu.ts',
-        'src/game/grid/pageEntry.ts', 'src/game/travel/travel.ts'].map(file => resolve(root, file));
+      const titleRoots = ['src/entry.ts', 'src/engine/client/ui/StartTitle.ts', 'src/game/client/mainMenu.ts',
+        'src/game/client/grid/pageEntry.ts', 'src/game/client/travel/travel.ts'].map(file => resolve(root, file));
       for (const file of titleRoots) if (graph.getModuleInfo(file) === null) throw new Error(`Missing title chunk boundary: ${file}`);
       title = membership(graph, titleRoots.map(file => [file]));
       initial = membership(graph, [[resolve(root, 'index.html')], [resolve(root, 'calibration/index.html')]]);
-      session = staticClosure(graph, [resolve(root, 'src/game/session/session.ts')]);
+      session = staticClosure(graph, [resolve(root, 'src/game/client/session/session.ts')]);
     }
     const needed = controls.get(id) ?? 0n, titleMask = title?.get(id) ?? 0n;
     // An unconditional HTML dependency already runs in every entry in this
@@ -71,7 +71,7 @@ export function controlChunkSelector(root: string, startup = startupModuleRoots(
  * request counts do not move control there. Any coarser bank must add no bytes to any entry. */
 export function controlChunkGroups(root: string): Rolldown.CodeSplittingGroup[] {
   const startup = startupModuleRoots(root), grid = gridModuleRoots(root);
-  const base = [...startup, ...['src/main.ts', 'src/game/shardfile/client.ts', 'src/game/session/session.ts'].map(file => resolve(root, file))];
+  const base = [...startup, ...['src/main.ts', 'src/game/client/shardfile/client.ts', 'src/game/client/session/session.ts'].map(file => resolve(root, file))];
   const homes = homeModuleRoots(root).flatMap(optional => [[...base, ...optional], [...base, ...optional, ...grid]]);
   const dataRoots = new Set([...startup, ...homes.flat()].filter(id => id.endsWith('.json')));
   return [
@@ -86,7 +86,7 @@ export function controlChunkGroups(root: string): Rolldown.CodeSplittingGroup[] 
     { name: controlChunkSelector(root, startup, 'title', homes), includeDependenciesRecursively: false, maxSize: 2_000_000 },
     // This entry has its own 300 KB raw / 100 KB gzip per-chunk ceiling.
     // Its dependencies still join their exact shared requirement banks.
-    { name: 'grid-session', test: id => id === resolve(root, 'src/game/grid/session.ts'), includeDependenciesRecursively: false },
+    { name: 'grid-session', test: id => id === resolve(root, 'src/game/client/grid/session.ts'), includeDependenciesRecursively: false },
     { name: controlChunkSelector(root, startup, 'control', homes), includeDependenciesRecursively: false, maxSize: 4_000_000 },
     { name: id => { const slug = /\/src\/shards\/([^/]+)\//u.exec(id)?.[1]; return slug === undefined ? null : `shard-${slug}`; },
       entriesAware: true, includeDependenciesRecursively: false, maxSize: 4_000_000 },

@@ -144,7 +144,7 @@
     "id": "practice-arena",
     "name": "HUD + Weapon Explorer arena",
     "category": "ground",
-    "file": "src/engine/practice/TrainingArena.ts",
+    "file": "src/engine/client/practice/TrainingArena.ts",
     "colliders": [
       {
         "kind": "box",

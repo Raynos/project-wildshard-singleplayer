@@ -77,7 +77,7 @@ machine**, and only its output ships (§5).
 
 | Shard | Look | Shard-specific code (approx.) |
 |---|---|---|
-| **Driftwood Isle** (default) | Faceted low-poly toon | ~16k lines: 5.5k in `src/chunks/driftwood-isle*` + ~10.5k in engine folders (`src/world/*`, `src/entities/species/*`, `src/game/quest/*`, `src/audio/Island*`…) |
+| **Driftwood Isle** (default) | Faceted low-poly toon | ~16k lines: 5.5k in `src/chunks/driftwood-isle*` + ~10.5k in engine folders (`src/world/*`, `src/entities/species/*`, `src/game/*/quest/*`, `src/audio/Island*`…) |
 | **Pine Hollow** | Photoreal PBR | 5.2k in `src/chunks/pine-hollow` + 6.8k in `src/pinehollow` + engine-folder code |
 | **Nalati Grasslands** (early access) | Painterly | 4.0k in `src/chunks/nalati-grasslands` + 9.5k in `src/nalati` + engine-folder code |
 | **Nine Dragon Stack** (prototype, partial) | 界画霓虹 Jiehua Neon | 25.5k in `src/chunks/nine-dragon-stack` (108 files) |

@@ -1,13 +1,13 @@
 import {lendNalatiRiding} from './fixtures/nalati-riding-loan';
 import { NALATI_KOKPAR } from './fixtures/nalati-kokpar';
-import { installTamingEntry } from '../src/game/shardfile/clientEntryBinds';
-import { entryOwner, publishEntryOwner } from '../src/game/shardfile/entryOwners';
+import { installTamingEntry } from '../src/game/client/shardfile/clientEntryBinds';
+import { entryOwner, publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
-import type { ShardRuntime } from '../src/game/shard/runtime';
+import type { ShardRuntime } from '../src/game/server/shard/runtime';
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import {tamingRig} from './fixtures/tamingServices';
-import type {TamingHorse} from '../src/game/riding/bindingTypes';
+import type {TamingHorse} from '../src/game/server/riding/bindingTypes';
 import { PerspectiveCamera, Vector3, SkinnedMesh } from 'three';
 import { app as pageApp } from '@wildshard/engine/app/runtime';
 import { OriginalPracticeCourse } from './fixtures/course-controller.oracle';

@@ -25,7 +25,7 @@ first-person arms (details below).
 | Model | Builder | Output (shipped) | Loaded by | Model lock | Saves a `.blend` |
 |---|---|---|---|---|---|
 | Driftwood spawn cove: terrain tiles + ~60–72 prototypes, 16.7 k placements, AO + bounce lightmaps | `scripts/blender/build_island.py` (713 lines) + `assets.py` (385), fed by `export-scene.mjs` + `shards/driftwood-isle.mjs` (the game's own heights, colours and layout, run in Node); `pnpm blender:island` → `run.sh` | `public/assets/models/driftwood-blender/` (2.5 MB: `island.glb`, `placements.bin`, `island.json`, 4 lightmap WebPs) | `src/shards/driftwood-isle/world/BlenderIsland.ts` | **no** | no |
-| Pine Hollow tree set: 14 variants × 5 LOD parts, card + impostor atlases, 4 bark sets | `scripts/blender/trees/{treegen,build_trees,barkgen,glb}.py` + `run.sh` | `public/assets/models/pine-hollow-trees/` (4.4 MB) + `public/assets/tex/{fir_bark,…}/` | `src/engine/world/forest/treeSet.ts`, `TreeFactory.ts` | yes | no |
+| Pine Hollow tree set: 14 variants × 5 LOD parts, card + impostor atlases, 4 bark sets | `scripts/blender/trees/{treegen,build_trees,barkgen,glb}.py` + `run.sh` | `public/assets/models/pine-hollow-trees/` (4.4 MB) + `public/assets/tex/{fir_bark,…}/` | `src/engine/client/world/forest/treeSet.ts`, `TreeFactory.ts` | yes | no |
 | Pine Hollow crag kit (12 modules) | `scripts/blender/crags/{build_crags,rocklib}.py` + `run.sh kit` | `pine-hollow-crags/crags.glb` (348 KB) | `src/shards/pine-hollow/world/crags.ts` | yes | no |
 | Pine Hollow bear cave | `scripts/blender/crags/build_cave.py`, fed by `export-cave.mjs` (the baked heights round the mouth) | `pine-hollow-crags/cave.glb` (373 KB) | `src/shards/pine-hollow/world/crags.ts` | yes | no |
 | Lever rifle (hi / lo) | `scripts/blender/weapons/lever_rifle.py` (1,091 lines) + `run.sh` | `public/assets/pine-hollow/weapons/lever-rifle{,.phone}.glb` | `src/shards/pine-hollow/weapons/LeverRifle.ts` | yes | yes, into the build cache |
@@ -106,7 +106,7 @@ Jake's phone.
 
 ## 3. Where the files live (B1)
 
-B1 puts a model's **module** under `src/engine/models/` (shared) or `src/chunks/<slug>/models/` (one shard). The module is the
+B1 puts a model's **module** under `src/engine/client/models/` (shared) or `src/chunks/<slug>/models/` (one shard). The module is the
 TypeScript the game imports: its `defineModel` loads the GLB and owns variants, LODs and colliders. The **builder** that
 made the GLB is a build tool, and it stays out of `src/`:
 

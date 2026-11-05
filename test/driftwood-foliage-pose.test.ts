@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { Matrix4 } from 'three';
-import type { ColliderDesc } from '../src/engine/world/registry';
-import { placeCollider, poseOf } from '../src/engine/models/colliders';
+import type { ColliderDesc } from '../src/engine/client/world/registry';
+import { placeCollider, poseOf } from '../src/engine/client/models/colliders';
 import { foliagePose, palm, palmColliders, placeFoliageCollider } from '../src/shards/driftwood-isle/generators/foliageModels';
 
 // GR7: the foliage-scene bank places its colliders with shard-local copies of the engine's pose and collider placement;

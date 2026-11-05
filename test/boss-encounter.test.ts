@@ -1,10 +1,10 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { Group, PerspectiveCamera, Scene, Vector3 } from 'three';
-import { app } from '../src/engine/app/runtime';
-import { Scope } from '../src/engine/app/scope';
-import type { BossScript } from '../src/engine/ai/BossBrain';
-import { installBossEncounter, type BossEncounterPorts, type BossEncounterRows, type BossPersistence } from '../src/game/Boss';
+import { app } from '../src/engine/client/app/runtime';
+import { Scope } from '../src/engine/shared/app/scope';
+import type { BossScript } from '../src/engine/server/ai/BossBrain';
+import { installBossEncounter, type BossEncounterPorts, type BossEncounterRows, type BossPersistence } from '../src/game/server/Boss';
 import bossRows from '../src/shards/pine-hollow/data/bossEncounter.json' with { type: 'json' };
 import bossPresentation from '../src/shards/pine-hollow/data/bossPresentation.json' with { type: 'json' };
 import { bossEncounterPresentation } from '@wildshard/format/bossEncounter';

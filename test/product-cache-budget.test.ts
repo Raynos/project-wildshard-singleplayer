@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, test, vi } from 'vitest';
-import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
-import { isDev, setDev } from '../src/engine/core/devMode';
-import { browserShardfileOptions } from '../src/game/shardfile/runtimeProduct';
+import { installScopeEnvironment, scopeEnvironment } from '../src/engine/shared/app/scopeEnvironment';
+import { isDev, setDev } from '../src/engine/client/core/devMode';
+import { browserShardfileOptions } from '../src/game/client/shardfile/runtimeProduct';
 
 const original = scopeEnvironment(), developer = isDev();
 afterEach(() => { installScopeEnvironment(original); setDev(developer); vi.restoreAllMocks(); });

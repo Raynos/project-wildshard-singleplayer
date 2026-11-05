@@ -5,7 +5,7 @@ import { build } from 'vite';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 import { createProjectGeneration } from '../src/sdk/projectGeneration';
 import { nineEntryProof } from '../src/shards/nine-dragon-stack/generators/entryProof';
-import { Physics } from '../src/engine/physics/Physics';
+import { Physics } from '../src/engine/shared/physics/Physics';
 import { emptyShardfile } from '../src/sdk/author';
 import { portalEntryRows } from '../src/shards/nine-dragon-stack/generators/portalEntries';
 import { portalFloorRows } from '../src/shards/nine-dragon-stack/generators/portalFloors';
@@ -50,6 +50,6 @@ test('the authored entry proof bundles without importing its native capability i
   for (const chunk of chunks) {
     assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
     expect(Object.keys(chunk.modules).some(path => path.endsWith('/src/sdk/projectEntryProof.ts'))).toBe(false);
-    expect(Object.keys(chunk.modules).some(path => path.endsWith('/src/engine/physics/rapier.ts') || path.endsWith('/src/engine/physics/Physics.ts'))).toBe(false);
+    expect(Object.keys(chunk.modules).some(path => path.endsWith('/src/engine/shared/physics/rapier.ts') || path.endsWith('/src/engine/shared/physics/Physics.ts'))).toBe(false);
   }
 });

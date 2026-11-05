@@ -549,12 +549,12 @@ Singleplayer already built most of the **kit**, mostly once and wired to one sha
 |---|---|---|---|
 | Quest schema + state machine (pure data) | `src/game/quest/quest.ts`, `core.ts` | Driftwood, Pine, Nalati | Story quests as data, already |
 | Interactables as JSON rows + flags, with a validator that every read flag is raised somewhere | `src/world/interact/` | Driftwood, Pine | The upload format for puzzles. It checks membership, not reachability (§11) |
-| Boss system: arena, phase bar, checkpoints, a once-ever reward, re-fight | `src/game/Boss.ts` | Pine, Nalati (Driftwood's Captain is a separate path) | Boss tables |
-| Elite system: lair, leash, phase 2, banner, respawn, first-kill drop | `src/game/Elite.ts` | Pine, Nalati | Hunts and bounties |
+| Boss system: arena, phase bar, checkpoints, a once-ever reward, re-fight | `src/game/server/Boss.ts` | Pine, Nalati (Driftwood's Captain is a separate path) | Boss tables |
+| Elite system: lair, leash, phase 2, banner, respawn, first-kill drop | `src/game/server/Elite.ts` | Pine, Nalati | Hunts and bounties |
 | Respawn queue | `src/game/quest/Ecology.ts` | Driftwood | Event and ecology respawns |
 | Loot: coins, purse, bounty cap, shop, perks, Owned | `src/game/loot/` | coins / shop Driftwood-only | Currency and vendor rows |
 | Contract board, drawn by a hash of a serial, with no clock (PH-U21) | `src/pinehollow/quest/contracts.ts` | Pine | A reusable deterministic draw. A daily seed would hash the date instead, which is new work |
-| Achievements + titles | `src/game/achievements.ts`, `Progress.ts` | all, per shard | Account titles |
+| Achievements + titles | `src/game/server/achievements.ts`, `Progress.ts` | all, per shard | Account titles |
 | Compendium + trophy wall | `src/ui/compendium/`, `src/world/TrophyWall.ts` | Pine (built shard-agnostic) | Collections |
 | Shard-complete card; last-place checkpoint | `src/ui/ShardComplete.ts`, `src/game/LastPlace.ts` | Driftwood only | Completion; checkpoints |
 | Breadcrumb guides (gulls; ravens and owl) | `gullGuide.ts`, `src/pinehollow/life/` | Driftwood, Pine (built twice) | Diegetic "what's over there"; clue flights for hunts |

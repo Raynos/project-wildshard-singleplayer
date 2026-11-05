@@ -1,11 +1,11 @@
 import { installWorldFixture } from './fixtures/worldSetup';
 import { afterEach, expect, test, vi } from 'vitest';
-import { AnimalFactory, type AnimalModel } from '../src/engine/entities/AnimalFactory';
-import { SkyRig } from '../src/engine/world/skyRig';
-import { Scope } from '../src/engine/app/scope';
-import { currentOwner } from '../src/engine/app/ownership';
-import { pageScope } from '../src/engine/app/resources';
-import { app } from '../src/engine/app/runtime';
+import { AnimalFactory, type AnimalModel } from '../src/engine/client/entities/AnimalFactory';
+import { SkyRig } from '../src/engine/client/world/skyRig';
+import { Scope } from '../src/engine/shared/app/scope';
+import { currentOwner } from '../src/engine/shared/app/ownership';
+import { pageScope } from '../src/engine/shared/app/resources';
+import { app } from '../src/engine/client/app/runtime';
 import { BufferAttribute, Skeleton, Vector3 } from 'three';
 
 await installWorldFixture();

@@ -1,16 +1,16 @@
 // @vitest-environment happy-dom
 import { expect,test,vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { Flags } from '../src/engine/world/interact/flags';
-import { QuestState } from '../src/engine/quest/core';
-import { Owned } from '../src/game/loot/Owned';
-import { publishBoundQuest } from '../src/game/quest/boundState';
-import { installClientFinds } from '../src/game/shardfile/clientFinds';
-import { CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
+import { Scope } from '../src/engine/shared/app/scope';
+import { Flags } from '../src/engine/server/world/interact/flags';
+import { QuestState } from '../src/engine/server/quest/core';
+import { Owned } from '../src/game/server/loot/Owned';
+import { publishBoundQuest } from '../src/game/server/quest/boundState';
+import { installClientFinds } from '../src/game/client/shardfile/clientFinds';
+import { CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
-import type { ShardContext } from '../src/game/plugin/context';
-import type { ShardRuntime } from '../src/game/shard/runtime';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import {fixtureJsonCheck,fixtureProductFile} from './fixtures/productFile';

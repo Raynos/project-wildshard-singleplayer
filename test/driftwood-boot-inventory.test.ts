@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
-import { publicBytes } from '../src/engine/boot/tables';
+import { publicBytes } from '../src/engine/shared/boot/tables';
 import { driftwoodBootInventory } from '../src/shards/driftwood-isle/generators/bootInventory';
 import { DRIFTWOOD_BOOT_FILES, DRIFTWOOD_BOOT_SOURCES } from '../src/shards/driftwood-isle/generators/bootRecipes';
 import { GPU_FILES } from '../src/shards/driftwood-isle/ktx2.generated';
-import { bootFileList, bootLateReads, bootSourceFiles, resolveBootFiles, resolveBootSources } from '../src/engine/boot/filePolicy';
+import { bootFileList, bootLateReads, bootSourceFiles, resolveBootFiles, resolveBootSources } from '../src/engine/client/boot/filePolicy';
 import ISLAND_PLAN_FILES from '../src/shards/driftwood-isle/data/islandPlanFiles.json' with { type: 'json' };
 import original from './fixtures/driftwood-boot-original.json' with { type: 'json' };
 import manifest from '../src/shards/driftwood-isle/manifest.json' with { type: 'json' };

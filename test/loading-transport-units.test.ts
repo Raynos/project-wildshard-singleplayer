@@ -6,7 +6,7 @@ import { createServer, type Server } from 'node:http';
 // oxlint-disable-next-line import/no-nodejs-modules -- Independently verify the streamed proof digest.
 import { createHash } from 'node:crypto';
 import { decodedBodyCounter, observeTransport } from '../scripts/loading-benchmark/transport.mjs';
-import { productResourceRole } from '../src/game/shardfile/resourceRole';
+import { productResourceRole } from '../src/game/shared/shardfile/resourceRole';
 
 test('transport waits describe their role independently of the exact content address', () => {
   for (const hash of ['a'.repeat(64), 'b'.repeat(64)]) {

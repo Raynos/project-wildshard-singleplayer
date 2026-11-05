@@ -4,8 +4,8 @@ import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'nod
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the source fixture within its own clean tree.
 import { resolve } from 'node:path';
 import { parseManifestMetadata } from '@wildshard/format/minimap';
-import { defineAuthoredShard, declaredForestQueries, declaredGround } from '../src/game/shard/manifest';
-import { toLevelSpec } from '../src/game/shard/spec';
+import { defineAuthoredShard, declaredForestQueries, declaredGround } from '../src/game/server/shard/manifest';
+import { toLevelSpec } from '../src/game/server/shard/spec';
 import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 
 const root = resolve(import.meta.dirname, '..');

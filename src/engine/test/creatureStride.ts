@@ -1,4 +1,4 @@
-import type { AnimalRigJoint } from '../entities/animalRig';
+import type { AnimalRigJoint } from '../shared/entities/animalRig';
 
 // Historical contract oracle; production consumers use the data-driven owners.
 /** Numeric biped stride coefficients; omitted rest/brace terms use the ordinary weighted stance. */

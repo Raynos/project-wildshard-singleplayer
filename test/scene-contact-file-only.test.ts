@@ -1,8 +1,8 @@
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
-import type {ShardContext} from '../src/game/plugin/context';
-import {SceneDressing} from '../src/game/shardfile/sceneDressing';
+import type {ShardContext} from '../src/game/server/plugin/context';
+import {SceneDressing} from '../src/game/client/shardfile/sceneDressing';
 import {SceneDressingSchema} from '@wildshard/format/sceneDressing';
 
 test.each(['layer','static']as const)('a later inline %s contact refuses before reading any entered owner',async kind=>{

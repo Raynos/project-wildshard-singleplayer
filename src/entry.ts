@@ -17,7 +17,7 @@ import {prepareBootImports} from './bootDownloads';
  * title shell is already painted from index.html, so nothing waits on this but the boot itself.
  *
  * Both imports can fail before the error modal is armed (main.ts arms it): a chunk the host no longer serves, a network
- * gone mid-boot. src/engine/boot/stuck.ts watches the promise so that never leaves a frozen loader (E144).
+ * gone mid-boot. src/engine/client/boot/stuck.ts watches the promise so that never leaves a frozen loader (E144).
  *
  * MF3 (FOUNDATIONS): no import is retried in the page (WebKit keeps a failed module URL errored, so a retry in the same
  * document only adds 0.8 + 2.5 s before the same failure); a failed import rejects `entered`, and guardBoot reloads once.
@@ -135,7 +135,7 @@ guardBoot(entered);
 /** Composition root: select authored content and inject reusable kit recipes. */
 export async function start(): Promise<void> {
   // DL21: a start whose card stops moving (step, setup share, bytes) names its step after a bounded wait instead of
-  // leaving a dead card; the fatal modal's RELOAD HERE is the retry (src/engine/boot/stuckStep.ts)
+  // leaving a dead card; the fatal modal's RELOAD HERE is the retry (src/engine/client/boot/stuckStep.ts)
   const card = (): HTMLElement | null => document.querySelector<HTMLElement>('.ws-load');
   const started = startSelected();
   watchStuckStep(started, {

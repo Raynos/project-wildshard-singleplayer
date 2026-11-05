@@ -1,11 +1,11 @@
 import {expect, test} from 'vitest';
 import {Vector3} from 'three';
-import {AnimalSim} from '../src/engine/entities/AnimalSim';
-import {GrazerBrain, type GrazerObservation, type GrazerProfile} from '../src/engine/ai/grazer';
+import {AnimalSim} from '../src/engine/server/entities/AnimalSim';
+import {GrazerBrain, type GrazerObservation, type GrazerProfile} from '../src/engine/server/ai/grazer';
 import {GrazerBrain as OriginalGrazerBrain} from './fixtures/grazer-herd-original';
-import type {StrikeSpec} from '../src/engine/ai/strikes';
-import {Rng} from '../src/engine/core/rng';
-import {onFault, type Fault} from '../src/engine/core/faults';
+import type {StrikeSpec} from '../src/engine/server/ai/strikes';
+import {Rng} from '../src/engine/shared/core/rng';
+import {onFault, type Fault} from '../src/engine/shared/core/faults';
 
 function fixture(kind: 'wander-ram' | 'circle-challenge') {
   const actor = new AnimalSim({kind: 'grazer', label: 'Grazer', variant: 'common', rarity: 'common', hp: 30, aggressive: true,

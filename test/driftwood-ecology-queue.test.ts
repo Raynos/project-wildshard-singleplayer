@@ -1,11 +1,11 @@
-import {Scope} from '../src/engine/app/scope';
+import {Scope} from '../src/engine/shared/app/scope';
 import {lendDriftwoodReturns} from './fixtures/driftwood-return-modules';
 import { afterEach, expect, test } from 'vitest';
-import { RespawnQueue } from '../src/game/population/respawn';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+import { RespawnQueue } from '../src/game/server/population/respawn';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { RETURN_PROGRAM } from './fixtures/driftwood-guest-programs';
-import { Rng } from '../src/engine/core/rng';
-import { setTerrainHeight } from '../src/engine/world/terrainHeight';
+import { Rng } from '../src/engine/shared/core/rng';
+import { setTerrainHeight } from '../src/engine/shared/world/terrainHeight';
 import { compileDecisionScripts } from '../src/sdk/buildDecisionScripts';
 
 const owners:Scope[]=[];afterEach(()=>{for(const owner of owners.splice(0))owner.dispose();});

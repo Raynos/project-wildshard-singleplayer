@@ -1,4 +1,4 @@
-import { DirectorScriptStageLane, type DirectorLane } from '../../../src/game/plugin/director';
+import { DirectorScriptStageLane, type DirectorLane } from '../../../src/game/server/plugin/director';
 import rows from '../../../src/shards/pine-hollow/data/watchStages.json';
 import type { PineClockPorts, PineClockEvent } from './clock';
 

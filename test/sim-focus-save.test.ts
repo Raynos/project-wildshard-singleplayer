@@ -1,9 +1,9 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Rapier is a shipped binary.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
-import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
-import { createSimHost } from '../src/engine/sim';
-import { restoreSimHost, serializeSimSnapshot, snapshotSimHost, snapshotSimHostBytes } from '../src/engine/sim/snapshot';
+import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost } from '../src/engine/server/sim';
+import { restoreSimHost, serializeSimSnapshot, snapshotSimHost, snapshotSimHostBytes } from '../src/engine/shared/sim/snapshot';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 // Row 4: the player `playerFocus` follows is the sim's state. A body keeps reading it until the next `focusOn`.

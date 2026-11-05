@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { NALATI_KOKPAR } from './fixtures/nalati-kokpar';
-import { ProjectedState, ReturnProgram } from '../src/game/population/returnProgram';
+import { ProjectedState, ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { parseRidingPractice } from '@wildshard/format/practiceCourseRows';
 import { horseCourseRows } from '../src/shards/nalati-grasslands/generators/courseScene';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';

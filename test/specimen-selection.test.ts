@@ -1,17 +1,17 @@
-import { installWorldRegistry } from '../src/engine/world/registry';
+import { installWorldRegistry } from '../src/engine/client/world/registry';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the original named carving blocks through the same product fixture.
 import {readFileSync} from 'node:fs';
-import { place } from '../src/engine/models/place';
+import { place } from '../src/engine/client/models/place';
 import { parse } from 'valibot';
 import { SpecimenAssetSchema } from '@wildshard/format/specimenCatalogue';
 import { expect, test, vi } from 'vitest';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { staticGlb } from '../src/sdk/bake/glb';
-import { Rng } from '../src/engine/core/rng';
-import { modelContext, paramsOf } from '../src/engine/models/model';
-import { SkyRig } from '../src/engine/world/skyRig';
-import { defineSpecimenCatalogue, prepareSpecimenCatalogue, loadBoundSpecimen, awaitSpecimenAssets } from '../src/game/models/specimenCatalogue';
+import { Rng } from '../src/engine/shared/core/rng';
+import { modelContext, paramsOf } from '../src/engine/client/models/model';
+import { SkyRig } from '../src/engine/client/world/skyRig';
+import { defineSpecimenCatalogue, prepareSpecimenCatalogue, loadBoundSpecimen, awaitSpecimenAssets } from '../src/game/client/models/specimenCatalogue';
 import rows from './fixtures/nalati-balbal-original.json' with {type:'json'};
 
 installWorldRegistry();

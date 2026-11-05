@@ -41,7 +41,7 @@ test('approved feature receipts survive a next-wave switch without waiving unrel
 });
 
 test('G473 contracts and elites keep their approved credit across waves', () => {
-  const module = 'src/game/quest/contracts.ts';
+  const module = 'src/game/server/quest/contracts.ts';
   const allowance: PendingPlatformUser = { module, shard: 'nalati-grasslands',
     plan: { path: 'docs/plans/decisions.md', row: 'G484' },
     documentation: 'docs/ENGINE.md', 'rechecked-by': 'end of W3',
@@ -53,7 +53,7 @@ test('G473 contracts and elites keep their approved credit across waves', () => 
 });
 
 test('G483 declared runtime entry retains its explicit approved feature credit', () => {
-  const module = 'src/game/shardfile/clientPlan.ts';
+  const module = 'src/game/client/shardfile/clientPlan.ts';
   const allowance: PendingPlatformUser = { module, shard: 'nalati-grasslands',
     plan: { path: 'docs/plans/decisions.md', row: 'G483' },
     documentation: 'docs/ENGINE.md', 'rechecked-by': 'end of W3',
@@ -84,7 +84,7 @@ test('approval-only ledger entries require the exact decision and complete ordin
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync('tmp/approved-host-test-');
   try {
-    for (const dir of ['lint', 'src/game/looks', 'docs/plans']) mkdirSync(join(root, dir), { recursive: true });
+    for (const dir of ['lint', 'src/game/client/looks', 'src/game/shared/looks', 'docs/plans']) mkdirSync(join(root, dir), { recursive: true });
     writeFileSync(join(root, 'src/game/looks/fixture.ts'), 'export const feature = 1;');
     writeFileSync(join(root, 'docs/ENGINE.md'), 'game/looks/fixture');
     writeFileSync(join(root, 'docs/plans/decisions.md'), '| G475 | approved toon |');

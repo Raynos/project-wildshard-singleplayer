@@ -1,11 +1,11 @@
 import { expect,test,vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { createSimHost } from '../src/engine/sim';
-import { loadRapier } from '../src/engine/physics/rapier';
+import { Scope } from '../src/engine/shared/app/scope';
+import { createSimHost } from '../src/engine/server/sim';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
-import { PageWildEnvironment } from '../src/game/population/pageGroups';
-import { ObservationColumnsV2,type V2ColumnOwners,type V2ReferenceColumn } from '../src/engine/script/observationColumnsV2';
+import { PageWildEnvironment } from '../src/game/server/population/pageGroups';
+import { ObservationColumnsV2,type V2ColumnOwners,type V2ReferenceColumn } from '../src/engine/shared/script/observationColumnsV2';
 import { parseObservationColumnsV2,ObservationColumnsV2Schema } from '@wildshard/format/scriptObservationColumnsV2';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';

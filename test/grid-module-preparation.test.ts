@@ -1,6 +1,6 @@
 import { installCatalogueFixture } from './fixtures/bootSetup';
 import { expect, test, vi } from 'vitest';
-import { readGridEdges } from '../src/game/grid/edgeSources';
+import { readGridEdges } from '../src/game/client/grid/edgeSources';
 import { FIXTURE_RUNTIME_COST } from './fixtures/clientPlanRuntime';
 
 await installCatalogueFixture();

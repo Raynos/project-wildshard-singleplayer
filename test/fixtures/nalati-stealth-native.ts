@@ -1,10 +1,10 @@
 import * as v from 'valibot';
 import {StealthRowsSchema} from '@wildshard/format/stealth';
-import {StealthCrouch,sampleStealthSources} from '../../src/game/stealth/stealthLaw';
-import {nativeGroupCollection} from '../../src/game/shardfile/groupRuntime';
-import {mountedPlayerOf} from '../../src/game/riding/native';
-import {nativeTamingOf} from '../../src/game/riding/nativeTaming';
-import {practiceRoom} from '../../src/engine/core/practiceRoom';
+import {StealthCrouch,sampleStealthSources} from '../../src/game/shared/stealth/stealthLaw';
+import {nativeGroupCollection} from '../../src/game/server/shardfile/groupRuntime';
+import {mountedPlayerOf} from '../../src/game/server/riding/native';
+import {nativeTamingOf} from '../../src/game/server/riding/nativeTaming';
+import {practiceRoom} from '../../src/engine/client/core/practiceRoom';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
 import {prepareProductPlan as prepareNalati} from './headless-native';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';

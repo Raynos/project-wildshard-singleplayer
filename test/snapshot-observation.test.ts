@@ -1,11 +1,11 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The behavior fixture uses shipped Rapier bytes.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
-import { createSimHost } from '../src/engine/sim';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { checkSimSnapshotWire, snapshotSimHostBytes, serializeSimSnapshot, type SimSnapshotBytes } from '../src/engine/sim/snapshot';
+import { createSimHost } from '../src/engine/server/sim';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { checkSimSnapshotWire, snapshotSimHostBytes, serializeSimSnapshot, type SimSnapshotBytes } from '../src/engine/shared/sim/snapshot';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
-import { Rng } from '../src/engine/core/rng';
+import { Rng } from '../src/engine/shared/core/rng';
 import { MAX_TICK_SNAPSHOT_CHARS } from '../src/sdk/tickProtocol';
 import { leadSnapshot } from '@wildshard/engine/sim/snapshot';
 

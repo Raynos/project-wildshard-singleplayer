@@ -39,7 +39,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   const complete = async (detail: string): Promise<void> => { await slice(++completed, total, detail); };
   progress?.set(0, total, 'Preparing world builders'); // between the builders below: a task ends once it has run ~30 ms (the pier … cove were one 0.3–0.5 s task)
   // the south entry road is a wooden pier over the water; the player spawns on its deck
-  // E315 M1: the pier model (../runtime/models/pier.ts) placed through src/engine/models/place.ts, which registers piece `pier`
+  // E315 M1: the pier model (../runtime/models/pier.ts) placed through src/engine/client/models/place.ts, which registers piece `pier`
   // SF46: it starts past the entry socket and ramps up from road height (Jake's SF72 flare; generators/pierSites.ts)
   // G571: the typed world stages (generators/worldAssembly.ts) publish each owner as entry loans on the construction scope
   const stages = WorldAssembly.admit(driftwoodRows('custom/worldStages'), { scope, scenes, sites, context: sharedModelContext(sky, game), registry, slice: complete, product: driftwoodProduct(), draws: fixedDrawLibrary(), physics: world.physics, fixed: game, cover: { cells: coverCells, viewer, updates: game },
@@ -51,7 +51,7 @@ async function build(world: World, viewer: () => THREE.Vector3, progress: StepPr
   await stages.next('decks');
   const y = entryOwner(scope, 'floor', firstPier.id)(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;
   // the little sailboat you arrived in, moored alongside the pier by the spawn (E308: half way down); you can drop into it
-  // E315 M1: the sailboat model (../models/boat.ts) placed through src/engine/models/place.ts, which registers
+  // E315 M1: the sailboat model (../models/boat.ts) placed through src/engine/client/models/place.ts, which registers
   // piece `boat`: it rides the swell, its colliders (in the boat's own frame) follow it on a kinematic body (P4)
   // SF46 (G164): lowered with everything else, it stays moored by the pier
   // its mooring lines: one static mesh whose cleat ends rise with the hull's heave less each cleat's z times sin(pitch) (its look)

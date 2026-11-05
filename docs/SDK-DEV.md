@@ -134,7 +134,7 @@ and retires its separate raw-behaviour job; boss and map jobs remain for GR1.
 In this repository, `scripts/serve-build.sh --devserver` builds the game in
 that mode and serves the resulting build. Without that flag it uses production
 mode. There is no Vite development server. `__DEVSERVER__` is a build define,
-with its declaration in `src/engine/build.d.ts`; URL parameters, storage and
+with its declaration in `src/engine/client/build.d.ts`; URL parameters, storage and
 requests cannot enable it in a production client.
 
 `build-flags.json` records the mode, and each entry chunk carries its exact
@@ -165,7 +165,7 @@ Standalone snapshots reinstall adapters with `bindShardfileSim` and
 allocating duplicates. Borrowed snapshots belong to the client world owner.
 
 The ten starter harvest rows (ids, labels, icons and travel flags) are authored
-once in `src/game/bag/starterItems.json`. The game expands them into a gitignored
+once in `src/game/server/bag/starterItems.json`. The game expands them into a gitignored
 literal table during every `pnpm gen`. Trusted runtimes normalize bag metadata through
 `@wildshard/sdk/bag.normalizeItemRow`, whose default remains `travels: false`.
 
@@ -176,7 +176,7 @@ with the owner. It adds no HUD or visual policy; status-icon presentation stays
 separate. Importing the module installs nothing.
 
 The five existing status rows are authored once in
-`src/game/systems/effects/starterRows.json`. The normal boot-table generator
+`src/game/server/systems/effects/starterRows.json`. The normal boot-table generator
 expands them into a literal game table. Trusted runtimes read it through
 `@wildshard/sdk/runtime/effects.STARTER_EFFECTS`; the engine checks the typed row
 contract, and neither import installs or applies an effect. Stun / burn / poison /

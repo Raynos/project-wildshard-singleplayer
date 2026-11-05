@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Execute the tool's browser transition with deterministic Inspector ports.
 import {runInNewContext} from 'node:vm';
 import {afterEach, expect, test} from 'vitest';
-import {HUD} from '../src/engine/ui/HUD';
+import {HUD} from '../src/engine/client/ui/HUD';
 
 const source = readFileSync('scripts/sim-memory.mjs', 'utf8');
 function transitionSource(): string {

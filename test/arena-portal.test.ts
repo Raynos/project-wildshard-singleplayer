@@ -2,8 +2,8 @@
 // exactly as the portal's inline update did: the same program inputs at the same frames, the same entries, exits, slows
 // and fades, over a walk up to the door, through the corridor and chamber, a fight and both kinds of exit.
 import { expect, test } from 'vitest';
-import { ReturnProgram } from '../src/game/population/returnProgram';
-import { ArenaPortalLaw, type ArenaPortalFrame } from '../src/game/boss/arenaPortal';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
+import { ArenaPortalLaw, type ArenaPortalFrame } from '../src/game/shared/boss/arenaPortal';
 import { titanPrograms as titan } from './fixtures/titanInlineWitness';
 
 const rows = { signal: 'kingDoor', end: 12, fade: { hold: .2 } };

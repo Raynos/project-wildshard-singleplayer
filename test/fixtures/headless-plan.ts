@@ -1,7 +1,7 @@
-import type { ShardProduct } from '../../src/game/shardfile/shardProduct';
+import type { ShardProduct } from '../../src/game/shared/shardfile/shardProduct';
 import type { HeadlessRuntimePlan } from '../../src/sdk/headlessRuntime';
-import { createSimHost, type SimHost } from '../../src/engine/sim';
-import type { Rapier } from '../../src/engine/physics/rapier';
+import { createSimHost, type SimHost } from '../../src/engine/server/sim';
+import type { Rapier } from '../../src/engine/shared/physics/rapier';
 
 export function need<T>(value: T, message: string): NonNullable<T> {
   if (value === null || value === undefined) throw new Error(message);

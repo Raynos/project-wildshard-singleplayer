@@ -1,9 +1,9 @@
 import { expect, it } from 'vitest';
 import { Group, MeshStandardMaterial } from 'three';
-import { createWorldScene } from '../src/game/plugin/scene';
-import { worldPieces } from '../src/game/shardfile/bakedKinds';
-import type { Piece } from '../src/engine/world/registry';
-import { admitHeldRecipe } from '../src/game/plugin/heldRecipe';
+import { createWorldScene } from '../src/game/client/plugin/scene';
+import { worldPieces } from '../src/game/client/shardfile/bakedKinds';
+import type { Piece } from '../src/engine/client/world/registry';
+import { admitHeldRecipe } from '../src/game/client/plugin/heldRecipe';
 import { held as WHIP_HELD_RECIPE } from './fixtures/sunscar-source-program';
 import { FAN_HELD_RECIPE } from '../src/shards/far-reach/generators/rows/heldWeapon';
 

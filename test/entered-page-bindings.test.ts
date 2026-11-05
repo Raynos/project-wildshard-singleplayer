@@ -1,16 +1,16 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
-import { App } from '../src/engine/app/app';
-import { Scope } from '../src/engine/app/scope';
-import { createLevelInstallation } from '../src/engine/level/installation';
-import { shardContext, type BagVerbs } from '../src/game/plugin/context';
-import { installEnteredRuntimeService, RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
+import { App } from '../src/engine/client/app/app';
+import { Scope } from '../src/engine/shared/app/scope';
+import { createLevelInstallation } from '../src/engine/client/level/installation';
+import { shardContext, type BagVerbs } from '../src/game/server/plugin/context';
+import { installEnteredRuntimeService, RetainedRuntimeHooks } from '../src/game/client/shard/retainedHooks';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { MeshBasicMaterial } from 'three';
-import { withOwner } from '../src/engine/app/ownership';
-import { lendLooks, setLentParam, type LentLooks } from '../src/game/shardfile/lentLooks';
-import { enteredFullMap } from '../src/game/grid/mapFrame';
-import type { FullMap, MapPoi, MapQuest, MapZone } from '../src/engine/ui/Map';
+import { withOwner } from '../src/engine/shared/app/ownership';
+import { lendLooks, setLentParam, type LentLooks } from '../src/game/client/shardfile/lentLooks';
+import { enteredFullMap } from '../src/game/client/grid/mapFrame';
+import type { FullMap, MapPoi, MapQuest, MapZone } from '../src/engine/client/ui/Map';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 
 const none = (): void => undefined;

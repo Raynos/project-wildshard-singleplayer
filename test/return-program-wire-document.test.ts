@@ -4,7 +4,7 @@ import {DecisionScriptRowDocumentSchema,DecisionScriptsSchema,type DecisionScrip
 import {ReturnProgramDocumentSchema,ReturnProgramWireDocumentSchema} from '@wildshard/format/returnProgramDocument';
 import {namedJsonSchema} from '@wildshard/sdk/formatJsonSchema';
 import {encodeCanonicalJson} from '@wildshard/sdk/immutable';
-import {validateNamedJsonSchema} from '../src/game/shardfile/customSchema';
+import {validateNamedJsonSchema} from '../src/game/shared/shardfile/customSchema';
 
 const script:DecisionScriptRowInput={id:'return.wire',abi:'1.0',side:'sim',module:`blobs/wasm/${'a'.repeat(64)}.wasm`,
  source:'behaviour/return.as',binding:{shard:true},onFail:'hold',on:['start'],reads:[],commands:[],stateVersion:1,state:[],params:{}};

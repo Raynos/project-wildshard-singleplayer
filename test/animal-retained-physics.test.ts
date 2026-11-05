@@ -2,16 +2,16 @@
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
 import { Scene } from 'three';
-import { AnimalHerdView } from '../src/engine/entities/AnimalHerdView';
-import { AnimalManager } from '../src/engine/entities/AnimalManager';
-import { Forest } from '../src/engine/world/forest/Forest';
-import { SkyRig } from '../src/engine/world/skyRig';
-import { activeLevel, configureLevel } from '../src/engine/level/selection';
-import { Scope } from '../src/engine/app/scope';
-import { app } from '../src/engine/app/runtime';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { createSimHost } from '../src/engine/sim';
-import { addPiece } from '../src/engine/physics/pieces';
+import { AnimalHerdView } from '../src/engine/client/entities/AnimalHerdView';
+import { AnimalManager } from '../src/engine/server/entities/AnimalManager';
+import { Forest } from '../src/engine/client/world/forest/Forest';
+import { SkyRig } from '../src/engine/client/world/skyRig';
+import { activeLevel, configureLevel } from '../src/engine/shared/level/selection';
+import { Scope } from '../src/engine/shared/app/scope';
+import { app } from '../src/engine/client/app/runtime';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost } from '../src/engine/server/sim';
+import { addPiece } from '../src/engine/shared/physics/pieces';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { installWorldFixture } from './fixtures/worldSetup';
 

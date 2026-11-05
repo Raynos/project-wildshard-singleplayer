@@ -1,5 +1,5 @@
 import type { Bone, EulerOrder } from 'three';
-import type { ClipName } from '../../../../src/engine/anim/rig';
+import type { ClipName } from '../../../../src/engine/client/anim/rig';
 import type { SkinSource } from './sources';
 
 /** Numeric pose layers stay separate from the base gait, retaining each authored clock's period. */

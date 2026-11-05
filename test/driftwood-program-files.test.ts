@@ -1,8 +1,8 @@
 import {DRIFTWOOD_GUEST_ROWS,driftwoodGuestFile,RETURN_PROGRAM} from './fixtures/driftwood-guest-programs';
 import * as v from 'valibot';
 import {expect,test} from 'vitest';
-import {Scope} from '../src/engine/app/scope';
-import {ReturnProgram} from '../src/game/population/returnProgram';
+import {Scope} from '../src/engine/shared/app/scope';
+import {ReturnProgram} from '../src/game/shared/population/returnProgram';
 import {hashImmutableBytes} from '../src/sdk/immutable';
 import {admitScriptContract} from '@wildshard/format/scriptContract';
 import {SCRIPT_V2_REVISIONS} from '@wildshard/format/scriptAdmissionV2';

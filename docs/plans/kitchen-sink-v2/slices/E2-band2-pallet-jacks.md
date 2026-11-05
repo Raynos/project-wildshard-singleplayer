@@ -18,7 +18,7 @@ Research:
 
 - The charge is the **`ram-grazer` brain** (`src/format/grazers.ts:18-19`, `{ strike, thinkDivisor, … }`), shipped by
   Sky Reach's goat (`src/shards/far-reach/generators/rows/brains.ts:8`, strike `far.goat.ram`). Re-engage after a
-  charge is E297's rule (`src/engine/entities/fightRules.ts`).
+  charge is E297's rule (`src/engine/server/entities/fightRules.ts`).
 - A `lane` strike with `motion: { speed, track, overshoot, skid }` (`src/format/creatures.ts:160`) is the charge; the
   red lane is the strike's telegraph decal.
 - **No "stunned by hitting cover" exists**: a charge that meets a collider skids (`skid`) and continues.

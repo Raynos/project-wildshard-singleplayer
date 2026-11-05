@@ -1,9 +1,9 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture uses shipped Rapier bytes.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
-import type { SimCommand } from '../src/engine/sim';
-import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
-import { decodeSimSnapshot, restoreSimHost, snapshotSimHostBytes } from '../src/engine/sim/snapshot';
+import type { SimCommand } from '../src/engine/server/sim';
+import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
+import { decodeSimSnapshot, restoreSimHost, snapshotSimHostBytes } from '../src/engine/shared/sim/snapshot';
 import { canonicalSimDigest } from './fake/simState';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import recorded from './fixtures/sim-snapshot-v1.json';

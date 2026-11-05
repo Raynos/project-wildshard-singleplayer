@@ -20,7 +20,7 @@ test('complete cast and fabric weld roots register without admitting neighbourin
   const value = { id: 'quay', root: 'root', nodes: [] };
   for (const fileName of ['world/casts.json', 'world/fabric.json']) {
     const before = JSON.stringify(value);
-    expect(platformFileFamily(fileName, defining)?.reader).toBe('src/game/shardfile/worldSceneWeld.ts');
+    expect(platformFileFamily(fileName, defining)?.reader).toBe('src/game/client/shardfile/worldSceneWeld.ts');
     expect(validatePlatformFile(fileName, defining, value)).toBeDefined();
     expect(JSON.stringify(value)).toBe(before);
     expect(() => validatePlatformFile(fileName, defining, { ...value, nodes: [{ kind: 'mesh' }] })).toThrow();
@@ -30,7 +30,7 @@ test('complete cast and fabric weld roots register without admitting neighbourin
 });
 
 test('shared names require the defining type and keep private neighbours custom', () => {
-  expect(platformFileFamily(name, source)?.reader).toBe('src/game/quest/effects.ts');
+  expect(platformFileFamily(name, source)?.reader).toBe('src/game/server/quest/effects.ts');
   for (const [file, schema] of [[name, undefined], [name, 'private'], ['private/services.json', source],
     ['world/placements/private.json', '@wildshard/format/worldScenePlacement#WorldScenePlacementSchema'],
     ['scenes/cabins-phone-shadow-true.json', '@wildshard/format/worldSceneWeld#WorldSceneWeldSchema']]) {
@@ -72,7 +72,7 @@ test('gate and census exclude only admitted families and retain hash, schema and
     const product = productSectionEntries(folder, 'demo', 'demo');
     expect(product.entries.find(row => row.name === name)).toMatchObject({ kind: 'platform-file', routes: ['client/plan'] });
     const report = sectionInventory([product], namedFormatJsonSchemas(), { 'client/plan': 'plan' }, [], []);
-    expect(report.rows.find(row => row.name === name)).toMatchObject({ provenance: 'verified-format', registeredReader: 'src/game/quest/effects.ts' });
+    expect(report.rows.find(row => row.name === name)).toMatchObject({ provenance: 'verified-format', registeredReader: 'src/game/server/quest/effects.ts' });
     publish(good, undefined); expect(()=>outputSections(root, 'demo')).toThrow('Unregistered named JSON');
     publish({}, { $comment: source }); expect(() => outputSections(root, 'demo')).toThrow();
     publish(good, schema);

@@ -1,9 +1,9 @@
 // @vitest-environment happy-dom
 import {expect,test,vi} from 'vitest';
 import {type BufferGeometry,MeshBasicMaterial} from 'three';
-import {Scope} from '../src/engine/app/scope';
-import {AssetService} from '../src/engine/app/assets';
-import {admitSceneBuffers,createSceneBuffers} from '../src/game/shardfile/sceneBuffers';
+import {Scope} from '../src/engine/shared/app/scope';
+import {AssetService} from '../src/engine/client/app/assets';
+import {admitSceneBuffers,createSceneBuffers} from '../src/game/client/shardfile/sceneBuffers';
 
 const file='test/positions.bin',files=new Map([[file,new Uint8Array(12)]]);
 const row=()=>({version:1,buffers:[{id:'position',storage:'f32',file,byteLength:12}],

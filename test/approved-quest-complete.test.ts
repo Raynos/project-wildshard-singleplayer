@@ -8,7 +8,7 @@ import { ChapterViewSchema } from '@wildshard/format/questPageComposition';
 import { platformFileFamily, validatePlatformFile } from '@wildshard/format/platformFileFamilies';
 import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 
 const encode = (value: unknown): Uint8Array => new TextEncoder().encode(encodeCanonicalJson(value));
 const json = (text: string): unknown => JSON.parse(text);

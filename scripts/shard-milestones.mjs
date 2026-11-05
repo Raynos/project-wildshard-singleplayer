@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import {createHash} from 'node:crypto';
 import {outputFormat,gridReadinessFormat} from './shard-platform-format.mjs';
 import {runtimeGridEvidence} from './grid-runtime-evidence.mjs';
-import catalogue from '../src/game/grid/singleplayer.json' with {type:'json'};
+import catalogue from '../src/game/shared/grid/singleplayer.json' with {type:'json'};
 import plotOutputs from '../src/shards/open-plots/outputs.json' with {type:'json'};
 import {formatSource} from './format-package.mjs';
 

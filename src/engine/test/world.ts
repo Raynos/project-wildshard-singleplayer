@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import { Player } from '../player/Player';
-import type { SkyRig as Sky } from '../world/skyRig';
-import type { Forest } from '../world/forest/Forest';
-import type { CharacterMotor } from '../physics/CharacterMotor';
+import { Player } from '../client/player/Player';
+import type { SkyRig as Sky } from '../client/world/skyRig';
+import type { Forest } from '../client/world/forest/Forest';
+import type { CharacterMotor } from '../shared/physics/CharacterMotor';
 import type { Collider } from '@dimforge/rapier3d-simd';
-import { WorldRegistry } from '../world/registry';
+import { WorldRegistry } from '../client/world/registry';
 import { FakeGame, legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 /** Query-only test double; THREE.Ray supplies box intersections, never a production collision path. */

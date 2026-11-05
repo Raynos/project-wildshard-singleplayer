@@ -35,12 +35,12 @@ run at Chromium CPU 4× (1618c6730f, 10-28).
 | **Total `grid.prepare create`** | `grid/live.ts:366` | **20.7** | **10.2** | |
 
 Before Home region, row 11 World assembly (4.0 / 2.2) loads the baked strip page (`grid/session.ts:433`, 2.4 / 0.7) and
-builds 40 seam trimesh colliders in Rapier (`session.ts:499` → `engine/physics/meshCollision.ts:11`, 0.9 / 0.9). The road
+builds 40 seam trimesh colliders in Rapier (`session.ts:499` → `engine/shared/physics/meshCollision.ts:11`, 0.9 / 0.9). The road
 system takes 0.4 s. The fixed-draws phases overlap (`whole.read-wait` 4.5 / 1.5), so decode and glue can't be split from
 marks alone (BW1 profiles them).
 
 **Pine (Chromium 4×, road-entry cold, create 14.1 s):** foundation 1.1, tree factory 0.5 (de-quantises meshopt trees on
-the CPU, `engine/world/forest/treeSet.ts:34`), forest page 4.0 (scenes 1.1, props tiles 1.2 at `shardfile/forestPage.ts:137`),
+the CPU, `engine/client/world/forest/treeSet.ts:34`), forest page 4.0 (scenes 1.1, props tiles 1.2 at `shardfile/forestPage.ts:137`),
 afterKit 1.2 (no marks), play 1.0, then afterPlay 6.0: 484 shader programs (2.4) and 28 MB of uploads (1.7). At 10×,
 multiply the CPU parts by ~2.5 (an estimate, not a recording).
 

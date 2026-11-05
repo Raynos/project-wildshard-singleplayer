@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { compileDirectorWhen, evaluateDirectorWhen, type DirectorWhenInstruction } from '@wildshard/format/directorWhen';
-import { DirectorStageLane } from '../src/game/plugin/director';
+import { DirectorStageLane } from '../src/game/server/plugin/director';
 
 /** Frozen original stack interpreter: directorWhen.ts at e805fb4e33. */
 function original(instructions: readonly DirectorWhenInstruction[], observation: Readonly<Record<string, boolean>>): boolean {

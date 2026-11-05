@@ -18,8 +18,8 @@ export const MECHANISMS = new Map([
   ['src/entities/species/registry.ts', 'species registry mechanism'], ['src/entities/species/rigs.ts', 'rig registry mechanism'],
   ['src/world/HorizonMatte.ts', 'generic horizon renderer'], ['src/world/blenderArea.ts', 'generic Blender scene loader'],
   ['src/world/pointLightSkip.ts', 'generic light-filter primitive'],
-  ['src/game/Boss.ts', 'boss runtime stays in game until S2.3 (E4)'],
-  ['src/game/Elite.ts', 'elite runtime stays in game until S2.3 (E4)'],
+  ['src/game/server/Boss.ts', 'boss runtime stays in game until S2.3 (E4)'],
+  ['src/game/server/Elite.ts', 'elite runtime stays in game until S2.3 (E4)'],
   ['src/core/probe.ts', 'F2 generic debug probe; 04 section 6 explicitly maps it'],
   ['src/core/harnessTap.ts', 'F2 generic harness tap; no shard content'],
   ['src/world/BakedCards.ts', 'E357 F6m: generic baked-card loader/exporter; no Pine content'],
@@ -71,7 +71,7 @@ const REVIEWED_PLACEMENTS = new Map([
 const SLUGS = ['nine-dragon-stack', 'pine-hollow', 'nalati-grasslands', 'driftwood-isle'];
 const NAMED = [ /Nine|nine|nine-dragon/, /Pine|pine|pine-hollow/, /Nalati|nalati|Steppe|steppe/, /Driftwood|driftwood|Island/ ];
 // 02 F6's explicit Driftwood content names without a shard token (04's N rows).
-const DRIFTWOOD_NAMES = /src\/game\/(?:loot\/(?:finds|keepsakes|perks|shop)|quest\/(?:Complete|Ecology|Feats|Finale|Spine|Places|TraderStall|guards|gullGuide))\.ts$/;
+const DRIFTWOOD_NAMES = /src\/game\/(?:(?:client|cook|server|shared)\/)?(?:loot\/(?:finds|keepsakes|perks|shop)|quest\/(?:Complete|Ecology|Feats|Finale|Spine|Places|TraderStall|guards|gullGuide))\.ts$/;
 
 function territory(file) {
   if (file.startsWith('src/shards/')) return file;
@@ -90,8 +90,8 @@ function territory(file) {
 function defaultDestination(file) {
   if (/^src\/(engine|game|kit|shards)\//.test(file) || ['src/main.ts', 'src/entry.ts'].includes(file)) return file;
   if (file === 'src/boot/entry.ts') return 'src/entry.ts';
-  if (file === 'src/core/probe.ts') return 'src/engine/debug/probe.ts';
-  if (/^src\/[^/]+\.d\.ts$/.test(file)) return file.replace('src/', 'src/engine/types/');
+  if (file === 'src/core/probe.ts') return 'src/engine/client/debug/probe.ts';
+  if (/^src\/[^/]+\.d\.ts$/.test(file)) return file.replace('src/', 'src/engine/client/types/');
   return file.replace('src/', 'src/engine/');
 }
 

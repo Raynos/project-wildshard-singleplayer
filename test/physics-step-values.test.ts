@@ -4,8 +4,8 @@ import { readFileSync } from 'node:fs';
 import { deepStrictEqual } from 'node:assert';
 import { expect, test, vi } from 'vitest';
 import { RawVector } from '@dimforge/rapier3d-simd/raw.js';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { Physics } from '../src/engine/physics/Physics';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { Physics } from '../src/engine/shared/physics/Physics';
 
 test('owned native gravity keeps every original evolving world byte and frees its one persistent vector', async () => {
   const R = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm'))), old = new Physics(R), now = new Physics(R);

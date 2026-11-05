@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { ARENA_LINEUP } from '../src/engine/practice/lineup';
-import { enterPracticeLoan, exitPracticeLoan, practiceViewDistance, type PracticeLoanPorts } from '../src/engine/practice/practiceLoan';
+import { ARENA_LINEUP } from '../src/engine/client/practice/lineup';
+import { enterPracticeLoan, exitPracticeLoan, practiceViewDistance, type PracticeLoanPorts } from '../src/engine/client/practice/practiceLoan';
 
 /** TrainingArena.viewDistance as it was inline before the extraction (verbatim, the camera and innerWidth as arguments) */
 function inline(fov: number, aspect: number, innerWidth: number): number {

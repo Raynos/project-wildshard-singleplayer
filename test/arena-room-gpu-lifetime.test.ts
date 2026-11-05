@@ -9,12 +9,12 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the installed runner without shell interpolation.
 import { resolve as resolvePath } from 'node:path';
-import { Scope } from '../src/engine/app/scope';
-import { withOwner } from '../src/engine/app/ownership';
-import { WorldRegistry } from '../src/engine/world/registry';
-import { ArenaRoomEncounter } from '../src/game/boss/arenaRoom';
-import { buildArenaRoomEncounter } from '../src/game/boss/arenaRoomView';
-import type { ShardContext } from '../src/game/plugin/context';
+import { Scope } from '../src/engine/shared/app/scope';
+import { withOwner } from '../src/engine/shared/app/ownership';
+import { WorldRegistry } from '../src/engine/client/world/registry';
+import { ArenaRoomEncounter } from '../src/game/server/boss/arenaRoom';
+import { buildArenaRoomEncounter } from '../src/game/client/boss/arenaRoomView';
+import type { ShardContext } from '../src/game/server/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { SHAPES } from './fixtures/nalatiShapes';
 import { arenaRoomProgram } from './fixtures/arena-room-program';

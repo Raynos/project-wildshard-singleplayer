@@ -6,7 +6,7 @@ import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/spec
 import { grazerRows } from '../src/shards/pine-hollow/generators/grazers';
 import { HullLookBookSchema, HullSpeciesSchema } from '@wildshard/format/speciesLooks';
 import { SpeciesProgramsSchema } from '@wildshard/format/speciesPrograms';
-import { HullLookBook } from '../src/game/looks/speciesBook';
+import { HullLookBook } from '../src/game/client/looks/speciesBook';
 
 test('grazers retain their complete platform definitions without a duplicate custom section', () => {
   expect(Object.hasOwn(sectionDefinitions, 'SECTIONS')).toBe(false);

@@ -1,9 +1,9 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Assert actual contacts and independent native input replay.
 import assert from 'node:assert/strict';
 import * as v from 'valibot';
-import {nativeGroupCollection} from '../../../src/game/shardfile/groupRuntime';
+import {nativeGroupCollection} from '../../../src/game/server/shardfile/groupRuntime';
 import {runTrustedHeadlessTape} from '../../../src/sdk/headlessTape';
-import {snapshotSimHost,serializeSimSnapshot} from '../../../src/engine/sim/snapshot';
+import {snapshotSimHost,serializeSimSnapshot} from '../../../src/engine/shared/sim/snapshot';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import {earnNalatiPasture} from './nalati-pasture-session';
 import {beginProductSession} from './productSession';

@@ -1,10 +1,10 @@
 import { beforeAll, expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { Rng } from '../src/engine/core/rng';
-import { ScriptModuleV2 } from '../src/engine/script/moduleV2';
-import { GroupStepV2 } from '../src/engine/script/groupStepV2';
-import {ReturnProjectionV2} from '../src/game/population/returnProjectionV2';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+import { Scope } from '../src/engine/shared/app/scope';
+import { Rng } from '../src/engine/shared/core/rng';
+import { ScriptModuleV2 } from '../src/engine/shared/script/moduleV2';
+import { GroupStepV2 } from '../src/engine/shared/script/groupStepV2';
+import {ReturnProjectionV2} from '../src/game/shared/population/returnProjectionV2';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { parseGroupStepV2 } from '@wildshard/format/scriptGroupStepV2';
 import { parseReturnProjectionV2, returnProjectionV2Layout } from '@wildshard/format/returnProjectionV2';
 import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
@@ -14,7 +14,7 @@ import { v2CoreSource } from '../src/sdk/as/wsV2';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 
 const groups = parseGroupStepV2({ bank: [{ name: 'count', kind: 'number' }], columns: [], members: 8, signals: ['advance','badOutputs'], actions: [],
   profiles: [{ id: 'second', bank: [{ name: 'awake', kind: 'boolean' }, { name: 'count', kind: 'number' }], columns: [], members: 16, signals: ['advance'], actions: [] }],

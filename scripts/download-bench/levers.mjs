@@ -1,7 +1,7 @@
 // Download levers, measured on the virtual phone link (E525).
 //
 // `mirror` replays the spawn download's shape (the manifest, then N lanes over
-// its files in manifest order, as src/game/boot/spawnDownload.ts does with
+// its files in manifest order, as src/game/client/boot/spawnDownload.ts does with
 // N = 8) with real wire sizes. main.mjs checks mirror(8) against the real
 // module before it trusts any lever.
 import { brotliCompressSync, constants } from 'node:zlib';

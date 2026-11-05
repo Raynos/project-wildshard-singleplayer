@@ -1,17 +1,17 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Real Rapier bytes.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
-import type { ChatChannel } from '../src/engine/net/acts';
-import { CHAT_RADIUS, type ChatReport } from '../src/engine/net/chat';
-import type { NetChat } from '../src/engine/net/chatWire';
-import { BitWriter } from '../src/engine/net/bits';
-import { NetClient } from '../src/engine/net/client';
-import { decodeAct, decodeEvents, encodeAct, encodeEvents, type InitialBits } from '../src/engine/net/messages';
-import { NetRoom } from '../src/engine/net/room';
-import { SimNetWorld } from '../src/engine/net/simWorld';
-import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
-import { createSimHost, type SimHost } from '../src/engine/sim';
-import { leadPlayer } from '../src/engine/sim/leadPlayer';
+import type { ChatChannel } from '../src/engine/shared/net/acts';
+import { CHAT_RADIUS, type ChatReport } from '../src/engine/server/net/chat';
+import type { NetChat } from '../src/engine/shared/net/chatWire';
+import { BitWriter } from '../src/engine/shared/net/bits';
+import { NetClient } from '../src/engine/client/net/client';
+import { decodeAct, decodeEvents, encodeAct, encodeEvents, type InitialBits } from '../src/engine/shared/net/messages';
+import { NetRoom } from '../src/engine/server/net/room';
+import { SimNetWorld } from '../src/engine/server/net/simWorld';
+import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost, type SimHost } from '../src/engine/server/sim';
+import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
 import { directLoopback, type DirectLoopback } from '../src/engine/test/netLoopback';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 

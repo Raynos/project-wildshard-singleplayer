@@ -1,4 +1,4 @@
-import type { EngineProbe, ProbeWorld } from '../../src/engine/debug/probe';
+import type { EngineProbe, ProbeWorld } from '../../src/engine/client/debug/probe';
 
 /** The public probe exposes authored handles on shard, never on raw Game. This
  * reader is self-contained so the phone harness can evaluate the same contract. */

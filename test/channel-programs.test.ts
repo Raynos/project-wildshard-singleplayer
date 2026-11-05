@@ -1,5 +1,5 @@
 import {expect,it} from 'vitest';
-import {onFault,type Fault} from '../src/engine/core/faults';
+import {onFault,type Fault} from '../src/engine/shared/core/faults';
 import {Color} from 'three';
 import {ClientChannels} from '@wildshard/sdk/clientChannels';
 import {parseClientChannels,type ClientChannelProgram} from '@wildshard/format/clientChannels';

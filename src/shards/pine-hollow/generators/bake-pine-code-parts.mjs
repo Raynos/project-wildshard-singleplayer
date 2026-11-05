@@ -16,7 +16,7 @@ import { timberWorld } from './timberWorldRows.ts';
 
 const root = new URL('../../../../', import.meta.url), check = process.argv.includes('--check');
 const ground = readNativeTerrain(readFileSync(new URL('public/assets/baked/pine-hollow/terrain.bin', root)));
-const pickups=JSON.parse(readFileSync(new URL('src/game/data/pickupCatalogue.json', root),'utf8'));
+const pickups=JSON.parse(readFileSync(new URL('src/game/client/data/pickupCatalogue.json', root),'utf8'));
 const pickupFiles=new Map(pickups.geometries.flatMap(row=>{
   if(!('file'in row))return [];
   if(!/^\/assets\/baked\/common\/pickups\/[a-f0-9]{64}\.bin$/u.test(row.file))throw new Error('Invalid prepared pickup source');

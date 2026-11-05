@@ -2,8 +2,8 @@
 // free) picks exactly the target the page's inline code picked, locked or not, with the same target radius.
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { pickLunge, targetRadius } from '../src/engine/combat/lungeTarget';
-import type { AimTarget } from '../src/engine/player/AimTargets';
+import { pickLunge, targetRadius } from '../src/engine/shared/combat/lungeTarget';
+import type { AimTarget } from '../src/engine/client/player/AimTargets';
 
 /** AimTargets.targetRadius and SweptMelee.findLunge before the split (before CI12) */
 function oldRadius(t: AimTarget): number {

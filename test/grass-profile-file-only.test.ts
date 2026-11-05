@@ -1,6 +1,6 @@
 import {expect,test,vi} from 'vitest';
 import {DataTexture} from 'three';
-import {GrassPresentationProfile} from '../src/game/looks/grassPresentation';
+import {GrassPresentationProfile} from '../src/game/client/looks/grassPresentation';
 import {GRASS_FILES,originalGrassProfile} from './fixtures/nalatiGrass';
 
 const original=originalGrassProfile().rows;

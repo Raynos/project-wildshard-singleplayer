@@ -16,11 +16,11 @@ straw bales alight only).
 
 Research (correcting W3b's "no burn exists outside one boss"):
 
-- **Status effects already exist in the engine.** `EffectService` (`src/engine/combat/effects/EffectService.ts:55`,
+- **Status effects already exist in the engine.** `EffectService` (`src/engine/client/combat/effects/EffectService.ts:55`,
   `apply(target, id, source, { duration })` at `:124`) runs `instant | timed | permanent` effects with a `period` and
   `tickDamage` routed through `combat.hit` (`effects/types.ts:10-12`); starter rows ship `effect.stun`, `effect.burn`,
-  `effect.poison`, `effect.bleed`, `effect.slow` (`src/game/systems/effects/starterRows.json`). They are bound to the
-  player (`bindPlayerEffects`, `EffectService.ts:18`) and to owned charms (`src/game/loadout/effects.ts`).
+  `effect.poison`, `effect.bleed`, `effect.slow` (`src/game/server/systems/effects/starterRows.json`). They are bound to the
+  player (`bindPlayerEffects`, `EffectService.ts:18`) and to owned charms (`src/game/server/loadout/effects.ts`).
 - Missing: **a hit that applies an effect** (no strike or ammo row names one), creatures as effect targets on the
   levelled path, and the "no stacking, tint only" rule as data.
 - **Stagger exists per hit**, not as a bar: `DamageRequest.stagger` (`pipeline.ts:29`) and `AnimalSim.stagger(dir,
@@ -31,7 +31,7 @@ Work:
 
 | Row / mechanic | Shape | Layer |
 |---|---|---|
-| on-hit effects | `onHit: [{ effect: 'effect.burn', seconds: 3 }]` on strike rows (`combat/strikes`), ammo rows (`AmmoRow`, W3b's `effects`) and weapon moves | format `creatures.ts` strike schema, `engine/combat/ammo.ts`; engine applies via `EffectService.apply` |
+| on-hit effects | `onHit: [{ effect: 'effect.burn', seconds: 3 }]` on strike rows (`combat/strikes`), ammo rows (`AmmoRow`, W3b's `effects`) and weapon moves | format `creatures.ts` strike schema, `engine/shared/combat/ammo.ts`; engine applies via `EffectService.apply` |
 | creature targets | `AnimalSim` actors become `EffectTarget`s (tags, attributes, periodic ticks) | engine |
 | no stacking | levelled rows set `stacking: 'refresh'` and one status per target at a time | data (EffectDef already has `stacking`) |
 | stagger bar | `stagger: { max, drain, stun: 1.5, takenMul: 1.25 }` per kind; each landed hit adds `amount × (STR edge)`; full → `AnimalSim.stagger` with the stun and a `state.staggered` tag the stat stage reads for ×1.25 | game levels host + engine `AnimalSim` (a generic stun call, already there) |

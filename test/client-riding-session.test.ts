@@ -4,15 +4,15 @@ import { NALATI_RIDING_PROGRAMS } from './fixtures/nalati-riding';
 import { parse } from 'valibot';
 import { ClientRidingSessionSchema, cleanMountName } from '@wildshard/format/riding';
 import { nalatiRidingSession } from '../src/shards/nalati-grasslands/generators/clientRiding';
-import { HeldClaims } from '../src/game/loadout/claims';
-import { installClientRiding } from '../src/game/riding/client';
-import { entryOwner } from '../src/game/shardfile/entryOwners';
-import type { ShardContext } from '../src/game/plugin/context';
+import { HeldClaims } from '../src/game/client/loadout/claims';
+import { installClientRiding } from '../src/game/client/riding/client';
+import { entryOwner } from '../src/game/client/shardfile/entryOwners';
+import type { ShardContext } from '../src/game/server/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { lendNalatiRiding } from './fixtures/nalati-return-modules';
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 
 test('client session rejects callback ports and admits an unrelated ride profile', () => {
   const rows = structuredClone(nalatiRidingSession(NALATI_RIDING_PROGRAMS));

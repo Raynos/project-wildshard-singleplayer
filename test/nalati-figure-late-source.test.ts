@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { peopleRows } from '../src/shards/nalati-grasslands/generators/peopleRows.mjs';
 import { EXPLORER_CATALOGUE } from '../src/shards/nalati-grasslands/generators/explorerCatalogue';
 import { nalatiLateFigureNames } from '../src/shards/nalati-grasslands/generators/modelBindings';
-import { atlasFigureCard } from '../src/game/models/kitFigureCard';
+import { atlasFigureCard } from '../src/game/client/models/kitFigureCard';
 
 const singles = ['child', 'cook', 'elder', 'herderGate', 'herderRail'].map(id => `models/people/${id}.glb`);
 

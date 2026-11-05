@@ -15,14 +15,14 @@ the current level's span, never below the level's first XP. The whole west half 
 
 Research:
 
-- Kills are `actor.died { actor, req }` (`src/engine/events/maps.ts:15`, emitted at `pipeline.ts:135`); the game's
-  death listeners run in a fixed order `spine 10, ecology 20, keepsakes 30, loot 40` (`src/game/loot/deaths.ts:4`,
+- Kills are `actor.died { actor, req }` (`src/engine/client/events/maps.ts:15`, emitted at `pipeline.ts:135`); the game's
+  death listeners run in a fixed order `spine 10, ecology 20, keepsakes 30, loot 40` (`src/game/server/loot/deaths.ts:4`,
   `onCreatureDeath`). XP slots in as one more ordered listener.
-- Kill counts and titles already exist per shard: `Progress.recordKill(kind, variant)` (`src/game/Progress.ts`,
-  `progressSave` with `scope: 'shard'`, `src/game/saves.ts:11`). XP is a new slot beside it, not inside it.
+- Kill counts and titles already exist per shard: `Progress.recordKill(kind, variant)` (`src/game/client/Progress.ts`,
+  `progressSave` with `scope: 'shard'`, `src/game/shared/saves.ts:11`). XP is a new slot beside it, not inside it.
 - Death: `PlayerHealth.update` emits `player.died { actor, checkpoint, cause }` (`health.ts`) and the game respawns you
   at `LastPlace` (`src/game/LastPlace.ts`). The killer keeps its HP today.
-- Per-shard saves: `saves.define({ key, scope: 'shard', version, schema, initial })` (`src/game/saves.ts:10`); the road
+- Per-shard saves: `saves.define({ key, scope: 'shard', version, schema, initial })` (`src/game/shared/saves.ts:10`); the road
   between shards has no shard slug, so it reads as "no progression" for free (19a / 19z).
 
 Work:

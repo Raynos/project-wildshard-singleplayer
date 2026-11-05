@@ -15,7 +15,7 @@ import { scriptAdmissionRows, decisionModuleContracts, ViewModulesSchema } from 
 import { SCRIPT_V2_REVISIONS } from '@wildshard/format/scriptAdmissionV2';
 import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { readProductDescriptor, admitProduct, type ProductOptions } from '../src/game/shardfile/product';
+import { readProductDescriptor, admitProduct, type ProductOptions } from '../src/game/client/shardfile/product';
 import { HeadlessSimulation } from '../src/sdk/headless';
 
 let bytes: Uint8Array = new Uint8Array();

@@ -3,9 +3,9 @@
 // with deer walking by, taps, aimed throws, pickups and a mounted lance, with the weapon acting on each side's events.
 import { afterEach, beforeEach, expect, test } from 'vitest';
 import { MathUtils, Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { HeldDecision } from '../src/game/weapons/heldDecision';
-import { PolearmDecision, type PolearmTarget } from '../src/game/weapons/polearmDecision';
+import { Scope } from '../src/engine/shared/app/scope';
+import { HeldDecision } from '../src/game/client/weapons/heldDecision';
+import { PolearmDecision, type PolearmTarget } from '../src/game/server/weapons/polearmDecision';
 import { lendNalatiHeld } from './fixtures/nalati-held-loan';
 import { originalHeldMetadata } from './fixtures/nalati-held-original';
 

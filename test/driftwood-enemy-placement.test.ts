@@ -4,7 +4,7 @@ import * as v from 'valibot';
 import { enemyPlacements } from '../src/shards/driftwood-isle/generators/enemyPlacement';
 import { EnemyPlacementsSchema } from '../src/shards/driftwood-isle/generators/sections';
 import { driftwoodNativeRows } from '../src/shards/driftwood-isle/generators/nativeBake';
-import { Rng } from '../src/engine/core/rng';
+import { Rng } from '../src/engine/shared/core/rng';
 // The original placeEnemies output for the same seed, crab sites, palms and floors (phone / desktop page tiers, native bake).
 import frozen from './fixtures/legacy-oracles/driftwood-enemy-placement.json' with { type: 'json' };
 

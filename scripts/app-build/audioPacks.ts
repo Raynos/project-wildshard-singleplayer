@@ -3,8 +3,8 @@ import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { readOutputDownloadIndex } from '@wildshard/format/outputDownload';
 import { parseAudioData } from '@wildshard/format/audio';
-import { createCatalogueAudio } from '../../src/engine/audio/levelAudio';
-import { MUSIC_STYLES } from '../../src/engine/ui/Settings';
+import { createCatalogueAudio } from '../../src/engine/client/audio/levelAudio';
+import { MUSIC_STYLES } from '../../src/engine/client/ui/Settings';
 
 /** One built product's audio declaration, read from `out/` with its section hash checked. */
 function productAudioData(root: string, slug: string): ReturnType<typeof parseAudioData> | undefined {

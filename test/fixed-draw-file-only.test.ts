@@ -1,7 +1,7 @@
 import {expect,test,vi} from 'vitest';
-import {Scope} from '../src/engine/app/scope';
-import {fixedDraws,coldFixedDraws,productFixedDraws} from '../src/game/models/fixedDraws';
-import {createOwnedGeometry} from '../src/engine/models/ownedGeometry';
+import {Scope} from '../src/engine/shared/app/scope';
+import {fixedDraws,coldFixedDraws,productFixedDraws} from '../src/game/client/models/fixedDraws';
+import {createOwnedGeometry} from '../src/engine/client/models/ownedGeometry';
 
 const baked={attrs:[['position','f32',3,false]],count:3,index:null,indexCount:0,box:true,expand:false};
 const named={slot:'named',file:'models/named.bin',channels:[],baked};

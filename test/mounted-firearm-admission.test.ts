@@ -4,7 +4,7 @@ import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { fixtureJsonCheck } from './fixtures/productFile';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import source from './fixtures/nalati-rifle-original.json' with { type: 'json' };
 
 const encode = (input: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(input));

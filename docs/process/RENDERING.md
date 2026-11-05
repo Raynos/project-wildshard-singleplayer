@@ -102,7 +102,7 @@ shader/texture-only callers keep their original behavior.
 - **`src/engine/physics/` owns collision.** It is the only code that imports Rapier. Nothing else hand-rolls a collision test:
   no ray-vs-box maths, no terrain bisection, no push-out loops. Ask the queries: a shard imports `castRay`,
   `castSegment`, `lineOfSight`, `floorBelow` and `sticksIn` from `@wildshard/engine/physics/query`; engine code also has `sweepBall`
-  (`src/engine/physics/query.ts`). Engine code gets the world from `app.physics`; `activePhysics()` is a legacy
+  (`src/engine/shared/physics/query.ts`). Engine code gets the world from `app.physics`; `activePhysics()` is a legacy
   singleton the `wildshard/no-active-singleton` ratchet is retiring. `heightAt()` stays for placement and drawing only.
 - **A new static thing collides by registering.** The builder emits `ColliderDesc`s (`boxDesc` from `@wildshard/engine/world/registry`) beside
   the geometry it draws:
@@ -111,7 +111,7 @@ shader/texture-only callers keep their original behavior.
   - trimesh only for walk-inside shapes.
   A shard registers it with `ctx.piece({ id, name, category, file, object, colliders, surface, floor?, active?,
   model? })` in its plugin's `world` hook; the piece leaves with the shard's scope. Engine code registers with
-  `app.registry.add(…)` (`WorldRegistry`, `src/engine/world/registry.ts`). A moving piece `follows` its Object3D, which
+  `app.registry.add(…)` (`WorldRegistry`, `src/engine/client/world/registry.ts`). A moving piece `follows` its Object3D, which
   puts it on a kinematic body; a door is a piece whose `active()` is false while it is open. `model` puts it in
   Explore's catalog: it is the one registry, so never register a built thing a second time for Explore. The old
   `player.colliders` bridge is retired (F11).

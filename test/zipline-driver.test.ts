@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { ZiplineDriver } from '../src/engine/sim/cableTraversal';
+import { ZiplineDriver } from '../src/engine/shared/sim/cableTraversal';
 import { ZiplineLayout } from './fixtures/driftwood-zipline/shipping';
 import { ZIPLINE, ZIP_RIDE } from '../src/shards/pine-hollow/generators/zipline';
 import { pineSpots } from '../src/shards/pine-hollow/generators/spots';

@@ -4,13 +4,13 @@ import { emptyShardfile } from '@wildshard/sdk/author';
 import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { Scope } from '@wildshard/engine/app/scope';
 import { postStackCost } from '@wildshard/format/postStack';
-import * as product from '../src/game/shardfile/product';
-import * as runtime from '../src/game/shardfile/runtimeProduct';
-import { gridShardfileProduct,prioritizeGridProduct } from '../src/game/grid/products';
-import { prepareHomeMetadata } from '../src/game/grid/homeMetadata';
-import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { prepareApproachProductInputs } from '../src/game/grid/approachProductInputs';
-import { ApproachInputsDeferredError } from '../src/game/grid/productInputs';
+import * as product from '../src/game/client/shardfile/product';
+import * as runtime from '../src/game/client/shardfile/runtimeProduct';
+import { gridShardfileProduct,prioritizeGridProduct } from '../src/game/client/grid/products';
+import { prepareHomeMetadata } from '../src/game/server/grid/homeMetadata';
+import { ResidencyAllocator } from '../src/game/server/grid/allocator';
+import { prepareApproachProductInputs } from '../src/game/client/grid/approachProductInputs';
+import { ApproachInputsDeferredError } from '../src/game/client/grid/productInputs';
 
 await installCatalogueFixture();
 

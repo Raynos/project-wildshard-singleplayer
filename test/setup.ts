@@ -1,6 +1,6 @@
 import { beforeEach, vi } from 'vitest';
-import { ENGINE_CONTENT_STRINGS } from '../src/game/engineStrings';
-import { installEngineStrings } from '../src/engine/strings';
+import { ENGINE_CONTENT_STRINGS } from '../src/game/client/engineStrings';
+import { installEngineStrings } from '../src/engine/shared/strings';
 
 /** Browser globals and strings only; content installs belong to explicit world fixtures. */
 export class MemoryStorage {

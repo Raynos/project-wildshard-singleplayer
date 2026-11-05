@@ -55,11 +55,11 @@ describe('model contract after client relocation', () => {
   });
 
   it.each([
-    ['src/engine/render/scatterInstances.ts', 'new THREE.InstancedMesh();', 1],
-    ['src/game/ambient/wingField.ts', 'new THREE.InstancedMesh();', 1],
-    ['src/game/boss/arenaFire.ts', 'new THREE.InstancedMesh();', 2],
-    ['src/game/practice/course.ts', 'registry.add({ object });', 1],
-    ['src/game/weapons/heldPolearm.ts', 'new THREE.InstancedMesh();', 1],
+    ['src/engine/client/render/scatterInstances.ts', 'new THREE.InstancedMesh();', 1],
+    ['src/game/client/ambient/wingField.ts', 'new THREE.InstancedMesh();', 1],
+    ['src/game/client/boss/arenaFire.ts', 'new THREE.InstancedMesh();', 2],
+    ['src/game/client/practice/course.ts', 'registry.add({ object });', 1],
+    ['src/game/client/weapons/heldPolearm.ts', 'new THREE.InstancedMesh();', 1],
   ] as const)('retains the relocated draw ceiling at %s', (file, draw, ceiling) => {
     expect(checkModels({ [file]: draw.repeat(ceiling) }).violations).toEqual([]);
     expect(checkModels({ [file]: draw.repeat(ceiling + 1) }).violations)
@@ -72,10 +72,10 @@ describe('model contract after client relocation', () => {
   });
 
   it.each([
-    ['src/game/plugin/ui.ts', 'new InstancedMesh();'],
-    ['src/game/shardfile/worldSceneWeld.ts', 'new InstancedMesh();'],
+    ['src/game/client/plugin/ui.ts', 'new InstancedMesh();'],
+    ['src/game/client/shardfile/worldSceneWeld.ts', 'new InstancedMesh();'],
     ['src/sdk/bake/glb.ts', 'mergeGeometries(parts);'],
-    ['src/game/looks/posedInstances.ts', 'new THREE.InstancedMesh();'],
+    ['src/game/client/looks/posedInstances.ts', 'new THREE.InstancedMesh();'],
   ])('retains a one-draw ceiling at %s', (file, draw) => {
     expect(checkModels({ [file]: draw }).violations).toEqual([]);
     expect(checkModels({ [file]: `${draw} ${draw}` }).violations)

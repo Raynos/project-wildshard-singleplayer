@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { realGc } from '../src/engine/test/realGc';
 import { emptyShardfile } from '../src/sdk/author';
-import { shardProductFromAdmission } from '../src/game/shardfile/runtimeProduct';
-import type { ProductOptions } from '../src/game/shardfile/product';
+import { shardProductFromAdmission } from '../src/game/client/shardfile/runtimeProduct';
+import type { ProductOptions } from '../src/game/client/shardfile/product';
 
 test('a live admission reader keeps its facade and transport across collection', async () => {
   await realGc('test/runtime-product-lifetime.test.ts', 'a live admission reader keeps', async collect => {

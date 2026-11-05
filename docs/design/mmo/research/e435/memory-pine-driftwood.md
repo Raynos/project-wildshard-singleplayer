@@ -94,7 +94,7 @@ targets 18.9 + depth 3.2** (Pine's stepped day/night environment keeps two cubes
 11.2 each uncompressed on a cold boot), baked AO / bounce lightmaps 1.75, LUT and sprites ~3.
 
 **Render targets (91.7 MB)**: **shadow maps 41.9 = five 2048² DEPTH16**: three CSM cascades + two `sun-shadow-fade` ghost
-lights (`src/engine/world/shadowFade.ts`, which cross-fade a sun step); composer 2 × 8.8 + 2 depth renderbuffers 4.4 each,
+lights (`src/engine/client/world/shadowFade.ts`, which cross-fade a sun step); composer 2 × 8.8 + 2 depth renderbuffers 4.4 each,
 luminance 8.8, bloom mips 3.6 (engine base); PMREM 768×1024 6.3 + depth 3.2 (not Driftwood's own env, which is size 64:
 two 336×256 = 1.4).
 

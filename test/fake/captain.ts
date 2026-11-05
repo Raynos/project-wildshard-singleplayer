@@ -1,8 +1,8 @@
 import { vi } from 'vitest';
 import { Vector3 } from 'three';
-import type { BossPresentation } from '../../src/engine/ai/BossBrain';
-import { Scope } from '../../src/engine/app/scope';
-import { Events } from '../../src/engine/events/events';
+import type { BossPresentation } from '../../src/engine/server/ai/BossBrain';
+import { Scope } from '../../src/engine/shared/app/scope';
+import { Events } from '../../src/engine/shared/events/events';
 import { WakeBossEncounter } from '@wildshard/game/boss/wake';
 import rows from '../../src/shards/driftwood-isle/data/bossEncounter.json' with { type: 'json' };
 

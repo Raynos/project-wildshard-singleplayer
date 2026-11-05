@@ -222,7 +222,7 @@ disc (one per disc). The engine renderers are `@wildshard/engine/ui/declared`; t
 game's `@wildshard/game/plugin/ui` binds a section to a shard's HUD and Bag.
 
 Look v0 (SF10b) is data the engine renders (`@wildshard/engine/render/dataLook`; the game's loader
-binds the section through `src/game/shardfile/look.ts`); a shard ships no sky shader, fog patch or clock. Colours are
+binds the section through `src/game/client/shardfile/look.ts`); a shard ships no sky shader, fog patch or clock. Colours are
 linear working-space RGB in [0,1]. `day {minutes 1–1440, start 0–1, maxElevation 0–90°, azimuth −180–180°}` sets the
 engine clock (default 12 minutes from noon, 60°, 35°); `dayOverride` pins it. Each key is
 `{time 0–1, sky {zenith, horizon}, fog {colour, density, near?, far?}, sun {colour, intensity}, ambient {sky, ground, intensity}}`:
@@ -382,7 +382,7 @@ refuses a stack over 1,000 instructions. Where two cells' frames blend,
 `postPairRefusal` checks the pair's sum against the same 1,000 (a normal pre-pass both
 stacks read is counted once). Grid placement runs it: each admitted product records its
 stack's cost on the page (`gridPostCosts`), and a cell's admission sums its stack with
-each adjacent admitted cell's (`gridPostPairRefusal`, `src/game/grid/postPairs.ts`), so
+each adjacent admitted cell's (`gridPostPairRefusal`, `src/game/server/grid/postPairs.ts`), so
 of two neighbours whose stacks together exceed it, the one admitted second is refused
 (the cell screen's "too big"). The check is static, with no runtime sensing. Older
 products without `look.post` parse unchanged. While Settings ▸ Debug ▸ Look ▸

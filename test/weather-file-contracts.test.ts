@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { BufferGeometryLoader } from 'three';
 import { parseWeatherDocument } from '@wildshard/format/weatherBundle';
 import { parseWeatherEffects } from '@wildshard/format/weatherEffects';
-import { nativeWeatherBundle } from '../src/game/weather/reactions';
+import { nativeWeatherBundle } from '../src/game/server/weather/reactions';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import pine from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
 import steppe from '../src/shards/nalati-grasslands/data/weather.json' with { type: 'json' };

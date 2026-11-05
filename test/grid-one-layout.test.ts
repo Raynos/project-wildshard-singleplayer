@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
-import catalogue from '../src/game/grid/singleplayer.json' with { type: 'json' };
-import { Scope } from '../src/engine/app/scope';
-import { CHUNK_HALF } from '../src/engine/core/config';
-import { GridAssembly } from '../src/game/grid/assembly';
-import { installGridCrossing } from '../src/game/grid/crossing';
-import { titlePrefetchOrder } from '../src/game/grid/titleOrder';
+import catalogue from '../src/game/shared/grid/singleplayer.json' with { type: 'json' };
+import { Scope } from '../src/engine/shared/app/scope';
+import { CHUNK_HALF } from '../src/engine/shared/core/config';
+import { GridAssembly } from '../src/game/server/grid/assembly';
+import { installGridCrossing } from '../src/game/server/grid/crossing';
+import { titlePrefetchOrder } from '../src/game/client/grid/titleOrder';
 
 const publicMode = { developer: false, devserver: false, nineDragon: false };
 for (const developer of [false, true]) for (const devserver of [false, true]) for (const nineDragon of [false, true]) {

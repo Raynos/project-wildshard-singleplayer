@@ -1,4 +1,4 @@
-import { makePixels, type SetName } from '../../src/engine/player/viewmodelTextures';
+import { makePixels, type SetName } from '../../src/engine/client/player/viewmodelTextures';
 import { sendViewmodelPixels, type ViewmodelBake } from './viewmodelBytes';
 
 declare global { interface Window { bakeViewmodelPixels: (name: SetName, byteUrl: string) => Promise<ViewmodelBake> } }

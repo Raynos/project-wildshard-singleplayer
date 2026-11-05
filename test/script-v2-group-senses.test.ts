@@ -1,12 +1,12 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { AnimalSim } from '../src/engine/entities/AnimalSim';
-import { Rng } from '../src/engine/core/rng';
-import { Scope } from '../src/engine/app/scope';
-import { ObservationColumnsV2, type V2ColumnOwners, type V2SenseColumns } from '../src/engine/script/observationColumnsV2';
+import { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import { Rng } from '../src/engine/shared/core/rng';
+import { Scope } from '../src/engine/shared/app/scope';
+import { ObservationColumnsV2, type V2ColumnOwners, type V2SenseColumns } from '../src/engine/shared/script/observationColumnsV2';
 import { ObservationColumnsV2Schema, parseObservationColumnsV2 } from '@wildshard/format/scriptObservationColumnsV2';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 
 const rows = [
   { id: 1, name: 'visibility', source: { kind: 'sense', field: 'visibility' } },

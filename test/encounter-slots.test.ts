@@ -1,5 +1,5 @@
 import { expect,test } from 'vitest';
-import { ProjectedState,ReturnProgram } from '../src/game/population/returnProgram';
+import { ProjectedState,ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { NALATI_NIGHT as nightInput } from './fixtures/nalati-night';
 import {withWeatherWitness} from './fixtures/weatherInlineWitness';
 

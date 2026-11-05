@@ -4,8 +4,8 @@ import { output } from './fixtures/nine-source-program';
 import baseline from './fixtures/nine-jian-buffers.json' with { type: 'json' };
 import pendantsBaseline from './fixtures/nine-jian-pendants.json' with { type: 'json' };
 import { parseGraphArms } from '@wildshard/format/graphArmsRows';
-import { worldScenePool } from '../src/game/shardfile/scenePools';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { worldScenePool } from '../src/game/client/shardfile/scenePools';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 
 async function hash(bytes: Uint8Array): Promise<string> {
@@ -89,7 +89,7 @@ test('the held row changes only its geometry references', async () => {
 
 test('held effects are admitted graph rows with independent frame params', async () => {
   const { heldEffects } = await import('../src/shards/nine-dragon-stack/generators/heldEffects');
-  const { compileClassicGraph } = await import('../src/engine/render/graph/glslMaterial');
+  const { compileClassicGraph } = await import('../src/engine/client/render/graph/glslMaterial');
   for (const [id, row] of Object.entries(heldEffects())) {
     const graph = compileClassicGraph(row, { trustedBudget: true });
     try {

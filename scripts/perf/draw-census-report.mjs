@@ -38,9 +38,9 @@ export function sampledCpu(profile, locate, frames) {
       }
       if (/renderWorld/u.test(name) && source.includes('/core/worldDepth')) categories.add('renderWorld');
       if (/\/three\/(?:src\/renderers\/WebGLRenderer|build\/three(?:\.module)?\.js)/u.test(source) && /renderBufferDirect/u.test(name)) categories.add('stockDraw');
-      if (/src\/engine\/render\//u.test(source) && (/renderBufferDirect/u.test(name)
+      if (/src\/engine\/(?:(?:client|cook|server|shared)\/)?render\//u.test(source) && (/renderBufferDirect/u.test(name)
         || (source.endsWith('/drawHooks.ts') && /(?:^|\s)submit(?:\s|$)/u.test(name)))) categories.add('drawWrappers');
-      if (/src\/engine\/render\//u.test(source) && /properties\.get/u.test(name)) categories.add('propertyHooks');
+      if (/src\/engine\/(?:(?:client|cook|server|shared)\/)?render\//u.test(source) && /properties\.get/u.test(name)) categories.add('propertyHooks');
       id = parents.get(id);
     }
     for (const category of categories) identified.add(category);

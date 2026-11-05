@@ -4,9 +4,9 @@ import { orchardPopulation } from './fixtures/mixed-population';
 // oxlint-disable-next-line import/no-nodejs-modules -- Real Rapier exercises the native host.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
-import { createSimHost } from '../src/engine/sim';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { snapshotSimHost, restoreSimHost } from '../src/engine/shared/sim/snapshot';
+import { createSimHost } from '../src/engine/server/sim';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 

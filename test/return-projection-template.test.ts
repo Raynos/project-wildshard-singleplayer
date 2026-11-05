@@ -1,7 +1,7 @@
 import {beforeAll,expect,test,vi} from 'vitest';
-import * as observations from '../src/engine/script/observationsV2';
-import {ScriptModuleV2} from '../src/engine/script/moduleV2';
-import {ReturnProjectionV2} from '../src/game/population/returnProjectionV2';
+import * as observations from '../src/engine/shared/script/observationsV2';
+import {ScriptModuleV2} from '../src/engine/shared/script/moduleV2';
+import {ReturnProjectionV2} from '../src/game/shared/population/returnProjectionV2';
 import {returnProjectionV2Layout,parseReturnProjectionV2,type ReturnProjectionV2Rows} from '@wildshard/format/returnProjectionV2';
 import {compileScriptV2} from '../src/sdk/bake/compileScriptV2';
 import {v2CoreSource} from '../src/sdk/as/wsV2';
@@ -9,8 +9,8 @@ import {SCRIPT_V2_REVISIONS} from '@wildshard/format/scriptAdmissionV2';
 import {hashImmutableBytes} from '../src/sdk/immutable';
 import {writeV2Frame} from '@wildshard/format/scriptWireV2';
 import {prepareV2Rng} from '@wildshard/format/scriptRngV2';
-import {Rng} from '../src/engine/core/rng';
-import {Scope} from '../src/engine/app/scope';
+import {Rng} from '../src/engine/shared/core/rng';
+import {Scope} from '../src/engine/shared/app/scope';
 
 let row:ReturnProjectionV2Rows;
 beforeAll(async()=>{

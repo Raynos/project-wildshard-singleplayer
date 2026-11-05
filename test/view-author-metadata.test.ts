@@ -5,7 +5,7 @@ import type { SceneEffectField } from '../src/sdk/worldScenes';
 import { ARENA_VIEW as nativeArena, arenaChainTell as nativeChain } from '@wildshard/format/arenaView';
 import { ELITE_VIEW_FIELDS as nativeFields, eliteViewSource as nativeSource, eliteViewTell as nativeTell } from '@wildshard/format/eliteFeature';
 import type { ViewProgramRows } from '@wildshard/format/viewProgram';
-import type { EffectFieldRow } from '../src/engine/fx/effectField';
+import type { EffectFieldRow } from '../src/engine/client/fx/effectField';
 import { viewAuthorObservation } from './fixtures/view-author-observation';
 import original from './fixtures/view-author-original.json' with { type: 'json' };
 

@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import type * as THREE from 'three';
 import { vec3 } from 'three/tsl';
-import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
-import { ToonLook } from '../src/engine/render/families/toon';
+import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
+import { ToonLook } from '../src/engine/client/render/families/toon';
 import { graph as authorGraph } from '../src/sdk/materials';
 import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 

@@ -1,9 +1,9 @@
 // @vitest-environment happy-dom
 import { expect, it, vi } from 'vitest';
-import { Loading } from '../src/engine/ui/Loading';
-import { currentLoadingTimeline } from '../src/engine/boot/timeline';
-import { loadShellTemplate } from '../src/engine/boot/shell';
-import { loadingPath } from '../src/game/boot/loadingPaths';
+import { Loading } from '../src/engine/client/ui/Loading';
+import { currentLoadingTimeline } from '../src/engine/shared/boot/timeline';
+import { loadShellTemplate } from '../src/engine/client/boot/shell';
+import { loadingPath } from '../src/game/client/boot/loadingPaths';
 
 it('publishes the measured cold entry boundaries without timing-based credit', () => {
   // Preserve the official native timestamps. Completed work now owns credit;

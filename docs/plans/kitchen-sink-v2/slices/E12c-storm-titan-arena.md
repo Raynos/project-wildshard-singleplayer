@@ -13,14 +13,14 @@ Crate Titan's shape (E12g).
 
 Research:
 
-- `src/game/boss/arenaRoom.ts` (1,641 lines) still owns the fight after E10a: "the single ordered boss/room update",
+- `src/game/server/boss/arenaRoom.ts` (1,641 lines) still owns the fight after E10a: "the single ordered boss/room update",
   the row-driven arena brain (`:462-494`), the client adapter over the boss host (`:495`), private scenes and the
   reward light (`:581`); `openArenaFight.ts`, `arenaAnswers.ts`, `arenaCollision.ts`, `arenaGround.ts` (a deformable
   floor), `arenaWhirls.ts`, `arenaFire.ts` (whose drawing E4 already lifted to the shared hazard view).
 - Nalati ships 13 `titan*.as` scripts (migration map §1) and the fire's `burnSeconds` / `fireDps`
   (`src/format/bossProfiles.ts:292`).
-- Consumers of `arenaRoom`: Nalati `generators/output.ts`, `game/quest/pageComposition.ts`,
-  `game/shardfile/entryOwners.ts`, `clientTargets.ts`, `worldAssembly.ts`, `worldUpdates.ts`, `game/looks/speciesBook.ts`.
+- Consumers of `arenaRoom`: Nalati `generators/output.ts`, `game/server/quest/pageComposition.ts`,
+  `game/client/shardfile/entryOwners.ts`, `clientTargets.ts`, `worldAssembly.ts`, `worldUpdates.ts`, `game/client/looks/speciesBook.ts`.
 
 Work: the Storm Titan becomes a boss row whose `arena` is an interior (E10a); its phases, the bolts, the fire and the
 whirls become strikes, E4's hazard rows (burn via E0g's `effect.burn`) and arena rows; the deformable floor stays as an

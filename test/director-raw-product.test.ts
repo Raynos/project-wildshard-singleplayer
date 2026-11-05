@@ -1,10 +1,10 @@
 import {expect,test,vi} from 'vitest';
-import {Scope} from '../src/engine/app/scope';
-import {readDirectorProduct,prepareEmbeddedDirector,embeddedDirectorBytes} from '../src/game/plugin/director';
+import {Scope} from '../src/engine/shared/app/scope';
+import {readDirectorProduct,prepareEmbeddedDirector,embeddedDirectorBytes} from '../src/game/server/plugin/director';
 import {parseDirector} from '@wildshard/format/director';
-import {createShardProduct} from '../src/game/shardfile/shardProduct';
+import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
-import {sha256} from '../src/game/plugin/moduleHash';
+import {sha256} from '../src/game/shared/plugin/moduleHash';
 import {pineDirector,driftwoodDirector} from './fixtures/director-modules';
 import pine from '../src/shards/pine-hollow/data/director.json' with {type:'json'};
 import driftwood from '../src/shards/driftwood-isle/data/director.json' with {type:'json'};

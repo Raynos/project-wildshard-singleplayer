@@ -1,13 +1,13 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture uses shipped Rapier bytes.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
-import { QuestFlagGates } from '../src/game/quest/flagGates';
-import { SimNetWorld } from '../src/engine/net/simWorld';
-import { FLAG_PREFIX } from '../src/engine/net/shardNet';
-import { questBooks } from '../src/engine/quest/players';
-import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
-import { createSimHost, type SimHost } from '../src/engine/sim';
-import { leadPlayer } from '../src/engine/sim/leadPlayer';
+import { QuestFlagGates } from '../src/game/server/quest/flagGates';
+import { SimNetWorld } from '../src/engine/server/net/simWorld';
+import { FLAG_PREFIX } from '../src/engine/shared/net/shardNet';
+import { questBooks } from '../src/engine/server/quest/players';
+import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost, type SimHost } from '../src/engine/server/sim';
+import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 // J106, personal phasing: a gate's state is each player's own. One physics world, one collider, two answers.

@@ -2,18 +2,18 @@ import {carriedPropFiles} from './fixtures/carriedPropFiles';
 import {lendNalatiKokpar} from './fixtures/nalati-return-modules';
 import {expect,it,vi} from 'vitest';
 import * as THREE from 'three';
-import {Scope} from '../src/engine/app/scope';
-import {SkyRig} from '../src/engine/world/skyRig';
-import {WorldRegistry} from '../src/engine/world/registry';
-import {Flags} from '../src/engine/world/interact/flags';
-import {QuestState} from '../src/engine/quest/core';
-import {CarriedQuestProp} from '../src/game/quest/carriedProp';
-import {publishBoundQuest} from '../src/game/quest/boundState';
+import {Scope} from '../src/engine/shared/app/scope';
+import {SkyRig} from '../src/engine/client/world/skyRig';
+import {WorldRegistry} from '../src/engine/client/world/registry';
+import {Flags} from '../src/engine/server/world/interact/flags';
+import {QuestState} from '../src/engine/server/quest/core';
+import {CarriedQuestProp} from '../src/game/server/quest/carriedProp';
+import {publishBoundQuest} from '../src/game/server/quest/boundState';
 import {parseCarriedQuest} from '@wildshard/format/questSteps';
 import {parseDecisionScripts} from '@wildshard/format/decisionScripts';
-import * as terrain from '../src/engine/world/terrainHeight';
-import * as riding from '../src/game/riding/client';
-import type {ShardContext} from '../src/game/plugin/context';
+import * as terrain from '../src/engine/shared/world/terrainHeight';
+import * as riding from '../src/game/client/riding/client';
+import type {ShardContext} from '../src/game/server/plugin/context';
 import {carriedQuestRows} from './fixtures/nalati-carried-quest';
 
 function fixture(){

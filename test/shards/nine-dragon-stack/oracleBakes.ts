@@ -1,6 +1,6 @@
 // Committed predecessor bytes are test oracles only; no product/runtime imports this module.
 import * as v from 'valibot';
-import { bakedGeometryBytes, readBakedGeometry } from '../../../src/game/plugin/geometry';
+import { bakedGeometryBytes, readBakedGeometry } from '../../../src/game/client/plugin/geometry';
 import type { BufferGeometry } from 'three';
 
 const finite = v.number();

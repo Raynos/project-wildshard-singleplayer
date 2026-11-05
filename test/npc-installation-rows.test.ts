@@ -1,13 +1,13 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { Group, Vector3 } from 'three';
-import { installNpcTalk } from '../src/game/plugin/ui';
-import { Flags } from '../src/engine/world/interact/flags';
-import { DialogueBox } from '../src/engine/quest/view/ui';
-import { Scope } from '../src/engine/app/scope';
-import type { NpcDef } from '../src/engine/quest/core';
-import type { Piece } from '../src/engine/world/registry';
-import type { Interactable } from '../src/engine/world/interact/types';
+import { installNpcTalk } from '../src/game/client/plugin/ui';
+import { Flags } from '../src/engine/server/world/interact/flags';
+import { DialogueBox } from '../src/engine/client/quest/view/ui';
+import { Scope } from '../src/engine/shared/app/scope';
+import type { NpcDef } from '../src/engine/server/quest/core';
+import type { Piece } from '../src/engine/client/world/registry';
+import type { Interactable } from '../src/engine/shared/world/interact/types';
 import { QUEST_NPCS } from '../src/shards/pine-hollow/generators/questTalkPolicy';
 import { CASTAWAY_TALK } from '../src/shards/driftwood-isle/generators/questNpcs';
 

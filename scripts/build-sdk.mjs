@@ -43,7 +43,7 @@ function declaration(layer, module) {
   // Ambient defining leaves are compiler inputs, so tsc does not emit a second copy of them.
   let text = readFileSync(existsSync(source) ? source : resolve(root, `src/${layer}/${module}.d.ts`), 'utf8');
   // Relative import declarations are illegal inside ambient modules; the equivalent type query remains portable.
-  if (key === 'engine/types/n8ao') text = text.replace("import type { Renderer } from '@wildshard/engine/render/renderer';", "type Renderer = import('@wildshard/engine/render/renderer').Renderer;");
+  if (key === 'engine/client/types/n8ao') text = text.replace("import type { Renderer } from '@wildshard/engine/render/renderer';", "type Renderer = import('@wildshard/engine/render/renderer').Renderer;");
   // @wildshard/format stays a package import: the SDK depends on the shardfile repo's own files.
   text = text.replaceAll(/(['"])@wildshard\/(engine|game|sdk)\/([^'"]+)\1/gu, (_match, quote, dependencyLayer, specifier) => {
     const dependency = defining(dependencyLayer, specifier);
@@ -54,7 +54,7 @@ function declaration(layer, module) {
     return `${quote}${relative(from, to).replaceAll('\\', '/')}${quote}`;
   });
   // Relative declaration imports remain in the same copied module tree.
-  // Doc comments may quote example imports (game/shard/manifest.ts: `import('./look/render')`); only code is scanned.
+  // Doc comments may quote example imports (game/server/shard/manifest.ts: `import('./look/render')`); only code is scanned.
   const code = text.replaceAll(/\/\*[\s\S]*?\*\//gu, '').replaceAll(/^\s*\/\/.*$/gmu, '');
   for (const match of code.matchAll(/(?:from\s*|import\s*\()(['"])(\.[^'"]+)\1/gu)) {
     const dependency = relative(resolve(root, `src/${layer}`), resolve(root, `src/${layer}`, module, '..', match[2]));

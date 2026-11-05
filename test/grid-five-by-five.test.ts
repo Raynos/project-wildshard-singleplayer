@@ -1,13 +1,13 @@
 import { expect, test } from 'vitest';
-import catalogue from '../src/game/grid/singleplayer.json' with { type: 'json' };
-import { GridAssembly } from '../src/game/grid/assembly';
-import { parseGridCatalogue } from '../src/game/grid/catalogue';
-import { GridContinuationCache } from '../src/game/grid/continuations';
-import { roadLayout, segmentPoint, RAIL_OFFSET } from '../src/game/grid/roadLayout';
+import catalogue from '../src/game/shared/grid/singleplayer.json' with { type: 'json' };
+import { GridAssembly } from '../src/game/server/grid/assembly';
+import { parseGridCatalogue } from '../src/game/server/grid/catalogue';
+import { GridContinuationCache } from '../src/game/server/grid/continuations';
+import { roadLayout, segmentPoint, RAIL_OFFSET } from '../src/game/shared/grid/roadLayout';
 import openPlots from '../src/shards/open-plots/outputs.json' with { type: 'json' };
-import { generatePlatform, type PlatformCell } from '../src/engine/sim/strips';
-import { readinessModel } from '../src/engine/sim/readiness';
-import { CHUNK_HALF } from '../src/engine/core/config';
+import { generatePlatform, type PlatformCell } from '../src/engine/shared/sim/strips';
+import { readinessModel } from '../src/engine/shared/sim/readiness';
+import { CHUNK_HALF } from '../src/engine/shared/core/config';
 
 const modes = [{ developer: false, devserver: false }, { developer: true, devserver: false },
   { developer: false, devserver: true }, { developer: true, devserver: true }] as const;

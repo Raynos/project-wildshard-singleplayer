@@ -3,7 +3,7 @@ import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { emptyShardfile } from '../src/sdk/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import type { ProjectGenerationContext } from '../src/sdk/projectGeneration';
-import { controlFiles, lateFiles } from '../src/game/shardfile/controlFiles';
+import { controlFiles, lateFiles } from '../src/game/client/shardfile/controlFiles';
 import { driftwoodPhysicsOwnedSources, driftwoodPhysicsSources, driftwoodPhysicsFloor, driftwoodProofLateRoots } from '../src/shards/driftwood-isle/generators/physics';
 
 const bytes = fixtureBytes(new URL('../src/shards/driftwood-isle/data/physics-colliders.bin', import.meta.url));

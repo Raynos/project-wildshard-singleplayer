@@ -2,9 +2,9 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the unchanged native physics binary for exact continuation controls.
 import {readFileSync} from 'node:fs';
 import {beforeAll,expect,test} from 'vitest';
-import {loadRapier,type Rapier} from '../src/engine/physics/rapier';
-import {createSimHost} from '../src/engine/sim';
-import {decodeSimSnapshot,decodeSimSnapshotBytes,serializeSimSnapshot,snapshotSimHostBytes} from '../src/engine/sim/snapshot';
+import {loadRapier,type Rapier} from '../src/engine/shared/physics/rapier';
+import {createSimHost} from '../src/engine/server/sim';
+import {decodeSimSnapshot,decodeSimSnapshotBytes,serializeSimSnapshot,snapshotSimHostBytes} from '../src/engine/shared/sim/snapshot';
 import {chapterSnapshotDigest} from './fixtures/headless/chapterHandoff';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
 import { leadSnapshot } from '@wildshard/engine/sim/snapshot';

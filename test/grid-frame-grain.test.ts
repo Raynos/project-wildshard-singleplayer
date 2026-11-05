@@ -3,11 +3,11 @@ import { BrightnessContrastEffect, EffectPass, HueSaturationEffect, type EffectC
 import { PerspectiveCamera, Scene } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
 import { GradeEffect } from '@wildshard/engine/core/Grade';
-import { RegionCinematic } from '../src/engine/render/regionCinematic';
+import { RegionCinematic } from '../src/engine/client/render/regionCinematic';
 import { CINEMATIC_FX } from '@wildshard/engine/render/look';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import { GridFrame, passEffects } from '../src/game/grid/frame';
-import type { RegionChain } from '../src/game/grid/frameLook';
+import { GridFrame, passEffects } from '../src/game/client/grid/frame';
+import type { RegionChain } from '../src/game/client/grid/frameLook';
 
 const chain: RegionChain = {
   grade: { saturation: 1, brightness: 0, contrast: 0, shadowTint: [1, 1, 1], highTint: [1, 1, 1],

@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
-import { syncGraphEnvironment } from '../src/engine/render/graph/glslProgram';
-import { ToonLook } from '../src/engine/render/families/toon';
+import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
+import { syncGraphEnvironment } from '../src/engine/client/render/graph/glslProgram';
+import { ToonLook } from '../src/engine/client/render/families/toon';
 import type { GraphIr } from '@wildshard/format/materialGraph';
 
 /** a classic PMREM environment of one atlas height */

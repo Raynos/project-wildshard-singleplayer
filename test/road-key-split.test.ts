@@ -1,6 +1,6 @@
 import { BufferAttribute, BufferGeometry } from 'three';
 import { expect, test, vi } from 'vitest';
-import { splitByKey } from '../src/game/grid/roadSolid';
+import { splitByKey } from '../src/game/client/grid/roadSolid';
 
 /** Retained pre-cut Map oracle: complete storage, ordering and fallback values. */
 function original(geometry: BufferGeometry, keyOf: (triangle: number) => number, keys: number): ReturnType<typeof splitByKey> {

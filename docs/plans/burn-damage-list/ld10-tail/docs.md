@@ -55,7 +55,7 @@ or drop the sentence "The template's imports show the rule" and its block.
 **762-780 (§7 "The shard plugin and the registry").** The `TemplatePlugin extends ShardPlugin` example and the rows
 "`ShardPlugin` | the base class; each hook may be async" and "`GameRows`, `GameRowMap` | `ctx.rows.item / lootTable /
 skin / feat / shop / compendium / places`" describe plugin authoring that no shard does any more (only
-`src/game/grid/pageShell.ts:61` and `src/game/shard/declaredEntry.ts:29` extend `ShardPlugin`). Replace the code
+`src/game/client/grid/pageShell.ts:61` and `src/game/server/shard/declaredEntry.ts:29` extend `ShardPlugin`). Replace the code
 block with: "A shard declares data; its manifest's `bindings.entry` names the built-in client-plan entry
 (`declaredClientPlanEntry`), which runs the world, kit and play stages with a `ShardContext`." Keep the table but
 make `ShardPlugin` "the internal staged base class of the page shell and the declared entry" and drop `places`
@@ -102,7 +102,7 @@ declared entry's only composite." (LD9b-only; leave until that arm is gone.)
 query remains atomic".
 
 **1319-1322.** "`Game.nodeBuilds.log` retains 1,024 scalar records …" The getter now always returns `null`
-(`src/engine/core/Game.ts:961`). Delete the paragraph in the commit that deletes the getter (and its readers listed in
+(`src/engine/client/core/Game.ts:961`). Delete the paragraph in the commit that deletes the getter (and its readers listed in
 orphans.md §6).
 
 **1811-1814.** "Node builds scope `render/nodes/nodeChildren.ts` child snapshots to one synchronous build. …" The file
@@ -126,7 +126,7 @@ classic graph material or the kit material);".
 
 **7818.** "`AnimalMaterial` also accepts a compiled standard/toon node material; … adds no eager graph-backend import."
 → "`AnimalMaterial` also accepts a lit classic graph material (`GraphShaderMaterial` with `lights`); body colour, map
-and emissive hit-flash ports keep their types." (Code twin: `src/game/population/productCreatures.ts:54` still tests
+and emissive hit-flash ports keep their types." (Code twin: `src/game/client/population/productCreatures.ts:54` still tests
 `isMeshStandardNodeMaterial`.)
 
 **1773-1778 (Material graphs).** Already NF18-correct: "lazy, not on the default path", the three `load*Compiler`
@@ -137,5 +137,5 @@ ownership/lifetime summary to keep. The single-entry API is covered by the 169 /
 
 - `docs/SDK-DEV.md:3,7,15`: `@wildshard/sdk/runtime/audio/{weaponVoices,silentScore,combatCues}` → the
   `@wildshard/game/plugin/audio` and `@wildshard/game/systems/audio/silentScore` defining modules.
-- Source comments naming deleted node files (orphans.md §6), plus `src/engine/render/shadowDepthVariants.ts:6`
+- Source comments naming deleted node files (orphans.md §6), plus `src/engine/client/render/shadowDepthVariants.ts:6`
   ("its own node depth variant").

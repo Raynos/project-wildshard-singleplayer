@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { COLOUR_LUT_EDGE, COLOUR_LUT_CHANNELS } from '@wildshard/format/colourLut';
-import { LUT_SIZE } from '../src/engine/render/lut';
+import { LUT_SIZE } from '../src/engine/client/render/lut';
 import { colourLutSampleTransform } from '../src/sdk/bake/materialGraph';
 
 test('native cube storage and author texel centres retain the fitted 33-cube contract', () => {

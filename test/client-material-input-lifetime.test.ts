@@ -5,11 +5,11 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the runner without a shell.
 import { resolve as resolvePath } from 'node:path';
-import { Scope } from '../src/engine/app/scope';
-import type { Renderer } from '../src/engine/render/renderer';
+import { Scope } from '../src/engine/shared/app/scope';
+import type { Renderer } from '../src/engine/client/render/renderer';
 import { emptyShardfile } from '../src/sdk/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { clientMaterials } from '../src/game/shardfile/clientMaterials';
+import { clientMaterials } from '../src/game/client/shardfile/clientMaterials';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 async function fixture() {

@@ -10,7 +10,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async preparation 
   const plan = await base.prepareHeadlessRuntime(preparation);
   const { installNativeEconomy } = await import('./native-hosts/loot/nativeEconomy');
   const { mixedPopulation } = await import('@wildshard/game/population/mixedRoster');
-  const { installCoinModel } = await import('../../src/game/loot/coinModel');
+  const { installCoinModel } = await import('../../src/game/client/loot/coinModel');
   const coinGeometry = await prepareNativeCoinRecipe();
   const payload = v.parse(v.object({ constants: v.object({ nativeQuest: v.object({ step: v.string(), acquisition: v.object({ population: v.string() }) }) }) }),
     { constants: driftwoodNativeInputs() });

@@ -9,7 +9,7 @@ import trailRows from '../data/trailCatalogue.json' with { type: 'json' };
 
 
 /**
- * The trail dressing's models (E306 / E315 M1: models on the contract, src/engine/models/model.ts; they were built inside
+ * The trail dressing's models (E306 / E315 M1: models on the contract, src/engine/client/models/model.ts; they were built inside
  * src/shards/driftwood-isle/world/Trailside.ts): the rope-fence POST (a thick weathered piling with a rope lashing under its cap), the
  * SIGNPOST (a post with an arrow board per direction, stacked, each lettered with the place it points to — E318) and the
  * PLANK STEP let into a climb. Flat-shaded vertex colour, per-face jitter from the stream they are handed.

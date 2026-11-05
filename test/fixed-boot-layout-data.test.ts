@@ -1,14 +1,14 @@
 import { expect, it } from 'vitest';
 import * as pine from '../src/shards/pine-hollow/generators/layout';
 import { creekWaterAt, inBeaverPool as originalPool } from '../src/shards/pine-hollow/generators/geography';
-import { declaredForestQueries, declaredGround, declaredPondClip } from '../src/game/shard/manifest';
-import { pondGrid } from '../src/engine/world/pondGrid';
-import { setLiveWaterLevel } from '../src/engine/world/water/declared';
+import { declaredForestQueries, declaredGround, declaredPondClip } from '../src/game/server/shard/manifest';
+import { pondGrid } from '../src/engine/client/world/pondGrid';
+import { setLiveWaterLevel } from '../src/engine/shared/world/water/declared';
 import { forestDensity, oldGrowthMask, speciesMix } from '../src/shards/pine-hollow/generators/forestGeography';
 import { pineGeographyRows } from '../src/shards/pine-hollow/generators/geographyRows';
 import manifest from '../src/shards/pine-hollow/manifest.json' with { type: 'json' };
 import { PINE_TREE_IDS } from '../src/shards/pine-hollow/generators/treeSet';
-import { ScalarLatticeBindings, readScalarChannel } from '../src/engine/world/scalarChannel';
+import { ScalarLatticeBindings, readScalarChannel } from '../src/engine/shared/world/scalarChannel';
 import { pineDensityBlob } from '../src/shards/pine-hollow/generators/forestRows';
 
 // GR8 G33b: the program's declared rows (the retired pine-geography job's files)

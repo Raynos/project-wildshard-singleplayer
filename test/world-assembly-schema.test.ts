@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import { formatJsonSchema, namedJsonSchema } from '../src/sdk/formatJsonSchema';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 import { worldAssemblyRows } from '../src/sdk/worldScenes';
 
 const models = { stages: [{ kind: 'drawn-models', id: 'orchard.signs', look: {painterly: {rim: 0.4}}, models: [{id: 'north', draw: 'sign:north'}] }] };

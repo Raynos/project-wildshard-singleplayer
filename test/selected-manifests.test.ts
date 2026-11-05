@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { selectedManifests, gridManifests } from '../src/selectedManifests';
-import { shards } from '../src/game/shard/list';
+import { shards } from '../src/game/client/shard/list';
 import { prepareBootImports } from '../src/bootDownloads';
 import { installCatalogueFixture } from './fixtures/bootSetup';
 

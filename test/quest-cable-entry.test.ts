@@ -1,17 +1,17 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { BoxGeometry, MeshStandardMaterial, PerspectiveCamera, Scene, Vector3 } from 'three';
-import { App } from '../src/engine/app/app';
-import { Scope } from '../src/engine/app/scope';
-import { createLevelInstallation } from '../src/engine/level/installation';
-import { WorldRegistry } from '../src/engine/world/registry';
-import { installCableModes } from '../src/engine/player/modes';
-import { prepareQuestEntry } from '../src/game/quest/chapter';
-import { shardContext } from '../src/game/plugin/context';
-import { parseShardSlug } from '../src/game/shard/slug';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { App } from '../src/engine/client/app/app';
+import { Scope } from '../src/engine/shared/app/scope';
+import { createLevelInstallation } from '../src/engine/client/level/installation';
+import { WorldRegistry } from '../src/engine/client/world/registry';
+import { installCableModes } from '../src/engine/shared/player/modes';
+import { prepareQuestEntry } from '../src/game/server/quest/chapter';
+import { shardContext } from '../src/game/server/plugin/context';
+import { parseShardSlug } from '../src/game/server/shard/slug';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
-import { installWorldScenes } from '../src/game/shardfile/worldScenes';
+import { installWorldScenes } from '../src/game/client/shardfile/worldScenes';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';

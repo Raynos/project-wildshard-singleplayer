@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { ForestPageSchema, ForestGroundLayoutSchema, forestGroundLayoutSteps } from '@wildshard/format/forestPage';
 import { RangedPageSchema, ForestWeatherObservationSchema } from '@wildshard/format/rangedPage';
-import { ForestRoofMask } from '../src/game/looks/forestRoofMask';
+import { ForestRoofMask } from '../src/game/client/looks/forestRoofMask';
 import { forestStory } from '../src/shards/pine-hollow/generators/forestStory';
 import { cabinLiving } from '../src/shards/pine-hollow/generators/cabinLivingContribution';
 import { forestPage } from '../src/shards/pine-hollow/generators/forestPage';

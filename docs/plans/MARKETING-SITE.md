@@ -38,7 +38,7 @@ Every section serves one door or the bridge between them.
 | 7 | **A living grid** | Co-edit, renovate abandoned shards, the centre never goes ghost-town, live updates with players inside; your name and title travel with you; two wallets so no shard can break the economy | VISION.md "Ownership", MMO-REQUIREMENTS M6 / O1–O6 | concept art + icons |
 | 8 | **The road** | Honest milestones: ✅ seven single-player shards on one engine · ✅ the shardfile package · 🟡 the grid (3 × 3, seamless travel) · 🟡 every shard at 80 / 20 · ⬜ multiplayer (two players in one shard) · ⬜ upload (an outside author through the ritual) · ⬜ the 25-shard grid | MMO-REQUIREMENTS §5, SHARD-PLATFORM State line | a progress strip generated at build time (MS6) |
 | 9 | **Who's building it** | raynos and mattesch, and a fleet of Claude Code and Codex agents: the game is itself built the way its authors will build shards | Meta README | the WorldClaw board / drafts site as proof |
-| 10 | **Footer** | Play · Become an author · contact (`project.wildshard@gmail.com`) · credits (the licence conditions the game's Settings ▸ Credits already lists, `src/engine/audio/credits.ts`) | | |
+| 10 | **Footer** | Play · Become an author · contact (`project.wildshard@gmail.com`) · credits (the licence conditions the game's Settings ▸ Credits already lists, `src/engine/client/audio/credits.ts`) | | |
 
 ### 1.1 Honesty rules (they hold every row)
 

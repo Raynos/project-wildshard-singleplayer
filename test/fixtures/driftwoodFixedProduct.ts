@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native fixture paths resolve from the test repository.
 import { resolve } from 'node:path';
-import { createShardProduct } from '../../src/game/shardfile/shardProduct';
+import { createShardProduct } from '../../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../../src/sdk/author';
 import { DRIFTWOOD_BANK_BLOBS, DRIFTWOOD_OUTPUT } from '../../src/shards/driftwood-isle/generators/assets';
 import { DRIFTWOOD_CLIENT_SECTIONS } from '../../src/shards/driftwood-isle/generators/clientSections';

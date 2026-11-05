@@ -1,4 +1,4 @@
-import {BOAR} from '../systems/species/boar';
+import {BOAR} from '../client/systems/species/boar';
 import type {SimLevel} from '@wildshard/engine/sim';
 
 /** The shared real creature recipe used by level scenarios and game units. */

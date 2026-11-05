@@ -1,15 +1,15 @@
 import { EncounterSlotsSchema, SlotViewSchema } from '@wildshard/format/encounterRows';
 import { afterEach, expect, test, vi } from 'vitest';
 import { MeshBasicMaterial, Scene, Vector3 } from 'three';
-import { lendLooks } from '../src/game/shardfile/lentLooks';
+import { lendLooks } from '../src/game/client/shardfile/lentLooks';
 import * as v from 'valibot';
-import { Scope } from '../src/engine/app/scope';
-import { app } from '../src/engine/app/runtime';
-import type { Game } from '../src/engine/core/Game';
+import { Scope } from '../src/engine/shared/app/scope';
+import { app } from '../src/engine/client/app/runtime';
+import type { Game } from '../src/engine/client/core/Game';
 import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
-import { CueDirector } from '../src/game/audio/cueDirector';
-import { SlotEncounterView } from '../src/game/boss/encounterView';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+import { CueDirector } from '../src/game/client/audio/cueDirector';
+import { SlotEncounterView } from '../src/game/client/boss/encounterView';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { NALATI_NIGHT as nightInput } from './fixtures/nalati-night';
 import {withWeatherWitness} from './fixtures/weatherInlineWitness';
 

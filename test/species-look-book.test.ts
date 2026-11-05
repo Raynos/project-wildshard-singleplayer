@@ -2,8 +2,8 @@ import { originalSpeciesJson, originalSpeciesFile } from './fixtures/nalati-orig
 import { object, parse, string } from 'valibot';
 import { NativeSpeciesLookBookSchema, SpeciesPresentationSchema } from '@wildshard/format/speciesBookRows';
 import { expect,test,vi } from 'vitest';
-import { HullLookBook, speciesBehaviour } from '../src/game/looks/speciesBook';
-import { Rng } from '../src/engine/core/rng';
+import { HullLookBook, speciesBehaviour } from '../src/game/client/looks/speciesBook';
+import { Rng } from '../src/engine/shared/core/rng';
 import rows from '../src/shards/nalati-grasslands/data/speciesLooks.json' with {type:'json'};
 import { HullLookBookSchema, PackedCreatureLooksSchema } from '@wildshard/format/speciesLooks';
 

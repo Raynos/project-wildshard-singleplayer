@@ -4,10 +4,10 @@ import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { afterAll, beforeAll, expect, test } from 'vitest';
 import ts from '@typescript/typescript6';
-import { productTileRing } from '../src/game/shardfile/tileDriver';
-import { CELL_RING } from '../src/game/shardfile/tileContent';
-import { jsonSlot } from '../src/engine/saves/slots';
-import { LEVEL_DOWNLOAD_SLOT, runtimePacksOn } from '../src/engine/boot/loadingPacks';
+import { productTileRing } from '../src/game/client/shardfile/tileDriver';
+import { CELL_RING } from '../src/game/client/shardfile/tileContent';
+import { jsonSlot } from '../src/engine/client/saves/slots';
+import { LEVEL_DOWNLOAD_SLOT, runtimePacksOn } from '../src/engine/client/boot/loadingPacks';
 
 const download = jsonSlot(LEVEL_DOWNLOAD_SLOT, 'device'), previous = download.read();
 beforeAll(() => { download.write('shardfile'); expect(runtimePacksOn()).toBe(false); });

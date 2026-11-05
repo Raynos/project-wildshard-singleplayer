@@ -18,12 +18,12 @@ Research (the audio plan's §1 audit, re-checked):
 
 - `src/format/audio.ts` (463 lines): `music` slots with calm / tension stems, `selection` rows over scene fields (first
   match wins), `zones`, `scene`, `patches`; boss `layers` gain **by boss phase 1–3 only** (Pine's Antler King). Engine:
-  `src/engine/audio/SetScore.ts`, `Stems.ts`, `scoreSelection.ts`, `score/score.ts`.
+  `src/engine/client/audio/SetScore.ts`, `Stems.ts`, `scoreSelection.ts`, `score/score.ts`.
 - **Scene fields are written per shard** (Nalati's `audio.scene` kind; Pine's King layers): no boss or elite host
   writes them.
-- **No metal impact**: ranged impacts map `metal` to the `stone` kind (`src/engine/combat/view/rangedFeel.ts:33`); melee
+- **No metal impact**: ranged impacts map `metal` to the `stone` kind (`src/engine/client/combat/view/rangedFeel.ts:33`); melee
   impacts pick `wood | ground | flesh` and clangs `wood | stone`. `metal` exists only as a footstep surface
-  (`src/engine/audio/surface.ts:13`).
+  (`src/engine/client/audio/surface.ts:13`).
 - Combat events for cues: `damage.dealt` (with E0b's `outcome`), `damage.failed` (E0b), `progression.levelUp` (E0d).
 
 Work:

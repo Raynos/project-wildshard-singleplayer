@@ -1,9 +1,9 @@
 import {expect,test} from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare the report's identity with the actual material source.
 import {createHash} from 'node:crypto';
-import {ToonLook} from '../src/engine/render/families/toon';
-import {emitClassicGraph} from '../src/engine/render/graph/glslProgram';
-import {compileClassicGraph} from '../src/engine/render/graph/glslMaterial';
+import {ToonLook} from '../src/engine/client/render/families/toon';
+import {emitClassicGraph} from '../src/engine/client/render/graph/glslProgram';
+import {compileClassicGraph} from '../src/engine/client/render/graph/glslMaterial';
 import {graphFragmentIdentity} from './fixtures/graph-fragment-identity';
 
 const hash=(source:string):string=>createHash('sha256').update(source).digest('hex');

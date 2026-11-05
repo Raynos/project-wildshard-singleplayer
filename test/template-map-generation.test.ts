@@ -11,7 +11,7 @@ import { templateMapInputs } from '../src/shards/_template/generators/mapInputs'
 import settings from '../src/shards/_template/data/map.json' with { type: 'json' };
 import { builtProduct } from './fixtures/builtProduct';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
-import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
+import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 
 test('the Template map uses producer bytes with no restored world metadata or assets', async () => {
   const product = await loadHeadlessProduct(builtProduct('_template'));

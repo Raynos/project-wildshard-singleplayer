@@ -18,17 +18,17 @@ of the old **W6**, **M3.1**'s crossbow half (Pine's `held/equipment` crossbow ro
 
 Research:
 
-- **Ammo rows exist in the engine:** `src/engine/combat/ammo.ts` `AmmoRow { id: 'ammo.*', flight {gravity, drag}, wet?,
+- **Ammo rows exist in the engine:** `src/engine/shared/combat/ammo.ts` `AmmoRow { id: 'ammo.*', flight {gravity, drag}, wet?,
   tags: CombatTag[], material?, pouchMax }` and the `projectile.modify` ask. The pouch is data-driven
-  (`src/game/loadout/pouch.ts`: "content supplies kinds, fallback and capacity").
+  (`src/game/server/loadout/pouch.ts`: "content supplies kinds, fallback and capacity").
 - **No burn exists outside one boss.** "burn" appears only in Nalati's arena-boss rows (`src/format/bossProfiles.ts:292`,
   `arenaScriptRows.ts` `burnSeconds`, `fireDps`). A pitch bolt lighting a bale is new.
 - **The crossbow is Pine-shaped.** Pine ships 102 KB of `held/equipment` (`out/pine-hollow/sections/held/equipment.json`);
   its rows bind inputs and outputs by reflection: `src/format/heldEquipment.ts:9-13` `input { input, owner, path }`,
   `output { property, target, path }` (HOST-BAR test 6 fail; G496 scored `held.ts` and the equipment catalogue 2/6).
-  `src/game/loadout/held.ts` (195 lines) dispatches by class checks. Pine's ranged page is `held.ranged-page`
-  (`src/game/loadout/rangedPage.ts`).
-- **The bow:** `src/game/weapons/Bow.ts`, `heldBowBase.ts`, bow variant rows (`src/format/bowVariantRows.ts`), users Nalati
+  `src/game/client/loadout/held.ts` (195 lines) dispatches by class checks. Pine's ranged page is `held.ranged-page`
+  (`src/game/client/loadout/rangedPage.ts`).
+- **The bow:** `src/game/server/weapons/Bow.ts`, `heldBowBase.ts`, bow variant rows (`src/format/bowVariantRows.ts`), users Nalati
   (recurve, `generators/heldSlots.ts`) and Pine (the Warden's longbow, "Nalati's Bow.ts").
 
 Work:

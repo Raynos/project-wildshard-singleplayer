@@ -1,10 +1,10 @@
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
 import {unzlibSync} from 'fflate';
-import {base64Bytes,decodeLaneBytes} from '../src/engine/core/deflate';
+import {base64Bytes,decodeLaneBytes} from '../src/engine/client/core/deflate';
 import {SceneDressingSchema} from '@wildshard/format/sceneDressing';
 import {dressingScene,dressingSceneBlobs} from './fixtures/nalati-dressing-scene';
-import {readBakedGeometry} from '../src/game/plugin/geometry';
+import {readBakedGeometry} from '../src/game/client/plugin/geometry';
 import {nalatiSpecimens} from './fixtures/nalati-specimens';
 import {nalatiBalbal} from './fixtures/nalati-balbal';
 import {nalatiRuntime} from './fixtures/nalati-runtime';

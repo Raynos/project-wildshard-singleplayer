@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import type { ShardContext } from '../src/game/plugin/context';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { Scope } from '../src/engine/shared/app/scope';
+import type { ShardContext } from '../src/game/server/plugin/context';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
-import { installQuestHintFile } from '../src/game/quest/hints';
-import { requireQuestPageOwners } from '../src/game/quest/pageComposition';
+import { installQuestHintFile } from '../src/game/client/quest/hints';
+import { requireQuestPageOwners } from '../src/game/server/quest/pageComposition';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import hintsRows from '../src/shards/driftwood-isle/data/questHints.json' with { type: 'json' };
 import {fixtureProductFile,fixtureJsonCheck} from './fixtures/productFile';

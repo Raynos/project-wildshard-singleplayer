@@ -34,18 +34,18 @@ function titleGraph(entries: readonly string[]): string[] {
 }
 
 test('cold title, recovery, navigation and prefetch stay off the world graph', () => {
-  const files = titleGraph(['src/entry.ts', 'src/engine/ui/StartTitle.ts', 'src/game/mainMenu.ts', 'src/game/grid/pageEntry.ts', 'src/game/travel/travel.ts']);
-  expect(files.filter(file => /src\/engine\/(?:app\/(?:app|runtime)\.ts|render\/|world\/|anim\/|physics\/)|src\/game\/(?:looks\/|shardfile\/(?:product|runtimeProduct)\.ts)|src\/shards\/|^three(?:\/|$)/u.test(file))).toEqual([]);
+  const files = titleGraph(['src/entry.ts', 'src/engine/client/ui/StartTitle.ts', 'src/game/client/mainMenu.ts', 'src/game/client/grid/pageEntry.ts', 'src/game/client/travel/travel.ts']);
+  expect(files.filter(file => /src\/engine\/(?:(?:client|cook|server|shared)\/)?(?:app\/(?:app|runtime)\.ts|render\/|world\/|anim\/|physics\/)|src\/game\/(?:(?:client|cook|server|shared)\/)?(?:looks\/|shardfile\/(?:product|runtimeProduct)\.ts)|src\/shards\/|^three(?:\/|$)/u.test(file))).toEqual([]);
 });
 
 test('standalone session bootstrap leaves grid construction behind its assembly import', () => {
-  const files = titleGraph(['src/game/session/session.ts', 'src/game/shardfile/client.ts']);
-  expect(files.filter(file => /src\/game\/grid\/(?:session|liveSession|roadLookPlatform|roadCull|crossing)\.ts$/u.test(file))).toEqual([]);
+  const files = titleGraph(['src/game/client/session/session.ts', 'src/game/client/shardfile/client.ts']);
+  expect(files.filter(file => /src\/game\/(?:(?:client|cook|server|shared)\/)?grid\/(?:session|liveSession|roadLookPlatform|roadCull|crossing)\.ts$/u.test(file))).toEqual([]);
 });
 
 test('client phase admission keeps unused feature constructors outside its static graph', () => {
-  const files = titleGraph(['src/game/session/session.ts', 'src/game/shardfile/client.ts']);
-  expect(files.filter(file => /src\/game\/shardfile\/(?:clientCatalogue|clientMeadow|clientHeldMelee|clientSpeciesProgram|clientQuestPage|clientPopulation|clientBossFight|clientBossTelegraph|clientPlayerEnter)\.ts$/u.test(file))).toEqual([]);
+  const files = titleGraph(['src/game/client/session/session.ts', 'src/game/client/shardfile/client.ts']);
+  expect(files.filter(file => /src\/game\/(?:(?:client|cook|server|shared)\/)?shardfile\/(?:clientCatalogue|clientMeadow|clientHeldMelee|clientSpeciesProgram|clientQuestPage|clientPopulation|clientBossFight|clientBossTelegraph|clientPlayerEnter)\.ts$/u.test(file))).toEqual([]);
 });
 
 test('selected discovery composition has no static shard or complete-list dependency',()=>{
@@ -54,47 +54,47 @@ test('selected discovery composition has no static shard or complete-list depend
 });
 
 test('standalone sessions leave grid presentation and equipment behind grid-only imports', () => {
-  const files = titleGraph(['src/game/session/session.ts']);
-  expect(files.filter(file => /src\/game\/grid\/(?:reveal|gridHud|budgetOverlay|budgetPoints|memoryRows|minimapBlend|enteredEquipment)\.ts$/u.test(file))).toEqual([]);
+  const files = titleGraph(['src/game/client/session/session.ts']);
+  expect(files.filter(file => /src\/game\/(?:(?:client|cook|server|shared)\/)?grid\/(?:reveal|gridHud|budgetOverlay|budgetPoints|memoryRows|minimapBlend|enteredEquipment)\.ts$/u.test(file))).toEqual([]);
 });
 
 test('client admission and unused world features do not load presentation owners', () => {
-  const files = titleGraph(['src/game/shardfile/clientSource.ts', 'src/game/session/session.ts', 'src/game/shardfile/client.ts']);
-  expect(files.filter(file => /src\/game\/(?:plugin\/ui|shardfile\/(?:sceneDressing|worldScenes|sceneMotion|weatherFields|clientCues)|models\/(?:islandLibrary|worldSceneCatalogue))\.ts$/u.test(file))).toEqual([]);
+  const files = titleGraph(['src/game/client/shardfile/clientSource.ts', 'src/game/client/session/session.ts', 'src/game/client/shardfile/client.ts']);
+  expect(files.filter(file => /src\/game\/(?:(?:client|cook|server|shared)\/)?(?:plugin\/ui|shardfile\/(?:sceneDressing|worldScenes|sceneMotion|weatherFields|clientCues)|models\/(?:islandLibrary|worldSceneCatalogue))\.ts$/u.test(file))).toEqual([]);
 });
 
 test('shared held construction leaves broad UI and quest presentation cold', () => {
-  const files = titleGraph(['src/game/plugin/weaponFamily.ts', 'src/game/plugin/heldFirearm.ts']);
-  expect(files.filter(file => /src\/game\/(?:plugin\/(?:ui|bossStorm)|quest\/(?:pageComposition|reward)|loot\/CoinBurst)\.ts$/u.test(file))).toEqual([]);
+  const files = titleGraph(['src/game/client/plugin/weaponFamily.ts', 'src/game/client/plugin/heldFirearm.ts']);
+  expect(files.filter(file => /src\/game\/(?:(?:client|cook|server|shared)\/)?(?:plugin\/(?:ui|bossStorm)|quest\/(?:pageComposition|reward)|loot\/CoinBurst)\.ts$/u.test(file))).toEqual([]);
 });
 
 test('selected catalogue and status bindings leave quest presentation cold', () => {
-  const files = titleGraph(['src/game/shardfile/clientCatalogue.ts', 'src/game/loadout/effects.ts', 'src/engine/combat/effects/EffectService.ts']);
-  expect(files.filter(file => /src\/game\/(?:plugin\/ui|quest\/chapter)\.ts$/u.test(file))).toEqual([]);
+  const files = titleGraph(['src/game/client/shardfile/clientCatalogue.ts', 'src/game/server/loadout/effects.ts', 'src/engine/client/combat/effects/EffectService.ts']);
+  expect(files.filter(file => /src\/game\/(?:(?:client|cook|server|shared)\/)?(?:plugin\/ui|quest\/chapter)\.ts$/u.test(file))).toEqual([]);
 });
 
 test('item catalogue metadata does not import native item or projectile owners', () => {
-  const files = titleGraph(['src/game/loadout/itemCatalogue.ts']);
+  const files = titleGraph(['src/game/server/loadout/itemCatalogue.ts']);
   expect(files.filter(file => /src\/(?:game\/plugin\/(?:nativeItems|simulation)|engine\/combat\/)|^three(?:\/|$)/u.test(file))).toEqual([]);
 });
 
 test('the synchronous practice room leaves async model and motion preparation cold', () => {
-  const files = titleGraph(['src/engine/practice/TrainingArena.ts']);
-  expect(files.filter(file => /src\/engine\/practice\/(?:TrainingDummyAssets|DummyClips)\.ts$/u.test(file))).toEqual([]);
+  const files = titleGraph(['src/engine/client/practice/TrainingArena.ts']);
+  expect(files.filter(file => /src\/engine\/(?:(?:client|cook|server|shared)\/)?practice\/(?:TrainingDummyAssets|DummyClips)\.ts$/u.test(file))).toEqual([]);
 });
 
 
 test('texture preparation does not import the GLTF parser', () => {
-  const files = titleGraph(['src/engine/core/ktx2.ts']);
+  const files = titleGraph(['src/engine/client/core/ktx2.ts']);
   expect(files.filter(file => /^three\/examples\/jsm\/(?:loaders\/GLTFLoader|libs\/meshopt_decoder)/u.test(file))).toEqual([]);
 });
 
 test('session and eager rig contracts leave the bounded parser and decoder cold', () => {
-  const files = titleGraph(['src/game/session/session.ts', 'src/game/shardfile/client.ts', 'src/engine/anim/rig.ts']);
-  expect(files.filter(file => /src\/engine\/anim\/rigParser\.ts$|^three\/examples\/jsm\/(?:loaders\/GLTFLoader|libs\/meshopt_decoder)/u.test(file))).toEqual([]);
+  const files = titleGraph(['src/game/client/session/session.ts', 'src/game/client/shardfile/client.ts', 'src/engine/client/anim/rig.ts']);
+  expect(files.filter(file => /src\/engine\/(?:(?:client|cook|server|shared)\/)?anim\/rigParser\.ts$|^three\/examples\/jsm\/(?:loaders\/GLTFLoader|libs\/meshopt_decoder)/u.test(file))).toEqual([]);
 });
 
 test('model byte admission leaves complete product validation off the entry graph', () => {
-  const files = titleGraph(['src/game/shardfile/client.ts']);
+  const files = titleGraph(['src/game/client/shardfile/client.ts']);
   expect(files.filter(file => /src\/format\/(?:product|assetAdmission)\.ts$/u.test(file))).toEqual([]);
 });

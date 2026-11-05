@@ -3,7 +3,7 @@ import binaryen from 'binaryen';
 import { instrumentV2Finite, inspectV2Finite } from '../src/sdk/bake/v2Finite';
 import { compileScript } from '../src/sdk/bake/compileScript';
 import { admitScript } from '@wildshard/format/scriptAdmission';
-import { sha256 } from '../src/game/plugin/moduleHash';
+import { sha256 } from '../src/game/shared/plugin/moduleHash';
 import { scriptSource } from '../src/sdk/test/scriptSource';
 
 function bytes(source: string): Uint8Array {

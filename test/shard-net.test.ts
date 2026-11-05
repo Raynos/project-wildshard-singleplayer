@@ -1,15 +1,15 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Real Rapier bytes.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { NetClient } from '../src/engine/net/client';
-import { NetRoom } from '../src/engine/net/room';
-import { SimNetWorld } from '../src/engine/net/simWorld';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { createSimHost } from '../src/engine/sim';
-import { publishShardState } from '../src/engine/sim/shardRows';
+import { NetClient } from '../src/engine/client/net/client';
+import { NetRoom } from '../src/engine/server/net/room';
+import { SimNetWorld } from '../src/engine/server/net/simWorld';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost } from '../src/engine/server/sim';
+import { publishShardState } from '../src/engine/shared/sim/shardRows';
 import { directLoopback } from '../src/engine/test/netLoopback';
-import { DeclaredScriptWorld } from '../src/engine/script/state';
-import { MoverScriptDriver } from '../src/game/plugin/mover';
+import { DeclaredScriptWorld } from '../src/engine/server/script/state';
+import { MoverScriptDriver } from '../src/game/server/plugin/mover';
 import { emptyShardfile } from '../src/sdk/author';
 import { canoeMover } from '../src/shards/pine-hollow/generators/canoe';
 import { timberWorld } from '../src/shards/pine-hollow/generators/timberWorldRows';

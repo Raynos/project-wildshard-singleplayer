@@ -1,7 +1,7 @@
 // Generated mechanically from shipping.txt by capture.ts; the source hash fences the oracle.
 import * as THREE from 'three';
-import { Rng } from '../../../src/engine/core/rng';
-import { TickScheduler } from '../../../src/engine/app/scheduler';
+import { Rng } from '../../../src/engine/shared/core/rng';
+import { TickScheduler } from '../../../src/engine/shared/app/scheduler';
 export interface OracleThreat { alive: boolean; position: THREE.Vector3 }
 export interface OracleOpts { x: number; z: number; count: number; seed: number; range?: number }
 export interface OraclePorts { heightAt(x: number, z: number): number; normalAt(x: number, z: number): readonly [number, number, number]; wetAt(x: number, z: number): boolean; playerCrouched: boolean; grassHeightAt(x: number, z: number): number; trample(x: number, z: number, radius: number, strength: number, vx: number, vz: number): void; centre(x: number, y: number, z: number): void }

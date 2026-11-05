@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import {afterEach, expect, test, vi} from 'vitest';
-import {downloadSpawnManifest, releaseSpawnMembers, type HeldParts} from '../src/game/boot/spawnDownload';
-import {progressOfCard, watchStuckStep} from '../src/engine/boot/stuckStep';
+import {downloadSpawnManifest, releaseSpawnMembers, type HeldParts} from '../src/game/client/boot/spawnDownload';
+import {progressOfCard, watchStuckStep} from '../src/engine/client/boot/stuckStep';
 
 const hash = 'c'.repeat(64), base = 'https://example.test/';
 // Real sha256 of each body: the reader checks every member against its manifest row.

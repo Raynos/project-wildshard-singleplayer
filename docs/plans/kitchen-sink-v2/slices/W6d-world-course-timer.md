@@ -18,8 +18,8 @@ Research:
   (`src/commons/courseProgram.ts`): state `lap, started, running, half, best, last, … checkpoint, visited`, 11 pads
   (`pad00…pad10`, each `X, Z, Width, Depth, Top, Yaw, Pitch …`), signals `reset, step, restart`. Built by
   `src/commons/practiceCourse.ts` `buildCourseProgram`.
-- **The host only runs in a playground room.** `src/game/practice/course.ts` (154 lines) `CourseController`: `kind:
-  'horse' | 'grapple'`, built on `engine/practice/playground/Playground.ts` (a dev room at y 3000, its own grey scene:
+- **The host only runs in a playground room.** `src/game/client/practice/course.ts` (154 lines) `CourseController`: `kind:
+  'horse' | 'grapple'`, built on `engine/client/practice/playground/Playground.ts` (a dev room at y 3000, its own grey scene:
   `format/practiceCourseRows.ts` box / plane / wall / label / checker / mesh rows), imports `ShardContext` from
   `game/plugin/context` and the `GrappleTool` by `instanceof` (`course.ts:45-48`). Users: Nalati (riding,
   `generators/courseScene.ts`, `kokparProgram.ts`) and Nine (grapple), both from the Explore hub.

@@ -1,10 +1,10 @@
 import { sceneLivingBytes } from '@wildshard/format/worldScenePages';
 import {Euler,Matrix4,Quaternion,Vector3} from 'three';
 import * as v from 'valibot';
-import {KinematicMover} from '../../src/engine/physics/mover';
+import {KinematicMover} from '../../src/engine/shared/physics/mover';
 import {ForestPageSchema} from '@wildshard/format/forestPage';
-import {buildingDoor,toggleBuildingDoor,stepBuildingDoor,buildingDoorYaw,buildingDoorCollides} from '../../src/game/shardfile/buildingDoor';
-import {eyeReaches} from '../../src/game/quest/interactionRows';
+import {buildingDoor,toggleBuildingDoor,stepBuildingDoor,buildingDoorYaw,buildingDoorCollides} from '../../src/game/shared/shardfile/buildingDoor';
+import {eyeReaches} from '../../src/game/server/quest/interactionRows';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
 import {prepareProductPlan} from './headless-native';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';

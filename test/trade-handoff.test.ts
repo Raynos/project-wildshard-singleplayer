@@ -3,9 +3,9 @@ import {readFileSync} from 'node:fs';
 import {expect,test} from 'vitest';
 import {TradeHandoffSchema,tradeWire,tradeRead,tradeHash,checkTradeLedger,checkTradeHandoff,type TradePart,type TradeHandoff} from './fixtures/headless/tradeHandoff';
 import {retainRestoredWalkBodies} from './fixtures/headless/ropeBodies';
-import {createSimHost} from '../src/engine/sim';
-import {loadRapier} from '../src/engine/physics/rapier';
-import {restoreSimHost,snapshotSimHostBytes} from '../src/engine/sim/snapshot';
+import {createSimHost} from '../src/engine/server/sim';
+import {loadRapier} from '../src/engine/shared/physics/rapier';
+import {restoreSimHost,snapshotSimHostBytes} from '../src/engine/shared/sim/snapshot';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
 import * as v from 'valibot';
 

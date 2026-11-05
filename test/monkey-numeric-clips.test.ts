@@ -1,9 +1,9 @@
 import {lendDriftwoodReturns} from './fixtures/driftwood-return-modules';
 import perchRows from '../src/shards/driftwood-isle/data/mixedPopulation.json' with { type: 'json' };
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { Bone, Euler, Vector3 } from 'three';
 import { expect, test } from 'vitest';
-import type { AnimalRigContext } from '../src/engine/entities/animalRig';
+import type { AnimalRigContext } from '../src/engine/shared/entities/animalRig';
 import { MONKEY_CLIPS } from '../src/shards/driftwood-isle/generators/monkeyClips';
 import { PerchBodyBinding } from '@wildshard/game/population/perchBody';
 import { RETURN_PROGRAM } from './fixtures/driftwood-guest-programs';
@@ -45,8 +45,8 @@ test('monkey numeric joints preserve frozen gait, scratch, throw, bite, fall, cl
 });
 
 test('predecessor native monkey saves retain root authority, pose LOD and exact continuation', async () => {
-  const { NativeCreaturePose } = await import('../src/game/plugin/animation');
-  const { AnimalSim } = await import('../src/engine/entities/AnimalSim');
+  const { NativeCreaturePose } = await import('../src/game/server/plugin/animation');
+  const { AnimalSim } = await import('../src/engine/server/entities/AnimalSim');
   const recipe = { custom: true, joints: names.map((name, i) => ({ name, parent: i === 0 ? -1 : 0,
     position: [0, i === 0 ? 1 : .3, 0] as const, order: 'YXZ' as const, scale: [1, 1, 1] as const })) };
   const make = () => new AnimalSim({ kind: 'monkey', label: 'Monkey', variant: 'monkey', rarity: 'common', hp: 30,

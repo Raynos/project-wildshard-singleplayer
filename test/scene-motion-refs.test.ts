@@ -1,14 +1,14 @@
 import { expect, test } from 'vitest';
 import { Group } from 'three';
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { parseSceneMotion } from '@wildshard/format/sceneMotion';
 import { ClientChannels } from '../src/sdk/clientChannels';
-import { createClientChannels } from '../src/game/plugin/channels';
-import { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { SceneMotionBinding } from '../src/game/shardfile/sceneMotion';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { createClientChannels } from '../src/game/server/plugin/channels';
+import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
+import { SceneMotionBinding } from '../src/game/client/shardfile/sceneMotion';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
-import type { ShardContext } from '../src/game/plugin/context';
+import type { ShardContext } from '../src/game/server/plugin/context';
 import { SKY_DRESSING_PROGRAMS } from '../src/shards/far-reach/generators/sceneDressing';
 import { SIGNAL_BUCKET_MOVERS } from '../src/shards/sunscar-dunes/generators/bucket';
 

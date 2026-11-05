@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
 import { Group } from 'three';
-import { App } from '../src/engine/app/app';
-import { Scope } from '../src/engine/app/scope';
-import { Weapon } from '../src/engine/combat/Weapon';
-import { runtimeEquipment, bindRuntimeEquipment } from '../src/game/plugin/headless';
-import { INPUT_CONTEXTS } from '../src/game/inputContexts';
+import { App } from '../src/engine/client/app/app';
+import { Scope } from '../src/engine/shared/app/scope';
+import { Weapon } from '../src/engine/server/combat/Weapon';
+import { runtimeEquipment, bindRuntimeEquipment } from '../src/game/server/plugin/headless';
+import { INPUT_CONTEXTS } from '../src/game/client/inputContexts';
 import { PINE as source } from './fixtures/pine-program';
 import manifest from '../src/shards/pine-hollow/discovery.generated';
 import { CROSSBOW, LEVER, LONGBOW } from '../src/shards/pine-hollow/generators/equipment';
@@ -13,15 +13,15 @@ import { LEVER_WEAPON_PROFILE } from '../src/shards/pine-hollow/generators/lever
 import { BOW_PROFILE } from '../src/shards/pine-hollow/generators/bowProfile';
 // oxlint-disable-next-line import/no-nodejs-modules -- The native owner uses the shipped Rapier bytes.
 import { readFileSync } from 'node:fs';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { createSimHost } from '../src/engine/sim';
-import { bindNativeLoadout, createNativeLoadout, HOST_PROBE } from '../src/game/plugin/simulation';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost } from '../src/engine/server/sim';
+import { bindNativeLoadout, createNativeLoadout, HOST_PROBE } from '../src/game/server/plugin/simulation';
 import { PINE_NATIVE_LOADOUT } from './fixtures/weapon-oracle/nativeLoadout';
 import { NativeHeldAmmunition } from '@wildshard/game/loadout/nativeAmmunition';
 import loadoutRows from '../src/shards/pine-hollow/data/loadout.json' with { type: 'json' };
 import { DRIFTWOOD as driftwood } from './fixtures/driftwood-program';
-import { createNativeCombatFrame, installNativeItems } from '../src/game/plugin/nativeItems';
-import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
+import { createNativeCombatFrame, installNativeItems } from '../src/game/server/plugin/nativeItems';
+import { ItemCatalogue } from '../src/game/server/loadout/itemCatalogue';
 import { parseItems } from '@wildshard/format/items';
 
 class NativeWeapon extends Weapon {

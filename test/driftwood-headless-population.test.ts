@@ -4,13 +4,13 @@ import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import * as v from 'valibot';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
-import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
-import { loadRapier } from '../src/engine/physics/rapier';
+import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { createTrustedHeadlessResident, type TrustedHeadlessResident } from '../src/sdk/headlessRuntime';
 import { HeadlessSimulation } from '../src/sdk/headless';
 import { runHeadlessJourney } from '../src/sdk/headlessJourney';
-import { serializeSimSnapshot, snapshotSimHost, snapshotSimHostBytes } from '../src/engine/sim/snapshot';
-import { populationCensus } from '../src/game/population/census';
+import { serializeSimSnapshot, snapshotSimHost, snapshotSimHostBytes } from '../src/engine/shared/sim/snapshot';
+import { populationCensus } from '../src/game/shared/population/census';
 import { canonicalSimDigest } from './fake/simState';
 import { builtProduct } from './fixtures/builtProduct';
 

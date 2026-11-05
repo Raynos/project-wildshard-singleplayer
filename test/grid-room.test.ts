@@ -2,15 +2,15 @@
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { CHUNK_HALF } from '../src/engine/core/config';
-import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
-import { createSimHost, type SimCommand, type SimHost, type SimLevel } from '../src/engine/sim';
-import { leadPlayer } from '../src/engine/sim/leadPlayer';
-import { restoreSimHost, type SimSnapshot } from '../src/engine/sim/snapshot';
-import { GridAssembly, type GridCell, type GridPoint } from '../src/game/grid/assembly';
-import { GridRoom } from '../src/game/grid/room';
-import { GridSimulation, type GridResident } from '../src/game/grid/simulation';
-import type { GridLoadout } from '../src/game/grid/wallet';
+import { CHUNK_HALF } from '../src/engine/shared/core/config';
+import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost, type SimCommand, type SimHost, type SimLevel } from '../src/engine/server/sim';
+import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
+import { restoreSimHost, type SimSnapshot } from '../src/engine/shared/sim/snapshot';
+import { GridAssembly, type GridCell, type GridPoint } from '../src/game/server/grid/assembly';
+import { GridRoom } from '../src/game/server/grid/room';
+import { GridSimulation, type GridResident } from '../src/game/server/grid/simulation';
+import type { GridLoadout } from '../src/game/server/grid/wallet';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 // P1-E3.9: two players walk a real two-world grid on real Rapier, and each crosses at their own moment. The bot's feet drive

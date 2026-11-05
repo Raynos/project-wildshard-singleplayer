@@ -1,25 +1,25 @@
-import {Scope} from '../src/engine/app/scope';
+import {Scope} from '../src/engine/shared/app/scope';
 import { fixtureNativeRoster } from './fixtures/native-roster';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { PINE_LIFE_ORIGINAL as program } from './fixtures/pine-life';
 import { PINE_SHELTER_ORIGINAL as shelterProgram } from './fixtures/pine-shelter';
-import { populationEnvironment } from '../src/game/population/environment';
+import { populationEnvironment } from '../src/game/server/population/environment';
 import { flatPopulationEnvironment } from './fixtures/population-environment';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the actual shipped native physics owner, without a browser.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { createSimHost } from '../src/engine/sim';
-import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
-import { Rng, RngService } from '../src/engine/core/rng';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost } from '../src/engine/server/sim';
+import { snapshotSimHost, restoreSimHost } from '../src/engine/shared/sim/snapshot';
+import { Rng, RngService } from '../src/engine/shared/core/rng';
 import { readSpeciesPrograms } from '@wildshard/format/speciesPrograms';
-import { installPopulationRoster } from '../src/game/population/roster';
-import { installNativeHerdShelter, HerdShelter } from '../src/game/population/shelter';
-import { installWeatherContinuation } from '../src/game/weather/continuation';
+import { installPopulationRoster } from '../src/game/server/population/roster';
+import { installNativeHerdShelter, HerdShelter } from '../src/game/server/population/shelter';
+import { installWeatherContinuation } from '../src/game/server/weather/continuation';
 import { parseWeatherProgram } from '@wildshard/format/weatherProgram';
 import weatherRows from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
-import { RespawnQueue } from '../src/game/population/respawn';
-import { createNativeCreatureRoster } from '../src/game/shardfile/homeKeeper';
+import { RespawnQueue } from '../src/game/server/population/respawn';
+import { createNativeCreatureRoster } from '../src/game/server/shardfile/homeKeeper';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 test('native dormant bodies detach from physics and herds, then rematerialize without a draw or new identity', async () => {
@@ -147,11 +147,11 @@ test('native shelter resolves its actual roster and weather without ports, prese
 
 
 test('projected sites preserve source ties, range admission, exact perch choices and shared RNG rollback', async () => {
-  const { projectedSite } = await import('../src/game/population/projectedSites');
+  const { projectedSite } = await import('../src/game/server/population/projectedSites');
   const { RETURN_PROGRAM: returns } = await import('./fixtures/driftwood-guest-programs');
   const {lendDriftwoodReturns}=await import('./fixtures/driftwood-return-modules');
   const owner=lendDriftwoodReturns(new Scope('perch sites'));
-  const { selectCreatureSites } = await import('../src/game/plugin/brain');
+  const { selectCreatureSites } = await import('../src/game/server/plugin/brain');
   const guest = ReturnProgram.page(returns,owner), rng = new Rng(317), original = new Rng(317);
   const points = Array.from({ length: 36 }, (_, i) => ({ x: i - 18, z: i % 7, occupied: i % 3 === 0 ? 1 : 0 }));
   for (const minimum of [0, 3, 8]) for (const maximum of [12, 30]) {

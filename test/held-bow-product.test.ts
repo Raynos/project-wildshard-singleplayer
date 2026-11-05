@@ -11,12 +11,12 @@ import { captureProductInputs } from '../scripts/shardfile-inputs.mjs';
 import { build } from '../scripts/shardfile-vite.mjs';
 import recurve from '../public/assets/nalati/baked/recurve-pool.json' with { type:'json' };
 import { HeldBowFileSchema, HeldBowDefinitionSchema } from '@wildshard/format/weaponProfiles';
-import { bindHeldBow } from '../src/game/weapons/heldLauncher';
+import { bindHeldBow } from '../src/game/client/weapons/heldLauncher';
 import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
 import { fixtureJsonCheck } from './fixtures/productFile';
 import { nameBlob } from '../src/sdk/blobs';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 
 const encode=(input:unknown):Uint8Array=>new TextEncoder().encode(`${JSON.stringify(input)}\n`);

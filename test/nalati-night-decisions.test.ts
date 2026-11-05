@@ -2,8 +2,8 @@ import * as v from 'valibot';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { ReturnModulesSchema } from '@wildshard/format/scriptContract';
 import { expect, test } from 'vitest';
-import { ReturnProgram } from '../src/game/population/returnProgram';
-import { Rng } from '../src/engine/core/rng';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
+import { Rng } from '../src/engine/shared/core/rng';
 import { NALATI_NIGHT as nightInput } from './fixtures/nalati-night';
 import {weatherWitness as weather,withWeatherWitness} from './fixtures/weatherInlineWitness';
 

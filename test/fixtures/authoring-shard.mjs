@@ -5,7 +5,7 @@ import { readProgramDiscovery, usesProgramDiscovery } from '../../scripts/progra
 // Explicit build-tool composition root: install only this generator's real manifest, never a second shard's runtime.
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { installShards } from '../../src/game/shard/list.ts';
+import { installShards } from '../../src/game/client/shard/list.ts';
 import { prepareNativeScalarBlocks } from '../../scripts/bake/nativeWorld.mjs';
 
 const slug=process.argv.find(arg=>arg.startsWith('--generation-shard='))?.slice(19);
@@ -25,7 +25,7 @@ if (existsSync(manifestJson)) {
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, relocated);
 }
-/** @type {{default:import('../../src/game/shard/manifest.ts').ShardManifest}} */
+/** @type {{default:import('../../src/game/server/shard/manifest.ts').ShardManifest}} */
 const loaded=await import(pathToFileURL(resolve(root,shardManifestPath(root, slug))).href);
 if(loaded.default.slug!==slug) throw new Error('Generator manifest identity differs');
 // Native authoring consumers query the same exact scalar values before any

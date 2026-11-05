@@ -11,7 +11,7 @@ test('G1004 admits exactly the two complete native scatter pages without rewriti
   for (const name of ['world/dressing-pages/0.json', 'world/dressing-pages/1.json']) {
     const before = JSON.stringify(page);
     expect(platformFileFamily(name, scatterSource)?.schema).toBe(SceneScatterPageSchema);
-    expect(platformFileFamily(name, scatterSource)?.reader).toBe('src/game/shardfile/sceneScatterPages.ts');
+    expect(platformFileFamily(name, scatterSource)?.reader).toBe('src/game/client/shardfile/sceneScatterPages.ts');
     expect(validatePlatformFile(name, scatterSource, page)).toBeDefined();
     expect(JSON.stringify(page)).toBe(before);
     for (const value of [{ ...page, extra: true }, { ...page, members: [...page.members, ...page.members] },
@@ -32,7 +32,7 @@ test('G1004 admits both whole dressing books while retaining native reference an
   for (const name of ['world/dressing-phone.json', 'world/dressing-desktop.json']) {
     const before = JSON.stringify(book);
     expect(platformFileFamily(name, dressingSource)?.schema).toBe(SceneDressingSchema);
-    expect(platformFileFamily(name, dressingSource)?.reader).toBe('src/game/shardfile/sceneDressing.ts');
+    expect(platformFileFamily(name, dressingSource)?.reader).toBe('src/game/client/shardfile/sceneDressing.ts');
     expect(validatePlatformFile(name, dressingSource, book)).toBeDefined();
     expect(JSON.stringify(book)).toBe(before);
     expect(() => validatePlatformFile(name, dressingSource, { ...book, missingOwner: true })).toThrow();

@@ -1,14 +1,14 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the shipped native physics binary.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { createSimHost } from '../src/engine/sim';
-import { loadRapier } from '../src/engine/physics/rapier';
+import { createSimHost } from '../src/engine/server/sim';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { parseMovers } from '@wildshard/format/movers';
 import { lowerMoverMotion } from '@wildshard/format/moverMotion';
 import { compileMoverDriver } from '../src/sdk/compileMovers';
 import { installMoverFixture } from './fixtures/mover-installation';
 import { parseQuestHost } from '@wildshard/format/questHost';
-import { installQuestHost, type QuestCableOwner } from '../src/game/plugin/simulation';
+import { installQuestHost, type QuestCableOwner } from '../src/game/server/plugin/simulation';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { QUEST_HOST as signal } from '../src/shards/sunscar-dunes/generators/questHost';
 import { FLAG } from '../src/shards/sunscar-dunes/generators/rows/flags';

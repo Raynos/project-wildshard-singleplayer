@@ -20,10 +20,10 @@ Research:
   leashR, rule: always | dusk | night | storm, respawnMin, once?, signature, phase2, drop { skin, skinName, weapon,
   blurb, trophyName? } }` (`:10-16`), at most 8 fights (`:59`), observations `engaged | leashing | phase2 | clock | god |
   dusk | night` (`:24-26`), and a `legacy` block (fields, rivals, lanes). Presentation stings are a closed picklist
-  `pickup | death | chunk | dawn` (`:20`). Game: `src/game/Elite.ts` (653), `eliteSystem.ts` (330),
-  `src/game/quest/eliteFeature.ts`, `elitePage.ts`, `eliteDecisions.ts`, `eliteStreams.ts`; engine
-  `src/engine/ai/eliteRoster.ts`, `src/engine/entities/eliteBrain.ts`. Save: `elitesSave { timer, discovered,
-  skinTaken, kills, retired }` (`src/game/saves.ts:18`).
+  `pickup | death | chunk | dawn` (`:20`). Game: `src/game/server/Elite.ts` (653), `eliteSystem.ts` (330),
+  `src/game/server/quest/eliteFeature.ts`, `elitePage.ts`, `eliteDecisions.ts`, `eliteStreams.ts`; engine
+  `src/engine/server/ai/eliteRoster.ts`, `src/engine/server/entities/eliteBrain.ts`. Save: `elitesSave { timer, discovered,
+  skinTaken, kills, retired }` (`src/game/shared/saves.ts:18`).
 - Users: Pine (`generators/eliteFeatureRows.ts`, `sourceOutput.ts`), Nalati (`generators/eliteEntryRows.ts` via
   `src/sdk/eliteEntryRows.ts`), the template (`combat/encounters` kind `elite`, "Greyback").
 - The drop is weapon-skin-shaped (`skin`, `weapon`); no Scrip, title, part or trophy-wall grant.

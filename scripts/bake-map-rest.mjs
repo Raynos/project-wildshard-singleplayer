@@ -3,7 +3,7 @@
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { BufferGeometry, Group, InstancedMesh, MeshBasicMaterial } from 'three';
-import { createClientChannelView, moverChannelValues } from '../src/game/plugin/clientChannelView.ts';
+import { createClientChannelView, moverChannelValues } from '../src/game/client/plugin/clientChannelView.ts';
 
 export function mapRest(scene, programs, poses) {
   const targets = new Map(), coverage = new Map(), nodes = {}, movers = new Map(poses.map(pose => [pose.id, pose]));

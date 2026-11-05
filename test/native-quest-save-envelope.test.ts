@@ -2,10 +2,10 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { createSimHost, type SimValue } from '../src/engine/sim';
-import { loadRapier } from '../src/engine/physics/rapier';
+import { createSimHost, type SimValue } from '../src/engine/server/sim';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { prepareNativeQuestEntry } from '@wildshard/game/quest/nativeEntry';
-import { registerNativeQuestInputs } from '../src/game/quest/nativeInputs';
+import { registerNativeQuestInputs } from '../src/game/server/quest/nativeInputs';
 import { PINE as pine } from './fixtures/pine-program';
 import driftwood from './fixtures/driftwood-product-source';
 import story from '../src/shards/pine-hollow/data/nativeStory.json';

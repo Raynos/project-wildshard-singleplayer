@@ -159,7 +159,7 @@ There are no passive or neutral land animals: every land creature on the island 
 | **Vista bench** | 1, on the plateau rim | Sit, and the camera turns to the view: "You sit a while. The sea goes on and on." | "Take a Seat" |
 | **Trophies** (`keepsakes.ts`) | 3 | **Bear claw** (the brown bear's drop) gives the heavy +20 %. **Boar tusk** (any boar's drop) gives dodge i-frames. **Captain's hat** (the captain's drop) is a cosmetic | Plaques on the hut's back wall fill in |
 | **Cosmetics** | 2: the captain's hat and the sailcloth cape (from the shop) | Worn from the Bag's GEAR tab; they show on the body shadow (`src/player/BodyShadow.ts`) | — |
-| **Achievements + titles** | **10** (`src/game/achievements.ts` `DRIFTWOOD`). Each pays a joke title shown on the menu (e.g. "Ringbearer", "Crabby", "Held Breath Champion") | Talk to Wendell; 3 shards; open the ring; 15 sea glass; the dive treasure; the vista bench; the zipline; beat the sailor; 10 crabs; 6 monkeys | Titles are cosmetic and "only mean something in multiplayer" (E140) |
+| **Achievements + titles** | **10** (`src/game/server/achievements.ts` `DRIFTWOOD`). Each pays a joke title shown on the menu (e.g. "Ringbearer", "Crabby", "Held Breath Champion") | Talk to Wendell; 3 shards; open the ring; 15 sea glass; the dive treasure; the vista bench; the zipline; beat the sailor; 10 crabs; 6 monkeys | Titles are cosmetic and "only mean something in multiplayer" (E140) |
 | **FINDS tab** (the sticker book) | `src/game/loot/finds.ts` | Counters for sea glass, places and shards; trophies and treasures; "next charm at n" | — |
 | **Iron sword** | 1, on the wreck hold's rack, guarded by the sailor | `src/player/IronSword.ts`, `IronSwordPickup` in `main.ts` | Kept across sessions (Owned `iron-sword`) |
 
@@ -197,12 +197,12 @@ The **cliff slope limit** (> 53°) stops you walking up crags.
 | System | State on Driftwood | Path |
 |---|---|---|
 | Weapons | Wooden sword; the iron sword (found). A 3-hit combo, a charged HEAVY, lock-on, dodge, hit-stop, camera kick, trail, impact particles. Remastered castaway arms (E334) | `src/player/Sword.ts`, `SwordMoves.ts`, `src/chunks/driftwood-isle/fpArms.ts` |
-| Loot | **Doubloons only**: kills burst coins that fly to you (crab 1, monkey 1, boar 2, sailor 5, bear 10, captain 25). **Bounty cap**: each starting enemy pays once, so respawns pay nothing. No harvest and no junk (E314 L1) | `src/game/loot/coins.ts`, `CoinBurst.ts`, `Bounty.ts`, `Purse.ts` |
+| Loot | **Doubloons only**: kills burst coins that fly to you (crab 1, monkey 1, boar 2, sailor 5, bear 10, captain 25). **Bounty cap**: each starting enemy pays once, so respawns pay nothing. No harvest and no junk (E314 L1) | `src/game/server/loot/coins.ts`, `CoinBurst.ts`, `Bounty.ts`, `Purse.ts` |
 | Shop | **Maren, 6 permanent goods, buy-only, 90 coins total** (Whetstone I 12 / II 22; Sturdy Heart I 14 / II 22, for 120 / 140 max health; Sea chart 12, which marks unfound sea glass; Sailcloth cape 8). One full clear earns 92 | `src/game/loot/shop.ts`, `src/ui/ShopPanel.ts` |
 | Perks | Charms I–III, bear claw, boar tusk (above) | `src/game/loot/perks.ts` |
 | Bag | MAP · GEAR · FINDS · PACK · FEATS. The pack is practically empty: no harvest | `src/ui/Menu.ts`, `src/ui/bag` |
 | Progression | No XP, levels or skill tree. Power comes only from the shop, charms, trophies and the iron sword | — |
-| Persistence | localStorage per shard: quest and world flags (`ws.flags.v1`), Owned (`ws.owned.v1`), purse, bounty (`ws.bounty.v1`), progress and titles (`ws.progress.v1`), inventory. **There is no player-facing reset or new game**; only the dev `?resetquest` | `src/world/interact/flags.ts`, `src/game/loot/store.ts`, `src/game/Progress.ts` |
+| Persistence | localStorage per shard: quest and world flags (`ws.flags.v1`), Owned (`ws.owned.v1`), purse, bounty (`ws.bounty.v1`), progress and titles (`ws.progress.v1`), inventory. **There is no player-facing reset or new game**; only the dev `?resetquest` | `src/world/interact/flags.ts`, `src/game/loot/store.ts`, `src/game/client/Progress.ts` |
 | Day / night | A 48-minute cycle (40 min day + 8 min night, E147). It drives the sailor's night respawn, the shrine glow and fireflies, the jungle crickets, and charm III's glow. The finale eases to golden hour | `src/world/DayNight.ts` |
 | Weather | **None** (`src/world/Weather.ts` is Nalati's steppe storm) | — |
 | Death | A ~1.8 s fade and a "Mauled by a brown bear · respawning at Wreck Cove" card; respawn at the last place you discovered (E295) | `src/ui/DeathFade.ts`, `src/game/LastPlace.ts` |
@@ -312,7 +312,7 @@ History in brief:
 2. **No death checkpoint outside the boss.** `LastPlace` is built only from `adventure.places`. Pine Hollow has no
    `ADVENTURES` entry, so `placePts` is null (`main.ts` ~950) and **a death anywhere outside the King's arena respawns you
    at the south gate**. The Den, for example, is ~470 m away in a straight line (council B8), more by trail.
-   - The King's fight has its own per-phase checkpoints (`src/game/Boss.ts`).
+   - The King's fight has its own per-phase checkpoints (`src/game/server/Boss.ts`).
 3. The brief says Jake has not completed this quest; the asks hold no direct complaint about why. The most likely
    friction is the length, the night gating, the two ~300 m crossings between the Den and the Hollow, and the fight frame
    rate (F-P6). This is inference.
@@ -343,7 +343,7 @@ There is a dev jump to any beat (`?quest=<beat>`, `quest/beats.ts`). The chain i
 ## B2. Bosses and elites
 
 **The Antler King, Warden of Pine Hollow** (`src/pinehollow/antlerKing.ts`, 687 lines; its own upright rig
-`kingRig.ts`, E322 F-M1; on the engine's `src/game/Boss.ts`; model `src/chunks/pine-hollow/models/antlerKing.ts`):
+`kingRig.ts`, E322 F-M1; on the engine's `src/game/server/Boss.ts`; model `src/chunks/pine-hollow/models/antlerKing.ts`):
 
 - **Trigger:** night only, within 80 m of the clearing, which arms the boss. Stepping inside the 7 standing stones closes
   a fog wall at r ≈ 31 with a soft push-back at r 27.5. The fog stays closed "until he falls or you do".
@@ -362,7 +362,7 @@ There is a dev jump to any beat (`?quest=<beat>`, `quest/beats.ts`). The chain i
 - **Known issues (F-X5, not picked):** a lane charge 3.5 m off his line grazes without hurting; side-on ribcage hits mostly
   don't register (0 of 5); a player under his belly isn't caught by the stomp ring.
 
-**Four named elites** (`src/pinehollow/elites.ts` on `src/game/Elite.ts`):
+**Four named elites** (`src/pinehollow/elites.ts` on `src/game/server/Elite.ts`):
 - Shared rules: lair plus leash; the bar pins over the head; phase 2 at 50 %; a banner; a minimap skull; **20-min
   respawn**.
 - Drops: the first kill gives a weapon-finish orb; every kill counts for the journal, the wall and contracts. The trophy
@@ -442,7 +442,7 @@ the hoverboard (every shard), the graded lookout trail. There is no rope bridge,
 |---|---|---|
 | Weapons | **Ranged only** (PH-U15). Crossbow (hero; iron, pitch-tipped and broadhead bolts; R to span); lever-action rifle (Blender model, iron sights); the Warden's Longbow (hold to draw, drop arc, wind drift). Hit-stop, kick, trauma, debris (`src/pinehollow/feel.ts`); first-person gloved hands (F-M6). There is no melee and no lock-on for ranged weapons (E75 open) | `src/player/Crossbow.ts`, `LeverRifle.ts`, `Longbow.ts`, `src/pinehollow/loadout.ts`, `ammo.ts` |
 | Ammo | Iron bolts refill to 30 on death and load; special bolts, cartridges and arrows are kept and traded for | `ammo.ts` |
-| Harvest | [E] Harvest → a ~1.5 s **skinning beat** (kneel, knife, two strokes) → pack items | `src/pinehollow/life/index.ts`, `src/game/Inventory.ts` |
+| Harvest | [E] Harvest → a ~1.5 s **skinning beat** (kneel, knife, two strokes) → pack items | `src/pinehollow/life/index.ts`, `src/game/server/Inventory.ts` |
 | Pack | **7 kinds**, one slot each, so it can never be full: venison, deer hide, boar hide, boar tusk, bear pelt, amber resin, lodge ribbon (`PINE_PACK_KINDS`). Everything else from a kill is dropped | `Inventory.ts` |
 | Economy | **No currency** (PH-U16). Mott's 7 swaps: 2 deer hides → 10 bolts; 3 resin → 10 pitch bolts; boar hide + 2 resin → 8 broadheads; 2 venison + 1 resin → 14 cartridges; deer hide + resin → 10 arrows; bear pelt + 6 resin → Hollow Ash finish (once); 2 tusks + 3 ribbons + 8 resin → Scarback Furnace finish (once) | `quest/trades.ts` |
 | Contracts | Endless rotating board (B1) | `quest/contracts.ts` |
@@ -533,13 +533,13 @@ Distances from the layout:
 | **Quest UI**: `DialogueBox`, `ObjectiveLine`, `BossBar` (the simple one), `RewardCaption` | `src/game/quest/QuestUI.ts` | all three | — |
 | **Per-shard adventure registry** | `src/game/quest/Adventure.ts` `ADVENTURES` | **Driftwood only** | Pine and Nalati install their own (`src/pinehollow/quest/index.ts`, `src/nalati/adventure.ts`); the comment still says Pine's slot is empty "until its lantern quest lands" |
 | **Interactables kit + Flags**: chests, keys, doors, levers, plates, barrel, pickups, beacon, bench, altar as JSON rows, validated; flags persisted per shard | `src/world/interact/` (`Interactables.ts`, `types.ts`, `validate.ts`, `flags.ts`, `models.ts`) | Driftwood, Pine | Designed to be the chunk-upload format |
-| **Achievements + titles + play time** | `src/game/achievements.ts` (tables: Driftwood 10, Pine 19, Nalati 17), `src/game/Progress.ts` | all | Titles are per shard; FINISH-LINE M2 (cross-shard titles) is not built |
-| **Boss system** (arena, threshold, intro card, phase bar, checkpoints, legendary reward once, re-fight trophy) | `src/game/Boss.ts`, `src/ui/BossBar.ts` | Pine (King), Nalati (Golden King, Storm Titan) | **Driftwood's Captain does not use it**: he has his own `think` and `QuestUI.BossBar` (a second boss path) |
-| **Elite system** (lair, leash, phase 2, banner, minimap skull, 20-min respawn, first-kill skin orb) | `src/game/Elite.ts` | Pine, Nalati | — |
+| **Achievements + titles + play time** | `src/game/server/achievements.ts` (tables: Driftwood 10, Pine 19, Nalati 17), `src/game/client/Progress.ts` | all | Titles are per shard; FINISH-LINE M2 (cross-shard titles) is not built |
+| **Boss system** (arena, threshold, intro card, phase bar, checkpoints, legendary reward once, re-fight trophy) | `src/game/server/Boss.ts`, `src/ui/BossBar.ts` | Pine (King), Nalati (Golden King, Storm Titan) | **Driftwood's Captain does not use it**: he has his own `think` and `QuestUI.BossBar` (a second boss path) |
+| **Elite system** (lair, leash, phase 2, banner, minimap skull, 20-min respawn, first-kill skin orb) | `src/game/server/Elite.ts` | Pine, Nalati | — |
 | **Species registry + AnimalManager** (variants and rarity weights, `HuntTuning`, `fightRules`, `maxHitDamage`, `faunaTuning`, herds) | `src/entities/species/registry.ts`, `src/entities/AnimalManager.ts`, `src/chunks/fauna-layout.ts` | all | Fight rules are opt-in per `ChunkDef` (Driftwood only today) |
 | **Enemy respawn queue** | `src/game/quest/Ecology.ts` | Driftwood only | Pine relies on elite timers instead |
 | **Loot**: Owned (all shards), Purse, coins, Bounty, CoinBurst, shop, keepsakes, perks, finds | `src/game/loot/` | Owned on all; coins / shop / perks are Driftwood-only behind `ChunkDef.loot` | Coins are capped per enemy |
-| **Inventory / pack + harvest table** | `src/game/Inventory.ts` | Pine (7 kinds); none on Driftwood, Nalati, Nine Dragon | — |
+| **Inventory / pack + harvest table** | `src/game/server/Inventory.ts` | Pine (7 kinds); none on Driftwood, Nalati, Nine Dragon | — |
 | **Compendium** (journal: discovered / seen / taken / visited, stats, sketches, 3D viewer plate) + trophy wall | `src/ui/compendium/`, `src/world/TrophyWall.ts` | Pine only | Built shard-agnostic: "Driftwood / Nalati can adopt it later" |
 | **Shard-complete card** | `src/ui/ShardComplete.ts` (+ `Complete.ts` feeder) | Driftwood only | Pine and Nalati don't feed it |
 | **Death fade + last-place checkpoint** | `src/ui/DeathFade.ts`, `src/ui/HurtArc.ts`, `src/game/LastPlace.ts` | the fade on all; LastPlace only where `adventure.places` exists (Driftwood) | — |

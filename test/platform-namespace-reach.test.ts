@@ -13,7 +13,7 @@ function charges(loader: string, initialization = '', shell = '', shellRoot = 's
   const put = (file: string, text: string): void => { const path = join(root, file); mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, text); };
   try {
     put('src/game/package.json', JSON.stringify({ name: '@wildshard/game', exports: { './plugin/ui': './plugin/ui.ts', './model': './model.ts' } }));
-    put('src/game/plugin/ui.ts', `export function forestHelper() { return 1; }\nexport function createAmbientLife() { return forestHelper(); }\nexport function borrowedNpcSpecimen() { return 2; }\nexport function enterGrid() { return 3; }\n${initialization}`);
+    put('src/game/client/plugin/ui.ts', `export function forestHelper() { return 1; }\nexport function createAmbientLife() { return forestHelper(); }\nexport function borrowedNpcSpecimen() { return 2; }\nexport function enterGrid() { return 3; }\n${initialization}`);
     put('src/game/model.ts', loader);
     if (shell !== '') put(shellRoot, shell);
     platformOutput(root,'pine-hollow',{'runtime/index.ts': `import { ${pineMember} } from '@wildshard/game/plugin/ui'; export const life = ${pineMember}();`});
@@ -21,7 +21,7 @@ function charges(loader: string, initialization = '', shell = '', shellRoot = 's
     // LD10: a product ships no runtime TypeScript, so authored runtime roots its G294 users on the source basis
     const row = sourceProgressInventory(root)['pine-hollow'];
     if (row === undefined) throw new Error('Pine measurement absent');
-    return row.conversion.gameSystemAttribution.exports.filter(entry => entry.path === 'src/game/plugin/ui.ts').map(entry => entry.name);
+    return row.conversion.gameSystemAttribution.exports.filter(entry => entry.path === 'src/game/client/plugin/ui.ts').map(entry => entry.name);
   } finally { rmSync(root, { recursive: true, force: true }); }
 }
 
@@ -107,7 +107,7 @@ it('does not narrow shadowed Promise or retry functions', () => {
 it('restricts independent shell roots to the four composition entries', () => {
   const loader = "export async function modelCatalogue() { const ui = await import('./plugin/ui'); return ui.borrowedNpcSpecimen(); }";
   const shell = "import { enterGrid } from '@wildshard/game/plugin/ui'; enterGrid();";
-  for (const root of ['src/entry.ts', 'src/game/session/session.ts', 'src/game/mainMenu.ts', 'src/game/session/loadout.ts']) expect(charges(loader, '', shell, root, 'enterGrid')).not.toContain('enterGrid');
+  for (const root of ['src/entry.ts', 'src/game/client/session/session.ts', 'src/game/client/mainMenu.ts', 'src/game/client/session/loadout.ts']) expect(charges(loader, '', shell, root, 'enterGrid')).not.toContain('enterGrid');
   expect(charges(loader, '', shell, 'src/game/unrelated.ts', 'enterGrid')).toContain('enterGrid');
 });
 

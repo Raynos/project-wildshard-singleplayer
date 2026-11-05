@@ -1,6 +1,6 @@
-import { MoverScriptDriver, playerGrounds, type MoverRuntime } from '../../src/game/plugin/mover';
+import { MoverScriptDriver, playerGrounds, type MoverRuntime } from '../../src/game/server/plugin/mover';
 import type { MoverData } from '@wildshard/format/movers';
-import type { SimHost } from '../../src/engine/sim';
+import type { SimHost } from '../../src/engine/server/sim';
 
 export interface FixtureMovers { runtime: MoverRuntime; failures: () => number }
 export function installMoverFixture(host: SimHost, rows: MoverData, modules: ReadonlyMap<string, Uint8Array>, options: {

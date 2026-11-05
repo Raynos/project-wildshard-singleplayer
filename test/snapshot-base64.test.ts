@@ -3,7 +3,7 @@ import { Buffer } from 'node:buffer';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare exhaustive decoder outcomes without framework overhead per vector.
 import assert from 'node:assert/strict';
 import { expect, test } from 'vitest';
-import { unpackSnapshotBase64 } from '../src/engine/sim/snapshotBase64';
+import { unpackSnapshotBase64 } from '../src/engine/shared/sim/snapshotBase64';
 
 const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 function outcome(read: () => Uint8Array): Uint8Array | string {

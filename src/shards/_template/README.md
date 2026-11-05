@@ -20,7 +20,7 @@ state-field IDs and item handles preserve the script ABI across declaration reor
 posts, all dev-map boxes on ground the terrain levels to y = 0. `generators/districts.ts` (pass 2) fills the plane between
 the roads: a hover test course, a block district, a ziggurat and an overpass in the corners, a scaffold yard, billboard
 row, hangars and crate yard in the side strips, a second set piece at each entry, and four 40 m copy plots that a grid
-copy fills with its own seeded landmarks (`src/game/grid/copyLayout.ts`).
+copy fills with its own seeded landmarks (`src/game/client/grid/copyLayout.ts`).
 
 The first-party manifest keeps the canonical `_template` slug, grey picker art and
 `template-solo` save identity, and points at `/shardfiles/_template/shard.json`.

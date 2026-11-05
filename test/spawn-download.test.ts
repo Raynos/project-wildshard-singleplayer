@@ -1,5 +1,5 @@
 import {expect, test, vi} from 'vitest';
-import {downloadSpawnManifest, type SpawnDownloadSnapshot} from '../src/game/boot/spawnDownload';
+import {downloadSpawnManifest, type SpawnDownloadSnapshot} from '../src/game/client/boot/spawnDownload';
 import {readSpawnManifest} from '@wildshard/format/spawnManifest';
 
 const files = [{url: `/shardfiles/example/blobs/bin/${'a'.repeat(64)}.bin`, bytes: 4, hash: 'a'.repeat(64)},

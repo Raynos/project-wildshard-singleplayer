@@ -13,7 +13,7 @@ export function historicalDriftwoodCatalogue(catalogue: typeof driftwood): typeo
   const expected = new Set(['shared/boar', 'shared/bear']), seen = new Set<string>();
   const entries = catalogue.entries.map(row => {
     if (row.kind !== 'species' || row.id === undefined || !expected.has(row.id)) return row;
-    if (row.file !== 'src/game/models/explorerCatalogue.ts' || seen.has(row.id))
+    if (row.file !== 'src/game/client/models/explorerCatalogue.ts' || seen.has(row.id))
       throw new Error('Unexpected G966 catalogue provenance');
     seen.add(row.id);
     return { ...row, file: 'src/game/models/creatures.ts' };

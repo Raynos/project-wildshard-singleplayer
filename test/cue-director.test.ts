@@ -1,18 +1,18 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Points, PointsMaterial, Scene, Vector3, type Vector2 } from 'three';
 import { parse } from 'valibot';
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
-import { app } from '../src/engine/app/runtime';
-import type { Game } from '../src/engine/core/Game';
-import { CombatCues } from '../src/engine/combat/cues';
-import { Impacts } from '../src/engine/fx/Impacts';
-import { CueDirector } from '../src/game/audio/cueDirector';
+import { app } from '../src/engine/client/app/runtime';
+import type { Game } from '../src/engine/client/core/Game';
+import { CombatCues } from '../src/engine/client/combat/cues';
+import { Impacts } from '../src/engine/client/fx/Impacts';
+import { CueDirector } from '../src/game/client/audio/cueDirector';
 import { CueDirectorSchema } from '@wildshard/format/cueDirector';
-import * as sceneSources from '../src/game/shardfile/sceneSources';
-import { createModelLibrary } from '../src/game/plugin/geometry';
-import { lendLooks } from '../src/game/shardfile/lentLooks';
-import type { ShardContext } from '../src/game/plugin/context';
+import * as sceneSources from '../src/game/client/shardfile/sceneSources';
+import { createModelLibrary } from '../src/game/client/plugin/geometry';
+import { lendLooks } from '../src/game/client/shardfile/lentLooks';
+import type { ShardContext } from '../src/game/server/plugin/context';
 import king from '../src/shards/pine-hollow/data/kingCues.json' with { type: 'json' };
 
 afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });

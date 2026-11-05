@@ -34,7 +34,7 @@ const MAX_TEXT = 8 * 1024 * 1024;
 const GATE_PHASES = ['storage', 'deleted-paths', 'ratchet', 'guards'];
 const CENSUS_CHECKS = [['scripts/check-engine-sides.mjs'], ['scripts/check-sim-players.mjs'], ['scripts/check-graph.mjs', '--source-only']];
 /** Divided folders named by a string that is not a path a tool opens: reviewed by hand, file:literal → new text. */
-const REVIEWED_LITERALS = { 'src/engine/explore/ModelExplorer.ts:src/engine/entities/species/': 'src/engine/*/entities/species/' };
+const REVIEWED_LITERALS = { 'src/engine/client/explore/ModelExplorer.ts:src/engine/entities/species/': 'src/engine/*/entities/species/' };
 
 const byPath = (a, b) => a.localeCompare(b);
 const git = (root, args, options = {}) => execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 1 << 30, ...options });

@@ -227,7 +227,7 @@ MaterialX noises, lights and shadows come with three. The fixes are bounded and 
 ## 6. Step 2: the engine fixes (2026-10-04)
 
 The bench's TSL variants now run the engine's own back-end instead of the spike's inline handler:
-`src/engine/render/graphBackend.ts` (`loadGraphBackend(renderer)`, a lazy `import()` of the node modules, so the
+`src/engine/client/render/graphBackend.ts` (`loadGraphBackend(renderer)`, a lazy `import()` of the node modules, so the
 default bundle carries none of `three/webgpu` / `three/tsl`) and `src/engine/render/nodes/`.
 
 - **Fix 1 (§2.1, §2.10):** `EngineNodesHandler` applies the output transform the way classic programs do (tone mapping

@@ -9,13 +9,13 @@ import {assembleOutputShardfile, parseOutputIndex} from '@wildshard/format/outpu
 import {entryReadSet} from './entryReadSet';
 import {createHash} from 'node:crypto';
 import {readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnManifestAddress} from '@wildshard/format/spawnManifest';
-import {GPU_FILES} from '../../src/engine/boot/ktx2.generated';
+import {GPU_FILES} from '../../src/engine/client/boot/ktx2.generated';
 import {assetIdentities, audioTableRefs, bundlerSources as manifestSources, identityFiles, joinRefs, standInRefs, packMembers, readFenceReads, resolveFenceReads, sectionRefs, type PackPart} from '@wildshard/format/fenceReads';
 import {createPartEncoder, writeSpawnParts, type SpawnPartEncoding} from './spawnParts';
 import {contentNamed} from './assetHashes';
 import {homedir} from 'node:os';
 import {BrotliSizeCache} from '../brotli-size-cache.mjs';
-import {ASSET_CACHE_NAME} from '../../src/engine/pwa/cacheNames';
+import {ASSET_CACHE_NAME} from '../../src/engine/client/pwa/cacheNames';
 
 const size = v.pipe(v.number(), v.safeInteger(), v.minValue(0));
 const files = v.array(v.tuple([v.string(), size]));
@@ -117,7 +117,7 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
     if (!/^r[0-9]+$/u.test(directory)) continue;
     for (const name of ['basis_transcoder.js', 'basis_transcoder.wasm']) if (existsSync(join(publicRoot, 'basis', directory, name))) common.push(asset(`/basis/${directory}/${name}`));
   }
-  const pickupPath = join(root, 'src/game/data/pickupCatalogue.json');
+  const pickupPath = join(root, 'src/game/client/data/pickupCatalogue.json');
   if (existsSync(pickupPath)) {
     const pickups = v.parse(PickupCatalogueSchema, JSON.parse(readFileSync(pickupPath, 'utf8')));
     const packed = new Set(pickups.banks?.flatMap(row => row.members.map(member => member.file)));

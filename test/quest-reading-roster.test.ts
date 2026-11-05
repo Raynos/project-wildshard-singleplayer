@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { NpcTalk } from '../src/engine/quest/view';
-import { DialogueBox } from '../src/engine/quest/view/ui';
-import { Flags } from '../src/engine/world/interact/flags';
-import { createReadingRoster } from '../src/game/plugin/quests';
+import { Scope } from '../src/engine/shared/app/scope';
+import { NpcTalk } from '../src/engine/client/quest/view';
+import { DialogueBox } from '../src/engine/client/quest/view/ui';
+import { Flags } from '../src/engine/server/world/interact/flags';
+import { createReadingRoster } from '../src/game/server/plugin/quests';
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };
 
 test('the W3 camp roster can borrow its actual page talks and clock without a native save owner', () => {

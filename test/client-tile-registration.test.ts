@@ -1,10 +1,10 @@
 import type { Object3D } from 'three';
 import { afterAll, beforeAll, expect, test, vi } from 'vitest';
-import { Scope, disposalErrorMessages } from '../src/engine/app/scope';
-import { standaloneClientTiles } from '../src/game/shardfile/tileContent';
-import { tileOf, tileOrder } from '../src/game/shardfile/tileOrder';
-import { jsonSlot } from '../src/engine/saves/slots';
-import { LEVEL_DOWNLOAD_SLOT, runtimePacksOn } from '../src/engine/boot/loadingPacks';
+import { Scope, disposalErrorMessages } from '../src/engine/shared/app/scope';
+import { standaloneClientTiles } from '../src/game/client/shardfile/tileContent';
+import { tileOf, tileOrder } from '../src/game/shared/shardfile/tileOrder';
+import { jsonSlot } from '../src/engine/client/saves/slots';
+import { LEVEL_DOWNLOAD_SLOT, runtimePacksOn } from '../src/engine/client/boot/loadingPacks';
 import { camera, clientTileFixture as fixture } from './fixtures/clientTileRegistration';
 
 // These original device-ring/retirement rulers exercise the maintained loose-file

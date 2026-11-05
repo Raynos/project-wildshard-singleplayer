@@ -1,11 +1,11 @@
 // The boot's spawn download, headless (E525). Runs the game's own
-// `downloadSpawnManifest` (src/game/boot/spawnDownload.ts: the manifest, then
+// `downloadSpawnManifest` (src/game/client/boot/spawnDownload.ts: the manifest, then
 // eight lanes over its files) in Node against the virtual phone link, with the
 // real bodies of a target build. Needs `node --experimental-transform-types`.
 import { body, prime } from './bodies.mjs';
 import { createLink } from './link.mjs';
 
-const SPAWN = new URL('../../src/game/boot/spawnDownload.ts', import.meta.url).href;
+const SPAWN = new URL('../../src/game/client/boot/spawnDownload.ts', import.meta.url).href;
 
 /** The spawn manifest address the target's HTML declares for `slug`. */
 export async function spawnAddress(/** @type {string} */ base, slug = 'driftwood-isle', flow = 'grid', tier = 'phone', mode = '000') {
@@ -38,7 +38,7 @@ export async function runRealSpawn(base, linkOptions, slug = 'driftwood-isle') {
   await spawnFiles(base, address);
   const { downloadSpawnManifest } = await import(SPAWN);
   // import the lazily imported reader up front, so its real module I/O is not inside the virtual run
-  await import(new URL('../../src/engine/boot/contentRead.ts', import.meta.url).href);
+  await import(new URL('../../src/engine/client/boot/contentRead.ts', import.meta.url).href);
   const link = createLink(linkOptions);
   const ports = {
     fetch: async (/** @type {string} */ url) => {

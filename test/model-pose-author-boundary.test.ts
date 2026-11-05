@@ -2,7 +2,7 @@
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { build } from 'vite';
-import { modelPoseMatrix } from '../src/engine/models/modelPose';
+import { modelPoseMatrix } from '../src/engine/client/models/modelPose';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 
 test('model pose owns independent matrices and the original YXZ placement convention', () => {
@@ -20,7 +20,7 @@ test('model pose owns independent matrices and the original YXZ placement conven
   expect(pose).toEqual({ x: 4, y: -2, z: 8, yaw: Math.PI / 2, scale: 3 });
 });
 
-for (const entry of ['src/engine/models/modelPose.ts', 'src/shards/nalati-grasslands/generators/decorative.ts']) test(`${entry} bundles without runtime placement or service modules`, async () => {
+for (const entry of ['src/engine/client/models/modelPose.ts', 'src/shards/nalati-grasslands/generators/decorative.ts']) test(`${entry} bundles without runtime placement or service modules`, async () => {
   const result = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false,
     lib: { entry: resolve(entry), formats: ['es'] },
     rolldownOptions: { output: { codeSplitting: false } } } });

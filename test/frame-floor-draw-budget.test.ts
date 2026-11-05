@@ -3,8 +3,8 @@ import { expect, test } from 'vitest';
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Load only the maintained pure policy functions from the CLI.
 import { runInNewContext } from 'node:vm';
-import { assessDrawBudget, renderCpuUsPerDraw, type DrawSample } from '../src/engine/core/drawBudget';
-import { drawBudgetCounter } from '../src/engine/ui/drawBudgetCounter';
+import { assessDrawBudget, renderCpuUsPerDraw, type DrawSample } from '../src/engine/client/core/drawBudget';
+import { drawBudgetCounter } from '../src/engine/client/ui/drawBudgetCounter';
 import { validateFrameFloorArgs, frameFloorDrawBudgetMode } from '../scripts/frame-floor-args.mjs';
 
 const phone4 = { tier: 'phone', cpuRate: 4 };

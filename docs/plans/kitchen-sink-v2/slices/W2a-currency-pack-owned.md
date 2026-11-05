@@ -18,13 +18,13 @@ Research (11-03): the economy is shard-shaped in the game layer.
 
 | Today | File:line | Problem |
 |---|---|---|
-| `OWNED` closed union of Driftwood ids plus Pine's `warden-longbow`, `lever-rifle` | `src/game/loot/Owned.ts:24` | a new shard can't own anything without editing game code; game names shard items (E405) |
-| `ItemId` closed union (venison … crab-claw, coconut, doubloon, ironhide-tusk, lodge-ribbon) | `src/game/Inventory.ts:32` | same |
-| `HARVEST` species table (deer, boar, elk, bear, crab, monkey) | `src/game/Inventory.ts:42` | species nouns in the game (LE3 later moves it to salvage rows) |
-| 12-slot pack, `ws.inventory.v1`; unknown ids **dropped on load** | `src/game/Inventory.ts:12, 70` | an id rename loses items (M1.6 risk) |
-| `ws.owned.v1` `{owned, worn}` | `src/game/loot/Owned.ts:4` | keep the key, change the id type |
+| `OWNED` closed union of Driftwood ids plus Pine's `warden-longbow`, `lever-rifle` | `src/game/server/loot/Owned.ts:24` | a new shard can't own anything without editing game code; game names shard items (E405) |
+| `ItemId` closed union (venison … crab-claw, coconut, doubloon, ironhide-tusk, lodge-ribbon) | `src/game/server/Inventory.ts:32` | same |
+| `HARVEST` species table (deer, boar, elk, bear, crab, monkey) | `src/game/server/Inventory.ts:42` | species nouns in the game (LE3 later moves it to salvage rows) |
+| 12-slot pack, `ws.inventory.v1`; unknown ids **dropped on load** | `src/game/server/Inventory.ts:12, 70` | an id rename loses items (M1.6 risk) |
+| `ws.owned.v1` `{owned, worn}` | `src/game/server/loot/Owned.ts:4` | keep the key, change the id type |
 | coins = `loot.coins: true`; loot domains `coins` / `trophies` only | `src/format/lootEconomy.ts:25` | no named currency |
-| `ITEMS` registered per shard at runtime (`registerItemRow`) | `src/game/bag/itemCatalog.ts:6` | already the right shape: rows per shard |
+| `ITEMS` registered per shard at runtime (`registerItemRow`) | `src/game/server/bag/itemCatalog.ts:6` | already the right shape: rows per shard |
 
 Work:
 

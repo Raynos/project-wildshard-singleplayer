@@ -2,7 +2,7 @@
 import { execFileSync } from 'node:child_process';
 import { expect, test } from 'vitest';
 import { BoxGeometry, Matrix4, Quaternion, Vector3, BufferGeometry, InterleavedBuffer, InterleavedBufferAttribute } from 'three';
-import { poseOf, poseGeometry, drawnHullWorld } from '../src/engine/models/colliders';
+import { poseOf, poseGeometry, drawnHullWorld } from '../src/engine/client/models/colliders';
 import { supportPoints } from './fixtures/native-support-points';
 import { bakePlacementPose, bakePlacedGeometry, bakeWorldHull, bakeSupportPoints } from '../src/sdk/bake/colliders';
 import type { AuthorPlacement } from '../src/sdk/bake/placement';

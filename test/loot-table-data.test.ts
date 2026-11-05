@@ -1,10 +1,10 @@
 import { expect, test, vi } from 'vitest';
-import { WeightedTable, type TableSpec } from '../src/engine/ai/weighted';
-import { Scope } from '../src/engine/app/scope';
-import { app } from '../src/engine/app/runtime';
+import { WeightedTable, type TableSpec } from '../src/engine/shared/ai/weighted';
+import { Scope } from '../src/engine/shared/app/scope';
+import { app } from '../src/engine/client/app/runtime';
 import { parseLootEconomy, parseLootTables } from '@wildshard/format/lootEconomy';
-import { getLootTable, registerLootTable, rollLoot } from '../src/game/loot/tables';
-import { readLootTables, type LootContext } from '../src/game/loot/tableRows';
+import { getLootTable, registerLootTable, rollLoot } from '../src/game/server/loot/tables';
+import { readLootTables, type LootContext } from '../src/game/server/loot/tableRows';
 import { DRIFTWOOD_LOOT as LOOT } from '../src/shards/driftwood-isle/generators/loot';
 
 test('emitted coin and trophy selectors preserve old order, ownership and RNG continuation', () => {

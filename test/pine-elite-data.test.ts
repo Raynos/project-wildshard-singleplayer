@@ -3,20 +3,20 @@ import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the real v1 guests and native body authority.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { createSimHost } from '../src/engine/sim';
-import { loadRapier } from '../src/engine/physics/rapier';
+import { createSimHost } from '../src/engine/server/sim';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { readSpeciesPrograms } from '@wildshard/format/speciesPrograms';
 import { parseEliteFeature } from '@wildshard/format/eliteFeature';
-import { installPopulationRoster } from '../src/game/population/roster';
-import { installNativeEliteFeature } from '../src/game/quest/eliteFeature';
-import { eliteStream } from '../src/game/quest/eliteStreams';
-import { DayCycle } from '../src/engine/world/dayCycle';
-import { keyedSkyDaySpec } from '../src/game/looks/keyedSkyClock';
+import { installPopulationRoster } from '../src/game/server/population/roster';
+import { installNativeEliteFeature } from '../src/game/server/quest/eliteFeature';
+import { eliteStream } from '../src/game/server/quest/eliteStreams';
+import { DayCycle } from '../src/engine/shared/world/dayCycle';
+import { keyedSkyDaySpec } from '../src/game/shared/looks/keyedSkyClock';
 import PINE_SKY from '../src/shards/pine-hollow/data/sky.json' with { type: 'json' };
 import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/speciesPrograms';
 import { PINE_ELITES as data, PINE_ELITE_MODULES } from './fixtures/pine-elites';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
-import { Rng } from '../src/engine/core/rng';
+import { Rng } from '../src/engine/shared/core/rng';
 import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 async function fixture() {

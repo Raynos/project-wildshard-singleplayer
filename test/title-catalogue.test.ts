@@ -1,11 +1,11 @@
 import { expect, test } from 'vitest';
-import { contentHash } from '../src/game/shardfile/contentHash';
-import { GridCellEvents } from '../src/game/grid/cellEvents';
+import { contentHash } from '../src/game/shared/shardfile/contentHash';
+import { GridCellEvents } from '../src/game/server/grid/cellEvents';
 import { titleCatalogueSource } from '../scripts/title-catalogue.mjs';
-import { titlePrefetchOrder } from '../src/game/grid/titleOrder';
-import { GridAssembly } from '../src/game/grid/assembly';
-import { gridPrefetchOrder } from '../src/game/grid/prefetch';
-import { titleMetadata, type TitleManifest } from '../src/game/shard/titleList';
+import { titlePrefetchOrder } from '../src/game/client/grid/titleOrder';
+import { GridAssembly } from '../src/game/server/grid/assembly';
+import { gridPrefetchOrder } from '../src/game/client/grid/prefetch';
+import { titleMetadata, type TitleManifest } from '../src/game/client/shard/titleList';
 
 test('compile title metadata and deduplicated image URLs without shard imports', () => {
   const row: TitleManifest = { slug: '_template', name: 'A title', biome: 'A biome', status: 'hidden',

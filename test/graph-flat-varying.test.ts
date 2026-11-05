@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { attribute, varying } from 'three/tsl';
-import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
+import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
 import { graph as authorGraph } from '../src/sdk/materials';
 import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 

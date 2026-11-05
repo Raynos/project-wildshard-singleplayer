@@ -6,12 +6,12 @@ import { fillNativeCombatFrame, headlessAssemblyPorts, validateHeadlessCommandOw
 import { prepareAssetDecoders } from '@wildshard/format/product';
 import { loadHeadlessProduct } from '../../src/sdk/headlessProduct';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
-import { prepareProductRuntimePlan } from '../../src/game/shardfile/nativePlan';
-import { MoverScriptDriver, type MoverRuntime } from '../../src/game/plugin/mover';
-import { installCableModes } from '../../src/engine/player/modes';
-import { createNativeCombatFrame } from '../../src/game/plugin/nativeItems';
-import { createSimHost, type SimHost , type SimCommand } from '../../src/engine/sim';
-import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '../../src/engine/sim/snapshot';
+import { prepareProductRuntimePlan } from '../../src/game/server/shardfile/nativePlan';
+import { MoverScriptDriver, type MoverRuntime } from '../../src/game/server/plugin/mover';
+import { installCableModes } from '../../src/engine/shared/player/modes';
+import { createNativeCombatFrame } from '../../src/game/server/plugin/nativeItems';
+import { createSimHost, type SimHost , type SimCommand } from '../../src/engine/server/sim';
+import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '../../src/engine/shared/sim/snapshot';
 import { simPlayerCommand, type HeadlessCommand, type HeadlessEffect } from '../../src/sdk/tickProtocol';
 import type { TickWorkerAdapter } from '../../src/sdk/tickWorkerLoop';
 import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';

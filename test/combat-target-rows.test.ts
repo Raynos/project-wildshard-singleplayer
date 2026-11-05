@@ -1,16 +1,16 @@
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
-import { Events } from '../src/engine/events/events';
-import { Scope } from '../src/engine/app/scope';
-import { FlockBrain } from '../src/engine/ai/flock';
-import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
-import type { ShardContext } from '../src/game/plugin/context';
+import { Events } from '../src/engine/shared/events/events';
+import { Scope } from '../src/engine/shared/app/scope';
+import { FlockBrain } from '../src/engine/shared/ai/flock';
+import { RetainedRuntimeHooks } from '../src/game/client/shard/retainedHooks';
+import type { ShardContext } from '../src/game/server/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import { installCombatTargets, type CombatTargetOwner } from '../src/game/shardfile/clientTargets';
-import { CrowdRoster, CrowdTargets, CrowdWeaponTarget, type ForagerTargets } from '../src/game/shardfile/crowdRuntime';
-import type { RayTargets } from '../src/engine/combat/targets';
-import type { TargetHit } from '../src/engine/combat/types';
-import type { AimTarget } from '../src/engine/player/AimTargets';
+import { installCombatTargets, type CombatTargetOwner } from '../src/game/client/shardfile/clientTargets';
+import { CrowdRoster, CrowdTargets, CrowdWeaponTarget, type ForagerTargets } from '../src/game/shared/shardfile/crowdRuntime';
+import type { RayTargets } from '../src/engine/server/combat/targets';
+import type { TargetHit } from '../src/engine/client/combat/types';
+import type { AimTarget } from '../src/engine/client/player/AimTargets';
 import rows from '../src/shards/nalati-grasslands/data/combatTargets.json' with { type: 'json' };
 
 

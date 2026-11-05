@@ -26,12 +26,12 @@ function closure(entry: string): Set<string> {
 
 test('the page half of the standalone target reaches no server code', () => {
   const reached = closure('src/sdk/standalone/shell.ts');
-  expect(reached.has('src/engine/net/client.ts')).toBe(true);
+  expect(reached.has('src/engine/client/net/client.ts')).toBe(true);
   expect([...reached].filter(path => sides.get(path)?.side === 'server')).toEqual([]);
 });
 
 test('the shipped client does not reach the standalone target yet', () => {
   const reached = closure('src/entry.ts');
   expect(reached.size).toBeGreaterThan(100);
-  expect([...reached].filter(path => path.includes('/standalone/') || path.startsWith('src/engine/net/'))).toEqual([]);
+  expect([...reached].filter(path => path.includes('/standalone/') || /^src\/engine\/(?:(?:client|cook|server|shared)\/)?net\//u.test(path))).toEqual([]);
 });

@@ -1,17 +1,17 @@
 import { expect, test, vi } from 'vitest';
-import { NativeEliteLifecycle, type NativeElitePopulation } from '../src/engine/ai/eliteLifecycle';
-import { StalkerBrain } from '../src/engine/ai/stalker';
-import { Scope } from '../src/engine/app/scope';
-import { NativeEliteKernels } from '../src/engine/ai/eliteKernels';
-import { PackBrain, type PackPorts } from '../src/engine/ai/pack';
+import { NativeEliteLifecycle, type NativeElitePopulation } from '../src/engine/server/ai/eliteLifecycle';
+import { StalkerBrain } from '../src/engine/server/ai/stalker';
+import { Scope } from '../src/engine/shared/app/scope';
+import { NativeEliteKernels } from '../src/engine/server/ai/eliteKernels';
+import { PackBrain, type PackPorts } from '../src/engine/server/ai/pack';
 import { nativeGroupBrain } from '@wildshard/format/groupBrains';
 import brainRows from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import { nativeEliteCore } from './fixtures/nativeEliteCore';
-import type { SimHost } from '../src/engine/sim';
+import type { SimHost } from '../src/engine/server/sim';
 import { eliteBindings, installEliteEncounters } from './fixtures/nativeEliteEncounters';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import type { AnimalSim } from '../src/engine/entities/AnimalSim';
+import type { AnimalSim } from '../src/engine/server/entities/AnimalSim';
 
 function fixture(scope?: Scope) {
   const f = nativeKernelOwners(scope), bindings = eliteBindings();

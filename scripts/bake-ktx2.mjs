@@ -9,12 +9,12 @@
 //   - the glTF props' external textures (/assets/models/<id>/textures) and their .gltf, rewritten to point at them;
 //   - every GLB with embedded images (KHR_texture_basisu; geometry bytes untouched).
 //
-// Per tier, per file the tier SERVES (the phone's `.phone.webp` / `.phone.glb` copy when there is one, src/engine/boot/bytes.ts
+// Per tier, per file the tier SERVES (the phone's `.phone.webp` / `.phone.glb` copy when there is one, src/engine/client/boot/bytes.ts
 // tierUrl): the phone's KTX2 has the phone copy's size, the desktop's the full-res file's own size (E173; the desktop
 // loaders cap at 4096 and read every file here whole). Encoded from the best source there is (the original map, not a
 // lossy copy of it). Both tiers are baked (E173: desktop Pine Hollow held ~950 MB of RGBA8 textures, ~1.7 GB with two
 // shards resident); an encode that is the same for both tiers (same source, size, class, flip) is one file.
-// Texture-array layers are baked at the tier's array size (src/engine/core/tier.ts layerSize: the desktop's 1024 is the phone's
+// Texture-array layers are baked at the tier's array size (src/engine/client/core/tier.ts layerSize: the desktop's 1024 is the phone's
 // file size, so the desktop reuses the phone's layer twins of the 2048² ground sets instead of a 2048² twin it would
 // only sample from mip 1).
 //
@@ -29,8 +29,8 @@
 //
 // Output: public/assets/gpu/<the source's path>/<served name>-<sha256[:8] of the bytes>.{ktx2,glb,gltf} — content-addressed,
 // so a file never changes under its name (the `immutable` cache rule; the SW keeps it forever) and a rebake that
-// changes nothing changes no name. src/engine/boot/ktx2.generated.ts maps, per tier, each served URL → its KTX2 stand-in
-// (read by src/engine/boot/gpuFiles.ts). scripts/bake-ktx2.cache.json remembers the source hash + settings of every output,
+// changes nothing changes no name. src/engine/client/boot/ktx2.generated.ts maps, per tier, each served URL → its KTX2 stand-in
+// (read by src/engine/client/boot/gpuFiles.ts). scripts/bake-ktx2.cache.json remembers the source hash + settings of every output,
 // so a rerun encodes only what changed (a no-change rerun: ~2 s).
 //
 // Only files the game was SEEN to load are baked: scripts/bake-ktx2.list.json, per tier, the URLs a boot of each shard
@@ -73,7 +73,7 @@ const ONLY = flag('only', '');
 const JOBS = Number(flag('jobs', '4'));
 /** the desktop's largest KTX2 edge: the file's own size (the horizons are 6144 wide and load whole) */
 const DESKTOP_MAX = Number(flag('desktop-max', String(1 << 14)));
-/** the texture-array size per tier (src/engine/core/tier.ts TIER_CONFIG.layerSize): a desktop layer twin is baked at it */
+/** the texture-array size per tier (src/engine/client/core/tier.ts TIER_CONFIG.layerSize): a desktop layer twin is baked at it */
 const DESKTOP_LAYER = 1024;
 /** the tiers baked (E173: both; `--tiers=phone` bakes the phone's alone, and then drops the desktop's files) */
 const TIERS = new Set(flag('tiers', 'phone,desktop').split(','));
@@ -89,16 +89,16 @@ if (libraryInput !== '') {
 }
 const LIST = JSON.parse(readFileSync(LIST_FILE, 'utf8'));
 const listed = { phone: new Set(TIERS.has('phone') ? LIST.phone : []), desktop: new Set(TIERS.has('desktop') ? LIST.desktop : []) };
-// the texture-array layers' sets (src/engine/core/assets.ts loadPBRArray): every shard's ground layers + the bark set
+// the texture-array layers' sets (src/engine/client/core/assets.ts loadPBRArray): every shard's ground layers + the bark set
 // the modules read the tier from the page's URL at import time: stand in for a phone page (as scripts/bake-packs.mjs does)
-const { initializeTier } = await import('../src/engine/core/tier.ts');
+const { initializeTier } = await import('../src/engine/client/core/tier.ts');
 initializeTier('phone');
 const { pathToFileURL } = await import('node:url');
 const imp = (p) => import(pathToFileURL(resolve(ROOT, p)).href);
 const { SHARDS } = await imp('src/shards.generated.ts');
-const { playable } = await imp('src/game/shard/registry.ts');
+const { playable } = await imp('src/game/client/shard/registry.ts');
 const PLAYABLE_SHARDS = SHARDS.filter(playable);
-const { BARK_LAYERS } = await imp('src/engine/world/forest/treeSet.ts');
+const { BARK_LAYERS } = await imp('src/engine/client/world/forest/treeSet.ts');
 const LAYER_SETS = new Set(BARK_LAYERS);
 for (const c of PLAYABLE_SHARDS) for (const id of [...(c.assets?.groundLayers ?? []), ...(c.assets?.boreal?.v1?.groundLayers ?? [])]) LAYER_SETS.add(id);
 const layerSetOf = (file) => /\/assets\/tex\/([^/]+)\/(diffuse|nor_gl|arm)(_1k)?\.jpg$/.exec(file)?.[1] ?? null;

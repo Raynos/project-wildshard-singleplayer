@@ -76,7 +76,7 @@ an invisible collider mismatch.
 Collider metadata remains a `WeakMap` keyed by Rapier's canonical world-local collider wrappers. `Physics.dispose`
 untags only that world. `clearTags` is a global test reset, never a shard unload operation.
 
-Verification: `src/engine/sim/seamGeometry.test.ts` checks native edge continuity,
+Verification: `src/engine/shared/sim/seamGeometry.test.ts` checks native edge continuity,
 aprons, the unchanged road/buffer and cliff caps, and ten-metre corner returns.
 `test/grid-seam-plans.test.ts` checks exact mesh/duplicate/feature bytes through
 serialized build plans; `test/grid-five-by-five.test.ts` checks all 96 placements.

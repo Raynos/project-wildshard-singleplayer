@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { BoxGeometry, MeshLambertMaterial, Matrix4, Vector3, Quaternion, Euler } from 'three';
-import { ForagerPopulation } from '../src/engine/ai/ambientForager';
-import { setTerrainHeight } from '../src/engine/world/terrainHeight';
+import { ForagerPopulation } from '../src/engine/shared/ai/ambientForager';
+import { setTerrainHeight } from '../src/engine/shared/world/terrainHeight';
 import { ForagerPopulationSchema } from '@wildshard/format/ambientLife';
-import { ForagerDraw } from '../src/game/ambient/foragerDraw';
+import { ForagerDraw } from '../src/game/client/ambient/foragerDraw';
 import policy from '../src/shards/nalati-grasslands/data/marmotForager.json' with {type:'json'};
 
 const rows={name:'orchard-sentries',books:{phone:'models/sentry-phone.json',desktop:'models/sentry-desktop.json'},model:'sentry',rim:.2,bands:.6,tilt:-.7,sink:-.9};

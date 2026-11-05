@@ -17,14 +17,14 @@ end, with the best time on the entrance plate.
 
 Research (the mini-dungeon plan's table, re-checked):
 
-- Doors on flags exist (`DoorDef.opensWhen`, `latch`, `src/engine/world/interact/types.ts:163-171`). Spawns on stages
+- Doors on flags exist (`DoorDef.opensWhen`, `latch`, `src/engine/shared/world/interact/types.ts:163-171`). Spawns on stages
   exist (director stages v2 `{ spawn }` / `{ despawn }`, `src/format/directorStages.ts:9`; the template's
   `template.door-wave` director, `out/_template/sections/quests/directors.json`). **No "doors shut until the wave is
   dead"**: the template wires its wave with a flag (`waveDead: flag:template.blob`), and stage inputs see one actor
   (`actor:<id>.dead`), not a group.
 - Respawn is `LastPlace` (`src/game/LastPlace.ts`: the last named place you reached; no volumes, nothing resets).
   `death.checkpoint` answers (`PlayerHealth.checkpoint`, `health.ts`) let an encounter claim a death.
-- The completion card: `src/format/completion.ts` (83 lines) + `src/game/complete/`; one per shard. Records and the
+- The completion card: `src/format/completion.ts` (83 lines) + `src/game/client/complete/`; one per shard. Records and the
   course timer: W3a (`ui/records`), W6d (in-world course host).
 
 Work:

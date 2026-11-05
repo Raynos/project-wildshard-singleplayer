@@ -1,9 +1,9 @@
 import { expect, test, vi } from 'vitest';
 import { zlibSync } from 'fflate';
-import { Scope } from '../src/engine/app/scope';
-import { ScalarLatticeBindings } from '../src/engine/world/scalarChannel';
-import { defineShard, declaredForestQueries, prepareManifestScalarBlocks, type ShardManifestRows } from '../src/game/shard/manifest';
-import { absentShardProduct, type ShardProduct } from '../src/game/shardfile/shardProduct';
+import { Scope } from '../src/engine/shared/app/scope';
+import { ScalarLatticeBindings } from '../src/engine/shared/world/scalarChannel';
+import { defineShard, declaredForestQueries, prepareManifestScalarBlocks, type ShardManifestRows } from '../src/game/server/shard/manifest';
+import { absentShardProduct, type ShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import pine from '../src/shards/pine-hollow/discovery.generated';
 
 const packed = (values: readonly number[]): Uint8Array => zlibSync(new Uint8Array(Float64Array.from(values).buffer));

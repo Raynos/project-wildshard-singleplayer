@@ -5,7 +5,7 @@ import { parseWorldScenePage, worldScenePageWeld, sceneWeldBytes, sceneLivingByt
 import { registeredJsonContract } from '@wildshard/format/registeredJson';
 import { registeredJsonSchema } from '../src/sdk/formatJsonSchema';
 import { platformFileFamily } from '@wildshard/format/platformFileFamilies';
-import { admitWorldSceneModelGraphs } from '../src/game/shardfile/worldSceneWeld';
+import { admitWorldSceneModelGraphs } from '../src/game/client/shardfile/worldSceneWeld';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { validateFixtureJsonValue } from './fixtures/defined-json-value';
 import { encodeCanonicalJson } from '../src/sdk/immutable';

@@ -1,24 +1,24 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
-import { App } from '../src/engine/app/app';
-import { Scope } from '../src/engine/app/scope';
-import { createLevelInstallation } from '../src/engine/level/installation';
-import { WorldRegistry } from '../src/engine/world/registry';
-import { shardContext } from '../src/game/plugin/context';
-import { QuestViews } from '../src/game/plugin/ui';
-import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { parseShardSlug } from '../src/game/shard/slug';
+import { App } from '../src/engine/client/app/app';
+import { Scope } from '../src/engine/shared/app/scope';
+import { createLevelInstallation } from '../src/engine/client/level/installation';
+import { WorldRegistry } from '../src/engine/client/world/registry';
+import { shardContext } from '../src/game/server/plugin/context';
+import { QuestViews } from '../src/game/client/plugin/ui';
+import { RetainedRuntimeHooks } from '../src/game/client/shard/retainedHooks';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
+import { parseShardSlug } from '../src/game/server/shard/slug';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { DRIFTWOOD as source } from './fixtures/driftwood-program';
 import { TRADER_STALL as coinRows } from '../src/shards/driftwood-isle/generators/questShop';
 import { TRADER_STALL as barterRows } from '../src/shards/pine-hollow/generators/questShop';
 import { TRADES } from '../src/shards/pine-hollow/generators/trades';
 import { FIGURE_CATALOGUE } from '../src/shards/pine-hollow/generators/figureCatalogue';
-import { Owned } from '../src/game/loot/Owned';
-import { Purse, publishPurse, enteredPurse } from '../src/game/loot/Purse';
-import { installQuestTrader, installQuestShop } from '../src/game/quest/trader';
+import { Owned } from '../src/game/server/loot/Owned';
+import { Purse, publishPurse, enteredPurse } from '../src/game/server/loot/Purse';
+import { installQuestTrader, installQuestShop } from '../src/game/server/quest/trader';
 
 function page(loot: unknown = source.rows.loot) {
   const scope = new Scope('shop-entry'), host = new App(), events: string[] = [], owned = new Owned('shop-entry');

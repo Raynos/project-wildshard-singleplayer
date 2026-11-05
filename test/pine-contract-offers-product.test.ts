@@ -1,11 +1,11 @@
 import { beforeAll, expect, test } from 'vitest';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
-import { claim, contractKill, loadBoard, ownContractCatalogue, recordKill, saveBoard } from '../src/game/quest/contracts';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+import { claim, contractKill, loadBoard, ownContractCatalogue, recordKill, saveBoard } from '../src/game/server/quest/contracts';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
-import { Scope } from '../src/engine/app/scope';
-import { ContractBoard, CONTRACT_ACTION } from '../src/game/quest/contractBoard';
+import { Scope } from '../src/engine/shared/app/scope';
+import { ContractBoard, CONTRACT_ACTION } from '../src/game/server/quest/contractBoard';
 import { parseContractCatalogue, type ContractCatalogue } from '@wildshard/format/contracts';
 
 // Captured from the original play-read authoring and actual page board save API.

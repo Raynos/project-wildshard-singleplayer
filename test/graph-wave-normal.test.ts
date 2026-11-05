@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
 import { vec2 } from 'three/tsl';
-import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
-import { waveDisplace } from '../src/engine/world/waves';
+import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
+import { waveDisplace } from '../src/engine/shared/world/waves';
 import { graph, gerstnerNormal } from '../src/sdk/materials';
 import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 import { evalGlsl } from './fixtures/glslEval';

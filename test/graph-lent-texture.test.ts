@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
 import { DataTexture, Material } from 'three';
-import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
+import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
 import { classicLookCompiler } from './fixtures/classicLookCompiler';
 import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 import { materialTextureRefs } from '@wildshard/format/materials';
-import { clientGraphs } from '../src/game/shardfile/clientGraphs';
+import { clientGraphs } from '../src/game/client/shardfile/clientGraphs';
 import { emptyShardfile } from '../src/sdk/author';
 import lookGraphs from '../src/shards/pine-hollow/data/lookGraphs.json' with { type: 'json' };
 import { authoredGraphs } from './fixtures/authoredGraphs';

@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { QuestWorldSchema } from '@wildshard/format/questWorld';
 import { driftwoodQuestWorld } from '../src/shards/driftwood-isle/generators/questWorld';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 
 const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));
 

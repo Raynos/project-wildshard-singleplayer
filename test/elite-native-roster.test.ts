@@ -1,13 +1,13 @@
 import {admissionNative} from './fixtures/nalati-return-modules';
 import { expect, expectTypeOf, test, vi } from 'vitest';
-import { NativeEliteRoster, NativeEliteProjection, type NativeEliteRosterRows, type NativeEliteScript } from '../src/engine/ai/eliteRoster';
-import { NativeEliteLifecycle } from '../src/engine/ai/eliteLifecycle';
-import type { SimHost } from '../src/engine/sim';
+import { NativeEliteRoster, NativeEliteProjection, type NativeEliteRosterRows, type NativeEliteScript } from '../src/engine/server/ai/eliteRoster';
+import { NativeEliteLifecycle } from '../src/engine/server/ai/eliteLifecycle';
+import type { SimHost } from '../src/engine/server/sim';
 import { eliteBindings, type EliteEncounterRow, type EliteEncounterSpec } from './fixtures/nativeEliteEncounters';
 
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import { nativeEliteCore } from './fixtures/nativeEliteCore';
-import type { EliteCoreDef } from '../src/game/eliteSystem';
+import type { EliteCoreDef } from '../src/game/server/eliteSystem';
 
 test('canonical roster declarations retain the original readonly public definition and wire', () => {
   expectTypeOf<NativeEliteRosterRows['rows'][number]['def']>().toEqualTypeOf<EliteCoreDef>();

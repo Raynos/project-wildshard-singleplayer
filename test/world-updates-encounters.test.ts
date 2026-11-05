@@ -1,21 +1,21 @@
 import {expect,test,vi} from 'vitest';
-import {Scope} from '../src/engine/app/scope';
-import type {SystemSpec} from '../src/engine/app/systems';
-import {Events} from '../src/engine/events/events';
-import {practiceRoom} from '../src/engine/core/practiceRoom';
-import type {DeclaredEliteEntry} from '../src/engine/ai/view/eliteEntry';
-import type {Animal} from '../src/engine/entities/AnimalView';
-import type {ArenaRoomEncounter} from '../src/game/boss/arenaRoom';
-import type {TimedEncounters} from '../src/game/boss/timedEncounters';
-import type {ShardContext} from '../src/game/plugin/context';
-import type {ShardWorld} from '../src/game/shard/world';
-import type {ShardRuntime} from '../src/game/shard/runtime';
-import {admitClientPlan} from '../src/game/shardfile/clientPlan';
-import {createShardProduct,type ShardProduct} from '../src/game/shardfile/shardProduct';
+import {Scope} from '../src/engine/shared/app/scope';
+import type {SystemSpec} from '../src/engine/client/app/systems';
+import {Events} from '../src/engine/shared/events/events';
+import {practiceRoom} from '../src/engine/client/core/practiceRoom';
+import type {DeclaredEliteEntry} from '../src/engine/client/ai/view/eliteEntry';
+import type {Animal} from '../src/engine/client/entities/AnimalView';
+import type {ArenaRoomEncounter} from '../src/game/server/boss/arenaRoom';
+import type {TimedEncounters} from '../src/game/server/boss/timedEncounters';
+import type {ShardContext} from '../src/game/server/plugin/context';
+import type {ShardWorld} from '../src/game/server/shard/world';
+import type {ShardRuntime} from '../src/game/server/shard/runtime';
+import {admitClientPlan} from '../src/game/client/shardfile/clientPlan';
+import {createShardProduct,type ShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
-import {installWorldUpdates} from '../src/game/shardfile/worldUpdates';
-import {publishEntryOwner,type EliteEntryConstruction} from '../src/game/shardfile/entryOwners';
-import * as population from '../src/game/population/wildlife';
+import {installWorldUpdates} from '../src/game/server/shardfile/worldUpdates';
+import {publishEntryOwner,type EliteEntryConstruction} from '../src/game/client/shardfile/entryOwners';
+import * as population from '../src/game/server/population/wildlife';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 
 const rows=[

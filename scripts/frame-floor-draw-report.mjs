@@ -1,5 +1,5 @@
 import { appendFileSync, writeFileSync } from 'node:fs';
-import { assessDrawBudget, PHONE_DRAW_LIMIT, PHONE_DRAW_CPU_US } from '../src/engine/core/drawBudget.ts';
+import { assessDrawBudget, PHONE_DRAW_LIMIT, PHONE_DRAW_CPU_US } from '../src/engine/client/core/drawBudget.ts';
 
 /** @param {(number|null)[]} values */
 const maximum = values => values.reduce((max, value) => value === null ? max : Math.max(max ?? value, value), /** @type {number|null} */ (null));
@@ -81,7 +81,7 @@ const verdict = value => value === null ? 'NOT MEASURED' : value ? 'PASS' : 'MIS
 /** @param {string} shard
  * @param {string} pose
  * @param {number} frames
- * @param {import('../src/engine/core/drawBudget').DrawBudgetAssessment} budget
+ * @param {import('../src/engine/client/core/drawBudget').DrawBudgetAssessment} budget
  * @param {string} renderer */
 export function frameFloorDrawConsole(shard, pose, frames, budget, renderer) {
   return `Draw budget ${cell(shard)} / ${cell(pose)}: ${number(budget.maxDraws)} max draws; ${number(budget.maxRenderCpuUsPerDraw)} max us/draw; paired samples ${budget.validDrawSamples}/${frames} draws, ${budget.validCpuSamples}/${frames} CPU; ${number(budget.meanRenderCpuUsPerDraw)} mean us/draw; observed renderer ${cell(renderer)}; diagnostic only, no official timing credit`;

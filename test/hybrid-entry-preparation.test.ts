@@ -1,17 +1,17 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { Object3D, Scene, Vector3 } from 'three';
-import { App } from '../src/engine/app/app';
-import { Scope } from '../src/engine/app/scope';
-import { buildYield } from '../src/engine/core/workSlice';
-import { bindConstructionEnvironment, constructionOwner, ownedFacade, withOwner } from '../src/engine/app/ownership';
-import { createLevelInstallation } from '../src/engine/level/installation';
-import { parseShardSlug } from '../src/game/shard/slug';
-import { shardContext } from '../src/game/plugin/context';
-import { installEnteredRuntimeService } from '../src/game/shard/retainedHooks';
-import type { ShardRuntime } from '../src/game/shard/runtime';
-import { HybridRuntimeSession, type HybridResident } from '../src/game/shardfile/hybrid';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { App } from '../src/engine/client/app/app';
+import { Scope } from '../src/engine/shared/app/scope';
+import { buildYield } from '../src/engine/shared/core/workSlice';
+import { bindConstructionEnvironment, constructionOwner, ownedFacade, withOwner } from '../src/engine/shared/app/ownership';
+import { createLevelInstallation } from '../src/engine/client/level/installation';
+import { parseShardSlug } from '../src/game/server/shard/slug';
+import { shardContext } from '../src/game/server/plugin/context';
+import { installEnteredRuntimeService } from '../src/game/client/shard/retainedHooks';
+import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import { HybridRuntimeSession, type HybridResident } from '../src/game/client/shardfile/hybrid';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 

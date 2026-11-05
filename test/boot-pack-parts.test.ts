@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import { bootPackParts } from '../scripts/boot-pack-parts.mjs';
-import { Scope } from '../src/engine/app/scope';
-import type { PackFile, PackPart } from '../src/engine/boot/tables';
-import { TexturePackReads } from '../src/engine/boot/texturePack';
+import { Scope } from '../src/engine/shared/app/scope';
+import type { PackFile, PackPart } from '../src/engine/shared/boot/tables';
+import { TexturePackReads } from '../src/engine/client/boot/texturePack';
 
 test('texture cohorts isolate revisions, unrelated families and non-texture files', () => {
   const paths = [

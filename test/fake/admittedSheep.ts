@@ -4,9 +4,9 @@ import { SpeciesActorsFileSchema, type SpeciesActorsFileRows } from '@wildshard/
 import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 import { nameBlob } from '@wildshard/sdk/blobs';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { createShardProduct, type ShardProduct } from '../../src/game/shardfile/shardProduct';
-import { fixedDraws } from '../../src/game/models/fixedDraws';
-import type { CrowdBody } from '../../src/game/ambient/crowdDraw';
+import { createShardProduct, type ShardProduct } from '../../src/game/shared/shardfile/shardProduct';
+import { fixedDraws } from '../../src/game/client/models/fixedDraws';
+import type { CrowdBody } from '../../src/game/client/ambient/crowdDraw';
 import crowdView from '../../src/shards/nalati-grasslands/data/crowdView.json' with { type: 'json' };
 import { fixtureJsonCheck } from '../fixtures/productFile';
 import { bakeSheepBody } from '../../src/shards/nalati-grasslands/generators/sheepBody';

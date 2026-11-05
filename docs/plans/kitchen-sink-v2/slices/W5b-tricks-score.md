@@ -15,7 +15,7 @@ Slice rule: [README.md](README.md) · west index: [INDEX-west.md](INDEX-west.md)
 ## 2. Engine / game / host work, just in time
 
 Research: nothing exists. A repo-wide search for "trick" and "grind" finds only unrelated comments
-(`engine/player/dash.ts:57`). The board law (`engine/player/board.ts`) already has the state a trick reader needs
+(`engine/shared/player/dash.ts:57`). The board law (`engine/shared/player/board.ts`) already has the state a trick reader needs
 (`hoverAir`, `onGround`, heading).
 
 | Row / mechanic | Shape | Layer |

@@ -1,5 +1,5 @@
 import { BufferAttribute, BufferGeometry, Float16BufferAttribute, Matrix4 } from 'three';
-import { bindHomeBuildCache, saveHomeBuildGeometry, readHomeBuildGeometry, homeBuildGeometryKeys, HOME_BUILD_CACHE_BYTES } from '../../src/game/shardfile/homeBuildCache';
+import { bindHomeBuildCache, saveHomeBuildGeometry, readHomeBuildGeometry, homeBuildGeometryKeys, HOME_BUILD_CACHE_BYTES } from '../../src/game/client/shardfile/homeBuildCache';
 import { emptyShardfile } from '../../src/sdk/author';
 const source = emptyShardfile({slug:'cache-proof',name:'Cache proof',author:'Fixture',revision:1,seed:1});
 const other = emptyShardfile({slug:'not-home',name:'Not home',author:'Fixture',revision:1,seed:1});

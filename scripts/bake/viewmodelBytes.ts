@@ -1,4 +1,4 @@
-import type { Pixels } from '../../src/engine/player/viewmodelTextures';
+import type { Pixels } from '../../src/engine/client/player/viewmodelTextures';
 
 /** The result carries only dimensions and the names whose raw planes were uploaded. */
 export interface ViewmodelBake { readonly w: number; readonly h: number; readonly planes: readonly ('col' | 'nrm' | 'arm')[] }

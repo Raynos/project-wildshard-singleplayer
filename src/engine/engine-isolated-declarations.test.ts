@@ -50,7 +50,7 @@ test('event maps cold-emit their complete merged declarations',()=>{
  const host=ts.createCompilerHost(project.options);
  host.writeFile=(file,text)=>{outputs.set(file,text);};
  const program=ts.createProgram(project.fileNames,{...project.options,incremental:false},host);
- const maps=program.getSourceFile(resolve('src/engine/events/maps.ts'));
+ const maps=program.getSourceFile(resolve('src/engine/client/events/maps.ts'));
  if(maps===undefined)throw new Error('Missing defining event maps');
  expect(program.getDeclarationDiagnostics(maps).map(row=>({code:row.code,message:ts.flattenDiagnosticMessageText(row.messageText,' ')}))).toEqual([]);
  const result=program.emit(maps);

@@ -1,7 +1,7 @@
 import { parseWorldScenePlacementPage } from '@wildshard/format/worldScenePlacement';
 import { expect, test } from 'vitest';
 import { driftwoodCatalogueFiles, driftwoodOutputRows, output } from '../src/shards/driftwood-isle/generators/output';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 import { driftwoodSceneBanks } from './fixtures/driftwoodSceneBanks';
 import { DRIFTWOOD_GUEST_ROWS } from './fixtures/driftwood-guest-programs';
 

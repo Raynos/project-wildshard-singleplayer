@@ -1,6 +1,6 @@
 import type { ProductFile, ShardProductInput } from '@wildshard/game/shardfile/shardProduct';
 import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
-import { validateNamedJsonSchemaPaced } from '../../src/game/shardfile/customSchema';
+import { validateNamedJsonSchemaPaced } from '../../src/game/shared/shardfile/customSchema';
 
 /** These renderer-free authored fixtures run in Node even with happy-dom's
  * SSR:false. Lend the existing real native validator, never a trusted bypass. */

@@ -2,16 +2,16 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
 import type { NetCommand } from '@wildshard/format/netCommand';
-import { diagnosticNow } from '../src/engine/core/clock';
-import { NetClient } from '../src/engine/net/client';
-import { NET_BUTTONS } from '../src/engine/input/netButtons';
-import { NetRoom } from '../src/engine/net/room';
-import { SimNetWorld } from '../src/engine/net/simWorld';
-import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
-import { createSimHost } from '../src/engine/sim';
+import { diagnosticNow } from '../src/engine/shared/core/clock';
+import { NetClient } from '../src/engine/client/net/client';
+import { NET_BUTTONS } from '../src/engine/shared/input/netButtons';
+import { NetRoom } from '../src/engine/server/net/room';
+import { SimNetWorld } from '../src/engine/server/net/simWorld';
+import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost } from '../src/engine/server/sim';
 import { directLoopback, type DirectLoopback } from '../src/engine/test/netLoopback';
-import { leadPlayer } from '../src/engine/sim/leadPlayer';
-import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
+import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
+import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { createTrustedHeadlessResident, type TrustedHeadlessResident } from '../src/sdk/headlessRuntime';
 

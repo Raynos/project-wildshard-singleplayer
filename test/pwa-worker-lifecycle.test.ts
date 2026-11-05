@@ -5,7 +5,7 @@ import { runInNewContext } from 'node:vm';
 // oxlint-disable-next-line import/no-nodejs-modules -- Check the shipped route patterns with the native URLPattern implementation.
 import { URLPattern, type URLPatternInit } from 'node:url';
 import { expect, test, vi } from 'vitest';
-import { ASSET_CACHE_NAME } from '../src/engine/pwa/cacheNames';
+import { ASSET_CACHE_NAME } from '../src/engine/client/pwa/cacheNames';
 
 const origin = 'https://worker.test';
 const url = (path: string): string => new URL(path, origin).href;
@@ -53,8 +53,8 @@ function fixture(read?: (request: Request) => Promise<Response>, nativeRoutes = 
     const live = new Set<string>(), get = (id: string): Promise<{ id: string } | undefined> => Promise.resolve(live.has(id) ? { id } : undefined);
     const self = { location: new URL(origin), registration: { scope: `${origin}/` }, clients: { claim, get }, skipWaiting,
       addEventListener: (kind: string, listener: (event: WorkerEvent) => void) => { listeners.set(kind, [...listeners.get(kind) ?? [], listener]); } };
-    const owner = readFileSync('src/engine/app/workerScope.js', 'utf8').replaceAll(/^export /gmu, '');
-    const source = readFileSync('src/engine/pwa/sw.js', 'utf8').replace("import { workerScope } from '../app/workerScope.js';\n", '').replaceAll('__BUILD_ID__', build)
+    const owner = readFileSync('src/engine/client/app/workerScope.js', 'utf8').replaceAll(/^export /gmu, '');
+    const source = readFileSync('src/engine/client/pwa/sw.js', 'utf8').replace("import { workerScope } from '../app/workerScope.js';\n", '').replaceAll('__BUILD_ID__', build)
       .replaceAll('__ASSET_CACHE__', ASSET_CACHE_NAME).replace("'__DOCUMENT__'", JSON.stringify(document)).replace("'__FILES__'", JSON.stringify(JSON.stringify(files)))
       .replace("'__SHELL_FILES__'", JSON.stringify(JSON.stringify(shellFiles)));
     // Deliberately no crypto, scheduler or accounting ports; timers only for the precache's bounded pause.
@@ -155,7 +155,7 @@ test('a waiting update steps its precache aside on a loading page\'s PAUSE', asy
   await waiting.dispatch('install');
   const background = waiting.dispatch('message', { ...precached, source: held.source('page-1') });
   await vi.waitFor(() => { expect(held.f.fetch).toHaveBeenCalledTimes(6); });
-  // The controlling worker sees the navigation; the waiting one hears it from the loading page (src/engine/boot/sw.ts).
+  // The controlling worker sees the navigation; the waiting one hears it from the loading page (src/engine/client/boot/sw.ts).
   await waiting.dispatch('message', { data: { type: 'PAUSE' }, source: held.source('page-2') });
   held.release(); await new Promise(resolve => { setTimeout(resolve, 0); });
   expect(held.f.fetch).toHaveBeenCalledTimes(6);

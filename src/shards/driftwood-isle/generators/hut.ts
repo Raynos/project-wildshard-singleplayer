@@ -307,7 +307,7 @@ class HutBuilder {
 
   /**
    * PHYSICS P4: this builder's static collision in world space — its walls / posts (the legacy boxes) and every floor
-   * `floorHeightAt` describes, as real geometry. src/engine/physics/pieces.ts turns it into Rapier colliders.
+   * `floorHeightAt` describes, as real geometry. src/engine/shared/physics/pieces.ts turns it into Rapier colliders.
    * The deck (cabin floor + porch) is one slab whose top is the floor; the front steps are the four treads the mesh
    * draws (0.275 m each, the top one 0.18 m under the deck); the chart table is solid (it had no box before).
    */

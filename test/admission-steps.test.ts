@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { isJsonData, isJsonDataSteps, jsonDataHeapBytes } from '@wildshard/format/json';
 import { assertCellBounds, assertCellBoundsSteps } from '@wildshard/format/cellBounds';
 import { preflightShardfile, preflightShardfileSteps } from '@wildshard/format/preflight';
-import { productResidentBytes, productResidentBytesSteps } from '../src/game/shardfile/productCost';
+import { productResidentBytes, productResidentBytesSteps } from '../src/game/client/shardfile/productCost';
 import { emptyShardfile } from '../src/sdk/author';
 
 // T10: product admission's walks run in steps between drawn frames; each must give exactly its one-shot original's verdict,

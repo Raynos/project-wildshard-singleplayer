@@ -7,7 +7,7 @@ E1–E14 of `art/showcase-template/round-4-v2-layout/`; tiers: `round-6-enemy-ti
 ## 1. Decisions (Jake, 2026-11-02)
 
 - **Ladder: common → rare variant → elite → boss.** No "mini-bosses". **Six elites** on the existing elite host
-  (`game/eliteSystem.ts`, `Elite.ts`): three band gates (Big Pallet L6, the Vault Warden L12, Foreman Unit 7 L18) and
+  (`game/server/eliteSystem.ts`, `Elite.ts`): three band gates (Big Pallet L6, the Vault Warden L12, Foreman Unit 7 L18) and
   **three night elites** (night only, low, mid and high bands; designed in §4).
 - **Rare variants** spawn at random among the commons: a shared rarity row (uncommon / rare: new look, +1 / +2
   levels, more Scrip, a trophy), generalised from Pine's coat rarity.

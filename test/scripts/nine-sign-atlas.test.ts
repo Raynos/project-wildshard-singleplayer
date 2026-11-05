@@ -3,7 +3,7 @@ import { zstdDecompressSync, zstdCompressSync } from 'node:zlib';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { BufferAttribute } from 'three';
-import { createModelLibrary } from '../../src/game/plugin/geometry';
+import { createModelLibrary } from '../../src/game/client/plugin/geometry';
 import { readSourceModel } from '../../src/sdk/bake/skinned';
 import { parseKtx2 } from '@wildshard/format/ktx2Cost';
 import { textureMipBytes } from '@wildshard/format/contentBounds';

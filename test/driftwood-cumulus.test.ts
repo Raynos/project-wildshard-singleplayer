@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import puffs from '../src/shards/driftwood-isle/data/cumulusPuffs.json' with { type: 'json' };
-import { cumulusGeometry } from '../src/game/looks/toonSky';
+import { cumulusGeometry } from '../src/game/client/looks/toonSky';
 
 it('instances one icosahedron per puff row and refuses malformed rows', () => {
   const geo = cumulusGeometry(puffs);

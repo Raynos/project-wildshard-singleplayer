@@ -36,7 +36,7 @@ and the quest completes; the contract row appears.
 
 ## 5. Risks
 
-- Thrown crates as dynamic bodies count against the phone's 40 awake bodies (`engine/physics/bodies.ts:84`); they must
+- Thrown crates as dynamic bodies count against the phone's 40 awake bodies (`engine/shared/physics/bodies.ts:84`); they must
   sleep fast and despawn after the fight.
 
 ## 6. Questions for Jake

@@ -9,8 +9,8 @@ let installed: Promise<void> | undefined;
 export function installNalatiSpeciesFixture(): Promise<void> { return installed ??= prepare(); }
 
 async function prepare(): Promise<void> {
-  const { registerSpecies } = await import('../../src/engine/entities/species/registry');
-  const { speciesWithLook } = await import('../../src/engine/entities/species/look');
+  const { registerSpecies } = await import('../../src/engine/shared/entities/species/registry');
+  const { speciesWithLook } = await import('../../src/engine/client/entities/species/look');
   const { nalatiSpeciesCatalogue, prepareNalatiSpecies } = await import('../fake/nalatiSpecies');
   // Admit the complete original envelope; its looks retain their defining
   // packed-look admission inside productSpeciesCatalogue.
@@ -19,7 +19,7 @@ async function prepare(): Promise<void> {
     crackBytes: v.array(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(255))),
     packedBodies: v.object({ file: v.string() }),
   }), originalSpeciesJson('species.json'));
-  const { productSpeciesCatalogue } = await import('../../src/game/looks/speciesBook');
+  const { productSpeciesCatalogue } = await import('../../src/game/client/looks/speciesBook');
   prepareNalatiSpecies(productSpeciesCatalogue({section:()=>speciesPresentation.hullBook,
     file: name => name === 'actors/balbal-cracks.bin' ? Promise.resolve(Uint8Array.from(speciesPresentation.crackBytes)) : Promise.reject(new Error(`Unexpected product file ${name}`)) },speciesPresentation.presentation,speciesPresentation.looks));
   for(const row of nalatiSpeciesCatalogue().rows){

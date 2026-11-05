@@ -1,21 +1,21 @@
 // Frozen before the native driver adopted StalkerBrain.bindRoster.
-import type { NativeGroupCollection } from '../../src/game/shardfile/groupRuntime';
-import { ActorProjectionV2, type ActorProjectionOwner } from '../../src/game/population/actorProjectionV2';
-import { NativeManager } from '../../src/game/population/nativeManager';
-import { AggressionDirector } from '../../src/engine/ai/director';
+import type { NativeGroupCollection } from '../../src/game/server/shardfile/groupRuntime';
+import { ActorProjectionV2, type ActorProjectionOwner } from '../../src/game/server/population/actorProjectionV2';
+import { NativeManager } from '../../src/game/server/population/nativeManager';
+import { AggressionDirector } from '../../src/engine/server/ai/director';
 import { Vector3 } from 'three';
-import type { PackBrain } from '../../src/engine/ai/pack';
-import type { HerdBrain } from '../../src/engine/ai/herd';
-import type { FlockBrain, FlockThreat } from '../../src/engine/ai/flock';
-import { canReach } from '../../src/engine/ai/reach';
-import { createNativeSpeciesContext } from '../../src/game/plugin/brain';
-import type { NativeEliteBindings } from '../../src/engine/ai/eliteRoster';
-import { ReturnProgram } from '../../src/game/population/returnProgram';
-import type { AnimalSim } from '../../src/engine/entities/AnimalSim';
-import type { HuntBody } from '../../src/engine/ai/hunt';
-import type { StalkerBrain } from '../../src/engine/ai/stalker';
-import type { Rng } from '../../src/engine/core/rng';
-import type { SimHost } from '../../src/engine/sim';
+import type { PackBrain } from '../../src/engine/server/ai/pack';
+import type { HerdBrain } from '../../src/engine/server/ai/herd';
+import type { FlockBrain, FlockThreat } from '../../src/engine/shared/ai/flock';
+import { canReach } from '../../src/engine/server/ai/reach';
+import { createNativeSpeciesContext } from '../../src/game/server/plugin/brain';
+import type { NativeEliteBindings } from '../../src/engine/server/ai/eliteRoster';
+import { ReturnProgram } from '../../src/game/shared/population/returnProgram';
+import type { AnimalSim } from '../../src/engine/server/entities/AnimalSim';
+import type { HuntBody } from '../../src/engine/server/ai/hunt';
+import type { StalkerBrain } from '../../src/engine/server/ai/stalker';
+import type { Rng } from '../../src/engine/shared/core/rng';
+import type { SimHost } from '../../src/engine/server/sim';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 export interface NativeDriverRows {
   tokens: string; program: unknown; packKind: string; dogKind: string; eliteKinds: readonly string[]; dispatch: string; projection?:unknown;

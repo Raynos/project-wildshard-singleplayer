@@ -22,7 +22,7 @@ Research (`out/pine-hollow/sections/custom/questRuntime.json`, 29,289 bytes; lis
 | `content.npcs` | 4,061 | the lodge NPCs | W1a NPC rows |
 | `content.board` | 2,500 | the lodge board | moved in E1f |
 
-The reader is the plugin scaffolding: `src/game/plugin/simulation.ts` (1,576 lines) loads `custom/questRuntime`; Pine's
+The reader is the plugin scaffolding: `src/game/server/plugin/simulation.ts` (1,576 lines) loads `custom/questRuntime`; Pine's
 generators that write it: `generators/sourceOutput.ts`, `sections.ts`, `forestStory.ts`, `nativeQuest.ts`,
 `pageComposition.ts`, `rangedPage.ts`.
 

@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { prepareHeadlessRuntime } from './fixtures/nine-headless';
 import { prepareProductPlan } from './fixtures/headless-native';
 import { NATIVE_ASSEMBLY_FILE } from '@wildshard/format/nativeAssembly';
-import type { Rapier } from '../src/engine/physics/rapier';
+import type { Rapier } from '../src/engine/shared/physics/rapier';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import assembly from '../src/shards/nine-dragon-stack/data/headlessAssembly.json' with { type: 'json' };
 

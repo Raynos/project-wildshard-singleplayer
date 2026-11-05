@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, it } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { lendNalatiHeld } from './fixtures/nalati-return-modules';
-import { StealthCrouch, StealthDetection, type StealthObservation, type StealthPose } from '../src/game/stealth/stealthLaw';
+import { StealthCrouch, StealthDetection, type StealthObservation, type StealthPose } from '../src/game/shared/stealth/stealthLaw';
 import { originalHeldMetadata } from './fixtures/nalati-held-original';
 import { parse } from 'valibot';
 import { StealthRowsSchema } from '@wildshard/format/stealth';

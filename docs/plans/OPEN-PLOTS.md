@@ -383,7 +383,7 @@ Jake, 2026-11-03: the four new open plots go back into this plan; the mini plan 
 ### Themes (final, G977 / G978)
 
 Graphics only (G971): theme, identity, signature landmark, look, dressing and audio. No play loop, quest, verb or
-encounter. Each keeps its own look (AGENTS.md). Accents are the free slots of `src/game/grid/catalogue.ts`.
+encounter. Each keeps its own look (AGENTS.md). Accents are the free slots of `src/game/server/grid/catalogue.ts`.
 
 **Built from tiles (G978).** Each plot is a mirror-symmetric 8 × 8 of 62.5 m tiles: a cross of straight avenues, four
 identical quadrants, ONE landmark on a square plinth at the centre. The tiles are the shared kit (paving, kerbs, lamp

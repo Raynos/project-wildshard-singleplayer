@@ -19,7 +19,7 @@ Research:
 - `src/format/completion.ts` (83 lines): `CompletionSchema { doneFlag, seenFlag, trigger: 'reward' | 'quest', system,
   before, after, title, card { kicker, flavour }, menuSubtitle, toastSuffix, safeRadius, pollSeconds, maximumTodo, more,
   coveredEvents, groups [{ id, todo: count | individual, label, spots }], stats [{ label, value: time | achievements |
-  flags | group | title }] }`. Game: `src/game/complete/ShardComplete.ts`, `declared.ts`.
+  flags | group | title }] }`. Game: `src/game/client/complete/ShardComplete.ts`, `declared.ts`.
 - **Only two products ship `ui/completion`**: Driftwood and `_template` (`out/*/sections/ui/completion.json`). Pine,
   Nalati, Nine, Sky, Signal, `blender-template`, `ink-cel-valley`, `pastel-plain` and the open plots don't.
 - `trigger` is a closed `reward | quest` picklist; the showcase ends on a boss (`boss.attempt` `won`, `maps.ts`).

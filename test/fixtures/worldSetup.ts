@@ -2,7 +2,7 @@ import { installNalatiSpeciesFixture } from './nalati-species-world';
 /** Explicit opt-in for tests exercising installed world content. Pure tests never import this fixture. */
 import * as v from 'valibot';
 import perchRows from '../../src/shards/driftwood-isle/data/mixedPopulation.json' with { type: 'json' };
-import { Scope } from '../../src/engine/app/scope';
+import { Scope } from '../../src/engine/shared/app/scope';
 import { prepareNativeScalarBlocks } from '../../scripts/bake/nativeWorld.mjs';
 import { nalatiNativeGeography } from './nalati-native-program';
 import { pineDensityBlob } from '../../src/shards/pine-hollow/generators/forestRows';
@@ -22,7 +22,7 @@ async function prepareWorld(): Promise<void> {
   await installCatalogueFixture();
   // Only full world consumers initialize the compatibility level.
   await import('../../src/shardList');
-  const {shards:scalarDefinitions}=await import('../../src/game/shard/list');
+  const {shards:scalarDefinitions}=await import('../../src/game/client/shard/list');
   for (const definition of scalarDefinitions()) {
     const intake = definition.scalarBlocks;
     if (definition.slug === 'nalati-grasslands' && intake !== undefined && !intake.prepared) {
@@ -38,30 +38,30 @@ async function prepareWorld(): Promise<void> {
     }
     prepareNativeScalarBlocks(definition, process.cwd());
   }
-  const { registerAchievements } = await import('../../src/game/achievements');
+  const { registerAchievements } = await import('../../src/game/server/achievements');
   const { PINE_FEATS } = await import('../../src/shards/pine-hollow/generators/questInventory');
   const { DRIFTWOOD_ITEMS, DRIFTWOOD_FEATS } = await import('../../src/shards/driftwood-isle/generators/questInventory');
   registerAchievements('pine-hollow', PINE_FEATS);
   registerAchievements('driftwood-isle', DRIFTWOOD_FEATS);
 
   // The composition root owns shared species; the engine has no upward kit import.
-  (await import('../../src/engine/world/registry')).installWorldRegistry(); // the session installs it in the game
-  const { registerSpecies } = await import('../../src/engine/entities/species/registry');
-  const { speciesWithLook } = await import('../../src/engine/entities/species/look');
-  const { installScore } = await import('../../src/engine/audio/score/score');
-  const { WILDSHARD_SCORE } = await import('../../src/game/audio/theme');
+  (await import('../../src/engine/client/world/registry')).installWorldRegistry(); // the session installs it in the game
+  const { registerSpecies } = await import('../../src/engine/shared/entities/species/registry');
+  const { speciesWithLook } = await import('../../src/engine/client/entities/species/look');
+  const { installScore } = await import('../../src/engine/client/audio/score/score');
+  const { WILDSHARD_SCORE } = await import('../../src/game/client/audio/theme');
   installScore(WILDSHARD_SCORE);
-  const { installKitSpecies } = await import('../../src/game/systems/species/install');
-  const { installKitIcons } = await import('../../src/game/icons');
-  const { installPickupCatalogue, preparePickupCatalogue } = await import('../../src/game/models/specimenCatalogue');
-  const { default: PICKUP_CATALOGUE } = await import('../../src/game/data/pickupCatalogue.json');
-  const { installKitProps } = await import('../../src/game/models/interact');
+  const { installKitSpecies } = await import('../../src/game/client/systems/species/install');
+  const { installKitIcons } = await import('../../src/game/client/icons');
+  const { installPickupCatalogue, preparePickupCatalogue } = await import('../../src/game/client/models/specimenCatalogue');
+  const { default: PICKUP_CATALOGUE } = await import('../../src/game/client/data/pickupCatalogue.json');
+  const { installKitProps } = await import('../../src/game/client/models/interact');
   installKitSpecies();
   installKitIcons();
   installPickupCatalogue(PICKUP_CATALOGUE, await preparePickupCatalogue({ file: name => Promise.resolve(new Uint8Array(readFileSync(`public${name}`))) }, PICKUP_CATALOGUE));
   installKitProps();
-  const { registerLootTable } = await import('../../src/game/loot/tables');
-  const { readLootTables } = await import('../../src/game/loot/tableRows');
+  const { registerLootTable } = await import('../../src/game/server/loot/tables');
+  const { readLootTables } = await import('../../src/game/server/loot/tableRows');
   const { DRIFTWOOD_LOOT: loot } = await import('../../src/shards/driftwood-isle/generators/loot');
   for (const row of readLootTables(loot.economy.tables)) registerLootTable(row);
   const { DRIFTWOOD_LOOKS } = await import('../fake/driftwoodLooks');
@@ -76,25 +76,25 @@ async function prepareWorld(): Promise<void> {
     if (row !== undefined && look !== undefined) registerSpecies(speciesWithLook(row, look.kind === 'monkey' ? { ...look, animate: monkeyAnimate } : look));
   }
   await installNalatiSpeciesFixture();
-  const { unshuffleLanes: unshuffleBodyLanes } = await import('../../src/engine/core/deflate');
+  const { unshuffleLanes: unshuffleBodyLanes } = await import('../../src/engine/client/core/deflate');
   // and its camps' and bridge's places bake (world/placeBake.ts)
   const { SHAPES, SHAPE_BYTES } = await import('./nalatiShapes');
   const { originalPlaceBinary } = await import('./nalati-original-place-binary');
   if (!SHAPES.ready) await SHAPES.load(new Map([...SHAPE_BYTES, ['/assets/nalati/baked/places.bin', unshuffleBodyLanes(new Uint8Array(inflateSync(await originalPlaceBinary())))]]));
   // Legacy fixtures include Pine's spawn-only thrall, without activating a rendered level.
   const { PINE_BOAR } = await import('../../src/shards/pine-hollow/generators/speciesRows');
-  const { HullLookBook } = await import('../../src/game/looks/speciesBook');
+  const { HullLookBook } = await import('../../src/game/client/looks/speciesBook');
   const { SPECIES_LOOKS } = await import('../../src/shards/pine-hollow/generators/nativeView');
   const pineBook = new HullLookBook(SPECIES_LOOKS);
   const { THRALL_CLIPS } = await import('../../src/shards/pine-hollow/generators/thrallClips');
-  const { numericCreaturePose } = await import('../../src/game/plugin/channelPrograms');
+  const { numericCreaturePose } = await import('../../src/game/server/plugin/channelPrograms');
   registerSpecies(speciesWithLook(PINE_BOAR, { ...pineBook.look('boar'), postPose: numericCreaturePose(THRALL_CLIPS) }));
   // and its elk thrall (E405: Pine's, derived from the kit's elk)
   const { pineElk } = await import('../../src/shards/pine-hollow/generators/speciesRows');
   registerSpecies(speciesWithLook(pineElk(), pineBook.look('elk')));
   // Pure inventory fixtures explicitly install the authored item catalogs.
-  const { registerItemRow } = await import('../../src/game/bag/itemCatalog');
-  const { default: starterItems } = await import('../../src/game/bag/starterItems.json');
+  const { registerItemRow } = await import('../../src/game/server/bag/itemCatalog');
+  const { default: starterItems } = await import('../../src/game/server/bag/starterItems.json');
   const STARTER_BAG_ITEMS = v.parse(v.array(v.object({ id: v.string(), label: v.string(), icon: v.picklist(['meat', 'hide', 'tusk', 'antlers']), travels: v.boolean() })), starterItems);
   const { PINE_BAG_ITEMS: PINE_ITEMS } = await import('../../src/shards/pine-hollow/generators/questInventory');
   for (const row of [...STARTER_BAG_ITEMS, ...PINE_ITEMS, ...DRIFTWOOD_ITEMS]) registerItemRow(row);

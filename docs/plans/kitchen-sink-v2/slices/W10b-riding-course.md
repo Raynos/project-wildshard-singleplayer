@@ -13,7 +13,7 @@ through, **4 jumps**, the **start/finish gantry** with the lap timer, a PB board
 Research: Nalati's riding practice layout is an oval only: `src/format/practiceCourseRows.ts:66` `RidingPracticeSchema
 { road, fieldAt, horseStart, riderStart, oval {halfLen, radius, width}, lineX, … words }`, no rings or jumps. The
 shared law (`src/commons/scripts/course.as`) has an `oval` kind (laps, half-lap) and a `checkpoints` kind (≤ 11 pads).
-Horse jumping exists (`src/game/riding/physics.ts:128` `jump`).
+Horse jumping exists (`src/game/shared/riding/physics.ts:128` `jump`).
 
 Work: a `world/courses` row (W6d) with `law: 'checkpoints'`, the 8 rings as pads at height (start + 8 rings = 9 of 11),
 `mount: 'horse'`, `record: 'riding-lap'`. A missed ring adds a time penalty or voids the lap (Q1; a `miss: { penalty: s } | 'void'` field on the course row). The jumps are geometry. No new host.

@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { PropsSchema } from '@wildshard/format/props';
-import { tiledBootstrapGround } from '../src/game/shardfile/clientGround';
-import type { ShardManifest } from '../src/game/shard/manifest';
+import { tiledBootstrapGround } from '../src/game/shared/shardfile/clientGround';
+import type { ShardManifest } from '../src/game/server/shard/manifest';
 
 const hashes = (digit: string): string[] => Array.from({length:4},()=>digit.repeat(64));
 const props = v.parse(PropsSchema, { version:1,family:'pbr',tiles:[{lod:0,x:0,z:0,file:'a'.repeat(64)}],panels:[],models:[],far:null,textures:[],colliders:[],

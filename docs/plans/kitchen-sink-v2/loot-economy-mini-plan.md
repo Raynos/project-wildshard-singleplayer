@@ -28,14 +28,14 @@ coins follow the XP gap rule instead of Driftwood's per-enemy cap.
 
 ## What exists today (audit)
 
-- **Driftwood:** a full clear pays 92 doubloons, each enemy once (`game/loot/Bounty.ts`); Maren's 6 goods cost 90. One
+- **Driftwood:** a full clear pays 92 doubloons, each enemy once (`game/server/loot/Bounty.ts`); Maren's 6 goods cost 90. One
   run buys the shop out, then coins mean nothing. Sea glass charms and the 3 trophies work. Dead: crab claws, coconuts
   and fur (nothing takes them); the pearl necklace is a flag with no use.
 - **Pine Hollow:** barter only. Carve → venison, hides, tusk, pelt, resin, ribbons → Mott's 7 trades (ammo, 2
   finishes): the hunt feeds the ammo, our best loop. Thin: elk harvest gives nothing; rarity matters for 2 contracts.
 - **Nalati:** no currency, no pack; 5 elite skins, 2 legendaries. Fixed, with nothing to spend.
 - **Shared gaps:** `OWNED` is a closed union of Driftwood ids in the game layer; harvest names species in
-  `game/Inventory.ts`; contract rewards have Pine's `bolts`; loot domains are `coins` and `trophies` only.
+  `game/server/Inventory.ts`; contract rewards have Pine's `bolts`; loot domains are `coins` and `trophies` only.
 
 ## Proposal
 
@@ -123,9 +123,9 @@ finish grants) stay where they are; these rows are the rest.
 
 | Row | Work | h |
 |---|---|---|
-| LE1 | Currency row (id, name, icon, chip) replaces `loot.coins: true`; `game/loot/Purse.ts`, `coins.ts` | 6 |
+| LE1 | Currency row (id, name, icon, chip) replaces `loot.coins: true`; `game/server/loot/Purse.ts`, `coins.ts` | 6 |
 | LE2 | Kill payouts: coin rows by kind and variant, night ×, LV gap factor, `cap: per-enemy \| none` (`Bounty.ts`; Driftwood keeps its cap) | 10 |
-| LE3 | Salvage rows out of `game/Inventory.ts` (E405): match → drops, mode `auto` (walk-in) or `harvest` (Pine's kneel); Driftwood and Pine parity | 14 |
+| LE3 | Salvage rows out of `game/server/Inventory.ts` (E405): match → drops, mode `auto` (walk-in) or `harvest` (Pine's kneel); Driftwood and Pine parity | 14 |
 | LE4 | Pack catalogue rows: label, icon, stack cap, "used for" line from the exchange, 20 slots, silhouettes (`inventoryLaw.ts`, bag schema, `Menu.ts`) | 10 |
 | LE5 | Exchange: `requires.level`, coin + part costs on one good, repeatable goods with a carry cap, open icon set, two tabs (`format/exchange.ts`, `ShopPanel.ts`) | 14 |
 | LE6 | Upgrade effect rows: weapon base tier, max HP %, dodge, parry window (W6), energy armour (LV), ammo capacity, board, grapple | 12 |

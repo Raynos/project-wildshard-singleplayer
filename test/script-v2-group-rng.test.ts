@@ -1,13 +1,13 @@
 import { beforeAll, expect, test } from 'vitest';
 import * as v from 'valibot';
-import { Scope } from '../src/engine/app/scope';
-import { Rng } from '../src/engine/core/rng';
-import { GroupStepV2 } from '../src/engine/script/groupStepV2';
+import { Scope } from '../src/engine/shared/app/scope';
+import { Rng } from '../src/engine/shared/core/rng';
+import { GroupStepV2 } from '../src/engine/shared/script/groupStepV2';
 import { parseGroupStepV2, groupStepLayoutV2, GroupStepV2Schema } from '@wildshard/format/scriptGroupStepV2';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { v2CoreSource } from '../src/sdk/as/wsV2';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 
 const rows = parseGroupStepV2({ bank: ['firstA','secondA','firstB','secondB'].map(name => ({name,kind:'number'})),
   columns: [], members: 16, signals: ['step','bad'], actions: [], outputs: 1, pages: 1, fuel: 400000, randomStreams: 2 });

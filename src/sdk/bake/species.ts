@@ -176,7 +176,7 @@ export function setShapeFn(fn: ((x: number, y: number, z: number, part: string) 
 /**
  * Low-poly mode (Driftwood Isle, `ShardManifest.style === 'toon'`; set by AnimalFactory around `build()`):
  * every loft gets `lowPolySides()` sides instead of what it asks for and no shag noise; the factory then
- * de-indexes the merged model for flat facets (see `src/engine/entities/lowpoly.ts`). Species files may branch on
+ * de-indexes the merged model for flat facets (see `src/engine/client/entities/lowpoly.ts`). Species files may branch on
  * `isLowPoly()` for a different palette or part (the boar's crest becomes a row of spikes).
  */
 let lowPoly = false;

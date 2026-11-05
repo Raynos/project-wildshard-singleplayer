@@ -1,19 +1,19 @@
 import { beforeAll, expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { Rng } from '../src/engine/core/rng';
-import { AnimalSim } from '../src/engine/entities/AnimalSim';
-import { FlockBrain } from '../src/engine/ai/flock';
-import { CrowdRoster, CrowdTargets } from '../src/game/shardfile/crowdRuntime';
-import { GroupStepV2, type GroupStepReferenceV2 } from '../src/engine/script/groupStepV2';
-import { ObservationColumnsV2, type V2ColumnOwners, type V2ReferenceColumn } from '../src/engine/script/observationColumnsV2';
-import { GroupBankV2 } from '../src/engine/script/groupBankV2';
+import { Scope } from '../src/engine/shared/app/scope';
+import { Rng } from '../src/engine/shared/core/rng';
+import { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import { FlockBrain } from '../src/engine/shared/ai/flock';
+import { CrowdRoster, CrowdTargets } from '../src/game/shared/shardfile/crowdRuntime';
+import { GroupStepV2, type GroupStepReferenceV2 } from '../src/engine/shared/script/groupStepV2';
+import { ObservationColumnsV2, type V2ColumnOwners, type V2ReferenceColumn } from '../src/engine/shared/script/observationColumnsV2';
+import { GroupBankV2 } from '../src/engine/shared/script/groupBankV2';
 import { parseGroupStepV2, groupStepLayoutV2, GroupStepV2Schema } from '@wildshard/format/scriptGroupStepV2';
 import { ObservationColumnsV2Schema, parseObservationColumnsV2 } from '@wildshard/format/scriptObservationColumnsV2';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { v2CoreSource } from '../src/sdk/as/wsV2';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 
 const columns = ['present','handle','x','y','z','yaw','alive'].map((field,index) => ({name:field,id:index+1,source:{kind:'reference',binding:'target',field}}));
 const rows = parseGroupStepV2({bank:[{name:'target',kind:'reference'},{name:'x',kind:'number'}],columns,members:1,

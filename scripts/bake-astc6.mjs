@@ -74,7 +74,7 @@ function tableEntries(file) {
   const phone = src.slice(src.indexOf('"phone"'), src.indexOf('"desktop"'));
   return [...phone.matchAll(/"([^"]+)":\s*"([^"]+)"/g)].map((m) => [m[1], m[2]]);
 }
-const tables = ['src/engine/boot/ktx2.generated.ts', ...readdirSync(resolve(ROOT, 'src/shards')).map((s) => `src/shards/${s}/ktx2.generated.ts`)].filter((f) => existsSync(resolve(ROOT, f)));
+const tables = ['src/engine/client/boot/ktx2.generated.ts', ...readdirSync(resolve(ROOT, 'src/shards')).map((s) => `src/shards/${s}/ktx2.generated.ts`)].filter((f) => existsSync(resolve(ROOT, f)));
 /** 4×4 stand-in → the served URLs it stands in for */
 const servedOf = new Map();
 for (const t of tables) for (const [served, gpu] of tableEntries(t)) { const l = servedOf.get(gpu) ?? []; l.push(served); servedOf.set(gpu, l); }

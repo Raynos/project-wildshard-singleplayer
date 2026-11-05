@@ -1,9 +1,9 @@
 import { expect, test, vi } from 'vitest';
 import { BufferGeometry, Float32BufferAttribute, MeshBasicMaterial, Texture } from 'three';
-import { initializeTier, TIER } from '../src/engine/core/tier';
-import { PosedDraw } from '../src/game/looks/posedInstances';
-import type { PosedAssetSet } from '../src/game/plugin/geometry';
-import { lendLooks } from '../src/game/shardfile/lentLooks';
+import { initializeTier, TIER } from '../src/engine/client/core/tier';
+import { PosedDraw } from '../src/game/client/looks/posedInstances';
+import type { PosedAssetSet } from '../src/game/client/plugin/geometry';
+import { lendLooks } from '../src/game/client/shardfile/lentLooks';
 import { PINE_WILDLIFE_DRAW as rows } from './fixtures/pine-wildlife';
 
 for (const tier of ['phone', 'desktop'] as const) test(`cold ${tier} wildlife preparation awaits only its selected bird sources`, async () => {

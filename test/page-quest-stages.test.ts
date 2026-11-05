@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { parseQuestHost } from '@wildshard/format/questHost';
-import { Flags } from '../src/engine/world/interact/flags';
-import { bindPageQuestStages } from '../src/game/plugin/ui';
+import { Flags } from '../src/engine/server/world/interact/flags';
+import { bindPageQuestStages } from '../src/game/client/plugin/ui';
 import { QUEST_HOST as signal } from '../src/shards/sunscar-dunes/generators/questHost';
 import { QUEST_HOST as sky } from '../src/shards/far-reach/generators/questHost';
 import { FLAG } from '../src/shards/sunscar-dunes/generators/rows/flags';

@@ -18,8 +18,8 @@ Research:
   step counts kills or items. Quest `onComplete` pays at most 100 coins (`:13`).
 - **Kill counters exist outside quests**: achievement rows `{ count, kind, variant, event }` (`src/format/quests.ts:23`)
   and counter flags `method: 'event' | 'count'` (`src/format/achievementCounters.ts:10-18`), fed by
-  `Progress.recordKill(kind, variant)` (`src/game/Progress.ts`). They count lifetime kills, not "since you accepted".
-- Item counts: the pack's `inventorySave` (`src/game/saves.ts:12`).
+  `Progress.recordKill(kind, variant)` (`src/game/client/Progress.ts`). They count lifetime kills, not "since you accepted".
+- Item counts: the pack's `inventorySave` (`src/game/shared/saves.ts:12`).
 - W1b adds `giver`, `visibleWhen`, accept / turn-in, `discover` and `checkpoint` steps.
 
 Work:

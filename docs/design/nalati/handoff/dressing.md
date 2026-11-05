@@ -49,7 +49,7 @@ Commits: `0422a8a`, `e734a51`, `4226eb8`, `ba4e99e`, `e81a609`.
 1. **Grass through rocks:** the grass agent has not adopted `dressingCover`. Suggested: `height *= 1 - dressingCover(x, z)`
    and reseed once the dressing is built.
 2. **Painted granite on the boulders is not done.** The painterly material has no texture or triplanar path, and the
-   blob geometry has no UVs. This needs a triplanar `map` option in `src/engine/world/painterly.ts` (look-director), after which
+   blob geometry has no UVs. This needs a triplanar `map` option in `src/engine/client/world/painterly.ts` (look-director), after which
    the boulder, slab, stone and ovoo stones can use `rock` from `nalatiTextures.ts`.
 3. **The camp mockups are denser:** more flowers right up to the track edge, and small rocks scattered through the
    meadow near the camp. The camp-ring pass (`campAndBanks`) could be pushed further.

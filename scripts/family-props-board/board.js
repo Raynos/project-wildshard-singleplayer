@@ -21,12 +21,12 @@ import { ToonLook } from '@wildshard/engine/render/families/toon';
 import { PainterlyLook } from '@wildshard/engine/render/families/painterly';
 import { familyCompileJobs, familyMaterial } from '@wildshard/engine/render/families/registry';
 import { staticGlb } from '../../src/sdk/bake/glb';
-import { defineWorldSceneCatalogue } from '../../src/game/models/worldSceneCatalogue';
+import { defineWorldSceneCatalogue } from '../../src/game/client/models/worldSceneCatalogue';
 import { driftwoodPierScenes } from '../../src/shards/driftwood-isle/generators/pierScenesBank';
 import layout from '../../src/shards/_template/data/layout.json' with { type: 'json' };
 import { poolMask } from '../../src/shards/_template/generators/world';
-import { readProductDescriptor, browserContentHash } from '../../src/game/shardfile/product';
-import { outputBlobUrl } from '../../src/game/shardfile/outputDescriptor';
+import { readProductDescriptor, browserContentHash } from '../../src/game/client/shardfile/product';
+import { outputBlobUrl } from '../../src/game/shared/shardfile/outputDescriptor';
 
 const productBase = new URL('template-product/shard.json', location.href).href;
 const source = await readProductDescriptor({ base: productBase, offline: false, firstParty: true, fetch: url => fetch(url), hash: browserContentHash });

@@ -1,9 +1,9 @@
 import {pineTape as createPineTape,kingRow,type PineTape,type TapeState} from './controller';
 import { simMismatchError } from '../../fake/simMismatch';
-import { installCableModes } from '../../../src/engine/player/modes';
-import { outputDescriptor } from '../../../src/game/shardfile/outputDescriptor';
-import { createNativeCombatFrame, type NativeCombatFrame } from '../../../src/game/plugin/nativeItems';
-import { ItemCatalogue } from '../../../src/game/loadout/itemCatalogue';
+import { installCableModes } from '../../../src/engine/shared/player/modes';
+import { outputDescriptor } from '../../../src/game/shared/shardfile/outputDescriptor';
+import { createNativeCombatFrame, type NativeCombatFrame } from '../../../src/game/server/plugin/nativeItems';
+import { ItemCatalogue } from '../../../src/game/server/loadout/itemCatalogue';
 // oxlint-disable-next-line import/no-nodejs-modules -- The witness reads Pine's native bakes and the native physics module.
 import { mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin the admitted output independently of a refreshed out alias.
@@ -14,22 +14,22 @@ import { createHash } from 'node:crypto';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import { readWitnessManifest } from '../../../scripts/witness-checkpoints.mjs';
 import * as v from 'valibot';
-import type { ShardProduct } from '../../../src/game/shardfile/shardProduct';
-import { createSimHost, type SimHost } from '../../../src/engine/sim';
-import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost, type SimSnapshot } from '../../../src/engine/sim/snapshot';
-import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
+import type { ShardProduct } from '../../../src/game/shared/shardfile/shardProduct';
+import { createSimHost, type SimHost } from '../../../src/engine/server/sim';
+import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost, type SimSnapshot } from '../../../src/engine/shared/sim/snapshot';
+import { loadRapier, type Rapier } from '../../../src/engine/shared/physics/rapier';
 import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
 import { fillNativeCombatFrame, headlessAssemblyPorts, type HeadlessRuntimeInstallation, type HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import PINE_TERRAIN from '../../../src/shards/pine-hollow/data/terrainBindings.json' with { type: 'json' };
-import { prepareProductRuntimePlan } from '../../../src/game/shardfile/nativePlan';
+import { prepareProductRuntimePlan } from '../../../src/game/server/shardfile/nativePlan';
 import { QUEST_STEP } from '../../../src/shards/pine-hollow/generators/questPrompts';
-import { nativeInventorySchema } from '../../../src/game/inventoryLaw';
+import { nativeInventorySchema } from '../../../src/game/server/inventoryLaw';
 import wardens from '../../../src/shards/pine-hollow/data/wardensHollow.json' with { type: 'json' };
 import bossRows from '../../../src/shards/pine-hollow/data/bossEncounter.json' with { type: 'json' };
 import { canonicalSimDigest, simWireV1 } from '../../fake/simState';
-import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
-import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/ledger';
+import { SaveStore, type SaveStorage } from '../../../src/engine/shared/saves/store';
+import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/server/ledger';
 import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 

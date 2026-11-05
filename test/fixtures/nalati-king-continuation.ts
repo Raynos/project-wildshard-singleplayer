@@ -2,11 +2,11 @@
 import {createHash} from 'node:crypto';
 import * as v from 'valibot';
 import {Vector3} from 'three';
-import {BossBrain,type BossPorts,type BossPresentation,type BossSaved,type BossContinuation} from '../../src/engine/ai/BossBrain';
-import type {Scope} from '../../src/engine/app/scope';
-import {bossFight,type PhasedBossBody,type PhasedBossPorts,type PhasedBossContinuation} from '../../src/game/plugin/bossPhase';
-import {ArenaPortalLaw,type ArenaPortalSnapshot} from '../../src/game/boss/arenaPortal';
-import type {ArenaRoomGround} from '../../src/game/boss/arenaGround';
+import {BossBrain,type BossPorts,type BossPresentation,type BossSaved,type BossContinuation} from '../../src/engine/server/ai/BossBrain';
+import type {Scope} from '../../src/engine/shared/app/scope';
+import {bossFight,type PhasedBossBody,type PhasedBossPorts,type PhasedBossContinuation} from '../../src/game/server/plugin/bossPhase';
+import {ArenaPortalLaw,type ArenaPortalSnapshot} from '../../src/game/shared/boss/arenaPortal';
+import type {ArenaRoomGround} from '../../src/game/shared/boss/arenaGround';
 import type {NalatiKingData} from './nalati-king-data';
 
 const finite=v.pipe(v.number(),v.finite()),positive=v.pipe(finite,v.minValue(0));

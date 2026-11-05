@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { WaterSchema } from '@wildshard/format/water';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
-import { undrawnWater } from '../src/game/shardfile/clientWater';
+import { undrawnWater } from '../src/game/client/shardfile/clientWater';
 
 // CO1: Driftwood's lowered sea is drawn by its client plan's world.water row (its graph ocean); the plain stand-in plane the
 // shardfile client drew for the same declared body sat over it and showed through as pale-lavender patches on the phone.

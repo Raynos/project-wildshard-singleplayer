@@ -4,14 +4,14 @@ import { species } from '../src/sdk/species';
 import { readSpeciesPrograms, readSpeciesProgram } from '@wildshard/format/speciesPrograms';
 import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/speciesPrograms';
 import { DRIFTWOOD_SPECIES_PROGRAMS } from '../src/shards/driftwood-isle/generators/speciesPrograms';
-import { speciesWithLook } from '../src/engine/entities/species/look';
-import { HullLookBook } from '../src/game/looks/speciesBook';
+import { speciesWithLook } from '../src/engine/client/entities/species/look';
+import { HullLookBook } from '../src/game/client/looks/speciesBook';
 import { SPECIES_LOOKS } from '../src/shards/pine-hollow/generators/nativeView';
 import { DRIFTWOOD_BOOK } from './fake/driftwoodLooks';
 import { ISLAND_BOAR, ISLAND_BEAR } from '../src/shards/driftwood-isle/generators/faunaSpecies';
 import { PINE_BOAR, PINE_SPECIES, pineDeer, pineElk } from '../src/shards/pine-hollow/generators/speciesRows';
 import { speciesBrains } from '../src/sdk/speciesBrains';
-import { BOAR } from '../src/game/systems/species/boar';
+import { BOAR } from '../src/game/client/systems/species/boar';
 import { installWorldFixture } from './fixtures/worldSetup';
 
 await installWorldFixture();

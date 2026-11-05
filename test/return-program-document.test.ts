@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import { ReturnProgramDocumentSchema } from '@wildshard/format/returnProgramDocument';
 import { DecisionScriptsSchema, type DecisionScriptRowInput } from '@wildshard/format/decisionScripts';
 import { namedJsonSchema } from '@wildshard/sdk/formatJsonSchema';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 
 const script: DecisionScriptRowInput = {
   id: 'return.fixture', abi: '1.0', side: 'sim', module: `blobs/wasm/${'a'.repeat(64)}.wasm`,

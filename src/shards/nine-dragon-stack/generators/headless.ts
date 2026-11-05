@@ -16,7 +16,7 @@ const NINE_PIECES = recordedPhysicsPieces(baked.pieces, SURFACES);
 /** The Fei Zhua's dragon hooks (the ring centres the claw bites) as the page's world placed them, from the same bake. */
 const NINE_HOOKS = recordedPhysicsPoints(baked.hooks);
 /** The engine's own HUD / Weapon Explorer arena (engine/practice), registered under every Developer page: not Nine's world. */
-const PRACTICE = 'src/engine/practice/';
+const PRACTICE = 'src/engine/client/practice/';
 /** The fragment's floors piece (plugin.ts world stage), which carries the standalone deck caps. */
 const FLOORS = 'nds-floors';
 /**

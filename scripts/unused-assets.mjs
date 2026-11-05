@@ -2,7 +2,7 @@
 // unused-assets.mjs — E161 ("cull and GC stale / unused stuff"): every file under public/ that no build path references.
 //
 // A file is USED when any of these reach it:
-//   1. a shard's boot, per tier (phone, desktop): src/engine/boot/manifest.ts `chunkFiles` for every shard — the packs are cut
+//   1. a shard's boot, per tier (phone, desktop): src/engine/client/boot/manifest.ts `chunkFiles` for every shard — the packs are cut
 //      from these same files (scripts/bake-packs.mjs) — plus Rapier's WASM and the navmesh;
 //   2. the audio manifests: every file a public/assets/music/*/music.json or sfx/*/sfx.json names (+ the manifests);
 //   3. a used .gltf's own buffers / images;
@@ -33,17 +33,17 @@ const collect = argv.find((a) => a.startsWith('--collect='))?.slice(10);
 // ── child mode: one tier's boot files; initialize its row explicitly before reading assets ──
 if (collect) {
   const imp = (p) => import(pathToFileURL(resolve(ROOT, p)).href);
-  const { initializeTier } = await import('../src/engine/core/tier.ts');
+  const { initializeTier } = await import('../src/engine/client/core/tier.ts');
   await initializeTier(collect);
   const { SHARDS } = await imp('src/shards.generated.ts');
-  const { playable } = await imp('src/game/shard/registry.ts');
+  const { playable } = await imp('src/game/client/shard/registry.ts');
   const PLAYABLE_SHARDS = SHARDS.filter(playable);
-  const { prepareShardAssets } = await imp('src/game/shard/load.ts');
-  const { registerGpuFiles } = await imp('src/engine/boot/gpuFiles.ts');
+  const { prepareShardAssets } = await imp('src/game/client/shard/load.ts');
+  const { registerGpuFiles } = await imp('src/engine/client/boot/gpuFiles.ts');
   await Promise.all(SHARDS.map((m) => prepareShardAssets(m, registerGpuFiles)));
   // Every authored GPU stand-in is shipped runtime data, even when this tier's default boots images.
-  const { GPU_FILES: engineGpu } = await imp('src/engine/boot/ktx2.generated.ts');
-  const { chunkFiles } = await imp('src/engine/boot/manifest.ts');
+  const { GPU_FILES: engineGpu } = await imp('src/engine/client/boot/ktx2.generated.ts');
+  const { chunkFiles } = await imp('src/engine/client/boot/manifest.ts');
   const out = new Set();
   for (const def of PLAYABLE_SHARDS) for (const list of Object.values(chunkFiles(def))) for (const f of list) out.add(f);
   for (const url of Object.values(engineGpu[collect])) out.add(url);

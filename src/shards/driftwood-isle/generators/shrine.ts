@@ -1,5 +1,5 @@
 /**
- * The Ring Shrine (E306 / E315 M1: a model on the contract, src/engine/models/model.ts; it was src/shards/driftwood-isle/world/Shrine.ts) — Driftwood
+ * The Ring Shrine (E306 / E315 M1: a model on the contract, src/engine/client/models/model.ts; it was src/shards/driftwood-isle/world/Shrine.ts) — Driftwood
  * Isle's shrine in the north-west jungle (remaster M2): a three-tier stepped platform of mossy masonry with a broad stair
  * up its front, and on the top terrace a vine-hung stone MONOLITH crowned by a ring whose opening frames the ringed
  * planet from the top of the stair (the world turns the shrine's back at the planet's azimuth; the ring's centre sits at
@@ -403,7 +403,7 @@ export class ShrineBuilder {
 
   /**
    * PHYSICS P4: this builder's static collision in world space — its walls / posts (the legacy boxes) and every floor
-   * `floors` describes, as real geometry. src/engine/physics/pieces.ts turns it into Rapier colliders.
+   * `floors` describes, as real geometry. src/engine/shared/physics/pieces.ts turns it into Rapier colliders.
    *
    * The pedestals, monolith, glyph pillars, standing stones and the stair's cheek walls are the legacy boxes; the three
    * tiers are boxes topped exactly at their terraces (1 / 2 / 3 m); the stair is the ten treads the mesh draws (0.3 m

@@ -6,17 +6,17 @@ import { nalatiDecorative } from './fixtures/nalati-decorative';
 // oxlint-disable-next-line import/no-nodejs-modules -- validate generated dressing fixtures without inferring their complete JSON types
 import { readFileSync } from 'node:fs';
 import { PrivateSceneSchema } from '@wildshard/format/clientChannels';
-import { lendLooks } from '../src/game/shardfile/lentLooks';
+import { lendLooks } from '../src/game/client/shardfile/lentLooks';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
-import { decodeLaneBytes } from '../src/engine/core/deflate';
+import { decodeLaneBytes } from '../src/engine/client/core/deflate';
 import {bakedSamplers} from '@wildshard/format/bakedTerrainSampling';
 import { expect, test, vi } from 'vitest';
-import type { ShardContext } from '../src/game/plugin/context';
+import type { ShardContext } from '../src/game/server/plugin/context';
 import * as THREE from 'three';
-import { SceneDressing, readSceneGeometryAddress, readSceneFloors } from '../src/game/shardfile/sceneDressing';
-import { Scope } from '../src/engine/app/scope';
-import { WorldRegistry } from '../src/engine/world/registry';
+import { SceneDressing, readSceneGeometryAddress, readSceneFloors } from '../src/game/client/shardfile/sceneDressing';
+import { Scope } from '../src/engine/shared/app/scope';
+import { WorldRegistry } from '../src/engine/client/world/registry';
 import { zlibSync, unzlibSync } from 'fflate';
 import { writeGeometry, join } from '../src/shards/nalati-grasslands/generators/geometryWriter';
 import * as v from 'valibot';
@@ -29,9 +29,9 @@ import { nalatiPlacesProgram } from '../src/shards/nalati-grasslands/generators/
 import { buildDressingWire } from '../src/shards/nalati-grasslands/generators/dressingProgram';
 import { nameBlob } from '../src/sdk/blobs';
 import { isJsonData } from '@wildshard/format/json';
-import { readBakedGeometry } from '../src/game/plugin/geometry';
+import { readBakedGeometry } from '../src/game/client/plugin/geometry';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
-import type {SkyRig} from '../src/engine/world/skyRig';
+import type {SkyRig} from '../src/engine/client/world/skyRig';
 
 test('tier-specific crag transport changes only the phone file binding',()=>{
   const original=dressingSceneBlobs(nalatiDecorative,nalatiRuntime,nalatiBalbal,nalatiSpecimens);

@@ -5,7 +5,7 @@ import { mkdirSync,mkdtempSync,readFileSync,rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep temporary products in the repository scratch tree.
 import { resolve } from 'node:path';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 import { emptyShardfile } from '../src/sdk/author';
 import { nameBlob,emitNamedBlobs } from '../src/sdk/blobs';
 import { prepareProjectOutput,mergeProjectBlobs } from '../src/sdk/projectOutput';
@@ -15,7 +15,7 @@ import { scriptAdmissionRows,decisionModuleContracts,ReturnModulesSchema,ScriptV
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { readProductDescriptor,admitProduct,type ProductOptions } from '../src/game/shardfile/product';
+import { readProductDescriptor,admitProduct,type ProductOptions } from '../src/game/client/shardfile/product';
 import { HeadlessSimulation } from '../src/sdk/headless';
 import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 

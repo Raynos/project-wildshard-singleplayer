@@ -1,10 +1,10 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { Box3, BufferAttribute, BufferGeometry, Group, Mesh, MeshStandardMaterial } from 'three';
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { emptyShardfile } from '../src/sdk/author';
-import { clientTileViews } from '../src/game/shardfile/clientViews';
+import { clientTileViews } from '../src/game/client/shardfile/clientViews';
 
 const isMesh = (value: unknown): value is Mesh => value instanceof Mesh;
 

@@ -18,7 +18,7 @@ Research:
 
 - Strike shapes include `wedge` (`{ length, halfAngle }`, `src/format/creatures.ts:160`): the flame cone is a wedge.
   No strike declares a damage type; E0b adds `damageType` on the request and E0a's kinds carry MDEF.
-- **Hazards exist only inside Nalati's arena**: `src/game/boss/arenaFire.ts` (100 lines, "client-only instanced arena
+- **Hazards exist only inside Nalati's arena**: `src/game/client/boss/arenaFire.ts` (100 lines, "client-only instanced arena
   flames, smoke and whirlwinds. No fight decisions or hazard ownership") over `ArenaFireRows` in
   `src/format/encounterRows.ts`; the fire's damage is the boss's `burnSeconds` / `fireDps`
   (`src/format/bossProfiles.ts:292`).

@@ -50,7 +50,7 @@ export function hideDeveloperOverlays() {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount, { once: true });
   else mount();
 }
-/** Harness pins (`window.__wildshardHarness`, src/engine/debug/probe.ts HarnessPins) for an init script, merged into any
+/** Harness pins (`window.__wildshardHarness`, src/engine/client/debug/probe.ts HarnessPins) for an init script, merged into any
  * pins already set: test inputs that are never a setting, a Debug row or a URL switch (G386: `textures`, `ktx2Probe`).
  * @param {Record<string, string | number | boolean>} pins */
 export function harnessPinCode(pins) { return `window.__wildshardHarness=Object.assign(window.__wildshardHarness??{},${JSON.stringify(pins)});`; }

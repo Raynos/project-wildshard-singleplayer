@@ -1,16 +1,16 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, MeshStandardMaterial } from 'three';
-import { AssetService } from '../src/engine/app/assets';
-import { Scope } from '../src/engine/app/scope';
-import { initializeTier, TIER } from '../src/engine/core/tier';
-import { CONTENT_CAPS } from '../src/engine/core/config';
-import { AssetResidencyBridge } from '../src/game/grid/assetResidency';
-import { ResidencyAllocator } from '../src/game/grid/allocator';
+import { AssetService } from '../src/engine/client/app/assets';
+import { Scope } from '../src/engine/shared/app/scope';
+import { initializeTier, TIER } from '../src/engine/client/core/tier';
+import { CONTENT_CAPS } from '../src/engine/shared/core/config';
+import { AssetResidencyBridge } from '../src/game/client/grid/assetResidency';
+import { ResidencyAllocator } from '../src/game/server/grid/allocator';
 import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 import { staticGlb } from '../src/sdk/bake/glb';
-import { cachedWorldSceneGeometry, readWorldSceneGeometries, readWorldSceneGeometry } from '../src/game/shardfile/worldSceneGeometry';
-import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
-import { PreparationReads } from '../src/game/shardfile/preparationReads';
+import { cachedWorldSceneGeometry, readWorldSceneGeometries, readWorldSceneGeometry } from '../src/game/client/shardfile/worldSceneGeometry';
+import { createOwnedGeometry } from '../src/engine/client/models/ownedGeometry';
+import { PreparationReads } from '../src/game/client/shardfile/preparationReads';
 
 const originalTier = TIER;
 afterEach(() => { initializeTier(originalTier); vi.restoreAllMocks(); });

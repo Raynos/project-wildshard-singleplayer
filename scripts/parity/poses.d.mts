@@ -1,5 +1,5 @@
 import type { Page } from 'playwright';
-import type { ProbePose } from '../../src/engine/debug/probe';
+import type { ProbePose } from '../../src/engine/client/debug/probe';
 
 export interface CaptureCamera { eye: readonly [number, number, number]; feet?: readonly [number, number, number]; yaw: number; pitch: number; probe?: ProbePose }
 export function declaredProbePoses(cameras: Readonly<Record<string, CaptureCamera>>): ProbePose[];

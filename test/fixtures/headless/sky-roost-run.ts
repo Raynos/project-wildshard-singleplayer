@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the unchanged checked-in physics module.
 import {readFileSync} from 'node:fs';
 import {beginProductSession} from './productSession';
-import {loadRapier} from '../../../src/engine/physics/rapier';
-import {decodeSimSnapshot,snapshotSimHost} from '../../../src/engine/sim/snapshot';
+import {loadRapier} from '../../../src/engine/shared/physics/rapier';
+import {decodeSimSnapshot,snapshotSimHost} from '../../../src/engine/shared/sim/snapshot';
 import {physicsState} from '../../fake/simState';
 import {createNativeProofResident} from '../headless-native';
 import {installWalkRopeBodies} from './ropeBodies';

@@ -2,14 +2,14 @@ import { parseItems } from '@wildshard/format/items';
 import { DRIFTWOOD_SWORDS } from '../src/shards/driftwood-isle/generators/items';
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { Events } from '../src/engine/events/events';
-import { PlayerHealth } from '../src/engine/combat/health';
-import { EffectService, selectEffectGrants } from '../src/engine/combat/effects/EffectService';
-import { isOwnedId, type OwnedId } from '../src/game/loot/Owned';
+import { Scope } from '../src/engine/shared/app/scope';
+import { Events } from '../src/engine/shared/events/events';
+import { PlayerHealth } from '../src/engine/server/combat/health';
+import { EffectService, selectEffectGrants } from '../src/engine/client/combat/effects/EffectService';
+import { isOwnedId, type OwnedId } from '../src/game/server/loot/Owned';
 import { bindFixtureEffects } from './fixtures/item-effects';
 import { DRIFTWOOD_EFFECTS } from '../src/shards/driftwood-isle/generators/economy';
-import { CosmeticFinishLocker } from '../src/game/loadout/cosmeticFinishes';
+import { CosmeticFinishLocker } from '../src/game/client/loadout/cosmeticFinishes';
 import skinFinishes from '../src/shards/nalati-grasslands/data/skinFinishes.json';
 
 

@@ -1,13 +1,13 @@
 import type { Scene } from 'three';
-import type { SkyRig } from '../../src/engine/world/skyRig';
-import type { Terrain } from '../../src/engine/world/Terrain';
-import type { Forest } from '../../src/engine/world/forest/Forest';
-import type { Physics } from '../../src/engine/physics/Physics';
-import type { WorldRegistry, ColliderDesc } from '../../src/engine/world/registry';
-import type { ModelPlacementVisitor } from '../../src/engine/models/model';
-import type { ShardManifest } from '../../src/game/shard/manifest';
-import type { Tier } from '../../src/engine/core/tier';
-import type { BakedGrid } from '../../src/engine/world/BakedTerrain';
+import type { SkyRig } from '../../src/engine/client/world/skyRig';
+import type { Terrain } from '../../src/engine/client/world/Terrain';
+import type { Forest } from '../../src/engine/client/world/forest/Forest';
+import type { Physics } from '../../src/engine/shared/physics/Physics';
+import type { WorldRegistry, ColliderDesc } from '../../src/engine/client/world/registry';
+import type { ModelPlacementVisitor } from '../../src/engine/client/models/model';
+import type { ShardManifest } from '../../src/game/server/shard/manifest';
+import type { Tier } from '../../src/engine/client/core/tier';
+import type { BakedGrid } from '../../src/engine/shared/world/BakedTerrain';
 
 /** Resources are borrowed only during capture; snapshot real geometry/placements before the host unloads. */
 export interface AuthoredWorldCapture {

@@ -14,14 +14,14 @@ phone. The calibration pen gets a Developer "spawn 30 Mites" Debug row to prove 
 Research (the old row over-counted: half of EC1 exists):
 
 - **Distance AI bands already exist.** The scheduler's `ai` rate decides at 20 Hz and moves the body every frame
-  within **60 m**, 10 Hz with a half-rate body to 160 m, and pauses both beyond (`src/engine/sim/bands.ts:22-26`,
-  `AI_TICK_RATE`); a level's tier `ticks` can override it (`src/engine/core/Game.ts:1308`). Creature physics bodies
+  within **60 m**, 10 Hz with a half-rate body to 160 m, and pauses both beyond (`src/engine/shared/sim/bands.ts:22-26`,
+  `AI_TICK_RATE`); a level's tier `ticks` can override it (`src/engine/client/core/Game.ts:1308`). Creature physics bodies
   exist only within 45–55 m (`bands.ts` doc). Legacy self-thinking species run on a flat 10 Hz `legacy` rate
   (`AnimalManager.ts:395`).
-- **Pose cadence by distance exists** (`src/engine/entities/poseCadence.ts`, FC11/G896: bones every frame within 30 m,
+- **Pose cadence by distance exists** (`src/engine/server/entities/poseCadence.ts`, FC11/G896: bones every frame within 30 m,
   every 2nd to 70 m, every 4th to `ANIM_LOD = 140` m, `AnimalManager.ts:142`); desktop batches far animals in a
   `FarHerd` (`farHerd.ts`).
-- **Attack tokens exist** (`fight.attackers`, E297, `src/engine/entities/fightRules.ts`): at most N attack at once.
+- **Attack tokens exist** (`fight.attackers`, E297, `src/engine/server/entities/fightRules.ts`): at most N attack at once.
 - **Missing: any count.** Nothing caps how many creatures are awake or animated; 30 Mites inside 60 m all think at
   20 Hz and all pose every frame.
 

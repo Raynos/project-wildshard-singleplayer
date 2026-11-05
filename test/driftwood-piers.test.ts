@@ -1,9 +1,9 @@
 import { encodeCanonicalJson } from '../src/sdk/immutable';
-import type { ColliderDesc } from '../src/engine/world/registry';
+import type { ColliderDesc } from '../src/engine/client/world/registry';
 import { expect, it } from 'vitest';
-import { floorAtRects } from '../src/engine/physics/box';
+import { floorAtRects } from '../src/engine/shared/physics/box';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
-import { readColliderRows, placeCollider, poseOf } from '../src/engine/models/colliders';
+import { readColliderRows, placeCollider, poseOf } from '../src/engine/client/models/colliders';
 import { pierDeckAt, pierHalfWidthAt } from '../src/shards/driftwood-isle/generators/pierLayout';
 import { pierColliders } from '../src/shards/driftwood-isle/generators/pierColliders';
 import type { PierParams } from '../src/shards/driftwood-isle/generators/pierContract';

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { NativeActors } from '../src/game/population/actors';
+import { NativeActors } from '../src/game/server/population/actors';
 
 const row = (id: string) => ({ id, kind: 'crab', variant: 'plain' });
 

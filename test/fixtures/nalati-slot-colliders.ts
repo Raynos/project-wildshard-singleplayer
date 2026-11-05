@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import type {SimHost} from '../../src/engine/sim';
+import type {SimHost} from '../../src/engine/server/sim';
 import {EncounterSitesSchema} from '@wildshard/format/encounterRows';
 import {originalNalatiPhysics} from './nalati-physics-original';
 

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import original from './fixtures/driftwood-boot-original.json' with { type: 'json' };
-import { resolveBootFiles, bootLateReads } from '../src/engine/boot/filePolicy';
+import { resolveBootFiles, bootLateReads } from '../src/engine/client/boot/filePolicy';
 import { DRIFTWOOD_BOOT_FILES } from '../src/shards/driftwood-isle/generators/bootRecipes';
 import { GPU_FILES } from '../src/shards/driftwood-isle/ktx2.generated';
 import { installAssetFixture } from './fixtures/bootSetup';

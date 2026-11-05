@@ -1,10 +1,10 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise owner activity against the shipped Rapier module.
 import {readFileSync} from 'node:fs';
 import {expect,test} from 'vitest';
-import {arenaSealCollider} from '../src/game/boss/arenaCollision';
+import {arenaSealCollider} from '../src/game/shared/boss/arenaCollision';
 import {installNativeCollision,type NativeCollisionSolid} from '@wildshard/game/population/nativeBake';
-import {loadRapier} from '../src/engine/physics/rapier';
-import {createShardfileSim} from '../src/game/plugin/simulation';
+import {loadRapier} from '../src/engine/shared/physics/rapier';
+import {createShardfileSim} from '../src/game/server/plugin/simulation';
 import {emptyShardfile} from '../src/sdk/author';
 import {nativeArenaSealSolids} from '@wildshard/game/boss/nativeArenaSeal';
 

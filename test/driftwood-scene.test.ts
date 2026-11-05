@@ -4,8 +4,8 @@ import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { prepareAssetDecoders } from '@wildshard/format/product';
 import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
-import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
-import { productClosureFile } from '../src/game/shardfile/shardProduct';
+import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
+import { productClosureFile } from '../src/game/shared/shardfile/shardProduct';
 import { driftwoodEmittedProduct } from './fixtures/driftwood-emitted-product';
 
 async function readEmittedWorld() {

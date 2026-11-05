@@ -7,7 +7,7 @@ import {parseClientPlan} from '@wildshard/format/clientPlan';
 import {ForestWeatherSchema} from '@wildshard/format/forestWeather';
 import {parseEliteEntryPageRows} from '@wildshard/format/eliteEntryRows';
 import {ArenaScriptFightFileSchema} from '@wildshard/format/arenaScriptRows';
-import {CLIENT_FEATURES} from '../src/game/shardfile/clientPlan';
+import {CLIENT_FEATURES} from '../src/game/client/shardfile/clientPlan';
 import {loadHeadlessProduct} from '../src/sdk/headlessProduct';
 import {builtProduct} from './fixtures/builtProduct';
 

@@ -25,11 +25,11 @@ test('plain transport tables require only the complete published facts', () => {
   try {
     publishBootPublication(f.root, facts());
     const tables = bootPublicationTableSources(f.root);
-    expect(Object.keys(tables)).toEqual(['src/game/boot/bytes.generated.ts', 'src/game/boot/versions.generated.ts', 'src/game/boot/packs.generated.ts']);
-    expect(tables['src/game/boot/bytes.generated.ts']).toContain('"/assets/raw.bin": 3,');
-    expect(tables['src/game/boot/versions.generated.ts']).toContain('"/assets/raw.bin": \'1234abcd\',');
-    expect(tables['src/game/boot/packs.generated.ts']).toContain('["/assets/raw.bin",0,3,"application/octet-stream"]');
-    expect(tables['src/game/boot/packs.generated.ts']).toContain('/assets/packs/demo.phone-00000000.bin');
+    expect(Object.keys(tables)).toEqual(['src/game/client/boot/bytes.generated.ts', 'src/game/client/boot/versions.generated.ts', 'src/game/client/boot/packs.generated.ts']);
+    expect(tables['src/game/client/boot/bytes.generated.ts']).toContain('"/assets/raw.bin": 3,');
+    expect(tables['src/game/client/boot/versions.generated.ts']).toContain('"/assets/raw.bin": \'1234abcd\',');
+    expect(tables['src/game/client/boot/packs.generated.ts']).toContain('["/assets/raw.bin",0,3,"application/octet-stream"]');
+    expect(tables['src/game/client/boot/packs.generated.ts']).toContain('/assets/packs/demo.phone-00000000.bin');
     // No outputs, assets, products, discovery modules or tools exist in this root.
     expect(readdirSync(f.root)).toEqual(['scripts']);
     expect(readBootPublication(f.root)).toEqual(parseBootPublication(facts()));

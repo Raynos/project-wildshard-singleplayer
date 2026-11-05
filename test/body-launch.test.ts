@@ -1,11 +1,11 @@
 import { expect, test } from 'vitest';
 import { Scene, Vector3 } from 'three';
 import * as v from 'valibot';
-import { DynamicBodySlots } from '../src/engine/physics/bodies';
+import { DynamicBodySlots } from '../src/engine/shared/physics/bodies';
 import { BodyLaunchSchema } from '@wildshard/format/nativeItems';
 import { ClaimedPickupSchema, parseLootEconomy } from '@wildshard/format/lootEconomy';
 import { parseItems } from '@wildshard/format/items';
-import { ClaimedPickupRoster } from '../src/game/loot/runtime';
+import { ClaimedPickupRoster } from '../src/game/server/loot/runtime';
 import { DRIFTWOOD_SWORDS } from '../src/shards/driftwood-isle/generators/items';
 import { DRIFTWOOD_LOOT } from '../src/shards/driftwood-isle/generators/loot';
 import pickups from '../src/shards/pine-hollow/data/skinPickups.json' with { type: 'json' };

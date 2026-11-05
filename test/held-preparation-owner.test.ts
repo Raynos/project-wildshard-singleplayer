@@ -1,10 +1,10 @@
 import {fixtureProductFile} from './fixtures/productFile';
 import { expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import type { ShardContext } from '../src/game/plugin/context';
-import type { ShardRuntime } from '../src/game/shard/runtime';
-import { HeldClaims } from '../src/game/loadout/claims';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { Scope } from '../src/engine/shared/app/scope';
+import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import { HeldClaims } from '../src/game/client/loadout/claims';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseItems } from '@wildshard/format/items';
 import items from '../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };

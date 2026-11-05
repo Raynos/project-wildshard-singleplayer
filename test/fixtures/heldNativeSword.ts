@@ -1,5 +1,5 @@
 import { Group } from 'three';
-import type { SwordArms, SwordWorld } from '../../src/engine/combat/view/melee';
+import type { SwordArms, SwordWorld } from '../../src/engine/client/combat/view/melee';
 import { fakeWorld } from '@wildshard/engine/test/world';
 
 /** Real native sword dependencies without a renderer or content model. */

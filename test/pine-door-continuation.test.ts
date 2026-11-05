@@ -1,7 +1,7 @@
 // @vitest-environment node
 import {expect,test} from 'vitest';
 import {openProductSession} from './fixtures/headless/productSession';
-import {decodeSimSnapshotBytes} from '../src/engine/sim/snapshot';
+import {decodeSimSnapshotBytes} from '../src/engine/shared/sim/snapshot';
 import type {HeadlessTickCommit} from '../src/sdk/tickProtocol';
 
 function doorState(commit:HeadlessTickCommit){

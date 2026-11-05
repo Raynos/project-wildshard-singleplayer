@@ -1,5 +1,5 @@
 import {expect,test} from 'vitest';
-import {emitGraphGlsl} from '../src/engine/render/graph/glsl';
+import {emitGraphGlsl} from '../src/engine/client/render/graph/glsl';
 import {rankShaderWork,emittedFragmentWork,type ShaderPixelFact} from './fixtures/shader-work-ranking';
 
 const shader='a'.repeat(64),other='b'.repeat(64);

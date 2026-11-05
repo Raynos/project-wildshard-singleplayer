@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { staleReason } from '../scripts/whats-new-fresh.mjs';
-import { WHATS_NEW } from '../src/game/whatsNew';
+import { WHATS_NEW } from '../src/game/client/whatsNew';
 
 const now = Date.parse('2026-10-17T18:00:00Z');
 const body = (updated?: unknown): string => JSON.stringify({ date: '17 OCT 2026', entries: ['a line'], ...(updated === undefined ? {} : { updated }) });
@@ -12,7 +12,7 @@ it('passes lines updated within 24 h, any zone', () => {
 });
 
 it('fails stale, future, missing and unparseable stamps, saying how to fix it', () => {
-  expect(staleReason(body('2026-10-16T17:59:00Z'), now)).toMatch(/24\.0 h old.*Fix: rewrite src\/game\/whatsNew\.json/u);
+  expect(staleReason(body('2026-10-16T17:59:00Z'), now)).toMatch(/24\.0 h old.*Fix: rewrite src\/game\/(?:(?:client|cook|server|shared)\/)?whatsNew\.json/u);
   expect(staleReason(body('2026-10-17T19:30:00Z'), now)).toMatch(/future/u);
   expect(staleReason(body(), now)).toMatch(/no "updated"/u);
   expect(staleReason(body('17 OCT 2026'), now)).toMatch(/not an ISO timestamp/u);

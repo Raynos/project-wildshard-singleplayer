@@ -10,9 +10,9 @@ Slice rule: [README.md](README.md) · west index: [INDEX-west.md](INDEX-west.md)
 
 ## 2. Engine / game / host work, just in time
 
-Research: no climb mode exists. `src/engine/player/modes.ts:27-28`: "The approved modes a level brings (G3): ride and
+Research: no climb mode exists. `src/engine/shared/player/modes.ts:27-28`: "The approved modes a level brings (G3): ride and
 grapple ship; glide, climb and drive are approved, not yet built" (`DrivenMode = 'ride' | 'grapple' | 'glide' | 'climb'
-| 'drive'`). The walk law refuses slopes past `MAX_CLIMB_DEG` (`engine/player/Player.ts:47`); `climbTo` in `Player.ts:132`
+| 'drive'`). The walk law refuses slopes past `MAX_CLIMB_DEG` (`engine/client/player/Player.ts:47`); `climbTo` in `Player.ts:132`
 is the swim exit, not climbing.
 
 | Row / mechanic | Shape | Layer |

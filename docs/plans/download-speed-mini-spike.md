@@ -35,7 +35,7 @@ completely fucked. Figure out how to download fast … see how to download in 5 
 
 The cold boot is roughly **CPU + download, added together**: the replay with free CPU is 18.9 s, with a free network
 29.0 s, and as recorded 47.4 s. Download and CPU barely overlap, because "Application modules" waits for the whole spawn
-set (`src/entry.ts` → `startSpawnDownload`, `src/game/boot/spawnDownload.ts`) before the engine runs.
+set (`src/entry.ts` → `startSpawnDownload`, `src/game/client/boot/spawnDownload.ts`) before the engine runs.
 
 ## Why it looked 33 s worse than 10-31
 
@@ -114,7 +114,7 @@ Bounded rather than replayed:
 2. **DS2: pack the before-control set.** Concatenate it into one or a few range-free packs (the shardfile `blobs/pack`
    format exists). On its own it is only −0.5 s; combined with DS1 it takes 6 MB from 8.5 s to 5.0 s.
 3. **DS3: start the spawn download on the title for first visits**, not only for a saved last shard
-   (`startTitlePrefetch`, `src/game/grid/prefetch.ts`): −3 s or more.
+   (`startTitlePrefetch`, `src/game/client/grid/prefetch.ts`): −3 s or more.
 4. **DS4: overlap download and CPU.** Drop the "Application modules" wait on the whole set and let engine evaluation and
    home-region CPU run while bytes stream: up to −18 s at the preset (cold towards 29–30 s).
 5. **DS5: precompressed brotli q11** for blobs and chunks, if Vercel can serve it (−2.7 MB, −2.0 s). Otherwise skip it.

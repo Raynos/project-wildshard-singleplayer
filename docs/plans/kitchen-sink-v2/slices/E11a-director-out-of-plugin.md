@@ -13,12 +13,12 @@ None on its own: the gauntlet's run director (E11b/E11c) is the first new user, 
 
 Research:
 
-- `src/game/plugin/director.ts` (435 lines) is plugin scaffolding holding four things: the v1 typed-event director
+- `src/game/server/plugin/director.ts` (435 lines) is plugin scaffolding holding four things: the v1 typed-event director
   (`DirectorLane`, `prepareDirectorModule`, `readDirectorProduct`, `:44-161`; Driftwood's `director.as` /
   `directorV2.as` / `returns.as`, Pine's `director.as` / `directorV2.as` / `director.json`), the v2 stage lane
   (`DirectorStageLane`, `:162`, over `format/directorStages.ts`), the action binder (`bindDirectorActions`, `:253`) and
   a script stage lane plus **`DirectorBossBrain extends BossBrain`** (`:315`, `:399`: Driftwood's finale).
-- Importers: `src/game/quest/chapterDirector.ts`, `chapterClock.ts`, `src/game/shardfile/walkInPortalRide.ts:6`,
+- Importers: `src/game/server/quest/chapterDirector.ts`, `chapterClock.ts`, `src/game/client/shardfile/walkInPortalRide.ts:6`,
   `clientQuestPage.ts`, `bossRow.ts`, `src/format/platformFileFamilies.ts`, and ~12 tests (`test/director-*.test.ts`,
   `test/driftwood-finale-controller.test.ts`, `test/chapter-director-product.test.ts`, the headless fixtures).
 - v2 stage users (`quests/directors`): Nine (`nine.portal-ride`), Sky (`far.roc.encounter`), Signal
@@ -41,7 +41,7 @@ exports in `src/game/package.json`). Tests: every director test above, unchanged
 
 ## 4. Done when, hours, blockers
 
-**Done when:** `src/game/plugin/director.ts` is gone; every product's director replay matches tick for tick; mid-run
+**Done when:** `src/game/server/plugin/director.ts` is gone; every product's director replay matches tick for tick; mid-run
 save fixtures restore.
 
 | Engine | Migration | Shard | Total |

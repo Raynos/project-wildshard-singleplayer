@@ -1,12 +1,12 @@
 import {expect,test} from 'vitest';
-import {createSimHost,type SimHost} from '../src/engine/sim';
-import {loadRapier} from '../src/engine/physics/rapier';
+import {createSimHost,type SimHost} from '../src/engine/server/sim';
+import {loadRapier} from '../src/engine/shared/physics/rapier';
 import {fixtureBytes} from '@wildshard/engine/test/nativeBytes';
-import {HeightPatch} from '../src/engine/physics/heightPatch';
-import {ArenaRoomGround} from '../src/game/boss/arenaGround';
-import {snapshotSimHostBytes,restoreSimHost} from '../src/engine/sim/snapshot';
+import {HeightPatch} from '../src/engine/shared/physics/heightPatch';
+import {ArenaRoomGround} from '../src/game/shared/boss/arenaGround';
+import {snapshotSimHostBytes,restoreSimHost} from '../src/engine/shared/sim/snapshot';
 import {physicsState} from './fake/simState';
-import {NativeArenaSand} from '../src/game/boss/nativeArenaSand';
+import {NativeArenaSand} from '../src/game/server/boss/nativeArenaSand';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
 import { leadCommands } from '@wildshard/engine/sim/leadPlayer';
 

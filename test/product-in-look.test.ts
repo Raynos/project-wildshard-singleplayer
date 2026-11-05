@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import type { LookStrategy } from '@wildshard/engine/render/look';
 import type { RosterEntry } from '@wildshard/engine/models/live';
-import { toLevelSpec } from '../src/game/shard/spec';
+import { toLevelSpec } from '../src/game/server/shard/spec';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { createShardProduct, ProductError, type ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';

@@ -6,7 +6,7 @@ import {registeredJsonSchema,namedJsonSchema} from '../src/sdk/formatJsonSchema'
 import {encodeCanonicalJson} from '../src/sdk/immutable';
 import {nameBlob} from '../src/sdk/blobs';
 import {emptyShardfile} from '../src/sdk/author';
-import {createShardProduct} from '../src/game/shardfile/shardProduct';
+import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {fixtureJsonCheck} from './fixtures/productFile';
 
 // Detached, unplayed roots exercise the original native laws; no game state is lent.

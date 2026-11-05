@@ -1,15 +1,15 @@
 // @vitest-environment happy-dom
 import {afterEach,beforeEach,expect,test,vi} from 'vitest';
 import {Group} from 'three';
-import {Scope} from '../src/engine/app/scope';
-import {Weapon} from '../src/engine/combat/Weapon';
-import type {EquipmentRow} from '../src/engine/combat/Equipment';
-import {EquipmentService} from '../src/engine/combat/EquipmentService';
-import {installErrorModal} from '../src/engine/ui/ErrorModal';
-import {isDev,setDev} from '../src/engine/core/devMode';
-import {emitFault,setLoopState,onFault,type Fault} from '../src/engine/core/faults';
-import {bindClientChannelInputs} from '../src/game/plugin/channels';
-import {SWORD_WOOD} from '../src/game/weapons/starterMeleeProfile';
+import {Scope} from '../src/engine/shared/app/scope';
+import {Weapon} from '../src/engine/server/combat/Weapon';
+import type {EquipmentRow} from '../src/engine/server/combat/Equipment';
+import {EquipmentService} from '../src/engine/client/combat/EquipmentService';
+import {installErrorModal} from '../src/engine/client/ui/ErrorModal';
+import {isDev,setDev} from '../src/engine/client/core/devMode';
+import {emitFault,setLoopState,onFault,type Fault} from '../src/engine/shared/core/faults';
+import {bindClientChannelInputs} from '../src/game/server/plugin/channels';
+import {SWORD_WOOD} from '../src/game/server/weapons/starterMeleeProfile';
 
 class TestWeapon extends Weapon {
   readonly model=new Group();
@@ -20,7 +20,7 @@ class TestWeapon extends Weapon {
   update():void{this.tick();}
 }
 // G901: a recoverable report opens the full modal only with Developer on (the public build shows the chip,
-// src/engine/ui/error-modal-public.test.ts); both contracts here are the Developer modal's
+// src/engine/client/ui/error-modal-public.test.ts); both contracts here are the Developer modal's
 const previousDeveloper=isDev();
 beforeEach(()=>{setDev(true);});
 afterEach(()=>{setDev(previousDeveloper);});

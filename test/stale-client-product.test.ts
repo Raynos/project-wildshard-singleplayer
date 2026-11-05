@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { readIndexBytes, StaleClientError, type ProductOptions } from '../src/game/shardfile/product';
-import { staleClientRecovery } from '../src/engine/boot/stuck';
+import { readIndexBytes, StaleClientError, type ProductOptions } from '../src/game/client/shardfile/product';
+import { staleClientRecovery } from '../src/engine/client/boot/stuck';
 
 const hash = (bytes: Uint8Array): Promise<string> => Promise.resolve(hashImmutableBytes(bytes));
 const known = new TextEncoder().encode('{"format":"known"}');

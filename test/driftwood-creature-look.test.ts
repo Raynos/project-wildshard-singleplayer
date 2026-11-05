@@ -4,9 +4,9 @@ import { CREATURE_INSTALL, CREATURE_LOOKS } from '../src/shards/driftwood-isle/g
 import lookGraphs from '../src/shards/driftwood-isle/data/lookGraphs.json' with { type: 'json' };
 import { authoredGraphs } from './fixtures/authoredGraphs';
 import { DRIFTWOOD as source } from './fixtures/driftwood-program';
-import { lentGraphLook } from '../src/game/population/productCreatures';
+import { lentGraphLook } from '../src/game/client/population/productCreatures';
 import * as THREE from 'three';
-import type { Animal } from '../src/engine/entities/AnimalView';
+import type { Animal } from '../src/engine/client/entities/AnimalView';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { CRAB_LOOK } from './fake/driftwoodLooks';
 import { installWorldFixture } from './fixtures/worldSetup';

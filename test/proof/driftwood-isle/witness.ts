@@ -1,6 +1,6 @@
 import { productHeadlessSections } from '../../../src/sdk/headlessSections';
-import type { ShardProduct } from '../../../src/game/shardfile/shardProduct';
-import { outputDescriptor } from '../../../src/game/shardfile/outputDescriptor';
+import type { ShardProduct } from '../../../src/game/shared/shardfile/shardProduct';
+import { outputDescriptor } from '../../../src/game/shared/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the actual shard, tape and committed native checkpoints.
 import { mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
@@ -16,10 +16,10 @@ import bossRows from '../../../src/shards/driftwood-isle/data/bossEncounter.json
 import { readNativeQuestSpots } from '@wildshard/game/quest/nativeComposition';
 import { DRIFTWOOD_SPOTS as nativeQuestSpots } from '../../../src/shards/driftwood-isle/generators/spots';
 import policy from '../../../src/shards/driftwood-isle/data/nativeQuest.json' with { type: 'json' };
-import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
-import { serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/sim/snapshot';
-import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
-import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/ledger';
+import { loadRapier, type Rapier } from '../../../src/engine/shared/physics/rapier';
+import { serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/shared/sim/snapshot';
+import { SaveStore, type SaveStorage } from '../../../src/engine/shared/saves/store';
+import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/server/ledger';
 import type { TrustedHeadlessResident } from '../../../src/sdk/headlessRuntime';
 import { createNativeProofResident, prepareProductPlan } from '../../fixtures/headless-native';
 import type { TickWorkerHost } from '../../../src/sdk/tickWorkerHost';

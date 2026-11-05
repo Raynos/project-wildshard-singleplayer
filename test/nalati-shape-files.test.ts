@@ -1,4 +1,4 @@
-import {readBakedGeometry,expandBakedGeometry} from '../src/game/plugin/geometry';
+import {readBakedGeometry,expandBakedGeometry} from '../src/game/client/plugin/geometry';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native captured rows and binary byte witnesses.
 import {readFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The reference stores only original raw-byte hashes.
@@ -10,7 +10,7 @@ import {nameBlob} from '../src/sdk/blobs';
 import {originalPoiPaintFiles} from './fixtures/nalati-poi-paint-original';
 import {FixedDrawRowsSchema} from '@wildshard/format/fixedDraws';
 import {SceneBakedGeometrySchema} from '@wildshard/format/sceneDressing';
-import {productFixedDraws} from '../src/game/models/fixedDraws';
+import {productFixedDraws} from '../src/game/client/models/fixedDraws';
 import source from './fixtures/nalati-shape-book-original.json' with {type:'json'};
 import original from './fixtures/nalati-shape-blocks.json' with {type:'json'};
 

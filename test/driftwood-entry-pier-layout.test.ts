@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { CHUNK_HALF, ROAD_LENGTH } from '../src/engine/core/config';
+import { CHUNK_HALF, ROAD_LENGTH } from '../src/engine/shared/core/config';
 import { PIER, JETTIES, OCEAN } from '../src/shards/driftwood-isle/generators/worldSites';
 import { SHORE_LEVEL, WORLD_DROP } from '../src/shards/driftwood-isle/generators/sea';
 

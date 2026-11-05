@@ -68,18 +68,18 @@ const root = resolve(import.meta.dirname, '..');
 const tier = process.argv.find((arg) => arg.startsWith('--collect='))?.slice(10);
 if (tier) {
   if (tier !== 'phone' && tier !== 'desktop') throw new Error(`audit-assets: unknown tier ${tier}`);
-  const { initializeTier } = await import('../src/engine/core/tier.ts'); initializeTier(tier);
+  const { initializeTier } = await import('../src/engine/client/core/tier.ts'); initializeTier(tier);
   const { SHARDS } = await import('../src/shards.generated.ts');
-  const { PACKS } = await import('../src/game/boot/packs.generated.ts');
-  const { GPU_FILES: shared } = await import('../src/engine/boot/ktx2.generated.ts');
-  const { prepareShardAssets } = await import('../src/game/shard/load.ts');
-  const { registerGpuFiles, autoTexturePolicy } = await import('../src/engine/boot/gpuFiles.ts');
-  const { imagesFirstPlayingBytes } = await import('../src/game/grid/runtimeCost.ts');
-  const { bootFileList, bootSourceFiles, bootLateReads } = await import('../src/engine/boot/filePolicy.ts');
-  const { chunkFiles } = await import('../src/engine/boot/manifest.ts');
-  const { resolveBootAudio } = await import('../src/engine/boot/audioInventory.ts');
+  const { PACKS } = await import('../src/game/client/boot/packs.generated.ts');
+  const { GPU_FILES: shared } = await import('../src/engine/client/boot/ktx2.generated.ts');
+  const { prepareShardAssets } = await import('../src/game/client/shard/load.ts');
+  const { registerGpuFiles, autoTexturePolicy } = await import('../src/engine/client/boot/gpuFiles.ts');
+  const { imagesFirstPlayingBytes } = await import('../src/game/client/grid/runtimeCost.ts');
+  const { bootFileList, bootSourceFiles, bootLateReads } = await import('../src/engine/client/boot/filePolicy.ts');
+  const { chunkFiles } = await import('../src/engine/client/boot/manifest.ts');
+  const { resolveBootAudio } = await import('../src/engine/client/boot/audioInventory.ts');
   const { productAudioInventory } = await import('./app-build/audioPacks.ts');
-  const { bootFetches } = await import('../src/engine/boot/prefetch.ts');
+  const { bootFetches } = await import('../src/engine/client/boot/prefetch.ts');
   // Match the pack baker and cold boot: install shard overlays before resolving the same Auto policy and file source.
   await Promise.all(SHARDS.map((manifest) => prepareShardAssets(manifest, registerGpuFiles)));
   const rows = [];

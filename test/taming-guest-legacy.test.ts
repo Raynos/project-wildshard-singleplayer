@@ -1,5 +1,5 @@
 import {expect,test} from 'vitest';
-import {Scope} from '../src/engine/app/scope';
+import {Scope} from '../src/engine/shared/app/scope';
 import {tamingRig} from './fixtures/tamingServices';
 
 test.each([[null,[.25]],[null,[.65,.8,.1]],[null,[.9,.3,.8]],['bond',[.25]]] as const)('guest/native taming preserves historical wire and native order from %s', (saved,draws)=>{

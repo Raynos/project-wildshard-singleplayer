@@ -788,4 +788,4 @@ Networks and transport:
 
 Case-study sources are linked inline in §1. The repo context comes from `docs/design/mmo/VISION.md`,
 `MMO-REQUIREMENTS.md`, `SHARD-PLATFORM-PLAN.md` (lines 95–110: the one-shot's 30 Hz sim / 15 Hz snapshot server
-and pure effect-returning interpreter), and `src/engine/core/fixedStep.ts` (60 Hz fixed step).
+and pure effect-returning interpreter), and `src/engine/shared/core/fixedStep.ts` (60 Hz fixed step).

@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { expect, it } from 'vitest';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
-import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
+import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
 import { HeadlessSimulation } from '../src/sdk/headless';
 import { OBSERVATION_TICKS } from '../src/sdk/headlessObservation';

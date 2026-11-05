@@ -10,7 +10,7 @@ shader programs, look, plugin and audio. So the design comes down to four rules.
 of 62.5 m / 125 m tiles with platform-made LODs. (2) Only the nearest LOD may use the shard's shared material library;
 every coarser LOD is self-contained, with baked textures. (3) The shader library is fixed and owned by the engine, so
 four looks share programs. (4) A per-shard fixed-cost cap is set at about 25 MB resident. **Memory binds, not
-bandwidth.** Today's stylized shards ship 0.5–6 MB phone packs (`src/game/boot/packs.generated.ts`) but use 153–587 MB
+bandwidth.** Today's stylized shards ship 0.5–6 MB phone packs (`src/game/client/boot/packs.generated.ts`) but use 153–587 MB
 of GPU memory on the phone (`src/shards/*/budgetCeilings.ts`). Four of today's shards at a corner would need 0.6–2.3 GB
 before the engine itself. The highway should be its own server room, a strip that no shard owns. Shards are seen across
 borders by read-only interest subscriptions, never by ghost copies. The far view across the whole 5 × 5 grid is a
@@ -58,11 +58,11 @@ shard's `budgets.ts`, with 5 Mbit/s plus stalls as the stress case.
 ## 2. The geometry of the problem
 
 Fixed facts. Shard 500 m; pitch 515 m; highway 15 m; first grid 5 × 5 = 2,575 m across, and its farthest corner is
-≈ 1.8 km from the centre. Camera: `PerspectiveCamera(72°, aspect, 0.08, **2600**)` (`src/engine/core/Game.ts:327`).
+≈ 1.8 km from the centre. Camera: `PerspectiveCamera(72°, aspect, 0.08, **2600**)` (`src/engine/client/core/Game.ts:327`).
 Portrait at render scale 2: **804 × 1748 = 1.41 Mpx** (`budgets/calibration/*.json` "pixels": 1405392), so the
 **horizontal FOV is only 37°** (computed). Today's shards fog out at 430–720 m (`src/shards/sunscar-dunes/look/render.ts`
 FOG far 430; `src/shards/far-reach/look/sun.ts` far 720). Phone tier: shadows 80 m, trees hi→lo at 80 m, props to
-220 m (`src/engine/render/tiers.ts`).
+220 m (`src/engine/client/render/tiers.ts`).
 
 ### 2.1 Shards touched within radius R (any part of the 500 m square within R), computed
 

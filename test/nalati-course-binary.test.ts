@@ -12,8 +12,8 @@ import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import { NALATI_COURSE_MODULE } from '../src/shards/nalati-grasslands/generators/kokparRows';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { nameBlob } from '../src/sdk/blobs';
-import { ReturnProgram } from '../src/game/population/returnProgram';
-import { Scope } from '../src/engine/app/scope';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
+import { Scope } from '../src/engine/shared/app/scope';
 
 const hash = hashImmutableBytes(NALATI_COURSE_WASM);
 

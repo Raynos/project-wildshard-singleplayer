@@ -1,6 +1,6 @@
 import {expect, it} from 'vitest';
-import {loadingFraction} from '../src/engine/boot/weights';
-import {loadingPath} from '../src/game/boot/loadingPaths';
+import {loadingFraction} from '../src/engine/client/boot/weights';
+import {loadingPath} from '../src/game/client/boot/loadingPaths';
 
 it('every shipping path remains unchanged by elapsed time or former calibration history', () => {
   for (const kind of ['grid', 'shardfile', 'legacy', 'cell', 'crossing'] as const) {

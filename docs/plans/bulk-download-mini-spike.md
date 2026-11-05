@@ -45,9 +45,9 @@ These are from the daily `phone-loading` cold run against live `8bdf53f` (game �
 
 Who issues them:
 
-- **The spawn download, 419 files, one request each.** `src/game/boot/spawnDownload.ts` (`downloadSpawnManifest`) reads
+- **The spawn download, 419 files, one request each.** `src/game/client/boot/spawnDownload.ts` (`downloadSpawnManifest`) reads
   the boot list from `assets/spawn/<shard>-<flow>-<tier>-<hash>.json` (written by `scripts/app-build/entryTotals.ts`,
-  bank in `index.html`). It runs 8 lanes, reads each body through `readContent` (`src/engine/boot/contentRead.ts`) and
+  bank in `index.html`). It runs 8 lanes, reads each body through `readContent` (`src/engine/client/boot/contentRead.ts`) and
   writes each response into Cache Storage. The set is 150 GLB, 94 JS, 78 blob JSON, 58 sections, 9 CSS, 9 bin and 21
   others: 64 MB raw, 20 MB on the wire.
 - **Why each part is its own file:** the shardfile format (`scripts/build-shardfiles.mjs`) stores every blob under its
@@ -56,15 +56,15 @@ Who issues them:
   (`scripts/app-build/controlChunks.ts`, in `vite.config.ts`) into 178 chunks, 108 of them used before control.
 - **The packs already exist and are skipped.** I5 (iPhone downloads, 10-27) added 13 content-hashed packs to
   `shard.json` (`blobs/pack/<sha256>.pack`, 435 members, 31.5 MB). The page reads them only for a cache *miss*
-  (`src/game/shardfile/packReads.ts`). Since the spawn download (10-29) fills the cache file by file first, the cold run
+  (`src/game/shared/shardfile/packReads.ts`). Since the spawn download (10-29) fills the cache file by file first, the cold run
   made **0 pack requests**. On 10-27 the same entry made 206 requests.
 - **The 761 re-reads.** After the download, the session reads the product again: `shard.json` → sections → blobs
-  (`src/game/grid/products.ts`, `src/game/shardfile/product.ts`). Each read is a `fetch` that the worker answers from
+  (`src/game/client/grid/products.ts`, `src/game/client/shardfile/product.ts`). Each read is a `fetch` that the worker answers from
   Cache Storage. Admission reads and checks a blob, releases its bytes (`releaseTransport`), and the model build reads
   it again (`'cache-or-fetch'`), so a GLB appears up to 3 times (11 s, 56 s and 67 s for the same URL).
-- **The worker's install precache.** `src/engine/pwa/sw.js` `install` precaches `FILES`, which is every hashed
+- **The worker's install precache.** `src/engine/client/pwa/sw.js` `install` precaches `FILES`, which is every hashed
   `/assets/*-<8 hex>.*` in the bundle (`scripts/app-build/serviceWorker.ts`): 323 files, 96 MB raw, about 24 MB as
-  served. Registration starts in the background on the first line of boot (`src/engine/boot/sw.ts`: *"its full
+  served. Registration starts in the background on the first line of boot (`src/engine/client/boot/sw.ts`: *"its full
   precache can finish during cold entry"*). These requests come from the worker, so they are not in the page's list,
   but they share the phone's one link. The JS ones show up as the 81-byte revalidations: `vercel.json` gives
   content-hashed `/assets/*.js|css` `max-age=0, must-revalidate`, so the cache asks the server again for each of them.
@@ -110,7 +110,7 @@ add a second pack format. Extend I5's `blobs/pack` (offset table in the index, r
 alignment and a spawn-ordered pack set, so one reader serves both.
 
 **Runtime reader.** One `fetch` per part, all at once. Members are cut from the stream as their bytes land (as
-`src/engine/boot/pack.ts` `streamPack` did for the old boot packs), so the first models can start before the last part
+`src/engine/client/boot/pack.ts` `streamPack` did for the old boot packs), so the first models can start before the last part
 arrives. Each member is a view into its part, and product reads (`firstPartyRead`) are answered from those views, so the
 761 re-reads disappear. A part that fails (404 on a stale deploy, or offline) falls back to its members' loose URLs,
 which stay deployed.
@@ -183,7 +183,7 @@ scripts/browser-lane.sh node scripts/bulk-pack-bench.mjs --tree <built dist> --p
 
 1. **BP1: no first-visit precache before control.** Start the `sw.js` install precache after control, or list only the
    code chunks in `FILES` and leave the six `grid-strip-mesh` bins the boot does not use to the background download
-   (`scripts/app-build/serviceWorker.ts`, `src/engine/boot/sw.ts`). Measured on one link: +19 s (36.5 s against 17.4 s). Also mark the
+   (`scripts/app-build/serviceWorker.ts`, `src/engine/client/boot/sw.ts`). Measured on one link: +19 s (36.5 s against 17.4 s). Also mark the
    content-hashed `/assets/*.js|css` `immutable` in `vercel.json`. Risk: the warm second visit (039d: deferring install
    until control left the next document uncontrolled, Home 13.8 → 19.6 s). So defer only the *bodies* past control,
    not the registration.

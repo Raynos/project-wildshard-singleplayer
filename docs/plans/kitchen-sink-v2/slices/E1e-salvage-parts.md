@@ -1,7 +1,7 @@
 # E1e: salvage parts (one part per kill, walk-over pickup; harvest rows out of the game layer)
 
 Slice rule: [README.md](README.md) · east index: [INDEX-east.md](INDEX-east.md). Absorbs **LE3** (salvage rows out of
-`game/Inventory.ts`, E405: match → drops, mode `auto` walk-in or `harvest` Pine's kneel), the harvest half of **M1.1**
+`game/server/Inventory.ts`, E405: match → drops, mode `auto` walk-in or `harvest` Pine's kneel), the harvest half of **M1.1**
 and **M1.2** (Driftwood's crab / coconut / fur and Pine's venison / hides / tusk / pelt off the closed `HARVEST` table)
 and **LW2** for band 1 (the Servo).
 
@@ -16,12 +16,12 @@ parts still to find. Tinker Rook's Spare Servos quest (E1g) and Hover Grip / Stu
 Research:
 
 - **Harvest is a closed species table in the game layer**: `HARVEST` (deer, boar, elk, bear, crab, monkey) in
-  `src/game/Inventory.ts:42`, beside the closed `ItemId` union (`:32`, which W2a opens). Pine kneels to carve; Driftwood's
+  `src/game/server/Inventory.ts:42`, beside the closed `ItemId` union (`:32`, which W2a opens). Pine kneels to carve; Driftwood's
   crab claws, coconuts and fur go into the pack the same way.
-- Loot tables exist as weighted rows (`registerLootTable`, `src/game/loot/tables.ts`, over the engine's
+- Loot tables exist as weighted rows (`registerLootTable`, `src/game/server/loot/tables.ts`, over the engine's
   `WeightedTable`), and touch pickups exist as an interactable (`PickupDef.touch`, "walk into it (feet within 1.1 m)",
-  `src/engine/world/interact/types.ts:178-189`).
-- Death listeners run at `loot: 40` (`src/game/loot/deaths.ts:4`).
+  `src/engine/shared/world/interact/types.ts:178-189`).
+- Death listeners run at `loot: 40` (`src/game/server/loot/deaths.ts:4`).
 
 Work:
 
@@ -30,7 +30,7 @@ Work:
 | salvage rows | `economy/loot.salvage: [{ match: { kind, variant?, rarity? }, drops: [{ item, n }], mode: 'auto' \| 'harvest', night?: mul }]` | format `lootEconomy.ts` |
 | auto drop | on death (order 40) spawn a touch pickup of the item at the body; it despawns after 60 s; walking over adds it | game `loot/salvage.ts` (new) over the engine pickup kit |
 | harvest mode | today's kneel-and-carve flow, now driven by the rows | game, Pine's flow unchanged |
-| delete | `HARVEST` and its species nouns from `src/game/Inventory.ts` | game |
+| delete | `HARVEST` and its species nouns from `src/game/server/Inventory.ts` | game |
 
 Host bar: salvage has three users (Driftwood, Pine, the showcase); test 2 goes from fail to pass (species names leave
 the game layer). Guards: `shard-names`, `engine-words`. Tests: `test/hybrid-inventory.test.ts`,

@@ -16,10 +16,10 @@
  * lies within a margin of the capsule (the herd jostling a rider).
  */
 import type { Capsule, Collider, KinematicCharacterController, Ray, RigidBody } from '@dimforge/rapier3d-simd';
-import type { Physics } from '../../src/engine/physics/Physics';
-import { GROUP, groups, queryGroups, type GroupName } from '../../src/engine/physics/groups';
-import { isTerrainCollider, tagCollider } from '../../src/engine/physics/surface';
-import { FIXED_STEP } from '../../src/engine/core/fixedStep';
+import type { Physics } from '../../src/engine/shared/physics/Physics';
+import { GROUP, groups, queryGroups, type GroupName } from '../../src/engine/shared/physics/groups';
+import { isTerrainCollider, tagCollider } from '../../src/engine/shared/physics/surface';
+import { FIXED_STEP } from '../../src/engine/shared/core/fixedStep';
 
 export interface MotorOptions {
   radius: number;

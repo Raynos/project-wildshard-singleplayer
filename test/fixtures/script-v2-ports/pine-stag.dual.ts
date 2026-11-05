@@ -3,7 +3,7 @@
 import stag from '../../../src/shards/pine-hollow/behaviour/stag.as?raw';
 import rows from '../../../src/shards/pine-hollow/data/questLead.json' with { type: 'json' };
 import { expect } from 'vitest';
-import { ScriptModuleV2 } from '../../../src/engine/script/moduleV2';
+import { ScriptModuleV2 } from '../../../src/engine/shared/script/moduleV2';
 import type { DualPortFixture } from '../script-v2-port';
 
 const fields = ['i','mode','elapsed','begin','dt','leadStep','night','playerX','playerZ','atX','atZ'] as const;

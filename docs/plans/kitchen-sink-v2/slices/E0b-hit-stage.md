@@ -16,17 +16,17 @@ Its swings at you show the same both ways (the silver hurt arc). No XP (the pen 
 
 Research:
 
-- **The pipeline** is `CombatPipeline.hit` (`src/engine/combat/pipeline.ts:119`): `damage.admit` → line of sight →
+- **The pipeline** is `CombatPipeline.hit` (`src/engine/server/combat/pipeline.ts:119`): `damage.admit` → line of sight →
   `damage.modify` (an ordered ask chain) → `applyDamage` → `damage.dealt` + `actor.died` (`:134-135`). The chain today:
   order **0** death-fade refusal (`:85`), **1** boss-god (`:100`, opt-in), **10** dodge i-frames (`:101`), **40**
   `damageTakenMul` on creatures (`:86-92`), **50** the species/elite `damageMul` adapter (`:93-98`), **90** `incomingCap`
   (`:103-108`), any authored `DamageRuleDef` at its own order (`:110`), the Signal shield and the bossRow shield
-  (`src/game/plugin/ui.ts:1330`, `src/game/shardfile/bossRow.ts:89`) and the phase rules (`src/engine/ai/phases.ts:61`).
+  (`src/game/client/plugin/ui.ts:1330`, `src/game/server/shardfile/bossRow.ts:89`) and the phase rules (`src/engine/server/ai/phases.ts:61`).
 - `DamageRequest` (`pipeline.ts:27-32`) has `amount`, `headshot`, `stagger`, `knockback`, `weaponId`, `moveId`,
   `sourceTags`; **no outcome, no damage type, no miss**. A refused hit returns `null` and emits nothing.
-- The only "MISS" today is the aim miss in `src/engine/ui/Combat.ts:22` (a shot that lands in a tree); ruling 19r keeps
+- The only "MISS" today is the aim miss in `src/engine/client/ui/Combat.ts:22` (a shot that lands in a tree); ruling 19r keeps
   that word for aim misses only.
-- `AnimalSim.stagger(dir, strength)` (`src/engine/entities/AnimalSim.ts:264`) already shoves a creature back with a stun
+- `AnimalSim.stagger(dir, strength)` (`src/engine/server/entities/AnimalSim.ts:264`) already shoves a creature back with a stun
   timer: the DODGE slip is a short version of it (LVF1).
 
 Work:
@@ -37,8 +37,8 @@ Work:
 | a failed hit | the stat stage returns the request with `amount: 0, outcome: 'deflect' \| 'dodge' \| 'parry'`; the pipeline emits a new `damage.failed` event and skips `applyDamage` (a 0 hit never kills, never flinches) | engine `pipeline.ts`, `events/maps.ts` |
 | `combat` rng stream | `RngStreams.combat`, created on the first levelled roll only | engine `core/rng.ts` (a merge row in game) |
 | the stat stage | one `damage.modify` answer at **order 30** (before today's 40/50 multipliers, so species `damageTakenMul` still applies on top): FAIL roll with the DEX/AGI nudge and lucky saves, DRESS (parry share if the defender owns parry and faces you; DODGE = AGI/(AGI+DEF) − 0.1·max(0,g), floor 0.1; DEFLECT the rest), GLANCE, CRIT and size, DAMAGE `weapon × Forge × ATK × K/(K+DEF)`, floor 1 on a landed hit | game `src/game/combat/statStage.ts` (new), installed only when `progression` exists |
-| the looks | DEFLECT: spark burst, clang (W19e `metal`, E15a; until then the stone clang), 45 ms hit-stop, blade recoil (`engine/combat/view/SweptMelee.ts`); DODGE: a 0.25 s slip (`AnimalSim.stagger` with no stun); on you: a silver arc (`engine/ui/HurtArc.ts`) | engine view, generic words (Opus) |
-| first hint | one-time "DEFLECT: hit harder targets at your level" hint (`engine/ui/FirstHints.ts`), levelled products only | engine UI (E332 notice) |
+| the looks | DEFLECT: spark burst, clang (W19e `metal`, E15a; until then the stone clang), 45 ms hit-stop, blade recoil (`engine/client/combat/view/SweptMelee.ts`); DODGE: a 0.25 s slip (`AnimalSim.stagger` with no stun); on you: a silver arc (`engine/client/ui/HurtArc.ts`) | engine view, generic words (Opus) |
+| first hint | one-time "DEFLECT: hit harder targets at your level" hint (`engine/client/ui/FirstHints.ts`), levelled products only | engine UI (E332 notice) |
 
 Parry: the player's parry and riposte are W3d's mechanic; here the dress only *labels* a failed enemy hit as PARRY when
 the player is inside W3d's parry window, and the riposte's "guaranteed crit" becomes a crit flag on the next request.

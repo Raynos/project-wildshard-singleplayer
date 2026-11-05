@@ -61,9 +61,9 @@ test('all multi-draw submissions retain shadow, screen and owner attribution', (
 test('CPU wrapper overhead excludes the stock draw and counts nested hooks once', () => {
   const callFrame = (source: string, name: string) => ({ source, name });
   const profile = { nodes: [
-    { id: 1, callFrame: callFrame('/src/engine/core/worldDepth.ts', 'renderWorld'), children: [2] },
-    { id: 2, callFrame: callFrame('/src/engine/render/uploadOwnership.ts', 'renderer.renderBufferDirect'), children: [3] },
-    { id: 3, callFrame: callFrame('/src/engine/render/memorySaver.ts', 'renderer.renderBufferDirect'), children: [4] },
+    { id: 1, callFrame: callFrame('/src/engine/client/core/worldDepth.ts', 'renderWorld'), children: [2] },
+    { id: 2, callFrame: callFrame('/src/engine/client/render/uploadOwnership.ts', 'renderer.renderBufferDirect'), children: [3] },
+    { id: 3, callFrame: callFrame('/src/engine/client/render/memorySaver.ts', 'renderer.renderBufferDirect'), children: [4] },
     { id: 4, callFrame: callFrame('/node_modules/three/src/renderers/WebGLRenderer.js', 'renderBufferDirect') },
   ], samples: [2, 3, 4], timeDeltas: [1000, 2000, 4000] };
   const result = sampledCpu(profile, frame => frame, 1);
@@ -73,7 +73,7 @@ test('CPU wrapper overhead excludes the stock draw and counts nested hooks once'
 
 test('a source-mapped minified submission stays attributed outside the stock draw', () => {
   const profile = { nodes: [
-    { id: 1, callFrame: { source: '/src/engine/render/drawHooks.ts', name: 'o submit' }, children: [2] },
+    { id: 1, callFrame: { source: '/src/engine/client/render/drawHooks.ts', name: 'o submit' }, children: [2] },
     { id: 2, callFrame: { source: '/node_modules/three/src/renderers/WebGLRenderer.js', name: 'renderBufferDirect' } },
   ], samples: [1, 2], timeDeltas: [2000, 5000] };
   const result = sampledCpu(profile, frame => frame, 2);
@@ -83,7 +83,7 @@ test('a source-mapped minified submission stays attributed outside the stock dra
 
 
 test('function rankings retain source positions and count recursive inclusive samples once', () => {
-  const frame = { source: '/src/engine/render/drawHooks.ts', name: 'submit', line: 48, column: 2 };
+  const frame = { source: '/src/engine/client/render/drawHooks.ts', name: 'submit', line: 48, column: 2 };
   const profile = { nodes: [
     { id: 1, callFrame: frame, children: [2] },
     { id: 2, callFrame: frame, children: [3] },
@@ -286,12 +286,12 @@ test('system window refuses mixed or duplicate observation identities before mut
 
 test('game gather functions remain visible without inflating draw-wrapper attribution', () => {
   const profile = {nodes:[
-    {id:1,callFrame:{source:'/src/game/plugin/channelPrograms.ts',name:'evaluate'},children:[2]},
-    {id:2,callFrame:{source:'/src/game/plugin/channels.ts',name:'evaluate'}},
+    {id:1,callFrame:{source:'/src/game/server/plugin/channelPrograms.ts',name:'evaluate'},children:[2]},
+    {id:2,callFrame:{source:'/src/game/server/plugin/channels.ts',name:'evaluate'}},
   ],samples:[1,2],timeDeltas:[1000,2000]};
   const result=sampledCpu(profile,frame=>frame,2);
   expect(result.functions.map(row=>[row.source,row.selfMsPerFrame,row.inclusiveMsPerFrame])).toEqual([
-    ['/src/game/plugin/channels.ts',1,1],['/src/game/plugin/channelPrograms.ts',.5,1.5],
+    ['/src/game/server/plugin/channels.ts',1,1],['/src/game/server/plugin/channelPrograms.ts',.5,1.5],
   ]);
   expect(result.msPerFrame['drawWrappers']).toBeNull();
   expect(result.msPerFrame['propertyHooks']).toBeNull();

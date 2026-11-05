@@ -1,15 +1,15 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { Box3, BoxGeometry, BufferAttribute, BufferGeometry, Group, InterleavedBuffer, InterleavedBufferAttribute, Matrix4, Mesh, MeshStandardMaterial, Scene, Sphere, Vector3 } from 'three';
-import { geometryBoundsSteps } from '../src/engine/world/geometryBounds';
-import { defineModel, modelContext } from '../src/engine/models/model';
-import { LIVE_SPLIT_EVERY, LIVE_SPLIT_OVER, place } from '../src/engine/models/place';
-import { pageScope } from '../src/engine/app/resources';
-import { WorldRegistry } from '../src/engine/world/registry';
-import { noteFrameDrawn } from '../src/engine/core/framePacing';
-import { chunkShadowCastersSliced } from '../src/engine/world/shadowChunks';
-import { cellClip } from '../src/game/grid/cellClip';
-import { Scope } from '../src/engine/app/scope';
+import { geometryBoundsSteps } from '../src/engine/client/world/geometryBounds';
+import { defineModel, modelContext } from '../src/engine/client/models/model';
+import { LIVE_SPLIT_EVERY, LIVE_SPLIT_OVER, place } from '../src/engine/client/models/place';
+import { pageScope } from '../src/engine/shared/app/resources';
+import { WorldRegistry } from '../src/engine/client/world/registry';
+import { noteFrameDrawn } from '../src/engine/shared/core/framePacing';
+import { chunkShadowCastersSliced } from '../src/engine/client/world/shadowChunks';
+import { cellClip } from '../src/game/client/grid/cellClip';
+import { Scope } from '../src/engine/shared/app/scope';
 
 beforeEach(() => { vi.spyOn(performance, 'now').mockReturnValue(1000); });
 afterEach(() => { noteFrameDrawn(Number.NEGATIVE_INFINITY); vi.restoreAllMocks(); });

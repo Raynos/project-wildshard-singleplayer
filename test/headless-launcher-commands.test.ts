@@ -3,10 +3,10 @@
 import {readFileSync} from 'node:fs';
 import {beforeAll,expect,test} from 'vitest';
 import * as v from 'valibot';
-import {createSimHost} from '../src/engine/sim';
-import {snapshotSimHost,restoreSimHost} from '../src/engine/sim/snapshot';
-import {loadRapier,type Rapier} from '../src/engine/physics/rapier';
-import {createNativeCombatFrame,installNativeItems} from '../src/game/plugin/nativeItems';
+import {createSimHost} from '../src/engine/server/sim';
+import {snapshotSimHost,restoreSimHost} from '../src/engine/shared/sim/snapshot';
+import {loadRapier,type Rapier} from '../src/engine/shared/physics/rapier';
+import {createNativeCombatFrame,installNativeItems} from '../src/game/server/plugin/nativeItems';
 import {fillNativeCombatFrame,validateHeadlessCommandOwners} from '../src/sdk/headlessRuntime';
 import {TickCommandSchema,tickCommands,type HeadlessCommand} from '../src/sdk/tickProtocol';
 import {parseItems} from '@wildshard/format/items';

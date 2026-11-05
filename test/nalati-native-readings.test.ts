@@ -2,9 +2,9 @@
 import {readFileSync} from 'node:fs';
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
-import {loadRapier} from '../src/engine/physics/rapier';
-import {createSimHost} from '../src/engine/sim';
-import {trustedLevel} from '../src/game/plugin/simulation';
+import {loadRapier} from '../src/engine/shared/physics/rapier';
+import {createSimHost} from '../src/engine/server/sim';
+import {trustedLevel} from '../src/game/server/plugin/simulation';
 import {emptyShardfile} from '../src/sdk/author';
 import {parseQuestData} from '@wildshard/format/quests';
 import {FigureGroupSchema} from '@wildshard/format/figures';

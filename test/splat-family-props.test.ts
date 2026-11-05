@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
 import * as v from 'valibot';
-import { Scope } from '../src/engine/app/scope';
-import { installDeclaredProps } from '../src/engine/world/declaredProps';
+import { Scope } from '../src/engine/shared/app/scope';
+import { installDeclaredProps } from '../src/engine/client/world/declaredProps';
 import { staticGlb } from '../src/sdk/bake/glb';
-import { splatSurface, withSplatSurface } from '../src/game/shardfile/clientSplatTerrain';
+import { splatSurface, withSplatSurface } from '../src/game/client/shardfile/clientSplatTerrain';
 import { SplatTerrainSchema, checkTileMaterialNames, splatTextureRefs, type SplatTerrain } from '@wildshard/format/splatTerrain';
 
 // Tile streaming P1 (G227): a splat ground joins a shard's props tiles beside props that draw with the family (Pine's timber
@@ -53,7 +53,7 @@ test('a phone layer set draws on the phone; desktop draws layers; admission sees
 });
 
 test('a trusted runtime streams its bound splat ground: primary files only', async () => {
-  const { withSplatGround, splatGroundFiles } = await import('../src/game/shardfile/clientSplatTerrain');
+  const { withSplatGround, splatGroundFiles } = await import('../src/game/client/shardfile/clientSplatTerrain');
   const file = (n: number, kind = 'glb') => ({ hash: h(n), kind, compressed: 1, decoded: 1, gpu: 1, triangles: 1, draws: 1, dependencies: [], critical: false });
   const props = { version: 1 as const, family: 'pbr', tiles: [{ lod: 0 as const, x: 0, z: 0, file: h(99), additionalFiles: [h(98)] }], panels: [], models: [], far: null, colliders: [], textures: [], splat: SPLAT };
   const full = { props, tiles: [{ lod: 0, x: 0, z: 0, files: [h(99), h(98)] }], files: [file(99), file(98), ...splatTextureRefs(SPLAT).map(ref => Object.assign(file(0, 'ktx2'), { hash: ref }))], library: splatTextureRefs(SPLAT) };

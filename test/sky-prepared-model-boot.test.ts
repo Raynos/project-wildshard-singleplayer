@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the public pack inputs before product publication.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
-import { bootFileList, bootSourceFiles, bootLateReads } from '../src/engine/boot/filePolicy';
+import { bootFileList, bootSourceFiles, bootLateReads } from '../src/engine/client/boot/filePolicy';
 import { parseDiscoveryValues } from '@wildshard/format/discoveryValues';
 import { BOOT_FILES, BOOT_SOURCES, LATE_READS, skyProductBoot } from '../src/shards/far-reach/generators/bootInventory';
 import { BAKED_PIECES, BAKED_URLS, FAN_URL, SKY_CREATURE_RIGS, SKY_MESHES, MODEL_URLS } from '../src/shards/far-reach/generators/fileInventory';
@@ -11,7 +11,7 @@ import { PREPARED_MODELS_URL } from '../src/shards/far-reach/generators/modelFra
 import { BRIDGE_REST_URL, ISLET_POOL, MILL_REST_URL, REST_URLS } from '../src/shards/far-reach/generators/restFiles';
 import { GPU_FILES } from '../src/shards/far-reach/ktx2.generated';
 import { MANIFEST } from '../src/shards/far-reach/discovery.generated';
-import { prepareShardAssets } from '../src/game/shard/load';
+import { prepareShardAssets } from '../src/game/client/shard/load';
 import { nameBlob } from '../src/sdk/blobs';
 import { originalSkyRigs } from './fixtures/sky-original-rigs';
 import { skyRigAssetSources } from '../src/shards/far-reach/generators/rigAssetSources';

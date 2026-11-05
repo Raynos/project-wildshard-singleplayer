@@ -1,7 +1,7 @@
 import {originalGeographyFiles} from './nalati-geography-original';
 import nalati from '../../src/shards/nalati-grasslands/discovery.generated';
-import type { ShardManifest,ChunkTerrain } from '../../src/game/shard/manifest';
-import type { MinimapPalette } from '../../src/engine/ui/Minimap';
+import type { ShardManifest,ChunkTerrain } from '../../src/game/server/shard/manifest';
+import type { MinimapPalette } from '../../src/engine/client/ui/Minimap';
 
 const intake=nalati.scalarBlocks;if(intake!==undefined)intake.prepare(originalGeographyFiles());
 const ground = nalati.ground,terrain = ground.terrain,colour = nalati.groundColor,surface = nalati.surfaceAt,forest = nalati.forest?.mask,map = nalati.minimap?.palette;

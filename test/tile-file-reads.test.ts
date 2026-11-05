@@ -1,8 +1,8 @@
 import { expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
-import { ClientAssets } from '../src/game/shardfile/clientAssets';
-import { prepareClientTile } from '../src/game/shardfile/tileContent';
+import { ClientAssets } from '../src/game/client/shardfile/clientAssets';
+import { prepareClientTile } from '../src/game/client/shardfile/tileContent';
 
 test.each([false, true])('tile transport overlaps bounded reads and drains refusal before construction (%s)', async fail => {
   const scope = new Scope('tile-file-reads'), names = Array.from({ length: 6 }, (_, i) => (i + 1).toString(16).padStart(64, '0'));

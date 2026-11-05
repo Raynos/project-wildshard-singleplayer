@@ -8,7 +8,7 @@ Repo: `/Users/raynos/projects/games/wildshard-nalati-grasslands`, branch `nalati
 - **Committed:** `git diff --stat <mb> HEAD -- src` = **124 files, +21 053 / −175**. 77 new src files.
 - **Uncommitted WIP in the worktree** (the whole riding / taming / elites / night-enemy wave): 36 untracked src files =
   **5 328 lines** (`src/shards/nalati-grasslands/ride/Mount.ts` 409, `src/shards/nalati-grasslands/ride/Taming.ts` 273, `src/shards/nalati-grasslands/ride/ride.ts` 87, `src/shards/nalati-grasslands/ride/RideHUD.ts` 211,
-  `src/shards/nalati-grasslands/ghostRiders.ts` 412, `src/shards/nalati-grasslands/elites.ts` 829, `src/game/Elite.ts`, `src/shards/nalati-grasslands/stealth.ts` 247,
+  `src/shards/nalati-grasslands/ghostRiders.ts` 412, `src/shards/nalati-grasslands/elites.ts` 829, `src/game/server/Elite.ts`, `src/shards/nalati-grasslands/stealth.ts` 247,
   species `ghostRider / balbal / eagle / leopard / kokbori`, `PaintedBackdrop.ts`, `PainterlyRange.ts`, `nalatiTextures.ts`)
   plus 26 modified tracked files (+720 / −364). **Horse riding (B7) and taming (B8) exist only as uncommitted WIP.**
 - No deploys: the plan forbids pushing from the worktree (`docs/plans/NALATI.md` "Deploy — none from this worktree"); a
@@ -111,7 +111,7 @@ Biggest committed files: `player/Bow.ts` 942, `world/nalati/KurganDungeon.ts` 92
 
 ## 3. Shard abstraction — how forked is it?
 
-- **There is a data abstraction but no behaviour abstraction.** `ChunkDef` (309 lines, `src/game/shard/manifest.ts`) covers
+- **There is a data abstraction but no behaviour abstraction.** `ChunkDef` (309 lines, `src/game/server/shard/manifest.ts`) covers
   terrain function, splat, trees, fauna list, sky / fog / grade numbers, `style`, `weapon`, `ocean?`, `horizon?`. A
   `_template.ts` + `registry.ts` makes a *terrain-and-lighting* shard a copy-and-fill job.
 - Everything else is **identity checks on three different signals**:

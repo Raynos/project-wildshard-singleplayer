@@ -5,14 +5,14 @@ import { resolve } from 'node:path';
 import { BufferGeometry, Float32BufferAttribute } from 'three';
 import { bakeWaterStrips } from '../src/shards/nalati-grasslands/generators/waterStrips';
 import { MELT_STREAM } from '../src/shards/nalati-grasslands/generators/layout';
-import { bakedSamplers, parseBakedTerrain } from '../src/engine/world/BakedTerrain';
+import { bakedSamplers, parseBakedTerrain } from '../src/engine/shared/world/BakedTerrain';
 import { waterSceneBlob, terrainSceneBlobs } from '../src/shards/nalati-grasslands/generators/terrainScene';
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the retained native terrain input of the offline baker.
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { bakeNalatiWorldRows } from '../src/shards/nalati-grasslands/generators/nalatiWorldRows';
-import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
+import { createOwnedGeometry } from '../src/engine/client/models/ownedGeometry';
 import { readNativeTerrain } from '../src/sdk/bake/terrain';
 import { RIVER, TERRAIN } from '../src/shards/nalati-grasslands/generators/terrainRecipe';
 import { buildPainterlyGeometry, buildPainterlySlab } from '../src/shards/nalati-grasslands/generators/terrainPainter';

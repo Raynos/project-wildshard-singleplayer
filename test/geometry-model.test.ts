@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { Rng } from '../src/engine/core/rng';
-import { defineGeometryModel, modelContext, paramsOf } from '../src/engine/models/model';
+import { Rng } from '../src/engine/shared/core/rng';
+import { defineGeometryModel, modelContext, paramsOf } from '../src/engine/client/models/model';
 import { pineCrags } from '../src/shards/pine-hollow/generators/bake-pine-crags.mjs';
 import { BAKED_COVE } from './fixtures/driftwood-baked-cove';
 import { ISLAND_LOOK } from '../src/shards/driftwood-isle/generators/islandRows';

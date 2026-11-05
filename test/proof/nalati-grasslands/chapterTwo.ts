@@ -1,17 +1,17 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Every chapter edge requires its genuinely earned original owner.
 import assert from 'node:assert/strict';
 import {Vector3} from 'three';
-import type {SimHost} from '../../../src/engine/sim';
+import type {SimHost} from '../../../src/engine/server/sim';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
-import {mountedPlayerOf} from '../../../src/game/riding/native';
-import {nativeTamingOf} from '../../../src/game/riding/nativeTaming';
+import {mountedPlayerOf} from '../../../src/game/server/riding/native';
+import {nativeTamingOf} from '../../../src/game/server/riding/nativeTaming';
 import type {parseHeldSlots} from '@wildshard/format/heldArms';
-import type {heldBowBase} from '../../../src/game/weapons/heldBowBase';
-import {bowLaunchSpeed} from '../../../src/engine/combat/bowLaw';
-import {DRAW_TIME,RENOCK_TIME} from '../../../src/engine/combat/bowDraw';
-import {FIXED_STEP} from '../../../src/engine/core/fixedStep';
-import {ARROW_RADIUS} from '../../../src/engine/combat/projectileLaw';
-import {worldHit} from '../../../src/engine/physics/query';
+import type {heldBowBase} from '../../../src/game/client/weapons/heldBowBase';
+import {bowLaunchSpeed} from '../../../src/engine/shared/combat/bowLaw';
+import {DRAW_TIME,RENOCK_TIME} from '../../../src/engine/shared/combat/bowDraw';
+import {FIXED_STEP} from '../../../src/engine/shared/core/fixedStep';
+import {ARROW_RADIUS} from '../../../src/engine/shared/combat/projectileLaw';
+import {worldHit} from '../../../src/engine/shared/physics/query';
 import {SKY_ROAD} from '../../../src/shards/nalati-grasslands/generators/layout';
 import {nalatiBalbalsOf} from '../../fixtures/nalati-balbal-native';
 import {readNalatiWeaponObservation,type NalatiWeaponObservation} from '../../fixtures/nalati-weapon-observation';

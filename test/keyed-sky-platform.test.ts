@@ -3,11 +3,11 @@ import oracle from './fixtures/keyed-sky-half-oracle.json';
 import { encodeGainKey, packGainKey } from '../src/sdk/bake/keyedSky';
 import { encodeGainKey as nativeEncodeGainKey, packGainKey as nativePackGainKey } from '../scripts/bake/keyed-sky.mjs';
 import { describe, expect, it } from 'vitest';
-import { DayCycle } from '../src/engine/world/dayCycle';
+import { DayCycle } from '../src/engine/shared/world/dayCycle';
 import { parseKeyedSky, SKY_PRESET } from '@wildshard/format/keyedSky';
-import { dayClock } from '../src/game/looks/dayClock';
-import { keyedSkyDay } from '../src/game/looks/keyedSkyClock';
-import { overcastOver } from '../src/game/looks/overcast';
+import { dayClock } from '../src/game/shared/looks/dayClock';
+import { keyedSkyDay } from '../src/game/shared/looks/keyedSkyClock';
+import { overcastOver } from '../src/game/client/looks/overcast';
 import sky from '../src/shards/pine-hollow/data/sky.json';
 
 // A second author chooses different images, timing, curves and storm responses.

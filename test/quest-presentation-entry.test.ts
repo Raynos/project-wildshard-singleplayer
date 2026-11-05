@@ -1,18 +1,18 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { Flags } from '../src/engine/world/interact/flags';
-import type { ShardContext } from '../src/game/plugin/context';
-import type { QuestChapter } from '../src/game/quest/chapter';
-import { publishBoundChapter, publishChapterFlags } from '../src/game/quest/chapterBindings';
-import { installQuestHints } from '../src/game/quest/hints';
+import { Scope } from '../src/engine/shared/app/scope';
+import { Flags } from '../src/engine/server/world/interact/flags';
+import type { ShardContext } from '../src/game/server/plugin/context';
+import type { QuestChapter } from '../src/game/server/quest/chapter';
+import { publishBoundChapter, publishChapterFlags } from '../src/game/server/quest/chapterBindings';
+import { installQuestHints } from '../src/game/client/quest/hints';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import hintsRows from '../src/shards/driftwood-isle/data/questHints.json' with { type: 'json' };
 import compositionRows from '../src/shards/driftwood-isle/data/questPageComposition.json' with { type: 'json' };
 import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 import * as v from 'valibot';
 
 type Runtime = NonNullable<ShardContext['game']['runtime']>;

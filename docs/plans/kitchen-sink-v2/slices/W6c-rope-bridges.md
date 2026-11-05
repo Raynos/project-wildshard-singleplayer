@@ -14,9 +14,9 @@ bounces under you, with the camera sway.
 
 Research:
 
-- **Driftwood's bridge is three pieces:** the physics chain (`src/engine/physics/ropeChain.ts`, 230 lines, `RopeChain`,
-  driven as the `chain` mover kind inside `game/plugin/mover.ts`), the rope-deck site (`src/format/ropeDeckSite.ts` 148,
-  `src/game/models/ropeDeckSite.ts` 114: spans `{a, b, sag, width}` and a baked rest plan per span; HOST-AUDIT H026,
+- **Driftwood's bridge is three pieces:** the physics chain (`src/engine/shared/physics/ropeChain.ts`, 230 lines, `RopeChain`,
+  driven as the `chain` mover kind inside `game/server/plugin/mover.ts`), the rope-deck site (`src/format/ropeDeckSite.ts` 148,
+  `src/game/client/models/ropeDeckSite.ts` 114: spans `{a, b, sag, width}` and a baked rest plan per span; HOST-AUDIT H026,
   one user), and the camera sway (`behaviour/bridgeSway.as`, a SCRIPT-ABI v2 view module, `views/bridge-sway.json`
   rows). Generators: `src/shards/driftwood-isle/generators/ropeBridge.ts`, `ropeDeckSite.ts`.
 - `src/commons/scripts/bridge.as` is a different thing: a winched deck that raises after two locks
@@ -26,7 +26,7 @@ Work:
 
 | Row / host | Shape | Layer |
 |---|---|---|
-| `world/bridges` (or the rope-deck site section made generic) | `[{ id, a: xyz, b: xyz, sag, width, planks: { look, gap }, sway: 'camera'|'none' }]`; the rest plan is baked by the SDK, not by a Driftwood generator | format + sdk bake + game host (`game/models/ropeDeckSite.ts` loses its Driftwood names) |
+| `world/bridges` (or the rope-deck site section made generic) | `[{ id, a: xyz, b: xyz, sag, width, planks: { look, gap }, sway: 'camera'|'none' }]`; the rest plan is baked by the SDK, not by a Driftwood generator | format + sdk bake + game host (`game/client/models/ropeDeckSite.ts` loses its Driftwood names) |
 | sway | `bridgeSway.as` moves to `src/commons/scripts/` with its rows as params | commons AS |
 | chain driver | the `chain` mover kind stays in the mover host (W6a moved it out of the plugin) | game |
 

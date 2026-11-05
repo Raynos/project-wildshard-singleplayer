@@ -6,7 +6,7 @@ round 5's cell (`art/showcase-template/round-5-blockout/layout.js`, every number
 
 ## 1. The showcase piece
 
-A new product `src/shards/showcase-template/`, `status: "hidden"` (Developer only: `game/shard/registry.ts:14`
+A new product `src/shards/showcase-template/`, `status: "hidden"` (Developer only: `game/client/shard/registry.ts:14`
 `playable()` hides it from the public picker), with:
 
 | Row | What |
@@ -34,10 +34,10 @@ None new. Research (11-03):
 - **Bounds are already enforced** at bake time: `src/sdk/bake/terrain.ts:34`, `src/sdk/bake/props.ts:227`,
   `src/sdk/bake/world.ts:58` refuse anything outside x/z ±250 and y −250…+250 (`format/contentBounds.ts:19`). The
   interior/portal half of the cube rule is W0e.
-- **The grid slot is not (0,2).** The grid catalogue (`src/game/grid/singleplayer.json`) already holds a hologram plot
+- **The grid slot is not (0,2).** The grid catalogue (`src/game/shared/grid/singleplayer.json`) already holds a hologram plot
   **`open-plot-showcase-template` at cell [−1,−1] (instance `open-plot-sw`)**; cell [0,2] is
   `open-plot-saltwind-lighthouse`, and instance `open-plot-0-2` is coral drift at [−2,0]. G972 says one catalogue fills
-  every cell for every audience (`src/game/grid/catalogue.ts:33`), so there is no Developer-only cell swap (Q2).
+  every cell for every audience (`src/game/server/grid/catalogue.ts:33`), so there is no Developer-only cell swap (Q2).
 
 Layer: shard data only. Guards: the layout check (`lint/shard-layout.json`), `wildshard/shard-sandbox`, the ratchet on
 the new folder. Tests: copy `test/scripts/_template-boss.test.ts`'s product-scenario pattern only if a script lands

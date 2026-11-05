@@ -3,7 +3,7 @@
 import rules from '../../../src/shards/pine-hollow/behaviour/contractsRules.as?raw';
 import random from '../../../src/shards/pine-hollow/behaviour/contractsRandom.as?raw';
 import { expect } from 'vitest';
-import { ScriptModuleV2 } from '../../../src/engine/script/moduleV2';
+import { ScriptModuleV2 } from '../../../src/engine/shared/script/moduleV2';
 import type { DualPortFixture } from '../script-v2-port';
 
 const adapter = `import {contractTag,contractElite,contractCounts,contractProgress,contractLoadedProgress,contractNear} from './rules';

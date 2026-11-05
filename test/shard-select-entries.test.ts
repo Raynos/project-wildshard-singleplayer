@@ -1,19 +1,19 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, test, vi } from 'vitest';
-import { setDev } from '../src/engine/core/devMode';
-import { authoredRows } from '../src/engine/ui/authoredDebugRows';
-import { jsonSlot } from '../src/engine/saves/slots';
-import type { ShardManifest } from '../src/game/shard/manifest';
-import { installShards, shards } from '../src/game/shard/list';
-import { buildTitleDeck, titleCards, type TitleCard } from '../src/game/titleDeck';
+import { setDev } from '../src/engine/client/core/devMode';
+import { authoredRows } from '../src/engine/client/ui/authoredDebugRows';
+import { jsonSlot } from '../src/engine/client/saves/slots';
+import type { ShardManifest } from '../src/game/server/shard/manifest';
+import { installShards, shards } from '../src/game/client/shard/list';
+import { buildTitleDeck, titleCards, type TitleCard } from '../src/game/client/titleDeck';
 import { SHARDS } from '../src/shards.generated';
 import plots from '../src/shards/open-plots/outputs.json' with { type: 'json' };
 import inkManifest from '../src/shards/ink-cel-valley/manifest.json' with { type: 'json' };
 import pastelManifest from '../src/shards/pastel-plain/manifest.json' with { type: 'json' };
 import productBootSources from '../src/shards/open-plots/data/nightMarketBootSources.json' with { type: 'json' };
-import { chunkFiles } from '../src/engine/boot/manifest';
-import { bootSourceFiles } from '../src/engine/boot/filePolicy';
-import { bootFetches } from '../src/engine/boot/prefetch';
+import { chunkFiles } from '../src/engine/client/boot/manifest';
+import { bootSourceFiles } from '../src/engine/client/boot/filePolicy';
+import { bootFetches } from '../src/engine/client/boot/prefetch';
 import { installAssetFixture } from './fixtures/bootSetup';
 
 // G531 / QD7 LD5: SHARD SELECT shows one ENTER WORLD per shard, its shardfile, in the public build and in Developer. The
@@ -240,7 +240,7 @@ test('the click iOS sends after the title SHARD SELECT tap enters no world and m
   const built = buildTitleDeck({ cards: CARDS, active: null, onEnter: entered,
     onExplore: () => undefined, onSettings: () => undefined, mode: () => ({ developer: true, devserver: true }) });
   decks.push(built); document.body.append(built.root);
-  // the title's SHARD SELECT answers its tap on pointerup and swaps to the picker (src/game/mainMenu.ts)
+  // the title's SHARD SELECT answers its tap on pointerup and swaps to the picker (src/game/client/mainMenu.ts)
   const shardSelect = document.createElement('button'), opened = vi.fn<() => void>();
   built.onTap(shardSelect, opened);
   shardSelect.dispatchEvent(new PointerEvent('pointerup', { button: 0 }));

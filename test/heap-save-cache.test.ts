@@ -1,7 +1,7 @@
 import {expect,test,vi} from 'vitest';
 import * as v from 'valibot';
-import {SaveStore,type SaveStorage} from '../src/engine/saves/store';
-import {checkpointByteText} from '../src/engine/script/checkpointBytes';
+import {SaveStore,type SaveStorage} from '../src/engine/shared/saves/store';
+import {checkpointByteText} from '../src/engine/server/script/checkpointBytes';
 
 function fixture() {
   const values=new Map<string,string>();let writes=0,blocked=false;

@@ -3,8 +3,8 @@
 import {readFileSync} from 'node:fs';
 import {beforeAll,expect,test} from 'vitest';
 import * as v from 'valibot';
-import {loadRapier,type Rapier} from '../src/engine/physics/rapier';
-import {createSimHost} from '../src/engine/sim';
+import {loadRapier,type Rapier} from '../src/engine/shared/physics/rapier';
+import {createSimHost} from '../src/engine/server/sim';
 import {headlessTapePlanSchema,runTrustedHeadlessTape,createTrustedHeadlessTape,type HeadlessTapePlan} from '../src/sdk/headlessTape';
 import {TickCommandSchema,simPlayerCommand} from '../src/sdk/tickProtocol';
 import {SIM_LEVEL} from './fixtures/sim-level/level';

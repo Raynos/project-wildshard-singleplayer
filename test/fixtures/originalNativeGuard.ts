@@ -1,9 +1,9 @@
 import {Vector3} from 'three';
-import type {AnimalSim} from '../../src/engine/entities/AnimalSim';
-import type {Rng} from '../../src/engine/core/rng';
-import type {FlockThreat} from '../../src/engine/ai/flock';
-import type {ReturnProgram} from '../../src/game/population/returnProgram';
-import type {V2CrowdColumns} from '../../src/engine/script/observationColumnsV2';
+import type {AnimalSim} from '../../src/engine/server/entities/AnimalSim';
+import type {Rng} from '../../src/engine/shared/core/rng';
+import type {FlockThreat} from '../../src/engine/shared/ai/flock';
+import type {ReturnProgram} from '../../src/game/shared/population/returnProgram';
+import type {V2CrowdColumns} from '../../src/engine/shared/script/observationColumnsV2';
 /** Frozen pre-H4 native guard callback, including original clock/RNG/effect order. */
 export class OriginalNativeGuard {
   private readonly sheep=new Vector3();

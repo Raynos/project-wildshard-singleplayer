@@ -1,15 +1,15 @@
 // Shipping policy oracle captured from 2dd3925b5:src/shards/sunscar-dunes/runtime/species/skitterer.ts (SF27: the skitterer now runs
 // behaviour/skitterer.as); test/shards/sunscar-dunes/skitterer-script.test.ts holds the script to it.
 import { strike as admitStrike } from '../../../src/sdk/species';
-import { strikeFromData } from '../../../src/engine/ai/strikeRows';
+import { strikeFromData } from '../../../src/engine/server/ai/strikeRows';
 import { BITE_DATA, SKITTER } from '../../../src/shards/sunscar-dunes/generators/rows/species/skitterer';
-import { CreatureBrain } from '../../../src/engine/ai/CreatureBrain';
-import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../../src/engine/ai/strikes';
-import type { Animal } from '../../../src/engine/entities/AnimalView';
-import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
-import { readStrikeState } from '../../../src/engine/ai/strikeState';
+import { CreatureBrain } from '../../../src/engine/server/ai/CreatureBrain';
+import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../../src/engine/server/ai/strikes';
+import type { Animal } from '../../../src/engine/client/entities/AnimalView';
+import type { AnimalSim } from '../../../src/engine/server/entities/AnimalSim';
+import { readStrikeState } from '../../../src/engine/server/ai/strikeState';
 import * as v from 'valibot';
-import type { SimValue } from '../../../src/engine/sim';
+import type { SimValue } from '../../../src/engine/server/sim';
 
 export const BITE: StrikeSpec = strikeFromData(admitStrike(BITE_DATA));
 

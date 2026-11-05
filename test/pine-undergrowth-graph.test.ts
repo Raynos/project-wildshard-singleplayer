@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import { DataTexture, DoubleSide, ShaderMaterial } from 'three';
-import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
-import { bindGraphMeshMap } from '../src/engine/render/graphBackend';
-import { Scope } from '../src/engine/app/scope';
+import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
+import { bindGraphMeshMap } from '../src/engine/client/render/graphBackend';
+import { Scope } from '../src/engine/shared/app/scope';
 import { validateGraph } from '@wildshard/format/materialGraph';
 import UNDER_LOOK from '../src/shards/pine-hollow/data/coverAppearance.json' with { type: 'json' };
 import lookGraphs from '../src/shards/pine-hollow/data/lookGraphs.json' with { type: 'json' };

@@ -18,7 +18,7 @@ mkdirSync(join(fixture, 'scripts'));
 writeFileSync(join(fixture, 'scripts/physics-route.json'), JSON.stringify({ _template: [{ name: 'hut', gate: true,
   start: { x: 0, y: 1, z: 0, yaw: 0 }, waypoints: [{ x: 0, z: -4 }, { x: 0, z: -7.5 }], timeout: 30 }] }));
 // The scripted weapon is the Template's declared whip (SF16): a declared weapon's Weapon.id is its legacySlot,
-// which game/shardfile/items.ts maps from the row's `slot`, so key on that, not the row id.
+// which game/server/shardfile/items.ts maps from the row's `slot`, so key on that, not the row id.
 const items = object(JSON.parse(readFileSync(resolve(import.meta.dirname, '../src/shards/_template/data/items.json'), 'utf8')));
 const whip = string(object(array(items.rows).find((row) => object(row).context === 'template.whip')).slot);
 if (!whip) throw new Error('Template items declare no template.whip weapon row');

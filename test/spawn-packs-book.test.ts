@@ -1,5 +1,5 @@
 import {afterEach, expect, test, vi} from 'vitest';
-import {setSpawnPacks, startSpawnDownload} from '../src/game/boot/spawnDownload';
+import {setSpawnPacks, startSpawnDownload} from '../src/game/client/boot/spawnDownload';
 
 const initialStorage = globalThis.localStorage;
 afterEach(() => { setSpawnPacks(false); vi.unstubAllGlobals(); vi.stubGlobal('localStorage', initialStorage); });

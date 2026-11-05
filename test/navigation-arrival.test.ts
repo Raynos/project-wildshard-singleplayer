@@ -1,9 +1,9 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { freshPageArrival, setTitleArrival, consumeTitleArrival } from '../src/engine/boot/titleArrival';
+import { freshPageArrival, setTitleArrival, consumeTitleArrival } from '../src/engine/client/boot/titleArrival';
 import { bootRoute } from '../src/bootRoute';
-import { SaveStore } from '../src/engine/saves/store';
-import { gridIntents } from '../src/game/grid/intent';
-import { travelService, travelSlot } from '../src/game/travel/travel';
+import { SaveStore } from '../src/engine/shared/saves/store';
+import { gridIntents } from '../src/game/server/grid/intent';
+import { travelService, travelSlot } from '../src/game/client/travel/travel';
 import { installCatalogueFixture } from './fixtures/bootSetup';
 
 await installCatalogueFixture();

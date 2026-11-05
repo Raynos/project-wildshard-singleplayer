@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { DataTexture, DataUtils, MeshStandardMaterial, PlaneGeometry, type Texture } from 'three';
-import { WaterSurface } from '../src/game/systems/looks/waterSurface';
+import { WaterSurface } from '../src/game/client/systems/looks/waterSurface';
 import type { GraphIr, GraphLiteral, GraphRef } from '@wildshard/format/materialGraph';
 import { WATER_GRAPHS } from '../src/shards/pine-hollow/generators/waterGraphs';
 import { OCEAN_SURFACE } from '../src/shards/driftwood-isle/generators/oceanLook';

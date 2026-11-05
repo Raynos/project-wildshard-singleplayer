@@ -1,12 +1,12 @@
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
-import { installArenaBoundary, arenaBoundaryBlocked } from '../src/game/riding/client';
+import { installArenaBoundary, arenaBoundaryBlocked } from '../src/game/client/riding/client';
 import { beforeEach,afterEach,expect,test } from 'vitest';
 import { parse } from 'valibot';
 import { CellFieldSchema } from '@wildshard/format/cellField';
-import { CellField } from '../src/game/systems/cellField';
-import { Scope } from '../src/engine/app/scope';
-import { ProjectedState,ReturnProgram } from '../src/game/population/returnProgram';
-import { Rng } from '../src/engine/core/rng';
+import { CellField } from '../src/game/server/systems/cellField';
+import { Scope } from '../src/engine/shared/app/scope';
+import { ProjectedState,ReturnProgram } from '../src/game/shared/population/returnProgram';
+import { Rng } from '../src/engine/shared/core/rng';
 import {titanPrograms as program} from './fixtures/titanInlineWitness';
 import * as fight from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import { TITAN_TRAIL, TITAN_FIRE_FIELD } from '../src/shards/nalati-grasslands/generators/stormTitanFight';

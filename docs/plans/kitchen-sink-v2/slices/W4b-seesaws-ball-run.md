@@ -15,7 +15,7 @@ Zone 03, second half:
 
 ## 2. Engine / game / host work, just in time
 
-Research: Rapier joints are used only by the ragdoll (`src/engine/physics/ragdoll.ts:106` `joint: spherical |
+Research: Rapier joints are used only by the ragdoll (`src/engine/client/physics/ragdoll.ts:106` `joint: spherical |
 revolute`, `ImpulseJoint` import line 28). Declared bodies (`sim/bodies`, W4a) have no joint row. No "knocked over"
 reading exists; scripts can read body poses (`test/decision-body-ops.test.ts`).
 

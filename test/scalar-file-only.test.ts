@@ -1,5 +1,5 @@
 import {expect,test,vi} from 'vitest';
-import {readScalarChannel,readScalarLattice,ScalarLatticeBindings} from '../src/engine/world/scalarChannel';
+import {readScalarChannel,readScalarLattice,ScalarLatticeBindings} from '../src/engine/shared/world/scalarChannel';
 
 const inline={type:'f32',count:4,data:'eJxjYEAFAAAQAAE='};
 const lattice={res:2,size:32,values:inline};

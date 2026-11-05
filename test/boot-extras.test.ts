@@ -34,10 +34,10 @@ test('a real emitted image and admitted source produce only the selected home ba
     writeFileSync(resolve(root, 'src/card.svg'), '<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0L1 1"/></svg>');
     writeFileSync(resolve(root, 'src/preview.svg'), '<svg xmlns="http://www.w3.org/2000/svg"><circle r="2"/></svg>');
     writeFileSync(resolve(root, 'src/card.ts'), 'import url from "./card.svg"; import preview from "./preview.svg"; export const value = [url, preview];');
-    mkdirSync(resolve(root, 'src/game/shardfile'), { recursive: true });
-    writeFileSync(resolve(root, 'src/game/shardfile/client.ts'), 'export const client = 1;');
-    mkdirSync(resolve(root, 'src/game/grid'), { recursive: true });
-    writeFileSync(resolve(root, 'src/game/grid/session.ts'), 'export const grid = 1;');
+    mkdirSync(resolve(root, 'src/game/client/shardfile'), { recursive: true });
+    writeFileSync(resolve(root, 'src/game/client/shardfile/client.ts'), 'export const client = 1;');
+    mkdirSync(resolve(root, 'src/game/client/grid'), { recursive: true });
+    writeFileSync(resolve(root, 'src/game/client/grid/session.ts'), 'export const grid = 1;');
     writeFileSync(resolve(root, 'out/.app/discovery.home.generated.ts'), 'export default { slug: "home" };');
     writeFileSync(resolve(root, 'src/shardList.ts'), 'export { default as home } from "../out/.app/discovery.home.generated";');
     writeFileSync(resolve(root, 'src/entry.ts'), "window.client = () => import('./game/shardfile/client'); window.grid = () => import('./game/grid/session'); window.selected = () => import('../out/.app/discovery.home.generated'); window.catalogue = () => import('./shardList'); async function startSelected() { return import('./card'); } void startSelected();");
@@ -46,10 +46,10 @@ test('a real emitted image and admitted source produce only the selected home ba
       explore: { art: { world: '/src/preview.svg' } }, boot: { precache: ['/assets/required.webp'] } }));
     writeFileSync(resolve(root, 'public/assets/required.webp'), new Uint8Array(3));
     writeFileSync(resolve(root, 'public/assets/model.glb'), new Uint8Array(11));
-    mkdirSync(resolve(root, 'src/game/data'), { recursive: true });
+    mkdirSync(resolve(root, 'src/game/client/data'), { recursive: true });
     writeFileSync(resolve(root, 'public/assets/pickup.bin'), new Uint8Array(17));
     const geometry = { attrs: [], count: 0, index: null, indexCount: 0, box: false, expand: false };
-    writeFileSync(resolve(root, 'src/game/data/pickupCatalogue.json'), JSON.stringify({
+    writeFileSync(resolve(root, 'src/game/client/data/pickupCatalogue.json'), JSON.stringify({
       file: 'pickups', seed: 1, coin: 'coin', looks: [], geometries: [
         { key: 'coin', seed: 1, geometry, file: '/assets/pickup.bin' },
         { key: 'shared', seed: 1, geometry, file: '/assets/pickup.bin' },
@@ -99,7 +99,7 @@ test('a real emitted image and admitted source produce only the selected home ba
     expect(html).toContain(`/${metadataName}`);
     expect(html).not.toContain('/assets/model.glb');
     expect(html).toContain(createHash('sha256').update(metadata).digest('hex'));
-    const cataloguePath = resolve(root, 'src/game/data/pickupCatalogue.json');
+    const cataloguePath = resolve(root, 'src/game/client/data/pickupCatalogue.json');
     const originalCatalogue = readFileSync(cataloguePath, 'utf8');
     const originalRows: unknown = JSON.parse(originalCatalogue);
     if (typeof originalRows !== 'object' || originalRows === null) throw new Error('Missing pickup fixture');

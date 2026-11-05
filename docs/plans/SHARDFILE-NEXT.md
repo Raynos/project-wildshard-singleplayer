@@ -124,16 +124,16 @@ shard silently picks up a changed pack.
 ### B. Persistence: player data apart from world state (M–L)
 
 Today an instance's quest flags, steps and dialogue live in its logical checkpoint, next to an exact sim snapshot of
-up to 512 K characters (`SIM_REGION_SNAPSHOT_CHAR_BUDGET`, `src/engine/sim/snapshot.ts`;
-`src/game/grid/durability.ts`). A new `identity.revision` starts fresh (SHARDFILE.md "Local instance checkpoints"),
+up to 512 K characters (`SIM_REGION_SNAPSHOT_CHAR_BUDGET`, `src/engine/shared/sim/snapshot.ts`;
+`src/game/server/grid/durability.ts`). A new `identity.revision` starts fresh (SHARDFILE.md "Local instance checkpoints"),
 so any rebuild that bumps a revision can wipe quest progress. Coins, bag and loadout already sit in their own
-per-instance save slots (`GridWallet`, `src/game/grid/wallet.ts`) and the ledger keeps a profile, so they survive;
+per-instance save slots (`GridWallet`, `src/game/server/grid/wallet.ts`) and the ledger keeps a profile, so they survive;
 quest flags, current steps and dialogue do not. Declared `migrations` exist, but their hooks are null.
 
 - **B1** One player record (SN-D2) with a section per shard, declared by the format; each section holds quest steps and flags, dialogue progress and the
   `state.player` fields; travelling items and the profile sit at the top level, next to the wallet slots and ledger
   facts that already persist. Keyed by stable ids, stored
-  in the save store (`src/engine/saves/store.ts`). — open
+  in the save store (`src/engine/shared/saves/store.ts`). — open
 - **B2** The record is the source of truth. The exact snapshot becomes a cache, restored only when the revision
   matches; on a revision bump the world starts fresh and the record is re-applied. — open
 - **B3** Wire the declared `migrations` hooks for the player record: a rename or a removed quest step migrates by id
@@ -148,7 +148,7 @@ quest flags, current steps and dialogue do not. Declared `migrations` exist, but
 ### C. Versioning: pins and rollback per shard (M)
 
 Today the site ships and rolls back as one SHA (`.github/deploy-pin.json`), and a grid placement names a slug, not a
-product (`src/game/grid/singleplayer.json`, `src/game/grid/catalogue.ts`). Products are build outputs and are not
+product (`src/game/shared/grid/singleplayer.json`, `src/game/server/grid/catalogue.ts`). Products are build outputs and are not
 committed.
 
 - **C1** Keep every product the deploy publishes, by its root hash, with a small `versions` list per slug

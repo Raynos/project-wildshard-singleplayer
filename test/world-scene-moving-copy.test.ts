@@ -2,17 +2,17 @@
 import { afterEach, expect, test } from 'vitest';
 import { parse } from 'valibot';
 import { BoxGeometry, Group, Matrix4, Mesh, MeshStandardMaterial, Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
+import { Scope } from '../src/engine/shared/app/scope';
+import { installScopeEnvironment, scopeEnvironment } from '../src/engine/shared/app/scopeEnvironment';
 import { FakeGame, legacyDouble } from '../src/engine/test/FakeGame';
-import { defineModel } from '../src/engine/models/model';
-import { WorldRegistry } from '../src/engine/world/registry';
-import { SkyRig } from '../src/engine/world/skyRig';
+import { defineModel } from '../src/engine/client/models/model';
+import { WorldRegistry } from '../src/engine/client/world/registry';
+import { SkyRig } from '../src/engine/client/world/skyRig';
 import { WorldScenePlacementSchema } from '@wildshard/format/worldScenePlacement';
-import type { ShardContext } from '../src/game/plugin/context';
-import { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { WorldEntry } from '../src/game/shardfile/worldEntry';
-import { WorldScenePlacement } from '../src/game/shardfile/worldScenePlacement';
+import type { ShardContext } from '../src/game/server/plugin/context';
+import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
+import { WorldEntry } from '../src/game/client/shardfile/worldEntry';
+import { WorldScenePlacement } from '../src/game/client/shardfile/worldScenePlacement';
 
 const originalEnvironment = scopeEnvironment();
 afterEach(() => { installScopeEnvironment(originalEnvironment); });

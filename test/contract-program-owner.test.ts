@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { realGc } from '@wildshard/engine/test/realGc';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { CONTRACTS } from './fixtures/pine-contracts';
-import { contractKill, draw, loadBoard, ownContractCatalogue, saveBoard } from '../src/game/quest/contracts';
+import { contractKill, draw, loadBoard, ownContractCatalogue, saveBoard } from '../src/game/server/quest/contracts';
 
 const original = CONTRACTS;
 const declaration = original.program;

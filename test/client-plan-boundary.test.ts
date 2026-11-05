@@ -9,9 +9,9 @@ function fixture(run: (root: string, nested: (source: string) => void) => void):
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync(resolve('tmp/client-plan-schema-'));
   mkdirSync(resolve(root, 'node_modules/@wildshard/format/src/format'), { recursive: true });
-  mkdirSync(resolve(root, 'src/game/shardfile'), { recursive: true });
+  mkdirSync(resolve(root, 'src/game/client/shardfile'), { recursive: true });
   writeFileSync(resolve(root, 'node_modules/@wildshard/format/src/format/clientPlan.ts'), 'export const ClientPlanSchema = {version:1};');
-  writeFileSync(resolve(root, 'src/game/shardfile/clientPlan.ts'), "export const FEATURES={view:{sections:['fixture/rows']}};");
+  writeFileSync(resolve(root, 'src/game/client/shardfile/clientPlan.ts'), "export const FEATURES={view:{sections:['fixture/rows']}};");
   writeFileSync(resolve(root, 'node_modules/@wildshard/format/src/format/platformDataSections.ts'), "import { Schema } from './nested'; export const PLATFORM_DATA_SECTIONS={'fixture/rows':{schema:Schema}} as const;");
   try { run(root, source => { writeFileSync(resolve(root, 'node_modules/@wildshard/format/src/format/nested.ts'), source); }); }
   finally { rmSync(root, { recursive: true, force: true }); }
@@ -37,7 +37,7 @@ test('borrowed-owner types and executable dependency lists cannot hide a schema 
     nested('interface BorrowedOwnerPath {owner:string;path:string[]} export const Schema: BorrowedOwnerPath = {owner:"runtime",path:[]};');
     expect(clientPlanSchemaViolations(root)).toEqual(expect.arrayContaining([expect.stringContaining('BorrowedOwnerPath')]));
     nested('export const Schema={name:"safe"};');
-    writeFileSync(resolve(root, 'src/game/shardfile/clientPlan.ts'), 'export const FEATURES={view:{sections:getSections()}};');
+    writeFileSync(resolve(root, 'src/game/client/shardfile/clientPlan.ts'), 'export const FEATURES={view:{sections:getSections()}};');
     expect(clientPlanSchemaViolations(root)).toEqual([expect.stringContaining('literal section names')]);
   });
 });
@@ -61,7 +61,7 @@ test('legacy root envelopes retain the same schema traversal and refuse reflecte
     nested('export const Schema={movers:{owner:"runtime",path:[]}};');
     expect(clientPlanSchemaViolations(root)).toEqual([expect.stringContaining('reflected {owner,path}')]);
     nested('export const Schema={movers:[]};');
-    writeFileSync(resolve(root, 'src/game/shardfile/clientPlan.ts'), "export const FEATURES={view:{sections:['unknown/rows']}};");
+    writeFileSync(resolve(root, 'src/game/client/shardfile/clientPlan.ts'), "export const FEATURES={view:{sections:['unknown/rows']}};");
     expect(clientPlanSchemaViolations(root)).toEqual([expect.stringContaining('missing client section schema unknown/rows')]);
   });
 });

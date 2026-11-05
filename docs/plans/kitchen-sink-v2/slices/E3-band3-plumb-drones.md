@@ -21,7 +21,7 @@ Research:
 - **Creature projectiles exist once, as a special case**: Driftwood's monkey throws coconuts from a perch
   (`perch-hunter`: `throwRadius`, `throwDuration`, `throwCooldownMin/Max`, `src/format/brains.ts:55-57`;
   `src/shards/driftwood-isle/generators/brains.ts:17`); "the loader's authority over perches, projectiles and tokens"
-  (`brains.ts:60`). Player projectiles are rows (`AmmoRow` flight, `src/engine/combat/ammo.ts`;
+  (`brains.ts:60`). Player projectiles are rows (`AmmoRow` flight, `src/engine/shared/combat/ammo.ts`;
   `projectileFlight.ts`, `projectileLaw.ts`, `projectileContact.ts`).
 - No strike row fires a projectile; a creature "ranged" strike today is a `sphere` / `point` with a range.
 

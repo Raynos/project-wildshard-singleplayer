@@ -21,9 +21,9 @@ Research:
 - **A terrain cave host exists, inside Pine's forest page.** `src/format/caveInterior.ts` (212 lines): "a cave cut into
   the terrain as rows": `CaveFileSchema { holes, cuts (terrain cut below), spots, inside, shaft {top, foot, r0, r1},
   drips, floor, tris }` and `CaveInteriorSchema { product, file, frame {x, z, yaw} (one mouth), roof, rock {look, fill,
-  pbr, grit}, look {near, under, fill, surface: 'rock', shaft, drips} }`. Client host `src/game/shardfile/caveInterior.ts`
+  pbr, grit}, look {near, under, fill, surface: 'rock', shaft, drips} }`. Client host `src/game/client/shardfile/caveInterior.ts`
   (162 lines; imports `fetchDeflated` from `game/plugin/geometry`). It is reached only through the forest page:
-  `src/game/shardfile/clientForestPage.ts:15-18` ("its optional cave … the cave's cut through the page terrain"). One
+  `src/game/client/shardfile/clientForestPage.ts:15-18` ("its optional cave … the cave's cut through the page terrain"). One
   user: Pine's crag cave (`src/shards/pine-hollow/generators/cragLook.ts`, `worldScenes.ts`). Inventory H073: "fold into
   a general host".
 - One mouth only (`frame`), one shaft; the squeeze cave needs two mouths.

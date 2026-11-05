@@ -11,7 +11,7 @@ import { mergeProjectBlobs, prepareProjectOutput } from '../src/sdk/projectOutpu
 import { emitPlatformSections } from '../src/sdk/platformSections';
 import { writeOutputProduct, validateOutputProduct } from '../src/sdk/outputProduct';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { admitProduct as admitBrowser, readProductDescriptor, type ProductOptions } from '../src/game/shardfile/product';
+import { admitProduct as admitBrowser, readProductDescriptor, type ProductOptions } from '../src/game/client/shardfile/product';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
 import { admitScriptContract, decisionModuleContracts, decisionScriptsFromSections } from '@wildshard/format/scriptContract';
 import { assetCost } from '@wildshard/format/product';

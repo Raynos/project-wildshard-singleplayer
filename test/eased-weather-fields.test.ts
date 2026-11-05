@@ -1,18 +1,18 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
-import { EasedFields, easeField } from '../src/engine/world/easedFields';
+import { EasedFields, easeField } from '../src/engine/shared/world/easedFields';
 import { parseEasedFields } from '@wildshard/format/easedFields';
 import { SIGNAL_WEATHER_FIELDS } from '../src/shards/sunscar-dunes/generators/weatherFields';
-import { Scope } from '../src/engine/app/scope';
-import { Flags } from '../src/engine/world/interact/flags';
-import { QuestState } from '../src/engine/quest/core';
-import { publishBoundQuest } from '../src/game/quest/boundState';
-import { installWeatherFields, settleWeatherFields } from '../src/game/shardfile/weatherFields';
-import { sceneScalar, sceneScalarValue } from '../src/game/shardfile/sceneInputs';
-import { graphParamFeeds } from '../src/game/shardfile/clientGraphs';
-import type { ShardContext } from '../src/game/plugin/context';
+import { Scope } from '../src/engine/shared/app/scope';
+import { Flags } from '../src/engine/server/world/interact/flags';
+import { QuestState } from '../src/engine/server/quest/core';
+import { publishBoundQuest } from '../src/game/server/quest/boundState';
+import { installWeatherFields, settleWeatherFields } from '../src/game/client/shardfile/weatherFields';
+import { sceneScalar, sceneScalarValue } from '../src/game/client/shardfile/sceneInputs';
+import { graphParamFeeds } from '../src/game/client/shardfile/clientGraphs';
+import type { ShardContext } from '../src/game/server/plugin/context';
 import { emptyShardfile } from '../src/sdk/author';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 
 /** The sealed dusk law (sunscar-dunes-legacy look/dusk.ts, E399): the target set per quest step, eased at 0.02 a second. */
 const DUSK = { value: 0 }, dusk = { target: 0 }, RATE = 0.02;

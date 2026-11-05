@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { PreparationReads } from '../src/game/shardfile/preparationReads';
+import { PreparationReads } from '../src/game/client/shardfile/preparationReads';
 
 function fixture() {
   const rows = Array.from({ length: 14 }, (_, i) => i), started: number[] = [];

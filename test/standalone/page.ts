@@ -1,7 +1,7 @@
-import { installBrowserSaveEnvironment } from '../../src/engine/saves/view/storage';
-import { saveEnvironment } from '../../src/engine/saves/environment';
-import { NET_BUTTONS } from '../../src/engine/input/netButtons';
-import { ANIMAL_CLASS } from '../../src/engine/net/netSchemas';
+import { installBrowserSaveEnvironment } from '../../src/engine/client/saves/view/storage';
+import { saveEnvironment } from '../../src/engine/shared/saves/environment';
+import { NET_BUTTONS } from '../../src/engine/shared/input/netButtons';
+import { ANIMAL_CLASS } from '../../src/engine/shared/net/netSchemas';
 import { startStandalone, type StandaloneShell } from '../../src/sdk/standalone/shell';
 
 // P1-E5.2: the test page scripts/standalone-smoke.mjs drives. It never ships: it is the first real client of the standalone

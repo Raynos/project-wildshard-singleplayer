@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The physical route must earn every arrival through native inputs.
 import assert from 'node:assert/strict';
-import type {SimHost} from '../../../src/engine/sim';
-import {mountedPlayerOf} from '../../../src/game/riding/native';
+import type {SimHost} from '../../../src/engine/server/sim';
+import {mountedPlayerOf} from '../../../src/game/server/riding/native';
 import {PhysicsRouteCursor,type WalkPoint} from '../../../src/sdk/headlessJourney';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import {SKY_ROAD} from '../../../src/shards/nalati-grasslands/generators/layout';

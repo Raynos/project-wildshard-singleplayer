@@ -1,19 +1,19 @@
 // @vitest-environment happy-dom
 import { afterAll, beforeAll, expect, test, vi } from 'vitest';
 import { BufferGeometry, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { legacyDouble } from '../src/engine/test/FakeGame';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseClientPlan, type ClientFeatureRow } from '@wildshard/format/clientPlan';
-import type { ShardContext } from '../src/game/plugin/context';
-import { CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
-import { clientSceneHandles } from '../src/game/shardfile/clientSceneHandles';
-import { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { tiledMesh } from '../src/game/shardfile/tiledMesh';
-import * as sceneInstaller from '../src/game/shardfile/worldScenes';
-import { jsonSlot } from '../src/engine/saves/slots';
-import { LEVEL_DOWNLOAD_SLOT, runtimePacksOn } from '../src/engine/boot/loadingPacks';
+import type { ShardContext } from '../src/game/server/plugin/context';
+import { CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';
+import { clientSceneHandles } from '../src/game/client/shardfile/clientSceneHandles';
+import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
+import { tiledMesh } from '../src/game/client/shardfile/tiledMesh';
+import * as sceneInstaller from '../src/game/client/shardfile/worldScenes';
+import { jsonSlot } from '../src/engine/client/saves/slots';
+import { LEVEL_DOWNLOAD_SLOT, runtimePacksOn } from '../src/engine/client/boot/loadingPacks';
 
 // This ruler tests device-ring retirement on the loose-file harness path.
 // Packs deliberately keep the whole cell resident after player movement.

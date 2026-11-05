@@ -22,13 +22,13 @@ files that must always check freshness.
 | `/`, `/index.html` | `no-store` | The service worker owns the document (cache-first with a background revalidate). A cached `index.html` in the HTTP cache would pin an old build id and an old entry chunk beneath the worker. |
 | `/sw.js` | `no-cache` | A tiny bootstrap imports the exact SHA-256-named worker core. Registration uses `updateViaCache: 'all'`; explicit ETag revalidation returns 304, and a browser-owned unconditional check transfers only the bootstrap. Changing core bytes changes the import URL and bootstrap, preserving update discovery. |
 | `/sw-core/(.*)` | `public, max-age=31536000, immutable` | Each filename is the SHA-256 of its complete stamped worker source. The browser reuses an unchanged imported core through its HTTP cache; changed bytes get a new path and are fetched in full. |
-| `/version.json` | `no-store` | The title-screen build pill (`src/engine/ui/Update.ts`) polls it to light up "new build · tap to update". The SW never intercepts it (network-only), so offline it simply fails and the pill stays plain. |
+| `/version.json` | `no-store` | The title-screen build pill (`src/engine/client/ui/Update.ts`) polls it to light up "new build · tap to update". The SW never intercepts it (network-only), so offline it simply fails and the pill stays plain. |
 | `/asset-index.json` | `no-store` | The byte table the loading screen sums; regenerated every build. Network-first in the SW with the last copy as the offline fallback. |
 | `/asset-manifest.json` | `no-store` | E160 / E161: every file under `public/assets` (packs included) → its content hash (sha256, first 8 hex). What the build names: the worker reads it on `activate` to keep exactly those entries and drop the rest. Fetched by the worker only, never by the page. |
 | `/manifest.webmanifest` | `no-store` | Small, and the icons/start_url it names must follow the build. Network-first in the SW. |
 | `/clear-cache.json` | `no-store` + `Clear-Site-Data: "cache"` | E172: Debug ▸ Clear downloads fetches it (`?sw=0`, so no worker answers) after unregistering the worker and deleting every cache, so the origin's HTTP cache goes too and the reload is a true first visit. `"cache"` only: `"storage"` would take the saves with it. |
 
-## The service worker's three caches (`src/engine/pwa/sw.js`)
+## The service worker's three caches (`src/engine/client/pwa/sw.js`)
 
 Installation strictly caches the shell, every static dependency of its
 emitted entry chunks, and extracted CSS. The complete content URL inventory
@@ -62,18 +62,18 @@ bytes changed:
 
 - **`?v=<hash8>` on every unhashed asset.** `src/engine/boot/versions.generated.ts` (vite.config.ts `writeVersionsModule`) holds
   the content hash of every file under `public/assets` whose name is not already content-addressed
-  (`scripts/app-build/assetHashes.ts contentNamed`: the packs, `<name>-<hash8>.<ext>`). `versionedUrl` (src/engine/boot/bytes.ts) puts it on
+  (`scripts/app-build/assetHashes.ts contentNamed`: the packs, `<name>-<hash8>.<ext>`). `versionedUrl` (src/engine/client/boot/bytes.ts) puts it on
   every fetch after the byte counter and on the loading manager's URLs (Safari's `<img>`-loaded glTF textures). The
   worker answers any `/assets/…?v=` request cache-first: the key names the bytes. Unversioned requests (an `<img>` in the
   DOM, a worker's fetch) keep the old routes.
 - **Boot packs in parts.** `scripts/bake-packs.mjs` cuts each shard's pack into content-addressed parts of 1.5–4 MB at
   path-determined points (Pine Hollow's 18 MB phone boot: 8 parts; Nalati 2; Driftwood 1), so one changed texture costs
-  its part, not the pack. `src/engine/boot/pack.ts` streams them in order, the next one requested at 75 % of the current.
+  its part, not the pack. `src/engine/client/boot/pack.ts` streams them in order, the next one requested at 75 % of the current.
 - **Measured**: see "Verified" below (E160 rows).
 
 ## The other shards, in the background (E158, 2026-09-25)
 
-`src/engine/boot/shardPrefetch.ts`, started by main.ts once the shard is playable: every file another shard's boot reads on
+`src/engine/client/boot/shardPrefetch.ts`, started by main.ts once the shard is playable: every file another shard's boot reads on
 this tier (its pack parts + declared files, the same list `test/shard-prefetch.test.ts` holds equal to the boot's own,
 + the few files its world reads undeclared: LUT, horizon, Pine Hollow's rifle / knife / birds / NPCs / chalk, Nalati's
 camp people) is posted one URL at a time to the worker (`PREFETCH`), which skips what it holds and stores the rest
@@ -88,7 +88,7 @@ cache did not keep it.
 
 ## Clear downloads (E172, 2026-09-25)
 
-Debug ▸ Loading & memory ▸ Clear downloads (the E162 registry, in title ▸ Settings and pause ▸ Settings, developer mode; `src/engine/boot/clearDownloads.ts`): stops the
+Debug ▸ Loading & memory ▸ Clear downloads (the E162 registry, in title ▸ Settings and pause ▸ Settings, developer mode; `src/engine/client/boot/clearDownloads.ts`): stops the
 background download, unregisters the worker, deletes every Cache Storage cache (re-checked until none is left), removes
 the `ws.ktx2set.*` markers, fetches `/clear-cache.json` for the HTTP cache, then reloads to the title with `?chunk=` kept.
 localStorage otherwise stays (saves, settings, developer mode, the review login). `scripts/e172-clear-downloads.mjs`

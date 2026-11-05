@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { instancedMaterial } from '../src/engine/render/instancedTwin';
+import { instancedMaterial } from '../src/engine/client/render/instancedTwin';
 
 test('a classic material\'s instanced twin reads the material live, files its own program state and goes with it', () => {
   const material = new THREE.MeshStandardMaterial({ color: 0x336699, roughness: 0.4 });

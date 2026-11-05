@@ -6,7 +6,7 @@ import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { unzlibSync } from 'fflate';
 import { CreatureGuestSchema } from '@wildshard/format/speciesBookRows';
-import { unshuffleLanes } from '../src/engine/core/deflate';
+import { unshuffleLanes } from '../src/engine/client/core/deflate';
 import { compileReturnProjectionV2 } from '../src/sdk/returnProjectionV2';
 import { readDecisionSources } from '../src/sdk/buildDecisionScripts';
 import { hashImmutableBytes } from '../src/sdk/immutable';

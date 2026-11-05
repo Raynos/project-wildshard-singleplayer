@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { installChannelPrograms } from '../src/game/plugin/channelPrograms';
+import { installChannelPrograms } from '../src/game/server/plugin/channelPrograms';
 import { NPC_FOCUS_PROGRAMS } from '../src/shards/driftwood-isle/generators/npcFocusPrograms';
 import { CASTAWAY_FACING, CASTAWAY_HEAD_FOCUS, TRADER_FACING, TRADER_HEAD_FOCUS } from '../src/shards/driftwood-isle/generators/npcFocus';
 

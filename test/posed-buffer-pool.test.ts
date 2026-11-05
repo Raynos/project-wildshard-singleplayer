@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 import { BufferGeometry, Float32BufferAttribute, InterleavedBufferAttribute, Matrix4, MeshBasicMaterial } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { PosedBufferPool } from '../src/game/looks/posedBufferPool';
-import { PosedInstances } from '../src/game/looks/posedInstances';
+import { Scope } from '../src/engine/shared/app/scope';
+import { PosedBufferPool } from '../src/game/client/looks/posedBufferPool';
+import { PosedInstances } from '../src/game/client/looks/posedInstances';
 
 test('separate draws share uploads while every CPU and GPU matrix and lane remains exact', () => {
   const scope = new Scope('posed-pool'), pool = new PosedBufferPool(scope, 5);

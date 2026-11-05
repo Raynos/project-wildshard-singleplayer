@@ -6,7 +6,7 @@ import { parseWorldSceneModels, WorldSceneModelsSchema, worldSceneModelResources
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { driftwoodFixedFiles, driftwoodSceneBanks } from './fixtures/driftwoodSceneBanks';
 import { driftwoodModelCatalogue } from './fixtures/driftwoodModelCatalogue';
-import { admitWorldSceneModelGraphs } from '../src/game/shardfile/worldSceneWeld';
+import { admitWorldSceneModelGraphs } from '../src/game/client/shardfile/worldSceneWeld';
 
 test('native cards bind the same catalogue and owned sources at boot and product admission', async () => {
   const boot=parse(object({siteCatalogue:WorldSceneModelsSchema}),

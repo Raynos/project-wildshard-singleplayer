@@ -5,9 +5,9 @@ import { Buffer } from 'node:buffer';
 import { afterEach, expect, it, vi } from 'vitest';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { bakeTreeRest } from '../src/shards/pine-hollow/generators/treeRest';
-import { loadTreeSetGeometry } from '../src/engine/world/forest/treeSet';
+import { loadTreeSetGeometry } from '../src/engine/client/world/forest/treeSet';
 import { readSourceModel } from '../src/sdk/bake/skinned';
-import { createModelLibrary } from '../src/game/plugin/geometry';
+import { createModelLibrary } from '../src/game/client/plugin/geometry';
 import { PINE_TREE_SET, pineTreeRestRows } from '../src/shards/pine-hollow/generators/treeSet';
 
 const rows = pineTreeRestRows();

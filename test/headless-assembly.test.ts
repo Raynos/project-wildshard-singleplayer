@@ -1,26 +1,26 @@
-import {sha256} from '../src/game/plugin/moduleHash';
+import {sha256} from '../src/game/shared/plugin/moduleHash';
 import { parseOutputIndex } from '@wildshard/format/outputIndex';
 import { OUTPUT_SECTIONS, outputSectionPayloads } from '@wildshard/format/outputFields';
 import {parseShardfile} from '@wildshard/format/shardSchema';
-import {resolveOutputDescriptor,carryOutputDescriptor} from '../src/game/shardfile/outputDescriptor';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+import {resolveOutputDescriptor,carryOutputDescriptor} from '../src/game/shared/shardfile/outputDescriptor';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { parseReturnProjectionV2 } from '@wildshard/format/returnProjectionV2';
 import {titanPrograms as returnPrograms} from './fixtures/titanInlineWitness';
 // oxlint-disable-next-line import/no-nodejs-modules -- The unit host uses the same native physics module as the resident.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
-import { trustedLevel } from '../src/game/plugin/simulation';
+import { trustedLevel } from '../src/game/server/plugin/simulation';
 import type { HeadlessRuntimePlan } from '../src/sdk/headlessRuntime';
 import { installBodyScripts, prepareReturns } from '@wildshard/game/shardfile/nativeRuntimeLoans';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { createSimHost, type SimHost } from '../src/engine/sim';
-import { snapshotSimHost, restoreSimHost, onSimHostRestored } from '../src/engine/sim/snapshot';
-import { hasStaticGround } from '../src/engine/physics/query';
-import { tagCollider } from '../src/engine/physics/surface';
-import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
+import { createSimHost, type SimHost } from '../src/engine/server/sim';
+import { snapshotSimHost, restoreSimHost, onSimHostRestored } from '../src/engine/shared/sim/snapshot';
+import { hasStaticGround } from '../src/engine/shared/physics/query';
+import { tagCollider } from '../src/engine/shared/physics/surface';
+import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
 import { HEADLESS_ASSEMBLY_JSON_SCHEMA } from '@wildshard/format/namedJsonContracts';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 import driftwoodAssembly from '../src/shards/driftwood-isle/data/headlessAssembly.json' with { type: 'json' };
 
 const base = { version: 1, modules: {}, constants: {}, prepare: [], install: [],

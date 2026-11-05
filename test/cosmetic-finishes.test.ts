@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
 import { BoxGeometry, Color, Group, Mesh, MeshLambertMaterial, MeshStandardMaterial } from 'three';
-import { CosmeticFinishLocker, CosmeticFinishPainter, paintBoundFinishes } from '../src/game/loadout/cosmeticFinishes';
+import { CosmeticFinishLocker, CosmeticFinishPainter, paintBoundFinishes } from '../src/game/client/loadout/cosmeticFinishes';
 import type { CosmeticFinishBind } from '@wildshard/format/heldFinishes';
 import { parsePlatformDataSection } from '@wildshard/format/platformDataSections';
 import rows from '../src/shards/nalati-grasslands/data/skinFinishes.json';
-import { patchShader, PATCH_ORDER } from '../src/engine/render/shaderPatches';
+import { patchShader, PATCH_ORDER } from '../src/engine/client/render/shaderPatches';
 
 const save = () => ({ read: () => ({ owned: [], worn: {} }), write: () => true });
 

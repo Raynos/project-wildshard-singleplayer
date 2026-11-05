@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CHUNK_HALF } from '../src/engine/core/config';
+import { CHUNK_HALF } from '../src/engine/shared/core/config';
 import { SEA_RES } from '../src/shards/driftwood-isle/generators/oceanLook';
 import { createOwnedGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { oceanGrid, oceanGridGlb, seaFloor } from '../src/shards/driftwood-isle/generators/oceanGrid';

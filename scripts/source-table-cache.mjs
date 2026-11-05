@@ -9,15 +9,15 @@ import { programDiscoveryProducts } from './gen-programs.mjs';
 /** @typedef {'shards-before'|'boot'|'shards-after'} TailStep */
 /** @param {unknown} value */
 const digest = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
-const shardFiles = new Set(['src/shards.generated.ts', 'src/game/shard/slugs.generated.ts',
-  'src/game/shard/slugs.generated.json', 'src/game/shard/manifest-closure.generated.json', 'lint/shard-words.generated.json']);
-const bootFiles = new Set(['src/game/boot/bytes.generated.ts', 'src/game/boot/versions.generated.ts',
-  'src/game/boot/audio.generated.ts', 'src/game/boot/packs.generated.ts', 'src/game/shard/art.generated.ts',
+const shardFiles = new Set(['src/shards.generated.ts', 'src/game/server/shard/slugs.generated.ts',
+  'src/game/server/shard/slugs.generated.json', 'src/game/server/shard/manifest-closure.generated.json', 'lint/shard-words.generated.json']);
+const bootFiles = new Set(['src/game/client/boot/bytes.generated.ts', 'src/game/client/boot/versions.generated.ts',
+  'src/game/client/boot/audio.generated.ts', 'src/game/client/boot/packs.generated.ts', 'src/game/client/shard/art.generated.ts',
   'public/assets/physics/rapier.wasm', 'scripts/boot-publication.generated.json']);
 /** @param {TailStep} step @param {string} file */
 function owns(step, file) {
   return step === 'boot'
-    ? bootFiles.has(file) || file === 'public/assets/physics' || /^src\/game\/boot\/[^/]+\.generated\.(?:ts|json)$/u.test(file)
+    ? bootFiles.has(file) || file === 'public/assets/physics' || /^src\/game\/(?:(?:client|cook|server|shared)\/)?boot\/[^/]+\.generated\.(?:ts|json)$/u.test(file)
       || /^(?:public\/assets\/packs|public\/basis)(?:\/|$)/u.test(file)
     : shardFiles.has(file) || /^src\/shards\/[^/]+\/discovery(?:\.[a-z0-9-]+)?\.generated\.ts$/u.test(file);
 }

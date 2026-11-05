@@ -1,10 +1,10 @@
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Group } from 'three';
-import { SceneDressing } from '../src/game/shardfile/sceneDressing';
-import type { ShardContext } from '../src/game/plugin/context';
-import { Scope } from '../src/engine/app/scope';
-import { enterOwner, ownerTask } from '../src/engine/app/ownership';
-import { WorldRegistry } from '../src/engine/world/registry';
+import { SceneDressing } from '../src/game/client/shardfile/sceneDressing';
+import type { ShardContext } from '../src/game/server/plugin/context';
+import { Scope } from '../src/engine/shared/app/scope';
+import { enterOwner, ownerTask } from '../src/engine/shared/app/ownership';
+import { WorldRegistry } from '../src/engine/client/world/registry';
 import { writeGeometry, join } from '../src/shards/nalati-grasslands/generators/geometryWriter';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 

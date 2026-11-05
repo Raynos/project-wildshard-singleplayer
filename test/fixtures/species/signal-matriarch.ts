@@ -1,6 +1,6 @@
 // Shipping declaration oracle captured from 539d18a9262151dbe28aa0656068065e9b3d0193:src/shards/sunscar-dunes/runtime/species/matriarch.ts; no hand-written policy.
-import type { StrikeSpec } from '../../../src/engine/ai/strikes';
-import type { SpeciesRow } from '../../../src/engine/ai/species';
+import type { StrikeSpec } from '../../../src/engine/server/ai/strikes';
+import type { SpeciesRow } from '../../../src/engine/server/ai/species';
 import STRINGS from '../../../src/shards/sunscar-dunes/data/strings.json' with { type: 'json' };
 
 export const MATRIARCH = { circleR: 30, alt: 18, stormAlt: 24, speed: 12, diveSpeed: 19, every: [5, 3.2, 0], climbFor: 2.4, crawl: 2.2, groundAlt: 0.9, skim: 4.2,

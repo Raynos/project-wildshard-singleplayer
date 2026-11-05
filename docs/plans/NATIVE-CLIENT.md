@@ -132,7 +132,7 @@ Script ABI doc already warns that physics and navigation are not bit-identical a
 ### C. One wire schema (M)
 
 There is no networking code today. The nearest pieces are the Worker tick protocol (`TickCommandSchema`,
-`src/sdk/tickProtocol.ts`), the sim snapshot codec (`src/engine/sim/snapshot.ts`) and the client-ownership rules
+`src/sdk/tickProtocol.ts`), the sim snapshot codec (`src/engine/shared/sim/snapshot.ts`) and the client-ownership rules
 (`src/format/clientOwnership.ts`). This phase moves to the MMO server plan once Jake writes it.
 
 - **C1** Pick the schema tool: FlatBuffers or protobuf, both with TS, C# and Rust codegen. The schema is a committed

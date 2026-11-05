@@ -87,7 +87,7 @@ can see *why* a spot is good.
 
 ## Living grass — the engine side of stealth (F2)
 
-- **`grassHeightAt(x, z)`** — the grass carpet (`src/engine/world/Grass.ts`) seeds every 4 m cell from a hash of the
+- **`grassHeightAt(x, z)`** — the grass carpet (`src/engine/client/world/Grass.ts`) seeds every 4 m cell from a hash of the
   cell coordinates and the terrain splat, so the CPU can compute the same height the GPU draws without any
   readback: one function shared by the cell seeder and the senses. Nalati adds a **height field** to the
   grass (short grazed turf 0.15 m near the camp and trails, 0.6 m meadow, 1.1–1.3 m feather-grass
@@ -133,12 +133,12 @@ min of play; never during a boss fight; a dev switch `?weather=storm`.
 
 **Builds on:**
 
-- `windUniforms` (`src/engine/world/TreeFactory.ts`: `uTime`, `uWindStrength`) already drives trees and grass (the
+- `windUniforms` (`src/engine/client/world/TreeFactory.ts`: `uTime`, `uWindStrength`) already drives trees and grass (the
   gust-front wave in `Grass.ts`'s vertex shader, `params.windStrength`). The storm is **one wind object**
   (plan F2) that owns strength *and direction* (a new `uWindDir`), and that projectiles and the WIND chip read.
-- `src/engine/world/Atmosphere.ts` — `fogUniforms` and the underwater blend (`updateUnderwater`: capture the dry set,
+- `src/engine/client/world/Atmosphere.ts` — `fogUniforms` and the underwater blend (`updateUnderwater`: capture the dry set,
   smoothstep toward another set). The storm fog is the same move with a third set (dense, slate).
-- `src/engine/core/Grade.ts` — the final colour grade (`shadowTint`, `highTint`, lift / gain / gamma per chunk): the
+- `src/engine/client/core/Grade.ts` — the final colour grade (`shadowTint`, `highTint`, lift / gain / gamma per chunk): the
   storm lerps it toward a cold slate grade and the "after" toward a saturated wet one.
 - `src/kit/looks/particles.ts` — dust motes as a camera-wrapped `Points` box (mod-wrapped in the vertex shader,
   zero CPU). **Rain** is the same trick with streak quads stretched along the wind: 6k streaks on the phone,

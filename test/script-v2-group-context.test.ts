@@ -1,17 +1,17 @@
 import { beforeAll, expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { AnimalSim } from '../src/engine/entities/AnimalSim';
-import { Rng } from '../src/engine/core/rng';
-import { HuntingStalkerCore, huntMemoryCodec, type HuntGround, type HuntNav } from '../src/engine/ai/huntPattern';
-import type { GuardedHerdContext } from '../src/engine/ai/grazer';
-import { GroupStepV2 } from '../src/engine/script/groupStepV2';
-import type { V2ColumnOwners } from '../src/engine/script/observationColumnsV2';
+import { Scope } from '../src/engine/shared/app/scope';
+import { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import { Rng } from '../src/engine/shared/core/rng';
+import { HuntingStalkerCore, huntMemoryCodec, type HuntGround, type HuntNav } from '../src/engine/server/ai/huntPattern';
+import type { GuardedHerdContext } from '../src/engine/server/ai/grazer';
+import { GroupStepV2 } from '../src/engine/shared/script/groupStepV2';
+import type { V2ColumnOwners } from '../src/engine/shared/script/observationColumnsV2';
 import { parseGroupStepV2, groupStepLayoutV2, GroupStepV2Schema } from '@wildshard/format/scriptGroupStepV2';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { v2CoreSource } from '../src/sdk/as/wsV2';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 
 const rows = parseGroupStepV2({bank:[{name:'calls',kind:'number'}],columns:[],members:1,signals:['step','bad'],actions:[
   {id:1,words:4,member:0,native:{kind:'steer'}},

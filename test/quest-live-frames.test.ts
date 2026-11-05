@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { QuestState } from '../src/engine/quest/core';
-import { Flags } from '../src/engine/world/interact/flags';
-import { createQuestPlacements, type Place, type PoiId } from '../src/engine/world/interact/types';
-import { presentQuest } from '../src/game/plugin/ui';
+import { Scope } from '../src/engine/shared/app/scope';
+import { QuestState } from '../src/engine/server/quest/core';
+import { Flags } from '../src/engine/server/world/interact/flags';
+import { createQuestPlacements, type Place, type PoiId } from '../src/engine/shared/world/interact/types';
+import { presentQuest } from '../src/game/client/plugin/ui';
 import { parseQuestStory, parseAdventureContent } from '@wildshard/format/questStory';
 import { PAGE_STORY as story } from '../src/shards/pine-hollow/generators/pageStory';
 

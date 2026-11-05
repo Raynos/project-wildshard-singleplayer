@@ -2,30 +2,30 @@ import inventory from '../src/shards/driftwood-isle/data/fixedGeometry.json' wit
 import {fixtureProductFile,fixtureJsonCheck} from './fixtures/productFile';
 // @vitest-environment happy-dom
 import { BufferGeometry, Group, Matrix4, PerspectiveCamera, type Material } from 'three';
-import type { ShardContext } from '../src/game/plugin/context';
-import type { ShardWorld } from '../src/game/shard/world';
-import type { ShardRuntime } from '../src/game/shard/runtime';
-import type { FixedDraws } from '../src/game/models/fixedDraws';
-import { WorldAssembly } from '../src/game/shardfile/worldAssembly';
-import { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { bindResidentWorldScope } from '../src/game/shardfile/hybridPresentation';
-import { entryOwner,publishEntryOwner } from '../src/game/shardfile/entryOwners';
-import * as runtimeProduct from '../src/game/shardfile/runtimeProduct';
-import * as sceneHost from '../src/game/shardfile/worldScenes';
-import * as bakedHost from '../src/game/shardfile/bakedTiles';
+import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardWorld } from '../src/game/server/shard/world';
+import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import type { FixedDraws } from '../src/game/client/models/fixedDraws';
+import { WorldAssembly } from '../src/game/client/shardfile/worldAssembly';
+import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
+import { bindResidentWorldScope } from '../src/game/client/shardfile/hybridPresentation';
+import { entryOwner,publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
+import * as runtimeProduct from '../src/game/client/shardfile/runtimeProduct';
+import * as sceneHost from '../src/game/client/shardfile/worldScenes';
+import * as bakedHost from '../src/game/client/shardfile/bakedTiles';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { expect,test,vi } from 'vitest';
 import * as v from 'valibot';
-import { Scope } from '../src/engine/app/scope';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { Scope } from '../src/engine/shared/app/scope';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
-import { CLIENT_FEATURES,admitClientPlan,installClientPhase } from '../src/game/shardfile/clientPlan';
-import * as wholeGeometry from '../src/game/plugin/geometry';
+import { CLIENT_FEATURES,admitClientPlan,installClientPhase } from '../src/game/client/shardfile/clientPlan';
+import * as wholeGeometry from '../src/game/client/plugin/geometry';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
 import { ResolvedIslandLibrarySchema } from '@wildshard/format/islandLibrary';
-import { admittedIslandBook,preflightIslandBook } from '../src/game/shardfile/islandBook';
-import { explorerRoster } from '../src/game/models/explorerCatalogue';
+import { admittedIslandBook,preflightIslandBook } from '../src/game/client/shardfile/islandBook';
+import { explorerRoster } from '../src/game/client/models/explorerCatalogue';
 import { collectionRows } from '../src/shards/driftwood-isle/generators/collections';
 
 const rows={construction:{cells:{phone:'cells.bin',desktop:'cells.bin'},seed:1,progress:{total:1,start:'Start',finish:'Finish',budgetMs:30},

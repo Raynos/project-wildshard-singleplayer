@@ -1,12 +1,12 @@
 // @vitest-environment node
 /// <reference types="node" />
 import { expect, test } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { CONTENT_CAPS } from '@wildshard/format/contentBounds';
-import { generatePlatform, type GeneratedStrip, type PlatformCell, type StripProfile } from '../src/engine/sim/strips';
-import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { decodeCompiledGridLook, decodeCompiledGridStrips, parseCompiledGridHeader, platformGeometrySource, readCompiledGridStrips, type CompiledGridAddress, type GridStripPhase } from '../src/game/grid/compiledStrips';
-import { seamLookGeometrySteps } from '../src/game/grid/seamLook';
+import { generatePlatform, type GeneratedStrip, type PlatformCell, type StripProfile } from '../src/engine/shared/sim/strips';
+import { ResidencyAllocator } from '../src/game/server/grid/allocator';
+import { decodeCompiledGridLook, decodeCompiledGridStrips, parseCompiledGridHeader, platformGeometrySource, readCompiledGridStrips, type CompiledGridAddress, type GridStripPhase } from '../src/game/server/grid/compiledStrips';
+import { seamLookGeometrySteps } from '../src/game/client/grid/seamLook';
 import { encodeGridStripPage, writeGridStripPages } from '../scripts/app-build/gridStripPages';
 import { gridSeamAsset, readGridSeams, writeGridSeams } from '../scripts/app-build/gridSeams.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- This artifact fixture owns and removes only its bounded tmp directory.

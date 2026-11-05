@@ -1,0 +1,333 @@
+/**
+ * The seams' look (SHARD-PLATFORM SF17b look, phase 2: G74 / G90 / G91 / G99 / G101): the materials the platform's
+ * generated deck and seams wear. The generator (`@wildshard/engine/sim/strips`) returns ONE triangle mesh per strip, the
+ * same triangles the world collides with, plus ordered feature ranges naming what each run of triangles is (the deck, the
+ * neutral buffer, the gradient, a retaining wall, a cliff and its talus, a parapet, Driftwood's dike, a culvert, the road
+ * wall and its rail). This look never rebuilds that geometry: it copies the vertices once into the home frame and sorts the
+ * index ranges by material; `seamSolid` hands every opaque material to the road system's one solid material
+ * (`roadSolid.ts`, the old texture as a grain layer) and the curtain to its own mesh, so the whole platform is two draws.
+ *
+ * - **ground** (deck, neutral buffer, gradient, the quarter-metre overlap, turn-ins): the generator's vertex colours, the
+ *   neutral platform grey easing into each shard's own edge colour, under a fine gravel grain.
+ * - **stone** (retaining walls, parapets, the culvert, a shore's rip-rap revetment, G149): neutral dressed stone, the same
+ *   for every shard (G90).
+ * - **rock** (a shard's cliff and its talus apron): the shard's own surface (G90): its `sourceSurface` colour when the
+ *   reader resolves one, else the shard's edge colour sampled from the gradient row beside it, under rock strata.
+ * - **dike** (G91): the dike's stone revetment, rounded rip-rap boulders.
+ * - **curtain** (the road wall at an edge that can't blend, G99 / G101): a faint cyan grid, unlit and additive, no glass.
+ * - **rail** (its top bar): the thin glowing cyan rail, unlit, past tone mapping like the void's rail (G89).
+ */
+import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, ShaderMaterial, Sphere, Vector3 } from 'three';
+import { CONTENT_CAPS } from '@wildshard/engine/core/config';
+import { vertexNormalSteps } from '@wildshard/engine/world/Terrain';
+import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
+import { GAP_HALF } from '../../shared/grid/roadLayout';
+import { linear, splitByKey, tintedPart, uniformPart, type GrainLayer, type SolidPart } from './roadSolid';
+
+/** The material a feature kind wears. */
+export type SeamBucket = 'ground' | 'stone' | 'rock' | 'dike' | 'curtain' | 'rail';
+/** Draw order: opaque first, the additive curtain last. */
+export const SEAM_BUCKETS: readonly SeamBucket[] = ['ground', 'stone', 'rock', 'dike', 'rail', 'curtain'];
+const BUCKET_OF: Readonly<Record<string, SeamBucket>> = {
+  'deck': 'ground', 'neutral-buffer': 'ground', 'gradient': 'ground', 'overlap': 'ground', 'turn-in': 'ground',
+  'retaining-wall': 'stone', 'parapet': 'stone', 'culvert': 'stone', 'revetment': 'stone', 'cliff': 'rock', 'talus': 'rock', 'dike': 'dike',
+  'road-wall': 'curtain', 'guard-rail': 'rail',
+};
+/** A feature kind's material; an unknown kind (a newer generator) draws as ground rather than vanishing. */
+export function seamBucket(kind: string): SeamBucket { return BUCKET_OF[kind] ?? 'ground'; }
+/** A `sourceSurface` name to a linear colour (the reader's terrain palette); undefined: sample the shard's edge colour. */
+export type SeamSurfaces = (name: string) => readonly [number, number, number] | undefined;
+/** The readout: triangles and draws per material (the road's tight budget, G101). */
+export interface SeamLookState { readonly triangles: number; readonly draws: number; readonly buckets: Readonly<Partial<Record<SeamBucket, number>>> }
+
+/** Exact author-built channels for this ordered ring and home frame; colours remain runtime-owned. */
+export interface SeamGeometryChannels {
+  readonly origin: { readonly x: number; readonly z: number }; readonly pitch: number;
+  readonly normals: Float32Array; readonly uvs: Float32Array;
+  /** Default palette only; an explicit runtime surface resolver still builds its own colours. */
+  readonly colours?: Float32Array;
+  readonly sphere: { readonly centre: readonly [number, number, number]; readonly radius: number };
+}
+
+/** What the look reads from a generated strip (`GeneratedStrip` fits it): its mesh and its ordered feature ranges. */
+export interface SeamPiece {
+  readonly mesh: { readonly origin: { readonly x: number; readonly z: number }; readonly positions: Float32Array; readonly colours: Float32Array; readonly indices: Uint32Array };
+  readonly features: readonly { readonly kind: string; readonly firstIndex: number; readonly indexCount: number; readonly sourceSurface?: string }[];
+}
+const CYAN = new Color(0x38e6ff);
+const ROCK_GREY: readonly [number, number, number] = [0.32, 0.3, 0.28];
+/** The generator's neutral platform grey (linear) and how much darker the look draws it. */
+const NEUTRAL = 0.25, VERGE = 0.45, BUFFER = 11.5;
+/** Distance from the nearest road centre line on one axis (centre lines at k·pitch + pitch/2, grid metres). */
+const fromRoad = (v: number, pitch: number): number => Math.abs(v - (Math.round((v - pitch / 2) / pitch) * pitch + pitch / 2));
+
+/**
+ * Merge every strip into one home-frame geometry whose index buffer is grouped by material. Pure (no GPU): the vertices are
+ * the generator's own, translated; `uv` is world-planar (top faces xz, walls along × height) so textures tile across strips.
+ * In steps (D12: the whole merge was one 104 ms task of the road's sliced install on the phone tier): a step a strip, then
+ * three's vertex normals and bounding sphere in the engine's exact steps, so the same bytes.
+ */
+export function* seamLookGeometrySteps(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces, pitch: number = CONTENT_CAPS.pitch, channels?: SeamGeometryChannels): Generator<void, { geometry: BufferGeometry; state: SeamLookState }> {
+  let vertices = 0;
+  for (const { mesh } of pieces) vertices += mesh.positions.length / 3;
+  if (channels !== undefined && (!Object.is(channels.origin.x, home.origin.x) || !Object.is(channels.origin.z, home.origin.z)
+    || channels.pitch !== pitch || channels.normals.length !== vertices * 3 || channels.uvs.length !== vertices * 2
+    || channels.colours !== undefined && channels.colours.length !== vertices * 3)) throw new Error('Baked seam channels differ from the home frame');
+  const bakedColours = surfaces === undefined ? channels?.colours : undefined;
+  const position = new Float32Array(vertices * 3), colour = bakedColours ?? new Float32Array(vertices * 3), bucketOf = new Int8Array(vertices).fill(-1);
+  const lists = new Map<SeamBucket, number[]>(SEAM_BUCKETS.map((b) => [b, []]));
+  let base = 0;
+  for (const { mesh, features } of pieces) {
+    const dx = mesh.origin.x - home.origin.x, dz = mesh.origin.z - home.origin.z, count = mesh.positions.length / 3;
+    let previousX = Number.NaN, previousZ = Number.NaN, roadX = Number.NaN, roadZ = Number.NaN;
+    for (let k = 0; k < count; k++) {
+      position[(base + k) * 3] = (mesh.positions[k * 3] ?? 0) + dx; position[(base + k) * 3 + 1] = mesh.positions[k * 3 + 1] ?? 0; position[(base + k) * 3 + 2] = (mesh.positions[k * 3 + 2] ?? 0) + dz;
+      if (bakedColours !== undefined) continue;
+      // the platform's neutral grey reads as a dark gravel verge; the shard's own colour at the gradient's far edge is kept
+      const r = mesh.colours[k * 3] ?? 0, g = mesh.colours[k * 3 + 1] ?? 0, b = mesh.colours[k * 3 + 2] ?? 0;
+      // only near the road: the darkening fades out across the gradient, so the cell edge keeps the shard's exact colour
+      const wx = (mesh.positions[k * 3] ?? 0) + mesh.origin.x, wz = (mesh.positions[k * 3 + 2] ?? 0) + mesh.origin.z;
+      // A lattice row repeats one coordinate. Reuse only that scalar result;
+      // arbitrary meshes and every change of coordinate take the same formula.
+      if (wx !== previousX) { roadX = fromRoad(wx, pitch); previousX = wx; }
+      if (wz !== previousZ) { roadZ = fromRoad(wz, pitch); previousZ = wz; }
+      const road = Math.max(0, Math.min(1, (GAP_HALF - Math.min(roadX, roadZ)) / (GAP_HALF - BUFFER)));
+      const shade = 1 - VERGE * road * Math.max(0, 1 - (Math.abs(r - NEUTRAL) + Math.abs(g - NEUTRAL) + Math.abs(b - NEUTRAL)) / 0.15);
+      colour[(base + k) * 3] = r * shade; colour[(base + k) * 3 + 1] = g * shade; colour[(base + k) * 3 + 2] = b * shade;
+    }
+    // every index in a feature range goes to its material's list; triangles no range names draw as ground
+    const named = new Uint8Array(mesh.indices.length);
+    const rockSurface = new Map<number, readonly [number, number, number] | undefined>();
+    for (const feature of features) {
+      const bucket = seamBucket(feature.kind), list = lists.get(bucket) ?? [], bi = SEAM_BUCKETS.indexOf(bucket);
+      const surface = feature.sourceSurface === undefined ? undefined : surfaces?.(feature.sourceSurface);
+      for (let i = feature.firstIndex; i < feature.firstIndex + feature.indexCount; i++) {
+        const n = mesh.indices[i]; if (n === undefined || named[i] === 1) continue;
+        named[i] = 1; list.push(n + base); bucketOf[n + base] = bi;
+        if (bucket === 'rock' && bakedColours === undefined) rockSurface.set(n, surface);
+      }
+    }
+    const ground = lists.get('ground') ?? [];
+    for (let i = 0; i < mesh.indices.length; i++) if (named[i] !== 1) { const n = mesh.indices[i] ?? 0; ground.push(n + base); if (bucketOf[n + base] === -1) bucketOf[n + base] = 0; }
+    if (bakedColours === undefined) rockColours(mesh.positions, mesh.colours, bucketOf.subarray(base, base + count), rockSurface, colour.subarray(base * 3, (base + count) * 3));
+    base += count;
+    yield;
+  }
+  // Bucket lists already establish the exact feature/triangle order. Copy
+  // them directly into the final native index, without a second boxed list
+  // and a scalar append loop over every corner.
+  let indices = 0;
+  for (const list of lists.values()) indices += list.length;
+  const index = new Uint32Array(indices), groups: { start: number; count: number; bucket: SeamBucket }[] = [];
+  let cursor = 0;
+  for (const bucket of SEAM_BUCKETS) {
+    const list = lists.get(bucket) ?? [];
+    if (list.length === 0) continue;
+    groups.push({ start: cursor, count: list.length, bucket });
+    index.set(list, cursor); cursor += list.length;
+  }
+  const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(position, 3)).setAttribute('color', new BufferAttribute(colour, 3))
+    .setIndex(new BufferAttribute(index, 1));
+  // the zeroed normal three's computeVertexNormals makes, then its arithmetic in steps
+  const normal = new BufferAttribute(channels?.normals ?? new Float32Array(vertices * 3), 3);
+  geometry.setAttribute('normal', normal);
+  yield;
+  if (channels === undefined) yield* vertexNormalSteps(geometry);
+  yield;
+  geometry.setAttribute('uv', new BufferAttribute(channels?.uvs ?? planarUv(position, normal.array, bucketOf), 2));
+  groups.forEach((g) => { geometry.addGroup(g.start, g.count, SEAM_BUCKETS.indexOf(g.bucket)); });
+  yield;
+  if (channels === undefined) yield* geometryBoundsSteps(geometry, 'sphere');
+  else geometry.boundingSphere = new Sphere(new Vector3(...channels.sphere.centre), channels.sphere.radius);
+  const buckets: Partial<Record<SeamBucket, number>> = {};
+  for (const g of groups) buckets[g.bucket] = g.count / 3;
+  return { geometry, state: { triangles: index.length / 3, draws: groups.length, buckets } };
+}
+
+/** Texture metres per uv unit for each material (the uv is world metres divided by this). */
+const UV_METRES: Readonly<Record<SeamBucket, number>> = { ground: 4, stone: 2.4, rock: 7, dike: 2, curtain: 1, rail: 1 };
+function planarUv(position: Float32Array, normal: ArrayLike<number>, bucketOf: Int8Array): Float32Array {
+  const uv = new Float32Array((position.length / 3) * 2);
+  for (let k = 0; k < position.length / 3; k++) {
+    const x = position[k * 3] ?? 0, y = position[k * 3 + 1] ?? 0, z = position[k * 3 + 2] ?? 0, nx = normal[k * 3] ?? 0, ny = normal[k * 3 + 1] ?? 0, nz = normal[k * 3 + 2] ?? 0;
+    const metres = UV_METRES[SEAM_BUCKETS[Math.max(0, bucketOf[k] ?? 0)] ?? 'ground'];
+    const top = Math.abs(ny) > 0.75, along = Math.abs(nx) > Math.abs(nz) ? z : x;
+    uv[k * 2] = (top ? x : along) / metres; uv[k * 2 + 1] = (top ? z : y) / metres;
+  }
+  return uv;
+}
+
+/**
+ * A cliff or talus vertex wears the shard's own surface: the resolved `sourceSurface` colour, else the colour of the
+ * nearest ground vertex of the same strip (the gradient's outer row is the shard's own edge colour), drawn toward rock.
+ */
+function rockColours(positions: Float32Array, colours: Float32Array, bucketOf: Int8Array, surface: ReadonlyMap<number, readonly [number, number, number] | undefined>, out: Float32Array): void {
+  if (surface.size === 0) return;
+  const cell = 2, ground = new Map<number, Map<number, number[]>>();
+  for (let k = 0; k < bucketOf.length; k++) if (bucketOf[k] === 0) {
+    const x = Math.round((positions[k * 3] ?? 0) / cell), z = Math.round((positions[k * 3 + 2] ?? 0) / cell);
+    let column = ground.get(x);
+    if (column === undefined) { column = new Map(); ground.set(x, column); }
+    let list = column.get(z);
+    if (list === undefined) { list = []; column.set(z, list); }
+    list.push(k);
+  }
+  for (const [k, resolved] of surface) {
+    let rgb: readonly [number, number, number] | undefined = resolved;
+    if (rgb === undefined) {
+      const x = positions[k * 3] ?? 0, z = positions[k * 3 + 2] ?? 0, cx = Math.round(x / cell), cz = Math.round(z / cell);
+      let best = Infinity, found = -1;
+      for (let r = 0; r <= 3 && found < 0; r++) for (let i = -r; i <= r; i++) for (let j = -r; j <= r; j++) {
+        for (const g of ground.get(cx + i)?.get(cz + j) ?? []) {
+          const d = ((positions[g * 3] ?? 0) - x) ** 2 + ((positions[g * 3 + 2] ?? 0) - z) ** 2 + ((positions[g * 3 + 1] ?? 0) - (positions[k * 3 + 1] ?? 0)) ** 2 * 0.01;
+          if (d < best) { best = d; found = g; }
+        }
+      }
+      rgb = found < 0 ? undefined : [colours[found * 3] ?? 0, colours[found * 3 + 1] ?? 0, colours[found * 3 + 2] ?? 0];
+    }
+    const own = rgb ?? ROCK_GREY;
+    for (let c = 0; c < 3; c++) out[k * 3 + c] = ((own[c] ?? 0) * 0.6 + (ROCK_GREY[c] ?? 0) * 0.4) * 0.9;
+  }
+}
+
+/** A deterministic hash in [0, 1) (the look is identical every run). */
+function hash(n: number): number { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); }
+/** Light grain over white, so the vertex colour (the shard's edge colour) keeps its value. */
+export function gravel(g: CanvasRenderingContext2D, s: number): void {
+  g.fillStyle = '#ececec'; g.fillRect(0, 0, s, s);
+  for (let k = 0; k < s * s / 10; k++) {
+    const r = hash(k * 1.7), l = Math.round(200 + r * 55), x = hash(k * 3.3) * s, y = hash(k * 5.9) * s;
+    g.fillStyle = `rgb(${String(l)},${String(l)},${String(l - 4)})`; g.fillRect(x, y, 1 + (r > 0.8 ? 1 : 0), 1 + (r > 0.9 ? 1 : 0));
+  }
+}
+/** Dressed stone courses: offset blocks with dark mortar (2.4 m per tile: four courses). */
+export function stone(g: CanvasRenderingContext2D, s: number): void {
+  g.fillStyle = '#5c5a55'; g.fillRect(0, 0, s, s);
+  const rows = 4, h = s / rows;
+  for (let r = 0; r < rows; r++) {
+    let x = r % 2 === 0 ? 0 : -s / 6;
+    while (x < s) {
+      const w = s / 3 * (0.7 + hash(r * 31 + x) * 0.6), l = Math.round(150 + hash(r * 7 + x * 3) * 40);
+      g.fillStyle = `rgb(${String(l)},${String(l - 4)},${String(l - 12)})`; g.fillRect(x + 3, r * h + 3, w - 6, h - 6);
+      for (let k = 0; k < 40; k++) { const q = hash(r * 97 + x + k); g.fillStyle = `rgba(0,0,0,${String(0.04 + q * 0.06)})`; g.fillRect(x + 3 + hash(k + x) * (w - 8), r * h + 3 + hash(k * 2 + r) * (h - 8), 3, 2); }
+      x += w;
+    }
+  }
+}
+/** Rock strata: soft horizontal bands with cracks, near white so the shard's colour leads. */
+export function strata(g: CanvasRenderingContext2D, s: number): void {
+  for (let y = 0; y < s; y++) { const l = Math.round(170 + 50 * hash(Math.floor(y / 6)) + 25 * Math.sin(y * 0.09)); g.fillStyle = `rgb(${String(l)},${String(l)},${String(l)})`; g.fillRect(0, y, s, 1); }
+  g.strokeStyle = 'rgba(40,36,32,0.35)'; g.lineWidth = 2;
+  for (let k = 0; k < 18; k++) { let x = hash(k * 13) * s, y = hash(k * 17) * s; g.beginPath(); g.moveTo(x, y); for (let j = 0; j < 5; j++) { x += (hash(k * 5 + j) - 0.5) * 30; y += 12 + hash(k + j * 3) * 20; g.lineTo(x, y); } g.stroke(); }
+}
+/** The dike's revetment: rounded rip-rap boulders packed in dark joints. */
+export function riprap(g: CanvasRenderingContext2D, s: number): void {
+  g.fillStyle = '#3b3833'; g.fillRect(0, 0, s, s);
+  for (let k = 0; k < 70; k++) {
+    const x = hash(k * 2.1) * s, y = hash(k * 4.7) * s, r = s * (0.05 + hash(k * 8.3) * 0.05), l = Math.round(120 + hash(k * 6.1) * 60);
+    for (const [ox, oy] of [[0, 0], [s, 0], [-s, 0], [0, s], [0, -s]] as const) {
+      const grad = g.createRadialGradient(x + ox - r * 0.3, y + oy - r * 0.3, r * 0.1, x + ox, y + oy, r);
+      grad.addColorStop(0, `rgb(${String(l + 30)},${String(l + 26)},${String(l + 18)})`); grad.addColorStop(1, `rgb(${String(l - 40)},${String(l - 42)},${String(l - 46)})`);
+      g.fillStyle = grad; g.beginPath(); g.ellipse(x + ox, y + oy, r, r * 0.8, hash(k) * 3, 0, Math.PI * 2); g.fill();
+    }
+  }
+}
+
+const curtainVertex = /* glsl */ `
+varying vec3 vWorld;
+void main() { vec4 world = modelMatrix * vec4(position, 1.0); vWorld = world.xyz; gl_Position = projectionMatrix * viewMatrix * world; }`;
+const curtainFragment = /* glsl */ `
+uniform vec3 uLine;
+uniform vec2 uOrigin;
+varying vec3 vWorld;
+void main() {
+  // the faint grid on the curtain: 0.5 m squares along the wall, brighter toward its top and fading with distance
+  vec2 p = vec2(vWorld.x + vWorld.z + uOrigin.x + uOrigin.y, vWorld.y) / 0.5;
+  vec2 w = max(fwidth(p), vec2(1e-4));
+  vec2 d = abs(fract(p - 0.5) - 0.5) / w;
+  float line = 1.0 - min(min(d.x, d.y), 1.0);
+  float fade = exp(-length(vWorld.xz - cameraPosition.xz) / 90.0);
+  float rise = 0.35 + 0.65 * clamp(vWorld.y / 1.8, 0.0, 1.0);
+  gl_FragColor = vec4(uLine * (0.05 + line * 0.55) * rise * fade, 1.0);
+}`;
+
+/** The seam's old material colours that multiplied their maps (now baked into the solid part's vertex colours). */
+const STONE = 0xc9c4b8, DIKE = 0xe0dcd2;
+const LAYER_OF: Readonly<Record<Exclude<SeamBucket, 'curtain'>, GrainLayer>> = { ground: 'gravel', stone: 'stone', rock: 'strata', dike: 'riprap', rail: 'white' };
+
+/** The private merge already has one ordered group per bucket. Retain that order
+ * without regrouping every triangle or boxing its final local indices. */
+function splitSeamGroups(geometry: BufferGeometry): Omit<ReturnType<typeof splitByKey>[number], 'source'>[] {
+  const index = geometry.getIndex(), position = geometry.getAttribute('position');
+  const capacity = position.count;
+  // Keep the general sparse path for unusually large caller-built seams. The
+  // one reused lookup is bounded by the splitter's existing transient limit.
+  if (index === null || !(index.array instanceof Uint32Array) || capacity * 4 > 16_000_000) {
+    const buckets = new Int8Array((index?.count ?? 0) / 3).fill(-1);
+    for (const group of geometry.groups) buckets.fill(group.materialIndex ?? 0, group.start / 3, (group.start + group.count) / 3);
+    return splitByKey(geometry, triangle => buckets[triangle] ?? 0, SEAM_BUCKETS.length);
+  }
+  const lookup = new Uint32Array(capacity);
+  const result: Omit<ReturnType<typeof splitByKey>[number], 'source'>[] = Array.from({ length: SEAM_BUCKETS.length }, () => ({ positions: new Float32Array(0), normals: new Float32Array(0), colours: new Float32Array(0), uvs: new Float32Array(0), indices: new Uint32Array(0) }));
+  for (const group of geometry.groups) {
+    const source: number[] = [], sparse = new Map<number, number>(), indices = new Uint32Array(group.count);
+    for (let corner = 0; corner < group.count; corner++) {
+      const vertex = index.array[group.start + corner] ?? 0;
+      let local = vertex < capacity ? (lookup[vertex] ?? 0) - 1 : sparse.get(vertex);
+      if (local === undefined || local < 0) {
+        local = source.length; source.push(vertex);
+        if (vertex < capacity) lookup[vertex] = local + 1; else sparse.set(vertex, local);
+      }
+      indices[corner] = local;
+    }
+    const pick = (name: string, size: number, fallback: number): Float32Array => {
+      const array = geometry.getAttribute(name).array, values = new Float32Array(source.length * size);
+      for (let ordinal = 0; ordinal < source.length; ordinal++) for (let channel = 0; channel < size; channel++) values[ordinal * size + channel] = array[(source[ordinal] ?? 0) * size + channel] ?? fallback;
+      return values;
+    };
+    result[group.materialIndex ?? 0] = { positions: pick('position', 3, 0), normals: pick('normal', 3, 0), colours: pick('color', 3, 1), uvs: pick('uv', 2, 0), indices };
+    for (const vertex of source) if (vertex < capacity) lookup[vertex] = 0;
+  }
+  return result;
+}
+
+/** `seamSolid` with the curtain still as arrays, so its geometry is built (and admitted, G144) by `roadLookPlatform.ts`; in
+ *  steps (`seamLookGeometrySteps`), so the road's sliced install pauses inside it. */
+export function* seamSolidSteps(pieces: readonly SeamPiece[], home: { readonly origin: { readonly x: number; readonly z: number } }, surfaces?: SeamSurfaces, pitch: number = CONTENT_CAPS.pitch, channels?: SeamGeometryChannels): Generator<void, { parts: SolidPart[]; curtain: SeamCurtain; state: SeamLookState }> {
+  const { geometry, state } = yield* seamLookGeometrySteps(pieces, home, surfaces, pitch, channels);
+  yield;
+  const split = splitSeamGroups(geometry), parts: SolidPart[] = [];
+  yield;
+  let curtain: SeamCurtain = { positions: new Float32Array(0), indices: new Uint32Array(0) };
+  SEAM_BUCKETS.forEach((bucket, k) => {
+    const part = split[k]; if (part === undefined || part.indices.length === 0) return;
+    if (bucket === 'curtain') { curtain = { positions: part.positions, indices: part.indices }; return; }
+    const layered = uniformPart(part, LAYER_OF[bucket], bucket === 'rail');
+    parts.push(bucket === 'stone' ? tintedPart(layered, linear(STONE)) : bucket === 'dike' ? tintedPart(layered, linear(DIKE)) : bucket === 'rail' ? tintedPart(layered, CYAN.clone().multiplyScalar(1.6)) : layered);
+  });
+  geometry.dispose();
+  return { parts, curtain, state };
+}
+
+/** The curtain's triangles (positions only, home frame) before they become a geometry. */
+export interface SeamCurtain { readonly positions: Float32Array; readonly indices: Uint32Array }
+/** The curtain's geometry: its own arrays, no copy (an empty curtain is an empty geometry, still one culled mesh). */
+export function curtainGeometry(curtain: SeamCurtain): BufferGeometry {
+  const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(curtain.positions, 3)).setIndex(new BufferAttribute(curtain.indices, 1));
+  if (curtain.indices.length > 0) geometry.computeBoundingSphere();
+  return geometry;
+}
+/** Float32 values per curtain vertex (`position`). */
+export const CURTAIN_FLOATS = 3;
+/** The curtain as the cull count reads it (`roadCull.ts` `CullSource`). */
+export function curtainSource(curtain: SeamCurtain): { vertices: number; position: (k: number) => number; indices: ArrayLike<number> } {
+  return { vertices: curtain.positions.length / 3, position: (k) => curtain.positions[k] ?? 0, indices: curtain.indices };
+}
+
+/** The additive curtain material (G99 / G101), drawn in one pass (additive needs no back-then-front order). */
+export function curtainMaterial(home: { readonly origin: { readonly x: number; readonly z: number } }): ShaderMaterial {
+  const curtain = new ShaderMaterial({ vertexShader: curtainVertex, fragmentShader: curtainFragment, uniforms: { uLine: { value: CYAN.clone() }, uOrigin: { value: [home.origin.x, home.origin.z] } },
+    transparent: true, depthWrite: false, blending: AdditiveBlending, side: DoubleSide, fog: false, lights: false });
+  curtain.name = 'grid-seam-curtain'; curtain.forceSinglePass = true;
+  return curtain;
+}

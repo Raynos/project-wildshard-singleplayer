@@ -4,13 +4,13 @@
 // stall, while a scripted camera drives 30 m/s across the grid with a U-turn and a stand-still. Each frame counts holes
 // (a visible patch drawn by no level) and overlaps, and reads the allocator's resident MB. scripts/bake/rings-drive.mjs runs it.
 import { Color, DirectionalLight, Fog, Group, HemisphereLight, Mesh, MeshLambertMaterial, PerspectiveCamera, PlaneGeometry, Scene, WebGLRenderer } from 'three';
-import { CONTENT_CAPS as C } from '../../../../src/engine/core/config';
-import { Scope } from '../../../../src/engine/app/scope';
+import { CONTENT_CAPS as C } from '../../../../src/engine/shared/core/config';
+import { Scope } from '../../../../src/engine/shared/app/scope';
 import { encodeTerrainTile, type TerrainTileData } from '@wildshard/format/terrainTileBytes';
-import { installTerrainTile, maskTerrainTile } from '../../../../src/engine/world/terrainTileView';
-import { ResidencyAllocator } from '../../../../src/game/grid/allocator';
-import { TileStreamer, type RingCell, type RingTile, type RingView } from '../../../../src/engine/world/tileStreamer';
-import { TileDecoder } from '../../../../src/game/grid/tileDecoder';
+import { installTerrainTile, maskTerrainTile } from '../../../../src/engine/client/world/terrainTileView';
+import { ResidencyAllocator } from '../../../../src/game/server/grid/allocator';
+import { TileStreamer, type RingCell, type RingTile, type RingView } from '../../../../src/engine/client/world/tileStreamer';
+import { TileDecoder } from '../../../../src/game/client/grid/tileDecoder';
 
 const DRIVE_SECONDS = 60, SPEED = 30, LINK = 5_000_000, LATENCY = 0.1, STALL: readonly [number, number] = [25, 35];
 const resident = { far: Math.round(C.far.resident), l1: C.l1.resident, l0: C.l0.resident } as const;

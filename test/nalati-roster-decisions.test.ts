@@ -1,7 +1,7 @@
 import {admissionPage} from './fixtures/nalati-admission-loan';
 import { expect, test } from 'vitest';
 
-import { Rng } from '../src/engine/core/rng';
+import { Rng } from '../src/engine/shared/core/rng';
 
 
 const author = () => admissionPage();

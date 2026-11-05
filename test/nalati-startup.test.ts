@@ -5,8 +5,8 @@ import { HeadlessSimulation } from '../src/sdk/headless';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { builtProduct } from './fixtures/builtProduct';
 import { productHeadlessSections } from '../src/sdk/headlessSections';
-import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
-import { decodeSimSnapshot } from '../src/engine/sim/snapshot';
+import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
+import { decodeSimSnapshot } from '../src/engine/shared/sim/snapshot';
 import { leadSnapshot } from '@wildshard/engine/sim/snapshot';
 
 test('Nalati boots its admitted native assembly to the first frame',async()=>{

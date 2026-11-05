@@ -10,7 +10,7 @@ import { bakePineCodeParts, readShelfToken } from '../src/shards/pine-hollow/gen
 import { PINE_SOURCES } from './fixtures/pine-sources';
 import { timberWorld } from '../src/shards/pine-hollow/generators/timberWorldRows';
 
-const catalogue: unknown = JSON.parse(readFileSync('src/game/data/pickupCatalogue.json', 'utf8'));
+const catalogue: unknown = JSON.parse(readFileSync('src/game/client/data/pickupCatalogue.json', 'utf8'));
 const tokens = v.parse(PickupCatalogueSchema, catalogue).geometries.filter(row => row.key === 'token' && row.seed >= 1000 && row.seed <= 1007);
 
 test('baking shelf geometry leaves prepared source bytes unchanged', () => {

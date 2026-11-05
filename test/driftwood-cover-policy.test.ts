@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Read only the cover producer's committed Blender inputs.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES } from '../src/engine/core/config';
+import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES } from '../src/engine/shared/core/config';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { islandCoverBank } from '../src/shards/driftwood-isle/generators/islandCoverBank';
 import policy from '../src/shards/driftwood-isle/data/groundGeometryPolicy.json' with { type: 'json' };

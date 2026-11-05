@@ -17,15 +17,15 @@ test('a staged path selects only the gen:source rows it feeds', () => {
   expect(ids('scripts/gen-source.mjs')).toEqual(SOURCE_GENERATORS.map(row => row.id));
   expect(ids('scripts/committed-source-tables.mjs')).toEqual(SOURCE_GENERATORS.map(row => row.id));
   expect(ids('scripts/git-source-view.mjs')).toEqual(SOURCE_GENERATORS.map(row => row.id));
-  expect(ids('src/game/weapons/starterBow.json')).toEqual(['starter-weapons']);
+  expect(ids('src/game/server/weapons/starterBow.json')).toEqual(['starter-weapons']);
   expect(ids('src/shards/pine-hollow/manifest.json')).toEqual(['shard-slugs', 'shard-list', 'manifest-closure', 'manifest-art']);
   expect(ids('public/assets/music/calm/music.json')).toEqual(['boot-audio']);
   expect(ids('public/assets/title/main-crossroads-square.jpg')).toEqual(['title-asset-urls']);
   expect(ids('scripts/title-assets.mjs')).toEqual(['title-asset-urls']);
   expect(ids('scripts/title-assets.generated.json')).toEqual(['title-asset-urls']);
   expect(ids('index.html')).toEqual(['title-asset-urls', 'native-page']);
-  expect(ids('src/engine/core/Game.ts')).toEqual(['manifest-closure', 'manifest-art']);
-  expect(ids('src/game/bag/starter.generated.ts')).toEqual(['starter-bag', 'manifest-closure', 'manifest-art']);
+  expect(ids('src/engine/client/core/Game.ts')).toEqual(['manifest-closure', 'manifest-art']);
+  expect(ids('src/game/server/bag/starter.generated.ts')).toEqual(['starter-bag', 'manifest-closure', 'manifest-art']);
   expect(ids('src/shards/pine-hollow/generators/sections.ts')).toEqual(['manifest-closure', 'manifest-art']);
   expect(ids('src/shards/driftwood-isle/generators/sections.ts')).toEqual(['manifest-closure', 'manifest-art']);
 });
@@ -36,11 +36,11 @@ test('every registry output is listed once and committed rows own tracked inputs
   expect(new Set(outputs).size).toBe(outputs.length);
   // QB21 adds the exact title URL table and its static document to the twenty prior outputs.
   expect([...outputs].sort()).toEqual([
-    'index.html', 'native.html', 'scripts/title-assets.generated.json', 'src/engine/boot/ktx2.generated.ts', 'src/game/bag/starter.generated.ts',
-    'src/game/boot/audio.generated.ts', 'src/game/boot/bytes.generated.ts', 'src/game/boot/packs.generated.ts',
-    'src/game/boot/versions.generated.ts', 'src/game/shard/art.generated.ts', 'src/game/shard/manifest-closure.generated.json',
-    'src/game/shard/portShares.generated.ts', 'src/game/shard/slugs.generated.json', 'src/game/shard/slugs.generated.ts',
-    'src/game/systems/effects/starter.generated.ts', 'src/game/systems/viewmodel/clips.generated.ts', 'src/game/weapons/starter.generated.ts',
+    'index.html', 'native.html', 'scripts/title-assets.generated.json', 'src/engine/client/boot/ktx2.generated.ts', 'src/game/server/bag/starter.generated.ts',
+    'src/game/client/boot/audio.generated.ts', 'src/game/client/boot/bytes.generated.ts', 'src/game/client/boot/packs.generated.ts',
+    'src/game/client/boot/versions.generated.ts', 'src/game/client/shard/art.generated.ts', 'src/game/server/shard/manifest-closure.generated.json',
+    'src/game/server/shard/portShares.generated.ts', 'src/game/server/shard/slugs.generated.json', 'src/game/server/shard/slugs.generated.ts',
+    'src/game/client/systems/effects/starter.generated.ts', 'src/game/client/systems/viewmodel/clips.generated.ts', 'src/game/server/weapons/starter.generated.ts',
     'src/shards.generated.ts',
   ].sort());
   for (const row of SOURCE_GENERATORS) expect(Number(row.generate !== undefined) + Number(row.run !== undefined), row.id).toBe(1);
@@ -55,7 +55,7 @@ test('KTX2 source regenerates and checks the activated map without an encoder, a
   try {
     mkdirSync(resolve(root, 'scripts'));
     copyFileSync(resolve('scripts/ktx2-tables.mjs'), resolve(root, 'scripts/ktx2-tables.mjs'));
-    const input = 'scripts/ktx2-engine-map.json', output = 'src/engine/boot/ktx2.generated.ts';
+    const input = 'scripts/ktx2-engine-map.json', output = 'src/engine/client/boot/ktx2.generated.ts';
     writeFileSync(resolve(root, input), JSON.stringify({ phone: { '/source.png': '/assets/gpu/source.ktx2' }, desktop: {} }));
     const selection = { changed: [input], committed: true };
     const computed = await sourceTableTexts(root, selection);
@@ -109,8 +109,8 @@ test('audio source uses its declared root and refuses malformed catalogues', () 
 
 test('--stage regenerates only the committed tables a commit feeds, and they are current', async () => {
   const root = resolve(import.meta.dirname, '..');
-  await expect(genSource(root, { check: true, committed: true, changed: ['src/game/weapons/starterBow.json', 'src/shards/pine-hollow/manifest.json'] }))
-    .resolves.toEqual({ touched: [], owned: ['src/game/weapons/starter.generated.ts', 'src/game/shard/slugs.generated.ts', 'src/game/shard/slugs.generated.json', 'src/shards.generated.ts', 'src/game/shard/manifest-closure.generated.json', 'src/game/shard/art.generated.ts'] });
+  await expect(genSource(root, { check: true, committed: true, changed: ['src/game/server/weapons/starterBow.json', 'src/shards/pine-hollow/manifest.json'] }))
+    .resolves.toEqual({ touched: [], owned: ['src/game/server/weapons/starter.generated.ts', 'src/game/server/shard/slugs.generated.ts', 'src/game/server/shard/slugs.generated.json', 'src/shards.generated.ts', 'src/game/server/shard/manifest-closure.generated.json', 'src/game/client/shard/art.generated.ts'] });
 });
 
 
@@ -128,7 +128,7 @@ test('the committed composition table needs only declarations and preserves outp
       { slug: 'island-west', cell: [0, 0], size: [500, 500, 500], instance: 'west' },
       { slug: 'island-east', cell: [1, 0], size: [500, 500, 500], instance: 'east' },
     ];
-    write('src/game/grid/singleplayer.json', { placements });
+    write('src/game/shared/grid/singleplayer.json', { placements });
     const source = shardSource(root);
     expect(source).toContain("import m0 from '../out/.app/discovery.island.island-east.generated'");
     expect(source).toContain("import m1 from '../out/.app/discovery.island.island-west.generated'");
@@ -140,9 +140,9 @@ test('the committed composition table needs only declarations and preserves outp
     expect(row.committed).toBe(true);
     // The real producer is module-loaded from the checkout; the isolated input root
     // deliberately contains no discovery modules, assets, configs or products.
-    write('src/game/grid/singleplayer.json', { placements: placements.slice(0, 1) });
+    write('src/game/shared/grid/singleplayer.json', { placements: placements.slice(0, 1) });
     expect(() => shardSource(root)).toThrow('missing grid placement');
-    write('src/game/grid/singleplayer.json', { placements });
+    write('src/game/shared/grid/singleplayer.json', { placements });
     write('src/shards/island/outputs.json', { outputs: [{ slug: 'island-west' }, { slug: 'island-west' }] });
     expect(() => shardSource(root)).toThrow('invalid or duplicate output slug');
     expect(selectSourceGenerators(['src/shards/island/outputs.json']).map(entry => entry.id)).toEqual(['shard-slugs', 'shard-list', 'manifest-closure', 'manifest-art']);
@@ -161,7 +161,7 @@ test('the committed closure follows authored static edges with no product or dis
       accent: 'sand', budgets: { program: true }, runtimeCost: { module: './data/runtimeCost.json', export: 'default' },
       boot: { explore: { program: true } },
     } }));
-    write('src/game/shard/manifest.ts', "import './visible';import type {Erased} from './erased';export const lazy=()=>import('./lazy');");
+    write('src/game/server/shard/manifest.ts', "import './visible';import type {Erased} from './erased';export const lazy=()=>import('./lazy');");
     write('src/game/shard/visible.ts', 'export const visible=true;');
     write('src/game/shard/erased.ts', 'export interface Erased {}');
     write('src/game/shard/lazy.ts', 'export const lazy=true;');
@@ -171,7 +171,7 @@ test('the committed closure follows authored static edges with no product or dis
     write('scripts/manifest-art-inputs.json', JSON.stringify({ island: [{ file: 'data/art.json', field: ['extra'] }] }));
     write('src/shards/island/data/art.json', JSON.stringify({ extra: ['/src/shards/island/extra.webp'] }));
     expect(manifestClosure(root)).toEqual({ island: [
-      'out/.app/discovery.island.generated.ts', 'src/game/shard/manifest.ts', 'src/game/shard/visible.ts', 'src/shards/island/card.webp',
+      'out/.app/discovery.island.generated.ts', 'src/game/server/shard/manifest.ts', 'src/game/shard/visible.ts', 'src/shards/island/card.webp',
       'src/shards/island/data/runtimeCost.json',
       'src/shards/island/extra.webp', 'src/shards/island/manifest.json',
     ] });
@@ -214,7 +214,7 @@ test('shared manifest imports retain separate products and refresh path aliases 
     }
     const config = (folder: string): string => JSON.stringify({ compilerOptions: { module: 'ESNext', moduleResolution: 'Bundler', paths: { '@common/*': [`./src/${folder}/*`] } } });
     write('tsconfig.json', config('game/shard'));
-    write('src/game/shard/manifest.ts', "export {visible} from '@common/visible';export type {Erased} from './erased';export const lazy=()=>import('./lazy');");
+    write('src/game/server/shard/manifest.ts', "export {visible} from '@common/visible';export type {Erased} from './erased';export const lazy=()=>import('./lazy');");
     write('src/game/shard/visible.ts', "import './loop';export const visible=true;");
     write('src/game/shard/loop.ts', "import './visible';");
     write('src/game/shard/erased.ts', 'export interface Erased {}'); write('src/game/shard/lazy.ts', 'export const lazy=true;');
@@ -239,13 +239,13 @@ test('the stage CLI returns the selected tracked output and never runs build-wri
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync(resolve('tmp', 'gen-source-stage-'));
   try {
-    mkdirSync(resolve(root, 'scripts')); mkdirSync(resolve(root, 'src/game/weapons'), { recursive: true });
+    mkdirSync(resolve(root, 'scripts')); mkdirSync(resolve(root, 'src/game/server/weapons'), { recursive: true });
     for (const file of ['gen-source.mjs', 'source-generators.mjs', 'gen-starter-weapons.mjs'])
       copyFileSync(resolve('scripts', file), resolve(root, 'scripts', file));
-    writeFileSync(resolve(root, 'src/game/weapons/starterBow.json'), '{"damage":17}');
-    const output = 'src/game/weapons/starter.generated.ts';
+    writeFileSync(resolve(root, 'src/game/server/weapons/starterBow.json'), '{"damage":17}');
+    const output = 'src/game/server/weapons/starter.generated.ts';
     const run = (...args: string[]) => spawnSync(process.execPath, [resolve(root, 'scripts/gen-source.mjs'), ...args], { encoding: 'utf8', timeout: 10_000 });
-    const staged = run('--stage', '--changed=src/game/weapons/starterBow.json');
+    const staged = run('--stage', '--changed=src/game/server/weapons/starterBow.json');
     expect(staged.status, staged.stderr).toBe(0);
     expect(staged.stdout.trim()).toBe(`gen:source stage ${JSON.stringify([output])}`);
     expect(readFileSync(resolve(root, output), 'utf8')).toContain('STARTER_BOW = {"damage":17}');
@@ -256,7 +256,7 @@ test('the stage CLI returns the selected tracked output and never runs build-wri
     // publish only committed rows. A direct selection proves the filter without
     // any product, discovery or native binary in this isolated fixture.
     expect(run('--stage', '--changed=public/assets/unrelated.bin').stdout.trim()).toBe('gen:source stage []');
-    const refused = run('--stage', '--check', '--changed=src/game/weapons/starterBow.json');
+    const refused = run('--stage', '--check', '--changed=src/game/server/weapons/starterBow.json');
     expect(refused.status).toBe(1); expect(refused.stderr).toContain('--stage takes');
     expect(readFileSync(resolve(root, output), 'utf8')).toBe(before);
   } finally { rmSync(root, { recursive: true, force: true }); }

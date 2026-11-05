@@ -9,7 +9,7 @@ Jake plays the game as an iOS home-screen PWA. It has no address bar, so a `?foo
 - **Every variant goes in pause ▸ Settings ▸ Debug** (E162, Jake: "we are going to have an ungodly amount of toggles
   and we need to organize them"). Its owner declares it, in one of two places:
   - **A shard's toggle: `ctx.debugRow` in the shard's own folder** (13-lead-resolutions 05/06#12). The shard declares
-    its own key and row; no shard name ever lands in `src/engine/ui/Settings.ts` or `debugOptions.ts`.
+    its own key and row; no shard name ever lands in `src/engine/client/ui/Settings.ts` or `debugOptions.ts`.
     1. In the plugin's `play` hook (or the shard's `debug.ts`): `ctx.debugRow({ id: '<slug-prefix>.<name>', group,
        label, choices: [{ value, text }], initial, change(value), reload?, note, ask: 'E<n>', reviewBy: 'YYYY-MM-DD' })`.
        Strings come from the shard's `strings.ts`.
@@ -20,10 +20,10 @@ Jake plays the game as an iOS home-screen PWA. It has no address bar, so a `?foo
     4. A shard never reads an engine option it doesn't own (`wildshard/shard-sandbox`). To show an existing engine row
        on a shard, list its key in the manifest's `debugOptions`.
   - **An engine-wide toggle: the registry.** Only for a variant of engine code, never named after a shard:
-    1. `src/engine/ui/Settings.ts`: a key in `OPTION_VALUES` (the first value is the default) and `OPTION_SPECS` → `DEBUG_ONLY`.
-    2. `src/engine/ui/debugOptions.ts`: one `opt(key, group, label, choices, { reload?, when?, note, ask: 'E<n>', reviewBy: 'YYYY-MM-DD' })`
+    1. `src/engine/client/ui/Settings.ts`: a key in `OPTION_VALUES` (the first value is the default) and `OPTION_SPECS` → `DEBUG_ONLY`.
+    2. `src/engine/client/ui/debugOptions.ts`: one `opt(key, group, label, choices, { reload?, when?, note, ask: 'E<n>', reviewBy: 'YYYY-MM-DD' })`
        row in `DEBUG_ROWS`, under the group whose domain it is. `when` shows it only where it applies; `reload: true` if
-       the thing is built once. `src/engine/ui/DebugMenu.ts` renders it — no Menu.ts edit.
+       the thing is built once. `src/engine/client/ui/DebugMenu.ts` renders it — no Menu.ts edit.
        Every option needs its registry row.
     3. The game reads it with `setting(key)` (at load for a reload row) and `onSettingChange(key, fn)` (live).
     4. A test / capture script sets it before the load: `debugSettings(page, { key: 'value' })` (`scripts/debug-settings.mjs`).

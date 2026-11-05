@@ -67,7 +67,7 @@ export function clientPlanSchemaViolations(root) {
   }
   const plan = formatSource(root, 'clientPlan.ts');
   for (const name of module(plan).exported) visit(plan, name);
-  const registry = resolve(root, 'src/game/shardfile/clientPlan.ts');
+  const registry = resolve(root, 'src/game/client/shardfile/clientPlan.ts');
   if (existsSync(registry)) {
     const names = new Set();
     const required = node => {

@@ -32,7 +32,7 @@ shard 4 should do with it**. The clean room may copy ideas, never imports (LAB-R
   (`resolveDepthBuffer` defaults to true). So `tDepth` ends up holding the viewmodel's depth only, with every world pixel
   at the far plane. The composite's depth silhouette then draws around the jian and the claw, and around nothing in the
   world.
-  - The game hit the same bug: `1305f2d` fixed it, see `src/engine/core/worldDepth.ts` (§3.1). It went unnoticed there for
+  - The game hit the same bug: `1305f2d` fixed it, see `src/engine/client/core/worldDepth.ts` (§3.1). It went unnoticed there for
     days while other lanes papered over the symptoms.
   - **The best fix is the game's final one, depth slices** (`b688ef1`): don't clear at all. Draw the world at depth
     ≥ 0.3 and the viewmodel in a near slice, via `renderer.getContext().depthRange(0, 0.075)` around its render and
@@ -84,7 +84,7 @@ The full method is in `LOOK-LOOP.md`.
 - **What:**
   - `scripts/palette-delta.py` gives the mean colour per material region, mockup vs game.
   - `scripts/fit-lut.py` warps a 33³ LUT from Lab Reinhard pairs per region, with identity anchors.
-  - The runtime is `src/engine/world/lut.ts` (`LUT3DEffect`, last in the grade).
+  - The runtime is `src/engine/client/world/lut.ts` (`LUT3DEffect`, last in the grade).
 - **Where:**
   - Driftwood X1 `ec47cbe`.
   - Pine Hollow PH-L4 `c393380` / `bee0c6b`.
@@ -191,7 +191,7 @@ The full method is in `LOOK-LOOP.md`.
 
 ### 3.1 The depth clear, done right
 
-- **Where:** `src/engine/core/worldDepth.ts` (`WorldRenderPass`), fix `1305f2d`.
+- **Where:** `src/engine/client/core/worldDepth.ts` (`WorldRenderPass`), fix `1305f2d`.
 - **What happened:** every viewmodel draws a clearer at renderOrder 999 that calls `clearDepth()`, so the weapon (1000)
   never clips into walls. The post chain read the composer's depth *after* the pass, which held the weapon alone.
   - The AO shaded only the weapon.
@@ -223,7 +223,7 @@ The full method is in `LOOK-LOOP.md`.
   - `Crossbow.viewmodelMaterial` for PBR.
   - The painterly `meleeMaterial` in the transparent queue, for the depth-clear trick.
   - Faceted vertex colours for Driftwood's `Sword.ts` / `Hands.ts`.
-- **Procedural textures** are drawn in a worker (`src/engine/player/viewmodelTextures.ts`): ~290 + 180 ms of main thread moved
+- **Procedural textures** are drawn in a worker (`src/engine/client/player/viewmodelTextures.ts`): ~290 + 180 ms of main thread moved
   off.
 - **Shard 4:**
   - The jian's neon edge wants its core colour > 1 into the bloom.
@@ -235,7 +235,7 @@ The full method is in `LOOK-LOOP.md`.
 ### 4.1 One program for a whole shard
 
 - **Where:**
-  - `src/engine/world/painterly.ts`: every painterly mesh shares ONE program. The cache key is the constant `'painterly'`,
+  - `src/engine/client/world/painterly.ts`: every painterly mesh shares ONE program. The cache key is the constant `'painterly'`,
     everything else is a uniform, vertex colours are always on.
   - `114b4b3` gives every plain material the same map slots (89 → 83 programs).
 - **Why:** each extra program is a ~150 ms Metal compile on the iPhone, and a state switch per frame.
@@ -295,7 +295,7 @@ The full method is in `LOOK-LOOP.md`.
 
 ### 4.6 A fixed light pool
 
-- **What:** `src/engine/fx/LightPool.ts`. three bakes the *number* of lights into every lit program, so adding or hiding one
+- **What:** `src/engine/client/fx/LightPool.ts`. three bakes the *number* of lights into every lit program, so adding or hiding one
   mid-play recompiles everything: a multi-second hitch on iOS. The pool creates its lights at boot and seals on the first
   render. After that it drives intensity only.
 - **Where:** `3b24464` (the rifle's muzzle light: programs 76 → 113 → 76 → 76).
@@ -306,7 +306,7 @@ The full method is in `LOOK-LOOP.md`.
 ### 4.7 Wetness as one uniform
 
 - **What:**
-  - Pine Hollow's `uWet` (`src/engine/world/Atmosphere.ts`): porous up-facing surfaces darken and turn glossy, and metals don't.
+  - Pine Hollow's `uWet` (`src/engine/client/world/Atmosphere.ts`): porous up-facing surfaces darken and turn glossy, and metals don't.
   - Nalati's `uPWet` (`182301d`) does the painterly version: darker paint plus a sky sheen.
 - **Shard 4:** the clean room's "wet = silk value −25 %" is this. Make it a uniform with an up-facing mask, so stairs,
   balcony tops and awnings wet and walls stay dry.
@@ -325,7 +325,7 @@ The full method is in `LOOK-LOOP.md`.
 
 ### 5.2 Painting only at infinity: the horizon matte
 
-- **What:** `src/engine/world/HorizonMatte.ts` (Driftwood X4 `676c869`, Pine Hollow PH-L5 `4a07926`) is a 360° strip painted by
+- **What:** `src/engine/client/world/HorizonMatte.ts` (Driftwood X4 `676c869`, Pine Hollow PH-L5 `4a07926`) is a 360° strip painted by
   codex over real in-game captures at six headings.
   - **Chained** (`scripts/horizon-matte/overlap.py`): each segment continues its painted neighbour. Independent edits cut
     a mountain range with a seam.
@@ -359,7 +359,7 @@ The full method is in `LOOK-LOOP.md`.
   - The inner edge is feathered, with a bright core line at the tip.
   - Shard 4: this *is* the 飞白 flying-white ribbon. Swap the feather for a dry-brush strip texture (256×64) scrolling
     along the ribbon, and fade it cyan → ink.
-- **Pooled impacts** (`src/engine/fx/Impacts.ts`): one InstancedMesh of 128 chips, one draw, precompiled at boot.
+- **Pooled impacts** (`src/engine/client/fx/Impacts.ts`): one InstancedMesh of 128 chips, one draw, precompiled at boot.
   - Shard 4: the 泼墨 ink-splash decals and the cinnabar seal-stamp telegraphs, as a pooled instanced quad set.
 
 ### 5.4 Reflections without a second scene render
@@ -379,7 +379,7 @@ The full method is in `LOOK-LOOP.md`.
 
 ### 6.1 Merged kits with baked AO and baked light
 
-- **`src/engine/world/lowpolyKit.ts`:**
+- **`src/engine/client/world/lowpolyKit.ts`:**
   - One merged, non-indexed mesh per prop or building on one material.
   - `bakeAO`: per-face hemisphere rays through a coarse occupancy grid darken each face toward a cool shade. It takes
     ~5–20 ms per 10 k tris, once at build.

@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Node's own SHA-256 is the oracle for the streamed browser hash.
 import { createHash } from 'node:crypto';
 import { expect, test } from 'vitest';
-import { compiledProgramHash, programHash } from '../src/engine/debug/probe';
+import { compiledProgramHash, programHash } from '../src/engine/client/debug/probe';
 
 const sha = (text: string): string => createHash('sha256').update(text, 'utf8').digest('hex');
 

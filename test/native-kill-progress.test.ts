@@ -2,15 +2,15 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { createSimHost } from '../src/engine/sim';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost } from '../src/engine/server/sim';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { installQuestKillSteps } from '@wildshard/game/quest/killSteps';
 import rows from '../src/shards/driftwood-isle/data/questKillSteps.json' with { type: 'json' };
 import { DRIFTWOOD_FEATS } from '../src/shards/driftwood-isle/generators/questInventory';
-import { NativeInventory, creditNativeInventory, debitNativeInventory, type NativeInventoryProfile } from '../src/game/inventoryLaw';
-import { QuestStepRunner } from '../src/game/quest/steps';
-import { commitQuestEffects } from '../src/game/quest/effects';
+import { NativeInventory, creditNativeInventory, debitNativeInventory, type NativeInventoryProfile } from '../src/game/server/inventoryLaw';
+import { QuestStepRunner } from '../src/game/server/quest/steps';
+import { commitQuestEffects } from '../src/game/server/quest/effects';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 test('native kill counters resume old progress, keep flag/emission order and refuse malformed saves', async () => {

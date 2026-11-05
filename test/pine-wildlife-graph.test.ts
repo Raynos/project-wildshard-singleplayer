@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { DoubleSide } from 'three';
-import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
+import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
 import { validateGraph } from '@wildshard/format/materialGraph';
 import { WILDLIFE_LOOK } from '../src/shards/pine-hollow/generators/wildlifeLook';
 import lookGraphs from '../src/shards/pine-hollow/data/lookGraphs.json' with { type: 'json' };

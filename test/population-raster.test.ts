@@ -2,12 +2,12 @@ import {scalarBlockBytes} from './fixtures/nalati-scalar-blocks';
 import {nalatiWetBlock,originalNalatiWet} from './fixtures/nalati-wet';
 import { expect,test,vi } from 'vitest';
 import { prepareNalatiPopulation } from './fixtures/nalati-world';
-import * as population from '../src/game/population/environment';
-import * as riding from '../src/game/riding/native';
-import type { SimHost } from '../src/engine/sim';
+import * as population from '../src/game/server/population/environment';
+import * as riding from '../src/game/server/riding/native';
+import type { SimHost } from '../src/engine/server/sim';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { unzlibSync,zlibSync } from 'fflate';
-import { NativePopulationField } from '../src/game/population/environment';
+import { NativePopulationField } from '../src/game/server/population/environment';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import type { BakedGrid } from '@wildshard/format/bakedTerrainBytes';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the native f32 field fixture without a JSON type edge.

@@ -5,7 +5,7 @@
       "scripts/boot-publication.generated.json"
     ],
     "scripts/ktx2-tables.mjs": [
-      "src/engine/boot/ktx2.generated.ts",
+      "src/engine/client/boot/ktx2.generated.ts",
       "src/shards/driftwood-isle/ktx2.generated.ts",
       "src/shards/far-reach/ktx2.generated.ts",
       "src/shards/nalati-grasslands/ktx2.generated.ts",

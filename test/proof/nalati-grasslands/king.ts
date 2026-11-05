@@ -1,12 +1,12 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Every transition requires an earned original owner.
 import assert from 'node:assert/strict';
-import type {SimHost,SimStateAdapter} from '../../../src/engine/sim';
+import type {SimHost,SimStateAdapter} from '../../../src/engine/server/sim';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import type {NalatiKingData} from '../../fixtures/nalati-king-data';
 import {readNalatiWeaponObservation} from '../../fixtures/nalati-weapon-observation';
 import {chapterWalkInputs,chapterRideInputs,chapterCampReturnInputs} from './chapterOne';
-import {mountedPlayerOf} from '../../../src/game/riding/native';
-import {nativeTamingOf} from '../../../src/game/riding/nativeTaming';
+import {mountedPlayerOf} from '../../../src/game/server/riding/native';
+import {nativeTamingOf} from '../../../src/game/server/riding/nativeTaming';
 import {SKY_ROAD} from '../../../src/shards/nalati-grasslands/generators/layout';
 import type {KingObservation,KingBodyObservation} from '../../fixtures/nalati-king-continuation';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';

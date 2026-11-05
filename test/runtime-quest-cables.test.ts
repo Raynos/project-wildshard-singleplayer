@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
-import { App } from '../src/engine/app/app';
-import { Scope } from '../src/engine/app/scope';
-import { Flags } from '../src/engine/world/interact/flags';
-import { bindRuntimeQuest } from '../src/game/plugin/headless';
-import { boundQuestState } from '../src/game/quest/boundState';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { App } from '../src/engine/client/app/app';
+import { Scope } from '../src/engine/shared/app/scope';
+import { Flags } from '../src/engine/server/world/interact/flags';
+import { bindRuntimeQuest } from '../src/game/server/plugin/headless';
+import { boundQuestState } from '../src/game/server/quest/boundState';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { PINE_MODES } from '../src/shards/pine-hollow/generators/zipline';
 import { FIXTURE_RUNTIME_COST } from './fixtures/clientPlanRuntime';

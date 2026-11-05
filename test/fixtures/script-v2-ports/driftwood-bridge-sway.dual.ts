@@ -2,7 +2,7 @@
  * survive display frames; no live view source, producer or module is changed. */
 import bridge from '../../../src/shards/driftwood-isle/behaviour/bridgeSway.as?raw';
 import page from '../../../src/shards/driftwood-isle/data/questPageComposition.json' with { type: 'json' };
-import { ViewLane } from '../../../src/engine/script/viewLane';
+import { ViewLane } from '../../../src/engine/client/script/viewLane';
 import { expect } from 'vitest';
 import type { DualPortFixture } from '../script-v2-port';
 

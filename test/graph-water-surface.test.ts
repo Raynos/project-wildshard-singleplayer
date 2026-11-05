@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
-import { syncGraphEnvironment } from '../src/engine/render/graph/glslProgram';
+import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
+import { syncGraphEnvironment } from '../src/engine/client/render/graph/glslProgram';
 import { validateGraph, type GraphIr } from '@wildshard/format/materialGraph';
 import waterRows from '../src/shards/pine-hollow/data/waterLook.json' with { type: 'json' };
 import { WATER_GRAPHS } from '../src/shards/pine-hollow/generators/waterGraphs';

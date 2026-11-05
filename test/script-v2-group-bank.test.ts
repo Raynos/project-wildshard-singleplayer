@@ -1,18 +1,18 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { GroupBankV2 } from '../src/engine/script/groupBankV2';
-import { Scope } from '../src/engine/app/scope';
-import { GroupBrain } from '../src/engine/ai/GroupBrain';
-import { AggressionDirector } from '../src/engine/ai/director';
+import { GroupBankV2 } from '../src/engine/shared/script/groupBankV2';
+import { Scope } from '../src/engine/shared/app/scope';
+import { GroupBrain } from '../src/engine/server/ai/GroupBrain';
+import { AggressionDirector } from '../src/engine/server/ai/director';
 import { GroupBankV2Schema, parseGroupBankV2 } from '@wildshard/format/scriptGroupBankV2';
 import { layoutV2, writeV2Frame, validateV2Frame } from '@wildshard/format/scriptWireV2';
-import { prepareV2Observations } from '../src/engine/script/observationsV2';
-import { ScriptModuleV2 } from '../src/engine/script/moduleV2';
+import { prepareV2Observations } from '../src/engine/shared/script/observationsV2';
+import { ScriptModuleV2 } from '../src/engine/shared/script/moduleV2';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { v2CoreSource } from '../src/sdk/as/wsV2';
 import { groupBankSourceV2 } from '../src/sdk/as/groupBankV2';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 
 const members = Array.from({ length: 16 }, (_, slot) => ({ entityId: `body:${slot}`, alive: slot !== 3 }));
 const roster = members.map((actor, slot) => ({ group: 'first', slot, identity: actor.entityId,

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
-import { clientRingCatalogue } from '../src/game/shardfile/tileContent';
+import { clientRingCatalogue } from '../src/game/client/shardfile/tileContent';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
 function original(instances: ReadonlyMap<string, { readonly source: Shardfile }>): () => number {

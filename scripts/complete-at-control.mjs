@@ -84,7 +84,7 @@ if (existsSync(resolve('.git/quiet'))) { console.error('Official Simulator quiet
 
 /** Every level's slug: the grid's cells and the shard folders. */
 const ALL_SLUGS = new Set([
-  ...JSON.parse(readFileSync(resolve('src/game/grid/singleplayer.json'), 'utf8')).grid.cells.map(cell => cell.slug),
+  ...JSON.parse(readFileSync(resolve('src/game/shared/grid/singleplayer.json'), 'utf8')).grid.cells.map(cell => cell.slug),
   ...readdirSync(resolve('src/shards'), { withFileTypes: true }).filter(entry => entry.isDirectory()).map(entry => entry.name),
 ]);
 /** The level a URL names, or null for shared content: its shardfile files, its assets, baked files, music, sfx, horizon,
@@ -108,7 +108,7 @@ function slugOf(path) {
 /** The level's dependency set: every same-origin request that names no other level. In the grid the level is the home
  *  cell (filled in at control from the grid's state); the other cells and the road between them are its neighbours. */
 const levelSlugs = new Set(flow === 'grid' ? [] : [flow]);
-const GRID_SLUGS = new Set(JSON.parse(readFileSync(resolve('src/game/grid/singleplayer.json'), 'utf8')).grid.cells.map(cell => cell.slug));
+const GRID_SLUGS = new Set(JSON.parse(readFileSync(resolve('src/game/shared/grid/singleplayer.json'), 'utf8')).grid.cells.map(cell => cell.slug));
 const origin = new URL(base).origin;
 /** A same-origin http path that is not version.json or SHARD SELECT card art (a level's thumb, portrait and landscape
  *  cards are menu art, never drawn in the level); null otherwise. blob: and data: URLs are in-memory reads, not downloads. */
@@ -189,7 +189,7 @@ try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], viewport: { width: 402, height: 874 } });
   await developerSettings(context, { tier: 'phone', volume: 0 });
   await saveFixture(context, { scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } });
-  // DL16's Debug ▸ Loading & memory ▸ Level download (src/engine/boot/loadingPacks.ts), read once at boot
+  // DL16's Debug ▸ Loading & memory ▸ Level download (src/engine/client/boot/loadingPacks.ts), read once at boot
   if (values['level-download'] !== undefined) for (const fixture of levelDownloadFixtures(values['level-download'])) await saveFixture(context, fixture);
   // --device-save=<key>=<value>: a Debug row's device slot before boot (a row's A / B with a probe; used for D227's mip probe)
   if (values['device-save'] !== undefined) {
@@ -389,7 +389,7 @@ try {
     if (openResidency.length > 0) flag(`shardfile residency open at control: ${openResidency.slice(0, 6).join(', ')}`);
     if (at.scene?.error !== undefined) flag(`no scene at control: ${at.scene.error}`);
     if ((at.scene?.texturesPending ?? []).length > 0) flag(`${at.scene.texturesPending.length} textures of shown meshes within reach not decoded at control (first: ${at.scene.texturesPending.slice(0, 3).join(', ')})`);
-    // Auto (src/engine/boot/gpuFiles.ts) fixes a page's texture mode at boot: a level drawn with images because its KTX2 set
+    // Auto (src/engine/client/boot/gpuFiles.ts) fixes a page's texture mode at boot: a level drawn with images because its KTX2 set
     // is not cached yet downloads that set after control and the next visit draws other textures (sp-x6's DL9 red)
     if (at.textures?.mode === 'img' && /KTX2 set is not cached/u.test(at.textures.why ?? '')) flag(`textures drawn as images at control while the level's KTX2 set downloads after it, so the next visit swaps them (${at.textures.why})`);
     // a THREE.LOD below level 0 is the shard's distance design on resident models (root's ruling, G872 (A)): listed by the lap
@@ -534,7 +534,7 @@ try {
     }
     report.lapComplete = legs.every(leg => report.lapResults.some(r => r.leg === leg.name && r.complete));
     // boost is proven engaged (every board sample: Developer boost on, a cap of none or the grid interior 14 m/s, so a 56 m/s
-    // top, src/engine/player/hoverSpeed.ts); the speed
+    // top, src/engine/shared/player/hoverSpeed.ts); the speed
     // travelled is the course's (frame to frame in the trace: a velocity sample reads 56 against a wall it is stuck on)
     // the route's no-boost legs (`lap.boost: false`, D226) drive the board at normal speed: they never count as the boost proof
     const boardRuns = report.lapResults.filter(r => r.on === 'board' && r.boost !== false);

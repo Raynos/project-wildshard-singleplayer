@@ -1,4 +1,4 @@
-import type {SimHost} from '../../../src/engine/sim';
+import type {SimHost} from '../../../src/engine/server/sim';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import {PhysicsRouteCursor} from '../../../src/sdk/headlessJourney';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';

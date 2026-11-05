@@ -3,12 +3,12 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare the entire native state without numeric tolerance.
 import { deepStrictEqual } from 'node:assert';
 import { expect, test } from 'vitest';
-import { projectItemFields } from '../src/game/shardfile/clientItems';
-import { ItemRuntime } from '../src/engine/combat/items';
-import { DeclaredScriptWorld, SCRIPT_STATE_OP, type ScriptStateDeclaration } from '../src/engine/script/state';
+import { projectItemFields } from '../src/game/client/shardfile/clientItems';
+import { ItemRuntime } from '../src/engine/server/combat/items';
+import { DeclaredScriptWorld, SCRIPT_STATE_OP, type ScriptStateDeclaration } from '../src/engine/server/script/state';
 import { emptyShardfile } from '../src/sdk/author';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { createSimHost } from '../src/engine/sim';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost } from '../src/engine/server/sim';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 

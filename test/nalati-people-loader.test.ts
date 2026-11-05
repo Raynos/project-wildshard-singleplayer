@@ -2,11 +2,11 @@
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { afterEach, expect, it, vi } from 'vitest';
-import * as rigLoader from '../src/engine/anim/rig';
-import { SkyRig } from '../src/engine/world/skyRig';
+import * as rigLoader from '../src/engine/client/anim/rig';
+import { SkyRig } from '../src/engine/client/world/skyRig';
 import { readSourceModel } from '../src/sdk/bake/skinned';
-import { atlasFigureSkin } from '../src/game/systems/npc/figureSkins';
-import { Scope } from '../src/engine/app/scope';
+import { atlasFigureSkin } from '../src/game/client/systems/npc/figureSkins';
+import { Scope } from '../src/engine/shared/app/scope';
 import { peopleRows as population } from '../src/shards/nalati-grasslands/generators/peopleRows.mjs';
 import { nalatiPeopleBlobs } from '../src/shards/nalati-grasslands/generators/peopleBake';
 import frames from '../src/shards/nalati-grasslands/data/peopleFrames.json' with { type: 'json' };

@@ -11,9 +11,9 @@ import {writeEntryBootstrap} from '../scripts/app-build/entryDownloads';
 import {writeSpawnManifests} from '../scripts/app-build/entryTotals';
 import {readSpawnManifest} from '@wildshard/format/spawnManifest';
 import {gridEntryDownloads} from '../scripts/app-build/gridEntryDownloads';
-import {startGridStripDownload, gridStripDownloadRows} from '../src/game/grid/entryDownloads';
+import {startGridStripDownload, gridStripDownloadRows} from '../src/game/client/grid/entryDownloads';
 import {entryReadSet} from '../scripts/app-build/entryReadSet';
-import {wholeGeometryInputs} from '../src/game/shardfile/wholeInputs';
+import {wholeGeometryInputs} from '../src/game/client/shardfile/wholeInputs';
 
 test('named native assembly declares the same ordered whole inputs it actually reads', () => {
   const source = emptyShardfile({slug: 'example', name: 'Example', author: 'Test', revision: 1, seed: 1});

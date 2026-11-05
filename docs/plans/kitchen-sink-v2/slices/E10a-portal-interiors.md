@@ -17,15 +17,15 @@ portal fades you back to the arch. The Titan arena (E12g) reuses this host.
 
 Research:
 
-- **Two portal hosts, neither general.** (1) `src/game/shardfile/walkInPortalRide.ts` (160 lines): a renderer-free
+- **Two portal hosts, neither general.** (1) `src/game/client/shardfile/walkInPortalRide.ts` (160 lines): a renderer-free
   walk-in ring state machine over declared links (`src/format/portalLink.ts`, `portalLinkAssets`), returning hold /
   transfer commands; it imports `DirectorStageLane` from the plugin director (`:6`). User: Nine (`nine.portal-ride`
   director, `out/nine-dragon-stack/sections/quests/directors.json`). It moves you between places; it has no interior.
-  (2) Nalati's arena room: `src/game/boss/arenaRoom.ts` (1,641 lines) with `ArenaPortalLaw` (`arenaPortal.ts`, 63):
+  (2) Nalati's arena room: `src/game/server/boss/arenaRoom.ts` (1,641 lines) with `ArenaPortalLaw` (`arenaPortal.ts`, 63):
   "client-only entry/exit lifecycle … the host owns fades, isolation, movement and the single ordered boss/room update"
   (`arenaRoom.ts:92-94`), baked private scenes, its own spare light (`:581-586`, G808's LightPool rule). It is an
   interior, but welded to one boss fight.
-- Cube bounds: `CELL_BELOW = 250` (`src/engine/core/config.ts:18`); W0e validates declared volumes, portal destinations
+- Cube bounds: `CELL_BELOW = 250` (`src/engine/shared/core/config.ts:18`); W0e validates declared volumes, portal destinations
   and overlaps.
 
 Work:

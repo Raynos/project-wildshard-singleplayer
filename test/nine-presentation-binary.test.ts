@@ -5,7 +5,7 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { emitNamedBlobs } from '../src/sdk/blobs';
 import { NINE_SCENE_BLOBS } from './fixtures/nine-product-inputs';
 import { cardScene } from '../src/shards/nine-dragon-stack/generators/presentation';
-import { admitSceneBuffers } from '../src/game/shardfile/sceneBuffers';
+import { admitSceneBuffers } from '../src/game/client/shardfile/sceneBuffers';
 import before from './fixtures/nine-presentation-bytes.json' with { type: 'json' };
 
 test('Nine presentation keeps every pinned channel word and draw reference', () => {

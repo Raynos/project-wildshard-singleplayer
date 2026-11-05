@@ -32,110 +32,110 @@ const roles = [
   ['C1', /terrain|ground|worldBuild|buildWorld|bakedWorld|BakedTerrain|meadow|mesh|geometry|collider|props|Primitives/iu],
 ];
 const questOwners=new Set([
-  'src/game/systems/npc/npcRig.ts',
-  'src/game/complete/ShardComplete.ts',
+  'src/game/client/systems/npc/npcRig.ts',
+  'src/game/client/complete/ShardComplete.ts',
 ]);
 // Reviewed W2 baseline owners. Exact paths/exports only; mixed AST ownership below still applies.
 const reviewedW2Owners = new Map([
-  ['src/game/loot/tables.ts#readLootTables', 'C6'],
+  ['src/game/server/loot/tables.ts#readLootTables', 'C6'],
   ['src/format/lootEconomy.ts', 'C6'],
-  ['src/game/shard/declaredRows.ts#EconomyGrant', 'C6'],
-  ['src/game/shard/declaredRows.ts#DeclaredLootEconomy', 'C6'],
-  ['src/game/shard/declaredRows.ts#declaredLootEconomy', 'C6'],
-  ['src/engine/models/ownedGeometry.ts', 'C1'],
+  ['src/game/server/shard/declaredRows.ts#EconomyGrant', 'C6'],
+  ['src/game/server/shard/declaredRows.ts#DeclaredLootEconomy', 'C6'],
+  ['src/game/server/shard/declaredRows.ts#declaredLootEconomy', 'C6'],
+  ['src/engine/client/models/ownedGeometry.ts', 'C1'],
   // Reviewed runtime tile views, lent looks, terrain admission and combat status.
-  ['src/game/shardfile/runtimeProduct.ts#bindRuntimeProductProps', 'C1'],
-  ['src/game/shardfile/hybridPresentation.ts#hybridPresentation', 'C2'],
-  ['src/game/shardfile/runtimeProduct.ts#runtimePresentation', 'C2'],
-  ['src/engine/physics/bodies.ts#BodyLaunchRow', 'C6'],
+  ['src/game/client/shardfile/runtimeProduct.ts#bindRuntimeProductProps', 'C1'],
+  ['src/game/client/shardfile/hybridPresentation.ts#hybridPresentation', 'C2'],
+  ['src/game/client/shardfile/runtimeProduct.ts#runtimePresentation', 'C2'],
+  ['src/engine/shared/physics/bodies.ts#BodyLaunchRow', 'C6'],
   ['src/format/nativeItems.ts#BodyLaunchSchema', 'C6'],
   ['src/format/lootEconomy.ts#ClaimedPickupSchema', 'C6'],
-  ['src/engine/combat/effects/EffectService.ts#playerBindings', 'C6'],
-  ['src/engine/combat/effects/EffectService.ts#bindPlayerEffects', 'C6'],
-  ['src/engine/physics/terrain.ts#EDGE_WALL_INSET', 'C1'],
-  ['src/engine/physics/terrain.ts#isStandaloneEdgeWall', 'C1'],
-  ['src/game/bag/itemCatalog.ts#isItemId', 'C6'],
-  ['src/game/plugin/ui.ts#STARTER_EFFECTS', 'C6'],
-  ['src/game/plugin/ui.ts#StatusMovement', 'C6'],
-  ['src/game/plugin/ui.ts#StarterContext', 'C6'],
-  ['src/game/plugin/ui.ts#installStarterEffects', 'C6'],
-  ['src/game/systems/effects/starter.generated.ts#STARTER_EFFECT_ROWS', 'C6'],
-  ['src/game/systems/effects/view.ts#PATHS', 'C6'],
-  ['src/game/systems/effects/view.ts#StatusIcons', 'C6'],
+  ['src/engine/client/combat/effects/EffectService.ts#playerBindings', 'C6'],
+  ['src/engine/client/combat/effects/EffectService.ts#bindPlayerEffects', 'C6'],
+  ['src/engine/shared/physics/terrain.ts#EDGE_WALL_INSET', 'C1'],
+  ['src/engine/shared/physics/terrain.ts#isStandaloneEdgeWall', 'C1'],
+  ['src/game/server/bag/itemCatalog.ts#isItemId', 'C6'],
+  ['src/game/client/plugin/ui.ts#STARTER_EFFECTS', 'C6'],
+  ['src/game/client/plugin/ui.ts#StatusMovement', 'C6'],
+  ['src/game/client/plugin/ui.ts#StarterContext', 'C6'],
+  ['src/game/client/plugin/ui.ts#installStarterEffects', 'C6'],
+  ['src/game/client/systems/effects/starter.generated.ts#STARTER_EFFECT_ROWS', 'C6'],
+  ['src/game/client/systems/effects/view.ts#PATHS', 'C6'],
+  ['src/game/client/systems/effects/view.ts#StatusIcons', 'C6'],
   // Graph look-material collection. The decoded texture loan is committed.
-  ['src/game/plugin/shaderFamily.ts#lookGraphMaterials', 'C2'],
-  ['src/game/plugin/shaderFamily.ts#SPLICER', 'C2'],
-  ['src/game/plugin/shaderFamily.ts#spliceEdits', 'C2'],
+  ['src/game/client/plugin/shaderFamily.ts#lookGraphMaterials', 'C2'],
+  ['src/game/client/plugin/shaderFamily.ts#SPLICER', 'C2'],
+  ['src/game/client/plugin/shaderFamily.ts#spliceEdits', 'C2'],
   // Fixed authored site placement and metadata translation; actual sole-user charging is retained.
-  ['src/engine/models/place.ts#ModelSiteLayout', 'C1'],
-  ['src/engine/models/place.ts#ModelSite', 'C1'],
-  ['src/engine/models/place.ts#placeModelSite', 'C1'],
+  ['src/engine/client/models/place.ts#ModelSiteLayout', 'C1'],
+  ['src/engine/client/models/place.ts#ModelSite', 'C1'],
+  ['src/engine/client/models/place.ts#placeModelSite', 'C1'],
   // Static scene geometry, placements, building assembly and their bake contracts.
-  ['src/engine/sim/shore.ts#SHORE_REVETMENT_INNER_FACE', 'C1'],
-  ['src/game/shardfile/bakedKinds.ts#loadBakedKinds', 'C1'],
-  ['src/engine/physics/box.ts#FloorRect', 'C1'],
-  ['src/game/shardfile/caveInterior.ts', 'C1'],
+  ['src/engine/shared/sim/shore.ts#SHORE_REVETMENT_INNER_FACE', 'C1'],
+  ['src/game/client/shardfile/bakedKinds.ts#loadBakedKinds', 'C1'],
+  ['src/engine/shared/physics/box.ts#FloorRect', 'C1'],
+  ['src/game/client/shardfile/caveInterior.ts', 'C1'],
   // Material/rig look decoding and authored appearance rows.
   ['src/sdk/bake/rig.ts', 'C2'],
   // Weather and visual fight effects.
   // C3 review: private ambient orchestration and weather remain counted custom.
-  ['src/game/weather/forest.ts', 'C3'],
-  ...['src/game/weather/continuation.ts', 'src/game/weather/reactions.ts', 'src/game/shardfile/weatherFields.ts'].map(path => [path, 'C3']),
+  ['src/game/client/weather/forest.ts', 'C3'],
+  ...['src/game/server/weather/continuation.ts', 'src/game/server/weather/reactions.ts', 'src/game/client/shardfile/weatherFields.ts'].map(path => [path, 'C3']),
   // Animal/boss goals, bodies, pose and ambient wildlife.
-  ['src/engine/entities/lowpoly.ts#crestSpikes', 'C4'],
+  ['src/engine/client/entities/lowpoly.ts#crestSpikes', 'C4'],
   ['src/sdk/phasedBoss.ts#RoamingBossRow', 'C4'],
-  ...['NativeCreaturePoseRecipe', 'NativeCreaturePose', 'attachNativeCreaturePose'].map(name => [`src/game/plugin/animation.ts#${name}`, 'C4']),
+  ...['NativeCreaturePoseRecipe', 'NativeCreaturePose', 'attachNativeCreaturePose'].map(name => [`src/game/server/plugin/animation.ts#${name}`, 'C4']),
   // Journal, onboarding, discovery and quest presentation.
   ['src/sdk/interactions.ts#interactionRules', 'C5'],
   // Equipment, combat feel, held viewmodels, loot and owned rewards.
-  ['src/engine/combat/ammo.ts', 'C6'],
-  ['src/engine/combat/cues.ts#resolveHitStop', 'C6'],
-  ['src/engine/combat/Firearm.ts#RangedAction', 'C6'],
-  ['src/engine/combat/Firearm.ts#RangedActionRow', 'C6'],
-  ['src/engine/combat/view/projectile.ts#ProjectilePresentation', 'C6'],
-  ['src/engine/combat/view/ranged.ts#weaponDisplay', 'C6'],
-  ['src/engine/combat/view/ranged.ts#TRACER_ORDER', 'C6'],
-  ['src/engine/combat/view/ranged.ts#TRACER_RED', 'C6'],
-  ['src/engine/combat/view/ranged.ts#edgeWear', 'C6'],
-  ['src/engine/combat/view/ranged.ts#makeBoltAtlas', 'C6'],
-  ['src/engine/combat/view/ranged.ts#makeCord', 'C6'],
-  ['src/engine/combat/view/ranged.ts#ViewmodelSet', 'C6'],
-  ['src/engine/combat/view/ranged.ts#ViewmodelMaterialRow', 'C6'],
-  ['src/engine/combat/view/ranged.ts#viewmodelRowMaterial', 'C6'],
-  ['src/engine/combat/view/rangedFeel.ts', 'C6'],
-  ['src/engine/player/Skins.ts#STATE', 'C6'],
-  ['src/engine/player/Skins.ts#SkinState', 'C6'],
-  ['src/engine/player/Skins.ts#applySkin', 'C6'],
-  ['src/engine/player/Skins.ts#clearSkin', 'C6'],
-  ['src/engine/player/Skins.ts#cloneWith', 'C6'],
-  ['src/engine/player/Skins.ts#white', 'C6'],
-  ['src/engine/player/Skins.ts#whiteTex', 'C6'],
-  ['src/game/loot/tables.ts#registerLootTable', 'C6'],
-  ['src/game/shard/retainedHooks.ts#installRetainedPlayerEffects', 'C6'],
-  ['src/game/shard/retainedHooks.ts#playerBindings', 'C6'],
-  ['src/game/systems/viewmodel/armClips.ts#SWIM_CLIPS', 'C6'],
-  ['src/game/systems/viewmodel/rigArms.ts#CLIP', 'C6'],
-  ['src/game/systems/viewmodel/rigArms.ts#RigArms', 'C6'],
-  ['src/game/systems/viewmodel/rigArms.ts#RigMeta', 'C6'],
-  ['src/game/systems/viewmodel/rigArms.ts#RigState', 'C6'],
-  ['src/game/systems/viewmodel/rigArms.ts#VmFrame', 'C6'],
-  ['src/game/systems/viewmodel/rigArms.ts#isMesh', 'C6'],
-  ['src/game/systems/viewmodel/rigArms.ts#parsed', 'C6'],
-  ['src/game/systems/viewmodel/rigArms.ts#rigScene', 'C6'],
-  ['src/game/systems/viewmodel/rigArms.ts#swordArmsOf', 'C6'],
+  ['src/engine/shared/combat/ammo.ts', 'C6'],
+  ['src/engine/client/combat/cues.ts#resolveHitStop', 'C6'],
+  ['src/engine/server/combat/Firearm.ts#RangedAction', 'C6'],
+  ['src/engine/server/combat/Firearm.ts#RangedActionRow', 'C6'],
+  ['src/engine/client/combat/view/projectile.ts#ProjectilePresentation', 'C6'],
+  ['src/engine/client/combat/view/ranged.ts#weaponDisplay', 'C6'],
+  ['src/engine/client/combat/view/ranged.ts#TRACER_ORDER', 'C6'],
+  ['src/engine/client/combat/view/ranged.ts#TRACER_RED', 'C6'],
+  ['src/engine/client/combat/view/ranged.ts#edgeWear', 'C6'],
+  ['src/engine/client/combat/view/ranged.ts#makeBoltAtlas', 'C6'],
+  ['src/engine/client/combat/view/ranged.ts#makeCord', 'C6'],
+  ['src/engine/client/combat/view/ranged.ts#ViewmodelSet', 'C6'],
+  ['src/engine/client/combat/view/ranged.ts#ViewmodelMaterialRow', 'C6'],
+  ['src/engine/client/combat/view/ranged.ts#viewmodelRowMaterial', 'C6'],
+  ['src/engine/client/combat/view/rangedFeel.ts', 'C6'],
+  ['src/engine/client/player/Skins.ts#STATE', 'C6'],
+  ['src/engine/client/player/Skins.ts#SkinState', 'C6'],
+  ['src/engine/client/player/Skins.ts#applySkin', 'C6'],
+  ['src/engine/client/player/Skins.ts#clearSkin', 'C6'],
+  ['src/engine/client/player/Skins.ts#cloneWith', 'C6'],
+  ['src/engine/client/player/Skins.ts#white', 'C6'],
+  ['src/engine/client/player/Skins.ts#whiteTex', 'C6'],
+  ['src/game/server/loot/tables.ts#registerLootTable', 'C6'],
+  ['src/game/client/shard/retainedHooks.ts#installRetainedPlayerEffects', 'C6'],
+  ['src/game/client/shard/retainedHooks.ts#playerBindings', 'C6'],
+  ['src/game/client/systems/viewmodel/armClips.ts#SWIM_CLIPS', 'C6'],
+  ['src/game/client/systems/viewmodel/rigArms.ts#CLIP', 'C6'],
+  ['src/game/client/systems/viewmodel/rigArms.ts#RigArms', 'C6'],
+  ['src/game/client/systems/viewmodel/rigArms.ts#RigMeta', 'C6'],
+  ['src/game/client/systems/viewmodel/rigArms.ts#RigState', 'C6'],
+  ['src/game/client/systems/viewmodel/rigArms.ts#VmFrame', 'C6'],
+  ['src/game/client/systems/viewmodel/rigArms.ts#isMesh', 'C6'],
+  ['src/game/client/systems/viewmodel/rigArms.ts#parsed', 'C6'],
+  ['src/game/client/systems/viewmodel/rigArms.ts#rigScene', 'C6'],
+  ['src/game/client/systems/viewmodel/rigArms.ts#swordArmsOf', 'C6'],
   // Loading, continuation parsing, lifecycle plumbing, instrumentation and localization.
-  ['src/engine/core/assets.ts#gltfLoader', 'C9'],
-  ['src/engine/core/assets.ts#loadGLTF', 'C9'],
-  ['src/engine/script/host.ts#preparationWait', 'C9'],
-  ['src/engine/script/host.ts#preparingOwners', 'C9'],
-  ['src/engine/script/host.ts#requirePreparationOwner', 'C9'],
+  ['src/engine/client/core/assets.ts#gltfLoader', 'C9'],
+  ['src/engine/client/core/assets.ts#loadGLTF', 'C9'],
+  ['src/engine/server/script/host.ts#preparationWait', 'C9'],
+  ['src/engine/server/script/host.ts#preparingOwners', 'C9'],
+  ['src/engine/server/script/host.ts#requirePreparationOwner', 'C9'],
   ['src/sdk/headlessRuntime.ts#HeadlessCommandPorts', 'C9'],
   ['src/sdk/headlessRuntime.ts#bindHeadlessCommands', 'C9'],
-  ['src/game/plugin/context.ts#buildProgress', 'C9'],
-  ['src/game/shard/retainedHooks.ts#installEnteredRuntimeAttachment', 'C9'],
-  ['src/game/shard/retainedHooks.ts#installEnteredRuntimeObserver', 'C9'],
-  ['src/game/shard/retainedHooks.ts#installEnteredRuntimeUpdate', 'C9'],
-  ['src/game/grid/pageMode.ts#gridPage', 'C9'],
+  ['src/game/server/plugin/context.ts#buildProgress', 'C9'],
+  ['src/game/client/shard/retainedHooks.ts#installEnteredRuntimeAttachment', 'C9'],
+  ['src/game/client/shard/retainedHooks.ts#installEnteredRuntimeObserver', 'C9'],
+  ['src/game/client/shard/retainedHooks.ts#installEnteredRuntimeUpdate', 'C9'],
+  ['src/game/shared/grid/pageMode.ts#gridPage', 'C9'],
 ]);
 function namedRole(name,path='') {
   const reviewed = reviewedW2Owners.get(`${path}#${name}`); if (reviewed !== undefined) return reviewed;
@@ -156,18 +156,18 @@ const w3Paths = [
 // Sole-user platform contributions retain their canonical size. These reviewed
 // owners only distribute W3's existing charges into the component table.
 const w3SharedOwners = new Map([
-  ...['src/engine/combat/targets.ts', 'src/engine/combat/effects/types.ts',
-    'src/engine/player/firstPersonArms.ts', 'src/game/weapons/heldLauncher.ts',
-    'src/game/systems/viewmodel/armRig.ts'].map(path => [path, 'C6']),
+  ...['src/engine/server/combat/targets.ts', 'src/engine/client/combat/effects/types.ts',
+    'src/engine/client/player/firstPersonArms.ts', 'src/game/client/weapons/heldLauncher.ts',
+    'src/game/client/systems/viewmodel/armRig.ts'].map(path => [path, 'C6']),
   ...['src/sdk/crowds.ts',
-    'src/game/shardfile/crowdRuntime.ts', 'src/sdk/phasedBoss.ts'].map(path => [path, 'C4']),
-  ...['src/engine/core/gpuOnly.ts', 'src/sdk/kit/bakedGeometry.ts',
+    'src/game/shared/shardfile/crowdRuntime.ts', 'src/sdk/phasedBoss.ts'].map(path => [path, 'C4']),
+  ...['src/engine/client/core/gpuOnly.ts', 'src/sdk/kit/bakedGeometry.ts',
     'src/sdk/kit/geometryPack.ts'].map(path => [path, 'C1']),
-  ['src/engine/core/ktx2.ts', 'C2'],
-  ...['src/game/plugin/quests.ts'].map(path => [path, 'C5']),
-  ['src/game/shardfile/portalLinkProof.ts', 'C7'],
-  ...['src/game/grid/pageMode.ts', 'src/sdk/assets.ts',
-    'src/sdk/buildBehaviour.ts', 'src/engine/app/systems.ts'].map(path => [path, 'C9']),
+  ['src/engine/client/core/ktx2.ts', 'C2'],
+  ...['src/game/server/plugin/quests.ts'].map(path => [path, 'C5']),
+  ['src/game/server/shardfile/portalLinkProof.ts', 'C7'],
+  ...['src/game/shared/grid/pageMode.ts', 'src/sdk/assets.ts',
+    'src/sdk/buildBehaviour.ts', 'src/engine/client/app/systems.ts'].map(path => [path, 'C9']),
 ]);
 function w3FileRole(path) {
   const match = /^src\/shards\/(?:nalati-grasslands|nine-dragon-stack)\/(.+)$/u.exec(path);
@@ -178,14 +178,14 @@ function fileRole(path, name = '') {
   const reviewed = reviewedW2Owners.get(name ? `${path}#${name}` : path) ?? reviewedW2Owners.get(path);
   if (reviewed !== undefined) return reviewed;
   const w3 = w3FileRole(path); if (w3 !== null) return w3;
-  if (/\/systems\/life\//u.test(path)||path==='src/engine/ai/ambientFlight.ts'||name==='installAmbientLife')return 'C4';
-  if (path === 'src/engine/world/waves.ts' && name === 'GERSTNER_TERMS') return 'C2';
-  if (['src/format/materialGraph.ts', 'src/game/shardfile/clientMaterials.ts', 'src/game/shardfile/clientGraphs.ts'].includes(path)) return 'C2';
-  if (path === 'src/game/shardfile/hybrid.ts') return 'C9';
+  if (/\/systems\/life\//u.test(path)||path==='src/engine/shared/ai/ambientFlight.ts'||name==='installAmbientLife')return 'C4';
+  if (path === 'src/engine/shared/world/waves.ts' && name === 'GERSTNER_TERMS') return 'C2';
+  if (['src/format/materialGraph.ts', 'src/game/client/shardfile/clientMaterials.ts', 'src/game/client/shardfile/clientGraphs.ts'].includes(path)) return 'C2';
+  if (path === 'src/game/client/shardfile/hybrid.ts') return 'C9';
   if(questOwners.has(path))return 'C5';
-  if(path==='src/engine/world/interact/flags.ts'&&name==='bindInteractionState')return 'C5';
-  if (path === 'src/game/plugin/ui.ts' && ['WorldSceneBoundParts', 'bindWorldSceneParts'].includes(name)) return 'C1';
-  if (path === 'src/game/plugin/ui.ts' && ['moverChannelValues', 'moverChannelView', 'moverChannelViews', 'moverChannelPrompts'].includes(name)) return 'C7';
+  if(path==='src/engine/server/world/interact/flags.ts'&&name==='bindInteractionState')return 'C5';
+  if (path === 'src/game/client/plugin/ui.ts' && ['WorldSceneBoundParts', 'bindWorldSceneParts'].includes(name)) return 'C1';
+  if (path === 'src/game/client/plugin/ui.ts' && ['moverChannelValues', 'moverChannelView', 'moverChannelViews', 'moverChannelPrompts'].includes(name)) return 'C7';
   if (path === 'src/sdk/questGraph.ts' && name === 'parseNpcRow') return 'C5';
   if (path === 'src/sdk/bake/texture.ts') return 'C2';
   if (name && /PivotNpc|NpcSurface|NpcLevel/iu.test(name)) return 'C5';

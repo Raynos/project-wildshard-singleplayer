@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { parseChapterStoryPresentation } from '@wildshard/format/questStory';
-import { Flags } from '../src/engine/world/interact/flags';
-import { QuestState, lineFor } from '../src/engine/quest/core';
+import { Flags } from '../src/engine/server/world/interact/flags';
+import { QuestState, lineFor } from '../src/engine/server/quest/core';
 import { preparedProductEnvelope } from './fixtures/prepared-product-envelope';
 import feats from '../src/shards/nalati-grasslands/data/feats.json' with { type: 'json' };
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };

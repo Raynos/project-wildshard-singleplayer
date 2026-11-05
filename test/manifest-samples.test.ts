@@ -1,7 +1,7 @@
 import { expect,test,vi } from 'vitest';
 import { zlibSync } from 'fflate';
-import * as channels from '../src/engine/world/scalarChannel';
-import { defineShard,declaredGround,type ShardManifestRows } from '../src/game/shard/manifest';
+import * as channels from '../src/engine/shared/world/scalarChannel';
+import { defineShard,declaredGround,type ShardManifestRows } from '../src/game/server/shard/manifest';
 import type { ScalarLatticeRows } from '@wildshard/format/scalarChannel';
 import nalati from '../src/shards/nalati-grasslands/discovery.generated';
 import { readNalatiGeography } from './fixtures/nalati-geography';

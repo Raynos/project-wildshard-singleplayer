@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 import * as v from 'valibot';
 import { Group, Vector3 } from 'three';
 import { QuestFiguresSchema } from '@wildshard/format/questFigures';
-import { fireInFigureFrame } from '../src/game/quest/figures';
+import { fireInFigureFrame } from '../src/game/client/quest/figures';
 
 // Driftwood's castaway rows by shape: parts by fixed-draw slot, the camp and the fire's objects at the fire.
 const row = { id: 'castaway', kit: 'castaway', feet: { poi: 'hut', x: 3, z: -2, yaw: 0.7 }, fire: { poi: 'hut', x: 4.5, z: -1.1, y: 0.25 },

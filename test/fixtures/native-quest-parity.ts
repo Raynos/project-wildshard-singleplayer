@@ -1,14 +1,14 @@
 import * as v from 'valibot';
 import { expect, test, vi } from 'vitest';
-import { ReturnProgram } from '../../src/game/population/returnProgram';
+import { ReturnProgram } from '../../src/game/shared/population/returnProgram';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read only admitted product and native physics bytes.
 import { readFileSync } from 'node:fs';
 import { loadHeadlessProduct } from '../../src/sdk/headlessProduct';
 import { createNativeProofResident, prepareProductPlan } from './headless-native';
-import { outputDescriptor } from '../../src/game/shardfile/outputDescriptor';
-import { loadRapier } from '../../src/engine/physics/rapier';
+import { outputDescriptor } from '../../src/game/shared/shardfile/outputDescriptor';
+import { loadRapier } from '../../src/engine/shared/physics/rapier';
 import legacy from './quest-step-legacy-saves.json' with { type: 'json' };
-import type { SimValue } from '../../src/engine/sim';
+import type { SimValue } from '../../src/engine/server/sim';
 
 // Both witnesses regenerate and compare the recorded gameplay checkpoint payloads before replaying an existing
 // save. Their retained recorder refuses any changed flags, rewards, effects or compressed save bytes on Darwin.

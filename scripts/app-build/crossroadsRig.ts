@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { CROSSROADS_CONFIG } from '../../src/engine/core/crossroads';
+import { CROSSROADS_CONFIG } from '../../src/engine/client/core/crossroads';
 
 /** The self-running phone rig and the installed Three version, written into every production web build's
  *  `crossroads-rig/` (scripts/build-app.mjs runs it before the service worker, which counts these files; was

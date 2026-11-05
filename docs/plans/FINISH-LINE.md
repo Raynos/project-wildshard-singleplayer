@@ -139,7 +139,7 @@ Real-world steps only Jake can take. They are not nagged in the session brief; t
   | E4 input | still needed → S5 |
   | E5 shard modules | the most important, and skipped → S3 |
 
-- **Adopt:** three-mesh-bvh (melee and camera queries, behind `src/engine/physics/query.ts`), Playwright as a gate (S1), and three's Inspector and the Needle Inspector as dev tools.
+- **Adopt:** three-mesh-bvh (melee and camera queries, behind `src/engine/shared/physics/query.ts`), Playwright as a gate (S1), and three's Inspector and the Needle Inspector as dev tools.
 - **Later:** koota (crowds) and three.quarks (effects).
 - **Avoid:** Howler, and chasing WebGPU for its own sake.
 - Full comparison: `docs/design/audit-e108/engines.md`.

@@ -79,7 +79,7 @@ Exceptions will cut that; the ruler gives the honest figure (HA0).
 | `game/plugin/*` (HybridRuntimePlugin 1/6) | 13,405 | game | all, via 7 section kinds | **Silly scaffolding**; still a root for data products (movers, sim, brains, held equipment, UI) |
 | `engine/player/nalatiArms` | 20 | engine | Nalati generators, legacy | **Layer violation**: shard name in the engine; move to Nalati's generators |
 | `engine/world/steppeWind` | 211 | engine | every shard | **Engine feature, misnamed**: rename to wind, drop the Nalati/Pine prose |
-| `engine/ui/HUD.ts:371` | 1 | engine | — | **Layer violation**: item labels (`'Bolts'`, `'Broadheads'`) in engine code; an item row flag |
+| `engine/client/ui/HUD.ts:371` | 1 | engine | — | **Layer violation**: item labels (`'Bolts'`, `'Broadheads'`) in engine code; an item row flag |
 | `engine/models/hoverboard`, `player/hoverSpeed`, `ui/hoverBoost` | 81 | engine | every shard's kit | **Misplaced**: a Wildshard kit tool, so a game host |
 | `engine/world/waterSurface` | 252 | engine | Pine legacy | **Dead at N5** (G500): goes with `pine-hollow-legacy` |
 | `engine/explore/img/mockups/nalati-*`, `nine-*` | 10 JPEGs | engine | — | **Layer violation**: shard mockups in the engine |

@@ -1,14 +1,14 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The server half runs the shipped product bytes and physics module.
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
-import { NET_BUTTONS } from '../src/engine/input/netButtons';
-import { ANIMAL_CLASS } from '../src/engine/net/netSchemas';
-import { ServerClock } from '../src/engine/net/serverClock';
-import { FIXED_STEP } from '../src/engine/core/fixedStep';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { ForwardedStorage } from '../src/engine/saves/forwardedStorage';
-import type { SaveStorage } from '../src/engine/saves/store';
-import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
+import { NET_BUTTONS } from '../src/engine/shared/input/netButtons';
+import { ANIMAL_CLASS } from '../src/engine/shared/net/netSchemas';
+import { ServerClock } from '../src/engine/server/net/serverClock';
+import { FIXED_STEP } from '../src/engine/shared/core/fixedStep';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { ForwardedStorage } from '../src/engine/server/saves/forwardedStorage';
+import type { SaveStorage } from '../src/engine/shared/saves/store';
+import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import type { HeadlessRuntimeInput } from '../src/sdk/headlessRuntime';
 import { runStandaloneServer } from '../src/sdk/standalone/serverHost';

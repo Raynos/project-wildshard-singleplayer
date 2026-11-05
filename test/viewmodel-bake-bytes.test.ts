@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import type { Pixels } from '../src/engine/player/viewmodelTextures';
+import type { Pixels } from '../src/engine/client/player/viewmodelTextures';
 import { sendViewmodelPixels } from '../scripts/bake/viewmodelBytes';
 
 const raster = (): Pixels => ({ w: 1, h: 1, col: new Uint8Array([0, 128, 255, 7]), nrm: new Uint8Array([1, 2, 3, 4]), arm: new Uint8Array([5, 6, 7, 8]) });

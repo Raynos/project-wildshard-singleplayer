@@ -7,8 +7,8 @@ import { QuestStoryBindingsSchema } from '@wildshard/format/questStoryBindings';
 import { parseQuestLeadPage, parseQuestSpawnPage, parseQuestStepRows } from '@wildshard/format/questSteps';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
-import { validateTable } from '../src/engine/world/interact/validate';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
+import { validateTable } from '../src/engine/shared/world/interact/validate';
 
 const encode = (value: unknown): Uint8Array => new TextEncoder().encode(encodeCanonicalJson(value));
 

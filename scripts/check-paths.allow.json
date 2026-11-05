@@ -1,12 +1,12 @@
 [
   {
-    "path": "../../../budgets/calibration.json",
-    "file": "src/engine/render/budgetReport.ts",
+    "path": "../../../../budgets/calibration.json",
+    "file": "src/engine/client/render/budgetReport.ts",
     "why": "E357 S1.6 optional current calibration: Vite returns an empty glob until a thermally stable run publishes it; reports explicitly state the missing calibration and retain F2 ceilings."
   },
   {
-    "path": "../../../budgets/calibration.json",
-    "file": "src/engine/render/tierBoot.ts",
+    "path": "../../../../budgets/calibration.json",
+    "file": "src/engine/client/render/tierBoot.ts",
     "why": "E357 X7 optional current calibration (same as budgetReport.ts): until a stable run publishes it, tier selection uses the DESKTOP_REFERENCE floor; the glob is empty, not an error."
   },
   {
@@ -100,12 +100,12 @@
     "why": "F6 destination or classification prefix in the move map; intentionally absent before the F6 move."
   },
   {
-    "path": "src/engine/debug/probe.ts",
+    "path": "src/engine/client/debug/probe.ts",
     "file": "scripts/normalize/classify.mjs",
     "why": "F6 destination or classification prefix in the move map; intentionally absent before the F6 move."
   },
   {
-    "path": "src/engine/types/",
+    "path": "src/engine/client/types/",
     "file": "scripts/normalize/classify.mjs",
     "why": "F6 destination or classification prefix in the move map; intentionally absent before the F6 move."
   },
@@ -290,7 +290,7 @@
     "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
   },
   {
-    "path": "src/engine/core/clock.ts",
+    "path": "src/engine/shared/core/clock.ts",
     "file": "test/fixtures/lint/cases.json",
     "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
   },
@@ -370,7 +370,7 @@
     "why": "E357 F6m: synthetic source path in an isolated test fixture/assertion; not a checkout path and must retain its spelling."
   },
   {
-    "path": "src/engine/saves/store.ts",
+    "path": "src/engine/shared/saves/store.ts",
     "file": "scripts/deploy-pin.mjs",
     "why": "E357 F6m: git show path on an historical commit; intentionally absent until F10."
   },
@@ -385,7 +385,7 @@
     "why": "E357 F6m: git diff pathspec template for destination shards."
   },
   {
-    "path": "shared (src/world, src/player, src/entities, \u2026)",
+    "path": "shared (src/world, src/player, src/entities, …)",
     "file": "scripts/check-models.mjs",
     "why": "E357 F6m: human-readable report area label, not three repository paths; the actual model folder rules remain manual F6 edits."
   },

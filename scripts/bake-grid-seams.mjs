@@ -7,14 +7,14 @@ import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 import { resolve } from 'node:path';
-import { GridAssembly } from '../src/game/grid/assembly.ts';
-import { loadGridEdgeProfiles } from '../src/game/grid/edgeProfiles.ts';
-import { readGridEdges } from '../src/game/grid/edgeSources.ts';
-import { readGridProductEdges } from '../src/game/grid/products.ts';
-import { findShard } from '../src/game/shard/registry.ts';
-import { platformInputs } from '../src/game/grid/platformInputs.ts';
-import { generatePlatform } from '../src/engine/sim/strips.ts';
-import { platformGeometrySource } from '../src/game/grid/compiledStrips.ts';
+import { GridAssembly } from '../src/game/server/grid/assembly.ts';
+import { loadGridEdgeProfiles } from '../src/game/server/grid/edgeProfiles.ts';
+import { readGridEdges } from '../src/game/client/grid/edgeSources.ts';
+import { readGridProductEdges } from '../src/game/client/grid/products.ts';
+import { findShard } from '../src/game/client/shard/registry.ts';
+import { platformInputs } from '../src/game/server/grid/platformInputs.ts';
+import { generatePlatform } from '../src/engine/shared/sim/strips.ts';
+import { platformGeometrySource } from '../src/game/server/grid/compiledStrips.ts';
 import { encodeGridStripPage, GridStripTransportLimitError, writeGridStripPages } from './app-build/gridStripPages.ts';
 import { phoneWireReport } from './phone-wire.mjs';
 import { existsSync, writeFileSync } from 'node:fs';
@@ -72,7 +72,7 @@ for (const developer of [false, true]) for (const devserver of [false, true]) fo
   const source = await platformGeometrySource(cells, input.empty), reach = 1.5 * assembly.pitch + 1;
   seen.set(key, source); entryModes.set(mode, source);
   for (const home of assembly.cells) {
-    /** @param {import('../src/engine/sim/strips.ts').GeneratedStrip} strip */
+    /** @param {import('../src/engine/shared/sim/strips.ts').GeneratedStrip} strip */
     const within = strip => Math.abs(strip.mesh.origin.x - home.origin.x) <= reach && Math.abs(strip.mesh.origin.z - home.origin.z) <= reach;
     const initial = strips.filter(within);
     compiled.push(encodeGridStripPage(source, home.instance, home.slug, initial, 'initial', { origin: home.origin, pitch: assembly.pitch }));

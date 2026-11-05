@@ -3,13 +3,13 @@ import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { runTickWorker } from '../../../src/sdk/tickWorkerLoop';
 import { parseShardfile } from '../../../src/sdk/shardfile';
-import { loadRapier } from '../../../src/engine/physics/rapier';
+import { loadRapier } from '../../../src/engine/shared/physics/rapier';
 import { prepareAssetDecoders, offlineMemoryAdmission } from '@wildshard/format/product';
 import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import { hashImmutableBytes } from '../../../src/sdk/immutable';
 import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
-import { createShardProduct } from '../../../src/game/shardfile/shardProduct';
+import { createShardProduct } from '../../../src/game/shared/shardfile/shardProduct';
 import { createNativeProofAdapter, prepareProductPlan } from '../headless-native';
 import type { PrepareHeadlessRuntime } from '../../../src/sdk/headlessRuntime';
 

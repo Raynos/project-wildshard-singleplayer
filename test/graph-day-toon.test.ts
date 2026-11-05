@@ -1,7 +1,7 @@
 import { afterAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { clientMaterials } from '../src/game/shardfile/clientMaterials';
+import { Scope } from '../src/engine/shared/app/scope';
+import { clientMaterials } from '../src/game/client/shardfile/clientMaterials';
 import { emptyShardfile } from '../src/sdk/author';
 import { graph } from '../src/sdk/materials';
 

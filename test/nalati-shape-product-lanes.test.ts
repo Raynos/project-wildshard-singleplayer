@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { unzlibSync } from 'fflate';
-import { unshuffleLanes } from '../src/engine/core/deflate';
-import { fixedDraws } from '../src/game/models/fixedDraws';
+import { unshuffleLanes } from '../src/engine/client/core/deflate';
+import { fixedDraws } from '../src/game/client/models/fixedDraws';
 import { originalPlaceBinary } from './fixtures/nalati-original-place-binary';
 import original from './fixtures/nalati-shape-book-original.json' with { type: 'json' };
 

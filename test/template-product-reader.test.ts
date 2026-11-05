@@ -7,8 +7,8 @@ import { Buffer } from 'node:buffer';
 import { expect, test } from 'vitest';
 import { writeOutputProduct, validateOutputProduct } from '../src/sdk/outputProduct';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { readProductDescriptor } from '../src/game/shardfile/product';
-import { outputBlobUrl } from '../src/game/shardfile/outputDescriptor';
+import { readProductDescriptor } from '../src/game/client/shardfile/product';
+import { outputBlobUrl } from '../src/game/shared/shardfile/outputDescriptor';
 import { TEMPLATE_SOURCE, templateAssets } from './fixtures/templateSource';
 
 test('Template browser tools reconstruct the real product and resolve every immutable asset', async () => {

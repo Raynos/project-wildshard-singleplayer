@@ -7,7 +7,7 @@ import { expect, test } from 'vitest';
 import { build, parseSync } from 'vite';
 import { generatorImportViolation } from '../lint/shard-imports.mjs';
 import { nineBuildBlocks } from '../src/shards/nine-dragon-stack/generators/worldEntry';
-import { BLEND_ADD_KEEP_ALPHA } from '../src/game/plugin/shaderFamily';
+import { BLEND_ADD_KEEP_ALPHA } from '../src/game/client/plugin/shaderFamily';
 import { assertConfigBoundary } from '../src/sdk/configBoundary';
 
 test('Nine authored streaks retain the original blend state without importing a runtime host', () => {
@@ -23,7 +23,7 @@ test('the actual Nine output factory bundles as one build-only module', async ()
   const chunks = built.output.filter(row => row.type === 'chunk'); expect(chunks).toHaveLength(1);
   for (const chunk of chunks) {
     assertConfigBoundary([...chunk.imports, ...chunk.dynamicImports]);
-    expect(Object.keys(chunk.modules).some(path => path.endsWith('/src/game/shardfile/clientPlan.ts'))).toBe(false);
+    expect(Object.keys(chunk.modules).some(path => path.endsWith('/src/game/client/shardfile/clientPlan.ts'))).toBe(false);
   }
 });
 

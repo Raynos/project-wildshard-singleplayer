@@ -6,7 +6,7 @@ import { productManifestPath } from './authored-manifest.mjs';
 import { pathToFileURL } from 'node:url';
 
 /** Emit data and image imports only, never a shard's executable discovery graph.
- * @param {readonly import('../src/game/shard/titleList').TitleManifest[]} rows */
+ * @param {readonly import('../src/game/client/shard/titleList').TitleManifest[]} rows */
 export function titleCatalogueSource(rows) {
   /** @type {Map<string, string>} */
   const images = new Map();
@@ -26,8 +26,8 @@ export function titleCatalogueSource(rows) {
 
 /** Run only in the existing build-time loader after discovery is current. */
 export async function readTitleCatalogue() {
-  const { shards } = await import('../src/game/shard/list.ts');
-  const { titleMetadata } = await import('../src/game/shard/titleList.ts');
+  const { shards } = await import('../src/game/client/shard/list.ts');
+  const { titleMetadata } = await import('../src/game/client/shard/titleList.ts');
   return titleCatalogueSource(shards().map(titleMetadata));
 }
 
@@ -41,7 +41,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.ar
  * @returns {{slug:string,file:string,placement?:{grid:[number,number],size:[number,number,number],instance:string}}[]} */
 export function selectionModules(root) {
   if (!existsSync(resolve(root,'src/shards'))) return [];
-  const path=resolve(root,'src/game/grid/singleplayer.json');
+  const path=resolve(root,'src/game/shared/grid/singleplayer.json');
   /** @type {{slug:string,cell:[number,number],size:[number,number,number],instance:string}[]} */
   const placements=existsSync(path)?JSON.parse(readFileSync(path,'utf8')).placements:[];
   return shardProducts(root,shardFolders(root)).map(product=>{

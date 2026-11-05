@@ -1,7 +1,7 @@
 import {admissionNative} from './nalati-return-modules';
-import { EliteCore, memoryElitePersistence, type EliteCoreScript } from '../../src/game/eliteSystem';
-import type { AnimalSim } from '../../src/engine/entities/AnimalSim';
-import type { SimHost } from '../../src/engine/sim';
+import { EliteCore, memoryElitePersistence, type EliteCoreScript } from '../../src/game/server/eliteSystem';
+import type { AnimalSim } from '../../src/engine/server/entities/AnimalSim';
+import type { SimHost } from '../../src/engine/server/sim';
 
 
 export function nativeEliteCore(host: SimHost, phase = 'day', storm = false): EliteCore<EliteCoreScript<AnimalSim>> {

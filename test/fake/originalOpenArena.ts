@@ -1,6 +1,6 @@
 // Frozen native Storm Titan shell and projection before open/closed lifecycle convergence.
 import type { ArenaScriptData,ArenaScriptRows,ArenaScriptFightFile } from '@wildshard/format/arenaScriptRows';
-import { installEnteredRuntimeService } from '../../src/game/shard/retainedHooks';
+import { installEnteredRuntimeService } from '../../src/game/client/shard/retainedHooks';
 /** Client projection of the G474 arena-script boss contract. Authored inputs
  * are rows; entered native owners supply rendering, health, riding and kit. */
 import * as THREE from 'three';
@@ -23,24 +23,24 @@ import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { modelContext, type ModelDef } from '@wildshard/engine/models/model';
 import { Rng } from '@wildshard/engine/core/rng';
-import type { ShardContext } from '../../src/game/plugin/context';
-import { installChannelPrograms } from '../../src/game/plugin/channelPrograms';
-import type { WeatherReactions } from '../../src/game/weather/reactions';
-import type { ShardProduct } from '../../src/game/shardfile/shardProduct';
-import { installBossEncounter, type Boss } from '../../src/game/Boss';
-import { ProjectedState, ReturnProgram } from '../../src/game/population/returnProgram';
-import { wildEnv } from '../../src/game/population/pageGroups';
+import type { ShardContext } from '../../src/game/server/plugin/context';
+import { installChannelPrograms } from '../../src/game/server/plugin/channelPrograms';
+import type { WeatherReactions } from '../../src/game/server/weather/reactions';
+import type { ShardProduct } from '../../src/game/shared/shardfile/shardProduct';
+import { installBossEncounter, type Boss } from '../../src/game/server/Boss';
+import { ProjectedState, ReturnProgram } from '../../src/game/shared/population/returnProgram';
+import { wildEnv } from '../../src/game/server/population/pageGroups';
 import { setEliteDamage } from '@wildshard/engine/entities/eliteBrain';
-import { CellField } from '../../src/game/systems/cellField';
+import { CellField } from '../../src/game/server/systems/cellField';
 import { ArenaFireView, ArenaWhirlsView } from './originalArenaFire';
-import { ArenaSceneView, CloudBody, type PatrolEncounterView } from '../../src/game/boss/encounterView';
-import type { GroundTell } from '../../src/game/eliteView';
-import type { ArcWeaponPower } from '../../src/game/weapons/arcPower';
-import type { HeldClaims, HeldSlotKit } from '../../src/game/loadout/claims';
-import type { CosmeticFinishLocker } from '../../src/game/loadout/cosmeticFinishes';
-import { enteredAdventurePersistence } from '../../src/game/quest/chapterBindings';
-import {pageRidingMount,respawnPageMounted,arenaBlockedAt,installArenaBoundary,type ArenaBoundary} from '../../src/game/riding/client';
-import type { Mount } from '../../src/game/riding/mount';
+import { ArenaSceneView, CloudBody, type PatrolEncounterView } from '../../src/game/client/boss/encounterView';
+import type { GroundTell } from '../../src/game/client/eliteView';
+import type { ArcWeaponPower } from '../../src/game/client/weapons/arcPower';
+import type { HeldClaims, HeldSlotKit } from '../../src/game/client/loadout/claims';
+import type { CosmeticFinishLocker } from '../../src/game/client/loadout/cosmeticFinishes';
+import { enteredAdventurePersistence } from '../../src/game/server/quest/chapterBindings';
+import {pageRidingMount,respawnPageMounted,arenaBlockedAt,installArenaBoundary,type ArenaBoundary} from '../../src/game/client/riding/client';
+import type { Mount } from '../../src/game/server/riding/mount';
 
 /** Read schema-checked named products; no validator is imported into play. */
 export async function readArenaScriptData(product: Pick<ShardProduct,'json'>, files: { fight: string; geometry: string }): Promise<ArenaScriptData> {

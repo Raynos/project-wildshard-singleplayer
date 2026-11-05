@@ -158,8 +158,8 @@ golden bow and fire arrows later.
   new blade geometry + slightly faster keys; the spear thrust is a new `Move` (a forward key triple, a narrow
   fan, reach 3.2); the mounted slash is a `Move` chosen left or right at swing time.
 - `src/engine/entities/Animal.ts` `stagger()` / `applyDamage()` / `damageFor()` retain the ordinary thrust and mounted-lance contacts.
-- `src/engine/player/AimAssist.ts` — widened cone and tracking while mounted.
-- `src/engine/player/TouchControls.ts` — discs already swap by context (JUMP → DIVE while swimming); DRAW / THROW /
+- `src/engine/client/player/AimAssist.ts` — widened cone and tracking while mounted.
+- `src/engine/client/player/TouchControls.ts` — discs already swap by context (JUMP → DIVE while swimming); DRAW / THROW /
   GALLOP / SLASH are the same pattern. DRAW and THROW are *held* discs (like DIVE), not toggles (like
   AIM).
 

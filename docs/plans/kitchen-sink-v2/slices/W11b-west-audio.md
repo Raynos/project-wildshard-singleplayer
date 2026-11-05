@@ -15,13 +15,13 @@ Pine's cabin ambience) are not touched by these rows and wait.
 | SFX (~30 of the plan's ~95) | lift clank + hum, spinner, slider, conveyor loop, jump-pad launch, grapple fire / latch / reel, zip run, board hum, trick landed, combo up, grind, plate click, gate open, crate topple, skittles, see-saw creak, chest open, bench sit, Gold chime, buy, locked, Scrip coins, ring hit (range), steel plate clang, bale ignite, parry clang |
 
 Every new generic SFX goes into the shared `best` set (19k); MOSS-SoundEffect v2 and Stable Audio 3 Medium both
-generate each, the better take ships (AGENTS.md). Credits are licence conditions (`engine/audio/credits.ts`).
+generate each, the better take ships (AGENTS.md). Credits are licence conditions (`engine/client/audio/credits.ts`).
 
 ## 2. Engine / game / host work, just in time
 
 Research (the audio mini plan's §1 audit, re-checked): `src/format/audio.ts` (463 lines: `music` slots with calm /
 tension stems and `selection` rows, `zones`, `scene`, `patches`), `src/format/audioScene.ts` (342),
-`engine/audio/SetScore.ts`, `Stems.ts`. **Stings are four fixed names** (`pickup`, `death`, `chunk`, `dawn`). A missing
+`engine/client/audio/SetScore.ts`, `Stems.ts`. **Stings are four fixed names** (`pickup`, `death`, `chunk`, `dawn`). A missing
 genre falls back to synth. Positional loops ≤ 32 per zone set.
 
 | Gap | Shape | Layer |

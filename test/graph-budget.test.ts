@@ -3,9 +3,9 @@ import { expect, it } from 'vitest';
 import { MAX_GRAPH_BUDGET, validateGraph, type GraphIr, type GraphNode } from '@wildshard/format/materialGraph';
 import { MaterialsSchema } from '@wildshard/format/materials';
 import * as v from 'valibot';
-import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
+import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
 import { classicLookCompiler } from './fixtures/classicLookCompiler';
-import { clientGraphs } from '../src/game/shardfile/clientGraphs';
+import { clientGraphs } from '../src/game/client/shardfile/clientGraphs';
 import { GraphMaterial } from '../src/sdk/materials';
 import { emptyShardfile } from '../src/sdk/author';
 

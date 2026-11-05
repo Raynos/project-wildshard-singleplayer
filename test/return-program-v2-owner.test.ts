@@ -1,11 +1,11 @@
 import { expect,test,vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { Rng } from '../src/engine/core/rng';
-import { ReturnProgram,ProjectedState } from '../src/game/population/returnProgram';
+import { Scope } from '../src/engine/shared/app/scope';
+import { Rng } from '../src/engine/shared/core/rng';
+import { ReturnProgram,ProjectedState } from '../src/game/shared/population/returnProgram';
 import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { ArenaScriptFightFileSchema } from '@wildshard/format/arenaScriptRows';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 import { nameBlob } from '../src/sdk/blobs';
 import { wireProgram } from '../src/shards/nalati-grasslands/generators/returnProgramRows';
 import * as v from 'valibot';

@@ -32,7 +32,7 @@ export async function verifyMapPixels(image, expected) {
 
 /** what places a shard's world, relative to its folder; a shard may name its own in look/map.json ("inputs") */
 export const DEFAULT_MAP_INPUTS = ['shard.config.ts', 'layout.ts', 'world', 'generators', 'models'];
-/** the full cell the bake covers: CHUNK_SIZE (src/engine/core/config.ts) metres square, centred on the origin */
+/** the full cell the bake covers: CHUNK_SIZE (src/engine/shared/core/config.ts) metres square, centred on the origin */
 export const MAP_METRES = 500;
 
 /** @param {string} shardDir */

@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { expect, test } from 'vitest';
-import { MountCompanions, companionToName, type CompanionActor, type CompanionPrompt } from '../src/game/riding/companions';
+import { MountCompanions, companionToName, type CompanionActor, type CompanionPrompt } from '../src/game/server/riding/companions';
 
 // The companion law as Mount ran it inline before companions.ts (mount.ts addMountable / rename / nameOf / canRide /
 // whistle / update), kept here as the reference the kernel must match draw for draw.

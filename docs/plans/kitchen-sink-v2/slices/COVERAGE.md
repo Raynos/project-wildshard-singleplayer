@@ -47,7 +47,7 @@ and run by another plan; no slice), **dropped** (no longer needed, reason given)
 | W17 | completion card required | E-complete (prov.) | | mapped |
 | W18 | ladders, scramble, rope bridge | W8b | W6c, W8a | mapped |
 | W19 | audio states | W11b | E-audio | mapped |
-| W20 | one breadcrumb guide (merge `engine/quest/view.ts` and `game/quest/chapterDirector.ts`) | W1b | E1i (Pine's `lead` half) | **orphan** in the west: README puts it in W1, no west file names it; E1i takes Pine's half. Proposal: W1b (+6 h) merges the two guides, proved by W1b's quest-shard parity list |
+| W20 | one breadcrumb guide (merge `engine/client/quest/view.ts` and `game/server/quest/chapterDirector.ts`) | W1b | E1i (Pine's `lead` half) | **orphan** in the west: README puts it in W1, no west file names it; E1i takes Pine's half. Proposal: W1b (+6 h) merges the two guides, proved by W1b's quest-shard parity list |
 | W21 | docs and template rows | W12 | E-finish | mapped (IMPACT Q11 recommends each slice adds its own template row) |
 
 ## 2. Migration rows (wave-1-migration-map.md M0–M9, §8 EC1)
@@ -250,8 +250,8 @@ These stay owned by their plans (Jake 11-02, 19l); a slice runs a row and marks 
 | HA4b `cosmeticFinishes` (H059) | E-elites (prov.) | **orphan**; proposal with M1.3 |
 | HA4b `sceneDressing` | — | **elsewhere**: no showcase piece uses it; stays HOST-AUDIT |
 | HA4d the hoverboard | W5a | mapped (look only; the law stays engine) |
-| HA4d `engine/player/nalatiArms.ts` | W3b | **orphan**. Proposal: W3b; it is read by `game/weapons/starterBowProfile.ts` and `heldLauncher.ts` on the bow path |
-| HA4d `engine/world/steppeWind.ts` | W11a | mapped (also read by SR / SD painted looks, IMPACT §10) |
+| HA4d `engine/player/nalatiArms.ts` | W3b | **orphan**. Proposal: W3b; it is read by `game/server/weapons/starterBowProfile.ts` and `heldLauncher.ts` on the bow path |
+| HA4d `engine/shared/world/steppeWind.ts` | W11a | mapped (also read by SR / SD painted looks, IMPACT §10) |
 | HA4d HUD item labels | W2a | **orphan**. Proposal: W2a, with the pack catalogue labels (LE4) |
 | HA4e plugin routes | W6a | mapped (mover route; each other route with its slice: W3c firearm, E-gauntlet director, E-titan bossPhase) |
 | H110 Titan open-arena projection | E-titan (prov.) | mapped |

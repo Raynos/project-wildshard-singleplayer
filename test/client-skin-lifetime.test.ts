@@ -10,9 +10,9 @@ import { FilesSchema } from '@wildshard/format/shardSections';
 import { parseRows } from '@wildshard/format/rows';
 import { SKIN_LOOK_RECIPE, SKIN_CLIPS_RECIPE } from '@wildshard/format/skins';
 import * as skinAssets from '@wildshard/format/skinAssets';
-import * as skinPlayback from '../src/game/shardfile/skinPlayback';
-import * as skinLayers from '../src/game/shardfile/skinLayerPlayback';
-import { loadClientSkins, SkinDriver, type ClientSkin } from '../src/game/shardfile/clientSkins';
+import * as skinPlayback from '../src/game/client/shardfile/skinPlayback';
+import * as skinLayers from '../src/game/client/shardfile/skinLayerPlayback';
+import { loadClientSkins, SkinDriver, type ClientSkin } from '../src/game/client/shardfile/clientSkins';
 
 afterEach(() => { vi.restoreAllMocks(); });
 

@@ -1,7 +1,7 @@
 import {expect,test} from 'vitest';
 import * as v from 'valibot';
-import {SaveStore} from '../src/engine/saves/store';
-import {homeScreenPersistence,persistHomeScreen} from '../src/engine/saves/runtime';
+import {SaveStore} from '../src/engine/shared/saves/store';
+import {homeScreenPersistence,persistHomeScreen} from '../src/engine/shared/saves/runtime';
 
 test('page boot asks outside standalone mode and coalesces with later content persistence',async()=>{
   let nativeRequests=0;

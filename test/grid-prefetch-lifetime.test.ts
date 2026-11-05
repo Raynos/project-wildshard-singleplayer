@@ -2,8 +2,8 @@ import {afterEach, expect, test, vi} from 'vitest';
 import {emptyShardfile} from '../src/sdk/author';
 import {hashImmutableBytes} from '../src/sdk/immutable';
 import {parseOutputIndex} from '@wildshard/format/outputIndex';
-import {installTitleManifests, titleManifests, type TitleManifest} from '../src/game/shard/titleList';
-import {startGridPrefetch, gridPrefetchStatus} from '../src/game/grid/prefetch';
+import {installTitleManifests, titleManifests, type TitleManifest} from '../src/game/client/shard/titleList';
+import {startGridPrefetch, gridPrefetchStatus} from '../src/game/client/grid/prefetch';
 
 afterEach(() => {vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.unstubAllEnvs();});
 

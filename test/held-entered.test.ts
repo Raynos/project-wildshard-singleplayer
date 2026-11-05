@@ -1,14 +1,14 @@
 import { layout } from './fixtures/nine-product-inputs';
 import { expect, test, vi } from 'vitest';
-import { GrappleTool, grappleGuard } from '../src/game/grapple/tool';
+import { GrappleTool, grappleGuard } from '../src/game/client/grapple/tool';
 import { heldEntry, enteredRows } from './fixtures/nineHeldEntry';
-import { admitClientPlan, installClientPhase } from '../src/game/shardfile/clientPlan';
+import { admitClientPlan, installClientPhase } from '../src/game/client/shardfile/clientPlan';
 import { bakedLayout } from '../src/shards/nine-dragon-stack/generators/layoutProjection';
 import { emitPlatformSections } from '../src/sdk/platformSections';
 import type { PlatformDataSectionName } from '@wildshard/format/platformDataSections';
-import { declaredClientPlanEntry } from '../src/game/shard/declaredEntry';
+import { declaredClientPlanEntry } from '../src/game/server/shard/declaredEntry';
 import { clientPlanPhases } from './fixtures/clientPlanHost';
-import { App } from '../src/engine/app/app';
+import { App } from '../src/engine/client/app/app';
 
 async function refusal(run: Promise<unknown>): Promise<unknown> {
   try { await run; return null; } catch (error) { return error; }

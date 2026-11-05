@@ -4,15 +4,15 @@ import { object, parse } from 'valibot';
 import { ClientSpeciesProgramSchema } from '@wildshard/format/clientNative';
 import { HullLookBookSchema, PackedCreatureLooksSchema } from '@wildshard/format/speciesLooks';
 import { SpeciesPresentationSchema } from '@wildshard/format/speciesBookRows';
-import { Scope } from '../src/engine/app/scope';
+import { Scope } from '../src/engine/shared/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { CLIENT_FEATURES } from '../src/game/shardfile/clientPlan';
-import { entryOwner } from '../src/game/shardfile/entryOwners';
-import { installClientSpeciesProgram, prepareClientSpeciesCatalogue } from '../src/game/shardfile/clientSpeciesProgram';
-import type { ShardContext } from '../src/game/plugin/context';
-import type { ShardRuntime } from '../src/game/shard/runtime';
-import type { ShardWorld } from '../src/game/shard/world';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
+import { CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';
+import { entryOwner } from '../src/game/client/shardfile/entryOwners';
+import { installClientSpeciesProgram, prepareClientSpeciesCatalogue } from '../src/game/client/shardfile/clientSpeciesProgram';
+import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import type { ShardWorld } from '../src/game/server/shard/world';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const source = parse(object({hullBook: HullLookBookSchema, looks: PackedCreatureLooksSchema, presentation: SpeciesPresentationSchema}),

@@ -19,12 +19,12 @@ No new host. The heavy proofs that AGENTS.md runs per milestone, not per slice:
 | Memory | `scripts/grid-ready-memory.mjs` on the Simulator (`scripts/sim-lane.sh`, quiet window) | **≤ 1.8 GB loading, ≤ 1.2 GB Explorer** for the shard |
 | Frame floor | `scripts/frame-floor-grid.mjs` on a served build of HEAD | the phone budget rows in `data/budgets.json` (copied from the template) |
 | Physics walk | `node scripts/physics-baseline.mjs --no-build --mode=walk` | 0 stuck, every course route included |
-| Body cap | count awake dynamic bodies at the physics yard (W4a/b) | ≤ 40 on phone (`engine/physics/bodies.ts:84`) |
+| Body cap | count awake dynamic bodies at the physics yard (W4a/b) | ≤ 40 on phone (`engine/shared/physics/bodies.ts:84`) |
 | Boot smoke | the exact-SHA boot smoke | green |
 | Grid entries | `scripts/grid-ready-chromium.mjs`, `scripts/physics-grid-entry.mjs` | the four entries enter and leave clean |
 | One-frame looks | the goldens skill, 24 cameras, new for this shard | Opus reads every panel |
 
-Then the grid swap (W0a Q2): the hologram plot at [−1,−1] (`open-plot-sw` in `src/game/grid/singleplayer.json`) is
+Then the grid swap (W0a Q2): the hologram plot at [−1,−1] (`open-plot-sw` in `src/game/shared/grid/singleplayer.json`) is
 replaced by `showcase-template` once Jake's pass says so, still behind Developer if he wants (G972 forbids a
 Developer-only cell, so this is a public change and his call).
 

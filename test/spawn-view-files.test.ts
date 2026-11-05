@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { SPAWN_VIEW_REACH_M, spawnViewSceneFiles } from '@wildshard/format/spawnView';
-import { SPAWN_VIEW_M } from '../src/game/shardfile/controlRefinement';
+import { SPAWN_VIEW_M } from '../src/game/client/shardfile/controlRefinement';
 
 // DL21: a cold Nine visit fetched its late native-slabs scene tiles one by one inside the spawn-view fence (45 s in the
 // Simulator) because the default spawn set left them out. The build now carries every tiled scene file in the fence's reach.

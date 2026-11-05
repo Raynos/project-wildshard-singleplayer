@@ -4,7 +4,7 @@ import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { ShrineBuilder } from '../src/shards/driftwood-isle/generators/shrine';
 import { driftwoodGroundSampler } from '../src/shards/driftwood-isle/generators/groundSampling';
 import { parseWorldSceneModels, WorldSceneModelsSchema } from '@wildshard/format/worldSceneModels';
-import { floorAtRects } from '../src/engine/physics/box';
+import { floorAtRects } from '../src/engine/shared/physics/box';
 import SHRINE_SITES from '../src/shards/driftwood-isle/data/shrineSites.json' with { type: 'json' };
 import { driftwoodModelCatalogue } from './fixtures/driftwoodModelCatalogue';
 

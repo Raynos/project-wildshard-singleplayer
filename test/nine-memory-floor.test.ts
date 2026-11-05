@@ -2,8 +2,8 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
-import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
-import { playLibrarySource, scopedSpecimenLibrarySource, tierLibrarySource, urlImageLibrarySource } from '../src/game/shardfile/productCost';
+import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
+import { playLibrarySource, scopedSpecimenLibrarySource, tierLibrarySource, urlImageLibrarySource } from '../src/game/client/shardfile/productCost';
 import { textureLibrarySource } from '@wildshard/format/deviceMemoryCost';
 import { nearbyContentCost } from '@wildshard/format/budget';
 import { builtProduct } from './fixtures/builtProduct';

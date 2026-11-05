@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, test, vi } from 'vitest';
-import { readModuleFiles, readModuleGroups, preloadModuleFiles, preloadModuleGroups } from '../src/engine/boot/download';
-import { checkClientPlanModules, checkProductClientModules, prepareClientModuleGroups } from '../src/game/shardfile/clientModules';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { readModuleFiles, readModuleGroups, preloadModuleFiles, preloadModuleGroups } from '../src/engine/client/boot/download';
+import { checkClientPlanModules, checkProductClientModules, prepareClientModuleGroups } from '../src/game/client/shardfile/clientModules';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 
 afterEach(() => { document.body.replaceChildren(); for (const link of document.querySelectorAll('link[rel="modulepreload"]')) link.remove(); });

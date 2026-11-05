@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { expect, test } from 'vitest';
-import { finishShaderText } from '../src/engine/render/shaderText';
+import { finishShaderText } from '../src/engine/client/render/shaderText';
 
 // three 0.186's own text passes (WebGLProgram.js: resolveIncludes, replaceLightNums, replaceClippingPlaneNums), copied
 // as the oracle: finishShaderText must leave exactly their result, so three's passes then change nothing

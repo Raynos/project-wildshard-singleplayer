@@ -79,7 +79,7 @@ export function homeExtraFiles(root: string, directory: string, bundle: Bundle, 
   const manifest = object(JSON.parse(readFileSync(manifestPath, 'utf8'))), urls: string[] = [];
   // Entry prepares these shared sources on every playable boot, before control.
   // Inline legacy geometry has no separate body; shared file URLs count once.
-  const pickups = resolve(root, 'src/game/data/pickupCatalogue.json');
+  const pickups = resolve(root, 'src/game/client/data/pickupCatalogue.json');
   if (existsSync(pickups)) {
     const rows = v.parse(PickupCatalogueSchema, JSON.parse(readFileSync(pickups, 'utf8')));
     const banked = new Set(rows.banks?.flatMap(bank => bank.members.map(member => member.file)));

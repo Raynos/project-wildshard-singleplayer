@@ -1,19 +1,19 @@
 import { expect, test } from 'vitest';
 import { Group } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { withOwner } from '../src/engine/app/ownership';
+import { Scope } from '../src/engine/shared/app/scope';
+import { withOwner } from '../src/engine/shared/app/ownership';
 import { legacyDouble } from '../src/engine/test/FakeGame';
-import { sharedModelContext, specimenReady } from '../src/engine/models/model';
-import { SkyRig } from '../src/engine/world/skyRig';
-import { WorldRegistry } from '../src/engine/world/registry';
-import { Rng } from '../src/engine/core/rng';
+import { sharedModelContext, specimenReady } from '../src/engine/client/models/model';
+import { SkyRig } from '../src/engine/client/world/skyRig';
+import { WorldRegistry } from '../src/engine/client/world/registry';
+import { Rng } from '../src/engine/shared/core/rng';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { emptyShardfile } from '../src/sdk/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { installWorldScenes } from '../src/game/shardfile/worldScenes';
-import { defineWorldSceneCatalogue } from '../src/game/models/worldSceneCatalogue';
-import type { ShardContext } from '../src/game/plugin/context';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
+import { installWorldScenes } from '../src/game/client/shardfile/worldScenes';
+import { defineWorldSceneCatalogue } from '../src/game/client/models/worldSceneCatalogue';
+import type { ShardContext } from '../src/game/server/plugin/context';
 
 function fixture(demand = true, direct = false, corrupt = false) {
   const owner = new Scope('cold-scene-documents'), registry = new WorldRegistry();

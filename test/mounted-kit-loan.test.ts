@@ -1,18 +1,18 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import * as plan from '../src/engine/boot/plan';
+import { Scope } from '../src/engine/shared/app/scope';
+import * as plan from '../src/engine/client/boot/plan';
 import * as launcher from './fixtures/originalHeldBowLoader';
-import type { Targets } from '../src/engine/combat/types';
+import type { Targets } from '../src/engine/client/combat/types';
 import { MountedArsenal, type MountedLoadout } from './fixtures/originalMountedArsenal';
-import * as nativeItems from '../src/game/plugin/headless';
-import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
-import type { ShardContext } from '../src/game/plugin/context';
-import type { ShardRuntime } from '../src/game/shard/runtime';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import * as nativeItems from '../src/game/server/plugin/headless';
+import { ItemCatalogue } from '../src/game/server/loadout/itemCatalogue';
+import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import { mockCanvas } from '@wildshard/engine/test/weaponParity';
-import type { HeldFirearmRows } from '../src/game/plugin/heldFirearm';
+import type { HeldFirearmRows } from '../src/game/client/plugin/heldFirearm';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseHeldFirearmRows } from '@wildshard/format/weaponProfiles';
 import { parseItems } from '@wildshard/format/items';

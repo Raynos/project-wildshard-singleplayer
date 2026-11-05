@@ -5,10 +5,10 @@ import { expect, test } from 'vitest';
 const setup = `
   import assert from 'node:assert/strict';
   import { createHash } from 'node:crypto';
-  import { placeForest,placeForestSteps } from './src/engine/world/forest/placement.ts';
-  import { selectedLevel,configureLevel } from './src/engine/level/selection.ts';
-  import { _applyChunkConstants,SEED,TREE_COUNT } from './src/engine/core/config.ts';
-  import { buildTerrain } from './src/engine/world/terrainField.ts';
+  import { placeForest,placeForestSteps } from './src/engine/shared/world/forest/placement.ts';
+  import { selectedLevel,configureLevel } from './src/engine/shared/level/selection.ts';
+  import { _applyChunkConstants,SEED,TREE_COUNT } from './src/engine/shared/core/config.ts';
+  import { buildTerrain } from './src/engine/shared/world/terrainField.ts';
   const forest={spacing:13,densityFreq:.03,clearings:[-.7,.2],maxSlope:.8,tintHue:.25,tintHueJitter:[-.01,.02],tintSat:[.4,.7],tintLight:[.5,.8],largeVariantChance:.2};
   const terrain=buildTerrain(77,{landscape:()=>0,trails:[],cabinSites:[]});
   const source={...terrain,seed:77,treeCount:12,forest};
@@ -74,7 +74,7 @@ test('explicit and page inputs preserve predecessor infill, species and zero-see
 
 test('sliced page placement retains live field updates while explicit inputs stay independent', () => {
   expect(run(`
-    const {captureHeightfield}=await import('./src/engine/world/Heightfield.ts');
+    const {captureHeightfield}=await import('./src/engine/shared/world/Heightfield.ts');
     const policy={...forest,spacing:5},count=1000;
     configureLevel({ground:{terrain},forest:policy});_applyChunkConstants({slug:'fixture',label:'fixture',seed:77,treeCount:count});
     const binding=captureHeightfield();

@@ -16,7 +16,7 @@ const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
  * @param {string} root */
 export function scenarioHostHash(root) {
   const fingerprint=createHash('sha256');
-  for(const path of ['src/engine/script/decision.ts','src/engine/script/decisionModule.ts','src/format/scriptAbiV1.ts']) {
+  for(const path of ['src/engine/server/script/decision.ts','src/engine/shared/script/decisionModule.ts','src/format/scriptAbiV1.ts']) {
     // The fingerprint keeps format's old path: same bytes, same receipts.
     const file=path.startsWith('src/format/')?formatSource(root,path.slice('src/format/'.length)):resolve(root,path);if(!existsSync(file))return null;
     fingerprint.update(`${path}\0`);fingerprint.update(readFileSync(file));fingerprint.update('\0');
@@ -25,7 +25,7 @@ export function scenarioHostHash(root) {
 }
 /** Only the result of a completed assertion-bearing scenario belongs here.
  * Fuel is coarse host fuel, never CPU time. Trace calls include failed calls.
- * @param {{slug:string,script:string,scenario:string,sectionHash:string,hostHash:string,trace:readonly import('../src/engine/script/decision').DecisionTrace[]}} input */
+ * @param {{slug:string,script:string,scenario:string,sectionHash:string,hostHash:string,trace:readonly import('../src/engine/server/script/decision').DecisionTrace[]}} input */
 export function scriptScenarioReceipt({slug,script,scenario,sectionHash,hostHash,trace}) {
   const calls=trace.filter(entry=>entry.kind==='call');
   return v.parse(schema,{schema:'script-scenario/1',slug,script,scenario,sectionHash,hostHash,passed:true,calls:calls.length,

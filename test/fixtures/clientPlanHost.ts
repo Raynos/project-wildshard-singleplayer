@@ -1,5 +1,5 @@
-import { ShardPlugin, type ShardContext } from '../../src/game/plugin/context';
-import { admitClientPlan, installClientPhase, type AdmittedClientPlan, type ClientPhase } from '../../src/game/shardfile/clientPlan';
+import { ShardPlugin, type ShardContext } from '../../src/game/server/plugin/context';
+import { admitClientPlan, installClientPhase, type AdmittedClientPlan, type ClientPhase } from '../../src/game/client/shardfile/clientPlan';
 
 /** A modern host fixture for the one client-plan entry (LD9's `declaredClientPlanEntry(policy, prepare)`): it installs the
  * admitted plan's finite phases on the entry's own scope in the staged order (world → world-bindings, kit, prepare-play →

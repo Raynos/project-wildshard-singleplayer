@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 // whats-new-fresh.mjs — the main menu's WHAT'S NEW lines may be at most 24 h stale (E482, Jake 2026-10-17).
 //
-//   node scripts/whats-new-fresh.mjs <sha>     reads src/game/whatsNew.json from that commit (git show <sha>:…)
+//   node scripts/whats-new-fresh.mjs <sha>     reads src/game/client/whatsNew.json from that commit (git show <sha>:…)
 //
 // The pre-push hook runs it on every push to refs/heads/main. It fails when the file's `updated` (an ISO 8601 timestamp
 // with an offset) is missing, unparseable, more than 1 h in the future, or older than 24 h. The fix is always the same:
 // rewrite the 3–5 entries with what changed in the playable build since the last update, set `date` and `updated` to now,
-// and commit src/game/whatsNew.json.
+// and commit src/game/client/whatsNew.json.
 import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 
-export const WHATS_NEW_PATH = 'src/game/whatsNew.json';
+export const WHATS_NEW_PATH = 'src/game/client/whatsNew.json';
 const HOUR = 3_600_000;
 export const MAX_AGE_MS = 24 * HOUR;
 export const MAX_FUTURE_MS = HOUR;

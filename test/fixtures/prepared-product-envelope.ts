@@ -1,5 +1,5 @@
 import { loadHeadlessProduct } from '../../src/sdk/headlessProduct';
-import { outputDescriptor } from '../../src/game/shardfile/outputDescriptor';
+import { outputDescriptor } from '../../src/game/shared/shardfile/outputDescriptor';
 import { builtProduct } from './builtProduct';
 
 /** Read the normal prepare output through strict native admission. Never build

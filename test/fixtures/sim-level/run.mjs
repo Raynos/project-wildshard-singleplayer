@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createSimHost } from '@wildshard/engine/sim';
-import { loadRapier } from '../../../src/engine/physics/rapier.ts';
+import { loadRapier } from '../../../src/engine/shared/physics/rapier.ts';
 import { SIM_LEVEL, fightCommand } from './level.ts';
-import { leadCommands, leadPlayer } from '../../../src/engine/sim/leadPlayer.ts';
+import { leadCommands, leadPlayer } from '../../../src/engine/shared/sim/leadPlayer.ts';
 
 // Native Node has no DOM or frame scheduler; Rapier may probe typeof window while selecting its global.
 for (const name of ['window', 'document', 'localStorage', 'sessionStorage', 'requestAnimationFrame']) assert.equal(typeof Reflect.get(globalThis, name), 'undefined');

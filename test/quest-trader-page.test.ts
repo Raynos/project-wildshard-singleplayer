@@ -1,13 +1,13 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { Group, Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { WorldRegistry } from '../src/engine/world/registry';
-import type { Interactable } from '../src/engine/world/interact/types';
-import type { ShardContext } from '../src/game/plugin/context';
-import { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { FigureRows } from '../src/game/systems/npc/figureRows';
-import { installQuestTrader } from '../src/game/quest/trader';
+import { Scope } from '../src/engine/shared/app/scope';
+import { WorldRegistry } from '../src/engine/client/world/registry';
+import type { Interactable } from '../src/engine/shared/world/interact/types';
+import type { ShardContext } from '../src/game/server/plugin/context';
+import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
+import { FigureRows } from '../src/game/client/systems/npc/figureRows';
+import { installQuestTrader } from '../src/game/server/quest/trader';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import { TRADER_PAGE } from '../src/shards/driftwood-isle/generators/traderPage';
 

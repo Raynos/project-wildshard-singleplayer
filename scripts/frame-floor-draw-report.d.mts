@@ -1,4 +1,4 @@
-import type { DrawBudgetAssessment, DrawSample } from '../src/engine/core/drawBudget';
+import type { DrawBudgetAssessment, DrawSample } from '../src/engine/client/core/drawBudget';
 import type { FloorCpuPhaseReading } from './frame-floor-report-phase.mjs';
 
 export interface FloorDrawRecord {

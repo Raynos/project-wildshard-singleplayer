@@ -6,20 +6,20 @@ import { readWitnessManifest } from '../../../scripts/witness-checkpoints.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native proof maps are generated beside the local product.
 import { fileURLToPath } from 'node:url';
 import * as v from 'valibot';
-import { outputDescriptor } from '../../../src/game/shardfile/outputDescriptor';
+import { outputDescriptor } from '../../../src/game/shared/shardfile/outputDescriptor';
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify native blobs against the admitted output inventory.
 import { createHash } from 'node:crypto';
-import { loadRapier, type Rapier } from '../../../src/engine/physics/rapier';
+import { loadRapier, type Rapier } from '../../../src/engine/shared/physics/rapier';
 import { canonicalSimDigest, simWireV1 } from '../../fake/simState';
-import { decodeSimSnapshot } from '../../../src/engine/sim/snapshot';
+import { decodeSimSnapshot } from '../../../src/engine/shared/sim/snapshot';
 import { createNativeProofAdapter } from '../../fixtures/headless-native';
 import { prepareHeadlessRuntime } from '../../fixtures/nine-headless';
 import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
 import type { TickWorkerHost } from '../../../src/sdk/tickWorkerHost';
 import { createNativeProofWorker } from '../../fixtures/headless-worker';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
-import { SaveStore, type SaveStorage } from '../../../src/engine/saves/store';
-import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/ledger';
+import { SaveStore, type SaveStorage } from '../../../src/engine/shared/saves/store';
+import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/server/ledger';
 import type { TickWorkerAdapter } from '../../../src/sdk/tickWorkerLoop';
 
 import headlessAssembly from '../../../src/shards/nine-dragon-stack/data/headlessAssembly.json' with { type: 'json' };

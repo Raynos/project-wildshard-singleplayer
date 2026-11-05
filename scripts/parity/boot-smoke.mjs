@@ -28,7 +28,7 @@ export function publicPolicyAdmission(observation) {
 /** Browser-side observation; also exercised against fatal and incomplete boot fixtures. */
 export function bootObservation() {
   const fatal = [...document.querySelectorAll('#wserr,.ws-load-error,.ws-game-dev-alert,[data-boot-fatal]')].map(node => node.textContent || 'fatal');
-  const probe = /** @type {import('../../src/engine/debug/probe').EngineProbe | undefined} */ (window.__wildshard);
+  const probe = /** @type {import('../../src/engine/client/debug/probe').EngineProbe | undefined} */ (window.__wildshard);
   if (!probe?.world) return { fatal, ready: false, frame: -1, shard: '', grid: null, titlePreparation: null, appState: 'unavailable', playerValid: false, renderFrame: -1 };
   const world = probe.requireWorld(), state = probe.state();
   const { grid: exposed, titlePreparation: titleOwner } = world.game.app.debug.snapshot();

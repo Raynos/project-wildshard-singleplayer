@@ -1,11 +1,11 @@
 import * as v from 'valibot';
 import {SpeciesActorsFileSchema} from '@wildshard/format/speciesBookRows';
 import {parsePackedCreatureLooks} from '@wildshard/format/speciesLooks';
-import {numericCreaturePoseFromBook} from '../../src/game/plugin/channelPrograms';
-import {creatureFrame} from '../../src/game/plugin/creatureFrame';
-import type {NativeCreaturePoseRecipe} from '../../src/game/plugin/animation';
-import type {AnimalRigContext} from '../../src/engine/entities/animalRig';
-import type {ShardProduct} from '../../src/game/shardfile/shardProduct';
+import {numericCreaturePoseFromBook} from '../../src/game/server/plugin/channelPrograms';
+import {creatureFrame} from '../../src/game/client/plugin/creatureFrame';
+import type {NativeCreaturePoseRecipe} from '../../src/game/server/plugin/animation';
+import type {AnimalRigContext} from '../../src/engine/shared/entities/animalRig';
+import type {ShardProduct} from '../../src/game/shared/shardfile/shardProduct';
 
 const finite=v.pipe(v.number(),v.finite());
 const Bones=v.pipe(v.array(v.object({name:v.string(),parent:v.nullable(v.string()),pos:v.tuple([finite,finite,finite])})),v.maxLength(32));

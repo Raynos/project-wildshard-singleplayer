@@ -1,6 +1,6 @@
 import { BufferGeometry, Material, Mesh, type Object3D } from 'three';
 import { expect, it } from 'vitest';
-import { assembleWholeGeometryViews } from '../src/game/plugin/geometry';
+import { assembleWholeGeometryViews } from '../src/game/client/plugin/geometry';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { driftwoodFixedProductRows } from '../src/shards/driftwood-isle/generators/fixedProduct';
 import { FIXED_MODEL_FILES } from '../src/shards/driftwood-isle/generators/modelFiles';

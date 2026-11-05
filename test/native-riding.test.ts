@@ -175,7 +175,7 @@ test('an input lock holds the walk and the reins through a save, and a respawn r
 test('G478 orchard fixture owns companion allocation, retirement and native taming inputs', async () => {
   const { fixtureNativeRoster } = await import('./fixtures/native-roster');
   const { Rng } = await import('@wildshard/engine/core/rng');
-  const { NativeActors } = await import('../src/game/population/actors');
+  const { NativeActors } = await import('../src/game/server/population/actors');
   const { BondedMountRoster } = await import('@wildshard/game/riding/roster');
   const { installNativeTaming, nativeTamingControls } = await import('@wildshard/game/riding/nativeTaming');
   const { SPECIES_POSES } = await import('../src/shards/nalati-grasslands/generators/speciesPoses');
@@ -477,7 +477,7 @@ test('orchard fixture installs the complete native population through data rows'
     companions.retire(bound.entityId); expect(owner.bondedHorseIds()).toEqual([]);
     expect(owner.bodies).toEqual([actor]); expect(host.entities.has(bound.entityId)).toBe(false);
     expect(() => owner.spawnElite('foreign', 0, 0, 0, 'boar')).toThrow('Foreign');
-    const {SpawnScript}=await import('../src/game/population/spawnScript');
+    const {SpawnScript}=await import('../src/game/server/population/spawnScript');
     const {charge,chargeModule}=await import('./fixtures/nalati-charge');
     const row={...charge,roster:owner.id,bytes:Buffer.from(chargeModule).toString('base64'),
       species:charge.species.map(source=>({id:source.id,kind:sample.spec.kind,variant:sample.spec.variant}))};

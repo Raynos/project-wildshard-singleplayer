@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Lossless bounded transport of the real native observation; no asset or executable is decoded.
 import {deflateSync,inflateSync} from 'node:zlib';
 import * as v from 'valibot';
-import type {SimHost} from '../../../src/engine/sim';
+import type {SimHost} from '../../../src/engine/server/sim';
 
 export const PACKED_CHAPTER_TAMING='nalati.chapter-taming';
 const LIMIT=1_000_000,marker='chapter.observation.number';

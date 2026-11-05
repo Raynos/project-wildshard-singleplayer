@@ -272,7 +272,7 @@ export class CabinAuthorAssembly<K extends string = string, P extends string = s
   }
 
   /**
-   * Its own objects' bands (the weld culls them, src/engine/models/place.ts `Weld.finish`): the detail set within the detail
+   * Its own objects' bands (the weld culls them, src/engine/client/models/place.ts `Weld.finish`): the detail set within the detail
    * distance, the far set within twice it; a swap caster casts only past the detail distance (its near proxy draws its
    * depth nearer). Without detail shadows, the detail set casts none.
    */
@@ -309,7 +309,7 @@ export class CabinAuthorAssembly<K extends string = string, P extends string = s
     return [...this.legacy.filter((c) => !this.doorBoxes.has(c)).map((c) => boxDesc(c)), ...this.solids.filter((s) => !s.prop).map((s) => s.d)];
   }
 
-  /** what it hands `place` (src/engine/models/weld.ts `WeldBuild`) */
+  /** what it hands `place` (src/engine/client/models/weld.ts `WeldBuild`) */
   weldBuild(): CabinBuiltWeld {
     const root = this.root, floors = this.floors, deck = this.look.deck;
     return { root, parts: this.weldParts(), ...(this.casters === null ? {} : { casters: this.casters }), colliders: this.colliderDescs(),

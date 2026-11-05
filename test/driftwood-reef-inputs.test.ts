@@ -5,7 +5,7 @@ import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/gr
 import { readNativeTerrain } from '../src/sdk/bake/terrain';
 import { SEED, WORLD_DROP } from '../src/shards/driftwood-isle/generators/landscapeRows';
 import { WRECK, OCEAN } from '../src/shards/driftwood-isle/generators/worldSites';
-import { CHUNK_HALF, ROAD_WIDTH } from '../src/engine/core/config';
+import { CHUNK_HALF, ROAD_WIDTH } from '../src/engine/shared/core/config';
 import foliagePolicy from '../src/shards/driftwood-isle/data/foliagePolicy.json' with { type: 'json' };
 
 // Captured on e13178f602 before removing the live-field and global-policy fallback.

@@ -1,11 +1,11 @@
 import { expect, test } from 'vitest';
-import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
+import { ItemCatalogue } from '../src/game/server/loadout/itemCatalogue';
 import { parseItems } from '@wildshard/format/items';
 import { pineItems } from '../src/shards/pine-hollow/generators/channelSections';
 import { DRIFTWOOD_ITEMS as DRIFTWOOD_SWORDS } from './fixtures/driftwood-items';
 import NINE_ITEMS from '../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };
 import { CROSSBOW, LEVER, LONGBOW } from '../src/shards/pine-hollow/generators/equipment';
-import { SWORD_WOOD, SWORD_IRON } from '../src/game/weapons/starterMeleeProfile';
+import { SWORD_WOOD, SWORD_IRON } from '../src/game/server/weapons/starterMeleeProfile';
 
 // GR8: called, not read from a scheduler job's output
 const PINE_ITEMS = pineItems();

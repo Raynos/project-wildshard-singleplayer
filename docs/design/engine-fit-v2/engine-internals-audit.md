@@ -82,7 +82,7 @@ they don't repeat it. Ideas only: Jake has approved none of it.
 | EI4 | Boot files from the manifest: `files`, `audio`, `explore` and `precache` rows. It removes the shard branches and shard imports in manifest, extras, shardPrefetch and audioFiles (and fixes audit bug 2) | M |
 | EI5 | De-shard `Game.ts`: Nalati's fog and composer go into its `ShardRender`; the Nine Dragon AO and phone cuts and Driftwood's phone chain go into the manifest's tier data; the Nine boot trace becomes a generic `bootTrace` that a manifest flag turns on | S |
 | EI6 | Retire the resident host: ShardHost's park, activate and evict, the 76 `shardSlot`s, the `disposeListeners` prototype patch, the global-capture code and the global `addEventListener` patch. Keep one `Scope` behind the `ShardApp` verbs. **Needs Jake's yes** (E155 asked for resident shards; E216 overrode it) | M |
-| EI7 | `buildShard` becomes `engine/boot.ts` (≤ 150 lines) plus each shard's `plugin.install(app)` and kit features. Done when `main.ts` has 0 shard branches (28 `isOcean`, 19 `slug ===`, 18 `nalatiNow()`, 12 `isPine`, 10 `painterly` today) | L |
+| EI7 | `buildShard` becomes `engine/client/boot.ts` (≤ 150 lines) plus each shard's `plugin.install(app)` and kit features. Done when `main.ts` has 0 shard branches (28 `isOcean`, 19 `slug ===`, 18 `nalatiNow()`, 12 `isPine`, 10 `painterly` today) | L |
 | EI8 | A generated `shards.generated.ts`: node-safe manifests plus a lazy `load`. It is the only engine → shard edge and replaces the static imports in `chunks/registry.ts` and `TITLE_CARDS` | S |
 
 ## 2. Input
@@ -199,9 +199,9 @@ rather than a context it was handed, and ~26 debug names leak shard names into t
 | Area | Size | Engine-ready? | Coupling |
 |---|---|---|---|
 | `src/explore` | 16 files, 4,240 lines | **Yes, mostly.** `ExploreHost` takes a `World` plus callbacks, and models come from the one registry | 23 shard-shaped lines: `Explore.ts:66-75` (4 art maps × 4 slugs), `Compare.ts:18-33` (mockups per shard), 6 `chunk.ocean?.level` reads (use `terrain.waterLevel()`) |
-| `src/engine/practice` | 7 files, 1,203 lines | **Yes.** It uses the engine's Weapons, Player, Physics and registry | `BOSS_NAMES` is a side-effect map in `ui/Combat.ts:40`; make it a content registry. `TargetHit` is typed from `Crossbow.ts` |
+| `src/engine/client/practice` | 7 files, 1,203 lines | **Yes.** It uses the engine's Weapons, Player, Physics and registry | `BOSS_NAMES` is a side-effect map in `ui/Combat.ts:40`; make it a content registry. `TargetHit` is typed from `Crossbow.ts` |
 | `src/playgrounds` | 9 files, 1,083 lines | **No.** Both rooms are shard content in an engine folder | `catalog.ts:29-30` names shards; `load.ts` switches on the id; `GrapplePlayground.ts:17` imports Nine Dragon's course; `PlaygroundHost.ride` is typed with Nalati's `Ride` (`Playground.ts:21,37`) |
-| `src/engine/models` | 18 files, 3,211 lines | **Yes.** `defineModel`, `placeSet`, a lazy `roster` per shard (`ChunkDef.roster`), the registry catalog | Creature styles (`lowpoly`, `painterly`, `pbr`) are the kit's; `swimHands` and `hoverboard` are engine gear |
+| `src/engine/client/models` | 18 files, 3,211 lines | **Yes.** `defineModel`, `placeSet`, a lazy `roster` per shard (`ChunkDef.roster`), the registry catalog | Creature styles (`lowpoly`, `painterly`, `pbr`) are the kit's; `swimHands` and `hoverboard` are engine gear |
 
 | Row | What | Size |
 |---|---|---|

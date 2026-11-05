@@ -4,14 +4,14 @@ import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read immutable authored payloads, never a renderer.
 import { readFileSync } from 'node:fs';
 import { TEMPLATE_SOURCE as source, templateAssets } from '../../fixtures/templateSource.ts';
-import catalogue from '../../../src/game/grid/singleplayer.json' with { type: 'json' };
-import { createShardfileSim, bindShardfileSim } from '../../../src/game/plugin/simulation.ts';
-import { loadRapier } from '../../../src/engine/physics/rapier.ts';
-import { restoreSimHost } from '../../../src/engine/sim/snapshot.ts';
-import { GridAssembly } from '../../../src/game/grid/assembly.ts';
-import { GridSimulation } from '../../../src/game/grid/simulation.ts';
-import { ResidencyAllocator } from '../../../src/game/grid/allocator.ts';
-import { leadPlayer } from '../../../src/engine/sim/leadPlayer.ts';
+import catalogue from '../../../src/game/shared/grid/singleplayer.json' with { type: 'json' };
+import { createShardfileSim, bindShardfileSim } from '../../../src/game/server/plugin/simulation.ts';
+import { loadRapier } from '../../../src/engine/shared/physics/rapier.ts';
+import { restoreSimHost } from '../../../src/engine/shared/sim/snapshot.ts';
+import { GridAssembly } from '../../../src/game/server/grid/assembly.ts';
+import { GridSimulation } from '../../../src/game/server/grid/simulation.ts';
+import { ResidencyAllocator } from '../../../src/game/server/grid/allocator.ts';
+import { leadPlayer } from '../../../src/engine/shared/sim/leadPlayer.ts';
 
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
 const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));

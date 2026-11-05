@@ -1,13 +1,13 @@
 import { expect, test, vi } from 'vitest';
 import { Bone, BufferGeometry, MeshStandardMaterial, SkinnedMesh, Vector3 } from 'three';
-import { Animal } from '../src/engine/entities/AnimalView';
-import { AnimalSim } from '../src/engine/entities/AnimalSim';
-import type { AnimalModel } from '../src/engine/entities/AnimalFactory';
-import { speciesWithLook, type SpeciesLook } from '../src/engine/entities/species/look';
-import type { SpeciesRow } from '../src/engine/ai/species';
-import type { ThinkCtx } from '../src/engine/entities/species/registry';
+import { Animal } from '../src/engine/client/entities/AnimalView';
+import { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import type { AnimalModel } from '../src/engine/client/entities/AnimalFactory';
+import { speciesWithLook, type SpeciesLook } from '../src/engine/client/entities/species/look';
+import type { SpeciesRow } from '../src/engine/server/ai/species';
+import type { ThinkCtx } from '../src/engine/shared/entities/species/registry';
 import { CRAB, MONKEY, SAILOR } from './fake/driftwoodSpecies';
-import { Rng } from '../src/engine/core/rng';
+import { Rng } from '../src/engine/shared/core/rng';
 import { speciesBrains } from '../src/sdk/speciesBrains';
 import { strike } from '../src/sdk/species';
 import { DRIFTWOOD_ENEMY_SPECIES } from '../src/shards/driftwood-isle/generators/enemySpecies';
@@ -15,7 +15,7 @@ import { CRAB_LOOK, SAILOR_LOOK, MONKEY_LOOK } from './fake/driftwoodLooks';
 import { SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES } from '../src/shards/sunscar-dunes/generators/rows/brains';
 import DRIFTWOOD_STRIKE_ROWS from '../src/shards/driftwood-isle/data/strikes.json' with { type: 'json' };
 import { SKITTERER_DATA } from '../src/shards/sunscar-dunes/generators/rows/species/skitterer';
-import { spawnRuntimeHome, type RuntimeHome } from '../src/game/plugin/headless';
+import { spawnRuntimeHome, type RuntimeHome } from '../src/game/server/plugin/headless';
 import { DUNE_RAY } from '../src/shards/sunscar-dunes/generators/rows/species/duneRay';
 
 function body(row: SpeciesRow, look: SpeciesLook, scale = 1, entityId?: string): { actor: Animal; dispose: () => void } {

@@ -1,11 +1,11 @@
-// The score (src/game/audio/theme.ts) → a standard MIDI file, one track per layer, for a composer to take further.
+// The score (src/game/client/audio/theme.ts) → a standard MIDI file, one track per layer, for a composer to take further.
 //   node scripts/music/export-midi.mjs [theme|trailer30|trailer15] [out.mid]      default: theme → scripts/music/wildshard-theme.mid
 // drone and pad are derived from the chord track (root D2 + D3 held; the pad's four voices per chord); pulse is a GM drum
 // track on channel 10 (36 kick · 35 four-on-the-floor kick · 38 tap · 42 shaker). Tempo changes per segment; the theme's
 // loop (D → B) is written once, followed by the ring-out.
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { ARRANGEMENTS, CHORDS } from '../../src/game/audio/theme.ts';
+import { ARRANGEMENTS, CHORDS } from '../../src/game/client/audio/theme.ts';
 
 const here = import.meta.dirname;
 const name = process.argv[2] ?? 'theme';

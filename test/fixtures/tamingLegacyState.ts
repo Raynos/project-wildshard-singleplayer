@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { ReturnProgram } from '../../src/game/population/returnProgram';
+import { ReturnProgram } from '../../src/game/shared/population/returnProgram';
 
 /** Admitted event-only decisions; the session owns numeric state and bounded cadence. */
 export interface TamingPrograms { approach: unknown; breaking: unknown; riding: unknown; initial: Record<string, number> }

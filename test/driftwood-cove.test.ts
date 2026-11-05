@@ -1,8 +1,8 @@
-import { floorAtRects } from '../src/engine/physics/box';
-import { yawLocal } from '../src/engine/world/yawFrame';
+import { floorAtRects } from '../src/engine/shared/physics/box';
+import { yawLocal } from '../src/engine/shared/world/yawFrame';
 import { beforeAll, expect, it } from 'vitest';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
-import { readColliderRows } from '../src/engine/models/colliders';
+import { readColliderRows } from '../src/engine/client/models/colliders';
 import { driftwoodRows } from './fixtures/driftwoodLegacyRows';
 import { coveFloorAt, islandCoveSpec, coveHalfWidth, STEPS } from '../src/shards/driftwood-isle/generators/coveLayout';
 

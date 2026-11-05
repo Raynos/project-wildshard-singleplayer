@@ -5,9 +5,9 @@ import * as v from 'valibot';
 import { loadHeadlessProduct } from '../../../src/sdk/headlessProduct';
 // oxlint-disable-next-line import/no-nodejs-modules -- The witness refuses incomplete native gameplay rather than report a passing flag.
 import assert from 'node:assert/strict';
-import type { SimHost } from '../../../src/engine/sim';
-import { snapshotSimHostBytes, serializeSimSnapshot } from '../../../src/engine/sim/snapshot';
-import type { Rapier } from '../../../src/engine/physics/rapier';
+import type { SimHost } from '../../../src/engine/server/sim';
+import { snapshotSimHostBytes, serializeSimSnapshot } from '../../../src/engine/shared/sim/snapshot';
+import type { Rapier } from '../../../src/engine/shared/physics/rapier';
 import { createNativeProofResident, prepareProductPlan as prepareHeadlessRuntime } from '../../fixtures/headless-native';
 import {nalatiTamingPilot} from './tamingPilot';
 import source from '../../fixtures/nalati-product-source';

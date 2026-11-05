@@ -301,7 +301,7 @@ class LookoutBuilder {
 
   /**
    * PHYSICS P4: this builder's static collision in world space — its walls / posts (the legacy boxes) and every floor
-   * `floorHeightAt` describes, as real geometry. src/engine/physics/pieces.ts turns it into Rapier colliders.
+   * `floorHeightAt` describes, as real geometry. src/engine/shared/physics/pieces.ts turns it into Rapier colliders.
    * The platform is one slab whose top is the deck. The stair is the mesh's 0.28 m treads (the top one 0.095 m under
    * the deck), as wide as `floorHeightAt`'s stair (the stringers included). The headland rises over the stair's foot,
    * so the treads buried under the ground are left out: the stair starts at the first tread that stands above it.

@@ -1,5 +1,5 @@
 {
-  "source": "src/engine/entities/AnimalView.ts",
+  "source": "src/engine/client/entities/AnimalView.ts",
   "revision": "7fcebde170c720d3156d58a8598057bad760941e",
   "sha256": "1fbdc7028ab33660766c2744b73f287fb7fa5128ff08fa16690350ba029d2b66",
   "oracleSha256": "a95995dc7883488f642600cd26c7536ae9d6e9c31494228188d7f51d91ec1a31",

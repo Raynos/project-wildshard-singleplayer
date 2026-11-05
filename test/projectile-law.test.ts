@@ -1,13 +1,13 @@
 import { afterEach, expect, test } from 'vitest';
 import { BoxGeometry, MeshBasicMaterial, PerspectiveCamera, Scene, Vector3, type Vector2 } from 'three';
-import { app } from '../src/engine/app/runtime';
-import type { Game } from '../src/engine/core/Game';
-import type { Player } from '../src/engine/player/Player';
-import type { Forest } from '../src/engine/world/forest/Forest';
-import type { SkyRig } from '../src/engine/world/skyRig';
+import { app } from '../src/engine/client/app/runtime';
+import type { Game } from '../src/engine/client/core/Game';
+import type { Player } from '../src/engine/client/player/Player';
+import type { Forest } from '../src/engine/client/world/forest/Forest';
+import type { SkyRig } from '../src/engine/client/world/skyRig';
 import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
-import { Projectiles } from '../src/engine/combat/view/projectile';
-import { ProjectileLaw, segmentCapsule } from '../src/engine/combat/projectileLaw';
+import { Projectiles } from '../src/engine/client/combat/view/projectile';
+import { ProjectileLaw, segmentCapsule } from '../src/engine/shared/combat/projectileLaw';
 
 // The projectile law (projectileLaw.ts) run bare, as a Node simulation runs it, beside the drawn Projectiles: an enemy
 // arrow's flight, its glance-free stop and the player's body it strikes must match step by step.

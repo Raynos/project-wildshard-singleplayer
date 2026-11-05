@@ -25,7 +25,7 @@ const tierArg = arg('tier'), slugArg = arg('slug'), recordTo = arg('record-to');
 if (tierArg === undefined) {
   const only = process.argv.slice(2).filter((a) => !a.startsWith('--'));
   const verify = process.argv.includes('--verify'), check = process.argv.includes('--check');
-  const gb = await import(pathToFileURL(resolve(ROOT, 'src/engine/world/geometryBake.ts')).href);
+  const gb = await import(pathToFileURL(resolve(ROOT, 'src/engine/client/world/geometryBake.ts')).href);
   const output = byteWriter(check, 'bake-geometry');
   const scratch = mkdtempSync(join(tmpdir(), 'bake-geometry-'));
   let failed = false;
@@ -61,14 +61,14 @@ if (tierArg === undefined) {
   const environment = installBakeEnvironment(ROOT);
   try {
     const src = (p) => import(pathToFileURL(resolve(ROOT, 'src', p)).href);
-    if (tierArg !== 'desktop') (await src('engine/core/tier.ts')).initializeTier(tierArg); // desktop is Node's own tier (navigator 'node')
+    if (tierArg !== 'desktop') (await src('engine/client/core/tier.ts')).initializeTier(tierArg); // desktop is Node's own tier (navigator 'node')
     const THREE = await import('three');
     const { visitAuthoredWorld } = await import('./bake/worldHost.mjs');
-    const registry = await src('game/shard/registry.ts');
+    const registry = await src('game/client/shard/registry.ts');
     const { SHARDS } = await src('shards.generated.ts');
-    const HF = await src('engine/world/Heightfield.ts');
-    const BT = await src('engine/world/BakedTerrain.ts');
-    const gb = await src('engine/world/geometryBake.ts');
+    const HF = await src('engine/shared/world/Heightfield.ts');
+    const BT = await src('engine/shared/world/BakedTerrain.ts');
+    const gb = await src('engine/client/world/geometryBake.ts');
     const def = SHARDS.find((s) => s.slug === slugArg);
     if (def === undefined) throw new Error(`bake-geometry: no shard ${slugArg}`);
     registry.setActiveChunk(def.slug);

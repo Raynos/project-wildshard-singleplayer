@@ -37,7 +37,7 @@ async function fixture(): Promise<string> {
     put(project, 'look/map.baked.json', JSON.stringify({ image: `/assets/${slug}/map/top.webp`, tilesHash: mapTilesHash(project), pixelHash: await mapPixelHash(resolve(root, image)) }));
     placements.push({ slug, instance: slug, cell: [order, 0], size: [500, 500, 500] });
   }
-  put(root, 'src/game/grid/singleplayer.json', JSON.stringify({ version: 0, placements })); return root;
+  put(root, 'src/game/shared/grid/singleplayer.json', JSON.stringify({ version: 0, placements })); return root;
 }
 function builder(calls: string[][], fail?: string, missingTile = false): (args: string[]) => Promise<void> {
   return async args => {

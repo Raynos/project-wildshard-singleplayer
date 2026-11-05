@@ -36,11 +36,11 @@ test('boot inputs defer title publication, then final generation retains the com
   expect(existsSync(resolve(staged.root, 'out/.app/titleCatalogue.generated.ts'))).toBe(false);
   staged.boot(); genShards(staged.root);
   expect(readFileSync(resolve(staged.root, 'title-calls'), 'utf8')).toBe('once\n');
-  const closure = JSON.parse(readFileSync(resolve(staged.root, 'src/game/shard/manifest-closure.generated.json'), 'utf8')) as Record<string, string[]>;
+  const closure = JSON.parse(readFileSync(resolve(staged.root, 'src/game/server/shard/manifest-closure.generated.json'), 'utf8')) as Record<string, string[]>;
   expect(closure['island']).toContain('src/game/boot/late.generated.ts');
   const direct = fixture(); direct.boot(); genShards(direct.root);
-  for (const path of ['src/shards.generated.ts', 'src/game/shard/slugs.generated.ts',
-    'src/game/shard/manifest-closure.generated.json', 'out/.app/titleCatalogue.generated.ts', 'out/.app/shardSelection.generated.ts']) {
+  for (const path of ['src/shards.generated.ts', 'src/game/server/shard/slugs.generated.ts',
+    'src/game/server/shard/manifest-closure.generated.json', 'out/.app/titleCatalogue.generated.ts', 'out/.app/shardSelection.generated.ts']) {
     expect(readFileSync(resolve(staged.root, path), 'utf8')).toBe(readFileSync(resolve(direct.root, path), 'utf8'));
   }
   staged.write('out/.app/titleCatalogue.generated.ts', 'corrupt title');

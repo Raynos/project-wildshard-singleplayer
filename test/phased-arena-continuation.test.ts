@@ -1,8 +1,8 @@
 import {expect,test} from 'vitest';
 import {Vector3} from 'three';
-import {Rng} from '../src/engine/core/rng';
+import {Rng} from '../src/engine/shared/core/rng';
 import {parseBossProfile} from '@wildshard/format/bossProfiles';
-import {bossFight,type PhasedBossBody} from '../src/game/plugin/bossPhase';
+import {bossFight,type PhasedBossBody} from '../src/game/server/plugin/bossPhase';
 import king from './fixtures/nalati-goldenKing-original.json' with {type:'json'};
 
 const profile=(()=>{const value=parseBossProfile(king.page.profile);if(value.pattern!=='arena')throw new Error('Missing original fixed arena');return value;})();

@@ -1,20 +1,20 @@
 import {admissionPage,lendNalatiPasture} from './fixtures/nalati-return-modules';
-import {Scope} from '../src/engine/app/scope';
+import {Scope} from '../src/engine/shared/app/scope';
 import { NALATI_PASTURE as pasture } from './fixtures/nalati-titan';
 import { fixtureNativeRoster } from './fixtures/native-roster';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native ownership tests use the actual shipped Rapier binary.
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
-import { Rng } from '../src/engine/core/rng';
-import { HuntBrain, type HuntBody } from '../src/engine/ai/hunt';
-import { NativeManager } from '../src/game/population/nativeManager';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+import { Rng } from '../src/engine/shared/core/rng';
+import { HuntBrain, type HuntBody } from '../src/engine/server/ai/hunt';
+import { NativeManager } from '../src/game/server/population/nativeManager';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 
-import { BOAR } from '../src/game/systems/species/boar';
+import { BOAR } from '../src/game/client/systems/species/boar';
 import { Vector3 } from 'three';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { createSimHost } from '../src/engine/sim';
-import { admitNativeRosterServices, createNativeCreatureRoster } from '../src/game/shardfile/homeKeeper';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost } from '../src/engine/server/sim';
+import { admitNativeRosterServices, createNativeCreatureRoster } from '../src/game/server/shardfile/homeKeeper';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 

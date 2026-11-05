@@ -1,17 +1,17 @@
 import * as THREE from 'three';
 import { afterEach, expect, it, vi } from 'vitest';
-import { SkyRig } from '../src/engine/world/skyRig';
-import { WorldRegistry } from '../src/engine/world/registry';
-import { Scope } from '../src/engine/app/scope';
-import { setTerrainHeight } from '../src/engine/world/terrainHeight';
-import { FigureSkins } from '../src/game/systems/npc/figureSkins';
+import { SkyRig } from '../src/engine/client/world/skyRig';
+import { WorldRegistry } from '../src/engine/client/world/registry';
+import { Scope } from '../src/engine/shared/app/scope';
+import { setTerrainHeight } from '../src/engine/shared/world/terrainHeight';
+import { FigureSkins } from '../src/game/client/systems/npc/figureSkins';
 import * as v from 'valibot';
-import { installQuestFigures } from '../src/game/quest/figures';
-import type { ShardContext } from '../src/game/plugin/context';
-import type { ShardRuntime } from '../src/game/shard/runtime';
+import { installQuestFigures } from '../src/game/client/quest/figures';
+import type { ShardContext } from '../src/game/server/plugin/context';
+import type { ShardRuntime } from '../src/game/server/shard/runtime';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { ClientChannelsSchema } from '@wildshard/format/clientChannels';
-import * as rigLoader from '../src/engine/anim/rig';
+import * as rigLoader from '../src/engine/client/anim/rig';
 import { peoplePrograms } from '../src/shards/nalati-grasslands/generators/peopleMotion';
 import { peopleRows as population } from '../src/shards/nalati-grasslands/generators/peopleRows.mjs';
 

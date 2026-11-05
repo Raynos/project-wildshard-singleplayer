@@ -1,8 +1,8 @@
 // Shipping policy captured for SF27; body unchanged, defining imports relocated.
-import { CreatureBrain } from '../../../src/engine/ai/CreatureBrain';
-import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../../src/engine/ai/strikes';
-import type { Animal } from '../../../src/engine/entities/AnimalView';
-import type { ThinkCtx } from '../../../src/engine/entities/species/registry';
+import { CreatureBrain } from '../../../src/engine/server/ai/CreatureBrain';
+import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../../src/engine/server/ai/strikes';
+import type { Animal } from '../../../src/engine/client/entities/AnimalView';
+import type { ThinkCtx } from '../../../src/engine/shared/entities/species/registry';
 import { slot } from './slot';
 
 /** The strider's numbers (metres, m/s, seconds). */

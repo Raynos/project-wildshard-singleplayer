@@ -2,7 +2,7 @@ import {expect,test} from 'vitest';
 import {ClientChannels} from '@wildshard/sdk/clientChannels';
 import {parseClientChannels,type ClientChannelProgram} from '@wildshard/format/clientChannels';
 import {installChannelPrograms} from '@wildshard/game/plugin/channelPrograms';
-import {onFault,type Fault} from '../src/engine/core/faults';
+import {onFault,type Fault} from '../src/engine/shared/core/faults';
 
 function row(id:string,input:string,target:string,bound?:string):ClientChannelProgram{
  const dag=new ClientChannels(id);dag.output('value',dag.read(input));

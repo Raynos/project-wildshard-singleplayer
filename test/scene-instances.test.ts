@@ -6,8 +6,8 @@ import { expect,test } from 'vitest';
 import * as v from 'valibot';
 import { BoxGeometry,BufferAttribute,Group,InstancedMesh,Matrix4,MeshBasicMaterial,Vector3 } from 'three';
 import { SceneInstancesSchema } from '@wildshard/format/sceneInstances';
-import { SceneInstanceFields } from '../src/game/shardfile/sceneInstances';
-import { setTerrainHeight } from '../src/engine/world/terrainHeight';
+import { SceneInstanceFields } from '../src/game/client/shardfile/sceneInstances';
+import { setTerrainHeight } from '../src/engine/shared/world/terrainHeight';
 import { dressingScene } from './fixtures/nalati-dressing-scene';
 import { kokparOval } from './fixtures/nalati-kokpar-oracle';
 

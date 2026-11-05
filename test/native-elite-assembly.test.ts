@@ -2,11 +2,11 @@ import { nalatiEliteRows } from '../src/shards/nalati-grasslands/generators/nati
 import { need } from './fixtures/headless-plan';
 import {admissionNative,admission} from './fixtures/nalati-return-modules';
 import { expect, test, vi } from 'vitest';
-import { NativeEliteRoster, nativeEliteBindings } from '../src/engine/ai/eliteRoster';
-import { NativeEliteLifecycle } from '../src/engine/ai/eliteLifecycle';
-import { HerdBrain, type HerdPorts } from '../src/engine/ai/herd';
-import type { AnimalSim } from '../src/engine/entities/AnimalSim';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+import { NativeEliteRoster, nativeEliteBindings } from '../src/engine/server/ai/eliteRoster';
+import { NativeEliteLifecycle } from '../src/engine/server/ai/eliteLifecycle';
+import { HerdBrain, type HerdPorts } from '../src/engine/server/ai/herd';
+import type { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
 import { nativeEliteCore } from './fixtures/nativeEliteCore';

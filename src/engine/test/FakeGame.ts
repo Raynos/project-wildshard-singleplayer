@@ -1,11 +1,11 @@
 import * as THREE from 'three';
-import { Scope } from '../app/scope';
-import { installBrowserScopeEnvironment } from '../app/view/scopeEnvironment';
-import type { Game, FixedPhase } from '../core/Game';
-import { FIXED_STEP } from '../core/fixedStep';
-import { makeSystem, setLoopState, systemFault, type GameSystem } from '../core/faults';
-import { worldTime } from '../core/time';
-import { ViewmodelRoot } from '../render/viewmodel';
+import { Scope } from '../shared/app/scope';
+import { installBrowserScopeEnvironment } from '../client/app/view/scopeEnvironment';
+import type { Game, FixedPhase } from '../client/core/Game';
+import { FIXED_STEP } from '../shared/core/fixedStep';
+import { makeSystem, setLoopState, systemFault, type GameSystem } from '../shared/core/faults';
+import { worldTime } from '../shared/core/time';
+import { ViewmodelRoot } from '../client/render/viewmodel';
 
 type Tick = (dt: number) => void;
 type Update = (dt: number, t: number) => void;

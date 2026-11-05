@@ -2,10 +2,10 @@
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { beforeAll, expect, test } from 'vitest';
-import { createSimHost } from '../src/engine/sim';
-import { loadRapier } from '../src/engine/physics/rapier';
+import { createSimHost } from '../src/engine/server/sim';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { decodeSimSnapshot, decodeSimSnapshotBytes, snapshotSimHostBytes, serializeSimSnapshot,
-  prepareSimHostRestore, restoreSimHost, SnapshotBasisMismatchError } from '../src/engine/sim/snapshot';
+  prepareSimHostRestore, restoreSimHost, SnapshotBasisMismatchError } from '../src/engine/shared/sim/snapshot';
 import { canonicalSimDigest } from './fake/simState';
 import { SIM_LEVEL, fightCommand } from './fixtures/sim-level/level';
 import { leadCommands } from '@wildshard/engine/sim/leadPlayer';

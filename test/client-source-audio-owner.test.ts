@@ -1,15 +1,15 @@
 import { installCatalogueFixture } from './fixtures/bootSetup';
-import { installShards, shards } from '../src/game/shard/list';
-import { game, setActiveChunk } from '../src/game/shard/registry';
+import { installShards, shards } from '../src/game/client/shard/list';
+import { game, setActiveChunk } from '../src/game/client/shard/registry';
 import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { outputSectionPayloads } from '@wildshard/format/outputFields';
 import { parseOutputIndex } from '@wildshard/format/outputIndex';
-import { installManifestShardfile, shardfileSource } from '../src/game/shardfile/clientSource';
-import type { ShardfileClientBindings } from '../src/game/shardfile/client';
-import type { ProductOptions } from '../src/game/shardfile/product';
-import { NO_AUDIO } from '../src/engine/audio/levelAudio';
+import { installManifestShardfile, shardfileSource } from '../src/game/client/shardfile/clientSource';
+import type { ShardfileClientBindings } from '../src/game/client/shardfile/client';
+import type { ProductOptions } from '../src/game/client/shardfile/product';
+import { NO_AUDIO } from '../src/engine/client/audio/levelAudio';
 
 await installCatalogueFixture();
 

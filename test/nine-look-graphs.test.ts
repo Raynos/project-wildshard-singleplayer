@@ -3,17 +3,17 @@ import { unzlibSync } from 'fflate';
 import { parseGrappleFilament } from '@wildshard/format/grapple';
 import filamentRows from '../src/shards/nine-dragon-stack/data/filament.json' with { type: 'json' };
 import { burstGraphs } from '../src/shards/nine-dragon-stack/generators/burstGraphs';
-import { effectField } from '../src/engine/fx/effectField';
+import { effectField } from '../src/engine/client/fx/effectField';
 import burstRows from '../src/shards/nine-dragon-stack/data/burstFields.json' with { type: 'json' };
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
-import { compileClassicGraph } from '../src/engine/render/graph/glslMaterial';
+import { compileClassicGraph } from '../src/engine/client/render/graph/glslMaterial';
 import { streakGraph } from '../src/shards/nine-dragon-stack/generators/streakGraph';
-import { lendLooks } from '../src/game/shardfile/lentLooks';
+import { lendLooks } from '../src/game/client/shardfile/lentLooks';
 import { floorReceiver, receiverCards, stairReceivers } from '../src/shards/nine-dragon-stack/generators/receiverCards';
 import { cardScene } from '../src/shards/nine-dragon-stack/generators/presentation';
-import { createSceneBuffers } from '../src/game/shardfile/sceneBuffers';
-import { Scope } from '../src/engine/app/scope';
+import { createSceneBuffers } from '../src/game/client/shardfile/sceneBuffers';
+import { Scope } from '../src/engine/shared/app/scope';
 import { lightVolumeBlobs, lightVolumeRows } from '../src/shards/nine-dragon-stack/generators/lightVolumes';
 
 
@@ -118,7 +118,7 @@ test('halo discs compile with additive alpha preservation inside the existing ca
 
 test('filament graph binds the simulated rope and preserves target alpha', async () => {
   const { filamentGraph } = await import('../src/shards/nine-dragon-stack/generators/filamentGraph');
-  const { Filament, Rope } = await import('../src/game/grapple/ribbon');
+  const { Filament, Rope } = await import('../src/game/client/grapple/ribbon');
   const graph = filamentGraph(), compiled = compileClassicGraph(graph, { trustedBudget: true }), cleanups: (() => void)[] = [];
   lendLooks({ onDispose: run => { cleanups.push(run); } }, { materials: new Map([['nine-filament', compiled.material]]),
     setParam: (_id, name, value) => { compiled.setParam(name, value); }, setTexture: () => undefined, bindMeshMap: () => compiled.material });

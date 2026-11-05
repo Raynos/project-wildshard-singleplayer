@@ -5,7 +5,7 @@
 // in Node and writes public/assets/baked/<slug>/terrain.bin — the height and splat weights at every
 // vertex of the terrain mesh grid (TERRAIN_RES² over CHUNK_SIZE, the exact PlaneGeometry order), so
 // the phone builds the mesh, plants the forest and walks the ground from a lookup instead of ~200 k
-// noise evaluations at launch. src/engine/world/BakedTerrain.ts reads it and swaps Heightfield's bindings.
+// noise evaluations at launch. src/engine/shared/world/BakedTerrain.ts reads it and swaps Heightfield's bindings.
 //
 // Every run bakes in memory and writes only differing output bytes. Source-only edits write nothing.
 //
@@ -14,7 +14,7 @@
 // Format (little-endian): 'WSTR' u32 version=1 · u32 res · f32 size · u32 seed · u32 landscapeHash (0 = unhashed legacy) ·
 //   f32[res²] height · u8[res²·4] splat weights (each row sums to ≈ 255) — vertex i = iz·res + ix at
 //   (x, z) = (−half + ix·d, −half + iz·d), d = size / (res − 1).
-//   Then, for a shard that grows undergrowth, the placement decision log (src/engine/world/forest/placement.ts — the forest
+//   Then, for a shard that grows undergrowth, the placement decision log (src/engine/shared/world/forest/placement.ts — the forest
 //   planted on this grid, then every undergrowth candidate's kept / skipped bit, ~17 KB): 'WSPL' u32 version=1 ·
 //   u32 decisions · u32 kinds · u32[kinds] counts · f64 checksum sum · u8[⌈decisions/8⌉] bits.
 import { byteWriter, outputHash, jsonBytes } from './bake-output.mjs';
@@ -28,17 +28,17 @@ const VERSION = 1;
 // before any game module loads: the settings (and the defs that read them) take the page's query at import
 
 
-const { CHUNK_SIZE, CHUNK_HALF, TERRAIN_RES } = await import(pathToFileURL(resolve(ROOT, 'src/engine/core/config.ts')).href);
-const { landscapeHash } = await import(pathToFileURL(resolve(ROOT, 'src/engine/world/terrainField.ts')).href);
+const { CHUNK_SIZE, CHUNK_HALF, TERRAIN_RES } = await import(pathToFileURL(resolve(ROOT, 'src/engine/shared/core/config.ts')).href);
+const { landscapeHash } = await import(pathToFileURL(resolve(ROOT, 'src/engine/shared/world/terrainField.ts')).href);
 
 // every chunk module that exports a ShardManifest (has slug + terrain); the registry itself needs `location`
 const { SHARDS } = await import(pathToFileURL(resolve(ROOT, 'src/shards.generated.ts')).href);
 
-const registry = await import(pathToFileURL(resolve(ROOT, 'src/game/shard/registry.ts')).href);
-const heightfield = await import(pathToFileURL(resolve(ROOT, 'src/engine/world/Heightfield.ts')).href);
-const bakedTerrain = await import(pathToFileURL(resolve(ROOT, 'src/engine/world/BakedTerrain.ts')).href);
-const placement = await import(pathToFileURL(resolve(ROOT, 'src/engine/world/forest/placement.ts')).href);
-const { bakesTerrain } = await import(pathToFileURL(resolve(ROOT, 'src/game/shard/terrainBake.ts')).href);
+const registry = await import(pathToFileURL(resolve(ROOT, 'src/game/client/shard/registry.ts')).href);
+const heightfield = await import(pathToFileURL(resolve(ROOT, 'src/engine/shared/world/Heightfield.ts')).href);
+const bakedTerrain = await import(pathToFileURL(resolve(ROOT, 'src/engine/shared/world/BakedTerrain.ts')).href);
+const placement = await import(pathToFileURL(resolve(ROOT, 'src/engine/shared/world/forest/placement.ts')).href);
+const { bakesTerrain } = await import(pathToFileURL(resolve(ROOT, 'src/game/server/shard/terrainBake.ts')).href);
 
 // G384: a shard whose retained WSTR alias is its shardfile's admitted query terrain (shard.config `terrain.form: 'query'`)
 // ships the bare lattice. The content gate admits no placement tail, and no runtime of these shards replays one.
@@ -69,15 +69,15 @@ function placementSection(def, gridBuf) {
 
 const output = byteWriter(check, 'bake-chunk');
 for (const def of SHARDS) {
-  // one rule with the grid's edge reader (src/game/shard/terrainBake.ts): a structures world ships no bake, and the reader
+  // one rule with the grid's edge reader (src/game/server/shard/terrainBake.ts): a structures world ships no bake, and the reader
   // never fetches one for it (C4-R1-C13)
   if (!bakesTerrain(def.ground)) continue;
   // A required manifest ground is its shardfile's own terrain collider (compiled by its tiles job, loaded through the
   // session's required-ground loader): it ships no WSTR bake, so never sample an unready field here.
-  const { bakedTerrainSource } = await import(pathToFileURL(resolve(ROOT, 'src/engine/world/bakedTerrainField.ts')).href);
+  const { bakedTerrainSource } = await import(pathToFileURL(resolve(ROOT, 'src/engine/shared/world/bakedTerrainField.ts')).href);
   if (bakedTerrainSource(def.ground.terrain) !== null) continue;
     // the bake holds the authored (unshifted) heights: a field shifted at runtime (its `datum`, Driftwood's G164 drop)
-    // installs this bake shifted by it (src/engine/world/Heightfield.ts)
+    // installs this bake shifted by it (src/engine/shared/world/Heightfield.ts)
     const terrain = def.ground.terrain, datum = terrain.datum ?? 0, authored = { heightAt: (x, z) => terrain.heightAt(x, z) - datum };
     const res = TERRAIN_RES;
     const dir = resolve(OUT, def.slug);

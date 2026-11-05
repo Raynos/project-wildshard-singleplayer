@@ -1,7 +1,7 @@
 import { expect,test,vi } from 'vitest';
-import { ProjectedState,ReturnProgram } from '../src/game/population/returnProgram';
-import { ReturnProjectionV2 } from '../src/game/population/returnProjectionV2';
-import { Rng } from '../src/engine/core/rng';
+import { ProjectedState,ReturnProgram } from '../src/game/shared/population/returnProgram';
+import { ReturnProjectionV2 } from '../src/game/shared/population/returnProjectionV2';
+import { Rng } from '../src/engine/shared/core/rng';
 import {titanPrograms as programs} from './fixtures/titanInlineWitness';
 import { TITAN_CLOCKS } from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import frozen from './fixtures/titan-clocks.json' with {type:'json'};

@@ -6,15 +6,15 @@ import { writtenBundle } from '../scripts/app-build/writtenBundle';
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Create and remove only this test's miniature build files.
 import { mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
-import { readModuleFiles } from '../src/engine/boot/download';
+import { readModuleFiles } from '../src/engine/client/boot/download';
 import { bootModuleFiles } from '../scripts/app-build/bootModules';
 
 test('control batches retain title, session, lazy and shard boundaries through cycles', () => {
   const root = '/fixture';
   const edges: Readonly<Record<string, readonly string[]>> = {
     '/fixture/src/entry.ts': ['/fixture/src/shared.ts'],
-    '/fixture/src/game/session/session.ts': ['/fixture/src/sessionOnly.ts', '/fixture/src/shared.ts'],
-    '/fixture/src/core.ts': ['/fixture/src/game/session/session.ts', '/fixture/src/services.ts', '/fixture/src/shards/one/manifest.ts'],
+    '/fixture/src/game/client/session/session.ts': ['/fixture/src/sessionOnly.ts', '/fixture/src/shared.ts'],
+    '/fixture/src/core.ts': ['/fixture/src/game/client/session/session.ts', '/fixture/src/services.ts', '/fixture/src/shards/one/manifest.ts'],
     '/fixture/src/services.ts': ['/fixture/src/core.ts'],
   };
   const graph = { getModuleInfo: (id: string) => ({ importedIds: edges[id] ?? [] }) };
@@ -47,10 +47,10 @@ test('unconditional initial banks ignore later roles but preserve their exact HT
     '/fixture/index.html': ['/fixture/src/entry.ts', '/fixture/src/bootOnly.ts', '/fixture/src/shared.ts', '/fixture/src/base.css'],
     '/fixture/calibration/index.html': ['/fixture/src/calibrationOnly.ts', '/fixture/src/shared.ts'],
     '/fixture/src/entry.ts': ['/fixture/src/titleAndSession.ts'],
-    '/fixture/src/game/session/session.ts': ['/fixture/src/titleAndSession.ts', '/fixture/src/sessionOnly.ts'],
+    '/fixture/src/game/client/session/session.ts': ['/fixture/src/titleAndSession.ts', '/fixture/src/sessionOnly.ts'],
   };
   const graph = { getModuleInfo: (id: string) => ({ importedIds: rows[id] ?? [] }) };
-  const select = controlChunkSelector(root, ['/fixture/src/entry.ts', '/fixture/src/game/session/session.ts'], 'initial');
+  const select = controlChunkSelector(root, ['/fixture/src/entry.ts', '/fixture/src/game/client/session/session.ts'], 'initial');
   // bootOnly has no later role; titleAndSession has both. Main requires
   // them together even though their later masks differ.
   expect(select('/fixture/src/bootOnly.ts', graph)).toBe('entry-1');
@@ -101,15 +101,15 @@ test('phase banks keep initial and late code isolated and retain unchanged contr
   mkdirSync('tmp/control-chunks', { recursive: true });
   const root = mkdtempSync(resolve('tmp/control-chunks/entries-'));
   try {
-    for (const folder of ['src/engine/ui', 'src/engine/app', 'src/game/grid', 'src/game/travel', 'src/game/shardfile', 'calibration']) mkdirSync(resolve(root, folder), { recursive: true });
+    for (const folder of ['src/engine/client/ui', 'src/engine/client/app', 'src/engine/shared/app', 'src/engine/server/app', 'src/game/client/grid', 'src/game/shared/grid', 'src/game/server/grid', 'src/game/client/travel', 'src/game/client/shardfile', 'src/game/shared/shardfile', 'src/game/server/shardfile', 'calibration']) mkdirSync(resolve(root, folder), { recursive: true });
     writeFileSync(resolve(root, 'index.html'), '<script type="module" src="/src/entry.ts"></script>');
     writeFileSync(resolve(root, 'calibration/index.html'), '<script type="module" src="/calibration/entry.ts"></script>');
-    writeFileSync(resolve(root, 'calibration/entry.ts'), 'import {runtime} from "../src/engine/app/runtime"; globalThis.calibration = runtime;');
-    writeFileSync(resolve(root, 'src/engine/app/runtime.ts'), 'globalThis.runtimeStarted = performance.now(); export const runtime = globalThis.runtimeStarted;');
+    writeFileSync(resolve(root, 'calibration/entry.ts'), 'import {runtime} from "../src/engine/client/app/runtime"; globalThis.calibration = runtime;');
+    writeFileSync(resolve(root, 'src/engine/client/app/runtime.ts'), 'globalThis.runtimeStarted = performance.now(); export const runtime = globalThis.runtimeStarted;');
     writeFileSync(resolve(root, 'src/rows.json'), '{"rows":[[1,2],[3,4]]}');
     writeFileSync(resolve(root, 'src/core.ts'), 'import {runtime} from "./engine/app/runtime"; import rows from "./rows.json"; export const control = {runtime, rows};');
-    writeFileSync(resolve(root, 'src/game/grid/session.ts'), 'export const grid = true;');
-    writeFileSync(resolve(root, 'src/game/shardfile/client.ts'), 'export const client = true;');
+    writeFileSync(resolve(root, 'src/game/client/grid/session.ts'), 'export const grid = true;');
+    writeFileSync(resolve(root, 'src/game/client/shardfile/client.ts'), 'export const client = true;');
     writeFileSync(resolve(root, 'src/optional.ts'), 'globalThis.optionalValue = "first late value";');
     const title = ['engine/ui/StartTitle', 'game/mainMenu', 'game/grid/pageEntry', 'game/travel/travel'];
     for (const file of title) writeFileSync(resolve(root, `src/${file}.ts`), 'export const label = "title";');
@@ -137,7 +137,7 @@ test('phase banks keep initial and late code isolated and retain unchanged contr
       }
       return names;
     };
-    const runtime = resolve(root, 'src/engine/app/runtime.ts');
+    const runtime = resolve(root, 'src/engine/client/app/runtime.ts');
     expect(modules('index.html').has(runtime)).toBe(false);
     expect(modules('calibration/index.html').has(runtime)).toBe(true);
     const optional = resolve(root, 'src/optional.ts'), control = resolve(root, 'src/core.ts');
@@ -148,7 +148,7 @@ test('phase banks keep initial and late code isolated and retain unchanged contr
       .map(([name]) => name)).toHaveLength(1);
     expect(Object.entries(bundle).find(([, file]) => Object.hasOwn(file.modules ?? {}, resolve(root, 'src/rows.json')))?.[0])
       .toMatch(/\/startup-data-/u);
-    const grid = resolve(root, 'src/game/grid/session.ts');
+    const grid = resolve(root, 'src/game/client/grid/session.ts');
     const gridBank = Object.entries(bundle).find(([, file]) => Object.hasOwn(file.modules ?? {}, grid));
     expect(gridBank?.[0]).toMatch(/\/grid-session-/u);
     expect(Object.keys(gridBank?.[1].modules ?? {})).toEqual([grid]);

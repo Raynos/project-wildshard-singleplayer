@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // bake-viewmodel-sets.mjs — a level's weapon viewmodel texture sets as KTX2 (G187 cut 3, E435). The crossbow's and the
-// rifle's walnut, steel, leather, bolt and gunmetal sets are drawn at every boot (src/engine/player/viewmodelTextures.ts
+// rifle's walnut, steel, leather, bolt and gunmetal sets are drawn at every boot (src/engine/client/player/viewmodelTextures.ts
 // makePixels, in a worker) and uploaded as RGBA8 DataTextures: ~18 MB of Pine Hollow's phone GL. Their pixels never change
-// (seeded), so they are drawn here, offline, and the KTX2 path loads them compressed (src/engine/combat/view/ranged.ts
+// (seeded), so they are drawn here, offline, and the KTX2 path loads them compressed (src/engine/client/combat/view/ranged.ts
 // startViewmodelTextures adopts a set whose three planes the level's KTX2 table holds).
 //
 // How: vite bundles viewmodelTextures.ts as it stands (the game's own makePixels) into a muted Chromium page, which draws

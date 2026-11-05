@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { BufferAttribute, BufferGeometry, Color } from 'three';
-import { SEAM_BUCKETS, seamLookGeometrySteps, seamSolidSteps, type SeamPiece } from '../src/game/grid/seamLook';
-import { linear, splitByKey, tintedPart, uniformPart, type GrainLayer } from '../src/game/grid/roadSolid';
+import { SEAM_BUCKETS, seamLookGeometrySteps, seamSolidSteps, type SeamPiece } from '../src/game/client/grid/seamLook';
+import { linear, splitByKey, tintedPart, uniformPart, type GrainLayer } from '../src/game/client/grid/roadSolid';
 
 /** a strip of a jittered height grid: shared vertices, so normals accumulate across faces */
 function strip(seed: number, ox: number, oz: number): SeamPiece {

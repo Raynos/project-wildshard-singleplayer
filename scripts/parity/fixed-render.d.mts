@@ -1,4 +1,4 @@
-import type { GameClock } from '../../src/engine/core/clock';
+import type { GameClock } from '../../src/engine/shared/core/clock';
 import type { ParityFrame } from './frame-bytes.mjs';
 
 export interface FixedWorldFrame extends ParityFrame {

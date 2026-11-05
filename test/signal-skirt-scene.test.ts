@@ -8,14 +8,14 @@ import { SIGNAL_SKIRT_BLOBS } from '../src/shards/sunscar-dunes/generators/skirt
 import { scene } from './fixtures/sunscar-source-program';
 import { parseWorldScenes } from '@wildshard/format/worldScenes';
 import { parseWorldScene } from '@wildshard/format/clientChannels';
-import { Scope } from '../src/engine/app/scope';
-import { AssetService } from '../src/engine/app/assets';
-import { WorldRegistry } from '../src/engine/world/registry';
+import { Scope } from '../src/engine/shared/app/scope';
+import { AssetService } from '../src/engine/client/app/assets';
+import { WorldRegistry } from '../src/engine/client/world/registry';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseShardfile } from '@wildshard/format/shardSchema';
-import { lendSceneMaterials, sceneMaterial } from '../src/game/shardfile/lentLooks';
-import { installWorldScenes } from '../src/game/shardfile/worldScenes';
-import type { ShardContext } from '../src/game/plugin/context';
+import { lendSceneMaterials, sceneMaterial } from '../src/game/client/shardfile/lentLooks';
+import { installWorldScenes } from '../src/game/client/shardfile/worldScenes';
+import type { ShardContext } from '../src/game/server/plugin/context';
 
 const SIGNAL_WORLD_SCENES = scene.worldScenes;
 

@@ -1,8 +1,8 @@
 // Pre-SF82 shipping policy at cc643216bdc6bb87d38661071374866ee98c3011; only imports and class name differ.
 // Original SHA-256: ffbd57a911609d2533d4cbc74068b27b9d151af62717a44876ff791b853fc24c
-import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
-import type { Rng } from '../../../src/engine/core/rng';
-import type { SimValue } from '../../../src/engine/sim';
+import type { AnimalSim } from '../../../src/engine/server/entities/AnimalSim';
+import type { Rng } from '../../../src/engine/shared/core/rng';
+import type { SimValue } from '../../../src/engine/server/sim';
 
 /** A hidden interior guardian's perception, holding ring, retreat and strike timing. */
 export interface GuardianSpec {

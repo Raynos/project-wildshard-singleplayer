@@ -1,8 +1,8 @@
 // Fixed native fixture for the cumulative reply cap, not caller-selected code.
 import {readFileSync} from 'node:fs';
-import {createSimHost} from '../../../src/engine/sim.ts';
-import {loadRapier} from '../../../src/engine/physics/rapier.ts';
-import {serializeSimSnapshot,snapshotSimHostBytes} from '../../../src/engine/sim/snapshot.ts';
+import {createSimHost} from '../../../src/engine/server/sim.ts';
+import {loadRapier} from '../../../src/engine/shared/physics/rapier.ts';
+import {serializeSimSnapshot,snapshotSimHostBytes} from '../../../src/engine/shared/sim/snapshot.ts';
 import {runTickWorker} from '../../../src/sdk/tickWorkerLoop.ts';
 import {createTrustedHeadlessTape} from '../../../src/sdk/headlessTape.ts';
 import {simPlayerCommand} from '../../../src/sdk/tickProtocol.ts';

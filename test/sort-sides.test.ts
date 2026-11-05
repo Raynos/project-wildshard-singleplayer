@@ -14,11 +14,11 @@ const roots:string[]=[];
 afterEach(()=>{for(const root of roots.splice(0))rmSync(root,{recursive:true,force:true});});
 
 const sides={
-  'src/engine/sim.ts':'server',
+  'src/engine/server/sim.ts':'server',
   'src/engine/sim/step.ts':'server',
   'src/engine/ui/hud.ts':'client',
   'src/engine/ui/worker.ts':'client',
-  'src/engine/core/config.ts':'shared',
+  'src/engine/shared/core/config.ts':'shared',
   'src/engine/core/view.ts':'client',
   'src/engine/species/deer.ts':'server',
   'src/engine/species/loft.ts':'client',
@@ -26,13 +26,13 @@ const sides={
   'src/game/bake.ts':'cook',
 } as const;
 const sources:Record<string,string>={
-  'src/engine/sim.ts':"export const sim=1;\n",
+  'src/engine/server/sim.ts':"export const sim=1;\n",
   'src/engine/sim/step.ts':"import {sim} from '../sim';\nimport {config} from '../core/config';\nexport const step=sim+config;\n",
-  'src/engine/ui/hud.ts':"import {config} from '../core/config.ts';\nimport './hud.css';\nconst worker=new Worker(new URL('worker.ts',import.meta.url));\nimport.meta.glob(['../species/*.ts','!../species/loft.ts'],{eager:true});\nexport const hud=[config,worker,'src/engine/core/config.ts'];\n",
+  'src/engine/ui/hud.ts':"import {config} from '../core/config.ts';\nimport './hud.css';\nconst worker=new Worker(new URL('worker.ts',import.meta.url));\nimport.meta.glob(['../species/*.ts','!../species/loft.ts'],{eager:true});\nexport const hud=[config,worker,'src/engine/shared/core/config.ts'];\n",
   'src/engine/ui/hud.css':".hud{color:red}\n",
   'src/engine/ui/hud.test.ts':"import {hud} from './hud';\nexport const seen=hud;\n",
   'src/engine/ui/worker.ts':"export const worker=1;\n",
-  'src/engine/core/config.ts':"export const config=1;\n",
+  'src/engine/shared/core/config.ts':"export const config=1;\n",
   'src/engine/core/view.ts':"export const view=1;\n",
   'src/engine/species/deer.ts':"export const deer=1;\n",
   'src/engine/species/loft.ts':"export const loft=1;\n",
@@ -42,7 +42,7 @@ const sources:Record<string,string>={
   'src/shards/one/run.ts':"import {step} from '../../engine/sim/step';\nimport {hud} from '@wildshard/game/ui/hud';\nexport const run=[step,hud];\n",
   'test/hud.test.ts':"import {hud} from '../src/engine/ui/hud.ts';\nexport const paths=[hud,/src\\/engine\\/ui\\//u,'src/engine/core','src/engine/species/deer.ts'];\n",
   'scripts/tool.mjs':"const prefixes=['src/engine/core/'];\nexport const inCore=path=>path.startsWith('src/engine/core/')||src('engine/ui/hud.ts');\nexport {prefixes};\n",
-  'docs/ENGINE.md':"The HUD is `src/engine/ui/hud.ts`; the folder is `src/engine/ui/`.\n",
+  'docs/ENGINE.md':"The HUD is `src/engine/ui/hud.ts`; the folder is `src/engine/client/ui/`.\n",
   'AGENTS.md':"Do not touch src/engine/ui/hud.ts.\n",
   'budgets/a.json':"{}\n",
   'lint/ratchet.json':`${JSON.stringify({'wildshard/rule':{'src/engine/core/view.ts':1,'src/engine/ui/hud.ts':2}},null,2)}\n`,
@@ -109,9 +109,9 @@ test('refuses an untagged file by name',()=>{
 test('refuses a dirty tree and a missing agent',()=>{
   const root=fixture();
   expect(main(['--apply'],root)).toBe(2);
-  writeFileSync(resolve(root,'src/engine/sim.ts'),'export const sim=2;\n');
+  writeFileSync(resolve(root,'src/engine/server/sim.ts'),'export const sim=2;\n');
   expect(main(['--apply','--agent','a:b'],root)).toBe(1);
-  expect(existsSync(resolve(root,'src/engine/sim.ts'))).toBe(true);
+  expect(existsSync(resolve(root,'src/engine/server/sim.ts'))).toBe(true);
 });
 
 test('a dry run leaves the tree alone and an apply is idempotent',()=>{

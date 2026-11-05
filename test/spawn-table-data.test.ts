@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { EncounterRegistry, declaredSpawnTables, type SpawnTableRow } from '../src/engine/ai/encounters';
-import { Rng } from '../src/engine/core/rng';
+import { Scope } from '../src/engine/shared/app/scope';
+import { EncounterRegistry, declaredSpawnTables, type SpawnTableRow } from '../src/engine/server/ai/encounters';
+import { Rng } from '../src/engine/shared/core/rng';
 import { readSpawnTables } from '@wildshard/format/spawnTables';
 import { readSpeciesPrograms } from '@wildshard/format/speciesPrograms';
 import { PINE_SPECIES_PROGRAMS } from '../src/shards/pine-hollow/generators/speciesPrograms';

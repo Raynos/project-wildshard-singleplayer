@@ -2,12 +2,12 @@ import {afterAll, afterEach, beforeAll, expect, test, vi} from 'vitest';
 import {emptyShardfile} from '../src/sdk/author';
 import {hashImmutableBytes} from '../src/sdk/immutable';
 import {parseOutputIndex} from '@wildshard/format/outputIndex';
-import {installTitleManifests, titleManifests, type TitleManifest} from '../src/game/shard/titleList';
-import {startGridPrefetch, startTitlePrefetch, gridPrefetchStatus} from '../src/game/grid/prefetch';
-import {startSpawnDownload, adoptCompletedSpawnDownload} from '../src/game/boot/spawnDownload';
-import {installEntryDownloadTap, startEntryDownload} from '../src/game/shardfile/entryTransport';
-import {jsonSlot} from '../src/engine/saves/slots';
-import {LEVEL_DOWNLOAD_SLOT, runtimePacksOn} from '../src/engine/boot/loadingPacks';
+import {installTitleManifests, titleManifests, type TitleManifest} from '../src/game/client/shard/titleList';
+import {startGridPrefetch, startTitlePrefetch, gridPrefetchStatus} from '../src/game/client/grid/prefetch';
+import {startSpawnDownload, adoptCompletedSpawnDownload} from '../src/game/client/boot/spawnDownload';
+import {installEntryDownloadTap, startEntryDownload} from '../src/game/client/shardfile/entryTransport';
+import {jsonSlot} from '../src/engine/client/saves/slots';
+import {LEVEL_DOWNLOAD_SLOT, runtimePacksOn} from '../src/engine/client/boot/loadingPacks';
 
 // These title transports read loose files (DL16 made Runtime packs the shipped default; the packs book has its own
 // tests): pin the harness slot to Shardfile before the page's first, frozen read

@@ -2,7 +2,7 @@ import ts from '@typescript/typescript6';
 import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
-import { readModuleFiles } from '../../src/engine/boot/download';
+import { readModuleFiles } from '../../src/engine/client/boot/download';
 import { homeClientModuleGroups, bootProductTotals } from './bootProducts';
 import { bootTierProductTotals } from './bootProductTiers';
 import { homeExtraFiles } from './bootExtras';
@@ -163,7 +163,7 @@ export function gridModuleRoots(root: string): readonly string[] {
   const grid = resolveImport('./game/grid/session', entry);
   if (grid === null) throw new Error('Missing grid session module');
   const gridRoots = [grid.id];
-  for (const file of ['src/game/session/play.ts', 'src/game/session/loadout.ts']) {
+  for (const file of ['src/game/client/session/play.ts', 'src/game/client/session/loadout.ts']) {
     const importer = resolve(root, file);
     for (const request of sourceImports(importer).filter(name => name.startsWith('../grid/'))) {
       const dependency = resolveImport(request, importer);
@@ -178,7 +178,7 @@ export function gridModuleRoots(root: string): readonly string[] {
 function optionalModuleRoots(root: string): Record<string, string[]> {
   const client = resolveImport('./game/shardfile/client', resolve(root, 'src/entry.ts'));
   if (client === null) throw new Error('Missing compiled client module');
-  const planFile = resolve(root, 'src/game/shardfile/clientPlan.ts'), featureRoots: Record<string, string[]> = {};
+  const planFile = resolve(root, 'src/game/client/shardfile/clientPlan.ts'), featureRoots: Record<string, string[]> = {};
   const features = existsSync(planFile) ? clientFeatureImports(readFileSync(planFile, 'utf8')) : {};
   for (const [kind, imports] of Object.entries(features)) {
     const paths: string[] = [];
@@ -198,7 +198,7 @@ function optionalModuleRoots(root: string): Record<string, string[]> {
   }
   // Practice keeps its synchronous room; only arena arrivals await these existing lazy model/clip loaders.
   const practice: string[] = [];
-  for (const file of ['src/engine/practice/TrainingArena.ts', 'src/engine/models/trainingDummy.ts', 'src/engine/models/trainingDummyFigure.ts']) {
+  for (const file of ['src/engine/client/practice/TrainingArena.ts', 'src/engine/client/models/trainingDummy.ts', 'src/engine/client/models/trainingDummyFigure.ts']) {
     const importer = resolve(root, file);
     for (const request of sourceImports(importer)) {
       const dependency = resolveImport(request, importer);
@@ -207,7 +207,7 @@ function optionalModuleRoots(root: string): Record<string, string[]> {
     }
   }
   featureRoots['practice.models'] = practice;
-  for (const [kind, file] of [['models.gltf', 'src/engine/anim/rig.ts'], ['legacy.gltf', 'src/game/shard/load.ts']] as const) {
+  for (const [kind, file] of [['models.gltf', 'src/engine/client/anim/rig.ts'], ['legacy.gltf', 'src/game/client/shard/load.ts']] as const) {
     const importer = resolve(root, file), paths: string[] = [];
     for (const request of sourceImports(importer)) {
       const dependency = resolveImport(request, importer);
@@ -216,7 +216,7 @@ function optionalModuleRoots(root: string): Record<string, string[]> {
     }
     featureRoots[kind] = paths;
   }
-  const loadout = resolve(root, 'src/game/session/loadout.ts');
+  const loadout = resolve(root, 'src/game/client/session/loadout.ts');
   featureRoots['explorer.catalogue'] = [];
   for (const request of sourceImports(loadout).filter(name => name === '../models/explorerCatalogue')) {
     const dependency = resolveImport(request, loadout);

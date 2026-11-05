@@ -44,7 +44,7 @@
     "public/assets/models/driftwood-blender/lm-ao.webp", "public/assets/models/driftwood-blender/lm-ao.phone.webp",
     "public/assets/models/driftwood-blender/lm-bounce.webp", "public/assets/models/driftwood-blender/lm-bounce.phone.webp"
    ],
-   "feeds": ["src/shards/driftwood-isle/generators/bakedCove.ts", "src/game/shardfile/bakedTiles.ts"]
+   "feeds": ["src/shards/driftwood-isle/generators/bakedCove.ts", "src/game/client/shardfile/bakedTiles.ts"]
   },
   "pine-hollow/area-export": {
    "about": "Pine Hollow's half of the island export (PH-0.3): area.bin, splat.bin, scene.json in the cache. Its Blender build is PINE-HOLLOW-REMASTER wave 2 (PH-U17), so it writes nothing to the repo",
@@ -73,7 +73,7 @@
     "public/assets/models/pine-hollow-trees/cards-normal.jpg", "public/assets/models/pine-hollow-trees/cards-arm.jpg", "public/assets/models/pine-hollow-trees/impostor-normal.jpg",
     "public/assets/tex/fir_bark/", "public/assets/tex/metasequoia_bark/", "public/assets/tex/birch_bark/", "public/assets/tex/bark_willow_02/"
    ],
-   "feeds": ["src/engine/world/forest/treeSet.ts", "src/engine/world/TreeFactory.ts"]
+   "feeds": ["src/engine/client/world/forest/treeSet.ts", "src/engine/client/world/TreeFactory.ts"]
   },
   "pine-hollow/crags": {
    "about": "The Ridge's granite crag kit: the tors, boulders and scree, 7 modules (PH-B2; E350 F-X1 dropped the five big modules crags-b.glb replaces)",
@@ -153,7 +153,7 @@
     "src/shards/nine-dragon-stack/blender/viewmodel/rig/gate_chart.py",
     "src/shards/nine-dragon-stack/blender/viewmodel/rig/check-clips.mjs"
    ],
-   "inputs": ["src/game/systems/viewmodel/armRig.ts"],
+   "inputs": ["src/game/client/systems/viewmodel/armRig.ts"],
    "lock": true,
    "outputs": [
     "public/assets/nine-dragon/viewmodel/fp-rig.glb",
@@ -170,12 +170,12 @@
    "script": "src/shards/driftwood-isle/blender/fp-arms/arms.py",
    "args": ["$BUILD/bind.json", "$BUILD"],
    "sources": ["src/shards/driftwood-isle/blender/fp-arms/skeleton.mjs", "src/shards/driftwood-isle/blender/fp-arms/bake.mjs", "src/shards/driftwood-isle/blender/fp-arms/gate.mjs", "src/shards/driftwood-isle/blender/fp-arms/preview.py"],
-   "inputs": ["public/assets/nine-dragon/viewmodel/fp-rig.glb", "src/game/systems/viewmodel/armRig.ts"],
+   "inputs": ["public/assets/nine-dragon/viewmodel/fp-rig.glb", "src/game/client/systems/viewmodel/armRig.ts"],
    "lock": false,
    "build": ["fp-arms.raw.glb", "gate.json"],
    "meshopt": [["fp-arms.raw.glb", "public/assets/models/driftwood-fp/fp-arms.glb"]],
    "outputs": ["public/assets/models/driftwood-fp/fp-arms.glb"],
-   "feeds": ["src/shards/driftwood-isle/data/heldArms.json", "src/game/systems/viewmodel/rigArms.ts"]
+   "feeds": ["src/shards/driftwood-isle/data/heldArms.json", "src/game/client/systems/viewmodel/rigArms.ts"]
   },
   "far-reach/roc": {
    "about": "Sky Reach's Storm Roc repair (E392/E399 council round 13): Hunyuan3D-2's eagle (art/far-reach/round-27-roc) with its loose second-head lump deleted, its open edges filled, the claw shapes painted on its tail fan painted out and its beak and toes pushed to gold; then meshopt + a 1024 WebP map (art/far-reach/round-31-roc-fix)",

@@ -8,8 +8,8 @@ import {tmpdir} from 'node:os';
 import {NALATI_PASTURE as pasture,NALATI_TITAN,NALATI_TITAN_PROGRAMS as programs} from './fixtures/nalati-titan';
 import {prepareProjectOutput} from '../src/sdk/projectOutput';
 import {hashImmutableBytes} from '../src/sdk/immutable';
-import {Scope} from '../src/engine/app/scope';
-import {ReturnProgram} from '../src/game/population/returnProgram';
+import {Scope} from '../src/engine/shared/app/scope';
+import {ReturnProgram} from '../src/game/shared/population/returnProgram';
 import {lendNalatiPasture} from './fixtures/nalati-return-modules';
 
 // GR6: the named-file reader reads the build program's bytes from a scratch project, as it reads any source

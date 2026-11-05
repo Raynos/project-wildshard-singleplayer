@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { type BufferGeometry, MeshStandardMaterial } from 'three';
-import { Rng } from '../src/engine/core/rng';
-import type { ModelBuild, ModelPart } from '../src/engine/models/model';
+import { Rng } from '../src/engine/shared/core/rng';
+import type { ModelBuild, ModelPart } from '../src/engine/client/models/model';
 import { trailFontFacts } from '../src/shards/driftwood-isle/generators/trailFont';
 import { buildSignpost } from '../src/shards/driftwood-isle/generators/trailsideModels';
 

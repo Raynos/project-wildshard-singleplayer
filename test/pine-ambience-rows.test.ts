@@ -6,7 +6,7 @@ import { ForestPageSchema } from '@wildshard/format/forestPage';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { PINE_PREPARED_OUTPUT as output } from './fixtures/pine-program';
 import { pineCabins } from '../src/shards/pine-hollow/generators/bake-pine-cabins.mjs';
-import { floorAtRects } from '../src/engine/physics/box';
+import { floorAtRects } from '../src/engine/shared/physics/box';
 import { PINE_SOURCES } from './fixtures/pine-sources';
 
 const cabins = pineCabins(PINE_SOURCES).rows;

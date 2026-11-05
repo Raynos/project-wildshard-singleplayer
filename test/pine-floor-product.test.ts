@@ -7,7 +7,7 @@ import { parseFloorRows } from '../src/shards/pine-hollow/generators/sections';
 import { PINE_SOURCES } from './fixtures/pine-sources';
 import * as v from 'valibot';
 import { ForestGroundLayoutSchema } from '@wildshard/format/forestPage';
-import { groundPlacementMatrix } from '../src/game/shardfile/forestPage';
+import { groundPlacementMatrix } from '../src/game/client/shardfile/forestPage';
 
 const UP = new Vector3(0, 1, 0), normal = new Vector3(), place = new Vector3(), size = new Vector3(), tilt = new Quaternion(), turn = new Quaternion();
 /** The frozen page composer, copied verbatim from the retired legacy undergrowth's `matrixOf`:

@@ -1,16 +1,16 @@
-import {enteredLootPresentation} from '../../src/game/loot/runtime';
+import {enteredLootPresentation} from '../../src/game/server/loot/runtime';
 import {parseRows} from '@wildshard/format/rows';
-import type {declaredLootEconomy} from '../../src/game/shard/declaredRows';
-import type {Scope} from '../../src/engine/app/scope';
-import {QuestState} from '../../src/engine/quest/core';
-import type {Flags} from '../../src/engine/world/interact/flags';
-import type {Owned} from '../../src/game/loot/Owned';
-import type {Audio} from '../../src/engine/audio/Audio';
-import {publishBoundQuest} from '../../src/game/quest/boundState';
+import type {declaredLootEconomy} from '../../src/game/server/shard/declaredRows';
+import type {Scope} from '../../src/engine/shared/app/scope';
+import {QuestState} from '../../src/engine/server/quest/core';
+import type {Flags} from '../../src/engine/server/world/interact/flags';
+import type {Owned} from '../../src/game/server/loot/Owned';
+import type {Audio} from '../../src/engine/client/audio/Audio';
+import {publishBoundQuest} from '../../src/game/server/quest/boundState';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
-import type {ShardContext} from '../../src/game/plugin/context';
-import type {ShardRuntime} from '../../src/game/shard/runtime';
-import {createShardProduct} from '../../src/game/shardfile/shardProduct';
+import type {ShardContext} from '../../src/game/server/plugin/context';
+import type {ShardRuntime} from '../../src/game/server/shard/runtime';
+import {createShardProduct} from '../../src/game/shared/shardfile/shardProduct';
 import {emptyShardfile} from '../../src/sdk/author';
 import { DRIFTWOOD_LOOT as LOOT } from '../../src/shards/driftwood-isle/generators/loot';
 

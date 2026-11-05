@@ -1,8 +1,8 @@
 // Shipped pose at c623a5be8, frozen for the ordered-row migration.
 import * as THREE from 'three';
-import type { AnimalRigContext as RigAnimCtx } from '../../src/engine/entities/animalRig';
-import { lookAngles, smooth01, bump, step, clamp } from '../../src/engine/entities/species/rigs';
-import { terrainHeight as heightAt } from '../../src/engine/world/terrainHeight';
+import type { AnimalRigContext as RigAnimCtx } from '../../src/engine/shared/entities/animalRig';
+import { lookAngles, smooth01, bump, step, clamp } from '../../src/engine/shared/entities/species/rigs';
+import { terrainHeight as heightAt } from '../../src/engine/shared/world/terrainHeight';
 type Side = 'L' | 'R';
 type KingBones = Record<'body' | 'spine' | 'chest' | 'head' | 'crown' | 'cape' | `arm${Side}_${'sh' | 'el' | 'hand'}` | `leg${Side}_${'hip' | 'knee' | 'foot'}`, THREE.Bone>;
 interface KingMem extends Record<string, number | undefined> {

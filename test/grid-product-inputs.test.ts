@@ -1,9 +1,9 @@
 import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
-import type { AdmittedProduct, ProductOptions } from '../src/game/shardfile/product';
-import { ProductInputs } from '../src/game/grid/productInputs';
-import { accountTransportRelease } from '../src/game/grid/products';
+import type { AdmittedProduct, ProductOptions } from '../src/game/client/shardfile/product';
+import { ProductInputs } from '../src/game/client/grid/productInputs';
+import { accountTransportRelease } from '../src/game/client/grid/products';
 
 function fixture(transportOnly = false) {
   const source = emptyShardfile({ slug: 'input-lease', name: 'Inputs', author: 'Test', revision: 1, seed: 1 });

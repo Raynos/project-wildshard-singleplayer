@@ -39,7 +39,7 @@ branches): stay inside the files your brief gives you.
 
 ## Rendering rules that bite ([process/RENDERING.md](process/RENDERING.md))
 
-- **Every lit material goes through `sky.setupMaterial(mat)`** (`src/engine/world/skyRig.ts`): it wires the
+- **Every lit material goes through `sky.setupMaterial(mat)`** (`src/engine/client/world/skyRig.ts`): it wires the
   cascaded shadows and the fog. A material with its own `onBeforeCompile` also calls `attachFogUniforms(shader)`.
 - Instance anything repeated; no facade multi-draw, ever. A risky rendering or memory change ships default-off
   behind a Debug row.

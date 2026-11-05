@@ -1,13 +1,13 @@
 import { expect, test, vi } from 'vitest';
 import { BatchedMesh, Bone, Box3, BoxGeometry, PerspectiveCamera, Object3D, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, Scene, ShaderLib, Skeleton, SkinnedMesh, Sprite, SpriteMaterial, Uint16BufferAttribute, Vector3, WebGLRenderer, type Material, type WebGLProgramParametersWithUniforms } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { GridAssembly } from '../src/game/grid/assembly';
-import { cellClip } from '../src/game/grid/cellClip';
-import { setInstanceEnvelope } from '../src/engine/render/instancedGeometry';
+import { Scope } from '../src/engine/shared/app/scope';
+import { GridAssembly } from '../src/game/server/grid/assembly';
+import { cellClip } from '../src/game/client/grid/cellClip';
+import { setInstanceEnvelope } from '../src/engine/client/render/instancedGeometry';
 import { inspectGridDraw } from './helpers/gridDrawAudit';
-import { installShadowMaterialOwnership } from '../src/engine/render/shadowMaterialOwnership';
-import { AssetService } from '../src/engine/app/assets';
-import type { Renderer } from '../src/engine/render/renderer';
+import { installShadowMaterialOwnership } from '../src/engine/client/render/shadowMaterialOwnership';
+import { AssetService } from '../src/engine/client/app/assets';
+import type { Renderer } from '../src/engine/client/render/renderer';
 
 function compiled(material: Material): WebGLProgramParametersWithUniforms {
   const input: object = { vertexShader: ShaderLib.basic.vertexShader, fragmentShader: ShaderLib.basic.fragmentShader, uniforms: {} };

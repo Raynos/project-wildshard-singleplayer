@@ -3,16 +3,16 @@ import { readFileSync } from 'node:fs';
 import { beforeAll, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { mergeAnimalGeometry } from '../src/engine/models/animalGeometry';
-import { facetGeometry } from '../src/engine/entities/lowpoly';
-import { Rng } from '../src/engine/core/rng';
-import { speciesWithLook } from '../src/engine/entities/species/look';
-import type { AnimalSpecies } from '../src/engine/entities/species/registry';
-import { BEAR_LOOK } from '../src/game/systems/species/view/bear';
-import { BOAR_LOOK } from '../src/game/systems/species/view/boar';
+import { mergeAnimalGeometry } from '../src/engine/client/models/animalGeometry';
+import { facetGeometry } from '../src/engine/client/entities/lowpoly';
+import { Rng } from '../src/engine/shared/core/rng';
+import { speciesWithLook } from '../src/engine/client/entities/species/look';
+import type { AnimalSpecies } from '../src/engine/shared/entities/species/registry';
+import { BEAR_LOOK } from '../src/game/client/systems/species/view/bear';
+import { BOAR_LOOK } from '../src/game/client/systems/species/view/boar';
 import { ISLAND_BEAR, ISLAND_BOAR } from '../src/shards/driftwood-isle/generators/faunaSpecies';
 import { asIsland, buildCreatureParts, faceHeadOf, type FaceHead } from '../src/shards/driftwood-isle/generators/creatureBodies';
-import { HullLookBook } from '../src/game/looks/speciesBook';
+import { HullLookBook } from '../src/game/client/looks/speciesBook';
 import { driftwoodCreatureBodyBank } from '../src/shards/driftwood-isle/generators/creatureBodyBank';
 
 // The island's packed body owner, as its `look/hull-book` section declares it (a fresh one: nothing preloaded yet).

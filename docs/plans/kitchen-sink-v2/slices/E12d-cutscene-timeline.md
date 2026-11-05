@@ -16,12 +16,12 @@ It proves the timeline before the Titan's 12 s intro (E12h) uses it.
 Research (IN-GAME-CUTSCENES §1, re-checked):
 
 - **There is no camera but the player's**: every moment today eases the player's own yaw and pitch
-  (`src/game/Boss.ts` `faceToward`, k = 1 − e^(−3.2 dt)); there is no player body (first person). No
+  (`src/game/server/Boss.ts` `faceToward`, k = 1 − e^(−3.2 dt)); there is no player body (first person). No
   `src/engine/cinematic/` exists.
-- Pieces to lift: the letterbox, name card, skip ring and fade in `src/engine/ui/BossBar.ts` (`showNameCard`, `setSkip`,
-  `fade`); `BossBrain`'s intro state with `SKIP_HOLD = 0.6` (`src/engine/ai/BossBrain.ts`); `QuestRewardBeat`'s
-  carried camera (`src/game/quest/reward.ts`); dialogue lines (`src/engine/quest/view/ui.ts` `DialogueBox`).
-- `src/engine/render/regionCinematic.ts` is a post-effect chain (shafts, fringe, grain) for cinematic regions, not a
+- Pieces to lift: the letterbox, name card, skip ring and fade in `src/engine/client/ui/BossBar.ts` (`showNameCard`, `setSkip`,
+  `fade`); `BossBrain`'s intro state with `SKIP_HOLD = 0.6` (`src/engine/server/ai/BossBrain.ts`); `QuestRewardBeat`'s
+  carried camera (`src/game/server/quest/reward.ts`); dialogue lines (`src/engine/client/quest/view/ui.ts` `DialogueBox`).
+- `src/engine/client/render/regionCinematic.ts` is a post-effect chain (shafts, fringe, grain) for cinematic regions, not a
   camera timeline.
 
 Work:

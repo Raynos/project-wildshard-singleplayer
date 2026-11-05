@@ -1,10 +1,10 @@
 import { beforeAll,expect,test,vi } from 'vitest';
-import { onFault,type Fault } from '../src/engine/core/faults';
+import { onFault,type Fault } from '../src/engine/shared/core/faults';
 import { compileReturnProjectionV2 } from '../src/sdk/returnProjectionV2';
 import { readDecisionSources } from '../src/sdk/buildDecisionScripts';
-import { ReturnProjectionV2 } from '../src/game/population/returnProjectionV2';
-import { ProjectedState,ReturnProgram } from '../src/game/population/returnProgram';
-import { Rng } from '../src/engine/core/rng';
+import { ReturnProjectionV2 } from '../src/game/shared/population/returnProjectionV2';
+import { ProjectedState,ReturnProgram } from '../src/game/shared/population/returnProgram';
+import { Rng } from '../src/engine/shared/core/rng';
 import { parseReturnProjectionV2,returnProjectionV2Layout,type ReturnProjectionV2Rows } from '@wildshard/format/returnProjectionV2';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { v2CoreSource } from '../src/sdk/as/wsV2';

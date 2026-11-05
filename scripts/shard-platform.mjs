@@ -624,12 +624,12 @@ export function partitionPendingPlatformUsers(slug,modules,exports,allowances) {
 // The application's real composition roots are a consumer, not a shard. Their
 // named reach prevents menu/travel/session code from becoming a sole-shard debt.
 // Keep this list short: never add content folders or shard-specific installers.
-const SHELL_ROOTS = ['src/entry.ts', 'src/game/session/session.ts', 'src/game/mainMenu.ts', 'src/game/session/loadout.ts'];
+const SHELL_ROOTS = ['src/entry.ts', 'src/game/client/session/session.ts', 'src/game/client/mainMenu.ts', 'src/game/client/session/loadout.ts'];
 const SHELL_USER = '@game-shell';
 // Loading a default content catalogue is not using that content in a shard.
 // The shell supplies a second user only for these orchestration modules and
 // these UI bridge declarations, never species, models, rendering or gameplay.
-const SHELL_CONTROL_PREFIXES = ['src/game/grid/', 'src/game/session/', 'src/game/shard/', 'src/game/travel/'];
+const SHELL_CONTROL_PREFIXES = ['src/game/client/grid/', 'src/game/shared/grid/', 'src/game/server/grid/', 'src/game/client/session/', 'src/game/client/shard/', 'src/game/server/shard/', 'src/game/client/travel/'];
 const SHELL_UI_CONTROL = new Set([
   'gridHome', 'enterGrid', 'bootPageMode', 'dropGridIntent', 'selected', 'refused', 'loop',
   'safeGridRecovery', 'consumeGridRecovery', 'pageGridRecovery', 'clearGridRecovery',
@@ -639,7 +639,7 @@ const SHELL_UI_CONTROL = new Set([
 ]);
 /** @param {string} path @param {string|null} [local] */
 const shellControl = (path, local = null) => SHELL_CONTROL_PREFIXES.some(prefix => path.startsWith(prefix))
-  || (path === 'src/game/plugin/ui.ts' && (local === null || SHELL_UI_CONTROL.has(local)));
+  || (path === 'src/game/client/plugin/ui.ts' && (local === null || SHELL_UI_CONTROL.has(local)));
 
 // Scoped to one immutable census; no policy verdict survives another report.
 function censusMemo() {

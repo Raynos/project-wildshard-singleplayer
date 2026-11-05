@@ -1,15 +1,15 @@
 import { beforeEach, expect, test } from 'vitest';
-import { setTerrainHeight } from '../src/engine/world/terrainHeight';
-import { AmbientFlock } from '../src/engine/ai/ambientFlock';
+import { setTerrainHeight } from '../src/engine/shared/world/terrainHeight';
+import { AmbientFlock } from '../src/engine/shared/ai/ambientFlock';
 import { parseAmbientFlock, parseAmbientLife } from '@wildshard/format/ambientLife';
 import { GULL_FLOCK } from '../src/shards/driftwood-isle/generators/gullsLook';
 import { PINE_LIFE } from '../src/shards/pine-hollow/generators/ambientLife';
-import { AmbientGroup } from '../src/game/ambient/flock';
+import { AmbientGroup } from '../src/game/shared/ambient/flock';
 // oxlint-disable-next-line import/no-nodejs-modules -- Hash the Node scenario's complete shipping pose and cue trace.
 import { createHash } from 'node:crypto';
 import poses from './fixtures/ambient-poses.json';
 import { BufferGeometry, Float32BufferAttribute, MeshBasicMaterial } from 'three';
-import { AmbientFlockDraw } from '../src/game/ambient/ambientFlock';
+import { AmbientFlockDraw } from '../src/game/client/ambient/ambientFlock';
 import { withPortableMath } from './fake/portableMath';
 
 beforeEach(() => { setTerrainHeight(() => 0); });

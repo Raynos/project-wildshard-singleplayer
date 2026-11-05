@@ -10,7 +10,7 @@
 import { writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
-import { leadPlayer } from '../../src/engine/sim/leadPlayer.ts';
+import { leadPlayer } from '../../src/engine/shared/sim/leadPlayer.ts';
 
 const arg = (/** @type {string} */ name) => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const tree = pathToFileURL(`${resolve(arg('tree') ?? process.cwd())}/`);
@@ -18,13 +18,13 @@ const output = arg('output');
 const at = (/** @type {string} */ path) => new URL(path, tree).href;
 
 const { installPortableMath } = await import(at('test/fake/portableMath.ts')); installPortableMath();
-const { installAppIdentity } = await import(at('src/engine/app/identity.ts'));
-const { WILDSHARD_IDENTITY } = await import(at('src/game/identity.ts'));
+const { installAppIdentity } = await import(at('src/engine/shared/app/identity.ts'));
+const { WILDSHARD_IDENTITY } = await import(at('src/game/client/identity.ts'));
 installAppIdentity(WILDSHARD_IDENTITY);
 const witness = await import(at('test/proof/far-reach/witness.ts'));
-const { createSimHost } = await import(at('src/engine/sim.ts'));
+const { createSimHost } = await import(at('src/engine/server/sim.ts'));
 const { canonicalSimDigest } = await import(at('test/fake/simState.ts'));
-const { snapshotSimHost } = await import(at('src/engine/sim/snapshot.ts'));
+const { snapshotSimHost } = await import(at('src/engine/shared/sim/snapshot.ts'));
 const { ROC_ID, ROC_STEP } = await import(at('src/shards/far-reach/generators/rows/rocFight.ts'));
 const { CROWN } = await import(at('src/shards/far-reach/generators/layout.ts'));
 const { default: FLAGS } = await import(at('src/shards/far-reach/data/flags.json'), { with: { type: 'json' } });

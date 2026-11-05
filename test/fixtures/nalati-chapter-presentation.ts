@@ -1,9 +1,9 @@
 import * as v from 'valibot';
-import {DialogueClock} from '../../src/engine/quest/dialogueClock';
-import type {SimHost} from '../../src/engine/sim';
+import {DialogueClock} from '../../src/engine/server/quest/dialogueClock';
+import type {SimHost} from '../../src/engine/server/sim';
 import type {HeadlessRuntimeInstallation} from '../../src/sdk/headlessRuntime';
-import type {QuestPresentationPorts} from '../../src/game/quest/effectPresentation';
-import type {Scope} from '../../src/engine/app/scope';
+import type {QuestPresentationPorts} from '../../src/game/client/quest/effectPresentation';
+import type {Scope} from '../../src/engine/shared/app/scope';
 
 interface PresentationHost {
   readonly scope:Scope;readonly clock:Pick<SimHost['clock'],'now'>;

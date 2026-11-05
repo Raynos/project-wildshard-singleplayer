@@ -3,7 +3,7 @@ import {expect,test} from 'vitest';
 import {nameBlob} from '../src/sdk/blobs';
 import {nalatiGrass,nalatiGrassJson} from './fixtures/nalati-grass-bake';
 import {GrassPresentationSchema,grassPresentationFiles} from '@wildshard/format/fieldPresentation';
-import {GrassPresentationProfile} from '../src/game/looks/grassPresentation';
+import {GrassPresentationProfile} from '../src/game/client/looks/grassPresentation';
 import {GRASS_FILES} from './fixtures/nalatiGrass';
 import {grassChannelBytes} from '../src/shards/nalati-grasslands/generators/grassRows';
 

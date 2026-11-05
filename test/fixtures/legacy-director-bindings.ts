@@ -1,9 +1,9 @@
 /** Exact retired reflection adapter, retained only for independent legacy laws.
  * Live products enter closed chapter rows and cannot import this fixture. */
 import * as v from 'valibot';
-import type { SimHost } from '../../src/engine/sim';
-import { bindBorrowedMethod, readBorrowedOwner } from '../../src/game/plugin/borrowed';
-import { DirectorScriptStageLane } from '../../src/game/plugin/director';
+import type { SimHost } from '../../src/engine/server/sim';
+import { bindBorrowedMethod, readBorrowedOwner } from '../../src/game/server/plugin/borrowed';
+import { DirectorScriptStageLane } from '../../src/game/server/plugin/director';
 
 const borrowedPath = { owner: v.pipe(v.string(), v.minLength(1), v.maxLength(96)), path: v.pipe(v.array(v.union([v.string(), v.number()])), v.minLength(1), v.maxLength(16)) };
 const argument = v.union([v.string(), v.number(), v.boolean(), v.null()]);

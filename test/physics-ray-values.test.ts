@@ -4,9 +4,9 @@ import { readFileSync } from 'node:fs';
 import { deepStrictEqual } from 'node:assert';
 import { expect, test, vi } from 'vitest';
 import { RawVector } from '@dimforge/rapier3d-simd/raw.js';
-import { Physics } from '../src/engine/physics/Physics';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { groups, queryGroups } from '../src/engine/physics/groups';
+import { Physics } from '../src/engine/shared/physics/Physics';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { groups, queryGroups } from '../src/engine/shared/physics/groups';
 
 const rapier = loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));
 async function fixture() {

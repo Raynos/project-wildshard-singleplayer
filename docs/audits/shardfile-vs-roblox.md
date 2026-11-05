@@ -96,8 +96,8 @@ Each concept: what Roblox does, what we do (with files), and who is ahead.
   loading screen, optionally into reserved servers. The docs warn that teleport data is visible to the client.
 - **Wildshard:** one continuous grid. Cells are 500 m on a 562.5 m pitch, joined by roads. There are four 8 m
   entryways per cell, at most four resident sims, and neighbours prefetch on the road approach
-  (`docs/GRID-SIMULATION.md`; `src/game/grid/catalogue.ts`). Placements are stable instances such as `template-2`,
-  so one product can fill several cells (`src/game/grid/copyIdentity.ts`).
+  (`docs/GRID-SIMULATION.md`; `src/game/server/grid/catalogue.ts`). Placements are stable instances such as `template-2`,
+  so one product can fill several cells (`src/game/client/grid/copyIdentity.ts`).
 - **Ahead:** Wildshard, by design. This is the MMO we want.
 
 ### Networking and trust
@@ -117,9 +117,9 @@ Each concept: what Roblox does, what we do (with files), and who is ahead.
 - **Roblox:** DataStores are server-only key/value storage. They have `UpdateAsync`, versions on each key and
   metadata. MemoryStores hold short-lived data shared across servers (sorted maps, queues, hash maps; up to 45 days).
   A place's world state is thrown away when its server ends.
-- **Wildshard:** a save store with a version and migrations on each key (`src/engine/saves/store.ts`). Each instance
+- **Wildshard:** a save store with a version and migrations on each key (`src/engine/shared/saves/store.ts`). Each instance
   has a region continuation, `platform.region`, holding an exact sim snapshot plus a logical checkpoint
-  (`src/game/grid/durability.ts`). A changed product revision drops the instance checkpoint, quest flags in it
+  (`src/game/server/grid/durability.ts`). A changed product revision drops the instance checkpoint, quest flags in it
   included (SHARDFILE.md "Local instance checkpoints"). Declared `migrations` exist, but their hooks stay null.
 - **Ahead:** Roblox, for an MMO. Splitting player data from world state is the lesson.
 
@@ -140,7 +140,7 @@ Each concept: what Roblox does, what we do (with files), and who is ahead.
 - **Wildshard:** `SHARDFILE_VERSION = "0.1"` covers the format and the ABI, with "no version 1 freeze". Each product
   has a positive `identity.revision`. Products are build outputs and none are committed. The site ships as one unit
   (`.github/deploy-pin.json` pins one site SHA), and a grid placement names a `slug`, not a product hash
-  (`src/game/grid/singleplayer.json`).
+  (`src/game/shared/grid/singleplayer.json`).
 - **Ahead:** Roblox. We cannot pin or roll back one shard.
 
 ### Tooling and editing
@@ -187,8 +187,8 @@ They are ranked by value to our MMO. Size: S is days, M is about a week or two, 
 - **Roblox:** player progress lives in DataStores: small records, written by the server, versioned per key. A
   place's world state is disposable. When a server dies, nothing important is lost.
 - **Us today:** the region save, `platform.region`, holds an exact sim snapshot (a budget of up to 512 K characters,
-  `SIM_REGION_SNAPSHOT_CHAR_BUDGET` in `src/engine/sim/snapshot.ts`) plus a logical checkpoint
-  (`src/game/grid/durability.ts`). Quest flags, steps and dialogue for an instance live in that checkpoint. A new
+  `SIM_REGION_SNAPSHOT_CHAR_BUDGET` in `src/engine/shared/sim/snapshot.ts`) plus a logical checkpoint
+  (`src/game/server/grid/durability.ts`). Quest flags, steps and dialogue for an instance live in that checkpoint. A new
   `identity.revision` "starts fresh" (SHARDFILE.md "Local instance checkpoints"). Every AI rebuild that bumps a
   revision can wipe that progress.
 - **Change:** name one small player profile record per shard: wallet, items with `travels: true`
@@ -205,7 +205,7 @@ They are ranked by value to our MMO. Size: S is days, M is about a week or two, 
 - **Roblox:** every place keeps its own versions with notes. One place can be restored without touching the rest.
   Live servers move to the new version with a 1–60 minute delay.
 - **Us today:** products exist only as build outputs. The whole site ships and rolls back as one SHA
-  (`.github/deploy-pin.json`). A grid placement names `slug`, not a product (`src/game/grid/catalogue.ts`). So a bad
+  (`.github/deploy-pin.json`). A grid placement names `slug`, not a product (`src/game/server/grid/catalogue.ts`). So a bad
   Nalati build forces a choice: roll back every shard, or fix forward.
 - **Change:** products are already content-addressed, so keep each published product by hash. Keep a small
   `versions` list per slug (revision, root hash, date, notes from the commit). Let a catalogue placement pin
@@ -369,4 +369,4 @@ Roblox (Creator docs unless noted):
 Ours: `docs/SHARDFILE.md`, `docs/SCRIPT-ABI.md`, `docs/HOST-BAR.md`, `docs/SHARDS.md`, `docs/GRID-SIMULATION.md`,
 `docs/CONTENT-CACHE.md`, `docs/SDK-DEV.md`, `project/archive/2026-11-04-shard-platform.md`, `docs/plans/WASM-HOST.md`,
 `src/shards/_template/`, `src/shards/sunscar-dunes/`, `src/format/`, `src/game/grid/`, `src/commons/catalogue.ts`,
-`src/engine/saves/store.ts`, `api/telemetry.ts`, and the built `public/shardfiles/_template/shard.json`.
+`src/engine/shared/saves/store.ts`, `api/telemetry.ts`, and the built `public/shardfiles/_template/shard.json`.

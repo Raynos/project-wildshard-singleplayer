@@ -1,6 +1,6 @@
 import {zlibSync} from 'fflate';
-import {ScalarLatticeBindings} from '../src/engine/world/scalarChannel';
-import { sourceManifest } from '../src/game/plugin/context';
+import {ScalarLatticeBindings} from '../src/engine/shared/world/scalarChannel';
+import { sourceManifest } from '../src/game/server/plugin/context';
 // oxlint-disable-next-line import/no-nodejs-modules -- Actual inert image fixture exercises the admitted cost envelope.
 import { readFileSync } from 'node:fs';
 import { afterEach, expect, test, vi } from 'vitest';
@@ -9,21 +9,21 @@ import { emptyShardfile } from '../src/sdk/author';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
 import { parseOutputIndex } from '@wildshard/format/outputIndex';
 import { outputSectionPayloads } from '@wildshard/format/outputFields';
-import { loadManifestProduct,provideManifestAdmission,provideRuntimeProduct,loadShardProduct, runtimeProduct, shardProductFromAdmission } from '../src/game/shardfile/runtimeProduct';
-import { admitProduct, readProductDescriptor, type ProductOptions, type ProductCache, type ProductProgress } from '../src/game/shardfile/product';
-import { ClientAssets } from '../src/game/shardfile/clientAssets';
-import { neighbourProductFiles, productResidentBytes, jsonResidentBytes, runtimeOnlyProductFiles, runtimeOnlyProductFilesPaced, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySource, scopedSpecimenLibrarySourcePaced } from '../src/game/shardfile/productCost';
-import { carryOutputDescriptor, outputDescriptor, resolveOutputDescriptor } from '../src/game/shardfile/outputDescriptor';
+import { loadManifestProduct,provideManifestAdmission,provideRuntimeProduct,loadShardProduct, runtimeProduct, shardProductFromAdmission } from '../src/game/client/shardfile/runtimeProduct';
+import { admitProduct, readProductDescriptor, type ProductOptions, type ProductCache, type ProductProgress } from '../src/game/client/shardfile/product';
+import { ClientAssets } from '../src/game/client/shardfile/clientAssets';
+import { neighbourProductFiles, productResidentBytes, jsonResidentBytes, runtimeOnlyProductFiles, runtimeOnlyProductFilesPaced, tierLibrarySource, urlImageLibrarySource, scopedSpecimenLibrarySource, scopedSpecimenLibrarySourcePaced } from '../src/game/client/shardfile/productCost';
+import { carryOutputDescriptor, outputDescriptor, resolveOutputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 import { acceptValidatedCost } from '@wildshard/format/deviceMemoryCost';
-import { ProductLeases } from '../src/game/grid/productLeases';
-import { ResidencyAllocator } from '../src/game/grid/allocator';
+import { ProductLeases } from '../src/game/client/grid/productLeases';
+import { ResidencyAllocator } from '../src/game/server/grid/allocator';
 import metadata from '../src/shards/far-reach/manifest.json';
 import { parseManifestMetadata } from '@wildshard/format/minimap';
 import { parseImageAsset } from '@wildshard/format/stillImage';
-import { Scope } from '../src/engine/app/scope';
-import { bootWaits } from '../src/engine/boot/waits';
-import * as customValidators from '../src/game/shardfile/customSchema';
+import { Scope } from '../src/engine/shared/app/scope';
+import { bootWaits } from '../src/engine/shared/boot/waits';
+import * as customValidators from '../src/game/shared/shardfile/customSchema';
 import { FIXTURE_RUNTIME_COST } from './fixtures/clientPlanRuntime';
 
 const scopes: Scope[] = [];
@@ -1477,7 +1477,7 @@ test('phone neighbour schedule resolves every section and schema from one verifi
   const indexWire = bytes(index); f.wires.set('shard.json', indexWire); f.wires.set(path, wire);
   trust({ ...f.receipt, indexHash: hashImmutableBytes(indexWire) });
   const fetch = vi.fn(f.options.fetch), stored = new Map<string, Uint8Array>(); vi.stubGlobal('fetch', fetch);
-  const { preparePrefetchIndex } = await import('../src/game/grid/prefetchIndexCore');
+  const { preparePrefetchIndex } = await import('../src/game/client/grid/prefetchIndexCore');
   const schedule = await preparePrefetchIndex({ url: new URL('shard.json', f.options.base).href, indexHashes: [hashImmutableBytes(indexWire)], phone: true }, {
     get: () => Promise.resolve(null), put: (hash, body) => { stored.set(hash, body); return Promise.resolve(true); },
   });
@@ -1495,7 +1495,7 @@ test.each([false,true])('title schedule retains late files for later demand (cri
   const wire=bytes(index); f.wires.set('shard.json',wire);
   trust({...f.receipt,sourceHash,indexHash:hashImmutableBytes(wire)});
   const fetch=vi.fn(f.options.fetch); vi.stubGlobal('fetch',fetch);
-  const {preparePrefetchIndex}=await import('../src/game/grid/prefetchIndexCore');
+  const {preparePrefetchIndex}=await import('../src/game/client/grid/prefetchIndexCore');
   const schedule=await preparePrefetchIndex({url:new URL('shard.json',f.options.base).href,indexHashes:[hashImmutableBytes(wire)],phone:true},
     {get:()=>Promise.resolve(null),put:()=>Promise.resolve(true)});
   expect(schedule?.files.some(file=>file.hash===f.ref)).toBe(true);

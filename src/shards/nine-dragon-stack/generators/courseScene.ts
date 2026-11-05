@@ -121,7 +121,7 @@ function build(row: HookCourseRow, o: THREE.Vector3): { root: THREE.Group; colli
     return { root, colliders };
   }
 
-/** the room as map shapes, world x / z (src/engine/ui/roomMap.ts): the walls, the column, the pads (start / finish light),
+/** the room as map shapes, world x / z (src/engine/client/ui/roomMap.ts): the walls, the column, the pads (start / finish light),
  *  the hooks, the pads' names on the full map */
 function courseMap(row: HookCourseRow, o: THREE.Vector3): RoomMap {
   const R = row.room, M = row.look.map, C = row.column, box = { x0: o.x + R.x0, z0: o.z + R.z0, x1: o.x + R.x1, z1: o.z + R.z1 };

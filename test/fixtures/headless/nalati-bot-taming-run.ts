@@ -5,12 +5,12 @@ import assert from 'node:assert/strict';
 import * as v from 'valibot';
 import {builtProduct} from '../builtProduct';
 import {loadHeadlessProduct} from '../../../src/sdk/headlessProduct';
-import {outputDescriptor} from '../../../src/game/shardfile/outputDescriptor';
-import {loadRapier} from '../../../src/engine/physics/rapier';
-import {NET_BUTTONS} from '../../../src/engine/input/netButtons';
-import {serializeSimSnapshot,snapshotSimHostBytes} from '../../../src/engine/sim/snapshot';
-import {mountedPlayerOf} from '../../../src/game/riding/native';
-import {nativeTamingControls,nativeTamingOf} from '../../../src/game/riding/nativeTaming';
+import {outputDescriptor} from '../../../src/game/shared/shardfile/outputDescriptor';
+import {loadRapier} from '../../../src/engine/shared/physics/rapier';
+import {NET_BUTTONS} from '../../../src/engine/shared/input/netButtons';
+import {serializeSimSnapshot,snapshotSimHostBytes} from '../../../src/engine/shared/sim/snapshot';
+import {mountedPlayerOf} from '../../../src/game/server/riding/native';
+import {nativeTamingControls,nativeTamingOf} from '../../../src/game/server/riding/nativeTaming';
 import {createNativeProofResident} from '../headless-native';
 import {prepareHeadlessRuntime} from '../nalati-verbs';
 

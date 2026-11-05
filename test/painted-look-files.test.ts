@@ -2,10 +2,10 @@
 import { readFileSync } from 'node:fs';
 import { afterEach, expect, test, vi } from 'vitest';
 import { Mesh, MeshBasicMaterial, InstancedBufferGeometry, InstancedBufferAttribute } from 'three';
-import * as dataLook from '../src/engine/render/dataLook';
+import * as dataLook from '../src/engine/client/render/dataLook';
 import { parsePaintedLook, type PaintedLookRow } from '@wildshard/format/paintedLook';
-import { productPaintedLook } from '../src/game/looks/paintedLook';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { productPaintedLook } from '../src/game/client/looks/paintedLook';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { readNamedBlob } from '../src/sdk/blobs';

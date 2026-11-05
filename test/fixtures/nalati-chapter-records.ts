@@ -1,12 +1,12 @@
 import * as v from 'valibot';
-import {SaveStore,type SaveStorage} from '../../src/engine/saves/store';
-import type {SimHost} from '../../src/engine/sim';
+import {SaveStore,type SaveStorage} from '../../src/engine/shared/saves/store';
+import type {SimHost} from '../../src/engine/server/sim';
 import {AdventurePersistenceSchema} from '@wildshard/format/namedJsonContracts';
-import type {ShardProduct} from '../../src/game/shardfile/shardProduct';
-import {installRuntimeState} from '../../src/game/shardfile/runtimeState';
-import type {ObservedRecords} from '../../src/game/quest/questObservation';
-import {featOutcome,witnessSavedFeats} from '../../src/game/quest/featCounters';
-import {nativeQuestInputs,type NativeQuestInputs} from '../../src/game/quest/nativeInputs';
+import type {ShardProduct} from '../../src/game/shared/shardfile/shardProduct';
+import {installRuntimeState} from '../../src/game/server/shardfile/runtimeState';
+import type {ObservedRecords} from '../../src/game/server/quest/questObservation';
+import {featOutcome,witnessSavedFeats} from '../../src/game/server/quest/featCounters';
+import {nativeQuestInputs,type NativeQuestInputs} from '../../src/game/server/quest/nativeInputs';
 
 interface BossRecord { defeated:boolean;rewardTaken:boolean;kills:number }
 /** The actual declared boss field and the existing elite continuation, borrowed

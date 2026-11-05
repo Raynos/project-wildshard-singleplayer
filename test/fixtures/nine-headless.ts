@@ -1,13 +1,13 @@
 import { nineNativeConstants } from './nine-native-constants';
 import type { PrepareHeadlessRuntime } from '../../src/sdk/headlessRuntime';
 import type { HeadlessCommand } from '../../src/sdk/tickProtocol';
-import { trustedLevel, addBakedPieces } from '../../src/game/plugin/simulation';
-import { tagOf } from '../../src/engine/physics/surface';
+import { trustedLevel, addBakedPieces } from '../../src/game/server/plugin/simulation';
+import { tagOf } from '../../src/engine/shared/physics/surface';
 import { portalLinkEntries } from '@wildshard/format/portalLinkAssets';
 import { installGrapple } from '@wildshard/game/grapple/native';
 import { parseGrappleProfile } from '@wildshard/format/grapple';
-import { installHostPortalRide } from '../../src/game/shardfile/portalRideBinding';
-import { installNativeItems } from '../../src/game/plugin/nativeItems';
+import { installHostPortalRide } from '../../src/game/client/shardfile/portalRideBinding';
+import { installNativeItems } from '../../src/game/server/plugin/nativeItems';
 import { prepareReturns } from '@wildshard/game/shardfile/nativeRuntimeLoans';
 import { nineNativeOracle } from './nine-native-oracle';
 import manifest from '../../src/shards/nine-dragon-stack/manifest.json' with {type:'json'};

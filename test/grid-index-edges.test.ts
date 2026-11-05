@@ -3,8 +3,8 @@ import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { outputSectionPayloads } from '@wildshard/format/outputFields';
 import { encodeCanonicalJson, hashImmutableBytes } from '../src/sdk/immutable';
-import { readGridProductEdges, readGridProductFar, readGridProductNear } from '../src/game/grid/products';
-import type { ProductCache } from '../src/game/shardfile/product';
+import { readGridProductEdges, readGridProductFar, readGridProductNear } from '../src/game/client/grid/products';
+import type { ProductCache } from '../src/game/client/shardfile/product';
 
 function fixture(slug = 'edge-fixture') {
   const source = emptyShardfile({ slug, name: 'Edges', author: 'Test', revision: 1, seed: 9 });

@@ -33,36 +33,36 @@ const SHARED = new Set(['ws-glass', 'ws-label', 'ws-mono', 'ws-display', 'ws-wor
 
 /** file → { prefix, strict }. `prefix: null` = base.css (shared list only). */
 const FILES = [
-  { file: join(ROOT, 'src/engine/ui/styles/base.css'), prefix: null, strict: true },
-  { file: join(ROOT, 'src/engine/ui/styles/game.css'), prefix: 'ws-game-', strict: true },
-  { file: join(ROOT, 'src/engine/ui/styles/menu.css'), prefix: 'ws-menu-', strict: true },
-  { file: join(ROOT, 'src/engine/ui/styles/gmenu.css'), prefix: 'ws-gmenu-', strict: true }, // the in-game menu (src/engine/ui/Menu.ts): map / inventory / achievements / settings
-  { file: join(ROOT, 'src/engine/ui/styles/touch.css'), prefix: 'ws-touch-', strict: true },
-  { file: join(ROOT, 'src/engine/ui/styles/update.css'), prefix: 'ws-update-', strict: true },
-  { file: join(ROOT, 'src/engine/ui/styles/minimap.css'), prefix: 'ws-minimap-', strict: true },
-  { file: join(ROOT, 'src/engine/ui/styles/combat.css'), prefix: 'ws-combat-', strict: true }, // hunting feedback (src/engine/ui/Combat.ts), imported by the module
-  { file: join(ROOT, 'src/engine/ui/styles/feedback.css'), prefix: 'ws-fb-', strict: true }, // the review inbox: ✎ disc + the lazy composer (src/engine/ui/review.ts, Feedback.ts)
-  { file: join(ROOT, 'src/game/stealth/stealth.css'), prefix: 'ws-stealth-', strict: true }, // Shared grass stealth: the eye pip, GRASS meter, vignette (src/game/stealth/controller.ts)
-  { file: join(ROOT, 'src/engine/ui/styles/boss.css'), prefix: 'ws-boss-', strict: true }, // the boss system (src/engine/ui/BossBar.ts, src/game/Boss.ts): the wide top bar, name / retry / reward cards
-  { file: join(ROOT, 'src/engine/ui/styles/elite.css'), prefix: 'ws-elite-', strict: true }, // named elites (src/engine/ui/EliteBar.ts, src/game/Elite.ts): the named bar, the NEARBY banner, the edge chevron, the minimap skulls
-  { file: join(ROOT, 'src/engine/ui/styles/explore.css'), prefix: 'ws-x-', strict: true }, // Explore World, the viewer (src/engine/explore/Explore.ts), imported by the lazy chunk
-  { file: join(ROOT, 'src/engine/ui/styles/rotate.css'), prefix: 'ws-rotate-', strict: true }, // the portrait-only gate on landscape phones (index.html, src/engine/ui/RotateGate.ts)
-  { file: join(ROOT, 'src/engine/ui/styles/quest.css'), prefix: 'ws-quest-', strict: true }, // the adventure layer: objective line, NPC dialogue, reward caption (src/game/quest/*)
-  { file: join(ROOT, 'src/game/complete/complete.css'), prefix: 'ws-complete-', strict: true }, // the "<shard> complete" card (src/game/complete/ShardComplete.ts, E132)
-  { file: join(ROOT, 'src/game/compendium/compendium.css'), prefix: 'ws-cmp-', strict: true }, // the Compendium: the book + its skins, the trophy wall's tip, the journal disc (src/ui/compendium/*)
+  { file: join(ROOT, 'src/engine/client/ui/styles/base.css'), prefix: null, strict: true },
+  { file: join(ROOT, 'src/engine/client/ui/styles/game.css'), prefix: 'ws-game-', strict: true },
+  { file: join(ROOT, 'src/engine/client/ui/styles/menu.css'), prefix: 'ws-menu-', strict: true },
+  { file: join(ROOT, 'src/engine/client/ui/styles/gmenu.css'), prefix: 'ws-gmenu-', strict: true }, // the in-game menu (src/engine/client/ui/Menu.ts): map / inventory / achievements / settings
+  { file: join(ROOT, 'src/engine/client/ui/styles/touch.css'), prefix: 'ws-touch-', strict: true },
+  { file: join(ROOT, 'src/engine/client/ui/styles/update.css'), prefix: 'ws-update-', strict: true },
+  { file: join(ROOT, 'src/engine/client/ui/styles/minimap.css'), prefix: 'ws-minimap-', strict: true },
+  { file: join(ROOT, 'src/engine/client/ui/styles/combat.css'), prefix: 'ws-combat-', strict: true }, // hunting feedback (src/engine/client/ui/Combat.ts), imported by the module
+  { file: join(ROOT, 'src/engine/client/ui/styles/feedback.css'), prefix: 'ws-fb-', strict: true }, // the review inbox: ✎ disc + the lazy composer (src/engine/client/ui/review.ts, Feedback.ts)
+  { file: join(ROOT, 'src/game/client/stealth/stealth.css'), prefix: 'ws-stealth-', strict: true }, // Shared grass stealth: the eye pip, GRASS meter, vignette (src/game/client/stealth/controller.ts)
+  { file: join(ROOT, 'src/engine/client/ui/styles/boss.css'), prefix: 'ws-boss-', strict: true }, // the boss system (src/engine/client/ui/BossBar.ts, src/game/server/Boss.ts): the wide top bar, name / retry / reward cards
+  { file: join(ROOT, 'src/engine/client/ui/styles/elite.css'), prefix: 'ws-elite-', strict: true }, // named elites (src/engine/client/ui/EliteBar.ts, src/game/server/Elite.ts): the named bar, the NEARBY banner, the edge chevron, the minimap skulls
+  { file: join(ROOT, 'src/engine/client/ui/styles/explore.css'), prefix: 'ws-x-', strict: true }, // Explore World, the viewer (src/engine/client/explore/Explore.ts), imported by the lazy chunk
+  { file: join(ROOT, 'src/engine/client/ui/styles/rotate.css'), prefix: 'ws-rotate-', strict: true }, // the portrait-only gate on landscape phones (index.html, src/engine/client/ui/RotateGate.ts)
+  { file: join(ROOT, 'src/engine/client/ui/styles/quest.css'), prefix: 'ws-quest-', strict: true }, // the adventure layer: objective line, NPC dialogue, reward caption (src/game/*/quest/*)
+  { file: join(ROOT, 'src/game/client/complete/complete.css'), prefix: 'ws-complete-', strict: true }, // the "<shard> complete" card (src/game/client/complete/ShardComplete.ts, E132)
+  { file: join(ROOT, 'src/game/client/compendium/compendium.css'), prefix: 'ws-cmp-', strict: true }, // the Compendium: the book + its skins, the trophy wall's tip, the journal disc (src/ui/compendium/*)
   { file: join(ROOT, 'src/shards/pine-hollow/quest/pinehollow.css'), prefix: 'ws-ph-', strict: true }, // Pine Hollow's hamlet screens + the collectibles counter (src/shards/pine-hollow/quest/ui.ts)
-  { file: join(ROOT, 'src/engine/ui/styles/debug.css'), prefix: 'ws-dbg-', strict: true }, // pause ▸ Settings ▸ Debug's groups (src/engine/ui/DebugMenu.ts, the registry src/engine/ui/debugOptions.ts; E162)
-  { file: join(ROOT, 'src/engine/ui/styles/playgrounds.css'), prefix: 'ws-pg-', strict: true }, // the feature playgrounds' run chip (src/engine/practice/playground/hud.ts, E307)
-  { file: join(ROOT, 'src/engine/ui/styles/hints.css'), prefix: 'ws-hint-', strict: true }, // first-time control hints on the touch controls (src/engine/ui/FirstHints.ts, E308)
-  { file: join(ROOT, 'src/game/loot/loot.css'), prefix: 'ws-loot-', strict: true }, // the purse on the HUD: the coin chip + the "+n" pop (src/game/loot/CoinChip.ts, E314)
-  { file: join(ROOT, 'src/engine/ui/styles/itemcard.css'), prefix: 'ws-icard-', strict: true }, // the big item card: shop tiles + the pickup card (src/engine/ui/ItemCard.ts, SF28 / G87)
-  { file: join(ROOT, 'src/game/loot/ui/shop.css'), prefix: 'ws-shop-', strict: true }, // the trader's counter on Driftwood (src/shards/driftwood-isle/loot/ShopPanel.ts, E314 stage 2)
-  { file: join(ROOT, 'src/game/saves.css'), prefix: 'ws-saves-', strict: true }, // pause ▸ Settings ▸ SAVES and the New game sheet (src/game/savesSettings.ts, SF33b / G83)
-  { file: join(ROOT, 'src/game/grid/gridHud.css'), prefix: 'ws-grid-', strict: true }, // the grid's HUD moments: the sky-down reveal, SAFE ZONE, the title card, speed lines (src/game/grid/reveal.ts, gridHud.ts; SF21a / SF20a)
-  // loading screen: owned by src/engine/ui/Loading.ts — warn only while its owner finishes the ws-load-* rename
-  { file: join(ROOT, 'src/engine/ui/loading.css'), prefix: 'ws-load-', strict: false },
-  // frame meter (src/engine/ui/Perf.ts) — warn only; not part of the HUD split
-  { file: join(ROOT, 'src/engine/ui/perf.css'), prefix: 'ws-perf-', strict: false },
+  { file: join(ROOT, 'src/engine/client/ui/styles/debug.css'), prefix: 'ws-dbg-', strict: true }, // pause ▸ Settings ▸ Debug's groups (src/engine/client/ui/DebugMenu.ts, the registry src/engine/client/ui/debugOptions.ts; E162)
+  { file: join(ROOT, 'src/engine/client/ui/styles/playgrounds.css'), prefix: 'ws-pg-', strict: true }, // the feature playgrounds' run chip (src/engine/client/practice/playground/hud.ts, E307)
+  { file: join(ROOT, 'src/engine/client/ui/styles/hints.css'), prefix: 'ws-hint-', strict: true }, // first-time control hints on the touch controls (src/engine/client/ui/FirstHints.ts, E308)
+  { file: join(ROOT, 'src/game/client/loot/loot.css'), prefix: 'ws-loot-', strict: true }, // the purse on the HUD: the coin chip + the "+n" pop (src/game/loot/CoinChip.ts, E314)
+  { file: join(ROOT, 'src/engine/client/ui/styles/itemcard.css'), prefix: 'ws-icard-', strict: true }, // the big item card: shop tiles + the pickup card (src/engine/client/ui/ItemCard.ts, SF28 / G87)
+  { file: join(ROOT, 'src/game/client/loot/ui/shop.css'), prefix: 'ws-shop-', strict: true }, // the trader's counter on Driftwood (src/shards/driftwood-isle/loot/ShopPanel.ts, E314 stage 2)
+  { file: join(ROOT, 'src/game/client/saves.css'), prefix: 'ws-saves-', strict: true }, // pause ▸ Settings ▸ SAVES and the New game sheet (src/game/client/savesSettings.ts, SF33b / G83)
+  { file: join(ROOT, 'src/game/client/grid/gridHud.css'), prefix: 'ws-grid-', strict: true }, // the grid's HUD moments: the sky-down reveal, SAFE ZONE, the title card, speed lines (src/game/client/grid/reveal.ts, gridHud.ts; SF21a / SF20a)
+  // loading screen: owned by src/engine/client/ui/Loading.ts — warn only while its owner finishes the ws-load-* rename
+  { file: join(ROOT, 'src/engine/client/ui/loading.css'), prefix: 'ws-load-', strict: false },
+  // frame meter (src/engine/client/ui/Perf.ts) — warn only; not part of the HUD split
+  { file: join(ROOT, 'src/engine/client/ui/perf.css'), prefix: 'ws-perf-', strict: false },
 ];
 
 /** `ws-` strings in TS that are not CSS classes (event names) or are JS-only hooks with no rule */

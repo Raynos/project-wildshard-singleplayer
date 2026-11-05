@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { nameBlob } from '../src/sdk/blobs';
 import { pineLateMaterialFiles } from '../src/shards/pine-hollow/generators/lateMaterials';
-import { resolveBootFiles } from '../src/engine/boot/filePolicy';
+import { resolveBootFiles } from '../src/engine/client/boot/filePolicy';
 import { PINE_BOOT_FILES } from '../src/shards/pine-hollow/generators/bootFiles';
 
 const pose = (x: number, z: number) => ({ x, y: 0, z, yaw: 0, pitch: 0, roll: 0, scale: 1 });

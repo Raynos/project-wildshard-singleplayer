@@ -8,18 +8,18 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare complete serialized region continuations.
 import { createHash } from 'node:crypto';
 import { TEMPLATE_SOURCE as template, templateAssets as readTemplateAssets } from '../../fixtures/templateSource.ts';
-import catalogue from '../../../src/game/grid/singleplayer.json' with { type: 'json' };
-import { createShardfileSim } from '../../../src/game/plugin/simulation.ts';
-import { loadRapier } from '../../../src/engine/physics/rapier.ts';
-import { snapshotSimHost } from '../../../src/engine/sim/snapshot.ts';
-import { installAppIdentity } from '../../../src/engine/app/identity.ts';
-import { WILDSHARD_IDENTITY } from '../../../src/game/identity.ts';
-import { GridAssembly } from '../../../src/game/grid/assembly.ts';
-import { GridSimulation } from '../../../src/game/grid/simulation.ts';
-import { ResidencyAllocator } from '../../../src/game/grid/allocator.ts';
+import catalogue from '../../../src/game/shared/grid/singleplayer.json' with { type: 'json' };
+import { createShardfileSim } from '../../../src/game/server/plugin/simulation.ts';
+import { loadRapier } from '../../../src/engine/shared/physics/rapier.ts';
+import { snapshotSimHost } from '../../../src/engine/shared/sim/snapshot.ts';
+import { installAppIdentity } from '../../../src/engine/shared/app/identity.ts';
+import { WILDSHARD_IDENTITY } from '../../../src/game/client/identity.ts';
+import { GridAssembly } from '../../../src/game/server/grid/assembly.ts';
+import { GridSimulation } from '../../../src/game/server/grid/simulation.ts';
+import { ResidencyAllocator } from '../../../src/game/server/grid/allocator.ts';
 import { createTrustedHeadlessResident } from '../../../src/sdk/headlessRuntime.ts';
 import { createNativeProofResident } from '../../fixtures/headless-native.ts';
-import { leadPlayer } from '../../../src/engine/sim/leadPlayer.ts';
+import { leadPlayer } from '../../../src/engine/shared/sim/leadPlayer.ts';
 
 /** The same catalogue grid is used in public and Developer modes (G972). */
 const CATALOGUE_MODE = Object.freeze({ developer: false, devserver: false });

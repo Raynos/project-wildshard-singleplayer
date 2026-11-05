@@ -14,14 +14,14 @@ no two volumes overlapping (round 5 `layerCheck`).
 **Cube rule.** Today the bake already refuses props, terrain and world GLB nodes outside the cell
 (`src/sdk/bake/props.ts:227`, `terrain.ts:34`, `world.ts:58`), and `src/format/shardSchema.ts:293` checks the spawn. Not
 checked: **portal destinations** (`src/format/portalLink.ts:10`, `destination.at`), **interior volumes** (Pine's cave
-file `src/format/caveInterior.ts` holes/cuts, Nalati's arena room `src/game/boss/arenaRoom.ts`), and overlap between
+file `src/format/caveInterior.ts` holes/cuts, Nalati's arena room `src/game/server/boss/arenaRoom.ts`), and overlap between
 declared volumes. Add to the shardfile validator (`format/shardSchema.ts` rules beside line 293): a declared
 `volumes` list (id, box) built from interiors, portal destinations and arenas; every box inside the cube; no two
 intersect; every portal's destination inside its own product's volumes. Document in `docs/SHARDS.md` (a "Your cube"
 section).
 
 **Finding: the practice rooms break the rule today.** Nalati's riding course and Nine Dragon's grapple course run in an
-engine playground at **`PLAYGROUND_Y = 3000`** (`src/engine/practice/playground/Playground.ts:26`), declared by each
+engine playground at **`PLAYGROUND_Y = 3000`** (`src/engine/client/practice/playground/Playground.ts:26`), declared by each
 shard's `practice.course` client-plan feature (`src/shards/nalati-grasslands/generators/courseScene.ts`,
 `src/shards/nine-dragon-stack/generators/courseScene.ts`). That is 2,750 m above the cube. But a playground is "a
 standalone dev level for one shard's own verb, entered from the Explore hub" (`Playground.ts:1-13`), hung that high on

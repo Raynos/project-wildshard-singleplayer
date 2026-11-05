@@ -2,12 +2,12 @@
 import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
 import { beforeAll, expect, test } from 'vitest';
-import { questBooks } from '../src/engine/quest/players';
-import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
-import { leadPlayer } from '../src/engine/sim/leadPlayer';
-import { serializeSimSnapshot, snapshotSimHost } from '../src/engine/sim/snapshot';
-import { cableModes } from '../src/engine/player/modes';
-import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
+import { questBooks } from '../src/engine/server/quest/players';
+import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
+import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
+import { serializeSimSnapshot, snapshotSimHost } from '../src/engine/shared/sim/snapshot';
+import { cableModes } from '../src/engine/shared/player/modes';
+import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { createTrustedHeadlessResident, type TrustedHeadlessResident } from '../src/sdk/headlessRuntime';
 import spots from '../src/shards/driftwood-isle/data/spotsRows.json' with { type: 'json' };
@@ -15,7 +15,7 @@ import policy from '../src/shards/pine-hollow/data/nativeStory.json' with { type
 import { contractCatalogue } from '../src/shards/pine-hollow/generators/contractRows';
 import { pineSpots } from '../src/shards/pine-hollow/generators/spots';
 import { PINE_MODES } from '../src/shards/pine-hollow/generators/zipline';
-import { CONTRACT_ACTION } from '../src/game/quest/contractBoard';
+import { CONTRACT_ACTION } from '../src/game/server/quest/contractBoard';
 import { builtProduct } from './fixtures/builtProduct';
 
 // P1-E3.3: the owners that carry one traveller seat every player: a bot rides the cable on its own ride, and it saves.

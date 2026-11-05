@@ -2,22 +2,22 @@ import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { MeshoptDecoder } from 'meshoptimizer';
 import { Bone, BufferAttribute, BufferGeometry, Matrix4, Skeleton, SkinnedMesh, Vector3, type MeshStandardMaterial } from 'three';
-import { AnimalSim } from '../../../../src/engine/entities/AnimalSim';
-import { Animal } from '../../../../src/engine/entities/AnimalView';
-import type { AnimalModel } from '../../../../src/engine/entities/AnimalFactory';
-import { variantMods } from '../../../../src/engine/entities/species/registry';
-import { speciesWithLook } from '../../../../src/engine/entities/species/look';
-import { setLowPoly, isLowPoly } from '../../../../src/engine/entities/species/loft';
-import { mergeAnimalGeometry } from '../../../../src/engine/models/animalGeometry';
-import { facetGeometry, lowPolyMaterials, oneMaterial } from '../../../../src/engine/entities/lowpoly';
-import { Rng } from '../../../../src/engine/core/rng';
-import { BOAR } from '../../../../src/game/systems/species/boar';
-import { BOAR_LOOK } from '../../../../src/game/systems/species/view/boar';
+import { AnimalSim } from '../../../../src/engine/server/entities/AnimalSim';
+import { Animal } from '../../../../src/engine/client/entities/AnimalView';
+import type { AnimalModel } from '../../../../src/engine/client/entities/AnimalFactory';
+import { variantMods } from '../../../../src/engine/shared/entities/species/registry';
+import { speciesWithLook } from '../../../../src/engine/client/entities/species/look';
+import { setLowPoly, isLowPoly } from '../../../../src/engine/client/entities/species/loft';
+import { mergeAnimalGeometry } from '../../../../src/engine/client/models/animalGeometry';
+import { facetGeometry, lowPolyMaterials, oneMaterial } from '../../../../src/engine/client/entities/lowpoly';
+import { Rng } from '../../../../src/engine/shared/core/rng';
+import { BOAR } from '../../../../src/game/client/systems/species/boar';
+import { BOAR_LOOK } from '../../../../src/game/client/systems/species/view/boar';
 import { GREY_BLOB_SOURCE, GREY_BLOB_SOURCE_LOOK } from './greyBlobSource';
 import { rigLegs } from '../../../../src/shards/pine-hollow/generators/npcSkin';
-import { legBones, legPose } from '../../../../src/game/systems/npc/npcRig';
+import { legBones, legPose } from '../../../../src/game/client/systems/npc/npcRig';
 import { MeshStandardMaterial as StandardMaterial } from 'three';
-import type { ClipName } from '../../../../src/engine/anim/rig';
+import type { ClipName } from '../../../../src/engine/client/anim/rig';
 
 /** Trusted originals used by export fixtures; the runtime loads only the resulting bytes and rig metadata. */
 export interface SkinSource { mesh: SkinnedMesh; skeleton: string; clips: readonly ClipName[]; sockets: string[]; pose: (clip: ClipName, time: number, dt: number, phase?: number) => void; dispose: () => void }

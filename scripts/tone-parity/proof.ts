@@ -8,8 +8,8 @@
  * cast shadow) reads off the rows. `window.toneParity` holds the result.
  */
 import { BackSide, BoxGeometry, BufferAttribute, Color, DirectionalLight, MeshBasicMaterial, PMREMGenerator, FloatType, HemisphereLight, Mesh, PCFShadowMap, PerspectiveCamera, PlaneGeometry, RGBAFormat, Scene, SphereGeometry, Vector3, WebGLRenderer, WebGLRenderTarget, type BufferGeometry, type Material } from 'three';
-import { Scope } from '../../src/engine/app/scope';
-import { clientMaterials } from '../../src/game/shardfile/clientMaterials';
+import { Scope } from '../../src/engine/shared/app/scope';
+import { clientMaterials } from '../../src/game/client/shardfile/clientMaterials';
 import { emptyShardfile } from '../../src/sdk/author';
 import { GRAPH_PRESET_VERSION, parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 

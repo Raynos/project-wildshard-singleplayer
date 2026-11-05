@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
-import { trustedLevel } from '../src/game/plugin/simulation';
+import { trustedLevel } from '../src/game/server/plugin/simulation';
 import type { HeadlessRuntimePlan } from '../src/sdk/headlessRuntime';
 import { emptyShardfile } from '../src/sdk/author';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { createSimHost } from '../src/engine/sim';
-import { loadRapier } from '../src/engine/physics/rapier';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
+import { createSimHost } from '../src/engine/server/sim';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the original native assembly over real physics.
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';

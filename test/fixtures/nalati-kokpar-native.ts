@@ -1,13 +1,13 @@
 import * as v from 'valibot';
-import type {SimHost} from '../../src/engine/sim';
+import type {SimHost} from '../../src/engine/server/sim';
 import type {HeadlessRuntimeInstallation,PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
 import {parseCarriedQuest,type CarriedQuestRows} from '@wildshard/format/questSteps';
-import {ReturnProgram} from '../../src/game/population/returnProgram';
-import {commitQuestEffects} from '../../src/game/quest/effects';
-import {mountedPlayerOf} from '../../src/game/riding/native';
-import {practiceRoomState} from '../../src/engine/core/practiceRoomState';
+import {ReturnProgram} from '../../src/game/shared/population/returnProgram';
+import {commitQuestEffects} from '../../src/game/server/quest/effects';
+import {mountedPlayerOf} from '../../src/game/server/riding/native';
+import {practiceRoomState} from '../../src/engine/shared/core/practiceRoomState';
 import {carriedRound,carriedRoundDue,carriedRoundFrame,carriedRoundOutputs,carriedRoundHome,
-  carriedRoundGoal,carriedRoundCarrying} from '../../src/game/quest/carriedRound';
+  carriedRoundGoal,carriedRoundCarrying} from '../../src/game/server/quest/carriedRound';
 import {prepareHeadlessRuntime as prepareNalati} from './nalati-verbs';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 

@@ -1,14 +1,14 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture uses shipped Rapier bytes.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
-import type { QuestState } from '../src/engine/quest/core';
-import { questBooks } from '../src/engine/quest/players';
-import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
-import { createSimHost, type SimHost } from '../src/engine/sim';
-import { leadPlayer } from '../src/engine/sim/leadPlayer';
-import { restoreSimHost, snapshotSimHost } from '../src/engine/sim/snapshot';
-import { DeclaredQuests } from '../src/game/quest/declared';
-import { InteractionRules, parseInteractionRows, playerInteractionRules } from '../src/game/quest/interactionRows';
+import type { QuestState } from '../src/engine/server/quest/core';
+import { questBooks } from '../src/engine/server/quest/players';
+import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost, type SimHost } from '../src/engine/server/sim';
+import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
+import { restoreSimHost, snapshotSimHost } from '../src/engine/shared/sim/snapshot';
+import { DeclaredQuests } from '../src/game/server/quest/declared';
+import { InteractionRules, parseInteractionRows, playerInteractionRules } from '../src/game/server/quest/interactionRows';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 // P1-E3.3: quest state is per player. Each player's book is its own over the world's flags; the lead's is the host's.

@@ -2,8 +2,8 @@
 import { hrtime } from 'node:process';
 import * as v from 'valibot';
 import { runTickWorker } from '../../../src/sdk/tickWorkerLoop';
-import { ScriptLane } from '../../../src/engine/script/lane';
-import { DeclaredScriptWorld } from '../../../src/engine/script/state';
+import { ScriptLane } from '../../../src/engine/server/script/lane';
+import { DeclaredScriptWorld } from '../../../src/engine/server/script/state';
 import type { HeadlessEffect } from '../../../src/sdk/tickProtocol';
 
 await runTickWorker(async raw => {

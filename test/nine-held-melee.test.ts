@@ -2,9 +2,9 @@
 import {readFileSync} from 'node:fs';
 import {expect,it} from 'vitest';
 import * as v from 'valibot';
-import {createSimHost,type SimHost} from '../src/engine/sim';
-import {loadRapier} from '../src/engine/physics/rapier';
-import {createNativeCombatFrame,installNativeItems} from '../src/game/plugin/nativeItems';
+import {createSimHost,type SimHost} from '../src/engine/server/sim';
+import {loadRapier} from '../src/engine/shared/physics/rapier';
+import {createNativeCombatFrame,installNativeItems} from '../src/game/server/plugin/nativeItems';
 import {parseItems} from '@wildshard/format/items';
 import assembly from '../src/shards/nine-dragon-stack/data/headlessAssembly.json' with {type:'json'};
 import items from '../src/shards/nine-dragon-stack/data/items.json' with {type:'json'};

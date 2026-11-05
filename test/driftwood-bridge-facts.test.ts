@@ -1,6 +1,6 @@
 import { beforeAll, expect, it } from 'vitest';
 import { BufferAttribute, Mesh, SkinnedMesh, type Object3D } from 'three';
-import { RopeDeckSite } from '../src/game/models/ropeDeckSite';
+import { RopeDeckSite } from '../src/game/client/models/ropeDeckSite';
 import { driftwoodRopeDeckSite } from '../src/shards/driftwood-isle/generators/ropeDeckSite';
 
 import type { RopeDeckSpan as RopeBridgeSpec } from '@wildshard/format/ropeDeckSite';
@@ -9,7 +9,7 @@ import { fixedDraw, ISLAND } from './fixtures/driftwoodLegacyAssets';
 import { admitDriftwoodFixtureRows } from './fixtures/driftwoodRows';
 import { bridgeDeck, bridgeUnitGeometries } from '../src/shards/driftwood-isle/generators/ropeBridge';
 
-import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
+import { createOwnedGeometry } from '../src/engine/client/models/ownedGeometry';
 import { driftwoodFixedModel } from './fixtures/driftwood-fixed-bank';
 
 const ROPE_BRIDGE = new RopeDeckSite(driftwoodRopeDeckSite(), ISLAND);

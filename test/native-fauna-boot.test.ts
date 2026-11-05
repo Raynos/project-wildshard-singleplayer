@@ -2,11 +2,11 @@ import { fixtureNativeRoster } from './fixtures/native-roster';
 // oxlint-disable-next-line import/no-nodejs-modules -- The native roster runs the actual shipped Rapier bytes.
 import { readFileSync } from 'node:fs';
 import { expect, test, vi } from 'vitest';
-import { Rng } from '../src/engine/core/rng';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { createSimHost } from '../src/engine/sim';
-import { createNativeCreatureRoster } from '../src/game/shardfile/homeKeeper';
-import type { HuntBody } from '../src/engine/ai/hunt';
+import { Rng } from '../src/engine/shared/core/rng';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost } from '../src/engine/server/sim';
+import { createNativeCreatureRoster } from '../src/game/server/shardfile/homeKeeper';
+import type { HuntBody } from '../src/engine/server/ai/hunt';
 import { DRIFTWOOD_NATIVE_FAUNA } from '../src/shards/driftwood-isle/generators/nativeFauna';
 import physics from '../src/shards/driftwood-isle/data/physicsRows.json';
 import { SIM_LEVEL } from './fixtures/sim-level/level';

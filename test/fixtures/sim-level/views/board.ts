@@ -2,20 +2,20 @@
 // shardfile rendered through the loader's views (clientMaterials → clientViews → tileContent), in one renderer under the
 // template look's numbers (gradient dome, linear fog 60–180 m, a 1.5 white sun, hemisphere ambient), so the only change is the view layer.
 import { Color, DirectionalLight, DoubleSide, Fog, Group, HemisphereLight, Mesh, MeshStandardMaterial, PCFSoftShadowMap, PerspectiveCamera, PlaneGeometry, Scene, ShaderMaterial, SphereGeometry, WebGLRenderer } from 'three';
-import { ResidencyAllocator } from '../../../../src/game/grid/allocator';
-import { buildYield } from '../../../../src/engine/core/workSlice';
-import { Scope } from '../../../../src/engine/app/scope';
-import { buildTerrain } from '../../../../src/engine/world/terrainField';
-import type { Vec2 } from '../../../../src/engine/level/data';
-import { clientMaterials } from '../../../../src/game/shardfile/clientMaterials';
-import { clientViews } from '../../../../src/game/shardfile/clientViews';
-import { standaloneClientTiles } from '../../../../src/game/shardfile/tileContent';
-import { ClientAssets } from '../../../../src/game/shardfile/clientAssets';
+import { ResidencyAllocator } from '../../../../src/game/server/grid/allocator';
+import { buildYield } from '../../../../src/engine/shared/core/workSlice';
+import { Scope } from '../../../../src/engine/shared/app/scope';
+import { buildTerrain } from '../../../../src/engine/shared/world/terrainField';
+import type { Vec2 } from '../../../../src/engine/server/level/data';
+import { clientMaterials } from '../../../../src/game/client/shardfile/clientMaterials';
+import { clientViews } from '../../../../src/game/client/shardfile/clientViews';
+import { standaloneClientTiles } from '../../../../src/game/client/shardfile/tileContent';
+import { ClientAssets } from '../../../../src/game/client/shardfile/clientAssets';
 import layout from '../../../../src/shards/_template/data/layout.json' with { type: 'json' };
 import { poolMask } from '../../../../src/shards/_template/generators/world';
 import { templateProps } from '../../../../src/shards/_template/generators/templatePropsSource';
-import { readProductDescriptor, browserContentHash } from '../../../../src/game/shardfile/product';
-import { outputBlobUrl } from '../../../../src/game/shardfile/outputDescriptor';
+import { readProductDescriptor, browserContentHash } from '../../../../src/game/client/shardfile/product';
+import { outputBlobUrl } from '../../../../src/game/shared/shardfile/outputDescriptor';
 
 // Serve this compiled view fixture beside the built Template product.
 const productBase = new URL('./shard.json', location.href).href;

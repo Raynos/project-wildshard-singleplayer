@@ -1,10 +1,10 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { BoxGeometry, InstancedMesh, Matrix4, MeshStandardMaterial, Vector3 } from 'three';
-import { defineModel, modelContext } from '../src/engine/models/model';
+import { defineModel, modelContext } from '../src/engine/client/models/model';
 import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
-import { WorldRegistry } from '../src/engine/world/registry';
-import type { SkyRig } from '../src/engine/world/skyRig';
-import { EncounterSites } from '../src/game/boss/encounterView';
+import { WorldRegistry } from '../src/engine/client/world/registry';
+import type { SkyRig } from '../src/engine/client/world/skyRig';
+import { EncounterSites } from '../src/game/client/boss/encounterView';
 import balbal from './fixtures/nalati-balbal-original.json' with { type: 'json' };
 
 // A made-up orchard (the sites' fixture second user): guard statues on their plinths, every second one crowned.

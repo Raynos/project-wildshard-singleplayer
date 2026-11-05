@@ -13,8 +13,8 @@ import { createHash } from 'node:crypto';
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
 const ROOT = new URL('../../../', import.meta.url), loaded = new Set([import.meta.url]);
 registerHooks({ load(url, context, next) { if (url.startsWith(ROOT.href) && !url.includes('/node_modules/')) loaded.add(url); return next(url, context); } });
-const { installAppIdentity } = await import('../../../src/engine/app/identity.ts');
-const { WILDSHARD_IDENTITY } = await import('../../../src/game/identity.ts');
+const { installAppIdentity } = await import('../../../src/engine/shared/app/identity.ts');
+const { WILDSHARD_IDENTITY } = await import('../../../src/game/client/identity.ts');
 const witness = await import('./witness.ts');
 // Admission loads this exact entry in every mode, so fresh/checkpoints/replay hash the same runtime closure.
 await import('../../fixtures/nine-headless.ts');

@@ -32,7 +32,7 @@ candidate build and compares them against the SHARDFILE goldens before it lands.
 material, texture, geometry, models, placement, tiles, slabs, sky, fog, lighting, shadows, post, LOD, culling,
 streaming residency, bakes and producers, and every perf cut that claims to be pixel-identical.
 
-- **Which shards:** the shard you touched. A change in `src/engine/render/`, `src/engine/` shaders or post, the grid
+- **Which shards:** the shard you touched. A change in `src/engine/client/render/`, `src/engine/` shaders or post, the grid
   (`src/game/grid/`), shared kits or the format layer re-captures **all six** (two browser lanes, three shards each).
   An open-plot change re-shoots that plot's 8 views (below).
 - **The candidate build** is a working-tree build of your change: `scripts/serve-build.sh --shard <slug>` (G670). After

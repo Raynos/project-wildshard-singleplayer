@@ -1,16 +1,16 @@
 import { expect, test, vi } from 'vitest';
 import { Group } from 'three';
-import { App } from '../src/engine/app/app';
-import { Scope } from '../src/engine/app/scope';
-import { Weapon } from '../src/engine/combat/Weapon';
-import { EquipmentService } from '../src/engine/combat/EquipmentService';
-import { INPUT_CONTEXTS } from '../src/game/inputContexts';
-import { bindRuntimeEquipment } from '../src/game/plugin/headless';
-import { ItemCatalogue } from '../src/game/loadout/itemCatalogue';
+import { App } from '../src/engine/client/app/app';
+import { Scope } from '../src/engine/shared/app/scope';
+import { Weapon } from '../src/engine/server/combat/Weapon';
+import { EquipmentService } from '../src/engine/client/combat/EquipmentService';
+import { INPUT_CONTEXTS } from '../src/game/client/inputContexts';
+import { bindRuntimeEquipment } from '../src/game/server/plugin/headless';
+import { ItemCatalogue } from '../src/game/server/loadout/itemCatalogue';
 import source from './fixtures/nine-product-inputs';
 import manifest from '../src/shards/nine-dragon-stack/discovery.generated';
 import items from '../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };
-import { GrappleTool } from '../src/game/grapple/tool';
+import { GrappleTool } from '../src/game/client/grapple/tool';
 import { heldEntry, enteredRows } from './fixtures/nineHeldEntry';
 import baseline from './fixtures/nine-item-equipment.json' with { type: 'json' };
 

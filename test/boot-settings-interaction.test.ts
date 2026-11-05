@@ -1,13 +1,13 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, test, vi } from 'vitest';
 import { installWorldFixture } from './fixtures/worldSetup';
-import { Scope } from '../src/engine/app/scope';
-import { activeLevel, bindLevelSelection } from '../src/engine/level/selection';
-import { openBootSettings } from '../src/engine/ui/BootSettings';
-import { savedSetting, setting } from '../src/engine/ui/Settings';
-import { authoredRows } from '../src/engine/ui/authoredDebugRows';
-import { buildDebugMenu } from '../src/engine/ui/DebugMenu';
-import { DEBUG_ROWS, type DebugRow } from '../src/engine/ui/debugOptions';
+import { Scope } from '../src/engine/shared/app/scope';
+import { activeLevel, bindLevelSelection } from '../src/engine/shared/level/selection';
+import { openBootSettings } from '../src/engine/client/ui/BootSettings';
+import { savedSetting, setting } from '../src/engine/client/ui/Settings';
+import { authoredRows } from '../src/engine/client/ui/authoredDebugRows';
+import { buildDebugMenu } from '../src/engine/client/ui/DebugMenu';
+import { DEBUG_ROWS, type DebugRow } from '../src/engine/client/ui/debugOptions';
 
 await installWorldFixture();
 

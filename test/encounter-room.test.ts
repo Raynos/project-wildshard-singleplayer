@@ -2,25 +2,25 @@
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test, vi } from 'vitest';
 import type { NetCommand } from '@wildshard/format/netCommand';
-import { bossHealthScale, bossTargetCount } from '../src/engine/ai/bossScale';
-import { PhaseEncounter, type PhaseEncounterSpec } from '../src/engine/ai/phases';
-import { NetClient } from '../src/engine/net/client';
-import { NetRoom } from '../src/engine/net/room';
-import { SimNetWorld } from '../src/engine/net/simWorld';
-import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
-import { createSimHost, type SimCommand, type SimHost } from '../src/engine/sim';
-import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
+import { bossHealthScale, bossTargetCount } from '../src/engine/shared/ai/bossScale';
+import { PhaseEncounter, type PhaseEncounterSpec } from '../src/engine/server/ai/phases';
+import { NetClient } from '../src/engine/client/net/client';
+import { NetRoom } from '../src/engine/server/net/room';
+import { SimNetWorld } from '../src/engine/server/net/simWorld';
+import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost, type SimCommand, type SimHost } from '../src/engine/server/sim';
+import { snapshotSimHost, restoreSimHost } from '../src/engine/shared/sim/snapshot';
 import { directLoopback } from '../src/engine/test/netLoopback';
-import { EliteCore, memoryElitePersistence, type EliteCoreScript } from '../src/game/eliteSystem';
+import { EliteCore, memoryElitePersistence, type EliteCoreScript } from '../src/game/server/eliteSystem';
 import { SIM_CREATURE_RECIPE } from '../src/game/test/creatureRecipe';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
-import { NativeEliteKernels } from '../src/engine/ai/eliteKernels';
+import { NativeEliteKernels } from '../src/engine/server/ai/eliteKernels';
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';
-import { StalkerBrain } from '../src/engine/ai/stalker';
-import * as reach from '../src/engine/ai/reach';
+import { StalkerBrain } from '../src/engine/server/ai/stalker';
+import * as reach from '../src/engine/server/ai/reach';
 import { Vector3 } from 'three';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import type { PlayerSim } from '../src/engine/sim/playerSim';
+import type { PlayerSim } from '../src/engine/server/sim/playerSim';
 
 // P1-E3.4: bosses and elites serve whoever is there. The lead stands off at the origin while a bot does the fighting, on a
 // real host with a real creature, real strikes and the real pipeline.

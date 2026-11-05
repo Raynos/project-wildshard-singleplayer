@@ -1,12 +1,12 @@
-import { installKitSpecies } from '../src/game/systems/species/install';
-import { installWorldRegistry } from '../src/engine/world/registry';
+import { installKitSpecies } from '../src/game/client/systems/species/install';
+import { installWorldRegistry } from '../src/engine/client/world/registry';
 import * as THREE from 'three';
 import * as v from 'valibot';
 import { expect, test } from 'vitest';
 import { BossSocketRigSchema } from '@wildshard/format/bossSocketRig';
 import { RoamingCombatSchema } from '@wildshard/format/roamingCombat';
-import { BossSocketRig } from '../src/game/boss/socketRig';
-import { SceneHandles } from '../src/game/shardfile/sceneHandles';
+import { BossSocketRig } from '../src/game/client/boss/socketRig';
+import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import { manager } from '@wildshard/engine/test/manager';
 import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { pineKingCollision } from '../src/shards/pine-hollow/generators/kingCollision';

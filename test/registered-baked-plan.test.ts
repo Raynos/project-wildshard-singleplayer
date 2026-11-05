@@ -28,7 +28,7 @@ for (const tier of ['phone', 'desktop'] as const) test(`whole ${tier} baked plan
   validateRegisteredJson(name, wire);
   const source = '@wildshard/format/bakedTiles#BakedPlacementPlanSchema';
   expect(platformFileFamily(name, source)?.schema).toBe(BakedPlacementPlanSchema);
-  expect(validatePlatformFile(name, source, wire)?.reader).toBe('src/game/shardfile/bakedTiles.ts');
+  expect(validatePlatformFile(name, source, wire)?.reader).toBe('src/game/client/shardfile/bakedTiles.ts');
   expect(encode(wire)).toEqual(bytes);
   expect(v.parse(BakedPlacementPlanSchema, wire)).toEqual(wire);
   expect(v.parse(BakedPlanSchema, v.parse(BakedPlacementPlanSchema, wire))).toEqual(v.parse(BakedPlanSchema, wire));

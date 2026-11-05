@@ -95,7 +95,7 @@ IDs refer to [docs/tasks/asks/](/Users/raynos/projects/games/wildshard-singlepla
 | E231 | in flight, Sep 27 | DUPLICATE/FOLDED | `63e2058` mitigation; current physical acceptance NINE-DRAGON F9/E264 | Fold |
 | E236 | in flight, Sep 27 | STALE-DONE | `63e2058` records/shows reload reasons; file routes physical investigation elsewhere | Close diagnostics delivery |
 | E241 | in flight, Sep 27 | STALE-DONE | Compare implementation `240107cc`; EXPLORE-V2 explicitly records completion | Close |
-| E242 | in flight, Sep 27 | STALE-DONE | Same commit; current `engine/explore/Compare.ts` | Close |
+| E242 | in flight, Sep 27 | STALE-DONE | Same commit; current `engine/client/explore/Compare.ts` | Close |
 | E243 | in flight, Sep 27 | DUPLICATE/FOLDED | File records 3,895→353 ms fetch improvement; remaining phone acceptance E264/F9 | Fold residual verification |
 | E244 | in flight, Sep 27 | DUPLICATE/FOLDED | Historical failed first-frame build; later facade isolation E264 | Fold |
 | E246 | in flight, Sep 27 | DUPLICATE/FOLDED | Repeated Simulator/phone investigation now NINE-DRAGON F9/E264 | Fold |

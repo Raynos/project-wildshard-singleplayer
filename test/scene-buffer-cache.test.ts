@@ -1,14 +1,14 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, InstancedBufferGeometry, Mesh, MeshBasicMaterial } from 'three';
-import { AssetService } from '../src/engine/app/assets';
-import { Scope } from '../src/engine/app/scope';
-import { initializeTier, TIER } from '../src/engine/core/tier';
-import { CONTENT_CAPS } from '../src/engine/core/config';
-import { AssetResidencyBridge } from '../src/game/grid/assetResidency';
-import { ResidencyAllocator } from '../src/game/grid/allocator';
+import { AssetService } from '../src/engine/client/app/assets';
+import { Scope } from '../src/engine/shared/app/scope';
+import { initializeTier, TIER } from '../src/engine/client/core/tier';
+import { CONTENT_CAPS } from '../src/engine/shared/core/config';
+import { AssetResidencyBridge } from '../src/game/client/grid/assetResidency';
+import { ResidencyAllocator } from '../src/game/server/grid/allocator';
 import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
-import { createSceneBuffers } from '../src/game/shardfile/sceneBuffers';
+import { createSceneBuffers } from '../src/game/client/shardfile/sceneBuffers';
 
 const positionFile='test/cache-position.bin',shortFile='test/cache-short.bin',indexFile='test/cache-index.bin';
 const files=new Map<string,Uint8Array>([[positionFile,new Uint8Array(12)],[shortFile,new Uint8Array(1)],[indexFile,new Uint8Array([1,1,1])]]);

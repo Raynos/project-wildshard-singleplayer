@@ -85,9 +85,9 @@ test('a look-alike is a pop: another texture, or the control mesh never retired 
 
 test('a shared fetch only neighbour work asked for is the neighbour\'s; no stack or home work stays red (G872)', () => {
   const source = ['class S {', '  private tileAdmission(r) {', '    admit();', '  }', '  private refuse(c) {}', '}'].join('\n');
-  const spans = neighbourSpans(() => source, [{ file: 'src/game/grid/session.ts', what: 'tile views', from: /^\s*private tileAdmission\(/u, to: /^\s*private refuse\(/u }]);
-  expect(spans).toEqual([{ file: 'src/game/grid/session.ts', what: 'tile views', from: 2, to: 5 }]);
-  const at = (line) => ({ src: `build-mirror/check/tree/src/game/grid/session.ts:${line}` }), home = { src: 'src/game/session/finish.ts:300' };
+  const spans = neighbourSpans(() => source, [{ file: 'src/game/client/grid/session.ts', what: 'tile views', from: /^\s*private tileAdmission\(/u, to: /^\s*private refuse\(/u }]);
+  expect(spans).toEqual([{ file: 'src/game/client/grid/session.ts', what: 'tile views', from: 2, to: 5 }]);
+  const at = (line) => ({ src: `build-mirror/check/tree/src/game/client/grid/session.ts:${line}` }), home = { src: 'src/game/client/session/finish.ts:300' };
   const trace = {
     initiators: [
       { url: 'https://x.test/basis/basis_transcoder.wasm', frames: [{ src: null }, at(3)] },        // the neighbour's tile views
@@ -106,8 +106,8 @@ test('a shared fetch only neighbour work asked for is the neighbour\'s; no stack
 });
 
 test('unknown initiator evidence vetoes the neighbour verdict per request (sp-x1)', () => {
-  const spans = [{ file: 'src/game/grid/session.ts', what: 'tile views', from: 2, to: 5 }];
-  const near = { src: 'src/game/grid/session.ts:3' }, home = { src: 'src/game/session/finish.ts:300' };
+  const spans = [{ file: 'src/game/client/grid/session.ts', what: 'tile views', from: 2, to: 5 }];
+  const near = { src: 'src/game/client/grid/session.ts:3' }, home = { src: 'src/game/client/session/finish.ts:300' };
   const page = (url, ms) => ({ url: `https://x.test${url}`, by: 'page', msAfterControl: ms });
   const split = (after, trace) => splitByInitiator(after, trace, spans, () => false).neighbour.map(entry => new URL(entry.url).pathname);
   // two reads, one neighbour stack and one stackless fetch that no worker constructor explains

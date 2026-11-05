@@ -4,15 +4,15 @@ import { parse } from 'valibot';
 import { ArenaWhirlsSchema,ArenaFireSchema,ArenaSceneSchema } from '@wildshard/format/encounterRows';
 import { BoxGeometry, BufferGeometry, Color, Group, InstancedMesh, Matrix4, MeshBasicMaterial, MeshLambertMaterial, Scene, Vector3 } from 'three';
 import { parsePrivateScene } from '@wildshard/format/clientChannels';
-import { ArenaSceneView } from '../src/game/boss/encounterView';
-import { Scope } from '../src/engine/app/scope';
+import { ArenaSceneView } from '../src/game/client/boss/encounterView';
+import { Scope } from '../src/engine/shared/app/scope';
 import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
-import { ArenaFireView, ArenaWhirlsView } from '../src/game/boss/arenaFire';
+import { ArenaFireView, ArenaWhirlsView } from '../src/game/client/boss/arenaFire';
 import { arenaFireView, arenaWhirlsView } from './fake/arenaViews';
 import { fireViewRows } from '../src/shards/nalati-grasslands/generators/titanFireView';
 import {titanWhirlGate,titanWhirlView} from '../src/shards/nalati-grasslands/generators/stormTitanFight';
-import { ReturnProgram } from '../src/game/population/returnProgram';
-import { lendLooks } from '../src/game/shardfile/lentLooks';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
+import { lendLooks } from '../src/game/client/shardfile/lentLooks';
 import {titanPrograms as program} from './fixtures/titanInlineWitness';
 
 // A made-up reed marsh (the fire cells' fixture second user): a 3 × 2 field of 2 m cells on a 1 m bank, burning 1 s.

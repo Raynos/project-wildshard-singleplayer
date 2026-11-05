@@ -48,7 +48,7 @@ The island is lovely. The fights feel random.
 ## (d) Bugs, worst first
 
 1. **HIGH: the brown bear.** It spawns at about (126, 10) (`src/shards/driftwood-isle/manifest.ts:207`), right beside the crabs and the wreck. It never gives up, and each hit does 45 damage (`src/engine/entities/species/bear.ts:270`). It kills you in ~4.4 s, and the wooden sword needs ~31 hits to kill it. To see it, spawn at (118, 0) and wait.
-2. **HIGH: boars can't be fought.** They use the prey behaviour: they flee once they notice you, and turn and run after every charge (`src/engine/entities/AnimalManager.ts:644, 675, 727`).
+2. **HIGH: boars can't be fought.** They use the prey behaviour: they flee once they notice you, and turn and run after every charge (`src/engine/server/entities/AnimalManager.ts:644, 675, 727`).
 3. **MED: the wreck hold fight is unreadable.** Hits come from behind beams, the camera sits inside planks, and the prompts overlap each other (`sheet-23-sailor.jpg`).
 4. **MED: pop-ups render under the minimap** (`09-quest-started-hud.jpg`, `15-crabs-tidepool.jpg`).
 5. **MED: map problems.** The "SEA CAVE SHARD" and "WRECK SHARD" labels overlap, and the map shows no buildings or paths (this confirms E105; `18-map-island.jpg`).

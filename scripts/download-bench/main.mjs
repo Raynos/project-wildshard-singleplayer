@@ -2,7 +2,7 @@
 //
 //   node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/download-bench/main.mjs <command>
 //
-//   spawn   [--base URL]           the real downloadSpawnManifest (src/game/boot/spawnDownload.ts) on the link
+//   spawn   [--base URL]           the real downloadSpawnManifest (src/game/client/boot/spawnDownload.ts) on the link
 //   levers  [--base URL] [--brotli] every download lever, measured on the spawn set (mirror checked against `spawn`)
 //   replay  <phone-loading.json>…  the whole recorded boot graph replayed: as recorded, free CPU, free network, faster links
 //

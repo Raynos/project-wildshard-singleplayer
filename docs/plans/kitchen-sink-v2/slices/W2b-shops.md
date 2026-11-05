@@ -20,7 +20,7 @@ change: toy upgrades in W5b/W7a, combat upgrades in E0.
 Research:
 
 - **The exchange reflects into owners by path.** `src/format/exchange.ts:5` `method = { owner, path[] }` and
-  `call = { owner, path, args }`; goods hold `payments` and `grants` as such calls. `src/game/quest/trader.ts:128` lends
+  `call = { owner, path, args }`; goods hold `payments` and `grants` as such calls. `src/game/server/quest/trader.ts:128` lends
   the owners by fixed names (`owned`, `purse`, `pack`, `skins`, `ammo` with Pine's `addBolts`). HOST-BAR test 6
   forbids `{owner, path}` reflection; this host scores 5/6 at best today.
 - **The trader host sits on the plugin scaffolding:** `trader.ts:1` imports `ShardContext` from `game/plugin/context`.

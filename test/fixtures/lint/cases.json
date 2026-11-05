@@ -267,21 +267,21 @@
   },
   {
     "id": "random-rng",
-    "file": "src/engine/core/rng.ts",
+    "file": "src/engine/shared/core/rng.ts",
     "rule": "no-raw-random-time",
     "code": "Math.random();",
     "count": 0
   },
   {
     "id": "random-clock",
-    "file": "src/engine/core/clock.ts",
+    "file": "src/engine/shared/core/clock.ts",
     "rule": "no-raw-random-time",
     "code": "performance.now();",
     "count": 0
   },
   {
     "id": "random-allow",
-    "file": "src/engine/ui/perfHud.ts",
+    "file": "src/engine/client/ui/perfHud.ts",
     "rule": "no-raw-random-time",
     "code": "performance.now(); Math.random();",
     "count": 1
@@ -344,14 +344,14 @@
   },
   {
     "id": "renderer-legacy",
-    "file": "src/engine/core/Game.ts",
+    "file": "src/engine/client/core/Game.ts",
     "rule": "no-renderer-type",
     "code": "type Render = WebGLRenderer;",
     "count": 0
   },
   {
     "id": "renderer-moved",
-    "file": "src/engine/core/bootstrap.ts",
+    "file": "src/engine/client/core/bootstrap.ts",
     "rule": "no-renderer-type",
     "code": "type Render = WebGLRenderer;",
     "count": 0
@@ -372,7 +372,7 @@
   },
   {
     "id": "shader-patch-registry",
-    "file": "src/engine/render/shaderPatches.ts",
+    "file": "src/engine/client/render/shaderPatches.ts",
     "rule": "no-raw-shader-patch",
     "code": "declare const m: { onBeforeCompile: () => void }; m.onBeforeCompile = () => {};",
     "count": 0
@@ -512,7 +512,7 @@
   },
   {
     "id": "shell overlays excluded",
-    "file": "src/engine/ui/Loading.ts",
+    "file": "src/engine/client/ui/Loading.ts",
     "rule": "no-global-listener-patch",
     "count": 0,
     "code": "setTimeout(fn, 1); document.body.appendChild(el);"
@@ -582,7 +582,7 @@
   },
   {
     "id": "HUD implementation owns DOM",
-    "file": "src/engine/ui/hudSlots.ts",
+    "file": "src/engine/client/ui/hudSlots.ts",
     "rule": "no-raw-hud",
     "count": 0,
     "code": "document.body.append(el); const hud=document.getElementById('hud'); hud.append(el);"

@@ -1,10 +1,10 @@
 import * as v from 'valibot';
-import type { Scope } from '../../src/engine/app/scope';
+import type { Scope } from '../../src/engine/shared/app/scope';
 import { ReturnModulesSchema } from '@wildshard/format/scriptContract';
 import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { ReturnProjectionV2Schema } from '@wildshard/format/returnProjectionV2';
 import { parseDecisionScripts } from '@wildshard/format/decisionScripts';
-import { ReturnProgram } from '../../src/game/population/returnProgram';
+import { ReturnProgram } from '../../src/game/shared/population/returnProgram';
 import { NALATI_TITAN, NALATI_TITAN_PROGRAMS } from './nalati-titan';
 import { originalHeldMetadata } from './nalati-held-original';
 import { originalSpeciesFile } from './nalati-original-species';

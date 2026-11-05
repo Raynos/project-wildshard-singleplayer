@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { BoxGeometry, Frustum, Group, InstancedMesh, Matrix4, MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three';
 import { CSM } from 'three/examples/jsm/csm/CSM.js';
-import { cullCopiesPerCascade, duringShadowPass, installCascadeCull } from '../src/engine/world/cascadeCull';
+import { cullCopiesPerCascade, duringShadowPass, installCascadeCull } from '../src/engine/client/world/cascadeCull';
 
 /** D12: an instanced caster draws into a cascade only when one of its copies is in that cascade's slice footprint */
 function rig(): { csm: CSM; near: () => Frustum } {

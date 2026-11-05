@@ -1,6 +1,6 @@
-import type { LookGraphCompiler, LookGraphFog } from '../../src/engine/render/graphBackend';
-import { attachClassicOutline, compileClassicGraph } from '../../src/engine/render/graph/glslMaterial';
-import type { ClassicFog } from '../../src/engine/render/graph/glslProgram';
+import type { LookGraphCompiler, LookGraphFog } from '../../src/engine/client/render/graphBackend';
+import { attachClassicOutline, compileClassicGraph } from '../../src/engine/client/render/graph/glslMaterial';
+import type { ClassicFog } from '../../src/engine/client/render/graph/glslProgram';
 
 /**
  * The shipped classic GLSL look compiler behind the look-material contract, as `loadLookGraphCompiler` makes it, without a

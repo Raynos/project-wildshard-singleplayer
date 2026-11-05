@@ -2,12 +2,12 @@ import { expect, test } from 'vitest';
 import * as v from 'valibot';
 import { driftwoodQuestContinuation } from '../src/shards/driftwood-isle/generators/lootBag';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
-import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
+import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { builtProduct } from './fixtures/builtProduct';
 import { driftwoodJsonBlob } from '../src/shards/driftwood-isle/generators/namedSchemas';
 import { QuestContinuationSchema, parseQuestContinuationDocument } from '@wildshard/format/questContinuation';
 import { QuestPageSchema } from '@wildshard/format/questPageComposition';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 
 const rows = driftwoodQuestContinuation();
 const encode = (value: unknown): Uint8Array => new TextEncoder().encode(JSON.stringify(value));

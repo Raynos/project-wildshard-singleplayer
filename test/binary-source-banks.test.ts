@@ -2,7 +2,7 @@
 import { createHash } from 'node:crypto';
 import { expect, test, vi } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
-import { prepareBinarySources } from '../src/game/models/binarySource';
+import { prepareBinarySources } from '../src/game/client/models/binarySource';
 
 const first = new Uint8Array([1, 2]), second = new Uint8Array([3, 4, 5]);
 const hash = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');

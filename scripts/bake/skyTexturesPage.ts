@@ -1,10 +1,10 @@
 // The bake page of scripts/bake-textures.mjs (SF87, G320): bundled on its own and run on a blank page, it paints the
-// sky's procedural textures with the engine's pure painters (src/engine/world/skyTextures.ts) and encodes each the way the
+// sky's procedural textures with the engine's pure painters (src/engine/client/world/skyTextures.ts) and encodes each the way the
 // game's old `?bakeexport=1` export did (drawn onto a fresh canvas, JPEG at 0.92 or lossless PNG). No game, no level, no
 // shard runtime or legacy code is loaded.
 import type { CanvasTexture } from 'three';
-import { cloudFieldPixels } from '../../src/engine/world/cloudField';
-import { cloudTexture, giantTexture, planetTexture } from '../../src/engine/world/skyTextures';
+import { cloudFieldPixels } from '../../src/engine/client/world/cloudField';
+import { cloudTexture, giantTexture, planetTexture } from '../../src/engine/client/world/skyTextures';
 
 /** One encoded texture, as scripts/bake-textures.mjs reads it back. */
 export interface SkyBake { lossless: boolean; width: number; height: number }

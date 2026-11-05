@@ -1,11 +1,11 @@
 import {admissionPage,admission} from './fixtures/nalati-return-modules';
 import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { GrassField } from '../src/game/systems/looks/grassField';
-import { TrampleField } from '../src/game/systems/looks/trampleField';
-import { NativeWildEnvironment } from '../src/game/population/nativeManager';
-import { PageWildEnvironment } from '../src/game/population/pageGroups';
+import { Scope } from '../src/engine/shared/app/scope';
+import { GrassField } from '../src/game/server/systems/looks/grassField';
+import { TrampleField } from '../src/game/server/systems/looks/trampleField';
+import { NativeWildEnvironment } from '../src/game/server/population/nativeManager';
+import { PageWildEnvironment } from '../src/game/server/population/pageGroups';
 
 import brains from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };
 import strikes from './fixtures/nalati-strikeProfiles-original.json' with { type: 'json' };

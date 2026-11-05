@@ -1,10 +1,10 @@
 import {InstancedMesh,Vector3} from 'three';
 import type {ArenaScriptData} from '@wildshard/format/arenaScriptRows';
-import type {SimHost} from '../../src/engine/sim';
+import type {SimHost} from '../../src/engine/server/sim';
 import {parsePrivateScene} from '@wildshard/format/clientChannels';
 import {HeadlessCloudBody} from './native-hosts/boss/cloudRig';
-import {ArenaWhirls} from '../../src/game/boss/arenaWhirls';
-import type {ArenaTell,OpenArenaViews} from '../../src/game/boss/openArenaFight';
+import {ArenaWhirls} from '../../src/game/server/boss/arenaWhirls';
+import type {ArenaTell,OpenArenaViews} from '../../src/game/server/boss/openArenaFight';
 
 /** Only the drawing ports are silent. Heart matrices, pose feedback and every
  * whirlwind decision run their real owners. No drawn object is a target. */

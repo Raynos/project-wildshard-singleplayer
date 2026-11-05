@@ -1,12 +1,12 @@
 import {SHAPE_BYTES} from './fixtures/nalatiShapes';
 import { expect, test } from 'vitest';
 import { Bone, BufferGeometry, Group, Object3D } from 'three';
-import { mountedSpecimens, type MountedSpecimenPorts } from '../src/game/models/mountedSpecimen';
-import { Scope } from '../src/engine/app/scope';
+import { mountedSpecimens, type MountedSpecimenPorts } from '../src/game/client/models/mountedSpecimen';
+import { Scope } from '../src/engine/shared/app/scope';
 import { MOUNTED_FIGURE } from './fixtures/nalati-poi-paint-original';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import type { ModelContext } from '../src/engine/models/model';
-import type { Rng } from '../src/engine/core/rng';
+import type { ModelContext } from '../src/engine/client/models/model';
+import type { Rng } from '../src/engine/shared/core/rng';
 import { installWorldFixture } from './fixtures/worldSetup';
 
 await installWorldFixture();

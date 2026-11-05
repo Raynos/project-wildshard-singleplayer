@@ -1,15 +1,15 @@
 import { describe, expect, test } from 'vitest';
 import { BufferAttribute, BufferGeometry, Color, Group, MeshBasicMaterial, MeshStandardMaterial, PointLight, Vector3 } from 'three';
 import * as v from 'valibot';
-import { Scope } from '../src/engine/app/scope';
-import { SaveStore, type SaveStorage } from '../src/engine/saves/store';
-import { WorldRegistry } from '../src/engine/world/registry';
+import { Scope } from '../src/engine/shared/app/scope';
+import { SaveStore, type SaveStorage } from '../src/engine/shared/saves/store';
+import { WorldRegistry } from '../src/engine/client/world/registry';
 import { BuildingLifeLookSchema, BuildingLifeRowsSchema, emptyBuildingLifeRows, type BuildingLifeLook } from '@wildshard/format/buildings';
 import { SceneRefSchema, ObservationRefSchema, admitSceneRefs } from '@wildshard/format/sceneRefs';
 import shrineRows from '../src/shards/driftwood-isle/data/buildingLife.json' with { type: 'json' };
-import { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { LivingBuildings } from '../src/game/shardfile/livingBuildings';
-import { createBuildingCloud } from '../src/game/shardfile/buildingCloud';
+import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
+import { LivingBuildings } from '../src/game/client/shardfile/livingBuildings';
+import { createBuildingCloud } from '../src/game/client/shardfile/buildingCloud';
 
 const look: BuildingLifeLook = { wheel: -0.7, door: { seconds: 2, angle: -Math.PI / 2 }, fire: [0.4, 0.6], lamp: [0, 1], glass: [0.25, 0.75],
   flicker: { depth: 0.2, waves: [[2, 3, 0.5]] }, swing: { z: [[2, 1, 0.1]], x: [3, 0.2] } };

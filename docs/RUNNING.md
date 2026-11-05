@@ -21,7 +21,7 @@ Desktop keys are listed and rebindable in pause ▸ Settings ▸ Key bindings; o
 ## URL parameters (debug)
 - `?x=&z=&yaw=&pitch=` spawn pose · `&nolock=1` no pointer lock (F fires, R spans) · `&skipintro=1` straight into play
 - `&tour=1` scripted fly-through camera (`window.__wildshard.world.tour.setTime(seconds)`)
-- Variants and debug aids are not URL params (AGENTS.md "No URL switches, ever"): pause ▸ Settings ▸ Debug, declared in `src/engine/ui/debugOptions.ts`
+- Variants and debug aids are not URL params (AGENTS.md "No URL switches, ever"): pause ▸ Settings ▸ Debug, declared in `src/engine/client/ui/debugOptions.ts`
 
 ## Capturing progress
 - `scripts/timelapse.sh` → `progress/timelapse.mp4` from every screenshot in `progress/`

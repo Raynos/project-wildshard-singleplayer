@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
-import { registerGpuFiles, setTexturePolicy, standIn, texModeWhy } from '../src/engine/boot/gpuFiles';
-import { GPU_FILES as ENGINE_GPU_FILES } from '../src/engine/boot/ktx2.generated';
-import { initializeTier, TIER } from '../src/engine/core/tier';
+import { registerGpuFiles, setTexturePolicy, standIn, texModeWhy } from '../src/engine/client/boot/gpuFiles';
+import { GPU_FILES as ENGINE_GPU_FILES } from '../src/engine/client/boot/ktx2.generated';
+import { initializeTier, TIER } from '../src/engine/client/core/tier';
 import { pineKtx2Tables } from '../src/shards/pine-hollow/generators/bootInventory';
 import { GPU_FILES as PINE_GPU_FILES } from '../src/shards/pine-hollow/ktx2.generated';
 import { originalPineAstcAliases } from './fixtures/pine-astc';

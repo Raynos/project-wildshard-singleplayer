@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { ResidencyAllocator, type ResidencyClaim } from '../src/game/grid/allocator';
+import { ResidencyAllocator, type ResidencyClaim } from '../src/game/server/grid/allocator';
 import { ReferenceResidencyAllocator } from './fixtures/grid/allocator-before';
 import { MemoryAdmission, type MemoryAdmissionRequest } from '@wildshard/format/memoryAdmission';
-import { CONTENT_CAPS } from '../src/engine/core/config';
+import { CONTENT_CAPS } from '../src/engine/shared/core/config';
 import recorded from './fixtures/grid/pine-ledger-sequence.json' with { type: 'json' };
 
 type Ledger = Pick<ReferenceResidencyAllocator, 'reserve' | 'reservePageComponent' | 'markMeasuredPage' | 'cost' | 'entries' | 'has'>;

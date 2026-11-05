@@ -7,7 +7,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep generated fixture inputs under ignored repository scratch.
 import { resolve, dirname } from 'node:path';
 
-const roots = ['src/entry.ts', 'src/engine/ui/StartTitle.ts', 'src/game/mainMenu.ts', 'src/game/grid/pageEntry.ts', 'src/game/travel/travel.ts'];
+const roots = ['src/entry.ts', 'src/engine/client/ui/StartTitle.ts', 'src/game/client/mainMenu.ts', 'src/game/client/grid/pageEntry.ts', 'src/game/client/travel/travel.ts'];
 const caps = { 'js/title/raw': 150, 'js/title/gzip': 80 };
 function fixture(): Record<string, ChunkModuleReport> {
   const rows: [string, ChunkModuleReport][] = roots.map((source, i) => [`${i}.js`, { name: source, moduleIds: [source], imports: ['shared.js'], rawBytes: 10, gzBytes: 6 }]);
@@ -21,7 +21,7 @@ test('title closure counts shared imports once and refuses either exceeded measu
   expect(titleClosureBudgetErrors(modules, {})).toContain('missing title gzip ceiling');
 });
 test.each(['node_modules/three/build/three.core.js', 'node_modules/@dimforge/rapier3d/rapier.js', 'src/shards/other/runtime.ts',
-  'src/game/boot/bytes.generated.ts', 'node_modules/@wildshard/format/src/format/shardSchema.ts', 'node_modules/@wildshard/format/src/format/newGameplayValidator.ts', 'src/engine/explore/Explore.ts'])('title refuses a forbidden transitive module %s', module => {
+  'src/game/client/boot/bytes.generated.ts', 'node_modules/@wildshard/format/src/format/shardSchema.ts', 'node_modules/@wildshard/format/src/format/newGameplayValidator.ts', 'src/engine/client/explore/Explore.ts'])('title refuses a forbidden transitive module %s', module => {
   const modules = fixture(); modules['shared.js'] = { name: 'shared', moduleIds: [module], imports: [], rawBytes: 100, gzBytes: 50 };
   expect(titleClosureBudgetErrors(modules, caps)).toContain(`forbidden title module ${module} (shared.js)`);
 });

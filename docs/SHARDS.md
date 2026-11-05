@@ -70,7 +70,7 @@ SDK projects use `shard.config.ts` plus `generators/`, `data/`, `behaviour/`,
 `shard.config.ts` and `README.md`, with admitted data and WASM for play. The template is a complete declaration-only SDK project. Its manifest supplies picker
 metadata and points at its built shardfile; there is no template runtime chunk.
 Build output goes in git-ignored `out/<slug>/`: a v2 index, JSON sections and named hash blobs. Placement is platform data in
-`src/game/grid/singleplayer.json`, attached by `scripts/gen-shards.mjs`; source manifests
+`src/game/shared/grid/singleplayer.json`, attached by `scripts/gen-shards.mjs`; source manifests
 and shardfiles carry no placement. SF17a changes the catalogue to the 3 × 3 grid.
 
 **G694 source freeze.** Primary shards contain executable TypeScript only in
@@ -360,8 +360,8 @@ date** (`ChunkDef`, `src/chunks/`, `CHUNKS`, `main.ts` branches, `?chunk=` links
 ### Shards — Driftwood Isle, Pine Hollow, Nalati Grasslands (and how to add a fourth)
 
 The demo runs one Wildshard *chunk* (we call an authored chunk a **shard**) at a time. Every shard is a 500 m × 500 m
-floating slab with its own biome, built by the same engine from a `ChunkDef` (`src/game/shard/manifest.ts`) and listed in
-`CHUNKS` (`src/game/shard/registry.ts`). Shards are picked on the title deck (or with `?chunk=<slug>`), and the page reloads
+floating slab with its own biome, built by the same engine from a `ChunkDef` (`src/game/server/shard/manifest.ts`) and listed in
+`CHUNKS` (`src/game/client/shard/registry.ts`). Shards are picked on the title deck (or with `?chunk=<slug>`), and the page reloads
 to switch — chunks are not adjacent or streamed.
 
 **The deck order is `CHUNKS`' order:** Driftwood Isle first (the default, `DEFAULT_CHUNK`; the user's rule PH-U19), then
@@ -413,12 +413,12 @@ look of its own.
   `public/assets/models/pine-hollow-hero/`).
 - **Systems:** the ranger's lantern quest *The Warden's Hollow*, the lodge's rotating contracts, the trader and the
   miller, amber resin / carved tokens / secrets, the night thralls (`src/shards/pine-hollow/quest/`); the Antler King
-  (`pinehollow/antlerKing.ts`, `kingModel.ts`, on the engine's `game/Boss.ts`) and four elites (`pinehollow/elites.ts`,
-  `game/Elite.ts`); generated, rig-baked creatures in PBR coats with rarity and legendaries (`entities/pineCreatures.ts`,
+  (`pinehollow/antlerKing.ts`, `kingModel.ts`, on the engine's `game/server/Boss.ts`) and four elites (`pinehollow/elites.ts`,
+  `game/server/Elite.ts`); generated, rig-baked creatures in PBR coats with rarity and legendaries (`entities/pineCreatures.ts`,
   `pineCoats.ts`, `pineCreatureRigs.ts`); the small life — ravens, the owl, a woodpecker, hares (`pinehollow/life/`);
   the crossbow, the lever-action and the Warden's Longbow (`pinehollow/loadout.ts`); the hunter's journal and the trophy
   wall (the engine Compendium: `ui/compendium/` + `shards/pine-hollow.ts`, `world/TrophyWall.ts`); 19 achievements
-  (`game/achievements.ts`).
+  (`game/server/achievements.ts`).
 - **Sound:** theme 1 (pine calm / tension) + calm-night, the King's three stems and the dawn sting; zoned beds and
   interior reverb (`audio/ForestAmbience.ts`); the generated one-shot sprite and the NPC barks (`audio/PineHollowSfx.ts`,
   `public/assets/sfx/pine-hollow/`).
@@ -457,14 +457,14 @@ The pipelines take the shard as an argument: `scripts/blender/build.sh <slug>/<t
    explain each one; the table below says what each drives). Keep every coordinate in a `<slug>Layout.ts` beside it.
 3. Art for the deck: a 640×360 `src/chunks/thumbs/<slug>.jpg` (no crossbow in frame) + the portrait and landscape hero
    backdrops. Until it is authored it can sit in the deck as a teaser (`src/chunks/placeholders.ts`).
-4. Add the export to `CHUNKS` in `src/game/shard/registry.ts` — **after** the three (Driftwood stays first) — with
+4. Add the export to `CHUNKS` in `src/game/client/shard/registry.ts` — **after** the three (Driftwood stays first) — with
    `experimental: true` or `earlyAccess: true` until it graduates.
 5. Bake it: `scripts/bake-chunk.mjs` (the terrain, fingerprinted), `scripts/bake-navmesh.mjs <slug>`, then the byte and
    pack tables (`scripts/bake-packs.mjs`).
-6. Its own nouns on the loading screen: a `SHARD_STEPS` entry in `src/engine/boot/steps.ts` (each step names what it really
+6. Its own nouns on the loading screen: a `SHARD_STEPS` entry in `src/engine/shared/boot/steps.ts` (each step names what it really
    builds there; `test/boot-plan.test.ts`).
 7. Its game layer: an adventure (`ADVENTURES` in `game/quest/Adventure.ts`, or a `src/<shard>/` installer called from
-   `main.ts` as Pine Hollow and Nalati do), an achievements table (`TABLES` in `game/achievements.ts`), a compendium
+   `main.ts` as Pine Hollow and Nalati do), an achievements table (`TABLES` in `game/server/achievements.ts`), a compendium
    (`ui/compendium/shards/<slug>.ts`) if it hunts, and its sound.
 8. `npx tsc --noEmit`, `pnpm lint`, `pnpm test` (`test/chunks.test.ts` checks every def), then
    `http://localhost:5173/?chunk=<slug>&nolock=1&skipintro=1`; screenshot it headlessly (`docs/SUBAGENT-BRIEF.md`) on
@@ -477,7 +477,7 @@ creatures, dressing or a new style are engine work (below).
 
 E357 B83: the four original world-grid shards retain the four midpoint entry trails below; new shards (including experimental and hidden teaching shards) declare their own roads and need at least one trail starting in the spawn area.
 
-These live in `src/engine/core/config.ts` and `src/engine/world/terrainField.ts` and are **not** per shard:
+These live in `src/engine/shared/core/config.ts` and `src/engine/shared/world/terrainField.ts` and are **not** per shard:
 
 | Rule | Where it is enforced |
 |---|---|
@@ -487,7 +487,7 @@ These live in `src/engine/core/config.ts` and `src/engine/world/terrainField.ts`
 | Each road reaches ≥ 50 m into the chunk (we use 60) | `ROAD_LENGTH` |
 | Roads are level with no-man's-land (y = 0) at the boundary and ramp up inside | `buildTerrain().heightAt` |
 | Terrain mesh resolution 256² | `TERRAIN_RES` |
-| Boundary wall / no-man's-land warning at the edges | `src/engine/world/Boundary.ts`, HUD |
+| Boundary wall / no-man's-land warning at the edges | `src/engine/client/world/Boundary.ts`, HUD |
 
 `buildTerrain()` applies the road levelling on top of *any* landscape you write, so a shard cannot
 break the contract by accident — but keep the first segment of the four entry trails exactly as in
@@ -502,7 +502,7 @@ the template so the dirt texture and prop placement follow the road.
 | `treeCount` | `Forest` places at most this many trees | `TREE_COUNT` live binding |
 | `biome`, `blurb`, `thumbnail`, `heroPortrait`, `heroLandscape` | the title deck (the blurb is the card's tooltip: one pitch in the house voice) | |
 | `experimental`, `earlyAccess` | the deck's EXPERIMENTAL band / EARLY ACCESS tag | dropped when the shard graduates |
-| `terrain` | `heightAt/normalAt/splatAt/trailDistance/cabinMask/pondMask/waterLevel`, `TRAILS`, `CABIN_SITES`, `POND` re-exported by `src/engine/world/Heightfield.ts` | built by `buildTerrain(seed, spec)` |
+| `terrain` | `heightAt/normalAt/splatAt/trailDistance/cabinMask/pondMask/waterLevel`, `TRAILS`, `CABIN_SITES`, `POND` re-exported by `src/engine/shared/world/Heightfield.ts` | built by `buildTerrain(seed, spec)` |
 | `terrain` spec → `landscape(x, z, noise)` | raw height before roads/pads/trails/pond | use the seeded `noise.n` / `noise.n2` |
 | `terrain` spec → `trails` | trail beds, dirt splat, prop placement (`Props`), tree exclusion, animal placement | polylines in metres |
 | `terrain` spec → `cabinSites` | `Cabins` builds one log cabin per site on a flattened pad | exactly what `Cabin.ts` expects: `{x, z, rot}` |
@@ -547,17 +547,17 @@ the template so the dirt texture and prop placement follow the road.
 
 - **A new style** — `style` picks the terrain and material path (`'pbr'`, `'lowpoly'`, `'painterly'`); a fourth look is a
   new branch in `Terrain.ts` / `Sky.ts` and its own shading module, the way `stylize.ts` and `painterly.ts` are.
-- **New trees** — `trees.factory` picks a builder in `TREE_FACTORIES` (`src/engine/core/bootstrap.ts`): `'pine'` (the baked
+- **New trees** — `trees.factory` picks a builder in `TREE_FACTORIES` (`src/engine/client/core/bootstrap.ts`): `'pine'` (the baked
   card + impostor LOD; with `trees.set` it plants a Blender species set, `world/treeSet.ts`), `'spruce'` (Nalati) or
   `'none'` (Driftwood's palms are their own builder, `world/Palms.ts`).
 - **A new animal** — one file in `src/engine/entities/species/<kind>.ts` ending in `registerSpecies({...})` (the contract is
-  `src/engine/entities/species/registry.ts`); a def names it by `kind` in `fauna[]`. Generated hulls go through the rig bake.
+  `src/engine/shared/entities/species/registry.ts`); a def names it by `kind` in `fauna[]`. Generated hulls go through the rig bake.
 - **Grass, undergrowth, props, particles** (`Grass.ts`, `Undergrowth.ts`, `Props.ts`, `Particles.ts`) use the shard's
   seed, terrain and pond, but their *content* is forest dressing; Driftwood and Nalati build their own
   (Nalati: `world/nalati/dressing/`).
 - **The cabins** are the same log cabins on every non-ocean PBR shard (a def chooses only where, `cabinSites`); Pine
   Hollow adds the hamlet's buildings on the same kit.
-- **The attract-mode camera path** (`src/engine/core/Tour.ts`) follows Pine Hollow's trails.
+- **The attract-mode camera path** (`src/engine/client/core/Tour.ts`) follows Pine Hollow's trails.
 - **A shard's code as one module** (`ShardModule { build, look, quest, audio, fauna, loadSteps }`, ENGINE-FIT E5) is not
   built yet: each shard still branches in `main.ts` (moved to PINE-HOLLOW-FOLLOWUPS by PH-U32, archived `project/archive/2026-09-30-pine-hollow-followups.md`).
 
@@ -587,7 +587,7 @@ the jetties' submerged sandbars. `scripts/bake-chunk.mjs` fingerprints the lands
 header and `BakedTerrain.ts` refuses a bake that does not match the live def, so a stale
 `terrain.bin` (from before a def edit, or a service-worker copy) falls back to the analytic field.
 
-The platform grid is assembled by `GridAssembly` from `game/grid/singleplayer.json`'s
+The platform grid is assembled by `GridAssembly` from `game/shared/grid/singleplayer.json`'s
 separate `grid` section. Its stable instance ids own saves and facts; signed cells derive
 render translations at 555 m pitch without entering local simulation state. Developer
 and DEVSERVER replacements keep their existing slug identities. Missing outer neighbours

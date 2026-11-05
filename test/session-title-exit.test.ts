@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { expect, test, vi } from 'vitest';
-import { exitSessionToTitle } from '../src/game/session/exitToTitle';
+import { exitSessionToTitle } from '../src/game/client/session/exitToTitle';
 
 test('main-menu exit replaces the document synchronously without touching the old world or worker', () => {
   const replace = vi.fn<(url: string) => void>();

@@ -1,13 +1,13 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The test reads the bodies' committed head and captain.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { speciesDef } from '../src/engine/entities/species/registry';
-import { speciesWithLook, type SpeciesLook } from '../src/engine/entities/species/look';
-import { HullLookBook } from '../src/game/looks/speciesBook';
-import { BOAR_LOOK } from '../src/game/systems/species/view/boar';
-import { BEAR_LOOK } from '../src/game/systems/species/view/bear';
-import { BOAR } from '../src/game/systems/species/boar';
-import { BEAR } from '../src/game/systems/species/bear';
+import { speciesDef } from '../src/engine/shared/entities/species/registry';
+import { speciesWithLook, type SpeciesLook } from '../src/engine/client/entities/species/look';
+import { HullLookBook } from '../src/game/client/looks/speciesBook';
+import { BOAR_LOOK } from '../src/game/client/systems/species/view/boar';
+import { BEAR_LOOK } from '../src/game/client/systems/species/view/bear';
+import { BOAR } from '../src/game/client/systems/species/boar';
+import { BEAR } from '../src/game/client/systems/species/bear';
 import { PINE_BOAR } from '../src/shards/pine-hollow/generators/speciesRows';
 import { SPECIES_LOOKS } from '../src/shards/pine-hollow/generators/nativeView';
 import { driftwoodCreatureBodyBank } from '../src/shards/driftwood-isle/generators/creatureBodyBank';

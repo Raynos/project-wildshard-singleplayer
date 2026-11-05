@@ -5,7 +5,7 @@ import {registeredJsonContract,validateRegisteredJson} from '@wildshard/format/r
 import {registeredJsonSchema,namedJsonSchema} from '../src/sdk/formatJsonSchema';
 import {nameBlob} from '../src/sdk/blobs';
 import {emptyShardfile} from '../src/sdk/author';
-import {createShardProduct} from '../src/game/shardfile/shardProduct';
+import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {fixtureJsonCheck} from './fixtures/productFile';
 
 const sites={buildings:[{id:'cabin',index:0,root:'cabin.root',standalone:true}],roofs:[{x:0,z:0,rot:0,w:1,d:1}]};

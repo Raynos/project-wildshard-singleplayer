@@ -1,10 +1,10 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the shipped native motor.
 import {readFileSync} from 'node:fs';
 import {beforeAll,expect,test} from 'vitest';
-import {createSimHost,type SimCommand,type SimHost} from '../src/engine/sim';
-import {loadRapier,type Rapier} from '../src/engine/physics/rapier';
-import {decodeSimSnapshot,restoreSimHost,serializeSimSnapshot,snapshotSimHost} from '../src/engine/sim/snapshot';
-import {localWalkingMove,walkVelocity} from '../src/engine/player/walk';
+import {createSimHost,type SimCommand,type SimHost} from '../src/engine/server/sim';
+import {loadRapier,type Rapier} from '../src/engine/shared/physics/rapier';
+import {decodeSimSnapshot,restoreSimHost,serializeSimSnapshot,snapshotSimHost} from '../src/engine/shared/sim/snapshot';
+import {localWalkingMove,walkVelocity} from '../src/engine/shared/player/walk';
 import {SIM_LEVEL} from './fixtures/sim-level/level';
 import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 import { leadSnapshot } from '@wildshard/engine/sim/snapshot';

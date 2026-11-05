@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { BufferAttribute, type BufferGeometry } from 'three';
-import * as nativeGeometry from '../src/engine/entities/species/loft';
+import * as nativeGeometry from '../src/engine/client/entities/species/loft';
 import { Rng } from '../src/sdk/random';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { withSpeciesGeometry, isLowPoly, toonPaint, type AnimalSpecies, type Paint, type VariantDef } from '../src/sdk/bake/species';

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import type { AnimalSim as Animal } from '../../../src/engine/entities/AnimalSim';
-import type { PouncerContext as ThinkCtx, PouncerLedge as Ledge, PouncerPorts } from '../../../src/engine/ai/stalker';
+import type { AnimalSim as Animal } from '../../../src/engine/server/entities/AnimalSim';
+import type { PouncerContext as ThinkCtx, PouncerLedge as Ledge, PouncerPorts } from '../../../src/engine/server/ai/stalker';
 type AqbarsPorts<A> = Omit<PouncerPorts<A>, 'opened' | 'growl'> & { feed: (text: string) => void; sound: (name: 'leopard_growl', at: THREE.Vector3) => void };
 /** Frozen page decisions, with their native body and authored input/output ports. No renderer stands in for a world. */
 export class AqbarsOracle {

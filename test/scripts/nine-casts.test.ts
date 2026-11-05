@@ -8,8 +8,8 @@ import { halfFloatBeforeControl } from '../fixtures/half-float-before-control';
 import { Color, Matrix4, InstancedMesh, BufferAttribute, DataUtils, Float16BufferAttribute, Float32BufferAttribute, Mesh, MeshBasicMaterial, Object3D, type BufferGeometry } from 'three';
 
 import {CASTS, nineCastBlobs, rawCast} from '../fixtures/nine-cast-blobs';
-import { createOwnedGeometry } from '../../src/engine/models/ownedGeometry';
-import { createModelLibrary } from '../../src/game/plugin/geometry';
+import { createOwnedGeometry } from '../../src/engine/client/models/ownedGeometry';
+import { createModelLibrary } from '../../src/game/client/plugin/geometry';
 import { readSourceModel } from '../../src/sdk/bake/skinned';
 import type { PreparedGeometry } from '../../src/shards/nine-dragon-stack/data/casts';
 import castRows from '../../src/shards/nine-dragon-stack/data/casts.json' with { type: 'json' };
@@ -20,16 +20,16 @@ import { bakeCasts, bakeFixedKits, castGeometry } from '../../src/shards/nine-dr
 import { layoutProjection, restoreLayoutZeros } from '../../src/shards/nine-dragon-stack/generators/layoutProjection';
 import { LayoutRowsSchema, GeometryBootSchema } from '../../src/shards/nine-dragon-stack/generators/sections';
 import * as v from 'valibot';
-import { Scope } from '../../src/engine/app/scope';
-import { modelContext } from '../../src/engine/models/model';
-import { Rng } from '../../src/engine/core/rng';
-import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../../src/game/models/worldSceneCatalogue';
-import { place } from '../../src/engine/models/place';
-import { withOwner } from '../../src/engine/app/ownership';
+import { Scope } from '../../src/engine/shared/app/scope';
+import { modelContext } from '../../src/engine/client/models/model';
+import { Rng } from '../../src/engine/shared/core/rng';
+import { bindWorldSceneModelSources, defineWorldSceneCatalogue } from '../../src/game/client/models/worldSceneCatalogue';
+import { place } from '../../src/engine/client/models/place';
+import { withOwner } from '../../src/engine/shared/app/ownership';
 import crowdRows from '../../src/shards/nine-dragon-stack/data/crowdModels.json' with {type:'json'};
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { parseWorldScenePlacement } from '@wildshard/format/worldScenePlacement';
-import { floorAtRects } from '../../src/engine/physics/box';
+import { floorAtRects } from '../../src/engine/shared/physics/box';
 import { deckFloorRows } from '../../src/shards/nine-dragon-stack/generators/floorRows';
 
 const CAST_BLOBS=await nineCastBlobs();

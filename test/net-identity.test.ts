@@ -1,18 +1,18 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Real Rapier bytes.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { BitWriter } from '../src/engine/net/bits';
-import { cleanName, filterWords, MAX_CHAT_BYTES, plainLine } from '../src/engine/net/chatFilter';
-import { NetClient } from '../src/engine/net/client';
-import { deviceIdentity, GUEST } from '../src/engine/net/identity';
-import { decodeHello, encodeHello } from '../src/engine/net/messages';
-import { NET_SCHEMA_HASH } from '../src/engine/net/netSchemas';
-import { NetRoom } from '../src/engine/net/room';
-import { SimNetWorld } from '../src/engine/net/simWorld';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { createSimHost } from '../src/engine/sim';
+import { BitWriter } from '../src/engine/shared/net/bits';
+import { cleanName, filterWords, MAX_CHAT_BYTES, plainLine } from '../src/engine/server/net/chatFilter';
+import { NetClient } from '../src/engine/client/net/client';
+import { deviceIdentity, GUEST } from '../src/engine/shared/net/identity';
+import { decodeHello, encodeHello } from '../src/engine/shared/net/messages';
+import { NET_SCHEMA_HASH } from '../src/engine/shared/net/netSchemas';
+import { NetRoom } from '../src/engine/server/net/room';
+import { SimNetWorld } from '../src/engine/server/net/simWorld';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { createSimHost } from '../src/engine/server/sim';
 import { directLoopback } from '../src/engine/test/netLoopback';
-import type { SaveStorage } from '../src/engine/saves/store';
+import type { SaveStorage } from '../src/engine/shared/saves/store';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 // P1-E5.2c (J111, J110): a device id and a typed Name in `hello`, and what the server does with what a player typed.

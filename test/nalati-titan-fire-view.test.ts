@@ -1,8 +1,8 @@
 import { expect, test, vi } from 'vitest';
 import { BoxGeometry, InstancedBufferAttribute, InstancedMesh, Matrix4, MeshBasicMaterial, PerspectiveCamera, Quaternion, Vector3 } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { viewProgram } from '../src/engine/script/viewProgram';
-import { prepareViewMemory } from '../src/engine/script/viewLane';
+import { Scope } from '../src/engine/shared/app/scope';
+import { viewProgram } from '../src/engine/client/script/viewProgram';
+import { prepareViewMemory } from '../src/engine/client/script/viewLane';
 import { ARENA_BURNT_PER_FRAME, ARENA_VIEW } from '@wildshard/format/arenaView';
 import { compileScriptV2 } from '../src/sdk/bake/compileScriptV2';
 import { nalatiTitanFireView } from '../src/shards/nalati-grasslands/generators/titanFireView';

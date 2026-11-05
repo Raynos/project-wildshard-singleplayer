@@ -1,11 +1,11 @@
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 import {admissionNative,admission} from './fixtures/nalati-return-modules';
 import { expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import type { SimHost } from '../src/engine/sim';
-import type { AnimalSim } from '../src/engine/entities/AnimalSim';
-import { HerdBrain, type HerdPorts } from '../src/engine/ai/herd';
-import { nativeEliteBindings as eliteBindings, NativeEliteRoster, type NativeEliteBond } from '../src/engine/ai/eliteRoster';
+import { Scope } from '../src/engine/shared/app/scope';
+import type { SimHost } from '../src/engine/server/sim';
+import type { AnimalSim } from '../src/engine/server/entities/AnimalSim';
+import { HerdBrain, type HerdPorts } from '../src/engine/server/ai/herd';
+import { nativeEliteBindings as eliteBindings, NativeEliteRoster, type NativeEliteBond } from '../src/engine/server/ai/eliteRoster';
 
 import { installEliteEncounters as originalInstall, type EliteEncounterPorts as OriginalPorts } from './fixtures/originalEliteEncounters';
 import { nativeKernelOwners } from './fixtures/nativeEliteKernelOwners';

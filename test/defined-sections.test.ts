@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import { namedJsonSchema } from '../src/sdk/formatJsonSchema';
 import * as sectionApi from '../src/sdk/sections';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
-import { validateNamedJsonSchema, validateNamedJsonSchemaPaced } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema, validateNamedJsonSchemaPaced } from '../src/game/shared/shardfile/customSchema';
 
 const bytes=(value:unknown)=>new TextEncoder().encode(encodeCanonicalJson(value));
 const schema=namedJsonSchema(v.strictObject({label:v.string(),rows:v.array(v.pipe(v.number(),v.minValue(0)))}));

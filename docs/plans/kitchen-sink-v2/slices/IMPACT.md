@@ -22,7 +22,7 @@ PP `pastel-plain`, OP `open-plots`. The `-legacy` folders are frozen (SF73) and 
 
 Imports point down only. No barrels (E434): each `package.json` `exports` lists public modules and an import names the
 defining module. No module installs a service by being imported: installers are functions the session calls. A
-declaration merge other layers read lives in `*.merge.d.ts` (`src/game/equipmentTypes.merge.d.ts`,
+declaration merge other layers read lives in `*.merge.d.ts` (`src/game/client/equipmentTypes.merge.d.ts`,
 `icons.merge.d.ts`, `items.merge.d.ts`, `nativeItems.merge.d.ts`, `population.merge.d.ts`, `rng.merge.d.ts`).
 
 **`src/game/plugin/` is migration scaffolding** (HOST-BAR), 15,521 lines. It is not a layer to build on: a slice that
@@ -48,7 +48,7 @@ A host is shared code in engine / game / sdk / format that shards drive. It coun
 silly (back to the shard at once). Single-shot code is never a host: it is a row, a number or AS. Every report shows
 shard lines cut **and** platform lines added (G455); a move is not a cut until the host passes. Known fails a slice
 inherits: `held/equipment` + loadout `held.ts` score 2/6 (G496; W3b), the exchange's `{owner, path}` grants (test 6;
-W2b), `BossBrain`'s `intro: (t, short) => Vector3` callback (`src/engine/ai/BossBrain.ts:46`, test 6; E-titan).
+W2b), `BossBrain`'s `intro: (t, short) => Vector3` callback (`src/engine/server/ai/BossBrain.ts:46`, test 6; E-titan).
 
 ## 3. How a new host or a host change is born
 
@@ -61,7 +61,7 @@ commits in this order.
 2. **Route it.** One of: a platform data section (`src/format/sections.ts` name → type, `src/format/platformDataSections.ts`
    name → schema); a Shardfile field mapped by `src/format/outputFields.ts`; a row in `src/format/shardSchema.ts` with
    its cross-field rule (`shardSchema.ts:278–292` is where traverse / ladder / item gates live); or a client-plan kind
-   (`src/format/clientPlan.ts` + the kind → module table in `src/game/shardfile/clientPlan.ts`, checked by
+   (`src/format/clientPlan.ts` + the kind → module table in `src/game/client/shardfile/clientPlan.ts`, checked by
    `lint/client-plan-boundary.mjs`). Never a `custom/` section (CS0: new custom sections are refused;
    `lint/custom-sections.json` only shrinks, G694) and never named JSON without a defining schema.
 3. **Author schema and types.** Add it to `src/sdk/formatJsonSchema.ts`; regenerate section types with
@@ -94,7 +94,7 @@ HEAD, never by hand.
 | Guard | File | What trips it in a slice |
 |---|---|---|
 | `wildshard/layer`, `public-index`, `no-reexport` | `lint/wildshard-plugin.js`, `.oxlintrc.json`, `lint/layer-edges.json` | a host moved up a layer without updating every importer; a compatibility re-export left behind (refused: update the importers) |
-| `engine-words`, `shard-names`, `no-shard-branch`, `no-level-identity` | `lint/engine-words.json`, `lint/shard-words.generated.json` | a moved file keeps a shard's ids or names (e.g. `engine/player/nalatiArms.ts`, `engine/world/steppeWind.ts`); new showcase ids become forbidden words in game code |
+| `engine-words`, `shard-names`, `no-shard-branch`, `no-level-identity` | `lint/engine-words.json`, `lint/shard-words.generated.json` | a moved file keeps a shard's ids or names (e.g. `engine/player/nalatiArms.ts`, `engine/shared/world/steppeWind.ts`); new showcase ids become forbidden words in game code |
 | `shard-sandbox`, `shard-game-imports`, `runtime-standalone`, `no-build-time-import`, `no-runtime-in-build` | `lint/shardfile-boundaries.mjs`, `lint/ratchet.json` | shard generators reaching runtime; showcase files start at 0 |
 | `explicit-schema-types` | `lint/schema-types.mjs` | a new exported schema without an explicit type |
 | host callbacks (test 6) | `lint/host-callbacks.mjs`, `lint/host-callback-syntax.mjs`, `lint/host-files.mjs` | a TS callback or port in a host API |
@@ -125,9 +125,9 @@ them, `pnpm gen:source --check` (in `pnpm lint`) and the pre-commit hook select 
 | Touch | Regenerate | Outputs |
 |---|---|---|
 | a schema / section | `scripts/bake-section-schemas.mjs` (via `gen:source`) | section types and wire schemas |
-| a manifest, a new shard, a new id | `scripts/gen-shards.mjs`, `gen-shard-words.mjs` | `src/shards.generated.ts`, `src/game/shard/slugs.generated.{ts,json}`, `manifest-closure.generated.json`, `lint/shard-words.generated.json` |
-| product bytes, boot packs, audio | `pnpm gen` (`gen-boot-cache.mjs`, `bake-packs.mjs`, `boot-publication.mjs`) | `src/game/boot/{bytes,packs,versions,audio}.generated.ts`, `scripts/boot-publication.generated.json` |
-| starter weapons, bag, effects, arm clips | `gen-starter-*.mjs` | `src/game/weapons/starter.generated.ts`, `bag/starter.generated.ts`, `systems/effects/starter.generated.ts`, `systems/viewmodel/clips.generated.ts` |
+| a manifest, a new shard, a new id | `scripts/gen-shards.mjs`, `gen-shard-words.mjs` | `src/shards.generated.ts`, `src/game/server/shard/slugs.generated.{ts,json}`, `manifest-closure.generated.json`, `lint/shard-words.generated.json` |
+| product bytes, boot packs, audio | `pnpm gen` (`gen-boot-cache.mjs`, `bake-packs.mjs`, `boot-publication.mjs`) | `src/game/client/boot/{bytes,packs,versions,audio}.generated.ts`, `scripts/boot-publication.generated.json` |
+| starter weapons, bag, effects, arm clips | `gen-starter-*.mjs` | `src/game/server/weapons/starter.generated.ts`, `bag/starter.generated.ts`, `systems/effects/starter.generated.ts`, `systems/viewmodel/clips.generated.ts` |
 | KTX2 art | `bake-ktx2.mjs` | `src/shards/<slug>/ktx2.generated.ts` |
 | layout policy | `gen-shard-layout-doc.mjs` | SHARDS.md §2 table |
 | API docs | `pnpm docs` | `docs/api/` (gitignored; never commit) |
@@ -198,19 +198,19 @@ can move; one in-game look otherwise; an old-save fixture when saved ids or stat
 - **The cap is nine modules per side, plus memory.** `src/format/scriptLimits.ts:5` `SCRIPT_LIMITS = { instances: 9,
   memoryBytes: 24 000 000, … }`, enforced in `format/decisionScripts.ts:94` (distinct decision modules),
   `format/assetAdmission.ts:195` (sim scripts + sim decision modules ≤ 9, script memory ≤ 24 MB) and `:209` (client +
-  view modules ≤ 9), `engine/script/host.ts:82` and `game/grid/liveSession.ts:715`. `test/decision-module-cap.test.ts`
+  view modules ≤ 9), `engine/server/script/host.ts:82` and `game/client/grid/liveSession.ts:715`. `test/decision-module-cap.test.ts`
   pins it (G20a / G769 raised 8 → 9 for Pine's contract guest; BURN-DAMAGE-LIST D59).
 - **Today's counts** (distinct `blobs/wasm/*.wasm` referenced by built sections, both sides together; approximate):
   PH **9** (at the sim cap), NG 15 (sim + view), DW 4, ND 2, SD 2, SR 1, T 1. Any slice that adds a Pine module (a
   commons law Pine adopts, the contract board in E1f) is refused until the cap moves.
-- **Each module costs a GC on the phone.** `game/grid/liveSession.ts:711`: *"each declared script module's
+- **Each module costs a GC on the phone.** `game/client/grid/liveSession.ts:711`: *"each declared script module's
   WebAssembly.Memory is a synchronous full GC on iOS JSC (40–80 ms each)"* (SF88e); modules are leased one frame apart
   at grid entry. Raising the cap trades entry hitches, not just a count (question 1).
 - **Rules for AS** (HOST-BAR, SCRIPT-ABI.md): event-driven, at most 10 Hz, Script ABI commands only, within 10 % of the
   legacy lines it replaces (G463); per-shard logic only. Shared logic is commons AS, referenced not copied.
 - **The ABI is moving.** WASM-HOST H13 (ABI v2 cutover, behind Developer, dual-compile check) is started for the view
   lane (G570), and its port list is the plugin's v0 `ScriptHost` users: `plugin/brain.ts`, `plugin/director.ts`,
-  `plugin/weaponFamily.ts`, `plugin/mover.ts`, `engine/script/client.ts`: the same modules W3b, W6a, E1 and the
+  `plugin/weaponFamily.ts`, `plugin/mover.ts`, `engine/client/script/client.ts`: the same modules W3b, W6a, E1 and the
   E-director slice move. The old migration map said "don't run H13 during Wave 1" (question 3).
 
 ## 9. Memory and phone budgets, and work already in flight
@@ -242,39 +242,39 @@ E-quests (quest tiers), E-complete (shard-complete card), E-audio, E-balance, E-
 | System | Platform code today | Users today: how | Moves in | Check |
 |---|---|---|---|---|
 | NPCs, dialogue | `actors/npcs` (`questNpcs` field) | DW, PH, SR, SD ship `actors/npcs.json`; DW's row carries a stale `install.file` (`driftwood-isle/generators/questStory.ts`) | W1a | yes |
-| Quests (author path) | `quests/quests`, `quests/host`, `quests/directors`; `game/quest/chapterDirector.ts` imports `plugin/director`, `plugin/quests`, `plugin/headless`, `plugin/context` | DW quests + host + `quest.composition` / `quest.world` / `quest.reference` kinds; PH quests + host + **`custom/questRuntime` 29 KB** (its only custom section left in `out/`); NG quests + `quest.chapter-view` + `behaviour/chapter.as`; SR, SD quests + host + directors + `quest.page`; ND quests (64 B) + directors; T `data/quests.json` | W1b (parity, additive fields); PH runtime E1h, E1i | yes |
-| Contract board | `game/quest/contractBoardPage.ts` (imports `plugin/ui`), `format/contracts.ts` | PH only: `contracts.as`, `contractsRandom.as`, `contractsRules.as`; its guest is PH's ninth module | E1f | yes |
-| Currency, pack, owned | `game/loot/Purse.ts` (`ws.purse.v1`), `Owned.ts` `OWNED` = DW ids (`ws.owned.v1`), `game/Inventory.ts` `ItemId` = PH ids + `PINE_PACK_KINDS` (`ws.inventory.v1`), `Bounty.ts` (`ws.bounty.v1`); `economy/loot`, `economy/ledger` | coins in the manifests of DW, SR, SD, T, IC, PP; `economy/loot` DW 10.9 KB, PH 3.9 KB, the rest 21 B; NG, ND no purse | W2a | yes |
-| Shops (exchange) | `format/exchange.ts`, `game/quest/trader.ts` (imports `plugin/ui`), `format/catalogueEconomy.ts` | DW Maren; PH Mott (barter, `addBolts`) | W2b | yes (trader import); users per W2b |
+| Quests (author path) | `quests/quests`, `quests/host`, `quests/directors`; `game/server/quest/chapterDirector.ts` imports `plugin/director`, `plugin/quests`, `plugin/headless`, `plugin/context` | DW quests + host + `quest.composition` / `quest.world` / `quest.reference` kinds; PH quests + host + **`custom/questRuntime` 29 KB** (its only custom section left in `out/`); NG quests + `quest.chapter-view` + `behaviour/chapter.as`; SR, SD quests + host + directors + `quest.page`; ND quests (64 B) + directors; T `data/quests.json` | W1b (parity, additive fields); PH runtime E1h, E1i | yes |
+| Contract board | `game/client/quest/contractBoardPage.ts` (imports `plugin/ui`), `format/contracts.ts` | PH only: `contracts.as`, `contractsRandom.as`, `contractsRules.as`; its guest is PH's ninth module | E1f | yes |
+| Currency, pack, owned | `game/server/loot/Purse.ts` (`ws.purse.v1`), `Owned.ts` `OWNED` = DW ids (`ws.owned.v1`), `game/server/Inventory.ts` `ItemId` = PH ids + `PINE_PACK_KINDS` (`ws.inventory.v1`), `Bounty.ts` (`ws.bounty.v1`); `economy/loot`, `economy/ledger` | coins in the manifests of DW, SR, SD, T, IC, PP; `economy/loot` DW 10.9 KB, PH 3.9 KB, the rest 21 B; NG, ND no purse | W2a | yes |
+| Shops (exchange) | `format/exchange.ts`, `game/server/quest/trader.ts` (imports `plugin/ui`), `format/catalogueEconomy.ts` | DW Maren; PH Mott (barter, `addBolts`) | W2b | yes (trader import); users per W2b |
 | Melee (sword, spear, sabre) | `held/arms` (`format/heldArms`), `game/weapons/heldPolearm`, `heldDecision`, `mountedBlade`, `game/shardfile/clientHeldMelee` (imports `plugin/weaponFamily`, `plugin/simulation`); `held.melee` kind | DW, ND `held/arms`; NG spear + sabre (`heldWeapons.as`, Z6 in flight); SR, SD `held.melee`; T `data/moves`; `meleeProfile` read by DW, NG | W3a (spear's second user); W3d proves the rest bit-identical | yes |
-| Bow, crossbow, ammo | `held/equipment` (PH 102 KB, 2/6), `game/plugin/weaponFamily.ts` (571), `engine/combat/ammo.ts` (also read by `game/weather/forest.ts` for `wetFlight`), **`engine/player/nalatiArms.ts`** (an engine file named after a shard; read by `game/weapons/starterBowProfile.ts`, `heldLauncher.ts`) | PH crossbow + longbow (`held/equipment`, `gear`, `loadout`, `held.ranged-page`, `held.ranged-feel`); NG recurve (`boot/bowVariant*.json`, `held.ranged-feel`, mounted) | W3b | yes |
-| Firearms | `game/plugin/heldFirearm.ts` (391), imported by `combat/roamingSession`, `weapons/heldLauncher`, `loadout/claims`, `loadout/rangedPage`, `loadout/held` | PH lever rifle (`held.ranged-page`); NG roaming / mounted rifle (Z6 in flight) | W3c | yes |
-| Parry | none (a clip name in `game/systems/viewmodel/clips.generated.ts`) | nobody | W3d (opt-in) | yes |
-| Personal-best records | none saved; `game/practice/numericCourse.ts` keeps `best` in memory | NG riding and ND grapple Explore rooms (`practice.course`) | W3a host, W6d rooms | yes |
-| Interactables (plates, levers, doors, barrels) | `engine/world/interact/types.ts` `PlateDef`; no platform section | DW `generators/interactables.ts` → named JSON + `barrels.as`; PH `generators/questTable.ts`, `questGraph.ts` (via `sdk/interactions`); SD `generators/signalInteractions.ts`; T `door.as` `items.as` `idle.as`, IC 3 and PP 3 AS files, BT 1, OP one `door.as` | W4a | yes |
-| Physics props, joints | `sim/bodies` (`format/bodySlots`), `engine/physics/bodies.ts` | DW only (`sim/bodies.json`: one barrel); PH `world/physics` is creature physics, not props; no joints anywhere | W4a, W4b | yes |
-| Board, tricks, rails | `engine/player/board.ts` (law stays engine); look to game (HA4d); `world/traversal` | every product's `world/traversal` is `{hoverCap}` only; the board is on every shard and the highway | W5a (all shards, paths only), W5b, W5c | yes |
-| Movers | **`game/plugin/mover.ts` (599), imported by `quest/pageFacets`, `quest/pageComposition`, `quest/declaredPage`**, `bake/entryways`, `shardfile/decisions`, `shardfile/clientMoverOwners` | `world/movers`: SR 39.9 KB, DW 6.4 KB (+ `world.movers` kind, `generators/moverBake.ts` drivers `boat.as`/`bridge.as`), PH 1 KB, SD 0.6 KB, others empty; ND `movers.as` is view WASM, not this host | W6a | yes |
+| Bow, crossbow, ammo | `held/equipment` (PH 102 KB, 2/6), `game/client/plugin/weaponFamily.ts` (571), `engine/shared/combat/ammo.ts` (also read by `game/client/weather/forest.ts` for `wetFlight`), **`engine/player/nalatiArms.ts`** (an engine file named after a shard; read by `game/server/weapons/starterBowProfile.ts`, `heldLauncher.ts`) | PH crossbow + longbow (`held/equipment`, `gear`, `loadout`, `held.ranged-page`, `held.ranged-feel`); NG recurve (`boot/bowVariant*.json`, `held.ranged-feel`, mounted) | W3b | yes |
+| Firearms | `game/client/plugin/heldFirearm.ts` (391), imported by `combat/roamingSession`, `weapons/heldLauncher`, `loadout/claims`, `loadout/rangedPage`, `loadout/held` | PH lever rifle (`held.ranged-page`); NG roaming / mounted rifle (Z6 in flight) | W3c | yes |
+| Parry | none (a clip name in `game/client/systems/viewmodel/clips.generated.ts`) | nobody | W3d (opt-in) | yes |
+| Personal-best records | none saved; `game/client/practice/numericCourse.ts` keeps `best` in memory | NG riding and ND grapple Explore rooms (`practice.course`) | W3a host, W6d rooms | yes |
+| Interactables (plates, levers, doors, barrels) | `engine/shared/world/interact/types.ts` `PlateDef`; no platform section | DW `generators/interactables.ts` → named JSON + `barrels.as`; PH `generators/questTable.ts`, `questGraph.ts` (via `sdk/interactions`); SD `generators/signalInteractions.ts`; T `door.as` `items.as` `idle.as`, IC 3 and PP 3 AS files, BT 1, OP one `door.as` | W4a | yes |
+| Physics props, joints | `sim/bodies` (`format/bodySlots`), `engine/shared/physics/bodies.ts` | DW only (`sim/bodies.json`: one barrel); PH `world/physics` is creature physics, not props; no joints anywhere | W4a, W4b | yes |
+| Board, tricks, rails | `engine/shared/player/board.ts` (law stays engine); look to game (HA4d); `world/traversal` | every product's `world/traversal` is `{hoverCap}` only; the board is on every shard and the highway | W5a (all shards, paths only), W5b, W5c | yes |
+| Movers | **`game/server/plugin/mover.ts` (599), imported by `quest/pageFacets`, `quest/pageComposition`, `quest/declaredPage`**, `bake/entryways`, `shardfile/decisions`, `shardfile/clientMoverOwners` | `world/movers`: SR 39.9 KB, DW 6.4 KB (+ `world.movers` kind, `generators/moverBake.ts` drivers `boat.as`/`bridge.as`), PH 1 KB, SD 0.6 KB, others empty; ND `movers.as` is view WASM, not this host | W6a | yes |
 | Conveyor, jump pad, updraft | `state/modes` traverse rows | SR `updraft` only; no conveyor or launch anywhere | W6b | yes |
 | Zipline, grapple, ride | `state/modes` `traverse` / `grapple` / `ride`; gated on a quest page or runtime `modes` (`format/shardSchema.ts:285`); `engine/sim/cableTraversal`, `game/grapple/*` (`tool.ts` imports `plugin/headless`) | zipline DW, PH; grapple ND; ride NG | W7a, W7b (riding W10a) | yes |
 | Ladders, climb, scramble | ladder rows need the data-only player owner (`shardSchema.ts:286`); `DrivenMode` names `climb` | none | W8a, W8b | yes |
-| Rope bridges | `game/models/ropeDeckSite` (H026), `engine/physics/ropeChain.ts`, `bridgeSway.as` | DW only (`rope-deck`, `rope-chain` kinds); SR's "bridges" are movers; NG's kunes bridge is static | W6c | yes |
-| Interiors, caves, portals, arenas | `format/caveInterior.ts`, `game/shardfile/clientForestPage`; **`game/shardfile/walkInPortalRide` imports `plugin/director`**; `game/boss/arenaRoom.ts` (1,641; imports `plugin/bossPhase`, `scene`, `headless`); `engine/practice/playground/Playground.ts:26` `PLAYGROUND_Y = 3000` | PH crag cave (`world.forest-page`); ND `portal.ride`; NG `arena-room`, `arena-room.entry`; NG and ND playgrounds at y 3000 | W0e (cube), W9a (cave), E-vault / E-titan (portals, arena) | yes |
-| Finds, perks, trophies, compendium, achievements | `format/findsCatalogue.ts`, `game/models/collectionWall.ts`, `collections/displays` (DW, ported `3c42144c50`), `ui/compendium`, `game/achievements.ts` | finds DW (`generators/finds.ts`), NG `bag.finds`; trophies DW (10 files), PH (12), NG (3); **every product ships `ui/compendium`**, PH fills it (icon picklist in `format/compendiumRows.ts:21`); **achievements in all 10 products** | W9b (collectibles, record feats), E-elites (trophy wall), E-complete (loot feats) | yes (file counts) |
+| Rope bridges | `game/models/ropeDeckSite` (H026), `engine/shared/physics/ropeChain.ts`, `bridgeSway.as` | DW only (`rope-deck`, `rope-chain` kinds); SR's "bridges" are movers; NG's kunes bridge is static | W6c | yes |
+| Interiors, caves, portals, arenas | `format/caveInterior.ts`, `game/shardfile/clientForestPage`; **`game/shardfile/walkInPortalRide` imports `plugin/director`**; `game/server/boss/arenaRoom.ts` (1,641; imports `plugin/bossPhase`, `scene`, `headless`); `engine/client/practice/playground/Playground.ts:26` `PLAYGROUND_Y = 3000` | PH crag cave (`world.forest-page`); ND `portal.ride`; NG `arena-room`, `arena-room.entry`; NG and ND playgrounds at y 3000 | W0e (cube), W9a (cave), E-vault / E-titan (portals, arena) | yes |
+| Finds, perks, trophies, compendium, achievements | `format/findsCatalogue.ts`, `game/client/models/collectionWall.ts`, `collections/displays` (DW, ported `3c42144c50`), `ui/compendium`, `game/server/achievements.ts` | finds DW (`generators/finds.ts`), NG `bag.finds`; trophies DW (10 files), PH (12), NG (3); **every product ships `ui/compendium`**, PH fills it (icon picklist in `format/compendiumRows.ts:21`); **achievements in all 10 products** | W9b (collectibles, record feats), E-elites (trophy wall), E-complete (loot feats) | yes (file counts) |
 | Cosmetic finishes | `game/loadout/cosmeticFinishes` (H059), `held/finishes` | PH, NG `held/finishes`; NG `held.cosmetics`, `cosmetic-finishes` | E-elites (proposed) | yes |
 | Mounts | `game/riding/*` (eight G478 hosts) | NG only (`riding.session`, `taming.entry`, `mounts.as`) | W10a | yes |
-| Weather, day / night | `format/forestWeather`, `game/weather/forest.ts` (imports `engine/combat/ammo`, `engine/world/steppeWind`, `population/wildlife`, `audio/voicePatches`, `looks/keyedSky`); **`engine/world/steppeWind.ts` also read by `game/looks/paintedLook` (SR, SD), `grassPresentation`, `population/wildlife`, `shardfile/worldUpdates`**; `world/days`, `world/weather` are 21 / 24 B shells in every shipped product | PH, NG `weather.forest`; SD `weather.fields`; `dayCycle` in DW, PH, NG, T, IC, PP manifests | W11a | yes |
-| Audio states, stings | `format/audioProfiles.ts:67`: four fixed stings `pickup, death, chunk, dawn`; `engine/audio/score/score.ts`; `game/audio/sceneDirector`, `voicePatches` | `audio/audio` everywhere: DW 68 KB, PH 19.7 KB (boss layers), NG 44.7 KB + `audio.scene`, ND 9 KB, SR, SD, T < 1 KB; `audio.cues` kind PH, NG, SR | W11b (stings, one genre), E-audio (band / boss / elite fields, metal, combat cues) | yes |
-| Elites | `format/eliteFeature.ts`, `engine/ai/EliteBrain`, `eliteRoster`, `game/eliteSystem.ts` (`ws.elites.v1`) | PH (`night.as`, `ghost.as`, `imperial.as`, `ironhide.as`, `blackpaw.as`, elite rows); NG (`elite.entry`, `elite.construct`, `eliteViews.as`) | E-elites | yes |
-| Boss path | **five paths**: wake (`game/boss/wake.ts` + `bossEncounter`); phased (`sdk/phasedBoss` → `game/plugin/bossPhase.ts`, 1,007); held (`boss.held`, `game/shardfile/bossRow.ts` `HeldBossBrain`); spawned (`boss.spawned`, `DirectorBossBrain` from `plugin/director`); sim script (T `boss.as`) | DW Captain (wake, `captain.as`); PH Antler King (phased, `king.as`, `generators/kingFight.ts`); NG Storm Titan (phased through `arenaRoom`, 13+ `titan*.as`) and Golden King; SR Roc (held + `boss.telegraph`, `roc.as`); SD Matriarch (spawned + `boss.telegraph`, `matriarch.as`); T `boss.as` | E-titan | yes |
+| Weather, day / night | `format/forestWeather`, `game/client/weather/forest.ts` (imports `engine/combat/ammo`, `engine/world/steppeWind`, `population/wildlife`, `audio/voicePatches`, `looks/keyedSky`); **`engine/shared/world/steppeWind.ts` also read by `game/looks/paintedLook` (SR, SD), `grassPresentation`, `population/wildlife`, `shardfile/worldUpdates`**; `world/days`, `world/weather` are 21 / 24 B shells in every shipped product | PH, NG `weather.forest`; SD `weather.fields`; `dayCycle` in DW, PH, NG, T, IC, PP manifests | W11a | yes |
+| Audio states, stings | `format/audioProfiles.ts:67`: four fixed stings `pickup, death, chunk, dawn`; `engine/client/audio/score/score.ts`; `game/audio/sceneDirector`, `voicePatches` | `audio/audio` everywhere: DW 68 KB, PH 19.7 KB (boss layers), NG 44.7 KB + `audio.scene`, ND 9 KB, SR, SD, T < 1 KB; `audio.cues` kind PH, NG, SR | W11b (stings, one genre), E-audio (band / boss / elite fields, metal, combat cues) | yes |
+| Elites | `format/eliteFeature.ts`, `engine/ai/EliteBrain`, `eliteRoster`, `game/server/eliteSystem.ts` (`ws.elites.v1`) | PH (`night.as`, `ghost.as`, `imperial.as`, `ironhide.as`, `blackpaw.as`, elite rows); NG (`elite.entry`, `elite.construct`, `eliteViews.as`) | E-elites | yes |
+| Boss path | **five paths**: wake (`game/server/boss/wake.ts` + `bossEncounter`); phased (`sdk/phasedBoss` → `game/server/plugin/bossPhase.ts`, 1,007); held (`boss.held`, `game/server/shardfile/bossRow.ts` `HeldBossBrain`); spawned (`boss.spawned`, `DirectorBossBrain` from `plugin/director`); sim script (T `boss.as`) | DW Captain (wake, `captain.as`); PH Antler King (phased, `king.as`, `generators/kingFight.ts`); NG Storm Titan (phased through `arenaRoom`, 13+ `titan*.as`) and Golden King; SR Roc (held + `boss.telegraph`, `roc.as`); SD Matriarch (spawned + `boss.telegraph`, `matriarch.as`); T `boss.as` | E-titan | yes |
 | Boss intros, cutscene timeline | `BossBrain.ts:46` `intro` callback; `src/engine/cinematic/` does not exist | five intros (DW, PH, NG ×2, SR, SD per IN-GAME-CUTSCENES IC0; per-shard list **unverified** here) | E-titan | partly |
-| Wave director | `format/directorStages`, **`game/plugin/director.ts` (435), imported by `quest/chapterDirector`, `quest/chapterClock`, `shardfile/walkInPortalRide`, `shardfile/clientQuestPage`, `shardfile/bossRow`** | DW `director.as`, `directorV2.as` (via `generators/guestPrograms.ts`); PH the same pair (`generators/sourceOutput.ts`); `quests/directors` in T, SR, SD, ND | E-gauntlet | yes |
+| Wave director | `format/directorStages`, **`game/server/plugin/director.ts` (435), imported by `quest/chapterDirector`, `quest/chapterClock`, `shardfile/walkInPortalRide`, `shardfile/clientQuestPage`, `shardfile/bossRow`** | DW `director.as`, `directorV2.as` (via `generators/guestPrograms.ts`); PH the same pair (`generators/sourceOutput.ts`); `quests/directors` in T, SR, SD, ND | E-gauntlet | yes |
 | Stealth | `game/stealth/controller`, `stealthLaw`; `player/stealth` | NG only | E-stealth | yes |
 | Shrine host | none (pieces: arena room, plates, director) | nobody (DG5 proposes DW's sea cave) | E-vault | yes |
 | Completion card | `format/completion.ts`, `ui/completion` | DW (`generators/completion.ts`) and T; nobody else | E-complete (backfill all, then the rule) | yes |
-| Levels, combat maths | none (no `game/progression/`, no `levelMath`); `fight.maxHitDamage` read by `game/session/play.ts`, `loadout/effects.ts`, `engine/level/spec.ts`, declared only by DW | nobody; opt-in (19z) | E0a–E0d, E0i | yes |
+| Levels, combat maths | none (no `game/progression/`, no `levelMath`); `fight.maxHitDamage` read by `game/client/session/play.ts`, `loadout/effects.ts`, `engine/shared/level/spec.ts`, declared only by DW | nobody; opt-in (19z) | E0a–E0d, E0i | yes |
 | Enemy cap | none found | — | E0h | names only |
-| HUD pieces | `engine/ui/` (HUD, hudSlots, LockOn, Combat, Menu, tabs, BossBar, EliteBar, WindupWarn, FirstHints, playerDeath); quest HUD in `game/plugin/ui.ts`, `game/quest/story.ts` | one HUD for every shard; no shard imports `engine/ui` at play (PH, NG, ND generators only) | W1b (quest list, markers), W3d (guard), W5b (trick score), E0e / E0f (level, XP, nameplates, numbers, Character tab): each an E332 notice | yes |
+| HUD pieces | `engine/ui/` (HUD, hudSlots, LockOn, Combat, Menu, tabs, BossBar, EliteBar, WindupWarn, FirstHints, playerDeath); quest HUD in `game/client/plugin/ui.ts`, `game/server/quest/story.ts` | one HUD for every shard; no shard imports `engine/ui` at play (PH, NG, ND generators only) | W1b (quest list, markers), W3d (guard), W5b (trick score), E0e / E0f (level, XP, nameplates, numbers, Character tab): each an E332 notice | yes |
 | Shard cube (19ad) | bake bounds `sdk/bake/terrain.ts:34`, `props.ts:227`, `world.ts:58`, `format/contentBounds.ts`; spawn `shardSchema.ts:293`; unchecked: `format/portalLink.ts:10` destinations, cave volumes, arena rooms | PH cave, ND portal, NG arena + playgrounds (y 3000) | W0e | yes |
 | Decision modules | `format/scriptLimits.ts:5` (9 per side, 24 MB) | PH 9 (full), NG 15 over two sides, DW 4, ND 2, SD 2, SR 1, T 1 | W0e | approx. |
 
@@ -284,7 +284,7 @@ E-quests (quest tiers), E-complete (shard-complete card), E-audio, E-balance, E-
    and `plugin/director` by the chapter director, the chapter clock, Nine's walk-in portal ride and two boss paths. W6a
    (movers) and W1b (quests) edit `src/game/quest/` together; the east director move touches quests, Nine's portal and
    the Sky / Signal boss rows. Sequence them (question 4).
-2. **Weather is coupled to arrows, wildlife and the painted looks.** `game/weather/forest.ts` reads `engine/combat/ammo`
+2. **Weather is coupled to arrows, wildlife and the painted looks.** `game/client/weather/forest.ts` reads `engine/combat/ammo`
    (`wetFlight`), and `steppeWind` (the "un-named wind" in W11a) is read by SR's and SD's `paintedLook`, the grass and
    wildlife. W11a proves four shards' looks, not two, and runs after W3b.
 3. **Pine is at the module cap now** (9 of 9), and each module is a 40–80 ms GC on iOS at grid entry.

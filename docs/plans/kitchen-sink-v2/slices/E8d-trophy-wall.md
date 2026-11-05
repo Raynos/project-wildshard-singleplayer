@@ -16,7 +16,7 @@ line under the frame (*Big Pallet's Tines: +5 % damage to crate robots*). Band s
 Research:
 
 - **Two walls, two shapes.** Driftwood: `custom/collections` → `out/driftwood-isle/sections/collections/displays.json`
-  drawn by `src/game/models/collectionWall.ts` (236 lines; `test/collections-display.test.ts`,
+  drawn by `src/game/client/models/collectionWall.ts` (236 lines; `test/collections-display.test.ts`,
   `test/collection-game-ports.test.ts`). Pine: `custom/trophyMounts` from `generators/trophyMounts.ts` and
   `trophyWall.ts`. Both appear in the custom sections list (`lint/custom-sections.json`; migration map §7: "Live
   `custom/` sections in scope: DW collections … PH … trophyMounts").

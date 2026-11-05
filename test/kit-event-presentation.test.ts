@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { Vector3 } from 'three';
-import { InteractSfx } from '../src/engine/audio/interactSfx';
-import type { InteractEvent } from '../src/engine/world/interact/Interactables';
+import { InteractSfx } from '../src/engine/client/audio/interactSfx';
+import type { InteractEvent } from '../src/engine/client/world/interact/Interactables';
 import { pineTableFromPlacements } from '../src/shards/pine-hollow/generators/questTable';
 import { pineSpots } from '../src/shards/pine-hollow/generators/spots';
 import { PINE_KIT_EVENTS } from '../src/shards/pine-hollow/generators/questEvents';

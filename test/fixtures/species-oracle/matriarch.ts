@@ -1,15 +1,15 @@
 // Shipping policy oracle captured from 050198889:src/shards/sunscar-dunes/runtime/species/matriarch.ts (SF27: the Matriarch now runs
 // the phased-flyer brain, data/brains.ts MATRIARCH_BRAIN); test/shards/sunscar-dunes/matriarch-brain.test.ts holds the row to it.
 import { strike as admitStrike } from '../../../src/sdk/species';
-import { strikeFromData } from '../../../src/engine/ai/strikeRows';
+import { strikeFromData } from '../../../src/engine/server/ai/strikeRows';
 import { MAW_DATA, TAIL_SWEEP_DATA, BUFFET_DATA, MATRIARCH } from '../../../src/shards/sunscar-dunes/generators/rows/species/matriarch';
-import { CreatureBrain } from '../../../src/engine/ai/CreatureBrain';
-import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../../src/engine/ai/strikes';
-import type { Animal } from '../../../src/engine/entities/AnimalView';
-import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
-import { readStrikeState } from '../../../src/engine/ai/strikeState';
+import { CreatureBrain } from '../../../src/engine/server/ai/CreatureBrain';
+import { StrikeRunner, type StrikeContext, type StrikeSpec } from '../../../src/engine/server/ai/strikes';
+import type { Animal } from '../../../src/engine/client/entities/AnimalView';
+import type { AnimalSim } from '../../../src/engine/server/entities/AnimalSim';
+import { readStrikeState } from '../../../src/engine/server/ai/strikeState';
 import * as v from 'valibot';
-import type { SimValue } from '../../../src/engine/sim';
+import type { SimValue } from '../../../src/engine/server/sim';
 import { Vector3 } from 'three';
 import { BASIN } from "../../../src/shards/sunscar-dunes/generators/layout";
 

@@ -272,13 +272,13 @@ def check_staged_imports(blobs, files, staged_paths, imports):
             generated = {output for outputs in sources['producers'].values() for output in outputs}
             copies = json.loads(blobs.get('scripts/copied-runtime-inputs.json', b'{"copies":[]}'))
             generated.update(row['target'] for row in copies['copies'])
-            generated.update(['src/shards.generated.ts', 'src/game/shard/slugs.generated.ts',
-                'src/game/shard/slugs.generated.json', 'src/game/shard/manifest-closure.generated.json',
-                'lint/shard-words.generated.json', 'src/game/boot/bytes.generated.ts',
-                'src/game/boot/versions.generated.ts', 'src/game/boot/audio.generated.ts',
-                'src/game/boot/packs.generated.ts', 'src/game/shard/art.generated.ts',
-                'src/game/systems/viewmodel/clips.generated.ts', 'src/game/weapons/starter.generated.ts',
-                'src/game/bag/starter.generated.ts', 'src/game/systems/effects/starter.generated.ts'])
+            generated.update(['src/shards.generated.ts', 'src/game/server/shard/slugs.generated.ts',
+                'src/game/server/shard/slugs.generated.json', 'src/game/server/shard/manifest-closure.generated.json',
+                'lint/shard-words.generated.json', 'src/game/client/boot/bytes.generated.ts',
+                'src/game/client/boot/versions.generated.ts', 'src/game/client/boot/audio.generated.ts',
+                'src/game/client/boot/packs.generated.ts', 'src/game/client/shard/art.generated.ts',
+                'src/game/client/systems/viewmodel/clips.generated.ts', 'src/game/server/weapons/starter.generated.ts',
+                'src/game/server/bag/starter.generated.ts', 'src/game/client/systems/effects/starter.generated.ts'])
             for name in staged_paths:
                 if not name.startswith('src/shards/') or not name.endswith('/manifest.json'):
                     continue

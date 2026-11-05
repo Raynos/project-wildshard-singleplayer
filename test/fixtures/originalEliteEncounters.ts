@@ -2,7 +2,7 @@
 import { EliteCoreContinuationSchema } from '@wildshard/format/eliteContinuation';
 import * as v from 'valibot';
 import { isJsonData } from '@wildshard/format/json';
-import { ReturnProgram } from '../../src/game/population/returnProgram';
+import { ReturnProgram } from '../../src/game/shared/population/returnProgram';
 import { Vector3 } from 'three';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
@@ -10,7 +10,7 @@ import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { StalkerBrain, type PouncerContext, type PouncerLedge, type PouncerSpec, type HowlerSpec, type HowlerPorts } from '@wildshard/engine/ai/stalker';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
-import { EliteCore, memoryElitePersistence, type EliteCoreDef, type EliteCoreScript } from '../../src/game/eliteSystem';
+import { EliteCore, memoryElitePersistence, type EliteCoreDef, type EliteCoreScript } from '../../src/game/server/eliteSystem';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const silent = (): void => undefined;

@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { parseWorldSceneModels } from '@wildshard/format/worldSceneModels';
 import { parseWorldScene } from '@wildshard/format/clientChannels';
-import { createOwnedGeometry } from '../src/engine/models/ownedGeometry';
+import { createOwnedGeometry } from '../src/engine/client/models/ownedGeometry';
 import { bakeRockScenes } from '../src/shards/driftwood-isle/generators/rockScenes';
 import { compactChannels } from '../src/shards/driftwood-isle/generators/compactChannels';
 import { expect, it } from 'vitest';

@@ -1,11 +1,11 @@
 import { expect, test, vi } from 'vitest';
 import { BoxGeometry, Group } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { WorldRegistry } from '../src/engine/world/registry';
-import { captureScatterSource } from '../src/engine/render/scatterInstances';
-import { SceneDressing, readSceneNumericTable, readSceneScatterTable } from '../src/game/shardfile/sceneDressing';
+import { Scope } from '../src/engine/shared/app/scope';
+import { WorldRegistry } from '../src/engine/client/world/registry';
+import { captureScatterSource } from '../src/engine/client/render/scatterInstances';
+import { SceneDressing, readSceneNumericTable, readSceneScatterTable } from '../src/game/client/shardfile/sceneDressing';
 import { readSceneScatterPose } from '@wildshard/format/sceneDressing';
-import type { ShardContext } from '../src/game/plugin/context';
+import type { ShardContext } from '../src/game/server/plugin/context';
 import { join, writeGeometry } from '../src/shards/nalati-grasslands/generators/geometryWriter';
 
 function table(rows: readonly Record<string, number>[]): Uint8Array {

@@ -130,7 +130,7 @@ export const BOWL_TRACKS: XZ[][] = [
 /** a handful of lone spruces (the forest is cut): centres; the forest mask plants 1–3 trees within ~5 m of each */
 export const LONE_SPRUCE: XZ[] = [[152, 126], [-62, 132], [206, 108], [-222, 44], [64, -66], [-44, -176], [34, -206], [196, -40], [-150, 128], [120, 132]];
 
-/** the full map / minimap labels (read at runtime by name: src/engine/ui/Map.ts, Minimap.ts) */
+/** the full map / minimap labels (read at runtime by name: src/engine/client/ui/Map.ts, Minimap.ts) */
 export const NALATI_MAP: { zones: { label: string; x: number; z: number; }[]; pois: { label: string; x: number; z: number; }[]; } = {
   zones: [
     { label: 'NALATI GRASSLANDS', x: 30, z: 214 },

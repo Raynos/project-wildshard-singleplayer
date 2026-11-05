@@ -5,10 +5,10 @@ import { DRIFTWOOD_INTERACT } from '../src/shards/driftwood-isle/generators/inte
 import { validateDefinedJson } from '../src/sdk/sections';
 import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { emptyShardfile } from '../src/sdk/author';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { startQuestPageReads } from '../src/game/quest/pageReads';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
+import { startQuestPageReads } from '../src/game/server/quest/pageReads';
 import * as v from 'valibot';
-import { ATTACK_TURN } from '../src/engine/ai/hunt';
+import { ATTACK_TURN } from '../src/engine/server/ai/hunt';
 import policy from '../src/shards/driftwood-isle/data/nativePopulationPolicy.json' with { type: 'json' };
 import { driftwoodOutputRows } from '../src/shards/driftwood-isle/generators/output';
 import { DRIFTWOOD_LAYOUTS } from './fixtures/driftwood-layout-source';

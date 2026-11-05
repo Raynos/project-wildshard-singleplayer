@@ -12,8 +12,8 @@ import { pathToFileURL } from 'node:url';
 
 const WEB_ONLY_HTML = [
   /\s*<link rel="manifest"[^>]*>/,
-  /\s*<script type="module" src="\/src\/engine\/boot\/sw\.ts"><\/script>/,
-  /\s*<script type="module" src="\/src\/engine\/ui\/Update\.ts"><\/script>/,
+  /\s*<script type="module" src="\/src\/engine\/(?:(?:client|cook|server|shared)\/)?boot\/sw\.ts"><\/script>/,
+  /\s*<script type="module" src="\/src\/engine\/(?:(?:client|cook|server|shared)\/)?ui\/Update\.ts"><\/script>/,
 ];
 
 /** The native page from the web page's text. */

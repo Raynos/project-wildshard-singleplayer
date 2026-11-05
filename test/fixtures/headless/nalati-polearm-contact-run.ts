@@ -4,7 +4,7 @@ import * as v from 'valibot';
 import {Vector3} from 'three';
 import {ThrownWeaponProfileSchema} from '@wildshard/format/weaponProfiles';
 import {parseHeldSlots} from '@wildshard/format/heldArms';
-import {nativeGroupCollection} from '../../../src/game/shardfile/groupRuntime';
+import {nativeGroupCollection} from '../../../src/game/server/shardfile/groupRuntime';
 import {runTrustedHeadlessTape} from '../../../src/sdk/headlessTape';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import {earnNalatiPasture} from './nalati-pasture-session';

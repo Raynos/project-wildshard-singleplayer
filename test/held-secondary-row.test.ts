@@ -2,9 +2,9 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { itemRules, parseItems } from '@wildshard/format/items';
-import { createSimHost } from '../src/engine/sim';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { installNativeMelee, type NativeMeleeCommand } from '../src/game/plugin/simulation';
+import { createSimHost } from '../src/engine/server/sim';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { installNativeMelee, type NativeMeleeCommand } from '../src/game/server/plugin/simulation';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { SKY_ITEMS } from '../src/shards/far-reach/generators/rows/items';
 

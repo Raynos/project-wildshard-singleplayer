@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { ArenaFightPageSchema } from '../src/game/boss/arenaRoomFight';
+import { ArenaFightPageSchema } from '../src/game/server/boss/arenaRoomFight';
 import king from './fixtures/nalati-goldenKing-original.json' with { type: 'json' };
 
 test('the arena body adapter admits an unrelated orchard guardian and its own placement and strikes', () => {

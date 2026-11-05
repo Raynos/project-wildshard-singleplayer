@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { atlasFigureCard } from '../src/game/models/kitFigureCard';
+import { atlasFigureCard } from '../src/game/client/models/kitFigureCard';
 import { EXPLORER_CATALOGUE } from '../src/shards/nalati-grasslands/generators/explorerCatalogue';
 
 test('the camp card retains the original public order, labels and one atlas per person', () => {

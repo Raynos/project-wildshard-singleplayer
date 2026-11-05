@@ -6,18 +6,18 @@ import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Matrix4 } from 'three';
 import { zlibSync } from 'fflate';
 import { GeometryPackWriter } from '../src/sdk/kit/geometryPack';
-import { FigureRows } from '../src/game/systems/npc/figureRows';
-import { SceneHandles } from '../src/game/shardfile/sceneHandles';
-import { Scope } from '../src/engine/app/scope';
-import { IslandLibrary } from '../src/game/models/islandLibrary';
-import { FigureCatalogue, ProductFigureCatalogue } from '../src/game/models/figureCatalogue';
-import { CollectionCatalogue } from '../src/game/models/collectionDisplay';
-import * as runtime from '../src/game/shardfile/runtimeProduct';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
+import { FigureRows } from '../src/game/client/systems/npc/figureRows';
+import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
+import { Scope } from '../src/engine/shared/app/scope';
+import { IslandLibrary } from '../src/game/client/models/islandLibrary';
+import { FigureCatalogue, ProductFigureCatalogue } from '../src/game/client/models/figureCatalogue';
+import { CollectionCatalogue } from '../src/game/client/models/collectionDisplay';
+import * as runtime from '../src/game/client/shardfile/runtimeProduct';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';
 import { collectionRows } from '../src/shards/driftwood-isle/generators/collections';
 import * as v from 'valibot';
-import * as wholeGeometry from '../src/game/plugin/geometry';
+import * as wholeGeometry from '../src/game/client/plugin/geometry';
 
 function glb(): Uint8Array {
   const json = new TextEncoder().encode(JSON.stringify({asset:{version:'2.0'},scene:0,scenes:[{nodes:[0]}],nodes:[{mesh:0}],meshes:[{primitives:[{attributes:{POSITION:0}}]}],

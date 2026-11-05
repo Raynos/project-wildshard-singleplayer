@@ -1,12 +1,12 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { BufferGeometry, Material, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D } from 'three';
-import { Scope } from '../src/engine/app/scope';
-import { modelContext, specimenReady } from '../src/engine/models/model';
-import { Rng } from '../src/engine/core/rng';
-import { SkyRig } from '../src/engine/world/skyRig';
-import * as lowPolyKit from '../src/engine/world/lowpolyKit';
-import { atlasFigureCard, kitFigureCard } from '../src/game/models/kitFigureCard';
+import { Scope } from '../src/engine/shared/app/scope';
+import { modelContext, specimenReady } from '../src/engine/client/models/model';
+import { Rng } from '../src/engine/shared/core/rng';
+import { SkyRig } from '../src/engine/client/world/skyRig';
+import * as lowPolyKit from '../src/engine/client/world/lowpolyKit';
+import { atlasFigureCard, kitFigureCard } from '../src/game/client/models/kitFigureCard';
 import { parseExplorerCatalogue } from '@wildshard/format/explorerCatalogue';
 import { driftwoodKitFigureCards } from '../src/shards/driftwood-isle/generators/kitFigureCards';
 import { driftwoodFixedProduct } from './fixtures/driftwoodFixedProduct';

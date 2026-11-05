@@ -1,10 +1,10 @@
 // @vitest-environment happy-dom
 import {expect,test} from 'vitest';
 import type {PerspectiveCamera,Scene} from 'three';
-import type {Renderer} from '../src/engine/render/renderer';
+import type {Renderer} from '../src/engine/client/render/renderer';
 import {FakeGame} from '../src/engine/test/FakeGame';
-import {LightPool} from '../src/engine/fx/LightPool';
-import {collectionGamePorts} from '../src/game/compendium/keepsakes';
+import {LightPool} from '../src/engine/client/fx/LightPool';
+import {collectionGamePorts} from '../src/game/server/compendium/keepsakes';
 
 test('a collection borrows inherited scene/camera/renderer ports for its real pickup light pool',()=>{
   const fake=new FakeGame(),source=fake.asGame();

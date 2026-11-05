@@ -5,13 +5,13 @@ import { createNativeBakeReader, nativeBakeGround, installNativeCollision } from
 import { readNamedBlob } from '../src/sdk/blobs';
 import { driftwoodPhysics, driftwoodPhysicsFloor, driftwoodPhysicsGroundBytes, driftwoodPhysicsSources } from '../src/shards/driftwood-isle/generators/physics';
 import { driftwoodNativeRows } from '../src/shards/driftwood-isle/generators/nativeBake';
-import { trustedLevel } from '../src/game/plugin/simulation';
+import { trustedLevel } from '../src/game/server/plugin/simulation';
 import type { HeadlessRuntimePlan } from '../src/sdk/headlessRuntime';
 import { emptyShardfile } from '../src/sdk/author';
-import { createShardProduct } from '../src/game/shardfile/shardProduct';
-import { createSimHost } from '../src/engine/sim';
-import { snapshotSimHost, serializeSimSnapshot, restoreSimHost } from '../src/engine/sim/snapshot';
-import { loadRapier } from '../src/engine/physics/rapier';
+import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
+import { createSimHost } from '../src/engine/server/sim';
+import { snapshotSimHost, serializeSimSnapshot, restoreSimHost } from '../src/engine/shared/sim/snapshot';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { canonicalSimDigest } from './fake/simState';
 import { leadCommands } from '@wildshard/engine/sim/leadPlayer';
 

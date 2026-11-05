@@ -1,6 +1,6 @@
-import type {SimHost} from '../../../src/engine/sim';
+import type {SimHost} from '../../../src/engine/server/sim';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
-import {nativeTamingOf} from '../../../src/game/riding/nativeTaming';
+import {nativeTamingOf} from '../../../src/game/server/riding/nativeTaming';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** The pilot observes only the living horse position, live prompt and balance gauge. No trust/position grants or forceBreak. */

@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, test, vi } from 'vitest';
-import { Scope } from '../src/engine/app/scope';
-import { readPrefetchIndex } from '../src/game/grid/prefetchIndex';
+import { Scope } from '../src/engine/shared/app/scope';
+import { readPrefetchIndex } from '../src/game/client/grid/prefetchIndex';
 import type { OutputDownloadIndex } from '@wildshard/format/outputDownload';
 
 const hash = 'a'.repeat(64), url = `http://localhost/shard.json?v=${hash.slice(0, 8)}`;

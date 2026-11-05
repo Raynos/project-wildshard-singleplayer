@@ -1,13 +1,13 @@
 import {expect,test,vi} from 'vitest';
 import * as v from 'valibot';
 import {BufferGeometry,BufferAttribute,InterleavedBufferAttribute,Object3D} from 'three';
-import {SkyRig} from '../src/engine/world/skyRig';
-import {modelContext} from '../src/engine/models/model';
-import {Rng} from '../src/engine/core/rng';
-import {Scope} from '../src/engine/app/scope';
+import {SkyRig} from '../src/engine/client/world/skyRig';
+import {modelContext} from '../src/engine/client/models/model';
+import {Rng} from '../src/engine/shared/core/rng';
+import {Scope} from '../src/engine/shared/app/scope';
 import {entryDeckSpecimen,entryDeckFiles} from '../src/shards/driftwood-isle/generators/entryDeckSpecimen';
 import {entryDeckGeometries} from '../src/shards/driftwood-isle/generators/entryDeckGeometry';
-import {prepareSpecimenCatalogue,defineSpecimenCatalogue} from '../src/game/models/specimenCatalogue';
+import {prepareSpecimenCatalogue,defineSpecimenCatalogue} from '../src/game/client/models/specimenCatalogue';
 import {driftwoodModelCatalogue} from './fixtures/driftwoodModelCatalogue';
 
 test('the unplaced shrine retains its explicit demand policy',async()=>{

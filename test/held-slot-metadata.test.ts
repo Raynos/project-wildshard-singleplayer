@@ -1,17 +1,17 @@
 import {afterEach,expect,test,vi} from 'vitest';
-import {HeldClaims} from '../src/game/loadout/claims';
-import {prepareHeldClaimsEntry,installHeldClaimsEntry} from '../src/game/shardfile/heldClaimsEntry';
-import {entryOwner} from '../src/game/shardfile/entryOwners';
-import {CLIENT_FEATURES} from '../src/game/shardfile/clientPlan';
-import {Scope} from '../src/engine/app/scope';
-import type {ShardContext} from '../src/game/plugin/context';
-import type {ShardRuntime} from '../src/game/shard/runtime';
-import {createShardProduct} from '../src/game/shardfile/shardProduct';
+import {HeldClaims} from '../src/game/client/loadout/claims';
+import {prepareHeldClaimsEntry,installHeldClaimsEntry} from '../src/game/client/shardfile/heldClaimsEntry';
+import {entryOwner} from '../src/game/client/shardfile/entryOwners';
+import {CLIENT_FEATURES} from '../src/game/client/shardfile/clientPlan';
+import {Scope} from '../src/engine/shared/app/scope';
+import type {ShardContext} from '../src/game/server/plugin/context';
+import type {ShardRuntime} from '../src/game/server/shard/runtime';
+import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
 import {parseItems} from '@wildshard/format/items';
 import {parseHeldSlots} from '@wildshard/format/heldArms';
 import {registeredJsonSchema} from '../src/sdk/formatJsonSchema';
-import * as geometry from '../src/game/plugin/geometry';
+import * as geometry from '../src/game/client/plugin/geometry';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import items from '../src/shards/nalati-grasslands/data/items.json' with {type:'json'};
 

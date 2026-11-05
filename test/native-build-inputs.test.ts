@@ -8,7 +8,7 @@ import { nativeBuildNeeded } from '../scripts/native-build-inputs.mjs';
 test('native entry, HTML transform and toolchain changes retain the native bundle check', () => {
   for (const path of ['index.html', 'native.html', 'native-unavailable.html', 'scripts/native-page.mjs', 'scripts/build-app.mjs',
     'scripts/app-build/versionFiles.ts', 'vite.config.ts', 'vite/rapier.ts', 'src/native.ts',
-    'src/engine/native/ota.ts', 'src/pageServices.ts', 'src/main.ts', 'src/identity.ts',
+    'src/engine/client/native/ota.ts', 'src/pageServices.ts', 'src/main.ts', 'src/identity.ts',
     'capacitor.config.ts', 'package.json', 'pnpm-lock.yaml', 'tsconfig.engine.json',
     '.github/workflows/deploy.yml', 'scripts/native-build-inputs.mjs']) {
     expect(nativeBuildNeeded([path]), path).toBe(true);
@@ -16,7 +16,7 @@ test('native entry, HTML transform and toolchain changes retain the native bundl
 });
 
 test('ordinary game/data/test edits use their existing web checks, including deletion and unusual filenames', () => {
-  const paths = ['src/engine/player/Player.ts', 'src/shards/nalati-grasslands/data/rows.json',
+  const paths = ['src/engine/client/player/Player.ts', 'src/shards/nalati-grasslands/data/rows.json',
     'test/native-riding.test.ts', 'docs/native build.md', 'test/a\nnew line.test.ts'];
   expect(nativeBuildNeeded(paths)).toBe(false);
   expect(nativeBuildNeeded([])).toBe(false);

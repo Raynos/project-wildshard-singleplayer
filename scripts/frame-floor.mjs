@@ -45,7 +45,7 @@ import { TASK_CLOCK_SCRIPT } from './frame-floor-task-clock.mjs';
 import { startScriptProfile, startPrefixScriptProfile, startDriveWindowScriptProfile, STEADY_SCRIPT_WINDOW, STEADY_TIMELINE_WINDOW } from './frame-floor-script-profile.mjs';
 import { TimelineRecordingError, timelineLongFrames } from './frame-floor-webkit-timeline.mjs';
 import { createWebKitTimelineSession } from './frame-floor-timeline-session.ts';
-import { assessDrawBudget } from '../src/engine/core/drawBudget.ts';
+import { assessDrawBudget } from '../src/engine/client/core/drawBudget.ts';
 import { frameFloorDrawReport, frameFloorDrawMarkdown, frameFloorDrawConsole, writeFrameFloorDrawReport } from './frame-floor-draw-report.mjs';
 import { BUFFER_PRESSURE_SCRIPT } from './frame-floor-buffer-pressure.mjs';
 import { ABLATION_NORMAL, ablationPhases, refreshAblationInspector } from './frame-floor-pause-ablation.mjs';
@@ -155,7 +155,7 @@ const texturesPin = flag('textures', '');
 if (!['', 'ktx2', 'img'].includes(texturesPin)) throw new Error('--textures=ktx2|img');
 const ktx2ProbePin = flag('ktx2-probe', '');
 if (!['', 'skip'].includes(ktx2ProbePin)) throw new Error('--ktx2-probe=skip');
-// G717 A diagnostic: `--entry-settle` pins the phone entry's program settle (game/session/settlePrograms.ts) until it ships
+// G717 A diagnostic: `--entry-settle` pins the phone entry's program settle (game/client/session/settlePrograms.ts) until it ships
 const entrySettle = args.includes('--entry-settle');
 const HARNESS_PINS = JSON.stringify({ seed: 357, capture: null, ...(texturesPin === '' ? {} : { textures: texturesPin }), ...(ktx2ProbePin === '' ? {} : { ktx2Probe: ktx2ProbePin }), ...(entrySettle ? { entrySettle: true } : {}) });
 // Optional bounded clock/ring reads, without wrapping rAF or changing the frame gate.
@@ -273,7 +273,7 @@ function printVerdict(record) {
 // All browser-side helpers execute identically in Chromium and Mobile Safari, with real time and live gameplay.
 function status() {
   const w = window.__wildshard?.world;
-  // A boot failure renders the shell's load-failure screen (src/engine/ui/errorScreen.ts) without a game: fail fast with its message.
+  // A boot failure renders the shell's load-failure screen (src/engine/client/ui/errorScreen.ts) without a game: fail fast with its message.
   const failure = document.querySelector('.ws-load-error');
   return { ready: Boolean(w?.game && !document.querySelector('.ws-load')), error: document.querySelector('#wserr .msg')?.textContent ?? (failure ? `Load failure: ${[...failure.querySelectorAll('h1,p')].map(node => node.textContent).join(' — ')}` : undefined),
     level: w?.game.level.id, clock: w?.game.app.clock.mode, entered: w?.hud?.entered };

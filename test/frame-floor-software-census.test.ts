@@ -2,7 +2,7 @@ import {expect, test} from 'vitest';
 import {frameFloorSoftwareCensus} from '../scripts/frame-floor-args.mjs';
 import {frameFloorDrawReport, frameFloorDrawMarkdown, frameFloorDrawConsole, type FloorDrawRecord} from '../scripts/frame-floor-draw-report.mjs';
 import {assertFrameFloorRenderer} from '../scripts/frame-floor-report-phase.mjs';
-import {assessDrawBudget} from '../src/engine/core/drawBudget';
+import {assessDrawBudget} from '../src/engine/client/core/drawBudget';
 import {gridFloorRuntimeFailure} from '../scripts/frame-floor-grid.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Execute the maintained controller without a browser/build.
 import {readFileSync} from 'node:fs';

@@ -1,8 +1,8 @@
-import {Scope} from '../src/engine/app/scope';
+import {Scope} from '../src/engine/shared/app/scope';
 import {lendNalatiRiding,ridingWitnessBytes} from './fixtures/nalati-return-modules';
 import { expect, test } from 'vitest';
-import { DecisionModule } from '../src/engine/script/decisionModule';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+import { DecisionModule } from '../src/engine/shared/script/decisionModule';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { NALATI_RIDING_PROGRAMS as programs } from './fixtures/nalati-riding';
 
 // iOS JSC runs a synchronous full GC for each new WebAssembly.Memory past its fast-memory cap (40-80 ms per return

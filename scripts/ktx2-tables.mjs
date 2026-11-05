@@ -91,7 +91,7 @@ export function splitKtx2(map, shards) {
 export function writeKtx2Tables(root, map, shards) {
   for (const [slug, table] of splitKtx2(map, shards)) {
     if (slug !== 'engine' && Object.keys(table.phone).length + Object.keys(table.desktop).length === 0) continue;
-    const out = resolve(root, slug === 'engine' ? 'src/engine/boot/ktx2.generated.ts' : `src/shards/${slug}/ktx2.generated.ts`);
+    const out = resolve(root, slug === 'engine' ? 'src/engine/client/boot/ktx2.generated.ts' : `src/shards/${slug}/ktx2.generated.ts`);
     if (slug === 'engine') {
       const input = resolve(root, ENGINE_INPUT), body = `${JSON.stringify(orderedTable(table), null, 2)}\n`;
       mkdirSync(dirname(input), { recursive: true });

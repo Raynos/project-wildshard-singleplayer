@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { describe, expect, test } from 'vitest';
-import { HOST_MOTION, PAGE_MOTION, stepPlayerMotion, type MotionLaw, type MotionWorld, type PlayerMotionState } from '../src/engine/player/motion';
+import { HOST_MOTION, PAGE_MOTION, stepPlayerMotion, type MotionLaw, type MotionWorld, type PlayerMotionState } from '../src/engine/shared/player/motion';
 
 // P1-E4.1: one step, two laws. Each row of MotionLaw is a difference the two callers really have, kept on purpose until
 // E5.3 converges it. These pin what a row does, so one cannot disappear without someone choosing that.

@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- Use the admitted repository physics bytes.
 import {readFileSync} from 'node:fs';
 import * as v from 'valibot';
-import {loadRapier} from '../../../src/engine/physics/rapier';
-import {snapshotSimHost,serializeSimSnapshot} from '../../../src/engine/sim/snapshot';
+import {loadRapier} from '../../../src/engine/shared/physics/rapier';
+import {snapshotSimHost,serializeSimSnapshot} from '../../../src/engine/shared/sim/snapshot';
 import {runTrustedHeadlessTape} from '../../../src/sdk/headlessTape';
 import {StealthRowsSchema} from '@wildshard/format/stealth';
 import type {HeadlessCommand,HeadlessEffect} from '../../../src/sdk/tickProtocol';

@@ -1,8 +1,8 @@
 // SF72 navmesh oracle, plain Node (scripts/sim-node-loader.mjs refuses any renderer module): every shard's baked
-// navmesh.bin read from disk, parsed by the renderer-free src/engine/physics/navmesh.ts and asked the recorded queries.
+// navmesh.bin read from disk, parsed by the renderer-free src/engine/shared/physics/navmesh.ts and asked the recorded queries.
 import { readFileSync } from 'node:fs';
 import { isDeepStrictEqual } from 'node:util';
-import { parseNavmesh } from '../../../src/engine/physics/navmesh';
+import { parseNavmesh } from '../../../src/engine/shared/physics/navmesh';
 import { ORACLE_SHARDS, oracleQueries } from './queries';
 
 const recorded = JSON.parse(readFileSync(new URL('./source.json', import.meta.url), 'utf8')).shards;

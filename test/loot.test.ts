@@ -1,8 +1,8 @@
 // G496 restores the corrupt-save coin regression removed in 819a36b8d.
 import { describe, expect, it } from 'vitest';
-import { SaveStore } from '../src/engine/saves/store';
-import { Purse } from '../src/game/loot/Purse';
-import { purseKey } from '../src/game/localSaveKeys';
+import { SaveStore } from '../src/engine/shared/saves/store';
+import { Purse } from '../src/game/server/loot/Purse';
+import { purseKey } from '../src/game/shared/localSaveKeys';
 import { MemoryStorage } from './setup';
 
 const DRIFT = 'chunk://local/driftwood-isle';

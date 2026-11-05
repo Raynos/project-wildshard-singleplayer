@@ -13,7 +13,7 @@ const write=(file,value)=>{const path=resolve(root,file);mkdirSync(dirname(path)
 beforeEach(()=>{
  mkdirSync('tmp',{recursive:true});root=mkdtempSync(resolve('tmp/open-plot-template-test-'));
  const reference='art/test/template-reference.svg';
- for(const file of ['.gitignore','src/shards/open-plots/outputs.json','src/game/grid/singleplayer.json','src/shards/open-plots/data/map.json','src/shards/open-plots/data/source.json','src/shards/open-plots/data/layouts/night-market.json','scripts/source-generation-outputs.json','scripts/test-products.json','lint/tile-bake-debt.json']){
+ for(const file of ['.gitignore','src/shards/open-plots/outputs.json','src/game/shared/grid/singleplayer.json','src/shards/open-plots/data/map.json','src/shards/open-plots/data/source.json','src/shards/open-plots/data/layouts/night-market.json','scripts/source-generation-outputs.json','scripts/test-products.json','lint/tile-bake-debt.json']){
   const target=resolve(root,file);mkdirSync(dirname(target),{recursive:true});copyFileSync(file,target);
  }
  // CI intentionally excludes repository art. Own a real reference image and use the maintained exact camera fixtures.
@@ -23,8 +23,8 @@ beforeEach(()=>{
   const target=resolve(root,`art/grid/round-63-night-market-domes/${dome}/cameras.json`);
   mkdirSync(dirname(target),{recursive:true});copyFileSync(`test/fixtures/night-market-domes/${dome}.json`,target);
  }
- const grid=read('src/game/grid/singleplayer.json');for(const row of grid.grid.cells)if(row.slug==='open-plot-showcase-template')row.slug='open-plot-test-template';
- for(const row of grid.placements)if(row.slug==='open-plot-showcase-template')row.slug='open-plot-test-template';write('src/game/grid/singleplayer.json',grid);
+ const grid=read('src/game/shared/grid/singleplayer.json');for(const row of grid.grid.cells)if(row.slug==='open-plot-showcase-template')row.slug='open-plot-test-template';
+ for(const row of grid.placements)if(row.slug==='open-plot-showcase-template')row.slug='open-plot-test-template';write('src/game/shared/grid/singleplayer.json',grid);
  const declared=read('src/shards/open-plots/outputs.json'),row=declared.outputs.find(value=>value.slug==='open-plot-showcase-template');if(row===undefined)throw new Error('Missing fixture seed');
  row.slug='open-plot-test-template';row.idea='test-template';delete row.layout;delete row.scaffold;write('src/shards/open-plots/outputs.json',declared);
  recipe={slug:row.slug,name:'Test Template',accent:'tangerine',plot:'scaffold',reference,palette:read('src/shards/open-plots/data/layouts/night-market.json').palette,kit:['trees','props','lanterns']};
@@ -92,11 +92,11 @@ test('a new idea cannot silently replace an already unique plot',()=>{
 });
 
 test('an explicitly named new-idea swap writes complete declarations and keeps 25 unique cells',()=>{
- const grid=read('src/game/grid/singleplayer.json'),cell=grid.grid.cells.find(row=>row.slug.startsWith('open-plot-'));
+ const grid=read('src/game/shared/grid/singleplayer.json'),cell=grid.grid.cells.find(row=>row.slug.startsWith('open-plot-'));
  if(cell===undefined)throw new Error('Missing plot fixture');
  const proposal=plotTemplate(root,{...recipe,slug:'open-plot-new-idea',cell:cell.cell,replaces:cell.slug});
  expect(proposal.activated).toBe(true);
- const after=JSON.parse(proposal.paths.get('src/game/grid/singleplayer.json'));
+ const after=JSON.parse(proposal.paths.get('src/game/shared/grid/singleplayer.json'));
  expect(new Set(after.grid.cells.map(row=>row.slug)).size).toBe(25);
  expect(after.grid.cells.find(row=>row.instance===cell.instance).slug).toBe('open-plot-new-idea');
  expect(proposal.paths.has('scripts/source-generation-outputs.json')).toBe(true);

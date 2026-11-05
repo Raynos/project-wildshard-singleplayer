@@ -2,12 +2,12 @@ import { originalHeldMetadata } from './fixtures/nalati-held-original';
 import { NALATI_RIDING_PROGRAMS } from './fixtures/nalati-riding';
 import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
-import { Scope } from '../src/engine/app/scope';
-import { FixedMemory } from '../src/engine/script/fixedMemory';
-import { ScriptModuleV2, prepareScriptMemory, scriptMemoryCensus } from '../src/engine/script/moduleV2';
-import { ReturnProgram } from '../src/game/population/returnProgram';
+import { Scope } from '../src/engine/shared/app/scope';
+import { FixedMemory } from '../src/engine/shared/script/fixedMemory';
+import { ScriptModuleV2, prepareScriptMemory, scriptMemoryCensus } from '../src/engine/shared/script/moduleV2';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
-import { Rng } from '../src/engine/core/rng';
+import { Rng } from '../src/engine/shared/core/rng';
 import { admission, lendNalatiTitan } from './fixtures/nalati-return-modules';
 import { titanRawPrograms, titanPrograms, titanModuleBytes } from './fixtures/titanInlineWitness';
 

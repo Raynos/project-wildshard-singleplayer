@@ -6,7 +6,7 @@ import { hashImmutableBytes } from '../src/sdk/immutable';
 import { readNativeTerrain } from '../src/sdk/bake/terrain';
 import { buildPainterlyGeometry, buildPainterlySlab } from '../src/shards/nalati-grasslands/generators/terrainPainter';
 import { TERRAIN_PAINT_SOURCE } from '../src/shards/nalati-grasslands/generators/nalatiGroundSource';
-import { CHUNK_SIZE, CHUNK_DEPTH, TERRAIN_RES } from '../src/engine/core/config';
+import { CHUNK_SIZE, CHUNK_DEPTH, TERRAIN_RES } from '../src/engine/shared/core/config';
 import original from './fixtures/nalati-painter-inputs.json' with { type: 'json' };
 import { terrainSceneBlobs } from '../src/shards/nalati-grasslands/generators/terrainScene';
 

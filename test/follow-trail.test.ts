@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { BufferAttribute, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Vector2, Vector3, Scene } from 'three';
-import { SlashTrail } from '../src/engine/combat/view/slashTrail';
-import { RangedTrace } from '../src/engine/render/viewmodelFeel';
+import { SlashTrail } from '../src/engine/client/combat/view/slashTrail';
+import { RangedTrace } from '../src/engine/client/render/viewmodelFeel';
 import { parse } from 'valibot';
 import { FollowTrailSamplingSchema } from '@wildshard/format/trail';
 

@@ -1,8 +1,8 @@
 import * as v from 'valibot';
 import {SpeciesActorsFileSchema} from '@wildshard/format/speciesBookRows';
 import {nativeBodySchema} from '@wildshard/format/nativePhysics';
-import {variantMods} from '../../src/engine/entities/species/registry';
-import type {ShardProduct} from '../../src/game/shardfile/shardProduct';
+import {variantMods} from '../../src/engine/shared/entities/species/registry';
+import type {ShardProduct} from '../../src/game/shared/shardfile/shardProduct';
 import type {NalatiEncounterIntake} from './nalati-world';
 
 /** Additional encounter recipes come from the page's complete admitted book.

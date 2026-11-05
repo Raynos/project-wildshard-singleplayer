@@ -1,6 +1,6 @@
 import {expect,test,vi} from 'vitest';
-import {SceneDressing} from '../src/game/shardfile/sceneDressing';
-import type {ShardContext} from '../src/game/plugin/context';
+import {SceneDressing} from '../src/game/client/shardfile/sceneDressing';
+import type {ShardContext} from '../src/game/server/plugin/context';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 
 const row={attrs:[['position','f32',3,false]],count:1,index:null,indexCount:0,box:false,expand:false};

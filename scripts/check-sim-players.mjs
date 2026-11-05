@@ -33,7 +33,7 @@ function census(program) {
   for (const source of program.getSourceFiles()) {
     if (!source.fileName.startsWith(ROOT) || source.fileName.includes('/node_modules/')) continue;
     const path = source.fileName.slice(ROOT.length + 1);
-    if (isTest(path) || path === 'src/engine/sim/leadPlayer.ts') continue;
+    if (isTest(path) || path === 'src/engine/shared/sim/leadPlayer.ts') continue;
     /** @param {ts.Node} node */
     const visit = node => {
       /** @type {ts.Node | undefined} */ let name; /** @type {ts.Node | undefined} */ let base;

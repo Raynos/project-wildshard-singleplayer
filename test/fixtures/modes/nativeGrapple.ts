@@ -9,7 +9,7 @@
  */
 import { Vector3 } from 'three';
 import { castRay, castSegment, floorBelow, lineOfSight } from '@wildshard/engine/physics/query';
-import type { GrapplePorts } from '../../../src/game/grapple/sim';
+import type { GrapplePorts } from '../../../src/game/shared/grapple/sim';
 import { WELL, Y0 } from '../../../src/shards/nine-dragon-stack/data/layoutPlan.json' with { type: 'json' };
 
 /** Frozen oracle shape; authored callbacks are not part of the native profile API. */

@@ -5,14 +5,14 @@ import { readFileSync } from 'node:fs';
 import { deepStrictEqual } from 'node:assert';
 import { expect, test } from 'vitest';
 import { PerspectiveCamera, Vector3 } from 'three';
-import { app } from '../src/engine/app/runtime';
-import { AimAssist } from '../src/engine/player/AimAssist';
+import { app } from '../src/engine/client/app/runtime';
+import { AimAssist } from '../src/engine/client/player/AimAssist';
 import { AimAssist as Before } from './fixtures/aim-assist-before';
-import type { AimTarget } from '../src/engine/player/AimTargets';
-import { Player } from '../src/engine/player/Player';
-import { Physics } from '../src/engine/physics/Physics';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { getSetting, setSetting } from '../src/engine/ui/Settings';
+import type { AimTarget } from '../src/engine/client/player/AimTargets';
+import { Player } from '../src/engine/client/player/Player';
+import { Physics } from '../src/engine/shared/physics/Physics';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { getSetting, setSetting } from '../src/engine/client/ui/Settings';
 
 test('every original aim winner, friction, snap, tracking and stale bearing stays exact', async () => {
   const R = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm'))), physics = new Physics(R);

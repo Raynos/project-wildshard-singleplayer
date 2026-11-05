@@ -1,5 +1,5 @@
 /**
- * The shipwreck (E306 / E315 M1, second pass: a model on the contract, src/engine/models/model.ts; it was built in
+ * The shipwreck (E306 / E315 M1, second pass: a model on the contract, src/engine/client/models/model.ts; it was built in
  * src/shards/driftwood-isle/world/Wreck.ts) — the two-master in Wreck Cove (Driftwood Isle, remaster M2 / D6): heeled toward the beach and
  * half sunk on the reef, stern in the water, bow run up the sand. Lapstrake hull planked strake by strake with the ribs
  * showing where the planks are stove in, a broken midships deck open to the sky, a leaning mainmast with a crow's nest,
@@ -640,7 +640,7 @@ export class ShipwreckBuilder {
   }
 
   /** PHYSICS P4: this builder's static collision in world space — its walls / posts (the legacy boxes) and every floor
-   *  `floorHeightAt` describes, as real geometry. src/engine/physics/pieces.ts turns it into Rapier colliders.
+   *  `floorHeightAt` describes, as real geometry. src/engine/shared/physics/pieces.ts turns it into Rapier colliders.
    *
    *  Every floor is a slab whose top lies in the plane `floorHeightAt` uses there (the pitched hold floor, the heeled
    *  bow / quarter decks, the hatch-cover ramp), over the same hull-aligned footprint: the hold one row per `floorW`

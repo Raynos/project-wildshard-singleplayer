@@ -1,16 +1,16 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The product and Rapier are shipped bytes.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
-import { NetClient } from '../src/engine/net/client';
-import { NetRoom } from '../src/engine/net/room';
-import { SimNetWorld } from '../src/engine/net/simWorld';
-import { questBooks } from '../src/engine/quest/players';
-import { QuestReplica } from '../src/engine/quest/view/replica';
+import { NetClient } from '../src/engine/client/net/client';
+import { NetRoom } from '../src/engine/server/net/room';
+import { SimNetWorld } from '../src/engine/server/net/simWorld';
+import { questBooks } from '../src/engine/server/quest/players';
+import { QuestReplica } from '../src/engine/client/quest/view/replica';
 import { directLoopback, type DirectLoopback } from '../src/engine/test/netLoopback';
-import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
-import { leadPlayer } from '../src/engine/sim/leadPlayer';
-import { snapshotSimHost } from '../src/engine/sim/snapshot';
-import { outputDescriptor } from '../src/game/shardfile/outputDescriptor';
+import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
+import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
+import { snapshotSimHost } from '../src/engine/shared/sim/snapshot';
+import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { createTrustedHeadlessResident, type TrustedHeadlessResident } from '../src/sdk/headlessRuntime';
 import { builtProduct } from './fixtures/builtProduct';

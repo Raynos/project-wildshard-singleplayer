@@ -7,7 +7,7 @@ import { nameBlob } from '@wildshard/sdk/blobs';
 import { validateDefinedJson } from '@wildshard/sdk/sections';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { createShardProduct, type ShardProductInput } from '@wildshard/game/shardfile/shardProduct';
-import { validateNamedJsonSchema } from '../src/game/shardfile/customSchema';
+import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSchema';
 
 const name = 'quests/services.json';
 const good = { version: 1, actions: [{ id: 'hello', effects: [{ kind: 'toast', text: 'Hello' }] }] };

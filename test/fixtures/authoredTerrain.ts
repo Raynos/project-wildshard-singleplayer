@@ -1,4 +1,4 @@
-import { buildTerrain } from '../../src/engine/world/terrainField';
+import { buildTerrain } from '../../src/engine/shared/world/terrainField';
 
 /** Independent analytic world for engine regression tests; the template now supplies baked data after admission. */
 export const AUTHORED_TERRAIN = buildTerrain(357, {

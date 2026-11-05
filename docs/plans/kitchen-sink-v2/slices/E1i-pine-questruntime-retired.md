@@ -15,14 +15,14 @@ Research (what is left after E1h):
 | Key | Bytes | What it is | Target |
 |---|---|---|---|
 | `content.chapters` | 2,690 | Pine's chapter list | the declared quest rows (W1b, E1g) |
-| `lead` + `leadPage` | 2,663 | a guide that walks ahead on a path (`first`, `near`, `past`, `gone`, `nightAbove`, `trot`, an AS `program`) | the merged breadcrumb guide (W20, `engine/quest/view.ts`, `game/quest/chapterDirector.ts`) |
+| `lead` + `leadPage` | 2,663 | a guide that walks ahead on a path (`first`, `near`, `past`, `gone`, `nightAbove`, `trot`, an AS `program`) | the merged breadcrumb guide (W20, `engine/client/quest/view.ts`, `game/server/quest/chapterDirector.ts`) |
 | `spawns`, `deaths`, `pageDeaths`, `events` | ~2,000 | quest-driven spawns (a channel, cues, a limit, a script) and death hooks | director stage rows (E11a's host) or quest step effects (`QuestEffectSchema`, `src/format/questSteps.ts`) |
 | `steps`, `policy` | ~450 | the step guard list and the reading delay | quest rows |
 
 Work: move each to its platform row; where Pine needs logic (the lead's night rule, the spawn limit), it is an AS script
 on the WASM host (the module cap is raised in W0e); delete `custom/questRuntime`, its entry in
 `lint/custom-sections.json`, its schema in Pine's `generators/sectionSchemas.ts` and its reader in
-`src/game/plugin/simulation.ts`.
+`src/game/server/plugin/simulation.ts`.
 
 Host bar: no new host; the breadcrumb guide gains its second user. Guards: the custom-section freeze (Pine's last custom
 quest section gone), `shard-game-plugins`, ratchet. Tests: as E1h, plus `test/chapter-director-product.test.ts`,

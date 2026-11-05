@@ -1,8 +1,8 @@
 import { installKitWorldFixture } from './kit-world';
-import { registerSpecies } from '../../src/engine/entities/species/registry';
-import { speciesWithLook } from '../../src/engine/entities/species/look';
-import { HullLookBook } from '../../src/game/looks/speciesBook';
-import { numericCreaturePose } from '../../src/game/plugin/channelPrograms';
+import { registerSpecies } from '../../src/engine/shared/entities/species/registry';
+import { speciesWithLook } from '../../src/engine/client/entities/species/look';
+import { HullLookBook } from '../../src/game/client/looks/speciesBook';
+import { numericCreaturePose } from '../../src/game/server/plugin/channelPrograms';
 import { PINE_BOAR } from '../../src/shards/pine-hollow/generators/speciesRows';
 import { SPECIES_LOOKS } from '../../src/shards/pine-hollow/generators/nativeView';
 import { THRALL_CLIPS } from '../../src/shards/pine-hollow/generators/thrallClips';

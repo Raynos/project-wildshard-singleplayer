@@ -1,18 +1,18 @@
 import {expect,test,vi} from 'vitest';
-import {Scope} from '../src/engine/app/scope';
-import {Flags} from '../src/engine/world/interact/flags';
-import {Owned} from '../src/game/loot/Owned';
-import {Purse} from '../src/game/loot/Purse';
-import {enteredLootPresentation} from '../src/game/loot/runtime';
-import type {ShardContext} from '../src/game/plugin/context';
-import type {ShardRuntime} from '../src/game/shard/runtime';
-import {createShardProduct} from '../src/game/shardfile/shardProduct';
+import {Scope} from '../src/engine/shared/app/scope';
+import {Flags} from '../src/engine/server/world/interact/flags';
+import {Owned} from '../src/game/server/loot/Owned';
+import {Purse} from '../src/game/server/loot/Purse';
+import {enteredLootPresentation} from '../src/game/server/loot/runtime';
+import type {ShardContext} from '../src/game/server/plugin/context';
+import type {ShardRuntime} from '../src/game/server/shard/runtime';
+import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';
 import {emptyShardfile} from '../src/sdk/author';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import inkRows from '../src/shards/ink-cel-valley/data/rows.json' with {type:'json'};
 import {parseRows} from '@wildshard/format/rows';
 import {parseLootEconomy} from '@wildshard/format/lootEconomy';
-import {declaredLootEconomy} from '../src/game/shard/declaredRows';
+import {declaredLootEconomy} from '../src/game/server/shard/declaredRows';
 import {fixtureLootPresentation} from './fixtures/loot-page';
 import { DRIFTWOOD_LOOT as LOOT } from '../src/shards/driftwood-isle/generators/loot';
 

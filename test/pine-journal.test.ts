@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
-import { CompendiumRules } from '../src/game/compendium/rules';
+import { CompendiumRules } from '../src/game/shared/compendium/rules';
 import * as v from 'valibot';
 import { JournalRowSchema } from '@wildshard/format/compendiumRows';
-import { declaredCompendium } from '../src/game/shard/declaredRows';
+import { declaredCompendium } from '../src/game/server/shard/declaredRows';
 import { emptyShardfile } from '../src/sdk/author';
 import { PINE_JOURNAL as journalRows } from './fixtures/pine-program';
 

@@ -1,5 +1,5 @@
-import { installAppIdentity } from '../../src/engine/app/identity';
-import { WILDSHARD_IDENTITY } from '../../src/game/identity';
+import { installAppIdentity } from '../../src/engine/shared/app/identity';
+import { WILDSHARD_IDENTITY } from '../../src/game/client/identity';
 
 /**
  * G386: a test's texture pin, as a capture's init script sets `window.__wildshardHarness.textures` before the boot (the

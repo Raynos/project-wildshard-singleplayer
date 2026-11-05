@@ -1,8 +1,8 @@
 import { expect, test, vi } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the actual shipped native physics owner.
 import { readFileSync } from 'node:fs';
-import { createSimHost } from '../src/engine/sim';
-import { loadRapier } from '../src/engine/physics/rapier';
+import { createSimHost } from '../src/engine/server/sim';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 const rapier = loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')));

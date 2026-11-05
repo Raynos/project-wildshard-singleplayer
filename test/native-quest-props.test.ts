@@ -1,10 +1,10 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Native prop ownership exercises the shipped physics binary.
 import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
-import { loadRapier } from '../src/engine/physics/rapier';
-import { addPiece } from '../src/engine/physics/pieces';
-import { createSimHost } from '../src/engine/sim';
-import { NativeQuestProps } from '../src/game/quest/nativeProps';
+import { loadRapier } from '../src/engine/shared/physics/rapier';
+import { addPiece } from '../src/engine/shared/physics/pieces';
+import { createSimHost } from '../src/engine/server/sim';
+import { NativeQuestProps } from '../src/game/server/quest/nativeProps';
 import { NativeQuestPropsSchema } from '@wildshard/format/questInteractions';
 import { NATIVE_QUEST_PROPS } from '../src/shards/driftwood-isle/generators/nativeQuestProps';
 import * as v from 'valibot';

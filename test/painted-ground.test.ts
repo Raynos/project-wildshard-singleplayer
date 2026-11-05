@@ -1,13 +1,13 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, test, vi } from 'vitest';
 import { BufferAttribute, Matrix4, MeshLambertMaterial, Texture, Vector3, Vector4 } from 'three';
-import { Terrain } from '../src/engine/world/Terrain';
-import type { PainterField } from '../src/engine/render/look';
-import { Scope } from '../src/engine/app/scope';
-import { paintedGroundPainter } from '../src/game/looks/painterlyLook';
-import * as specimens from '../src/game/models/specimenCatalogue';
-import * as runtimeProducts from '../src/game/shardfile/runtimeProduct';
-import type { ShardProduct } from '../src/game/shardfile/shardProduct';
+import { Terrain } from '../src/engine/client/world/Terrain';
+import type { PainterField } from '../src/engine/client/render/look';
+import { Scope } from '../src/engine/shared/app/scope';
+import { paintedGroundPainter } from '../src/game/client/looks/painterlyLook';
+import * as specimens from '../src/game/client/models/specimenCatalogue';
+import * as runtimeProducts from '../src/game/client/shardfile/runtimeProduct';
+import type { ShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import slate from '../src/shards/far-reach/data/rocSlate.json' with { type: 'json' };
 
 // A made-up reed marsh (the painted ground's fixture second user): two tile layers, its own colour graph, ground and bank.

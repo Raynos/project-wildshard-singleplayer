@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Decode the original Places fixture, never a runtime fallback.
 import { inflateSync } from 'node:zlib';
 import { prepareAssetDecoders } from '@wildshard/format/product';
-import { unshuffleLanes } from '../../src/engine/core/deflate';
+import { unshuffleLanes } from '../../src/engine/client/core/deflate';
 import { originalPlaceBinary } from './nalati-original-place-binary';
 
 /** The room upload tests need original shapes, without a world or species catalogue. */
