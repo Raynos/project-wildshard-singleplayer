@@ -193,7 +193,8 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   scope.onDispose(client.onTravel(() => { firstTick = -1; ticksFrom = diagnosticNow(); }));
   system({ id: 'proof.worker.reconcile', phase: 'input', run: () => { const at = diagnosticNow(); net.reconcile(); cost = diagnosticNow() - at; } });
   system({ id: 'proof.worker.present', phase: 'update', run: dt => {
-    const at = diagnosticNow(), animals = grid === null ? ports.animals : grid.animals();
+    // A page still crossing stands in another world than the frames: those rows aren't its manager's to spawn.
+    const at = diagnosticNow(), here = client.latest === null || net.inCell(client.latest.cell), animals = !here ? null : grid === null ? ports.animals : grid.animals();
     renderTick = client.present();
     const entered = grid?.items() ?? items;
     if (entered !== items) { items = entered; net.bindSlots(slotsOf(items)); }

@@ -16,7 +16,7 @@ const failures = [];
 try {
   const context = await browser.newContext(phone), page = await context.newPage(), errors = [];
   page.on('pageerror', error => { errors.push(error.message); console.log('[error]', (error.stack ?? error.message).slice(0, 400)); });
-  page.on('console', line => { if (/worker client|Standalone|save refused/iu.test(line.text())) console.log('[page]', line.text().slice(0, 240)); });
+  page.on('console', line => { if (line.type() === 'error' || /worker client|Standalone|save refused/iu.test(line.text())) console.log('[page]', line.text().slice(0, 240)); });
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
   await saveFixture(context, { scope: 'device', key: 'debug.workerClient', data: 'on' });
   // A one-shard page: its player walks to the wall and stays on the wire, and the world never changes.
@@ -78,7 +78,8 @@ try {
   if (!stood.savedOk) failures.push('the save was not durable');
   await enter();
   await page.waitForFunction(cell => { const report = window.__workerClient(); return report.cell === cell && report.frames > 30; }, stood.cell, { timeout: 60_000 }).catch(() => { failures.push(`the reload did not resume cell ${stood.cell}`); });
-  const back = await page.evaluate(() => ({ report: window.__workerClient(), current: window.__wildshard.shard.grid.state().live.live.current }));
+  const back = await page.evaluate(() => ({ report: window.__workerClient(), current: window.__wildshard.shard.grid.state().live.live.current, state: window.__wildshard.world.game.app.state, frame: window.__wildshard.world.game.frameCount, phase: window.__wildshard.shard.grid.state().live.crossing.phase, text: document.body.textContent.slice(0, 200) }));
+  console.log(JSON.stringify({ back: { state: back.state, frame: back.frame, phase: back.phase, text: back.text, cell: back.report.cell, frames: back.report.frames, restored: back.report.restored, closed: back.report.closed, x: back.report.x, z: back.report.z, serverX: back.report.serverX, serverZ: back.report.serverZ, page: back.current } }));
   if (!back.report.restored) failures.push('the reload did not restore');
   if (Math.hypot(back.report.serverX - stood.serverX, back.report.serverZ - stood.serverZ) > 3) failures.push('the reload moved the player');
   // The same boot with no link. The bench URL turns the service worker off, so first play under it: twice, since a first visit installs it and only a controlled one fills it.
@@ -86,7 +87,7 @@ try {
   await enter(played);
   await page.evaluate(() => navigator.serviceWorker.ready);
   await enter(played);
-  await page.waitForFunction(() => window.__workerClient().frames > 30, undefined, { timeout: 60_000 });
+  await page.waitForFunction(() => window.__workerClient().frames > 30, undefined, { timeout: 60_000 }).catch(() => { failures.push('the played boot did not start'); });
   await page.evaluate(() => window.__workerClientSave());
   await context.setOffline(true);
   const reach = await page.evaluate(() => fetch(`/version.json?${Date.now()}`).then(() => true, () => false));
