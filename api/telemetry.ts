@@ -72,9 +72,15 @@ export function buildRates(records: readonly TelemetryRecord[], n: number): { bu
 }
 export function dailyDigest(records: readonly TelemetryRecord[]): Record<string, unknown> {
   const counts: Record<string, Record<string, number>> = {}, times = new Map<string, number[]>();
+  // DL20 (sp-x6's review of be2df44ec8): a download outcome is delivered at least once, so each id counts once a digest, and the
+  // id stays out of the bucket key (it would make every boot its own bucket); a replay across midnight still counts twice
+  const outcomes = new Set<string>();
   for (const record of records) for (const event of record.events ?? []) {
     if (event.name === 'shard.time') { const shard = String(event.data['shard']); const values = times.get(shard) ?? []; values.push(Number(event.data['seconds'])); times.set(shard, values); continue; }
-    const key = Object.values(event.data).join(' / '), values = counts[event.name] ?? {}; values[key] = (values[key] ?? 0) + 1; counts[event.name] = values;
+    const id = event.name === 'download.parts' ? event.data['id'] : undefined;
+    if (typeof id === 'string') { if (outcomes.has(id)) continue; outcomes.add(id); }
+    const key = Object.entries(event.data).filter(([name]) => id === undefined || name !== 'id').map(([, value]) => value).join(' / ');
+    const values = counts[event.name] ?? {}; values[key] = (values[key] ?? 0) + 1; counts[event.name] = values;
   }
   return { counts, shardTime: Object.fromEntries([...times].map(([shard, values]) => { const sorted = values.toSorted((a, b) => a - b), middle = Math.floor(sorted.length / 2); return [shard, { samples: sorted.length, median: sorted.length % 2 === 0 ? ((sorted[middle - 1] ?? 0) + (sorted[middle] ?? 0)) / 2 : sorted[middle] ?? 0 }]; })) };
 }
