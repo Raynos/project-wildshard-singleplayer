@@ -3,7 +3,7 @@ import { nalatiNativeAssembly } from '../../fixtures/nalati-native-assembly';
 import assert from 'node:assert/strict';
 import * as v from 'valibot';
 import {Vector3,PerspectiveCamera} from 'three';
-import {HeadlessCloudBody} from '../../../src/sdk/headlessCloudBody';
+import {HeadlessCloudBody} from '../../../src/game/server/boss/headlessCloudBody';
 import {HeldBowFileSchema} from '@wildshard/format/weaponProfiles';
 import {WeatherWorldSchema,WindStateSchema} from '@wildshard/format/weatherProgram';
 import {heldBowBase} from '../../../src/game/shared/weapons/heldBowBase';

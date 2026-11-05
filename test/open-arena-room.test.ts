@@ -8,13 +8,13 @@ import { silentBossPresentation } from '../src/engine/server/ai/phases';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
 import { createSimHost, type SimCommand, type SimHost } from '../src/engine/server/sim';
 import type { PlayerSim } from '../src/engine/server/sim/playerSim';
-import { OpenArenaFight } from '../src/game/shared/boss/openArenaFight';
+import { OpenArenaFight, type ArenaDraw } from '../src/game/shared/boss/openArenaFight';
 import { OpenArenaRoom } from '../src/game/server/boss/openArenaRoom';
 import fireView from '../src/shards/nalati-grasslands/data/arenaFire.json' with { type: 'json' };
 import * as titan from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import { titanGeometryRows } from '../src/shards/nalati-grasslands/generators/stormTitanGeometry';
 import { lendNalatiPasture } from './fixtures/nalati-return-modules';
-import { openArenaNativeViews } from '../src/sdk/headlessArenaViews';
+import { openArenaNativeViews } from '../src/game/server/boss/headlessArenaViews';
 import { titanFightOwners } from './fixtures/titanFightOwners';
 import { titanPrograms as programs } from './fixtures/titanInlineWitness';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
@@ -31,7 +31,7 @@ function until(host: SimHost, done: () => boolean, limit = 2400): void {
   for (let i = 0; i < limit && !done(); i++) tick(host);
   expect(done()).toBe(true);
 }
-function room(extra = 1): { host: SimHost; lead: PlayerSim; bots: PlayerSim[]; arena: OpenArenaRoom; boss: BossBrain; fight: OpenArenaFight } {
+function room(extra = 1): { host: SimHost; lead: PlayerSim; bots: PlayerSim[]; arena: OpenArenaRoom; boss: BossBrain; fight: OpenArenaFight<ArenaDraw> } {
   const host = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier }), lead = [...host.players.values()][0];
   if (lead === undefined) throw new Error('No lead');
   lendNalatiPasture(host.scope);

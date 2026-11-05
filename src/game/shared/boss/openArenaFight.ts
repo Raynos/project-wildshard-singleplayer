@@ -13,7 +13,7 @@ import { ReturnProgram, ProjectedState, type ProjectedSnapshot } from '../popula
 import { installChannelPrograms } from '../plugin/channelPrograms';
 import { CellField, type CellFieldSnapshot } from '../systems/cellField';
 import { prepareV2WorldActions, type V2WorldActionLoan } from '../shardfile/worldActionsV2';
-import type { ViewTell } from '@wildshard/engine/script/viewProgram';
+import type { ViewCamera, ViewTell } from '@wildshard/engine/script/viewProgram';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import type { Mount } from '../../client/riding/mount';
 import type { ArenaBoundary } from '../../client/riding/client';
@@ -39,24 +39,29 @@ function freezeDeclaration(value: unknown): void {
   Object.freeze(value);
 }
 /** The fight's looks, as the parts it calls (the page passes its views; the Node simulation its own). */
-export type ArenaBodyPort = Pick<CloudBody, 'alpha' | 'flash' | 'fogColour' | 'part' | 'setVisible' | 'visible' | 'aim' | 'update' | 'focusWorld'>;
+export type ArenaBodyPort = Pick<CloudBody, 'alpha' | 'flash' | 'fogColour' | 'setVisible' | 'visible' | 'aim' | 'focusWorld'> & {
+  readonly part: (key: string) => { visible: boolean };
+  readonly update: (t: number, camera: ViewCamera) => void;
+};
+/** What the fight writes of an instanced draw: a page lends the mesh, a server this count. */
+export interface ArenaDraw { count: number }
 /** CI12: a ground tell as the fight draws it: what its view module (the spear, fork and chain rings) and its riders' lanes
  *  call. The page's tells are Elite's GroundTell; a native host's draw nothing. */
 export type ArenaTell = ViewTell;
 /** The arena's scene as the fight uses it (the page's ArenaSceneView). */
-export interface ArenaScenePort {
+export interface ArenaScenePort<D extends ArenaDraw = THREE.InstancedMesh> {
   readonly tell: (key: string, index?: number) => ArenaTell; readonly tells: (key: string) => readonly ArenaTell[];
-  readonly instances: ArenaSceneView['instances']; readonly mesh: ArenaSceneView['mesh']; readonly update: ArenaSceneView['update'];
+  readonly instances: (key: string) => D; readonly mesh: ArenaSceneView['mesh']; readonly update: ArenaSceneView['update'];
 }
-export type ArenaFirePort = Pick<ArenaFireView, 'update' | 'smoke' | 'flames'>;
+export type ArenaFirePort<D extends ArenaDraw = THREE.InstancedMesh> = Pick<ArenaFireView, 'update'> & { readonly smoke: D; readonly flames: D };
 export type ArenaWhirlsPort = Pick<ArenaWhirlsView, 'arm' | 'reset' | 'update' | 'bindView' | 'snapshot' | 'restore'>;
 /** Each look made once, in the fight's construction order: the body (over the fight's pose), the arena, its whirl funnels
  *  (over the arena, the wind law, the attack program and the level scope) and the fire. */
-export interface OpenArenaViews {
+export interface OpenArenaViews<D extends ArenaDraw = THREE.InstancedMesh> {
   readonly body: (pose: Readonly<Record<string, number>>) => ArenaBodyPort;
-  readonly arena: () => ArenaScenePort;
-  readonly whirls: (arena: ArenaScenePort, wind: ReturnProgram, author: ReturnProgram, scope: Scope) => ArenaWhirlsPort;
-  readonly fire: () => ArenaFirePort;
+  readonly arena: () => ArenaScenePort<D>;
+  readonly whirls: (arena: ArenaScenePort<D>, wind: ReturnProgram, author: ReturnProgram, scope: Scope) => ArenaWhirlsPort;
+  readonly fire: () => ArenaFirePort<D>;
   /** the whirlwind rows' admission against the attack program's bindings (ArenaWhirlsView.preflight), run in place */
   readonly whirlsPreflight: (rows: ArenaScriptData['whirls'], bindings: ReturnType<typeof ReturnProgram.projectionBindings>) => void;
 }
@@ -65,7 +70,7 @@ export interface OpenArenaViews {
  *  the page is the phone tier (the smoke's rate). */
 export interface OpenArenaFightWorld {
   readonly scope: Scope; readonly weather: Pick<WeatherReactions, 'stormActive' | 'flash' | 'raise'>; readonly tieSpot: THREE.Vector3 | null;
-  readonly ai: () => Rng; readonly fog: () => { readonly color: THREE.Color } | null; readonly camera: THREE.Camera;
+  readonly ai: () => Rng; readonly fog: () => { readonly color: THREE.Color } | null; readonly camera: ViewCamera;
   readonly wild: Pick<typeof wildEnv, 'trample' | 'onEvent'>; readonly phone: boolean;
   /** CI12: the ground's height and the steppe wind the fight reads (absent: the page's terrainHeight and steppe wind) */
   readonly ground?: (x: number, z: number) => number;
@@ -113,9 +118,9 @@ export interface OpenArenaFightSnapshot {
   readonly view: Readonly<Record<typeof POSE_CELLS[number], number>> | null;
 }
 /** The view half's reading of a fight (`OpenArenaFight.viewLoan`). */
-export interface OpenArenaViewLoan {
-  readonly arena: ArenaScenePort; readonly chains: readonly ArenaTell[]; readonly field: CellField; readonly groundAt: (x: number, z: number) => number;
-  readonly fire: ArenaFirePort; readonly scorch: THREE.InstancedMesh; readonly whirls: ArenaWhirlsPort; readonly phone: boolean;
+export interface OpenArenaViewLoan<D extends ArenaDraw = THREE.InstancedMesh> {
+  readonly arena: ArenaScenePort<D>; readonly chains: readonly ArenaTell[]; readonly field: CellField; readonly groundAt: (x: number, z: number) => number;
+  readonly fire: ArenaFirePort<D>; readonly scorch: D; readonly whirls: ArenaWhirlsPort; readonly phone: boolean;
   readonly smoke: readonly [number, number] | undefined; readonly wind: { readonly dirX: number; readonly dirZ: number; readonly speed: number };
   readonly burnt: Float32Array; readonly fireOn: () => boolean; readonly fireClear: () => boolean;
   readonly bindFire: (scope: Scope, frame: (dt: number, time: number) => boolean) => void;
@@ -126,7 +131,7 @@ const _openV = new THREE.Vector3(), _openRAY = new THREE.Ray(), _openSPH = new T
  *  whirlwinds, spear and chains, the heart as a target and its damage. Its looks are ports the page fills (the cloud body,
  *  the arena's tells and lanes, the fire, the scorch and the whirl funnels) and the Node simulation fills with its own;
  *  moved from the encounter unchanged, so the page fights the same numbers in the same order. */
-export class OpenArenaFight implements BossScript {
+export class OpenArenaFight<D extends ArenaDraw = THREE.InstancedMesh> implements BossScript {
   private readonly data: ArenaScriptData;
   readonly body: ArenaBodyPort;
   /** the body's pose, set by the fight and read by its channel rows */
@@ -149,10 +154,10 @@ export class OpenArenaFight implements BossScript {
   // phase III
   private readonly field: CellField;
   private fireOn = false;
-  private readonly fire: ArenaFirePort;
+  private readonly fire: ArenaFirePort<D>;
   /** the scorch decals' draw, the burnt-out cells not yet drawn, the frame's share of them, a reset the fire view has not
    *  seen yet, and the fire view's slot (R6: behaviour/titanFireView draws the flames, smoke and scorch) */
-  private readonly scorch: THREE.InstancedMesh;
+  private readonly scorch: D;
   private readonly burntQueue: number[] = [];
   private readonly burnt = new Float32Array(1 + ARENA_BURNT_PER_FRAME);
   private fireClear = false;
@@ -164,7 +169,7 @@ export class OpenArenaFight implements BossScript {
   private readonly clockRandom: Rng;
   private readonly whirls: ArenaWhirlsPort;
   // the seal
-  private readonly arena: ArenaScenePort;
+  private readonly arena: ArenaScenePort<D>;
   private get sealed(): boolean { return this.life.value('sealed')===1; }
   private hazardDt = 0;
   readonly boundary: ArenaBoundary;
@@ -180,7 +185,7 @@ export class OpenArenaFight implements BossScript {
   /** the ground's height and the wind the fight reads (OpenArenaFightWorld `ground` / `wind`, else the page's) */
   private readonly groundAt: (x: number, z: number) => number;
   private readonly windNow: { readonly dirX: number; readonly dirZ: number; readonly speed: number };
-  constructor(private readonly ctx: OpenArenaFightWorld, private readonly host: OpenArenaFightHost, data: ArenaScriptData, views: OpenArenaViews) {
+  constructor(private readonly ctx: OpenArenaFightWorld, private readonly host: OpenArenaFightHost, data: ArenaScriptData, views: OpenArenaViews<D>) {
     this.groundAt = ctx.ground ?? heightAt; this.windNow = ctx.wind ?? wind;
     this.clockRandom=ctx.ai();
     this.scope=ctx.scope;this.data = data; this.pose={...data.pose};
@@ -228,13 +233,13 @@ export class OpenArenaFight implements BossScript {
   }
 
   /** What the fight's view half (arenaFire.ts `lendOpenArenaView`) draws from: live owners and reads, nothing to step. */
-  get viewLoan(): OpenArenaViewLoan {
+  get viewLoan(): OpenArenaViewLoan<D> {
     return { arena: this.arena, chains: this.chains.map(chain => chain.tell), field: this.field, groundAt: this.groundAt, fire: this.fire, scorch: this.scorch, whirls: this.whirls,
       phone: this.ctx.phone, smoke: this.data.arenaFire.cells?.smoke, wind: this.windNow, burnt: this.burnt, fireOn: () => this.fireOn, fireClear: () => this.fireClear,
       bindFire: (scope, frame) => { this.fireFrame = frame; scope.onDispose(() => { if (this.fireFrame === frame) this.fireFrame = null; }); } };
   }
   /** What the view module samples from `source` (format/arenaView `sources`: the life and clock state, the pose, the spear
-   *  on the ground), one finite field at a time; the page lends these, a native proof's lane reads the same (sdk/headlessArenaPose.ts). */
+   *  on the ground), one finite field at a time; the page lends these, a native proof's lane reads the same (boss/headlessArenaPose.ts). */
   viewSource(source: string): (field: string) => number {
     const { sources } = ARENA_VIEW, pose = this.pose;
     if (source === sources.life) return field => this.life.value(field);
@@ -249,7 +254,7 @@ export class OpenArenaFight implements BossScript {
     return { bend: { value: pose.bend }, raise: { value: pose.raise }, castL: { value: pose.castL }, struck: { value: 0 }, alpha: { value: 0 } };
   }
   /** The fight's frame slot runs `view` (its module writing `cells`) for `scope`'s life: the page's lent slot, or a native
-   *  host's own lane over the same sources (sdk/headlessArenaPose.ts). */
+   *  host's own lane over the same sources (boss/headlessArenaPose.ts). */
   adoptView(scope: Scope, view: { readonly frame: (dt: number, time: number) => void; readonly cells: ArenaPoseCells }): void {
     if (this.view !== null) throw new Error('Arena view is already bound');
     this.view = view; scope.onDispose(() => { if (this.view === view) this.view = null; });

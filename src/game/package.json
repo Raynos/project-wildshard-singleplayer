@@ -45,6 +45,7 @@
     "./boss/socketRig": "./client/boss/socketRig.ts",
     "./boss/openArenaFight": "./shared/boss/openArenaFight.ts",
     "./boss/openArenaRoom": "./server/boss/openArenaRoom.ts",
+    "./boss/headlessArenaViews": "./server/boss/headlessArenaViews.ts",
     "./boss/openArenaNative": "./server/boss/openArenaNative.ts",
     "./boss/arenaWhirls": "./shared/boss/arenaWhirls.ts",
     "./ambient/crowdDraw": "./client/ambient/crowdDraw.ts",

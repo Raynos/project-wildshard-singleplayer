@@ -2,7 +2,7 @@
  *  declared saves. No command arms or damages it. A tape installs it through its own wrappers; only a net room installs it
  *  from the assembly, so a one-player save keeps its adapters. */
 import * as v from 'valibot';
-import { Vector3, type Camera } from 'three';
+import { Vector3 } from 'three';
 import { BossBrain, easeViewToward, type BossPresentation } from '@wildshard/engine/ai/BossBrain';
 import { pickPrompt } from '@wildshard/engine/world/interact/prompts';
 import { itemPickupFloor, ITEM_PICKUP_HOVER } from '@wildshard/engine/world/interact/pickup';
@@ -12,7 +12,8 @@ import { actRoutes } from '@wildshard/engine/sim/actRoutes';
 import type { HuntBody } from '@wildshard/engine/ai/hunt';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import type { Wind } from '@wildshard/engine/world/steppeWind';
-import { OpenArenaFight, readArenaScriptData, type ArenaSupportRider, type OpenArenaViews } from '../../shared/boss/openArenaFight';
+import { OpenArenaFight, readArenaScriptData, type ArenaDraw, type ArenaSupportRider, type OpenArenaViews } from '../../shared/boss/openArenaFight';
+import type { ViewCamera } from '@wildshard/engine/script/viewProgram';
 import type { ArenaScriptData } from '@wildshard/format/arenaScriptRows';
 import type { ViewProgramRows } from '@wildshard/format/viewProgram';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -33,14 +34,14 @@ const TAKE = 2;
 /** The assembly row. */
 export interface OpenArenaRow { readonly id: string; readonly fight: string; readonly geometry: string; readonly view: string; readonly groups: string;
   readonly input: { readonly use: string; readonly skip: string }; readonly target: string; readonly grants: readonly { readonly item: string; readonly count: number }[] }
-export interface NativeOpenArena { readonly fight: OpenArenaFight; readonly boss: BossBrain; readonly target: string; readonly locked: () => boolean; readonly reward: () => boolean; readonly storm: () => boolean;
+export interface NativeOpenArena { readonly fight: OpenArenaFight<ArenaDraw>; readonly boss: BossBrain; readonly target: string; readonly locked: () => boolean; readonly reward: () => boolean; readonly storm: () => boolean;
   readonly records: ChapterRecords; readonly weather: () => { state: string; left: number }; readonly rewardPrompt: () => { position: Vector3; radius: number; label: string } | null }
-/** The drawing side's stand-ins, which the SDK lends: a server draws nothing, but the fight reads its body and its eased pose. */
+/** The drawing side's stand-ins, which a headless host lends: a server draws nothing, but the fight reads its body and its eased pose. */
 export interface OpenArenaPresentation {
-  readonly views: (host: SimHost, data: ArenaScriptData) => OpenArenaViews;
+  readonly views: (host: SimHost, data: ArenaScriptData) => OpenArenaViews<ArenaDraw>;
   readonly pose: (fight: Pick<OpenArenaFight, 'viewSource' | 'poseCells' | 'adoptView'>, module: Uint8Array, rows: ViewProgramRows,
-    ports: { readonly scope: Scope; readonly player: { readonly position: Vector3; readonly velocity: Vector3; readonly yaw: number }; readonly camera: Camera }) => void;
-  readonly camera: () => Camera;
+    ports: { readonly scope: Scope; readonly player: { readonly position: Vector3; readonly velocity: Vector3; readonly yaw: number }; readonly camera: ViewCamera }) => void;
+  readonly camera: () => ViewCamera;
 }
 /** What one install borrows. `grantItem` files a taken reward; a tape's wrapper leaves it out. */
 export interface OpenArenaPorts { readonly presentation: OpenArenaPresentation; readonly commands: () => readonly HeldCommand[]; readonly ledger: { readonly fact: (name: string, actorId: string) => void }; readonly restoring: boolean;

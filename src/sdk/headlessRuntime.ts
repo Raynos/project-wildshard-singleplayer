@@ -10,7 +10,7 @@ import type { NearColliders } from '@wildshard/engine/physics/nearColliders';
 import { installCableModes } from '@wildshard/engine/player/modes';
 import { createNativeCombatFrame, nativeRangedItem, otherCombatFrame, readNativeRangedItem, type NativeCombatFrame, type NativeRangedItem } from '@wildshard/game/plugin/nativeItems';
 import { prepareRuntimePlan, ledgerPorts, pickCommands } from '@wildshard/game/plugin/simulation';
-import { HEADLESS_ARENA } from './headlessArenaViews';
+import { HEADLESS_ARENA } from '@wildshard/game/boss/headlessArenaViews';
 import type { NativeSweptMeleeInput } from '@wildshard/game/plugin/nativeSwept';
 import { createSimHost, type SimHost, type SimHostPorts, type SimLevel, type SimTickCommand } from '@wildshard/engine/sim';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';

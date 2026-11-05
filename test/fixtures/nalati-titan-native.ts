@@ -4,7 +4,7 @@ import type {SimHost} from '../../src/engine/server/sim';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
 import {ledgerPorts} from '../../src/game/server/plugin/simulation';
 import {openArenaArrows,openArenaOf,prepareOpenArena,type NativeOpenArena} from '../../src/game/server/boss/openArenaNative';
-import {HEADLESS_ARENA} from '../../src/sdk/headlessArenaViews';
+import {HEADLESS_ARENA} from '../../src/game/server/boss/headlessArenaViews';
 import {prepareNalatiPatrol,nalatiPatrolOf,type NalatiPatrolExtras} from './nalati-patrol-native';
 import {withNalatiCompanions} from './nalati-companions-native';
 import {withNalatiWeapons} from './nalati-weapons-native';

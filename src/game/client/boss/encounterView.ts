@@ -319,7 +319,7 @@ export class CloudBody {
   }
   /** the focus's world position (after `update`) */
   focusWorld(out: THREE.Vector3): THREE.Vector3 { return this.part(this.rows.focus.part).getWorldPosition(out); }
-  update(t: number, camera: THREE.Camera): void {
+  update(t: number, camera: Pick<THREE.Camera, 'position'>): void {
     const rows = this.rows, c = rows.puffs, f = rows.focus, open = this.pose[f.open] ?? 0, dt = Math.max(0, t - this.time);
     this.time = t;
     this.draw.evaluate({ time: t, delta: 0, values: {} });

@@ -6,13 +6,13 @@
  *
  *   bindArenaPoseView(fight, module, rows, { scope, player, camera });   // then fight.update(dt, t, fighting) as on the page
  */
-import type { Camera, Vector3 } from 'three';
+import type { Vector3 } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { viewProgram, type ViewTell } from '@wildshard/engine/script/viewProgram';
+import { viewProgram, type ViewCamera, type ViewTell } from '@wildshard/engine/script/viewProgram';
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
 import { ARENA_VIEW } from '@wildshard/format/arenaView';
 import type { ViewProgramRows } from '@wildshard/format/viewProgram';
-import type { ArenaPoseCells, OpenArenaFight } from '@wildshard/game/boss/openArenaFight';
+import type { ArenaPoseCells, OpenArenaFight } from '../../shared/boss/openArenaFight';
 
 /** the display rate that keeps the view lane at every frame (its halving floor is the display rate over 15 Hz) */
 const EVERY_FRAME_HZ = 15;
@@ -22,7 +22,7 @@ const silentTell = (): ViewTell => ({ ring: () => undefined, lane: () => undefin
 /** Bind `fight`'s frame slot to its view `module` (admitted with `rows`) for `scope`'s life, reading the fight's sources
  *  and writing its cells as the page's lent slot does. */
 export function bindArenaPoseView(fight: Pick<OpenArenaFight, 'viewSource' | 'poseCells' | 'adoptView'>, module: Uint8Array, rows: ViewProgramRows,
-  ports: { readonly scope: Scope; readonly player: { readonly position: Vector3; readonly velocity: Vector3; readonly yaw: number }; readonly camera: Camera }): void {
+  ports: { readonly scope: Scope; readonly player: { readonly position: Vector3; readonly velocity: Vector3; readonly yaw: number }; readonly camera: ViewCamera }): void {
   if (rows.slot !== ARENA_VIEW.slot) throw new Error('Arena pose view needs the fight frame slot');
   const bytes = Uint8Array.from(module);
   admitScriptV2(bytes, { lane: 'view', ioBytes: rows.budget.ioBytes });

@@ -1,30 +1,28 @@
-import {InstancedMesh,PerspectiveCamera,Vector3} from 'three';
+import {Euler,Vector3} from 'three';
 import {bindArenaPoseView} from './headlessArenaPose';
-import type {OpenArenaPresentation} from '@wildshard/game/boss/openArenaNative';
+import type {OpenArenaPresentation} from './openArenaNative';
 import type {ArenaScriptData} from '@wildshard/format/arenaScriptRows';
 import type {SimHost} from '@wildshard/engine/sim';
 import {parsePrivateScene} from '@wildshard/format/clientChannels';
 import {HeadlessCloudBody} from './headlessCloudBody';
 import {ArenaWhirls} from '@wildshard/game/boss/arenaWhirls';
-import type {ArenaTell,OpenArenaViews} from '@wildshard/game/boss/openArenaFight';
+import type {ArenaDraw,ArenaTell,OpenArenaViews} from '../../shared/boss/openArenaFight';
 
 /** Only the drawing ports are silent. Heart matrices, pose feedback and every
  * whirlwind decision run their real owners. No drawn object is a target. */
-export function openArenaNativeViews(host:SimHost,data:ArenaScriptData):OpenArenaViews {
+export function openArenaNativeViews(host:SimHost,data:ArenaScriptData):OpenArenaViews<ArenaDraw> {
   const tell=():ArenaTell=>({ring:()=>undefined,lane:()=>undefined,wedge:()=>undefined,hide:()=>undefined});
   const tells=new Map(Object.entries(data.geometry.arena.tells).map(([id,row])=>[id,Array.from({length:row.count},tell)]));
   const geometry=data.geometry,tier=geometry.phone;
   const scene=parsePrivateScene(geometry.arena.scene);
   const capacities=new Map<string,number>([['smoke',data.arenaFire.smokeCount[0]],['flames',data.arenaFire.flameCount]]);
   for(const node of scene.nodes)if(node.kind==='mesh'&&node.instances!==undefined)capacities.set(node.id,node.instances);
-  const draws=new Map<string,InstancedMesh>();
-  const instances=(id:string):InstancedMesh=>{
+  const draws=new Map<string,ArenaDraw>();
+  const instances=(id:string):ArenaDraw=>{
     const capacity=capacities.get(id);if(capacity===undefined)throw new Error(`Missing admitted arena draw ${id}`);
-    let draw=draws.get(id);if(draw===undefined){draw=new InstancedMesh(undefined,undefined,capacity);draws.set(id,draw);}
+    let draw=draws.get(id);if(draw===undefined){draw={count:capacity};draws.set(id,draw);}
     return draw;
   };
-  host.scope.onDispose(()=>{for(const draw of draws.values()){draw.geometry.dispose();
-    for(const material of Array.isArray(draw.material)?draw.material:[draw.material])material.dispose();}});
   return {
     body:pose=>new HeadlessCloudBody({...geometry.body,geometry:{...geometry.body.geometry,eyes:geometry.eyes},
       poses:geometry.poses,puffs:{...geometry.body.puffs,rows:tier.puffs}},pose,
@@ -46,4 +44,4 @@ export function openArenaNativeViews(host:SimHost,data:ArenaScriptData):OpenAren
 }
 
 /** What a server lends an open arena: its silent views, its pose lane and a camera nothing draws through. */
-export const HEADLESS_ARENA:OpenArenaPresentation={views:openArenaNativeViews,pose:bindArenaPoseView,camera:()=>new PerspectiveCamera()};
+export const HEADLESS_ARENA:OpenArenaPresentation={views:openArenaNativeViews,pose:bindArenaPoseView,camera:()=>({position:new Vector3(),rotation:new Euler()})};
