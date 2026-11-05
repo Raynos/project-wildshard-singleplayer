@@ -66,11 +66,16 @@ try {
   await page.reload();
   await page.waitForTimeout(3000);
   const footprints = { before: tabFootprint() };
-  await page.exposeFunction('crossroadsPause', async name => { await page.waitForTimeout(1500); footprints[name] = tabFootprint(); });
-  const lines = await page.evaluate(() => window.crossroads.run(name => window.crossroadsPause(name)));
+  await page.exposeFunction('crossroadsPause', async name => { await page.waitForTimeout(5000); footprints[name] = tabFootprint(); });
+  const lines = await page.evaluate(() => window.crossroads.run('smoke', name => window.crossroadsPause(name)));
   lines.push(`Tab footprint MB: ${JSON.stringify(footprints)}`);
   console.info(lines.join('\n'));
   if (keep !== '') writeFileSync(keep, `${lines.join('\n')}\n`);
+  // The balloon's last step: a page that comes back after its second kill says what the two fills came to.
+  await page.evaluate(() => { localStorage.setItem('crossroads.balloon', JSON.stringify({ phase: 'alone', blocks: 100, worker: 90 })); });
+  await page.reload();
+  const balloon = await page.textContent('#out');
+  if (!(balloon ?? '').includes('800 MB alone, 720 MB with the worker') || !(balloon ?? '').includes('costs 80 MB')) failures.push(`balloon: ${String(balloon)}`);
   if (errors.length > 0) failures.push(`page: ${errors.slice(0, 5).join(' | ')}`);
 } finally { await browser.close(); server.close(); }
 if (failures.length > 0) { console.error(failures.join('\n')); process.exit(1); }

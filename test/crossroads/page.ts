@@ -21,6 +21,7 @@ const atCorner = [[1, 0], [0, 1], [0, 0], [1, 1]].map(([x, z]) => {
 const wait = (ms: number): Promise<void> => new Promise(resolve => { setTimeout(resolve, ms); });
 const element = (id: string): HTMLElement => { const found = document.getElementById(id); if (found === null) throw new Error(`Missing ${id}`); return found; };
 const say = (text: string): void => { element('status').textContent = text; };
+const failed = (error: unknown): void => { say(`Failed: ${String(error)}`); };
 const MB = (bytes: number): string => (bytes / 1048576).toFixed(1);
 
 class MemoryStorage implements SaveStorage {
@@ -82,8 +83,8 @@ function percentile(values: readonly number[], at: number): number { const sorte
 const line = (name: string, row: Awaited<ReturnType<typeof reading>>): string => `${name}: wasm ${MB(row.wasmBytes)} MB, worlds ${String(row.residents)}, near solids ${row.solids}, save copies ${MB(row.docsChars * 2)} MB${row.bytes === null ? '' : `, worker ${MB(row.bytes)} MB`}, ${row.page}`;
 
 /** The shipped server on a walk through all four cells, then the design's four worlds at once. */
-async function run(pause: (name: string) => Promise<void> = () => Promise.resolve()): Promise<string[]> {
-  const lines = [navigator.userAgent, `isolated=${String(globalThis.crossOriginIsolated)}`];
+async function run(label: string, pause: (name: string) => Promise<void> = () => Promise.resolve()): Promise<string[]> {
+  const lines = [label, navigator.userAgent, `isolated=${String(globalThis.crossOriginIsolated)}`];
   const put = (text: string): void => { lines.push(text); element('out').textContent = lines.join('\n'); };
   let frames = 0, counting = true;
   const frame = (): void => { frames++; if (counting) requestAnimationFrame(frame); };
@@ -119,49 +120,40 @@ async function run(pause: (name: string) => Promise<void> = () => Promise.resolv
 }
 
 /** Fill memory until the tab dies. Progress is written first, so the page that comes back knows how far it got. */
-async function fill(phase: string): Promise<never> {
+async function fill(phase: string, worker: number): Promise<void> {
   const held: Uint8Array[] = [];
   let seed = 0x9e3779b9;
-  for (;;) {
-    localStorage.setItem(BALLOON, JSON.stringify({ phase, blocks: held.length }));
-    const block = new Uint32Array(BLOCK / 4); // random, because iOS compresses anything simpler
-    for (let index = 0; index < block.length; index++) { seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5; block[index] = seed; }
-    held.push(new Uint8Array(block.buffer));
-    say(`Filling: ${String(held.length * 8)} MB`);
-    await wait(0);
+  try {
+    for (;;) {
+      localStorage.setItem(BALLOON, JSON.stringify({ phase, blocks: held.length, worker }));
+      const block = new Uint32Array(BLOCK / 4); // random, because iOS compresses anything simpler
+      for (let index = 0; index < block.length; index++) { seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5; block[index] = seed; }
+      held.push(new Uint8Array(block.buffer));
+      say(`Filling: ${String(held.length * 8)} MB`);
+      await wait(0);
+    }
+  } catch { // refused rather than killed: the same limit, reached politely
+    held.length = 0;
+    await resume();
   }
 }
-async function withWorker(): Promise<never> {
+async function withWorker(): Promise<void> {
   say('Walking into the heaviest cell…');
   const session = await open({ arrival: { x: corner.x, y: 0, z: corner.z } }), [heaviest] = atCorner;
   if (heaviest === undefined) throw new Error('Missing cell');
   await visit(session, heaviest);
-  return fill('worker');
+  await fill('worker', 0);
 }
-/** Pick up after a kill: `worker` came first, so a kill there starts `alone`; a kill there ends it. */
-function resume(): void {
-  const raw = localStorage.getItem(BALLOON), saved = raw === null ? null : JSON.parse(raw) as { phase: string; blocks: number; worker?: number };
+/** Pick up after a kill: `worker` comes first, so a kill there starts `alone`; a kill there ends it. */
+async function resume(): Promise<void> {
+  const raw = localStorage.getItem(BALLOON), saved = raw === null ? null : JSON.parse(raw) as { phase: string; blocks: number; worker: number };
   if (saved === null) return;
-  if (saved.phase === 'worker') {
-    localStorage.setItem(BALLOON, JSON.stringify({ phase: 'alone-next', blocks: 0, worker: saved.blocks }));
-    say('First run done. Filling again with no worker…');
-    void wait(1500).then(() => { localStorage.setItem(BALLOON, JSON.stringify({ phase: 'alone', blocks: 0, worker: saved.blocks })); return fillAlone(saved.blocks); });
-  } else if (saved.phase === 'alone') {
-    const worker = saved.worker ?? 0;
-    report(worker, saved.blocks);
-  }
-}
-async function fillAlone(worker: number): Promise<never> {
-  const held: Uint8Array[] = [];
-  let seed = 0x9e3779b9;
-  for (;;) {
-    localStorage.setItem(BALLOON, JSON.stringify({ phase: 'alone', blocks: held.length, worker }));
-    const block = new Uint32Array(BLOCK / 4);
-    for (let index = 0; index < block.length; index++) { seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5; block[index] = seed; }
-    held.push(new Uint8Array(block.buffer));
-    say(`Filling: ${String(held.length * 8)} MB`);
-    await wait(0);
-  }
+  if (saved.phase === 'alone') { report(saved.worker, saved.blocks); return; }
+  const worker = saved.phase === 'worker' ? saved.blocks : saved.worker;
+  localStorage.setItem(BALLOON, JSON.stringify({ phase: 'waiting', blocks: 0, worker }));
+  say('First fill done. Filling again with no worker…');
+  await wait(1500);
+  await fill('alone', worker);
 }
 function report(worker: number, alone: number): void {
   localStorage.removeItem(BALLOON);
@@ -175,11 +167,12 @@ function report(worker: number, alone: number): void {
 export interface CrossroadsProof { open: typeof open; run: typeof run; wait: typeof wait; visit: (session: Session, index: number) => Promise<void>; home: typeof home; reading: typeof reading; atCorner: typeof atCorner; corner: typeof corner; worldAt: typeof worldAt }
 declare global { interface Window { crossroads: CrossroadsProof } }
 window.crossroads = { open, run, wait, home, reading, atCorner, corner, worldAt, visit: async (session, index) => { const cell = atCorner[index]; if (cell !== undefined) await visit(session, cell); } };
-const buttons = [element('run'), element('balloon')] as HTMLButtonElement[];
+const buttons = [element('low'), element('full'), element('balloon')] as HTMLButtonElement[];
 const busy = (): void => { for (const button of buttons) button.disabled = true; };
-const failed = (error: unknown): void => { say(`Failed: ${String(error)}`); };
-element('run').onclick = () => { busy(); void run().catch(failed).finally(() => { for (const button of buttons) button.disabled = false; }); };
+const start = (label: string) => (): void => { busy(); void run(label).catch(failed).finally(() => { for (const button of buttons) button.disabled = false; }); };
+element('low').onclick = start('Low Power Mode on');
+element('full').onclick = start('Low Power Mode off');
 element('balloon').onclick = () => { busy(); void withWorker().catch(failed); };
 element('copy').onclick = () => { void (async () => { await navigator.clipboard.writeText(element('out').textContent); say('Copied'); })().catch(failed); };
 element('out').textContent = localStorage.getItem(RESULTS);
-resume();
+void resume().catch(failed);
