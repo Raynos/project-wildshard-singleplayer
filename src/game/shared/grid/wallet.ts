@@ -1,8 +1,8 @@
 import * as v from 'valibot';
 import type { SaveStore, InstanceSaveSlot } from '@wildshard/engine/saves/store';
 import type { ItemRuntime } from '@wildshard/engine/combat/items';
-import { instanceSave, type LocalSaveInstance } from '../../shared/instanceSaves';
-import { inventoryKey, purseKey } from '../../shared/localSaveKeys';
+import { instanceSave, type LocalSaveInstance } from '../instanceSaves';
+import { inventoryKey, purseKey } from '../localSaveKeys';
 
 const name = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));

@@ -1,10 +1,10 @@
 import { app } from '../../app/runtime';
-import { aimRay, fovForAspect } from '../../../server/combat/blocks/melee';
-import type { EquipmentRow, EquipContext } from '../../../server/combat/Equipment';
+import { aimRay, fovForAspect } from '../../../shared/combat/blocks/melee';
+import type { EquipmentRow, EquipContext } from '../../../shared/combat/Equipment';
 import type { Targets, TargetHit } from '../types';
 import type { SwordWorld, SwordRig, SwordArms, SwordFraming, SwordMoveSet, Move } from './melee';
 import { SlashTrail } from './slashTrail';
-import type { WeaponState, AimInfo } from '../../../server/combat/Weapon';
+import type { WeaponState, AimInfo } from '../../../shared/combat/Weapon';
 import type { Game } from '../../core/Game';
 import { worldTime } from '../../../shared/core/time';
 import { Impacts } from '../../fx/Impacts';
@@ -19,11 +19,11 @@ import { bladeBlocked, bladeContact, type Clang } from '../../player/MeleeSweep'
 import type { Player } from '../../player/Player';
 import { type DrawingBuffer, viewmodel } from '../../render/viewmodelFeel';
 import type { SkyRig as Sky } from '../../world/skyRig';
-import { Melee } from '../../../server/combat/Melee';
+import { Melee } from '../../../shared/combat/Melee';
 import { SweptMeleeCore, sweptLunge, sweptMoveDamage, sweptStrikeDirection, sweptStrikePush } from '../../../shared/combat/sweptMeleeCore';
 import { BladeSweep, bladeInReach, sweptBladeDirs } from '../../../shared/combat/sweptBlade';
 import { SweptBasePose } from '../../../shared/combat/sweptBasePose';
-import type { MeleeProfile } from '../../../server/combat/meleeProfile';
+import type { MeleeProfile } from '../../../shared/combat/meleeProfile';
 
 import * as THREE from 'three';
 

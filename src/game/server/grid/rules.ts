@@ -2,7 +2,7 @@ import { CHUNK_HALF, CONTENT_CAPS, ROAD_WIDTH } from '@wildshard/engine/core/con
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Events } from '@wildshard/engine/events/events';
 import type { Actor } from '@wildshard/engine/combat/pipeline';
-import type { GridPoint } from './assembly';
+import type { GridPoint } from '../../shared/grid/assembly';
 
 const STRIP = (CONTENT_CAPS.pitch - CHUNK_HALF * 2 - ROAD_WIDTH) / 2;
 function finite(point: Readonly<GridPoint>): void { if (![point.x, point.y, point.z].every(Number.isFinite)) throw new RangeError('Invalid grid point'); }

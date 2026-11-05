@@ -1,5 +1,5 @@
 
-import { SHARD_API } from '../../server/shard/api';
+import { SHARD_API } from '../../shared/shard/api';
 import type { ShardManifest } from '../../server/shard/manifest';
 import type { Ktx2Table } from '@wildshard/engine/boot/gpuFiles';
 import type { LoadFailure } from '@wildshard/engine/core/errorReport';

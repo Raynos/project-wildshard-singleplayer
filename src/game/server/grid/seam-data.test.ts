@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { readGridSeamData } from './seamData';
+import { readGridSeamData } from '../../shared/grid/seamData';
 import { jsonDataHeapBytes } from '@wildshard/format/json';
 
 async function fixture(source: string) {

@@ -19,7 +19,7 @@ const domNames = new Set(['Element', 'HTMLElement', 'SVGElement', 'SVGSVGElement
 const numericMath = new Set(['abs','acos','acosh','asin','asinh','atan','atanh','atan2','cbrt','ceil','clz32','cos','cosh','exp','expm1','floor',
   'fround','hypot','imul','log','log1p','log2','log10','max','min','pow','random','round','sign','sin','sinh','sqrt','tan','tanh','trunc']);
 const trusted = new Map([
-  ['src/engine/server/combat/Equipment.ts#WeaponUi.swapIcon', true], ['src/engine/client/ui/hudSlots.ts#DiscOpts.icon', true],
+  ['src/engine/shared/combat/Equipment.ts#WeaponUi.swapIcon', true], ['src/engine/client/ui/hudSlots.ts#DiscOpts.icon', true],
   ['src/engine/client/ui/hudSlots.ts#TouchRelabel.icon', true], ['src/engine/client/input/InputService.ts#TouchVerb.icon', true],
   ['src/engine/client/practice/playground/catalog.ts#PlaygroundCard.icon', true], ['src/engine/shared/app/identity.ts#AppIdentity.wordmark', true],
 ]);

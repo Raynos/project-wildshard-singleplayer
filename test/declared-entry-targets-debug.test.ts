@@ -8,7 +8,7 @@ import {parseClientPlan} from '@wildshard/format/clientPlan';
 import {installCombatTargets} from '../src/game/client/shardfile/clientTargets';
 import {publishEntryOwner} from '../src/game/client/shardfile/entryOwners';
 import type {ShardContext} from '../src/game/server/plugin/context';
-import type {ShardRuntime} from '../src/game/server/shard/runtime';
+import type {ShardRuntime} from '../src/game/shared/shard/runtime';
 import type {TimedEncounters} from '../src/game/server/boss/timedEncounters';
 import type {ArenaRoomEncounter} from '../src/game/server/boss/arenaRoom';
 import type {ForestWeatherRig} from '../src/game/client/weather/forest';

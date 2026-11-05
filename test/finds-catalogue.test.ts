@@ -4,7 +4,7 @@ import { nalatiFindsCatalogue } from '../src/shards/nalati-grasslands/generators
 import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';
 import { expect, test } from 'vitest';
 import { createFindsCatalogue } from '../src/game/server/bag/findsCatalogue';
-import type { OwnedId } from '../src/game/server/loot/Owned';
+import type { OwnedId } from '../src/game/shared/loot/Owned';
 import { DRIFTWOOD_FINDS } from '../src/shards/driftwood-isle/generators/finds';
 import { DRIFTWOOD_PLACES } from '../src/shards/driftwood-isle/generators/discovery';
 import { SHARD_FLAGS } from '../src/shards/driftwood-isle/generators/interactables';

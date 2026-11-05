@@ -2,8 +2,8 @@ import type { Scope } from '../../shared/app/scope';
 import { uiScope, mountUi } from './ownership';
 import { engineString } from '../../shared/strings';
 import type { EquipmentService } from '../combat/EquipmentService';
-import type { WeaponId } from '../../server/combat/Equipment';
-import type { Weapon } from '../../server/combat/Weapon';
+import type { WeaponId } from '../../shared/combat/Equipment';
+import type { Weapon } from '../../shared/combat/Weapon';
 import { app } from '../app/runtime';
 
 /**

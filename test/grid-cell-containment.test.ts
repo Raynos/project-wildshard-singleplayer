@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { BatchedMesh, Bone, Box3, BoxGeometry, PerspectiveCamera, Object3D, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, Scene, ShaderLib, Skeleton, SkinnedMesh, Sprite, SpriteMaterial, Uint16BufferAttribute, Vector3, WebGLRenderer, type Material, type WebGLProgramParametersWithUniforms } from 'three';
 import { Scope } from '../src/engine/shared/app/scope';
-import { GridAssembly } from '../src/game/server/grid/assembly';
+import { GridAssembly } from '../src/game/shared/grid/assembly';
 import { cellClip } from '../src/game/client/grid/cellClip';
 import { setInstanceEnvelope } from '../src/engine/client/render/instancedGeometry';
 import { inspectGridDraw } from './helpers/gridDrawAudit';

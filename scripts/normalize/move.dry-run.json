@@ -970,7 +970,7 @@
     "src/game/loot/install.ts",
     "src/game/loot/keepsakes.ts",
     "src/game/client/loot/loot.css",
-    "src/game/server/loot/Owned.ts",
+    "src/game/shared/loot/Owned.ts",
     "src/game/loot/perks.ts",
     "src/game/loot/shop.ts",
     "src/game/quest/Adventure.ts",

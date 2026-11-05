@@ -9,7 +9,7 @@ import { Flags } from '../src/engine/server/world/interact/flags';
 import { Audio } from '../src/engine/client/audio/Audio';
 import { Events } from '../src/engine/shared/events/events';
 import type { ShardContext } from '../src/game/server/plugin/context';
-import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import type { QuestPageComposition } from '../src/game/server/quest/pageComposition';
 import { CollectionCatalogue } from '../src/game/client/models/collectionDisplay';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
@@ -19,7 +19,7 @@ import { installQuestContinuation, installQuestContinuationFile } from '../src/g
 import { QuestContinuationSchema } from '@wildshard/format/questContinuation';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseRows } from '@wildshard/format/rows';
-import { Owned } from '../src/game/server/loot/Owned';
+import { Owned } from '../src/game/shared/loot/Owned';
 import { collectionRows } from '../src/shards/driftwood-isle/generators/collections';
 import { DRIFTWOOD_LOOT as loot } from '../src/shards/driftwood-isle/generators/loot';
 import { FakeGame, legacyDouble } from '@wildshard/engine/test/FakeGame';

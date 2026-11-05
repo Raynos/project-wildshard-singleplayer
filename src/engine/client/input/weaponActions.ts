@@ -1,5 +1,5 @@
 import { app } from '../app/runtime';
-import type { Weapon } from '../../server/combat/Weapon';
+import type { Weapon } from '../../shared/combat/Weapon';
 
 /** Additive contexts decide mode availability; equipment still owns holster/selection readiness. */
 export function weaponActionGate(weapon: Weapon & { allowUnlocked: boolean }, player: { locked: boolean }): () => boolean {

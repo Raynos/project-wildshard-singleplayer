@@ -12,7 +12,7 @@ import { installCollectionKeepsakes } from '../src/game/server/compendium/keepsa
 import { TrophyWall } from '../src/game/client/models/collectionWall';
 import { CompendiumState } from '../src/game/shared/compendium/state';
 import type { ShardCompendium } from '../src/game/shared/compendium/types';
-import { Owned } from '../src/game/server/loot/Owned';
+import { Owned } from '../src/game/shared/loot/Owned';
 import { ownedSave, compendiumSave } from '../src/game/shared/saves';
 import { Flags } from '../src/engine/server/world/interact/flags';
 import { defineModel, modelContext } from '../src/engine/client/models/model';
@@ -24,7 +24,7 @@ import { SkyRig } from '../src/engine/client/world/skyRig';
 import { parseCollectionDisplays, CollectionMountPackSchema, CollectionChalkSchema } from '@wildshard/format/collectionDisplay';
 import { collectionRows } from '../src/shards/driftwood-isle/generators/collections';
 import { DRIFTWOOD_LOOT } from '../src/shards/driftwood-isle/generators/loot';
-import { declaredLootEconomy } from '../src/game/server/shard/declaredRows';
+import { declaredLootEconomy } from '../src/game/shared/shard/declaredRows';
 import { FakeGame, legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { mockCanvas } from '@wildshard/engine/test/weaponParity';
 import * as v from 'valibot';

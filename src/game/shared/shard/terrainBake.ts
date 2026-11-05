@@ -4,7 +4,7 @@
  * and the grid's edge reader (`src/game/client/grid/edgeSources.ts`, which fetches only these): a landscape-terrain shard with no
  * structures. A structures world (Sky Reach's islands over the void, Nine Dragon's stack) bakes none (SF49, C4-R1-C13).
  */
-import type { ShardManifest } from './manifest';
+import type { ShardManifest } from '../../server/shard/manifest';
 
 /** True when the shard's terrain is baked at build time and committed. */
 export function bakesTerrain(ground: ShardManifest['ground']): boolean {

@@ -14,10 +14,10 @@ import { CONTENT_CAPS, _applyChunkConstants } from '@wildshard/engine/core/confi
 import { configureLevel } from '@wildshard/engine/level/selection';
 import { pageGridInstance, sourceManifest, compiledPageBoot, type PageMode } from '../../server/plugin/context';
 import { PageResidency } from '../grid/pageResidency';
-import { ResidencyAllocator } from '../../server/grid/allocator';
-import type { GridRecoveryRecord } from '../../server/grid/recovery';
+import { ResidencyAllocator } from '../../shared/grid/allocator';
+import type { GridRecoveryRecord } from '../../shared/grid/recovery';
 import { bootPageMode, pageGridRecovery } from '../grid/pageEntry';
-import { firstPartyInstance } from '../../server/grid/instances';
+import { firstPartyInstance } from '../../shared/grid/instances';
 import { game } from '../shard/registry';
 import { installShards, shards } from '../shard/list';
 import type { ShardManifest } from '../../server/shard/manifest';

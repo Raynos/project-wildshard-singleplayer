@@ -39,9 +39,9 @@ const questOwners=new Set([
 const reviewedW2Owners = new Map([
   ['src/game/server/loot/tables.ts#readLootTables', 'C6'],
   ['src/format/lootEconomy.ts', 'C6'],
-  ['src/game/server/shard/declaredRows.ts#EconomyGrant', 'C6'],
-  ['src/game/server/shard/declaredRows.ts#DeclaredLootEconomy', 'C6'],
-  ['src/game/server/shard/declaredRows.ts#declaredLootEconomy', 'C6'],
+  ['src/game/shared/shard/declaredRows.ts#EconomyGrant', 'C6'],
+  ['src/game/shared/shard/declaredRows.ts#DeclaredLootEconomy', 'C6'],
+  ['src/game/shared/shard/declaredRows.ts#declaredLootEconomy', 'C6'],
   ['src/engine/client/models/ownedGeometry.ts', 'C1'],
   // Reviewed runtime tile views, lent looks, terrain admission and combat status.
   ['src/game/client/shardfile/runtimeProduct.ts#bindRuntimeProductProps', 'C1'],
@@ -54,7 +54,7 @@ const reviewedW2Owners = new Map([
   ['src/engine/client/combat/effects/EffectService.ts#bindPlayerEffects', 'C6'],
   ['src/engine/shared/physics/terrain.ts#EDGE_WALL_INSET', 'C1'],
   ['src/engine/shared/physics/terrain.ts#isStandaloneEdgeWall', 'C1'],
-  ['src/game/server/bag/itemCatalog.ts#isItemId', 'C6'],
+  ['src/game/shared/bag/itemCatalog.ts#isItemId', 'C6'],
   ['src/game/client/plugin/ui.ts#STARTER_EFFECTS', 'C6'],
   ['src/game/client/plugin/ui.ts#StatusMovement', 'C6'],
   ['src/game/client/plugin/ui.ts#StarterContext', 'C6'],
@@ -90,8 +90,8 @@ const reviewedW2Owners = new Map([
   // Equipment, combat feel, held viewmodels, loot and owned rewards.
   ['src/engine/shared/combat/ammo.ts', 'C6'],
   ['src/engine/client/combat/cues.ts#resolveHitStop', 'C6'],
-  ['src/engine/server/combat/Firearm.ts#RangedAction', 'C6'],
-  ['src/engine/server/combat/Firearm.ts#RangedActionRow', 'C6'],
+  ['src/engine/shared/combat/Firearm.ts#RangedAction', 'C6'],
+  ['src/engine/shared/combat/Firearm.ts#RangedActionRow', 'C6'],
   ['src/engine/client/combat/view/projectile.ts#ProjectilePresentation', 'C6'],
   ['src/engine/client/combat/view/ranged.ts#weaponDisplay', 'C6'],
   ['src/engine/client/combat/view/ranged.ts#TRACER_ORDER', 'C6'],
@@ -156,7 +156,7 @@ const w3Paths = [
 // Sole-user platform contributions retain their canonical size. These reviewed
 // owners only distribute W3's existing charges into the component table.
 const w3SharedOwners = new Map([
-  ...['src/engine/server/combat/targets.ts', 'src/engine/client/combat/effects/types.ts',
+  ...['src/engine/shared/combat/targets.ts', 'src/engine/client/combat/effects/types.ts',
     'src/engine/client/player/firstPersonArms.ts', 'src/game/client/weapons/heldLauncher.ts',
     'src/game/client/systems/viewmodel/armRig.ts'].map(path => [path, 'C6']),
   ...['src/sdk/crowds.ts',

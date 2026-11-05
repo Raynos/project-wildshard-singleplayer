@@ -18,7 +18,7 @@ import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { isDev, onDev } from '@wildshard/engine/core/devMode';
 import { mountUi } from '@wildshard/engine/ui/ownership';
 import { memoryAttribution, type MemorySnapshot } from '@wildshard/engine/core/memoryAttribution';
-import type { ResidencyAllocator } from '../../server/grid/allocator';
+import type { ResidencyAllocator } from '../../shared/grid/allocator';
 import { budgetBreakdown, megabytes, PLATFORM_OWNER, readBudgetPoints, type BudgetPoints, type PointsTone } from './budgetPoints';
 import { memoryRows, type MemoryGrouping, type MemorySort } from './memoryRows';
 import './budgetOverlay.css';

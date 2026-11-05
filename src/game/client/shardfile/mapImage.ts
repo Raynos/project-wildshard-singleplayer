@@ -1,5 +1,5 @@
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import type { ResidencyAllocator } from '../../server/grid/allocator';
+import type { ResidencyAllocator } from '../../shared/grid/allocator';
 import { ApproachInputsDeferredError } from '../grid/productInputs';
 import { stillImageObjectUrl } from './stillImage';
 

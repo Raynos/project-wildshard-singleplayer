@@ -11,7 +11,7 @@ import { prepareHeldClaimsEntry, installHeldClaimsEntry } from '../../src/game/c
 import { entryOwner } from '../../src/game/client/shardfile/entryOwners';
 import { heldSwordWorld } from './heldNativeSword';
 import type { HeldMeleeOwner } from '../../src/game/client/loadout/claims';
-import type { ShardRuntime } from '../../src/game/server/shard/runtime';
+import type { ShardRuntime } from '../../src/game/shared/shard/runtime';
 import source from './nine-product-inputs';
 import manifest from '../../src/shards/nine-dragon-stack/discovery.generated';
 import { nineHeldPresentationBytes } from './nine-held-presentation';

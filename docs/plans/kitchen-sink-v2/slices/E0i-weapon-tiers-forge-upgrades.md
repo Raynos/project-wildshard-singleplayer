@@ -22,7 +22,7 @@ Research:
   (`heldFinishEffect`, `effects.ts:15`). Driftwood's whetstones, hearts and charms work this way. It runs on
   `ShardContext` (`effects.ts:23`, the plugin context).
 - Weapon rows: `src/format/weaponProfiles.ts` (1,294 lines) and W3's family rows (`held/families`, W3b). No tier or Forge
-  multiplier exists. The pouch capacity is data (`src/game/server/loadout/pouch.ts`).
+  multiplier exists. The pouch capacity is data (`src/game/shared/loadout/pouch.ts`).
 - `requires.level` is W2b's shape on goods, wired to flags until levels exist.
 
 Work:

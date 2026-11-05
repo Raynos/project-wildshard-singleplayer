@@ -8,7 +8,7 @@
  *   burstCount(n)             → how many coin meshes fly (a big purse is split over fewer coins)
  */
 import { rollLoot } from './tables';
-import { coinValue } from './coinAmounts';
+import { coinValue } from '../../shared/loot/coinAmounts';
 
 /** the ShardManifest part the coins read (kept structural so tests and node-side code need no full def) */
 export interface LootGate { loot?: { coins?: boolean } | undefined }

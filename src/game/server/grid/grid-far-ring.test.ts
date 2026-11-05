@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
-import { GridAssembly } from './assembly';
-import { ResidencyAllocator } from './allocator';
-import { FAR_RING } from './farProxy';
+import { GridAssembly } from '../../shared/grid/assembly';
+import { ResidencyAllocator } from '../../shared/grid/allocator';
+import { FAR_RING } from '../../shared/grid/farProxy';
 import { TileStreamer, type RingCatalogue, type RingPorts } from '@wildshard/engine/world/tileStreamer';
 
 // SF88c (G526): from anywhere on the 5 × 5's outer road, every cell of the layout keeps its far proxy (no whole cell pops), inside the

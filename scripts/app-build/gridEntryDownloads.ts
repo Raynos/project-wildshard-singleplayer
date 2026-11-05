@@ -2,7 +2,7 @@ import {existsSync, readFileSync} from 'node:fs';
 import {basename, join} from 'node:path';
 import {createHash} from 'node:crypto';
 import * as v from 'valibot';
-import {parseCompiledGridDirectory, type CompiledGridAddress} from '../../src/game/server/grid/compiledStrips';
+import {parseCompiledGridDirectory, type CompiledGridAddress} from '../../src/game/shared/grid/compiledStrips';
 
 /** Exact original initial-page addresses, selected by the same three grid
  * catalogue switches. No mesh is rebuilt, widened or re-encoded here. */

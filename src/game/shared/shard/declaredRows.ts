@@ -1,14 +1,14 @@
-import type { FindsCatalogueRows } from '../bag/findsCatalogue';
+import type { FindsCatalogueRows } from '../../server/bag/findsCatalogue';
 import { parseLootEconomy, parseBarterEconomy, type BarterEconomy, type LootEconomy } from '@wildshard/format/lootEconomy';
 import { isOwnedId, isCosmetic, type OwnedId, type CosmeticId } from '../loot/Owned';
 import { Weather, type WeatherProfile } from '@wildshard/engine/world/weather';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { Rng } from '@wildshard/engine/core/rng';
-import type { ShardCompendium, EntryDef, EntryStats } from '../../shared/compendium/types';
+import type { ShardCompendium, EntryDef, EntryStats } from '../compendium/types';
 import type { JournalRow } from '@wildshard/format/compendiumRows';
-import type { ShardProduct } from '../../shared/shardfile/shardProduct';
-import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
-import type { LootPresentation } from '../loot/runtime';
+import type { ShardProduct } from '../shardfile/shardProduct';
+import { outputDescriptor } from '../shardfile/outputDescriptor';
+import type { LootPresentation } from '../../server/loot/runtime';
 import type { ShardRows } from '@wildshard/format/rows';
 import { sketchReference, type CompendiumSketch } from '@wildshard/format/sketch';
 

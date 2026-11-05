@@ -7,7 +7,7 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
 import { isJsonData } from '@wildshard/format/json';
-import { declaredLootEconomy } from '../shard/declaredRows';
+import { declaredLootEconomy } from '../../shared/shard/declaredRows';
 import { enteredPurse } from '../loot/Purse';
 import { Exchange } from '../loot/exchange';
 import { ShopPanel, type ShopGood } from '../../client/loot/ui/ShopPanel';

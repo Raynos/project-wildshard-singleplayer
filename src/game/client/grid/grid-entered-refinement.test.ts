@@ -1,6 +1,6 @@
 import {expect,test} from 'vitest';
 import {placeholderBlocksTiles} from './nearPlaceholderPlan';
-import {ResidencyAllocator} from '../../server/grid/allocator';
+import {ResidencyAllocator} from '../../shared/grid/allocator';
 import {TileStreamer,type RingPorts} from '@wildshard/engine/world/tileStreamer';
 
 test('entered cells retain refinement independently of near views and shared registration',()=>{

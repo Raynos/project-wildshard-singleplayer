@@ -14,14 +14,14 @@ import { ProjectedTrail } from '../src/engine/client/combat/view/projectedTrail'
 import type { Targets } from '../src/engine/client/combat/types';
 import type { EquipmentService } from '../src/engine/client/combat/EquipmentService';
 import type { ShardContext } from '../src/game/server/plugin/context';
-import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { fixtureProductFile, fixtureJsonCheck } from './fixtures/productFile';
 import firearmPage from './fixtures/nalati-rifle-original.json' with { type:'json' };
 import { emptyShardfile } from '../src/sdk/author';
 import { parseItems } from '@wildshard/format/items';
 import { parseHeldSlots } from '@wildshard/format/heldArms';
-import { ItemCatalogue } from '../src/game/server/loadout/itemCatalogue';
+import { ItemCatalogue } from '../src/game/shared/loadout/itemCatalogue';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import * as native from '../src/game/server/plugin/headless';
 import * as bowBinding from '../src/game/server/weapons/Bow';

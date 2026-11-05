@@ -2,7 +2,7 @@ import { NetRoom, type NetTickInput } from '@wildshard/engine/net/room';
 import { SimNetWorld } from '@wildshard/engine/net/simWorld';
 import type { Transport } from '@wildshard/engine/net/transport';
 import type { SimHost, SimTickCommand } from '@wildshard/engine/sim';
-import type { GridAssembly } from './assembly';
+import type { GridAssembly } from '../../shared/grid/assembly';
 import type { GridRoom } from './room';
 import type { GridSimulation } from './simulation';
 

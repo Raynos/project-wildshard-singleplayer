@@ -85,7 +85,7 @@ Jake, 2026-10-15 (G441): a new platform host built for Pine or Driftwood counts 
 
 
 | W3 Nalati typed native bake reader (G441) | `src/sdk/headlessRuntime.ts#createNativeBakeReader` + `NativeBakeReader`, `NativePhysicsBake`, `NativeBakedActor` | Nalati `src/shards/nalati-grasslands/runtime/baked.ts`: strict ground/solid/actor admission, owned lattice/collider buffers, matching recipe identity and parsed-world memo. Keep marmot/flock/tree metadata schemas and group/spawn cross-record checks caller-owned. | sp-x5 |
-| W3 Nalati ranged action clocks (G441) | `src/engine/server/combat/Firearm.ts#RangedAction` / `RangedActionRow` | `src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts`: trigger readiness, cooldown, empty-trigger clock, auto-reload and reload progress/transfer; keep its bloom/flash/shot ordering and active-only auto policy | sp-x1 |
+| W3 Nalati ranged action clocks (G441) | `src/engine/shared/combat/Firearm.ts#RangedAction` / `RangedActionRow` | `src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts`: trigger readiness, cooldown, empty-trigger clock, auto-reload and reload progress/transfer; keep its bloom/flash/shot ordering and active-only auto policy | sp-x1 |
 
 
 | W3 Nalati declared-panel lifecycle (G441) | `src/sdk/panels.ts#DeclaredPanel` + `DeclaredPanelPolicy` | Nalati `src/shards/nalati-grasslands/ride/HorseNamePrompt.ts`: declared content mounting, per-open scope and listener lifetime, blur/close and borrowed modal-layer disposal. Keep name validation, Enter/save, input grace and focus in caller bindings; Pine uses the persistent policy. | done `ebe175c95` + `457edb94f` (sp-x1: HorseNamePrompt.ts and Pine quest/ui.ts deleted onto named quests/panels.json) |

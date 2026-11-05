@@ -12,7 +12,7 @@
 import { BufferGeometry, Float32BufferAttribute, Group, Matrix4, Mesh, MeshBasicMaterial, Vector3 } from 'three';
 import catalogue from '../../shared/grid/singleplayer.json' with { type: 'json' };
 import { ACCENTS } from '@wildshard/format/accent';
-import { parseGridCatalogue, type CopyIdentity } from '../../server/grid/catalogue';
+import { parseGridCatalogue, type CopyIdentity } from '../../shared/grid/catalogue';
 import { copyLayoutMesh } from './copyLayout';
 
 /** a copy's number from its stable instance id (`template-2` → 2), as G222's title card reads it; null when it has none */

@@ -5,7 +5,7 @@ import declared from '../src/shards/open-plots/outputs.json' with { type: 'json'
 import project, { outputs } from '../src/shards/open-plots/shard.config';
 import { audioOutputs, outputs as worldDeclarations } from '../src/shards/open-plots/generators/product';
 import layout from '../src/shards/open-plots/data/layouts/night-market.json' with { type: 'json' };
-import { GridAssembly } from '../src/game/server/grid/assembly';
+import { GridAssembly } from '../src/game/shared/grid/assembly';
 
 // G604: the open-plots entry is a thin declaration (its products assemble in generators/product.ts at build time), one
 // product per idea row

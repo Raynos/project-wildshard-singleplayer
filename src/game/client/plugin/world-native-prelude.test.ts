@@ -9,7 +9,7 @@ import { WorldRegistry } from '@wildshard/engine/world/registry';
 import * as model from '@wildshard/engine/models/model';
 import type { ShardContext } from '../../server/plugin/context';
 import type { ShardWorld } from '../../server/shard/world';
-import type { ShardRuntime } from '../../server/shard/runtime';
+import type { ShardRuntime } from '../../shared/shard/runtime';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
 import { WorldAssembly } from '../shardfile/worldAssembly';
 import { entryOwner } from '../shardfile/entryOwners';

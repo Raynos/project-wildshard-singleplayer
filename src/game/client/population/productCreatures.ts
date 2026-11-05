@@ -8,7 +8,7 @@ import type { SpeciesDecisionAuthority } from '../../server/plugin/brain';
 import type { ShardContext } from '../../server/plugin/context';
 import { PerchBodyBinding } from '../../server/population/perchBody';
 import { registerLootTable } from '../../server/loot/tables';
-import { readLootTables } from '../../server/loot/tableRows';
+import { readLootTables } from '../../shared/loot/tableRows';
 import { installPopulationProjection } from '../shardfile/clientPopulationProjection';
 import { productHullBook } from '../looks/speciesBook';
 import { lentLook, setLentParam } from '../shardfile/lentLooks';

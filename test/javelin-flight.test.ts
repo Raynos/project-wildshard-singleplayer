@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { JavelinFlight, type JavelinSlot, type JavelinTargetHit } from '../src/game/shared/weapons/javelinFlight';
 import type { Hit } from '../src/engine/shared/physics/query';
 import type { Material } from '../src/engine/shared/physics/surface';
-import type { ImpactSurface } from '../src/engine/server/combat/Weapon';
+import type { ImpactSurface } from '../src/engine/shared/combat/Weapon';
 
 const profile = { speed: 26, gravity: 9.8, damage: 55, headMultiplier: 2, radius: .05, headOffset: .9, stagger: .6 };
 const Y = new THREE.Vector3(0, 1, 0);

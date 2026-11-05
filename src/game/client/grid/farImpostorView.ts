@@ -11,7 +11,7 @@ import { Box3, DataTexture, LinearFilter, Mesh, PlaneGeometry, RGBAFormat, Shade
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import type { FarImpostor } from '@wildshard/format/shardSections';
 import type { FarImpostorDecodeReply, FarImpostorDecodeRequest } from './farImpostorPack';
-import { GRID_HAZE } from '../../server/grid/farProxy';
+import { GRID_HAZE } from '../../shared/grid/farProxy';
 
 /** A decoded impostor: its row and its packed texels. */
 export interface FarImpostorData { readonly row: FarImpostor; readonly texels: Uint16Array; readonly width: number; readonly height: number }

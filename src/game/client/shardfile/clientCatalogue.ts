@@ -1,13 +1,13 @@
 import * as v from 'valibot';
 import { CatalogueEconomySchema } from '@wildshard/format/catalogueEconomy';
-import { isOwnedId } from '../../server/loot/Owned';
+import { isOwnedId } from '../../shared/loot/Owned';
 import { isJsonData } from '@wildshard/format/json';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../../server/plugin/context';
 import { HeldFinishes } from '../loadout/finishes';
 import { heldFinishEffect, STARTER_EFFECTS } from '../../server/loadout/effects';
-import { ItemCatalogue } from '../../server/loadout/itemCatalogue';
-import { declaredProductCompendium } from '../../server/shard/declaredRows';
+import { ItemCatalogue } from '../../shared/loadout/itemCatalogue';
+import { declaredProductCompendium } from '../../shared/shard/declaredRows';
 
 /** Kit-only catalogue registration from admitted ids. Preparation stays with
  * the resident resource owner; this feature registers no frame or save owner. */

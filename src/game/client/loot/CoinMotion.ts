@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { coinModel } from './coinModel';
-import { burstCount, coinShare } from '../../server/loot/coinAmounts';
-import { readCoinBurstState, type CoinBurstState } from '../../server/loot/coinBurstState';
+import { burstCount, coinShare } from '../../shared/loot/coinAmounts';
+import { readCoinBurstState, type CoinBurstState } from '../../shared/loot/coinBurstState';
 
 const POOL = 48;                 // coins in flight at once (a captain = 12; a crab melee = a few)
 const SCALE = 2.6;               // coinModel is a 7 cm coin: in flight it has to read at 6 m on a phone

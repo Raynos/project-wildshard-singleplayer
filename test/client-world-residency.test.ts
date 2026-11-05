@@ -6,7 +6,7 @@ import { tileOf } from '../src/game/shared/shardfile/tileOrder';
 import { Scope } from '../src/engine/shared/app/scope';
 import { emptyShardfile } from '../src/sdk/author';
 import { hashImmutableBytes } from '../src/sdk/immutable';
-import { ResidencyAllocator } from '../src/game/server/grid/allocator';
+import { ResidencyAllocator } from '../src/game/shared/grid/allocator';
 import { ClientAssets } from '../src/game/client/shardfile/clientAssets';
 import { clientRingCatalogue, clientRingPorts, clientTileRegistration, ring } from '../src/game/client/shardfile/tileContent';
 import type { ClientTileViews } from '../src/game/client/shardfile/clientViews';

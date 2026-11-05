@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';
 import { Events } from '../src/engine/shared/events/events';
 import * as feel from '../src/engine/client/combat/view/rangedFeel';
-import { ItemCatalogue } from '../src/game/server/loadout/itemCatalogue';
+import { ItemCatalogue } from '../src/game/shared/loadout/itemCatalogue';
 import { installHeldRangedFeel } from '../src/game/client/plugin/heldEquipment';
 import type { ShardContext } from '../src/game/server/plugin/context';
 import { parseClientPlan } from '@wildshard/format/clientPlan';

@@ -1,11 +1,11 @@
 import { smoothstep as sstep } from '../../../shared/core/noise';
 import { app, gameplayRandom } from '../../app/runtime';
-import type { EquipContext, EquipmentRow } from '../../../server/combat/Equipment';
+import type { EquipContext, EquipmentRow } from '../../../shared/combat/Equipment';
 import type { Targets, TargetHit } from '../types';
 import { DropArc } from './DropArc';
 import { Projectiles, type WindField } from './projectile';
 import { fovForAspect, FOV_HIP, isMesh } from './ranged';
-import { Weapon, quiverState } from '../../../server/combat/Weapon';
+import { Weapon, quiverState } from '../../../shared/combat/Weapon';
 import type { Game } from '../../core/Game';
 import { weaponActionGate } from '../../input/weaponActions';
 import { placeArm } from '../../player/firstPersonArms';

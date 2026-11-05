@@ -1,8 +1,8 @@
 import type { Vector3 } from 'three';
 import type { Scope } from '../../shared/app/scope';
 import type { CueOpts } from '../audio/Cues';
-import type { EquipmentRow, EquipmentId } from '../../server/combat/Equipment';
-import type { ImpactSurface } from '../../server/combat/Weapon';
+import type { EquipmentRow, EquipmentId } from '../../shared/combat/Equipment';
+import type { ImpactSurface } from '../../shared/combat/Weapon';
 import type { CueId } from './effects/types';
 
 export interface CombatCueOpts extends CueOpts {

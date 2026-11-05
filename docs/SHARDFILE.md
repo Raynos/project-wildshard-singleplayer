@@ -382,7 +382,7 @@ refuses a stack over 1,000 instructions. Where two cells' frames blend,
 `postPairRefusal` checks the pair's sum against the same 1,000 (a normal pre-pass both
 stacks read is counted once). Grid placement runs it: each admitted product records its
 stack's cost on the page (`gridPostCosts`), and a cell's admission sums its stack with
-each adjacent admitted cell's (`gridPostPairRefusal`, `src/game/server/grid/postPairs.ts`), so
+each adjacent admitted cell's (`gridPostPairRefusal`, `src/game/shared/grid/postPairs.ts`), so
 of two neighbours whose stacks together exceed it, the one admitted second is refused
 (the cell screen's "too big"). The check is static, with no runtime sensing. Older
 products without `look.post` parse unchanged. While Settings ▸ Debug ▸ Look ▸

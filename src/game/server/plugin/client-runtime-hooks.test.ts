@@ -3,7 +3,7 @@ import { BufferGeometry,Group,Mesh,MeshBasicMaterial,Object3D,Vector3 } from 'th
 import type { Bounds } from '@wildshard/engine/level/spec';
 import { Scope } from '@wildshard/engine/app/scope';
 import type { ShardContext } from './context';
-import type { ShardRuntime } from '../shard/runtime';
+import type { ShardRuntime } from '../../shared/shard/runtime';
 import { installClientRuntimeHooks, runtimeLevelBounds } from '../../client/shardfile/clientRuntimeHooks';
 import { lendEntryOwner,publishEntryOwner } from '../../client/shardfile/entryOwners';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

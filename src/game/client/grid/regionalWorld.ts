@@ -5,7 +5,7 @@ import { bindSceneSourceLooks } from '../shardfile/sceneSources';
 import { bindPaintedMaterialMaps } from '../looks/paintedLook';
 import { leaseClientLibrary } from '../shardfile/clientLibrary';
 import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
-import type { ResidencyAllocator } from '../../server/grid/allocator';
+import type { ResidencyAllocator } from '../../shared/grid/allocator';
 /**
  * The concrete regional world of a trusted hybrid cell (SHARD-PLATFORM SF47 / M3, E452): the foundation that
  * `createRegionalRuntimeFactory` composes, so an admitted first-party runtime can run as a neighbour cell instead of the

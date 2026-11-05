@@ -38,7 +38,7 @@ const registry = await import(pathToFileURL(resolve(ROOT, 'src/game/client/shard
 const heightfield = await import(pathToFileURL(resolve(ROOT, 'src/engine/shared/world/Heightfield.ts')).href);
 const bakedTerrain = await import(pathToFileURL(resolve(ROOT, 'src/engine/shared/world/BakedTerrain.ts')).href);
 const placement = await import(pathToFileURL(resolve(ROOT, 'src/engine/shared/world/forest/placement.ts')).href);
-const { bakesTerrain } = await import(pathToFileURL(resolve(ROOT, 'src/game/server/shard/terrainBake.ts')).href);
+const { bakesTerrain } = await import(pathToFileURL(resolve(ROOT, 'src/game/shared/shard/terrainBake.ts')).href);
 
 // G384: a shard whose retained WSTR alias is its shardfile's admitted query terrain (shard.config `terrain.form: 'query'`)
 // ships the bare lattice. The content gate admits no placement tail, and no runtime of these shards replays one.
@@ -69,7 +69,7 @@ function placementSection(def, gridBuf) {
 
 const output = byteWriter(check, 'bake-chunk');
 for (const def of SHARDS) {
-  // one rule with the grid's edge reader (src/game/server/shard/terrainBake.ts): a structures world ships no bake, and the reader
+  // one rule with the grid's edge reader (src/game/shared/shard/terrainBake.ts): a structures world ships no bake, and the reader
   // never fetches one for it (C4-R1-C13)
   if (!bakesTerrain(def.ground)) continue;
   // A required manifest ground is its shardfile's own terrain collider (compiled by its tiles job, loaded through the

@@ -1,5 +1,5 @@
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { ResidencyAllocator } from '../../server/grid/allocator';
+import type { ResidencyAllocator } from '../../shared/grid/allocator';
 import { ROAD_GRAIN_PLANES, type RoadGrainKind, type RoadGrainPixels, type RoadGrainSource } from './roadGrain';
 
 export interface RoadGrainPreparation { readonly ready: Promise<void>; readonly get: RoadGrainSource; readonly release: () => void }

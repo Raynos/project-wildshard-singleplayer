@@ -116,7 +116,7 @@ export function shardCoupling(root = ROOT) {
   const platformWeapon = (type, seen = new Set()) => {
     if (seen.has(type)) return false;
     const next = new Set(seen).add(type), symbol = type.getSymbol();
-    if (declarations(symbol).some((decl) => ts.isClassDeclaration(decl) && local(decl.getSourceFile().fileName) === 'src/engine/server/combat/Weapon.ts' && decl.name?.text === 'Weapon')) return true;
+    if (declarations(symbol).some((decl) => ts.isClassDeclaration(decl) && local(decl.getSourceFile().fileName) === 'src/engine/shared/combat/Weapon.ts' && decl.name?.text === 'Weapon')) return true;
     if (declarations(symbol).some((decl) => ts.isClassDeclaration(decl))) {
       const declared = checker.getDeclaredTypeOfSymbol(symbol);
       if (declared !== type) return platformWeapon(declared, next);

@@ -17,7 +17,7 @@ import { loadClientSkins, SkinDriver, type ClientSkin } from '../shardfile/clien
 import { ClientScriptViews, type ClientScriptViewTarget, type ClientScriptViewState } from "../plugin/ui";
 import type { ShardfileSimulation } from '../../server/plugin/simulation';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import type { GridCell } from '../../server/grid/assembly';
+import type { GridCell } from '../../shared/grid/assembly';
 
 /** What a cell's life reads from the session: its admitted region (absent until the live host admits it) and whether it is the active frame. */
 export interface NeighbourLifePorts {

@@ -1,6 +1,6 @@
 import type { SkinLocker } from '../../client/cosmetics/locker';
 import type { BagMenuOptions } from '../../client/bag/tabs';
-import type { ShardWorld } from './world';
+import type { ShardWorld } from '../../server/shard/world';
 import type { BodyShadow } from '../../client/cosmetics/bodyShadow';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Music } from '@wildshard/engine/audio/Music';
@@ -21,10 +21,10 @@ import type { GameMenu } from '@wildshard/engine/ui/Menu';
 import type { MapMark } from '@wildshard/engine/ui/Minimap';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { Group, Vector2, Vector3 } from 'three';
-import type { Inventory } from '../Inventory';
+import type { Inventory } from '../../server/Inventory';
 import type { Progress } from '../../client/Progress';
 import type { Owned } from '../loot/Owned';
-import type { ShardSword } from './manifest';
+import type { ShardSword } from '../../server/shard/manifest';
 import type { Bounds } from '@wildshard/engine/level/spec';
 
 /** Services supplied by the gameplay shell after it has built the player kit and UI. */

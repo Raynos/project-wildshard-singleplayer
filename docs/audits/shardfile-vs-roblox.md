@@ -96,7 +96,7 @@ Each concept: what Roblox does, what we do (with files), and who is ahead.
   loading screen, optionally into reserved servers. The docs warn that teleport data is visible to the client.
 - **Wildshard:** one continuous grid. Cells are 500 m on a 562.5 m pitch, joined by roads. There are four 8 m
   entryways per cell, at most four resident sims, and neighbours prefetch on the road approach
-  (`docs/GRID-SIMULATION.md`; `src/game/server/grid/catalogue.ts`). Placements are stable instances such as `template-2`,
+  (`docs/GRID-SIMULATION.md`; `src/game/shared/grid/catalogue.ts`). Placements are stable instances such as `template-2`,
   so one product can fill several cells (`src/game/client/grid/copyIdentity.ts`).
 - **Ahead:** Wildshard, by design. This is the MMO we want.
 
@@ -205,7 +205,7 @@ They are ranked by value to our MMO. Size: S is days, M is about a week or two, 
 - **Roblox:** every place keeps its own versions with notes. One place can be restored without touching the rest.
   Live servers move to the new version with a 1–60 minute delay.
 - **Us today:** products exist only as build outputs. The whole site ships and rolls back as one SHA
-  (`.github/deploy-pin.json`). A grid placement names `slug`, not a product (`src/game/server/grid/catalogue.ts`). So a bad
+  (`.github/deploy-pin.json`). A grid placement names `slug`, not a product (`src/game/shared/grid/catalogue.ts`). So a bad
   Nalati build forces a choice: roll back every shard, or fix forward.
 - **Change:** products are already content-addressed, so keep each published product by hash. Keep a small
   `versions` list per slug (revision, root hash, date, notes from the commit). Let a catalogue placement pin

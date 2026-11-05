@@ -1,6 +1,6 @@
 import type { Interactable } from '../../shared/world/interact/types';
 import type { LoadoutSpec } from '../../shared/level/spec';
-import type { EquipmentRow } from './Equipment';
+import type { EquipmentRow } from '../../shared/combat/Equipment';
 
 /** A content-owned display. The equipment service owns its grant and lifetime. */
 export interface EquipmentPickup {

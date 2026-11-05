@@ -1,4 +1,4 @@
-import type { LootContext, LootTableRow } from './tableRows';
+import type { LootContext, LootTableRow } from '../../shared/loot/tableRows';
 import { WeightedTable, type TableDrop } from '@wildshard/engine/ai/weighted';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Scope } from '@wildshard/engine/app/scope';

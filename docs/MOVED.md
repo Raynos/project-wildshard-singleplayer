@@ -509,7 +509,7 @@
 | src/game/server/achievements.ts | src/game/server/achievements.ts | src/game/server/achievements.ts |
 | src/game/server/loot/Bounty.ts | src/game/server/loot/Bounty.ts | src/game/server/loot/Bounty.ts |
 | src/game/server/loot/CoinBurst.ts | src/game/server/loot/CoinBurst.ts | src/game/server/loot/CoinBurst.ts |
-| src/game/server/loot/Owned.ts | src/game/server/loot/Owned.ts | src/game/server/loot/Owned.ts |
+| src/game/shared/loot/Owned.ts | src/game/shared/loot/Owned.ts | src/game/shared/loot/Owned.ts |
 | src/game/server/loot/Purse.ts | src/game/server/loot/Purse.ts | src/game/server/loot/Purse.ts |
 | src/game/server/loot/coins.ts | src/game/server/loot/coins.ts | src/game/server/loot/coins.ts |
 | src/game/loot/finds.ts | src/shards/driftwood-isle/loot/finds.ts | src/shards/driftwood-isle/loot/finds.ts |

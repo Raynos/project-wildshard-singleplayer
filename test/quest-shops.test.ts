@@ -16,7 +16,7 @@ import { TRADER_STALL as coinRows } from '../src/shards/driftwood-isle/generator
 import { TRADER_STALL as barterRows } from '../src/shards/pine-hollow/generators/questShop';
 import { TRADES } from '../src/shards/pine-hollow/generators/trades';
 import { FIGURE_CATALOGUE } from '../src/shards/pine-hollow/generators/figureCatalogue';
-import { Owned } from '../src/game/server/loot/Owned';
+import { Owned } from '../src/game/shared/loot/Owned';
 import { Purse, publishPurse, enteredPurse } from '../src/game/server/loot/Purse';
 import { installQuestTrader, installQuestShop } from '../src/game/server/quest/trader';
 

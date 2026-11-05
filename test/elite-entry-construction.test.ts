@@ -4,7 +4,7 @@ import { installClientEliteEntry } from '../src/game/client/shardfile/clientElit
 import { publishEntryOwner } from '../src/game/client/shardfile/entryOwners';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../src/game/server/plugin/context';
-import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { ENGINE_CONTENT_STRINGS } from '../src/game/client/engineStrings';
 import { installEngineStrings } from '../src/engine/shared/strings';
 import { expect, expectTypeOf, test, vi } from 'vitest';

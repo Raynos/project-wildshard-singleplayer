@@ -10,7 +10,7 @@ import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { createLevelInstallation, type LevelInstallation } from '@wildshard/engine/level/installation';
 import { shardContext, type ShardContext, gridCells, gridHomeSim, pageGridInstance, type GridCellRef, ShardPlugin } from '../../server/plugin/context';
 
-import type { ShardRuntime } from '../../server/shard/runtime';
+import type { ShardRuntime } from '../../shared/shard/runtime';
 import { bindScopedRuntime, createScopedRuntimeBinding, type ScopedRuntimeBinding } from '../../server/shard/scopedRuntime';
 import { RetainedRuntimeHooks, installEnteredRuntimeService } from "../shard/retainedHooks";
 import { enterSkyClock } from '../session/clockSettings';

@@ -1,5 +1,5 @@
 import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';
-import { ResidencyAllocator } from '../../server/grid/allocator';
+import { ResidencyAllocator } from '../../shared/grid/allocator';
 import type { PageResidency, HomeResidencyClaim } from '../grid/pageResidency';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 

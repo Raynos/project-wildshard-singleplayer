@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { contentCost, type ContentCostInput } from '@wildshard/format/contentCost';
-import { ResidencyAllocator, type ResidencyEntry } from '../../server/grid/allocator';
+import { ResidencyAllocator, type ResidencyEntry } from '../../shared/grid/allocator';
 import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 import { budgetPoints, shardLimit } from './budgetPoints';
 

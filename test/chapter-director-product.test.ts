@@ -2,7 +2,7 @@ import nativeStoryFixture from './fixtures/pine-native-story.json' with { type: 
 // @vitest-environment happy-dom
 import { PINE_BAG_ITEMS } from '../src/shards/pine-hollow/generators/questInventory';
 import { DRIFTWOOD_ITEMS } from '../src/shards/driftwood-isle/generators/questInventory';
-import { registerItemRow } from '../src/game/server/bag/itemCatalog';
+import { registerItemRow } from '../src/game/shared/bag/itemCatalog';
 import { afterAll, beforeAll, expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { Vector3 } from 'three';

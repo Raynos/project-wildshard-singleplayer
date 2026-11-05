@@ -7,7 +7,7 @@ import { BufferAttribute, BufferGeometry } from 'three';
 import { GeometryPackWriter } from '../../src/sdk/kit/geometryPack';
 import { gridLookBytes } from './encodedBytes';
 import type { GeneratedStrip } from '../../src/engine/shared/sim/strips';
-import { GRID_STRIP_FEATURE_KINDS, decodeCompiledGridLook, gridStripPageKey, parseCompiledGridHeader, type CompiledGridAddress, type CompiledGridHeader, type CompiledGridPage, type CompiledGridSelector, type GridStripPhase } from '../../src/game/server/grid/compiledStrips';
+import { GRID_STRIP_FEATURE_KINDS, decodeCompiledGridLook, gridStripPageKey, parseCompiledGridHeader, type CompiledGridAddress, type CompiledGridHeader, type CompiledGridPage, type CompiledGridSelector, type GridStripPhase } from '../../src/game/shared/grid/compiledStrips';
 import { seamLookGeometrySteps, type SeamGeometryChannels } from '../../src/game/client/grid/seamLook';
 import { servedBytes } from '../phone-wire.mjs';
 

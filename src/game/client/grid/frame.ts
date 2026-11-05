@@ -47,7 +47,7 @@ import { LUT_SIZE } from '@wildshard/engine/render/lut';
 import { CAMERA_FOV } from '@wildshard/engine/core/config';
 import type { LookCellPost } from '@wildshard/engine/render/look';
 import { RoadSky, type RoadSkyPage } from './roadSky';
-import { FAR_RING, GRID_HAZE } from '../../server/grid/farProxy';
+import { FAR_RING, GRID_HAZE } from '../../shared/grid/farProxy';
 import { bindFrameLook, type FrameLookContribution, type FramePost, type FrameSkyLayer, type RegionChain, type RegionPost } from './frameLook';
 import { NEUTRAL_GRADE, ROAD_SKY, dominantOwner, edgeDistance, frameFog, frameGrade, frameOwners, type FrameCell, type FullGrade, type RegionGrade, type RegionWeights } from './frameModel';
 

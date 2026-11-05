@@ -1,5 +1,5 @@
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { ResidencyAllocator, ResidencyClaim, ResidencyLease } from '../../server/grid/allocator';
+import type { ResidencyAllocator, ResidencyClaim, ResidencyLease } from '../../shared/grid/allocator';
 
 /**
  * The renderer's pure preflight result, in bytes. Count retained JS data (including CPU buffers/canvases) and all GPU

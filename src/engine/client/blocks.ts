@@ -1,5 +1,5 @@
-import { melee, aimRay, fovForAspect } from '../server/combat/blocks/melee';
-import { ads } from '../server/combat/blocks/ads';
+import { melee, aimRay, fovForAspect } from '../shared/combat/blocks/melee';
+import { ads } from '../shared/combat/blocks/ads';
 import { viewmodel } from './render/viewmodelFeel';
 
 /** Existing engine blocks grouped for authored weapon composition. */

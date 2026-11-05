@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { AdditiveBlending, NormalBlending, BoxGeometry, BufferAttribute, BufferGeometry, Group, Mesh, MeshBasicMaterial } from 'three';
 import { installFarProxy, type FarProxyView } from './farView';
-import { ResidencyAllocator } from '../../server/grid/allocator';
+import { ResidencyAllocator } from '../../shared/grid/allocator';
 import { bakedNearFiles, NearPlaceholders, type NearPlaceholderHost } from './nearPlaceholderView';
 
 function fixture() {

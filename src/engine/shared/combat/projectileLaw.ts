@@ -1,6 +1,6 @@
 import { Vector3, type Matrix4 } from 'three';
 import type { Hit } from '../physics/query';
-import type { ImpactSurface } from '../../server/combat/Weapon';
+import type { ImpactSurface } from './Weapon';
 import type { TargetAnimal, TargetHit } from '../../client/combat/types';
 import { projectileFlightStep, ProjectileSlots, type FlightSlot, type ProjectileFlight } from './projectileFlight';
 import { ProjectileContact, StoppedProjectileSlots, type StoppedProjectile } from './projectileContact';

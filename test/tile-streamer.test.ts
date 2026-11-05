@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { ResidencyAllocator } from '../src/game/server/grid/allocator';
+import { ResidencyAllocator } from '../src/game/shared/grid/allocator';
 import { TileStreamer, type RingPorts, type RingTile, type RingLevel, type RingOptions, type TileStreamBudget } from '../src/engine/client/world/tileStreamer';
 
 function drive(fullRing: number | null = null) {

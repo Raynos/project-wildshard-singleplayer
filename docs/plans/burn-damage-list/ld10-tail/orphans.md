@@ -126,7 +126,7 @@ only contains the word, not a `#box` row).
 - `engine/client/app/cachedAssets.ts`: `cacheUntilDisposed`
 - `engine/client/audio/AmbienceBeds.ts`: `BedDef`, `ZoneWeights`
 - `engine/client/audio/ambience.ts`: `ZoneVoice`
-- `engine/server/combat/Equipment.ts`: `RangedFeelProfile`
+- `engine/shared/combat/Equipment.ts`: `RangedFeelProfile`
 - `engine/shared/combat/ammo.ts`: `ProjectileModification`
 - `engine/client/combat/view/brass.ts`: `brassFloor`
 - `engine/client/combat/view/ranged.ts`: `dataTexture`

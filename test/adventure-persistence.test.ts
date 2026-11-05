@@ -4,7 +4,7 @@ import { entryOwner } from '../src/game/client/shardfile/entryOwners';
 import { enteredAdventurePersistence } from '../src/game/server/quest/chapterBindings';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import type { ShardContext } from '../src/game/server/plugin/context';
-import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { Scope } from '../src/engine/shared/app/scope';
 import { app } from '../src/engine/client/app/runtime';

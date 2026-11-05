@@ -17,7 +17,7 @@ import type { GroupGuestProjectionV2 } from '../src/engine/server/ai/GroupBrain'
 import { CrowdTargets } from '../src/game/shared/shardfile/crowdRuntime';
 import { FlockBrain } from '../src/engine/shared/ai/flock';
 import { parseFlock } from '@wildshard/format/crowds';
-import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import type { Player } from '../src/engine/client/player/Player';
 import { knockdownVelocity } from '../src/game/server/population/relations';
 import type { Animal } from '../src/engine/client/entities/AnimalView';

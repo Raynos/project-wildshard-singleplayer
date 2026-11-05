@@ -6,7 +6,7 @@ import { AssetService } from '../src/engine/client/app/assets';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 import { AssetResidencyBridge } from '../src/game/client/grid/assetResidency';
-import { ResidencyAllocator } from '../src/game/server/grid/allocator';
+import { ResidencyAllocator } from '../src/game/shared/grid/allocator';
 import { prepareSceneBufferDraws } from '../src/game/client/shardfile/sceneBuffers';
 
 function fixture(bytes = 1000) {

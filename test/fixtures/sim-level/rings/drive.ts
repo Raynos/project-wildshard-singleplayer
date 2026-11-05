@@ -8,7 +8,7 @@ import { CONTENT_CAPS as C } from '../../../../src/engine/shared/core/config';
 import { Scope } from '../../../../src/engine/shared/app/scope';
 import { encodeTerrainTile, type TerrainTileData } from '@wildshard/format/terrainTileBytes';
 import { installTerrainTile, maskTerrainTile } from '../../../../src/engine/client/world/terrainTileView';
-import { ResidencyAllocator } from '../../../../src/game/server/grid/allocator';
+import { ResidencyAllocator } from '../../../../src/game/shared/grid/allocator';
 import { TileStreamer, type RingCell, type RingTile, type RingView } from '../../../../src/engine/client/world/tileStreamer';
 import { TileDecoder } from '../../../../src/game/client/grid/tileDecoder';
 

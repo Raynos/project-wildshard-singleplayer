@@ -40,7 +40,7 @@ test('type-only users share their declarations without sharing unrelated combat 
   const put=(path:string,source:string):void=>{mkdirSync(dirname(join(root,path)),{recursive:true});writeFileSync(join(root,path),source);};
   try {
     put('src/engine/package.json',JSON.stringify({name:'@wildshard/engine',exports:{'./combat/types':'./combat/types.ts','./combat/targets':'./combat/targets.ts'}}));
-    put('src/engine/server/combat/targets.ts','export interface RayTargets { distance: number }\nexport function authoredTargets() { return 1; }');
+    put('src/engine/shared/combat/targets.ts','export interface RayTargets { distance: number }\nexport function authoredTargets() { return 1; }');
     put('src/entry.ts',"import {authoredTargets} from '@wildshard/engine/combat/targets'; authoredTargets();");
     put('src/engine/client/combat/types.ts',[
       'export interface EffectDef { id: string }',
@@ -54,7 +54,7 @@ test('type-only users share their declarations without sharing unrelated combat 
     platformOutput(root,'pine-hollow',{'runtime/index.ts':"import type {EffectDef} from '@wildshard/engine/combat/types'; export type Effect=EffectDef;"});
     platformOutput(root,'driftwood-isle',{'runtime/index.ts':"export type {EffectDef} from '@wildshard/engine/combat/types';"});
     const rows=sourceProgressInventory(root);
-    expect(rows['nalati-grasslands']?.conversion.gameSystemAttribution.modules).toEqual([{path:'src/engine/server/combat/targets.ts',lines:2}]);
+    expect(rows['nalati-grasslands']?.conversion.gameSystemAttribution.modules).toEqual([{path:'src/engine/shared/combat/targets.ts',lines:2}]);
     expect(rows['nalati-grasslands']?.conversion.gameSystemAttribution.exports.map(row=>row.name)).toEqual(['SourceMulDef','anyTag','sourceMultiplier']);
     expect(rows['pine-hollow']?.conversion.gameSystemAttribution.lines).toBe(0);
     expect(rows['driftwood-isle']?.conversion.gameSystemAttribution.lines).toBe(0);

@@ -17,19 +17,19 @@ it('roots G294 in emitted section hosts and authored runtime, never build import
  try{
   put('src/game/package.json',JSON.stringify({name:'@wildshard/game',exports:{'./private':'./private.ts'}}));
   put('src/game/private.ts','export function live() { return 1; }\nexport function authored() { return 2; }');
-  put('src/game/server/shard/declaredRows.ts','export function declaredWeather() { return 1; }\nexport function unrelated() { return 2; }');
+  put('src/game/shared/shard/declaredRows.ts','export function declaredWeather() { return 1; }\nexport function unrelated() { return 2; }');
   platformOutput(root,'pine-hollow',{'runtime/index.ts':"import {live} from '@wildshard/game/private'; export const value=live();"},{'world/weather':'{"rows":{"weather":[]}}'});
   platformOutput(root,'driftwood-isle',{'runtime/index.ts':'export const value=1;'});
   put('src/shards/driftwood-isle/data/build.ts',"import {live,authored} from '@wildshard/game/private'; export const table=[live(),authored()];");
   const pine=outputShardLines(root,true)['pine-hollow'];
   expect(pine?.measurement).toBe('built-output');
   expect(pine?.conversion.shardRuntimeLines).toBe(0);
-  expect(pine?.conversion.gameSystemAttribution.modules.map(row=>row.path)).toContain('src/game/server/shard/declaredRows.ts');
+  expect(pine?.conversion.gameSystemAttribution.modules.map(row=>row.path)).toContain('src/game/shared/shard/declaredRows.ts');
   expect(pine?.customSources?.some(row=>row.kind==='runtime-ts'||row.path.includes('data/'))).toBe(false);
   const source=sourceProgressInventory(root)['pine-hollow'];
   expect(source?.conversion.shardRuntimeLines).toBe(1);
   expect(source?.conversion.gameSystemAttribution.modules.map(row=>row.path)).toContain('src/game/private.ts');
-  expect(source?.conversion.gameSystemAttribution.modules.map(row=>row.path)).toContain('src/game/server/shard/declaredRows.ts');
+  expect(source?.conversion.gameSystemAttribution.modules.map(row=>row.path)).toContain('src/game/shared/shard/declaredRows.ts');
   // A real second runtime user, unlike the authoring import above, shares the module.
   platformOutput(root,'driftwood-isle',{'runtime/index.ts':"import {live} from '@wildshard/game/private'; export const value=live();"});
   expect(sourceProgressInventory(root)['pine-hollow']?.conversion.gameSystemAttribution.modules.map(row=>row.path)).not.toContain('src/game/private.ts');

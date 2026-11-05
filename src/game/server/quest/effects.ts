@@ -2,7 +2,7 @@ import type { parseQuestServiceActions } from '@wildshard/format/questSteps';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { ShardContext } from '../plugin/context';
-import { isItemId } from '../bag/itemCatalog';
+import { isItemId } from '../../shared/bag/itemCatalog';
 import { creditNativeInventory, debitNativeInventory } from '../inventoryLaw';
 import { boundQuestState } from './boundState';
 import { boundChapter, readQuestObservation } from './chapterBindings';

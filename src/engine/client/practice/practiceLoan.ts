@@ -7,7 +7,7 @@
  *   enterPracticeLoan({ weapons, player }, { x, z: centreZ + practiceViewDistance(fov, aspect, width), y });
  *   exitPracticeLoan(weapons);
  */
-import type { WeaponId } from '../../server/combat/Equipment';
+import type { WeaponId } from '../../shared/combat/Equipment';
 import { ARENA_LINEUP } from './lineup';
 
 /** the dummy's half width with its arms, metres: what must stay inside the frame */

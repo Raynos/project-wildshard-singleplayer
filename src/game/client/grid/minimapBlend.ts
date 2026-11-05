@@ -14,7 +14,7 @@
 import type { MapExtras, MapExtraImage, MapExtraLabel, MapExtraRect } from '@wildshard/engine/ui/Minimap';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { GridAssembly, GridCell, GridSide } from '../../server/grid/assembly';
+import type { GridAssembly, GridCell, GridSide } from '../../shared/grid/assembly';
 import type { GridCellEvents } from '../../server/grid/cellEvents';
 import { GAP_HALF, RAIL_OFFSET, ROAD_HALF } from '../../shared/grid/roadLayout';
 

@@ -20,7 +20,7 @@
  */
 import { BackSide, Color, ConstantAlphaFactor, CustomBlending, Fog, Mesh, OneMinusConstantAlphaFactor, ShaderMaterial, SphereGeometry, Vector3, type Object3D, type Scene } from 'three';
 import { ROAD_SKY } from './frameModel';
-import { FAR_RING } from '../../server/grid/farProxy';
+import { FAR_RING } from '../../shared/grid/farProxy';
 
 /** the dome's radius (m): past every far proxy across the grid's sightline, inside the grid camera's far plane (SF88c) */
 const RADIUS = FAR_RING.domeRadius;

@@ -16,7 +16,7 @@ import type {StepRunner} from '../src/engine/client/boot/plan';
 import {Vector3} from 'three';
 import type {Physics} from '../src/engine/shared/physics/Physics';
 import type { ShardWorld } from '../src/game/server/shard/world';
-import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import type { ShardContext } from '../src/game/server/plugin/context';
 import type { FixedDraws } from '../src/game/client/models/fixedDraws';
 import { WorldAssembly } from '../src/game/client/shardfile/worldAssembly';

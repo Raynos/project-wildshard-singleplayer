@@ -9,7 +9,7 @@ import { Group } from 'three';
 import { GHOST_AFTER_MS, GhostWorlds } from '../src/game/server/grid/ghosts';
 import { Scope } from '../src/engine/shared/app/scope';
 import { TileStreamer, scopedTilePorts, type RingPorts, type RingTile } from '../src/engine/client/world/tileStreamer';
-import { ResidencyAllocator } from '../src/game/server/grid/allocator';
+import { ResidencyAllocator } from '../src/game/shared/grid/allocator';
 import { clientRingPorts, type PreparedRingTile } from '../src/game/client/shardfile/tileContent';
 import { ClientAssets } from '../src/game/client/shardfile/clientAssets';
 import { emptyShardfile } from '../src/sdk/author';

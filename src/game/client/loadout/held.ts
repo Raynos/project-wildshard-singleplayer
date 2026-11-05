@@ -12,11 +12,11 @@ import { listenPage } from '@wildshard/engine/input/dom';
 import type { ShardContext } from '../../server/plugin/context';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import { bindRuntimeState } from '../../server/plugin/headless';
-import { ItemCatalogue } from '../../server/loadout/itemCatalogue';
+import { ItemCatalogue } from '../../shared/loadout/itemCatalogue';
 import { runtimeAudio, sharedWeaponVoices } from '../plugin/audio';
 import { PLAIN_BOLT, HeldLauncher, type HeldBolt } from '../weapons/heldLauncher';
-import { AmmoPouch } from '../../server/loadout/pouch';
-import { loadoutLegacySlot } from '../../server/loadout/persistence';
+import { AmmoPouch } from '../../shared/loadout/pouch';
+import { loadoutLegacySlot } from '../../shared/loadout/persistence';
 import { HeldFirearm } from '../plugin/heldFirearm';
 import { Bow } from '../../server/weapons/Bow';
 

@@ -3,7 +3,7 @@ import { Scope } from '../../src/engine/shared/app/scope';
 import { TileStreamer } from '../../src/engine/client/world/tileStreamer';
 import { emptyShardfile } from '../../src/sdk/author';
 import { hashImmutableBytes } from '../../src/sdk/immutable';
-import { ResidencyAllocator } from '../../src/game/server/grid/allocator';
+import { ResidencyAllocator } from '../../src/game/shared/grid/allocator';
 import { TileDecoder } from '../../src/game/client/grid/tileDecoder';
 import { ClientAssets } from '../../src/game/client/shardfile/clientAssets';
 import { clientRingCatalogue, clientRingPorts, clientTileRegistration, type ClientRingInstance } from '../../src/game/client/shardfile/tileContent';

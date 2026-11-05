@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { ItemCatalogue } from '../src/game/server/loadout/itemCatalogue';
+import { ItemCatalogue } from '../src/game/shared/loadout/itemCatalogue';
 import { parseItems } from '@wildshard/format/items';
 import { wetFlight } from '../src/engine/shared/combat/ammo';
 import weatherProgram from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };

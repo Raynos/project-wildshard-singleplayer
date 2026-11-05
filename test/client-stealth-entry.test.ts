@@ -6,7 +6,7 @@ import { App } from '../src/engine/client/app/app';
 import type { TargetHit } from '../src/engine/client/combat/types';
 import type { Player } from '../src/engine/client/player/Player';
 import { parseClientPlan, type ClientFeatureRow } from '@wildshard/format/clientPlan';
-import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import type { ShardContext } from '../src/game/server/plugin/context';
 import type { HeldClaims, HeldSlotKit } from '../src/game/client/loadout/claims';
 import type { StealthController } from '../src/game/client/stealth/controller';

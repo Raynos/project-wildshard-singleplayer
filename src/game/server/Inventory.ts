@@ -1,4 +1,4 @@
-import { ITEMS } from './bag/itemCatalog';
+import { ITEMS } from '../shared/bag/itemCatalog';
 import { WeightedTable, type WeightedRow } from '@wildshard/engine/ai/weighted';
 import type { IconId } from '@wildshard/engine/ui/icons';
 import { findTitleManifest } from '../client/shard/titleList';
@@ -21,7 +21,7 @@ import { DEFAULT_PACK_SLOTS, addInventory, takeInventory } from './inventoryLaw'
  * (PINE_PACK_KINDS): everything else a Pine kill or reward used to hand out (boar / elk meat, elk hide, bear claw,
  * antlers, amber heartwood, the elites' trophies) never enters it, and an old save's copies are dropped on load. With
  * one slot per kept kind the pack can never be full; the unlocks that used to ride in it ('warden-longbow') live in
- * Owned (src/game/server/loot/Owned.ts) — `had(id)` lets the loadout move an old save's flag across.
+ * Owned (src/game/shared/loot/Owned.ts) — `had(id)` lets the loadout move an old save's flag across.
  *
  *   inventory.add('venison', 1);   inventory.items → [{ id, count }] in the order first picked up
  *   inventory.harvest('elk', 'bull')   → what this shard's pack takes from that carcass (Pine Hollow: nothing)

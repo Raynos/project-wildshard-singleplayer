@@ -4,7 +4,7 @@ import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
 import { createSimHost, type SimLevel } from '@wildshard/engine/sim';
 import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
-import { GridAssembly } from '../../server/grid/assembly';
+import { GridAssembly } from '../../shared/grid/assembly';
 import { LiveGridHost } from '../../server/grid/live';
 import { PageResidency } from './pageResidency';
 import { ApproachInputsDeferredError } from './productInputs';

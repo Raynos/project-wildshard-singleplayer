@@ -25,7 +25,7 @@ import type { OfflineDownloadEnd } from '@wildshard/engine/ui/offlineDownload';
 import { hasCachedAsset, cacheAsset } from '../shardfile/assetCache';
 import { builtIndexHash, builtIndexHashes } from '@wildshard/format/builtIndexes';
 import { readPrefetchIndex } from './prefetchIndex';
-import type { GridAssembly } from '../../server/grid/assembly';
+import type { GridAssembly } from '../../shared/grid/assembly';
 import {TIER, MOBILE_DEVICE, type Tier} from '@wildshard/engine/core/tier';
 import { prefetchRing } from './titleOrder';
 import {prefetchSpawnDownload, adoptCompletedSpawnDownload, paintSpawnDownload, setSpawnPacks} from '../boot/spawnDownload';

@@ -1,5 +1,5 @@
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { ShardRuntime } from './runtime';
+import type { ShardRuntime } from '../../shared/shard/runtime';
 
 const bound = new WeakMap<ShardRuntime, Scope>();
 function read(object: object, key: PropertyKey): unknown { const value: unknown = Reflect.get(object, key); return value; }

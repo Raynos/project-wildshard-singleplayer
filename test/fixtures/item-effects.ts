@@ -5,7 +5,7 @@ import type { EffectService } from '../../src/engine/client/combat/effects/Effec
 import type { PlayerHealth } from '../../src/engine/server/combat/health';
 import type { EffectTarget } from '../../src/engine/client/combat/effects/types';
 import type { ShardContext } from '../../src/game/server/plugin/context';
-import type { Owned } from '../../src/game/server/loot/Owned';
+import type { Owned } from '../../src/game/shared/loot/Owned';
 import { parseItems } from '@wildshard/format/items';
 import { DRIFTWOOD_SWORDS } from '../../src/shards/driftwood-isle/generators/items';
 import { installItemEffects } from '../../src/game/server/loadout/effects';

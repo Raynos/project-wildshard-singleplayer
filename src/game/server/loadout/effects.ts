@@ -9,7 +9,7 @@ import starterRows from '../systems/effects/starterRows.json' with { type: 'json
 import { bindPlayerEffects, selectEffectGrants, type EffectService } from '@wildshard/engine/combat/effects/EffectService';
 import type { ShardContext } from '../plugin/context';
 import { installEnteredRuntimeService, installRetainedPlayerEffects, retainsRuntimeServices } from '../../client/shard/retainedHooks';
-import { isOwnedId, isCosmetic } from '../loot/Owned';
+import { isOwnedId, isCosmetic } from '../../shared/loot/Owned';
 import type { EffectDef, CueId, EffectId } from '@wildshard/engine/combat/effects/types';
 
 /** The shared permanent cosmetic grant; authored finish identity and weapon determine its exclusive group. */

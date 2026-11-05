@@ -4,7 +4,7 @@ import { JournalRowSchema, journalImageRefs, journalRowRules } from '@wildshard/
 import { parseRows } from '@wildshard/format/rows';
 import { preflightAssetGraph } from '@wildshard/format/product';
 import { emptyShardfile } from '../src/sdk/author';
-import { declaredCompendium } from '../src/game/server/shard/declaredRows';
+import { declaredCompendium } from '../src/game/shared/shard/declaredRows';
 import templateRows from '../src/shards/_template/data/rows.json' with { type: 'json' };
 import { PINE_JOURNAL as emitted } from './fixtures/pine-program';
 

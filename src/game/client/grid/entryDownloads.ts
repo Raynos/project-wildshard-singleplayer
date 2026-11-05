@@ -1,4 +1,4 @@
-import type {GridMode} from '../../server/grid/catalogue';
+import type {GridMode} from '../../shared/grid/catalogue';
 
 export interface GridEntryDownload { readonly url: string; readonly bytes: number }
 

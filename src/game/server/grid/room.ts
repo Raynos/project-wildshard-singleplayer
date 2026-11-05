@@ -1,9 +1,9 @@
 import type { SimTickCommand } from '@wildshard/engine/sim';
 import { Scope } from '@wildshard/engine/app/scope';
-import type { GridAssembly, GridPoint } from './assembly';
+import type { GridAssembly, GridPoint } from '../../shared/grid/assembly';
 import { installGridCrossing, type GridCrossingSession } from './crossing';
 import type { GridSimulation } from './simulation';
-import type { GridLoadout } from './wallet';
+import type { GridLoadout } from '../../shared/grid/wallet';
 
 /** A player's completed hand-off: the `travel` a client's view follows (E5-REPLICATION §6.3.4). */
 export interface GridTravel { readonly player: string; readonly from: string | null; readonly to: string | null }

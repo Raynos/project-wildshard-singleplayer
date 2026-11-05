@@ -2,7 +2,7 @@ import type { AimCommand } from '../../shared/input/commands';
 import { Bindings } from './bindings';
 import type { Scope } from '../../shared/app/scope';
 import { withOwner } from '../../shared/app/ownership';
-import type { EquipmentAction } from '../../server/combat/Tool';
+import type { EquipmentAction } from '../../shared/combat/Tool';
 import type { InputContextDef } from '../../server/level/context';
 import type { DiscSpot, TouchRelabel } from '../ui/hudSlots';
 

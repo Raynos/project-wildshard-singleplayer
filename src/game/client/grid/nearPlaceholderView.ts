@@ -10,8 +10,8 @@
  * own `near` category, and hides that cell's far proxy only once its near view is drawn (the far fallback stays until then).
  */
 import type { Material, Object3D } from 'three';
-import type { GridCell } from '../../server/grid/assembly';
-import type { ResidencyAllocator, ResidencyLease } from '../../server/grid/allocator';
+import type { GridCell } from '../../shared/grid/assembly';
+import type { ResidencyAllocator, ResidencyLease } from '../../shared/grid/allocator';
 import { installFarProxy, type FarPrepared, type FarProxyView } from './farView';
 import { planNearPlaceholders } from './nearPlaceholderPlan';
 

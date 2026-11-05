@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { contentCost } from '@wildshard/format/contentCost';
 import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
-import { ResidencyAllocator, shardCost } from './allocator';
+import { ResidencyAllocator, shardCost } from '../../shared/grid/allocator';
 
 const limits = { playing: CONTENT_CAPS.playing, loading: CONTENT_CAPS.loading };
 const world = (owner: string, bytes: number) => ({ id: `sim:${owner}`, owner, bytes, category: 'sim' as const, distance: 0, needed: true });

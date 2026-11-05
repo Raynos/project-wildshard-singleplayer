@@ -2,7 +2,7 @@ import { App } from '../../src/engine/client/app/app';
 import { EquipmentService } from '../../src/engine/client/combat/EquipmentService';
 import type { Actor } from '../../src/engine/server/combat/pipeline';
 import type { Scope } from '../../src/engine/shared/app/scope';
-import type { Weapon } from '../../src/engine/server/combat/Weapon';
+import type { Weapon } from '../../src/engine/shared/combat/Weapon';
 import type { AimCommand } from '../../src/engine/shared/input/commands';
 import type { ItemRuntime, ItemTarget } from '../../src/engine/server/combat/items';
 import { installDeclaredItems, type DeclaredItems } from '../../src/game/server/shardfile/items';

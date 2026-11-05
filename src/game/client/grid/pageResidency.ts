@@ -1,4 +1,4 @@
-import { ResidencyAllocator, type ResidencyLease } from '../../server/grid/allocator';
+import { ResidencyAllocator, type ResidencyLease } from '../../shared/grid/allocator';
 import type { App } from '@wildshard/engine/app/app';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Game } from '@wildshard/engine/core/Game';

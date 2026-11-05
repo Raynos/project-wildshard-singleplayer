@@ -11,9 +11,9 @@ import { emptyShardfile } from '../../../src/sdk/author.ts';
 import { loadRapier } from '../../../src/engine/shared/physics/rapier.ts';
 import { serializeSimSnapshot, snapshotSimHost } from '../../../src/engine/shared/sim/snapshot.ts';
 import catalogue from '../../../src/game/shared/grid/singleplayer.json' with { type: 'json' };
-import { GridAssembly } from '../../../src/game/server/grid/assembly.ts';
+import { GridAssembly } from '../../../src/game/shared/grid/assembly.ts';
 import { GridSimulation } from '../../../src/game/server/grid/simulation.ts';
-import { ResidencyAllocator } from '../../../src/game/server/grid/allocator.ts';
+import { ResidencyAllocator } from '../../../src/game/shared/grid/allocator.ts';
 
 const shard = emptyShardfile({ slug: 'trusted-fixture', name: 'Trusted fixture', author: 'Test', revision: 1, seed: 435 });
 const rapier = await loadRapier(readFileSync(new URL('../../../public/assets/physics/rapier.wasm', import.meta.url)));

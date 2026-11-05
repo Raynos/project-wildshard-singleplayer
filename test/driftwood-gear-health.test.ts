@@ -1,4 +1,4 @@
-import { declaredLootEconomy } from '../src/game/server/shard/declaredRows';
+import { declaredLootEconomy } from '../src/game/shared/shard/declaredRows';
 import { DRIFTWOOD_LOOT as LOOT } from '../src/shards/driftwood-isle/generators/loot';
 import { parseRows } from '@wildshard/format/rows';
 import { expect, test } from 'vitest';
@@ -8,7 +8,7 @@ import { Events } from '../src/engine/shared/events/events';
 import { Flags } from '../src/engine/server/world/interact/flags';
 import { PlayerHealth } from '../src/engine/server/combat/health';
 import { EffectService } from '../src/engine/client/combat/effects/EffectService';
-import { Owned } from '../src/game/server/loot/Owned';
+import { Owned } from '../src/game/shared/loot/Owned';
 import { Purse } from '../src/game/server/loot/Purse';
 import { bindFixtureEffects } from './fixtures/item-effects';
 import { fixtureLootPresentation } from './fixtures/loot-page';

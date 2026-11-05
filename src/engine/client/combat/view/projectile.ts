@@ -8,7 +8,7 @@ import { terrainHeight as heightAt } from '../../../shared/world/terrainHeight';
 import { CHUNK_HALF } from '../../../shared/core/config';
 import { Puffs, worldHit } from './ranged';
 import { impactSurfaceOf } from '../../../shared/combat/impact';
-import type { ImpactSurface } from '../../../server/combat/Weapon';
+import type { ImpactSurface } from '../../../shared/combat/Weapon';
 import type { TargetHit, Targets } from '../types';
 import { floorBelow } from '../../../shared/physics/query';
 import { app, gameplayRandom } from '../../app/runtime';

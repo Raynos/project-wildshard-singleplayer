@@ -15,12 +15,12 @@
  * A proper format field for the observations is sp-x5's follow-up (the coordinator's interim decision).
  */
 import { versionedUrl } from '@wildshard/engine/boot/bytes';
-import type { GridCell } from '../../server/grid/assembly';
-import type { GridEdgeObservations, GridEdgeSource } from '../../server/grid/edgeProfiles';
+import type { GridCell } from '../../shared/grid/assembly';
+import type { GridEdgeObservations, GridEdgeSource } from '../../shared/grid/edgeProfiles';
 import type { ShardEntryways } from '@wildshard/format/entryways';
 import type { RuntimeDeclaration } from '@wildshard/format/runtime';
 import { findShard } from '../shard/registry';
-import { bakesTerrain } from '../../server/shard/terrainBake';
+import { bakesTerrain } from '../../shared/shard/terrainBake';
 
 type Rgb = [number, number, number];
 interface Row { heights: number[]; colours: Rgb[]; roadHeight: 0 }

@@ -3,7 +3,7 @@ import { BoxGeometry, Group } from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { createRigLoader } from '@wildshard/engine/anim/rigParser';
 import { TileStreamer } from '@wildshard/engine/world/tileStreamer';
-import { ResidencyAllocator } from '../../server/grid/allocator';
+import { ResidencyAllocator } from '../../shared/grid/allocator';
 import { farRingPorts, type FarPrepared } from './farView';
 import { NearPlaceholders } from './nearPlaceholderView';
 

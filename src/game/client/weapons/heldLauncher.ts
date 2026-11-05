@@ -28,7 +28,7 @@ import type { HeldBowRowsSchema } from '@wildshard/format/weaponProfiles';
 import { heldBowBase, type HeldBowBase } from './heldBowBase';
 import { createClientScene } from '../plugin/scene';
 import { HeldPlayback } from '../plugin/weaponFamily';
-import { advanceLauncherSpring, type LauncherSpringState } from '../../server/weapons/launcherSpring';
+import { advanceLauncherSpring, type LauncherSpringState } from '../../shared/weapons/launcherSpring';
 
 /**
  * The held-launcher host (H3, SHARD-PLATFORM C6 view, G454 data only): a first-person crossbow loosing physical bolts,

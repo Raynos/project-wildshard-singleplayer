@@ -6,7 +6,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import { Events } from '../src/engine/shared/events/events';
 import { PlayerHealth } from '../src/engine/server/combat/health';
 import { EffectService, selectEffectGrants } from '../src/engine/client/combat/effects/EffectService';
-import { isOwnedId, type OwnedId } from '../src/game/server/loot/Owned';
+import { isOwnedId, type OwnedId } from '../src/game/shared/loot/Owned';
 import { bindFixtureEffects } from './fixtures/item-effects';
 import { DRIFTWOOD_EFFECTS } from '../src/shards/driftwood-isle/generators/economy';
 import { CosmeticFinishLocker } from '../src/game/client/loadout/cosmeticFinishes';

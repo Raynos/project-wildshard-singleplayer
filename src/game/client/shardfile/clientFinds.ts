@@ -3,7 +3,7 @@ import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import { createFindsCatalogue } from '../../server/bag/findsCatalogue';
 import { renderFinds } from '../bag/bag';
 import { boundQuestState } from '../../server/quest/boundState';
-import { isOwnedId } from '../../server/loot/Owned';
+import { isOwnedId } from '../../shared/loot/Owned';
 import type { ShardContext } from '../../server/plugin/context';
 
 /** Client-only Bag projection from admitted sticker rows and the actual quest

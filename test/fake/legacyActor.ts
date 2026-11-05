@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Weapon } from '../../src/engine/server/combat/Weapon';
+import { Weapon } from '../../src/engine/shared/combat/Weapon';
 import type { Player } from '../../src/engine/client/player/Player';
 import { Animal } from '../../src/engine/client/entities/AnimalView';
 import type { TargetAnimal } from '../../src/engine/client/combat/types';

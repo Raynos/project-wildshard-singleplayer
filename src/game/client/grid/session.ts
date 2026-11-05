@@ -25,7 +25,7 @@ import { bootWaits, waitFor, type BootWait } from '@wildshard/engine/boot/waits'
  *   veil (`gridLevel`), the bounds' horizontal check reads `grid`; fall recovery stays.
  */
 import { LightPool } from '@wildshard/engine/fx/LightPool';
-import { platformInputs } from '../../server/grid/platformInputs';
+import { platformInputs } from '../../shared/grid/platformInputs';
 import { gridLevel as levelForGrid } from '../../shared/grid/pageMode';
 import { cellClip } from './cellClip';
 import { BufferGeometry, Group, Mesh, Scene, Vector3, type Material, type Object3D } from 'three';
@@ -50,12 +50,12 @@ import { ReadinessWalls, type ReadinessEdge } from '@wildshard/engine/physics/re
 import { WATER_UNBOUNDED, waterExtent } from '@wildshard/engine/world/waves';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { generatePlatform, generatePlatformSliced, type GeneratedStrip, type PlatformCell, type StripProfile } from '@wildshard/engine/sim/strips';
-import { GridAssembly, type GridCell } from '../../server/grid/assembly';
-import { neighbourEdges } from '../../server/grid/readinessEdges';
+import { GridAssembly, type GridCell } from '../../shared/grid/assembly';
+import { neighbourEdges } from '../../shared/grid/readinessEdges';
 import { DEVSERVER, gridMode } from './menu';
 import { gridCells, pageGridInstance } from '../../server/plugin/context';
 import { prepareHomeMetadata, withInitialHomeMetadata } from '../../server/grid/homeMetadata';
-import type { ResidencyAllocator } from '../../server/grid/allocator';
+import type { ResidencyAllocator } from '../../shared/grid/allocator';
 import type { PageResidency } from './pageResidency';
 import { PlatformRenderResidency } from './renderResidency';
 import { TileStreamer, levelPorts, type FarPlan, type LevelPrepared, type RingPorts, type RingTile, type RingWait } from '@wildshard/engine/world/tileStreamer';
@@ -64,7 +64,7 @@ import { farRingPorts, type FarPreparationWait, type FarPrepared, type FarProxyV
 import { decodeFarImpostor, farBandShare } from './farImpostorView';
 import { FarImpostorSchema, type FarImpostor } from '@wildshard/format/shardSections';
 import { bindCellCover, cellCoverPort } from '../../server/grid/cellCover';
-import { FAR_RING, type FarLookRuntime } from '../../server/grid/farProxy';
+import { FAR_RING, type FarLookRuntime } from '../../shared/grid/farProxy';
 import { bakedNearFiles, NearPlaceholders, type NearPlaceholderState } from './nearPlaceholderView';
 import { PHONE_NEAR_CELLS, placeholderBlocksTiles } from './nearPlaceholderPlan';
 import { TIER } from '@wildshard/engine/core/tier';
@@ -79,11 +79,11 @@ import { jsonResidentBytes } from '../shardfile/productCost';
 import { RAIL_OFFSET, roadLayout } from '../../shared/grid/roadLayout';
 import type { RoadLookState } from './roadLook';
 import { combinePlatformRoads, installPlatformRoad, installPlatformRoadSliced, type PlatformRoad } from './roadLookPlatform';
-import { collisionStrips, type CollisionStrip } from '../../server/grid/collisionStrips';
+import { collisionStrips, type CollisionStrip } from '../../shared/grid/collisionStrips';
 import { installSoftWallLook, type SoftWallState } from './softWallLook';
 import type { SeamLookState } from './seamLook';
 import { roadResident, roadViewCost, type CullPlan, type RoadResident, type RoadViewCost } from './roadCull';
-import { loadGridEdgeProfiles } from '../../server/grid/edgeProfiles';
+import { loadGridEdgeProfiles } from '../../shared/grid/edgeProfiles';
 import { readGridEdges } from './edgeSources';
 import { findShard } from '../shard/registry';
 import { TileDecoder } from './tileDecoder';
@@ -105,8 +105,8 @@ import { GridCellWaitingError, classifyRefusal, pageShardRefusals, refusalReason
 import { tileRing } from '../shardfile/tileDriver';
 import { CellLoading, type CellLoadingInput } from '../../server/grid/cellLoading';
 import { CellScreen, facingEdge } from './cellScreens';
-import { readGridSeamData, type GridSeamAddress } from '../../server/grid/seamData';
-import { readCompiledGridStrips } from '../../server/grid/compiledStrips';
+import { readGridSeamData, type GridSeamAddress } from '../../shared/grid/seamData';
+import { readCompiledGridStrips } from '../../shared/grid/compiledStrips';
 import { startRoadGrain } from './roadGrainPreparation';
 import { startRoadSigns } from './roadSignPreparation';
 import { clientPreparationBatch } from '../shardfile/preparationTiming';

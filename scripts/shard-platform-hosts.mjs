@@ -23,8 +23,8 @@ const hosts = {
   'world/traversal': ['game/shared/shardfile/portalTraversal#createPortalTraversal'],
   'world/spawn': [], // Level admission metadata.
   'world/physics': [], // Handed to the runtime's explicitly imported native host.
-  'world/days': ['game/server/shard/declaredRows#declaredDay'],
-  'world/weather': ['game/server/shard/declaredRows#declaredWeather'],
+  'world/days': ['game/shared/shard/declaredRows#declaredDay'],
+  'world/weather': ['game/shared/shard/declaredRows#declaredWeather'],
   'look/look': ['game/client/shardfile/look#shardfileLook'],
   'look/map': ['game/client/shardfile/mapImage#reserveMapImage'],
   'look/materials': ['game/client/shardfile/clientMaterials#clientMaterials'],
@@ -53,7 +53,7 @@ const hosts = {
   'quests/host': ['game/server/plugin/simulation#installDeclaredQuestHost'],
   'quests/directors': ['game/shardfile/directorClient#installDeclaredDirector'],
   'economy/ledger': ['game/server/ledger#Ledger', 'game/server/ledger#installLedgerEmitter'],
-  'economy/loot': ['game/server/shard/declaredRows#declaredLootPresentation'],
+  'economy/loot': ['game/shared/shard/declaredRows#declaredLootPresentation'],
   'state/state': ['game/server/shardfile/scripts#numericScriptState'],
   'state/migrations': ['game/server/shardfile/logicalState#logicalStateFromLane'],
   'state/modes': ['engine/shared/player/modes#playerModes'],
@@ -71,7 +71,7 @@ const hosts = {
   'ui/card': [], // Discovery metadata; no per-shard executable implementation.
   'ui/level': [],
   'ui/ui': ['game/client/shard/declaredUi#mountDeclaredUi', 'game/server/shard/declaredTargets#installDeclaredTargets'],
-  'ui/compendium': ['game/server/shard/declaredRows#declaredProductCompendium'],
+  'ui/compendium': ['game/shared/shard/declaredRows#declaredProductCompendium'],
   'ui/completion': ['game/client/complete/declared#installCompletion'],
   'ui/strings': [], // Read by an explicitly imported consumer, not executed.
 };

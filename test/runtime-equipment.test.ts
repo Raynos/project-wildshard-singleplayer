@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { Group } from 'three';
 import { App } from '../src/engine/client/app/app';
 import { Scope } from '../src/engine/shared/app/scope';
-import { Weapon } from '../src/engine/server/combat/Weapon';
+import { Weapon } from '../src/engine/shared/combat/Weapon';
 import { runtimeEquipment, bindRuntimeEquipment } from '../src/game/server/plugin/headless';
 import { INPUT_CONTEXTS } from '../src/game/client/inputContexts';
 import { PINE as source } from './fixtures/pine-program';
@@ -21,7 +21,7 @@ import { NativeHeldAmmunition } from '@wildshard/game/loadout/nativeAmmunition';
 import loadoutRows from '../src/shards/pine-hollow/data/loadout.json' with { type: 'json' };
 import { DRIFTWOOD as driftwood } from './fixtures/driftwood-program';
 import { createNativeCombatFrame, installNativeItems } from '../src/game/server/plugin/nativeItems';
-import { ItemCatalogue } from '../src/game/server/loadout/itemCatalogue';
+import { ItemCatalogue } from '../src/game/shared/loadout/itemCatalogue';
 import { parseItems } from '@wildshard/format/items';
 
 class NativeWeapon extends Weapon {

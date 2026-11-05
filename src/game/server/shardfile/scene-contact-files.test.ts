@@ -3,7 +3,7 @@ import {SceneDressing} from '../../client/shardfile/sceneDressing';
 import {Scope} from '@wildshard/engine/app/scope';
 import type {ShardContext} from '../plugin/context';
 import type {ShardProduct} from '../../shared/shardfile/shardProduct';
-import type {ShardRuntime} from '../shard/runtime';
+import type {ShardRuntime} from '../../shared/shard/runtime';
 import type {ShardWorld} from '../shard/world';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 

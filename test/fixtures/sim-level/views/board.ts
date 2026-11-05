@@ -2,7 +2,7 @@
 // shardfile rendered through the loader's views (clientMaterials → clientViews → tileContent), in one renderer under the
 // template look's numbers (gradient dome, linear fog 60–180 m, a 1.5 white sun, hemisphere ambient), so the only change is the view layer.
 import { Color, DirectionalLight, DoubleSide, Fog, Group, HemisphereLight, Mesh, MeshStandardMaterial, PCFSoftShadowMap, PerspectiveCamera, PlaneGeometry, Scene, ShaderMaterial, SphereGeometry, WebGLRenderer } from 'three';
-import { ResidencyAllocator } from '../../../../src/game/server/grid/allocator';
+import { ResidencyAllocator } from '../../../../src/game/shared/grid/allocator';
 import { buildYield } from '../../../../src/engine/shared/core/workSlice';
 import { Scope } from '../../../../src/engine/shared/app/scope';
 import { buildTerrain } from '../../../../src/engine/shared/world/terrainField';

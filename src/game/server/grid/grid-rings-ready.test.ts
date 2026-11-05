@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
-import { GridAssembly } from './assembly';
-import { ResidencyAllocator } from './allocator';
-import { FAR_RING } from './farProxy';
+import { GridAssembly } from '../../shared/grid/assembly';
+import { ResidencyAllocator } from '../../shared/grid/allocator';
+import { FAR_RING } from '../../shared/grid/farProxy';
 import { TileStreamer, type RingCatalogue, type RingPorts } from '@wildshard/engine/world/tileStreamer';
 
 // ringsReady: ready() waits on every visible cell, and the far ring requests a proxy only while its charge fits the

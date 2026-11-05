@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { GridAssembly } from '../../server/grid/assembly';
+import { GridAssembly } from './assembly';
 import { ROAD_HALF } from './roadLayout';
 import { onRoad, RoadRecovery, type RoadGrid } from './roadRecovery';
 

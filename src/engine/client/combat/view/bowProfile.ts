@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { BowDrawProfile } from '../../../shared/combat/bowDraw';
 import type { ShotCone } from '../../../shared/combat/shotSpread';
-import type { EquipmentRow } from '../../../server/combat/Equipment';
+import type { EquipmentRow } from '../../../shared/combat/Equipment';
 import type { ProjectileKind, WindField } from './projectile';
 import type { SkyRig as Sky } from '../../world/skyRig';
 

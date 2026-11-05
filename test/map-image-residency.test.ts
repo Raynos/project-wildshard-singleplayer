@@ -4,7 +4,7 @@ import { expect, test, vi } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
 import { parseStillImage } from '@wildshard/format/stillImage';
 import { Scope } from '../src/engine/shared/app/scope';
-import { ResidencyAllocator } from '../src/game/server/grid/allocator';
+import { ResidencyAllocator } from '../src/game/shared/grid/allocator';
 import { leaseMapImage } from '../src/game/client/shardfile/mapImage';
 import { ApproachInputsDeferredError } from '../src/game/client/grid/productInputs';
 

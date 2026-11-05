@@ -37,7 +37,7 @@ None new. Research (11-03):
 - **The grid slot is not (0,2).** The grid catalogue (`src/game/shared/grid/singleplayer.json`) already holds a hologram plot
   **`open-plot-showcase-template` at cell [−1,−1] (instance `open-plot-sw`)**; cell [0,2] is
   `open-plot-saltwind-lighthouse`, and instance `open-plot-0-2` is coral drift at [−2,0]. G972 says one catalogue fills
-  every cell for every audience (`src/game/server/grid/catalogue.ts:33`), so there is no Developer-only cell swap (Q2).
+  every cell for every audience (`src/game/shared/grid/catalogue.ts:33`), so there is no Developer-only cell swap (Q2).
 
 Layer: shard data only. Guards: the layout check (`lint/shard-layout.json`), `wildshard/shard-sandbox`, the ratchet on
 the new folder. Tests: copy `test/scripts/_template-boss.test.ts`'s product-scenario pattern only if a script lands

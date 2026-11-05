@@ -17,7 +17,7 @@
  *
  * Every id is typed (OwnedId); `OWNED` says what kind each is and how GEAR / FINDS label it.
  */
-import { ownedSave, saveSlug } from '../../shared/saves';
+import { ownedSave, saveSlug } from '../saves';
 
 export type OwnedKind = 'upgrade' | 'cosmetic' | 'charm' | 'trophy' | 'gear';
 export const OWNED: { readonly 'whetstone-1': { readonly kind: "upgrade"; readonly label: "Whetstone I"; }; readonly 'whetstone-2': { readonly kind: "upgrade"; readonly label: "Whetstone II"; }; readonly 'heart-1': { readonly kind: "upgrade"; readonly label: "Sturdy heart I"; }; readonly 'heart-2': { readonly kind: "upgrade"; readonly label: "Sturdy heart II"; }; readonly 'sea-chart': { readonly kind: "upgrade"; readonly label: "Sea chart"; }; readonly cape: { readonly kind: "cosmetic"; readonly label: "Sailcloth cape"; }; readonly 'captain-hat': { readonly kind: "cosmetic"; readonly label: "Captain's hat"; }; // the Drowned Captain's trophy, worn from GEAR

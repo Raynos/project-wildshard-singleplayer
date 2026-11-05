@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
 import { createSimHost, type SimLevel } from '@wildshard/engine/sim';
-import { GridAssembly, type GridPoint } from './assembly';
+import { GridAssembly, type GridPoint } from '../../shared/grid/assembly';
 import { LiveGridHost } from './live';
 import { PageResidency } from '../../client/grid/pageResidency';
 import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';

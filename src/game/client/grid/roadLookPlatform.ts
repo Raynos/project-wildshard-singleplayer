@@ -20,7 +20,7 @@ import { ownRoadMesh } from './roadResources';
 import type { RoadTileBacking } from './roadTileBacking';
 import type { RoadGrainSource } from './roadGrain';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
-import type { GridCell } from '../../server/grid/assembly';
+import type { GridCell } from '../../shared/grid/assembly';
 import type { LookScope, RoadLayout } from '../../shared/grid/roadLayout';
 import { allocateRenderSteps, type PlatformRenderAdmission } from './renderResidency';
 import { installRoadLookSteps, RoadOverlayLight, type RoadLookState } from './roadLook';

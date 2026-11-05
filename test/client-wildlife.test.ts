@@ -14,7 +14,7 @@ import * as boot from '../src/engine/client/boot/plan';
 import * as crowdPage from '../src/game/server/ambient/crowdPage';
 import type { PreparedCrowds } from '../src/game/shared/shardfile/crowdRuntime';
 import type { ShardContext } from '../src/game/server/plugin/context';
-import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { clientWildlife, installClientWildlife, PageWildlife } from '../src/game/server/population/wildlife';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { NALATI_HEADLESS_ASSEMBLY as headlessAssembly } from './fixtures/nalati-headless-assembly';

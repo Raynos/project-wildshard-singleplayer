@@ -18,7 +18,7 @@ import * as gpu from '../src/engine/client/core/gpuOnly';
 import { WorldConstructionSchema, WorldAssemblySchema } from '@wildshard/format/worldAssembly';
 import { WorldAssembly, type WorldAssemblyPorts } from '../src/game/client/shardfile/worldAssembly';
 import type { ShardWorld } from '../src/game/server/shard/world';
-import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { SceneHandles } from '../src/game/client/shardfile/sceneHandles';
 import { entryOwner, publishEntryOwner, type EntryOwnerTypes } from '../src/game/client/shardfile/entryOwners';
 import type { FixedDraws } from '../src/game/client/models/fixedDraws';

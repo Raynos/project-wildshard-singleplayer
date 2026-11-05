@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import catalogue from '../src/game/shared/grid/singleplayer.json' with { type: 'json' };
 import { Scope } from '../src/engine/shared/app/scope';
 import { CHUNK_HALF } from '../src/engine/shared/core/config';
-import { GridAssembly } from '../src/game/server/grid/assembly';
+import { GridAssembly } from '../src/game/shared/grid/assembly';
 import { installGridCrossing } from '../src/game/server/grid/crossing';
 import { titlePrefetchOrder } from '../src/game/client/grid/titleOrder';
 

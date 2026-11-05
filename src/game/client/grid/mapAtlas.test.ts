@@ -1,9 +1,9 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
-import { ResidencyAllocator } from '../../server/grid/allocator';
+import { ResidencyAllocator } from '../../shared/grid/allocator';
 import { loadGridMapAtlas } from './mapAtlas';
-import { GridAssembly } from '../../server/grid/assembly';
+import { GridAssembly } from '../../shared/grid/assembly';
 import { fullMapOverlay } from './minimapBlend';
 import { GridCellEvents } from '../../server/grid/cellEvents';
 

@@ -19,7 +19,7 @@ import { censusOf, populationCensus, type PopulationCensus } from '../src/game/s
 import { Scope } from '../src/engine/shared/app/scope';
 import { legacyDouble } from '../src/engine/test/FakeGame';
 import type { ShardContext } from '../src/game/server/plugin/context';
-import type { ShardPlayHost, ShardRuntime } from '../src/game/server/shard/runtime';
+import type { ShardPlayHost, ShardRuntime } from '../src/game/shared/shard/runtime';
 import type { AnimalManager } from '../src/engine/server/entities/AnimalManager';
 import type { Animal } from '../src/engine/client/entities/AnimalView';
 import type { Actor } from '../src/engine/server/combat/pipeline';

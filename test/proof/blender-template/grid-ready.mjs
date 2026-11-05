@@ -8,9 +8,9 @@ import catalogue from '../../../src/game/shared/grid/singleplayer.json' with { t
 import { createShardfileSim, bindShardfileSim } from '../../../src/game/server/plugin/simulation.ts';
 import { loadRapier } from '../../../src/engine/shared/physics/rapier.ts';
 import { restoreSimHost } from '../../../src/engine/shared/sim/snapshot.ts';
-import { GridAssembly } from '../../../src/game/server/grid/assembly.ts';
+import { GridAssembly } from '../../../src/game/shared/grid/assembly.ts';
 import { GridSimulation } from '../../../src/game/server/grid/simulation.ts';
-import { ResidencyAllocator } from '../../../src/game/server/grid/allocator.ts';
+import { ResidencyAllocator } from '../../../src/game/shared/grid/allocator.ts';
 import { leadPlayer } from '../../../src/engine/shared/sim/leadPlayer.ts';
 
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');

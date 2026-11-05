@@ -12,7 +12,7 @@ import { RangedPageSchema, type RangedPageRows } from '@wildshard/format/rangedP
 import { forestPage } from '../shardfile/forestPage';
 import { HeldFinishes } from './finishes';
 import { installHeldLoadout, type HeldLoadout } from './held';
-import { ItemCatalogue } from '../../server/loadout/itemCatalogue';
+import { ItemCatalogue } from '../../shared/loadout/itemCatalogue';
 import { ClaimedPickupRoster } from '../../server/loot/runtime';
 import { HeldLauncher } from '../weapons/heldLauncher';
 import { HeldFirearm } from '../plugin/heldFirearm';
@@ -25,9 +25,9 @@ import { installItemEffects } from '../../server/loadout/effects';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import type { ShardContext } from '../../server/plugin/context';
 import { finishForestPageAudio } from '../audio/forestPage';
-import { declaredLootEconomy } from '../../server/shard/declaredRows';
+import { declaredLootEconomy } from '../../shared/shard/declaredRows';
 import { registerLootTable, rollLoot } from '../../server/loot/tables';
-import { readLootTables } from '../../server/loot/tableRows';
+import { readLootTables } from '../../shared/loot/tableRows';
 import type { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
 
 export interface RangedPage {

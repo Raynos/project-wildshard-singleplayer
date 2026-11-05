@@ -17,7 +17,7 @@ Research:
 
 - `Bounty` pays **each enemy once** (Jake 09-30, "cap per enemy"): keyed by herd slot or kind, counted from the starting
   census, saved as `ws.bounty.v1` (`src/game/server/loot/Bounty.ts:1-20`, `bountySave` in `src/game/shared/saves.ts:15`). Coin amounts
-  live in `src/game/server/loot/coinAmounts.ts`; the burst in `CoinBurst.ts`; death listeners are ordered (`loot: 40`,
+  live in `src/game/shared/loot/coinAmounts.ts`; the burst in `CoinBurst.ts`; death listeners are ordered (`loot: 40`,
   `src/game/server/loot/deaths.ts:4`).
 - Coins are `economy/loot` `coins: true` until W2a's currency row (`src/format/lootEconomy.ts:25`).
 - Chests: `ChestDef.contents: ChestItem[]` where an item is `{ item, n } | { key } | { flag }`

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { RangedAction } from './Firearm';
+import { RangedAction } from '../../shared/combat/Firearm';
 
 test('borrowed ranged state resumes a reload silently and refuses malformed clocks atomically', () => {
   const state = { loaded: true, reloading: false, reloadProgress: 0, bolts: 3, reserve: 0, ammo: undefined };

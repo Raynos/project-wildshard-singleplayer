@@ -9,7 +9,7 @@ import { createSimHost, type SimHost, type SimLevel } from '../src/engine/server
 import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
 import { restoreSimHost, type SimSnapshot } from '../src/engine/shared/sim/snapshot';
 import { directLoopback } from '../src/engine/test/netLoopback';
-import { GridAssembly } from '../src/game/server/grid/assembly';
+import { GridAssembly } from '../src/game/shared/grid/assembly';
 import { GridRoom } from '../src/game/server/grid/room';
 import { GridNetRooms } from '../src/game/server/grid/roomNet';
 import { GridSimulation } from '../src/game/server/grid/simulation';

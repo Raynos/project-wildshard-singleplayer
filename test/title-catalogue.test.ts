@@ -3,7 +3,7 @@ import { contentHash } from '../src/game/shared/shardfile/contentHash';
 import { GridCellEvents } from '../src/game/server/grid/cellEvents';
 import { titleCatalogueSource } from '../scripts/title-catalogue.mjs';
 import { titlePrefetchOrder } from '../src/game/client/grid/titleOrder';
-import { GridAssembly } from '../src/game/server/grid/assembly';
+import { GridAssembly } from '../src/game/shared/grid/assembly';
 import { gridPrefetchOrder } from '../src/game/client/grid/prefetch';
 import { titleMetadata, type TitleManifest } from '../src/game/client/shard/titleList';
 

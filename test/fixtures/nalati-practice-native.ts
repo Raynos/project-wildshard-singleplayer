@@ -1,13 +1,13 @@
 import * as v from 'valibot';
 import {EquipmentService} from '../../src/engine/client/combat/EquipmentService';
-import {Weapon,type EquipmentView,type WeaponState} from '../../src/engine/server/combat/Weapon';
-import type {EquipmentRow} from '../../src/engine/server/combat/Equipment';
+import {Weapon,type EquipmentView,type WeaponState} from '../../src/engine/shared/combat/Weapon';
+import type {EquipmentRow} from '../../src/engine/shared/combat/Equipment';
 import {enterPracticeLoan,exitPracticeLoan,practiceViewDistance} from '../../src/engine/client/practice/practiceLoan';
 import {ARENA_LINEUP} from '../../src/engine/client/practice/lineup';
-import {fovForAspect} from '../../src/engine/server/combat/blocks/melee';
+import {fovForAspect} from '../../src/engine/shared/combat/blocks/melee';
 import {practiceRoomState} from '../../src/engine/shared/core/practiceRoomState';
 import {parseHeldSlots} from '@wildshard/format/heldArms';
-import {ItemCatalogue} from '../../src/game/server/loadout/itemCatalogue';
+import {ItemCatalogue} from '../../src/game/shared/loadout/itemCatalogue';
 import type {PrepareHeadlessRuntime} from '../../src/sdk/headlessRuntime';
 import {prepareProductPlan as prepareNalati} from './headless-native';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';

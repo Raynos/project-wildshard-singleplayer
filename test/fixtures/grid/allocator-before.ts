@@ -15,7 +15,7 @@
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { contentCost, type ContentCostInput } from '@wildshard/format/contentCost';
 import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
-import { shardCost } from '../../../src/game/server/grid/allocator';
+import { shardCost } from '../../../src/game/shared/grid/allocator';
 
 /** The cost model's categories; `library` and `sim` map onto its plural fields. */
 /** `near`: G342's near-placeholder views, on their own residency line. */

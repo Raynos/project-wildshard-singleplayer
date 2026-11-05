@@ -1,4 +1,4 @@
-import type { ResidencyLease } from '../../server/grid/allocator';
+import type { ResidencyLease } from '../../shared/grid/allocator';
 import { ClientAssets } from '../shardfile/clientAssets';
 import type { AdmittedProduct, ProductOptions } from '../shardfile/product';
 

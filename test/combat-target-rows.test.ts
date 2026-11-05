@@ -8,7 +8,7 @@ import type { ShardContext } from '../src/game/server/plugin/context';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { installCombatTargets, type CombatTargetOwner } from '../src/game/client/shardfile/clientTargets';
 import { CrowdRoster, CrowdTargets, CrowdWeaponTarget, type ForagerTargets } from '../src/game/shared/shardfile/crowdRuntime';
-import type { RayTargets } from '../src/engine/server/combat/targets';
+import type { RayTargets } from '../src/engine/shared/combat/targets';
 import type { TargetHit } from '../src/engine/client/combat/types';
 import type { AimTarget } from '../src/engine/client/player/AimTargets';
 import rows from '../src/shards/nalati-grasslands/data/combatTargets.json' with { type: 'json' };

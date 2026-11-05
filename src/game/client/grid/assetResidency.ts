@@ -1,6 +1,6 @@
 import type { App } from '@wildshard/engine/app/app';
 import type { Disposable3, Scope } from '@wildshard/engine/app/scope';
-import type { ResidencyAllocator, ResidencyLease, ResidencyEviction } from '../../server/grid/allocator';
+import type { ResidencyAllocator, ResidencyLease, ResidencyEviction } from '../../shared/grid/allocator';
 
 type AssetPort = Parameters<App['assets']['bindResidency']>[0];
 /** Renderer composition supplies concrete allocation identities; Node residency imports no rendering module. */

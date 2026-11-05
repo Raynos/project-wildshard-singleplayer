@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
-import { ResidencyAllocator } from '../../server/grid/allocator';
+import { ResidencyAllocator } from '../../shared/grid/allocator';
 import { PlatformRenderResidency } from './renderResidency';
 
 test('retired road geometry releases bytes while the shared material scope stays owned', () => {

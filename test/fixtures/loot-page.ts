@@ -1,15 +1,15 @@
 import {enteredLootPresentation} from '../../src/game/server/loot/runtime';
 import {parseRows} from '@wildshard/format/rows';
-import type {declaredLootEconomy} from '../../src/game/server/shard/declaredRows';
+import type {declaredLootEconomy} from '../../src/game/shared/shard/declaredRows';
 import type {Scope} from '../../src/engine/shared/app/scope';
 import {QuestState} from '../../src/engine/server/quest/core';
 import type {Flags} from '../../src/engine/server/world/interact/flags';
-import type {Owned} from '../../src/game/server/loot/Owned';
+import type {Owned} from '../../src/game/shared/loot/Owned';
 import type {Audio} from '../../src/engine/client/audio/Audio';
 import {publishBoundQuest} from '../../src/game/server/quest/boundState';
 import {legacyDouble} from '@wildshard/engine/test/FakeGame';
 import type {ShardContext} from '../../src/game/server/plugin/context';
-import type {ShardRuntime} from '../../src/game/server/shard/runtime';
+import type {ShardRuntime} from '../../src/game/shared/shard/runtime';
 import {createShardProduct} from '../../src/game/shared/shardfile/shardProduct';
 import {emptyShardfile} from '../../src/sdk/author';
 import { DRIFTWOOD_LOOT as LOOT } from '../../src/shards/driftwood-isle/generators/loot';

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { TileStreamer, type RingCell, type RingLevel, type RingTile, type TileKind } from '@wildshard/engine/world/tileStreamer';
-import { ResidencyAllocator } from '../../server/grid/allocator';
+import { ResidencyAllocator } from '../../shared/grid/allocator';
 
 const camera = { x: 0, z: 0, vx: 0, vz: 0 };
 function rectangle(type: TileKind, width: number, depth: number) {

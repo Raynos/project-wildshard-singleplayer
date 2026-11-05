@@ -3,7 +3,7 @@ import { expect, test, vi } from 'vitest';
 import * as v from 'valibot';
 import { Scope } from '../src/engine/shared/app/scope';
 import type { ShardContext } from '../src/game/server/plugin/context';
-import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { HeldClaims } from '../src/game/client/loadout/claims';
 import { declaredClientPlanEntry } from '../src/game/server/shard/declaredEntry';
 import { clientPlanPhases } from './fixtures/clientPlanHost';

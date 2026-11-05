@@ -1,9 +1,9 @@
-import type { Scope } from '../../shared/app/scope';
+import type { Scope } from '../app/scope';
 import type { AttributeSet, CueId } from '../../client/combat/effects/types';
-import type { CombatTag } from './pipeline';
+import type { CombatTag } from '../../server/combat/pipeline';
 import type { HitStopProfile } from '../../client/combat/cues';
-import type { Events } from '../../shared/events/events';
-import type { EquipmentPickupSpec } from './EquipmentPickup';
+import type { Events } from '../events/events';
+import type { EquipmentPickupSpec } from '../../server/combat/EquipmentPickup';
 
 interface RangedFeelProfile {
   kick: { body: number; head: number; kill: number; side: number; killSide: number };

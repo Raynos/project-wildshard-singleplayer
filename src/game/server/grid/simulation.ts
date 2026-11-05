@@ -4,8 +4,8 @@ import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import { snapshotSimHost, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { prepareFrameMotors, type FrameMember } from '@wildshard/engine/physics/frame';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
-import type { GridAssembly, GridCell, GridPoint } from './assembly';
-import type { ResidencyAllocator } from './allocator';
+import type { GridAssembly, GridCell, GridPoint } from '../../shared/grid/assembly';
+import type { ResidencyAllocator } from '../../shared/grid/allocator';
 import { GridContinuationCache, GRID_CONTINUATION_CACHE_BYTES } from './continuations';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 

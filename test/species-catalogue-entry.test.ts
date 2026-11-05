@@ -11,7 +11,7 @@ import { CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';
 import { entryOwner } from '../src/game/client/shardfile/entryOwners';
 import { installClientSpeciesProgram, prepareClientSpeciesCatalogue } from '../src/game/client/shardfile/clientSpeciesProgram';
 import type { ShardContext } from '../src/game/server/plugin/context';
-import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import type { ShardWorld } from '../src/game/server/shard/world';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 

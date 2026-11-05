@@ -20,7 +20,7 @@ Research:
 
 - **Ammo rows exist in the engine:** `src/engine/shared/combat/ammo.ts` `AmmoRow { id: 'ammo.*', flight {gravity, drag}, wet?,
   tags: CombatTag[], material?, pouchMax }` and the `projectile.modify` ask. The pouch is data-driven
-  (`src/game/server/loadout/pouch.ts`: "content supplies kinds, fallback and capacity").
+  (`src/game/shared/loadout/pouch.ts`: "content supplies kinds, fallback and capacity").
 - **No burn exists outside one boss.** "burn" appears only in Nalati's arena-boss rows (`src/format/bossProfiles.ts:292`,
   `arenaScriptRows.ts` `burnSeconds`, `fireDps`). A pitch bolt lighting a bale is new.
 - **The crossbow is Pine-shaped.** Pine ships 102 KB of `held/equipment` (`out/pine-hollow/sections/held/equipment.json`);

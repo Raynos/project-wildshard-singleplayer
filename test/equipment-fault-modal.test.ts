@@ -2,8 +2,8 @@
 import {afterEach,beforeEach,expect,test,vi} from 'vitest';
 import {Group} from 'three';
 import {Scope} from '../src/engine/shared/app/scope';
-import {Weapon} from '../src/engine/server/combat/Weapon';
-import type {EquipmentRow} from '../src/engine/server/combat/Equipment';
+import {Weapon} from '../src/engine/shared/combat/Weapon';
+import type {EquipmentRow} from '../src/engine/shared/combat/Equipment';
 import {EquipmentService} from '../src/engine/client/combat/EquipmentService';
 import {installErrorModal} from '../src/engine/client/ui/ErrorModal';
 import {isDev,setDev} from '../src/engine/client/core/devMode';

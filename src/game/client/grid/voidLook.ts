@@ -10,7 +10,7 @@
  */
 import { BufferAttribute, BufferGeometry, Color, Group, Mesh, type Object3D, ShaderMaterial } from 'three';
 import { uniformPart, type SolidPart } from './roadSolid';
-import type { GridCell } from '../../server/grid/assembly';
+import type { GridCell } from '../../shared/grid/assembly';
 import type { LookScope, RailBox } from '../../shared/grid/roadLayout';
 import type { PlatformRenderAdmission, PlatformRenderBytePlan } from './renderResidency';
 

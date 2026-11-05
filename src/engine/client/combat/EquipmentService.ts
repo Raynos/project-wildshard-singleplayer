@@ -1,9 +1,9 @@
 import type { Vector3 } from 'three';
 import { Scope } from '../../shared/app/scope';
 import { emitFault } from '../../shared/core/faults';
-import type { Equipment, WeaponId } from '../../server/combat/Equipment';
-import type { Weapon, WeaponHooks, WeaponState, AimInfo } from '../../server/combat/Weapon';
-import { Tool } from '../../server/combat/Tool';
+import type { Equipment, WeaponId } from '../../shared/combat/Equipment';
+import type { Weapon, WeaponHooks, WeaponState, AimInfo } from '../../shared/combat/Weapon';
+import { Tool } from '../../shared/combat/Tool';
 import type { EquipmentInput } from '../input/equipmentInput';
 import type { Events } from '../../shared/events/events';
 import type { EquipmentPickup, EquipmentPickupHost, PickupLoadout } from '../../server/combat/EquipmentPickup';

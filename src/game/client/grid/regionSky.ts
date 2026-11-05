@@ -20,7 +20,7 @@
  * LUT is the one the region hands it, and its clock's saturation drives the page's where the page carries it. Generic game code
  * (E405): no shard is named here; the regional world closes over the page sky, renderer and level (`regionalWorld.ts`).
  */
-import type { ResidencyAllocator, ResidencyLease } from '../../server/grid/allocator';
+import type { ResidencyAllocator, ResidencyLease } from '../../shared/grid/allocator';
 import type { FrameLookPort } from './frameLook';
 
 /** What the layer needs of a built backdrop: its dispose and its byte census (`SkyBackdrop`'s G223 members). */

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import * as v from 'valibot';
-import { ResidencyAllocator, type ResidencyClaim } from '../src/game/server/grid/allocator';
+import { ResidencyAllocator, type ResidencyClaim } from '../src/game/shared/grid/allocator';
 import { ReferenceResidencyAllocator } from './fixtures/grid/allocator-before';
 import { MemoryAdmission, type MemoryAdmissionRequest } from '@wildshard/format/memoryAdmission';
 import { CONTENT_CAPS } from '../src/engine/shared/core/config';

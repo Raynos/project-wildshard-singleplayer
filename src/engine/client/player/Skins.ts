@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { WeaponId } from '../../server/combat/Equipment';
+import type { WeaponId } from '../../shared/combat/Equipment';
 import type { SkyRig as Sky } from '../world/skyRig';
 import { fixIBL, isMesh, VIEWMODEL_GROUP } from '../combat/view/ranged';
 import { copyShaderPatches } from '../render/shaderPatches';

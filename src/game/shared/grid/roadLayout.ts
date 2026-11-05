@@ -11,7 +11,7 @@
  * midpoints), so the kerb opens there on each side that has a cell. Sign text is a cell's shard name from the catalogue's
  * slug, never a name written here (an open plot's is its open-plots output's name, G538).
  */
-import type { GridAssembly, GridCell } from '../../server/grid/assembly';
+import type { GridAssembly, GridCell } from './assembly';
 import { CHUNK_SIZE, CONTENT_CAPS, ENTRY_WIDTH, ENTRY_ASPHALT as entryAsphalt } from '@wildshard/engine/core/config';
 
 /** The road's half width (the generator's flat road band, `STRIP_OFFSETS` ±7.5). */

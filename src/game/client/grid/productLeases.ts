@@ -1,4 +1,4 @@
-import type { ResidencyAllocator, ResidencyLease } from '../../server/grid/allocator';
+import type { ResidencyAllocator, ResidencyLease } from '../../shared/grid/allocator';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { ApproachInputsDeferredError } from './productInputs';
 import { productResidentBytesSteps } from '../shardfile/productCost';

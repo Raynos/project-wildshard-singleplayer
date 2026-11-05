@@ -11,7 +11,7 @@ import {
   BufferAttribute, BufferGeometry, CanvasTexture, Color, DataTexture, Group, LinearFilter, LinearMipmapLinearFilter, Matrix4, Mesh,
   MeshLambertMaterial, NoColorSpace, type Object3D, Quaternion, RepeatWrapping, RGFormat, SRGBColorSpace, type Texture, UnsignedByteType, Vector3,
 } from 'three';
-import type { GridCell } from '../../server/grid/assembly';
+import type { GridCell } from '../../shared/grid/assembly';
 import { putRoadGrain, roadGrainSteps, type RoadGrainSource } from './roadGrain';
 import { packRoadSignPixels } from './roadSignPixels';
 import { paintRoadSignCanvas, roadSignPaintLayout, roadSignLineKey as lineKey, SIGN_LINE_W as LINE_W, SIGN_LINE_H as LINE_H, type RoadSignSource } from './roadSignPaint';

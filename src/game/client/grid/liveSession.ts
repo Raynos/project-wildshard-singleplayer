@@ -45,13 +45,13 @@ import { gridCreatureConstraint, installGridBorders } from '@wildshard/engine/ph
 import type { ReadinessWalls, ReadinessEdge } from '@wildshard/engine/physics/readinessWalls';
 import { TransferWalls, TRANSFER_WALL_BYTES } from '@wildshard/engine/physics/transferWalls';
 import type { ReadinessBundle, ReadinessLink } from '@wildshard/engine/sim/readiness';
-import type { GridAssembly, GridCell } from '../../server/grid/assembly';
-import type { ResidencyAllocator } from '../../server/grid/allocator';
+import type { GridAssembly, GridCell } from '../../shared/grid/assembly';
+import type { ResidencyAllocator } from '../../shared/grid/allocator';
 import type { HomeResidencyClaim } from './pageResidency';
 import { LiveGridHost, type LiveGridAdmission, type LiveGridFrame, type LiveGridState } from '../../server/grid/live';
 import { prepareApproachProductInputs } from './approachProductInputs';
 import { installGridCrossing, type GridCheckpointResult, type GridCrossingSession, type GridCrossingState } from '../../server/grid/crossing';
-import { GridWallet, stowGridMount } from '../../server/grid/wallet';
+import { GridWallet, stowGridMount } from '../../shared/grid/wallet';
 import { GridRegionDurability } from '../../server/grid/durability';
 import type { LedgerCatalogueItem } from '../../server/ledger';
 import { installGridHoverSpeed, installGridTravellerCombat } from '../../server/grid/rules';
@@ -59,15 +59,15 @@ import { gridHomeSim, gridCells, type GridHomeSimulation } from '../../server/pl
 import { findShard } from '../shard/registry';
 import { gridPostCosts, gridShardfileProduct, prioritizeGridProduct, type GridProductMetadata } from './products';
 import { preparationAdmission, type GridAdmissionMetadata } from './preparationAdmission';
-import { gridPostPairRefusal } from '../../server/grid/postPairs';
+import { gridPostPairRefusal } from '../../shared/grid/postPairs';
 import {productPostCost} from '../shardfile/productCost';
-import { gridRecovery, type GridRecoveryReason, type GridRecoveryRecord } from '../../server/grid/recovery';
+import { gridRecovery, type GridRecoveryReason, type GridRecoveryRecord } from '../../shared/grid/recovery';
 import { RoadRecovery, onRoad, type RoadPoint, type RoadRecoveryCell } from '../../shared/grid/roadRecovery';
 import { GridCellWaitingError } from '../../server/grid/refusal';
 import { scriptDisabledNotice, type ScriptNoticePorts } from '../../shared/shardfile/scriptNotice';
 import { prepareShardfileSimRestore, type ShardfileSimulation } from '../../server/plugin/simulation';
 import { withCopyLayout } from './copyLayout';
-import type { CollisionStrip } from '../../server/grid/collisionStrips';
+import type { CollisionStrip } from '../../shared/grid/collisionStrips';
 import type { LocalSaveInstance } from '../../shared/instanceSaves';
 import { loadNavmesh } from '@wildshard/engine/physics/navmeshLoad';
 import { constructionOwner, currentOwner } from '@wildshard/engine/app/ownership';
@@ -83,7 +83,7 @@ import type { ClientTileRegistration } from '../shardfile/tileContent';
 import { createRegionalWorldFoundation, hangCellDataSky, resolveRegionalRuntimeTextures } from './regionalWorld';
 import { regionalRuntimeCheckpoint } from './runtimeCheckpoint';
 import { regionalDataCellBytes } from './runtimeCost';
-import { resolveLevelBounds } from '../../server/shard/runtime';
+import { resolveLevelBounds } from '../../shared/shard/runtime';
 
 /** The cached metadata claim and its later constructor enter the same immutable
  * texture policy. Fresh inputs remain borrowed only by actual construction. */

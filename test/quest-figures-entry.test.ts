@@ -3,7 +3,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import { Flags } from '../src/engine/server/world/interact/flags';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../src/game/server/plugin/context';
-import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import type { QuestPageComposition } from '../src/game/server/quest/pageComposition';
 import { QuestPageReference } from '../src/game/server/quest/pageReference';
 import { ProductFigureCatalogue } from '../src/game/client/models/figureCatalogue';

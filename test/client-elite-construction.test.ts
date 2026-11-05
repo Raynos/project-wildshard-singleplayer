@@ -4,7 +4,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import type { Game } from '../src/engine/client/core/Game';
 import type { ShardContext } from '../src/game/server/plugin/context';
 import type { ShardWorld } from '../src/game/server/shard/world';
-import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import type { TimedEncounters } from '../src/game/server/boss/timedEncounters';
 import type { ForestWeatherRig } from '../src/game/client/weather/forest';
 import { parseClientPlan } from '@wildshard/format/clientPlan';

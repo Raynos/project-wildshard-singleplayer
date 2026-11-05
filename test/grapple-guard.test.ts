@@ -4,7 +4,7 @@ import { GrappleTool, grappleGuard } from '../src/game/client/grapple/tool';
 import type { GrappleSim } from '../src/game/shared/grapple/sim';
 import type { ShardContext } from '../src/game/server/plugin/context';
 import { parseGrappleProfile, type GrappleRows } from '@wildshard/format/grapple';
-import { ItemCatalogue } from '../src/game/server/loadout/itemCatalogue';
+import { ItemCatalogue } from '../src/game/shared/loadout/itemCatalogue';
 import items from '../src/shards/nine-dragon-stack/data/items.json' with { type: 'json' };
 import profile from '../src/shards/nine-dragon-stack/data/grappleProfile.json' with { type: 'json' };
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';

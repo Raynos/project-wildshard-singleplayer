@@ -1,5 +1,5 @@
 import { PINE_BAG_ITEMS } from '../src/shards/pine-hollow/generators/questInventory';
-import { registerItemRow } from '../src/game/server/bag/itemCatalog';
+import { registerItemRow } from '../src/game/shared/bag/itemCatalog';
 import { QuestStepRunner } from '../src/game/server/quest/steps';
 import { commitQuestEffects, readQuestServiceActions } from '../src/game/server/quest/effects';
 import { publishBoundQuest } from '../src/game/server/quest/boundState';

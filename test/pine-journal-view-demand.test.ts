@@ -16,7 +16,7 @@ import { registerCompendium } from '../src/game/shared/compendium/registry';
 import { BagMenu } from '../src/game/client/bag/tabs';
 import { Inventory } from '../src/game/server/Inventory';
 import { Progress } from '../src/game/client/Progress';
-import { declaredCompendium } from '../src/game/server/shard/declaredRows';
+import { declaredCompendium } from '../src/game/shared/shard/declaredRows';
 import { emptyShardfile } from '../src/sdk/author';
 import { pineJournal } from '../src/shards/pine-hollow/generators/journal';
 import { pineGeneration } from './fixtures/pine-generation';

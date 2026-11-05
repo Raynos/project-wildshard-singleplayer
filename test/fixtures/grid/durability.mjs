@@ -11,7 +11,7 @@ import { snapshotSimHost, restoreSimHost } from '../../../src/engine/shared/sim/
 import { GridRegionDurability } from '../../../src/game/server/grid/durability.ts';
 import { generatePlatform } from '../../../src/engine/shared/sim/strips.ts';
 import { installStripCollider } from '../../../src/engine/shared/physics/stripColliders.ts';
-import { GridAssembly } from '../../../src/game/server/grid/assembly.ts';
+import { GridAssembly } from '../../../src/game/shared/grid/assembly.ts';
 import { CharacterMotor } from '../../../src/engine/shared/physics/CharacterMotor.ts';
 import { leadPlayer } from '../../../src/engine/shared/sim/leadPlayer.ts';
 

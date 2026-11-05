@@ -1,5 +1,5 @@
-import type { ItemId } from '../Inventory';
-import type { ItemRow } from './items';
+import type { ItemId } from '../../server/Inventory';
+import type { ItemRow } from '../../server/bag/items';
 import type { IconId } from '@wildshard/engine/ui/icons';
 
 /** Each shard registers its own catalogue for the level lifetime. */

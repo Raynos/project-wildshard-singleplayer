@@ -469,7 +469,7 @@ deleting it.
 - `src/format/weaponProfiles.ts`: parseHeldModelRows*, parseHeldPresentation* (7)
 - `src/game/server/achievements.ts`: AchievementCounterBook* (23)
 - `src/game/client/cosmetics/locker.ts`: CosmeticDef (1)
-- `src/game/server/grid/compiledStrips.ts`: decodeCompiledGridStrips* (7)
+- `src/game/shared/grid/compiledStrips.ts`: decodeCompiledGridStrips* (7)
 - `src/game/server/grid/refusal.ts`: FarViewStatus (3)
 - `src/game/server/inventoryLaw.ts`: grantNativeInventory* (6)
 - `src/game/server/plugin/director.ts`: nativeStageLane* (3)

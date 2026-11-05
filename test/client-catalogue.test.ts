@@ -9,7 +9,7 @@ import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { installClientCatalogue } from '../src/game/client/shardfile/clientCatalogue';
 import type { ShardContext } from '../src/game/server/plugin/context';
-import { ItemCatalogue } from '../src/game/server/loadout/itemCatalogue';
+import { ItemCatalogue } from '../src/game/shared/loadout/itemCatalogue';
 import { HeldFinishes } from '../src/game/client/loadout/finishes';
 import { PINE as source } from './fixtures/pine-program';
 import { STARTER_EFFECTS } from '../src/game/server/loadout/effects';
@@ -17,7 +17,7 @@ import starterRows from '../src/game/server/systems/effects/starterRows.json' wi
 import { DRIFTWOOD_LOOT as loot } from '../src/shards/driftwood-isle/generators/loot';
 import { driftwoodCatalogueEconomy } from '../src/shards/driftwood-isle/generators/catalogueEconomy';
 import { parseRows } from '@wildshard/format/rows';
-import { declaredLootEconomy } from '../src/game/server/shard/declaredRows';
+import { declaredLootEconomy } from '../src/game/shared/shard/declaredRows';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 const input = { kind: 'content.catalogue', quests: false, finishes: false,

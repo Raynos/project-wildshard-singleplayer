@@ -6,13 +6,13 @@ import { parseTradeCatalogue, type TradeCatalogue } from '../src/shards/pine-hol
 import { Exchange } from '../src/game/server/loot/exchange';
 import type { ExchangeRows } from '@wildshard/format/exchange';
 import { parseBarterEconomy, type BarterEconomy } from '@wildshard/format/lootEconomy';
-import { declaredLootEconomy } from '../src/game/server/shard/declaredRows';
+import { declaredLootEconomy } from '../src/game/shared/shard/declaredRows';
 import { tradeCatalogue } from '../src/shards/pine-hollow/generators/trades';
 import { pinePickups } from '../src/shards/pine-hollow/generators/pickups';
 import { Scope } from '../src/engine/shared/app/scope';
 import { app } from '../src/engine/client/app/runtime';
 import { registerLootTable, rollLoot } from '../src/game/server/loot/tables';
-import { readLootTables } from '../src/game/server/loot/tableRows';
+import { readLootTables } from '../src/game/shared/loot/tableRows';
 
 let declared: TradeCatalogue | undefined;
 let exchangeRows: ExchangeRows | undefined;

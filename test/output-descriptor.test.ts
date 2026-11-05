@@ -20,7 +20,7 @@ import { sourceManifest } from '../src/game/server/plugin/context';
 import { installShards, shards } from '../src/game/client/shard/list';
 import { game, setActiveChunk } from '../src/game/client/shard/registry';
 import { Scope } from '../src/engine/shared/app/scope';
-import { ResidencyAllocator } from '../src/game/server/grid/allocator';
+import { ResidencyAllocator } from '../src/game/shared/grid/allocator';
 import { leaseClientLibrary } from '../src/game/client/shardfile/clientLibrary';
 import { entryReadPlan } from '../src/game/client/grid/entryReadPrefetch';
 import { parseEntryReadSet } from '@wildshard/format/entryReads';

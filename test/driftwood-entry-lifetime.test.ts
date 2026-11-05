@@ -6,7 +6,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import { createLevelInstallation } from '../src/engine/client/level/installation';
 import { shardContext } from '../src/game/server/plugin/context';
 import { parseShardSlug } from '../src/game/server/shard/slug';
-import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { HybridResidentWorld } from '../src/game/client/shardfile/hybrid';
 import { bindResidentWorldScope } from '../src/game/client/shardfile/hybridPresentation';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';

@@ -1,5 +1,5 @@
 import { CHUNK_HALF } from '@wildshard/format/contentBounds';
-import type { GridCell } from '../../server/grid/assembly';
+import type { GridCell } from '../../shared/grid/assembly';
 
 /** Round 39 (Jake's phone, G607 D): the phone tier draws this many cells near, the nearest; the rest stay on their far
  *  proxies (D's look: no haze, no fade). Every cell near held 2.1 GB of renderer memory on the phone tier. */

@@ -5,7 +5,7 @@ import { app } from '../app/runtime';
 import type { Game } from '../core/Game';
 import type { AnimalManager } from '../../server/entities/AnimalManager';
 import type { Animal } from '../entities/AnimalView';
-import type { Weapon } from '../../server/combat/Weapon';
+import type { Weapon } from '../../shared/combat/Weapon';
 import { TIER } from '../core/tier';
 import { viewportHeight } from '../core/viewport';
 import { lockOn } from '../player/AimTargets';

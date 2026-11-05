@@ -1,4 +1,4 @@
-import catalogue from '../../shared/grid/singleplayer.json' with { type: 'json' };
+import catalogue from './singleplayer.json' with { type: 'json' };
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { parseGridCatalogue, type CopyIdentity, type GridEdgeLook, type GridMode } from './catalogue';
 

@@ -9,7 +9,7 @@ import { createLevelInstallation } from '../src/engine/client/level/installation
 import { parseShardSlug } from '../src/game/server/shard/slug';
 import { shardContext } from '../src/game/server/plugin/context';
 import { installEnteredRuntimeService } from '../src/game/client/shard/retainedHooks';
-import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { HybridRuntimeSession, type HybridResident } from '../src/game/client/shardfile/hybrid';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sdk/author';

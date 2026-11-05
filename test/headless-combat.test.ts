@@ -13,7 +13,7 @@ import { NetRoom } from '../src/engine/server/net/room';
 import { SimNetWorld } from '../src/engine/server/net/simWorld';
 import { directLoopback } from '../src/engine/test/netLoopback';
 import { CreatureBodies, type Creature } from '../src/engine/shared/physics/creatures';
-import { applyMeleeCombatProfile, type MeleeProfile } from '../src/engine/server/combat/meleeProfile';
+import { applyMeleeCombatProfile, type MeleeProfile } from '../src/engine/shared/combat/meleeProfile';
 import { hitscan } from '../src/engine/client/combat/view/hitscan';
 import { Projectiles } from '../src/engine/client/combat/view/projectile';
 import { SweptMelee } from '../src/engine/client/combat/view/SweptMelee';

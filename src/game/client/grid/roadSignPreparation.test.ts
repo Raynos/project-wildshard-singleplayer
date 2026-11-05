@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
-import { ResidencyAllocator } from '../../server/grid/allocator';
+import { ResidencyAllocator } from '../../shared/grid/allocator';
 import { roadSignPaintLayout } from './roadSignPaint';
 import { startRoadSigns } from './roadSignPreparation';
 import type { RoadSign } from '../../shared/grid/roadLayout';

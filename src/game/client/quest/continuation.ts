@@ -6,7 +6,7 @@ import { CollectionDisplaysSchema } from '@wildshard/format/collectionDisplay';
 import type { ShardContext } from '../../server/plugin/context';
 import { requireClientPlaceSetsBound } from '../shardfile/clientPlaceSets';
 import { entryOwner } from '../shardfile/entryOwners';
-import { declaredLootEconomy } from '../../server/shard/declaredRows';
+import { declaredLootEconomy } from '../../shared/shard/declaredRows';
 import { installDeclaredCollectionKeepsakes } from '../../server/compendium/keepsakes';
 import { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
 import { sharedModelContext, type ModelDef } from '@wildshard/engine/models/model';

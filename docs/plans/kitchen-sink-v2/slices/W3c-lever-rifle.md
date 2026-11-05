@@ -22,7 +22,7 @@ Research:
   `claims.ts`, `held.ts`. It is not in `lint/platform-pending-users.json` (0 rows).
 - The lever rows are literally Pine's: `src/format/heldEquipment.ts` "The lever-action's rows on the held-firearm host
   (data/leverDetails.json)". `Owned.ts:24` even lists `lever-rifle` as a Pine owned id (moved to rows in W2a).
-- Engine side is fine: `src/engine/server/combat/Firearm.ts` (`RangedAction.Cycle` for a lever), `view/hitscan`, `view/brass`.
+- Engine side is fine: `src/engine/shared/combat/Firearm.ts` (`RangedAction.Cycle` for a lever), `view/hitscan`, `view/brass`.
 
 Work: move the host to `src/game/weapons/heldFirearm.ts` (a game host), replace the owner-path reads with named
 channels the host itself owns (the same values, now addressed by channel id), keep the rows byte-compatible where

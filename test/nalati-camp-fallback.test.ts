@@ -8,7 +8,7 @@ import { FigureSkins } from '../src/game/client/systems/npc/figureSkins';
 import * as v from 'valibot';
 import { installQuestFigures } from '../src/game/client/quest/figures';
 import type { ShardContext } from '../src/game/server/plugin/context';
-import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { ClientChannelsSchema } from '@wildshard/format/clientChannels';
 import * as rigLoader from '../src/engine/client/anim/rig';

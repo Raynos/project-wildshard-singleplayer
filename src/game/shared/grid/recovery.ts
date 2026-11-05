@@ -1,8 +1,8 @@
 import * as v from 'valibot';
 import type { SaveKeyDef, SaveStore } from '@wildshard/engine/saves/store';
 import type { GridAssembly } from './assembly';
-import { onRoad, type RoadPoint } from '../../shared/grid/roadRecovery';
-import { instanceSave, instanceSaveIdentity, type LocalSaveInstance } from '../../shared/instanceSaves';
+import { onRoad, type RoadPoint } from './roadRecovery';
+import { instanceSave, instanceSaveIdentity, type LocalSaveInstance } from '../instanceSaves';
 
 const finite = v.pipe(v.number(), v.finite());
 const identity = v.pipe(v.string(), v.regex(/^_?[a-z0-9]+(?:-[a-z0-9]+)*$/u));

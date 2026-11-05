@@ -4,7 +4,7 @@ import type { World } from '../core/bootstrap';
 import type { Animal } from '../entities/AnimalView';
 import type { AnimalManager } from '../../server/entities/AnimalManager';
 import type { EquipmentService } from '../combat/EquipmentService';
-import type { WeaponState } from '../../server/combat/Weapon';
+import type { WeaponState } from '../../shared/combat/Weapon';
 import type { TrainingArena } from '../practice/TrainingArena';
 import type { HUD } from '../ui/HUD';
 import type { Audio } from '../audio/Audio';

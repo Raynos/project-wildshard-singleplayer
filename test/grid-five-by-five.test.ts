@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import catalogue from '../src/game/shared/grid/singleplayer.json' with { type: 'json' };
-import { GridAssembly } from '../src/game/server/grid/assembly';
-import { parseGridCatalogue } from '../src/game/server/grid/catalogue';
+import { GridAssembly } from '../src/game/shared/grid/assembly';
+import { parseGridCatalogue } from '../src/game/shared/grid/catalogue';
 import { GridContinuationCache } from '../src/game/server/grid/continuations';
 import { roadLayout, segmentPoint, RAIL_OFFSET } from '../src/game/shared/grid/roadLayout';
 import openPlots from '../src/shards/open-plots/outputs.json' with { type: 'json' };

@@ -1,10 +1,10 @@
 import { BufferAttribute, BufferGeometry, Group, Mesh } from 'three';
 import { expect, test } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
-import { GridAssembly } from '../../server/grid/assembly';
-import { parseGridCatalogue } from '../../server/grid/catalogue';
+import { GridAssembly } from '../../shared/grid/assembly';
+import { parseGridCatalogue } from '../../shared/grid/catalogue';
 import catalogue from '../../shared/grid/singleplayer.json' with { type: 'json' };
-import { neighbourEdges } from '../../server/grid/readinessEdges';
+import { neighbourEdges } from '../../shared/grid/readinessEdges';
 import { installSoftWallLook } from './softWallLook';
 
 test('layout curtain height is admitted separately from unchanged readiness edges', () => {

@@ -12,7 +12,7 @@ import { HeldFinishes } from '../../client/loadout/finishes';
 import { HeldLauncher } from '../../client/weapons/heldLauncher';
 import { HeldFirearm } from '../../client/plugin/heldFirearm';
 import { Bow } from '../weapons/Bow';
-import { ITEMS } from '../bag/itemCatalog';
+import { ITEMS } from '../../shared/bag/itemCatalog';
 import type { ItemId } from '../Inventory';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { applySkin } from '@wildshard/engine/player/Skins';

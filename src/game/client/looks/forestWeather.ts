@@ -4,7 +4,7 @@ import { ForestWeatherObservationSchema } from '@wildshard/format/rangedPage';
 import { forestPage, type ForestPage } from '../shardfile/forestPage';
 import { chapterLeadPosition } from '../../server/quest/chapterDirector';
 import type { ShardContext } from '../../server/plugin/context';
-import type { ShardRuntime, ShardPlayHost } from '../../server/shard/runtime';
+import type { ShardRuntime, ShardPlayHost } from '../../shared/shard/runtime';
 import { rangedPage } from '../loadout/rangedPage';
 import type { ShardWorld } from '../../server/shard/world';
 import type { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';

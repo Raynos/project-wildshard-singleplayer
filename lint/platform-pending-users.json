@@ -585,7 +585,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/engine/server/combat/Firearm.ts",
+      "module": "src/engine/shared/combat/Firearm.ts",
       "export": "RangedAction",
       "shard": "nalati-grasslands",
       "plan": {
@@ -596,7 +596,7 @@
       "rechecked-by": "end of W3"
     },
     {
-      "module": "src/engine/server/combat/Firearm.ts",
+      "module": "src/engine/shared/combat/Firearm.ts",
       "export": "RangedActionRow",
       "shard": "nalati-grasslands",
       "plan": {
@@ -1242,7 +1242,7 @@
       }
     },
     {
-      "module": "src/game/server/loadout/pouch.ts",
+      "module": "src/game/shared/loadout/pouch.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",
@@ -1259,7 +1259,7 @@
       }
     },
     {
-      "module": "src/game/server/loadout/persistence.ts",
+      "module": "src/game/shared/loadout/persistence.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",

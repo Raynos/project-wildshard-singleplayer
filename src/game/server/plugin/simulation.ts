@@ -21,9 +21,9 @@ import { flagValue, test as testQuestFlags, type Flags } from '@wildshard/engine
 import { Vector3 } from 'three';
 import { parsePromptRegistrations, createHeadlessPromptPicker } from '../quest/interactionRows';
 import { questBooks } from '@wildshard/engine/quest/players';
-import { GridAssembly } from '../grid/assembly';
+import { GridAssembly } from '../../shared/grid/assembly';
 import { GridSimulation } from '../grid/simulation';
-import { ResidencyAllocator } from '../grid/allocator';
+import { ResidencyAllocator } from '../../shared/grid/allocator';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { leadSnapshot, restoreSimHost, prepareSimHostRestore, isSimHostRestoring, snapshotSimHost, regionalContinuation, type SimSnapshot, type PreparedSimHostRestore } from '@wildshard/engine/sim/snapshot';
 import { SaveStore } from '@wildshard/engine/saves/store';

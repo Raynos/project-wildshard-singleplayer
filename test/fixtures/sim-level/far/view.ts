@@ -5,8 +5,8 @@
 import { BufferGeometry, Color, DirectionalLight, Group, HemisphereLight, Mesh, MeshLambertMaterial, PerspectiveCamera, PlaneGeometry, Scene, WebGLRenderer } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { CONTENT_CAPS as C } from '../../../../src/engine/shared/core/config';
-import { ResidencyAllocator } from '../../../../src/game/server/grid/allocator';
-import { FAR_RING, type FarLookRuntime } from '../../../../src/game/server/grid/farProxy';
+import { ResidencyAllocator } from '../../../../src/game/shared/grid/allocator';
+import { FAR_RING, type FarLookRuntime } from '../../../../src/game/shared/grid/farProxy';
 import { farRingPorts, type FarPrepared } from '../../../../src/game/client/grid/farView';
 import { TileStreamer, type RingCell } from '../../../../src/engine/client/world/tileStreamer';
 import templateGlb from '../../../../public/assets/baked/_template/far.glb?url';

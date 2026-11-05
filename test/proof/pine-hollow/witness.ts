@@ -3,7 +3,7 @@ import { simMismatchError } from '../../fake/simMismatch';
 import { installCableModes } from '../../../src/engine/shared/player/modes';
 import { outputDescriptor } from '../../../src/game/shared/shardfile/outputDescriptor';
 import { createNativeCombatFrame, type NativeCombatFrame } from '../../../src/game/server/plugin/nativeItems';
-import { ItemCatalogue } from '../../../src/game/server/loadout/itemCatalogue';
+import { ItemCatalogue } from '../../../src/game/shared/loadout/itemCatalogue';
 // oxlint-disable-next-line import/no-nodejs-modules -- The witness reads Pine's native bakes and the native physics module.
 import { mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin the admitted output independently of a refreshed out alias.

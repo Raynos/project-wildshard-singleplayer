@@ -1,5 +1,5 @@
 import {expect, test} from 'vitest';
-import {advanceLauncherSpring, type LauncherSpringState} from '../src/game/server/weapons/launcherSpring';
+import {advanceLauncherSpring, type LauncherSpringState} from '../src/game/shared/weapons/launcherSpring';
 import {CROSSBOW_ROWS} from '../src/shards/pine-hollow/generators/crossbowRows';
 
 test('60 Hz draw and velocity are bit-identical through shots and reloads', () => {

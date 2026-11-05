@@ -8,7 +8,7 @@ import type { ShardContext } from '../../server/plugin/context';
 import { TIER } from '@wildshard/engine/core/tier';
 import { gpuOnlyTrees } from '@wildshard/engine/core/gpuOnly';
 import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
-import type { ShardRuntime } from '../../server/shard/runtime';
+import type { ShardRuntime } from '../../shared/shard/runtime';
 import type { IslandLibrary } from '../models/islandLibrary';
 import type { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
 import type { BakedTiles } from './bakedTiles';

@@ -10,7 +10,7 @@ import { coinGeometry } from '../src/game/cook/generators/pickups';
 import { CoinMotion } from '../src/game/client/loot/CoinMotion';
 import { CoinBurst } from '../src/game/server/loot/CoinBurst';
 import { Purse } from '../src/game/server/loot/Purse';
-import { Owned } from '../src/game/server/loot/Owned';
+import { Owned } from '../src/game/shared/loot/Owned';
 import { Bounty } from '../src/game/server/loot/Bounty';
 import { ownedSave, bountySave } from '../src/game/shared/saves';
 

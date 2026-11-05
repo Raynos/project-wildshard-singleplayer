@@ -127,7 +127,7 @@ Today an instance's quest flags, steps and dialogue live in its logical checkpoi
 up to 512 K characters (`SIM_REGION_SNAPSHOT_CHAR_BUDGET`, `src/engine/shared/sim/snapshot.ts`;
 `src/game/server/grid/durability.ts`). A new `identity.revision` starts fresh (SHARDFILE.md "Local instance checkpoints"),
 so any rebuild that bumps a revision can wipe quest progress. Coins, bag and loadout already sit in their own
-per-instance save slots (`GridWallet`, `src/game/server/grid/wallet.ts`) and the ledger keeps a profile, so they survive;
+per-instance save slots (`GridWallet`, `src/game/shared/grid/wallet.ts`) and the ledger keeps a profile, so they survive;
 quest flags, current steps and dialogue do not. Declared `migrations` exist, but their hooks are null.
 
 - **B1** One player record (SN-D2) with a section per shard, declared by the format; each section holds quest steps and flags, dialogue progress and the
@@ -148,7 +148,7 @@ quest flags, current steps and dialogue do not. Declared `migrations` exist, but
 ### C. Versioning: pins and rollback per shard (M)
 
 Today the site ships and rolls back as one SHA (`.github/deploy-pin.json`), and a grid placement names a slug, not a
-product (`src/game/shared/grid/singleplayer.json`, `src/game/server/grid/catalogue.ts`). Products are build outputs and are not
+product (`src/game/shared/grid/singleplayer.json`, `src/game/shared/grid/catalogue.ts`). Products are build outputs and are not
 committed.
 
 - **C1** Keep every product the deploy publishes, by its root hash, with a small `versions` list per slug

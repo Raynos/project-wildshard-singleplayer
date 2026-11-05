@@ -1,5 +1,5 @@
 import '../src/sdk/bake/format-hook.mjs';
-import { GridAssembly } from '../src/game/server/grid/assembly';
+import { GridAssembly } from '../src/game/shared/grid/assembly';
 import { roadLayout } from '../src/game/shared/grid/roadLayout';
 
 const { CHUNK_HALF } = await import('../src/engine/shared/core/config');

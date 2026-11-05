@@ -8219,7 +8219,7 @@ authored validator or cross-record callback extends the runtime reader.
 
 ### Ranged action clocks
 
-`engine/server/combat/Firearm.ts` defines `RangedAction` and `RangedActionRow`.
+`engine/shared/combat/Firearm.ts` defines `RangedAction` and `RangedActionRow`.
 The bounded row selects quiver or magazine consumption and declares capacity,
 interval, reload duration, auto-reload delay and its shot/empty-trigger clock.
 `trigger` preserves reload/cooldown/empty refusals; `shot` claims consumption
@@ -9367,7 +9367,7 @@ or `data/movers.generated.json`; fixed driver admission is unchanged.
 
 ### Per-round ranged cycles
 
-`engine/server/combat/Firearm.ts#RangedAction.Cycle` takes borrowed reserve data
+`engine/shared/combat/Firearm.ts#RangedAction.Cycle` takes borrowed reserve data
 and a `RangedCycleRow`: magazine size, round/reload-entry durations, cycle
 delay/duration and normalized ejection/cocking phases. It owns the tube,
 chamber, hammer, reload progress and phase clocks; it accepts no hooks.

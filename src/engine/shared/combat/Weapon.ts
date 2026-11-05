@@ -1,6 +1,6 @@
 import type { Vector3, Matrix4, Quaternion } from 'three';
 import { Equipment, type WeaponId, type EquipmentRow, type EquipContext } from './Equipment';
-import type { AimCommand, FightCommand } from '../../shared/input/commands';
+import type { AimCommand, FightCommand } from '../input/commands';
 import type { WeaponChargePhase } from '../../client/combat/cues';
 
 export type ImpactSurface = 'wood' | 'ground' | 'flesh';

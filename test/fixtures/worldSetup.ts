@@ -61,7 +61,7 @@ async function prepareWorld(): Promise<void> {
   installPickupCatalogue(PICKUP_CATALOGUE, await preparePickupCatalogue({ file: name => Promise.resolve(new Uint8Array(readFileSync(`public${name}`))) }, PICKUP_CATALOGUE));
   installKitProps();
   const { registerLootTable } = await import('../../src/game/server/loot/tables');
-  const { readLootTables } = await import('../../src/game/server/loot/tableRows');
+  const { readLootTables } = await import('../../src/game/shared/loot/tableRows');
   const { DRIFTWOOD_LOOT: loot } = await import('../../src/shards/driftwood-isle/generators/loot');
   for (const row of readLootTables(loot.economy.tables)) registerLootTable(row);
   const { DRIFTWOOD_LOOKS } = await import('../fake/driftwoodLooks');
@@ -93,7 +93,7 @@ async function prepareWorld(): Promise<void> {
   const { pineElk } = await import('../../src/shards/pine-hollow/generators/speciesRows');
   registerSpecies(speciesWithLook(pineElk(), pineBook.look('elk')));
   // Pure inventory fixtures explicitly install the authored item catalogs.
-  const { registerItemRow } = await import('../../src/game/server/bag/itemCatalog');
+  const { registerItemRow } = await import('../../src/game/shared/bag/itemCatalog');
   const { default: starterItems } = await import('../../src/game/server/bag/starterItems.json');
   const STARTER_BAG_ITEMS = v.parse(v.array(v.object({ id: v.string(), label: v.string(), icon: v.picklist(['meat', 'hide', 'tusk', 'antlers']), travels: v.boolean() })), starterItems);
   const { PINE_BAG_ITEMS: PINE_ITEMS } = await import('../../src/shards/pine-hollow/generators/questInventory');

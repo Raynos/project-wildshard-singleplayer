@@ -74,7 +74,7 @@ test('selected catalogue and status bindings leave quest presentation cold', () 
 });
 
 test('item catalogue metadata does not import native item or projectile owners', () => {
-  const files = titleGraph(['src/game/server/loadout/itemCatalogue.ts']);
+  const files = titleGraph(['src/game/shared/loadout/itemCatalogue.ts']);
   expect(files.filter(file => /src\/(?:game\/plugin\/(?:nativeItems|simulation)|engine\/combat\/)|^three(?:\/|$)/u.test(file))).toEqual([]);
 });
 

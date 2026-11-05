@@ -4,7 +4,7 @@ import { worldHit } from './ranged';
 import { impactSurfaceOf } from '../../../shared/combat/impact';
 import { sstep } from '../../player/viewmodelTextures';
 import type { Targets, TargetHit } from '../types';
-import type { ImpactSurface } from '../../../server/combat/Weapon';
+import type { ImpactSurface } from '../../../shared/combat/Weapon';
 import { instantSpreadDegrees, shotSpread } from '../../../shared/combat/shotSpread';
 
 export interface HitscanProfile { range: number; damageScale: number; spreadAds: number; spreadHip: number; spreadRadius: 'linear' | 'sqrt'; movingSpread: number; movingAimReduction: number }

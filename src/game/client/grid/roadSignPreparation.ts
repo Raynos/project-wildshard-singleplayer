@@ -1,5 +1,5 @@
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { ResidencyAllocator } from '../../server/grid/allocator';
+import type { ResidencyAllocator } from '../../shared/grid/allocator';
 import type { RoadSign } from '../../shared/grid/roadLayout';
 import { coverageTable } from './roadSolid';
 import { roadSignPaintLayout, type RoadSignSource } from './roadSignPaint';

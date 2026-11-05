@@ -4,7 +4,7 @@ import { otherCombatFrame, readNativeRangedItem, seatedBolt, seatedBow, seatedCy
 import type { SimHost } from '@wildshard/engine/sim';
 import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 import { parseItems } from '@wildshard/format/items';
-import { AmmoPouch } from './pouch';
+import { AmmoPouch } from '../../shared/loadout/pouch';
 
 const stack = v.pipe(v.number(), v.finite(), v.integer(), v.minValue(0));
 /** The outer continuation admits a named selection and integer stacks; the owner's rows enforce exact keys/caps. */

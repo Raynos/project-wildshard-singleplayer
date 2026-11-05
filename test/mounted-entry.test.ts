@@ -7,7 +7,7 @@ import * as geometry from '../src/game/client/plugin/geometry';
 import { heldSlotRows } from '../src/shards/nalati-grasslands/generators/heldSlots';
 import power from '../src/shards/nalati-grasslands/boot/bowVariant.json' with {type:'json'};
 import type { ShardContext } from '../src/game/server/plugin/context';
-import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { declaredClientPlanEntry } from '../src/game/server/shard/declaredEntry';
 import { clientPlanPhases } from './fixtures/clientPlanHost';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';

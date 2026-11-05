@@ -14,7 +14,7 @@ the parry clauses of levels-combat §15 (0.15 s window, Parry Gyro 0.22 s, a rip
 ## 2. Engine / game / host work, just in time
 
 Research: no parry exists. The only hit is an animation clip name in `src/game/client/systems/viewmodel/clips.generated.ts`.
-The melee family is `src/engine/server/combat/meleeProfile.ts` (`MeleeProfile`: damage, reach, combo, lunge, sweep,
+The melee family is `src/engine/shared/combat/meleeProfile.ts` (`MeleeProfile`: damage, reach, combo, lunge, sweep,
 `dodgeKick`), `Melee.ts`, `sweptMeleeCore.ts`. The touch HUD has DODGE and JUMP on the right-thumb arc
 (`src/engine/client/player/TouchControls.ts:41-44`); there is no block or guard input.
 

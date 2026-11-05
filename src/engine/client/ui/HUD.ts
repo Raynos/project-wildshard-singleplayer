@@ -1,6 +1,6 @@
 import { uiScope, mountUi } from './ownership';
 import { engineString } from '../../shared/strings';
-import type { WeaponUi } from '../../server/combat/Equipment';
+import type { WeaponUi } from '../../shared/combat/Equipment';
 import { app } from '../app/runtime';
 import { tap } from '../../shared/core/harnessTap';
 import { activeLevel } from '../../shared/level/selection';

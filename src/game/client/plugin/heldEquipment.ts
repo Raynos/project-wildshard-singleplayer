@@ -19,7 +19,7 @@ import { HeldFirearm, heldFirearmDisplay, type HeldFirearmModel, type HeldHandRo
 import { HeldLauncher, bindHeldBow, type HeldLauncherRows, type HeldLauncherProfile } from '../weapons/heldLauncher';
 import { HeldTool, heldToolRows, loadHeldToolFile, type HeldToolBeat, type HeldToolFile } from './heldTool';
 import { bindRuntimeEquipment, type RuntimeEquipmentFactory } from '../../server/plugin/headless';
-import { ItemCatalogue } from '../../server/loadout/itemCatalogue';
+import { ItemCatalogue } from '../../shared/loadout/itemCatalogue';
 import { Bow } from '../../server/weapons/Bow';
 
 /** Install row-selected ranged feel alongside the held families, retaining entered-cell lifetime. */

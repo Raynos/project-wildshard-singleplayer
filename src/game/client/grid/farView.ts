@@ -12,7 +12,7 @@ import { patchShader } from '@wildshard/engine/render/shaderPatches';
 import { markDisplayColour } from '@wildshard/engine/render/displayColour';
 import { geometryBoundsSteps } from '@wildshard/engine/world/geometryBounds';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
-import { GRID_HAZE, type FarLookRuntime } from '../../server/grid/farProxy';
+import { GRID_HAZE, type FarLookRuntime } from '../../shared/grid/farProxy';
 import { NEAR_GRAIN_SIZE, nearGrainBytes } from './nearGrain';
 import { installFarImpostor, type FarImpostorData } from './farImpostorView';
 

@@ -2,7 +2,7 @@ import { app } from '../../app/runtime';
 import type { Scope } from '../../../shared/app/scope';
 import type { Game } from '../../core/Game';
 import type { Events } from '../../../shared/events/events';
-import type { EquipmentRow, EquipmentId } from '../../../server/combat/Equipment';
+import type { EquipmentRow, EquipmentId } from '../../../shared/combat/Equipment';
 import { resolveHitStop } from '../cues';
 import { CameraFX } from '../../player/CameraFX';
 import { Impacts, type ImpactKind } from '../../fx/Impacts';

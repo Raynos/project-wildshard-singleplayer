@@ -37,7 +37,7 @@ import type { LevelAudioProfile } from '@wildshard/engine/audio/levelAudio';
 import type { LoadStage } from '../shard/load';
 import type { StagedBoot, SessionState, KitPorts } from './context';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
-import { resolveLevelBounds } from '../../server/shard/runtime';
+import { resolveLevelBounds } from '../../shared/shard/runtime';
 import { SkinLocker } from '../cosmetics/locker';
 import { BagMenu } from '../bag/tabs';
 import { equipmentEntry, toolEntries } from '../../server/bag/equipment';
@@ -52,15 +52,15 @@ import type { PlaygroundId } from '@wildshard/engine/practice/playground/catalog
 import type { Playground } from '@wildshard/engine/practice/playground/Playground';
 import type { Feedback } from '@wildshard/engine/ui/Feedback';
 import { installBodyShadow } from '../cosmetics/bodyShadow';
-import { isOwnedId, Owned } from '../../server/loot/Owned';
+import { isOwnedId, Owned } from '../../shared/loot/Owned';
 import { bindTravelInventory, applyTravelCarry } from '../travel/travel';
 import * as THREE from 'three';
 import { BagButton } from '../bag/BagButton';
 import { Progress } from '../Progress';
 import { Inventory } from '../../server/Inventory';
 import { legacyHomeCheckpoint } from '../grid/homeCheckpoint';
-import { initialGridReload, plannedGridReload } from '../../server/grid/recovery';
-import { ITEMS } from '../../server/bag/itemCatalog';
+import { initialGridReload, plannedGridReload } from '../../shared/grid/recovery';
+import { ITEMS } from '../../shared/bag/itemCatalog';
 import { LastPlace, placeName } from '@wildshard/engine/quest/lastPlace';
 import { shardCompleteUp } from '../complete/ShardComplete';
 import type { loadoutStage } from './loadout';
@@ -112,7 +112,7 @@ import { ACCENTS } from '@wildshard/format/accent';
 import { installShardHoverSpeed } from '../../server/grid/rules';
 import { findShard } from '../shard/registry';
 import { accentHex, hudAccent, onHudAccent, setHudAccent } from './hudAccent';
-import { firstPartyInstance } from '../../server/grid/instances';
+import { firstPartyInstance } from '../../shared/grid/instances';
 import { installSavesSettings } from '../savesSettings';
 import type { LiveGridSession } from '../grid/liveSession';
 import { pickInteractable } from '@wildshard/engine/world/interact/Interactables';
@@ -210,7 +210,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
   // SF28 (G87 / G104): the big item cards wear the shard's declared accent (in the grid, the cell's: grid/gridHud.ts)
   setHudAccent(accentHex(manifest.accent)); hud.cardAccent = hudAccent();
   game.levelScope.onDispose(onHudAccent((hex) => { hud.cardAccent = hex; }));
-  const owned = new Owned(manifest.slug);            // E314: upgrades, cosmetics, trophies, the found iron sword (src/game/server/loot/Owned.ts)
+  const owned = new Owned(manifest.slug);            // E314: upgrades, cosmetics, trophies, the found iron sword (src/game/shared/loot/Owned.ts)
   const playerHealth = new PlayerHealth(app.events, {
     now: () => performance.now(), position: () => player.position,
     dodging: () => player.dodging, dodgeGuard: () => false,

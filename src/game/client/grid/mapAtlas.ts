@@ -1,6 +1,6 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { MapExtraImage } from '@wildshard/engine/ui/Minimap';
-import type { ResidencyAllocator } from '../../server/grid/allocator';
+import type { ResidencyAllocator } from '../../shared/grid/allocator';
 
 interface AtlasSpec { readonly url: string; readonly compressed: number; readonly width: number; readonly height: number; readonly tileSize: number; readonly slugs: readonly string[] }
 interface Decoded { readonly image: CanvasImageSource; readonly width: number; readonly height: number; readonly close: () => void }

@@ -15,7 +15,7 @@
  */
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import type { ContentCostInput } from '@wildshard/format/contentCost';
-import { shardCost, type ResidencyAllocator, type ResidencyEntry } from '../../server/grid/allocator';
+import { shardCost, type ResidencyAllocator, type ResidencyEntry } from '../../shared/grid/allocator';
 
 /** At or above this many points a score turns amber. */
 export const AMBER_AT = 80;

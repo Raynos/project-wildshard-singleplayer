@@ -6,7 +6,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { GeneratedStrip, PlatformCell, StripMesh, StripProfile } from '@wildshard/engine/sim/strips';
 import { edgeProfileJson } from '@wildshard/engine/sim/edgeProfiles';
 import type { ResidencyAllocator } from './allocator';
-import { readGridAssetBytes } from '../../shared/grid/gridAssetBytes';
+import { readGridAssetBytes } from './gridAssetBytes';
 import type { SeamGeometryChannels } from '../../client/grid/seamLook';
 
 type SeamFeature = GeneratedStrip['features'][number];

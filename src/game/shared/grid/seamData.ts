@@ -1,6 +1,6 @@
 import type { GridEdgeSource } from './edgeProfiles';
 import type { CompiledGridSelector } from './compiledStrips';
-import { readGridAssetBytes } from '../../shared/grid/gridAssetBytes';
+import { readGridAssetBytes } from './gridAssetBytes';
 
 export interface GridSeamAddress { readonly url: string; readonly bytes: number; readonly sha256: string; readonly geometry?: CompiledGridSelector;
   readonly plans?: { readonly url: string; readonly bytes: number; readonly sha256: string };

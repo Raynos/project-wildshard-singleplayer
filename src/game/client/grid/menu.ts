@@ -1,5 +1,5 @@
 import { isDev } from '@wildshard/engine/core/devMode';
-import type { GridMode } from '../../server/grid/catalogue';
+import type { GridMode } from '../../shared/grid/catalogue';
 
 declare const __DEVSERVER__: boolean;
 /**

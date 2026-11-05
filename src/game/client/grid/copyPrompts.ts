@@ -12,7 +12,7 @@
  * a template cell holds its empty equipment (bare hands, G68), so no prompt can reach an item runtime there.
  */
 import { Vector3 } from 'three';
-import type { ShardRuntime } from '../../server/shard/runtime';
+import type { ShardRuntime } from '../../shared/shard/runtime';
 import { createQuestScriptPorts } from '../../server/quest/declared';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { ShardfileSimulation } from '../../server/plugin/simulation';

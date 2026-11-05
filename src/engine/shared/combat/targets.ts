@@ -1,5 +1,5 @@
 import type { Vector3 } from 'three';
-import type { Events } from '../../shared/events/events';
+import type { Events } from '../events/events';
 import type { AimTarget } from '../../client/player/AimTargets';
 import type { TargetHit, Targets } from '../../client/combat/types';
 

@@ -17,7 +17,7 @@ import { carryOutputDescriptor, outputDescriptor, resolveOutputDescriptor } from
 import { MemoryAdmission } from '@wildshard/format/memoryAdmission';
 import { acceptValidatedCost } from '@wildshard/format/deviceMemoryCost';
 import { ProductLeases } from '../src/game/client/grid/productLeases';
-import { ResidencyAllocator } from '../src/game/server/grid/allocator';
+import { ResidencyAllocator } from '../src/game/shared/grid/allocator';
 import metadata from '../src/shards/far-reach/manifest.json';
 import { parseManifestMetadata } from '@wildshard/format/minimap';
 import { parseImageAsset } from '@wildshard/format/stillImage';

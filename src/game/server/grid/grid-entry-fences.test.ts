@@ -12,8 +12,8 @@ import { installStripCollider } from '@wildshard/engine/physics/stripColliders';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
 import { generatePlatform } from '@wildshard/engine/sim/strips';
 import { TraversalReadiness, readinessModel } from '@wildshard/engine/sim/readiness';
-import { GridAssembly } from './assembly';
-import { neighbourEdges } from './readinessEdges';
+import { GridAssembly } from '../../shared/grid/assembly';
+import { neighbourEdges } from '../../shared/grid/readinessEdges';
 
 const assembly = new GridAssembly({ developer: false, devserver: false }), cell = assembly.cell('driftwood-isle');
 const empty = assembly.emptyNeighbour.edge;

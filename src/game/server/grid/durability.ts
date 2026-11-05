@@ -7,7 +7,7 @@ import { instanceSave, type LocalSaveInstance } from '../../shared/instanceSaves
 import { Ledger, installLedgerEmitter, type LedgerCatalogueItem, type LedgerEmitter } from '../ledger';
 import type { QuestDataPorts } from '../quest/declared';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { GridWallet } from './wallet';
+import { GridWallet } from '../../shared/grid/wallet';
 import { clientStateFromRegion, restoreClientState } from '../../client/shardfile/clientState';
 import { ClientCheckpointSchema, type ClientCheckpoint } from '@wildshard/format/clientState';
 import type { ShardfileSimulation } from '../plugin/simulation';

@@ -1,5 +1,5 @@
 import catalogue from '../../shared/grid/singleplayer.json' with { type: 'json' };
-import { parseGridCatalogue, type GridMode } from '../../server/grid/catalogue';
+import { parseGridCatalogue, type GridMode } from '../../shared/grid/catalogue';
 import type { Tier } from '@wildshard/engine/core/tier';
 
 /** iPhone downloads I9 (G737): the phone tier prefetches only the home cell and its ring (iOS cannot tell cellular from

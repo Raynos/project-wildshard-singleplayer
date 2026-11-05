@@ -5,7 +5,7 @@ import { validateNamedJsonSchema } from '../src/game/shared/shardfile/customSche
 import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import * as materialCompiler from '../src/game/client/shardfile/clientMaterials';
 import * as textureCapabilities from '../src/engine/client/core/ktx2';
-import type { ResidencyAllocator } from '../src/game/server/grid/allocator';
+import type { ResidencyAllocator } from '../src/game/shared/grid/allocator';
 import { painterlyUniforms, setPainterlyLook } from '../src/engine/client/world/painterly';
 import * as lookCompiler from '../src/game/client/shardfile/runtimeProduct';
 import { hasLentLook, lentLook } from '../src/game/client/shardfile/lentLooks';
@@ -42,7 +42,7 @@ import { parseClientPlan, RuntimeBoundsSchema } from '@wildshard/format/clientPl
 import { browserShardfileOptions } from '../src/game/client/shardfile/runtimeProduct';
 import { RetainedRuntimeHooks } from '../src/game/client/shard/retainedHooks';
 import { HybridRuntimeSession, type HybridResident } from '../src/game/client/shardfile/hybrid';
-import type { ShardRuntime } from '../src/game/server/shard/runtime';
+import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { Color, MeshBasicMaterial, Vector3 } from 'three';
 import { ToonLook } from '../src/engine/client/render/families/toon';
 

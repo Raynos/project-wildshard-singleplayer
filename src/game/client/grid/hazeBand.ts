@@ -11,7 +11,7 @@
  * colour only and keeps the destination alpha (a level may keep data there; the frame no longer reads it).
  */
 import { BufferAttribute, BufferGeometry, Color, CustomBlending, DoubleSide, Mesh, OneFactor, OneMinusSrcAlphaFactor, ShaderMaterial, SrcAlphaFactor, ZeroFactor, type Object3D } from 'three';
-import type { FarBand } from '../../server/grid/farProxy';
+import type { FarBand } from '../../shared/grid/farProxy';
 
 /**
  * How far (m) the band stands out from the cell edge into the strip: 2 m short of the road's kerb (the deck is the strip's

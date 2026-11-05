@@ -1,4 +1,4 @@
-import type { ShardPlayHost } from '../../server/shard/runtime';
+import type { ShardPlayHost } from '../../shared/shard/runtime';
 
 /** Read the installed legacy play owner lazily; absence or either storage refusal keeps the current frame. */
 export function legacyHomeCheckpoint(read: () => Pick<ShardPlayHost, 'progress' | 'inventory'> | null): () => boolean {

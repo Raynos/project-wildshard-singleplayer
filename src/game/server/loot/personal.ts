@@ -2,8 +2,8 @@ import * as v from 'valibot';
 import { WeightedTable, type TableDrop } from '@wildshard/engine/ai/weighted';
 import type { SimHost } from '@wildshard/engine/sim';
 import { bountyKey } from './Bounty';
-import { coinValue } from './coinAmounts';
-import { readLootTables, type LootContext } from './tableRows';
+import { coinValue } from '../../shared/loot/coinAmounts';
+import { readLootTables, type LootContext } from '../../shared/loot/tableRows';
 
 /** What a personal roll needs of the shard. */
 export interface PersonalLootPorts {

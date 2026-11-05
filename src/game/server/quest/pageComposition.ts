@@ -23,7 +23,7 @@ import type { Interactables, InteractEvent } from '@wildshard/engine/world/inter
 import type { Interactable, InteractTable, QuestPlace, QuestPlaceAnchor } from '@wildshard/engine/world/interact/types';
 import { perfLap } from '@wildshard/engine/core/perfLap';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
-import { ITEMS, isItemId } from '../bag/itemCatalog';
+import { ITEMS, isItemId } from '../../shared/bag/itemCatalog';
 import type { ItemId } from '../Inventory';
 import type { ShardContext } from '../plugin/context';
 import { QuestViews, bindQuestPageInteractions, type QuestPageInteractions } from '../../client/plugin/ui';
