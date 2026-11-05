@@ -62,8 +62,8 @@ export interface PlayerMotionState {
   readonly shove: ShoveState;
   readonly dash: DashState;
   readonly dodge: DodgeState;
-  /** the jump clocks, or null until the first press: a player that never jumps keeps its exact bytes */
-  jump: JumpState | null;
+  /** the jump clocks */
+  jump: JumpState;
   readonly board: BoardState & { on: boolean };
   readonly swim: SwimState & { on: boolean; stood: boolean };
   readonly footing: MotionFooting;
@@ -287,9 +287,8 @@ function stepOnFoot(s: PlayerMotionState, cmd: MotionCommand | undefined, w: Mot
   const wadeT = wadeFraction(fall.grounded, footing.depth);
   steerFoot(s, w, run, mx, mz, wadeT, dt);
   // the jump on last step's ground, before the step's gravity
-  if (s.jump !== null) jumpClock(s.jump, fall.grounded, dt);
+  jumpClock(s.jump, fall.grounded, dt);
   if (cmd?.jump === true) {
-    s.jump ??= { ago: fall.grounded ? 0 : Infinity, left: 1 };
     const vy = jumpLaw(s.jump, fall.grounded, velocity.y, foot.coyoteMs, foot.crouching || footing.sliding, jumpSpeed(wadeT));
     if (vy !== null) { velocity.y = vy; fall.grounded = false; out.jumped = true; w.jumped(); }
   }

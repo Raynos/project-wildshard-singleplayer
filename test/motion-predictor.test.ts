@@ -155,7 +155,7 @@ test('P1-E5.3-C2: a correction puts back everything a step reads, exact to the w
     link.run();
     server.position.set(1, 2, 3); server.velocity.set(4, 5, 6); server.impulse.set(.1, .2, .3); server.moveScale = .5;
     server.fall.grounded = false; Object.assign(server.shove, { t: .1, vx: 1.5, vz: -1.5 }); Object.assign(server.dash, { t: .2, vx: 2.5, vz: -2.5 }); Object.assign(server.dodge, { t: .3, cd: .4 });
-    server.jump = { ago: .25, left: 1 }; server.board.on = true; server.board.hoverAir = true; server.board.hoverBob = .125;
+    Object.assign(server.jump, { ago: .25, left: 1 }); server.board.on = true; server.board.hoverAir = true; server.board.hoverBob = .125;
     Object.assign(server.swim, { on: true, stood: true, diving: true, climbTo: 7.5, climbCooldown: .75, strokeTime: 1.25 });
     Object.assign(server.footing, { water: 8.5, depth: 1.5, wading: true, onPlatform: true, sliding: true });
     Object.assign(server.motor.result, { grounded: true, groundNormalY: .75, downhillX: .5, downhillZ: .25, horizontalFreedom: .625 });
@@ -174,9 +174,9 @@ test('a null clock stays null across the wire', () => {
   const link = linkedPlayer(R, scenario, 0), { player: client } = link, server = link.host.player;
   try {
     link.run();
-    server.jump = null; server.swim.climbTo = null; server.footing.water = null; server.resets++;
+    server.swim.climbTo = null; server.footing.water = null; server.resets++;
     link.predictor.reconcile(1, Uint32Array.from(PLAYER_CLASS.owner, column => column.sample(server, () => 0)));
-    expect(client.motionState.jump).toBeNull(); expect(client.motionState.swim.climbTo).toBeNull(); expect(client.motionState.footing.water).toBeNull();
+    expect(client.motionState.swim.climbTo).toBeNull(); expect(client.motionState.footing.water).toBeNull();
   } finally { link.dispose(); }
 });
 

@@ -7,7 +7,7 @@ import { stepPlayerMotion, type MotionWorld, type PlayerMotionState } from '../s
 const DT = 1 / 60;
 function player(): PlayerMotionState {
   return { position: new Vector3(), yaw: 0, moveScale: 1, impulse: new Vector3(), velocity: new Vector3(), fall: { grounded: true },
-    shove: { t: 0, vx: 0, vz: 0 }, dash: { t: 0, vx: 0, vz: 0 }, dodge: { cd: 0, t: 0 }, jump: null,
+    shove: { t: 0, vx: 0, vz: 0 }, dash: { t: 0, vx: 0, vz: 0 }, dodge: { cd: 0, t: 0 }, jump: { ago: Infinity, left: 0 },
     board: { on: false, hoverAir: false, hoverBob: 0, onGround: false },
     swim: { on: false, stood: false, diving: false, climbTo: null, climbCooldown: 0, strokeTime: 0 },
     footing: { water: null, depth: 0, wading: false, onPlatform: false, sliding: false } };

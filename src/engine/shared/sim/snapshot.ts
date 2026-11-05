@@ -69,8 +69,8 @@ export interface SimPlayerSnapshot { id: string; position: number[]; yaw: number
     swim?: { on: boolean; diving: boolean; climbTo: number | null; climbCooldown: number; stroke: number; stood: boolean } | undefined;
     /** The feet's last resolve (P1-E5.3-A3), which the next step reads; absent = dry, firm ground. */
     footing?: MotionFooting | undefined;
-    /** SF72: the on-foot jump clocks (SimHost.playerJump; `ago` null = never grounded since: no coyote), present once the
-     *  host has had a JUMP press; the running dash (playerDash) and the dodge clocks (playerDodge) only while they run. */
+    /** SF72: the on-foot jump clocks (SimHost.playerJump; `ago` null = never grounded since: no coyote), absent on a fresh
+     *  player; the running dash (playerDash) and the dodge clocks (playerDodge) only while they run. */
     jump?: { ago: number | null; left: 0 | 1 } | undefined; dash?: { t: number; vx: number; vz: number } | undefined;
     dodge?: { cd: number; t: number } | undefined }
 /** The lead player's continuation, first in the list. */
@@ -302,8 +302,8 @@ function traversalField(player: PlayerSim): Pick<SimPlayerSnapshot, 'traversals'
 /** The jump, dash and dodge state (SF72), each omitted while unused or at rest, so a host that never jumps or dodges keeps its bytes. */
 function jumpFields(player: PlayerSim): Pick<SimPlayerSnapshot, 'jump' | 'dash' | 'dodge'> {
   const { jump, dash, dodge } = player;
-  if (jump !== null && jump.left !== 0 && jump.left !== 1) throw new Error('Invalid player jump state');
-  return { ...(jump === null ? {} : { jump: { ago: Number.isFinite(jump.ago) ? jump.ago : null, left: jump.left === 0 ? 0 : 1 } }),
+  if (jump.left !== 0 && jump.left !== 1) throw new Error('Invalid player jump state');
+  return { ...(jump.ago === Infinity && jump.left === 0 ? {} : { jump: { ago: Number.isFinite(jump.ago) ? jump.ago : null, left: jump.left === 0 ? 0 : 1 } }),
     ...(dash.t > 0 ? { dash: { ...dash } } : {}), ...(dodge.cd > 0 || dodge.t > 0 ? { dodge: { ...dodge } } : {}) };
 }
 
@@ -339,7 +339,7 @@ function restorePlayer(host: SimHost, saved: SimPlayerSnapshot): void {
   Object.assign(player.swim, swim === undefined ? { on: false, diving: false, climbTo: null, climbCooldown: 0, strokeTime: 0, stood: false }
     : { on: swim.on, diving: swim.diving, climbTo: swim.climbTo, climbCooldown: swim.climbCooldown, strokeTime: swim.stroke, stood: swim.stood });
   const { jump } = saved;
-  player.jump = jump === undefined ? null : { ago: jump.ago ?? Infinity, left: jump.left };
+  player.jump.ago = jump?.ago ?? Infinity; player.jump.left = jump?.left ?? 0;
   Object.assign(player.dash, saved.dash ?? { t: 0, vx: 0, vz: 0 });
   Object.assign(player.dodge, saved.dodge ?? { cd: 0, t: 0 });
   player.health.restore(decode(saved.health, host) as ReturnType<PlayerHealth['snapshot']>);

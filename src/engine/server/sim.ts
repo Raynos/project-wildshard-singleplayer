@@ -49,7 +49,8 @@ export interface SimSpawn {
 export interface SimLevel {
   version: number; id: string; seed: number;
   ground: { size: number; height: number };
-  player: { at: { x: number; y: number; z: number }; yaw: number; speed: number };
+  /** `coyoteMs`: the level's authored ground grace, absent at the default (player/jump.ts), so a level keeps its fingerprint. */
+  player: { at: { x: number; y: number; z: number }; yaw: number; speed: number; coyoteMs?: number };
   entities: readonly SimSpawn[]; weapon: SimStrike; quests: readonly QuestDef[];
   /** SF72: where the day clock a runtime installs (SimHost.useDayClock) starts, in that clock's own units (its spec's
    *  `start`: the day fraction for a 'phase' clock, the hour for an 'hour' clock), over the clock's own start. A witness

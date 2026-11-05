@@ -52,7 +52,7 @@ export function captureMotion(s: PlayerMotionState, motor: CharacterMotor, out: 
   out[at + 12] = shove.t; out[at + 13] = shove.vx; out[at + 14] = shove.vz;
   out[at + 15] = dash.t; out[at + 16] = dash.vx; out[at + 17] = dash.vz;
   out[at + 18] = dodge.cd; out[at + 19] = dodge.t;
-  out[at + 20] = word(jump?.ago ?? null); out[at + 21] = word(jump?.left ?? null);
+  out[at + 20] = jump.ago; out[at + 21] = jump.left;
   out[at + 22] = Number(board.on); out[at + 23] = Number(board.hoverAir); out[at + 24] = board.hoverBob;
   out[at + 25] = Number(swim.on); out[at + 26] = Number(swim.stood); out[at + 27] = Number(swim.diving); out[at + 28] = word(swim.climbTo);
   out[at + 29] = swim.climbCooldown; out[at + 30] = swim.strokeTime;
@@ -69,9 +69,7 @@ export function restoreMotion(s: PlayerMotionState, motor: CharacterMotor, from:
   shove.t = read(from, at + 12); shove.vx = read(from, at + 13); shove.vz = read(from, at + 14);
   dash.t = read(from, at + 15); dash.vx = read(from, at + 16); dash.vz = read(from, at + 17);
   dodge.cd = read(from, at + 18); dodge.t = read(from, at + 19);
-  if (Number.isNaN(read(from, at + 20))) s.jump = null;
-  else if (s.jump === null) s.jump = { ago: read(from, at + 20), left: read(from, at + 21) };
-  else { s.jump.ago = read(from, at + 20); s.jump.left = read(from, at + 21); }
+  s.jump.ago = read(from, at + 20); s.jump.left = read(from, at + 21);
   board.on = read(from, at + 22) !== 0; board.hoverAir = read(from, at + 23) !== 0; board.hoverBob = read(from, at + 24);
   swim.on = read(from, at + 25) !== 0; swim.stood = read(from, at + 26) !== 0; swim.diving = read(from, at + 27) !== 0; swim.climbTo = nullable(read(from, at + 28));
   swim.climbCooldown = read(from, at + 29); swim.strokeTime = read(from, at + 30);

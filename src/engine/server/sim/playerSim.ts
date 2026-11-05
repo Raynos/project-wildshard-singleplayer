@@ -77,10 +77,8 @@ export class PlayerSim implements PlayerMotionState {
    * continuation before native restore, as useDriver's.
    */
   readonly modes: PlayerModes<SimPlayerDriver>;
-  /** The on-foot jump clocks (player/jump.ts), or null until the first JUMP press (SF72): tracking starts there
-   * (grounded: the client's own state; in the air: no coyote window left), so a player that never jumps keeps its exact
-   * snapshot bytes. */
-  jump: JumpState | null = null;
+  /** The on-foot jump clocks (player/jump.ts), the client Player's. Saved once they differ from a fresh player's. */
+  readonly jump: JumpState = { ago: Infinity, left: 0 };
   /** The running dash: a dodge's burst or a lunge (dashTo), the client Player's dash law (player/dash.ts). */
   readonly dash: DashState = { t: 0, vx: 0, vz: 0 };
   /** The dodge clocks (cooldown, the burst's i-frames read by its health's `dodging`). */
@@ -296,6 +294,7 @@ export class PlayerSim implements PlayerMotionState {
   private motionWorld(): MotionWorld {
     const motor = (): CharacterMotor => this.motor, water = (): boolean => this.host.water !== undefined;
     const walking = (): SimWalkingControl => this.walking;
+    const coyote = (): number => this.host.level.player.coyoteMs ?? COYOTE_MS;
     return {
       get motor() { return motor(); },
       get hasWater() { return water(); },
@@ -308,7 +307,7 @@ export class PlayerSim implements PlayerMotionState {
       foot: {
         speed: (wadeT) => this.walking.speed * wadeScale(wadeT) * this.moveScale * (this.health.attributes['moveSpeedMul'] ?? 1),
         get crouching() { return walking().crouching; },
-        coyoteMs: COYOTE_MS,
+        get coyoteMs() { return coyote(); },
       },
       boardTop: () => hoverSpeed(),
       boardCapped: () => false,

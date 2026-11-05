@@ -97,7 +97,7 @@ export function installLadders(host: SimHost, rows: readonly LadderMode[], clien
     const traverse = (dt: number): boolean => {
       if (client !== undefined && !client.enabled()) { driver.release(); return false; }
       const claimed = driver.step(dt, client?.command() ?? input, player.position, player.motor);
-      if (claimed) { if (client === undefined) { player.velocity.y = 0; player.fall.grounded = false; player.jump = null; } else client.claimed(); }
+      if (claimed) { if (client === undefined) { player.velocity.set(0, 0, 0); player.fall.grounded = false; } else client.claimed(); }
       return claimed;
     };
     if (client === undefined) player.modes.register({ id: 'climb', hud: 'none', traverse }, host.scope, { events: host.events });

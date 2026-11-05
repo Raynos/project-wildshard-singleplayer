@@ -39,9 +39,7 @@ const OWNER_WRITES: Readonly<Record<string, (s: PlayerMotionState, value: number
   dodgeT: (s, value) => { s.dodge.t = value; }, dodgeCd: (s, value) => { s.dodge.cd = value; },
   shoveT: (s, value) => { s.shove.t = value; }, shoveX: (s, value) => { s.shove.vx = value; }, shoveZ: (s, value) => { s.shove.vz = value; },
   impulseX: (s, value) => { s.impulse.x = value; }, impulseY: (s, value) => { s.impulse.y = value; }, impulseZ: (s, value) => { s.impulse.z = value; },
-  // `jumpAgo` is declared first, so a clock the server has just started exists when `jumpLeft` lands
-  jumpAgo: (s, value) => { if (Number.isNaN(value)) s.jump = null; else if (s.jump === null) s.jump = { ago: value, left: 0 }; else s.jump.ago = value; },
-  jumpLeft: (s, value) => { if (s.jump !== null) s.jump.left = value; },
+  jumpAgo: (s, value) => { s.jump.ago = value; }, jumpLeft: (s, value) => { s.jump.left = value; },
   hoverBob: (s, value) => { s.board.hoverBob = value; },
   climbTo: (s, value) => { s.swim.climbTo = orNull(value); }, climbCooldown: (s, value) => { s.swim.climbCooldown = value; }, strokeTime: (s, value) => { s.swim.strokeTime = value; },
   water: (s, value) => { s.footing.water = orNull(value); }, depth: (s, value) => { s.footing.depth = value; },
