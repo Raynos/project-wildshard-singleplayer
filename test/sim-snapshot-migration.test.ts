@@ -10,8 +10,9 @@ import recorded from './fixtures/sim-snapshot-v1.json';
 import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 // P1-E5.2a: old saves load. Every wire here came out of the real version 1 writer and is never re-recorded. J112 moved the
-// law, so the digests and end states are where each tape reaches on the one law, re-recorded at P1-E5.3-A2. A pass means
-// the save still loads and nothing about the continuation moved since.
+// law, so the digests and end states are where each tape reaches on the one law, re-recorded at P1-E5.3-A2, at A6 for the
+// capsule (J127: only walk-strike's end moved, 1.4 mm) and at A9 for the coyote clock (the jump's digest, no end). A pass
+// means the save still loads on the page's capsule and nothing about the continuation moved since.
 const target = SIM_LEVEL.entities[0]?.id ?? '';
 const tapes: Record<string, (tick: number) => SimCommand> = {
   'walk-strike': tick => ({ moveX: Math.sin(tick / 40), moveZ: Math.cos(tick / 55), yaw: tick / 90, ...(tick % 50 === 7 ? { attack: { targetId: target } } : {}) }),
@@ -31,6 +32,7 @@ test.each(recorded.states)('the $name save continues exactly as the version 1 en
     if (state.water) fresh.useWater({ surfaceAt: x => x > 6 ? 2 : null });
   });
   try {
+    expect(leadPlayer(host).motor.collider.radius()).toBeCloseTo(.38, 6);
     for (let tick = 0; tick < state.tail; tick++) host.step(leadCommands(host, tape(state.ticks + tick)));
     const p = leadPlayer(host).position;
     expect({ tick: host.state.tick, position: [p.x, p.y, p.z], hp: leadPlayer(host).health.attributes.health, flags: host.flags.all }).toEqual(state.end);
