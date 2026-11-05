@@ -1,12 +1,12 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 458,
+  "client → server": 455,
   "cook → client": 2,
   "cook → render": 1,
-  "server → client": 196,
+  "server → client": 193,
   "server → dom": 2,
-  "server → render": 9,
+  "server → render": 8,
   "shared → client": 3,
   "shared → dom": 1,
   "shared → server": 1
@@ -209,13 +209,10 @@
    "server → render": 1
   },
   "src/game/boss/encounterView.ts": {
-   "client → server": 7
-  },
-  "src/game/boss/openArenaFight.ts": {
-   "server → client": 2
+   "client → server": 6
   },
   "src/game/boss/roamingProjection.ts": {
-   "client → server": 10
+   "client → server": 9
   },
   "src/game/boss/timedEncounters.ts": {
    "server → client": 3
@@ -237,8 +234,7 @@
    "client → server": 1
   },
   "src/game/Elite.ts": {
-   "server → client": 6,
-   "server → render": 1
+   "server → client": 5
   },
   "src/game/generators/pickups.ts": {
    "cook → client": 2,
@@ -754,9 +750,6 @@
   },
   "src/game/summary.ts": {
    "client → server": 2
-  },
-  "src/game/systems/cellField.ts": {
-   "client → server": 1
   },
   "src/game/systems/items/declaredSword.ts": {
    "client → server": 1
