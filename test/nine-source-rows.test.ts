@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest';
+import { unsortedPath } from '../lint/layer-exports.mjs';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { portalFloorRows, deckCapRows } from '../src/shards/nine-dragon-stack/generators/portalFloors';
 import { portalEntryRows, portalPlanRows } from '../src/shards/nine-dragon-stack/generators/portalEntries';
@@ -24,7 +25,9 @@ const originals = [
 ] as const;
 
 test.each(originals)('$id preserves the original complete row payload', row => {
-  const bytes = new TextEncoder().encode(JSON.stringify(row.build(), (_key, value: unknown) => Object.is(value, -0) ? '-0' : value));
+  // A row's `file` is compared by side-free identity: the sort and later retags move files, not rows.
+  const bytes = new TextEncoder().encode(JSON.stringify(row.build(), (key, value: unknown) => Object.is(value, -0) ? '-0'
+    : key === 'file' && typeof value === 'string' ? unsortedPath(value) : value));
   expect(bytes.byteLength).toBe(row.bytes);
   expect(hashImmutableBytes(bytes)).toBe(row.hash);
 });
