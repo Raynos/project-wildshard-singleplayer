@@ -4,7 +4,7 @@
   "client → server": 464,
   "cook → client": 2,
   "cook → render": 1,
-  "server → client": 208,
+  "server → client": 206,
   "server → dom": 3,
   "server → render": 10,
   "shared → client": 10,
@@ -818,17 +818,11 @@
   "src/game/weapons/Sword.ts": {
    "server → client": 1
   },
-  "src/game/weather/continuation.ts": {
-   "server → client": 1
-  },
   "src/game/weather/forest.ts": {
    "client → server": 7
   },
   "src/game/weather/rainPresentation.ts": {
    "client → server": 1
-  },
-  "src/game/weather/reactions.ts": {
-   "server → client": 1
   },
   "src/game/whatsNewBanner.ts": {
    "client → server": 1

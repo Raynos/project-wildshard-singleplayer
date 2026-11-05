@@ -17,7 +17,8 @@ import { windBoost, windUniforms, WIND_DIR } from '@wildshard/engine/world/wind'
 import { wind as steppeWind } from '@wildshard/engine/world/steppeWind';
 import { paintedSky, skyFaceOf, type PaintedSky, type SkyFace } from '../looks/keyedSky';
 import { installWeatherContinuation } from './continuation';
-import { applyWeatherCover, bindPageWeatherHit, installWeatherReactions, nativeWeatherBundle, weatherWorldLight, type WeatherReactions } from './reactions';
+import { applyWeatherCover, installWeatherReactions, nativeWeatherBundle, weatherWorldLight, type WeatherReactions } from './reactions';
+import { bindPageWeatherHit } from './pageHit';
 import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
 import { parseWeatherProgram, WeatherWorldSchema } from '@wildshard/format/weatherProgram';
 import type { WeatherHUD } from '@wildshard/engine/ui/HUD';

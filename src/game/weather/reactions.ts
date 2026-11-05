@@ -1,21 +1,26 @@
-import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import { emitFault } from '@wildshard/engine/core/faults';
-import type { ShardContext } from '../plugin/context';
 import type { SimHost } from '@wildshard/engine/sim';
-import { parseWeatherProgram, parseWeatherReactions, WeatherWorldSchema, type WeatherProgram, type WeatherReactionRows } from '@wildshard/format/weatherProgram';
-import { Vector3 } from 'three';
+import { parseWeatherProgram, parseWeatherReactions, type WeatherProgram, type WeatherReactionRows, type WeatherWorldSchema } from '@wildshard/format/weatherProgram';
 import { TreeGrid } from '@wildshard/engine/world/forest/placement';
 import type { WeatherHUD } from '@wildshard/engine/ui/HUD';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ReturnProgram } from '../population/returnProgram';
 import * as v from 'valibot';
 import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
-import type { Player } from '@wildshard/engine/player/Player';
 
 const ReactionsSaved = v.strictObject({ version: v.literal(1), weather: v.unknown(), registers: v.record(v.string(), v.pipe(v.number(), v.finite())),
   elapsed: v.pipe(v.number(), v.finite(), v.minValue(0)) });
 /** Fields of one reaction event, reused per event id (copy what you keep). */
 export type WeatherReactionEvent = Readonly<Record<string, number>>;
+/** One more player under the same sky: their numbers for the rows, and what they hear of their own. */
+export interface WeatherListener {
+  /** write this player's `px py pz crouched mounted` (and any other `input.*` of theirs) over `inputs` */
+  read: (inputs: Record<string, number>) => void;
+  hear: (event: WeatherReactionEvent) => void;
+}
+/** The players a sky has besides the one its `inputs` describe, and the event each hears for themselves. */
+export interface WeatherAudience { readonly event: string; readonly others: () => Iterable<WeatherListener> }
+const LISTENER_INPUTS = ['px', 'py', 'pz', 'crouched', 'mounted', 'sheltered'] as const;
 /**
  * A weather continuation's reactions (G474; rows `WeatherReactionRows`): its decisions at the rows' cadence through one
  * admitted return program, its events to subscribers and its whole continuation (the phase loop, its stream and every
@@ -30,6 +35,8 @@ export class WeatherReactions {
   private readonly listeners = new Map<string, ((event: WeatherReactionEvent) => void)[]>();
   private readonly events = new Map<string, Record<string, number>>();
   private reported: Set<'clock' | 'event' | 'field'> | undefined;
+  /** Who else this sky falls on (`serve`). */
+  private audience: WeatherAudience | undefined;
   private reject(kind: 'clock' | 'event' | 'field', message: string): void {
     const reported = this.reported ??= new Set();
     if (reported.has(kind)) return;
@@ -58,6 +65,9 @@ export class WeatherReactions {
     for (const [field, value] of entries) record[field] = value;
     record['age'] = 0; for (const fn of (this.listeners.get(event)?.slice()??[])) fn(record);
   }
+  /** Serve more than the player `inputs` describes: a step that emits `audience.event` then runs again for each other
+   * listener on their numbers, writes nothing, draws nothing and raises nothing else: one bolt, each player's own hurt. */
+  serve(audience: WeatherAudience): void { this.audience = audience; }
   private hudKey = '';
   /** The HUD's chip and GET LOW (rows `hud`) when they changed since the last call, else null; `quiet` holds GET LOW off. */
   hud(wind: number, quiet: boolean): WeatherHUD | null {
@@ -80,12 +90,17 @@ export class WeatherReactions {
     this.weather.update(dt); this.elapsed += dt;
     for (const record of this.events.values()) record['age'] = Math.min(1e6, (record['age'] ?? 0) + dt);
     if (this.elapsed + 1e-9 < 1 / this.rows.hz) return false;
-    const step = this.elapsed, { actions, shelter } = this.rows, x = this.inputs['px'] ?? 0, z = this.inputs['pz'] ?? 0;
+    const step = this.elapsed, { actions } = this.rows;
     this.elapsed = 0;
-    this.inputs['sheltered'] = Number((this.inputs['covered'] ?? 0) > 0 || shelter.circles.some(([cx, cz, r]) => (cx - x) ** 2 + (cz - z) ** 2 < (r + shelter.margin) ** 2));
+    this.shelter();
     if (actions !== undefined && !(actions.unless !== undefined && this.register(actions.unless) !== 0)) this.weather.applyActions(actions.event, step);
     for (const row of this.rows.steps) if (row.when === undefined || this.read(row.when, step, {}) !== 0) this.run(row, step);
     return true;
+  }
+  /** `sheltered` for the player `inputs` describes this moment. */
+  private shelter(): void {
+    const { shelter } = this.rows, x = this.inputs['px'] ?? 0, z = this.inputs['pz'] ?? 0;
+    this.inputs['sheltered'] = Number((this.inputs['covered'] ?? 0) > 0 || shelter.circles.some(([cx, cz, r]) => (cx - x) ** 2 + (cz - z) ** 2 < (r + shelter.margin) ** 2));
   }
   private read(ref: string | number, dt: number, output: Readonly<Record<string, number>>): number {
     if (typeof ref === 'number') return ref;
@@ -95,7 +110,7 @@ export class WeatherReactions {
     if (value === undefined || !Number.isFinite(value)) throw new Error(`Missing weather reaction source: ${ref}`);
     return value;
   }
-  private run(row: WeatherReactionRows['steps'][number], dt: number): void {
+  private project(row: WeatherReactionRows['steps'][number], dt: number, random: boolean): Readonly<Record<string, number>> {
     const observed = Object.fromEntries(row.observe.map(([field, ref]) => [field, this.read(ref, dt, {})]));
     const probe = row.probe, candidates: Record<string, number>[] = [];
     if (probe !== undefined) {
@@ -104,7 +119,10 @@ export class WeatherReactions {
       candidates.sort((a, b) => ((a['x'] ?? 0) - x) ** 2 + ((a['z'] ?? 0) - z) ** 2 - (((b['x'] ?? 0) - x) ** 2 + ((b['z'] ?? 0) - z) ** 2) || (a['index'] ?? 0) - (b['index'] ?? 0));
       candidates.length = Math.min(candidates.length, 8); observed['count'] = candidates.length;
     }
-    const output = this.program.project(row.signal, observed, row.random ? this.weather.random : undefined, candidates);
+    return this.program.project(row.signal, observed, random ? this.weather.random : undefined, candidates);
+  }
+  private run(row: WeatherReactionRows['steps'][number], dt: number): void {
+    const output = this.project(row, dt, row.random);
     for (const [channel, target] of row.write) {
       const value = output[channel]; if (value === undefined) continue;
       if (target === 'phaseT') this.weather.phaseT = value; else this.weather.registers[target.slice(9)] = value;
@@ -115,6 +133,22 @@ export class WeatherReactions {
       for (const [field, ref] of emit.fields) event[field] = this.read(ref, dt, output);
       event['age'] = 0; for (const fn of (this.listeners.get(emit.event)?.slice()??[])) fn(event);
     }
+    this.reachOthers(row, dt);
+  }
+  /** The same step again for each other listener, on their numbers. `inputs` ends as it began. */
+  private reachOthers(row: WeatherReactionRows['steps'][number], dt: number): void {
+    const audience = this.audience;
+    if (audience === undefined || row.random || !row.emit.some(emit => emit.event === audience.event)) return;
+    const inputs = this.inputs, own = LISTENER_INPUTS.map(name => inputs[name] ?? 0);
+    for (const listener of audience.others()) {
+      listener.read(inputs); this.shelter();
+      const output = this.project(row, dt, false);
+      for (const emit of row.emit) {
+        if (emit.event !== audience.event || output[emit.when] === undefined) continue;
+        listener.hear(Object.fromEntries(emit.fields.map(([field, ref]) => [field, this.read(ref, dt, output)])));
+      }
+    }
+    LISTENER_INPUTS.forEach((name, index) => { inputs[name] = own[index] ?? 0; });
   }
   /** The whole continuation as plain values. */
   snapshot(): { version: 1; weather: ReturnType<WeatherContinuation['captureWeather']>; registers: Record<string, number>; elapsed: number } { return { version: 1, weather: this.weather.captureWeather(), registers: { ...this.weather.registers }, elapsed: this.elapsed }; }
@@ -143,15 +177,6 @@ export function nativeWeatherBundle(input: unknown, circles?: unknown): { weathe
   const data = v.parse(v.object({ weather: v.unknown(),reactions: v.unknown() }),input), weather = parseWeatherProgram(data.weather);
   const reactions=parseWeatherReactions(data.reactions,weather);
   return { weather,reactions:circles===undefined?reactions:parseWeatherReactions({...reactions,shelter:{...reactions.shelter,circles}},weather) };
-}
-/** Client-only intake of the same damage policy used by native weather. The
- * entered lifetime owns its subscription; no content damage callback binds. */
-export function bindPageWeatherHit(ctx:ShardContext,player:Player,storm:WeatherReactions,input:unknown):void{
-  const rows=v.parse(WeatherWorldSchema,input);
-  installEnteredRuntimeService(ctx,scope=>{scope.onDispose(storm.on('hurt',event=>{
-    const target=ctx.app.player;if(target===null)return;
-    ctx.app.combat.hit({source:'env',sourceTags:rows.hit.tags,target,amount:ctx.app.events.ask(rows.hit.ask,event['damage']??0),point:player.position.clone(),dir:new Vector3(),cause:rows.hit.cause,toast:rows.hit.toast});
-  }));});
 }
 /** The light the creatures see by (rows `light`): the base plus each sun-elevation ramp, held at `storm` while the weather is active. */
 export function weatherWorldLight(rows: v.InferOutput<typeof WeatherWorldSchema>['light'], sunElevation: number, active: boolean): number {

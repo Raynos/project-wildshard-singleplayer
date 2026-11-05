@@ -9,7 +9,8 @@ import { PlayerHealth } from '../src/engine/combat/health';
 import { fakeWorld } from '@wildshard/engine/test/world';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import type { ShardContext } from '../src/game/plugin/context';
-import { applyWeatherCover,bindPageWeatherHit,installWeatherReactions } from '../src/game/weather/reactions';
+import { applyWeatherCover,installWeatherReactions } from '../src/game/weather/reactions';
+import { bindPageWeatherHit } from '../src/game/weather/pageHit';
 import pine from '../src/shards/pine-hollow/data/weather.json' with { type: 'json' };
 import {weatherWitness as storm} from './fixtures/weatherInlineWitness';
 
