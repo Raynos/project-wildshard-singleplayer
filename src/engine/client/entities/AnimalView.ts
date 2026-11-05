@@ -127,7 +127,15 @@ export class Animal extends AnimalSim {
     stunT: 0, flinch: 0, flinchRoll: 0, flinchPitch: 0, brace: 0, deathSide: 1 };
 
   /** True when the authoritative host, rather than the legacy manager, owns decisions and physics. */
-  get simulationBound(): boolean { return this.externalSimulation !== null; }
+  get simulationBound(): boolean { return this.externalSimulation !== null || this.rowDriven; }
+  /** A wire row stands this body (`showRow`): no decision or step of its own, only its pose. */
+  rowDriven = false;
+  override showRow(row: Parameters<AnimalSim['showRow']>[0], dt: number): void {
+    const hit = row.flinch > this.flinch + 0.05, died = this.alive && !row.alive;
+    super.showRow(row, dt);
+    if (hit) this.hitFlash();
+    if (died) { this.deathT = 0; this.deathSide = 1; }
+  }
   /** A rig's queries retain its render-published bones; bind posed volumes on the authoritative native actor. */
   override bindVolumes(_port: AnimalVolumePort): void { throw new Error('Bind creature volumes on the native actor'); }
   /** Bind a fresh rig to the host creature. Rendering never advances or disposes its simulation body. */
@@ -401,9 +409,9 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
     this.poseFrozen = false; this.poseVersion++;
     if (this.flash > 0) { this.flash = Math.max(0, this.flash - dt / FLASH_T); this.applyFlash(); }
     if (this.ragdoll !== null) { this.updateRagdoll(this.ragdoll, dt, t, near); return; }
-    if (this.externalSimulation === null) this.stepMotion(dt); else this.readSimulationPose();
+    if (this.rowDriven) { /* posed from its row */ } else if (this.externalSimulation === null) this.stepMotion(dt); else this.readSimulationPose();
 
-    this.advancePose(this.poseLaw, dt, t, near, this.externalSimulation === null, this.debugGait);
+    this.advancePose(this.poseLaw, dt, t, near, this.externalSimulation === null && !this.rowDriven, this.debugGait);
     if (!near) { this.applyRoot(); this.poseFrozen = true; return; }
     // FC11: a mid / far animal keeps its last bone pose between pose frames (staggered by its seed); the root still moves
     this.poseDt += dt;
