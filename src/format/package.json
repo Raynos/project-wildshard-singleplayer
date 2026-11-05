@@ -10,6 +10,7 @@
   ],
   "exports": {
     "./heldJianDocument": "./heldJianDocument.ts",
+    "./netCommand": "./netCommand.ts",
     "./heldWeaponDocuments": "./heldWeaponDocuments.ts",
     "./waterWorld": "./waterWorld.ts",
     "./forestNativeInputs": "./forestNativeInputs.ts",

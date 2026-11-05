@@ -1,0 +1,173 @@
+import { expect, test } from 'vitest';
+import { BitReader, BitWriter, NetDecodeError } from '../src/engine/net/bits';
+import { decodeCommands, encodeCommands, NET_BUTTONS } from '../src/engine/net/command';
+import { decodeFrame, encodeFrame, WorldFrame, type DecodedFrame, type FrameInput } from '../src/engine/net/frame';
+import { decodeAct, decodeEvents, decodeHello, decodeWelcome, encodeAct, encodeEvents, encodeHello, encodeWelcome, type InitialBits } from '../src/engine/net/messages';
+import { NET_SCHEMA_HASH } from '../src/engine/net/netSchemas';
+import { compileSchema, netSchema, netSchemaHash, schemaDescription, type NetClass } from '../src/engine/net/schema';
+
+// P1-E5.2 (E5-REPLICATION §9): the codec's properties, with a seeded stream so a failure reproduces.
+
+/** mulberry32: a small seeded stream, independent of the game's RNG services. */
+function stream(seed: number): () => number {
+  let state = seed;
+  return () => {
+    state = (state + 0x6d2b79f5) | 0;
+    let mixed = Math.imul(state ^ (state >>> 15), 1 | state);
+    mixed ^= mixed + Math.imul(mixed ^ (mixed >>> 7), 61 | mixed);
+    return ((mixed ^ (mixed >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+interface Sample { x: number; yaw: number; flinch: number; hp: number; alive: boolean; state: string; target: string | null; speed: number; name: string; exact: number }
+const SAMPLE = netSchema<Sample>({ cls: 'sample', fields: {
+  x: { kind: 'f32q', min: -260, max: 260, bits: 16, read: s => s.x },
+  yaw: { kind: 'angle', bits: 10, read: s => s.yaw },
+  flinch: { kind: 'f32q', min: 0, max: 1, bits: 6, read: s => s.flinch },
+  hp: { kind: 'u16', read: s => s.hp },
+  alive: { kind: 'bool', read: s => s.alive },
+  state: { kind: 'enum', values: ['idle', 'walk', 'run'], read: s => s.state },
+  target: { kind: 'ref', read: s => s.target },
+  exact: { kind: 'f32', predicted: true, read: s => s.exact },
+  speed: { kind: 'f32', send: 'owner', read: s => s.speed },
+  name: { kind: 'text', send: 'initial', read: s => s.name },
+} });
+const CLASS: NetClass<Sample> = compileSchema(SAMPLE, 0);
+const erased: NetClass<never> = CLASS;
+const refs = (id: string): number => id.length;
+const draw = (random: () => number): Sample => ({ x: random() * 520 - 260, yaw: random() * Math.PI * 8 - Math.PI * 4, flinch: random(), hp: Math.floor(random() * 0x10000),
+  alive: random() < 0.5, state: ['idle', 'walk', 'run'][Math.floor(random() * 3)] ?? 'idle', target: random() < 0.5 ? null : 'abc', speed: random() * 10, name: 'n', exact: random() * 100 });
+
+function fill(frame: WorldFrame, rows: ReadonlyMap<number, Sample>): void {
+  for (const [handle, sample] of rows) {
+    const at = frame.claim(handle, CLASS.row.length);
+    CLASS.row.forEach((column, index) => { frame.data[at + index] = column.sample(sample, refs); });
+  }
+}
+function input(frame: WorldFrame, baseline: FrameInput['baseline'], visible = new Set(frame.handles())): FrameInput {
+  return { frame, cell: 3, lastSeq: 77, ownerClass: erased, owner: Uint32Array.from(CLASS.owner, () => 9), visible, baseline, classOf: () => erased };
+}
+const table = (held: DecodedFrame | null): Parameters<typeof decodeFrame>[1] => ({ ownerClass: erased, classOf: () => erased, baseline: tick => held?.tick === tick ? held : null });
+const rowsOf = (frame: DecodedFrame | null): Record<string, number[]> => Object.fromEntries([...(frame?.rows ?? [])].map(([handle, row]) => [handle, [...row]]));
+
+test('bits round-trip at every width and refuse reading past the end', () => {
+  const random = stream(1), writer = new BitWriter(4), fields = Array.from({ length: 4096 }, () => {
+    const bits = 1 + Math.floor(random() * 32);
+    return { bits, value: Math.floor(random() * 2 ** bits) };
+  });
+  for (const { value, bits } of fields) writer.write(value, bits);
+  const reader = new BitReader(new Uint8Array(writer.finish()));
+  for (const { value, bits } of fields) expect(reader.read(bits)).toBe(value);
+  reader.end();
+  expect(() => reader.read(32)).toThrow(NetDecodeError);
+  writer.writeText('Ωmega'); expect(new BitReader(new Uint8Array(writer.finish())).readText()).toBe('Ωmega');
+});
+
+test('a writer that has finished leaves no bits behind in its next message', () => {
+  const writer = new BitWriter(8);
+  writer.write(0xffffffff, 32); writer.finish();
+  writer.write(0, 8);
+  expect([...new Uint8Array(writer.finish())]).toEqual([0]);
+});
+
+test('every field decodes within one quantisation step', () => {
+  const random = stream(2);
+  for (let round = 0; round < 2000; round++) {
+    const sample = draw(random);
+    for (const column of CLASS.row) {
+      const quantised = column.sample(sample, refs), value = column.value(quantised);
+      expect(quantised).toBeLessThan(2 ** column.bits);
+      if (column.name === 'yaw' && typeof value === 'number') {
+        const turn = Math.PI * 2, gap = Math.abs(((value - sample.yaw) % turn + turn) % turn);
+        expect(Math.min(gap, turn - gap)).toBeLessThanOrEqual(column.step / 2 + 1e-9);
+      } else if (typeof value === 'number' && column.kind === 'f32q') expect(Math.abs(value - (column.name === 'x' ? sample.x : sample.flinch))).toBeLessThanOrEqual(column.step / 2 + 1e-9);
+    }
+    expect(CLASS.row.find(column => column.name === 'state')?.value(CLASS.row.find(column => column.name === 'state')?.sample(sample, refs) ?? 0)).toBe(sample.state);
+  }
+});
+
+test('a delta against any baseline decodes to exactly what a full frame would', () => {
+  const random = stream(3), writer = new BitWriter();
+  const rows = new Map(Array.from({ length: 24 }, (_, index) => [index + 1, draw(random)]));
+  const first = new WorldFrame(); first.reset(100); fill(first, rows);
+  const baseline = decodeFrame(new Uint8Array(encodeFrame(writer, input(first, null))), table(null));
+  expect(baseline?.baselineTick).toBe(0xffffffff);
+  for (let round = 0; round < 200; round++) {
+    const moved = new Map(rows);
+    for (const handle of rows.keys()) if (random() < 0.3) moved.set(handle, { ...rows.get(handle) ?? draw(random), x: random() * 200 });
+    const next = new WorldFrame(); next.reset(102 + round); fill(next, moved);
+    const held = new Set(first.handles());
+    const delta = decodeFrame(new Uint8Array(encodeFrame(writer, input(next, { frame: first, visible: held }))), table(baseline));
+    const full = decodeFrame(new Uint8Array(encodeFrame(writer, input(next, null))), table(null));
+    expect(delta).not.toBeNull();
+    expect(rowsOf(delta)).toEqual(rowsOf(full));
+    expect(delta?.owner).toEqual(full?.owner);
+  }
+});
+
+test('an unchanged world costs no rows, and a frame carries its header and owner block', () => {
+  const writer = new BitWriter(), frame = new WorldFrame(), random = stream(4);
+  frame.reset(10); fill(frame, new Map(Array.from({ length: 60 }, (_, index) => [index + 1, draw(random)])));
+  const full = encodeFrame(writer, input(frame, null)), still = encodeFrame(writer, input(frame, { frame, visible: new Set(frame.handles()) }));
+  expect(still.byteLength).toBeLessThan(full.byteLength / 10);
+  const decoded = decodeFrame(new Uint8Array(still), table({ tick: 10, baselineTick: 0, cell: 3, lastSeq: 0, owner: new Uint32Array(2), rows: new Map() }));
+  expect(decoded).toMatchObject({ tick: 10, cell: 3, lastSeq: 77, rows: new Map() });
+});
+
+test('a row that leaves relevance goes, and one that enters arrives whole', () => {
+  const writer = new BitWriter(), random = stream(5), a = draw(random), b = draw(random);
+  const first = new WorldFrame(); first.reset(1); fill(first, new Map([[1, a], [2, b]]));
+  const held = decodeFrame(new Uint8Array(encodeFrame(writer, input(first, null, new Set([1])))), table(null));
+  expect([...held?.rows.keys() ?? []]).toEqual([1]);
+  const next = new WorldFrame(); next.reset(3); fill(next, new Map([[1, a], [2, b]]));
+  const swapped = decodeFrame(new Uint8Array(encodeFrame(writer, input(next, { frame: first, visible: new Set([1]) }, new Set([2])))), table(held));
+  expect([...swapped?.rows.keys() ?? []]).toEqual([2]);
+});
+
+test('a frame that cannot apply yet is dropped, not guessed at', () => {
+  const writer = new BitWriter(), frame = new WorldFrame(), random = stream(6);
+  frame.reset(4); fill(frame, new Map([[1, draw(random)]]));
+  const bytes = new Uint8Array(encodeFrame(writer, input(frame, null)));
+  expect(decodeFrame(bytes, { ...table(null), classOf: () => undefined })).toBeNull(); // the spawn has not arrived
+  const delta = new Uint8Array(encodeFrame(writer, input(frame, { frame, visible: new Set([1]) })));
+  expect(decodeFrame(delta, table(null))).toBeNull(); // the baseline is not held
+});
+
+test('the schema hash moves with names, bounds, kinds and order, and tables the wire cannot carry are refused', () => {
+  const hash = netSchemaHash([schemaDescription(SAMPLE)]);
+  const change = (fields: typeof SAMPLE.fields): number => netSchemaHash([schemaDescription({ ...SAMPLE, fields })]);
+  const { x, yaw, ...rest } = SAMPLE.fields;
+  if (x === undefined || yaw === undefined) throw new Error('Missing sample fields');
+  expect(change({ ...SAMPLE.fields, x: { kind: 'f32q', min: -260, max: 261, bits: 16, read: s => s.x } })).not.toBe(hash);
+  expect(change({ ...SAMPLE.fields, x: { kind: 'f32q', min: -260, max: 260, bits: 15, read: s => s.x } })).not.toBe(hash);
+  expect(change({ yaw, x, ...rest })).not.toBe(hash);
+  expect(change({ ...rest, y: x, yaw })).not.toBe(hash);
+  expect(NET_SCHEMA_HASH).toBeGreaterThan(0);
+  expect(() => compileSchema(netSchema<Sample>({ cls: 'bad', fields: { name: { kind: 'text', read: s => s.name } } }), 0)).toThrow(/initial-only/u);
+  expect(() => compileSchema(netSchema<Sample>({ cls: 'bad', fields: { x: { kind: 'f32', predicted: true, send: 'others', read: s => s.x } } }), 0)).toThrow(/owner/u);
+  expect(() => compileSchema(netSchema<Sample>({ cls: 'bad', fields: Object.fromEntries(Array.from({ length: 33 }, (_, index) => [`f${String(index)}`, { kind: 'bool' as const, read: () => true }])) }), 0)).toThrow(/row fields/u);
+  const undeclared = CLASS.row.find(column => column.name === 'state');
+  expect(() => undeclared?.sample({ ...draw(stream(7)), state: 'flying' }, refs)).toThrow(/Undeclared/u);
+});
+
+test('fuzzed bytes never throw past any decoder boundary', () => {
+  const random = stream(8), writer = new BitWriter(), bits: InitialBits = cls => cls === 0 ? { bits: [8, 32], text: 2 } : undefined, ids = (handle: number): string | undefined => handle === 1 ? 'one' : undefined;
+  const frame = new WorldFrame(); frame.reset(8); fill(frame, new Map([[1, draw(random)], [2, draw(random)]]));
+  const steer = { keyX: 0, keyY: 1, stickX: 0, stickY: 0 };
+  const seeds = [
+    encodeFrame(writer, input(frame, null)),
+    encodeCommands(writer, { ackFrame: 2, commands: [{ seq: 1, viewTick: 2, steer, yaw: 1, pitch: 0, buttons: NET_BUTTONS.jump, attack: { targetId: 'one', aim: { origin: { x: 1, y: 2, z: 3 }, direction: { x: 0, y: 0, z: 1 } } }, launcher: { slot: 1, ads: 0.5, fire: true } }] }, () => 1),
+    encodeHello(writer, { schemaHash: 1, build: 'b' }), encodeWelcome(writer, { handle: 1, tick: 2, cell: 3, schemaHash: 4, simHz: 60, frameHz: 30 }),
+    encodeEvents(writer, 4, [{ kind: 'spawn', handle: 1, cls: 0, id: 'one', initial: [1, 2], text: ['a', 'b'] }, { kind: 'despawn', handle: 1 }], bits),
+    encodeAct(writer, { kind: 'interact', seq: 1, id: 'door' }),
+  ].map(buffer => new Uint8Array(buffer));
+  const decodeAll = (bytes: Uint8Array): void => {
+    decodeFrame(bytes, table(null)); decodeCommands(bytes, ids); decodeHello(bytes); decodeWelcome(bytes); decodeEvents(bytes, bits); decodeAct(bytes);
+  };
+  for (const seed of seeds) decodeAll(seed);
+  for (let round = 0; round < 20000; round++) {
+    const seed = seeds[round % seeds.length] ?? new Uint8Array(0), bytes = round % 3 === 0 ? seed.slice(0, Math.floor(random() * seed.length)) : seed.slice();
+    if (round % 3 === 1) for (let flips = 1 + Math.floor(random() * 4); flips > 0; flips--) bytes[Math.floor(random() * bytes.length)] = Math.floor(random() * 256);
+    expect(() => { decodeAll(round % 3 === 2 ? Uint8Array.from({ length: Math.floor(random() * 64) }, () => Math.floor(random() * 256)) : bytes); }).not.toThrow();
+  }
+});

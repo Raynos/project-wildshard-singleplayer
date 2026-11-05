@@ -310,6 +310,8 @@
     "./core/memoryAttribution": "./core/memoryAttribution.ts",
     "./render/viewmodelFeel": "./render/viewmodelFeel.ts",
     "./saves/runtime": "./saves/runtime.ts",
+    "./net/command": "./net/command.ts",
+    "./net/transport": "./net/transport.ts",
     "./saves/slots": "./saves/slots.ts",
     "./saves/store": "./saves/store.ts",
     "./strings": "./strings.ts",
