@@ -5,6 +5,7 @@ import { TreeGrid } from '@wildshard/engine/world/forest/placement';
 import type { WeatherHUD } from '@wildshard/engine/ui/HUD';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ReturnProgram } from '../../shared/population/returnProgram';
+import { weatherHud, weatherHudKey } from '../../shared/weather/feed';
 import * as v from 'valibot';
 import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
 
@@ -78,11 +79,8 @@ export class WeatherReactions {
   private hudKey = '';
   /** The HUD's chip and GET LOW (rows `hud`) when they changed since the last call, else null; `quiet` holds GET LOW off. */
   hud(wind: number, quiet: boolean): WeatherHUD | null {
-    const rows = this.rows.hud, w = this.weather; if (rows === undefined) return null;
-    const row = rows.chips.find(chip => chip.state === w.state && (chip.within === undefined || w.phaseLeft <= chip.within)), left = Math.max(0, Math.ceil(w.phaseLeft));
-    const fill = (text: string): string => text.replaceAll('{left}', `${String(Math.floor(left / 60))}:${String(left % 60).padStart(2, '0')}`).replaceAll('{wind}', String(Math.round(wind)));
-    const detail: WeatherHUD = { chip: row === undefined ? null : { title: fill(row.title), sub: fill(rows.sub), tone: row.tone }, getLow: this.register(rows.low) === 1 && !quiet };
-    const key = `${detail.chip?.title ?? ''}|${detail.chip?.sub ?? ''}|${String(detail.getLow)}`;
+    const rows = this.rows.hud; if (rows === undefined) return null;
+    const detail = weatherHud(rows, this.weather, wind, this.register(rows.low) === 1 && !quiet), key = weatherHudKey(detail);
     if (key === this.hudKey) return null;
     this.hudKey = key; return detail;
   }

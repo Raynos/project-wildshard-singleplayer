@@ -16,11 +16,11 @@ import * as v from 'valibot';
  */
 
 interface Shelter { home: { x: number; z: number }; spot: { x: number; z: number } | null; hold: number }
-interface Herd {
+export interface Herd {
   kind: string; cx: number; cz: number;
   readonly members: readonly { alive: boolean; position: { x: number; z: number } }[];
 }
-interface Tree { x: number; z: number; r: number; height: number; cover: number; [field: string]: number }
+export interface Tree { x: number; z: number; r: number; height: number; cover: number; [field: string]: number }
 const finite = v.pipe(v.number(), v.finite());
 const point = v.strictObject({ x: finite, z: finite });
 const saved: v.GenericSchema<BoundedShelterSaveInput, BoundedShelterSave> = v.strictObject({ version: v.literal(1), shelters: v.array(v.nullable(v.strictObject({

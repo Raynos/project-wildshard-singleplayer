@@ -1,6 +1,5 @@
 import { QuestRuntimeDocumentSchema } from '@wildshard/format/questRuntime';
 import { Vector3 } from 'three';
-import type { Scope } from '@wildshard/engine/app/scope';
 import { RewardCaption } from '@wildshard/engine/quest/view/ui';
 import { parseChapterDirector, parseChapterWake, type ChapterDirectorRows } from '@wildshard/format/chapterDirector';
 import { bindRuntimeBoss } from '../../shared/plugin/runtimeRows';
@@ -21,6 +20,7 @@ import { TIER } from '@wildshard/engine/core/tier';
 import { entryOwner } from '../../shared/shardfile/entryOwners';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { ChapterClock } from '../../shared/quest/chapterClock';
+import { leadActors } from '../../shared/quest/chapterLeads';
 import { prepareScriptMemoryLease } from '@wildshard/engine/script/host';
 
 /** Client-only chapter/boss binding over the existing AS director and native
@@ -173,13 +173,6 @@ export async function installDeclaredQuestSpawns(ctx: ShardContext, capability: 
         else if (cue?.kind === 'puff') { if (puffs.length >= 64) throw new Error('Quest puff cue allowance'); puffs.push(event.at); }
       }
     } };
-}
-
-const leadActors = new WeakMap<Scope, Map<string, { actor: Animal | null }>>();
-/** Native observation of the actual guide body, including its hidden lifetime. */
-export function chapterLeadPosition(scope: Scope, quest: string): Vector3 | null {
-  if (scope.disposed) return null;
-  return leadActors.get(scope)?.get(quest)?.actor?.position ?? null;
 }
 
 /** Client-only guide lifetime over the actual manager. The chapter's AS projection decides at 10 Hz (G565: gate, walk

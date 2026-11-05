@@ -2,7 +2,7 @@
 import * as v from 'valibot';
 import { ForestWeatherObservationSchema } from '@wildshard/format/rangedPage';
 import { forestPage, type ForestPage } from '../shardfile/forestPage';
-import { chapterLeadPosition } from '../../server/quest/chapterDirector';
+import { chapterLeadPosition } from '../../shared/quest/chapterLeads';
 import type { ShardContext } from '../plugin/context';
 import type { ShardRuntime, ShardPlayHost } from '../../shared/shard/runtime';
 import { rangedPage } from '../loadout/rangedPage';

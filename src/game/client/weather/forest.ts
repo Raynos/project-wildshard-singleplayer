@@ -1,7 +1,6 @@
 /** Client-only weather composition over the page's sky, a phase continuation or a storm's reactions, its drawn parts,
  * native rain presentation and herd shelter. Shards provide rows and resource ids. */
 import { forestWeatherObservations, type ForestWeatherObservations } from '../looks/forestWeather';
-import { ReturnProgram } from '../../shared/population/returnProgram';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { installChannelPrograms } from '../../shared/plugin/channelPrograms';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
@@ -15,24 +14,19 @@ import * as v from 'valibot';
 import { ForestWeatherSchema, type ForestWeatherRows } from '@wildshard/format/forestWeather';
 import { windBoost, windUniforms, WIND_DIR } from '@wildshard/engine/world/wind';
 import { wind as steppeWind } from '@wildshard/engine/world/steppeWind';
+import type { ClimateFeed, StormReading, WeatherReading } from '../../shared/weather/feed';
 import { paintedSky, skyFaceOf, type PaintedSky, type SkyFace } from '../looks/keyedSky';
-import { installWeatherContinuation } from '../../server/weather/continuation';
-import { applyWeatherCover, installWeatherReactions, nativeWeatherBundle, weatherWorldLight, type WeatherReactions } from '../../server/weather/reactions';
-import { bindPageWeatherHit } from './pageHit';
-import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
-import { parseWeatherProgram, WeatherWorldSchema } from '@wildshard/format/weatherProgram';
+import type { PageClimate } from '../../server/weather/pageClimate';
+import { pageSim } from '../shardfile/clientMoverOwners';
 import type { WeatherHUD } from '@wildshard/engine/ui/HUD';
 import { wetFlight } from '@wildshard/engine/combat/ammo';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { panFromYaw } from '@wildshard/engine/audio/util';
 import { audioVoicePatches } from '../audio/voicePatches';
-import { wildEnv } from '../../server/population/pageGroups';
-import { clientWildlife } from '../../server/population/wildlife';
 import { rainCurtainGeometry } from '../systems/looks/rainCurtain';
 import { graphParamRoots } from '../looks/graphDaySky';
 import { RainPresentation } from './rainPresentation';
 import { lentLook, pushLentParams, setLentParam, setLentTexture } from '../shardfile/lentLooks';
-import { HerdShelter } from '../../server/population/shelter';
 import { parsePopulationShelter } from '@wildshard/format/herdShelter';
 
 declare module '@wildshard/engine/events/maps' {
@@ -41,8 +35,8 @@ declare module '@wildshard/engine/events/maps' {
 
 type ShardContext = Parameters<typeof installEnteredRuntimeService>[0];
 type ShardWorld = NonNullable<NonNullable<ShardContext['game']['runtime']>['world']>;
-export interface ForestWeatherRig {
-  weather: WeatherContinuation; fx: RainPresentation | null; storm: WeatherReactions | null;
+export interface ForestWeatherRig<Climate extends ClimateFeed = PageClimate> {
+  weather: Climate['weather']; fx: RainPresentation | null; storm: Climate['storm'];
   /** the rows' painted sky: its clock, the look it painted and its dome */
   sky: PaintedSky | null;
   /** the drawn parts (hidden while dry) */
@@ -62,7 +56,6 @@ export function forestWeatherOwner(ctx: ShardContext): () => void {
 }
 
 type Parts = NonNullable<ForestWeatherRows['parts']>;
-type Storm = NonNullable<ForestWeatherRows['storm']>;
 
 /** The page's weather from its rows: the sky's clock and owners, then whichever blocks the rows declare. */
 export async function installForestWeather(ctx: ShardContext, input: unknown): Promise<ForestWeatherRig | null> {
@@ -82,41 +75,33 @@ export async function installForestWeather(ctx: ShardContext, input: unknown): P
     shelter: parsePopulationShelter(await read(policy.files.shelter)),
   };
   const dev = { paused: false };
-  let weather: WeatherContinuation, storm: { rows: Storm; reactions: WeatherReactions; world: v.InferOutput<typeof WeatherWorldSchema> } | null = null;
-  if (policy.storm === undefined) {
-    if (policy.files.program === undefined) throw new Error('Weather requires its program');
-    weather = installWeatherContinuation({ seed: SEED, system: ctx.system, state: dev }, parseWeatherProgram(await read(policy.files.program)), sky.clock, 'live');
-  } else {
-    // the storm's reactions step the continuation, struck at the forest's crowns and sheltered by the bundle's baked circles
-    const program = nativeWeatherBundle(await read(policy.storm.file), policy.storm.shelters);
-    weather = installWeatherContinuation({ seed: SEED }, program.weather, { phase: 0 }, undefined);
-    const reactions = installWeatherReactions(weather, { ...program.reactions, points: world.forest.trees.map(t => [t.x, t.z, t.y + t.height]) }, { scope: world.game.levelScope });
-    storm = { rows: policy.storm, reactions, world: v.parse(WeatherWorldSchema, policy.storm.world) };
-  }
-  if (policy.mode === 'setting') weather.setMode(setting('weather'), policy.heldPhase);
+  if (policy.storm === undefined && policy.files.program === undefined) throw new Error('Weather requires its program');
+  const program = await read(policy.storm?.file ?? policy.files.program ?? '');
+  const climate = pageSim.climate({ ctx, policy, clock: sky.clock, program, points: () => world.forest.trees.map(t => [t.x, t.z, t.y + t.height]), scope: world.game.levelScope, dev });
+  if (policy.mode === 'setting') climate.setMode(setting('weather'), policy.heldPhase);
   const parts = policy.parts === undefined ? null : await weatherParts(ctx, world, policy.parts, sky);
   live();
-  return installWeatherPresentation(ctx, world, { face: sky, painted }, weather, storm, forest, parts, policy, dev, retainsRuntimeServices(ctx) ? ctx : undefined);
+  return installWeatherPresentation(ctx, world, { face: sky, painted }, climate, forest, parts, policy, dev, retainsRuntimeServices(ctx) ? ctx : undefined);
 }
 
 /** PF6: the weather presentation's slow step (s): its channel programs and the herd's shelter */
 const SLOW_STEP = 0.1;
 
-function installWeatherPresentation(ctx: ShardContext, world: ShardWorld, skies: { face: SkyFace; painted: PaintedSky | null }, weather: WeatherContinuation,
-  storm: { rows: Storm; reactions: WeatherReactions; world: v.InferOutput<typeof WeatherWorldSchema> } | null,
+function installWeatherPresentation(ctx: ShardContext, world: ShardWorld, skies: { face: SkyFace; painted: PaintedSky | null }, climate: PageClimate,
   forest: { h: ForestWeatherObservations; fx: RainPresentation; shelter: ReturnType<typeof parsePopulationShelter> } | null,
   parts: Awaited<ReturnType<typeof weatherParts>> | null, policy: ForestWeatherRows, dev: { paused: boolean }, entered?: ShardContext): ForestWeatherRig {
-  const game = world.game, sky = skies.face, group = new THREE.Group(), atT = policy.heldPhase, setMode = (m: string, t = atT): void => { weather.setMode(m, t); };
+  const { weather } = climate, stormRows = policy.storm, storm = climate.storm === null || stormRows === undefined ? null : { rows: stormRows, reactions: climate.storm };
+  const game = world.game, sky = skies.face, group = new THREE.Group(), atT = policy.heldPhase, setMode = (m: string, t = atT): void => { climate.setMode(m, t); };
   group.name = 'weather-fx'; if (forest !== null) group.add(forest.fx.group); if (parts !== null) group.add(parts.group);
   game.scene.add(group); // hidden while dry; in the scene before the boot's precompile, so the programs are built then
   game.levelScope.onDispose(() => { group.removeFromParent(); });
   if (entered === undefined && policy.mode === 'setting') ctx.scope.onDispose(onSettingChange('weather', (m) => { setMode(m); }));
   const jump = ctx.app.params.get('weather');
-  if (jump !== null) { const [phase = '', at = '0'] = jump.split(':'); if (weather.profile.states.includes(phase)) weather.force(phase, Number.parseFloat(at) || 0); }
+  if (jump !== null) { const [phase = '', at = '0'] = jump.split(':'); if (weather.rows.states.includes(phase)) climate.force(phase, Number.parseFloat(at) || 0); }
 
   // ── the forest: the main lane over the sky's multipliers, the herd's shelter, the fog's focus, wet arrows ──
   const veil = { x: { value: 0 }, y: { value: 0 } }, wind = { x: 0, z: 0 };
-  const shelter = forest === null ? null : new HerdShelter(forest.h.animals, forest.h.trees.map(tree => ({ x: tree.x, z: tree.z, r: tree.r, height: tree.height, cover: forest.fx.coverAt(tree.x, tree.z) })), forest.shelter.look, ReturnProgram.page(forest.shelter.program, ctx.scope));
+  const shelter = forest === null ? null : climate.shelter(forest.h.animals, forest.h.trees.map(tree => ({ x: tree.x, z: tree.z, r: tree.r, height: tree.height, cover: forest.fx.coverAt(tree.x, tree.z) })), forest.shelter);
   const roots = new Map<string, unknown>([...sky.owners, ...Object.entries({ fog: fogUniforms, weather: weatherUniforms, volume: volumetricFog,
     veil, wind: windBoost, windVector: wind }), ...(forest === null ? [] : Object.entries({ particles: forest.h.particles.params, water: forest.fx.rings }))]);
   const channels = policy.channels === undefined ? null : installChannelPrograms(ctx.product.shardfile.clientChannels, policy.channels, roots);
@@ -167,7 +152,6 @@ function installWeatherPresentation(ctx: ShardContext, world: ShardWorld, skies:
   const playAudio = () => { const a = ctx.game.runtime?.play?.audio; return a === undefined ? null : audioVoicePatches(a); };
   if (storm !== null) {
     const { reactions, rows } = storm, player = world.player;
-    Object.assign(reactions.inputs, { calmSpeed: steppeWind.speed, calmDir: steppeWind.dir, calmGust: steppeWind.gustiness, held: 0, crouched: 0, mounted: 0 });
     const pan = (x: number, z: number): number => panFromYaw(x - player.position.x, z - player.position.z, player.yaw, 0.7, undefined, 1);
     for (const cue of rows.cues) reactions.on(cue.event, (e) => {
       const x = e['x'] ?? 0, z = e['z'] ?? 0, d = Math.hypot(x - player.position.x, z - player.position.z), voices = audio;
@@ -176,19 +160,13 @@ function installWeatherPresentation(ctx: ShardContext, world: ShardWorld, skies:
       const bearing = e['bearing'] ?? 0;
       voices.play(cue.patch, { distance: e['distance'] ?? 0, pan: pan(player.position.x + Math.cos(bearing) * cue.reach, player.position.z + Math.sin(bearing) * cue.reach) });
     });
-    reactions.on('wind', (e) => { steppeWind.setTarget(e['speed'] ?? steppeWind.speed, e['dir'] ?? steppeWind.dir, e['gustiness'], e['seconds']); });
-    reactions.on('strike', (e) => { clientWildlife(ctx)?.scare(e['x'] ?? 0, e['z'] ?? 0, storm.world.scareRadius); });
-    bindPageWeatherHit(ctx, player, reactions, storm.world);
+    climate.bind(player);
   }
   const stormFrame = (dt: number): void => {
-    if (storm === null) return;
-    const { reactions, rows } = storm, p = world.player.position, events = game.app.events, inputs = reactions.inputs;
+    if (storm === null) { climate.frame(dt, null); return; }
+    const { reactions, rows } = storm, p = world.player.position, events = game.app.events;
     indoors = events.ask('weather.indoors', 0) > 0;
-    const held = events.ask('weather.storm-hold', 0) > 0;
-    inputs['px'] = p.x; inputs['py'] = p.y; inputs['pz'] = p.z; inputs['crouched'] = Number(world.player.crouching); inputs['mounted'] = Number(wildEnv.playerMounted);
-    applyWeatherCover(weather, inputs, indoors, held); // indoors no storm starts; a held storm runs on until its fight ends
-    reactions.update(dt);
-    wildEnv.light = weatherWorldLight(storm.world.light, sky.clock.sunElevation, reactions.stormActive); wildEnv.storm = reactions.stormActive;
+    climate.frame(dt, { x: p.x, y: p.y, z: p.z, crouched: world.player.crouching, indoors, held: events.ask('weather.storm-hold', 0) > 0 });
     const hud = reactions.hud(steppeWind.speed, indoors);
     if (hud !== null) game.app.events.emit('weather.changed', hud);
     audio ??= playAudio();
@@ -291,7 +269,7 @@ async function weatherParts(ctx: ShardContext, world: ShardWorld, rows: Parts, s
   game.levelScope.onDispose(() => { for (const item of owned) item.dispose(); });
   let lane: ReturnType<typeof installChannelPrograms> | null = null, reading: Record<string, number> | null = null;
   return { group,
-    update(dt: number, weather: WeatherContinuation, storm: WeatherReactions | null, idle: string | null, indoors: boolean): void {
+    update(dt: number, weather: WeatherReading, storm: StormReading | null, idle: string | null, indoors: boolean): void {
       airWind.x = steppeWind.dirX * steppeWind.speed; airWind.z = steppeWind.dirZ * steppeWind.speed;
       if (lane === null || reading === null) {
         // the weather as one reading: its numbers, its registers and the reactions' flash (the lane reads `weather.*`)

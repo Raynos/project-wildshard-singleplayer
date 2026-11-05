@@ -1610,13 +1610,15 @@
   "src/game/shared/weapons/starterMoves.ts": "shared",
   "src/game/server/weapons/Sword.ts": "server",
   "src/game/server/weather/continuation.ts": "server",
-  "src/game/client/weather/forest.ts": {
-   "side": "client",
-   "mixed": true
-  },
-  "src/game/client/weather/pageHit.ts": "client",
+  "src/game/server/weather/pageClimate.ts": "server",
+  "src/game/server/weather/pageHit.ts": "server",
+  "src/game/client/weather/forest.ts": "client",
+  "src/game/client/weather/netClimate.ts": "client",
   "src/game/client/weather/rainPresentation.ts": "client",
   "src/game/server/weather/reactions.ts": "server",
+  "src/game/server/weather/wire.ts": "server",
+  "src/game/shared/weather/feed.ts": "shared",
+  "src/game/shared/quest/chapterLeads.ts": "shared",
   "src/game/client/whatsNew.ts": "client",
   "src/game/client/whatsNewBanner.ts": "client"
  }

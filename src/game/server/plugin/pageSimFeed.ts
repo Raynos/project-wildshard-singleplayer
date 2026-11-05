@@ -1,6 +1,7 @@
 import { installDeclaredMovers } from './moverInstall';
 import { bindQuestWorldReactions, commandSocketLift, declaredItemScriptBindings } from './simulation';
 import { readSpawnScript, SpawnScript } from '../population/spawnScript';
+import { pageClimate } from '../weather/pageClimate';
 
 /**
  * What the page's quest views and motion still take from the page's own sim (E6: port first, flip last). A view asks
@@ -12,10 +13,12 @@ export interface PageSimFeed {
   readonly declaredItemScriptBindings: typeof declaredItemScriptBindings;
   readonly commandSocketLift: typeof commandSocketLift;
   readonly bindQuestWorldReactions: typeof bindQuestWorldReactions;
+  /** The sky a forest page's weather views read (E6 WORLD). */
+  readonly climate: typeof pageClimate;
   readonly spawnScript: { readonly read: typeof readSpawnScript; readonly page: typeof SpawnScript.page };
 }
 /** The page sim's own owners. */
 export const pageSimFeed: PageSimFeed = {
-  installDeclaredMovers, declaredItemScriptBindings, commandSocketLift, bindQuestWorldReactions,
+  installDeclaredMovers, declaredItemScriptBindings, commandSocketLift, bindQuestWorldReactions, climate: pageClimate,
   spawnScript: { read: (...args) => readSpawnScript(...args), page: (...args) => SpawnScript.page(...args) },
 };

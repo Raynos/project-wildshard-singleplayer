@@ -10,14 +10,16 @@ export interface StateNetRow { readonly name: string; readonly value: number }
 export interface ShardRows {
   readonly bodies: Map<string, () => ScriptNetView>;
   state: (() => readonly StateNetRow[]) | null;
+  /** `state` rows a world system publishes for itself, by that system's id (E6: weather). */
+  readonly world: Map<string, () => readonly StateNetRow[]>;
 }
 
 const books = new WeakMap<object, ShardRows>();
-const NO_ROWS: ShardRows = { bodies: new Map<string, () => ScriptNetView>(), state: null };
+const NO_ROWS: ShardRows = { bodies: new Map<string, () => ScriptNetView>(), state: null, world: new Map<string, () => readonly StateNetRow[]>() };
 interface RowHost { readonly scope: { readonly onDispose: (run: () => void) => unknown } }
 function bookOf(host: RowHost): ShardRows {
   let book = books.get(host);
-  if (book === undefined) { const fresh: ShardRows = { bodies: new Map<string, () => ScriptNetView>(), state: null }; book = fresh; books.set(host, fresh); host.scope.onDispose(() => { fresh.bodies.clear(); fresh.state = null; }); }
+  if (book === undefined) { const fresh: ShardRows = { bodies: new Map<string, () => ScriptNetView>(), state: null, world: new Map<string, () => readonly StateNetRow[]>() }; book = fresh; books.set(host, fresh); host.scope.onDispose(() => { fresh.bodies.clear(); fresh.state = null; fresh.world.clear(); }); }
   return book;
 }
 /** Publish a script body under its stable id for the host's lifetime. */
@@ -31,6 +33,12 @@ export function publishShardState(host: RowHost, read: () => readonly StateNetRo
   const book = bookOf(host);
   if (book.state !== null) throw new Error('Duplicate declared state rows');
   book.state = read;
+}
+/** Publish a world system's own `state` rows for the host's lifetime. */
+export function publishWorldState(host: RowHost, id: string, read: () => readonly StateNetRow[]): void {
+  const { world } = bookOf(host);
+  if (world.has(id)) throw new Error(`Duplicate world rows ${id}`);
+  world.set(id, read);
 }
 /** Everything a host publishes. */
 export function shardRows(host: object): ShardRows { return books.get(host) ?? NO_ROWS; }

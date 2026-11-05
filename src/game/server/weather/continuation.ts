@@ -12,6 +12,7 @@ import { nativePopulationOf } from '../riding/nativePopulation';
 import { installWeatherReactions, weatherWorldLight, type nativeWeatherBundle, type WeatherListener, type WeatherReactions } from './reactions';
 import type { NativeCombatFrame } from '../plugin/nativeItems';
 import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
+import { publishStorm, publishWeather } from './wire';
 
 /** A page borrows its existing system service; native composites retain their own snapshot/step adapter. */
 export interface WeatherInstallation { readonly seed:number; readonly system?:LevelContext['system']; readonly state?:{readonly paused:boolean} }
@@ -49,6 +50,7 @@ export function installWeatherContinuation(host: SimHost | WeatherInstallation, 
       const scare = ports.scare ?? nativePopulationOf(host)?.scare; if (scare === undefined) throw new Error('Missing native weather population');
       scare(event['x'] ?? 0,event['z'] ?? 0,worldRows.scareRadius);
     });
+    publishStorm(host,storm);
     storm.on('wind',event => { wind.setTarget(event['speed'] ?? wind.speed,event['dir'] ?? wind.dir,event['gustiness'],event['seconds']); });
     // One sky over the room: each bolt hunts one player, the next the one after, and hurts whoever stands under it.
     let focus = playerAfter(host, null), struck = false;
@@ -78,6 +80,7 @@ export function installWeatherContinuation(host: SimHost | WeatherInstallation, 
   }
   if (day === undefined) throw new Error('Weather requires its day clock');
   const air=new WeatherContinuation(rows,{seed:'level' in host?host.level.seed:host.seed,mode:mode??'live'});
+  if ('level' in host) publishWeather(host,air);
   if ('level' in host && rows.air!==undefined) {
     const step = rows.air.step;
     host.events.answer('weather.rain', request => request.id === step ? { ...request, rain: air.rain } : request, host.scope);
