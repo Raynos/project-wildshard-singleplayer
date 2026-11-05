@@ -374,3 +374,55 @@ separately admitted Driftwood cold n=3 both arms with preview gzip fix
 `c24ea060e7` + HEAD failure fix `65a3f41ce9`, on a new preview process.
 DL5 stays open; no runtime edit or guard allowance.
 
+### DL5 gzip follow-up — 2026-11-04, sp-x2
+
+Fresh immutable source `673e525edf850226e7d5bf38d9156a0447e7353f`,
+build `673e525-mw2s656z`, includes gzip parts `c24ea060e7`, HEAD handling
+`65a3f41ce9`, section-first order `4dc4022b10` and Nalati fence `f6aedff3c9`.
+Simulator Safari, shared 10 Mb/s + 100 ms; twelve predeclared cold arms,
+original 180 s control / 15-minute wrapper limits. No retries or replacements.
+Every visit and the final version read retained the same build; all six
+recorder/link/helper hashes stayed exact. This is local HTTP with gzip
+fallback, not an HTTPS/live Brotli comparison. A gzip-only HEAD+GET outside
+the measured sets verified decoding, length and hash before the cohort.
+
+| Cold flow | Shardfile samples (s) | Packs samples (s) | Median S → P (s) | Verdict |
+|---|---|---|---|---|
+| Driftwood | 29.638, 32.893, 27.847 | 34.669, 34.412, **no control** | 29.638 → unavailable | n=3 refuses |
+| Pine | 109.918, 109.135, 109.309 | 116.300, 117.240, 116.420 | 109.309 → 116.420 | packs +7.111 s; no-slower false |
+
+Times are retained tap/control event wall deltas. Driftwood packs 3 reached
+download 100% then stalled at **gap after Shaders**, ending without control
+at the original deadline. The WebKit deleted-program bug in
+`prepareEnteredPrograms`, fixed later by `54c8ed0c52`, is a **hypothesis**
+for this stall, not an established cause. No replacement was authorized or
+run. All twelve original DL23 card/frame verdicts remain false; reaching
+control grants no bar waiver. Successful Driftwood packs ResourceTiming
+records show 23,217,534 B transfer versus 46,786,098 B decoded for ten
+completed parts before control, supporting that the decoded-parts artifact
+is gone; this is not complete native wire accounting.
+
+The authorized Chromium packs CLI used tool `de008575e5` on the same
+client build: cold **133.357 s**, shared-link tap→control **111,038,475 B**,
+**rc 1 / accounting incomplete**. Its KTX2 worker-script page entry retained
+only its native start (unfinished, no response headers), while the distinct
+physical worker row completed and counted 17,889 B. Warm **41.318 s** had
+complete accounting. The release-blocker publication interval
+01:18:49.770779–01:19:07.189620Z overlapped warm post-control dwell/accounting;
+warm tap→control ended 01:18:46.9355Z and was clear. No cold or Simulator
+visit overlapped that tick. Both Chromium raws contain zero recovered
+`facadeOf` rows, so none receive pairing credit by inference.
+
+Untimed tool follow-up `1ea2186281` handles start-only page entries using
+completed, uniquely validated worker evidence and requires exactly one
+complete counted worker counterpart in the same visit. Missing, failed,
+unaccounted or duplicate counterparts seal incomplete; full native IDs,
+not bounded diagnostic copies, decide the join. Related 3 suites / 70 cases,
+phone-loading/test/root types and typed lint pass. It does **not** requalify
+the retained cold raw, and no further browser rerun was taken.
+
+Raw selection and diagnostics: `tmp/sp-x2-dl5-gzip/final-summary.json`,
+`runs/`, and Chromium `tmp/phone-loading/2026-11-05T01-15-35-163Z-673e525-mw2s656z/`.
+All measurement/browser/Simulator/proxy resources ended **01:19:27Z**; only
+sp-x2's preview lease was released (sp-x6 retained its independent use).
+DL5 remains open.
