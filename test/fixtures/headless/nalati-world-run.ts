@@ -11,12 +11,13 @@ try{
   const state=(id:string)=>{
     const row=observation(id).adapters.find(adapter=>adapter.id==='nalati.world');assert.ok(row);
     return v.parse(v.object({mode:v.string(),board:v.boolean(),swim:v.boolean(),crouching:v.boolean(),sprinting:v.boolean(),
-      walkSpeed:v.number(),vy:v.number(),places:v.array(v.object({id:v.string(),discovered:v.boolean()}))}),JSON.parse(row.state));
+      velocity:v.tuple([v.number(),v.number(),v.number()]),places:v.array(v.object({id:v.string(),discovered:v.boolean()}))}),JSON.parse(row.state));
   };
-  assert.ok(state('walk').walkSpeed>0);assert.ok(state('sprint').walkSpeed>state('walk').walkSpeed);
+  const groundSpeed=(id:string)=>{const [x,,z]=state(id).velocity;return Math.hypot(x,z);};
+  assert.ok(groundSpeed('walk')>0);assert.ok(groundSpeed('sprint')>groundSpeed('walk'));
   assert.equal(state('sprint').sprinting,true);assert.equal(state('crouch').crouching,true);
-  assert.ok(state('crouch').walkSpeed<state('walk').walkSpeed);
-  assert.ok(state('jump').vy>0);assert.ok(observation('land').peakY>observation('crouch').position[1]+.5);
+  assert.ok(groundSpeed('crouch')<groundSpeed('walk'));
+  assert.ok(state('jump').velocity[1]>0);assert.ok(observation('land').peakY>observation('crouch').position[1]+.5);
   assert.equal(observation('land').grounded,true);
   assert.equal(state('settle').places.find(place=>place.id==='bridge')?.discovered,false);
   assert.equal(state('walk-to-bridge').places.find(place=>place.id==='bridge')?.discovered,true);
