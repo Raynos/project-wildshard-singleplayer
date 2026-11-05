@@ -275,6 +275,8 @@
     "./quest/discovery": "./quest/discovery.ts",
     "./quest/dialogueClock": "./quest/dialogueClock.ts",
     "./quest/players": "./quest/players.ts",
+    "./quest/progress": "./quest/progress.ts",
+    "./quest/view/replica": "./quest/view/replica.ts",
     "./quest/view": "./quest/view.ts",
     "./quest/view/ui": "./quest/view/ui.ts",
     "./render/families/emissive": "./render/families/emissive.ts",
