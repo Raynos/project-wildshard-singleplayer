@@ -56,7 +56,7 @@ import { parseQuestPageInteractions } from '@wildshard/format/questInteractions'
 import { PINE_LANTERN_PAGE } from './questPageInteractions';
 import { PINE_QUEST_SERVICES, PINE_MILL_DOOR } from './questConsequences';
 import {CabinSeedsSchema,parseFloorRows,PoolGroundSchema} from './sections';
-import { nameBlob, emitNamedBlobs, serverBlob, type BlobSourceOptions, type NamedBlob, type NamedBlobKind, type ServerBlob } from '@wildshard/sdk/blobs';
+import { nameBlob, emitNamedBlobs, nativeAssemblyFiles, type BlobSourceOptions, type NamedBlob, type NamedBlobKind, type NativeAssemblyPlan, type ServerBlob } from '@wildshard/sdk/blobs';
 import { pineTreeRest } from './bake-tree-rest.mjs';
 import { NAVMESH_SOURCE, TERRAIN_SOURCE, type PineSources } from './pineSources';
 import { readPineSources } from './programSources';
@@ -81,7 +81,6 @@ import manifest from '../manifest.json' with { type: 'json' };
 import publicInputs from '../data/publicInputs.json' with { type: 'json' };
 import type { ProjectGenerationContext } from '@wildshard/sdk/projectGeneration';
 import { cachedTreeRest, cachedCompactShapes } from './phoneGeometryCache';
-import { NATIVE_ASSEMBLY_DATA_SCHEMA, NATIVE_ASSEMBLY_FILE, NATIVE_ASSEMBLY_SCHEMA, type NativeAssemblyPlan } from '@wildshard/format/nativeAssembly';
 import { PINE_NATIVE_QUEST } from './nativeQuest';
 import { POPULATION_ENVIRONMENT } from './populationEnvironment';
 import TERRAIN from '../data/terrainBindings.json' with { type: 'json' };
@@ -290,10 +289,8 @@ const NATIVE_ASSEMBLY: NativeAssemblyPlan = { kind: 'native-assembly', level: { 
     { host: 'population.elites', file: 'actors/elites.json' }, { host: 'population.spawn-script', id: 'pine.night' }, { host: 'population.elites-ready' }] };
 /** The server-class files: named in `admission.server`, never in the client's files, packs or Shardfile. */
 function serverFiles(sources: PineSources): ServerBlob[] {
-  return [serverBlob(NATIVE_ASSEMBLY_FILE, { schema: NATIVE_ASSEMBLY_SCHEMA, value: NATIVE_ASSEMBLY }),
-    serverBlob('server/terrain.bin', { bytes: sources.bytes(TERRAIN_SOURCE) }), serverBlob('server/navmesh.bin', { bytes: sources.bytes(NAVMESH_SOURCE) }),
-    serverBlob('server/quest-policy.json', { schema: NATIVE_ASSEMBLY_DATA_SCHEMA, value: PINE_NATIVE_QUEST }),
-    serverBlob('server/habitat.json', { schema: NATIVE_ASSEMBLY_DATA_SCHEMA, value: POPULATION_ENVIRONMENT })];
+  return nativeAssemblyFiles(NATIVE_ASSEMBLY, new Map<string, unknown>([['server/quest-policy.json', PINE_NATIVE_QUEST], ['server/habitat.json', POPULATION_ENVIRONMENT]]),
+    new Map([['server/terrain.bin', sources.bytes(TERRAIN_SOURCE)], ['server/navmesh.bin', sources.bytes(NAVMESH_SOURCE)]]));
 }
 
 /** Preserve the original named inventory and its ordering while compiling both existing slots. */
