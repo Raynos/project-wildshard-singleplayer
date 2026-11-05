@@ -1,6 +1,6 @@
 import {Vector3} from 'three';
 import * as v from 'valibot';
-import {ProjectedState,type ReturnProgram,type ProjectedSnapshot} from '../../shared/population/returnProgram';
+import {ProjectedState,type ReturnProgram,type ProjectedSnapshot} from '../population/returnProgram';
 import type {EncounterSlotsRows,SlotViewRows} from '@wildshard/format/encounterRows';
 
 /** The original slot owner's live bodies, allocation authority and tells. */

@@ -3,12 +3,12 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import type { Actor, CombatTag } from '@wildshard/engine/combat/pipeline';
 import { hudSlots } from '@wildshard/engine/ui/hudSlots';
-import { StatusIcons } from '../../client/systems/effects/view';
+import { StatusIcons } from '../systems/effects/view';
 import * as v from 'valibot';
-import starterRows from '../systems/effects/starterRows.json' with { type: 'json' };
+import starterRows from '../../server/systems/effects/starterRows.json' with { type: 'json' };
 import { bindPlayerEffects, selectEffectGrants, type EffectService } from '@wildshard/engine/combat/effects/EffectService';
-import type { ShardContext } from '../../client/plugin/context';
-import { installEnteredRuntimeService, installRetainedPlayerEffects, retainsRuntimeServices } from '../../client/shard/retainedHooks';
+import type { ShardContext } from '../plugin/context';
+import { installEnteredRuntimeService, installRetainedPlayerEffects, retainsRuntimeServices } from '../shard/retainedHooks';
 import { isOwnedId, isCosmetic } from '../../shared/loot/Owned';
 import type { EffectDef, CueId, EffectId } from '@wildshard/engine/combat/effects/types';
 

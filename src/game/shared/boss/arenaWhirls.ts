@@ -10,7 +10,7 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { ArenaWhirlsRows } from '@wildshard/format/encounterRows';
-import { ProjectedState, type ProjectedSnapshot, type ReturnProgram } from '../../shared/population/returnProgram';
+import { ProjectedState, type ProjectedSnapshot, type ReturnProgram } from '../population/returnProgram';
 
 /** a whirlwind that touched the player this tick, where it stands */
 export interface WhirlHit { x: number; y: number; z: number }

@@ -13,7 +13,7 @@ import { bossFlagRecord } from '../../shared/plugin/bossRecord';
 import { parseRoamingEncounter, NativeBossBindingSchema, type NativeBossBinding, type RoamingEncounterRow } from '@wildshard/format/bossEncounter';
 import { groundBossDormant, createGroundBossFight, groundBossPresence, type GroundBossEnv, type GroundBossFight } from './roaming';
 import { roamingFightState, restoreRoamingFight } from './continuation';
-import { Lane } from './lane';
+import { Lane } from '../../shared/boss/lane';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { itemPickupFloor, ITEM_PICKUP_HOVER } from '@wildshard/engine/world/interact/pickup';
 import { pickPrompt } from '@wildshard/engine/world/interact/prompts';

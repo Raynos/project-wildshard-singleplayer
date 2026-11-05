@@ -69,7 +69,7 @@ test('shared held construction leaves broad UI and quest presentation cold', () 
 });
 
 test('selected catalogue and status bindings leave quest presentation cold', () => {
-  const files = titleGraph(['src/game/client/shardfile/clientCatalogue.ts', 'src/game/server/loadout/effects.ts', 'src/engine/client/combat/effects/EffectService.ts']);
+  const files = titleGraph(['src/game/client/shardfile/clientCatalogue.ts', 'src/game/client/loadout/effects.ts', 'src/engine/client/combat/effects/EffectService.ts']);
   expect(files.filter(file => /src\/game\/(?:(?:client|cook|server|shared)\/)?(?:plugin\/ui|quest\/chapter)\.ts$/u.test(file))).toEqual([]);
 });
 

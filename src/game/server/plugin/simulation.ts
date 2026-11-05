@@ -51,7 +51,7 @@ import { installShardfileColliders, shardfileColliderIds } from "../../shared/sh
 import { validateMeshCollisionAssets } from "@wildshard/format/meshCollisionAssets";
 import { validateMeshEntryways } from "@wildshard/format/meshEntryways";
 import { clientGround } from "../../shared/shardfile/clientGround";
-import { declaredItemScriptEntities, type DeclaredItemPorts } from "../shardfile/items";
+import { declaredItemScriptEntities, type DeclaredItemPorts } from "../../shared/shardfile/items";
 import { syncTargetColliders } from "../../shared/shardfile/targets";
 import { scriptPhysicsQueries } from "@wildshard/engine/script/queries";
 import { createQuestScriptPorts, DeclaredQuests, type QuestDataPorts, type QuestScriptBindings } from "../../shared/quest/declared";

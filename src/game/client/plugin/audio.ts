@@ -4,7 +4,7 @@ import type { AudioProbeBounds } from '@wildshard/engine/audio/ambience';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { GROUND_SURFACES, type AudioSurfaceMap, type GroundSurface, type AudioSurfacePorts, type AudioFloorQuery } from '@wildshard/engine/audio/surface';
 import type { DeclaredAmbiencePorts } from '@wildshard/engine/audio/declaredAmbience';
-import { swordEvents } from '../../server/weapons/Sword';
+import { swordEvents } from '../weapons/Sword';
 import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import type { DeclaredGameplayPorts } from '@wildshard/engine/audio/declaredGameplay';
 import { installDeclaredAudio } from '@wildshard/engine/audio/declared';

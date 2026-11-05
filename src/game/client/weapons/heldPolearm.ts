@@ -25,7 +25,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import * as THREE from 'three';
 import * as schema from 'valibot';
 import { ThrownWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
-import { PolearmContact } from '../../server/weapons/polearmContact';
+import { PolearmContact } from '../../shared/weapons/polearmContact';
 import { createModelLibrary } from '@wildshard/game/plugin/geometry';
 import { ItemCatalogue } from '@wildshard/game/loadout/itemCatalogue';
 import { SWORD_WOOD } from '@wildshard/game/weapons/starterMeleeProfile';

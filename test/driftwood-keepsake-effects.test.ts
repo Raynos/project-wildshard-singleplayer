@@ -6,7 +6,7 @@ import { PlayerHealth } from '../src/engine/server/combat/health';
 import { EffectService } from '../src/engine/client/combat/effects/EffectService';
 import type { OwnedId } from '../src/game/shared/loot/Owned';
 import { bindFixtureEffects } from './fixtures/item-effects';
-import { STARTER_EFFECTS } from '../src/game/server/loadout/effects';
+import { STARTER_EFFECTS } from '../src/game/client/loadout/effects';
 import { DRIFTWOOD_EFFECTS } from '../src/shards/driftwood-isle/generators/economy';
 
 

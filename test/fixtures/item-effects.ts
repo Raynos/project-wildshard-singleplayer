@@ -8,7 +8,7 @@ import type { ShardContext } from '../../src/game/client/plugin/context';
 import type { Owned } from '../../src/game/shared/loot/Owned';
 import { parseItems } from '@wildshard/format/items';
 import { DRIFTWOOD_SWORDS } from '../../src/shards/driftwood-isle/generators/items';
-import { installItemEffects } from '../../src/game/server/loadout/effects';
+import { installItemEffects } from '../../src/game/client/loadout/effects';
 
 export type FixtureOwned = Pick<Owned, 'has' | 'onChange'> & Partial<Pick<Owned, 'worn'>>;
 /** Keep the original effect scenarios on the real item rows and the public, data-only installer. */

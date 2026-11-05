@@ -20,7 +20,7 @@ import type { ArenaBoundary } from '../../client/riding/client';
 import type { WeatherReactions } from '../weather/reactions';
 import type { wildEnv } from '../population/pageGroups';
 import type { ArenaFireView, ArenaWhirlsView } from '../../client/boss/arenaFire';
-import type { ArenaWhirlsSnapshot } from './arenaWhirls';
+import type { ArenaWhirlsSnapshot } from '../../shared/boss/arenaWhirls';
 import type { ArenaSceneView, CloudBody } from '../../client/boss/encounterView';
 
 /** The fight's rows: its fight file's arena script, programs and fire with its geometry file (the page's entered

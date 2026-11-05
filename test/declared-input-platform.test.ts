@@ -1,7 +1,7 @@
 import { parseItems } from '@wildshard/format/items';
 import { migrateEquipmentSlots, parseMigrations } from '@wildshard/format/migrations';
 import { CosmeticsLocker, type CosmeticState } from '../src/game/client/cosmetics/locker';
-import { declaredItemContext } from '../src/game/server/shardfile/items';
+import { declaredItemContext } from '../src/game/shared/shardfile/items';
 import { expect, test } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';
 import { InputService } from '../src/engine/client/input/InputService';

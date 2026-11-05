@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { TIER } from '@wildshard/engine/core/tier';
 import { lentLook, setLentParam } from '../shardfile/lentLooks';
 import type { ReturnProgram } from '../../shared/population/returnProgram';
-import { ArenaWhirls, type ArenaWhirlsSnapshot, type WhirlFrame } from '../../server/boss/arenaWhirls';
+import { ArenaWhirls, type ArenaWhirlsSnapshot, type WhirlFrame } from '../../shared/boss/arenaWhirls';
 import type {Scope} from '@wildshard/engine/app/scope';
 import {presentEntryOwner,publishEntryOwner} from '../../shared/shardfile/entryOwners';
 import {preflightViewLends,lendViewArray,lendViewCell,lendViewValues,lendViewDraw,lendViewFrame,lendViewTell} from '../shardfile/clientViewProgram';

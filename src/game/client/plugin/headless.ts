@@ -4,8 +4,8 @@ import { parseItems } from '@wildshard/format/items';
 import { requireBound, sameRuntimeProfile } from '../../shared/plugin/runtimeRows';
 import type { EquipmentIcon } from '@wildshard/engine/combat/Equipment';
 import type { ItemFamily, ItemFamilyPresentation } from '@wildshard/engine/combat/itemFamilies';
-import type { ShardContext } from '../../client/plugin/context';
-import type { DeclaredItems, DeclaredItemPorts } from "../shardfile/items";
+import type { ShardContext } from './context';
+import type { DeclaredItems, DeclaredItemPorts } from "../../shared/shardfile/items";
 import type { Shardfile } from "@wildshard/format/shardSchema";
 
 

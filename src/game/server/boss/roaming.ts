@@ -8,7 +8,7 @@ import { fnv1a32, Rng, type RngState } from '@wildshard/engine/core/rng';
 import type { RoamingEncounterRow } from '@wildshard/format/bossEncounter';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { StrikeRunner } from '@wildshard/engine/ai/strikes';
-import type { LaneState } from './lane';
+import type { LaneState } from '../../shared/boss/lane';
 import { bossFight, type RoamingBossFight, type RoamingBossPorts } from '../plugin/bossPhase';
 
 const contact = new StrikeRunner();

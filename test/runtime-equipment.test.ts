@@ -3,7 +3,7 @@ import { Group } from 'three';
 import { App } from '../src/engine/client/app/app';
 import { Scope } from '../src/engine/shared/app/scope';
 import { Weapon } from '../src/engine/shared/combat/Weapon';
-import { bindRuntimeEquipment } from '../src/game/server/plugin/headless';
+import { bindRuntimeEquipment } from '../src/game/client/plugin/headless';
 import { runtimeEquipment } from '../src/game/shared/plugin/runtimeRows';
 import { INPUT_CONTEXTS } from '../src/game/client/inputContexts';
 import { PINE as source } from './fixtures/pine-program';

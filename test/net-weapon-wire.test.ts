@@ -18,7 +18,7 @@ import { Physics } from '../src/engine/shared/physics/Physics';
 import type { Rapier } from '../src/engine/shared/physics/rapier';
 import { FakeGame, legacyDouble } from '../src/engine/test/FakeGame';
 import { ConditionedTransport, directLoopback } from '../src/engine/test/netLoopback';
-import { SWORD_WOOD } from '../src/game/server/weapons/starterMeleeProfile';
+import { SWORD_WOOD } from '../src/game/shared/weapons/starterMeleeProfile';
 import { STARTER_MELEE_PROFILE } from '../src/game/shared/weapons/starterCombat';
 import { FINISHER, HEAVY, SLASH } from '../src/game/shared/weapons/starterMoves';
 import { HostSide, loadCourseRapier, PageSide, type MotionScenario } from './fixtures/motion-trace/parity';

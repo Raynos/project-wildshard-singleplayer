@@ -9,7 +9,7 @@ import { SaveStore, type SaveStorage } from '../../../src/engine/shared/saves/st
 import { Ledger, installLedgerEmitter, type LedgerEmitter } from '../../../src/game/shared/ledger';
 import { snapshotSimHost, restoreSimHost } from '../../../src/engine/shared/sim/snapshot';
 import type { SimHost } from '../../../src/engine/server/sim';
-import { ItemRuntime, scriptItemHook } from '../../../src/engine/server/combat/items';
+import { ItemRuntime, scriptItemHook } from '../../../src/engine/shared/combat/items';
 import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 type ProofSimulation = ShardfileSimulation & { items: ReadonlyMap<string, ItemRuntime> };

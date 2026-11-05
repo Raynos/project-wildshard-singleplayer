@@ -1,6 +1,6 @@
 import type { Rng } from '@wildshard/engine/core/rng';
 import type { EncounterPatrolRows, EncounterScheduleRows } from '@wildshard/format/encounterRows';
-import { ProjectedState, type ProjectedSnapshot, type ReturnProgram } from '../../shared/population/returnProgram';
+import { ProjectedState, type ProjectedSnapshot, type ReturnProgram } from '../population/returnProgram';
 
 /**
  * A night patrol's numbers (TimedEncounters riders; Nalati's Qara Batyr), with no scene: the cycle (respawn, phase,

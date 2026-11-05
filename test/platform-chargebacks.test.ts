@@ -425,7 +425,7 @@ test('G615 encounter helpers follow the extracted slot owner without approving s
   expect(platformChargeback(path, 'SlotEncounterView')).toBe('C4');
   expect(platformChargeback(path, 'PatrolEncounterView')).toBe('C4');
   expect(modules.get(path)).toEqual(shared);
-  const law='src/game/server/boss/slotLaw.ts';
+  const law='src/game/shared/boss/slotLaw.ts';
   expect(approvedG571Host(approvals,path,'Awake')).toBe(false);
   expect(approvedG571Host(approvals,law,'Awake')).toBe(true);
   expect(approvedG571Host(approvals,law,'SlotEncounterLaw')).toBe(true);

@@ -180,7 +180,7 @@
         "src/shards/nine-dragon-stack/runtime/index.ts",
         "src/shards/nine-dragon-stack/plugin.ts",
         "src/kit/weapons/melee/SweptMelee.ts",
-        "src/game/server/weapons/Sword.ts",
+        "src/game/client/weapons/Sword.ts",
         "src/engine/client/combat/view/SweptMelee.ts"
       ],
       [

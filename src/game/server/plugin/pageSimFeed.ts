@@ -1,8 +1,6 @@
 import { installDeclaredMovers } from './moverInstall';
 import { bindQuestWorldReactions, commandSocketLift, declaredItemScriptBindings } from './simulation';
 import { readSpawnScript, SpawnScript } from '../population/spawnScript';
-import { installItemEffects } from '../loadout/effects';
-import { Sword } from '../weapons/Sword';
 import { PageActorGroups, wildEnv } from '../population/pageGroups';
 import { PerchBodyBinding } from '../population/perchBody';
 import { pageSpeciesBehaviour } from '../population/speciesBehaviour';
@@ -17,9 +15,6 @@ export interface PageSimFeed {
   readonly installDeclaredMovers: typeof installDeclaredMovers;
   readonly declaredItemScriptBindings: typeof declaredItemScriptBindings;
   readonly commandSocketLift: typeof commandSocketLift;
-  /** The entered quest's continuation (E6 QUEST): its item effects, and which held weapons are swords. */
-  readonly installItemEffects: typeof installItemEffects;
-  readonly isSword: (weapon: unknown) => weapon is Sword;
   readonly bindQuestWorldReactions: typeof bindQuestWorldReactions;
   /** The sky a forest page's weather views read (E6 WORLD). */
   readonly climate: typeof pageClimate;
@@ -34,7 +29,6 @@ export interface PageSimFeed {
 /** The page sim's own owners. */
 export const pageSimFeed: PageSimFeed = {
   installDeclaredMovers, declaredItemScriptBindings, commandSocketLift, bindQuestWorldReactions,
-  installItemEffects, isSword: (weapon): weapon is Sword => weapon instanceof Sword,
   climate: pageClimate, speciesBehaviour: pageSpeciesBehaviour,
   perchBody: (...args) => new PerchBodyBinding(...args), actorGroups: (...args) => new PageActorGroups(...args), wind: () => wildEnv.wind,
   spawnScript: { read: (...args) => readSpawnScript(...args), page: (...args) => SpawnScript.page(...args) },

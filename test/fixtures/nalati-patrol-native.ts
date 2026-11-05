@@ -15,7 +15,7 @@ import {ReturnProgram} from '../../src/game/shared/population/returnProgram';
 import {DirectedLaw} from '../../src/game/server/population/directedLaw';
 import {nativePopulationOf} from '../../src/game/server/riding/nativePopulation';
 import {nativeHerdCollection} from '../../src/game/server/shardfile/groupRuntime';
-import {PatrolLaw} from '../../src/game/server/boss/patrolLaw';
+import {PatrolLaw} from '../../src/game/shared/boss/patrolLaw';
 import {NativeCreaturePose} from '../../src/game/shared/plugin/animation';
 import {ProjectileLaw} from '../../src/engine/shared/combat/projectileLaw';
 import {StrikeRunner} from '../../src/engine/shared/ai/strikes';

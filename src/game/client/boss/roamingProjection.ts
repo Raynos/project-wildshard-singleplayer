@@ -27,7 +27,7 @@ import { lentLook, setLentParam } from '../shardfile/lentLooks';
 import type { ShardContext } from '../plugin/context';
 import { Rng, fnv1a32, type RngState } from '@wildshard/engine/core/rng';
 import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
-import { Lane, type LaneState } from '../../server/boss/lane';
+import { Lane, type LaneState } from '../../shared/boss/lane';
 import { bossFight, type RoamingBossFight, type RoamingBossPorts } from '../../server/plugin/bossPhase';
 import { DomePuffs } from '@wildshard/engine/fx/groundFx';
 

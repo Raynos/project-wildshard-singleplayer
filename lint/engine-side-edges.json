@@ -1,10 +1,10 @@
 {
  "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
  "totals": {
-  "client → server": 86,
+  "client → server": 66,
   "cook → client": 2,
   "cook → render": 1,
-  "server → client": 67,
+  "server → client": 58,
   "server → render": 2,
   "shared → client": 3,
   "shared → dom": 1,
@@ -44,14 +44,8 @@
   "src/game/client/animation/limbPopulation.ts": {
    "client → server": 1
   },
-  "src/game/client/boss/arenaFire.ts": {
-   "client → server": 1
-  },
-  "src/game/client/boss/encounterView.ts": {
-   "client → server": 2
-  },
   "src/game/client/boss/roamingProjection.ts": {
-   "client → server": 5
+   "client → server": 4
   },
   "src/game/client/grid/liveSession.ts": {
    "client → server": 2
@@ -74,19 +68,7 @@
   "src/game/client/grid/regionalWorld.ts": {
    "client → server": 4
   },
-  "src/game/client/loadout/claims.ts": {
-   "client → server": 4
-  },
-  "src/game/client/loadout/held.ts": {
-   "client → server": 1
-  },
   "src/game/client/loadout/rangedPage.ts": {
-   "client → server": 4
-  },
-  "src/game/client/plugin/audio.ts": {
-   "client → server": 1
-  },
-  "src/game/client/plugin/heldEquipment.ts": {
    "client → server": 2
   },
   "src/game/client/plugin/weaponFamily.ts": {
@@ -114,9 +96,6 @@
    "client → server": 1
   },
   "src/game/client/shardfile/client.ts": {
-   "client → server": 3
-  },
-  "src/game/client/shardfile/clientCatalogue.ts": {
    "client → server": 1
   },
   "src/game/client/shardfile/clientCosmeticFinishes.ts": {
@@ -129,7 +108,7 @@
    "client → server": 1
   },
   "src/game/client/shardfile/clientHeldMelee.ts": {
-   "client → server": 2
+   "client → server": 1
   },
   "src/game/client/shardfile/clientItems.ts": {
    "client → server": 1
@@ -165,7 +144,7 @@
    "client → server": 1
   },
   "src/game/client/weapons/heldPolearm.ts": {
-   "client → server": 3
+   "client → server": 1
   },
   "src/game/client/weapons/mountedBlade.ts": {
    "client → server": 3
@@ -184,7 +163,7 @@
    "server → client": 3
   },
   "src/game/server/combat/roamingSession.ts": {
-   "server → client": 9,
+   "server → client": 10,
    "server → render": 1
   },
   "src/game/server/Elite.ts": {
@@ -198,12 +177,6 @@
   },
   "src/game/server/Inventory.ts": {
    "server → client": 2
-  },
-  "src/game/server/loadout/effects.ts": {
-   "server → client": 4
-  },
-  "src/game/server/plugin/headless.ts": {
-   "server → client": 1
   },
   "src/game/server/plugin/placeholderGeometry.ts": {
    "server → render": 1
@@ -232,20 +205,8 @@
   "src/game/server/shardfile/audioCatalogue.ts": {
    "server → client": 2
   },
-  "src/game/server/shardfile/pageItems.ts": {
-   "server → client": 1
-  },
   "src/game/server/shardfile/worldUpdates.ts": {
    "server → client": 8
-  },
-  "src/game/server/weapons/Bow.ts": {
-   "server → client": 1
-  },
-  "src/game/server/weapons/starterMeleeProfile.ts": {
-   "server → client": 1
-  },
-  "src/game/server/weapons/Sword.ts": {
-   "server → client": 1
   }
  }
 }

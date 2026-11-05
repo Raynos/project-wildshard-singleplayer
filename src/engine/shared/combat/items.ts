@@ -1,9 +1,9 @@
 import { Vector3 } from 'three';
-import type { AimCommand } from '../../shared/input/commands';
-import type { Actor, CombatPipeline, CombatTag, CombatTarget } from './pipeline';
+import type { AimCommand } from '../input/commands';
+import type { Actor, CombatPipeline, CombatTag, CombatTarget } from '../../server/combat/pipeline';
 import type { EffectId } from '../../client/combat/effects/types';
-import type { ScriptHost } from '../../shared/script/host';
-import type { Scope } from '../../shared/app/scope';
+import type { ScriptHost } from '../script/host';
+import type { Scope } from '../app/scope';
 
 /** Numeric action requests accepted from input and an admitted item hook. */
 export type ItemAction = 1 | 2 | 3 | 4;

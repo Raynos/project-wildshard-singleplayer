@@ -3,7 +3,7 @@ import type {ArenaScriptData} from '@wildshard/format/arenaScriptRows';
 import type {SimHost} from '../../src/engine/server/sim';
 import {parsePrivateScene} from '@wildshard/format/clientChannels';
 import {HeadlessCloudBody} from './native-hosts/boss/cloudRig';
-import {ArenaWhirls} from '../../src/game/server/boss/arenaWhirls';
+import {ArenaWhirls} from '../../src/game/shared/boss/arenaWhirls';
 import type {ArenaTell,OpenArenaViews} from '../../src/game/server/boss/openArenaFight';
 
 /** Only the drawing ports are silent. Heart matrices, pose feedback and every

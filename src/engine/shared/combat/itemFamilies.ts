@@ -1,10 +1,10 @@
-import type { Scope } from '../../shared/app/scope';
+import type { Scope } from '../app/scope';
 import type { InputService } from '../../client/input/InputService';
-import type { AimCommand } from '../../shared/input/commands';
+import type { AimCommand } from '../input/commands';
 import type { ItemRuntime, ItemSpec, ItemHook } from './items';
-import type { EquipmentRow, WeaponUi } from '../../shared/combat/Equipment';
-import type { Weapon } from '../../shared/combat/Weapon';
-import type { Tool } from '../../shared/combat/Tool';
+import type { EquipmentRow, WeaponUi } from './Equipment';
+import type { Weapon } from './Weapon';
+import type { Tool } from './Tool';
 
 /** Renderer-neutral parameters selecting a registered kit view recipe. */
 export interface ItemViewRecipe { asset?: string; recipe: string; colour: string; position: readonly [number, number, number]; rotation: readonly [number, number, number] }

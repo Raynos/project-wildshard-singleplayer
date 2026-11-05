@@ -14,7 +14,7 @@ import { bindSceneSourceLooks } from './sceneSources';
 import { bindPaintedMaterialMaps } from '../looks/paintedLook';
 import { installCompletion } from '../complete/declared';
 import { retainsRuntimeServices } from '../shard/retainedHooks';
-import { installPageItemContexts } from '../../server/shardfile/pageItems';
+import { installPageItemContexts } from './pageItems';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
 import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
 import { pickPrompt } from '@wildshard/engine/world/interact/prompts';
@@ -71,7 +71,7 @@ import { captureClientState, clientStateMark, restoreClientState, installClientI
 import { portalTransitioning } from '../../shared/shardfile/portalTraversal';
 import { syncTargetColliders } from '../../shared/shardfile/targets';
 import type { ClientAssets } from './clientAssets';
-import { installDeclaredItems, type DeclaredItems } from '../../server/shardfile/items';
+import { installDeclaredItems, type DeclaredItems } from '../../shared/shardfile/items';
 import { runtimeBoundWorldFiles, withoutRuntimeRows } from "../../shared/plugin/runtimeRows";
 import { createShardfileSim, declaredItemScriptBindings, type ShardfileSimulation, type ShardfileSimPorts } from '../../server/plugin/simulation';
 import { scriptDisabledNotice } from '../../shared/shardfile/scriptNotice';

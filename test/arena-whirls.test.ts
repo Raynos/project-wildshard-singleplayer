@@ -11,7 +11,7 @@ import { TITAN_WHIRLS } from '../src/shards/nalati-grasslands/generators/stormTi
 import { titanPrograms } from './fixtures/titanInlineWitness';
 import { lendNalatiPasture, lendNalatiTitan } from './fixtures/nalati-return-modules';
 import { ProjectedState, ReturnProgram } from '../src/game/shared/population/returnProgram';
-import { ArenaWhirls } from '../src/game/server/boss/arenaWhirls';
+import { ArenaWhirls } from '../src/game/shared/boss/arenaWhirls';
 import { ArenaWhirlsView } from '../src/game/client/boss/arenaFire';
 
 const rows: ArenaWhirlsRows = parse(ArenaWhirlsSchema, TITAN_WHIRLS);

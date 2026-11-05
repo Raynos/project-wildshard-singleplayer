@@ -5,7 +5,7 @@ import * as plan from '../src/engine/client/boot/plan';
 import * as launcher from './fixtures/originalHeldBowLoader';
 import type { Targets } from '../src/engine/client/combat/types';
 import { MountedArsenal, type MountedLoadout } from './fixtures/originalMountedArsenal';
-import * as nativeItems from '../src/game/server/plugin/headless';
+import * as nativeItems from '../src/game/client/plugin/headless';
 import { ItemCatalogue } from '../src/game/shared/loadout/itemCatalogue';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';

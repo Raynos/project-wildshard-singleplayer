@@ -1,6 +1,6 @@
 import { Bow as PlatformBow, type BowOptions as PlatformBowOptions, type BowWorld as PlatformBowWorld } from '@wildshard/engine/combat/view/Bow';
 import type { Targets } from '@wildshard/engine/combat/types';
-import type { BowStyle } from './starterBowProfile';
+import type { BowStyle } from '../../server/weapons/starterBowProfile';
 
 /** Starter host ports for the trusted platform bow family. */
 export type BowWorld = PlatformBowWorld;

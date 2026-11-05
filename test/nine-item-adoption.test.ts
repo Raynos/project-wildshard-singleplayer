@@ -5,7 +5,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import { Weapon } from '../src/engine/shared/combat/Weapon';
 import { EquipmentService } from '../src/engine/client/combat/EquipmentService';
 import { INPUT_CONTEXTS } from '../src/game/client/inputContexts';
-import { bindRuntimeEquipment } from '../src/game/server/plugin/headless';
+import { bindRuntimeEquipment } from '../src/game/client/plugin/headless';
 import { ItemCatalogue } from '../src/game/shared/loadout/itemCatalogue';
 import source from './fixtures/nine-product-inputs';
 import manifest from '../src/shards/nine-dragon-stack/discovery.generated';

@@ -8,7 +8,7 @@ import { runtimeEquipment } from '../../shared/plugin/runtimeRows';
 import { resolveSceneHeld } from '../models/sceneSpecimens';
 import { productPainterLight, productPaintedImage } from '../looks/paintedLook';
 import { sceneModelSource } from './sceneSources';
-import { bindPageMelee, installPageItemContexts } from '../../server/shardfile/pageItems';
+import { bindPageMelee, installPageItemContexts } from './pageItems';
 import { clientNativeBook } from './clientNativeBook';
 import { sceneMotion } from './sceneMotion';
 

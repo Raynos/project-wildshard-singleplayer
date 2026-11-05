@@ -2,7 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { MeshBasicMaterial } from 'three';
 import { App } from '../src/engine/client/app/app';
 import { heldSwordWorld } from './fixtures/heldNativeSword';
-import { Sword } from '../src/game/server/weapons/Sword';
+import { Sword } from '../src/game/client/weapons/Sword';
 import { Scope } from '../src/engine/shared/app/scope';
 import { ToonLook } from '../src/engine/client/render/families/toon';
 import type { ShardContext } from '../src/game/client/plugin/context';

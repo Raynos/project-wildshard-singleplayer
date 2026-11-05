@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import * as THREE from 'three';
 import type { TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
-import { PolearmContact, type PolearmContactPorts } from './polearmContact';
+import { PolearmContact, type PolearmContactPorts } from '../../shared/weapons/polearmContact';
 
 interface Fake { readonly animal: TargetAnimal; readonly staggers: { dir: THREE.Vector3; strength: number }[] }
 function fake(kind: string, x: number, z: number, alive = true): Fake {

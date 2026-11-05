@@ -15,7 +15,7 @@ import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { DirectedSpecies } from '../src/game/server/population/directedSpecies';
 import { DirectedLaw } from '../src/game/server/population/directedLaw';
-import { PatrolLaw } from '../src/game/server/boss/patrolLaw';
+import { PatrolLaw } from '../src/game/shared/boss/patrolLaw';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { lendNalatiAdmission, admission } from './fixtures/nalati-admission-loan';
 import { NALATI_NIGHT as nightInput } from './fixtures/nalati-night';

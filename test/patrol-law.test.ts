@@ -13,7 +13,7 @@ import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
 import { CueDirector } from '../src/game/client/audio/cueDirector';
 import { lendLooks } from '../src/game/client/shardfile/lentLooks';
 import { PatrolEncounterView } from '../src/game/client/boss/encounterView';
-import { PatrolLaw } from '../src/game/server/boss/patrolLaw';
+import { PatrolLaw } from '../src/game/shared/boss/patrolLaw';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { NALATI_NIGHT as nightInput } from './fixtures/nalati-night';
 import { withWeatherWitness } from './fixtures/weatherInlineWitness';

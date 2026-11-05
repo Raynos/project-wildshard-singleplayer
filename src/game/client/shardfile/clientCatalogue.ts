@@ -5,7 +5,7 @@ import { isJsonData } from '@wildshard/format/json';
 import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../plugin/context';
 import { HeldFinishes } from '../loadout/finishes';
-import { heldFinishEffect, STARTER_EFFECTS } from '../../server/loadout/effects';
+import { heldFinishEffect, STARTER_EFFECTS } from '../loadout/effects';
 import { ItemCatalogue } from '../../shared/loadout/itemCatalogue';
 import { declaredProductCompendium } from '../../shared/shard/declaredRows';
 

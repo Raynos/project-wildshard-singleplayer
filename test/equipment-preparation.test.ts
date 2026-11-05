@@ -4,7 +4,7 @@ import { Scope } from '@wildshard/engine/app/scope';
 import { Weapon } from '@wildshard/engine/combat/Weapon';
 import { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
-import { SWORD_WOOD } from '../src/game/server/weapons/starterMeleeProfile';
+import { SWORD_WOOD } from '../src/game/shared/weapons/starterMeleeProfile';
 import {NumericInputError, onFault} from '@wildshard/engine/core/faults';
 import {bindClientChannelInputs} from '../src/game/shared/plugin/channels';
 

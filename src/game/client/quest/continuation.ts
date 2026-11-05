@@ -9,10 +9,10 @@ import { entryOwner } from '../../shared/shardfile/entryOwners';
 import { declaredLootEconomy } from '../../shared/shard/declaredRows';
 import { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
 import { sharedModelContext, type ModelDef } from '@wildshard/engine/models/model';
-import type { Sword } from '../../server/weapons/Sword';
+import { Sword } from '../weapons/Sword';
+import { installItemEffects } from '../loadout/effects';
 import { installDeclaredCollectionKeepsakes } from '../compendium/keepsakes';
 import { enteredLootPresentation, installRuntimeLoot } from '../loot/runtime';
-import { pageSim } from '../shardfile/clientMoverOwners';
 import { installQuestShop } from './trader';
 
 const ended = (ctx: ShardContext): boolean => ctx.scope.disposed || ctx.scope.disposing;
@@ -23,9 +23,9 @@ export async function installQuestContinuation(ctx: ShardContext, input: unknown
   const row = v.parse(QuestContinuationSchema, input), adventure = entryOwner(ctx.scope, 'quest', row.quest);
   const catalogue = entryOwner(ctx.scope, 'collection', row.collection), shell = ctx.game.runtime, world = shell?.world, play = shell?.play;
   if (world === undefined || world === null || play === undefined || play === null) throw new Error('Quest continuation needs its entered world');
-  const swords = play.weapons.list.map(({ id }) => play.weapons.get(id)).filter((weapon): weapon is Sword => pageSim.isSword(weapon));
+  const swords = play.weapons.list.map(({ id }) => play.weapons.get(id)).filter(weapon => weapon instanceof Sword);
   const economy = declaredLootEconomy(ctx.product.section('economy/loot').rows.loot);
-  pageSim.installItemEffects(ctx);
+  installItemEffects(ctx);
   const cosmeticRows = await ctx.product.json(row.cosmetics.file);
   if (ended(ctx)) return;
   const cosmetics = defineWorldSceneCatalogue(cosmeticRows), sources = sharedModelContext(world.sky);

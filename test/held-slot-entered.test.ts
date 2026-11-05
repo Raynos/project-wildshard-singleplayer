@@ -3,7 +3,7 @@ import { Group } from 'three';
 import { parse } from 'valibot';
 import { HeldArmsSchema } from '@wildshard/format/heldArms';
 import { HeldClaims } from '../src/game/client/loadout/claims';
-import { Sword } from '../src/game/server/weapons/Sword';
+import { Sword } from '../src/game/client/weapons/Sword';
 import { GrappleTool } from '../src/game/client/grapple/tool';
 import { EquipmentService } from '../src/engine/client/combat/EquipmentService';
 import type { SwordArms } from '../src/engine/client/combat/view/melee';

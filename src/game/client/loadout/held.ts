@@ -18,7 +18,7 @@ import { PLAIN_BOLT, HeldLauncher, type HeldBolt } from '../weapons/heldLauncher
 import { AmmoPouch } from '../../shared/loadout/pouch';
 import { loadoutLegacySlot } from '../../shared/loadout/persistence';
 import { HeldFirearm } from '../plugin/heldFirearm';
-import { Bow } from '../../server/weapons/Bow';
+import { Bow } from '../weapons/Bow';
 
 /** The page and quests share one live ammunition/ownership service. */
 export interface HeldLoadout {

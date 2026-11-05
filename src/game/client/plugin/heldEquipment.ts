@@ -18,9 +18,9 @@ import { createModelLibrary, type ModelLibrary } from './geometry';
 import { HeldFirearm, heldFirearmDisplay, type HeldFirearmModel, type HeldHandRow } from './heldFirearm';
 import { HeldLauncher, bindHeldBow, type HeldLauncherRows, type HeldLauncherProfile } from '../weapons/heldLauncher';
 import { HeldTool, heldToolRows, loadHeldToolFile, type HeldToolBeat, type HeldToolFile } from './heldTool';
-import { bindRuntimeEquipment, type RuntimeEquipmentFactory } from '../../server/plugin/headless';
+import { bindRuntimeEquipment, type RuntimeEquipmentFactory } from './headless';
 import { ItemCatalogue } from '../../shared/loadout/itemCatalogue';
-import { Bow } from '../../server/weapons/Bow';
+import { Bow } from '../weapons/Bow';
 
 /** Install row-selected ranged feel alongside the held families, retaining entered-cell lifetime. */
 export function installHeldRangedFeel(context: ShardContext): void {

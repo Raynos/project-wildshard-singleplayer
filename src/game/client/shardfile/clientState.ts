@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import type { ShardfileSimulation } from '../../server/plugin/simulation';
-import type { DeclaredItems } from '../../server/shardfile/items';
+import type { DeclaredItems } from '../../shared/shardfile/items';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { migrateLogicalState } from '@wildshard/format/migrations';
 import { logicalStateFromLane, logicalStateFromWorld, restoreLogicalLane } from '../../shared/shardfile/logicalState';

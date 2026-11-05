@@ -2,7 +2,7 @@ import { SweptMelee, type SwordOptions as PlatformOptions, type MeleeEvents, typ
 import { isMeleeProfile, type MeleeProfile } from '@wildshard/engine/combat/meleeProfile';
 import type { SwordWorld } from '@wildshard/engine/combat/view/melee';
 import type { Targets } from '@wildshard/engine/combat/types';
-import { SWORD_WOOD, SWORD_IRON } from './starterMeleeProfile';
+import { SWORD_WOOD, SWORD_IRON } from '../../shared/weapons/starterMeleeProfile';
 import { REST, CHARGE, SPRINT, COMBO, SLASH, FINISHER, HEAVY } from '../../shared/weapons/starterMoves';
 
 /** The starter recipes share their original sound/reaction hooks, supplied to the platform family. */
