@@ -5,7 +5,7 @@ import * as v from 'valibot';
 import { ActorProjectionV2,type ActorProjectionOwner } from './actorProjectionV2';
 import { ForagerPopulation } from '@wildshard/engine/ai/ambientForager';
 import { GrassField } from '../systems/looks/grassField';
-import { TrampleField } from '../systems/looks/trample';
+import { TrampleField } from '../systems/looks/trampleField';
 import { knockdownVelocity, PopulationRelations } from './relations';
 import { Vector3 } from 'three';
 import { AggressionDirector } from '@wildshard/engine/ai/director';

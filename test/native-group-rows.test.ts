@@ -9,7 +9,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { installNativeGroupRows, nativeGroupCollection, nativeHerdCollection } from '../src/game/shardfile/groupRuntime';
 import { NativeWildEnvironment } from '../src/game/population/nativeManager';
 import { GrassField } from '../src/game/systems/looks/grassField';
-import { TrampleField } from '../src/game/systems/looks/trample';
+import { TrampleField } from '../src/game/systems/looks/trampleField';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 const pack = { id: 'orchard.boars', kind: 'pack', members: ['orchard.scout'], home: [3,4], thinkDivisor: 6,

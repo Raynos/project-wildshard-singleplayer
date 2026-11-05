@@ -277,7 +277,7 @@ test('orchard wildlife frame continues real foragers and tramples through numeri
   const { ForagerPopulationSchema } = await import('@wildshard/format/ambientLife');
   const { NativeWildlifeFrame, NativeWildEnvironment } = await import('@wildshard/game/population/nativeManager');
   const { GrassField } = await import('@wildshard/game/systems/looks/grassField');
-  const { TrampleField } = await import('@wildshard/game/systems/looks/trample');
+  const { TrampleField } = await import('@wildshard/game/systems/looks/trampleField');
   const { default: foragerRow } = await import('../src/shards/nalati-grasslands/data/marmotForager.json');
   const { overrideTerrain } = await import('@wildshard/engine/test/terrain');
   const v = await import('valibot');
@@ -364,7 +364,7 @@ test('orchard fixture installs the complete native population through data rows'
   const { installNativePopulation, nativePopulationOf } = await import('@wildshard/game/riding/nativePopulation');
   const { nativeEliteBindings: eliteBindings } = await import('@wildshard/engine/ai/eliteRoster');
   const { GrassField } = await import('@wildshard/game/systems/looks/grassField');
-  const { TrampleField } = await import('@wildshard/game/systems/looks/trample');
+  const { TrampleField } = await import('@wildshard/game/systems/looks/trampleField');
   const { ForagerPopulation } = await import('@wildshard/engine/ai/ambientForager');
   const { ForagerPopulationSchema } = await import('@wildshard/format/ambientLife');
   const { BOAR } = await import('@wildshard/game/systems/species/boar');

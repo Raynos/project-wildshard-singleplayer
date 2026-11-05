@@ -14,7 +14,8 @@ import { painterlyUniforms } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { wind } from '@wildshard/engine/world/steppeWind';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { trample, TrampleTrail } from '@wildshard/game/systems/looks/trample';
+import { trample } from '@wildshard/game/systems/looks/trample';
+import { TrampleTrail } from '@wildshard/game/systems/looks/trampleField';
 
 
 import type { StaticCaptureUniforms } from './staticCapture';

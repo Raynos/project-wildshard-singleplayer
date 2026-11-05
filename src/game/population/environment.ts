@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { PopulationEnvironmentSchema, PopulationFieldSchema } from '@wildshard/format/populationEnvironment';
 import { readScalarLattice } from '@wildshard/engine/world/scalarChannel';
 import { GrassField, populationMeadow } from '../systems/looks/grassField';
-import { TrampleField } from '../systems/looks/trample';
+import { TrampleField } from '../systems/looks/trampleField';
 import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import type { BakedGrid } from '@wildshard/format/bakedTerrainBytes';
 import { terrainTileHeight } from '@wildshard/format/terrainTileBytes';

@@ -3,7 +3,7 @@ import { expect, test, vi } from 'vitest';
 import { Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { GrassField } from '../src/game/systems/looks/grassField';
-import { TrampleField } from '../src/game/systems/looks/trample';
+import { TrampleField } from '../src/game/systems/looks/trampleField';
 import { NativeWildEnvironment } from '../src/game/population/nativeManager';
 import { PageWildEnvironment } from '../src/game/population/pageGroups';
 

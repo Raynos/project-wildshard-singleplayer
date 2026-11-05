@@ -32,7 +32,7 @@ import { installWeatherContinuation } from '@wildshard/game/weather/continuation
 import type { Wind } from '@wildshard/engine/world/steppeWind';
 import { nativeWeatherBundle,type WeatherReactions } from '@wildshard/game/weather/reactions';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
-import { installTrampleTrail } from '@wildshard/game/systems/looks/trample';
+import { installTrampleTrail } from '@wildshard/game/systems/looks/trampleField';
 import { createNativeBakeReader } from './native-hosts/population/nativeBake';
 import { installNativeCollision } from './native-hosts/population/nativeBake';
 import { originalNalatiPhysics } from './nalati-physics-original';

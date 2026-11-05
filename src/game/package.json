@@ -128,6 +128,7 @@
     "./systems/looks/surfaceLooks": "./systems/looks/surfaceLooks.ts",
     "./systems/looks/rainCurtain": "./systems/looks/rainCurtain.ts",
     "./systems/looks/trample": "./systems/looks/trample.ts",
+    "./systems/looks/trampleField": "./systems/looks/trampleField.ts",
     "./systems/viewmodel/armClips": "./systems/viewmodel/armClips.ts",
     "./systems/viewmodel/armRig": "./systems/viewmodel/armRig.ts",
     "./systems/viewmodel/rigArms": "./systems/viewmodel/rigArms.ts",

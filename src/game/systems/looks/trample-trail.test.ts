@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { TrampleField, TrampleTrail } from '@wildshard/game/systems/looks/trample';
+import { TrampleField, TrampleTrail } from '@wildshard/game/systems/looks/trampleField';
 
 test.each([['steppe', .55, 30], ['orchard', .9, 5]] as const)('%s trail rows restore a native continuation exactly', (_name, radius, speedLimit) => {
   const map = new TrampleField(), trail = new TrampleTrail(map, speedLimit);
