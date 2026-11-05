@@ -142,13 +142,20 @@ test('each foreground download reports one outcome: complete, or cancelled, queu
   const stored = kept.read();
   expect(Array.isArray(stored) ? stored.filter(row => JSON.stringify(row).includes('"dl20')).length : 0).toBe(2);
   const seen: SpawnOutcome[] = [];
-  reportSpawnOutcomes(outcome => { seen.push(outcome); });
-  expect(kept.read()).toEqual([]);
+  const confirm = reportSpawnOutcomes(outcome => { seen.push(outcome); });
   const mine = seen.filter(row => row.level.startsWith('dl20'));
-  expect(mine).toEqual([
+  expect(mine.map(({id: _id, ...row}) => row)).toEqual([
     {level: 'dl20done', outcome: 'complete', packs: false, parts: 0, failed: 0, fallbackFiles: 0, fetched: 0},
     {level: 'dl20stop', outcome: 'cancelled', packs: false, parts: 0, failed: 0, fallbackFiles: 0, fetched: 0},
   ]);
+  expect(new Set(mine.map(row => row.id)).size).toBe(2);
+  // sp-x6's review: delivered is not yet recorded; they stay in the save (a boot dying here replays them) until confirmed
+  const left = (): number => { const rows = kept.read(); return Array.isArray(rows) ? rows.filter(row => JSON.stringify(row).includes('"dl20')).length : 0; };
+  expect(left()).toBe(2);
+  reportSpawnOutcomes(outcome => { seen.push(outcome); });
+  expect(seen.filter(row => row.level.startsWith('dl20'))).toHaveLength(2); // a second install delivers nothing twice
+  confirm();
+  expect(left()).toBe(0);
   releaseSpawnMembers(); holds.delete(o2.url);
   vi.unstubAllGlobals();
 });

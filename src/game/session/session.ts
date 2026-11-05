@@ -23,6 +23,7 @@ import { finishStage } from './finish';
 import { currentOwner, enterOwner } from '@wildshard/engine/app/ownership';
 import { app } from '@wildshard/engine/app/runtime';
 import { reportSpawnOutcomes } from '../boot/spawnDownload';
+import { pageScope } from '@wildshard/engine/app/resources';
 import { Scope } from '@wildshard/engine/app/scope';
 import { markBootHandledError } from '@wildshard/engine/boot/bootTrace';
 import { setBootCatalog } from '@wildshard/engine/boot/catalog';
@@ -60,7 +61,9 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts, optio
   installProductNavigation(); // declared navigation its shard's product admitted reads that product, never navmesh.bin too
   // DL20: every boot's level download outcome (cached, downloaded, failed or cancelled) reaches telemetry once, including
   // one that settled before this session and one whose failure stops the boot
-  reportSpawnOutcomes(outcome => { app.events.emit('download.parts', outcome); });
+  const confirmOutcomes = reportSpawnOutcomes(outcome => { app.events.emit('download.parts', outcome); });
+  // they leave the device save only once this session's events have reached telemetry (sp-x6's review of b28a44a5e6)
+  app.events.on('level.loaded', () => { confirmOutcomes(); }, pageScope);
   // the boot and the background download read the registry through the engine's catalog (E405: no engine → game import)
   const levels=catalogueManifests(),byId=new Map<string,(typeof levels)[number]>(levels.map(row=>[row.slug,row]));
   setBootCatalog({ levels, playable: levels.filter(playable), find:id=>byId.get(id), artBytes: ART_URL_BYTES });

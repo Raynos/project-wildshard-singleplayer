@@ -24,6 +24,10 @@ test('well-formed counts, the outcome and the loose fetches made are kept', () =
     .toEqual({ shard: 'nine', parts: 7, failed: 1, fallback: 3, fetched: 3, outcome: 'failed', packs: 'on' });
   expect(parts({ parts: 0, failed: 0, fallback: 0, packs: 'off' })).toEqual({ shard: 'nine', parts: 0, failed: 0, fallback: 0, packs: 'off' });
   expect(parts({ parts: 0, failed: 0, fallback: 0, packs: true })).toEqual({ shard: 'nine', parts: 0, failed: 0, fallback: 0 });
+  // the outcome's id (at-least-once delivery: a reader counts each id once); a malformed one is dropped
+  expect(parts({ parts: 0, failed: 0, fallback: 0, id: '0f3c9a2e-1b2c-4d5e-8f90-123456789abc' }))
+    .toEqual({ shard: 'nine', parts: 0, failed: 0, fallback: 0, id: '0f3c9a2e-1b2c-4d5e-8f90-123456789abc' });
+  expect(parts({ parts: 0, failed: 0, fallback: 0, id: 'x y' })).toEqual({ shard: 'nine', parts: 0, failed: 0, fallback: 0 });
   expect(parts({ parts: 7, failed: 0, fallback: 0 })).toEqual({ shard: 'nine', parts: 7, failed: 0, fallback: 0 });
   expect(parts({ parts: 7, failed: 0, fallback: 0, fetched: 'x', outcome: 'other' })).toEqual({ shard: 'nine', parts: 7, failed: 0, fallback: 0 });
 });

@@ -21,6 +21,9 @@ export interface SpawnDownloadSnapshot {
 /** DL20: one foreground boot's download, once settled: the telemetry denominator (every boot, cached or downloaded,
  *  failed or cancelled), its part counts when packed. */
 export interface SpawnOutcome {
+  /** this outcome's own id: delivery is at least once (a stored outcome replays until a session confirms it), so telemetry
+   *  counts each id once */
+  readonly id: string;
   readonly level: string; readonly outcome: 'complete' | 'failed' | 'cancelled'; readonly packs: boolean;
   readonly parts: number; readonly failed: number; readonly fallbackFiles: number; readonly fetched: number;
 }
@@ -475,39 +478,50 @@ let current: {key: string; download: SpawnDownload; foreground: boolean} | undef
 /** DL20: each download's settled outcome and whether it was ever a boot's own (foreground): a boot's download is reported
  *  once, when both hold (a completed title prefetch is adopted after it settled). Queued until a sink is installed. */
 const settledAs = new WeakMap<SpawnDownload, SpawnOutcome>(), foregroundDownloads = new WeakSet<SpawnDownload>(), reported = new WeakSet<SpawnDownload>();
-/** DL20 (sp-x1's read of 7329ffb0d3): an outcome with no sink yet is kept in storage, not page memory, so a boot that fails
- *  before its session (a book or manifest failure rejects the entry before startSession) is reported by the next boot */
+/** DL20 (sp-x1's read of 7329ffb0d3, sp-x6's of b28a44a5e6): every outcome is kept in the device save from the moment it
+ *  settles, with or without a sink, and leaves it only when a session confirms it (`reportSpawnOutcomes`' confirm, at
+ *  'level.loaded'); so a boot that fails before its session, or after the sink but before its events reach telemetry, is
+ *  reported by the next boot. A refused save write keeps the outcome in page memory for this page's sink. Delivery is at
+ *  least once (ids dedupe); the save holds the last OUTCOMES_KEPT, so more unconfirmed boots than that drop the oldest. */
 const OUTCOMES_KEPT = 20, outcomesSlot = jsonSlot('download.outcomes', 'device', () => []);
 const outcomeOf = (row: unknown): SpawnOutcome | null => {
   if (typeof row !== 'object' || row === null) return null;
-  const read = (key: string): unknown => Reflect.get(row, key), level = read('level'), outcome = read('outcome'), packs = read('packs');
+  const read = (key: string): unknown => Reflect.get(row, key), id = read('id'), level = read('level'), outcome = read('outcome'), packs = read('packs');
   const counts = ['parts', 'failed', 'fallbackFiles', 'fetched'].map(read);
-  if (typeof level !== 'string' || (outcome !== 'complete' && outcome !== 'failed' && outcome !== 'cancelled') || typeof packs !== 'boolean'
-    || !counts.every(count => typeof count === 'number' && Number.isInteger(count) && count >= 0)) return null;
+  if (typeof id !== 'string' || typeof level !== 'string' || (outcome !== 'complete' && outcome !== 'failed' && outcome !== 'cancelled')
+    || typeof packs !== 'boolean' || !counts.every(count => typeof count === 'number' && Number.isInteger(count) && count >= 0)) return null;
   const [parts = 0, failed = 0, fallbackFiles = 0, fetched = 0] = counts.map(Number);
-  return {level, outcome, packs, parts, failed, fallbackFiles, fetched};
+  return {id, level, outcome, packs, parts, failed, fallbackFiles, fetched};
 };
 function storedOutcomes(): SpawnOutcome[] {
   const rows: unknown = outcomesSlot.read();
   return Array.isArray(rows) ? rows.flatMap(row => outcomeOf(row) ?? []) : [];
 }
+const outcomeRow = (kept: SpawnOutcome): Record<string, string | number | boolean> => ({id: kept.id, level: kept.level, outcome: kept.outcome,
+  packs: kept.packs, parts: kept.parts, failed: kept.failed, fallbackFiles: kept.fallbackFiles, fetched: kept.fetched});
+/** outcomes the save refused, this page's fallback */
+const pageOutcomes: SpawnOutcome[] = [];
 function keepOutcome(outcome: SpawnOutcome): void {
-  const row = (kept: SpawnOutcome): Record<string, string | number | boolean> => ({level: kept.level, outcome: kept.outcome, packs: kept.packs,
-    parts: kept.parts, failed: kept.failed, fallbackFiles: kept.fallbackFiles, fetched: kept.fetched});
-  outcomesSlot.write([...storedOutcomes(), outcome].slice(-OUTCOMES_KEPT).map(row));
+  const rows = [...storedOutcomes().filter(row => row.id !== outcome.id), outcome].slice(-OUTCOMES_KEPT);
+  if (!outcomesSlot.write(rows.map(outcomeRow))) pageOutcomes.push(outcome);
 }
 let outcomeSink: ((outcome: SpawnOutcome) => void) | null = null;
+const delivered = new Set<string>();
+function deliver(outcome: SpawnOutcome): void {
+  if (outcomeSink === null || delivered.has(outcome.id)) return;
+  delivered.add(outcome.id); outcomeSink(outcome);
+}
 function reportOutcome(download: SpawnDownload): void {
   const outcome = settledAs.get(download);
   if (outcome === undefined || !foregroundDownloads.has(download) || reported.has(download)) return;
   reported.add(download);
-  if (outcomeSink === null) keepOutcome(outcome); else outcomeSink(outcome);
+  keepOutcome(outcome); deliver(outcome);
 }
 function markForeground(download: SpawnDownload): void { foregroundDownloads.add(download); reportOutcome(download); }
 function trackOutcome(download: SpawnDownload, level: string, packs: boolean): void {
   const settle = (outcome: SpawnOutcome['outcome']): void => {
     const parts = download.snapshot().parts;
-    settledAs.set(download, {level, outcome, packs, parts: parts?.parts ?? 0, failed: parts?.failed ?? 0, fallbackFiles: parts?.fallbackFiles ?? 0, fetched: parts?.fetched ?? 0});
+    settledAs.set(download, {id: crypto.randomUUID(), level, outcome, packs, parts: parts?.parts ?? 0, failed: parts?.failed ?? 0, fallbackFiles: parts?.fallbackFiles ?? 0, fetched: parts?.fetched ?? 0});
     reportOutcome(download);
   };
   void (async (): Promise<void> => {
@@ -515,13 +529,17 @@ function trackOutcome(download: SpawnDownload, level: string, packs: boolean): v
     catch (error: unknown) { settle(error instanceof DOMException && error.name === 'AbortError' ? 'cancelled' : 'failed'); }
   })();
 }
-/** DL20: every boot's spawn download outcome (cached, downloaded, failed or cancelled) goes to `sink` once, the queued ones
- *  at once; the session installs it when telemetry exists (the download paints before the engine loads). */
-export function reportSpawnOutcomes(sink: (outcome: SpawnOutcome) => void): void {
+/** DL20: every boot's spawn download outcome (cached, downloaded, failed or cancelled) goes to `sink`, the kept ones at once;
+ *  the session installs it when telemetry exists (the download paints before the engine loads). The returned confirm drops
+ *  what this page delivered from the save: call it once those events have reached telemetry (the session: 'level.loaded'). */
+export function reportSpawnOutcomes(sink: (outcome: SpawnOutcome) => void): () => void {
   outcomeSink = sink;
-  const kept = storedOutcomes();
-  outcomesSlot.write([]);
-  for (const outcome of kept) sink(outcome);
+  for (const outcome of [...storedOutcomes(), ...pageOutcomes]) deliver(outcome);
+  return () => {
+    const kept = storedOutcomes(), left = kept.filter(row => !delivered.has(row.id));
+    if (left.length !== kept.length) outcomesSlot.write(left.map(outcomeRow));
+    for (let at = pageOutcomes.length - 1; at >= 0; at--) if (delivered.has(pageOutcomes[at]?.id ?? '')) pageOutcomes.splice(at, 1);
+  };
 }
 const addressKey = (address: SpawnManifestAddress): string =>
   `${address.url}|${address.bytes}|${address.totalBytes}|${address.files}|${address.wireBytes ?? ''}`;
