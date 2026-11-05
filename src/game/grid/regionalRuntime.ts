@@ -41,6 +41,7 @@ import { SkinLocker } from '../cosmetics/locker';
 import { coverRuntimeAssets } from './assetResidency';
 import { FrameCamera } from '@wildshard/engine/world/frameCamera';
 import { pacedResolve } from '@wildshard/engine/core/workSlice';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 function isSceneNode(value: unknown): value is Object3D { return value instanceof Object3D; }
 
@@ -205,7 +206,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
       if (retireWorld === undefined) scope.onDispose(foundation.region.dispose);
       else scope.onDisposeSteps(function* retireRegionWorld() { const steps = retireWorld(); while (steps.next().done !== true) yield; });
       const host = foundation.region.host;
-      if (host.embedded || host.hasPlayerMotor || host.physics === request.page.world.physics) throw new Error('Regional factory requires an owned bodyless destination');
+      if (host.embedded || leadPlayer(host).hasMotor || host.physics === request.page.world.physics) throw new Error('Regional factory requires an owned bodyless destination');
       // The page's own level scope owns its player services (loadout registers the equipment host there). Not
       // app.levelScope: with G580 T1 a build-ahead starts while another world is entered, whose scope that is, and its
       // services leave with it, so a construction lending from it lost the equipment host mid-build when the traveller

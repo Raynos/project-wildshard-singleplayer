@@ -61,7 +61,7 @@ import { compileOffscreenPass } from '@wildshard/engine/render/precompile';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import { addTerrain, resampleTerrain } from '@wildshard/engine/physics/terrain';
 import { applySkin, type SkinDef } from '@wildshard/engine/player/Skins';
-import { createSimHost, type SimHost, type SimLevel } from '@wildshard/engine/sim';
+import { SIM_API_VERSION, createSimHost, type SimHost, type SimLevel } from '@wildshard/engine/sim';
 import { SkyRig } from '@wildshard/engine/world/skyRig';
 import { loadCarriedLUT, loadLUT } from '@wildshard/engine/boot/bakedApi';
 import { Terrain } from '@wildshard/engine/world/Terrain';
@@ -239,7 +239,7 @@ async function slicedTerrainGrid(run: (rows: () => number) => number, left: () =
 
 function simLevel(level: LevelSpec): SimLevel {
   const { spawn } = level;
-  return { version: 1, id: level.id, seed: level.seed ?? 0, ground: { size: CHUNK_SIZE, height: 0 },
+  return { version: SIM_API_VERSION, id: level.id, seed: level.seed ?? 0, ground: { size: CHUNK_SIZE, height: 0 },
     player: { at: { x: spawn.x, y: spawn.y ?? 0, z: spawn.z }, yaw: spawn.yaw, speed: 0 }, entities: [], quests: [],
     // A bodyless destination has no authored player strike; its creatures are the regional AnimalManager's.
     weapon: { id: 'region.none', shape: { kind: 'ring', inner: 0, outer: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };

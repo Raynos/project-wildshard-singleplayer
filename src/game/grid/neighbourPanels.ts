@@ -13,6 +13,7 @@ import type { ClientTileViews } from '../shardfile/clientViews';
 import type { ShardfileSimulation } from '../plugin/simulation';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { GridCell } from './assembly';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** What the panels read from the session: a cell's admitted region (absent until the live host admits it). */
 /** The page scope the panels live and die with (the views' own scope type). */
@@ -40,7 +41,7 @@ export function targetMatched(row: TargetRow, fallback: number, region: Shardfil
     const id = row.colliders[0], port = id === undefined ? undefined : region.colliders.get(id);
     if (port !== undefined) return port.active() === row.activeWhenMatched;
     const field = source.state[row.scope].find((f) => f.id === row.fieldId), lane = region.lane;
-    if (field !== undefined && lane !== undefined) return (lane.world.viewField(region.host.player.id, row.scope, field.name) ?? fallback) === row.equals;
+    if (field !== undefined && lane !== undefined) return (lane.world.viewField(leadPlayer(region.host).id, row.scope, field.name) ?? fallback) === row.equals;
   }
   return fallback === row.equals;
 }

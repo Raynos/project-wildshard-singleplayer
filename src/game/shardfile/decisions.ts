@@ -22,6 +22,8 @@ import type { DeclaredQuests, QuestDataPorts } from '../quest/declared';
 import type { MoverRuntime } from '../plugin/mover';
 import { simStrikes } from '../plugin/brain';
 import type { ShardScriptPorts } from './scripts';
+import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 interface Motion { move: number; target: number; runner: ActorMoveRunner; binding: number }
 interface Strike { strike: number; target: number; binding: number; hit: boolean }
@@ -32,7 +34,7 @@ interface Strike { strike: number; target: number; binding: number; hit: boolean
 export interface DecisionRuntime extends Pick<SimHost, 'scope' | 'events' | 'physics' | 'groundHeightAt'
   | 'registerStrikeCatalogue' | 'startDeclaredStrike'> {
   readonly flags: Pick<SimHost['flags'], 'has' | 'set' | 'onChange'>;
-  readonly player: Pick<SimHost['player'], 'id' | 'position' | 'yaw' | 'health' | 'motor'>;
+  readonly player: Pick<PlayerSim, 'id' | 'position' | 'yaw' | 'health' | 'motor'>;
   readonly state: Pick<SimHost['state'], 'tick'>;
   readonly slots: Pick<SimHost['slots'], 'ledgerDedupe'>;
   readonly entities: ReadonlyMap<string, AnimalSim>;
@@ -44,6 +46,13 @@ export interface DecisionRuntime extends Pick<SimHost, 'scope' | 'events' | 'phy
   /** Existing encounter state of borrowed bodies, read without creating an encounter. */
   readonly borrowedControls?: ReadonlyMap<string, { readonly fighting: boolean; readonly phase: number; readonly calm?: boolean; readonly leanField?: string }>;
   onStep: (id: string, run: () => void, adapter?: SimStateAdapter, phase?: 'beforeBodies' | 'afterBodies') => () => void;
+}
+/** A host's decision runtime: its scripts deal with the lead player. */
+export function decisionRuntime(host: SimHost): DecisionRuntime {
+  return { scope: host.scope, events: host.events, flags: host.flags, get physics() { return host.physics; }, groundHeightAt: (x, z) => host.groundHeightAt(x, z), player: leadPlayer(host),
+    state: host.state, slots: host.slots, entities: host.entities, strikes: host.strikes,
+    registerStrikeCatalogue: (id, specs) => { host.registerStrikeCatalogue(id, specs); }, startDeclaredStrike: (source, target, strike) => host.startDeclaredStrike(source, target, strike),
+    onStep: (id, run, adapter, phase) => host.onStep(id, run, adapter, phase) };
 }
 /** Existing encounter authority; a retained encounter can lend its real BossBrain without a replacement encounter. */
 export type DecisionEncounter = Pick<PhaseEncounter, 'boss' | 'retry' | 'validateDecision' | 'applyDecision'>;

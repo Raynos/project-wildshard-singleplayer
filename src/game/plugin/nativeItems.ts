@@ -15,6 +15,8 @@ import { fieldGustAt, type WindFieldSpec } from '@wildshard/engine/world/windFie
 import { BowWeaponProfileSchema, parseNativeFirearmProfile } from '@wildshard/format/weaponProfiles';
 import { NativeRangedRowSchema } from '@wildshard/format/nativeItems';
 import { createNativeTargetQueries, installNativeMelee, type NativeTargetPose, type NativeSweptMeleeInput, type NativeSweptMeleeOwner, type NativeTargetHit } from './simulation';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
+import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 
 /** A bounded native launcher input. Its slot must resolve to an installed bolt
  * owner; aim is held for this input, fire/reload are presses, never state writes. */
@@ -64,7 +66,8 @@ function hasRibs(body: AnimalSim): body is AnimalSim & { ribsWorld: (out: Vector
 }
 /** Aim at a capsule share or its declared chest. The default keeps the original half-sum arithmetic. */
 export function nativeRangedAim(host: SimHost, target: AnimalSim, eye: Vector3, forward: Vector3, along = 0.5, height = 1.68): void {
-  const p = host.player.position; eye.set(p.x, p.y + height, p.z); target.bodyCapsule(capRear, capFront);
+  const lead = leadPlayer(host);
+  const p = lead.position; eye.set(p.x, p.y + height, p.z); target.bodyCapsule(capRear, capFront);
   if (along === 2 && hasRibs(target)) target.ribsWorld(forward);
   else if (along === 0.5) forward.addVectors(capRear, capFront).multiplyScalar(0.5);
   else forward.copy(capRear).lerp(capFront, along);
@@ -78,7 +81,7 @@ function bodies(host: SimHost): AnimalSim[] {
   buffer.length = 0; for (const body of host.entities.values()) buffer.push(body); return buffer;
 }
 /** A free shot's line (P1-E3.2): from the server's own eye, along the commanded look. The client's aim origin is not trusted. */
-function lookAlong(player: SimHost['player'], frame: NativeCombatFrame, height: number, eye: Vector3, dir: Vector3): void {
+function lookAlong(player: PlayerSim, frame: NativeCombatFrame, height: number, eye: Vector3, dir: Vector3): void {
   const p = player.position, level = Math.cos(frame.pitch);
   eye.set(p.x, p.y + height, p.z); dir.set(-Math.sin(player.yaw) * level, Math.sin(frame.pitch), -Math.cos(player.yaw) * level);
 }
@@ -89,10 +92,11 @@ function windAt(frame: NativeCombatFrame, x: number, z: number, out: Vector3): V
 }
 
 function boltItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: unknown) : { state: { loaded: boolean; quiver: number; reloading: boolean; reloadProgress: number; ammo: undefined; reserve: number; bolts: number; }; flying: () => number; addBolts: (amount: number) => void; } {
+  const lead = leadPlayer(host);
   const raw = parseNativeFirearmProfile(input, 'bolt'), projectile = raw.projectile;
   if (frame.ammo === '') frame.ammo = row.defaultAmmo;
   if (projectile.muzzle === undefined || raw.spreadAxisScale === undefined) throw new Error('Missing bolt launch');
-  const p = { ...raw, quiver: raw.magazine + raw.reserve, cooldown: raw.interval, speed: projectile.speed, radius: projectile.radius, muzzle: projectile.muzzle, substeps: projectile.substeps, lifetime: projectile.lifetime, maxFlying: projectile.pool, gravity: projectile.flight.gravity, drag: projectile.flight.drag, spreadAxisScale: raw.spreadAxisScale }, random = (): number => host.rng.stream('gameplay').next(), player = host.player;
+  const p = { ...raw, quiver: raw.magazine + raw.reserve, cooldown: raw.interval, speed: projectile.speed, radius: projectile.radius, muzzle: projectile.muzzle, substeps: projectile.substeps, lifetime: projectile.lifetime, maxFlying: projectile.pool, gravity: projectile.flight.gravity, drag: projectile.flight.drag, spreadAxisScale: raw.spreadAxisScale }, random = (): number => host.rng.stream('gameplay').next(), player = lead;
   const Saved = v.strictObject({ loaded: v.boolean(), quiver: finite, reloading: v.boolean(), reloadT: finite, cooldown: finite, sinceFire: finite,
   bolts: v.pipe(v.array(v.strictObject({ active: v.boolean(), pos: v.tuple([finite, finite, finite]), vel: v.tuple([finite, finite, finite]), age: finite, glanced: v.boolean(), ammo: v.optional(v.picklist(row.ammunition.map(ammo => ammo.id)), row.defaultAmmo) })),
     v.length(p.maxFlying)) });
@@ -174,12 +178,13 @@ function boltItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: u
 }
 
 function cycleItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: unknown): NativeCycleItem {
+  const lead = leadPlayer(host);
   const profile = parseNativeFirearmProfile(input, 'lever');
   if (profile.lever === undefined) throw new Error('Missing cycle profile');
   const Saved = v.strictObject({ tube: v.pipe(count, v.maxValue(profile.magazine - 1)), chambered: v.boolean(), caseInChamber: v.boolean(), hammerCocked: v.boolean(),
   phase: v.picklist(['idle', 'beat', 'cycle', 'reload']), phaseT: finite, fed: count, planned: count, stopAfter: v.boolean(), dryAtStart: v.boolean(),
   reloadProgress: finite, reserve: count, sinceEmpty: finite });
-  const random = (): number => host.rng.stream('gameplay').next(), player = host.player;
+  const random = (): number => host.rng.stream('gameplay').next(), player = lead;
   const store = { reserve: profile.reserve }, act = new RangedAction.Cycle(store, { magazine: profile.magazine, reload: profile.reload, ...profile.lever });
   const cone = { radius: profile.spreadRadius, axisScale: 1 } as const;
   let sinceEmpty = 99;
@@ -238,10 +243,11 @@ const bowSaved = (profile: v.InferOutput<typeof BowWeaponProfileSchema>, capacit
 });
 
 function bowItem(host: SimHost, frame: NativeCombatFrame, row: Policy, input: unknown) : { draw: BowDraw; state: { arrows: number; aim: string | null; }; flying: () => number; stuck: StoppedProjectileSlots<null, string>; } {
+  const lead = leadPlayer(host);
   const profile = v.parse(BowWeaponProfileSchema, input);
   if (row.shaft === undefined) throw new Error('Missing stopped projectile policy');
   const shaft = row.shaft;
-  const random = (): number => host.rng.stream('gameplay').next(), player = host.player;
+  const random = (): number => host.rng.stream('gameplay').next(), player = lead;
   const draw = new BowDraw(profile.draw), state: { arrows: number; aim: string | null } = { arrows: profile.quiver, aim: null };
 
   const eye = new Vector3(), dir = new Vector3(), across = new Vector3(), seg = new Vector3(), wind = new Vector3();

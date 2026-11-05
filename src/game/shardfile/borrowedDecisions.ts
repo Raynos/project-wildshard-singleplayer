@@ -20,6 +20,7 @@ import { prepareDecisionMemories } from '@wildshard/engine/script/decisionModule
 import { waitFor } from '@wildshard/engine/boot/waits';
 import { decisionMemoryPreparationPages } from '@wildshard/format/scriptContract';
 import type { BorrowedSpeciesControl, SpeciesDecisionAuthority, SpeciesDecisionObservation } from '../plugin/brain';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** Existing world services and fixed-step registration, lent by the page/native owner.
  * No body, physics world, encounter, interval or simulation is allocated here.
@@ -41,8 +42,9 @@ export function borrowedDecisionControl(actor: object): BorrowedSpeciesControl {
 /** Bind a verified product to its existing renderer-free host. The existing after-body phase
  * keeps spawn and restored observation order equal; physics is read live across native restore. */
 export function nativeDecisionAuthority(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, host: SimHost): SpeciesDecisionAuthority {
+  const lead = leadPlayer(host);
   const authority = borrowedDecisionAuthority(source, assets, outputDescriptor(source)?.sections ?? new Map(), { scope: host.scope,
-    events: host.events, flags: host.flags, get physics(){return host.physics;}, player: host.player, groundHeightAt: (x,z)=>host.groundHeightAt(x,z),
+    events: host.events, flags: host.flags, get physics(){return host.physics;}, player: lead, groundHeightAt: (x,z)=>host.groundHeightAt(x,z),
     live: actor => host.entities.get(actor.entityId) === actor,
     fixed: (id, run, scope) => { scope.onDispose(host.onStep(id, run, undefined, 'afterBodies')); },
   });

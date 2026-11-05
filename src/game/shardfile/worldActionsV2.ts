@@ -7,6 +7,7 @@ import type { Player } from '@wildshard/engine/player/Player';
 import type {TamingHorse,TamingHerd,TamingServices} from '../riding/bindingTypes';
 import {validV2TamingAction,type V2WorldAction} from '@wildshard/format/scriptActionsV2';
 import type { NativeMountedPlayer } from '../riding/native';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** Cell-field storage lends its SAME concrete activate method. Its AS law,
  * delayed writes and update cadence remain with that field owner. */
@@ -62,7 +63,7 @@ export function prepareV2WorldActions<A extends TamingHorse=TamingHorse,H extend
       return { validate,apply: (): undefined => { validate();method.call(owner,action.x,action.z); } };
     }
     if (action.kind === 'impulse' && loan.kind === 'native-player') {
-      const owner = loan.owner,apply = owner.impulsePlayer.bind(owner);
+      const owner = loan.owner,player = leadPlayer(owner),apply = player.addImpulse.bind(player);
       const validate = (): void => { current(owner.scope === loan.scope && !owner.embedded); };
       return { validate,apply: (): undefined => { validate();apply(new Vector3(action.x,action.y,action.z)); } };
     }

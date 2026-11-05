@@ -9,6 +9,7 @@ import { silentBossPresentation } from '@wildshard/engine/ai/phases';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
 import { installSpeciesHomes, admitSpeciesProgram, bakedSpecs, type SpeciesHomesSpec, type SpeciesProgramRows, type SpeciesDecisionAuthority } from '../plugin/brain';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** A boss row's two durable flags: beaten (its record's `defeated`) and paid (its record's `rewardTaken`). */
 export interface BossRowFlagNames { readonly defeated: string; readonly paid: string }
@@ -77,7 +78,8 @@ const Saved = v.strictObject({ version: v.picklist([1, 2]), boss: Boss, fight: v
  * have this shape.
  */
 export function installBossRow(host: SimHost, spec: BossRowSpec): { boss: BossBrain; summon: () => void; locked: () => boolean } {
-  const player = host.player;
+  const lead = leadPlayer(host);
+  const player = lead;
   const ports = { events: host.events, player: { position: player.position },
     lockInput: () => undefined, skipHeld: () => false,
     respawn: (pos: Vector3, yaw: number) => { player.position.copy(pos); player.yaw = yaw; },

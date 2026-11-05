@@ -4,6 +4,7 @@ import { LadderModeSchema, type LadderMode } from '@wildshard/format/modes';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { PlayerModes } from '@wildshard/engine/player/modes';
 import type { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** World-space ordinary movement; jump/dodge, swimming, riding and the board hand control back to their owners. */
 export interface LadderCommand { x: number; z: number; release: boolean }
@@ -77,22 +78,23 @@ export class LadderDriver {
 
 /** Installs the data-only mode into the existing player phase; no rows means no driver, adapter or snapshot change. */
 export function installLadders(host: SimHost, rows: readonly LadderMode[], client?: LadderClientPorts): void {
+  const lead = leadPlayer(host);
   if (rows.length === 0) return;
   if (host.embedded && client === undefined) throw new Error('Borrowed ladder mode requires its real player controls');
   const driver = new LadderDriver(rows), idle: LadderCommand = { x: 0, z: 0, release: false };
   let input = idle;
-  if (!host.embedded) host.usePlayerDriver({ input: command => {
+  if (!host.embedded) lead.useDriver({ input: command => {
     idle.x = command?.moveX ?? 0; idle.z = command?.moveZ ?? 0;
-    idle.release = command?.jump === true || command?.dodge === true || command?.hover !== undefined || host.playerBoard.on || host.playerSwim.on;
+    idle.release = command?.jump === true || command?.dodge === true || command?.hover !== undefined || lead.board.on || lead.swim.on;
     input = idle; return false;
   }, step: () => undefined });
   const traverse = (dt: number): boolean => {
     if (client !== undefined && !client.enabled()) { driver.release(); return false; }
-    const claimed = driver.step(dt, client?.command() ?? input, host.player.position, host.player.motor);
-    if (claimed) { if (client === undefined) { host.playerFall.vy = 0; host.playerFall.grounded = false; host.playerJump = null; } else client.claimed(); }
+    const claimed = driver.step(dt, client?.command() ?? input, lead.position, lead.motor);
+    if (claimed) { if (client === undefined) { lead.fall.vy = 0; lead.fall.grounded = false; lead.jump = null; } else client.claimed(); }
     return claimed;
   };
-  if (client === undefined) host.modes.register({ id: 'climb', hud: 'none', traverse }, host.scope, { events: host.events });
+  if (client === undefined) lead.modes.register({ id: 'climb', hud: 'none', traverse }, host.scope, { events: host.events });
   else client.modes.register({ id: 'climb', hud: 'none', traverse }, host.scope, { events: host.events });
   host.onStep('modes.ladder', () => undefined, { snapshot: () => driver.snapshot(), restore: value => { driver.restore(value); } });
 }

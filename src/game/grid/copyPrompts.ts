@@ -16,18 +16,19 @@ import type { ShardRuntime } from '../shard/runtime';
 import { createQuestScriptPorts } from '../quest/declared';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { ShardfileSimulation } from '../plugin/simulation';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 type Interactable = ShardRuntime['interactables'][number];
 
 /** What a copy's prompts read of its admitted region: its script lane, actor handles and player actor. */
-export type CopyRegion = Pick<ShardfileSimulation, 'lane' | 'actors'> & { readonly host: { readonly player: { readonly id: string } } };
+export type CopyRegion = Pick<ShardfileSimulation, 'lane' | 'actors'> & { readonly host: { readonly players: ReadonlyMap<string, { readonly id: string }> } };
 
 /** The copy's declared interactions as frame-local prompts on `region`'s own lane (none without a lane). */
 export function copyPrompts(source: Pick<Shardfile, 'targets' | 'hooks'>, region: CopyRegion): Interactable[] {
   const lane = region.lane;
   if (lane === undefined || source.targets.interactions.length === 0) return [];
   const items = new Set((source.targets.itemActions ?? []).map((row) => row.scene));
-  const scenes = createQuestScriptPorts(lane, source.hooks, region.actors), actor = region.host.player.id;
+  const scenes = createQuestScriptPorts(lane, source.hooks, region.actors), actor = leadPlayer(region.host).id;
   return source.targets.interactions.filter((row) => !items.has(row.scene)).map((row) => ({
     position: new Vector3(...row.at), radius: row.radius, label: row.label, onInteract: () => { scenes.scene(row.scene, actor); },
   }));

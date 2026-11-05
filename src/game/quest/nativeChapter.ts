@@ -9,6 +9,7 @@ import { mixedPopulation } from '../population/mixedRoster';
 import { installWakeBoss } from '../boss/nativeWake';
 import { installNativeQuestChannels } from './nativeInputs';
 import { ChapterClock } from './chapterClock';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const finite = v.pipe(v.number(), v.finite());
 const chapterName = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
@@ -23,6 +24,7 @@ export function installNativeChapterDirector(host: SimHost, director: Awaited<Re
   readonly clock: DirectorScriptStageLane; readonly fast: ChapterClock['fast'];
   readonly update: (dt: number, step?: string) => void;
 } {
+  const lead = leadPlayer(host);
   if (host.scope.disposed || !isJsonData(input)) throw new Error('Native chapter requires live JSON rows');
   const policy = v.parse(nativeChapter, input), rows = parseChapterDirector(policy.rows);
   const cues = new Map(policy.wake?.cues.map(cue => [cue.id, cue]));
@@ -36,7 +38,7 @@ export function installNativeChapterDirector(host: SimHost, director: Awaited<Re
   const encounter = policy.wake === undefined ? null : installWakeBoss(host, policy.wake.encounter, policy.wake.placement);
   const reward = policy.reward === undefined ? null : installNativeQuestChannels(host, policy.reward, { started: false, completed: false });
   const timeline = new ChapterClock(host.scope, director, rows, host.flags,
-    { get day() { return host.dayClock ?? null; }, player: host.player.position, reward: rows.reward ?? null, finish: 'assign' }, effect => {
+    { get day() { return host.dayClock ?? null; }, player: lead.position, reward: rows.reward ?? null, finish: 'assign' }, effect => {
       if (effect.kind === 'reward' && reward !== null) reward[effect.state] = true;
       else if (effect.kind === 'cue' && population !== null && encounter !== null && policy.wake !== undefined) {
         const cue = cues.get(effect.id); if (cue === undefined) throw new Error('Unknown native chapter cue');

@@ -3,6 +3,7 @@ import { test } from '@wildshard/engine/world/interact/flags';
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import type { ScriptLane } from '@wildshard/engine/script/lane';
 import { parseQuestData, type QuestData } from '@wildshard/format/quests';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** Hooks read atomically published script fields or queue declared events for the next script tick. */
 export interface QuestScriptPorts {
@@ -45,6 +46,7 @@ export class DeclaredQuests {
   private readonly ports: QuestDataPorts;
   private readonly dialogue = new Map<string, string | null>();
   constructor(host: SimHost, input: QuestData, ports: QuestDataPorts = {}) {
+  const lead = leadPlayer(host);
     const data = parseQuestData(input);
     if (data.quests.some((q) => host.quests.some((existing) => existing.def.id === q.id))) throw new Error('Quest already installed');
     const needsScript = data.triggers.some((t) => t.kind === 'script') || data.quests.some((q) => q.onComplete?.scene !== undefined) || data.dialogue.some((d) => d.nodes.some((n) => n.choices.some((c) => c.scene !== undefined)));
@@ -55,10 +57,10 @@ export class DeclaredQuests {
     this.quests = data.quests.map((q) => {
       const state = new QuestState(q, host.flags, host.events, host.scope);
       host.scope.onDispose(state.observe({ complete: () => {
-        if (q.onComplete?.scene !== undefined) ports.script?.scene(q.onComplete.scene, host.player.id);
+        if (q.onComplete?.scene !== undefined) ports.script?.scene(q.onComplete.scene, lead.id);
         // a quest's fact names the quest, as the page's bindRuntimeQuest files it: one ledger key headless and in the browser
         if (q.onComplete?.fact !== undefined) ports.fact?.(q.onComplete.fact, q.id);
-        if ((q.onComplete?.coins ?? 0) > 0) ports.coins?.(q.onComplete?.coins ?? 0, host.player.id);
+        if ((q.onComplete?.coins ?? 0) > 0) ports.coins?.(q.onComplete?.coins ?? 0, lead.id);
       } }));
       return state;
     });
@@ -70,8 +72,8 @@ export class DeclaredQuests {
     host.onStep('quest.declared', () => {
       for (const t of data.triggers) {
         if (host.flags.has(t.flag) || !test(host.flags, t.when)) continue;
-        if (t.kind === 'region' && Math.hypot(host.player.position.x - t.x, host.player.position.z - t.z) < t.radius) host.flags.set(t.flag);
-        if (t.kind === 'script' && ports.script?.condition(t.condition, host.player.id)) host.flags.set(t.flag);
+        if (t.kind === 'region' && Math.hypot(lead.position.x - t.x, lead.position.z - t.z) < t.radius) host.flags.set(t.flag);
+        if (t.kind === 'script' && ports.script?.condition(t.condition, lead.id)) host.flags.set(t.flag);
       }
     }, { snapshot: () => this.snapshot(), restore: (state) => { this.restore(state); } });
   }
@@ -87,10 +89,11 @@ export class DeclaredQuests {
     const view = this.view(id); return { id, name: d.name, dialogue: view === null ? [] : [{ lines: [...view.lines] }] };
   }
   choose(id: string, choiceId: string): void {
+  const lead = leadPlayer(this.host);
     const d = this.data.dialogue.find((entry) => entry.id === id), current = this.dialogue.get(id);
     const node = d?.nodes.find((n) => n.id === current), choice = node?.choices.find((c) => c.id === choiceId);
     if (node === undefined || choice === undefined || !test(this.host.flags, choice.when)) throw new Error('Dialogue choice unavailable');
-    if (choice.scene !== undefined) this.ports.script?.scene(choice.scene, this.host.player.id);
+    if (choice.scene !== undefined) this.ports.script?.scene(choice.scene, lead.id);
     for (const flag of [...(node.sets ?? []), ...(choice.sets ?? [])]) this.host.flags.set(flag);
     this.dialogue.set(id, choice.next);
   }

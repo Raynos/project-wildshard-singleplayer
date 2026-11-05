@@ -16,6 +16,7 @@ import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { Rng, RngState } from '@wildshard/engine/core/rng';
 import { nativeGroupBrain, groupBrainRules, type ShardGroupBrain, type ShardPackGroup, type ShardHerdGroup } from '@wildshard/format/groupBrains';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** One group continuation; actor memory, motors and random streams remain with the simulation owner. */
 export type DeclaredGroupPolicy = PackBrain<AnimalSim> | HerdBrain<AnimalSim>;
@@ -91,10 +92,11 @@ function prepareRegistration(host: SimHost, group: ShardPackGroup | ShardHerdGro
 export function prepareDeclaredGroupBrains(host: SimHost, declarations: readonly ShardGroupBrain[],
   spawns: readonly { id: string; brain: string | null }[], ports: DeclaredGroupPorts,
   individualIds: readonly string[] = [], encounterIds: readonly string[] = []): PreparedGroupBrains {
+  const lead = leadPlayer(host);
   const groups = declarations.map(nativeGroupBrain);
   if (new Set(spawns.map(row => row.id)).size !== spawns.length || groupBrainRules(groups, spawns, individualIds, encounterIds).length > 0) throw new Error('Invalid group controller roster');
   for (const group of groups) {
-    if (host.hasStep(`group.${group.id}`) || host.adapters.has(`group.${group.id}`) || group.members.some(id => id === host.player.id || host.entities.get(id)?.entityId !== id
+    if (host.hasStep(`group.${group.id}`) || host.adapters.has(`group.${group.id}`) || group.members.some(id => id === lead.id || host.entities.get(id)?.entityId !== id
       || host.hasStep(`brain.${id}`) || host.adapters.has(`brain.${id}`))) throw new Error('Unresolved or installed group actor');
     if ((group.kind === 'pack' && ports.pack === undefined) || (group.kind === 'herd' && ports.herd === undefined)) throw new Error('Missing declared group port');
   }
@@ -253,6 +255,7 @@ export class NativeGroupCollection {
 /** G474 native group setup from admitted rows and concrete world owners. No
  * shard contact, perception, identity or controller-factory port is accepted. */
 export function installNativeGroupRows(host: SimHost, input: unknown, grid: BakedGrid, environment: NativeWildEnvironment): NativeGroupCollection {
+  const lead = leadPlayer(host);
   const rows = v.parse(NativeGroupRowsSchema, input), sample = bakedSamplers(grid);
   if (!(environment instanceof NativeWildEnvironment) || collections.get(host)?.has(rows.id)) throw new Error('Invalid or installed group world');
   const actor = (id: string): AnimalSim => { const body = host.entities.get(id); if (body === undefined) throw new Error(`Missing group actor ${id}`); return body; };
@@ -290,7 +293,7 @@ export function installNativeGroupRows(host: SimHost, input: unknown, grid: Bake
         scarePack: (body,radius) => { const pack = packOf.get(body); if (pack === undefined) return false; pack.scare(body.position.x,body.position.z,radius); return true; },
         onKnockdown: (x,z,strength) => { environment.onKnockdown(x,z,strength); } });
       initializeDeclaredGroup(herd,step.guest,{scope:host.scope,group:row.id,handle:herds.length+1,
-        player:host.player.position,actors:host.entities},host);
+        player:lead.position,actors:host.entities},host);
       herd.findThreat = (x,z,radius) => nearestPopulationActor(wolves,x,z,radius);
       if (step.adopt !== null) herd.adoptStallion(actor(step.adopt)); herds.push(herd);
     }

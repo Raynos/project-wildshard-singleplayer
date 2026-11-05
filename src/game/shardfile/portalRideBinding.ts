@@ -9,6 +9,7 @@ import type { PortalLinkEntry, portalLinkRules } from '@wildshard/format/portalL
 import { createPortalRide, PortalRideStateSchema, type PortalRideState, type PortalRideLane, type RideRings } from './walkInPortalRide';
 import { createPortalTraversal, type PortalTransfer, type PortalTraversalPorts } from './portalTraversal';
 import type { ShardContext } from '../plugin/context';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** the ride's rows: its director (a `directors` id), walk-in volume, fade, veil and the facts a landing reports */
 export interface PortalRideRows {
@@ -146,15 +147,18 @@ async function installPageRide(ctx: Pick<ShardContext, 'game' | 'system' | 'scop
 
 /** What the ride uses of the renderer-free host: its player, the player's fall, impulse, knockback, dash and board, its
  *  physics, and a fixed-step system with continuation. */
-export interface RideHost<Physics> {
-  readonly player: { readonly position: PortalPlayer['position'] & { set: (x: number, y: number, z: number) => unknown }; yaw: number; readonly motor: PortalPlayer['motor'] };
-  readonly physics: Physics;
-  readonly playerFall: { vy: number; grounded: boolean };
-  readonly playerImpulse: { set: (x: number, y: number, z: number) => unknown };
-  readonly playerShove: { t: number };
-  readonly playerDash: { t: number };
-  readonly playerBoard: { readonly on: boolean };
+export interface RidePlayer {
+  readonly position: PortalPlayer['position'] & { set: (x: number, y: number, z: number) => unknown }; yaw: number; readonly motor: PortalPlayer['motor'];
+  readonly fall: { vy: number; grounded: boolean };
+  readonly impulse: { set: (x: number, y: number, z: number) => unknown };
+  readonly shove: { t: number };
+  readonly dash: { t: number };
+  readonly board: { readonly on: boolean };
   setBoard: (on: boolean) => void;
+}
+export interface RideHost<Physics> {
+  readonly players: ReadonlyMap<string, RidePlayer>;
+  readonly physics: Physics;
   onStep: (id: string, run: (dt: number) => void, adapter: { snapshot: () => string; restore: (value: unknown) => void }) => unknown;
 }
 
@@ -165,24 +169,24 @@ interface Point { x: number; y: number; z: number }
 /** The host's ride on its fixed step under `id`: `carried` holds the feet still while the fade runs, `spawn` releases the
  *  motor and clears every velocity; the hold and the ride are exact continuation. */
 export function installHostPortalRide(host: RideHost<PortalTraversalPorts['physics']>, id: string, source: PortalSource, rows: PortalRideRows, facts: PortalFacts): PortalRide {
-  const player = host.player, holdPoint = { x: 0, y: 0, z: 0 }, spawnPoint = { x: 0, y: 0, z: 0 };
+  const player = leadPlayer(host), holdPoint = { x: 0, y: 0, z: 0 }, spawnPoint = { x: 0, y: 0, z: 0 };
   let held: Point | null = null;
   const keep = (at: Point): void => {
     player.position.set(at.x, at.y, at.z); player.motor.resetAt(at);
-    host.playerFall.vy = 0; host.playerFall.grounded = false; host.playerImpulse.set(0, 0, 0); host.playerShove.t = 0;
+    player.fall.vy = 0; player.fall.grounded = false; player.impulse.set(0, 0, 0); player.shove.t = 0;
   };
   const body: PortalPlayer = {
     // the motor is read each time: a restore rebuilds the player's motor on the restored physics after install
     position: player.position, get motor() { return player.motor; },
-    get hover() { return host.playerBoard.on; },
+    get hover() { return player.board.on; },
     get carried() { return held !== null; },
     set carried(on) {
       holdPoint.x = player.position.x; holdPoint.y = player.position.y; holdPoint.z = player.position.z;
       held = on ? holdPoint : null;
       if (held !== null) keep(held);
     },
-    setHover: (on) => { host.setBoard(on); },
-    spawn: (x, z, yaw, y) => { player.yaw = yaw; player.motor.release(); host.playerDash.t = 0; spawnPoint.x = x; spawnPoint.y = y ?? player.position.y; spawnPoint.z = z; keep(spawnPoint); },
+    setHover: (on) => { player.setBoard(on); },
+    spawn: (x, z, yaw, y) => { player.yaw = yaw; player.motor.release(); player.dash.t = 0; spawnPoint.x = x; spawnPoint.y = y ?? player.position.y; spawnPoint.z = z; keep(spawnPoint); },
   };
   const ride = bindPortalRide(portalRider(body, () => host.physics, source), () => undefined, portalRings(source, rows), rows.landings, facts);
   host.onStep(id, (dt) => { if (held !== null) keep(held); ride.step(dt); }, { snapshot: () => JSON.stringify({ held, ride: ride.snapshot() }), restore: (value) => {

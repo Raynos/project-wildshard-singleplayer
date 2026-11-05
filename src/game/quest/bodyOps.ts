@@ -7,6 +7,7 @@ import type { SimHost } from '@wildshard/engine/sim';
 import type { DecisionCommit } from '@wildshard/engine/script/decision';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { ShardContext } from '../plugin/context';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 type Owner = SimHost | ShardContext;
 type Row = DeclaredBodyOpsRows['bodies'][number];
@@ -36,7 +37,7 @@ export class DeclaredBodyOps {
   private constructor(private readonly owner: Owner, rows: DeclaredBodyOpsRows) {
     this.rows = rows; this.native = 'physics' in owner ? owner : null; this.page = 'physics' in owner ? null : owner;
     this.registries = declaredBodyRegistries(rows);
-    this.service = this.native === null ? this.page?.app.bodies ?? null : new Bodies(this.native.physics, this.native.player.position);
+    this.service = this.native === null ? this.page?.app.bodies ?? null : new Bodies(this.native.physics, leadPlayer(this.native).position);
     if (rows.bodies.some(row => row.kind === 'prop') && this.service === null) throw new Error('Declared props require the installed body service');
     for (const row of rows.bodies) {
       const id = this.registries.bodies.get(row.id);
@@ -239,7 +240,7 @@ export class DeclaredBodyOps {
       next.push({ slot, handle });
     }
     if (Object.keys(handles).length !== next.length) throw new Error('Unknown restored body identity');
-    this.service = new Bodies(physics, this.native.player.position);
+    this.service = new Bodies(physics, leadPlayer(this.native).position);
     for (const { slot, handle } of next) {
       slot.body = handle === null ? null : new Body(physics.world.getRigidBody(handle), physics.world.getRigidBody(handle).collider(0), spec(slot.row), 0);
       if (slot.body !== null) this.service.list.push(slot.body);

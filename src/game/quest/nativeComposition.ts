@@ -28,6 +28,7 @@ import { questBenchPose } from './storyLaw';
 import { installNativeChapterDirector } from './nativeChapter';
 import { takeNativeBossReward } from '../boss/native';
 import { ReturnProgram } from '../population/returnProgram';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const promptLoans = new WeakMap<SimHost, Map<string, readonly HeadlessPrompt[]>>();
 /** Borrow the actual bound roster, including unhosted prompts and live reach. */
@@ -98,6 +99,7 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
   readonly riding: () => boolean; readonly talking: () => boolean;
   readonly ownsFinish: (skin: string) => boolean; readonly ownsBoardFinish: () => boolean; readonly takePickup: () => boolean;
 } {
+  const traveller = leadPlayer(host);
   if (!isJsonData({ rows: ports.rows, table: ports.table, spots: ports.spots, counters: ports.counters, props: ports.props ?? null,
     steps: ports.steps ?? null, deaths: ports.deaths ?? null, readings: ports.readings ?? null, contracts: ports.contracts ?? null, trades: ports.trades ?? null, lead: ports.lead ?? null }))
     throw new Error('Native quest composition requires JSON rows');
@@ -125,10 +127,10 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
     if (JSON.stringify(cable.top) !== JSON.stringify(spots.cable.top) || JSON.stringify(cable.bottom) !== JSON.stringify(spots.cable.bottom) || cable.sag !== spots.cable.sag)
       throw new Error('Native quest cable row does not match the real native spots');
     const rewardFlag = need(rows.reward, 'reward').seen;
-    host.usePlayerDriver({ input: command => {
+    traveller.useDriver({ input: command => {
       if (!rider.carried) return false;
-      if (command !== undefined && !flags.has(rewardFlag)) host.player.yaw = command.yaw;
-      host.playerImpulse.set(0, 0, 0); rider.velocity.set(0, 0, 0); host.playerFall.grounded = false; return true;
+      if (command !== undefined && !flags.has(rewardFlag)) traveller.yaw = command.yaw;
+      traveller.impulse.set(0, 0, 0); rider.velocity.set(0, 0, 0); traveller.fall.grounded = false; return true;
     }, step: () => undefined });
   }
   const reward = rows.reward === undefined || rider === null ? null : new QuestRewardController(rider, host.dayClock, {
@@ -215,7 +217,7 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
     if (rows.board !== undefined) {
       observations.set('boarding', () => board?.active ?? false);
       actions.set('quest.board.close', () => { board?.use(CONTRACT_ACTION.close, eye); });
-      actions.set('quest.board.use', value => { eye.copy(host.player.position); eye.y += rows.eye; useBoard(value); });
+      actions.set('quest.board.use', value => { eye.copy(traveller.position); eye.y += rows.eye; useBoard(value); });
     }
     if (rows.reading !== undefined || rows.trade !== undefined || rows.board !== undefined)
       actions.set('quest.cancel', () => { dialogue?.dismiss(); board?.use(CONTRACT_ACTION.close, eye); trader?.use(-1); });
@@ -227,11 +229,11 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
       const flag = rows.pickup.flag; observations.set('pickup', () => !flags.has(flag));
       actions.set('quest.pickup', () => { flags.set(flag); state.pickup = true; });
     }
-    if (rows.boss !== undefined) actions.set('quest.reward', () => { eye.copy(host.player.position); eye.y += rows.eye; takeNativeBossReward(host, need(rows.boss, 'boss').id, eye); });
+    if (rows.boss !== undefined) actions.set('quest.reward', () => { eye.copy(traveller.position); eye.y += rows.eye; takeNativeBossReward(host, need(rows.boss, 'boss').id, eye); });
     if (rows.bench !== undefined && bench !== null) actions.set(rows.bench.id, () => {
       if (!graph.run(bench.d.id).ok) return;
       const pose = questBenchPose(need(rows.bench, 'bench').pose, bench.spot, bench.spot.yaw);
-      at.set(pose.x, pose.y, pose.z); host.player.motor.resetAt(at); host.player.position.copy(at); host.player.yaw = pose.yaw; host.playerFall.vy = 0;
+      at.set(pose.x, pose.y, pose.z); traveller.motor.resetAt(at); traveller.position.copy(at); traveller.yaw = pose.yaw; traveller.fall.vy = 0;
     });
     const prompts = rows.prompts === undefined ? undefined : bindHeadlessPrompts(spots.promptRegistrations ?? [], id => {
       const policy = need(rows.prompts, 'prompts');
@@ -253,7 +255,7 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
   }
 
   const phases = new Map<string, (dt: number) => void>([
-    ['commands', () => { graph.dispatch(input.scripts()); }], ['reading', dt => { dialogue?.advanceReading(dt, host.player.position); }],
+    ['commands', () => { graph.dispatch(input.scripts()); }], ['reading', dt => { dialogue?.advanceReading(dt, traveller.position); }],
     ['props', dt => { const asked = input.walk(host.level.player.speed); walked.x = rider?.carried === true ? 0 : asked.x; walked.z = rider?.carried === true ? 0 : asked.z; props?.step(dt, walked); }],
     ['transitions', () => { transitions.step(); props?.syncGates(); }], ['cable', dt => { cables.updateNative(cableId, dt, host); }],
     ['director', dt => { finale?.update(dt); }], ['reward', dt => { if (rows.reward !== undefined) reward?.update(dt, flags.has(rows.reward.seen)); }],
@@ -349,6 +351,7 @@ function prepareNativeQuestLead(host: SimHost, rows: { readonly program: unknown
   readonly state: { i: number; mode: (typeof LEAD_MODES)[number]; t: number };
   snapshot: () => NativeLeadSaved; prepareRestore: (input: unknown) => () => void; step: (dt: number, chapterId: string | undefined) => boolean;
 } {
+  const lead = leadPlayer(host);
   const state: { i: number; mode: (typeof LEAD_MODES)[number]; t: number } = { i: 0, mode: 'none', t: 0 }, program = ReturnProgram.native(host, rows.program);
   const input = { i: 0, mode: 0, elapsed: 0, begin: 0, dt: 0, leadStep: 0, night: 0, playerX: 0, playerZ: 0, atX: 0, atZ: 0 };
   return { state, snapshot: () => ({ ...state }),
@@ -359,7 +362,7 @@ function prepareNativeQuestLead(host: SimHost, rows: { readonly program: unknown
     },
     step: (dt, chapterId) => {
       if (host.state.tick % 6 !== 0) { if (state.mode !== 'none') state.t += dt; return false; }
-      const bend = rows.path[state.i], player = host.player.position;
+      const bend = rows.path[state.i], player = lead.position;
       Object.assign(input, { i: state.i, mode: LEAD_MODES.indexOf(state.mode), elapsed: state.t, dt, leadStep: Number(chapterId === rows.step),
         night: host.dayClock?.night ?? 0, playerX: player.x, playerZ: player.z, atX: bend?.[0] ?? 0, atZ: bend?.[1] ?? 0 });
       const answer = program.project('lead', input), i = answer['i'], mode = LEAD_MODES[answer['mode'] ?? -1], elapsed = answer['elapsed'];

@@ -5,6 +5,7 @@ import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { GridAssembly, GridCell, GridPoint } from './assembly';
 import type { ResidencyAllocator } from './allocator';
 import { GridContinuationCache, GRID_CONTINUATION_CACHE_BYTES } from './continuations';
+import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** Admission returns one owned, renderer-free regional host; its world is always in authored local coordinates. */
 export interface GridResident { readonly host: SimHost; readonly dispose: () => void }
@@ -52,7 +53,7 @@ export class GridSimulation {
   constructor(assembly: GridAssembly, ports: GridSimulationPorts) {
     this.assembly = assembly; this.ports = ports;
     this.limit = ports.maxResidents ?? 4;
-    if (!Number.isInteger(this.limit) || this.limit < 2 || this.limit > 9 || ports.highway.host.embedded || !ports.highway.host.hasPlayerMotor) throw new RangeError('Invalid grid simulation owner');
+    if (!Number.isInteger(this.limit) || this.limit < 2 || this.limit > 9 || ports.highway.host.embedded || !leadPlayer(ports.highway.host).hasMotor) throw new RangeError('Invalid grid simulation owner');
     if (ports.reserve !== undefined && ports.residentBytes === undefined) throw new Error('Sim reservation needs admitted resident bytes');
     if (ports.allocator !== undefined && (ports.residentBytes === undefined || ports.reserve !== undefined)) throw new Error('Use one sim reservation owner with admitted bytes');
   }
@@ -103,10 +104,10 @@ export class GridSimulation {
       let value: GridResident;
       try { value = await this.ports.load(cell, this.snapshots.read(instance) ?? this.ports.read?.(instance)); } catch (error) { lease?.release(); throw error; }
       try {
-        if (this.disposed || value.host.embedded || !value.host.hasPlayerMotor) throw new Error('Grid admission requires an owned host');
+        if (this.disposed || value.host.embedded || !leadPlayer(value.host).hasMotor) throw new Error('Grid admission requires an owned host');
         const checkpoint = this.snapshots.pack(instance, snapshotSimHost(value.host));
         if (checkpoint === null) throw new Error('Grid continuation cache capacity exceeded');
-        value.host.detachPlayerMotor(); this.snapshots.store(instance, checkpoint);
+        leadPlayer(value.host).detachMotor(); this.snapshots.store(instance, checkpoint);
         this.residents.set(instance, { value, touched: ++this.used, reservations: 0, retained: false, evicting: false, lease });
         lease?.update?.({ needed: false });
       } catch (error) { try { value.dispose(); } finally { lease?.release(); } throw error; }
@@ -179,8 +180,9 @@ export class GridSimulation {
     if (!this.ready(null) || from !== this.active) throw new Error('Stale grid frame preparation');
     if (to !== null && this.resident(to).evicting) throw new Error('Destination eviction is prepared');
     const source = this.host(), destination = to === null ? this.ports.highway.host : this.resident(to).value.host;
+    const traveller = leadPlayer(source), arrival = leadPlayer(destination);
     const fromOrigin = from === null ? { x: 0, z: 0 } : this.assembly.cell(from).origin, toOrigin = to === null ? { x: 0, z: 0 } : this.assembly.cell(to).origin;
-    const rider: FrameMember = { position: source.player.position, motor: source.player.motor }, mount = this.ports.mount?.();
+    const rider: FrameMember = { position: traveller.position, motor: traveller.motor }, mount = this.ports.mount?.();
     const transaction = prepareFrameMotors(mount === undefined ? [rider] : [rider, mount], destination.physics, { x: fromOrigin.x - toOrigin.x, z: fromOrigin.z - toOrigin.z });
     const target = to === null ? undefined : this.resident(to); if (target !== undefined) target.reservations++;
     target?.lease?.update?.({ needed: true });
@@ -193,11 +195,11 @@ export class GridSimulation {
     return {
       commit: () => {
         if (closed || this.disposed || this.active !== from || !this.ready(to)) throw new Error('Stale or unready grid frame commit');
-        const health = source.player.health.snapshot();
+        const health = traveller.health.snapshot();
         // Validate before any source motor is retired; restore is bounded and cannot invoke application callbacks.
-        destination.player.health.restore({ ...health, lastHurt: health.lastHurt + (destination.clock.now - source.clock.now) * 1000 });
-        transaction.commit(); source.releasePlayerMotor(); destination.attachPlayerMotor(rider.motor);
-        destination.player.position.copy(rider.position); destination.player.yaw = source.player.yaw;
+        arrival.health.restore({ ...health, lastHurt: health.lastHurt + (destination.clock.now - source.clock.now) * 1000 });
+        transaction.commit(); traveller.releaseMotor(); arrival.attachMotor(rider.motor);
+        arrival.position.copy(rider.position); arrival.yaw = traveller.yaw;
         this.active = to; release();
         if (from !== null) { const previous = this.resident(from); previous.lease?.update?.({ needed: previous.retained || previous.reservations > 0 }); }
       },
@@ -207,10 +209,10 @@ export class GridSimulation {
   /** Run once after the crossing coordinator; no frozen neighbour's clock, creatures, scripts or quests advance. */
   step(command?: SimCommand): void {
     if (this.disposed) throw new Error('Grid simulation is disposed');
-    const host = this.host(); this.ports.beforeMove?.(this.active, host); host.step(command);
+    const host = this.host(); this.ports.beforeMove?.(this.active, host); host.step(leadCommands(host, command));
   }
   /** Global render pose is derived from local feet and the current frame, never saved into an authored host. */
-  worldFeet(): GridPoint { const position = this.host().player.position; return this.active === null ? { x: position.x, y: position.y, z: position.z } : this.assembly.world(position, this.assembly.cell(this.active)); }
+  worldFeet(): GridPoint { const position = leadPlayer(this.host()).position; return this.active === null ? { x: position.x, y: position.y, z: position.z } : this.assembly.world(position, this.assembly.cell(this.active)); }
   /** Packed same-page continuations stay bounded independently of the number of unloaded native worlds. */
   continuationState(): { entries: number; storedChars: number; capacityChars: number; claimedBytes: number } {
     return { ...this.snapshots.state(), claimedBytes: this.cacheLease === undefined ? 0 : GRID_CONTINUATION_CACHE_BYTES };

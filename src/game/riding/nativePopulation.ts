@@ -25,6 +25,7 @@ import { NativePopulationField } from '../population/environment';
 import type { NativeEliteBindings } from '@wildshard/engine/ai/eliteRoster';
 import { ReturnProgram } from '../population/returnProgram';
 import { NativeManager, NativePopulationDriver, NativeWildlifeFrame, type NativeWildlifeRows } from '../population/nativeManager';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const finite = v.pipe(v.number(), v.finite());
 const SpawnTable = v.pick(SpeciesSchema, ['kind', 'variants', 'spawnOnly']);
@@ -137,6 +138,7 @@ export function nativePopulationOf(host: SimHost): NativePopulation | undefined 
 /** Extend the approved native mounted continuation around concrete game owners.
  * Config, source records and continuations are rows; no shard callback is bound. */
 export function installNativePopulation(host: SimHost, hunt: StalkerBrain<HuntBody>, rng: Rng, ports: NativePopulationBindings): NativePopulation {
+  const lead = leadPlayer(host);
   const cfg = ports.config, groups = nativeGroupCollection(host, cfg.groups), env = groups.environment, ground = hunt.ground;
   if (env === undefined || nativePopulations.has(host)) throw new Error('Missing or installed native population world');
   const author = ReturnProgram.native(host, ports.boot.admission);
@@ -326,13 +328,13 @@ export function installNativePopulation(host: SimHost, hunt: StalkerBrain<HuntBo
   const savePacks = (list: readonly v.InferOutput<typeof PopulationPack>[]): v.InferOutput<typeof PopulationPack>[] => list.map(r => ({ x: r.x, z: r.z, herd: r.herd, bodies: r.bodies.map(b => ({ id: b.id, variant: b.variant, seed: b.seed, scale: b.scale, at: [...b.at], yaw: b.yaw, adopted: { ...b.adopted } })) }));
   host.onStep(cfg.step, dt => {
     // Wildlife's frame: the player into the wild view, the grass movers, a stampede scaring the packs
-    const yaw = host.player.yaw, fx = -Math.sin(yaw), fz = -Math.cos(yaw), fl = Math.hypot(fx, fz);
+    const yaw = lead.yaw, fx = -Math.sin(yaw), fz = -Math.cos(yaw), fl = Math.hypot(fx, fz);
     if (fl > 1e-4) { env.playerFwdX = fx / fl; env.playerFwdZ = fz / fl; }
     env.playerCrouched = mountedPlayerOf(host)?.rider.crouching === true; env.playerMounted = mountedPlayerOf(host)?.mounted === true;
-    const vital = host.player.health.attributes; env.playerHealth01 = vital.health / vital.maxHealth;
+    const vital = lead.health.attributes; env.playerHealth01 = vital.health / vital.maxHealth;
     frame.update(dt, env.playerCrouched);
     // Ride.update follows Wildlife and precedes the manager's think loop on the page.
-    nativeTamingOf(host)?.update(dt); raid.update(dt, host.player.position, wolves, host.clock.now);
+    nativeTamingOf(host)?.update(dt); raid.update(dt, lead.position, wolves, host.clock.now);
     driver.update(dt);
   }, {
     snapshot: () => {

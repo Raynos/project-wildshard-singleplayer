@@ -5,11 +5,12 @@ import type { ShardfileSimulation } from '../plugin/simulation';
 import { socketLiftEntries } from '@wildshard/format/socketLiftAssets';
 
 import type { LiftRider } from '@wildshard/format/liftRider';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** Capture only a live grounded rider aboard a declared moving lift, never a proximity guess. */
 export function captureLiftRider(source: Shardfile, sim: Pick<ShardfileSimulation, 'host' | 'movers'>): LiftRider {
-  if (!sim.host.hasPlayerMotor || sim.movers === undefined) return null;
-  const motor = sim.host.player.motor;
+  if (!leadPlayer(sim.host).hasMotor || sim.movers === undefined) return null;
+  const motor = leadPlayer(sim.host).motor;
   if (!motor.result.grounded || motor.result.groundCollider === null) return null;
   const owner = tagOf(motor.result.groundCollider)?.owner;
   const entry = socketLiftEntries(source.entryways).find(row => row.lift.mover === owner);
@@ -19,8 +20,8 @@ export function captureLiftRider(source: Shardfile, sim: Pick<ShardfileSimulatio
 }
 /** Reset only on load. Actual deck collision and capsule clearance decide boarding; an absent/blocked landing uses normal safe spawn. */
 export function restoreLiftRider(source: Shardfile, sim: Pick<ShardfileSimulation, 'host' | 'movers' | 'water'>, edge: LiftRider): void {
-  if (edge === null || !sim.host.hasPlayerMotor) return;
-  const entry = socketLiftEntries(source.entryways).find(row => row.edge === edge), player = sim.host.player;
+  if (edge === null || !leadPlayer(sim.host).hasMotor) return;
+  const entry = socketLiftEntries(source.entryways).find(row => row.edge === edge), player = leadPlayer(sim.host);
   const stop = entry?.lift.roadStop, feet = stop === undefined ? undefined : { x: stop[0], y: stop[1], z: stop[2] };
   const water = feet === undefined ? null : sim.water.restAt(feet.x, feet.z);
   const valid = feet !== undefined && entry !== undefined && (water === null || water <= feet.y + 0.15)

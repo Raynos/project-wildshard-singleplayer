@@ -12,6 +12,7 @@ import { bindInteractionTransitions, type InteractionState, type InteractionTran
 import { plateOverlap } from '@wildshard/engine/world/interact/barrel';
 import { walkInPickup } from '@wildshard/engine/world/interact/pickup';
 import { isJsonData } from '@wildshard/format/json';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 type NativeQuestOwners = Omit<QuestHostPorts, 'spots' | 'commands' | 'fact' | 'coins'> & { readonly spots?: QuestHostPorts['spots'] };
 type NativeQuestRule<Spot> = InteractionState & { readonly spot: Spot };
@@ -46,6 +47,7 @@ export function prepareNativeQuestEntry<Spot extends { readonly id: string; read
   readonly transitions: (rows: unknown) => InteractionTransitions<NativeQuestRule<Spot>>;
   readonly install: (owners?: NativeQuestOwners) => ReturnType<typeof installDeclaredQuestHost>;
 } {
+  const lead = leadPlayer(host);
   if (host.scope.disposed) throw new Error('Native quest entry left before preparation');
   const input = nativeQuestInputs(host), inventory = new ItemCatalogue(source.items).inventory;
   const rules = bindQuestTableSpots(table, spots, host.flags, bounds), pack = new NativeInventory(inventory, host);
@@ -79,7 +81,7 @@ export function prepareNativeQuestEntry<Spot extends { readonly id: string; read
         item: (id, n) => { pack.add(id, n); },
         ...(rows.plate === undefined ? {} : { plate: (row: NativeQuestRule<Spot>, size: number) => plateOverlap(host.physics, at(row), at(row).yaw, size, rows.plate) }),
         touched: row => {
-          const position = at(row), feet = host.player.position, pickup = rows.pickup;
+          const position = at(row), feet = lead.position, pickup = rows.pickup;
           if (pickup === 'walk-in') return walkInPickup(host.physics, feet, position);
           const dx = feet.x - position.x, dz = feet.z - position.z;
           return dx * dx + dz * dz < pickup.radius * pickup.radius && Math.abs(feet.y - position.y) < pickup.height;

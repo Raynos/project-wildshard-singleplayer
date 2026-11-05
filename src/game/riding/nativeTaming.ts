@@ -12,6 +12,7 @@ import type { TamingBindingProfile, TamingObservation } from './bindingTypes';
 import { createNativeCreaturePoses, type NativeCreaturePoseRecipe } from '../plugin/animation';
 import { numericCreaturePose } from '../plugin/channelPrograms';
 import { poseRidingEnvelopes, type RidingPresentationRows } from './presentation';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** Engine-owned tick input, shared by native modes; authors supply only rows. */
 export interface NativeTamingContext {
@@ -48,6 +49,7 @@ export function nativeTamingOf(host: SimHost): NativeTamingOwner | undefined { r
  * The creature manager calls update after Wildlife, BEFORE raid and think. Only this law's owned clocks are saved here.
  */
 export function installNativeTaming(host: SimHost, context: NativeTamingContext, rows: NativeTamingRows): NativeTamingOwner {
+  const lead = leadPlayer(host);
   const { herds, wind } = nativeHerdCollection(host, rows.herds), creatures = bondedMountRoster(host, rows.roster), mounted = mountedPlayerOf(host);
   if (mounted === undefined) throw new Error('Missing native mounted owner');
   const draw = numericCreaturePose(rows.poseProgram);
@@ -70,9 +72,9 @@ export function installNativeTaming(host: SimHost, context: NativeTamingContext,
     profile: rows.binding,
     programs: rows.programs,
     bond: { read: () => null, write: value => { if (!rows.binding.bonds.includes(value)) throw new Error('Invalid native bond'); bond = value; } },
-    player: { position: host.player.position, get crouching() { return mounted.rider.crouching; },
-      get yaw() { return host.player.yaw; }, set yaw(value) { host.player.yaw = value; }, get pitch() { return pitch; }, set pitch(value) { pitch = value; },
-      keys: new Set<string>(), camera: { position: camera, getWorldDirection: out => out.set(-Math.sin(host.player.yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(host.player.yaw) * Math.cos(pitch)) } },
+    player: { position: lead.position, get crouching() { return mounted.rider.crouching; },
+      get yaw() { return lead.yaw; }, set yaw(value) { lead.yaw = value; }, get pitch() { return pitch; }, set pitch(value) { pitch = value; },
+      keys: new Set<string>(), camera: { position: camera, getWorldDirection: out => out.set(-Math.sin(lead.yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(lead.yaw) * Math.cos(pitch)) } },
     mount: { get mounted() { return mounted.mounted; }, get horse() { return mounted.horse; },
       get breakShake() { return shake; }, set breakShake(value) { shake = value; }, get breakRoll() { return roll; }, set breakRoll(value) { roll = value; },
       mount: (a, breaking) => mounted.mount(a.entityId, breaking), dismount: thrown => { mounted.dismount(thrown); },
@@ -84,14 +86,14 @@ export function installNativeTaming(host: SimHost, context: NativeTamingContext,
       creatures.retire(a.entityId); poses.delete(a.entityId);
       const at = poseRows.indexOf(a); if (at === -1) throw new Error('Missing bonded pose'); poseRows.splice(at, 1);
     }, hurt: amount => {
-      host.combat.hit({ source: 'env', sourceTags: ['env.ride'], target: host.player.health, amount, throughWalls: true,
-        point: host.player.position, dir: hurtDir, cause: { kind: 'env.ride', label: rows.thrownLabel, text: rows.thrownLabel } });
+      host.combat.hit({ source: 'env', sourceTags: ['env.ride'], target: lead.health, amount, throughWalls: true,
+        point: lead.position, dir: hurtDir, cause: { kind: 'env.ride', label: rows.thrownLabel, text: rows.thrownLabel } });
     },
   },host.scope);
   host.events.on('creature.signal', ({ name, x, z }) => { law.noteEvent(name, x, z); }, host.scope);
   host.events.on('weapon.impact', ({ point }) => {
     // Same state.ts filter: only a distant landing, not an arm's-length melee impact.
-    if (Math.hypot(point.x - host.player.position.x, point.z - host.player.position.z) < rows.impactRange) return;
+    if (Math.hypot(point.x - lead.position.x, point.z - lead.position.z) < rows.impactRange) return;
     for (let i = 0; i < 8; i++) { const h = herds[i]; if (h === undefined) break; h.disturb(point.x, point.z); }
     for (let i = 0; i < 16; i++) { const f = creatures.flocks[i]; if (f === undefined) break; if (Math.hypot(f.cx - point.x, f.cz - point.z) < rows.scareRange) f.scare(point.x, point.z, rows.scareSeconds); }
     law.noteShot(point.x, point.z);
@@ -107,7 +109,7 @@ export function installNativeTaming(host: SimHost, context: NativeTamingContext,
       const d = a.position.distanceTo(camera), radius = mounted.horse === a ? 3.6 : 3.3;
       if (d < radius && d < best) { best = d; taming = false; }
       if (!mounted.mounted && a.alive && Math.hypot(a.position.x - rows.rail.x, a.position.z - rows.rail.z) <= 5) {
-        const foot = Math.hypot(a.position.x - host.player.position.x, a.position.z - host.player.position.z);
+        const foot = Math.hypot(a.position.x - lead.position.x, a.position.z - lead.position.z);
         if (foot < nameDistance) { nameDistance = foot; naming = a; }
       }
     }
@@ -134,7 +136,7 @@ export function installNativeTaming(host: SimHost, context: NativeTamingContext,
         else if (c.actorId === rows.inputs.mount) { if (c.value !== 1) throw invalidInput; mount = true; }
       }
     }
-    camera.copy(host.player.position); camera.y += rows.eye;
+    camera.copy(lead.position); camera.y += rows.eye;
     originalUpdate(dt);
     if (mount && selectedTaming()) {
       setPromptSight(law.interactable, { body: law.promptHorse, slack: 0.5 });
@@ -148,7 +150,7 @@ export function installNativeTaming(host: SimHost, context: NativeTamingContext,
       const row = poseRows[i]; if (row === undefined) break;
       const pose = poses.get(row.entityId); if (pose === undefined) throw missingPose;
       const bodyDt = host.bodyDt(row.entityId); if (bodyDt <= 0) continue;
-      const near = row.position.distanceToSquared(host.player.position) < 140 * 140;
+      const near = row.position.distanceToSquared(lead.position) < 140 * 140;
       pose.advance(bodyDt, host.clock.now, near); if (near) { poseRidingEnvelopes(pose.context, rows.presentation, wind); draw(pose.context); } pose.publish();
     }
   }, {
@@ -169,11 +171,12 @@ export function installNativeTaming(host: SimHost, context: NativeTamingContext,
  *  first horse the ride rules take (the bonded companion first, then the mountables in their order), placed and turned
  *  `row.yaw` from the player, its stamina set to `row.steed`. On foot when none can be ridden. */
 export function respawnNativeMounted(host: SimHost, position: Vector3, yaw: number, row: { readonly yaw: number; readonly steed: number }): void {
+  const lead = leadPlayer(host);
   const mounted = mountedPlayerOf(host);
   if (mounted === undefined) throw new Error('Missing native mounted owner');
   if (mounted.mounted) mounted.dismount();
-  host.player.position.copy(position); host.player.motor.resetAt(position); host.player.yaw = yaw;
-  mounted.rider.velocity.set(0, 0, 0); host.playerFall.vy = 0; host.playerWalk.x = 0; host.playerWalk.z = 0;
+  lead.position.copy(position); lead.motor.resetAt(position); lead.yaw = yaw;
+  mounted.rider.velocity.set(0, 0, 0); lead.fall.vy = 0; lead.walk.x = 0; lead.walk.z = 0;
   const companion = nativeTamingOf(host)?.companion ?? null;
   for (const actor of [...(companion === null ? [] : [companion]), ...mounted.mountables]) {
     if (!mounted.canRide(actor.entityId)) continue;

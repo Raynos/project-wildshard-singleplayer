@@ -8,6 +8,7 @@ import type { NativeCombatFrame } from '../plugin/nativeItems';
 import { ReturnProgram } from '../population/returnProgram';
 import { installNativeBodyScripts } from '../quest/nativeBodyScripts';
 import type { ShardProduct } from './shardProduct';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 interface ProductInput { readonly product: ShardProduct; readonly assets: ReadonlyMap<string, Uint8Array> }
 /** Retain full program admission before prepare and the original per-host module loan on install. */
@@ -18,10 +19,11 @@ export async function prepareReturns(preparation: ProductInput): Promise<(host: 
 }
 /** The original native frame observer. */
 export function installCombatMotion(host: SimHost, context: { readonly combat?: NativeCombatFrame }, speed: number): void {
+  const lead = leadPlayer(host);
   if (host.scope.disposed || host.scope.disposing) throw new Error('Native capability owner has ended');
   const frame = context.combat;
   if (frame === undefined) throw new Error('Native combat motion requires its combat frame');
-  host.observePlayerMotion(sample => { frame.speedFactor = sample === null ? null : combatSpeedFactor(
+  lead.observeMotion(sample => { frame.speedFactor = sample === null ? null : combatSpeedFactor(
     Math.sqrt(sample.velocityX * sample.velocityX + sample.velocityZ * sample.velocityZ), sample.grounded, sample.swimming, sample.hover, speed); });
 }
 /** The original direct body-script admission and deferred restored-ground fence. */

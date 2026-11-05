@@ -8,6 +8,7 @@ import { EliteCore, memoryElitePersistence } from '../eliteSystem';
 import { EliteDecisions } from './eliteDecisions';
 import { SpawnScript, readSpawnScript } from '../population/spawnScript';
 import type { ShardProduct } from '../shardfile/shardProduct';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 const finite = v.pipe(v.number(), v.finite());
 const uint = v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(0xffffffff));
@@ -30,9 +31,10 @@ export async function readEliteFeature(product: ShardProduct, name: string): Pro
 export function installNativeEliteFeature(host: SimHost, day: DayCycleClock, input: unknown): {
   readonly core: EliteCore<EliteDecisions>; readonly scripts: readonly EliteDecisions[]; readonly initialize: () => void;
 } {
+  const lead = leadPlayer(host);
   const rows = parseEliteFeature(input);
   if (rows.fights.some(row => row.def.rule === 'storm')) throw new Error('Storm encounter needs an admitted weather owner');
-  const core = new EliteCore<EliteDecisions>({ player: host.player, condition: rule => rule === 'always'
+  const core = new EliteCore<EliteDecisions>({ player: lead, condition: rule => rule === 'always'
     || (rule === 'dusk' ? day.dusk > 0.5 : rule === 'night' ? day.night > 0.5 : false) }, {}, host.level.id, memoryElitePersistence());
   const scripts = rows.fights.map(row => new EliteDecisions(row, SpawnScript.native(host, row.program), rows, host.level.seed));
   for (const script of scripts) core.add(script);
@@ -44,16 +46,16 @@ export function installNativeEliteFeature(host: SimHost, day: DayCycleClock, inp
   const held = new Vector3(), direction = new Vector3();
   host.onStep(rows.step, dt => {
     restored = undefined;
-    if (stun !== null) { held.set(stun.x, stun.y, stun.z); host.player.position.copy(held); host.player.motor.resetAt(held); stun.t -= dt; if (stun.t <= 0) stun = null; }
-    for (const script of scripts) script.frame(host.player.position, day.dusk, day.night, false, host.player.yaw);
+    if (stun !== null) { held.set(stun.x, stun.y, stun.z); lead.position.copy(held); lead.motor.resetAt(held); stun.t -= dt; if (stun.t <= 0) stun = null; }
+    for (const script of scripts) script.frame(lead.position, day.dusk, day.night, false, lead.yaw);
     core.update(dt, host.clock.now);
     for (const script of scripts) for (const effect of script.program.drainEffects()) {
       if (effect.kind === 'cue') { if (rows.view?.cues.find(row => row.id === script.program.cue(effect.id))?.signature === true) core.signature(script.def.id); continue; }
       if (effect.kind !== 'hit') continue;
       const body = script.program.body(effect.actor); if (body === null) throw new Error('Missing elite contact body');
-      host.combat.hit({ source: body.combatActor(), sourceTags: [`creature.${body.kind}`, 'feel.blow', 'cover.checked'], target: host.player.health,
+      host.combat.hit({ source: body.combatActor(), sourceTags: [`creature.${body.kind}`, 'feel.blow', 'cover.checked'], target: lead.health,
         amount: effect.hit.damage, point: body.position.clone(), dir: direction.set(0, 0, 0), throughWalls: effect.hit.throughWalls, cause: { kind: body.kind, label: body.label } });
-      if (effect.hit.stun > 0) { const p = host.player.position; stun = { t: effect.hit.stun, x: stun?.x ?? p.x, y: stun?.y ?? p.y, z: stun?.z ?? p.z }; }
+      if (effect.hit.stun > 0) { const p = lead.position; stun = { t: effect.hit.stun, x: stun?.x ?? p.x, y: stun?.y ?? p.y, z: stun?.z ?? p.z }; }
     }
   }, {
     snapshot: () => restored ?? { version: rows.version, ...core.snapshot(), stun: stun === null ? null : { ...stun }, scripts: scripts.map(script => ({ id: script.def.id,

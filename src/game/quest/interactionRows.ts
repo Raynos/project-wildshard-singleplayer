@@ -4,6 +4,7 @@ import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import { test, type Flags } from '@wildshard/engine/world/interact/flags';
 import { pickPrompt, setPromptSight, type PromptTarget } from '@wildshard/engine/world/interact/prompts';
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 
 /** The defining pure interaction contract, shared by author admission and native rules. */
@@ -100,8 +101,9 @@ export interface InteractionRowPorts {
 const EYE = 1.68;
 const eye = new Vector3(), at = new Vector3();
 /** Whether the player's eye stands within the spot's radius plus `reach` (a prompt's pick, a crack's lash). */
-export function eyeReaches(host: Pick<SimHost, 'player'>, spot: InteractionSpot, reach = 0): boolean {
-  eye.copy(host.player.position); eye.y += EYE;
+export function eyeReaches(host: Pick<SimHost, 'players'>, spot: InteractionSpot, reach = 0): boolean {
+  const lead = leadPlayer(host);
+  eye.copy(lead.position); eye.y += EYE;
   return at.set(spot.x, spot.y, spot.z).distanceTo(eye) < spot.radius + reach;
 }
 /** The tick protocol's command allowance (sdk/tickProtocol.ts). */
@@ -170,10 +172,11 @@ export function bindHeadlessPrompts(registrations: readonly PromptRegistration[]
 }
 
 /** Use the client prompt law against native host collision, from the player's eye 1.68 m above their feet. */
-export function createHeadlessPromptPicker(host: Pick<SimHost, 'player' | 'physics'>): HeadlessPromptPicker {
+export function createHeadlessPromptPicker(host: Pick<SimHost, 'players' | 'physics'>): HeadlessPromptPicker {
+  const lead = leadPlayer(host);
   const promptEye = { x: 0, y: 0, z: 0 };
   return { pick: candidates => {
-    promptEye.x = host.player.position.x; promptEye.y = host.player.position.y + 1.68; promptEye.z = host.player.position.z;
+    promptEye.x = lead.position.x; promptEye.y = lead.position.y + 1.68; promptEye.z = lead.position.z;
     for (const candidate of candidates) if (candidate.sight !== undefined) setPromptSight(candidate, candidate.sight);
     return pickPrompt(candidates, promptEye, host.physics);
   } };

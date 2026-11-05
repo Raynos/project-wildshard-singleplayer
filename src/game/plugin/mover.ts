@@ -21,6 +21,7 @@ import { MOVER_FIELDS, MOVER_FIELD_RANGES, moverScriptEntities } from "../shardf
 import { MoverLifecycle, MoverLifecycleStateSchema, moverEndState, type MoverEndEvent } from '@wildshard/engine/sim/moverLifecycle';
 import { MoverMechanic, type NativeMoverMotion } from '@wildshard/engine/sim/moverMotion';
 import { parseMovers, type MoverData } from "@wildshard/format/movers";
+import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 /** One declared entryway as the shardfile states it (a midpoint opening on an edge). */
 export interface TerrainEntryway { readonly edge: 'north' | 'east' | 'south' | 'west'; readonly kind?: string | undefined }
@@ -300,14 +301,16 @@ export class MoverRuntime {
     this.carryPoses.clear();
   }
   private carryNative(host: SimHost): void {
-    for (const carry of this.carryPoses.values()) { host.player.position.set(...carry.at); host.player.motor.resetAt(host.player.position); host.playerFall.vy = 0; host.playerFall.grounded = false; if (!carry.riding) host.player.yaw = carry.yaw; }
+  const lead = leadPlayer(host);
+    for (const carry of this.carryPoses.values()) { lead.position.set(...carry.at); lead.motor.resetAt(lead.position); lead.fall.vy = 0; lead.fall.grounded = false; if (!carry.riding) lead.yaw = carry.yaw; }
     this.carryPoses.clear();
   }
   /** Protect ordinary walking while the existing fixed mover lane publishes carry. */
   bindNativeCarry(host: SimHost): void {
     if (!this.data.some(row => row.carry !== undefined)) return;
     host.events.answer('player.carrying', carried => carried || this.riding(), host.scope);
-    host.events.answer('player.traversal', dt => typeof dt === 'number' ? this.riding() : dt, host.scope);
+    const lead = leadPlayer(host); // carry poses are the lead's
+    host.events.answer('player.traversal', dt => typeof dt === 'number' && (host.traversing === null || host.traversing === lead) ? this.riding() : dt, host.scope);
     host.onStep('movers.carry', () => { this.carryNative(host); }, undefined, 'afterBodies');
   }
   /** Read this mover role's ABI input without starting a tick or touching any other script role's allowance. */
@@ -471,6 +474,7 @@ export class MoverScriptDriver {
   }
   /** Attach native handles to the same host; an explicit drive owns one fixed tick, never another script host. */
   install(sim: SimHost, input: ReturnType<typeof createShardfileComposedLane> | DeclaredMoverComposition, options: { id: string; restoring?: boolean; restoreFlags?: ReadonlySet<string>; activation?: MoverActivationPorts; drive?: boolean; permissions?: () => ReadonlyMap<string, number> }): MoverRuntime {
+  const lead = leadPlayer(sim);
     if (this.runtime !== undefined) throw new Error('Mover driver is already installed');
     const lane = 'host' in input ? input : this.compose({ ...input.content, sim: { ...input.content.sim, scripts: [...input.assets.keys()] } }, input.assets,
       { rules: input.rules, entities: [], actors: new Map(), query: () => [] }, undefined, options.permissions,
@@ -478,7 +482,7 @@ export class MoverScriptDriver {
     const runtime = new MoverRuntime(this.data, { flags: sim.flags, host: lane.host, physics: () => sim.physics, scope: sim.scope,
       ...(options.restoring === undefined ? {} : { restoring: options.restoring }),
       ...(options.restoreFlags === undefined ? {} : { restoreFlags: options.restoreFlags }),
-      activation: { ground: () => sim.hasPlayerMotor ? sim.player.motor.result : undefined, ...options.activation } });
+      activation: { ground: () => lead.hasMotor ? lead.motor.result : undefined, ...options.activation } });
     this.runtime = runtime; runtime.bindNativeCarry(sim);
     sim.onStep(options.id, () => { if (options.drive === true) lane.step(sim.state.tick); runtime.capture(); }, {
       snapshot: () => runtime.snapshotState(this.resetIds), restore: value => {

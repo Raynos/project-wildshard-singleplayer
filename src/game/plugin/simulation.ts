@@ -2,7 +2,7 @@ import { ReturnProgram } from '../population/returnProgram';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import { parseNativeLoadoutRow, type NativeLoadoutRowSchema } from '@wildshard/format/nativeItems';
 import { borrowedDecisionAuthority } from '../shardfile/borrowedDecisions';
-import { ShardDecisions } from '../shardfile/decisions';
+import { decisionRuntime, ShardDecisions } from '../shardfile/decisions';
 import { WorldTargetHost } from '../shardfile/worldTargets';
 import { outputDescriptor } from '../shardfile/outputDescriptor';
 import { parseWorldTargets, worldTargetRules } from '@wildshard/format/worldTargets';
@@ -26,7 +26,7 @@ import { GridAssembly } from '../grid/assembly';
 import { GridSimulation } from '../grid/simulation';
 import { ResidencyAllocator } from '../grid/allocator';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
-import { restoreSimHost, prepareSimHostRestore, isSimHostRestoring, snapshotSimHost, regionalContinuation, type SimSnapshot, type PreparedSimHostRestore } from '@wildshard/engine/sim/snapshot';
+import { leadSnapshot, restoreSimHost, prepareSimHostRestore, isSimHostRestoring, snapshotSimHost, regionalContinuation, type SimSnapshot, type PreparedSimHostRestore } from '@wildshard/engine/sim/snapshot';
 import { SaveStore } from '@wildshard/engine/saves/store';
 import { Ledger } from '../ledger';
 import type { Material } from '@wildshard/engine/physics/surface';
@@ -72,6 +72,7 @@ import { LiftRiderSchema, type LiftRider } from "@wildshard/format/liftRider";
 import * as v from "valibot";
 import { installEntrySockets } from "@wildshard/engine/physics/entrySockets";
 import { addPiece, type AddedPiece } from "@wildshard/engine/physics/pieces";
+import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 type Physics = SimHost['physics'];
 type PropColliderPort = NonNullable<ReturnType<ReturnType<typeof installShardfileColliders>['get']>>;
@@ -165,6 +166,7 @@ export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<
   const actors = policy.sources === 'actors+bosses' ? (() => { const rows = readRuntimeWorldMetadata(baked, true); return [...rows.actors, ...rows.bosses]; })() : readRuntimeWorldMetadata(baked).actors;
   const population = prepareNativePopulation(policy.seed === 'identity' ? { ...policy.rows, seed: shard.identity.seed } : policy.rows, actors, policy.owner);
   return { level: trustedLevel(shard, player, recipe.ground), ports: { ground: false, heightAt }, install: (host, context) => {
+  const lead = leadPlayer(host);
     if(sections.has('actors/return-scripts')){
       const returns=v.parse(ReturnModulesSchema,sections.get('actors/return-scripts'));
       if(returns.some(candidate=>candidate.abi===2))ReturnProgram.lendModules(host.scope,assets,returns);
@@ -174,7 +176,7 @@ export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<
     if (recipe.floor === 'solids') host.setFloorQuery((x, z, fromY, maxDrop) => floorBelow(host.physics, x, z, fromY, maxDrop));
     const environment = (() => {
       if (row === undefined) return { hooks: new Map(), hookTick: () => -1 };
-      const items = declaredItemScriptBindings(shard.items, host.player.id);
+      const items = declaredItemScriptBindings(shard.items, lead.id);
       const motion = new MoverScriptDriver(data, host).install(host, { content: { ...row.composition, identity: shard.identity }, rules: row.rules, assets: modules,
         declarations: row.itemRole === undefined ? [] : [{ row: row.itemRole, entities: items.entities, actors: items.actors }] },
       { id: row.systemId, restoring, restoreFlags: new Set(host.flags.all), drive: true, permissions: () => new Map(row.permissions.map(grant => [grant.mover, flagValue(host.flags, grant.flags)])) });
@@ -183,7 +185,7 @@ export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<
     })();
     const ledger = ledgerPorts(context.emit);
     return { ...environment, ledger, ...population.install(host, ledger, context.snapshot, borrowedDecisionAuthority(shard, assets, sections, {
-      scope: host.scope, events: host.events, flags: host.flags, get physics() { return host.physics; }, player: host.player, groundHeightAt: host.groundHeightAt.bind(host),
+      scope: host.scope, events: host.events, flags: host.flags, get physics() { return host.physics; }, player: lead, groundHeightAt: host.groundHeightAt.bind(host),
       live: actor => host.entities.get(actor.entityId) === actor, fixed: (id, run, scope) => { scope.onDispose(host.onStep(id, run)); },
     })) };
   } };
@@ -221,6 +223,7 @@ export async function prepareRuntimePlan(shard: Shardfile, assets: ReadonlyMap<s
   const spots = metadata?.spots ?? row.quest.spots;
   if (spots === 'metadata') throw new Error('Missing admitted native quest spots');
   const plan: NativeRuntimePlan = { level: world.level, ports: world.ports, install: (host, context) => {
+  const lead = leadPlayer(host);
     const environment = world.install(host, context), { ledger, keeper, encounter } = environment;
     const reactions = ownsTargets || row.weapon.worldReactionAction === undefined ? undefined : (() => {
       const page = quest.page;
@@ -229,7 +232,7 @@ export async function prepareRuntimePlan(shard: Shardfile, assets: ReadonlyMap<s
       return bindQuestWorldReactions(declarations, { flags: host.flags });
     })();
     const loadout = bindNativeLoadout(host, { slots: [0], initial: 0, lower: 0, raise: 0 }, {
-      owned: () => true, locked: () => encounter.locked() || (row.weapon.stowOnBoard === true && host.playerBoard.on),
+      owned: () => true, locked: () => encounter.locked() || (row.weapon.stowOnBoard === true && lead.board.on),
     });
     const melee = installNativeMelee(host, weapon, weapon.native, { inputCommands: context.commands,
       enabled: () => loadout.live(0),
@@ -248,7 +251,7 @@ export async function prepareRuntimePlan(shard: Shardfile, assets: ReadonlyMap<s
         encounters: new Map([[parseBossOwnerRow(recipe.population.owner).actor, encounter]]) },
     });
     if (ownsTargets) bindNativeWorldTargets(host, melee, questRuntime, targets, context.emit);
-    if (row.columns) bindPlayerImpulse(velocity => { host.impulsePlayer(velocity); }).columns(shard.modes?.traverse ?? [], () => host.player.position, () => host.playerBoard.on,
+    if (row.columns) bindPlayerImpulse(velocity => { lead.addImpulse(velocity); }).columns(shard.modes?.traverse ?? [], () => lead.position, () => lead.board.on,
       (id, run) => { host.onStep(id, run); });
     keeper.settle();
   } };
@@ -384,6 +387,7 @@ function observationValue(entry: [string, unknown], value: boolean): asserts ent
 
 /** Reinstall matching adapters into a fresh standalone restore host; restoring skips collider allocation and stepping. */
 export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileSimPorts): ShardfileSimulation {
+  const lead = leadPlayer(host);
   if (shard.nativeGround !== null) throw new Error('Native ground retains its trusted runtime simulation; a flat declared proxy is forbidden');
   const levelId = shard.identity.slug;
   if (host.level.id !== levelId || host.level.seed !== shard.identity.seed || host.entities.size !== shard.creatures.spawns.length || shard.creatures.spawns.some((row) => !host.entities.has(row.id))) throw new Error('Shardfile simulation host mismatch');
@@ -447,7 +451,7 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     });
     const hooks = ports.hooks ?? shard.hooks;
     const actors = new Map<string, number>(), reverse = new Map<number, string>();
-    for (const id of [host.player.id, ...host.entities.keys()]) {
+    for (const id of [lead.id, ...host.entities.keys()]) {
       const handle = numericScriptEntityId(id); if (reverse.has(handle)) throw new Error('Script actor handle collision');
       actors.set(id, handle); reverse.set(handle, id);
     }
@@ -468,11 +472,11 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     if (shard.sim.scripts.length > 0) {
       const entities = new Map<number, ScriptEntity>();
       for (const [id, handle] of actors) {
-        const position = id === host.player.id ? host.player.position : host.entities.get(id)?.position;
+        const position = id === lead.id ? lead.position : host.entities.get(id)?.position;
         if (position === undefined) throw new Error('Missing host actor');
         entities.set(handle, { id: handle, name: id, position: [position.x, position.y, position.z], fields: {}, frozen: false, interactive: true });
       }
-      const trusted = ports.scriptEntities ?? declaredItemScriptBindings(shard.items, host.player.id);
+      const trusted = ports.scriptEntities ?? declaredItemScriptBindings(shard.items, lead.id);
       for (const entity of trusted.entities) {
         if (entities.has(entity.id)) throw new Error('Duplicate trusted script entity'); entities.set(entity.id, entity);
       }
@@ -512,9 +516,9 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
       if (moverDriver !== undefined) {
         const stateWorld = lane.world;
         const runtime = moverDriver.install(host, lane, { id: 'movers.declared', restoreFlags: new Set(host.flags.all),
-          activation: { ground: () => host.hasPlayerMotor ? host.player.motor.result : undefined, shared: id => {
+          activation: { ground: () => lead.hasMotor ? lead.motor.result : undefined, shared: id => {
             const field = shard.state.shared.find(row => row.id === id);
-            const value = field === undefined ? undefined : stateWorld.viewField(host.player.id, 'shared', field.name);
+            const value = field === undefined ? undefined : stateWorld.viewField(lead.id, 'shared', field.name);
             return typeof value === 'number' || typeof value === 'boolean' ? value : undefined;
           } }, ...(ports.restoring === undefined ? {} : { restoring: ports.restoring }) });
         movers = runtime;
@@ -526,7 +530,7 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
       const sync = () => syncTargetColliders(shard.targets, colliders, (scope, id) => {
         const field = shard.state[scope].find((row) => row.id === id);
         if (field === undefined) throw new Error('Missing target state field');
-        const value = targetLane.world.viewField(host.player.id, scope, field.name);
+        const value = targetLane.world.viewField(lead.id, scope, field.name);
         if (value === undefined) throw new Error('Unavailable target state field');
         return value;
       });
@@ -601,7 +605,7 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     const decisionActors = new Set(decisionRows.flatMap(row => Object.values(row.actors)));
     const decisionEncounters = new Set(shard.encounters.filter(row => decisionActors.has(row.entity)).map(row => row.id));
     const encounters = installDeclaredEncounters(host, shard.encounters, ports.encounters ?? (() => ({ saved: { defeated: false, rewardTaken: false, kills: 0 }, persist: () => undefined, reward: () => undefined })), ports.hud, decisionEncounters);
-    const decisions = decisionRows.length === 0 ? undefined : new ShardDecisions(host, shard, assets, ports.sections ?? new Map(), encounters, quest, movers, ports.quest?.fact, ports.restoring ?? false, ports.navigation, ports.scriptDisabled);
+    const decisions = decisionRows.length === 0 ? undefined : new ShardDecisions(decisionRuntime(host), shard, assets, ports.sections ?? new Map(), encounters, quest, movers, ports.quest?.fact, ports.restoring ?? false, ports.navigation, ports.scriptDisabled);
     // All individual/custom aliases and encounter recipes have admitted successfully before setup draws or group work.
     const groups = preparedGroups.install(ports.restoring ?? false);
     if (!host.embedded && !ports.restoring) host.physics.step();
@@ -616,7 +620,7 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
       if (selectedInteraction() !== id) return false;
       if (decisions?.interact(id) === true) return true;
       if (lane === undefined) throw new Error('Interaction requires an admitted scene lane');
-      createQuestScriptPorts(lane, hooks, actors).scene(row.scene, host.player.id); return true;
+      createQuestScriptPorts(lane, hooks, actors).scene(row.scene, lead.id); return true;
     };
     return { selectedInteraction, interact, ...(decisions === undefined ? {} : { decisions }), host, lane, actors, quest, encounters, water, colliders, groups, crowds, movers, dispose: () => { host.dispose(); } };
   } catch (error) { host.dispose(); throw error; }
@@ -680,13 +684,13 @@ export async function proveAuthoredGrid(source: Shardfile, assets: ReadonlyMap<s
     if (resident === undefined) throw new Error('Missing author residency');
     const healthy = (value: ShardfileSimulation): void => {
       insist(!value.lane?.host.checkpoint().modules.some(module => module.failures > 0 || module.disabled), 'script failed');
-      insist([value.host.player.position, ...[...value.host.entities.values()].map(entity => entity.position)].every(point => [point.x, point.y, point.z].every(Number.isFinite)), 'nonfinite native pose');
+      insist([leadPlayer(value.host).position, ...[...value.host.entities.values()].map(entity => entity.position)].every(point => [point.x, point.y, point.z].every(Number.isFinite)), 'nonfinite native pose');
     };
     for (let tick = 0; tick < plan.checkpointTick; tick++) { grid.step(inputAt(tick, resident)); healthy(resident); }
     insist(!grid.checkpoint(instance), 'failed durable save admitted'); durable = true;
     insist(grid.checkpoint(instance), 'durable checkpoint refused');
     insist(loads === 1, 'first residency loaded more than once');
-    const continuation = regionalContinuation(resident.host), player = snapshotSimHost(resident.host).player;
+    const continuation = regionalContinuation(resident.host), player = leadSnapshot(snapshotSimHost(resident.host));
     const tick = resident.host.state.tick;
     (await grid.prepare(instance, null)).commit(); for (let i = 0; i < 5; i++) grid.step();
     insist(resident.host.state.tick === tick, 'inactive region advanced');
@@ -694,10 +698,10 @@ export async function proveAuthoredGrid(source: Shardfile, assets: ReadonlyMap<s
     (await grid.prepare(null, instance)).commit();
     insist(regionalContinuation(resident.host) === continuation, 'regional continuation changed on restore');
     insist(loads === 2, 'restore did not create a fresh residency');
-    const restoredPlayer = snapshotSimHost(resident.host).player;
+    const restoredPlayer = leadSnapshot(snapshotSimHost(resident.host));
     insist(JSON.stringify(restoredPlayer.position) === JSON.stringify(player.position) && restoredPlayer.yaw === player.yaw, 'traveler pose changed on restore');
     for (let next = plan.checkpointTick; next < plan.ticks; next++) { grid.step(inputAt(next, resident)); healthy(resident); }
-    for (let next = 0; next < plan.ticks; next++) { baseline.host.step(inputAt(next, baseline)); healthy(baseline); }
+    for (let next = 0; next < plan.ticks; next++) { baseline.host.step(leadCommands(baseline.host, inputAt(next, baseline))); healthy(baseline); }
     insist(regionalContinuation(resident.host) === regionalContinuation(baseline.host), 'restored regional suffix diverged');
     insist(JSON.stringify(facts) === JSON.stringify(baselineFacts), 'restored facts diverged or repeated');
     const values = new Map<string, string>();
@@ -856,35 +860,36 @@ export function installNativeMelee(host: SimHost, weapon: NativeMeleeWeapon | re
 }
 /** SweptMeleeCore remains the single combo/charge clock; this branch binds native rows and existing target queries. */
 function installNativeSweptMelee(host: SimHost, items: readonly unknown[], input: unknown, ports: NativeSweptMeleePorts): NativeSweptMeleeOwner {
+  const lead = leadPlayer(host);
   const { row, profiles } = parseNativeSweptMeleeBinding(input, items);
   type Profile = typeof profiles[number]; type Move = Profile['moves']['heavy'];
   const slots = profiles.map((_profile, index) => index);
   const loadout = createNativeLoadout(row.selection ?? { slots, initial: row.initial, lower: 0, raise: 0 }, { owned: () => true, locked: () => false });
   const state = { queued: false, struck: false, opened: false, windows: 0, target: null as string | null, aimed: false, swings: 0, hits: 0 };
   /** The body a free swing takes: the page's `findLunge`, unlocked. A move past its reach after the dash lands on nothing. */
-  const aimedBody = (profile: Profile, move: Move): string | null => pickLunge(host.entities.values(), host.player.position, host.player.yaw,
+  const aimedBody = (profile: Profile, move: Move): string | null => pickLunge(host.entities.values(), lead.position, lead.yaw,
     move === profile.moves.heavy ? profile.lunge.heavyRange : profile.lunge.range, profile.lunge.cone)?.entityId ?? null;
   const yAxis = new Vector3(0, 1, 0);
   const lunge = (profile: Profile, move: Move): void => {
-    const actor = state.target === null ? undefined : host.entities.get(state.target), player = host.player.position;
+    const actor = state.target === null ? undefined : host.entities.get(state.target), player = lead.position;
     if (actor === undefined || !actor.alive || Math.abs(actor.position.y - player.y) > row.lunge.maxHeight) return;
     const dx = actor.position.x - player.x, dz = actor.position.z - player.z, span = Math.hypot(dx, dz);
     if (span < row.lunge.minDistance || Math.acos(Math.max(-1, Math.min(1,
-      (-dx * Math.sin(host.player.yaw) - dz * Math.cos(host.player.yaw)) / span))) > profile.lunge.cone) return;
+      (-dx * Math.sin(lead.yaw) - dz * Math.cos(lead.yaw)) / span))) > profile.lunge.cone) return;
     const radius = Math.max(row.lunge.minRadius, Math.max(actor.dims.bodyRadius, actor.dims.bodyHalfLen * row.lunge.lengthScale)) * actor.scale;
     const dash = sweptLunge(profile.lunge, move === profile.moves.heavy, dx, dz, radius);
-    if (dash !== null) host.dashTo(actor.position.x, actor.position.z, dash.stopAt, dash.time);
+    if (dash !== null) lead.dashTo(actor.position.x, actor.position.z, dash.stopAt, dash.time);
   };
   const clocks = profiles.map(profile => new SweptMeleeCore<Move>(profile.moves, profile,
     { queue: () => { state.queued = true; }, consume: () => { const queued = state.queued; state.queued = false; return queued; } },
     { start: (move, dash) => { state.struck = false; state.opened = false; state.swings++; if (state.aimed) state.target = aimedBody(profile, move); if (dash) lunge(profile, move); ports.alarm(); }, charge: () => { /* presentation owns the charge tell */ } }));
   const eye = new Vector3(), centre = new Vector3(), point = new Vector3(), forward = new Vector3(), left = new Vector3(), direction = new Vector3(), push = new Vector3();
-  const request: Parameters<SimHost['combat']['hit']>[0] = { source: row.source === 'env' ? 'env' : host.player.health,
-    sourceTags: [], target: host.player.health, amount: 0, point, dir: direction, from: eye, weaponId: '', moveId: '' };
+  const request: Parameters<SimHost['combat']['hit']>[0] = { source: row.source === 'env' ? 'env' : lead.health,
+    sourceTags: [], target: lead.health, amount: 0, point, dir: direction, from: eye, weaponId: '', moveId: '' };
   const queries = createNativeTargetQueries<NativeSweptActor>({ fore: false }), contact = { distance: 0, point, head: false };
   const strike = (actor: NativeSweptActor, move: Move, profile: Profile): void => {
     centre.copy(actor.position); centre.y += actor.dims.bodyY * actor.scale;
-    forward.subVectors(centre, eye); if (forward.lengthSq() < 1e-12) forward.set(-Math.sin(host.player.yaw), 0, -Math.cos(host.player.yaw)); forward.normalize();
+    forward.subVectors(centre, eye); if (forward.lengthSq() < 1e-12) forward.set(-Math.sin(lead.yaw), 0, -Math.cos(lead.yaw)); forward.normalize();
     left.copy(forward).applyAxisAngle(yAxis, Math.PI / 2);
     sweptStrikeDirection(direction, forward, left, move.sweep, row.contact);
     request.sourceTags = profile.tags; request.target = actor.combatActor(); request.weaponId = profile.weapon; request.moveId = move.id;
@@ -911,9 +916,9 @@ function installNativeSweptMelee(host: SimHost, items: readonly unknown[], input
     if (move !== null && active && !state.opened) { state.opened = true; state.windows++; }
     if (move === null || !active || state.struck || state.target === null) return;
     const actor = host.entities.get(state.target); if (actor === undefined || !actor.alive) return;
-    eye.copy(host.player.position); eye.y += row.eye;
+    eye.copy(lead.position); eye.y += row.eye;
     queries.closest(actor, eye, Infinity, contact);
-    if (contact.distance > (move.reach ?? profile.reach) || !lineOfSight(host.physics, eye, point, row.contact.slack, host.player.motor.collider)) return;
+    if (contact.distance > (move.reach ?? profile.reach) || !lineOfSight(host.physics, eye, point, row.contact.slack, lead.motor.collider)) return;
     state.struck = true; strike(actor, move, profile);
   }, { snapshot: () => JSON.stringify({ held: loadout.held(), ...state, aimed: state.aimed ? true : undefined, clocks: clocks.map(clock => clock.snapshot()) }), restore: value => {
     if (typeof value !== 'string') throw new Error('Invalid swept melee continuation');
@@ -940,6 +945,7 @@ function installNativeSweptMelee(host: SimHost, items: readonly unknown[], input
 /** Install immediate and delayed item contacts on one renderer-free owner, retaining ordered commands and wire bindings. */
 function installNativeContactMelee(host: SimHost, weapon: { readonly id: string; readonly contacts?: readonly NativeMeleeContact[] },
   input: unknown, ports: NativeMeleePorts): NativeMeleeOwner {
+  const lead = leadPlayer(host);
   const { native: row, contacts } = parseNativeMeleeBinding(input, weapon.contacts);
   if(row.held!==undefined&&ports.heldCommands===undefined&&ports.inputCommands===undefined)throw new Error('Held input requires its admitted player stream');
   if(row.input===undefined?ports.commands===undefined:ports.inputCommands===undefined)throw new Error('Native melee requires its declared command stream');
@@ -979,7 +985,7 @@ function installNativeContactMelee(host: SimHost, weapon: { readonly id: string;
   const port = (id: string): NativeMeleeTarget | null => {
     const actor = host.entities.get(id); return actor === undefined ? null : host.combat.targetPort(actor.combatActor(), actor, velocity => { actor.impulse(velocity); });
   };
-  const eye = (out: Vector3): Vector3 => { out.copy(host.player.position); out.y += row.eye; return out; };
+  const eye = (out: Vector3): Vector3 => { out.copy(lead.position); out.y += row.eye; return out; };
   const selected = (out: Vector3, dir: Vector3): boolean => {
     eye(out);
     const actor = aimed.target === null ? undefined : host.entities.get(aimed.target), spot = aimed.world === null ? undefined : targets.find(target => target.act === aimed.world);
@@ -995,7 +1001,7 @@ function installNativeContactMelee(host: SimHost, weapon: { readonly id: string;
       if (heavy && second) cracked = target.act;
       return true;
     } }));
-  const family = bindMeleeContacts<NativeMeleeTarget>(weapon.id, contacts, { owner: host.player.health, hit: request => host.combat.hit(request),
+  const family = bindMeleeContacts<NativeMeleeTarget>(weapon.id, contacts, { owner: lead.health, hit: request => host.combat.hit(request),
     world: () => world, aim: selected,
     targets: () => [...host.entities.keys()].flatMap(id => { const target = port(id); return target === null || row.liveTargetsOnly && !target.hittable ? [] : [target]; }),
     react: target => ({ actor: target.actor, ...(target.impulse === undefined ? {} : { impulse: target.impulse }), stagger: (dir, strength) => { target.target.stagger?.(dir, strength); } }),
@@ -1087,7 +1093,7 @@ function installNativeContactMelee(host: SimHost, weapon: { readonly id: string;
   const processCommand=(command:NativeMeleeCommand,dt:number):void=>{
       if (command.kind === 'aim') return;
       const action = row.actions.find(candidate => candidate.action === command.action); if (action === undefined) return;
-      if (command.free !== undefined) { const cos = Math.cos(command.free); aimed.dir.set(-Math.sin(host.player.yaw) * cos, Math.sin(command.free), -Math.cos(host.player.yaw) * cos); }
+      if (command.free !== undefined) { const cos = Math.cos(command.free); aimed.dir.set(-Math.sin(lead.yaw) * cos, Math.sin(command.free), -Math.cos(lead.yaw) * cos); }
       else if (action.aim === 'selected' && command.world === undefined && (command.targetId === undefined || !host.entities.has(command.targetId))) return;
       if (row.mode === 'immediate' && action.aim === 'selected') { aimed.target = command.targetId ?? null; aimed.world = command.world ?? null; if (!selected(from, direction)) return; }
       const claimed = action.hook === null ? row.mode === 'timed' ? family.swing(action.move) : family.claim(action.move)
@@ -1095,7 +1101,7 @@ function installNativeContactMelee(host: SimHost, weapon: { readonly id: string;
       if (!claimed) return;
       if (row.mode === 'timed') { aimed.target = command.targetId ?? null; aimed.world = command.world ?? null; }
       else {
-        if (action.aim === 'facing') { eye(from); const cos = Math.cos(pitch); direction.set(-Math.sin(host.player.yaw) * cos, Math.sin(pitch), -Math.cos(host.player.yaw) * cos); }
+        if (action.aim === 'facing') { eye(from); const cos = Math.cos(pitch); direction.set(-Math.sin(lead.yaw) * cos, Math.sin(pitch), -Math.cos(lead.yaw) * cos); }
         family.land(action.move, 0, from, direction); ports.landed?.(command.action, from, direction);
       }
   };
