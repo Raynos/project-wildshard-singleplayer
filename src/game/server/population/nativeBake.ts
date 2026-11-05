@@ -100,6 +100,8 @@ export function installNativeCollision(host:Pick<SimHost,'physics'|'scope'|'onSt
     const near=host.physics.near;
     for(const solid of bake.solids){
       if(omitted(solid))continue;
+      // A world held near its player is a grid cell, whose edge is the platform's (`gridLevel`): a shard's own page walls don't stand there.
+      if(near!==null&&solid.material==='edge')continue;
       const owner=policy===undefined?solid.owner??null:solid.ownerId===undefined?null:owners.get(solid.ownerId);
       // A hull or mesh is most of a Rapier heap; a declared owner's solid stays, since a script may look it up.
       if(near!==null&&typeof owner!=='string'&&solid.enabled!==false&&(solid.shape===9||solid.shape===6)&&solid.points!==undefined){

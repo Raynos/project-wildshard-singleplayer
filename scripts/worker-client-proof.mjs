@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// J130: the Developer row on a built page. Turns Worker client on, enters Infinite Wildshard, walks south off the home cell onto
+// J130: the Developer row on a built page. Turns Worker client on, enters Infinite Wildshard, walks off the home cell's south entry onto
 // the road and back in, and fails unless the page followed `--crossings=` of the server's crossings.
 //   scripts/browser-lane.sh node scripts/worker-client-proof.mjs --base=http://127.0.0.1:4401/ [--seconds=150] [--crossings=2]
 import { chromium, devices } from 'playwright';
@@ -23,16 +23,18 @@ try {
   await page.waitForFunction(() => window.__wildshard?.shard?.grid?.state().live?.live?.gameplayReady, undefined, { timeout: 240_000 });
   await page.evaluate(FLOOR_GRID_ENTER);
   await page.waitForFunction(() => window.__workerClient !== undefined, undefined, { timeout: 120_000 });
-  const started = Date.now(), seen = [], ROAD_Z = -285, HOME_Z = -200;
+  const started = Date.now(), seen = [], route = [{ x: 0, z: -285 }, { x: 0, z: -235 }];
+  let leg = 0;
   let last = '', final = null;
   while (Date.now() - started < seconds * 1000) {
     await page.waitForTimeout(2000);
-    final = await page.evaluate(z => {
+    final = await page.evaluate(target => {
       const report = window.__workerClient(), { live } = window.__wildshard.shard.grid.state().live, { world } = window.__wildshard, { player } = world, { input } = world.game.app;
       const feet = live.worldFeet;
-      player.yaw = Math.atan2(feet.x, feet.z - z); input.setHeld('move.forward', true);
+      player.yaw = Math.atan2(feet.x - target.x, feet.z - target.z); input.setHeld('move.forward', true);
       return { current: live.current, feet: live.worldFeet, phase: window.__wildshard.shard.grid.state().live.crossing.phase, issue: window.__wildshard.shard.grid.state().live.crossing.issue, report };
-    }, seen.length < 2 ? ROAD_Z : HOME_Z);
+    }, route[leg]);
+    if (Math.hypot(final.feet.x - route[leg].x, final.feet.z - route[leg].z) < 6 && leg < route.length - 1) leg++;
     const place = String(final.current);
     console.log(JSON.stringify({ at: Math.round((Date.now() - started) / 1000), place, phase: final.phase, feet: [Math.round(final.feet.x), Math.round(final.feet.z)], server: [final.report.cell, Math.round(final.report.serverX), Math.round(final.report.serverZ)], fps: Math.round(final.report.framesPerSecond), ticks: Math.round(final.report.ticksPerSecond), corrections: final.report.corrections, worst: Number(final.report.worstOffset.toFixed(2)), rows: final.report.rows, closed: final.report.closed, dropped: final.report.dropped }));
     if (place !== last) { seen.push(place); last = place; }

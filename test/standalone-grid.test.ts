@@ -61,7 +61,7 @@ test('a client walks off the road into a cell and back, and a reload resumes it 
   await walk(first.shell, -Math.PI / 2, () => travels.length === 1);
   expect(travels[0]).toMatchObject({ from: 0, to: cell(NEIGHBOUR) });
   // cell-local now: the deck runs up to the edge of Driftwood's own world, and its colliders take over from there
-  await walk(first.shell, -Math.PI / 2, () => client.latest?.cell === cell(NEIGHBOUR) && ownerX(first.shell) > -253);
+  await walk(first.shell, -Math.PI / 2, () => client.latest?.cell === cell(NEIGHBOUR) && ownerX(first.shell) > -245);
   expect(client.dropped).toBe(0);
   const inside = await first.shell.save(); expect(inside.ok).toBe(true);
   const stood = ownerX(first.shell);
