@@ -11,6 +11,7 @@ import type { SimHost } from '@wildshard/engine/sim';
 import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 import { installSpeciesHomes, admitSpeciesProgram, bakedSpecs, type SpeciesHomesSpec, type SpeciesProgramRows, type SpeciesDecisionAuthority } from '../plugin/brain';
 import { BossContenders } from '@wildshard/engine/ai/bossContenders';
+import { BossBounty } from '../boss/bounty';
 import { publishEncounter } from '@wildshard/engine/sim/encounterRows';
 
 /** A boss row's two durable flags: beaten (its record's `defeated`) and paid (its record's `rewardTaken`). */
@@ -71,7 +72,7 @@ export interface BossViewRows {
 const Boss = v.strictObject({ state: v.picklist(['dormant', 'armed', 'intro', 'fight', 'beat', 'victory']), phase: finite, checkpoint: finite, attempts: finite, t: finite, skipT: finite, short: v.boolean(),
   director: v.exactOptional(v.string()),
   saved: v.strictObject({ defeated: v.boolean(), rewardTaken: v.boolean(), kills: finite }) });
-const Saved = v.strictObject({ version: v.picklist([1, 2]), boss: Boss, fight: v.unknown(), engaged: v.exactOptional(finite) });
+const Saved = v.strictObject({ version: v.picklist([1, 2]), boss: Boss, fight: v.unknown(), engaged: v.exactOptional(finite), earners: v.exactOptional(v.array(v.string())) });
 
 /**
  * A declared boss row's encounter in a renderer-free host (SHARD-PLATFORM SF72): the engine's `BossBrain` (arm, intro,
@@ -83,8 +84,9 @@ const Saved = v.strictObject({ version: v.picklist([1, 2]), boss: Boss, fight: v
  * step. The player's weapons are locked through the intro (`locked`). Signal's Dune Matriarch and Sky Reach's Storm Roc
  * have this shape.
  */
-export function installBossRow(host: SimHost, spec: BossRowSpec): { boss: BossBrain; party: BossContenders; summon: () => void; locked: () => boolean } {
+export function installBossRow(host: SimHost, spec: BossRowSpec): { boss: BossBrain; party: BossContenders; bounty: BossBounty; summon: () => void; locked: () => boolean } {
   const party = new BossContenders(host.players, point => spec.script.inArena(point), (player, position, yaw) => { player.position.copy(position); player.yaw = yaw; spec.returned?.(player); });
+  const bounty = new BossBounty(host, spec.body, spec.step);
   const ports = { events: host.events, player: party.player,
     lockInput: () => undefined, skipHeld: () => false, respawn: party.respawn, faceToward: party.faceToward,
     spawnReward: () => { spec.spawnReward?.(); }, persist: spec.persist };
@@ -102,16 +104,16 @@ export function installBossRow(host: SimHost, spec: BossRowSpec): { boss: BossBr
     party.observe(boss);
     boss.update(dt, host.clock.now);
   }, {
-    snapshot: () => { const { engaged } = party; return JSON.stringify({ version: spec.stages === undefined ? 1 : 2, boss: boss.snapshot(), fight: spec.fight.snapshot(), ...(engaged === 0 ? {} : { engaged }) }); },
+    snapshot: () => { const { engaged } = party, { earned } = bounty; return JSON.stringify({ version: spec.stages === undefined ? 1 : 2, boss: boss.snapshot(), fight: spec.fight.snapshot(), ...(engaged === 0 ? {} : { engaged }), ...(earned.length === 0 ? {} : { earners: earned }) }); },
     restore: value => {
       if (typeof value !== 'string') throw new Error(`Invalid ${spec.step} continuation`);
       const state = v.parse(Saved, JSON.parse(value));
       if (state.version !== (spec.stages === undefined ? 1 : 2) || (state.boss.director === undefined) !== (spec.stages === undefined)) throw new Error('Incompatible boss stage continuation');
-      boss.restore(state.boss); spec.fight.restore(state.fight); party.restoreEngaged(state.engaged ?? 0); spec.restored?.(state.boss);
+      boss.restore(state.boss); spec.fight.restore(state.fight); party.restoreEngaged(state.engaged ?? 0); bounty.restore(state.earners ?? []); spec.restored?.(state.boss);
     },
   });
   publishEncounter(host, spec.step, () => ({ kind: 'boss', state: boss.state, hp: spec.script.hpFrac, phase: boss.phase, shield: spec.shielded() || boss.state === 'beat', body: spec.body()?.entityId ?? null }));
-  return { boss, party, summon: () => { if (boss.state === 'dormant') boss.arm(); }, locked: () => boss.state === 'intro' };
+  return { boss, party, bounty, summon: () => { if (boss.state === 'dormant') boss.arm(); }, locked: () => boss.state === 'intro' };
 }
 
 
@@ -130,18 +132,24 @@ const spawnedState = v.strictObject({ stormGoal: finite, storm: finite, invulner
  * Both held and spawned patterns preserve install order, reward timing and the
  * existing BossBrain/fight continuation; restore only adopts the owned roster. */
 export function installBossOwnerRow(host: SimHost, input: unknown, ports: BossOwnerPorts): ReturnType<typeof installBossRow> {
-  const row = parseBossOwnerRow(input), profile = row.profile, owner = ports.body;
+  const row = parseBossOwnerRow(input), profile = row.profile, owner = ports.body, installed: { bounty: BossBounty | null } = { bounty: null };
   if (profile.pattern !== owner.kind) throw new Error('Boss owner/profile mismatch');
+  /** J105: in a room each earner has the row's coins; alone the row pays as it always has. */
+  const pay = (): void => {
+    const { bounty } = installed, { amount } = row.reward;
+    if (bounty?.room === true) bounty.pay(amount, player => { ports.coins(amount, player); }, row.actor); else ports.coins(amount, row.actor);
+  };
+  const adopt = (encounter: ReturnType<typeof installBossRow>): ReturnType<typeof installBossRow> => { installed.bounty = encounter.bounty; return encounter; };
   const record = row.record === undefined ? undefined : bossFlagRecord(host.flags, row.record);
   const saved = record?.saved ?? row.saved ?? { defeated: false, rewardTaken: false, kills: 0 };
   const persist = record?.persist ?? (() => undefined);
   const victory = (): void => {
     if (row.victory.once && host.flags.has(row.victory.flag)) return;
     host.flags.set(row.victory.flag); ports.fact(row.victory.fact, row.actor);
-    if (row.reward.when === 'victory') ports.coins(row.reward.amount, row.actor);
+    if (row.reward.when === 'victory') pay();
   };
   const reward = row.reward.when === 'claim' ? () => {
-    saved.rewardTaken = true; persist(saved); ports.coins(row.reward.amount, row.actor);
+    saved.rewardTaken = true; persist(saved); pay();
   } : undefined;
   if (profile.pattern === 'spawned' && owner.kind === 'spawned') {
     const placement = row.placement;
@@ -151,18 +159,18 @@ export function installBossOwnerRow(host: SimHost, input: unknown, ports: BossOw
       rewardPoint: new Vector3(at.x, at.y, at.z),
       respawnPoint: () => ({ pos: new Vector3(back.x, host.groundHeightAt(back.x, back.z), back.z), yaw: back.yaw }), victory });
     fight.adopt(keeper.actor());
-    return installBossRow(host, { step: row.step, stages: row.stages, definition: row.definition,
+    return adopt(installBossRow(host, { step: row.step, stages: row.stages, definition: row.definition,
       script: fight.script, body: fight.body, shielded: fight.invulnerable,
       fight: { snapshot: fight.snapshot, restore: value => { fight.restore(v.parse(spawnedState, value)); } },
       saved, persist, ...(reward === undefined ? {} : { spawnReward: reward }), armed: row.armed,
-      restored: () => { fight.adopt(keeper.actor()); } });
+      restored: () => { fight.adopt(keeper.actor()); } }));
   }
   if (profile.pattern !== 'held' || owner.kind !== 'held') throw new Error('Held boss owner missing');
   const fight = bossFight(profile, { body: owner.actor, brain: owner.brain, victory });
-  return installBossRow(host, { step: row.step, stages: row.stages, definition: row.definition,
+  return adopt(installBossRow(host, { step: row.step, stages: row.stages, definition: row.definition,
     script: fight.script, body: () => owner.actor, shielded: fight.shielded,
     fight: { snapshot: fight.snapshot, restore: fight.restore }, saved, persist,
-    ...(reward === undefined ? {} : { spawnReward: reward }), armed: row.armed });
+    ...(reward === undefined ? {} : { spawnReward: reward }), armed: row.armed }));
 }
 
 /** Install an encounter over its declared population's actual owner. Admission

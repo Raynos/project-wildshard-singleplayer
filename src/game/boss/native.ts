@@ -152,6 +152,12 @@ export function installGroundBoss(host: SimHost, input: unknown, profile: unknow
     rewardPoint: () => reward === null ? null : { ...reward },
     takeReward: (eye: { x: number; y: number; z: number }) => {
       if (reward === null || saved.rewardTaken || pickPrompt([{ position: reward, radius: row.reward.radius }], eye, host.physics) === undefined) return false;
+      // J105: in a room the orb is each earner's own, and it stands until the last of them has taken theirs.
+      const { bounty } = owner;
+      if (bounty.room) {
+        if (!bounty.take(host.nearestPlayer(eye).id)) return false;
+        if (bounty.owed.length > 0) return true;
+      }
       reward = null; saved.rewardTaken = true; record.persist(saved); return true;
     } };
   const book = rewards.get(host) ?? new Map<string, { take: (eye: { x: number; y: number; z: number }) => boolean }>();

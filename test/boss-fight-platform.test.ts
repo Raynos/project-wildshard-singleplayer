@@ -109,3 +109,24 @@ test('reward rows resolve only registered native inventories and use their own a
     expect(pack.count('reed-token')).toBe(5);
   } finally { host.dispose(); }
 });
+
+test('J104, J107: a wake fight scales for those there when it wakes and outlives a fall while anyone stands in the arena', async () => {
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm'))), host = createSimHost(SIM_LEVEL, { rapier });
+  const lead = [...host.players.values()][0], bot = host.addPlayer('bot:1', { x: 2, y: 0, z: 0 }), step = (): void => { host.step(new Map([...host.players.keys()].map(id => [id, { moveX: 0, moveZ: 0, yaw: 0 }]))); };
+  const shell = installWakeBoss(host, marshRows, { pool: { x: 0, z: 0 }, arena: 9 }), actor = host.entities.get('boar:1');
+  if (lead === undefined || actor === undefined) throw new Error('Missing fixture');
+  const fall = (target: typeof lead): void => { host.combat.hit({ source: 'env', sourceTags: ['creature.boar'], target: target.health, amount: 100000, point: target.position.clone(), dir: new Vector3(), cause: { kind: 'test', label: 'test' } }); };
+  try {
+    actor.mem['emerged'] = 1; actor.mem['stage'] = 2;
+    host.flags.set('opened:shell'); shell.publish('titan.restore'); step(); step();
+    expect(shell.encounter.state).toBe('fight');
+    const before = actor.hp;
+    host.combat.hit({ source: 'env', sourceTags: ['actor.player'], target: actor.combatActor(), amount: 35, point: actor.position.clone(), dir: new Vector3(), cause: { kind: 'test', label: 'test' } });
+    expect(before - actor.hp).toBeCloseTo(35 / 1.75, 0);
+    fall(bot); step();
+    expect(shell.encounter.state).toBe('fight');
+    bot.position.set(30, 0, 30); bot.motor.resetAt(bot.position);
+    fall(lead); step();
+    expect(shell.encounter.state).toBe('dormant');
+  } finally { host.dispose(); }
+});

@@ -839,6 +839,7 @@
   "src/game/boss/arenaRoomRows.ts": "shared",
   "src/game/boss/arenaRoomView.ts": "client",
   "src/game/boss/arenaWhirls.ts": "server",
+  "src/game/boss/bounty.ts": "server",
   "src/game/boss/continuation.ts": "server",
   "src/game/boss/encounterView.ts": "client",
   "src/game/boss/jointTargets.ts": "server",

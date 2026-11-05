@@ -134,6 +134,24 @@ test('J104: a hazard wearing the fight tag shares to the next nearest from five 
   } finally { host.dispose(); }
 });
 
+test('J105: when the King falls in a room each player with meaningful damage has their own reward, once', () => {
+  const { host, lead, bot } = bots(), fight = roomHost(host), third = host.addPlayer('bot:2', { x: 0, y: 0, z: 40 });
+  try {
+    inside(lead, CENTRE.x - 2, CENTRE.z);
+    until(host, () => fight.boss.state === 'fight');
+    const actor = fight.fight.body(); if (actor === null) throw new Error('No King');
+    const strike = (who: PlayerSim, amount: number): void => {
+      host.combat.hit({ source: who.health, sourceTags: ['actor.player'], target: actor.combatActor(), amount, point: actor.position.clone(), dir: new Vector3(), cause: { kind: 'test', label: 'test' } });
+    };
+    actor.hp = actor.maxHp * 0.05; fight.boss.phase = 2; fight.boss.checkpoint = 2;
+    strike(bot, 3); strike(lead, 4); strike(bot, actor.maxHp);
+    until(host, () => fight.boss.state === 'victory');
+    expect(fight.bounty.owed).toEqual([bot.id]);
+    expect(fight.bounty.take(third.id)).toBe(false);
+    expect(fight.bounty.take(bot.id)).toBe(true); expect(fight.bounty.take(bot.id)).toBe(false); expect(fight.bounty.owed).toEqual([]);
+  } finally { host.dispose(); }
+});
+
 test('one player fights the row exactly: no share, no scale, the door shuts and the death is the brain\'s', () => {
   const host = createSimHost(LEVEL, { rapier }), lead = [...host.players.values()][0];
   if (lead === undefined) throw new Error('No lead');

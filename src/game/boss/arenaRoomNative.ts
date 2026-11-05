@@ -12,6 +12,7 @@ import { parseBossProfile } from '@wildshard/format/bossProfiles';
 import type { PhasedBossFight } from '../plugin/bossPhase';
 import { installBossRow } from '../shardfile/bossRow';
 import type { ArenaRoomGround } from './arenaGround';
+import type { BossBounty } from './bounty';
 import { arenaRoomFight, type ArenaFightBody, type ArenaFightTarget, type BoundedArenaFight } from './arenaRoomFight';
 import { NativeArenaSand } from './nativeArenaSand';
 
@@ -48,7 +49,7 @@ const Saved = v.strictObject({ think: finite, sealed: v.boolean(), fight: v.unkn
 
 /** Install the fight in its armed state, waiting at the door. No body is spawned until the first reset. */
 export function installArenaRoom<A extends ArenaRoomBody>(host: SimHost, rows: ArenaRoomNativeRows, ports: ArenaRoomNativePorts<A>): {
-  boss: ReturnType<typeof installBossRow>['boss']; party: BossContenders; fight: PhasedBossFight<A>; ground: ArenaRoomGround; locked: () => boolean;
+  boss: ReturnType<typeof installBossRow>['boss']; party: BossContenders; bounty: BossBounty; fight: PhasedBossFight<A>; ground: ArenaRoomGround; locked: () => boolean;
 } {
   const sand = new NativeArenaSand(host, rows.room, `${rows.step}.sand`), ground = sand.ground, profile = parseBossProfile(rows.fight.profile);
   if (profile.pattern !== 'arena') throw new Error('Arena room requires an arena boss profile');
@@ -93,5 +94,5 @@ export function installArenaRoom<A extends ArenaRoomBody>(host: SimHost, rows: A
     fight.brain.act(body, { player: foe });
   });
   host.scope.onDispose(() => { for (const actor of fight.adds()) ports.retire(actor); });
-  return { boss: row.boss, party: row.party, fight, ground, locked: row.locked };
+  return { boss: row.boss, party: row.party, bounty: row.bounty, fight, ground, locked: row.locked };
 }
