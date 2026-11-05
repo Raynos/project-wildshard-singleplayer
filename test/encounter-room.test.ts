@@ -2,6 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test, vi } from 'vitest';
 import type { NetCommand } from '@wildshard/format/netCommand';
+import { bossHealthScale, bossTargetCount } from '../src/engine/ai/bossScale';
 import { PhaseEncounter, type PhaseEncounterSpec } from '../src/engine/ai/phases';
 import { NetClient } from '../src/engine/net/client';
 import { NetRoom } from '../src/engine/net/room';
@@ -58,38 +59,68 @@ test('a boss wakes for a bot past its threshold and strikes that bot, not the le
   } finally { host.dispose(); }
 });
 
-test('a bot that falls goes back alone while the lead stands inside, and the fight carries on through a save', () => {
-  const { host, bot, lead, fight } = roomHost();
+const blow = (host: SimHost, target: PlayerSim): void => {
+  host.combat.hit({ source: 'env', sourceTags: ['creature.boar'], target: target.health, amount: 1000, point: target.position.clone(), dir: new Vector3(), cause: { kind: 'boar', label: 'Boar' } });
+};
+
+test('J107: a bot that falls goes back alone, the room carries on with its progress, through a save', () => {
+  const { host, bot, lead, fight } = roomHost(), body = host.entities.get(BODY);
+  if (body === undefined) throw new Error('No boss body');
   try {
-    until(host, () => fight.boss.state === 'fight');
     lead.position.set(ARENA.x - 3, 0, ARENA.z);
-    host.combat.hit({ source: 'env', sourceTags: ['creature.boar'], target: bot.health, amount: 1000, point: bot.position.clone(), dir: new Vector3(), cause: { kind: 'boar', label: 'Boar' } });
-    tick(host);
-    expect(fight.boss.state).toBe('fight');
+    until(host, () => fight.boss.state === 'fight');
+    body.hp = body.maxHp * 0.5;
+    blow(host, bot); tick(host);
+    expect(fight.boss.state).toBe('fight'); expect(fight.boss.attempts).toBe(1); expect(body.hp).toBe(body.maxHp * 0.5);
     expect(bot.position.x).toBeCloseTo(-4); expect(bot.position.z).toBeCloseTo(-4);
     expect(lead.position.x).toBeCloseTo(ARENA.x - 3, 0);
     const saved = snapshotSimHost(host);
-    expect(JSON.stringify(saved)).toContain('bot:1');
-    expect(fight.snapshot()).toContain('"out":["bot:1"]');
+    expect(fight.snapshot()).toContain('"engaged":2');
     let again: PhaseEncounter | undefined;
     const restored = restoreSimHost(LEVEL, { rapier }, saved, target => { again = new PhaseEncounter(target, SPEC, PORTS); });
-    expect(again?.snapshot()).toContain('"out":["bot:1"]'); expect(snapshotSimHost(restored)).toEqual(saved); restored.dispose();
-    host.combat.hit({ source: 'env', sourceTags: ['creature.boar'], target: lead.health, amount: 1000, point: lead.position.clone(), dir: new Vector3(), cause: { kind: 'boar', label: 'Boar' } });
-    tick(host);
-    expect(fight.boss.attempts).toBe(2);
-    expect(['armed', 'intro']).toContain(fight.boss.state);
-    expect(fight.snapshot()).not.toContain('"out"');
+    expect(again?.snapshot()).toContain('"engaged":2'); expect(snapshotSimHost(restored)).toEqual(saved); restored.dispose();
   } finally { host.dispose(); }
 });
 
-test('the last player standing outside the threshold is left where it is on a reset', () => {
+test('J107: the fight resets only when everyone has left', () => {
   const { host, bot, lead, fight } = roomHost();
   try {
     until(host, () => fight.boss.state === 'fight');
-    host.combat.hit({ source: 'env', sourceTags: ['creature.boar'], target: bot.health, amount: 1000, point: bot.position.clone(), dir: new Vector3(), cause: { kind: 'boar', label: 'Boar' } });
-    tick(host);
-    expect(fight.boss.attempts).toBe(2);
+    blow(host, bot); tick(host, 2);
     expect(bot.position.x).toBeCloseTo(-4); expect(lead.position.x).toBeCloseTo(0);
+    expect(['armed', 'intro']).toContain(fight.boss.state);
+    expect(fight.snapshot()).not.toContain('"engaged"');
+  } finally { host.dispose(); }
+});
+
+test('J104: health and targets scale with the players engaged at the start, on the platform curves', () => {
+  expect([1, 2, 4, 5, 32].map(bossHealthScale)).toEqual([1, 1.75, 3.25, 4, 24.25]);
+  expect([1, 4, 5, 8, 9, 32].map(bossTargetCount)).toEqual([1, 1, 2, 2, 3, 8]);
+  const { host, bot, lead, fight } = roomHost(), body = host.entities.get(BODY);
+  if (body === undefined) throw new Error('No boss body');
+  try {
+    lead.position.set(ARENA.x - 3, 0, ARENA.z);
+    until(host, () => fight.boss.state === 'fight');
+    const before = body.hp;
+    host.combat.hit({ source: 'env', sourceTags: ['actor.player'], target: body.combatActor(), amount: 35, point: body.position.clone(), dir: new Vector3(), cause: { kind: 'test', label: 'test' } });
+    expect(before - body.hp).toBeCloseTo(35 / 1.75, 0);
+    const late = host.addPlayer('bot:2', { x: ARENA.x, y: 0, z: ARENA.z + 3 }); tick(host);
+    expect(fight.snapshot()).toContain('"engaged":2'); expect(late.health.alive).toBe(true);
+    expect(bot.health.alive).toBe(true);
+  } finally { host.dispose(); }
+});
+
+test('J104: from five players a boss blow lands on the next nearest too', () => {
+  const host = createSimHost(LEVEL, { rapier }), lead = [...host.players.values()][0], at = { x: ARENA.x, y: 0, z: ARENA.z };
+  if (lead === undefined) throw new Error('No lead');
+  lead.position.set(at.x + 2, 0, at.z);
+  const bots = [1, 2, 3, 4].map(i => host.addPlayer(`bot:${String(i)}`, { x: at.x + 2 + i * 0.5, y: 0, z: at.z })), fight = new PhaseEncounter(host, SPEC, PORTS), body = host.entities.get(BODY);
+  if (body === undefined) throw new Error('No boss body');
+  try {
+    until(host, () => fight.boss.state === 'fight');
+    host.combat.hit({ source: body.combatActor(), sourceTags: ['creature.boar'], target: lead.health, amount: 10, point: body.position.clone(), dir: new Vector3(), cause: { kind: 'boar', label: 'Boar' } });
+    tick(host, 2);
+    expect(bots.map(bot => bot.health.attributes.maxHealth - bot.health.attributes.health)).toEqual([10, 0, 0, 0]);
   } finally { host.dispose(); }
 });
 

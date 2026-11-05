@@ -6,6 +6,7 @@
   "src/engine/ai/ambientForager.ts": "server",
   "src/engine/ai/BossBrain.ts": "server",
   "src/engine/ai/bossContenders.ts": "server",
+  "src/engine/ai/bossScale.ts": "shared",
   "src/engine/ai/burstFlyer.ts": "server",
   "src/engine/ai/challengeGrazer.ts": "server",
   "src/engine/ai/CreatureBrain.ts": "server",

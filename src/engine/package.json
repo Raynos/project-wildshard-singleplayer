@@ -69,6 +69,7 @@
     "./ai/grazer": "./ai/grazer.ts",
     "./ai/BossBrain": "./ai/BossBrain.ts",
     "./ai/bossContenders": "./ai/bossContenders.ts",
+    "./ai/bossScale": "./ai/bossScale.ts",
     "./ai/CreatureBrain": "./ai/CreatureBrain.ts",
     "./ai/GroupBrain": "./ai/GroupBrain.ts",
     "./ai/encounters": "./ai/encounters.ts",

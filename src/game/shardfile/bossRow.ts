@@ -66,7 +66,7 @@ export interface BossViewRows {
 const Boss = v.strictObject({ state: v.picklist(['dormant', 'armed', 'intro', 'fight', 'beat', 'victory']), phase: finite, checkpoint: finite, attempts: finite, t: finite, skipT: finite, short: v.boolean(),
   director: v.exactOptional(v.string()),
   saved: v.strictObject({ defeated: v.boolean(), rewardTaken: v.boolean(), kills: finite }) });
-const Saved = v.strictObject({ version: v.picklist([1, 2]), boss: Boss, fight: v.unknown(), out: v.exactOptional(v.array(v.string())) });
+const Saved = v.strictObject({ version: v.picklist([1, 2]), boss: Boss, fight: v.unknown(), engaged: v.exactOptional(finite) });
 
 /**
  * A declared boss row's encounter in a renderer-free host (SHARD-PLATFORM SF72): the engine's `BossBrain` (arm, intro,
@@ -86,21 +86,23 @@ export function installBossRow(host: SimHost, spec: BossRowSpec): { boss: BossBr
   const boss = spec.stages === undefined
     ? new BossBrain(spec.definition, spec.script, ports, silentBossPresentation(), spec.saved)
     : new DirectorBossBrain(spec.definition, spec.script, ports, silentBossPresentation(), spec.saved, spec.stages);
-  host.events.answer('damage.modify', (request) => { const body = spec.body(); return request !== null && body !== null && request.target === body.combatActor() && spec.shielded() ? null : request; }, host.scope);
+  host.events.answer('damage.modify', (request) => { const body = spec.body(); return request !== null && body !== null && request.target === body.combatActor() ? spec.shielded() ? null : party.scaled(request) : request; }, host.scope);
+  host.events.on('damage.dealt', ({ req }) => { const body = spec.body(); if (body !== null && req.source === body.combatActor()) party.echo(req, body, host.combat); }, host.scope);
   // A room asks first and acts on `player.died`, the one event that says who fell.
   host.events.answer('death.checkpoint', (value) => (host.players.size > 1 ? boss.engaged : boss.onPlayerDeath()) || value === true, host.scope);
   host.events.on('player.died', ({ actor }) => { if (host.players.size > 1) party.fell(actor.id, boss); }, host.scope);
   if (spec.armed === true) boss.arm();
   host.onStep(spec.step, dt => {
     const body = spec.body(); if (body !== null) host.focusOn(body.position);
+    party.observe(boss);
     boss.update(dt, host.clock.now);
   }, {
-    snapshot: () => { const out = party.out; return JSON.stringify({ version: spec.stages === undefined ? 1 : 2, boss: boss.snapshot(), fight: spec.fight.snapshot(), ...(out.length === 0 ? {} : { out }) }); },
+    snapshot: () => { const { engaged } = party; return JSON.stringify({ version: spec.stages === undefined ? 1 : 2, boss: boss.snapshot(), fight: spec.fight.snapshot(), ...(engaged === 0 ? {} : { engaged }) }); },
     restore: value => {
       if (typeof value !== 'string') throw new Error(`Invalid ${spec.step} continuation`);
       const state = v.parse(Saved, JSON.parse(value));
       if (state.version !== (spec.stages === undefined ? 1 : 2) || (state.boss.director === undefined) !== (spec.stages === undefined)) throw new Error('Incompatible boss stage continuation');
-      boss.restore(state.boss); spec.fight.restore(state.fight); party.restoreOut(state.out ?? []); spec.restored?.(state.boss);
+      boss.restore(state.boss); spec.fight.restore(state.fight); party.restoreEngaged(state.engaged ?? 0); spec.restored?.(state.boss);
     },
   });
   publishEncounter(host, spec.step, () => ({ kind: 'boss', state: boss.state, hp: spec.script.hpFrac, phase: boss.phase, shield: spec.shielded() || boss.state === 'beat', body: spec.body()?.entityId ?? null }));
