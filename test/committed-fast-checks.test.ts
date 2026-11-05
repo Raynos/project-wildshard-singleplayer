@@ -221,7 +221,7 @@ test('native generated inputs match canonical committed producer bytes',()=>{
   const f=fixture();try {
     f.put('scripts/gen-starter-weapons.mjs',readFileSync(resolve('scripts/gen-starter-weapons.mjs'),'utf8'));
     f.put('src/game/server/weapons/starterBow.json','{"damage":1}');
-    f.put('src/main.ts',"import {STARTER_BOW} from './game/weapons/starter.generated';export const value=STARTER_BOW;");
+    f.put('src/main.ts',"import {STARTER_BOW} from './game/server/weapons/starter.generated';export const value=STARTER_BOW;");
     f.put('.gitignore','.gitignore\ntmp/\nnode_modules/\n*.generated.ts\n');
     const tip=f.commit();
     const generate=()=>execFileSync('node',['--input-type=module','--eval',"import {genStarterWeapons} from './scripts/gen-starter-weapons.mjs';genStarterWeapons();"],{cwd:f.root});

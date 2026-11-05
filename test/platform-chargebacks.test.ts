@@ -612,6 +612,6 @@ test('G677 credits only the exact entered adapters and preserves their original 
   expect(approvedG571Host(approvals,'src/game/client/shardfile/entryOwners.ts','EliteEntryConstruction')).toBe(true);
   expect(approvedG571Host(approvals,'src/game/client/riding/client.ts','enterClientRiding')).toBe(false);
   const hostBar=readFileSync('docs/HOST-BAR.md','utf8').split('\n').filter(line=>line.startsWith('- G677 ')).join('\n');
-  expect(hostBar).not.toContain('game/stealth/controller');expect(hostBar).not.toContain('game/population/pageGroups');
-  expect(hostBar).not.toContain('game/shardfile/entryOwners');
+  expect(hostBar).not.toContain('game/client/stealth/controller');expect(hostBar).not.toContain('game/server/population/pageGroups');
+  expect(hostBar).not.toContain('game/client/shardfile/entryOwners');
 });

@@ -80,10 +80,10 @@ it('attributes portable collection and island roots to their defining native own
 
 it('attributes declared moves and decisions to their defining sim hosts',()=>{
  const roots=sectionHostImports([{name:'actors/moves'},{name:'sim/scripts'}]);
- expect(roots).toContain('engine/ai/moves');
+ expect(roots).toContain('engine/server/ai/moves');
  expect(roots).toContain('ActorMoveRunner');
  expect(roots).toContain('format/actorMoves');
- expect(roots).toContain('engine/script/decision');
+ expect(roots).toContain('engine/server/script/decision');
  expect(roots).toContain('DecisionHost');
  expect(roots).toContain('format/decisionScripts');
 });

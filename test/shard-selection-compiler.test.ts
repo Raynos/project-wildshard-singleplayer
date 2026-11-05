@@ -29,7 +29,7 @@ test('one selected discovery graph excludes other worlds and full catalogue byte
   writeFileSync(resolve(root,'src/shardList.ts'),'import first from "./shards/first/manifest";import second from "./shards/second/manifest";export const all=[first,second];');
   writeFileSync(resolve(root,'src/entry.ts'),`import {SHARD_LOADERS} from './selection';
     window.loadWorld=slug=>SHARD_LOADERS[slug]();window.full=()=>import('./shardList');
-    window.client=()=>import('./game/shardfile/client');window.grid=()=>import('./game/grid/session');
+    window.client=()=>import('./game/client/shardfile/client');window.grid=()=>import('./game/client/grid/session');
     async function startSelected(){return (await import('./first')).ready;}void startSelected();`);
   writeFileSync(resolve(root,'src/first.ts'),'export const ready=true;');
   writeFileSync(resolve(root,'src/game/client/shardfile/client.ts'),'export const ready=true;');

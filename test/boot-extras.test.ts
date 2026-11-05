@@ -40,7 +40,7 @@ test('a real emitted image and admitted source produce only the selected home ba
     writeFileSync(resolve(root, 'src/game/client/grid/session.ts'), 'export const grid = 1;');
     writeFileSync(resolve(root, 'out/.app/discovery.home.generated.ts'), 'export default { slug: "home" };');
     writeFileSync(resolve(root, 'src/shardList.ts'), 'export { default as home } from "../out/.app/discovery.home.generated";');
-    writeFileSync(resolve(root, 'src/entry.ts'), "window.client = () => import('./game/shardfile/client'); window.grid = () => import('./game/grid/session'); window.selected = () => import('../out/.app/discovery.home.generated'); window.catalogue = () => import('./shardList'); async function startSelected() { return import('./card'); } void startSelected();");
+    writeFileSync(resolve(root, 'src/entry.ts'), "window.client = () => import('./game/client/shardfile/client'); window.grid = () => import('./game/client/grid/session'); window.selected = () => import('../out/.app/discovery.home.generated'); window.catalogue = () => import('./shardList'); async function startSelected() { return import('./card'); } void startSelected();");
     writeFileSync(resolve(root, 'index.html'), '<html><head></head><body><script type="module" src="/src/entry.ts"></script></body></html>');
     writeFileSync(resolve(root, 'src/shards/home/manifest.json'), JSON.stringify({ card: { thumb: '/src/card.svg', portrait: 'data:,', landscape: 'data:,' },
       explore: { art: { world: '/src/preview.svg' } }, boot: { precache: ['/assets/required.webp'] } }));

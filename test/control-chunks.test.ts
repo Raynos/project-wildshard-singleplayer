@@ -107,15 +107,15 @@ test('phase banks keep initial and late code isolated and retain unchanged contr
     writeFileSync(resolve(root, 'calibration/entry.ts'), 'import {runtime} from "../src/engine/client/app/runtime"; globalThis.calibration = runtime;');
     writeFileSync(resolve(root, 'src/engine/client/app/runtime.ts'), 'globalThis.runtimeStarted = performance.now(); export const runtime = globalThis.runtimeStarted;');
     writeFileSync(resolve(root, 'src/rows.json'), '{"rows":[[1,2],[3,4]]}');
-    writeFileSync(resolve(root, 'src/core.ts'), 'import {runtime} from "./engine/app/runtime"; import rows from "./rows.json"; export const control = {runtime, rows};');
+    writeFileSync(resolve(root, 'src/core.ts'), 'import {runtime} from "./engine/client/app/runtime"; import rows from "./rows.json"; export const control = {runtime, rows};');
     writeFileSync(resolve(root, 'src/game/client/grid/session.ts'), 'export const grid = true;');
     writeFileSync(resolve(root, 'src/game/client/shardfile/client.ts'), 'export const client = true;');
     writeFileSync(resolve(root, 'src/optional.ts'), 'globalThis.optionalValue = "first late value";');
-    const title = ['engine/ui/StartTitle', 'game/mainMenu', 'game/grid/pageEntry', 'game/travel/travel'];
+    const title = ['engine/client/ui/StartTitle', 'game/client/mainMenu', 'game/client/grid/pageEntry', 'game/client/travel/travel'];
     for (const file of title) writeFileSync(resolve(root, `src/${file}.ts`), 'export const label = "title";');
     writeFileSync(resolve(root, 'src/entry.ts'), `async function startSelected(){return Promise.all([import('./core'),import('./rows.json')]);}
       globalThis.launch = startSelected; globalThis.optional = () => import('./optional');
-      globalThis.grid = () => import('./game/grid/session');
+      globalThis.grid = () => import('./game/client/grid/session');
       globalThis.title = () => Promise.all([${title.map(file => `import('./${file}')`).join(',')}]);`);
     const outDir = resolve(root, 'dist');
     await build({ root, configFile: false, logLevel: 'silent', build: { outDir, manifest: true, sourcemap: 'hidden', cssCodeSplit: false,

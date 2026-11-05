@@ -82,20 +82,20 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
     mkdirSync(resolve(root, 'src/game/client/models'), { recursive: true });
     writeFileSync(resolve(root, 'index.html'), '<html><head></head><body><script type="module" src="/src/entry.ts"></script></body></html>');
     writeFileSync(resolve(root, 'src/entry.ts'), `
-      window.optionalClient = () => import('./game/shardfile/client');
-      window.optionalGrid = () => import('./game/grid/session');
-      window.optionalLoadout = () => import('./game/session/loadout');
+      window.optionalClient = () => import('./game/client/shardfile/client');
+      window.optionalGrid = () => import('./game/client/grid/session');
+      window.optionalLoadout = () => import('./game/client/session/loadout');
       window.title = () => import('./title');
       async function startSelected() { return (await import('./first')).value; }
       void startSelected().then(value => { window.value = value; });
     `);
-    writeFileSync(resolve(root, 'src/first.ts'), 'import "./main.css"; import {dummy} from "./engine/models/trainingDummy"; import {prepare} from "./engine/anim/rig"; import {legacy} from "./game/shard/load"; window.parsers=[prepare,legacy]; window.dummy=dummy; window.practice = ()=>import("./engine/practice/TrainingArena").then(module=>module.practice()); export const value = "π";');
+    writeFileSync(resolve(root, 'src/first.ts'), 'import "./main.css"; import {dummy} from "./engine/client/models/trainingDummy"; import {prepare} from "./engine/client/anim/rig"; import {legacy} from "./game/client/shard/load"; window.parsers=[prepare,legacy]; window.dummy=dummy; window.practice = ()=>import("./engine/client/practice/TrainingArena").then(module=>module.practice()); export const value = "π";');
     writeFileSync(resolve(root, 'src/engine/client/practice/TrainingArena.ts'), 'import {dummyFigure} from "../models/trainingDummyFigure"; export const practice=()=>Promise.all([import("./DummyClips"),dummyFigure()]);');
     writeFileSync(resolve(root, 'src/engine/client/practice/DummyClips.ts'), 'export const clips = 1;');
     writeFileSync(resolve(root, 'src/engine/client/anim/rig.ts'), 'export const prepare=()=>import("./rigParser");');
     writeFileSync(resolve(root, 'src/engine/client/anim/rigParser.ts'), 'export const createRigLoader=()=>({kind:"bounded"});');
     writeFileSync(resolve(root, 'src/game/client/shard/load.ts'), 'export const legacy=()=>import("./legacyParser");');
-    writeFileSync(resolve(root, 'src/game/shard/legacyParser.ts'), 'export const loader="raw";');
+    writeFileSync(resolve(root, 'src/game/client/shard/legacyParser.ts'), 'export const loader="raw";');
     writeFileSync(resolve(root, 'src/game/client/session/loadout.ts'), 'export const roster=()=>import("../models/explorerCatalogue");');
     writeFileSync(resolve(root, 'src/game/client/models/explorerCatalogue.ts'), 'export const explorerRoster=()=>[];');
     writeFileSync(resolve(root, 'src/engine/client/models/trainingDummy.ts'), 'export const dummy=()=>import("./trainingDummyFigure");');
@@ -105,8 +105,8 @@ test('the actual Vite plugin emits exact module body sizes into the existing doc
     writeFileSync(resolve(root, 'src/title.ts'), 'export const title = "optional title";');
     writeFileSync(resolve(root, 'src/game/client/shardfile/client.ts'), 'import {CLIENT_FEATURES} from "./clientPlan"; export const client = CLIENT_FEATURES;');
     writeFileSync(resolve(root, 'src/game/client/shardfile/clientPlan.ts'), 'export const CLIENT_FEATURES = {"world.scenes":{install:()=>import("./optional-first")},"world.first":{install:()=>import("./optional-first")},"world.second":{install:()=>import("./optional-second")}};');
-    writeFileSync(resolve(root, 'src/game/shardfile/optional-first.ts'), 'export const first = "first world";');
-    writeFileSync(resolve(root, 'src/game/shardfile/optional-second.ts'), 'export const second = "second world";');
+    writeFileSync(resolve(root, 'src/game/client/shardfile/optional-first.ts'), 'export const first = "first world";');
+    writeFileSync(resolve(root, 'src/game/client/shardfile/optional-second.ts'), 'export const second = "second world";');
     writeFileSync(resolve(root, 'src/game/client/grid/session.ts'), 'export const grid = () => import("./reveal");');
     writeFileSync(resolve(root, 'src/game/client/grid/reveal.ts'), 'export const reveal = "grid reveal";');
     writeFileSync(resolve(root, 'src/game/client/session/play.ts'), 'export const play = () => import("../grid/reveal");');
