@@ -12,9 +12,9 @@ function charges(loader: string, initialization = '', shell = '', shellRoot = 's
   const root = mkdtempSync(join(tmpdir(), 'platform-namespace-'));
   const put = (file: string, text: string): void => { const path = join(root, file); mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, text); };
   try {
-    put('src/game/package.json', JSON.stringify({ name: '@wildshard/game', exports: { './plugin/ui': './plugin/ui.ts', './model': './model.ts' } }));
+    put('src/game/package.json', JSON.stringify({ name: '@wildshard/game', exports: { './plugin/ui': './client/plugin/ui.ts', './model': './client/model.ts' } }));
     put('src/game/client/plugin/ui.ts', `export function forestHelper() { return 1; }\nexport function createAmbientLife() { return forestHelper(); }\nexport function borrowedNpcSpecimen() { return 2; }\nexport function enterGrid() { return 3; }\n${initialization}`);
-    put('src/game/model.ts', loader);
+    put('src/game/client/model.ts', loader);
     if (shell !== '') put(shellRoot, shell);
     platformOutput(root,'pine-hollow',{'runtime/index.ts': `import { ${pineMember} } from '@wildshard/game/plugin/ui'; export const life = ${pineMember}();`});
     platformOutput(root,'driftwood-isle',{'runtime/index.ts': "import { modelCatalogue } from '@wildshard/game/model'; export const model = modelCatalogue;"});
@@ -113,6 +113,6 @@ it('restricts independent shell roots to the four composition entries', () => {
 
 it('does not turn a shell-loaded content catalogue into a second shard user', () => {
   const loader = "import { createAmbientLife, borrowedNpcSpecimen } from './plugin/ui'; export function modelCatalogue() { return borrowedNpcSpecimen(); } export function registerForestCatalogue() { return createAmbientLife; }";
-  const shell = "import { registerForestCatalogue } from './game/model'; registerForestCatalogue();";
+  const shell = "import { registerForestCatalogue } from './game/client/model'; registerForestCatalogue();";
   expect(charges(loader, '', shell)).toEqual(expect.arrayContaining(['createAmbientLife', 'forestHelper']));
 });

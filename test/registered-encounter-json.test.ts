@@ -5,15 +5,15 @@ import { nameBlob } from '@wildshard/sdk/blobs';
 import { registeredJsonSchema } from '@wildshard/sdk/formatJsonSchema';
 
 const documents = [
-  ['combat/roaming.json', 'roamingCombat#RoamingCombatSchema', 'src/game/server/combat/roamingSession.ts'],
-  ['client/ranged-page.json', 'rangedPage#RangedPageSchema', 'src/game/client/loadout/rangedPage.ts'],
-  ['combat/room-entry.json', 'arenaRoomDocument#ArenaRoomDocumentSchema', 'src/game/client/shardfile/worldAssembly.ts'],
-  ['combat/timed-encounters.json', 'encounterRows#TimedEncountersSchema', 'src/game/server/boss/timedEncounters.ts'],
-  ['combat/titan-fight.json', 'arenaScriptRows#ArenaScriptFightFileSchema', 'src/game/server/boss/openArenaFight.ts'],
-  ['combat/titan-geometry.json', 'arenaScriptRows#ArenaScriptGeometrySchema', 'src/game/server/boss/openArenaFight.ts'],
-  ['models/cloud-specimen.json', 'encounterRows#CloudSpecimenSchema', 'src/game/client/boss/encounterView.ts'],
-  ['riding/mounted-figure.json', 'mountedSpecimenRows#MountedSpecimenSeatSchema', 'src/game/client/riding/seatedFigure.ts'],
-  ['riding/session.json', 'riding#ClientRidingSessionSchema', 'src/game/client/riding/client.ts'],
+  ['combat/roaming.json', 'roamingCombat#RoamingCombatSchema', 'src/game/combat/roamingSession.ts'],
+  ['client/ranged-page.json', 'rangedPage#RangedPageSchema', 'src/game/loadout/rangedPage.ts'],
+  ['combat/room-entry.json', 'arenaRoomDocument#ArenaRoomDocumentSchema', 'src/game/shardfile/worldAssembly.ts'],
+  ['combat/timed-encounters.json', 'encounterRows#TimedEncountersSchema', 'src/game/boss/timedEncounters.ts'],
+  ['combat/titan-fight.json', 'arenaScriptRows#ArenaScriptFightFileSchema', 'src/game/boss/openArenaFight.ts'],
+  ['combat/titan-geometry.json', 'arenaScriptRows#ArenaScriptGeometrySchema', 'src/game/boss/openArenaFight.ts'],
+  ['models/cloud-specimen.json', 'encounterRows#CloudSpecimenSchema', 'src/game/boss/encounterView.ts'],
+  ['riding/mounted-figure.json', 'mountedSpecimenRows#MountedSpecimenSeatSchema', 'src/game/riding/seatedFigure.ts'],
+  ['riding/session.json', 'riding#ClientRidingSessionSchema', 'src/game/riding/client.ts'],
 ] as const;
 
 test.each(documents)('G1004 registers only the exact complete %s document and its native reader', (name, suffix, reader) => {

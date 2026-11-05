@@ -85,10 +85,10 @@ test('approval-only ledger entries require the exact decision and complete ordin
   const root = mkdtempSync('tmp/approved-host-test-');
   try {
     for (const dir of ['lint', 'src/game/client/looks', 'src/game/shared/looks', 'docs/plans']) mkdirSync(join(root, dir), { recursive: true });
-    writeFileSync(join(root, 'src/game/looks/fixture.ts'), 'export const feature = 1;');
+    writeFileSync(join(root, 'src/game/client/looks/fixture.ts'), 'export const feature = 1;');
     writeFileSync(join(root, 'docs/ENGINE.md'), 'game/looks/fixture');
     writeFileSync(join(root, 'docs/plans/decisions.md'), '| G475 | approved toon |');
-    const entry: PendingPlatformUser = { module: 'src/game/looks/fixture.ts', documentation: 'docs/ENGINE.md',
+    const entry: PendingPlatformUser = { module: 'src/game/client/looks/fixture.ts', documentation: 'docs/ENGINE.md',
       approvedFeature: { name: 'toon look host', decision: { path: 'docs/plans/decisions.md', row: 'G475' } } };
     const put = (value: unknown) => { writeFileSync(join(root, 'lint/platform-pending-users.json'), JSON.stringify({ schema: 'platform-pending-users/1', entries: [value] })); };
     put(entry); expect(pendingPlatformUsers(root)).toEqual([entry]);

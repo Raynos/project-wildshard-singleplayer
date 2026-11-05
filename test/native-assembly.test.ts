@@ -31,8 +31,8 @@ test('admits plain data plans in declared install order and refuses anything els
 });
 
 test('is a registered platform family for server names only, and held-melee stays its own schema', () => {
-  expect(platformFileFamily(NATIVE_ASSEMBLY_FILE, NATIVE_ASSEMBLY_SCHEMA)?.reader).toBe('src/game/server/shardfile/nativeAssembly.ts');
-  expect(platformFileFamily('server/physics.json', NATIVE_ASSEMBLY_DATA_SCHEMA)?.reader).toBe('src/game/server/shardfile/nativeAssembly.ts');
+  expect(platformFileFamily(NATIVE_ASSEMBLY_FILE, NATIVE_ASSEMBLY_SCHEMA)?.reader).toBe('src/game/shardfile/nativeAssembly.ts');
+  expect(platformFileFamily('server/physics.json', NATIVE_ASSEMBLY_DATA_SCHEMA)?.reader).toBe('src/game/shardfile/nativeAssembly.ts');
   expect(platformFileFamily('sim/native-assembly.json', NATIVE_ASSEMBLY_SCHEMA)).toBeUndefined();
   expect(platformFileFamily('data/physics.json', NATIVE_ASSEMBLY_DATA_SCHEMA)).toBeUndefined();
   expect(() => validatePlatformFile(NATIVE_ASSEMBLY_FILE, NATIVE_ASSEMBLY_SCHEMA, { kind: 'native-assembly' })).toThrow();

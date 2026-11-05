@@ -110,7 +110,7 @@ test('binds boot packs, transport bytes and the installed binary copies', async 
     'src/game/client/boot/audio.generated.ts', 'src/game/client/boot/packs.generated.ts', 'src/game/client/shard/art.generated.ts',
     'public/assets/physics/rapier.wasm', 'public/assets/packs/shard.hash.bin', 'public/basis/r186/basis_transcoder.wasm',
     'scripts/boot-publication.generated.json'];
-  mkdirSync(resolve(f.root, 'src/game/client/boot'), { recursive: true });
+  for (const folder of ['src/game/client/boot', 'src/game/client/shard']) mkdirSync(resolve(f.root, folder), { recursive: true });
   let calls = 0;
   const run = (): void => { calls++; for (const file of files) f.put(file, readFileSync(resolve(f.root, module), 'utf8')); };
   expect(await sourceTablesCached(f.root, 'boot', run)).toBe(false);

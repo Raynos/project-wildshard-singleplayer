@@ -17,7 +17,7 @@ test('both actual source families attach exact platform metadata and preserve by
     const blob = modelSceneSourceFile(name, model);
     expect(blob.bytes).toEqual(encode(model));
     expect(blob.file.jsonSchema).toEqual(registeredJsonSchema(name));
-    expect(platformFileFamily(name, blob.file.jsonSchema?.['$comment'] as string)?.reader).toBe('src/game/client/shardfile/sceneSources.ts');
+    expect(platformFileFamily(name, blob.file.jsonSchema?.['$comment'] as string)?.reader).toBe('src/game/shardfile/sceneSources.ts');
   }
   const blob = bakedSceneSourceFile('world/sources/bakes.json', bake);
   expect(blob.bytes).toEqual(encode(bake));

@@ -20,6 +20,7 @@ import { sectionHostImports } from './shard-platform-hosts.mjs';
 import { runtimeClosures } from './shard-runtime-closure.mjs';
 import { chargePlatformUsers, hasChargebackDeclarations, inlinePlatformPaths, inlinePlatformSpans, platformChargeback, recordPrivateCharge, retiredPlatformModule } from './platform-chargebacks.mjs';
 import { onDisk } from './format-package.mjs';
+import { unsortedPath } from '../lint/layer-exports.mjs';
 
 // The compiler's declarations globally replace Array.at's optional return with T. Load its JS API
 // behind a checked local contract, as compile-script.mjs does, so host JS keeps native Node types.
@@ -588,7 +589,7 @@ function readPendingPlatformUsers(root,symbolsFor) {
     const symbols=symbolsFor(entry.module,source);
     if(entry.export!==undefined&&!symbols.exports.has(entry.export))throw new Error(`Missing pending platform export: ${key}`);
     const documentation=readFileSync(resolve(root,entry.documentation),'utf8');
-    if(!documentation.includes(entry.module.replace(/^src\//u,'').replace(/\.ts$/u,'')))
+    if(![entry.module,unsortedPath(entry.module)].some(path=>documentation.includes(path.replace(/^src\//u,'').replace(/\.ts$/u,''))))
       throw new Error(`Pending feature lacks documentation: ${key}`);
     if (entry.plan !== undefined && entry.shard !== undefined) {
       const row=readFileSync(resolve(root,entry.plan.path),'utf8').split('\n').find(line=>line.split('|')[1]?.trim()===entry.plan?.row);

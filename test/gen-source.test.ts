@@ -162,16 +162,16 @@ test('the committed closure follows authored static edges with no product or dis
       boot: { explore: { program: true } },
     } }));
     write('src/game/server/shard/manifest.ts', "import './visible';import type {Erased} from './erased';export const lazy=()=>import('./lazy');");
-    write('src/game/shard/visible.ts', 'export const visible=true;');
-    write('src/game/shard/erased.ts', 'export interface Erased {}');
-    write('src/game/shard/lazy.ts', 'export const lazy=true;');
+    write('src/game/server/shard/visible.ts', 'export const visible=true;');
+    write('src/game/server/shard/erased.ts', 'export interface Erased {}');
+    write('src/game/server/shard/lazy.ts', 'export const lazy=true;');
     write('src/shards/island/data/runtimeCost.json', '{}');
     write('src/shards/island/card.webp', 'image');
     write('src/shards/island/extra.webp', 'extra image');
     write('scripts/manifest-art-inputs.json', JSON.stringify({ island: [{ file: 'data/art.json', field: ['extra'] }] }));
     write('src/shards/island/data/art.json', JSON.stringify({ extra: ['/src/shards/island/extra.webp'] }));
     expect(manifestClosure(root)).toEqual({ island: [
-      'out/.app/discovery.island.generated.ts', 'src/game/server/shard/manifest.ts', 'src/game/shard/visible.ts', 'src/shards/island/card.webp',
+      'out/.app/discovery.island.generated.ts', 'src/game/server/shard/manifest.ts', 'src/game/server/shard/visible.ts', 'src/shards/island/card.webp',
       'src/shards/island/data/runtimeCost.json',
       'src/shards/island/extra.webp', 'src/shards/island/manifest.json',
     ] });
@@ -189,9 +189,9 @@ test('the committed closure follows authored static edges with no product or dis
     expect(art).toContain('import art1 from "../../shards/island/extra.webp"');
     expect(art).toContain('[art0]: 5,'); expect(art).toContain('[art1]: 11,');
     expect(art).not.toContain('erased'); expect(art).not.toContain('lazy');
-    write('src/game/shard/visible.ts', "import './added';export const visible=true;");
-    write('src/game/shard/added.ts', 'export const added=true;');
-    expect(manifestClosure(root)['island']).toContain('src/game/shard/added.ts');
+    write('src/game/server/shard/visible.ts', "import './added';export const visible=true;");
+    write('src/game/server/shard/added.ts', 'export const added=true;');
+    expect(manifestClosure(root)['island']).toContain('src/game/server/shard/added.ts');
     write('scripts/manifest-art-inputs.json', JSON.stringify({ island: [{ file: '../foreign.json', field: ['extra'] }] }));
     expect(() => manifestClosure(root)).toThrow();
     write('scripts/manifest-art-inputs.json', '{}');
@@ -213,24 +213,24 @@ test('shared manifest imports retain separate products and refresh path aliases 
       write(`src/shards/${slug}/card.webp`, 'image'); write(`src/shards/${slug}/data/runtimeCost.json`, '{}');
     }
     const config = (folder: string): string => JSON.stringify({ compilerOptions: { module: 'ESNext', moduleResolution: 'Bundler', paths: { '@common/*': [`./src/${folder}/*`] } } });
-    write('tsconfig.json', config('game/shard'));
+    write('tsconfig.json', config('game/server/shard'));
     write('src/game/server/shard/manifest.ts', "export {visible} from '@common/visible';export type {Erased} from './erased';export const lazy=()=>import('./lazy');");
-    write('src/game/shard/visible.ts', "import './loop';export const visible=true;");
-    write('src/game/shard/loop.ts', "import './visible';");
-    write('src/game/shard/erased.ts', 'export interface Erased {}'); write('src/game/shard/lazy.ts', 'export const lazy=true;');
+    write('src/game/server/shard/visible.ts', "import './loop';export const visible=true;");
+    write('src/game/server/shard/loop.ts', "import './visible';");
+    write('src/game/server/shard/erased.ts', 'export interface Erased {}'); write('src/game/server/shard/lazy.ts', 'export const lazy=true;');
     const first = manifestClosure(root);
     for (const slug of ['one', 'two']) {
-      expect(first[slug]).toContain('src/game/shard/visible.ts'); expect(first[slug]).toContain('src/game/shard/loop.ts');
+      expect(first[slug]).toContain('src/game/server/shard/visible.ts'); expect(first[slug]).toContain('src/game/server/shard/loop.ts');
       expect(first[slug]).toContain(`src/shards/${slug}/data/runtimeCost.json`);
       expect(first[slug]).not.toContain(`src/shards/${slug === 'one' ? 'two' : 'one'}/data/runtimeCost.json`);
-      expect(first[slug]).not.toContain('src/game/shard/erased.ts'); expect(first[slug]).not.toContain('src/game/shard/lazy.ts');
+      expect(first[slug]).not.toContain('src/game/server/shard/erased.ts'); expect(first[slug]).not.toContain('src/game/server/shard/lazy.ts');
       expect(new Set(first[slug]).size).toBe(first[slug]?.length);
     }
     write('src/replacement/visible.ts', "export const visible='new';"); write('tsconfig.json', config('replacement'));
     const next = manifestClosure(root);
     for (const slug of ['one', 'two']) {
-      expect(next[slug]).toContain('src/replacement/visible.ts'); expect(next[slug]).not.toContain('src/game/shard/visible.ts');
-      expect(next[slug]).not.toContain('src/game/shard/loop.ts');
+      expect(next[slug]).toContain('src/replacement/visible.ts'); expect(next[slug]).not.toContain('src/game/server/shard/visible.ts');
+      expect(next[slug]).not.toContain('src/game/server/shard/loop.ts');
     }
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
