@@ -1,4 +1,6 @@
 {
+  "A1.board-off-at-speed": 120,
+  "A1.walk-onto-board": 180,
   "A2.authored-speed": 120,
   "A2.dash": 77,
   "A2.lunge": 74,
@@ -26,7 +28,6 @@
   "A10.effect-slow": 99,
   "A10.floor-function": 91,
   "A11.impulse-while-locked": 85,
-  "A13.walk-through-a-gate": 78,
   "A14.sea-swell": 251,
   "A17.reset-mid-air": 49,
   "A17.reset-mid-run": 70
