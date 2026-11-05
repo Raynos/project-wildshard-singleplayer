@@ -8,7 +8,7 @@ import type { ShardCompendium, EntryDef, EntryStats } from '../compendium/types'
 import type { JournalRow } from '@wildshard/format/compendiumRows';
 import type { ShardProduct } from '../shardfile/shardProduct';
 import { outputDescriptor } from '../shardfile/outputDescriptor';
-import type { LootPresentation } from '../../server/loot/runtime';
+import type { LootPresentation } from '../../client/loot/runtime';
 import type { ShardRows } from '@wildshard/format/rows';
 import { sketchReference, type CompendiumSketch } from '@wildshard/format/sketch';
 

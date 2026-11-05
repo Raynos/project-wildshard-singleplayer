@@ -11,15 +11,15 @@ import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { CollectionKeepsakes } from '@wildshard/format/collectionDisplay';
 import { curveAt } from '@wildshard/format/materials';
-import type { BodyShadow } from '../../client/cosmetics/bodyShadow';
+import type { BodyShadow } from '../cosmetics/bodyShadow';
 import { ClaimedPickupRoster } from '../loot/runtime';
 import { isOwnedId, isCosmetic, type Owned } from '../../shared/loot/Owned';
 import { rollLoot } from '../loot/tables';
-import { onCreatureDeath } from '../loot/deaths';
+import { onCreatureDeath } from '../../shared/loot/deaths';
 import type { DeclaredLootEconomy } from '../../shared/shard/declaredRows';
-import type { ShardContext } from '../../client/plugin/context';
-import type { CollectionCatalogue, CollectionDisplay, CollectionParams } from '../../client/models/collectionDisplay';
-import { collectionLoose, keepsakeView } from '../../client/compendium/keepsakesView';
+import type { ShardContext } from '../plugin/context';
+import type { CollectionCatalogue, CollectionDisplay, CollectionParams } from '../models/collectionDisplay';
+import { collectionLoose, keepsakeView } from './keepsakesView';
 
 /** Existing save, world, model and effect owners lend only the capabilities the collection presenter needs. */
 export interface CollectionKeepsakeHost<A extends { kind: string; variant?: string | undefined; position: Vector3 }> {

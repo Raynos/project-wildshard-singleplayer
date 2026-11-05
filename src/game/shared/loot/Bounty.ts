@@ -11,7 +11,7 @@
  *   if (bounty.claim(a)) burst(…)       // true: this death pays (and is counted, saved); false: a respawn's, no coins
  *   bounty.left(a)                      // deaths this key still pays for
  */
-import { bountySave, saveSlug } from '../../shared/saves';
+import { bountySave, saveSlug } from '../saves';
 
 
 export interface BountyTarget { kind: string; herd: number }

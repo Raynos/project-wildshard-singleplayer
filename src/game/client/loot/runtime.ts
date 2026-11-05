@@ -1,25 +1,24 @@
 import * as v from 'valibot';
 import { LootBagSchema } from '@wildshard/format/lootBag';
-import { bagMenu } from '../../client/bag/tabs';
+import { bagMenu } from '../bag/tabs';
 import * as THREE from 'three';
-import { practiceRoomState as practiceRoom } from '@wildshard/engine/core/practiceRoomState';
 import { ItemPickup } from '@wildshard/engine/player/WeaponPickup';
 import type { GameMenu } from '@wildshard/engine/ui/Menu';
 import type { MapMark } from '@wildshard/engine/ui/Minimap';
-import type { GearLoot, FindsView } from '../../client/bag/bag';
-import { CoinChip } from '../../client/loot/ui/CoinChip';
+import type { GearLoot, FindsView } from '../bag/bag';
+import { CoinChip } from './ui/CoinChip';
 import { CoinBurst } from './CoinBurst';
 import { Purse, publishPurse } from '../../shared/loot/Purse';
-import { Bounty } from './Bounty';
-import { coinsFor, coinsOn, type LootGate } from './coins';
+import { coinsOn, type LootGate } from './coins';
+import { pageLootFeed, type LootFeed } from './feed';
 import { OWNED,isCosmetic, isOwnedId, type Owned, type OwnedId } from '../../shared/loot/Owned';
 import { declaredLootPresentation } from '../../shared/shard/declaredRows';
 import { createFindsCatalogue } from '../../shared/bag/findsCatalogue';
 import { boundQuestState } from '../../shared/quest/boundState';
 import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
-import { onCreatureDeath, DEATH_ORDER, type CreatureDeathSource } from './deaths';
-import type { ShardContext } from "../../client/plugin/context";
-import { installEnteredRuntimeService } from '../../client/shard/retainedHooks';
+import type { CreatureDeathSource } from '../../shared/loot/deaths';
+import type { ShardContext } from "../plugin/context";
+import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import { DynamicBodySlots } from '@wildshard/engine/physics/bodies';
 
 export interface LootShop { readonly isOpen: boolean; render: () => void; dispose: () => void }
@@ -47,6 +46,8 @@ export interface ScopedLootHost<A extends LootBody> {
   menu: GameMenu;
   presentation: LootPresentation;
   minimap?: { setMarks: (source: (() => readonly MapMark[]) | null) => void } | null;
+  /** What pays this player: the page's own deaths and bounty, until a server owns them. */
+  feed?: LootFeed;
 }
 export interface ScopedLoot { purse: Purse | null; dispose: () => void }
 
@@ -67,19 +68,15 @@ export function installLoot<A extends LootBody>(h: ScopedLootHost<A>): ScopedLoo
   const flush = (): void => { purse.flush(); };
   const onHidden = (): void => { if (document.visibilityState === 'hidden') flush(); };
   lifetime.listen(window, 'pagehide', flush); lifetime.listen(document, 'visibilitychange', onHidden);
-  const census = Bounty.census(h.animals()), bounty = new Bounty(h.manifest.slug, census);
-  let fullClear = 0;
-  for (const [key, n] of census) fullClear += n * coinsFor(h.manifest, key.split(':')[0] ?? key);
-  for (const lone of view.lateKinds ?? []) if (!census.has(lone)) fullClear += coinsFor(h.manifest, lone);
-  const projected = new THREE.Vector3();
-  onCreatureDeath(ctx, h.animals, (a) => {
-    if (!live || practiceRoom.open) return;
-    const n = coinsFor(h.manifest, a.kind);
-    if (n <= 0 || !bounty.claim(a)) return;
-    burst.spawn(a.position, n, (share) => { purse.add(share, false); }, () => { flush(); view.chime(); });
-    projected.set(a.position.x, a.position.y + 1.5, a.position.z).project(h.camera);
+  const feed = h.feed ?? pageLootFeed(ctx, h.manifest, h.animals, view.lateKinds ?? []);
+  const projected = new THREE.Vector3(), fell = new THREE.Vector3();
+  const offPayouts = feed.onPayout(({ at, coins: n }) => {
+    if (!live) return;
+    burst.spawn(fell.set(at.x, at.y, at.z), n, (share) => { purse.add(share, false); }, () => { flush(); view.chime(); });
+    projected.set(at.x, at.y + 1.5, at.z).project(h.camera);
     if (chip !== null && projected.z < 1 && Math.abs(projected.x) < 1.1 && Math.abs(projected.y) < 1.1) chip.pop((projected.x + 1) * 0.5 * window.innerWidth, (1 - projected.y) * 0.5 * window.innerHeight, n);
-  }, DEATH_ORDER.loot);
+  });
+  lifetime.onDispose(offPayouts);
   const applyChart = (): void => {
     const want = entered && view.charted() && view.marks !== null;
     if (want !== charted) { charted = want; h.minimap?.setMarks(want ? view.marks : null); }
@@ -99,7 +96,7 @@ export function installLoot<A extends LootBody>(h: ScopedLootHost<A>): ScopedLoo
   const refresh = (): void => { if (h.menu.isOpen) h.menu.refresh(); };
   const offOwned = owned.onChange(() => { applyChart(); refresh(); });
   const offPurse = purse.onChange((n) => { chip?.set(n); if (shop?.isOpen === true) shop.render(); refresh(); });
-  ctx.debug.expose(view.debugName ?? `${h.manifest.slug}.loot`, { purse, owned, bounty, fullClear, grant: (id: OwnedId) => owned.grant(id), coins: (n: number) => { purse.add(n); }, shop });
+  ctx.debug.expose(view.debugName ?? `${h.manifest.slug}.loot`, { purse, owned, ...feed.debug, grant: (id: OwnedId) => owned.grant(id), coins: (n: number) => { purse.add(n); }, shop });
   const dispose = (): void => {
     if (!live) return;
     live = false; flush(); offOwned(); offPurse(); releasePurse();

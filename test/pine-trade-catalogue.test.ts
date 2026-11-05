@@ -11,7 +11,7 @@ import { tradeCatalogue } from '../src/shards/pine-hollow/generators/trades';
 import { pinePickups } from '../src/shards/pine-hollow/generators/pickups';
 import { Scope } from '../src/engine/shared/app/scope';
 import { app } from '../src/engine/client/app/runtime';
-import { registerLootTable, rollLoot } from '../src/game/server/loot/tables';
+import { registerLootTable, rollLoot } from '../src/game/client/loot/tables';
 import { readLootTables } from '../src/game/shared/loot/tableRows';
 
 let declared: TradeCatalogue | undefined;

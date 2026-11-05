@@ -5,7 +5,7 @@ import { DynamicBodySlots } from '../src/engine/shared/physics/bodies';
 import { BodyLaunchSchema } from '@wildshard/format/nativeItems';
 import { ClaimedPickupSchema, parseLootEconomy } from '@wildshard/format/lootEconomy';
 import { parseItems } from '@wildshard/format/items';
-import { ClaimedPickupRoster } from '../src/game/server/loot/runtime';
+import { ClaimedPickupRoster } from '../src/game/client/loot/runtime';
 import { DRIFTWOOD_SWORDS } from '../src/shards/driftwood-isle/generators/items';
 import { DRIFTWOOD_LOOT } from '../src/shards/driftwood-isle/generators/loot';
 import pickups from '../src/shards/pine-hollow/data/skinPickups.json' with { type: 'json' };

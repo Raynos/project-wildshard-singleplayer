@@ -6,6 +6,7 @@ import type { AnimalMaterial } from '@wildshard/engine/entities/AnimalFactory';
 import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
 import type { SpeciesDecisionAuthority } from '../../server/plugin/brain';
 import type { ShardContext } from '../plugin/context';
+import { registerLootTable } from '../loot/tables';
 import { pageSim } from '../shardfile/clientMoverOwners';
 import { readLootTables } from '../../shared/loot/tableRows';
 import { installPopulationProjection } from '../shardfile/clientPopulationProjection';
@@ -40,7 +41,7 @@ export async function installProductCreatures(ctx: ShardContext, decisions: Spec
   ctx.rows.spawnTable(declaredSpawnTables(section.spawns));
   const loot = readLootTables(ctx.product.section('economy/loot').rows.loot[0]?.economy?.tables);
   ctx.rows.lootTable(loot);
-  for (const row of loot) pageSim.registerLootTable(row, ctx.scope);
+  for (const row of loot) registerLootTable(row, ctx.scope);
   await book.packed.preload();
   if (left(ctx)) return;
   const projection = await ctx.product.json(rows.projection);

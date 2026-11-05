@@ -243,7 +243,7 @@ test('G571 placed actors and G667 group bindings keep broad ownership without ch
 
 
 test('explicit admitted Bag rows retire only the former private projection spans',()=>{
- for(const path of ['src/game/server/loot/runtime.ts','src/format/lootEconomy.ts']){
+ for(const path of ['src/game/client/loot/runtime.ts','src/format/lootEconomy.ts']){
   const reports:string[]=[],spans=inlinePlatformSpans(path,readFileSync(onDisk('.', path),'utf8'),line=>{reports.push(line);});
   expect(spans.some(span=>span.name==='LootBagProjection')).toBe(false);expect(reports).toEqual([]);
  }

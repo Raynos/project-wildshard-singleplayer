@@ -2,7 +2,7 @@ import {readModuleGroups} from '@wildshard/engine/boot/download';
 import { whenControl } from '@wildshard/engine/boot/prefetch';
 import type * as ScriptPresentation from '../plugin/ui';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type * as LootPresentation from '../../server/loot/runtime';
+import type * as LootPresentation from '../loot/runtime';
 import type * as CompendiumPresentation from '../compendium/install';
 
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
@@ -369,7 +369,7 @@ export class ShardfileClient {
   async play(ctx: ShardContext): Promise<void> {
     const own = enteredOwner(), scope = ctx.scope, product = ctx.product;
     const presentation = this.mode === 'full' && !this.nativeFeatures && (this.source.clientScripts.bindings.length > 0 || this.source.quests.quests.length > 0) ? await import('../plugin/ui') : null;
-    const lootPresentation = this.mode === 'full' && !this.nativeFeatures && this.source.rows.loot.some(row => 'gear' in row) ? await import('../../server/loot/runtime') : null;
+    const lootPresentation = this.mode === 'full' && !this.nativeFeatures && this.source.rows.loot.some(row => 'gear' in row) ? await import('../loot/runtime') : null;
     const compendium = this.mode === 'full' && !this.nativeFeatures && this.source.rows.compendiums.length > 0 ? await import('../compendium/install') : null;
     if (ctx.scope !== scope || ctx.product !== product || scope.disposed || scope.disposing) throw new Error('Shardfile left during presentation import');
     const steps = this.playSteps(ctx, presentation, lootPresentation, compendium);

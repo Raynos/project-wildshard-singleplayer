@@ -8,10 +8,10 @@ import { RngService } from '../src/engine/shared/core/rng';
 import { installCoinModel } from '../src/game/client/loot/coinModel';
 import { coinGeometry } from '../src/game/cook/generators/pickups';
 import { CoinMotion } from '../src/game/client/loot/CoinMotion';
-import { CoinBurst } from '../src/game/server/loot/CoinBurst';
+import { CoinBurst } from '../src/game/client/loot/CoinBurst';
 import { Purse } from '../src/game/shared/loot/Purse';
 import { Owned } from '../src/game/shared/loot/Owned';
-import { Bounty } from '../src/game/server/loot/Bounty';
+import { Bounty } from '../src/game/shared/loot/Bounty';
 import { ownedSave, bountySave } from '../src/game/shared/saves';
 
 function play(burst: CoinBurst) {

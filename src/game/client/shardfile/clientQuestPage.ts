@@ -6,7 +6,7 @@ import { installPersistedQuest, bindPageQuestStages } from '../plugin/ui';
 import type { DirectorActionBinding } from '../../shared/plugin/director';
 import { bindRuntimeCoins } from '../../shared/plugin/runtimeRows';
 import { installRuntimeAudio } from '../plugin/audio';
-import { pageSim } from './clientMoverOwners';
+import { installRuntimeLoot } from '../loot/runtime';
 import { installBoundQuestFlags, publishQuestFacts } from '../../shared/quest/boundState';
 import { resolveSceneNpc } from '../models/sceneSpecimens';
 import { productPainterLight } from '../looks/paintedLook';
@@ -26,7 +26,7 @@ export async function installClientQuestPage(ctx: ShardContext, input: unknown, 
   const flags = installBoundQuestFlags(ctx.scope, row.rows.id, ctx.manifest.slug);
   const model = resolveSceneNpc(ctx.product, row.rows.npc);
   installRuntimeAudio(ctx, ctx.product.shardfile.audio);
-  const loot = pageSim.installRuntimeLoot(ctx, { gear: purse => ({ coins: purse.coins }), finds: null, marks: null,
+  const loot = installRuntimeLoot(ctx, { gear: purse => ({ coins: purse.coins }), finds: null, marks: null,
     charted: () => false, chime: () => { runtime.play?.cues.cue('cue.swap'); } });
   const coins = bindRuntimeCoins(ctx, loot?.purse ?? null);
   const firstNpc = runtime.interactables.length;

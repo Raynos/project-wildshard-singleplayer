@@ -8,7 +8,7 @@ import { GeometryPackWriter } from '../src/sdk/kit/geometryPack';
 import { expect, test, vi } from 'vitest';
 import { BufferAttribute, BufferGeometry, Group, MeshStandardMaterial, Object3D, PerspectiveCamera, Vector3 } from 'three';
 import { CollectionDisplay, collectionModel, collectionTrophy, collectionCosmetic } from '../src/game/client/models/collectionDisplay';
-import { installCollectionKeepsakes } from '../src/game/server/compendium/keepsakes';
+import { installCollectionKeepsakes } from '../src/game/client/compendium/keepsakes';
 import { TrophyWall } from '../src/game/client/models/collectionWall';
 import { CompendiumState } from '../src/game/shared/compendium/state';
 import type { ShardCompendium } from '../src/game/shared/compendium/types';

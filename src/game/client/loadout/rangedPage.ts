@@ -13,7 +13,7 @@ import { forestPage } from '../shardfile/forestPage';
 import { HeldFinishes } from './finishes';
 import { installHeldLoadout, type HeldLoadout } from './held';
 import { ItemCatalogue } from '../../shared/loadout/itemCatalogue';
-import { ClaimedPickupRoster } from '../../server/loot/runtime';
+import { ClaimedPickupRoster } from '../loot/runtime';
 import { HeldLauncher } from '../weapons/heldLauncher';
 import { HeldFirearm } from '../plugin/heldFirearm';
 import { Bow } from '../../server/weapons/Bow';
@@ -26,7 +26,7 @@ import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import type { ShardContext } from '../plugin/context';
 import { finishForestPageAudio } from '../audio/forestPage';
 import { declaredLootEconomy } from '../../shared/shard/declaredRows';
-import { registerLootTable, rollLoot } from '../../server/loot/tables';
+import { registerLootTable, rollLoot } from '../loot/tables';
 import { readLootTables } from '../../shared/loot/tableRows';
 import type { DeclaredAmbience } from '@wildshard/engine/audio/declaredAmbience';
 

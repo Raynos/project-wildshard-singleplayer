@@ -3,7 +3,7 @@ import {Scope} from '../src/engine/shared/app/scope';
 import {Flags} from '../src/engine/shared/world/interact/flags';
 import {Owned} from '../src/game/shared/loot/Owned';
 import {Purse} from '../src/game/shared/loot/Purse';
-import {enteredLootPresentation} from '../src/game/server/loot/runtime';
+import {enteredLootPresentation} from '../src/game/client/loot/runtime';
 import type {ShardContext} from '../src/game/client/plugin/context';
 import type {ShardRuntime} from '../src/game/shared/shard/runtime';
 import {createShardProduct} from '../src/game/shared/shardfile/shardProduct';

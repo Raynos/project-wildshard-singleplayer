@@ -537,7 +537,7 @@ export interface ShardManifest {
    * Driftwood caps hits at 20 except the Drowned Captain, and permits two attackers at once. */
   fight?: LevelSpec['fight'];
   /** the shard's loot rules (E314, project/archive/2026-09-30-driftwood-loot.md; src/game/loot/): `coins` = kills burst doubloons into a
-   *  saved purse, shown by a coin chip under VITALS (src/game/server/loot/coins.ts has the values). Omitted = no coins */
+   *  saved purse, shown by a coin chip under VITALS (src/game/client/loot/coins.ts has the values). Omitted = no coins */
   loot?: { coins?: boolean };
   /** E314 stage 3: the player's body shadow (src/engine/player/BodyShadow.ts) — an invisible low-poly castaway on your feet whose
    *  only trace is its shadow on the ground (worn hat / cape on it). Driftwood: true. Omitted = no body shadow */

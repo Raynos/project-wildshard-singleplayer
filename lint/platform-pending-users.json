@@ -1378,7 +1378,7 @@
       }
     },
     {
-      "module": "src/game/server/compendium/keepsakes.ts",
+      "module": "src/game/client/compendium/keepsakes.ts",
       "shard": "nalati-grasslands",
       "plan": {
         "path": "docs/plans/host-audit/shard-platform-rows.md",

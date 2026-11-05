@@ -37,7 +37,7 @@ const questOwners=new Set([
 ]);
 // Reviewed W2 baseline owners. Exact paths/exports only; mixed AST ownership below still applies.
 const reviewedW2Owners = new Map([
-  ['src/game/server/loot/tables.ts#readLootTables', 'C6'],
+  ['src/game/shared/loot/tableRows.ts#readLootTables', 'C6'],
   ['src/format/lootEconomy.ts', 'C6'],
   ['src/game/shared/shard/declaredRows.ts#EconomyGrant', 'C6'],
   ['src/game/shared/shard/declaredRows.ts#DeclaredLootEconomy', 'C6'],
@@ -110,7 +110,7 @@ const reviewedW2Owners = new Map([
   ['src/engine/client/player/Skins.ts#cloneWith', 'C6'],
   ['src/engine/client/player/Skins.ts#white', 'C6'],
   ['src/engine/client/player/Skins.ts#whiteTex', 'C6'],
-  ['src/game/server/loot/tables.ts#registerLootTable', 'C6'],
+  ['src/game/client/loot/tables.ts#registerLootTable', 'C6'],
   ['src/game/client/shard/retainedHooks.ts#installRetainedPlayerEffects', 'C6'],
   ['src/game/client/shard/retainedHooks.ts#playerBindings', 'C6'],
   ['src/game/client/systems/viewmodel/armClips.ts#SWIM_CLIPS', 'C6'],

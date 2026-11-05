@@ -95,7 +95,7 @@ export const DONE = {
     'src/engine/client/render/calibrationGpu.ts': { why: 'E357 S1.6 synthetic unit-cost scene: temporary calibration geometry, never shard content or a Model Explorer asset', counts: { InstancedMesh: 1 } },
     'src/engine/client/entities/AnimalFactory.ts': { why: "the species rigs' builder: a creature's parts merged per bone (creatures are models, M5: each shard's roster)", counts: { mergeGeometries: 4 } },
     'src/engine/client/fx/Impacts.ts': { why: 'hit sparks and debris: an effect', counts: { InstancedMesh: 1 } },
-    'src/game/server/loot/CoinBurst.ts': { why: 'the coins bursting from a kill: an effect', counts: { InstancedMesh: 1 } },
+    'src/game/client/loot/CoinBurst.ts': { why: 'the coins bursting from a kill: an effect', counts: { InstancedMesh: 1 } },
     'src/game/client/cosmetics/bodyShadow.ts': { why: "the player's own shadow-casting body: the player, not a thing in the world", counts: { mergeGeometries: 2 } },
     'src/game/client/systems/items/declaredSword.ts': { why: "SF54: the declared kit.sword item view's private copy of the low-poly sword build (Gear), moved with the declared item families out of the kit; deleted when they graduate", counts: { mergeGeometries: 2 } },
     'src/engine/client/combat/view/projectile.ts': { why: 'bolts and arrows in flight: an effect of the held gear', counts: { InstancedMesh: 1 } },

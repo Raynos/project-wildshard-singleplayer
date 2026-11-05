@@ -60,7 +60,7 @@ async function prepareWorld(): Promise<void> {
   installKitIcons();
   installPickupCatalogue(PICKUP_CATALOGUE, await preparePickupCatalogue({ file: name => Promise.resolve(new Uint8Array(readFileSync(`public${name}`))) }, PICKUP_CATALOGUE));
   installKitProps();
-  const { registerLootTable } = await import('../../src/game/server/loot/tables');
+  const { registerLootTable } = await import('../../src/game/client/loot/tables');
   const { readLootTables } = await import('../../src/game/shared/loot/tableRows');
   const { DRIFTWOOD_LOOT: loot } = await import('../../src/shards/driftwood-isle/generators/loot');
   for (const row of readLootTables(loot.economy.tables)) registerLootTable(row);

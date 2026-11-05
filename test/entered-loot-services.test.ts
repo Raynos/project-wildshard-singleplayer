@@ -8,7 +8,7 @@ import { createLevelInstallation } from '../src/engine/client/level/installation
 import { shardContext } from '../src/game/client/plugin/context';
 import { RetainedRuntimeHooks } from '../src/game/client/shard/retainedHooks';
 import { BagMenu, type BagMenuOptions } from '../src/game/client/bag/tabs';
-import { installLoot, type LootPresentation } from '../src/game/server/loot/runtime';
+import { installLoot, type LootPresentation } from '../src/game/client/loot/runtime';
 import { Owned } from '../src/game/shared/loot/Owned';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';

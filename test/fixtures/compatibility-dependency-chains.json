@@ -23,14 +23,14 @@
       [
         "src/shards/sunscar-dunes/runtime/index.ts",
         "src/shards/sunscar-dunes/plugin.ts",
-        "src/game/server/loot/runtime.ts",
+        "src/game/client/loot/runtime.ts",
         "src/game/client/bag/tabs.ts",
         "src/engine/client/ui/icons.ts"
       ],
       [
         "src/shards/sunscar-dunes/runtime/index.ts",
         "src/shards/sunscar-dunes/plugin.ts",
-        "src/game/server/loot/runtime.ts",
+        "src/game/client/loot/runtime.ts",
         "src/game/client/loot/ui/CoinChip.ts",
         "src/engine/client/ui/hudSlots.ts"
       ]
@@ -60,7 +60,7 @@
       ],
       [
         "src/shards/far-reach/runtime/index.ts",
-        "src/game/server/loot/runtime.ts",
+        "src/game/client/loot/runtime.ts",
         "src/game/client/bag/tabs.ts",
         "src/engine/client/ui/icons.ts"
       ]

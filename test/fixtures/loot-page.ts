@@ -1,4 +1,4 @@
-import {enteredLootPresentation} from '../../src/game/server/loot/runtime';
+import {enteredLootPresentation} from '../../src/game/client/loot/runtime';
 import {parseRows} from '@wildshard/format/rows';
 import type {declaredLootEconomy} from '../../src/game/shared/shard/declaredRows';
 import type {Scope} from '../../src/engine/shared/app/scope';

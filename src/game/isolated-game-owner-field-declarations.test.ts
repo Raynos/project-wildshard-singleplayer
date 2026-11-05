@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["client/ambient/ambientFlock","client/ambient/wingField","client/bag/BagButton","client/compendium/Journal","client/cosmetics/bodyShadow","client/cosmetics/cosmetics","client/cosmetics/locker","client/grapple/ribbon","client/loadout/cosmeticFinishes","client/looks/forestGround","client/looks/streamedCover","server/loot/runtime","client/loot/ui/CoinChip","server/population/environment","server/population/perchBody","client/population/projection","server/quest/bodyOps","client/systems/effects/view"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["client/ambient/ambientFlock","client/ambient/wingField","client/bag/BagButton","client/compendium/Journal","client/cosmetics/bodyShadow","client/cosmetics/cosmetics","client/cosmetics/locker","client/grapple/ribbon","client/loadout/cosmeticFinishes","client/looks/forestGround","client/looks/streamedCover","client/loot/runtime","client/loot/ui/CoinChip","server/population/environment","server/population/perchBody","client/population/projection","server/quest/bodyOps","client/systems/effects/view"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/game/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);

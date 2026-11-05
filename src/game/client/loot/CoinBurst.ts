@@ -11,7 +11,7 @@
  */
 import type { Scene } from 'three';
 import { app } from '@wildshard/engine/app/runtime';
-import { CoinMotion } from '../../client/loot/CoinMotion';
+import { CoinMotion } from './CoinMotion';
 
 /** Page adapter: preserve the original lazy cosmetic RNG lookup. */
 export class CoinBurst extends CoinMotion {

@@ -10,6 +10,8 @@ import { declaredLootEconomy } from '../../shared/shard/declaredRows';
 import { defineWorldSceneCatalogue } from '../models/worldSceneCatalogue';
 import { sharedModelContext, type ModelDef } from '@wildshard/engine/models/model';
 import type { Sword } from '../../server/weapons/Sword';
+import { installDeclaredCollectionKeepsakes } from '../compendium/keepsakes';
+import { enteredLootPresentation, installRuntimeLoot } from '../loot/runtime';
 import { pageSim } from '../shardfile/clientMoverOwners';
 import { installQuestShop } from './trader';
 
@@ -30,14 +32,14 @@ export async function installQuestContinuation(ctx: ShardContext, input: unknown
   const bind = (model: ModelDef<Record<string, unknown>>): ModelDef<Record<string, unknown>> => ({ ...model,
     build: (_context, params, rng) => model.build({ ...sources, specimenScope: ctx.scope }, params, rng) });
   const collections = v.parse(CollectionDisplaysSchema, ctx.product.section(row.collections));
-  await pageSim.installDeclaredCollectionKeepsakes(ctx, collections.keepsakes, economy,
+  await installDeclaredCollectionKeepsakes(ctx, collections.keepsakes, economy,
     new Map([['collection', { adventure, world, play, swords, catalogue,
       models: new Map(Object.entries(row.cosmetics.models).map(([id, key]) => [id, bind(cosmetics.model(key))])) }]]));
   if (ended(ctx)) return;
   const shop = await ctx.product.json(row.loot.shop);
   if (ended(ctx)) return;
-  const presentation = pageSim.enteredLootPresentation(ctx, row.loot.id, row.loot.bag);
-  pageSim.installRuntimeLoot(ctx, { ...presentation, shop: () => installQuestShop(ctx, shop)() }, { minimap: row.loot.minimap, before: row.loot.before });
+  const presentation = enteredLootPresentation(ctx, row.loot.id, row.loot.bag);
+  installRuntimeLoot(ctx, { ...presentation, shop: () => installQuestShop(ctx, shop)() }, { minimap: row.loot.minimap, before: row.loot.before });
 }
 
 /** Finite entry dispatch. The admitted file owns quest and collection ids; no

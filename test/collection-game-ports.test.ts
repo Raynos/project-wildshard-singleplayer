@@ -4,7 +4,7 @@ import type {PerspectiveCamera,Scene} from 'three';
 import type {Renderer} from '../src/engine/client/render/renderer';
 import {FakeGame} from '../src/engine/test/FakeGame';
 import {LightPool} from '../src/engine/client/fx/LightPool';
-import {collectionGamePorts} from '../src/game/server/compendium/keepsakes';
+import {collectionGamePorts} from '../src/game/client/compendium/keepsakes';
 
 test('a collection borrows inherited scene/camera/renderer ports for its real pickup light pool',()=>{
   const fake=new FakeGame(),source=fake.asGame();

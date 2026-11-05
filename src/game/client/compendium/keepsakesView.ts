@@ -5,7 +5,7 @@ import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
 import { modelContext, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
 import { place } from '@wildshard/engine/models/place';
 import { CollectionDisplay, collectionCosmetic, type CollectionCatalogue } from '../models/collectionDisplay';
-import type { CollectionKeepsakeHost } from '../../server/compendium/keepsakes';
+import type { CollectionKeepsakeHost } from './keepsakes';
 
 type ViewHost = Pick<CollectionKeepsakeHost<never>, 'rows' | 'models' | 'loose' | 'owner' | 'place' | 'sky' | 'hud' | 'audio' | 'music' | 'swords' | 'body' | 'registry'>;
 

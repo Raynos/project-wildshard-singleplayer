@@ -1,6 +1,6 @@
 /**
  * Purse — a shard's doubloons (E314 L1, project/archive/2026-09-30-driftwood-loot.md): Driftwood's one currency. Coins come only from
- * kills (src/game/server/loot/coins.ts); stage 2's trader spends them. Saved per shard in localStorage ('ws.purse.v1'), the
+ * kills (src/game/client/loot/coins.ts); stage 2's trader spends them. Saved per shard in localStorage ('ws.purse.v1'), the
  * Inventory pattern. Whole coins only; never below 0.
  *
  *   const purse = new Purse(chunk.id);

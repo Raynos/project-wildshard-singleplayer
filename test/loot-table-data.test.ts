@@ -3,7 +3,7 @@ import { WeightedTable, type TableSpec } from '../src/engine/shared/ai/weighted'
 import { Scope } from '../src/engine/shared/app/scope';
 import { app } from '../src/engine/client/app/runtime';
 import { parseLootEconomy, parseLootTables } from '@wildshard/format/lootEconomy';
-import { getLootTable, registerLootTable, rollLoot } from '../src/game/server/loot/tables';
+import { getLootTable, registerLootTable, rollLoot } from '../src/game/client/loot/tables';
 import { readLootTables, type LootContext } from '../src/game/shared/loot/tableRows';
 import { DRIFTWOOD_LOOT as LOOT } from '../src/shards/driftwood-isle/generators/loot';
 
