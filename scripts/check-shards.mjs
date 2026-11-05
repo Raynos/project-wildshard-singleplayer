@@ -88,6 +88,7 @@ export function checkShards(root, selected) {
         ? !generatedOnly(root, `src/shards/${dir.name}/${entry.name}`, generated)
         : !entry.isFile() || !generated.has(`src/shards/${dir.name}/${entry.name}`)))
       .map(entry => entry.name + (entry.isDirectory() ? '/' : ''));
+    if (entries[dir.name].length === 0) delete entries[dir.name];
   }
   return checkShardLayout(entries, config, outputs);
 }

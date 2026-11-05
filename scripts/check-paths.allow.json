@@ -788,5 +788,40 @@
     "path": "src/engine/core/config.ts",
     "file": "test/sort-sides.test.ts",
     "why": "J122: the pre-sort tree of the sort's own fixture; not a checkout path and must retain its spelling."
+  },
+  {
+    "path": "src/engine/client/explore/ModelExplorer.ts:src/engine/entities/species/",
+    "file": "scripts/sort-sides.mjs",
+    "why": "A reviewed-literal key: file and the pre-sort text it replaced"
+  },
+  {
+    "path": "src/engine/*/entities/species/",
+    "file": "scripts/sort-sides.mjs",
+    "why": "Display text the sort writes for a divided folder, not an opened path"
+  },
+  {
+    "path": "src/$1",
+    "file": "scripts/sort-sides.mjs",
+    "why": "Regex replacement in the compiler check"
+  },
+  {
+    "path": "src/**/*.tsx",
+    "file": "scripts/source-generators.mjs",
+    "why": "An input glob that may match nothing: a future .tsx must still invalidate"
+  },
+  {
+    "path": "src/shards/*/manifest.ts",
+    "file": "scripts/source-generators.mjs",
+    "why": "An input glob kept so a typed manifest would invalidate; all are .json today"
+  },
+  {
+    "path": "src/**/*.jpeg",
+    "file": "scripts/source-generators.mjs",
+    "why": "An input glob that may match nothing: a future .jpeg must still invalidate"
+  },
+  {
+    "path": "src/shards/driftwood-isle/assets/a9f1a2ef4650ab6bb7acbb197997e68bdb883a09206f99e66183d32cac731d0a",
+    "file": "scripts/storage-policy.json",
+    "why": "An exact storage pin for a blob, read by oid; the path need not exist at this tree"
   }
 ]

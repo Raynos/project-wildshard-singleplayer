@@ -7,7 +7,10 @@
     "allowedFiles": [
       "manifest.json",
       "ktx2.generated.ts",
-      "discovery.generated.ts"
+      "discovery.generated.ts",
+      "fence-reads.json",
+      "packs-set.json",
+      "runtimeCost.json"
     ],
     "folders": [
       "data",
@@ -29,6 +32,9 @@
   },
   "describe": {
     "shard.config.ts": "build entry: serialisable declaration plus output blobs/custom/platform sections; builds out/<slug>/",
+    "fence-reads.json": "the shard's reviewed list of files read during a boot fence",
+    "packs-set.json": "the shard's boot pack selection",
+    "runtimeCost.json": "the shard's measured runtime cost rows",
     "README.md": "what the shard declares, its custom code and why, budgets, look, open work (its plan rows)",
     "manifest.json": "authored discovery metadata; contains no runtime module",
     "ktx2.generated.ts": "your KTX2 table, written by `bake-ktx2` once you bake KTX2 art. The one generated file you commit",

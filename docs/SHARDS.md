@@ -250,6 +250,9 @@ All source is build-time or erased declarations. Shipped behaviour is admitted W
 | `manifest.json` | authored discovery metadata; contains no runtime module |
 | `ktx2.generated.ts` | your KTX2 table, written by `bake-ktx2` once you bake KTX2 art. The one generated file you commit |
 | `discovery.generated.ts` | temporary generated discovery bridge; never hand-edit or commit it |
+| `fence-reads.json` | the shard's reviewed list of files read during a boot fence |
+| `packs-set.json` | the shard's boot pack selection |
+| `runtimeCost.json` | the shard's measured runtime cost rows |
 
 | Folder | What goes in it |
 |---|---|

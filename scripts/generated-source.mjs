@@ -209,5 +209,6 @@ export function checkGeneratedSourceTree(root) {
   if (lstatSync(policyFile).isSymbolicLink()) throw new Error(`GENERATED-SOURCE ${GENERATED_SOURCE_POLICY}: symlink policy`);
   const policy = generatedSourcePolicy(JSON.parse(readFileSync(policyFile, 'utf8')));
   const read = (/** @type {string} */ file) => existsSync(resolve(root, file)) ? readFileSync(resolve(root, file), 'utf8') : undefined;
-  return failures(generatedSourceFiles(root), policy, exemptSources(read));
+  // build-sdk.mjs's gitignored package output: a tree that ran it must not fail this. It can never be committed.
+  return failures(generatedSourceFiles(root).filter(file => !file.startsWith('src/sdk/dist/')), policy, exemptSources(read));
 }
