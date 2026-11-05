@@ -1,6 +1,6 @@
 # Plan: OPEN-PLOTS — build the other 18 open plots the way Night Market was built
 
-**State:** `in progress` 2026-11-03 ~08:30 — **Jake authorized building every open plot, 3 Opus lanes (G990)**, with the overnight approach (§0). Six plots are built (Night Market, Lantern Bayou, Frostline Peaks, Ember Forge, Coral Drift, Mosslight Ruins; [build-out](../../project/archive/2026-11-03-open-plots-build-out.md)); twelve are left. The four new plots' themes and mockups are §4b (the [new-unique-plots](../../project/archive/2026-11-03-new-unique-plots.md) mini plan is folded in). Was `parked`.
+**State:** `open` 2026-11-04 21:14 Panama — every build/readings row is **done or dropped**. The ten final plot cohorts are **10/10 official-qualified**, completed by the four fresh officials on admitted carrier `a3a6feb976` (OP23); [full readings and retained misses](../reviews/open-plots-final-readings.md). **The only open row is Jake's own live play.** The plan stays open, not archived, until he plays.
 
 ## 0. How the rest get built (G990, 2026-11-03)
 
