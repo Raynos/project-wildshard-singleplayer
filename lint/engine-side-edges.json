@@ -1,0 +1,846 @@
+{
+ "about": "P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).",
+ "totals": {
+  "client → server": 468,
+  "cook → client": 2,
+  "cook → render": 1,
+  "server → client": 208,
+  "server → dom": 3,
+  "server → render": 10,
+  "shared → client": 13,
+  "shared → dom": 1,
+  "shared → render": 1,
+  "shared → server": 5
+ },
+ "files": {
+  "src/engine/ai/view/eliteController.ts": {
+   "client → server": 4
+  },
+  "src/engine/ai/view/eliteEntry.ts": {
+   "client → server": 7
+  },
+  "src/engine/app/app.ts": {
+   "client → server": 4
+  },
+  "src/engine/blocks.ts": {
+   "client → server": 2
+  },
+  "src/engine/boot/bootTrace.ts": {
+   "client → server": 1
+  },
+  "src/engine/boot/browserChunkRecovery.ts": {
+   "client → server": 1
+  },
+  "src/engine/boot/clearDownloads.ts": {
+   "client → server": 1
+  },
+  "src/engine/boot/earlyPrograms.ts": {
+   "client → server": 1
+  },
+  "src/engine/boot/lastEnd.ts": {
+   "client → server": 1
+  },
+  "src/engine/boot/loadingPacks.ts": {
+   "client → server": 1
+  },
+  "src/engine/boot/loadingWaits.ts": {
+   "shared → dom": 1
+  },
+  "src/engine/boot/shardPrefetch.ts": {
+   "client → server": 1
+  },
+  "src/engine/boot/stuck.ts": {
+   "client → server": 1
+  },
+  "src/engine/boot/titleArrival.ts": {
+   "client → server": 1
+  },
+  "src/engine/combat/effects/EffectService.ts": {
+   "client → server": 1
+  },
+  "src/engine/combat/EquipmentService.ts": {
+   "client → server": 1
+  },
+  "src/engine/combat/view/Bow.ts": {
+   "client → server": 1
+  },
+  "src/engine/combat/view/projectile.ts": {
+   "shared → client": 3,
+   "shared → render": 1,
+   "shared → server": 2
+  },
+  "src/engine/combat/view/SweptMelee.ts": {
+   "client → server": 6
+  },
+  "src/engine/core/devMode.ts": {
+   "client → server": 1
+  },
+  "src/engine/core/errorReport.ts": {
+   "client → server": 2
+  },
+  "src/engine/core/GpuRecovery.ts": {
+   "client → server": 1
+  },
+  "src/engine/core/reloadGuard.ts": {
+   "client → server": 1
+  },
+  "src/engine/core/tier.ts": {
+   "client → server": 1
+  },
+  "src/engine/debug/probe.ts": {
+   "client → server": 1
+  },
+  "src/engine/entities/AnimalManager.ts": {
+   "server → client": 10,
+   "server → dom": 1,
+   "server → render": 1
+  },
+  "src/engine/entities/AnimalView.ts": {
+   "client → server": 3
+  },
+  "src/engine/explore/Explore.ts": {
+   "client → server": 1
+  },
+  "src/engine/input/bindings.ts": {
+   "client → server": 1
+  },
+  "src/engine/native/saves.ts": {
+   "client → server": 1
+  },
+  "src/engine/physics/active.ts": {
+   "shared → client": 1
+  },
+  "src/engine/physics/box.ts": {
+   "shared → client": 1
+  },
+  "src/engine/physics/navmeshLoad.ts": {
+   "shared → client": 1
+  },
+  "src/engine/player/LockOnTarget.ts": {
+   "client → server": 1
+  },
+  "src/engine/player/Player.ts": {
+   "shared → client": 7,
+   "shared → server": 1
+  },
+  "src/engine/quest/view.ts": {
+   "client → server": 1
+  },
+  "src/engine/quest/view/ui.ts": {
+   "client → server": 1
+  },
+  "src/engine/render/tierBoot.ts": {
+   "client → server": 1
+  },
+  "src/engine/render/viewmodelFeel.ts": {
+   "client → server": 2
+  },
+  "src/engine/saves/view/storage.ts": {
+   "client → server": 1
+  },
+  "src/engine/script/client.ts": {
+   "client → server": 2
+  },
+  "src/engine/script/viewLane.ts": {
+   "client → server": 2
+  },
+  "src/engine/sim/snapshot.ts": {
+   "shared → server": 1
+  },
+  "src/engine/sim/snapshotData.ts": {
+   "shared → server": 1
+  },
+  "src/engine/telemetry/crossroads.ts": {
+   "client → server": 1
+  },
+  "src/engine/telemetry/runtime.ts": {
+   "client → server": 1
+  },
+  "src/engine/ui/cards.ts": {
+   "client → server": 1
+  },
+  "src/engine/ui/DebugMenu.ts": {
+   "client → server": 1
+  },
+  "src/engine/ui/debugOptions.ts": {
+   "client → server": 1
+  },
+  "src/engine/ui/ErrorModal.ts": {
+   "client → server": 1
+  },
+  "src/engine/ui/FirstHints.ts": {
+   "client → server": 1
+  },
+  "src/engine/ui/Loading.ts": {
+   "client → server": 1
+  },
+  "src/engine/ui/LockOn.ts": {
+   "client → server": 1
+  },
+  "src/engine/ui/Perf.ts": {
+   "client → server": 1
+  },
+  "src/engine/ui/perfHud.ts": {
+   "client → server": 1
+  },
+  "src/engine/ui/perfLap.ts": {
+   "client → server": 1
+  },
+  "src/engine/ui/review.ts": {
+   "client → server": 1
+  },
+  "src/engine/ui/Settings.ts": {
+   "client → server": 1
+  },
+  "src/engine/world/interact/Interactables.ts": {
+   "client → server": 2
+  },
+  "src/game/ambient/ambientFlock.ts": {
+   "client → server": 1
+  },
+  "src/game/ambient/crowdDraw.ts": {
+   "client → server": 2
+  },
+  "src/game/ambient/crowdPage.ts": {
+   "server → client": 4
+  },
+  "src/game/ambient/foragerDraw.ts": {
+   "client → server": 1
+  },
+  "src/game/ambient/wingField.ts": {
+   "client → server": 1
+  },
+  "src/game/animation/limbBlend.ts": {
+   "client → server": 1
+  },
+  "src/game/animation/limbCollision.ts": {
+   "client → server": 1
+  },
+  "src/game/animation/limbPopulation.ts": {
+   "client → server": 2
+  },
+  "src/game/boot/spawnDownload.ts": {
+   "client → server": 1
+  },
+  "src/game/Boss.ts": {
+   "server → client": 6
+  },
+  "src/game/boss/arenaFire.ts": {
+   "client → server": 1
+  },
+  "src/game/boss/arenaRoom.ts": {
+   "server → client": 16,
+   "server → render": 1
+  },
+  "src/game/boss/encounterView.ts": {
+   "client → server": 7
+  },
+  "src/game/boss/openArenaFight.ts": {
+   "server → client": 2
+  },
+  "src/game/boss/roamingProjection.ts": {
+   "client → server": 10
+  },
+  "src/game/boss/timedEncounters.ts": {
+   "server → client": 3
+  },
+  "src/game/combat/roamingSession.ts": {
+   "server → client": 10,
+   "server → render": 1
+  },
+  "src/game/compendium/install.ts": {
+   "client → server": 3
+  },
+  "src/game/compendium/keepsakes.ts": {
+   "server → client": 7
+  },
+  "src/game/compendium/rules.ts": {
+   "server → client": 1
+  },
+  "src/game/cosmetics/locker.ts": {
+   "client → server": 1
+  },
+  "src/game/Elite.ts": {
+   "server → client": 6,
+   "server → render": 1
+  },
+  "src/game/generators/pickups.ts": {
+   "cook → client": 2,
+   "cook → render": 1
+  },
+  "src/game/grapple/tool.ts": {
+   "client → server": 4
+  },
+  "src/game/grid/approachProductInputs.ts": {
+   "server → client": 6
+  },
+  "src/game/grid/budgetPoints.ts": {
+   "client → server": 1
+  },
+  "src/game/grid/cellClip.ts": {
+   "client → server": 1
+  },
+  "src/game/grid/cellLoading.ts": {
+   "server → client": 1
+  },
+  "src/game/grid/compiledStrips.ts": {
+   "server → client": 1
+  },
+  "src/game/grid/copyIdentity.ts": {
+   "client → server": 1
+  },
+  "src/game/grid/copyPrompts.ts": {
+   "client → server": 1
+  },
+  "src/game/grid/durability.ts": {
+   "server → client": 1
+  },
+  "src/game/grid/edgeSources.ts": {
+   "client → server": 1
+  },
+  "src/game/grid/enteredInteract.ts": {
+   "server → client": 1
+  },
+  "src/game/grid/farImpostorDecodeWorker.ts": {
+   "client → server": 1
+  },
+  "src/game/grid/farImpostorView.ts": {
+   "client → server": 1
+  },
+  "src/game/grid/farView.ts": {
+   "client → server": 2
+  },
+  "src/game/grid/frame.ts": {
+   "client → server": 1
+  },
+  "src/game/grid/intent.ts": {
+   "server → client": 1
+  },
+  "src/game/grid/live.ts": {
+   "server → client": 3
+  },
+  "src/game/grid/liveSession.ts": {
+   "client → server": 15
+  },
+  "src/game/grid/nearPlaceholderView.ts": {
+   "client → server": 1
+  },
+  "src/game/grid/pageEntry.ts": {
+   "client → server": 5
+  },
+  "src/game/grid/pageResidency.ts": {
+   "client → server": 1
+  },
+  "src/game/grid/pageShell.ts": {
+   "client → server": 2
+  },
+  "src/game/grid/prefetch.ts": {
+   "client → server": 1
+  },
+  "src/game/grid/prefetchIndexCore.ts": {
+   "client → server": 2
+  },
+  "src/game/grid/products.ts": {
+   "client → server": 3
+  },
+  "src/game/grid/recovery.ts": {
+   "server → client": 1
+  },
+  "src/game/grid/regionalRuntime.ts": {
+   "client → server": 5
+  },
+  "src/game/grid/regionalView.ts": {
+   "client → server": 1
+  },
+  "src/game/grid/regionalWorld.ts": {
+   "client → server": 5
+  },
+  "src/game/grid/roadSky.ts": {
+   "client → server": 1
+  },
+  "src/game/grid/roadTileArchive.ts": {
+   "client → server": 1
+  },
+  "src/game/grid/runtimeCheckpoint.ts": {
+   "client → server": 1
+  },
+  "src/game/grid/seamData.ts": {
+   "server → client": 1
+  },
+  "src/game/grid/session.ts": {
+   "client → server": 15
+  },
+  "src/game/grid/titleOrder.ts": {
+   "client → server": 1
+  },
+  "src/game/grid/wallet.ts": {
+   "server → client": 1
+  },
+  "src/game/Inventory.ts": {
+   "server → client": 2
+  },
+  "src/game/loadout/claims.ts": {
+   "client → server": 9
+  },
+  "src/game/loadout/effects.ts": {
+   "server → client": 4
+  },
+  "src/game/loadout/held.ts": {
+   "client → server": 5
+  },
+  "src/game/loadout/rangedPage.ts": {
+   "client → server": 10
+  },
+  "src/game/looks/forestGround.ts": {
+   "client → server": 1
+  },
+  "src/game/looks/forestWeather.ts": {
+   "client → server": 1
+  },
+  "src/game/looks/graphDaySky.ts": {
+   "client → server": 1
+  },
+  "src/game/looks/grassPresentation.ts": {
+   "client → server": 1
+  },
+  "src/game/looks/keyedSky.ts": {
+   "client → server": 1
+  },
+  "src/game/looks/postGraphLook.ts": {
+   "client → server": 1
+  },
+  "src/game/looks/speciesBook.ts": {
+   "client → server": 8
+  },
+  "src/game/loot/CoinBurst.ts": {
+   "server → client": 2
+  },
+  "src/game/loot/CoinMotion.ts": {
+   "client → server": 3
+  },
+  "src/game/loot/runtime.ts": {
+   "server → client": 6,
+   "server → dom": 2,
+   "server → render": 1
+  },
+  "src/game/loot/tables.ts": {
+   "server → client": 1
+  },
+  "src/game/mainMenu.ts": {
+   "client → server": 1
+  },
+  "src/game/models/socketRigCreature.ts": {
+   "client → server": 1
+  },
+  "src/game/models/specimenCatalogue.ts": {
+   "client → server": 1
+  },
+  "src/game/models/worldSceneCatalogue.ts": {
+   "client → server": 1
+  },
+  "src/game/plugin/audio.ts": {
+   "client → server": 1
+  },
+  "src/game/plugin/channels.ts": {
+   "server → render": 1
+  },
+  "src/game/plugin/clientChannelView.ts": {
+   "client → server": 1
+  },
+  "src/game/plugin/context.ts": {
+   "server → client": 6
+  },
+  "src/game/plugin/creatureFrame.ts": {
+   "client → server": 2
+  },
+  "src/game/plugin/geometry.ts": {
+   "client → server": 3
+  },
+  "src/game/plugin/headless.ts": {
+   "server → client": 1
+  },
+  "src/game/plugin/heldEquipment.ts": {
+   "client → server": 3
+  },
+  "src/game/plugin/heldFirearm.ts": {
+   "client → server": 1
+  },
+  "src/game/plugin/moverInstall.ts": {
+   "server → render": 1
+  },
+  "src/game/plugin/placeholderGeometry.ts": {
+   "server → render": 1
+  },
+  "src/game/plugin/ui.ts": {
+   "client → server": 17
+  },
+  "src/game/plugin/weaponFamily.ts": {
+   "client → server": 5
+  },
+  "src/game/population/directedSpecies.ts": {
+   "server → client": 1
+  },
+  "src/game/population/pageGroups.ts": {
+   "server → client": 3
+  },
+  "src/game/population/pageHomes.ts": {
+   "server → client": 1
+  },
+  "src/game/population/pageLife.ts": {
+   "client → server": 4
+  },
+  "src/game/population/pageReturns.ts": {
+   "server → client": 1
+  },
+  "src/game/population/productCreatures.ts": {
+   "client → server": 4
+  },
+  "src/game/population/projection.ts": {
+   "client → server": 1
+  },
+  "src/game/population/roster.ts": {
+   "server → client": 1
+  },
+  "src/game/population/wildlife.ts": {
+   "server → client": 4
+  },
+  "src/game/practice/course.ts": {
+   "client → server": 1
+  },
+  "src/game/practice/numericCourse.ts": {
+   "client → server": 1
+  },
+  "src/game/Progress.ts": {
+   "client → server": 2
+  },
+  "src/game/quest/carriedProp.ts": {
+   "server → client": 4,
+   "server → render": 1
+  },
+  "src/game/quest/chapter.ts": {
+   "server → client": 15,
+   "server → render": 1
+  },
+  "src/game/quest/chapterDirector.ts": {
+   "server → client": 6
+  },
+  "src/game/quest/continuation.ts": {
+   "client → server": 5
+  },
+  "src/game/quest/contractBoardPage.ts": {
+   "client → server": 5
+  },
+  "src/game/quest/declaredPage.ts": {
+   "server → client": 2
+  },
+  "src/game/quest/effects.ts": {
+   "server → client": 1
+  },
+  "src/game/quest/elitePage.ts": {
+   "server → client": 4
+  },
+  "src/game/quest/figures.ts": {
+   "client → server": 2
+  },
+  "src/game/quest/pageComposition.ts": {
+   "server → client": 13
+  },
+  "src/game/quest/pageDoors.ts": {
+   "server → client": 1
+  },
+  "src/game/quest/pageFacets.ts": {
+   "server → client": 2
+  },
+  "src/game/quest/persistence.ts": {
+   "server → client": 1
+  },
+  "src/game/quest/questPageViews.ts": {
+   "client → server": 1
+  },
+  "src/game/quest/reward.ts": {
+   "server → client": 1
+  },
+  "src/game/quest/story.ts": {
+   "server → client": 3
+  },
+  "src/game/quest/trader.ts": {
+   "server → client": 7
+  },
+  "src/game/riding/client.ts": {
+   "client → server": 9
+  },
+  "src/game/riding/mount.ts": {
+   "server → client": 3
+  },
+  "src/game/riding/nativeTaming.ts": {
+   "server → client": 1
+  },
+  "src/game/riding/pagePasture.ts": {
+   "server → client": 2
+  },
+  "src/game/riding/seatedFigure.ts": {
+   "client → server": 1
+  },
+  "src/game/saves.ts": {
+   "server → client": 1
+  },
+  "src/game/savesSettings.ts": {
+   "client → server": 1
+  },
+  "src/game/session/crashResume.ts": {
+   "client → server": 1
+  },
+  "src/game/session/finish.ts": {
+   "client → server": 2
+  },
+  "src/game/session/loadout.ts": {
+   "client → server": 5
+  },
+  "src/game/session/play.ts": {
+   "client → server": 12
+  },
+  "src/game/session/session.ts": {
+   "client → server": 2
+  },
+  "src/game/session/world.ts": {
+   "client → server": 1
+  },
+  "src/game/shard/declaredEntry.ts": {
+   "server → client": 1
+  },
+  "src/game/shard/declaredUi.ts": {
+   "server → client": 1
+  },
+  "src/game/shard/load.ts": {
+   "client → server": 1
+  },
+  "src/game/shard/manifest.ts": {
+   "server → client": 4
+  },
+  "src/game/shard/registry.ts": {
+   "client → server": 1
+  },
+  "src/game/shard/spec.ts": {
+   "server → client": 1
+  },
+  "src/game/shardfile/audioCatalogue.ts": {
+   "server → client": 2
+  },
+  "src/game/shardfile/bakedTiles.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/calibrationScripts.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/client.ts": {
+   "client → server": 16
+  },
+  "src/game/shardfile/clientBossFight.ts": {
+   "client → server": 2
+  },
+  "src/game/shardfile/clientCatalogue.ts": {
+   "client → server": 4
+  },
+  "src/game/shardfile/clientCosmeticFinishes.ts": {
+   "client → server": 2
+  },
+  "src/game/shardfile/clientEliteConstruction.ts": {
+   "client → server": 4
+  },
+  "src/game/shardfile/clientEliteEntry.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/clientFinds.ts": {
+   "client → server": 3
+  },
+  "src/game/shardfile/clientHeldMelee.ts": {
+   "client → server": 3
+  },
+  "src/game/shardfile/clientItems.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/clientMeadow.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/clientMoverOwners.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/clientPlan.ts": {
+   "client → server": 7
+  },
+  "src/game/shardfile/clientPlayerEnter.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/clientPopulation.ts": {
+   "client → server": 2
+  },
+  "src/game/shardfile/clientQuestComposition.ts": {
+   "client → server": 2
+  },
+  "src/game/shardfile/clientQuestPage.ts": {
+   "client → server": 4
+  },
+  "src/game/shardfile/clientRecipes.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/clientResidency.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/clientReturnModules.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/clientSkins.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/clientSource.ts": {
+   "client → server": 4
+  },
+  "src/game/shardfile/clientSpeciesProgram.ts": {
+   "client → server": 3
+  },
+  "src/game/shardfile/clientState.ts": {
+   "client → server": 4
+  },
+  "src/game/shardfile/clientStealthEntry.ts": {
+   "client → server": 3
+  },
+  "src/game/shardfile/clientTargets.ts": {
+   "client → server": 2
+  },
+  "src/game/shardfile/clientTimedEncounters.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/clientViewProgram.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/clientWorldAssembly.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/emptyEquipment.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/forestPage.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/hybrid.ts": {
+   "client → server": 3
+  },
+  "src/game/shardfile/livingBuildings.ts": {
+   "client → server": 2
+  },
+  "src/game/shardfile/pageItems.ts": {
+   "server → client": 1
+  },
+  "src/game/shardfile/portalRideBinding.ts": {
+   "client → server": 2
+  },
+  "src/game/shardfile/product.ts": {
+   "client → server": 5
+  },
+  "src/game/shardfile/productCacheCompletion.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/productCost.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/questWorld.ts": {
+   "server → client": 1
+  },
+  "src/game/shardfile/runtimeProduct.ts": {
+   "client → server": 3
+  },
+  "src/game/shardfile/sceneBuffers.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/sceneInstances.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/sceneMotion.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/walkInPortalRide.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/weatherFields.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/worldAssembly.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/worldSceneWeld.ts": {
+   "client → server": 1
+  },
+  "src/game/shardfile/worldUpdates.ts": {
+   "server → client": 9
+  },
+  "src/game/stealth/controller.ts": {
+   "client → server": 1
+  },
+  "src/game/summary.ts": {
+   "client → server": 2
+  },
+  "src/game/systems/cellField.ts": {
+   "client → server": 1
+  },
+  "src/game/systems/items/declaredSword.ts": {
+   "client → server": 1
+  },
+  "src/game/systems/looks/trample.ts": {
+   "client → server": 2
+  },
+  "src/game/systems/npc/kitFigure.ts": {
+   "client → server": 2
+  },
+  "src/game/systems/tools/hoverboard.ts": {
+   "client → server": 1
+  },
+  "src/game/titleDeck.ts": {
+   "client → server": 2
+  },
+  "src/game/travel/travel.ts": {
+   "client → server": 2
+  },
+  "src/game/weapons/arcPower.ts": {
+   "client → server": 2
+  },
+  "src/game/weapons/Bow.ts": {
+   "server → client": 1
+  },
+  "src/game/weapons/heldDecision.ts": {
+   "client → server": 1
+  },
+  "src/game/weapons/heldLauncher.ts": {
+   "client → server": 4
+  },
+  "src/game/weapons/heldPolearm.ts": {
+   "client → server": 8
+  },
+  "src/game/weapons/mountedBlade.ts": {
+   "client → server": 4
+  },
+  "src/game/weapons/polearmDecision.ts": {
+   "server → client": 1
+  },
+  "src/game/weapons/starterMeleeProfile.ts": {
+   "server → client": 1
+  },
+  "src/game/weapons/Sword.ts": {
+   "server → client": 1
+  },
+  "src/game/weather/continuation.ts": {
+   "server → client": 1
+  },
+  "src/game/weather/forest.ts": {
+   "client → server": 7
+  },
+  "src/game/weather/rainPresentation.ts": {
+   "client → server": 1
+  },
+  "src/game/weather/reactions.ts": {
+   "server → client": 1
+  },
+  "src/game/whatsNewBanner.ts": {
+   "client → server": 1
+  }
+ }
+}

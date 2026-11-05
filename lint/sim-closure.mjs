@@ -6,8 +6,8 @@ import { parseSync } from 'vite';
 
 const VIEW = /^src\/engine\/(?:app\/view\/|ai\/view\/|combat\/view\/|quest\/view(?:\/|\.ts$)|saves\/view\/|entities\/AnimalView\.ts$)/u;
 const FORBIDDEN = /^src\/engine\/(?:app\/runtime(?:\.ts)?$|core\/(?:tier|frameCost)(?:\.ts)?$|render\/|ui\/|fx\/|anim\/)/u;
-const MATH = new Set(['Vector2', 'Vector3', 'Vector4', 'Euler', 'Quaternion', 'Matrix3', 'Matrix4', 'Box2', 'Box3', 'Ray', 'Sphere', 'Plane', 'Frustum', 'MathUtils', 'Color']);
-const DOM = new Set(['window', 'document', 'navigator', 'localStorage', 'sessionStorage', 'HTMLElement', 'HTMLCanvasElement', 'Element', 'requestAnimationFrame', 'cancelAnimationFrame', 'matchMedia', 'ResizeObserver', 'Image', 'Audio']);
+export const MATH = new Set(['Vector2', 'Vector3', 'Vector4', 'Euler', 'Quaternion', 'Matrix3', 'Matrix4', 'Box2', 'Box3', 'Ray', 'Sphere', 'Plane', 'Frustum', 'MathUtils', 'Color']);
+export const DOM = new Set(['window', 'document', 'navigator', 'localStorage', 'sessionStorage', 'HTMLElement', 'HTMLCanvasElement', 'Element', 'requestAnimationFrame', 'cancelAnimationFrame', 'matchMedia', 'ResizeObserver', 'Image', 'Audio']);
 export const simRoot = (path) => /^src\/(?:engine\/(?:ai|combat|events|quest|saves)\/|shards\/[^/]+\/(?:data|behaviour)\/|engine\/entities\/AnimalSim\.ts$|engine\/sim(?:\.ts$|\/))/u.test(path) && !VIEW.test(path);
 const astCache = new Map();
 const eventCache = new WeakMap();
@@ -50,7 +50,7 @@ function events(program) {
   eventCache.set(program, entries);
   return entries;
 }
-function reference(node, parent) {
+export function reference(node, parent) {
   if (!parent || parent.type.startsWith('TS')) return false;
   if (['ImportSpecifier', 'ImportDefaultSpecifier', 'ImportNamespaceSpecifier', 'ExportSpecifier'].includes(parent.type)) return false;
   if (['MemberExpression', 'Property', 'MethodDefinition', 'PropertyDefinition'].includes(parent.type) && parent.property === node && !parent.computed) return false;
