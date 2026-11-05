@@ -2,7 +2,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { whenControl } from '@wildshard/engine/boot/prefetch';
 import { pageScope } from '@wildshard/engine/app/resources';
 import { runtimePacksOn } from '@wildshard/engine/boot/loadingPacks';
-import { beginLoadingWait, finishLoadingWait, reportLoadingWait } from '@wildshard/engine/boot/download';
+import { beginLoadingWait, finishLoadingWait, reportLoadingWait } from '@wildshard/engine/boot/loadingWaits';
 import { currentLoadingTimeline } from '@wildshard/engine/boot/timeline';
 import { observeReads } from '@wildshard/engine/boot/waits';
 import { streamingDistance, streamingVisible, type StreamingPoint, type StreamingView } from './streamingView';

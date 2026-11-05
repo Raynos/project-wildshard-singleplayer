@@ -10,7 +10,7 @@
 import type { Scope } from '../app/scope';
 import { HudSlots } from '../ui/hudSlots';
 import { appIdentity } from '../app/identity';
-import { beginLoadingWait, finishLoadingWait } from './download';
+import { beginLoadingWait, finishLoadingWait } from './loadingWaits';
 import { arrivalCard } from './titleArrival';
 import { diagnosticNow } from '../core/clock';
 import { engineString } from '../strings';

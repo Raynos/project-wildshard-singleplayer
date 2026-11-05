@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import {Loading, type LoadingDownloadSource} from './Loading';
 import type { ProgressView } from '../boot/plan';
-import { beginLoadingWait, finishLoadingWait, loadingWaitState, reportLoadingWait } from '../boot/download';
+import { beginLoadingWait, finishLoadingWait, loadingWaitState, reportLoadingWait } from '../boot/loadingWaits';
 import { currentLoadingTimeline } from '../boot/timeline';
 import { STAGE_READS, waitFor } from '../boot/waits';
 import { loadShellTemplate } from '../boot/shell';

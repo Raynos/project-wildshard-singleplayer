@@ -1,7 +1,7 @@
 import { pageScope } from '../app/resources';
 import { saveStorage } from '../saves/slots';
 import { countReload } from '../core/reloadGuard';
-import { beginLoadingWait, finishLoadingWait } from './download';
+import { beginLoadingWait, finishLoadingWait } from './loadingWaits';
 import { markReload } from './lastEnd';
 import { createChunkRecovery } from './chunkRecovery';
 

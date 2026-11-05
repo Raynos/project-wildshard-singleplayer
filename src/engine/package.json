@@ -26,6 +26,7 @@
     "./boot/waits": "./boot/waits.ts",
     "./boot/liveJsonParser": "./boot/liveJsonParser.ts",
     "./boot/download": "./boot/download.ts",
+    "./boot/loadingWaits": "./boot/loadingWaits.ts",
     "./render/lightmaps": "./render/lightmaps.ts",
     "./render/layeredMaps": "./render/layeredMaps.ts",
     "./ai/director": "./ai/director.ts",

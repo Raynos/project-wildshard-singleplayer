@@ -1,5 +1,5 @@
 import { Scope } from '../app/scope';
-import { beginLoadingWait, finishLoadingWait } from './download';
+import { beginLoadingWait, finishLoadingWait } from './loadingWaits';
 import { currentLoadingTimeline } from './timeline';
 
 /** A missing or interrupted transport, never a parsed-content or admission refusal. */

@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest';
-import { readDownloadFiles, readModuleFiles, beginLoadingWait, reportLoadingWait, finishLoadingWait, loadingWaitState } from './download';
+import { readDownloadFiles, readModuleFiles } from './download';
+import { beginLoadingWait, reportLoadingWait, finishLoadingWait, loadingWaitState } from './loadingWaits';
 
 it('reads exact compiler module bodies and rejects every invalid suffix', () => {
   for (const invalid of [null, [['/assets/first.js', 4], ['https://foreign.test/late.js', 2]],

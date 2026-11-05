@@ -1038,8 +1038,9 @@ quiet deadline, Retry, monotonic age and attempt/step identity.
 `loadingStepWaits` selects only that attempt's displayed or nested step;
 unrelated music does not supply its footer. Scheduling stays unchanged.
 `beginLoadingWait`, `reportLoadingWait` and `finishLoadingWait` in
-`@wildshard/engine/boot/download` manage these data-only records.
-`adoptLoadingWait` preserves the inline row, age and deadline and binds early
+`@wildshard/engine/boot/loadingWaits` manage these data-only records (no DOM:
+a headless host keeps them on `globalThis`). `adoptLoadingWait`
+(`@wildshard/engine/boot/download`, the browser half) preserves the inline row, age and deadline and binds early
 promises to the real attempt. Only real byte growth or a semantic progress
 key renews a deadline; labels and duplicate messages do not. Metadata never
 credits the separate verified download ledger. Completion removes the row.

@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { expect, test, vi } from 'vitest';
 import { ContentReadError, readContent } from './contentRead';
-import { loadingWaitState } from './download';
+import { loadingWaitState } from './loadingWaits';
 
 const url = 'https://example.test/shardfiles/island/shape.bin';
 

@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, expect, test, vi } from 'vitest';
 import { Scope } from '@wildshard/engine/app/scope';
 import { reachControl } from '@wildshard/engine/boot/prefetch';
 import { ControlRefinement, FENCE_LANES, prepareSpawnView } from './controlRefinement';
-import { loadingWaitState } from '@wildshard/engine/boot/download';
+import { loadingWaitState } from '@wildshard/engine/boot/loadingWaits';
 import { Group, PerspectiveCamera } from 'three';
 import { StreamingCamera, type StreamingView } from './streamingView';
 import { jsonSlot } from '@wildshard/engine/saves/slots';

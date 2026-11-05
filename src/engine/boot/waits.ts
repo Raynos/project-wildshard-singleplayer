@@ -1,6 +1,6 @@
 import { currentLoadingTimeline } from './timeline';
 import { diagnosticNow } from '../core/clock';
-import { beginLoadingWait, finishLoadingWait, loadingWaitState, reportLoadingWait, type LoadingWaitState, type LoadingWaitEntry, type LoadingWaitKind } from './download';
+import { beginLoadingWait, finishLoadingWait, loadingWaitState, reportLoadingWait, type LoadingWaitState, type LoadingWaitEntry, type LoadingWaitKind } from './loadingWaits';
 import { pageScope } from '../app/resources';
 /** Pending asynchronous work is observed without changing its owner, queue or concurrency. */
 export type WaitKind = LoadingWaitKind;
