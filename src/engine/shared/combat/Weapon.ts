@@ -22,6 +22,8 @@ export interface OwnHit { readonly kind: string; readonly at: Vector3; readonly 
 export interface WeaponWire {
   /** An attack press. `started`: it started a swing or shot here, which the server must confirm or refuse. */
   readonly press: (started: boolean) => void;
+  /** A held item's own second action, pressed: a fan's gust. */
+  readonly secondary?: () => void;
   /** The heavy, or a draw: held down this step. */
   readonly hold: (heavy: boolean) => void;
   /** A launcher's trigger, at this aim. The server's slot is the one it says this player holds. */

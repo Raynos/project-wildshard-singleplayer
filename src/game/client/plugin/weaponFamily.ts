@@ -387,7 +387,7 @@ export class HeldMeleeWeapon<T extends ContactScanTarget, P> extends HeldContact
     const row = this.binding.row;
     if (row.mode !== 'immediate' || this.moves.secondaryCooldown > 0 || !this.enabled || this.stowed()) return;
     if (this.secondary?.(this.moves) !== row.secondary.phase.move) return;
-    this.play(row.secondary.phase.id);
+    this.play(row.secondary.phase.id); this.wire?.secondary?.();
     const aim = this.aimed(); if (aim === null) return;
     this.onGust?.(aim.from, aim.dir); this.blow(aim.from, aim.dir);
   }

@@ -21,7 +21,7 @@ export const TickCommandSchema: v.GenericSchema<BoundedTickCommandInput, Bounded
   // `lockTarget` is J116's lock-on: what SimCommand.lockTarget orbits.
   v.pipe(v.strictObject({ kind: v.literal('player'), moveX: finite, moveZ: finite, yaw: finite, attack: v.optional(v.strictObject({ targetId: text })), lockTarget: v.exactOptional(text), hover: v.optional(v.literal(true)), boost: v.optional(v.literal(true)),
     jump: v.optional(v.literal(true)), dodge: v.optional(v.literal(true)), heavy: v.optional(v.strictObject({ targetId: v.optional(text) })),
-    swing: v.exactOptional(v.literal(true)), seq: v.exactOptional(natural), viewTick: v.exactOptional(natural), pitch: v.exactOptional(v.pipe(finite, v.minValue(-Math.PI / 2), v.maxValue(Math.PI / 2))), dive: v.exactOptional(v.boolean()), surface: v.exactOptional(v.boolean()),
+    swing: v.exactOptional(v.literal(true)), secondary: v.exactOptional(v.literal(true)), seq: v.exactOptional(natural), viewTick: v.exactOptional(natural), pitch: v.exactOptional(v.pipe(finite, v.minValue(-Math.PI / 2), v.maxValue(Math.PI / 2))), dive: v.exactOptional(v.boolean()), surface: v.exactOptional(v.boolean()),
     commandVersion: v.exactOptional(v.literal(1)), steer: v.exactOptional(v.strictObject({ keyX: v.pipe(finite, v.minValue(-1), v.maxValue(1)), keyY: v.pipe(finite, v.minValue(-1), v.maxValue(1)),
       stickX: v.pipe(finite, v.minValue(-1), v.maxValue(1)), stickY: v.pipe(finite, v.minValue(-1), v.maxValue(1)) })), sprint: v.exactOptional(v.boolean()), crouch: v.exactOptional(v.boolean()) }),
     v.check(command => command.commandVersion === 1 || (command.steer === undefined && command.sprint === undefined && command.crouch === undefined), 'Raw movement requires commandVersion 1')),
@@ -128,6 +128,7 @@ type BoundedTickCommand = {
         targetId?: string | undefined;
     } | undefined;
     swing?: true;
+    secondary?: true;
     seq?: number;
     viewTick?: number;
     pitch?: number;

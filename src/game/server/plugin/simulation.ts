@@ -846,7 +846,7 @@ export function nativeMeleeVolumeHit(from: Vector3, dir: Vector3, reach: number,
   return best <= reach ? best : null;
 }
 /** Minimal admitted input view; other commands keep their original routes. */
-export interface NativeHeldCommand { readonly kind:string; readonly heavy?: { readonly targetId?:string|undefined }|undefined; readonly swing?: boolean|undefined; readonly pitch?: number|undefined }
+export interface NativeHeldCommand { readonly kind:string; readonly heavy?: { readonly targetId?:string|undefined }|undefined; readonly swing?: boolean|undefined; readonly secondary?: boolean|undefined; readonly pitch?: number|undefined }
 /** Admitted page/script fields consumed by the declared native command mapping. */
 export interface NativeMeleeInput extends NativeHeldCommand {
   readonly attack?: {readonly targetId?:string|undefined}|undefined; readonly actorId?:string|undefined; readonly value?:number|undefined; readonly playerId?:string|undefined;
@@ -907,8 +907,11 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
     mapped.length=0;
     for(const command of inputCommands()){
       if(command.kind==='player')tickSeq=command.seq??0;
-      if(command.kind==='player'&&command.attack!==undefined)mapped.push({kind:'move',action:policy.attack,...(command.attack.targetId===undefined?{}:{targetId:command.attack.targetId})});
-      else if(command.kind==='player'&&command.swing===true&&command.heavy===undefined)mapped.push({kind:'move',action:policy.attack,free:command.pitch??0});
+      // A net client's blow carries its look, where a tape's comes as the aim actor's own script.
+      if(command.kind==='player'&&policy.aimActor!==undefined&&(command.swing===true||command.secondary===true))mapped.push({kind:'aim',pitch:command.pitch??0});
+      if(command.kind==='player'&&command.secondary===true){const second=policy.scripts.find(entry=>entry.action!==policy.attack&&entry.action!==row.held?.action);if(second!==undefined)mapped.push({kind:'move',action:second.action});}
+      if(command.kind==='player'&&command.swing===true&&command.heavy===undefined)mapped.push({kind:'move',action:policy.attack,free:command.pitch??0});
+      else if(command.kind==='player'&&command.attack!==undefined)mapped.push({kind:'move',action:policy.attack,...(command.attack.targetId===undefined?{}:{targetId:command.attack.targetId})});
       else if(command.kind==='script'){
         if(command.actorId===policy.aimActor&&command.value!==undefined)mapped.push({kind:'aim',pitch:command.value});
         else if(policy.world!==undefined&&command.actorId===worldActor){const target=worldTargets.find(entry=>entry.act===command.value);if(target!==undefined)mapped.push({kind:'move',world:target.act,action:target.crack==='heavy'?policy.world.heavy:policy.world.light});}

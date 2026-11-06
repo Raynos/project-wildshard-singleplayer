@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import type { ActRoutes } from '../src/engine/shared/sim/actRoutes';
-import { netInteractCommands } from '../src/sdk/standalone/netInput';
+import { NET_BUTTONS } from '../src/engine/shared/input/netButtons';
+import { netInteractCommands, netPlayerCommand } from '../src/sdk/standalone/netInput';
 
 const routes = (rows: readonly [string, number][]): ActRoutes => ({ interactions: new Map(rows.map(([id, value]) => [id, { actorId: 'quest', value }])), claims: new Map(), seen: null, refused: 0 }) as unknown as ActRoutes;
 const press = (id: string): readonly { kind: 'interact'; seq: number; id: string }[] => [{ kind: 'interact', seq: 1, id }];
@@ -13,4 +14,9 @@ test('a person with their own row keeps it, and no other id falls through to tal
   expect(netInteractCommands(both, press('castaway.talk'), 'p')).toEqual([{ kind: 'script', actorId: 'quest', value: 7, playerId: 'p' }]);
   expect(netInteractCommands(both, press('logbook'), 'p')).toEqual([]);
   expect(both.refused).toBe(1);
+});
+test('a held item\'s second action crosses on its own button', () => {
+  const command = { seq: 1, viewTick: 0, steer: 0, yaw: 0, pitch: 0, buttons: NET_BUTTONS.secondary } as Parameters<typeof netPlayerCommand>[0];
+  expect(netPlayerCommand(command).secondary).toBe(true);
+  expect(netPlayerCommand({ ...command, buttons: 0 }).secondary).toBeUndefined();
 });

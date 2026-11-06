@@ -23,6 +23,7 @@ export function netPlayerCommand(command: NetCommand): Extract<HeadlessCommand, 
   const { attack, heavyTarget } = command, heavy = has(command, NET_BUTTONS.heavy);
   return { kind: 'player', ...netSimCommand(command), seq: command.seq, ...(command.viewTick === 0 ? {} : { viewTick: command.viewTick }), pitch: lookPitch(command), sprint: has(command, NET_BUTTONS.sprint), crouch: has(command, NET_BUTTONS.crouch),
     ...(heavy ? { heavy: heavyTarget === undefined ? {} : { targetId: heavyTarget } } : {}),
+    ...(has(command, NET_BUTTONS.secondary) ? { secondary: true as const } : {}),
     // P1-E3.2: a swing that names nothing still swings; the server finds what it strikes (J41).
     ...((attack !== undefined && attack.targetId === undefined) || (heavy && heavyTarget === undefined) ? { swing: true as const } : {}) };
 }
