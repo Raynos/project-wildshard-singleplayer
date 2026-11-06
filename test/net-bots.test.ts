@@ -72,7 +72,7 @@ function run(live: TrustedHeadlessResident): { tierSkipsPerFrame: number; p50: n
     const { latest } = bot.client, player = host.players.get(bot.id);
     expect(bot.client.dropped).toBe(0);
     if (latest === null || player === undefined) throw new Error('No frame');
-    expect(bot.client.owner(latest)['px']).toBe(Math.fround(player.position.x));
+    expect(bot.client.owner(latest)['px']).toBe(player.position.x);
   });
   const last = bots.at(-1)?.client.latest;
   expect(room.admission.refused).toBe(0);
@@ -129,7 +129,7 @@ test('two clients each own their player: their own block, and a hit confirms onl
   for (const [client, player] of [[own, bot], [other, lead]] as const) {
     const frame = client.latest;
     if (frame === null) throw new Error('No frame');
-    expect(client.owner(frame)['px']).toBe(Math.fround(player.position.x));
+    expect(client.owner(frame)['px']).toBe(player.position.x);
   }
   room.dispose(); host.dispose();
 });
