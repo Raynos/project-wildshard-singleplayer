@@ -387,7 +387,7 @@ export class AnimalManager {
   }
 
   /** Spawn below a WORLD ray origin (fromY), or at an exact initial world feet height (y). */
-  spawn(kind: AnimalKind, x: number, z: number, yaw: number, variant?: string | string[], placement?: { y?: number; fromY?: number; entityId?: string }): Animal {
+  spawn(kind: AnimalKind, x: number, z: number, yaw: number, variant?: string | string[], placement?: { y?: number; fromY?: number; entityId?: string; body?: { seed: number; scale: number } }): Animal {
     return this.spawnAnimal(kind, x, z, yaw, variant, placement);
   }
 
@@ -403,10 +403,10 @@ export class AnimalManager {
     return replacement;
   }
 
-  private spawnAnimal(kind: AnimalKind, x: number, z: number, yaw: number, variant?: string | string[], placement?: { y?: number; fromY?: number; entityId?: string }, identity?: string): Animal {
+  private spawnAnimal(kind: AnimalKind, x: number, z: number, yaw: number, variant?: string | string[], placement?: { y?: number; fromY?: number; entityId?: string; body?: { seed: number; scale: number } }, identity?: string): Animal {
     if ((placement?.y !== undefined && !Number.isFinite(placement.y)) || (placement?.fromY !== undefined && !Number.isFinite(placement.fromY))) throw new Error('Creature spawn placement must be finite');
     const { variant: v, scale, rigSeed, seed } = spawnRolls(this.rng, kind, variant, this.hasLegendary(kind)); // the shared stream's spawn rolls (hunt.ts)
-    const { actor: a, flight } = this.draw.rig(kind, v.id, rigSeed, seed, scale, identity ?? this.entityIds.allocate(placement?.entityId));
+    const { actor: a, flight } = this.draw.rig(kind, v.id, rigSeed, placement?.body?.seed ?? seed, placement?.body?.scale ?? scale, identity ?? this.entityIds.allocate(placement?.entityId));
     a.maxHp = a.hp = v.hp ?? this.tuningFor(a).hp;
     const physics = this.physics ?? this.host.physics;
     const fromY = placement?.fromY ?? Math.max(activeLevel().spawn.y ?? heightAt(x, z), heightAt(x, z)) + 1;
