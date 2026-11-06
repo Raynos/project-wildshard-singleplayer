@@ -1,6 +1,8 @@
 /** Original fixed blade and fittings, generated offline without material or pickup state. */
 import * as THREE from 'three';
-import { lin } from '@wildshard/engine/math/color';
+
+/** an sRGB hex colour as a linear colour */
+const lin = (hex: number): THREE.Color => new THREE.Color(hex).convertSRGBToLinear();
 
 /** steel: bevelled edges bright, flats mid, the fuller dark; iron guard / pommel; leather grip + wrap */
 const C = {

@@ -1,8 +1,6 @@
 import { Group } from 'three';
-import { Mover } from '@wildshard/sharddev/movers';
-import { WAVES, seaDamp } from '@wildshard/engine/world/waves';
+import { Mover, swellDriver, type MoverData } from '@wildshard/sharddev/movers';
 import type { ColliderDesc } from '@wildshard/sharddev/bake/placement';
-import type { MoverData } from '@wildshard/format/movers';
 import { BRIDGE } from './worldSites';
 import authoredLayout from '../data/layout.json' with { type: 'json' };
 import { DECLARED_SEA, WORLD_DROP } from './sea';
@@ -23,12 +21,10 @@ export function captureDriftwoodMovers(boatModule?: string, bridgeModule?: strin
   const terrain = driftwoodGroundField();
   const ground = (x: number, z: number): number => terrain.heightAt(x, z) - WORLD_DROP;
   const boxes = boatColliders(BOAT_LAYOUT).map((box: ColliderDesc) => { if (box.kind !== 'box') throw new Error('Boat primitive changed'); return { x: box.x, y: box.y, z: box.z, hx: box.hx, hy: box.hy, hz: box.hz, rot: box.rot ?? { x: 0, y: Math.sin((box.yaw ?? 0) / 2), z: 0, w: Math.cos((box.yaw ?? 0) / 2) } }; });
-  const [a, b, c, d] = WAVES;
-  if (WAVES.length !== 4 || a === undefined || b === undefined || c === undefined || d === undefined) throw new Error('Four authored wave components required');
   const boat = new Group(); boat.name = 'driftwood.boat'; boat.position.set(BOAT.x, SEA, BOAT.z);
   const bridge = new Group(); bridge.name = 'driftwood.bridge';
   const rows = [
-    new Mover(boat, { trigger: { kind: 'always' }, driver: { kind: 'waves', damping: seaDamp(SEA - ground(BOAT.x, BOAT.z)), waves: [[...a], [...b], [...c], [...d]] } }).toMoverData({ id: boat.name, execution: 'native', entity: 7001, kind: 'platform', at: { x: BOAT.x, y: SEA, z: BOAT.z }, euler: { x: 0, y: 0, z: 0 }, enabled: true, boxes }),
+    new Mover(boat, { trigger: { kind: 'always' }, driver: swellDriver(SEA - ground(BOAT.x, BOAT.z)) }).toMoverData({ id: boat.name, execution: 'native', entity: 7001, kind: 'platform', at: { x: BOAT.x, y: SEA, z: BOAT.z }, euler: { x: 0, y: 0, z: 0 }, enabled: true, boxes }),
     new Mover(bridge, { trigger: { kind: 'always' }, driver: { kind: 'static' } }).toMoverData({ id: bridge.name, execution: 'native', entity: 7002, kind: 'chain', at: { x: 0, y: 0, z: 0 }, euler: { x: 0, y: 0, z: 0 }, enabled: true, boxes: [], chain: { segments: ropeBridgeSegments(BRIDGE, ground), hx: 0.85, hy: 0.05, mass: 14 } }),
   ];
   if ((boatModule !== undefined || bridgeModule !== undefined) && (rows[0]?.module !== boatModule || rows[1]?.module !== bridgeModule)) throw new Error('Compiled fixed driver hash changed');

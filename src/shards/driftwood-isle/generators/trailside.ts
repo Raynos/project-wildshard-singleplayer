@@ -1,9 +1,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { SEED } from '@wildshard/engine/core/config';
-import { Rng } from '@wildshard/engine/core/rng';
-import type { Placement } from '@wildshard/engine/models/model';
-import type { ColliderDesc, BoxSpec } from '@wildshard/sharddev/bake/placement';
+import { Rng } from '@wildshard/sharddev/random';
+import type { AuthorPlacement as Placement, ColliderDesc, BoxSpec } from '@wildshard/sharddev/bake/placement';
+import { SEED } from './landscapeRows';
 import { trailColliders } from './trailColliders';
 import { buildFencePost, buildPlankStep, buildSignpost, trailPart, TRAIL_COLOURS as C, type PlankStepParams, type SignpostParams, type TrailMeshPart } from './trailsideModels';
 import { flightOf, trailsideSpecKey, type TrailsideSpec } from './trailsideLayout';

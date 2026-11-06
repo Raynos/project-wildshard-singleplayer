@@ -1,6 +1,7 @@
 import { parseMovers } from '@wildshard/format/movers';
 import { type AnimationClip, InterpolateLinear, LinearInterpolant, QuaternionLinearInterpolant, Object3D, PropertyBinding } from 'three';
 import { lowerMoverMotion, MoverMotionSchema, type MoverMotion, type MoverTrack } from '@wildshard/format/moverMotion';
+import { WAVES } from '@wildshard/format/waterWaves';
 import * as v from 'valibot';
 
 /** Typed numeric mover declarations: local collider primitives and admitted fixed-step scripts. */
@@ -13,6 +14,15 @@ export function parseMoverRows(input: unknown): MoverData { return parseMovers(i
  * Rest coordinates remain caller-owned; all numeric limits and cross-field refusals are defining format checks. */
 export function compileMoverMotion(input: unknown, rest: Parameters<typeof lowerMoverMotion>[1]): ReturnType<typeof lowerMoverMotion> {
   return lowerMoverMotion(input, rest);
+}
+
+/** A `waves` driver for a body floating in `depth` metres of water: the format's four swell rows, damped over the shore as
+ * the drawn sea is. test/mover-swell-parity.test.ts fences the damping against the engine's `seaDamp`. */
+export function swellDriver(depth: number): Extract<MoverMotion['driver'], { kind: 'waves' }> {
+  const [a, b, c, d] = WAVES;
+  if (WAVES.length !== 4 || a === undefined || b === undefined || c === undefined || d === undefined) throw new Error('Four authored wave components required');
+  const x = Math.min(1, Math.max(0, depth / 1.5));
+  return { kind: 'waves', damping: 0.35 + 0.65 * x * x * (3 - 2 * x), waves: [[...a], [...b], [...c], [...d]] };
 }
 
 /** Motion options on a real three.js object, with explicit gameplay activation. */
