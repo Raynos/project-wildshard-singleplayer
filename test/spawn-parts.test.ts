@@ -7,7 +7,7 @@ import { brotliDecompressSync } from 'node:zlib';
 // oxlint-disable-next-line import/no-nodejs-modules -- Part hashes.
 import { createHash } from 'node:crypto';
 import { afterAll, expect, test } from 'vitest';
-import { PART_BYTES, createPartEncoder, packable, placeByKey, placementKey, spawnPartGroups, writeSpawnParts, type SpawnPartInput } from '../scripts/app-build/spawnParts';
+import { PART_BYTES, createPartEncoder, packable, placeByKey, placementKey, spawnPartGroups, writeSpawnParts, type SpawnPartInput } from '../src/game/cook/spawnParts';
 import { readSpawnManifest, type SpawnFile, type SpawnPart } from '@wildshard/format/spawnManifest';
 
 mkdirSync('tmp', { recursive: true });

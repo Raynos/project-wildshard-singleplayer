@@ -11,7 +11,7 @@ import { workSlice } from '@wildshard/engine/core/workSlice';
 import { presenting } from '@wildshard/engine/core/framePacing';
 import { constructionCheckpoint } from '../shardfile/constructionCheckpoint';
 import { PreparationReads } from '../shardfile/preparationReads';
-import { wholeGeometryInputs } from '../shardfile/wholeInputs';
+import { wholeGeometryInputs } from '../../shared/shardfile/wholeInputs';
 import { TIER } from '@wildshard/engine/core/tier';
 import { readHomeBuildGeometry, saveHomeBuildGeometry } from '../shardfile/homeBuildCache';
 import { defineSceneModels, type BakedModelMetadata } from '@wildshard/engine/models/model';

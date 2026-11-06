@@ -2,7 +2,7 @@ import {controlFileHashes} from '@wildshard/format/admissionControl';
 import {entryFileSteps, tierLibrarySteps} from '@wildshard/format/tierSelection';
 import type {Shardfile} from '@wildshard/format/shardSchema';
 import type {OutputIndex} from '@wildshard/format/outputIndex';
-import {wholeGeometryInputs} from '../../src/game/client/shardfile/wholeInputs';
+import {wholeGeometryInputs} from '../shared/shardfile/wholeInputs';
 import {spawnViewSceneFiles} from '@wildshard/format/spawnView';
 
 /** The same required, active entry selection for totals and read-ahead. Default (the Shardfile path every player gets):

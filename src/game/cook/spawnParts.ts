@@ -7,12 +7,19 @@
  * passes OVER_FETCH of its own bytes. Each group is cut into parts of at most PART_BYTES raw, never inside a file.
  * A part is the raw member bodies on 16-byte boundaries, named by its sha256; the offsets live in each manifest.
  * DL15: a part ships only as its q11 Brotli body (`<name>.pack.br`), encoded as it is built. */
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {createHash, randomBytes} from 'node:crypto';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {mkdirSync, readFileSync, renameSync, rmSync, writeFileSync} from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {once} from 'node:events';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {availableParallelism, homedir} from 'node:os';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {join, resolve} from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {Worker} from 'node:worker_threads';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {brotliDecompressSync} from 'node:zlib';
 import {SPAWN_PART_ALIGN, type SpawnFile, type SpawnPart} from '@wildshard/format/spawnManifest';
 
@@ -116,12 +123,18 @@ export function placementKey(url: string, stable: string | undefined): string {
   const kind = stable !== undefined && /(?:^|\/)(?:section|schema):/u.test(stable) ? 'section' : url.startsWith('/assets/') || code !== undefined ? 'volatile' : 'content';
   return `${kind}|${stable ?? (code === undefined ? url : `/assets/${url.slice(code.length)}`).replaceAll(/[a-f0-9]{8,}/gu, '').replace(/\?v=$/u, '')}`;
 }
+/** Where the shard cook put one URL. */
+export interface CookedMember {readonly url: string; readonly bytes: number; readonly hash: string; readonly offset: number; readonly wireBytes: number}
 /** Write every part under `outDir/assets/spawn/parts/` and return each manifest's part table (same order as input).
  * DL15 / CI disk: a part is encoded while it is built and only its q11 body is written (`<name>.pack.br`); no raw part
- * ever lands on disk, and at most one body per encoder lane is held in memory. */
+ * ever lands on disk, and at most one body per encoder lane is held in memory.
+ * C1: `cooked` names what a shard's own cook already wrote. Those URLs still steer the groups, so the parts written here
+ * stay what they were; a cooked file only stops being written twice. */
 export async function writeSpawnParts(outDir: string, manifests: readonly SpawnPartInput[], read: (url: string) => Uint8Array,
-  stableKey: (url: string) => string | undefined = () => undefined, encoder: PartEncoder = createPartEncoder()): Promise<SpawnPart[][]> {
-  const placed = new Map<string, {url: string; bytes: number; hash: string; offset: number}>(), wire = new Map<string, number>();
+  stableKey: (url: string) => string | undefined = () => undefined, encoder: PartEncoder = createPartEncoder(),
+  cooked: ReadonlyMap<string, CookedMember> = new Map()): Promise<SpawnPart[][]> {
+  const placed = new Map<string, {url: string; bytes: number; hash: string; offset: number}>(cooked), wire = new Map<string, number>();
+  for (const member of cooked.values()) wire.set(member.url, member.wireBytes);
   mkdirSync(join(outDir, 'assets/spawn/parts'), {recursive: true});
   const sizes = new Map(manifests.flatMap(manifest => manifest.rows.map(row => [row.url, row.bytes] as const)));
   // A file's placement follows its stable key, so an edit that renames its content-named blob keeps its place (DL18).
@@ -154,7 +167,7 @@ export async function writeSpawnParts(outDir: string, manifests: readonly SpawnP
         const bytes = sizes.get(url) ?? 0;
         if (bytes > PART_BYTES) throw new Error(`Spawn file larger than a part (${bytes} > ${PART_BYTES}): ${url}`);
       }
-      for (const batch of placeByKey(group.urls, url => sizes.get(url) ?? 0, keyOf)) await write(batch);
+      for (const batch of placeByKey(group.urls.filter(url => !cooked.has(url)), url => sizes.get(url) ?? 0, keyOf)) await write(batch);
     }
     await Promise.all(inflight);
   } finally { await encoder.close(); }
@@ -200,8 +213,8 @@ export interface PartEncoder {
   readonly stats: () => SpawnPartEncoding;
   readonly close: () => Promise<void>;
 }
-export function createPartEncoder(cacheDir = process.env['WILDSHARD_SPAWN_PART_CACHE'] ?? resolve(homedir(), '.cache/wildshard/gen/spawn-parts-br/1'),
-  lanes = Math.max(1, availableParallelism() - 2)): PartEncoder {
+export function createPartEncoder(cacheDir: string = process.env['WILDSHARD_SPAWN_PART_CACHE'] ?? resolve(homedir(), '.cache/wildshard/gen/spawn-parts-br/1'),
+  lanes: number = Math.max(1, availableParallelism() - 2)): PartEncoder {
   const idle: Worker[] = [], all: Worker[] = [];
   let parts = 0, rawBytes = 0, wireBytes = 0, encoded = 0;
   const compress = async (body: Uint8Array): Promise<Uint8Array> => {

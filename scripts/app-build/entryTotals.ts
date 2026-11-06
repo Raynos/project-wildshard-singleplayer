@@ -5,15 +5,16 @@ import {join, relative, resolve, sep} from 'node:path';
 import {PickupCatalogueSchema} from '@wildshard/format/specimenCatalogue';
 import {assetTableAddresses, readAssetTables} from './assetTables.mjs';
 import {readGridSeams} from './gridSeams.mjs';
-import {assembleOutputShardfile, parseOutputIndex} from '@wildshard/format/outputIndex';
-import {entryReadSet} from './entryReadSet';
+import {parseOutputIndex} from '@wildshard/format/outputIndex';
 import {createHash} from 'node:crypto';
 import {readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnManifestAddress} from '@wildshard/format/spawnManifest';
 import {GPU_FILES} from '../../src/engine/client/boot/ktx2.generated';
 import {assetIdentities, audioTableRefs, bundlerSources as manifestSources, identityFiles, joinRefs, standInRefs, packMembers, readFenceReads, resolveFenceReads, sectionRefs, type PackPart} from '@wildshard/format/fenceReads';
-import {createPartEncoder, writeSpawnParts, type SpawnPartEncoding} from './spawnParts';
+import {createPartEncoder, writeSpawnParts, type CookedMember, type SpawnPartEncoding} from '../../src/game/cook/spawnParts';
+import {cookParts, openShardfile, servedAsIs, shardHalf} from '../../src/game/cook/shardCook';
 import {contentNamed} from './assetHashes';
 import {homedir} from 'node:os';
+import {productTarball} from './productTarball';
 import {BrotliSizeCache} from '../brotli-size-cache.mjs';
 import {ASSET_CACHE_NAME} from '../../src/engine/client/pwa/cacheNames';
 
@@ -52,7 +53,7 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
   const wireBytes = (url: string, bytes: Uint8Array, hash: string): number => {
     const key = `${hash}:${url}`, previous = wireSizes.get(key); if (previous !== undefined) return previous;
     // Match the deployed/preview representation; Rapier retains its precompressed native body.
-    const length = bytes.length < 1024 || /\.(?:png|jpe?g|webp|avif|gif|ico|woff2?|ttf|mp4|webm|mp3|ogg|m4a|wav)$/iu.test(url) ? bytes.length
+    const length = servedAsIs(url, bytes) ? bytes.length
       : url === '/assets/physics/rapier.wasm' ? precompressed.bytes(bytes) : encoded.bytes(bytes);
     wireSizes.set(key, length); return length;
   };
@@ -131,20 +132,22 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
   const pending: {manifest: Omit<SpawnManifest, 'parts'>; public: boolean; packed: boolean}[] = [];
   const clientAt: Record<string, {phone: number; desktop: number}> = {}, gridAt: Record<string, Record<string, {phone: number; desktop: number}>> = {};
   const packsClientAt: typeof clientAt = {}, packsGridAt: typeof gridAt = {};
+  const encoder = createPartEncoder(), cooked = new Map<string, CookedMember>();
   for (const prefix of Object.keys(bank.products)) {
     const directory = prefix.split('/')[2]; if (directory === undefined || !/^[a-z0-9_-]+$/u.test(directory)) throw new Error('Invalid spawn shard');
-    const product = join(root, 'out', directory), header = readFileSync(join(product, 'shard.json')), raw: unknown = JSON.parse(header.toString('utf8')), index = parseOutputIndex(raw);
+    const product = join(root, 'out', directory), index = parseOutputIndex(JSON.parse(readFileSync(join(product, 'shard.json'), 'utf8')));
     if (index.runtime !== null && (!('kind' in index.runtime) || index.runtime.kind !== 'client-plan')) continue;
-    const sections = new Map<string, unknown>();
-    for (const row of index.sections) {
-      const bytes = readFileSync(join(product, row.path));
-      if (bytes.length !== row.bytes || createHash('sha256').update(bytes).digest('hex') !== row.hash) throw new Error('Spawn section differs from index');
-      sections.set(row.name, JSON.parse(bytes.toString('utf8')));
+    // C1: the shard half comes from the shardfile alone, one tarball per product, and its parts from the shard's own cook.
+    const half = shardHalf(openShardfile(productTarball(product)), wireBytes, undefined, directory), {sections} = half.shard;
+    const shardRows = {phone: {entry: half.productRows('phone', 'entry'), whole: half.productRows('phone', 'whole')},
+      desktop: {entry: half.productRows('desktop', 'entry'), whole: half.productRows('desktop', 'whole')}};
+    for (const [url, member] of await cookParts(output, half, [{tier: 'phone', rows: shardRows.phone.whole}, {tier: 'desktop', rows: shardRows.desktop.whole}], encoder)) cooked.set(url, member);
+    for (const table of [shardRows.phone, shardRows.desktop]) for (const row of [...table.entry, ...table.whole]) {
+      const stable = half.stableKey(row.url); if (stable !== undefined) stableKeys.set(row.url, stable);
     }
-    const source = assembleOutputShardfile(raw, sections), headerHash = createHash('sha256').update(header).digest('hex');
     // DL22: the shard's recorded pre-control reads (scripts/record-fence-reads.mjs), mapped to this product's hashes.
     const fencePath = join(root, 'src/shards', directory, 'fence-reads.json');
-    let fence: ReadonlySet<string> = new Set(), fenceAssets: readonly string[] = [];
+    let fenceAssets: readonly string[] = [];
     if (existsSync(fencePath)) {
       const reads = readFenceReads(JSON.parse(readFileSync(fencePath, 'utf8')));
       const resolved = resolveFenceReads({version: 1, files: reads.files.filter(row => !row.startsWith('asset'))}, index.files, sections);
@@ -167,42 +170,10 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
       // A stale entry fails the build (sp-x8's review): skipping it would quietly bring back an on-demand fetch.
       if (unresolved.length > 0) throw new Error(`${fencePath} lists ${unresolved.length} files this build no longer has `
         + `(${unresolved.slice(0, 3).join(', ')}); re-record with scripts/record-fence-reads.mjs`);
-      fence = resolved.hashes;
     }
-    // DL5 (wildshard-new, G1012): a shard whose packs-on recording is slower than Shardfile (Pine: 122 vs 101 MB before
-    // control) packs only what its boot reads before control, the default set (entry set + fence reads), not the whole
-    // level; the rest loads on demand from its loose files, as on the Shardfile path. Per shard, in its own folder.
-    const packsFence = readPacksSet(join(root, 'src/shards', directory, 'packs-set.json')) === 'fence';
-    // Each string's first place in the sections (`world/scenes:libraries.24.tiles.0.files.3.file`), in section order.
-    const namedAt = new Map<string, string>();
-    const walk = (value: unknown, at: string): void => {
-      if (typeof value === 'string') { if (!namedAt.has(value)) namedAt.set(value, at); return; }
-      if (Array.isArray(value)) { value.forEach((item: unknown, row) => { walk(item, `${at}.${row}`); }); return; }
-      if (typeof value === 'object' && value !== null) for (const [key, item] of Object.entries(value)) walk(item, `${at}.${key}`);
-    };
-    for (const [name, value] of sections) walk(value, `${name}:`);
-    const productFile = (path: string, bytes: number, hash: string, name?: string): SpawnFile => {
-      let wire = wireSizes.get(`${hash}:${path}`);
-      if (wire === undefined) {
-        const body = readFileSync(join(product, path));
-        if (body.length !== bytes || createHash('sha256').update(body).digest('hex') !== hash) throw new Error('Spawn file differs from index');
-        wire = wireBytes(path, body, hash);
-      }
-      const url = /\/[a-f0-9]{64}\.[a-z0-9]+$/u.test(path) ? `${prefix}${path}` : `${prefix}${path}?v=${hash.slice(0, 8)}`;
-      sources.set(url, () => readFileSync(join(product, path)));
-      // DL18: an unnamed blob keeps its place by where a section names it (its rewritten version takes the same key).
-      const at = name ?? namedAt.get(hash) ?? namedAt.get(path);
-      if (at !== undefined) stableKeys.set(url, `${prefix}${at}`);
-      return {url, bytes, hash, wireBytes: wire};
-    };
-    const headerURL = `${prefix}shard.json?v=${headerHash.slice(0, 8)}`; sources.set(headerURL, () => header);
     const write = (tier: 'phone' | 'desktop', flow: 'client' | 'grid', addresses: readonly Address[] = [], mode = '000', whole = false): number => {
       const selected = new Map<string, SpawnFile>(), add = (row: SpawnFile): void => {selected.set(row.url, row);};
-      add({url: headerURL, bytes: header.length, hash: headerHash, wireBytes: wireBytes(`${prefix}shard.json`, header, headerHash)});
-      for (const row of index.sections) add(productFile(row.path, row.bytes, row.hash, `section:${row.name}`));
-      for (const row of index.schemas) add(productFile(row.path, row.bytes, row.hash, `schema:${row.path}`));
-      const wanted = entryReadSet(source, tier, index, sections, whole && !packsFence, fence);
-      for (const row of index.files) if (wanted.has(row.hash)) add(productFile(row.path, row.compressed, row.hash, row.name));
+      for (const row of shardRows[tier][whole ? 'whole' : 'entry']) add(row);
       for (const url of fenceAssets) add(asset(url));
       for (const row of common) add(row);
       for (const [url, bytes] of [...bank.common, ...bank[flow]]) add(asset(url, bytes));
@@ -249,10 +220,9 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
   }
   // DL5: every manifest is known, so pack their files into shared parts, then write each manifest with its own table.
   const packed = pending.flatMap((row, index) => row.packed ? [index] : []);
-  const encoder = createPartEncoder();
   const packedTables = await writeSpawnParts(output, packed.map(index => ({rows: pending[index]?.manifest.files ?? [], public: pending[index]?.public === true})), url => {
     const read = sources.get(url); if (read === undefined) throw new Error(`Spawn file has no source: ${url}`); return read();
-  }, url => stableKeys.get(url), encoder);
+  }, url => stableKeys.get(url), encoder, cooked);
   // DL15: each part's q11 body is written before the manifests, so every part row carries its exact wire size.
   report?.(encoder.stats());
   const written: SpawnManifestAddress[] = [];

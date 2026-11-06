@@ -1,6 +1,6 @@
 // DL22: record a shard's pre-control reads that its default spawn set lacks, from a cold phone-loading run against a
 // preview, as stable identities (src/format/fenceReads.ts) in src/shards/<slug>/fence-reads.json. The build's default set
-// then carries them (scripts/app-build/entryReadSet.ts, entryTotals.ts), so the setup steps no longer fetch them on demand.
+// then carries them (src/game/cook/entryReadSet.ts, scripts/app-build/entryTotals.ts), so the setup steps no longer fetch them on demand.
 //
 //   node --import ./scripts/bake-loader.mjs scripts/record-fence-reads.mjs --run=<cold run .json> --base=<preview URL>
 //        --dist=<the preview's dist> --slug=<shard> [--flow=client|grid] [--check] [--allow-unidentified]
