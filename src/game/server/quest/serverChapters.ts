@@ -31,7 +31,7 @@ import { mountedPlayerOf } from '../riding/native';
 
 /** The file that says a shard's story runs on its chapters. */
 export const CHAPTER_CONTENT = 'quests/content.json';
-const RIDING = 'riding/session.json';
+const RIDING = 'riding/session.json', ENCOUNTER_ROW = 'encounter:';
 /** How far past a talk's own reach a finished reading still counts: walking off closes it, a beat late. */
 const TALK_SLACK = 2;
 /** A feat's saved count, as a player's own flag: flags are what a world and a room already save, per player, with no new saved shape. */
@@ -82,8 +82,8 @@ export async function installServerChapters(host: SimHost, product: ShardProduct
   /** What a fight's rows say of the records a story reads. The flags a chapter raises off them are what's kept. */
   const records = (): ObservedRecords => {
     const bosses: Record<string, { defeated: boolean; rewardTaken: boolean; kills: number }> = {}, elites: Record<string, { kills: number }> = {};
-    for (const [id, read] of encounterRows(host)) {
-      const row = read();
+    for (const [wire, read] of encounterRows(host)) {
+      const row = read(), id = wire.slice(ENCOUNTER_ROW.length);
       if (row.kind === 'boss' && row.state === 'victory') bosses[id] = { defeated: true, rewardTaken: false, kills: 1 };
       else if (row.kind === 'elite' && (row.state === 'dead' || row.state === 'retired')) elites[id] = { kills: 1 };
     }
