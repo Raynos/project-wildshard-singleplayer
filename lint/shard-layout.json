@@ -9,6 +9,7 @@
       "ktx2.generated.ts",
       "discovery.generated.ts",
       "fence-reads.json",
+      "mounts.json",
       "packs-set.json",
       "runtimeCost.json"
     ],
