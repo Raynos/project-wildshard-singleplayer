@@ -47,7 +47,7 @@ function fixture(stored = false) {
     performance: { now: () => 0 }, console: { warn: (): void => undefined },
     precompileLevel: () => compile.promise, gpuOnlyContent: () => [], rebakeGpuContent: vi.fn(), terrainDatum: () => 4,
     observeRestore: (promise: Promise<void>) => { restores.push(promise); },
-    recordGpuRecovery: vi.fn(), markReload: vi.fn(), emitFault: (fault: unknown) => { faults.push(fault); }, repaint: vi.fn(),
+    recordGpuRecovery: vi.fn(), markReload: vi.fn(), leaveSaved: (go: () => void) => { go(); }, emitFault: (fault: unknown) => { faults.push(fault); }, repaint: vi.fn(),
   });
   if (typeof install !== 'function') throw new Error('Recovery installer is not callable');
   Reflect.apply(install, undefined, [{ game, rebuild, beforeReload, pose: () => ({ x: 1, y: 6, z: 3, yaw: 0, pitch: 0 }) }]);
