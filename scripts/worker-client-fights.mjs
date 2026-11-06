@@ -806,13 +806,22 @@ async function sweepJourney(browser, phone, base, step) {
     return { ok: look?.pinned === true, look, state: row?.state };
   });
   await far.context.close();
-  const steppe = await open(browser, phone, base, 'nalati-grasslands');
+  const steppe = await open(browser, phone, base, 'nalati-grasslands', '&bossGod');
   await step('sweep: Argymaq\'s row wears his colour', async () => {
     const lair = await steppe.page.evaluate(() => { const { x, z } = window.__wildshard.shard['nalati.elites'].elites.entry('argymaq').script.def.lair; return { x, z }; });
     const row = await until(steppe.page, async () => { const feet = await groundAt(steppe.page, lair.x + 12, lair.z); await place(steppe.page, lair.x + 12, feet + 0.4, lair.z); return bodyOf(steppe.page, 'argymaq'); }, 30, 1000);
     await steppe.page.waitForTimeout(500);
     const look = row === null ? null : await rowLook(steppe.page, row);
     return { ok: look?.kind === 'argymaq' && look.tint?.[0] === 0.62, look, lair };
+  });
+  /** A lair's tell as the page's elite holds it, and what the page has drawn of what it heard. */
+  const tell = id => steppe.page.evaluate(want => { const { tell: ground } = window.__wildshard.shard['nalati.elites'].elites.entry(want).script; return { shown: ground.mesh.visible, drawn: window.__workerClient().drawn }; }, id);
+  await step('sweep: Aqbars\'s pounce rings the ground, and its growl and feed are heard', async () => {
+    await steppe.page.evaluate(() => { window.__workerClientTime('night'); });
+    await place(steppe.page, 138, 62, -58);
+    let shown = false;
+    const seen = await until(steppe.page, async () => { const row = await fight(steppe.page, 'aqbars'); if (row?.at !== null && row?.at !== undefined) await place(steppe.page, row.at.x + 9, row.at.y + 0.4, row.at.z); const now = await tell('aqbars'); shown ||= now.shown; return shown && (now.drawn['elite moment'] ?? 0) > 0 ? now : null; }, 60, 400);
+    return { ok: seen !== null, shown, seen, last: await tell('aqbars') };
   });
   await steppe.context.close();
 }
