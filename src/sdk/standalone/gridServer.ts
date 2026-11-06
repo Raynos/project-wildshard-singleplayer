@@ -298,7 +298,7 @@ export class StandaloneGrid {
       const resident = await createTrustedHeadlessResident(input, snapshot, around), { host } = resident;
       bindDiscovery(host, input.product === undefined ? [] : await serverPlaces(input.product)); await installServerChapters(host, input.product, input.shard, resident.fact); await installServerDoors(host, input.product);
       if (snapshot === undefined && options.lone === true) addLoneWalls(host);
-      host.respawn.served = true;
+      host.respawn.served = true; actRoutes(host).introLocks = true;
       const owned = ownedOf(host, input);
       return { host, owned, fall: fallFloorOf(input, host, options.lone === true), dispose: () => { resident.dispose(); }, fact, effects: () => resident.effects,
         adopt: () => { regionalRuntimeCheckpoint(options.saves, placed, input.shard.identity.revision).restore({ animals: [...host.entities.values()] }); for (const level of new Set([input.shard.identity.slug, cell.instance])) for (const flag of pageSavedFlags(level)) host.flags.set(flag); return true; }, step: inputs => {
@@ -311,7 +311,7 @@ export class StandaloneGrid {
     installRoomRespawn(host, []);
     installDeclaredClimate(host, input.shard.rows);
     bindDiscovery(host, input.product === undefined ? [] : await serverPlaces(input.product));
-    host.respawn.served = true;
+    host.respawn.served = true; actRoutes(host).introLocks = true;
     return { host, owned: ownedOf(host, input), fall: fallFloorOf(input, host, options.lone === true), dispose, fact, effects: () => effects, adopt: () => { const held = sim(); return held === undefined || importPageProgress(options.saves, placed, input.shard, held); }, step: inputs => {
       effects.length = 0;
       // A data shard's prompts answer whoever stands at them; an id they don't offer that player is dropped, since an input may not end the server.

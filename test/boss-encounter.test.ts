@@ -122,7 +122,9 @@ test('on the wire a fight\'s row plays its score, feed and attempts in the brain
   const next = ANTLER_KING_PRESENTATION.definition.phases[1];
   try {
     frame('armed'); frame('intro'); expect(score()).toEqual(['scene:boss', 'score-phase:1', 'combat:1']);
+    expect(f.events.filter(value => value.startsWith('lock:')), 'an intro holds the page').toEqual(['lock:true']);
     frame('fight'); frame('beat', 1); frame('fight', 1);
+    expect(f.events.filter(value => value.startsWith('lock:'))).toEqual(['lock:true', 'lock:false']);
     expect(score().slice(3)).toEqual(['score-phase:2']);
     expect(lines).toEqual([`feed ${ANTLER_KING_PRESENTATION.definition.name} · ${next?.name}`]);
     frame('armed', 1); expect(score().slice(4)).toEqual(['scene:night', 'sting:death']);

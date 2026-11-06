@@ -1362,7 +1362,7 @@ export class BossView extends DirectorBossBrain {
       spawnReward: () => { spec.spawnReward?.(); }, toast: spec.toast === true ? (message) => { ctx.game.runtime?.play?.hud.toast(message); } : undefined,
       persist: spec.persist }, bar, spec.saved, spec.stages);
     this.pinned = spec.body;
-    this.rowBar = wirePage.on ? new BossRowBar(bar, { ...spec.definition, id: spec.row ?? spec.definition.id }, null, { attempt: outcome => { ctx.app.events.emit('boss.attempt', { boss: spec.definition.id, outcome }); } }) : null;
+    this.rowBar = wirePage.on ? new BossRowBar(bar, { ...spec.definition, id: spec.row ?? spec.definition.id }, null, { lock: on => { ctx.game.runtime?.play?.weapons.setEnabled(!on); }, attempt: outcome => { ctx.app.events.emit('boss.attempt', { boss: spec.definition.id, outcome }); } }) : null;
   }
   /** The boss's body is drawn at any distance (no tier draw-distance shrink), whichever body is up this frame. */
   override update(dt: number, t: number): void {

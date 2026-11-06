@@ -79,7 +79,8 @@ export function installBossRow(host: SimHost, spec: BossRowSpec): { boss: BossBr
   const party = new BossContenders(host.players, point => spec.script.inArena(point), (player, position, yaw) => { player.position.copy(position); player.yaw = yaw; spec.returned?.(player); });
   const bounty = new BossBounty(host, spec.body, spec.step);
   const ports = { events: host.events, player: party.player,
-    lockInput: () => undefined, skipHeld: () => actRoutes(host).skipHeld, respawn: party.respawn, faceToward: party.faceToward,
+    lockInput: (on: boolean) => { if (actRoutes(host).introLocks === true) for (const player of host.players.values()) if (!on || spec.script.inArena(player.position)) player.moveScale = on ? 0 : 1; },
+    skipHeld: () => actRoutes(host).skipHeld, respawn: party.respawn, faceToward: party.faceToward,
     spawnReward: () => { spec.spawnReward?.(); }, persist: spec.persist };
   const boss = spec.stages === undefined
     ? new BossBrain(spec.definition, spec.script, ports, silentBossPresentation(), spec.saved)

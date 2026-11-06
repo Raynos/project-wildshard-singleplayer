@@ -50,6 +50,8 @@ export interface BossRowVoice {
   readonly feed?: (line: string) => void;
   /** A win with nothing left to take. */
   readonly toast?: (line: string) => void;
+  /** A fight's intro holds a page's weapons and legs, as its host's `lockInput` does. */
+  readonly lock?: (on: boolean) => void;
   /** Analytics: the page's half of `boss.attempt`. */
   readonly attempt?: (outcome: 'started' | 'won' | 'died' | 'left') => void;
 }
@@ -112,9 +114,11 @@ export class BossRowBar {
   /** `moment`: the row was in view already, so this change happened now. */
   private enter(state: string, was: string, row: EncounterRow | undefined, moment: boolean): void {
     const { bar, card, voice } = this, phases = card.phases.slice(1).map(phase => phase.at);
+    if (was === 'intro') voice.lock?.(false);
     if (engaged(was) && !engaged(state)) voice.attempt?.(state === 'victory' ? 'won' : state === 'armed' ? 'died' : 'left');
     if (state === 'intro') {
       this.shown = row?.phase ?? 0;
+      voice.lock?.(true);
       bar.showNameCard(card.name, card.title, this.attempts > 1 || this.won);
       if (moment) { voice.attempt?.('started'); voice.music?.('intro', 1); }
       return;

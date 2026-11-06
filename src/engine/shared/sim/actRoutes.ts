@@ -36,6 +36,8 @@ export interface ActRoutes {
   board: ((player: string, op: 'claim' | 'tear', slot: number) => void) | null;
   /** A player puts on or takes off a cosmetic. */
   wear: ((player: string, id: string) => void) | null;
+  /** A boss's intro holds whoever stands in its arena. Only a page's session asks: a tape's steps run on through one. */
+  introLocks?: boolean;
   /** A Developer asked that a fight's blows not land: a lair's script sees it, as a page's did. */
   god?: boolean;
   /** A lone player's word on the sky, on a world with weather. */

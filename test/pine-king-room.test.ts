@@ -5,6 +5,7 @@ import * as v from 'valibot';
 import { beforeAll, expect, test } from 'vitest';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
 import { nativeGroundBossObservation, takeNativeBossReward } from '../src/game/server/boss/native';
+import { actRoutes } from '../src/engine/shared/sim/actRoutes';
 import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { createTrustedHeadlessResident, type TrustedHeadlessResident } from '../src/sdk/headlessRuntime';
@@ -63,3 +64,21 @@ test('each earner of the Antler King takes their own trophy, once, and the orb g
   expect(takeNativeBossReward(host, KING, eye(bot))).toBe(false);
   live.dispose();
 }, 60_000);
+
+// A page held its player through an intro, and its prediction follows the server's `moveScale`. A tape's steps run on: its world never asks.
+test('a session\'s intro holds who stands in the arena, and lets them go', async () => {
+  const live = await pine(), { host } = live;
+  const lead = [...host.players.values()][0]; if (lead === undefined) throw new Error('No lead');
+  const far = host.addPlayer('bot:far', lead.position), y = host.groundHeightAt(CLEARING.x, CLEARING.z) + .2;
+  const state = (): string => nativeGroundBossObservation(host, KING)?.boss.state ?? 'none';
+  actRoutes(host).introLocks = true;
+  const clock = host.dayClock; if (clock === undefined) throw new Error('No day');
+  clock.phase = 0.95;
+  const stand = (): void => { lead.resetPose({ x: CLEARING.x, y, z: CLEARING.z + 2 }, 0); far.resetPose({ x: CLEARING.x + 200, y, z: CLEARING.z }, 0); };
+  for (let tick = 0; tick < 3600 && state() !== 'intro'; tick++) { stand(); live.step([]); }
+  expect(state()).toBe('intro');
+  expect(lead.moveScale).toBe(0); expect(far.moveScale, 'a room\'s far player walks on').toBe(1);
+  for (let tick = 0; tick < 3600 && state() === 'intro'; tick++) { stand(); live.step([]); }
+  expect(state()).toBe('fight'); expect(lead.moveScale).toBe(1);
+  live.dispose();
+}, 120_000);
