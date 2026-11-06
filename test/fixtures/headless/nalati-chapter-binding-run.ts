@@ -8,11 +8,8 @@ import {beginProductSession} from './productSession';
 import {createNativeProofResident} from '../headless-native';
 import {prepareHeadlessRuntime} from '../nalati-chapter-native';
 import {loadRapier} from '../../../src/engine/shared/physics/rapier';
-import {decodeSimSnapshot,snapshotSimHost,serializeSimSnapshot} from '../../../src/engine/shared/sim/snapshot';
+import {decodeSimSnapshot,snapshotSimHost} from '../../../src/engine/shared/sim/snapshot';
 import {physicsState,sameBytes} from '../../fake/simState';
-import {createNativeProofWorker} from '../headless-worker';
-import {productHeadlessSections} from '../../../src/sdk/headlessSections';
-import {builtProduct} from '../builtProduct';
 import type {HeadlessCommand} from '../../../src/sdk/tickProtocol';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 import { leadSnapshot } from '@wildshard/engine/sim/snapshot';
@@ -47,7 +44,7 @@ try{
   // entrance. The altered state is negative intake only, never a played tape.
   const saved=snapshotSimHost(host),door=product.shardfile.quests.quests.find(row=>row.id==='golden-king')?.steps.find(row=>row.id==='door')?.markers?.[0]?.at;assert.ok(door);
   const forged={...saved,players:[{...leadSnapshot(saved),position:[door.x,leadPlayer(host).position.y,door.z] as [number,number,number]}]};
-  await assert.rejects(async()=>{const bad=await createNativeProofWorker(product.shardfile,assets,'nalati-chapter',serializeSimSnapshot(forged),productHeadlessSections(product),builtProduct('nalati-grasslands'));await bad.dispose();},/Closed King loan/u);
+  await assert.rejects(()=>createNativeProofResident({shard:product.shardfile,assets,product,rapier},prepareHeadlessRuntime,forged),/Closed King loan/u);
   phase('forged-continuation-refused',host.state.tick);
   console.info(JSON.stringify({story:'nalati-chapter-binding',ticks:frames.length,closed:true,replayed:true}));
   resident.dispose();assert.throws(()=>poll.snapshot(),/retired/u);assert.throws(()=>closed.snapshot(),/retired/u);
