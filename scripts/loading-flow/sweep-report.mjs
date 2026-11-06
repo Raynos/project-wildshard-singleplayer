@@ -23,14 +23,14 @@ export function readSweep(out) {
   };
   for (const shard of LONE_RUNS) take(join(out, 'flow', shard), shard);
   for (let n = 1; n <= COUNT; n++) for (const [shard] of PAIRS) take(join(out, 'pairs', String(n), shard), `${shard}#${n}`);
-  const phoneRun = log => {
+  const phoneRun = (log, mode = 'cold') => {
     const file = join(out, `${log}.log`);
     if (!existsSync(file)) return null;
-    const line = readFileSync(file, 'utf8').split('\n').find(row => row.startsWith('JSON ') && row.includes('cold'));
+    const line = readFileSync(file, 'utf8').split('\n').find(row => row.startsWith('JSON ') && row.includes(mode));
     return line === undefined ? null : json(line.slice(5).trim());
   };
   const read = name => (existsSync(join(out, name)) ? readFileSync(join(out, name), 'utf8') : null);
-  return { gates, flows, titled: phoneRun('title-3000'), untitled: phoneRun('title-0'), tasks: phoneRun('tasks'), programs: read('programs.log'), digest: read('digest.log') };
+  return { gates, flows, titled: phoneRun('title-3000'), untitled: phoneRun('title-0'), gridWarm: phoneRun('title-3000', 'warm'), tasks: phoneRun('tasks'), programs: read('programs.log'), digest: read('digest.log') };
 }
 
 const row = (id, pass, text) => ({ id, state: pass === null ? 'NOT READ' : pass ? 'PASS' : 'FAIL', text });
@@ -38,7 +38,7 @@ const list = (values, count = 3) => values.slice(0, count).join('; ') + (values.
 const requestsOf = gate => gate?.requests ?? gate?.visits?.cold ?? null;
 
 /** The rows, from `readSweep`'s reading. */
-export function rows({ gates, flows, titled, untitled, tasks, programs, digest }, about = null) {
+export function rows({ gates, flows, titled, untitled, gridWarm, tasks, programs, digest }, about = null) {
   const out = [], row_ = about?.workerRow === 1, all = Object.entries(gates), seven = all.filter(([name]) => !name.endsWith('-reentry')), runs = Object.entries(flows).filter(([name]) => name.includes('/packs'));
   const judged = gate => gate !== null && gate.pass !== null && gate.pass !== undefined;
 
@@ -61,13 +61,15 @@ export function rows({ gates, flows, titled, untitled, tasks, programs, digest }
   out.push(row('DL5', Object.keys(flows).length === 0 ? null : pairFails.length === 0, `packs minus Shardfile: ${pairLines.join(' · ')}`));
 
   const shaders = runs.flatMap(([name, { timeline }]) => (timeline.cold?.loading?.byStep ?? []).filter(step => /shader/iu.test(step.step)).map(step => `${name} ${step.longestMs} ms`));
-  const heldLists = programs === null ? null : !/\b(?:missing|stale|short)\b/iu.test(programs);
-  out.push(row('DL10', heldLists, `${programs === null ? 'no --check' : `--check: ${programs.trim().split('\n').slice(-1)[0]?.slice(0, 120)}`}${shaders.length > 0 ? ` · longest Shaders frame ${list(shaders, 2)} (J136 keeps 1.4 s as an exception)` : ''}`));
+  const counted = [...(programs ?? '').matchAll(/^(?<slug>[\w-]+): (?<held>\d+) \/ (?<total>\d+) entry programs/gmu)].map(match => match.groups), shortLists = counted.filter(line => line.held !== line.total).map(line => `${line.slug} ${line.held} / ${line.total}`);
+  const heldLists = counted.length === 0 ? null : shortLists.length === 0;
+  out.push(row('DL10', heldLists, `${counted.length === 0 ? 'no --check' : shortLists.length === 0 ? `--check: every list whole on ${counted.length} shards` : `--check short, re-bake: ${list(shortLists)}`}${shaders.length > 0 ? ` · longest Shaders frame ${list(shaders, 2)} (J136 keeps 1.4 s as an exception)` : ''}`));
 
-  const longTasks = tasks === null ? null : tasks.longTasks.length;
-  out.push(row('DL11', longTasks === null ? null : longTasks <= 20, longTasks === null ? 'no run' : `${longTasks} long tasks on Nine cold (bar <= 20, was 86)`));
+  // the bar's basis is the plan's table: the grid, warm, on the phone preset, before control. Nine cold is the pair's other half.
+  const before = run => (run === null || run === undefined ? null : run.longTasks.filter(task => task.start >= (run.tap ?? 0) && task.start <= (run.control ?? Infinity)).length);
+  const longTasks = before(gridWarm);
+  out.push(row('DL11', longTasks === null ? null : longTasks <= 20, `${longTasks ?? 'no'} long tasks before control, grid warm (bar <= 20, was 86) · Nine cold ${before(tasks) ?? 'unread'}`));
 
-  const red = seven.filter(([, gate]) => gate?.pass !== true).map(([name, gate]) => `${name}: ${gate?.pass === false ? gate.violations[0]?.slice(0, 110) : 'no reading'}`);
   // J130's row starts the server after control, so its reads land after it by construction: DL15 and DL17 read on the flip
   if (row_) out.push(row('DL15', null, 'not on the row: the flip starts the server before control'), row('DL17', null, `${red.length} flows red, read on the flip`));
   else out.push(row('DL15', seven.length === 0 ? null : red.length === 0 && seven.length === 7, seven.length === 7 && red.length === 0 ? 'seven flows green on q11 parts' : `${seven.length} of 7 flows, red: ${list(red)}`));

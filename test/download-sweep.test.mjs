@@ -57,8 +57,16 @@ test('a digest this Mac could not read is not a reading', () => {
   expect(state({ ...nothing, digest: 'telemetry digest=2026-11-04: {}\n' }, 'DL20')).toBe('PASS');
 });
 
+test('a short program list fails DL10 by name, and play\'s long tasks are not DL11\'s', () => {
+  const lists = 'driftwood-isle: 88 / 90 entry programs on x are in y\nfar-reach: 92 / 92 entry programs on x are in y\n';
+  expect(rows({ ...nothing, programs: lists }).find(row => row.id === 'DL10')).toMatchObject({ state: 'FAIL', text: expect.stringContaining('driftwood-isle 88 / 90') });
+  expect(state({ ...nothing, programs: 'far-reach: 92 / 92 entry programs on x are in y\n' }, 'DL10')).toBe('PASS');
+  expect(state({ ...nothing, programs: 'bake failed\n' }, 'DL10')).toBe('NOT READ');
+  expect(state({ ...nothing, gridWarm: { tap: 1, control: 10, longTasks: [{ start: 5 }, ...Array.from({ length: 30 }, () => ({ start: 11 }))] } }, 'DL11')).toBe('PASS');
+});
+
 test('a phone-link reading passes on its own bar', () => {
-  expect(state({ ...nothing, tasks: { longTasks: Array.from({ length: 21 }) } }, 'DL11')).toBe('FAIL');
-  expect(state({ ...nothing, tasks: { longTasks: [] } }, 'DL11')).toBe('PASS');
+  expect(state({ ...nothing, gridWarm: { longTasks: Array.from({ length: 21 }, () => ({ start: 1 })) } }, 'DL11')).toBe('FAIL');
+  expect(state({ ...nothing, gridWarm: { longTasks: [] } }, 'DL11')).toBe('PASS');
   expect(state({ ...nothing, titled: { totalMs: 9_000 }, untitled: { totalMs: 12_000 } }, 'DL2')).toBe('PASS');
 });
