@@ -33,6 +33,8 @@ export interface PageClimatePorts {
 export interface PageClimate extends ClimateFeed {
   readonly weather: WeatherContinuation;
   readonly storm: WeatherReactions | null;
+  /** The sky is a server's: nothing here steps, and the view still follows it. */
+  readonly served: boolean;
   /** What the sky does to the world beyond the view: its wind, its scares and its hurts on `player`. */
   bind: (player: Player) => void;
   /** The herd's shelter from the rain, stepped by the same lane as the view. */
@@ -55,7 +57,7 @@ export function pageClimate(ports: PageClimatePorts): PageClimate {
   const world = policy.storm === undefined ? null : v.parse(WeatherWorldSchema, policy.storm.world), storm = reactions;
   const feed = net?.(declared) ?? null;
   if (feed !== null && storm !== null) for (const event of new Set(storm.rows.steps.flatMap(step => step.emit.map(row => row.event)))) feed.storm?.on(event, ({ age: _age, ...fields }) => { storm.raise(event, fields); });
-  return { weather, storm,
+  return { weather, storm, served: feed !== null,
     setMode: (mode, at) => { if (feed === null) weather.setMode(mode, at); else feed.setMode(mode, at); }, // the server's sky takes both
     force: (phase, at) => { if (feed === null) weather.force(phase, at); else feed.force(phase, at); },
     frame: (dt, seen) => {

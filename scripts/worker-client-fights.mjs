@@ -519,6 +519,14 @@ async function nightJourney(browser, phone, base, step) {
   for (const flag of ['talked:elder', 'tamed:horse', 'won:kokpar', 'told:tulpar', 'talked:elder:2']) await page.evaluate(wanted => { window.__workerClientFlag(wanted); }, flag);
   const awakeRow = () => page.evaluate(() => window.__workerClientRow('slots.awake.0'));
   const statues = () => page.evaluate(() => { const set = [...window.__wildshard.shard['nalati.dressing'].sites.values()].map(row => row.sites).find(row => typeof row?.isAwake === 'function'); return set.sites.map((site, index) => ({ x: site.x, y: site.y, z: site.z, awake: set.isAwake(index) })); });
+  await step('the page\'s sky follows the server\'s', async () => {
+    const drawn = () => page.evaluate(() => window.__wildshard.shard['nalati.weather']?.weather?.state ?? null), was = await drawn();
+    await page.evaluate(() => { window.__workerClientSky('storm'); });
+    const storm = await until(page, async () => await drawn() === 'storm', 8), row = await page.evaluate(() => window.__workerClientRow('weather.phase')), rain = await page.evaluate(() => window.__wildshard.shard['nalati.weather'].weather.rain);
+    await page.evaluate(() => { window.__workerClientSky('clear'); });
+    const clear = await until(page, async () => await drawn() === 'clear', 8);
+    return { ok: storm === true && clear === true, was, storm, clear, row, rain };
+  });
   await step('night: the Developer\'s time reaches the server', async () => {
     const before = (await report(page)).day;
     await page.evaluate(() => { window.__workerClientTime('night'); });

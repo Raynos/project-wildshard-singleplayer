@@ -183,7 +183,7 @@ function installWeatherPresentation(ctx: ShardContext, world: ShardWorld, skies:
   // the fog's focus stay per frame
   let slowDue = SLOW_STEP;
   const update = (dt: number): void => {
-    if (dev.paused) return; // dev: the numbers below left as they are, to poke at one by hand
+    if (dev.paused && !climate.served) return; // dev: the numbers below left as they are, to poke at one by hand
     slowDue += dt;
     const slowDt = slowDue >= SLOW_STEP ? slowDue : 0; if (slowDt > 0) slowDue = 0;
     stormFrame(dt);
