@@ -167,7 +167,9 @@
     "./bake/nativeInteractionFacts": "./bake/nativeInteractionFacts.ts",
     "./bake/geometryError": "./bake/geometryError.ts",
     "./bake/slabs": "./bake/slabs.ts",
-    "./bake/wholePieceJoin": "./bake/wholePieceJoin.ts"
+    "./bake/wholePieceJoin": "./bake/wholePieceJoin.ts",
+    "./configBoundary": "./configBoundary.ts",
+    "./executeBundle": "./executeBundle.ts"
   },
   "scripts": {
     "prepack": "python3 ../../scripts/heavy-lane.py build -- node ../../scripts/build-sdk.mjs"
