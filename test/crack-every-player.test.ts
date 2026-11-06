@@ -29,3 +29,23 @@ test('a bot\'s lash cracks a quest spot for the bot, not the first player', asyn
     expect(rules.has('raised'), 'and not the first player\'s').toBe(false);
   } finally { host.dispose(); }
 });
+
+// A net client's charge names no target: it lands where they look, so a double crack reaches a quest's crank off a command stream.
+test('a held charge let go with nothing named cracks the spot ahead', async () => {
+  const host = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier: await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm'))) });
+  try {
+    const lead = leadPlayer(host), at = lead.position, spot = { id: 'crank', x: at.x, y: at.y + 1.68, z: at.z - 4, radius: .8 };
+    const data = parseInteractionRows({ marks: [{ id: 'raised' }], rows: [{ id: 'crank', act: 1, at: 'crack.crank', crack: 'heavy', needs: [{ none: ['raised'] }], sets: ['raised'] }] });
+    const rules = new InteractionRules(host.flags, data);
+    let commands: readonly NativeMeleeInput[] = [];
+    const melee = installNativeMelee(host, { id: 'weapon.sunscar-dunes.whip', contacts: WHIP_CONTACT_MOVES }, SIGNAL_MELEE_HOST, { inputCommands: () => commands, worldActor: 'quest',
+      questWorld: { row: { graph: { actor: 'quest' }, interactions: data }, spots: { crack: [spot], interact: [] } } as never });
+    installInteractionRows(host, rules, { actorId: 'quest', stepId: 'quest.targets', commands: () => [], spots: { 'crack.crank': spot }, crack: { reach: { light: 7, heavy: 8 }, cracked: melee.cracked } });
+    commands = [{ kind: 'player', heavy: {}, swing: true, pitch: 0 }];
+    for (let tick = 0; tick < 50; tick++) host.step();
+    expect(rules.has('raised'), 'a hold alone cracks nothing').toBe(false);
+    commands = [{ kind: 'player', pitch: 0 }];
+    for (let tick = 0; tick < 90; tick++) host.step();
+    expect(rules.has('raised')).toBe(true);
+  } finally { host.dispose(); }
+});

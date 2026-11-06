@@ -846,7 +846,7 @@ export function nativeMeleeVolumeHit(from: Vector3, dir: Vector3, reach: number,
   return best <= reach ? best : null;
 }
 /** Minimal admitted input view; other commands keep their original routes. */
-export interface NativeHeldCommand { readonly kind:string; readonly heavy?: { readonly targetId?:string|undefined }|undefined }
+export interface NativeHeldCommand { readonly kind:string; readonly heavy?: { readonly targetId?:string|undefined }|undefined; readonly swing?: boolean|undefined; readonly pitch?: number|undefined }
 /** Admitted page/script fields consumed by the declared native command mapping. */
 export interface NativeMeleeInput extends NativeHeldCommand {
   readonly attack?: {readonly targetId?:string|undefined}|undefined; readonly actorId?:string|undefined; readonly value?:number|undefined; readonly playerId?:string|undefined;
@@ -960,7 +960,10 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
     } }),
   });
   const holdRow=row.held, release={released:false,target:null as string|null}, heavy={kind:'move' as const,action:holdRow?.action??0,targetId:''};
-  const releasedCommands:NativeMeleeCommand[]=[heavy], none:NativeMeleeCommand[]=[], noHeld:NativeHeldCommand[]=[];
+  // A net client's charge has no target to name: it lands where they look when they let go, as a page's does.
+  const freeHeavy={kind:'move' as const,action:holdRow?.action??0,free:0};
+  let heldFree=false;
+  const releasedCommands:NativeMeleeCommand[]=[heavy], releasedFree:NativeMeleeCommand[]=[freeHeavy], none:NativeMeleeCommand[]=[], noHeld:NativeHeldCommand[]=[];
   let heldTarget:string|null=null;
   const noRelease=():void=>undefined;
   const sampleHeld=(dt:number):void=>{
@@ -969,7 +972,7 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
     const commands=ports.heldCommands?.()??(ports.inputCommands===undefined?noHeld:inputCommands());
     if(commands.length>MAX_TICK_COMMANDS)throw new RangeError('Held player input exceeds its tick bound');
     let held=false,target:string|null=null;
-    for(const command of commands)if(command.kind==='player'){held=command.heavy!==undefined;target=command.heavy?.targetId??null;}
+    for(const command of commands)if(command.kind==='player'){held=command.heavy!==undefined;target=command.heavy?.targetId??null;if(held)heldFree=command.swing===true;freeHeavy.free=command.pitch??0;}
     release.released=family.hold.held&&!held;release.target=release.released?heldTarget:target;
     family.hold.step(dt,true,held,noRelease);heldTarget=held?target:null;
   };
@@ -1051,6 +1054,7 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
     if(holdRow?.continuation.kind==='field'||(holdStepped&&!first))sampleHeld(dt);
     let commands=ports.enabled?.()===false?none:mappedCommands();
     if(holdRow?.mode==='replace'&&release.released&&release.target!==null){family.cooldown=0;heavy.targetId=release.target;commands=releasedCommands;}
+    else if(holdRow?.mode==='replace'&&release.released&&heldFree){family.cooldown=0;commands=releasedFree;}
     if (commands.length > MAX_TICK_COMMANDS) throw new RangeError('Native melee commands exceed the protocol allowance');
     cracked = null; if (!row.commandsAfterCool) family.cool(dt); pitch = 0;
     if (row.pitchLimit !== null) for (const command of commands) if (command.kind === 'aim') pitch = Math.max(-row.pitchLimit, Math.min(row.pitchLimit, command.pitch));
