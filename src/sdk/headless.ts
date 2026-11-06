@@ -33,7 +33,7 @@ export class HeadlessSimulation {
     validateShardfileAssets(shard, assets, bytes => createHash('sha256').update(bytes).digest('hex'), memory, undefined, scriptAdmissionRows(sections));
     for (const report of memory?.reports() ?? []) console.warn(`Headless memory report-only (G433): ${report.id}: ${report.playingBytes} playing bytes`);
     // A source checkout's root. The CLI bundle is stamped src/sdk (scripts/wildshard.mjs), two levels down; this file moves deeper.
-    const checkout = [resolve(import.meta.dirname, '../../../..'), resolve(import.meta.dirname, '../..')].find(root => existsSync(resolve(root, 'scripts/sim-node-loader.mjs')));
+    const checkout = [resolve(import.meta.dirname, '../..'), resolve(import.meta.dirname, '../../../..')].find(root => existsSync(resolve(root, 'scripts/sim-node-loader.mjs')));
     const binary = [resolve(import.meta.dirname, 'client/assets/physics/rapier.wasm'), ...checkout === undefined ? [] : [resolve(checkout, 'src/sharddev/dist/client/assets/physics/rapier.wasm'), resolve(checkout, 'public/assets/physics/rapier.wasm')]].find(existsSync);
     if (binary === undefined) throw new Error('SDK physics binary missing; build/pack the SDK before headless validation');
     const admitted = new Map<string, Uint8Array>();
@@ -121,8 +121,8 @@ export async function measureSimulation(shard: Shardfile, assets: ReadonlyMap<st
   } finally { await sim.dispose(); }
 }
 /** Offline admission proves bounded execution and entries; wall timing is advisory. The independent request watchdog still bounds a broken worker. */
-export async function validateSimulation(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>): Promise<{ ticks: number; lanes: number; steps: number; liftRides?: number; liftCalls?: number; portalTransfers?: number } & SimulationObservations> {
-  const sim = await HeadlessSimulation.create(shard, assets, undefined, { deadline: 'advisory' });
+export async function validateSimulation(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, sections?: ReadonlyMap<string, unknown>): Promise<{ ticks: number; lanes: number; steps: number; liftRides?: number; liftCalls?: number; portalTransfers?: number } & SimulationObservations> {
+  const sim = await HeadlessSimulation.create(shard, assets, undefined, { deadline: 'advisory', ...(sections === undefined ? {} : { sections }) });
   try { const observed = await observeSteps(sim); return { ...await sim.finish(), ...observed }; }
   finally { await sim.dispose(); }
 }
