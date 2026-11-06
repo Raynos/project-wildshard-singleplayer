@@ -26,10 +26,12 @@ async function open(slug, query = '') {
   await page.waitForFunction(() => window.__workerClient().frames > 30, undefined, { timeout: 60_000 });
   await page.evaluate(() => {
     const { world } = window.__wildshard, tape = window.__tape = [];
-    for (const [owner, name] of [[world.music, 'combat'], [world.music, 'sting'], [world.hud, 'killFeed'], [world.hud, 'toast']]) {
+    const record = (owner, name) => {
       const real = owner[name].bind(owner);
       owner[name] = (...args) => { tape.push(`${name} ${args.join(' ')}`); return real(...args); };
-    }
+    };
+    for (const name of ['combat', 'sting']) record(world.music, name);
+    for (const name of ['killFeed', 'toast']) record(world.hud, name);
   });
   return { context, page, errors };
 }
@@ -158,7 +160,7 @@ if (only.includes('captain')) {
   await page.evaluate(() => { window.__workerClientFlag('used:altar'); });
   await page.waitForTimeout(2000);
   await place(page, x + 8, await groundAt(page, x + 8, z + 8) + 1, z + 8);
-  const read = () => page.evaluate(() => { for (const body of window.__wildshard.world.animals.animals) { const burst = Number(body.mem?.['burst-x'] ?? 0); if (burst !== 0) return { x: burst, z: body.mem['burst-z'], st: body.mem.st, at: [body.position.x, body.position.z] }; } return null; });
+  const read = () => page.evaluate(() => { for (const body of window.__wildshard.world.animals.animals) { const burst = body.mem?.['burst-x'] ?? 0; if (burst !== 0) return { x: burst, z: body.mem['burst-z'], st: body.mem.st, at: [body.position.x, body.position.z] }; } return null; });
   const seen = await until(page, async () => { const row = await read(); if (row === null) await page.evaluate(([px, pz]) => { const { player } = window.__wildshard.world; player.yaw = Math.atan2(-(px - player.position.x), -(pz - player.position.z)); }, [x, z]); return row; }, 90, 100), row = await fight(page, 'boss.captain'), named = await page.evaluate(() => [...window.__wildshard.world.animals.animals].filter(body => body.mem?.st !== undefined).map(body => [body.kind, body.mem.st, body.mem.awake]).slice(0, 4));
   note('N7 the captain\'s splash reads burst-x off the wire', seen !== null, { seen, state: row?.state, named, errors: shard.errors.slice(0, 2) });
   await close(shard);

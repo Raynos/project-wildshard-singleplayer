@@ -15,6 +15,7 @@ const SLOT_COLUMNS = 7;
 const LANE_RATE = 15;
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0)), byte = v.pipe(natural, v.maxValue(255));
 const Saved = v.strictObject({ frames: natural, ids: v.array(v.array(v.nullable(v.string()))), memory: v.array(v.tuple([natural, v.array(byte)])) });
+export interface SavedSlotHeights {readonly frames: number; readonly ids: (string | null)[][]; readonly memory: [number, number[]][]}
 /** Where a memory isn't zero: a page of it is mostly nothing, and a save carries each run by where it starts. */
 function runsOf(bytes: Uint8Array): [number, number[]][] {
   const runs: [number, number[]][] = [];
@@ -64,7 +65,7 @@ export class SlotHeights {
     return field === 'attackPhase' ? body.attackPhase : field === 'seed' ? body.seed : field === 'scale' ? body.scale : field === 'yOffset' ? body.yOffset : 0;
   }
   /** The guest's memory while a body of this kind goes under, or null: nothing else is worth a save's bytes. */
-  snapshot(): v.InferOutput<typeof Saved> | null {
+  snapshot(): SavedSlotHeights | null {
     if (!this.bodies().some(body => !body.alive && this.pools.some(pool => pool.ours && pool.ids.includes(body.entityId)))) return null;
     return { frames: this.frames, ids: this.pools.map(pool => [...pool.ids]), memory: runsOf(new Uint8Array(this.lane.memory.buffer)) };
   }

@@ -32,7 +32,7 @@ async function launch(profile) {
   if (browser === null) throw new Error('No browser');
   const context = browser.contexts()[0], page = context.pages()[0] ?? await context.newPage(), errors = [];
   page.on('pageerror', error => { errors.push(error.message.slice(0, 200)); });
-  return { browser, context, page, errors, kill: () => { process.kill(-running.pid, 'SIGKILL'); return new Promise(resolve => { running.once('exit', resolve); }); } };
+  return { browser, context, page, errors, kill: () => { if (running.pid === undefined) throw new Error('No browser process'); process.kill(-running.pid, 'SIGKILL'); return new Promise(resolve => { running.once('exit', resolve); }); } };
 }
 const seed = async context => {
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
