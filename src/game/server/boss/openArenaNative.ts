@@ -18,6 +18,8 @@ import type { ArenaScriptData } from '@wildshard/format/arenaScriptRows';
 import type { ViewProgramRows } from '@wildshard/format/viewProgram';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { arenaTie, arenaBoundary } from '../../shared/boss/arenaAnswers';
+import { OWNED_ROW } from '../../shared/loot/ownedRows';
+import { publishOwned } from '@wildshard/engine/sim/shardRows';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
 import { OpenArenaRoom } from './openArenaRoom';
 import { OpenArenaSaved } from './openArenaState';
@@ -157,6 +159,9 @@ export async function prepareOpenArena(product: Pick<ShardProduct, 'json' | 'sec
       if(ports.grantItem!==undefined)for(const id of[row.id,data.definition.id])actRoutes(host).interactions.set(`${id}.reward`,{actorId:row.input.use,value:TAKE});
       actRoutes(host).interactions.set(`${row.id}.tie`,{actorId:row.input.use,value:1});
       actRoutes(host).tied=()=>fight.tied;
+      actRoutes(host).interactions.set(`${data.definition.id}.tie`,{actorId:row.input.use,value:1});
+      // the tie prompt is the fight's to judge, so a page hears it: its reach in centimetres, and which line it reads in the units place
+      publishOwned(host,`${row.id}.tie`,(_player,out)=>{out.set(OWNED_ROW.tie,Math.round(prompt.radius*100)*10+(prompt.label===data.lines.tieOnFoot?1:prompt.label===data.lines.tieQuiet?2:0));});
       updates.set(host,run);owners.set(host,{fight,boss,records,target:row.target,locked:()=>locked,reward:()=>reward,storm:()=>actual.storm.stormActive,
         weather:()=>({state:actual.storm.weather.state,left:actual.storm.weather.phaseLeft}),
         rewardPrompt:()=>rewardPoint===null?null:{position:rewardPoint.clone(),radius:2.6,label:data.reward.prompt}});

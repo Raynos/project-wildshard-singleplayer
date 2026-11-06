@@ -29,6 +29,7 @@ import { arenaBoundary, arenaTie } from '../../shared/boss/arenaAnswers';
 import { OpenArenaFight, readArenaScriptData, type ArenaRiderOwner, type OpenArenaViews } from '../../shared/boss/openArenaFight';
 import { pageSim } from '../shardfile/clientMoverOwners';
 import { wirePage } from '../shardfile/wirePage';
+import { OWNED_ROW } from '../../shared/loot/ownedRows';
 import { bindRuntimeBoss } from '../../shared/plugin/runtimeRows';
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
@@ -240,6 +241,7 @@ export class ArenaRoomEncounter {
   }
   private tie():void{
     const boss=this.boss;if(boss===null)return;const fight=this.openFight;
+    if(wirePage.on)return; // the press went to the server, which ties it, and the bar says so
     // the tie answer's order is arenaTie's (renderer-free, CI12)
     arenaTie(fight.life,{engaged:this.engaged,victory:boss.state==='victory',hit:boss.reward!==null,mounted:this.mounted(),storm:this.world.weather.stormActive},this.data.tieLines,
       {boss,fight,toast:line=>{this.toast(line);}});
@@ -253,6 +255,7 @@ export class ArenaRoomEncounter {
     if(this.openRows===null){this.portal?.update(dt,t);return;}
     this.power?.update(dt,t);this.hurtT-=dt;const boss=this.boss;if(boss===null||this.context===null||this.kit===null)return;
     const fight=this.openFight;if(wirePage.on||boss.state!=='dormant'||fight.body.visible)this.drive?.(dt,t);else fight.update(dt,t,false);
+    if(wirePage.on&&this.prompt!==null){const line=wirePage.line(OWNED_ROW.tie),{lines}=this.data;this.prompt.wireId=`${this.data.definition.id}.tie`;this.prompt.radius=Math.floor(line/10)/100;this.prompt.label=line%10===1?lines.tieOnFoot:line%10===2?lines.tieQuiet:lines.tie;}
     const answer=fight.takeBoundary();if(answer===null)return;const prompt=this.prompt;if(prompt===null)throw new Error('Missing open arena prompt');
     // the boundary answer's order is arenaBoundary's (renderer-free, CI12)
     const p=this.player.position,scope=this.context.scope;

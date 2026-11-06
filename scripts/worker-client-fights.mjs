@@ -449,8 +449,8 @@ async function chapterJourney(browser, phone, base, step) {
   const { page } = steppe, flagged = flag => hasFlag(page, flag), raise = flags => page.evaluate(list => { for (const flag of list) window.__workerClientFlag(flag); }, flags);
   const chip = () => page.evaluate(() => { const { line } = window.__wildshard.shard['nalati.quest']; return { chapter: line?.active?.def?.id ?? null, step: line?.active?.current?.id ?? null }; });
   const onChip = (chapter, at, seconds = 6) => until(page, async () => { const seen = await chip(); return seen.chapter === chapter && seen.step === at ? seen : null; }, seconds);
-  const toasted = page.evaluate(() => { window.__toasts = []; const { hud } = window.__wildshard.world.game.runtime?.play ?? {}; if (hud !== undefined) { const shown = hud.toast.bind(hud); hud.toast = text => { window.__toasts.push(text); shown(text); }; } });
-  await toasted; await page.evaluate(() => { window.__workerClientHits(60); });
+  await page.evaluate(() => { window.__toasts = []; new MutationObserver(list => { for (const row of list) for (const node of row.addedNodes) if (node.classList?.contains('ws-game-toast')) window.__toasts.push(node.textContent); }).observe(document.body, { childList: true, subtree: true }); });
+  await page.evaluate(() => { window.__workerClientHits(60); });
   await step('chapters: a tame\'s flag moves Tulpar on, on the server and the page', async () => {
     await raise(['talked:elder']);
     const tame = await onChip('tulpar', 'tame');
