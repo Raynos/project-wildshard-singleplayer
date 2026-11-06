@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-unassigned-import -- The sim's Math goes in before any module body runs.
+import '../../../src/engine/shared/core/portableMathFirst.ts';
 // oxlint-disable-next-line import/no-nodejs-modules -- Assert native worker results, never a supplied gameplay verdict.
 import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the unchanged request clock without a real 30-second stall.

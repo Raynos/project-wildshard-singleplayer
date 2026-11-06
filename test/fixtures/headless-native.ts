@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-unassigned-import -- The sim's Math goes in before any module body runs.
+import '../../src/engine/shared/core/portableMathFirst';
 import {createTrustedHeadlessTape} from '../../src/sdk/headlessTape';
 import { installNativeWalkBounds } from './headless/nativeBounds';
 import { installWalkRopeBodies } from './headless/ropeBodies';

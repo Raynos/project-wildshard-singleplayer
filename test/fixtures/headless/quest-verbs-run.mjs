@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-unassigned-import -- The sim's Math goes in before any module body runs.
+import '../../../src/engine/shared/core/portableMathFirst.ts';
 import assert from 'node:assert/strict';
 import * as v from 'valibot';
 import {openProductSession} from './productSession.ts';

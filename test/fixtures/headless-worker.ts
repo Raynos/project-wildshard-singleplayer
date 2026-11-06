@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-unassigned-import -- The sim's Math goes in before any module body runs.
+import '../../src/engine/shared/core/portableMathFirst';
 // oxlint-disable-next-line import/no-nodejs-modules -- This native Node worker uses the original repository physics binary and loader.
 import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Worker source and loader are fixed native file URLs.
