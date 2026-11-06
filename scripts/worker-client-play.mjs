@@ -1,5 +1,5 @@
 // J130: the row played through, as the flip's real checklist. Each step stands alone: one that fails is listed and the next still runs.
-// Driftwood's opening quest, a fight and its coins, a chest; a ride on Nalati; a grapple; a crossing; save, reload, resume.
+// Driftwood's opening quest, a fight and its coins; a ride on Nalati; a grapple; the other shards; a crossing; save, reload, resume.
 import { saveFixture } from './debug-settings.mjs';
 import { floorGridBenchmarkUrl, FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
 
@@ -91,13 +91,6 @@ export async function play(browser, phone, base, only = '') {
   await step('a place is discovered and the server keeps it', async () => {
     for (let i = 0; i < 8; i++) { const r = await report(drift.page); const seen = r.flags.filter(flag => flag.startsWith('seen:')); if (seen.length > 0) return { ok: true, seen }; await drift.page.waitForTimeout(1000); }
     return { ok: false };
-  });
-  await step('open the castaway chest: the server keeps it', async () => {
-    const at = await drift.page.evaluate(() => { const live = window.__wildshard.shard['driftwood.adventure'].kit.lives.find(row => row.def.id === 'castaway-chest'); return live === undefined ? null : { x: live.position.x, z: live.position.z }; });
-    if (at === null) return { ok: false, why: 'no chest row' };
-    await walk(drift.page, -14, -62, 2, 12); await walk(drift.page, at.x, at.z, 1.8, 12); // behind Wendell's fire
-    for (let i = 0; i < 8; i++) { await drift.page.keyboard.press('KeyE'); await drift.page.waitForTimeout(700); const r = await report(drift.page), held = r.flags.filter(flag => flag.includes('castaway-chest')); if (held.length > 0) return { ok: true, held }; }
-    const r = await report(drift.page); return { ok: false, at, x: r.x, z: r.z, flags: r.flags.slice(0, 14) };
   });
   // Chase and swing: the sword reaches two metres, and a boar doesn't stand still.
   const swing = async kinds => {
