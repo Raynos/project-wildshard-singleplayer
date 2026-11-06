@@ -75,5 +75,9 @@ test('the Antler King says its room, its lanes and its tells', { timeout: 120_00
     const rests = (heard.get(ROAMING_VIEW.ring) ?? []).filter(args => args[2] === 0).length;
     expect(rests, 'a ring at rest says so once').toBeLessThan(100);
     for (const args of heard.get(ROAMING_VIEW.lane) ?? []) { expect(args).toHaveLength(10); expect(args.every(Number.isFinite)).toBe(true); }
+    const lit = (heard.get(ROAMING_VIEW.light) ?? []).filter(args => args[0] === 1);
+    expect(lit.length, 'the fight says its light').toBeGreaterThan(0);
+    for (const args of lit) { expect(args).toHaveLength(6); expect(args.every(Number.isFinite)).toBe(true); }
+    expect(lit.some(args => (args[2] ?? 0) > 0), 'the light stands at the ribs').toBe(true);
   } finally { live.dispose(); }
 });

@@ -107,11 +107,14 @@ function nativeGroundFight(host: SimHost, row: RoamingEncounterRow, program: Spe
       glow: () => undefined, hung: () => undefined, focus: (k, out) => ribs(k, out),
       // the page's light samples the chest only before the final darkness phase moves it to the camera
       room: () => {
-        if (own.light && fight.darkK <= 0.5 && fight.body !== null) ribs(fight.body, RIB_POINT);
+        if (own.light && fight.body !== null) {
+          if (fight.darkK <= 0.5) ribs(fight.body, RIB_POINT);
+          sayFightView(host, ROAMING_VIEW.light, [1, RIB_POINT.x, RIB_POINT.y, RIB_POINT.z, fight.glow, fight.open]); // each tick: a page that came late has it within one
+        }
         if (fight.sealK !== sealWas || fight.darkK !== darkWas) { sealWas = fight.sealK; darkWas = fight.darkK; sayFightView(host, ROAMING_VIEW.room, [sealWas, darkWas]); }
         sayLane(0, lane); addLanes.forEach((add, index) => { sayLane(index + 1, add); });
       },
-      light: on => { own.light = on; },
+      light: on => { if (own.light && !on) sayFightView(host, ROAMING_VIEW.light, [0]); own.light = on; },
       action: (k, move) => { k.mem[row.actionField] = row.actions[move] ?? 0; },
       roar: k => { sayFightView(host, ROAMING_VIEW.roar, [k.position.x, k.position.y, k.position.z]); },
       burst: k => { sayFightView(host, ROAMING_VIEW.burst, [k.position.x, k.position.y, k.position.z]); },
