@@ -4,15 +4,16 @@
 //
 // The boot decision: a grid session starts with its owner on the road, because `GridSimulation` is built around a highway host
 // whose lead holds a motor, and `enter` then moves that lead into the home cell before the first tick. So a fresh boot, a
-// restored cell and a save made on the road all take one path. The road is a flat deck at road level, which is what the page's
-// own road queries say it is (`HIGHWAY_QUERIES`); its walls and seam strips reach the server with C2's packs.
+// restored cell and a save made on the road all take one path. The road and each cell's seams are the page's own strips, from
+// C2's grid pack, held near the player the way a native cell's solids are, so no save carries them.
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { LedgerBook } from '@wildshard/engine/net/ledgerBook';
 import type { ChatReports } from '@wildshard/engine/net/chat';
 import type { NetTickInput } from '@wildshard/engine/net/room';
 import { groups } from '@wildshard/engine/physics/groups';
-import { NearColliders } from '@wildshard/engine/physics/nearColliders';
+import { NearColliders, solidReach } from '@wildshard/engine/physics/nearColliders';
+import { stripCollider } from '@wildshard/engine/physics/stripColliders';
 import { addEdgeWalls } from '@wildshard/engine/physics/terrain';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import { createSimHost, type SimHost, type SimLevel } from '@wildshard/engine/sim';
@@ -27,6 +28,7 @@ import type { ForwardedStorage } from '@wildshard/engine/saves/forwardedStorage'
 import type { SaveStore } from '@wildshard/engine/saves/store';
 import type { Transport } from '@wildshard/engine/net/transport';
 import { GridAssembly, type GridCell, type GridPoint } from '@wildshard/game/grid/assembly';
+import type { GridCollisionStrip } from '@wildshard/game/grid/gridCollision';
 import { importPageProgress } from '@wildshard/game/grid/durability';
 import { gridRecovery } from '@wildshard/game/grid/recovery';
 import { regionalRuntimeCheckpoint } from '@wildshard/game/grid/runtimeCheckpoint';
@@ -51,21 +53,17 @@ import { netBuys, netWorldInput, stepResident } from './netInput';
 
 /** Worlds the worker holds beside the road, and so what a crossroads costs a phone (E5.2b, J68): the one its player stands in. */
 export const STANDALONE_RESIDENTS = 1;
-/** A deck that covers the whole grid, and a player's pace on it. */
+/** Ground under the whole grid, far below the road's strips, and a player's pace on them. */
 const ROAD_HALF_SIZE = 2000, ROAD_SPEED = 8;
-/** Samples a side of the road's flat ground. */
-const ROAD_GROUND = 257;
 /** A capsule's stand above its ground: one set down touching it cannot leave. */
 const ROAD_SKIN = 0.02;
-/** How far past a cell's edge the deck runs in that cell's own world: past the 10 m leave band, with room to stop. */
-const RIM = 16;
 /** Below this a player has left a cell's world: what a page's grid recovery falls back to where a shard declares no floor. */
 const FALL_FLOOR = -CHUNK_HALF;
 /** A cell wall's thickness and half its height. */
 const WALL = 0.5, WALL_HEIGHT = 30;
 /** How far out from a cell's edge its wall stands. */
 const WALL_OFF = 2;
-const ROAD: SimLevel = { version: SIM_API_VERSION, id: 'grid-road', seed: 1, ground: { size: ROAD_HALF_SIZE * 2, height: 0 }, player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: ROAD_SPEED }, entities: [], quests: [], weapon: HOST_PROBE };
+const ROAD: SimLevel = { version: SIM_API_VERSION, id: 'grid-road', seed: 1, ground: { size: ROAD_HALF_SIZE * 2, height: FALL_FLOOR }, player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: ROAD_SPEED }, entities: [], quests: [], weapon: HOST_PROBE };
 
 /** One world the worker has open: its host, and how it takes a tick and reports what the tick granted. */
 interface CellWorld extends GridResident {
@@ -82,6 +80,8 @@ export interface GridServerOptions {
   readonly slug: string; readonly build: string; readonly book: LedgerBook; readonly saves: SaveStore; readonly storage: ForwardedStorage; readonly savePrefix: string;
   /** A cell's server inputs, read when it is admitted and dropped once its world is built. */
   readonly load: (slug: string) => Promise<HeadlessRuntimeInput>;
+  /** The road's collision, read once at boot: the road's own, and each cell's copy of the seams beside it. */
+  readonly strips: () => Promise<readonly GridCollisionStrip[]>;
   /** A save read back but would not restore, and boot moved to the one before it. */
   readonly refused?: (error: unknown) => void;
   readonly reports?: ChatReports;
@@ -106,14 +106,18 @@ interface GridParts {
   readonly saved: number;
 }
 
-/** One slab of deck at road level, made as a level's flat ground is, so a capsule crossing from the road's own ground meets no lip. A capsule that starts a skin inside a solid box stays stuck in it. */
-function addDeck(host: SimHost, x: number, z: number, hx: number, hz: number): void {
-  const { R, world } = host.physics;
-  withOwner(host.scope, () => { world.createCollider(R.ColliderDesc.heightfield(1, 1, new Float32Array(4), { x: hx * 2, y: 1, z: hz * 2 }).setTranslation(x, 0, z).setCollisionGroups(groups('WORLD'))); });
+/** Keep these strips as data in `host`'s world until its player is near, as the page streams them. A world with no list yet gets one. */
+function holdStrips(host: SimHost, meshes: readonly GridCollisionStrip['mesh'][]): void {
+  if (meshes.length === 0) return;
+  let { near } = host.physics;
+  if (near === null) { near = new NearColliders(); near.attach(host.physics); host.physics.near = near; }
+  for (const mesh of meshes) {
+    near.hold({ x: mesh.origin.x, z: mesh.origin.z, reach: solidReach(mesh.positions), make: physics => withOwner(host.scope, () => stripCollider(physics, mesh)) });
+  }
 }
 /**
  * A wall around every cell in the road's own world, as the page's readiness walls are while a cell loads. A player stops just short of
- * a cell until its world is ready and the crossing takes them in, 6 m out at most; the road's flat deck never runs on under a cell's own
+ * a cell until its world is ready and the crossing takes them in, 6 m out at most; the road never runs on under a cell's own
  * hills, where a late hand-off would set them down inside one. A cell's terrain can end in a bank above road level at its very edge,
  * and a capsule set down touching that bank stays stuck in it, so the wall stands clear of it.
  */
@@ -125,15 +129,8 @@ function addCellWalls(road: SimHost, cells: readonly GridCell[]): void {
   });
 }
 /** The four slabs around a cell, in its own coordinates. A restored world has them already: its save holds its colliders. */
-function addRim(host: SimHost): void {
-  const reach = CHUNK_HALF + RIM / 2, long = CHUNK_HALF + RIM;
-  for (const [x, z, hx, hz] of [[reach, 0, RIM / 2, long], [-reach, 0, RIM / 2, long], [0, reach, long, RIM / 2], [0, -reach, long, RIM / 2]] as const) addDeck(host, x, z, hx, hz);
-}
-
-/** What stands at a world's edge: a grid cell's deck runs out to the road, and a lone cell has the walls a shard's own page stands inside. */
-function addEdge(host: SimHost, lone: boolean): void {
-  if (lone) withOwner(host.scope, () => { addEdgeWalls(host.physics); }); else addRim(host);
-}
+/** A lone cell has the walls a shard's own page stands inside. */
+function addLoneWalls(host: SimHost): void { withOwner(host.scope, () => { addEdgeWalls(host.physics); }); }
 
 /** A cell with no native plan: a data shard, which any host can run from its output. */
 async function openDataCell(input: HeadlessRuntimeInput, snapshot: string | SimSnapshot | undefined, effects: HeadlessEffect[], lone: boolean): Promise<Pick<CellWorld, 'host' | 'dispose'> & { readonly sim: () => ShardfileSimulation | undefined }> {
@@ -142,7 +139,7 @@ async function openDataCell(input: HeadlessRuntimeInput, snapshot: string | SimS
   const ports: ShardfileSimPorts = { rapier,
     quest: { fact: (name, actorId) => { effects.push({ kind: 'fact', name, actorId }); }, coins: (amount, actorId) => { effects.push({ kind: 'coins', amount, actorId }); } } };
   const fresh = createShardfileSim(shard, assets, ports);
-  if (snapshot === undefined) { addEdge(fresh.host, lone); return { host: fresh.host, sim: () => fresh, dispose: () => { fresh.dispose(); } }; }
+  if (snapshot === undefined) { if (lone) addLoneWalls(fresh.host); return { host: fresh.host, sim: () => fresh, dispose: () => { fresh.dispose(); } }; }
   const { level } = fresh.host; fresh.dispose();
   const installed: { value?: ReturnType<typeof bindShardfileSim> } = {};
   const host = restoreSimHost(level, { rapier }, typeof snapshot === 'string' ? decodeSimSnapshot(snapshot) : snapshot, restored => { installed.value = bindShardfileSim(restored, shard, assets, { ...ports, restoring: true }); });
@@ -244,9 +241,13 @@ export class StandaloneGrid {
       catch (error) { options.refused?.(error); }
       return world;
     };
-    const road = StandaloneGrid.road(rapier, assembly.cells, site === null ? candidate?.saved.road : undefined, arrival);
+    const strips = options.lone === true ? [] : await options.strips();
+    const road = StandaloneGrid.road(rapier, assembly.cells, strips, site === null ? candidate?.saved.road : undefined, arrival);
     const grid: GridSimulation = new GridSimulation(assembly, { highway: { host: road, dispose: () => { road.dispose(); } }, maxResidents: options.residents ?? STANDALONE_RESIDENTS,
-      load: async (cell, cached) => { const world = await open(cell, cached); worlds.set(cell.instance, world); return { host: world.host, dispose: () => { worlds.delete(cell.instance); world.dispose(); } }; },
+      load: async (cell, cached) => {
+        const world = await open(cell, cached);
+        holdStrips(world.host, strips.flatMap(strip => strip.duplicates.filter(row => row.instance === cell.instance).map(row => row.mesh)));
+        worlds.set(cell.instance, world); return { host: world.host, dispose: () => { worlds.delete(cell.instance); world.dispose(); } }; },
       durable: (instance, host) => {
         const held = slots(instance), wrote = held.write({ tick: host.state.tick, snapshot: capture(host), ledger: options.book.snapshot() });
         settle(held);
@@ -263,11 +264,18 @@ export class StandaloneGrid {
     return server;
   }
 
-  private static road(rapier: Rapier, cells: readonly GridCell[], saved: string | undefined, arrival: Readonly<GridPoint> | undefined): SimHost {
-    if (saved !== undefined) return restoreSimHost(ROAD, { rapier }, decodeSimSnapshot(saved));
-    const road = createSimHost(ROAD, { rapier, groundResolution: ROAD_GROUND }); // two triangles 4 km across let a capsule sink 22 cm, and every step on the road corrected
+  private static road(rapier: Rapier, cells: readonly GridCell[], strips: readonly GridCollisionStrip[], saved: string | undefined, arrival: Readonly<GridPoint> | undefined): SimHost {
+    if (saved !== undefined) {
+      const restored = restoreSimHost(ROAD, { rapier }, decodeSimSnapshot(saved));
+      holdStrips(restored, strips.map(strip => strip.mesh));
+      return restored;
+    }
+    const road = createSimHost(ROAD, { rapier });
     addCellWalls(road, cells);
-    if (arrival !== undefined) { const player = sessionPlayer(road); player.position.set(arrival.x, Math.max(arrival.y, ROAD_SKIN), arrival.z); player.motor.resetAt(player.position); }
+    holdStrips(road, strips.map(strip => strip.mesh));
+    const player = sessionPlayer(road);
+    if (arrival !== undefined) { player.position.set(arrival.x, Math.max(arrival.y, ROAD_SKIN), arrival.z); player.motor.resetAt(player.position); }
+    road.physics.near?.update(player.position.x, player.position.z);
     return road;
   }
 
@@ -280,7 +288,7 @@ export class StandaloneGrid {
       if (near !== undefined && snapshot !== undefined) (await createTrustedHeadlessResident(input, undefined, around)).dispose();
       const resident = await createTrustedHeadlessResident(input, snapshot, around), { host } = resident;
       bindDiscovery(host, input.product === undefined ? [] : await serverPlaces(input.product));
-      if (snapshot === undefined) addEdge(host, options.lone === true);
+      if (snapshot === undefined && options.lone === true) addLoneWalls(host);
       host.respawn.served = true;
       const owned = ownedOf(host, input);
       return { host, owned, dispose: () => { resident.dispose(); }, fact, effects: () => resident.effects,
@@ -314,6 +322,8 @@ export class StandaloneGrid {
     const started = this.options.now(), world = site === null ? undefined : this.worlds.get(site);
     const routes = actRoutes(this.grid.hostOf(site));
     netWorldInput(routes, inputs); netBuys(routes, inputs);
+    const stepping = sessionPlayer(this.grid.hostOf(site));
+    this.grid.hostOf(site).physics.near?.update(stepping.position.x, stepping.position.z);
     if (world === undefined) this.grid.stepSite(site, commandsOf(inputs)); else world.step(inputs);
     const host = this.grid.hostOf(site), player = sessionPlayer(host);
     // The page used to catch a fall, on its own body. The server's world has nothing below it, so it would fall for ever.

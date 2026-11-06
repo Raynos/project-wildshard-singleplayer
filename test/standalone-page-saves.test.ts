@@ -1,5 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The server half runs the shipped product bytes and physics module.
 import { readFileSync } from 'node:fs';
+import { bakedGridCollision } from './fixtures/gridCollision';
 import { afterEach, expect, test, vi } from 'vitest';
 import { installAppIdentity } from '../src/engine/shared/app/identity';
 import { loadRapier } from '../src/engine/shared/physics/rapier';
@@ -46,7 +47,7 @@ function pageSaves(storage: SaveStorage): void {
 let stop: (() => void) | undefined, running: StandaloneGrid | undefined;
 function boot(storage: SaveStorage, slug: string, lone?: true): StandaloneShell {
   const control = new MessageChannel(), game = new MessageChannel();
-  const server = runStandaloneServer({ control: control.port1, game: game.port1, load: (_boot, cell) => serverInput(cell), onSaveRefused: error => { throw error; }, proof: { booted: grid => { running = grid; } } });
+  const server = runStandaloneServer({ control: control.port1, game: game.port1, load: (_boot, cell) => serverInput(cell), strips: bakedGridCollision, onSaveRefused: error => { throw error; }, proof: { booted: grid => { running = grid; } } });
   const shell = connectStandalone({ slug, base: `/shards/${slug}/`, build: 'test', savePrefix: PREFIX, storage, ...(lone === undefined ? {} : { lone }) }, control.port2, game.port2, () => { server.dispose(); });
   stop = () => { shell.dispose(); };
   return shell;

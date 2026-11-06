@@ -1,5 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The server half runs the shipped product bytes and physics module.
 import { readFileSync } from 'node:fs';
+import { bakedGridCollision } from './fixtures/gridCollision';
 import { Vector3 } from 'three';
 import * as v from 'valibot';
 import { afterAll, beforeAll, expect, test, vi } from 'vitest';
@@ -240,7 +241,7 @@ test('a client that hangs up leaves a server that still saves', { timeout: 60_00
 // A crossing under fire: the acts and commands in flight when a player changes rooms belong to neither, and neither minds.
 test('a client crosses a seam while it fuzzes both rooms', { timeout: 120_000 }, async () => {
   const control = new MessageChannel(), game = new MessageChannel(), storage = new PageStorage();
-  const server = runStandaloneServer({ control: control.port1, game: game.port1, load: (_boot, slug) => product(slug), proof: { arrival: { x: -259, y: 0, z: 0 } } });
+  const server = runStandaloneServer({ control: control.port1, game: game.port1, load: (_boot, slug) => product(slug), strips: bakedGridCollision, proof: { arrival: { x: -259, y: 0, z: 0 } } });
   const shell = connectStandalone({ slug: 'sunscar-dunes', base: '/shards/sunscar-dunes/', build: 'test', savePrefix: 'wildshard.', storage }, control.port2, game.port2, () => { server.dispose(); });
   const { client } = shell, travels: NetTravel[] = [], hostile = new Hostile(client), fuzz = new Fuzz(SEEDS[0] ?? 1);
   client.onTravel(event => { travels.push(event); });

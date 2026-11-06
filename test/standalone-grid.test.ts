@@ -12,6 +12,7 @@ import type { StandaloneGrid } from '../src/sdk/standalone/gridServer';
 import { runStandaloneServer } from '../src/sdk/standalone/serverHost';
 import { connectStandalone, type StandaloneShell } from '../src/sdk/standalone/shell';
 import { builtProduct } from './fixtures/builtProduct';
+import { bakedGridCollision } from './fixtures/gridCollision';
 
 // P1-E3.9, E5.2b: the grid in the server's half, over real MessagePorts on the server's own clock. A client walks off the road
 // into a cell and back, hearing `travel` both ways, and a reload resumes it wherever it stood. Only a server's bytes are read.
@@ -40,7 +41,7 @@ const until = async (ready: () => boolean, timeout = 30_000): Promise<void> => {
 let running: StandaloneGrid | undefined;
 function start(storage: SaveStorage, arrival?: GridPoint, home = HOME, lone?: true): { shell: StandaloneShell; stop: () => void } {
   const control = new MessageChannel(), game = new MessageChannel();
-  const server = runStandaloneServer({ control: control.port1, game: game.port1, load: (_boot, slug) => serverInput(slug), proof: { ...(arrival === undefined ? {} : { arrival }), booted: grid => { running = grid; } } });
+  const server = runStandaloneServer({ control: control.port1, game: game.port1, load: (_boot, slug) => serverInput(slug), strips: bakedGridCollision, proof: { ...(arrival === undefined ? {} : { arrival }), booted: grid => { running = grid; } } });
   const shell = connectStandalone({ slug: home, base: `/shards/${home}/`, build: 'test', savePrefix: 'wildshard.', storage, ...(lone === undefined ? {} : { lone }) }, control.port2, game.port2, () => { server.dispose(); });
   return { shell, stop: () => { shell.dispose(); } };
 }

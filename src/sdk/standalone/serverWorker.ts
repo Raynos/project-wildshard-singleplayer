@@ -1,9 +1,11 @@
+// oxlint-disable-next-line import/no-unassigned-import -- The sim's Math goes in before any module body runs.
+import '@wildshard/engine/core/portableMathFirst';
 import { loadRapier, type Rapier } from '@wildshard/engine/physics/rapier';
 import { installCatalogue } from '@wildshard/game/grid/catalogueSlot';
 import { RAPIER_WASM_URL } from '@wildshard/engine/physics/wasmUrl';
 import { askHeldReads, type HeldRead } from './heldReads';
 import { runStandaloneServer } from './serverHost';
-import { fetchServerProduct } from './serverProduct';
+import { fetchGridCollision, fetchServerProduct } from './serverProduct';
 
 /** Physics, once, from the page's own copy where it holds one (DL25). */
 let physics: Promise<Rapier> | undefined;
@@ -22,5 +24,6 @@ self.onmessage = (event: MessageEvent<unknown>): void => {
   if (control === undefined || game === undefined) return;
   const held = reads === undefined ? undefined : askHeldReads(reads);
   runStandaloneServer({ control, game, ...harness === undefined ? {} : { harness }, load: async (boot, slug) => fetchServerProduct(new URL(`../${slug}/`, new URL(boot.base, globalThis.location.href)).href, await rapierOf(held), held),
+    strips: boot => fetchGridCollision(boot.base),
     onSaveRefused: error => { console.warn('Standalone save refused, falling back', error); } });
 };

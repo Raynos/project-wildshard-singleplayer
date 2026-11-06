@@ -15,6 +15,7 @@ import { findShard } from '../src/game/client/shard/registry.ts';
 import { platformInputs } from '../src/game/shared/grid/platformInputs.ts';
 import { generatePlatform } from '../src/engine/shared/sim/strips.ts';
 import { platformGeometrySource } from '../src/game/shared/grid/compiledStrips.ts';
+import { writeGridCollision } from '../src/game/cook/gridCollision.ts';
 import { encodeGridStripPage, GridStripTransportLimitError, writeGridStripPages } from '../src/game/cook/gridStripPages.ts';
 import { phoneWireReport } from './phone-wire.mjs';
 import { existsSync, writeFileSync } from 'node:fs';
@@ -71,6 +72,8 @@ for (const developer of [false, true]) for (const devserver of [false, true]) fo
   catch (error) { console.error(`[grid bake] road-level fallback: ${String(error)}`); cells = input.flat; strips = generatePlatform(cells, input.empty, plans); }
   const source = await platformGeometrySource(cells, input.empty), reach = 1.5 * assembly.pitch + 1;
   seen.set(key, source); entryModes.set(mode, source);
+  // C2: the worker's road is the page's, from the catalogue a plain visit reads.
+  if (mode === '000') writeGridCollision(outputRoot, source, strips);
   for (const home of assembly.cells) {
     /** @param {import('../src/engine/shared/sim/strips.ts').GeneratedStrip} strip */
     const within = strip => Math.abs(strip.mesh.origin.x - home.origin.x) <= reach && Math.abs(strip.mesh.origin.z - home.origin.z) <= reach;

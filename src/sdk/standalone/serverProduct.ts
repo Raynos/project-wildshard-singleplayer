@@ -5,7 +5,8 @@ import { contentHash } from '@wildshard/game/shardfile/contentHash';
 import { nodeNamedJsonCheck, nodeOutputDescriptorChecks } from '@wildshard/game/shardfile/outputChecksNode';
 import { carryOutputDescriptor, outputDescriptor, resolveOutputDescriptor, serverReadsFile } from '@wildshard/game/shardfile/outputDescriptor';
 import { shardProductData } from '@wildshard/game/shardfile/productData';
-import { readServerPackBook, serverPackBookPath, serverPackFile, type ServerPack } from '@wildshard/game/shardfile/serverPack';
+import { GRID_COLLISION_BODY, GRID_COLLISION_HEADER, readGridCollision, type GridCollisionStrip } from '@wildshard/game/grid/gridCollision';
+import { readServerPackBook, serverPackBookPath, serverPackFile, type ServerPack, type ServerPackBook } from '@wildshard/game/shardfile/serverPack';
 import type { HeadlessRuntimeInput } from '../headlessRuntime';
 import type { HeldRead } from './heldReads';
 
@@ -23,15 +24,31 @@ async function serverBytes(url: URL, path: string, held?: HeldRead): Promise<Uin
   return new Uint8Array(await usable.arrayBuffer());
 }
 
+/** This build's server book. The worker runs from its build's folder (`/b/<build>/standalone/`), which says whose it is. */
+async function serverBook(root: string): Promise<ServerPackBook> {
+  const build = /^\/b\/([^/]+)\//u.exec(globalThis.location.pathname)?.[1];
+  if (build === undefined) throw new Error('The server worker runs outside a build folder');
+  const path = serverPackBookPath(build);
+  return readServerPackBook(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await serverBytes(new URL(`/${path}`, root), path))));
+}
+
+/** C2: the road's collision from this build's grid pack: nothing a page reads, and no shard's. */
+export async function fetchGridCollision(base: string): Promise<readonly GridCollisionStrip[]> {
+  const root = new URL(base, globalThis.location.href).href, { grid } = await serverBook(root);
+  if (grid === undefined) return [];
+  const body = await serverBytes(new URL(grid.url, root), grid.url), file = (path: string): Uint8Array => {
+    const bytes = serverPackFile(grid, body, path);
+    if (bytes === undefined) throw new Error(`Missing server input ${path}`);
+    return bytes;
+  };
+  return readGridCollision(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(file(GRID_COLLISION_HEADER))), file(GRID_COLLISION_BODY));
+}
+
 /** C2: reads a server file from its product's pack, fetching the book and the pack once. The browser undoes `br`. */
 function serverPackReader(root: string, slug: string): (path: string) => Promise<Uint8Array> {
   let opened: Promise<{ readonly pack: ServerPack; readonly body: Uint8Array }> | undefined;
   const open = async (): Promise<{ readonly pack: ServerPack; readonly body: Uint8Array }> => {
-    // The worker runs from its build's folder (`/b/<build>/standalone/`), which says whose book to read.
-    const build = /^\/b\/([^/]+)\//u.exec(globalThis.location.pathname)?.[1];
-    if (build === undefined) throw new Error('The server worker runs outside a build folder');
-    const path = serverPackBookPath(build);
-    const book = readServerPackBook(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await serverBytes(new URL(`/${path}`, root), path))));
+    const book = await serverBook(root);
     const pack = book.shards[slug];
     if (pack === undefined) throw new Error(`No server pack for ${slug}`);
     return { pack, body: await serverBytes(new URL(pack.url, root), pack.url) };

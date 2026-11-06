@@ -2,7 +2,9 @@
 import {readFileSync, writeFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {join} from 'node:path';
+import {cookGridPack} from './gridCollision';
 import {gridEntryDownloads} from './gridEntryDownloads';
+import {createPartEncoder} from './spawnParts';
 import {writeSpawnManifests, type BuildHalf} from './entryTotals';
 import {packsBookPath} from '@wildshard/format/spawnManifest';
 import {serverPackBookPath} from '../shared/shardfile/serverPack';
@@ -23,7 +25,8 @@ export async function writeEntryBootstrap(outDir: string, root: string, build_: 
   if (!/^[A-Za-z0-9_-]{4,64}$/u.test(build)) throw new Error('Invalid build id for the packs book');
   // `book` and `build` bind it to its purpose and build: the reader refuses any other book at this URL.
   writeFileSync(join(outDir, packsBookPath(build)), JSON.stringify({book: 'packs', build, cacheName: spawnManifests.cacheName, ...packs}));
-  writeFileSync(join(outDir, serverPackBookPath(build)), JSON.stringify({book: 'server', build, shards: serverPacks}));
+  const gridPack = await cookGridPack(root, outDir, createPartEncoder());
+  writeFileSync(join(outDir, serverPackBookPath(build)), JSON.stringify({book: 'server', build, shards: serverPacks, ...(gridPack === undefined ? {} : {grid: gridPack})}));
   const json = JSON.stringify({...bank, gridEntryDownloads: grid, spawnManifests}).replaceAll('<', String.raw`\u003c`);
   writeFileSync(file, html.replace(expression, () => `<script type="application/json" id="boot-module-files">${json}</script>`));
 }

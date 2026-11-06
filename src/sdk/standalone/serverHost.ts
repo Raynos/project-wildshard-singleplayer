@@ -14,6 +14,7 @@ import { allowDeveloperBoost } from '@wildshard/engine/sim/playerSim';
 import type { SimHost } from '@wildshard/engine/sim';
 import { ServerMessageSchema, ShellMessageSchema, type ProbedRow, type ServerMessage, type ShellMessage } from '@wildshard/format/standaloneControl';
 import type { GridPoint } from '@wildshard/game/grid/assembly';
+import type { GridCollisionStrip } from '@wildshard/game/grid/gridCollision';
 import type { HeadlessRuntimeInput } from '../headlessRuntime';
 import { StandaloneGrid } from './gridServer';
 import { isHarnessHits, isHarnessPlace } from './harnessPlace';
@@ -25,6 +26,8 @@ export interface StandaloneServerOptions {
   readonly control: MessagePort; readonly game: MessagePort;
   /** Read and verify a shard's server inputs: the home cell's, and each cell's as the grid admits it. */
   readonly load: (boot: Boot, slug: string) => Promise<HeadlessRuntimeInput>;
+  /** The road's collision, read once a grid session boots. A lone cell has no road and never asks; a proof that stays in a cell needs none. */
+  readonly strips?: (boot: Boot) => Promise<readonly GridCollisionStrip[]>;
   /** A save read back but would not restore, and boot moved to the one before it. */
   readonly onSaveRefused?: (error: unknown) => void;
   /** Where a Developer harness says to put this player: a lap's start, or a stuck walker moved on. */
@@ -63,7 +66,7 @@ export function runStandaloneServer(options: StandaloneServerOptions): { dispose
     allowDeveloperBoost(); // this server is the player's own device; a page only sends the button with Developer on
     installSaveEnvironment({ storage: saveScope => saveScope === 'session' ? null : local, persistent: () => true, persist: () => Promise.resolve(false) });
     const server = await StandaloneGrid.boot({ slug: message.slug, build: message.build, book, saves, storage: local, savePrefix: message.savePrefix, now: diagnosticNow, ...(message.lone === true ? { lone: true } : {}),
-      load: slug => options.load(message, slug), stepped, ...(options.onSaveRefused === undefined ? {} : { refused: options.onSaveRefused }), ...(options.reports === undefined ? {} : { reports: options.reports }),
+      load: slug => options.load(message, slug), strips: () => options.strips?.(message) ?? Promise.resolve([]), stepped, ...(options.onSaveRefused === undefined ? {} : { refused: options.onSaveRefused }), ...(options.reports === undefined ? {} : { reports: options.reports }),
       ...(arrival === undefined ? {} : { arrival }), ...(residents === undefined ? {} : { residents }) });
     grid = server;
     const { restored } = server;
