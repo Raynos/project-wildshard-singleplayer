@@ -216,7 +216,9 @@ export class GroupStepV2 {
         const references=steady?kept.references:[];
         if(referenceOwner!==undefined){
           let index=0;
-          for(const [name,loan] of referenceOwner){
+          // The whole entry list first: a loan's getter can change the map, and validate must see that it did.
+          const entries=[...referenceOwner];
+          for(const [name,loan] of entries){
             if(loan!==null){
               const row=byHandle.get(loan.handle);
               if(row===undefined||row.body!==loan.body||row.identity!==loan.identity)throw new Error('Foreign observed group reference');
