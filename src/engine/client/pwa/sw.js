@@ -149,6 +149,9 @@ async function precacheQueue(cache, urls) {
         const held = await cache.match(key, MATCH);
         if (held !== undefined && !isHtml(held)) continue;
         if (held !== undefined) await cache.delete(key);
+        // DL25: a part's member is kept under its manifest's `?v=`, and no HTTP cache saw it. These names are hashed: same file.
+        const kept = await cache.match(key, { ...MATCH, ignoreSearch: true });
+        if (kept !== undefined && !isHtml(kept)) { await cache.put(key, kept); continue; }
         const response = await fetch(new Request(key, { cache: 'force-cache', signal: control.signal }));
         if (!response.ok || isHtml(response)) throw new Error(`Precache failed: ${path} (${response.status})`);
         await cache.put(key, response);

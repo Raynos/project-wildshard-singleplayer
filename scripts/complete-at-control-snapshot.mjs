@@ -151,7 +151,7 @@ export function spawnMembers(manifest) {
 export function spawnRereads(rows, members, listedAt, failed = false) {
   if (failed || listedAt === null) return { files: 0, bytes: 0, first: [] };
   const moved = rows.filter(row => row.start >= listedAt && members.has(new URL(row.url).pathname) && (row.bytes ?? 1) > 0);
-  return { files: moved.length, bytes: moved.reduce((sum, row) => sum + (row.bytes ?? 0), 0), first: moved.slice(0, 3).map(row => new URL(row.url).pathname) };
+  return { files: moved.length, bytes: moved.reduce((sum, row) => sum + (row.bytes ?? 0), 0), first: moved.slice(0, 3).map(row => (row.by === undefined ? new URL(row.url).pathname : `${new URL(row.url).pathname} by ${row.by}`)) };
 }
 
 /** Root's ruling (G872, wildshard-new 11-04): neighbour and outer-road work, as source spans of the grid session. A span runs

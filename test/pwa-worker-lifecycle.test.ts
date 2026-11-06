@@ -29,7 +29,10 @@ interface WorkerEvent {
 class StoredCache {
   readonly entries = new Map<string, Response>();
   private key(input: Request | string): string { return typeof input === 'string' ? input : input.url; }
-  match(input: Request | string): Promise<Response | undefined> { return Promise.resolve(this.entries.get(this.key(input))?.clone()); }
+  match(input: Request | string, options?: { ignoreSearch?: boolean }): Promise<Response | undefined> {
+    const key = this.key(input), found = options?.ignoreSearch === true ? [...this.entries.keys()].find(entry => entry.split('?')[0] === key.split('?')[0]) : key;
+    return Promise.resolve(found === undefined ? undefined : this.entries.get(found)?.clone());
+  }
   async put(input: Request | string, response: Response): Promise<void> {
     this.entries.set(this.key(input), new Response(await response.arrayBuffer(), { status: response.status, headers: response.headers }));
   }
@@ -171,6 +174,16 @@ test('a worker\'s reads neither pause the precache nor stand as a loader', async
   again.release(); second.live.delete('page-2');
   await second.dispatch('fetch', { request: new Request(url('/')), clientId: 'page-1' }); await run;
   expect(again.f.fetch).toHaveBeenCalledTimes(14);
+});
+
+test('the precache takes a part\'s member from under its `?v=`, and downloads nothing', async () => {
+  const file = '/b/abc/basis_transcoder-aaaaaaaa.wasm', f = fixture(), worker = f.load('A', [file], []);
+  await worker.dispatch('install'); await worker.dispatch('activate');
+  const assets = await f.open(ASSET_CACHE_NAME);
+  await assets.put(url(`${file}?v=6cf17dc8`), new Response('held'));
+  await worker.dispatch('message', precached);
+  expect(f.fetch).not.toHaveBeenCalled();
+  expect(await (await assets.match(url(file)))?.text()).toBe('held');
 });
 
 test('a waiting update steps its precache aside on a loading page\'s PAUSE', async () => {
