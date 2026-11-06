@@ -30,8 +30,8 @@ export const SOURCE_GENERATORS = [
   },
   starter('starter-arm-clips', 'scripts/gen-starter-arm-clips.mjs', 'src/game/client/systems/viewmodel/armAliases.json', 'src/game/client/systems/viewmodel/clips.generated.ts', 'starterArmClipsTableSource'),
   starter('starter-weapons', 'scripts/gen-starter-weapons.mjs', 'src/game/shared/weapons/starterBow.json', 'src/game/shared/weapons/starter.generated.ts', 'starterWeaponsTableSource'),
-  starter('starter-bag', 'scripts/gen-starter-bag.mjs', 'src/game/server/bag/starterItems.json', 'src/game/server/bag/starter.generated.ts', 'starterBagTableSource'),
-  starter('starter-effects', 'scripts/gen-starter-effects.mjs', 'src/game/server/systems/effects/starterRows.json', 'src/game/client/systems/effects/starter.generated.ts', 'starterEffectsTableSource'),
+  starter('starter-bag', 'scripts/gen-starter-bag.mjs', 'src/game/shared/bag/starterItems.json', 'src/game/shared/bag/starter.generated.ts', 'starterBagTableSource'),
+  starter('starter-effects', 'scripts/gen-starter-effects.mjs', 'src/game/shared/systems/effects/starterRows.json', 'src/game/client/systems/effects/starter.generated.ts', 'starterEffectsTableSource'),
   {
     id: 'shard-list',
     outputs: ['src/shards.generated.ts'],

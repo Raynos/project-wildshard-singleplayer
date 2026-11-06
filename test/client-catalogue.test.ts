@@ -13,7 +13,7 @@ import { ItemCatalogue } from '../src/game/shared/loadout/itemCatalogue';
 import { HeldFinishes } from '../src/game/client/loadout/finishes';
 import { PINE as source } from './fixtures/pine-program';
 import { STARTER_EFFECTS } from '../src/game/client/loadout/effects';
-import starterRows from '../src/game/server/systems/effects/starterRows.json' with { type: 'json' };
+import starterRows from '../src/game/shared/systems/effects/starterRows.json' with { type: 'json' };
 import { DRIFTWOOD_LOOT as loot } from '../src/shards/driftwood-isle/generators/loot';
 import { driftwoodCatalogueEconomy } from '../src/shards/driftwood-isle/generators/catalogueEconomy';
 import { parseRows } from '@wildshard/format/rows';

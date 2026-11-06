@@ -365,7 +365,7 @@
     "./systems/species/install": "./client/systems/species/install.ts",
     "./icons": "./client/icons.ts",
     "./models/interact": "./client/models/interact.ts",
-    "./bag/starter.generated": "./server/bag/starter.generated.ts",
+    "./bag/starter.generated": "./shared/bag/starter.generated.ts",
     "./systems/tools/hoverboard": "./client/systems/tools/hoverboard.ts",
     "./boot/loadingPaths": "./client/boot/loadingPaths.ts",
     "./shardfile/product": "./client/shardfile/product.ts",

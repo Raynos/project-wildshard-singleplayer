@@ -5,7 +5,7 @@ import type { Actor, CombatTag } from '@wildshard/engine/combat/pipeline';
 import { hudSlots } from '@wildshard/engine/ui/hudSlots';
 import { StatusIcons } from '../systems/effects/view';
 import * as v from 'valibot';
-import starterRows from '../../server/systems/effects/starterRows.json' with { type: 'json' };
+import starterRows from '../../shared/systems/effects/starterRows.json' with { type: 'json' };
 import { bindPlayerEffects, selectEffectGrants, type EffectService } from '@wildshard/engine/combat/effects/EffectService';
 import type { ShardContext } from '../plugin/context';
 import { installEnteredRuntimeService, installRetainedPlayerEffects, retainsRuntimeServices } from '../shard/retainedHooks';

@@ -79,7 +79,7 @@ from the kit, and its weapon compatibility names gave way to the defining `@wild
 modules (SF54). That emptied the kit: `@wildshard/kit`, its workspace entry and its guard layer are deleted.
 
 `@wildshard/game/loadout/effects.STARTER_EFFECTS` owns the typed runtime
-view of the authored rows in `game/server/systems/effects/starterRows.json`. The SDK exposes the same rows through
+view of the authored rows in `game/shared/systems/effects/starterRows.json`. The SDK exposes the same rows through
 `game/loadout/effects`; `pnpm gen` and direct Vite/native builds generate their literal
 table before compilation. Runtime imports apply nothing.
 
@@ -88,8 +88,8 @@ status movement / periodic-damage / death bindings, with no second kit wrapper,
 HUD changes or import-time installation. `StatusMovement` callers derive the movement type from that port.
 
 `@wildshard/game/bag/items.normalizeItemRow` normalizes registered bag rows. Starter harvest content is authored once in
-`game/server/bag/starterItems.json` and expanded by `pnpm gen` into
-`game/server/bag/starter.generated.ts`; boot installs those rows explicitly. No import
+`game/shared/bag/starterItems.json` and expanded by `pnpm gen` into
+`game/shared/bag/starter.generated.ts`; boot installs those rows explicitly. No import
 registers a row.
 
 `@wildshard/game/plugin/audio` defines the shared equipment cue router,

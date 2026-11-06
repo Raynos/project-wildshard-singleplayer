@@ -824,7 +824,6 @@
   "src/game/shared/bag/findsCatalogue.ts": "shared",
   "src/game/shared/bag/itemCatalog.ts": "shared",
   "src/game/shared/bag/items.ts": "shared",
-  "src/game/server/bag/starter.generated.ts": "server",
   "src/game/client/bag/tabs.ts": "client",
   "src/game/cook/brotliSizeCache.d.mts": "cook",
   "src/game/cook/brotliSizeCache.mjs": "cook",
@@ -1657,6 +1656,7 @@
   "src/sdk/standalone/workerLoopback.ts": "shared",
   "src/sdk/tickProtocol.ts": "shared",
   "src/sdk/tickWorkerHost.ts": "server",
-  "src/sdk/tickWorkerLoop.ts": "server"
+  "src/sdk/tickWorkerLoop.ts": "server",
+  "src/game/shared/bag/starter.generated.ts": "shared"
  }
 }

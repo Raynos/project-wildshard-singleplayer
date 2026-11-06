@@ -94,7 +94,7 @@ async function prepareWorld(): Promise<void> {
   registerSpecies(speciesWithLook(pineElk(), pineBook.look('elk')));
   // Pure inventory fixtures explicitly install the authored item catalogs.
   const { registerItemRow } = await import('../../src/game/shared/bag/itemCatalog');
-  const { default: starterItems } = await import('../../src/game/server/bag/starterItems.json');
+  const { default: starterItems } = await import('../../src/game/shared/bag/starterItems.json');
   const STARTER_BAG_ITEMS = v.parse(v.array(v.object({ id: v.string(), label: v.string(), icon: v.picklist(['meat', 'hide', 'tusk', 'antlers']), travels: v.boolean() })), starterItems);
   const { PINE_BAG_ITEMS: PINE_ITEMS } = await import('../../src/shards/pine-hollow/generators/questInventory');
   for (const row of [...STARTER_BAG_ITEMS, ...PINE_ITEMS, ...DRIFTWOOD_ITEMS]) registerItemRow(row);
