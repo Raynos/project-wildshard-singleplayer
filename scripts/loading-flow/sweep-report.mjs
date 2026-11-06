@@ -42,7 +42,7 @@ export function rows({ gates, flows, titled, untitled, gridWarm, tasks, programs
   const out = [], row_ = about?.workerRow === 1, all = Object.entries(gates), seven = all.filter(([name]) => !name.endsWith('-reentry')), runs = Object.entries(flows).filter(([name]) => name.includes('/packs'));
   const judged = gate => gate !== null && gate.pass !== null && gate.pass !== undefined;
 
-  const code = all.flatMap(([name, gate]) => (requestsOf(gate)?.precacheBeforeControl ?? []).filter(path => path.startsWith('/b/')).map(path => `${name} ${path}`));
+  const code = all.flatMap(([name, gate]) => (requestsOf(gate)?.codeBeforeControl ?? []).map(path => `${name} ${path}`));
   out.push(row('DL1', all.length === 0 ? null : code.length === 0, code.length === 0 ? `only shell files before control, ${all.length} gate runs (J136 replaces the -15 s)` : `code before control: ${list(code)}`));
 
   const repeats = typeof titled?.totalMs === 'number' && typeof untitled?.totalMs === 'number' ? (titled.totalMs - untitled.totalMs) / 1000 : null;

@@ -71,10 +71,10 @@ compare: it reads "only shell files before control" instead. DL20's deletion mov
 | DL17 | The gate lists the server worker's code and server class apart. Anything else a worker fetches stays level content | `ba3adf7dc1` |
 | DL21 | 'Server world · n files' on the card, a counted wait that moves with each read | `6dfc8c89d1`, `75deebc6c3` |
 | DL25 | The worker asks the page first, over a third port: from the part, the store, or the listed file when it lands | `0509018912`, `75deebc6c3` |
-| DL17, DL23, DL24 | Developer boost crosses the wire, and a harness's move reaches the server: the lap, the 30 s of play and the sitting all ride at boost, and the server owns the position after the flip | `b10f64efc0`, `83c1991936`, `1de1a3f0e0` |
+| DL17, DL23, DL24 | Developer boost crosses the wire, and a harness's move reaches the server: the lap, the 30 s of play and the sitting all ride at boost, and the server owns the position after the flip | `b10f64efc0`, `83c1991936`, `1de1a3f0e0`, `5231cb7d44` |
+| DL25 | The service worker takes a part's member from under its `?v=`: the precache fetched the 251 KB Basis wasm again, and a bare read moved 85 KB of boot tables twice on the grid | `36af73a24e`, `63fe7dbc66` |
 
-**Readings on J130's row, on a preview, 11-05 (they don't count, J136):** the gate and phone steps ran on `8159313` and `9d8a236`; the Simulator steps have not run. DL25 read 0 bytes re-read on
-Driftwood; DL2 −2.38 s; DL24 phone link 16 of 25 fps in the first second on Nine. **DL11 won't pass as written:** 88 long tasks before
+**Readings on J130's row, on preview `61d8467`, 11-05 (they don't count, J136):** the seven gates and the phone steps ran; the sweep's Simulator steps have not, and one Nine pair did. **DL25: 0 bytes re-read on all seven flows.** Boost engaged and every lap finished on all seven; the only violations left are the row's late start, so DL15 and DL17 read on the flip. Pine's pond leg snaps once (633 m/s in the trace, 1 stuck), and runs again on foot. DL2 −2.38 s. DL24 phone link 16 of 25 fps in the first second on Nine. Nine on the Simulator, row on, http, loaded Mac: control 30.6 s cold, 12.8 s warm, Shaders frames to 2.1 s, card still ≥ 1 s ×5 cold, first second 23 of 30 fps. Compare on the flip build before reading anything into it. **DL11 won't pass as written:** 88 long tasks before
 control, grid warm, against ≤ 20 (was 86), and 147 on Nine cold, at CPU 10×. Slices 1–4 moved seconds, not the count. **DL10:** Driftwood's list is 88 / 90, so it needs a
 re-bake on the flip build; the other five are whole.
 

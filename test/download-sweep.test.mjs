@@ -3,7 +3,7 @@ import { rows } from '../scripts/loading-flow/sweep-report.mjs';
 
 // J136: the sweep's verdict per row. A row with nothing to read is never a pass.
 const nothing = { gates: {}, flows: {}, titled: null, untitled: null, tasks: null, programs: null, digest: null };
-const greenGate = { pass: true, violations: [], requests: { precacheBeforeControl: ['/assets/title/a.jpg'], spawnRereads: { files: 0, bytes: 0, first: [] }, serverReads: { beforeControl: 3, afterControl: 0, bytes: 9 } } };
+const greenGate = { pass: true, violations: [], requests: { codeBeforeControl: [], spawnRereads: { files: 0, bytes: 0, first: [] }, serverReads: { beforeControl: 3, afterControl: 0, bytes: 9 } } };
 const seven = Object.fromEntries(['driftwood-isle', 'far-reach', 'nalati-grasslands', 'nine-dragon-stack', 'pine-hollow', 'sunscar-dunes', 'grid'].map(name => [name, greenGate]));
 const state = (reading, id) => rows(reading).find(row => row.id === id)?.state;
 const play = { firstSecondFps: 29, settledFps: 30 };
@@ -27,7 +27,7 @@ test('seven green flows pass DL15, DL17, DL25 and DL1; six are not a sweep', () 
 });
 
 test('code before control fails DL1, and a re-read part fails DL25 by its bytes', () => {
-  const late = { ...greenGate, requests: { ...greenGate.requests, precacheBeforeControl: ['/b/abc/main.js'] } };
+  const late = { ...greenGate, requests: { ...greenGate.requests, codeBeforeControl: ['/b/abc/main.js'] } };
   expect(state({ ...nothing, gates: { ...seven, grid: late } }, 'DL1')).toBe('FAIL');
   const moved = { ...greenGate, requests: { ...greenGate.requests, spawnRereads: { files: 1, bytes: 836_316, first: ['/assets/physics/rapier.wasm'] } } };
   const line = rows({ ...nothing, gates: { ...seven, grid: moved } }).find(row => row.id === 'DL25');

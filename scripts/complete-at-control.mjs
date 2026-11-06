@@ -257,6 +257,8 @@ try {
     void (async () => { const [size, response] = await Promise.all([req.sizes(), req.response()]); row.bytes = response?.fromServiceWorker() === true ? 0 : size.responseBodySize; })().catch(() => undefined);
   });
   context.on('requestfailed', req => { const row = open.get(req); if (row) { row.end = Date.now(); row.failed = req.failure()?.errorText ?? 'failed'; } });
+  // DL1: code the document names is shell (the worker installs it); any other code before control is the precache running early
+  const shellDocument = await (await fetch(base)).text();
   // DL25: the part members of every packs manifest this visit reads
   const members = new Set(), listing = { at: null };
   context.on('response', response => {
@@ -434,6 +436,7 @@ try {
       precacheAfterControl: precache.filter(r => r.start >= c).length, precacheOpenAtControl: precache.filter(r => r.start < c && (r.end === null || r.end > c)).length,
       // DL1: what the service worker fetched for itself before control: shell files only (the code waits for control)
       precacheBeforeControl: precache.filter(r => r.start < c).map(path), spawnRereads: rereads,
+      codeBeforeControl: precache.filter(r => r.start < c).map(path).filter(file => file.startsWith('/b/') && !shellDocument.includes(file)),
       serverReads: { beforeControl: server.filter(r => r.start < c).length, afterControl: server.filter(r => r.start >= c).length, bytes: server.reduce((sum, r) => sum + (r.bytes ?? 0), 0) },
       neighbour: { pendingAtControl: nPending.length, afterControl: nAfter.length, readsAfterControl: nReads.length },
       otherAfterControl: mine.filter(r => r.start >= c && !isLevelContent(r.url) && !isNeighbour(r.url)).map(r => ({ url: r.url, by: r.by })) };
