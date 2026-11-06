@@ -460,6 +460,8 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
       for (const a of world.animals.animals) a.harnessHold = true;
       try {
         if (!leg.inside) await pose({ ...leg.start, pitch: -0.12 });
+        // on a worker page the last leg's step off is a press still on its way: this one's step on would read the old board
+        if (p.link !== null) await new Promise<void>((resolve) => { app.engineScope.timeout(100, resolve); });
         if (leg.start.hover === true) p.setHover(true);
         const trace: number[][] = [], stuck: WalkResult['stuck'] = [];
         let wi = 0, t = 0, jumpT = 0, jump2 = false, lastProg = { t: 0, d: Infinity }, out = 0, maxY = p.position.y;
