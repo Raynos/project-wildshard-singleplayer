@@ -76,6 +76,8 @@ export async function createNativeProofResident(preparation: HeadlessRuntimeInpu
     fillNativeCombatFrame(combat, input); commands = input; effects = []; };
   return {
     host, lend,
+    // A recorder holds no room, and a fact is a room's.
+    fact: () => undefined,
     get effects() { return effects; },
     step: input => {
       lend(input);
