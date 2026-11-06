@@ -25,6 +25,7 @@ import { HORIZON_RADIUS as CONTENT_HORIZON_RADIUS } from '@wildshard/format/cont
  *   photoreal strips are drawn at infinity by PaintedHorizon (below), not by this class. Always on — the user locked it in (E78); the `?matte=0` switch is gone (E136).
  */
 import * as THREE from 'three';
+import { tierUrl } from '../boot/bytes';
 import { ktx2Texture, readTexturePixelsAsync, prepareCompressedTexture } from '../core/ktx2';
 import type { SkyRig as Sky } from './skyRig';
 import { fogUniforms } from './Atmosphere';
@@ -195,10 +196,19 @@ function placeholder(): THREE.Texture {
   return t;
 }
 
+/** A painting's image, through fetch: a level's download answers a read there, and an `<img>` would move the file over the
+ *  network again beside its part (DL25). The decode stays the image element's, so its pixels and orientation stand. */
+async function loadImageTexture(url: string): Promise<THREE.Texture> {
+  const response = await fetch(tierUrl(url));
+  if (!response.ok) throw new Error(`${String(response.status)} ${url}`);
+  const local = URL.createObjectURL(await response.blob());
+  try { return await new THREE.TextureLoader().loadAsync(local); } finally { URL.revokeObjectURL(local); }
+}
+
 async function loadTexture(url: string): Promise<THREE.Texture> {
   // E157: the KTX2 stand-in when there is one (Y-flipped at encode like TextureLoader's flipY; its mips come with the file)
   const k = await ktx2Texture(url);
-  const t = k ?? await new THREE.TextureLoader().loadAsync(url);
+  const t = k ?? await loadImageTexture(url);
   t.colorSpace = THREE.SRGBColorSpace;
   t.wrapS = THREE.RepeatWrapping;           // the strip is seamless at the 0 / 360° wrap
   t.wrapT = THREE.ClampToEdgeWrapping;
