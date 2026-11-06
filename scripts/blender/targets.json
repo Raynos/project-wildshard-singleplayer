@@ -264,6 +264,17 @@
    "outputs": ["public/assets/open-plots/lantern-bayou/landmark.glb", "public/assets/open-plots/lantern-bayou/landmark-far.glb"],
    "feeds": ["src/shards/open-plots/generators/tiledPlot.mjs"]
   },
+  "open-plots/peak": {
+   "about": "Frostline Peaks' landmark as a script: take C on the pick board (art/frostline-peaks/round-1-landmark/board.jpg), kept as the fallback to the Hunyuan3D 2.1 take that ships (G872), so it writes to the cache and nothing to the repo",
+   "script": "scripts/blender/open-plots/peak.py",
+   "args": ["$BUILD"],
+   "sources": ["scripts/blender/open-plots/kit.py", "scripts/blender/open-plots/kitlib.py", "scripts/blender/open-plots/landmarklib.py"],
+   "inputs": [],
+   "lock": false,
+   "build": ["landmark.glb", "landmark-far.glb"],
+   "outputs": [],
+   "feeds": []
+  },
   "open-plots/ziggurat": {
    "about": "Jungle Ziggurat's landmark (OPEN-PLOTS OP13): the painted stepped temple pyramid as a script, picked over Hunyuan3D 2.1 and TRELLIS.2 (art/jungle-ziggurat/round-1-landmark/board.jpg); 55 m, five cinnabar tiers with saffron and turquoise frets, the stair up +Z, top platform at 35 m; near ~9k and far ~2.4k triangles on one swatch atlas",
    "script": "scripts/blender/open-plots/ziggurat.py",

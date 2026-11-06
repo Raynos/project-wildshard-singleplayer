@@ -2,7 +2,7 @@
 // check-model-sources.mjs — every Blender-built model keeps a source (M10, E315; docs/design/blender-practice.md §5).
 // The rule: Blender scripts are the source, the exported GLB is committed, a .blend never is.
 //
-//   node scripts/check-model-sources.mjs          (test/model-sources.test.ts runs it in `pnpm test`: < 1 s, no Blender)
+//   node scripts/check-model-sources.mjs          (`pnpm test:checks` runs it in CI: < 1 s, no Blender)
 //
 // It refuses:
 //   1. a target in scripts/blender/targets.json that names a file that isn't there: its script, sources, post, inputs,
