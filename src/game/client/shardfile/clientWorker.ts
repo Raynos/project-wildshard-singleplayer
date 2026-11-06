@@ -75,6 +75,8 @@ interface ShellModule { readonly startStandalone: (config: { slug: string; base:
 interface Shell { raise: (flag: string) => void; join: (id: string, x: number, y: number, z: number) => { readonly client: NetClient; readonly move: (x: number, y: number, z: number) => void }; readonly client: NetClient; readonly booted: Promise<{ readonly restored: boolean }>; place: (x: number, y: number, z: number, yaw: number) => void; hardHits: (by: number) => void; ready: () => void; save: () => Promise<{ readonly tick: number; readonly ok: boolean }>; probe: () => Promise<{ readonly tickMs: number }>; dispose: () => void }
 
 const SAVE_EVERY_MS = 30_000;
+/** How often a page whose frames are parked behind a panel still hears the server. */
+const PARKED_BEAT_MS = 120;
 const column = (name: string): number => ANIMAL_CLASS.row.findIndex(entry => entry.name === name);
 const X = column('x'), Y = column('y'), Z = column('z'), YAW = column('yaw'), STATE = column('state'), ATTACK = column('attackT'), FLINCH = column('flinch'), HP = column('hp'), ALIVE = column('alive'), RIDEABLE = column('rideable'), RISE = column('rise'), ACT = column('act');
 
@@ -248,8 +250,18 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   const save = async (): Promise<void> => { const { tick, ok } = await shell.save(); report.savedTick = tick; report.savedOk = ok; grid?.saveLocation(); };
   scope.interval(SAVE_EVERY_MS, () => { void save(); });
   scope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'hidden') void save(); });
-  let firstTick = -1, ticksFrom = started, cost = 0, sampleAt = 0, framesAt = 0, sampledAt = started;
+  let firstTick = -1, ticksFrom = started, cost = 0, sampleAt = 0, framesAt = 0, sampledAt = started, presented = started;
   scope.onDispose(client.onTravel(() => { firstTick = -1; ticksFrom = diagnosticNow(); }));
+  const sample = (now: number): void => {
+    const { latest } = client;
+    report.retired = Object.fromEntries(retired); report.spawnMs = Object.fromEntries(spawnMs); report.owned = Object.fromEntries(client.owned); report.sky = latest === null ? null : client.stateField(latest, 'weather.phase') ?? null; report.day = latest === null ? null : client.stateField(latest, DAY_ROW) ?? null;
+    report.movers = wirePage.movers.size; report.posed = wirePage.posed; report.sand = wirePage.sandPeak; report.clawed = clawed !== null; report.own = client.welcome?.player ?? null;
+    report.quests = Object.fromEntries([...client.quests].map(([id, quest]) => [id, quest.started ? quest.step : 'unstarted'])); report.flags = [...client.phased, ...client.flags()]; report.fights = wirePage.encounters().map(fight => `${fight.id}:${fight.state}:${fight.hp}`);
+    report.framesPerSecond = (report.frames - framesAt) / (now - sampledAt) * 1000; framesAt = report.frames; sampledAt = now;
+    report.mainMsP95 = [...costs].sort((a, b) => a - b)[Math.floor(Math.min(report.frames, costs.length) * 0.95) + Math.max(0, costs.length - report.frames)] ?? 0;
+    if (now - sampleAt > 2000) { sampleAt = now; void readWorker(shell, report); }
+    show(`worker client ${report.closed ?? 'open'}\n${report.framesPerSecond.toFixed(1)} fps  ${report.ticksPerSecond.toFixed(1)} ticks/s\ndelay ${report.delayMs.toFixed(0)} ms  jitter ${report.jitterMs.toFixed(1)} ms\ncorrections ${report.corrections} (${report.correctionsPerMinute.toFixed(1)}/min)  worst ${report.worstOffset.toFixed(2)} m\nqueue ${report.queue}  replays/frame ${report.replaysPerFrame.toFixed(2)}\nmain ${report.mainMsP95.toFixed(2)} ms  worker ${report.workerTickMs.toFixed(1)} ms  rows ${report.rows}\nhits ${report.hits}  kills ${report.kills}  refused ${report.refused}  waiting ${report.attacks}  held ${report.held}`);
+  };
   system({ id: 'proof.worker.reconcile', phase: 'input', run: () => { const at = diagnosticNow(); net.reconcile(); cost = diagnosticNow() - at; } });
   system({ id: 'proof.worker.present', phase: 'update', run: dt => {
     // A page still crossing stands in another world than the frames: those rows aren't its manager's to spawn.
@@ -274,15 +286,20 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     report.dropped = client.dropped; report.closed = client.closed; report.x = player.position.x; report.z = player.position.z;
     const { latest } = client;
     if (latest !== null) { const { px, pz, hp } = client.owner(latest); report.cell = latest.cell; report.serverX = Number(px); report.serverZ = Number(pz); report.hp = Number(hp); attributes.health = Math.max(1, report.hp); }
-    if (now - sampledAt < 1000) return;
-    report.retired = Object.fromEntries(retired); report.spawnMs = Object.fromEntries(spawnMs); report.owned = Object.fromEntries(client.owned); report.sky = latest === null ? null : client.stateField(latest, 'weather.phase') ?? null; report.day = latest === null ? null : client.stateField(latest, DAY_ROW) ?? null;
-    report.movers = wirePage.movers.size; report.posed = wirePage.posed; report.sand = wirePage.sandPeak; report.clawed = clawed !== null; report.own = client.welcome?.player ?? null;
-    report.quests = Object.fromEntries([...client.quests].map(([id, quest]) => [id, quest.started ? quest.step : 'unstarted'])); report.flags = [...client.phased, ...client.flags()]; report.fights = wirePage.encounters().map(fight => `${fight.id}:${fight.state}:${fight.hp}`);
-    report.framesPerSecond = (report.frames - framesAt) / (now - sampledAt) * 1000; framesAt = report.frames; sampledAt = now;
-    report.mainMsP95 = [...costs].sort((a, b) => a - b)[Math.floor(Math.min(report.frames, costs.length) * 0.95) + Math.max(0, costs.length - report.frames)] ?? 0;
-    if (now - sampleAt > 2000) { sampleAt = now; void readWorker(shell, report); }
-    show(`worker client ${report.closed ?? 'open'}\n${report.framesPerSecond.toFixed(1)} fps  ${report.ticksPerSecond.toFixed(1)} ticks/s\ndelay ${report.delayMs.toFixed(0)} ms  jitter ${report.jitterMs.toFixed(1)} ms\ncorrections ${report.corrections} (${report.correctionsPerMinute.toFixed(1)}/min)  worst ${report.worstOffset.toFixed(2)} m\nqueue ${report.queue}  replays/frame ${report.replaysPerFrame.toFixed(2)}\nmain ${report.mainMsP95.toFixed(2)} ms  worker ${report.workerTickMs.toFixed(1)} ms  rows ${report.rows}\nhits ${report.hits}  kills ${report.kills}  refused ${report.refused}  waiting ${report.attacks}  held ${report.held}`);
+    presented = now;
+    if (now - sampledAt >= 1000) sample(now);
   } });
+  // A glass panel parks the frame loop, and the wire doesn't wait for it: what the server says of a buy or a torn notice reaches the
+  // panel in a beat, with no command, because nothing here moves a body. The ack keeps the server's baseline moving.
+  scope.interval(PARKED_BEAT_MS, () => {
+    const now = diagnosticNow();
+    if (now - presented < PARKED_BEAT_MS * 2) return;
+    client.present();
+    const here = client.latest === null || net.inCell(client.latest.cell);
+    wirePage.frame(here ? bookOf(client.latest?.cell) : null, here, ports.day());
+    client.flush();
+    sample(now);
+  });
   window.__workerClient = () => ({ ...report });
   window.__workerClientHits = by => { shell.hardHits(by); };
   window.__workerClientFlag = flag => { shell.raise(flag); };

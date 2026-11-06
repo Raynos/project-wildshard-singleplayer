@@ -595,14 +595,14 @@ export async function fights(browser, phone, base, only, step) {
     await step('sky: a live Weather setting goes up, and the row and the page come back with it', async () => {
       const page = pine.page, before = await page.evaluate(() => window.__wildshard.shard['pine.weather']?.weather?.rain ?? 0);
       await page.keyboard.press('Escape'); await page.waitForTimeout(500);
-      await page.locator('.ws-gmenu-tab').filter({ hasText: /settings/iu }).first().click({ timeout: 4000 });
-      await page.waitForTimeout(400);
+      await page.evaluate(() => { [...document.querySelectorAll('.ws-gmenu-tab')].find(node => /settings/iu.test(node.textContent ?? ''))?.click(); });
+      await page.waitForTimeout(500);
       const card = page.locator('.ws-gmenu-card.fold').filter({ has: page.locator('.ws-gmenu-cardtitle', { hasText: /^Developer/u }) }).first();
-      if (await card.evaluate(node => node.classList.contains('folded'))) await card.locator('.ws-gmenu-cardtitle').click({ timeout: 4000 });
+      if (await card.evaluate(node => node.classList.contains('folded'))) await card.locator('.ws-gmenu-cardtitle').dispatchEvent('click');
       await page.waitForTimeout(300);
       const group = card.locator('.ws-dbg-group:not(.open) > .ws-dbg-head').first();
-      if (await group.count() > 0) await group.click({ timeout: 2000 }).catch(() => undefined);
-      await card.locator('.ws-gmenu-segbtn[data-v="rain"]').first().click({ timeout: 4000 });
+      if (await group.count() > 0) await group.dispatchEvent('click');
+      await card.locator('.ws-gmenu-segbtn[data-v="rain"]').first().dispatchEvent('click');
       await page.waitForTimeout(300);
       const shown = await card.locator('.ws-gmenu-segbtn.active').allTextContents();
       await page.keyboard.press('Escape');
