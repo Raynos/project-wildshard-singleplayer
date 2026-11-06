@@ -6,6 +6,11 @@ import { enteredServices } from '../shard/enteredServices';
 type Animals = NonNullable<NonNullable<ShardContext['game']['runtime']>['play']>['animals'];
 type Animal = ReturnType<Animals['spawn']>;
 
+/** Who makes this page's runtime bodies: nobody on a server, whose rows are the bodies. */
+function bodyOwner(ctx: ShardContext): Animals | undefined {
+  const animals = ctx.game.runtime?.play?.animals;
+  return animals?.herdless === true ? undefined : animals;
+}
 /** Existing native body mechanics, shared by guarded runtime adapters and
  * compiled population features. Authored inputs remain admitted spawn rows. */
 export function spawnPageHome(animals: Pick<Animals, 'spawn' | 'replace'>, home: RuntimeHome, variant: string | undefined, retained: boolean, decisionActors: readonly string[] = []): Animal {
@@ -32,7 +37,7 @@ export function bindPageHomes(ctx: ShardContext, declared: RuntimeSpawns, ports:
 }
 
 function* pageHomeWork(ctx: ShardContext, declared: RuntimeSpawns, ports: RuntimeHomePorts): Generator<void, RuntimeHomes, void> {
-  const rows = declared.homes, animals: Animals | undefined = ctx.game.runtime?.play?.animals, retained = enteredServices.has(ctx);
+  const rows = declared.homes, animals = bodyOwner(ctx), retained = enteredServices.has(ctx);
   const addresses = new Set([...rows, ...(declared.actors ?? []), ...declared.bosses].map(row => row.id));
   const bodyHomes = new Map(ports.bodyHomes?.rows.map(row => [row.id, row.home]));
   if (ports.bodyHomes !== undefined && (ports.bodyHomes.rows.length > 1024 || bodyHomes.size !== ports.bodyHomes.rows.length
@@ -94,7 +99,7 @@ function* holdBodies(ctx: ShardContext, declared: RuntimeSpawns, hold: RuntimeHo
 
 export function bindPageBoss(ctx: ShardContext, declared: RuntimeSpawns, id: string, spawned?: (animal: Animal) => void, options: RuntimeBossOptions = {}): RuntimeBoss {
   const row = declared.bosses.find((boss) => boss.id === id); if (row === undefined) throw new Error(`Undeclared runtime boss ${id}`);
-  const animals: Animals | undefined = ctx.game.runtime?.play?.animals, retained = enteredServices.has(ctx) && options.identity !== 'runtime', [x, z] = row.at;
+  const animals = bodyOwner(ctx), retained = enteredServices.has(ctx) && options.identity !== 'runtime', [x, z] = row.at;
   return { row,
     spawn: (retired) => {
       const a = retained && retired !== undefined ? animals?.replace(retired, x, z, row.yaw, row.look, {}) ?? null
@@ -108,7 +113,7 @@ export function bindPageActor(ctx: ShardContext, declared: RuntimeSpawns, id: st
   spawned?: (animal: Animal) => void, options: RuntimeBossOptions = {}): RuntimeActor {
   const row = declared.actors?.find((actor) => actor.id === id);
   if (row === undefined) throw new Error(`Undeclared runtime actor ${id}`);
-  const animals: Animals | undefined = ctx.game.runtime?.play?.animals, retained = enteredServices.has(ctx) && options.identity !== 'runtime';
+  const animals = bodyOwner(ctx), retained = enteredServices.has(ctx) && options.identity !== 'runtime';
   return { row, spawn: (placement) => {
     const animal = animals?.spawn(row.kind, row.at[0], row.at[1], row.yaw, row.look, { ...placement, ...(retained ? { entityId: row.id } : {}) }) ?? null;
     if (animal !== null) spawned?.(animal);

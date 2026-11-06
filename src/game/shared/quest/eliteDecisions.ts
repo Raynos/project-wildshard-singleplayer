@@ -23,7 +23,10 @@ export class EliteDecisions implements EliteCoreScript<AnimalSim> {
   /** PF5: a paused elite's latest frame inputs, handed to its program when it wakes (before its next tick) */
   private held = false; private heldPoint: Readonly<{ x: number; y: number; z: number }> = { x: 0, y: 0, z: 0 };
   private heldDusk = 0; private heldNight = 0; private heldGod = false; private heldYaw = 0;
-  constructor(readonly row: Fight, readonly program: SpawnScript, feature: EliteFeatureRows, seed: number) {
+  private built: SpawnScript | null = null;
+  /** The fight's programme, made when a fight first asks: a page on a server never does. */
+  get program(): SpawnScript { this.built ??= this.make(); return this.built; }
+  constructor(readonly row: Fight, private readonly make: () => SpawnScript, feature: EliteFeatureRows, seed: number) {
     this.def = row.def;
     this.spawnStream = eliteStream(feature, seed, 'spawn', row.def.id);
     this.frameRows = row.observations.filter(observation => ['dusk', 'night', 'god'].includes(observation.source));

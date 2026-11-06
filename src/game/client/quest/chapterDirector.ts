@@ -153,6 +153,8 @@ export async function installDeclaredQuestSpawns(ctx: ShardContext, capability: 
     || entryOwner(ctx.scope, 'sounds', capability.sounds) !== bank) throw new Error('Quest spawn loan changed during runtime admission');
   const rows = parseQuestSpawnPage(runtime.spawns);
   if (boundQuestState(ctx.scope, rows.quest).flags !== quest.flags) throw new Error('Quest spawn loan differs from its bound quest');
+  // The server directs these spawns, and they arrive as rows.
+  if (wirePage.on) return { puffs: rows.puffs, count: 0, force: () => undefined, takePuffs: () => [], update: () => undefined };
   const source = await spawns.read(ctx.product, rows.script);
   if (ctx.scope.disposed || ctx.scope.disposing || ctx.product !== product) throw new Error('Quest left during spawn director admission');
   if (entryOwner(ctx.scope, 'quest', capability.quest) !== quest || entryOwner(ctx.scope, 'animals', capability.animals) !== animals

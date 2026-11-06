@@ -231,14 +231,14 @@ export async function play(browser, phone, base, only = '') {
   await nine.context.close(); }
 
   // Every other shard boots on the row, its sky and fights on rows, with no page error
-  if (runs('shards')) for (const slug of ['pine-hollow', 'sunscar-dunes', 'far-reach']) {
+  if (runs('shards')) for (const slug of ['pine-hollow', 'sunscar-dunes', 'far-reach', 'driftwood-isle', 'nalati-grasslands', 'nine-dragon-stack']) {
     const shard = await open(browser, phone, base, `/?chunk=${slug}&mute=1&nolock=1`);
     await step(`${slug} plays on the row`, async () => {
       await entered(shard.page);
       await shard.page.evaluate(() => { const { player } = window.__wildshard.world; player.touchMove.y = 1; });
       await shard.page.waitForTimeout(8000);
       const r = await report(shard.page), rig = await shard.page.evaluate(() => { const held = Object.entries(window.__wildshard.shard).find(([key]) => key.includes('weather'))?.[1]; return held?.weather?.state ?? null; });
-      return { ok: shard.errors.length === 0 && r.closed === null && r.rows > 0, rows: r.rows, retired: r.retired, fights: r.fights.slice(0, 6), movers: r.movers, posed: r.posed, corrections: r.corrections, missed: r.missed, worst: r.worstOffset, sky: rig, errors: [...new Set(shard.errors)].slice(0, 4) };
+      return { ok: shard.errors.length === 0 && r.closed === null && r.rows > 0 && Object.keys(r.retired).length === 0, rows: r.rows, retired: r.retired, spawnMs: Object.fromEntries(Object.entries(r.spawnMs).map(([kind, ms]) => [kind, Math.round(ms)])), fights: r.fights.slice(0, 6), movers: r.movers, posed: r.posed, corrections: r.corrections, missed: r.missed, worst: r.worstOffset, sky: rig, errors: [...new Set(shard.errors)].slice(0, 4) };
     });
     await shard.context.close();
   }

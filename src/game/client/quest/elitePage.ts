@@ -11,6 +11,7 @@ import { GroundTell } from '@wildshard/engine/fx/groundTell';
 import type { Elites, EliteScript } from '../Elite';
 import { DomePuffs } from '@wildshard/engine/fx/groundFx';
 import { pageSim } from '../shardfile/clientMoverOwners';
+import { wirePage } from '../shardfile/wirePage';
 import { EliteDecisions } from '../../shared/quest/eliteDecisions';
 import { parseEliteFeature } from '@wildshard/format/eliteFeature';
 
@@ -31,7 +32,7 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
     if (group !== undefined) { const index = group.members.indexOf(body); if (index === -1) group.members.push(ordinary); else group.members[index] = ordinary; }
   }
   const puffs = new DomePuffs(game.scene, new THREE.Color(...view.puffColor), view.puffPool.capacity, view.puffPool.segments, view.puffPool.order), color = new THREE.Color(...view.tellColor);
-  const controllers = rows.fights.map(row => new EliteDecisions(row, pageSim.spawnScript.page(animals, row.program, game.app.physics), rows, seed));
+  const controllers = rows.fights.map(row => new EliteDecisions(row, () => pageSim.spawnScript.page(animals, row.program, game.app.physics), rows, seed));
   const point = new THREE.Vector3(), direction = new THREE.Vector3(), tells = new Map<string, GroundTell>();
   // PF5: a body is checked against the roster once a frame (the rules, the bar and the page read it several times a frame)
   const checked = new WeakMap<object, { frame: number; real: Animal }>();
@@ -46,7 +47,7 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
     for (const slot of controller.row.program.slots) for (const kind of new Set((controller.row.program.strikes ?? []).flatMap(row => row.tell === undefined ? [] : [row.tell]))) {
       tells.set(`${controller.def.id}:${slot.handle}:${kind}`, new GroundTell(game.scene, kind, color));
     }
-    const script: EliteScript = { def: controller.def, get animal() { return bodyFor(controller); },
+    const script: EliteScript = { def: controller.def, get animal() { return wirePage.on ? null : bodyFor(controller); },
       spawn: () => { controller.spawn(); }, despawn: () => { controller.despawn(); },
       tick: (dt, t, engaged, leashing) => { controller.tick(dt, t, engaged, leashing); },
       cadence: far => { controller.cadence(far); },

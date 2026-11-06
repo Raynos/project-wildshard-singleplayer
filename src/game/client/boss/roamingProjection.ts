@@ -269,10 +269,12 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
     scene.onBeforeRender = (...args) => { atmosphere(); previous(...args); };
     scope.onDispose(() => { if (descriptor === undefined) Reflect.deleteProperty(scene, 'onBeforeRender'); else Object.defineProperty(scene, 'onBeforeRender', descriptor); });
   });
-  const k = fight.spawn();
-  if (TIER_CONFIG.furShells) { k.setShellLevel(rows.fur.prewarm); k.setShellLevel(rows.fur.parked); }
-  fight.present = true; fight.setPresent(false);
-  for (const row of rows.prewarm) park(ctx.animals.spawn(row.kind, C.x, C.z, 0, row.variant));
+  if (!ctx.animals.herdless) { // a page on a server has no body of its own to warm
+    const k = fight.spawn();
+    if (TIER_CONFIG.furShells) { k.setShellLevel(rows.fur.prewarm); k.setShellLevel(rows.fur.parked); }
+    fight.present = true; fight.setPresent(false);
+    for (const row of rows.prewarm) park(ctx.animals.spawn(row.kind, C.x, C.z, 0, row.variant));
+  }
   context.scope.onDispose(() => {
     disposeTell(tellRing); for (const wave of waves) disposeTell(wave.g); for (const hazard of fallen) disposeTell(hazard.ring);
     lane.dispose(); for (const add of addLanes) add.dispose(); puffs.dispose();
