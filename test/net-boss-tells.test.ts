@@ -79,5 +79,11 @@ test('the Antler King says its room, its lanes and its tells', { timeout: 120_00
     expect(lit.length, 'the fight says its light').toBeGreaterThan(0);
     for (const args of lit) { expect(args).toHaveLength(6); expect(args.every(Number.isFinite)).toBe(true); }
     expect(lit.some(args => (args[2] ?? 0) > 0), 'the light stands at the ribs').toBe(true);
+    const rig = heard.get(ROAMING_VIEW.rig) ?? [];
+    expect(rig.length, 'the fight says its rig each tick it stands').toBeGreaterThan(1000);
+    for (const args of rig) { expect(args).toHaveLength(3); expect(args.every(Number.isFinite)).toBe(true); }
+    expect(rig[0]?.[2], 'his lanterns hang as the fight opens').toBe(1);
+    expect(Math.max(...rig.map(args => args[1] ?? 0)), 'the ribs open').toBeGreaterThan(0.5);
+    expect(new Set(rig.map(args => args[0])).size, 'the glow moves').toBeGreaterThan(1);
   } finally { live.dispose(); }
 });

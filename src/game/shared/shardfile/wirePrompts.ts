@@ -3,7 +3,7 @@ export const carryPrompt = (mover: string, end: number): string => `${mover}.rid
 /** The view call a boss's strike goes by, with its id behind it: a page's telegraph has no body of its own to read one off. */
 export const BOSS_STRIKE = 'boss.strike.';
 /** What a roaming boss's fight tells its views, by name: a page on a server steps no fight. */
-export const ROAMING_VIEW = { light: 'roaming.light', roar: 'roaming.roar', burst: 'roaming.burst', hazard: 'roaming.hazard', add: 'roaming.add', ring: 'roaming.ring', tell: 'roaming.tell', tellOff: 'roaming.tell.off', lane: 'roaming.lane', room: 'roaming.room' } as const;
+export const ROAMING_VIEW = { light: 'roaming.light', roar: 'roaming.roar', burst: 'roaming.burst', hazard: 'roaming.hazard', add: 'roaming.add', ring: 'roaming.ring', tell: 'roaming.tell', tellOff: 'roaming.tell.off', lane: 'roaming.lane', room: 'roaming.room', rig: 'roaming.rig', struck: 'roaming.struck' } as const;
 /** A hazard's beats, as `ROAMING_VIEW.hazard` numbers them. */
 export const ROAMING_HAZARD_EVENTS = ['drop', 'fall', 'land', 'burn', 'out', 'placed'] as const;
 /** The view calls an elite's ground tells go by. */

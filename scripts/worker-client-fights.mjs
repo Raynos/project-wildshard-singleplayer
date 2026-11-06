@@ -762,6 +762,61 @@ const poolLights = page => page.evaluate(() => {
   return (pool?.children ?? []).filter(light => light.isPointLight).map(light => ({ colour: light.color.toArray().map(value => Number(value.toFixed(2))), intensity: Number(light.intensity.toFixed(2)), at: light.position.toArray().map(value => Number(value.toFixed(1))), reach: light.distance }));
 });
 const eyeOf = page => page.evaluate(() => window.__wildshard.requireWorld().game.camera.position.toArray());
+/** What hangs on the King, as the scene has it: read the same way on the row and on a page. Part names and meshes are `rows.socketRig`'s. */
+const kingRig = page => page.evaluate(() => {
+  const { game } = window.__wildshard.requireWorld(), root = game.rootScene ?? game.scene;
+  const shown = from => { for (let at = from; at !== null; at = at.parent) if (!at.visible) return false; return true; };
+  const cage = root.getObjectByName('king-ribcage'), lanterns = [], flames = [];
+  root.traverse(at => { if (/^king-lantern\.\d+$/u.test(at.name)) lanterns.push(at); if (at.name === 'antler-king-lantern-fire') flames.push(at); });
+  if (cage === undefined) return null;
+  const [core, ribs] = cage.children, at = cage.getWorldPosition(cage.position.clone());
+  return { shown: shown(cage), ribs: Number(ribs.scale.x.toFixed(3)), core: Number(core.scale.x.toFixed(3)), ribsGain: Number(ribs.material.emissiveIntensity.toFixed(3)), coreGain: Number(core.material.emissiveIntensity.toFixed(3)), glass: Number((lanterns[0]?.children.find(mesh => mesh.material.emissiveIntensity > 0)?.material.emissiveIntensity ?? 0).toFixed(3)), lanterns: lanterns.length, hung: lanterns.filter(shown).length, fire: flames.filter(shown).length, at: at.toArray().map(value => Number(value.toFixed(1))) };
+});
+/** Pine's King on a server: his ribs, their glow and the lanterns hung off him all follow the fight. Worth reading beside `--only=rigpage`. */
+async function rigJourney(browser, phone, base, step, [x, z]) {
+  const pine = await open(browser, phone, base, 'pine-hollow', '&bossGod'), { page } = pine, trail = [];
+  const king = async () => (await page.evaluate(() => window.__workerClientFights())).find(row => row.id === 'pine.king') ?? null;
+  const hold = async () => { const feet = await groundAt(page, x + 4, z); await place(page, x + 4, feet + 0.4, z); };
+  await step('rig: entry hangs nothing on nobody', async () => { const rig = await kingRig(page); return { ok: rig === null, rig }; });
+  await step('rig: at night he comes dressed: ribs, core and every lantern, on him', async () => {
+    await page.evaluate(() => { window.__workerClientHits(4); window.__workerClientTime('night'); });
+    await hold();
+    const rig = await until(page, async () => { await hold(); const seen = await kingRig(page); return seen?.shown === true ? seen : null; }, 60, 1000), row = await king();
+    const away = rig === null || row?.at === null || row?.at === undefined ? null : Math.hypot(rig.at[0] - row.at.x, rig.at[2] - row.at.z);
+    return { ok: rig !== null && rig.lanterns > 0 && rig.hung === rig.lanterns && rig.coreGain > 0 && away !== null && away < 6, rig, state: row?.state, away };
+  });
+  await step('rig: his ribs open and burn as the fight says', async () => {
+    const end = Date.now() + 90_000;
+    let widest = null, dimmest = null, row = await king();
+    while (Date.now() < end) {
+      await hold();
+      const rig = await kingRig(page); row = await king();
+      if (rig !== null) { trail.push([rig.ribs, rig.ribsGain, rig.coreGain]); if (widest === null || rig.ribs > widest.ribs) widest = rig; if (dimmest === null || rig.ribs < dimmest.ribs) dimmest = rig; }
+      if (widest !== null && dimmest !== null && widest.ribs > dimmest.ribs + 0.1 && widest.ribsGain > dimmest.ribsGain) break;
+      await page.waitForTimeout(120);
+    }
+    if (widest !== null) await page.screenshot({ path: 'tmp/rig-king-open.png' });
+    return { ok: widest !== null && dimmest !== null && widest.ribs > dimmest.ribs + 0.1 && widest.ribsGain > dimmest.ribsGain, widest, dimmest, samples: trail.length, state: row?.state };
+  });
+  await step('rig: a blow in phase I sparks, and the second third drops the lanterns to burn on the ground', async () => {
+    await page.evaluate(() => { window.__workerClientHits(8); }); // the blows that end phase I are real; only their size isn't: one at 60 ends him
+    const end = Date.now() + 90_000;
+    let rig = await kingRig(page), row = await king();
+    while ((rig === null || rig.hung > 0 || rig.fire === 0) && Date.now() < end) {
+      if (row?.at !== null && row?.at !== undefined) {
+        await place(page, row.at.x + 5, row.at.y + 0.4, row.at.z + 5); await page.waitForTimeout(700);
+        await faceAt(page, rig === null ? bodyMid(row.at) : { x: rig.at[0], y: rig.at[1] - 0.5, z: rig.at[2] }); await page.waitForTimeout(150);
+        await page.evaluate(() => { window.__wildshard.world.game.app.input.press('attack'); }); await page.waitForTimeout(1000);
+      } else { await hold(); await page.waitForTimeout(400); }
+      rig = await kingRig(page); row = await king();
+    }
+    if (rig !== null) await page.screenshot({ path: 'tmp/rig-king-dropped.png' });
+    const seen = await report(page);
+    return { ok: rig !== null && rig.hung === 0 && rig.fire > 0 && (seen.drawn.struck ?? 0) > 0, rig, struck: seen.drawn.struck, hits: seen.hits, hp: row?.hp, state: row?.state };
+  });
+  await step('rig: no page error', () => ({ ok: pine.errors.length === 0, errors: [...new Set(pine.errors)].slice(0, 6) }));
+  await pine.context.close();
+}
 /** Pine's King: the amber on his ribs, the lantern in his dark, and the light let go when the fight ends. Colours are `rows.light`'s. */
 async function lanternJourney(browser, phone, base, step, [x, z], blows) {
   const pine = await open(browser, phone, base, 'pine-hollow', '&bossGod'), { page } = pine, warned = [], AMBER = [1, 0.55, 0.18], LANTERN = [1, 0.72, 0.4];
@@ -821,6 +876,7 @@ async function lanternJourney(browser, phone, base, step, [x, z], blows) {
 
 export async function fights(browser, phone, base, only, step) {
   const runs = name => only === '' || only === 'fights' || only === name;
+  if (runs('rig')) await rigJourney(browser, phone, base, step, KINGS_CLEARING);
   if (runs('lantern')) { await lanternJourney(browser, phone, base, step, KINGS_CLEARING, 4); await lanternJourney(browser, phone, base, step, KINGS_CLEARING, 3000); }
 
   // A boss: its row draws the bar, leaving resets it, a fall comes back, and real blows end it and pay.

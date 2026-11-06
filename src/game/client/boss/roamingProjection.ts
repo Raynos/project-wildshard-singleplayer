@@ -109,18 +109,19 @@ function disposeTell(tell: GroundTell): void {
 }
 
 /** The room and its light on a server's page, as that server's fight last said them. */
-interface HeardRoom { sealK: number; darkK: number; glow: number; open: number; readonly won: false; readonly focus: THREE.Vector3 }
+interface HeardRoom { sealK: number; darkK: number; glow: number; open: number; hung: boolean; readonly won: false; readonly focus: THREE.Vector3 }
 /** A page on a server steps no fight: what the server's fight tells its views paints these, and a lane that stops being said ends. */
 interface FollowedFight {
   readonly rows: RoamingBossProjectionRows; readonly ring: ProjectionViews['views']['ring']; readonly hazard: ProjectionViews['views']['hazard']; readonly cues: NonNullable<ReturnType<typeof CueDirector.entered>>;
   readonly lane: ProjectionLane; readonly addLanes: readonly ProjectionLane[]; readonly tellRing: GroundTell; readonly puffs: DomePuffs;
   readonly waves: readonly RoamingBossRing[]; readonly heardRoom: HeardRoom; readonly hazardFrom: THREE.Vector3;
-  readonly room: (dt: number, t: number) => void; readonly sound: (at: THREE.Vector3) => void; readonly light: (on: boolean) => void;
+  readonly room: (dt: number, t: number) => void; readonly sound: (at: THREE.Vector3) => void; readonly light: (on: boolean) => void; readonly rig: () => void;
+  readonly struck: (point: THREE.Vector3, dir: THREE.Vector3) => void;
 }
 const LANE_HEARD_FOR = 0.25;
 /** A lane heard since the last frame. */
 const FRESH = Number.POSITIVE_INFINITY;
-function followRoamingFight(context: ShardContext, { rows, ring, hazard, cues, lane, addLanes, tellRing, puffs, waves, heardRoom, hazardFrom, room, sound, light }: FollowedFight): void {
+function followRoamingFight(context: ShardContext, { rows, ring, hazard, cues, lane, addLanes, tellRing, puffs, waves, heardRoom, hazardFrom, room, sound, light, rig, struck }: FollowedFight): void {
   const lanes = [lane, ...addLanes], heard = lanes.map(() => Number.NEGATIVE_INFINITY), point = new THREE.Vector3(), up = new THREE.Vector3();
   const actions: Readonly<Record<string, (args: readonly number[]) => void>> = {
     [ROAMING_VIEW.roar]: ([x = 0, y = 0, z = 0]) => { sound(point.set(x, y, z)); },
@@ -139,6 +140,8 @@ function followRoamingFight(context: ShardContext, { rows, ring, hazard, cues, l
     },
     [ROAMING_VIEW.room]: ([sealK = 0, darkK = 0]) => { heardRoom.sealK = sealK; heardRoom.darkK = darkK; },
     [ROAMING_VIEW.light]: ([on = 0, x = 0, y = 0, z = 0, glow = 0, open = 0]) => { heardRoom.focus.set(x, y, z); heardRoom.glow = glow; heardRoom.open = open; light(on === 1); },
+    [ROAMING_VIEW.rig]: ([glow = 0, open = 0, hung = 0]) => { heardRoom.glow = glow; heardRoom.open = open; heardRoom.hung = hung === 1; rig(); },
+    [ROAMING_VIEW.struck]: ([x = 0, y = 0, z = 0, dx = 0, dy = 0, dz = 0]) => { struck(point.set(x, y, z), up.set(dx, dy, dz)); },
     [ROAMING_VIEW.hazard]: ([index = 0, event = 0, t = 0, x = 0, y = 0, z = 0, fallT = 0, fromX = 0, fromY = 0, fromZ = 0]) => {
       const beat = ROAMING_HAZARD_EVENTS[event]; if (beat === undefined) return;
       hazardFrom.set(fromX, fromY, fromZ); hazard(index, { x, y, z, fallT, acc: 0 }, t, beat);
@@ -190,9 +193,21 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
   });
   const pool = LightPool.for(scene);
   let light: THREE.PointLight | null = pool.acquire(rows.light.colour, 0, rows.light.distance, rows.light.decay);
-  let look: BossSocketRig | null = null;
+  let look: BossSocketRig | null = null, rowBody: Animal | null = null;
   /** A page's own room comes off its fight. */
-  const heardRoom: HeardRoom = { sealK: 0, darkK: 0, glow: 0, open: 0, won: false, focus: new THREE.Vector3() }, ember = { darkK: (): number => heardRoom.darkK }, hazardFrom = new THREE.Vector3();
+  const heardRoom: HeardRoom = { sealK: 0, darkK: 0, glow: 0, open: 0, hung: true, won: false, focus: new THREE.Vector3() }, ember = { darkK: (): number => heardRoom.darkK }, hazardFrom = new THREE.Vector3();
+  /** A page on a server has no body of its own: the rig goes on the row's, as the fight says it, and comes off when the row goes. */
+  const rigView = (): void => {
+    if (rowBody !== null && !ctx.animals.animals.includes(rowBody)) { look?.dispose(); look = null; rowBody = null; }
+    rowBody ??= ctx.animals.animals.find(body => body.rowDriven && body.kind === encounterRows.kind) ?? null;
+    if (rowBody === null) return;
+    look ??= bindBossSocketRig(context.scope, rows.socketRig.id, rowBody);
+    look.setGlow(heardRoom.glow); look.setHazardsHung(heardRoom.hung);
+  };
+  const struckView = (point: THREE.Vector3, dir: THREE.Vector3): void => {
+    cues.cue(rows.events.hit, point, dir); wirePage.drew('struck');
+    if (look !== null && point.distanceTo(look.focusWorld(_v)) < look.focusRadius) cues.cue(heardRoom.open > 0.5 ? rows.events.open : rows.events.shut, point, dir);
+  };
   const lightView = (on: boolean): void => {
     if (on) light ??= wirePage.on ? pool.borrow(rows.light.colour, 0, rows.light.distance, rows.light.decay) : pool.acquire(rows.light.colour, 0, rows.light.distance, rows.light.decay);
     else if (light) { pool.release(light); light = null; }
@@ -286,7 +301,7 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
     if (!wirePage.on) {
       if (fight.body === null || look === null) return;
       look.setOpen(Math.max(fight.open, 0.35 * fight.darkK), t);
-    }
+    } else look?.setOpen(Math.max(heardRoom.open, 0.35 * heardRoom.darkK), t);
     if (!light) return;
     if (air.darkK > rows.light.darkness) {
       const c = ctx.game.camera.position;
@@ -328,7 +343,7 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
     });
   };
 
-  if (wirePage.on) followRoamingFight(context, { rows, ring: ringView, hazard: hazardView, cues, lane, addLanes, tellRing, puffs, waves, heardRoom, hazardFrom, room, sound: at => { ctx.animals.onSound?.(rows.roar, at); }, light: lightView });
+  if (wirePage.on) followRoamingFight(context, { rows, ring: ringView, hazard: hazardView, cues, lane, addLanes, tellRing, puffs, waves, heardRoom, hazardFrom, room, sound: at => { ctx.animals.onSound?.(rows.roar, at); }, light: lightView, rig: rigView, struck: struckView });
   const victory = fight.victory.bind(fight);
   fight.victory = () => { victory(); look?.setOpen(0, 0); };
   installEnteredRuntimeService(context, scope => {

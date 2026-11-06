@@ -113,6 +113,8 @@ function nativeGroundFight(host: SimHost, row: RoamingEncounterRow, program: Spe
         }
         if (fight.sealK !== sealWas || fight.darkK !== darkWas) { sealWas = fight.sealK; darkWas = fight.darkK; sayFightView(host, ROAMING_VIEW.room, [sealWas, darkWas]); }
         sayLane(0, lane); addLanes.forEach((add, index) => { sayLane(index + 1, add); });
+        // what the page's rig reads off its own fight, each tick: a page that came late has it within one. A hazard hangs until its phase drops it.
+        if (fight.present && fight.body !== null) sayFightView(host, ROAMING_VIEW.rig, [fight.glow, fight.open, fight.phase < row.profile.fight.hazards.fromPhase ? 1 : 0]);
       },
       light: on => { if (own.light && !on) sayFightView(host, ROAMING_VIEW.light, [0]); own.light = on; },
       action: (k, move) => { k.mem[row.actionField] = row.actions[move] ?? 0; },
@@ -177,6 +179,12 @@ export function installGroundBoss(host: SimHost, input: unknown, profile: unknow
     if (req === null || k === null || req.target !== k.combatActor()) return req;
     return { ...req, amount: Math.max(1, Math.round(req.amount * fight.damageMul(k, req.point))) };
   }, host.scope, { order: 50 });
+  // Where a blow landed on him: the page judges the ribs off its own rig, as it does for its own fight.
+  host.events.on('damage.dealt', ({ req }) => {
+    if (fight.body === null || req.target !== fight.body.combatActor()) return;
+    const { point, dir } = req;
+    sayFightView(host, ROAMING_VIEW.struck, [point.x, point.y, point.z, dir.x, dir.y, dir.z]);
+  }, host.scope);
   host.onStep(row.steps.dormant, dt => { if (fight.body !== null) host.focusOn(fight.body.position); groundBossDormant(owner.boss, fight, dt, host.clock.now); });
   const result = { boss: owner.boss, fight, locked: owner.locked,
     rewardPoint: () => reward === null ? null : { ...reward },
