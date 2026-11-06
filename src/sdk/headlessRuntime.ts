@@ -12,6 +12,7 @@ import { createNativeCombatFrame, nativeRangedItem, otherCombatFrame, readNative
 import { prepareRuntimePlan, ledgerPorts, pickCommands } from '@wildshard/game/plugin/simulation';
 import { HEADLESS_ARENA } from '@wildshard/game/boss/headlessArenaViews';
 import type { NativeSweptMeleeInput } from '@wildshard/game/plugin/nativeSwept';
+import { installPortableMath } from '@wildshard/engine/core/portableMath';
 import { createSimHost, type SimHost, type SimHostPorts, type SimLevel, type SimTickCommand } from '@wildshard/engine/sim';
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 import type { NetCommand } from '@wildshard/format/netCommand';
@@ -209,6 +210,9 @@ export async function prepareNativeRuntime(provided: HeadlessRuntimeInput, room?
 /** Install the selected plan into one fresh or strictly restored native host.
  * A failed install disposes its world; installation may emit no gameplay effects. */
 export async function createTrustedHeadlessResident(preparation: HeadlessRuntimeInput, snapshot?: string | Readonly<SimSnapshot>, world?: { readonly room?: boolean; readonly near?: NearColliders }): Promise<TrustedHeadlessResident> {
+  // The roster rolls its herds while this installs, so a room opened afterwards is too late: a save from a native-Math boot
+  // would hold recipes its restore on the portable table can't reproduce.
+  installPortableMath();
   const plan = await prepareNativeRuntime(preparation, world?.room);
   let commands: readonly HeadlessCommand[] = [], effects: HeadlessEffect[] = [];
   const saved = snapshot === undefined ? undefined : decodeSimSnapshot(typeof snapshot === 'string' ? snapshot : serializeSimSnapshot(snapshot));
