@@ -43,7 +43,10 @@ const NoticeSchema: v.GenericSchema<CookNotice> = v.strictObject({
   revision: RevisionNumberSchema,
   hash: ShardfileHashSchema,
 });
-const HeadsSchema: v.GenericSchema<{readonly shards: readonly CatalogueRow[]}> = v.object({shards: v.array(v.object({slug: ShardSlugSchema, revision: RevisionNumberSchema, hash: ShardfileHashSchema}))});
+interface RevisionRef {readonly revision: number; readonly hash: string}
+const RevisionSchema: v.GenericSchema<RevisionRef> = v.object({revision: RevisionNumberSchema, hash: ShardfileHashSchema});
+/** `GET /api/catalogue`: it answers before a grid is set, unlike the `catalogue.json` a build bakes. */
+const CatalogueSchema: v.GenericSchema<{readonly shards: readonly {readonly slug: string; readonly live?: RevisionRef | undefined; readonly preview?: RevisionRef | undefined}[]}> = v.object({shards: v.array(v.object({slug: ShardSlugSchema, live: v.optional(RevisionSchema), preview: v.optional(RevisionSchema)}))});
 
 /** What a request needs from a cook: one shard of one build, by the two things packs are keyed by. */
 export interface CookIndex {
@@ -111,6 +114,8 @@ const CAPTURE_BYTES = 2_000_000;
 export function runJob(launcher: JobLauncher, tarball: string, out: string): Promise<JobOutcome> {
   const {root, execPath, loader, script, wrap, limits} = launcher, work = dirname(out);
   const cache = join(dirname(work), 'cache');
+  // Node takes a path that doesn't exist yet for a file, which would deny the folder.
+  mkdirSync(cache, {recursive: true});
   const node = [execPath, '--permission', `--allow-fs-read=${root}`, `--allow-fs-read=${dirname(work)}`, `--allow-fs-write=${work}`, `--allow-fs-write=${cache}`, '--allow-worker',
     `--max-old-space-size=${limits.heapMB}`, '--stack-size=4000', '--no-warnings', '--import', loader, script, tarball, out];
   const [command = '', ...args] = [...wrap, ...node];
@@ -174,9 +179,9 @@ export interface ShardfileSource {
 export function apiSource(base: string, read: typeof fetch = fetch, maxBytes: number = MAX_SHARDFILE_BYTES): ShardfileSource {
   return {
     heads: async stage => {
-      const response = await read(`${base}/api/catalogue.json?stage=${stage}`, {signal: AbortSignal.timeout(30_000)});
+      const response = await read(`${base}/api/catalogue`, {signal: AbortSignal.timeout(30_000)});
       if (!response.ok) throw new Error(`Catalogue answered ${response.status}`);
-      return v.parse(HeadsSchema, await response.json()).shards;
+      return v.parse(CatalogueSchema, await response.json()).shards.flatMap(row => { const head = row[stage]; return head === undefined ? [] : [{slug: row.slug, ...head}]; });
     },
     download: async hash => {
       const response = await read(`${base}/api/shardfiles/${hash}`, {signal: AbortSignal.timeout(300_000)});
