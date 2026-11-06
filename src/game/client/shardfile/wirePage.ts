@@ -8,7 +8,8 @@ import { DAY_ROW } from '@wildshard/engine/sim/shardRows';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import type { ClimateWord } from '../weather/netClimate';
 import type { Inventory } from '../Inventory';
-import { OWNED_ROW } from '../../shared/loot/ownedRows';
+import { boardFromLines, OWNED_ROW } from '../../shared/loot/ownedRows';
+import type { ContractBoard } from '../../shared/quest/contractBoard';
 import type { Owned } from '../../shared/loot/Owned';
 import type { Purse } from '../../shared/loot/Purse';
 import { QuestViewFeed } from '@wildshard/engine/quest/view/replica';
@@ -25,7 +26,7 @@ import type { MoverView } from '../../server/plugin/mover';
 type Live = (client: NetClient) => (() => void) | undefined;
 /** What a page draws of what its player holds. */
 export interface WireHoldings {
-  readonly purse?: Pick<Purse, 'mirror'>; readonly inventory?: Pick<Inventory, 'mirror'>; readonly gear?: Pick<Owned, 'grant'>;
+  readonly purse?: Pick<Purse, 'mirror'>; readonly inventory?: Pick<Inventory, 'mirror'>; readonly gear?: Pick<Owned, 'grant'>; readonly board?: Pick<ContractBoard, 'mirror'>;
 }
 /** A page's own copy of a save that the server keeps: it reads the page's last word and writes nothing. */
 export const readOnlySave = <T extends object>(save: T & { readonly write: unknown }): T => new Proxy(save, { get: (target, name) => name === 'write' ? (): boolean => true : Reflect.get(target, name, target) as unknown });
@@ -109,11 +110,15 @@ export class WirePage {
     this.ownedAt = client.ownedVersion;
     const pack = new Map<string, number>(), { owned } = client;
     for (const [name, value] of owned) if (name.startsWith(OWNED_ROW.item)) pack.set(name.slice(OWNED_ROW.item.length), value);
-    for (const { purse, inventory, gear } of this.holdings) {
+    const contracts = boardFromLines(owned);
+    for (const { purse, inventory, gear, board } of this.holdings) {
       purse?.mirror(owned.get(OWNED_ROW.coins) ?? 0); inventory?.mirror(pack);
       for (const name of owned.keys()) if (name.startsWith(OWNED_ROW.owned)) gear?.grant(name.slice(OWNED_ROW.owned.length));
+      if (board !== undefined && contracts !== null) board.mirror(contracts);
     }
   }
+  /** A hand on the contract board: the server checks it and pays. */
+  contract(op: 'claim' | 'tear', slot: number): void { this.act({ kind: 'board', seq: 0, op, slot }); }
   /** Buy a good of this shard's exchange: the server checks it and takes the price. */
   buy(good: number): void { this.act({ kind: 'buy', seq: 0, good }); }
   /** One press of a prompt the server knows by this id. */

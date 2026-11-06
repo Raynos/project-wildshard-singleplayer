@@ -1,5 +1,6 @@
 /** Client-only board presentation. The native ContractBoard owns every offer;
  * this binding keeps the existing page panel, prompt, save and payout owners. */
+import { wirePage } from '../shardfile/wirePage';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { ContractBoardPageRows } from '@wildshard/format/contracts';
@@ -52,6 +53,7 @@ export function installContractBoardPage(ctx: ShardContext, quest: string, rows:
   const panel = views.view('board', scope => new DataPanel(panelRows, { scope, values: () => board, actions: new Map([
     ['claim', (value: unknown): void => {
       if (typeof value !== 'number') throw new Error('Contract action requires its slot');
+      if (wirePage.on) { wirePage.contract('claim', value); sfx.interact('chest'); play.music.sting('pickup'); return; } // the server pays, and the rows say so
       const reward = owner.claim(value)?.reward; if (reward === undefined) return;
       commitQuestEffects(ctx, quest, reward.items.map(item => ({ kind: 'item', item: item.id, count: item.n })));
       if (reward.bolts > 0 && rows.ammunition !== undefined) loadout?.addAmmo(rows.ammunition.kind, reward.bolts);
@@ -60,16 +62,18 @@ export function installContractBoardPage(ctx: ShardContext, quest: string, rows:
       persist(); sfx.interact('chest'); play.music.sting('pickup'); feats.event('streak', board.streak);
       play.hud.toast(notice(rows.notices.claimed, { claimed: board.claimed, streak: board.streak }));
     }],
-    ['tear', (value: unknown): void => { if (typeof value !== 'number') throw new Error('Contract action requires its slot'); owner.tear(value); persist(); sfx.interact('door'); }],
+    ['tear', (value: unknown): void => { if (typeof value !== 'number') throw new Error('Contract action requires its slot'); if (wirePage.on) wirePage.contract('tear', value); else { owner.tear(value); persist(); } sfx.interact('door'); }],
   ]) }));
   const prompt: Interactable = { position: new Vector3(rows.at.x, terrainHeight(rows.at.x, rows.at.z) + rows.height, rows.at.z),
     get radius() { return panel().isOpen ? 0 : rows.radius; }, get label() { return board.slots.some(isFilled) ? rows.filled : rows.label; },
     onInteract: () => { panel().open(); sfx.interact('door', prompt.position, { gain: 0.5 }); } };
   runtime.interactables.push(prompt);
   ctx.scope.onDispose(() => { const index = runtime.interactables.indexOf(prompt); if (index !== -1) runtime.interactables.splice(index, 1); views.disposeLegacy(() => { panel().root.remove(); }); });
+  if (wirePage.on) wirePage.hold({ board: owner }, ctx.scope);
   let observing = false;
   return { state: board, panel, fill: slot => { const row = board.slots[slot]; if (row !== undefined) { row.have = row.need; persist(); } }, observe: () => {
     if (observing || ctx.scope.disposed) throw new Error('Quest board deaths already installed or disposed'); observing = true;
+    if (wirePage.on) return; // the server's board counts the kills
     ctx.on('actor.died', ({ actor }) => { const body = play.animals.animals.find(animal => animal.combatActor() === actor); if (body === undefined) return;
       const moved = owner.killed(contractKill(contracts, body)); if (moved.length === 0) return; persist();
       for (const slot of moved) { const row = board.slots[slot]; if (row !== undefined) play.hud.toast(notice(isFilled(row) ? rows.notices.filled : rows.notices.progress,

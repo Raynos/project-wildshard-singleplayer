@@ -34,7 +34,7 @@ import { ReturnProgram } from '../../shared/population/returnProgram';
 import { questBooks } from '@wildshard/engine/quest/players';
 import { actRoutes } from '@wildshard/engine/sim/actRoutes';
 import { publishOwned } from '@wildshard/engine/sim/shardRows';
-import { OWNED_ROW } from '../../shared/loot/ownedRows';
+import { boardLines, OWNED_ROW } from '../../shared/loot/ownedRows';
 
 const promptLoans = new WeakMap<SimHost, Map<string, readonly HeadlessPrompt[]>>();
 /** Borrow the actual bound roster, including unhosted prompts and live reach. */
@@ -189,7 +189,14 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
   const earlyCounters = rows.counts === 'declared' ? entry.achievements(ports.counters, Object.fromEntries(ports.counters.feats.map(feat => [feat.id, 0]))) : null;
   const graph = entry.install(commandOwners());
   // Every prompt with an act answers a client by name: a sword or a cable is a command too, not only the graph's rows.
-  publishOwned(host, QUEST_OWNED, (player, out) => { if (player === books.lead.player) for (const [id, count] of Object.entries(pack.snapshot().counts)) out.set(`${OWNED_ROW.item}${id}`, count); });
+  publishOwned(host, QUEST_OWNED, (player, out) => {
+    if (player === books.lead.player) for (const [id, count] of Object.entries(pack.snapshot().counts)) out.set(`${OWNED_ROW.item}${id}`, count);
+    const owner = seats.get(player)?.gear.board; if (owner !== null && owner !== undefined) boardLines(owner.current, out);
+  });
+  if (rows.board !== undefined) actRoutes(host).board = (player, op, slot) => {
+    const gear = gearOf(player), reach = { x: gear.body.position.x, y: gear.body.position.y + rows.eye, z: gear.body.position.z };
+    gear.board?.use(CONTRACT_ACTION.open, reach); gear.claim((op === 'claim' ? CONTRACT_ACTION.claim0 : CONTRACT_ACTION.tear0) + slot); gear.board?.use(CONTRACT_ACTION.close, reach);
+  };
   if (rows.trade !== undefined) actRoutes(host).buy = (player, good) => { const { trader: seat } = gearOf(player); if (seat !== null) { seat.open(); try { seat.use(good); } finally { seat.close(); } } };
   const interactions = actRoutes(host).interactions, promptActor = ports.source.questHost?.graph.actor;
   if (promptActor !== undefined) for (const prompt of promptRoster ?? []) if (typeof prompt.id === 'string' && prompt.act !== null && !interactions.has(prompt.id)) interactions.set(prompt.id, { actorId: promptActor, value: prompt.act });

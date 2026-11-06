@@ -22,6 +22,8 @@ export interface ActRoutes {
   seen: ((player: string, flag: string) => void) | null;
   /** A player's purchase, where a host keeps an exchange. */
   buy: ((player: string, good: number) => void) | null;
+  /** A player's hand on the contract board, where a host keeps one. */
+  board: ((player: string, op: 'claim' | 'tear', slot: number) => void) | null;
   /** A lone player's word on the sky, on a world with weather. */
   climate: ((act: Pick<NetClimateAct, 'op' | 'name' | 'at'>) => void) | null;
   /** What a press takes by name with no prompt row of its own: a fight's reward. */
@@ -39,6 +41,6 @@ const routes = new WeakMap<SimHost, ActRoutes>();
 /** One host's routes (P1-E5.2c). */
 export function actRoutes(host: SimHost): ActRoutes {
   let held = routes.get(host);
-  if (held === undefined) { held = { interactions: new Map(), equip: null, lock: null, ride: null, lean: null, launcher: null, seen: null, buy: null, climate: null, claims: new Map(), skipHeld: false, refused: 0 }; routes.set(host, held); }
+  if (held === undefined) { held = { interactions: new Map(), equip: null, lock: null, ride: null, lean: null, launcher: null, seen: null, buy: null, board: null, climate: null, claims: new Map(), skipHeld: false, refused: 0 }; routes.set(host, held); }
   return held;
 }

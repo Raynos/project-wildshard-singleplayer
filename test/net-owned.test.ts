@@ -11,7 +11,9 @@ import { createSimHost } from '../src/engine/server/sim';
 import { NetRoom } from '../src/engine/server/net/room';
 import { SimNetWorld } from '../src/engine/server/net/simWorld';
 import { directLoopback } from '../src/engine/test/netLoopback';
+import { Scope } from '../src/engine/shared/app/scope';
 import { WirePage } from '../src/game/client/shardfile/wirePage';
+import { boardFromLines, boardLines } from '../src/game/shared/loot/ownedRows';
 import { PlayerOwned } from '../src/game/server/loot/playerOwned';
 import { netBuys } from '../src/sdk/standalone/netInput';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
@@ -45,7 +47,7 @@ test('a page shows the server\'s lines on its purse, pack and gear, and writes n
   const page = new WirePage(), link = directLoopback(), client = new NetClient(link.client);
   const purse = { mirror: vi.fn() }, inventory = { mirror: vi.fn() }, gear = { grant: vi.fn(() => true) };
   page.bind(client, () => undefined, () => undefined, () => false);
-  page.hold({ purse, inventory, gear }, { onDispose: () => undefined } as never);
+  page.hold({ purse, inventory, gear }, new Scope('test'));
   client.owned.set('coins', 12); client.owned.set('item.hide', 3); client.owned.set('own.sword', 1); client.ownedVersion++;
   client.latest = { tick: 2, baselineTick: -1, cell: 1, lastSeq: 0, owner: new Float64Array(0), rows: new Map(), ride: null, fresh: new Set() };
   page.frame(null, true); page.frame(null, true);
@@ -76,4 +78,25 @@ test('a filing lands in the player\'s purse and pack, and a purchase takes the p
   expect(owned.take('hide', 3)).toBe(false);
   expect(owned.buy(0), 'no exchange, no sale').toBe(false);
   expect(owned.purse.coins).toBe(30);
+});
+
+test('a contract board goes on the wire as lines and comes back whole', () => {
+  const board = { next: 4, claimed: 2, streak: 1, best: 3, slots: [{ serial: 3, kind: 'hunt', target: 'deer', have: 0 }, { serial: 2, kind: 'hunt', target: 'wolf', have: 2 }] };
+  const out = new Map<string, number>();
+  boardLines({ ...board, slots: board.slots.map(slot => ({ ...slot, need: 1, goal: '', reward: { items: [], bolts: 0 } })) }, out);
+  expect([...out.values()].every(value => value !== 0), 'a line at 0 is a line gone').toBe(true);
+  expect(JSON.parse(boardFromLines(out) ?? '')).toEqual(board);
+  expect(boardFromLines(new Map([['coins', 3]]))).toBeNull();
+});
+
+test('a hand on a board lands on its owner', () => {
+  const host = createSimHost(SIM_LEVEL, { rapier }), routes = actRoutes(host), hands: string[] = [];
+  netBuys(routes, [{ player: 'a', acts: [{ kind: 'board', seq: 0, op: 'claim', slot: 1 }] }]);
+  expect(routes.refused).toBe(1);
+  routes.board = (player, op, slot) => { hands.push(`${player} ${op} ${String(slot)}`); };
+  netBuys(routes, [{ player: 'a', acts: [{ kind: 'board', seq: 0, op: 'tear', slot: 2 }] }]);
+  expect(hands).toEqual(['a tear 2']);
+  const act = { kind: 'board', seq: 2, op: 'tear', slot: 1 } as const;
+  expect(decodeAct(new Uint8Array(encodeAct(new BitWriter(), act)))).toEqual(act);
+  host.dispose();
 });

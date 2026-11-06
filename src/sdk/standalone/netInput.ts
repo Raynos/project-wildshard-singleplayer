@@ -58,9 +58,10 @@ export function netWorldInput(routes: ActRoutes, inputs: readonly Pick<NetTickIn
     for (const act of acts) if (act.kind === 'climate') routes.climate?.(act);
   }
 }
-/** A player's purchases go to the world's exchange, which judges them. */
+/** A player's purchases and hands on a board go to the owners that judge them. */
 export function netBuys(routes: ActRoutes, inputs: readonly Pick<NetTickInput, 'acts' | 'player'>[]): void {
   for (const { acts, player } of inputs) for (const act of acts) {
+    if (act.kind === 'board') { if (routes.board === null) routes.refused++; else routes.board(player, act.op, act.slot); }
     if (act.kind !== 'buy') continue;
     if (routes.buy === null) routes.refused++; else routes.buy(player, act.good);
   }

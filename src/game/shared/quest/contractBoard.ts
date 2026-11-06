@@ -50,6 +50,8 @@ export class ContractBoard {
   get active(): boolean { return this.opened; }
   /** The page borrows this live value for its existing panel and Developer view. */
   get current(): Board { return this.board; }
+  /** Take the board from who owns it (J130), in its saved form. */
+  mirror(raw: string): void { Object.assign(this.board, boardFrom(this.ports.contracts, JSON.parse(raw))); }
   killed(kill: KillInfo): number[] { return recordKill(this.ports.contracts, this.board, kill); }
   /** Page panels own their modal; native use() applies the same slot operation. */
   claim(slot: number): ContractClaim | null {
