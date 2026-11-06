@@ -2,7 +2,7 @@ import {controlFileHashes} from '@wildshard/format/admissionControl';
 import {entryFileSteps, tierLibrarySteps} from '@wildshard/format/tierSelection';
 import type {Shardfile} from '@wildshard/format/shardSchema';
 import type {OutputIndex} from '@wildshard/format/outputIndex';
-import {wholeGeometryInputs} from '../shared/shardfile/wholeInputs';
+import {otherTierSplatFiles, wholeGeometryInputs} from '../shared/shardfile/wholeInputs';
 import {spawnViewSceneFiles} from '@wildshard/format/spawnView';
 
 /** The same required, active entry selection for totals and read-ahead. Default (the Shardfile path every player gets):
@@ -55,6 +55,7 @@ export function entryReadSet(source: Shardfile, tier: 'phone' | 'desktop', index
     const needed = new Set([...wanted].flatMap(hash => byHash.get(hash)?.dependencies ?? []));
     for (const name of otherOnly) { const hash = hashOf.get(name); if (hash !== undefined && !kept.has(hash) && !needed.has(hash)) wanted.delete(hash); }
   }
+  for (const hash of otherTierSplatFiles(source, tier)) wanted.delete(hash);
   const plan = sections.get('client/plan'), features: unknown = typeof plan === 'object' && plan !== null ? Reflect.get(plan, 'features') : undefined;
   // This host starts its complete native intake before construction. These
   // are actual mandatory reads, even when a tile is outside the spawn view.

@@ -122,3 +122,9 @@ test('S3: a desktop reads a phone fence read as its own copy, and a phone pack a
     '/assets/packs/pine-hollow.phone-d343d44d.bin', '/assets/baked/navmesh.bin'], urls))
     .toEqual(['/assets/gpu/npcs/trader-0e7c7ea7.glb', '/assets/gpu/fire.desktop-9ecfac78.gltf', '/assets/baked/rain.bin', '/assets/baked/navmesh.bin']);
 });
+
+test('S4: a desktop reads a 6×6 overlay read as its own copy, whatever the overlay file is named', () => {
+  const urls = ['/assets/gpu/npcs/trader-0e7c7ea7.glb', '/assets/gpu/tex/wall/diffuse-1a2b3c4d.ktx2', '/assets/pine-hollow/astc6/npcs/trader.phone-11112222.glb', '/assets/pine-hollow/astc6/tex/wall/diffuse-33334444.ktx2'];
+  expect(desktopFence(['/assets/pine-hollow/astc6/npcs/trader.phone-11112222.glb', '/assets/pine-hollow/astc6/tex/wall/diffuse-33334444.ktx2'], urls))
+    .toEqual(['/assets/gpu/npcs/trader-0e7c7ea7.glb', '/assets/gpu/tex/wall/diffuse-1a2b3c4d.ktx2']);
+});

@@ -89,14 +89,16 @@ function fenceHints(shard: OpenShardfile, warn: (line: string) => void): {readon
   const hashOf = new Map(downloaded(shard).map(row => [row.url, row.hash]));
   const owners = identityFiles(assetIdentities([...hashOf.keys()], new Map(), sectionRefs(shard.sections, new Set(hashOf.keys())),
     {digests: url => { const hash = hashOf.get(url); return hash === undefined ? [] : [hash]; }, sources: new Map()}));
-  const shell = [...reads.filter(row => row.startsWith('asset')), ...resolved.unresolved.filter(row => row.startsWith('ref:'))];
+  // S4: the app build reads a pack member through its bin. A cook has no bins, so the member is the mount itself.
+  const member = (row: string): string => /^asset-pack-member:[^:]+:[^:]+:(.+)$/u.exec(row)?.[1] ?? '';
+  const shell = [...reads.filter(row => row.startsWith('asset')).map(row => member(row) === '' ? row : `asset:${member(row)}`), ...resolved.unresolved.filter(row => row.startsWith('ref:'))];
   return {hashes: resolved.hashes, mounts: [...new Set(shell.flatMap(identity => { const named = owners.get(identity); return named?.length === 1 && named[0] !== undefined ? [named[0]] : []; }))]};
 }
 
-/** A mount's tier by its name: `.desktop` and `.phone` say so, and a file with a `.phone` sibling is the desktop's. */
+/** A mount's tier by its name: `.desktop`, `.phone` and a shard's `astc6/` overlay say so, and a file with a `.phone` sibling is the desktop's. */
 function mountTiers(urls: ReadonlySet<string>): (url: string, tier: CookTier) => boolean {
   return (url, tier) => {
-    if (/\.phone[.-]/u.test(url)) return tier === 'phone';
+    if (/\.phone[.-]|\/astc6\//u.test(url)) return tier === 'phone';
     if (/\.desktop[.-]/u.test(url)) return tier === 'desktop';
     const dot = url.lastIndexOf('.');
     return tier === 'desktop' || !urls.has(`${url.slice(0, dot)}.phone${url.slice(dot)}`);

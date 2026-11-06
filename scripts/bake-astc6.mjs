@@ -23,6 +23,7 @@ import { once } from 'node:events';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, relative, resolve } from 'node:path';
+import { glbBytes, imageBytes, readGlb } from './astc6-phone-cap.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const PUB = resolve(ROOT, 'public');
@@ -129,48 +130,7 @@ async function cached(key, make) {
   return out;
 }
 
-// ── GLB helpers (bake-ktx2.mjs readGlb / glbBytes / imageClasses, unchanged) ──
-function readGlb(path) {
-  const b = readFileSync(path);
-  if (b.readUInt32LE(0) !== 0x46546c67) throw new Error(`${path}: not a GLB`);
-  const jsonLen = b.readUInt32LE(12);
-  const json = JSON.parse(b.subarray(20, 20 + jsonLen).toString('utf8'));
-  const binStart = 20 + jsonLen + 8;
-  return { json, bin: b.subarray(binStart, binStart + b.readUInt32LE(20 + jsonLen)) };
-}
-const imageBytes = (json, bin, view) => { const v = json.bufferViews[view]; return bin.subarray(v.byteOffset ?? 0, (v.byteOffset ?? 0) + v.byteLength); };
-function glbBytes(json, bin, swap) {
-  const ranges = [];
-  for (const [i, v] of json.bufferViews.entries()) {
-    if ((v.buffer ?? 0) === 0) ranges.push({ holder: v, off: v.byteOffset ?? 0, len: v.byteLength, data: swap.get(i) });
-    const m = v.extensions?.EXT_meshopt_compression;
-    if (m && (m.buffer ?? 0) === 0) ranges.push({ holder: m, off: m.byteOffset ?? 0, len: m.byteLength, data: undefined });
-  }
-  ranges.sort((a, b) => a.off - b.off);
-  const parts = []; const placed = new Map(); let at = 0;
-  for (const r of ranges) {
-    const key = `${r.off}:${r.len}`;
-    let where = placed.get(key);
-    if (where === undefined || r.data !== undefined) {
-      const bytes = r.data ?? bin.subarray(r.off, r.off + r.len);
-      const pad = (4 - (at % 4)) % 4; if (pad > 0) { parts.push(Buffer.alloc(pad)); at += pad; }
-      where = at; parts.push(bytes); at += bytes.length;
-      if (r.data === undefined) placed.set(key, where);
-    }
-    r.holder.byteOffset = where;
-    r.holder.byteLength = r.data?.length ?? r.len;
-  }
-  const pad = (4 - (at % 4)) % 4; if (pad > 0) { parts.push(Buffer.alloc(pad)); at += pad; }
-  json.buffers[0].byteLength = at;
-  const out = Buffer.concat(parts);
-  let jb = Buffer.from(JSON.stringify(json), 'utf8');
-  jb = Buffer.concat([jb, Buffer.alloc((4 - (jb.length % 4)) % 4, 0x20)]);
-  const header = Buffer.alloc(12); header.writeUInt32LE(0x46546c67, 0); header.writeUInt32LE(2, 4);
-  const jh = Buffer.alloc(8); jh.writeUInt32LE(jb.length, 0); jh.writeUInt32LE(0x4e4f534a, 4);
-  const bh = Buffer.alloc(8); bh.writeUInt32LE(out.length, 0); bh.writeUInt32LE(0x004e4942, 4);
-  header.writeUInt32LE(12 + 8 + jb.length + 8 + out.length, 8);
-  return Buffer.concat([header, jh, jb, bh, out]);
-}
+// ── GLB helpers (bake-ktx2.mjs imageClasses, unchanged; readGlb / glbBytes live in astc6-phone-cap.mjs) ──
 function imageClasses(json) {
   const texSource = (t) => { const x = json.textures?.[t]; return x?.source ?? x?.extensions?.EXT_texture_webp?.source ?? x?.extensions?.KHR_texture_basisu?.source; };
   const rank = { data: 0, linear: 1, normal: 2, color: 3 };
@@ -277,3 +237,5 @@ writeFileSync(TABLE_FILE, `${JSON.stringify(sorted, null, 2)}\n`);
 rmSync(TMP, { recursive: true, force: true });
 let six = 0; for (const f of live) six += statSync(abs(f)).size;
 console.log(`bake-astc6: ${encoded} encoded, ${reused} reused, ${stale} stale removed · ${Object.keys(map).length} served URLs → ${live.size} files, ${(six / 1048576).toFixed(1)} MB`);
+// S4: the phone's 512 sets are these files less their top mip; a later bake would otherwise bring the 1024s back.
+execFileSync(process.execPath, [resolve(ROOT, 'scripts/astc6-phone-cap.mjs')], { stdio: 'inherit' });

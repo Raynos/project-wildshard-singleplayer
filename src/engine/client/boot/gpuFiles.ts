@@ -104,6 +104,11 @@ export class TexturePolicyBinding {
   }
 }
 let resolving = false;
+/** S4: an overlay's raw ASTC 6×6 files have no transcode, so a phone-tier GPU that can't sample ASTC loads images. */
+function rawAstcVeto(probe: Ktx2Probe): string | null {
+  if (!probe.ran || TIER !== 'phone' || probe.families.astc === true || ![...registered.phone].some(url => url.includes('/astc6/'))) return null;
+  return 'this table names raw ASTC 6×6 and the GPU has no ASTC';
+}
 /** the mode this page loads with, and why (fixed on the first call) */
 export function texModeWhy(): { mode: TexMode; why: string } {
   const state = activePolicy();
@@ -124,7 +129,7 @@ export function texModeWhy(): { mode: TexMode; why: string } {
     // wrong when mipmapped loads images (render/ktx2Probe.ts — the iOS Simulator's zeroed sRGB ASTC / ETC2 mips; a
     // measurement-only harness pin skips the probe there, G386)
     if (state.resolved.mode === 'ktx2') {
-      const veto = ktx2Probe().veto;
+      const probe = ktx2Probe(), veto = probe.veto ?? rawAstcVeto(probe);
       if (veto !== null) state.resolved = { mode: 'img', why: `${state.resolved.why}; overruled: ${veto}` };
     }
   } finally { resolving = false; }

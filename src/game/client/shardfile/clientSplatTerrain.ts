@@ -9,7 +9,7 @@
  * The source layer textures are never uploaded: their mips are copied into the arrays, then released.
  */
 import { CompressedArrayTexture, CompressedTexture, LinearFilter, LinearMipmapLinearFilter, NoColorSpace, RepeatWrapping, SRGBColorSpace, type Material, type Texture } from 'three';
-import { layerArrayMips, releaseAfterUpload } from '@wildshard/engine/core/ktx2';
+import { ktx2TranscodeSupport, layerArrayMips, releaseAfterUpload } from '@wildshard/engine/core/ktx2';
 import { splatTerrainMaterial, type SplatLayers } from '@wildshard/engine/world/Terrain';
 import type { PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -23,6 +23,9 @@ export const SPLAT_LAYER_SIZE = 1024;
 const NO_MAPS: PropSurfaceBinding['maps'] = { colour: null, normal: null, normalScale: 1, metallicRoughness: null, occlusion: null, occlusionStrength: 1, emissive: null };
 
 /** One role's array from its four transcoded layers: one format, a shared mip level at the array edge, unflipped. */
+/** S4: the phone's layers are raw ASTC 6×6, which nothing can transcode: a device without ASTC draws the other set, which is Basis. */
+export function splatDrawTier(): 'phone' | 'desktop' { return TIER === 'phone' && !ktx2TranscodeSupport().astc ? 'desktop' : TIER; }
+
 export function splatArray(role: SplatRole, layers: readonly Texture[], anisotropy = 8): CompressedArrayTexture {
   const compressed = layers.map((t) => (t instanceof CompressedTexture ? t : null));
   const mips = layerArrayMips(compressed, SPLAT_LAYER_SIZE);
@@ -45,7 +48,7 @@ export function splatArray(role: SplatRole, layers: readonly Texture[], anisotro
 export function splatSurface(splat: SplatTerrain, ports: { scope: Scope; texture: (ref: string) => Texture; anisotropy?: number }): { material: Material; binding: PropSurfaceBinding } {
   const sources = new Set<Texture>();
   const array = (role: SplatRole): CompressedArrayTexture => {
-    const textures = splatLayers(splat, TIER)[role].map((ref) => ports.texture(ref));
+    const textures = splatLayers(splat, splatDrawTier())[role].map((ref) => ports.texture(ref));
     for (const t of textures) sources.add(t);
     return ports.scope.own(splatArray(role, textures, ports.anisotropy));
   };

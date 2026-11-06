@@ -30,7 +30,7 @@ import { SKIN_LOOK_RECIPE } from '@wildshard/format/skins';
 import type { PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';
 import { propMaterialTextureRefs, propMaterialsOf } from '@wildshard/format/propMaterials';
 import { ownedGraph, propSurfaces } from './clientPropMaterials';
-import { splatSurface, withSplatSurface } from './clientSplatTerrain';
+import { splatDrawTier, splatSurface, withSplatSurface } from './clientSplatTerrain';
 import { TIER } from '@wildshard/engine/core/tier';
 import { splatTerrainOf, splatTextureRefs } from '@wildshard/format/splatTerrain';
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
@@ -149,7 +149,7 @@ export async function clientMaterials(shard: Shardfile, input: ReadonlyMap<strin
   const named = shard.props === null ? undefined : propMaterialsOf(shard.props);
   const splat = shard.props === null ? undefined : splatTerrainOf(shard.props);
   const refs = new Set([...materialTextureRefs(sampledMaterials), ...graphFileTextureRefs(sampledMaterials, (hash) => assets.get(hash)), ...(shard.props?.textures.map((entry) => entry.colour) ?? []), ...propMaterialTextureRefs(named), ...(splat === undefined ? [] : splatTextureRefs(splat, TIER))]);
-  const splatRefs = new Set(splat === undefined ? [] : splatTextureRefs(splat, TIER));
+  const splatRefs = new Set(splat === undefined ? [] : splatTextureRefs(splat, splatDrawTier()));
   if (refs.size > 0) {
     const loader = detectKtx2Support(new KTX2Loader().setTranscoderPath(BASIS_PATH), renderer);
     let retired = false;

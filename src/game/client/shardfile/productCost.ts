@@ -13,6 +13,7 @@ import { frameBudgetSpent } from '@wildshard/engine/core/framePacing';
 import { preflightShardfile, preflightShardfileSteps } from '@wildshard/format/preflight';
 import { jsonDataHeapBytes } from '@wildshard/format/json';
 import { outputDescriptor, isBuildValidatedOutput } from '../../shared/shardfile/outputDescriptor';
+import { otherTierSplatFiles } from '../../shared/shardfile/wholeInputs';
 import {builtProductPostCost} from '@wildshard/format/validationReceipt';
 import {postStackCost,type PostStackCost} from '@wildshard/format/postStack';
 import { isPlatformDataSection } from '@wildshard/format/outputFields';
@@ -202,7 +203,8 @@ export async function tierProductFilesPaced(source: Shardfile, tier: 'phone' | '
   const descriptor = outputDescriptor(source);
   if (descriptor === undefined) return source.files;
   const inactive = await paced(entryFileSteps(source, tier, descriptor), pause ?? (() => Promise.resolve()));
-  return inactive.size === 0 ? source.files : source.files.filter(file => !inactive.has(file.hash));
+  const splat = otherTierSplatFiles(source, tier);
+  return inactive.size === 0 && splat.size === 0 ? source.files : source.files.filter(file => !inactive.has(file.hash) && !splat.has(file.hash));
 }
 function* tierLibrarySourceSteps(source: Shardfile, tier: 'phone' | 'desktop', assets?: ReadonlyMap<string, Uint8Array>): Generator<void, Shardfile> {
   const descriptor = outputDescriptor(source);

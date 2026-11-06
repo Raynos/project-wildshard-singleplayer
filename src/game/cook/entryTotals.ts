@@ -37,13 +37,21 @@ export interface BuildHalf {
   /** The certified grid seams' address (`gridSeams.mjs`). */
   readonly seams: (root: string) => Address & {readonly plans?: Address | undefined};
 }
-/** S3: a fence read is a phone's: on a desktop each `.phone` file is its desktop copy, by name, and a phone pack is nothing. */
+/** S3: a fence read is a phone's: on a desktop each `.phone` file is its desktop copy, by name, and a phone pack is nothing.
+ *  S4: a shard's 6×6 overlay (`/assets/<shard>/astc6/<the path under /assets/gpu>`) is a phone file whatever its name says. */
 export function desktopFence(reads: readonly string[], urls: readonly string[]): readonly string[] {
-  const plain = (url: string): string => (url.split('?')[0] ?? url).replace(/-[a-f0-9]{8}(?=\.[a-z0-9]+$)/u, '').replace(/\.(?:phone|desktop)(?=\.[a-z0-9]+$)/u, '');
+  const overlay = /^\/assets\/[^/]+\/astc6\//u, phoneOnly = (url: string): boolean => /\.phone[.-]/u.test(url) || overlay.test(url);
+  const plain = (url: string): string => (url.split('?')[0] ?? url).replace(overlay, '/assets/gpu/').replace(/-[a-f0-9]{8}(?=\.[a-z0-9]+$)/u, '').replace(/\.(?:phone|desktop)(?=\.[a-z0-9]+$)/u, '');
   // Content-named last, so the emitted file wins over its public source.
   const named = (url: string): number => Number(/-[a-f0-9]{8}\.[a-z0-9]+$/u.test(url));
-  const desktop = new Map(urls.filter(url => !/\.phone[.-]/u.test(url)).sort((a, b) => named(a) - named(b)).map(url => [plain(url), url]));
-  return [...new Set(reads.flatMap(url => { if (!/\.phone[.-]/u.test(url)) return [url]; const own = desktop.get(plain(url)); return own === undefined ? [] : [own]; }))];
+  const desktop = new Map(urls.filter(url => !phoneOnly(url)).sort((a, b) => named(a) - named(b)).map(url => [plain(url), url]));
+  return [...new Set(reads.flatMap(url => { if (!phoneOnly(url)) return [url]; const own = desktop.get(plain(url)); return own === undefined ? [] : [own]; }))];
+}
+/** S4: a shard's phone stand-ins laid over the engine's table (`data/astc6.generated.json`). A phone reads the overlay's
+ *  file under the same served URL, so its fence read keeps the identity it had. */
+function phoneOverlay(root: string, directory: string): Readonly<Record<string, string>> {
+  const path = join(root, 'src/shards', directory, 'data/astc6.generated.json');
+  return existsSync(path) ? v.parse(v.record(v.string(), v.string()), JSON.parse(readFileSync(path, 'utf8'))) : {};
 }
 /** DL5: a shard's packs set, `src/shards/<slug>/packs-set.json` (`{"version": 1, "set": "fence"}`): 'fence' packs the
  *  default set (what the boot reads before control), absent packs the whole level. Anything else fails the build. */
@@ -187,7 +195,7 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
       const urls = publicAssets(), members = [...packParts().values()].flatMap(part => part.members);
       // Section references, then the boot tables' audio slots (Pine's colliding sfx revisions).
       const refs = joinRefs(sectionRefs(sections, new Set([...urls, ...members].map(url => url.split('?')[0] ?? url))),
-        audioTableRefs(JSON.parse(build.tables(root).common.source) as {sfx?: unknown; music?: unknown}), standInRefs(build.gpuFiles));
+        audioTableRefs(JSON.parse(build.tables(root).common.source) as {sfx?: unknown; music?: unknown}), standInRefs({...build.gpuFiles, phone: {...build.gpuFiles['phone'], ...phoneOverlay(root, directory)}}));
       // An identity is one file or none: one naming two distinct files (two vendor versions, sp-x9) refuses, never the first.
       const owners = identityFiles(assetIdentities(urls, packParts(), refs, {digests: assetDigests, sources: bundlerSources()}));
       const ambiguous = shell.filter(identity => (owners.get(identity)?.length ?? 0) > 1);
