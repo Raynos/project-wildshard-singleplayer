@@ -7,9 +7,9 @@ import { liveTests, sourceInputs } from '../scripts/push-inputs.mjs';
 import pushSource from '../scripts/push-loop.py?raw';
 
 test('related tests, prefix uploads and refusal retries', () => {
-  execFileSync('python3', ['test/test_push_loop.py', '--candidate-stdin'], { input: pushSource, encoding: 'utf8', timeout: 30_000 });
+  execFileSync('python3', ['test/test_push_loop.py', '--candidate-stdin'], { input: pushSource, encoding: 'utf8', timeout: 90_000 });
   execFileSync('python3', ['scripts/test_sp_tools.py'], { encoding: 'utf8', timeout: 30_000 });
-});
+}, 120_000); // 47 real-Git fixtures: 6 s on a runner, past 30 s at load 60 with five lanes.
 
 test('failure attribution follows real transitive source imports', () => {
   expect(sourceInputs(resolve('.'), ['test/fixtures/push-inputs/unit.ts'])).toEqual([
