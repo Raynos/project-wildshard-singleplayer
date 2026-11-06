@@ -35,7 +35,12 @@ test('every title URL names its exact original bytes and shell/runtime use the s
     const encoded:unknown=JSON.parse(literal);
     if(typeof encoded!=='string')throw new Error('Shell inventory must be serialized data');
     const installed:unknown=JSON.parse(encoded);
-    expect(installed).toEqual(expect.arrayContaining(Object.values(urls)));
+    // S2: iOS reads its launch image itself, so a first visit doesn't spend 1.6 MB on it; portraits wait for control (DL1).
+    const later=(url:string):boolean=>url.includes('/launch-')||url.includes('-portrait-');
+    expect(installed).toEqual(expect.arrayContaining(Object.values(urls).filter(url=>!later(url))));
+    if(!Array.isArray(installed))throw new Error('Shell inventory must be a list');
+    expect(installed.filter(url=>typeof url==='string'&&later(url))).toEqual([]);
+    for(const url of Object.values(urls))if(url.includes('-portrait-'))expect(/^const FILES = .+$/mu.exec(result.core)?.[0]).toContain(url);
   }finally{rmSync(out,{recursive:true,force:true});}
 });
 

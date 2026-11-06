@@ -28,8 +28,10 @@ function shellFiles(html: string, root: string, sources: ReadonlyMap<string, str
   // every named deck portrait too, so that fallback cannot repeat each visit.
   for (const url of sources.keys()) add(url);
   const fonts = join(publicRoot, 'fonts');
-  if (existsSync(fonts)) for (const file of readdirSync(fonts)) if (file.endsWith('.woff2')) add(`/fonts/${file}`);
-  return [...files].sort();
+  // S2: the title's bytes. Only the Latin faces the game's text uses wait in the shell; the rest load if a glyph asks.
+  if (existsSync(fonts)) for (const file of readdirSync(fonts)) if (file.endsWith('-latin.woff2')) add(`/fonts/${file}`);
+  // S2: iOS reads the launch image itself, once, when the app is added; no page or worker route ever serves it.
+  return [...files].filter(url => !url.startsWith('/assets/title/launch-')).sort();
 }
 
 /** The build owns names. No worker parses boot banks, packs or runtime product metadata. */
@@ -42,7 +44,8 @@ export function serviceWorkerCore(bundle: Readonly<Record<string, EmittedFile>>,
   // Everything emitted under the build's folder is immutable by it: the standalone shell names its entries, and they precache with their chunks.
   const hashed = Object.keys(bundle).filter(name => /^(?:assets|b\/[\w.-]+)\/[^/]+-[\w-]{8}\.\w+$|^b\/[\w.-]+\/standalone\/[^/]+\.(?:js|wasm)$/u.test(name)).map(name => `/${name}`).sort();
   const sources = new Map(Object.entries(titleAssetURLs(root)).map(([source, url]) => [url, source]));
-  const shell = shellFiles(html, root, sources), digest = createHash('sha256');
+  // S2: a deck portrait waits for control with the code (DL1), so a first visit's title doesn't fetch every shard's.
+  const shell = shellFiles(html, root, sources), portraits = shell.filter(url => /^\/assets\/title\/[^/]+-portrait-/u.test(url)), digest = createHash('sha256');
   const owner = readFileSync(join(root, 'src/engine/client/app/workerScope.js'), 'utf8').replaceAll(/^export /gmu, '');
   const worker = readFileSync(join(root, 'src/engine/client/pwa/sw.js'), 'utf8').replace("import { workerScope } from '../app/workerScope.js';\n", '');
   const source = `${owner}\n${worker}`;
@@ -55,8 +58,8 @@ export function serviceWorkerCore(bundle: Readonly<Record<string, EmittedFile>>,
   for (const name of shell) if (name !== '/index.html') digest.update(name).update(readFileSync(join(root, 'public', sources.get(name) ?? name)));
   const build = `${buildId}-${digest.digest('hex').slice(0, 10)}`;
   const core = source.replaceAll('__BUILD_ID__', build).replaceAll('__ASSET_CACHE__', ASSET_CACHE_NAME)
-    .replace("'__FILES__'", JSON.stringify(JSON.stringify(hashed)))
-    .replace("'__SHELL_FILES__'", JSON.stringify(JSON.stringify(shell)))
+    .replace("'__FILES__'", JSON.stringify(JSON.stringify([...hashed, ...portraits])))
+    .replace("'__SHELL_FILES__'", JSON.stringify(JSON.stringify(shell.filter(url => !portraits.includes(url)))))
     .replace("'__DOCUMENT__'", JSON.stringify(html));
   return { core, build, assets: ASSET_CACHE_NAME, hashed };
 }
