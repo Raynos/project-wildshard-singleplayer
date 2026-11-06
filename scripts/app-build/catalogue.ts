@@ -2,7 +2,7 @@ import {createHash} from 'node:crypto';
 import {existsSync, readFileSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import * as v from 'valibot';
-import {packsBookPath, readSpawnManifest} from '@wildshard/format/spawnManifest';
+import {packsBookPath, readSpawnManifest} from '../../src/game/shared/shardfile/spawnManifest';
 import {StandaloneCatalogueSchema, type StandaloneCatalogue} from '@wildshard/format/standaloneCatalogue';
 import {productTarball} from '../../src/game/cook/productTarball';
 
