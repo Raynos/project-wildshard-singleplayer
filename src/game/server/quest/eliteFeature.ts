@@ -1,5 +1,6 @@
 import { sayFightView } from '@wildshard/engine/sim/shardRows';
 import { ELITE_TELL } from '../../shared/shardfile/wirePrompts';
+import { actRoutes } from '@wildshard/engine/sim/actRoutes';
 import { EliteCoreContinuationSchema } from '@wildshard/format/eliteContinuation';
 import { Vector3 } from 'three';
 import * as v from 'valibot';
@@ -60,7 +61,9 @@ export function installNativeEliteFeature(host: SimHost, day: DayCycleClock, inp
   const validateRecords = (records: Readonly<Record<string, unknown>>): void => {
     if (Object.keys(records).length !== scripts.length || scripts.some(script => records[script.def.id] === undefined)) throw new Error('Incompatible elite records');
   };
-  const held = new Vector3(), direction = new Vector3();
+  const held = new Vector3(), direction = new Vector3(), routes = actRoutes(host);
+  // Whatever way a lair's body lands a blow, and its bite isn't always its script's.
+  host.events.answer('damage.modify', req => req !== null && routes.god === true && [...host.players.values()].some(player => player.health === req.target) && scripts.some(script => script.animal?.combatActor() === req.source) ? null : req, host.scope, { order: 1 });
   host.onStep(rows.step, dt => {
     restored = undefined;
     for (const [id, stun] of stuns) {
@@ -70,7 +73,7 @@ export function installNativeEliteFeature(host: SimHost, day: DayCycleClock, inp
     }
     for (const script of scripts) {
       const at = script.animal?.position ?? script.def.lair, foe = nearestOnGround(host.players, at.x, at.z);
-      script.frame(foe.position, day.dusk, day.night, false, foe.yaw);
+      script.frame(foe.position, day.dusk, day.night, routes.god === true, foe.yaw);
     }
     core.update(dt, host.clock.now);
     for (const [index, script] of scripts.entries()) for (const strike of script.program.strikePresentation()) {
@@ -86,7 +89,7 @@ export function installNativeEliteFeature(host: SimHost, day: DayCycleClock, inp
         if (cue !== -1 && body !== null) sayFightView(host, ELITE_TELL.cue, [cue, index, effect.at.x, effect.at.y, effect.at.z, body.position.x, body.position.y, body.position.z, body.scale]);
         continue;
       }
-      if (effect.kind !== 'hit') continue;
+      if (effect.kind !== 'hit' || routes.god === true) continue;
       const body = script.program.body(effect.actor); if (body === null) throw new Error('Missing elite contact body');
       const foe = nearestOnGround(host.players, body.position.x, body.position.z);
       host.combat.hit({ source: body.combatActor(), sourceTags: [`creature.${body.kind}`, 'feel.blow', 'cover.checked'], target: foe.health,

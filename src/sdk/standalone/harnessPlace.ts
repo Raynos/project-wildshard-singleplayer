@@ -5,6 +5,9 @@
 export interface HarnessPlace { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number }
 /** How hard this player's blows land, for a harness that walks a long fight to its end by real ones. */
 export interface HarnessHits { readonly hits: number }
+/** A Developer's `?bossGod`: a fight's blows stop reaching a player, as the page's own rule stops them on a page. */
+export interface HarnessGod { readonly god: true }
+export const isHarnessGod = (value: unknown): value is HarnessGod => typeof value === 'object' && value !== null && 'god' in value && value.god === true;
 /** Raise one of this player's flags, for a door whose quest step a proof can't reach in its minutes (a thrall hunt at night). */
 export interface HarnessFlag { readonly flag: string }
 export const isHarnessFlag = (value: unknown): value is HarnessFlag => typeof value === 'object' && value !== null && 'flag' in value && typeof value.flag === 'string';

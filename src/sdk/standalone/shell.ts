@@ -11,7 +11,7 @@ import { saveDocuments } from '@wildshard/engine/saves/indexed';
 import type { SaveStorage } from '@wildshard/engine/saves/store';
 import { ServerMessageSchema, ShellMessageSchema, type ProbedRow, type ServerMessage, type ShellMessage } from '@wildshard/format/standaloneControl';
 import { answerHeldReads, type HeldRead } from './heldReads';
-import type { HarnessFlag, HarnessHits, HarnessJoin, HarnessMove, HarnessPlace } from './harnessPlace';
+import type { HarnessFlag, HarnessGod, HarnessHits, HarnessJoin, HarnessMove, HarnessPlace } from './harnessPlace';
 import { WorkerLoopback } from './workerLoopback';
 
 /** What the server should run and where the page keeps saves. */
@@ -53,6 +53,8 @@ export interface StandaloneShell {
   place: (x: number, y: number, z: number, yaw: number) => void;
   /** A harness's word on how hard this player's blows land. */
   hardHits: (by: number) => void;
+  /** A Developer's `?bossGod`, for the server that lands a fight's blows. */
+  bossGod: () => void;
   /** A harness's word that one of this player's flags is up. */
   raise: (flag: string) => void;
   /** A proof's second client, a real one on its own link: it stands at this point in this cell, and `move` puts its body elsewhere. */
@@ -98,6 +100,7 @@ export function connectStandalone(config: StandaloneConfig, control: MessagePort
     probe: () => request(id => ({ kind: 'probe', id }), message => message.kind === 'probed' ? { tick: message.tick, tickMs: message.tickMs, rows: message.rows } : null),
     place: (x, y, z, yaw) => { harness?.postMessage({ x, y, z, yaw } satisfies HarnessPlace, []); },
     hardHits: by => { harness?.postMessage({ hits: by } satisfies HarnessHits, []); },
+    bossGod: () => { harness?.postMessage({ god: true } satisfies HarnessGod, []); },
     raise: flag => { harness?.postMessage({ flag } satisfies HarnessFlag, []); },
     join: (id, x, y, z) => {
       const line = new MessageChannel(), second = new NetClient(new WorkerLoopback(line.port1));

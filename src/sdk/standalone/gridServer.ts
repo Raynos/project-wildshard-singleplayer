@@ -380,6 +380,8 @@ export class StandaloneGrid {
     const { host } = this;
     host.events.answer('damage.modify', req => req === null || landedBy(req, host.players) === null ? req : { ...req, amount: req.amount * by }, host.scope, { order: 90 });
   }
+  /** A Developer's `?bossGod`, on the pipeline that now lands the blow, and a lair's script, whose contact wears no fight's tag. */
+  bossGod(): void { this.host.combat.playerRules(this.host.scope, { bossGod: true }); actRoutes(this.host).god = true; }
   open(): void { this.rooms.open(); }
   tick(): void { this.rooms.tick(); }
   /** Resolves true when every write so far reached the real storage, and tells `held` which of its saves that makes good. */

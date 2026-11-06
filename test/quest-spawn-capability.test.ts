@@ -74,9 +74,9 @@ for (const kind of ['quest', 'animals', 'sounds'] as const) test(`declared spawn
 test('on the wire a script\'s cues and its finish show once, and a save\'s flag is no news', async () => {
   const on = Object.getOwnPropertyDescriptor(wirePage, 'on'), settled = vi.spyOn(wirePage, 'settled', 'get').mockReturnValue(false);
   Object.defineProperty(wirePage, 'on', { get: () => true, configurable: true });
-  const f = fixture(), views = new Set<(view: { name: string; args: readonly number[] }) => void>();
+  const f = fixture(), views = new Set<Parameters<NetClient['onView']>[0]>();
   wirePage.bind(legacyDouble<NetClient>({ onView: view => { views.add(view); return () => { views.delete(view); }; } }), () => undefined, () => undefined, () => false);
-  const say = (args: readonly number[], name = spawnCueWord('marsh.spawn')): void => { for (const view of views) view({ name, args }); };
+  const say = (args: readonly number[], name = spawnCueWord('marsh.spawn')): void => { for (const view of views) view({ kind: 'view', tick: 0, name, args }); };
   try {
     const result = await installDeclaredQuestSpawns(f.ctx, f.capability, pageSimFeed.spawnScript);
     expect(f.read, 'no guest on a page on the wire').not.toHaveBeenCalled();
