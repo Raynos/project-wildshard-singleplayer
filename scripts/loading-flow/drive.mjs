@@ -209,7 +209,7 @@ const READ = `JSON.stringify((() => {
   // the game's own drawn frames (it paces its draws, so the page's rAF can run at 60 while the world draws at 5): frames
   // drawn since start and its 120-slot ring of frame times, read each poll (G1008's fps and longest frame)
   let drawn = null; try { const gm = w?.game; if (gm && typeof gm.frameCount === 'number') drawn = { n: gm.frameCount, i: gm.frameI, ms: Array.from(gm.frameMs, v => Math.round(v)) }; } catch { /* not built yet */ }
-  return { documentId: window.__lf?.documentId ?? null, drawn, href: location.href, shown, styled: shown ? getComputedStyle(l).fontFamily.includes('JetBrains') : null,
+  return { documentId: window.__lf?.documentId ?? null, build: globalThis.__WS_BUILD_ID__ ?? null, drawn, href: location.href, shown, styled: shown ? getComputedStyle(l).fontFamily.includes('JetBrains') : null,
     clock: g('clock'), slug: g('slug'), tier: g('tier'), dl: g('dlFact'), dlPct: g('dlPct'), su: g('suFact'), suPct: g('suPct'),
     line: g('line'), foot: g('foot'), rows: l ? l.querySelectorAll('[data-key]').length : 0,
     lastRow: l ? [...l.querySelectorAll('[data-key]')].map(e => e.textContent.trim().slice(0,80)).at(-1) ?? null : null,

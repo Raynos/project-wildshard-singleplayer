@@ -57,8 +57,11 @@ function frameGaps(rows) {
   return gaps;
 }
 
-/** @param {Array<Record<string, any>>} rows one mode's timeline.jsonl rows, in order */
-export function analyse(rows) {
+/**
+ * @param {Array<Record<string, any>>} rows one mode's timeline.jsonl rows, in order
+ * @param {string | null} [servedBuild] run.json's version: an old worker can hold the old page after a deploy, so a run says which build it read
+ */
+export function analyse(rows, servedBuild = null) {
   const events = new Map(rows.filter(row => row.ev !== 'poll' && row.ev !== 'frames').map(row => [row.ev, row]));
   const tap = events.get('tapEnter')?.t;
   if (tap === undefined) throw new Error('no tapEnter event: the run never reached ENTER WORLD');
@@ -211,6 +214,7 @@ export function analyse(rows) {
   const playCoveredS = lastRing === undefined || control === null ? 0 : (lastRing.t - control) / 1000;
   if (play !== null) play.coveredS = round(playCoveredS, 2);
   const playJudged = playIdentity && loadingIdentity && play !== null && play.source === 'game drawn frames' && play.frames > 0 && playCoveredS >= BAR.playS;
+  const ranBuild = polls.findLast(row => typeof row.build === 'string')?.build ?? null;
   const bar = {
     reachesControl: control !== null,
     styledFromFirstFrame: firsts.cardAppears?.styled !== false && polls.filter(row => row.shown && row.t <= end).every(row => row.styled !== false),
@@ -225,10 +229,13 @@ export function analyse(rows) {
     stuckShowsRetry: control !== null || retryShown,
     // the play window really walked and boosted (an unmoved player would read a smooth standstill)
     playWalkedAndBoosted: play !== null && play.motion.walkM >= 5 && play.motion.boostEngaged && play.motion.boostM > play.motion.walkM,
+    // a recording older than the build field has no line here
+    ...(ranBuild !== null && servedBuild !== null ? { ranServedBuild: ranBuild === servedBuild } : {}),
   };
   return {
     unit: 'seconds after the ENTER WORLD tap',
     shard: events.get('tapEnter')?.shard ?? null,
+    ranBuild,
     tapAtRecordingS: round((tap - rec) / 1000),
     milestones: firsts,
     controlS: control === null ? null : T(control),
@@ -258,7 +265,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const meta = existsSync(join(dir, 'run.json')) ? JSON.parse(readFileSync(join(dir, 'run.json'), 'utf8')) : {};
   const out = { ...meta, bar: BAR };
   for (const mode of modes) {
-    const result = analyse(readRun(dir, mode));
+    const result = analyse(readRun(dir, mode), meta.version?.build ?? null);
     out[mode] = result;
     const p = result.play;
     const line = [`${mode}: ${result.pass ? 'PASS' : 'FAIL'}`, `control ${result.controlS ?? 'never'} s`, `card still ≥1 s ×${result.cardStill_ge1s.length}`,
@@ -267,7 +274,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.log(line.join('  '));
     const slow = result.loading.byStep.filter(row => row.longestMs > BAR.loadingFrameMs).map(row => `${row.step} ${row.longestMs} ms${row.over250 > 1 ? ` (x${row.over250})` : ''}`);
     if (slow.length > 0) console.log(`  loading frames > ${BAR.loadingFrameMs} ms by step: ${slow.join(' · ')}`);
-    for (const [rule, ok] of Object.entries(result.bar)) if (!ok) console.log(`  ✗ ${rule}`);
+    for (const [rule, ok] of Object.entries(result.bar)) if (!ok) console.log(`  ✗ ${rule}${rule === 'ranServedBuild' ? ` (ran ${result.ranBuild}, served ${meta.version.build})` : ''}`);
   }
   writeFileSync(join(dir, 'timeline.json'), `${JSON.stringify(out, null, 1)}\n`);
 }

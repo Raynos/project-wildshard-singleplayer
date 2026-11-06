@@ -8,6 +8,9 @@
 #   e.g. run.sh driftwood pine nine; a Debug row's A / B: run.sh --no-packs --device-save debug.earlyPrograms=on nine
 # --upgrade: one visit per shard and download with Safari's data kept, run once right after a deploy so it meets the
 # previous build's worker and caches (the last run.sh before the deploy left them); no cold or warm run.
+# The old worker serves the old page on that visit, which installs the new one: analyse.mjs fails it on ranServedBuild. The
+# next --upgrade at that origin is the new code's first load over the held caches, the reading that counts, so one visit
+# per origin: a second download or shard at the same origin is already past the swap.
 # Default base: live. Each run: <out>/<shard>/<shardfile|packs>/{cold,warm}-timeline.jsonl, -raw.mp4, timeline.json (the
 # bar's verdicts, seconds after the tap) and board.jpg (labelled, iPhone portrait). Keep boards in art/download/dl23-flow/.
 set -euo pipefail
