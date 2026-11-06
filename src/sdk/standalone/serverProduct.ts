@@ -3,7 +3,7 @@ import { isOutputIndex } from '@wildshard/format/outputAddress';
 import { parseShardfile } from '@wildshard/format/shardSchema';
 import { contentHash } from '@wildshard/game/shardfile/contentHash';
 import { nodeNamedJsonCheck, nodeOutputDescriptorChecks } from '@wildshard/game/shardfile/outputChecksNode';
-import { carryOutputDescriptor, outputDescriptor, resolveOutputDescriptor, serverReadsFile } from '@wildshard/game/shardfile/outputDescriptor';
+import { carryOutputDescriptor, isBuildValidatedOutput, outputDescriptor, resolveOutputDescriptor, serverReadsFile } from '@wildshard/game/shardfile/outputDescriptor';
 import { shardProductData } from '@wildshard/game/shardfile/productData';
 import { GRID_COLLISION_BODY, GRID_COLLISION_HEADER, readGridCollision, type GridCollisionStrip } from '@wildshard/game/grid/gridCollision';
 import { readServerPackBook, serverPackBookPath, serverPackFile, serverPackPart, type ServerPackBook, type ServerPackPart } from '@wildshard/game/shardfile/serverPack';
@@ -83,9 +83,12 @@ export async function fetchServerProduct(base: string, rapier: Rapier, held?: He
   };
   const input: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await read('shard.json')));
   if (!isOutputIndex(input)) throw new Error('Standalone needs a format-2 output');
-  const assembled = await resolveOutputDescriptor(input, { offline: false, hash: contentHash, read, checks: nodeOutputDescriptorChecks });
-  const shard = parseShardfile(assembled);
-  carryOutputDescriptor(assembled, shard);
+  // Nalati's boot was mostly this: 900 ms of 1.16 s in Node, 3-5 s on the Simulator, each file's schema compiled and checked again
+  // on bytes its build has already checked and the page has just read without checking. As on the page, only a build's own verdict
+  // for exactly these bytes spares the checks. A product with none, an outside one, keeps them.
+  const assembled = await resolveOutputDescriptor(input, { offline: false, firstParty: true, hash: contentHash, read, checks: nodeOutputDescriptorChecks });
+  const built = isBuildValidatedOutput(assembled), shard = built ? assembled : parseShardfile(assembled);
+  if (!built) carryOutputDescriptor(assembled, shard);
   const descriptor = outputDescriptor(shard);
   if (descriptor === undefined) throw new Error('Standalone output has no verified index');
   const files = new Map<string, { readonly path: string; readonly hash: string; readonly bytes: number }>();
@@ -98,7 +101,7 @@ export async function fetchServerProduct(base: string, rapier: Rapier, held?: He
     if (bytes.length !== file.bytes || await contentHash(bytes) !== file.hash) throw new Error('Server input hash or size mismatch');
     return bytes;
   };
-  const product = shardProductData(shard, root, verified, true, false, nodeNamedJsonCheck, { files: true });
+  const product = shardProductData(shard, root, verified, !built, built, nodeNamedJsonCheck, { files: true });
   const assets = new Map<string, Uint8Array>();
   // E5.2b: only what a server reads, and of that only what it asks for by hash: a named file is fetched when the product is asked
   // for it. Everything else is the page's, and every byte here would be a phone's.

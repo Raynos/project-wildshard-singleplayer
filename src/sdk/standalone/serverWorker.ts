@@ -7,6 +7,9 @@ import { askHeldReads, type HeldRead } from './heldReads';
 import { runStandaloneServer } from './serverHost';
 import { fetchGridCollision, fetchServerProduct } from './serverProduct';
 
+/** What a page hands its server's worker: what its document holds and a worker's realm has no way to read. */
+export interface ServerWorkerStart { readonly catalogue: unknown; readonly validator: unknown; readonly verdicts: unknown }
+
 /** Physics, once, from the page's own copy where it holds one (DL25). */
 let physics: Promise<Rapier> | undefined;
 const rapierOf = (held: HeldRead | undefined): Promise<Rapier> => {
@@ -19,7 +22,10 @@ const rapierOf = (held: HeldRead | undefined): Promise<Rapier> => {
 // everything after that goes through them.
 self.onmessage = (event: MessageEvent<unknown>): void => {
   self.onmessage = null;
-  if (event.data !== null) installCatalogue(event.data);
+  const start = event.data as ServerWorkerStart;
+  if (start.catalogue !== null) installCatalogue(start.catalogue);
+  // The bare names `@wildshard/format/validationReceipt` reads: this worker's bundle leaves them to its realm.
+  if (typeof start.validator === 'string' && Array.isArray(start.verdicts)) Object.assign(globalThis, { __SHARDFILE_VALIDATOR__: start.validator, __SHARDFILE_VERDICTS__: start.verdicts });
   const [control, game, harness, reads] = event.ports;
   if (control === undefined || game === undefined) return;
   const held = reads === undefined ? undefined : askHeldReads(reads);

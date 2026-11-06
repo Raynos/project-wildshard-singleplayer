@@ -12,6 +12,7 @@ import type { SaveStorage } from '@wildshard/engine/saves/store';
 import { ServerMessageSchema, ShellMessageSchema, type ProbedRow, type ServerMessage, type ShellMessage } from '@wildshard/format/standaloneControl';
 import { answerHeldReads, type HeldRead } from './heldReads';
 import type { HarnessFlag, HarnessGod, HarnessHits, HarnessJoin, HarnessMove, HarnessPlace } from './harnessPlace';
+import type { ServerWorkerStart } from './serverWorker';
 import { WorkerLoopback } from './workerLoopback';
 
 /** What the server should run and where the page keeps saves. */
@@ -118,8 +119,10 @@ export function connectStandalone(config: StandaloneConfig, control: MessagePort
 export function startStandalone(config: StandaloneConfig): StandaloneShell {
   const worker = new Worker(new URL('serverWorker.ts', import.meta.url), { type: 'module' });
   const control = new MessageChannel(), game = new MessageChannel(), harness = new MessageChannel(), reads = config.held === undefined ? undefined : new MessageChannel();
-  // C3: the page's catalogue, read at boot, is the worker's too; it has no document to read it from.
-  worker.postMessage(installedCatalogue() ?? null, [control.port2, game.port2, harness.port2, ...reads === undefined ? [] : [reads.port2]]);
+  // C3: the page's catalogue, read at boot, is the worker's too; it has no document to read it from. So are its build's
+  // verdicts, which a worker's reads ask for as the page's do (they are stamped into the document, and into nothing else).
+  worker.postMessage({ catalogue: installedCatalogue() ?? null, validator: Reflect.get(globalThis, '__WS_SHARDFILE_VALIDATOR__') ?? null, verdicts: Reflect.get(globalThis, '__WS_SHARDFILE_VERDICTS__') ?? null } satisfies ServerWorkerStart,
+    [control.port2, game.port2, harness.port2, ...reads === undefined ? [] : [reads.port2]]);
   if (reads !== undefined && config.held !== undefined) answerHeldReads(reads.port1, config.held);
   // The worker sits beside this module, so an emitted module's `/b/<build>/` folder is the server's real build (J57).
   const served = /^\/b\/([\w.-]+)\//u.exec(new URL(import.meta.url).pathname)?.[1];
