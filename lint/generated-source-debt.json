@@ -11,8 +11,6 @@
     "src/game/client/shard/art.generated.ts",
     "src/game/server/shard/manifest-closure.generated.json",
     "src/game/server/shard/portShares.generated.ts",
-    "src/game/server/shard/slugs.generated.json",
-    "src/game/shared/shard/slugs.generated.ts",
     "src/game/client/systems/effects/starter.generated.ts",
     "src/game/client/systems/viewmodel/clips.generated.ts",
     "src/game/shared/weapons/starter.generated.ts",

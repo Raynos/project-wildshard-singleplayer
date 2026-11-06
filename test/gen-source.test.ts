@@ -18,7 +18,7 @@ test('a staged path selects only the gen:source rows it feeds', () => {
   expect(ids('scripts/committed-source-tables.mjs')).toEqual(SOURCE_GENERATORS.map(row => row.id));
   expect(ids('scripts/git-source-view.mjs')).toEqual(SOURCE_GENERATORS.map(row => row.id));
   expect(ids('src/game/shared/weapons/starterBow.json')).toEqual(['starter-weapons']);
-  expect(ids('src/shards/pine-hollow/manifest.json')).toEqual(['shard-slugs', 'shard-list', 'manifest-closure', 'manifest-art']);
+  expect(ids('src/shards/pine-hollow/manifest.json')).toEqual(['shard-list', 'manifest-closure', 'manifest-art']);
   expect(ids('public/assets/music/calm/music.json')).toEqual(['boot-audio']);
   expect(ids('public/assets/title/main-crossroads-square.jpg')).toEqual(['title-asset-urls']);
   expect(ids('scripts/title-assets.mjs')).toEqual(['title-asset-urls']);
@@ -39,7 +39,7 @@ test('every registry output is listed once and committed rows own tracked inputs
     'index.html', 'native.html', 'scripts/title-assets.generated.json', 'src/engine/client/boot/ktx2.generated.ts', 'src/game/server/bag/starter.generated.ts',
     'src/game/client/boot/audio.generated.ts', 'src/game/client/boot/bytes.generated.ts', 'src/game/client/boot/packs.generated.ts',
     'src/game/client/boot/versions.generated.ts', 'src/game/client/shard/art.generated.ts', 'src/game/server/shard/manifest-closure.generated.json',
-    'src/game/server/shard/portShares.generated.ts', 'src/game/server/shard/slugs.generated.json', 'src/game/shared/shard/slugs.generated.ts',
+    'src/game/server/shard/portShares.generated.ts',
     'src/game/client/systems/effects/starter.generated.ts', 'src/game/client/systems/viewmodel/clips.generated.ts', 'src/game/shared/weapons/starter.generated.ts',
     'src/shards.generated.ts',
   ].sort());
@@ -110,7 +110,7 @@ test('audio source uses its declared root and refuses malformed catalogues', () 
 test('--stage regenerates only the committed tables a commit feeds, and they are current', async () => {
   const root = resolve(import.meta.dirname, '..');
   await expect(genSource(root, { check: true, committed: true, changed: ['src/game/shared/weapons/starterBow.json', 'src/shards/pine-hollow/manifest.json'] }))
-    .resolves.toEqual({ touched: [], owned: ['src/game/shared/weapons/starter.generated.ts', 'src/game/shared/shard/slugs.generated.ts', 'src/game/server/shard/slugs.generated.json', 'src/shards.generated.ts', 'src/game/server/shard/manifest-closure.generated.json', 'src/game/client/shard/art.generated.ts'] });
+    .resolves.toEqual({ touched: [], owned: ['src/game/shared/weapons/starter.generated.ts', 'src/shards.generated.ts', 'src/game/server/shard/manifest-closure.generated.json', 'src/game/client/shard/art.generated.ts'] });
 });
 
 
@@ -145,7 +145,7 @@ test('the committed composition table needs only declarations and preserves outp
     write('src/game/shared/grid/singleplayer.json', { placements });
     write('src/shards/island/outputs.json', { outputs: [{ slug: 'island-west' }, { slug: 'island-west' }] });
     expect(() => shardSource(root)).toThrow('invalid or duplicate output slug');
-    expect(selectSourceGenerators(['src/shards/island/outputs.json']).map(entry => entry.id)).toEqual(['shard-slugs', 'shard-list', 'manifest-closure', 'manifest-art']);
+    expect(selectSourceGenerators(['src/shards/island/outputs.json']).map(entry => entry.id)).toEqual(['shard-list', 'manifest-closure', 'manifest-art']);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 

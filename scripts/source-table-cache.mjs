@@ -9,8 +9,8 @@ import { programDiscoveryProducts } from './gen-programs.mjs';
 /** @typedef {'shards-before'|'boot'|'shards-after'} TailStep */
 /** @param {unknown} value */
 const digest = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
-const shardFiles = new Set(['src/shards.generated.ts', 'src/game/shared/shard/slugs.generated.ts',
-  'src/game/server/shard/slugs.generated.json', 'src/game/server/shard/manifest-closure.generated.json', 'lint/shard-words.generated.json']);
+const shardFiles = new Set(['src/shards.generated.ts',
+  'src/game/server/shard/manifest-closure.generated.json', 'lint/shard-words.generated.json']);
 const bootFiles = new Set(['src/game/client/boot/bytes.generated.ts', 'src/game/client/boot/versions.generated.ts',
   'src/game/client/boot/audio.generated.ts', 'src/game/client/boot/packs.generated.ts', 'src/game/client/shard/art.generated.ts',
   'public/assets/physics/rapier.wasm', 'scripts/boot-publication.generated.json']);

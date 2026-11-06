@@ -9,7 +9,7 @@ import { sourceTablesCached } from '../scripts/source-table-cache.mjs';
 
 const owned: string[] = [];
 afterEach(() => { for (const root of owned.splice(0)) rmSync(root, { recursive: true, force: true }); });
-const outputs = ['src/shards.generated.ts', 'src/game/shared/shard/slugs.generated.ts', 'src/game/server/shard/slugs.generated.json',
+const outputs = ['src/shards.generated.ts',
   'src/game/server/shard/manifest-closure.generated.json', 'lint/shard-words.generated.json'];
 function fixture() {
   const root = mkdtempSync(resolve('tmp/generation-tail-test-'));

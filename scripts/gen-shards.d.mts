@@ -5,7 +5,6 @@ export function shardFolders(root: string): string[];
 export function shardSlugs(root: string): string[];
 export function shardSource(root: string): string;
 /** Type-only facade over generated identity data, including registered frozen copies. */
-export function slugSource(root: string): string;
 export function manifestClosure(root: string): Record<string, string[]>;
 /** Core manifest/slug inputs for boot generation; full genShards publishes title tables afterward. */
 export function genShardInputs(root?: string, check?: boolean, initializeMissing?: boolean, shard?: string): void;

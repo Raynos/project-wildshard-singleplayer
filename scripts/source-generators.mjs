@@ -33,13 +33,6 @@ export const SOURCE_GENERATORS = [
   starter('starter-bag', 'scripts/gen-starter-bag.mjs', 'src/game/server/bag/starterItems.json', 'src/game/server/bag/starter.generated.ts', 'starterBagTableSource'),
   starter('starter-effects', 'scripts/gen-starter-effects.mjs', 'src/game/server/systems/effects/starterRows.json', 'src/game/client/systems/effects/starter.generated.ts', 'starterEffectsTableSource'),
   {
-    id: 'shard-slugs',
-    outputs: ['src/game/shared/shard/slugs.generated.ts', 'src/game/server/shard/slugs.generated.json'],
-    inputs: ['src/shards/*/manifest.ts', 'src/shards/*/manifest.json', 'src/shards/*/outputs.json', 'scripts/shard-outputs.mjs', 'scripts/gen-shards.mjs'],
-    committed: true,
-    generate: async root => (await import(pathToFileURL(`${root}/scripts/gen-shards.mjs`).href)).slugTables(root),
-  },
-  {
     id: 'shard-list',
     outputs: ['src/shards.generated.ts'],
     inputs: ['src/shards/*/manifest.ts', 'src/shards/*/manifest.json', 'src/shards/*/outputs.json', 'src/game/shared/grid/singleplayer.json', 'scripts/gen-shards.mjs', 'scripts/shard-outputs.mjs', 'scripts/authored-manifest.mjs', 'scripts/generated-source.mjs', 'lint/generated-source-debt.json', 'lint/generated-import-debt.json'],

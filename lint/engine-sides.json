@@ -1336,7 +1336,6 @@
   "src/game/client/shard/scopedRuntime.ts": "client",
   "src/game/shared/shard/enteredServices.ts": "shared",
   "src/game/shared/shard/slug.ts": "shared",
-  "src/game/shared/shard/slugs.generated.ts": "shared",
   "src/game/client/shard/spec.ts": "client",
   "src/game/shared/shard/terrainBake.ts": "shared",
   "src/game/client/shard/titleList.ts": "client",
