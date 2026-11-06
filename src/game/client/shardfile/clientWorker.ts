@@ -106,7 +106,7 @@ export interface WorkerClientReport {
 }
 /** A fight as a proof reads it: its row, where its body stands and the server's name for it. */
 export type WorkerClientFight = EncounterRow & { readonly at: { readonly x: number; readonly y: number; readonly z: number } | null; readonly name: string | null };
-declare global { interface Window { __workerClientFights?: () => readonly WorkerClientFight[]; __workerClientHits?: (by: number) => void; __workerClientSky?: (name: string) => void; __workerClientTime?: (pick: OptionValue<'time'>) => void; __workerClientRow?: (name: string) => number | undefined; __workerClientFlag?: (flag: string) => void; __workerClientRows?: (kind: string) => readonly { readonly x: number; readonly y: number; readonly z: number }[]; __workerClientGate?: (flag: string) => boolean; __workerClientBot?: (id: string, x: number, y: number, z: number) => { readonly move: (x: number, y: number, z: number) => void; readonly end: () => void }; __workerClient?: () => WorkerClientReport; __workerClientSave?: () => Promise<void> } }
+declare global { interface Window { __workerClientFights?: () => readonly WorkerClientFight[]; __workerClientHits?: (by: number) => void; __workerClientSky?: (name: string) => void; __workerClientTime?: (pick: OptionValue<'time'>) => void; __workerClientRow?: (name: string) => number | undefined; __workerClientFlag?: (flag: string) => void; __workerClientRows?: (kind: string) => readonly { readonly x: number; readonly y: number; readonly z: number }[]; __workerClientGate?: (flag: string) => boolean; __workerClientBot?: (id: string, x: number, y: number, z: number) => { readonly move: (x: number, y: number, z: number) => void; readonly press: (id: string) => void; readonly end: () => void }; __workerClient?: () => WorkerClientReport; __workerClientSave?: () => Promise<void> } }
 
 /** The page's pose inputs, as acts short enough to go. */
 function poseActs(names: ReadonlySet<string>): readonly string[] {
@@ -352,7 +352,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   window.__workerClientBot = (id, x, y, z) => {
     const { client: bot, move } = shell.join(id, x, y, z), STILL = { steer: { keyX: 0, keyY: 0, stickX: 0, stickY: 0 }, yaw: 0, pitch: 0, buttons: 0 };
     const beat = scope.interval(1000 / 60, () => { bot.present(); bot.command(STILL); bot.flush(); });
-    return { move, end: () => { scope.cancelTimer(beat); bot.dispose(); } };
+    return { move, press: wanted => { bot.act({ kind: 'interact', seq: 0, id: wanted }); }, end: () => { scope.cancelTimer(beat); bot.dispose(); } };
   };
   window.__workerClientFights = () => {
     const out: WorkerClientFight[] = [];

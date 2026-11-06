@@ -570,6 +570,76 @@ async function nightJourney(browser, phone, base, step) {
   await steppe.context.close();
 }
 
+/** Past one player: a door a second client swings, a bar that stays each player's own, a door across a reload, and a chapter's fact filed once. */
+async function secondClientJourney(browser, phone, base, step) {
+  const pine = await open(browser, phone, base, 'pine-hollow');
+  const { page } = pine, MILL = { x: -178.09, z: -145.32 }, millWire = 'cabin-7-door', millId = `door:${millWire}`;
+  const hasDoor = flag => async () => (await report(page)).flags.includes(flag) === true;
+  const stood = (x, z) => groundAt(page, x, z).then(y => place(page, x, y + 0.4, z));
+  const reopen = async () => { await page.reload({ waitUntil: 'load' }); await page.waitForFunction(() => typeof window.__workerClient === 'function', undefined, { timeout: 150_000 }); await page.evaluate(FLOOR_GRID_ENTER); await page.waitForFunction(() => window.__workerClient().frames > 30, undefined, { timeout: 60_000 }); };
+  const free = await page.evaluate(wanted => { const row = window.__wildshard.world.interactables.find(entry => entry.wireId?.includes('door') && entry.wireId !== wanted); return row === undefined ? null : { id: row.wireId, x: row.position.x, y: row.position.y, z: row.position.z }; }, millWire);
+  await step('second client: its press swings a door, and this page sees it', async () => {
+    if (free === null) return { ok: false, why: 'no free door' };
+    await page.evaluate(({ x, y, z }) => { window.__secondClient = window.__workerClientBot('bot:2', x + 0.8, y - 1, z + 0.8); }, free);
+    await page.waitForTimeout(1500);
+    await page.evaluate(id => { window.__secondClient.press(id); }, free.id);
+    const opened = await until(page, hasDoor(`door:${free.id}`), 6);
+    await page.waitForTimeout(1800);
+    await page.evaluate(id => { window.__secondClient.press(id); }, free.id);
+    const shut = await until(page, async () => !await hasDoor(`door:${free.id}`)(), 6);
+    return { ok: opened === true && shut === true, id: free.id, opened, shut, flags: (await report(page)).flags.filter(flag => flag.startsWith('door')) };
+  });
+  await step('second client: a bar is each player\'s own', async () => {
+    const barred = await page.evaluate(() => window.__wildshard.world.registry.get('mill-door-bar')?.active?.() ?? null);
+    await page.evaluate(({ x, z, ground }) => { window.__secondClient.move(x + 1.1, ground + 0.4, z); }, { ...MILL, ground: await groundAt(page, MILL.x + 1.1, MILL.z) });
+    await page.waitForTimeout(1500);
+    await page.evaluate(id => { window.__secondClient.press(id); }, millWire);
+    await page.waitForTimeout(1200);
+    const refused = !await hasDoor(millId)();
+    await page.evaluate(() => { window.__workerClientFlag('errand:done'); });
+    const mine = await until(page, () => page.evaluate(() => window.__workerClientGate('errand:done')), 4);
+    await page.evaluate(id => { window.__secondClient.press(id); }, millWire);
+    await page.waitForTimeout(1200);
+    const stillBarredForIt = !await hasDoor(millId)();
+    await stood(MILL.x + 1.1, MILL.z); await page.waitForTimeout(1200); await press(page);
+    const opened = await until(page, hasDoor(millId), 5);
+    return { ok: barred === true && refused && mine === true && stillBarredForIt && opened === true, barred, refused, mine, stillBarredForIt, opened };
+  });
+  await step('a door left open stands open across a reload', async () => {
+    await page.evaluate(() => { window.__secondClient.end(); });
+    await page.waitForTimeout(1500);
+    await page.evaluate(() => Promise.race([window.__workerClientSave(), new Promise(resolve => { setTimeout(resolve, 20_000); })]));
+    const saved = await report(page);
+    await reopen();
+    await page.waitForTimeout(2000);
+    const flagged = await hasDoor(millId)(), r0 = await report(page);
+    await stood(MILL.x + 2.6, MILL.z); await page.waitForTimeout(1300);
+    await walkInto(page, Math.PI / 2, 3.5, () => page.evaluate(wanted => window.__wildshard.world.player.position.x < wanted, MILL.x - 1));
+    await page.waitForTimeout(500);
+    const r = await report(page), went = r.x < MILL.x - 0.5 && r.serverX < MILL.x - 0.5;
+    return { ok: saved.savedOk && r0.restored && flagged && went, savedOk: saved.savedOk, restored: r0.restored, flagged, went, x: r.x, serverX: r.serverX };
+  });
+  await step('second client: no page error', () => ({ ok: pine.errors.length === 0, errors: [...new Set(pine.errors)].slice(0, 6) }));
+  await pine.context.close();
+  const steppe = await open(browser, phone, base, 'nalati-grasslands');
+  const nalati = steppe.page, FACT = 'nalati.quest.tulpar', filed = async () => (await report(nalati)).receipts.filter(line => line === `fact:${FACT}`).length, kept = () => nalati.evaluate(() => window.__wildshard.shard['ledger.records']?.() ?? null);
+  await step('a chapter\'s fact is filed once, and a reload files it no more', async () => {
+    const before = await kept();
+    for (const flag of ['talked:elder', 'tamed:horse', 'won:kokpar', 'told:tulpar']) { await nalati.evaluate(wanted => { window.__workerClientFlag(wanted); }, flag); await nalati.waitForTimeout(300); }
+    const done = await until(nalati, async () => (await report(nalati)).flags.includes('quest:tulpar'), 8);
+    await nalati.waitForTimeout(2500);
+    const once = await filed(), first = await kept(), all = (await report(nalati)).receipts;
+    await nalati.evaluate(() => Promise.race([window.__workerClientSave(), new Promise(resolve => { setTimeout(resolve, 20_000); })]));
+    await nalati.waitForTimeout(800);
+    await nalati.reload({ waitUntil: 'load' }); await nalati.waitForFunction(() => typeof window.__workerClient === 'function', undefined, { timeout: 150_000 }); await nalati.evaluate(FLOOR_GRID_ENTER); await nalati.waitForFunction(() => window.__workerClient().frames > 30, undefined, { timeout: 60_000 });
+    await nalati.waitForTimeout(4000);
+    const again = await filed(), second = await kept();
+    return { ok: done === true && once === 1 && again === 0 && first === before + all.filter(line => line.startsWith('fact:')).length && second === first, done, once, again, before, first, second, receipts: all };
+  });
+  await step('nalati, a second time: no page error', () => ({ ok: steppe.errors.length === 0, errors: [...new Set(steppe.errors)].slice(0, 6) }));
+  await steppe.context.close();
+}
+
 export async function fights(browser, phone, base, only, step) {
   const runs = name => only === '' || only === 'fights' || only === name;
 
@@ -736,6 +806,7 @@ export async function fights(browser, phone, base, only, step) {
   if (runs('nalati')) await nalatiJourney(browser, phone, base, step);
   if (runs('chapters')) await chapterJourney(browser, phone, base, step);
   if (runs('night')) await nightJourney(browser, phone, base, step);
+  if (runs('second')) await secondClientJourney(browser, phone, base, step);
 
   // The sky: the rows move on their own, and a Weather setting goes up and comes back.
   if (runs('sky')) {
