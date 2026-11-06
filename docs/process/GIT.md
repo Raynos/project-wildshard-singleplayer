@@ -66,6 +66,8 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   Tool source lives in `scripts/`; disposable tool logs live in `tmp/sp-tools/`. The pane inherits the current
   tool environment without version-pinned Codex PATH entries.
   Never run `git push` or start the retired carrier/full local push gate.
+  `scripts/push-loop.py --push <revision>` is one tick of exactly that ancestor of `main`: the carrier gates a tip
+  in a clean clone while lanes keep committing, then publishes the commit it gated. Any other argument is refused.
 - **The local push gate has one hard 45-second wall clock (G568/G768).**
   Checks read committed changes. A check that completes with a failure inside
   the cap ejects its source commit to the owning lane. Slow, unfinished or

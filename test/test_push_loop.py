@@ -108,7 +108,7 @@ class PushLoop(unittest.TestCase):
     def test_cli_refuses_unknown_arguments_before_any_tick(self):
         tip = self.commit('src/good.ts')
         env = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
-        for arguments in (['--help'], ['--check'], ['--dry-run'], ['--check', 'HEAD', 'extra']):
+        for arguments in (['--help'], ['--check'], ['--push'], ['--dry-run'], ['--check', 'HEAD', 'extra']):
             refused = subprocess.run([sys.executable, str(ROOT / 'scripts/push-loop.py'), *arguments],
                                      cwd=self.root, env=env, capture_output=True, text=True, timeout=3)
             self.assertEqual(refused.returncode, 2, refused.stdout)
@@ -116,6 +116,31 @@ class PushLoop(unittest.TestCase):
             self.assertIn('usage: push-loop.py', refused.stderr)
         self.assertEqual(self.git('rev-parse', 'origin/main'), self.base)
         self.assertEqual(self.git('rev-parse', 'main'), tip)
+
+    def test_a_named_revision_publishes_only_that_ancestor_of_main(self):
+        gated = self.commit('src/gated.ts')
+        later = self.commit('src/later.ts')
+        checks, uploads = [], []
+        def checker(root, base, tip, deadline):
+            checks.append(tip)
+            return {'ok': True, 'output': ''}
+        def upload(revision, environment):
+            uploads.append(revision)
+            return 0
+        result = PUSH['tick'](self.root, checker=checker, uploader=upload, revision=gated)
+        self.assertEqual((result['status'], result['tip']), ('pushed', gated))
+        self.assertEqual((checks, uploads), ([gated], [gated]))
+        self.assertEqual(self.git('rev-parse', 'main'), later)
+
+    def test_a_named_revision_off_main_is_refused(self):
+        self.commit('src/good.ts')
+        self.git('checkout', '-qb', 'side', self.base)
+        side = self.commit('src/side.ts')
+        self.git('checkout', '-q', 'main')
+        def never(*args):
+            raise AssertionError('no check or upload')
+        result = PUSH['tick'](self.root, checker=never, uploader=never, revision=side)
+        self.assertEqual((result['status'], result['tip']), ('diverged', side))
 
     def test_quiet_sample_never_defers_checks_or_upload(self):
         tip = self.commit('src/good.ts')

@@ -197,7 +197,7 @@ def refusal_signature(output):
     return re.sub(r'\d+(?:\.\d+)?(?:ms|s)\b', '<time>', plain)
 
 
-def tick(root, checker=check_committed, uploader=None, notify=ping):
+def tick(root, checker=check_committed, uploader=None, notify=ping, revision='main'):
     common = Path(git(root, 'rev-parse', '--path-format=absolute', '--git-common-dir'))
     started = time.monotonic()
     # G768: no quiet pause, red hold, subset, batch splitting or handoff tags.
@@ -223,9 +223,11 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
         return result
 
     base = git(root, 'rev-parse', 'origin/main')
-    tip = git(root, 'rev-parse', 'main')
+    tip = git(root, 'rev-parse', revision)
     if base == tip:
         return {'status': 'idle', 'tip': tip}
+    if git(root, 'merge-base', tip, 'main') != tip:
+        return {'status': 'diverged', 'tip': tip}
     if git(root, 'merge-base', base, tip) != base:
         return {'status': 'diverged', 'tip': tip}
     try:
@@ -282,8 +284,8 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
 
 def main():
     # Any other argument, --help included, must not fall through to a real tick.
-    if sys.argv[1:] and not (len(sys.argv) == 3 and sys.argv[1] == '--check'):
-        print('usage: push-loop.py [--check <revision>]', file=sys.stderr)
+    if sys.argv[1:] and not (len(sys.argv) == 3 and sys.argv[1] in ('--check', '--push')):
+        print('usage: push-loop.py [--check <revision> | --push <revision>]', file=sys.stderr)
         return 2
     root = Path(git(Path.cwd(), 'rev-parse', '--show-toplevel'))
     if len(sys.argv) == 3 and sys.argv[1] == '--check':
@@ -301,7 +303,8 @@ def main():
         except BlockingIOError:
             print(json.dumps({'status': 'busy'}))
             return 0
-        result = tick(root)
+        # --push publishes one gated ancestor of main, not whatever landed since.
+        result = tick(root, revision=sys.argv[2] if len(sys.argv) == 3 else 'main')
         result.setdefault('steps', [])
     (folder / 'current.log').write_text(result.pop('output', '') + '\n' + json.dumps(result) + '\n')
     with (common / 'push.log').open('a') as log:
