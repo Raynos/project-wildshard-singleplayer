@@ -6,7 +6,7 @@ import { nodeNamedJsonCheck, nodeOutputDescriptorChecks } from '@wildshard/game/
 import { carryOutputDescriptor, outputDescriptor, resolveOutputDescriptor, serverReadsFile } from '@wildshard/game/shardfile/outputDescriptor';
 import { shardProductData } from '@wildshard/game/shardfile/productData';
 import { GRID_COLLISION_BODY, GRID_COLLISION_HEADER, readGridCollision, type GridCollisionStrip } from '@wildshard/game/grid/gridCollision';
-import { readServerPackBook, serverPackBookPath, serverPackFile, type ServerPack, type ServerPackBook } from '@wildshard/game/shardfile/serverPack';
+import { readServerPackBook, serverPackBookPath, serverPackFile, serverPackPart, type ServerPackBook, type ServerPackPart } from '@wildshard/game/shardfile/serverPack';
 import type { HeadlessRuntimeInput } from '../headlessRuntime';
 import type { HeldRead } from './heldReads';
 
@@ -15,9 +15,7 @@ function heldBytes(url: URL): Promise<Response | undefined> | undefined {
   return typeof caches === 'undefined' ? undefined : caches.match(url.href, { ignoreSearch: true, ignoreVary: true });
 }
 /** The network's answer, or offline what the device holds: a level the player has been to boots with no link. Every byte is verified after this. */
-async function serverBytes(url: URL, path: string, held?: HeldRead): Promise<Uint8Array> {
-  const lent = await held?.(url.href); // DL25: what the page holds moves no bytes
-  if (lent !== undefined && lent !== null) return new Uint8Array(lent);
+async function serverBytes(url: URL, path: string): Promise<Uint8Array> {
   const response = await fetch(url).catch(() => undefined);
   const usable = response?.ok === true ? response : await heldBytes(url);
   if (usable === undefined) throw new Error(`Missing server input ${path}`);
@@ -44,19 +42,27 @@ export async function fetchGridCollision(base: string): Promise<readonly GridCol
   return readGridCollision(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(file(GRID_COLLISION_HEADER))), file(GRID_COLLISION_BODY));
 }
 
-/** C2: reads a server file from its product's pack, fetching the book and the pack once. The browser undoes `br`. */
+/** C2: reads a server file from its product's pack, fetching the book once and a part only for a file it holds. The browser
+ *  undoes `br`. A read file is copied out and its part left to the collector: a phone's worker shouldn't hold a level's worth
+ *  of them, and reading one again is a cache hit. */
 function serverPackReader(root: string, slug: string): (path: string) => Promise<Uint8Array> {
-  let opened: Promise<{ readonly pack: ServerPack; readonly body: Uint8Array }> | undefined;
-  const open = async (): Promise<{ readonly pack: ServerPack; readonly body: Uint8Array }> => {
-    const book = await serverBook(root);
-    const pack = book.shards[slug];
-    if (pack === undefined) throw new Error(`No server pack for ${slug}`);
-    return { pack, body: await serverBytes(new URL(pack.url, root), pack.url) };
+  const opening = new Map<string, Promise<Uint8Array>>(), opened = new Map<string, WeakRef<Uint8Array>>();
+  let book: Promise<ServerPackBook> | undefined;
+  const body = (part: ServerPackPart): Promise<Uint8Array> => {
+    const kept = opened.get(part.url)?.deref();
+    if (kept !== undefined) return Promise.resolve(kept);
+    const waiting = opening.get(part.url);
+    if (waiting !== undefined) return waiting;
+    const read = serverBytes(new URL(part.url, root), part.url).then(bytes => { opened.set(part.url, new WeakRef(bytes)); return bytes; }).finally(() => { opening.delete(part.url); });
+    opening.set(part.url, read);
+    return read;
   };
   return async path => {
-    const { pack, body } = await (opened ??= open()), bytes = serverPackFile(pack, body, path);
+    const pack = (await (book ??= serverBook(root))).shards[slug];
+    if (pack === undefined) throw new Error(`No server pack for ${slug}`);
+    const part = serverPackPart(pack, path), bytes = part === undefined ? undefined : serverPackFile(part, await body(part), path);
     if (bytes === undefined) throw new Error(`Missing server input ${path}`);
-    return bytes;
+    return bytes.slice();
   };
 }
 
@@ -66,9 +72,15 @@ function serverPackReader(root: string, slug: string): (path: string) => Promise
  */
 export async function fetchServerProduct(base: string, rapier: Rapier, held?: HeldRead): Promise<HeadlessRuntimeInput> {
   const root = new URL(base, globalThis.location.href).href, slug = new URL('.', root).pathname.split('/').at(-2) ?? '';
-  // C2: the server class sits outside the tree a client reads (J91), in one pack this build's book names.
+  // C2: all of it is in the pack this build's book names, the server class only there (J91). The page lends what it holds
+  // (DL25), so that moves no bytes. A host with no book, or one offline after a new build, reads what the device kept.
   const serverFile = serverPackReader(root, slug);
-  const read = (path: string): Promise<Uint8Array> => path.startsWith('server/') ? serverFile(path) : serverBytes(new URL(path, root), path, held);
+  const read = async (path: string): Promise<Uint8Array> => {
+    if (path.startsWith('server/')) return serverFile(path);
+    const url = new URL(path, root), lent = await held?.(url.href);
+    if (lent !== undefined && lent !== null) return new Uint8Array(lent);
+    return serverFile(path).catch(() => serverBytes(url, path));
+  };
   const input: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await read('shard.json')));
   if (!isOutputIndex(input)) throw new Error('Standalone needs a format-2 output');
   const assembled = await resolveOutputDescriptor(input, { offline: false, hash: contentHash, read, checks: nodeOutputDescriptorChecks });

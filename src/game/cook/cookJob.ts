@@ -15,8 +15,7 @@ import {prepareAssetDecoders} from '@wildshard/format/product';
 import {validateShardfileProduct, type ValidatedProduct} from '@wildshard/format/productValidation';
 import type {Shardfile} from '@wildshard/format/shardSchema';
 import {readTar} from '@wildshard/format/tar';
-import {serverReadsFile} from '../shared/shardfile/outputDescriptor';
-import {cookShard, openShardfile, type CookReport, type OpenShardfile, type WireBytes} from './shardCook';
+import {cookShard, openShardfile, serverRows, type CookReport, type OpenShardfile, type WireBytes} from './shardCook';
 import type {PartEncoder} from './spawnParts';
 
 /** D31: the largest shardfile, stored or decoded, until `api-server`'s cap rises for a shard that needs it (J137). */
@@ -60,17 +59,9 @@ function admit(tarball: Uint8Array, cap: number): ValidatedProduct {
   } catch (error) { throw new ShardfileRefusedError(error instanceof Error ? error.message : 'Shardfile refused', {cause: error}); }
 }
 
-/** What a server reads of a shard: a product's own layout, less what only a page draws. */
-export function serverPackPaths(shard: OpenShardfile): readonly string[] {
-  const {index, source} = shard, paths = new Set(['shard.json', ...index.sections.map(row => row.path), ...index.schemas.map(row => row.path)]);
-  for (const row of index.admission.server ?? []) paths.add(row.path);
-  for (const row of index.files) if (serverReadsFile(row, source.terrain?.collider)) paths.add(row.path);
-  return [...paths];
-}
-
 function writeServerPack(shard: OpenShardfile, out: string): ServerPackReport {
   let bytes = 0;
-  const paths = serverPackPaths(shard);
+  const paths = serverRows(shard).map(row => row.path);
   for (const path of paths) {
     const body = shard.read(path), file = join(out, path);
     mkdirSync(dirname(file), {recursive: true}); writeFileSync(file, body); bytes += body.length;

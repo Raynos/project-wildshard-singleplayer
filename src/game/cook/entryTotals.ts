@@ -11,7 +11,7 @@ import {createHash} from 'node:crypto';
 import {readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnManifestAddress} from '../shared/shardfile/spawnManifest';
 import {assetIdentities, audioTableRefs, bundlerSources as manifestSources, identityFiles, joinRefs, standInRefs, packMembers, readFenceReads, resolveFenceReads, sectionRefs, type PackPart} from './fenceReads';
 import {createPartEncoder, writeSpawnParts, type CookedMember, type SpawnPartEncoding} from './spawnParts';
-import {cookParts, cookServerPack, openShardfile, servedAsIs, shardHalf} from './shardCook';
+import {cookParts, cookShardServerPack, openShardfile, servedAsIs, shardHalf} from './shardCook';
 import type {ServerPack} from '../shared/shardfile/serverPack';
 import {contentNamed} from './contentNamed';
 // oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
@@ -162,8 +162,7 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
     const shardRows = {phone: {entry: half.productRows('phone', 'entry'), whole: half.productRows('phone', 'whole')},
       desktop: {entry: half.productRows('desktop', 'entry'), whole: half.productRows('desktop', 'whole')}};
     for (const [url, member] of await cookParts(output, half, [{tier: 'phone', rows: shardRows.phone.whole}, {tier: 'desktop', rows: shardRows.desktop.whole}], encoder)) cooked.set(url, member);
-    const serverPack = await cookServerPack(half.shard.index.admission.server ?? [], half.shard.read, output, encoder);
-    if (serverPack !== undefined) serverPacks[directory] = serverPack;
+    serverPacks[directory] = await cookShardServerPack(half.shard, output, encoder);
     for (const table of [shardRows.phone, shardRows.desktop]) for (const row of [...table.entry, ...table.whole]) {
       const stable = half.stableKey(row.url); if (stable !== undefined) stableKeys.set(row.url, stable);
     }

@@ -280,7 +280,7 @@ export function createCookWorker(options: CookWorkerOptions): CookWorker {
     const target = join(serverPacks, report.slug, hash), parked = `${target}.${process.pid}.tmp`;
     rmSync(parked, {recursive: true, force: true}); mkdirSync(dirname(target), {recursive: true});
     cpSync(join(work, 'out/server'), parked, {recursive: true}); rmSync(target, {recursive: true, force: true}); renameSync(parked, target);
-    const index: CookIndex = {version: 1, build, slug: report.slug, hash, header: report.header, manifests: report.cook.manifests, keys, server: report.server, ...(report.cook.server === undefined ? {} : {serverPack: report.cook.server}), proof: report.proof === 'unmeasured' ? 'unmeasured' : 'proved', seconds: report.seconds};
+    const index: CookIndex = {version: 1, build, slug: report.slug, hash, header: report.header, manifests: report.cook.manifests, keys, server: report.server, serverPack: report.cook.server, proof: report.proof === 'unmeasured' ? 'unmeasured' : 'proved', seconds: report.seconds};
     await store.put(indexKey(build, hash), new TextEncoder().encode(JSON.stringify(index)), {type: 'application/json', cache: 'public, max-age=300'});
   };
   const attempt = async (head: {readonly slug: string; readonly hash: string}, tarball: Uint8Array, work: string): Promise<CookRow> => {

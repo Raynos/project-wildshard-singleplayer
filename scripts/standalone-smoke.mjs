@@ -33,10 +33,11 @@ let pointer = firstBuild;
 const html = readFileSync(join(OUT, 'index.html'), 'utf8');
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.wasm': 'application/wasm' };
-const unpacked = option('product', ''), product = unpacked === '' ? readBuiltShardfile(ROOT, slug) : resolveFile(unpacked), physics = join(ROOT, 'public/assets/physics');
+const unpacked = option('product', ''), product = unpacked !== '' ? resolveFile(unpacked) : dist === '' ? readBuiltShardfile(ROOT, slug) : '', physics = join(ROOT, 'public/assets/physics');
 const resolvePath = path => {
   const inside = (root, tail) => { const file = resolveFile(root, `.${tail}`); return file === root || file.startsWith(root + sep) ? file : null; };
-  if (path.startsWith(`/shards/${slug}/`)) return inside(resolveFile(product), path.slice(`/shards/${slug}`.length));
+  // C2: a build's worker reads its server packs. The product's folder is there only for a run with no build, or a tarball's.
+  if (path.startsWith(`/shards/${slug}/`) && (dist === '' || unpacked !== '')) return inside(resolveFile(product), path.slice(`/shards/${slug}`.length));
   if (path.startsWith('/assets/spawn/')) return inside(output, path.replace(`server-${nextBuild}.json`, `server-${firstBuild}.json`)); // C2: a server pack and its book, where a build wrote them
   if (path.startsWith('/assets/physics/')) return inside(physics, path.slice('/assets/physics'.length));
   for (const id of [firstBuild, nextBuild]) if (path.startsWith(`/${codeDirectory(id)}/`)) return inside(join(output, codeDirectory(firstBuild)), path.slice(`/${codeDirectory(id)}`.length));

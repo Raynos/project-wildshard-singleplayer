@@ -18,7 +18,8 @@ import {assembleOutputShardfile, parseOutputIndex, type OutputIndex} from '@wild
 import {SPAWN_PART_ALIGN, readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnPart} from '../shared/shardfile/spawnManifest';
 import type {Shardfile} from '@wildshard/format/shardSchema';
 import {readTar} from '@wildshard/format/tar';
-import type {ServerPack} from '../shared/shardfile/serverPack';
+import type {ServerPack, ServerPackPart} from '../shared/shardfile/serverPack';
+import {serverReadsFile} from '../shared/shardfile/outputDescriptor';
 import {entryReadSet} from './entryReadSet';
 import {createPartEncoder, packable, writeSpawnParts, type CookedMember, type PartEncoder} from './spawnParts';
 
@@ -173,9 +174,48 @@ export async function cookParts(out: string, half: ShardHalf, tables: readonly {
   return placed;
 }
 
-/** C2: the server class as one part, in its own folder: the download gates tell a server's reads from a page's by path. A
- *  product with no server files has none. */
-export async function cookServerPack(rows: readonly {readonly path: string; readonly hash: string; readonly bytes: number}[], read: (path: string) => Uint8Array, out: string, encoder: PartEncoder): Promise<ServerPack | undefined> {
+interface ServerRow {readonly path: string; readonly hash: string; readonly bytes: number; readonly name?: string | undefined}
+/** C2: a part of what the page can also read stays this small, so one file a page can't lend costs a few files, not a level. */
+export const SERVER_PART_BYTES = 2_000_000;
+
+/** What a server reads of a shard, in a product's own layout: everything but what only a page draws. */
+export function serverRows(shard: OpenShardfile): readonly ServerRow[] {
+  const {index, source} = shard, rows = new Map<string, ServerRow>();
+  const add = (row: ServerRow): void => { if (!rows.has(row.path)) rows.set(row.path, row); };
+  add({path: 'shard.json', hash: sha256(shard.header), bytes: shard.header.length});
+  for (const row of [...index.sections, ...index.schemas, ...index.admission.server ?? []]) add({path: row.path, hash: row.hash, bytes: row.bytes});
+  for (const row of index.files) if (serverReadsFile(row, source.terrain?.collider)) add({path: row.path, hash: row.hash, bytes: row.compressed, name: row.name});
+  return [...rows.values()];
+}
+
+/** Cut rows into parts in name order, so files a system reads together tend to land together. */
+function serverParts(rows: readonly ServerRow[]): readonly (readonly ServerRow[])[] {
+  const parts: ServerRow[][] = [];
+  let bytes = 0;
+  for (const row of [...rows].sort((left, right) => (left.name ?? left.path) < (right.name ?? right.path) ? -1 : 1)) {
+    const open = parts.at(-1);
+    if (open === undefined || bytes + row.bytes > SERVER_PART_BYTES) { parts.push([row]); bytes = row.bytes; }
+    else { open.push(row); bytes += row.bytes; }
+  }
+  return parts;
+}
+
+/** C2: all a shard's server reads, so a host needs nothing else. The class leads, as no page holds it; the rest are files
+ *  a page mostly holds too, which the worker asks it for first. */
+export async function cookServerRows(rows: readonly ServerRow[], serverClass: ReadonlySet<string>, read: (path: string) => Uint8Array, out: string, encoder: PartEncoder): Promise<ServerPack> {
+  const groups = [rows.filter(row => serverClass.has(row.path)), ...serverParts(rows.filter(row => !serverClass.has(row.path)))];
+  const cooked: ServerPackPart[] = [];
+  for (const group of groups) { const part = await cookServerPack(group, read, out, encoder); if (part !== undefined) cooked.push(part); }
+  const [first, ...more] = cooked;
+  if (first === undefined) throw new Error('A server pack needs a file');
+  return more.length === 0 ? first : {...first, more};
+}
+export const cookShardServerPack = (shard: OpenShardfile, out: string, encoder: PartEncoder): Promise<ServerPack> =>
+  cookServerRows(serverRows(shard), new Set((shard.index.admission.server ?? []).map(row => row.path)), shard.read, out, encoder);
+
+/** C2: one part of a server pack, in its own folder: the download gates tell a server's reads from a page's by path. No
+ *  rows, no part. */
+export async function cookServerPack(rows: readonly {readonly path: string; readonly hash: string; readonly bytes: number}[], read: (path: string) => Uint8Array, out: string, encoder: PartEncoder): Promise<ServerPackPart | undefined> {
   if (rows.length === 0) return undefined;
   const align = (at: number): number => Math.ceil(at / SPAWN_PART_ALIGN) * SPAWN_PART_ALIGN;
   const sorted = [...rows].sort((left, right) => left.path < right.path ? -1 : 1);
@@ -197,7 +237,7 @@ export interface CookReport {
   readonly manifests: readonly {readonly url: string; readonly tier: CookTier; readonly set: CookSet; readonly files: number; readonly totalBytes: number; readonly wireBytes: number}[];
   readonly loose: readonly string[];
   readonly parts: {readonly count: number; readonly rawBytes: number; readonly wireBytes: number};
-  readonly server: {readonly url: string; readonly index: string; readonly wireBytes: number; readonly files: number} | undefined;
+  readonly server: {readonly url: string; readonly index: string; readonly wireBytes: number; readonly files: number};
 }
 
 /** `cook <shardfile> → <packs>`: the shard's half of every manifest, its parts, and its loose mounts at their URLs. */
@@ -219,10 +259,10 @@ export async function cookShard(tarball: Uint8Array, out: string, options: {read
     writeFileSync(join(out, name), text);
     manifests.push({url: `/${name}`, tier: row.tier, set: row.set, files: row.rows.length, totalBytes, wireBytes: wire});
   }
-  const server = await cookServerPack(half.shard.index.admission.server ?? [], half.shard.read, out, encoder);
+  const server = await cookShardServerPack(half.shard, out, encoder);
   // Content-named, so two revisions of a shard never share a name in the store (J29, J83).
-  const serverText = server === undefined ? undefined : JSON.stringify(server), serverIndex = serverText === undefined ? undefined : `assets/spawn/server-${half.shard.slug}-${sha256(new TextEncoder().encode(serverText)).slice(0, 16)}.json`;
-  if (serverText !== undefined && serverIndex !== undefined) writeFileSync(join(out, serverIndex), serverText);
+  const serverText = JSON.stringify(server), serverIndex = `assets/spawn/server-${half.shard.slug}-${sha256(new TextEncoder().encode(serverText)).slice(0, 16)}.json`;
+  writeFileSync(join(out, serverIndex), serverText);
   // What no part may hold still serves at its URL (DL14: `<img>` and module loads pass any fetch layer).
   const loose = (half.shard.cook?.mounts ?? []).filter(row => !packable(row.url) || !row.url.startsWith('/assets/'));
   for (const row of loose) {
@@ -235,6 +275,6 @@ export async function cookShard(tarball: Uint8Array, out: string, options: {read
     const file = join(out, 'shardfiles', half.shard.slug, path);
     mkdirSync(dirname(file), {recursive: true}); writeFileSync(file, half.shard.read(path));
   }
-  return {slug: half.shard.slug, seconds: (options.now() - started) / 1000, manifests, loose: loose.map(row => row.url), server: server === undefined || serverIndex === undefined ? undefined : {url: server.url, index: `/${serverIndex}`, wireBytes: server.wireBytes, files: server.files.length},
+  return {slug: half.shard.slug, seconds: (options.now() - started) / 1000, manifests, loose: loose.map(row => row.url), server: {url: server.url, index: `/${serverIndex}`, wireBytes: [server, ...server.more ?? []].reduce((sum, part) => sum + part.wireBytes, 0), files: [server, ...server.more ?? []].reduce((sum, part) => sum + part.files.length, 0)},
     parts: {count: after.parts - before.parts, rawBytes: after.rawBytes - before.rawBytes, wireBytes: after.wireBytes - before.wireBytes}};
 }

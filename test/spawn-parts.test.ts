@@ -9,8 +9,8 @@ import { createHash } from 'node:crypto';
 import { afterAll, expect, test } from 'vitest';
 import { PART_BYTES, createPartEncoder, packable, placeByKey, placementKey, spawnPartGroups, writeSpawnParts, type SpawnPartInput } from '../src/game/cook/spawnParts';
 import { readSpawnManifest, type SpawnFile, type SpawnPart } from '../src/game/shared/shardfile/spawnManifest';
-import { cookServerPack } from '../src/game/cook/shardCook';
-import { serverPackFile } from '../src/game/shared/shardfile/serverPack';
+import { SERVER_PART_BYTES, cookServerPack, cookServerRows } from '../src/game/cook/shardCook';
+import { serverPackFile, serverPackPart } from '../src/game/shared/shardfile/serverPack';
 
 mkdirSync('tmp', { recursive: true });
 const out = mkdtempSync(resolve('tmp/spawn-parts-'));
@@ -206,6 +206,23 @@ test('past the section parts, a small content part comes before a big asset part
   const [table] = await writeSpawnParts(out, [manifest(rows)], url => noise(url, rows.find(row => row.url === url)?.bytes ?? 0), undefined, encoder());
   const first = (table ?? []).map(part => rows[part.members[0]?.[0] ?? -1]?.url);
   expect(first).toEqual([small.url, big.url]);
+});
+
+test('C2: a shard\'s pack leads with its server class, and the rest fall in small parts a reader finds', async () => {
+  const folder = mkdtempSync(resolve('tmp', 'server-pack-')), hash = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
+  const filled = (fill: number, bytes: number): Uint8Array => new Uint8Array(bytes).fill(fill);
+  const files = new Map([['shard.json', new TextEncoder().encode('{}')], ['server/class.bin', filled(1, 64)], ['sections/a.json', filled(2, 64)], ['blobs/bin/a.bin', filled(3, SERVER_PART_BYTES - 200)],
+    ['blobs/bin/b.bin', filled(4, SERVER_PART_BYTES)], ['blobs/bin/c.bin', filled(5, 64)]]);
+  const rows = [...files].map(([path, bytes]) => ({path, hash: hash(bytes), bytes: bytes.length}));
+  try {
+    const pack = await cookServerRows(rows, new Set(['server/class.bin']), path => files.get(path) ?? new Uint8Array(), folder, createPartEncoder(resolve(folder, 'cache'), 1));
+    expect(pack.files.map(row => row[0])).toEqual(['server/class.bin']);
+    for (const path of files.keys()) expect(serverPackPart(pack, path), path).toBeDefined();
+    for (const part of pack.more ?? []) expect(part.bytes).toBeLessThanOrEqual(SERVER_PART_BYTES + 256);
+    const part = serverPackPart(pack, 'blobs/bin/a.bin');
+    if (part === undefined) throw new Error('No part');
+    expect(serverPackFile(part, brotliDecompressSync(readFileSync(resolve(folder, part.url.slice(1)))), 'blobs/bin/a.bin')).toEqual(Buffer.from(files.get('blobs/bin/a.bin') ?? []));
+  } finally { rmSync(folder, {recursive: true, force: true}); }
 });
 
 test('C2: a server pack holds the server class by content, and a reader finds each file', async () => {
