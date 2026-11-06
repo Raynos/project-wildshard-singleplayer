@@ -18,13 +18,14 @@ second something moves (G1006). The level is complete at control.
 `~/.config/wildshard/telemetry.key` isn't on this Mac, so `telemetry-brief.mjs` reads nothing here.
 **Closed by J136:** DL6, DL7. **Closed by SHARD-SIZE S2:** DL2, reversed. DL20: files only a whole-level set lists left the deploy 11-06 (164 MB); a default set's stay for road crossings (G828).
 
-**Won't pass as written:** DL11, 88 long tasks before control, grid warm, against ≤ 20 at CPU 10×. J136 names no exception for it, so
-the sweep exits 1 until a decision names one. Recommended: DL21 and DL23's bars already judge what the player sees, so count it and close.
+**Named exception:** DL11 (J143).
 
 **Calls, for Jake's review:**
 - 11-05 DL25: the worker asks the page over a third port instead of `clients.claim`: `sw.ts` claims no document, on purpose. The page
   also moves an asked file to the front of its job. The port carries no format change, so `standaloneControl` stays.
-- 11-05 DL21: the card's line is a counted wait, because the server's boot has no total. The flip keeps this path.
+- 11-06 DL17, DL21: the server boots under the card, before control (`76391156c6`). Nalati warm pays about 6 s, Simulator under load.
+- 11-06 DL10: the flip adds a dark fifth light on Pine, owner unfound: 61 / 107. Re-bake right after the flip, not before.
+- 11-06 DL23: a cold run wiped the upgrade arm, so `1ac1ea6`'s visit read cold. Redo: swap builds on one local port.
 - 11-05 DL17: only the server's code and server class are listed apart. A worker fetching anything else is a bug, so it stays red.
 - 11-05 boost and harness: Developer boost is a `NET_BUTTONS` bit a standalone server honours and any other host ignores. A harness's
   move has its own port, not the format's control port.
