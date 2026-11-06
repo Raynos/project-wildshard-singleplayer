@@ -29,7 +29,9 @@ import { netClaw } from '../grapple/netClaw';
 import type { Mount } from '../riding/mount';
 import { NetMovers } from '../plugin/moverViews';
 import { spawnHeldBytes } from '../boot/spawnDownload';
-import { DAY_ROW } from '@wildshard/engine/sim/shardRows';
+import { DAY_ROW, NET_POSE } from '@wildshard/engine/sim/shardRows';
+import { POSE_NAMES } from '@wildshard/engine/net/acts';
+import { poseInputNames } from '../../shared/plugin/channelPrograms';
 import type { EncounterRow } from '../boss/barFeed';
 import { wirePage, type DayFollower } from './wirePage';
 
@@ -78,7 +80,7 @@ const SAVE_EVERY_MS = 30_000;
 /** How often a page whose frames are parked behind a panel still hears the server. */
 const PARKED_BEAT_MS = 120;
 const column = (name: string): number => ANIMAL_CLASS.row.findIndex(entry => entry.name === name);
-const X = column('x'), Y = column('y'), Z = column('z'), YAW = column('yaw'), STATE = column('state'), ATTACK = column('attackT'), FLINCH = column('flinch'), HP = column('hp'), ALIVE = column('alive'), RIDEABLE = column('rideable'), RISE = column('rise'), ACT = column('act');
+const X = column('x'), Y = column('y'), Z = column('z'), YAW = column('yaw'), STATE = column('state'), ATTACK = column('attackT'), FLINCH = column('flinch'), HP = column('hp'), ALIVE = column('alive'), RIDEABLE = column('rideable'), STRAFE = column('strafe'), BRACE = column('brace'), RISE = column('rise'), ACT = column('act');
 
 /** What the page measures, as I6 lists it. */
 export interface WorkerClientReport {
@@ -105,10 +107,20 @@ export interface WorkerClientReport {
 export type WorkerClientFight = EncounterRow & { readonly at: { readonly x: number; readonly y: number; readonly z: number } | null; readonly name: string | null };
 declare global { interface Window { __workerClientFights?: () => readonly WorkerClientFight[]; __workerClientHits?: (by: number) => void; __workerClientFlag?: (flag: string) => void; __workerClientRows?: (kind: string) => readonly { readonly x: number; readonly y: number; readonly z: number }[]; __workerClientGate?: (flag: string) => boolean; __workerClientBot?: (id: string, x: number, y: number, z: number) => { readonly move: (x: number, y: number, z: number) => void; readonly end: () => void }; __workerClient?: () => WorkerClientReport; __workerClientSave?: () => Promise<void> } }
 
+/** The page's pose inputs, as acts short enough to go. */
+function poseActs(names: ReadonlySet<string>): readonly string[] {
+  const acts: string[] = [];
+  let line = '';
+  for (const name of names) {
+    if (`${line},${name}`.length > POSE_NAMES) { acts.push(line); line = ''; }
+    line = line === '' ? name : `${line},${name}`;
+  }
+  return line === '' ? acts : [...acts, line];
+}
 /** A creature on screen, and the world's manager that holds it: a crossing leaves it behind. */
 interface RowBody { readonly body: Animal; readonly manager: Creatures }
 /** Every creature on this page is a row: a new one spawns through the real manager, one the server dropped retires. */
-function syncCreatures(client: NetClient, animals: Creatures | null, bodies: Map<number, RowBody>, retired: Map<string, number>, spawnMs: Map<string, number>): void {
+function syncCreatures(client: NetClient, animals: Creatures | null, bodies: Map<number, RowBody>, retired: Map<string, number>, spawnMs: Map<string, number>, poses: ReadonlyMap<string, Record<string, number>>): void {
   for (const [handle, { body, manager }] of bodies) if (!client.entities.has(handle)) { manager.retire(body); bodies.delete(handle); }
   if (animals === null) return;
   for (const [handle, info] of client.entities) {
@@ -119,6 +131,7 @@ function syncCreatures(client: NetClient, animals: Creatures | null, bodies: Map
     spawnMs.set(kind, Math.max(spawnMs.get(kind) ?? 0, diagnosticNow() - at));
     body.rowDriven = true;
     bodies.set(handle, { body, manager: animals });
+    Object.assign(body.mem, poses.get(info.id));
   }
   for (const body of animals.animals.filter(entry => !entry.rowDriven)) { animals.retire(body); retired.set(body.kind, (retired.get(body.kind) ?? 0) + 1); } // what the page's own population made
 }
@@ -140,7 +153,7 @@ function showRows(client: NetClient, net: NetPlayer, ports: WorkerClientPorts, b
   near.length = 0;
   for (const [handle, { body }] of bodies) {
     if (handle === under || !interpolator.sample(handle, renderTick, row)) continue; // the body under this player is its own prediction (J48)
-    body.showRow({ x: row[X] ?? 0, y: row[Y] ?? 0, z: row[Z] ?? 0, yaw: row[YAW] ?? 0, state: ANIMAL_STATES[row[STATE] ?? 0] ?? 'idle', attack: row[ATTACK] ?? 0, flinch: row[FLINCH] ?? 0, hp: row[HP] ?? 0, alive: row[ALIVE] === 1, rise: row[RISE] ?? 0, act: row[ACT] ?? 0 }, dt);
+    body.showRow({ x: row[X] ?? 0, y: row[Y] ?? 0, z: row[Z] ?? 0, yaw: row[YAW] ?? 0, state: ANIMAL_STATES[row[STATE] ?? 0] ?? 'idle', attack: row[ATTACK] ?? 0, flinch: row[FLINCH] ?? 0, strafe: row[STRAFE] ?? 0, brace: row[BRACE] ?? 0, hp: row[HP] ?? 0, alive: row[ALIVE] === 1, rise: row[RISE] ?? 0, act: row[ACT] ?? 0 }, dt);
     shown++;
     if (row[RIDEABLE] === 1) rideable.add(handle);
     const { radius, height } = creatureBodyShape(body.dims, body.scale);
@@ -262,6 +275,23 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     if (now - sampleAt > 2000) { sampleAt = now; void readWorker(shell, report); }
     show(`worker client ${report.closed ?? 'open'}\n${report.framesPerSecond.toFixed(1)} fps  ${report.ticksPerSecond.toFixed(1)} ticks/s\ndelay ${report.delayMs.toFixed(0)} ms  jitter ${report.jitterMs.toFixed(1)} ms\ncorrections ${report.corrections} (${report.correctionsPerMinute.toFixed(1)}/min)  worst ${report.worstOffset.toFixed(2)} m\nqueue ${report.queue}  replays/frame ${report.replaysPerFrame.toFixed(2)}\nmain ${report.mainMsP95.toFixed(2)} ms  worker ${report.workerTickMs.toFixed(1)} ms  rows ${report.rows}\nhits ${report.hits}  kills ${report.kills}  refused ${report.refused}  waiting ${report.attacks}  held ${report.held}`);
   };
+  // A body's pose inputs beyond its rows: this page names what its programs read, and the server says those as they change.
+  const poses = new Map<string, Record<string, number>>();
+  let said = 0, saidCell = -1;
+  const sayPoseInputs = (): void => {
+    const cell = client.latest?.cell ?? -1;
+    if (poseInputNames.size === said && cell === saidCell) return;
+    said = poseInputNames.size; saidCell = cell;
+    for (const names of poseActs(poseInputNames)) client.act({ kind: 'pose', seq: 0, names });
+  };
+  scope.onDispose(client.onView(({ name, args }) => {
+    if (!name.startsWith(NET_POSE)) return;
+    const dot = name.lastIndexOf('.'), id = name.slice(NET_POSE.length, dot), field = name.slice(dot + 1), [value = 0] = args;
+    let inputs = poses.get(id);
+    if (inputs === undefined) { inputs = {}; poses.set(id, inputs); }
+    inputs[field] = value;
+    for (const [handle, { body }] of bodies) if (client.entities.get(handle)?.id === id) { body.mem[field] = value; break; }
+  }));
   const decks = new NetMovers(client, wirePage.movers, player.position);
   scope.onDispose(net.world.addMover(decks));
   system({ id: 'proof.worker.reconcile', phase: 'input', run: () => { const at = diagnosticNow(); net.reconcile(); cost = diagnosticNow() - at; } });
@@ -271,7 +301,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     renderTick = client.present();
     const entered = grid?.items() ?? items;
     if (entered !== items) { items = entered; net.bindSlots(slotsOf(items)); }
-    syncCreatures(client, animals, bodies, retired, spawnMs);
+    sayPoseInputs(); syncCreatures(client, animals, bodies, retired, spawnMs, poses);
     bindMount(); offerMounts(); bindClaw();
     const shown = showRows(client, net, ports, bodies, renderTick, dt, row, near, rideable);
     wirePage.frame(here ? bookOf(client.latest?.cell) : null, here, ports.day()); decks.frame(renderTick);

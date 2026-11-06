@@ -53,12 +53,17 @@ export function netRide(routes: ActRoutes, player: string, command: NetCommand |
   if (command !== undefined) routes.lean?.(player, command.steer.keyX, lookPitch(command));
 }
 
+/** A pose input a client may name, and how many a world keeps: every name is a read of every body near a player. */
+const POSE_INPUT = /^[a-zA-Z][a-zA-Z0-9]{0,31}$/u, MAX_POSE_INPUTS = 96;
 /** What a tick's input says to the world itself: a lone player's word on the sky goes straight to the weather (a world with none has nothing to say to it), and anyone may hold a fight's skip. */
 export function netWorldInput(routes: ActRoutes, inputs: readonly Pick<NetTickInput, 'acts' | 'command'>[]): void {
   routes.skipHeld = false;
   for (const { acts, command } of inputs) {
     if (command !== null && has(command, NET_BUTTONS.skip)) routes.skipHeld = true;
-    for (const act of acts) if (act.kind === 'climate') routes.climate?.(act);
+    for (const act of acts) {
+      if (act.kind === 'climate') routes.climate?.(act);
+      else if (act.kind === 'pose') for (const name of act.names.split(',')) if (POSE_INPUT.test(name) && routes.poseInputs.size < MAX_POSE_INPUTS) routes.poseInputs.add(name);
+    }
   }
 }
 /** A player's purchases and hands on a board go to the owners that judge them. */

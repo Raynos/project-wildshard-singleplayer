@@ -19,6 +19,8 @@ export interface ShardRows {
   /** What a fight told its views since a room last took them. */
   readonly calls: FightViewCall[];
 }
+/** The view call a body's pose input goes by: this, its id, a dot and the input. */
+export const NET_POSE = 'pose.';
 /** One call a fight made on its views. */
 export interface FightViewCall { readonly name: string; readonly args: readonly number[] }
 

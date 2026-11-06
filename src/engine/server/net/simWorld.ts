@@ -10,10 +10,12 @@ import type { LedgerFiling } from './ledgerBook';
 import { questBooks, type QuestProgressRead } from '../../shared/quest/players';
 import { encounterRows } from '../../shared/sim/encounterRows';
 import { ANIMAL_CLASS, ENCOUNTER_CLASS, FLAG_CLASS, PLAYER_CLASS, SCRIPT_CLASS, STATE_CLASS } from '../../shared/net/netSchemas';
-import { shardRows } from '../../shared/sim/shardRows';
+import { NET_POSE, shardRows, type FightViewCall } from '../../shared/sim/shardRows';
 import { FLAG_PREFIX, STATE_PREFIX } from '../../shared/net/shardNet';
 import type { NetRefs } from '../../shared/net/schema';
 import type { NetPlayer, NetTickInput, NetVisitor, NetWorld } from './room';
+/** Metres from a player a body's pose inputs are worth saying, the smallest move worth a call, and how many values a room recalls. */
+const POSE_REACH = 80, POSE_STEP = 1 / 32, POSE_MEMORY = 8192;
 
 const emptyPose = (): AnimalPoseSample => ({ attackT: -1, attackDur: 1, groundY: 0, tiltRollT: 0, stunT: 0, flinch: 0, flinchRoll: 0, flinchPitch: 0, brace: 0, deathSide: 0 });
 
@@ -22,6 +24,8 @@ export class SimNetWorld implements NetWorld {
   readonly player: NetPlayer;
   private readonly host: SimHost;
   private readonly pose: AnimalPoseSample = emptyPose();
+  /** What this room last said of each body's pose inputs. */
+  private readonly poses = new Map<string, number>();
   private readonly wire: CombatWire;
   private readonly frame: number;
   private readonly filings: (() => readonly LedgerFiling[]) | undefined;
@@ -57,7 +61,26 @@ export class SimNetWorld implements NetWorld {
   cell(): number { return this.frame; }
   combat(): readonly CombatEvent[] {
     const { calls } = shardRows(this.host), settled = this.wire.drain(), { tick } = this.host.state;
+    this.sayPoses(calls);
     return calls.length === 0 ? settled : [...settled, ...calls.splice(0).map(({ name, args }) => ({ kind: 'view' as const, tick, name, args }))];
+  }
+  /** What a client's pose programs read of a body near a player, as it changes. A brain's memory is the same record, and no client's. */
+  private sayPoses(calls: FightViewCall[]): void {
+    const { host, poses } = this, { poseInputs } = actRoutes(host);
+    if (poseInputs.size === 0) return;
+    if (poses.size > POSE_MEMORY) poses.clear();
+    for (const [id, sim] of host.entities) {
+      let near = false;
+      for (const player of host.players.values()) if (Math.hypot(player.position.x - sim.position.x, player.position.z - sim.position.z) < POSE_REACH) { near = true; break; }
+      if (!near) continue;
+      for (const name of poseInputs) {
+        const value = sim.mem[name];
+        if (value === undefined) continue;
+        const key = `${id}\0${name}`, was = poses.get(key);
+        if (was === value || (was !== undefined && Math.abs(value - was) < POSE_STEP && value !== 0 && value !== 1)) continue;
+        poses.set(key, value); calls.push({ name: `${NET_POSE}${id}.${name}`, args: [value] });
+      }
+    }
   }
   ledger(): readonly LedgerFiling[] { return this.filings?.() ?? []; }
   quests(player: string, since: number): QuestProgressRead | null { return questBooks(this.host).progressOf(player, since); }

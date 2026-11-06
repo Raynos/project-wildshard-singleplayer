@@ -10,6 +10,15 @@ import { emitFault, NumericInputError } from '@wildshard/engine/core/faults';
 /** Copied values may be an existing common read vector or a named observation for independently authored DAGs. */
 export interface ChannelProgramObservation {readonly time:number;readonly delta:number;readonly values:readonly number[]|Readonly<Record<string,number>>}
 function vector(value:ChannelProgramObservation['values']):value is readonly number[]{return Array.isArray(value);}
+const notedPoses = new WeakSet();
+/** Every `mem` field a pose program built on this page reads. A body a server runs writes these there, and only this page knows which they are. */
+export const poseInputNames = new Set<string>();
+function notePoseInputs(row: unknown): void {
+  if (typeof row !== 'object' || row === null || notedPoses.has(row)) return;
+  notedPoses.add(row);
+  if ('path' in row && Array.isArray(row.path) && row.path[0] === 'mem' && typeof row.path[1] === 'string') poseInputNames.add(row.path[1]);
+  for (const value of Object.values(row)) notePoseInputs(value);
+}
 /** Pose memory is a numeric record, never an accessor on an authored owner. */
 function poseMemory(memory: Readonly<Record<string, number>>, name: string): number | undefined {
   const descriptor = Object.getOwnPropertyDescriptor(memory, name);
@@ -132,6 +141,7 @@ interface Turn { readonly euler: Euler; x: number; y: number; z: number; dirty: 
  * optional bones are skipped, and no actor memory, clock, random stream or continuation is added.
  * A runtime numeric refusal preserves that actor's last pose, reports once and retries on its next frame. */
 export function numericCreaturePose(poseData: unknown): (ctx: AnimalRigContext) => void {
+  notePoseInputs(poseData);
   return compileNumericCreaturePose(poseSchema.parse(NumericPoseSchema, poseData));
 }
 /** The book parser already admits every nested pose. Only its immutable output
@@ -139,6 +149,7 @@ export function numericCreaturePose(poseData: unknown): (ctx: AnimalRigContext) 
 export function numericCreaturePoseFromBook(input: unknown, id: string): (ctx: AnimalRigContext) => void {
   const row = parsePackedCreatureLooks(input).poses[id];
   if (row === undefined) throw new Error('Missing packed creature joint pose');
+  notePoseInputs(row);
   return compileNumericCreaturePose(row);
 }
 function compileNumericCreaturePose(row: poseSchema.InferOutput<typeof NumericPoseSchema>): (ctx: AnimalRigContext) => void {

@@ -81,7 +81,7 @@ export type NetRide = NetRideChange<'mount'> | NetRideChange<'dismount'>;
 export interface NetOwned { readonly kind: 'owned'; readonly tick: number; readonly name: string; readonly value: number }
 export type NetEvent = NetSpawn | NetDespawn | NetCombatEvent | NetView | NetQuest | NetPhase | NetTravel | NetLedger | NetChat | NetRide | NetOwned;
 /** The events' and commands' wire form, in NET_SCHEMA_HASH: a change here must refuse a stale client like a field table's does (J54). */
-export const NET_EVENT_FORMS = 'view:s,u8,f32n;hit:h16,f32,p48,b,b,u16;died:h16,h16,d24,f32;quest:s,b,b,s,u16;phase:s,b;reward:u32,h16;travel:u16,u16;ledger:u32,u32,s,u2,s,f32,b;chat:u32,u32,b,h16,s,s;buttons:u8,b,u8;lockTarget:h16;hookTarget:u16;ride:u8;fresh:b;mount:h16,h16,u16;dismount:h16,h16,u16;rideWords:b,u8,f32;climate:b,s,f32;buy:u16;board:b,u16;wear:s;owned:s,f32';
+export const NET_EVENT_FORMS = 'view:s,u8,f32n;hit:h16,f32,p48,b,b,u16;died:h16,h16,d24,f32;quest:s,b,b,s,u16;phase:s,b;reward:u32,h16;travel:u16,u16;ledger:u32,u32,s,u2,s,f32,b;chat:u32,u32,b,h16,s,s;buttons:u8,b,u8;lockTarget:h16;hookTarget:u16;ride:u8;fresh:b;mount:h16,h16,u16;dismount:h16,h16,u16;rideWords:b,u8,f32;climate:b,s,f32;buy:u16;board:b,u16;wear:s;pose:s;owned:s,f32';
 /** The spawn's column widths, which only the receiver's class table knows. */
 export type InitialBits = (cls: number) => { readonly bits: readonly number[]; readonly text: number } | undefined;
 
@@ -159,7 +159,7 @@ export function decodeEvents(bytes: Uint8Array, bits: InitialBits): { readonly t
   });
 }
 
-const ACT_INTERACT = 1, ACT_RELOAD = 2, ACT_EQUIP = 3, ACT_CHAT = 4, ACT_REPORT = 5, ACT_RIDE = 6, ACT_CLIMATE = 7, ACT_BUY = 8, ACT_BOARD = 9, ACT_WEAR = 10;
+const ACT_INTERACT = 1, ACT_RELOAD = 2, ACT_EQUIP = 3, ACT_CHAT = 4, ACT_REPORT = 5, ACT_RIDE = 6, ACT_CLIMATE = 7, ACT_BUY = 8, ACT_BOARD = 9, ACT_WEAR = 10, ACT_POSE = 11;
 /** The ride acts, by their wire index. */
 const RIDE_ACTIONS = ['offer', 'mount', 'dismount'] as const;
 /** Encode an `act` message. */
@@ -172,6 +172,7 @@ export function encodeAct(writer: BitWriter, act: NetRoomAct): ArrayBuffer {
   else if (act.kind === 'wear') { writer.write(ACT_WEAR, 8); writer.writeText(act.id); }
   else if (act.kind === 'board') { writer.write(ACT_BOARD, 8); writer.writeBool(act.op === 'tear'); writer.write(act.slot, 16); }
   else if (act.kind === 'buy') { writer.write(ACT_BUY, 8); writer.write(act.good, 16); }
+  else if (act.kind === 'pose') { writer.write(ACT_POSE, 8); writer.writeText(act.names); }
   else if (act.kind === 'climate') { writer.write(ACT_CLIMATE, 8); writer.writeBool(act.op === 'force'); writer.writeText(act.name); writer.write(floatToBits(act.at), 32); }
   else if (act.kind === 'chat') { writer.write(ACT_CHAT, 8); writer.writeBool(act.channel === 'proximity'); writer.writeText(act.text); }
   else { writer.write(ACT_REPORT, 8); writer.write(act.line, 32); }
@@ -188,6 +189,7 @@ export function decodeAct(bytes: Uint8Array): NetRoomAct | null {
     if (kind === ACT_WEAR) return { kind: 'wear', seq, id: reader.readText() };
     if (kind === ACT_BOARD) return { kind: 'board', seq, op: reader.readBool() ? 'tear' : 'claim', slot: reader.read(16) };
     if (kind === ACT_BUY) return { kind: 'buy', seq, good: reader.read(16) };
+    if (kind === ACT_POSE) return { kind: 'pose', seq, names: reader.readText() };
     if (kind === ACT_CLIMATE) return { kind: 'climate', seq, op: reader.readBool() ? 'force' : 'mode', name: reader.readText(), at: bitsToFloat(reader.read(32)) };
     if (kind === ACT_CHAT) return { kind: 'chat', seq, channel: reader.readBool() ? 'proximity' : 'room', text: reader.readText() };
     if (kind === ACT_REPORT) return { kind: 'report', seq, line: reader.read(32) };

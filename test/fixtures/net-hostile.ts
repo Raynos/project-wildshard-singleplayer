@@ -66,6 +66,7 @@ export class Hostile {
       { kind: 'interact', seq, id: interactions.length > 0 && fuzz.chance(0.8) ? fuzz.pick(interactions) : fuzz.pick([`nobody.${String(fuzz.int(100))}`, 'a'.repeat(200), '../door']) },
       { kind: 'reload', seq, slot: fuzz.int(32) }, { kind: 'reload', seq, slot: fuzz.int(256) }, { kind: 'equip', seq, slot: fuzz.int(32) }, { kind: 'equip', seq, slot: fuzz.int(256) },
       { kind: 'ride', seq, action: fuzz.pick(RIDES) },
+      { kind: 'pose', seq, names: fuzz.chance(0.5) ? fuzz.text() : 'tm,'.repeat(fuzz.int(86)) },
       { kind: 'chat', seq, channel: fuzz.pick(CHANNELS), text: fuzz.text() }, { kind: 'report', seq, line: fuzz.chance(0.5) ? fuzz.int(32) : fuzz.int(0x7fffffff) },
     ];
     return encodeAct(this.writer, fuzz.pick(acts));
