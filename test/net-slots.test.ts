@@ -9,6 +9,7 @@ import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
 import { shardRows } from '../src/engine/shared/sim/shardRows';
 import { serializeSimSnapshot, snapshotSimHostBytes } from '../src/engine/shared/sim/snapshot';
 import { slotsOf } from '../src/game/server/boss/slotsNative';
+import { slotAwakeRows } from '../src/game/shared/boss/slotLaw';
 import { installServerChapters } from '../src/game/server/quest/serverChapters';
 import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
@@ -74,4 +75,14 @@ test('a night out of the ground survives a save', { timeout: 120_000 }, async ()
     expect(restored?.solid(site ?? -1).isEnabled()).toBe(false);
     back.host.step();
   } finally { back.dispose(); }
+});
+
+test('the awake rows carry every site, past one row\'s worth', () => {
+  const rows = slotAwakeRows(30), awake = Array.from({ length: 30 }, (_, index) => index === 0 || index === 23 || index === 24 || index === 29);
+  const sent = new Map(rows.read(awake).map(row => [row.name, row.value])), heard = Array.from({ length: 30 }, () => false);
+  expect(sent.size).toBe(2);
+  expect(rows.heard(name => sent.get(name))).toBe(true);
+  rows.awake(name => sent.get(name), heard);
+  expect(heard).toEqual(awake);
+  expect(rows.heard(() => undefined), 'a world with no rows yet says nothing').toBe(false);
 });
