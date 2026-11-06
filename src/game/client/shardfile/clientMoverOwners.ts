@@ -5,7 +5,6 @@ import type { MoverRuntime, MoverView } from '../../server/plugin/mover';
 import type { BorrowedSpeciesControl } from '../../server/plugin/brain';
 import type { PageSimFeed } from '../../server/plugin/pageSimFeed';
 import { netClimate } from '../weather/netClimate';
-import * as v from 'valibot';
 import { wirePage } from './wirePage';
 import { liftPrompt } from '../../shared/shardfile/wirePrompts';
 import { entryOwner } from '../../shared/shardfile/entryOwners';
@@ -28,7 +27,6 @@ export let pageSim:PageSimFeed;
 /** J130: this page runs on a server. Motion and the sky come off rows; what else `pageSim` holds still builds, on nothing, and
  * stands down where a bar, a payout or a flag would otherwise have two drivers. */
 const noDecision=():BorrowedSpeciesControl=>({phase:0,fighting:false,restart:()=>undefined,current:null,windup:0,aim:0,snapshot:()=>null,restore:()=>undefined,observe:()=>undefined});
-const HeldWildlife=v.looseObject({});
 let wired=false;
 export function wirePageSim():void{
   wirePage.followBooks();
@@ -42,8 +40,8 @@ export function wirePageSim():void{
       return runtime;
     },
     // The server keeps the wild: a page keeps only what has no row, the crowds it draws and the foragers underfoot. Its crowds see the rows.
-    pageWildlife:(...[animals,rows,...rest]:Parameters<PageSimFeed['pageWildlife']>)=>{
-      const wildlife=pageWildlife(animals,{...v.parse(HeldWildlife,rows),packs:[],herds:[],mountables:[]},...rest);
+    pageWildlife:(...input:Parameters<PageSimFeed['pageWildlife']>)=>{
+      const wildlife=pageWildlife(...input);
       wildlife.rowBodies=true;
       return wildlife;
     },

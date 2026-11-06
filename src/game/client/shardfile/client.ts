@@ -342,9 +342,9 @@ export class ShardfileClient {
     for (const row of source.rows.compendiums) ctx.rows.compendium({ id: row.id, ...declaredProductCompendium(ctx.product, row.id, sketches) });
     ctx.rows.lootTable(source.rows.loot);
     runtime.hooks.animalsReady = (manager) => {
-      if (wirePage.on) return; // the rows are the creatures
       for (const spawn of source.creatures.spawns) {
         const species = source.rows.species.find((row) => row.id === spawn.species); if (species === undefined) throw new Error('Missing authored creature species');
+        if (wirePage.on) { manager.factory.model(species.kind, spawn.variant); continue; } // the rows are the creatures: their models wait for them
         const view = manager.spawn(species.kind, spawn.at[0], spawn.at[2], spawn.yaw, spawn.variant, { y: spawn.at[1], entityId: spawn.id });
         this.animals.set(spawn.id, view);
       }

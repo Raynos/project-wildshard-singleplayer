@@ -354,7 +354,7 @@ export class AnimalManager {
 
   /** Places the shard's herds, yielding after each one (`build` drains it, `buildAsync` pauses between). */
   private *spawnHerds(): Generator<number, void, undefined> {
-    if (this.herdless) return;
+    if (this.herdless) { yield* this.draw.factory.prepareSteps(activeLevel().spawns.flatMap(({ kind, variants }) => variants?.map(variant => ({ kind, variant })) ?? [{ kind }])); return; }
     // herd placement comes from the shard: each HerdPlan asks for a clearing (or canopy) in a band of
     // distances off the trails, optionally in a ring around an anchor (a trail, a cabin…) — the hunting brain's recipe
     const { spawns: plan, spawn } = activeLevel();

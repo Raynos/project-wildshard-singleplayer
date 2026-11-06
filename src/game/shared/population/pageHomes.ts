@@ -60,6 +60,8 @@ function* pageHomeWork(ctx: ShardContext, declared: RuntimeSpawns, ports: Runtim
   const held = new Map<string, NonNullable<Animal>>();
   const cleanup = (): void => { for (const home of homes) if (home.animal) animals?.retire(home.animal); for (const body of held.values()) animals?.retire(body); };
   const forget = ctx.scope.capture('disposers', cleanup);
+  const rowBodies = ctx.game.runtime?.play?.animals;
+  if (rowBodies?.herdless === true) for (const _model of rowBodies.factory.prepareSteps([...rows, ...declared.actors ?? [], ...declared.bosses].map(row => ({ kind: row.kind, variant: row.look })))) yield;
   for (const home of homes) { spawn(home); yield; }
   if (homes.length > 0) {
     ctx.on('actor.died', ({ actor }) => { const home = homes.find((h) => h.animal?.combatActor() === actor); if (home) home.wait = home.respawn; });

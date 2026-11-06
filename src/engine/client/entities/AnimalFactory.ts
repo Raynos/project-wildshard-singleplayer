@@ -376,6 +376,11 @@ export class AnimalFactory {
     }
   }
 
+  /** `prepareModels` a step at a time in the caller's own slices and frame: a page whose bodies arrive as rows builds them ahead of the first. */
+  *prepareSteps(rows: readonly { readonly kind: string; readonly variant?: string | null | undefined }[]): Generator<number, void, undefined> {
+    for (const row of rows) for (const variant of row.variant === undefined || row.variant === null ? speciesDef(row.kind).variants.map(entry => entry.id) : [row.variant]) { this.model(row.kind, variant); yield 1; }
+  }
+
   /** The cached model for (kind, variant id). An unknown variant id falls back to the species' first variant. */
   model(kind: AnimalKind, variant?: string): AnimalModel {
     const species = speciesDef(kind);

@@ -54,15 +54,25 @@ export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
   *buildSteps(): Generator<WildlifeBuildStep,void> {
     const row = this.rows;
     // one animal a step: a whole pack or herd was one 100-133 ms task in a cold Nalati crossing at phone 4x
-    for (const pack of row.packs) { yield* this.spawnPackSteps(pack.x,pack.z,pack.variants); yield { kind: 'pause' }; }
-    for (const herd of row.herds) { yield* this.spawnHerdSteps(herd.x,herd.z,herd.mares,herd.foals,herd.stallion); yield { kind: 'pause' }; }
+    if (this.rowBodies) for (const _model of this.animals.factory.prepareSteps(this.declaredBodies())) yield { kind: 'pause' };
+    else {
+      for (const pack of row.packs) { yield* this.spawnPackSteps(pack.x,pack.z,pack.variants); yield { kind: 'pause' }; }
+      for (const herd of row.herds) { yield* this.spawnHerdSteps(herd.x,herd.z,herd.mares,herd.foals,herd.stallion); yield { kind: 'pause' }; }
+    }
     for (const [index,flock] of row.flocks.entries()) {
       yield { kind: 'crowd',index,options: { x: flock.x,z: flock.z,count: flock.count,seed: row.seed+index*101,range: flock.range } };
       if (this.flocks.length !== index+1) throw new Error('Unbound population crowd');
     }
-    for (const mount of row.mountables) this.mountables.push(this.animals.spawn(row.kinds.mount,mount.x,mount.z,mount.yaw,mount.variant));
+    if (!this.rowBodies) for (const mount of row.mountables) this.mountables.push(this.animals.spawn(row.kinds.mount,mount.x,mount.z,mount.yaw,mount.variant));
     if (row.mountables.length > 0) yield { kind: 'pause' };
     if (this.foragers !== null) yield { kind: 'foragers' };
+  }
+  /** Every body this population declares, as rows will bring them. */
+  private declaredBodies(): { readonly kind: string; readonly variant: string }[] {
+    const row = this.rows,{ predator,mount,guardian,guardianVariant } = row.kinds;
+    return [...new Set(row.packs.flatMap(pack => pack.variants))].map(variant => ({ kind: predator,variant }))
+      .concat([...row.coats,...row.young,row.leader,...row.mountables.map(entry => entry.variant)].map(variant => ({ kind: mount,variant })))
+      .concat(row.flocks.some(flock => flock.dog) ? [{ kind: guardian,variant: guardianVariant }] : []);
   }
   spawnPack(x: number,z: number,variants: readonly string[]): ReturnType<PageGroups['pack']> { return drainSteps(this.spawnPackSteps(x,z,variants)); }
   private *spawnPackSteps(x: number,z: number,variants: readonly string[]): Generator<WildlifeBuildStep,ReturnType<PageGroups['pack']>> {
