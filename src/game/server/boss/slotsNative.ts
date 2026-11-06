@@ -38,7 +38,11 @@ const noTells = (count: number): SlotTell[] => Array.from({ length: count }, () 
 
 /** The rows a slot encounter reads. */
 export interface SlotFiles { readonly step: string; readonly rows: string; readonly actors: string; readonly looks: string }
-export interface NativeSlots { readonly law: SlotEncounterLaw<HuntBody, SlotTell>; readonly standing: () => readonly boolean[]; readonly solid: (index: number) => Solid }
+export interface NativeSlots { readonly law: SlotEncounterLaw<HuntBody, SlotTell>; readonly standing: () => readonly boolean[]; readonly solid: (index: number) => Solid;
+  /** A body of this kind that another fight raised: it thinks, poses and saves as the slots' own do. */
+  readonly adopt: (body: HuntBody) => void }
+/** What a blow's player held. */
+export type SlotHeld = (request: DamageRequest) => { readonly enabled: boolean; readonly slot: string } | null;
 type Solid = ReturnType<SimHost['physics']['world']['getCollider']>;
 const owners = new WeakMap<SimHost, NativeSlots>();
 export function slotsOf(host: SimHost): NativeSlots | undefined { return owners.get(host); }
@@ -57,7 +61,8 @@ function liveContext(input: unknown): input is ActorProjectionContext<HuntBody> 
 export interface SlotPlan {
   /** A slot's day comes before the patrol's. */
   readonly advance: (host: SimHost, dt: number) => void;
-  readonly install: (host: SimHost, elite: NativeEliteBindings, restoring: boolean) => void;
+  /** `held` for a host whose arms aren't `heldArmsOf`'s. */
+  readonly install: (host: SimHost, elite: NativeEliteBindings, restoring: boolean, heldBy?: SlotHeld) => void;
 }
 /** Read the encounter's rows now; nothing here touches a host. Null for rows with no slot actors. */
 export async function prepareSlots(product: Pick<ShardProduct, 'json' | 'section' | 'file'>, files: SlotFiles): Promise<SlotPlan | null> {
@@ -75,17 +80,17 @@ export async function prepareSlots(product: Pick<ShardProduct, 'json' | 'section
   const updates = new WeakMap<SimHost, (dt: number) => void>();
   return {
     advance: (host, dt) => { const run = updates.get(host); if (run === undefined) throw new Error('Slots were not installed before their patrol'); run(dt); },
-    install: (host, elite, restoring) => {
+    install: (host, elite, restoring, heldBy) => {
       const population = nativePopulationOf(host), clock = host.dayClock;
       if (population === undefined || clock === undefined || owners.has(host)) throw new Error('Slots require their population and day clock');
       const animations = poses.animations((x, z) => host.groundHeightAt(x, z)), presented = new Map<string, NativeCreaturePose>();
       const projection = new ActorProjectionV2(declared.kind, projected), brain = ReturnProgram.native(host, projected.program);
       const ownedBrains = new Map<AnimalSim, NonNullable<ReturnType<NativeEliteBindings['brains']['get']>>>();
       const columns = damage.requests.map(row => new ObservationColumnsV2(row.columns, host.scope));
-      const held = (request: DamageRequest): { readonly enabled: boolean; readonly slot: string } | null => {
+      const held: SlotHeld = heldBy ?? (request => {
         const id = landedBy(request, host.players), player = id === null ? undefined : host.players.get(id), seat = player === undefined ? undefined : heldArmsOf(host)?.of(player), wire = seat?.snapshot();
         return typeof wire === 'string' ? v.parse(Held, JSON.parse(wire)) : null;
-      };
+      });
       const bind = (body: HuntBody): void => {
         const recipe = poses.rows.find(row => row.kind === body.kind && row.variant === body.variant), animate = animations.get(body.kind);
         if (recipe === undefined || animate === undefined || presented.has(body.entityId)) throw new Error('A slot body lost its contact recipe');
@@ -160,7 +165,10 @@ export async function prepareSlots(product: Pick<ShardProduct, 'json' | 'section
       }, undefined, 'afterBodies');
       const awakeRows = slotAwakeRows(count);
       publishWorldState(host, 'slots', () => awakeRows.read(standing));
-      owners.set(host, { law, standing: () => standing, solid: solidAt });
+      owners.set(host, { law, standing: () => standing, solid: solidAt, adopt: body => {
+        if (body.kind !== declared.kind || host.entities.get(body.entityId) !== body || !population.bodies.includes(body) || law.awake.some(row => row.a === body)) throw new Error('A foreign body for these slots');
+        bind(body);
+      } });
       host.scope.onDispose(() => { owners.delete(host); updates.delete(host); presented.clear(); ownedBrains.clear(); solids.clear(); });
     },
   };
