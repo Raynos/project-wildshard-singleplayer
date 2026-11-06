@@ -27,24 +27,32 @@ export function copyOutputProducts(root, outDir) {
 /** DL20: a level file leaves the deploy when a part holds it and nothing reads its URL directly. Every default manifest's file
  *  stays: a neighbour's rings and a road crossing read those by URL (G828, G1011; through parts each would cost a whole part),
  *  a title's `<img>` reads its art, and the harness's shardfile arm reads the same set. What goes is the rest of a whole-level
- *  set, which a home reads from its parts and a page past a crossing reads through them (`spawnDownload.ts`).
+ *  set, which a home reads from its parts and a page past a crossing reads through them (`spawnDownload.ts`). A page reads
+ *  only its own tier's parts, so a copy leaves when every tier that can read it holds it in one: a fenced shard's phone list is
+ *  smaller than its desktop's, and what only the desktop's parts hold is still a phone's by URL (Pine's cabin specimens).
  *  @param {string} outDir @returns {{files: number, bytes: number}} */
 export function pruneLooseCopies(outDir) {
-  const spawn = resolve(outDir, 'assets/spawn'), kept = new Set(), packed = new Set();
+  const spawn = resolve(outDir, 'assets/spawn'), kept = new Set();
+  /** @type {{phone: Set<string>, desktop: Set<string>}} */
+  const packed = { phone: new Set(), desktop: new Set() };
   const path = url => url.split('?')[0] ?? url;
   if (!existsSync(spawn)) return { files: 0, bytes: 0 };
   for (const name of readdirSync(spawn)) {
-    if (!/-(?:client|grid)-(?:phone|desktop)-[a-f0-9]{16}\.json$/u.test(name)) continue;
+    const tier = /-(?:client|grid)-(phone|desktop)-[a-f0-9]{16}\.json$/u.exec(name)?.[1];
+    if (tier === undefined) continue;
     const manifest = JSON.parse(readFileSync(join(spawn, name), 'utf8'));
     if (manifest.parts === undefined) { for (const file of manifest.files) kept.add(path(file.url)); continue; }
     for (const part of manifest.parts) {
       // A part homed on another origin (J138) has its own home; a file here is this deploy's only copy.
       if (!existsSync(resolve(outDir, `.${part.url}`))) continue;
-      for (const [index] of part.members) packed.add(path(manifest.files[index].url));
+      for (const [index] of part.members) (tier === 'phone' ? packed.phone : packed.desktop).add(path(manifest.files[index].url));
     }
   }
   let files = 0, bytes = 0;
-  for (const url of packed) {
+  for (const url of new Set([...packed.phone, ...packed.desktop])) {
+    // The same names `shardCook.ts` splits a mount's tiers by.
+    const phoneOnly = /\.phone[.-]|\/astc6\//u.test(url), desktopOnly = /\.desktop[.-]/u.test(url);
+    if ((!desktopOnly && !packed.phone.has(url)) || (!phoneOnly && !packed.desktop.has(url))) continue;
     // An image can be read by `<img>` (three's TextureLoader: Driftwood's desktop horizon), which no part layer answers.
     if (kept.has(url) || !url.startsWith('/shardfiles/') || /\.(?:png|jpe?g|webp|gif|avif|svg)$/u.test(url)) continue;
     const file = resolve(outDir, `.${url}`);

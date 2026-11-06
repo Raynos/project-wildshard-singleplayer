@@ -74,11 +74,16 @@ it('DL20: a file only parts need leaves; what a default manifest lists, a homed 
     for (const name of ['walked', 'neighbour', 'homed', 'unpacked']) file(url(name));
     file('/assets/spawn/parts/aaaaaaaaaaaaaaaa.pack.br'); file('/assets/kept.bin');
     file('/assets/spawn/a-client-phone-0000000000000000.json', JSON.stringify({files: [{url: url('neighbour')}]}));
-    file('/assets/spawn/a-client-phone-1111111111111111.json', JSON.stringify({files: [{url: url('walked')}, {url: url('neighbour')}, {url: '/assets/kept.bin'}, {url: url('homed')}],
-      parts: [{url: '/assets/spawn/parts/aaaaaaaaaaaaaaaa.pack.br', members: [[0, 0], [1, 16], [2, 32]]}, {url: '/assets/spawn/parts/bbbbbbbbbbbbbbbb.pack.br', members: [[3, 0]]}]}));
-    expect(pruneLooseCopies(out)).toEqual({files: 1, bytes: 4});
-    expect(existsSync(join(out, url('walked')))).toBe(false);
-    for (const name of ['neighbour', 'homed', 'unpacked']) expect(existsSync(join(out, url(name)))).toBe(true);
+    const phoneFile = '/shardfiles/a/blobs/bin/own.phone-12345678.bin', desktopFile = '/shardfiles/a/blobs/bin/own.desktop-12345678.bin';
+    for (const name of [phoneFile, desktopFile, url('fence-off')]) file(name);
+    file('/assets/spawn/a-client-phone-1111111111111111.json', JSON.stringify({files: [{url: url('walked')}, {url: url('neighbour')}, {url: '/assets/kept.bin'}, {url: url('homed')}, {url: phoneFile}],
+      parts: [{url: '/assets/spawn/parts/aaaaaaaaaaaaaaaa.pack.br', members: [[0, 0], [1, 16], [2, 32], [4, 48]]}, {url: '/assets/spawn/parts/bbbbbbbbbbbbbbbb.pack.br', members: [[3, 0]]}]}));
+    // A fenced shard's desktop lists its whole level: what only it holds, a phone still reads by URL, past any part of its own.
+    file('/assets/spawn/a-client-desktop-2222222222222222.json', JSON.stringify({files: [{url: url('walked')}, {url: url('fence-off')}, {url: desktopFile}],
+      parts: [{url: '/assets/spawn/parts/aaaaaaaaaaaaaaaa.pack.br', members: [[0, 0], [1, 16], [2, 32]]}]}));
+    expect(pruneLooseCopies(out)).toEqual({files: 3, bytes: 12});
+    for (const name of [url('walked'), phoneFile, desktopFile]) expect(existsSync(join(out, name)), name).toBe(false);
+    for (const name of ['neighbour', 'homed', 'unpacked', 'fence-off']) expect(existsSync(join(out, url(name))), name).toBe(true);
     expect(existsSync(join(out, 'assets/kept.bin'))).toBe(true);
   } finally { rmSync(out, {recursive: true, force: true}); }
 });
