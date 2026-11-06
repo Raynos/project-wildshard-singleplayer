@@ -16,7 +16,7 @@ second something moves (G1006). The level is complete at control.
 
 **Open, all readings:** DL1, DL5, DL10, DL11, DL15, DL17, DL18, DL21, DL23, DL24, DL25. DL20 needs one digest, and
 `~/.config/wildshard/telemetry.key` isn't on this Mac, so `telemetry-brief.mjs` reads nothing here.
-**Closed by J136:** DL6, DL7. **Closed by SHARD-SIZE S2:** DL2, reversed: a first visit reads nothing on the title. DL20: files only a whole-level set lists left the deploy 11-06 (164 MB); a default set's stay for road crossings (G828).
+**Closed by J136:** DL6, DL7. **Closed by SHARD-SIZE S2:** DL2, reversed. DL20: files only a whole-level set lists left the deploy 11-06 (164 MB); a default set's stay for road crossings (G828).
 
 **Won't pass as written:** DL11, 88 long tasks before control, grid warm, against ≤ 20 at CPU 10×. J136 names no exception for it, so
 the sweep exits 1 until a decision names one. Recommended: DL21 and DL23's bars already judge what the player sees, so count it and close.
@@ -29,7 +29,7 @@ the sweep exits 1 until a decision names one. Recommended: DL21 and DL23's bars 
 - 11-05 boost and harness: Developer boost is a `NET_BUTTONS` bit a standalone server honours and any other host ignores. A harness's
   move has its own port, not the format's control port.
 - 11-05 sweep: DL5's n=3 runs Driftwood, Nine and Pine; the other three shards run packs only, once.
-- DL5 "whole level" = the tier's whole inventory at control, unless a shard selects packs-set 'fence' (Pine, Nalati, Driftwood).
+- DL5 "whole level" = the tier's whole inventory at control, unless a shard selects packs-set 'fence' (Pine, Nalati, Driftwood; phones only since S3).
 - DL17 (A): distance show / hide / LOD of resident models is listed, not red. Grid neighbours keep today's loading (G828).
 - G872's earlier calls are in git: this file at `f117380538`.
 
