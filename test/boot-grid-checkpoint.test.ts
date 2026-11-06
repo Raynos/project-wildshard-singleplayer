@@ -47,6 +47,13 @@ test('durable Template evidence requires the real namespace and a complete check
   expect(bootTemplateCheckpoint('template-2')).toMatchObject({ instance: 'template-2', mode: 'exact', revision: 1, integrity: 123, snapshotCharacters: 13 });
 });
 
+test("a server's own document is durable Template evidence too", () => {
+  const document = (data: unknown): string => JSON.stringify({ keys: { continuation: { v: 1, data } } });
+  expect(bootTemplateCheckpoint('template-2', document({ tick: 40, snapshot: '{"version":4}' }))).toMatchObject({ instance: 'template-2', mode: 'exact', revision: 40, snapshotCharacters: 13 });
+  for (const data of [null, {}, { tick: -1, snapshot: 'x' }, { tick: 1, snapshot: '' }]) expect(() => bootTemplateCheckpoint('template-2', document(data))).toThrow('invalid durable checkpoint');
+  expect(() => bootTemplateCheckpoint('template-2', null)).toThrow('no durable checkpoint');
+});
+
 function witness(plan: FloorGridPlan, beforeCount: number): FloorGridWitness {
   const at = (current: string | null, count: number): FloorGridState => ({ home: 'home', inside: current, cells,
     live: { crossing: { phase: 'settled', issue: null }, live: { current, crossings: count, gameplayReady: true,

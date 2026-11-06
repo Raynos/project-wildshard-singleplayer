@@ -23,7 +23,9 @@ export function verifyBootSignalRoad(witness: FloorGridWitness): void;
 /** Actual Template border entry and checkpoint-backed departure, sharing Signal's original 90-second budget. */
 export function bootTemplateRoadPlans(state: unknown): {entry: FloorGridPlan; exit: FloorGridPlan};
 /** Read durable storage only; a retryable save-service fallback cannot satisfy this proof. */
-export function bootTemplateCheckpoint(instance: string): {instance:string; mode:'exact'|'logical'; revision:number; integrity:number; snapshotCharacters:number; storageCharacters:number};
+export function bootTemplateCheckpoint(instance: string, raw?: string | null): {instance:string; mode:'exact'|'logical'; revision:number; integrity:number; snapshotCharacters:number; storageCharacters:number};
+/** A world's document where this page keeps it: IndexedDB for a server's saves, localStorage for a page's. */
+export function bootStoredSave(instance: string): Promise<string | null>;
 /** Both real frame commits and the matching durable Template namespace must be present. */
 export function verifyBootTemplateRoad(result: {entry:FloorGridWitness;exit:FloorGridWitness;checkpoint:ReturnType<typeof bootTemplateCheckpoint>}):void;
 

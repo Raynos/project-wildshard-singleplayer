@@ -191,16 +191,40 @@ export function bootTemplateRoadPlans(state) {
 
 /** Read actual durable storage, never the save service's retryable in-memory fallback.
  * @param {string} instance */
-export function bootTemplateCheckpoint(instance) {
-  const raw = localStorage.getItem(`wildshard.save.v2.${instance}`);
+export function bootTemplateCheckpoint(instance, raw = localStorage.getItem(`wildshard.save.v2.${instance}`)) {
   if (raw === null) throw new Error('Template crossing has no durable checkpoint');
-  const document = JSON.parse(raw), slot = document?.keys?.['platform.region'], data = slot?.data;
+  const document = JSON.parse(raw), served = document?.keys?.continuation;
+  if (served !== undefined) { // A server's own document: src/sdk/standalone/continuation.ts.
+    const run = served.data;
+    if (served.v !== 1 || !Number.isSafeInteger(run?.tick) || run.tick < 0 || typeof run?.snapshot !== 'string' || run.snapshot.length === 0) throw new Error('Template crossing has an invalid durable checkpoint');
+    return { instance, mode: 'exact', revision: run.tick, integrity: 0, snapshotCharacters: run.snapshot.length, storageCharacters: raw.length };
+  }
+  const slot = document?.keys?.['platform.region'], data = slot?.data;
   if (slot?.v !== 1 || !Number.isSafeInteger(data?.revision) || data.revision < 1 || !Number.isSafeInteger(data?.integrity) ||
     data.integrity < 0 || data.integrity > 0xffffffff ||
     !(data.mode === 'exact' && typeof data.snapshot === 'string' && data.snapshot.length > 0 || data.mode === 'logical' && data.snapshot === null && typeof data.logical === 'object' && data.logical !== null)) {
     throw new Error('Template crossing has an invalid durable checkpoint');
   }
   return { instance, mode: data.mode, revision: data.revision, integrity: data.integrity, snapshotCharacters: data.snapshot?.length ?? 0, storageCharacters: raw.length };
+}
+
+/** A world's document where this page keeps it: a page's in localStorage, a server's in IndexedDB under its own two names
+ * (src/engine/client/saves/indexed.ts, src/sdk/standalone/continuation.ts). Newest of the two.
+ * @param {string} instance @returns {Promise<string | null>} */
+export async function bootStoredSave(instance) {
+  const prefix = 'wildshard.save.v2.', page = localStorage.getItem(`${prefix}${instance}`);
+  if (page !== null) return page;
+  if (!(await indexedDB.databases()).some(row => row.name === 'wildshard-saves')) return null;
+  const opening = indexedDB.open('wildshard-saves');
+  /** @type {IDBDatabase} */ const database = await new Promise((resolve, reject) => { opening.onsuccess = () => { resolve(opening.result); }; opening.onerror = () => { reject(opening.error ?? new Error('Save storage refused')); }; });
+  try {
+    if (!database.objectStoreNames.contains('saves')) return null;
+    const store = database.transaction('saves').objectStore('saves');
+    const read = (/** @type {string} */ name) => new Promise((resolve, reject) => { const reading = store.get(`${prefix}${name}`); reading.onsuccess = () => { resolve(reading.result); }; reading.onerror = () => { reject(reading.error ?? new Error('Save storage refused')); }; });
+    const rows = (await Promise.all([read(`standalone-${instance}`), read(`standalonealt-${instance}`)])).filter(value => typeof value === 'string');
+    const tick = (/** @type {string} */ row) => JSON.parse(row)?.keys?.continuation?.data?.tick ?? -1;
+    return rows.sort((a, b) => tick(b) - tick(a)).at(0) ?? null;
+  } finally { database.close(); }
 }
 
 /** @param {{entry:import('../frame-floor-grid.mjs').FloorGridWitness,exit:import('../frame-floor-grid.mjs').FloorGridWitness,checkpoint:ReturnType<typeof bootTemplateCheckpoint>}} result */
@@ -281,7 +305,10 @@ async function bootTemplateRoad(page, faults, frames, deadline) {
   await until(page, faults, async () => { const observed = await page.evaluate(bootObservation); return observed.ready && observed.frame >= initial.frame + 10; }, 'Template ten live gameplay frames', deadline);
   await captureBootFrame(page, 'grid Template entered', deadline, frames);
   const exit = await bootRoadRoute(page, faults, plans.exit, documentOrigin, deadline, 'Template checkpoint-backed return');
-  const result = { entry, exit, checkpoint: await page.evaluate(bootTemplateCheckpoint, plans.entry.to ?? '') };
+  const instance = plans.entry.to ?? '';
+  // A server writes this from its worker, a moment behind the frames.
+  await until(page, faults, async () => await page.evaluate(bootStoredSave, instance) !== null, 'Template durable checkpoint', Math.min(deadline, Date.now() + 15000)).catch(() => undefined);
+  const result = { entry, exit, checkpoint: bootTemplateCheckpoint(instance, await page.evaluate(bootStoredSave, instance)) };
   verifyBootTemplateRoad(result);
   await captureBootFrame(page, 'grid Template checkpoint return', deadline, frames);
   return result;
