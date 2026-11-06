@@ -76,11 +76,15 @@ export interface WorkerClientPorts {
   readonly day: () => DayFollower | null;
   readonly scope: Scope;
   readonly system: (system: SystemSpec) => void;
+  /** Link what the first rows' bodies draw, under the card. A page that reveals nothing yet has no such step. */
+  readonly linkBodies?: () => Promise<void>;
 }
 interface ShellModule { readonly startStandalone: (config: { slug: string; base: string; build: string; savePrefix: string; lone?: true; held?: (url: string) => Promise<ArrayBuffer | null> } & IndexedSaves) => Shell }
 interface Shell { pause: () => void; hold: (on: boolean) => void; bossGod: () => void; raise: (flag: string) => void; join: (id: string, x: number, y: number, z: number) => { readonly client: NetClient; readonly move: (x: number, y: number, z: number) => void }; readonly client: NetClient; readonly booted: Promise<{ readonly restored: boolean }>; place: (x: number, y: number, z: number, yaw: number) => void; hardHits: (by: number) => void; ready: () => void; save: () => Promise<{ readonly tick: number; readonly ok: boolean }>; probe: () => Promise<{ readonly tickMs: number }>; dispose: () => void }
 
 const SAVE_EVERY_MS = 30_000;
+/** How long the card waits for the server's first rows, and how often it looks. A server that has booted says them in a tick. */
+const FIRST_ROWS_MS = 1500, FIRST_ROWS_POLL_MS = 20;
 /** How often a page whose frames are parked behind a panel still hears the server. */
 const PARKED_BEAT_MS = 120;
 const column = (name: string): number => ANIMAL_CLASS.row.findIndex(entry => entry.name === name);
@@ -391,6 +395,20 @@ async function startWorkerClient(ports: WorkerClientPorts, card: ReturnType<type
     return out;
   };
   window.__workerClientSave = save;
+  // DL21, DL24: a page on a server builds no bodies of its own, so the first rows were the first its creature programs were asked
+  // for: they linked inside the first presented frame, at control (Pine's task of 985 ms at phone CPU, 0.5-2.7 s of 'Final activation'
+  // on the Simulator, cold only). The first frame's rows take their bodies here, and their links run under the card.
+  if (ports.linkBodies === undefined) return;
+  let first = -1;
+  const until = diagnosticNow() + FIRST_ROWS_MS;
+  while (diagnosticNow() < until) {
+    renderTick = client.present();
+    if (first === -1 && client.latest !== null) first = client.latest.tick;
+    if (first !== -1 && renderTick >= first) break;
+    await new Promise<void>(resolve => { scope.timeout(FIRST_ROWS_POLL_MS, () => { resolve(); }); });
+  }
+  syncCreatures(client, grid === null ? ports.animals : grid.animals(), bodies, retired, spawnMs, poses);
+  await ports.linkBodies();
 }
 
 async function guarded(ports: WorkerClientPorts): Promise<void> {
