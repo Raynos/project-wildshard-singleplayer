@@ -29,7 +29,7 @@ export function bindPageBossRecord(ctx: Pick<ShardContext, 'app' | 'scope'> & Pa
     if (legacy?.defeated === true) flags.set(row.names.defeated);
     if (legacy?.rewardTaken === true) flags.set(row.names.paid);
     const record = bossFlagRecord(flags, row.names);
-    return { read: () => record.saved, write: record.persist, flush: () => true };
+    return { read: () => bossFlagRecord(flags, row.names).saved, write: record.persist, flush: () => true };
   }
   const state = pageState(ctx, source, row.key, () => JSON.stringify(bossesSave.read(source.identity.slug)[row.actor]
     ?? { defeated: false, rewardTaken: false, kills: 0 }), instance);

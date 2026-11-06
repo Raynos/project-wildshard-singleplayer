@@ -257,7 +257,7 @@ export class Boss extends BossBrain {
   }
 
   /** ease the camera toward a world point (the intro: "the camera stays first person but eases to face the boss") */
-  private faceToward(target: THREE.Vector3, dt: number): void { easeViewToward(this.renderHost.player, this.renderHost.camera.position, target, dt); }
+  faceToward(target: THREE.Vector3, dt: number): void { easeViewToward(this.renderHost.player, this.renderHost.camera.position, target, dt); }
 }
 
 /** Ordered score actions at the existing encounter clock's five music boundaries. */
@@ -319,7 +319,7 @@ export function installBossEncounter<S extends BossScript>(rows: BossEncounterRo
       if (action.kind === 'phase-index' && (ports.scorePhase === undefined || action.values.length === 0 || action.values.length > 16)) throw new Error('Encounter requires its bounded phase owner');
     }
   }
-  const ui = new BossBar(), fight = makeScript();
+  const ui = new BossBar(), fight = makeScript(), aim = new THREE.Vector3();
   const scoreRows = rows.score, scoreOwner = ports.score;
   // J130: a bar has one driver. On the wire the row draws it and this page's brain never arms.
   let rowBar: BossRowBar | null = null;
@@ -349,6 +349,7 @@ export function installBossEncounter<S extends BossScript>(rows: BossEncounterRo
   if (ports.scope !== null) app.encounters.boss(rows.definition.id, boss, ports.scope);
   const rowId = ports.row ?? rows.definition.id;
   rowBar = wirePage.on ? new BossRowBar(ui, { ...rows.definition, id: rowId }, { show: at => { boss.showRowReward(at, () => { rowBar?.pressed(); wirePage.send(`${rowId}.reward`); }); }, hide: taken => { boss.hideRowReward(taken); } },
-    { lock: ports.lockInput, ...(music === undefined ? {} : { music }), ...(ports.feed === undefined ? {} : { feed: ports.feed }), ...(ports.toast === undefined ? {} : { toast: ports.toast }), attempt: outcome => { app.events.emit('boss.attempt', { boss: rows.definition.id, outcome }); } }) : null;
+    { lock: ports.lockInput, ...(music === undefined ? {} : { music }), ...(ports.feed === undefined ? {} : { feed: ports.feed }), ...(ports.toast === undefined ? {} : { toast: ports.toast }), attempt: outcome => { app.events.emit('boss.attempt', { boss: rows.definition.id, outcome }); },
+      face: (body, dt) => { boss.faceToward(wirePage.head(body, aim) ? aim : fight.rewardPoint(), dt); } }) : null;
   return { fight, boss, ui, update: (dt, t) => { if (rowBar !== null) { rowBar.draw(wirePage.encounters(), dt); boss.tendDrop(dt, t); } else if (ports.advance === undefined) boss.update(dt, t); else ports.advance(boss, fight, dt, t); }, onPlayerDeath: () => rowBar === null && boss.onPlayerDeath() };
 }

@@ -56,6 +56,10 @@ export interface BossRowVoice {
   readonly lock?: (on: boolean) => void;
   /** Analytics: the page's half of `boss.attempt`. */
   readonly attempt?: (outcome: 'started' | 'won' | 'died' | 'left') => void;
+  /** A frame of an intro: the view turns toward `body`, the row's handle, as the brain's `faceToward` does on a page. */
+  readonly face?: (body: number, dt: number) => void;
+  /** A dormant fight armed: a quest summoned it. */
+  readonly summoned?: () => void;
 }
 /** A reward as a page draws it. `hide` says whether the row ended on this player's press: what's in hand changes then, not at the press. */
 export interface BossRowDrop { readonly show: (at: EncounterReward) => void; readonly hide: (taken: boolean) => void }
@@ -103,7 +107,7 @@ export class BossRowBar {
     this.seen = row !== undefined;
     this.drop?.draw(row?.reward ?? null, dt);
     if (row === undefined) return;
-    if (state === 'intro') bar.setSkip(row.skip);
+    if (state === 'intro') { bar.setSkip(row.skip); this.voice.face?.(row.body, dt); }
     if (fighting(state)) {
       bar.setHp(row.hp); bar.setShield(row.shield);
       if (row.phase !== this.shown) {
@@ -134,6 +138,7 @@ export class BossRowBar {
       if (moment && engaged(was)) { voice.music?.('victory'); voice.won?.(); if (row?.reward === null) voice.toast?.(engineString('s_100cbeedfcec', [card.name])); }
     } else if (state === 'armed' && engaged(was)) { bar.hideBar(); bar.hideNameCard(); bar.showRetry(card.retryTitle, ++this.attempts); voice.music?.('death'); }
     else if (state === 'dormant') { bar.hideBar(); bar.hideNameCard(); this.attempts = 1; }
+    else if (state === 'armed' && was === 'dormant' && moment) voice.summoned?.();
   }
 }
 

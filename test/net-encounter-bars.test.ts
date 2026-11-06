@@ -73,6 +73,18 @@ test('a fight off the server\'s rows shows what the brain shows a page, in order
   } finally { net.dispose(); host.dispose(); }
 });
 
+test('an intro on a row turns the view to its body, and a summons is a moment', () => {
+  const faced: string[] = [], said: string[] = [], { bar } = tape();
+  const view = new BossRowBar(bar, CARD, null, { face: (body, dt) => { faced.push(`${String(body)} ${dt.toFixed(2)}`); }, summoned: () => { said.push('summoned'); } });
+  const boss = (state: string, body = 0): EncounterRow => ({ id: SPEC.id, kind: 'boss', state, hp: 1, phase: 0, shield: false, body, skip: 0, banners: 0, signatures: 0, known: false, sleep: 0, reward: null });
+  view.draw([boss('armed')], 0.1); expect(said, 'a row first seen armed was armed by a save').toEqual([]);
+  const fresh = new BossRowBar(bar, CARD, null, { summoned: () => { said.push('summoned'); } });
+  fresh.draw([boss('dormant')], 0.1); fresh.draw([boss('armed')], 0.1); fresh.draw([boss('armed')], 0.1);
+  expect(said).toEqual(['summoned']);
+  view.draw([boss('intro', 7)], 0.25); view.draw([boss('intro', 7)], 0.5); view.draw([boss('fight', 7)], 0.1);
+  expect(faced, 'each frame of the intro, and not past it').toEqual(['7 0.25', '7 0.50']);
+});
+
 const row = (id: string, state: string, body: number, hp = 1, phaseAt = 0, extra: Partial<EncounterRow> = {}): EncounterRow => ({ id, kind: 'elite', state, hp, phase: phaseAt, shield: false, body, skip: 0, banners: 0, signatures: 0, known: false, sleep: 0, reward: null, ...extra });
 test('the elite bar follows the nearest lair off its rows, and fades after a fall', () => {
   const shown: string[] = [], heads = new Map([[1, 10], [2, 4]]);

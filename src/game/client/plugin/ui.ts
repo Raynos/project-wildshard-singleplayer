@@ -886,7 +886,8 @@ export interface QuestReward { readonly burst: CoinMotion; readonly pay: () => u
  */
 export function questReward(ctx: ShardContext, o: { readonly player: Vector3; readonly coins: RuntimeCoins; readonly amount: number; readonly paid: () => boolean; readonly markPaid: () => void; readonly toast: string }): QuestReward {
   const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = coinBurst(scene);
-  const spawn = (amount: number, toast: string): void => { burst.spawn(o.player, amount, o.coins, () => { ctx.game.runtime?.play?.hud.toast(toast); }); };
+  // J130: on a page the coins a burst flies are the server's, already in the purse's line: they land and count for nothing.
+  const spawn = (amount: number, toast: string): void => { burst.spawn(o.player, amount, wirePage.on ? () => undefined : o.coins, () => { ctx.game.runtime?.play?.hud.toast(toast); }); };
   const pay = (): undefined => {
     if (o.paid()) return undefined;
     o.markPaid(); spawn(o.amount, o.toast);
@@ -1336,6 +1337,12 @@ export interface BossViewSpec {
   readonly persist: (value: BossSaved) => void;
   /** What a page shows of a win a server's row reports, where a page's script would have shown it. */
   readonly won?: () => void;
+  /** A fight began on a server's row: what `won` will say is read now, ahead of the win's own flags. */
+  readonly started?: () => void;
+  /** A quest armed the fight on a server's row, where `installBossView`'s summon would have said so. */
+  readonly summoned?: () => void;
+  /** The one point an intro faces, for a fight whose intro doesn't turn to its body. */
+  readonly introAt?: Vector3;
   /** The first fall's reward (absent: the victory callback pays it). */
   readonly spawnReward?: () => void;
   /** Toast the brain's own lines on the HUD (a later fall's); absent, the shard's victory callback says it. */
@@ -1354,17 +1361,19 @@ export class BossView extends DirectorBossBrain {
   /** J130: a bar has one driver. On the wire the row draws it and this page's brain never steps. */
   private readonly rowBar: BossRowBar | null;
   constructor(ctx: ShardContext, spec: BossViewSpec) {
-    const bar = new BossBar(), motor = (): { position: Vector3; yaw: number } | null => ctx.game.runtime?.world?.player ?? null;
+    const bar = new BossBar(), motor = (): { position: Vector3; yaw: number } | null => ctx.game.runtime?.world?.player ?? null, aim = new Vector3();
+    const faceToward = (target: Vector3): void => { const m = motor(); if (m) m.yaw = Math.atan2(m.position.x - target.x, m.position.z - target.z); };
     ctx.scope.onDispose(() => { bar.scope.dispose(); });
     ctx.answer('damage.modify', (request) => { const body = spec.body(); return request !== null && body !== null && request.target === body.combatActor() && spec.shielded() ? null : request; });
     super(spec.definition, spec.script, { events: ctx.app.events, player: { position: spec.player },
       lockInput: (on) => { ctx.game.runtime?.play?.weapons.setEnabled(!on); }, skipHeld: () => ctx.app.input.held('skip'),
       respawn: (pos, yaw) => { const m = motor(); if (m) { m.position.copy(pos); m.yaw = yaw; } },
-      faceToward: (target) => { const m = motor(); if (m) m.yaw = Math.atan2(m.position.x - target.x, m.position.z - target.z); },
-      spawnReward: () => { spec.spawnReward?.(); }, toast: spec.toast === true ? (message) => { ctx.game.runtime?.play?.hud.toast(message); } : undefined,
+      faceToward, spawnReward: () => { spec.spawnReward?.(); }, toast: spec.toast === true ? (message) => { ctx.game.runtime?.play?.hud.toast(message); } : undefined,
       persist: spec.persist }, bar, spec.saved, spec.stages);
     this.pinned = spec.body;
-    this.rowBar = wirePage.on ? new BossRowBar(bar, { ...spec.definition, id: spec.row ?? spec.definition.id }, null, { lock: on => { ctx.game.runtime?.play?.weapons.setEnabled(!on); }, ...(spec.won === undefined ? {} : { won: spec.won }), attempt: outcome => { ctx.app.events.emit('boss.attempt', { boss: spec.definition.id, outcome }); } }) : null;
+    this.rowBar = wirePage.on ? new BossRowBar(bar, { ...spec.definition, id: spec.row ?? spec.definition.id }, null, { lock: on => { ctx.game.runtime?.play?.weapons.setEnabled(!on); }, ...(spec.won === undefined ? {} : { won: spec.won }), ...(spec.summoned === undefined ? {} : { summoned: spec.summoned }),
+      face: body => { faceToward(spec.introAt ?? (wirePage.head(body, aim) ? aim : spec.script.rewardPoint())); },
+      attempt: outcome => { if (outcome === 'started') spec.started?.(); ctx.app.events.emit('boss.attempt', { boss: spec.definition.id, outcome }); } }) : null;
   }
   /** The boss's body is drawn at any distance (no tier draw-distance shrink), whichever body is up this frame. */
   override update(dt: number, t: number): void {
@@ -1390,14 +1399,16 @@ export function installBossView<T extends BossView>(ctx: ShardContext, id: strin
 /** A body boss's rows: its encounter definition, its authored stages and its spawned or held fight profile. */
 export interface RowBossRows { readonly definition: BossDefinition; readonly stages: unknown; readonly profile: unknown; /** The server's row for this fight. */ readonly row?: string }
 /** A boss record: the saved state to start from and how it persists. */
-export interface RowBossRecord { readonly saved: BossSaved; readonly persist: (value: BossSaved) => void }
+export interface RowBossRecord { readonly saved: BossSaved; readonly persist: (value: BossSaved) => void; /** The record as it stands now. */ readonly read: () => BossSaved }
 /**
  * What a `RowBossView` is lent. A spawned body (a fresh body per checkpoint): the bound body row, its arena
  * presentation (reward floor, respawn, storm, toasts), its admitted shardfile (the storm shells' look materials), its
  * coins through the purse and the victory's beat. A held body: the retained body, its brain and the victory callback,
  * which pays and toasts itself.
  */
-export type RowBossPorts = { readonly player: Vector3; readonly record: RowBossRecord } & ({
+export type RowBossPorts = { readonly player: Vector3; readonly record: RowBossRecord;
+  /** A page on a server shows a win without writing it: `won` hears the row's win, `started` its fight beginning. */
+  readonly won: () => void; readonly started: () => void } & ({
   readonly body: RuntimeBoss; readonly presentation: MarkedBossPresentation; readonly reward: number; readonly coins: RuntimeCoins;
   readonly source: Shardfile; readonly onDown?: () => void;
 } | { readonly held: Animal | null; readonly brain: HeldBossBrain | null; readonly victory: (at: Vector3) => void });
@@ -1405,11 +1416,12 @@ export type RowBossPorts = { readonly player: Vector3; readonly record: RowBossR
 interface RowBossMade { readonly spec: BossViewSpec; readonly at: Vector3 | null; readonly weather: { storm: number }; readonly after: () => void }
 function rowBossSpec(ctx: ShardContext, rows: RowBossRows, ports: RowBossPorts): RowBossMade {
   const profile = parseBossProfile(rows.profile), { player, record } = ports, saved = record.saved;
-  const base = { definition: rows.definition, stages: rows.stages, player, saved, persist: record.persist, ...(rows.row === undefined ? {} : { row: rows.row }) };
+  const base = { definition: rows.definition, stages: rows.stages, player, saved, persist: record.persist, ...(rows.row === undefined ? {} : { row: rows.row }),
+    started: () => { Object.assign(saved, record.read()); ports.started(); } };
   if ('held' in ports) {
     if (profile.pattern !== 'held') throw new Error(`${rows.definition.id} requires its declared held-body pattern`);
     const fight = bodyBossFight(profile, { body: ports.held, brain: ports.brain, victory: ports.victory });
-    return { spec: { ...base, script: fight.script, body: () => ports.held, shielded: fight.shielded }, at: null, weather: { storm: 0 }, after: () => undefined };
+    return { spec: { ...base, script: fight.script, body: () => ports.held, shielded: fight.shielded, won: ports.won, introAt: fight.script.rewardPoint() }, at: null, weather: { storm: 0 }, after: () => undefined };
   }
   if (profile.pattern !== 'spawned') throw new Error(`${rows.definition.id} requires its declared spawned-body pattern`);
   const look = ports.presentation, body = ports.body, onDown = ports.onDown;
@@ -1419,7 +1431,14 @@ function rowBossSpec(ctx: ShardContext, rows: RowBossRows, ports: RowBossPorts):
     respawnPoint: () => ({ pos: new Vector3(look.respawn.x, ctx.manifest.ground.terrain?.heightAt(look.respawn.x, look.respawn.z) ?? 0, look.respawn.z), yaw: look.respawn.yaw }),
     victory: () => { ctx.game.runtime?.play?.hud.toast(saved.rewardTaken ? look.toasts.rewardAgain : look.toasts.reward); onDown?.(); },
     update: (dt, strength) => { weather(dt, strength); burst.update(dt, player); } });
-  return { at, weather: fight.weather, spec: { ...base, script: fight.script, body: fight.body, shielded: fight.invulnerable, toast: true, won: () => { ctx.game.runtime?.play?.hud.toast(saved.rewardTaken ? look.toasts.rewardAgain : look.toasts.reward); },
+  return { at, weather: fight.weather, spec: { ...base, script: fight.script, body: fight.body, shielded: fight.invulnerable, toast: true,
+    won: () => {
+      const first = !saved.rewardTaken;
+      ctx.game.runtime?.play?.hud.toast(first ? look.toasts.reward : look.toasts.rewardAgain);
+      if (first) burst.spawn(player, ports.reward, () => undefined, () => undefined);
+      saved.rewardTaken = true; ports.won();
+    },
+    summoned: () => { ctx.game.runtime?.play?.hud.toast(look.toasts.summoned); },
     spawnReward: () => { saved.rewardTaken = true; record.persist(saved); burst.spawn(player, ports.reward, ports.coins, () => undefined); } },
     after: () => {
       if (saved.defeated) onDown?.();
@@ -1429,7 +1448,7 @@ function rowBossSpec(ctx: ShardContext, rows: RowBossRows, ports: RowBossPorts):
         const row = wirePage.encounters().find(entry => entry.id === (rows.row ?? rows.definition.id));
         const goal = (row?.state === 'fight' || row?.state === 'beat') && profile.fight.stormPhases.includes(row.phase) ? 1 : 0;
         fight.weather.storm = easeField(fight.weather.storm, goal, dt, { seconds: profile.fight.stormFade });
-        weather(dt, fight.weather.storm);
+        weather(dt, fight.weather.storm); burst.update(dt, player);
       } });
     } };
 }
@@ -1476,19 +1495,26 @@ export function bindDeclaredFight(ctx: ShardContext, row: BossViewRows | undefin
     ports.flags.set(row.victory.flag); ports.facts(row.victory.fact, row.id);
     if (ports.kind === 'held') ports.reward(row.reward, row.victory.rewardLabel ?? '');
   };
+  /** A win as a server's row reports it: what `victory` says, and nothing it writes. The win's own flag can reach a page first, so `again` is what stood as the fight began. */
+  let again = ports.flags.has(row.victory.flag);
+  const told = { started: (): void => { again = ports.flags.has(row.victory.flag); }, won: (): void => {
+    if (row.victory.once && again) { if (row.victory.again !== undefined) toast(row.victory.again); return; }
+    again = true;
+    if (ports.kind === 'held') ports.reward(row.reward, row.victory.rewardLabel ?? '');
+  } };
   let boss: RowBossView, summoned: (() => void) | undefined, control: ReturnType<SpeciesPageCatalogue['prepareHeld']> = null;
   const rows = { definition: row.definition, stages: row.stages, profile: row.profile, ...(row.row === undefined ? {} : { row: row.row }) };
   if (ports.kind === 'held') {
     control = ports.held === null ? null : ports.catalogue?.prepareHeld(ports.held.kind, ports.held) ?? null;
     if (ports.held !== null && control === null) throw new Error('Held creature controller must be prepared by its species binding');
-    boss = new RowBossView(ctx, rows, { player: ports.player, held: ports.held, brain: control, victory, record: ports.record });
+    boss = new RowBossView(ctx, rows, { player: ports.player, held: ports.held, brain: control, victory, record: ports.record, ...told });
   } else {
     if (row.record === undefined) throw new Error('Spawned presentation requires its declared record');
     const body = ports.body;
     const record = bindPageBossRecord(ctx, ports.source, row.record, ports.flags);
     const presentation = parseMarkedBossPresentation(row.presentation);
-    boss = new RowBossView(ctx, rows, { player: ports.player, body, record: { saved: record.read(), persist: record.write }, presentation,
-      reward: row.reward, coins: ports.coins ?? bindRuntimeCoins(ctx, null), onDown: victory, source: ports.source });
+    boss = new RowBossView(ctx, rows, { player: ports.player, body, record: { saved: record.read(), persist: record.write, read: record.read }, presentation,
+      reward: row.reward, coins: ports.coins ?? bindRuntimeCoins(ctx, null), onDown: victory, source: ports.source, ...told });
     summoned = () => { toast(presentation.toasts.summoned); };
   }
   return { ...installBossView(ctx, row.id, boss, ports.armed, summoned), control };
