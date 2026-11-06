@@ -93,10 +93,13 @@ export async function play(browser, phone, base, only = '') {
     return { ok: false };
   });
   // Chase and swing: the sword reaches two metres, and a boar doesn't stand still.
+  let stuck = 0, from = null;
   const swing = async kinds => {
     const body = await nearestBody(drift.page, kinds);
     if (body === null) { await drift.page.waitForTimeout(400); return; }
-    await drift.page.evaluate(([x, z, away]) => { const { player, game } = window.__wildshard.world; player.yaw = Math.atan2(-(x - player.position.x), -(z - player.position.z)); player.pitch = -0.15; player.touchMove.y = away > 1.8 ? 1 : 0; player.touchSprint = away > 8; if (away < 2.6) game.app.input.press('attack'); }, [body.x, body.z, body.away]);
+    const at = await drift.page.evaluate(([x, z, away, side]) => { const { player, game } = window.__wildshard.world; player.yaw = Math.atan2(-(x - player.position.x), -(z - player.position.z)) + side; player.pitch = -0.15; player.touchMove.y = away > 1.8 ? 1 : 0; player.touchSprint = away > 8; if (away < 2.6) game.app.input.press('attack'); return { x: player.position.x, z: player.position.z }; }, [body.x, body.z, body.away, stuck >= 3 ? (stuck % 12 < 6 ? 1.3 : -1.3) : 0]);
+    stuck = from !== null && body.away > 2.6 && Math.hypot(at.x - from.x, at.z - from.z) < 0.4 ? stuck + 1 : Math.max(0, stuck - 1); from = at; // round whatever stands between them
+    if (stuck === 4) await drift.page.keyboard.press('Space');
     await drift.page.waitForTimeout(350);
   };
   await step('a fight: the server takes a hit', async () => {
