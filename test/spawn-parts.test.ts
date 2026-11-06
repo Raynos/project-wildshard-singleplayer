@@ -9,6 +9,8 @@ import { createHash } from 'node:crypto';
 import { afterAll, expect, test } from 'vitest';
 import { PART_BYTES, createPartEncoder, packable, placeByKey, placementKey, spawnPartGroups, writeSpawnParts, type SpawnPartInput } from '../src/game/cook/spawnParts';
 import { readSpawnManifest, type SpawnFile, type SpawnPart } from '@wildshard/format/spawnManifest';
+import { cookServerPack } from '../src/game/cook/shardCook';
+import { serverPackFile } from '../src/game/shared/shardfile/serverPack';
 
 mkdirSync('tmp', { recursive: true });
 const out = mkdtempSync(resolve('tmp/spawn-parts-'));
@@ -204,4 +206,22 @@ test('past the section parts, a small content part comes before a big asset part
   const [table] = await writeSpawnParts(out, [manifest(rows)], url => noise(url, rows.find(row => row.url === url)?.bytes ?? 0), undefined, encoder());
   const first = (table ?? []).map(part => rows[part.members[0]?.[0] ?? -1]?.url);
   expect(first).toEqual([small.url, big.url]);
+});
+
+test('C2: a server pack holds the server class by content, and a reader finds each file', async () => {
+  const folder = mkdtempSync(resolve('tmp', 'server-pack-')), one = new TextEncoder().encode('navmesh'), two = new Uint8Array(40).fill(7);
+  const hash = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
+  const files = new Map([['server/one.bin', one], ['server/two.bin', two]]);
+  // Out of path order on purpose: the pack's padding follows its sorted order, not the index's.
+  const rows = [...files].reverse().map(([path, bytes]) => ({path, bytes: bytes.length, hash: hash(bytes)}));
+  try {
+    const pack = await cookServerPack(rows, path => files.get(path) ?? new Uint8Array(), folder, createPartEncoder(resolve(folder, 'cache'), 1));
+    if (pack === undefined) throw new Error('No pack');
+    const unpacked = brotliDecompressSync(readFileSync(resolve(folder, pack.url.slice(1))));
+    expect(hash(unpacked)).toBe(pack.hash);
+    expect(serverPackFile(pack, unpacked, 'server/one.bin')).toEqual(Buffer.from(one));
+    expect(serverPackFile(pack, unpacked, 'server/two.bin')).toEqual(Buffer.from(two));
+    expect(serverPackFile(pack, unpacked, 'server/none.bin')).toBeUndefined();
+    expect(await cookServerPack([], () => new Uint8Array(), folder, createPartEncoder(resolve(folder, 'cache'), 1))).toBeUndefined();
+  } finally { rmSync(folder, {recursive: true, force: true}); }
 });

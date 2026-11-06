@@ -135,7 +135,7 @@ const server = createServer((req, res) => {
 
   const acceptEncoding = req.headers['accept-encoding'] ?? '';
   // DL15: a spawn part is its q11 Brotli body (see below); a missing one is a 404, never the page's fallback.
-  const part = /^\/assets\/spawn\/parts\/[a-f0-9]{16}\.pack\.br$/u.test(pathname);
+  const part = /^\/assets\/spawn\/(?:parts|server)\/[a-f0-9]{16}\.pack\.br$/u.test(pathname);
   let found = lookup(pathname);
   if (found === null && part) { res.removeHeader('Content-Encoding'); res.statusCode = 404; res.end(); return; }
   if (found === null) {

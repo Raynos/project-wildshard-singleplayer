@@ -1508,6 +1508,7 @@
   "src/game/client/shardfile/water.ts": "client",
   "src/game/client/shardfile/weatherFields.ts": "client",
   "src/game/client/shardfile/wholeGeometryPieces.ts": "client",
+  "src/game/shared/shardfile/serverPack.ts": "shared",
   "src/game/shared/shardfile/wholeInputs.ts": "shared",
   "src/game/client/shardfile/wholeLibrary.ts": "client",
   "src/game/client/shardfile/wholeRefinementCover.ts": "client",

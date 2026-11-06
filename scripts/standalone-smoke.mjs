@@ -37,7 +37,7 @@ const product = readBuiltShardfile(ROOT, slug), physics = join(ROOT, 'public/ass
 const resolvePath = path => {
   const inside = (root, tail) => { const file = resolveFile(root, `.${tail}`); return file === root || file.startsWith(root + sep) ? file : null; };
   if (path.startsWith(`/shards/${slug}/`)) return inside(resolveFile(product), path.slice(`/shards/${slug}`.length));
-  if (path.startsWith(`/server-class/${slug}/`)) return inside(resolveFile(product), path.slice(`/server-class/${slug}`.length)); // J91: outside the tree a page reads, as a build copies it
+  if (path.startsWith('/assets/spawn/')) return inside(output, path.replace(`server-${nextBuild}.json`, `server-${firstBuild}.json`)); // C2: a server pack and its book, where a build wrote them
   if (path.startsWith('/assets/physics/')) return inside(physics, path.slice('/assets/physics'.length));
   for (const id of [firstBuild, nextBuild]) if (path.startsWith(`/${codeDirectory(id)}/`)) return inside(join(output, codeDirectory(firstBuild)), path.slice(`/${codeDirectory(id)}`.length));
   return inside(OUT, path);
@@ -51,7 +51,7 @@ const server = createServer((request, response) => {
   if (path === '/sw.js') { response.writeHead(200, { 'content-type': 'text/javascript' }).end(); return; }
   const file = resolvePath(path);
   if (file === null || !existsSync(file) || !statSync(file).isFile()) { response.writeHead(404).end(); return; }
-  response.writeHead(200, { 'content-type': TYPES[extname(file)] ?? 'application/octet-stream' }); // no COOP / COEP (J59 Q8)
+  response.writeHead(200, { 'content-type': TYPES[extname(file)] ?? 'application/octet-stream', ...file.endsWith('.pack.br') ? { 'content-encoding': 'br' } : {} }); // no COOP / COEP (J59 Q8)
   createReadStream(file).pipe(response);
 });
 await new Promise(resolve => { server.listen(0, '127.0.0.1', resolve); });

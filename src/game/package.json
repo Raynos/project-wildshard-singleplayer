@@ -10,6 +10,7 @@
     "./weather/rainPresentation": "./client/weather/rainPresentation.ts",
     "./ambient/ambientFlock": "./client/ambient/ambientFlock.ts",
     "./shardfile/bakedTiles": "./client/shardfile/bakedTiles.ts",
+    "./shardfile/serverPack": "./shared/shardfile/serverPack.ts",
     "./quest/chapterBindings": "./shared/quest/chapterBindings.ts",
     "./ui/panels": "./client/ui/panels.ts",
     "./ui/panelTemplates": "./client/ui/panelTemplates.ts",

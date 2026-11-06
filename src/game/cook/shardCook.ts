@@ -15,9 +15,10 @@ import {dirname, join} from 'node:path';
 import {assetIdentities, identityFiles, resolveFenceReads, sectionRefs} from '@wildshard/format/fenceReads';
 import {COOK_DATA_PATH, readCookData, type CookData} from '@wildshard/format/cookData';
 import {assembleOutputShardfile, parseOutputIndex, type OutputIndex} from '@wildshard/format/outputIndex';
-import {readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnPart} from '@wildshard/format/spawnManifest';
+import {SPAWN_PART_ALIGN, readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnPart} from '@wildshard/format/spawnManifest';
 import type {Shardfile} from '@wildshard/format/shardSchema';
 import {readTar} from '@wildshard/format/tar';
+import type {ServerPack} from '../shared/shardfile/serverPack';
 import {entryReadSet} from './entryReadSet';
 import {createPartEncoder, packable, writeSpawnParts, type CookedMember, type PartEncoder} from './spawnParts';
 
@@ -164,12 +165,31 @@ export async function cookParts(out: string, half: ShardHalf, tables: readonly {
   return placed;
 }
 
+/** C2: the server class as one part, in its own folder: the download gates tell a server's reads from a page's by path. A
+ *  product with no server files has none. */
+export async function cookServerPack(rows: readonly {readonly path: string; readonly hash: string; readonly bytes: number}[], read: (path: string) => Uint8Array, out: string, encoder: PartEncoder): Promise<ServerPack | undefined> {
+  if (rows.length === 0) return undefined;
+  const align = (at: number): number => Math.ceil(at / SPAWN_PART_ALIGN) * SPAWN_PART_ALIGN;
+  const sorted = [...rows].sort((left, right) => left.path < right.path ? -1 : 1);
+  const length = sorted.reduce((at, row) => align(at) + row.bytes, 0), body = new Uint8Array(length), files: [string, number, number][] = [];
+  let cursor = 0;
+  for (const row of sorted) {
+    const bytes = read(row.path);
+    if (bytes.length !== row.bytes || sha256(bytes) !== row.hash) throw new Error('Server file differs from its index');
+    cursor = align(cursor); body.set(bytes, cursor); files.push([row.path, cursor, bytes.length]); cursor += bytes.length;
+  }
+  const hash = sha256(body), wire = await encoder.encode(body, hash), url = `/assets/spawn/server/${hash.slice(0, 16)}.pack.br`;
+  mkdirSync(join(out, 'assets/spawn/server'), {recursive: true}); writeFileSync(join(out, url.slice(1)), wire);
+  return {url, bytes: body.length, hash, wireBytes: wire.length, files};
+}
+
 export interface CookReport {
   readonly slug: string;
   readonly seconds: number;
   readonly manifests: readonly {readonly url: string; readonly tier: CookTier; readonly set: CookSet; readonly files: number; readonly totalBytes: number; readonly wireBytes: number}[];
   readonly loose: readonly string[];
   readonly parts: {readonly count: number; readonly rawBytes: number; readonly wireBytes: number};
+  readonly server: {readonly url: string; readonly wireBytes: number; readonly files: number} | undefined;
 }
 
 /** `cook <shardfile> → <packs>`: the shard's half of every manifest, its parts, and its loose mounts at their URLs. */
@@ -191,12 +211,14 @@ export async function cookShard(tarball: Uint8Array, out: string, options: {read
     writeFileSync(join(out, name), text);
     manifests.push({url: `/${name}`, tier: row.tier, set: row.set, files: row.rows.length, totalBytes, wireBytes: wire});
   }
+  const server = await cookServerPack(half.shard.index.admission.server ?? [], half.shard.read, out, encoder);
+  if (server !== undefined) writeFileSync(join(out, `assets/spawn/server-${half.shard.slug}.json`), JSON.stringify(server));
   // What no part may hold still serves at its URL (DL14: `<img>` and module loads pass any fetch layer).
   const loose = (half.shard.cook?.mounts ?? []).filter(row => !packable(row.url));
   for (const row of loose) {
     const file = join(out, row.url.slice(1));
     mkdirSync(dirname(file), {recursive: true}); writeFileSync(file, half.shard.read(row.path));
   }
-  return {slug: half.shard.slug, seconds: (options.now() - started) / 1000, manifests, loose: loose.map(row => row.url),
+  return {slug: half.shard.slug, seconds: (options.now() - started) / 1000, manifests, loose: loose.map(row => row.url), server: server === undefined ? undefined : {url: server.url, wireBytes: server.wireBytes, files: server.files.length},
     parts: {count: after.parts - before.parts, rawBytes: after.rawBytes - before.rawBytes, wireBytes: after.wireBytes - before.wireBytes}};
 }

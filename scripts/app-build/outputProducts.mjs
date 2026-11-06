@@ -5,20 +5,18 @@ import { basename, isAbsolute, join, relative, resolve, sep } from 'node:path';
  *  `<root>/out` (one with a shard.json) goes to `<outDir>/shardfiles`, without its runtime sources or its build key.
  *  `mounts/` and `cook.json` (C0, J137) are the cook's input: their files already serve at their public URLs.
  *  The server class (J91, `<slug>/server/`) stays out of that tree, which is what a client reads. Standalone's server is a
- *  worker on the same device, so until C2's server packs it reads those files from `<outDir>/server-class/<slug>/server/`:
- *  nothing precaches that folder and no client pack or reader names it.
+ *  worker on the same device: it reads those files from its server pack (C2, `src/game/shared/shardfile/serverPack.ts`),
+ *  which nothing precaches and no client manifest names.
  * @param {string} root @param {string} outDir */
 export function copyOutputProducts(root, outDir) {
-  const products = resolve(root, 'out'), shardfiles = resolve(outDir, 'shardfiles'), serverClass = resolve(outDir, 'server-class');
+  const products = resolve(root, 'out'), shardfiles = resolve(outDir, 'shardfiles');
   rmSync(shardfiles, { recursive: true, force: true });
-  rmSync(serverClass, { recursive: true, force: true });
   if (!existsSync(products)) return;
   for (const entry of readdirSync(products, { withFileTypes: true })) {
     if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
     const source = resolve(products, entry.name);
     if (!existsSync(resolve(source, 'shard.json'))) continue;
     cpSync(source, resolve(shardfiles, entry.name), { recursive: true, filter: path => basename(path) !== 'runtime' && basename(path) !== '.build-key' && !['server', 'mounts', 'cook.json'].includes(relative(source, path)) });
-    if (existsSync(resolve(source, 'server'))) cpSync(resolve(source, 'server'), resolve(serverClass, entry.name, 'server'), { recursive: true });
   }
 }
 

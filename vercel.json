@@ -241,7 +241,7 @@
       ]
     },
     {
-      "source": "/assets/spawn/parts/(.*)\\.pack\\.br",
+      "source": "/assets/spawn/(parts|server)/(.*)\\.pack\\.br",
       "headers": [
         {
           "key": "Content-Encoding",

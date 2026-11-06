@@ -5,6 +5,7 @@ import { contentHash } from '@wildshard/game/shardfile/contentHash';
 import { nodeNamedJsonCheck, nodeOutputDescriptorChecks } from '@wildshard/game/shardfile/outputChecksNode';
 import { carryOutputDescriptor, outputDescriptor, resolveOutputDescriptor, serverReadsFile } from '@wildshard/game/shardfile/outputDescriptor';
 import { shardProductData } from '@wildshard/game/shardfile/productData';
+import { readServerPackBook, serverPackBookPath, serverPackFile, type ServerPack } from '@wildshard/game/shardfile/serverPack';
 import type { HeadlessRuntimeInput } from '../headlessRuntime';
 import type { HeldRead } from './heldReads';
 
@@ -22,15 +23,35 @@ async function serverBytes(url: URL, path: string, held?: HeldRead): Promise<Uin
   return new Uint8Array(await usable.arrayBuffer());
 }
 
+/** C2: reads a server file from its product's pack, fetching the book and the pack once. The browser undoes `br`. */
+function serverPackReader(root: string, slug: string): (path: string) => Promise<Uint8Array> {
+  let opened: Promise<{ readonly pack: ServerPack; readonly body: Uint8Array }> | undefined;
+  const open = async (): Promise<{ readonly pack: ServerPack; readonly body: Uint8Array }> => {
+    // The worker runs from its build's folder (`/b/<build>/standalone/`), which says whose book to read.
+    const build = /^\/b\/([^/]+)\//u.exec(globalThis.location.pathname)?.[1];
+    if (build === undefined) throw new Error('The server worker runs outside a build folder');
+    const path = serverPackBookPath(build);
+    const book = readServerPackBook(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await serverBytes(new URL(`/${path}`, root), path))));
+    const pack = book.shards[slug];
+    if (pack === undefined) throw new Error(`No server pack for ${slug}`);
+    return { pack, body: await serverBytes(new URL(pack.url, root), pack.url) };
+  };
+  return async path => {
+    const { pack, body } = await (opened ??= open()), bytes = serverPackFile(pack, body, path);
+    if (bytes === undefined) throw new Error(`Missing server input ${path}`);
+    return bytes;
+  };
+}
+
 /**
  * P1-E5.2: the worker's product reader, loadHeadlessProduct over `fetch`. It verifies the same index, sizes and SHA-256
- * addresses with the same checks; only where the bytes come from differs. C2's server packs replace this.
+ * addresses with the same checks; only where the bytes come from differs.
  */
 export async function fetchServerProduct(base: string, rapier: Rapier, held?: HeldRead): Promise<HeadlessRuntimeInput> {
   const root = new URL(base, globalThis.location.href).href, slug = new URL('.', root).pathname.split('/').at(-2) ?? '';
-  // The server class sits outside the tree a client reads (J91): `copyOutputProducts` says where, until C2's server packs.
-  const serverRoot = new URL(`../../server-class/${slug}/`, root).href;
-  const read = (path: string): Promise<Uint8Array> => serverBytes(new URL(path, path.startsWith('server/') ? serverRoot : root), path, held);
+  // C2: the server class sits outside the tree a client reads (J91), in one pack this build's book names.
+  const serverFile = serverPackReader(root, slug);
+  const read = (path: string): Promise<Uint8Array> => path.startsWith('server/') ? serverFile(path) : serverBytes(new URL(path, root), path, held);
   const input: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await read('shard.json')));
   if (!isOutputIndex(input)) throw new Error('Standalone needs a format-2 output');
   const assembled = await resolveOutputDescriptor(input, { offline: false, hash: contentHash, read, checks: nodeOutputDescriptorChecks });

@@ -92,8 +92,8 @@ test('plain build publishes exact tier spawn files and rejects changed section b
     const bank: unknown = JSON.parse(match?.[1] ?? 'null');
     if (typeof bank !== 'object' || bank === null) throw new Error('Missing complete compiler bank');
     // DL16: the page's bank is the default book only; the packs book is this build's own file.
-    const published: unknown = Reflect.get(bank, 'spawnManifests'), {packs: packsBook, ...defaults} = manifests;
-    expect(published).toEqual(defaults); expect(html).not.toContain('"packs"'); expect(html).not.toContain('/assets/spawn/parts/');
+    const published: unknown = Reflect.get(bank, 'spawnManifests'), {packs: packsBook, serverPacks, ...defaults} = manifests;
+    expect(serverPacks).toEqual({}); expect(published).toEqual(defaults); expect(html).not.toContain('"packs"'); expect(html).not.toContain('/assets/spawn/parts/');
     expect(JSON.parse(readFileSync(resolve(out, 'assets/spawn/packs-fixture-build.json'), 'utf8'))).toEqual({book: 'packs', build: 'fixture-build', cacheName: manifests.cacheName, ...packsBook});
     expect(html).not.toContain('entryTotals'); expect(html).not.toContain('installEntryTransport');
     expect(html).not.toContain('blobs/pack');

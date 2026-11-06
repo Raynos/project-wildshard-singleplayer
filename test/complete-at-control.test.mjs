@@ -67,15 +67,15 @@ test('a worker fetch the page never requests in the visit is precache; any page 
 });
 
 test('the server worker\'s code and server class are listed apart; anything else it fetches stays level content', () => {
-  const level = url => /\/(?:shardfiles|server-class|b)\//u.test(url);
+  const level = url => /\/(?:shardfiles|assets\/spawn|b)\//u.test(url);
   const rows = [
-    { url: 'https://x.test/server-class/nine/server/a.bin', by: 'page', start: 1, end: 2 },
+    { url: 'https://x.test/assets/spawn/server-abc.json', by: 'page', start: 1, end: 2 },
     { url: 'https://x.test/b/abc/standalone/serverWorker-d1.js', by: 'page', start: 1, end: 2 },
     { url: 'https://x.test/shardfiles/nine/blobs/bin/a.bin', by: 'page', start: 3, end: 4 },
     { url: 'https://x.test/b/abc/assets/main-d4.js', by: 'page', start: 3, end: 4 },
   ];
   const { level: levelRows, server } = splitRequests(rows, level);
-  expect(server.map(entry => new URL(entry.url).pathname)).toEqual(['/server-class/nine/server/a.bin', '/b/abc/standalone/serverWorker-d1.js']);
+  expect(server.map(entry => new URL(entry.url).pathname)).toEqual(['/assets/spawn/server-abc.json', '/b/abc/standalone/serverWorker-d1.js']);
   expect(levelRows.map(entry => new URL(entry.url).pathname)).toEqual(['/shardfiles/nine/blobs/bin/a.bin', '/b/abc/assets/main-d4.js']);
 });
 

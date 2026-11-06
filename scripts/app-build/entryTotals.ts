@@ -11,7 +11,8 @@ import {readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnManifes
 import {GPU_FILES} from '../../src/engine/client/boot/ktx2.generated';
 import {assetIdentities, audioTableRefs, bundlerSources as manifestSources, identityFiles, joinRefs, standInRefs, packMembers, readFenceReads, resolveFenceReads, sectionRefs, type PackPart} from '@wildshard/format/fenceReads';
 import {createPartEncoder, writeSpawnParts, type CookedMember, type SpawnPartEncoding} from '../../src/game/cook/spawnParts';
-import {cookParts, openShardfile, servedAsIs, shardHalf} from '../../src/game/cook/shardCook';
+import {cookParts, cookServerPack, openShardfile, servedAsIs, shardHalf} from '../../src/game/cook/shardCook';
+import type {ServerPack} from '../../src/game/shared/shardfile/serverPack';
 import {contentNamed} from './assetHashes';
 import {homedir} from 'node:os';
 import {productTarball} from './productTarball';
@@ -39,6 +40,8 @@ export interface SpawnManifestBook {
   readonly grid: Readonly<Record<string, Readonly<Record<string, Readonly<Record<'phone' | 'desktop', SpawnManifestAddress>>>>>>;
   /** DL16: the whole level with its parts, read only with Debug > Level download > Runtime packs. */
   readonly packs: {readonly client: SpawnManifestBook['client']; readonly grid: SpawnManifestBook['grid']};
+  /** C2: each product's server class, one part each; only the server worker reads this. */
+  readonly serverPacks: Readonly<Record<string, ServerPack>>;
 }
 
 /** Write the complete ordered spawn IO, rather than estimating a number from
@@ -132,7 +135,7 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
   const pending: {manifest: Omit<SpawnManifest, 'parts'>; public: boolean; packed: boolean}[] = [];
   const clientAt: Record<string, {phone: number; desktop: number}> = {}, gridAt: Record<string, Record<string, {phone: number; desktop: number}>> = {};
   const packsClientAt: typeof clientAt = {}, packsGridAt: typeof gridAt = {};
-  const encoder = createPartEncoder(), cooked = new Map<string, CookedMember>();
+  const encoder = createPartEncoder(), cooked = new Map<string, CookedMember>(), serverPacks: Record<string, ServerPack> = {};
   for (const prefix of Object.keys(bank.products)) {
     const directory = prefix.split('/')[2]; if (directory === undefined || !/^[a-z0-9_-]+$/u.test(directory)) throw new Error('Invalid spawn shard');
     const product = join(root, 'out', directory), index = parseOutputIndex(JSON.parse(readFileSync(join(product, 'shard.json'), 'utf8')));
@@ -142,6 +145,8 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
     const shardRows = {phone: {entry: half.productRows('phone', 'entry'), whole: half.productRows('phone', 'whole')},
       desktop: {entry: half.productRows('desktop', 'entry'), whole: half.productRows('desktop', 'whole')}};
     for (const [url, member] of await cookParts(output, half, [{tier: 'phone', rows: shardRows.phone.whole}, {tier: 'desktop', rows: shardRows.desktop.whole}], encoder)) cooked.set(url, member);
+    const serverPack = await cookServerPack(half.shard.index.admission.server ?? [], half.shard.read, output, encoder);
+    if (serverPack !== undefined) serverPacks[directory] = serverPack;
     for (const table of [shardRows.phone, shardRows.desktop]) for (const row of [...table.entry, ...table.whole]) {
       const stable = half.stableKey(row.url); if (stable !== undefined) stableKeys.set(row.url, stable);
     }
@@ -239,6 +244,6 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
   const packs: {client: typeof client; grid: typeof grid} = {client: {}, grid: {}};
   for (const [directory, pair] of Object.entries(packsClientAt)) packs.client[directory] = {phone: at(pair.phone), desktop: at(pair.desktop)};
   for (const [mode, shards] of Object.entries(packsGridAt)) for (const [directory, pair] of Object.entries(shards)) (packs.grid[mode] ??= {})[directory] = {phone: at(pair.phone), desktop: at(pair.desktop)};
-  return {cacheName: ASSET_CACHE_NAME, client, grid, packs};
+  return {cacheName: ASSET_CACHE_NAME, client, grid, packs, serverPacks};
 }
 
