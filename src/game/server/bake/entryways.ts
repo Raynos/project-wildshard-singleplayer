@@ -9,9 +9,9 @@ import { socketLiftEntries, socketLiftRules, type SocketLiftEntry } from '@wilds
 import { portalLinkEntries } from '@wildshard/format/portalLinkAssets';
 import type { LiftApproachSource } from '@wildshard/format/liftApproach';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { provePortalLinks } from '../../server/shardfile/portalLinkProof';
-import type { MoverRuntime } from '../../server/plugin/mover';
-import { commandSocketLift, createShardfileSim, type ShardfileSimulation, type ShardfileSimPorts } from '../../server/plugin/simulation';
+import { provePortalLinks } from '../shardfile/portalLinkProof';
+import type { MoverRuntime } from '../plugin/mover';
+import { commandSocketLift, createShardfileSim, type ShardfileSimulation, type ShardfileSimPorts } from '../plugin/simulation';
 
 type Physics = SimHost['physics'];
 
