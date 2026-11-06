@@ -54,29 +54,27 @@ function revive(value: unknown): unknown {
   return Object.fromEntries(Object.entries(value).map(([key, row]) => [key, revive(row)]));
 }
 
-/** One document as the manifest its bindings describe. */
-export function shardFromDiscovery(input: unknown): ShardManifest {
+/** One document as the manifest its bindings describe. A shard homed on another origin (J138) names its images there: a
+ *  document's `<img>` passes no fetch layer. Its data keeps the page URLs the format admits; only what a page shows moves. */
+export function shardFromDiscovery(input: unknown, home?: string): ShardManifest {
   if (!isRow(input) || input['version'] !== 1 || typeof input['slug'] !== 'string' || !isRow(input['rows']) || !isRow(input['native'])) throw new Error('Invalid discovery document');
   const {slug, data, rows, native} = input, ktx2 = native['ktx2'];
   const declared = revive(native), bindings = revive(rows);
   if (!isRow(declared) || !isRow(bindings)) throw new Error('Invalid discovery document');
-  if (isRow(input['art'])) addShardArt(input['art']);
+  const art = isRow(input['art']) ? input['art'] : {}, images: Record<string, string> = {}, homed: Record<string, unknown> = {};
+  if (home !== undefined) for (const [url, bytes] of Object.entries(art)) { images[url] = `${home}${url}`; homed[`${home}${url}`] = bytes; }
+  addShardArt({...art, ...homed});
   return defineAuthoredShard(data, slug, bindings, {
     ...declared, ...(isRow(ktx2) && '$call' in ktx2 ? {} : ktx2 === undefined ? {} : {ktx2: () => Promise.resolve(ktx2)}),
-  } as Parameters<typeof defineAuthoredShard>[3], {});
+  } as Parameters<typeof defineAuthoredShard>[3], images);
 }
 
-/** A shard homed on another origin (J138) names its images there: a document's `<img>` passes no fetch layer. */
-const rehomed = (text: string, url: string, slug: string): string => {
-  const origin = /^https?:\/\/[^/]+/u.exec(url)?.[0];
-  return origin === undefined ? text : text.replaceAll(`"/shardfiles/${slug}/blobs/`, `"${origin}/shardfiles/${slug}/blobs/`);
-};
 /** The manifest of a title row, read from its product. */
 export async function readDiscovery(row: Pick<TitleManifest, 'slug' | 'discovery'>, read: typeof fetch = fetch): Promise<ShardManifest> {
   if (row.discovery === undefined) throw new Error(`${row.slug} has no discovery document`);
   const response = await read(row.discovery);
   if (!response.ok) throw new Error(`Discovery of ${row.slug} answered ${response.status}`);
-  const manifest = shardFromDiscovery(JSON.parse(rehomed(await response.text(), row.discovery, row.slug)));
+  const manifest = shardFromDiscovery(JSON.parse(await response.text()), /^https?:\/\/[^/]+/u.exec(row.discovery)?.[0]);
   if (!new Set([row.slug]).has(manifest.slug)) throw new Error('Selected discovery identity differs');
   return manifest;
 }

@@ -2,6 +2,7 @@ import { expect, test, vi } from 'vitest';
 import { discoveryDocument } from '../src/sharddev/discoveryDocument';
 import { readDiscovery, shardFromDiscovery } from '../src/game/client/shard/discovery';
 import { shardArt } from '../src/game/client/shard/list';
+import { AUTHOR_BUDGETS, authorManifest } from '../src/sharddev/authorManifest';
 
 const spawn = { eye: [0, 1, 0] satisfies [number, number, number], yaw: 0, pitch: 0, mockup: 'spawn', frame: 'spawn' };
 const reads = new Map<string, unknown>([['./data/budgets.json', { phone: { fps: 30 } }], ['./ktx2.generated', { phone: {}, desktop: {} }]]);
@@ -30,4 +31,15 @@ test('a read refuses another shard and a failed answer, and a homed shard names 
   await expect(readDiscovery({ slug: 'island', discovery: '/shardfiles/island/discovery.json' }, answer(404))).rejects.toThrow('answered 404');
   await expect(readDiscovery({ slug: 'island', discovery: '/shardfiles/island/discovery.json' }, answer(200))).rejects.toThrow('Invalid discovery document');
   expect(shardArt()).toEqual({});
+});
+
+test('a shard on another origin shows its images from there, past the format\'s page URLs', async () => {
+  const url = `/shardfiles/island/blobs/image/${'a'.repeat(64)}.jpg`;
+  const data = {...authorManifest({identity: {slug: 'island', name: 'Island', seed: 1, author: 'A', revision: 1}, accent: 'sand', spawn: {x: 0, y: 0, z: 0, yaw: 0}} as unknown as Parameters<typeof authorManifest>[0]) as Record<string, unknown>, card: {thumb: url, portrait: url, landscape: url}};
+  const body = JSON.stringify({version: 1, slug: 'island', data, rows: {accent: 'sand', budgets: AUTHOR_BUDGETS}, native: {}, art: {[url]: 9}});
+  const answer: typeof fetch = () => Promise.resolve(new Response(body));
+  const home = 'https://packs.example';
+  expect((await readDiscovery({slug: 'island', discovery: `${home}/shardfiles/island/discovery.json`}, answer)).card.thumb).toBe(`${home}${url}`);
+  expect(shardArt()[`${home}${url}`]).toBe(9);
+  expect((await readDiscovery({slug: 'island', discovery: '/shardfiles/island/discovery.json'}, answer)).card.thumb).toBe(url);
 });

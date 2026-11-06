@@ -814,10 +814,10 @@ export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: Autho
   native: Parameters<typeof defineShard>[1], images: Readonly<Record<string, string>>): ShardManifest {
   const {bindings: _declaredBindings, boot: bootData, fight: authoredFight, ...data} = parseManifestMetadata(input, slug);
   const image = (path: string): string => {
-    if (!path.startsWith('/src/')) return path;
     const url = images[path];
-    if (url === undefined) throw new Error('Manifest source image is not bundled');
-    return url;
+    if (url !== undefined) return url;
+    if (path.startsWith('/src/')) throw new Error('Manifest source image is not bundled');
+    return path;
   };
   const { mapPalette: palette, audioBindings, bootBindings, forestQueries, poses, ...bindings } = rows;
   const { catalogue, ...audio } = data.audio;
