@@ -24,8 +24,9 @@ import {brotliDecompressSync} from 'node:zlib';
 import {SPAWN_PART_ALIGN, type SpawnFile, type SpawnPart} from '../shared/shardfile/spawnManifest';
 
 export const PART_BYTES = 12_000_000, PART_TARGET = 10, OVER_FETCH = 0.1;
-export interface SpawnPartInput {readonly rows: readonly SpawnFile[]; readonly public: boolean}
-interface Group {readonly key: string; readonly members: ReadonlySet<number>; readonly urls: string[]; bytes: number}
+export interface SpawnPartInput {readonly rows: readonly SpawnFile[]; readonly public: boolean; readonly desktop?: boolean}
+/** `desktop`: a desktop list holds these files too. S3: it never shares a part with a phone's own, or it fetches them all. */
+interface Group {readonly key: string; readonly members: ReadonlySet<number>; readonly desktop: boolean; readonly urls: string[]; bytes: number}
 
 const align = (at: number): number => Math.ceil(at / SPAWN_PART_ALIGN) * SPAWN_PART_ALIGN;
 /** Only files the page reads with fetch go in parts; the reader answers those. Shard images do (`fetchImage` reads
@@ -53,8 +54,9 @@ export function spawnPartGroups(manifests: readonly SpawnPartInput[]): Group[] {
   const groups = new Map<string, Group>();
   for (const url of order) {
     const all = need.get(url) ?? new Set<number>(), wanted = [...all].filter(isPublic);
-    const members = new Set(wanted.length > 0 ? wanted : all), key = `${wanted.length > 0 ? 'P' : 'X'}:${[...members].sort((a, b) => a - b).join(',')}`;
-    let group = groups.get(key); if (group === undefined) { group = {key, members, urls: [], bytes: 0}; groups.set(key, group); }
+    const members = new Set(wanted.length > 0 ? wanted : all), desktop = [...all].some(index => manifests[index]?.desktop === true);
+    const key = `${wanted.length > 0 ? 'P' : 'X'}:${[...members].sort((a, b) => a - b).join(',')}${desktop ? '|desktop' : ''}`;
+    let group = groups.get(key); if (group === undefined) { group = {key, members, desktop, urls: [], bytes: 0}; groups.set(key, group); }
     group.urls.push(url); group.bytes += size.get(url) ?? 0;
   }
   const publicIndices = manifests.flatMap((manifest, index) => manifest.public ? [index] : []);
@@ -69,15 +71,15 @@ export function spawnPartGroups(manifests: readonly SpawnPartInput[]): Group[] {
     let merged = false;
     for (const small of mine) {
       for (const other of mine) {
-        if (other === small) continue;
+        if (other === small || other.desktop !== small.desktop) continue;
         const extra = new Map<number, number>();
         for (const index of small.members) if (!other.members.has(index)) extra.set(index, other.bytes);
         for (const index of other.members) if (!small.members.has(index)) extra.set(index, small.bytes);
         if (![...extra].every(([index, bytes]) => (over.get(index) ?? 0) + bytes <= OVER_FETCH * (own.get(index) ?? 0))) continue;
         for (const [index, bytes] of extra) over.set(index, (over.get(index) ?? 0) + bytes);
-        const members = new Set([...small.members, ...other.members]), key = `P:${[...members].sort((a, b) => a - b).join(',')}`;
+        const members = new Set([...small.members, ...other.members]), key = `P:${[...members].sort((a, b) => a - b).join(',')}${small.desktop ? '|desktop' : ''}`;
         groups.delete(small.key); groups.delete(other.key);
-        const joined = groups.get(key) ?? {key, members, urls: [], bytes: 0};
+        const joined = groups.get(key) ?? {key, members, desktop: small.desktop, urls: [], bytes: 0};
         joined.urls.push(...small.urls, ...other.urls); joined.bytes += small.bytes + other.bytes; groups.set(key, joined);
         merged = true; break;
       }

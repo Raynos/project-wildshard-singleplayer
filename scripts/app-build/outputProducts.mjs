@@ -45,7 +45,8 @@ export function pruneLooseCopies(outDir) {
   }
   let files = 0, bytes = 0;
   for (const url of packed) {
-    if (kept.has(url) || !url.startsWith('/shardfiles/')) continue;
+    // An image can be read by `<img>` (three's TextureLoader: Driftwood's desktop horizon), which no part layer answers.
+    if (kept.has(url) || !url.startsWith('/shardfiles/') || /\.(?:png|jpe?g|webp|gif|avif|svg)$/u.test(url)) continue;
     const file = resolve(outDir, `.${url}`);
     if (!existsSync(file)) continue;
     bytes += statSync(file).size; files++;

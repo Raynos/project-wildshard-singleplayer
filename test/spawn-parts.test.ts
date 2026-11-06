@@ -249,3 +249,11 @@ test('the same bytes under two URLs of one manifest each keep a readable part', 
   expect(new Set(table?.map(part => part.url)).size).toBe(2);
   expect(() => readSpawnManifest({version: 1, shard: 's', tier: 'phone', flow: 'client', files: [a, b], totalBytes: size * 2, parts: table})).not.toThrow();
 });
+
+test('S3: a file a desktop list holds never shares a group with a phone\'s own, however many parts a phone needs', () => {
+  const row = (name: string, bytes: number): SpawnFile => ({ url: `/shardfiles/a/${name}.bin`, bytes, hash: '0'.repeat(64) });
+  const shared = row('shared', 100), own = Array.from({ length: 40 }, (_, at) => row(`own-${at}`, 11_000_000));
+  const groups = spawnPartGroups([{ rows: [shared, ...own], public: true }, { rows: [shared], public: false, desktop: true }]);
+  expect(groups.find(group => group.urls.includes(shared.url))?.urls).toEqual([shared.url]);
+  expect(groups.find(group => group.urls.includes(own[0]?.url ?? ''))?.urls).toHaveLength(40);
+});

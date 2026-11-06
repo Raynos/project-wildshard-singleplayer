@@ -39,7 +39,7 @@ export function readSpawnManifest(input: unknown): SpawnManifest {
 }
 /** Every member names one of this manifest's files once, in ascending aligned order, wholly inside its part. */
 function readSpawnParts(input: unknown, files: readonly SpawnFile[]): SpawnPart[] {
-  if (!Array.isArray(input) || input.length > 64) throw new Error('Invalid spawn parts');
+  if (!Array.isArray(input) || input.length > 128) throw new Error('Invalid spawn parts');
   const parts: SpawnPart[] = [], packed = new Set<number>();
   for (const part of input) {
     if (!object(part) || !path(part['url']) || !/^\/assets\/spawn\/parts\/[a-f0-9]{16}\.pack\.br$/u.test(part['url']) || !size(part['bytes']) || part['bytes'] > 64_000_000

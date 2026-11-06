@@ -37,6 +37,14 @@ export interface BuildHalf {
   /** The certified grid seams' address (`gridSeams.mjs`). */
   readonly seams: (root: string) => Address & {readonly plans?: Address | undefined};
 }
+/** S3: a fence read is a phone's: on a desktop each `.phone` file is its desktop copy, by name, and a phone pack is nothing. */
+export function desktopFence(reads: readonly string[], urls: readonly string[]): readonly string[] {
+  const plain = (url: string): string => (url.split('?')[0] ?? url).replace(/-[a-f0-9]{8}(?=\.[a-z0-9]+$)/u, '').replace(/\.(?:phone|desktop)(?=\.[a-z0-9]+$)/u, '');
+  // Content-named last, so the emitted file wins over its public source.
+  const named = (url: string): number => Number(/-[a-f0-9]{8}\.[a-z0-9]+$/u.test(url));
+  const desktop = new Map(urls.filter(url => !/\.phone[.-]/u.test(url)).sort((a, b) => named(a) - named(b)).map(url => [plain(url), url]));
+  return [...new Set(reads.flatMap(url => { if (!/\.phone[.-]/u.test(url)) return [url]; const own = desktop.get(plain(url)); return own === undefined ? [] : [own]; }))];
+}
 /** DL5: a shard's packs set, `src/shards/<slug>/packs-set.json` (`{"version": 1, "set": "fence"}`): 'fence' packs the
  *  default set (what the boot reads before control), absent packs the whole level. Anything else fails the build. */
 export function readPacksSet(path: string): 'whole' | 'fence' {
@@ -196,7 +204,11 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
     const write = (tier: 'phone' | 'desktop', flow: 'client' | 'grid', addresses: readonly Address[] = [], mode = '000', whole = false): number => {
       const selected = new Map<string, SpawnFile>(), add = (row: SpawnFile): void => {selected.set(row.url, row);};
       for (const row of shardRows[tier][whole ? 'whole' : 'entry']) add(row);
-      for (const url of fenceAssets) add(asset(url));
+      for (const url of tier === 'phone' ? fenceAssets : desktopFence(fenceAssets, publicAssets())) add(asset(url));
+      // S3: the desktop's own packs. A one-file pack is read by its member's URL (texturePack.ts), so that member is the row.
+      if (whole && tier === 'desktop' && tables !== undefined) for (const [url, part] of packParts()) {
+        if (url.startsWith(`/assets/packs/${directory}.desktop-`)) add(asset(part.members.length === 1 && part.members[0] !== undefined ? part.members[0] : url));
+      }
       for (const row of common) add(row);
       for (const [url, bytes] of [...bank.common, ...bank[flow]]) add(asset(url, bytes));
       if (flow === 'grid') for (const row of discoveries) add(row);
@@ -241,7 +253,7 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
   }
   // DL5: every manifest is known, so pack their files into shared parts, then write each manifest with its own table.
   const packed = pending.flatMap((row, index) => row.packed ? [index] : []);
-  const packedTables = await writeSpawnParts(output, packed.map(index => ({rows: pending[index]?.manifest.files ?? [], public: pending[index]?.public === true})), url => {
+  const packedTables = await writeSpawnParts(output, packed.map(index => ({rows: pending[index]?.manifest.files ?? [], public: pending[index]?.public === true, desktop: pending[index]?.manifest.tier === 'desktop'})), url => {
     const read = sources.get(url); if (read === undefined) throw new Error(`Spawn file has no source: ${url}`); return read();
   }, url => stableKeys.get(url), encoder, cooked);
   // DL15: each part's q11 body is written before the manifests, so every part row carries its exact wire size.

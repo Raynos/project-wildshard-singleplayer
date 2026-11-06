@@ -119,7 +119,9 @@ export interface ShardHalf {
  *  product is served; a catalogue names it by slug, and today's `_template` folder is the one that differs (`template`). */
 export function shardHalf(shard: OpenShardfile, wireBytes: WireBytes, warn: (line: string) => void = () => undefined, folder: string = shard.slug): ShardHalf {
   const prefix = `/shardfiles/${folder}/`, {index, source, sections} = shard, named = namedPlaces(sections);
-  const fence = fenceHints(shard, warn), wholeSet = shard.cook?.packs !== 'fence';
+  const fence = fenceHints(shard, warn), fenceSet = shard.cook?.packs === 'fence';
+  // S3: a shard's `fence` set is a phone's recorded reads, so a desktop always lists its whole level.
+  const wholeSet = (tier: CookTier, set: CookSet): boolean => set === 'whole' && (!fenceSet || tier === 'desktop');
   const sources = new Map<string, () => Uint8Array>(), stableKeys = new Map<string, string>(), rows = new Map<string, SpawnFile>();
   const productFile = (path: string, bytes: number, hash: string, name?: string): SpawnFile => {
     const url = CONTENT_NAMED.test(path) ? `${prefix}${path}` : `${prefix}${path}?v=${hash.slice(0, 8)}`;
@@ -151,19 +153,19 @@ export function shardHalf(shard: OpenShardfile, wireBytes: WireBytes, warn: (lin
       const selected: SpawnFile[] = [header, ...discovery];
       for (const row of index.sections) selected.push(productFile(row.path, row.bytes, row.hash, `section:${row.name}`));
       for (const row of index.schemas) selected.push(productFile(row.path, row.bytes, row.hash, `schema:${row.path}`));
-      const wanted = entryReadSet(source, tier, index, sections, set === 'whole' && wholeSet, fence.hashes);
+      const wanted = entryReadSet(source, tier, index, sections, wholeSet(tier, set), fence.hashes);
       for (const row of index.files) if (wanted.has(row.hash) || row.name?.startsWith('ui/images/card-') === true) selected.push(productFile(row.path, row.compressed, row.hash, row.name));
       return selected;
     },
     mountRows: (tier, set) => {
-      const urls = set === 'whole' && wholeSet ? mounts.map(row => row.url).filter(url => onTier(url, tier)) : fence.mounts;
+      const urls = wholeSet(tier, set) ? mounts.map(row => row.url).filter(url => onTier(url, tier)) : fence.mounts;
       return urls.flatMap(url => { const row = mountRow.get(url); return row === undefined ? [] : [row()]; });
     }};
 }
 
 /** Cook the parts of a set of manifests and say where each packable URL landed, for the app build's own parts table. */
 export async function cookParts(out: string, half: ShardHalf, tables: readonly {readonly tier: CookTier; readonly rows: readonly SpawnFile[]}[], encoder: PartEncoder): Promise<ReadonlyMap<string, CookedMember>> {
-  const parts = await writeSpawnParts(out, tables.map(row => ({rows: row.rows, public: row.tier === 'phone'})), half.read, half.stableKey, encoder);
+  const parts = await writeSpawnParts(out, tables.map(row => ({rows: row.rows, public: row.tier === 'phone', desktop: row.tier === 'desktop'})), half.read, half.stableKey, encoder);
   const placed = new Map<string, CookedMember>();
   parts.forEach((table, at) => {
     const rows = tables[at]?.rows ?? [];

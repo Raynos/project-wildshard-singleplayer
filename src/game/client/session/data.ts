@@ -63,11 +63,11 @@ async function buildData(ctx: SessionContext) : Promise<{ loading: Loading; audi
   await window.__ws_sw?.ready;
   // this shard's files in flight now, in step order; each step builds as its files land — as one pack when the build has
   // one (src/engine/client/boot/pack.ts), else file by file (src/engine/client/boot/prefetch.ts); anything the pack lacks still goes file by file
-  // I2: a phone tile page reads its actual spawn/ring through scoped loaders.
+  // I2: a tile page reads its actual spawn/ring through scoped loaders.
   // Its predecessor's pack can contain an entire unused world; keep declared
   // direct URLs available, but never start that speculative whole inventory.
-  // Frozen legacy and untiled/desktop boots retain their original pack path.
-  const demandWorld = TIER === 'phone' && ctx.product.has('client/plan') && ctx.product.shardfile.tiles.length > 0;
+  // S3: the desktop too: its list's parts are its one route. Frozen legacy and untiled boots retain their pack path.
+  const demandWorld = ctx.product.has('client/plan') && ctx.product.shardfile.tiles.length > 0;
   const eagerWorld = !demandWorld;
   if (demandWorld) { const declaredPack = packFor(manifest); if (declaredPack !== null) demandPack(declaredPack, currentOwner() ?? app.engineScope); }
   const pack = eagerWorld ? packFor(manifest) : null;

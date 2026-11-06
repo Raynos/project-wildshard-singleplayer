@@ -4,6 +4,7 @@ import {mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync} from 'node:
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep all fixture writes inside the repository.
 import {resolve} from 'node:path';
 import {readPacksSet, writeSpawnManifests} from '../scripts/app-build/appCook';
+import {desktopFence} from '../src/game/cook/entryTotals';
 import {emptyShardfile} from '@wildshard/sharddev/author';
 import {outputSectionPayloads} from '@wildshard/format/outputFields';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin this compiler fixture's original bytes.
@@ -111,4 +112,13 @@ test('a shard packs the whole level unless its packs-set.json selects the fence 
     }
     expect(readPacksSet(resolve('src/shards/pine-hollow/packs-set.json'))).toBe('fence');
   } finally { rmSync(root, {recursive: true, force: true}); }
+});
+
+test('S3: a desktop reads a phone fence read as its own copy, and a phone pack as nothing', () => {
+  const urls = ['/assets/gpu/npcs/trader.glb', '/assets/gpu/npcs/trader-0e7c7ea7.glb', '/assets/gpu/npcs/trader.phone-50f93677.glb',
+    '/assets/gpu/fire.desktop-9ecfac78.gltf', '/assets/gpu/fire.phone-9f8b3138.gltf', '/assets/baked/rain.bin', '/assets/baked/rain.phone.bin',
+    '/assets/packs/pine-hollow.phone-d343d44d.bin', '/assets/baked/navmesh.bin'];
+  expect(desktopFence(['/assets/gpu/npcs/trader.phone-50f93677.glb', '/assets/gpu/fire.phone-9f8b3138.gltf', '/assets/baked/rain.phone.bin',
+    '/assets/packs/pine-hollow.phone-d343d44d.bin', '/assets/baked/navmesh.bin'], urls))
+    .toEqual(['/assets/gpu/npcs/trader-0e7c7ea7.glb', '/assets/gpu/fire.desktop-9ecfac78.gltf', '/assets/baked/rain.bin', '/assets/baked/navmesh.bin']);
 });
