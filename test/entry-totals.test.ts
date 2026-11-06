@@ -32,22 +32,21 @@ test('spawn manifests prioritize code stably without changing bytes or the compl
         critical: source.critical, library: source.library, late: source.late}, sections, schemas: [], files: [], runtime: null});
     writeFileSync(resolve(product, 'shard.json'), index);
     const metadata = Buffer.byteLength(index) + sections.reduce((sum, row) => sum + row.bytes, 0);
-    for (const [name, bytes] of [['shared.js', 10], ['client.js', 20], ['grid.js', 30], ['example.js', 4], ['other.js', 8], ['model.js', 5], ['seam.bin', 9]] as const)
+    for (const [name, bytes] of [['shared.js', 10], ['client.js', 20], ['grid.js', 30], ['model.js', 5], ['seam.bin', 9]] as const)
       writeFileSync(resolve(output, 'assets', name), new Uint8Array(bytes));
     const input = {common: [['/assets/shared.js', 10]], client: [['/assets/client.js', 20]], grid: [['/assets/shared.js', 10], ['/assets/grid.js', 30]],
-      selection: {example: [['/assets/example.js', 4]], other: [['/assets/other.js', 8]]},
       optional: {files: [['/assets/shared.js', 10], ['/assets/model.js', 5]], groups: {'home:/shardfiles/example/': [0, 1]}},
       products: {'/shardfiles/example/': [3, 1000, 100, 200]}, extras: {},
       code: {entries: {example: ['/assets/code/pack.pack', 7, 100, [0]]}}};
     const strips = {'100': {example: [{url: '/assets/seam.bin', bytes: 9}]}};
     const totals = await writeSpawnManifests(output, input, strips, root);
-    expect(totals.client['example']?.phone.totalBytes).toBe(metadata + 39);
-    expect(totals.grid['100']?.['example']?.phone.totalBytes).toBe(metadata + 66);
+    expect(totals.client['example']?.phone.totalBytes).toBe(metadata + 35);
+    expect(totals.grid['100']?.['example']?.phone.totalBytes).toBe(metadata + 54);
     expect(await writeSpawnManifests(output, input, strips, root)).toEqual(totals);
     const address = totals.client['example']?.phone; if (address === undefined) throw new Error('Missing manifest');
     const text = readFileSync(resolve(output, address.url.slice(1)), 'utf8');
     expect(address.wireBytes).toBeDefined(); expect(address.wireBytes).toBeLessThan(address.totalBytes);
-    expect(text).not.toContain('code/pack.pack'); expect(text).not.toContain('/assets/other.js');
+    expect(text).not.toContain('code/pack.pack');
     await expect(writeSpawnManifests(output, {...input, products: {'/shardfiles/example/': [3, -1]}}, {}, root)).rejects.toThrow();
     await expect(writeSpawnManifests(output, {...input, optional: {...input.optional, groups: {'home:/shardfiles/example/': [9]}}}, {}, root)).rejects.toThrow('module index');
     const physics=Uint8Array.from({length:4096},(_byte,i)=>(i*77+i%7)%251),physicsPath=resolve(root,'public/assets/physics/rapier.wasm');
@@ -63,7 +62,7 @@ test('spawn manifests prioritize code stably without changing bytes or the compl
     expect(nativeManifest.files.filter(file => file !== row)).toEqual(original.files);
     const code = nativeManifest.files.filter(file => /\.(?:js|wasm)(?:\?|$)/u.test(file.url));
     expect(code.map(file => new URL(file.url, 'https://example.test').pathname)).toEqual([
-      '/assets/physics/rapier.wasm', '/assets/shared.js', '/assets/client.js', '/assets/example.js', '/assets/model.js',
+      '/assets/physics/rapier.wasm', '/assets/shared.js', '/assets/client.js', '/assets/model.js',
     ]);
     expect(nativeManifest.files.slice(0, code.length)).toEqual(code);
     const content = nativeManifest.files.slice(code.length);

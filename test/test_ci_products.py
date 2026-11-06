@@ -509,8 +509,8 @@ class PreparedProducts(unittest.TestCase):
 
     def test_generated_app_tables_transfer_exact_bytes_without_product_proof(self):
         tables = {name: ('export const table=' + json.dumps(name) + ';').encode()
-                  for name in products.APP_INPUTS}
-        self.catalogue['producers']['app'] = sorted(tables)
+                  for name in ['out/.app/discovery.open-plots.open-plot-fossil-badlands.generated.ts']}
+        self.catalogue['producers']['scripts/gen-shards.mjs'] = sorted(tables)
         (self.root / 'scripts/source-generation-outputs.json').write_text(json.dumps(self.catalogue))
         for name, content in tables.items():
             path = self.root / name
@@ -536,8 +536,8 @@ class PreparedProducts(unittest.TestCase):
             products.unpack(self.root)
 
     def test_generated_app_tables_are_required_and_no_other_out_path_is_admitted(self):
-        required = sorted(products.APP_INPUTS)
-        self.catalogue['producers']['app'] = required
+        required = ['out/.app/discovery.open-plots.open-plot-fossil-badlands.generated.ts']
+        self.catalogue['producers']['scripts/gen-shards.mjs'] = required
         (self.root / 'scripts/source-generation-outputs.json').write_text(json.dumps(self.catalogue))
         with self.assertRaisesRegex(ValueError, 'Missing prepared source outputs'):
             products.pack(self.root, generated=True)
