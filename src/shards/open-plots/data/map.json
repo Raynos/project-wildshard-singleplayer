@@ -1052,9 +1052,9 @@
     "generators",
     "data",
     "../../../public/assets/open-plots",
-    "../../sdk/bake/mapRaster.ts",
-    "../../sdk/bake/mapScenes.ts",
-    "../../sdk/bake/groundMap.ts"
+    "../../sharddev/bake/mapRaster.ts",
+    "../../sharddev/bake/mapScenes.ts",
+    "../../sharddev/bake/groundMap.ts"
   ],
   "painter": {
     "version": 1,

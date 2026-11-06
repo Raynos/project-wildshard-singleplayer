@@ -45,8 +45,8 @@
     "shard.config.ts",
     "layout.ts",
     "generators",
-    "../../sdk/bake/mapRaster.ts",
-    "../../sdk/bake/mapScenes.ts",
-    "../../sdk/bake/groundMap.ts"
+    "../../sharddev/bake/mapRaster.ts",
+    "../../sharddev/bake/mapScenes.ts",
+    "../../sharddev/bake/groundMap.ts"
   ]
 }

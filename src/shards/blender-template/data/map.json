@@ -49,9 +49,9 @@
     "data/content.json",
     "data/rows.json",
     "assets/world.glb",
-    "../../sdk/bake/mapRaster.ts",
-    "../../sdk/bake/mapScenes.ts",
-    "../../sdk/bake/groundMap.ts"
+    "../../sharddev/bake/mapRaster.ts",
+    "../../sharddev/bake/mapScenes.ts",
+    "../../sharddev/bake/groundMap.ts"
   ],
   "painter": {
     "version": 1,
