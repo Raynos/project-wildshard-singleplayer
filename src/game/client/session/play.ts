@@ -243,7 +243,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
   // ── the in-game menu: MAP · INVENTORY · ACHIEVEMENTS · SETTINGS (src/engine/client/ui/Menu.ts) ──
   const progress = new Progress(manifest.slug);     // shard achievements → titles (src/game/shared/achievements.ts)
   const inventory = new Inventory(manifest.slug);   // the pack: harvest drops
-  if (wirePage.on) wirePage.hold({ inventory, gear: owned }, game.levelScope);
+  if (wirePage.on) { inventory.writes = false; wirePage.hold({ inventory, gear: owned }, game.levelScope); }
   if (boot.featTotal !== undefined) progress.setFeatTotal(boot.featTotal);
   applyTravelCarry(boot.handoff, inventory);
   game.levelScope.onDispose(bindTravelInventory({ shard: chunk.slug, inventory, rows: boot.items }));
