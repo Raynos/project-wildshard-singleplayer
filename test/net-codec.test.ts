@@ -228,3 +228,9 @@ test('hit and died cross the wire: amounts exact, vectors within a step, and a t
   second.dir.forEach((axis, index) => { expect(Math.abs(axis - (died.dir[index] ?? 0))).toBeLessThan(0.008); });
   expect(decodeEvents(new Uint8Array(bytes).slice(0, 20), () => undefined)).toBeNull();
 });
+
+test('a fight\'s view call keeps its name, its order and its numbers', () => {
+  const writer = new BitWriter(), views = [{ kind: 'view', tick: 9, name: 'hazard.ring', args: [1, 2.5, -3, 4] }, { kind: 'view', tick: 9, name: 'strike.arc.off', args: [] }] as const;
+  const decoded = decodeEvents(new Uint8Array(encodeEvents(writer, 9, views, () => undefined)), () => undefined);
+  expect(decoded?.events).toEqual(views);
+});

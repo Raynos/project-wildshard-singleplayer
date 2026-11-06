@@ -12,7 +12,7 @@ import { encodeCommands, seqAfter } from '../../shared/net/command';
 import { GUEST, type NetIdentity } from '../../shared/net/identity';
 import type { NetLedger } from '../../shared/net/ledgerWire';
 import { decodeFrame, FRAME_RING, NO_BASELINE, type DecodedFrame, type FrameTable } from '../../shared/net/frame';
-import { decodeEvents, decodeWelcome, encodeAct, encodeHello, messageId, MSG_EVENTS, MSG_FRAME, MSG_WELCOME, type InitialBits, type NetCombatEvent, type NetRide, type NetTravel, type NetWelcome } from '../../shared/net/messages';
+import { decodeEvents, decodeWelcome, encodeAct, encodeHello, messageId, MSG_EVENTS, MSG_FRAME, MSG_WELCOME, type InitialBits, type NetView, type NetCombatEvent, type NetRide, type NetTravel, type NetWelcome } from '../../shared/net/messages';
 import { FLAG_CLASS, NET_CLASSES, NET_SCHEMA_HASH, PLAYER_CLASS } from '../../shared/net/netSchemas';
 import { FLAG_PREFIX, STATE_PREFIX } from '../../shared/net/shardNet';
 import type { NetClass, NetValue } from '../../shared/net/schema';
@@ -60,6 +60,7 @@ export class NetClient {
   private readonly frames = new Map<number, DecodedFrame>();
   private readonly listeners = new Set<(frame: DecodedFrame) => void>();
   private readonly fights = new Set<(event: NetCombatEvent) => void>();
+  private readonly fightViews = new Set<(view: NetView) => void>();
   private readonly travels = new Set<(event: NetTravel) => void>();
   private readonly rides = new Set<(event: NetRide) => void>();
   /** The last ledger serial this client has: pass it to `hello` when it comes back, and it hears only what it missed. */
@@ -96,6 +97,8 @@ export class NetClient {
   }
   /** Call for every frame decoded; returns the unsubscribe. */
   onFrame(listener: (frame: DecodedFrame) => void): () => void { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; }
+  /** Call for every look a fight tells its views; returns the unsubscribe. */
+  onView(listener: (view: NetView) => void): () => void { this.fightViews.add(listener); return () => { this.fightViews.delete(listener); }; }
   /** Call for every settled hit and death (P1-E3.2); returns the unsubscribe. */
   onCombat(listener: (event: NetCombatEvent) => void): () => void { this.fights.add(listener); return () => { this.fights.delete(listener); }; }
   /** Call when anyone it can see gets on or off a ride; returns the unsubscribe. */
@@ -173,6 +176,7 @@ export class NetClient {
     if (decoded === null) { this.dropped++; return; }
     for (const event of decoded.events) {
       if (event.kind === 'hit' || event.kind === 'died' || event.kind === 'reward') { for (const listener of this.fights) listener(event); this.delivery.receive(event); continue; }
+      if (event.kind === 'view') { for (const listener of this.fightViews) listener(event); continue; }
       if (event.kind === 'quest') { this.quests.set(event.quest, event); continue; }
       if (event.kind === 'ledger') { this.receipt(event); continue; }
       if (event.kind === 'owned') { if (event.value === 0) this.owned.delete(event.name); else this.owned.set(event.name, event.value); this.ownedVersion++; continue; }

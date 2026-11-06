@@ -14,7 +14,7 @@ import { CommandQueue, type CommandTurn } from './commandQueue';
 import { encodeFrame, FRAME_RING, WorldFrameRing, type WorldFrame } from '../../shared/net/frame';
 import { NetHandles } from './handles';
 import { GUEST, NetIdentitySchema, type NetIdentity } from '../../shared/net/identity';
-import { decodeAct, decodeHello, encodeEvents, encodeWelcome, messageId, MSG_ACT, MSG_CMDS, MSG_HELLO, type InitialBits, type NetDied, type NetEvent, type NetHit, type NetReward } from '../../shared/net/messages';
+import { decodeAct, decodeHello, encodeEvents, encodeWelcome, messageId, MSG_ACT, MSG_CMDS, MSG_HELLO, type InitialBits, type NetDied, type NetView, type NetEvent, type NetHit, type NetReward } from '../../shared/net/messages';
 import { NET_CLASSES, NET_SCHEMA_HASH } from '../../shared/net/netSchemas';
 import type { NetClass, NetRefs } from '../../shared/net/schema';
 import { LedgerBook, type LedgerFiling } from './ledgerBook';
@@ -91,7 +91,13 @@ interface HeldAct { readonly act: NetTickAct; readonly until: number }
 /** What a client held at a frame. `due` are the rows this frame may send; `rows` is the world frame each held row came from. */
 interface ClientView { tick: number; readonly visible: Set<number>; readonly due: Set<number>; readonly rows: Map<number, number> }
 /** A settled event in handles, kept until the next frame. */
-type RoomCombat = NetDied | (NetHit & { readonly landedBy: string | null; readonly seen?: readonly [number, number, number] }) | (NetReward & { readonly owner: string });
+/** A frame covers two ticks of a fight's looks: of a look said twice only the last goes, named by its call and any slot it opens with. */
+function freshViews(rows: readonly RoomCombat[]): readonly RoomCombat[] {
+  const last = new Map<string, number>(), key = (view: NetView): string => { const [slot] = view.args; return slot !== undefined && Number.isInteger(slot) ? `${view.name}#${String(slot)}` : view.name; };
+  for (const [index, row] of rows.entries()) if (row.kind === 'view') last.set(key(row), index);
+  return last.size === 0 ? rows : rows.filter((row, index) => row.kind !== 'view' || last.get(key(row)) === index);
+}
+type RoomCombat = NetView | NetDied | (NetHit & { readonly landedBy: string | null; readonly seen?: readonly [number, number, number] }) | (NetReward & { readonly owner: string });
 interface RoomClient {
   readonly id: number; readonly transport: Transport; readonly queue: CommandQueue; readonly player: NetPlayer;
   /** Who it said it is at `hello` (J111). A hand-off keeps it. */
@@ -219,6 +225,7 @@ export class NetRoom {
   private settled(): void {
     for (const row of this.world.combat?.() ?? []) {
       const { refs } = this.handles;
+      if (row.kind === 'view') { this.combat.push(row); continue; }
       if (row.kind === 'reward') { const { player, ...reward } = row; this.combat.push({ ...reward, body: refs(row.body), owner: player }); continue; }
       if (row.kind === 'hit') { const target = refs(row.target); if (target !== 0) { const { by, seq, ...hit } = row; this.combat.push({ ...hit, target, confirmFor: seq, landedBy: by }); } }
       else { const id = refs(row.id); if (id !== 0) this.combat.push({ ...row, id, by: row.by === null ? 0 : refs(row.by) }); }
@@ -318,7 +325,7 @@ export class NetRoom {
       const row = handles.touch(id, cls, view, serial), at = frame.claim(row.handle, cls.row.length);
       cls.row.forEach((column, index) => { frame.data[at + index] = column.sample(view, handles.refs); });
     } });
-    const retired = handles.sweep(serial), combat = this.combat.splice(0), lines = this.chat.drain(), riders = new Map<number, number>();
+    const retired = handles.sweep(serial), combat = freshViews(this.combat.splice(0)), lines = this.chat.drain(), riders = new Map<number, number>();
     for (const [rider, mount] of this.world.riders?.() ?? []) riders.set(handles.refs(rider), handles.refs(mount));
     for (const client of this.clients) if (client.state === 'live') this.send(client, frame, retired, combat, lines, riders);
   }
@@ -383,6 +390,7 @@ export class NetRoom {
     this.rideEvents(client, own, riders, frame.tick, events);
     // Spawns, then what happened, then who left: a body's last hit and its death arrive before its despawn.
     for (const row of combat) {
+      if (row.kind === 'view') { events.push(row); continue; }
       if (row.kind === 'reward') { if (row.owner === client.player.id) { const { owner: _owner, ...reward } = row; events.push(reward); } continue; }
       if (row.kind === 'died') { if (row.id === own || client.known.has(row.id)) events.push(row); continue; }
       const { landedBy, seen, ...hit } = row, owned = landedBy === client.player.id;

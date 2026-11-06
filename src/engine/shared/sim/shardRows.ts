@@ -16,7 +16,11 @@ export interface ShardRows {
   state: (() => readonly StateNetRow[]) | null;
   /** `state` rows a world system publishes for itself, by that system's id (E6: weather). */
   readonly world: Map<string, () => readonly StateNetRow[]>;
+  /** What a fight told its views since a room last took them. */
+  readonly calls: FightViewCall[];
 }
+/** One call a fight made on its views. */
+export interface FightViewCall { readonly name: string; readonly args: readonly number[] }
 
 /** The row a day clock publishes: its phase of the day, 0 to 1. */
 export const DAY_ROW = 'day.phase';
@@ -27,12 +31,14 @@ export function publishDay(host: RowHost, clock: { readonly phase: number }): vo
   const row = { name: DAY_ROW, value: 0 }, rows: readonly StateNetRow[] = [row];
   publishWorldState(host, 'day', () => { row.value = Math.round(clock.phase * DAY_STEPS) / DAY_STEPS; return rows; });
 }
+/** A tick's worth of a fight's looks, many times over: a host no room drains stops here. */
+const MAX_VIEW_CALLS = 256;
 const books = new WeakMap<object, ShardRows>();
-const NO_ROWS: ShardRows = { owned: new Map<string, OwnedRead>(), bodies: new Map<string, () => ScriptNetView>(), state: null, world: new Map<string, () => readonly StateNetRow[]>() };
+const NO_ROWS: ShardRows = { owned: new Map<string, OwnedRead>(), bodies: new Map<string, () => ScriptNetView>(), state: null, world: new Map<string, () => readonly StateNetRow[]>(), calls: [] };
 interface RowHost { readonly scope: { readonly onDispose: (run: () => void) => unknown } }
 function bookOf(host: RowHost): ShardRows {
   let book = books.get(host);
-  if (book === undefined) { const fresh: ShardRows = { owned: new Map<string, OwnedRead>(), bodies: new Map<string, () => ScriptNetView>(), state: null, world: new Map<string, () => readonly StateNetRow[]>() }; book = fresh; books.set(host, fresh); host.scope.onDispose(() => { fresh.owned.clear(); fresh.bodies.clear(); fresh.state = null; fresh.world.clear(); }); }
+  if (book === undefined) { const fresh: ShardRows = { owned: new Map<string, OwnedRead>(), bodies: new Map<string, () => ScriptNetView>(), state: null, world: new Map<string, () => readonly StateNetRow[]>(), calls: [] }; book = fresh; books.set(host, fresh); host.scope.onDispose(() => { fresh.owned.clear(); fresh.bodies.clear(); fresh.state = null; fresh.world.clear(); }); }
   return book;
 }
 /** Publish a script body under its stable id for the host's lifetime. */
@@ -46,6 +52,11 @@ export function publishShardState(host: RowHost, read: () => readonly StateNetRo
   const book = bookOf(host);
   if (book.state !== null) throw new Error('Duplicate declared state rows');
   book.state = read;
+}
+/** A fight told its views something. Nothing reads it unless a room is listening, so a page's own host keeps only what's bounded. */
+export function sayFightView(host: RowHost, name: string, args: readonly number[]): void {
+  const { calls } = bookOf(host);
+  if (calls.length < MAX_VIEW_CALLS) calls.push({ name, args });
 }
 /** Publish a world system's own `state` rows for the host's lifetime. */
 export function publishWorldState(host: RowHost, id: string, read: () => readonly StateNetRow[]): void {

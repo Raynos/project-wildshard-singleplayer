@@ -104,7 +104,12 @@ export function pageArenaRoomFight(ctx: ShardContext, dungeon: BossArenaRoom, in
     },
     target: () => ({ position: player.position, dash: (x, z, seconds) => { player.dash(x, z, seconds); }, health: ctx.app.player }),
     combat: ctx.app.combat, physics: () => ctx.app.physics, rng: () => ctx.app.rng.stream('ai').next(), feed: line => { play.hud.killFeed(line); },
-  }, rows, views);
+  }, rows, presentation => {
+    const binding = views(presentation);
+    // The server's fight runs, and its looks reach this room as it told them. A room nobody has entered has nothing built to draw on.
+    if (wirePage.on) wirePage.whenLive(ctx.scope, client => client.onView(({ name, args }) => { if (dungeon.built) binding[name]?.(...args); }));
+    return binding;
+  });
   if (wirePage.on) fight.script.reset = () => undefined; // the server's fight has the body: this one never stands one up
   return { ...fight, setPresent: on => {
     const body = fight.phased.body(), bodies = body === null ? fight.phased.adds() : [body, ...fight.phased.adds()];

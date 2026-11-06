@@ -12,7 +12,7 @@ import { parseBossProfile } from '@wildshard/format/bossProfiles';
 import type { PhasedBossFight } from '../plugin/bossPhase';
 import { installBossRow } from '../shardfile/bossRow';
 import { sandWireName, type ArenaRoomGround } from '../../shared/boss/arenaGround';
-import { publishWorldState } from '@wildshard/engine/sim/shardRows';
+import { publishWorldState, sayFightView } from '@wildshard/engine/sim/shardRows';
 import { ArenaPortalLaw, type ArenaPortalEntrance } from '../../shared/boss/arenaPortal';
 import type { ArenaRoomPortalRows, BoundedArenaFight } from '../../shared/boss/arenaRoomRows';
 import type { BossBounty } from './bounty';
@@ -86,7 +86,7 @@ export function installArenaRoom<A extends ArenaRoomBody>(host: SimHost, rows: A
       drainSand: (dt, rate) => { ground.drainSand(dt, rate); }, inChamber: p => ground.inChamber(p), setSealed: on => { sealWanted = on; seal(); } },
     body: { spawn: ports.spawnBody, retire: ports.retire, bind: (actor, brain) => { actor.combatActor().damageMul = request => brain.damageMul(actor, request.point); }, ready: (actor, floorY) => { actor.yOffset = floorY - actor.position.y; } },
     spawnAdd: ports.spawnAdd, target, combat: host.combat, physics: () => host.physics, rng: () => host.rng.stream('ai').next(), feed: () => undefined,
-  }, rows.fight, () => Object.fromEntries(profile.fight.views.map(id => [id, (): void => undefined])));
+  }, rows.fight, () => Object.fromEntries(profile.fight.views.map(id => [id, (...args: number[]): void => { sayFightView(host, id, args); }])));
   const row = installBossRow(host, { step: rows.step, definition: rows.definition, script, body: () => fight.body(), shielded: () => script.shielded,
     hazardTag: rows.fight.damageTag, saved: ports.saved, persist: ports.persist, armed: true,
     ...(ports.spawnReward === undefined ? {} : { spawnReward: ports.spawnReward }), ...(ports.returned === undefined ? {} : { returned: ports.returned }),

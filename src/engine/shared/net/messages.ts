@@ -63,6 +63,8 @@ export interface NetHit { readonly kind: 'hit'; readonly tick: number; readonly 
 export interface NetDied { readonly kind: 'died'; readonly tick: number; readonly id: number; readonly by: number; readonly dir: NetVector; readonly impulse: number }
 /** J105: this client's own roll on a body paid out. Goes to its owner and nobody else. */
 export interface NetReward { readonly kind: 'reward'; readonly tick: number; readonly coins: number; readonly body: number }
+/** A fight told its views something: a tell, a ring, a glow. A client's room draws them in order, and nothing here decides. */
+export interface NetView { readonly kind: 'view'; readonly tick: number; readonly name: string; readonly args: readonly number[] }
 /** The events a settled fight sends. */
 export type NetCombatEvent = NetHit | NetDied | NetReward;
 /** A quest moved for this client's own player (P1-E3.3), or it joined: quest state is per player and goes only to its owner. */
@@ -77,13 +79,13 @@ interface NetRideChange<Kind extends string> { readonly kind: Kind; readonly tic
 export type NetRide = NetRideChange<'mount'> | NetRideChange<'dismount'>;
 /** One line of what this client's own player holds in this world, a purse's coins or a pack's count, as it changed. 0 is gone. */
 export interface NetOwned { readonly kind: 'owned'; readonly tick: number; readonly name: string; readonly value: number }
-export type NetEvent = NetSpawn | NetDespawn | NetCombatEvent | NetQuest | NetPhase | NetTravel | NetLedger | NetChat | NetRide | NetOwned;
+export type NetEvent = NetSpawn | NetDespawn | NetCombatEvent | NetView | NetQuest | NetPhase | NetTravel | NetLedger | NetChat | NetRide | NetOwned;
 /** The events' and commands' wire form, in NET_SCHEMA_HASH: a change here must refuse a stale client like a field table's does (J54). */
-export const NET_EVENT_FORMS = 'hit:h16,f32,p48,b,b,u16;died:h16,h16,d24,f32;quest:s,b,b,s,u16;phase:s,b;reward:u32,h16;travel:u16,u16;ledger:u32,u32,s,u2,s,f32,b;chat:u32,u32,b,h16,s,s;buttons:u8,b,u8;lockTarget:h16;hookTarget:u16;ride:u8;fresh:b;mount:h16,h16,u16;dismount:h16,h16,u16;rideWords:b,u8,f32;climate:b,s,f32;buy:u16;board:b,u16;wear:s;owned:s,f32';
+export const NET_EVENT_FORMS = 'view:s,u8,f32n;hit:h16,f32,p48,b,b,u16;died:h16,h16,d24,f32;quest:s,b,b,s,u16;phase:s,b;reward:u32,h16;travel:u16,u16;ledger:u32,u32,s,u2,s,f32,b;chat:u32,u32,b,h16,s,s;buttons:u8,b,u8;lockTarget:h16;hookTarget:u16;ride:u8;fresh:b;mount:h16,h16,u16;dismount:h16,h16,u16;rideWords:b,u8,f32;climate:b,s,f32;buy:u16;board:b,u16;wear:s;owned:s,f32';
 /** The spawn's column widths, which only the receiver's class table knows. */
 export type InitialBits = (cls: number) => { readonly bits: readonly number[]; readonly text: number } | undefined;
 
-const EVENT_SPAWN = 1, EVENT_DESPAWN = 2, EVENT_HIT = 3, EVENT_DIED = 4, EVENT_QUEST = 5, EVENT_PHASE = 6, EVENT_REWARD = 7, EVENT_TRAVEL = 8, EVENT_LEDGER = 9, EVENT_CHAT = 10, EVENT_MOUNT = 11, EVENT_DISMOUNT = 12, EVENT_OWNED = 13;
+const EVENT_SPAWN = 1, EVENT_DESPAWN = 2, EVENT_HIT = 3, EVENT_DIED = 4, EVENT_QUEST = 5, EVENT_PHASE = 6, EVENT_REWARD = 7, EVENT_TRAVEL = 8, EVENT_LEDGER = 9, EVENT_CHAT = 10, EVENT_MOUNT = 11, EVENT_DISMOUNT = 12, EVENT_OWNED = 13, EVENT_VIEW = 14;
 /** Cell-local metres, as a field table declares them (§3.5). */
 const METRES = 260, METRE_TOP = 0xffff, UNIT_TOP = 0xff;
 const clampTo = (value: number, limit: number): number => Math.max(-limit, Math.min(limit, value));
@@ -115,6 +117,7 @@ export function encodeEvents(writer: BitWriter, tick: number, events: readonly N
     if (event.kind === 'ledger') { writer.write(EVENT_LEDGER, 8); writeLedger(writer, event); continue; }
     if (event.kind === 'chat') { writer.write(EVENT_CHAT, 8); writeChat(writer, event); continue; }
     if (event.kind === 'mount' || event.kind === 'dismount') { writer.write(event.kind === 'mount' ? EVENT_MOUNT : EVENT_DISMOUNT, 8); writer.write(event.tick, 32); writer.write(event.rider, 16); writer.write(event.mount, 16); writer.write(event.seq, 16); continue; }
+    if (event.kind === 'view') { writer.write(EVENT_VIEW, 8); writer.write(event.tick, 32); writer.writeText(event.name); writer.write(event.args.length, 8); for (const arg of event.args) writer.write(floatToBits(arg), 32); continue; }
     if (event.kind === 'owned') { writer.write(EVENT_OWNED, 8); writer.write(event.tick, 32); writer.writeText(event.name); writer.write(floatToBits(event.value), 32); continue; }
     if (event.kind === 'travel') { writer.write(EVENT_TRAVEL, 8); writer.write(event.tick, 32); writer.write(event.from, 16); writer.write(event.to, 16); continue; }
     if (event.kind === 'phase') { writer.write(EVENT_PHASE, 8); writer.write(event.tick, 32); writer.writeText(event.flag); writer.writeBool(event.on); continue; }
@@ -138,6 +141,7 @@ export function decodeEvents(bytes: Uint8Array, bits: InitialBits): { readonly t
       if (kind === EVENT_LEDGER) { events.push(readLedger(reader)); continue; }
       if (kind === EVENT_CHAT) { events.push(readChat(reader)); continue; }
       if (kind === EVENT_MOUNT || kind === EVENT_DISMOUNT) { events.push({ kind: kind === EVENT_MOUNT ? 'mount' : 'dismount', tick: reader.read(32), rider: reader.read(16), mount: reader.read(16), seq: reader.read(16) }); continue; }
+      if (kind === EVENT_VIEW) { const at = reader.read(32), name = reader.readText(), args = Array.from({ length: reader.read(8) }, () => bitsToFloat(reader.read(32))); events.push({ kind: 'view', tick: at, name, args }); continue; }
       if (kind === EVENT_OWNED) { const at = reader.read(32), name = reader.readText(); events.push({ kind: 'owned', tick: at, name, value: bitsToFloat(reader.read(32)) }); continue; }
       if (kind === EVENT_TRAVEL) { events.push({ kind: 'travel', tick: reader.read(32), from: reader.read(16), to: reader.read(16) }); continue; }
       if (kind === EVENT_PHASE) { const at = reader.read(32), flag = reader.readText(); events.push({ kind: 'phase', tick: at, flag, on: reader.readBool() }); continue; }

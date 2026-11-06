@@ -2,6 +2,7 @@
 // and `actor.died` are the only source, so a hit reaches a client exactly when it reached the sim.
 import type { SimHost } from '../sim';
 import { landedBy } from '../combat/damageBook';
+import type { NetView } from '../../shared/net/messages';
 
 /** A settled hit or death in world terms, before the room turns ids into a client's handles. */
 export type CombatEvent =
@@ -13,7 +14,8 @@ export type CombatEvent =
     readonly seen?: readonly [number, number, number] }
   | { readonly kind: 'died'; readonly tick: number; readonly id: string; readonly by: string | null;
     readonly dir: readonly [number, number, number]; readonly impulse: number }
-  | { readonly kind: 'reward'; readonly tick: number; readonly player: string; readonly coins: number; readonly body: string };
+  | { readonly kind: 'reward'; readonly tick: number; readonly player: string; readonly coins: number; readonly body: string }
+  | NetView;
 
 
 /** Listens on a host for its lifetime and hands over each tick's settled combat. */

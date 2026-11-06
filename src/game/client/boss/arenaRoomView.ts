@@ -252,6 +252,8 @@ export class BossArenaRoom {
   // Walkable heights.
   private floorAt(x: number, z: number): number | undefined { return this.ground.floorAt(x, z); }
 
+  /** Whether this room's looks exist yet. */
+  get built(): boolean { return this.staticBuilt; }
   sandAt(lx: number, lz: number): number { return this.ground.sandAt(lx, lz); }
   addSand(lx: number, lz: number, r: number, dh: number, max = 1.0): void { this.ground.addSand(lx, lz, r, dh, max); }
   clearSand(): void { this.ground.clearSand(); }

@@ -55,7 +55,10 @@ export class SimNetWorld implements NetWorld {
   refused(): number { const routes = actRoutes(this.host), { refused } = routes; routes.refused = 0; return refused; }
   tick(): number { return this.host.state.tick; }
   cell(): number { return this.frame; }
-  combat(): readonly CombatEvent[] { return this.wire.drain(); }
+  combat(): readonly CombatEvent[] {
+    const { calls } = shardRows(this.host), settled = this.wire.drain(), { tick } = this.host.state;
+    return calls.length === 0 ? settled : [...settled, ...calls.splice(0).map(({ name, args }) => ({ kind: 'view' as const, tick, name, args }))];
+  }
   ledger(): readonly LedgerFiling[] { return this.filings?.() ?? []; }
   quests(player: string, since: number): QuestProgressRead | null { return questBooks(this.host).progressOf(player, since); }
   owned(player: string, out: Map<string, number>): void { for (const read of shardRows(this.host).owned.values()) read(player, out); }
