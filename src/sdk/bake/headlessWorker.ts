@@ -5,6 +5,8 @@ import { createTrustedHeadlessAdapter } from '../headlessRuntime';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 // oxlint-disable-next-line import/no-nodejs-modules -- Only the platform-selected physics binary is read inside the isolated worker.
 import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Recheck admitted bytes inside the isolate, as the host does.
+import { createHash } from 'node:crypto';
 import * as v from 'valibot';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
 import { proveAuthoredGrid, createShardfileSim, bindShardfileSim, type ShardfileSimulation } from '@wildshard/game/plugin/simulation';
@@ -12,14 +14,13 @@ import { snapshotSimHostBytes, serializeSimSnapshot, decodeSimSnapshot, checkSim
 import { restoreSimHost } from '@wildshard/engine/sim/restore';
 
 import type { SimCommand } from '@wildshard/engine/sim';
-import { parseShardfile } from '../shardfile';
+import { parseShardfile } from '@wildshard/format/shardSchema';
 import { runTickWorker } from '../tickWorkerLoop';
 import { simPlayerCommand, MAX_TICK_SNAPSHOT_CHARS, type HeadlessEffect, type HeadlessCommand } from '../tickProtocol';
 import { headlessSections } from '../headlessSections';
 import { scriptAdmissionRows } from '@wildshard/format/scriptContract';
 import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { offlineMemoryAdmission, prepareAssetDecoders } from '@wildshard/format/product';
-import { hashImmutableBytes } from '../immutable';
 import { leadCommands, leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 await runTickWorker(async raw => {
@@ -27,7 +28,7 @@ await runTickWorker(async raw => {
   const shard = parseShardfile(payload.shard), rapier = await loadRapier(readFileSync(payload.binary));
   const sections = headlessSections(payload.sections);
   await prepareAssetDecoders();
-  validateShardfileAssets(shard, payload.assets, hashImmutableBytes, offlineMemoryAdmission('refuse'), undefined, scriptAdmissionRows(sections));
+  validateShardfileAssets(shard, payload.assets, bytes => createHash('sha256').update(bytes).digest('hex'), offlineMemoryAdmission('refuse'), undefined, scriptAdmissionRows(sections));
   if (payload.product !== undefined) {
     // A native assembly's server-class files live only in the built product, never in the client's sections or assets.
     const { loadHeadlessProduct } = await import('../headlessProduct');

@@ -11,7 +11,7 @@ import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Select the SDK's fixed bundled worker entry without Vite asset rewriting.
 import { pathToFileURL } from 'node:url';
 import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
-import type { Shardfile } from './shardfile';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { offlineMemoryAdmission, prepareAssetDecoders } from '@wildshard/format/product';
 import { TickWorkerHost } from './tickWorkerHost';
 import { AuthorProofPlanSchema, TickCommandSchema, type HeadlessCommand, type AuthorProofPlan, type AuthorProofReport, type HeadlessCommandSource, type HeadlessTickCommit, type HeadlessTapePartReport } from './tickProtocol';
@@ -32,20 +32,20 @@ export class HeadlessSimulation {
     await prepareAssetDecoders();
     validateShardfileAssets(shard, assets, bytes => createHash('sha256').update(bytes).digest('hex'), memory, undefined, scriptAdmissionRows(sections));
     for (const report of memory?.reports() ?? []) console.warn(`Headless memory report-only (G433): ${report.id}: ${report.playingBytes} playing bytes`);
-    const binary = [resolve(import.meta.dirname, 'client/assets/physics/rapier.wasm'), resolve(import.meta.dirname, 'dist/client/assets/physics/rapier.wasm'), resolve(import.meta.dirname, '../../public/assets/physics/rapier.wasm')].find(existsSync);
+    // A source checkout's root. The CLI bundle is stamped src/sdk (scripts/wildshard.mjs), two levels down; this file moves deeper.
+    const checkout = [resolve(import.meta.dirname, '../../../..'), resolve(import.meta.dirname, '../..')].find(root => existsSync(resolve(root, 'scripts/sim-node-loader.mjs')));
+    const binary = [resolve(import.meta.dirname, 'client/assets/physics/rapier.wasm'), ...checkout === undefined ? [] : [resolve(checkout, 'src/sharddev/dist/client/assets/physics/rapier.wasm'), resolve(checkout, 'public/assets/physics/rapier.wasm')]].find(existsSync);
     if (binary === undefined) throw new Error('SDK physics binary missing; build/pack the SDK before headless validation');
     const admitted = new Map<string, Uint8Array>();
     for (const ref of [...shard.files.map(file => file.hash), ...shard.requires.commons.map(hash => `commons:${hash}`)]) {
       const bytes = assets.get(ref); if (bytes === undefined) throw new Error('Missing admitted worker bytes'); admitted.set(ref, bytes);
     }
     const bundled = resolve(import.meta.dirname, 'headlessWorker.js');
-    const source = resolve(import.meta.dirname, 'bake/headlessWorker.ts');
-    const loader = resolve(import.meta.dirname, '../../scripts/sim-node-loader.mjs');
     const distributed = existsSync(bundled);
-    if (!distributed && (!existsSync(source) || !existsSync(loader))) throw new Error('SDK headless worker missing; build/pack the SDK or use its complete workspace checkout');
+    if (!distributed && checkout === undefined) throw new Error('SDK headless worker missing; build/pack the SDK or use its complete workspace checkout');
     // Source-checkout workers need their own Node hooks; parent Vitest/Vite transforms never cross the isolate boundary.
-    const execArgv = distributed ? [] : ['--experimental-transform-types', '--import', pathToFileURL(loader).href];
-    const runner = new TickWorkerHost(pathToFileURL(distributed ? bundled : source), { shard, assets: admitted, binary, sections, ...(snapshot === undefined ? {} : { snapshot }), ...(options.product === undefined ? {} : { product: options.product }) }, shard.serverBudget, execArgv, options.deadline ?? 'runtime');
+    const execArgv = distributed ? [] : ['--experimental-transform-types', '--import', pathToFileURL(resolve(checkout ?? '', 'scripts/sim-node-loader.mjs')).href];
+    const runner = new TickWorkerHost(pathToFileURL(distributed ? bundled : resolve(checkout ?? '', 'src/sdk/bake/headlessWorker.ts')), { shard, assets: admitted, binary, sections, ...(snapshot === undefined ? {} : { snapshot }), ...(options.product === undefined ? {} : { product: options.product }) }, shard.serverBudget, execArgv, options.deadline ?? 'runtime');
     try { await runner.initialized(); return new HeadlessSimulation(runner); } catch (error) { await runner.dispose(); throw error; }
   }
   /** Last committed state is detached; callers cannot change the checkpoint used after a refused or unfinished tick. */

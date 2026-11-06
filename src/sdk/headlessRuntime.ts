@@ -26,7 +26,7 @@ import type { PlaceArea } from '@wildshard/engine/quest/lastPlace';
 import { checkSimSnapshotWire, decodeSimSnapshot, serializeSimSnapshot, snapshotSimHostBytes, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { restoreSimHost } from '@wildshard/engine/sim/restore';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
-import type { Shardfile } from './shardfile';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { MAX_TICK_SNAPSHOT_CHARS, simPlayerCommand, TickCommandSchema, type HeadlessCommand, type HeadlessEffect } from './tickProtocol';
 import type { TickWorkerAdapter } from './tickWorkerLoop';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
