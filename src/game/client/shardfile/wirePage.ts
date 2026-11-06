@@ -43,7 +43,8 @@ export class WirePage {
   /** The rows a sky reads: none, until the wire is up. */
   readonly climateRows: Pick<NetClient, 'latest' | 'stateField'> = rowsOf(this);
   private encounterRows: (() => readonly EncounterRow[]) | null = null;
-  private seeded = false;
+  /** The cell whose rows the feeds last took: what a client hears first in a cell is where things stand there, not news. */
+  private seeded: number | null = null;
   private heads: (body: number, to: Vector3) => boolean = () => false;
   private press: (id: string) => void = () => undefined;
   get on(): boolean { return workerClientOn(); }
@@ -63,7 +64,7 @@ export class WirePage {
     for (const use of this.waiting) use(client);
     this.waiting.clear();
   }
-  unbind(): void { this.client = null; this.press = () => undefined; this.stop = () => undefined; this.encounterRows = null; this.heads = () => false; this.seeded = false; this.books.clear(); this.feeds.clear(); this.movers.clear(); }
+  unbind(): void { this.client = null; this.press = () => undefined; this.stop = () => undefined; this.encounterRows = null; this.heads = () => false; this.seeded = null; this.books.clear(); this.feeds.clear(); this.movers.clear(); }
   /** One press of a prompt the server knows by this id. */
   send(id: string): void { this.press(id); }
   /** A quest view for `def`, over this player's rows. */
@@ -92,8 +93,8 @@ export class WirePage {
     this.heard.clear(); for (const flag of client.phased) this.heard.add(flag);
     const held = new Set([...client.flags(), ...client.phased]), now = client.latest.tick;
     for (const book of this.books) if (level === null || book.level.endsWith(level)) book.mirror(held, now);
-    // What a save opened with is no news: the first frame only says where things stand.
-    if (!this.seeded) { this.seeded = true; for (const feed of this.feeds.values()) feed.settle(); return; }
+    // What a save opened with is no news, and nor is a started quest a crossing comes back to: a world's first frame only says where things stand.
+    if (this.seeded !== client.latest.cell) { this.seeded = client.latest.cell; for (const feed of this.feeds.values()) feed.settle(); return; }
     for (const feed of this.feeds.values()) feed.sync();
   }
 }
