@@ -133,7 +133,8 @@ copyOutputProducts(process.cwd(), outDir);
 if (mode !== 'native') { const dropped = pruneLooseCopies(outDir); console.log(`Loose copies dropped: ${dropped.files} files, ${(dropped.bytes / 1e6).toFixed(1)} MB`); }
 
 // SHARD-SIZE row 1: refuse a shard whose phone download grew. Only the default web output holds the whole book.
-if (mode !== 'native' && outDir === resolve('dist')) step(['scripts/shard-size-gate.mjs', outDir]);
+// A deploy with a catalogue cooks after this build (deploy.yml), and gates again on what the cook wrote.
+if (mode !== 'native' && outDir === resolve('dist')) step(['scripts/shard-size-gate.mjs', outDir, ...process.env.WILDSHARD_CATALOGUE === undefined ? [] : ['--cooks-after']]);
 
 // Carry the kept builds' graphs. The worker precache above deliberately names this
 // graph only; old pages demand their old files as needed. CI's main push builds the

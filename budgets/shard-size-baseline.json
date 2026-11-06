@@ -42,7 +42,7 @@
   "ratchetSlackBytes": 1000000
  },
  "update": {
-  "shrink": "After a change saves bytes: node scripts/shard-size-gate.mjs dist --ratchet, and commit this file with the change. The build refuses a shrink-only shard more than 1 MB under its ceiling until this is done. Ceilings stop at the baseline; shrinkOnly clears there.",
+  "shrink": "After a change saves bytes: node scripts/shard-size-gate.mjs dist --ratchet, and commit this file with the change. The build refuses a shrink-only shard more than 1 MB under its ceiling until this is done. A shrink-only ceiling follows the shard down past its baseline (latchedPhoneBytes), so it can't regrow into the old room.",
   "grow": "Only on Jake's word: set ceilingPhoneBytes and add {shard, toBytes, decision, why} to raises, naming his G or E number. A raised ceiling with no such row is refused.",
   "remeasure": "To change the baseline itself, redo method.steps from baseline.commit, or move baseline.commit on Jake's word and redo them there."
  },

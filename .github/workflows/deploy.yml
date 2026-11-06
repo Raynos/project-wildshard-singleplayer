@@ -469,6 +469,8 @@ jobs:
           export WILDSHARD_BUILD="$(node -p "JSON.parse(require('node:fs').readFileSync('../.vercel/output/static/version.json','utf8')).build")"
           node --import ./scripts/bake-loader.mjs scripts/cook-worker.mjs recook
           node --import ./scripts/bake-loader.mjs scripts/cook-worker.mjs bake ../.vercel/output/static "$WILDSHARD_PACKS_ORIGIN"
+          # The build's gate ran before the bake rewrote the book: this one reads the rows phones get.
+          if [ -f scripts/shard-size-gate.mjs ]; then node scripts/shard-size-gate.mjs ../.vercel/output/static; fi
 
       - name: Deploy prebuilt output
         if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && (steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true') }}
