@@ -40,9 +40,10 @@ function until(host: SimHost, done: () => boolean, limit = 2400): void {
   for (let i = 0; i < limit && !done(); i++) tick(host);
   expect(done()).toBe(true);
 }
-function roomHost(host: SimHost, portal?: ArenaRoomDoorRows) {
-  const saved = { defeated: false, rewardTaken: false, kills: 0 };
-  let adds = 0; const seal: boolean[] = [], returned: string[] = [];
+const UNPAID = { defeated: false, rewardTaken: false, kills: 0 };
+function roomHost(host: SimHost, portal?: ArenaRoomDoorRows, record: Readonly<typeof UNPAID> = UNPAID) {
+  const saved = { ...record };
+  let adds = 0, rewards = 0; const seal: boolean[] = [], returned: string[] = [];
   const body = (id: string): ArenaRoomBody => {
     const actor = host.entities.get(id); if (actor === undefined) throw new Error('No body');
     return Object.assign(actor, { hidden: false });
@@ -51,8 +52,8 @@ function roomHost(host: SimHost, portal?: ArenaRoomDoorRows) {
     spawnBody: () => { const actor = body(KING); actor.place(0, -5, 0); return actor; },
     spawnAdd: (_i, x, z, yaw) => { const actor = body(`add.${String(adds++ % ADDS)}`); actor.place(x, z, yaw); return actor; },
     retire: actor => { actor.hidden = true; }, find: id => { const actor = host.entities.get(id); return actor === undefined ? null : body(id); },
-    seal: on => { seal.push(on); }, saved, persist: () => undefined, returned: player => { returned.push(player.id); } });
-  return { ...fight, seal, returned };
+    seal: on => { seal.push(on); }, saved, persist: () => undefined, spawnReward: () => { rewards++; }, returned: player => { returned.push(player.id); } });
+  return { ...fight, seal, returned, rewards: () => rewards };
 }
 function bots(): { host: SimHost; lead: PlayerSim; bot: PlayerSim } {
   const host = createSimHost(LEVEL, { rapier }), lead = [...host.players.values()][0];
@@ -219,6 +220,38 @@ test('a body under the room\'s floor comes back up while it stands inside, and n
     tick(host, 10);
     sink(1); expect(lead.position.y, 'a metre under: back on the floor').toBeGreaterThanOrEqual(-king.portal.floor.tolerance);
     sink(king.portal.floor.depth + 2); expect(lead.position.y, 'past the row\'s depth it is a fall, not a slip').toBeLessThan(-king.portal.floor.depth);
+  } finally { host.dispose(); }
+});
+
+test('a paid record stays paid: a win lays no reward out, and the fight still ends', () => {
+  const { host, lead, bot } = bots();
+  host.removePlayer(bot.id); inside(lead, CENTRE.x + 2, CENTRE.z);
+  const fight = roomHost(host, undefined, { defeated: true, rewardTaken: true, kills: 1 });
+  try {
+    until(host, () => fight.boss.state === 'fight');
+    const body = fight.fight.body(); if (body === null) throw new Error('No King');
+    body.hp = 1; fight.boss.phase = 2; fight.boss.checkpoint = 2;
+    host.combat.hit({ source: lead.health, sourceTags: ['actor.player'], target: body.combatActor(), amount: 9000, point: body.position.clone(), dir: new Vector3(0, 0, 1) });
+    until(host, () => fight.boss.state === 'victory');
+    expect(fight.rewards(), 'nothing to take').toBe(0);
+    expect(fight.boss.rewardTaken).toBe(true); expect(fight.boss.takeReward()).toBe(false);
+    expect(fight.boss.snapshot().saved).toMatchObject({ defeated: true, rewardTaken: true });
+  } finally { host.dispose(); }
+});
+
+test('a death in a late phase keeps its checkpoint, and a reward not yet earned can\'t be taken', () => {
+  const { host, lead, bot } = bots();
+  host.removePlayer(bot.id); inside(lead, CENTRE.x + 2, CENTRE.z);
+  const fight = roomHost(host);
+  try {
+    until(host, () => fight.boss.state === 'fight');
+    expect(fight.boss.takeReward(), 'not beaten yet').toBe(false); expect(fight.boss.rewardTaken).toBe(false);
+    fight.boss.phase = 1; fight.boss.checkpoint = 1;
+    fall(host, lead); tick(host, 2);
+    expect(fight.boss.state).not.toBe('fight');
+    expect(fight.boss.checkpoint, 'the phase it reached stands').toBe(1);
+    expect(lead.position.z).toBeCloseTo(fightRows.respawn[2]);
+    expect(fight.rewards()).toBe(0);
   } finally { host.dispose(); }
 });
 

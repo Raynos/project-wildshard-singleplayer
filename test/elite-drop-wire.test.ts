@@ -55,3 +55,23 @@ test('a lair with no skin lays out nothing, and its save has no orb', () => {
     expect(JSON.stringify(core.snapshot())).not.toContain('drop');
   } finally { host.scope.dispose(); }
 });
+
+// What the page's own lair proved of its rules: a banner, a phase, a kill and a skin, in that order, in the record a save keeps.
+test('a lair on the server runs banner, second phase, fall and skin, and its record says so', () => {
+  const { core, entry, host, body } = lair('sabre'), runner = player(host);
+  try {
+    runner.position.set(4, 0, 4.5);
+    core.update(0.1, 0);
+    expect(eliteNetView(entry)).toMatchObject({ banners: 1 });
+    expect(entry.state).toBe('engaged'); expect(entry.phase2).toBe(false);
+    body.hp = 5; core.update(0.1, 0.1);
+    expect(entry.phase2, 'half its health is its second phase').toBe(true);
+    body.alive = false; core.update(0.1, 0.2);
+    expect(eliteNetView(entry).state).toBe('dead');
+    const orb = eliteNetView(entry).reward; if (orb === null) throw new Error('No orb');
+    runner.position.set(4, orb.y, 5);
+    actRoutes(host).claims.get('lair.reward')?.(runner.id); actRoutes(host).claims.get('lair.reward')?.(runner.id);
+    expect(core.record('lair')).toMatchObject({ discovered: true, skinTaken: true, kills: 1, retired: false });
+    expect(eliteNetView(entry).reward, 'a second press finds nothing').toBeNull();
+  } finally { host.scope.dispose(); }
+});
