@@ -1642,6 +1642,7 @@
   "src/sdk/immutable.ts": "shared",
   "src/sdk/shardfile.ts": "shared",
   "src/sdk/standalone/continuation.ts": "server",
+  "src/sdk/standalone/fallFloor.ts": "server",
   "src/sdk/standalone/gridServer.ts": "server",
   "src/sdk/standalone/harnessPlace.ts": "shared",
   "src/sdk/standalone/heldReads.ts": "shared",

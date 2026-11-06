@@ -125,37 +125,32 @@ async function sunscarJourney(browser, phone, base, step) {
     await standAt(page, 'well|bucket|oil');
     return { ok: await pressUntil(page, flagged('sunscar.oil'), 5), well, label: (await prompt(page, 'well|bucket|oil'))?.label ?? null };
   });
+  // Each waymark from where a player stands to pour: 2.5 m south of the bowl, on the ground. The server picks the prompt it sees from there.
   for (const index of [0, 1, 2]) await step(`sunscar: waymark ${index} takes oil and a light crack`, async () => {
-    const crack = [{ x: 58, y: 26.6, z: -34 }, { x: -44, y: 19.41, z: -22 }, { x: 34, y: 10.37, z: -102 }][index], on = flagged(`sunscar.brazier.${index}`), rounds = [[2.4, 2.4], [-2.4, 2.4], [2.4, -2.4], [-2.4, -2.4]];
-    for (const [dx, dz] of rounds) {
-      await place(page, crack.x + dx * 0.4, crack.y - 1.3, crack.z + dz * 0.4);
-      await page.waitForTimeout(1200);
-      await press(page); await page.waitForTimeout(900);
-      await place(page, crack.x + dx, crack.y - 0.6, crack.z + dz);
-      await page.waitForTimeout(1200);
-      await faceAt(page, crack);
-      await page.waitForTimeout(250);
-      let lit = false;
-      for (let crackAt = 0; crackAt < 5 && !lit; crackAt++) { await faceAt(page, crack); await page.evaluate(() => { window.__wildshard.world.game.app.input.press('attack'); }); lit = await until(page, on, 1.2) === true; }
-      if (lit) break;
-    }
-    return { ok: await on() === true, label: await page.evaluate(wanted => window.__wildshard.world.interactables.find(row => row.wireId === wanted)?.label ?? null, `pour.${index}`), server: [(await report(page)).serverX, (await report(page)).serverZ], held: (await report(page)).held, flags: (await report(page)).flags.filter(flag => !flag.startsWith('seen:')) };
+    const crack = [{ x: 58, y: 26.6, z: -34 }, { x: -44, y: 19.41, z: -22 }, { x: 34, y: 10.37, z: -102 }][index], on = flagged(`sunscar.brazier.${index}`), label = () => page.evaluate(wanted => window.__wildshard.world.interactables.find(row => row.wireId === wanted)?.label ?? null, `pour.${index}`);
+    await place(page, crack.x, crack.y - 1.3, crack.z + 2.5);
+    await page.waitForTimeout(1600);
+    await press(page); await page.waitForTimeout(900);
+    const poured = await label();
+    for (let crackAt = 0; crackAt < 4 && await on() !== true; crackAt++) { await faceAt(page, crack); await page.waitForTimeout(250); await faceAt(page, crack); await page.evaluate(() => { window.__wildshard.world.game.app.input.press('attack'); }); await until(page, on, 1.5); }
+    return { ok: await on() === true, poured, label: await label(), server: [(await report(page)).serverX, (await report(page)).serverZ], refused: (await report(page)).refused, flags: (await report(page)).flags.filter(flag => !flag.startsWith('seen:')) };
   });
   await step('sunscar: the signal fire lights, and the sky has gone to dusk', async () => {
-    await standAt(page, 'signal');
+    const fire = await prompt(page, 'signal');
+    await place(page, 8.75, fire.y - 1.1, -73.5);
+    await page.waitForTimeout(1600);
     const lit = await pressUntil(page, flagged('sunscar.lit'), 5);
     await page.waitForTimeout(6000);
     return { ok: lit, flags: (await report(page)).flags.filter(flag => !flag.startsWith('seen:')), row: (await fight(page, 'sunscar.matriarch'))?.state, dusk: await page.evaluate(() => window.__wildshard.shard.weatherFields?.value?.('dusk') ?? null) };
   });
   await step('sunscar: the Matriarch falls to real blows, and the quest ends', async () => {
     await page.evaluate(() => { window.__workerClientHits(60); });
-    const row = await fight(page, 'sunscar.matriarch'), goal = await prompt(page, 'zzz');
-    if (row?.state === 'dormant') await place(page, ...SUNSCAR_BASIN);
+    await place(page, ...SUNSCAR_BASIN);
     const up = await until(page, async () => { const seen = await fight(page, 'sunscar.matriarch'); return seen?.state === 'fight' ? seen : null; }, 25);
     const shown = await bossBar(page), end = await fightTo(page, 'sunscar.matriarch', 'victory', 50);
     await page.waitForTimeout(3000);
     const r = await report(page);
-    return { ok: end?.state === 'victory', up: up?.state ?? null, state: end?.state, shown, quests: r.quests, paid: r.paid, coins: r.owned.coins, goal };
+    return { ok: end?.state === 'victory' && r.quests['sunscar.signal'] === null && r.paid > 0, up: up?.state ?? null, state: end?.state, shown, quests: r.quests, paid: r.paid, coins: r.owned.coins };
   });
   await step('sunscar: no page error', () => ({ ok: dune.errors.length === 0, errors: [...new Set(dune.errors)].slice(0, 6) }));
   await dune.context.close();
@@ -376,6 +371,34 @@ export async function fights(browser, phone, base, only, step) {
       return { ok: row?.state === 'victory' && done.paid > paidBefore.paid, state: row?.state, paid: done.paid, coins: done.owned.coins, shown };
     });
     await step('roc: no page error', () => ({ ok: far.errors.length === 0, errors: [...new Set(far.errors)].slice(0, 6) }));
+    await far.context.close();
+  }
+
+  // A fight pays for blows: a player off the crown, however far they fall, ends nothing and earns nothing.
+  if (runs('rocfall')) {
+    const far = await open(browser, phone, base, 'far-reach');
+    const id = 'far.roc.encounter', [cx, cy, cz] = [0, 45.5, -188], CROWN_REACH = 23;
+    await step('roc: a player who falls off the crown ends nothing and earns nothing', async () => {
+      await place(far.page, cx, cy, cz);
+      await until(far.page, async () => (await fight(far.page, id))?.state === 'fight', 20);
+      const before = await report(far.page), trail = [];
+      let lowest = Infinity, fallen = 0;
+      for (let round = 0; round < 6 && (await fight(far.page, id))?.state !== 'victory'; round++) { // over each of its moves in turn
+        await place(far.page, cx, cy, cz);
+        await far.page.waitForTimeout(2500 + round * 900);
+        await place(far.page, cx + CROWN_REACH, cy - 2, cz); // over the edge, under its nose
+        for (let i = 0; i < 16; i++) {
+          await far.page.waitForTimeout(500);
+          const row = await fight(far.page, id), height = await far.page.evaluate(() => window.__wildshard.world.player.position.y);
+          lowest = Math.min(lowest, height);
+          if (i % 5 === 0) trail.push({ y: Math.round(height), hp: row?.hp, state: row?.state, roc: row?.at === null || row?.at === undefined ? null : Math.round(row.at.y) });
+          if (row?.state === 'victory') break;
+        }
+        fallen++;
+      }
+      const row = await fight(far.page, id), done = await report(far.page);
+      return { ok: row?.state !== 'victory' && (row?.hp ?? 0) > 0 && done.paid === before.paid && done.hits === before.hits, state: row?.state, hp: row?.hp, fallen, lowest, paid: done.paid, coins: done.owned.coins, hits: done.hits, falls: done.falls, trail: trail.slice(-12) };
+    });
     await far.context.close();
   }
 

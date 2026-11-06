@@ -48,6 +48,7 @@ import { serverPlaces } from '@wildshard/game/quest/serverPlaces';
 import { createTrustedHeadlessResident, type HeadlessRuntimeInput } from '../headlessRuntime';
 import type { HeadlessEffect } from '../tickProtocol';
 import { cellDocuments, CONTINUATION, ContinuationSlots, SITE, siteDocuments, type SavedContinuation, type SavedSite } from './continuation';
+import { FallFloor } from './fallFloor';
 import { ledgerFilings } from './ledgerFilings';
 import { netBuys, netWorldInput, stepResident } from './netInput';
 
@@ -59,6 +60,8 @@ const ROAD_HALF_SIZE = 2000, ROAD_SPEED = 8;
 const ROAD_SKIN = 0.02;
 /** Below this a player has left a cell's world: what a page's grid recovery falls back to where a shard declares no floor. */
 const FALL_FLOOR = -CHUNK_HALF;
+/** A cell's fall recovery, off what its shard declares. */
+const fallFloorOf = (input: HeadlessRuntimeInput, host: SimHost, lone: boolean): FallFloor => new FallFloor(Math.max(FALL_FLOOR, input.shard.manifest?.bounds?.floor ?? FALL_FLOOR), lone, host.level.player.at);
 /** A cell wall's thickness and half its height. */
 const WALL = 0.5, WALL_HEIGHT = 30;
 /** How far out from a cell's edge its wall stands. */
@@ -74,6 +77,7 @@ interface CellWorld extends GridResident {
   readonly fact: (name: string, entity: string) => { readonly id: string; readonly status: 'granted' | 'duplicate' | 'pending' } | null;
   /** What the player holds in this shard. */
   readonly owned: PlayerOwned;
+  readonly fall: FallFloor;
 }
 /** What the grid needs of its host. */
 export interface GridServerOptions {
@@ -291,7 +295,7 @@ export class StandaloneGrid {
       if (snapshot === undefined && options.lone === true) addLoneWalls(host);
       host.respawn.served = true;
       const owned = ownedOf(host, input);
-      return { host, owned, dispose: () => { resident.dispose(); }, fact, effects: () => resident.effects,
+      return { host, owned, fall: fallFloorOf(input, host, options.lone === true), dispose: () => { resident.dispose(); }, fact, effects: () => resident.effects,
         adopt: () => { regionalRuntimeCheckpoint(options.saves, placed, input.shard.identity.revision).restore({ animals: [...host.entities.values()] }); return true; }, step: inputs => {
         const player = sessionPlayer(host);
         near?.update(player.position.x, player.position.z);
@@ -303,7 +307,7 @@ export class StandaloneGrid {
     installDeclaredClimate(host, input.shard.rows);
     bindDiscovery(host, input.product === undefined ? [] : await serverPlaces(input.product));
     host.respawn.served = true;
-    return { host, owned: ownedOf(host, input), dispose, fact, effects: () => effects, adopt: () => { const held = sim(); return held === undefined || importPageProgress(options.saves, placed, input.shard, held); }, step: inputs => {
+    return { host, owned: ownedOf(host, input), fall: fallFloorOf(input, host, options.lone === true), dispose, fact, effects: () => effects, adopt: () => { const held = sim(); return held === undefined || importPageProgress(options.saves, placed, input.shard, held); }, step: inputs => {
       effects.length = 0;
       // A data shard's prompts answer whoever stands at them; an id they don't offer that player is dropped, since an input may not end the server.
       const routes = actRoutes(host);
@@ -327,7 +331,7 @@ export class StandaloneGrid {
     if (world === undefined) this.grid.stepSite(site, commandsOf(inputs)); else world.step(inputs);
     const host = this.grid.hostOf(site), player = sessionPlayer(host);
     // The page used to catch a fall, on its own body. The server's world has nothing below it, so it would fall for ever.
-    if (world !== undefined && player.position.y < FALL_FLOOR) host.combat.fall(player.health, player.position, { kind: 'out-of-world', label: '' });
+    world?.fall.step(player, () => { host.combat.fall(player.health, player.position, { kind: 'out-of-world', label: '' }); });
     this.options.stepped(host, this.options.now() - started);
     return true;
   }

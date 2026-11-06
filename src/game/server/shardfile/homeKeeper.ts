@@ -154,7 +154,8 @@ export function installHomeKeeper(host: SimHost, spec: HomeKeeperSpec, saved?: R
   const respawn = (home: Home): void => { home.wait = 0; drawBody(home); };
   host.events.on('actor.died', ({ actor }) => { const home = homes.find(h => h.actor?.combatActor() === actor); if (home) home.wait = home.respawn; }, host.scope);
   host.onStep(step, dt => {
-    if (world !== undefined) for (let i = 0; i < bodyCount; i++) { const a = bodies[i]?.actor; if (a?.alive === true) killBelowWorld(a, world, host.combat); }
+    // A boss's fight ends on blows, never on the plane: its flight follows a player down, and a fall would pay it out unstruck.
+    if (world !== undefined) for (let i = 0; i < homeCount; i++) { const a = bodies[i]?.actor; if (a?.alive === true) killBelowWorld(a, world, host.combat); }
     spec.beforeStep?.(homes);
     if (lateDue) { lateDue = false; for (let i = 0; i < homeCount; i++) { const home = homes[i]; if (home?.late === true) respawn(home); } }
     for (let i = 0; i < bodyCount; i++) { const a = bodies[i]?.actor; if (a && holders.has(a) && (!a.alive || a.attackPhase < 0)) holders.delete(a); }
