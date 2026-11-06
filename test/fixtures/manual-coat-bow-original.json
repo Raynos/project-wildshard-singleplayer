@@ -1,7 +1,7 @@
 [
   {
     "before": "src/shards/driftwood-isle/generators/bake-captain-coat.mjs",
-    "script": "scripts/bake-captain-coat.mjs",
+    "script": "src/shards/driftwood-isle/bake/bake-captain-coat.mjs",
     "beforeSha256": "b4a593efd6137f933a9821419c10a907ea40c44bc6c232521341429a82a9f5a7",
     "programSha256": "7e1d8f86edf5959585b8b27a9cc018b2984f0fd992bc382a52f351fe045bae15"
   },

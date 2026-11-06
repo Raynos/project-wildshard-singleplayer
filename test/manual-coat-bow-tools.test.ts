@@ -12,8 +12,8 @@ for (const row of original) test(`${row.script} retains its complete standalone 
   const source = readFileSync(row.script, 'utf8');
   expect(hash(authorToolProgram(cwd(), row.script, source))).toBe(row.programSha256);
   expect(hash(source)).not.toBe(row.beforeSha256);
-  if (row.script === 'scripts/bake-captain-coat.mjs') {
-    expect(() => authorToolProgram(cwd(), row.script, source.replace("resolve(import.meta.dirname, '..')", "resolve(import.meta.dirname, '../outside')")))
+  if (row.script === 'src/shards/driftwood-isle/bake/bake-captain-coat.mjs') {
+    expect(() => authorToolProgram(cwd(), row.script, source.replace("resolve(import.meta.dirname, '../../../..')", "resolve(import.meta.dirname, '../outside')")))
       .toThrow('repository');
   } else {
     const moved = source.replace("'../public/assets/nalati/baked/'", "'../public/assets/nalati/outside/'");
