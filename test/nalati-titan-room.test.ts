@@ -3,9 +3,12 @@ import { readFileSync } from 'node:fs';
 import { beforeAll, expect, test } from 'vitest';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
 import { actRoutes } from '../src/engine/shared/sim/actRoutes';
+import { shardRows } from '../src/engine/shared/sim/shardRows';
 import { snapshotSimHost } from '../src/engine/shared/sim/snapshot';
 import { openArenaOf } from '../src/game/server/boss/openArenaNative';
 import { patrolOf } from '../src/game/server/boss/patrolNative';
+import { arenaTieWord } from '../src/game/shared/boss/arenaAnswers';
+import { OWNED_ROW } from '../src/game/shared/loot/ownedRows';
 import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { createTrustedHeadlessResident, type TrustedHeadlessResident } from '../src/sdk/headlessRuntime';
@@ -93,5 +96,30 @@ test('a paid Titan stays paid: his fall lays no heart\'s reward out, and pays no
     for (let tick = 0; tick < 60; tick++) live.step([]);
     expect(arena.reward()).toBe(false); expect(boss.rewardTaken).toBe(true);
     expect(live.effects.filter(effect => effect.kind === 'item')).toEqual([]);
+  } finally { live.dispose(); }
+}, 120_000);
+
+// N9: the law has its own test (`arena-answers`), and `worker-client-fights` rides and ties him in a browser. This is the press a page sends,
+// by the id it sends, on the real room.
+test('a press at the cairn reaches the tie\'s law and the page hears its line, and a press from afar does nothing', async () => {
+  const live = await nalati(true), { host } = live, arena = openArenaOf(host);
+  if (arena === undefined) throw new Error('No room arena');
+  const [lead] = host.players.values();
+  if (lead === undefined) throw new Error('No lead');
+  const lines: number[] = [], heard = shardRows(host).calls, push = heard.push.bind(heard), { boss, fight } = arena, word = arenaTieWord(boss.def.id);
+  heard.push = (...calls) => { for (const call of calls) if (call.name === word) lines.push(call.args[0] ?? -1); return push(...calls); };
+  const press = (): void => { live.step(netInteractCommands(actRoutes(host), [{ kind: 'interact' as const, seq: 1, id: `${boss.def.id}.tie` }], lead.id)); };
+  const reach = (): number => { const out = new Map<string, number>(); for (const read of shardRows(host).owned.values()) read(lead.id, out); return (out.get(OWNED_ROW.tie) ?? 0) / 1000; };
+  const stand = (x: number, z: number): void => { lead.resetPose({ x, y: host.groundHeightAt(x, z) + 0.2, z }, 0); };
+  const anchor = fight.cairnSpot();
+  try {
+    for (let tick = 0; tick < 120; tick++) { stand(anchor.x + 1, anchor.z); live.step([]); }
+    expect(reach(), 'the cairn offers its prompt').toBeGreaterThan(0);
+    stand(anchor.x + 400, anchor.z); press();
+    expect(fight.tied).toBe(false); expect(lines).toEqual([]);
+    for (let tick = 0; tick < 4; tick++) { stand(anchor.x + 1, anchor.z); live.step([]); }
+    press();
+    expect(lines, 'on foot: the law\'s first line, and no tie').toEqual([0]);
+    expect(fight.tied).toBe(false); expect(boss.state).toBe('dormant');
   } finally { live.dispose(); }
 }, 120_000);
