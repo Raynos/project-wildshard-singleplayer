@@ -113,6 +113,8 @@ const herdContinuation: v.StrictObjectSchema<{ readonly [Key in Exclude<keyof He
     beatenT: herdFinite, beaten: v.boolean(), knockCd: herdFinite }) });
 const herdGuestStorage = [...Object.keys(herdContinuation.entries.state.entries),'lead','stallion','ridden','chargeTarget','groupTime'];
 const herdStateNames = Object.keys(herdContinuation.entries.state.entries);
+/** Every bank field `prepareHerdGuestState` publishes to the owner. */
+const herdGuestPublished = [...herdStateNames,'lead','stallion','ridden','chargeTarget','groupTimePresent','groupTime'];
 const herdFlags = new Set(['initialized','stampeding','alertOwned','beaten']);
 /** The scalar schema's own answer for a well-formed candidate, without its per-segment parse. Anything else returns
  * undefined, and the schema reads it and says why. */
@@ -626,7 +628,13 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     const call = this.guestCall;
     if (call === undefined || call.binding !== this.guest || frame.input.state !== call.bank || frame.input.references !== call.references)
       throw new Error('Foreign herd guest publication');
-    const publication = this.prepareHerdGuestState(values,call.references,call.binding.scope);
+    // A settled segment that left every scalar and role where it found them has nothing to assign: the guest's own words
+    // (its continuation and scratch) only have to reach the next segment, so the owner's fields are compared, not pinned.
+    const held=frame.input.settled!==undefined&&herdGuestPublished.every(name=>Object.is(values[name],call.values[name]));
+    const publication = held?{validate:():void=>undefined,commit:():void=>{
+      const current=this.captureHerdGuestState();
+      for(const name of herdGuestPublished)if(!Object.is(current[name],values[name]))throw new Error('Changed herd guest storage');
+    }}:this.prepareHerdGuestState(values,call.references,call.binding.scope);
     const validate = (): void => {
       if (this.guestCall !== call || this.guest !== call.binding || call.binding.program.prepareGroup !== call.binding.prepare
         || call.binding.program.groupBindings !== call.binding.bindings) throw new Error('Replaced herd guest call');
