@@ -407,8 +407,9 @@ async function startWorkerClient(ports: WorkerClientPorts, card: ReturnType<type
     if (first !== -1 && renderTick >= first) break;
     await new Promise<void>(resolve => { scope.timeout(FIRST_ROWS_POLL_MS, () => { resolve(); }); });
   }
+  if (first === -1 || !net.inCell(client.latest?.cell ?? -1)) return; // a crossing's rows are its next world's
   syncCreatures(client, grid === null ? ports.animals : grid.animals(), bodies, retired, spawnMs, poses);
-  await ports.linkBodies();
+  if (bodies.size > 0) await ports.linkBodies();
 }
 
 async function guarded(ports: WorkerClientPorts): Promise<void> {
