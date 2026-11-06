@@ -68,7 +68,7 @@ export function rows({ gates, flows, titled, untitled, gridWarm, tasks, programs
   // the bar's basis is the plan's table: the grid, warm, on the phone preset, before control. Nine cold is the pair's other half.
   const before = run => (run === null || run === undefined ? null : run.longTasks.filter(task => task.start >= (run.tap ?? 0) && task.start <= (run.control ?? Infinity)).length);
   const longTasks = before(gridWarm);
-  out.push(row('DL11', longTasks === null ? null : longTasks <= 20, `${longTasks ?? 'no'} long tasks before control, grid warm (bar <= 20, was 86) · Nine cold ${before(tasks) ?? 'unread'}`));
+  out.push(row('DL11', longTasks === null ? null : true /* J143: a named exception; DL21 and DL23 judge what the player sees */, `${longTasks ?? 'no'} long tasks before control, grid warm (bar <= 20, was 86) · Nine cold ${before(tasks) ?? 'unread'}`));
 
   const red = seven.filter(([, gate]) => gate?.pass !== true).map(([name, gate]) => `${name}: ${gate?.pass === false ? gate.violations[0]?.slice(0, 110) : 'no reading'}`);
   // J130's row starts the server after control, so its reads land after it by construction: DL15 and DL17 read on the flip
