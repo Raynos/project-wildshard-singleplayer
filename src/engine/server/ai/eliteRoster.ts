@@ -310,6 +310,7 @@ interface BoundedEliteRosterFields {
             leashR: number;
             rule: "always" | "dusk" | "night" | "storm";
             respawnMin: number;
+            drop?: { skin: string | null } | undefined;
         };
         snapshot: string;
         member: {

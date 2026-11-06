@@ -16,7 +16,7 @@ test('a person with their own row keeps it, and no other id falls through to tal
   expect(both.refused).toBe(1);
 });
 test('a held item\'s second action crosses on its own button', () => {
-  const command = { seq: 1, viewTick: 0, steer: 0, yaw: 0, pitch: 0, buttons: NET_BUTTONS.secondary } as Parameters<typeof netPlayerCommand>[0];
+  const command: Parameters<typeof netPlayerCommand>[0] = { seq: 1, viewTick: 0, steer: { keyX: 0, keyY: 0, stickX: 0, stickY: 0 }, yaw: 0, pitch: 0, buttons: NET_BUTTONS.secondary };
   expect(netPlayerCommand(command).secondary).toBe(true);
   expect(netPlayerCommand({ ...command, buttons: 0 }).secondary).toBeUndefined();
 });

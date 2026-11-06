@@ -9,7 +9,7 @@ import { EliteCore, memoryElitePersistence, type EliteCoreEntry, type EliteCoreS
 import { eliteDrops } from '../src/game/server/quest/eliteDrops';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
-interface Body { alive: boolean; position: { x: number; y: number; z: number }; hp: number; maxHp: number; lastHitT: number }
+interface Body { entityId: string; alive: boolean; position: { x: number; y: number; z: number }; hp: number; maxHp: number; lastHitT: number }
 type Script = EliteCoreScript<Body>;
 let R: Rapier;
 beforeAll(async () => { R = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
@@ -17,7 +17,7 @@ beforeAll(async () => { R = await loadRapier(readFileSync('public/assets/physics
 /** A lair with one body, already out, on a real host. */
 function lair(skin: string | null): { core: EliteCore<Script>; entry: EliteCoreEntry<Script>; host: ReturnType<typeof createSimHost>; body: Body } {
   const host = createSimHost(SIM_LEVEL, { rapier: R });
-  const body: Body = { alive: true, position: { x: 4, y: 0, z: 4 }, hp: 10, maxHp: 10, lastHitT: -1 };
+  const body: Body = { entityId: 'lair.body', alive: true, position: { x: 4, y: 0, z: 4 }, hp: 10, maxHp: 10, lastHitT: -1 };
   const script: Script = { def: { id: 'lair', lair: { x: 4, z: 4, r: 3 }, awareR: 1, engageR: 1, leashR: 900, rule: 'always', respawnMin: 9, drop: { skin } }, animal: body, spawn: () => undefined, despawn: () => undefined, tick: () => undefined, enterPhase2: () => undefined, reset: () => undefined, trophy: () => undefined };
   const drops = eliteDrops<Script>(host), core = new EliteCore<Script>({ players: host.players, condition: () => true }, drops.hooks, 'level', memoryElitePersistence());
   drops.bind(core);
