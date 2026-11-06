@@ -80,7 +80,7 @@ for (const slug of specs.keys()) {
   else writeFileSync(join(root, 'src/shards', slug, 'budgetCeilings.ts'), `import type { LevelSpec } from '@wildshard/engine/level/spec';\n\n${doc}\nexport const BUDGET_CEILINGS = ${JSON.stringify(ceilings, null, 2)} satisfies NonNullable<LevelSpec['budgets']['ceilings']>;\n`);
 }
 // Manifest data now owns every rollout ceiling; the legacy fallback must not duplicate it. The ratchet's other budgets
-// (js/* chunk and wire/* phone ceilings) stay.
+// (js/* chunk ceilings) stay.
 ratchet.budgets = keptBudgets(ratchet.budgets);
 writeFileSync(ratchetPath, `${JSON.stringify(ratchet, null, 2)}\n`);
 mkdirSync(join(root, 'budgets'), { recursive: true });
