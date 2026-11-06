@@ -4,9 +4,9 @@
 // needs nothing from the tree. Run it over a finished build, after a change to what a shard reads:
 //   node scripts/record-shard-mounts.mjs [--dist=dist] [--check]
 // A product reads a public file when its spawn manifests list it (the default and packs books, both tiers), its sections
-// name it (or a folder holding it, or its tier variant), its boot inventory lists it, or its legacy boot pack holds it. A
-// file more than one shard folder reads belongs to the engine (the shared sfx, the piano stings): it stays out of every
-// list, and a product of the same folder may share one.
+// name it (or a folder holding it, or its tier variant), its boot inventory lists it, its legacy boot pack holds it, or it
+// sits in an audio folder named for the shard. A file more than one shard folder reads belongs to the engine (the shared
+// sfx, the piano stings): it stays out of every list, and a product of the same folder may share one.
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { shardProducts } from './shard-outputs.mjs';
@@ -68,6 +68,13 @@ for (const { slug } of products) {
     else for (const variant of variants(url)) pending.add(variant);
   }
   for (const url of legacyMembers(slug)) pending.add(bare(url));
+  // The boot tables name audio by slot, and a slot can load long after control: a folder named for the shard is its own.
+  const names = new Set([slug, slug.replace(/^open-plot-/u, ''), slug.split('-')[0]]);
+  // A bake names its blobs inside its own files, so the folder is the unit (Nalati's held bow reads one that way).
+  for (const name of names) if (isFolder(`/assets/${name}/baked`)) for (const file of filesUnder(`/assets/${name}/baked`)) pending.add(file);
+  for (const kind of ['sfx', 'music']) for (const name of readdirSync(join(publicRoot, 'assets', kind))) {
+    if ((names.has(name) || name.startsWith(`${slug}-`)) && isFolder(`/assets/${kind}/${name}`)) for (const file of filesUnder(`/assets/${kind}/${name}`)) pending.add(file);
+  }
   const seen = new Set();
   for (const url of pending) {
     if (!url.startsWith('/assets/') || shellOwned(url) || !onDisk(url) || seen.has(url)) continue;

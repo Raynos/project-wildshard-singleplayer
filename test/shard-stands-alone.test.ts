@@ -3,17 +3,18 @@ import {spawnSync} from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- This test reads real products and runs the cook in a folder of its own.
 import {createHash} from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- This test reads real products and runs the cook in a folder of its own.
-import {existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync} from 'node:fs';
+import {existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- This test reads real products and runs the cook in a folder of its own.
 import {tmpdir} from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- This test reads real products and runs the cook in a folder of its own.
-import {join, resolve} from 'node:path';
+import {dirname, join, resolve} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {prepareAssetDecoders} from '@wildshard/format/product';
 import {validateShardfileProduct} from '@wildshard/format/productValidation';
 import {readTar} from '@wildshard/format/tar';
 import {productTarball} from '../scripts/app-build/productTarball';
 import {openShardfile} from '../src/game/cook/shardCook';
+import {loadHeadlessProduct} from '@wildshard/sdk/headlessProduct';
 
 /** C0 (J137): a shardfile stands alone. Each real product packs to a tarball the format's own validator takes; everything
  *  its sections name by a public URL it either carries or leaves to the engine, because other shards read it too; and
@@ -50,6 +51,17 @@ describe('a shardfile stands alone', () => {
     const missing = named.filter(url => !mounted.has(url) && existsSync(join('public', url.slice(1))) && !engine.has(url));
     // A file no mounts.json lists is either the engine's (read by two shard folders) or this list is stale.
     expect(missing.filter(url => readers(url) < 2)).toEqual([]);
+  }, 60_000);
+
+  it.each(['driftwood-isle', 'nalati-grasslands', 'pine-hollow'])('%s loads headless from its unpacked tarball', async slug => {
+    const scratch = mkdtempSync(join(tmpdir(), 'stands-alone-'));
+    try {
+      for (const [path, bytes] of readTar(productTarball(join('out', slug)))) {
+        mkdirSync(dirname(join(scratch, path)), {recursive: true}); writeFileSync(join(scratch, path), bytes);
+      }
+      const product = await loadHeadlessProduct(scratch);
+      expect(product.shardfile.identity.slug).toBe(slug);
+    } finally { rmSync(scratch, {recursive: true, force: true}); }
   }, 60_000);
 
   it('cooks from a tarball in an empty folder', () => {
