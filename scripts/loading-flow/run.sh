@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # DL23 (E529, G1006, G1008): the loading flow recording on the iPhone Simulator, for each shard named: cold then warm on
-# the default level download (Shardfile), then the same pair on Runtime packs (DL16's gate; --no-packs skips it). Each
+# the default level download (Shardfile, the default set's loose files, which stay in the deploy; a file past that set
+# reads through its part, DL20), then the same pair on Runtime packs (DL16's gate; --no-packs skips it). Each
 # run plays 30 s after control: 10 s on foot with a slow look, then the hoverboard at boost.
 # Run after every boot / download / loading landing and each deploy; a row touching loading closes on a passing run.
 #   scripts/loading-flow/run.sh [--base <url>] [--out <dir>] [--no-packs | --packs-only] [--upgrade] [--device-save <key>=<value>]... [--profile] <shard regex>...

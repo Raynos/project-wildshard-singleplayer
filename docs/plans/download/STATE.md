@@ -16,7 +16,7 @@ second something moves (G1006). The level is complete at control.
 
 **Open, all readings:** DL1, DL2, DL5, DL10, DL11, DL15, DL17, DL18, DL21, DL23, DL24, DL25. DL20 needs one digest, and
 `~/.config/wildshard/telemetry.key` isn't on this Mac, so `telemetry-brief.mjs` reads nothing here.
-**Closed by J136:** DL6, DL7. DL20's deletion moved to C2.
+**Closed by J136:** DL6, DL7. DL20: files only a whole-level set lists left the deploy 11-06 (164 MB); a default set's stay for road crossings (G828).
 
 **Won't pass as written:** DL11, 88 long tasks before control, grid warm, against ≤ 20 at CPU 10×. J136 names no exception for it, so
 the sweep exits 1 until a decision names one. Recommended: DL21 and DL23's bars already judge what the player sees, so count it and close.

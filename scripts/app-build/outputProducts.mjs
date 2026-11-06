@@ -1,4 +1,4 @@
-import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { basename, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
 /** The app publishes its data products, never their temporary TypeScript sources: each built product's folder under
@@ -22,6 +22,36 @@ export function copyOutputProducts(root, outDir) {
     const own = resolve(source, 'mounts/shardfiles', entry.name);
     if (existsSync(own)) cpSync(own, resolve(shardfiles, entry.name), { recursive: true });
   }
+}
+
+/** DL20: a level file leaves the deploy when a part holds it and nothing reads its URL directly. Every default manifest's file
+ *  stays: a neighbour's rings and a road crossing read those by URL (G828, G1011; through parts each would cost a whole part),
+ *  a title's `<img>` reads its art, and the harness's shardfile arm reads the same set. What goes is the rest of a whole-level
+ *  set, which a home reads from its parts and a page past a crossing reads through them (`spawnDownload.ts`).
+ *  @param {string} outDir @returns {{files: number, bytes: number}} */
+export function pruneLooseCopies(outDir) {
+  const spawn = resolve(outDir, 'assets/spawn'), kept = new Set(), packed = new Set();
+  const path = url => url.split('?')[0] ?? url;
+  if (!existsSync(spawn)) return { files: 0, bytes: 0 };
+  for (const name of readdirSync(spawn)) {
+    if (!/-(?:client|grid)-(?:phone|desktop)-[a-f0-9]{16}\.json$/u.test(name)) continue;
+    const manifest = JSON.parse(readFileSync(join(spawn, name), 'utf8'));
+    if (manifest.parts === undefined) { for (const file of manifest.files) kept.add(path(file.url)); continue; }
+    for (const part of manifest.parts) {
+      // A part homed on another origin (J138) has its own home; a file here is this deploy's only copy.
+      if (!existsSync(resolve(outDir, `.${part.url}`))) continue;
+      for (const [index] of part.members) packed.add(path(manifest.files[index].url));
+    }
+  }
+  let files = 0, bytes = 0;
+  for (const url of packed) {
+    if (kept.has(url) || !url.startsWith('/shardfiles/')) continue;
+    const file = resolve(outDir, `.${url}`);
+    if (!existsSync(file)) continue;
+    bytes += statSync(file).size; files++;
+    rmSync(file);
+  }
+  return { files, bytes };
 }
 
 /** Only the standard app config with Vite's normal, fresh output is eligible.

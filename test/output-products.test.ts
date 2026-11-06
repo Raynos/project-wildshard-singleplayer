@@ -3,7 +3,7 @@ import {describe, expect, it} from 'vitest';
 import {cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the owned fixture and output directories.
 import {dirname, join, resolve} from 'node:path';
-import {copyDeferredPublic, deferredPublicCopy, copyOutputProducts} from '../scripts/app-build/outputProducts.mjs';
+import {copyDeferredPublic, deferredPublicCopy, copyOutputProducts, pruneLooseCopies} from '../scripts/app-build/outputProducts.mjs';
 
 function write(root: string, name: string, body: string): void {
   mkdirSync(dirname(join(root,name)),{recursive:true});writeFileSync(join(root,name),body);
@@ -64,4 +64,21 @@ describe('app public copy before final product publication',()=>{
     try {expect(()=>copyDeferredPublic(root,join(root,'dist'))).not.toThrow();}
     finally {rmSync(root,{recursive:true,force:true});}
   });
+});
+
+it('DL20: a file only parts need leaves; what a default manifest lists, a homed part holds, or nothing packs stays', () => {
+  const out = mkdtempSync(resolve('tmp','dl20-prune-'));
+  try {
+    const file = (url: string, body = 'xxxx'): void => { mkdirSync(dirname(join(out, url)), {recursive: true}); writeFileSync(join(out, url), body); };
+    const url = (name: string): string => `/shardfiles/a/blobs/bin/${name}.bin`;
+    for (const name of ['walked', 'neighbour', 'homed', 'unpacked']) file(url(name));
+    file('/assets/spawn/parts/aaaaaaaaaaaaaaaa.pack.br'); file('/assets/kept.bin');
+    file('/assets/spawn/a-client-phone-0000000000000000.json', JSON.stringify({files: [{url: url('neighbour')}]}));
+    file('/assets/spawn/a-client-phone-1111111111111111.json', JSON.stringify({files: [{url: url('walked')}, {url: url('neighbour')}, {url: '/assets/kept.bin'}, {url: url('homed')}],
+      parts: [{url: '/assets/spawn/parts/aaaaaaaaaaaaaaaa.pack.br', members: [[0, 0], [1, 16], [2, 32]]}, {url: '/assets/spawn/parts/bbbbbbbbbbbbbbbb.pack.br', members: [[3, 0]]}]}));
+    expect(pruneLooseCopies(out)).toEqual({files: 1, bytes: 4});
+    expect(existsSync(join(out, url('walked')))).toBe(false);
+    for (const name of ['neighbour', 'homed', 'unpacked']) expect(existsSync(join(out, url(name)))).toBe(true);
+    expect(existsSync(join(out, 'assets/kept.bin'))).toBe(true);
+  } finally { rmSync(out, {recursive: true, force: true}); }
 });

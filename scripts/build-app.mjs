@@ -11,7 +11,7 @@ import { writeChunkReport } from './app-build/chunkReport.mjs';
 import { bakeGridSeams, writeGridSeams } from './app-build/gridSeams.mjs';
 import { checkNoTopLevelAwait } from './app-build/noTopLevelAwait.mjs';
 import { writeTitleAssets } from './title-assets.mjs';
-import { copyOutputProducts, copyDeferredPublic, deferredPublicCopy } from './app-build/outputProducts.mjs';
+import { copyOutputProducts, copyDeferredPublic, deferredPublicCopy, pruneLooseCopies } from './app-build/outputProducts.mjs';
 import { newBuildId, stampBuildDocuments } from './app-build/buildIdentity.mjs';
 import { carryPreviousDeploy } from './app-build/previousDeploy.mjs';
 import { buildValidationReceipts } from './app-build/validationReceipts.mjs';
@@ -129,6 +129,8 @@ writeFileSync(resolve(outDir, 'build-flags.json'), JSON.stringify({ devserver: m
 
 // the data products beside the app (was vite/outputProducts.ts)
 copyOutputProducts(process.cwd(), outDir);
+// DL20: the deploy drops the loose copies nothing reads by URL; a native build reads its own folder
+if (mode !== 'native') { const dropped = pruneLooseCopies(outDir); console.log(`Loose copies dropped: ${dropped.files} files, ${(dropped.bytes / 1e6).toFixed(1)} MB`); }
 
 // Carry the kept builds' graphs. The worker precache above deliberately names this
 // graph only; old pages demand their old files as needed. CI's main push builds the
