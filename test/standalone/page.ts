@@ -14,7 +14,9 @@ export interface ProofReport {
   readonly tick: number; readonly ticksPerSecond: number; readonly frames: number; readonly framesPerSecond: number; readonly dropped: number;
   readonly creatures: number; readonly worstError: number; readonly step: number; readonly probes: number; readonly matched: number; /** Metres from the spawn to its nearest creature. */ readonly nearest: number;
   readonly downBytesPerSecond: number; readonly upBytesPerSecond: number; readonly bytesPerFrame: number; readonly tickMs: number;
-  readonly crossOriginIsolated: boolean; readonly positionMoved: number;
+  readonly crossOriginIsolated: boolean;
+  /** The farthest the player got from where this run began, in metres. Not where it ended: a sky island's edge is a fall, and a fall puts the player back at the start. */
+  readonly positionMoved: number;
 }
 /** What the smoke script calls. */
 export interface StandaloneProof {
@@ -76,7 +78,7 @@ async function play(seconds: number): Promise<ProofReport> {
   const { client, transport } = live(), ownerPosition = (): number[] => { const owner = client.latest === null ? null : client.owner(client.latest); return [Number(owner?.['px']), Number(owner?.['pz'])]; };
   const startTick = client.latest?.tick ?? 0, startedAt = performance.now(), down = transport.stats.recvBytes, up = transport.stats.sentBytes;
   const [startX = 0, startZ = 0] = ownerPosition();
-  let frames = 0, steps = 0, worstError = 0, probes = 0, matched = 0, tickMs = 0, running = true;
+  let frames = 0, steps = 0, worstError = 0, probes = 0, matched = 0, tickMs = 0, farthest = 0, running = true;
   const off = client.onFrame(() => { frames++; });
   const frame = (now: number): void => {
     if (!running) return;
@@ -90,15 +92,17 @@ async function play(seconds: number): Promise<ProofReport> {
   const until = startedAt + seconds * 1000;
   while (performance.now() < until) {
     await wait(250);
+    const [x = startX, z = startZ] = ownerPosition();
+    farthest = Math.max(farthest, Math.hypot(x - startX, z - startZ));
     const sample = await probe();
     if (sample === null) continue;
     probes++; matched += sample.rows; worstError = Math.max(worstError, sample.error); tickMs = Math.max(tickMs, sample.tickMs);
   }
   running = false; off();
-  const elapsed = (performance.now() - startedAt) / 1000, tick = client.latest?.tick ?? 0, [endX = 0, endZ = 0] = ownerPosition();
+  const elapsed = (performance.now() - startedAt) / 1000, tick = client.latest?.tick ?? 0;
   return { tick, ticksPerSecond: (tick - startTick) / elapsed, frames, framesPerSecond: frames / elapsed, dropped: client.dropped, creatures: client.entities.size, worstError,
     step: ANIMAL_CLASS.row[0]?.step ?? 0, probes, matched, nearest, downBytesPerSecond: (transport.stats.recvBytes - down) / elapsed, upBytesPerSecond: (transport.stats.sentBytes - up) / elapsed,
-    bytesPerFrame: frames === 0 ? 0 : (transport.stats.recvBytes - down) / frames, tickMs, crossOriginIsolated: globalThis.crossOriginIsolated, positionMoved: Math.hypot(endX - startX, endZ - startZ) };
+    bytesPerFrame: frames === 0 ? 0 : (transport.stats.recvBytes - down) / frames, tickMs, crossOriginIsolated: globalThis.crossOriginIsolated, positionMoved: farthest };
 }
 
 /** A session of the shell in `/b/<from>/`, as a page of this document's build. */

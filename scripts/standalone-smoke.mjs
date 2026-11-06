@@ -43,6 +43,8 @@ const resolvePath = path => {
   for (const id of [firstBuild, nextBuild]) if (path.startsWith(`/${codeDirectory(id)}/`)) return inside(join(output, codeDirectory(firstBuild)), path.slice(`/${codeDirectory(id)}`.length));
   return inside(OUT, path);
 };
+const declaredCreatures = join(unpacked !== '' || dist === '' ? resolveFile(product) : join(output, 'shardfiles', slug), 'sections/actors/creatures.json');
+const declaresCreatures = !existsSync(declaredCreatures) || JSON.parse(readFileSync(declaredCreatures, 'utf8')).creatures?.spawns?.length !== 0;
 const server = createServer((request, response) => {
   const path = new URL(request.url ?? '/', 'http://localhost').pathname;
   // The uncached pointer (J57): only these two responses say which build is live.
@@ -90,7 +92,8 @@ try {
   check('server tick rate near 60 Hz', report.ticksPerSecond > floor && report.ticksPerSecond < 62, report.ticksPerSecond);
   check('frame rate near 30 Hz', report.framesPerSecond > floor / 2 && report.framesPerSecond < 31, report.framesPerSecond);
   check('frames all decoded', report.dropped === 0, report.dropped);
-  check('rows checked against the worker', report.probes >= seconds * 2 && report.matched > 0, report);
+  // A shard that declares no creature has no row to walk to (Nine's spawns are empty): the check holds for every shard that declares one.
+  check('rows checked against the worker', report.probes >= seconds * 2 && (report.matched > 0 || !declaresCreatures), report);
   check('rows within one quantisation step', report.worstError <= report.step, { worst: report.worstError, step: report.step });
   check('no cross-origin isolation', !report.crossOriginIsolated, report.crossOriginIsolated);
   check('commands reached the worker', report.positionMoved > 5, report.positionMoved);
