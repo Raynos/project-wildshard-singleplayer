@@ -483,10 +483,10 @@ async function chapterJourney(browser, phone, base, step) {
   });
   await step('chapters: no page error', () => ({ ok: steppe.errors.length === 0, errors: [...new Set(steppe.errors)].slice(0, 6) }));
   await steppe.context.close();
-  const storm = await open(browser, phone, base, 'nalati-grasslands', '&weather=storm:0.1');
+  const storm = await open(browser, phone, base, 'nalati-grasslands');
   await step('chapters: tied at the cairn in the storm, the Titan\'s bar comes up off its row', async () => {
     const { page: sky } = storm;
-    await sky.evaluate(() => { window.__workerClientHits(60); });
+    await sky.evaluate(() => { window.__workerClientHits(60); window.__workerClientSky('storm'); });
     let mounted = false;
     for (let i = 0; i < 60 && !mounted; i++) {
       const body = await bodyOf(sky, 'horse');
@@ -498,7 +498,8 @@ async function chapterJourney(browser, phone, base, step) {
     }
     const cairn = await sky.evaluate(() => { const found = window.__wildshard.world.interactables.find(row => /tie/iu.test(row.label ?? '')); return found === undefined ? null : { x: found.position.x, y: found.position.y, z: found.position.z, label: found.label, radius: found.radius }; });
     if (cairn === null) return { ok: false, mounted, why: 'no tie prompt', prompts: await sky.evaluate(() => window.__wildshard.world.interactables.map(row => row.label).slice(0, 12)) };
-    await place(sky, cairn.x + 1, await groundAt(sky, cairn.x, cairn.z) + 0.5, cairn.z); await sky.waitForTimeout(1500);
+    await place(sky, cairn.x + 1.2, await groundAt(sky, cairn.x, cairn.z) + 0.5, cairn.z); await sky.waitForTimeout(1500);
+    await sky.evaluate(() => { window.__workerClientSky('storm'); }); await sky.waitForTimeout(2500); // a long ride over, the sky's still up
     for (let i = 0; i < 8; i++) { await press(sky); await sky.waitForTimeout(700); if ((await report(sky)).flags.includes('lit:cairn')) break; }
     const row = await until(sky, async () => { const seen = await fight(sky, 'storm-titan'); return seen !== null && seen.state !== 'dormant' ? seen : null; }, 10);
     await sky.waitForTimeout(800);
