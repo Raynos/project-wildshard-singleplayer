@@ -593,6 +593,11 @@ function packBase(home: unknown, slug: string): string {
   const shards = get(home, 'shards'), base = get(home, 'base');
   return Array.isArray(shards) && shards.includes(slug) && typeof base === 'string' ? base : document.baseURI;
 }
+/** The same home for a file a page reads by its own fetch, which no part delivers: a shard's recorded programs. */
+export function shardPackBase(slug: string): string {
+  const text = document.getElementById('boot-module-files')?.textContent;
+  return text ? packBase(get(get(JSON.parse(text), 'spawnManifests'), 'home'), slug) : document.baseURI;
+}
 function spawnSelection(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'desktop', mode: string): {address: SpawnManifestAddress; cacheName: unknown; base: string} | null {
   const text = document.getElementById('boot-module-files')?.textContent; if (!text) return null;
   const manifests = get(JSON.parse(text), 'spawnManifests'), address = bookSelection(manifests, slug, flow, tier, mode);
