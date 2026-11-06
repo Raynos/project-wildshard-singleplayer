@@ -3,7 +3,7 @@
 import type { Vector3 } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { NetClient } from '@wildshard/engine/net/client';
-import type { NetRoomAct } from '@wildshard/engine/net/acts';
+import { STORY_ACT, type NetRoomAct } from '@wildshard/engine/net/acts';
 import { DAY_ROW } from '@wildshard/engine/sim/shardRows';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import type { ClimateWord } from '../weather/netClimate';
@@ -22,6 +22,7 @@ import { Flags } from '@wildshard/engine/world/interact/flags';
 import { netEncounterFeed, type EncounterRow } from '../boss/barFeed';
 import { netLootFeed, type LootFeed } from '../loot/feed';
 import { netCreatureCount } from '../population/netCounts';
+import type { AdventurePersistence } from '../../shared/quest/persistence';
 import type { MoverView } from '../../server/plugin/mover';
 
 type Live = (client: NetClient) => (() => void) | undefined;
@@ -31,6 +32,8 @@ export interface WireHoldings {
   readonly shard?: string;
   readonly purse?: Pick<Purse, 'mirror'>; readonly inventory?: Pick<Inventory, 'mirror'>; readonly gear?: Pick<Owned, 'grant' | 'worn' | 'toggleWorn'>; readonly board?: Pick<ContractBoard, 'mirror'>;
 }
+/** The saved records a story reads of its fights. */
+export type FightRecords = Pick<AdventurePersistence, 'bosses' | 'elites'>;
 /** A page's own copy of a save that the server keeps: it reads the page's last word and writes nothing. */
 export const readOnlySave = <T extends object>(save: T & { readonly write: unknown }): T => new Proxy(save, { get: (target, name) => name === 'write' ? (): boolean => true : Reflect.get(target, name, target) as unknown });
 /** The page's day clock, as a row sets it. */
@@ -79,6 +82,7 @@ export class WirePage {
   private dayRow: number | undefined;
   private readonly holdings = new Set<WireHoldings>();
   private ownedAt = -1;
+  private records: FightRecords | null = null;
   get on(): boolean { return workerClientOn(); }
 
   /** Run `use` once there is a client, now or later, until `scope` ends. What it returns runs when `scope` does. */
@@ -89,7 +93,7 @@ export class WirePage {
     this.waiting.add(run); scope.onDispose(() => { this.waiting.delete(run); });
   }
   /** Every flag book this page makes from now on follows the server's. */
-  followBooks(): void { Flags.made = book => { this.books.add(book); book.follow(flag => { if (flag.startsWith('seen:')) this.send(flag); else if (flag.startsWith(TALKED)) this.send(`${flag.slice(TALKED.length)}.talk`); }); }; }
+  followBooks(): void { Flags.made = book => { this.books.add(book); book.follow(flag => { if (flag.startsWith('seen:')) { this.send(flag); return; } if (flag.startsWith(TALKED)) this.send(`${flag.slice(TALKED.length)}.talk`); this.send(`${STORY_ACT}${flag}`); }); }; }
   /** The wire is up. `press` sends one `interact`. */
   bind(client: NetClient, press: (id: string) => void, stop: () => void, heads: (body: number, to: Vector3) => boolean, act: (act: NetRoomAct) => void = () => undefined): void {
     this.client = client; this.press = press; this.act = act; this.stop = stop; this.heads = heads; this.encounterRows = netEncounterFeed(client).rows;
@@ -123,6 +127,22 @@ export class WirePage {
       purse?.mirror(owned.get(OWNED_ROW.coins) ?? 0); inventory?.mirror(pack);
       for (const [name, value] of owned) if (name.startsWith(OWNED_ROW.owned)) { const id = name.slice(OWNED_ROW.owned.length); gear?.grant(id); if (isOwnedId(id) && isCosmetic(id) && gear?.worn(id) !== (value === WORN_LINE)) gear?.toggleWorn(id); }
       if (board !== undefined && contracts !== null) board.mirror(contracts);
+    }
+  }
+  /** The fights a story reads as saved records: the server's word on them, for as long as `scope` lasts. */
+  fightRecords(records: FightRecords, scope: Scope): void { this.records = records; scope.onDispose(() => { this.records = null; }); }
+  /** A fight the server has ended goes in the page's own record, which a story reads. */
+  private recordFights(): void {
+    const { records } = this;
+    if (records === null) return;
+    for (const row of this.encounters()) {
+      if (row.kind === 'boss' && row.state === 'victory') {
+        const held = records.bosses.read(), saved = held[row.id];
+        if (saved?.defeated !== true) records.bosses.write({ ...held, [row.id]: { defeated: true, rewardTaken: saved?.rewardTaken ?? false, kills: (saved?.kills ?? 0) + 1 } });
+      } else if (row.kind === 'elite' && row.state === 'dead') {
+        const held = records.elites.read(), saved = held[row.id];
+        if ((saved?.kills ?? 0) === 0) records.elites.write({ ...held, [row.id]: { timer: saved?.timer ?? 0, discovered: saved?.discovered ?? true, skinTaken: saved?.skinTaken ?? false, kills: 1, retired: saved?.retired ?? false } });
+      }
     }
   }
   /** A room's drifts as the server's rows have them: what this page's player walks on is what the server's does. */
@@ -168,7 +188,7 @@ export class WirePage {
   frame(level: string | null, here: boolean, clock: DayFollower | null = null): void {
     const { client } = this;
     if (client === null || client.latest === null || !here) return;
-    this.followDay(clock, client); this.mirrorOwned(client, level);
+    this.followDay(clock, client); this.mirrorOwned(client, level); this.recordFights();
     for (const [id, row] of client.quests) this.quests.set(id, row);
     this.heard.clear(); for (const flag of client.phased) this.heard.add(flag);
     const held = new Set([...client.flags(), ...client.phased]), now = client.latest.tick;

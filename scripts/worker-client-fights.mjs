@@ -41,7 +41,14 @@ const prompt = (page, match) => page.evaluate(source => { const pattern = new Re
 /** A press of whatever stands nearest, as a player's E. */
 const press = page => page.keyboard.press('KeyE');
 
-const SUNSCAR_BASIN = [-14, 28, -150], NALATI_DOOR = [-169, 6, 75];
+const SUNSCAR_BASIN = [-14, 28, -150], NALATI_DOOR = [-169, 75];
+/** Walk one way until `done`, or `seconds` run out; whether it was done. */
+async function walkInto(page, yaw, seconds, done) {
+  await page.evaluate(heading => { const { player } = window.__wildshard.world; player.yaw = heading; player.pitch = 0; player.touchMove.y = 1; }, yaw);
+  const reached = await until(page, done, seconds, 150);
+  await stand(page);
+  return reached === true;
+}
 /** Stand beside a prompt, as near as a player would. */
 async function standAt(page, match, off = 0.7) {
   const found = await prompt(page, match);
@@ -288,47 +295,83 @@ async function pineJourney(browser, phone, base, step) {
   await pine.context.close();
 }
 
-/** Nalati: its elder, a lair's bar and orb, the King's barrow and his reward. */
+const groundAt = (page, x, z) => page.evaluate(([gx, gz]) => window.__hf.heightAt(gx, gz), [x, z]);
+/** Draw and loose at a point, as a player holds the FIRE disc. */
+async function loose(page, at) {
+  await faceAt(page, at);
+  await page.evaluate(() => { window.__wildshard.world.game.app.equipment.altHeld = true; });
+  await page.waitForTimeout(1300);
+  await faceAt(page, at);
+  await page.evaluate(() => { window.__wildshard.world.game.app.equipment.altHeld = false; });
+  await page.waitForTimeout(700);
+}
+const bodyMid = at => ({ x: at.x, y: at.y + 1, z: at.z });
+/** Nalati: its elder, a lair's bar and orb, the King's barrow, a refused press of his orb and a taken one. */
 async function nalatiJourney(browser, phone, base, step) {
   const steppe = await open(browser, phone, base, 'nalati-grasslands');
-  const { page } = steppe;
+  const { page } = steppe, flagged = flag => hasFlag(page, flag), KING = 'golden-king';
   await page.evaluate(() => { window.__workerClientHits(60); });
-  await step('nalati: the elder talks', async () => {
-    await standAt(page, 'Baqyt');
-    const before = JSON.stringify((await report(page)).quests);
-    const moved = await pressUntil(page, async () => JSON.stringify((await report(page)).quests) !== before || (await report(page)).flags.includes('talked:elder'), 16);
-    return { ok: moved, quests: (await report(page)).quests, flags: (await report(page)).flags.slice(0, 8) };
+  await step('nalati: the elder\'s talk starts the Tulpar chapter, and the server keeps it', async () => {
+    const elder = await prompt(page, 'Baqyt');
+    await place(page, elder.x + 0.9, elder.y + 0.1, elder.z + 0.9);
+    await page.waitForTimeout(1600);
+    const moved = await pressUntil(page, flagged('talked:elder'), 28);
+    await page.waitForTimeout(1200);
+    const chip = await page.evaluate(() => { const { flags, line } = window.__wildshard.shard['nalati.quest']; return { flags: flags.all.filter(flag => !flag.startsWith('seen:')), chapter: line?.active?.def?.id ?? null, step: line?.active?.current?.id ?? null }; });
+    return { ok: moved && chip.chapter === 'tulpar' && chip.step === 'tame', chip, flags: (await report(page)).flags.filter(flag => !flag.startsWith('seen:')) };
   });
-  await step('nalati: Aqbars falls to real blows and leaves its orb on the row', async () => {
+  await step('nalati: Aqbars falls to real arrows and leaves its orb on the row', async () => {
     await place(page, 138, 62, -58);
     await until(page, async () => (await fight(page, 'aqbars'))?.at !== null, 12);
-    const shown = await bossBar(page), row = await fightTo(page, 'aqbars', 'dead', 60);
-    await page.waitForTimeout(800);
-    const end = await fight(page, 'aqbars'), orb = await prompt(page, 'skin');
-    return { ok: end?.state === 'dead' && end.reward !== null && orb !== null, state: row?.state, reward: end?.reward, orb, shown, falls: (await report(page)).falls };
+    const shown = await bossBar(page), end = Date.now() + 40_000, before = await report(page);
+    let row = await fight(page, 'aqbars');
+    while (row?.state !== 'dead' && Date.now() < end) { if (row?.at !== null && row?.at !== undefined) await loose(page, bodyMid(row.at)); row = await fight(page, 'aqbars'); }
+    await page.waitForTimeout(1200);
+    const done = await fight(page, 'aqbars'), orb = await prompt(page, 'skin'), r = await report(page);
+    return { ok: done?.state === 'dead' && done.reward !== null && orb !== null && r.hits > before.hits, state: done?.state, reward: done?.reward, orb, shown, hits: r.hits, refused: r.refused, falls: r.falls };
+  });
+  await step('nalati: the felled lair reaches the story', async () => {
+    const felled = await until(page, flagged('felled:aqbars'), 6);
+    return { ok: felled === true, flags: (await report(page)).flags.filter(flag => /^(?:felled|dead)/u.test(flag)) };
   });
   await step('nalati: the orb is taken and the server keeps it', async () => {
     const taken = await pressRound(page, 'skin', async () => (await fight(page, 'aqbars')).reward === null);
-    return { ok: taken, reward: (await fight(page, 'aqbars')).reward };
+    return { ok: taken, reward: (await fight(page, 'aqbars')).reward, owned: (await report(page)).owned };
   });
   await step('nalati: the King\'s barrow takes the player in, and the bar comes up', async () => {
-    await place(page, ...NALATI_DOOR);
-    const up = await until(page, async () => ['intro', 'fight'].includes((await fight(page, 'nalati.king'))?.state), 25);
-    await page.waitForTimeout(500);
-    return { ok: up === true, row: await fight(page, 'nalati.king'), shown: await bossBar(page), at: (await report(page)).serverZ };
+    const [x, z] = NALATI_DOOR, feet = await groundAt(page, x, z);
+    await place(page, x, feet + 1, z);
+    await page.waitForTimeout(1500);
+    const inside = await walkInto(page, Math.PI / 2, 4, () => page.evaluate(() => window.__wildshard.world.player.position.y > 130));
+    const up = await walkInto(page, 0, 12, async () => (await fight(page, KING))?.state === 'fight');
+    await page.waitForTimeout(600);
+    return { ok: inside && up && (await bossBar(page)).bar.length > 0, inside, row: await fight(page, KING), shown: await bossBar(page) };
   });
-  await step('nalati: the King falls to real blows and his reward lies on the row', async () => {
-    await until(page, async () => (await fight(page, 'nalati.king'))?.state === 'fight', 15);
-    const end = await fightTo(page, 'nalati.king', 'victory', 80);
-    const row = await until(page, async () => { const seen = await fight(page, 'nalati.king'); return seen?.reward !== null ? seen : null; }, 15);
-    return { ok: end?.state === 'victory' && row !== null, state: end?.state, reward: row?.reward, hp: end?.hp, phase: end?.phase, orb: await prompt(page, 'take|claim|reward') };
+  await step('nalati: the King falls to real arrows, and his gold orb lies on the row', async () => {
+    const end = Date.now() + 40_000;
+    let row = await fight(page, KING);
+    while (row?.state !== 'victory' && Date.now() < end) { if (row?.at !== null && row?.at !== undefined) await loose(page, bodyMid(row.at)); row = await fight(page, KING); }
+    const orb = await until(page, async () => { const seen = await fight(page, KING); return seen?.reward !== null ? seen.reward : null; }, 8);
+    await page.waitForTimeout(600);
+    return { ok: row?.state === 'victory' && orb !== null, state: row?.state, orb, shown: await prompt(page, 'take|claim|bow|gold|reward') };
   });
-  await step('nalati: the King\'s reward is taken', async () => {
-    const row = await fight(page, 'nalati.king');
-    await place(page, row.reward.x + 0.8, row.reward.y - 0.8, row.reward.z + 0.8);
+  await step('nalati: the orb refuses a press from across the room, and stays', async () => {
+    const { reward } = await fight(page, KING);
+    await place(page, reward.x + 6, reward.y - 0.8, reward.z + 8);
     await page.waitForTimeout(1200);
-    const taken = await pressUntil(page, async () => (await fight(page, 'nalati.king')).reward === null, 6);
-    return { ok: taken, owned: (await report(page)).owned, held: await page.evaluate(() => window.__wildshard.world.game.app.equipment?.current?.id ?? null) };
+    await page.evaluate(() => { window.__wildshard.world.interactables.find(entry => /take|claim|bow|gold|reward/iu.test(entry.label) && entry.radius > 0)?.onInteract(); });
+    await page.waitForTimeout(2600);
+    const held = (await report(page)).owned;
+    return { ok: (await fight(page, KING)).reward !== null && held['item.goldenBow'] === undefined, reward: (await fight(page, KING)).reward, held };
+  });
+  await step('nalati: a press in reach takes the King\'s orb for good', async () => {
+    const { reward } = await fight(page, KING);
+    await place(page, reward.x + 0.8, reward.y - 0.8, reward.z + 0.8);
+    await page.waitForTimeout(1200);
+    const taken = await pressUntil(page, async () => (await fight(page, KING)).reward === null, 6);
+    await page.waitForTimeout(1500);
+    const r = await report(page);
+    return { ok: taken && r.owned['item.goldenBow'] === 1, owned: r.owned, flags: r.flags.filter(flag => /^(?:dead|boss)/u.test(flag)) };
   });
   await step('nalati: no page error', () => ({ ok: steppe.errors.length === 0, errors: [...new Set(steppe.errors)].slice(0, 6) }));
   await steppe.context.close();

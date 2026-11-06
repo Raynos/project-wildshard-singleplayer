@@ -101,7 +101,7 @@ export function installNativeTaming(host: SimHost, context: NativeTamingContext,
   const law = new TamingSession<AnimalSim, HerdBrain<AnimalSim>>({
     profile: rows.binding,
     programs: rows.programs,
-    bond: { read: () => null, write: value => { if (!rows.binding.bonds.includes(value)) throw new Error('Invalid native bond'); bond = value; } },
+    bond: { read: () => null, write: value => { if (!rows.binding.bonds.includes(value)) throw new Error('Invalid native bond'); bond = value; actRoutes(host).bonded?.(player.id, value); } },
     player: { get position() { return player.position; }, get crouching() { return mounted.rider.crouching; },
       get yaw() { return player.yaw; }, set yaw(value) { player.yaw = value; }, get pitch() { return pitch; }, set pitch(value) { pitch = value; },
       keys: new Set<string>(), camera: { position: camera, getWorldDirection: out => out.set(-Math.sin(player.yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(player.yaw) * Math.cos(pitch)) } },

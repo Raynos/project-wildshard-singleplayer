@@ -50,7 +50,10 @@ import type { HeadlessEffect } from '../tickProtocol';
 import { cellDocuments, CONTINUATION, ContinuationSlots, SITE, siteDocuments, type SavedContinuation, type SavedSite } from './continuation';
 import { FallFloor } from './fallFloor';
 import { ledgerFilings } from './ledgerFilings';
+import * as v from 'valibot';
+import { AdventurePersistenceSchema } from '@wildshard/format/namedJsonContracts';
 import { netBuys, netWorldInput, stepResident } from './netInput';
+import { STORY_ACT } from '@wildshard/engine/net/acts';
 
 /** Worlds the worker holds beside the road, and so what a crossroads costs a phone (E5.2b, J68): the one its player stands in. */
 export const STANDALONE_RESIDENTS = 1;
@@ -167,6 +170,17 @@ function capture(host: SimHost): string {
 
 /** How far past a place's own radius a client's word for it holds: it saw it a frame ago, and the server is a command behind. */
 const SEEN_SLACK = 1.5;
+/** A shard with no quest host runs its story on its page: the server keeps the flags it declares, each player's own, and nothing else. */
+async function bindStory(host: SimHost, { shard, product }: HeadlessRuntimeInput): Promise<void> {
+  const declared = new Set(shard.quests.flags);
+  if ((shard.questHost !== undefined && shard.questHost !== null) || declared.size === 0) return;
+  const books = questBooks(host), routes = actRoutes(host);
+  books.claim(declared);
+  routes.story = (player, flag) => { if (declared.has(flag)) books.of(player).flags.set(flag); };
+  if (product === undefined || routes.ride === null) return;
+  const bonds = v.parse(AdventurePersistenceSchema, await product.json('quests/persistence.json')).bond?.flags ?? [];
+  routes.bonded = (player, value) => { for (const row of bonds) if (row.equals === undefined || row.equals === value) books.of(player).flags.set(row.flag); };
+}
 /** A named place is the page's to notice, and the server's to check. One the page resolves against a placed object has no world position here, so its word stands: a `seen:` flag draws a map, and pays nothing. */
 function bindDiscovery(host: SimHost, places: readonly PlaceArea[]): void {
   const areas = new Map(places.map(place => [`seen:${place.id}`, place]));
@@ -291,7 +305,7 @@ export class StandaloneGrid {
       const near = input.product !== undefined && hasNativeAssembly(input.product) ? new NearColliders() : undefined, around = near === undefined ? { room: true } : { room: true, near };
       if (near !== undefined && snapshot !== undefined) (await createTrustedHeadlessResident(input, undefined, around)).dispose();
       const resident = await createTrustedHeadlessResident(input, snapshot, around), { host } = resident;
-      bindDiscovery(host, input.product === undefined ? [] : await serverPlaces(input.product));
+      bindDiscovery(host, input.product === undefined ? [] : await serverPlaces(input.product)); await bindStory(host, input);
       if (snapshot === undefined && options.lone === true) addLoneWalls(host);
       host.respawn.served = true;
       const owned = ownedOf(host, input);
@@ -305,7 +319,7 @@ export class StandaloneGrid {
     const effects: HeadlessEffect[] = [], { host, dispose, sim } = await openDataCell(input, snapshot, effects, options.lone === true);
     installRoomRespawn(host, []);
     installDeclaredClimate(host, input.shard.rows);
-    bindDiscovery(host, input.product === undefined ? [] : await serverPlaces(input.product));
+    bindDiscovery(host, input.product === undefined ? [] : await serverPlaces(input.product)); await bindStory(host, input);
     host.respawn.served = true;
     return { host, owned: ownedOf(host, input), fall: fallFloorOf(input, host, options.lone === true), dispose, fact, effects: () => effects, adopt: () => { const held = sim(); return held === undefined || importPageProgress(options.saves, placed, input.shard, held); }, step: inputs => {
       effects.length = 0;
@@ -314,6 +328,7 @@ export class StandaloneGrid {
       for (const { player, acts } of inputs) for (const act of acts) {
         const claim = act.kind === 'interact' ? routes.claims.get(act.id) : undefined;
         if (act.kind === 'interact' && act.id.startsWith('seen:') && routes.seen !== null) routes.seen(player, act.id);
+        else if (act.kind === 'interact' && act.id.startsWith(STORY_ACT)) routes.story?.(player, act.id.slice(STORY_ACT.length));
         else if (claim !== undefined) claim(player);
         else if (act.kind === 'interact' && sim()?.selectedInteraction(player) === act.id) sim()?.interact(act.id, player);
         else if (act.kind !== 'climate' && act.kind !== 'buy' && act.kind !== 'board' && act.kind !== 'wear') routes.refused++;

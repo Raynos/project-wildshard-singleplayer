@@ -11,6 +11,8 @@ export interface NetChatSay { readonly kind: 'chat'; readonly seq: number; reado
 /** Report a line of chat by its id. */
 export interface NetChatReport { readonly kind: 'report'; readonly seq: number; readonly line: number }
 /** A lone player's word on the sky: their weather setting, or a dev's phase jump. A room shares its sky, so with others in it this does nothing. `at` is a phase's fraction, -1 for the mode's own. */
+/** How an `interact` names a story flag on a shard whose page runs its story. */
+export const STORY_ACT = 'story:';
 export interface NetClimateAct { readonly kind: 'climate'; readonly seq: number; readonly op: 'mode' | 'force'; readonly name: string; readonly at: number }
 /** Buy one of the shard's goods, by its place in the shard's exchange. The server checks it and takes the price. */
 export interface NetBuyAct { readonly kind: 'buy'; readonly seq: number; readonly good: number }

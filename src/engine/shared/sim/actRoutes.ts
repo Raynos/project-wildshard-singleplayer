@@ -22,6 +22,10 @@ export interface ActRoutes {
   launcher: ((slot: number, reload: boolean, fire: boolean) => boolean) | null;
   /** A `seen:` flag a player's client says they walked into, where a host keeps its places. */
   seen: ((player: string, flag: string) => void) | null;
+  /** A declared story flag a page says its player earned, on a shard whose story its page runs: the server keeps it, and it comes back. */
+  story: ((player: string, flag: string) => void) | null;
+  /** A player's bond with a tamed body, on a shard whose page runs its story: what the story reads of it. */
+  bonded: ((player: string, value: string) => void) | null;
   /** A player's purchase, where a host keeps an exchange. */
   buy: ((player: string, good: number) => void) | null;
   /** A player's hand on the contract board, where a host keeps one. */
@@ -45,6 +49,6 @@ const routes = new WeakMap<SimHost, ActRoutes>();
 /** One host's routes (P1-E5.2c). */
 export function actRoutes(host: SimHost): ActRoutes {
   let held = routes.get(host);
-  if (held === undefined) { held = { interactions: new Map(), equip: null, lock: null, ride: null, mountable: null, lean: null, launcher: null, seen: null, buy: null, board: null, wear: null, climate: null, claims: new Map(), skipHeld: false, refused: 0 }; routes.set(host, held); }
+  if (held === undefined) { held = { interactions: new Map(), equip: null, lock: null, ride: null, mountable: null, lean: null, launcher: null, seen: null, story: null, bonded: null, buy: null, board: null, wear: null, climate: null, claims: new Map(), skipHeld: false, refused: 0 }; routes.set(host, held); }
   return held;
 }
