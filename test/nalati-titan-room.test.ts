@@ -74,3 +74,24 @@ test('each earner takes the heart\'s reward, once, and it stands until the last 
   expect(boss.snapshot().saved.rewardTaken || arena.records.bosses.read()[boss.def.id]?.rewardTaken).toBe(true);
   live.dispose();
 }, 120_000);
+
+test('a paid Titan stays paid: his fall lays no heart\'s reward out, and pays nothing', async () => {
+  const live = await nalati(true), { host } = live, arena = openArenaOf(host);
+  if (arena === undefined) throw new Error('No room arena');
+  const [lead] = host.players.values();
+  if (lead === undefined) throw new Error('No lead');
+  try {
+    for (let tick = 0; tick < 2; tick++) live.step([]);
+    const { boss, fight } = arena;
+    boss.restore({ ...boss.snapshot(), state: 'fight', phase: 2, checkpoint: 2, saved: { defeated: true, rewardTaken: true, kills: 1 } });
+    const state = fight.snapshot();
+    fight.restore({ ...state, life: { ...state.life, state: { ...state.life.state, hp: 0 } } }, () => null);
+    const center = fight.rewardPoint();
+    lead.resetPose({ x: center.x, y: host.groundHeightAt(center.x, center.z) + 0.2, z: center.z }, 0);
+    for (let tick = 0; tick < 1200 && boss.state !== 'victory'; tick++) live.step([]);
+    expect(boss.state).toBe('victory');
+    for (let tick = 0; tick < 60; tick++) live.step([]);
+    expect(arena.reward()).toBe(false); expect(boss.rewardTaken).toBe(true);
+    expect(live.effects.filter(effect => effect.kind === 'item')).toEqual([]);
+  } finally { live.dispose(); }
+}, 120_000);
