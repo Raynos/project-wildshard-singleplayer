@@ -833,6 +833,7 @@
   "src/game/cook/cookJob.ts": "cook",
   "src/game/cook/cookWorker.ts": "cook",
   "src/game/cook/encodedBytes.ts": "cook",
+  "src/game/cook/engineHalf.ts": "cook",
   "src/game/cook/entryDownloads.ts": "cook",
   "src/game/cook/entryReadSet.ts": "cook",
   "src/game/cook/entryTotals.ts": "cook",
