@@ -118,12 +118,15 @@ export class AnimalSim {
     out.flinchRoll = this.flinchRoll; out.flinchPitch = this.flinchPitch; out.brace = this.brace; out.deathSide = this.deathSide;
   }
   /** Stand as a wire row says (P1-E5.3 I6): a view of a body a server elsewhere runs. Nothing here decides or steps. */
-  showRow(row: { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number; readonly state: AnimalState; readonly attack: number; readonly flinch: number; readonly hp: number; readonly alive: boolean }, dt: number): void {
+  showRow(row: { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number; readonly state: AnimalState; readonly attack: number; readonly flinch: number; readonly hp: number; readonly alive: boolean; readonly rise: number; readonly act: number }, dt: number): void {
     const moved = Math.hypot(row.x - this.position.x, row.z - this.position.z);
     if (dt > 0) this.speed += (Math.min(moved / dt, 20) - this.speed) * Math.min(1, dt * 10);
     this.position.set(row.x, row.y, row.z); this.yaw = row.yaw; this.groundY = row.y; this.hp = row.hp; this.alive = row.alive;
     this.state = row.state; this.attackT = row.attack > 0 ? row.attack : -1; this.attackDur = 1;
     this.flinch = row.flinch;
+    const { mem } = this;
+    if (row.rise > 0 || mem['rise'] !== undefined) { mem['rising'] = Number(row.rise > (mem['rise'] ?? 0)); mem['rise'] = row.rise; mem['init'] = 1; }
+    if (row.act !== 0 || mem['st'] !== undefined) mem['st'] = row.act;
   }
   /** Full motor/contact continuation; authored ports and rig state remain with the fresh instance. */
   snapshot(): AnimalSnapshot {

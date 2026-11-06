@@ -35,6 +35,8 @@ export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
   private readonly weaponTarget: CrowdWeaponTarget<T>;
   private readonly targets: CrowdRoster<T>; private readonly relations: PopulationRelations;
   private readonly motion: ProjectedMotionSample; private readonly predatorBodies: Animal[] = [];
+  /** A page on a server: its packs and guardians are rows, so they are known by kind and this population spawns none. */
+  rowBodies = false;
   constructor(private readonly animals: AnimalManager,input: unknown, programmeScope?:Scope, groupPlayer?:Vector3) {
     this.rows = v.parse(WildlifePopulationSchema,input); const row = this.rows;
     this.placement = ReturnProgram.page(row.admission,programmeScope); this.pastureAuthor = ReturnProgram.page(row.pasture,programmeScope);
@@ -79,7 +81,7 @@ export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
     const row = this.rows.flocks[index];
     if (!(view instanceof CrowdTargets) || index !== this.flocks.length || row?.count !== view.n) throw new Error('Invalid population crowd binding');
     let dog: Animal | null = null;
-    if (row.dog) {
+    if (row.dog && !this.rowBodies) {
       const plan = v.parse(v.object({ x: v.number(),z: v.number(),radius: v.number() }),this.placement.project('dogPlan',{ x: row.x,z: row.z }));
       const at = this.population.spot(plan.x,plan.z,plan.radius); dog = this.animals.spawn(this.rows.kinds.guardian,at.x,at.z,0,this.rows.kinds.guardianVariant);
       dog.herd = this.animals.addHerd(this.rows.kinds.guardian,row.x,row.z);
@@ -94,6 +96,7 @@ export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
     const health=pageApp().player?.attributes;
     wildEnv.playerCrouched = player.crouching; wildEnv.playerMounted = extra.mounted ?? false; wildEnv.playerHealth01=health===undefined?1:health.health/health.maxHealth;
     this.predators.length = 0; for (const actor of this.predatorBodies) if (actor.alive) this.predators.push(actor);
+    if (this.rowBodies) for (const actor of this.animals.animals) if (actor.kind === this.rows.kinds.predator && actor.alive) this.predators.push(actor);
     const row = this.rows.trample;
     for (const actor of this.animals.animals) {
       const radius = row.kinds[actor.kind];
@@ -101,6 +104,18 @@ export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
       wildEnv.trample(actor.position.x,actor.position.z,radius*actor.scale,Math.min(1,actor.speed/row.fullSpeed),Math.sin(actor.yaw)*actor.speed,Math.cos(actor.yaw)*actor.speed);
     }
     return speed;
+  }
+  /** The row of this crowd's guardian kind nearest its home, on a page whose guardians are rows. */
+  rowGuardian(index: number): Animal | null {
+    const row = this.rows.flocks[index];
+    if (!this.rowBodies || row?.dog !== true) return null;
+    let nearest: Animal | null = null, best = Infinity;
+    for (const actor of this.animals.animals) {
+      if (actor.kind !== this.rows.kinds.guardian || !actor.alive) continue;
+      const away = Math.hypot(actor.position.x - row.x, actor.position.z - row.z);
+      if (away < best) { best = away; nearest = actor; }
+    }
+    return nearest;
   }
   /** Finish after crowd motion; the forager owner emits an ordinary alarm row. */
   endFrame(dt: number,player: Vector3,speed: number,crouched: boolean): void {

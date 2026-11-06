@@ -27,7 +27,7 @@ export const pageSim:PageSimFeed=pageSimFeed;
 /** J130: this page runs on a server. Motion and the sky come off rows; what else `pageSim` holds still builds, on nothing, and
  * stands down where a bar, a payout or a flag would otherwise have two drivers. */
 const noDecision=():BorrowedSpeciesControl=>({phase:0,fighting:false,restart:()=>undefined,current:null,windup:0,aim:0,snapshot:()=>null,restore:()=>undefined,observe:()=>undefined});
-const HeldWildlife=v.looseObject({flocks:v.array(v.looseObject({}))});
+const HeldWildlife=v.looseObject({});
 let wired=false;
 export function wirePageSim():void{
   wirePage.followBooks();
@@ -40,11 +40,11 @@ export function wirePageSim():void{
       for(const row of options.data)wirePage.movers.set(row.id,{pose:pose=>{wirePage.posed++;runtime.follow(row.id,pose);}});
       return runtime;
     },
-    // The server keeps the wild: a page keeps only what has no row, the crowds it draws and the foragers underfoot.
+    // The server keeps the wild: a page keeps only what has no row, the crowds it draws and the foragers underfoot. Its crowds see the rows.
     pageWildlife:(...[animals,rows,...rest]:Parameters<PageSimFeed['pageWildlife']>)=>{
-      const held=v.parse(HeldWildlife,rows),flocks:unknown[]=[];
-      for(const flock of held.flocks)flocks.push({...flock,dog:false});
-      return pageWildlife(animals,{...held,packs:[],herds:[],mountables:[],flocks},...rest);
+      const wildlife=pageWildlife(animals,{...v.parse(HeldWildlife,rows),packs:[],herds:[],mountables:[]},...rest);
+      wildlife.rowBodies=true;
+      return wildlife;
     },
     // A row's brain is the server's. A body this page draws asks for a decision and is told there is none.
     pageDecisionAuthority:()=>Promise.resolve({bind:noDecision}),

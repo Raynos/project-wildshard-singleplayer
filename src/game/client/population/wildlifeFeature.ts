@@ -100,7 +100,10 @@ export async function installClientWildlife(ctx: ShardContext, feature: ClientFe
       const speed = population.beginFrame(dt, player, extra);
       predators.length = 0;
       for (let index = 0; index < 64; index++) { const actor = population.predators[index]; if (actor === undefined) break; predators.push(actor); }
-      for (const [index, view] of population.flocks.entries()) crowds.advance(view, index, speed, player.position, dt, time, advance);
+      for (const [index, view] of population.flocks.entries()) {
+        if (population.rowBodies) view.dog = population.rowGuardian(index);
+        crowds.advance(view, index, speed, player.position, dt, time, advance);
+      }
       population.endFrame(dt, player.position, speed, player.crouching); draw?.project();
     } });
 }

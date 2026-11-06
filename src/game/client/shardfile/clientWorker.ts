@@ -76,7 +76,7 @@ interface Shell { readonly client: NetClient; readonly booted: Promise<{ readonl
 
 const SAVE_EVERY_MS = 30_000;
 const column = (name: string): number => ANIMAL_CLASS.row.findIndex(entry => entry.name === name);
-const X = column('x'), Y = column('y'), Z = column('z'), YAW = column('yaw'), STATE = column('state'), ATTACK = column('attackT'), FLINCH = column('flinch'), HP = column('hp'), ALIVE = column('alive'), RIDEABLE = column('rideable');
+const X = column('x'), Y = column('y'), Z = column('z'), YAW = column('yaw'), STATE = column('state'), ATTACK = column('attackT'), FLINCH = column('flinch'), HP = column('hp'), ALIVE = column('alive'), RIDEABLE = column('rideable'), RISE = column('rise'), ACT = column('act');
 
 /** What the page measures, as I6 lists it. */
 export interface WorkerClientReport {
@@ -92,6 +92,8 @@ export interface WorkerClientReport {
   movers: number; posed: number;
   /** Bodies this page made and the rows put away, by kind: what its own sim still builds. */
   retired: Readonly<Record<string, number>>;
+  /** The longest a row of each kind took to spawn, in ms: a model built late shows here. */
+  spawnMs: Readonly<Record<string, number>>;
   /** What the corrections disagreed on. */
   missed: Readonly<NetPlayer['predictor']['missed']>; misses: readonly (readonly number[])[];
 }
@@ -102,14 +104,15 @@ declare global { interface Window { __workerClientFights?: () => readonly Worker
 /** A creature on screen, and the world's manager that holds it: a crossing leaves it behind. */
 interface RowBody { readonly body: Animal; readonly manager: Creatures }
 /** Every creature on this page is a row: a new one spawns through the real manager, one the server dropped retires. */
-function syncCreatures(client: NetClient, animals: Creatures | null, bodies: Map<number, RowBody>, retired: Map<string, number>): void {
+function syncCreatures(client: NetClient, animals: Creatures | null, bodies: Map<number, RowBody>, retired: Map<string, number>, spawnMs: Map<string, number>): void {
   for (const [handle, { body, manager }] of bodies) if (!client.entities.has(handle)) { manager.retire(body); bodies.delete(handle); }
   if (animals === null) return;
   for (const [handle, info] of client.entities) {
     if (info.cls.cls !== ANIMAL_CLASS.cls || bodies.has(handle)) continue; // the shell's bundle has its own copy of the class
     const { x = 0, y = 0, z = 0, yaw = 0 } = client.interpolator.fields(handle, Number.MAX_SAFE_INTEGER) ?? {};
     if (typeof x !== 'number' || typeof y !== 'number' || typeof z !== 'number' || typeof yaw !== 'number') continue;
-    const body = animals.spawn(String(info.initial['kind']), x, z, yaw, String(info.initial['variant']), { y });
+    const kind = String(info.initial['kind']), at = diagnosticNow(), body = animals.spawn(kind, x, z, yaw, String(info.initial['variant']), { y });
+    spawnMs.set(kind, Math.max(spawnMs.get(kind) ?? 0, diagnosticNow() - at));
     body.rowDriven = true;
     bodies.set(handle, { body, manager: animals });
   }
@@ -133,7 +136,7 @@ function showRows(client: NetClient, net: NetPlayer, ports: WorkerClientPorts, b
   near.length = 0;
   for (const [handle, { body }] of bodies) {
     if (handle === under || !interpolator.sample(handle, renderTick, row)) continue; // the body under this player is its own prediction (J48)
-    body.showRow({ x: row[X] ?? 0, y: row[Y] ?? 0, z: row[Z] ?? 0, yaw: row[YAW] ?? 0, state: ANIMAL_STATES[row[STATE] ?? 0] ?? 'idle', attack: row[ATTACK] ?? 0, flinch: row[FLINCH] ?? 0, hp: row[HP] ?? 0, alive: row[ALIVE] === 1 }, dt);
+    body.showRow({ x: row[X] ?? 0, y: row[Y] ?? 0, z: row[Z] ?? 0, yaw: row[YAW] ?? 0, state: ANIMAL_STATES[row[STATE] ?? 0] ?? 'idle', attack: row[ATTACK] ?? 0, flinch: row[FLINCH] ?? 0, hp: row[HP] ?? 0, alive: row[ALIVE] === 1, rise: row[RISE] ?? 0, act: row[ACT] ?? 0 }, dt);
     shown++;
     if (row[RIDEABLE] === 1) rideable.add(handle);
     const { radius, height } = creatureBodyShape(body.dims, body.scale);
@@ -178,7 +181,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   let ended = false;
   const stop = (): void => { if (!ended) { ended = true; shell.dispose(); } };
   scope.onDispose(stop);
-  const retired = new Map<string, number>(), net = new NetPlayer(client, player, physics), show = overlay(ports), row = new Float64Array(ANIMAL_CLASS.row.length), near: PredictedRow[] = [], costs = new Float64Array(240), bodies = new Map<number, RowBody>();
+  const retired = new Map<string, number>(), spawnMs = new Map<string, number>(), net = new NetPlayer(client, player, physics), show = overlay(ports), row = new Float64Array(ANIMAL_CLASS.row.length), near: PredictedRow[] = [], costs = new Float64Array(240), bodies = new Map<number, RowBody>();
   // the ride: a press goes up, and it starts and ends on the server's word. The body under the rider leaves its row for it
   let mount: Mount | null = null;
   const bindMount = (): void => {
@@ -228,7 +231,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   scope.onDispose(() => { player.link = null; ports.weapons.bindWire(null); net.dispose(); });
   const { restored } = await shell.booted;
   shell.ready();
-  const started = diagnosticNow(), report: WorkerClientReport = { frames: 0, framesPerSecond: 0, ticksPerSecond: 0, correctionsPerMinute: 0, corrections: 0, retired: {}, missed: net.predictor.missed, misses: net.predictor.misses, worstOffset: 0, queue: 0, replaysPerFrame: 0, delayMs: 0, jitterMs: 0, mainMsP95: 0, workerTickMs: 0, rows: 0, attacks: 0, hits: 0, kills: 0, refused: 0, held: 0, dropped: 0, hp: 0, falls: 0, closed: null, x: 0, z: 0, cell: 0, serverX: 0, serverZ: 0, restored, savedTick: -1, savedOk: false, quests: {}, flags: [], paid: 0, fights: [], owned: {}, sky: null, day: null, clawed: false, own: null, movers: 0, posed: 0 };
+  const started = diagnosticNow(), report: WorkerClientReport = { frames: 0, framesPerSecond: 0, ticksPerSecond: 0, correctionsPerMinute: 0, corrections: 0, retired: {}, spawnMs: {}, missed: net.predictor.missed, misses: net.predictor.misses, worstOffset: 0, queue: 0, replaysPerFrame: 0, delayMs: 0, jitterMs: 0, mainMsP95: 0, workerTickMs: 0, rows: 0, attacks: 0, hits: 0, kills: 0, refused: 0, held: 0, dropped: 0, hp: 0, falls: 0, closed: null, x: 0, z: 0, cell: 0, serverX: 0, serverZ: 0, restored, savedTick: -1, savedOk: false, quests: {}, flags: [], paid: 0, fights: [], owned: {}, sky: null, day: null, clawed: false, own: null, movers: 0, posed: 0 };
   scope.onDispose(client.onCombat(event => {
     if (event.kind === 'hit' && event.confirmFor !== 0) { report.hits++; if (event.killed) report.kills++; }
     if (event.kind === 'died' && event.id === client.welcome?.handle) { report.falls++; ports.died(); }
@@ -251,7 +254,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     renderTick = client.present();
     const entered = grid?.items() ?? items;
     if (entered !== items) { items = entered; net.bindSlots(slotsOf(items)); }
-    syncCreatures(client, animals, bodies, retired);
+    syncCreatures(client, animals, bodies, retired, spawnMs);
     bindMount(); offerMounts(); bindClaw();
     const shown = showRows(client, net, ports, bodies, renderTick, dt, row, near, rideable);
     wirePage.frame(here ? bookOf(client.latest?.cell) : null, here, ports.day()); netMoverPoses(client, wirePage.movers, renderTick);
@@ -269,7 +272,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     const { latest } = client;
     if (latest !== null) { const { px, pz, hp } = client.owner(latest); report.cell = latest.cell; report.serverX = Number(px); report.serverZ = Number(pz); report.hp = Number(hp); attributes.health = Math.max(1, report.hp); }
     if (now - sampledAt < 1000) return;
-    report.retired = Object.fromEntries(retired); report.owned = Object.fromEntries(client.owned); report.sky = latest === null ? null : client.stateField(latest, 'weather.phase') ?? null; report.day = latest === null ? null : client.stateField(latest, DAY_ROW) ?? null;
+    report.retired = Object.fromEntries(retired); report.spawnMs = Object.fromEntries(spawnMs); report.owned = Object.fromEntries(client.owned); report.sky = latest === null ? null : client.stateField(latest, 'weather.phase') ?? null; report.day = latest === null ? null : client.stateField(latest, DAY_ROW) ?? null;
     report.movers = wirePage.movers.size; report.posed = wirePage.posed; report.clawed = clawed !== null; report.own = client.welcome?.player ?? null;
     report.quests = Object.fromEntries([...client.quests].map(([id, quest]) => [id, quest.started ? quest.step : 'unstarted'])); report.flags = [...client.phased, ...client.flags()]; report.fights = wirePage.encounters().map(fight => `${fight.id}:${fight.state}:${fight.hp}`);
     report.framesPerSecond = (report.frames - framesAt) / (now - sampledAt) * 1000; framesAt = report.frames; sampledAt = now;

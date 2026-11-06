@@ -30,7 +30,8 @@ export class PopulationProjection {
   private readonly volley: RowBodySlots<Animal>;
   private readonly mesh: THREE.InstancedMesh;
   private readonly drops: ParticlePool;
-  private readonly lights: { actor: Animal; light: THREE.PointLight; dead: boolean; fade: number }[] = [];
+  /** On the wire a light has no actor of its own until a row of the held kind takes it. */
+  private readonly lights: { actor: Animal | null; light: THREE.PointLight; dead: boolean; fade: number }[] = [];
   private readonly observers: { row: PopulationProjectionRows['effects'][number]; actor: Animal | null; state: number; elapsed: number }[];
   private active = 0;
   private disposed = false;
@@ -86,10 +87,10 @@ export class PopulationProjection {
     this.scope.run(() => {
       this.rng.restore(placement.stream);
       if (!wirePage.on) this.creatures.place(placement.centres, placement.kinds, placement.enemies); // on the wire these are rows
-      if (!wirePage.on) for (const spot of placement.enemies.filter(entry => entry.herd < 0 && entry.kind === hold.kind)) {
+      for (const spot of placement.enemies.filter(entry => entry.herd < 0 && entry.kind === hold.kind)) {
         // pooled, lit only while this projection is shown; a sealed, full pool grows for it (G808: as this group's own
         // light it left the page's light count whenever the home hid, and entering Pine built 149 of 150 programs again)
-        const actor = this.creatures.loose(spot), light = LightPool.for(this.lightScene).acquire(row.light.colour, 0, row.light.distance, row.light.decay, this.group, true);
+        const actor = wirePage.on ? null : this.creatures.loose(spot), light = LightPool.for(this.lightScene).acquire(row.light.colour, 0, row.light.distance, row.light.decay, this.group, true);
         this.lights.push({ actor, light, dead: false, fade: 0 });
       }
       this.counts(); this.scene.add(this.group);
@@ -167,8 +168,10 @@ export class PopulationProjection {
       }
       this.active = alive; this.drops.posAttr.needsUpdate = true;
     }
+    if (wirePage.on) this.seatRowLights();
     for (const light of this.lights) {
-      const actor = light.actor, profile = row.light; actor.headWorld(this.head); light.light.position.copy(this.head).y += profile.headY;
+      const actor = light.actor, profile = row.light; if (actor === null) continue;
+      actor.headWorld(this.head); light.light.position.copy(this.head).y += profile.headY;
       if (!actor.alive && !light.dead) { light.dead = true; light.fade = 1; this.splash(actor.position, profile.deathSplash); }
       if (light.dead) { light.fade = Math.max(0, light.fade - dt * profile.fade); light.light.intensity = profile.intensity * light.fade; continue; }
       const rise = THREE.MathUtils.clamp(actor.mem[profile.rise] ?? 0, 0, 1), [base, gain, fast, slow, bend] = profile.flicker;
@@ -176,6 +179,17 @@ export class PopulationProjection {
       if (actor.mem[profile.rising] && rng.next() < dt * profile.streamRate) {
         this.at.copy(actor.position).y += profile.streamHeight[0] + rng.next() * profile.streamHeight[1] * rise; this.splash(this.at, profile.streamSplash);
       }
+    }
+  }
+  /** A light goes dark with the row that held it, and the next row of the held kind takes it. */
+  private seatRowLights(): void {
+    const held = this.rows.hold.kind, bodies = this.animals.animals;
+    for (const light of this.lights) if (light.actor !== null && !bodies.includes(light.actor)) { light.actor = null; light.dead = false; light.fade = 0; light.light.intensity = 0; }
+    for (const actor of bodies) {
+      if (actor.kind !== held || !actor.alive || this.lights.some(light => light.actor === actor)) continue;
+      const free = this.lights.find(light => light.actor === null);
+      if (free === undefined) return;
+      free.actor = actor;
     }
   }
   dispose(): void { const steps = this.disposeSteps(); while (steps.next().done !== true) { /* whole */ } }

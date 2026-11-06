@@ -27,6 +27,9 @@ export const ANIMAL_NET: NetSchema<AnimalNetView> = netSchema<AnimalNetView>({
     alive: { kind: 'bool', read: view => view.sim.alive },
     target: { kind: 'ref', read: view => view.target },
     rideable: { kind: 'bool', read: view => view.rideable },
+    // What a view reads of a brain that lifts a body out of the ground and counts its acts: its pose, lights and cues.
+    rise: { kind: 'f32q', min: 0, max: 1, bits: 6, read: view => { const { mem } = view.sim; return mem['init'] === 1 ? Math.min(1, Math.max(0, mem['rise'] ?? 0)) : 0; } },
+    act: { kind: 'u8', read: view => view.sim.mem['st'] ?? 0 },
     kind: { kind: 'text', send: 'initial', read: view => view.sim.kind },
     variant: { kind: 'text', send: 'initial', read: view => view.sim.variant },
     rarity: { kind: 'text', send: 'initial', read: view => view.sim.rarity },
