@@ -84,6 +84,7 @@ test('post-publication checking retains committed freshness and proves the live 
       const target = resolve(root, 'scripts', name); mkdirSync(resolve(target, '..'), { recursive: true });
       copyFileSync(resolve(repository, 'scripts', name), target);
     }
+    put('src/game/cook/contentNamed.ts', readFileSync(resolve(repository, 'src/game/cook/contentNamed.ts'), 'utf8'));
     put('scripts/source-generators.mjs', `import {readFileSync} from 'node:fs';import {resolve} from 'node:path';
 import {bootPublicationTableSources} from './boot-publication.mjs';
 export const SOURCE_GENERATORS=[{id:'fixture',outputs:['src/game/client/boot/bytes.generated.ts','src/game/client/boot/versions.generated.ts','src/game/client/boot/packs.generated.ts','src/table.ts'],inputs:['scripts/boot-publication.generated.json','src/input.json'],committed:true,
