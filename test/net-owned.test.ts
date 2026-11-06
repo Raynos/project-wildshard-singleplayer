@@ -83,7 +83,7 @@ test('a filing lands in the player\'s purse and pack, and a purchase takes the p
 test('a contract board goes on the wire as lines and comes back whole', () => {
   const board = { next: 4, claimed: 2, streak: 1, best: 3, slots: [{ serial: 3, kind: 'hunt', target: 'deer', have: 0 }, { serial: 2, kind: 'hunt', target: 'wolf', have: 2 }] };
   const out = new Map<string, number>();
-  boardLines({ ...board, slots: board.slots.map(slot => ({ ...slot, need: 1, goal: '', reward: { items: [], bolts: 0 } })) }, out);
+  boardLines({ ...board, slots: board.slots.map(slot => ({ ...slot, need: 1, title: '', goal: '', reward: { items: [], bolts: 0 } })) }, out);
   expect([...out.values()].every(value => value !== 0), 'a line at 0 is a line gone').toBe(true);
   expect(JSON.parse(boardFromLines(out) ?? '')).toEqual(board);
   expect(boardFromLines(new Map([['coins', 3]]))).toBeNull();

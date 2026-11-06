@@ -39,7 +39,7 @@ test('a view reads the server sky off the wire, and hears its bolts', async () =
     const { storm } = installWeatherContinuation(host, { program: bundle, clock: { sunElevation: 0 }, env, scare: () => undefined, bake: { trees: [[3, 4, 1]], tops: [12] }, rows: worldRows });
     const link = directLoopback(), client = new NetClient(link.client), room = new NetRoom({ world: new SimNetWorld(host), step: () => { host.step(); } });
     room.join(link.server); client.hello(); link.pump(); room.open(); link.pump();
-    const climate = netClimate(client, { weather: bundle.weather, reactions: bundle.reactions }), sky = storm.weather, heard: number[] = [];
+    const climate = netClimate(client, { weather: bundle.weather, reactions: bundle.reactions }, () => undefined), sky = storm.weather, heard: number[] = [];
     climate.storm?.on('strike', event => { heard.push(event['x'] ?? 0); });
     const run = (ticks: number): void => { for (let tick = 0; tick < ticks; tick++) { room.tick(); link.pump(); climate.frame(1 / 60, null); } };
     run(4);

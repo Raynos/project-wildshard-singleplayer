@@ -1,6 +1,6 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Rapier is a shipped binary.
 import { readFileSync } from 'node:fs';
-import { beforeAll, expect, test, vi } from 'vitest';
+import { beforeAll, expect, test, vi, type Mock } from 'vitest';
 import { BitWriter } from '../src/engine/shared/net/bits';
 import { NET_SCHEMA_HASH } from '../src/engine/shared/net/netSchemas';
 import { decodeAct, encodeAct } from '../src/engine/shared/net/messages';
@@ -30,7 +30,7 @@ test('a word on the sky survives the wire, and the schema hash names its form', 
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
 const fakeHost = (): SimHost => createSimHost(SIM_LEVEL, { rapier });
-const sky = (): { setMode: ReturnType<typeof vi.fn>; force: ReturnType<typeof vi.fn> } & Parameters<typeof publishWeather>[1] => ({ n: { rain: 0 }, state: 'clear', phaseLeft: 3, profile: { states: ['clear', 'storm'], modes: { live: 'none' } }, setMode: vi.fn(), force: vi.fn() });
+const sky = (): Omit<Parameters<typeof publishWeather>[1], 'setMode' | 'force'> & { setMode: Mock<(mode: string, at?: number) => void>; force: Mock<(state: string, at?: number) => void> } => ({ n: { overcast: 0, rain: 0, wet: 0, wind: 0, fog: 0 }, state: 'clear', phaseLeft: 3, profile: { states: ['clear', 'storm'], modes: { live: 'none' } }, setMode: vi.fn(), force: vi.fn() });
 
 test('a lone player\'s word lands on their sky, a known word only, and a room\'s sky hears no one', () => {
   const host = fakeHost(), air = sky(), input = (word: Omit<typeof act, 'kind' | 'seq' | 'op' | 'name' | 'at'> & { readonly op: 'mode' | 'force'; readonly name: string; readonly at: number }): { command: null; acts: readonly { kind: 'climate'; seq: number; op: 'mode' | 'force'; name: string; at: number }[] } => ({ command: null, acts: [{ kind: 'climate', seq: 0, ...word }] });
