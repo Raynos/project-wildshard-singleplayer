@@ -160,14 +160,15 @@ export function encodeGridStripPage(source: string, home: string, slug: string, 
   return { slug, owner: home, phase, page: { source, home: keyHome, header: header.address, body: body.address }, header, body };
 }
 
+/** What two rows for one page must agree on. */
+const pageIdentity = (row: CompiledGridCandidate): string => JSON.stringify([row.owner, row.phase, row.slug, row.page.body.sha256, row.page.header.sha256]);
+
 /** Choose only pages whose added directory/header/body wire fits the original I12 ceiling. */
 export function writeGridStripPages(root: string, seams: string, candidates: readonly CompiledGridCandidate[], products: readonly { readonly name: string; readonly bytes: number; readonly ceiling: number | undefined }[]): CompiledGridBuild {
   const unique = new Map<string, CompiledGridCandidate>();
   for (const candidate of candidates) {
     const key = `${candidate.page.source}/${candidate.page.home}`, previous = unique.get(key);
-    // oxlint-disable-next-line wildshard/no-shard-branch -- A row's own slug is the page's identity, no shard's name.
-    if (previous !== undefined && (previous.owner !== candidate.owner || previous.phase !== candidate.phase || previous.slug !== candidate.slug
-      || previous.page.body.sha256 !== candidate.page.body.sha256 || previous.page.header.sha256 !== candidate.page.header.sha256)) throw new Error('Grid strip page is not deterministic');
+    if (previous !== undefined && pageIdentity(previous) !== pageIdentity(candidate)) throw new Error('Grid strip page is not deterministic');
     unique.set(key, candidate);
   }
   const all = [...unique.values()].sort((a, b) => `${a.page.source}/${a.page.home}`.localeCompare(`${b.page.source}/${b.page.home}`));
@@ -175,10 +176,9 @@ export function writeGridStripPages(root: string, seams: string, candidates: rea
   const groups = new Map<string, CompiledGridCandidate[]>();
   for (const candidate of all) {
     const key = ownerKey(candidate), rows = groups.get(key) ?? [];
-    // oxlint-disable-next-line wildshard/no-shard-branch -- A row's own slug is the page's identity, no shard's name.
-    if (rows[0] !== undefined && rows[0].slug !== candidate.slug) throw new Error('Grid strip owner differs');
     rows.push(candidate); groups.set(key, rows);
   }
+  for (const rows of groups.values()) if (new Set(rows.map(row => row.slug)).size !== 1) throw new Error('Grid strip owner differs');
   const product = new Map(products.map(row => [row.name, row]));
   const measured = new Map<string, number>();
   const wireOf = (file: CompiledGridArtifact): number => {
