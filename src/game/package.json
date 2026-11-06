@@ -90,6 +90,8 @@
     "./ambient/flock": "./shared/ambient/flock.ts",
     "./grid/pageMode": "./shared/grid/pageMode.ts",
     "./grid/assembly": "./shared/grid/assembly.ts",
+    "./grid/catalogueSlot": "./shared/grid/catalogueSlot.ts",
+    "./grid/catalogueDocument": "./shared/grid/catalogueDocument.ts",
     "./grid/room": "./server/grid/room.ts",
     "./grid/roomNet": "./server/grid/roomNet.ts",
     "./grid/simulation": "./server/grid/simulation.ts",

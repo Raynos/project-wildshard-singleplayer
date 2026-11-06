@@ -1,7 +1,8 @@
 // oxlint-disable-next-line import/no-unassigned-import -- evaluated for its effect: the app identity is installed before any other module body runs (E414)
 import './identity';
 import { TITLE_MANIFESTS } from '../out/.app/titleCatalogue.generated';
-import { installTitleManifests } from '@wildshard/game/shard/titleList';
+import { installTitleManifests, unloadedTitleRow, withCatalogueHeads } from '@wildshard/game/shard/titleList';
+import { installInlineCatalogue } from '@wildshard/game/grid/catalogueSlot';
 import { installOfflineDownload } from '@wildshard/engine/ui/offlineDownload';
 import { startPageServices } from './pageServices';
 import { persistHomeScreen } from '@wildshard/engine/saves/runtime';
@@ -41,7 +42,9 @@ const task = (): Promise<void> => new Promise((resolve) => { entryScope.timeout(
 // fetch, which never gets here, reloads by itself; anything after this is guardBoot's)
 document.documentElement.dataset['booted'] = '';
 startPageServices();
-installTitleManifests(TITLE_MANIFESTS);
+// C3: the build's catalogue, inlined in this document: no read before the first paint.
+installInlineCatalogue(document);
+installTitleManifests(withCatalogueHeads(TITLE_MANIFESTS));
 // G727 / I9: Settings' "Download everything"; the prefetch loads only when the player opens or presses it
 installOfflineDownload({
   size: async owner => (await import('@wildshard/game/grid/prefetch')).remainingDownloadBytes(owner),
@@ -169,13 +172,16 @@ async function startSelected(): Promise<void> {
     selected, import('@wildshard/game/shard/registry'), import('@wildshard/engine/ui/Loading'),
     import('@wildshard/engine/core/tier'),
   ]);
-  const loading = beginLoading({ id: game.shard.slug, name: game.shard.name, trace: game.shard.boot?.phone?.trace === true });
+  // C3: a catalogue shard this build has no discovery for: the page's manifest, renamed; admission replaces the rest.
+  const listed = unloadedTitleRow(search.get('chunk'), game.shard);
+  const arrival = listed?.shardfile === undefined ? game.shard : { ...game.shard, slug: listed.slug, name: listed.name, shardfile: listed.shardfile };
+  const loading = beginLoading({ id: arrival.slug, name: arrival.name, trace: game.shard.boot?.phone?.trace === true });
   const moduleText = document.getElementById('boot-module-files')?.textContent;
   const moduleRows: unknown = moduleText === undefined ? undefined : JSON.parse(moduleText);
   const gridEntryModule = import('@wildshard/game/grid/pageEntry');
   const gridMenuModule = import('@wildshard/game/grid/menu');
   const [gridSelection, { gridMode, DEVSERVER }] = await Promise.all([gridEntryModule, gridMenuModule]);
-  const earlyPath = gridSelection.pageGridRecovery() !== null || gridSelection.pendingGridEntry(game.shard.slug)
+  const earlyPath = gridSelection.pageGridRecovery() !== null || gridSelection.pendingGridEntry(arrival.slug)
     ? 'grid' : 'shardfile';
   // MF4: one spawn manifest per shard / tier / flow (grid: per menu mode) is the whole download; the bar reads only it and
   // admission waits for it (a tap on the title started the same job, so its files may already be in the worker cache)
@@ -184,7 +190,7 @@ async function startSelected(): Promise<void> {
   setSpawnPacks(runtimePacksOn()); // DL16: Debug ▸ Loading & memory ▸ Level download
   // DL21: a read the whole-set hold stalls is named on the card as the spawn download, in its step
   observeSpawnHolds((held, path) => waitFor('Spawn download', held, 'file', `spawn-download:${path}`));
-  const spawnMode = gridMode(DEVSERVER), spawnJob = startSpawnDownload(game.shard.slug, earlyPath === 'grid' ? 'grid' : 'client', TIER,
+  const spawnMode = gridMode(DEVSERVER), spawnJob = startSpawnDownload(arrival.slug, earlyPath === 'grid' ? 'grid' : 'client', TIER,
     `${Number(spawnMode.developer)}${Number(spawnMode.devserver)}${Number(spawnMode.nineDragon)}`);
   if (spawnJob !== null) void loading.setDownloadSource(spawnJob);
   // Read mandatory primary declarations while services and the yielding memory
@@ -252,7 +258,7 @@ async function startSelected(): Promise<void> {
     imports.check();
     loading.setPrefetchSource(gridPrefetchStatus);
     const source = pageGridRecovery() === null ? await configuredShardfile(document, browserShardfileOptions(document.baseURI)) : null;
-    page = preparePageResidency(game.shard, source?.identity.slug);
+    page = preparePageResidency(arrival, source?.identity.slug);
     await (await import('./assetTables')).prepareAssetPacks(page.mode === 'grid' || TIER !== 'phone' ? undefined : game.shard.slug);
     await completePageCatalogue(page.mode, catalogue?.ready);
     const path = page.mode === 'grid' ? 'grid' : 'shardfile';
@@ -272,7 +278,7 @@ async function startSelected(): Promise<void> {
     // DL11: setup overlaps the download (each read waits for its own file); control waits for the whole set (finish.ts)
     if (spawnJob !== null) await waitFor('Spawn download', spawnJob.listed ?? spawnJob.ready, 'file');
     const manifest = source === null
-      ? await installManifestShardfile(game.shard, { ...browserShardfileOptions(document.baseURI, true), memory: page.memory, progress: (progress) => { loading.paintAdmission(progress); } }, bindings, imports.ready)
+      ? await installManifestShardfile(arrival, { ...browserShardfileOptions(document.baseURI, true), memory: page.memory, progress: (progress) => { loading.paintAdmission(progress); } }, bindings, imports.ready)
       : await installShardfileProduct(source, { ...browserShardfileOptions(document.baseURI), memory: page.memory, progress: (progress) => { loading.paintAdmission(progress); } }, bindings, imports.ready);
     // Keep the seam out of code and descriptor admission; world construction
     // can overlap this read and retains its original full-geometry barrier.

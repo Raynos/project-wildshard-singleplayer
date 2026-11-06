@@ -1,5 +1,5 @@
 import type { SaveStore, SaveInstance, InstanceSaveKeyDef, InstanceSaveSlot } from '@wildshard/engine/saves/store';
-import catalogue from './grid/singleplayer.json' with { type: 'json' };
+import { catalogueDocument } from './grid/catalogueDocument';
 
 /** Stable placement identity passed by the session, independent of cell or launch mode. */
 export interface LocalSaveInstance { id: string; shard: string }
@@ -9,6 +9,6 @@ export function instanceSave<T>(store: SaveStore, definition: InstanceSaveKeyDef
 }
 /** Resolve exactly the same durable namespace and legacy alias for reading, previewing and resetting either entry mode. */
 export function instanceSaveIdentity(identity: LocalSaveInstance): SaveInstance {
-  const canonical = catalogue.placements.find((placement) => placement.instance === identity.id && placement.slug.replace(/^_/u, '') === identity.shard.replace(/^_/u, ''));
+  const canonical = catalogueDocument().placements.find((placement) => placement.instance === identity.id && placement.slug.replace(/^_/u, '') === identity.shard.replace(/^_/u, ''));
   return { id: identity.id, ...(canonical === undefined ? {} : { legacy: canonical.slug }) };
 }

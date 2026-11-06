@@ -1,4 +1,5 @@
 import { loadRapier, type Rapier } from '@wildshard/engine/physics/rapier';
+import { installCatalogue } from '@wildshard/game/grid/catalogueSlot';
 import { RAPIER_WASM_URL } from '@wildshard/engine/physics/wasmUrl';
 import { askHeldReads, type HeldRead } from './heldReads';
 import { runStandaloneServer } from './serverHost';
@@ -16,6 +17,7 @@ const rapierOf = (held: HeldRead | undefined): Promise<Rapier> => {
 // everything after that goes through them.
 self.onmessage = (event: MessageEvent<unknown>): void => {
   self.onmessage = null;
+  if (event.data !== null) installCatalogue(event.data);
   const [control, game, harness, reads] = event.ports;
   if (control === undefined || game === undefined) return;
   const held = reads === undefined ? undefined : askHeldReads(reads);

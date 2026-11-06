@@ -2,7 +2,7 @@ import { SHARD_LOADERS } from '../out/.app/shardSelection.generated';
 import { TIER } from '@wildshard/engine/core/tier';
 import { readModuleGroups } from '@wildshard/engine/boot/download';
 import { installShards } from '@wildshard/game/shard/list';
-import { titleManifests,findTitleManifest } from '@wildshard/game/shard/titleList';
+import { titleManifests,findTitleManifest,type TitleManifest } from '@wildshard/game/shard/titleList';
 import { retried } from '@wildshard/engine/boot/retry';
 import type { PageMode } from '@wildshard/game/grid/pageMode';
 import { selectedManifests, gridManifests, type SelectedManifests } from './selectedManifests';
@@ -23,7 +23,9 @@ async function completeCatalogue():Promise<void>{
  * only their inventoried primary pair, preserving content and save namespaces. */
 export async function prepareSelectedShard():Promise<void>{
   const rows=titleManifests(),named=new URLSearchParams(location.search).get('chunk');
-  const selected=(named===null?undefined:findTitleManifest(named))??rows[0];
+  // C3: a catalogue shard with no discovery here enters on the first row's page; its product replaces it in admission.
+  const known=(row:TitleManifest|undefined):row is TitleManifest=>row!==undefined&&Object.hasOwn(SHARD_LOADERS,row.slug);
+  const row=named===null?undefined:findTitleManifest(named),selected=known(row)?row:rows.find(known);
   if(selected===undefined)throw new Error('No shard manifests were generated');
   if(TIER!=='phone'){await completeCatalogue();return;}
   const prepared=await selectedManifests(selected,SHARD_LOADERS,modules);
@@ -33,7 +35,7 @@ export async function prepareSelectedShard():Promise<void>{
 /** A grid may synchronously read every primary neighbour after consuming its
  * intent. Frozen standalone copies remain available through their own loaders. */
 export function preparePageCatalogue():Promise<SelectedManifests>{
-  return gridManifests(titleManifests(),SHARD_LOADERS,modules);
+  return gridManifests(titleManifests().filter(row=>Object.hasOwn(SHARD_LOADERS,row.slug)),SHARD_LOADERS,modules);
 }
 
 /** Only the original publication barrier installs a prepared catalogue. */

@@ -1,4 +1,4 @@
-import catalogue from '../../shared/grid/singleplayer.json' with { type: 'json' };
+import { catalogueDocument } from '../../shared/grid/catalogueDocument';
 import { parseGridCatalogue, type GridMode } from '../../shared/grid/catalogue';
 import type { Tier } from '@wildshard/engine/core/tier';
 
@@ -11,7 +11,7 @@ export function prefetchRing<T extends { readonly cell: readonly [number, number
 
 /** Only placement data is needed to prefetch from the title, not a world assembly. */
 export function titlePrefetchOrder(_mode: GridMode, tier: Tier = 'desktop'): readonly string[] {
-  const data = parseGridCatalogue(catalogue.grid);
+  const data = parseGridCatalogue(catalogueDocument().grid);
   const near = [...prefetchRing(data.cells, [0, 0], tier)].sort((a, b) => Math.hypot(...a.cell) - Math.hypot(...b.cell));
   return [...new Set(near.map(row => row.slug))];
 }

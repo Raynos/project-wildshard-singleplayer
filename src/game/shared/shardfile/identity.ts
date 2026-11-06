@@ -1,9 +1,11 @@
-import catalogue from '../grid/singleplayer.json' with { type: 'json' };
+import { catalogueDocument } from '../grid/catalogueDocument';
+import { bareSlug } from '../grid/catalogueSlot';
 
-const reserved = new Set([...catalogue.placements.map((row) => row.slug.replace(/^_/u, '')), 'global', 'profile', 'device', 'session']);
+const PRIVATE_NAMESPACES = ['global', 'profile', 'device', 'session'];
 /** Outside products cannot impersonate a platform shard or a private save namespace. */
 export function assertExternalShardSlug(slug: string): void {
-  if (reserved.has(slug.replace(/^_/u, ''))) throw new Error('Outside shardfile uses a reserved first-party slug');
+  const reserved = new Set([...catalogueDocument().placements.map((row) => bareSlug(row.slug)), ...PRIVATE_NAMESPACES]);
+  if (reserved.has(bareSlug(slug))) throw new Error('Outside shardfile uses a reserved first-party slug');
 }
 /** Stable, bounded save key for the exact (origin, slug) pair; paths and revisions do not change progress identity. */
 export async function externalShardInstance(base: string, slug: string, hash: (bytes: Uint8Array) => Promise<string>): Promise<string> {

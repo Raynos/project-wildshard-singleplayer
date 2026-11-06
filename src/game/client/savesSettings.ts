@@ -17,7 +17,7 @@ import { SaveStore } from '@wildshard/engine/saves/store';
 import { workerClientOn } from '@wildshard/engine/ui/debugOptions';
 import type { GameMenu } from '@wildshard/engine/ui/Menu';
 import { mountUi } from '@wildshard/engine/ui/ownership';
-import catalogue from '../shared/grid/singleplayer.json' with { type: 'json' };
+import { catalogueDocument } from '../shared/grid/catalogueDocument';
 import { previewNewGame, resetNewGame, type NewGameProgress, type NewGameSummary } from '../shared/newGame';
 import type { LocalSaveInstance } from '../shared/instanceSaves';
 import { catalogueManifests } from './shard/titleList';
@@ -85,6 +85,7 @@ export function saveCards(list: readonly CardManifest[], developer: boolean): Sa
     seen.add(instance);
     out.push({ instance: { id: instance, shard: m.slug }, name: copy === null ? m.name : SAVES_STRINGS.copy(m.name, copy), thumb: m.card.thumb, listed: listed(m) && copy === null });
   };
+  const catalogue = catalogueDocument();
   for (const p of [...catalogue.placements].sort((a, b) => (bySlug.get(bare(a.slug))?.order ?? 0) - (bySlug.get(bare(b.slug))?.order ?? 0))) add(p.instance, p.slug, null);
   for (const c of catalogue.grid.cells) add(c.instance, c.slug, /^template-(\d+)$/u.exec(c.instance)?.[1] ?? null);
   return out;

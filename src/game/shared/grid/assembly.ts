@@ -1,4 +1,4 @@
-import catalogue from './singleplayer.json' with { type: 'json' };
+import { catalogueDocument } from './catalogueDocument';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { parseGridCatalogue, type CopyIdentity, type GridCatalogue, type GridEdgeLook, type GridMode } from './catalogue';
 
@@ -31,7 +31,7 @@ export class GridAssembly {
   private readonly byInstance: ReadonlyMap<string, GridCell>;
   private readonly byCell: ReadonlyMap<string, GridCell>;
   /** `lone`: a session of that one shard, placed at the origin with nothing around it: what a one-shard page runs, on the grid or not. It keeps the grid cell's identity, as a page keeps one save for either entry. */
-  constructor(_mode: GridMode, input: unknown = catalogue.grid, lone?: string) {
+  constructor(_mode: GridMode, input: unknown = catalogueDocument().grid, lone?: string) {
     const data = parseGridCatalogue(input), rows: GridCatalogue['cells'] = lone === undefined ? data.cells : [{ instance: new Map(data.cells.map((row) => [row.slug, row.instance])).get(lone) ?? lone, slug: lone, cell: [0, 0] }];
     if (new Set(rows.map((row) => row.instance)).size !== rows.length) throw new Error('Duplicate assembled grid identity');
     this.pitch = data.pitch;

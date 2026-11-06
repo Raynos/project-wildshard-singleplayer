@@ -10,7 +10,7 @@
  * `identity` (every ordinary shard, the solo template) gets nothing.
  */
 import { BufferGeometry, Float32BufferAttribute, Group, Matrix4, Mesh, MeshBasicMaterial, Vector3 } from 'three';
-import catalogue from '../../shared/grid/singleplayer.json' with { type: 'json' };
+import { catalogueDocument } from '../../shared/grid/catalogueDocument';
 import { ACCENTS } from '@wildshard/format/accent';
 import { parseGridCatalogue, type CopyIdentity } from '../../shared/grid/catalogue';
 import { copyLayoutMesh } from './copyLayout';
@@ -25,7 +25,7 @@ let shipped: ReadonlyMap<string, CopyIdentity> | null = null;
 /** the shipped catalogue's copy identities by instance (every mode's placements) */
 function shippedIdentities(): ReadonlyMap<string, CopyIdentity> {
   if (shipped !== null) return shipped;
-  const data = parseGridCatalogue(catalogue.grid), out = new Map<string, CopyIdentity>();
+  const data = parseGridCatalogue(catalogueDocument().grid), out = new Map<string, CopyIdentity>();
   for (const row of data.cells) if (row.identity !== undefined) out.set(row.instance, row.identity);
   shipped = out;
   return out;

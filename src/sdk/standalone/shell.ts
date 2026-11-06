@@ -2,6 +2,7 @@
 // and owns what only a page can do: start the worker, keep the real storage, and pause on a hidden tab. Only the Developer row
 // (J130) imports it yet: build-app emits it, and SESSION's flip switches the shipped client onto it. This file must never reach
 // a `server`-tagged module (J2).
+import { installedCatalogue } from '@wildshard/game/grid/catalogueSlot';
 import * as v from 'valibot';
 import { Scope } from '@wildshard/engine/app/scope';
 import { NetClient } from '@wildshard/engine/net/client';
@@ -100,7 +101,8 @@ export function connectStandalone(config: StandaloneConfig, control: MessagePort
 export function startStandalone(config: StandaloneConfig): StandaloneShell {
   const worker = new Worker(new URL('serverWorker.ts', import.meta.url), { type: 'module' });
   const control = new MessageChannel(), game = new MessageChannel(), harness = new MessageChannel(), reads = config.held === undefined ? undefined : new MessageChannel();
-  worker.postMessage(null, [control.port2, game.port2, harness.port2, ...reads === undefined ? [] : [reads.port2]]);
+  // C3: the page's catalogue, read at boot, is the worker's too; it has no document to read it from.
+  worker.postMessage(installedCatalogue() ?? null, [control.port2, game.port2, harness.port2, ...reads === undefined ? [] : [reads.port2]]);
   if (reads !== undefined && config.held !== undefined) answerHeldReads(reads.port1, config.held);
   // The worker sits beside this module, so an emitted module's `/b/<build>/` folder is the server's real build (J57).
   const served = /^\/b\/([\w.-]+)\//u.exec(new URL(import.meta.url).pathname)?.[1];

@@ -139,7 +139,7 @@ function selectedEntry(admissionFailure?: Error, packs = false) {
     '@wildshard/game/plugin/audio',
     '@wildshard/game/systems/species/view/boar', '@wildshard/game/plugin/weaponFamily']) modules[name] = kit;
   const result: unknown = runInNewContext(stripTypeScriptTypes(`${body}; startSelected();`), {
-    runtimePacksOn: () => packs,
+    runtimePacksOn: () => packs, search: new URLSearchParams('chunk=example'), unloadedTitleRow: () => undefined,
     prepareBootImports, entryScope: {child: () => imageOwner}, selectedImages: undefined, crashResume: null,
     document: {getElementById: () => null, baseURI: 'https://example.invalid/', documentElement: {classList: {remove: noop}}},
     performance: {measure: noop},

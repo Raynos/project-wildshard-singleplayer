@@ -205,7 +205,7 @@ export async function storeUsage(store: PackStore, budget: number): Promise<Stor
   const byPrefix: Record<string, {count: number; bytes: number}> = {};
   let objects = 0, bytes = 0;
   for (const row of await store.list('')) {
-    const name = row.key.split('/').slice(0, row.key.startsWith('assets/spawn/') ? 3 : 1).join('/'), kept = byPrefix[name] ?? {count: 0, bytes: 0};
+    const path = row.key.split('/'), name = path.slice(0, path.length > 3 ? 3 : Math.min(2, path.length - 1)).join('/'), kept = byPrefix[name] ?? {count: 0, bytes: 0};
     kept.count++; kept.bytes += row.bytes; byPrefix[name] = kept; objects++; bytes += row.bytes;
   }
   return {objects, bytes, share: bytes / budget, byPrefix};

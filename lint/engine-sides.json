@@ -914,6 +914,8 @@
   "src/game/client/grid/budgetOverlay.ts": "client",
   "src/game/client/grid/budgetPoints.ts": "client",
   "src/game/shared/grid/catalogue.ts": "shared",
+  "src/game/shared/grid/catalogueDocument.ts": "shared",
+  "src/game/shared/grid/catalogueSlot.ts": "shared",
   "src/game/client/grid/cellChanges.ts": "client",
   "src/game/client/grid/cellClip.ts": "client",
   "src/game/client/grid/cellCover.ts": "client",
