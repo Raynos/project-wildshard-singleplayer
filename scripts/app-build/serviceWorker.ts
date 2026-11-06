@@ -69,7 +69,7 @@ export function refreshServiceWorker(outDir: string, before: string): void {
   if (name === undefined) throw new Error('No worker core to refresh');
   const held = readFileSync(join(outDir, name), 'utf8'), document = JSON.stringify(before), html = readFileSync(join(outDir, 'index.html'), 'utf8');
   if (!held.includes(document)) throw new Error('The worker holds another page');
-  const digest = createHash('sha256').update(html).digest('hex').slice(0, 10), old = new RegExp(`${buildId.replaceAll(/[.-]/gu, String.raw`\$&`)}-[a-f0-9]{10}`, 'gu');
+  const digest = createHash('sha256').update(html).digest('hex').slice(0, 10), old = new RegExp(`${buildId.replaceAll('.', String.raw`\.`)}-[a-f0-9]{10}`, 'gu');
   const core = held.split(document).join(JSON.stringify(html)).replaceAll(old, `${buildId}-${digest}`), scripts = workerScripts(core);
   mkdirSync(dirname(join(outDir, scripts.fileName)), { recursive: true });
   writeFileSync(join(outDir, scripts.fileName), core);
