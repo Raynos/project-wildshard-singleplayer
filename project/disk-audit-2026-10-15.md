@@ -364,6 +364,24 @@ The boot purge was at **212k files**, up 45k in 4 h and closing on the 250k inve
   about 2.7 GB each plus `tars2`, run through `scripts/shardfile-cold-boot.mjs --dist=tmp/c1/c2`. `tmp/worker-proof`
   (2.6 GB, finished 18:16) and `tmp/loading-flow` (2.6 GB, finished 17:57) also passed 2 GB.
 
+## 14. 2026-11-06 00:47 check: boot purge 135k → **4.14M files**, `/private/tmp` 2.8 → 172 GB (OPEN, the boot-hang risk)
+
+- **This is the original boot hang coming back: a reboot now makes dirhelper empty 4.1M files before login.**
+- **Writer:** Claude Code session `f5d26423-372a-4862-81cd-516e29cd300e` (project `project-wildshard-meta`), live at
+  00:54. Its session scratchpad is `/private/tmp/claude-501/-Users-raynos-projects-games-project-wildshard-meta/f5d26423-372a-4862-81cd-516e29cd300e/scratchpad`.
+  `p4p5/` (86 GB, over 500k files, 75 entries `c1`, `c2`, ...) and `lift/` (over 500k files, 257 entries `k1`, `k2`, ...)
+  hold about 25 `node_modules` trees at depth 3 or less: per-commit repo copies for its size and CI probes, each
+  installed and built. Both were written at 00:47–00:48 and it had 103 related processes at 00:54.
+- **Why it is worse than `tmp/ci-lane` (section 13):** a session scratchpad lives in `/private/tmp`, so every copy
+  counts against the boot purge. The same copies under the repo's `./tmp` cost disk only. `scripts/boot-temp-warn.sh`
+  no longer warns (section 11), so nothing told the session.
+- **Fix:** per-sha copies belong in `./tmp/<lane>`, never in a session scratchpad, and each is removed once its result
+  is written. Jake decides on deleting these; do not reboot before they are gone.
+- **`/cores` 110 → 206 GB in 22 cores.** 13 are the 6.5 GB `process.abort` size (section 13), ten of them new since
+  20:47, so that test is running often and is still in the tree at `test/cook-worker.test.ts:119`.
+- `./tmp` 143 → 187 GB and 1.18M → 1.48M files: `tmp/serve` 23 GB, `c3-finish` 14 GB, `flip` 9.2 GB, `ci-d` 8.9 GB,
+  `size-baseline` 8.6 GB (the worktree `step.sh` measures in), `ci-lane-2` 3 GB. Free disk 1,535 → 1,269 GB.
+
 ## Decisions (Jake, 2026-10-15)
 
 - **Boot-purge warning: 500,000 files.**
