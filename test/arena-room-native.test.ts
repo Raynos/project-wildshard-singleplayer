@@ -155,6 +155,22 @@ test('J105: when the King falls in a room each player with meaningful damage has
   } finally { host.dispose(); }
 });
 
+test('alone in a served world the King\'s reward is the player\'s, once', () => {
+  const host = createSimHost(LEVEL, { rapier }), fight = roomHost(host), lead = [...host.players.values()][0];
+  if (lead === undefined) throw new Error('No lead');
+  host.respawn.served = true;
+  try {
+    inside(lead, CENTRE.x - 2, CENTRE.z);
+    until(host, () => fight.boss.state === 'fight');
+    const actor = fight.fight.body(); if (actor === null) throw new Error('No King');
+    actor.hp = actor.maxHp * 0.05; fight.boss.phase = 2; fight.boss.checkpoint = 2;
+    host.combat.hit({ source: lead.health, sourceTags: ['actor.player'], target: actor.combatActor(), amount: actor.maxHp, point: actor.position.clone(), dir: new Vector3(), cause: { kind: 'test', label: 'test' } });
+    until(host, () => fight.boss.state === 'victory');
+    expect(fight.bounty.owed).toEqual([lead.id]);
+    expect(fight.bounty.take(lead.id)).toBe(true); expect(fight.bounty.owed).toEqual([]);
+  } finally { host.dispose(); }
+});
+
 test('each player takes the portal down alone, by the row\'s own program', () => {
   const host = createSimHost(LEVEL, { rapier }), lead = [...host.players.values()][0], entrance = { x: 14, y: 0, z: 14, facing: 0 };
   if (lead === undefined) throw new Error('No lead');
