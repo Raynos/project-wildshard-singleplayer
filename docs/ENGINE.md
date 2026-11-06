@@ -240,6 +240,12 @@ transcendentals. `withPortableMath(fn)` is synchronous and restores on failure;
 Imports change no Math bindings or rendering. Bit-exact producers use
 portable output and retain its immutable hash.
 
+`@wildshard/engine/core/portableMath` is the same table for the running sim, so
+an iPhone, a Mac and a Linux server step the same bits. Importing
+`@wildshard/engine/core/portableMathFirst` first installs it for good; every
+entry that steps a sim does, and `NetRoom` and `NetClient` install it too. `**`
+never reaches it: sim code writes `Math.pow`, a square, or a power of two.
+
 `@wildshard/sharddev/assetHandle` owns author-only snapshots. Hash reuse compares
 every current byte; mutation rehashes. All format/IO/cost checks remain.
 

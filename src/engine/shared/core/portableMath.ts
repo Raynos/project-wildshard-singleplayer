@@ -11,6 +11,27 @@
 // Math.pow, or a square, or a power of two, which round the same everywhere (same test). sin, cos and tan beyond 2^28 radians
 // still defer to the native function.
 
+/** Math.hypot is free to round as an engine likes, and JavaScriptCore's isn't V8's. This is V8's own (Kahan summation over the
+ *  largest term), so V8 keeps its bits. */
+function hypot(...values: number[]): number {
+  let max = 0, nan = false;
+  for (const value of values) {
+    const size = Math.abs(value);
+    if (Number.isNaN(size)) nan = true;
+    else if (size > max) max = size;
+  }
+  if (max === Infinity) return Infinity;
+  if (nan) return Number.NaN;
+  if (max === 0) return 0;
+  let sum = 0, compensation = 0;
+  for (const value of values) {
+    const n = Math.abs(value) / max, summand = n * n - compensation, preliminary = sum + summand;
+    compensation = (preliminary - sum) - summand;
+    sum = preliminary;
+  }
+  return Math.sqrt(sum) * max;
+}
+
 // captured before any install, so a special value can defer to the native function
 const nativeSin = Math.sin, nativeCos = Math.cos, nativeTan = Math.tan, nativeExp = Math.exp, nativeLog = Math.log;
 const nativeAtan = Math.atan, nativeAtan2 = Math.atan2, nativeAsin = Math.asin, nativeAcos = Math.acos, nativePow = Math.pow;
@@ -169,13 +190,15 @@ const PORTABLE: {
   readonly pow: typeof pow;
 } = { sin, cos, tan, exp, log, atan, atan2, asin, acos, pow };
 
+const SIM_MATH: typeof PORTABLE & { readonly hypot: typeof hypot } = { ...PORTABLE, hypot };
+
 /** Put the portable functions on the global Math. Idempotent, and there is no undo: a realm that steps the sim stays on them. */
 export function installPortableMath(): void {
-  for (const [name, fn] of Object.entries(PORTABLE)) Reflect.set(Math, name, fn);
+  for (const [name, fn] of Object.entries(SIM_MATH)) Reflect.set(Math, name, fn);
 }
 
 /** Whether this realm's Math is the portable one. */
-export const portableMathInstalled = (): boolean => Object.entries(PORTABLE).every(([name, fn]) => Reflect.get(Math, name) === fn);
+export const portableMathInstalled = (): boolean => Object.entries(SIM_MATH).every(([name, fn]) => Reflect.get(Math, name) === fn);
 
 /** The portable functions, for a proof that compares them to something. */
-export const portableMath: typeof PORTABLE = PORTABLE;
+export const portableMath: typeof SIM_MATH = SIM_MATH;

@@ -96,7 +96,12 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
 - **CI's vitest is Linux x64 (under coverage in the nightly): other floats, and ~2–2.5× a Mac's time** (ci-green, 2026-10-09; main was
   red for hours on both):
   - **A recorded digest never passes through V8's native transcendentals** (`Math.sin / cos / tan / exp / log / atan2 /
-    asin / pow`, or `**` with a non-integer exponent): they round differently on arm64 and x64. Install
+    asin / pow`, or `**` with an exponent other than 2): they round differently on arm64 and x64, and `pow` by libc too.
+    **The sim itself no longer does**: the page, the server worker, tick workers, proof recorders and any `NetRoom` or
+    `NetClient` run `@wildshard/engine/core/portableMath`, imported first through `portableMathFirst` so no module body
+    sees native Math. A sim entry a new process adds does the same. The nine Nalati chapter stages hash the same on Darwin
+    arm64 and Linux x64, and the functions match on V8 arm64, V8 x64 and JavaScriptCore; `test/portable-math.test.ts`
+    holds that. A baker keeps its own: for any other digest install
     `test/fake/portableMath.ts` for the file (`installPortableMath()`), keep its terrain analytic, and check the digest
     under x64 Node too (Rosetta: `scripts/x64-vitest.sh --setup` once per Mac fetches nodejs.org's darwin-x64 build and
     the matching `@rolldown/binding-darwin-x64` into `~/.local/node-x64`; `scripts/x64-vitest.sh <files>` runs them).
