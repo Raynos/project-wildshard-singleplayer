@@ -5,7 +5,7 @@
 // exact creature state, then a save made in the worker survives a real reload. E5.4's pointer half (J54, J57): the pointer
 // then moves to a new build, the stale tab's `hello` is refused, and the tab reloads into that build with its save.
 //
-//   python3 scripts/heavy-lane.py build -- scripts/browser-lane.sh node scripts/standalone-smoke.mjs [--dist=dist] [--slug=sunscar-dunes] [--browser=chromium|webkit] [--seconds=10]
+//   python3 scripts/heavy-lane.py build -- scripts/browser-lane.sh node scripts/standalone-smoke.mjs [--dist=dist] [--slug=sunscar-dunes] [--browser=chromium|webkit] [--seconds=10] [--product=<an unpacked tarball>]
 import { createReadStream, existsSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, resolve as resolveFile, sep } from 'node:path';
@@ -33,7 +33,7 @@ let pointer = firstBuild;
 const html = readFileSync(join(OUT, 'index.html'), 'utf8');
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.wasm': 'application/wasm' };
-const product = readBuiltShardfile(ROOT, slug), physics = join(ROOT, 'public/assets/physics');
+const unpacked = option('product', ''), product = unpacked === '' ? readBuiltShardfile(ROOT, slug) : resolveFile(unpacked), physics = join(ROOT, 'public/assets/physics');
 const resolvePath = path => {
   const inside = (root, tail) => { const file = resolveFile(root, `.${tail}`); return file === root || file.startsWith(root + sep) ? file : null; };
   if (path.startsWith(`/shards/${slug}/`)) return inside(resolveFile(product), path.slice(`/shards/${slug}`.length));
