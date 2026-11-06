@@ -23,7 +23,7 @@ test('cold DOM fixture compiles all original guest bytes in native Node', async 
       ['behaviour/bridgeSway.generated.wasm', 3027, '693178e1cd72189bcd832d219511e7b357cf57281f8c17e342f3ae27ec9edb6d'],
       ['behaviour/bridgeSway.generated.json', 241, '80e3b175712951210c91b497d251aea503f918c567dadeb745ee2985925621b0'],
       ['assets/25121a8616589da2265bc6d0537c86eabec4d64d26d0bd757268d80dac2cba1b', 1428, '25121a8616589da2265bc6d0537c86eabec4d64d26d0bd757268d80dac2cba1b'],
-      ['behaviour/director.json', 265, '8291cc286835c1eec33e0cd8481a78a9ce7a80138d5b3cee6552e019f711840a'],
+      ['behaviour/director.json', 270, '9965ee5228e10a3e87f77d22f64bf51566a71ef736fe0ad8c6f351f424725949'],
     ]);
   } finally { rmSync(cache, { recursive: true }); }
 }, 60_000);
