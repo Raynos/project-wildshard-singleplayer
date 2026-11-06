@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import * as v from 'valibot';
+import { poseInputNames } from '../../shared/plugin/channelPrograms';
 import { PopulationProjectionSchema, type PopulationProjectionRows } from '@wildshard/format/populationProjection';
 import type { PageActorGroups } from '../../server/population/pageGroups';
 import { pageSim } from '../shardfile/clientMoverOwners';
@@ -57,6 +58,8 @@ export class PopulationProjection {
     this.drops = new ParticlePool({ capacity: row.splash.capacity, material, renderOrder: 5, attributes: {}, parkY: -1000 });
     scope.own(this.drops.points.geometry); this.group.add(this.drops.points);
     this.observers = row.effects.map(effect => ({ row: effect, actor: null, state: 0, elapsed: 0 }));
+    // A body a server runs has no memory here but what its rows say: these views ask for theirs as a pose program does.
+    for (const name of [...row.effects.map(effect => effect.state), row.light.rise, row.light.rising]) poseInputNames.add(name);
     scope.onDisposeSteps(() => this.disposeSteps());
   }
   get practice(): Animal | null { return this.creatures.practice; }
