@@ -57,11 +57,15 @@ test('a lift takes a call from its island, and from nowhere else', async () => {
   stand(live, 150, 200, 150);
   press(live, id);
   expect(actRoutes(host).refused).toBe(refused + 1);
+  const [x, y, z] = lift.roadStop;
+  stand(live, x, y, z + 30); // well inside the old 40 m, and past the deck's prompt
+  press(live, id);
+  expect(actRoutes(host).refused).toBe(refused + 2);
   stand(live, ...lift.roadStop);
   idle(live, 30);
   const low = player.position.y;
   press(live, id);
   idle(live, 240);
-  expect(actRoutes(host).refused).toBe(refused + 1);
+  expect(actRoutes(host).refused).toBe(refused + 2);
   expect(player.position.y - low).toBeGreaterThan(0.5); // the deck takes who stands on it
 }, 60_000);

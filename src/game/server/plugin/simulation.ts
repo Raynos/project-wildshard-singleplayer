@@ -69,6 +69,8 @@ import { prepareDeclaredCrowds, type DeclaredCrowdPorts, type PreparedCrowds } f
 import { installLadders, type LadderClientPorts } from '../../shared/shardfile/ladder';
 import { MoverScriptDriver, playerGrounds, verifiedMoverModules, proveTerrainEntries, type TerrainEntryWalk, type DeclaredMoverComposition, type MoverRuntime } from "./mover";
 import { socketLiftEntries } from "@wildshard/format/socketLiftAssets";
+import { createClientChannels } from "../../shared/plugin/channels";
+import type { MoverPose } from "@wildshard/engine/physics/mover";
 import { liftPrompt } from "../../shared/shardfile/wirePrompts";
 import { portalLinkEntries, portalLinkRules } from "@wildshard/format/portalLinkAssets";
 import { validatePortalFloors } from "@wildshard/format/portalFloor";
@@ -297,8 +299,8 @@ export function ledgerPorts(emit: (effect: { kind: 'fact'; name: string; actorId
 }
 /** The tick protocol's command allowance (sdk/tickProtocol.ts): one tick never carries more. */
 const MAX_TICK_COMMANDS = 1024;
-/** Metres from a lift's road stop or its deck that a call can come from: a far rim calls it across its whole island. */
-const LIFT_REACH = 40;
+/** Metres past a prompt's radius a press still counts: the server has feet below the eye a page picks from, and a command behind it. */
+const PROMPT_SLACK = 2.5;
 /**
  * One owner's view of a trusted runtime's tick commands: each lent command in tape order through `pick` (undefined skips
  * it) into one reused list, so a step allocates no list; a tick past the protocol's allowance refuses.
@@ -659,15 +661,29 @@ export function commandSocketLift(runtime: MoverRuntime, lift: SocketLift, actio
   runtime.command(lift.mover, action); runtime.command(lift.gate, action);
 }
 
-/** A client calls a lift by name, from where it could see the prompt. */
-function routeLifts(host: SimHost, shard: Pick<Shardfile, 'entryways'>, runtime: MoverRuntime): void {
-  const routes = actRoutes(host), near = (player: string, x: number, y: number, z: number): boolean => {
-    const body = host.players.get(player)?.position;
-    return body !== undefined && Math.hypot(body.x - x, body.y - y, body.z - z) <= LIFT_REACH;
-  };
-  for (const { lift } of socketLiftEntries(shard.entryways)) for (const action of [1, 2, 3] as const) routes.claims.set(liftPrompt(lift.mover, action), player => {
-    const [x, y, z] = lift.roadStop, { position: deck } = runtime.pose(lift.mover);
-    if (near(player, x, y, z) || near(player, deck.x, deck.y, deck.z)) commandSocketLift(runtime, lift, action);
+/** One lift prompt as its row declares it: where it stands for a deck's pose, and when it stands nowhere at all. */
+interface LiftPromptSpot { readonly radius: number; readonly at: (pose: MoverPose) => { readonly x: number; readonly y: number; readonly z: number } | null }
+function liftPromptSpots(shard: Pick<Shardfile, 'clientChannels'>): Map<string, LiftPromptSpot> {
+  const spots = new Map<string, LiftPromptSpot>();
+  for (const program of shard.clientChannels ?? []) {
+    const { prompt } = program;
+    if (prompt?.action.kind !== 'socketLift') continue;
+    const lane = createClientChannels(program), axes = lane.reads.map(read => /^position\.([xyz])$/u.exec(read)?.[1]);
+    if (axes.some(axis => axis !== 'x' && axis !== 'y' && axis !== 'z')) throw new Error('A lift prompt reads its deck\'s position only');
+    spots.set(`${prompt.action.edge}:${String(prompt.action.action)}`, { radius: prompt.radius, at: pose => {
+      lane.evaluate({ time: 0, delta: 0, values: axes.map(axis => axis === 'x' ? pose.position.x : axis === 'y' ? pose.position.y : pose.position.z) });
+      const { x, y, z } = lane.frame;
+      return x === undefined || y === undefined || z === undefined ? null : { x, y, z };
+    } });
+  }
+  return spots;
+}
+/** A client calls a lift by name, and the prompt's own row says from where: within its radius of where it stands now, so a deck under way takes no call. */
+function routeLifts(host: SimHost, shard: Pick<Shardfile, 'entryways' | 'clientChannels'>, runtime: MoverRuntime): void {
+  const routes = actRoutes(host), spots = liftPromptSpots(shard);
+  for (const { edge, lift } of socketLiftEntries(shard.entryways)) for (const action of [1, 2, 3] as const) routes.claims.set(liftPrompt(lift.mover, action), player => {
+    const spot = spots.get(`${edge}:${String(action)}`), body = host.players.get(player)?.position, at = spot?.at(runtime.pose(lift.mover)) ?? null;
+    if (spot !== undefined && body !== undefined && at !== null && Math.hypot(body.x - at.x, body.y - at.y, body.z - at.z) < spot.radius + PROMPT_SLACK) commandSocketLift(runtime, lift, action);
     else routes.refused++;
   });
 }
