@@ -164,8 +164,9 @@ export function analyse(rows) {
   if (control !== null) {
     // the game's drawn frames (it paces its draws, so the page's rAF can tick at 60 while the world draws at 5): each poll
     // reads frames drawn since start and the 120-slot ring of their times; the new slots spread over the poll interval
-    // Each poll's new frames spread over the page's own clock, read as the poll ran: its reply reaches this machine late on a busy
-    // Mac (Nalati cold on 071837b: 307 ms, so a 577 ms interval read 877 ms and the next 807 ms read 534, a 17 then a 38 at a steady 30)
+    // Each poll's new frames stand back from the page's own clock as the poll read it, by their own lengths: a reply reaches this
+    // machine late on a busy Mac (Nalati cold on 071837b: 307 ms, so 577 ms of frames read as 877 and the next 807 as 534, a 17 then a 38
+    // at a steady 30), and a stall before a poll holds no frames to spread over it (Pine, 13 frames of 578 ms in a 2,205 ms interval)
     const paged = Number.isFinite(controlRow?.now) && Number.isFinite(controlRow?.origin);
     const pageTime = (row) => (paged && Number.isFinite(row.now) ? control + row.now - controlRow.now : row.t);
     const drawn = [];
@@ -174,10 +175,9 @@ export function analyse(rows) {
       if (!row.drawn) continue;
       if (prev !== null && row.drawn.n > prev.drawn.n && sameDocument(row, prev) && sameDocument(row, controlRow)) {
         const k = Math.min(row.drawn.ms.length, row.drawn.n - prev.drawn.n), size = row.drawn.ms.length;
-        for (let j = 0; j < k; j++) {
-          const ms = row.drawn.ms[(row.drawn.i - k + j + size * 2) % size];
-          drawn.push({ at: pageTime(prev) + ((pageTime(row) - pageTime(prev)) * (j + 1)) / k, ms });
-        }
+        const frames = Array.from({ length: k }, (_, j) => row.drawn.ms[(row.drawn.i - k + j + size * 2) % size]);
+        let at = pageTime(row) - frames.reduce((sum, ms) => sum + ms, 0);
+        for (const ms of frames) { at += ms; drawn.push({ at, ms }); }
       }
       prev = row;
     }
