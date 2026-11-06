@@ -263,6 +263,8 @@ async function readSpawnFile(url: string, maximum: number, ports: SpawnDownloadP
     throw error;
   }
 }
+/** How many times a warm visit's check tells the card what it has counted. */
+const CHECK_STEPS = 50;
 /** Exactly one list, one denominator and one completion per file. A complete
  * worker-cache response credits immediately without reading/checksumming it. */
 export function downloadSpawnManifest(address: SpawnManifestAddress, ports: SpawnDownloadPorts, base: string, packs: string = base): SpawnDownload {
@@ -379,24 +381,6 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       // exactly its listed length (the header `keep` wrote, else the body); any other entry is fetched again with its
       // part (sp-x9's review of 77f9b5489f).
       const unfit = new Set<string>();
-      await Promise.all(files.map(async file => {
-        if (!heldFiles.has(file.url) || await heldMember(await ports.cached(file.url), file.bytes)) return;
-        heldFiles.delete(file.url); unfit.add(file.url);
-      }));
-      const rest = files.filter(file => !heldFiles.has(file.url) && !unfit.has(file.url));
-      const present = heldFiles.size > 0 && rest.length <= 64 ? undefined : await ports.present?.(rest.map(file => file.url)).catch(() => undefined);
-      // Bulk native metadata avoids hundreds of cache IPC calls. Unmapped
-      // responses (older synthetic URLs/redirects) retain the exact hit check.
-      const cached = await Promise.all(files.map(file => heldFiles.has(file.url) || unfit.has(file.url) || present?.has(file.url) === true ? Promise.resolve(undefined) : ports.cached(file.url)));
-      controller.signal.throwIfAborted();
-      const missing: typeof files = [];
-      for (let index = 0; index < files.length; index++) {
-        const file = files[index]; if (file === undefined) throw new Error('Missing spawn file');
-        if (unfit.has(file.url)) missing.push(file);
-        else if (heldFiles.has(file.url) || present?.has(file.url) === true || cached[index]?.status === 200 && !/\btext\/html\b/iu.test(cached[index]?.headers.get('content-type') ?? '')) { completedBytes += file.bytes; cachedBytes += file.bytes; wireCompleted += file.wireBytes; wireCached += file.wireBytes; filesDone++; settleFile(file.url, true); }
-        else missing.push(file);
-      }
-      progressKnown = true;
       // An uncontrolled page (the `store` port exists only then) reads these from the store until control (read once).
       // The layer is checked on every serve, so a fetch replaced mid-page is wrapped again (sp-x2's review).
       const serve = (file: {readonly url: string; readonly bytes: number; readonly hash: string}): void => {
@@ -404,7 +388,39 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
         storeRead ??= ports.cached;
         storedUrls.set(file.url, {bytes: file.bytes, hash: file.hash});
       };
-      for (const file of files) if (!missing.includes(file)) serve(file);
+      // DL21: a warm visit's check is one cache lookup a file (Nine 1.2-1.7 s on the Simulator, Pine 1.5 s). Each file counts,
+      // and its page read goes on, as its own lookup lands: the card read '0.00 MB of 42.1 MB' and setup sat behind the
+      // slowest lookup until the whole list had answered.
+      const counted = new Set<string>();
+      let toldBytes = 0;
+      const credit = (file: (typeof files)[number]): void => {
+        if (controller.signal.aborted) return;
+        counted.add(file.url); completedBytes += file.bytes; cachedBytes += file.bytes; wireCompleted += file.wireBytes; wireCached += file.wireBytes; filesDone++;
+        serve(file); settleFile(file.url, true);
+      };
+      /** A lookup landed: the card hears each fiftieth of the list, which moves it with no render per file. */
+      const looked = (file: (typeof files)[number]): void => {
+        credit(file);
+        if (controller.signal.aborted || completedBytes - toldBytes < address.totalBytes / CHECK_STEPS) return;
+        toldBytes = completedBytes; progressKnown = true; publish();
+      };
+      await Promise.all(files.map(async file => {
+        if (!heldFiles.has(file.url)) return;
+        if (await heldMember(await ports.cached(file.url), file.bytes)) { looked(file); return; }
+        heldFiles.delete(file.url); unfit.add(file.url);
+      }));
+      const rest = files.filter(file => !heldFiles.has(file.url) && !unfit.has(file.url));
+      const present = heldFiles.size > 0 && rest.length <= 64 ? undefined : await ports.present?.(rest.map(file => file.url)).catch(() => undefined);
+      // Bulk native metadata avoids hundreds of cache IPC calls. Unmapped
+      // responses (older synthetic URLs/redirects) retain the exact hit check.
+      await Promise.all(rest.map(async file => {
+        if (present?.has(file.url) === true) { credit(file); return; }
+        const hit = await ports.cached(file.url);
+        if (hit?.status === 200 && !/\btext\/html\b/iu.test(hit.headers.get('content-type') ?? '')) looked(file);
+      }));
+      controller.signal.throwIfAborted();
+      const missing = files.filter(file => !counted.has(file.url));
+      progressKnown = true;
       if (missing.length === 0) { complete = true; if (jobWaits === waits) { jobWaits = null; jobDemand = null; } publish(); return; }
       publish(); let cursor = 0;
       // DL11 slice 4: the loose files (code, the product header, the transcoder) are read on their own lanes from the

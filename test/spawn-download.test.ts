@@ -71,6 +71,20 @@ test('a pending cache census keeps its fixed total but publishes no invented zer
   ]);
 });
 
+test('a warm check counts each file as its own lookup lands, behind the slowest', async () => {
+  let release: (hit: Response) => void = () => undefined;
+  const slowest = new Promise<Response>(resolve => {release = resolve;});
+  const download = downloadSpawnManifest(address, {
+    cached: url => url.endsWith('.json') ? Promise.resolve(new Response(text))
+      : url.endsWith('.js') ? slowest : new Promise(resolve => {setTimeout(() => {resolve(new Response(new Uint8Array(4)));}, 150);}),
+    fetch: () => Promise.reject(new Error('Warm bodies must not be fetched')),
+  }, base);
+  await vi.waitFor(() => {expect(download.snapshot()).toMatchObject({progressKnown: true, completedBytes: 4, cachedBytes: 4, filesDone: 1, complete: false});});
+  release(new Response(new Uint8Array(3)));
+  await download.ready;
+  expect(download.snapshot()).toMatchObject({completedBytes: 7, cachedBytes: 7, filesDone: 2, complete: true});
+});
+
 test.each([2, 5])('a short/oversized body (%s) never completes or exceeds the manifest total', async count => {
   const download = downloadSpawnManifest({...address, files: 1, totalBytes: 4, bytes: JSON.stringify({...manifest, files: [files[0]], totalBytes: 4}).length}, {
     cached: () => Promise.resolve(undefined), fetch: url => Promise.resolve(new Response(url.endsWith('.json') ? JSON.stringify({...manifest, files: [files[0]], totalBytes: 4}) : new Uint8Array(count))),
