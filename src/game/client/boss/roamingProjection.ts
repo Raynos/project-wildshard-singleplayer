@@ -202,7 +202,7 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
     rowBody ??= ctx.animals.animals.find(body => body.rowDriven && body.kind === encounterRows.kind) ?? null;
     if (rowBody === null) return;
     look ??= bindBossSocketRig(context.scope, rows.socketRig.id, rowBody);
-    look.setGlow(heardRoom.glow); look.setHazardsHung(heardRoom.hung);
+    look.setHazardsHung(heardRoom.hung);
   };
   const struckView = (point: THREE.Vector3, dir: THREE.Vector3): void => {
     cues.cue(rows.events.hit, point, dir); wirePage.drew('struck');
@@ -301,7 +301,7 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
     if (!wirePage.on) {
       if (fight.body === null || look === null) return;
       look.setOpen(Math.max(fight.open, 0.35 * fight.darkK), t);
-    } else look?.setOpen(Math.max(heardRoom.open, 0.35 * heardRoom.darkK), t);
+    } else if (look !== null) { look.setGlow(heardRoom.glow); look.setOpen(Math.max(heardRoom.open, 0.35 * heardRoom.darkK), t); } // in this order, as a frame of his own fight lands them: the opening burns over the glow
     if (!light) return;
     if (air.darkK > rows.light.darkness) {
       const c = ctx.game.camera.position;
