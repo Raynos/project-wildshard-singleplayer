@@ -36,6 +36,14 @@ function heardTell(name: string, args: readonly number[]): HeardTell | null {
   const tell = name === ELITE_TELL.lane ? 'lane' : name === ELITE_TELL.ring ? 'ring' : null, [, phase = 0, time = 0, windup = 0, x0 = 0, z0 = 0, x1 = 0, z1 = 0, width = 0, radius = 0, bodyX = 0, bodyZ = 0] = args;
   return tell === null ? null : { tell, phase: phase === 0 ? 'windup' : phase === 1 ? 'active' : 'done', time, windup, x0, z0, x1, z1, width, radius, bodyX, bodyZ, at: 0 };
 }
+/** Metres from a blow's victim a page takes it for its own: the row says who by where, and a shake is one body's. */
+const WHO_WAS_HIT = 2;
+/** The row body that stands at a server's point, whose head a cue's puff leaves from. */
+function rowBodyAt(animals: AnimalManager, x: number, z: number): Animal | null {
+  let best: Animal | null = null, nearest = 1;
+  for (const body of animals.animals) { const away = Math.hypot(body.position.x - x, body.position.z - z); if (away < nearest) { best = body; nearest = away; } }
+  return best;
+}
 export function installEliteFeaturePage(game: Game, animals: AnimalManager, player: Player, sky: SkyRig, elites: Elites,
   models: ReadonlyMap<string, THREE.Object3D>, input: unknown, seed: number, hud: HUD, god = false): {
   readonly elites: Elites; readonly update: (dt: number, t: number) => void; readonly force: (id: string, move: string) => void; readonly isElite: (body: Animal) => boolean;
@@ -82,7 +90,23 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
   const active = new Set<string>(), heard = new Map<string, HeardTell>();
   let lastTime = 0;
   const scope = game.app.levelScope;
+  /** The server's cue, as a page's own would play: `args` are its row, its elite, where it landed, and the body. */
+  const heardCue = ([index = -1, elite = -1, atX = 0, atY = 0, atZ = 0, bodyX = 0, bodyY = 0, bodyZ = 0, scale = 1]: readonly number[]): void => {
+    const cue = view.cues[index], id = controllers[elite]?.def.id;
+    if (cue === undefined || id === undefined) return;
+    if (cue.signature === true) elites.signature(id);
+    if (cue.trauma !== undefined) CameraFX.for(game).addTrauma(cue.trauma);
+    if (cue.voice !== undefined) animals.onSound?.(cue.voice, point.set(atX, atY, atZ));
+    const fx = cue.effect; if (fx === undefined) return;
+    if (fx.kind === 'puff') {
+      const body = fx.at === 'head' ? rowBodyAt(animals, bodyX, bodyZ) : null;
+      if (body === null) point.set(bodyX, bodyY, bodyZ); else body.headWorld(point);
+      point.y += fx.height * scale; puffs.burst(point, fx.speed, fx.size, fx.lifetime, fx.opacity);
+    } else { point.set(bodyX, bodyY + fx.height, bodyZ); direction.set(player.position.x - point.x, 0, player.position.z - point.z); Impacts.for(game).burst('dirt', point, direction, fx.count); }
+  };
   if (wirePage.on && scope !== null) wirePage.whenLive(scope, client => client.onView(({ name, args }) => {
+    if (name === ELITE_TELL.cue) { heardCue(args); return; }
+    if (name === ELITE_TELL.hit) { const [trauma = 0, x = 0, z = 0] = args; if (Math.hypot(x - player.position.x, z - player.position.z) < WHO_WAS_HIT) CameraFX.for(game).addTrauma(trauma); return; }
     const row = heardTell(name, args);
     if (row !== null) { row.at = lastTime; heard.set(`${name}:${String(args[0])}`, row); }
   }));

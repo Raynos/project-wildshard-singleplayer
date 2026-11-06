@@ -78,13 +78,20 @@ export function installNativeEliteFeature(host: SimHost, day: DayCycleClock, inp
       if (body === null || name === null) continue;
       sayFightView(host, name, [index * 256 + strike.actor, strike.phase === 'windup' ? 0 : strike.phase === 'active' ? 1 : 2, strike.time, strike.windup, strike.x0, strike.z0, strike.x1, strike.z1, strike.width, strike.radius, body.position.x, body.position.z]);
     }
-    for (const script of scripts) for (const effect of script.program.drainEffects()) {
-      if (effect.kind === 'cue') { if (rows.view?.cues.find(row => row.id === script.program.cue(effect.id))?.signature === true) core.signature(script.def.id); continue; }
+    for (const [index, script] of scripts.entries()) for (const effect of script.program.drainEffects()) {
+      if (effect.kind === 'cue') {
+        const name = script.program.cue(effect.id), cue = rows.view?.cues.findIndex(row => row.id === name) ?? -1, body = script.program.body(effect.actor);
+        if (rows.view?.cues[cue]?.signature === true) core.signature(script.def.id);
+        // the page's voice, puff and shake, off the same rows
+        if (cue !== -1 && body !== null) sayFightView(host, ELITE_TELL.cue, [cue, index, effect.at.x, effect.at.y, effect.at.z, body.position.x, body.position.y, body.position.z, body.scale]);
+        continue;
+      }
       if (effect.kind !== 'hit') continue;
       const body = script.program.body(effect.actor); if (body === null) throw new Error('Missing elite contact body');
       const foe = nearestOnGround(host.players, body.position.x, body.position.z);
       host.combat.hit({ source: body.combatActor(), sourceTags: [`creature.${body.kind}`, 'feel.blow', 'cover.checked'], target: foe.health,
         amount: effect.hit.damage, point: body.position.clone(), dir: direction.set(0, 0, 0), throughWalls: effect.hit.throughWalls, cause: { kind: body.kind, label: body.label } });
+      if (effect.hit.trauma > 0) sayFightView(host, ELITE_TELL.hit, [effect.hit.trauma, foe.position.x, foe.position.z]);
       if (effect.hit.stun > 0) { const p = foe.position, stun = stuns.get(foe.id); stuns.set(foe.id, { t: effect.hit.stun, x: stun?.x ?? p.x, y: stun?.y ?? p.y, z: stun?.z ?? p.z }); }
     }
   }, {
