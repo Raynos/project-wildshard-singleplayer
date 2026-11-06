@@ -195,7 +195,7 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
   });
   if (rows.board !== undefined) actRoutes(host).board = (player, op, slot) => {
     const gear = gearOf(player), reach = { x: gear.body.position.x, y: gear.body.position.y + rows.eye, z: gear.body.position.z };
-    gear.board?.use(CONTRACT_ACTION.open, reach); gear.claim((op === 'claim' ? CONTRACT_ACTION.claim0 : CONTRACT_ACTION.tear0) + slot); gear.board?.use(CONTRACT_ACTION.close, reach);
+    gear.board?.use(CONTRACT_ACTION.open, reach); eye.set(reach.x, reach.y, reach.z); gear.claim((op === 'claim' ? CONTRACT_ACTION.claim0 : CONTRACT_ACTION.tear0) + slot); gear.board?.use(CONTRACT_ACTION.close, reach);
   };
   if (rows.trade !== undefined) actRoutes(host).buy = (player, good) => { const { trader: seat } = gearOf(player); if (seat !== null) { seat.open(); try { seat.use(good); } finally { seat.close(); } } };
   const interactions = actRoutes(host).interactions, promptActor = ports.source.questHost?.graph.actor;
