@@ -75,6 +75,10 @@ let jobDemand: ((url: string) => void) | null = null;
  *  current from the job's listing, replaced by the next job's, dropped when its job fails or is cancelled, kept after a
  *  completed job until control. */
 let jobPaths: ReadonlyMap<string, string> | null = null;
+/** DL25: every file a download of this page has listed, by origin and path, and past control: the server worker's reads carry
+ *  no `?v=`, and may come after control has released the members. A row only says where to look; each read checks the bytes. */
+const pageFiles = new Map<string, HeldFile>();
+interface HeldFile {readonly url: string; readonly bytes: number; readonly hash: string; readonly read: (url: string) => Promise<Response | undefined>}
 const ownSignals = new WeakSet<AbortSignal>();
 /** DL11 slice 4: parts read at once. Two keep the link full while a demanded part gets half of it, not a twelfth. */
 const PART_LANES = 2;
@@ -122,15 +126,8 @@ function installMemberLayer(): boolean {
       if (bytes !== null && bytes !== undefined) return new Response(bytes, {status: 200, headers: {'content-type': typeOf(url), 'content-length': String(bytes.length)}});
       const expected = storedUrls.get(url);
       if (expected !== undefined && storeRead !== null) {
-        // Served only as the manifest's exact file (sp-x2's review): a 200, not a page, its length and sha256; a short,
-        // replaced or corrupt copy goes to the network instead.
-        const hit = await storeRead(url).catch(() => undefined);
-        if (hit?.status === 200 && !/\btext\/html\b/iu.test(hit.headers.get('content-type') ?? '')) {
-          const body = new Uint8Array(await hit.arrayBuffer().catch(() => new ArrayBuffer(0)));
-          if (body.byteLength === expected.bytes && await sha256(body) === expected.hash) {
-            return new Response(body, {status: 200, headers: {'content-type': typeOf(url), 'content-length': String(body.byteLength)}});
-          }
-        }
+        const body = await exactCopy({...expected, url, read: storeRead});
+        if (body !== null) return new Response(body, {status: 200, headers: {'content-type': typeOf(url), 'content-length': String(body.byteLength)}});
       }
     }
     return network(input, init);
@@ -140,6 +137,25 @@ function installMemberLayer(): boolean {
 }
 async function sha256(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
   return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), byte => byte.toString(16).padStart(2, '0')).join('');
+}
+/** Served only as the manifest's exact file (sp-x2's review): a 200, not a page, its length and sha256; a short, replaced or
+ *  corrupt copy is null, and its reader goes to the network instead. */
+async function exactCopy(file: HeldFile): Promise<Uint8Array<ArrayBuffer> | null> {
+  const hit = await file.read(file.url).catch(() => undefined);
+  if (hit?.status !== 200 || /\btext\/html\b/iu.test(hit.headers.get('content-type') ?? '')) return null;
+  const body = new Uint8Array(await hit.arrayBuffer().catch(() => new ArrayBuffer(0)));
+  return body.byteLength === file.bytes && await sha256(body) === file.hash ? body : null;
+}
+/** DL25: the server worker's ask. A file this page's download lists: its bytes once they land, moved to the front of the job
+ *  as any page read is, whether they sit in the part or the page's store. Null is 'not here': the worker reads the network. */
+export async function spawnHeldBytes(url: string): Promise<ArrayBuffer | null> {
+  const address = new URL(url, location.href), file = pageFiles.get(address.origin + address.pathname);
+  if (file === undefined) return null;
+  const pending = jobWaits?.get(file.url);
+  if (pending !== undefined) { jobDemand?.(file.url); await pending; }
+  const member = await members.get(file.url);
+  if (member !== null && member !== undefined) return member.slice().buffer; // a view into its part: only its own bytes cross
+  return (await exactCopy(file))?.buffer ?? null;
 }
 /** Control: the level is complete and its reads are done, so the member bytes go. */
 export function releaseSpawnMembers(): void { members.clear(); storedUrls.clear(); jobPaths = null; jobWaits = null; jobDemand = null; storeRead = null; }
@@ -255,7 +271,10 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
         for (const file of files) waits.set(file.url, new Promise<boolean>(resolve => { settles.set(file.url, resolve); }));
         jobWaits = waits; jobDemand = demand;
         // every listed file, bare or versioned: a bare entry of this job replaces an older job's versioned route
-        for (const file of files) { const listed = new URL(file.url); paths.set(listed.origin + listed.pathname, file.url); }
+        for (const file of files) {
+          const listed = new URL(file.url); paths.set(listed.origin + listed.pathname, file.url);
+          pageFiles.set(listed.origin + listed.pathname, {url: file.url, bytes: file.bytes, hash: file.hash, read: ports.cached});
+        }
         jobPaths = paths;
       }
       markListed();

@@ -9,6 +9,7 @@ import { deviceIdentity, type NetIdentity } from '@wildshard/engine/net/identity
 import { saveDocuments } from '@wildshard/engine/saves/indexed';
 import type { SaveStorage } from '@wildshard/engine/saves/store';
 import { ServerMessageSchema, ShellMessageSchema, type ProbedRow, type ServerMessage, type ShellMessage } from '@wildshard/format/standaloneControl';
+import { answerHeldReads, type HeldRead } from './heldReads';
 import { WorkerLoopback } from './workerLoopback';
 
 /** What the server should run and where the page keeps saves. */
@@ -30,6 +31,8 @@ export interface StandaloneConfig {
   readonly identity?: NetIdentity;
   /** A one-shard page: the server runs this cell alone, inside its own walls and with no road. */
   readonly lone?: true;
+  /** A page with a download: what it holds, which the server asks for before it reads the network (DL25). */
+  readonly held?: HeldRead;
 }
 /** A running standalone session. */
 export interface StandaloneShell {
@@ -89,10 +92,11 @@ export function connectStandalone(config: StandaloneConfig, control: MessagePort
 /** Start the standalone target: the server always in a module worker, with no main-thread fallback (J49). */
 export function startStandalone(config: StandaloneConfig): StandaloneShell {
   const worker = new Worker(new URL('serverWorker.ts', import.meta.url), { type: 'module' });
-  const control = new MessageChannel(), game = new MessageChannel();
-  worker.postMessage(null, [control.port2, game.port2]);
+  const control = new MessageChannel(), game = new MessageChannel(), reads = config.held === undefined ? undefined : new MessageChannel();
+  worker.postMessage(null, [control.port2, game.port2, ...reads === undefined ? [] : [reads.port2]]);
+  if (reads !== undefined && config.held !== undefined) answerHeldReads(reads.port1, config.held);
   // The worker sits beside this module, so an emitted module's `/b/<build>/` folder is the server's real build (J57).
   const served = /^\/b\/([\w.-]+)\//u.exec(new URL(import.meta.url).pathname)?.[1];
   const refused = (): void => { void import('@wildshard/engine/boot/browserChunkRecovery').then(recovery => recovery.reloadRefusedBuild()); };
-  return connectStandalone({ refused, ...served === undefined ? {} : { serverBuild: served }, ...config }, control.port1, game.port1, () => { worker.terminate(); });
+  return connectStandalone({ refused, ...served === undefined ? {} : { serverBuild: served }, ...config }, control.port1, game.port1, () => { reads?.port1.close(); worker.terminate(); });
 }

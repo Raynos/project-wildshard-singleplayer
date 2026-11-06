@@ -1612,6 +1612,7 @@
   "src/sdk/shardfile.ts": "shared",
   "src/sdk/standalone/continuation.ts": "server",
   "src/sdk/standalone/gridServer.ts": "server",
+  "src/sdk/standalone/heldReads.ts": "shared",
   "src/sdk/standalone/ledgerFilings.ts": "server",
   "src/sdk/standalone/netInput.ts": "shared",
   "src/sdk/standalone/serverHost.ts": "server",

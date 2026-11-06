@@ -6,13 +6,16 @@ import { nodeNamedJsonCheck, nodeOutputDescriptorChecks } from '@wildshard/game/
 import { carryOutputDescriptor, outputDescriptor, resolveOutputDescriptor, serverReadsFile } from '@wildshard/game/shardfile/outputDescriptor';
 import { shardProductData } from '@wildshard/game/shardfile/productData';
 import type { HeadlessRuntimeInput } from '../headlessRuntime';
+import type { HeldRead } from './heldReads';
 
 /** A file a page or an earlier server read left in Cache Storage. An index is held under its `?v=`, which a worker can't know. */
 function heldBytes(url: URL): Promise<Response | undefined> | undefined {
   return typeof caches === 'undefined' ? undefined : caches.match(url.href, { ignoreSearch: true, ignoreVary: true });
 }
 /** The network's answer, or offline what the device holds: a level the player has been to boots with no link. Every byte is verified after this. */
-async function serverBytes(url: URL, path: string): Promise<Uint8Array> {
+async function serverBytes(url: URL, path: string, held?: HeldRead): Promise<Uint8Array> {
+  const lent = await held?.(url.href); // DL25: what the page holds moves no bytes
+  if (lent !== undefined && lent !== null) return new Uint8Array(lent);
   const response = await fetch(url).catch(() => undefined);
   const usable = response?.ok === true ? response : await heldBytes(url);
   if (usable === undefined) throw new Error(`Missing server input ${path}`);
@@ -23,11 +26,11 @@ async function serverBytes(url: URL, path: string): Promise<Uint8Array> {
  * P1-E5.2: the worker's product reader, loadHeadlessProduct over `fetch`. It verifies the same index, sizes and SHA-256
  * addresses with the same checks; only where the bytes come from differs. C2's server packs replace this.
  */
-export async function fetchServerProduct(base: string, rapier: Rapier): Promise<HeadlessRuntimeInput> {
+export async function fetchServerProduct(base: string, rapier: Rapier, held?: HeldRead): Promise<HeadlessRuntimeInput> {
   const root = new URL(base, globalThis.location.href).href, slug = new URL('.', root).pathname.split('/').at(-2) ?? '';
   // The server class sits outside the tree a client reads (J91): `copyOutputProducts` says where, until C2's server packs.
   const serverRoot = new URL(`../../server-class/${slug}/`, root).href;
-  const read = (path: string): Promise<Uint8Array> => serverBytes(new URL(path, path.startsWith('server/') ? serverRoot : root), path);
+  const read = (path: string): Promise<Uint8Array> => serverBytes(new URL(path, path.startsWith('server/') ? serverRoot : root), path, held);
   const input: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await read('shard.json')));
   if (!isOutputIndex(input)) throw new Error('Standalone needs a format-2 output');
   const assembled = await resolveOutputDescriptor(input, { offline: false, hash: contentHash, read, checks: nodeOutputDescriptorChecks });
