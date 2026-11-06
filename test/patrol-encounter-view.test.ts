@@ -105,6 +105,20 @@ test('the member\'s fade drives its looks, and a dying one tears into its own mi
   expect(watch.riders).toEqual([]); expect(a.hidden).toBe(true);
 });
 
+test('on the wire a page draws a gallop behind a body that is up, and tears only what the server says', () => {
+  const { watch, heard } = orchard(), up = body('row-up', 0, 0, 0, 'scout'), down = body('row-down', 9, 0, 0, 'scout');
+  down.alive = false;
+  const rows = [{ ...up, rowDriven: true }, { ...down, rowDriven: true }];
+  vi.spyOn(app.rng, 'stream').mockReturnValue({ next: () => -1 } as ReturnType<typeof app.rng.stream>); // under any rate, this fixture's 0 too
+  watch.showRows('orchard-watch', rows, 0.05, { cue: (id, at) => { heard.push({ id, at: at.toArray() }); } });
+  watch.showRows('orchard-watch', rows, 0.05, { cue: (id, at) => { heard.push({ id, at: at.toArray() }); } });
+  expect(heard.filter(row => row.id === 'cue.orchard.form')).toHaveLength(2);
+  expect(heard.filter(row => row.id === 'cue.orchard.trail')).toHaveLength(2);
+  expect(heard.some(row => row.id === 'cue.orchard.tear')).toBe(false);
+  watch.hearTear([1, 2, 3], { cue: (id, at) => { heard.push({ id, at: at.toArray() }); } });
+  expect(heard.at(-1)).toEqual({ id: 'cue.orchard.tear', at: [1, 2, 3] });
+});
+
 test('view rows refuse a look without its figure', () => {
   const { scope } = orchard(), game = {} as Game;
   Object.defineProperties(game, { levelScope: { value: scope }, app: { value: app }, scene: { value: new Scene() } });

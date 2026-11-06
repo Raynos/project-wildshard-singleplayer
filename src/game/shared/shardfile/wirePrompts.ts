@@ -12,6 +12,8 @@ export const spawnCueWord = (script: string): string => `spawn.cue:${script}`;
 export const ELITE_TELL = { lane: 'elite.tell.lane', ring: 'elite.tell.ring', cue: 'elite.cue', hit: 'elite.hit' } as const;
 /** The arrow a patrol's rider looses: where it leaves, then its velocity. */
 export const PATROL_SHOT = 'patrol.shot';
+/** Each step a rider is dying: where it tears. */
+export const PATROL_TEAR = 'patrol.tear';
 /** One slot of a thrown volley, as a script row. */
 export const volleyRow = (owner: string, slot: number): string => `volley.${owner}.${String(slot)}`;
 /** A socket lift's deck, by the call it takes. */

@@ -28,7 +28,7 @@ import { NativeCreaturePose, type NativeCreaturePoseRecipe } from '../../shared/
 import { numericCreaturePoseFromBook } from '../../shared/plugin/channelPrograms';
 import { poseRidingEnvelopes } from '../../shared/riding/presentation';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
-import { PATROL_SHOT } from '../../shared/shardfile/wirePrompts';
+import { PATROL_SHOT, PATROL_TEAR } from '../../shared/shardfile/wirePrompts';
 import type { nativeRangedHit } from '../plugin/nativeItems';
 import type { EncounterIntake } from '../population/encounterIntake';
 import { DirectedLaw } from '../population/directedLaw';
@@ -219,6 +219,7 @@ export async function preparePatrol(product:Pick<ShardProduct,'json'>,files:Patr
         const rider=law.riders[i];if(rider===undefined)throw new Error('Patrol roster changed during ordered effects');
         const effect=effects.get(rider),body=rider.a;
         if(effect?.['retire']===1){law.retire(i);continue;}
+        if((rider.law.state[rows.ride.states.dying]??0)>0){rider.view.jointPoint(rows.ride.figure.bone,rows.ride.seat,seat);sayFightView(host,PATROL_TEAR,[seat.x,seat.y,seat.z]);}
         if(rider.law.state[rows.ride.states.dead]===1||body.hidden)continue;
         if(effect?.['shoot']===1){
           rider.view.jointPoint(rows.ride.figure.bone,rows.ride.seat,seat);seat.y+=rows.ride.lift.loose*body.scale;

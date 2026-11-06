@@ -14,7 +14,7 @@ import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { CueDirector } from '../audio/cueDirector';
 import { ReturnProgram } from '../../shared/population/returnProgram';
-import { PATROL_SHOT } from '../../shared/shardfile/wirePrompts';
+import { PATROL_SHOT, PATROL_TEAR } from '../../shared/shardfile/wirePrompts';
 import { pageSim } from '../shardfile/clientMoverOwners';
 import { wirePage } from '../shardfile/wirePage';
 import { PatrolEncounterView, SlotEncounterView, type EncounterSites } from './encounterView';
@@ -34,6 +34,8 @@ export class TimedEncounters {
   /** On the wire the server runs the night: this draws its rows, and no law steps here. */
   private readonly rowsView: SlotRowsView | null;
   private animals: AnimalManager | null = null;
+  /** A cue this page only heard: drawn, and counted for a proof. */
+  private readonly heard: Pick<CueDirector, 'cue'> = { cue: (id, at, up) => { wirePage.drew(id); this.cues.cue(id, at, up); } };
   constructor(private readonly ctx: TimedEncounterContext, input: TimedEncountersRows,
     figures: Readonly<Record<string, BufferGeometry>>, guest: ReturnProgram, private readonly cues: CueDirector) {
     const rows = this.rows = input, scope = ctx.game.levelScope;
@@ -44,9 +46,9 @@ export class TimedEncounters {
     this.riders = new PatrolEncounterView({ patrol: rows.patrol, motion: rows.motion, view: rows.ride }, program,
       { game: ctx.game, sky: ctx.sky, player: ctx.player, forest: ctx.forest, cues: this.cues, figures });
     const actors = rows.slots.actors, sites = ctx.sites;
-    const heard: Pick<CueDirector, 'cue'> = { cue: (id, at, up) => { wirePage.drew(id); this.cues.cue(id, at, up); } };
-    this.rowsView = wirePage.on && actors !== undefined && sites !== null ? new SlotRowsView(actors.kind, rows.view, sites, this.slots.tells, { cues: heard, guest, row: name => wirePage.row(name), cosmetic: () => app.rng.stream('cosmetic').next(), drew: what => { wirePage.drew(what); } }) : null;
+    this.rowsView = wirePage.on && actors !== undefined && sites !== null ? new SlotRowsView(actors.kind, rows.view, sites, this.slots.tells, { cues: this.heard, guest, row: name => wirePage.row(name), cosmetic: () => app.rng.stream('cosmetic').next(), drew: what => { wirePage.drew(what); } }) : null;
     if (wirePage.on) wirePage.whenLive(scope, client => client.onView(({ name, args }) => {
+      if (name === PATROL_TEAR) this.riders.hearTear(args, this.heard);
       if (name !== PATROL_SHOT) return;
       this.riders.hearShot(args); wirePage.drew('shot');
     }));
@@ -71,7 +73,7 @@ export class TimedEncounters {
     if (wirePage.on) {
       rowsView?.update(dt, this.animals?.animals ?? []);
       const riders = rows.patrol.actors?.kind;
-      if (this.animals !== null && riders !== undefined) this.riders.showRows(riders, this.animals.animals);
+      if (this.animals !== null && riders !== undefined) this.riders.showRows(riders, this.animals.animals, dt, this.heard);
       this.riders.flyRows(dt);
       if (this.riders.arrows.inFlight > 0) wirePage.drew('arrow frame');
       this.cues.setLight(Math.max(rows.lightFloor, pageSim.wild.light)); this.cues.update(dt);

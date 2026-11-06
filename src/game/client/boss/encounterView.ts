@@ -156,7 +156,7 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
   private readonly joints: JointPorts<Rider<A>, A> = { actor: r => r.a, dead: r => r.law.state[this.rows.states.dead] === 1,
     joint: (r, at, out) => out.set(...at).applyMatrix4(r.view.bone.matrixWorld) };
   private shooter: A | null = null;
-  private readonly dressed = new WeakSet<A>();
+  private readonly dressed = new WeakMap<A, RiderView>();
   get killsTonight(): number { return this.law.killsTonight; }
   constructor(input: { readonly patrol: EncounterPatrolRows; readonly motion: EncounterScheduleRows; readonly view: PatrolViewRows }, program: ReturnProgram,
     private readonly ports: ProjectileWorld & { readonly cues: CueDirector; readonly figures: Readonly<Record<string, THREE.BufferGeometry>> }) {
@@ -180,13 +180,17 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
   spawnLine(at: { readonly count?: number; readonly captain?: boolean; readonly at?: number } = {}): A[] { return this.law.spawnLine(at); }
   dissolve(actor: A): void { this.law.dissolve(actor); }
   dawn(): void { this.law.dawn(); }
-  /** On the wire a server rides the night, and a page dresses each row's body once: a rider grown past its kind is a quiet one. */
-  showRows(kind: string, bodies: readonly (A & { readonly rowDriven?: boolean })[]): void {
+  /** On the wire a server rides the night, and a page dresses each row's body once: a rider grown past its kind is a quiet
+   *  one. Its gallop's trail is only a look, so it stays this page's, on a body still up. */
+  showRows(kind: string, bodies: readonly (A & { readonly rowDriven?: boolean })[], dt: number, cues: Pick<CueDirector, 'cue'>): void {
     for (const a of bodies) {
-      if (a.kind !== kind || a.rowDriven !== true || this.dressed.has(a)) continue;
-      this.dressed.add(a);
-      const view = this.dress(a, a.scale >= this.rows.quietScale - 0.01);
-      for (const fade of view.fades) fade.value = 1;
+      if (a.kind !== kind || a.rowDriven !== true) continue;
+      let view = this.dressed.get(a);
+      if (view === undefined) {
+        view = this.dress(a, a.scale >= this.rows.quietScale - 0.01); this.dressed.set(a, view);
+        for (const fade of view.fades) fade.value = 1;
+      }
+      if (a.alive && !a.hidden) this.trail(a, view.bone, dt, cues);
     }
   }
   private present(a: A, quiet: boolean): RiderView {
@@ -232,28 +236,33 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
       const a = r.a, effect = effects.get(r), state = r.law.state;
       if (effect?.['retire'] === 1) { this.law.retire(i); r.view.scope.dispose(); continue; }
       for (const fade of r.view.fades) fade.value = state[rows.states.fade] ?? 0;
-      if ((state[rows.states.dying] ?? 0) > 0) cues.cue(rows.cues.tear, this.seat(r), UP);
+      if ((state[rows.states.dying] ?? 0) > 0) cues.cue(rows.cues.tear, this.seat(r.view.bone), UP);
       if (state[rows.states.dead] === 1 || a.hidden) continue;
-      if (app.rng.stream('cosmetic').next() < dt * rows.trail.rate) {
-        back.set(-Math.sin(a.yaw), 0, -Math.cos(a.yaw));
-        cues.cue(rows.trail.cue, this.seat(r).addScaledVector(back, rows.trail.back), back);
-      }
+      this.trail(a, r.view.bone, dt, cues);
       if (!freeze && effect?.['shoot'] === 1) this.shoot(r);
     }
     this.arrows.update(dt);
     return this.hits;
   }
-  private seat(r: Rider<A>): THREE.Vector3 { return seat.set(...this.rows.seat).applyMatrix4(r.view.bone.matrixWorld); }
+  private seat(bone: THREE.Object3D): THREE.Vector3 { return seat.set(...this.rows.seat).applyMatrix4(bone.matrixWorld); }
+  /** The gallop's cue behind a rider, `rate` a second. */
+  private trail(a: A, bone: THREE.Object3D, dt: number, cues: Pick<CueDirector, 'cue'>): void {
+    if (app.rng.stream('cosmetic').next() >= dt * this.rows.trail.rate) return;
+    back.set(-Math.sin(a.yaw), 0, -Math.cos(a.yaw));
+    cues.cue(this.rows.trail.cue, this.seat(bone).addScaledVector(back, this.rows.trail.back), back);
+  }
   /** On the wire a server looses and lands the arrows: this draws the one it heard. Its only hits are a cue's. */
   hearShot([x = 0, y = 0, z = 0, vx = 0, vy = 0, vz = 0]: readonly number[]): void {
     this.arrows.launch(seat.set(x, y, z), aimed.set(vx, vy, vz), { damageScale: 1 });
     this.ports.cues.cue(this.rows.cues.loose, seat, UP);
   }
+  /** On the wire a server knows who's dying: this tears the one it heard, where it said. */
+  hearTear([x = 0, y = 0, z = 0]: readonly number[], cues: Pick<CueDirector, 'cue'>): void { cues.cue(this.rows.cues.tear, seat.set(x, y, z), UP); }
   /** One frame of the arrows a server loosed. */
   flyRows(dt: number): void { this.hits.length = 0; this.arrows.update(dt); }
   /** One arrow at the player: the `aim` signal's lead and spread from the rider's shoulders. */
   private shoot(r: Rider<A>): void {
-    const from = this.seat(r); from.y += this.rows.lift.loose * r.a.scale;
+    const from = this.seat(r.view.bone); from.y += this.rows.lift.loose * r.a.scale;
     const aim = this.law.aim(this.rows.aim, from);
     this.shooter = r.a;
     this.arrows.launch(from, aimed.set(aim['dx'] ?? 0, aim['dy'] ?? 0, aim['dz'] ?? 0), { damageScale: 1 });

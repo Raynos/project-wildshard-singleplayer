@@ -614,8 +614,15 @@ async function nightJourney(browser, phone, base, step) {
     const r = await report(page), frames = r.drawn['arrow frame'] ?? 0;
     return { ok: seen !== null && (r.drawn.shot ?? 0) > 0 && frames > 3, shot: r.drawn.shot, frames, seen, hurt: r.drawn.hurt, hp: r.hp };
   });
+  await step('night: a rider\'s gallop leaves its trail on the page', async () => {
+    const before = (await report(page)).drawn['cue.ghost.trail'] ?? 0;
+    await page.waitForTimeout(1500);
+    const trail = (await report(page)).drawn['cue.ghost.trail'] ?? 0;
+    return { ok: trail > before, before, trail };
+  });
   await step('night: dawn sends the rest home, and their sites stand', async () => {
     await page.evaluate(() => { window.__workerClientTime('midday'); });
+    const torn = await until(page, async () => { const count = (await report(page)).drawn['cue.ghost.tear'] ?? 0; return count > 0 ? count : null; }, 8, 100);
     // A body goes home on its own feet, so a body nobody's near waits for them: go round them.
     const end = Date.now() + 60_000;
     while ((await awakeRow()) !== 0 && Date.now() < end) {
@@ -625,7 +632,7 @@ async function nightJourney(browser, phone, base, step) {
     }
     const clear = (await awakeRow()) === 0;
     const r = await report(page);
-    return { ok: clear, row: await awakeRow(), left: (await page.evaluate(() => window.__workerClientRows('balbal'))).length, retired: r.retired };
+    return { ok: clear && torn !== null, torn, row: await awakeRow(), left: (await page.evaluate(() => window.__workerClientRows('balbal'))).length, retired: r.retired };
   });
   await step('night: no page error', () => ({ ok: steppe.errors.length === 0, errors: [...new Set(steppe.errors)].slice(0, 6) }));
   await steppe.context.close();
