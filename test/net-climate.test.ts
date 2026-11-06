@@ -6,6 +6,7 @@ import { NET_SCHEMA_HASH } from '../src/engine/shared/net/netSchemas';
 import { decodeAct, encodeAct } from '../src/engine/shared/net/messages';
 import { actRoutes } from '../src/engine/shared/sim/actRoutes';
 import { DAY_ROW, publishDay, shardRows } from '../src/engine/shared/sim/shardRows';
+import { DEFAULT_NORMALIZED_DAY, normalizedDayClock } from '../src/engine/shared/world/dayCycle';
 import { WirePage } from '../src/game/client/shardfile/wirePage';
 import { NetClient } from '../src/engine/client/net/client';
 import { netClimate } from '../src/game/client/weather/netClimate';
@@ -31,6 +32,18 @@ let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
 const fakeHost = (): SimHost => createSimHost(SIM_LEVEL, { rapier });
 const sky = (): Omit<Parameters<typeof publishWeather>[1], 'setMode' | 'force'> & { setMode: Mock<(mode: string, at?: number) => void>; force: Mock<(state: string, at?: number) => void> } => ({ n: { overcast: 0, rain: 0, wet: 0, wind: 0, fog: 0 }, state: 'clear', phaseLeft: 3, profile: { states: ['clear', 'storm'], modes: { live: 'none' } }, setMode: vi.fn(), force: vi.fn() });
+
+test('a page back from a room gives a lone player\'s day back to the server, and not a room\'s or a frozen one', () => {
+  const said = { kind: 'climate', seq: 4, op: 'day', name: 'room', at: 0.75 } as const;
+  expect(decodeAct(new Uint8Array(encodeAct(new BitWriter(), said)))).toEqual(said);
+  const host = fakeHost(), clock = host.useDayClock(normalizedDayClock(DEFAULT_NORMALIZED_DAY, null)), input = [{ acts: [said], command: null }];
+  netWorldInput(actRoutes(host), input); expect(clock.phase).toBe(0.75);
+  clock.phase = 0.25; clock.paused = true;
+  netWorldInput(actRoutes(host), input); expect(clock.phase, 'a Developer\'s frozen time holds').toBe(0.25);
+  clock.paused = false; host.addPlayer('bot:1', { x: 3, y: 0, z: 3 });
+  netWorldInput(actRoutes(host), input); expect(clock.phase, 'a room shares one day').toBe(0.25);
+  host.dispose();
+});
 
 test('a lone player\'s word lands on their sky, a known word only, and a room\'s sky hears no one', () => {
   const host = fakeHost(), air = sky(), input = (word: Omit<typeof act, 'kind' | 'seq' | 'op' | 'name' | 'at'> & { readonly op: 'mode' | 'force'; readonly name: string; readonly at: number }): { command: null; acts: readonly { kind: 'climate'; seq: number; op: 'mode' | 'force'; name: string; at: number }[] } => ({ command: null, acts: [{ kind: 'climate', seq: 0, ...word }] });

@@ -265,7 +265,9 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     const inside = event instanceof CustomEvent && event.detail === true;
     if (inside === away) return;
     away = inside; shell.hold(inside); player.link = inside ? null : net;
-    if (inside) ports.weapons.bindWire(null); else net.bindWeapons(ports.weapons, slotsOf(items));
+    if (inside) { ports.weapons.bindWire(null); return; }
+    net.bindWeapons(ports.weapons, slotsOf(items));
+    const day = ports.day(); if (day !== null) wirePage.dayPassed(day);
   });
   const { restored } = await shell.booted;
   if (new URLSearchParams(location.search).has('bossGod')) shell.bossGod();

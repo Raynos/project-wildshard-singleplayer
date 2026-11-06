@@ -503,6 +503,7 @@ export class SimHost {
     this.day = clock;
     publishDay(this, clock);
     actRoutes(this).time = pick => { if (this.players.size === 1) clock.pickTime(pick); }; // a room shares one day
+    actRoutes(this).day = phase => { if (this.players.size === 1 && !clock.paused) clock.phase = phase; };
     return clock;
   }
   /** The installed day clock, if any (its query surface: hour, phase, dayPhase, night, dusk, onDusk…). */

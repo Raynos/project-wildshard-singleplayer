@@ -114,6 +114,8 @@ export class WirePage {
     if (this.seeded !== null) this.say(word); else this.skyWords.set(word.op, word);
   }
   private say(word: ClimateWord): void { this.act({ kind: 'climate', seq: 0, ...word }); }
+  /** A player is back from a room. The page's law is that a day goes on while they practise, and this page's clock did: the server's held with its world. */
+  dayPassed(clock: DayFollower): void { if (!clock.paused) this.say({ op: 'day', name: 'room', at: clock.phase }); }
   /** One of a world's public rows, as the latest frame has it. */
   row(name: string): number | undefined { const { client } = this, frame = client?.latest ?? null; return client === null || frame === null ? undefined : client.stateField(frame, name); }
   /** The server's day, followed: the page's clock is a view of it. A paused clock is one a player or a tool stopped. */

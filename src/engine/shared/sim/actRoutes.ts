@@ -44,6 +44,8 @@ export interface ActRoutes {
   climate: ((act: Pick<NetClimateAct, 'op' | 'name' | 'at'>) => void) | null;
   /** A lone player's Developer time of day, on a world with a clock. */
   time: ((pick: string) => void) | null;
+  /** A lone player's day, back from a room: the world held and the page's clock didn't. */
+  day?: (phase: number) => void;
   /** The `mem` inputs a client's pose programs read: what a room tells it of a body beyond its rows. */
   readonly poseInputs: Set<string>;
   /** What a press takes by name with no prompt row of its own: a fight's reward. */

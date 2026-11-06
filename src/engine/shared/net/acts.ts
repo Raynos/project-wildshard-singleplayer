@@ -26,8 +26,8 @@ export interface NetPoseAct { readonly kind: 'pose'; readonly seq: number; reado
 export type NetTickAct = NetAct | NetClimateAct | NetBuyAct | NetBoardAct | NetWearAct | NetPoseAct;
 /** Any act a client may send. */
 export type NetRoomAct = NetTickAct | NetChatSay | NetChatReport;
-/** What a word on the sky says: its mode, a jump to a phase, or a Developer's time of day. */
-export const CLIMATE_OPS = ['mode', 'force', 'time'] as const;
+/** What a word on the sky says: its mode, a jump to a phase, a Developer's time of day, or where a page's day stood as a player came back from a room the world waited out. */
+export const CLIMATE_OPS = ['mode', 'force', 'time', 'day'] as const;
 /** The longest name a climate act may give. */
 const CLIMATE_NAME = 64;
 /** The longest list one pose act may give, net text's own cap: a page with more sends more than one. */
