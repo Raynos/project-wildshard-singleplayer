@@ -9,6 +9,7 @@ import * as v from 'valibot';
 import {packsBookPath} from '../src/game/shared/shardfile/spawnManifest';
 import {StandaloneCatalogueSchema} from '@wildshard/format/standaloneCatalogue';
 import {addCookedShards, catalogueWithAdded, writeCatalogueDocument} from '../scripts/app-build/catalogue';
+import {refreshServiceWorker, workerScripts} from '../scripts/app-build/serviceWorker';
 import {installTitleManifests, titleManifests, withCatalogueHeads, type TitleManifest} from '../src/game/client/shard/titleList';
 import {titlePrefetchOrder} from '../src/game/client/grid/titleOrder';
 import {GridAssembly} from '../src/game/shared/grid/assembly';
@@ -99,6 +100,22 @@ describe('the bake', () => {
     expect(merged.placements.slice(0, -1)).toEqual(shipped.placements);
     expect(merged.placements.at(-1)?.slug).toBe('test-shard');
     expect(() => catalogueWithAdded(built, built, ['test-shard'])).toThrow('no row for test-shard');
+  });
+
+  it('refreshes the worker\'s page and id with no bundler manifest', () => {
+    const out = mkdtempSync(join(tmpdir(), 'bake-worker-'));
+    try {
+      const before = '<html>one</html>', core = `const BUILD = 'b-1-0123456789';\nconst DOCUMENT = ${JSON.stringify(before)};\n`, {fileName, bootstrap} = workerScripts(core);
+      mkdirSync(join(out, 'sw-core'));
+      writeFileSync(join(out, fileName), core); writeFileSync(join(out, 'sw.js'), bootstrap);
+      writeFileSync(join(out, 'version.json'), '{"build":"b-1"}'); writeFileSync(join(out, 'index.html'), '<html>two</html>');
+      refreshServiceWorker(out, before);
+      const next = readFileSync(join(out, /"\/(sw-core\/[a-f0-9]+\.js)"/u.exec(readFileSync(join(out, 'sw.js'), 'utf8'))?.[1] ?? ''), 'utf8');
+      expect(next).toContain('<html>two</html>');
+      expect(next).not.toContain('0123456789');
+      expect(next).toMatch(/const BUILD = 'b-1-[a-f0-9]{10}'/u);
+      expect(() => { refreshServiceWorker(out, before); }).toThrow('another page');
+    } finally { rmSync(out, {recursive: true, force: true}); }
   });
 
   it('names a cooked shard in the tables a page reads', () => {

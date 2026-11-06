@@ -61,6 +61,22 @@ export function serviceWorkerCore(bundle: Readonly<Record<string, EmittedFile>>,
   return { core, build, assets: ASSET_CACHE_NAME, hashed };
 }
 
+/** A bake changed `index.html` on a finished output, whose bundler manifest stayed behind: the worker's copy of the page
+ *  follows, and its id with it, or a phone keeps the old page. Nothing else in the worker moves. */
+export function refreshServiceWorker(outDir: string, before: string): void {
+  const { build: buildId } = JSON.parse(readFileSync(join(outDir, 'version.json'), 'utf8')) as { build: string };
+  const name = /importScripts\("\/(sw-core\/[a-f0-9]+\.js)"\)/u.exec(readFileSync(join(outDir, 'sw.js'), 'utf8'))?.[1];
+  if (name === undefined) throw new Error('No worker core to refresh');
+  const held = readFileSync(join(outDir, name), 'utf8'), document = JSON.stringify(before), html = readFileSync(join(outDir, 'index.html'), 'utf8');
+  if (!held.includes(document)) throw new Error('The worker holds another page');
+  const digest = createHash('sha256').update(html).digest('hex').slice(0, 10), old = new RegExp(`${buildId.replaceAll(/[.-]/gu, String.raw`\$&`)}-[a-f0-9]{10}`, 'gu');
+  const core = held.split(document).join(JSON.stringify(html)).replaceAll(old, `${buildId}-${digest}`), scripts = workerScripts(core);
+  mkdirSync(dirname(join(outDir, scripts.fileName)), { recursive: true });
+  writeFileSync(join(outDir, scripts.fileName), core);
+  writeFileSync(join(outDir, 'sw.js'), scripts.bootstrap);
+  console.log(`sw.js refreshed (${buildId}-${digest})`);
+}
+
 /** Called after ordinary bundling; previous-deploy chunks are carried by MF2 afterwards. */
 export function writeServiceWorker(outDir: string, root: string): void {
   const { build: buildId } = JSON.parse(readFileSync(join(outDir, 'version.json'), 'utf8')) as { build: string };

@@ -9,13 +9,14 @@
 // R2_PACKS_SECRET_ACCESS_KEY, or COOK_STORE_DIR for a folder; COOK_NOTIFY_TOKEN; COOK_PORT (8791), COOK_HOST (127.0.0.1);
 // COOK_SERVER_PACKS, COOK_SCRATCH; COOK_SECONDS, COOK_MEMORY_MB, COOK_HEAP_MB, COOK_MAX_SHARDFILE_BYTES; COOK_JOB_WRAP, a JSON array the host puts
 // before each job to take its network away (see scripts/cook-worker.service).
-import { resolve } from 'node:path';
+import { readFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const { apiSource, collectGarbage, createCookWorker, DEFAULT_LIMITS, notifyServer, PACK_BUDGET_BYTES, storeUsage } = await import('../src/game/cook/cookWorker.ts');
 const { MAX_SHARDFILE_BYTES } = await import('../src/game/cook/cookJob.ts');
 const { addStoredShards } = await import('./app-build/catalogue.ts');
-const { writeServiceWorker } = await import('./app-build/serviceWorker.ts');
+const { refreshServiceWorker } = await import('./app-build/serviceWorker.ts');
 const { folderStore, r2Store } = await import('../src/game/cook/packStore.ts');
 
 const env = process.env;
@@ -53,9 +54,10 @@ if (command === 'serve') {
   if (dist === undefined || origin === undefined || origin === '') throw new Error('usage: cook-worker bake <dist> <origin>');
   const placed = await fetch(`${api}/api/catalogue.json?stage=live`, { signal: AbortSignal.timeout(30_000) });
   if (!placed.ok) throw new Error(`Catalogue document answered ${placed.status}`);
-  const out = resolve(dist), added = await addStoredShards(out, await source.heads('live'), store, source.download, { base: origin, shards: [] }, await placed.json());
+  const out = resolve(dist), page = readFileSync(join(out, 'index.html'), 'utf8');
+  const added = await addStoredShards(out, await source.heads('live'), store, source.download, { base: origin, shards: [] }, await placed.json());
   // The worker's copy of the page is the document it serves offline, so a page gains a shard only with this.
-  if (added.length > 0) writeServiceWorker(out, root);
+  if (added.length > 0) refreshServiceWorker(out, page);
   console.log(JSON.stringify(added));
 } else if (command === 'gc') {
   console.log(JSON.stringify(await collectGarbage(store, rest, Number(env.COOK_BUDGET_BYTES ?? PACK_BUDGET_BYTES), Date.now())));
