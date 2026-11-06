@@ -1,6 +1,7 @@
 import { app } from '../app/runtime';
 import { uiScope } from './ownership';
 import { saveStorage } from '../saves/slots';
+import { apiUrl } from '../core/apiOrigin';
 // src/engine/client/ui/review.ts — the review inbox's always-loaded half (project/archive/2026-09-22-feedback-inbox.md): the Settings REVIEW unlock, the
 // Quick note switch, and sending a note (with an offline queue). The composer itself (quick bar, sheet, pen) is the lazy
 // src/engine/client/ui/Feedback.ts; the server is api/inbox.ts; notes come down with `pnpm inbox:pull`.
@@ -26,8 +27,7 @@ const KEY = 'review';
 const QUEUE_KEY = 'review.queue';
 /** a queued note carries a ≤ 300 KB screenshot; localStorage holds ~5 MB, shared with the saves */
 export const QUEUE_MAX = 6;
-/** the native shells (Capacitor) have no same-origin /api: they post to production (CORS in api/inbox.ts) */
-export const INBOX_URL: string = import.meta.env.MODE === 'native' ? 'https://wildshard-singleplayer.vercel.app/api/inbox' : '/api/inbox';
+export const INBOX_URL: string = apiUrl('inbox');
 
 interface ReviewState { password: string | null; quick: boolean }
 

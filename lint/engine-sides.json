@@ -224,6 +224,7 @@
   "src/engine/client/core/bootstrap.ts": "client",
   "src/engine/shared/core/clock.ts": "shared",
   "src/engine/shared/core/config.ts": "shared",
+  "src/engine/client/core/apiOrigin.ts": "client",
   "src/engine/client/core/crashFlag.ts": "client",
   "src/engine/client/core/crossroads.ts": "client",
   "src/engine/client/core/deflate.ts": "client",

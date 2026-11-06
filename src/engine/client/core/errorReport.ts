@@ -1,5 +1,6 @@
 import { pageScope } from '../../shared/app/resources';
 import { saveStorage } from '../saves/slots';
+import { apiUrl } from './apiOrigin';
 import { installSaveReporter } from '../../shared/saves/runtime';
 import type { SchemaFailure } from '../../shared/saves/store';
 /**
@@ -201,8 +202,7 @@ export class ErrorReporter {
   }
 }
 
-/** the native shells (Capacitor) have no same-origin /api: they post to production (CORS in api/errors.ts) */
-const ERRORS_URL = import.meta.env.MODE === 'native' ? 'https://wildshard-singleplayer.vercel.app/api/errors' : '/api/errors';
+const ERRORS_URL = apiUrl('errors');
 
 /** The real transport (src/engine/client/ui/ErrorModal.ts, src/engine/client/boot/stuck.ts): one POST to api/errors.ts. */
 let sentId = '';

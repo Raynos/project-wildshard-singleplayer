@@ -1,7 +1,8 @@
 /** Renderer-free transport. bootTrace owns the durable queue until the server acknowledges it. */
+import { apiUrl } from '../core/apiOrigin';
 import type { SendResult } from '../core/errorReport';
 
-const ERRORS_URL = import.meta.env.MODE === 'native' ? 'https://wildshard-singleplayer.vercel.app/api/errors' : '/api/errors';
+const ERRORS_URL = apiUrl('errors');
 
 export async function reportBootInterruption(error: Error, build: string, diagnostic: string, system = 'boot-abrupt', levelId = ''): Promise<SendResult> {
   try {
