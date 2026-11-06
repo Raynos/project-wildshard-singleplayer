@@ -53,6 +53,8 @@ export interface StandaloneShell {
   place: (x: number, y: number, z: number, yaw: number) => void;
   /** A harness's word on how hard this player's blows land. */
   hardHits: (by: number) => void;
+  /** Stop the world until it's let go, whatever a tab's visibility says: a player in a page's own room left it standing. */
+  hold: (on: boolean) => void;
   /** A Developer's `?bossGod`, for the server that lands a fight's blows. */
   bossGod: () => void;
   /** A harness's word that one of this player's flags is up. */
@@ -72,7 +74,7 @@ export function connectStandalone(config: StandaloneConfig, control: MessagePort
   transport.onClose(reason => { if (reason === 'reload') config.refused?.(); });
   const post = (message: ShellMessage): void => { control.postMessage(v.parse(ShellMessageSchema, message), []); };
   const waits = new Map<number, (message: ServerMessage) => void>();
-  let requests = 0, booted: (value: { tick: number; restored: boolean }) => void = () => undefined, failed: (reason: Error) => void = () => undefined;
+  let held = false, requests = 0, booted: (value: { tick: number; restored: boolean }) => void = () => undefined, failed: (reason: Error) => void = () => undefined;
   const bootPromise = new Promise<{ tick: number; restored: boolean }>((resolve, reject) => { booted = resolve; failed = reject; });
   const request = <T>(send: (id: number) => ShellMessage, read: (message: ServerMessage) => T | null): Promise<T> => new Promise(resolve => {
     const id = ++requests;
@@ -90,12 +92,13 @@ export function connectStandalone(config: StandaloneConfig, control: MessagePort
     else waits.get(message.id)?.(message);
   };
   // §6.3.2: a backgrounded tab throttles both sides, so the server stops with it, as today's paused state does.
-  const visibility = (): void => { post({ kind: document.visibilityState === 'hidden' ? 'pause' : 'resume' }); };
+  const visibility = (): void => { if (!held) post({ kind: document.visibilityState === 'hidden' ? 'pause' : 'resume' }); };
   const scope = new Scope('standalone.shell');
   if (typeof document !== 'undefined') scope.listen(document, 'visibilitychange', visibility);
   post({ kind: 'boot', slug: config.slug, base: config.base, build: config.serverBuild ?? config.build, savePrefix: config.savePrefix, saves: saveDocuments(config.storage, config.savePrefix), ...(config.lone === true ? { lone: true } : {}) });
   return { client, transport, booted: bootPromise,
     ready: () => { post({ kind: 'ready' }); }, pause: () => { post({ kind: 'pause' }); }, resume: () => { post({ kind: 'resume' }); },
+    hold: on => { held = on; post({ kind: on ? 'pause' : 'resume' }); },
     save: () => request(id => ({ kind: 'save', id }), message => message.kind === 'saved' ? { tick: message.tick, ok: message.ok } : null),
     probe: () => request(id => ({ kind: 'probe', id }), message => message.kind === 'probed' ? { tick: message.tick, tickMs: message.tickMs, rows: message.rows } : null),
     place: (x, y, z, yaw) => { harness?.postMessage({ x, y, z, yaw } satisfies HarnessPlace, []); },

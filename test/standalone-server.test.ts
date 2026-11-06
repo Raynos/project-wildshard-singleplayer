@@ -105,6 +105,22 @@ test('the worker pauses with a hidden tab: paused time is never simulated', asyn
   stop();
 });
 
+test('a world on hold stays held through a tab\'s return, and a tab\'s hide keeps working after', () => {
+  const posted: string[] = [], hidden = { value: 'hidden' }, listeners: (() => void)[] = [];
+  const control = { onmessage: null, postMessage: (message: { kind: string }) => { posted.push(message.kind); }, close: () => undefined } as unknown as MessagePort;
+  const fakeDocument = { get visibilityState() { return hidden.value; }, addEventListener: (_name: string, run: () => void) => { listeners.push(run); }, removeEventListener: () => undefined };
+  Reflect.set(globalThis, 'document', fakeDocument);
+  const game = new MessageChannel(), shell = connectStandalone({ slug: 'x', base: '/', build: 'test', savePrefix: 'ws.', storage: new PageStorage() }, control, game.port2, () => undefined);
+  const flip = (to: string): void => { hidden.value = to; for (const run of listeners) run(); };
+  try {
+    posted.length = 0;
+    shell.hold(true); flip('hidden'); flip('visible');
+    expect(posted, 'a page back from a hide doesn\'t wake the world under a player who left it').toEqual(['pause']);
+    shell.hold(false); flip('hidden'); flip('visible');
+    expect(posted).toEqual(['pause', 'resume', 'pause', 'resume']);
+  } finally { Reflect.deleteProperty(globalThis, 'document'); shell.dispose(); game.port1.close(); }
+});
+
 test('a server of another build refuses hello with reload, and the page is told', async () => {
   const control = new MessageChannel(), game = new MessageChannel(), input = await sunscarInput();
   const server = runStandaloneServer({ control: control.port1, game: game.port1, load: () => Promise.resolve(input) });

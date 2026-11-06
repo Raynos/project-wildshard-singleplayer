@@ -76,7 +76,7 @@ export interface WorkerClientPorts {
   readonly system: (system: SystemSpec) => void;
 }
 interface ShellModule { readonly startStandalone: (config: { slug: string; base: string; build: string; savePrefix: string; lone?: true; held?: (url: string) => Promise<ArrayBuffer | null> } & IndexedSaves) => Shell }
-interface Shell { pause: () => void; bossGod: () => void; raise: (flag: string) => void; join: (id: string, x: number, y: number, z: number) => { readonly client: NetClient; readonly move: (x: number, y: number, z: number) => void }; readonly client: NetClient; readonly booted: Promise<{ readonly restored: boolean }>; place: (x: number, y: number, z: number, yaw: number) => void; hardHits: (by: number) => void; ready: () => void; save: () => Promise<{ readonly tick: number; readonly ok: boolean }>; probe: () => Promise<{ readonly tickMs: number }>; dispose: () => void }
+interface Shell { pause: () => void; hold: (on: boolean) => void; bossGod: () => void; raise: (flag: string) => void; join: (id: string, x: number, y: number, z: number) => { readonly client: NetClient; readonly move: (x: number, y: number, z: number) => void }; readonly client: NetClient; readonly booted: Promise<{ readonly restored: boolean }>; place: (x: number, y: number, z: number, yaw: number) => void; hardHits: (by: number) => void; ready: () => void; save: () => Promise<{ readonly tick: number; readonly ok: boolean }>; probe: () => Promise<{ readonly tickMs: number }>; dispose: () => void }
 
 const SAVE_EVERY_MS = 30_000;
 /** How often a page whose frames are parked behind a panel still hears the server. */
@@ -254,6 +254,15 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     net.inCell = cell => siteOf(cell) === grid.frame();
   }
   scope.onDispose(() => { player.link = null; ports.weapons.bindWire(null); net.dispose(); });
+  // A practice room or a playground floats over the world and only this page is in it: its player walks alone, its weapons strike its
+  // dummies, and the world waits where they left it. A body the server still had to serve would pull the player back down.
+  let away = false;
+  scope.listen(document, 'ws:practice-active', event => {
+    const inside = event instanceof CustomEvent && event.detail === true;
+    if (inside === away) return;
+    away = inside; shell.hold(inside); player.link = inside ? null : net;
+    if (inside) ports.weapons.bindWire(null); else net.bindWeapons(ports.weapons, slotsOf(items));
+  });
   const { restored } = await shell.booted;
   if (new URLSearchParams(location.search).has('bossGod')) shell.bossGod();
   shell.ready();
