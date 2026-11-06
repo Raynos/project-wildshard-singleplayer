@@ -8,7 +8,7 @@ import { BitWriter } from '../../shared/net/bits';
 import { cleanName } from './chatFilter';
 import type { CombatEvent } from './combatWire';
 import type { QuestProgress } from '../../shared/quest/progress';
-import { decodeCommands } from '../../shared/net/command';
+import { decodeCommands, seqAfter } from '../../shared/net/command';
 import { CommandQueue, type CommandTurn } from './commandQueue';
 import { encodeFrame, FRAME_RING, WorldFrameRing, type WorldFrame } from '../../shared/net/frame';
 import { NetHandles } from './handles';
@@ -27,6 +27,8 @@ const SIM_HZ = 60, FRAME_HZ = 30;
 const RIDE_WORDS = 64;
 /** Acts one client gets a tick, and the most it may have waiting. */
 const ACTS_PER_TICK = 2, MAX_QUEUED_ACTS = 16;
+/** How long an act waits for its command: J50's rewind cap. A press is judged where its player stood when they pressed, so it waits for the server to take that command, as a blow reads that tick's bodies; a client that never sends it gets the present. */
+const ACT_WAIT_TICKS = 12;
 /** Past a hello's three full texts: no message is longer, so no bigger one is read. */
 export const MAX_CLIENT_MESSAGE_BYTES = 1024;
 /**
@@ -81,6 +83,8 @@ export interface NetRoomOptions {
   readonly reports?: ChatReports;
 }
 
+/** An act and the tick it stops waiting for its command. */
+interface HeldAct { readonly act: NetTickAct; readonly until: number }
 /** What a client held at a frame. `due` are the rows this frame may send; `rows` is the world frame each held row came from. */
 interface ClientView { tick: number; readonly visible: Set<number>; readonly due: Set<number>; readonly rows: Map<number, number> }
 /** A settled event in handles, kept until the next frame. */
@@ -95,7 +99,7 @@ interface RoomClient {
   ledgerSeen: number;
   /** waiting: said hello before the room opened. live: welcomed. */
   state: 'new' | 'waiting' | 'live';
-  ack: number; readonly acts: NetTickAct[]; readonly known: Set<number>;
+  ack: number; readonly acts: HeldAct[]; readonly known: Set<number>;
   /** The quest rows this client holds, and the book version they came from. */
   questVersion: number; readonly quests: Map<string, string>; readonly phased: Set<string>;
   /** Who it has heard riding what, in handles: what the next `mount` and `dismount` are a change from. */
@@ -184,7 +188,8 @@ export class NetRoom {
     for (const client of this.clients) {
       client.credit = Math.min(client.credit + CLIENT_MESSAGES_PER_TICK, MAX_CLIENT_MESSAGES);
       if (client.state !== 'live') continue;
-      this.inputs.push({ client: client.id, player: client.player.id, ...client.queue.next(), acts: client.acts.splice(0, ACTS_PER_TICK) });
+      const turn = client.queue.next();
+      this.inputs.push({ client: client.id, player: client.player.id, ...turn, acts: this.dueActs(client) });
     }
     this.world.commanded?.(this.inputs);
     this.step(this.inputs);
@@ -193,6 +198,16 @@ export class NetRoom {
     for (const filing of this.world.ledger?.() ?? []) this.book.file(filing);
     const tick = this.world.tick();
     if (tick % TICKS_PER_FRAME === 0) this.snapshot(tick);
+  }
+  /** A client's acts this tick, in the order it sent them: those whose command the server has taken, or that have waited long enough. */
+  private dueActs(client: RoomClient): readonly NetTickAct[] {
+    const { acts, queue } = client, now = this.world.tick(), due: NetTickAct[] = [];
+    while (due.length < ACTS_PER_TICK) {
+      const held = acts[0];
+      if (held === undefined || (seqAfter(held.act.seq, queue.lastSeq) && now < held.until)) break;
+      acts.shift(); due.push(held.act);
+    }
+    return due;
   }
   /** Turn the tick's settled combat into handles now: a body retired by the next frame still gets its death. */
   private settled(): void {
@@ -267,7 +282,7 @@ export class NetRoom {
     if (act.kind === 'chat' || act.kind === 'report') { if (!this.chatAct(client, act)) this.stats.refused++; return; }
     // Untrusted input stays bounded (R3): a flood of acts waits its turn or is refused, and can never exceed a tick's allowance.
     if (client.acts.length >= MAX_QUEUED_ACTS) { this.stats.refused++; return; }
-    client.acts.push(act);
+    client.acts.push({ act, until: this.world.tick() + ACT_WAIT_TICKS });
   }
   private chatAct(client: RoomClient, act: NetChatSay | NetChatReport): boolean {
     if (act.kind === 'report') return this.chat.report(client.identity.player, act.line, this.world.tick());
