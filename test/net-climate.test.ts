@@ -64,6 +64,14 @@ test('a world with no weather has nothing to say to a word', () => {
 });
 
 const { days, weather } = parseRows(JSON.parse(readFileSync('src/shards/_template/data/rows.json', 'utf8')));
+test('a data shard\'s own clock hears a page back from a room, as a director\'s does', () => {
+  const host = fakeHost(); installDeclaredClimate(host, { days, weather });
+  const said = { kind: 'climate', seq: 5, op: 'day', name: 'room', at: 0.75 } as const;
+  netWorldInput(actRoutes(host), [{ acts: [said], command: null }]);
+  expect(shardRows(host).world.get('day')?.()[0]?.value).toBe(0.75);
+  host.dispose();
+});
+
 test('a data shard\'s clock steps on the server and is on the wire', () => {
   const host = fakeHost();
   installDeclaredClimate(host, { days, weather });
