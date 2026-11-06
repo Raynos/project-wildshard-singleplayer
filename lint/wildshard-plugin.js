@@ -394,7 +394,7 @@ const layerWalk = (kind) => (context) => {
     const shardLocal = /^src\/shards\/[^/]+\/(.+)$/u.exec(pathOf(context))?.[1];
     if (kind === 'layer' && shardLocal !== undefined) {
       if (/^@wildshard\/sharddev\/runtime(?:\/|$)/u.test(source) || targetPath.startsWith('src/sharddev/runtime/')) report(context, node, `Primary shards cannot import trusted SDK runtime: ${source}`);
-      if (target?.name === 'commons' && !/^(?:generators|data|quests)\//u.test(shardLocal) && shardLocal !== 'shard.config.ts') report(context, node, `Commons packs are build-time imports: ${source}`);
+      if (target?.name === 'commons' && !/^(?:generators|bake|data|quests)\//u.test(shardLocal) && shardLocal !== 'shard.config.ts') report(context, node, `Commons packs are build-time imports: ${source}`);
     }
     if (!target) {
       if (kind === 'layer' && targetPath.startsWith('src/')) report(context, node, `Import of a file outside the layers: ${source}`);
@@ -565,8 +565,10 @@ const simNoRender = rule('Headless simulation checks its complete runtime import
 // DS1.3: generator code runs only at build time. The shard's author entry composes local generators; runtime never
 // imports them; check-chunks refuses a generator module in any built chunk, this catches the import that would put it there.
 const GENERATOR = /^src\/shards\/[^/]+\/generators(?:\/|$)/u;
+/** A shard's manual Node commands (lint/shard-layout.json bake/): offline like generators, and outside the map hash. */
+const BAKE_COMMAND = /^src\/shards\/[^/]+\/bake\/.+\.(?:mjs|d\.mts)$/u;
 const noRuntimeGenerator = rule('Generators are imported only by authoring entries, bakers and other generators (DS1.3)', (context) => {
-  if (GENERATOR.test(pathOf(context))) return {};
+  if (GENERATOR.test(pathOf(context)) || BAKE_COMMAND.test(pathOf(context))) return {};
   return importsVisitor((node) => {
     const source = importPrefix(node.source);
     if (source === null) return;
@@ -795,7 +797,7 @@ const shardSandbox = rule('Shard services, globals, settings and assets stay ins
   if (own?.name !== 'shards') return {};
   // G298: a shard's Node bakers (generators/**/*.mjs) are build tooling that moved in from scripts/; they never ship to the
   // client, so the sandbox (which guards what runs in a ShardContext) doesn't apply to them.
-  if (/^src\/shards\/[^/]+\/generators\/.+\.m?js$/u.test(pathOf(context))) return {};
+  if (/^src\/shards\/[^/]+\/generators\/.+\.m?js$/u.test(pathOf(context)) || BAKE_COMMAND.test(pathOf(context))) return {};
   const meta = shardWords.shards[own.slug] ?? { settings: [], assets: [] };
   const settings = new Set(meta.settings), globals = new Set(), documents = new Set(), strings = new Map();
   const text = (raw) => stringOf(raw) ?? (unwrap(raw)?.type === 'Identifier' ? strings.get(unwrap(raw).name) ?? null : null);
@@ -992,7 +994,7 @@ for (const target of Object.values(blenderTargets)) for (const file of [target.s
 const noShardRuntime = rule('Primary shards contain authoring and declarations only (G694 F3)', context => {
   const file = pathOf(context), local = /^src\/shards\/[^/]+\/(.+)$/u.exec(file)?.[1];
   if (local === undefined) return {};
-  const allowed = local.startsWith('generators/') || blenderSources.has(file) || /(?:\.d|\.d\.json|\.generated)\.ts$/u.test(local);
+  const allowed = local.startsWith('generators/') || BAKE_COMMAND.test(file) || blenderSources.has(file) || /(?:\.d|\.d\.json|\.generated)\.ts$/u.test(local);
   return {
     Program(node) {
       if (local === 'shard.config.ts' ? !declarationConfigProgram(node) : !allowed)

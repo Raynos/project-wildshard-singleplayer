@@ -104,7 +104,7 @@ export function checkChunks(manifest, modules, closures, budgets = {}) {
       const match = /^src\/shards\/([^/]+)\//.exec(id);
       if (match?.[1] === '_template' && !templateMetadata.has(id)) errors.push(`${id} is template gameplay code in chunk ${file}: SF16 requires no template runtime chunk`);
       // SHARD-PLATFORM SP5: a shard's generators run at bake time; their code never ships in any chunk
-      if (match && /^src\/shards\/[^/]+\/generators\//.test(id)) errors.push(`${id} is a generator in chunk ${file}: generators run at bake time and never ship`);
+      if (match && /^src\/shards\/[^/]+\/(?:generators|bake)\//.test(id)) errors.push(`${id} is a generator in chunk ${file}: generators run at bake time and never ship`);
       if (!match || allowed.has(id)) continue;
       const slug = match[1];
       if (cold.has(file)) errors.push(`${id} is in cold-boot chunk ${file}`);

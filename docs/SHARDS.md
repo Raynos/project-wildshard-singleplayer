@@ -259,6 +259,7 @@ All source is build-time or erased declarations. Shipped behaviour is admitted W
 |---|---|
 | `data/` | build-time authoring inputs and erased JSON type contracts; executable build logic belongs in generators/ |
 | `generators/` | build-time source that emits admitted JSON, WASM and named assets; never shipped as runtime TypeScript |
+| `bake/` | the shard's manual Node commands: an author runs them to rewrite committed bytes, and no build does. They stay out of generators/ because maps hash it |
 | `behaviour/` | AssemblyScript entity and director scripts |
 | `assets/` | source assets consumed by the build |
 | `blender/` | the shard's retained Blender build sources and offline rig checks (build-time only; optional) |
