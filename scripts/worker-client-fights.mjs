@@ -512,6 +512,7 @@ async function chapterJourney(browser, phone, base, step) {
 
 /** Run the fights; `step` prints one line each. */
 /** The night: a Developer's time reaches the server, a statue walks out on its row, and a topple is a clue on the page. */
+const BOWL = [0, 24];
 async function nightJourney(browser, phone, base, step) {
   const steppe = await open(browser, phone, base, 'nalati-grasslands');
   const { page } = steppe;
@@ -582,17 +583,25 @@ async function nightJourney(browser, phone, base, step) {
   });
   await page.screenshot({ path: 'tmp/flip8/night-clue.png' }).catch(() => undefined);
   await step('night: ghost riders ride on rows, dressed', async () => {
+    await place(page, BOWL[0], await groundAt(page, BOWL[0], BOWL[1]) + 1, BOWL[1]);
     const riders = await until(page, async () => (await page.evaluate(() => window.__workerClientRows('ghost-rider')))[0] ?? null, 45, 1000);
-    if (riders === null) return { ok: true, note: 'no patrol within a row of here' };
+    if (riders === null) return { ok: false, why: 'no rider came round the bowl' };
     await place(page, riders.x + 14, riders.y + 2, riders.z);
     const drawn = await until(page, () => page.evaluate(() => { const body = window.__wildshard.world.animals?.animals.find(row => row.kind === 'ghost-rider' && row.rowDriven); return body === undefined ? null : { material: body.mesh.material.name, scale: body.scale }; }), 12);
     return { ok: drawn !== null && drawn.material.startsWith('nalati-ghost'), drawn, retired: (await report(page)).retired };
   });
   await step('night: dawn sends the rest home, and their sites stand', async () => {
     await page.evaluate(() => { window.__workerClientTime('midday'); });
-    const clear = await until(page, async () => (await awakeRow()) === 0, 45, 500);
+    // A body goes home on its own feet, so a body nobody's near waits for them: go round them.
+    const end = Date.now() + 60_000;
+    while ((await awakeRow()) !== 0 && Date.now() < end) {
+      const site = (await statues()).find(row => row.awake);
+      if (site !== undefined) await place(page, site.x + 7, await groundAt(page, site.x + 7, site.z) + 1, site.z);
+      await page.waitForTimeout(4000);
+    }
+    const clear = (await awakeRow()) === 0;
     const r = await report(page);
-    return { ok: clear === true, row: await awakeRow(), left: (await page.evaluate(() => window.__workerClientRows('balbal'))).length, retired: r.retired };
+    return { ok: clear, row: await awakeRow(), left: (await page.evaluate(() => window.__workerClientRows('balbal'))).length, retired: r.retired };
   });
   await step('night: no page error', () => ({ ok: steppe.errors.length === 0, errors: [...new Set(steppe.errors)].slice(0, 6) }));
   await steppe.context.close();
@@ -666,6 +675,29 @@ async function secondClientJourney(browser, phone, base, step) {
     return { ok: done === true && once === 1 && before === 0 && first <= 1 && second === first, done, once, again, before, first, second, receipts: all, keys: await nalati.evaluate(() => Object.keys(localStorage).slice(0, 30)) };
   });
   await step('nalati, a second time: no page error', () => ({ ok: steppe.errors.length === 0, errors: [...new Set(steppe.errors)].slice(0, 6) }));
+  await steppe.context.close();
+}
+
+/** The row's small words: a horse's prompt by its name, and the line a tie's press gets. */
+async function wordsJourney(browser, phone, base, step) {
+  const steppe = await open(browser, phone, base, 'nalati-grasslands');
+  const { page } = steppe;
+  await page.evaluate(() => { window.__toasts = []; new MutationObserver(list => { for (const row of list) for (const node of row.addedNodes) if (node.classList?.contains('ws-game-toast')) window.__toasts.push(node.textContent); }).observe(document.body, { childList: true, subtree: true }); });
+  await step('a horse\'s prompt reads by its name', async () => {
+    const labels = await until(page, async () => { const list = await page.evaluate(() => window.__wildshard.world.interactables.map(row => row.label).filter(label => /^mount /iu.test(label))); return list.length > 0 ? list : null; }, 20);
+    return { ok: labels !== null && !labels.some(label => label.includes('creature:')), labels: labels?.slice(0, 4) };
+  });
+  await step('a tie\'s press gets its line on the page', async () => {
+    const tie = await page.evaluate(() => { const row = window.__wildshard.world.interactables.find(entry => entry.wireId?.endsWith('.tie')); return row === undefined ? null : { x: row.position.x, z: row.position.z, id: row.wireId, radius: row.radius, label: row.label }; });
+    if (tie === null) return { ok: false, why: 'no tie prompt' };
+    await place(page, tie.x + 1.2, await groundAt(page, tie.x + 1.2, tie.z) + 0.5, tie.z);
+    await page.waitForTimeout(2000);
+    const label = await page.evaluate(() => window.__wildshard.world.interactables.find(entry => entry.wireId?.endsWith('.tie'))?.label ?? null);
+    await press(page);
+    const line = await until(page, () => page.evaluate(() => window.__toasts.at(-1) ?? null), 5);
+    return { ok: line !== null, tie: tie.id, label, line, toasts: await page.evaluate(() => window.__toasts.slice(-3)) };
+  });
+  await step('words: no page error', () => ({ ok: steppe.errors.length === 0, errors: [...new Set(steppe.errors)].slice(0, 6) }));
   await steppe.context.close();
 }
 
@@ -836,6 +868,7 @@ export async function fights(browser, phone, base, only, step) {
   if (runs('chapters')) await chapterJourney(browser, phone, base, step);
   if (runs('night')) await nightJourney(browser, phone, base, step);
   if (runs('second')) await secondClientJourney(browser, phone, base, step);
+  if (runs('words')) await wordsJourney(browser, phone, base, step);
 
   // The sky: the rows move on their own, and a Weather setting goes up and comes back.
   if (runs('sky')) {
