@@ -373,6 +373,8 @@ export abstract class WildSenses {
   abstract readonly wind: { readonly x: number; readonly z: number; readonly strength: number };
   playerFwdX = 0; playerFwdZ = -1; playerCrouched = false; playerMounted = false; playerHealth01 = 1;
   lastShotT = -1e9; light = 1; storm = false;
+  /** The last hearing reading and all it was read from. */
+  private heard: { readonly senses: ReturnProgram | null; readonly x: number; readonly z: number; readonly speed: number; readonly storm: boolean; readonly radii: readonly number[]; readonly value: number } | undefined;
   /** the admitted senses guest (null before an owner binds one) */
   protected abstract senses(): ReturnProgram | null;
   abstract grassStandingAt(x: number, z: number): number;
@@ -388,7 +390,12 @@ export abstract class WildSenses {
     return this.senses()?.project('downwind', { distance: Math.hypot(dx,dz), strength: this.wind.strength, dot: dx*this.wind.x+dz*this.wind.z })['accept'] === 1;
   }
   hearing(radii: readonly [number,number,number,number], player: Vector3, speed: number): number {
-    return v.parse(v.number(), this.senses()?.project('hearing', { speed, height: this.grassStandingAt(player.x,player.z), storm: Number(this.storm) }, undefined, radii.map(radius => ({ radius })))['radius']);
+    // Every member of a herd asks this of one player in one tick, and the answer depends on nothing else: a program call each is 15 for one reading.
+    const senses = this.senses(), { x, z } = player, { storm } = this, last = this.heard;
+    if (last !== undefined && last.senses === senses && last.x === x && last.z === z && last.speed === speed && last.storm === storm && last.radii.every((radius, index) => radius === radii[index])) return last.value;
+    const value = v.parse(v.number(), senses?.project('hearing', { speed, height: this.grassStandingAt(x,z), storm: Number(storm) }, undefined, radii.map(radius => ({ radius })))['radius']);
+    this.heard = { senses, x, z, speed, storm, radii: [...radii], value };
+    return value;
   }
 }
 export class NativeWildEnvironment extends WildSenses {
