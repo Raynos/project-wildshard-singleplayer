@@ -4,7 +4,7 @@
 //
 //   node scripts/build-app.mjs [vite build arguments…]       e.g. --mode native, --config <file>, --outDir <dir>
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { bakeAssetTables, writeAssetTables } from './app-build/assetTables.mjs';
 import { writeChunkReport } from './app-build/chunkReport.mjs';
@@ -38,13 +38,17 @@ const step = (nodeArgs) => {
 
 // before the bundle (was vite/genShards.ts): the shard list and discovery, the two optional bakes (a failed one keeps its
 // analytic fallback), the boot tables, then the shard list again (the tables can add static imports to a manifest's closure)
-step(['scripts/gen-shards.mjs']);
-for (const baker of ['bake-chunk', 'bake-sky']) {
-  const run = spawnSync(process.execPath, ['--import', './scripts/bake-loader.mjs', `scripts/${baker}.mjs`], { stdio: 'inherit' });
-  if (run.status !== 0) console.warn(`[bake] ${baker} failed — launch retains its analytic fallback`);
+// C3: a tree with no shard source (the lifted engine) has no list or bake to run; it builds from a catalogue and its packs.
+const shardSource = existsSync('src/shards');
+if (shardSource) {
+  step(['scripts/gen-shards.mjs']);
+  for (const baker of ['bake-chunk', 'bake-sky']) {
+    const run = spawnSync(process.execPath, ['--import', './scripts/bake-loader.mjs', `scripts/${baker}.mjs`], { stdio: 'inherit' });
+    if (run.status !== 0) console.warn(`[bake] ${baker} failed — launch retains its analytic fallback`);
+  }
 }
 step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', "(await import('./scripts/app-build/gen.ts')).generateBootTables();"]);
-step(['scripts/gen-shards.mjs']);
+if (shardSource) step(['scripts/gen-shards.mjs']);
 // the certified grid seams over the generated catalogue (was vite/gridSeamPlans.ts): the config defines their address
 try { bakeGridSeams(process.cwd()); }
 catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exit(1); }
