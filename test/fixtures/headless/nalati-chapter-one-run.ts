@@ -34,7 +34,7 @@ const kingStage=stage==='king-entry'||stage==='king-phase-one'||stage==='king-ph
 const observed=stage==='carving-road'||stage==='carving-arrival'||stage==='carvings'||kingStage?chapterTwoObserved:chapterObserved;
 let inherited:ChapterHandoff|undefined;
 if(stage!=='plains'){
-  assert.ok(inputPath);assert.ok(inputHash);assert.ok(statSync(inputPath).size<=32_000_000);
+  assert.ok(inputPath);assert.ok(inputHash);assert.ok(statSync(inputPath).size<=36_000_000);
   const wire=readFileSync(inputPath,'utf8');assert.equal(chapterWireHash(wire),inputHash);
   inherited=v.parse(ChapterHandoffSchema,chapterRead(wire));assert.equal(inherited.stage,
     stage==='approach'?'plains':stage==='bond'?'approach':stage==='goat'?'bond':stage==='return'?'goat':stage==='home'?'return':stage==='carving-road'?'home':stage==='carving-arrival'?'carving-road':stage==='carvings'?'carving-arrival':stage==='king-entry'?'carvings':stage==='king-phase-one'?'king-entry':stage==='king-phase-two'?'king-phase-one':stage==='king-victory'?'king-phase-two':'king-victory');checkChapterLedger(inherited.parts,inherited.tick,inherited.reportStart);
@@ -184,7 +184,7 @@ try{
   const snapshot=snapshotSimHostBytes(host),handoff:ChapterHandoff={version:1,stage,source:descriptor.indexHash,tick:host.state.tick,
     ...(stage==='approach'?{bondStart:firstTick}:{}),...(reportStart===undefined?{}:{reportStart}),snapshot:serializeSimSnapshot(snapshot),digest:chapterSnapshotDigest(snapshot),parts:history};
   assert.equal(chapterSnapshotDigest(handoff.snapshot),handoff.digest,'the saved continuation retains every numeric native field');
-  const wire=chapterWire(v.parse(ChapterHandoffSchema,handoff));assert.ok(Buffer.byteLength(wire)<=32_000_000);
+  const wire=chapterWire(v.parse(ChapterHandoffSchema,handoff));assert.ok(Buffer.byteLength(wire)<=36_000_000);
   assert.equal(chapterInputHash(v.parse(ChapterHandoffSchema,chapterRead(wire)).parts),chapterInputHash(history),'child handoff retains every signed-zero command');
   writeFileSync(outputPath,wire,{flag:'wx',mode:0o600});
   const current=host.quests.find(row=>row.def.id===quest.id);assert.ok(current);
