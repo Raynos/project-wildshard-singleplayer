@@ -194,7 +194,7 @@ async function readSpawnFile(url: string, maximum: number, ports: SpawnDownloadP
 }
 /** Exactly one list, one denominator and one completion per file. A complete
  * worker-cache response credits immediately without reading/checksumming it. */
-export function downloadSpawnManifest(address: SpawnManifestAddress, ports: SpawnDownloadPorts, base: string): SpawnDownload {
+export function downloadSpawnManifest(address: SpawnManifestAddress, ports: SpawnDownloadPorts, base: string, packs: string = base): SpawnDownload {
   const controller = new AbortController(), listeners = new Set<(snapshot: SpawnDownloadSnapshot) => void>(), aliases = new Map<string, string>();
   let completedBytes = 0, cachedBytes = 0, filesDone = 0, complete = false, progressKnown = false, error: string | null = null;
   let wireCompleted = 0, wireCached = 0, wireTotal = address.wireBytes;
@@ -252,7 +252,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
   const stopped = new Promise<never>((_resolve, reject) => { markStopped = reject; });
   const work = (async () => {
     try {
-      const manifestURL = new URL(address.url, base).href, held = await ports.cached(manifestURL);
+      const manifestURL = new URL(address.url, packs).href, held = await ports.cached(manifestURL);
       const {bytes, copy} = await readSpawnFile(manifestURL, address.bytes, ports, controller.signal, undefined, held);
       if (bytes.length !== address.bytes) {void copy?.body?.cancel().catch(() => undefined); throw new Error('Spawn manifest size differs');}
       const text = new TextDecoder().decode(bytes);
@@ -403,7 +403,7 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
             members.set(file.url, new Promise(resolve => {settle.set(index, resolve); memberSettles.add(resolve);}));
           }
           try {
-            const response = await ports.fetch(new URL(part.url, base).href, controller.signal);
+            const response = await ports.fetch(new URL(part.url, packs).href, controller.signal);
             if (!response.ok || response.body === null) throw new Error(`Spawn part unavailable: ${part.url}`);
             const body = new Uint8Array(part.bytes), reader = response.body.getReader();
             let at = 0, next = 0;
@@ -587,7 +587,8 @@ function bookSelection(book: unknown, slug: string, flow: 'client' | 'grid', tie
   const roots = flow === 'grid' ? get(get(book, flow), mode) : get(book, flow), pair = get(get(roots, slug), tier);
   return pair === undefined ? null : readSpawnManifestAddress(pair);
 }
-/** J138: where a cooked shard's manifests and parts live, when the bake says it isn't this origin. */
+/** J138: where a cooked shard's manifests and parts live, when the bake says it isn't this origin. Its files keep their
+ * page URLs: a part delivers them, and the product reads them by those. */
 function packBase(home: unknown, slug: string): string {
   const shards = get(home, 'shards'), base = get(home, 'base');
   return Array.isArray(shards) && shards.includes(slug) && typeof base === 'string' ? base : document.baseURI;
@@ -716,12 +717,12 @@ function spawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'd
   // Runtime packs: this entry's whole-level manifest from the packs book. A missing, unreadable or entry-less book
   // fails the download (admission waits on it and refuses control with the reason); it never runs the default set and
   // reports it complete, which would break the whole-level rule (sp-x9's review of 40bc516d5c).
-  const download = !packsOn ? downloadSpawnManifest(selected.address, downloadPorts(selected.cacheName, false), selected.base)
+  const download = !packsOn ? downloadSpawnManifest(selected.address, downloadPorts(selected.cacheName, false), document.baseURI, selected.base)
     : lateDownload((async () => {
       const address = bookSelection(await readPacksBook(), slug, flow, tier, mode);
       if (address === null) throw new Error(`Packs book has no ${flow} entry for ${slug} (${tier}, ${mode})`);
       if (address.url === selected.address.url) throw new Error('Packs book names the default manifest');
-      return downloadSpawnManifest(address, downloadPorts(selected.cacheName, true), selected.base);
+      return downloadSpawnManifest(address, downloadPorts(selected.cacheName, true), document.baseURI, selected.base);
     })());
   current?.download.cancel(); current = {key, download, foreground};
   trackOutcome(download, slug, packsOn);
