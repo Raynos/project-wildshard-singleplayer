@@ -16,7 +16,7 @@ test('primary authoring law refuses runtime, executable configs and runtime impo
     'sample/data/logic.ts': 'export const run = () => 1;',
     'sample/shard.config.ts': 'export default (() => ({}))();',
     'sample/generators/build.ts': "import { run } from '@wildshard/sharddev/runtime/sim'; export default run;",
-    'sample/generators/type.ts': "type Host = import('../../../sdk/runtime/sim').Host;",
+    'sample/generators/type.ts': "type Host = import('../../../sharddev/runtime/sim').Host;",
     'sample/generators/late.ts': "export const run = () => import('@wildshard/sharddev/runtime/sim');",
     'sample-legacy/runtime/index.ts': 'export default {};',
     'nine-dragon-stack-legacy/unregistered.ts': 'export default {};',

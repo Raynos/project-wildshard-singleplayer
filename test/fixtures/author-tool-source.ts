@@ -18,7 +18,8 @@ export function authorToolProgram(root: string, path: string, source: string): s
     if (node['type'] === 'ImportDeclaration') {
       const specifier = record(node['source']), spec = specifier['value'];
       if (typeof spec !== 'string') throw new Error('Expected literal author import');
-      node['source'] = { ...specifier, value: spec.startsWith('.') ? relative(root, resolve(dirname(file), spec)) : spec };
+      // J122: the bake tools left the SDK for sharddev; the address changed, the command did not.
+      node['source'] = { ...specifier, value: spec.startsWith('.') ? relative(root, resolve(dirname(file), spec)) : spec.replace(/^@wildshard\/sharddev\//u, '@wildshard/sdk/') };
     }
     if (node['type'] === 'VariableDeclarator' && record(node['id'])['name'] === 'root') {
       const call = record(node['init']), args = call['arguments'];
