@@ -29,7 +29,7 @@ scripts/blender/
   bounds, and an order-free position hash. Bytes are not compared, because Cycles bakes and the exporter aren't
   byte-stable. Run it after a Blender upgrade and after moving a builder.
 - **Add a model:** a script under `scripts/blender/<shard>/`, a `targets.json` row (`script`, `sources`, `outputs`, …)
-  and a build. `node scripts/check-model-sources.mjs` (in `pnpm test:checks`) refuses:
+  and a build. `node scripts/check-model-sources.mjs` (in `pnpm test`) refuses:
   - a Blender output GLB with no target;
   - an unreferenced file under `scripts/blender/`;
   - a tracked `.blend`.
