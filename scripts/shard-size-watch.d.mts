@@ -1,4 +1,4 @@
-export interface SizeReading { readonly flow: string; readonly title: number; readonly wire: number; readonly book: number | undefined; readonly stoppedOn: string | null }
+export interface SizeReading { readonly flow: string; readonly title: number; readonly entry: number; readonly book: number | undefined; readonly stoppedOn: string | null }
 interface BookRow { readonly wireBytes?: number }
 export const TITLE_LIMIT_BYTES: number;
 export const BOOK_SLACK: number;

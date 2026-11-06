@@ -27,7 +27,8 @@ export function bookBytes(book, shard, tier, home = 'driftwood-isle') {
 }
 
 /** What one night's readings say. Pure: readings in, findings out. A run that never settled is a finding, not a pass.
- * @param {readonly { flow: string, title: number, wire: number, book: number | undefined, stoppedOn: string | null }[]} readings
+ * The entry is held against the book: the title's own art isn't in it, and on Signal Dunes that alone is 25 % of the book.
+ * @param {readonly { flow: string, title: number, entry: number, book: number | undefined, stoppedOn: string | null }[]} readings
  * @returns {string[]} */
 export function sizeFindings(readings) {
   return readings.flatMap(row => {
@@ -35,7 +36,7 @@ export function sizeFindings(readings) {
     if (row.stoppedOn !== 'network idle') lines.push(`${row.flow}: the meter stopped on ${String(row.stoppedOn)}, so this night has no reading`);
     if (row.title > TITLE_LIMIT_BYTES) lines.push(`${row.flow}: title ${MB(row.title)}, past ${MB(TITLE_LIMIT_BYTES)}`);
     if (row.book === undefined) lines.push(`${row.flow}: the packs book has no row`);
-    else if (row.wire > row.book * (1 + BOOK_SLACK)) lines.push(`${row.flow}: ${MB(row.wire)} on the wire against a book of ${MB(row.book)}`);
+    else if (row.entry > row.book * (1 + BOOK_SLACK)) lines.push(`${row.flow}: entry ${MB(row.entry)} on the wire against a book of ${MB(row.book)}`);
     return lines;
   });
 }
@@ -56,12 +57,12 @@ if (process.argv[1] === import.meta.filename) {
       const answer = await fetch(new URL(`assets/spawn/packs-${String(build)}.json`, o.upstream));
       book = answer.ok ? await answer.json() : null;
     }
-    readings.push({ flow, title: row?.byStage?.title ?? 0, wire: row?.wireBytes ?? 0, book: book === null ? undefined : bookBytes(book, shard, tier),
+    readings.push({ flow, title: row?.byStage?.title ?? 0, entry: row?.byStage?.entry ?? 0, book: book === null ? undefined : bookBytes(book, shard, tier),
       stoppedOn: row?.stoppedOn ?? `meter exit ${String(meter.status)}` });
   }
   const findings = sizeFindings(readings);
-  const lines = [`Build \`${String(build)}\`.`, '', '| Flow | Title | Wire | Book |', '|---|---|---|---|',
-    ...readings.map(row => `| ${row.flow} | ${MB(row.title)} | ${MB(row.wire)} | ${row.book === undefined ? 'none' : MB(row.book)} |`),
+  const lines = [`Build \`${String(build)}\`.`, '', '| Flow | Title | Entry | Book |', '|---|---|---|---|',
+    ...readings.map(row => `| ${row.flow} | ${MB(row.title)} | ${MB(row.entry)} | ${row.book === undefined ? 'none' : MB(row.book)} |`),
     '', ...findings.length === 0 ? ['Nothing over its line.'] : findings.map(line => `- ${line}`)];
   writeFileSync(join(out, 'report.md'), `${lines.join('\n')}\n`);
   console.info(lines.join('\n'));
