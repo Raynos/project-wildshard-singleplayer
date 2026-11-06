@@ -6,6 +6,8 @@
 //
 //   node scripts/shard-wire-meter.mjs --root <built checkout> --shard <slug> --tier phone|desktop --out <file.json>
 //     [--flow select|grid] [--upstream https://wildshard-singleplayer.vercel.app] [--settle ms] [--timeout ms] [--shot file.jpg]
+//     [--last <slug>]   a returning player whose last pick was <slug>, with nothing stored yet
+//     [--dwell ms]      time on the title before the tap
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
@@ -17,10 +19,10 @@ import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 
 const { values: o } = parseArgs({ options: { root: { type: 'string' }, shard: { type: 'string' }, tier: { type: 'string', default: 'phone' }, flow: { type: 'string', default: 'select' },
-  out: { type: 'string' }, upstream: { type: 'string' }, settle: { type: 'string', default: '20000' }, timeout: { type: 'string', default: '420000' }, shot: { type: 'string' } } });
+  out: { type: 'string' }, upstream: { type: 'string' }, settle: { type: 'string', default: '20000' }, timeout: { type: 'string', default: '420000' }, shot: { type: 'string' }, last: { type: 'string' }, dwell: { type: 'string', default: '3000' } } });
 const require = createRequire(join(o.root, 'package.json'));
 const { chromium, devices } = require('playwright');
-const { developerSettings } = await import(pathToFileURL(join(o.root, 'scripts/debug-settings.mjs')).href);
+const { developerSettings, saveFixture } = await import(pathToFileURL(join(o.root, 'scripts/debug-settings.mjs')).href);
 
 const free = () => new Promise(resolve => { const s = http.createServer().listen(0, '127.0.0.1', () => { const { port } = s.address(); s.close(() => resolve(port)); }); });
 let server, upstream = o.upstream;
@@ -52,9 +54,11 @@ await new Promise(resolve => { proxy.listen(port, '127.0.0.1', resolve); });
 const url = `http://127.0.0.1:${port}/`;
 
 const profile = mkdtempSync(join(tmpdir(), 'wire-'));
-const context = await chromium.launchPersistentContext(profile, { headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'],
+const context = await chromium.launchPersistentContext(profile, { headless: true, args: [...process.platform === 'darwin' ? ['--use-angle=metal'] : [], '--ignore-gpu-blocklist', '--mute-audio'],
   ...(o.tier === 'phone' ? devices['iPhone 16 Pro'] : { viewport: { width: 1440, height: 900 } }) });
 await developerSettings(context, { volume: 0, music: 0, tier: o.tier, holdLoading: true });
+// The slot's first version held the bare slug; the game migrates it, so this needs no knowledge of the current shape.
+if (o.last !== undefined) await saveFixture(context, { scope: 'device', key: 'titlePrefetch', data: o.last });
 const page = context.pages()[0] ?? await context.newPage();
 const errors = [], timeout = Number(o.timeout);
 page.on('pageerror', e => errors.push(e.message.slice(0, 200)));
@@ -70,7 +74,7 @@ try {
   await page.goto(url, { waitUntil: 'commit', timeout });
   result.build = await page.evaluate(() => fetch('/version.json').then(r => r.json()).then(v => v.build ?? v.sha ?? null)).catch(() => null);
   await page.locator('.ws-main-select').waitFor({ timeout });
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(Number(o.dwell));
   if (o.flow === 'grid') { stage = 'entry'; await page.locator('.ws-main-grid').click({ timeout }); }
   else {
   await page.locator('.ws-main-select').click({ timeout });
