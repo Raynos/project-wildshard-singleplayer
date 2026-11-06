@@ -49,7 +49,28 @@ test('packs read each part once, cut its members, keep them under their own URLs
   expect(download.snapshot()).toMatchObject({complete: true, completedBytes: 12, filesDone: 3, error: null});
 });
 
-test('a failed part hands its members to their loose URLs', async () => {
+test('DL20: a part that fails is read again past the HTTP cache, and no loose copy is asked for', async () => {
+  const reads: string[] = [], inits: (RequestInit | undefined)[] = [];
+  let failures = 1;
+  const download = downloadSpawnManifest(address, {packs: true, cached: () => Promise.resolve(undefined),
+    fetch: (url, _signal, init) => {
+      const path = new URL(url).pathname; reads.push(path);
+      if (path === part.url) {
+        inits.push(init);
+        if (failures-- > 0) return Promise.resolve(new Response('missing', {status: 503}));
+        return Promise.resolve(new Response(partBytes));
+      }
+      return Promise.resolve(new Response(path === address.url ? text : body(path)));
+    }}, base);
+  await download.ready;
+  expect(reads.filter(path => path === part.url)).toHaveLength(2);
+  expect(inits).toEqual([undefined, {cache: 'reload'}]);
+  expect(reads).not.toContain(bin.url);
+  expect(reads).not.toContain(glb.url);
+  expect(download.snapshot()).toMatchObject({complete: true, completedBytes: 12, filesDone: 3, parts: {parts: 1, failed: 1, fallbackFiles: 0, fetched: 0}});
+});
+
+test('DL20: a part that keeps failing fails the download by name, with no loose fallback', async () => {
   const reads: string[] = [];
   const download = downloadSpawnManifest(address, {packs: true, cached: () => Promise.resolve(undefined),
     fetch: url => {
@@ -57,25 +78,27 @@ test('a failed part hands its members to their loose URLs', async () => {
       if (path === part.url) return Promise.resolve(new Response('missing', {status: 404}));
       return Promise.resolve(new Response(path === address.url ? text : body(path)));
     }}, base);
-  await download.ready;
-  expect(reads.slice(0, 2)).toEqual([address.url, part.url]);
-  expect(reads.slice(2).sort()).toEqual([bin.url, glb.url, code.url].sort());
-  expect(download.snapshot()).toMatchObject({complete: true, completedBytes: 12, filesDone: 3});
+  await expect(download.ready).rejects.toThrow(`Spawn part unavailable: ${part.url}`);
+  expect(reads.filter(path => path === part.url)).toHaveLength(3);
+  expect(reads).not.toContain(bin.url);
+  expect(reads).not.toContain(glb.url);
+  expect(download.snapshot()).toMatchObject({complete: false, error: `Spawn part unavailable: ${part.url}`, parts: {parts: 0, failed: 3, fallbackFiles: 0, fetched: 0}});
 });
 
-test('a part whose bytes differ from the manifest is never kept: its members load loose', async () => {
-  const reads: string[] = [], kept: string[] = [];
+test('DL20: a corrupt part keeps nothing wrong, and its second read credits only what the first left', async () => {
+  const kept: string[] = [];
+  let reads = 0;
   const corrupt = partBytes.map(byte => byte === 2 ? 3 : byte); // same length, wrong glb bytes
   const download = downloadSpawnManifest(address, {packs: true, cached: () => Promise.resolve(undefined),
     keep: url => {kept.push(new URL(url).pathname); return Promise.resolve();},
     fetch: url => {
-      const path = new URL(url).pathname; reads.push(path);
-      return Promise.resolve(new Response(path === address.url ? text : path === part.url ? corrupt : body(path)));
+      const path = new URL(url).pathname;
+      if (path === part.url) return Promise.resolve(new Response(reads++ === 0 ? corrupt : partBytes));
+      return Promise.resolve(new Response(path === address.url ? text : body(path)));
     }}, base);
   await download.ready;
-  expect(kept).toEqual([bin.url]); // bin verified before the corrupt glb; glb never kept
-  expect(reads).toContain(glb.url);
-  expect(download.snapshot()).toMatchObject({complete: true, completedBytes: 12, filesDone: 3});
+  expect(kept).toEqual([bin.url, glb.url]); // bin once, from the first read; glb only from the good one
+  expect(download.snapshot()).toMatchObject({complete: true, completedBytes: 12, filesDone: 3, parts: {parts: 1, failed: 1}});
 });
 
 test('DL18: a warm visit answers every packed member from the held-parts index, with no part request or bulk read; an unfit entry refetches its part', async () => {
@@ -591,21 +614,15 @@ test('DL11: a cancel while every store hangs settles at once and frees waiting r
   vi.unstubAllGlobals();
 });
 
-test('DL20: a packs download counts parts read, parts failed and the files left to their loose copies', async () => {
+test('DL20: a packs download counts parts read and failed reads', async () => {
   vi.stubGlobal('fetch', vi.fn((_input: RequestInfo | URL) => Promise.resolve(new Response('network'))));
-  const run = async (slug: string, partFails: boolean): Promise<unknown> => {
-    const at = {...address, url: `/assets/spawn/example-${slug}-1234567890abcdef.json`};
-    const download = downloadSpawnManifest(at, {packs: true, cached: () => Promise.resolve(undefined), fetch: url => {
-      const path = new URL(url).pathname;
-      if (path === part.url && partFails) return Promise.resolve(new Response('gone', {status: 404}));
-      return Promise.resolve(new Response(path === at.url ? text : path === part.url ? partBytes : body(path)));
-    }}, base);
-    await download.ready;
-    return download.snapshot().parts;
-  };
-  expect(await run('dl20-ok', false)).toEqual({parts: 1, failed: 0, fallbackFiles: 0, fetched: 0});
-  // the two members handed over are fetched loose, and counted as fetches made (sp-x1: fallbackFiles alone is eligibility)
-  expect(await run('dl20-fallback', true)).toEqual({parts: 0, failed: 1, fallbackFiles: 2, fetched: 2});
+  const at = {...address, url: '/assets/spawn/example-dl20-ok-1234567890abcdef.json'};
+  const download = downloadSpawnManifest(at, {packs: true, cached: () => Promise.resolve(undefined), fetch: url => {
+    const path = new URL(url).pathname;
+    return Promise.resolve(new Response(path === at.url ? text : path === part.url ? partBytes : body(path)));
+  }}, base);
+  await download.ready;
+  expect(download.snapshot().parts).toEqual({parts: 1, failed: 0, fallbackFiles: 0, fetched: 0});
   vi.unstubAllGlobals();
 });
 

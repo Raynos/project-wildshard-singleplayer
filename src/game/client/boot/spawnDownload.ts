@@ -14,8 +14,9 @@ export interface SpawnDownloadSnapshot {
   readonly filesTotal: number; readonly filesDone: number; readonly complete: boolean; readonly error: string | null;
   /** Bytes streamed so far, verified or not: progress for the stuck-boot watch, never shown as downloaded. */
   readonly streamedBytes?: number;
-  /** DL20: on the packs path, parts read and failed, the files a failed part left to their loose copies, and the loose
-   *  fetches made for them; from the manifest on, so a fully cached packed boot reports zeros, not nothing. */
+  /** DL20: on the packs path, parts read and failed reads of a part; from the manifest on, so a fully cached packed boot
+   *  reports zeros, not nothing. A part has no loose copy to fall back on, so `fallbackFiles` and `fetched` stay 0: they
+   *  are the telemetry record's fields, kept while stored outcomes replay. */
   readonly parts?: {readonly parts: number; readonly failed: number; readonly fallbackFiles: number; readonly fetched: number};
 }
 /** DL20: one foreground boot's download, once settled: the telemetry denominator (every boot, cached or downloaded,
@@ -82,6 +83,11 @@ interface HeldFile {readonly url: string; readonly bytes: number; readonly hash:
 const ownSignals = new WeakSet<AbortSignal>();
 /** DL11 slice 4: parts read at once. Two keep the link full while a demanded part gets half of it, not a twelfth. */
 const PART_LANES = 2;
+/** DL20: reads of one part before the download fails: the first, then two past the HTTP cache. */
+const PART_READS = 3;
+const PART_PAUSE_MS = 1000;
+/** The wait before a part's last read. A cancelled job's next read refuses at once, and its `ready` never waited for this. */
+const partPause = (): Promise<void> => new Promise(resolve => { AbortSignal.timeout(PART_PAUSE_MS).onabort = () => { resolve(); }; });
 /** While the entry's download runs, a level read it does not list (a loader reading a file its set lacks) waits for the
  *  whole set, as every read did before DL11. Level reads: `/shardfiles/` and `/assets/` content, not spawn files, boot
  *  tables or code. The shell's art loads through `<img>`, which no fetch layer sees. */
@@ -211,8 +217,6 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
   };
   const landed = (url: string): void => { wireArriving -= arriving.get(url) ?? 0; arriving.delete(url); };
   let partCounts: {parts: number; failed: number; fallbackFiles: number; fetched: number} | undefined;
-  /** the files failed parts handed to the loose lanes (their real fetches are counted as `fetched`) */
-  const fallbackUrls = new Set<string>();
   const snapshot = (): SpawnDownloadSnapshot => ({...(partCounts === undefined ? {} : {parts: {...partCounts}}),...(wireTotal === undefined ? {} : {wire: {totalBytes: wireTotal, completedBytes: wireCompleted, cachedBytes: wireCached, arrivingBytes: wireArriving}}), progressKnown, totalBytes: address.totalBytes, completedBytes, cachedBytes,
     filesTotal: address.files, filesDone, complete, error, streamedBytes: streamedBytes + completedBytes});
   const publish = (): void => { if (!controller.signal.aborted) for (const listener of listeners) listener(snapshot()); };
@@ -339,8 +343,8 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
       if (missing.length === 0) { complete = true; if (jobWaits === waits) { jobWaits = null; jobDemand = null; } publish(); return; }
       publish(); let cursor = 0;
       // DL11 slice 4: the loose files (code, the product header, the transcoder) are read on their own lanes from the
-      // start. While parts run those lanes take only files a page read waits on; manifest order and a failed part's
-      // members follow the parts. Read only after the parts, Nine's packs setup waited 31 s for its 67 kB shard.json.
+      // start. While parts run those lanes take only files a page read waits on; manifest order follows the parts.
+      // Read only after the parts, Nine's packs setup waited 31 s for its 67 kB shard.json.
       const packedFiles = new Set(parts?.flatMap(part => part.members.flatMap(([index]) => files[index] ?? [])));
       const loose = missing.filter(file => !packedFiles.has(file)), looseByUrl = new Map(loose.map(file => [file.url, file]));
       let partsRunning = parts !== undefined && parts.length > 0;
@@ -363,12 +367,9 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
           await new Promise<void>(resolve => { sleepers.push(resolve); });
         }
       };
-      // with parts, a failed part's members may join the loose files later, so every lane is up from the start
-      const looseLanes = Promise.all(Array.from({length: partsRunning ? 8 : Math.min(8, loose.length)}, async () => {
+      const looseLanes = Promise.all(Array.from({length: Math.min(8, loose.length)}, async () => {
         for (let next = await nextLoose(); next !== undefined; next = await nextLoose()) {
           const {file} = next;
-          // DL20: a loose fetch made for a failed part's member (fallbackFiles counts what was handed over)
-          if (partCounts !== undefined && fallbackUrls.has(file.url)) partCounts.fetched++;
           try {
             let received = 0, credited = 0;
             const {bytes: body, copy: cachedCopy} = await readSpawnFile(file.url, file.bytes, {
@@ -384,16 +385,16 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
           } finally { landed(file.url); inFlight.delete(file.url); active--; if (demandedFlight.delete(file.url)) demandsActive--; nudge(); }
         }
       }));
-      // DL5: parts holding missing members, members cut out as their bytes land. A part that fails hands its unfinished
-      // members to the loose lanes (its files stay deployed). DL11 slice 4: parts run on PART_LANES lanes in
-      // manifest order, and a page read waiting on a member moves its part to the front (all at once, Nine's dozen parts
+      // DL5: parts holding missing members, members cut out as their bytes land. A part is its members' only copy (DL20):
+      // a read that fails is read again, and a part that keeps failing fails the job with its name, as a loose file's
+      // refusal does. DL11 slice 4: parts run on PART_LANES lanes in manifest order, and a page read waiting on a member moves its part to the front (all at once, Nine's dozen parts
       // each got a twelfth of the link: Props waited 25.5 s on 'Read audio 1/10' in Chromium).
       const partsWork = (async () => {
         if (parts === undefined || parts.length === 0) return;
         try {
         installMemberLayer();
         const counts = partCounts ??= {parts: 0, failed: 0, fallbackFiles: 0, fetched: 0};
-        const wanted = new Set(missing), left = new Set<number>(), stored = new Map<string, readonly string[]>();
+        const wanted = new Set(missing), stored = new Map<string, readonly string[]>();
         const readPart = async (part: (typeof parts)[number]): Promise<void> => {
           const order = part.members.filter(([index]) => {const file = files[index]; return file !== undefined && wanted.has(file);});
           if (order.length === 0) return;
@@ -402,8 +403,9 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
             const file = files[index]; if (file === undefined) continue;
             members.set(file.url, new Promise(resolve => {settle.set(index, resolve); memberSettles.add(resolve);}));
           }
-          try {
-            const response = await ports.fetch(new URL(part.url, packs).href, controller.signal);
+          // One read of the part. A read after a failure starts over and skips what landed, so no member counts twice.
+          const read = async (init: RequestInit | undefined): Promise<void> => {
+            const response = await ports.fetch(new URL(part.url, packs).href, controller.signal, init);
             if (!response.ok || response.body === null) throw new Error(`Spawn part unavailable: ${part.url}`);
             const body = new Uint8Array(part.bytes), reader = response.body.getReader();
             let at = 0, next = 0;
@@ -416,13 +418,15 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
               streamedBytes += chunk.value.byteLength;
               for (let row = next; row < order.length; row++) {
                 const [index, offset] = order[row] ?? [-1, Infinity], file = files[index]; if (file === undefined || offset >= at) break;
-                arrive(file, at - offset);
+                if (!done.has(index)) arrive(file, at - offset);
               }
               publish();
               for (let row = order[next]; row !== undefined; row = order[next]) {
                 const [index, offset] = row, file = files[index]; if (file === undefined || offset + file.bytes > at) break;
+                next++;
+                if (done.has(index)) continue;
                 // DL13: a member is a view into its part (no copy): page reads and the keep share the part's bytes
-                const member = body.subarray(offset, offset + file.bytes); next++;
+                const member = body.subarray(offset, offset + file.bytes);
                 // The part's bytes are only trusted per member: each must match its manifest row before it is kept or read.
                 if (await sha256(member) !== file.hash) throw new Error(`Spawn part member differs: ${part.url}`);
                 // a cancelled job keeps nothing more: neither before a member's store nor after an unabortable one (sp-x1)
@@ -434,20 +438,21 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
               }
             }
             if (at !== part.bytes) throw new Error(`Spawn part size differs: ${part.url}`);
-            counts.parts++;
-            // Every member of the part is now stored (kept here, or already credited): the index may name it.
-            // A part shared by another entry keeps that entry's members too, while they are still keyed.
-            if (ports.keep !== undefined) stored.set(part.hash, [...new Set([...(heldIndex[part.hash] ?? []).filter(url => keys?.has(url) !== false),
-              ...part.members.map(([member]) => files[member]?.url ?? '')])]);
-          } catch {
-            // Settle first: a page read already waiting on a member must fall through, even when this download aborts.
-            counts.failed++;
-            for (const [index] of order) { const file = files[index]; if (file !== undefined) landed(file.url); }
-            for (const [index] of order) if (!done.has(index)) {
-              left.add(index); counts.fallbackFiles++; const url = files[index]?.url; if (url !== undefined) fallbackUrls.add(url); settle.get(index)?.(null);
+          };
+          for (let attempt = 1; ; attempt++) {
+            try { await read(attempt === 1 ? undefined : {cache: 'reload'}); break; } catch (failure) {
+              counts.failed++;
+              for (const [index] of order) { const file = files[index]; if (file !== undefined) landed(file.url); }
+              controller.signal.throwIfAborted();
+              if (attempt >= PART_READS) throw failure; // the job's failure answers every read still waiting
+              if (attempt > 1) { await partPause(); controller.signal.throwIfAborted(); }
             }
-            controller.signal.throwIfAborted();
           }
+          counts.parts++;
+          // Every member of the part is now stored (kept here, or already credited): the index may name it.
+          // A part shared by another entry keeps that entry's members too, while they are still keyed.
+          if (ports.keep !== undefined) stored.set(part.hash, [...new Set([...(heldIndex[part.hash] ?? []).filter(url => keys?.has(url) !== false),
+            ...part.members.map(([member]) => files[member]?.url ?? '')])]);
         };
         const partOf = new Map<string, number>(), demandedParts: number[] = [], takenParts = new Set<number>();
         parts.forEach((part, at) => { for (const [index] of part.members) { const file = files[index]; if (file !== undefined) partOf.set(file.url, at); } });
@@ -469,8 +474,6 @@ export function downloadSpawnManifest(address: SpawnManifestAddress, ports: Spaw
           const kept = Object.entries(heldIndex).filter(([hash, urls]) => !stored.has(hash) && urls.every(url => keys?.has(url) !== false));
           await ports.held.write(Object.fromEntries([...kept, ...stored])).catch(() => undefined);
         }
-        // a failed part's unfinished members join the loose files, read after the parts in manifest order
-        for (const [index, file] of files.entries()) if (left.has(index) && !looseByUrl.has(file.url)) { loose.push(file); looseByUrl.set(file.url, file); }
         } finally { partsRunning = false; nudge(); }
       })();
       // the first failure of either fails the job (its catch aborts the other)
