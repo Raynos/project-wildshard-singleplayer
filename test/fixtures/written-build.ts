@@ -11,7 +11,7 @@ export async function buildWithBootModules(root: string, options: { readonly min
   const outDir = resolve(root, 'dist'), inlineLimit = options.assetsInlineLimit ?? 4096;
   await build({ root, configFile: false, logLevel: 'silent',
     build: { outDir, emptyOutDir: true, minify: options.minify ?? false, cssCodeSplit: false, manifest: true, sourcemap: 'hidden', assetsInlineLimit: inlineLimit } });
-  writeBootModules(outDir, root, inlineLimit);
+  writeBootModules(outDir, root);
   return outDir;
 }
 

@@ -21,7 +21,7 @@ async function prepareWorld(): Promise<void> {
   await installAssetFixture();
   await installCatalogueFixture();
   // Only full world consumers initialize the compatibility level.
-  await import('../../src/shardList');
+  await import('./shardList');
   const {shards:scalarDefinitions}=await import('../../src/game/client/shard/list');
   for (const definition of scalarDefinitions()) {
     const intake = definition.scalarBlocks;

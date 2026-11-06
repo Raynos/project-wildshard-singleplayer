@@ -6,7 +6,7 @@ import { installAssetFixture, installCatalogueFixture } from './bootSetup';
 export async function installKitWorldFixture(): Promise<void> {
   await installAssetFixture();
   await installCatalogueFixture();
-  await import('../../src/shardList');
+  await import('./shardList');
   installWorldRegistry();
   installKitSpecies();
 }

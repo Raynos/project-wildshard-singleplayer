@@ -36,7 +36,7 @@ import { installAssetFixture, installCatalogueFixture } from './fixtures/bootSet
 
 await installAssetFixture();
 await installCatalogueFixture();
-await import('../src/shardList');
+await import('./fixtures/shardList');
 
 function fixture(kind: string, speeds: MountProfile['speeds'], registerMode = true): { player: Player; animals: AnimalManager; mount: Mount; actor: Animal; scope: Scope; ctx: LevelContext; camera: PerspectiveCamera; slots: DiscOpts[]; widgets: string[] } {
   const scope = new Scope('riding-fixture'), app = new App(), camera = new PerspectiveCamera(), slots: DiscOpts[] = [], widgets: string[] = [];

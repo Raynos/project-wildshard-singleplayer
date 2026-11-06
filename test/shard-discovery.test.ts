@@ -3,13 +3,14 @@ import { discoveryDocument } from '../src/sharddev/discoveryDocument';
 import { readDiscovery, shardFromDiscovery } from '../src/game/client/shard/discovery';
 import { shardArt } from '../src/game/client/shard/list';
 
+const spawn = { eye: [0, 1, 0] satisfies [number, number, number], yaw: 0, pitch: 0, mockup: 'spawn', frame: 'spawn' };
 const reads = new Map<string, unknown>([['./data/budgets.json', { phone: { fps: 30 } }], ['./ktx2.generated', { phone: {}, desktop: {} }]]);
 const read = (module: string): Promise<unknown> => { if (!reads.has(module)) throw new Error(`Unread ${module}`); return Promise.resolve(reads.get(module)); };
 const binding = { accent: 'mint', budgets: { module: './data/budgets.json', export: 'default' }, ktx2: { module: './ktx2.generated' }, render: { platform: 'toon' }, poses: { program: true } };
 
 test('a manifest\'s bindings become data, and what names shard code refuses', async () => {
-  const document = await discoveryDocument('island', { slug: 'island', bindings: binding }, { poses: { spawn: {} } }, read);
-  expect(document.rows).toEqual({ accent: 'mint', budgets: { phone: { fps: 30 } }, poses: { spawn: {} } });
+  const document = await discoveryDocument('island', { slug: 'island', bindings: binding }, { poses: { spawn } }, read);
+  expect(document.rows).toEqual({ accent: 'mint', budgets: { phone: { fps: 30 } }, poses: { spawn } });
   expect(document.native).toEqual({ render: { $call: 'renderToon', args: [] }, ktx2: { GPU_FILES: { phone: {}, desktop: {} } } });
   for (const [key, row] of [['load', { module: './plugin', export: 'default' }], ['audioPreload', { module: './audio', export: 'load' }], ['render', { module: './look', export: 'look' }], ['roster', { module: './roster', export: 'roster' }]] as const) {
     await expect(discoveryDocument('island', { slug: 'island', bindings: { ...binding, [key]: row } }, { poses: {} }, read)).rejects.toThrow('shard code');

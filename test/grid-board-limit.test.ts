@@ -63,7 +63,7 @@ test('a road-class cell keeps 30 m/s across its interior', async () => {
 });
 
 test('a placement says road exactly where its shard does: the server reads no manifest', async () => {
-  await import('../src/shardList');
+  await import('./fixtures/shardList');
   for (const cell of new GridAssembly({ developer: false, devserver: false }).cells) {
     const manifest = findShard(cell.slug);
     if (manifest === undefined) throw new Error(`No manifest for ${cell.slug}`);
