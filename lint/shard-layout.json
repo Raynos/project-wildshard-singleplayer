@@ -35,6 +35,7 @@
   "describe": {
     "shard.config.ts": "build entry: serialisable declaration plus output blobs/custom/platform sections; builds out/<slug>/",
     "fence-reads.json": "the shard's reviewed list of files read during a boot fence",
+    "mounts.json": "the public files only this shard reads, which its product carries (scripts/record-shard-mounts.mjs)",
     "packs-set.json": "the shard's boot pack selection",
     "runtimeCost.json": "the shard's measured runtime cost rows",
     "README.md": "what the shard declares, its custom code and why, budgets, look, open work (its plan rows)",
