@@ -64,6 +64,8 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
               let target=source.startsWith('.')?relative(root,resolve(root,dirname(file),source)):null;
               const packageName=/^@wildshard\/([^/]+)(?:\/(.+))?$/u.exec(source);
               if(packageName!==null) {
+                // Format installs from the shardfile repo (J81): the lockfile in `shared` pins it, as it does any dependency.
+                if(!view.files.has(`src/${packageName[1]}/package.json`))continue;
                 const entry=json(view,`src/${packageName[1]}/package.json`).exports?.[packageName[2]===undefined?'.':`./${packageName[2]}`];
                 if(typeof entry!=='string'||!entry.startsWith('./')){missing.add(source);continue;}
                 target=`src/${packageName[1]}/${entry.slice(2)}`;
@@ -160,6 +162,16 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
       const {ratchetApprovalFailures}=/** @type {typeof import('./ratchet-approval.mjs')} */(await module('scripts/ratchet-approval.mjs'));
       const policy=json(view,'lint/ratchet.json');
       failures.push(...closedComponentSources(root,policy.closedComponents));
+      if(view.files.has('scripts/check-spelled-paths.mjs')) {
+        const {spelledPathFailures}=/** @type {typeof import('./check-spelled-paths.mjs')} */(await module('scripts/check-spelled-paths.mjs'));
+        view.prime([...view.files.keys()].filter(path=>/^src\/(?:engine|game)\/isolated-[^/]+\.test\.ts$|^scripts\/.*\.[cm]?[jt]s$|^src\/shards\/[^/]+\/(?:data|look)\/map\.json$/u.test(path)));
+        failures.push(...spelledPathFailures(view.files,path=>view.read(path).toString('utf8')));
+      }
+      // What derived-docs walks first: a package's exports. Only a manifest or the lockfile can change that shape.
+      if(view.files.has('scripts/docs/read-shardfile-reference.mjs')&&paths.some(path=>/^(?:pnpm-lock\.yaml|src\/[^/]+\/package\.json|scripts\/docs\/(?:sdk-schemas|read-shardfile-reference|schema-reference)\.mjs)$/u.test(path))) {
+        const child=spawnSync(process.execPath,['--import','./scripts/sim-node-loader.mjs','scripts/docs/read-shardfile-reference.mjs'],{cwd:root,encoding:'utf8',maxBuffer:64*1024*1024,timeout:15_000});
+        if(child.error===undefined&&child.status!==0)failures.push(`scripts/docs/sdk-schemas.mjs: the schema reference refused: ${child.stderr}`);
+      }
       if(view.files.has('scripts/format-lock.mjs')) {
         const {formatLockFailures,formatTagFailures,isFormatLockInput}=/** @type {typeof import('./format-lock.mjs')} */(await module('scripts/format-lock.mjs'));
         if(paths.some(isFormatLockInput)) {
