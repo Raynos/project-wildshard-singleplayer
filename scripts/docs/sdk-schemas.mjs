@@ -12,7 +12,7 @@ async function packageSchemas(root, layer) {
   const manifest = JSON.parse(readFileSync(resolve(root, layerFolder(layer), 'package.json'), 'utf8')), rows = [];
   for (const [module, target] of Object.entries(manifest.exports).sort(([a], [b]) => a.localeCompare(b))) {
     if (module.endsWith('.json')) continue;
-    if (typeof target !== 'string' || !target.startsWith('./') || !target.endsWith('.ts')) throw new Error(`Unsupported ${layer} defining export ${module}`);
+    if (typeof target !== 'string' || !target.startsWith('./') || !/\.m?ts$|\.mjs$/u.test(target)) throw new Error(`Unsupported ${layer} defining export ${module}`);
     const file = resolve(root, layerFolder(layer), target), text = readFileSync(file, 'utf8');
     const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
     const names = source.statements.flatMap(statement => ts.isVariableStatement(statement)
