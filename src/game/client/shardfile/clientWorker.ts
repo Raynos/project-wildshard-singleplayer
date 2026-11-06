@@ -261,6 +261,8 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   // A practice room or a playground floats over the world and only this page is in it: its player walks alone, its weapons strike its
   // dummies, and the world waits where they left it. A body the server still had to serve would pull the player back down.
   let away = false;
+  // A stopped server earns a client no credit: what a page sent it anyway would be refused, and past a room's flood debt the page is dropped.
+  const quiet = (): boolean => away || document.visibilityState === 'hidden';
   scope.listen(document, 'ws:practice-active', event => {
     const inside = event instanceof CustomEvent && event.detail === true;
     if (inside === away) return;
@@ -333,7 +335,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     const shown = showRows(client, net, ports, bodies, renderTick, dt, row, near, rideable);
     wirePage.frame(here ? bookOf(client.latest?.cell) : null, here, ports.day()); decks.frame(renderTick);
     report.rows = animals === null ? [...client.entities.values()].filter(info => info.cls.cls === ANIMAL_CLASS.cls).length : shown; // a data cell's life draws them
-    net.present(dt);
+    if (!quiet()) net.present(dt);
     const now = diagnosticNow(), { predictor } = net, seconds = (now - started) / 1000, tick = client.latest?.tick ?? 0;
     costs[report.frames % costs.length] = cost + now - at;
     report.frames++;
@@ -352,7 +354,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   // panel in a beat, with no command, because nothing here moves a body. The ack keeps the server's baseline moving.
   scope.interval(PARKED_BEAT_MS, () => {
     const now = diagnosticNow();
-    if (now - presented < PARKED_BEAT_MS * 2) return;
+    if (now - presented < PARKED_BEAT_MS * 2 || quiet()) return;
     client.present();
     const here = client.latest === null || net.inCell(client.latest.cell);
     wirePage.frame(here ? bookOf(client.latest?.cell) : null, here, ports.day());
@@ -397,5 +399,8 @@ async function guarded(ports: WorkerClientPorts): Promise<void> {
   catch (error) { console.error('[worker client]', error); overlay(ports)(`worker client failed\n${String(error)}`); }
 }
 
-/** Start the proof; a failure says so, because a phone has no console. */
-export function launchWorkerClient(ports: WorkerClientPorts): void { void guarded(ports); }
+/** Start the client and its server; a failure says so, because a phone has no console. It settles once the server has booted, or
+ *  failed: the boot is part of the load, so a page that awaits it hands the player a world the server already holds. */
+export function launchWorkerClient(ports: WorkerClientPorts): Promise<void> {
+  return new Promise(resolve => { ports.scope.onDispose(resolve); void guarded(ports).finally(resolve); }); // a level left mid-boot hears no server
+}
