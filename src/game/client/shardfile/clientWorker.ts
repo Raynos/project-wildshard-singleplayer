@@ -75,7 +75,7 @@ interface Shell { readonly client: NetClient; readonly booted: Promise<{ readonl
 
 const SAVE_EVERY_MS = 30_000;
 const column = (name: string): number => ANIMAL_CLASS.row.findIndex(entry => entry.name === name);
-const X = column('x'), Y = column('y'), Z = column('z'), YAW = column('yaw'), STATE = column('state'), ATTACK = column('attackT'), FLINCH = column('flinch'), HP = column('hp'), ALIVE = column('alive');
+const X = column('x'), Y = column('y'), Z = column('z'), YAW = column('yaw'), STATE = column('state'), ATTACK = column('attackT'), FLINCH = column('flinch'), HP = column('hp'), ALIVE = column('alive'), RIDEABLE = column('rideable');
 
 /** What the page measures, as I6 lists it. */
 export interface WorkerClientReport {
@@ -89,6 +89,8 @@ export interface WorkerClientReport {
   owned: Readonly<Record<string, number>>; sky: number | null; day: number | null;
   /** Movers this page holds, and the poses rows have given them. */
   movers: number; posed: number;
+  /** Bodies this page made and the rows put away, by kind: what its own sim still builds. */
+  retired: Readonly<Record<string, number>>;
   /** What the corrections disagreed on. */
   missed: Readonly<NetPlayer['predictor']['missed']>; misses: readonly (readonly number[])[];
 }
@@ -97,7 +99,7 @@ declare global { interface Window { __workerClient?: () => WorkerClientReport; _
 /** A creature on screen, and the world's manager that holds it: a crossing leaves it behind. */
 interface RowBody { readonly body: Animal; readonly manager: Creatures }
 /** Every creature on this page is a row: a new one spawns through the real manager, one the server dropped retires. */
-function syncCreatures(client: NetClient, animals: Creatures | null, bodies: Map<number, RowBody>): void {
+function syncCreatures(client: NetClient, animals: Creatures | null, bodies: Map<number, RowBody>, retired: Map<string, number>): void {
   for (const [handle, { body, manager }] of bodies) if (!client.entities.has(handle)) { manager.retire(body); bodies.delete(handle); }
   if (animals === null) return;
   for (const [handle, info] of client.entities) {
@@ -108,7 +110,7 @@ function syncCreatures(client: NetClient, animals: Creatures | null, bodies: Map
     body.rowDriven = true;
     bodies.set(handle, { body, manager: animals });
   }
-  for (const body of animals.animals.filter(entry => !entry.rowDriven)) animals.retire(body); // what the page's own population made
+  for (const body of animals.animals.filter(entry => !entry.rowDriven)) { animals.retire(body); retired.set(body.kind, (retired.get(body.kind) ?? 0) + 1); } // what the page's own population made
 }
 
 type BodyDims = Parameters<typeof creatureBodyShape>[0];
@@ -122,7 +124,7 @@ function headOf(body: Animal | undefined, to: Vector3): boolean {
 }
 
 /** Rows onto the bodies, and the near ones into the predicted world as capsules. */
-function showRows(client: NetClient, net: NetPlayer, ports: WorkerClientPorts, bodies: ReadonlyMap<number, RowBody>, renderTick: number, dt: number, row: Float64Array, near: PredictedRow[]): number {
+function showRows(client: NetClient, net: NetPlayer, ports: WorkerClientPorts, bodies: ReadonlyMap<number, RowBody>, renderTick: number, dt: number, row: Float64Array, near: PredictedRow[], rideable: Set<number>): number {
   const { interpolator } = client, own = client.welcome?.handle ?? 0, under = client.riders.get(own);
   let shown = 0;
   near.length = 0;
@@ -130,6 +132,7 @@ function showRows(client: NetClient, net: NetPlayer, ports: WorkerClientPorts, b
     if (handle === under || !interpolator.sample(handle, renderTick, row)) continue; // the body under this player is its own prediction (J48)
     body.showRow({ x: row[X] ?? 0, y: row[Y] ?? 0, z: row[Z] ?? 0, yaw: row[YAW] ?? 0, state: ANIMAL_STATES[row[STATE] ?? 0] ?? 'idle', attack: row[ATTACK] ?? 0, flinch: row[FLINCH] ?? 0, hp: row[HP] ?? 0, alive: row[ALIVE] === 1 }, dt);
     shown++;
+    if (row[RIDEABLE] === 1) rideable.add(handle);
     const { radius, height } = creatureBodyShape(body.dims, body.scale);
     near.push({ handle, x: row[X] ?? 0, y: row[Y] ?? 0, z: row[Z] ?? 0, alive: row[ALIVE] === 1, driven: false, radius, height });
   }
@@ -172,7 +175,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   let ended = false;
   const stop = (): void => { if (!ended) { ended = true; shell.dispose(); } };
   scope.onDispose(stop);
-  const net = new NetPlayer(client, player, physics), show = overlay(ports), row = new Float64Array(ANIMAL_CLASS.row.length), near: PredictedRow[] = [], costs = new Float64Array(240), bodies = new Map<number, RowBody>();
+  const retired = new Map<string, number>(), net = new NetPlayer(client, player, physics), show = overlay(ports), row = new Float64Array(ANIMAL_CLASS.row.length), near: PredictedRow[] = [], costs = new Float64Array(240), bodies = new Map<number, RowBody>();
   // the ride: a press goes up, and it starts and ends on the server's word. The body under the rider leaves its row for it
   let mount: Mount | null = null;
   const bindMount = (): void => {
@@ -180,11 +183,12 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     if (next === mount) return;
     mount?.bindWire(null); next?.bindWire(net.ride); mount = next;
   };
-  const allowed = new Set<string>(), offerMounts = (): void => {
-    for (const { a } of mount?.mountables ?? []) allowed.add(a.entityId);
-    for (const [handle, { body }] of bodies) {
-      const id = client.entities.get(handle)?.id;
-      if (id !== undefined && allowed.delete(id)) mount?.addMountable(body.entityId, id);
+  // The rows say who takes a rider. A horse this player tames joins them by the same word.
+  const rideable = new Set<number>(), offered = new Set<number>(), offerMounts = (): void => {
+    if (mount === null) return;
+    for (const handle of rideable) {
+      const id = client.entities.get(handle)?.id, body = bodies.get(handle)?.body;
+      if (id !== undefined && body !== undefined && !offered.has(handle)) { offered.add(handle); mount.addMountable(body.entityId, id); }
     }
   };
   net.bindRide({ enter: handle => { const body = bodies.get(handle)?.body; if (body !== undefined) mount?.enter(body.entityId); }, leave: () => { mount?.leave(); } });
@@ -221,7 +225,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   scope.onDispose(() => { player.link = null; ports.weapons.bindWire(null); net.dispose(); });
   const { restored } = await shell.booted;
   shell.ready();
-  const started = diagnosticNow(), report: WorkerClientReport = { frames: 0, framesPerSecond: 0, ticksPerSecond: 0, correctionsPerMinute: 0, corrections: 0, missed: net.predictor.missed, misses: net.predictor.misses, worstOffset: 0, queue: 0, replaysPerFrame: 0, delayMs: 0, jitterMs: 0, mainMsP95: 0, workerTickMs: 0, rows: 0, attacks: 0, hits: 0, kills: 0, refused: 0, held: 0, dropped: 0, hp: 0, falls: 0, closed: null, x: 0, z: 0, cell: 0, serverX: 0, serverZ: 0, restored, savedTick: -1, savedOk: false, quests: {}, flags: [], paid: 0, fights: [], owned: {}, sky: null, day: null, clawed: false, own: null, movers: 0, posed: 0 };
+  const started = diagnosticNow(), report: WorkerClientReport = { frames: 0, framesPerSecond: 0, ticksPerSecond: 0, correctionsPerMinute: 0, corrections: 0, retired: {}, missed: net.predictor.missed, misses: net.predictor.misses, worstOffset: 0, queue: 0, replaysPerFrame: 0, delayMs: 0, jitterMs: 0, mainMsP95: 0, workerTickMs: 0, rows: 0, attacks: 0, hits: 0, kills: 0, refused: 0, held: 0, dropped: 0, hp: 0, falls: 0, closed: null, x: 0, z: 0, cell: 0, serverX: 0, serverZ: 0, restored, savedTick: -1, savedOk: false, quests: {}, flags: [], paid: 0, fights: [], owned: {}, sky: null, day: null, clawed: false, own: null, movers: 0, posed: 0 };
   scope.onDispose(client.onCombat(event => {
     if (event.kind === 'hit' && event.confirmFor !== 0) { report.hits++; if (event.killed) report.kills++; }
     if (event.kind === 'died' && event.id === client.welcome?.handle) { report.falls++; ports.died(); }
@@ -244,9 +248,9 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     renderTick = client.present();
     const entered = grid?.items() ?? items;
     if (entered !== items) { items = entered; net.bindSlots(slotsOf(items)); }
-    syncCreatures(client, animals, bodies);
+    syncCreatures(client, animals, bodies, retired);
     bindMount(); offerMounts(); bindClaw();
-    const shown = showRows(client, net, ports, bodies, renderTick, dt, row, near);
+    const shown = showRows(client, net, ports, bodies, renderTick, dt, row, near, rideable);
     wirePage.frame(here ? bookOf(client.latest?.cell) : null, here, ports.day()); netMoverPoses(client, wirePage.movers, renderTick);
     report.rows = animals === null ? [...client.entities.values()].filter(info => info.cls.cls === ANIMAL_CLASS.cls).length : shown; // a data cell's life draws them
     net.present(dt);
@@ -262,7 +266,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     const { latest } = client;
     if (latest !== null) { const { px, pz, hp } = client.owner(latest); report.cell = latest.cell; report.serverX = Number(px); report.serverZ = Number(pz); report.hp = Number(hp); attributes.health = Math.max(1, report.hp); }
     if (now - sampledAt < 1000) return;
-    report.owned = Object.fromEntries(client.owned); report.sky = latest === null ? null : client.stateField(latest, 'weather.phase') ?? null; report.day = latest === null ? null : client.stateField(latest, DAY_ROW) ?? null;
+    report.retired = Object.fromEntries(retired); report.owned = Object.fromEntries(client.owned); report.sky = latest === null ? null : client.stateField(latest, 'weather.phase') ?? null; report.day = latest === null ? null : client.stateField(latest, DAY_ROW) ?? null;
     report.movers = wirePage.movers.size; report.posed = wirePage.posed; report.clawed = clawed !== null; report.own = client.welcome?.player ?? null;
     report.quests = Object.fromEntries([...client.quests].map(([id, quest]) => [id, quest.started ? quest.step : 'unstarted'])); report.flags = [...client.phased, ...client.flags()]; report.fights = wirePage.encounters().map(fight => `${fight.id}:${fight.state}:${fight.hp}`);
     report.framesPerSecond = (report.frames - framesAt) / (now - sampledAt) * 1000; framesAt = report.frames; sampledAt = now;

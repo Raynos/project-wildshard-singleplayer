@@ -84,8 +84,9 @@ export class PopulationProjection {
     await this.scope.run(() => this.animals.factory.prepareModels(placement.enemies));
     if (this.disposed) throw new Error('Population projection left during preparation');
     this.scope.run(() => {
-      this.rng.restore(placement.stream); this.creatures.place(placement.centres, placement.kinds, placement.enemies);
-      for (const spot of placement.enemies.filter(entry => entry.herd < 0 && entry.kind === hold.kind)) {
+      this.rng.restore(placement.stream);
+      if (!wirePage.on) this.creatures.place(placement.centres, placement.kinds, placement.enemies); // on the wire these are rows
+      if (!wirePage.on) for (const spot of placement.enemies.filter(entry => entry.herd < 0 && entry.kind === hold.kind)) {
         // pooled, lit only while this projection is shown; a sealed, full pool grows for it (G808: as this group's own
         // light it left the page's light count whenever the home hid, and entering Pine built 149 of 150 programs again)
         const actor = this.creatures.loose(spot), light = LightPool.for(this.lightScene).acquire(row.light.colour, 0, row.light.distance, row.light.decay, this.group, true);

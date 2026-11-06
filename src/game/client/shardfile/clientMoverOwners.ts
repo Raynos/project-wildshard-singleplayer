@@ -2,8 +2,10 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardContext } from '../plugin/context';
 import type { MoverRuntime, MoverView } from '../../server/plugin/mover';
+import type { BorrowedSpeciesControl } from '../../server/plugin/brain';
 import { pageSimFeed, type PageSimFeed } from '../../server/plugin/pageSimFeed';
 import { netClimate } from '../weather/netClimate';
+import * as v from 'valibot';
 import { wirePage } from './wirePage';
 import { liftPrompt } from '../../shared/shardfile/wirePrompts';
 import { entryOwner } from '../../shared/shardfile/entryOwners';
@@ -24,18 +26,32 @@ const installed=new WeakSet<Scope>();
 export const pageSim:PageSimFeed=pageSimFeed;
 /** J130: this page runs on a server. Motion and the sky come off rows; what else `pageSim` holds still builds, on nothing, and
  * stands down where a bar, a payout or a flag would otherwise have two drivers. */
+const noDecision=():BorrowedSpeciesControl=>({phase:0,fighting:false,restart:()=>undefined,current:null,windup:0,aim:0,snapshot:()=>null,restore:()=>undefined,observe:()=>undefined});
+const HeldWildlife=v.looseObject({flocks:v.array(v.looseObject({}))});
 let wired=false;
 export function wirePageSim():void{
   wirePage.followBooks();
   if(wired)return;
   wired=true;
-  const {installDeclaredMovers,climate}=pageSim;
+  const {installDeclaredMovers,climate,pageWildlife,bindMeleeContacts}=pageSim;
   Object.assign(pageSim,{
     installDeclaredMovers:async(...[ctx,world,options]:Parameters<PageSimFeed['installDeclaredMovers']>)=>{
       const runtime=await installDeclaredMovers(ctx,world,{...options,followed:true});
       for(const row of options.data)wirePage.movers.set(row.id,{pose:pose=>{wirePage.posed++;runtime.follow(row.id,pose);}});
       return runtime;
     },
+    // The server keeps the wild: a page keeps only what has no row, the crowds it draws and the foragers underfoot.
+    pageWildlife:(...[animals,rows,...rest]:Parameters<PageSimFeed['pageWildlife']>)=>{
+      const held=v.parse(HeldWildlife,rows),flocks:unknown[]=[];
+      for(const flock of held.flocks)flocks.push({...flock,dog:false});
+      return pageWildlife(animals,{...held,packs:[],herds:[],mountables:[],flocks},...rest);
+    },
+    // A row's brain is the server's. A body this page draws asks for a decision and is told there is none.
+    pageDecisionAuthority:()=>Promise.resolve({bind:noDecision}),
+    borrowedDecisionAuthority:()=>({bind:noDecision}),
+    prepareProductDecisionMemories:()=>Promise.resolve(),
+    // A blade still swings here, and what it lands is the server's: its contacts have nobody to scan.
+    bindMeleeContacts:(id,rows,ports)=>bindMeleeContacts(id,rows,{...ports,targets:()=>[]}),
     commandSocketLift:(_runtime:Parameters<PageSimFeed['commandSocketLift']>[0],lift:Parameters<PageSimFeed['commandSocketLift']>[1],action:Parameters<PageSimFeed['commandSocketLift']>[2])=>{wirePage.send(liftPrompt(lift.mover,action));},
     climate:(ports:Parameters<PageSimFeed['climate']>[0])=>climate({...ports,net:rows=>netClimate(wirePage.climateRows,rows,word=>{wirePage.climate(word);})}),
   } satisfies Partial<PageSimFeed>);

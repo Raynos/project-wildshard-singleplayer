@@ -1,9 +1,9 @@
 import type { NetCommand } from '@wildshard/format/netCommand';
 import type { AnimalPoseSample } from '../../shared/entities/AnimalSim';
 import type { SimHost } from '../sim';
-import { actRoutes } from '../../shared/sim/actRoutes';
 import { leadPlayer } from '../../shared/sim/leadPlayer';
 import type { AnimalNetView } from '../../shared/net/animalNet';
+import { actRoutes } from '../../shared/sim/actRoutes';
 import { CombatWire, type CombatEvent } from './combatWire';
 import { keepHitHistory } from './hitHistory';
 import type { LedgerFiling } from './ledgerBook';
@@ -64,7 +64,7 @@ export class SimNetWorld implements NetWorld {
     for (const player of host.players.values()) if (!host.parked.has(player.id)) visitor.entity(player.id, PLAYER_CLASS, player);
     for (const [id, sim] of host.entities) {
       sim.samplePose(pose);
-      const view: AnimalNetView = { sim, pose, target: targets.get(id) ?? null };
+      const view: AnimalNetView = { sim, pose, target: targets.get(id) ?? null, rideable: actRoutes(this.host).mountable?.(id) === true };
       visitor.entity(id, ANIMAL_CLASS, view);
     }
     for (const [id, read] of encounterRows(host)) visitor.entity(id, ENCOUNTER_CLASS, read());

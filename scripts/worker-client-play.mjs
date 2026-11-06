@@ -60,8 +60,25 @@ export async function play(browser, phone, base, only = '') {
     try { const out = await run(); ok = out === true || out?.ok === true; note = typeof out === 'object' && out !== null ? JSON.stringify(out) : String(out); }
     catch (error) { note = `threw: ${String(error).slice(0, 300)}`; }
     steps.push({ name, ok, note });
-    console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}  (${Math.round((Date.now() - at) / 1000)} s)  ${note.slice(0, 400)}`);
+    console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}  (${Math.round((Date.now() - at) / 1000)} s)  ${note.slice(0, 2400)}`);
     return ok;
+  };
+
+
+  // Traversal: the page asks, and the server carries. Each stands at its prompt by the harness's move, presses, and reads the owner block's lead.
+  const prompted = (page, id) => page.evaluate(wanted => { const near = window.__wildshard.world.interactables.find(prompt => prompt.wireId === wanted); return near === undefined ? null : { x: near.position.x, y: near.position.y, z: near.position.z }; }, id);
+  const pressAt = async (page, id) => {
+    const at = await prompted(page, id);
+    if (at === null) return { ok: false, why: 'no prompt', id };
+    await page.evaluate(({ x, y, z }) => { window.__wildshard.world.player.link.place(x, y + 0.2, z, 0); }, at);
+    await page.waitForTimeout(1200);
+    const start = await report(page);
+    for (let i = 0; i < 6; i++) {
+      await page.keyboard.press('KeyE'); await page.waitForTimeout(600);
+      const led = await page.evaluate(() => window.__wildshard.world.player.link.predictor.leading);
+      if (led) return { ok: true, start: [start.x, start.z] };
+    }
+    const r = await report(page); return { ok: false, why: 'never led', refused: r.refused, x: r.x, z: r.z };
   };
 
   // Driftwood, one shard: the opening quest
@@ -151,6 +168,33 @@ export async function play(browser, phone, base, only = '') {
   await step('driftwood raises no page error', () => ({ ok: drift.errors.length === 0, errors: [...new Set(drift.errors)].slice(0, 6) }));
   await drift.context.close(); }
 
+  if (runs('traverse')) {
+    const drift = await open(browser, phone, base, '/?chunk=driftwood-isle&mute=1&nolock=1');
+    await step('zipline: the driftwood cable is the server\'s ride', async () => { await entered(drift.page); return pressAt(drift.page, 'driftwood.zipline'); });
+    await step('driftwood rides without a page error', () => ({ ok: drift.errors.length === 0, errors: [...new Set(drift.errors)].slice(0, 6) }));
+    await drift.context.close();
+    const pine = await open(browser, phone, base, '/?chunk=pine-hollow&mute=1&nolock=1');
+    await step('carry: the pine canoe takes a press', async () => { await entered(pine.page); return pressAt(pine.page, 'pine.canoe.ride.0'); });
+    await step('pine rides without a page error', () => ({ ok: pine.errors.length === 0, errors: [...new Set(pine.errors)].slice(0, 6) }));
+    await pine.context.close();
+    const far = await open(browser, phone, base, '/?chunk=far-reach&mute=1&nolock=1');
+    await step('lift: a far reach islet takes a call and rises', async () => {
+      await entered(far.page);
+      const prompts = await far.page.evaluate(() => window.__wildshard.world.interactables.filter(prompt => prompt.wireId === undefined && prompt.position.y > -1000 && prompt.radius > 3).map(prompt => ({ x: prompt.position.x, y: prompt.position.y, z: prompt.position.z, label: prompt.label })));
+      const at = prompts.find(prompt => /islet/iu.test(prompt.label));
+      if (at === undefined) return { ok: false, prompts: prompts.slice(0, 8) };
+      await far.page.evaluate(({ x, y, z }) => { window.__wildshard.world.player.link.place(x, y + 0.2, z, 0); }, at);
+      await far.page.waitForTimeout(1500);
+      const height = () => far.page.evaluate(() => window.__wildshard.world.player.position.y), low = await height();
+      for (let i = 0; i < 3; i++) { await far.page.keyboard.press('KeyE'); await far.page.waitForTimeout(400); }
+      await far.page.waitForTimeout(8000);
+      const high = await height(), r = await report(far.page);
+      return { ok: Math.abs(high - low) > 1, low, high, label: at.label, corrections: r.corrections, refused: r.refused };
+    });
+    await step('far reach rides without a page error', () => ({ ok: far.errors.length === 0, errors: [...new Set(far.errors)].slice(0, 6) }));
+    await far.context.close();
+  }
+
   // Nalati: a ride
   if (runs('nalati')) { const nalati = await open(browser, phone, base, '/?chunk=nalati-grasslands&mute=1&nolock=1');
   await step('nalati boots on the row', async () => { await entered(nalati.page); return started(nalati.page); });
@@ -192,7 +236,7 @@ export async function play(browser, phone, base, only = '') {
       await shard.page.evaluate(() => { const { player } = window.__wildshard.world; player.touchMove.y = 1; });
       await shard.page.waitForTimeout(8000);
       const r = await report(shard.page), rig = await shard.page.evaluate(() => { const held = Object.entries(window.__wildshard.shard).find(([key]) => key.includes('weather'))?.[1]; return held?.weather?.state ?? null; });
-      return { ok: shard.errors.length === 0 && r.closed === null && r.rows > 0, rows: r.rows, fights: r.fights.slice(0, 6), movers: r.movers, posed: r.posed, corrections: r.corrections, missed: r.missed, worst: r.worstOffset, sky: rig, errors: [...new Set(shard.errors)].slice(0, 4) };
+      return { ok: shard.errors.length === 0 && r.closed === null && r.rows > 0, rows: r.rows, retired: r.retired, fights: r.fights.slice(0, 6), movers: r.movers, posed: r.posed, corrections: r.corrections, missed: r.missed, worst: r.worstOffset, sky: rig, errors: [...new Set(shard.errors)].slice(0, 4) };
     });
     await shard.context.close();
   }
@@ -215,7 +259,7 @@ export async function play(browser, phone, base, only = '') {
         await grid.page.waitForTimeout(1000);
       }
     }
-    const r = await report(grid.page); return { ok: r.closed === null, cell: r.cell, serverX: r.serverX, serverZ: r.serverZ, corrections: r.corrections, missed: r.missed, misses: r.misses.slice(0, 6).map(miss => miss.map(value => Math.round(value * 100) / 100)) };
+    const r = await report(grid.page); return { ok: r.closed === null, cell: r.cell, serverX: r.serverX, serverZ: r.serverZ, corrections: r.corrections, missed: r.missed, misses: r.misses.slice(0, 48).map(miss => miss.map(value => Math.round(value * 100) / 100)) };
   });
   await step('grid saves, reloads and resumes', async () => {
     await grid.page.evaluate(() => { const { player } = window.__wildshard.world; player.touchMove.y = 0; return Promise.race([window.__workerClientSave(), new Promise(resolve => { setTimeout(resolve, 20_000); })]); });

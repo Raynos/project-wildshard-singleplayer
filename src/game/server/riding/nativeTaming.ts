@@ -251,6 +251,7 @@ export function installNativeTaming(host: SimHost, context: NativeTamingContext,
     if (action === 'mount' && seat !== undefined && !seat.mounted && mountNearest(seat, rows.eye)) return;
     pending.set(id, { ...pending.get(id), [action]: true });
   };
+  net.mountable = id => { for (const player of host.players.keys()) if (mountedPlayerOf(host, player)?.mountables.some(horse => horse.entityId === id) === true) return true; return false; };
   net.lean = (id, lean, pitch) => { if (sessions.has(id)) pending.set(id, { ...pending.get(id), lean, pitch }); };
   installed.set(host, law); return law;
 }

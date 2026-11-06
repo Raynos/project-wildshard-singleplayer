@@ -14,6 +14,8 @@ export interface ActRoutes {
   lock: string | null;
   /** A player's riding act, on a shard with taming. */
   ride: ((player: string, action: Extract<NetAct, { kind: 'ride' }>['action']) => void) | null;
+  /** Whether a creature takes a rider as it stands, on a shard with taming: what a client's prompt reads off its row. */
+  mountable: ((id: string) => boolean) | null;
   /** A player's lean and look while they ride, on a shard with taming. */
   lean: ((player: string, lean: number, pitch: number) => void) | null;
   /** Whether a launcher input lands on an owner that takes it, on a shard with native items: a client names any slot. */
@@ -43,6 +45,6 @@ const routes = new WeakMap<SimHost, ActRoutes>();
 /** One host's routes (P1-E5.2c). */
 export function actRoutes(host: SimHost): ActRoutes {
   let held = routes.get(host);
-  if (held === undefined) { held = { interactions: new Map(), equip: null, lock: null, ride: null, lean: null, launcher: null, seen: null, buy: null, board: null, wear: null, climate: null, claims: new Map(), skipHeld: false, refused: 0 }; routes.set(host, held); }
+  if (held === undefined) { held = { interactions: new Map(), equip: null, lock: null, ride: null, mountable: null, lean: null, launcher: null, seen: null, buy: null, board: null, wear: null, climate: null, claims: new Map(), skipHeld: false, refused: 0 }; routes.set(host, held); }
   return held;
 }

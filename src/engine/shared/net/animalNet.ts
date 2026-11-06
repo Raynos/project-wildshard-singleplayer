@@ -3,7 +3,7 @@ import type { AnimalPoseSample, AnimalSim } from '../entities/AnimalSim';
 import { netSchema, type NetSchema } from './schema';
 
 /** One creature's per-tick read: the sim, its sampled pose and its strike target. A reused buffer, never kept. */
-export interface AnimalNetView { sim: AnimalSim; readonly pose: AnimalPoseSample; target: string | null }
+export interface AnimalNetView { sim: AnimalSim; readonly pose: AnimalPoseSample; target: string | null; rideable: boolean }
 
 // P1-E5.2 (E5-REPLICATION §3.2): the fields a creature view needs. Positions are cell-local over ±260 m in 16 bits, an
 // 8 mm step (§3.5). Everything else on AnimalSim (AI memory, strike runners, RNG) stays on the server.
@@ -26,6 +26,7 @@ export const ANIMAL_NET: NetSchema<AnimalNetView> = netSchema<AnimalNetView>({
     hp: { kind: 'u16', read: view => Math.ceil(view.sim.hp) },
     alive: { kind: 'bool', read: view => view.sim.alive },
     target: { kind: 'ref', read: view => view.target },
+    rideable: { kind: 'bool', read: view => view.rideable },
     kind: { kind: 'text', send: 'initial', read: view => view.sim.kind },
     variant: { kind: 'text', send: 'initial', read: view => view.sim.variant },
     rarity: { kind: 'text', send: 'initial', read: view => view.sim.rarity },
