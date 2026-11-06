@@ -82,8 +82,9 @@ test('a player who falls out of a world is the server\'s to put back', { timeout
   const seat = running?.host.players.get('actor.player'), host = running?.host;
   if (seat === undefined || host === undefined) throw new Error('No session player');
   seat.position.set(0, -251, 0); seat.motor.resetAt(seat.position);
-  await walk(shell, 0, () => host.respawn.falls(seat.id) === 1);
-  expect(seat.position.y).toBeGreaterThan(-250);
+  // one shard, one world: a fall is no death here, it goes back to where the player last stood
+  await walk(shell, 0, () => seat.position.y > -250);
+  expect(host.respawn.falls(seat.id)).toBe(0);
   stop();
 });
 

@@ -114,7 +114,7 @@ test('the browser page population counts and refills Sunscar exactly as the head
       alive: true, hp: 1, state: 'idle', yaw, position, mem: {}, combatActor: () => actor });
     animals.push(animal); return animal;
   };
-  const manager = legacyDouble<AnimalManager>({ spawn, retire: animal => { const at = animals.indexOf(animal); if (at !== -1) animals.splice(at, 1); },
+  const manager = legacyDouble<AnimalManager>({ herdless: false, spawn, retire: animal => { const at = animals.indexOf(animal); if (at !== -1) animals.splice(at, 1); },
     replace: (retired, x, z, yaw, variant) => spawn(retired.kind, x, z, yaw, variant, { entityId: retired.entityId }) });
   const scope = new Scope('e3.1.page');
   const ctx = legacyDouble<ShardContext>({ scope,
