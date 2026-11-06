@@ -9,6 +9,8 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { setTerrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { Elites, type EliteScript } from '../src/game/client/Elite';
+import type { EncounterRow } from '../src/game/client/boss/barFeed';
+import { wirePage } from '../src/game/client/shardfile/wirePage';
 import type { EliteEnteredOwners } from '../src/game/client/eliteView';
 import { EliteEnteredPresentationSchema } from '@wildshard/format/eliteFeature';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
@@ -58,6 +60,29 @@ test('entered rows retain the real banner, phase, skin orb, prompt, score and re
   expect(entered.labels).toEqual(['Take the REED sword skin']);
   expect(entered.events).toEqual([['combat', .8], ['combat', 1], ['trophy'], ['sting', 'chunk'], ['hum', true], ['hum', false], ['own', 'reed'], ['hum', false], ['toast', 'REED sword skin — woven reed grip']]);
   expect(JSON.parse(entered.saved)).toEqual({ [def.id]: { timer: 60 - .016, discovered: true, skinTaken: true, kills: 1, retired: false } });
+});
+
+// N2: on the wire nothing steps a lair. Its row drives the stings and the trophy's feed line, and what a row held when it arrived is no moment.
+test('on the wire a lair\'s row plays its banner, phase, trophy and kill stings', () => {
+  const on = Object.getOwnPropertyDescriptor(wirePage, 'on'), encounters = vi.spyOn(wirePage, 'encounters');
+  Object.defineProperty(wirePage, 'on', { get: () => true, configurable: true });
+  const scope = new Scope('wire.elites'), scene = new Scene(), camera = new PerspectiveCamera(), events: unknown[][] = [];
+  const hud = legacyDouble<EliteEnteredOwners['hud']>({ toast: text => { events.push(['toast', text]); } });
+  const audio = legacyDouble<EliteEnteredOwners['audio']>({ pickupHum: () => undefined });
+  const music = legacyDouble<EliteEnteredOwners['music']>({ sting: name => { events.push(['sting', name]); }, combat: intensity => { events.push(['combat', intensity]); } });
+  const script: EliteScript = { def, animal: null, spawn: () => undefined, despawn: () => undefined, tick: () => undefined, enterPhase2: () => undefined, reset: () => undefined,
+    trophy: () => { events.push(['trophy']); }, dropModel: () => new Group() };
+  const row = (state: string, banners: number, phase: number): EncounterRow => ({ id: def.id, kind: 'elite', state, hp: 1, phase, shield: false, body: 0, skip: 0, banners, signatures: 0, known: true, sleep: 0, reward: null });
+  try {
+    withOwner(scope, () => {
+      const elites = new Elites({ scene, camera, player: { position: new Vector3() }, condition: () => true }, new EliteBar(), 'reed-marsh', { read: () => ({}), write: () => undefined });
+      elites.add(script); elites.bindEnteredPresentation({ scope, interactables: [], hud, audio, music }, rows);
+      const frame = (state: string, banners: number, phase: number): void => { encounters.mockReturnValue([row(state, banners, phase)]); elites.update(.1, 0); };
+      frame('dead', 2, 1); frame('idle', 2, 0); expect(events, 'what a row held when it arrived is no moment').toEqual([]);
+      frame('aware', 3, 0); frame('engaged', 3, 0); frame('engaged', 3, 1); frame('engaged', 3, 1); frame('dead', 3, 1); frame('dead', 3, 1);
+      expect(events).toEqual([['combat', .8], ['combat', 1], ['trophy'], ['sting', 'chunk']]);
+    });
+  } finally { scope.dispose(); encounters.mockRestore(); if (on === undefined) Reflect.deleteProperty(wirePage, 'on'); else Object.defineProperty(wirePage, 'on', on); }
 });
 
 test('entered binding refuses foreign, retired, duplicate or mismatched concrete owners', () => {

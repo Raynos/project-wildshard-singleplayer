@@ -41,7 +41,12 @@ export async function installChapterWakeEncounter(ctx: ShardContext, input: unkn
   const encounter = new WakeBossEncounter(rows.encounter, pool), bar = ctx.scope.run(() => new BossBar());
   let actor: Animal | null = null;
   // J130: a bar has one driver. On the wire the row draws it, and the body under it is the server's.
-  const rowBar = wirePage.on ? new BossRowBar(bar, { id: rows.encounter.id, name: rows.encounter.name, title: '', retryTitle: '', phases: [{ at: 1, caption: '' }, ...rows.encounter.presentation.cuts.map(at => ({ at, caption: '' }))] }) : null;
+  // A wake fight tells no start, and a fall ends it as a walk away does: only the page knows its player died.
+  let fell = false;
+  const rowBar = wirePage.on ? new BossRowBar(bar, { id: rows.encounter.id, name: rows.encounter.name, title: '', retryTitle: '', phases: [{ at: 1, caption: '' }, ...rows.encounter.presentation.cuts.map(at => ({ at, caption: '' }))] }, null, { attempt: outcome => {
+    if (outcome !== 'started') ctx.app.events.emit('boss.attempt', { boss: rows.encounter.id, level: rows.encounter.level, outcome: outcome === 'left' && fell ? 'lost' : outcome === 'died' ? 'lost' : outcome });
+    fell = false;
+  } }) : null;
   const spawn = (): void => {
     if (actor !== null || rowBar !== null) return;
     try {
@@ -65,7 +70,7 @@ export async function installChapterWakeEncounter(ctx: ShardContext, input: unkn
   ctx.scope.onDispose(flags.onChange(cues));
   ctx.app.encounters.register({ id: rows.encounter.id, displayName: rows.encounter.name }, ctx.scope);
   ctx.app.encounters.boss(rows.encounter.id, encounter, ctx.scope);
-  ctx.on('player.died', () => { if (rowBar !== null) return; encounter.onPlayerDeath(world.player.position); present(); });
+  ctx.on('player.died', () => { if (rowBar !== null) { fell = true; return; } encounter.onPlayerDeath(world.player.position); present(); });
   cues();
   ctx.system({ id: rows.systems.encounter, phase: 'update', before: rows.systems.before,
     run: dt => { if (rowBar !== null) { rowBar.draw(wirePage.encounters(), dt); return; } bar.update(dt); encounter.update(observation()); present(); } });

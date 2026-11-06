@@ -266,7 +266,8 @@ export class Elites {
 
   update(dt: number, t: number): void {
     // J130: a bar has one driver. On the wire the rows draw it and this page's lairs never wake.
-    if (wirePage.on) { this.rowBar ??= new EliteRowBar(this.bar, this.core.entries.map(entry => entry.script.def), { player: this.host.player, camera: this.host.camera, head: wirePage.head, drop: (id, pressed) => this.rowDrop(id, pressed) }); this.rowBar.draw(wirePage.encounters(), dt); this.view.tendDrops(dt, t); return; }
+    if (wirePage.on) { this.rowBar ??= new EliteRowBar(this.bar, this.core.entries.map(entry => entry.script.def), { player: this.host.player, camera: this.host.camera, head: wirePage.head, drop: (id, pressed) => this.rowDrop(id, pressed),
+      sting: (id, event) => { const entry = this.core.entry(id); if (entry !== undefined) this.view.sting(entry, event); }, trophy: id => { this.core.entry(id)?.script.trophy(); } }); this.rowBar.draw(wirePage.encounters(), dt); this.view.tendDrops(dt, t); return; }
     this.view.update(dt, t, this.core.update(dt, t), this.core.entries);
   }
 }

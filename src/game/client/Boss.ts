@@ -321,6 +321,8 @@ export function installBossEncounter<S extends BossScript>(rows: BossEncounterRo
   }
   const ui = new BossBar(), fight = makeScript();
   const scoreRows = rows.score, scoreOwner = ports.score;
+  // J130: a bar has one driver. On the wire the row draws it and this page's brain never arms.
+  let rowBar: BossRowBar | null = null;
   const music: BossHost['music'] = scoreRows === undefined || scoreOwner === undefined ? ports.music : event => {
     const score = scoreOwner(), actions = scoreRows[event];
     // Refuse missing borrowed methods before the first effect of this event.
@@ -332,7 +334,7 @@ export function installBossEncounter<S extends BossScript>(rows: BossEncounterRo
       if (action.kind === 'scene') score.setScene?.(action.value);
       else if (action.kind === 'ambient') { const scene = ports.ambientScene?.(); if (scene === undefined) throw new Error('Missing ambient scene'); score.setScene?.(scene); }
       else if (action.kind === 'phase') score.setBossPhase?.(action.value);
-      else if (action.kind === 'phase-index') { const phase = ports.scorePhase?.(fight); if (phase === undefined) throw new Error('Missing encounter phase'); score.setBossPhase?.(action.values[phase] ?? action.otherwise); }
+      else if (action.kind === 'phase-index') { const phase = rowBar === null ? ports.scorePhase?.(fight) : rowBar.phase; if (phase === undefined) throw new Error('Missing encounter phase'); score.setBossPhase?.(action.values[phase] ?? action.otherwise); }
       else if (action.kind === 'combat') score.combat(action.value);
       else score.playSting(action.value);
     }
@@ -345,8 +347,8 @@ export function installBossEncounter<S extends BossScript>(rows: BossEncounterRo
     ...(ports.feed === undefined ? {} : { feed: ports.feed }), ...(ports.pickupHum === undefined ? {} : { pickupHum: ports.pickupHum }), ...(music === undefined ? {} : { music }),
   }, ui, ports.chunkId, ports.persistence);
   if (ports.scope !== null) app.encounters.boss(rows.definition.id, boss, ports.scope);
-  // J130: a bar has one driver. On the wire the row draws it and this page's brain never arms.
   const rowId = ports.row ?? rows.definition.id;
-  const rowBar: BossRowBar | null = wirePage.on ? new BossRowBar(ui, { ...rows.definition, id: rowId }, { show: at => { boss.showRowReward(at, () => { rowBar?.pressed(); wirePage.send(`${rowId}.reward`); }); }, hide: taken => { boss.hideRowReward(taken); } }) : null;
+  rowBar = wirePage.on ? new BossRowBar(ui, { ...rows.definition, id: rowId }, { show: at => { boss.showRowReward(at, () => { rowBar?.pressed(); wirePage.send(`${rowId}.reward`); }); }, hide: taken => { boss.hideRowReward(taken); } },
+    { ...(music === undefined ? {} : { music }), ...(ports.feed === undefined ? {} : { feed: ports.feed }), ...(ports.toast === undefined ? {} : { toast: ports.toast }), attempt: outcome => { app.events.emit('boss.attempt', { boss: rows.definition.id, outcome }); } }) : null;
   return { fight, boss, ui, update: (dt, t) => { if (rowBar !== null) { rowBar.draw(wirePage.encounters(), dt); boss.tendDrop(dt, t); } else if (ports.advance === undefined) boss.update(dt, t); else ports.advance(boss, fight, dt, t); }, onPlayerDeath: () => rowBar === null && boss.onPlayerDeath() };
 }

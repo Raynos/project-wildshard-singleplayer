@@ -77,7 +77,7 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
       spawn: () => { controller.spawn(); }, despawn: () => { controller.despawn(); },
       tick: (dt, t, engaged, leashing) => { controller.tick(dt, t, engaged, leashing); },
       cadence: far => { controller.cadence(far); },
-      enterPhase2: () => { controller.enterPhase2(); }, reset: () => { controller.reset(); }, trophy: () => { controller.trophy(); hud.killFeed(`${controller.def.drop.trophyName ?? 'Felled'} — ${controller.def.name}`); },
+      enterPhase2: () => { controller.enterPhase2(); }, reset: () => { controller.reset(); }, trophy: () => { if (!wirePage.on) controller.trophy(); hud.killFeed(`${controller.def.drop.trophyName ?? 'Felled'} — ${controller.def.name}`); },
       dropModel: () => {
         const id = controller.def.drop.skin, model = id === null ? undefined : models.get(id);
         if (model === undefined) throw new Error('Missing admitted elite drop model'); const clone = model.clone(true); clone.visible = true; return clone;

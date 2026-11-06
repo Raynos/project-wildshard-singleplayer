@@ -4,6 +4,7 @@ import type { NetClient } from '@wildshard/engine/net/client';
 import { ENCOUNTER_CLASS } from '@wildshard/engine/net/netSchemas';
 import type { EncounterReward } from '@wildshard/engine/sim/encounterRows';
 import type { EliteBar, SkullMark } from '@wildshard/engine/ui/EliteBar';
+import { engineString } from '@wildshard/engine/strings';
 
 /** One fight or lair this frame, as a client sees it. `body` is the row's handle, 0 while no body is out. */
 export interface EncounterRow { readonly id: string; readonly kind: string; readonly state: string; readonly hp: number; readonly phase: number; readonly shield: boolean; readonly body: number;
@@ -39,7 +40,18 @@ export function netEncounterFeed(client: Pick<NetClient, 'entities' | 'fields' |
 /** What a boss's bar says that a row doesn't: the pack's words. */
 export interface BossBarCard {
   readonly id: string; readonly name: string; readonly title: string; readonly retryTitle: string;
-  readonly phases: readonly { readonly at: number; readonly caption: string }[];
+  /** `name` is a phase's line in the kill feed. */
+  readonly phases: readonly { readonly at: number; readonly caption: string; readonly name?: string }[];
+}
+/** What a boss's moments say past its bar, as `BossBrain`'s host hears them on a page: all of it is this page's, none of it is law. */
+export interface BossRowVoice {
+  /** The fight's score and stings. A reward's `pickup` sting is the press's, not a row's. */
+  readonly music?: (event: 'intro' | 'phase' | 'victory' | 'death', intensity?: number) => void;
+  readonly feed?: (line: string) => void;
+  /** A win with nothing left to take. */
+  readonly toast?: (line: string) => void;
+  /** Analytics: the page's half of `boss.attempt`. */
+  readonly attempt?: (outcome: 'started' | 'won' | 'died' | 'left') => void;
 }
 /** A reward as a page draws it. `hide` says whether the row ended on this player's press: what's in hand changes then, not at the press. */
 export interface BossRowDrop { readonly show: (at: EncounterReward) => void; readonly hide: (taken: boolean) => void }
@@ -62,40 +74,59 @@ export class RowReward {
 }
 const HOLD_AFTER_WIN = 1.4;
 const fighting = (state: string): boolean => state === 'fight' || state === 'beat';
+const engaged = (state: string): boolean => state === 'intro' || fighting(state);
 /**
  * A boss's bar and cards off its row, in the order `BossBrain` shows them on a page. Who has died and how often is the room's, so
  * the attempt on the retry card is this client's own count of them. A reward lying on the ground is the page's to draw and the
- * server's to give: `drop` shows it where the row says, and the row ending takes it away.
+ * server's to give: `drop` shows it where the row says, and the row ending takes it away. `voice` hears the same moments, and a
+ * row that only just came into view has none: an old win or a fight under way isn't this page's to announce.
  */
 export class BossRowBar {
-  private state = 'dormant'; private phase = 0; private attempts = 1; private won = false; private held = 0;
+  private state = 'dormant'; private shown = 0; private attempts = 1; private won = false; private held = 0; private seen = false;
   private readonly bar: BossPresentation;
   private readonly card: BossBarCard;
   private readonly drop: RowReward | null;
-  constructor(bar: BossPresentation, card: BossBarCard, drop: BossRowDrop | null = null) { this.bar = bar; this.card = card; this.drop = drop === null ? null : new RowReward(drop); }
+  private readonly voice: BossRowVoice;
+  constructor(bar: BossPresentation, card: BossBarCard, drop: BossRowDrop | null = null, voice: BossRowVoice = {}) { this.bar = bar; this.card = card; this.drop = drop === null ? null : new RowReward(drop); this.voice = voice; }
+  /** The phase the fight stands in: a score's phase lookup reads this, since the page's script never leaves its first. */
+  get phase(): number { return this.shown; }
   /** The player pressed the reward. */
   pressed(): void { this.drop?.pressed(); }
   draw(rows: readonly EncounterRow[], dt: number): void {
     const { bar, card } = this, row = rows.find(entry => entry.id === card.id), state = row?.state ?? 'dormant', was = this.state;
     bar.update(dt);
-    if (state !== was) { this.state = state; this.enter(state, was, row); }
+    if (state !== was) { this.state = state; this.enter(state, was, row, this.seen); }
+    this.seen = row !== undefined;
     this.drop?.draw(row?.reward ?? null, dt);
     if (row === undefined) return;
     if (state === 'intro') bar.setSkip(row.skip);
     if (fighting(state)) {
       bar.setHp(row.hp); bar.setShield(row.shield);
-      if (row.phase !== this.phase) { this.phase = row.phase; const phase = card.phases[row.phase]; if (phase !== undefined) bar.setPhase(row.phase, phase.caption); }
+      if (row.phase !== this.shown) {
+        const rose = row.phase > this.shown, phase = card.phases[row.phase]; this.shown = row.phase;
+        if (phase !== undefined) bar.setPhase(row.phase, phase.caption);
+        if (rose) { if (phase?.name !== undefined) this.voice.feed?.(`${card.name} · ${phase.name}`); this.voice.music?.('phase', 1); }
+      }
     } else if (state === 'victory' && (this.held += dt) > HOLD_AFTER_WIN && bar.barShown) bar.hideBar();
   }
-  private enter(state: string, was: string, row: EncounterRow | undefined): void {
-    const { bar, card } = this, phases = card.phases.slice(1).map(phase => phase.at);
-    if (state === 'intro') { bar.showNameCard(card.name, card.title, this.attempts > 1 || this.won); return; }
+  /** `moment`: the row was in view already, so this change happened now. */
+  private enter(state: string, was: string, row: EncounterRow | undefined, moment: boolean): void {
+    const { bar, card, voice } = this, phases = card.phases.slice(1).map(phase => phase.at);
+    if (engaged(was) && !engaged(state)) voice.attempt?.(state === 'victory' ? 'won' : state === 'armed' ? 'died' : 'left');
+    if (state === 'intro') {
+      this.shown = row?.phase ?? 0;
+      bar.showNameCard(card.name, card.title, this.attempts > 1 || this.won);
+      if (moment) { voice.attempt?.('started'); voice.music?.('intro', 1); }
+      return;
+    }
     if (fighting(state) && !fighting(was)) {
       bar.hideNameCard(); bar.showBar(card.name, phases);
-      this.phase = row?.phase ?? 0;
-      const phase = card.phases[this.phase]; if (this.phase > 0 && phase !== undefined) bar.setPhase(this.phase, phase.caption);
-    } else if (state === 'victory') { this.won = true; this.held = 0; bar.setHp(0); bar.setShield(false); }
-    else if (state === 'armed' && (was === 'intro' || fighting(was))) { bar.hideBar(); bar.hideNameCard(); bar.showRetry(card.retryTitle, ++this.attempts); }
+      this.shown = row?.phase ?? 0;
+      const phase = card.phases[this.shown]; if (this.shown > 0 && phase !== undefined) bar.setPhase(this.shown, phase.caption);
+    } else if (state === 'victory') {
+      this.won = true; this.held = 0; bar.setHp(0); bar.setShield(false);
+      if (moment && engaged(was)) { voice.music?.('victory'); if (row?.reward === null) voice.toast?.(engineString('s_100cbeedfcec', [card.name])); }
+    } else if (state === 'armed' && engaged(was)) { bar.hideBar(); bar.hideNameCard(); bar.showRetry(card.retryTitle, ++this.attempts); voice.music?.('death'); }
     else if (state === 'dormant') { bar.hideBar(); bar.hideNameCard(); this.attempts = 1; }
   }
 }
@@ -109,6 +140,10 @@ export interface EliteRowPorts {
   readonly head: (body: number, to: Vector3) => boolean;
   /** A lair's first-kill orb as this page draws it. */
   readonly drop?: (id: string, pressed: () => void) => BossRowDrop;
+  /** A lair's score: its banner, its second phase, its fall. */
+  readonly sting?: (id: string, event: 'banner' | 'phase2' | 'kill') => void;
+  /** A lair fell: its line in the kill feed. */
+  readonly trophy?: (id: string) => void;
 }
 const FADE_AFTER_FALL = 1.6;
 type BarOf = Pick<EliteBar, 'show' | 'hide' | 'set' | 'caption' | 'update' | 'banner' | 'skulls'>;
@@ -120,7 +155,7 @@ export class EliteRowBar {
   private readonly cards: ReadonlyMap<string, EliteBarCard>;
   private readonly ports: EliteRowPorts;
   /** The counts each lair last showed: what a row says when it first arrives is no moment. */
-  private readonly shown = new Map<string, { banners: number; signatures: number }>();
+  private readonly shown = new Map<string, { banners: number; signatures: number; phase: number; state: string }>();
   private readonly skulls: SkullMark[] = [];
   private readonly orbs = new Map<string, RowReward>();
   constructor(bar: BarOf, cards: readonly EliteBarCard[], ports: EliteRowPorts) {
@@ -131,10 +166,12 @@ export class EliteRowBar {
     for (const row of rows) {
       if (row.kind !== 'elite') continue;
       const seen = this.shown.get(row.id), card = this.cards.get(row.id);
-      if (seen === undefined) { this.shown.set(row.id, { banners: row.banners, signatures: row.signatures }); continue; }
-      if (row.banners !== seen.banners && card !== undefined) this.bar.banner(card.name, card.epithet);
+      if (seen === undefined) { this.shown.set(row.id, { banners: row.banners, signatures: row.signatures, phase: row.phase, state: row.state }); continue; }
+      if (row.banners !== seen.banners && card !== undefined) { this.bar.banner(card.name, card.epithet); this.ports.sting?.(row.id, 'banner'); }
+      if (row.phase > seen.phase && card !== undefined) this.ports.sting?.(row.id, 'phase2');
       if (row.signatures !== seen.signatures && card !== undefined && this.focus === row.id) this.bar.caption(card.signature);
-      seen.banners = row.banners; seen.signatures = row.signatures;
+      if (row.state === 'dead' && seen.state !== 'dead' && card !== undefined) { this.ports.trophy?.(row.id); this.ports.sting?.(row.id, 'kill'); }
+      seen.banners = row.banners; seen.signatures = row.signatures; seen.phase = row.phase; seen.state = row.state;
     }
   }
   private drawSkulls(rows: readonly EncounterRow[]): void {

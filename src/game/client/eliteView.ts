@@ -66,7 +66,7 @@ export class EliteView {
   constructor(private readonly host: ViewHost, private readonly bar: EliteBar, private readonly scope: Scope, private readonly entered: () => EliteViewEntered | null,
     private readonly record: (id: string) => EliteCoreRecord | undefined, private readonly save: () => void) {}
 
-  private sting(entry: Entry, event: 'banner' | 'phase2' | 'kill'): void {
+  sting(entry: Entry, event: 'banner' | 'phase2' | 'kill'): void {
     const entered = this.entered();
     if (entered === null) { this.host.sting?.(event); return; }
     if (entered.owners.scope.disposed) return;
