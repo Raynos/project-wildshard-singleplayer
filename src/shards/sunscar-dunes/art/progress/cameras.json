@@ -97,7 +97,7 @@
   },
   {
    "id": "mock-D-hands",
-   "mockup": "art/sunscar-dunes/round-9-review/D-hands-whip.jpg",
+   "mockup": "src/shards/sunscar-dunes/art/round-9-review/D-hands-whip.jpg",
    "x": 38,
    "z": 122,
    "yaw": 21.7,
