@@ -4,7 +4,7 @@
 // Then it reloads on the cache that walk left (Chromium refuses a whole-cache query that size), and with the link cut. --chunk= proves a one-shard page.
 // --play is the flip's checklist: one playthrough on the row, a line for every step, and it fails on any step that didn't work.
 // --hook on a chunk with a grapple proves the claw: LOCK and JUMP pressed on the page, and the server's bite and zip carrying the body.
-//   scripts/browser-lane.sh node scripts/worker-client-proof.mjs --base=http://127.0.0.1:4401/ [--seconds=150] [--crossings=2] [--route=x,z;x,z] [--chunk=slug] [--play [--only=driftwood|nalati|nine|shards|grid]] [--hook]
+//   scripts/browser-lane.sh node scripts/worker-client-proof.mjs --base=http://127.0.0.1:4401/ [--seconds=150] [--crossings=2] [--route=x,z;x,z] [--chunk=slug] [--play [--only=driftwood|nalati|nine|shards|grid|fights|roc|elite|sky|sunscar|farreach|isle|pine]] [--hook]
 import { chromium, devices } from 'playwright';
 import { saveFixture } from './debug-settings.mjs';
 import { floorGridBenchmarkUrl, FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
@@ -61,6 +61,14 @@ const failures = [];
 if (process.argv.includes('--play')) {
   const { play } = await import('./worker-client-play.mjs');
   const steps = await play(browser, phone, base, arg('only', ''));
+  const { fights } = await import('./worker-client-fights.mjs');
+  await fights(browser, phone, base, arg('only', ''), async (name, run) => {
+    let ok = false, note = '';
+    try { const out = await run(); ok = out === true || out?.ok === true; note = typeof out === 'object' && out !== null ? JSON.stringify(out) : String(out); }
+    catch (error) { note = `threw: ${String(error).slice(0, 300)}`; }
+    steps.push({ name, ok, note });
+    console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}  ${note.slice(0, 900)}`);
+  });
   await browser.close();
   console.log(JSON.stringify({ gate: 'worker-client-play', pass: steps.every(step => step.ok), failed: steps.filter(step => !step.ok).map(step => step.name) }));
   process.exit(steps.every(step => step.ok) ? 0 : 1);
