@@ -2,7 +2,8 @@ import { expect, test } from 'vitest';
 import { BoxGeometry, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
 import type { ProgramLike } from '../boot/perflog';
 import { linkedGl } from '../../test/linkedGl';
-import { runPrecompile, type CompileJob } from './precompile';
+import { offscreenBakesHeld, withoutOffscreenBakes } from './offscreenPreparation';
+import { runPrecompile, unbuiltObjects, type CompileJob } from './precompile';
 
 // DL21: under the loader the resolve loop waits on one program while the GPU process links the rest. The card counts those.
 test('a resolve held on one program counts the links landing behind it', async () => {
@@ -35,4 +36,22 @@ test('a resolve held on one program counts the links landing behind it', async (
   const counts = details.flatMap(detail => /^0 \/ 4 programs resolved · (\d+) linked/u.exec(detail)?.[1] ?? []);
   expect(counts).toEqual(['1', '2', '3']);
   expect(details.at(-1)).toContain('4 / 4 programs resolved');
+});
+
+test('a second pass looks only at what no pass has built', () => {
+  const built = new MeshBasicMaterial(), fresh = new MeshBasicMaterial(), programs = new Map([[built, new Map([['linked', {}]])], [fresh, new Map()]]);
+  const renderer: unknown = Object.create(WebGLRenderer.prototype);
+  if (!(renderer instanceof WebGLRenderer)) throw new Error('Renderer missing');
+  Reflect.set(renderer, 'properties', { has: () => true, get: (material: MeshBasicMaterial) => ({ programs: programs.get(material) }) });
+  const unbuilt = unbuiltObjects(renderer), geometry = new BoxGeometry();
+  expect(unbuilt(new Mesh(geometry, built))).toBe(false);
+  expect(unbuilt(new Mesh(geometry, fresh))).toBe(true);
+  expect(unbuilt(new Mesh(geometry, [built, fresh]))).toBe(true);
+  expect(unbuilt(new Scene())).toBe(false);
+});
+
+test('a frame without bakes ends with its run, thrown or not', () => {
+  withoutOffscreenBakes(() => { expect(offscreenBakesHeld()).toBe(true); });
+  expect(() => { withoutOffscreenBakes(() => { throw new Error('a system failed'); }); }).toThrow('a system failed');
+  expect(offscreenBakesHeld()).toBe(false);
 });
