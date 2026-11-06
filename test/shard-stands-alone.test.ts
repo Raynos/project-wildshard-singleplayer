@@ -81,7 +81,10 @@ describe('a shardfile stands alone', () => {
     try {
       const tar = join(scratch, 'shard.tar'), slug = products.includes('pastel-plain') ? 'pastel-plain' : '_template';
       writeFileSync(tar, productTarball(join('out', slug)));
-      const run = spawnSync(process.execPath, ['--import', join(root, 'scripts/bake-loader.mjs'), join(root, 'scripts/cook.mjs'), tar, join(scratch, 'packs')], {cwd: scratch, encoding: 'utf8'});
+      // A cold part cache starts the encoder's workers, which a warm one never does, and the cook must still exit. `spawnSync` blocks
+      // this worker, so only its own timeout can end a cook that doesn't.
+      const run = spawnSync(process.execPath, ['--import', join(root, 'scripts/bake-loader.mjs'), join(root, 'scripts/cook.mjs'), tar, join(scratch, 'packs')],
+        {cwd: scratch, encoding: 'utf8', timeout: 100_000, env: {...process.env, WILDSHARD_SPAWN_PART_CACHE: join(scratch, 'parts')}});
       expect(run.status, run.stderr).toBe(0);
       const report = JSON.parse(run.stdout.trim().split('\n').at(-1) ?? '{}') as {slug: string; manifests: unknown[]; parts: {count: number}};
       expect(report.slug).toBe(slug);

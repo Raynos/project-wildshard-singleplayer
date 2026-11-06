@@ -240,10 +240,18 @@ export interface CookReport {
   readonly server: {readonly url: string; readonly index: string; readonly wireBytes: number; readonly files: number};
 }
 
+export interface CookShardOptions {readonly wireBytes: WireBytes; readonly now: () => number; readonly encoder?: PartEncoder; readonly warn?: (line: string) => void}
+
 /** `cook <shardfile> → <packs>`: the shard's half of every manifest, its parts, and its loose mounts at their URLs. */
-export async function cookShard(tarball: Uint8Array, out: string, options: {readonly wireBytes: WireBytes; readonly now: () => number; readonly encoder?: PartEncoder; readonly warn?: (line: string) => void}): Promise<CookReport> {
+export async function cookShard(tarball: Uint8Array, out: string, options: CookShardOptions): Promise<CookReport> {
+  if (options.encoder !== undefined) return cookWith(tarball, out, options, options.encoder);
+  // An encoder this cook made is this cook's to close: a cache miss starts its workers, and an idle worker keeps the process alive.
+  const encoder = createPartEncoder();
+  try { return await cookWith(tarball, out, options, encoder); } finally { await encoder.close(); }
+}
+
+async function cookWith(tarball: Uint8Array, out: string, options: CookShardOptions, encoder: PartEncoder): Promise<CookReport> {
   const started = options.now(), half = shardHalf(openShardfile(tarball), options.wireBytes, options.warn);
-  const encoder = options.encoder ?? createPartEncoder();
   const before = encoder.stats();
   const table = COOK_TIERS.flatMap(tier => COOK_SETS.map(set => ({tier, set, rows: [...half.productRows(tier, set), ...half.mountRows(tier, set)]})));
   const whole = table.filter(row => row.set === 'whole');
