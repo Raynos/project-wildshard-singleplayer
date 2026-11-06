@@ -45,7 +45,8 @@ describe('a shardfile stands alone', () => {
     }, paths: () => files.keys()}, {hash: sha256});
     expect(product.index.identity.slug).toBe(slug === '_template' ? 'template' : slug);
     const shard = openShardfile(tarball), mounted = new Set(shard.cook?.mounts.map(row => row.url));
-    for (const row of shard.cook?.mounts ?? []) expect(sha256(readFileSync(join('public', row.url.slice(1))))).toBe(row.hash);
+    // A discovery document is written with its product (C3), so only an `/assets` mount has a public twin to match.
+    for (const row of shard.cook?.mounts ?? []) if (row.url.startsWith('/assets/')) expect(sha256(readFileSync(join('public', row.url.slice(1))))).toBe(row.hash);
     const engine = everyMount();
     const named = [...JSON.stringify([...shard.sections.values()]).matchAll(/"(\/assets\/[^"]+\.[a-z0-9]+)"/gu)].map(match => match[1] ?? '');
     const missing = named.filter(url => !mounted.has(url) && existsSync(join('public', url.slice(1))) && !engine.has(url));
