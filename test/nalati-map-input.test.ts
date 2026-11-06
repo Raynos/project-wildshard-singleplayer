@@ -29,7 +29,7 @@ test('the map freshness recipe names native source inputs instead of retired han
  const settings=v.parse(v.object({inputs:v.array(v.string())}),JSON.parse(readFileSync('src/shards/nalati-grasslands/data/map.json','utf8')));
  expect(settings.inputs).not.toContain('data/placeRuntime.generated.json');
  expect(settings.inputs).not.toContain('../../../public/assets/nalati/baked/places.bin');
- expect(settings.inputs).toContain('../../sdk/bake/annulus.ts');
+ expect(settings.inputs).toContain('../../sharddev/bake/annulus.ts');
  expect(settings.inputs).not.toContain('data/poiPaint.json');
  expect(settings.inputs).toContain('data/poiContacts.json');
  expect(settings.inputs).toContain('../../../public/assets/nalati/models/boulder-1.phone.glb');
