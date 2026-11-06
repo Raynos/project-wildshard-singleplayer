@@ -194,7 +194,7 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
   /** A page's own room comes off its fight. */
   const heardRoom: HeardRoom = { sealK: 0, darkK: 0, glow: 0, open: 0, won: false, focus: new THREE.Vector3() }, ember = { darkK: (): number => heardRoom.darkK }, hazardFrom = new THREE.Vector3();
   const lightView = (on: boolean): void => {
-    if (on) light ??= pool.acquire(rows.light.colour, 0, rows.light.distance, rows.light.decay);
+    if (on) light ??= wirePage.on ? pool.borrow(rows.light.colour, 0, rows.light.distance, rows.light.decay) : pool.acquire(rows.light.colour, 0, rows.light.distance, rows.light.decay);
     else if (light) { pool.release(light); light = null; }
   };
   const hazardView: ProjectionViews['views']['hazard'] = (i, f, t, event) => {

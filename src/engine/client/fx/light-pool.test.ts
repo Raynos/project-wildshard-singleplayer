@@ -65,3 +65,28 @@ test('a spare made before the first render is taken by a later growing acquire w
   const kept = pool.acquire(0x7fe8ff, 4, 7, 2, home, true);
   expect(kept.parent).toBe(pool.group); expect(pool.size).toBe(1); expect(pool.free).toBe(0);
 });
+
+test('a borrow stands in for a yielding light, the count stands, and release puts it back', () => {
+  const scene = new THREE.Scene(), pool = LightPool.for(scene), shared = pool.acquire(0xffffff, 1, 8), held = pool.acquire(0xffffff, 1, 8);
+  pool.yields(shared); pool.seal();
+  const lights = (): THREE.Object3D[] => pool.group.children.filter(child => child instanceof THREE.PointLight);
+  const fight = pool.borrow(0xff8800, 4, 16, 1.6);
+  expect(lights()).toHaveLength(2);
+  expect(fight.parent).toBe(pool.group);
+  expect(shared.parent).toBeNull();
+  expect(held.parent).toBe(pool.group);
+  shared.intensity = 9; // its owner writes on, and nothing shows
+  pool.release(fight);
+  expect(lights()).toHaveLength(2);
+  expect(shared.parent).toBe(pool.group);
+  expect(fight.parent).toBeNull();
+});
+
+test('a borrow takes a free light first, and with none yielding is a detached one', () => {
+  const scene = new THREE.Scene(), pool = LightPool.for(scene), first = pool.acquire(0xffffff, 1, 8);
+  pool.seal(); pool.release(first);
+  const free = pool.borrow(0xff8800, 4, 16);
+  expect(free).toBe(first);
+  expect(pool.borrow(0xff8800, 4, 16).parent).toBeNull();
+  expect(pool.group.children.filter(child => child instanceof THREE.PointLight)).toHaveLength(1);
+});

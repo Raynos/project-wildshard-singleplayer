@@ -49,7 +49,7 @@ const prompt = (page, match) => page.evaluate(source => { const pattern = new Re
 /** A press of whatever stands nearest, as a player's E. */
 const press = page => page.keyboard.press('KeyE');
 
-const SUNSCAR_BASIN = [-14, 28, -150], NALATI_DOOR = [-169, 75];
+const SUNSCAR_BASIN = [-14, 28, -150], NALATI_DOOR = [-169, 75], KINGS_CLEARING = [150, -30];
 const groundAt = (page, x, z) => page.evaluate(([gx, gz]) => window.__hf.heightAt(gx, gz), [x, z]);
 /** Walk one way until `done`, or `seconds` run out; whether it was done. */
 async function walkInto(page, yaw, seconds, done) {
@@ -756,8 +756,66 @@ async function wordsJourney(browser, phone, base, step) {
   await steppe.context.close();
 }
 
+/** Every pooled point light as a frame sees it: the pool's size is what every lit program was built for. */
+const poolLights = page => page.evaluate(() => {
+  const { game } = window.__wildshard.requireWorld(), pool = (game.rootScene ?? game.scene).getObjectByName('light-pool');
+  return (pool?.children ?? []).filter(light => light.isPointLight).map(light => ({ colour: light.color.toArray().map(value => Number(value.toFixed(2))), intensity: Number(light.intensity.toFixed(2)), at: light.position.toArray().map(value => Number(value.toFixed(1))), reach: light.distance }));
+});
+const eyeOf = page => page.evaluate(() => window.__wildshard.requireWorld().game.camera.position.toArray());
+/** Pine's King: the amber on his ribs, the lantern in his dark, and the light let go when the fight ends. Colours are `rows.light`'s. */
+async function lanternJourney(browser, phone, base, step, [x, z]) {
+  const pine = await open(browser, phone, base, 'pine-hollow', '&bossGod'), { page } = pine, warned = [], AMBER = [1, 0.55, 0.18], LANTERN = [1, 0.72, 0.4];
+  page.on('console', line => { if (/LightPool/u.test(line.text())) warned.push(line.text().slice(0, 160)); });
+  const lit = async colour => (await poolLights(page)).find(light => light.intensity > 0 && light.colour.every((value, index) => Math.abs(value - (colour[index] ?? 0)) < 0.01)) ?? null;
+  const king = async () => (await page.evaluate(() => window.__workerClientFights())).find(row => row.id === 'pine.king') ?? null;
+  const hold = async () => { const feet = await groundAt(page, x + 4, z); await place(page, x + 4, feet + 0.4, z); };
+  const size = (await poolLights(page)).length;
+  await step('lantern: entry lights nothing for a fight that has not begun', async () => {
+    const lights = await poolLights(page);
+    return { ok: size > 0 && await lit(AMBER) === null && await lit(LANTERN) === null, size, lit: lights.filter(light => light.intensity > 0), fights: await page.evaluate(() => window.__workerClientFights().map(row => row.id)) };
+  });
+  await step('lantern: the King comes at night, and the ribs burn amber at him', async () => {
+    await page.evaluate(() => { window.__workerClientHits(1); window.__workerClientTime('night'); });
+    await hold();
+    const row = await until(page, async () => { await hold(); const seen = await king(); return seen?.at !== null && seen?.at !== undefined && seen.state !== 'dormant' ? seen : null; }, 40, 1000), light = await until(page, () => lit(AMBER), 30, 500), now = await king();
+    const away = light === null || now?.at === null || now?.at === undefined ? null : Math.hypot(light.at[0] - now.at.x, light.at[2] - now.at.z);
+    return { ok: row !== null && light !== null && away !== null && away < 6, state: now?.state, hp: now?.hp, light, away, size: (await poolLights(page)).length, warned };
+  });
+  await step('lantern: phase III falls dark, and the lantern lights the player', async () => {
+    await page.evaluate(() => { window.__workerClientHits(25); });
+    const end = Date.now() + 120_000;
+    let light = null, row = await king();
+    while (light === null && row?.state !== 'victory' && Date.now() < end) {
+      if (row?.at !== null && row?.at !== undefined) { await place(page, row.at.x + 2, row.at.y + 0.4, row.at.z + 2); await strike(page, row.at, true); }
+      await page.waitForTimeout(350); light = await lit(LANTERN); row = await king();
+    }
+    await stand(page);
+    light = await until(page, () => lit(LANTERN), 12, 250);
+    const eye = await eyeOf(page), away = light === null ? null : Math.hypot(light.at[0] - eye[0], light.at[2] - eye[2]);
+    if (light !== null) await page.screenshot({ path: 'tmp/lantern-phase-iii.png' });
+    return { ok: light !== null && light.intensity > 1 && away !== null && away < 2, hp: row?.hp, state: row?.state, light, eye: eye.map(value => Number(value.toFixed(1))), away, size: (await poolLights(page)).length, warned };
+  });
+  await step('lantern: the fight ends, and the light is let go', async () => {
+    await page.evaluate(() => { window.__workerClientHits(60); });
+    const end = Date.now() + 90_000;
+    let row = await king();
+    while (row !== null && row.state !== 'victory' && Date.now() < end) {
+      if (row.at !== null) { await place(page, row.at.x + 2, row.at.y + 0.4, row.at.z + 2); await strike(page, row.at, true); }
+      await page.waitForTimeout(350); row = await king();
+    }
+    await stand(page);
+    const ended = row?.state === 'victory';
+    await page.waitForTimeout(1500);
+    const lights = await poolLights(page);
+    return { ok: ended && await lit(AMBER) === null && await lit(LANTERN) === null && lights.length === size, ended, row: row?.state, hp: row?.hp, size: lights.length, lit: lights.filter(light => light.intensity > 0), warned };
+  });
+  await step('lantern: no page error', () => ({ ok: pine.errors.length === 0, errors: [...new Set(pine.errors)].slice(0, 6) }));
+  await pine.context.close();
+}
+
 export async function fights(browser, phone, base, only, step) {
   const runs = name => only === '' || only === 'fights' || only === name;
+  if (runs('lantern')) await lanternJourney(browser, phone, base, step, KINGS_CLEARING);
 
   // A boss: its row draws the bar, leaving resets it, a fall comes back, and real blows end it and pay.
   if (runs('roc')) {

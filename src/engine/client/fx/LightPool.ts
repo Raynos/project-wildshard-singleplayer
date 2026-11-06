@@ -15,6 +15,9 @@ import type { Scope } from '../../shared/app/scope';
  *   light.intensity = …;                                                  // drive it every frame
  *   LightPool.for(scene).release(light);                                  // intensity 0, free for the next acquire
  *
+ * A light that `yields` (a shared site light, which lights nothing far from its site) gives its place to a `borrow` when a
+ * sealed pool has none free: the count stands, and the borrower has a real light for as long as it holds it.
+ *
  * Shadows are never cast by a pooled light. `LightPool.for(scene).size` / `.free` for the perf meter / dev.
  *
  * An `owner` (optional) ties a light to the object it lights for: every render of the pool's scene dims an owned light
@@ -50,6 +53,10 @@ export class LightPool {
   /** this nested pool's page pool, while mirrored */
   private mirroredBy: LightPool | null = null;
   private warnedMirror = false;
+  /** Lights their owners can do without while a fight stands far from them (`yields`). */
+  private readonly yielding = new Set<THREE.PointLight>();
+  /** A borrowed light and the yielding light whose place in the scene it holds. */
+  private readonly lent = new Map<THREE.PointLight, THREE.PointLight>();
 
   private constructor(scene: THREE.Scene) {
     this.group.name = 'light-pool';
@@ -118,9 +125,26 @@ export class LightPool {
     return light;
   }
 
+  /** `light` may give its place to a `borrow`: its owner keeps writing to it, and nothing shows until it is back. */
+  yields(light: THREE.PointLight): void { this.yielding.add(light); }
+
+  /** `acquire` for a light a sealed, full pool can't otherwise give: it stands in for a light that `yields`, so three still
+   *  counts the same lights and no lit program is rebuilt. None yielding, it is `acquire`'s detached light. `release` puts
+   *  the yielding light back. */
+  borrow(color: THREE.ColorRepresentation, intensity: number, distance: number, decay = 2): THREE.PointLight {
+    const taken = new Set(this.lent.values()), lender = [...this.yielding].reverse().find(light => !taken.has(light) && light.parent === this.group);
+    if (lender === undefined || !this.sealed || this.free > 0) return this.acquire(color, intensity, distance, decay);
+    const light = new THREE.PointLight(color, intensity, distance, decay);
+    light.castShadow = false; light.layers.mask = lender.layers.mask;
+    this.group.remove(lender); this.group.add(light); this.lent.set(light, lender);
+    return light;
+  }
+
   /** back to the pool: dark, still in the scene (a detached light from a full pool is simply dropped) */
   release(light: THREE.PointLight): void {
     light.intensity = 0;
+    const lender = this.lent.get(light);
+    if (lender !== undefined) { this.lent.delete(light); this.group.remove(light); this.group.add(lender); return; }
     this.busy.delete(light); this.owners.delete(light);
   }
   /** each shown nested light onto a reserved light, in pool order; the rest dark */

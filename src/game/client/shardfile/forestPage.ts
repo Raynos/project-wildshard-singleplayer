@@ -98,7 +98,7 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
       requireOwner();
       const materials = new Map(ctx.product.section('world/scenes').materials.filter(entry => resources.has(row.material + entry.id)).map(entry => [entry.id, resources.material(row.material + entry.id)]));
       withOwner(owner, () => {
-        if (shared) for (let i = 0; i < row.light.count; i++) { const light = row.light; topology.life.shared.push(resources.lend(LightPool.for(game.scene).acquire(light.color, light.intensity, light.distance, light.decay))); }
+        if (shared) for (let i = 0; i < row.light.count; i++) { const light = row.light, pool = LightPool.for(game.scene), made = pool.acquire(light.color, light.intensity, light.distance, light.decay); pool.yields(made); topology.life.shared.push(resources.lend(made)); }
         hydrateWorldSceneWeld(topology.graph, resources, { geometry, materials, plumbing: ctx.product.shardfile.plumbing }, owner); life.add(topology.life);
       });
       roots.push(...sites.buildings.filter(entry => entry.standalone).map(entry => resources.object(entry.root)));
