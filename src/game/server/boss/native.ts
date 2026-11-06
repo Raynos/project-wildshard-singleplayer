@@ -15,6 +15,8 @@ import { parseRoamingEncounter, NativeBossBindingSchema, type NativeBossBinding,
 import { groundBossDormant, createGroundBossFight, groundBossPresence, type GroundBossEnv, type GroundBossFight } from './roaming';
 import { roamingFightState, restoreRoamingFight } from './continuation';
 import { Lane } from '../../shared/boss/lane';
+import { ROAMING_HAZARD_EVENTS, ROAMING_VIEW } from '../../shared/shardfile/wirePrompts';
+import { sayFightView } from '@wildshard/engine/sim/shardRows';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { itemPickupFloor, ITEM_PICKUP_HOVER } from '@wildshard/engine/world/interact/pickup';
 import { pickPrompt } from '@wildshard/engine/world/interact/prompts';
@@ -39,11 +41,19 @@ export function nativeGroundBossObservation(host:SimHost,id:string):NativeGround
 }
 /** Data references to built-in services; arbitrary ports are not admitted. */
 const RIB_POINT = new Vector3();
-const silentTell = { setTime: (): void => undefined, ring: (): void => undefined, hide: (): void => undefined };
+/** The lane states `ROAMING_VIEW.lane` numbers. */
+const LANE_STATES = ['none', 'tell', 'run', 'skid'] as const;
 
 
 function nativeGroundFight(host: SimHost, row: RoamingEncounterRow, program: SpeciesProgramData, binding: NativeBossBinding): { fight: GroundBossFight<NativeGroundBossBody>; own: { first: boolean; light: boolean }; waves:readonly {readonly r:number;readonly on:boolean;readonly delay:number}[] } {
   const own = { first: false, light: false }, roster = () => populationRoster(host, binding.population);
+  /** What a page on this server paints: the fight's own view calls, which are nothing here. */
+  let tellTime = 0, telling = false, sealWas = 0, darkWas = 0;
+  const tell = { setTime: (t: number): void => { tellTime = t; }, ring: (x: number, z: number, radius: number, alpha: number): void => { telling = true; sayFightView(host, ROAMING_VIEW.tell, [x, z, radius, alpha, tellTime]); },
+    hide: (): void => { if (telling) sayFightView(host, ROAMING_VIEW.tellOff, []); telling = false; } };
+  const sayLane = (slot: number, state: Lane<NativeGroundBossBody>): void => {
+    if (state.state !== 'none') sayFightView(host, ROAMING_VIEW.lane, [slot, LANE_STATES.indexOf(state.state), state.t, state.tell, state.x0, state.z0, state.x1, state.z1, state.width, host.clock.now]);
+  };
   const ribs = (body: NativeGroundBossBody, out: Vector3): Vector3 => {
     if (body.ribsWorld === undefined) throw new Error('Boss body has no ribs volume'); return body.ribsWorld(out);
   };
@@ -95,11 +105,19 @@ function nativeGroundFight(host: SimHost, row: RoamingEncounterRow, program: Spe
     views: {
       glow: () => undefined, hung: () => undefined, focus: (k, out) => ribs(k, out),
       // the page's light samples the chest only before the final darkness phase moves it to the camera
-      room: () => { if (own.light && fight.darkK <= 0.5 && fight.body !== null) ribs(fight.body, RIB_POINT); },
+      room: () => {
+        if (own.light && fight.darkK <= 0.5 && fight.body !== null) ribs(fight.body, RIB_POINT);
+        if (fight.sealK !== sealWas || fight.darkK !== darkWas) { sealWas = fight.sealK; darkWas = fight.darkK; sayFightView(host, ROAMING_VIEW.room, [sealWas, darkWas]); }
+        sayLane(0, lane); addLanes.forEach((add, index) => { sayLane(index + 1, add); });
+      },
       light: on => { own.light = on; },
-      action: (k, move) => { k.mem[row.actionField] = row.actions[move] ?? 0; }, roar: () => undefined, burst: () => undefined,
-      hazard: () => undefined,
-      add: () => undefined, ring: () => undefined, tell: silentTell,
+      action: (k, move) => { k.mem[row.actionField] = row.actions[move] ?? 0; },
+      roar: k => { sayFightView(host, ROAMING_VIEW.roar, [k.position.x, k.position.y, k.position.z]); },
+      burst: k => { sayFightView(host, ROAMING_VIEW.burst, [k.position.x, k.position.y, k.position.z]); },
+      hazard: (i, f, t, event) => { const from = fight.body?.position; sayFightView(host, ROAMING_VIEW.hazard, [i, ROAMING_HAZARD_EVENTS.indexOf(event), t, f.x, f.y, f.z, f.fallT, from?.x ?? f.x, from?.y ?? f.y, from?.z ?? f.z]); },
+      add: (a, event) => { sayFightView(host, ROAMING_VIEW.add, [event === 'in' ? 1 : 0, a.position.x, a.position.y, a.position.z]); },
+      ring: (i, t, at) => { sayFightView(host, ROAMING_VIEW.ring, [i, t, at === null ? 0 : 1, at?.x ?? 0, at?.z ?? 0, waves[i]?.r ?? 0]); },
+      tell,
     },
   }, host.level.seed, program, nativeDecisions(host));
   return { fight, own, waves };

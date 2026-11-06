@@ -41,7 +41,7 @@ import { addBakedTerrainCollider } from "@wildshard/engine/physics/terrainTiles"
 import { decodeTerrainTile, terrainTileHeight } from "@wildshard/format/terrainTileBytes";
 import { fnv1a32 } from "@wildshard/engine/core/rng";
 import { installScriptLane, type ScriptLanePort } from "@wildshard/engine/script/lane";
-import { publishShardState } from '@wildshard/engine/sim/shardRows';
+import { publishShardState, sayFightView } from '@wildshard/engine/sim/shardRows';
 import type { EffectRules, ScriptEntity } from "@wildshard/engine/script/effects";
 import { declaredWaterBody } from "@wildshard/engine/world/water/declared";
 import { WaterBodies } from "@wildshard/engine/world/water/body";
@@ -199,7 +199,7 @@ export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<
     const ledger = ledgerPorts(context.emit);
     return { ...environment, ledger, ...population.install(host, ledger, context.snapshot, borrowedDecisionAuthority(shard, assets, sections, {
       scope: host.scope, events: host.events, flags: host.flags, get physics() { return host.physics; }, player: focusPlayer(host), groundHeightAt: host.groundHeightAt.bind(host),
-      live: actor => host.entities.get(actor.entityId) === actor, fixed: (id, run, scope) => { scope.onDispose(host.onStep(id, run)); },
+      live: actor => host.entities.get(actor.entityId) === actor, fixed: (id, run, scope) => { scope.onDispose(host.onStep(id, run)); }, say: (name, args) => { sayFightView(host, name, args); },
     })) };
   } };
 }

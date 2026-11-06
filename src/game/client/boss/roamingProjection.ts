@@ -27,8 +27,13 @@ import type { ShardContext } from '../plugin/context';
 import { Rng, fnv1a32, type RngState } from '@wildshard/engine/core/rng';
 import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { Lane, type LaneState } from '../../shared/boss/lane';
-import type { RoamingBossFight, RoamingBossPorts } from '../../server/plugin/bossPhase';
+import type { RoamingBossFight, RoamingBossPorts, RoamingBossRing } from '../../server/plugin/bossPhase';
 import { DomePuffs } from '@wildshard/engine/fx/groundFx';
+import { wirePage } from '../shardfile/wirePage';
+import { ROAMING_HAZARD_EVENTS, ROAMING_VIEW } from '../../shared/shardfile/wirePrompts';
+
+/** The lane states `ROAMING_VIEW.lane` numbers. */
+const LANE_STATES = ['none', 'tell', 'run', 'skid'] as const;
 
 interface HazardView { group: THREE.Group; flame: THREE.Object3D; ring: GroundTell; from: THREE.Vector3 }
 
@@ -85,18 +90,62 @@ class ProjectionLane extends Lane<Animal> {
   override cancel(): void { super.cancel(); this.decal.hide(); }
   override update(actor: Animal, dt: number, time: number, player: THREE.Vector3, hurt: (damage: number) => void): void {
     const state = this.state; if (state === 'none') return;
-    const elapsed = this.t + dt; super.update(actor, dt, time, player, hurt); this.decal.setTime(time);
+    const elapsed = this.t + dt; super.update(actor, dt, time, player, hurt);
+    this.paint(state, elapsed, this.duration, this.x0, this.z0, this.x1, this.z1, this.width, time);
+  }
+  /** One frame of the tell: a page on a server has it from the server's lane, whose runner it doesn't step. */
+  paint(state: string, elapsed: number, duration: number, x0: number, z0: number, x1: number, z1: number, width: number, time: number): void {
+    this.decal.setTime(time);
     if (state === 'tell') {
-      const k = Math.min(1, elapsed / this.duration); this.decal.lane(this.x0, this.z0, this.x1, this.z1, this.width, .35 + .55 * k * (.75 + .25 * Math.sin(time * 22)));
-    } else if (state === 'run') this.decal.lane(this.x0, this.z0, this.x1, this.z1, this.width, Math.max(0, .6 - elapsed * 1.2));
+      const k = Math.min(1, elapsed / duration); this.decal.lane(x0, z0, x1, z1, width, .35 + .55 * k * (.75 + .25 * Math.sin(time * 22)));
+    } else if (state === 'run') this.decal.lane(x0, z0, x1, z1, width, Math.max(0, .6 - elapsed * 1.2));
     else this.decal.hide();
   }
+  hide(): void { this.decal.hide(); }
 }
 function disposeTell(tell: GroundTell): void {
   tell.mesh.removeFromParent(); tell.mesh.geometry.dispose();
   for (const material of Array.isArray(tell.mesh.material) ? tell.mesh.material : [tell.mesh.material]) material.dispose();
 }
 
+/** A page on a server steps no fight: what the server's fight tells its views paints these, and a lane that stops being said ends. */
+interface FollowedFight {
+  readonly rows: RoamingBossProjectionRows; readonly ring: ProjectionViews['views']['ring']; readonly hazard: ProjectionViews['views']['hazard']; readonly cues: NonNullable<ReturnType<typeof CueDirector.entered>>;
+  readonly lane: ProjectionLane; readonly addLanes: readonly ProjectionLane[]; readonly tellRing: GroundTell; readonly puffs: DomePuffs;
+  readonly waves: readonly RoamingBossRing[]; readonly heardRoom: { sealK: number; darkK: number }; readonly hazardFrom: THREE.Vector3;
+  readonly room: (dt: number, t: number) => void; readonly sound: (at: THREE.Vector3) => void;
+}
+const LANE_HEARD_FOR = 0.25;
+function followRoamingFight(context: ShardContext, { rows, ring, hazard, cues, lane, addLanes, tellRing, puffs, waves, heardRoom, hazardFrom, room, sound }: FollowedFight): void {
+  const lanes = [lane, ...addLanes], heard = lanes.map(() => Number.NEGATIVE_INFINITY), point = new THREE.Vector3(), up = new THREE.Vector3();
+  let now = 0;
+  const actions: Readonly<Record<string, (args: readonly number[]) => void>> = {
+    [ROAMING_VIEW.roar]: ([x = 0, y = 0, z = 0]) => { sound(point.set(x, y, z)); },
+    [ROAMING_VIEW.burst]: ([x = 0, y = 0, z = 0]) => { cues.cue(rows.events.burst, point.set(x, y, z), up.set(0, 1, 0)); },
+    [ROAMING_VIEW.add]: ([arrives = 0, x = 0, y = 0, z = 0]) => {
+      if (arrives === 1) puffs.burst(point.set(x, heightAt(x, z) + rows.puffs.lift, z), ...rows.puffs.enter); else puffs.burst(point.set(x, y + rows.puffs.lift, z), ...rows.puffs.leave);
+    },
+    [ROAMING_VIEW.ring]: ([index = 0, t = 0, shown = 0, x = 0, z = 0, radius = 0]) => {
+      const wave = waves[index]; if (wave === undefined) return;
+      wave.r = radius; ring(index, t, shown === 1 ? point.set(x, 0, z) : null);
+    },
+    [ROAMING_VIEW.tell]: ([x = 0, z = 0, radius = 0, alpha = 0, t = 0]) => { tellRing.setTime(t); tellRing.ring(x, z, radius, alpha); },
+    [ROAMING_VIEW.tellOff]: () => { tellRing.hide(); },
+    [ROAMING_VIEW.lane]: ([slot = 0, state = 0, elapsed = 0, duration = 1, x0 = 0, z0 = 0, x1 = 0, z1 = 0, width = 0, t = 0]) => {
+      lanes[slot]?.paint(LANE_STATES[state] ?? 'none', elapsed, duration, x0, z0, x1, z1, width, t); heard[slot] = now;
+    },
+    [ROAMING_VIEW.room]: ([sealK = 0, darkK = 0]) => { heardRoom.sealK = sealK; heardRoom.darkK = darkK; },
+    [ROAMING_VIEW.hazard]: ([index = 0, event = 0, t = 0, x = 0, y = 0, z = 0, fallT = 0, fromX = 0, fromY = 0, fromZ = 0]) => {
+      const beat = ROAMING_HAZARD_EVENTS[event]; if (beat === undefined) return;
+      hazardFrom.set(fromX, fromY, fromZ); hazard(index, { x, y, z, fallT, acc: 0 }, t, beat);
+    },
+  };
+  wirePage.whenLive(context.scope, client => client.onView(({ name, args }) => { actions[name]?.(args); }));
+  context.system({ id: 'roaming.followed', phase: 'update', run: (dt, t) => {
+    now = t; room(dt, t);
+    for (const [slot, row] of lanes.entries()) if (t - (heard[slot] ?? 0) > LANE_HEARD_FOR) row.hide();
+  } });
+}
 export async function installRoamingBossProjection(context: ShardContext, input: unknown): Promise<ProjectionFight> {
   const rows = v.parse(RoamingBossProjectionSchema, input), program = context.product.section('actors/species-programs').program;
   if (program === undefined) throw new Error('Roaming projection requires its species programme');
@@ -135,6 +184,29 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
   const pool = LightPool.for(scene);
   let light: THREE.PointLight | null = pool.acquire(rows.light.colour, 0, rows.light.distance, rows.light.decay);
   let look: BossSocketRig | null = null;
+  /** The seal and the dark on a server's page, as its room last said them; a page's own come off its fight. */
+  const heardRoom = { sealK: 0, darkK: 0 }, ember = { darkK: (): number => heardRoom.darkK }, hazardFrom = new THREE.Vector3();
+  const hazardView: ProjectionViews['views']['hazard'] = (i, f, t, event) => {
+    const view = fallen[i]; if (view === undefined) return;
+    if (event === 'drop') { if (look === null) view.from.copy(hazardFrom); else look.hazardWorld(i, view.from); view.group.visible = true; view.group.position.copy(view.from); }
+    else if (event === 'fall' || event === 'land') {
+      const u = f.fallT, from = view.from;
+      view.group.position.set(from.x + (f.x - from.x) * u, from.y + (f.y + rows.hazard.landingLift - from.y) * u * u + Math.sin(u * Math.PI) * rows.hazard.arc, from.z + (f.z - from.z) * u);
+      view.group.rotation.set(u * rows.hazard.rotation[0], u * rows.hazard.rotation[1], u * rows.hazard.rotation[2]);
+      if (event === 'land') { ctx.shot(rows.landSound, _v.set(f.x, f.y, f.z)); cues.cue(rows.events.land, _v, _w.set(0, 1, 0)); }
+    } else if (event === 'burn') {
+      const dark = ember.darkK(), glow = dark > 0 ? 1 - rows.hazard.dark * dark : 1;
+      view.flame.visible = true; view.flame.position.set(f.x, f.y, f.z);
+      setLentParam(rows.hazard.look, rows.hazard.alpha, rows.hazard.alphaBase * glow);
+      view.ring.setTime(t);
+      view.ring.ring(f.x, f.z, rows.hazard.radius, (rows.hazard.pulse[0] + rows.hazard.pulse[1] * Math.sin(t * rows.hazard.pulse[2] + f.x)) * glow, rows.hazard.width);
+    } else if (event === 'placed') { view.group.visible = true; view.group.position.set(f.x, f.y + rows.hazard.landingLift, f.z); view.group.rotation.set(rows.hazard.rotation[0], i, rows.hazard.rotation[2]); }
+    else { view.group.visible = false; view.flame.visible = false; view.ring.hide(); }
+  };
+  const ringView: ProjectionViews['views']['ring'] = (i, t, at) => {
+    const w = waves[i]; if (w === undefined) return;
+    if (at === null) w.g.hide(); else { w.g.setTime(t); w.g.ring(at.x, at.z, w.r, 0.95, 0.25); }
+  };
   const park = (a: Animal): void => {
     a.hidden = true; a.mesh.visible = false;
     const i = ctx.animals.animals.indexOf(a); if (i !== -1) ctx.animals.animals.splice(i, 1);
@@ -179,41 +251,24 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
       },
       action: (k, move) => { k.mem[encounterRows.actionField] = actions.get(move) ?? 0; }, roar: k => { ctx.animals.onSound?.(rows.roar, k.position); },
       burst: k => { cues.cue(rows.events.burst, k.position, _w.set(0, 1, 0)); },
-      hazard: (i, f, t, event) => {
-        const view = fallen[i]; if (view === undefined) return;
-        if (event === 'drop') { look?.hazardWorld(i, view.from); view.group.visible = true; view.group.position.copy(view.from); }
-        else if (event === 'fall' || event === 'land') {
-          const u = f.fallT, from = view.from;
-          view.group.position.set(from.x + (f.x - from.x) * u, from.y + (f.y + rows.hazard.landingLift - from.y) * u * u + Math.sin(u * Math.PI) * rows.hazard.arc, from.z + (f.z - from.z) * u);
-          view.group.rotation.set(u * rows.hazard.rotation[0], u * rows.hazard.rotation[1], u * rows.hazard.rotation[2]);
-          if (event === 'land') { ctx.shot(rows.landSound, _v.set(f.x, f.y, f.z)); cues.cue(rows.events.land, _v, _w.set(0, 1, 0)); }
-        } else if (event === 'burn') {
-          const ember = fight.darkK > 0 ? 1 - rows.hazard.dark * fight.darkK : 1;
-          view.flame.visible = true; view.flame.position.set(f.x, f.y, f.z);
-          setLentParam(rows.hazard.look, rows.hazard.alpha, rows.hazard.alphaBase * ember);
-          view.ring.setTime(t);
-          view.ring.ring(f.x, f.z, rows.hazard.radius, (rows.hazard.pulse[0] + rows.hazard.pulse[1] * Math.sin(t * rows.hazard.pulse[2] + f.x)) * ember, rows.hazard.width);
-        } else if (event === 'placed') { view.group.visible = true; view.group.position.set(f.x, f.y + rows.hazard.landingLift, f.z); view.group.rotation.set(rows.hazard.rotation[0], i, rows.hazard.rotation[2]); }
-        else { view.group.visible = false; view.flame.visible = false; view.ring.hide(); }
-      },
+      hazard: hazardView,
       add: (a, event) => {
         if (event === 'in') puffs.burst(_v.set(a.position.x, heightAt(a.position.x, a.position.z) + rows.puffs.lift, a.position.z), ...rows.puffs.enter);
         else puffs.burst(_v.copy(a.position).setY(a.position.y + rows.puffs.lift), ...rows.puffs.leave);
       },
-      ring: (i, t, at) => {
-        const w = waves[i]; if (w === undefined) return;
-        if (at === null) w.g.hide(); else { w.g.setTime(t); w.g.ring(at.x, at.z, w.r, 0.95, 0.25); }
-      },
+      ring: ringView,
       tell: tellRing,
     },
   }, source.identity.seed, program, decisions, encounterRows);
+  const air = wirePage.on ? heardRoom : fight;
+  if (!wirePage.on) ember.darkK = () => fight.darkK;
 
   /** the fog wall, the puffs, the ribcage's opening and the fight's light, every frame (I–II: the ribcage's amber on the
    *  stones; III: your lantern) */
   // PF5: the wall's look params are written when they change (outside a fight, never: every frame wrote the same values)
   let wallSeal = Number.NaN; const wallFog = new THREE.Color(-1, -1, -1);
   function room(dt: number, t: number): void {
-    const seal = rows.wall.seal * fight.sealK, fog = scene.fog;
+    const seal = rows.wall.seal * air.sealK, fog = scene.fog;
     if (seal !== wallSeal) { wallSeal = seal; setLentParam(rows.wall.look, rows.wall.alpha, seal); }
     wall.visible = seal > rows.wall.visible;
     if (fog instanceof THREE.Fog && !fog.color.equals(wallFog)) {
@@ -236,7 +291,7 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
   const fogCol = new THREE.Color(), fogLast = new THREE.Color(-1, -1, -1);
   /** the fog closing (the seal) and the Last Light's dark, scaled on top of what the sky set this frame */
   const atmosphere = (): void => {
-    const seal = fight.sealK, dark = fight.darkK;
+    const { sealK: seal, darkK: dark } = air;
     if (seal <= 0 && dark <= 0 && fogLast.r < 0) return;
     const sky = ctx.sky;
     fogUniforms.fogDistDensity.value = dimFog.apply(fogUniforms.fogDistDensity.value, 1 + rows.room.density[0] * seal + rows.room.density[1] * dark);
@@ -262,6 +317,7 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
     });
   };
 
+  if (wirePage.on) followRoamingFight(context, { rows, ring: ringView, hazard: hazardView, cues, lane, addLanes, tellRing, puffs, waves, heardRoom, hazardFrom, room, sound: at => { ctx.animals.onSound?.(rows.roar, at); } });
   const victory = fight.victory.bind(fight);
   fight.victory = () => { victory(); look?.setOpen(0, 0); };
   installEnteredRuntimeService(context, scope => {

@@ -66,6 +66,12 @@ export class StrikeRunner {
   x0 = 0; z0 = 0; x1 = 0; z1 = 0; yaw = 0; length = 0;
   get state(): StrikePhase { return this.hfsm.state; }
   get time(): number { return this.elapsed; }
+  /** Seconds since this strike began, through its windup and on: its `time` is only its current state's. */
+  get through(): number {
+    const spec = this.current;
+    if (spec === null) return 0;
+    return this.state === 'windup' ? this.elapsed : this.elapsed + spec.windup + (this.state === 'recover' || this.state === 'cooldown' ? spec.active : 0) + (this.state === 'cooldown' ? spec.recover : 0);
+  }
   get spec(): StrikeSpec | null { return this.current; }
   get busy(): boolean { return this.state !== 'idle'; }
   get lastPick(): readonly UtilityScore[] { return this.scores; }

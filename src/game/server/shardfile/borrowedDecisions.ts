@@ -18,6 +18,8 @@ import { floorBelow } from '@wildshard/engine/physics/query';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { prepareDecisionMemories } from '@wildshard/engine/script/decisionModule';
 import { waitFor } from '@wildshard/engine/boot/waits';
+import { sayFightView } from '@wildshard/engine/sim/shardRows';
+import { BOSS_STRIKE } from '../../shared/shardfile/wirePrompts';
 import { decisionMemoryPreparationPages } from '@wildshard/format/scriptContract';
 import type { BorrowedSpeciesControl, SpeciesDecisionAuthority, SpeciesDecisionObservation } from '../plugin/brain';
 
@@ -27,6 +29,13 @@ import type { BorrowedSpeciesControl, SpeciesDecisionAuthority, SpeciesDecisionO
 export interface BorrowedDecisionPorts extends Pick<DecisionRuntime, 'scope' | 'events' | 'flags' | 'physics' | 'player' | 'groundHeightAt'> {
   readonly live: (actor: AnimalSim) => boolean;
   readonly fixed: (id: string, run: () => void, scope: DecisionRuntime['scope']) => void;
+  /** Tell a host's views: a page on a server has no body to read a strike off. Absent on a page's own authority. */
+  readonly say?: (name: string, args: readonly number[]) => void;
+}
+/** What a telegraph reads of a strike, for a page that holds no runner. */
+function sayStrike(ports: BorrowedDecisionPorts, runner: StrikeRunner, actor: AnimalSim): void {
+  const { spec } = runner;
+  if (spec !== null) ports.say?.(`${BOSS_STRIKE}${spec.id}`, [runner.through, runner.yaw, actor.position.x, actor.position.z]);
 }
 /** Existing encounter owners look up the controller bound to their actual body. */
 const nativeAuthorities = new WeakMap<SimHost, SpeciesDecisionAuthority>();
@@ -45,6 +54,7 @@ export function nativeDecisionAuthority(source: Shardfile, assets: ReadonlyMap<s
     events: host.events, flags: host.flags, get physics(){return host.physics;}, player: focusPlayer(host), groundHeightAt: (x,z)=>host.groundHeightAt(x,z),
     live: actor => host.entities.get(actor.entityId) === actor,
     fixed: (id, run, scope) => { scope.onDispose(host.onStep(id, run, undefined, 'afterBodies')); },
+    say: (name, args) => { sayFightView(host, name, args); },
   });
   nativeAuthorities.set(host, authority); return authority;
 }
@@ -197,6 +207,7 @@ export function borrowedDecisionAuthority(source: Shardfile, assets: ReadonlyMap
         if (effect !== undefined && (effect.speed > 0 || effect.lift > 0) && live.shove === undefined) throw new Error('Decision strike requires its actual impulse authority');
         live.hurt(spec.damage); if (effect !== undefined && (effect.speed > 0 || effect.lift > 0)) live.shove?.(runner.yaw, effect.speed, effect.lift);
       } });
+      sayStrike(ports, runner, actor);
       for (const run of after) run();
       pose();
       if (actor.alive && !control.fighting && idle?.kind === 'rise' && row.idle !== undefined) {

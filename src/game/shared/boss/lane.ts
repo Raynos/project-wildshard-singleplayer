@@ -30,6 +30,8 @@ export class Lane<B extends LaneBody = LaneBody> {
     return this.runner.state === 'windup' ? 'tell' : this.runner.state === 'active' ? 'run' : this.runner.state === 'recover' ? 'skid' : 'none';
   }
   get t(): number { return this.runner.time; }
+  /** The windup this run was given. */
+  get tell(): number { return this.tellT; }
   get x0(): number { return this.runner.x0; }
   get z0(): number { return this.runner.z0; }
   get x1(): number { return this.runner.x1; }

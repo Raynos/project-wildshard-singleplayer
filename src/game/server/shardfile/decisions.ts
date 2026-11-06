@@ -499,14 +499,7 @@ export class ShardDecisions {
     if (view === undefined) {
       const runner = (): StrikeRunner => requireValue(this.sim.strikes.get(actor), 'strike observation runner');
       view = { get current() { return runner().spec; }, get state() { return runner().state; }, get aim() { return runner().yaw; },
-        get windup() {
-          const live = runner(), spec = live.spec;
-          if (spec === null) return 0;
-          const elapsed = live.state === 'windup' ? 0 : spec.windup
-            + (live.state === 'recover' || live.state === 'cooldown' ? spec.active : 0)
-            + (live.state === 'cooldown' ? spec.recover : 0);
-          return elapsed + live.time;
-        } };
+        get windup() { return runner().through; } };
       this.strikeViews.set(actor, view);
     }
     return view;

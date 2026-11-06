@@ -1,5 +1,11 @@
 /** What a page's traversal prompts name on the wire: a server has no prompt row for these, so both sides spell the id from a row they each hold. */
 export const carryPrompt = (mover: string, end: number): string => `${mover}.ride.${String(end)}`;
+/** The view call a boss's strike goes by, with its id behind it: a page's telegraph has no body of its own to read one off. */
+export const BOSS_STRIKE = 'boss.strike.';
+/** What a roaming boss's fight tells its views, by name: a page on a server steps no fight. */
+export const ROAMING_VIEW = { roar: 'roaming.roar', burst: 'roaming.burst', hazard: 'roaming.hazard', add: 'roaming.add', ring: 'roaming.ring', tell: 'roaming.tell', tellOff: 'roaming.tell.off', lane: 'roaming.lane', room: 'roaming.room' } as const;
+/** A hazard's beats, as `ROAMING_VIEW.hazard` numbers them. */
+export const ROAMING_HAZARD_EVENTS = ['drop', 'fall', 'land', 'burn', 'out', 'placed'] as const;
 /** The view calls an elite's ground tells go by. */
 export const ELITE_TELL = { lane: 'elite.tell.lane', ring: 'elite.tell.ring', cue: 'elite.cue', hit: 'elite.hit' } as const;
 /** One slot of a thrown volley, as a script row. */

@@ -10,6 +10,7 @@ import type { installDeclaredMovers } from '../../server/plugin/moverInstall';
 import type { QuestWorldReactions, declaredItemScriptBindings } from '../../server/plugin/simulation';
 import { pageSim } from '../shardfile/clientMoverOwners';
 import { BossRowBar } from '../boss/barFeed';
+import { easeField } from '@wildshard/engine/world/easedFields';
 import { wirePage } from '../shardfile/wirePage';
 import { WorldTargetHost, type WorldTargetLanding } from '../../shared/shardfile/worldTargets';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
@@ -1421,6 +1422,13 @@ function rowBossSpec(ctx: ShardContext, rows: RowBossRows, ports: RowBossPorts):
     after: () => {
       if (saved.defeated) onDown?.();
       ctx.scope.onDispose(() => { burst.update(3, player); burst.dispose(); const animal = fight.body(); if (animal) body.retire(animal); fight.adopt(null); });
+      // J130: a page on a server steps no fight, so its row says when the storm blows, by the same phases and at the same ease.
+      if (wirePage.on) ctx.system({ id: `${rows.definition.id}.storm`, phase: 'update', run: dt => {
+        const row = wirePage.encounters().find(entry => entry.id === (rows.row ?? rows.definition.id));
+        const goal = (row?.state === 'fight' || row?.state === 'beat') && profile.fight.stormPhases.includes(row.phase) ? 1 : 0;
+        fight.weather.storm = easeField(fight.weather.storm, goal, dt, { seconds: profile.fight.stormFade });
+        weather(dt, fight.weather.storm);
+      } });
     } };
 }
 
