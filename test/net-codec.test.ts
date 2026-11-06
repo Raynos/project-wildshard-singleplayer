@@ -46,7 +46,7 @@ function fill(frame: WorldFrame, rows: ReadonlyMap<number, Sample>): void {
   }
 }
 function input(frame: WorldFrame, baseline: FrameInput['baseline'], visible = new Set(frame.handles())): FrameInput {
-  return { frame, cell: 3, lastSeq: 77, ownerClass: erased, owner: Uint32Array.from(CLASS.owner, () => 9), visible, baseline, classOf: () => erased };
+  return { frame, cell: 3, lastSeq: 77, ownerClass: erased, owner: Float64Array.from(CLASS.owner, () => 9), visible, baseline, classOf: () => erased };
 }
 const table = (held: DecodedFrame | null): Parameters<typeof decodeFrame>[1] => ({ ownerClass: erased, classOf: () => erased, baseline: tick => held?.tick === tick ? held : null });
 const rowsOf = (frame: DecodedFrame | null): Record<string, number[]> => Object.fromEntries([...(frame?.rows ?? [])].map(([handle, row]) => [handle, [...row]]));
@@ -104,6 +104,17 @@ test('a delta against any baseline decodes to exactly what a full frame would', 
     expect(rowsOf(delta)).toEqual(rowsOf(full));
     expect(delta?.owner).toEqual(full?.owner);
   }
+});
+
+test('J140: a double crosses an owner block bit for bit, and only an owner block', () => {
+  const held = compileSchema(netSchema<Sample>({ cls: 'exact', fields: { x: { kind: 'f64', predicted: true, read: s => s.x }, hp: { kind: 'u16', read: s => s.hp } } }), 0);
+  const x = 123.456_789_012_345_67 + Number.EPSILON * 16, writer = new BitWriter(), erasedHeld: NetClass<never> = held;
+  const frame = new WorldFrame(); frame.reset(1);
+  const decoded = decodeFrame(new Uint8Array(encodeFrame(writer, { frame, cell: 0, lastSeq: 0, ownerClass: erasedHeld, owner: Float64Array.of(x, 7), visible: new Set(), baseline: null, classOf: () => undefined })), { ownerClass: erasedHeld, classOf: () => undefined, baseline: () => null });
+  expect(decoded?.owner[0]).toBe(x);
+  expect(decoded?.owner[1]).toBe(7);
+  expect(held.owner[0]?.value(x)).toBe(x);
+  expect(() => compileSchema(netSchema<Sample>({ cls: 'bad', fields: { x: { kind: 'f64', read: s => s.x } } }), 0)).toThrow(RangeError);
 });
 
 test('an unchanged world costs no rows, and a frame carries its header and owner block', () => {

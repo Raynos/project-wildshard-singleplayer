@@ -12,6 +12,7 @@ export function floatToBits(value: number): number { floats[0] = value; return f
 /** The float32 those bits name. */
 export function bitsToFloat(bits: number): number { floatBits[0] = bits; return floats[0] ?? 0; }
 
+const double = new DataView(new ArrayBuffer(8));
 const encoder = new TextEncoder(), decoder = new TextDecoder('utf-8', { fatal: true });
 /** Strings on the wire are stable ids and spawn fields: never longer than an id's 128 chars in UTF-8. */
 export const MAX_NET_TEXT_BYTES = 255;
@@ -36,6 +37,8 @@ export class BitWriter {
       this.bit += take; left -= take;
     }
   }
+  /** Write a double's IEEE bits (J140): a client and a server that must hold the same position hold the same bits. */
+  writeDouble(value: number): void { double.setFloat64(0, value); this.write(double.getUint32(0), 32); this.write(double.getUint32(4), 32); }
   /** Write one flag bit. */
   writeBool(value: boolean): void { this.write(value ? 1 : 0, 1); }
   /** Write a length-prefixed UTF-8 string of at most MAX_NET_TEXT_BYTES bytes. */
@@ -84,6 +87,8 @@ export class BitReader {
     }
     return value;
   }
+  /** Read a double, bit for bit. */
+  readDouble(): number { double.setUint32(0, this.read(32)); double.setUint32(4, this.read(32)); return double.getFloat64(0); }
   /** Read one flag bit. */
   readBool(): boolean { return this.read(1) === 1; }
   /** Read a length-prefixed UTF-8 string. */

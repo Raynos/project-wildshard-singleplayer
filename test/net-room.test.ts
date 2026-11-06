@@ -87,7 +87,7 @@ test('frames carry every creature within one quantisation step, and the owner bl
       expect(checkRows(resident, client, before)).toBe(resident.host.entities.size);
       before = positions(resident);
       const player = leadPlayer(resident.host), owner = client.latest === null ? null : client.owner(client.latest);
-      for (const [field, axis] of [['px', 'x'], ['py', 'y'], ['pz', 'z']] as const) expect(owner?.[field]).toBe(Math.fround(player.position[axis]));
+      for (const [field, axis] of [['px', 'x'], ['py', 'y'], ['pz', 'z']] as const) expect(owner?.[field]).toBe(player.position[axis]);
     }
   }
   expect(frames).toBe(300);

@@ -10,13 +10,13 @@ export type NetSend = 'all' | 'owner' | 'others' | 'initial';
 export type NetValue = number | boolean | string;
 interface NetFieldBase {
   readonly send?: NetSend;
-  /** The owner's client predicts this field; it arrives unquantised in the owner block and is compared, not applied. */
+  /** The owner's client predicts this field; it arrives unquantised in the owner block, and is compared unless a correction takes it. */
   readonly predicted?: true;
 }
 /** One declared field: its wire form and the accessor that reads it from a server-side view `S`. */
 export type NetField<S> = NetFieldBase & (
   | { readonly kind: 'f32q'; readonly min: number; readonly max: number; readonly bits: number; readonly read: (view: S) => number }
-  | { readonly kind: 'f32'; readonly read: (view: S) => number }
+  | { readonly kind: 'f32' | 'f64'; readonly read: (view: S) => number }
   | { readonly kind: 'angle'; readonly bits: 8 | 10 | 16; readonly read: (view: S) => number }
   | { readonly kind: 'u8' | 'u16' | 'u32'; readonly read: (view: S) => number }
   | { readonly kind: 'bool'; readonly read: (view: S) => boolean }
@@ -35,7 +35,7 @@ export function netSchema<S>(schema: NetSchema<S>): NetSchema<S> { return schema
 
 /** Maps stable string ids to the receiver's net handles for `ref` fields (§3.4). */
 export type NetRefs = (id: string) => number;
-/** One compiled field. `sample` reads and quantises; `value` undoes it; `step` is one quantisation step (0 when exact). */
+/** One compiled field. `sample` reads and quantises; `value` undoes it; `step` is one quantisation step (0 when exact). An `f64` is 64 bits: only an owner block, which holds doubles, carries it. */
 export interface NetColumn<S> {
   readonly name: string; readonly kind: NetField<S>['kind']; readonly bits: number; readonly step: number;
   readonly sample: (view: S, refs: NetRefs) => number;
@@ -71,6 +71,7 @@ function column<S>(name: string, field: NetField<S>): NetColumn<S> {
       value: quantised => field.min + quantised * step };
   }
   if (field.kind === 'f32') return { ...base, bits: 32, step: 0, sample: view => floatToBits(field.read(view)), value: bitsToFloat };
+  if (field.kind === 'f64') return { ...base, bits: 64, step: 0, sample: view => field.read(view), value: double => double }; // an owner block holds the double itself
   if (field.kind === 'angle') {
     const turns = 2 ** field.bits, step = TAU / turns;
     return { ...base, bits: field.bits, step,
@@ -106,6 +107,7 @@ export function compileSchema<S>(schema: NetSchema<S>, id: number): NetClass<S> 
       if (send !== 'initial') throw new RangeError(`${schema.cls}.${name}: text is initial-only`);
       text.push({ name, read: field.read }); continue;
     }
+    if (field.kind === 'f64' && field.predicted !== true && send !== 'owner') throw new RangeError(`${schema.cls}.${name}: a double fits only the owner block`);
     const compiled = column(name, field);
     if (send === 'initial') { initial.push(compiled); continue; }
     if (field.predicted === true) { owner.push(compiled); continue; }

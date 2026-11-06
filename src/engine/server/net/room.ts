@@ -39,7 +39,7 @@ export const MAX_CLIENT_MESSAGE_BYTES = 1024;
 export const CLIENT_MESSAGES_PER_TICK = 8, MAX_CLIENT_MESSAGES = 240, CLIENT_FLOOD_DEBT = -3600;
 
 /** The player a client owns. */
-export interface NetPlayer { readonly id: string; readonly cls: NetClass<never>; sample: (out: Uint32Array, refs: NetRefs) => void;
+export interface NetPlayer { readonly id: string; readonly cls: NetClass<never>; sample: (out: Float64Array, refs: NetRefs) => void;
   /** The ride under this player as flat words, and how many. 0: on foot. */
   readonly ride?: (out: Float64Array) => number }
 /** Hands the room each entity, with a view its class's accessors read. A view is valid only during the call. */
@@ -106,7 +106,7 @@ interface RoomClient {
   readonly rides: Map<number, number>;
   /** What this client could see at each recent frame: a baseline is the frame and this set. */
   readonly views: ClientView[]; nextView: number;
-  readonly owner: Uint32Array; dispose: () => void;
+  readonly owner: Float64Array; dispose: () => void;
 }
 
 const initialBits: InitialBits = cls => { const entry = NET_CLASSES[cls]; return entry === undefined ? undefined : { bits: entry.initial.map(column => column.bits), text: entry.text.length }; };
@@ -146,7 +146,7 @@ export class NetRoom {
   }
   /** Connect a client that owns `player`. It waits for its `hello`, and past that for `open`. Returns its id. */
   join(transport: Transport, player: NetPlayer = this.world.player, queue: CommandQueue = new CommandQueue()): number {
-    const id = ++this.clientIds, owner = new Uint32Array(player.cls.owner.length);
+    const id = ++this.clientIds, owner = new Float64Array(player.cls.owner.length);
     const client: RoomClient = { id, transport, player, queue, identity: GUEST, credit: MAX_CLIENT_MESSAGES, ledgerSeen: 0, state: 'new', ack: -1, acts: [], known: new Set(), questVersion: -1, quests: new Map(), phased: new Set(), rides: new Map(), owner,
       views: Array.from({ length: FRAME_RING }, () => ({ tick: -1, visible: new Set<number>(), due: new Set<number>(), rows: new Map<number, number>() })), nextView: 0, dispose: () => undefined };
     const off = transport.onMessage((channel, bytes) => { this.receive(client, channel, bytes); });

@@ -82,6 +82,9 @@ function ownerTable(columns: readonly NetColumn<never>[]): OwnerTable {
 export class Predictor {
   /** Corrections taken, and steps replayed for them: what a proof page reports. */
   corrections = 0; replays = 0;
+  /** What each correction disagreed on, and the widest gap at the acknowledged step. */
+  readonly missed = { position: 0, grounded: 0, board: 0, swim: 0, ride: 0, gap: 0 };
+  readonly misses: number[][] = [];
   private readonly body: PredictedBody;
   private readonly columns: readonly NetColumn<never>[];
   private readonly table: OwnerTable;
@@ -186,15 +189,27 @@ export class Predictor {
 
   private matches(slot: number, owner: ArrayLike<number>, ridden: ArrayLike<number> | null): boolean {
     const { states, table } = this, at = slot * SAVED_WORDS;
-    if ((this.rode[slot] === 1) !== (ridden !== null)) return false;
+    const { missed } = this;
+    if ((this.rode[slot] === 1) !== (ridden !== null)) { missed.ride++; return false; }
     if (ridden !== null) {
       const from = at + MOTION_WORDS, gapX = (ridden[0] ?? 0) - (states[from] ?? 0), gapY = (ridden[1] ?? 0) - (states[from + 1] ?? 0), gapZ = (ridden[2] ?? 0) - (states[from + 2] ?? 0);
-      return gapX * gapX + gapY * gapY + gapZ * gapZ <= PREDICTION_TOLERANCE * PREDICTION_TOLERANCE && ridden[3] === states[from + 3];
+      if (gapX * gapX + gapY * gapY + gapZ * gapZ <= PREDICTION_TOLERANCE * PREDICTION_TOLERANCE && ridden[3] === states[from + 3]) return true;
+      missed.ride++;
+      return false;
     }
     const x = this.value(table.x, owner) - (states[at + CAPTURED.x] ?? 0), y = this.value(table.y, owner) - (states[at + CAPTURED.y] ?? 0), z = this.value(table.z, owner) - (states[at + CAPTURED.z] ?? 0);
-    const reach = PREDICTION_TOLERANCE + DECK_PHASE_TICKS * (states[at + CAPTURED.carried] ?? 0);
-    if (x * x + y * y + z * z > reach * reach) return false;
-    return this.flag(table.grounded, owner) === states[at + CAPTURED.grounded] && this.flag(table.board, owner) === states[at + CAPTURED.board] && this.flag(table.swim, owner) === states[at + CAPTURED.swim];
+    const reach = PREDICTION_TOLERANCE + DECK_PHASE_TICKS * (states[at + CAPTURED.carried] ?? 0), grounded = this.flag(table.grounded, owner) !== states[at + CAPTURED.grounded];
+    if (grounded || x * x + y * y + z * z > reach * reach) this.keepMiss(slot, owner);
+    if (x * x + y * y + z * z > reach * reach) { missed.position++; missed.gap = Math.max(missed.gap, Math.hypot(x, y, z)); return false; }
+    if (grounded) { missed.grounded++; return false; }
+    if (this.flag(table.board, owner) !== states[at + CAPTURED.board]) { missed.board++; return false; }
+    if (this.flag(table.swim, owner) !== states[at + CAPTURED.swim]) { missed.swim++; return false; }
+    return true;
+  }
+  /** The first misses, side by side: server x y z grounded, then this client's. */
+  private keepMiss(slot: number, owner: ArrayLike<number>): void {
+    const { states, table, misses } = this, at = slot * SAVED_WORDS;
+    if (misses.length < 48) misses.push([this.value(table.x, owner), this.value(table.y, owner), this.value(table.z, owner), this.flag(table.grounded, owner), states[at + CAPTURED.x] ?? 0, states[at + CAPTURED.y] ?? 0, states[at + CAPTURED.z] ?? 0, states[at + CAPTURED.grounded] ?? 0]);
   }
   private flag(index: number, owner: ArrayLike<number>): number { return this.columns[index]?.value(owner[index] ?? 0) === true ? 1 : 0; }
   private value(index: number, owner: ArrayLike<number>): number {

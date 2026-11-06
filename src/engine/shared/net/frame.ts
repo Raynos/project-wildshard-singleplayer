@@ -51,7 +51,7 @@ export class WorldFrameRing {
 /** What one client's frame is built from. */
 export interface FrameInput {
   readonly frame: WorldFrame; readonly cell: number; readonly lastSeq: number;
-  readonly ownerClass: NetClass<never>; readonly owner: Uint32Array;
+  readonly ownerClass: NetClass<never>; readonly owner: Float64Array;
   /** The first `rideWords` of this are the ride under the owner (P1-E5.3-D3): flat words only its law reads. Absent or 0: on foot, and it costs one bit. */
   readonly ride?: Float64Array; readonly rideWords?: number;
   /** The handles this client should see now, and the same set as of its baseline. */
@@ -80,7 +80,7 @@ export function encodeFrame(writer: BitWriter, input: FrameInput): ArrayBuffer {
   const baseOf = (handle: number): WorldFrame | null => baseline === null || seen?.has(handle) !== true ? null : baseline.rowFrom === undefined ? baseline.frame : baseline.rowFrom(handle);
   writer.write(MSG_FRAME, 8); writer.write(frame.tick, 32); writer.write(baseline?.frame.tick ?? NO_BASELINE, 32);
   writer.write(input.cell, 16); writer.write(input.lastSeq, 16);
-  input.ownerClass.owner.forEach((column, index) => { writer.write(input.owner[index] ?? 0, column.bits); });
+  input.ownerClass.owner.forEach((column, index) => { if (column.kind === 'f64') writer.writeDouble(input.owner[index] ?? 0); else writer.write(input.owner[index] ?? 0, column.bits); });
   const rideWords = input.rideWords ?? 0;
   writer.writeBool(rideWords > 0);
   if (rideWords > 0) { writer.write(rideWords, 8); for (let index = 0; index < rideWords; index++) writer.write(floatToBits(input.ride?.[index] ?? 0), 32); }
@@ -113,7 +113,7 @@ export function encodeFrame(writer: BitWriter, input: FrameInput): ArrayBuffer {
 /** One decoded frame: the owner block and every visible row, whole, quantised. */
 export interface DecodedFrame {
   readonly tick: number; readonly baselineTick: number; readonly cell: number; readonly lastSeq: number;
-  readonly owner: Uint32Array; readonly rows: Map<number, Uint32Array>;
+  readonly owner: Float64Array; readonly rows: Map<number, Uint32Array>;
   /** The ride under this client's player, or null on foot. */
   readonly ride: Float64Array | null;
   /** The rows that are a true sample of this tick, sent or standing still. Any other row is a held copy of an older one. */
@@ -129,8 +129,8 @@ export interface FrameTable {
 function readFrame(reader: BitReader, table: FrameTable): DecodedFrame | null {
   if (reader.read(8) !== MSG_FRAME) throw new NetDecodeError('Not a frame');
   const tick = reader.read(32), baselineTick = reader.read(32), cell = reader.read(16), lastSeq = reader.read(16);
-  const owner = new Uint32Array(table.ownerClass.owner.length);
-  table.ownerClass.owner.forEach((column, index) => { owner[index] = reader.read(column.bits); });
+  const owner = new Float64Array(table.ownerClass.owner.length);
+  table.ownerClass.owner.forEach((column, index) => { owner[index] = column.kind === 'f64' ? reader.readDouble() : reader.read(column.bits); });
   const ride = reader.readBool() ? new Float64Array(reader.read(8)) : null;
   if (ride !== null) for (let index = 0; index < ride.length; index++) ride[index] = bitsToFloat(reader.read(32));
   const base = baselineTick === NO_BASELINE ? null : table.baseline(baselineTick);

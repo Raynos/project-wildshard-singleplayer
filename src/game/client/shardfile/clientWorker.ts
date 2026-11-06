@@ -82,6 +82,8 @@ export interface WorkerClientReport {
   clawed: boolean; own: string | null;
   /** Movers this page holds, and the poses rows have given them. */
   movers: number; posed: number;
+  /** What the corrections disagreed on. */
+  missed: Readonly<NetPlayer['predictor']['missed']>; misses: readonly (readonly number[])[];
 }
 declare global { interface Window { __workerClient?: () => WorkerClientReport; __workerClientSave?: () => Promise<void> } }
 
@@ -208,7 +210,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   scope.onDispose(() => { player.link = null; ports.weapons.bindWire(null); net.dispose(); });
   const { restored } = await shell.booted;
   shell.ready();
-  const started = diagnosticNow(), report: WorkerClientReport = { frames: 0, framesPerSecond: 0, ticksPerSecond: 0, correctionsPerMinute: 0, corrections: 0, worstOffset: 0, queue: 0, replaysPerFrame: 0, delayMs: 0, jitterMs: 0, mainMsP95: 0, workerTickMs: 0, rows: 0, attacks: 0, hits: 0, kills: 0, refused: 0, held: 0, dropped: 0, hp: 0, falls: 0, closed: null, x: 0, z: 0, cell: 0, serverX: 0, serverZ: 0, restored, savedTick: -1, savedOk: false, quests: {}, flags: [], paid: 0, fights: [], clawed: false, own: null, movers: 0, posed: 0 };
+  const started = diagnosticNow(), report: WorkerClientReport = { frames: 0, framesPerSecond: 0, ticksPerSecond: 0, correctionsPerMinute: 0, corrections: 0, missed: net.predictor.missed, misses: net.predictor.misses, worstOffset: 0, queue: 0, replaysPerFrame: 0, delayMs: 0, jitterMs: 0, mainMsP95: 0, workerTickMs: 0, rows: 0, attacks: 0, hits: 0, kills: 0, refused: 0, held: 0, dropped: 0, hp: 0, falls: 0, closed: null, x: 0, z: 0, cell: 0, serverX: 0, serverZ: 0, restored, savedTick: -1, savedOk: false, quests: {}, flags: [], paid: 0, fights: [], clawed: false, own: null, movers: 0, posed: 0 };
   scope.onDispose(client.onCombat(event => {
     if (event.kind === 'hit' && event.confirmFor !== 0) { report.hits++; if (event.killed) report.kills++; }
     if (event.kind === 'died' && event.id === client.welcome?.handle) { report.falls++; ports.died(); }

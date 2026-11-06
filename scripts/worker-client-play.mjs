@@ -183,7 +183,7 @@ export async function play(browser, phone, base, only = '') {
       await shard.page.evaluate(() => { const { player } = window.__wildshard.world; player.touchMove.y = 1; });
       await shard.page.waitForTimeout(8000);
       const r = await report(shard.page), rig = await shard.page.evaluate(() => { const held = Object.entries(window.__wildshard.shard).find(([key]) => key.includes('weather'))?.[1]; return held?.weather?.state ?? null; });
-      return { ok: shard.errors.length === 0 && r.closed === null && r.rows > 0, rows: r.rows, fights: r.fights.slice(0, 6), movers: r.movers, posed: r.posed, corrections: r.corrections, worst: r.worstOffset, sky: rig, errors: [...new Set(shard.errors)].slice(0, 4) };
+      return { ok: shard.errors.length === 0 && r.closed === null && r.rows > 0, rows: r.rows, fights: r.fights.slice(0, 6), movers: r.movers, posed: r.posed, corrections: r.corrections, missed: r.missed, worst: r.worstOffset, sky: rig, errors: [...new Set(shard.errors)].slice(0, 4) };
     });
     await shard.context.close();
   }
@@ -206,7 +206,7 @@ export async function play(browser, phone, base, only = '') {
         await grid.page.waitForTimeout(1000);
       }
     }
-    const r = await report(grid.page); return { ok: r.closed === null, cell: r.cell, serverX: r.serverX, serverZ: r.serverZ, corrections: r.corrections };
+    const r = await report(grid.page); return { ok: r.closed === null, cell: r.cell, serverX: r.serverX, serverZ: r.serverZ, corrections: r.corrections, missed: r.missed };
   });
   await step('grid saves, reloads and resumes', async () => {
     await grid.page.evaluate(() => { const { player } = window.__wildshard.world; player.touchMove.y = 0; return Promise.race([window.__workerClientSave(), new Promise(resolve => { setTimeout(resolve, 20_000); })]); });

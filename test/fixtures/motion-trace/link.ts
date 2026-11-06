@@ -22,7 +22,7 @@ const forward = { keyX: 0, keyY: 1, stickX: 0, stickY: 0 };
 
 export function linkedPlayer(R: Rapier, scenario: MotionScenario, delay: number): LinkedPlayer {
   const page = new PageSide(R, scenario), host = new HostSide(R, scenario), { player } = page, world = new PredictionWorld(page.physics);
-  const predictor = new Predictor(predictedPlayer(player, world), PLAYER_CLASS.owner), up: NetCommand[][] = [], down: { tick: number; seq: number; owner: Uint32Array }[][] = [];
+  const predictor = new Predictor(predictedPlayer(player, world), PLAYER_CLASS.owner), up: NetCommand[][] = [], down: { tick: number; seq: number; owner: Float64Array }[][] = [];
   // a command's server tick reads the decks one tick before it ends, as the host's own step does
   const stopMovers = world.addMover({ at: (tick, replay) => { if (replay) page.course.place(tick - 1); else page.course.advance(tick - 1); } });
   let seq = 0;
@@ -34,11 +34,11 @@ export function linkedPlayer(R: Rapier, scenario: MotionScenario, delay: number)
       world.poseFor(seq, false);
       page.stepWorld(); predictor.step(command);
       up.push([command]);
-      const arrived: { tick: number; seq: number; owner: Uint32Array }[] = [];
+      const arrived: { tick: number; seq: number; owner: Float64Array }[] = [];
       for (const held of up.shift() ?? []) {
         host.course.advance(host.host.state.tick);
         host.host.step(new Map([[host.player.id, held]]));
-        const owner = new Uint32Array(PLAYER_CLASS.owner.length);
+        const owner = new Float64Array(PLAYER_CLASS.owner.length);
         PLAYER_CLASS.owner.forEach((column, index) => { owner[index] = column.sample(host.player, () => 0); });
         arrived.push({ tick: host.host.state.tick, seq: held.seq, owner });
       }

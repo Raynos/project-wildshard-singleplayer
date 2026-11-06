@@ -117,7 +117,7 @@ test('an old frame is ignored, and seq wraps', () => {
   const state = createMotionState(), steps: number[] = [];
   const body: PredictedBody = { motionState: state, motor: legacyDouble<CharacterMotor>({ result: { grounded: false, groundNormalY: 1, downhillX: 0, downhillZ: 0, horizontalFreedom: 1, groundCollider: null }, captureState: () => undefined, restoreState: () => undefined }), ride: null, renderOffset: new Vector3(),
     step: command => { steps.push(command.seq); return true; } };
-  const predictor = new Predictor(body, PLAYER_CLASS.owner), owner = new Uint32Array(PLAYER_CLASS.owner.length);
+  const predictor = new Predictor(body, PLAYER_CLASS.owner), owner = new Float64Array(PLAYER_CLASS.owner.length);
   for (const seq of [0xfffe, 0xffff, 0, 1]) predictor.step({ seq, viewTick: 0, steer: standing, yaw: 0, pitch: 0, buttons: 0 });
   predictor.reconcile(0xffff, owner);
   expect(predictor.pending).toBe(2);
@@ -130,7 +130,7 @@ test('an old frame is ignored, and seq wraps', () => {
 test('a step and a frame within tolerance allocate nothing', async () => {
   const state = createMotionState();
   const body: PredictedBody = { motionState: state, motor: legacyDouble<CharacterMotor>({ result: { grounded: false, groundNormalY: 1, downhillX: 0, downhillZ: 0, horizontalFreedom: 1, groundCollider: null }, captureState: () => undefined, restoreState: () => undefined }), ride: null, renderOffset: new Vector3(), step: () => true };
-  const predictor = new Predictor(body, PLAYER_CLASS.owner), owner = new Uint32Array(PLAYER_CLASS.owner.length);
+  const predictor = new Predictor(body, PLAYER_CLASS.owner), owner = new Float64Array(PLAYER_CLASS.owner.length);
   PLAYER_CLASS.owner.forEach((column, index) => { if (column.name === 'grounded') owner[index] = 1; });
   const commands = Array.from({ length: 0x10000 }, (_, seq) => ({ seq, viewTick: 0, steer: standing, yaw: 0, pitch: 0, buttons: 0 }));
   const seen: number[] = [], observer = new PerformanceObserver(list => { for (const entry of list.getEntries()) seen.push(entry.startTime); });
@@ -160,13 +160,14 @@ test('P1-E5.3-C2: a correction puts back everything a step reads, exact to the w
     Object.assign(server.footing, { water: 8.5, depth: 1.5, wading: true, onPlatform: true, sliding: true });
     Object.assign(server.motor.result, { grounded: true, groundNormalY: .75, downhillX: .5, downhillZ: .25, horizontalFreedom: .625 });
     server.resets++; // the frame that says so takes the server's state whatever its seq
-    const owner = Uint32Array.from(PLAYER_CLASS.owner, column => column.sample(server, () => 0)), mine = new Float64Array(MOTION_WORDS), theirs = new Float64Array(MOTION_WORDS);
+    const owner = Float64Array.from(PLAYER_CLASS.owner, column => column.sample(server, () => 0)), mine = new Float64Array(MOTION_WORDS), theirs = new Float64Array(MOTION_WORDS);
     link.predictor.reconcile(1, owner);
     captureMotion(client.motionState, client.motor, mine); captureMotion(server, server.motor, theirs);
+    const doubles = new Set([CAPTURED.x, CAPTURED.y, CAPTURED.z, CAPTURED.x + 3, CAPTURED.y + 3, CAPTURED.z + 3]); // J140
     const skipped = new Set([CAPTURED.yaw, ...[0, 1, 2, 3, 9].map(word => MOTION_WORDS - MOTOR_WORDS + word)]); // the view is ours, and anchors and handles are each world's own
-    theirs.forEach((word, at) => { if (!skipped.has(at)) expect(mine[at], `word ${String(at)}`).toBe(Math.fround(word)); });
+    theirs.forEach((word, at) => { if (!skipped.has(at)) expect(mine[at], `word ${String(at)}`).toBe(doubles.has(at) ? word : Math.fround(word)); });
     const bits = PLAYER_CLASS.owner.reduce((sum, column) => sum + column.bits, 0);
-    expect(Math.ceil(bits / 8)).toBeLessThanOrEqual(150); // the plan's estimate for the block
+    expect(Math.ceil(bits / 8)).toBeLessThanOrEqual(174); // the plan's 150, and J140's doubles
   } finally { link.dispose(); }
 });
 
@@ -175,7 +176,7 @@ test('a null clock stays null across the wire', () => {
   try {
     link.run();
     server.swim.climbTo = null; server.footing.water = null; server.resets++;
-    link.predictor.reconcile(1, Uint32Array.from(PLAYER_CLASS.owner, column => column.sample(server, () => 0)));
+    link.predictor.reconcile(1, Float64Array.from(PLAYER_CLASS.owner, column => column.sample(server, () => 0)));
     expect(client.motionState.swim.climbTo).toBeNull(); expect(client.motionState.footing.water).toBeNull();
   } finally { link.dispose(); }
 });
@@ -211,9 +212,9 @@ test('a reset is heard with no command on its way', () => {
     for (let at = 0; at < 2 * DELAY + 4; at++) link.run();
     const seq = host.player.position.clone();
     host.player.position.set(seq.x, seq.y, 40); host.player.resets++;
-    predictor.reconcile(2, Uint32Array.from(PLAYER_CLASS.owner, column => column.sample(host.player, () => 0)));
+    predictor.reconcile(2, Float64Array.from(PLAYER_CLASS.owner, column => column.sample(host.player, () => 0)));
     expect(player.position.z).toBeLessThan(39); // an old frame says nothing
-    predictor.reconcile(DELAY + 2, Uint32Array.from(PLAYER_CLASS.owner, column => column.sample(host.player, () => 0)));
+    predictor.reconcile(DELAY + 2, Float64Array.from(PLAYER_CLASS.owner, column => column.sample(host.player, () => 0)));
     expect(player.position.z).toBeCloseTo(40, 3);
   } finally { link.dispose(); }
 });
@@ -222,7 +223,7 @@ test('the swell clock joins the server on the first frame and on a correction, a
   const state = createMotionState(), replayed: number[] = [];
   const body: PredictedBody = { motionState: state, ride: null, renderOffset: new Vector3(), motor: legacyDouble<CharacterMotor>({ result: { grounded: false, groundNormalY: 1, downhillX: 0, downhillZ: 0, horizontalFreedom: 1, groundCollider: null }, captureState: () => undefined, restoreState: () => undefined, resetAt: () => undefined }),
     step: (_command, replay) => { state.tick++; if (replay) replayed.push(state.tick); return true; } };
-  const predictor = new Predictor(body, PLAYER_CLASS.owner), owner = new Uint32Array(PLAYER_CLASS.owner.length);
+  const predictor = new Predictor(body, PLAYER_CLASS.owner), owner = new Float64Array(PLAYER_CLASS.owner.length);
   predictor.adopt(0, owner, 500);
   expect(state.tick).toBe(500);
   for (const seq of [1, 2, 3]) predictor.step({ seq, viewTick: 0, steer: standing, yaw: 0, pitch: 0, buttons: 0 });

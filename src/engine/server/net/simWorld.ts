@@ -35,7 +35,7 @@ export class SimNetWorld implements NetWorld {
   playerOf(id: string): NetPlayer {
     const player = this.host.players.get(id);
     if (player === undefined) throw new RangeError(`Unknown net player ${id}`);
-    return { id, cls: PLAYER_CLASS, sample: (out: Uint32Array, refs: NetRefs) => { PLAYER_CLASS.owner.forEach((column, index) => { out[index] = column.sample(player, refs); }); },
+    return { id, cls: PLAYER_CLASS, sample: (out: Float64Array, refs: NetRefs) => { PLAYER_CLASS.owner.forEach((column, index) => { out[index] = column.sample(player, refs); }); },
       ride: out => player.rideWords(out) };
   }
   riders(): ReadonlyMap<string, string> {

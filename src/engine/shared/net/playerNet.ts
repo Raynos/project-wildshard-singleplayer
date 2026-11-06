@@ -4,6 +4,8 @@ import { netSchema, type NetSchema } from './schema';
 
 // P1-E5.2 (E5-REPLICATION §3.5, §4.3), P1-E5.3-C2: the player's wire fields. Others interpolate a quantised row; the owner
 // gets back all the motion state a step reads, exact, 30 times a second, so a correction replays from what the server had.
+// J140: position and velocity go as doubles. A client and a server hold the same bits or they don't, and a slide isn't stable
+// against a micrometre, so a correction rounded to a float only lands the next one.
 // A null is NaN. The mount comes with D3. `yaw` stays out: the view is the client's own.
 const metres = { kind: 'f32q', min: -260, max: 260, bits: 16 } as const;
 const orNaN = (value: number | null | undefined): number => value ?? Number.NaN;
@@ -23,12 +25,12 @@ export const PLAYER_NET: NetSchema<PlayerSim> = netSchema<PlayerSim>({
     swim: { kind: 'bool', read: player => player.swim.on },
     hp: { kind: 'u16', read: player => Math.ceil(player.health.attributes.health) },
     held: { kind: 'u8', read: player => player.held },
-    px: { kind: 'f32', predicted: true, read: player => player.position.x },
-    py: { kind: 'f32', predicted: true, read: player => player.position.y },
-    pz: { kind: 'f32', predicted: true, read: player => player.position.z },
-    vx: { kind: 'f32', predicted: true, read: player => player.velocity.x },
-    vy: { kind: 'f32', predicted: true, read: player => player.velocity.y },
-    vz: { kind: 'f32', predicted: true, read: player => player.velocity.z },
+    px: { kind: 'f64', predicted: true, read: player => player.position.x },
+    py: { kind: 'f64', predicted: true, read: player => player.position.y },
+    pz: { kind: 'f64', predicted: true, read: player => player.position.z },
+    vx: { kind: 'f64', predicted: true, read: player => player.velocity.x },
+    vy: { kind: 'f64', predicted: true, read: player => player.velocity.y },
+    vz: { kind: 'f64', predicted: true, read: player => player.velocity.z },
     grounded: { kind: 'bool', predicted: true, read: player => player.fall.grounded },
     dashT: { kind: 'f32', predicted: true, read: player => player.dash.t },
     dodgeT: { kind: 'f32', predicted: true, read: player => player.dodge.t },
