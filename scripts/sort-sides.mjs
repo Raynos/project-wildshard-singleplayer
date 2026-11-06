@@ -269,6 +269,9 @@ function rewriteRelative(tree, index, moves, dirMoves, from, literal) {
 const PATH_TOKEN = /(?<![\w@-])src\/(engine|game)\/([\w.\-/@]*)/gu;
 const SHORT_TOKEN = /(?<![\w@/.-])(engine|game)\/([\w.\-/]+)/gu;
 const ESCAPED_TOKEN = /src\\\/(engine|game)\\\/(?!\(\?:\(\?:client)/gu;
+/** A path relative to somewhere else: an import a generator emits into its output, a shard's map input. */
+const FOREIGN_RELATIVE = /(?<![\w./-])((?:\.\.?\/)+)(engine|game)\/([\w.\-/]+)/gu;
+const FOREIGN_FILE = /^scripts\/.*\.[cm]?[jt]s$|^src\/shards\/[^/]+\/(?:data|look)\/map\.json$/u;
 
 /** Rewrite repo-rooted spellings: `src/engine/x`, with the bare-file forms a tool may hand a `src(...)` helper. */
 export function rewriteTokens(text, path, tree, moves, dirMoves, notes) {
@@ -297,6 +300,12 @@ export function rewriteTokens(text, path, tree, moves, dirMoves, notes) {
       if (file === null || !moves.has(file) || (path.endsWith('.md') && file !== old)) return whole;
       const target = moves.get(file) ?? '', ext = file.slice(old.length);
       return `${target.slice(4, target.length - ext.length)}${tail}`;
+    });
+  }
+  if (FOREIGN_FILE.test(path)) {
+    out = out.replaceAll(FOREIGN_RELATIVE, (whole, dots, layer, rest, at, source) => {
+      const moved = shape(layer, rest, `src/${layer}/${rest}`, source.slice(at + whole.length));
+      return moved === `src/${layer}/${rest}` ? whole : `${dots}${moved.slice(4)}`;
     });
   }
   if (CODE.test(path)) out = out.replaceAll(ESCAPED_TOKEN, match => `${match}${SIDE_GROUP}`);

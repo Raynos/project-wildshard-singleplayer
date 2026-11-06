@@ -7,6 +7,7 @@ import {dirname,resolve} from 'node:path';
 import {afterEach,expect,test} from 'vitest';
 import {compareSideEdges} from '../lint/engine-sides.mjs';
 import {unsortedPath} from '../lint/layer-exports.mjs';
+import {spelledPathFailures} from '../scripts/check-spelled-paths.mjs';
 import {compareCounts} from '../scripts/guard-counts.mjs';
 import {appliedTree,applyPlan,carryWorkingText,GATE_PHASES,gatePhaseCommand,headTree,main,planFailures,planMove,planSort} from '../scripts/sort-sides.mjs';
 
@@ -187,6 +188,29 @@ test('--move follows the root spelling of an isolated declaration test',()=>{
   expect(planFailures(tree,plan,root)).toEqual([]);
 });
 
+test('--move follows what a generator emits and what a shard map declares',()=>{
+  const root=sorted(),emitted="export const table=`import {view} from '../../engine/client/core/view';\nimport {hud} from '../../engine/client/ui/hud';\n`;\nexport const near=\"import './engine/client/core/view';\";\n";
+  put(root,{'scripts/gen-table.mjs':emitted,'src/shards/one/data/map.json':'{"inputs":["../../engine/client/core/view.ts","../../engine/client/ui/hud.ts","generators"]}\n'});commit(root);
+  const {tree,plan}=planMove(headTree(root),['src/engine/client/core/view.ts'],'shared');
+  expect(plan.writes.get('scripts/gen-table.mjs')).toBe(emitted.replaceAll('engine/client/core/view','engine/shared/core/view'));
+  expect(plan.writes.get('src/shards/one/data/map.json')).toBe('{"inputs":["../../engine/shared/core/view.ts","../../engine/client/ui/hud.ts","generators"]}\n');
+  expect(planFailures(tree,plan,root)).toEqual([]);
+});
+test('the spelled-path guard names what no resolver reads',()=>{
+  const files=new Map([['src/engine/client/core/view.ts',''],['src/shards/one/generators/x.ts','']]);
+  const rows:Record<string,string>={
+    'src/engine/isolated-x.test.ts':"const names=[\"client/core/view\",\"server/core/view\"];\nconst source=\"import './shared/gone';\";\n",
+    'scripts/gen-table.mjs':"export const a=\"import '../../engine/client/core/view';\";export const b=\"import '../../engine/server/core/view';\";\n",
+    'src/shards/one/data/map.json':'{"inputs":["generators","absent-is-allowed.json","../../engine/client/core/view.ts","../../sdk/bake/gone.ts","../../../public/assets/x.glb"]}\n',
+  };
+  for(const path of Object.keys(rows))files.set(path,'');
+  expect(spelledPathFailures(files,path=>rows[path]??'').map(row=>row.split(': ').slice(0,2).join(': '))).toEqual([
+    'src/engine/isolated-x.test.ts: no module at src/engine/server/core/view',
+    'src/engine/isolated-x.test.ts: no module at src/engine/shared/gone',
+    'scripts/gen-table.mjs: no module at src/engine/server/core/view',
+    'src/shards/one/data/map.json: input ../../sdk/bake/gone.ts is gone',
+  ]);
+});
 test('--move refuses an untagged path, a wrong side and a file already there',()=>{
   const tree=headTree(sorted());
   expect(()=>planMove(tree,['src/engine/client/core/none.ts'],'shared')).toThrow(/no tag/u);
