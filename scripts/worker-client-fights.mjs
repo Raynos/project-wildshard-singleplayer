@@ -252,7 +252,7 @@ async function driftwoodJourney(browser, phone, base, step) {
     await page.locator('.ws-shop-grid > *').filter({ hasText: /cape/iu }).first().click({ timeout: 4000 });
     await page.waitForTimeout(400);
     await page.locator('.ws-shop-bigbuy').click({ timeout: 4000 });
-    const open_ = await page.evaluate(() => document.querySelector('.ws-shop-counter, .ws-shop')?.classList.contains('show') ?? null), landed = await until(page, async () => { const seen = (await report(page)).owned.coins; return seen < before ? seen : null; }, 3);
+    const open_ = await page.evaluate(() => document.querySelector('.ws-shop-counter, .ws-shop')?.classList.contains('show') ?? null), at = Date.now(), landed = await until(page, async () => Object.keys((await report(page)).owned).some(line => line.startsWith('own') && line.includes('cape')) ? Date.now() - at : null, 3); // a line at 0 is gone, so read the cape
     await page.locator('.ws-shop-close').click({ timeout: 3000 }).catch(() => page.keyboard.press('Escape'));
     await page.waitForTimeout(1500);
     const r = await report(page), held = Object.keys(r.owned).filter(line => line.startsWith('own'));
@@ -287,17 +287,21 @@ async function pineJourney(browser, phone, base, step) {
   await step('pine: a filled contract is claimed on the board, and it pays', async () => {
     const slot = (await board()).map(([line]) => line.split('|')).find(parts => parts.length >= 5 && parts[3] === 'species');
     const target = slot?.[4] ?? 'deer', kind = /elk/iu.test(target) ? 'elk' : /boar/iu.test(target) ? 'boar' : 'deer', ready = () => page.evaluate(() => [...document.querySelectorAll('.ws-ph-seal')].some(node => node.offsetParent !== null));
-    const end = Date.now() + 80_000;
-    let sealed = false, kills = 0;
-    while (Date.now() < end && !sealed) { // a notice wants a few; read the board after each
+    const close = () => page.locator('button:visible').filter({ hasText: /^close$/iu }).first().dispatchEvent('click').catch(() => undefined);
+    await pressRound(page, 'contract board', () => page.evaluate(() => [...document.querySelectorAll('.ws-ph-note-count')].some(node => node.offsetParent !== null)));
+    const need = await page.evaluate(() => Number(/\/ (?<need>\d+)/u.exec(document.querySelector('.ws-ph-note-count')?.textContent ?? '')?.groups?.need ?? 0));
+    await close(); await page.waitForTimeout(400);
+    const end = Date.now() + 100_000;
+    let kills = 0;
+    while (Date.now() < end) { // the line counts from 1
+      const have = (await board()).find(([line]) => line.startsWith('board|0|'))?.[1] ?? 0;
+      if (have > need) break;
       const was = await report(page), body = await bodyOf(page, kind);
       if (body === null) { await page.waitForTimeout(500); continue; }
       await place(page, body.x + 1.5, body.y + 0.6, body.z + 1.5); await page.waitForTimeout(350); await strike(page, body, false); await page.waitForTimeout(900);
-      if ((await report(page)).kills === was.kills) continue;
-      kills++;
-      sealed = await pressRound(page, 'contract board', ready);
-      if (!sealed) { await page.locator('button:visible').filter({ hasText: /^close$/iu }).first().dispatchEvent('click').catch(() => undefined); await page.waitForTimeout(500); }
+      if ((await report(page)).kills > was.kills) kills++;
     }
+    const sealed = await pressRound(page, 'contract board', ready);
     if (!sealed) return { ok: false, kills, target, lines: (await board()).slice(0, 8) };
     const before = await report(page);
     await page.locator('.ws-ph-seal:visible').first().dispatchEvent('click');
@@ -318,10 +322,9 @@ async function pineJourney(browser, phone, base, step) {
   });
   await step('pine: the mill door is barred, and opens for the player whose gate it is', async () => {
     const gate = () => page.evaluate(() => window.__wildshard.world.registry.get('mill-door-bar')?.active?.() ?? null), DOOR = { x: -142.8, z: -164.9 };
+    await page.waitForFunction(() => window.__wildshard.world.registry.get('mill-door-bar') !== undefined, undefined, { timeout: 20_000 }).catch(() => undefined);
     const barred = await gate(), through = async () => { // from the race side, straight at the door, a step past it
-      const near = await prompt(page, 'open door');
-      const feet = near === null ? 0.8 : await groundAt(page, DOOR.x, DOOR.z + 4);
-      await place(page, DOOR.x, feet + 0.4, DOOR.z + 4);
+      await place(page, DOOR.x, await groundAt(page, DOOR.x, DOOR.z + 4) + 0.4, DOOR.z + 4);
       await page.waitForTimeout(1300);
       await walkInto(page, 0, 3.5, () => page.evaluate(wanted => window.__wildshard.world.player.position.z < wanted, DOOR.z - 1));
       const r = await report(page);

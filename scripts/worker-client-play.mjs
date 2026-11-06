@@ -244,11 +244,12 @@ export async function play(browser, phone, base, only = '') {
     const r = await report(nine.page), held = await nine.page.evaluate(() => window.__wildshard.world.game.app.equipment.current?.id ?? null);
     return { ok: r.refused === before.refused && r.closed === null, held, refused: r.refused, waiting: r.attacks };
   });
-  await step('nine: a place is discovered and the server keeps it', async () => {
-    const at = await nine.page.evaluate(() => { const { position: p } = window.__wildshard.world.player; return { x: p.x, y: p.y, z: p.z }; });
+  await step('nine: a walk stays with the server, corrections and all', async () => { // Nine declares no places and no quest: a walk is what it has
+    const at = await nine.page.evaluate(() => { const { position: p } = window.__wildshard.world.player; return { x: p.x, z: p.z }; }), before = await report(nine.page);
     await walk(nine.page, at.x + 12, at.z - 12, 2, 6);
-    for (let i = 0; i < 6; i++) { const r = await report(nine.page), seen = r.flags.filter(flag => flag.startsWith('seen:')); if (seen.length > 0) return { ok: true, seen }; await nine.page.waitForTimeout(1000); }
-    return { ok: false, flags: (await report(nine.page)).flags };
+    await nine.page.waitForTimeout(800);
+    const r = await report(nine.page), parted = Math.hypot(r.x - r.serverX, r.z - r.serverZ), moved = Math.hypot(r.x - at.x, r.z - at.z);
+    return { ok: moved > 3 && parted < 1 && r.closed === null, moved, parted, corrections: r.corrections - before.corrections, worst: r.worstOffset };
   });
   await step('nine: a fall off the stack comes back to firm ground, unhurt', async () => {
     const stood = await nine.page.evaluate(() => { const { position: p } = window.__wildshard.world.player; return { x: p.x, y: p.y, z: p.z }; }), before = await report(nine.page);
