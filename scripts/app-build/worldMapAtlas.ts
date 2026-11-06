@@ -48,7 +48,7 @@ export async function bakeWorldMapAtlas(products: readonly string[], read: (slug
  *  vite/worldMapAtlas.ts's config hook): scripts/build-app.mjs runs it after the generators. */
 export async function writeWorldMapAtlas(root: string): Promise<void> {
   const row = v.object({ slug: v.string() }), catalogue = v.parse(v.object({ grid: v.object({ cells: v.array(row) }) }),
-    JSON.parse(readFileSync(resolve(root, 'src/game/shared/grid/singleplayer.json'), 'utf8'))).grid;
+    JSON.parse(readFileSync(process.env['WILDSHARD_CATALOGUE'] ?? resolve(root, 'src/game/shared/grid/singleplayer.json'), 'utf8'))).grid;
   const slugs = catalogue.cells.map(cell => cell.slug);
   // A filtered product build (build-shardfiles --shard) leaves only its own products, and the products copy
   // (outputProducts.mjs) publishes just those: the others draw the plot tile. A cold atlas, none built, still refuses.

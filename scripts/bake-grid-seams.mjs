@@ -8,6 +8,7 @@ import { createHash } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 import { resolve } from 'node:path';
 import { GridAssembly } from '../src/game/shared/grid/assembly.ts';
+import { installCatalogue } from '../src/game/shared/grid/catalogueSlot.ts';
 import { loadGridEdgeProfiles } from '../src/game/shared/grid/edgeProfiles.ts';
 import { readGridEdges } from '../src/game/client/grid/edgeSources.ts';
 import { readGridProductEdges } from '../src/game/client/grid/products.ts';
@@ -21,6 +22,8 @@ import { phoneWireReport } from './phone-wire.mjs';
 import { existsSync, writeFileSync } from 'node:fs';
 
 const root = process.cwd(), outputRoot = resolve(process.argv[2] ?? root), base = 'https://build.invalid/';
+// A deploy that names its catalogue (`bakeCatalogue`) gets seams for that grid, or the page's catalogue and its seams differ.
+if (process.env.WILDSHARD_CATALOGUE !== undefined) installCatalogue(JSON.parse(await readFile(process.env.WILDSHARD_CATALOGUE, 'utf8')));
 /** @param {string} path */
 const fetchFile = async path => {
   const url = new URL(path, base), product = url.pathname.startsWith('/shardfiles/');
