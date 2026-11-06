@@ -11,7 +11,7 @@ import { SimNetWorld } from '../src/engine/server/net/simWorld';
 import { createSimHost } from '../src/engine/server/sim';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
 import { directLoopback } from '../src/engine/test/netLoopback';
-import { BossRowBar, EliteRowBar, netEncounterFeed, type BossBarCard, type EncounterRow } from '../src/game/client/boss/barFeed';
+import { BossRowBar, EliteRowBar, netEncounterFeed, RowReward, type BossBarCard, type EncounterRow } from '../src/game/client/boss/barFeed';
 import { NO_MOMENTS, publishEncounter } from '../src/engine/shared/sim/encounterRows';
 import type { SkullMark } from '../src/engine/client/ui/EliteBar';
 import { SIM_CREATURE_RECIPE } from '../src/game/test/creatureRecipe';
@@ -106,7 +106,7 @@ test('a boss row fills the skip ring and lays out the server\'s reward, and take
   const bar: BossPresentation = { update: () => undefined, barShown: true, hideBar: () => undefined, hideNameCard: () => undefined, hideReward: () => undefined, showRetry: () => undefined, showNameCard: () => undefined,
     setSkip: fraction => { skips.push(fraction); }, showBar: () => undefined, setHp: () => undefined, setShield: () => undefined, setPhase: () => undefined };
   const card = { id: 'boss', name: 'Boss', title: 'The', retryTitle: 'Again', phases: [{ at: 1, caption: 'one' }] };
-  const view = new BossRowBar(bar, card, { show: at => { drops.push(`show ${String(at.x)}`); }, hide: () => { drops.push('hide'); } });
+  const view = new BossRowBar(bar, card, { show: at => { drops.push(`show ${String(at.x)}`); }, hide: taken => { drops.push(`hide ${String(taken)}`); } });
   const boss = (state: string, extra: Partial<EncounterRow> = {}): EncounterRow => row('boss', state, 1, 1, 0, { ...extra, kind: 'boss' });
   view.draw([boss('intro', { skip: 0.5 })], 0.1);
   expect(skips).toEqual([0.5]);
@@ -114,7 +114,33 @@ test('a boss row fills the skip ring and lays out the server\'s reward, and take
   view.draw([boss('victory', { reward: { x: 4, y: 1, z: 2 } })], 0.1);
   expect(drops, 'one reward, once').toEqual(['show 4']);
   view.draw([boss('victory')], 0.1);
-  expect(drops).toEqual(['show 4', 'hide']);
+  expect(drops).toEqual(['show 4', 'hide false']);
+  view.draw([boss('victory', { reward: { x: 5, y: 1, z: 2 } })], 0.1);
+  view.pressed();
+  view.draw([boss('victory')], 0.1);
+  expect(drops.at(-1), 'the row ended on this player\'s press').toBe('hide true');
+});
+
+test('a reward press the server refused comes back, and one it took doesn\'t', () => {
+  const heard: string[] = [], orb = new RowReward({ show: at => { heard.push(`show ${String(at.x)}`); }, hide: taken => { heard.push(`hide ${String(taken)}`); } }), at = { x: 1, y: 0, z: 0 };
+  orb.draw(at, 0.1); orb.pressed();
+  orb.draw(at, 1); orb.draw(at, 0.4);
+  expect(heard, 'it waits for the row').toEqual(['show 1']);
+  orb.draw(at, 0.2);
+  expect(heard, 'still there: refused').toEqual(['show 1', 'show 1']);
+  orb.draw(null, 0.1);
+  expect(heard.at(-1), 'nobody took it from here').toBe('hide false');
+});
+
+test('a lair\'s row lays its orb out, and a press takes it', () => {
+  const heard: string[] = [], pressed: (() => void)[] = [];
+  const bar = { show: () => undefined, hide: () => undefined, caption: () => undefined, update: () => undefined, set: () => undefined, banner: () => undefined, skulls: () => undefined };
+  const view = new EliteRowBar(bar, cards, { player: { position: new Vector3() }, camera: new PerspectiveCamera(), head: () => false, drop: (id, done) => { pressed.push(done); return { show: at => { heard.push(`${id} show ${String(at.x)}`); }, hide: taken => { heard.push(`${id} hide ${String(taken)}`); } }; } });
+  view.draw([row('near', 'dead', 0, 0, 0, { reward: { x: 3, y: 0, z: 1 } })], 0.1);
+  expect(heard).toEqual(['near show 3']);
+  pressed[0]?.();
+  view.draw([row('near', 'dead', 0, 0)], 0.1);
+  expect(heard.at(-1)).toBe('near hide true');
 });
 
 test('a fight\'s moments reach a client on the encounter row', () => {

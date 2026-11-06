@@ -38,7 +38,9 @@ import { installNativeHerdShelter } from '../population/shelter';
 import { installNativeSpawnScript, readSpawnScript } from '../population/spawnScript';
 import { headlessSpecCatalogue } from '../population/specCatalogue';
 import { ownContractCatalogue } from '../../shared/quest/contracts';
+import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { installNativeEliteFeature, readEliteFeature } from '../quest/eliteFeature';
+import { eliteDrops } from '../quest/eliteDrops';
 import { installQuestKillSteps } from '../quest/killSteps';
 import { installNativeChapterDirector } from '../quest/nativeChapter';
 import { installNativeQuestComposition, readNativeQuestSpots, type NativeQuestCompositionInput } from '../quest/nativeComposition';
@@ -102,11 +104,14 @@ async function prepareMixed<C extends NativeAssemblyContext>(row: Extract<Native
     bake: { ground: bake.ground, actors: bake['actors'], herds: bake['herds'], habitat: bake['habitat'] } } as MixedPopulationInput, run.context.snapshot); };
 }
 /** The elite core a riding world binds: each rule's word, read through its programme from the clock and the storm. */
-export function nativeEliteCore(host: Pick<SimHost, 'players' | 'level'>, conditions: NativeEliteConditions, program: Pick<ReturnProgram, 'project'>, day: { readonly dayPhase: string }, env: Pick<NativeWildEnvironment, 'storm'>): EliteCore<EliteCoreScript> {
-  return new EliteCore({ players: host.players, condition: (rule: EliteCoreRule) => {
+export function nativeEliteCore(host: SimHost, conditions: NativeEliteConditions, program: Pick<ReturnProgram, 'project'>, day: { readonly dayPhase: string }, env: Pick<NativeWildEnvironment, 'storm'>): EliteCore<EliteCoreScript<AnimalSim>> {
+  const drops = eliteDrops<EliteCoreScript<AnimalSim>>(host);
+  const core = new EliteCore<EliteCoreScript<AnimalSim>>({ players: host.players, condition: (rule: EliteCoreRule) => {
     const code = need(conditions.rules[rule], 'Missing elite rule');
     return program.project('eliteRule', { rule: code.rule, phase: code.phase ? conditions.phases[day.dayPhase] ?? 0 : 0, storm: code.storm ? (env.storm ? conditions.storm.storm : conditions.storm.calm) : 0 })['accept'] === 1;
-  } }, {}, host.level.id, memoryElitePersistence());
+  } }, drops.hooks, host.level.id, memoryElitePersistence());
+  drops.bind(core);
+  return core;
 }
 async function prepareRidingElites<C extends NativeAssemblyContext>(row: Extract<NativeAssemblyFeature, { host: 'riding.elites' }>, at: AssemblyPrepared<C>): Promise<Step<C>> {
   const rows = await readAssemblyInput(at.product, row.rows), [swipe, pounce, bite] = await readAssemblyInput<readonly Parameters<typeof strikeFromData>[0][]>(at.product, row.strikes);

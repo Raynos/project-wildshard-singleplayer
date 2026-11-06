@@ -21,7 +21,7 @@ import type { CrowdTargets } from '../shared/shardfile/crowdRuntime';
 import { eliteViewSource, eliteViewTell, parseEliteOutputActions, parseEliteOutputBank, type EliteEnteredPresentation, type EliteOutputAction, type EliteOutput } from '@wildshard/format/eliteFeature';
 import { pageSim } from './shardfile/clientMoverOwners';
 import { wirePage } from './shardfile/wirePage';
-import { EliteRowBar } from './boss/barFeed';
+import { EliteRowBar, type BossRowDrop } from './boss/barFeed';
 import { lendViewTell, lendViewValues } from './shardfile/clientViewProgram';
 import { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
@@ -257,9 +257,16 @@ export class Elites {
   /** a once elite won for good (Argymaq tamed): the trophy + the "skin" (the horse is the reward), the lair retires */
   won(id: string): void { this.core.won(id); }
 
+  /** A first kill's orb, as a lair's row lays it out. */
+  private rowDrop(id: string, pressed: () => void): BossRowDrop {
+    const entry = this.core.entry(id);
+    if (entry === undefined) throw new Error('Missing elite entry for its row');
+    return { show: at => { this.view.showRowDrop(entry, at, () => { pressed(); wirePage.send(`${id}.reward`); }); }, hide: taken => { this.view.hideRowDrop(entry, taken); } };
+  }
+
   update(dt: number, t: number): void {
     // J130: a bar has one driver. On the wire the rows draw it and this page's lairs never wake.
-    if (wirePage.on) { this.rowBar ??= new EliteRowBar(this.bar, this.core.entries.map(entry => entry.script.def), { player: this.host.player, camera: this.host.camera, head: wirePage.head }); this.rowBar.draw(wirePage.encounters(), dt); return; }
+    if (wirePage.on) { this.rowBar ??= new EliteRowBar(this.bar, this.core.entries.map(entry => entry.script.def), { player: this.host.player, camera: this.host.camera, head: wirePage.head, drop: (id, pressed) => this.rowDrop(id, pressed) }); this.rowBar.draw(wirePage.encounters(), dt); this.view.tendDrops(dt, t); return; }
     this.view.update(dt, t, this.core.update(dt, t), this.core.entries);
   }
 }

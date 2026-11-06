@@ -5,6 +5,7 @@ import { parseEliteFeature, type EliteFeatureRows } from '@wildshard/format/elit
 import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import { EliteCore, memoryElitePersistence } from '../../shared/eliteSystem';
+import { eliteDrops } from './eliteDrops';
 import { EliteDecisions } from '../../shared/quest/eliteDecisions';
 import { SpawnScript, readSpawnScript } from '../population/spawnScript';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
@@ -34,8 +35,10 @@ export function installNativeEliteFeature(host: SimHost, day: DayCycleClock, inp
 } {
   const rows = parseEliteFeature(input);
   if (rows.fights.some(row => row.def.rule === 'storm')) throw new Error('Storm encounter needs an admitted weather owner');
+  const drops = eliteDrops<EliteDecisions>(host);
   const core = new EliteCore<EliteDecisions>({ players: host.players, condition: rule => rule === 'always'
-    || (rule === 'dusk' ? day.dusk > 0.5 : rule === 'night' ? day.night > 0.5 : false) }, {}, host.level.id, memoryElitePersistence());
+    || (rule === 'dusk' ? day.dusk > 0.5 : rule === 'night' ? day.night > 0.5 : false) }, drops.hooks, host.level.id, memoryElitePersistence());
+  drops.bind(core);
   const scripts = rows.fights.map(row => new EliteDecisions(row, SpawnScript.native(host, row.program), rows, host.level.seed));
   for (const script of scripts) { const entry = core.add(script); publishEncounter(host, script.def.id, () => eliteNetView(entry)); }
   const saved = v.strictObject({ version: v.literal(rows.version), ...EliteCoreContinuationSchema.entries, scripts: v.array(savedScript), stun: v.nullable(root), others: v.exactOptional(v.record(v.string(), root)) });

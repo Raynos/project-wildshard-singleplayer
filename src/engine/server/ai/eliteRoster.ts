@@ -57,7 +57,7 @@ export class NativeEliteProjection {
   restore(input: unknown): void { this.prepareRestore(input)(); }
 }
 const definition: v.GenericSchema<BoundedEliteDefinitionInput, BoundedEliteDefinition> = v.object({ id: HandleIdSchema, lair: v.object({ x: finite, z: finite, r: finite }),
-  awareR: finite, engageR: finite, leashR: finite, rule: v.picklist(['always', 'dusk', 'night', 'storm']), respawnMin: finite });
+  awareR: finite, engageR: finite, leashR: finite, rule: v.picklist(['always', 'dusk', 'night', 'storm']), respawnMin: finite, drop: v.optional(v.object({ skin: v.nullable(v.string()) })) });
 const rowSchema = v.object({ ...EliteContinuationRowsSchema.entries.rows.item.entries, def: definition });
 const rowsSchema: v.GenericSchema<BoundedEliteRosterInput, BoundedEliteRoster> = v.strictObject({ step: HandleIdSchema, version: finite, wire: EliteContinuationRowsSchema.entries.wire,
   rows: v.pipe(v.array(rowSchema), v.minLength(1), v.maxLength(64)), roles: v.array(v.picklist(['native', 'borrowed'])), kernels: v.unknown(), projections: v.exactOptional(v.record(HandleIdSchema, projectionRows)) });
@@ -287,6 +287,7 @@ interface BoundedEliteDefinitionFields {
     leashR: number;
     rule: "always" | "dusk" | "night" | "storm";
     respawnMin: number;
+    drop?: { skin: string | null } | undefined;
 }
 type BoundedEliteDefinition = { [Key in keyof BoundedEliteDefinitionFields]: BoundedEliteDefinitionFields[Key] };
 type BoundedEliteRosterInput = BoundedEliteRoster;

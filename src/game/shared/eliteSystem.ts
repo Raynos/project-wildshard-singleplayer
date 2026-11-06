@@ -30,6 +30,8 @@ export interface EliteCoreDef {
   readonly rule: EliteCoreRule;
   /** minutes of play before the lair wakes again */
   readonly respawnMin: number;
+  /** what the first kill leaves: its skin, or null for none */
+  readonly drop?: { readonly skin: string | null } | undefined;
 }
 
 /** What the rules read and write of an elite's body: the page's Animal and a renderer-free host's body alike. */
@@ -82,6 +84,8 @@ export interface EliteCoreEntry<S extends EliteCoreScript = EliteCoreScript> {
   forced: boolean;
   /** How many banners and signature moves it has shown: a row's moments. No part of a save. */
   banners: number; signatures: number;
+  /** Where a first kill's orb lies, on a host that lays one out. No part of a save: a kill drops it again, as a page's did. */
+  drop: { readonly x: number; readonly y: number; readonly z: number } | null;
 }
 
 /** One lair's persisted record (the page's 'ws.elites.v1' row). */
@@ -162,7 +166,7 @@ export class EliteCore<S extends EliteCoreScript> {
     const s = this.saved[script.def.id] ?? { timer: 0, discovered: false, skinTaken: false, kills: 0, retired: false };
     this.saved[script.def.id] = s;
     const entry: EliteCoreEntry<S> = {
-      script, state: s.retired ? 'retired' : 'absent', timer: s.timer, waitDusk: false, discovered: s.discovered, bannerArmed: true, farT: 0, banners: 0, signatures: 0,
+      script, state: s.retired ? 'retired' : 'absent', timer: s.timer, waitDusk: false, discovered: s.discovered, bannerArmed: true, farT: 0, banners: 0, signatures: 0, drop: null,
       phase2: false, beatT: 0, lockHp: 0, seenSig: false, leashT: 0, lastHit: -Infinity, forced: false,
     };
     this.entries.push(entry);

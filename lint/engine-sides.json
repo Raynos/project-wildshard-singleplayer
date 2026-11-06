@@ -1227,6 +1227,7 @@
   "src/game/shared/quest/effectPresentation.ts": "shared",
   "src/game/shared/quest/effects.ts": "shared",
   "src/game/shared/quest/eliteDecisions.ts": "shared",
+  "src/game/server/quest/eliteDrops.ts": "server",
   "src/game/server/quest/eliteFeature.ts": "server",
   "src/game/client/quest/elitePage.ts": "client",
   "src/game/shared/quest/eliteStreams.ts": "shared",

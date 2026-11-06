@@ -15,6 +15,8 @@ import type { EliteBar } from '@wildshard/engine/ui/EliteBar';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { EliteEnteredPresentation } from '@wildshard/format/eliteFeature';
 import type { EliteHost, EliteScript } from './Elite';
+import type { EncounterReward } from '@wildshard/engine/sim/encounterRows';
+import { ITEM_PICKUP_HOVER } from '@wildshard/engine/world/interact/pickup';
 import type { EliteCoreEntry, EliteCoreHooks, EliteCoreRecord } from '../shared/eliteSystem';
 
 /** Concrete entered owners; no author callbacks or service-name resolution. */
@@ -97,17 +99,37 @@ export class EliteView {
       x: e.script.def.lair.x, z: e.script.def.lair.z, shown: e.discovered && e.state !== 'retired',
       dead: e.state === 'dead', engaged: e.state === 'engaged', countdown: e.state === 'dead' ? e.timer / (e.script.def.respawnMin * 60) : 0,
     })), p);
-    for (const [e, drop] of this.drops) { drop.update(dt, t, this.host.renderer, this.host.camera); if (drop.group.parent === null) this.drops.delete(e); }
+    this.tendDrops(dt, t);
     this.bar.update(dt);
   }
 
-  private dropSkin(e: Entry, at: THREE.Vector3): void {
+  /** A first kill's orb where the server's row says it lies. Taking it is a press, and the row says whether it worked. */
+  showRowDrop(e: Entry, at: EncounterReward, press: () => void): void { this.dropSkin(e, new THREE.Vector3(at.x, at.y - ITEM_PICKUP_HOVER, at.z), press); }
+  /** The row ended. On this player's press the skin is theirs: what's in hand is the page's to change. */
+  hideRowDrop(e: Entry, taken: boolean): void {
+    const { drop: { skin } } = e.script.def, drop = this.drops.get(e);
+    if (taken && skin !== null) this.host.ownSkin?.(skin);
+    if (drop === undefined || drop.taken) return; // a taken orb finishes its burst
+    this.forget(e, drop); drop.dispose(); this.drops.delete(e);
+  }
+  /** Rows draw this page's orbs: nothing else runs them. */
+  tendDrops(dt: number, t: number): void { for (const [e, drop] of this.drops) { drop.update(dt, t, this.host.renderer, this.host.camera); if (drop.group.parent === null) this.drops.delete(e); } }
+  /** An orb's prompt and hum go. */
+  private forget(e: Entry, drop: WeaponPickup): void {
+    const entered = this.entered(), row = entered?.rows[e.script.def.id];
+    if (entered === null) { this.host.removeInteractable?.(drop.interactable); this.host.pickupHum?.(false); return; }
+    const index = entered.owners.interactables.indexOf(drop.interactable);
+    if (index !== -1) entered.owners.interactables.splice(index, 1);
+    if (row?.hum === true) entered.owners.audio.pickupHum(false);
+  }
+
+  private dropSkin(e: Entry, at: THREE.Vector3, press?: () => void): void {
     const def = e.script.def, skin = def.drop.skin;
     if (skin === null) return;
     const entered = this.entered(), row = entered?.rows[def.id];
     if (entered?.owners.scope.disposed === true) return;
     if (entered === null && (this.host.addInteractable === undefined || this.host.removeInteractable === undefined || this.host.toast === undefined)) throw new Error('Elite pickup requires its entered presentation');
-    const drop = new WeaponPickup({ scene: this.host.scene, item: e.script.dropModel(), position: new THREE.Vector3(at.x, heightAt(at.x, at.z), at.z), tier: 'rare', prompt: row?.prompt ?? `Take the ${def.drop.skinName} ${def.drop.weapon} skin`, scale: 1.4 });
+    const drop = new WeaponPickup({ scene: this.host.scene, item: e.script.dropModel(), position: press === undefined ? new THREE.Vector3(at.x, heightAt(at.x, at.z), at.z) : at, tier: 'rare', prompt: row?.prompt ?? `Take the ${def.drop.skinName} ${def.drop.weapon} skin`, scale: 1.4 });
     this.drops.set(e, drop);
     if (entered === null) this.host.addInteractable?.(drop.interactable);
     else entered.owners.interactables.push(drop.interactable);
@@ -117,20 +139,15 @@ export class EliteView {
     };
     drop.onPickup = () => {
       if (entered?.owners.scope.disposed === true) return;
-      const s = this.record(def.id);
-      if (s) s.skinTaken = true;
-      this.save();
-      this.host.ownSkin?.(skin);
-      if (entered === null) {
-        this.host.removeInteractable?.(drop.interactable);
-        this.host.pickupHum?.(false);
-        this.host.toast?.(`${def.drop.skinName} ${def.drop.weapon} skin — ${def.drop.blurb}`);
-      } else {
-        const index = entered.owners.interactables.indexOf(drop.interactable);
-        if (index !== -1) entered.owners.interactables.splice(index, 1);
-        if (row?.hum === true) entered.owners.audio.pickupHum(false);
-        if (row !== undefined) entered.owners.hud.toast(row.toast);
-      }
+      if (press === undefined) {
+        const s = this.record(def.id);
+        if (s) s.skinTaken = true;
+        this.save();
+        this.host.ownSkin?.(skin);
+      } else press();
+      this.forget(e, drop);
+      if (entered === null) this.host.toast?.(`${def.drop.skinName} ${def.drop.weapon} skin — ${def.drop.blurb}`);
+      else if (row !== undefined) entered.owners.hud.toast(row.toast);
     };
   }
 }

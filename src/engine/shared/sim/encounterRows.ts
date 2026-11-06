@@ -23,14 +23,14 @@ export const NO_MOMENTS: Pick<EncounterNetView, 'skip' | 'banners' | 'signatures
 interface EliteEntryRow {
   readonly state: string; readonly phase2: boolean; readonly beatT: number;
   readonly script: { readonly animal: { readonly hp: number; readonly maxHp: number; readonly entityId: string } | null; readonly def?: { readonly respawnMin: number } };
-  readonly discovered?: boolean; readonly timer?: number; readonly banners?: number; readonly signatures?: number;
+  readonly discovered?: boolean; readonly timer?: number; readonly banners?: number; readonly signatures?: number; readonly drop?: EncounterReward | null;
 }
 /** A lair's row. Empty health while no body is out. */
 export function eliteNetView(entry: EliteEntryRow): EncounterNetView {
   const body = entry.script.animal;
   const sleep = entry.state === 'dead' ? (entry.timer ?? 0) / ((entry.script.def?.respawnMin ?? 1) * 60) : 0;
   return { ...NO_MOMENTS, kind: 'elite', state: entry.state, hp: body === null ? 0 : body.hp / body.maxHp, phase: Number(entry.phase2), shield: entry.beatT > 0, body: body?.entityId ?? null,
-    known: entry.discovered === true, sleep, banners: entry.banners ?? 0, signatures: entry.signatures ?? 0 };
+    known: entry.discovered === true, sleep, banners: entry.banners ?? 0, signatures: entry.signatures ?? 0, reward: entry.drop ?? null };
 }
 
 type EncounterRead = () => EncounterNetView;

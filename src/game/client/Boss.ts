@@ -220,13 +220,15 @@ export class Boss extends BossBrain {
   /** whether the spare light is a slot of the scene's LightPool (G808) rather than a raw scene light */
   private pooledSpare(): boolean { return this.renderHost.spareLight?.parent === LightPool.for(this.renderHost.scene).group; }
 
-  /** The server's reward, where its row says it lies (J130). Taking it is a press, and what it gives comes back as a receipt. */
+  /** The server's reward, where its row says it lies (J130). Taking it is a press, and what it gives comes back on its row. */
   showRowReward(at: EncounterReward, press: () => void): void {
-    this.spawnReward(new THREE.Vector3(at.x, at.y - ITEM_PICKUP_HOVER, at.z), () => { press(); this.def.reward.grant(); }); // what's in hand is the page's to change: the server's own grant is in its rows
+    this.spawnReward(new THREE.Vector3(at.x, at.y - ITEM_PICKUP_HOVER, at.z), press);
   }
-  hideRowReward(): void {
+  /** The row ended. On this player's press what's in hand is the page's to change: the server's own grant is in its rows. */
+  hideRowReward(taken: boolean): void {
+    if (taken) { this.takeReward(); this.def.reward.grant(); }
     const { drop } = this;
-    if (drop === null) return;
+    if (drop === null || drop.taken) return; // a taken orb finishes its burst
     this.renderHost.removeInteractable(drop.interactable); this.renderHost.pickupHum?.(false); this.renderUi.hideReward();
     drop.dispose(); this.drop = null;
   }
@@ -345,6 +347,6 @@ export function installBossEncounter<S extends BossScript>(rows: BossEncounterRo
   if (ports.scope !== null) app.encounters.boss(rows.definition.id, boss, ports.scope);
   // J130: a bar has one driver. On the wire the row draws it and this page's brain never arms.
   const rowId = ports.row ?? rows.definition.id;
-  const rowBar = wirePage.on ? new BossRowBar(ui, { ...rows.definition, id: rowId }, { show: at => { boss.showRowReward(at, () => { wirePage.send(`${rowId}.reward`); }); }, hide: () => { boss.hideRowReward(); } }) : null;
+  const rowBar: BossRowBar | null = wirePage.on ? new BossRowBar(ui, { ...rows.definition, id: rowId }, { show: at => { boss.showRowReward(at, () => { rowBar?.pressed(); wirePage.send(`${rowId}.reward`); }); }, hide: taken => { boss.hideRowReward(taken); } }) : null;
   return { fight, boss, ui, update: (dt, t) => { if (rowBar !== null) { rowBar.draw(wirePage.encounters(), dt); boss.tendDrop(dt, t); } else if (ports.advance === undefined) boss.update(dt, t); else ports.advance(boss, fight, dt, t); }, onPlayerDeath: () => rowBar === null && boss.onPlayerDeath() };
 }

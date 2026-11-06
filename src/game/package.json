@@ -83,6 +83,7 @@
     "./shardfile/caveInterior": "./client/shardfile/caveInterior.ts",
     "./systems/npc/figureSkins": "./client/systems/npc/figureSkins.ts",
     "./looks/coverAppearance": "./client/looks/coverAppearance.ts",
+    "./quest/eliteDrops": "./server/quest/eliteDrops.ts",
     "./quest/eliteFeature": "./server/quest/eliteFeature.ts",
     "./quest/elitePage": "./client/quest/elitePage.ts",
     "./ambient/flock": "./shared/ambient/flock.ts",

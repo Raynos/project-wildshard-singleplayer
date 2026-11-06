@@ -34,7 +34,7 @@ const assemblyRows = (pasture: NalatiTitanProgram, admission: NalatiAdmission, n
   return { ...assembly, constants: { ...constants,
     pageElites: { ...buildEliteEntryPageRows(), profiles: ecology.keeperElites.map(value => ({ id: value.def.id, value })) },
     eliteDefs: Object.fromEntries(Object.entries(ecology.elites).filter(([id]) => ['aqbars', 'kokbori', 'argymaq'].includes(id)).map(([id, def]) => [id, {
-      id: def.id, lair: def.lair, awareR: def.awareR, engageR: def.engageR, leashR: def.leashR, rule: def.rule, respawnMin: def.respawnMin,
+      id: def.id, lair: def.lair, awareR: def.awareR, engageR: def.engageR, leashR: def.leashR, rule: def.rule, respawnMin: def.respawnMin, drop: { skin: def.drop.skin },
     }])),
     nativePopulation: { ...riding, driver: { ...riding.driver, projection: crowdNativeProjection } },
     nativeRide: { ...nativeRide, speeds: ecology.modes.ride[0].gaits, roads: boot.roads }, nativeShelters,

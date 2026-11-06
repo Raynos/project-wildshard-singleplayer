@@ -41,8 +41,25 @@ export interface BossBarCard {
   readonly id: string; readonly name: string; readonly title: string; readonly retryTitle: string;
   readonly phases: readonly { readonly at: number; readonly caption: string }[];
 }
-/** A fight's reward as a page draws it. */
-export interface BossRowDrop { readonly show: (at: EncounterReward) => void; readonly hide: () => void }
+/** A reward as a page draws it. `hide` says whether the row ended on this player's press: what's in hand changes then, not at the press. */
+export interface BossRowDrop { readonly show: (at: EncounterReward) => void; readonly hide: (taken: boolean) => void }
+/** How long a press waits for its row to end. A press is judged where the server has the body, a command behind. */
+const PRESS_WAIT = 1.5;
+/** A reward the rows say lies on the ground. A press takes the orb away at once, and only the row says it worked: one that still stands after the wait was refused, and comes back. */
+export class RowReward {
+  private out = false; private waiting = 0;
+  private readonly drop: BossRowDrop;
+  constructor(drop: BossRowDrop) { this.drop = drop; }
+  pressed(): void { this.waiting = PRESS_WAIT; }
+  draw(at: EncounterReward | null, dt: number): void {
+    if (this.waiting > 0 && at !== null && (this.waiting -= dt) <= 0) this.out = false;
+    if ((at !== null) === this.out) return;
+    this.out = at !== null;
+    if (at !== null) { this.drop.show(at); return; }
+    const taken = this.waiting > 0;
+    this.waiting = 0; this.drop.hide(taken);
+  }
+}
 const HOLD_AFTER_WIN = 1.4;
 const fighting = (state: string): boolean => state === 'fight' || state === 'beat';
 /**
@@ -54,25 +71,21 @@ export class BossRowBar {
   private state = 'dormant'; private phase = 0; private attempts = 1; private won = false; private held = 0;
   private readonly bar: BossPresentation;
   private readonly card: BossBarCard;
-  private readonly drop: BossRowDrop | null;
-  private out = false;
-  constructor(bar: BossPresentation, card: BossBarCard, drop: BossRowDrop | null = null) { this.bar = bar; this.card = card; this.drop = drop; }
+  private readonly drop: RowReward | null;
+  constructor(bar: BossPresentation, card: BossBarCard, drop: BossRowDrop | null = null) { this.bar = bar; this.card = card; this.drop = drop === null ? null : new RowReward(drop); }
+  /** The player pressed the reward. */
+  pressed(): void { this.drop?.pressed(); }
   draw(rows: readonly EncounterRow[], dt: number): void {
     const { bar, card } = this, row = rows.find(entry => entry.id === card.id), state = row?.state ?? 'dormant', was = this.state;
     bar.update(dt);
     if (state !== was) { this.state = state; this.enter(state, was, row); }
-    this.reward(row?.reward ?? null);
+    this.drop?.draw(row?.reward ?? null, dt);
     if (row === undefined) return;
     if (state === 'intro') bar.setSkip(row.skip);
     if (fighting(state)) {
       bar.setHp(row.hp); bar.setShield(row.shield);
       if (row.phase !== this.phase) { this.phase = row.phase; const phase = card.phases[row.phase]; if (phase !== undefined) bar.setPhase(row.phase, phase.caption); }
     } else if (state === 'victory' && (this.held += dt) > HOLD_AFTER_WIN && bar.barShown) bar.hideBar();
-  }
-  private reward(at: EncounterReward | null): void {
-    if ((at !== null) === this.out) return;
-    this.out = at !== null;
-    if (at !== null) this.drop?.show(at); else this.drop?.hide();
   }
   private enter(state: string, was: string, row: EncounterRow | undefined): void {
     const { bar, card } = this, phases = card.phases.slice(1).map(phase => phase.at);
@@ -94,6 +107,8 @@ export interface EliteRowPorts {
   readonly player: { readonly position: Vector3 }; readonly camera: PerspectiveCamera;
   /** The head over a row's body, into `to`; false while the page draws no such body. */
   readonly head: (body: number, to: Vector3) => boolean;
+  /** A lair's first-kill orb as this page draws it. */
+  readonly drop?: (id: string, pressed: () => void) => BossRowDrop;
 }
 const FADE_AFTER_FALL = 1.6;
 type BarOf = Pick<EliteBar, 'show' | 'hide' | 'set' | 'caption' | 'update' | 'banner' | 'skulls'>;
@@ -107,6 +122,7 @@ export class EliteRowBar {
   /** The counts each lair last showed: what a row says when it first arrives is no moment. */
   private readonly shown = new Map<string, { banners: number; signatures: number }>();
   private readonly skulls: SkullMark[] = [];
+  private readonly orbs = new Map<string, RowReward>();
   constructor(bar: BarOf, cards: readonly EliteBarCard[], ports: EliteRowPorts) {
     this.bar = bar; this.cards = new Map(cards.map(card => [card.id, card])); this.ports = ports;
   }
@@ -130,9 +146,20 @@ export class EliteRowBar {
     }
     this.bar.skulls(skulls, this.ports.player.position);
   }
+  /** A lair's orb, for as long as its row says it lies there. */
+  private drawOrbs(rows: readonly EncounterRow[], dt: number): void {
+    const { drop } = this.ports;
+    if (drop === undefined) return;
+    for (const row of rows) {
+      if (row.kind !== 'elite' || !this.cards.has(row.id)) continue;
+      let orb = this.orbs.get(row.id);
+      if (orb === undefined) { const made: RowReward = new RowReward(drop(row.id, () => { made.pressed(); })); orb = made; this.orbs.set(row.id, made); }
+      orb.draw(row.reward, dt);
+    }
+  }
   draw(rows: readonly EncounterRow[], dt: number): void {
     const { at, bar, ports } = this, held = rows.find(row => row.id === this.focus);
-    this.moments(rows);
+    this.moments(rows); this.drawOrbs(rows, dt);
     let best = rows.find(row => row.kind === 'elite' && row.state === 'broken') ?? null, nearest = Infinity;
     if (best === null) for (const row of rows) {
       if (row.kind !== 'elite' || (row.state !== 'aware' && row.state !== 'engaged') || !ports.head(row.body, at)) continue;
