@@ -33,6 +33,10 @@ import { ownedGraph, propSurfaces } from './clientPropMaterials';
 import { splatSurface, withSplatSurface } from './clientSplatTerrain';
 import { TIER } from '@wildshard/engine/core/tier';
 import { splatTerrainOf, splatTextureRefs } from '@wildshard/format/splatTerrain';
+import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
+
+/** Whether a shard's graphs keep their declared ceilings: admission gives a runtime or a declared page to first-party products alone (product.ts). */
+export function admittedGraphAuthority(source: Pick<Shardfile, 'runtime'> & Partial<Pick<Shardfile, 'questHost'>>): boolean { return source.runtime !== null || hasDeclaredClientPage(source); }
 
 /** Defer unused graph catalogue entries until a view actually asks for them. Iteration still resolves every declared ID. */
 class MaterialCatalogue implements ReadonlyMap<string, Material> {
