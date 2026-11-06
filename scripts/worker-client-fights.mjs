@@ -684,8 +684,11 @@ async function wordsJourney(browser, phone, base, step) {
   const { page } = steppe;
   await page.evaluate(() => { window.__toasts = []; new MutationObserver(list => { for (const row of list) for (const node of row.addedNodes) if (node.classList?.contains('ws-game-toast')) window.__toasts.push(node.textContent); }).observe(document.body, { childList: true, subtree: true }); });
   await step('a horse\'s prompt reads by its name', async () => {
-    const labels = await until(page, async () => { const list = await page.evaluate(() => window.__wildshard.world.interactables.map(row => row.label).filter(label => /^mount /iu.test(label))); return list.length > 0 ? list : null; }, 20);
-    return { ok: labels !== null && !labels.some(label => label.includes('creature:')), labels: labels?.slice(0, 4) };
+    const horse = await until(page, () => bodyOf(page, 'horse'), 20);
+    if (horse === null) return { ok: false, why: 'no horse near' };
+    await place(page, horse.x + 1.5, horse.y + 0.6, horse.z);
+    const shown = () => page.evaluate(() => { const list = window.__wildshard.shard['harness.shard.nalati-grasslands']?.ride?.mount?.interactables ?? []; return list.length === 0 ? null : list.map(row => row.label); }), labels = await until(page, shown, 12);
+    return { ok: labels !== null && !labels.some(row => row.includes('creature:')), labels: labels?.slice(0, 4) };
   });
   await step('a tie\'s press gets its line on the page', async () => {
     const tie = await page.evaluate(() => { const row = window.__wildshard.world.interactables.find(entry => entry.wireId?.endsWith('.tie')); return row === undefined ? null : { x: row.position.x, z: row.position.z, id: row.wireId, radius: row.radius, label: row.label }; });
@@ -693,8 +696,9 @@ async function wordsJourney(browser, phone, base, step) {
     await place(page, tie.x + 1.2, await groundAt(page, tie.x + 1.2, tie.z) + 0.5, tie.z);
     await page.waitForTimeout(2000);
     const label = await page.evaluate(() => window.__wildshard.world.interactables.find(entry => entry.wireId?.endsWith('.tie'))?.label ?? null);
+    await page.evaluate(() => { window.__toasts.length = 0; });
     await press(page);
-    const line = await until(page, () => page.evaluate(() => window.__toasts.at(-1) ?? null), 5);
+    const line = await until(page, () => page.evaluate(() => window.__toasts.find(row => !row.startsWith('Discovered')) ?? null), 6);
     return { ok: line !== null, tie: tie.id, label, line, toasts: await page.evaluate(() => window.__toasts.slice(-3)) };
   });
   await step('words: no page error', () => ({ ok: steppe.errors.length === 0, errors: [...new Set(steppe.errors)].slice(0, 6) }));
