@@ -10,6 +10,7 @@ import {StandaloneCatalogueSchema, type StandaloneCatalogue} from '@wildshard/fo
 import {readTar} from '@wildshard/format/tar';
 import type {CookIndex} from '../../src/game/cook/cookWorker';
 import type {PackStore} from '../../src/game/cook/packStore';
+import {bareSlug} from '../../src/game/shared/grid/catalogueSlot';
 import {serverPackBookPath} from '../../src/game/shared/shardfile/serverPack';
 import {productTarball} from '../../src/game/cook/productTarball';
 import {titleMetadata, type TitleManifest} from '../../src/game/client/shard/titleList';
@@ -158,9 +159,19 @@ export async function productVerdict(tarball: Uint8Array, out: string): Promise<
   return {verdict: {revision, sourceHash, indexHash, residentBytes, postCost, path: `/shardfiles/${slug}/shard.json`, ...(worst === undefined ? {} : {worst})}, ...(discovery === undefined ? {} : {discovery})};
 }
 
+/** A deploy's catalogue over a build's: the build keeps what it shipped, grid included, and gains each added shard's rows. */
+export function catalogueWithAdded(built: StandaloneCatalogue, live: StandaloneCatalogue, slugs: readonly string[]): StandaloneCatalogue {
+  const added = new Set(slugs), named = (row: {readonly slug: string}): boolean => added.has(bareSlug(row.slug));
+  const shards = live.shards.filter(named), missing = slugs.filter(slug => !shards.some(row => row.slug === slug));
+  if (missing.length > 0) throw new Error(`The catalogue has no row for ${missing.join(', ')}`);
+  return {...built, placements: [...built.placements.filter(row => !named(row)), ...live.placements.filter(named)], shards: [...built.shards.filter(row => !named(row)), ...shards]};
+}
+
 /** A head the cook worker already cooked for this build (J29), read from its store onto a built client: no cook, and no rebuild.
- *  What a page reads stays in the store under `home`, but for the server's pack, which the server worker reads beside it. */
-export async function addStoredShards(out: string, heads: readonly {readonly slug: string; readonly hash: string}[], store: Pick<PackStore, 'get'>, read: (hash: string) => Promise<Uint8Array>, home: PackHome): Promise<readonly string[]> {
+ *  What a page reads stays in the store under `home`, but for the header a page's product opens by its own URL and the
+ *  server's pack, which the server worker reads beside it. A shard this build shipped keeps its own copy: it leaves with
+ *  `src/shards` (P5). `live` is the catalogue document the heads came from. */
+export async function addStoredShards(out: string, heads: readonly {readonly slug: string; readonly hash: string}[], store: Pick<PackStore, 'get'>, read: (hash: string) => Promise<Uint8Array>, home: PackHome, live: StandaloneCatalogue): Promise<readonly string[]> {
   const {indexKey} = await import('../../src/game/cook/cookWorker');
   const {build} = JSON.parse(readFileSync(join(out, 'version.json'), 'utf8')) as {build: string};
   const bank = /<script type="application\/json" id="boot-module-files">([^<]+)<\/script>/u.exec(readFileSync(join(out, 'index.html'), 'utf8'))?.[1];
@@ -178,13 +189,18 @@ export async function addStoredShards(out: string, heads: readonly {readonly slu
       if (body === undefined) continue;
       const index = JSON.parse(new TextDecoder().decode(body)) as CookIndex;
       for (const row of index.manifests) await copy(row.url.slice(1), scratch);
+      await copy(index.header, out);
       for (const key of index.keys) if (key.startsWith('assets/spawn/server/')) await copy(key, out);
       const proved = await productVerdict(await read(head.hash), out);
       const server = index.serverPack?.index.slice(1);
       added.push({slug: index.slug, hash: head.hash, header: index.header, manifests: index.manifests, ...proved,
         ...(server === undefined ? {} : {server: JSON.parse(new TextDecoder().decode(await need(server))) as unknown})});
     }
-    if (added.length > 0) addCookedShards(out, added, scratch, {base: home.base, shards: [...home.shards, ...added.map(row => row.slug)]});
+    if (added.length > 0) {
+      const slugs = added.map(row => row.slug);
+      writeCatalogueDocument(out, catalogueWithAdded(v.parse(StandaloneCatalogueSchema, JSON.parse(readFileSync(join(out, 'catalogue.json'), 'utf8'))), live, slugs));
+      addCookedShards(out, added, scratch, {base: home.base, shards: [...home.shards, ...slugs]});
+    }
     return added.map(row => row.slug);
   } finally { rmSync(scratch, {recursive: true, force: true}); }
 }

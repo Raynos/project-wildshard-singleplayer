@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 const { apiSource, collectGarbage, createCookWorker, DEFAULT_LIMITS, notifyServer, PACK_BUDGET_BYTES, storeUsage } = await import('../src/game/cook/cookWorker.ts');
 const { MAX_SHARDFILE_BYTES } = await import('../src/game/cook/cookJob.ts');
 const { addStoredShards } = await import('./app-build/catalogue.ts');
+const { writeServiceWorker } = await import('./app-build/serviceWorker.ts');
 const { folderStore, r2Store } = await import('../src/game/cook/packStore.ts');
 
 const env = process.env;
@@ -41,15 +42,21 @@ if (command === 'serve') {
   // J30: what a missed notice left behind. A catalogue that can't be read waits for the next notice.
   try { await cook.recook(['live', 'preview']); } catch (error) { console.error(`boot list failed: ${String(error)}`); }
 } else if (command === 'recook') {
-  const rows = await worker().recook(['live', 'preview']);
-  console.log(JSON.stringify(rows));
-  // J29: a build takes no traffic with a live shard it couldn't cook. A refused head is already live, so it stops a deploy too.
+  const cook = worker(), rows = await cook.recook(['live']), preview = await cook.recook(['preview']);
+  console.log(JSON.stringify([...rows, ...preview]));
+  // J29: a build takes no traffic with a live shard it couldn't cook. A refused head is already live, so it stops a deploy
+  // too. A preview head has players on no build, so its verdict is the author's and stops nothing.
   process.exit(rows.every(row => row.state === 'cooked' || row.state === 'present') ? 0 : 1);
 } else if (command === 'bake') {
   // A deploy's step after `recook`: a page reads each head's packs from the store (J138), with no client rebuild.
-  const [dist, origin] = rest, source = apiSource(need('WILDSHARD_API_URL'), fetch, maxBytes);
-  if (dist === undefined || origin === undefined) throw new Error('usage: cook-worker bake <dist> <origin>');
-  console.log(JSON.stringify(await addStoredShards(resolve(dist), await source.heads('live'), store, source.download, { base: origin, shards: [] })));
+  const [dist, origin] = rest, api = need('WILDSHARD_API_URL'), source = apiSource(api, fetch, maxBytes);
+  if (dist === undefined || origin === undefined || origin === '') throw new Error('usage: cook-worker bake <dist> <origin>');
+  const placed = await fetch(`${api}/api/catalogue.json?stage=live`, { signal: AbortSignal.timeout(30_000) });
+  if (!placed.ok) throw new Error(`Catalogue document answered ${placed.status}`);
+  const out = resolve(dist), added = await addStoredShards(out, await source.heads('live'), store, source.download, { base: origin, shards: [] }, await placed.json());
+  // The worker's copy of the page is the document it serves offline, so a page gains a shard only with this.
+  if (added.length > 0) writeServiceWorker(out, root);
+  console.log(JSON.stringify(added));
 } else if (command === 'gc') {
   console.log(JSON.stringify(await collectGarbage(store, rest, Number(env.COOK_BUDGET_BYTES ?? PACK_BUDGET_BYTES), Date.now())));
 } else if (command === 'report') {

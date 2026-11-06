@@ -8,7 +8,7 @@ import {afterEach, describe, expect, it} from 'vitest';
 import * as v from 'valibot';
 import {packsBookPath} from '../src/game/shared/shardfile/spawnManifest';
 import {StandaloneCatalogueSchema} from '@wildshard/format/standaloneCatalogue';
-import {addCookedShards, writeCatalogueDocument} from '../scripts/app-build/catalogue';
+import {addCookedShards, catalogueWithAdded, writeCatalogueDocument} from '../scripts/app-build/catalogue';
 import {installTitleManifests, titleManifests, withCatalogueHeads, type TitleManifest} from '../src/game/client/shard/titleList';
 import {titlePrefetchOrder} from '../src/game/client/grid/titleOrder';
 import {GridAssembly} from '../src/game/shared/grid/assembly';
@@ -87,6 +87,18 @@ describe('the bake', () => {
       expect(v.parse(StandaloneCatalogueSchema, baked).shards[0]?.name).toBe('</script><b>');
       expect(inlined).toEqual(baked);
     } finally { rmSync(out, {recursive: true, force: true}); }
+  });
+
+  it('adds a stored head by the deploy\'s rows, and leaves what the build shipped', () => {
+    const row = {slug: 'driftwood-isle', name: 'Driftwood Isle', revision: 1, hash: 'b'.repeat(64)};
+    const built = {version: 0, stage: 'live', placements: shipped.placements, grid: shipped.grid, shards: [row], missing: []} as unknown as Parameters<typeof catalogueWithAdded>[0];
+    const live = {...built, placements: [...shipped.placements.map(place => ({...place, order: 7})), added.placements.at(-1)], shards: [{...row, revision: 9}, fresh]} as typeof built;
+    const merged = catalogueWithAdded(built, live, ['test-shard']);
+    expect(merged.shards).toEqual([row, fresh]);
+    expect(merged.grid).toBe(shipped.grid);
+    expect(merged.placements.slice(0, -1)).toEqual(shipped.placements);
+    expect(merged.placements.at(-1)?.slug).toBe('test-shard');
+    expect(() => catalogueWithAdded(built, built, ['test-shard'])).toThrow('no row for test-shard');
   });
 
   it('names a cooked shard in the tables a page reads', () => {

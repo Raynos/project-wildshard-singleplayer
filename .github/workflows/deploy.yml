@@ -72,10 +72,11 @@ env:
   DEPLOY: ${{ github.event_name == 'workflow_dispatch' }}
 
 jobs:
-  # Optimization only: failures retain the original exact-artifact ship.
+  # Optimization only: failures retain the original exact-artifact ship. A catalogue deploy has none of it: a staged copy
+  # is promoted byte for byte, and the heads go on at release, so that build ships from the artifact.
   stage-prebuilt:
     needs: prepare
-    if: ${{ github.event_name == 'push' && needs.prepare.result == 'success' }}
+    if: ${{ github.event_name == 'push' && needs.prepare.result == 'success' && vars.WILDSHARD_API_URL == '' }}
     continue-on-error: true
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -418,9 +419,40 @@ jobs:
           if-no-files-found: error
 
       # J29: a build takes no traffic with a live shard it couldn't cook. C3: what's cooked goes on this client with no rebuild.
-      # Off until the worker's store and catalogue are this repo's variables; a refused live head stops the deploy.
+      # Off until the worker's store and catalogue are this repo's variables; a refused live head stops the deploy. The release
+      # checkout holds only its controllers, so the cook runs from the pin's own source beside the restored output.
+      - name: Check out the cook at the pin
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && vars.WILDSHARD_API_URL != '' && (steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true' && steps.staged.outputs.promote != 'true') }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.pin.outputs.sha }}
+          path: cook-source
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+          sparse-checkout-cone-mode: false
+      - uses: pnpm/action-setup@v4
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && vars.WILDSHARD_API_URL != '' && (steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true' && steps.staged.outputs.promote != 'true' && steps.pin.outputs.recovery != 'true') }}
+        with:
+          version: 10.34.9
+      - uses: ./cook-source/.github/actions/org-deps
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && vars.WILDSHARD_API_URL != '' && (steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true' && steps.staged.outputs.promote != 'true' && steps.pin.outputs.recovery != 'true') }}
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      - name: Keep the part encoder's cache across builds
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && vars.WILDSHARD_API_URL != '' && (steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true' && steps.staged.outputs.promote != 'true') }}
+        uses: actions/cache@v4
+        with:
+          path: cook-source/tmp/cook/scratch/cache
+          key: cook-parts-v1-${{ steps.pin.outputs.sha }}
+          restore-keys: cook-parts-v1-
       - name: Cook the catalogue's heads for this build
-        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && vars.WILDSHARD_API_URL != '' && (steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true') }}
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && vars.WILDSHARD_API_URL != '' && (steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true' && steps.staged.outputs.promote != 'true') }}
+        working-directory: cook-source
         env:
           WILDSHARD_API_URL: ${{ vars.WILDSHARD_API_URL }}
           WILDSHARD_PACKS_ORIGIN: ${{ vars.WILDSHARD_PACKS_ORIGIN }}
@@ -429,9 +461,12 @@ jobs:
           R2_PACKS_ACCESS_KEY_ID: ${{ secrets.R2_PACKS_ACCESS_KEY_ID }}
           R2_PACKS_SECRET_ACCESS_KEY: ${{ secrets.R2_PACKS_SECRET_ACCESS_KEY }}
         run: |
-          export WILDSHARD_BUILD="$(node -p "JSON.parse(require('node:fs').readFileSync('.vercel/output/static/version.json','utf8')).build")"
+          # An explicit recovery can name a tree from before the worker: it ships what it built.
+          if [ ! -f scripts/cook-worker.mjs ]; then echo "no cook worker at the pin"; exit 0; fi
+          pnpm install --frozen-lockfile
+          export WILDSHARD_BUILD="$(node -p "JSON.parse(require('node:fs').readFileSync('../.vercel/output/static/version.json','utf8')).build")"
           node --import ./scripts/bake-loader.mjs scripts/cook-worker.mjs recook
-          node --import ./scripts/bake-loader.mjs scripts/cook-worker.mjs bake .vercel/output/static "$WILDSHARD_PACKS_ORIGIN"
+          node --import ./scripts/bake-loader.mjs scripts/cook-worker.mjs bake ../.vercel/output/static "$WILDSHARD_PACKS_ORIGIN"
 
       - name: Deploy prebuilt output
         if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && (steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true') }}
