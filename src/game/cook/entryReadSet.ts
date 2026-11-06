@@ -25,13 +25,14 @@ export function entryReadSet(source: Shardfile, tier: 'phone' | 'desktop', index
   // (Nine's native-slabs: 8 files a cold visit fetched one by one inside the fence, none in this set), so the default
   // set carries them and they download with the rest, in parallel and counted.
   // DL22: and the files a recorded cold boot read before control (`fence`, the shard's fence-reads.json mapped to this
-  // product's hashes): late models and props tiles the setup steps fetch on demand.
+  // product's hashes): late models and props tiles the setup steps fetch on demand. A recorded read is a fact, so it
+  // passes the tier check: Driftwood's phone reads 46 `models/fixed/` files tagged desktop, and left out they read loose.
   const pending = whole ? [...source.library.filter(hash => late.has(hash)), ...tileFiles] : [...spawnViewSceneFiles(sections), ...fence];
   while (pending.length > 0) {
     const hash = pending.pop(); if (hash === undefined || seen.has(hash)) continue;
     seen.add(hash); pending.push(...byHash.get(hash)?.dependencies ?? []);
     const fileTier = tierOf.get(hash);
-    if (tierOf.has(hash) && (fileTier === undefined || fileTier === tier)) wanted.add(hash);
+    if (tierOf.has(hash) && (fileTier === undefined || fileTier === tier || fence.has(hash))) wanted.add(hash);
   }
   if (whole) {
     // The other device's payloads and the variants this tier never fetches: tier selection's own verdict (named

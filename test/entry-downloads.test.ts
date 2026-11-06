@@ -39,6 +39,15 @@ test('named native assembly declares the same ordered whole inputs it actually r
   expect([...named]).toEqual([library, fine, extra]); expect(named.has(coarse)).toBe(false);
 });
 
+test('DL20: a read a phone recorded stays in its set, whatever tier the file is tagged', () => {
+  const source = emptyShardfile({slug: 'example', name: 'Example', author: 'Test', revision: 1, seed: 1});
+  const [recorded, other] = ['5', '6'].map(value => value.repeat(64));
+  if (recorded === undefined || other === undefined) throw new Error('Missing input fixture');
+  source.files.push(...[recorded, other].map(hash => ({hash, kind: 'glb' as const, compressed: 1, decoded: 1, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false})));
+  const index = {files: source.files.map(row => ({...row, kind: 'glb' as const, path: `blobs/glb/${row.hash}.glb`, tier: 'desktop' as const})), sections: [], schemas: []};
+  expect([...entryReadSet(source, 'phone', index, new Map(), false, new Set([recorded]))]).toEqual([recorded]);
+});
+
 test('plain build publishes exact tier spawn files and rejects changed section bytes', async () => {
   mkdirSync('tmp/entry-downloads', {recursive: true});
   const root = mkdtempSync(resolve('tmp/entry-downloads/compiler-')), product = resolve(root, 'out/example'), out = resolve(root, 'dist');
