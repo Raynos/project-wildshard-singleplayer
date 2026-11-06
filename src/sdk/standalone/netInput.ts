@@ -38,7 +38,8 @@ export function netInteractCommands(routes: ActRoutes, acts: readonly NetTickAct
     if (act.id.startsWith('seen:') && routes.seen !== null) { routes.seen(player, act.id); return []; }
     const claim = routes.claims.get(act.id);
     if (claim !== undefined) { claim(player); return []; }
-    const route = routes.interactions.get(act.id);
+    // A page names the person it talks to; a quest with one person calls that row `talk`.
+    const route = routes.interactions.get(act.id) ?? (act.id.endsWith('.talk') ? routes.interactions.get('talk') : undefined);
     if (route === undefined) { routes.refused++; return []; }
     return [{ kind: 'script' as const, ...route, playerId: player }];
   });
