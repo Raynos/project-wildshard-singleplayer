@@ -10,7 +10,7 @@ import {outputSectionPayloads} from '@wildshard/format/outputFields';
 import {createHash} from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Match the deployed precompressed native representation exactly.
 import {brotliCompressSync, constants} from 'node:zlib';
-import {readSpawnManifest} from '@wildshard/format/spawnManifest';
+import {readSpawnManifest} from '../src/game/shared/shardfile/spawnManifest';
 import {downloadSpawnManifest} from '../src/game/client/boot/spawnDownload';
 
 test('spawn manifests prioritize code stably without changing bytes or the complete download barrier', async () => {

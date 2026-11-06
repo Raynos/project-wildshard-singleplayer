@@ -1,6 +1,6 @@
 import {expect, test, vi} from 'vitest';
 import {downloadSpawnManifest, type SpawnDownloadSnapshot} from '../src/game/client/boot/spawnDownload';
-import {readSpawnManifest} from '@wildshard/format/spawnManifest';
+import {readSpawnManifest} from '../src/game/shared/shardfile/spawnManifest';
 
 const files = [{url: `/shardfiles/example/blobs/bin/${'a'.repeat(64)}.bin`, bytes: 4, hash: 'a'.repeat(64)},
   {url: '/assets/code-12345678.js', bytes: 3, hash: 'b'.repeat(64)}];

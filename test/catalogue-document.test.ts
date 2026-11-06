@@ -6,7 +6,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {afterEach, describe, expect, it} from 'vitest';
 import * as v from 'valibot';
-import {packsBookPath} from '@wildshard/format/spawnManifest';
+import {packsBookPath} from '../src/game/shared/shardfile/spawnManifest';
 import {StandaloneCatalogueSchema} from '@wildshard/format/standaloneCatalogue';
 import {addCookedShards, writeCatalogueDocument} from '../scripts/app-build/catalogue';
 import {installTitleManifests, titleManifests, withCatalogueHeads, type TitleManifest} from '../src/game/client/shard/titleList';

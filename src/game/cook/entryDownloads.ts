@@ -6,7 +6,7 @@ import {cookGridPack} from './gridCollision';
 import {gridEntryDownloads} from './gridEntryDownloads';
 import {createPartEncoder} from './spawnParts';
 import {writeSpawnManifests, type BuildHalf} from './entryTotals';
-import {packsBookPath} from '@wildshard/format/spawnManifest';
+import {packsBookPath} from '../shared/shardfile/spawnManifest';
 import {serverPackBookPath} from '../shared/shardfile/serverPack';
 
 /** Publish the one immutable spawn list after the complete module bank.

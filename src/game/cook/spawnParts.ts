@@ -21,7 +21,7 @@ import {join, resolve} from 'node:path';
 import {Worker} from 'node:worker_threads';
 // oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {brotliDecompressSync} from 'node:zlib';
-import {SPAWN_PART_ALIGN, type SpawnFile, type SpawnPart} from '@wildshard/format/spawnManifest';
+import {SPAWN_PART_ALIGN, type SpawnFile, type SpawnPart} from '../shared/shardfile/spawnManifest';
 
 export const PART_BYTES = 12_000_000, PART_TARGET = 10, OVER_FETCH = 0.1;
 export interface SpawnPartInput {readonly rows: readonly SpawnFile[]; readonly public: boolean}

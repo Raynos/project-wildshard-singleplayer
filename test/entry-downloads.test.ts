@@ -8,7 +8,7 @@ import {createHash} from 'node:crypto';
 import {emptyShardfile} from '@wildshard/sharddev/author';
 import {outputSectionPayloads} from '@wildshard/format/outputFields';
 import {writeEntryBootstrap, writeSpawnManifests} from '../scripts/app-build/appCook';
-import {readSpawnManifest} from '@wildshard/format/spawnManifest';
+import {readSpawnManifest} from '../src/game/shared/shardfile/spawnManifest';
 import {gridEntryDownloads} from '../src/game/cook/gridEntryDownloads';
 import {startGridStripDownload, gridStripDownloadRows} from '../src/game/client/grid/entryDownloads';
 import {entryReadSet} from '../src/game/cook/entryReadSet';

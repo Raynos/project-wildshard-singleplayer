@@ -48,9 +48,11 @@ export interface OutputProductOptions {
   readonly cook?: CookInput;
 }
 /** C0: the mounts' bytes and their `cook.json` join the product's emitted files. */
-function cookRow(input: CookInput | undefined, emitted: Map<string,Uint8Array>): NonNullable<OutputIndex['cook']> | undefined {
+function cookRow(input: CookInput | undefined, emitted: Map<string,Uint8Array>, files: readonly {readonly path:string;readonly hash:string}[]): NonNullable<OutputIndex['cook']> | undefined {
   if (input === undefined) return undefined;
-  const mounts = input.mounts.map(({url,bytes}) => { const path=cookMountPath(url);emitted.set(path,bytes);return {url,path,hash:hashAssetBytes(bytes),bytes:bytes.length}; });
+  // A mount with the bytes of a listed blob names that blob: a shardfile holds a file once, however many URLs serve it.
+  const blobs = new Map(files.map(file=>[file.hash,file.path]));
+  const mounts = input.mounts.map(({url,bytes}) => { const hash=hashAssetBytes(bytes),blob=blobs.get(hash),path=blob??cookMountPath(url);if(blob===undefined)emitted.set(path,bytes);return {url,path,hash,bytes:bytes.length}; });
   const {packs,fence} = input, bytes = jsonBytes({version:1,mounts,...(packs===undefined?{}:{packs}),...(fence===undefined?{}:{fence})});
   emitted.set(COOK_DATA_PATH,bytes);
   return {path:COOK_DATA_PATH,hash:hashAssetBytes(bytes),bytes:bytes.length};
@@ -190,7 +192,7 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
     }
     flush();
   }
-  const cook=cookRow(options.cook,emitted);
+  const cook=cookRow(options.cook,emitted,files);
   const {spawns:_spawns,...runtime} = source.runtime ?? {};
   const index = parseOutputIndex({format:'wildshard.shardfile',formatVersion:2,sdk:'0.2',version:source.version,identity:source.identity,requires:source.requires,
     build:{sourceHash:hashImmutableBytes(jsonBytes(source)),validator:validationRevision() ?? 'source'},admission:{budgets:source.budgets,serverBudget:source.serverBudget,authorCaps:source.authorCaps,critical:source.critical,library:source.library,...(source.late===undefined?{}:{late:source.late}),...(options.server===undefined||options.server.length===0?{}:{server:options.server.map(blob=>blob.file).sort((a,b)=>a.name.localeCompare(b.name))})},

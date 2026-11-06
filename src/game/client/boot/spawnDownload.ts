@@ -1,4 +1,4 @@
-import {packsBookPath, readSpawnManifest, readSpawnManifestAddress, type SpawnManifestAddress} from '@wildshard/format/spawnManifest';
+import {packsBookPath, readSpawnManifest, readSpawnManifestAddress, type SpawnManifestAddress} from '../../shared/shardfile/spawnManifest';
 import {jsonSlot} from '@wildshard/engine/saves/slots';
 
 /** This leaf statically imports no engine, renderer or worker. The title can start it on

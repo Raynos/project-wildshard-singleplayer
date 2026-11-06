@@ -8,7 +8,7 @@ import { brotliDecompressSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import { afterAll, expect, test } from 'vitest';
 import { PART_BYTES, createPartEncoder, packable, placeByKey, placementKey, spawnPartGroups, writeSpawnParts, type SpawnPartInput } from '../src/game/cook/spawnParts';
-import { readSpawnManifest, type SpawnFile, type SpawnPart } from '@wildshard/format/spawnManifest';
+import { readSpawnManifest, type SpawnFile, type SpawnPart } from '../src/game/shared/shardfile/spawnManifest';
 import { cookServerPack } from '../src/game/cook/shardCook';
 import { serverPackFile } from '../src/game/shared/shardfile/serverPack';
 
