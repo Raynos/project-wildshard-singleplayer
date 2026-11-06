@@ -32,6 +32,7 @@ import { packProjectMap, generatedProjectMap, type ProjectMap } from './projectM
 import { projectPlaceholders } from './bake/placeholders';
 import type { ScriptAdmissionRows } from '@wildshard/format/scriptContract';
 import { readCookInput, type CookInput } from './cookInput';
+import { AUTHOR_BUDGETS, AUTHOR_BUDGETS_MODULE, authorManifest } from './authorManifest';
 import { discoveryDocument, discoveryUrl } from './discoveryDocument';
 import { outputScriptAdmissionRows, outputPlatformPayloads, clearOutputProduct, writeOutputProduct, type OutputProductOptions } from './outputProduct';
 import { prepareProjectOutput, mergeProjectBlobs, projectMirrors, type PreparedProjectOutput } from './projectOutput';
@@ -264,7 +265,7 @@ export async function buildProject(project: string, output?: string, options: { 
   let descriptor: ReturnType<typeof writeOutputProduct>;
   try {
     const runtime = options.copyRuntime === true || clientPlan ? writeRuntimeFiles(project, destination) : undefined;
-    const cook = await withDiscovery(project, shard.manifest ?? options.manifest?.composed, loaded.output.discovery, readCookInput(project, shard.identity.slug), assets);
+    const cook = await withDiscovery(project, shard.manifest ?? options.manifest?.composed ?? authorManifest(shard), loaded.output.discovery, readCookInput(project, shard.identity.slug), assets);
     descriptor = writeOutputProduct(shard, assets, destination, { ...loaded.output, ...(runtime === undefined ? {} : { runtime }), ...(cook === undefined ? {} : { cook }) });
     phase('product-write');
     if (runtime !== undefined) proveRuntimeData(destination, descriptor, loaded.mirrors);
@@ -281,12 +282,13 @@ export async function buildProject(project: string, output?: string, options: { 
   }
   return shard;
 }
-/** C3: a manifest's bindings go with the product, so a page needs nothing compiled to enter it: the packed level manifest, or an
- *  output's composed one, which packs no images of its own. An author shard with neither has none: its product says what it is. */
+/** C3: a manifest's bindings go with the product, so a page needs nothing compiled to enter it: the packed level manifest, an
+ *  output's composed one, which packs no images of its own, or for an author with neither, the plain one their shard implies. */
 async function withDiscovery(project: string, manifest: unknown, values: DiscoveryValues | undefined, input: CookInput | undefined, assets: ReadonlyMap<string, Uint8Array>): Promise<CookInput | undefined> {
   if (typeof manifest !== 'object' || manifest === null || !('slug' in manifest) || typeof manifest.slug !== 'string' || !('bindings' in manifest)) return input;
   // A manifest's slug is its product's folder (`packManifestImages`).
   const folder = manifest.slug, document = await discoveryDocument(folder, manifest, values, async (module, name) => {
+    if (module === AUTHOR_BUDGETS_MODULE) return AUTHOR_BUDGETS;
     if (name === 'css') return readFileSync(resolve(project, module), 'utf8');
     if (module.endsWith('.json')) return JSON.parse(readFileSync(resolve(project, module), 'utf8')) as unknown;
     return (await authorModule(project, `${module.replace(/^\.\//u, '')}.ts`)).exports[name];
