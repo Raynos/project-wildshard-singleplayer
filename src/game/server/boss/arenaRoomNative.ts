@@ -19,6 +19,7 @@ import type { ArenaRoomPortalRows, BoundedArenaFight } from '../../shared/boss/a
 import type { BossBounty } from './bounty';
 import { arenaRoomFight, type ArenaFightBody, type ArenaFightTarget } from './arenaRoomFight';
 import { NativeArenaSand } from './nativeArenaSand';
+import { actRoutes } from '@wildshard/engine/sim/actRoutes';
 
 /** A body as a SimHost's roster keeps it. */
 export type ArenaRoomBody = AnimalSim & ArenaFightBody;
@@ -129,5 +130,7 @@ export function installArenaRoom<A extends ArenaRoomBody>(host: SimHost, rows: A
     think += dt; if (think >= THINK) { fight.brain.think(body, { dt: think, player: foe }); think = 0; }
     fight.brain.act(body, { player: foe });
   });
-  return { boss: row.boss, party: row.party, bounty: row.bounty, inside: id => doors.get(id)?.inside === true, fight, ground, locked: row.locked };
+  const inside = (id: string): boolean => doors.get(id)?.inside === true;
+  actRoutes(host).inside = inside;
+  return { boss: row.boss, party: row.party, bounty: row.bounty, inside, fight, ground, locked: row.locked };
 }

@@ -1273,6 +1273,8 @@
   "src/game/shared/quest/pagePersistence.ts": "shared",
   "src/game/shared/quest/pageReads.ts": "shared",
   "src/game/client/quest/pageReference.ts": "client",
+  "src/game/server/quest/serverChapters.ts": "server",
+  "src/game/server/quest/serverDoors.ts": "server",
   "src/game/server/quest/serverPlaces.ts": "server",
   "src/game/shared/quest/pageResources.ts": "shared",
   "src/game/shared/quest/pageState.ts": "shared",

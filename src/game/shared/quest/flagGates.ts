@@ -23,16 +23,19 @@ export class QuestFlagGates {
   private readonly rows;
   private readonly flags: Flags;
   private readonly native: SimHost | null;
+  /** Finds a registered piece's collider, for a server that keeps a page's gate. */
+  private readonly piece: ((id: string) => Collider | null) | undefined;
   private colliders: Collider[] = [];
   /** Whether a room has ever split these gates: a room of one never touches a motor. */
   private phased = false;
   /** `view` is who reads a page gate: the page's quest flags, or a client's own `phase` events (J106). */
-  constructor(owner: SimHost | QuestGatePage, input: unknown, restoring = false, view?: QuestGateView) {
+  constructor(owner: SimHost | QuestGatePage, input: unknown, restoring = false, view?: QuestGateView, piece?: (id: string) => Collider | null) {
     this.rows = v.parse(QuestFlagGatesSchema, input);
     if (owner.scope.disposed) throw new Error('Quest gates require a live owner');
     this.native = 'physics' in owner ? owner : null;
+    this.piece = piece;
     if ('physics' in owner) {
-      if (this.rows.gates.some(row => row.target.kind !== 'box')) throw new Error('Native quest gates require baked boxes');
+      if (piece === undefined && this.rows.gates.some(row => row.target.kind !== 'box')) throw new Error('Native quest gates require baked boxes');
       this.flags = owner.flags;
       questBooks(owner).show(this.rows.gates.flatMap(row => [...row.opensWhen.all ?? [], ...row.opensWhen.any ?? [], ...row.opensWhen.none ?? []]));
       if (!restoring) this.physicsRestored();
@@ -62,9 +65,8 @@ export class QuestFlagGates {
     const host = this.native;
     if (host === null) throw new Error('Page quest gates retain their registry owner');
     this.colliders = this.rows.gates.map(row => {
-      if (row.target.kind !== 'box') throw new Error('Native quest gates require baked boxes');
-      const collider = staticBoxCollider(host.physics, row.target.box);
-      if (collider === null) throw new Error('Native quest gate has no baked collider');
+      const collider = row.target.kind === 'box' ? staticBoxCollider(host.physics, row.target.box) : this.piece?.(row.target.piece);
+      if (collider === null || collider === undefined) throw new Error('Native quest gate has no baked collider');
       return collider;
     });
     if (host.players.size > 1) this.phase(host);

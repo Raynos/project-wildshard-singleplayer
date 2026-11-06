@@ -132,6 +132,8 @@ export interface TrustedHeadlessResident {
   readonly host: SimHost;
   lend: (commands: readonly HeadlessCommand[]) => void;
   readonly effects: readonly HeadlessEffect[];
+  /** File a fact from inside a tick, for an owner a room adds on top of this world. */
+  readonly fact: (name: string, entity: string) => void;
   /** One tick: `commands` for the lead player and the systems bound to it, `others` for the room's other players. */
   step: (commands: readonly HeadlessCommand[], others?: ReadonlyMap<string, NetCommand>, acts?: ReadonlyMap<string, readonly NetTickAct[]>) => void;
   proveEntries: () => ReturnType<NonNullable<HeadlessRuntimePlan['proveEntries']>>;
@@ -249,7 +251,7 @@ export async function createTrustedHeadlessResident(preparation: HeadlessRuntime
     }
   };
   return {
-    host, lend,
+    host, lend, fact: ledgerPorts(context.emit).fact,
     get effects() { return effects; },
     step: (input, others, acts) => {
       const interacts = acts === undefined ? [] : [...acts].flatMap(([id, list]) => netInteractCommands(actRoutes(host), list, id));

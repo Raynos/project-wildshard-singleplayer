@@ -52,6 +52,7 @@ export class LivingBuildings {
   private checkpoint: (() => boolean) | null = null;
   private saveTime = 0;
   private registeredDoors = false;
+  private served: ((id: string) => boolean) | null = null;
   private sharedCount = 0;
   private flickerCount = 0;
 
@@ -117,7 +118,15 @@ export class LivingBuildings {
   doorPieces(): { id: string; pivot: Object3D; colliders: ColliderDesc[]; use: () => void; swinging: () => boolean }[] {
     return this.doors.map(door => ({ id: door.id, pivot: door.pivot, colliders: [door.slab], use: () => { this.use(door.id); }, swinging: () => buildingDoorSwinging(door) }));
   }
+  /** On a server's word: a press asks it, and `open` says what stands. A door is the world's, so another player's hand moves it here too. */
+  serve(open: (id: string) => boolean): void {
+    this.served = open;
+    for (const door of this.doors) door.prompt.wireId = door.id;
+  }
   use(id: string): void {
+    if (this.served === null) this.swing(id);
+  }
+  private swing(id: string): void {
     const door = this.doors.find(value => value.id === id);
     if (door === undefined) throw new Error(`Missing building door: ${id}`);
     door.prompt.label = toggleBuildingDoor(door) ? door.labels[1] : door.labels[0];
@@ -135,6 +144,8 @@ export class LivingBuildings {
   tick(dt: number, t: number, eye: Vector3, lamps: number): void {
     if (!Number.isFinite(dt) || dt < 0 || !Number.isFinite(t) || !Number.isFinite(lamps)) throw new Error('Invalid building clock');
     for (const wheel of this.wheels) wheel.object.rotation.x += dt * this.wheelSpeed;
+    const { served } = this;
+    if (served !== null) for (const door of this.doors) if (served(door.id) !== door.open) this.swing(door.id);
     for (const door of this.doors) if (stepBuildingDoor(door, dt, this.look.door.seconds)) this.pose(door);
     const look = this.look;
     this.gain.fire = look.fire[0] + look.fire[1] * lamps; this.gain.lamp = look.lamp[0] + look.lamp[1] * lamps;

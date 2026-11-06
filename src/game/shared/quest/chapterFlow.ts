@@ -27,7 +27,7 @@ export interface ChapterFlow {
 }
 
 /** The readouts of a bound chapter line (`rows`: its parsed presentation) */
-export function chapterFlow(line: QuestLine, rows: ChapterRows): ChapterFlow {
+export function chapterFlow(line: Pick<QuestLine, 'chapters' | 'active' | 'number'>, rows: ChapterRows): ChapterFlow {
   const text = (template: string, q: QuestState): string => template.replaceAll('{chapter}', String(line.number(q)))
     .replaceAll('{title}', q.def.title).replaceAll('{objective}', q.objective()).replaceAll('{reward}', rows.rewards[q.def.id]?.title ?? '');
   return {

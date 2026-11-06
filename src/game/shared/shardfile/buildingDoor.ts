@@ -4,6 +4,9 @@
  *  and until the player clears the hinge. */
 export interface BuildingDoorState { readonly id: string; open: boolean; t: number; enabled: boolean }
 
+/** The world flag a server keeps a door's state in: up while it stands open. */
+export const buildingDoorFlag = (id: string): string => `door:${id}`;
+
 /** A shut, enabled door. */
 export function buildingDoor(id: string): BuildingDoorState { return { id, open: false, t: 0, enabled: true }; }
 

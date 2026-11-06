@@ -156,6 +156,7 @@ export async function prepareOpenArena(product: Pick<ShardProduct, 'json' | 'sec
       };
       if(ports.grantItem!==undefined)for(const id of[row.id,data.definition.id])actRoutes(host).interactions.set(`${id}.reward`,{actorId:row.input.use,value:TAKE});
       actRoutes(host).interactions.set(`${row.id}.tie`,{actorId:row.input.use,value:1});
+      actRoutes(host).tied=()=>fight.tied;
       updates.set(host,run);owners.set(host,{fight,boss,records,target:row.target,locked:()=>locked,reward:()=>reward,storm:()=>actual.storm.stormActive,
         weather:()=>({state:actual.storm.weather.state,left:actual.storm.weather.phaseLeft}),
         rewardPrompt:()=>rewardPoint===null?null:{position:rewardPoint.clone(),radius:2.6,label:data.reward.prompt}});

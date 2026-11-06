@@ -35,6 +35,8 @@ import { StreamingCamera } from './streamingView';
 import { bucketByTile, followTile, ring, tileKey } from './tileContent';
 import { tileOf, type CellTile } from '../../shared/shardfile/tileOrder';
 import { withOwner } from '@wildshard/engine/app/ownership';
+import { wirePage } from './wirePage';
+import { buildingDoorFlag } from '../../shared/shardfile/buildingDoor';
 
 export interface LivingPage {
   readonly resources: SceneHandles; readonly life: LivingBuildings; readonly group: Group;
@@ -111,6 +113,7 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
       withOwner(owner, () => {
         life.persist(ctx.app.saves, owner, { id: ctx.manifest.slug, shard: ctx.manifest.slug, group: row.save }); life.registerDoors(registry, player.position);
       });
+      if (wirePage.on) life.serve(id => wirePage.gates.has(buildingDoorFlag(id)));
       for (const prompt of life.interactables) setSight(prompt, { slack: row.sightSlack });
     };
     // The assembly publishes without borrowing its living roots. Queue those

@@ -22,7 +22,6 @@ import { Flags } from '@wildshard/engine/world/interact/flags';
 import { netEncounterFeed, type EncounterRow } from '../boss/barFeed';
 import { netLootFeed, type LootFeed } from '../loot/feed';
 import { netCreatureCount } from '../population/netCounts';
-import type { AdventurePersistence } from '../../shared/quest/persistence';
 import type { MoverView } from '../../server/plugin/mover';
 
 type Live = (client: NetClient) => (() => void) | undefined;
@@ -31,9 +30,9 @@ export interface WireHoldings {
   /** The shard these lines are this page's for, on a grid page that holds several: the entered one's reach the page. */
   readonly shard?: string;
   readonly purse?: Pick<Purse, 'mirror'>; readonly inventory?: Pick<Inventory, 'mirror'>; readonly gear?: Pick<Owned, 'grant' | 'worn' | 'toggleWorn'>; readonly board?: Pick<ContractBoard, 'mirror'>;
+  /** A story's channel the server said for this player's eyes: its toast, its reading, its sting. */
+  readonly said?: (channel: string) => void;
 }
-/** The saved records a story reads of its fights. */
-export type FightRecords = Pick<AdventurePersistence, 'bosses' | 'elites'>;
 /** A page's own copy of a save that the server keeps: it reads the page's last word and writes nothing. */
 export const readOnlySave = <T extends object>(save: T & { readonly write: unknown }): T => new Proxy(save, { get: (target, name) => name === 'write' ? (): boolean => true : Reflect.get(target, name, target) as unknown });
 /** The page's day clock, as a row sets it. */
@@ -82,9 +81,11 @@ export class WirePage {
   private dayRow: number | undefined;
   private readonly holdings = new Set<WireHoldings>();
   private ownedAt = -1;
-  private records: FightRecords | null = null;
+  private readonly said = new Map<string, number>();
   get on(): boolean { return workerClientOn(); }
 
+  /** One of this player's lines as the server last said it: 0 for none. */
+  line(name: string): number { return this.client?.owned.get(name) ?? 0; }
   /** Run `use` once there is a client, now or later, until `scope` ends. What it returns runs when `scope` does. */
   whenLive(scope: Scope, use: Live): void {
     const { client } = this;
@@ -121,28 +122,14 @@ export class WirePage {
     this.ownedAt = client.ownedVersion;
     const pack = new Map<string, number>(), { owned } = client;
     for (const [name, value] of owned) if (name.startsWith(OWNED_ROW.item)) pack.set(name.slice(OWNED_ROW.item.length), value);
-    const contracts = boardFromLines(owned);
-    for (const { shard, purse, inventory, gear, board } of this.holdings) {
+    const contracts = boardFromLines(owned), news: string[] = [];
+    for (const [name, value] of owned) if (name.startsWith(OWNED_ROW.said) && this.said.get(name) !== value) { this.said.set(name, value); news.push(name.slice(OWNED_ROW.said.length)); }
+    for (const { shard, purse, inventory, gear, board, said } of this.holdings) {
       if (shard !== undefined && shard !== level) continue;
       purse?.mirror(owned.get(OWNED_ROW.coins) ?? 0); inventory?.mirror(pack);
       for (const [name, value] of owned) if (name.startsWith(OWNED_ROW.owned)) { const id = name.slice(OWNED_ROW.owned.length); gear?.grant(id); if (isOwnedId(id) && isCosmetic(id) && gear?.worn(id) !== (value === WORN_LINE)) gear?.toggleWorn(id); }
       if (board !== undefined && contracts !== null) board.mirror(contracts);
-    }
-  }
-  /** The fights a story reads as saved records: the server's word on them, for as long as `scope` lasts. */
-  fightRecords(records: FightRecords, scope: Scope): void { this.records = records; scope.onDispose(() => { this.records = null; }); }
-  /** A fight the server has ended goes in the page's own record, which a story reads. */
-  private recordFights(): void {
-    const { records } = this;
-    if (records === null) return;
-    for (const row of this.encounters()) {
-      if (row.kind === 'boss' && row.state === 'victory') {
-        const held = records.bosses.read(), saved = held[row.id];
-        if (saved?.defeated !== true) records.bosses.write({ ...held, [row.id]: { defeated: true, rewardTaken: saved?.rewardTaken ?? false, kills: (saved?.kills ?? 0) + 1 } });
-      } else if (row.kind === 'elite' && row.state === 'dead') {
-        const held = records.elites.read(), saved = held[row.id];
-        if ((saved?.kills ?? 0) === 0) records.elites.write({ ...held, [row.id]: { timer: saved?.timer ?? 0, discovered: saved?.discovered ?? true, skinTaken: saved?.skinTaken ?? false, kills: 1, retired: saved?.retired ?? false } });
-      }
+      if (said !== undefined) for (const channel of news) said(channel);
     }
   }
   /** A room's drifts as the server's rows have them: what this page's player walks on is what the server's does. */
@@ -188,7 +175,7 @@ export class WirePage {
   frame(level: string | null, here: boolean, clock: DayFollower | null = null): void {
     const { client } = this;
     if (client === null || client.latest === null || !here) return;
-    this.followDay(clock, client); this.mirrorOwned(client, level); this.recordFights();
+    this.followDay(clock, client); this.mirrorOwned(client, level);
     for (const [id, row] of client.quests) this.quests.set(id, row);
     const held = new Set([...client.flags(), ...client.phased]), now = client.latest.tick;
     this.heard.clear(); for (const flag of held) this.heard.add(flag); // a gate's flag may be the world's: a personal one comes as a `phase`

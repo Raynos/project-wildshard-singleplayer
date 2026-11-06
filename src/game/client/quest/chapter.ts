@@ -35,7 +35,6 @@ import { QuestStepRunner } from '../../shared/quest/steps';
 import { chapterDecide } from '../../shared/quest/chapterDecision';
 import { openQuestTrader, installQuestTrader, parseQuestTrader, type QuestTrader } from './trader';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import { wirePage } from '../shardfile/wirePage';
 
 const finite = v.pipe(v.number(), v.finite());
 const point = v.strictObject({ x: finite, y: finite, z: finite });
@@ -253,7 +252,6 @@ export function buildQuestChapter(ctx: ShardContext, storyInput: unknown, input:
   if (id === undefined) throw new Error('Chapter requires a declared quest');
   const story = completeStory ?? { quest: { id, markers: {} }, chapters: chapterRows };
   const persistence = completeStory === null ? enteredAdventurePersistence(ctx.scope) : null;
-  if (persistence !== null && wirePage.on) wirePage.fightRecords(persistence, ctx.scope);
   const existing = findBoundQuestState(ctx.scope, story.quest.id);
   if (hasBoundChapter(ctx.scope, story.quest.id)) throw new Error('Chapter presentation is already installed');
   const services = persistence === null ? existing === undefined ? boundQuestServices(ctx.scope, story.quest.id) : { flags: existing.flags } : { flags: persistence.flags, facts: persistence.facts };

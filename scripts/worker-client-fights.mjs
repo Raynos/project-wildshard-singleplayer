@@ -321,21 +321,31 @@ async function pineJourney(browser, phone, base, step) {
     return { ok: moved, whileOpen: moved, buttons: buttons.slice(-6), now: (await board()).slice(0, 8) };
   });
   await step('pine: the mill door is barred, and opens for the player whose gate it is', async () => {
-    const gate = () => page.evaluate(() => window.__wildshard.world.registry.get('mill-door-bar')?.active?.() ?? null), DOOR = { x: -142.8, z: -164.9 };
+    // The watermill's door, cabin-7: a leaf across x, its prompt on the east side.
+    const gate = () => page.evaluate(() => window.__wildshard.world.registry.get('mill-door-bar')?.active?.() ?? null), DOOR = { x: -178.09, z: -145.32 }, id = 'door:cabin-7-door';
     await page.waitForFunction(() => window.__wildshard.world.registry.get('mill-door-bar') !== undefined, undefined, { timeout: 20_000 }).catch(() => undefined);
-    const barred = await gate(), through = async () => { // from the race side, straight at the door, a step past it
-      await place(page, DOOR.x, await groundAt(page, DOOR.x, DOOR.z + 4) + 0.4, DOOR.z + 4);
+    const stood = (x, z) => groundAt(page, x, z).then(y => place(page, x, y + 0.4, z));
+    const through = async () => { // from the race side, straight at the door, a step past it
+      await stood(DOOR.x + 2.6, DOOR.z);
       await page.waitForTimeout(1300);
-      await walkInto(page, 0, 3.5, () => page.evaluate(wanted => window.__wildshard.world.player.position.z < wanted, DOOR.z - 1));
+      await walkInto(page, Math.PI / 2, 3.5, () => page.evaluate(wanted => window.__wildshard.world.player.position.x < wanted, DOOR.x - 1));
+      await page.waitForTimeout(500);
       const r = await report(page);
-      return { z: r.z, server: r.serverZ };
-    }, shut = await through();
+      return { x: r.x, server: r.serverX, corrections: r.corrections };
+    };
+    const pressDoor = async () => { await stood(DOOR.x + 1.1, DOOR.z); await page.waitForTimeout(1200); await press(page); await page.waitForTimeout(1200); };
+    const barred = await gate(), shut = await through();
+    await pressDoor();
+    const refused = !(await report(page)).flags.includes(id);
     await page.evaluate(() => { window.__workerClientFlag('errand:done'); });
     const heard = await until(page, () => page.evaluate(() => window.__workerClientGate('errand:done')), 4);
-    const opened = await gate();
-    await page.keyboard.press('KeyE'); await page.waitForTimeout(800);
-    const open_ = await through();
-    return { ok: barred === true && heard === true && opened === false && shut.z > DOOR.z - 0.5, barred, heard, opened, shut, open: open_, passed: open_.server < DOOR.z - 0.5, corrections: (await report(page)).corrections };
+    const opened = await gate(), stillShut = await through();
+    await pressDoor();
+    const opens = (await report(page)).flags.includes(id), went = await through();
+    await stood(DOOR.x + 1.1, DOOR.z); await page.waitForTimeout(1500); await press(page); await page.waitForTimeout(2200);
+    const closed = !(await report(page)).flags.includes(id), back = await through();
+    const stops = row => row.x > DOOR.x - 0.2 && row.server > DOOR.x - 0.2, passes = row => row.x < DOOR.x - 0.5 && row.server < DOOR.x - 0.5;
+    return { ok: barred === true && heard === true && opened === false && refused && stops(shut) && stops(stillShut) && opens && passes(went) && closed && stops(back), barred, heard, opened, refused, opens, closed, shut, stillShut, went, back };
   });
   await step('pine: no page error', () => ({ ok: pine.errors.length === 0, errors: [...new Set(pine.errors)].slice(0, 6) }));
   await pine.context.close();

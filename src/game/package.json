@@ -42,6 +42,8 @@
     "./looks/forestWeather": "./client/looks/forestWeather.ts",
     "./looks/forestGround": "./client/looks/forestGround.ts",
     "./quest/nativeInputs": "./server/quest/nativeInputs.ts",
+    "./quest/serverChapters": "./server/quest/serverChapters.ts",
+    "./quest/serverDoors": "./server/quest/serverDoors.ts",
     "./boss/roamingProjection": "./client/boss/roamingProjection.ts",
     "./boss/socketRig": "./client/boss/socketRig.ts",
     "./boss/openArenaFight": "./shared/boss/openArenaFight.ts",

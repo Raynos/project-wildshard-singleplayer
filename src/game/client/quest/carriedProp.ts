@@ -34,6 +34,7 @@ export class CarriedQuestProp {
   private readonly music:CarriedQuestProp['play']['music'];
   /** the round's numbers (carriedRound.ts: the Node simulation steps the same) */
   private readonly round:CarriedRound;
+  private shown=0;
   constructor(private readonly ctx:ShardContext,input:unknown,files:ReadonlyMap<string,Uint8Array>=new Map()){
     const rows=parseCarriedQuest(input),runtime=ctx.game.runtime,world=runtime?.world,play=runtime?.play;
     this.entered=ctx.scope;this.construction=resourceScope();
@@ -74,6 +75,16 @@ export class CarriedQuestProp {
     const pose=this.rows.poses.attached;
     this.object.position.set(carrier.position.x+Math.cos(carrier.yaw)*pose.out,carrier.position.y+pose.height,carrier.position.z-Math.sin(carrier.yaw)*pose.out);
     this.object.rotation.set(0,carrier.yaw+pose.yaw,pose.roll);
+  }
+  /** The prop where the server has it for this player (`OWNED_ROW.prop`): 0 home, 1 carried, 2 + a goal. */
+  show(line:number):void{
+    this.requireLive();
+    if(line===1){this.carryPose();this.shown=1;return;}
+    if(line===this.shown)return;
+    this.shown=line;
+    const goal=this.rows.goals[line-2];
+    if(goal===undefined){this.resetPose();return;}
+    this.object.position.set(goal.x,this.floorAt(goal.x,goal.z)+this.rows.poses.delivered.height,goal.z);this.object.rotation.set(...this.rows.poses.delivered.rotation);
   }
   win():void{this.requireLive();this.project(this.rows.signals.win,0);}
   update(dt:number):void{

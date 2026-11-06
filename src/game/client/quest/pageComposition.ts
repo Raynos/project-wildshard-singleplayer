@@ -5,7 +5,11 @@ import * as THREE from 'three';
 import type { QuestPageRows, ChapterViewRows } from '@wildshard/format/questPageComposition';
 import type { PageTamingOwner } from '../riding/client';
 import type { ArenaRoomEncounter } from '../boss/arenaRoom';
-import {parseCarriedQuest} from '@wildshard/format/questSteps';
+import {parseCarriedQuest, type CarriedQuestRows} from '@wildshard/format/questSteps';
+import { parseChapterStoryPresentation, type AdventureContent } from '@wildshard/format/questStory';
+import { presentQuestEffect, type QuestPresentationEffect } from '../../shared/quest/effectPresentation';
+import { OWNED_ROW } from '../../shared/loot/ownedRows';
+import { wirePage } from '../shardfile/wirePage';
 import {prepareSpecimenCatalogue} from '../models/specimenCatalogue';
 import { CarriedQuestProp } from './carriedProp';
 import { enteredAdventurePersistence, publishChapterFlags } from '../../shared/quest/chapterBindings';
@@ -36,7 +40,6 @@ import { bindRuntimeQuest } from '../../shared/quest/pageState';
 import { installQuestShop, type QuestTrader } from './trader';
 import { PlaceGuide } from '@wildshard/engine/quest/view';
 import type {Places} from '@wildshard/engine/quest/discovery';
-import type { AdventureContent } from '@wildshard/format/questStory';
 import { installChapterWakeEncounter, readChapterDirector } from './chapterDirector';
 import { installCompletion, type Completion as Complete } from '../complete/declared';
 import { installPageReturns } from '../population/pageReturns';
@@ -171,6 +174,12 @@ export interface ChapterViewOwners {
   readonly taming: PageTamingOwner | null; readonly arena: ArenaRoomEncounter;
   readonly fight: ArenaRoomEncounter; readonly figures?: unknown;
 }
+/** What a channel of a story or its carried round shows, as the server names it. */
+function chapterChannel(story: unknown, carried: CarriedQuestRows, channel: string): QuestPresentationEffect[] {
+  const round = channel.startsWith('carried.') ? channel.slice('carried.'.length) : null;
+  const effects = round === null ? parseChapterStoryPresentation(story).decision?.actions[channel] : round === 'warning' ? carried.warning : carried.events.find(row => String(row.value) === round)?.effects;
+  return (effects ?? []).filter((effect): effect is QuestPresentationEffect => effect.kind === 'toast' || effect.kind === 'sting' || effect.kind === 'reading');
+}
 export function installQuestPageComposition(ctx: ShardContext, input: { readonly chapterView: string; readonly story: string }, owners: ChapterViewOwners): Promise<Flags>;
 export function installQuestPageComposition(ctx: ShardContext, input: QuestPageRows): Promise<QuestPageComposition>;
 /** Complete a prepared page, or its optional finite chapter-view facet. */
@@ -198,6 +207,8 @@ export async function installQuestPageComposition(ctx: ShardContext, input: Ques
     const carried = new CarriedQuestProp(ctx, carriedRows,carriedFiles), persistence = enteredAdventurePersistence(ctx.scope);
     world.game.scene.add(carried.object);
     let now = 0, slowT = 0, pulseT = -1e9;
+    const wired = wirePage.on; // J141: the server runs these chapters, and this page shows what it says
+    if (wired) wirePage.hold({ said: channel => { for (const effect of chapterChannel(story, carriedRows, channel)) presentQuestEffect(effect, chapter.quest.flags, { observe: () => 1, reading: row => { chapter.reading(row); }, sting: name => { play.music.sting(name); }, toast: text => { play.hud.toast(text); } }); } }, ctx.scope);
     const project = (signal: string): void => { chapter.project(signal, { [rows.timeField]: now }); };
     const poll = (): void => {
       const observed = { 'taming.bonded': Number(taming?.phase === 'bonded'), 'taming.upgraded': Number(taming?.upgraded === true),
@@ -205,17 +216,20 @@ export async function installQuestPageComposition(ctx: ShardContext, input: Ques
       chapter.project(rows.signal, { [rows.timeField]: now, ...Object.fromEntries(Object.entries(rows.observations).map(([field, source]) => [field, observed[source]])) });
       if (now - pulseT > rows.pulse.interval) { pulseT = now; project(rows.pulse.signal); }
     };
-    poll();
     const death = (): void => { project(rows.death.signal); };
-    ctx.on('actor.died', ({ actor }) => {
-      const body = play.animals.animals.find(candidate => candidate.combatActor() === actor);
-      if (body !== undefined) { persistence.kill(body.kind, body.variant); if (body.kind === rows.death.kind) death(); }
-    });
-    chapter.installFeats();
+    if (!wired) {
+      poll();
+      ctx.on('actor.died', ({ actor }) => {
+        const body = play.animals.animals.find(candidate => candidate.combatActor() === actor);
+        if (body !== undefined) { persistence.kill(body.kind, body.variant); if (body.kind === rows.death.kind) death(); }
+      });
+      chapter.installFeats();
+    }
     ctx.system({ ...rows.system, phase: 'update', run: (dt, t) => {
       now = t; const pp = world.player.position;
-      chapter.update(dt, pp); people.update(dt, t, pp); carried.update(dt); chip.update(t, world.player);
-      if (t - slowT > rows.interval) { slowT = t; poll(); places.update(pp.x, pp.z); }
+      chapter.update(dt, pp); people.update(dt, t, pp); chip.update(t, world.player);
+      if (wired) carried.show(wirePage.line(OWNED_ROW.prop)); else carried.update(dt);
+      if (t - slowT > rows.interval) { slowT = t; if (!wired) poll(); places.update(pp.x, pp.z); }
     } });
     const debug = rows.debug;
     ctx.debug.expose(debug.id, { flags: chapter.quest.flags, line, people, [debug.prop]: carried, places, chip, markers,
