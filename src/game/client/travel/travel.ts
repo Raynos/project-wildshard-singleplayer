@@ -4,7 +4,7 @@ import { markUnload } from '@wildshard/engine/boot/lastEnd';
 import { arrivalTier, freshPageArrival, setTitleArrival } from '@wildshard/engine/boot/titleArrival';
 import type { SaveKeyDef, SaveSlot } from '@wildshard/engine/saves/store';
 import { findTitleManifest, titleManifests } from '../shard/titleList';
-import type { ShardSlug } from '../../shared/shard/slugs.generated';
+import type { ShardSlug } from '../../shared/shard/slug';
 import type { SpawnPose } from '../shard/manifest';
 import type { Inventory, ItemId } from '../Inventory';
 import { isItemId, ITEMS } from '../../shared/bag/itemCatalog';
@@ -16,7 +16,7 @@ export interface TravelHandoff {
   arrive: SpawnPose | null; carry: readonly { id: ItemId; count: number }[]; at: number;
 }
 const finite = v.pipe(v.number(), v.finite());
-const slug = v.custom<ShardSlug>((value) => typeof value === 'string' && titleManifests().map((entry) => entry.slug).includes(value as ShardSlug));
+const slug = v.custom<ShardSlug>((value) => typeof value === 'string' && titleManifests().map((entry) => entry.slug).includes(value));
 const item = v.custom<ItemId>((value) => typeof value === 'string' && isItemId(value));
 const schema: v.GenericSchema<unknown, TravelHandoff | null> = v.nullable(v.object({
   v: v.literal(1), from: v.nullable(slug), to: slug, mode: v.picklist(['enter', 'explore', 'arena']),

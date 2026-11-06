@@ -3,7 +3,6 @@ import { progressSave, saveSlug } from '../shared/saves';
 import { updateSummary } from './summary';
 import { findTitleManifest } from './shard/titleList';
 import { findShard } from './shard/registry';
-import type { ShardSlug } from '../shared/shard/slugs.generated';
 /**
  * Progress — per-shard achievement progress, earned titles and the title you wear. Persisted in
  * localStorage ('ws.progress.v1', keyed by chunk id); the in-memory copy is the truth for the session
@@ -94,7 +93,7 @@ export class Progress {
   private featTotal: number | undefined;
   private updateSummary(): void {
     const slug = saveSlug(this.chunkId);
-    if ((findShard(slug)??findTitleManifest(slug)) !== undefined) updateSummary(slug as ShardSlug, this.ledger === undefined ? this.shard
+    if ((findShard(slug)??findTitleManifest(slug)) !== undefined) updateSummary(slug, this.ledger === undefined ? this.shard
       : { earned: this.defs.filter((def) => this.earned(def.id)).map((def) => def.id), playS: this.playS }, this.featTotal ?? this.defs.length);
   }
   private save() { progressSave.write(this.shard, saveSlug(this.chunkId)); this.updateSummary(); }

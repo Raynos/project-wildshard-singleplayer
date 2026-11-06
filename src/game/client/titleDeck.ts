@@ -30,7 +30,7 @@ import { titlePrefetchChoice } from './grid/titlePrefetchChoice';
  * test/title-deck.test.ts keeps each card's name, label (the def's `biome`), badge and art equal to its ShardManifest.
  */
 import { titleManifests, type TitleManifest } from './shard/titleList';
-import type { ShardSlug } from '../shared/shard/slugs.generated';
+import type { ShardSlug } from '../shared/shard/slug';
 import { DRAFT_TITLES, type DraftTitle } from './draftTitles';
 import { readSummary, summaryView } from './summary';
 import { GAME_STRINGS } from '../shared/strings';

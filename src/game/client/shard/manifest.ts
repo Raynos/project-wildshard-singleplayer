@@ -33,7 +33,7 @@ import * as v from 'valibot';
 
 import type { AccentId } from '@wildshard/format/accent';
 import type { RegionalSimCost, RuntimeCost } from '@wildshard/format/runtimeCost';
-import type { ShardSlug } from '../../shared/shard/slugs.generated';
+import type { ShardSlug } from '../../shared/shard/slug';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
 /**
  * ShardManifest — everything that makes one Wildshard shard different from another.
