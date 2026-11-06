@@ -20,6 +20,7 @@ export const ENGINE_STRINGS = {
   "s_explore_compare": "Compare",
   "s_explore_load_count": "⟦0⟧ · ⟦1⟧ / ⟦2⟧",
   "s_explore_load_failed": "⟦0⟧ · Could not load",
+  "s_loading_counted": "⟦0⟧ · ⟦1⟧ ⟦2⟧",
   "s_item_card_picked": "Picked up",
   "s_item_card_pack": "⟦0⟧ in the pack",
   "s_script_failure": "⟦0⟧: ⟦1⟧: ⟦2⟧⟦3⟧",

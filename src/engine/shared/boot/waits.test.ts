@@ -1,5 +1,16 @@
 import { expect, it } from 'vitest';
-import { loadingStepWaits, WaitRegistry } from './waits';
+import { loadingWaitState } from './loadingWaits';
+import { countedWait, loadingStepWaits, WaitRegistry } from './waits';
+
+it('a counted wait names its work, moves with each unit, and ends with it', () => {
+  const card = countedWait('Server world', 'files');
+  const row = (): string | undefined => [...loadingWaitState().pending.values()].find(wait => wait.label.startsWith('Server world'))?.label;
+  expect(row()).toBe('Server world');
+  card.add(); card.add();
+  expect(row()).toBe('Server world · 2 files');
+  card.end();
+  expect(row()).toBeUndefined();
+});
 
 it('reports duplicate concurrent labels with independent ages and clears settled work', async () => {
   let clock = 0;

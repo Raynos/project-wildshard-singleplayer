@@ -2,6 +2,7 @@ import { currentLoadingTimeline } from './timeline';
 import { diagnosticNow } from '../core/clock';
 import { beginLoadingWait, finishLoadingWait, loadingWaitState, reportLoadingWait, type LoadingWaitState, type LoadingWaitEntry, type LoadingWaitKind } from './loadingWaits';
 import { pageScope } from '../app/resources';
+import { engineString } from '../strings';
 /** Pending asynchronous work is observed without changing its owner, queue or concurrency. */
 export type WaitKind = LoadingWaitKind;
 export interface BootWait extends LoadingWaitEntry { ageMs: number }
@@ -88,6 +89,19 @@ function stageReads(step: string, owner: symbol): () => void {
   };
   scope.interval(250, tick);
   return () => { reads.stop(); scope.dispose(); if (id !== null) finishLoadingWait(id); };
+}
+/** DL21: a wait on the step it starts in, counting what it has done where no total is known ('Server world · 12 files').
+ *  `add` moves the card; `end` takes the wait away and names it on the timeline, as `waitFor` does. */
+export function countedWait(label: string, unit: string, kind: WaitKind = 'worker'): { readonly add: () => void; readonly end: () => void } {
+  const timeline = currentLoadingTimeline(), started = diagnosticNow();
+  const id = beginLoadingWait(label, { kind, step: timeline?.snapshot().current ?? null, owner: timeline?.waitOwner ?? null, startedAt: started });
+  let count = 0;
+  return { add: () => { count++; reportLoadingWait(id, { label: engineString('s_loading_counted', [label, count, unit]) }); },
+    end: () => {
+      finishLoadingWait(id);
+      const ended = diagnosticNow();
+      if (ended - started >= 1000 && typeof performance !== 'undefined') performance.measure(`wildshard.prepare:wait:${label}`, { start: started, end: ended, detail: { kind } });
+    } };
 }
 /** Count actual completed units on the stage that starts this operation, without advancing work on a timer. */
 export function loadingUnits(label: string, total: number): (done: number, detail?: string) => void {
