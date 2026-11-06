@@ -20,7 +20,9 @@ test('game production requires isolated output while Node tests stay separate',(
  expect(project.errors).toEqual([]);
  expect(project.options.isolatedDeclarations).toBe(true);
  expect(project.options.declaration).toBe(true);
- expect(project.options.types).not.toContain('node');
+ // The cook runs on Node inside this layer, so the types reach it: no other game file may reach for Node.
+ expect(project.options.types).toContain('node');
+ expect(project.fileNames.filter(file=>file.endsWith('.ts')&&!file.includes('/src/game/cook/')&&readFileSync(file,'utf8').includes("from 'node:"))).toEqual([]);
  expect(project.fileNames.some(file=>file.endsWith('.test.ts')||file.includes('/src/game/test/'))).toBe(false);
  const options:ts.CompilerOptions={isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true};
  const explicit=ts.transpileDeclaration('export const owner:Readonly<{active:true}>=Object.freeze({active:true});',{
