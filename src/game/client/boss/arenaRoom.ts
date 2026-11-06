@@ -127,6 +127,8 @@ export class ArenaRoomEncounter {
   private readonly room:BossArenaRoom|null;
   get dungeon():BossArenaRoom{if(this.room===null)throw new Error('Open arena has no room');return this.room;}
   boss:Boss|null=null;ui:BossBar|null=null;
+  /** The encounter's frame: its brain, or on the wire its row. */
+  private drive:((dt:number,t:number)=>void)|null=null;
   fight:ArenaPageFight|null=null;
   power:ReturnType<HeldSlotKit['bowPower']>|ArcWeaponPower|null=null;
   riders:PatrolEncounterView|null=null;mount:Mount|null=null;
@@ -223,9 +225,9 @@ export class ArenaRoomEncounter {
       respawn:(at,yaw)=>{if(open===null){player.position.copy(at);player.velocity.set(0,0,0);player.yaw=yaw;player.pitch=0;}else page.respawnMounted(ctx,at,yaw,open.view.respawn);kit.refill();},
       skipHeld:()=>this.skipKeys||this.skipTouch||ctx.app.input.held('jump')||ctx.app.input.held('use'),toast:text=>{play.hud.toast(text);},feed:text=>{play.hud.killFeed(text);},pickupHum:on=>{play.audio.pickupHum(on);},
       music:event=>{if(event==='death'||event==='pickup')play.music.sting(event);else if(event==='victory')play.music.sting('chunk');else play.music.combat(1);}});
-    this.boss=encounter.boss;this.ui=encounter.ui;
+    this.boss=encounter.boss;this.ui=encounter.ui;this.drive=encounter.update;
     if(open===null){
-      if(this.fight===null||this.portal===null||room===null)throw new Error('Missing room fight');this.portal.bind(encounter.boss,encounter.ui,this.fight);encounter.fight.reset(0);this.fight.setPresent(false);
+      if(this.fight===null||this.portal===null||room===null)throw new Error('Missing room fight');this.portal.bind(encounter.boss,encounter.ui,this.fight,encounter.update);encounter.fight.reset(0);this.fight.setPresent(false);
       if(encounter.boss.rewardTaken)kit.upgradeBow('bow-reward',play.weapons);
     }else{
       if(this.prompt===null||this.projection===null)throw new Error('Missing open arena projection');runtime.interactables.push(this.prompt);
@@ -250,7 +252,7 @@ export class ArenaRoomEncounter {
   update(dt:number,t:number):void{
     if(this.openRows===null){this.portal?.update(dt,t);return;}
     this.power?.update(dt,t);this.hurtT-=dt;const boss=this.boss;if(boss===null||this.context===null||this.kit===null)return;
-    const fight=this.openFight;if(boss.state!=='dormant'||fight.body.visible)boss.update(dt,t);else fight.update(dt,t,false);
+    const fight=this.openFight;if(wirePage.on||boss.state!=='dormant'||fight.body.visible)this.drive?.(dt,t);else fight.update(dt,t,false);
     const answer=fight.takeBoundary();if(answer===null)return;const prompt=this.prompt;if(prompt===null)throw new Error('Missing open arena prompt');
     // the boundary answer's order is arenaBoundary's (renderer-free, CI12)
     const p=this.player.position,scope=this.context.scope;

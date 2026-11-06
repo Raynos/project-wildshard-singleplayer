@@ -68,12 +68,14 @@ export class ArenaRoomPortal {
   private locked = false; private slow = false;
   private boss: Boss | null = null; private ui: BossBar | null = null;
   private fight: ArenaPageFight | null = null;
+  /** The encounter's own frame: its brain on a page, its row on the wire. */
+  private drive: ((dt: number, t: number) => void) | null = null;
   constructor(private readonly world: ArenaRoomPortalWorld, private readonly room: BossArenaRoom, input: unknown,
     program: ReturnProgram, private readonly entrance: { readonly x: number; readonly y: number; readonly z: number; readonly facing: number } | null) {
     this.rows = v.parse(ArenaRoomPortalSchema, input); this.keep = new RegExp(this.rows.keep, 'i');
     this.law = new ArenaPortalLaw(program, this.rows, entrance);
   }
-  bind(boss: Boss, ui: BossBar, fight: ArenaPageFight): void { this.boss = boss; this.ui = ui; this.fight = fight; }
+  bind(boss: Boss, ui: BossBar, fight: ArenaPageFight, drive: (dt: number, t: number) => void): void { this.boss = boss; this.ui = ui; this.fight = fight; this.drive = drive; }
   setLocked(on: boolean): void { this.locked = on; this.move(); }
   private move(): void { this.world.player.moveScale = this.locked ? 0 : this.slow ? this.rows.slow : 1; }
   enter(immediate = false, atZ: number = this.rows.spawn.z): void {
@@ -118,7 +120,7 @@ export class ArenaRoomPortal {
     if (!this.inside) return;
     const floor = this.room.floorHeightAt(p.x,p.z);
     if (floor !== undefined && p.y < floor-this.rows.floor.tolerance && p.y > floor-this.rows.floor.depth) { p.y = floor; if (this.world.player.velocity.y < 0) this.world.player.velocity.y = 0; }
-    this.boss?.update(dt,t); this.room.update(dt,t);
+    this.drive?.(dt,t); this.room.update(dt,t);
   }
 }
 interface Stream { mesh: THREE.Mesh; mat: FxMaterial; tell: THREE.Mesh; tellMat: FxMaterial; x: number; z: number }
