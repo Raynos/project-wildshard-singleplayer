@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import * as v from 'valibot';
 import { COMPONENTS, COMPONENT_SHARDS, componentInventory } from './shard-components.mjs';
-import { codeLines, declarationOnlyConfig, declarationOnlyManifest, jsonTypeContract, shaderCodeLines, sourceProgressInventory } from './shard-platform.mjs';
+import { codeLines, declarationOnlyConfig, declarationOnlyManifest, jsonTypeContract, rawShaderLines, shaderCodeLines, sourceProgressInventory } from './shard-platform.mjs';
 
 /** Closed component policy contains identities only: no adjustable line budgets.
  * @param {unknown} [input] */
@@ -60,6 +60,11 @@ export function closedComponentSources(root, input) {
         || path.endsWith('/shard.config.ts') && declarationOnlyConfig(source, path)) continue;
       const shader = path.endsWith('.glsl'), lines = shader ? shaderCodeLines(source) : codeLines(source, path);
       if (lines > 0) sources.push({ path, kind: shader ? 'additional-glsl' : 'runtime-ts', lines });
+    }
+    // G480 holds for art/ too. deploy.yml skips an art-only commit, so prepare's full gate can't see it: the push gate has to.
+    for (const path of globSync(`src/shards/${shard}/art/**/*.json`, { cwd: root })) {
+      const lines = rawShaderLines(readFileSync(resolve(root, path), 'utf8'), path);
+      if (lines > 0) failures.push(`${shard}: CLOSED art ${path} has ${lines} custom lines`);
     }
     if (COMPONENT_SHARDS.includes(shard)) {
       // Every source folder is frozen, regardless of an old partial lock list.

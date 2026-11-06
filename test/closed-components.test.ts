@@ -63,6 +63,20 @@ test('erased JSON declarations stay zero while executable JSON-suffix files rema
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
+test('source checks read art JSON, because an art-only commit never reaches prepare', () => {
+  mkdirSync('tmp',{recursive:true});
+  const root=mkdtempSync(join('tmp','art-json-'));
+  const put=(path:string,source:string):void=>{mkdirSync(dirname(join(root,path)),{recursive:true});writeFileSync(join(root,path),source);};
+  try {
+    put('src/shards/far-reach/art/round-1/cameras.json',JSON.stringify({ url:'/?shard=far-reach&view=road',note:'Read: 40 m' }));
+    expect(closedComponentSources(root,{})).toEqual([]);
+    put('src/shards/far-reach/art/round-1/cameras.json',JSON.stringify({ url:'tier=desktop' }));
+    expect(closedComponentSources(root,{})).toEqual([expect.stringContaining('CLOSED art src/shards/far-reach/art/round-1/cameras.json')]);
+    const workflow=readFileSync(new URL('../.github/workflows/deploy.yml',import.meta.url),'utf8');
+    expect(workflow).toContain("- 'src/shards/*/art/**'");
+  } finally { rmSync(root,{recursive:true,force:true}); }
+});
+
 test('locks cannot be removed or changed into adjustable budgets', () => {
   const before = { 'pine-hollow': ['C8'] };
   expect(compareClosedComponents(before, { 'pine-hollow': ['C8', 'C3'] })).toEqual([]);
