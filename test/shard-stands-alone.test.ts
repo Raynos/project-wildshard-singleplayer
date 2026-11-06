@@ -61,7 +61,8 @@ describe('a shardfile stands alone', () => {
     const named = [...JSON.stringify([...shard.sections.values()]).matchAll(/"(\/assets\/[^"]+\.[a-z0-9]+)"/gu)].map(match => match[1] ?? '');
     const missing = named.filter(url => !mounted.has(url) && existsSync(join('public', url.slice(1))) && !engine.has(url));
     // A file no mounts.json lists is either the engine's (read by two shard folders) or this list is stale.
-    expect(missing.filter(url => readers(url) < 2)).toEqual([]);
+    const cooked = standIns(slug), carried = (url: string): boolean => (cooked.get(url)?.length ?? 0) === 2 && (cooked.get(url) ?? []).every(form => mounted.has(form));
+    expect(missing.filter(url => readers(url) < 2 && !carried(url))).toEqual([]);
   }, 60_000);
 
   it.each(['driftwood-isle', 'nalati-grasslands', 'pine-hollow'])('%s loads headless from its unpacked tarball', async slug => {
@@ -91,6 +92,14 @@ describe('a shardfile stands alone', () => {
 });
 
 /** How many shard folders' sections name a URL. */
+/** 4194450b25: a source with a cooked form on both tiers stays out of a shardfile, which carries those forms instead. Its
+ *  sections still name the source, as `scripts/record-shard-mounts.mjs` reads them. */
+function standIns(slug: string): ReadonlyMap<string, readonly string[]> {
+  const file = join('src/shards', slug, 'ktx2.generated.ts'), forms = new Map<string, string[]>();
+  if (!existsSync(file)) return forms;
+  for (const [, url = '', form = ''] of readFileSync(file, 'utf8').matchAll(/"(\/assets\/[^"]+)": "(\/assets\/[^"]+)"/gu)) forms.set(url, [...forms.get(url) ?? [], form]);
+  return forms;
+}
 function readers(url: string): number {
   const folders = new Set<string>();
   for (const slug of products) {
