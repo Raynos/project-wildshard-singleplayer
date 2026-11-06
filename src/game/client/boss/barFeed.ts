@@ -50,6 +50,8 @@ export interface BossRowVoice {
   readonly feed?: (line: string) => void;
   /** A win with nothing left to take. */
   readonly toast?: (line: string) => void;
+  /** A fight's own word on its win, for a fight that has one. */
+  readonly won?: () => void;
   /** A fight's intro holds a page's weapons and legs, as its host's `lockInput` does. */
   readonly lock?: (on: boolean) => void;
   /** Analytics: the page's half of `boss.attempt`. */
@@ -129,7 +131,7 @@ export class BossRowBar {
       const phase = card.phases[this.shown]; if (this.shown > 0 && phase !== undefined) bar.setPhase(this.shown, phase.caption);
     } else if (state === 'victory') {
       this.won = true; this.held = 0; bar.setHp(0); bar.setShield(false);
-      if (moment && engaged(was)) { voice.music?.('victory'); if (row?.reward === null) voice.toast?.(engineString('s_100cbeedfcec', [card.name])); }
+      if (moment && engaged(was)) { voice.music?.('victory'); voice.won?.(); if (row?.reward === null) voice.toast?.(engineString('s_100cbeedfcec', [card.name])); }
     } else if (state === 'armed' && engaged(was)) { bar.hideBar(); bar.hideNameCard(); bar.showRetry(card.retryTitle, ++this.attempts); voice.music?.('death'); }
     else if (state === 'dormant') { bar.hideBar(); bar.hideNameCard(); this.attempts = 1; }
   }

@@ -50,7 +50,7 @@ test('a fight off the server\'s rows shows what the brain shows a page, in order
     host.step(commands);
   } });
   const said: string[] = [], told: string[] = [];
-  const voice = { music: (event: string) => { said.push(`music ${event}`); }, feed: (line: string) => { said.push(`feed ${line}`); }, attempt: (outcome: string) => { told.push(outcome); } };
+  const voice = { won: () => { said.push('won'); }, music: (event: string) => { said.push(`music ${event}`); }, feed: (line: string) => { said.push(`feed ${line}`); }, attempt: (outcome: string) => { told.push(outcome); } };
   host.events.on('boss.attempt', ({ outcome }) => { said.push(`brain ${outcome}`); }, host.scope);
   const link = directLoopback(), client = new NetClient(link.client), feed = netEncounterFeed(client), view = new BossRowBar(wire.bar, CARD, null, voice);
   net.join(link.server, world.playerOf(lead.id)); client.hello(); link.pump(); net.open(); link.pump();
@@ -67,6 +67,7 @@ test('a fight off the server\'s rows shows what the brain shows a page, in order
     expect(lastHp(wire.heard)).toBe(lastHp(page.heard));
     expect(said.filter(line => line.startsWith('music')), 'the score the rows drive').toEqual(['music intro', 'music phase', 'music death', 'music intro', 'music victory']);
     expect(said.filter(line => line.startsWith('feed'))).toEqual(['feed Boar · two']);
+    expect(said.filter(line => line === 'won')).toHaveLength(1);
     expect(told, 'the page tells analytics what the brain told its own host').toEqual(said.filter(line => line.startsWith('brain')).map(line => line.slice(6)));
     expect(page.heard).toContain('phase 1 two'); expect(page.heard).toContain('retry Again 2'); expect(page.heard.at(-1)).toBe('hideBar');
   } finally { net.dispose(); host.dispose(); }

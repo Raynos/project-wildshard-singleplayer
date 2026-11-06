@@ -1334,6 +1334,8 @@ export interface BossViewSpec {
   readonly shielded: () => boolean;
   readonly saved: BossSaved;
   readonly persist: (value: BossSaved) => void;
+  /** What a page shows of a win a server's row reports, where a page's script would have shown it. */
+  readonly won?: () => void;
   /** The first fall's reward (absent: the victory callback pays it). */
   readonly spawnReward?: () => void;
   /** Toast the brain's own lines on the HUD (a later fall's); absent, the shard's victory callback says it. */
@@ -1362,7 +1364,7 @@ export class BossView extends DirectorBossBrain {
       spawnReward: () => { spec.spawnReward?.(); }, toast: spec.toast === true ? (message) => { ctx.game.runtime?.play?.hud.toast(message); } : undefined,
       persist: spec.persist }, bar, spec.saved, spec.stages);
     this.pinned = spec.body;
-    this.rowBar = wirePage.on ? new BossRowBar(bar, { ...spec.definition, id: spec.row ?? spec.definition.id }, null, { lock: on => { ctx.game.runtime?.play?.weapons.setEnabled(!on); }, attempt: outcome => { ctx.app.events.emit('boss.attempt', { boss: spec.definition.id, outcome }); } }) : null;
+    this.rowBar = wirePage.on ? new BossRowBar(bar, { ...spec.definition, id: spec.row ?? spec.definition.id }, null, { lock: on => { ctx.game.runtime?.play?.weapons.setEnabled(!on); }, ...(spec.won === undefined ? {} : { won: spec.won }), attempt: outcome => { ctx.app.events.emit('boss.attempt', { boss: spec.definition.id, outcome }); } }) : null;
   }
   /** The boss's body is drawn at any distance (no tier draw-distance shrink), whichever body is up this frame. */
   override update(dt: number, t: number): void {
@@ -1417,7 +1419,7 @@ function rowBossSpec(ctx: ShardContext, rows: RowBossRows, ports: RowBossPorts):
     respawnPoint: () => ({ pos: new Vector3(look.respawn.x, ctx.manifest.ground.terrain?.heightAt(look.respawn.x, look.respawn.z) ?? 0, look.respawn.z), yaw: look.respawn.yaw }),
     victory: () => { ctx.game.runtime?.play?.hud.toast(saved.rewardTaken ? look.toasts.rewardAgain : look.toasts.reward); onDown?.(); },
     update: (dt, strength) => { weather(dt, strength); burst.update(dt, player); } });
-  return { at, weather: fight.weather, spec: { ...base, script: fight.script, body: fight.body, shielded: fight.invulnerable, toast: true,
+  return { at, weather: fight.weather, spec: { ...base, script: fight.script, body: fight.body, shielded: fight.invulnerable, toast: true, won: () => { ctx.game.runtime?.play?.hud.toast(saved.rewardTaken ? look.toasts.rewardAgain : look.toasts.reward); },
     spawnReward: () => { saved.rewardTaken = true; record.persist(saved); burst.spawn(player, ports.reward, ports.coins, () => undefined); } },
     after: () => {
       if (saved.defeated) onDown?.();
