@@ -247,12 +247,11 @@ async function driftwoodJourney(browser, phone, base, step) {
     await page.locator('.ws-shop-grid > *').filter({ hasText: /cape/iu }).first().click({ timeout: 4000 });
     await page.waitForTimeout(400);
     await page.locator('.ws-shop-bigbuy').click({ timeout: 4000 });
-    await page.waitForTimeout(1500);
-    const coinsOpen = (await report(page)).owned.coins;
+    const open_ = await page.evaluate(() => document.querySelector('.ws-shop-counter, .ws-shop')?.classList.contains('show') ?? null), landed = await until(page, async () => { const seen = (await report(page)).owned.coins; return seen < before ? seen : null; }, 3);
     await page.locator('.ws-shop-close').click({ timeout: 3000 }).catch(() => page.keyboard.press('Escape'));
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(1500);
     const r = await report(page), held = Object.keys(r.owned).filter(line => line.startsWith('own'));
-    return { ok: held.some(line => line.includes('cape')), before, whileOpen: coinsOpen, after: r.owned.coins, held };
+    return { ok: held.some(line => line.includes('cape')) && landed !== null, before, panel: open_, whileOpen: landed, after: r.owned.coins, held };
   });
   await step('driftwood: no page error', () => ({ ok: isle.errors.length === 0, errors: [...new Set(isle.errors)].slice(0, 6) }));
   await isle.context.close();
@@ -280,16 +279,35 @@ async function pineJourney(browser, phone, base, step) {
     }
     return { ok: false, target, slot: slot?.line, now: (await board()).slice(0, 8) };
   });
+  await step('pine: a filled contract is claimed on the board, and it pays', async () => {
+    const lines = await board(), slot = lines.map(([line, have]) => ({ line, have, parts: line.split('|') })).find(row => row.parts.length >= 5 && row.parts[3] === 'species');
+    const target = slot?.parts[4] ?? 'deer', kind = /elk/iu.test(target) ? 'elk' : /boar/iu.test(target) ? 'boar' : 'deer', sealed = () => page.evaluate(() => [...document.querySelectorAll('.ws-ph-seal')].length);
+    let opened = 0;
+    const end = Date.now() + 75_000;
+    while (Date.now() < end && opened === 0) {
+      const body = await bodyOf(page, kind);
+      if (body !== null) { await place(page, body.x + 1.5, body.y + 0.6, body.z + 1.5); await page.waitForTimeout(350); await strike(page, body, false); await page.waitForTimeout(500); }
+      else await page.waitForTimeout(500);
+      opened = await sealed();
+      if (opened === 0 && Date.now() % 4 === 0) { await pressRound(page, 'contract board', () => page.evaluate(() => [...document.querySelectorAll('.ws-ph-seal')].some(node => node.offsetParent !== null))); opened = await sealed(); await page.keyboard.press('Escape').catch(() => undefined); }
+    }
+    await pressRound(page, 'contract board', () => page.evaluate(() => [...document.querySelectorAll('.ws-ph-seal')].some(node => node.offsetParent !== null)));
+    const before = await report(page);
+    await page.locator('.ws-ph-seal:visible').first().click({ timeout: 4000 });
+    const paid = await until(page, async () => (await report(page)).owned['board.claimed'] !== before.owned['board.claimed'] ? (await report(page)).owned : null, 4);
+    await page.locator('button:visible').filter({ hasText: /^close$/iu }).first().click({ timeout: 3000 }).catch(() => page.keyboard.press('Escape'));
+    await page.waitForTimeout(800);
+    return { ok: paid !== null, target, claimed: paid?.['board.claimed'] ?? null, coins: [before.owned.coins, paid?.coins] };
+  });
   await step('pine: a contract can be read and torn on the page, and the server deals another', async () => {
     const lines = await board();
     await pressRound(page, 'contract board', () => page.evaluate(() => [...document.querySelectorAll('.ws-ph-tear')].some(node => node.offsetParent !== null)));
     const buttons = await page.evaluate(() => [...document.querySelectorAll('button')].filter(node => node.offsetParent !== null).map(node => (node.textContent ?? '').trim()).filter(Boolean).slice(0, 14));
     await page.locator('.ws-ph-tear:visible').first().click({ timeout: 4000 });
-    await page.waitForTimeout(1500);
-    const moved = JSON.stringify(await board()) !== JSON.stringify(lines);
+    const moved = await until(page, async () => JSON.stringify(await board()) !== JSON.stringify(lines), 3) === true;
     await page.locator('button:visible').filter({ hasText: /^close$/iu }).first().click({ timeout: 3000 }).catch(() => page.keyboard.press('Escape'));
-    await page.waitForTimeout(2000);
-    return { ok: JSON.stringify(await board()) !== JSON.stringify(lines), whileOpen: moved, buttons: buttons.slice(-6), now: (await board()).slice(0, 8) };
+    await page.waitForTimeout(1000);
+    return { ok: moved, whileOpen: moved, buttons: buttons.slice(-6), now: (await board()).slice(0, 8) };
   });
   await step('pine: no page error', () => ({ ok: pine.errors.length === 0, errors: [...new Set(pine.errors)].slice(0, 6) }));
   await pine.context.close();
@@ -445,6 +463,38 @@ export async function fights(browser, phone, base, only, step) {
     await far.context.close();
   }
 
+  // Two real clients in one room: a boss resets when everyone has gone, and not before (J104).
+  if (runs('rooms')) {
+    const far = await open(browser, phone, base, 'far-reach');
+    const { page } = far, id = 'far.roc.encounter', [cx, cy, cz] = [0, 45.5, -188], state = async () => (await fight(page, id))?.state ?? null;
+    await step('two clients: a second real client joins and fights in the room', async () => {
+      await place(page, cx, cy, cz);
+      await page.evaluate(([x, y, z]) => { window.__secondClient = window.__workerClientBot('bot:1', x + 3, y, z); }, [cx, cy, cz]);
+      const up = await until(page, async () => await state() === 'fight', 25);
+      return { ok: up === true, state: await state(), closed: (await report(page)).closed };
+    });
+    await step('two clients: one leaves, and the fight goes on for the other', async () => {
+      await place(page, 0, 31, -5);
+      await page.waitForTimeout(4000);
+      return { ok: await state() === 'fight', state: await state() };
+    });
+    await step('two clients: everyone gone resets the boss', async () => {
+      await page.evaluate(() => { window.__secondClient.move(0, 31, -3); });
+      const reset = await until(page, async () => { const seen = await state(); return seen !== 'fight' && seen !== 'beat' ? seen : null; }, 25);
+      await page.waitForTimeout(800);
+      const row = await fight(page, id);
+      return { ok: reset !== null && row?.hp === 1, reset, row: { state: row?.state, hp: row?.hp }, bar: await bossBar(page) };
+    });
+    await step('two clients: it arms again for whoever comes back', async () => {
+      await place(page, cx, cy, cz);
+      const up = await until(page, async () => await state() === 'fight', 25);
+      return { ok: up === true, state: await state() };
+    });
+    await page.evaluate(() => { window.__secondClient.end(); });
+    await step('two clients: no page error', () => ({ ok: far.errors.length === 0, errors: [...new Set(far.errors)].slice(0, 6) }));
+    await far.context.close();
+  }
+
   // An elite: the bar, the first-kill orb on its row, a refused press, a taken one.
   if (runs('elite')) {
     const pine = await open(browser, phone, base, 'pine-hollow');
@@ -521,17 +571,21 @@ export async function fights(browser, phone, base, only, step) {
       return { ok: r.sky !== null && drawn !== null, row: r.sky, drawn };
     });
     await step('sky: a live Weather setting goes up, and the row and the page come back with it', async () => {
-      const before = await pine.page.evaluate(() => window.__wildshard.shard['pine.weather']?.weather?.rain ?? 0);
-      await pine.page.keyboard.press('Escape'); await pine.page.waitForTimeout(500);
-      await pine.page.evaluate(() => { [...document.querySelectorAll('.ws-gmenu-tab')].find(node => /settings/iu.test(node.textContent ?? ''))?.click(); });
-      await pine.page.waitForTimeout(500);
-      await pine.page.evaluate(() => { for (const fold of document.querySelectorAll('.ws-gmenu details:not([open]), [class*="fold"]:not(.open)')) fold.click?.(); });
-      await pine.page.waitForTimeout(400);
-      const clicked = await pine.page.evaluate(() => { const rain = document.querySelector('.ws-gmenu-segbtn[data-v="rain"]'); rain?.click(); return rain !== null; });
-      await pine.page.waitForTimeout(400);
-      await pine.page.keyboard.press('Escape');
-      const rain = await until(pine.page, async () => { const seen = await pine.page.evaluate(() => window.__wildshard.shard['pine.weather']?.weather?.rain ?? 0); return seen > before + 0.01 ? seen : null; }, 25);
-      return { ok: rain !== null, before, rain, clicked, row: (await report(pine.page)).sky, state: await pine.page.evaluate(() => window.__wildshard.shard['pine.weather']?.weather?.state ?? null) };
+      const page = pine.page, before = await page.evaluate(() => window.__wildshard.shard['pine.weather']?.weather?.rain ?? 0);
+      await page.keyboard.press('Escape'); await page.waitForTimeout(500);
+      await page.locator('.ws-gmenu-tab').filter({ hasText: /settings/iu }).first().click({ timeout: 4000 });
+      await page.waitForTimeout(400);
+      const card = page.locator('.ws-gmenu-card.fold').filter({ has: page.locator('.ws-gmenu-cardtitle', { hasText: /^Developer/u }) }).first();
+      if (await card.evaluate(node => node.classList.contains('folded'))) await card.locator('.ws-gmenu-cardtitle').click({ timeout: 4000 });
+      await page.waitForTimeout(300);
+      const group = card.locator('details:not([open]) summary, [class*="group"]:not(.open) > button').first();
+      if (await group.count() > 0) await group.click({ timeout: 2000 }).catch(() => undefined);
+      await card.locator('.ws-gmenu-segbtn[data-v="rain"]').first().click({ timeout: 4000 });
+      await page.waitForTimeout(300);
+      const shown = await card.locator('.ws-gmenu-segbtn.active').allTextContents();
+      await page.keyboard.press('Escape');
+      const rain = await until(page, async () => { const seen = await page.evaluate(() => window.__wildshard.shard['pine.weather']?.weather?.rain ?? 0); return seen > before + 0.01 ? seen : null; }, 25);
+      return { ok: rain !== null, before, rain, shown: shown.slice(0, 6), row: (await report(page)).sky, state: await page.evaluate(() => window.__wildshard.shard['pine.weather']?.weather?.state ?? null) };
     });
     await pine.context.close();
   }

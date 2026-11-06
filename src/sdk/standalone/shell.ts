@@ -11,7 +11,7 @@ import { saveDocuments } from '@wildshard/engine/saves/indexed';
 import type { SaveStorage } from '@wildshard/engine/saves/store';
 import { ServerMessageSchema, ShellMessageSchema, type ProbedRow, type ServerMessage, type ShellMessage } from '@wildshard/format/standaloneControl';
 import { answerHeldReads, type HeldRead } from './heldReads';
-import type { HarnessHits, HarnessPlace } from './harnessPlace';
+import type { HarnessHits, HarnessJoin, HarnessMove, HarnessPlace } from './harnessPlace';
 import { WorkerLoopback } from './workerLoopback';
 
 /** What the server should run and where the page keeps saves. */
@@ -53,6 +53,8 @@ export interface StandaloneShell {
   place: (x: number, y: number, z: number, yaw: number) => void;
   /** A harness's word on how hard this player's blows land. */
   hardHits: (by: number) => void;
+  /** A proof's second client, a real one on its own link: it stands at this point in this cell, and `move` puts its body elsewhere. */
+  join: (id: string, x: number, y: number, z: number) => { readonly client: NetClient; readonly move: (x: number, y: number, z: number) => void };
   dispose: () => void;
 }
 
@@ -94,6 +96,12 @@ export function connectStandalone(config: StandaloneConfig, control: MessagePort
     probe: () => request(id => ({ kind: 'probe', id }), message => message.kind === 'probed' ? { tick: message.tick, tickMs: message.tickMs, rows: message.rows } : null),
     place: (x, y, z, yaw) => { harness?.postMessage({ x, y, z, yaw } satisfies HarnessPlace, []); },
     hardHits: by => { harness?.postMessage({ hits: by } satisfies HarnessHits, []); },
+    join: (id, x, y, z) => {
+      const line = new MessageChannel(), second = new NetClient(new WorkerLoopback(line.port1));
+      harness?.postMessage({ join: id, x, y, z } satisfies HarnessJoin, [line.port2]);
+      second.hello(config.build, { player: id, name: id });
+      return { client: second, move: (mx, my, mz) => { harness?.postMessage({ move: id, x: mx, y: my, z: mz, yaw: 0 } satisfies HarnessMove, []); } };
+    },
     dispose: () => { scope.dispose(); client.dispose(); transport.close('disposed'); control.close(); end(); } };
 }
 

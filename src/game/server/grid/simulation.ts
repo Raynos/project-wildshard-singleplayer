@@ -94,11 +94,11 @@ export class GridSimulation {
     if (seat === undefined) throw new Error(`No grid seat for ${player}`);
     return seat;
   }
-  /** Another player comes onto the highway, already free of any cell. */
-  join(player: string, at: Readonly<GridPoint>, yaw = 0): void {
+  /** Another player comes onto the highway, already free of any cell, or stands in the world at `site`. */
+  join(player: string, at: Readonly<GridPoint>, yaw = 0, site: string | null = null): void {
     if (this.disposed || this.sites.has(player)) throw new Error('Invalid grid player');
-    const { host } = this.ports.highway;
-    this.parkOwner(host); host.addPlayer(player, at, yaw); this.sites.set(player, null);
+    const host = this.hostAt(site);
+    this.parkOwner(host); host.addPlayer(player, at, yaw); this.sites.set(player, site);
   }
   /** A player other than the owner leaves the grid, from wherever it stands. */
   leave(player: string): boolean {

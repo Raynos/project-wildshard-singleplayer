@@ -373,7 +373,12 @@ export class StandaloneGrid {
   /** Connect the session's client; it waits for `open`. */
   connect(transport: Transport): void { this.rooms.connect(SESSION_PLAYER, transport); }
   /** A harness's move: the wire counts it, and the client snaps to it. */
-  place(at: { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number }): void { sessionPlayer(this.host).resetPose(at, at.yaw); }
+  place(at: { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number }, player: string = SESSION_PLAYER): void { this.host.players.get(player)?.resetPose(at, at.yaw); }
+  /** A proof's second client: a real link, in the cell this session stands in. Two phones come this way, once a server admits them. */
+  join(at: { readonly join: string; readonly x: number; readonly y: number; readonly z: number }, transport: Transport): void {
+    this.room.join(at.join, at, 0, this.grid.current(SESSION_PLAYER));
+    this.rooms.connect(at.join, transport);
+  }
   /** A harness's word on this world's blows from a player: real hits, and a long fight's end within a proof's reach. */
   hardHits(by: number): void {
     const { host } = this;

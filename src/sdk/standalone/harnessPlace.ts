@@ -5,7 +5,13 @@
 export interface HarnessPlace { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number }
 /** How hard this player's blows land, for a harness that walks a long fight to its end by real ones. */
 export interface HarnessHits { readonly hits: number }
+/** A proof's second client: it stands here in this cell, on the port that comes with this message. `player` names it after that. */
+export interface HarnessJoin { readonly join: string; readonly x: number; readonly y: number; readonly z: number }
+/** Move a joined client's body. */
+export interface HarnessMove extends HarnessPlace { readonly move: string }
+export const isHarnessJoin = (value: unknown): value is HarnessJoin => typeof value === 'object' && value !== null && 'join' in value && typeof value.join === 'string' && 'x' in value && typeof value.x === 'number' && 'y' in value && typeof value.y === 'number' && 'z' in value && typeof value.z === 'number';
 export const isHarnessHits = (value: unknown): value is HarnessHits => typeof value === 'object' && value !== null && 'hits' in value && typeof value.hits === 'number';
 export const isHarnessPlace = (value: unknown): value is HarnessPlace => typeof value === 'object' && value !== null
   && 'x' in value && typeof value.x === 'number' && 'y' in value && typeof value.y === 'number'
   && 'z' in value && typeof value.z === 'number' && 'yaw' in value && typeof value.yaw === 'number';
+export const isHarnessMove = (value: unknown): value is HarnessMove => typeof value === 'object' && value !== null && 'move' in value && typeof value.move === 'string' && isHarnessPlace(value);

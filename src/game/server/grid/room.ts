@@ -33,8 +33,8 @@ export class GridRoom {
     (from, to) => { this.travels.push({ player, from, to }); });
     this.crossings.set(player, { session, scope });
   }
-  /** Another player comes onto the highway at `at`, world coordinates. */
-  join(player: string, at: Readonly<GridPoint>, yaw = 0): void { this.grid.join(player, at, yaw); this.watch(player); }
+  /** Another player comes onto the highway at `at`, world coordinates, or into the world at `site`, in its own. */
+  join(player: string, at: Readonly<GridPoint>, yaw = 0, site: string | null = null): void { this.grid.join(player, at, yaw, site); this.watch(player); }
   /** A player leaves, wherever they stand. */
   leave(player: string): boolean {
     const crossing = this.crossings.get(player);
