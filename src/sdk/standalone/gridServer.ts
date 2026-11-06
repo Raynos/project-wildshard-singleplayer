@@ -37,13 +37,16 @@ import { bindShardfileSim, createShardfileSim, HOST_PROBE, type ShardfileSimPort
 import { installRoomRespawn } from '@wildshard/game/roomRespawn';
 import { hasNativeAssembly } from '@wildshard/game/shardfile/nativeAssembly';
 import { installDeclaredClimate } from '@wildshard/game/shardfile/declaredClimate';
+import { installPlayerOwned, type PlayerOwned } from '@wildshard/game/loot/playerOwned';
+import { QUEST_OWNED } from '@wildshard/game/quest/nativeComposition';
+import { shardRows } from '@wildshard/engine/sim/shardRows';
 import { createQuestLedger } from '@wildshard/game/quest/ledger';
 import { serverPlaces } from '@wildshard/game/quest/serverPlaces';
 import { createTrustedHeadlessResident, type HeadlessRuntimeInput } from '../headlessRuntime';
 import type { HeadlessEffect } from '../tickProtocol';
 import { cellDocuments, CONTINUATION, ContinuationSlots, SITE, siteDocuments, type SavedContinuation, type SavedSite } from './continuation';
 import { ledgerFilings } from './ledgerFilings';
-import { netWorldInput, stepResident } from './netInput';
+import { netBuys, netWorldInput, stepResident } from './netInput';
 
 /** Worlds the worker holds beside the road, and so what a crossroads costs a phone (E5.2b, J68): the one its player stands in. */
 export const STANDALONE_RESIDENTS = 1;
@@ -66,6 +69,8 @@ interface CellWorld extends GridResident {
   readonly effects: () => readonly HeadlessEffect[];
   readonly step: (inputs: readonly NetTickInput[]) => void;
   readonly fact: (name: string, entity: string) => { readonly id: string; readonly status: 'granted' | 'duplicate' | 'pending' } | null;
+  /** What the player holds in this shard. */
+  readonly owned: PlayerOwned;
 }
 /** What the grid needs of its host. */
 export interface GridServerOptions {
@@ -167,6 +172,12 @@ function bindDiscovery(host: SimHost, places: readonly PlaceArea[]): void {
   };
 }
 
+/** What the player holds in a cell. A shard with goods sells them here. */
+function ownedOf(host: SimHost, input: HeadlessRuntimeInput): PlayerOwned {
+  const economy = input.shard.rows.loot.find(row => row.economy !== undefined)?.economy, sold = economy !== undefined && 'exchange' in economy ? economy.exchange : undefined;
+  return installPlayerOwned(host, input.shard.identity.slug, sold ?? null, !shardRows(host).owned.has(QUEST_OWNED));
+}
+
 /** Whether this output runs on the trusted headless owner. */
 const nativeCell = (input: HeadlessRuntimeInput): boolean => input.product !== undefined && (hasNativeAssembly(input.product) || input.product.has('sim/runtime-plan'));
 
@@ -266,7 +277,8 @@ export class StandaloneGrid {
       bindDiscovery(host, input.product === undefined ? [] : await serverPlaces(input.product));
       if (snapshot === undefined) addEdge(host, options.lone === true);
       host.respawn.served = true;
-      return { host, dispose: () => { resident.dispose(); }, fact, effects: () => resident.effects,
+      const owned = ownedOf(host, input);
+      return { host, owned, dispose: () => { resident.dispose(); }, fact, effects: () => resident.effects,
         adopt: () => { regionalRuntimeCheckpoint(options.saves, placed, input.shard.identity.revision).restore({ animals: [...host.entities.values()] }); return true; }, step: inputs => {
         const player = sessionPlayer(host);
         near?.update(player.position.x, player.position.z);
@@ -278,14 +290,16 @@ export class StandaloneGrid {
     installDeclaredClimate(host, input.shard.rows);
     bindDiscovery(host, input.product === undefined ? [] : await serverPlaces(input.product));
     host.respawn.served = true;
-    return { host, dispose, fact, effects: () => effects, adopt: () => { const held = sim(); return held === undefined || importPageProgress(options.saves, placed, input.shard, held); }, step: inputs => {
+    return { host, owned: ownedOf(host, input), dispose, fact, effects: () => effects, adopt: () => { const held = sim(); return held === undefined || importPageProgress(options.saves, placed, input.shard, held); }, step: inputs => {
       effects.length = 0;
       // A data shard's prompts answer whoever stands at them; an id they don't offer that player is dropped, since an input may not end the server.
       const routes = actRoutes(host);
       for (const { player, acts } of inputs) for (const act of acts) {
+        const claim = act.kind === 'interact' ? routes.claims.get(act.id) : undefined;
         if (act.kind === 'interact' && act.id.startsWith('seen:') && routes.seen !== null) routes.seen(player, act.id);
+        else if (claim !== undefined) claim(player);
         else if (act.kind === 'interact' && sim()?.selectedInteraction(player) === act.id) sim()?.interact(act.id, player);
-        else if (act.kind !== 'climate') routes.refused++;
+        else if (act.kind !== 'climate' && act.kind !== 'buy') routes.refused++;
       }
       host.step(commandsOf(inputs));
     } };
@@ -293,7 +307,8 @@ export class StandaloneGrid {
 
   private step(site: string | null, inputs: readonly NetTickInput[]): boolean {
     const started = this.options.now(), world = site === null ? undefined : this.worlds.get(site);
-    netWorldInput(actRoutes(this.grid.hostOf(site)), inputs);
+    const routes = actRoutes(this.grid.hostOf(site));
+    netWorldInput(routes, inputs); netBuys(routes, inputs);
     if (world === undefined) this.grid.stepSite(site, commandsOf(inputs)); else world.step(inputs);
     const host = this.grid.hostOf(site), player = sessionPlayer(host);
     // The page used to catch a fall, on its own body. The server's world has nothing below it, so it would fall for ever.
@@ -303,7 +318,10 @@ export class StandaloneGrid {
   }
   private filings(site: string | null, first: string): ReturnType<typeof ledgerFilings> {
     const world = site === null ? undefined : this.worlds.get(site);
-    return world === undefined ? [] : ledgerFilings(world.host, first, world.effects(), world.fact);
+    if (world === undefined) return [];
+    const filings = ledgerFilings(world.host, first, world.effects(), world.fact);
+    for (const filing of filings) world.owned.file(filing);
+    return filings;
   }
   /** Worlds held beside the road. */
   get residents(): number { return this.worlds.size; }

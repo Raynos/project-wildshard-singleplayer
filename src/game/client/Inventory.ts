@@ -63,6 +63,7 @@ export class Inventory {
   /** kinds an older save held that this shard's pack no longer keeps (read once by the loadout's migration) */
   private legacy = new Set<ItemId>();
   onChange?: () => void;
+  private writes = true;
 
   readonly chunkId: string;
   constructor(chunkId: string) {
@@ -85,9 +86,17 @@ export class Inventory {
   /** Legacy ownership reads accept row identities, including items absent from the live pack catalogue. */
   had(id: string): boolean { const legacy: ReadonlySet<string> = this.legacy; return legacy.has(id); }
 
-  private save() { inventorySave.write({ counts: this.counts, order: this.order }, saveSlug(this.chunkId)); }
+  private save() { if (this.writes) inventorySave.write({ counts: this.counts, order: this.order }, saveSlug(this.chunkId)); }
   /** Confirm the current pack is durable before leaving its live cell; failed storage remains retryable. */
-  checkpoint(): boolean { return inventorySave.write({ counts: this.counts, order: this.order }, saveSlug(this.chunkId)); }
+  checkpoint(): boolean { return !this.writes || inventorySave.write({ counts: this.counts, order: this.order }, saveSlug(this.chunkId)); }
+  /** Take the pack from who owns it (J130): it tells who listens, and this page saves no pack from now on. */
+  mirror(counts: ReadonlyMap<string, number>): void {
+    this.writes = false;
+    const known = [...counts.keys()].filter((id): id is ItemId => id in ITEMS);
+    this.counts = Object.fromEntries(known.map(id => [id, counts.get(id) ?? 0]));
+    this.order = [...this.order.filter(id => counts.has(id)), ...known.filter(id => !this.order.includes(id))];
+    this.onChange?.();
+  }
 
   /** false, and nothing added, for a kind this shard does not keep or a new kind with every slot taken */
   add(id: ItemId, n = 1): boolean {

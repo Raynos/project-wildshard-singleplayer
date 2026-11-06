@@ -55,6 +55,8 @@ export interface NetWorld {
   combat?: () => readonly CombatEvent[];
   /** A player's quests, when they moved past `since`. A world with no quests leaves it out. */
   quests?: (player: string, since: number) => { readonly version: number; readonly rows: readonly QuestProgress[]; readonly flags: readonly string[] } | null;
+  /** What a player holds in this world, into `out`. A world with nothing held leaves it out. */
+  owned?: (player: string, out: Map<string, number>) => void;
   /** What the tick granted (M8), each to its player. A world with no ledger leaves it out. */
   ledger?: () => readonly LedgerFiling[];
   /** Who rides what, by id, as of this tick (J48). A world with no riding leaves it out. */
@@ -102,6 +104,8 @@ interface RoomClient {
   ack: number; readonly acts: HeldAct[]; readonly known: Set<number>;
   /** The quest rows this client holds, and the book version they came from. */
   questVersion: number; readonly quests: Map<string, string>; readonly phased: Set<string>;
+  /** The lines of what its player holds that this client has been told. */
+  readonly owned: Map<string, number>;
   /** Who it has heard riding what, in handles: what the next `mount` and `dismount` are a change from. */
   readonly rides: Map<number, number>;
   /** What this client could see at each recent frame: a baseline is the frame and this set. */
@@ -125,6 +129,7 @@ export class NetRoom {
   private readonly ring = new WorldFrameRing();
   private readonly writer = new BitWriter(4096);
   private readonly rideOut = new Float64Array(RIDE_WORDS);
+  private readonly held = new Map<string, number>();
   private readonly world: NetWorld;
   private readonly step: NetRoomOptions['step'];
   private readonly build: string;
@@ -147,7 +152,7 @@ export class NetRoom {
   /** Connect a client that owns `player`. It waits for its `hello`, and past that for `open`. Returns its id. */
   join(transport: Transport, player: NetPlayer = this.world.player, queue: CommandQueue = new CommandQueue()): number {
     const id = ++this.clientIds, owner = new Float64Array(player.cls.owner.length);
-    const client: RoomClient = { id, transport, player, queue, identity: GUEST, credit: MAX_CLIENT_MESSAGES, ledgerSeen: 0, state: 'new', ack: -1, acts: [], known: new Set(), questVersion: -1, quests: new Map(), phased: new Set(), rides: new Map(), owner,
+    const client: RoomClient = { id, transport, player, queue, identity: GUEST, credit: MAX_CLIENT_MESSAGES, ledgerSeen: 0, state: 'new', ack: -1, acts: [], known: new Set(), questVersion: -1, quests: new Map(), phased: new Set(), owned: new Map(), rides: new Map(), owner,
       views: Array.from({ length: FRAME_RING }, () => ({ tick: -1, visible: new Set<number>(), due: new Set<number>(), rows: new Map<number, number>() })), nextView: 0, dispose: () => undefined };
     const off = transport.onMessage((channel, bytes) => { this.receive(client, channel, bytes); });
     const closed = transport.onClose(() => { this.remove(client); });
@@ -357,6 +362,14 @@ export class NetRoom {
       rides.set(rider, mount); said('mount', rider, mount);
     }
   }
+  /** A client hears what its player holds, line by line as each changes, and all of it on arriving in a world. */
+  private ownedEvents(client: RoomClient, tick: number, events: NetEvent[]): void {
+    const { held } = this;
+    held.clear();
+    this.world.owned?.(client.player.id, held);
+    for (const [name, value] of held) if (client.owned.get(name) !== value) { client.owned.set(name, value); events.push({ kind: 'owned', tick, name, value }); }
+    for (const name of client.owned.keys()) if (!held.has(name)) { client.owned.delete(name); events.push({ kind: 'owned', tick, name, value: 0 }); }
+  }
   private send(client: RoomClient, frame: WorldFrame, retired: readonly number[], combat: readonly RoomCombat[], lines: readonly ChatLine[], riders: ReadonlyMap<number, number>): void {
     const { handles, writer, world } = this, own = handles.refs(client.player.id), view = this.view(client, frame, own), events: NetEvent[] = [];
     for (const handle of view.visible) {
@@ -387,6 +400,7 @@ export class NetRoom {
       for (const flag of client.phased) if (!quests.flags.includes(flag)) { client.phased.delete(flag); events.push({ kind: 'phase', tick: frame.tick, flag, on: false }); }
       for (const flag of quests.flags) if (!client.phased.has(flag)) { client.phased.add(flag); events.push({ kind: 'phase', tick: frame.tick, flag, on: true }); }
     }
+    this.ownedEvents(client, frame.tick, events);
     for (const line of lines) {
       const from = handles.refs(line.body);
       if (!this.hears(frame, own, line, from)) continue;

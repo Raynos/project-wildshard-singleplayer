@@ -68,6 +68,10 @@ export class NetClient {
   private readonly granted = new Set<string>();
   /** This client's own player's quests, newest row each (P1-E3.3): what a QuestReplica reads. */
   readonly quests: Map<string, QuestProgress> = new Map<string, QuestProgress>();
+  /** What this client's own player holds in this world, by line. A row that went to 0 is gone. */
+  readonly owned: Map<string, number> = new Map<string, number>();
+  /** Moves each time a line of `owned` does. */
+  ownedVersion = 0;
   /** Who rides what, in handles, as far as this client has heard (J48). */
   readonly riders: Map<number, number> = new Map<number, number>();
   /** The flags up in this client's own world (J106): what its view of a gate or a key reads. */
@@ -167,6 +171,7 @@ export class NetClient {
       if (event.kind === 'hit' || event.kind === 'died' || event.kind === 'reward') { for (const listener of this.fights) listener(event); this.delivery.receive(event); continue; }
       if (event.kind === 'quest') { this.quests.set(event.quest, event); continue; }
       if (event.kind === 'ledger') { this.receipt(event); continue; }
+      if (event.kind === 'owned') { if (event.value === 0) this.owned.delete(event.name); else this.owned.set(event.name, event.value); this.ownedVersion++; continue; }
       if (event.kind === 'chat') { for (const listener of this.lines) listener(event); continue; }
       if (event.kind === 'travel') { this.left(); for (const listener of this.travels) listener(event); continue; }
       if (event.kind === 'mount' || event.kind === 'dismount') {
@@ -190,7 +195,7 @@ export class NetClient {
     }
   }
   /** Everything it holds named the cell it left. Commands stand: the player's own stream goes on. */
-  private left(): void { this.welcome = null; this.latest = null; this.clock.reset(); this.interpolator.clear(); this.delivery.clear(); this.frames.clear(); this.entities.clear(); this.ids.clear(); this.quests.clear(); this.phased.clear(); this.riders.clear(); this.ledgerSerial = 0; }
+  private left(): void { this.welcome = null; this.latest = null; this.clock.reset(); this.interpolator.clear(); this.delivery.clear(); this.frames.clear(); this.entities.clear(); this.ids.clear(); this.quests.clear(); this.phased.clear(); this.riders.clear(); this.owned.clear(); this.ownedVersion++; this.ledgerSerial = 0; }
   private receipt(event: NetLedger): void {
     if (event.serial <= this.ledgerSerial || this.granted.has(event.id)) return;
     this.ledgerSerial = event.serial; this.granted.add(event.id);

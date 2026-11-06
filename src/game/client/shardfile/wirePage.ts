@@ -7,6 +7,10 @@ import type { NetRoomAct } from '@wildshard/engine/net/acts';
 import { DAY_ROW } from '@wildshard/engine/sim/shardRows';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import type { ClimateWord } from '../weather/netClimate';
+import type { Inventory } from '../Inventory';
+import { OWNED_ROW } from '../../shared/loot/ownedRows';
+import type { Owned } from '../../shared/loot/Owned';
+import type { Purse } from '../../shared/loot/Purse';
 import { QuestViewFeed } from '@wildshard/engine/quest/view/replica';
 import type { QuestDef } from '@wildshard/engine/quest/core';
 import type { QuestGateView, QuestView } from '@wildshard/engine/quest/viewPort';
@@ -19,6 +23,12 @@ import { netCreatureCount } from '../population/netCounts';
 import type { MoverView } from '../../server/plugin/mover';
 
 type Live = (client: NetClient) => (() => void) | undefined;
+/** What a page draws of what its player holds. */
+export interface WireHoldings {
+  readonly purse?: Pick<Purse, 'mirror'>; readonly inventory?: Pick<Inventory, 'mirror'>; readonly gear?: Pick<Owned, 'grant'>;
+}
+/** A page's own copy of a save that the server keeps: it reads the page's last word and writes nothing. */
+export const readOnlySave = <T extends object>(save: T & { readonly write: unknown }): T => new Proxy(save, { get: (target, name) => name === 'write' ? (): boolean => true : Reflect.get(target, name, target) as unknown });
 /** The page's day clock, as a row sets it. */
 export type DayFollower = Pick<DayCycleClock, 'phase' | 'paused'>;
 const NO_ROWS: readonly EncounterRow[] = [];
@@ -35,6 +45,8 @@ export class WirePage {
   stop: () => void = () => undefined;
   /** Mover views by id: rows pose them, and no script runs them here. */
   readonly movers: Map<string, MoverView> = new Map<string, MoverView>();
+  /** Whether the server is carrying this player's body now. */
+  led: () => boolean = () => false;
   /** The head over a row's body, into `to`: what an elite's bar stands on. */
   readonly head: (body: number, to: Vector3) => boolean = (body, to) => this.heads(body, to);
   /** How many poses rows have set: what a proof reads. */
@@ -57,6 +69,8 @@ export class WirePage {
   /** This player's word on the sky: every world keeps its own weather, so each one hears it as this page gets there. */
   private readonly skyWords = new Map<ClimateWord['op'], ClimateWord>();
   private dayRow: number | undefined;
+  private readonly holdings = new Set<WireHoldings>();
+  private ownedAt = -1;
   get on(): boolean { return workerClientOn(); }
 
   /** Run `use` once there is a client, now or later, until `scope` ends. What it returns runs when `scope` does. */
@@ -87,6 +101,21 @@ export class WirePage {
     if (clock === null || phase === undefined || phase === this.dayRow || clock.paused) return;
     this.dayRow = phase; clock.phase = phase;
   }
+  /** What this page shows of what its player holds: `hold`'s until `scope` ends. */
+  hold(holdings: WireHoldings, scope: Scope): void { this.holdings.add(holdings); this.ownedAt = -1; scope.onDispose(() => { this.holdings.delete(holdings); }); }
+  /** The server's lines, onto the page's purse, pack and gear. They only say what's so: the server owns all three. */
+  private mirrorOwned(client: NetClient): void {
+    if (client.ownedVersion === this.ownedAt || !client.owned.has(OWNED_ROW.coins)) return;
+    this.ownedAt = client.ownedVersion;
+    const pack = new Map<string, number>(), { owned } = client;
+    for (const [name, value] of owned) if (name.startsWith(OWNED_ROW.item)) pack.set(name.slice(OWNED_ROW.item.length), value);
+    for (const { purse, inventory, gear } of this.holdings) {
+      purse?.mirror(owned.get(OWNED_ROW.coins) ?? 0); inventory?.mirror(pack);
+      for (const name of owned.keys()) if (name.startsWith(OWNED_ROW.owned)) gear?.grant(name.slice(OWNED_ROW.owned.length));
+    }
+  }
+  /** Buy a good of this shard's exchange: the server checks it and takes the price. */
+  buy(good: number): void { this.act({ kind: 'buy', seq: 0, good }); }
   /** One press of a prompt the server knows by this id. */
   send(id: string): void { this.press(id); }
   /** A quest view for `def`, over this player's rows. */
@@ -111,7 +140,7 @@ export class WirePage {
   frame(level: string | null, here: boolean, clock: DayFollower | null = null): void {
     const { client } = this;
     if (client === null || client.latest === null || !here) return;
-    this.followDay(clock, client);
+    this.followDay(clock, client); this.mirrorOwned(client);
     for (const [id, row] of client.quests) this.quests.set(id, row);
     this.heard.clear(); for (const flag of client.phased) this.heard.add(flag);
     const held = new Set([...client.flags(), ...client.phased]), now = client.latest.tick;

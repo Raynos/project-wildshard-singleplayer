@@ -128,6 +128,7 @@
     "./plugin/nativeItems": "./server/plugin/nativeItems.ts",
     "./plugin/nativeSwept": "./server/plugin/nativeSwept.ts",
     "./loot/personal": "./server/loot/personal.ts",
+    "./loot/playerOwned": "./server/loot/playerOwned.ts",
     "./roomRespawn": "./server/roomRespawn.ts",
     "./quest/serverPlaces": "./server/quest/serverPlaces.ts",
     "./loadout/itemCatalogue": "./shared/loadout/itemCatalogue.ts",

@@ -1090,6 +1090,8 @@
   "src/game/shared/loot/exchange.ts": "shared",
   "src/game/shared/loot/Owned.ts": "shared",
   "src/game/shared/loot/Purse.ts": "shared",
+  "src/game/shared/loot/ownedRows.ts": "shared",
+  "src/game/server/loot/playerOwned.ts": "server",
   "src/game/server/loot/personal.ts": "server",
   "src/game/client/loot/runtime.ts": "client",
   "src/game/client/loot/feed.ts": "client",

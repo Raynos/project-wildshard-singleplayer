@@ -11,7 +11,8 @@ import { CoinBurst } from './CoinBurst';
 import { Purse, publishPurse } from '../../shared/loot/Purse';
 import { coinsOn, type LootGate } from './coins';
 import { pageLootFeed, type LootFeed } from './feed';
-import { wirePage } from '../shardfile/wirePage';
+import { readOnlySave, wirePage } from '../shardfile/wirePage';
+import { purseSave } from '../../shared/saves';
 import { OWNED,isCosmetic, isOwnedId, type Owned, type OwnedId } from '../../shared/loot/Owned';
 import { declaredLootPresentation } from '../../shared/shard/declaredRows';
 import { createFindsCatalogue } from '../../shared/bag/findsCatalogue';
@@ -61,7 +62,9 @@ export function installLoot<A extends LootBody>(h: ScopedLootHost<A>): ScopedLoo
   if (!coinsOn(h.manifest)) return { purse: null, dispose: () => undefined };
   const { ctx, owned, presentation: view } = h;
   const lifetime = ctx.scope.child('loot');
-  const purse = new Purse(h.manifest.slug), burst = new CoinBurst(h.scene);
+  // J130: on the wire the server owns the coins, and a page's purse only shows its rows
+  const purse = new Purse(h.manifest.slug, wirePage.on ? readOnlySave(purseSave) : undefined), burst = new CoinBurst(h.scene);
+  if (wirePage.on) wirePage.hold({ purse }, lifetime);
   let chip: CoinChip | null = null, entered = false, leave: (() => void) | null = null;
   const releasePurse = publishPurse(ctx.scope, purse);
   let live = true, charted = false;
@@ -74,7 +77,7 @@ export function installLoot<A extends LootBody>(h: ScopedLootHost<A>): ScopedLoo
   const projected = new THREE.Vector3(), fell = new THREE.Vector3();
   const offPayouts = feed.onPayout(({ at, coins: n }) => {
     if (!live) return;
-    burst.spawn(fell.set(at.x, at.y, at.z), n, (share) => { purse.add(share, false); }, () => { flush(); view.chime(); });
+    burst.spawn(fell.set(at.x, at.y, at.z), n, (share) => { if (!wirePage.on) purse.add(share, false); }, () => { flush(); view.chime(); });
     projected.set(at.x, at.y + 1.5, at.z).project(h.camera);
     if (chip !== null && projected.z < 1 && Math.abs(projected.x) < 1.1 && Math.abs(projected.y) < 1.1) chip.pop((projected.x + 1) * 0.5 * window.innerWidth, (1 - projected.y) * 0.5 * window.innerHeight, n);
   });

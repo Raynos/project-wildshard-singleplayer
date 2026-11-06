@@ -33,9 +33,13 @@ import { takeNativeBossReward } from '../boss/native';
 import { ReturnProgram } from '../../shared/population/returnProgram';
 import { questBooks } from '@wildshard/engine/quest/players';
 import { actRoutes } from '@wildshard/engine/sim/actRoutes';
+import { publishOwned } from '@wildshard/engine/sim/shardRows';
+import { OWNED_ROW } from '../../shared/loot/ownedRows';
 
 const promptLoans = new WeakMap<SimHost, Map<string, readonly HeadlessPrompt[]>>();
 /** Borrow the actual bound roster, including unhosted prompts and live reach. */
+/** The owner of a quest's pack on a world's owned rows. */
+export const QUEST_OWNED = 'quest';
 export function nativeQuestPromptRoster(host: SimHost, id: string): readonly HeadlessPrompt[] {
   const roster = promptLoans.get(host)?.get(id);
   if (host.scope.disposed || roster === undefined) throw new Error('Missing native quest prompt roster');
@@ -185,8 +189,13 @@ export function installNativeQuestComposition(host: SimHost, ports: NativeQuestC
   const earlyCounters = rows.counts === 'declared' ? entry.achievements(ports.counters, Object.fromEntries(ports.counters.feats.map(feat => [feat.id, 0]))) : null;
   const graph = entry.install(commandOwners());
   // Every prompt with an act answers a client by name: a sword or a cable is a command too, not only the graph's rows.
+  publishOwned(host, QUEST_OWNED, (player, out) => { if (player === books.lead.player) for (const [id, count] of Object.entries(pack.snapshot().counts)) out.set(`${OWNED_ROW.item}${id}`, count); });
+  if (rows.trade !== undefined) actRoutes(host).buy = (player, good) => { const { trader: seat } = gearOf(player); if (seat !== null) { seat.open(); try { seat.use(good); } finally { seat.close(); } } };
   const interactions = actRoutes(host).interactions, promptActor = ports.source.questHost?.graph.actor;
   if (promptActor !== undefined) for (const prompt of promptRoster ?? []) if (typeof prompt.id === 'string' && prompt.act !== null && !interactions.has(prompt.id)) interactions.set(prompt.id, { actorId: promptActor, value: prompt.act });
+  // A page names its cable by mode: that's the id both sides read from their own rows.
+  const cableRoute = rows.prompts === undefined ? undefined : interactions.get(rows.prompts.cable.id);
+  if (cableRoute !== undefined) interactions.set(cableId, cableRoute);
   const quests = graph.quests, chapter = quests.quests[0];
   const traderFor = (bag: typeof pack, owns: (skin: string) => boolean, own: (skin: string) => void, quiver: typeof ammunition, bolts: NativeBoltItem | null): Exchange | null => rows.trade === undefined ? null : new Exchange(ports.trades, new Map<string, unknown>([[rows.trade.pack, bag],
     ['skins', { owns, own }],

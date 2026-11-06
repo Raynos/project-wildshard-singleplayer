@@ -58,6 +58,7 @@ export class SimNetWorld implements NetWorld {
   combat(): readonly CombatEvent[] { return this.wire.drain(); }
   ledger(): readonly LedgerFiling[] { return this.filings?.() ?? []; }
   quests(player: string, since: number): QuestProgressRead | null { return questBooks(this.host).progressOf(player, since); }
+  owned(player: string, out: Map<string, number>): void { for (const read of shardRows(this.host).owned.values()) read(player, out); }
   visit(visitor: NetVisitor): void {
     const { host, pose } = this, targets = new Map(host.attackTargets());
     for (const player of host.players.values()) if (!host.parked.has(player.id)) visitor.entity(player.id, PLAYER_CLASS, player);

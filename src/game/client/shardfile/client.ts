@@ -570,8 +570,8 @@ export class ShardfileClient {
         if (revision === undefined || unsaved()) return undefined;
         return `${String(revision)}|${String(ledger.recordCount)}|${String(encounterWrites)}|${clientStateMark(source, sim, items.runtimes)}`;
       } });
-    const checkpoint = cadence.now;
-    sim.host.onStep('client.save', () => { cadence.step(sim.host.state.tick); });
+    const checkpoint = (): boolean => wirePage.on || cadence.now(); // on the wire the server's session keeps this world's saves
+    sim.host.onStep('client.save', () => { if (!wirePage.on) cadence.step(sim.host.state.tick); });
     ctx.scope.onDispose(() => { checkpoint(); });
     ctx.scope.listen(window, 'pagehide', () => { checkpoint(); });
     ctx.scope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'hidden') checkpoint(); });

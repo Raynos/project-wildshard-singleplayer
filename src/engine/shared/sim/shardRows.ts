@@ -6,8 +6,12 @@ export interface ScriptNetView {
 }
 /** One public shared field of a shard's declared state, by its declared name. */
 export interface StateNetRow { readonly name: string; readonly value: number }
+/** One owner's lines for a player. */
+export type OwnedRead = (player: string, out: Map<string, number>) => void;
 /** What a host's shard publishes to a room. Read only when a room samples it; the page publishes too and never reads. */
 export interface ShardRows {
+  /** What each player holds in this world, by whoever keeps it, into `out`. */
+  readonly owned: Map<string, OwnedRead>;
   readonly bodies: Map<string, () => ScriptNetView>;
   state: (() => readonly StateNetRow[]) | null;
   /** `state` rows a world system publishes for itself, by that system's id (E6: weather). */
@@ -24,11 +28,11 @@ export function publishDay(host: RowHost, clock: { readonly phase: number }): vo
   publishWorldState(host, 'day', () => { row.value = Math.round(clock.phase * DAY_STEPS) / DAY_STEPS; return rows; });
 }
 const books = new WeakMap<object, ShardRows>();
-const NO_ROWS: ShardRows = { bodies: new Map<string, () => ScriptNetView>(), state: null, world: new Map<string, () => readonly StateNetRow[]>() };
+const NO_ROWS: ShardRows = { owned: new Map<string, OwnedRead>(), bodies: new Map<string, () => ScriptNetView>(), state: null, world: new Map<string, () => readonly StateNetRow[]>() };
 interface RowHost { readonly scope: { readonly onDispose: (run: () => void) => unknown } }
 function bookOf(host: RowHost): ShardRows {
   let book = books.get(host);
-  if (book === undefined) { const fresh: ShardRows = { bodies: new Map<string, () => ScriptNetView>(), state: null, world: new Map<string, () => readonly StateNetRow[]>() }; book = fresh; books.set(host, fresh); host.scope.onDispose(() => { fresh.bodies.clear(); fresh.state = null; fresh.world.clear(); }); }
+  if (book === undefined) { const fresh: ShardRows = { owned: new Map<string, OwnedRead>(), bodies: new Map<string, () => ScriptNetView>(), state: null, world: new Map<string, () => readonly StateNetRow[]>() }; book = fresh; books.set(host, fresh); host.scope.onDispose(() => { fresh.owned.clear(); fresh.bodies.clear(); fresh.state = null; fresh.world.clear(); }); }
   return book;
 }
 /** Publish a script body under its stable id for the host's lifetime. */
@@ -48,6 +52,12 @@ export function publishWorldState(host: RowHost, id: string, read: () => readonl
   const { world } = bookOf(host);
   if (world.has(id)) throw new Error(`Duplicate world rows ${id}`);
   world.set(id, read);
+}
+/** Publish what an owner keeps for each player, for the host's lifetime. A later owner's line for the same name wins. */
+export function publishOwned(host: RowHost, id: string, read: OwnedRead): void {
+  const { owned } = bookOf(host);
+  if (owned.has(id)) throw new Error(`Duplicate owned rows ${id}`);
+  owned.set(id, read);
 }
 /** Everything a host publishes. */
 export function shardRows(host: object): ShardRows { return books.get(host) ?? NO_ROWS; }

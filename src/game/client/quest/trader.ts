@@ -1,3 +1,4 @@
+import { wirePage } from '../shardfile/wirePage';
 import type { ShardContext } from '../plugin/context';
 import { FigureRows } from '../systems/npc/figureRows';
 import { QuestTraderSchema } from '@wildshard/format/namedJsonContracts';
@@ -159,7 +160,8 @@ export function installQuestShop(ctx: ShardContext, input: unknown): () => ShopP
       const selected = index(good);
       if (!panel.isOpen || selected < 0) return false;
       let bought: boolean;
-      exchange.open(); try { bought = exchange.use(selected); } finally { exchange.close(); }
+      if (wirePage.on) { bought = exchange.check(selected).ok; if (bought) wirePage.buy(selected); } // the server takes the price, and what it took reaches these rows
+      else { exchange.open(); try { bought = exchange.use(selected); } finally { exchange.close(); } }
       if (!bought) return false;
       for (const effect of feedback.get(good.id) ?? []) effect();
       return true;

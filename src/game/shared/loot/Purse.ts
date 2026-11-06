@@ -45,6 +45,13 @@ export class Purse {
     this.n = saved.coins; this.dirty = saved.unsaved;
   }
 
+  /** Take the balance from who owns it (J130): it tells who listens and writes nothing. */
+  mirror(coins: number): void {
+    const delta = coins - this.n;
+    if (delta === 0) return;
+    this.n = coins; this.dirty = false;
+    for (const listener of this.listeners.slice()) listener(coins, delta);
+  }
   get coins(): number { return this.n; }
   /** coins counted but not written yet */
   get unsaved(): boolean { return this.dirty; }

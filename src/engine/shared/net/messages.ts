@@ -75,13 +75,15 @@ export interface NetTravel { readonly kind: 'travel'; readonly tick: number; rea
 /** A player got on or off a ride (J48, §4.3). The ride itself is not predicted: a client's rider waits for this. `seq` is the command it stood at, 0 for anyone else's. */
 interface NetRideChange<Kind extends string> { readonly kind: Kind; readonly tick: number; readonly rider: number; readonly mount: number; readonly seq: number }
 export type NetRide = NetRideChange<'mount'> | NetRideChange<'dismount'>;
-export type NetEvent = NetSpawn | NetDespawn | NetCombatEvent | NetQuest | NetPhase | NetTravel | NetLedger | NetChat | NetRide;
+/** One line of what this client's own player holds in this world, a purse's coins or a pack's count, as it changed. 0 is gone. */
+export interface NetOwned { readonly kind: 'owned'; readonly tick: number; readonly name: string; readonly value: number }
+export type NetEvent = NetSpawn | NetDespawn | NetCombatEvent | NetQuest | NetPhase | NetTravel | NetLedger | NetChat | NetRide | NetOwned;
 /** The events' and commands' wire form, in NET_SCHEMA_HASH: a change here must refuse a stale client like a field table's does (J54). */
-export const NET_EVENT_FORMS = 'hit:h16,f32,p48,b,b,u16;died:h16,h16,d24,f32;quest:s,b,b,s,u16;phase:s,b;reward:u32,h16;travel:u16,u16;ledger:u32,u32,s,u2,s,f32,b;chat:u32,u32,b,h16,s,s;buttons:u8,b,u8;lockTarget:h16;hookTarget:u16;ride:u8;fresh:b;mount:h16,h16,u16;dismount:h16,h16,u16;rideWords:b,u8,f32;climate:b,s,f32';
+export const NET_EVENT_FORMS = 'hit:h16,f32,p48,b,b,u16;died:h16,h16,d24,f32;quest:s,b,b,s,u16;phase:s,b;reward:u32,h16;travel:u16,u16;ledger:u32,u32,s,u2,s,f32,b;chat:u32,u32,b,h16,s,s;buttons:u8,b,u8;lockTarget:h16;hookTarget:u16;ride:u8;fresh:b;mount:h16,h16,u16;dismount:h16,h16,u16;rideWords:b,u8,f32;climate:b,s,f32;buy:u16;owned:s,f32';
 /** The spawn's column widths, which only the receiver's class table knows. */
 export type InitialBits = (cls: number) => { readonly bits: readonly number[]; readonly text: number } | undefined;
 
-const EVENT_SPAWN = 1, EVENT_DESPAWN = 2, EVENT_HIT = 3, EVENT_DIED = 4, EVENT_QUEST = 5, EVENT_PHASE = 6, EVENT_REWARD = 7, EVENT_TRAVEL = 8, EVENT_LEDGER = 9, EVENT_CHAT = 10, EVENT_MOUNT = 11, EVENT_DISMOUNT = 12;
+const EVENT_SPAWN = 1, EVENT_DESPAWN = 2, EVENT_HIT = 3, EVENT_DIED = 4, EVENT_QUEST = 5, EVENT_PHASE = 6, EVENT_REWARD = 7, EVENT_TRAVEL = 8, EVENT_LEDGER = 9, EVENT_CHAT = 10, EVENT_MOUNT = 11, EVENT_DISMOUNT = 12, EVENT_OWNED = 13;
 /** Cell-local metres, as a field table declares them (§3.5). */
 const METRES = 260, METRE_TOP = 0xffff, UNIT_TOP = 0xff;
 const clampTo = (value: number, limit: number): number => Math.max(-limit, Math.min(limit, value));
@@ -113,6 +115,7 @@ export function encodeEvents(writer: BitWriter, tick: number, events: readonly N
     if (event.kind === 'ledger') { writer.write(EVENT_LEDGER, 8); writeLedger(writer, event); continue; }
     if (event.kind === 'chat') { writer.write(EVENT_CHAT, 8); writeChat(writer, event); continue; }
     if (event.kind === 'mount' || event.kind === 'dismount') { writer.write(event.kind === 'mount' ? EVENT_MOUNT : EVENT_DISMOUNT, 8); writer.write(event.tick, 32); writer.write(event.rider, 16); writer.write(event.mount, 16); writer.write(event.seq, 16); continue; }
+    if (event.kind === 'owned') { writer.write(EVENT_OWNED, 8); writer.write(event.tick, 32); writer.writeText(event.name); writer.write(floatToBits(event.value), 32); continue; }
     if (event.kind === 'travel') { writer.write(EVENT_TRAVEL, 8); writer.write(event.tick, 32); writer.write(event.from, 16); writer.write(event.to, 16); continue; }
     if (event.kind === 'phase') { writer.write(EVENT_PHASE, 8); writer.write(event.tick, 32); writer.writeText(event.flag); writer.writeBool(event.on); continue; }
     if (event.kind === 'quest') { writer.write(EVENT_QUEST, 8); writer.write(event.tick, 32); writer.writeText(event.quest); writer.writeBool(event.started); writer.writeBool(event.step !== null); writer.writeText(event.step ?? ''); writer.write(event.n, 16); continue; }
@@ -135,6 +138,7 @@ export function decodeEvents(bytes: Uint8Array, bits: InitialBits): { readonly t
       if (kind === EVENT_LEDGER) { events.push(readLedger(reader)); continue; }
       if (kind === EVENT_CHAT) { events.push(readChat(reader)); continue; }
       if (kind === EVENT_MOUNT || kind === EVENT_DISMOUNT) { events.push({ kind: kind === EVENT_MOUNT ? 'mount' : 'dismount', tick: reader.read(32), rider: reader.read(16), mount: reader.read(16), seq: reader.read(16) }); continue; }
+      if (kind === EVENT_OWNED) { const at = reader.read(32), name = reader.readText(); events.push({ kind: 'owned', tick: at, name, value: bitsToFloat(reader.read(32)) }); continue; }
       if (kind === EVENT_TRAVEL) { events.push({ kind: 'travel', tick: reader.read(32), from: reader.read(16), to: reader.read(16) }); continue; }
       if (kind === EVENT_PHASE) { const at = reader.read(32), flag = reader.readText(); events.push({ kind: 'phase', tick: at, flag, on: reader.readBool() }); continue; }
       if (kind === EVENT_QUEST) {
@@ -151,7 +155,7 @@ export function decodeEvents(bytes: Uint8Array, bits: InitialBits): { readonly t
   });
 }
 
-const ACT_INTERACT = 1, ACT_RELOAD = 2, ACT_EQUIP = 3, ACT_CHAT = 4, ACT_REPORT = 5, ACT_RIDE = 6, ACT_CLIMATE = 7;
+const ACT_INTERACT = 1, ACT_RELOAD = 2, ACT_EQUIP = 3, ACT_CHAT = 4, ACT_REPORT = 5, ACT_RIDE = 6, ACT_CLIMATE = 7, ACT_BUY = 8;
 /** The ride acts, by their wire index. */
 const RIDE_ACTIONS = ['offer', 'mount', 'dismount'] as const;
 /** Encode an `act` message. */
@@ -161,6 +165,7 @@ export function encodeAct(writer: BitWriter, act: NetRoomAct): ArrayBuffer {
   else if (act.kind === 'reload') { writer.write(ACT_RELOAD, 8); writer.write(act.slot, 8); }
   else if (act.kind === 'equip') { writer.write(ACT_EQUIP, 8); writer.write(act.slot, 8); }
   else if (act.kind === 'ride') { writer.write(ACT_RIDE, 8); writer.write(RIDE_ACTIONS.indexOf(act.action), 8); }
+  else if (act.kind === 'buy') { writer.write(ACT_BUY, 8); writer.write(act.good, 16); }
   else if (act.kind === 'climate') { writer.write(ACT_CLIMATE, 8); writer.writeBool(act.op === 'force'); writer.writeText(act.name); writer.write(floatToBits(act.at), 32); }
   else if (act.kind === 'chat') { writer.write(ACT_CHAT, 8); writer.writeBool(act.channel === 'proximity'); writer.writeText(act.text); }
   else { writer.write(ACT_REPORT, 8); writer.write(act.line, 32); }
@@ -174,6 +179,7 @@ export function decodeAct(bytes: Uint8Array): NetRoomAct | null {
     if (kind === ACT_RELOAD) return { kind: 'reload', seq, slot: reader.read(8) };
     if (kind === ACT_EQUIP) return { kind: 'equip', seq, slot: reader.read(8) };
     if (kind === ACT_RIDE) { const action = RIDE_ACTIONS[reader.read(8)]; if (action === undefined) throw new NetDecodeError('Unknown ride act'); return { kind: 'ride', seq, action }; }
+    if (kind === ACT_BUY) return { kind: 'buy', seq, good: reader.read(16) };
     if (kind === ACT_CLIMATE) return { kind: 'climate', seq, op: reader.readBool() ? 'force' : 'mode', name: reader.readText(), at: bitsToFloat(reader.read(32)) };
     if (kind === ACT_CHAT) return { kind: 'chat', seq, channel: reader.readBool() ? 'proximity' : 'room', text: reader.readText() };
     if (kind === ACT_REPORT) return { kind: 'report', seq, line: reader.read(32) };
