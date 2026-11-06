@@ -12,10 +12,10 @@ import {createHash} from 'node:crypto';
 import {mkdirSync, writeFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {dirname, join} from 'node:path';
-import {assetIdentities, identityFiles, resolveFenceReads, sectionRefs} from '@wildshard/format/fenceReads';
+import {assetIdentities, identityFiles, resolveFenceReads, sectionRefs} from './fenceReads';
 import {COOK_DATA_PATH, readCookData, type CookData, type CookMount} from '@wildshard/format/cookData';
 import {assembleOutputShardfile, parseOutputIndex, type OutputIndex} from '@wildshard/format/outputIndex';
-import {SPAWN_PART_ALIGN, readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnPart} from '@wildshard/format/spawnManifest';
+import {SPAWN_PART_ALIGN, readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnPart} from '../shared/shardfile/spawnManifest';
 import type {Shardfile} from '@wildshard/format/shardSchema';
 import {readTar} from '@wildshard/format/tar';
 import type {ServerPack} from '../shared/shardfile/serverPack';

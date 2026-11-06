@@ -8,8 +8,8 @@ import {PickupCatalogueSchema} from '@wildshard/format/specimenCatalogue';
 import {parseOutputIndex} from '@wildshard/format/outputIndex';
 // oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {createHash} from 'node:crypto';
-import {readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnManifestAddress} from '@wildshard/format/spawnManifest';
-import {assetIdentities, audioTableRefs, bundlerSources as manifestSources, identityFiles, joinRefs, standInRefs, packMembers, readFenceReads, resolveFenceReads, sectionRefs, type PackPart} from '@wildshard/format/fenceReads';
+import {readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnManifestAddress} from '../shared/shardfile/spawnManifest';
+import {assetIdentities, audioTableRefs, bundlerSources as manifestSources, identityFiles, joinRefs, standInRefs, packMembers, readFenceReads, resolveFenceReads, sectionRefs, type PackPart} from './fenceReads';
 import {createPartEncoder, writeSpawnParts, type CookedMember, type SpawnPartEncoding} from './spawnParts';
 import {cookParts, cookServerPack, openShardfile, servedAsIs, shardHalf} from './shardCook';
 import type {ServerPack} from '../shared/shardfile/serverPack';
