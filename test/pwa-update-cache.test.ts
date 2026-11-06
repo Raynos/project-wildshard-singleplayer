@@ -37,7 +37,8 @@ test('document bytes remain data even when they contain worker marker text', () 
   const literal = /^const DOCUMENT = (.+);$/mu.exec(core)?.[1];
   if (literal === undefined) throw new Error('Missing document literal');
   expect(JSON.parse(literal)).toBe(html);
-  expect(core).toContain('const FILES = JSON.parse("[]");');
+  // No bundle file here, so the only rows left are the deck portraits a worker fetches after control.
+  expect(/^const FILES = JSON\.parse\("\[(.*)\]"\);$/mu.exec(core)?.[1]?.split(',').every(row => row.includes('-portrait-'))).toBe(true);
 });
 
 test('worker updates revalidate unchanged bytes and fetch a changed script in full', async () => {
