@@ -21,6 +21,7 @@ import { installNativeHeldAmmunition } from '../loadout/nativeAmmunition';
 import { prepareHeldArms } from '../weapons/nativeHeld';
 import { openArenaArrows, prepareOpenArena, type OpenArenaPlan } from '../boss/openArenaNative';
 import { patrolOf, preparePatrol } from '../boss/patrolNative';
+import { prepareSlots } from '../boss/slotsNative';
 import type { Wind } from '@wildshard/engine/world/steppeWind';
 import { dayClock } from '../../shared/looks/dayClock';
 import { keyedSkyDaySpec } from '../../shared/looks/keyedSkyClock';
@@ -157,8 +158,11 @@ export async function prepareAssemblyFeature<C extends NativeAssemblyContext>(ro
     }
     case 'encounter.patrol': {
       if (at.ports.room !== true) return () => undefined;
-      const patrol = await preparePatrol(product, { ...row, external: await readAssemblyInput<readonly unknown[]>(product, row.external) });
-      return run => { run.patrol = patrol.begin(run.host, { eliteDamage: (host, actor, request) => run.arena?.eliteDamage(host, actor, request) ?? 1, afterPatrol: (host, dt) => { run.arena?.advance(host, dt); } }); };
+      const patrol = await preparePatrol(product, { ...row, external: await readAssemblyInput<readonly unknown[]>(product, row.external) }), slots = await prepareSlots(product, row);
+      return run => {
+        const finish = patrol.begin(run.host, { eliteDamage: (host, actor, request) => run.arena?.eliteDamage(host, actor, request) ?? 1, beforePatrol: (host, dt) => { slots?.advance(host, dt); }, afterPatrol: (host, dt) => { run.arena?.advance(host, dt); } });
+        run.patrol = () => { finish(); slots?.install(run.host, need(run.bindings, 'Slots need their bindings'), run.context.restoring); };
+      };
     }
     case 'boss.open-arena': {
       if (at.ports.room !== true) return () => undefined;

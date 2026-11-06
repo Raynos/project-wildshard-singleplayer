@@ -104,10 +104,12 @@ export class WirePage {
   unbind(): void { this.client = null; this.press = () => undefined; this.act = () => undefined; this.dayRow = undefined; this.stop = () => undefined; this.encounterRows = null; this.heads = () => false; this.seeded = null; this.books.clear(); this.feeds.clear(); this.movers.clear(); }
   /** A setting's weather or a dev's jump: the server's sky takes it. Only a mode outlives its world. */
   climate(word: ClimateWord): void {
-    if (word.op === 'mode') this.skyWords.set('mode', word);
+    if (word.op !== 'force') this.skyWords.set(word.op, word);
     if (this.seeded !== null) this.say(word); else this.skyWords.set(word.op, word);
   }
   private say(word: ClimateWord): void { this.act({ kind: 'climate', seq: 0, ...word }); }
+  /** One of a world's public rows, as the latest frame has it. */
+  row(name: string): number | undefined { const { client } = this, frame = client?.latest ?? null; return client === null || frame === null ? undefined : client.stateField(frame, name); }
   /** The server's day, followed: the page's clock is a view of it. A paused clock is one a player or a tool stopped. */
   private followDay(clock: DayFollower | null, client: NetClient): void {
     const phase = client.latest === null ? undefined : client.stateField(client.latest, DAY_ROW);

@@ -61,7 +61,7 @@ export function netWorldInput(routes: ActRoutes, inputs: readonly Pick<NetTickIn
   for (const { acts, command } of inputs) {
     if (command !== null && has(command, NET_BUTTONS.skip)) routes.skipHeld = true;
     for (const act of acts) {
-      if (act.kind === 'climate') routes.climate?.(act);
+      if (act.kind === 'climate') { if (act.op === 'time') routes.time?.(act.name); else routes.climate?.(act); }
       else if (act.kind === 'pose') for (const name of act.names.split(',')) if (POSE_INPUT.test(name) && routes.poseInputs.size < MAX_POSE_INPUTS) routes.poseInputs.add(name);
     }
   }

@@ -130,7 +130,7 @@
     "./weather/continuation": "./server/weather/continuation.ts",
     "./weather/reactions": "./server/weather/reactions.ts",
     "./plugin/channelPrograms": "./shared/plugin/channelPrograms.ts",
-    "./plugin/creatureFrame": "./client/plugin/creatureFrame.ts",
+    "./plugin/creatureFrame": "./shared/plugin/creatureFrame.ts",
     "./shard/declaredRows": "./shared/shard/declaredRows.ts",
     "./plugin/nativeItems": "./server/plugin/nativeItems.ts",
     "./plugin/nativeSwept": "./server/plugin/nativeSwept.ts",

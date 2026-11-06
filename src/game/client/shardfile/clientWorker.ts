@@ -22,6 +22,7 @@ import { ANIMAL_STATES } from '@wildshard/engine/entities/animalStates';
 import { creatureBodyShape } from '@wildshard/engine/sim/bands';
 import { lockOn } from '@wildshard/engine/player/AimTargets';
 import { hudSlots } from '@wildshard/engine/ui/hudSlots';
+import { saveSetting, type OptionValue } from '@wildshard/engine/ui/Settings';
 import { netNeighbourRegion } from '../grid/neighbourRows';
 import { mountOf } from '../../shared/riding/entered';
 import { GrappleTool } from '../grapple/tool';
@@ -105,7 +106,7 @@ export interface WorkerClientReport {
 }
 /** A fight as a proof reads it: its row, where its body stands and the server's name for it. */
 export type WorkerClientFight = EncounterRow & { readonly at: { readonly x: number; readonly y: number; readonly z: number } | null; readonly name: string | null };
-declare global { interface Window { __workerClientFights?: () => readonly WorkerClientFight[]; __workerClientHits?: (by: number) => void; __workerClientSky?: (name: string) => void; __workerClientFlag?: (flag: string) => void; __workerClientRows?: (kind: string) => readonly { readonly x: number; readonly y: number; readonly z: number }[]; __workerClientGate?: (flag: string) => boolean; __workerClientBot?: (id: string, x: number, y: number, z: number) => { readonly move: (x: number, y: number, z: number) => void; readonly end: () => void }; __workerClient?: () => WorkerClientReport; __workerClientSave?: () => Promise<void> } }
+declare global { interface Window { __workerClientFights?: () => readonly WorkerClientFight[]; __workerClientHits?: (by: number) => void; __workerClientSky?: (name: string) => void; __workerClientTime?: (pick: OptionValue<'time'>) => void; __workerClientRow?: (name: string) => number | undefined; __workerClientFlag?: (flag: string) => void; __workerClientRows?: (kind: string) => readonly { readonly x: number; readonly y: number; readonly z: number }[]; __workerClientGate?: (flag: string) => boolean; __workerClientBot?: (id: string, x: number, y: number, z: number) => { readonly move: (x: number, y: number, z: number) => void; readonly end: () => void }; __workerClient?: () => WorkerClientReport; __workerClientSave?: () => Promise<void> } }
 
 /** The page's pose inputs, as acts short enough to go. */
 function poseActs(names: ReadonlySet<string>): readonly string[] {
@@ -211,7 +212,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     if (mount === null) return;
     for (const handle of rideable) {
       const id = client.entities.get(handle)?.id, body = bodies.get(handle)?.body;
-      if (id !== undefined && body !== undefined && !offered.has(handle)) { offered.add(handle); mount.addMountable(body.entityId, id); }
+      if (id !== undefined && body !== undefined && !offered.has(handle)) { offered.add(handle); mount.addMountable(body.entityId, `the ${body.label.toLowerCase()}`); }
     }
   };
   net.bindRide({ enter: handle => { const body = bodies.get(handle)?.body; if (body !== undefined) mount?.enter(body.entityId); }, leave: () => { mount?.leave(); } });
@@ -336,6 +337,8 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   window.__workerClientHits = by => { shell.hardHits(by); };
   window.__workerClientFlag = flag => { shell.raise(flag); };
   window.__workerClientSky = name => { wirePage.climate({ op: 'force', name, at: 0.1 }); };
+  window.__workerClientTime = pick => { saveSetting('time', pick); };
+  window.__workerClientRow = name => wirePage.row(name);
   window.__workerClientRows = kind => {
     const { latest } = client, out: { readonly x: number; readonly y: number; readonly z: number }[] = [];
     if (latest === null) return out;

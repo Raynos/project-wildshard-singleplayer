@@ -9,8 +9,7 @@ import {SpeciesActorsFileSchema,type ArenaRoomSpeciesControlRows} from '@wildsha
 import {parseRuntimeSpawns,type RuntimeBossRow} from '@wildshard/format/runtimeSpawns';
 import type {CombatTag} from '../../src/engine/shared/combat/pipeline';
 import type {ShardProduct} from '../../src/game/shared/shardfile/shardProduct';
-import {readNalatiArenaIntake} from './nalati-arena-intake';
-import {readNalatiArenaPoses} from './nalati-arena-poses';
+import {readEncounterIntake,readEncounterPoses} from '../../src/game/server/population/encounterBook';
 
 const finite=v.pipe(v.number(),v.finite()),positive=v.pipe(finite,v.minValue(Number.MIN_VALUE));
 const id=v.pipe(v.string(),v.minLength(1),v.maxLength(512)),xz=v.object({x:finite,z:finite});
@@ -36,8 +35,8 @@ export interface NalatiKingData {
   readonly profile:Extract<ReturnType<typeof parseBossProfile>,{pattern:'arena'}>;
   readonly declared:RuntimeBossRow;
   readonly control:ArenaRoomSpeciesControlRows;
-  readonly intake:Awaited<ReturnType<typeof readNalatiArenaIntake>>;
-  readonly poses:Awaited<ReturnType<typeof readNalatiArenaPoses>>;
+  readonly intake:Awaited<ReturnType<typeof readEncounterIntake>>;
+  readonly poses:Awaited<ReturnType<typeof readEncounterPoses>>;
 }
 
 /** Preflight the entered King's actual rows without allocating a body, taking
@@ -69,6 +68,6 @@ export async function readNalatiKingData(product:Pick<ShardProduct,'json'|'shard
   if(profile.fight.reset.mem[initial.flag]!==1)throw new Error('King reset must own its original species initialization');
   for(const axis of ['x','y','z'] as const)if(!Object.is(room.origin[axis],profile.fight.origin[axis]))
     throw new Error('King room and original fight frames differ');
-  const [intake,poses]=await Promise.all([readNalatiArenaIntake(product,[declared.kind]),readNalatiArenaPoses(product,[declared.kind])]);
+  const [intake,poses]=await Promise.all([readEncounterIntake(product,[declared.kind]),readEncounterPoses(product,[declared.kind])]);
   return {room,entrance,encounter,profile,declared,control,intake,poses};
 }

@@ -19,6 +19,7 @@ import { Physics } from '../shared/physics/Physics';
 import { CharacterMotor, PLAYER_BODY, PLAYER_CAPSULE, type MotorOptions } from '../shared/physics/CharacterMotor';
 import { PlayerSim, simCommandOf } from './sim/playerSim';
 import { publishDay } from '../shared/sim/shardRows';
+import { actRoutes } from '../shared/sim/actRoutes';
 import { BodyBandClocks, creatureBodyDistance, creatureBodyShape, keepsCreatureBody, tickDistance, type BandsState } from '../shared/sim/bands';
 import type { TickRate } from '../shared/app/scheduler';
 import { modeCollides } from '../shared/player/modes';
@@ -501,6 +502,7 @@ export class SimHost {
     }
     this.day = clock;
     publishDay(this, clock);
+    actRoutes(this).time = pick => { if (this.players.size === 1) clock.pickTime(pick); }; // a room shares one day
     return clock;
   }
   /** The installed day clock, if any (its query surface: hour, phase, dayPhase, night, dusk, onDusk…). */

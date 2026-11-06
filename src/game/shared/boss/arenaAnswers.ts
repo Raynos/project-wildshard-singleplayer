@@ -29,6 +29,8 @@ export interface ArenaBoundaryPorts extends ArenaAnswerPorts {
 export interface ArenaBoundaryLines { readonly tie: string; readonly tieOnFoot: string; readonly tieQuiet: string }
 
 /** The fight's tie event on `life` from `observed`, applied: armed (disarmed first when told), and its line toasted. */
+/** The view call that tells a page which tie line a press got. */
+export const arenaTieWord = (id: string): string => `${id}.tie`;
 export function arenaTie(life: Pick<ProjectedState, 'event'>, observed: ArenaTieObservation, lines: readonly string[], ports: ArenaAnswerPorts): Answer {
   const answer = life.event('tie', { engaged: Number(observed.engaged), victory: Number(observed.victory), hit: Number(observed.hit), mounted: Number(observed.mounted), storm: Number(observed.storm) });
   if (answer['arm'] === 1) { ports.fight.tied = true; if (answer['disarm'] === 1) ports.boss.disarm(); ports.boss.arm(); }

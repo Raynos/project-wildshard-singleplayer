@@ -1,15 +1,18 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { App } from '@wildshard/engine/app/app';
 import { onSettingChange, setting, type Settings } from '@wildshard/engine/ui/Settings';
-import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
+import type { DayCycleClock, TimePick } from '@wildshard/engine/world/dayCycle';
+import { wirePage } from '../shardfile/wirePage';
 
 const pageSettings = { setting, onSettingChange };
+/** On the wire the day is the server's: a Developer's pick goes up as well. */
+const sayTime = (time: TimePick): void => { if (wirePage.on) wirePage.climate({ op: 'time', name: time, at: 0 }); };
 
 /** Apply an explicit Developer time at resident-clock binding; Live preserves authored starts and fixed overrides. */
 export function bindClockSettings(clock: DayCycleClock, scope: Scope, settings: Pick<Settings, 'setting' | 'onSettingChange'> = pageSettings): void {
   const initial = settings.setting('time');
-  if (initial !== 'live') clock.setTime(initial);
-  scope.onDispose(settings.onSettingChange('time', (time) => { clock.setTime(time); }));
+  if (initial !== 'live') { clock.setTime(initial); sayTime(initial); }
+  scope.onDispose(settings.onSettingChange('time', (time) => { clock.setTime(time); sayTime(time); }));
 }
 
 /** R12: the day clocks of runtimes' own skies, each on the scope that owns its sky (a grid region's world, a painted sky's
@@ -50,7 +53,7 @@ export function enterSkyClock(app: Pick<App, 'enterDayCycle'>, owners: readonly 
     if (clock !== null && clock !== current) {
       current = clock;
       const initial = settings.setting('time');
-      if (initial !== 'live') clock.setTime(initial);
+      if (initial !== 'live') { clock.setTime(initial); sayTime(initial); }
     }
     return clock;
   };
@@ -59,5 +62,5 @@ export function enterSkyClock(app: Pick<App, 'enterDayCycle'>, owners: readonly 
   const seen = (): void => { read(); };
   entries.add(seen); entered.onDispose(() => { entries.delete(seen); });
   read();
-  entered.onDispose(settings.onSettingChange('time', (time) => { current = skyClockOf(owners); current?.setTime(time); }));
+  entered.onDispose(settings.onSettingChange('time', (time) => { current = skyClockOf(owners); current?.setTime(time); sayTime(time); }));
 }

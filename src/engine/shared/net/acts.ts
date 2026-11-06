@@ -13,7 +13,7 @@ export interface NetChatReport { readonly kind: 'report'; readonly seq: number; 
 /** A lone player's word on the sky: their weather setting, or a dev's phase jump. A room shares its sky, so with others in it this does nothing. `at` is a phase's fraction, -1 for the mode's own. */
 /** How an `interact` names a story flag on a shard whose page runs its story. */
 export const STORY_ACT = 'story:';
-export interface NetClimateAct { readonly kind: 'climate'; readonly seq: number; readonly op: 'mode' | 'force'; readonly name: string; readonly at: number }
+export interface NetClimateAct { readonly kind: 'climate'; readonly seq: number; readonly op: typeof CLIMATE_OPS[number]; readonly name: string; readonly at: number }
 /** Buy one of the shard's goods, by its place in the shard's exchange. The server checks it and takes the price. */
 export interface NetBuyAct { readonly kind: 'buy'; readonly seq: number; readonly good: number }
 /** Claim a filled contract or tear one off the board, by its slot. */
@@ -26,6 +26,8 @@ export interface NetPoseAct { readonly kind: 'pose'; readonly seq: number; reado
 export type NetTickAct = NetAct | NetClimateAct | NetBuyAct | NetBoardAct | NetWearAct | NetPoseAct;
 /** Any act a client may send. */
 export type NetRoomAct = NetTickAct | NetChatSay | NetChatReport;
+/** What a word on the sky says: its mode, a jump to a phase, or a Developer's time of day. */
+export const CLIMATE_OPS = ['mode', 'force', 'time'] as const;
 /** The longest name a climate act may give. */
 const CLIMATE_NAME = 64;
 /** The longest list one pose act may give, net text's own cap: a page with more sends more than one. */
@@ -38,7 +40,7 @@ export const NetRoomActSchema: v.GenericSchema<NetRoomAct> = v.union([NetActSche
   v.strictObject({ kind: v.literal('pose'), seq: u16, names: v.pipe(v.string(), v.minLength(1), v.maxLength(POSE_NAMES)) }),
   v.strictObject({ kind: v.literal('wear'), seq: u16, id: v.pipe(v.string(), v.minLength(1), v.maxLength(CLIMATE_NAME)) }),
   v.strictObject({ kind: v.literal('board'), seq: u16, op: v.picklist(['claim', 'tear']), slot: u16 }),
-  v.strictObject({ kind: v.literal('climate'), seq: u16, op: v.picklist(['mode', 'force']), name: v.pipe(v.string(), v.minLength(1), v.maxLength(CLIMATE_NAME)), at: v.pipe(v.number(), v.finite(), v.minValue(-1), v.maxValue(1)) }),
+  v.strictObject({ kind: v.literal('climate'), seq: u16, op: v.picklist(CLIMATE_OPS), name: v.pipe(v.string(), v.minLength(1), v.maxLength(CLIMATE_NAME)), at: v.pipe(v.number(), v.finite(), v.minValue(-1), v.maxValue(1)) }),
   v.strictObject({ kind: v.literal('chat'), seq: u16, channel: v.picklist(CHAT_CHANNELS), text: v.pipe(v.string(), v.minLength(1), v.maxLength(255)) }),
   v.strictObject({ kind: v.literal('report'), seq: u16, line: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0xffffffff)) }),
 ]);

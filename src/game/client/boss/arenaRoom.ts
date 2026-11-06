@@ -25,7 +25,7 @@ import type { AimTarget } from '@wildshard/engine/player/AimTargets';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
 import type { WeatherReactions } from '../../server/weather/reactions';
-import { arenaBoundary, arenaTie } from '../../shared/boss/arenaAnswers';
+import { arenaBoundary, arenaTie, arenaTieWord } from '../../shared/boss/arenaAnswers';
 import { OpenArenaFight, readArenaScriptData, type ArenaRiderOwner, type OpenArenaViews } from '../../shared/boss/openArenaFight';
 import { pageSim } from '../shardfile/clientMoverOwners';
 import { wirePage } from '../shardfile/wirePage';
@@ -232,6 +232,7 @@ export class ArenaRoomEncounter {
       if(encounter.boss.rewardTaken)kit.upgradeBow('bow-reward',play.weapons);
     }else{
       if(this.prompt===null||this.projection===null)throw new Error('Missing open arena projection');runtime.interactables.push(this.prompt);
+      if(wirePage.on){const word=arenaTieWord(this.data.definition.id),lines=this.data.tieLines;wirePage.whenLive(ctx.scope,client=>client.onView(({name,args})=>{const line=name===word?lines[args[0]??-1]:undefined;if(line!==undefined)play.hud.toast(line);}));}
       if(encounter.boss.rewardTaken){if(blade===null)throw new Error('Missing open arena power');kit.upgradeBlade('blade-reward',play.weapons,blade);}
       page.boundary(ctx.scope,this.projection.boundary);page.lendOpenView(this.projection,ctx.scope);
     }

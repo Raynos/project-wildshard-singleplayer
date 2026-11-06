@@ -17,8 +17,7 @@ import {nativePopulationOf} from '../../src/game/server/riding/nativePopulation'
 import {attachNativeCreaturePose,type NativeCreaturePose} from '../../src/game/shared/plugin/animation';
 import {SlotEncounterLaw,type SlotTell} from '../../src/game/shared/boss/slotLaw';
 import {prepareNalatiTitan} from './nalati-titan-native';
-import {readNalatiArenaIntake} from './nalati-arena-intake';
-import {readNalatiArenaPoses} from './nalati-arena-poses';
+import {readEncounterIntake,readEncounterPoses} from '../../src/game/server/population/encounterBook';
 import {NalatiCreatureView} from './nalati-creature-view-native';
 import {nalatiSlotColliders} from './nalati-slot-colliders';
 import {readNalatiWeaponObservation} from './nalati-weapon-observation';
@@ -51,7 +50,7 @@ export async function prepareNalatiBalbals(preparation:Parameters<PrepareHeadles
   if(timed?.kind!=='timed.encounters'||view?.kind!=='view.program')throw new Error('Balbals require their original timed encounter and creature view');
   const scenes=v.parse(v.object({dressing:v.object({phone:v.string()})}),product.section('world/scenes'));
   const [intake,poses,timing,actors,dressing,module]=await Promise.all([
-    readNalatiArenaIntake(product,['balbal']),readNalatiArenaPoses(product,['balbal']),
+    readEncounterIntake(product,['balbal']),readEncounterPoses(product,['balbal']),
     product.json(timed.file).then(input=>v.parse(TimedEncountersSchema,input)),
     product.json('actors/sheep.json').then(input=>v.parse(SpeciesActorsFileSchema,input)),
     product.json(scenes.dressing.phone).then(input=>v.parse(SceneDressingSchema,input)),product.file(view.module),

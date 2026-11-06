@@ -1,5 +1,5 @@
 // P1-E5.2 (E5-REPLICATION §4.2–4.3): the small messages around `frame` and `cmds`. Every message starts with its id byte.
-import type { NetRoomAct } from './acts';
+import { CLIMATE_OPS, type NetRoomAct } from './acts';
 import { BitReader, bitsToFloat, floatToBits, NetDecodeError, type BitWriter } from './bits';
 import type { NetIdentity } from './identity';
 import { readChat, writeChat, type NetChat } from './chatWire';
@@ -173,7 +173,7 @@ export function encodeAct(writer: BitWriter, act: NetRoomAct): ArrayBuffer {
   else if (act.kind === 'board') { writer.write(ACT_BOARD, 8); writer.writeBool(act.op === 'tear'); writer.write(act.slot, 16); }
   else if (act.kind === 'buy') { writer.write(ACT_BUY, 8); writer.write(act.good, 16); }
   else if (act.kind === 'pose') { writer.write(ACT_POSE, 8); writer.writeText(act.names); }
-  else if (act.kind === 'climate') { writer.write(ACT_CLIMATE, 8); writer.writeBool(act.op === 'force'); writer.writeText(act.name); writer.write(floatToBits(act.at), 32); }
+  else if (act.kind === 'climate') { writer.write(ACT_CLIMATE, 8); writer.write(CLIMATE_OPS.indexOf(act.op), 8); writer.writeText(act.name); writer.write(floatToBits(act.at), 32); }
   else if (act.kind === 'chat') { writer.write(ACT_CHAT, 8); writer.writeBool(act.channel === 'proximity'); writer.writeText(act.text); }
   else { writer.write(ACT_REPORT, 8); writer.write(act.line, 32); }
   return writer.finish();
@@ -190,7 +190,7 @@ export function decodeAct(bytes: Uint8Array): NetRoomAct | null {
     if (kind === ACT_BOARD) return { kind: 'board', seq, op: reader.readBool() ? 'tear' : 'claim', slot: reader.read(16) };
     if (kind === ACT_BUY) return { kind: 'buy', seq, good: reader.read(16) };
     if (kind === ACT_POSE) return { kind: 'pose', seq, names: reader.readText() };
-    if (kind === ACT_CLIMATE) return { kind: 'climate', seq, op: reader.readBool() ? 'force' : 'mode', name: reader.readText(), at: bitsToFloat(reader.read(32)) };
+    if (kind === ACT_CLIMATE) { const op = CLIMATE_OPS[reader.read(8)]; if (op === undefined) throw new NetDecodeError('Unknown climate act'); return { kind: 'climate', seq, op, name: reader.readText(), at: bitsToFloat(reader.read(32)) }; }
     if (kind === ACT_CHAT) return { kind: 'chat', seq, channel: reader.readBool() ? 'proximity' : 'room', text: reader.readText() };
     if (kind === ACT_REPORT) return { kind: 'report', seq, line: reader.read(32) };
     throw new NetDecodeError('Unknown act');

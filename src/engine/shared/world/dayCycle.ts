@@ -20,7 +20,7 @@ export interface DayCycleSpec<K = never> extends Omit<DayClockRow, 'sun'> {
     night: (p: number) => number; dusk: (p: number) => number; dawn: (p: number) => number; lamps: (p: number) => number;
   };
 }
-export type DayCycleClock = Pick<DayCycle, 'hour' | 'phase' | 'dayPhase' | 'night' | 'dusk' | 'dawn' | 'lamps' | 'body' | 'sunDir' | 'setTime' | 'set' | 'pin' | 'scale' | 'paused' | 'update' | 'sunElevation' | 'sunAzimuth' | 'moonElevation' | 'moonAzimuth' | 'onDawn' | 'onDay' | 'onGolden' | 'onDusk' | 'onNight' | 'onPhase' | 'dayMinutes' | 'phaseProgress' | 'hold' | 'pinned'>;
+export type DayCycleClock = Pick<DayCycle, 'hour' | 'phase' | 'dayPhase' | 'night' | 'dusk' | 'dawn' | 'lamps' | 'body' | 'sunDir' | 'setTime' | 'pickTime' | 'set' | 'pin' | 'scale' | 'paused' | 'update' | 'sunElevation' | 'sunAzimuth' | 'moonElevation' | 'moonAzimuth' | 'onDawn' | 'onDay' | 'onGolden' | 'onDusk' | 'onNight' | 'onPhase' | 'dayMinutes' | 'phaseProgress' | 'hold' | 'pinned'>;
 
 /** A normalized look clock: real minutes per day, midnight-zero start and the sun's arc in degrees. */
 export interface NormalizedDay { readonly minutes: number; readonly start: number; readonly maxElevation: number; readonly azimuth: number }
@@ -104,6 +104,8 @@ export class DayCycle<K = never> {
     this.value = s.value; this.paused = s.paused; this.scale = s.scale; this.cycle = s.cycle;
     this.held = s.held === null ? null : { ...s.held }; this.lastPhase = s.last;
   }
+  /** A time a client names: one this clock doesn't have changes nothing. */
+  pickTime(name: string): void { if (name === 'live' || Object.hasOwn(this.spec.fixed, name)) this.setTime(name as TimePick); }
   setTime(t: TimePick): void {
     this.paused = t !== 'live';
     if (t !== 'live') { this.value = this.spec.fixed[t]; this.checkPhase(); void this.onSet?.(); }

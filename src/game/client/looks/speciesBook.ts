@@ -2,7 +2,7 @@ import { app } from '@wildshard/engine/app/runtime';
 import type { ActorProjectionV2 } from '../../server/population/actorProjectionV2';
 import { numericCreaturePose, numericCreaturePoseFromBook } from '../../shared/plugin/channelPrograms';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
-import { creatureFrame } from '../plugin/creatureFrame';
+import { creatureFrame } from '../../shared/plugin/creatureFrame';
 import { poseRidingEnvelopes } from '../../shared/riding/presentation';
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import * as v from 'valibot';

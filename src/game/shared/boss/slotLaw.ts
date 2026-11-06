@@ -30,6 +30,19 @@ const continuation=v.strictObject({version:v.literal(1),recipe:v.pipe(v.string()
     site:natural,lastHp:finite,wedge:natural,law:projection})),v.maxLength(8))});
 interface Awake<A, Tell> { readonly a: A; readonly site: number; readonly law:ProjectedState; lastHp: number; readonly wedge: Tell }
 const point = new Vector3(), UP = new Vector3(0, 1, 0);
+/** How many sites one `slots.awake.<n>` row carries: a row is an f32, exact to here. */
+const SITES_PER_ROW = 24;
+/** The rows that say which sites stand empty: a server writes them and a page reads them. */
+export function slotAwakeRows(count:number):{
+  readonly read:(awake:readonly boolean[])=>readonly {readonly name:string;value:number}[];
+  readonly awake:(row:(name:string)=>number|undefined,out:boolean[])=>void;
+  readonly heard:(row:(name:string)=>number|undefined)=>boolean;
+} {
+  const rows=Array.from({length:Math.ceil(count/SITES_PER_ROW)},(_,index)=>({name:`slots.awake.${String(index)}`,value:0}));
+  return {read:awake=>{for(const [index,row]of rows.entries()){let word=0;for(let bit=0;bit<SITES_PER_ROW;bit++)if(awake[index*SITES_PER_ROW+bit]===true)word+=2**bit;row.value=word;}return rows;},
+    awake:(row,out)=>{for(const [index,{name}]of rows.entries()){const word=row(name)??0;for(let bit=0;bit<SITES_PER_ROW&&index*SITES_PER_ROW+bit<count;bit++)out[index*SITES_PER_ROW+bit]=Math.floor(word/2**bit)%2===1;}},
+    heard:row=>rows.some(({name})=>row(name)!==undefined)};
+}
 
 /** A slot encounter keeps one native body roster; existing AS owns its cycle and members; the
  * sites' own show and hide is the caller's, from the changes `update` returns. */

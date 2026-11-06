@@ -5,7 +5,7 @@ import { object, parse, record, string, unknown } from 'valibot';
 import { NumericPoseSchema } from '@wildshard/format/clientChannels';
 import { ReturnProgramSchema } from '@wildshard/format/namedJsonContracts';
 import { numericCreaturePose } from '../src/game/shared/plugin/channelPrograms';
-import { creatureFrame } from '../src/game/client/plugin/creatureFrame';
+import { creatureFrame } from '../src/game/shared/plugin/creatureFrame';
 import { parsePackedCreatureLooks } from '@wildshard/format/speciesLooks';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { Bone, Vector3 } from 'three';

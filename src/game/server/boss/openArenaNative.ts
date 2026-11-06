@@ -17,9 +17,9 @@ import type { ViewCamera } from '@wildshard/engine/script/viewProgram';
 import type { ArenaScriptData } from '@wildshard/format/arenaScriptRows';
 import type { ViewProgramRows } from '@wildshard/format/viewProgram';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { arenaTie, arenaBoundary } from '../../shared/boss/arenaAnswers';
+import { arenaTie, arenaTieWord, arenaBoundary } from '../../shared/boss/arenaAnswers';
 import { OWNED_ROW } from '../../shared/loot/ownedRows';
-import { publishOwned } from '@wildshard/engine/sim/shardRows';
+import { publishOwned, sayFightView } from '@wildshard/engine/sim/shardRows';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
 import { OpenArenaRoom } from './openArenaRoom';
 import { OpenArenaSaved } from './openArenaState';
@@ -150,7 +150,7 @@ export async function prepareOpenArena(product: Pick<ShardProduct, 'json' | 'sec
           if(ports.grantItem!==undefined&&command.value===TAKE){take(actor.id,eye);continue;}
           if(command.value!==1)throw new Error('Invalid open arena interaction input');
           if(pickPrompt([prompt],eye,host.physics)===prompt)
-            arenaTie(fight.life,{engaged:boss.engaged,victory:boss.state==='victory',hit:reward,mounted:room.mounted(),storm:actual.storm.stormActive},data.tieLines,{boss,fight,toast});
+            arenaTie(fight.life,{engaged:boss.engaged,victory:boss.state==='victory',hit:reward,mounted:room.mounted(),storm:actual.storm.stormActive},data.tieLines,{boss,fight,toast:line=>{toast(line);sayFightView(host,arenaTieWord(data.definition.id),[data.tieLines.indexOf(line)]);}});
         }
         room.party.observe(boss);
         if(boss.state!=='dormant'||fight.body.visible)boss.update(dt,host.clock.now);else fight.update(dt,host.clock.now,false);

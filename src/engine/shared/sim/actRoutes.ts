@@ -38,6 +38,8 @@ export interface ActRoutes {
   wear: ((player: string, id: string) => void) | null;
   /** A lone player's word on the sky, on a world with weather. */
   climate: ((act: Pick<NetClimateAct, 'op' | 'name' | 'at'>) => void) | null;
+  /** A lone player's Developer time of day, on a world with a clock. */
+  time: ((pick: string) => void) | null;
   /** The `mem` inputs a client's pose programs read: what a room tells it of a body beyond its rows. */
   readonly poseInputs: Set<string>;
   /** What a press takes by name with no prompt row of its own: a fight's reward. */
@@ -55,6 +57,6 @@ const routes = new WeakMap<SimHost, ActRoutes>();
 /** One host's routes (P1-E5.2c). */
 export function actRoutes(host: SimHost): ActRoutes {
   let held = routes.get(host);
-  if (held === undefined) { held = { interactions: new Map(), poseInputs: new Set<string>(), equip: null, lock: null, ride: null, mountable: null, lean: null, launcher: null, seen: null, story: null, bonded: null, inside: null, tied: null, buy: null, board: null, wear: null, climate: null, claims: new Map(), skipHeld: false, refused: 0 }; routes.set(host, held); }
+  if (held === undefined) { held = { interactions: new Map(), poseInputs: new Set<string>(), time: null, equip: null, lock: null, ride: null, mountable: null, lean: null, launcher: null, seen: null, story: null, bonded: null, inside: null, tied: null, buy: null, board: null, wear: null, climate: null, claims: new Map(), skipHeld: false, refused: 0 }; routes.set(host, held); }
   return held;
 }

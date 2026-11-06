@@ -106,6 +106,8 @@ const UP = new THREE.Vector3(0, 1, 0);
 
 /** Presentation over the same renderer-free slot owner used by native tapes. */
 export class SlotEncounterView<A extends SlotViewActor = Animal> extends SlotEncounterLaw<A,GroundTell> {
+  /** The tell wedges: a row page draws them from each body's row. */
+  readonly tells:readonly GroundTell[];
   constructor(slots:EncounterSlotsRows,view:SlotViewRows,program:ReturnProgram,ports:{readonly scene:THREE.Scene;readonly cues:CueDirector;
     readonly sites:readonly Pick<EncounterSite,'x'|'z'|'yaw'|'variant'>[]|null;readonly guest:ReturnProgram}) {
     // Keep original metadata refusal before allocating the tell look copies.
@@ -116,6 +118,7 @@ export class SlotEncounterView<A extends SlotViewActor = Animal> extends SlotEnc
       wedges.push(new GroundTell(ports.scene,'wedge',0,{cone:tell.cone,material:look.material,fill:lookParam(look,'fill'),alpha:lookParam(look,'alpha')}));
     }
     super(slots,view,program,{sites:ports.sites,cues:ports.cues,guest:ports.guest,wedges,ground:heightAt,cosmetic:()=>app.rng.stream('cosmetic').next()});
+    this.tells=wedges;
   }
 }
 
@@ -153,6 +156,7 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
   private readonly joints: JointPorts<Rider<A>, A> = { actor: r => r.a, dead: r => r.law.state[this.rows.states.dead] === 1,
     joint: (r, at, out) => out.set(...at).applyMatrix4(r.view.bone.matrixWorld) };
   private shooter: A | null = null;
+  private readonly dressed = new WeakSet<A>();
   get killsTonight(): number { return this.law.killsTonight; }
   constructor(input: { readonly patrol: EncounterPatrolRows; readonly motion: EncounterScheduleRows; readonly view: PatrolViewRows }, program: ReturnProgram,
     private readonly ports: ProjectileWorld & { readonly cues: CueDirector; readonly figures: Readonly<Record<string, THREE.BufferGeometry>> }) {
@@ -176,7 +180,23 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
   spawnLine(at: { readonly count?: number; readonly captain?: boolean; readonly at?: number } = {}): A[] { return this.law.spawnLine(at); }
   dissolve(actor: A): void { this.law.dissolve(actor); }
   dawn(): void { this.law.dawn(); }
+  /** On the wire a server rides the night, and a page dresses each row's body once: a rider grown past its kind is a quiet one. */
+  showRows(kind: string, bodies: readonly (A & { readonly rowDriven?: boolean })[]): void {
+    for (const a of bodies) {
+      if (a.kind !== kind || a.rowDriven !== true || this.dressed.has(a)) continue;
+      this.dressed.add(a);
+      const view = this.dress(a, a.scale >= this.rows.quietScale - 0.01);
+      for (const fade of view.fades) fade.value = 1;
+    }
+  }
   private present(a: A, quiet: boolean): RiderView {
+    const rows = this.rows;
+    if (quiet) { a.scale *= rows.quietScale; a.mesh.scale.setScalar(a.scale); }
+    const view = this.dress(a, quiet);
+    if (quiet) pinBrain(a, view.scope);
+    return view;
+  }
+  private dress(a: A, quiet: boolean): RiderView {
     const rows = this.rows, key = quiet ? rows.quietLook : rows.looks[a.variant] === undefined ? Object.keys(rows.looks)[0] ?? '' : a.variant;
     const look = rows.looks[key], figure = this.ports.figures[key], bone = a.mesh.skeleton.getBoneByName(rows.figure.bone);
     if (look === undefined || figure === undefined || bone === undefined) throw new Error(`Patrol look ${key} needs its look, figure and bone`);
@@ -186,7 +206,6 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
       fades.push(lookParam(copy, 'fade'));
       copy.material.name = look; return copy.material;
     };
-    if (quiet) { a.scale *= rows.quietScale; a.mesh.scale.setScalar(a.scale); pinBrain(a, scope); }
     a.mesh.material = material();
     // a ghost casts no shadow: the roster sets castShadow every frame, so it stays pinned off
     Object.defineProperty(a.mesh, 'castShadow', { get: () => false, set: () => { /* pinned */ }, configurable: true });

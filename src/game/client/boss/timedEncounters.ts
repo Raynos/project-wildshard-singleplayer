@@ -15,7 +15,9 @@ import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { CueDirector } from '../audio/cueDirector';
 import { ReturnProgram } from '../../shared/population/returnProgram';
 import { pageSim } from '../shardfile/clientMoverOwners';
+import { wirePage } from '../shardfile/wirePage';
 import { PatrolEncounterView, SlotEncounterView, type EncounterSites } from './encounterView';
+import { SlotRowsView } from './slotRowsView';
 
 interface TimedEncounterContext {
   readonly game: Game; readonly sky: SkyRig; readonly player: Player; readonly forest: Forest;
@@ -28,6 +30,9 @@ export class TimedEncounters {
   readonly slots: SlotEncounterView; readonly riders: PatrolEncounterView;
   private readonly rows; private readonly strike;
   private readonly contacts = new StrikeRunner(); private readonly direction = new Vector3();
+  /** On the wire the server runs the night: this draws its rows, and no law steps here. */
+  private readonly rowsView: SlotRowsView | null;
+  private animals: AnimalManager | null = null;
   constructor(private readonly ctx: TimedEncounterContext, input: TimedEncountersRows,
     figures: Readonly<Record<string, BufferGeometry>>, guest: ReturnProgram, private readonly cues: CueDirector) {
     const rows = this.rows = input, scope = ctx.game.levelScope;
@@ -37,6 +42,8 @@ export class TimedEncounters {
     this.slots = new SlotEncounterView(rows.slots, rows.view, program, { scene: ctx.game.scene, cues: this.cues, sites: ctx.sites?.sites ?? null, guest });
     this.riders = new PatrolEncounterView({ patrol: rows.patrol, motion: rows.motion, view: rows.ride }, program,
       { game: ctx.game, sky: ctx.sky, player: ctx.player, forest: ctx.forest, cues: this.cues, figures });
+    const actors = rows.slots.actors, sites = ctx.sites;
+    this.rowsView = wirePage.on && actors !== undefined && sites !== null ? new SlotRowsView(actors.kind, rows.view, sites, this.slots.tells, { cues: this.cues, guest, row: name => wirePage.row(name), cosmetic: () => app.rng.stream('cosmetic').next() }) : null;
   }
   /** Borrow declared presentation owners while the encounter keeps its clock. */
   static async install(owner: ShardContext, ctx: TimedEncounterContext, file: string,
@@ -54,7 +61,14 @@ export class TimedEncounters {
     return scope.run(() => new TimedEncounters(ctx, input, figures, guest, presentation));
   }
   update(dt: number, time: number): void {
-    const { ctx, rows } = this, player = ctx.player;
+    const { ctx, rows, rowsView } = this, player = ctx.player;
+    if (wirePage.on) {
+      rowsView?.update(dt, this.animals?.animals ?? []);
+      const riders = rows.patrol.actors?.kind;
+      if (this.animals !== null && riders !== undefined) this.riders.showRows(riders, this.animals.animals);
+      this.cues.setLight(Math.max(rows.lightFloor, pageSim.wild.light)); this.cues.update(dt);
+      return;
+    }
     ctx.sites?.apply(this.slots.update(dt, { kind: Number(rows.phases.slots.includes(ctx.clock.dayPhase)) }));
     for (const { damage, from } of this.riders.update(dt, time, { hold: 0, night: Number(rows.phases.patrol.includes(ctx.clock.dayPhase)) })) {
       const actor = from ?? this.riders.riders[0]?.a, target = app.player;
@@ -67,6 +81,7 @@ export class TimedEncounters {
     this.cues.setLight(Math.max(rows.lightFloor, pageSim.wild.light)); this.cues.update(dt);
   }
   attach(animals: AnimalManager): void {
+    this.animals = animals;
     try { this.slots.attachActors(animals); } catch (cause) { console.error('[encounters] slot actors disabled:', cause); }
     try { this.riders.attachActors(animals); } catch (cause) { console.error('[encounters] patrol actors disabled:', cause); }
   }

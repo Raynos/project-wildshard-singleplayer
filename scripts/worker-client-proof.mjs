@@ -5,7 +5,7 @@
 // --play is the flip's checklist: one playthrough on the row, a line for every step, and it fails on any step that didn't work.
 // --hook on a chunk with a grapple proves the claw: LOCK and JUMP pressed on the page, and the server's bite and zip carrying the body.
 //   scripts/browser-lane.sh node scripts/worker-client-proof.mjs --base=http://127.0.0.1:4401/ [--seconds=150] [--crossings=2] [--route=x,z;x,z] [--chunk=slug] [--play [--only=driftwood|nalati|nine|shards|grid|fights|roc|rocfall|rooms|elite|sky|sunscar|farreach|isle|pine]] [--hook]
-import { chromium, devices } from 'playwright';
+import { chromium, webkit, devices } from 'playwright';
 import { saveFixture } from './debug-settings.mjs';
 import { floorGridBenchmarkUrl, FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
 
@@ -56,7 +56,16 @@ async function proveHook(page, failures) {
   if (Math.hypot(last.at[0] - last.server[0], last.at[2] - last.server[1]) > 3) failures.push('the page and the server parted on the crossing');
   if (last.closed !== null) failures.push(`the wire closed: ${last.closed}`);
 }
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+// --webkit runs Playwright's WebKit: what Jake plays on, short of the phone. --page-fps=30 caps the page's frames as Low Power Mode does (J121);
+// the worker's timers run on, as the phone measured them.
+const engine = process.argv.includes('--webkit') ? webkit : chromium, pageFps = Number(arg('page-fps', '0'));
+const launched = await engine.launch(engine === webkit ? {} : { args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const capFrames = fps => {
+  const raf = window.requestAnimationFrame.bind(window), every = 1000 / fps;
+  let next = 0;
+  window.requestAnimationFrame = run => raf(function tick(now) { if (now + 1 < next) { raf(tick); return; } next = Math.max(next + every, now); run(now); });
+};
+const browser = { close: () => launched.close(), newContext: async options => { const context = await launched.newContext(options); if (pageFps > 0) await context.addInitScript(capFrames, pageFps); return context; } };
 const failures = [];
 if (process.argv.includes('--play')) {
   const { play } = await import('./worker-client-play.mjs');

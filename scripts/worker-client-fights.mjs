@@ -511,6 +511,63 @@ async function chapterJourney(browser, phone, base, step) {
 }
 
 /** Run the fights; `step` prints one line each. */
+/** The night: a Developer's time reaches the server, a statue walks out on its row, and a topple is a clue on the page. */
+async function nightJourney(browser, phone, base, step) {
+  const steppe = await open(browser, phone, base, 'nalati-grasslands');
+  const { page } = steppe;
+  await page.evaluate(() => { window.__toasts = []; new MutationObserver(list => { for (const row of list) for (const node of row.addedNodes) if (node.classList?.contains('ws-game-toast')) window.__toasts.push(node.textContent); }).observe(document.body, { childList: true, subtree: true }); window.__workerClientHits(60); });
+  for (const flag of ['talked:elder', 'tamed:horse', 'won:kokpar', 'told:tulpar', 'talked:elder:2']) await page.evaluate(wanted => { window.__workerClientFlag(wanted); }, flag);
+  const awakeRow = () => page.evaluate(() => window.__workerClientRow('slots.awake.0'));
+  await step('night: the Developer\'s time reaches the server', async () => {
+    const before = (await report(page)).day;
+    await page.evaluate(() => { window.__workerClientTime('night'); });
+    const day = await until(page, async () => { const now = (await report(page)).day; return now !== before ? now : null; }, 10);
+    await page.waitForTimeout(1500);
+    const settled = (await report(page)).day;
+    return { ok: day !== null && settled !== before, before, day, settled };
+  });
+  await step('night: statues wake, and their sites go empty on a row', async () => {
+    const word = await until(page, async () => { const row = await awakeRow(); return row !== undefined && row !== 0 ? row : null; }, 25);
+    const shown = await page.evaluate(() => window.__workerClientRows('balbal'));
+    return { ok: word !== null && word > 0, word, rows: shown.length };
+  });
+  let target = null;
+  await step('night: one rises out of the ground, drawn on its row', async () => {
+    const rows = await page.evaluate(() => window.__workerClientRows('balbal'));
+    target = await until(page, async () => (await page.evaluate(() => window.__workerClientRows('balbal')))[0] ?? null, 15);
+    if (target === null) return { ok: false, rows };
+    await place(page, target.x + 7, target.y + 3.5, target.z);
+    const low = await until(page, () => bodyOf(page, 'balbal'), 12);
+    if (low === null) return { ok: false, why: 'no body on the page', target };
+    await page.waitForTimeout(2500);
+    const up = await bodyOf(page, 'balbal'), ground = await groundAt(page, up?.x ?? low.x, up?.z ?? low.z);
+    return { ok: up !== null, target, low: low.y - ground, up: (up?.y ?? 0) - ground };
+  });
+  await page.screenshot({ path: 'tmp/flip8/night-balbal.png' }).catch(() => undefined);
+  await step('night: real blows topple it, and it reads as a clue on the page', async () => {
+    const paid = await report(page), end = Date.now() + 60_000;
+    for (;;) {
+      const r = await report(page);
+      if (r.flags.includes('clue:1') || Date.now() > end) break;
+      const body = await bodyOf(page, 'balbal');
+      await (body === null ? page.waitForTimeout(400) : loose(page, { x: body.x, y: body.y + 1, z: body.z }));
+    }
+    await page.waitForTimeout(1500);
+    const r = await report(page), toasts = await page.evaluate(() => window.__toasts.slice(-4)), reading = await page.evaluate(() => (document.body.textContent ?? '').includes('A toppled balbal'));
+    const shown = reading ? true : toasts.some(line => line.includes('carving'));
+    return { ok: r.flags.includes('clue:1') && shown, hits: r.hits - paid.hits, kills: r.kills - paid.kills, flags: r.flags.filter(flag => flag.startsWith('clue')), said: Object.entries(r.owned).filter(([line]) => line.startsWith('said.')), toasts, reading, retired: r.retired };
+  });
+  await page.screenshot({ path: 'tmp/flip8/night-clue.png' }).catch(() => undefined);
+  await step('night: dawn sends the rest home, and their sites stand', async () => {
+    await page.evaluate(() => { window.__workerClientTime('midday'); });
+    const clear = await until(page, async () => (await awakeRow()) === 0, 45, 500);
+    const r = await report(page);
+    return { ok: clear === true, row: await awakeRow(), left: (await page.evaluate(() => window.__workerClientRows('balbal'))).length, retired: r.retired };
+  });
+  await step('night: no page error', () => ({ ok: steppe.errors.length === 0, errors: [...new Set(steppe.errors)].slice(0, 6) }));
+  await steppe.context.close();
+}
+
 export async function fights(browser, phone, base, only, step) {
   const runs = name => only === '' || only === 'fights' || only === name;
 
@@ -676,6 +733,7 @@ export async function fights(browser, phone, base, only, step) {
   if (runs('pine')) await pineJourney(browser, phone, base, step);
   if (runs('nalati')) await nalatiJourney(browser, phone, base, step);
   if (runs('chapters')) await chapterJourney(browser, phone, base, step);
+  if (runs('night')) await nightJourney(browser, phone, base, step);
 
   // The sky: the rows move on their own, and a Weather setting goes up and comes back.
   if (runs('sky')) {
