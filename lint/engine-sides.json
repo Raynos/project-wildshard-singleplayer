@@ -250,6 +250,8 @@
   "src/engine/shared/core/noise.ts": "shared",
   "src/engine/shared/core/perfLap.ts": "shared",
   "src/engine/client/core/practiceRoom.ts": "client",
+  "src/engine/shared/core/portableMath.ts": "shared",
+  "src/engine/shared/core/portableMathFirst.ts": "shared",
   "src/engine/shared/core/practiceRoomState.ts": "shared",
   "src/engine/client/core/reloadGuard.ts": "client",
   "src/engine/shared/core/rng.ts": "shared",

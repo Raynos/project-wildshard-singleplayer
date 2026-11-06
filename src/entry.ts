@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-unassigned-import -- The sim's Math goes in before any module body runs.
+import '@wildshard/engine/core/portableMathFirst';
 // oxlint-disable-next-line import/no-unassigned-import -- evaluated for its effect: the app identity is installed before any other module body runs (E414)
 import './identity';
 import { TITLE_MANIFESTS } from '../out/.app/titleCatalogue.generated';
