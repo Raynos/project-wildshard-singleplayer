@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import { parseSync } from 'vite';
 
-const BUILD = /^(?:data|generators|behaviour|assets|blender)(?:\/|$)|^shard\.config(?:\.[cm]?[jt]s)?$/u;
+const BUILD = /^(?:data|generators|bake|behaviour|assets|blender)(?:\/|$)|^shard\.config(?:\.[cm]?[jt]s)?$/u;
 const PLAY = /^(?:runtime|world|look|models|weapons|quest|quests|combat|species|creatures|npc|loadout|ride|vm|grapple|life|compendium|boot|debug|dev|playground|explore|audio|loot|onboarding)(?:\/|$)/u;
 const shard = path => /^src\/shards\/([^/]+)\/(.+)$/u.exec(path);
 const text = node => node?.type === 'Literal' && typeof node.value === 'string' ? node.value
