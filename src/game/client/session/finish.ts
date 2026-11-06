@@ -19,7 +19,7 @@ import { TIER } from '@wildshard/engine/core/tier';
 import { installProbe } from '@wildshard/engine/debug/probe';
 import { lockOn as lockState } from '@wildshard/engine/player/AimTargets';
 import { withoutOffscreenBakes } from '@wildshard/engine/render/offscreenPreparation';
-import { liveWarmPacing, precompileLevel, queuedLinks } from '@wildshard/engine/render/precompile';
+import { liveWarmPacing, precompileLevel, queuedLinks, unbuiltObjects } from '@wildshard/engine/render/precompile';
 import { textureBytes } from '@wildshard/engine/render/textureBytes';
 import { workerClientOn } from '@wildshard/engine/ui/debugOptions';
 import { setPoseProvider } from '@wildshard/engine/ui/ReloadPrompt';
@@ -50,13 +50,13 @@ const EXPLORER_POLL_MS = 1000, EXPLORER_OPEN_MS = 30_000;
 const BOOT_SHADER_SLICE_MS = 48;
 /** QA8: link the world's programs the spawn view did not draw before the reveal, nearest first, at the in-play pace (a few
  *  programs a frame, each link polled). Only completion or owner retirement ends this loading step. */
-async function linkWorldUnderLoader(game: Awaited<ReturnType<typeof playStage>>['game']): Promise<void> {
+async function linkWorldUnderLoader(game: Awaited<ReturnType<typeof playStage>>['game'], unbuilt = false): Promise<void> {
   const scope = game.levelScope;
   // DL21: the step counts its links on the card ('World program links · 12 / 40 programs linked'), as the Shaders step
   // does: Pine's sat 5.3-5.5 s unchanged in the DL23 recordings on live 86f2590, with no wait named
   const timeline = currentLoadingTimeline(), key = timeline?.snapshot().current ?? null;
   const progress = key === null ? undefined : (done: number, total: number, detail: string): void => { timeline?.report(key, detail, done, total); };
-  await waitEntryWork(scope, current => precompileLevel(game, progress, { sliceMs: 6, current, owner: scope, nearest: true, ...liveWarmPacing() }));
+  await waitEntryWork(scope, current => precompileLevel(game, progress, { sliceMs: 6, current, owner: scope, nearest: true, ...liveWarmPacing(), ...(unbuilt ? { arrival: unbuiltObjects(game.renderer) } : {}) }));
 }
 
 export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): Promise<BuiltWorld> {
@@ -227,7 +227,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   if (spawn !== undefined && !spawn.snapshot().complete) await waitFor('Spawn download', spawn.ready, 'file');
   // DL17, DL21: the server boots under the card, a counted line on it, so its reads land before control and the player's first
   // press reaches a server that is up. Before the flip this moves only J130's row.
-  if (workerClientOn()) await loadingStage('server', () => import('../shardfile/clientWorker').then(worker => worker.launchWorkerClient({ ...(TIER === 'phone' && entersAtReveal ? { linkBodies: () => linkWorldUnderLoader(game) } : {}), slug: ctx.grid?.home.slug ?? slug, player, physics: world.physics, animals, weapons, health: playerHealth, died: () => { audio.death(); hud.damageFlash(); }, items: ctx.grid === null ? ctx.product.shardfile.items.rows : [], dims: kind => { const species = app.species.get(kind), variant = species?.variants[0]; return variant === undefined ? null : species?.build(variant, new Rng(1)).dims ?? null; }, tools: () => app.equipment?.tools ?? [], day: () => app.dayCycle, grid: workerGrid(ctx), scope: game.levelScope, system: spec => { app.addSystem(spec, game.levelScope); } })));
+  if (workerClientOn()) await loadingStage('server', () => import('../shardfile/clientWorker').then(worker => worker.launchWorkerClient({ ...(TIER === 'phone' && entersAtReveal ? { linkBodies: () => linkWorldUnderLoader(game, true) } : {}), slug: ctx.grid?.home.slug ?? slug, player, physics: world.physics, animals, weapons, health: playerHealth, died: () => { audio.death(); hud.damageFlash(); }, items: ctx.grid === null ? ctx.product.shardfile.items.rows : [], dims: kind => { const species = app.species.get(kind), variant = species?.variants[0]; return variant === undefined ? null : species?.build(variant, new Rng(1)).dims ?? null; }, tools: () => app.equipment?.tools ?? [], day: () => app.dayCycle, grid: workerGrid(ctx), scope: game.levelScope, system: spec => { app.addSystem(spec, game.levelScope); } })));
   const readyFrameGate = game.frameGate, loadingFrameGate = (): boolean => false;
   if (loading.holdRequested) game.frameGate = loadingFrameGate;
   try { await loading.done(); }

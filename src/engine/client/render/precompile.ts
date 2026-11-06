@@ -259,6 +259,11 @@ function materialPrograms(renderer: Renderer, material: THREE.Material): readonl
   const programs: unknown = properties === undefined ? undefined : Reflect.get(properties, 'programs');
   return programs instanceof Map ? [...programs.values()] : [currentProgram(renderer, material)];
 }
+/** The objects with a material no pass has built yet: `arrival`'s filter for a second pass over a scene that gained a few, which
+ *  costs what they cost and not the whole scene's walk (a server's first bodies: 2.4 s of Pine's warm load at phone CPU). */
+export function unbuiltObjects(renderer: Renderer): (object: THREE.Object3D) => boolean {
+  return object => materialsOf(object).some(material => materialPrograms(renderer, material).every(program => program === undefined));
+}
 
 /** compile() selects its new program on the borrowed material. Keep the last real draw's selection while
  * that variant links across painted waits; retain the expanded program cache for its later real use. */
