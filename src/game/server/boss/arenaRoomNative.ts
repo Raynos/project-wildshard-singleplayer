@@ -2,6 +2,7 @@
  *  deals with the living player past the threshold nearest the body; those past it at the start set its health and its
  *  targets; a fallen player goes back alone with the fight's progress kept, and the fight resets once nobody is inside.
  *  One player runs the row's fight and numbers exactly. Nothing here draws. */
+import type { EncounterReward } from '@wildshard/engine/sim/encounterRows';
 import * as v from 'valibot';
 import type { BossDefinition, BossSaved } from '@wildshard/engine/ai/BossBrain';
 import type { BossContenders } from '@wildshard/engine/ai/bossContenders';
@@ -51,6 +52,8 @@ export interface ArenaRoomNativePorts<A extends ArenaRoomBody> {
   readonly saved: BossSaved;
   readonly persist: (saved: BossSaved) => void;
   readonly spawnReward?: () => void;
+  /** Where the reward lies on its row: the room's own orb. */
+  readonly rewardPoint?: () => EncounterReward | null;
   /** A player the fight just put back: their motor and kit. */
   readonly returned?: (player: PlayerSim) => void;
 }
@@ -87,9 +90,9 @@ export function installArenaRoom<A extends ArenaRoomBody>(host: SimHost, rows: A
     body: { spawn: ports.spawnBody, retire: ports.retire, bind: (actor, brain) => { actor.combatActor().damageMul = request => brain.damageMul(actor, request.point); }, ready: (actor, floorY) => { actor.yOffset = floorY - actor.position.y; } },
     spawnAdd: ports.spawnAdd, target, combat: host.combat, physics: () => host.physics, rng: () => host.rng.stream('ai').next(), feed: () => undefined,
   }, rows.fight, () => Object.fromEntries(profile.fight.views.map(id => [id, (...args: number[]): void => { sayFightView(host, id, args); }])));
-  const row = installBossRow(host, { step: rows.step, definition: rows.definition, script, body: () => fight.body(), shielded: () => script.shielded,
+  const row = installBossRow(host, { step: rows.step, row: rows.definition.id, definition: rows.definition, script, body: () => fight.body(), shielded: () => script.shielded,
     hazardTag: rows.fight.damageTag, saved: ports.saved, persist: ports.persist, armed: true,
-    ...(ports.spawnReward === undefined ? {} : { spawnReward: ports.spawnReward }), ...(ports.returned === undefined ? {} : { returned: ports.returned }),
+    ...(ports.spawnReward === undefined ? {} : { spawnReward: ports.spawnReward }), ...(ports.rewardPoint === undefined ? {} : { rewardPoint: ports.rewardPoint }), ...(ports.returned === undefined ? {} : { returned: ports.returned }),
     fight: { snapshot: () => ({ think, sealed: sealWanted, fight: fight.continuation(actor => actor.entityId), sand: sand.snapshot(),
       ...(rows.portal === undefined ? {} : { doors: [...doors].map(([id, law]) => [id, law.snapshot()]) }) }),
       restore: value => {

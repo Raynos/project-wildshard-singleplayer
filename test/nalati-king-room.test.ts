@@ -1,6 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The product and Rapier are shipped bytes.
 import { readFileSync } from 'node:fs';
 import { Vector3 } from 'three';
+import { actRoutes } from '../src/engine/shared/sim/actRoutes';
 import { beforeAll, expect, test } from 'vitest';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
 import { arenaEntryOf } from '../src/game/server/boss/arenaRoomEntry';
@@ -10,7 +11,7 @@ import { createTrustedHeadlessResident, type TrustedHeadlessResident } from '../
 import { builtProduct } from './fixtures/builtProduct';
 
 // The Golden King from Nalati's product, for a room. A tape's resident has no such fight, so its saves keep their adapters.
-const KING_ORIGIN = { x: -40, y: 140, z: -95 };
+const KING_ORIGIN = { x: -40, y: 140, z: -95 }, ROOM_REWARD = [-40, 0, -103.3];
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
 
@@ -44,14 +45,22 @@ test('a room meets the King from the product, and each earner gets the bow', asy
   expect(fight.boss.state).toBe('fight');
   blow(lead, 200); blow(bot, 200);
   body.hp = body.maxHp * 0.05; fight.boss.phase = 2; fight.boss.checkpoint = 2;
-  for (let tick = 0; tick < 3600 && paid.length < 2; tick++) {
+  for (let tick = 0; tick < 3600 && fight.boss.state !== 'victory'; tick++) {
     if (body.alive) { blow(lead, 200); blow(bot, 200); }
     live.step([]);
-    for (const effect of live.effects) if (effect.kind === 'item') paid.push(`${effect.actorId}:${effect.item}`);
   }
   expect(fight.boss.state).toBe('victory');
+  const claim = actRoutes(host).claims.get('golden-king.reward'); if (claim === undefined) throw new Error('No claim');
+  const press = (who: typeof lead): void => {
+    claim(who.id); live.step([]);
+    for (const effect of live.effects) if (effect.kind === 'item') paid.push(`${effect.actorId}:${effect.item}`);
+  };
+  press(lead); press(bot);
+  expect(paid).toHaveLength(0); // the orb lies on the pedestal, out of reach of the door
+  const [orbX = 0, , orbZ = 0] = ROOM_REWARD;
+  for (const player of [lead, bot]) player.resetPose({ x: orbX + 0.8, y: y + 0.2, z: orbZ + 0.8 }, 0);
+  press(lead); press(bot); press(lead);
   expect(paid).toHaveLength(2);
-  for (let tick = 0; tick < 60; tick++) { live.step([]); expect(live.effects.some(effect => effect.kind === 'item')).toBe(false); }
   expect(paid).toEqual(expect.arrayContaining([`${lead.id}:goldenBow`, 'bot:1:goldenBow']));
   live.dispose();
 });

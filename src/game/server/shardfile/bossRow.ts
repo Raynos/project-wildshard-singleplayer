@@ -46,6 +46,8 @@ export interface BossRowSpec {
   readonly returned?: (player: PlayerSim) => void;
   /** Where the fight's reward waits to be taken, for a fight that leaves one lying. */
   readonly rewardPoint?: () => EncounterReward | null;
+  /** The name a page reads this fight's row by, where it isn't `step`. */
+  readonly row?: string;
 }
 
 const finite = v.pipe(v.number(), v.finite());
@@ -101,7 +103,7 @@ export function installBossRow(host: SimHost, spec: BossRowSpec): { boss: BossBr
       boss.restore(state.boss); spec.fight.restore(state.fight); party.restoreEngaged(state.engaged ?? 0); bounty.restore(state.earners ?? []); spec.restored?.(state.boss);
     },
   });
-  publishEncounter(host, spec.step, () => ({ ...NO_MOMENTS, kind: 'boss', state: boss.state, hp: spec.script.hpFrac, phase: boss.phase, shield: spec.shielded() || boss.state === 'beat', body: spec.body()?.entityId ?? null, skip: boss.skipHeldFor, reward: spec.rewardPoint?.() ?? null }));
+  publishEncounter(host, spec.row ?? spec.step, () => ({ ...NO_MOMENTS, kind: 'boss', state: boss.state, hp: spec.script.hpFrac, phase: boss.phase, shield: spec.shielded() || boss.state === 'beat', body: spec.body()?.entityId ?? null, skip: boss.skipHeldFor, reward: spec.rewardPoint?.() ?? null }));
   return { boss, party, bounty, summon: () => { if (boss.state === 'dormant') boss.arm(); }, locked: () => boss.state === 'intro' };
 }
 

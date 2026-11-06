@@ -7,6 +7,9 @@ import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { isArenaSeal } from '../../shared/boss/arenaCollision';
 import type { SimHost, SimSpawn } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
+import { actRoutes } from '@wildshard/engine/sim/actRoutes';
+import { pickPrompt } from '@wildshard/engine/world/interact/prompts';
+import type { EncounterReward } from '@wildshard/engine/sim/encounterRows';
 import { installArenaRoom, type ArenaRoomBody } from './arenaRoomNative';
 import { ArenaFightPageSchema, ArenaRoomSchema } from '../../shared/boss/arenaRoomRows';
 import { ReturnProgram } from '../../shared/population/returnProgram';
@@ -14,6 +17,8 @@ import { ReturnProgram } from '../../shared/population/returnProgram';
 const Entry = v.object({ room: v.unknown(), encounter: v.object({ definition: v.record(v.string(), v.unknown()), page: v.unknown(), portal: v.unknown(), program: v.unknown() }) });
 /** The body's and add's memory slots: bounded, so a save can name them. */
 const ADDS = 32;
+/** How far a press reaches the orb, and the eye it's judged from. */
+const ORB_REACH = 2.6, ORB_EYE = 1.68;
 const entered = new WeakMap<SimHost, ReturnType<typeof installArenaRoom<ArenaRoomBody>>>();
 /** The row that places this fight. */
 export interface ArenaEntryRow { readonly id: string; readonly body: { readonly kind: string; readonly variant: string }; readonly reward: string; readonly entrance: readonly [number, number, number, number] }
@@ -57,7 +62,9 @@ export function installArenaEntry(host: SimHost, input: unknown, row: ArenaEntry
     door ??= (): void => undefined;
     for (const collider of host.physics.world.colliders.getAll()) if (isArenaSeal(collider, room)) collider.setEnabled(on);
   };
-  const [x, , z, facing] = row.entrance, { encounter } = data;
+  const [x, , z, facing] = row.entrance, { encounter } = data, [ox, oy, oz] = page.reward, orbAt = { x: ox, y: oy, z: oz };
+  // A save holds the flags, so the orb an earner left is back on its pedestal.
+  let orb: EncounterReward | null = saved.defeated && !saved.rewardTaken ? orbAt : null;
   const fight = installArenaRoom<ArenaRoomBody>(host, { step: row.id, room, definition: { ...encounter.definition, reward: {} } as Parameters<typeof installArenaRoom>[1]['definition'], fight: page,
     portal: { rows: v.parse(v.looseObject({}), encounter.portal) as NonNullable<Parameters<typeof installArenaRoom>[1]['portal']>['rows'], program: ReturnProgram.native(host, encounter.program),
       entrance: { x, y: host.groundHeightAt(x, z) + 0.1, z, facing } } }, {
@@ -66,10 +73,18 @@ export function installArenaEntry(host: SimHost, input: unknown, row: ArenaEntry
     retire: actor => { actor.hidden = true; }, find: id => body(id), seal, saved,
     persist: value => { if (value.defeated) host.flags.set(flag('defeated')); if (value.rewardTaken) host.flags.set(flag('paid')); },
     // a lone player earned it alone; a room's earners come from the book at the killing blow
-    spawnReward: () => { if (!fight.bounty.room) fight.bounty.award([...host.players.keys()]); } });
-  // J105: each earner's own, through the ledger. The blow and the win land in either order, so this reads them after both.
+    spawnReward: () => { if (!fight.bounty.room) fight.bounty.award([...host.players.keys()]); orb = orbAt; }, rewardPoint: () => orb });
+  // J105: the orb on the pedestal is each earner's own, through the ledger, and it stands until the last of them has taken theirs.
+  const pressed = new Set<string>();
+  actRoutes(host).claims.set(`${fight.boss.def.id}.reward`, player => { pressed.add(player); });
   host.onStep(`${row.id}.reward`, () => {
-    if (fight.boss.state === 'victory') for (const player of fight.bounty.owed) if (fight.bounty.take(player)) ports.grantItem(player, row.reward, 1);
+    for (const player of pressed) {
+      const feet = host.players.get(player)?.position;
+      if (orb === null || feet === undefined || pickPrompt([{ position: orb, radius: ORB_REACH }], { x: feet.x, y: feet.y + ORB_EYE, z: feet.z }, host.physics) === undefined || !fight.bounty.take(player)) continue;
+      ports.grantItem(player, row.reward, 1);
+      if (fight.bounty.owed.length === 0) { orb = null; host.flags.set(flag('paid')); }
+    }
+    pressed.clear();
   });
   entered.set(host, fight);
   return fight;
