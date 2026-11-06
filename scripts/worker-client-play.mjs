@@ -117,6 +117,15 @@ export async function play(browser, phone, base, only = '') {
     const r = await report(drift.page); return { ok: false, paid: r.paid, kills: r.kills, hits: r.hits, falls: r.falls };
   });
   await drift.page.evaluate(() => { const { player } = window.__wildshard.world; player.touchMove.y = 0; player.touchSprint = false; });
+  await step('the server says what this player holds', async () => {
+    await drift.page.waitForTimeout(1200);
+    const r = await report(drift.page); return { ok: typeof r.owned.coins === 'number' && r.paid > 0 ? r.owned.coins >= r.paid : typeof r.owned.coins === 'number', owned: r.owned, paid: r.paid };
+  });
+  await step('the day is on the wire and the page follows', async () => {
+    const first = await report(drift.page); await drift.page.waitForTimeout(3000); const next = await report(drift.page);
+    const clock = await drift.page.evaluate(() => window.__wildshard?.world?.game?.sky?.dayNight?.phase ?? null);
+    return { ok: typeof next.day === 'number' && (first.day !== next.day) && (clock === null || Math.min(Math.abs(clock - next.day), 1 - Math.abs(clock - next.day)) < 0.02), first: first.day, next: next.day, clock };
+  });
   await step('driftwood saves', async () => { await drift.page.evaluate(() => Promise.race([window.__workerClientSave(), new Promise(resolve => { setTimeout(resolve, 20_000); })])); const r = await report(drift.page); return { ok: r.savedOk, tick: r.savedTick }; });
   await step('driftwood resumes: the quest is where it stood', async () => {
     await drift.page.reload({ waitUntil: 'load' }); await entered(drift.page);
