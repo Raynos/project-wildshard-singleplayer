@@ -349,6 +349,20 @@ The boot purge was at **212k files**, up 45k in 4 h and closing on the 250k inve
   **2.3 GB / about 40k files**, 13 shas so far. Nothing removes `f/<sha>` when a probe ends. The `b` and `m` dirs add
   3.4 GB / 111k files. `tmp/lane4/deploy` (2.6 GB, 15:14–15:40, finished) also passed 2 GB. This is repo `./tmp`, so it
   costs disk only and is not boot-purged. **Fix:** a per-sha probe should remove `f/<sha>` after its `RESULT` lines.
+  By 20:47 `tmp/ci-lane` had been cleaned to 11 MB.
+- **11-05 20:47: `test/cook-worker.test.ts:113` very likely writes a 6.5 GB core on every run (OPEN).** Its "reports a
+  crash" case runs `job('crash.mjs', 'process.abort();')`, the only `process.abort` in `scripts`, `src`, `test` or
+  `.githooks`. Three cores match it: `core.61969` (20:32), `core.84234` (20:35) and `core.3440` (20:39), each 6.5 GB,
+  each a node child of a node parent that lived about 2 s, with the main thread in `node::Abort` during ESM module
+  evaluation, not an OOM. All three predate f7cdaf49fb (20:41), which committed the test, so every Vitest run of the
+  file from now on should add another 6.5 GB under Jake's `ulimit -c unlimited`. **Fix:** have the test's job launcher
+  run with `ulimit -c 0`, or crash the job with `process.kill(process.pid, 'SIGKILL')`, which macOS does not core-dump.
+  The launcher needs fixing either way if `runJob` can hit a real abort in production.
+- **11-05 20:48:** `core.71145` (27 GB) is another OOM: a node child of bash that ran 30 s
+  (`node-2026-11-05-204827.ips`). No writer found. `/cores` is now **110 GB in nine cores**.
+- `tmp/c1` (11 GB / 36k files, born 20:03, still written) is a lane's cold-boot proof: `c2`, `cooked` and `base` at
+  about 2.7 GB each plus `tars2`, run through `scripts/shardfile-cold-boot.mjs --dist=tmp/c1/c2`. `tmp/worker-proof`
+  (2.6 GB, finished 18:16) and `tmp/loading-flow` (2.6 GB, finished 17:57) also passed 2 GB.
 
 ## Decisions (Jake, 2026-10-15)
 
