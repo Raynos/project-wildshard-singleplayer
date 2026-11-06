@@ -368,8 +368,6 @@ export class StandaloneGrid {
     const seat = mountedPlayerOf(this.host, player);
     if (seat?.mounted === true) seat.teleport(at.x, at.z, at.yaw); else this.host.players.get(player)?.resetPose(at, at.yaw);
   }
-  /** A harness's hour on this world's day. */
-  hourAt(hour: number): void { this.host.dayClock?.setTime(hour); }
   /** A harness's flag on this player's own book. */
   raise(flag: string): void { questBooks(this.host).of(SESSION_PLAYER).flags.set(flag); }
   /** A proof's second client: a real link, in the cell this session stands in. Two phones come this way, once a server admits them. */

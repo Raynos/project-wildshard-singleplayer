@@ -7,9 +7,6 @@ export interface HarnessPlace { readonly x: number; readonly y: number; readonly
 export interface HarnessHits { readonly hits: number }
 /** Raise one of this player's flags, for a door whose quest step a proof can't reach in its minutes (a thrall hunt at night). */
 export interface HarnessFlag { readonly flag: string }
-/** Stand the day at an hour, for what comes out at night, where a proof can't wait for dusk. */
-export interface HarnessHour { readonly hour: number }
-export const isHarnessHour = (value: unknown): value is HarnessHour => typeof value === 'object' && value !== null && 'hour' in value && typeof value.hour === 'number';
 export const isHarnessFlag = (value: unknown): value is HarnessFlag => typeof value === 'object' && value !== null && 'flag' in value && typeof value.flag === 'string';
 /** A proof's second client: it stands here in this cell, on the port that comes with this message. `player` names it after that. */
 export interface HarnessJoin { readonly join: string; readonly x: number; readonly y: number; readonly z: number }

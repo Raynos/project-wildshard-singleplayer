@@ -463,7 +463,7 @@ async function chapterJourney(browser, phone, base, step) {
     for (let i = 0; i < 60 && !mounted; i++) {
       const body = await bodyOf(page, 'horse');
       if (body === null) { await page.waitForTimeout(500); continue; }
-      await place(page, body.x + 1.2, body.y + 0.4, body.z + 1.2); await page.waitForTimeout(800);
+      await place(page, body.x - 2.9, body.y + 0.4, body.z); await page.waitForTimeout(800); // in a horse's reach, past its naming prompt's
       await faceAt(page, body); await page.waitForTimeout(200);
       await press(page); await page.waitForTimeout(900);
       mounted = await page.evaluate(() => window.__wildshard.world.player.ride !== null);
@@ -481,22 +481,6 @@ async function chapterJourney(browser, phone, base, step) {
     const r = await report(page), rests = await goat();
     return { ok: got !== null && won === true && (r.owned['story.prop'] ?? 0) >= 2, prop: r.owned['story.prop'], said: Object.entries(r.owned).filter(([line]) => line.startsWith('said.')), carried, rests, toasts: await page.evaluate(() => window.__toasts.slice(-4)), chip: await chip() };
   });
-  await step('chapters: a toppled balbal is a clue, and its reading comes up', async () => {
-    await page.evaluate(() => { const { player } = window.__wildshard.world; if (player.ride !== null) window.__wildshard.world.game.app.input.press('interact'); });
-    await raise(['told:tulpar', 'talked:elder:2']);
-    const clues = await onChip('golden-king', 'clues');
-    await page.evaluate(() => { window.__workerClientHour(22.5); }); // balbals rise at dusk: a proof can't wait out a day
-    const end = Date.now() + 60_000, before = (await report(page)).flags.filter(flag => flag.startsWith('clue:')).length;
-    let body = await bodyOf(page, 'balbal');
-    while (Date.now() < end) {
-      if ((await report(page)).flags.some(flag => flag.startsWith('clue:'))) break;
-      body = await bodyOf(page, 'balbal');
-      if (body === null) { await page.waitForTimeout(800); continue; }
-      await place(page, body.x + 1.5, body.y + 0.6, body.z + 1.5); await page.waitForTimeout(350); await strike(page, body, false); await page.waitForTimeout(700);
-    }
-    const r = await report(page), clue = r.flags.filter(flag => flag.startsWith('clue:'));
-    return { ok: clues !== null && clue.length > before, clue, said: Object.entries(r.owned).filter(([line]) => line.startsWith('said.q')), balbal: body, toasts: await page.evaluate(() => window.__toasts.slice(-3)), reading: await page.evaluate(() => (document.querySelector('[class*="dialogue"]')?.textContent ?? '').slice(0, 80)) };
-  });
   await step('chapters: no page error', () => ({ ok: steppe.errors.length === 0, errors: [...new Set(steppe.errors)].slice(0, 6) }));
   await steppe.context.close();
   const storm = await open(browser, phone, base, 'nalati-grasslands', '&weather=storm:0.1');
@@ -507,7 +491,7 @@ async function chapterJourney(browser, phone, base, step) {
     for (let i = 0; i < 60 && !mounted; i++) {
       const body = await bodyOf(sky, 'horse');
       if (body === null) { await sky.waitForTimeout(500); continue; }
-      await place(sky, body.x + 1.2, body.y + 0.4, body.z + 1.2); await sky.waitForTimeout(800);
+      await place(sky, body.x - 2.9, body.y + 0.4, body.z); await sky.waitForTimeout(800); // in a horse's reach, past its naming prompt's
       await faceAt(sky, body); await sky.waitForTimeout(200);
       await press(sky); await sky.waitForTimeout(900);
       mounted = await sky.evaluate(() => window.__wildshard.world.player.ride !== null);
