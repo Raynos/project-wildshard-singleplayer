@@ -164,6 +164,10 @@ export function analyse(rows) {
   if (control !== null) {
     // the game's drawn frames (it paces its draws, so the page's rAF can tick at 60 while the world draws at 5): each poll
     // reads frames drawn since start and the 120-slot ring of their times; the new slots spread over the poll interval
+    // Each poll's new frames spread over the page's own clock, read as the poll ran: its reply reaches this machine late on a busy
+    // Mac (Nalati cold on 071837b: 307 ms, so a 577 ms interval read 877 ms and the next 807 ms read 534, a 17 then a 38 at a steady 30)
+    const paged = Number.isFinite(controlRow?.now) && Number.isFinite(controlRow?.origin);
+    const pageTime = (row) => (paged && Number.isFinite(row.now) ? control + row.now - controlRow.now : row.t);
     const drawn = [];
     let prev = null;
     for (const row of polls) {
@@ -172,7 +176,7 @@ export function analyse(rows) {
         const k = Math.min(row.drawn.ms.length, row.drawn.n - prev.drawn.n), size = row.drawn.ms.length;
         for (let j = 0; j < k; j++) {
           const ms = row.drawn.ms[(row.drawn.i - k + j + size * 2) % size];
-          drawn.push({ at: prev.t + ((row.t - prev.t) * (j + 1)) / k, ms });
+          drawn.push({ at: pageTime(prev) + ((pageTime(row) - pageTime(prev)) * (j + 1)) / k, ms });
         }
       }
       prev = row;
