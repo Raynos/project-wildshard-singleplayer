@@ -491,6 +491,8 @@ try {
     if (new Set(modes).size > 1) report.violations.push(`the texture mode changed between visits (cold, during precache, settled: ${modes.join(', ')}): a texture swap the player sees`);
     report.atControl = { cold: strip(cold.at), duringPrecache: strip(during.at), settled: strip(settled.at) };
   } else {
+    // J130's row starts its server after control; a harness move before it is up would never reach the server. The flip has none of this wait.
+    if (values['device-save']?.startsWith('debug.workerClient=') === true) await page.waitForFunction(() => typeof Reflect.get(window, '__workerClient') === 'function', undefined, { timeout: 60_000 });
     // the boost lap: the level's own walk legs (scripts/physics-route.json: courses known to be drivable) that start within
     // `reach` of spawn, each driven on the hoverboard at Developer boost; the grid drives its home cell's legs, moved by the
     // cell's offset (a cell's centre is its index times the pitch)
