@@ -12,7 +12,7 @@ export interface ChannelProgramObservation {readonly time:number;readonly delta:
 function vector(value:ChannelProgramObservation['values']):value is readonly number[]{return Array.isArray(value);}
 const notedPoses = new WeakSet();
 /** Every `mem` field a pose program built on this page reads. A body a server runs writes these there, and only this page knows which they are. */
-export const poseInputNames = new Set<string>();
+export const poseInputNames: Set<string> = new Set<string>();
 function notePoseInputs(row: unknown): void {
   if (typeof row !== 'object' || row === null || notedPoses.has(row)) return;
   notedPoses.add(row);
