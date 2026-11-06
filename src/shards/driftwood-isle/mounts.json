@@ -1,0 +1,31 @@
+{
+ "version": 1,
+ "outputs": {
+  "driftwood-isle": [
+   "/assets/gpu/baked/driftwood-isle/tex/giant-db470988.ktx2",
+   "/assets/gpu/horizon/driftwood-isle-day-2ca8c3a2.ktx2",
+   "/assets/gpu/horizon/driftwood-isle-night-f949f086.ktx2",
+   "/assets/lut/driftwood-isle.bin",
+   "/assets/models/driftwood-fp/fp-arms.glb",
+   "/assets/music/folk/island-tension-bb05ab64.m4a",
+   "/assets/music/orchestral/island-tension-73116f36.m4a",
+   "/assets/music/piano/island-calm-05125ed8.m4a",
+   "/assets/music/piano/island-tension-7faf0468.m4a",
+   "/assets/sfx/driftwood-isle/coconut_hit-2-83ed831d.m4a",
+   "/assets/sfx/driftwood-isle/coconut_hit-3-9c8e8fd7.m4a",
+   "/assets/sfx/driftwood-isle/coconut_land-1-42389b0a.m4a",
+   "/assets/sfx/driftwood-isle/crab_click-2-aefbc41d.m4a",
+   "/assets/sfx/driftwood-isle/crab_click-3-f47e95a3.m4a",
+   "/assets/sfx/driftwood-isle/crab_snap-2-bff601ad.m4a",
+   "/assets/sfx/driftwood-isle/crab_snap-3-69ea11c0.m4a",
+   "/assets/sfx/driftwood-isle/gull-1-5fa9130b.m4a",
+   "/assets/sfx/driftwood-isle/hum-shrine-2-d89ed03a.m4a",
+   "/assets/sfx/driftwood-isle/monkey_chatter-3-1c7d7e2d.m4a",
+   "/assets/sfx/driftwood-isle/monkey_shriek-1-1a358b4e.m4a",
+   "/assets/sfx/driftwood-isle/monkey_shriek-2-54acd647.m4a",
+   "/assets/sfx/driftwood-isle/sailor_groan-2-43e2a981.m4a",
+   "/assets/sfx/driftwood-isle/sailor_slash-1-611ba654.m4a",
+   "/assets/sfx/driftwood-isle/sailor_slash-3-5a10eada.m4a"
+  ]
+ }
+}

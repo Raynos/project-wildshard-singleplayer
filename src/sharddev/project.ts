@@ -31,6 +31,7 @@ import { buildBehaviourProject } from './buildBehaviour';
 import { packProjectMap, generatedProjectMap, type ProjectMap } from './projectMap';
 import { projectPlaceholders } from './bake/placeholders';
 import type { ScriptAdmissionRows } from '@wildshard/format/scriptContract';
+import { readCookInput } from './cookInput';
 import { outputScriptAdmissionRows, outputPlatformPayloads, clearOutputProduct, writeOutputProduct, type OutputProductOptions } from './outputProduct';
 import { prepareProjectOutput, mergeProjectBlobs, projectMirrors, type PreparedProjectOutput } from './projectOutput';
 import type { RuntimeMirror } from './runtimeMirrors';
@@ -262,7 +263,8 @@ export async function buildProject(project: string, output?: string, options: { 
   let descriptor: ReturnType<typeof writeOutputProduct>;
   try {
     const runtime = options.copyRuntime === true || clientPlan ? writeRuntimeFiles(project, destination) : undefined;
-    descriptor = writeOutputProduct(shard, assets, destination, { ...loaded.output, ...(runtime === undefined ? {} : { runtime }) });
+    const cook = readCookInput(project, shard.identity.slug);
+    descriptor = writeOutputProduct(shard, assets, destination, { ...loaded.output, ...(runtime === undefined ? {} : { runtime }), ...(cook === undefined ? {} : { cook }) });
     phase('product-write');
     if (runtime !== undefined) proveRuntimeData(destination, descriptor, loaded.mirrors);
     phase('runtime-proof');

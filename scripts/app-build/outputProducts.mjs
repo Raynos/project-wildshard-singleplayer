@@ -3,6 +3,7 @@ import { basename, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
 /** The app publishes its data products, never their temporary TypeScript sources: each built product's folder under
  *  `<root>/out` (one with a shard.json) goes to `<outDir>/shardfiles`, without its runtime sources or its build key.
+ *  `mounts/` and `cook.json` (C0, J137) are the cook's input: their files already serve at their public URLs.
  *  The server class (J91, `<slug>/server/`) stays out of that tree, which is what a client reads. Standalone's server is a
  *  worker on the same device, so until C2's server packs it reads those files from `<outDir>/server-class/<slug>/server/`:
  *  nothing precaches that folder and no client pack or reader names it.
@@ -16,7 +17,7 @@ export function copyOutputProducts(root, outDir) {
     if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
     const source = resolve(products, entry.name);
     if (!existsSync(resolve(source, 'shard.json'))) continue;
-    cpSync(source, resolve(shardfiles, entry.name), { recursive: true, filter: path => basename(path) !== 'runtime' && basename(path) !== '.build-key' && relative(source, path) !== 'server' });
+    cpSync(source, resolve(shardfiles, entry.name), { recursive: true, filter: path => basename(path) !== 'runtime' && basename(path) !== '.build-key' && !['server', 'mounts', 'cook.json'].includes(relative(source, path)) });
     if (existsSync(resolve(source, 'server'))) cpSync(resolve(source, 'server'), resolve(serverClass, entry.name, 'server'), { recursive: true });
   }
 }

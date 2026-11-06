@@ -24,6 +24,8 @@ import { assetHandles, hashAssetBytes, immutableAsset, verifyAssetBytes, type Im
 import { readBoundedFile } from './sourceReader';
 import { validateRuntimeImports } from './runtimeImports';
 import type { ServerBlob } from './blobs';
+import { COOK_DATA_PATH, cookMountPath } from '@wildshard/format/cookData';
+import type { CookInput } from './cookInput';
 import { validateDefinedJson, type EmittedSections } from './sections';
 import { parseDiscoveryValues, type DiscoveryValues } from '@wildshard/format/discoveryValues';
 import { checkWorldTargets, outputBlobExtension as blobExtension, outputBlobKind as blobKind, readCanonicalJson as readJson, validateShardfileProduct, type ProductFiles, type ValidatedProduct } from '@wildshard/format/productValidation';
@@ -42,6 +44,16 @@ export interface OutputProductOptions {
   /** J91: server-class files. They enter the index's `admission.server`, never `files` or a pack. */
   readonly server?: readonly ServerBlob[];
   readonly runtime?: { readonly files: readonly NonNullable<OutputIndex['runtime']>['files'][number][]; readonly lines: number };
+  /** C0 (J137): the files and hints that let this product stand alone (`cook.json`). */
+  readonly cook?: CookInput;
+}
+/** C0: the mounts' bytes and their `cook.json` join the product's emitted files. */
+function cookRow(input: CookInput | undefined, emitted: Map<string,Uint8Array>): NonNullable<OutputIndex['cook']> | undefined {
+  if (input === undefined) return undefined;
+  const mounts = input.mounts.map(({url,bytes}) => { const path=cookMountPath(url);emitted.set(path,bytes);return {url,path,hash:hashAssetBytes(bytes),bytes:bytes.length}; });
+  const {packs,fence} = input, bytes = jsonBytes({version:1,mounts,...(packs===undefined?{}:{packs}),...(fence===undefined?{}:{fence})});
+  emitted.set(COOK_DATA_PATH,bytes);
+  return {path:COOK_DATA_PATH,hash:hashAssetBytes(bytes),bytes:bytes.length};
 }
 /** Read the named canonical platform payloads, each only after checking its emitted hash and size. */
 export function outputPlatformPayloads(platform: EmittedSections | undefined, names: readonly string[] = HEADLESS_CONTEXT_SECTIONS): ReadonlyMap<string, unknown> {
@@ -178,11 +190,12 @@ export function writeOutputProduct(input: unknown, assets: ReadonlyMap<string,Ui
     }
     flush();
   }
+  const cook=cookRow(options.cook,emitted);
   const {spawns:_spawns,...runtime} = source.runtime ?? {};
   const index = parseOutputIndex({format:'wildshard.shardfile',formatVersion:2,sdk:'0.2',version:source.version,identity:source.identity,requires:source.requires,
     build:{sourceHash:hashImmutableBytes(jsonBytes(source)),validator:validationRevision() ?? 'source'},admission:{budgets:source.budgets,serverBudget:source.serverBudget,authorCaps:source.authorCaps,critical:source.critical,library:source.library,...(source.late===undefined?{}:{late:source.late}),...(options.server===undefined||options.server.length===0?{}:{server:options.server.map(blob=>blob.file).sort((a,b)=>a.name.localeCompare(b.name))})},
     ...(Object.keys(ktx2Costs).length===0?{}:{ktx2Costs}),
-    sections:sections.sort((a,b)=>a.name.localeCompare(b.name)),schemas:schemas.sort((a,b)=>a.path.localeCompare(b.path)),files:files.sort((a,b)=>a.hash.localeCompare(b.hash)||a.path.localeCompare(b.path)),...(packs.length===0?{}:{packs}),runtime:source.runtime === null ? null : {...runtime,trust:'first-party',files:options.runtime?.files ?? [],lines:options.runtime?.lines ?? 0}});
+    sections:sections.sort((a,b)=>a.name.localeCompare(b.name)),schemas:schemas.sort((a,b)=>a.path.localeCompare(b.path)),files:files.sort((a,b)=>a.hash.localeCompare(b.hash)||a.path.localeCompare(b.path)),...(packs.length===0?{}:{packs}),...(cook===undefined?{}:{cook}),runtime:source.runtime === null ? null : {...runtime,trust:'first-party',files:options.runtime?.files ?? [],lines:options.runtime?.lines ?? 0}});
   // A writer owns this product directory, never a source folder. Preserve only the
   // already-copied runtime files; refuse unrelated leftovers in validation below.
   mkdirSync(destination,{recursive:true});
