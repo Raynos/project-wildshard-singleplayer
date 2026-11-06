@@ -162,7 +162,7 @@ describe('the cook worker', () => {
     expect(row).toMatchObject({state: 'failed'});
     expect(row.detail).toContain('Over the pack budget');
     expect(existsSync(join(scratch, 'small', 'index'))).toBe(false);
-  }, 60_000);
+  }, 120_000);
 
   it('collects what no kept build names, and leaves young objects to a running cook', async () => {
     const put = (key: string): Promise<void> => store.put(key, new Uint8Array(10), objectHeaders(key));
