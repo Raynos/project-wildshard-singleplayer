@@ -20,7 +20,8 @@
     "./immutable": "./immutable.ts",
     "./tickProtocol": "./tickProtocol.ts",
     "./tickWorkerHost": "./tickWorkerHost.ts",
-    "./headlessSections": "./headlessSections.ts"
+    "./headlessSections": "./headlessSections.ts",
+    "./tickWorkerLoop": "./tickWorkerLoop.ts"
   },
   "engines": {
     "node": ">=22.18"

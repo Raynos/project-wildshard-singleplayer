@@ -373,7 +373,14 @@
     "./engineStrings": "./client/engineStrings.ts",
     "./audio/theme": "./client/audio/theme.ts",
     "./identity": "./client/identity.ts",
-    "./shardfile/wholeGeometryPieces": "./client/shardfile/wholeGeometryPieces.ts"
+    "./shardfile/wholeGeometryPieces": "./client/shardfile/wholeGeometryPieces.ts",
+    "./grid/singleplayer.json": "./shared/grid/singleplayer.json",
+    "./shardCook": "./cook/shardCook.ts",
+    "./shard/load": "./client/shard/load.ts",
+    "./grid/runtimeCost": "./client/grid/runtimeCost.ts",
+    "./generators/pickups": "./client/generators/pickups.ts",
+    "./draftTitles": "./client/draftTitles.ts",
+    "./boot/packs.generated": "./client/boot/packs.generated.ts"
   },
   "dependencies": {
     "@wildshard/format": "github:project-wildshard/shardfile#v0.4.0",
