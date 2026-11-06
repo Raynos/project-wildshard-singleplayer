@@ -108,6 +108,17 @@ test('a legacy recorded run retains card data but cannot qualify frames without 
   expect(r.pass).toBe(false);
 });
 
+test('a spawn download holding the card is named while its bytes move, and a frozen one is not', () => {
+  const run = moved => {
+    const rows = [{ t: 0, ev: 'tapEnter' }];
+    for (let i = 0; i < 25; i++) rows.push({ t: 100 + i * 200, ev: 'poll', shown: true, styled: true, su: '—', suPct: '0', line: 'Reading download inventory', foot: '', dl: `Spawn view · ${moved(i)} MB of 54.5 MB` });
+    rows.push({ t: 5200, ev: 'poll', shown: true, styled: true, su: 'step 1 / 30 · Application modules', suPct: '9', line: 'x', foot: '', dl: 'Spawn view · 54.5 MB' }, { t: 5400, ev: 'control' });
+    return analyse(rows).setupStalls_ge3s[0];
+  };
+  expect(run(i => (i * 2).toFixed(1))).toMatchObject({ named: true, longestUnnamedS: 0 });
+  expect(run(i => Math.min(i, 6).toFixed(1))).toMatchObject({ named: false });
+});
+
 test('the stage\'s reads tally is not a named wait: a step held 3.5 s behind it fails, as Nine\'s cold step 27 did', () => {
   const rows = [{ ev: 'tapEnter', t: TAP }];
   for (let s = 0; s <= 3.6; s += 0.2) rows.push(card(s, { su: 'step 27 / 30 · First drawn frames and minimap', suPct: '90', dl: `Spawn view · ${s.toFixed(1)} MB`,

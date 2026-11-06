@@ -113,10 +113,13 @@ export function analyse(rows) {
     if (row.su !== from.su || row.suPct !== from.suPct || i === loading.length - 1) {
       const s = (row.t - from.t) / 1000;
       if (s >= BAR.unnamedStepS) {
-        let quiet = 0, quietFrom = null;
+        let quiet = 0, quietFrom = null, before = null;
         for (const poll of [...held, row]) {
-          if (poll !== row && !named(poll.foot, from.su)) quietFrom ??= poll.t;
+          // a spawn download on a real link holds the card before its first step: its own row names it, for as long as its bytes move
+          const downloading = /\bof [\d.]+ MB\b/u.test(poll.dl ?? '') && poll.dl !== before?.dl;
+          if (poll !== row && !downloading && !named(poll.foot, from.su)) quietFrom ??= poll.t;
           else if (quietFrom !== null) { quiet = Math.max(quiet, poll.t - quietFrom); quietFrom = null; }
+          before = poll;
         }
         stalls.push({ from: T(from.t), to: T(row.t), s: round(s), step: from.su, pct: from.suPct, named: quiet < 1000,
           longestUnnamedS: round(quiet / 1000), waits: [...new Set(held.filter(poll => named(poll.foot, from.su)).map(poll => waitName(poll.foot)))].slice(0, 4) });
