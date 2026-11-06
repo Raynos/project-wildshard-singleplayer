@@ -348,16 +348,16 @@ export class MoverRuntime {
   bindNativeCarry(host: SimHost): void {
     if (!this.data.some(row => row.carry !== undefined)) return;
     host.events.answer('player.carrying', carried => carried || this.carrying(), host.scope);
-    host.leading.push(body => this.carrying(body === leadPlayer(host) ? undefined : body.id)); // a client's capsule stays out of a boat's way
+    const lead = leadPlayer(host);
+    host.leading.push(body => this.carrying(body === lead ? undefined : body.id)); // a client's capsule stays out of a boat's way
     const routes = actRoutes(host);
     for (const row of this.data) row.carry?.prompts.forEach(({ at: [x, y, z], radius }, end) => {
       routes.claims.set(carryPrompt(row.id, end), player => {
         const body = host.players.get(player)?.position;
-        if (body !== undefined && Math.hypot(body.x - x, body.y - y, body.z - z) <= radius + CARRY_REACH) this.command(row.id, end === 0 ? 1 : 2, player === leadPlayer(host).id ? undefined : player);
+        if (body !== undefined && Math.hypot(body.x - x, body.y - y, body.z - z) <= radius + CARRY_REACH) this.command(row.id, end === 0 ? 1 : 2, player === lead.id ? undefined : player);
         else routes.refused++;
       });
     });
-    const lead = leadPlayer(host);
     host.events.answer('player.traversal', dt => {
       const player = host.traversing;
       if (typeof dt !== 'number') return dt;
