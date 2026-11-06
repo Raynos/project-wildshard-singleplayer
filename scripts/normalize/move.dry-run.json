@@ -130,7 +130,7 @@
     "scripts/img2mesh/pine_hollow_phone.sh",
     "scripts/inbox-pull.mjs",
     "scripts/iphone-mem-reading.sh",
-    "scripts/king-rig-bake.mjs",
+    "src/shards/pine-hollow/bake/king-rig-bake.mjs",
     "scripts/king-rig-gate.mjs",
     "scripts/model-spin.mjs",
     "scripts/music/export-midi.mjs",
