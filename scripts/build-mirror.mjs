@@ -7,7 +7,7 @@
 //
 // The mirror is a work tree with its own index (GIT_INDEX_FILE), so `read-tree -u` rewrites only the files that differ
 // from the commit it last held: a sync to a nearby commit writes kilobytes, never a fresh 23k-file export. It holds the
-// commit minus art/, progress/ and sources/ (what the exports always excluded; --full keeps them). There is one mirror
+// commit minus art/, src/shards/*/art/, progress/ and sources/ (what no build reads; --full keeps them). There is one mirror
 // per slot under git-ignored ./tmp/build-mirror (G612: five pooled check slots;
 // five shared slots, never per-lane slots): never /tmp, $TMPDIR or a session scratchpad (macOS empties those
 // at boot, before login, and the piled-up exports stalled the boot for hours on 2026-10-15), and `du -sh tmp` shows
@@ -153,12 +153,32 @@ function acquire(root, slots, gateDeadline) {
   } } finally { leave(); }
 }
 
-/** The commit's tree, or (unless full) a tree object of its top level without the excluded folders. */
+/** A tree's rows, as `git mktree -z` takes them back. @param {string} repo @param {string} tree */
+const treeRows = (repo, tree) => execFileSync('git', ['ls-tree', '-z', tree], { cwd: repo, encoding: 'utf8', maxBuffer: 1 << 26 })
+  .split('\0').filter(Boolean);
+/** @param {string} row */
+const rowName = (row) => row.slice(row.indexOf('\t') + 1);
+/** @param {string} repo @param {string[]} rows */
+const writeTree = (repo, rows) => execFileSync('git', ['mktree', '-z'], { cwd: repo, input: `${rows.join('\0')}\0`, encoding: 'utf8' }).trim();
+/** One row with its subtree rewritten; a subtree left empty loses the row, because git has no empty folder.
+ * @param {string} repo @param {string} row @param {(rows: string[]) => string[]} edit */
+function editRow(repo, row, edit) {
+  const [info = ''] = row.split('\t'), [mode, type, id = ''] = info.split(' ');
+  if (type !== 'tree') return [row];
+  const rows = edit(treeRows(repo, id));
+  return rows.length === 0 ? [] : [`${mode} tree ${writeTree(repo, rows)}\t${rowName(row)}`];
+}
+/** The same folder's rows with a child's rows rewritten. @param {string} repo @param {string[]} rows @param {string} name
+ * @param {(rows: string[]) => string[]} edit */
+const editChild = (repo, rows, name, edit) => rows.flatMap((row) => rowName(row) === name ? editRow(repo, row, edit) : [row]);
+
+/** The commit's tree, or (unless full) a tree object without the excluded folders and each shard's art/. */
 function buildTree(repo, sha, full) {
   if (full) return `${sha}^{tree}`;
-  const entries = execFileSync('git', ['ls-tree', '-z', sha], { cwd: repo, encoding: 'utf8', maxBuffer: 1 << 26 })
-    .split('\0').filter((line) => line && !EXCLUDED.has(line.slice(line.indexOf('\t') + 1)));
-  return execFileSync('git', ['mktree', '-z'], { cwd: repo, input: `${entries.join('\0')}\0`, encoding: 'utf8' }).trim();
+  const top = treeRows(repo, sha).filter((row) => !EXCLUDED.has(rowName(row)));
+  const noArt = (/** @type {string[]} */ rows) => rows.filter((row) => rowName(row) !== 'art');
+  return writeTree(repo, editChild(repo, top, 'src', (src) => editChild(repo, src, 'shards',
+    (shards) => shards.flatMap((shard) => editRow(repo, shard, noArt)))));
 }
 
 // Admitted outputs may mix ignored JSON with unignored content-addressed blobs.

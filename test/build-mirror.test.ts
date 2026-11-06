@@ -127,7 +127,7 @@ it('a gate queue uses its shorter deadline and leaves live holders untouched',()
 
 it('syncs only what differs, drops art/progress/sources, and leaves the checkout untouched', () => {
   const { repo, commit, env } = fixture();
-  const first = commit({ 'src/a.ts': 'a1', 'src/b.ts': 'b1', 'src/keep.ts': 'k', 'index.html': 'i1', 'art/big.png': 'x', 'progress/p.png': 'x', 'sources/s.blend': 'x' });
+  const first = commit({ 'src/a.ts': 'a1', 'src/b.ts': 'b1', 'src/keep.ts': 'k', 'src/shards/one/data/row.json': '{}', 'src/shards/one/art/board.jpg': 'x', 'src/shards/two/art/board.jpg': 'x', 'index.html': 'i1', 'art/big.png': 'x', 'progress/p.png': 'x', 'sources/s.blend': 'x' });
   const second = commit({ 'src/a.ts': 'a2', 'src/b.ts': null });
 
   const one = openMirror(first, { repo, env });
@@ -137,7 +137,8 @@ it('syncs only what differs, drops art/progress/sources, and leaves the checkout
   expect(processEnv['WS_GENERATION_TREE_ROOT']).toBe(one.dir);
   one.release();
   expect(readFileSync(join(one.dir, 'src/b.ts'), 'utf8')).toBe('b1');
-  expect(['art', 'progress', 'sources'].filter((d) => existsSync(join(one.dir, d)))).toEqual([]);
+  expect(['art', 'progress', 'sources', 'src/shards/one/art', 'src/shards/two'].filter((d) => existsSync(join(one.dir, d)))).toEqual([]);
+  expect(readFileSync(join(one.dir, 'src/shards/one/data/row.json'), 'utf8')).toBe('{}');
   const untouched = lstatSync(join(one.dir, 'src/keep.ts')).ino;
   writeFileSync(join(one.dir, 'index.html'), 'tampered');
   writeFileSync(join(one.dir, 'src/stray.ts'), 'left behind');

@@ -31,6 +31,8 @@ const SKIP_TOP = new Set(['.git', '.github', '.githooks', '.claude', '.cache', '
 const SKIP_ANYWHERE = new Set(['node_modules', '.git', '.wildshard', '.DS_Store']);
 // Outputs and derived docs inside included folders: products, legacy boot packs, the API surface and the scripts index (full `pnpm gen` only, so they differ by slot history).
 const SKIP_PATHS = new Set(['public/shardfiles', 'public/assets/packs', 'lint/api-surface.json', 'scripts/README.md']);
+// A shard's art/: mockup rounds and look-tool data, what top-level art/ held before S2 (lint/shard-layout.json).
+const SHARD_ART = /^src\/shards\/[^/]+\/art$/u;
 
 export function shardfileCacheRoot(env = process.env) {
   return resolve(env.WILDSHARD_SHARDFILE_CACHE ?? join(homedir(), '.cache/wildshard/shardfiles'));
@@ -52,7 +54,7 @@ export function treeHashes(root) {
       if (SKIP_ANYWHERE.has(name) || (top && SKIP_TOP.has(name))) continue;
       const path = rel === '' ? name : `${rel}/${name}`;
       if (path === 'test') { if (existsSync(join(root, 'test/fixtures'))) walk('test/fixtures', false); continue; }
-      if (SKIP_PATHS.has(path)) continue;
+      if (SKIP_PATHS.has(path) || SHARD_ART.test(path)) continue;
       const stat = lstatSync(join(root, path));
       if (stat.isDirectory()) walk(path, false);
       else if (stat.isSymbolicLink()) files.set(path, `link:${readlinkSync(join(root, path))}`);

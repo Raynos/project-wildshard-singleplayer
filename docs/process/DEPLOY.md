@@ -30,7 +30,7 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `prepare` runs the node checks and the
   vite build + chunk check in parallel (`scripts/ci-checks.mjs`), then the CSS check and the native build. **Coverage is reserved for nightly and
   milestone runs** (Jake G287); it is not a normal push-release prerequisite. **A push that only touches
-  `docs/`, `progress/`, `art/` or `sources/` runs no push CI** (`paths-ignore`; it would re-test the parent's code): that SHA never becomes a release candidate, and production's
+  `docs/`, `progress/`, `art/`, `src/shards/*/art/` or `sources/` runs no push CI** (`paths-ignore`; it would re-test the parent's code): that SHA never becomes a release candidate, and production's
   "newest proven main" is its newest code ancestor, so compare `version.json` with the newest CI-green SHA, not the
   tip. Manual releases reuse completed exact-SHA push proof. Automatic shipping requires every successful
   same-run wave verdict before its own release job can start; it never waits for its own aggregate to finish.
