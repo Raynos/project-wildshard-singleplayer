@@ -415,6 +415,17 @@ async function nalatiJourney(browser, phone, base, step) {
     const r = await report(page);
     return { ok: taken && r.owned['item.goldenBow'] === 1, owned: r.owned, flags: r.flags.filter(flag => /^(?:dead|boss)/u.test(flag)) };
   });
+  await step('nalati: a save holds the story and the bow, through a reload', async () => {
+    await page.evaluate(() => Promise.race([window.__workerClientSave(), new Promise(resolve => { setTimeout(resolve, 20_000); })]));
+    const saved = await report(page);
+    await page.reload({ waitUntil: 'load' });
+    await page.waitForFunction(() => typeof window.__workerClient === 'function', undefined, { timeout: 150_000 });
+    await page.evaluate(FLOOR_GRID_ENTER);
+    await page.waitForFunction(() => window.__workerClient().frames > 30, undefined, { timeout: 60_000 });
+    await page.waitForTimeout(2500);
+    const r = await report(page), chip = await page.evaluate(() => { const { line } = window.__wildshard.shard['nalati.quest']; return { chapter: line?.active?.def?.id ?? null, step: line?.active?.current?.id ?? null }; }), king = await fight(page, KING);
+    return { ok: saved.savedOk && r.restored && r.flags.includes('talked:elder') && chip.chapter === 'tulpar' && r.owned['item.goldenBow'] === 1 && king?.reward === null, restored: r.restored, chip, owned: r.owned, king: king?.state };
+  });
   await step('nalati: no page error', () => ({ ok: steppe.errors.length === 0, errors: [...new Set(steppe.errors)].slice(0, 6) }));
   await steppe.context.close();
 }

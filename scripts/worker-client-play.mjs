@@ -293,6 +293,21 @@ export async function play(browser, phone, base, only = '') {
     await grid.page.waitForFunction(() => typeof window.__workerClient === 'function' && window.__workerClient().frames > 30, undefined, { timeout: 60_000 });
     return true;
   });
+  await step('a kill in a cell reaches that cell\'s own purse', async () => {
+    await grid.page.evaluate(() => { window.__workerClientHits(40); });
+    const purse = () => grid.page.evaluate(() => window.__wildshard.shard['driftwood.loot']?.purse?.coins ?? null), before = await purse();
+    for (let i = 0; i < 90; i++) {
+      const r = await report(grid.page);
+      if ((r.owned.coins ?? 0) > 0) { await grid.page.waitForTimeout(800); const shown = await purse(); return { ok: shown === (await report(grid.page)).owned.coins, before, shown, owned: (await report(grid.page)).owned }; }
+      const body = await grid.page.evaluate(() => { const list = window.__workerClientRows('boar'), { x, z } = window.__wildshard.shard.grid.state().live.live.worldFeet; return [...list].sort((a, b) => Math.hypot(a.x - x, a.z - z) - Math.hypot(b.x - x, b.z - z))[0] ?? null; });
+      if (body === null) { await grid.page.waitForTimeout(400); continue; }
+      await grid.page.evaluate(({ x, y, z }) => { const { player, game } = window.__wildshard.world; player.link.place(x + 1.2, y + 0.5, z + 1.2, 0); game.app.input.press('attack'); }, body);
+      await grid.page.waitForTimeout(350);
+      await grid.page.evaluate(() => { const { player, game } = window.__wildshard.world; player.yaw = Math.atan2(1.2, 1.2); player.pitch = -0.2; game.app.input.press('attack'); });
+      await grid.page.waitForTimeout(450);
+    }
+    return { ok: false, owned: (await report(grid.page)).owned, hits: (await report(grid.page)).hits };
+  });
   await step('cross a cell', async () => {
     for (const [x, z] of [[0, -285], [0, -235]]) {
       const until = Date.now() + 70_000;

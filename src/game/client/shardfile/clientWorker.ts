@@ -103,7 +103,7 @@ export interface WorkerClientReport {
 }
 /** A fight as a proof reads it: its row, where its body stands and the server's name for it. */
 export type WorkerClientFight = EncounterRow & { readonly at: { readonly x: number; readonly y: number; readonly z: number } | null; readonly name: string | null };
-declare global { interface Window { __workerClientFights?: () => readonly WorkerClientFight[]; __workerClientHits?: (by: number) => void; __workerClientFlag?: (flag: string) => void; __workerClientGate?: (flag: string) => boolean; __workerClientBot?: (id: string, x: number, y: number, z: number) => { readonly move: (x: number, y: number, z: number) => void; readonly end: () => void }; __workerClient?: () => WorkerClientReport; __workerClientSave?: () => Promise<void> } }
+declare global { interface Window { __workerClientFights?: () => readonly WorkerClientFight[]; __workerClientHits?: (by: number) => void; __workerClientFlag?: (flag: string) => void; __workerClientRows?: (kind: string) => readonly { readonly x: number; readonly y: number; readonly z: number }[]; __workerClientGate?: (flag: string) => boolean; __workerClientBot?: (id: string, x: number, y: number, z: number) => { readonly move: (x: number, y: number, z: number) => void; readonly end: () => void }; __workerClient?: () => WorkerClientReport; __workerClientSave?: () => Promise<void> } }
 
 /** A creature on screen, and the world's manager that holds it: a crossing leaves it behind. */
 interface RowBody { readonly body: Animal; readonly manager: Creatures }
@@ -303,6 +303,15 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   window.__workerClient = () => ({ ...report });
   window.__workerClientHits = by => { shell.hardHits(by); };
   window.__workerClientFlag = flag => { shell.raise(flag); };
+  window.__workerClientRows = kind => {
+    const { latest } = client, out: { readonly x: number; readonly y: number; readonly z: number }[] = [];
+    if (latest === null) return out;
+    for (const [handle, info] of client.entities) {
+      const seen = info.cls.cls === ANIMAL_CLASS.cls && info.initial['kind'] === kind ? client.fields(latest, handle) : null;
+      if (seen !== null && seen['alive'] === 1) out.push({ x: Number(seen['x']), y: Number(seen['y']), z: Number(seen['z']) });
+    }
+    return out;
+  };
   window.__workerClientGate = flag => wirePage.gates.has(flag);
   window.__workerClientBot = (id, x, y, z) => {
     const { client: bot, move } = shell.join(id, x, y, z), STILL = { steer: { keyX: 0, keyY: 0, stickX: 0, stickY: 0 }, yaw: 0, pitch: 0, buttons: 0 };
