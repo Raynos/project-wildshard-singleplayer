@@ -55,6 +55,8 @@ export class WirePage {
   led: () => boolean = () => false;
   /** The head over a row's body, into `to`: what an elite's bar stands on. */
   readonly head: (body: number, to: Vector3) => boolean = (body, to) => this.heads(body, to);
+  /** How many facts this page's own ledger holds: what a proof reads. */
+  keptFacts: () => number = () => 0;
   /** How many poses rows have set: what a proof reads. */
   posed = 0;
   /** The highest drift rows have laid here, in metres: what a proof reads. */

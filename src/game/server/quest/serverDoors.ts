@@ -28,6 +28,8 @@ const conjugate = (q: Quat): Quat => ({ x: -q.x, y: -q.y, z: -q.z, w: q.w });
 const turned = (q: Quat, p: Point): Point => times(times(q, { ...p, w: 0 }), conjugate(q));
 interface Leaf { readonly door: BuildingDoorState; readonly flag: string; readonly collider: Collider; readonly hinge: Point; readonly rotation: Quat; readonly local: Point; readonly bars: readonly { readonly opensWhen: Parameters<typeof test>[1] }[] }
 
+/** The flags a condition reads. */
+const flagsOf = (condition: Parameters<typeof test>[1]): readonly string[] => [...condition?.all ?? [], ...condition?.any ?? [], ...condition?.none ?? []];
 /** Every collider that names a piece, by its id. */
 function pieceColliders(host: SimHost): ReadonlyMap<string, Collider> {
   const found = new Map<string, Collider>();
@@ -72,6 +74,7 @@ export async function installServerDoors(host: SimHost, product: ShardProduct | 
       if (toggleBuildingDoor(leaf.door)) host.flags.set(leaf.flag); else host.flags.clear(leaf.flag);
     });
   }
+  books.claim(leaves.flatMap(leaf => leaf.bars.flatMap(gate => flagsOf(gate.opensWhen)))); // J106: what opens a bar is each player's own
   const gates = bars.length === 0 ? null : new QuestFlagGates(host, { gates: bars }, false, undefined, id => colliders.get(bar(id)) ?? null);
   host.onStep('world.doors', dt => {
     gates?.sync();

@@ -622,8 +622,8 @@ async function secondClientJourney(browser, phone, base, step) {
   await step('second client: no page error', () => ({ ok: pine.errors.length === 0, errors: [...new Set(pine.errors)].slice(0, 6) }));
   await pine.context.close();
   const steppe = await open(browser, phone, base, 'nalati-grasslands');
-  const nalati = steppe.page, FACT = 'nalati.quest.tulpar', filed = async () => (await report(nalati)).receipts.filter(line => line === `fact:${FACT}`).length, kept = () => nalati.evaluate(() => window.__wildshard.shard['ledger.records']?.() ?? null);
-  await step('a chapter\'s fact is filed once, and a reload files it no more', async () => {
+  const nalati = steppe.page, FACT = 'nalati.quest.tulpar', filed = async () => (await report(nalati)).receipts.filter(line => line === `fact:${FACT}`).length, kept = async () => { await nalati.waitForTimeout(1100); return (await report(nalati)).keptFacts; };
+  await step('a chapter\'s fact is filed once, and a reload adds none', async () => {
     const before = await kept();
     for (const flag of ['talked:elder', 'tamed:horse', 'won:kokpar', 'told:tulpar']) { await nalati.evaluate(wanted => { window.__workerClientFlag(wanted); }, flag); await nalati.waitForTimeout(300); }
     const done = await until(nalati, async () => (await report(nalati)).flags.includes('quest:tulpar'), 8);
@@ -634,7 +634,8 @@ async function secondClientJourney(browser, phone, base, step) {
     await nalati.reload({ waitUntil: 'load' }); await nalati.waitForFunction(() => typeof window.__workerClient === 'function', undefined, { timeout: 150_000 }); await nalati.evaluate(FLOOR_GRID_ENTER); await nalati.waitForFunction(() => window.__workerClient().frames > 30, undefined, { timeout: 60_000 });
     await nalati.waitForTimeout(4000);
     const again = await filed(), second = await kept();
-    return { ok: done === true && once === 1 && again === 0 && first === before + all.filter(line => line.startsWith('fact:')).length && second === first, done, once, again, before, first, second, receipts: all };
+    // A fresh page hears the server's book from the top, by the receipt's own id: it keeps each one once.
+    return { ok: done === true && once === 1 && first === before + all.filter(line => line.startsWith('fact:')).length && second === first, done, once, again, before, first, second, receipts: all };
   });
   await step('nalati, a second time: no page error', () => ({ ok: steppe.errors.length === 0, errors: [...new Set(steppe.errors)].slice(0, 6) }));
   await steppe.context.close();

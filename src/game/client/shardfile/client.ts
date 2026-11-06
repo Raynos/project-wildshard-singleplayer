@@ -445,7 +445,7 @@ export class ShardfileClient {
       ledger.record({ ...identity, origin: rule.origin, tick: 0, ordinal: 0, name, entity: id });
       play.progress.refreshLedger();
     });
-    if (wirePage.on) ctx.debug.expose('ledger.records', () => ledger.recordCount);
+    if (wirePage.on) wirePage.keptFacts = () => ledger.recordCount;
     const read = (scope: 'shared' | 'player', id: number): number => {
       const field = source.state[scope].find((row) => row.id === id); if (field === undefined) throw new Error('Missing declared state field');
       const value = this.sim?.lane?.world.viewField(health.id, scope, field.name);

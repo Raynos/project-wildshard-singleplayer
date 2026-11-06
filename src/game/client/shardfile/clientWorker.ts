@@ -89,6 +89,8 @@ export interface WorkerClientReport {
   delayMs: number; jitterMs: number; mainMsP95: number; workerTickMs: number; rows: number; attacks: number; hits: number; kills: number; refused: number; held: number; dropped: number; hp: number; falls: number; closed: string | null; x: number; z: number; cell: number; serverX: number; serverZ: number; restored: boolean; savedTick: number; savedOk: boolean;
   /** The ledger's receipts this page heard, by kind and name. */
   receipts: string[];
+  /** The facts this page's ledger keeps: a receipt heard twice adds one. */
+  keptFacts: number;
   /** This player's quests by id, the flags the server says are theirs, the coins it paid, and its fights. */
   quests: Record<string, string | null>; flags: readonly string[]; paid: number; fights: readonly string[];
   /** Whether a hook tool holds the wire's claw, and the server's name for this player. */
@@ -249,7 +251,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   scope.onDispose(() => { player.link = null; ports.weapons.bindWire(null); net.dispose(); });
   const { restored } = await shell.booted;
   shell.ready();
-  const started = diagnosticNow(), report: WorkerClientReport = { frames: 0, framesPerSecond: 0, ticksPerSecond: 0, correctionsPerMinute: 0, corrections: 0, retired: {}, spawnMs: {}, missed: net.predictor.missed, misses: net.predictor.misses, worstOffset: 0, queue: 0, replaysPerFrame: 0, delayMs: 0, jitterMs: 0, mainMsP95: 0, workerTickMs: 0, rows: 0, attacks: 0, hits: 0, kills: 0, refused: 0, held: 0, dropped: 0, hp: 0, falls: 0, closed: null, x: 0, z: 0, cell: 0, serverX: 0, serverZ: 0, restored, savedTick: -1, savedOk: false, receipts: [], quests: {}, flags: [], paid: 0, fights: [], owned: {}, sky: null, day: null, clawed: false, own: null, movers: 0, posed: 0, sand: 0 };
+  const started = diagnosticNow(), report: WorkerClientReport = { frames: 0, framesPerSecond: 0, ticksPerSecond: 0, correctionsPerMinute: 0, corrections: 0, retired: {}, spawnMs: {}, missed: net.predictor.missed, misses: net.predictor.misses, worstOffset: 0, queue: 0, replaysPerFrame: 0, delayMs: 0, jitterMs: 0, mainMsP95: 0, workerTickMs: 0, rows: 0, attacks: 0, hits: 0, kills: 0, refused: 0, held: 0, dropped: 0, hp: 0, falls: 0, closed: null, x: 0, z: 0, cell: 0, serverX: 0, serverZ: 0, restored, savedTick: -1, savedOk: false, receipts: [], keptFacts: 0, quests: {}, flags: [], paid: 0, fights: [], owned: {}, sky: null, day: null, clawed: false, own: null, movers: 0, posed: 0, sand: 0 };
   scope.onDispose(client.onLedger(receipt => { report.receipts.push(`${receipt.grant}:${receipt.name}`); }));
   scope.onDispose(client.onCombat(event => {
     if (event.kind === 'hit' && event.confirmFor !== 0) { report.hits++; if (event.killed) report.kills++; }
@@ -269,7 +271,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   const sample = (now: number): void => {
     const { latest } = client;
     report.retired = Object.fromEntries(retired); report.spawnMs = Object.fromEntries(spawnMs); report.owned = Object.fromEntries(client.owned); report.sky = latest === null ? null : client.stateField(latest, 'weather.phase') ?? null; report.day = latest === null ? null : client.stateField(latest, DAY_ROW) ?? null;
-    report.movers = wirePage.movers.size; report.posed = wirePage.posed; report.sand = wirePage.sandPeak; report.clawed = clawed !== null; report.own = client.welcome?.player ?? null;
+    report.keptFacts = wirePage.keptFacts(); report.movers = wirePage.movers.size; report.posed = wirePage.posed; report.sand = wirePage.sandPeak; report.clawed = clawed !== null; report.own = client.welcome?.player ?? null;
     report.quests = Object.fromEntries([...client.quests].map(([id, quest]) => [id, quest.started ? quest.step : 'unstarted'])); report.flags = [...client.phased, ...client.flags()]; report.fights = wirePage.encounters().map(fight => `${fight.id}:${fight.state}:${fight.hp}`);
     report.framesPerSecond = (report.frames - framesAt) / (now - sampledAt) * 1000; framesAt = report.frames; sampledAt = now;
     report.mainMsP95 = [...costs].sort((a, b) => a - b)[Math.floor(Math.min(report.frames, costs.length) * 0.95) + Math.max(0, costs.length - report.frames)] ?? 0;

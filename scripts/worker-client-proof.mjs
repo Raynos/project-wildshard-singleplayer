@@ -60,10 +60,22 @@ async function proveHook(page, failures) {
 // the worker's timers run on, as the phone measured them.
 const engine = process.argv.includes('--webkit') ? webkit : chromium, pageFps = Number(arg('page-fps', '0'));
 const launched = await engine.launch(engine === webkit ? {} : { args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+// One queue, as a display has: a frame runs everything waiting, so no caller starves another.
 const capFrames = fps => {
   const raf = window.requestAnimationFrame.bind(window), every = 1000 / fps;
-  let next = 0;
-  window.requestAnimationFrame = run => raf(function tick(now) { if (now + 1 < next) { raf(tick); return; } next = Math.max(next + every, now); run(now); });
+  let waiting = [], next = 0, last = 0, armed = false;
+  const arm = () => { if (!armed) { armed = true; raf(pump); } };
+  function pump(now) {
+    armed = false;
+    if (now + 1 < next) { arm(); return; }
+    next = Math.max(next + every, now);
+    const run = waiting;
+    waiting = [];
+    for (const [, frame] of run) frame(now);
+    if (waiting.length > 0) arm();
+  }
+  window.requestAnimationFrame = frame => { waiting.push([++last, frame]); arm(); return last; };
+  window.cancelAnimationFrame = id => { waiting = waiting.filter(([at]) => at !== id); };
 };
 const browser = { close: () => launched.close(), newContext: async options => { const context = await launched.newContext(options); if (pageFps > 0) await context.addInitScript(capFrames, pageFps); return context; } };
 const failures = [];
