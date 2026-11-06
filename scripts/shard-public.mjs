@@ -14,7 +14,7 @@ export const GATHERED_SHARDS = Object.freeze(['_template', 'blender-template', '
  *  3. Prove it from an archive with no aliases: gen, every product by SHA-256 against the parent, and the full
  *     check-closed-components with docs and art present. Scripts and tests read the alias, so their paths don't change.
  * gen only copies: a file deleted here leaves its alias until the folder is cleared. */
-export const PUBLIC_TREES = Object.freeze(['sunscar-dunes']);
+export const PUBLIC_TREES = Object.freeze(['sunscar-dunes', 'driftwood-isle']);
 
 /** Where the entry crawl's record lives for a shard: its own folder once gathered, else its public folder.
  * @param {string} root @param {string} slug */
