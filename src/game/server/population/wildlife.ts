@@ -6,7 +6,7 @@ import { PagePastureRaid } from '../riding/pagePasture';
 import { PopulationRelations } from './relations';
 import * as v from 'valibot';
 import type { TargetHit } from '@wildshard/engine/combat/types';
-import { Vector3 } from 'three';
+import type { Vector3 } from 'three';
 import { WildlifePopulationSchema } from '@wildshard/format/wildlifePopulation';
 import { ForagerPopulation } from '@wildshard/engine/ai/ambientForager';
 import { Rng } from '@wildshard/engine/core/rng';

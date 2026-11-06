@@ -1,4 +1,5 @@
-import '../src/engine/client/app/runtime';
+import { app } from '../src/engine/client/app/runtime';
+import { seatPageApp } from '../src/engine/shared/app/pageSeat';
 import {admissionPage,admission} from './fixtures/nalati-return-modules';
 import { PopulationRelations } from '../src/game/server/population/relations';
 import { setTerrainHeight, setTerrainPlacement } from '../src/engine/shared/world/terrainHeight';
@@ -17,6 +18,7 @@ import type { Animal } from '../src/engine/client/entities/AnimalView';
 import type { AnimalManager } from '../src/engine/server/entities/AnimalManager';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
+seatPageApp(app);
 afterEach(() => { setTerrainHeight(() => 0); setTerrainPlacement(() => [0, 1, 0], () => -1000); });
 
 test('marsh page groups resolve native ids, adoption and water from rows without ports', () => {
