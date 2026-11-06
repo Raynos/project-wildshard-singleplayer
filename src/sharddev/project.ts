@@ -264,7 +264,7 @@ export async function buildProject(project: string, output?: string, options: { 
   let descriptor: ReturnType<typeof writeOutputProduct>;
   try {
     const runtime = options.copyRuntime === true || clientPlan ? writeRuntimeFiles(project, destination) : undefined;
-    const cook = await withDiscovery(project, shard, loaded.output.discovery, readCookInput(project, shard.identity.slug), assets);
+    const cook = await withDiscovery(project, shard.manifest ?? options.manifest?.composed, loaded.output.discovery, readCookInput(project, shard.identity.slug), assets);
     descriptor = writeOutputProduct(shard, assets, destination, { ...loaded.output, ...(runtime === undefined ? {} : { runtime }), ...(cook === undefined ? {} : { cook }) });
     phase('product-write');
     if (runtime !== undefined) proveRuntimeData(destination, descriptor, loaded.mirrors);
@@ -281,26 +281,32 @@ export async function buildProject(project: string, output?: string, options: { 
   }
   return shard;
 }
-/** C3: a level manifest's bindings go with the product, so a page needs nothing compiled to enter it. An author shard with no
- *  level manifest has none: its product alone says what it is. */
-async function withDiscovery(project: string, shard: Pick<Shardfile, 'manifest'>, values: DiscoveryValues | undefined, input: CookInput | undefined, assets: ReadonlyMap<string, Uint8Array>): Promise<CookInput | undefined> {
-  if (shard.manifest === undefined) return input;
-  // A level manifest's slug is its product's folder (`packManifestImages`).
-  const folder = shard.manifest.slug, document = await discoveryDocument(folder, shard.manifest, values, async (module, name) => {
+/** C3: a manifest's bindings go with the product, so a page needs nothing compiled to enter it: the packed level manifest, or an
+ *  output's composed one, which packs no images of its own. An author shard with neither has none: its product says what it is. */
+async function withDiscovery(project: string, manifest: unknown, values: DiscoveryValues | undefined, input: CookInput | undefined, assets: ReadonlyMap<string, Uint8Array>): Promise<CookInput | undefined> {
+  if (typeof manifest !== 'object' || manifest === null || !('slug' in manifest) || typeof manifest.slug !== 'string' || !('bindings' in manifest)) return input;
+  // A manifest's slug is its product's folder (`packManifestImages`).
+  const folder = manifest.slug, document = await discoveryDocument(folder, manifest, values, async (module, name) => {
     if (name === 'css') return readFileSync(resolve(project, module), 'utf8');
     if (module.endsWith('.json')) return JSON.parse(readFileSync(resolve(project, module), 'utf8')) as unknown;
     return (await authorModule(project, `${module.replace(/^\.\//u, '')}.ts`)).exports[name];
   });
-  // A program's rows name their images where the author keeps them; the product already holds those bytes (`packManifestImages`).
+  // Rows name their images where the author keeps them. A product holding those bytes serves them; the rest ride as mounts.
+  const mounts = new Map<string, Uint8Array>(), art = new Map<string, number>();
   const packed = JSON.stringify(document).replaceAll(/"\/(src\/shards\/[^"]+(\.[a-z]+))"/gu, (row: string, path: string, extension: string) => {
     if (!/^\.(?:jpe?g|png|webp|svg|hdr)$/u.test(extension)) return row;
-    const hash = hashAssetBytes(readFileSync(resolve(project, '../../..', path)));
-    if (!assets.has(hash)) throw new Error(`${folder}: discovery names an image its product doesn't hold: ${path}`);
-    return `"/shardfiles/${folder}/blobs/image/${hash}${extension}"`;
+    const bytes = readFileSync(resolve(project, '../../..', path)), hash = hashAssetBytes(bytes), held = assets.has(hash);
+    const url = held ? `/shardfiles/${folder}/blobs/image/${hash}${extension}` : `/shardfiles/${folder}/art/${hash}${extension}`;
+    if (!held) mounts.set(url, bytes);
+    art.set(url, bytes.length);
+    return `"${url}"`;
   });
-  const art = Object.fromEntries([...packed.matchAll(/"(\/shardfiles\/[^/"]+\/blobs\/image\/([a-f0-9]{64})\.[a-z0-9]+)"/gu)]
-    .flatMap(([, url, hash]) => { const bytes = hash === undefined ? undefined : assets.get(hash); return url === undefined || bytes === undefined ? [] : [[url, bytes.length]]; }));
-  return {...input, mounts: [...input?.mounts ?? [], {url: discoveryUrl(folder), bytes: new TextEncoder().encode(`${packed.slice(0, -1)},"art":${JSON.stringify(art)}}`)}]};
+  for (const [, url, hash] of packed.matchAll(/"(\/shardfiles\/[^/"]+\/blobs\/image\/([a-f0-9]{64})\.[a-z0-9]+)"/gu)) {
+    const bytes = hash === undefined ? undefined : assets.get(hash);
+    if (url !== undefined && bytes !== undefined) art.set(url, bytes.length);
+  }
+  return {...input, mounts: [...input?.mounts ?? [], ...[...mounts].map(([url, bytes]) => ({url, bytes})),
+    {url: discoveryUrl(folder), bytes: new TextEncoder().encode(`${packed.slice(0, -1)},"art":${JSON.stringify(Object.fromEntries(art))}}`)}]};
 }
 /** Create the runtime-free source layout without replacing existing work. */
 export function newProject(project: string, slug: string): void { writeNewProject(project, slug); }

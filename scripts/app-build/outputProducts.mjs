@@ -4,7 +4,7 @@ import { basename, isAbsolute, join, relative, resolve, sep } from 'node:path';
 /** The app publishes its data products, never their temporary TypeScript sources: each built product's folder under
  *  `<root>/out` (one with a shard.json) goes to `<outDir>/shardfiles`, without its runtime sources or its build key.
  *  `mounts/` and `cook.json` (C0, J137) are the cook's input: their files already serve at their public URLs, but for a
- *  discovery document, which is served beside its product.
+ *  discovery document and its art, which are served beside their product.
  *  The server class (J91, `<slug>/server/`) stays out of that tree, which is what a client reads. Standalone's server is a
  *  worker on the same device: it reads those files from its server pack (C2, `src/game/shared/shardfile/serverPack.ts`),
  *  which nothing precaches and no client manifest names.
@@ -18,9 +18,9 @@ export function copyOutputProducts(root, outDir) {
     const source = resolve(products, entry.name);
     if (!existsSync(resolve(source, 'shard.json'))) continue;
     cpSync(source, resolve(shardfiles, entry.name), { recursive: true, filter: path => basename(path) !== 'runtime' && basename(path) !== '.build-key' && !['server', 'mounts', 'cook.json'].includes(relative(source, path)) });
-    // C3: the one mount a page reads by this folder's URL (`src/sharddev/discoveryDocument.ts`).
-    const discovery = resolve(source, 'mounts/shardfiles', entry.name, 'discovery.json');
-    if (existsSync(discovery)) copyFileSync(discovery, resolve(shardfiles, entry.name, 'discovery.json'));
+    // C3: the mounts a page reads by this folder's URL: a discovery document and the art of a product that packs none.
+    const own = resolve(source, 'mounts/shardfiles', entry.name);
+    if (existsSync(own)) cpSync(own, resolve(shardfiles, entry.name), { recursive: true });
   }
 }
 
