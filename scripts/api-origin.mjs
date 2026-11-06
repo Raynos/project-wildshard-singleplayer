@@ -25,11 +25,14 @@ export function envLocal(key, root = process.cwd()) {
 /** The value with no trailing slash, '' when it is unset.
  * @param {string} [root] */
 export function apiOriginSet(root = process.cwd()) {
-  return String(process.env.VITE_API_ORIGIN ?? envLocal('VITE_API_ORIGIN', root) ?? '').trim().replace(/\/+$/u, '');
+  return (process.env.VITE_API_ORIGIN ?? envLocal('VITE_API_ORIGIN', root) ?? '').trim().replace(/\/+$/u, '');
 }
 
 /** Where a tool calls: the value, else the game's host.
  * @param {string} [root] */
-export const apiOrigin = (root = process.cwd()) => apiOriginSet(root) || GAME_HOST;
+export function apiOrigin(root = process.cwd()) {
+  const set = apiOriginSet(root);
+  return set === '' ? GAME_HOST : set;
+}
 
 if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) console.log(apiOrigin());
