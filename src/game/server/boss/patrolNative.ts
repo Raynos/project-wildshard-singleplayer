@@ -14,7 +14,7 @@ import type { SimHost } from '@wildshard/engine/sim';
 import type { AnimalRigContext } from '@wildshard/engine/entities/animalRig';
 import { EliteReadiness } from '@wildshard/engine/ai/eliteScript';
 import { ProjectileLaw } from '@wildshard/engine/combat/projectileLaw';
-import { StrikeRunner } from '@wildshard/engine/ai/strikes';
+import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { floorBelow, worldHit } from '@wildshard/engine/physics/query';
@@ -63,6 +63,10 @@ export interface NativePatrol {
 }
 const owners=new WeakMap<SimHost,NativePatrol>();
 export function patrolOf(host:SimHost):NativePatrol|undefined{return owners.get(host);}
+/** An arrow at `at` counts inside its rider's strike, measured from the rider or, by `origin`, the player, with nothing in the way. */
+export function patrolContactLands(runner:StrikeRunner,strike:StrikeSpec,actor:PatrolContactSource,at:Vector3,origin:'actor'|'player',physics:Parameters<typeof canReach>[2]):boolean{
+  return runner.contains(strike,{actor,target:at,...(origin==='player'?{origin:at}:{})})&&canReach(actor,at,physics);
+}
 /** A later entered arena may borrow the same native body scheduler. TimedEncounters updates its slot owner immediately before patrol. */
 export interface PatrolLoans {
   readonly eliteDamage?:((host:SimHost,actor:HuntBody,request:DamageRequest)=>number)|undefined;
@@ -234,7 +238,7 @@ export async function preparePatrol(product:Pick<ShardProduct,'json'>,files:Patr
       for(const hit of hits){
         const actor=hit.from??law.riders[0]?.a;if(actor===undefined)continue;
         const struck=host.nearestPlayer(hit.point);
-        if(!contact.contains(strike,{actor,target:struck.position,...(rows.contact.origin==='player'?{origin:struck.position}:{})})||!canReach(actor,struck.position,host.physics))continue;
+        if(!patrolContactLands(contact,strike,actor,struck.position,rows.contact.origin,host.physics))continue;
         host.combat.hit({source:'env',sourceTags:rows.contact.tags,target:struck.health,amount:rows.ride.damage,point:actor.position,dir:direction.set(0,0,0),cause:{kind:actor.kind,label:actor.label}});totalHits++;
       }
     };
