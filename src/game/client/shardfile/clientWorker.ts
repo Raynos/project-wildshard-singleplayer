@@ -257,7 +257,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     syncCreatures(client, animals, bodies, retired, spawnMs);
     bindMount(); offerMounts(); bindClaw();
     const shown = showRows(client, net, ports, bodies, renderTick, dt, row, near, rideable);
-    wirePage.frame(here ? bookOf(client.latest?.cell) : null, here, ports.day()); netMoverPoses(client, wirePage.movers, renderTick);
+    wirePage.frame(here ? bookOf(client.latest?.cell) : null, here, ports.day()); netMoverPoses(client, wirePage.movers, client.serverTick()); // a deck carries a predicted body, which stands in the present
     report.rows = animals === null ? [...client.entities.values()].filter(info => info.cls.cls === ANIMAL_CLASS.cls).length : shown; // a data cell's life draws them
     net.present(dt);
     const now = diagnosticNow(), { predictor } = net, seconds = (now - started) / 1000, tick = client.latest?.tick ?? 0;

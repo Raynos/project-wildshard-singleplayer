@@ -193,7 +193,7 @@ export async function play(browser, phone, base, only = '') {
       for (let i = 0; i < 3; i++) { await far.page.keyboard.press('KeyE'); await far.page.waitForTimeout(400); }
       await far.page.waitForTimeout(8000);
       const high = await height(), r = await report(far.page);
-      return { ok: Math.abs(high - low) > 1, low, high, label: at.label, corrections: r.corrections, refused: r.refused };
+      return { ok: Math.abs(high - low) > 1, low, high, label: at.label, corrections: r.corrections, worst: r.worstOffset, missed: r.missed, refused: r.refused };
     });
     await step('far reach rides without a page error', () => ({ ok: far.errors.length === 0, errors: [...new Set(far.errors)].slice(0, 6) }));
     await far.context.close();

@@ -143,6 +143,8 @@ export class NetClient {
     this.delivery.update(renderTick);
     return renderTick;
   }
+  /** The tick the server stands at now, by this client's clock: what a body under a predicted player has to be posed at. */
+  serverTick(): number { return this.clock.serverTick(this.now()); }
   /** Send this client frame's bundle: its new commands and up to REDUNDANT_COMMANDS older unacked ones, plus the ack. */
   flush(): void {
     const acked = this.latest?.lastSeq;
