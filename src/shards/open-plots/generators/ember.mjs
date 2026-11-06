@@ -155,7 +155,7 @@ function emberLane(w, p, side, centre) {
 
 /** where an avenue's dressing stops (plot metres along it): the furnace's forecourt, the moat's bridges, and the entry's 15 m
  *  footprint (contentBounds ENTRY_ASPHALT), which must stay clear of props and colliders */
-const AVENUE = { plaza: 40, moat: [126, 186], trough: [190, 233], road: 234 };
+const AVENUE = { plaza: 40, moat: [126, 186], trough: [190, 233], road: 199 };
 
 /** One of the four avenues from a road entry to the furnace (the seams on x = 0 and z = 0), lined as round 62's entry
  *  path is: a basalt plinth with a cold blue lamp-block either side every 15.6 m, from the road to the furnace's

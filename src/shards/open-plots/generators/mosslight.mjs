@@ -215,7 +215,8 @@ function avenue(w, p, side, centre, along) {
     const [x, , z] = along(u, 0, 0), outward = side === 0 ? centre[0] + u > 0 : centre[1] - u > 0;
     ruin(w, 0, x, z, side === 0 ? (outward ? 1 : 3) : (outward ? 0 : 2), AVENUE_ARCH);
   }
-  for (const u of at(LAMPS)) for (const off of [-3.6, 3.6]) { const [x, , z] = along(u, off, 0); lamp(w, p, x, z, 0); }
+  // past 200 m the lamps stand off the lane's 8 m: a post inside it refuses the entry proof, which walks the last 50 m
+  for (const u of at(LAMPS)) for (const off of reach(u) > 200 ? [-4.3, 4.3] : [-3.6, 3.6]) { const [x, , z] = along(u, off, 0); lamp(w, p, x, z, 0); }
   for (const [u, off, y] of [[-HALF * 0.6, -2.6, 1.2], [HALF * 0.2, 2.6, 1.6], [HALF * 0.7, -2.6, 1.0]]) {
     const [x, , z] = along(u, off, y);
     if (reach(u) > 30 && reach(u) < ARCHES[2]) mote(w, x, y, z);
