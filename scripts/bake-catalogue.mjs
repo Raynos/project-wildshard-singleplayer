@@ -25,6 +25,9 @@ try {
   const proved = await productVerdict(tarball, out);
   const header = join(out, 'shardfiles', slug);
   mkdirSync(header, { recursive: true }); writeFileSync(join(header, 'shard.json'), shard.header);
+  // A shard's manifests name its document at the page's URL, loose as its header is: no part carries it.
+  const document = join(cooked, 'shardfiles', slug, 'discovery.json');
+  if (existsSync(document)) cpSync(document, join(header, 'discovery.json'));
   if (packs !== undefined) { mkdirSync(join(packs, 'shardfiles', slug), { recursive: true }); writeFileSync(join(packs, 'shardfiles', slug, 'shard.json'), shard.header); }
   const catalogue = JSON.parse(readFileSync(join(out, 'catalogue.json'), 'utf8'));
   const hash = createHash('sha256').update(tarball).digest('hex');
