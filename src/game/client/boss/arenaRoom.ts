@@ -255,7 +255,7 @@ export class ArenaRoomEncounter {
     if(this.openRows===null){this.portal?.update(dt,t);return;}
     this.power?.update(dt,t);this.hurtT-=dt;const boss=this.boss;if(boss===null||this.context===null||this.kit===null)return;
     const fight=this.openFight;if(wirePage.on||boss.state!=='dormant'||fight.body.visible)this.drive?.(dt,t);else fight.update(dt,t,false);
-    if(wirePage.on&&this.prompt!==null){const line=wirePage.line(OWNED_ROW.tie),{lines}=this.data;this.prompt.wireId=`${this.data.definition.id}.tie`;this.prompt.radius=Math.floor(line/10)/100;this.prompt.label=line%10===1?lines.tieOnFoot:line%10===2?lines.tieQuiet:lines.tie;}
+    if(wirePage.on&&this.prompt!==null){const line=wirePage.line(OWNED_ROW.tie),{lines,arena}=this.data;this.prompt.wireId=`${this.data.definition.id}.tie`;this.prompt.position.x=arena.anchor.x;this.prompt.position.z=arena.anchor.z;this.prompt.radius=Math.floor(line/10)/100;this.prompt.label=line%10===1?lines.tieOnFoot:line%10===2?lines.tieQuiet:lines.tie;}
     const answer=fight.takeBoundary();if(answer===null)return;const prompt=this.prompt;if(prompt===null)throw new Error('Missing open arena prompt');
     // the boundary answer's order is arenaBoundary's (renderer-free, CI12)
     const p=this.player.position,scope=this.context.scope;
