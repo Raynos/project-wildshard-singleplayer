@@ -64,6 +64,15 @@ export function resampleTerrain(physics: Physics): boolean {
   return true;
 }
 
+/** Take the sampled collider out of this world: something else is its ground now. Returns false when it had none. */
+export function retireTerrain(physics: Physics): boolean {
+  const g = grounds.get(physics);
+  if (!g) return false;
+  physics.world.removeCollider(g.collider, false);
+  grounds.delete(physics);
+  return true;
+}
+
 /** A rectangle (centre, half-extents, turned by `yaw` about +Y) where the physics ground must sit at or below `below`. */
 interface TerrainCut { x: number; z: number; hw: number; hd: number; yaw: number; below: number }
 

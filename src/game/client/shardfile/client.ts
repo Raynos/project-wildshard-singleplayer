@@ -7,6 +7,8 @@ import type * as LootPresentation from '../loot/runtime';
 import type * as CompendiumPresentation from '../compendium/install';
 
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
+import { addBakedTerrainCollider } from '@wildshard/engine/physics/terrainTiles';
+import { retireTerrain } from '@wildshard/engine/physics/terrain';
 import { timeClientPreparation } from './preparationTiming';
 import { wirePage } from './wirePage';
 import { admitClientPlan, installClientPhase, type AdmittedClientPlan, type ClientPhase } from './clientPlan';
@@ -279,6 +281,9 @@ export class ShardfileClient {
     const nativeWorld = this.nativeFeatures || this.mode === 'presentation';
     const start = nativeWorld ? ctx.manifest.spawn : this.source.spawn;
     const collider = nativeWorld && this.source.terrain !== null ? await this.assets.read(this.source.terrain.collider) : undefined;
+    // On the wire this page predicts on the ground the server walks: the shard's collider, sample for sample. A page sampled at its own
+    // lattice stands centimetres off it on a dune, and every step corrects.
+    if (wirePage.on && this.source.terrain !== null && retireTerrain(world.physics)) addBakedTerrainCollider(world.physics, collider ?? await this.assets.read(this.source.terrain.collider), ctx.scope);
     const views = clientViews({ root: ctx.root, terrain: this.source.terrain?.family ?? null, terrainShadow: this.source.terrain?.shadow, terrainOrder: this.source.terrain?.order, ...presentation, ...(collider === undefined ? {} : { lattice: decodeTerrainTile(collider) }) });
     this.worldTiles = await standaloneClientTiles({ source: this.source, assets: this.assets, root: ctx.root, views: views.tiles }, ctx.scope, {
         instance: this.bindings.instance, budget: allocator, radius: tileRing, start,
