@@ -3,13 +3,13 @@
 PINE-HOLLOW-REMASTER PH-0.3).
 
 Samples the MEAN colour of the same regions in each mockup frame and its in-game capture and prints mockup vs game per
-region with CIEDE2000 ΔE. The regions belong to a shard's loop cameras and live in scripts/palette-regions/<shard>.json
+region with CIEDE2000 ΔE. The regions belong to a shard's loop cameras and live in src/shards/<shard>/art/palette-regions.json
 (Driftwood: the 9 E43 spawn-cove cameras, art/driftwood-isle/round-4-remaster/README.md).
 
   python3 scripts/palette-delta.py [--shard driftwood-isle] [--regions <json>] <mockup dir> '<captures>/ingame-{n}.jpg'
   python3 scripts/palette-delta.py art/driftwood-isle/round-4-remaster 'art/driftwood-isle/round-6-loop/ingame-{n}.jpg'
 
---shard defaults to driftwood-isle; --regions defaults to scripts/palette-regions/<shard>.json. Mockups are
+--shard defaults to driftwood-isle; --regions defaults to that file, else scripts/palette-regions/<shard>.json. Mockups are
 <mockup dir>/mockup-<n>-*.jpg, n = the frames the regions name (1..9 for Driftwood).
 
 Regions are fixed rectangles in normalised image coordinates per camera, the same for the mockup and the capture;
@@ -32,8 +32,9 @@ DEFAULT_SHARD = 'driftwood-isle'
 
 
 def load_config(shard=DEFAULT_SHARD, path=None):
-    """a shard's regions / filters / fit weights (scripts/palette-regions/<shard>.json, or `path`)"""
-    p = Path(path) if path else HERE / 'palette-regions' / f'{shard}.json'
+    """a shard's regions / filters / fit weights (its folder's art/palette-regions.json, or `path`)"""
+    own = HERE.parent / 'src' / 'shards' / shard / 'art' / 'palette-regions.json'
+    p = Path(path) if path else own if own.exists() else HERE / 'palette-regions' / f'{shard}.json'
     if not p.exists():
         sys.exit(f'palette-delta: no regions for {shard} ({p}); write one for the shard\'s loop cameras')
     cfg = json.loads(p.read_text())
@@ -44,7 +45,7 @@ def load_config(shard=DEFAULT_SHARD, path=None):
 def arg_parser(desc):
     ap = argparse.ArgumentParser(description=desc)
     ap.add_argument('--shard', default=DEFAULT_SHARD, help='the shard slug (default driftwood-isle)')
-    ap.add_argument('--regions', default=None, help='a regions JSON (default scripts/palette-regions/<shard>.json)')
+    ap.add_argument('--regions', default=None, help='a regions JSON (default the shard\'s art/palette-regions.json)')
     ap.add_argument('mock_dir', help='the mockup folder (mockup-<n>-*.jpg)')
     ap.add_argument('game_pat', help="the captures, a path with {n} (1..9)")
     return ap

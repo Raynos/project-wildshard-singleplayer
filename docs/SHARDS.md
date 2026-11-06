@@ -272,7 +272,7 @@ All source is build-time or erased declarations. Shipped behaviour is admitted W
 | `species/` | authored data, source assets and generated outputs; executable TypeScript belongs in generators/ |
 | `quest/` | authored data, source assets and generated outputs; executable TypeScript belongs in generators/ |
 | `world/` | authored data, source assets and generated outputs; executable TypeScript belongs in generators/ |
-| `art/` | the shard's mockup rounds (round-<n>-<label>/); the build never reads them |
+| `art/` | the shard's mockup rounds (round-<n>-<label>/) and the data its look tools read; the build never reads them |
 
 Root erased `*.d.ts` / `*.d.json.ts` contracts and explicitly declared product discovery outputs are also admitted.
 

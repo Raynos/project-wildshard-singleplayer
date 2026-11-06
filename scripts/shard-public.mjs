@@ -1,10 +1,10 @@
-// S2 (J132): a gathered shard keeps its published files in its own folder. The site still serves them from public/ at
+// S2: a gathered shard keeps its published files in its own folder. The site still serves them from public/ at
 // the same URLs with the same bytes: `pnpm gen` rewrites these gitignored aliases first, before anything walks public/.
 import { copyFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
-/** The shards gathered so far. The big shards follow with DOWNLOAD (J132). */
-export const GATHERED_SHARDS = Object.freeze(['_template', 'blender-template', 'ink-cel-valley', 'pastel-plain']);
+/** The shards gathered so far. Open Plots follows; its products share one source folder. */
+export const GATHERED_SHARDS = Object.freeze(['_template', 'blender-template', 'ink-cel-valley', 'pastel-plain', 'sunscar-dunes']);
 
 /** Where the entry crawl's record lives for a shard: its own folder once gathered, else its public folder.
  * @param {string} root @param {string} slug */
