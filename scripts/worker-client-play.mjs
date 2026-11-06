@@ -87,7 +87,9 @@ export async function play(browser, phone, base, only = '') {
   await step('the page draws the server creatures', async () => { const r = await report(drift.page); return { ok: r.rows > 0, rows: r.rows, closed: r.closed }; });
   await step('walk to Wendell', async () => {
     for (const [x, z] of [[-8, -172], [-30, -142], [-30, -104], [-24, -80]]) await walk(drift.page, x, z, 3, 25); // the sand path up from the pier
-    const there = await walk(drift.page, -22, -71.5, 1.8, 25);
+    // Nearest prompt wins, as on the page: Maren stands a step off, and a press from her side opens her shop and no quest.
+    const wendell = await prompted(drift.page, 'castaway.talk');
+    const there = wendell !== null && await walk(drift.page, wendell.x, wendell.z, 1.5, 25);
     await drift.page.waitForTimeout(1000); // a press is judged where the server has the body, a command behind
     return there;
   });

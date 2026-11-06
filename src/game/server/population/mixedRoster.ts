@@ -12,7 +12,9 @@ import { NativeManager } from './nativeManager';
 import { ReturnGate } from '../../shared/population/respawn';
 import { admitNativeRosterServices, createNativeCreatureRoster, orderedNativeReinstall, type NativeCreatureSlot, type KeptPolicy } from '../shardfile/homeKeeper';
 import * as v from 'valibot';
-import { Vector3 } from 'three';
+import { Euler, Vector3 } from 'three';
+import { publishScriptBody } from '@wildshard/engine/sim/shardRows';
+import { volleyRow } from '../../shared/shardfile/wirePrompts';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import type { HuntBody, HuntNav, HuntSpecies } from '@wildshard/engine/ai/hunt';
@@ -122,6 +124,11 @@ export function installMixedPopulation(host: SimHost, ports: MixedPopulationInpu
 
   let service = new Bodies(host.physics, player);
   const volley = new RowBodySlots<HuntBody>(roster.volley, service, { kind: rows.volley.owner }, host.physics, host);
+  // A coconut is a body only the server has: a client draws it off a row, or a monkey's throw lands out of nowhere.
+  for (const [slot, pose] of volley.poses.entries()) {
+    const euler = new Euler(), view = { position: pose.at, euler, enabled: false };
+    publishScriptBody(host, volleyRow(rows.volley.owner, slot), () => { euler.setFromQuaternion(pose.rotation); view.enabled = pose.visible; return view; });
+  }
   const world = {
     perches: habitat.perches.map(p => new Vector3(p.x, p.y, p.z)), perchBases: habitat.perchBases.map(p => new Vector3(p.x, p.y, p.z)),
     hold: { x: habitat.hold.x, z: habitat.hold.z, r: habitat.hold.r, guardR: habitat.hold.guardR, floorAt: holdFloorAt },

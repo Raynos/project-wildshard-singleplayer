@@ -4,6 +4,7 @@ import { PopulationProjectionSchema, type PopulationProjectionRows } from '@wild
 import type { PageActorGroups } from '../../server/population/pageGroups';
 import { pageSim } from '../shardfile/clientMoverOwners';
 import { wirePage } from '../shardfile/wirePage';
+import { volleyRow } from '../../shared/shardfile/wirePrompts';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { Rng } from '@wildshard/engine/core/rng';
@@ -94,6 +95,7 @@ export class PopulationProjection {
         this.lights.push({ actor, light, dead: false, fade: 0 });
       }
       this.counts(); this.scene.add(this.group);
+      if (wirePage.on) this.followVolley();
       wirePage.whenLive(this.scope, client => client.onFrame(() => { this.counts(); })); // on the wire the rows are the census
     });
     return this;
@@ -179,6 +181,23 @@ export class PopulationProjection {
       if (actor.mem[profile.rising] && rng.next() < dt * profile.streamRate) {
         this.at.copy(actor.position).y += profile.streamHeight[0] + rng.next() * profile.streamHeight[1] * rise; this.splash(this.at, profile.streamSplash);
       }
+    }
+  }
+  /** On the wire the server throws: its rows pose this page's husks, and a husk that goes lands. */
+  private followVolley(): void {
+    const row = this.rows, up = Array.from({ length: row.volley.count }, () => false), turn = new THREE.Quaternion(), euler = new THREE.Euler();
+    for (let slot = 0; slot < row.volley.count; slot++) {
+      const id = volleyRow(row.id, slot);
+      wirePage.movers.set(id, { pose: pose => {
+        if (!pose.enabled && up[slot] !== true) return;
+        const { x, y, z } = pose.position;
+        this.at.set(x, y, z);
+        this.mesh.setMatrixAt(slot, pose.enabled ? this.matrix.compose(this.at, turn.setFromEuler(euler.set(pose.euler.x, pose.euler.y, pose.euler.z)), this.scale) : this.matrix.makeScale(0, 0, 0));
+        this.mesh.instanceMatrix.needsUpdate = true;
+        if (!pose.enabled) this.animals.onSound?.(row.contact.landSound, this.at);
+        up[slot] = pose.enabled;
+      } });
+      this.scope.onDispose(() => { wirePage.movers.delete(id); });
     }
   }
   /** A light goes dark with the row that held it, and the next row of the held kind takes it. */
