@@ -5,13 +5,13 @@ import { saveFixture } from './debug-settings.mjs';
 import { FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
 
 /** Open one shard with the row on, entered and on the wire. */
-async function open(browser, phone, base, slug) {
+async function open(browser, phone, base, slug, query = '') {
   const context = await browser.newContext(phone), page = await context.newPage(), errors = [];
   page.on('pageerror', error => { errors.push(error.message.slice(0, 300)); });
   page.on('console', line => { if (line.type() === 'error') errors.push(line.text().slice(0, 300)); });
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
   await saveFixture(context, { scope: 'device', key: 'debug.workerClient', data: 'on' });
-  await page.goto(new URL(`/?chunk=${slug}&mute=1&nolock=1`, base).href, { waitUntil: 'load' });
+  await page.goto(new URL(`/?chunk=${slug}&mute=1&nolock=1${query}`, base).href, { waitUntil: 'load' });
   await page.waitForFunction(() => window.__wildshard?.world?.player !== undefined, undefined, { timeout: 150_000 });
   await page.waitForFunction(() => typeof window.__workerClient === 'function', undefined, { timeout: 150_000 });
   await page.evaluate(FLOOR_GRID_ENTER);
@@ -443,6 +443,95 @@ async function nalatiJourney(browser, phone, base, step) {
   await steppe.context.close();
 }
 
+/** Nalati's chapters on the server, the parts a long play would reach: harness flags stand in for a chapter's earlier steps and for a tame's hour-long break; a ride, a round, a kill and a tie are real. */
+async function chapterJourney(browser, phone, base, step) {
+  const steppe = await open(browser, phone, base, 'nalati-grasslands', '&weather=night:0.1');
+  const { page } = steppe, flagged = flag => hasFlag(page, flag), raise = flags => page.evaluate(list => { for (const flag of list) window.__workerClientFlag(flag); }, flags);
+  const chip = () => page.evaluate(() => { const { line } = window.__wildshard.shard['nalati.quest']; return { chapter: line?.active?.def?.id ?? null, step: line?.active?.current?.id ?? null }; });
+  const onChip = (chapter, at, seconds = 6) => until(page, async () => { const seen = await chip(); return seen.chapter === chapter && seen.step === at ? seen : null; }, seconds);
+  const toasted = page.evaluate(() => { window.__toasts = []; const { hud } = window.__wildshard.world.game.runtime?.play ?? {}; if (hud !== undefined) { const shown = hud.toast.bind(hud); hud.toast = text => { window.__toasts.push(text); shown(text); }; } });
+  await toasted; await page.evaluate(() => { window.__workerClientHits(60); });
+  await step('chapters: a tame\'s flag moves Tulpar on, on the server and the page', async () => {
+    await raise(['talked:elder']);
+    const tame = await onChip('tulpar', 'tame');
+    await raise(['tamed:horse']);
+    const kokpar = await onChip('tulpar', 'kokpar');
+    return { ok: tame !== null && kokpar !== null, tame, kokpar, flags: (await report(page)).flags.filter(flag => !flag.startsWith('seen:')) };
+  });
+  await step('chapters: a kokpar round runs on the server, a real rider and a real goat', async () => {
+    let mounted = false;
+    for (let i = 0; i < 60 && !mounted; i++) {
+      const body = await bodyOf(page, 'horse');
+      if (body === null) { await page.waitForTimeout(500); continue; }
+      await place(page, body.x + 1.2, body.y + 0.4, body.z + 1.2); await page.waitForTimeout(800);
+      await press(page); await page.waitForTimeout(900);
+      mounted = await page.evaluate(() => window.__wildshard.world.player.ride !== null);
+    }
+    if (!mounted) return { ok: false, why: 'no ride' };
+    const home = { x: -61, z: 36 }, goal = { x: -33.99, z: 29.1 };
+    await place(page, home.x + 1, await groundAt(page, home.x, home.z) + 0.5, home.z);
+    const got = await until(page, async () => { const { owned } = await report(page); return owned['story.prop'] === 1 ? owned : null; }, 8);
+    await page.waitForTimeout(600);
+    const goat = () => page.evaluate(() => { const at = window.__wildshard.world.game.scene.getObjectByName('nalati-kokpar-goat')?.position; return at === undefined ? null : { x: at.x, z: at.z }; });
+    const carried = await goat();
+    await place(page, goal.x, await groundAt(page, goal.x, goal.z) + 0.5, goal.z);
+    const won = await until(page, flagged('won:kokpar'), 6);
+    await page.waitForTimeout(1200);
+    const r = await report(page), rests = await goat();
+    return { ok: got !== null && won === true && (r.owned['story.prop'] ?? 0) >= 2, prop: r.owned['story.prop'], said: Object.entries(r.owned).filter(([line]) => line.startsWith('said.')), carried, rests, toasts: await page.evaluate(() => window.__toasts.slice(-4)), chip: await chip() };
+  });
+  await step('chapters: a toppled balbal is a clue, and its reading comes up', async () => {
+    await page.evaluate(() => { const { player } = window.__wildshard.world; if (player.ride !== null) window.__wildshard.world.game.app.input.press('interact'); });
+    await raise(['told:tulpar', 'talked:elder:2']);
+    const clues = await onChip('golden-king', 'clues');
+    const end = Date.now() + 60_000, before = (await report(page)).flags.filter(flag => flag.startsWith('clue:')).length;
+    let body = await bodyOf(page, 'balbal');
+    while (Date.now() < end) {
+      if ((await report(page)).flags.some(flag => flag.startsWith('clue:'))) break;
+      body = await bodyOf(page, 'balbal');
+      if (body === null) { await page.waitForTimeout(800); continue; }
+      await place(page, body.x + 1.5, body.y + 0.6, body.z + 1.5); await page.waitForTimeout(350); await strike(page, body, false); await page.waitForTimeout(700);
+    }
+    const r = await report(page), clue = r.flags.filter(flag => flag.startsWith('clue:'));
+    return { ok: clues !== null && clue.length > before, clue, said: Object.entries(r.owned).filter(([line]) => line.startsWith('said.q')), balbal: body, toasts: await page.evaluate(() => window.__toasts.slice(-3)), reading: await page.evaluate(() => (document.querySelector('[class*="dialogue"]')?.textContent ?? '').slice(0, 80)) };
+  });
+  await step('chapters: a felled lair is a storm feather', async () => {
+    const lair = await fight(page, 'aqbars');
+    await raise(['told:king', 'dead:golden-king', 'talked:elder:3']);
+    await place(page, 138, 62, -58);
+    await until(page, async () => (await fight(page, 'aqbars'))?.at !== null, 12);
+    const end = Date.now() + 40_000; let row = await fight(page, 'aqbars');
+    while (row?.state !== 'dead' && Date.now() < end) { if (row?.at !== null && row?.at !== undefined) await loose(page, bodyMid(row.at)); row = await fight(page, 'aqbars'); }
+    const feather = await until(page, flagged('feather:1'), 8);
+    return { ok: feather === true, lair: lair?.state, state: row?.state, flags: (await report(page)).flags.filter(flag => /^(?:felled|feather)/u.test(flag)), toasts: await page.evaluate(() => window.__toasts.slice(-3)) };
+  });
+  await step('chapters: no page error', () => ({ ok: steppe.errors.length === 0, errors: [...new Set(steppe.errors)].slice(0, 6) }));
+  await steppe.context.close();
+  const storm = await open(browser, phone, base, 'nalati-grasslands', '&weather=storm:0.1');
+  await step('chapters: tied at the cairn in the storm, the Titan\'s bar comes up off its row', async () => {
+    const { page: sky } = storm;
+    await sky.evaluate(() => { window.__workerClientHits(60); });
+    let mounted = false;
+    for (let i = 0; i < 60 && !mounted; i++) {
+      const body = await bodyOf(sky, 'horse');
+      if (body === null) { await sky.waitForTimeout(500); continue; }
+      await place(sky, body.x + 1.2, body.y + 0.4, body.z + 1.2); await sky.waitForTimeout(800);
+      await press(sky); await sky.waitForTimeout(900);
+      mounted = await sky.evaluate(() => window.__wildshard.world.player.ride !== null);
+    }
+    const cairn = await sky.evaluate(() => { const found = window.__wildshard.world.interactables.find(row => /tie/iu.test(row.label ?? '')); return found === undefined ? null : { x: found.position.x, y: found.position.y, z: found.position.z, label: found.label, radius: found.radius }; });
+    if (cairn === null) return { ok: false, mounted, why: 'no tie prompt', prompts: await sky.evaluate(() => window.__wildshard.world.interactables.map(row => row.label).slice(0, 12)) };
+    await place(sky, cairn.x + 1, await groundAt(sky, cairn.x, cairn.z) + 0.5, cairn.z); await sky.waitForTimeout(1500);
+    for (let i = 0; i < 8; i++) { await press(sky); await sky.waitForTimeout(700); if ((await report(sky)).flags.includes('lit:cairn')) break; }
+    const row = await until(sky, async () => { const seen = await fight(sky, 'storm-titan'); return seen !== null && seen.state !== 'dormant' ? seen : null; }, 10);
+    await sky.waitForTimeout(800);
+    const shown = await bossBar(sky), r = await report(sky);
+    return { ok: r.flags.includes('lit:cairn') && row !== null && shown.bar.length > 0, mounted, cairn, row: row?.state, shown, flags: r.flags.filter(flag => /cairn|jel/u.test(flag)), refused: r.refused };
+  });
+  await step('chapters: the storm page raises no page error', () => ({ ok: storm.errors.length === 0, errors: [...new Set(storm.errors)].slice(0, 6) }));
+  await storm.context.close();
+}
+
 /** Run the fights; `step` prints one line each. */
 export async function fights(browser, phone, base, only, step) {
   const runs = name => only === '' || only === 'fights' || only === name;
@@ -608,6 +697,7 @@ export async function fights(browser, phone, base, only, step) {
   if (runs('isle')) await driftwoodJourney(browser, phone, base, step);
   if (runs('pine')) await pineJourney(browser, phone, base, step);
   if (runs('nalati')) await nalatiJourney(browser, phone, base, step);
+  if (runs('chapters')) await chapterJourney(browser, phone, base, step);
 
   // The sky: the rows move on their own, and a Weather setting goes up and comes back.
   if (runs('sky')) {

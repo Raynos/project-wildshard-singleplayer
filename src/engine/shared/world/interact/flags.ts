@@ -19,6 +19,9 @@ export type FlagListener = (flag: string, on: boolean) => void;
 /** How long a page's own write stands before the server's word replaces it: a round trip and a retry. */
 const FLAG_ANSWER_TICKS = 120;
 
+/** What a page's own book saved for a level, for a server that takes a player's progress over. */
+export function pageSavedFlags(level: string): readonly string[] { return flagsSave.read(level); }
+
 export class Flags {
   /** J130: told of every book made, on a page whose books follow a server. */
   static made: ((book: Flags) => void) | null = null;

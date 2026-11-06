@@ -54,6 +54,8 @@ import { netBuys, netWorldInput, stepResident } from './netInput';
 import { STORY_ACT } from '@wildshard/engine/net/acts';
 import { installServerChapters } from '@wildshard/game/quest/serverChapters';
 import { installServerDoors } from '@wildshard/game/quest/serverDoors';
+import { mountedPlayerOf } from '@wildshard/game/riding/native';
+import { pageSavedFlags } from '@wildshard/engine/world/interact/flags';
 
 /** Worlds the worker holds beside the road, and so what a crossroads costs a phone (E5.2b, J68): the one its player stands in. */
 export const STANDALONE_RESIDENTS = 1;
@@ -299,7 +301,7 @@ export class StandaloneGrid {
       host.respawn.served = true;
       const owned = ownedOf(host, input);
       return { host, owned, fall: fallFloorOf(input, host, options.lone === true), dispose: () => { resident.dispose(); }, fact, effects: () => resident.effects,
-        adopt: () => { regionalRuntimeCheckpoint(options.saves, placed, input.shard.identity.revision).restore({ animals: [...host.entities.values()] }); return true; }, step: inputs => {
+        adopt: () => { regionalRuntimeCheckpoint(options.saves, placed, input.shard.identity.revision).restore({ animals: [...host.entities.values()] }); for (const level of new Set([input.shard.identity.slug, cell.instance])) for (const flag of pageSavedFlags(level)) host.flags.set(flag); return true; }, step: inputs => {
         const player = sessionPlayer(host);
         near?.update(player.position.x, player.position.z);
         stepResident(resident, player.id, inputs);
@@ -362,7 +364,10 @@ export class StandaloneGrid {
   /** Connect the session's client; it waits for `open`. */
   connect(transport: Transport): void { this.rooms.connect(SESSION_PLAYER, transport); }
   /** A harness's move: the wire counts it, and the client snaps to it. */
-  place(at: { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number }, player: string = SESSION_PLAYER): void { this.host.players.get(player)?.resetPose(at, at.yaw); }
+  place(at: { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number }, player: string = SESSION_PLAYER): void {
+    const seat = mountedPlayerOf(this.host, player);
+    if (seat?.mounted === true) seat.teleport(at.x, at.z, at.yaw); else this.host.players.get(player)?.resetPose(at, at.yaw);
+  }
   /** A harness's flag on this player's own book. */
   raise(flag: string): void { questBooks(this.host).of(SESSION_PLAYER).flags.set(flag); }
   /** A proof's second client: a real link, in the cell this session stands in. Two phones come this way, once a server admits them. */
