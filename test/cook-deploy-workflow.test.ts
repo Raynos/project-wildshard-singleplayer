@@ -10,7 +10,7 @@ const stepsFrom = (text: string): string[] => text.split(/\n {6}- /u).slice(1);
 const ship = job('build-and-deploy'), steps = stepsFrom(ship), at = (name: string): number => steps.findIndex(step => step.includes(`name: ${name}`));
 
 test('a catalogue deploy never promotes a stage: a staged copy can\'t hold what goes on at release', () => {
-  expect(job('stage-prebuilt')).toContain("vars.WILDSHARD_API_URL == ''");
+  expect(steps[at('Select the optional protected production stage')]).toContain("vars.WILDSHARD_API_URL == ''");
 });
 
 test('the cook runs from the pin\'s source, onto the output that ships', () => {

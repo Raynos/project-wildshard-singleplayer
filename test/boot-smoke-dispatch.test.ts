@@ -1384,5 +1384,5 @@ test('a deploy cooks the catalogue before it takes traffic, and only where the s
   expect(next.startsWith('Deploy prebuilt output')).toBe(true);
   expect(steps[at]).toContain("vars.WILDSHARD_API_URL != ''");
   expect(steps[at]).toContain('cook-worker.mjs recook');
-  expect(steps[at]).toContain('cook-worker.mjs bake .vercel/output/static');
+  expect(steps[at]).toContain('cook-worker.mjs bake ../.vercel/output/static');
 });

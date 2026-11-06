@@ -72,11 +72,10 @@ env:
   DEPLOY: ${{ github.event_name == 'workflow_dispatch' }}
 
 jobs:
-  # Optimization only: failures retain the original exact-artifact ship. A catalogue deploy has none of it: a staged copy
-  # is promoted byte for byte, and the heads go on at release, so that build ships from the artifact.
+  # Optimization only: failures retain the original exact-artifact ship.
   stage-prebuilt:
     needs: prepare
-    if: ${{ github.event_name == 'push' && needs.prepare.result == 'success' && vars.WILDSHARD_API_URL == '' }}
+    if: ${{ github.event_name == 'push' && needs.prepare.result == 'success' }}
     continue-on-error: true
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -313,9 +312,10 @@ jobs:
         with:
           node-version: 24
 
+      # A stage is promoted byte for byte, and a catalogue's heads go on at release, so a catalogue deploy ships the artifact.
       - name: Select the optional protected production stage
         id: staged
-        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && github.event_name == 'push' && needs.stage-prebuilt.result == 'success' && steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true' }}
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && github.event_name == 'push' && needs.stage-prebuilt.result == 'success' && vars.WILDSHARD_API_URL == '' && steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true' }}
         env:
           STAGED_RECEIPT: ${{ needs.stage-prebuilt.outputs.receipt }}
           STAGE_RESULT: ${{ needs.stage-prebuilt.result }}
