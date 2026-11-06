@@ -518,6 +518,7 @@ async function nightJourney(browser, phone, base, step) {
   await page.evaluate(() => { window.__toasts = []; new MutationObserver(list => { for (const row of list) for (const node of row.addedNodes) if (node.classList?.contains('ws-game-toast')) window.__toasts.push(node.textContent); }).observe(document.body, { childList: true, subtree: true }); window.__workerClientHits(60); });
   for (const flag of ['talked:elder', 'tamed:horse', 'won:kokpar', 'told:tulpar', 'talked:elder:2']) await page.evaluate(wanted => { window.__workerClientFlag(wanted); }, flag);
   const awakeRow = () => page.evaluate(() => window.__workerClientRow('slots.awake.0'));
+  const statues = () => page.evaluate(() => { const set = [...window.__wildshard.shard['nalati.dressing'].sites.values()].map(row => row.sites).find(row => typeof row?.isAwake === 'function'); return set.sites.map((site, index) => ({ x: site.x, y: site.y, z: site.z, awake: set.isAwake(index) })); });
   await step('night: the Developer\'s time reaches the server', async () => {
     const before = (await report(page)).day;
     await page.evaluate(() => { window.__workerClientTime('night'); });
@@ -526,22 +527,23 @@ async function nightJourney(browser, phone, base, step) {
     const settled = (await report(page)).day;
     return { ok: day !== null && settled !== before, before, day, settled };
   });
-  await step('night: statues wake, and their sites go empty on a row', async () => {
+  await step('night: statues wake, their sites go empty on a row, and the page takes them down', async () => {
     const word = await until(page, async () => { const row = await awakeRow(); return row !== undefined && row !== 0 ? row : null; }, 25);
-    const shown = await page.evaluate(() => window.__workerClientRows('balbal'));
-    return { ok: word !== null && word > 0, word, rows: shown.length };
+    await page.waitForTimeout(600);
+    const sites = await statues();
+    return { ok: word !== null && sites.some(site => site.awake), word, down: sites.filter(site => site.awake).length, of: sites.length };
   });
-  let target = null;
   await step('night: one rises out of the ground, drawn on its row', async () => {
-    const rows = await page.evaluate(() => window.__workerClientRows('balbal'));
-    target = await until(page, async () => (await page.evaluate(() => window.__workerClientRows('balbal')))[0] ?? null, 15);
-    if (target === null) return { ok: false, rows };
-    await place(page, target.x + 7, target.y + 3.5, target.z);
+    const site = (await statues()).find(row => row.awake);
+    if (site === undefined) return { ok: false, why: 'no empty site' };
+    await place(page, site.x + 7, await groundAt(page, site.x + 7, site.z) + 1, site.z);
     const low = await until(page, () => bodyOf(page, 'balbal'), 12);
-    if (low === null) return { ok: false, why: 'no body on the page', target };
+    if (low === null) return { ok: false, why: 'no body on the page', rows: await page.evaluate(() => window.__workerClientRows('balbal')) };
+    const under = low.y - await groundAt(page, low.x, low.z);
+    await faceAt(page, { x: low.x, y: low.y + 1, z: low.z });
     await page.waitForTimeout(2500);
-    const up = await bodyOf(page, 'balbal'), ground = await groundAt(page, up?.x ?? low.x, up?.z ?? low.z);
-    return { ok: up !== null, target, low: low.y - ground, up: (up?.y ?? 0) - ground };
+    const up = await bodyOf(page, 'balbal'), over = up === null ? null : up.y - await groundAt(page, up.x, up.z), r = await report(page);
+    return { ok: up !== null && over > under, under, over, kind: up?.kind, rows: r.rows, retired: r.retired };
   });
   await page.screenshot({ path: 'tmp/flip8/night-balbal.png' }).catch(() => undefined);
   await step('night: real blows topple it, and it reads as a clue on the page', async () => {
