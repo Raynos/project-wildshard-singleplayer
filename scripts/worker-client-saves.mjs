@@ -115,7 +115,7 @@ if (only.includes('exit') || only.includes('travel') || only.includes('import'))
     if (only.includes('travel')) {
       const other = arg('other', 'pine-hollow');
       await mark(page, 'n3.travel');
-      await page.evaluate(to => { window.__wildshard.travel({ to, mode: 'play' }); }, other);
+      await page.evaluate(to => { window.__workerClientTravel(to); }, other);
       await page.waitForURL(address => address.search.includes(other), { timeout: 15_000 });
       await page.waitForFunction(() => typeof window.__workerClient === 'function', undefined, { timeout: 150_000 });
       await enter(page); await page.waitForTimeout(1500);

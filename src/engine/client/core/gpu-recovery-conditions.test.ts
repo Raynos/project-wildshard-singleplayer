@@ -16,7 +16,7 @@ function deferred(): { promise: Promise<void>; resolve: () => void; reject: (err
 const owners: Scope[] = [];
 afterEach(() => { for (const owner of owners.splice(0)) owner.dispose(); vi.useRealTimers(); });
 
-function fixture(stored = false) {
+function fixture(stored = false, leaveSaved: (go: () => void) => void = go => { go(); }) {
   const source = readFileSync(new URL('GpuRecovery.ts', import.meta.url), 'utf8');
   const start = source.indexOf('export function installGpuRecovery('), end = source.indexOf('\n/**', start);
   if (start === -1 || end < start) throw new Error('Missing recovery installer');
@@ -47,7 +47,7 @@ function fixture(stored = false) {
     performance: { now: () => 0 }, console: { warn: (): void => undefined },
     precompileLevel: () => compile.promise, gpuOnlyContent: () => [], rebakeGpuContent: vi.fn(), terrainDatum: () => 4,
     observeRestore: (promise: Promise<void>) => { restores.push(promise); },
-    recordGpuRecovery: vi.fn(), markReload: vi.fn(), leaveSaved: (go: () => void) => { go(); }, emitFault: (fault: unknown) => { faults.push(fault); }, repaint: vi.fn(),
+    recordGpuRecovery: vi.fn(), markReload: vi.fn(), leaveSaved, emitFault: (fault: unknown) => { faults.push(fault); }, repaint: vi.fn(),
   });
   if (typeof install !== 'function') throw new Error('Recovery installer is not callable');
   Reflect.apply(install, undefined, [{ game, rebuild, beforeReload, pose: () => ({ x: 1, y: 6, z: 3, yaw: 0, pitch: 0 }) }]);
@@ -83,6 +83,14 @@ test('confirmed restore failure spends the shared session retry and preserves th
   expect(url.searchParams.get('at')).toBe('1,2,3,0,0'); expect(url.searchParams.get('glreload')).toBe('1');
   expect(url.searchParams.has('v')).toBe(false); expect(f.beforeReload).toHaveBeenCalledWith('gpu');
   await f.restore(); expect(f.navigations).toHaveLength(1);
+});
+
+test('a recovery reload waits for a held session\'s save', async () => {
+  let left = (): void => undefined;
+  const f = fixture(false, go => { left = go; }); f.lose(); const restored = f.restore();
+  f.compile.reject(new Error('Native link failed')); await restored;
+  expect(f.navigations, 'the save is out').toEqual([]);
+  left(); expect(f.navigations).toHaveLength(1);
 });
 
 test('a wiped canvas after the shared retry reports the real fault without another automatic navigation', () => {

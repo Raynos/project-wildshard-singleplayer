@@ -31,6 +31,8 @@ import { netClaw } from '../grapple/netClaw';
 import type { Mount } from '../riding/mount';
 import { NetMovers } from '../plugin/moverViews';
 import { spawnHeldBytes } from '../boot/spawnDownload';
+import { travel } from '../travel/travel';
+import type { ShardSlug } from '../../shared/shard/slug';
 import { DAY_ROW, NET_POSE } from '@wildshard/engine/sim/shardRows';
 import { POSE_NAMES } from '@wildshard/engine/net/acts';
 import { poseInputNames } from '../../shared/plugin/channelPrograms';
@@ -109,7 +111,7 @@ export interface WorkerClientReport {
 }
 /** A fight as a proof reads it: its row, where its body stands and the server's name for it. */
 export type WorkerClientFight = EncounterRow & { readonly at: { readonly x: number; readonly y: number; readonly z: number } | null; readonly name: string | null };
-declare global { interface Window { __workerClientFights?: () => readonly WorkerClientFight[]; __workerClientHits?: (by: number) => void; __workerClientSky?: (name: string) => void; __workerClientTime?: (pick: OptionValue<'time'>) => void; __workerClientRow?: (name: string) => number | undefined; __workerClientFlag?: (flag: string) => void; __workerClientRows?: (kind: string) => readonly { readonly x: number; readonly y: number; readonly z: number }[]; __workerClientGate?: (flag: string) => boolean; __workerClientBot?: (id: string, x: number, y: number, z: number) => { readonly move: (x: number, y: number, z: number) => void; readonly press: (id: string) => void; readonly end: () => void }; __workerClient?: () => WorkerClientReport; __workerClientSave?: () => Promise<void> } }
+declare global { interface Window { __workerClientFights?: () => readonly WorkerClientFight[]; __workerClientHits?: (by: number) => void; __workerClientTravel?: (to: ShardSlug) => void;__workerClientSky?: (name: string) => void; __workerClientTime?: (pick: OptionValue<'time'>) => void; __workerClientRow?: (name: string) => number | undefined; __workerClientFlag?: (flag: string) => void; __workerClientRows?: (kind: string) => readonly { readonly x: number; readonly y: number; readonly z: number }[]; __workerClientGate?: (flag: string) => boolean; __workerClientBot?: (id: string, x: number, y: number, z: number) => { readonly move: (x: number, y: number, z: number) => void; readonly press: (id: string) => void; readonly end: () => void }; __workerClient?: () => WorkerClientReport; __workerClientSave?: () => Promise<void> } }
 
 /** The page's pose inputs, as acts short enough to go. */
 function poseActs(names: ReadonlySet<string>): readonly string[] {
@@ -358,6 +360,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   window.__workerClient = () => ({ ...report });
   window.__workerClientHits = by => { shell.hardHits(by); };
   window.__workerClientFlag = flag => { shell.raise(flag); };
+  window.__workerClientTravel = to => { travel({ to, mode: 'enter' }); };
   window.__workerClientSky = name => { wirePage.climate({ op: 'force', name, at: 0.1 }); };
   window.__workerClientTime = pick => { saveSetting('time', pick); };
   window.__workerClientRow = name => wirePage.row(name);
