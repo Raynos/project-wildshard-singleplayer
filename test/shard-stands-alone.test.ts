@@ -14,6 +14,7 @@ import {validateShardfileProduct} from '@wildshard/format/productValidation';
 import {readTar} from '@wildshard/format/tar';
 import {productTarball} from '../src/game/cook/productTarball';
 import {openShardfile} from '../src/game/cook/shardCook';
+import {shardFromDiscovery} from '../src/game/client/shard/discovery';
 import {loadHeadlessProduct} from '@wildshard/sdk/headlessProduct';
 
 /** C0 (J137): a shardfile stands alone. Each real product packs to a tarball the format's own validator takes; everything
@@ -35,6 +36,15 @@ const everyMount = (): Map<string, Set<string>> => {
 describe('a shardfile stands alone', () => {
   it('names no public file twice across shard folders', () => {
     expect([...everyMount()].filter(([, users]) => users.size > 1)).toEqual([]);
+  });
+
+  // C3: an output has no level manifest, so a product is the only place a page can learn it exists (359a83994c, 47dc16b45c).
+  it.each(products)('%s carries a discovery document that revives to itself', slug => {
+    const {mounts} = JSON.parse(readFileSync(join('out', slug, 'cook.json'), 'utf8')) as {mounts: {url: string; path: string}[]};
+    const document = mounts.find(row => row.url === `/shardfiles/${slug}/discovery.json`);
+    if (document === undefined) throw new Error(`${slug} has no discovery document`);
+    const body: unknown = JSON.parse(readFileSync(join('out', slug, document.path), 'utf8'));
+    expect(shardFromDiscovery(body).slug).toBe(slug);
   });
 
   it.each(products)('%s validates as a tarball and carries its own files', async slug => {
