@@ -296,7 +296,7 @@ async function withDiscovery(project: string, manifest: unknown, values: Discove
   const packed = JSON.stringify(document).replaceAll(/"\/(src\/shards\/[^"]+(\.[a-z]+))"/gu, (row: string, path: string, extension: string) => {
     if (!/^\.(?:jpe?g|png|webp|svg|hdr)$/u.test(extension)) return row;
     const bytes = readFileSync(resolve(project, '../../..', path)), hash = hashAssetBytes(bytes), held = assets.has(hash);
-    const url = held ? `/shardfiles/${folder}/blobs/image/${hash}${extension}` : `/shardfiles/${folder}/art/${hash}${extension}`;
+    const url = `/shardfiles/${folder}/blobs/image/${hash}${extension}`;
     if (!held) mounts.set(url, bytes);
     art.set(url, bytes.length);
     return `"${url}"`;
