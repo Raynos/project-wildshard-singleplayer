@@ -40,7 +40,7 @@
     "meshoptimizer": "1.2.0",
     "assemblyscript": "0.28.20",
     "binaryen": "132.0.0",
-    "@wildshard/format": "github:project-wildshard/shardfile#v0.3.6",
+    "@wildshard/format": "github:project-wildshard/shardfile#v0.3.7",
     "@valibot/to-json-schema": "1.8.0",
     "@gltf-transform/extensions": "4.5.0",
     "ajv": "6.15.0"
