@@ -12,6 +12,6 @@ for (const row of original) test(`${row.script} retains the complete original au
   const program = new TextEncoder().encode(authorToolProgram(cwd(), row.script, source));
   expect(hashImmutableBytes(program)).toBe(row.programSha256);
   expect(hashImmutableBytes(new TextEncoder().encode(source))).not.toBe(row.beforeSha256);
-  const brokenRoot = source.replace("resolve(import.meta.dirname, '..')", "resolve(import.meta.dirname, '../outside')");
+  const brokenRoot = source.replace(/resolve\(import\.meta\.dirname, '[./]+'\)/u, "resolve(import.meta.dirname, '../outside')");
   expect(() => authorToolProgram(cwd(), row.script, brokenRoot)).toThrow('repository');
 });
