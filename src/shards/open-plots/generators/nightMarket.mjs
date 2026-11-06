@@ -412,6 +412,8 @@ function halfBridge(w, p, side) {
   }
 }
 /** N entry forecourt: open paving at the entry corner (north-east), an L of planters on the inner sides, an arc of lanterns. */
+/** radians off a lane's axis at the forecourt's 26 m arc: 4.3 m out, past the lane's 4 m edge and a lantern's post */
+const LANE_CLEAR = 0.166;
 function forecourt(w, p) {
   w.box('Kit', [-26, 0, -26], [-22, 1, 20], p.hedge, p.lawn); w.box('Kit', [-26, 0, -26], [20, 1, -22], p.hedge, p.lawn);
   w.solid([-26, 0, -26], [-22, 1, 20]); w.solid([-26, 0, -26], [20, 1, -22]);
@@ -419,7 +421,8 @@ function forecourt(w, p) {
   const every = w.hasModel('trees') ? 2 : 1;
   for (let i = 0; i < 6; i += every) { tree(w, -24, -18 + i * 7, 4.2, p, i); }
   for (let i = 1; i < 6; i += every) tree(w, -18 + i * 7, -24, 4.2, p, i + 3);
-  for (let i = 0; i < 6; i++) { const a = Math.PI + (i + 0.5) / 6 * Math.PI / 2, r = 26; lantern(w, HALF + r * Math.cos(a), HALF + r * Math.sin(a), p, 2.6); }
+  // The arc's ends keep clear of the 8 m entry lanes, or a post stands in one and the entry proof refuses the shard.
+  for (let i = 0; i < 6; i++) { const a = Math.PI + Math.min(Math.max((i + 0.5) / 6 * Math.PI / 2, LANE_CLEAR), Math.PI / 2 - LANE_CLEAR), r = 26; lantern(w, HALF + r * Math.cos(a), HALF + r * Math.sin(a), p, 2.6); }
   w.floor('Kit', -22, -22, 27, 27, 0.03, p.forecourt);
   // NM9: a little market of kiosks on the forecourt's open paving, clear of the entry corner
   for (const [x, z] of [[-12, -12], [-2, -12], [8, -12], [-12, -2], [-12, 8], [-2, -2]]) kiosk(w, p, x, z);
