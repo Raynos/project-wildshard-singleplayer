@@ -70,7 +70,7 @@ export interface WorkerClientPorts {
   readonly system: (system: SystemSpec) => void;
 }
 interface ShellModule { readonly startStandalone: (config: { slug: string; base: string; build: string; savePrefix: string; lone?: true; held?: (url: string) => Promise<ArrayBuffer | null> } & IndexedSaves) => Shell }
-interface Shell { readonly client: NetClient; readonly booted: Promise<{ readonly restored: boolean }>; ready: () => void; save: () => Promise<{ readonly tick: number; readonly ok: boolean }>; probe: () => Promise<{ readonly tickMs: number }>; dispose: () => void }
+interface Shell { readonly client: NetClient; readonly booted: Promise<{ readonly restored: boolean }>; place: (x: number, y: number, z: number, yaw: number) => void; ready: () => void; save: () => Promise<{ readonly tick: number; readonly ok: boolean }>; probe: () => Promise<{ readonly tickMs: number }>; dispose: () => void }
 
 const SAVE_EVERY_MS = 30_000;
 const column = (name: string): number => ANIMAL_CLASS.row.findIndex(entry => entry.name === name);
@@ -205,7 +205,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   // A crossing brings another shard's items, and each has its own slots.
   let items = ports.items;
   const slotsOf = (rows: readonly WorkerItemRow[]): Map<string, number> => new Map(rows.flatMap(item => item.ranged === undefined ? [] : [[item.id, item.ranged.slot] as const]));
-  player.link = net; net.bindWeapons(ports.weapons, slotsOf(items));
+  player.link = net; net.place = shell.place; net.bindWeapons(ports.weapons, slotsOf(items));
   // A frame names its world. A grid page crosses when one says so; a one-shard page has only the world it opened in, and waits there.
   const { grid } = ports, bookOf = (cell: number | undefined): string | null => cell === undefined || cell === 0 ? null : grid?.cells[cell - 1]?.slug ?? null, siteOf = (cell: number): string | null | undefined => cell === 0 ? null : grid?.cells[cell - 1]?.instance;
   let opened: number | undefined, renderTick = 0;

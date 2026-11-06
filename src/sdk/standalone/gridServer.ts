@@ -338,6 +338,8 @@ export class StandaloneGrid {
   get host(): SimHost { return this.grid.host(); }
   /** Connect the session's client; it waits for `open`. */
   connect(transport: Transport): void { this.rooms.connect(SESSION_PLAYER, transport); }
+  /** A harness's move: the wire counts it, and the client snaps to it. */
+  place(at: { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number }): void { sessionPlayer(this.host).resetPose(at, at.yaw); }
   open(): void { this.rooms.open(); }
   tick(): void { this.rooms.tick(); }
   /** Resolves true when every write so far reached the real storage, and tells `held` which of its saves that makes good. */
