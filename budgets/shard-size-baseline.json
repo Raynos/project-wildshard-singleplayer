@@ -14,7 +14,8 @@
  "units": {
   "baselinePhoneBytes": "Real bytes on the socket for one cold entry at the baseline commit: title plus entry, from a fresh profile.",
   "recordedPhoneBytes": "The packs book at the recorded commit: client.<slug>.phone.wireBytes. This is what the gate compares.",
-  "comparable": "The two units track each other when no read-ahead is running. Neither counts the title read-ahead of another shard; recorded.phone.titleBytes shows it, and it depends on how long the player stays on the title."
+  "comparable": "The two units track each other when no read-ahead is running. Neither counts the title read-ahead of another shard; recorded.phone.titleBytes shows it, and it depends on how long the player stays on the title.",
+  "thinTarball": "A thin head as the api holds it (measured 2026-11-06 from ~/.cache/wildshard/pins): no blobs/pack, and mounts/assets holds unique bytes, 0.2 MB of Pine's 167.2 repeating a blob."
  },
  "method": {
   "network": "scripts/shard-wire-meter.mjs: a counting proxy between a fresh Chromium profile and scripts/preview-server.mjs, one entry through SHARD SELECT, Hold at loading screen on, stopped after 12 s of network silence.",
@@ -120,6 +121,11 @@
       "blobs/wasm": 107046
      }
     }
+   },
+   "thinTarball": {
+    "head": "55f512f25f3601ff5fe50ab25d5cba37b8e1ebecf571104eb6fab8ade05ea36c",
+    "bytes": 326282240,
+    "mountsAssetsBytes": 167186443
    }
   },
   "driftwood-isle": {
@@ -195,6 +201,11 @@
       "mounts/shardfiles": 20321
      }
     }
+   },
+   "thinTarball": {
+    "head": "0c14ad7a53687c6a1fdd9982edf60bcffbffea4973c71dc19178321cefeb2458",
+    "bytes": 94310912,
+    "mountsAssetsBytes": 12076637
    }
   },
   "far-reach": {
@@ -266,6 +277,11 @@
       "blobs/wasm": 7198
      }
     }
+   },
+   "thinTarball": {
+    "head": "66eacdbb4a7c306d36e58396004e9bdb92230fe51d7a518b995cd3dd59973f51",
+    "bytes": 66691072,
+    "mountsAssetsBytes": 29602062
    }
   },
   "sunscar-dunes": {
@@ -339,6 +355,11 @@
       "blobs/wasm": 15595
      }
     }
+   },
+   "thinTarball": {
+    "head": "75b8008d5b96b7c1b43075b8d1fdb1b437ff4afcbb3aefe9c86029775530dda4",
+    "bytes": 10755072,
+    "mountsAssetsBytes": 1557202
    }
   },
   "nalati-grasslands": {
@@ -413,6 +434,11 @@
       "mounts/shardfiles": 103017
      }
     }
+   },
+   "thinTarball": {
+    "head": "bc6e2b7a18ed6c12789f05141efce427df068bbd1fffd0354a2b9243a3d94526",
+    "bytes": 151324160,
+    "mountsAssetsBytes": 58906158
    }
   },
   "nine-dragon-stack": {
@@ -485,6 +511,11 @@
       "blobs/wasm": 14645
      }
     }
+   },
+   "thinTarball": {
+    "head": "a5d4967755a7cb21756b0d81e21e86b032525e29f7952eee182707d25da37bf8",
+    "bytes": 113122816,
+    "mountsAssetsBytes": 19473265
    }
   }
  }
