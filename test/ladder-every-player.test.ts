@@ -24,6 +24,7 @@ test('a bot climbs on its own capsule while the first player stands, and the cli
     const up = new Map([[bot.id, { moveX: 0, moveZ: -1, yaw: 0 }]]), standing = lead.position.y;
     for (let tick = 0; tick < 45; tick++) host.step(up);
     expect(bot.position.y).toBeGreaterThan(y + 1); expect(lead.position.y).toBeCloseTo(standing, 1);
+    expect(bot.led).toBe(true); expect(lead.led).toBe(false); // the server climbs, and a client takes its word
     const saved = adapter.snapshot();
     expect(saved).toHaveProperty(['others', bot.id, 'route'], ladder.id); expect(saved).toHaveProperty('route', null);
     host.step(up); adapter.restore(saved); expect(adapter.snapshot()).toEqual(saved);

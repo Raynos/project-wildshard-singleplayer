@@ -195,7 +195,8 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   };
   scope.onDispose(() => { clawed?.useClaw(null); clawed = null; });
   wirePage.bind(client, id => { net.wire.interact(id); }, stop, (handle, to) => headOf(bodies.get(handle)?.body, to), act => { client.act(act); });
-  scope.onDispose(() => { wirePage.unbind(); });
+  wirePage.led = () => net.predictor.leading;
+  scope.onDispose(() => { wirePage.unbind(); wirePage.led = () => false; });
   // J116: the lock's body by the server's name for it
   net.lockTarget = () => {
     if (lockOn.state !== 'locked' || lockOn.target === null) return undefined;
@@ -251,7 +252,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     report.frames++;
     if (firstTick === -1 && tick > 0) firstTick = tick;
     report.ticksPerSecond = firstTick === -1 ? 0 : (tick - firstTick) / ((now - ticksFrom) / 1000); // each world keeps its own clock
-    report.corrections = predictor.corrections; report.correctionsPerMinute = predictor.corrections / seconds * 60; report.worstOffset = net.worstOffset; report.queue = predictor.pending;
+    report.missed = predictor.missed; report.corrections = predictor.corrections; report.correctionsPerMinute = predictor.corrections / seconds * 60; report.worstOffset = net.worstOffset; report.queue = predictor.pending;
     report.replaysPerFrame = predictor.replays / report.frames; report.delayMs = client.clock.delayMs; report.jitterMs = client.clock.jitterMs;
     report.refused = net.attacks.refused; report.attacks = net.attacks.pending; report.held = net.heldSlot;
     report.dropped = client.dropped; report.closed = client.closed; report.x = player.position.x; report.z = player.position.z;

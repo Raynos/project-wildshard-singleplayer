@@ -7,6 +7,7 @@ import { ownSceneTree, sceneObjectOwner } from '@wildshard/engine/app/sceneOwner
 import type { Scope } from '@wildshard/engine/app/scope';
 import { WORK_SLICE_MS, workSlice, buildYield } from '@wildshard/engine/core/workSlice';
 import { cableModes } from '@wildshard/engine/player/modes';
+import { wirePage } from '../shardfile/wirePage';
 import type { Placed } from '@wildshard/engine/models/place';
 import type { LiveMarker } from '@wildshard/engine/quest/view';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
@@ -76,9 +77,11 @@ export async function installQuestCableView(ctx: ShardContext, cable: QuestCable
   const position = typeof cable.prompt === 'string' ? scenes.vector(cable.prompt) : new Vector3(cable.prompt.x, cable.prompt.y, cable.prompt.z);
   const prompt = cables.bindView(cable.mode, trolley, world.player, { position, radius: cable.radius, label: cable.label }, cable.camera ? world.game.camera : undefined);
   world.game.scene.add(group); runtime.interactables.push(prompt);
+  // On a server the press asks by the cable's mode, and the ride is the server's: this page draws where it carries the body.
+  if (wirePage.on) { cables.serve(cable.mode); prompt.wireId = cable.mode; }
   return { group, placed, trolley, prompt, cables, mode: cable.mode, update: dt => {
     if (ctx.scope.disposed) return;
-    cables.update(cable.mode, dt);
+    if (wirePage.on) cables.follow(cable.mode, wirePage.led(), world.player.position); else cables.update(cable.mode, dt);
     if (feedback === undefined || play === null || sfx === null) return;
     for (const on of cables.takeTransitions(cable.mode)) {
       play.weapons.visible = !on;

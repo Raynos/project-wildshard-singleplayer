@@ -69,6 +69,7 @@ import { prepareDeclaredCrowds, type DeclaredCrowdPorts, type PreparedCrowds } f
 import { installLadders, type LadderClientPorts } from '../../shared/shardfile/ladder';
 import { MoverScriptDriver, playerGrounds, verifiedMoverModules, proveTerrainEntries, type TerrainEntryWalk, type DeclaredMoverComposition, type MoverRuntime } from "./mover";
 import { socketLiftEntries } from "@wildshard/format/socketLiftAssets";
+import { liftPrompt } from "../../shared/shardfile/wirePrompts";
 import { portalLinkEntries, portalLinkRules } from "@wildshard/format/portalLinkAssets";
 import { validatePortalFloors } from "@wildshard/format/portalFloor";
 import { portalTransitioning } from "../../shared/shardfile/portalTraversal";
@@ -185,6 +186,7 @@ export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<
       const motion = new MoverScriptDriver(data, host).install(host, { content: { ...row.composition, identity: shard.identity }, rules: row.rules, assets: modules,
         declarations: row.itemRole === undefined ? [] : [{ row: row.itemRole, entities: items.entities, actors: items.actors }] },
       { id: row.systemId, restoring, restoreFlags: new Set(host.flags.all), drive: true, permissions: () => new Map(row.permissions.map(grant => [grant.mover, flagValue(host.flags, grant.flags)])) });
+      routeLifts(host, shard, motion);
       if (shard.questHost?.observations.some(binding => binding.kind === 'mover' && binding.state === 'at-end')) host.onStep(`${row.systemId}.endpoints`, () => { motion.drainEndEvents(); });
       if (items.entities.length > 0 && motion.lane !== undefined) {
         seats.bind({ lane: motion.lane, items: shard.items, handle: numericScriptEntityId });
@@ -295,6 +297,8 @@ export function ledgerPorts(emit: (effect: { kind: 'fact'; name: string; actorId
 }
 /** The tick protocol's command allowance (sdk/tickProtocol.ts): one tick never carries more. */
 const MAX_TICK_COMMANDS = 1024;
+/** Metres from a lift's road stop or its deck that a call can come from: a far rim calls it across its whole island. */
+const LIFT_REACH = 40;
 /**
  * One owner's view of a trusted runtime's tick commands: each lent command in tape order through `pick` (undefined skips
  * it) into one reused list, so a step allocates no list; a tick past the protocol's allowance refuses.
@@ -537,6 +541,7 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
             return typeof value === 'number' || typeof value === 'boolean' ? value : undefined;
           } }, ...(ports.restoring === undefined ? {} : { restoring: ports.restoring }) });
         movers = runtime;
+        if (!host.embedded) routeLifts(host, shard, runtime);
       }
       seats.bind({ lane, items: shard.items, actors, handle: numericScriptEntityId });
       if (!host.embedded) host.onStep('script.seats', seats.step);
@@ -652,6 +657,19 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
 /** The normal interaction queues these commands on both the deck and its road gate. No author callback is invoked. */
 export function commandSocketLift(runtime: MoverRuntime, lift: SocketLift, action: 1 | 2 | 3): void {
   runtime.command(lift.mover, action); runtime.command(lift.gate, action);
+}
+
+/** A client calls a lift by name, from where it could see the prompt. */
+function routeLifts(host: SimHost, shard: Pick<Shardfile, 'entryways'>, runtime: MoverRuntime): void {
+  const routes = actRoutes(host), near = (player: string, x: number, y: number, z: number): boolean => {
+    const body = host.players.get(player)?.position;
+    return body !== undefined && Math.hypot(body.x - x, body.y - y, body.z - z) <= LIFT_REACH;
+  };
+  for (const { lift } of socketLiftEntries(shard.entryways)) for (const action of [1, 2, 3] as const) routes.claims.set(liftPrompt(lift.mover, action), player => {
+    const [x, y, z] = lift.roadStop, { position: deck } = runtime.pose(lift.mover);
+    if (near(player, x, y, z) || near(player, deck.x, deck.y, deck.z)) commandSocketLift(runtime, lift, action);
+    else routes.refused++;
+  });
 }
 
 /** Native host evidence for the author-only grid and ledger workflow. */

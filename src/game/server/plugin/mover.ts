@@ -22,6 +22,8 @@ import { MOVER_FIELDS, MOVER_FIELD_RANGES, moverScriptEntities } from "../../sha
 import { MoverLifecycle, MoverLifecycleStateSchema, moverEndState, type MoverEndEvent } from '@wildshard/engine/sim/moverLifecycle';
 import { MoverMechanic, type NativeMoverMotion } from '@wildshard/engine/sim/moverMotion';
 import { parseMovers, type MoverData } from "@wildshard/format/movers";
+import { carryPrompt } from "../../shared/shardfile/wirePrompts";
+import { actRoutes } from "@wildshard/engine/sim/actRoutes";
 import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 import { publishScriptBody } from '@wildshard/engine/sim/shardRows';
 
@@ -35,6 +37,10 @@ export interface TerrainEntryWalk {
     readonly halfWidths: Readonly<Record<TerrainEntryway['edge'], number>>; readonly stride: number; readonly look: number };
 }
 /** The player's capsule (the engine's edge walk's). */
+/** Rows without a move before a followed carry counts as stopped: a client's rows arrive in steps. */
+const FOLLOW_STILL = 30;
+/** Metres past a carry prompt's radius a press still lands: it is judged a command behind the page. */
+const CARRY_REACH = 2;
 const CAPSULE = { radius: 0.35, height: 1.8, step: 0.3, maxClimbDeg: 45, snap: 0.2, group: 'PLAYER', blockedBy: ['WORLD'] } as const;
 
 /**
@@ -177,7 +183,7 @@ export interface MoverActivationPorts {
   shared?: (field: number) => number | boolean | undefined;
 }
 /** The shared script host already owns modules, entity handles and one beginTick per fixed step. */
-export interface MoverPorts { lane?: ScriptLanePort; flags?: Pick<Flags, 'has' | 'set'>; physics: Physics | (() => Physics); host: ScriptHost; scope: Scope; adopt?: (id: string) => MoverView | undefined; restoring?: boolean; activation?: MoverActivationPorts; restoreFlags?: ReadonlySet<string> }
+export interface MoverPorts { followed?: boolean; lane?: ScriptLanePort; flags?: Pick<Flags, 'has' | 'set'>; physics: Physics | (() => Physics); host: ScriptHost; scope: Scope; adopt?: (id: string) => MoverView | undefined; restoring?: boolean; activation?: MoverActivationPorts; restoreFlags?: ReadonlySet<string> }
 function nativeMotion(row: MoverData[number]): NativeMoverMotion {
   if (row.driver === undefined || row.trigger === undefined) throw new Error('Missing admitted native mover motion');
   return { driver: row.driver, trigger: row.trigger, at: row.at, euler: row.euler, ...(row.track === undefined ? {} : { track: row.track }), ...(row.carry === undefined ? {} : { carry: row.carry }) };
@@ -217,6 +223,10 @@ export class MoverRuntime {
   private readonly bodies = new Map<string, KinematicMover>();
   private bodyHandles = new Map<string, number>();
   private pending = new Map<string, number>();
+  /** A page on a server (J130): rows pose its movers, and a prompt only asks. */
+  private readonly followed: boolean;
+  private readonly followedPose = new Map<string, MoverPose>();
+  private readonly followedAt = new Map<string, { x: number; y: number; z: number; still: number }>();
   private readonly lifecycle: MoverLifecycle;
   private seedLifecycleOnReconnect = false;
   private readonly activation: MoverActivationPorts;
@@ -224,7 +234,7 @@ export class MoverRuntime {
   constructor(data: MoverData, ports: MoverPorts) {
     this.data = parseMovers(data); this.flags = ports.flags;
     for (const row of this.data) if (row.carry?.arrival !== undefined && this.flags === undefined) throw new Error('Mover arrival requires the actual flags owner');
-    this.host = ports.host; this.composed = ports.lane; this.activation = ports.activation ?? {};
+    this.host = ports.host; this.composed = ports.lane; this.activation = ports.activation ?? {}; this.followed = ports.followed === true;
     for (const row of this.data) if (row.execution === 'native') this.mechanics.set(row.id, new MoverMechanic(nativeMotion(row)));
     this.lifecycle = new MoverLifecycle(this.data.map(row => ({ id: row.id,
       ...(row.atEnd === undefined ? {} : { atEnd: row.atEnd }), ...(row.restoreFrom === undefined ? {} : { restoreFrom: row.restoreFrom }) })));
@@ -270,7 +280,15 @@ export class MoverRuntime {
     }
   }
   /** Pose a mover off a server's row: its collider and its view, as a step would. No script ran. */
-  follow(id: string, pose: MoverPose): void { this.sinks.get(id)?.(pose); }
+  follow(id: string, pose: MoverPose): void {
+    this.sinks.get(id)?.(pose);
+    this.followedPose.set(id, pose);
+    if (!this.data.some(row => row.id === id && row.carry !== undefined)) return;
+    const was = this.followedAt.get(id), at = pose.position;
+    if (was === undefined) { this.followedAt.set(id, { x: at.x, y: at.y, z: at.z, still: FOLLOW_STILL }); return; }
+    was.still = was.x === at.x && was.y === at.y && was.z === at.z ? was.still + 1 : 0;
+    was.x = at.x; was.y = at.y; was.z = at.z;
+  }
   /** Queue a host-validated interact command; scene dispatch resolves the stable mover id, never an arbitrary function export. */
   command(id: string, action: 1 | 2 | 3, player?: string): void {
     const row = this.data.find(m => m.id === id); if (row === undefined) throw new Error('Unknown mover');
@@ -284,6 +302,8 @@ export class MoverRuntime {
   riding(id?: string): boolean {
     const rows = id === undefined ? this.data : this.data.filter(row => row.id === id);
     if (id !== undefined && rows.length === 0) throw new Error('Unknown mover');
+    // A followed runtime steps no script, so the only ride it knows is the one it sees move.
+    if (this.followed) return rows.some(row => row.carry !== undefined && (this.followedAt.get(row.id)?.still ?? FOLLOW_STILL) < FOLLOW_STILL);
     return rows.some(row => row.carry !== undefined && (this.pending.has(row.id) || [1, 0.5].includes(this.host.world.entity(row.entity)?.fields[6] ?? 0)));
   }
   /** Whether `player` (the lead when absent) is on a carry mover: each carries the one who called it. */
@@ -295,7 +315,7 @@ export class MoverRuntime {
     const busy = (): boolean => this.riding();
     return this.data.flatMap(row => row.carry?.prompts.map((prompt, end): Interactable => ({ position: new Vector3(...prompt.at),
       get radius() { return busy() ? 0 : prompt.radius; }, label: prompt.label,
-      onInteract: () => { this.command(row.id, end === 0 ? 1 : 2); } })) ?? []);
+      wireId: carryPrompt(row.id, end), onInteract: () => { if (!this.followed) this.command(row.id, end === 0 ? 1 : 2); } })) ?? []);
   }
   private publishCarry(row: MoverData[number], entity: NonNullable<ReturnType<ScriptWorld['entity']>>): void {
     const carry = row.carry; if (carry === undefined) return;
@@ -328,6 +348,15 @@ export class MoverRuntime {
   bindNativeCarry(host: SimHost): void {
     if (!this.data.some(row => row.carry !== undefined)) return;
     host.events.answer('player.carrying', carried => carried || this.carrying(), host.scope);
+    host.leading.push(body => this.carrying(body === leadPlayer(host) ? undefined : body.id)); // a client's capsule stays out of a boat's way
+    const routes = actRoutes(host);
+    for (const row of this.data) row.carry?.prompts.forEach(({ at: [x, y, z], radius }, end) => {
+      routes.claims.set(carryPrompt(row.id, end), player => {
+        const body = host.players.get(player)?.position;
+        if (body !== undefined && Math.hypot(body.x - x, body.y - y, body.z - z) <= radius + CARRY_REACH) this.command(row.id, end === 0 ? 1 : 2, player === leadPlayer(host).id ? undefined : player);
+        else routes.refused++;
+      });
+    });
     const lead = leadPlayer(host);
     host.events.answer('player.traversal', dt => {
       const player = host.traversing;
@@ -390,6 +419,7 @@ export class MoverRuntime {
   capture(): void { for (const chain of this.chains.values()) chain.capture(); }
   /** Published state; no presentation caller may mutate script memory or authoritative fields. */
   pose(id: string): MoverPose {
+    const held = this.followedPose.get(id); if (held !== undefined) return held;
     const m = this.data.find((row) => row.id === id), e = m === undefined ? undefined : this.host.world.entity(m.entity); if (e === undefined) throw new Error('Unknown mover');
     return { position: { x: e.position[0], y: e.position[1], z: e.position[2] }, euler: { x: e.fields[1] ?? 0, y: e.fields[2] ?? 0, z: e.fields[3] ?? 0 }, enabled: !e.frozen && e.fields[4] === 1 };
   }

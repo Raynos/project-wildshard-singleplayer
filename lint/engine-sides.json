@@ -1425,6 +1425,7 @@
   "src/game/client/shardfile/legacyAsset.ts": "client",
   "src/game/client/shardfile/lentLooks.ts": "client",
   "src/game/shared/shardfile/liftRider.ts": "shared",
+  "src/game/shared/shardfile/wirePrompts.ts": "shared",
   "src/game/client/shardfile/lightEmitters.ts": "client",
   "src/game/client/shardfile/livingBuildings.ts": "client",
   "src/game/shared/shardfile/logicalState.ts": "shared",

@@ -206,7 +206,7 @@ export async function play(browser, phone, base, only = '') {
         await grid.page.waitForTimeout(1000);
       }
     }
-    const r = await report(grid.page); return { ok: r.closed === null, cell: r.cell, serverX: r.serverX, serverZ: r.serverZ, corrections: r.corrections, missed: r.missed };
+    const r = await report(grid.page); return { ok: r.closed === null, cell: r.cell, serverX: r.serverX, serverZ: r.serverZ, corrections: r.corrections, missed: r.missed, misses: r.misses.slice(0, 6).map(miss => miss.map(value => Math.round(value * 100) / 100)) };
   });
   await step('grid saves, reloads and resumes', async () => {
     await grid.page.evaluate(() => { const { player } = window.__wildshard.world; player.touchMove.y = 0; return Promise.race([window.__workerClientSave(), new Promise(resolve => { setTimeout(resolve, 20_000); })]); });

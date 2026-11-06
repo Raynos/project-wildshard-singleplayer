@@ -459,7 +459,7 @@ export class ShardfileClient {
       // G168: a module switched off after its strikes tells the player once, and Developer mode names it
       scriptDisabled: scriptDisabledNotice({ toast: (text) => { play.hud.toast(text, 'warn'); }, devAlert: (text) => { play.hud.devAlert(text); } }),
       player: { id: health.id, position: world.player.position, get yaw() { return world.player.yaw; }, set yaw(value) { world.player.yaw = value; }, health, get motor() { return world.player.motor; } },
-      ladders: { modes: playerModes(world.player), enabled: () => simulationActive && !installing, command: () => {
+      ladders: { modes: playerModes(world.player), enabled: () => simulationActive && !installing && !wirePage.on, command: () => {
         const command = world.player.traversalCommand;
         if (command === null) { ladderCommand.x = 0; ladderCommand.z = 0; ladderCommand.release = true; return ladderCommand; }
         const sin = Math.sin(command.yaw), cos = Math.cos(command.yaw), { buttons, steer } = command;

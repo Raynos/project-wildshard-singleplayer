@@ -26,7 +26,7 @@ export async function installDeclaredMovers(ctx: LevelContext, world: World, opt
     else { composition = await createComposedMoverHost(options.data, assets, query, options.composition); host = composition.host; }
   }
   if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Mover scope left during admission');
-  const runtime = new MoverRuntime(options.data, { ...(options.flags === undefined ? {} : { flags: options.flags }), physics: world.physics, scope: ctx.scope, host, adopt: (id) => views.get(id), ...(options.restoreFlags === undefined ? {} : { restoreFlags: options.restoreFlags }), activation: { ground: () => [world.player.motor.result], ...options.activation } });
+  const runtime = new MoverRuntime(options.data, { ...(options.followed === true ? { followed: true } : {}), ...(options.flags === undefined ? {} : { flags: options.flags }), physics: world.physics, scope: ctx.scope, host, adopt: (id) => views.get(id), ...(options.restoreFlags === undefined ? {} : { restoreFlags: options.restoreFlags }), activation: { ground: () => [world.player.motor.result], ...options.activation } });
   options.prompts?.push(...runtime.ridePrompts());
   ctx.scope.onDispose(() => { if (runtime.riding()) world.player.carried = false; });
   const installedHost = host;

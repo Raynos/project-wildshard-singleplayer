@@ -10,6 +10,8 @@ export interface ZiplineSpec { top: Vector3; bottom: Vector3; /** sag in metres 
 
 /** Platform deck offset and cable/landing attachment heights in metres. */
 const DECK_H = 0.5, CABLE_ABOVE = 3.6, LANDING_ABOVE = 3.2;
+/** Metres from the wire that a body the server carries still hangs from it. */
+const RIDER_REACH = 4;
 const V = (x: number, y: number, z: number): Vector3 => new Vector3(x, y, z);
 
 /** the zipline's layout on its ends: the launch deck, the cable's two ends and its sag (world) */
@@ -86,6 +88,11 @@ export class ZiplineDriver {
   /** Current source-clock cable speed; presentation borrows it without owning ride state. */
   get speed(): number { return this.motion.v; }
   get len(): number { return this.layout.len; }
+  /** How far along the cable a point stands: what a page on a server draws its trolley at, with no ride of its own. */
+  distanceAt(at: { readonly x: number; readonly z: number }): number {
+    const { a, b, flat, len } = this.layout, span = Math.hypot(b.x - a.x, b.z - a.z);
+    return span === 0 ? 0 : MathUtils.clamp(((at.x - a.x) * flat.x + (at.z - a.z) * flat.z) / span, 0, 1) * len;
+  }
   /** Direct anchors release along the level wire heading; deck rides keep the cable's full direction. */
   get dir(): Vector3 { return this.profile === undefined ? this.layout.dir : this.layout.flat; }
   at(s: number, out: Vector3): Vector3 { return this.layout.at(s, out); }
@@ -133,7 +140,7 @@ export class ZiplineDriver {
 }
 
 /** A ride prompt shaped like the engine's interactable: hidden (radius 0) while its ride runs. */
-export interface ZiplinePrompt { readonly position: Vector3; readonly radius: number; readonly label: string; readonly onInteract: () => void }
+export interface ZiplinePrompt { wireId?: string; readonly position: Vector3; readonly radius: number; readonly label: string; readonly onInteract: () => void }
 /** The cable a trolley rides: a point at arc distance `s` and the heading it turns across (CableLayout, ZiplineDriver). */
 export interface TrolleyCable { readonly at: (s: number, out: Vector3) => Vector3; readonly dir: Vector3 }
 /**
@@ -167,6 +174,8 @@ interface CableEntry {
   /** Every other player who has come to this cable, by id. The first player's ride is the entry's own, and saves as it did. */
   readonly seats: Map<string, CableSeat>;
   readonly events: boolean[]; roll: number; rider?: CableRider; native?: NativeCableRider;
+  /** On a server's page: a press only asks, and this is the ride the server says is under way. Absent, the page rides itself. */
+  following?: boolean;
   view?: { trolley: ZiplineTrolley; rider: CableRider; camera?: { rotation: { z: number } } };
 }
 /**
@@ -192,12 +201,22 @@ export class CableTraversal {
   /** The live driver state; a completed legacy save may retain only its declared completion flag. */
   state(id: string): { riding: boolean; atEnd: boolean } {
     const { driver, row } = this.entry(id);
-    return { riding: driver.isRiding, atEnd: !driver.isRiding && (driver.distance >= driver.len - (row.profile?.release ?? 1.6)
+    return { riding: driver.isRiding || this.entry(id).following === true, atEnd: !driver.isRiding && (driver.distance >= driver.len - (row.profile?.release ?? 1.6)
       || row.lifecycle !== undefined && this.flags.has(row.lifecycle.endFlag)) };
+  }
+  /** This page is a server's: its prompt asks, and `follow` draws what the server does. */
+  serve(id: string): void { this.entry(id).following = false; }
+  /** A served cable's frame: `carried` says the server has this body, which is on this cable only if it hangs from it. */
+  follow(id: string, carried: boolean, at: Vector3): void {
+    const entry = this.entry(id), { view, driver } = entry;
+    if (view === undefined) throw new Error(`Cable view is not bound: ${id}`);
+    const s = driver.distanceAt(at), riding = carried && driver.at(s, this.rider.position).distanceTo(at) < RIDER_REACH;
+    if (riding !== entry.following) { entry.following = riding; this.transition(entry, riding); if (!riding) view.trolley.park(); }
+    if (riding) view.trolley.follow(s);
   }
   start(id: string): void {
     const entry = this.entry(id);
-    if (entry.driver.isRiding) return;
+    if (entry.driver.isRiding || entry.following !== undefined) return;
     if (entry.events.length >= 2) throw new Error('Cable presentation transitions were not consumed');
     entry.driver.start(); entry.roll = 0; this.transition(entry, true);
     if (entry.row.lifecycle?.carry === 'start' && entry.rider !== undefined) entry.rider.carried = true;
@@ -270,7 +289,7 @@ export class CableTraversal {
     const entry = this.entry(id), driver = entry.driver;
     if (entry.view !== undefined) throw new Error(`Cable view already bound: ${id}`);
     const trolley = new ZiplineTrolley(driver, entry.row.presentation?.park ?? 0.6, object, prompt,
-      () => driver.isRiding, () => { this.start(id); });
+      () => driver.isRiding || entry.following === true, () => { this.start(id); });
     entry.rider = rider;
     entry.view = { trolley, rider, ...(camera === undefined ? {} : { camera }) };
     return trolley.prompt;

@@ -5,6 +5,7 @@ import type { MoverRuntime, MoverView } from '../../server/plugin/mover';
 import { pageSimFeed, type PageSimFeed } from '../../server/plugin/pageSimFeed';
 import { netClimate } from '../weather/netClimate';
 import { wirePage } from './wirePage';
+import { liftPrompt } from '../../shared/shardfile/wirePrompts';
 import { entryOwner } from '../../shared/shardfile/entryOwners';
 import { boundResidentWorldScope } from './hybridPresentation';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
@@ -35,6 +36,7 @@ export function wirePageSim():void{
       for(const row of options.data)wirePage.movers.set(row.id,{pose:pose=>{wirePage.posed++;runtime.follow(row.id,pose);}});
       return runtime;
     },
+    commandSocketLift:(_runtime:Parameters<PageSimFeed['commandSocketLift']>[0],lift:Parameters<PageSimFeed['commandSocketLift']>[1],action:Parameters<PageSimFeed['commandSocketLift']>[2])=>{wirePage.send(liftPrompt(lift.mover,action));},
     climate:(ports:Parameters<PageSimFeed['climate']>[0])=>climate({...ports,net:rows=>netClimate(wirePage.climateRows,rows,word=>{wirePage.climate(word);})}),
   } satisfies Partial<PageSimFeed>);
 }

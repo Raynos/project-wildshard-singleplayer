@@ -108,6 +108,8 @@ export class Predictor {
   get full(): boolean { return this.count === PREDICTION_RING; }
   /** Moves the server has not acknowledged. */
   get pending(): number { return this.count; }
+  /** The server is carrying this body now. */
+  get leading(): boolean { return this.led; }
 
   /** Run and save one step. False, with nothing changed, when the ring is full. While the server leads the step is only saved:
    *  it was sent, and if the server ends up taking it free, the frame that ends the lead replays it. */

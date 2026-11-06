@@ -107,6 +107,8 @@ export function installLadders(host: SimHost, rows: readonly LadderMode[], clien
   const firstPlayer = host.players.values().next();
   if (firstPlayer.done === true) throw new Error('Simulation host has no player');
   const first = climberFor(firstPlayer.value);
+  // A client walks up to the rung and the server takes the climb from there: it runs no ladder of its own (J130).
+  if (client === undefined) host.leading.push(player => climbers.get(player.id)?.driver.active === true);
   host.onStep('modes.ladder', () => {
     if (client !== undefined) return;
     for (const id of climbers.keys()) if (!host.players.has(id)) climbers.delete(id);
