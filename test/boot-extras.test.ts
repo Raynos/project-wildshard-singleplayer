@@ -42,8 +42,6 @@ test('a real emitted image and admitted source produce only the selected home ba
     writeFileSync(resolve(root, 'src/shardList.ts'), 'export { default as home } from "../out/.app/discovery.home.generated";');
     writeFileSync(resolve(root, 'src/entry.ts'), "window.client = () => import('./game/client/shardfile/client'); window.grid = () => import('./game/client/grid/session'); window.selected = () => import('../out/.app/discovery.home.generated'); window.catalogue = () => import('./shardList'); async function startSelected() { return import('./card'); } void startSelected();");
     writeFileSync(resolve(root, 'index.html'), '<html><head></head><body><script type="module" src="/src/entry.ts"></script></body></html>');
-    writeFileSync(resolve(root, 'src/shards/home/manifest.json'), JSON.stringify({ card: { thumb: '/src/card.svg', portrait: 'data:,', landscape: 'data:,' },
-      explore: { art: { world: '/src/preview.svg' } }, boot: { precache: ['/assets/required.webp'] } }));
     writeFileSync(resolve(root, 'public/assets/required.webp'), new Uint8Array(3));
     writeFileSync(resolve(root, 'public/assets/model.glb'), new Uint8Array(11));
     mkdirSync(resolve(root, 'src/game/client/data'), { recursive: true });
@@ -66,6 +64,8 @@ test('a real emitted image and admitted source produce only the selected home ba
     mkdirSync(resolve(root, 'out/home/blobs/json'), { recursive: true });
     writeFileSync(resolve(root, 'out/home', sourcePath), models);
     const sections = Object.entries({ 'quests/host': { questHost: { page: { version: 1 } } },
+      'ui/level': { manifest: { card: { thumb: '/shardfiles/home/blobs/image/card.jpg', portrait: 'data:,', landscape: 'data:,' },
+        explore: { art: { world: '/shardfiles/home/blobs/image/preview.jpg' } }, boot: { precache: ['/assets/required.webp'] } } },
       'look/painted': { look: { sky: { kind: 'strips', row: { strips: [{ key: 'early', url: '/assets/early.webp' }, { key: 'late', url: '/assets/late.webp' }] } } } },
       'world/scenes': { version:1,libraries: [{ id:'fixture-models',kind: 'models', file: 'source.json' }],materials:[],steps:[] } }).map(([name, rows]) => {
       const value = JSON.stringify(rows), path = `sections/${name}.json`;
@@ -82,15 +82,12 @@ test('a real emitted image and admitted source produce only the selected home ba
         { name: 'geometry/rigs/body.glb', kind: 'glb', path: rigPath, hash: rigHash, compressed: rig.length, decoded: rig.length, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false }], runtime: null };
     writeFileSync(resolve(root, 'out/home/shard.json'), JSON.stringify(index));
     expect(homeClientModuleGroups(root, 'home')).toContain('models.gltf');
-    const outDir = await buildWithBootModules(root, { assetsInlineLimit: 0 }), bundle = writtenBundle(outDir, root);
-    const rows = homeExtraFiles(root, 'home', bundle, 0), assets = Object.entries(bundle).filter(([, file]) => file.type === 'asset');
+    const outDir = await buildWithBootModules(root, { assetsInlineLimit: 0 });
+    const rows = homeExtraFiles(root, 'home');
     if (rows === null) throw new Error('Missing declared home files');
-    const image = assets.find(([, file]) => file.originalFileNames?.includes('src/card.svg'));
-    if (image?.[1].source === undefined) throw new Error('Missing emitted image');
-    const preview = assets.find(([, file]) => file.originalFileNames?.includes('src/preview.svg'));
-    if (preview?.[1].source === undefined) throw new Error('Missing demand image');
-    expect(rows).not.toContainEqual([`/${preview[0]}`, preview[1].source.byteLength]);
-    expect(rows).toEqual([[`/${image[0]}`, image[1].source.byteLength], ['/assets/required.webp', 3], ['/assets/model.glb', 11], ['/assets/pickup.bin', 17], ['/assets/physics/rapier.wasm', 13], ['/assets/early.webp', 5], ['/assets/late.webp', 7]].sort(([left], [right]) => String(left).localeCompare(String(right))));
+    // A shard's own images count in its product's bank, so no row names them.
+    expect(rows.some(([file]) => file.startsWith('/shardfiles/'))).toBe(false);
+    expect(rows).toEqual([['/assets/required.webp', 3], ['/assets/model.glb', 11], ['/assets/pickup.bin', 17], ['/assets/physics/rapier.wasm', 13], ['/assets/early.webp', 5], ['/assets/late.webp', 7]].sort(([left], [right]) => String(left).localeCompare(String(right))));
     const metadataName = Object.keys(writtenBundle(outDir, root)).find(name => /^assets\/boot-home-[a-f0-9]{8}\.json$/u.test(name));
     if (metadataName === undefined) throw new Error('Missing per-home metadata');
     const metadata = readFileSync(resolve(outDir, metadataName), 'utf8');
@@ -108,7 +105,7 @@ test('a real emitted image and admitted source produce only the selected home ba
     try {
       writeFileSync(cataloguePath, JSON.stringify({ ...originalRows, banks: [{ file: '/assets/pickup-bank.bin', bytes: bankBytes.length,
         members: [{ file: '/assets/pickup.bin', offset: 0, bytes: bankBytes.length, sha256: createHash('sha256').update(bankBytes).digest('hex') }] }] }));
-      const banked = homeExtraFiles(root, 'home', bundle, 0);
+      const banked = homeExtraFiles(root, 'home');
       expect(banked).toEqual(rows.map(([file, bytes]) => [file === '/assets/pickup.bin' ? '/assets/pickup-bank.bin' : file, bytes])
         .sort(([left], [right]) => String(left).localeCompare(String(right))));
       expect(banked?.filter(([file]) => file === '/assets/pickup-bank.bin')).toHaveLength(1);
@@ -117,7 +114,7 @@ test('a real emitted image and admitted source produce only the selected home ba
     const withoutRig = { ...index, files: index.files.filter(file => file.hash !== rigHash) };
     expect(productDownloadTotal(index, 100)[1] - productDownloadTotal(withoutRig, 100)[1]).toBe(rig.length);
     writeFileSync(resolve(root, 'out/home/shard.json'), JSON.stringify(withoutRig));
-    expect(() => homeExtraFiles(root, 'home', bundle, 0)).toThrow('Unsafe boot source URL');
+    expect(() => homeExtraFiles(root, 'home')).toThrow('Unsafe boot source URL');
     writeFileSync(resolve(root, 'out/home/shard.json'), JSON.stringify(index));
     const native = JSON.stringify({ rows: { meshes: [], meshUrls: {}, hd: [], hdUrls: {},
       geometryPools: [{ url: 'geometry/rigs/body.glb', parts: ['body'], native: { first: true } }],
@@ -135,6 +132,6 @@ test('a real emitted image and admitted source produce only the selected home ba
     writeFileSync(resolve(root, 'out/home/shard.json'), JSON.stringify(index));
     writeFileSync(resolve(root, 'out/home', sourcePath), '{}');
     expect(() => homeClientModuleGroups(root, 'home')).toThrow('differs from its index');
-    expect(() => homeExtraFiles(root, 'home', bundle, 0)).toThrow('differs from its index');
+    expect(() => homeExtraFiles(root, 'home')).toThrow('differs from its index');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

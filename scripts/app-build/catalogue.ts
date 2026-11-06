@@ -1,10 +1,18 @@
 import {createHash} from 'node:crypto';
-import {existsSync, readFileSync, writeFileSync} from 'node:fs';
-import {join} from 'node:path';
+import {existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {dirname, join} from 'node:path';
 import * as v from 'valibot';
 import {packsBookPath, readSpawnManifest} from '../../src/game/shared/shardfile/spawnManifest';
+import {prepareAssetDecoders} from '@wildshard/format/product';
+import {validateShardfileProduct} from '@wildshard/format/productValidation';
 import {StandaloneCatalogueSchema, type StandaloneCatalogue} from '@wildshard/format/standaloneCatalogue';
+import {readTar} from '@wildshard/format/tar';
+import type {CookIndex} from '../../src/game/cook/cookWorker';
+import type {PackStore} from '../../src/game/cook/packStore';
+import {serverPackBookPath} from '../../src/game/shared/shardfile/serverPack';
 import {productTarball} from '../../src/game/cook/productTarball';
+import {titleMetadata, type TitleManifest} from '../../src/game/client/shard/titleList';
 
 /** C3 (J61, D7): every build bakes `catalogue.json`, so a build needs no server, and inlines it in `index.html`, so the
  * first paint waits on no new fetch. `WILDSHARD_CATALOGUE` names a file a deploy took from `api-server`'s
@@ -13,6 +21,35 @@ const ELEMENT = /<script type="application\/json" id="ws-catalogue">[^<]*<\/scri
 /** J138: the shards cooked to R2 and its origin, for a page's spawn download. */
 export interface PackHome {readonly base: string; readonly shards: readonly string[]}
 const inline = (text: string): string => `<script type="application/json" id="ws-catalogue">${text.replaceAll('<', String.raw`\u003c`)}</script>`;
+
+const ROWS = /<script type="application\/json" id="ws-title-rows">[^<]*<\/script>/u;
+/** C3: the title's rows beside the catalogue, so a shard's card and name reach the first paint with no rebuild. */
+export function writeTitleRows(outDir: string, rows: readonly TitleManifest[]): void {
+  const element = `<script type="application/json" id="ws-title-rows">${JSON.stringify(rows).replaceAll('<', String.raw`\u003c`)}</script>`;
+  const file = join(outDir, 'index.html'), html = readFileSync(file, 'utf8');
+  if (!html.includes('</head>')) throw new Error('No document head for the title rows');
+  writeFileSync(file, ROWS.test(html) ? html.replace(ROWS, () => element) : html.replace('</head>', () => `${element}</head>`));
+}
+const readTitleRows = (outDir: string): readonly TitleManifest[] => {
+  const text = /<script type="application\/json" id="ws-title-rows">([^<]*)<\/script>/u.exec(readFileSync(join(outDir, 'index.html'), 'utf8'))?.[1];
+  return text === undefined ? [] : JSON.parse(text.replaceAll(String.raw`\u003c`, '<')) as readonly TitleManifest[];
+};
+const hash8 = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex').slice(0, 8);
+/** A title row from a shard's discovery document: `home` is an origin for a shard cooked to R2 (J138). */
+export function titleRowOf(bytes: Uint8Array, home = ''): TitleManifest {
+  const {data} = JSON.parse(new TextDecoder().decode(bytes)) as {readonly data: TitleManifest};
+  const at = (url: string): string => (url.startsWith('/shardfiles/') ? `${home}${url}` : url);
+  const {thumb, portrait, landscape} = data.card;
+  return {...titleMetadata(data), card: {thumb: at(thumb), portrait: at(portrait), landscape: at(landscape)}, discovery: `${home}/shardfiles/${data.slug}/discovery.json?v=${hash8(bytes)}`};
+}
+/** Every built product's title row, in title order. */
+export function productTitleRows(products: string): readonly TitleManifest[] {
+  const rows = readdirSync(products, {withFileTypes: true}).flatMap(entry => {
+    const file = join(products, entry.name, 'mounts/shardfiles', entry.name, 'discovery.json');
+    return entry.isDirectory() && existsSync(file) ? [titleRowOf(readFileSync(file))] : [];
+  });
+  return rows.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+}
 
 export function writeCatalogueDocument(outDir: string, document: unknown): void {
   const text = JSON.stringify(v.parse(StandaloneCatalogueSchema, document));
@@ -43,11 +80,12 @@ export function inTreeCatalogue(root: string, products: string, listed: readonly
 }
 
 /** The build's step: the file a deploy names, else the tree's. */
-export async function bakeCatalogue(outDir: string, root: string): Promise<void> {
+export function bakeCatalogue(outDir: string, root: string): void {
   const {WILDSHARD_CATALOGUE: source} = process.env;
-  const {shards} = await import('../../src/game/client/shard/list');
-  const document = source === undefined ? inTreeCatalogue(root, join(root, 'out'), shards()) : v.parse(StandaloneCatalogueSchema, JSON.parse(readFileSync(source, 'utf8')));
+  const rows = productTitleRows(join(root, 'out'));
+  const document = source === undefined ? inTreeCatalogue(root, join(root, 'out'), rows) : v.parse(StandaloneCatalogueSchema, JSON.parse(readFileSync(source, 'utf8')));
   writeCatalogueDocument(outDir, document);
+  writeTitleRows(outDir, rows);
 }
 
 interface CookedManifest {readonly url: string; readonly tier: 'phone' | 'desktop'; readonly set: 'entry' | 'whole'; readonly files: number; readonly totalBytes: number; readonly wireBytes: number}
@@ -58,6 +96,10 @@ export interface CookedShard {
   readonly manifests: readonly CookedManifest[];
   /** The row `buildValidationReceipts` writes for this product. */
   readonly verdict: unknown;
+  /** Its discovery document's bytes: its title row. A shard with none wears the catalogue's plain card. */
+  readonly discovery?: Uint8Array;
+  /** Its row of the server pack book, when it has a server class. */
+  readonly server?: unknown;
 }
 
 /** A catalogue shard this build has no code or table for, once its packs exist: each table a page reads names it, in files
@@ -84,10 +126,66 @@ export function addCookedShards(outDir: string, shards: readonly CookedShard[], 
   }
   if (home !== undefined) bank.spawnManifests.home = home;
   writeFileSync(bookFile, JSON.stringify(book));
+  const serverFile = join(outDir, serverPackBookPath(build));
+  if (shards.some(row => row.server !== undefined) && existsSync(serverFile)) {
+    const servers = JSON.parse(readFileSync(serverFile, 'utf8')) as {shards: Record<string, unknown>};
+    for (const row of shards) if (row.server !== undefined) servers.shards[row.slug] = row.server;
+    writeFileSync(serverFile, JSON.stringify(servers));
+  }
   html = html.replace(expression, () => `<script type="application/json" id="boot-module-files">${JSON.stringify(bank).replaceAll('<', String.raw`\u003c`)}</script>`);
   const stamp = /globalThis\.__WS_SHARDFILE_VERDICTS__=(\[.*?\]);?<\/script>/su, stamped = stamp.exec(html);
   if (stamped?.[1] === undefined) throw new Error('Missing validation verdicts');
   const before = JSON.parse(stamped[1]) as unknown[];
   writeFileSync(file, html.replace(stamp, () => `globalThis.__WS_SHARDFILE_VERDICTS__=${JSON.stringify([...before, ...verdicts]).replaceAll('<', String.raw`\u003c`)};</script>`));
+  const added = shards.flatMap(row => (row.discovery === undefined ? [] : [titleRowOf(row.discovery, home?.shards.includes(row.slug) === true ? home.base : '')]));
+  if (added.length > 0) writeTitleRows(outDir, [...readTitleRows(outDir).filter(row => !added.some(next => next.slug === row.slug)), ...added]);
+}
+
+/** What a page takes on trust for one tarball: a verdict is earned here, by this build's format validator, whichever validator
+ *  stamped its receipt, because a page trusts it by its index hash. */
+export async function productVerdict(tarball: Uint8Array, out: string): Promise<{readonly verdict: unknown; readonly discovery?: Uint8Array}> {
+  await prepareAssetDecoders();
+  const files = readTar(tarball);
+  validateShardfileProduct({read: (path, maximum) => { const bytes = files.get(path); if (bytes === undefined || bytes.length > maximum) throw new Error(`No ${path}`); return bytes; }, paths: () => files.keys()},
+    {hash: bytes => createHash('sha256').update(bytes).digest('hex')});
+  const revision = /__WS_SHARDFILE_VALIDATOR__="([a-f0-9]{64})"/u.exec(readFileSync(join(out, 'index.html'), 'utf8'))?.[1];
+  if (revision === undefined) throw new Error('No validator stamped on the build');
+  const receipt = files.get('validation.json'), index = files.get('shard.json');
+  if (receipt === undefined || index === undefined) throw new Error('No validation receipt');
+  const {sourceHash, indexHash, residentBytes, postCost, worst} = JSON.parse(new TextDecoder().decode(receipt)) as Readonly<Record<string, unknown>>;
+  const {identity: {slug}} = JSON.parse(new TextDecoder().decode(index)) as {readonly identity: {readonly slug: string}};
+  const discovery = [...files].find(([path]) => /^mounts\/shardfiles\/[^/]+\/discovery\.json$/u.test(path))?.[1];
+  return {verdict: {revision, sourceHash, indexHash, residentBytes, postCost, path: `/shardfiles/${slug}/shard.json`, ...(worst === undefined ? {} : {worst})}, ...(discovery === undefined ? {} : {discovery})};
+}
+
+/** A head the cook worker already cooked for this build (J29), read from its store onto a built client: no cook, and no rebuild.
+ *  What a page reads stays in the store under `home`, but for the server's pack, which the server worker reads beside it. */
+export async function addStoredShards(out: string, heads: readonly {readonly slug: string; readonly hash: string}[], store: Pick<PackStore, 'get'>, read: (hash: string) => Promise<Uint8Array>, home: PackHome): Promise<readonly string[]> {
+  const {indexKey} = await import('../../src/game/cook/cookWorker');
+  const {build} = JSON.parse(readFileSync(join(out, 'version.json'), 'utf8')) as {build: string};
+  const bank = /<script type="application\/json" id="boot-module-files">([^<]+)<\/script>/u.exec(readFileSync(join(out, 'index.html'), 'utf8'))?.[1];
+  if (bank === undefined) throw new Error('Missing entry module bank');
+  const {spawnManifests: {client}} = JSON.parse(bank) as {spawnManifests: {client: Record<string, unknown>}};
+  const scratch = mkdtempSync(join(tmpdir(), 'bake-stored-')), added: CookedShard[] = [], need = async (key: string): Promise<Uint8Array> => {
+    const body = await store.get(key);
+    if (body === undefined) throw new Error(`The store has no ${key}`);
+    return body;
+  };
+  const copy = async (key: string, root: string): Promise<void> => { mkdirSync(dirname(join(root, key)), {recursive: true}); writeFileSync(join(root, key), await need(key)); };
+  try {
+    for (const head of heads) {
+      const body = Object.hasOwn(client, head.slug) ? undefined : await store.get(indexKey(build, head.hash));
+      if (body === undefined) continue;
+      const index = JSON.parse(new TextDecoder().decode(body)) as CookIndex;
+      for (const row of index.manifests) await copy(row.url.slice(1), scratch);
+      for (const key of index.keys) if (key.startsWith('assets/spawn/server/')) await copy(key, out);
+      const proved = await productVerdict(await read(head.hash), out);
+      const server = index.serverPack?.index.slice(1);
+      added.push({slug: index.slug, hash: head.hash, header: index.header, manifests: index.manifests, ...proved,
+        ...(server === undefined ? {} : {server: JSON.parse(new TextDecoder().decode(await need(server))) as unknown})});
+    }
+    if (added.length > 0) addCookedShards(out, added, scratch, {base: home.base, shards: [...home.shards, ...added.map(row => row.slug)]});
+    return added.map(row => row.slug);
+  } finally { rmSync(scratch, {recursive: true, force: true}); }
 }
 

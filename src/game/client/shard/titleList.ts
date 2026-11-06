@@ -3,18 +3,31 @@ import { shards } from './list';
 import { bareSlug, installedCatalogue } from '../../shared/grid/catalogueSlot';
 
 /** Cold-title metadata contains no executable shard bindings. */
-export type TitleManifest = Pick<ShardManifest, 'slug' | 'name' | 'biome' | 'status' | 'card' | 'shardSelect' | 'shardfile' | 'gridShardfile'> & Pick<Partial<ShardManifest>, 'order' | 'bag'>;
+export type TitleManifest = Pick<ShardManifest, 'slug' | 'name' | 'biome' | 'status' | 'card' | 'shardSelect' | 'shardfile' | 'gridShardfile'> & Pick<Partial<ShardManifest>, 'order' | 'bag'> & {
+  /** Where this shard's discovery document is served (C3); a shard with none enters on another row's page. */
+  readonly discovery?: string;
+};
 type TitleSource = TitleManifest & { readonly load?: unknown };
 /** Copy the scalar title fields, never executable bindings. */
 export function titleMetadata(row: TitleSource): TitleManifest {
-  const { slug, name, biome, status, card, shardSelect, shardfile, gridShardfile, order, bag } = row;
-  return { slug, name, biome, status, card, ...(order === undefined ? {} : {order}), ...(bag === undefined ? {} : {bag}),
+  const { slug, name, biome, status, card, shardSelect, shardfile, gridShardfile, order, bag, discovery } = row;
+  return { slug, name, biome, status, card, ...(order === undefined ? {} : {order}), ...(bag === undefined ? {} : {bag}), ...(discovery === undefined ? {} : {discovery}),
     ...(shardSelect === undefined ? {} : { shardSelect }), ...(shardfile === undefined ? {} : { shardfile }),
     ...(gridShardfile === undefined ? {} : { gridShardfile }) };
 }
 let title: readonly TitleManifest[] | null = null;
 const worldRows = new WeakMap<readonly ShardManifest[], readonly TitleManifest[]>();
 const indexes = new WeakMap<readonly TitleManifest[], ReadonlyMap<string, TitleManifest>>();
+const isRows = (value: unknown): value is readonly TitleManifest[] => Array.isArray(value);
+/** C3: the title's rows, inlined in the document by the build and by each shard the catalogue added after it. A page with none
+ *  (a shell, a source document) lists what the catalogue names. */
+export function readTitleRows(page: Pick<Document, 'getElementById'>): readonly TitleManifest[] {
+  const text = page.getElementById('ws-title-rows')?.textContent;
+  if (text === undefined || text === null || text === '') return [];
+  const rows: unknown = JSON.parse(text);
+  if (!isRows(rows)) throw new Error('Invalid title rows');
+  return rows;
+}
 /** The composition root installs generated data before recovery or title navigation.
  * Publish the same scalar rows for built-page catalogue inspection without loading worlds. */
 export function installTitleManifests(rows: readonly TitleManifest[]): void {

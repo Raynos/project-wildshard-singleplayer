@@ -2,8 +2,7 @@
 import '@wildshard/engine/core/portableMathFirst';
 // oxlint-disable-next-line import/no-unassigned-import -- evaluated for its effect: the app identity is installed before any other module body runs (E414)
 import './identity';
-import { TITLE_MANIFESTS } from '../out/.app/titleCatalogue.generated';
-import { installTitleManifests, unloadedTitleRow, withCatalogueHeads } from '@wildshard/game/shard/titleList';
+import { installTitleManifests, readTitleRows, unloadedTitleRow, withCatalogueHeads } from '@wildshard/game/shard/titleList';
 import { installInlineCatalogue } from '@wildshard/game/grid/catalogueSlot';
 import { installOfflineDownload } from '@wildshard/engine/ui/offlineDownload';
 import { startPageServices } from './pageServices';
@@ -46,7 +45,8 @@ document.documentElement.dataset['booted'] = '';
 startPageServices();
 // C3: the build's catalogue, inlined in this document: no read before the first paint.
 installInlineCatalogue(document);
-installTitleManifests(withCatalogueHeads(TITLE_MANIFESTS));
+const titleRows = withCatalogueHeads(readTitleRows(document));
+installTitleManifests(titleRows);
 // G727 / I9: Settings' "Download everything"; the prefetch loads only when the player opens or presses it
 installOfflineDownload({
   size: async owner => (await import('@wildshard/game/grid/prefetch')).remainingDownloadBytes(owner),
@@ -63,7 +63,7 @@ async function enterPage(): Promise<unknown> {
   const { consumeGridRecovery, gridRecoveryRefused, pageGridRecovery, pendingGridEntry } = await import('@wildshard/game/grid/pageEntry');
   const end = lastEnd();
   const named = search.get('chunk');
-  crashResume = (named === null || [end.slug].includes(named)) && !search.has('explore') ? consumeCrashResume(end, TITLE_MANIFESTS) : null;
+  crashResume = (named === null || [end.slug].includes(named)) && !search.has('explore') ? consumeCrashResume(end, titleRows) : null;
   const recovery = consumeGridRecovery({ unexpected: end.kind === 'unexpected', previous: end, search });
   if (recovery !== null || crashResume !== null) {
     search.set('chunk', recovery?.slug ?? crashResume?.slug ?? '');

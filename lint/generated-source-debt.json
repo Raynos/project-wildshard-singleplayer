@@ -8,7 +8,6 @@
     "src/game/client/boot/packs.generated.ts",
     "src/game/client/boot/versions.generated.ts",
     "src/game/client/draftTitles.ts",
-    "src/game/client/shard/art.generated.ts",
     "src/game/server/shard/manifest-closure.generated.json",
     "src/game/server/shard/portShares.generated.ts",
     "src/game/client/systems/effects/starter.generated.ts",

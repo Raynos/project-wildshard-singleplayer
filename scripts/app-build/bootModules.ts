@@ -7,7 +7,6 @@ import { homeClientModuleGroups, bootProductTotals } from './bootProducts';
 import { bootTierProductTotals } from './bootProductTiers';
 import { homeExtraFiles } from './bootExtras';
 import { createHash } from 'node:crypto';
-import { selectionModules } from '../title-catalogue.mjs';
 import { writtenBundle } from './writtenBundle';
 
 /** Only imports actually scheduled by startSelected; title, recovery and error
@@ -244,7 +243,7 @@ export function homeModuleRoots(root: string): readonly (readonly string[])[] {
   });
 }
 
-export function writeBootModules(outDir: string, root: string, inlineLimit = 4096): void {
+export function writeBootModules(outDir: string, root: string): void {
   const bundle = writtenBundle(outDir, root);
   const entry = resolve(root, 'src/entry.ts'), ids = startupModuleRoots(root);
   const htmlFile = join(outDir, 'index.html'), html = existsSync(htmlFile) ? readFileSync(htmlFile, 'utf8') : '';
@@ -258,29 +257,15 @@ export function writeBootModules(outDir: string, root: string, inlineLimit = 409
     const directory = prefix.split('/')[2];
     if (directory === undefined) throw new Error('Missing boot home directory');
     featureRoots[`home:${prefix}`] = selectedHomeRoots(root, directory, featureRoots);
-    const files = homeExtraFiles(root, directory, bundle, inlineLimit);
+    const files = homeExtraFiles(root, directory);
     if (files === null) continue;
     const source = JSON.stringify(files), hash = createHash('sha256').update(source).digest('hex');
     const name = `assets/boot-${directory}-${hash.slice(0, 8)}.json`;
     writeFileSync(join(outDir, name), source);
     extras[prefix] = [`/${name}`, Buffer.byteLength(source), files.reduce((sum, row) => sum + row[1], 0), hash];
   }
-  const selected:Record<string,readonly ModuleFile[]>={};
   featureRoots['boot.common']=[...ids];
-  featureRoots['discovery.all']=[];
-  for(const row of selectionModules(root)){
-    const roots=[resolve(root,row.file)];
-    selected[row.slug]=bootModuleFiles(bundle,roots);
-    featureRoots[`discovery:${row.slug}`]=roots;
-  }
-  let catalogueFiles:readonly ModuleFile[]=[];
-  if(Object.keys(selected).length>0){
-    const catalogue=resolveImport('./shardList',entry);
-    if(catalogue===null)throw new Error('Missing full discovery module');
-    catalogueFiles=bootModuleFiles(bundle,[catalogue.id]);
-    featureRoots['discovery.all']=[catalogue.id];
-  }
-  const rows = { common: bootModuleFiles(bundle, ids), client: bootModuleFiles(bundle, [client.id]), grid: bootModuleFiles(bundle, gridRoots), optional: bootModuleGroups(bundle, featureRoots), selection:selected, catalogue:catalogueFiles, products, extras };
+  const rows = { common: bootModuleFiles(bundle, ids), client: bootModuleFiles(bundle, [client.id]), grid: bootModuleFiles(bundle, gridRoots), optional: bootModuleGroups(bundle, featureRoots), products, extras };
   const json = JSON.stringify(rows).replaceAll('<', String.raw`\u003c`);
   writeFileSync(htmlFile, html.replace('<head>', `<head><script type="application/json" id="boot-module-files">${json}</script>`));
 }

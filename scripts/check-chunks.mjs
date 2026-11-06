@@ -61,10 +61,9 @@ function closureBudgetErrors(modules, budgets, label, roots, forbidden) {
 /** Static dependencies of the original public title's explicit dynamic roots.
  * Count shared chunks once; optional settings and gameplay stay outside. */
 export function titleClosureBudgetErrors(modules, budgets) {
-  // D25: the title's own catalogue (labels, entries and card image imports, gen-shards writes it) is the one generated
-  // module the cold title loads; it replaced the virtual:wildshard-title module
+  // C3: the title's rows are data in its document, so the cold title loads no generated module
   return closureBudgetErrors(modules, budgets, 'title', titleRoots, id => /node_modules\/(?:three|@dimforge\/rapier[^/]*)(?:\/|$)/u.test(id)
-    || /^src\/shards\/.*\.[cm]?[jt]sx?$/u.test(id) || (/\.generated(?:\.|$)/u.test(id) && id !== 'out/.app/titleCatalogue.generated.ts')
+    || /^src\/shards\/.*\.[cm]?[jt]sx?$/u.test(id) || /\.generated(?:\.|$)/u.test(id)
     || /^src\/engine\/(?:(?:client|cook|server|shared)\/)?(?:explore|calibrate)\//u.test(id)
     || /\/@wildshard\/format\/src\/format\/.*\.ts$/u.test(id) && !titleFormat.has(id.slice(id.lastIndexOf('/') + 1)));
 }

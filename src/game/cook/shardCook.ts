@@ -134,6 +134,10 @@ export function shardHalf(shard: OpenShardfile, wireBytes: WireBytes, warn: (lin
   const headerHash = sha256(shard.header), headerURL = `${prefix}shard.json?v=${headerHash.slice(0, 8)}`;
   sources.set(headerURL, () => shard.header);
   const header = {url: headerURL, bytes: shard.header.length, hash: headerHash, wireBytes: wireBytes(`${prefix}shard.json`, shard.header, headerHash)};
+  // C3: a page reads this before it knows the product, and a cold offline entry reads it too.
+  const document = shard.cook?.mounts.find(row => row.url === `${prefix}discovery.json`), discovery: readonly SpawnFile[] = document === undefined ? [] : [{
+    url: `${document.url}?v=${document.hash.slice(0, 8)}`, bytes: document.bytes, hash: document.hash, wireBytes: wireBytes(document.url, shard.read(document.path), document.hash)}];
+  for (const row of discovery) if (document !== undefined) sources.set(row.url, () => shard.read(document.path));
   const mounts = downloaded(shard), mountURLs = new Set(mounts.map(row => row.url)), onTier = mountTiers(mountURLs);
   const mountRow = new Map(mounts.map(row => {
     const url = CONTENT_NAMED.test(row.url) || /-[a-f0-9]{8}\.[a-z0-9]+$/u.test(row.url) ? row.url : `${row.url}?v=${row.hash.slice(0, 8)}`;
@@ -143,11 +147,11 @@ export function shardHalf(shard: OpenShardfile, wireBytes: WireBytes, warn: (lin
   return {shard, header, read: url => { const read = sources.get(url); if (read === undefined) throw new Error(`Spawn file has no source: ${url}`); return read(); },
     stableKey: url => stableKeys.get(url),
     productRows: (tier, set) => {
-      const selected: SpawnFile[] = [header];
+      const selected: SpawnFile[] = [header, ...discovery];
       for (const row of index.sections) selected.push(productFile(row.path, row.bytes, row.hash, `section:${row.name}`));
       for (const row of index.schemas) selected.push(productFile(row.path, row.bytes, row.hash, `schema:${row.path}`));
       const wanted = entryReadSet(source, tier, index, sections, set === 'whole' && wholeSet, fence.hashes);
-      for (const row of index.files) if (wanted.has(row.hash)) selected.push(productFile(row.path, row.compressed, row.hash, row.name));
+      for (const row of index.files) if (wanted.has(row.hash) || row.name?.startsWith('ui/images/card-') === true) selected.push(productFile(row.path, row.compressed, row.hash, row.name));
       return selected;
     },
     mountRows: (tier, set) => {
@@ -193,7 +197,7 @@ export interface CookReport {
   readonly manifests: readonly {readonly url: string; readonly tier: CookTier; readonly set: CookSet; readonly files: number; readonly totalBytes: number; readonly wireBytes: number}[];
   readonly loose: readonly string[];
   readonly parts: {readonly count: number; readonly rawBytes: number; readonly wireBytes: number};
-  readonly server: {readonly url: string; readonly wireBytes: number; readonly files: number} | undefined;
+  readonly server: {readonly url: string; readonly index: string; readonly wireBytes: number; readonly files: number} | undefined;
 }
 
 /** `cook <shardfile> → <packs>`: the shard's half of every manifest, its parts, and its loose mounts at their URLs. */
@@ -216,13 +220,21 @@ export async function cookShard(tarball: Uint8Array, out: string, options: {read
     manifests.push({url: `/${name}`, tier: row.tier, set: row.set, files: row.rows.length, totalBytes, wireBytes: wire});
   }
   const server = await cookServerPack(half.shard.index.admission.server ?? [], half.shard.read, out, encoder);
-  if (server !== undefined) writeFileSync(join(out, `assets/spawn/server-${half.shard.slug}.json`), JSON.stringify(server));
+  // Content-named, so two revisions of a shard never share a name in the store (J29, J83).
+  const serverText = server === undefined ? undefined : JSON.stringify(server), serverIndex = serverText === undefined ? undefined : `assets/spawn/server-${half.shard.slug}-${sha256(new TextEncoder().encode(serverText)).slice(0, 16)}.json`;
+  if (serverText !== undefined && serverIndex !== undefined) writeFileSync(join(out, serverIndex), serverText);
   // What no part may hold still serves at its URL (DL14: `<img>` and module loads pass any fetch layer).
   const loose = (half.shard.cook?.mounts ?? []).filter(row => !packable(row.url) || !row.url.startsWith('/assets/'));
   for (const row of loose) {
     const file = join(out, row.url.slice(1));
     mkdirSync(dirname(file), {recursive: true}); writeFileSync(file, half.shard.read(row.path));
   }
-  return {slug: half.shard.slug, seconds: (options.now() - started) / 1000, manifests, loose: loose.map(row => row.url), server: server === undefined ? undefined : {url: server.url, wireBytes: server.wireBytes, files: server.files.length},
+  // C3: a title or menu `<img>` reads a shard's images by the URLs its level manifest names, before any fetch layer exists.
+  const images = half.shard.index.files.flatMap(row => row.name?.startsWith('ui/images/') === true ? [row.path] : []);
+  for (const path of images) {
+    const file = join(out, 'shardfiles', half.shard.slug, path);
+    mkdirSync(dirname(file), {recursive: true}); writeFileSync(file, half.shard.read(path));
+  }
+  return {slug: half.shard.slug, seconds: (options.now() - started) / 1000, manifests, loose: loose.map(row => row.url), server: server === undefined || serverIndex === undefined ? undefined : {url: server.url, index: `/${serverIndex}`, wireBytes: server.wireBytes, files: server.files.length},
     parts: {count: after.parts - before.parts, rawBytes: after.rawBytes - before.rawBytes, wireBytes: after.wireBytes - before.wireBytes}};
 }

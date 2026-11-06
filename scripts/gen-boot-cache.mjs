@@ -123,7 +123,7 @@ export function generateBootTablesCached(inputRoot, cache, run) {
   try { run(); direct = [...modules, ...reads]; } finally { reads = null; writes = null; }
   const entries = treeEntries(root, direct);
   // Writers need not read their outputs. Bind bytes and the output inventory.
-  const patterns = ['src/game/client/boot/**/*.generated.*', 'src/game/client/shard/art.generated.ts', 'public/assets/packs/**/*'];
+  const patterns = ['src/game/client/boot/**/*.generated.*', 'public/assets/packs/**/*'];
   for (const pattern of patterns) entries.push(`G .\t${pattern}`);
   for (const path of globPaths(patterns, { cwd: root })) if (lstatSync(resolve(root, path)).isFile()) produced.add(resolve(root, path));
   const outputs = {};

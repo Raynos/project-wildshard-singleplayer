@@ -1,26 +1,24 @@
 import { expect, test } from 'vitest';
 import { contentHash } from '../src/game/shared/shardfile/contentHash';
 import { GridCellEvents } from '../src/game/shared/grid/cellEvents';
-import { titleCatalogueSource } from '../scripts/title-catalogue.mjs';
+import { titleRowOf } from '../scripts/app-build/catalogue';
 import { titlePrefetchOrder } from '../src/game/client/grid/titleOrder';
 import { GridAssembly } from '../src/game/shared/grid/assembly';
 import { gridPrefetchOrder } from '../src/game/client/grid/prefetch';
 import { titleMetadata, type TitleManifest } from '../src/game/client/shard/titleList';
 
-test('compile title metadata and deduplicated image URLs without shard imports', () => {
-  const row: TitleManifest = { slug: '_template', name: 'A title', biome: 'A biome', status: 'hidden',
-    card: { thumb: '/src/shards/_template/card.jpg', portrait: '/src/shards/_template/card.jpg', landscape: '/assets/card.webp' },
-    shardfile: '/shardfiles/example/shard.json' };
-  const source = titleCatalogueSource([row]);
-  expect(source).toContain('import image0 from "/src/shards/_template/card.jpg";');
-  expect(source.match(/import /gu)).toHaveLength(1);
-  expect(source).toContain('card:{thumb:image0,portrait:image0,landscape:"/assets/card.webp"}');
-  const { card: _card, ...metadata } = row;
-  expect(source).toContain(JSON.stringify(metadata));
-  expect(source).not.toContain('discovery');
-  expect(source).not.toContain('runtime');
-  const executable = { ...row, load: () => { throw new Error('Never load a world on the title'); } };
-  expect(titleMetadata(executable)).toEqual(row);
+test('a title row is a discovery document\'s data, with its cards where a home serves them', () => {
+  const data: TitleManifest = { slug: 'island', name: 'A title', biome: 'A biome', status: 'hidden',
+    card: { thumb: '/shardfiles/island/blobs/image/a.jpg', portrait: '/shardfiles/island/blobs/image/a.jpg', landscape: 'data:image/png;base64,' },
+    shardfile: '/shardfiles/island/shard.json' };
+  const bytes = new TextEncoder().encode(JSON.stringify({ version: 1, slug: 'island', data: { ...data, load: 'no code travels', blurb: 'no prose either' }, rows: {}, native: {} }));
+  const row = titleRowOf(bytes);
+  expect(row).toEqual({ ...data, discovery: expect.stringMatching(/^\/shardfiles\/island\/discovery\.json\?v=[a-f0-9]{8}$/u) });
+  const homed = titleRowOf(bytes, 'https://packs.example');
+  expect(homed.card).toEqual({ thumb: `https://packs.example${data.card.thumb}`, portrait: `https://packs.example${data.card.thumb}`, landscape: data.card.landscape });
+  expect(homed.discovery?.startsWith('https://packs.example/shardfiles/island/discovery.json')).toBe(true);
+  const executable = { ...data, load: () => { throw new Error('Never load a world on the title'); } };
+  expect(titleMetadata(executable)).toEqual(data);
 });
 
 test('title placement data preserves the complete existing prefetch order in every mode', () => {

@@ -1,41 +1,38 @@
-import { SHARD_LOADERS } from '../out/.app/shardSelection.generated';
 import { TIER } from '@wildshard/engine/core/tier';
-import { readModuleGroups } from '@wildshard/engine/boot/download';
+import { readDiscovery } from '@wildshard/game/shard/discovery';
 import { installShards } from '@wildshard/game/shard/list';
+import { game } from '@wildshard/game/shard/registry';
 import { titleManifests,findTitleManifest,type TitleManifest } from '@wildshard/game/shard/titleList';
-import { retried } from '@wildshard/engine/boot/retry';
 import type { PageMode } from '@wildshard/game/grid/pageMode';
 import { selectedManifests, gridManifests, type SelectedManifests } from './selectedManifests';
 
-/** Compiler facts cover only the discovery graph this page actually loads. */
-function modules(selection?:string):void {
-  // Validate the complete compiler selection before its original imports.
-  readModuleGroups(['boot.common',selection===undefined?'discovery.all':`discovery:${selection}`]);
+/** C3: a title row's loader reads its product's discovery; a row with none (a catalogue shard from before J86) has no loader. */
+const hasDiscovery=(row:TitleManifest|undefined):row is TitleManifest=>row?.discovery!==undefined;
+const loaders=()=>Object.fromEntries(titleManifests().filter(hasDiscovery).map(row=>[row.slug,()=>readDiscovery(row)]));
+
+/** A grid may synchronously read every primary neighbour after consuming its intent, and desktop keeps every shard for its
+ * background prefetch. Frozen standalone copies remain available through their own loaders. */
+export function preparePageCatalogue():Promise<SelectedManifests>{
+  return gridManifests(titleManifests().filter(hasDiscovery),loaders());
 }
 
-async function completeCatalogue():Promise<void>{
-  modules();
-  await retried(()=>import('./shardList'));
+export async function completeCatalogue():Promise<void>{
+  installShards((await preparePageCatalogue()).manifests);
+  // the running shard resolves now, as it did when the registry built it at import: the level is configured early
+  void game.shard;
 }
 
-/** Phones prepare their original selected manifest, never every world's code.
+/** Phones prepare their original selected manifest, never every world's data.
  * Desktop background prefetch retains full discovery; frozen phone entries prepare
  * only their inventoried primary pair, preserving content and save namespaces. */
 export async function prepareSelectedShard():Promise<void>{
   const rows=titleManifests(),named=new URLSearchParams(location.search).get('chunk');
-  // C3: a catalogue shard with no discovery here enters on the first row's page; its product replaces it in admission.
-  const known=(row:TitleManifest|undefined):row is TitleManifest=>row!==undefined&&Object.hasOwn(SHARD_LOADERS,row.slug);
-  const row=named===null?undefined:findTitleManifest(named),selected=known(row)?row:rows.find(known);
-  if(selected===undefined)throw new Error('No shard manifests were generated');
+  // C3: a catalogue shard with no discovery enters on the first row's page; its product replaces it in admission.
+  const row=named===null?undefined:findTitleManifest(named),selected=hasDiscovery(row)?row:rows.find(hasDiscovery);
+  if(selected===undefined)throw new Error('No shard has a discovery document');
   if(TIER!=='phone'){await completeCatalogue();return;}
-  const prepared=await selectedManifests(selected,SHARD_LOADERS,modules);
+  const prepared=await selectedManifests(selected,loaders());
   installShards(prepared.manifests);
-}
-
-/** A grid may synchronously read every primary neighbour after consuming its
- * intent. Frozen standalone copies remain available through their own loaders. */
-export function preparePageCatalogue():Promise<SelectedManifests>{
-  return gridManifests(titleManifests().filter(row=>Object.hasOwn(SHARD_LOADERS,row.slug)),SHARD_LOADERS,modules);
 }
 
 /** Only the original publication barrier installs a prepared catalogue. */

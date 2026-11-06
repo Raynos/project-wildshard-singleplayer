@@ -15,10 +15,8 @@ PROOF = 'test-products-proof.json'
 PHASE = '.cache/generation-phase.json'
 DERIVED_BUDGET = 'budgets/ceiling-sources.json'
 GENERATED_ROOTS = ['src', 'public', 'out', 'docs/api', 'lint']
-# Fixed title inputs and explicitly catalogued discovery modules share generation proof.
-# No product or arbitrary out file does.
-APP_INPUTS = frozenset({'out/.app/titleCatalogue.generated.ts',
-                        'out/.app/shardSelection.generated.ts'})
+# Explicitly catalogued discovery modules share generation proof. No product or arbitrary out file does.
+APP_INPUTS = frozenset()
 EXCLUDED = {'.git', 'node_modules', '.cache', '__pycache__'}
 
 

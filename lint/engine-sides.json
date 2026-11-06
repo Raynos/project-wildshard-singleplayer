@@ -1324,7 +1324,6 @@
   "src/game/client/session/titlePreparation.ts": "client",
   "src/game/client/session/world.ts": "client",
   "src/game/shared/shard/api.ts": "shared",
-  "src/game/client/shard/art.generated.ts": "client",
   "src/game/server/shard/declaredEncounters.ts": "server",
   "src/game/client/shard/declaredEntry.ts": "client",
   "src/game/client/shard/discovery.ts": "client",

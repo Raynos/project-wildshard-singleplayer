@@ -56,14 +56,6 @@ export const SOURCE_GENERATORS = [
     generate: async root => ({ 'src/game/client/boot/audio.generated.ts': (await import(pathToFileURL(`${root}/scripts/app-build/gen.ts`).href)).audioTableSource(root) }),
   },
   {
-    id: 'manifest-art',
-    outputs: ['src/game/client/shard/art.generated.ts'],
-    inputs: [...MANIFEST_INPUTS, 'src/**/*.jpg', 'src/**/*.jpeg', 'src/**/*.png', 'src/**/*.webp', 'scripts/app-build/gen.ts'],
-    committed: true,
-    note: 'declared source images and their sizes come from the authored static closure, without discovery or products',
-    generate: async root => ({ 'src/game/client/shard/art.generated.ts': (await import(pathToFileURL(`${root}/scripts/app-build/gen.ts`).href)).artTableSource(root) }),
-  },
-  {
     id: 'boot-tables',
     outputs: ['src/game/client/boot/bytes.generated.ts', 'src/game/client/boot/versions.generated.ts'],
     inputs: ['scripts/boot-publication.generated.json', 'scripts/boot-publication.mjs'],

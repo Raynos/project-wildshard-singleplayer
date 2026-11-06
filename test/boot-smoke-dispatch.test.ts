@@ -1377,3 +1377,12 @@ test('v4 requires the exact dedicated Pine cache without widening Nalati or glob
     expect(()=>readySource('123',liveBuild,broken.state.query,readyNow)).toThrow('publisher topology');
   }
 });
+
+test('a deploy cooks the catalogue before it takes traffic, and only where the store is configured', () => {
+  const steps = deploy.split('\n      - name: ');
+  const at = steps.findIndex(step => step.startsWith('Cook the catalogue\'s heads for this build')), next = steps[at + 1] ?? '';
+  expect(next.startsWith('Deploy prebuilt output')).toBe(true);
+  expect(steps[at]).toContain("vars.WILDSHARD_API_URL != ''");
+  expect(steps[at]).toContain('cook-worker.mjs recook');
+  expect(steps[at]).toContain('cook-worker.mjs bake .vercel/output/static');
+});

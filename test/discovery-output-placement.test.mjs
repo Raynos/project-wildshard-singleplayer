@@ -9,7 +9,6 @@ import {expect,test} from 'vitest';
 import {authoredManifestSource,productManifestPath} from '../scripts/authored-manifest.mjs';
 import {relocateDiscoverySource,shardSource,manifestClosure} from '../scripts/gen-shards.mjs';
 import {outputManifest,shardProducts} from '../scripts/shard-outputs.mjs';
-import {selectionCatalogueSource} from '../scripts/title-catalogue.mjs';
 import {pushTables} from '../scripts/push-tables.mjs';
 
 const root=process.cwd(),policyPath='lint/generated-source-debt.json';
@@ -77,8 +76,6 @@ test('all four actual NU3 wrappers keep complete code, manifest rows and physica
    expect(closure[row.slug]).toContain(image.slice(1));
   }
   expect(closure[row.slug]).not.toContain(oldPath(row));
-  const loader=selectionCatalogueSource([{slug:row.slug,file}]);
-  expect(loader).toContain(`import("/${file}")`);
  }
 });
 

@@ -417,6 +417,22 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
 
+      # J29: a build takes no traffic with a live shard it couldn't cook. C3: what's cooked goes on this client with no rebuild.
+      # Off until the worker's store and catalogue are this repo's variables; a refused live head stops the deploy.
+      - name: Cook the catalogue's heads for this build
+        if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && vars.WILDSHARD_API_URL != '' && (steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true') }}
+        env:
+          WILDSHARD_API_URL: ${{ vars.WILDSHARD_API_URL }}
+          WILDSHARD_PACKS_ORIGIN: ${{ vars.WILDSHARD_PACKS_ORIGIN }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET_PACKS: ${{ vars.R2_BUCKET_PACKS }}
+          R2_PACKS_ACCESS_KEY_ID: ${{ secrets.R2_PACKS_ACCESS_KEY_ID }}
+          R2_PACKS_SECRET_ACCESS_KEY: ${{ secrets.R2_PACKS_SECRET_ACCESS_KEY }}
+        run: |
+          export WILDSHARD_BUILD="$(node -p "JSON.parse(require('node:fs').readFileSync('.vercel/output/static/version.json','utf8')).build")"
+          node --import ./scripts/bake-loader.mjs scripts/cook-worker.mjs recook
+          node --import ./scripts/bake-loader.mjs scripts/cook-worker.mjs bake .vercel/output/static "$WILDSHARD_PACKS_ORIGIN"
+
       - name: Deploy prebuilt output
         if: ${{ success() && !cancelled() && env.RELEASE_ALLOWED == 'true' && (steps.pin.outputs.skip != 'true' && steps.live.outputs.skip != 'true') }}
         env:

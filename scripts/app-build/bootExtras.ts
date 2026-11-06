@@ -6,8 +6,6 @@ import * as v from 'valibot';
 import { readOutputDownloadIndex } from '@wildshard/format/outputDownload';
 import { PickupCatalogueSchema } from '@wildshard/format/specimenCatalogue';
 
-interface Asset { readonly type: string; readonly originalFileNames?: readonly string[]; readonly source?: string | Uint8Array }
-type Bundle = Readonly<Record<string, Asset | undefined>>;
 type Files = readonly (readonly [string, number])[];
 const object = (value: unknown): Record<string, unknown> => {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) throw new Error('Missing boot source object');
@@ -59,7 +57,7 @@ export function sceneSourceUsesGltf(input: unknown): boolean {
 
 /** Shipped, data-only page inventory. The full bank is a per-home asset, never
  * all shards' file lists in the document. Original runtime admission is unchanged. */
-export function homeExtraFiles(root: string, directory: string, bundle: Bundle, inlineLimit = 4096): Files | null {
+export function homeExtraFiles(root: string, directory: string): Files | null {
   const product = resolve(root, 'out', directory), indexPath = resolve(product, 'shard.json');
   const index = readOutputDownloadIndex(JSON.parse(readFileSync(indexPath, 'utf8')));
   if (index.runtime !== null) return null;
@@ -74,9 +72,10 @@ export function homeExtraFiles(root: string, directory: string, bundle: Bundle, 
   if (host === undefined) return null;
   const quest = field(object(host), 'questHost');
   if (quest === undefined || quest === null || field(object(quest), 'page') === undefined) return null;
-  const manifestPath = resolve(root, 'src/shards', directory, 'manifest.json');
-  if (!existsSync(manifestPath)) return null;
-  const manifest = object(JSON.parse(readFileSync(manifestPath, 'utf8'))), urls: string[] = [];
+  // C3: the packed level manifest, so its images are named where the product serves them.
+  const level = section('ui/level');
+  if (level === undefined) return null;
+  const manifest = object(field(object(level), 'manifest')), urls: string[] = [];
   // Entry prepares these shared sources on every playable boot, before control.
   // Inline legacy geometry has no separate body; shared file URLs count once.
   const pickups = resolve(root, 'src/game/client/data/pickupCatalogue.json');
@@ -117,20 +116,10 @@ export function homeExtraFiles(root: string, directory: string, bundle: Bundle, 
   const files = new Map<string, number>();
   for (const input of urls) {
     if (input.startsWith('data:')) continue;
-    if (input.startsWith('/src/')) {
-      const original = resolve(root, input.slice(1));
-      const matches = Object.entries(bundle).filter(([, asset]) => asset?.type === 'asset'
-        && asset.originalFileNames?.some(name => resolve(root, name) === original));
-      if (matches.length === 0 && statSync(original).size < inlineLimit) continue;
-      if (matches.length !== 1) throw new Error(`Missing emitted boot art: ${input}`);
-      for (const [name, asset] of matches) {
-        if (asset?.source === undefined) throw new Error('Missing emitted boot art bytes');
-        files.set(`/${name}`, typeof asset.source === 'string' ? Buffer.byteLength(asset.source) : asset.source.byteLength);
-      }
-    } else {
-      if (!/^\/assets\/(?:[a-zA-Z0-9_.-]+\/)*[a-zA-Z0-9_.-]+$/u.test(input) || input.split('/').some(part => part === '.' || part === '..')) throw new Error('Unsafe boot source URL');
-      files.set(input, statSync(resolve(root, 'public', input.slice(1))).size);
-    }
+    // A shard's own images count in its product's download bank, like the names above.
+    if (input.startsWith(`/shardfiles/${directory}/`)) continue;
+    if (!/^\/assets\/(?:[a-zA-Z0-9_.-]+\/)*[a-zA-Z0-9_.-]+$/u.test(input) || input.split('/').some(part => part === '.' || part === '..')) throw new Error('Unsafe boot source URL');
+    files.set(input, statSync(resolve(root, 'public', input.slice(1))).size);
   }
   return [...files].sort(([left], [right]) => left.localeCompare(right));
 }

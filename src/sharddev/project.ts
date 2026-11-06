@@ -31,7 +31,8 @@ import { buildBehaviourProject } from './buildBehaviour';
 import { packProjectMap, generatedProjectMap, type ProjectMap } from './projectMap';
 import { projectPlaceholders } from './bake/placeholders';
 import type { ScriptAdmissionRows } from '@wildshard/format/scriptContract';
-import { readCookInput } from './cookInput';
+import { readCookInput, type CookInput } from './cookInput';
+import { discoveryDocument, discoveryUrl } from './discoveryDocument';
 import { outputScriptAdmissionRows, outputPlatformPayloads, clearOutputProduct, writeOutputProduct, type OutputProductOptions } from './outputProduct';
 import { prepareProjectOutput, mergeProjectBlobs, projectMirrors, type PreparedProjectOutput } from './projectOutput';
 import type { RuntimeMirror } from './runtimeMirrors';
@@ -263,7 +264,7 @@ export async function buildProject(project: string, output?: string, options: { 
   let descriptor: ReturnType<typeof writeOutputProduct>;
   try {
     const runtime = options.copyRuntime === true || clientPlan ? writeRuntimeFiles(project, destination) : undefined;
-    const cook = readCookInput(project, shard.identity.slug);
+    const cook = await withDiscovery(project, shard, loaded.output.discovery, readCookInput(project, shard.identity.slug), assets);
     descriptor = writeOutputProduct(shard, assets, destination, { ...loaded.output, ...(runtime === undefined ? {} : { runtime }), ...(cook === undefined ? {} : { cook }) });
     phase('product-write');
     if (runtime !== undefined) proveRuntimeData(destination, descriptor, loaded.mirrors);
@@ -279,6 +280,27 @@ export async function buildProject(project: string, output?: string, options: { 
     writeFileSync(resolve(destination, 'index.html'), html);
   }
   return shard;
+}
+/** C3: a level manifest's bindings go with the product, so a page needs nothing compiled to enter it. An author shard with no
+ *  level manifest has none: its product alone says what it is. */
+async function withDiscovery(project: string, shard: Pick<Shardfile, 'manifest'>, values: DiscoveryValues | undefined, input: CookInput | undefined, assets: ReadonlyMap<string, Uint8Array>): Promise<CookInput | undefined> {
+  if (shard.manifest === undefined) return input;
+  // A level manifest's slug is its product's folder (`packManifestImages`).
+  const folder = shard.manifest.slug, document = await discoveryDocument(folder, shard.manifest, values, async (module, name) => {
+    if (name === 'css') return readFileSync(resolve(project, module), 'utf8');
+    if (module.endsWith('.json')) return JSON.parse(readFileSync(resolve(project, module), 'utf8')) as unknown;
+    return (await authorModule(project, `${module.replace(/^\.\//u, '')}.ts`)).exports[name];
+  });
+  // A program's rows name their images where the author keeps them; the product already holds those bytes (`packManifestImages`).
+  const packed = JSON.stringify(document).replaceAll(/"\/(src\/shards\/[^"]+(\.[a-z]+))"/gu, (row: string, path: string, extension: string) => {
+    if (!/^\.(?:jpe?g|png|webp|svg|hdr)$/u.test(extension)) return row;
+    const hash = hashAssetBytes(readFileSync(resolve(project, '../../..', path)));
+    if (!assets.has(hash)) throw new Error(`${folder}: discovery names an image its product doesn't hold: ${path}`);
+    return `"/shardfiles/${folder}/blobs/image/${hash}${extension}"`;
+  });
+  const art = Object.fromEntries([...packed.matchAll(/"(\/shardfiles\/[^/"]+\/blobs\/image\/([a-f0-9]{64})\.[a-z0-9]+)"/gu)]
+    .flatMap(([, url, hash]) => { const bytes = hash === undefined ? undefined : assets.get(hash); return url === undefined || bytes === undefined ? [] : [[url, bytes.length]]; }));
+  return {...input, mounts: [...input?.mounts ?? [], {url: discoveryUrl(folder), bytes: new TextEncoder().encode(`${packed.slice(0, -1)},"art":${JSON.stringify(art)}}`)}]};
 }
 /** Create the runtime-free source layout without replacing existing work. */
 export function newProject(project: string, slug: string): void { writeNewProject(project, slug); }

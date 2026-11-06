@@ -2,6 +2,7 @@
 // C4 (J28, J29, J30): the cook worker.
 //   node --import ./scripts/bake-loader.mjs scripts/cook-worker.mjs serve     notify endpoint; lists the catalogue at boot
 //   node --import ./scripts/bake-loader.mjs scripts/cook-worker.mjs recook    every live and preview head, then exit; a deploy's step
+//   node --import ./scripts/bake-loader.mjs scripts/cook-worker.mjs bake <dist> <origin>   the live heads this build cooked, onto its built client
 //   node --import ./scripts/bake-loader.mjs scripts/cook-worker.mjs gc <build>...   keep those builds, delete the rest, print usage
 //   node --import ./scripts/bake-loader.mjs scripts/cook-worker.mjs report    print usage against the budget (J89)
 // Environment: WILDSHARD_API_URL, WILDSHARD_BUILD; R2_ACCOUNT_ID, R2_BUCKET_PACKS, R2_PACKS_ACCESS_KEY_ID,
@@ -13,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 
 const { apiSource, collectGarbage, createCookWorker, DEFAULT_LIMITS, notifyServer, PACK_BUDGET_BYTES, storeUsage } = await import('../src/game/cook/cookWorker.ts');
 const { MAX_SHARDFILE_BYTES } = await import('../src/game/cook/cookJob.ts');
+const { addStoredShards } = await import('./app-build/catalogue.ts');
 const { folderStore, r2Store } = await import('../src/game/cook/packStore.ts');
 
 const env = process.env;
@@ -43,10 +45,15 @@ if (command === 'serve') {
   console.log(JSON.stringify(rows));
   // J29: a build takes no traffic with a live shard it couldn't cook. A refused head is already live, so it stops a deploy too.
   process.exit(rows.every(row => row.state === 'cooked' || row.state === 'present') ? 0 : 1);
+} else if (command === 'bake') {
+  // A deploy's step after `recook`: a page reads each head's packs from the store (J138), with no client rebuild.
+  const [dist, origin] = rest, source = apiSource(need('WILDSHARD_API_URL'), fetch, maxBytes);
+  if (dist === undefined || origin === undefined) throw new Error('usage: cook-worker bake <dist> <origin>');
+  console.log(JSON.stringify(await addStoredShards(resolve(dist), await source.heads('live'), store, source.download, { base: origin, shards: [] })));
 } else if (command === 'gc') {
   console.log(JSON.stringify(await collectGarbage(store, rest, Number(env.COOK_BUDGET_BYTES ?? PACK_BUDGET_BYTES), Date.now())));
 } else if (command === 'report') {
   console.log(JSON.stringify(await storeUsage(store, Number(env.COOK_BUDGET_BYTES ?? PACK_BUDGET_BYTES))));
 } else {
-  throw new Error('usage: cook-worker serve | recook | gc <build>... | report');
+  throw new Error('usage: cook-worker serve | recook | bake <dist> <origin> | gc <build>... | report');
 }

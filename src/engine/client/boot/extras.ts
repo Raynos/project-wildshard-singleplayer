@@ -7,7 +7,7 @@
  *                           complete inventory for background prefetch when no profile is supplied, + every card's thumbnail and hero
  *                           stills (active phones use the viewport orientation; background/desktop keep both) and, on a shard
  *                           with the Explore viewer, its panel art. Bundled files with hashed URLs, sized from
- *                           src/game/client/shard/art.generated.ts (Vite copies them byte for byte).
+ *                           each shard's discovery document (`shardArt`).
  *  - `extraFetches(files)`  the art and the audio for the prefetch queue (after the shard's own files), in the order they
  *                           are needed: the art, then the selected style + set, then every other style and set.
  *  - `startMenuPreload()`   title art fetched during the bar. On phones only the selected card is decoded and kept in

@@ -53,8 +53,6 @@
       "src/shards/open-plots/discovery.open-plot-starfall-observatory.generated.ts",
       "src/shards/open-plots/discovery.open-plot-thin-ice.generated.ts",
       "src/shards/nalati-grasslands/discovery.generated.ts",
-      "out/.app/titleCatalogue.generated.ts",
-      "out/.app/shardSelection.generated.ts",
       "out/.app/discovery.open-plots.open-plot-fossil-badlands.generated.ts",
       "out/.app/discovery.open-plots.open-plot-patchwork-fairground.generated.ts",
       "out/.app/discovery.open-plots.open-plot-saltwind-lighthouse.generated.ts",

@@ -22,7 +22,6 @@ import {BrotliSizeCache} from './brotliSizeCache.mjs';
 const size = v.pipe(v.number(), v.safeInteger(), v.minValue(0));
 const files = v.array(v.tuple([v.string(), size]));
 const schema = v.object({common: files, client: files, grid: files,
-  selection: v.record(v.string(), files),
   optional: v.object({files, groups: v.record(v.string(), v.array(size))}),
   products: v.record(v.string(), v.union([v.strictTuple([size, size, size, size]), v.strictTuple([size, size])])),
   extras: v.record(v.string(), v.tuple([v.string(), size, size, v.string()])),
@@ -146,6 +145,14 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
   const clientAt: Record<string, {phone: number; desktop: number}> = {}, gridAt: Record<string, Record<string, {phone: number; desktop: number}>> = {};
   const packsClientAt: typeof clientAt = {}, packsGridAt: typeof gridAt = {};
   const encoder = createPartEncoder(), cooked = new Map<string, CookedMember>(), serverPacks: Record<string, ServerPack> = {};
+  // C3: a grid page reads every primary neighbour's discovery document before it enters.
+  const discoveries = Object.keys(bank.products).flatMap(prefix => {
+    const directory = prefix.split('/')[2] ?? '', url = `/shardfiles/${directory}/discovery.json`, file = join(root, 'out', directory, 'mounts', url);
+    if (!existsSync(file)) return [];
+    const bytes = readFileSync(file), hash = createHash('sha256').update(bytes).digest('hex'), row = {url: `${url}?v=${hash.slice(0, 8)}`, bytes: bytes.length, hash, wireBytes: wireBytes(url, bytes, hash)};
+    sources.set(row.url, () => bytes);
+    return [row];
+  });
   for (const prefix of Object.keys(bank.products)) {
     const directory = prefix.split('/')[2]; if (directory === undefined || !/^[a-z0-9_-]+$/u.test(directory)) throw new Error('Invalid spawn shard');
     const product = join(root, 'out', directory), index = parseOutputIndex(JSON.parse(readFileSync(join(product, 'shard.json'), 'utf8')));
@@ -167,7 +174,8 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
       const reads = readFenceReads(JSON.parse(readFileSync(fencePath, 'utf8')));
       const resolved = resolveFenceReads({version: 1, files: reads.files.filter(row => !row.startsWith('asset'))}, index.files, sections);
       // `/assets` entries, and a section reference that names an /assets file rather than a product file.
-      const shell = [...reads.files.filter(row => row.startsWith('asset')), ...resolved.unresolved.filter(row => row.startsWith('ref:'))];
+      // A shard's own images are its product's now (`shardHalf`'s card rows): a record from before C3 still names their sources.
+      const shell = [...reads.files.filter(row => row.startsWith('asset') && !row.startsWith('asset-source:src/shards/')), ...resolved.unresolved.filter(row => row.startsWith('ref:'))];
       // `/assets` reads (Pine's asset packs, gpu models, sfx, music): this build's emitted files and pack tables.
       const urls = publicAssets(), members = [...packParts().values()].flatMap(part => part.members);
       // Section references, then the boot tables' audio slots (Pine's colliding sfx revisions).
@@ -192,8 +200,7 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
       for (const url of fenceAssets) add(asset(url));
       for (const row of common) add(row);
       for (const [url, bytes] of [...bank.common, ...bank[flow]]) add(asset(url, bytes));
-      const selections = flow === 'grid' ? Object.values(bank.selection) : [bank.selection[directory] ?? []];
-      for (const rows of selections) for (const [url, bytes] of rows) add(asset(url, bytes));
+      if (flow === 'grid') for (const row of discoveries) add(row);
       for (const member of bank.optional.groups[`home:${prefix}`] ?? []) {
         const row = bank.optional.files[member]; if (row === undefined) throw new Error('Invalid spawn module index'); add(asset(row[0], row[1]));
       }

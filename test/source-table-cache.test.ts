@@ -107,7 +107,7 @@ test('binds boot packs, transport bytes and the installed binary copies', async 
     'node_modules/three/examples/jsm/libs/basis/basis_transcoder.js',
     'node_modules/three/examples/jsm/libs/basis/basis_transcoder.wasm']) f.put(file, 'installed bytes');
   const files = ['src/game/client/boot/bytes.generated.ts', 'src/game/client/boot/versions.generated.ts',
-    'src/game/client/boot/audio.generated.ts', 'src/game/client/boot/packs.generated.ts', 'src/game/client/shard/art.generated.ts',
+    'src/game/client/boot/audio.generated.ts', 'src/game/client/boot/packs.generated.ts',
     'public/assets/physics/rapier.wasm', 'public/assets/packs/shard.hash.bin', 'public/basis/r186/basis_transcoder.wasm',
     'scripts/boot-publication.generated.json'];
   for (const folder of ['src/game/client/boot', 'src/game/client/shard']) mkdirSync(resolve(f.root, folder), { recursive: true });

@@ -1,5 +1,4 @@
 // E357 F9: folder discovery is the sole authored shard list.
-import { execFileSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, resolve, relative } from 'node:path';
@@ -290,40 +289,9 @@ function writeTables(root, outputs, check, initializeMissing) {
   }
 }
 
-/** Full standalone generation retains title publication and strict checking. */
+/** Full standalone generation and strict checking. */
 export function genShards(root = resolve(import.meta.dirname, '..'), check = false, initializeMissing = false, shard = '') {
   genShardInputs(root, check, initializeMissing, shard);
-  // The title reads the same completed shard list, once after boot generation.
-  writeTables(root, titleTables(root), check, initializeMissing);
-}
-
-/**
- * D25 (G799: no virtual module, no Vite plugin): the title's catalogue and the selected discovery loaders, as two
- * build-written, typed modules beside the products (out/.app/titleCatalogue.generated.ts,
- * out/.app/shardSelection.generated.ts). They are not committed: their rows come from every product's
- * discovery module (open-plot outputs composed per output, legacy rows, derived entries), which this script writes from
- * the built products, so a committed copy would follow local product state rather than the commit. Generated products
- * leave src (GR0), so they live under out/ (a dot folder, which no product scan reads); the app's imports of them
- * still count as generated imports.
- */
-export function titleTables(root) {
-  const output = execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', 'scripts/title-catalogue.mjs'],
-    { cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
-  const read = (prefix) => {
-    const row = output.split('\n').reverse().find(line => line.startsWith(prefix));
-    if (row === undefined) throw new Error(`gen-shards: the title catalogue printed no ${prefix.trim()}`);
-    const value = JSON.parse(row.slice(prefix.length));
-    if (typeof value !== 'string') throw new Error(`gen-shards: invalid ${prefix.trim()}`);
-    return value;
-  };
-  // typed modules beside the products (relative specifiers into src, so the app's type check resolves them)
-  const swap = (text, from, to) => { if (!text.includes(from)) throw new Error(`gen-shards: the title tables lost ${from}`); return text.replaceAll(from, to); };
-  const catalogue = swap(swap(read('TITLE-CATALOGUE '), ' from "/src/', ' from "../../src/'), 'export const TITLE_MANIFESTS=[', 'export const TITLE_MANIFESTS: readonly TitleManifest[] = [');
-  const selectionInput = read('TITLE-SELECTION ').replaceAll('import("/out/.app/', 'import("./').replaceAll('import("/src/', 'import("../../src/').replaceAll('.ts")', '")');
-  const selection = swap(selectionInput,
-    'export const SHARD_LOADERS=', 'export const SHARD_LOADERS: Readonly<Record<string, () => Promise<ShardManifest>>> = ');
-  return { 'out/.app/titleCatalogue.generated.ts': `import type { TitleManifest } from '../../src/game/client/shard/titleList';\n${catalogue}`,
-    'out/.app/shardSelection.generated.ts': `import type { ShardManifest } from '../../src/game/client/shard/manifest';\n${selection}` };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {

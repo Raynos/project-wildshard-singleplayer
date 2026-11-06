@@ -276,7 +276,7 @@ def check_staged_imports(blobs, files, staged_paths, imports):
                 'src/game/server/shard/manifest-closure.generated.json',
                 'lint/shard-words.generated.json', 'src/game/client/boot/bytes.generated.ts',
                 'src/game/client/boot/versions.generated.ts', 'src/game/client/boot/audio.generated.ts',
-                'src/game/client/boot/packs.generated.ts', 'src/game/client/shard/art.generated.ts',
+                'src/game/client/boot/packs.generated.ts',
                 'src/game/client/systems/viewmodel/clips.generated.ts', 'src/game/shared/weapons/starter.generated.ts',
                 'src/game/server/bag/starter.generated.ts', 'src/game/client/systems/effects/starter.generated.ts'])
             for name in staged_paths:

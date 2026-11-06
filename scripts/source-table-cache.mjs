@@ -12,7 +12,7 @@ const digest = value => createHash('sha256').update(JSON.stringify(value)).diges
 const shardFiles = new Set(['src/shards.generated.ts',
   'src/game/server/shard/manifest-closure.generated.json', 'lint/shard-words.generated.json']);
 const bootFiles = new Set(['src/game/client/boot/bytes.generated.ts', 'src/game/client/boot/versions.generated.ts',
-  'src/game/client/boot/audio.generated.ts', 'src/game/client/boot/packs.generated.ts', 'src/game/client/shard/art.generated.ts',
+  'src/game/client/boot/audio.generated.ts', 'src/game/client/boot/packs.generated.ts',
   'public/assets/physics/rapier.wasm', 'scripts/boot-publication.generated.json']);
 /** @param {TailStep} step @param {string} file */
 function owns(step, file) {
