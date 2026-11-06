@@ -184,6 +184,44 @@ test('each player takes the portal down alone, by the row\'s own program', () =>
   } finally { host.dispose(); }
 });
 
+test('a portal holds its fade, walks a player in, and puts them back at the door facing out', () => {
+  const host = createSimHost(LEVEL, { rapier }), lead = [...host.players.values()][0], entrance = { x: 14, y: 0, z: 14, facing: 0 };
+  if (lead === undefined) throw new Error('No lead');
+  lead.position.set(entrance.x, 0, entrance.z + 1.5); lead.motor.resetAt(lead.position);
+  const fight = roomHost(host, { rows: king.portal, program: ReturnProgram.native(host, programs.rules), entrance }), { hold } = king.portal.fade, dt = 1 / 60;
+  const at = (): number[] => [lead.position.x, lead.position.z];
+  const stand = (): void => { lead.position.set(entrance.x, 0, entrance.z + 1.5); lead.motor.resetAt(lead.position); };
+  try {
+    let frames = 0, stood = at();
+    for (; frames < 240 && !fight.inside(lead.id); frames++) { stood = at(); stand(); tick(host); }
+    expect(fight.inside(lead.id)).toBe(true);
+    expect(frames * dt, 'a door decides at 10 Hz and holds its fade first').toBeGreaterThanOrEqual(hold);
+    expect(stood[0], 'nobody moves through a fade').toBeCloseTo(entrance.x, 3);
+    expect(lead.position.x).toBeCloseTo(king.portal.spawn.x, 3); expect(lead.position.z).toBeCloseTo(king.portal.spawn.z, 3); expect(lead.yaw).toBe(king.portal.spawn.yaw);
+    const past = king.portal.end + 0.4;
+    for (let i = 0; i < 240 && fight.inside(lead.id); i++) { lead.position.set(0, 0, past); lead.motor.resetAt(lead.position); tick(host); }
+    expect(fight.inside(lead.id), 'past the corridor\'s end a player is out').toBe(false);
+    expect(lead.moveScale).toBe(1);
+    tick(host, 30);
+    expect(lead.position.x).toBeCloseTo(entrance.x - Math.sin(entrance.facing) * king.portal.exitOffset, 0);
+    expect(lead.position.z).toBeCloseTo(entrance.z - Math.cos(entrance.facing) * king.portal.exitOffset, 0);
+  } finally { host.dispose(); }
+});
+
+test('a body under the room\'s floor comes back up while it stands inside, and nowhere else', () => {
+  const host = createSimHost(LEVEL, { rapier }), lead = [...host.players.values()][0], entrance = { x: 14, y: 0, z: 14, facing: 0 };
+  if (lead === undefined) throw new Error('No lead');
+  lead.position.set(entrance.x, 0, entrance.z + 1.5); lead.motor.resetAt(lead.position);
+  const fight = roomHost(host, { rows: king.portal, program: ReturnProgram.native(host, programs.rules), entrance });
+  const sink = (depth: number): void => { lead.position.y = -depth; lead.motor.resetAt(lead.position); tick(host); };
+  try {
+    until(host, () => fight.inside(lead.id), 240);
+    tick(host, 10);
+    sink(1); expect(lead.position.y, 'a metre under: back on the floor').toBeGreaterThanOrEqual(-king.portal.floor.tolerance);
+    sink(king.portal.floor.depth + 2); expect(lead.position.y, 'past the row\'s depth it is a fall, not a slip').toBeLessThan(-king.portal.floor.depth);
+  } finally { host.dispose(); }
+});
+
 test('one player fights the row exactly: no share, no scale, the door shuts and the death is the brain\'s', () => {
   const host = createSimHost(LEVEL, { rapier }), lead = [...host.players.values()][0];
   if (lead === undefined) throw new Error('No lead');

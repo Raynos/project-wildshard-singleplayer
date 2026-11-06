@@ -37,7 +37,7 @@ export interface ArenaRoomNativeRows {
 }
 /** The portal's rows and the admitted program that decides it. */
 export interface ArenaRoomDoorRows {
-  readonly rows: Pick<ArenaRoomPortalRows, 'signal' | 'end' | 'spawn' | 'exitOffset' | 'slow'> & { readonly fade: Pick<ArenaRoomPortalRows['fade'], 'hold'> };
+  readonly rows: Pick<ArenaRoomPortalRows, 'signal' | 'end' | 'spawn' | 'exitOffset' | 'slow' | 'floor'> & { readonly fade: Pick<ArenaRoomPortalRows['fade'], 'hold'> };
   readonly program: ConstructorParameters<typeof ArenaPortalLaw>[0];
   readonly entrance: ArenaPortalEntrance;
 }
@@ -117,6 +117,10 @@ export function installArenaRoom<A extends ArenaRoomBody>(host: SimHost, rows: A
       if (step.exit !== 0) { law.inside = false; player.moveScale = 1; return; }
       player.moveScale = step.slow ? door.rows.slow : 1;
     }
+    if (!law.inside || step.kind === 'fading') return;
+    // The page's floor law (J112): a body a little under the floor stands back on it. Past the row's depth it's a fall, and the fall's owner has it.
+    const floor = ground.floorAt(p.x, p.z), { tolerance, depth } = door.rows.floor;
+    if (floor !== undefined && p.y < floor - tolerance && p.y > floor - depth) { p.y = floor; player.motor.resetAt(p); }
   };
   host.onStep(`${rows.step}.brain`, dt => {
     if (portal !== undefined) for (const player of host.players.values()) through(player, portal, dt);
