@@ -37,7 +37,11 @@ import type { Physics } from '../../shared/physics/Physics';
 /** A step's controls, as a wire command before it has a `seq` (P1-E5.3-C6). */
 export type PlayerWireInput = Pick<NetCommand, 'steer' | 'yaw' | 'pitch' | 'buttons'>;
 /** Where a controls step goes when a server owns this body: `client/net/netPlayer.ts`. False: the step did not run. */
-export interface PlayerLink { readonly step: (input: PlayerWireInput) => boolean }
+export interface PlayerLink {
+  readonly step: (input: PlayerWireInput) => boolean;
+  /** A harness moved this player: tell the server, whose word it is. */
+  readonly place?: (x: number, y: number, z: number, yaw: number) => void;
+}
 
 export interface PlayerFrameQueries {
   heightAt: (x: number, z: number) => number;

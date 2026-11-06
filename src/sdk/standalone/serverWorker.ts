@@ -12,13 +12,13 @@ const rapierOf = (held: HeldRead | undefined): Promise<Rapier> => {
 };
 
 // P1-E5.2 (J49): the module worker every standalone target boots. There is no main-thread path to this code. The page
-// hands over the control port, the game port and, on a page with a download, the port for what it holds, once; everything
-// after that goes through them.
+// hands over the control port, the game port, the harness's and, on a page with a download, the port for what it holds, once;
+// everything after that goes through them.
 self.onmessage = (event: MessageEvent<unknown>): void => {
   self.onmessage = null;
-  const [control, game, reads] = event.ports;
+  const [control, game, harness, reads] = event.ports;
   if (control === undefined || game === undefined) return;
   const held = reads === undefined ? undefined : askHeldReads(reads);
-  runStandaloneServer({ control, game, load: async (boot, slug) => fetchServerProduct(new URL(`../${slug}/`, new URL(boot.base, globalThis.location.href)).href, await rapierOf(held), held),
+  runStandaloneServer({ control, game, ...harness === undefined ? {} : { harness }, load: async (boot, slug) => fetchServerProduct(new URL(`../${slug}/`, new URL(boot.base, globalThis.location.href)).href, await rapierOf(held), held),
     onSaveRefused: error => { console.warn('Standalone save refused, falling back', error); } });
 };

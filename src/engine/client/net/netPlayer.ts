@@ -57,6 +57,8 @@ export class NetPlayer implements PlayerLink {
   };
   /** The body a lock holds, by the server's name for it (J116). */
   lockTarget: () => string | undefined = () => undefined;
+  /** Where a harness's move goes: the shell's, on a worker page. */
+  place: (x: number, y: number, z: number, yaw: number) => void = () => undefined;
   /** Whether this page stands in the world a frame came from. A crossing's frames wait behind this until the page has made it. */
   inCell: (cell: number) => boolean = () => true;
   /** A hook tool's presses: the next command carries them (J116, `hookTarget`). */

@@ -411,10 +411,12 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
     const floor = floorBelow(world.physics, p.position.x, p.position.z, top, 2.6);
     if (floor !== undefined) p.spawn(p.position.x, p.position.z, p.yaw, Math.max(p.position.y, floor));
   };
+  /** On a worker page the server owns the position: it hears where the harness put the player. */
+  const told = (): void => { const pl = world.player; pl.link?.place?.(pl.position.x, pl.position.y, pl.position.z, pl.yaw); };
   const pose = async (p: ProbePose): Promise<void> => {
     requireHarness(); const pl = world.player, spawn = world.game.level.spawn;
     pl.spawn(p.x ?? spawn.x, p.z ?? spawn.z, p.yaw ?? spawn.yaw, p.y);
-    land(); pl.pitch = p.pitch ?? 0; pl.velocity.set(0, 0, 0); game.app.input.clear();
+    land(); told(); pl.pitch = p.pitch ?? 0; pl.velocity.set(0, 0, 0); game.app.input.clear();
     await new Promise<void>((resolve) => { app.engineScope.raf(() => { resolve(); }); });
   };
   const handles: EngineProbe['shard'] = { slug: world.game.level.id };
@@ -475,7 +477,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
             if (d < 0.8) { wi++; lastProg = { t, d: Infinity }; game.app.input.setHeld('jump', false); jumpT = 0; jump2 = false; }
             else if (d < lastProg.d - 0.3) lastProg = { t, d };
             else if (box && t - lastProg.t > 1.2) { wi++; lastProg = { t, d: Infinity }; game.app.input.setHeld('jump', false); jumpT = 0; jump2 = false; }
-            else if (t - lastProg.t > (leg.stuckSeconds ?? 2)) { stuck.push({ wp: wi, ...point(q) }); p.spawn(wp.x, wp.z, p.yaw); land(); wi++; lastProg = { t, d: Infinity }; }
+            else if (t - lastProg.t > (leg.stuckSeconds ?? 2)) { stuck.push({ wp: wi, ...point(q) }); p.spawn(wp.x, wp.z, p.yaw); land(); told(); wi++; lastProg = { t, d: Infinity }; }
             p.yaw = Math.atan2(-dx, -dz); game.app.input.setHeld('move.forward', true);
             const jumps = wp.jump === true ? 1 : typeof wp.jump === 'number' ? wp.jump : 0;
             if (jumps > 0 && d < (wp.jumpAt ?? 1.6) && jumpT === 0) { game.app.input.setHeld('jump', true); jumpT = 1; }

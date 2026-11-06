@@ -10,6 +10,7 @@ import { saveDocuments } from '@wildshard/engine/saves/indexed';
 import type { SaveStorage } from '@wildshard/engine/saves/store';
 import { ServerMessageSchema, ShellMessageSchema, type ProbedRow, type ServerMessage, type ShellMessage } from '@wildshard/format/standaloneControl';
 import { answerHeldReads, type HeldRead } from './heldReads';
+import type { HarnessPlace } from './harnessPlace';
 import { WorkerLoopback } from './workerLoopback';
 
 /** What the server should run and where the page keeps saves. */
@@ -47,6 +48,8 @@ export interface StandaloneShell {
   save: () => Promise<{ readonly tick: number; readonly ok: boolean }>;
   /** The server's exact creature state at its next frame tick. */
   probe: () => Promise<{ readonly tick: number; readonly tickMs: number; readonly rows: readonly ProbedRow[] }>;
+  /** A harness's move of this player: the server's word, so the client snaps with it. */
+  place: (x: number, y: number, z: number, yaw: number) => void;
   dispose: () => void;
 }
 
@@ -55,7 +58,7 @@ function applyWrite(storage: SaveStorage, key: string, value: string | null): bo
 }
 
 /** Run the page half over the two ports. `startStandalone` is this over a real worker; a Node test passes a MessageChannel. */
-export function connectStandalone(config: StandaloneConfig, control: MessagePort, game: MessagePort, end: () => void): StandaloneShell {
+export function connectStandalone(config: StandaloneConfig, control: MessagePort, game: MessagePort, end: () => void, harness?: MessagePort): StandaloneShell {
   const transport = new WorkerLoopback(game), client = new NetClient(transport);
   transport.onClose(reason => { if (reason === 'reload') config.refused?.(); });
   const post = (message: ShellMessage): void => { control.postMessage(v.parse(ShellMessageSchema, message), []); };
@@ -86,17 +89,18 @@ export function connectStandalone(config: StandaloneConfig, control: MessagePort
     ready: () => { post({ kind: 'ready' }); }, pause: () => { post({ kind: 'pause' }); }, resume: () => { post({ kind: 'resume' }); },
     save: () => request(id => ({ kind: 'save', id }), message => message.kind === 'saved' ? { tick: message.tick, ok: message.ok } : null),
     probe: () => request(id => ({ kind: 'probe', id }), message => message.kind === 'probed' ? { tick: message.tick, tickMs: message.tickMs, rows: message.rows } : null),
+    place: (x, y, z, yaw) => { harness?.postMessage({ x, y, z, yaw } satisfies HarnessPlace, []); },
     dispose: () => { scope.dispose(); client.dispose(); transport.close('disposed'); control.close(); end(); } };
 }
 
 /** Start the standalone target: the server always in a module worker, with no main-thread fallback (J49). */
 export function startStandalone(config: StandaloneConfig): StandaloneShell {
   const worker = new Worker(new URL('serverWorker.ts', import.meta.url), { type: 'module' });
-  const control = new MessageChannel(), game = new MessageChannel(), reads = config.held === undefined ? undefined : new MessageChannel();
-  worker.postMessage(null, [control.port2, game.port2, ...reads === undefined ? [] : [reads.port2]]);
+  const control = new MessageChannel(), game = new MessageChannel(), harness = new MessageChannel(), reads = config.held === undefined ? undefined : new MessageChannel();
+  worker.postMessage(null, [control.port2, game.port2, harness.port2, ...reads === undefined ? [] : [reads.port2]]);
   if (reads !== undefined && config.held !== undefined) answerHeldReads(reads.port1, config.held);
   // The worker sits beside this module, so an emitted module's `/b/<build>/` folder is the server's real build (J57).
   const served = /^\/b\/([\w.-]+)\//u.exec(new URL(import.meta.url).pathname)?.[1];
   const refused = (): void => { void import('@wildshard/engine/boot/browserChunkRecovery').then(recovery => recovery.reloadRefusedBuild()); };
-  return connectStandalone({ refused, ...served === undefined ? {} : { serverBuild: served }, ...config }, control.port1, game.port1, () => { reads?.port1.close(); worker.terminate(); });
+  return connectStandalone({ refused, ...served === undefined ? {} : { serverBuild: served }, ...config }, control.port1, game.port1, () => { reads?.port1.close(); harness.port1.close(); worker.terminate(); }, harness.port1);
 }
