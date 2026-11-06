@@ -29,7 +29,7 @@ test.each([false, true])('boot stays main and only live decoding uses bounded pa
     fetch: (url: string, init: RequestInit) => { native.push({ url, init }); return Promise.resolve(new Response(wire)); },
     currentSpawnDownload: () => undefined,
     browserLiveJsonParser: () => { calls.push('parser'); return parser; },
-    TIER_CONFIG: {}, TIER: 'phone', builtIndexes: null, ktx2TranscodeSupport: () => ({}),
+    TIER_CONFIG: {}, TIER: 'phone', splatDrawTier: () => 'phone', builtIndexes: null, ktx2TranscodeSupport: () => ({}),
     pauseDescriptor: () => pause, browserProductCache: (_storage: unknown, options: unknown) => { cachePreparation = options; return {}; },
   });
   if (typeof method !== 'function') throw new Error('Product options factory is not callable');
