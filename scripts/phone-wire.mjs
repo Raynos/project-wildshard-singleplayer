@@ -8,7 +8,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { homedir } from 'node:os';
-import { BrotliSizeCache } from './brotli-size-cache.mjs';
+import { BrotliSizeCache } from '../src/game/cook/brotliSizeCache.mjs';
 
 await import('./bake-loader.mjs');
 const { loadHeadlessProduct } = await import('../src/sdk/headlessProduct.ts');

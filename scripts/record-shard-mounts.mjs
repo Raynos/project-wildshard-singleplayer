@@ -91,6 +91,8 @@ for (const folder of folders) {
   const outputs = {};
   for (const { slug } of products.filter(row => row.folder === folder)) {
     const owned = [...reads.get(slug)].filter(url => users.get(url).size === 1).sort((left, right) => left.localeCompare(right));
+    // A shard's recorded programs: its page reads them by name, so the tarball carries them (D5).
+    if (existsSync(join(publicRoot, 'programs', `${slug}.json`))) owned.push(`/programs/${slug}.json`);
     if (owned.length > 0) outputs[slug] = owned;
     const bytes = owned.reduce((sum, url) => sum + statSync(join(publicRoot, url.slice(1))).size, 0);
     console.log(`${slug}: ${owned.length} mounts, ${(bytes / 1e6).toFixed(1)} MB`);

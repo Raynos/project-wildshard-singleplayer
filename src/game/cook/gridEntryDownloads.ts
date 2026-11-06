@@ -1,8 +1,11 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {existsSync, readFileSync} from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {basename, join} from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {createHash} from 'node:crypto';
 import * as v from 'valibot';
-import {parseCompiledGridDirectory, type CompiledGridAddress} from '../../src/game/shared/grid/compiledStrips';
+import {parseCompiledGridDirectory, type CompiledGridAddress} from '../shared/grid/compiledStrips';
 
 /** Exact original initial-page addresses, selected by the same three grid
  * catalogue switches. No mesh is rebuilt, widened or re-encoded here. */

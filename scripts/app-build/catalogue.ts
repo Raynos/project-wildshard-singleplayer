@@ -4,7 +4,7 @@ import {join} from 'node:path';
 import * as v from 'valibot';
 import {packsBookPath, readSpawnManifest} from '@wildshard/format/spawnManifest';
 import {StandaloneCatalogueSchema, type StandaloneCatalogue} from '@wildshard/format/standaloneCatalogue';
-import {productTarball} from './productTarball';
+import {productTarball} from '../../src/game/cook/productTarball';
 
 /** C3 (J61, D7): every build bakes `catalogue.json`, so a build needs no server, and inlines it in `index.html`, so the
  * first paint waits on no new fetch. `WILDSHARD_CATALOGUE` names a file a deploy took from `api-server`'s

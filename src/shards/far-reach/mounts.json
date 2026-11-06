@@ -65,7 +65,8 @@
    "/assets/gpu/far-reach/models/trees/tree-pine-tall-137f635a.glb",
    "/assets/gpu/far-reach/models/trees/tree-pine-wide-36ae0de0.glb",
    "/assets/gpu/far-reach/models/trees/tree-pine-young-af30d3a7.glb",
-   "/assets/lut/far-reach.bin"
+   "/assets/lut/far-reach.bin",
+   "/programs/far-reach.json"
   ]
  }
 }

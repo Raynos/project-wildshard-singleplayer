@@ -81,7 +81,7 @@ import type { RoadLookState } from './roadLook';
 import { combinePlatformRoads, installPlatformRoad, installPlatformRoadSliced, type PlatformRoad } from './roadLookPlatform';
 import { collisionStrips, type CollisionStrip } from '../../shared/grid/collisionStrips';
 import { installSoftWallLook, type SoftWallState } from './softWallLook';
-import type { SeamLookState } from './seamLook';
+import type { SeamLookState } from '../../shared/grid/seamGeometry';
 import { roadResident, roadViewCost, type CullPlan, type RoadResident, type RoadViewCost } from './roadCull';
 import { loadGridEdgeProfiles } from '../../shared/grid/edgeProfiles';
 import { readGridEdges } from './edgeSources';

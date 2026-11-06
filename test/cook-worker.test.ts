@@ -10,7 +10,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {readTar, writeTar} from '@wildshard/format/tar';
-import {productTarball} from '../scripts/app-build/productTarball';
+import {productTarball} from '../src/game/cook/productTarball';
 import {collectGarbage, createCookWorker, indexKey, notifyServer, objectHeaders, readCapped, runJob, storeUsage, type CookIndex, type JobLauncher, type ShardfileSource} from '../src/game/cook/cookWorker';
 import {folderStore, r2Store, type PackStore} from '../src/game/cook/packStore';
 

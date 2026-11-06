@@ -12,7 +12,7 @@ import {describe, expect, it} from 'vitest';
 import {prepareAssetDecoders} from '@wildshard/format/product';
 import {validateShardfileProduct} from '@wildshard/format/productValidation';
 import {readTar} from '@wildshard/format/tar';
-import {productTarball} from '../scripts/app-build/productTarball';
+import {productTarball} from '../src/game/cook/productTarball';
 import {openShardfile} from '../src/game/cook/shardCook';
 import {loadHeadlessProduct} from '@wildshard/sdk/headlessProduct';
 

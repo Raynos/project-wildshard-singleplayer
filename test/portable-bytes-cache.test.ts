@@ -3,7 +3,7 @@ import {mkdirSync,mkdtempSync,readdirSync,readFileSync,rmSync,writeFileSync} fro
 // oxlint-disable-next-line import/no-nodejs-modules -- Scratch paths never replace shared cache entries.
 import {resolve} from 'node:path';
 import {expect,test} from 'vitest';
-import {PortableBytesCache} from '../scripts/app-build/encodedBytes';
+import {PortableBytesCache} from '../src/game/cook/encodedBytes';
 import {encodePortableBytes,decodePortableBytes} from '../src/sharddev/bake/portableBytes';
 
 function scratch():string{mkdirSync('tmp',{recursive:true});return mkdtempSync(resolve('tmp/sp-x9-portable-cache-'));}

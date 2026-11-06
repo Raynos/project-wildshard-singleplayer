@@ -5,7 +5,7 @@ import {brotliCompressSync,constants} from 'node:zlib';
 // oxlint-disable-next-line import/no-nodejs-modules -- Scratch paths never touch the shared build cache.
 import {resolve} from 'node:path';
 import {expect,test} from 'vitest';
-import {BrotliSizeCache} from '../scripts/brotli-size-cache.mjs';
+import {BrotliSizeCache} from '../src/game/cook/brotliSizeCache.mjs';
 
 const expected=(bytes:Uint8Array):number=>Math.min(bytes.byteLength,brotliCompressSync(bytes,{params:{
   [constants.BROTLI_PARAM_QUALITY]:3,[constants.BROTLI_PARAM_SIZE_HINT]:bytes.byteLength,

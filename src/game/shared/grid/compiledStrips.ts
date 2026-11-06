@@ -7,7 +7,7 @@ import type { GeneratedStrip, PlatformCell, StripMesh, StripProfile } from '@wil
 import { edgeProfileJson } from '@wildshard/engine/sim/edgeProfiles';
 import type { ResidencyAllocator } from './allocator';
 import { readGridAssetBytes } from './gridAssetBytes';
-import type { SeamGeometryChannels } from '../../client/grid/seamLook';
+import type { SeamGeometryChannels } from './seamGeometry';
 
 type SeamFeature = GeneratedStrip['features'][number];
 type SeamFeatureKind = SeamFeature['kind'];

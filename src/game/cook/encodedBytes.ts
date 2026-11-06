@@ -1,16 +1,21 @@
 /// <reference types="node" />
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {createHash,randomBytes} from 'node:crypto';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {mkdirSync,readFileSync,renameSync,rmSync,writeFileSync} from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {homedir} from 'node:os';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {resolve} from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {fileURLToPath} from 'node:url';
-import {encodePortableBytes} from '../../src/sharddev/bake/portableBytes';
+import {encodePortableBytes} from './portableEncode';
 
 const hash=(bytes:string|Uint8Array):string=>createHash('sha256').update(bytes).digest('hex');
 // Raw encoder and dependency bytes, including local patches, own the transform.
 // The caller still certifies the decoded channels against its native geometry.
 const codec=hash(JSON.stringify({schema:'portable-deflate/1',node:process.version,platform:process.platform,arch:process.arch,
-  encoder:hash(readFileSync(new URL('../../src/sharddev/bake/portableBytes.ts',import.meta.url))),
+  encoder:hash(readFileSync(new URL('portableEncode.ts',import.meta.url))),
   implementation:encodePortableBytes.toString(),
   fflate:hash(readFileSync(fileURLToPath(import.meta.resolve('fflate')))),level:9}));
 

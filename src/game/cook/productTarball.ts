@@ -1,4 +1,6 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {readFileSync, readdirSync} from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {join, relative, sep} from 'node:path';
 import {writeTar} from '@wildshard/format/tar';
 

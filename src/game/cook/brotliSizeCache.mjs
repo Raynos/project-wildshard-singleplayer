@@ -1,8 +1,12 @@
 // Pure compression results only; file selection, admission and wire ceilings
 // always run over the current product. No filename or timestamp is an input.
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {createHash,randomBytes} from 'node:crypto';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {mkdirSync,readFileSync,renameSync,rmSync,writeFileSync} from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {resolve} from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {brotliCompressSync,constants} from 'node:zlib';
 
 /** @param {string|Uint8Array} value */

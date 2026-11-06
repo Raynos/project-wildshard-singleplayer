@@ -13,7 +13,7 @@ import {mkdirSync, writeFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {dirname, join} from 'node:path';
 import {assetIdentities, identityFiles, resolveFenceReads, sectionRefs} from '@wildshard/format/fenceReads';
-import {COOK_DATA_PATH, readCookData, type CookData} from '@wildshard/format/cookData';
+import {COOK_DATA_PATH, readCookData, type CookData, type CookMount} from '@wildshard/format/cookData';
 import {assembleOutputShardfile, parseOutputIndex, type OutputIndex} from '@wildshard/format/outputIndex';
 import {SPAWN_PART_ALIGN, readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnPart} from '@wildshard/format/spawnManifest';
 import type {Shardfile} from '@wildshard/format/shardSchema';
@@ -73,6 +73,10 @@ function namedPlaces(sections: ReadonlyMap<string, unknown>): ReadonlyMap<string
   return named;
 }
 
+/** The mounts a boot's download can list. A shard's recorded programs (`/programs/<slug>.json`) ride in the tarball too, but
+ *  a page reads them by their own fetch, so no manifest or part holds them and the cook writes them at their URL. */
+const downloaded = (shard: OpenShardfile): readonly CookMount[] => (shard.cook?.mounts ?? []).filter(row => row.url.startsWith('/assets/'));
+
 /** D5: a stale hint warns and costs seconds; it never refuses a cook. Asset identities here name only this shard's
  *  mounts: one that names an engine file belongs to the app build's half. */
 function fenceHints(shard: OpenShardfile, warn: (line: string) => void): {readonly hashes: ReadonlySet<string>; readonly mounts: readonly string[]} {
@@ -81,7 +85,7 @@ function fenceHints(shard: OpenShardfile, warn: (line: string) => void): {readon
   const resolved = resolveFenceReads({version: 1, files: reads.filter(row => !row.startsWith('asset'))}, shard.index.files, shard.sections);
   const stale = resolved.unresolved.filter(row => !row.startsWith('ref:'));
   if (stale.length > 0) warn(`${shard.slug}: ${stale.length} fence reads this revision no longer has (${stale.slice(0, 3).join(', ')})`);
-  const hashOf = new Map((shard.cook?.mounts ?? []).map(row => [row.url, row.hash]));
+  const hashOf = new Map(downloaded(shard).map(row => [row.url, row.hash]));
   const owners = identityFiles(assetIdentities([...hashOf.keys()], new Map(), sectionRefs(shard.sections, new Set(hashOf.keys())),
     {digests: url => { const hash = hashOf.get(url); return hash === undefined ? [] : [hash]; }, sources: new Map()}));
   const shell = [...reads.filter(row => row.startsWith('asset')), ...resolved.unresolved.filter(row => row.startsWith('ref:'))];
@@ -130,7 +134,7 @@ export function shardHalf(shard: OpenShardfile, wireBytes: WireBytes, warn: (lin
   const headerHash = sha256(shard.header), headerURL = `${prefix}shard.json?v=${headerHash.slice(0, 8)}`;
   sources.set(headerURL, () => shard.header);
   const header = {url: headerURL, bytes: shard.header.length, hash: headerHash, wireBytes: wireBytes(`${prefix}shard.json`, shard.header, headerHash)};
-  const mounts = shard.cook?.mounts ?? [], mountURLs = new Set(mounts.map(row => row.url)), onTier = mountTiers(mountURLs);
+  const mounts = downloaded(shard), mountURLs = new Set(mounts.map(row => row.url)), onTier = mountTiers(mountURLs);
   const mountRow = new Map(mounts.map(row => {
     const url = CONTENT_NAMED.test(row.url) || /-[a-f0-9]{8}\.[a-z0-9]+$/u.test(row.url) ? row.url : `${row.url}?v=${row.hash.slice(0, 8)}`;
     sources.set(url, () => shard.read(row.path));
@@ -214,7 +218,7 @@ export async function cookShard(tarball: Uint8Array, out: string, options: {read
   const server = await cookServerPack(half.shard.index.admission.server ?? [], half.shard.read, out, encoder);
   if (server !== undefined) writeFileSync(join(out, `assets/spawn/server-${half.shard.slug}.json`), JSON.stringify(server));
   // What no part may hold still serves at its URL (DL14: `<img>` and module loads pass any fetch layer).
-  const loose = (half.shard.cook?.mounts ?? []).filter(row => !packable(row.url));
+  const loose = (half.shard.cook?.mounts ?? []).filter(row => !packable(row.url) || !row.url.startsWith('/assets/'));
   for (const row of loose) {
     const file = join(out, row.url.slice(1));
     mkdirSync(dirname(file), {recursive: true}); writeFileSync(file, half.shard.read(row.path));

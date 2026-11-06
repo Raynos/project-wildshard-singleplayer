@@ -15,7 +15,7 @@ import { findShard } from '../src/game/client/shard/registry.ts';
 import { platformInputs } from '../src/game/shared/grid/platformInputs.ts';
 import { generatePlatform } from '../src/engine/shared/sim/strips.ts';
 import { platformGeometrySource } from '../src/game/shared/grid/compiledStrips.ts';
-import { encodeGridStripPage, GridStripTransportLimitError, writeGridStripPages } from './app-build/gridStripPages.ts';
+import { encodeGridStripPage, GridStripTransportLimitError, writeGridStripPages } from '../src/game/cook/gridStripPages.ts';
 import { phoneWireReport } from './phone-wire.mjs';
 import { existsSync, writeFileSync } from 'node:fs';
 
@@ -30,7 +30,7 @@ const fetchFile = async path => {
   catch (error) { if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT') return new Response(null, { status: 404 }); throw error; }
 };
 const plans = new Map(), seen = new Map(), products = new Map(), sources = new Map(), entryModes = new Map();
-/** @type {import('./app-build/gridStripPages.ts').CompiledGridCandidate[]} */
+/** @type {import('../src/game/cook/gridStripPages.ts').CompiledGridCandidate[]} */
 const compiled = [];
 for (const developer of [false, true]) for (const devserver of [false, true]) for (const nineDragon of [false, true]) {
   const assembly = new GridAssembly({ developer, devserver, nineDragon });

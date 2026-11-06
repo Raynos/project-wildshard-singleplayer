@@ -1,15 +1,24 @@
 /// <reference types="node" />
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import { createHash } from 'node:crypto';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
+import { homedir } from 'node:os';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
-import { basename, join } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
+import { basename, join, resolve } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import { isDeepStrictEqual } from 'node:util';
-import { BufferAttribute, BufferGeometry } from 'three';
-import { GeometryPackWriter } from '../../src/sharddev/kit/geometryPack';
+import { StripPackWriter } from './stripPack';
 import { gridLookBytes } from './encodedBytes';
-import type { GeneratedStrip } from '../../src/engine/shared/sim/strips';
-import { GRID_STRIP_FEATURE_KINDS, decodeCompiledGridLook, gridStripPageKey, parseCompiledGridHeader, type CompiledGridAddress, type CompiledGridHeader, type CompiledGridPage, type CompiledGridSelector, type GridStripPhase } from '../../src/game/shared/grid/compiledStrips';
-import { seamLookGeometrySteps, type SeamGeometryChannels } from '../../src/game/client/grid/seamLook';
-import { servedBytes } from '../phone-wire.mjs';
+import type { GeneratedStrip } from '@wildshard/engine/sim/strips';
+import { GRID_STRIP_FEATURE_KINDS, decodeCompiledGridLook, gridStripPageKey, parseCompiledGridHeader, type CompiledGridAddress, type CompiledGridHeader, type CompiledGridPage, type CompiledGridSelector, type GridStripPhase } from '../shared/grid/compiledStrips';
+import { seamMeshSteps, type SeamGeometryChannels } from '../shared/grid/seamGeometry';
+import { BrotliSizeCache } from './brotliSizeCache.mjs';
+
+// The same size cache as `phone-wire.mjs`: what a deploy sends for these bytes, Vercel's on-the-fly Brotli.
+const wireSizes = new BrotliSizeCache(process.env['WILDSHARD_WIRE_SIZE_CACHE'] ?? resolve(homedir(), '.cache/wildshard/gen/served-bytes/1'));
+const servedBytes = (bytes: Uint8Array): number => wireSizes.bytes(bytes);
 
 export interface CompiledGridArtifact { readonly address: CompiledGridAddress; readonly bytes: Uint8Array }
 export interface CompiledGridCandidate { readonly page: CompiledGridPage; readonly owner: string; readonly phase: GridStripPhase; readonly slug: string; readonly header: CompiledGridArtifact; readonly body: CompiledGridArtifact }
@@ -48,16 +57,11 @@ function artifact(bytes: Uint8Array, extension: 'json' | 'bin', kind: 'book' | '
 }
 
 function bakeLookChannels(strips: readonly GeneratedStrip[], frame: Pick<SeamGeometryChannels, 'origin' | 'pitch'>): SeamGeometryChannels {
-  const steps = seamLookGeometrySteps(strips, { origin: frame.origin }, undefined, frame.pitch);
+  const steps = seamMeshSteps(strips, { origin: frame.origin }, undefined, frame.pitch);
   for (;;) {
     const next = steps.next(); if (!next.done) continue;
-    const { geometry } = next.value;
-    try {
-      const normals = geometry.getAttribute('normal').array, uvs = geometry.getAttribute('uv').array, colours = geometry.getAttribute('color').array, sphere = geometry.boundingSphere;
-      if (!(normals instanceof Float32Array) || !(uvs instanceof Float32Array) || !(colours instanceof Float32Array) || sphere === null) throw new Error('Missing native seam look channels');
-      return { origin: { x: frame.origin.x, z: frame.origin.z }, pitch: frame.pitch, normals, uvs, colours,
-        sphere: { centre: [sphere.center.x, sphere.center.y, sphere.center.z], radius: sphere.radius } };
-    } finally { geometry.dispose(); }
+    const { normal, uv, colour, sphere } = next.value;
+    return { origin: { x: frame.origin.x, z: frame.origin.z }, pitch: frame.pitch, normals: normal, uvs: uv, colours: colour, sphere };
   }
 }
 
@@ -72,7 +76,7 @@ function encodeLookChannels(look: SeamGeometryChannels): Uint8Array {
 /** Store the original indexed words, never deduplicate vertices or quantize them. */
 export function encodeGridStripPage(source: string, home: string, slug: string, strips: readonly GeneratedStrip[], phase: GridStripPhase = 'initial', frame?: Pick<SeamGeometryChannels, 'origin' | 'pitch'>): CompiledGridCandidate {
   const keyHome = gridStripPageKey(home, phase);
-  const writer = new GeometryPackWriter('Grid strips'), indices = new Map<string, number>(), shapes: CompiledGridHeader['shapes'][number][] = [];
+  const writer = new StripPackWriter(), indices = new Map<string, number>(), shapes: CompiledGridHeader['shapes'][number][] = [];
   const rows: CompiledGridHeader['strips'][number][] = [];
   const featureWords: number[] = [], surfaces: string[] = [], surfaceCodes = new Map<string, number>();
   for (const strip of strips) {
@@ -83,9 +87,7 @@ export function encodeGridStripPage(source: string, home: string, slug: string, 
     digest.update(json({ features, ...(turnIn === undefined ? {} : { turnIn }) }));
     const key = digest.digest('hex'); let shape = indices.get(key);
     if (shape === undefined) {
-      const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(mesh.positions, 3)).setAttribute('color', new BufferAttribute(mesh.colours, 3))
-        .setIndex(new BufferAttribute(mesh.indices, 1));
-      try { shape = writer.add(geometry); } finally { geometry.dispose(); }
+      shape = writer.add(mesh.positions, mesh.colours, mesh.indices);
       const offset = featureWords.length / 9;
       for (const feature of features) {
         let surface = -1;
@@ -163,6 +165,7 @@ export function writeGridStripPages(root: string, seams: string, candidates: rea
   const unique = new Map<string, CompiledGridCandidate>();
   for (const candidate of candidates) {
     const key = `${candidate.page.source}/${candidate.page.home}`, previous = unique.get(key);
+    // oxlint-disable-next-line wildshard/no-shard-branch -- A row's own slug is the page's identity, no shard's name.
     if (previous !== undefined && (previous.owner !== candidate.owner || previous.phase !== candidate.phase || previous.slug !== candidate.slug
       || previous.page.body.sha256 !== candidate.page.body.sha256 || previous.page.header.sha256 !== candidate.page.header.sha256)) throw new Error('Grid strip page is not deterministic');
     unique.set(key, candidate);
@@ -172,6 +175,7 @@ export function writeGridStripPages(root: string, seams: string, candidates: rea
   const groups = new Map<string, CompiledGridCandidate[]>();
   for (const candidate of all) {
     const key = ownerKey(candidate), rows = groups.get(key) ?? [];
+    // oxlint-disable-next-line wildshard/no-shard-branch -- A row's own slug is the page's identity, no shard's name.
     if (rows[0] !== undefined && rows[0].slug !== candidate.slug) throw new Error('Grid strip owner differs');
     rows.push(candidate); groups.set(key, rows);
   }

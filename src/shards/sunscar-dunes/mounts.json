@@ -15,7 +15,8 @@
    "/assets/sunscar-dunes/models/sacks-hd/sacks-hd.glb",
    "/assets/sunscar-dunes/models/wagon-hd2/wagon-hd2.glb",
    "/assets/sunscar-dunes/sky/dusk-early.webp",
-   "/assets/sunscar-dunes/sky/dusk-late.webp"
+   "/assets/sunscar-dunes/sky/dusk-late.webp",
+   "/programs/sunscar-dunes.json"
   ]
  }
 }

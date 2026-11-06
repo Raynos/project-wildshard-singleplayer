@@ -1,23 +1,23 @@
 /// <reference types="node" />
 import * as v from 'valibot';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {existsSync, readFileSync, mkdirSync, writeFileSync, readdirSync} from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {join, relative, resolve, sep} from 'node:path';
 import {PickupCatalogueSchema} from '@wildshard/format/specimenCatalogue';
-import {assetTableAddresses, readAssetTables} from './assetTables.mjs';
-import {readGridSeams} from './gridSeams.mjs';
 import {parseOutputIndex} from '@wildshard/format/outputIndex';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {createHash} from 'node:crypto';
 import {readSpawnManifest, type SpawnFile, type SpawnManifest, type SpawnManifestAddress} from '@wildshard/format/spawnManifest';
-import {GPU_FILES} from '../../src/engine/client/boot/ktx2.generated';
 import {assetIdentities, audioTableRefs, bundlerSources as manifestSources, identityFiles, joinRefs, standInRefs, packMembers, readFenceReads, resolveFenceReads, sectionRefs, type PackPart} from '@wildshard/format/fenceReads';
-import {createPartEncoder, writeSpawnParts, type CookedMember, type SpawnPartEncoding} from '../../src/game/cook/spawnParts';
-import {cookParts, cookServerPack, openShardfile, servedAsIs, shardHalf} from '../../src/game/cook/shardCook';
-import type {ServerPack} from '../../src/game/shared/shardfile/serverPack';
-import {contentNamed} from './assetHashes';
+import {createPartEncoder, writeSpawnParts, type CookedMember, type SpawnPartEncoding} from './spawnParts';
+import {cookParts, cookServerPack, openShardfile, servedAsIs, shardHalf} from './shardCook';
+import type {ServerPack} from '../shared/shardfile/serverPack';
+import {contentNamed} from './contentNamed';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {homedir} from 'node:os';
 import {productTarball} from './productTarball';
-import {BrotliSizeCache} from '../brotli-size-cache.mjs';
-import {ASSET_CACHE_NAME} from '../../src/engine/client/pwa/cacheNames';
+import {BrotliSizeCache} from './brotliSizeCache.mjs';
 
 const size = v.pipe(v.number(), v.safeInteger(), v.minValue(0));
 const files = v.array(v.tuple([v.string(), size]));
@@ -28,6 +28,16 @@ const schema = v.object({common: files, client: files, grid: files,
   extras: v.record(v.string(), v.tuple([v.string(), size, size, v.string()])),
 });
 interface Address {readonly url: string; readonly bytes: number}
+/** What a build's half of the manifests needs from the app: the page's own tables and names, which no cook owns. */
+export interface BuildHalf {
+  readonly cacheName: string;
+  readonly gpuFiles: Parameters<typeof standInRefs>[0];
+  /** The boot tables' common and pack sources, as `assetTables.mjs` bakes them. */
+  readonly tables: (root: string) => {readonly common: {readonly source: string}; readonly all: {readonly source: string}; readonly packs: Readonly<Record<string, {readonly source: string}>>};
+  readonly tableAddresses: (root: string) => {readonly common: Address; readonly all: Address; readonly packs: Readonly<Record<string, Address>>};
+  /** The certified grid seams' address (`gridSeams.mjs`). */
+  readonly seams: (root: string) => Address & {readonly plans?: Address | undefined};
+}
 /** DL5: a shard's packs set, `src/shards/<slug>/packs-set.json` (`{"version": 1, "set": "fence"}`): 'fence' packs the
  *  default set (what the boot reads before control), absent packs the whole level. Anything else fails the build. */
 export function readPacksSet(path: string): 'whole' | 'fence' {
@@ -47,7 +57,7 @@ export interface SpawnManifestBook {
 /** Write the complete ordered spawn IO, rather than estimating a number from
  * a full product. This is the only list the new loader and bar consume. */
 export async function writeSpawnManifests(outDir: string, input: unknown,
-  strips: Readonly<Record<string, Readonly<Record<string, readonly Address[]>>>>, root: string,
+  strips: Readonly<Record<string, Readonly<Record<string, readonly Address[]>>>>, root: string, build: BuildHalf,
   report?: (parts: SpawnPartEncoding) => void): Promise<SpawnManifestBook> {
   const bank = v.parse(schema, input), publicRoot = resolve(root, 'public'), output = resolve(outDir), assets = new Map<string, SpawnFile>();
   const encoded = new BrotliSizeCache(process.env['WILDSHARD_WIRE_SIZE_CACHE'] ?? resolve(homedir(), '.cache/wildshard/gen/served-bytes/1'));
@@ -111,7 +121,7 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
   };
   const packParts = (): ReadonlyMap<string, PackPart> => {
     if (partsSeen !== undefined) return partsSeen;
-    const banks = readAssetTables(root), parts = new Map<string, PackPart>();
+    const banks = build.tables(root), parts = new Map<string, PackPart>();
     for (const table of [banks.all, ...Object.values(banks.packs)]) for (const [url, part] of packMembers((JSON.parse(table.source) as {packs?: unknown}).packs)) parts.set(url, part);
     partsSeen = parts; return parts;
   };
@@ -128,8 +138,8 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
     for (const row of pickups.banks ?? []) common.push(asset(row.file));
     for (const row of pickups.geometries) if ('file' in row && !packed.has(row.file)) common.push(asset(row.file));
   }
-  const tables = existsSync(join(root, 'out/.app/boot-tables.json')) ? assetTableAddresses(readAssetTables(root)) : undefined;
-  const seams = existsSync(join(root, 'out/.app/grid-seams.json')) ? readGridSeams(root).address : undefined;
+  const tables = existsSync(join(root, 'out/.app/boot-tables.json')) ? build.tableAddresses(root) : undefined;
+  const seams = existsSync(join(root, 'out/.app/grid-seams.json')) ? build.seams(root) : undefined;
   const client: Record<string, Record<'phone' | 'desktop', SpawnManifestAddress>> = {}, grid: Record<string, Record<string, Record<'phone' | 'desktop', SpawnManifestAddress>>> = {};
   mkdirSync(join(output, 'assets/spawn'), {recursive: true});
   const pending: {manifest: Omit<SpawnManifest, 'parts'>; public: boolean; packed: boolean}[] = [];
@@ -162,7 +172,7 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
       const urls = publicAssets(), members = [...packParts().values()].flatMap(part => part.members);
       // Section references, then the boot tables' audio slots (Pine's colliding sfx revisions).
       const refs = joinRefs(sectionRefs(sections, new Set([...urls, ...members].map(url => url.split('?')[0] ?? url))),
-        audioTableRefs(JSON.parse(readAssetTables(root).common.source) as {sfx?: unknown; music?: unknown}), standInRefs(GPU_FILES));
+        audioTableRefs(JSON.parse(build.tables(root).common.source) as {sfx?: unknown; music?: unknown}), standInRefs(build.gpuFiles));
       // An identity is one file or none: one naming two distinct files (two vendor versions, sp-x9) refuses, never the first.
       const owners = identityFiles(assetIdentities(urls, packParts(), refs, {digests: assetDigests, sources: bundlerSources()}));
       const ambiguous = shell.filter(identity => (owners.get(identity)?.length ?? 0) > 1);
@@ -244,6 +254,6 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
   const packs: {client: typeof client; grid: typeof grid} = {client: {}, grid: {}};
   for (const [directory, pair] of Object.entries(packsClientAt)) packs.client[directory] = {phone: at(pair.phone), desktop: at(pair.desktop)};
   for (const [mode, shards] of Object.entries(packsGridAt)) for (const [directory, pair] of Object.entries(shards)) (packs.grid[mode] ??= {})[directory] = {phone: at(pair.phone), desktop: at(pair.desktop)};
-  return {cacheName: ASSET_CACHE_NAME, client, grid, packs, serverPacks};
+  return {cacheName: build.cacheName, client, grid, packs, serverPacks};
 }
 

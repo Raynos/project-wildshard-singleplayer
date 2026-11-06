@@ -25,7 +25,8 @@ import type { LookScope, RoadLayout } from '../../shared/grid/roadLayout';
 import { allocateRenderSteps, type PlatformRenderAdmission } from './renderResidency';
 import { installRoadLookSteps, RoadOverlayLight, type RoadLookState } from './roadLook';
 import { installVoidLook } from './voidLook';
-import { CURTAIN_FLOATS, curtainGeometry, curtainMaterial, curtainSource, gravel, riprap, seamSolidSteps, stone, strata, type SeamGeometryChannels, type SeamLookState, type SeamPiece } from './seamLook';
+import { CURTAIN_FLOATS, curtainGeometry, curtainMaterial, curtainSource, gravel, riprap, seamSolidSteps, stone, strata } from './seamLook';
+import type { SeamGeometryChannels, SeamLookState, SeamPiece } from '../../shared/grid/seamGeometry';
 import { bytePlan, cullIntoSteps, finishRoadSteps, gpuOnlyRoad, meshBytesSteps, ROAD_LOD, type CullPlan, type RoadCuller } from './roadCull';
 import { GRAIN_LAYERS, GRAIN_SIZE, gpuOnlyTextureBytes, grainArray, SOLID_FLOATS, solidGeometrySteps, solidMaterial, solidSource, type SolidPart } from './roadSolid';
 

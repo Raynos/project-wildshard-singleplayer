@@ -7,7 +7,7 @@ import { generatePlatform, type GeneratedStrip, type PlatformCell, type StripPro
 import { ResidencyAllocator } from '../src/game/shared/grid/allocator';
 import { decodeCompiledGridLook, decodeCompiledGridStrips, parseCompiledGridHeader, platformGeometrySource, readCompiledGridStrips, type CompiledGridAddress, type GridStripPhase } from '../src/game/shared/grid/compiledStrips';
 import { seamLookGeometrySteps } from '../src/game/client/grid/seamLook';
-import { encodeGridStripPage, writeGridStripPages } from '../scripts/app-build/gridStripPages';
+import { encodeGridStripPage, writeGridStripPages } from '../src/game/cook/gridStripPages';
 import { gridSeamAsset, readGridSeams, writeGridSeams } from '../scripts/app-build/gridSeams.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- This artifact fixture owns and removes only its bounded tmp directory.
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';

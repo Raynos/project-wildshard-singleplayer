@@ -1,20 +1,22 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {readFileSync, writeFileSync} from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- The cook is a Node process (J28).
 import {join} from 'node:path';
 import {gridEntryDownloads} from './gridEntryDownloads';
-import {writeSpawnManifests} from './entryTotals';
+import {writeSpawnManifests, type BuildHalf} from './entryTotals';
 import {packsBookPath} from '@wildshard/format/spawnManifest';
-import {serverPackBookPath} from '../../src/game/shared/shardfile/serverPack';
+import {serverPackBookPath} from '../shared/shardfile/serverPack';
 
 /** Publish the one immutable spawn list after the complete module bank.
  * No receipt observer or transport script runs ahead of the composition root. */
-export async function writeEntryBootstrap(outDir: string, root: string, report?: Parameters<typeof writeSpawnManifests>[4]): Promise<void> {
+export async function writeEntryBootstrap(outDir: string, root: string, build_: BuildHalf, report?: Parameters<typeof writeSpawnManifests>[5]): Promise<void> {
   const file = join(outDir, 'index.html'), html = readFileSync(file, 'utf8');
   const expression = /(<script type="application\/json" id="boot-module-files">)([^<]+)(<\/script>)/u;
   const match = expression.exec(html);
   if (match?.[2] === undefined) throw new Error('Missing entry module bank');
   const bank: unknown = JSON.parse(match[2]);
   if (typeof bank !== 'object' || bank === null || Array.isArray(bank)) throw new Error('Invalid entry module bank');
-  const grid = gridEntryDownloads(root), {packs, serverPacks, ...spawnManifests} = await writeSpawnManifests(outDir, bank, grid, root, report);
+  const grid = gridEntryDownloads(root), {packs, serverPacks, ...spawnManifests} = await writeSpawnManifests(outDir, bank, grid, root, build_, report);
   // DL16: the packs book (the whole level with its parts) is its own file, named by the build id the page's code
   // carries (__BUILD_ID__), so the default index.html says nothing about an off row (spawnDownload prepareSpawnPacks).
   const {build} = JSON.parse(readFileSync(join(outDir, 'version.json'), 'utf8')) as {build: string};

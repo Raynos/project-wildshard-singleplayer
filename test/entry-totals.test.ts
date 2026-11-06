@@ -3,7 +3,7 @@ import {expect, test} from 'vitest';
 import {mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep all fixture writes inside the repository.
 import {resolve} from 'node:path';
-import {readPacksSet, writeSpawnManifests} from '../scripts/app-build/entryTotals';
+import {readPacksSet, writeSpawnManifests} from '../scripts/app-build/appCook';
 import {emptyShardfile} from '@wildshard/sharddev/author';
 import {outputSectionPayloads} from '@wildshard/format/outputFields';
 // oxlint-disable-next-line import/no-nodejs-modules -- Pin this compiler fixture's original bytes.
