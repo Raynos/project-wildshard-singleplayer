@@ -10,10 +10,7 @@ import type { SceneHandles } from './sceneHandles';
 import type { SaveStore } from '@wildshard/engine/saves/store';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { instanceSave } from '../../shared/instanceSaves';
-import { buildingDoor, buildingDoorCollides, buildingDoorSwinging, buildingDoorYaw, stepBuildingDoor, toggleBuildingDoor, type BuildingDoorState } from '../../shared/shardfile/buildingDoor';
-
-const buildingSave = { key: 'platform.buildings', scope: 'shard' as const, version: 1,
-  schema: v.record(v.string(), BuildingContinuationSchema), initial: (): Record<string, BuildingContinuation> => ({}) };
+import { buildingDoor, buildingDoorCollides, buildingDoorSwinging, buildingDoorYaw, buildingSave, stepBuildingDoor, toggleBuildingDoor, type BuildingDoorState } from '../../shared/shardfile/buildingDoor';
 
 /** a door's state (buildingDoor.ts: the same owner the Node simulation drives) with its leaf, prompt and slab */
 interface Door extends BuildingDoorState {
@@ -179,7 +176,8 @@ export class LivingBuildings {
     if (!/^[A-Za-z0-9._-]{1,128}$/u.test(identity.group)) throw new Error('Invalid building save group');
     const slot = instanceSave(store, buildingSave, identity), prior = slot.read()[identity.group];
     if (prior !== undefined) this.restore(prior);
-    this.checkpoint = () => slot.write({ ...slot.read(), [identity.group]: this.snapshot() });
+    // A served page only draws what the server holds: its copy would shut the doors of the save a rollback reads.
+    this.checkpoint = () => this.served !== null || slot.write({ ...slot.read(), [identity.group]: this.snapshot() });
     scope.onDispose(() => { this.checkpoint?.(); this.checkpoint = null; });
     if (typeof window !== 'undefined') scope.listen(window, 'pagehide', () => { this.checkpoint?.(); });
     if (typeof document !== 'undefined') scope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'hidden') this.checkpoint?.(); });

@@ -54,6 +54,7 @@ import { netBuys, netWorldInput, stepResident } from './netInput';
 import { STORY_ACT } from '@wildshard/engine/net/acts';
 import { installServerChapters } from '@wildshard/game/quest/serverChapters';
 import { installServerDoors } from '@wildshard/game/quest/serverDoors';
+import { pageOpenDoors } from '@wildshard/game/shardfile/buildingDoor';
 import { mountedPlayerOf } from '@wildshard/game/riding/native';
 import { pageSavedFlags } from '@wildshard/engine/world/interact/flags';
 
@@ -296,7 +297,7 @@ export class StandaloneGrid {
       const near = input.product !== undefined && hasNativeAssembly(input.product) ? new NearColliders() : undefined, around = near === undefined ? { room: true } : { room: true, near };
       if (near !== undefined && snapshot !== undefined) (await createTrustedHeadlessResident(input, undefined, around)).dispose();
       const resident = await createTrustedHeadlessResident(input, snapshot, around), { host } = resident;
-      bindDiscovery(host, input.product === undefined ? [] : await serverPlaces(input.product)); await installServerChapters(host, input.product, input.shard, resident.fact); await installServerDoors(host, input.product);
+      bindDiscovery(host, input.product === undefined ? [] : await serverPlaces(input.product)); await installServerChapters(host, input.product, input.shard, resident.fact); await installServerDoors(host, input.product, snapshot === undefined ? pageOpenDoors(options.saves, placed) : undefined);
       if (snapshot === undefined && options.lone === true) addLoneWalls(host);
       host.respawn.served = true; actRoutes(host).introLocks = true;
       const owned = ownedOf(host, input);

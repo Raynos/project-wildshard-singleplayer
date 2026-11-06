@@ -41,8 +41,8 @@ function pieceColliders(host: SimHost): ReadonlyMap<string, Collider> {
   return found;
 }
 
-/** Keep the building doors of a shard that has them. False when it has none. */
-export async function installServerDoors(host: SimHost, product: ShardProduct | undefined): Promise<boolean> {
+/** Keep the building doors of a shard that has them. False when it has none. `opened`: what a page's save left open, for a world's first boot. */
+export async function installServerDoors(host: SimHost, product: ShardProduct | undefined, opened: ReadonlySet<string> = new Set()): Promise<boolean> {
   if (product === undefined || !product.hasFile(PIECES) || !product.hasFile(FOREST)) return false;
   const [piecesInput, forestInput, compositionInput] = await Promise.all([product.json<unknown>(PIECES), product.json<unknown>(FOREST), product.hasFile(COMPOSITION) ? product.json<unknown>(COMPOSITION) : null]);
   const look = v.parse(Forest, forestInput).buildings?.life.door, composition = compositionInput === null ? undefined : v.parse(Composition, compositionInput).door;
@@ -55,6 +55,7 @@ export async function installServerDoors(host: SimHost, product: ShardProduct | 
     const hinge = { x: matrix[12] ?? 0, y: matrix[13] ?? 0, z: matrix[14] ?? 0 }, rotation = collider.rotation(), at = collider.translation();
     const local = turned(conjugate(rotation), { x: at.x - hinge.x, y: at.y - hinge.y, z: at.z - hinge.z });
     const door = buildingDoor(row.id), flag = buildingDoorFlag(row.id);
+    if (opened.has(row.id)) host.flags.set(flag);
     door.open = host.flags.has(flag); door.t = door.open ? 1 : 0;
     leaves.push({ door, flag, collider, hinge, rotation, local, bars: bars.filter(gate => gate.target.piece === row.id).map(gate => gate as { readonly opensWhen: Parameters<typeof test>[1] }) });
   }

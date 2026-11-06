@@ -1,3 +1,8 @@
+import * as v from 'valibot';
+import { BuildingContinuationSchema, type BuildingContinuation } from '@wildshard/format/buildings';
+import type { InstanceSaveKeyDef, SaveStore } from '@wildshard/engine/saves/store';
+import { instanceSave, type LocalSaveInstance } from '../instanceSaves';
+
 /** A building door's own state, toggle and clock, with no scene, renderer, prompt or light: LivingBuildings poses its leaf
  *  and relabels its prompt from it, and the Node simulation (CI12's door verbs) drives the same owner without a renderer.
  *  `t` runs 0 (shut) to 1 (open) over the look's `seconds`; `enabled` is the moving leaf's collision, off while it swings
@@ -6,6 +11,15 @@ export interface BuildingDoorState { readonly id: string; open: boolean; t: numb
 
 /** The world flag a server keeps a door's state in: up while it stands open. */
 export const buildingDoorFlag = (id: string): string => `door:${id}`;
+
+/** A page's own building save, by group. A server keeps its doors in world flags and reads this once, to take a page's doors over. */
+export const buildingSave: InstanceSaveKeyDef<Record<string, BuildingContinuation>> = { key: 'platform.buildings', scope: 'shard', version: 1,
+  schema: v.record(v.string(), BuildingContinuationSchema), initial: (): Record<string, BuildingContinuation> => ({}) };
+
+/** The doors a page's save left open in one placement. */
+export function pageOpenDoors(store: SaveStore, placement: LocalSaveInstance): ReadonlySet<string> {
+  return new Set(Object.values(instanceSave(store, buildingSave, placement).read()).flatMap(group => group.doors.filter(door => door.open).map(door => door.id)));
+}
 
 /** A shut, enabled door. */
 export function buildingDoor(id: string): BuildingDoorState { return { id, open: false, t: 0, enabled: true }; }

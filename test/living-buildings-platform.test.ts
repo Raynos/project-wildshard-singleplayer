@@ -154,6 +154,21 @@ describe('living-building platform rows', () => {
     fresh.dispose(); third.dispose(); for (const fixture of [a, b, c, d]) fixture.glass.dispose();
   });
 
+  test('a served page leaves the save it read alone', () => {
+    const values = new Map<string, string>(), storage: SaveStorage = { get length() { return values.size; }, key: index => [...values.keys()][index] ?? null,
+      getItem: key => values.get(key) ?? null, setItem: (key, value) => { values.set(key, value); }, removeItem: key => { values.delete(key); } };
+    const identity = { id: 'tower-one', shard: 'made-up-shard', group: 'buildings' }, a = secondBuilding(), first = new Scope('first');
+    a.life.persist(new SaveStore({ local: storage, session: null }), first, identity);
+    a.life.use('east-gate'); a.life.tick(0.75, 0.75, new Vector3(), 0); first.dispose();
+    const held = JSON.stringify([...values]), b = secondBuilding(), second = new Scope('second');
+    b.life.persist(new SaveStore({ local: storage, session: null }), second, identity);
+    b.life.serve(() => false); b.life.tick(0.75, 0.75, new Vector3(), 0); // the server's word shuts what the save holds open
+    expect(b.life.snapshot().doors[0]?.open).toBe(false);
+    second.dispose();
+    expect(JSON.stringify([...values])).toBe(held);
+    for (const fixture of [a, b]) fixture.glass.dispose();
+  });
+
   test('camp baked quads and hearth seed quads retain exact authored data and bounds', () => {
     const resources = new SceneHandles({ setupMaterial: () => undefined }), material = new MeshStandardMaterial();
     const baked = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array([1, 2, 3, 4, 5, 6]), 3));
