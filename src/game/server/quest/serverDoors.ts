@@ -65,8 +65,8 @@ export async function installServerDoors(host: SimHost, product: ShardProduct | 
   for (const leaf of leaves) {
     pose(leaf);
     routes.claims.set(leaf.door.id, player => {
-      const body = host.players.get(player), at = leaf.collider.translation();
-      if (body === undefined || Math.hypot(body.position.x - leaf.hinge.x, body.position.z - leaf.hinge.z) > DOOR_REACH + Math.hypot(leaf.local.x, leaf.local.z) || !Number.isFinite(at.x)) return;
+      const body = host.players.get(player);
+      if (body === undefined || Math.hypot(body.position.x - leaf.hinge.x, body.position.z - leaf.hinge.z) > DOOR_REACH + Math.hypot(leaf.local.x, leaf.local.z)) return;
       const flags = books.of(player).flags;
       if (leaf.bars.some(gate => !test(flags, gate.opensWhen))) return;
       if (toggleBuildingDoor(leaf.door)) host.flags.set(leaf.flag); else host.flags.clear(leaf.flag);

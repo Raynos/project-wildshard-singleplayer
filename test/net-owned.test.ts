@@ -70,6 +70,23 @@ test('a player with no coins still hears their board', () => {
   expect(purse.mirror).toHaveBeenCalledExactlyOnceWith(0);
 });
 
+test('a story\'s word plays once as its count moves, and a line says what stands', () => {
+  const page = new WirePage(), link = directLoopback(), client = new NetClient(link.client), said = vi.fn<(channel: string) => void>();
+  page.bind(client, () => undefined, () => undefined, () => false);
+  page.hold({ said }, new Scope('test'));
+  client.latest = { tick: 2, baselineTick: -1, cell: 1, lastSeq: 0, owner: new Float64Array(0), rows: new Map(), ride: null, fresh: new Set() };
+  client.owned.set('said.qClue0', 1); client.owned.set('story.prop', 3); client.ownedVersion++;
+  page.frame(null, true);
+  client.ownedVersion++; // another line moved: this word is old
+  page.frame(null, true);
+  expect(said).toHaveBeenCalledExactlyOnceWith('qClue0');
+  client.owned.set('said.qClue0', 2); client.ownedVersion++;
+  page.frame(null, true);
+  expect(said).toHaveBeenCalledTimes(2);
+  expect(page.line('story.prop')).toBe(3);
+  expect(page.line('nothing')).toBe(0);
+});
+
 test('a purchase lands on the exchange that judges it, and a world with none counts it refused', () => {
   const host = createSimHost(SIM_LEVEL, { rapier }), routes = actRoutes(host), buys: [string, number][] = [];
   netBuys(routes, [{ player: 'a', acts: [{ kind: 'buy', seq: 0, good: 1 }] }]);
