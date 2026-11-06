@@ -9,6 +9,7 @@ import type { Vector3 } from 'three';
 import { appIdentity } from '@wildshard/engine/app/identity';
 import { importPageSaves, openIndexedSaves, SERVER_SAVES, type IndexedSaves } from '@wildshard/engine/saves/indexed';
 import { saveEnvironment } from '@wildshard/engine/saves/environment';
+import { countedWait } from '@wildshard/engine/boot/waits';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import type { NetClient } from '@wildshard/engine/net/client';
 import { NetPlayer, type NetWeapons } from '@wildshard/engine/net/netPlayer';
@@ -27,6 +28,7 @@ import { GrappleTool } from '../grapple/tool';
 import { netClaw } from '../grapple/netClaw';
 import type { Mount } from '../riding/mount';
 import { netMoverPoses } from '../plugin/moverViews';
+import { spawnHeldBytes } from '../boot/spawnDownload';
 import { wirePage, type DayFollower } from './wirePage';
 
 type Creatures = Pick<AnimalManager, 'animals' | 'spawn' | 'retire'>;
@@ -67,7 +69,7 @@ export interface WorkerClientPorts {
   readonly scope: Scope;
   readonly system: (system: SystemSpec) => void;
 }
-interface ShellModule { readonly startStandalone: (config: { slug: string; base: string; build: string; savePrefix: string; lone?: true } & IndexedSaves) => Shell }
+interface ShellModule { readonly startStandalone: (config: { slug: string; base: string; build: string; savePrefix: string; lone?: true; held?: (url: string) => Promise<ArrayBuffer | null> } & IndexedSaves) => Shell }
 interface Shell { readonly client: NetClient; readonly booted: Promise<{ readonly restored: boolean }>; ready: () => void; save: () => Promise<{ readonly tick: number; readonly ok: boolean }>; probe: () => Promise<{ readonly tickMs: number }>; dispose: () => void }
 
 const SAVE_EVERY_MS = 30_000;
@@ -160,7 +162,10 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   const saves = await openIndexedSaves(SERVER_SAVES), { savePrefix } = appIdentity();
   const page = saveEnvironment().storage('shard');
   if (page !== null) await importPageSaves(saves, page, savePrefix);
-  const shell = startStandalone({ slug, base: `/shardfiles/${slug}/`, build, savePrefix, ...ports.grid === null ? { lone: true as const } : {}, ...saves }), { client } = shell;
+  // DL21: the server's boot is on the card while a card is up, counting what it has read. DL25: it reads what this page holds first.
+  const card = countedWait('Server world', 'files');
+  const shell = startStandalone({ slug, base: `/shardfiles/${slug}/`, build, savePrefix, ...ports.grid === null ? { lone: true as const } : {}, held: url => { card.add(); return spawnHeldBytes(url); }, ...saves }), { client } = shell;
+  void shell.booted.catch(() => undefined).finally(card.end);
   let ended = false;
   const stop = (): void => { if (!ended) { ended = true; shell.dispose(); } };
   scope.onDispose(stop);
