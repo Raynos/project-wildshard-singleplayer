@@ -66,7 +66,8 @@ test('a short program list fails DL10 by name, and play\'s long tasks are not DL
 });
 
 test('a phone-link reading passes on its own bar', () => {
-  expect(state({ ...nothing, gridWarm: { longTasks: Array.from({ length: 21 }, () => ({ start: 1 })) } }, 'DL11')).toBe('FAIL');
+  // J143: DL11 is a named exception; the count stays in the row, and DL21 and DL23 judge what the player sees.
+  expect(state({ ...nothing, gridWarm: { longTasks: Array.from({ length: 21 }, () => ({ start: 1 })) } }, 'DL11')).toBe('PASS');
   expect(state({ ...nothing, gridWarm: { longTasks: [] } }, 'DL11')).toBe('PASS');
   expect(state({ ...nothing, titled: { totalMs: 9_000 }, untitled: { totalMs: 12_000 } }, 'DL2')).toBe('PASS');
 });
