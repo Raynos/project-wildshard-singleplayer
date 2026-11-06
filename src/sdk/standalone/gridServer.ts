@@ -37,6 +37,7 @@ import { bindShardfileSim, createShardfileSim, HOST_PROBE, type ShardfileSimPort
 import { installRoomRespawn } from '@wildshard/game/roomRespawn';
 import { hasNativeAssembly } from '@wildshard/game/shardfile/nativeAssembly';
 import { installDeclaredClimate } from '@wildshard/game/shardfile/declaredClimate';
+import { landedBy } from '@wildshard/engine/combat/damageBook';
 import { installPlayerOwned, type PlayerOwned } from '@wildshard/game/loot/playerOwned';
 import { QUEST_OWNED } from '@wildshard/game/quest/nativeComposition';
 import { shardRows } from '@wildshard/engine/sim/shardRows';
@@ -340,6 +341,11 @@ export class StandaloneGrid {
   connect(transport: Transport): void { this.rooms.connect(SESSION_PLAYER, transport); }
   /** A harness's move: the wire counts it, and the client snaps to it. */
   place(at: { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number }): void { sessionPlayer(this.host).resetPose(at, at.yaw); }
+  /** A harness's word on this world's blows from a player: real hits, and a long fight's end within a proof's reach. */
+  hardHits(by: number): void {
+    const { host } = this;
+    host.events.answer('damage.modify', req => req === null || landedBy(req, host.players) === null ? req : { ...req, amount: req.amount * by }, host.scope, { order: 90 });
+  }
   open(): void { this.rooms.open(); }
   tick(): void { this.rooms.tick(); }
   /** Resolves true when every write so far reached the real storage, and tells `held` which of its saves that makes good. */

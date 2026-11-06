@@ -3,6 +3,9 @@
 
 /** Where to put this player, in the world it stands in. */
 export interface HarnessPlace { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number }
+/** How hard this player's blows land, for a harness that walks a long fight to its end by real ones. */
+export interface HarnessHits { readonly hits: number }
+export const isHarnessHits = (value: unknown): value is HarnessHits => typeof value === 'object' && value !== null && 'hits' in value && typeof value.hits === 'number';
 export const isHarnessPlace = (value: unknown): value is HarnessPlace => typeof value === 'object' && value !== null
   && 'x' in value && typeof value.x === 'number' && 'y' in value && typeof value.y === 'number'
   && 'z' in value && typeof value.z === 'number' && 'yaw' in value && typeof value.yaw === 'number';

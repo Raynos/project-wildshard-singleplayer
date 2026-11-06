@@ -30,6 +30,7 @@ import type { Mount } from '../riding/mount';
 import { netMoverPoses } from '../plugin/moverViews';
 import { spawnHeldBytes } from '../boot/spawnDownload';
 import { DAY_ROW } from '@wildshard/engine/sim/shardRows';
+import type { EncounterRow } from '../boss/barFeed';
 import { wirePage, type DayFollower } from './wirePage';
 
 type Creatures = Pick<AnimalManager, 'animals' | 'spawn' | 'retire'>;
@@ -71,7 +72,7 @@ export interface WorkerClientPorts {
   readonly system: (system: SystemSpec) => void;
 }
 interface ShellModule { readonly startStandalone: (config: { slug: string; base: string; build: string; savePrefix: string; lone?: true; held?: (url: string) => Promise<ArrayBuffer | null> } & IndexedSaves) => Shell }
-interface Shell { readonly client: NetClient; readonly booted: Promise<{ readonly restored: boolean }>; place: (x: number, y: number, z: number, yaw: number) => void; ready: () => void; save: () => Promise<{ readonly tick: number; readonly ok: boolean }>; probe: () => Promise<{ readonly tickMs: number }>; dispose: () => void }
+interface Shell { readonly client: NetClient; readonly booted: Promise<{ readonly restored: boolean }>; place: (x: number, y: number, z: number, yaw: number) => void; hardHits: (by: number) => void; ready: () => void; save: () => Promise<{ readonly tick: number; readonly ok: boolean }>; probe: () => Promise<{ readonly tickMs: number }>; dispose: () => void }
 
 const SAVE_EVERY_MS = 30_000;
 const column = (name: string): number => ANIMAL_CLASS.row.findIndex(entry => entry.name === name);
@@ -94,7 +95,9 @@ export interface WorkerClientReport {
   /** What the corrections disagreed on. */
   missed: Readonly<NetPlayer['predictor']['missed']>; misses: readonly (readonly number[])[];
 }
-declare global { interface Window { __workerClient?: () => WorkerClientReport; __workerClientSave?: () => Promise<void> } }
+/** A fight as a proof reads it: its row, where its body stands and the server's name for it. */
+export type WorkerClientFight = EncounterRow & { readonly at: { readonly x: number; readonly y: number; readonly z: number } | null; readonly name: string | null };
+declare global { interface Window { __workerClientFights?: () => readonly WorkerClientFight[]; __workerClientHits?: (by: number) => void; __workerClient?: () => WorkerClientReport; __workerClientSave?: () => Promise<void> } }
 
 /** A creature on screen, and the world's manager that holds it: a crossing leaves it behind. */
 interface RowBody { readonly body: Animal; readonly manager: Creatures }
@@ -275,6 +278,15 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     show(`worker client ${report.closed ?? 'open'}\n${report.framesPerSecond.toFixed(1)} fps  ${report.ticksPerSecond.toFixed(1)} ticks/s\ndelay ${report.delayMs.toFixed(0)} ms  jitter ${report.jitterMs.toFixed(1)} ms\ncorrections ${report.corrections} (${report.correctionsPerMinute.toFixed(1)}/min)  worst ${report.worstOffset.toFixed(2)} m\nqueue ${report.queue}  replays/frame ${report.replaysPerFrame.toFixed(2)}\nmain ${report.mainMsP95.toFixed(2)} ms  worker ${report.workerTickMs.toFixed(1)} ms  rows ${report.rows}\nhits ${report.hits}  kills ${report.kills}  refused ${report.refused}  waiting ${report.attacks}  held ${report.held}`);
   } });
   window.__workerClient = () => ({ ...report });
+  window.__workerClientHits = by => { shell.hardHits(by); };
+  window.__workerClientFights = () => {
+    const out: WorkerClientFight[] = [];
+    for (const fight of wirePage.encounters()) {
+      const body = client.latest === null ? null : client.fields(client.latest, fight.body);
+      out.push({ ...fight, at: body === null ? null : { x: Number(body['x']), y: Number(body['y']), z: Number(body['z']) }, name: client.entities.get(fight.body)?.id ?? null });
+    }
+    return out;
+  };
   window.__workerClientSave = save;
 }
 

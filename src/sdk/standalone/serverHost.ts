@@ -16,7 +16,7 @@ import { ServerMessageSchema, ShellMessageSchema, type ProbedRow, type ServerMes
 import type { GridPoint } from '@wildshard/game/grid/assembly';
 import type { HeadlessRuntimeInput } from '../headlessRuntime';
 import { StandaloneGrid } from './gridServer';
-import { isHarnessPlace } from './harnessPlace';
+import { isHarnessHits, isHarnessPlace } from './harnessPlace';
 import { WorkerLoopback } from './workerLoopback';
 
 type Boot = Extract<ShellMessage, { kind: 'boot' }>;
@@ -69,7 +69,7 @@ export function runStandaloneServer(options: StandaloneServerOptions): { dispose
     const { restored } = server;
     if (restored?.ledger !== undefined) book.restore(restored.ledger);
     server.connect(new WorkerLoopback(game));
-    if (options.harness !== undefined) options.harness.onmessage = (event: MessageEvent<unknown>): void => { if (isHarnessPlace(event.data)) server.place(event.data); };
+    if (options.harness !== undefined) options.harness.onmessage = (event: MessageEvent<unknown>): void => { if (isHarnessPlace(event.data)) server.place(event.data); else if (isHarnessHits(event.data)) server.hardHits(event.data.hits); };
     clock = new ServerClock({ now: diagnosticNow, wait: (ms, run) => { const timer = scope.timeout(ms, run); return () => { scope.cancelTimer(timer); }; },
       step: () => { try { server.tick(); } catch (error) { fail(error); } } });
     options.proof?.booted?.(server);

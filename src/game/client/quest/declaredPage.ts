@@ -128,6 +128,8 @@ export function bindDeclaredPage(ctx: ShardContext, input: unknown, resources: P
   for (const row of rows.prompts) {
     const prompt = prompts.get(row.id); if (prompt === undefined) throw new Error('Missing admitted prompt');
     if ('channel' in row) prompt.label = row.label;
+    const interaction = rows.actions.find(action => action.id === row.action)?.interaction;
+    if (interaction !== undefined) prompt.wireId = interaction; // a server knows this one by its row, and judges it there
     prompt.onInteract = () => { run(row.action); };
   }
   for (const row of initial) if (test(state, row.when)) row.run();

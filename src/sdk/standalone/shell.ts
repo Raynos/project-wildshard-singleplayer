@@ -10,7 +10,7 @@ import { saveDocuments } from '@wildshard/engine/saves/indexed';
 import type { SaveStorage } from '@wildshard/engine/saves/store';
 import { ServerMessageSchema, ShellMessageSchema, type ProbedRow, type ServerMessage, type ShellMessage } from '@wildshard/format/standaloneControl';
 import { answerHeldReads, type HeldRead } from './heldReads';
-import type { HarnessPlace } from './harnessPlace';
+import type { HarnessHits, HarnessPlace } from './harnessPlace';
 import { WorkerLoopback } from './workerLoopback';
 
 /** What the server should run and where the page keeps saves. */
@@ -50,6 +50,8 @@ export interface StandaloneShell {
   probe: () => Promise<{ readonly tick: number; readonly tickMs: number; readonly rows: readonly ProbedRow[] }>;
   /** A harness's move of this player: the server's word, so the client snaps with it. */
   place: (x: number, y: number, z: number, yaw: number) => void;
+  /** A harness's word on how hard this player's blows land. */
+  hardHits: (by: number) => void;
   dispose: () => void;
 }
 
@@ -90,6 +92,7 @@ export function connectStandalone(config: StandaloneConfig, control: MessagePort
     save: () => request(id => ({ kind: 'save', id }), message => message.kind === 'saved' ? { tick: message.tick, ok: message.ok } : null),
     probe: () => request(id => ({ kind: 'probe', id }), message => message.kind === 'probed' ? { tick: message.tick, tickMs: message.tickMs, rows: message.rows } : null),
     place: (x, y, z, yaw) => { harness?.postMessage({ x, y, z, yaw } satisfies HarnessPlace, []); },
+    hardHits: by => { harness?.postMessage({ hits: by } satisfies HarnessHits, []); },
     dispose: () => { scope.dispose(); client.dispose(); transport.close('disposed'); control.close(); end(); } };
 }
 
