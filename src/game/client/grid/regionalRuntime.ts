@@ -262,7 +262,8 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
         if (scope.disposed || localPlay === null || !restored) return false;
         // Attempt all owners even after a refusal; neither gameplay death/reset hooks nor a constant true is a save.
         const progress = localPlay.progress.checkpoint(), inventory = localPlay.inventory.checkpoint(), native = foundation.checkpoint();
-        const logical = ports.continuation?.checkpoint(localPlay.animals) ?? true;
+        // On the wire the creatures are the server's rows: its session saves them, and this page's herd is empty.
+        const logical = wirePage.on || (ports.continuation?.checkpoint(localPlay.animals) ?? true);
         return progress && inventory && native && logical;
       };
       const resident: HybridResident = { instance: request.cell.instance, slug: request.cell.slug, declaration, firstParty: true,
@@ -421,7 +422,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
             afterPlay: async entered => {
               if (localPlay === null) throw new Error('Regional play services are not installed');
               // Trusted play can install encounter creatures; validate the complete herd before publishing readiness.
-              ports.continuation?.restore(localPlay.animals);
+              if (!wirePage.on) ports.continuation?.restore(localPlay.animals);
               const equipment = request.page.equipment, weapons = localPlay.weapons;
               await timeClientPreparation(request.cell.slug, 'entry.selection', () => weapons.settleSelection());
               if(owner.disposed||owner.disposing)throw new Error('Regional runtime left while preparing selected equipment');
