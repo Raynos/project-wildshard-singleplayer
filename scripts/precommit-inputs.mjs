@@ -32,6 +32,14 @@ export function missingInventoryGeneration(root, guard) {
   return [...new Set(missing)];
 }
 
+/** Oxlint reads ignore patterns as gitignore does: a folder with no inner slash matches at any depth (`scripts/docs/x`).
+ * @param {string} file @param {string} pattern */
+export function ignoredBy(file, pattern) {
+  if (!pattern.endsWith('/')) return matchesGlob(file, pattern);
+  const folder = pattern.slice(0, -1);
+  return folder.includes('/') ? file.startsWith(pattern) : file.split('/').slice(0, -1).includes(folder);
+}
+
 /** G769/Q4: storage and staged-file typed lint only, within five seconds.
  * @param {string} [root] @param {string} [executable] */
 export async function precommitInputs(root = resolve(import.meta.dirname, '..'), executable = resolve(root, 'node_modules/.bin/oxlint')) {
@@ -42,7 +50,7 @@ export async function precommitInputs(root = resolve(import.meta.dirname, '..'),
   const config = resolve(root, '.oxlintrc.json');
   /** @type {string[]} */
   const ignored = files.length > 0 && existsSync(config) ? readLintConfig(config).ignorePatterns ?? [] : [];
-  const eligible = files.filter(file => !ignored.some(pattern => pattern.endsWith('/') ? file.startsWith(pattern) : matchesGlob(file, pattern)));
+  const eligible = files.filter(file => !ignored.some(pattern => ignoredBy(file, pattern)));
   /** @type {import('./precommit-jobs.mjs').CommitJob[]} */
   const jobs = [];
   if (existsSync(resolve(root, 'scripts/repo-size.mjs'))) jobs.push({ name: 'storage', command: [process.execPath, 'scripts/repo-size.mjs', '--index'] });

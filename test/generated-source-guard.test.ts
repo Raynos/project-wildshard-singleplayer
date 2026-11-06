@@ -11,7 +11,7 @@ import { GENERATED_SOURCE_POLICY, checkGeneratedSourceRevision, checkGeneratedSo
   generatedSourceIncreases, generatedSourcePolicy, sidelessPath } from '../scripts/generated-source.mjs';
 import { unsortedPath } from '../lint/layer-exports.mjs';
 import { commitCheckFailed } from '../scripts/precommit-jobs.mjs';
-import { precommitInputs } from '../scripts/precommit-inputs.mjs';
+import { ignoredBy, precommitInputs } from '../scripts/precommit-inputs.mjs';
 
 const old = 'src/shards/fixture/data/old.generated.json', source = 'a'.repeat(40);
 const policy = (files: string[] = [old]) => generatedSourcePolicy({ schema: 'generated-source/1', source, files });
@@ -109,3 +109,11 @@ test('G656 reviewed app source outputs stay allowed separately from shard output
   expect(checkGeneratedSourceTree(root)).toEqual([]);
 }));
 
+
+test('pre-commit reads a bare ignored folder at any depth, as oxlint does', () => {
+  expect(ignoredBy('scripts/docs/sdk-schemas.mjs', 'docs/')).toBe(true);
+  expect(ignoredBy('docs/note.ts', 'docs/')).toBe(true);
+  expect(ignoredBy('scripts/fixtures/x.ts', 'test/fixtures/')).toBe(false);
+  expect(ignoredBy('test/fixtures/x.ts', 'test/fixtures/')).toBe(true);
+  expect(ignoredBy('src/x.generated.ts', '**/*.generated.*')).toBe(true);
+});
