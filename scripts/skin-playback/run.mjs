@@ -27,7 +27,7 @@ mkdirSync(FRAMES, { recursive: true }); mkdirSync(OUT, { recursive: true });
 const { build } = await import('vite');
 await build({
   configFile: false, root: join(ROOT, 'scripts/skin-playback'), publicDir: false, logLevel: 'warn',
-  define: { __BUILD_ID__: JSON.stringify('skin-playback'), __SAVE_NAMESPACES__: JSON.stringify([]), __DEVSERVER__: 'false', 'process.cwd': '(() => "")' },
+  define: { __BUILD_ID__: JSON.stringify('skin-playback'), __DEVSERVER__: 'false', 'process.cwd': '(() => "")' },
   build: { outDir: DIST, emptyOutDir: true, target: 'es2022', minify: false, reportCompressedSize: false, chunkSizeWarningLimit: 100000 },
 });
 

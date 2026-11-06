@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import { assetTableAddresses, readAssetTables } from './scripts/app-build/assetTables.mjs';
 import { readGridSeams } from './scripts/app-build/gridSeams.mjs';
-import { readdirSync, existsSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { shardfileValidationRevision } from './scripts/shardfile-validation-revision.mjs';
 import { join } from 'node:path';
 import { rapierAlias } from './vite/rapier';
@@ -54,6 +54,6 @@ export default defineConfig(({ mode, command }) => {
       },
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
     resolve: { alias: rapierAlias }, // Rapier's wasm-importing module → plain bindings (vite/rapier.ts)
-    define: { __TITLE_ASSET_URLS__: readFileSync('scripts/title-assets.generated.json', 'utf8'), __GRID_SEAM_ASSET__: JSON.stringify(readGridSeams(process.cwd()).address), __BOOT_TABLE_ASSETS__: JSON.stringify(assetTableAddresses(readAssetTables(process.cwd()))), __GRID_MAP_ATLAS__: JSON.stringify(worldMapDefine()), __SHARDFILE_VALIDATOR__: VALIDATOR_EXPRESSION, __SHARDFILE_VERDICTS__: VERDICTS_EXPRESSION, __DEVSERVER__: mode === 'devserver', __BUILD_ID__: BUILD_ID_EXPRESSION, __SAVE_NAMESPACES__: JSON.stringify(readdirSync('src/shards').filter((slug) => existsSync(join('src/shards', slug, 'manifest.ts'))).sort()) },
+    define: { __TITLE_ASSET_URLS__: readFileSync('scripts/title-assets.generated.json', 'utf8'), __GRID_SEAM_ASSET__: JSON.stringify(readGridSeams(process.cwd()).address), __BOOT_TABLE_ASSETS__: JSON.stringify(assetTableAddresses(readAssetTables(process.cwd()))), __GRID_MAP_ATLAS__: JSON.stringify(worldMapDefine()), __SHARDFILE_VALIDATOR__: VALIDATOR_EXPRESSION, __SHARDFILE_VERDICTS__: VERDICTS_EXPRESSION, __DEVSERVER__: mode === 'devserver', __BUILD_ID__: BUILD_ID_EXPRESSION },
   };
 });

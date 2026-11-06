@@ -14,15 +14,9 @@ import { Preferences } from '@capacitor/preferences';
 
 import { installLegacyMirror } from '../../shared/saves/runtime';
 
-declare const __SAVE_NAMESPACES__: readonly string[];
-const namespaces: readonly string[] = (() => { try { return __SAVE_NAMESPACES__; } catch { return []; } })();
-
-export function isMirroredSave(key: string, knownNamespaces: readonly string[] = namespaces): boolean {
-  if (key.startsWith('ws.ota.')) return true;
-  const prefix = appIdentity().savePrefix;
-  if (!key.startsWith(prefix)) return false;
-  const scope = key.slice(prefix.length);
-  return scope === 'global' || scope === 'profile' || knownNamespaces.includes(scope);
+/** Every scope under the app's prefix is a save document, a shard the catalogue added after this build among them. */
+export function isMirroredSave(key: string): boolean {
+  return key.startsWith('ws.ota.') || key.startsWith(appIdentity().savePrefix);
 }
 
 export function forgetLegacy(keys: readonly string[]): void {

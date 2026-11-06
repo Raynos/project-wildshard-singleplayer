@@ -27,7 +27,7 @@ mkdirSync(SCRATCH, { recursive: true });
 const { build } = await import('vite');
 await build({
   configFile: false, root: join(ROOT, 'scripts/family-props-board'), publicDir: false, logLevel: 'warn',
-  define: { __BUILD_ID__: JSON.stringify('family-props-board'), __SAVE_NAMESPACES__: JSON.stringify([]), __DEVSERVER__: 'false' },
+  define: { __BUILD_ID__: JSON.stringify('family-props-board'), __DEVSERVER__: 'false' },
   build: { outDir: DIST, emptyOutDir: true, target: 'esnext', minify: false, reportCompressedSize: false, chunkSizeWarningLimit: 100000 },
 });
 
