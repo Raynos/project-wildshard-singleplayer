@@ -30,8 +30,13 @@ test('the fenced typed Nalati oracle retains every former assembly byte', async 
   const rows = await nalatiNativeAssembly(), ordered = `${JSON.stringify(rows)}\n`;
   expect(ordered).toBe(encodeCanonicalJson(rows));
   const wire = new TextEncoder().encode(ordered);
-  expect(wire.byteLength).toBe(32350);
-  expect(hashImmutableBytes(wire)).toBe('fc2060b6659b3f8163a1ad393168264e8e3c4e172398bd4b6dcefcac724f2047');
+  // The three lairs' first-kill skins are all this oracle has gained: every former byte holds around them.
+  const skins = /"drop":\{"skin":(?:null|"[^"]*")\},/gu;
+  expect(ordered.match(skins)).toEqual(['"drop":{"skin":"irbis-sabre"},', '"drop":{"skin":null},', '"drop":{"skin":"sky-wolf-bow"},']);
+  const former = new TextEncoder().encode(ordered.replaceAll(skins, ''));
+  expect(wire.byteLength).toBe(32432);
+  expect(former.byteLength).toBe(32350);
+  expect(hashImmutableBytes(former)).toBe('fc2060b6659b3f8163a1ad393168264e8e3c4e172398bd4b6dcefcac724f2047');
 });
 
 test('the fenced typed Nine oracle retains every former constants byte', async () => {
