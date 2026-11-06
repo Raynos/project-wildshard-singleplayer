@@ -600,7 +600,7 @@ export async function fights(browser, phone, base, only, step) {
       const card = page.locator('.ws-gmenu-card.fold').filter({ has: page.locator('.ws-gmenu-cardtitle', { hasText: /^Developer/u }) }).first();
       if (await card.evaluate(node => node.classList.contains('folded'))) await card.locator('.ws-gmenu-cardtitle').click({ timeout: 4000 });
       await page.waitForTimeout(300);
-      const group = card.locator('details:not([open]) summary, [class*="group"]:not(.open) > button').first();
+      const group = card.locator('.ws-dbg-group:not(.open) > .ws-dbg-head').first();
       if (await group.count() > 0) await group.click({ timeout: 2000 }).catch(() => undefined);
       await card.locator('.ws-gmenu-segbtn[data-v="rain"]').first().click({ timeout: 4000 });
       await page.waitForTimeout(300);

@@ -182,18 +182,25 @@ export async function play(browser, phone, base, only = '') {
     await step('pine rides without a page error', () => ({ ok: pine.errors.length === 0, errors: [...new Set(pine.errors)].slice(0, 6) }));
     await pine.context.close();
     const far = await open(browser, phone, base, '/?chunk=far-reach&mute=1&nolock=1');
-    await step('lift: a far reach islet takes a call and rises', async () => {
+    await step('lift: a far reach islet comes to a call, and carries its rider down', async () => {
       await entered(far.page);
-      const prompts = await far.page.evaluate(() => window.__wildshard.world.interactables.filter(prompt => prompt.wireId === undefined && prompt.position.y > -1000 && /islet/iu.test(prompt.label)).map(prompt => ({ x: prompt.position.x, y: prompt.position.y, z: prompt.position.z, label: prompt.label })));
-      const at = prompts.find(prompt => /islet/iu.test(prompt.label));
-      if (at === undefined) return { ok: false, prompts: prompts.slice(0, 8) };
-      await far.page.evaluate(({ x, y, z }) => { window.__wildshard.world.player.link.place(x, y + 0.2, z, 0); }, at);
+      const deckPrompts = label => far.page.evaluate(wanted => window.__wildshard.world.interactables.filter(prompt => prompt.label === wanted && prompt.position.y > 10).map(prompt => ({ x: prompt.position.x, y: prompt.position.y, z: prompt.position.z })), label), height = () => far.page.evaluate(() => window.__wildshard.world.player.position.y);
+      const [call] = await deckPrompts('Call the islet');
+      if (call === undefined) return { ok: false, why: 'no call prompt' };
+      await far.page.evaluate(({ x, y, z }) => { window.__wildshard.world.player.link.place(x, y + 0.2, z, 0); }, call);
       await far.page.waitForTimeout(1500);
-      const height = () => far.page.evaluate(() => window.__wildshard.world.player.position.y), low = await height();
-      for (let i = 0; i < 3; i++) { await far.page.keyboard.press('KeyE'); await far.page.waitForTimeout(400); }
-      await far.page.waitForTimeout(8000);
-      const high = await height(), r = await report(far.page);
-      return { ok: Math.abs(high - low) > 1, low, high, label: at.label, corrections: r.corrections, worst: r.worstOffset, missed: r.missed, refused: r.refused };
+      await far.page.keyboard.press('KeyE');
+      let ride = null;
+      for (let i = 0; i < 40 && ride === null; i++) { await far.page.waitForTimeout(500); ride = (await deckPrompts('Ride the islet')).find(prompt => Math.hypot(prompt.x - call.x, prompt.z - call.z) < 12) ?? null; }
+      if (ride === null) return { ok: false, why: 'the islet never came', call };
+      await far.page.evaluate(({ x, y, z }) => { window.__wildshard.world.player.link.place(x, y + 0.2, z, 0); }, ride);
+      await far.page.waitForTimeout(1000);
+      const high = await height();
+      await far.page.keyboard.press('KeyE');
+      let low = high;
+      for (let i = 0; i < 40; i++) { await far.page.waitForTimeout(500); low = Math.min(low, await height()); if (low < high - 16) break; }
+      const r = await report(far.page);
+      return { ok: high - low > 8, high, low, corrections: r.corrections, worst: r.worstOffset, missed: r.missed, closed: r.closed };
     });
     await step('far reach rides without a page error', () => ({ ok: far.errors.length === 0, errors: [...new Set(far.errors)].slice(0, 6) }));
     await far.context.close();

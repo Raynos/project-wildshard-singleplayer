@@ -31,8 +31,14 @@ test('a grid player below the floor dies of the fall', () => {
   expect(player.resetPose).not.toHaveBeenCalled();
 });
 
+test('a player standing below the floor is not falling: a deck takes its rider past it', () => {
+  const floor = new FallFloor(12, false, SPAWN), player = body(5);
+  expect(step(floor, player)).toBe(0);
+  expect(player.resetPose).not.toHaveBeenCalled();
+});
+
 test('a body the server carries is left alone', () => {
-  const floor = new FallFloor(12, true, SPAWN), player = { ...body(5), led: true };
+  const floor = new FallFloor(12, true, SPAWN), player = { ...body(5, false), led: true };
   expect(step(floor, player)).toBe(0);
   expect(player.resetPose).not.toHaveBeenCalled();
 });

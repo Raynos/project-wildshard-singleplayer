@@ -19,7 +19,7 @@ export class FallFloor {
   step(player: Body, die: () => void): void {
     if (player.led) { this.since = 0; return; }
     const { position } = player;
-    if (position.y < this.floor) {
+    if (position.y < this.floor && !player.fall.grounded) { // a deck going down to the road carries its rider past it, standing
       this.since = 0;
       if (this.soft) player.resetPose(this.spot ?? this.start, player.yaw); else die();
       return;
