@@ -53,6 +53,8 @@ import { netBuys, netWorldInput, stepResident } from './netInput';
 export const STANDALONE_RESIDENTS = 1;
 /** A deck that covers the whole grid, and a player's pace on it. */
 const ROAD_HALF_SIZE = 2000, ROAD_SPEED = 8;
+/** Samples a side of the road's flat ground. */
+const ROAD_GROUND = 257;
 /** How far past a cell's edge the deck runs in that cell's own world: past the 10 m leave band, with room to stop. */
 const RIM = 16;
 /** Below this a player has left a cell's world: what a page's grid recovery falls back to where a shard declares no floor. */
@@ -261,7 +263,7 @@ export class StandaloneGrid {
 
   private static road(rapier: Rapier, cells: readonly GridCell[], saved: string | undefined, arrival: Readonly<GridPoint> | undefined): SimHost {
     if (saved !== undefined) return restoreSimHost(ROAD, { rapier }, decodeSimSnapshot(saved));
-    const road = createSimHost(ROAD, { rapier });
+    const road = createSimHost(ROAD, { rapier, groundResolution: ROAD_GROUND }); // two triangles 4 km across let a capsule sink 22 cm, and every step on the road corrected
     addCellWalls(road, cells);
     if (arrival !== undefined) { const player = sessionPlayer(road); player.position.set(arrival.x, arrival.y, arrival.z); player.motor.resetAt(player.position); }
     return road;

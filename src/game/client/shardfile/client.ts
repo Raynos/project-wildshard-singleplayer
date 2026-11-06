@@ -481,7 +481,7 @@ export class ShardfileClient {
         if (!(clock instanceof DayCycle)) throw new Error('Director requires the rendered declared look clock');
         return clock;
       },
-      fixedStep: clientSimStep({ scope: ctx.scope, app: ctx.app, active: () => simulationActive && !installing, freeCamera: () => world.freeCamera, system: ctx.system }), hud: ui,
+      fixedStep: clientSimStep({ scope: ctx.scope, app: ctx.app, active: () => simulationActive && !installing && !wirePage.on, freeCamera: () => world.freeCamera, system: ctx.system }), hud: ui,
       quest: { fact: (name, entity) => { if (!wirePage.on) fact(name, entity, 'quest.complete'); }, coins: (amount, entity) => {
         if (wirePage.on) return; // the server pays, and its ledger reaches the page
         if (loot?.purse !== null && loot?.purse !== undefined) { loot.purse.add(amount); return; }
