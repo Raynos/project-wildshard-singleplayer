@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // nine-dragon-budget.mjs — E169 P0-5c, the Nine Dragon Stack partial shard's phone budget ruler
-// (art/nine-dragon-stack/budget.md holds the caps). Serve a build (`vite preview`, or the dev server) and run:
+// (src/shards/nine-dragon-stack/art/budget.md holds the caps). Serve a build (`vite preview`, or the dev server) and run:
 //
 //   node scripts/nine-dragon-budget.mjs [--url=http://localhost:4173] [--totals]
 //
