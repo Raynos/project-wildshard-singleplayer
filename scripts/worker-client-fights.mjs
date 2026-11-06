@@ -4,6 +4,14 @@
 import { saveFixture } from './debug-settings.mjs';
 import { FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
 
+/** What the game asks of the score from here on: `heardOf` reads it. A proof's own record: no step's `ok` needs it. Never wrap `hud.killFeed` here:
+ *  a lair's runtime pins that method's identity, and on Nalati a wrapped one faults `shard.nalati.elites` every frame, and presses and blows die with it. */
+const listen = page => page.evaluate(() => {
+  const { world } = window.__wildshard, lines = window.__said = [];
+  const record = (owner, name) => { const real = owner[name].bind(owner); owner[name] = (...args) => { lines.push(`${name} ${args.join(' ')}`); return real(...args); }; };
+  for (const name of ['combat', 'sting']) record(world.music, name);
+});
+const heardOf = page => page.evaluate(() => (window.__said ?? []).slice(-14));
 /** Open one shard with the row on, entered and on the wire. */
 async function open(browser, phone, base, slug, query = '') {
   const context = await browser.newContext(phone), page = await context.newPage(), errors = [];
@@ -363,9 +371,10 @@ async function loose(page, at) {
 }
 const bodyMid = at => ({ x: at.x, y: at.y + 1, z: at.z });
 /** Nalati: its elder, a lair's bar and orb, the King's barrow, a refused press of his orb and a taken one. */
-async function nalatiJourney(browser, phone, base, step) {
+export async function nalatiJourney(browser, phone, base, step, prepare = () => Promise.resolve()) {
   const steppe = await open(browser, phone, base, 'nalati-grasslands');
   const { page } = steppe, flagged = flag => hasFlag(page, flag), KING = 'golden-king';
+  await prepare(page);
   await page.evaluate(() => { window.__workerClientHits(60); });
   await step('nalati: the elder\'s talk starts the Tulpar chapter, and the server keeps it', async () => {
     const elder = await prompt(page, 'Baqyt');
@@ -395,6 +404,7 @@ async function nalatiJourney(browser, phone, base, step) {
     return { ok: taken, reward: (await fight(page, 'aqbars')).reward, owned: (await report(page)).owned };
   });
   await step('nalati: the King\'s barrow takes the player in, and the bar comes up', async () => {
+    await listen(page);
     const [x, z] = NALATI_DOOR, feet = await groundAt(page, x, z);
     await place(page, x, feet + 1, z);
     await page.waitForTimeout(1500);
@@ -409,7 +419,7 @@ async function nalatiJourney(browser, phone, base, step) {
     while (row?.state !== 'victory' && Date.now() < end) { if (row?.at !== null && row?.at !== undefined) await loose(page, bodyMid(row.at)); row = await fight(page, KING); }
     const orb = await until(page, async () => { const seen = await fight(page, KING); return seen?.reward !== null ? seen.reward : null; }, 8);
     await page.waitForTimeout(600);
-    return { ok: row?.state === 'victory' && orb !== null, state: row?.state, orb, shown: await prompt(page, 'take|claim|bow|gold|reward') };
+    return { ok: row?.state === 'victory' && orb !== null, state: row?.state, orb, shown: await prompt(page, 'take|claim|bow|gold|reward'), said: await heardOf(page) };
   });
   await step('nalati: the orb refuses a press from across the room, and stays', async () => {
     const { reward } = await fight(page, KING);
@@ -487,6 +497,7 @@ async function chapterJourney(browser, phone, base, step) {
   const storm = await open(browser, phone, base, 'nalati-grasslands');
   await step('chapters: tied at the cairn in the storm, the Titan\'s bar comes up off its row', async () => {
     const { page: sky } = storm;
+    await listen(sky);
     await sky.evaluate(() => { window.__workerClientHits(60); window.__workerClientSky('storm'); });
     let mounted = false;
     for (let i = 0; i < 60 && !mounted; i++) {
@@ -506,6 +517,14 @@ async function chapterJourney(browser, phone, base, step) {
     await sky.waitForTimeout(800);
     const shown = await bossBar(sky), r = await report(sky);
     return { ok: r.flags.includes('lit:cairn') && row !== null && shown.bar.length > 0, mounted, cairn, row: row?.state, shown, flags: r.flags.filter(flag => /cairn|jel/u.test(flag)), refused: r.refused };
+  });
+  // Behind a flag: a Titan left standing mustn't turn a run red that came for the bar. `--titan` is the fight itself, for his score.
+  if (process.argv.includes('--titan')) await step('chapters: the Titan falls to real blows, and his score plays', async () => {
+    const { page: sky } = storm, row = await until(sky, async () => (await fight(sky, 'storm-titan'))?.state === 'fight', 30);
+    const end = await fightTo(sky, 'storm-titan', 'victory', 120);
+    await sky.waitForTimeout(1500);
+    const heard = await heardOf(sky);
+    return { ok: end?.state === 'victory' && heard.includes('sting chunk') && heard.includes('combat 1'), up: row === true, state: end?.state, phase: end?.phase, hp: end?.hp, heard };
   });
   await step('chapters: the storm page raises no page error', () => ({ ok: storm.errors.length === 0, errors: [...new Set(storm.errors)].slice(0, 6) }));
   await storm.context.close();

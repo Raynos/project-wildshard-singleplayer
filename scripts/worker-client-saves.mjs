@@ -40,7 +40,10 @@ const seed = async context => {
 };
 async function enter(page, at = url()) {
   await page.goto(at, { waitUntil: 'load' });
-  await page.waitForFunction(() => window.__wildshard?.world?.player !== undefined, undefined, { timeout: 150_000 });
+  if (process.argv.includes('--grid')) { // a grid page stops at its title until the card is pressed
+    await page.locator('.ws-main-grid').click({ timeout: 60_000 });
+    await page.waitForFunction(() => window.__wildshard?.shard?.grid?.state().live?.live?.gameplayReady, undefined, { timeout: 90_000 });
+  } else await page.waitForFunction(() => window.__wildshard?.world?.player !== undefined, undefined, { timeout: 150_000 });
   await page.waitForFunction(() => typeof window.__workerClient === 'function', undefined, { timeout: 150_000 });
   await page.evaluate(FLOOR_GRID_ENTER);
   await page.waitForFunction(() => window.__workerClient().frames > 30 && window.__workerClient().flags !== undefined, undefined, { timeout: 60_000 });

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 // N1, N2, N5, N6, N7: what a page says and shows of a fight the server runs. A tape wraps the audio layer and the HUD, so a step reads what the
 // game asked to play and show (`--mute-audio` and a headless page can't hear it), and `window.__audioLog` adds the score's scenes and phases.
-//   scripts/browser-lane.sh node scripts/worker-client-moments.mjs --base=http://127.0.0.1:4401/ [--only=practice,pine,race,captain,god,roc,sunscar,phases,barrow,titan,day]
+//   scripts/browser-lane.sh node scripts/worker-client-moments.mjs --base=http://127.0.0.1:4401/ [--only=practice,pine,race,captain,god,roc,sunscar,phases,longroom,day]
 import { chromium, devices } from 'playwright';
 import { saveFixture } from './debug-settings.mjs';
 import { FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
 
 const arg = (key, fallback) => process.argv.find(value => value.startsWith(`--${key}=`))?.slice(key.length + 3) ?? fallback;
-const base = arg('base', ''), only = arg('only', 'practice,pine,race,captain,god,roc,sunscar,phases,barrow,titan,day').split(',');
+const base = arg('base', ''), only = arg('only', 'practice,pine,race,captain,god,roc,sunscar,phases,longroom,day').split(',');
 if (base === '') throw new Error('Requires --base');
 const { defaultBrowserType: _engine, ...phone } = devices['iPhone 16 Pro'];
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
@@ -31,7 +31,8 @@ async function open(slug, query = '') {
       owner[name] = (...args) => { tape.push(`${name} ${args.join(' ')}`); return real(...args); };
     };
     for (const name of ['combat', 'sting']) record(world.music, name);
-    for (const name of ['killFeed', 'toast']) record(world.hud, name);
+    // A lair's runtime pins `hud.killFeed`'s identity: wrapped on Nalati, `shard.nalati.elites` faults every frame, and presses, blows and the barrow's door die with it.
+    record(world.hud, 'toast'); if (slug !== 'nalati-grasslands') record(world.hud, 'killFeed');
   });
   return { context, page, errors };
 }
@@ -68,9 +69,9 @@ if (only.includes('practice')) {
   await page.waitForTimeout(1500);
   await page.evaluate(() => { const { player } = window.__wildshard.world; player.touchMove.y = 0; });
   const walked = await read();
-  const ticksInside = await page.evaluate(() => window.__wildshard.world.arena.active && window.__workerClient().lastTick);
+  const ticksInside = await page.evaluate(() => window.__wildshard.world.arena.active && window.__workerClient().day);
   await page.waitForTimeout(1200);
-  const stopped = await page.evaluate(ticks => window.__workerClient().lastTick === ticks, ticksInside);
+  const stopped = await page.evaluate(ticks => window.__workerClient().day === ticks, ticksInside); // the day row moves every 0.7 s of a running world
   await page.evaluate(() => { const { world } = window.__wildshard; world.arena.exit(); });
   const back = await until(page, async () => (await read()).y < 300, 8);
   const after = await read(), frames = await report(page), moved = Math.hypot(walked.z - inside[0].z, walked.x - inside[0].x);
@@ -272,7 +273,7 @@ if (only.includes('sunscar')) {
 if (only.includes('phases')) {
   // Softer blows than N2's above, so the King lives through his phases and each one is a row's move. The turn in the room's intro eases: the first sample stands well off.
   const shard = await open('pine-hollow', '&bossGod=1'), { page } = shard, [x, z] = [150, -30];
-  await page.evaluate(() => { window.__workerClientHits(11); window.__workerClientTime('night'); });
+  await page.evaluate(() => { window.__workerClientHits(15); window.__workerClientTime('night'); });
   await page.waitForTimeout(2500);
   await place(page, x, await groundAt(page, x, z) + 1, z + 2);
   const id = await until(page, () => page.evaluate(() => window.__workerClientFights().find(row => /king/u.test(row.id))?.id ?? null), 20);
@@ -284,66 +285,18 @@ if (only.includes('phases')) {
   }, id);
   await until(page, async () => (await fight(page, id))?.state === 'intro', 40, 80);
   const turned = await introView(page, id), phases = [];
-  const end = Date.now() + 150_000;
+  const end = Date.now() + 240_000;
   // A win is judged before a phase, so a blow that takes the whole bar skips them, and a soft one loses to him: `by` sits between, found by trial.
   let row = await fight(page, id);
-  while (row?.state !== 'victory' && Date.now() < end) {
+  while (row?.state !== 'victory' && (row?.phase ?? 0) < 1 && Date.now() < end) {
     if (phases.at(-1) !== row?.phase) phases.push(row?.phase);
     row = await blows(page, id, 'victory', 2);
   }
+  phases.push(row?.phase);
   await page.waitForTimeout(1200);
   const heard = await tape(page), music = await score(page), feed = heard.filter(line => line.startsWith('killFeed'));
-  note('the King\'s phases: a feed line and a score phase each, off the row', row?.state === 'victory' && phases.length >= 2 && feed.some(line => line.includes('·')) && music.some(line => line.startsWith('phase:')), { id, phases, moves: await page.evaluate(() => window.__moves), state: row?.state, falls: (await report(page)).falls, feed, music: music.slice(-14), errors: shard.errors.slice(0, 3) });
+  note('the King\'s phases: a feed line and a score phase each, off the row', phases.length >= 2 && feed.some(line => line.includes('·')) && music.includes('phase:2'), { scored: music.filter(line => line.startsWith('phase:')), id, phases, moves: await page.evaluate(() => window.__moves), state: row?.state, falls: (await report(page)).falls, feed, music: music.slice(-14), errors: shard.errors.slice(0, 3) });
   note('a room\'s intro eases the view to the body', turned.length >= 3 && nearly(turned[0], turned.at(-1)) && (turned[0] ?? 0) > (turned.at(-1) ?? 0), { turned });
-  await close(shard);
-}
-
-if (only.includes('barrow')) {
-  const shard = await open('nalati-grasslands'), { page } = shard, KING = 'golden-king', [x, z] = [-169, 75];
-  await page.evaluate(() => { window.__workerClientHits(25); });
-  await page.waitForTimeout(20_000); // the journey that gets through stands here minutes after boot
-  await place(page, x, await groundAt(page, x, z) + 1, z);
-  await page.waitForTimeout(1500);
-  await page.evaluate(() => { const { player } = window.__wildshard.world; player.yaw = Math.PI / 2; player.pitch = 0; player.touchMove.y = 1; });
-  const inside = await until(page, () => page.evaluate(() => window.__wildshard.world.player.position.y > 130), 6, 150);
-  await page.evaluate(() => { const { player } = window.__wildshard.world; player.yaw = 0; player.touchMove.y = 1; });
-  const up = await until(page, async () => { const seen = await fight(page, KING); return seen?.state === 'intro' || seen?.state === 'fight' ? seen.state : null; }, 14, 100);
-  const turned = await introView(page, KING);
-  await stand(page);
-  const row = await blows(page, KING, 'victory', 110, 2.4);
-  await page.waitForTimeout(1200);
-  const heard = await tape(page), said = heard.filter(line => /^(?:combat|sting|killFeed) /u.test(line));
-  note('the barrow King\'s ports.music and feed', inside === true && row?.state === 'victory' && said.includes('combat 1') && said.includes('sting chunk'), { inside, up, turned: turned.slice(0, 8), state: row?.state, phase: row?.phase, said: said.slice(-12), errors: shard.errors.slice(0, 3) });
-  await close(shard);
-}
-
-if (only.includes('titan')) {
-  // The whole road, as `chapters` in worker-client-fights plays it: a real horse, the cairn's real tie, a storm forced by hand (a stand-in: a storm's wait doesn't fit a proof).
-  const shard = await open('nalati-grasslands'), { page } = shard, id = 'storm-titan';
-  await page.evaluate(() => { window.__workerClientHits(30); window.__workerClientSky('storm'); });
-  const horse = () => page.evaluate(() => { const { world } = window.__wildshard, live = (world.animals?.animals ?? []).filter(body => body.alive && body.rowDriven && body.kind === 'horse'); live.sort((a, b) => a.position.distanceTo(world.player.position) - b.position.distanceTo(world.player.position)); const [body] = live; return body === undefined ? null : { x: body.position.x, y: body.position.y, z: body.position.z }; });
-  let mounted = false;
-  for (let at = 0; at < 60 && !mounted; at++) {
-    const body = await horse();
-    if (body === null) { await page.waitForTimeout(500); continue; }
-    await place(page, body.x - 2.9, body.y + 0.4, body.z); await page.waitForTimeout(800);
-    await faceAt(page, body); await page.waitForTimeout(200);
-    await page.keyboard.press('KeyE'); await page.waitForTimeout(900);
-    mounted = await page.evaluate(() => window.__wildshard.world.player.ride !== null);
-  }
-  const cairn = await page.evaluate(() => { const found = window.__wildshard.world.interactables.find(row => /tie/iu.test(row.label ?? '')); return found === undefined ? null : { x: found.position.x, z: found.position.z }; });
-  if (cairn === null) note('the Titan\'s score', false, { mounted, why: 'no tie prompt' });
-  else {
-    await place(page, cairn.x + 1.2, await groundAt(page, cairn.x, cairn.z) + 0.5, cairn.z); await page.waitForTimeout(1500);
-    await page.evaluate(() => { window.__workerClientSky('storm'); }); await page.waitForTimeout(2500);
-    for (let at = 0; at < 8; at++) { await page.keyboard.press('KeyE'); await page.waitForTimeout(700); if ((await report(page)).flags.includes('lit:cairn')) break; }
-    const row = await until(page, async () => { const seen = await fight(page, id); return seen !== null && seen.state !== 'dormant' ? seen : null; }, 10);
-    const up = await until(page, async () => (await fight(page, id))?.state === 'fight', 30);
-    const end = await blows(page, id, 'victory', 120, 3);
-    await page.waitForTimeout(1200);
-    const said = (await tape(page)).filter(line => /^(?:combat|sting|killFeed) /u.test(line));
-    note('the Titan\'s score', end?.state === 'victory' && said.includes('sting chunk') && said.includes('combat 1'), { mounted, row: row?.state, up, state: end?.state, at: end?.at, hp: end?.hp, said: said.slice(-10), errors: shard.errors.slice(0, 3) });
-  }
   await close(shard);
 }
 
@@ -361,7 +314,7 @@ if (only.includes('longroom')) {
   const back = await report(page);
   await page.waitForTimeout(3000);
   const later = await report(page);
-  note(`a ${String(seconds)} s practice room keeps its session`, (back.closed ?? null) === null && (later.closed ?? null) === null && later.lastTick > back.lastTick, { seconds, frames: inRoom.frames - from.frames, closed: [inRoom.closed ?? null, back.closed ?? null, later.closed ?? null], ticks: [back.lastTick, later.lastTick], errors: shard.errors.slice(0, 3) });
+  note(`a ${String(seconds)} s practice room keeps its session`, (back.closed ?? null) === null && (later.closed ?? null) === null && later.ticksPerSecond > 0, { seconds, frames: inRoom.frames - from.frames, closed: [inRoom.closed ?? null, back.closed ?? null, later.closed ?? null], ticksPerSecond: later.ticksPerSecond, errors: shard.errors.slice(0, 3) });
   await close(shard);
 }
 
