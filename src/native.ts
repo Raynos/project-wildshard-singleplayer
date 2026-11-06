@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-unassigned-import -- The sim's Math goes in before any module body runs.
+import '@wildshard/engine/core/portableMathFirst';
 /**
  * Native entry (docs/plans/NATIVE-APPS.md): `vite build --mode native` swaps index.html's web boot for this module
  * (vite.config.ts `nativeHtml`). The engine's native boot (saves, the over-the-air bundle, lifecycle) runs first, then
