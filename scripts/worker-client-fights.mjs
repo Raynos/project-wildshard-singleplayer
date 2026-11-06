@@ -587,8 +587,7 @@ export async function fights(browser, phone, base, only, step) {
       const row = await fight(pine.page, id), { reward } = row;
       await place(pine.page, reward.x + 0.6, reward.y - 0.6, reward.z + 0.6);
       await pine.page.waitForTimeout(1200);
-      await press(pine.page);
-      const taken = await until(pine.page, async () => (await fight(pine.page, id)).reward === null, 5);
+      const taken = await pressUntil(pine.page, async () => (await fight(pine.page, id)).reward === null, 6); // a press is judged a command behind, as on a phone
       await pine.page.waitForTimeout(2200);
       return { ok: taken && await prompt(pine.page, 'skin') === null, taken };
     });

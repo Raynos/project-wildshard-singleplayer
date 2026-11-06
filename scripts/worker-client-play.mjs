@@ -302,10 +302,11 @@ export async function play(browser, phone, base, only = '') {
       if ((r.owned.coins ?? 0) > 0) { await grid.page.waitForTimeout(800); const shown = await purse(); return { ok: shown === (await report(grid.page)).owned.coins, before, shown, owned: (await report(grid.page)).owned }; }
       const body = await grid.page.evaluate(() => { const list = window.__workerClientRows('boar'), { x, z } = window.__wildshard.shard.grid.state().live.live.worldFeet; return [...list].sort((a, b) => Math.hypot(a.x - x, a.z - z) - Math.hypot(b.x - x, b.z - z))[0] ?? null; });
       if (body === null) { await grid.page.waitForTimeout(400); continue; }
-      await grid.page.evaluate(({ x, y, z }) => { const { player, game } = window.__wildshard.world; player.link.place(x + 1.2, y + 0.5, z + 1.2, 0); game.app.input.press('attack'); }, body);
-      await grid.page.waitForTimeout(350);
-      await grid.page.evaluate(() => { const { player, game } = window.__wildshard.world; player.yaw = Math.atan2(1.2, 1.2); player.pitch = -0.2; game.app.input.press('attack'); });
-      await grid.page.waitForTimeout(450);
+      await grid.page.evaluate(({ x, y, z }) => { window.__wildshard.world.player.link.place(x + 0.8, y + 0.3, z + 0.8, 0); }, body);
+      await grid.page.waitForTimeout(400);
+      // the touch disc's own call: a page with no pointer lock has no mouse press to send
+      await grid.page.evaluate(() => { const { player, game } = window.__wildshard.world; player.yaw = Math.atan2(0.8, 0.8); player.pitch = -0.3; game.app.equipment.current.tryFire(); });
+      await grid.page.waitForTimeout(500);
     }
     return { ok: false, owned: (await report(grid.page)).owned, hits: (await report(grid.page)).hits };
   });
