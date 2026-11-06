@@ -13,6 +13,9 @@ import { readDirectorProduct } from '../../shared/plugin/director';
 import { enteredCompletion } from '../complete/declared';
 import { boundQuestChapter } from './chapter';
 import { commitQuestEffects } from '../../shared/quest/effects';
+import { spawnCueWord } from '../../shared/shardfile/wirePrompts';
+import type { Flags } from '@wildshard/engine/world/interact/flags';
+import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import { QuestRewardController } from '../../shared/plugin/quests';
 import { parseQuestSpawnPage, parseQuestLeadPage, QuestLeadPageSchema, type QuestSpawnPageRows, type QuestLeadPageRows } from '@wildshard/format/questSteps';
 import * as v from 'valibot';
@@ -146,6 +149,24 @@ export interface QuestSpawnResult {
   takePuffs: () => readonly { readonly x: number; readonly y: number; readonly z: number }[];
 }
 
+/** A server's spawns on this page: its cues as it says them, and what a finished script shows as its flag rises. A save's flag is no news. */
+function wiredQuestSpawns(ctx: ShardContext, rows: QuestSpawnPageRows, flags: Flags, bank: DeclaredSoundBank): QuestSpawnResult {
+  let puffs: { readonly x: number; readonly y: number; readonly z: number }[] = [];
+  const word = spawnCueWord(rows.script), complete = new Map(rows.complete.map(row => [row.flag, row.effects]));
+  wirePage.whenLive(ctx.scope, client => client.onView(({ name, args }) => {
+    if (name !== word) return;
+    const [id, x = 0, y = 0, z = 0] = args, cue = rows.cues.find(row => row.id === id);
+    if (cue?.kind === 'sound') bank.shot(cue.name, { at: { x, y, z } });
+    else if (cue?.kind === 'puff' && puffs.length < 64) puffs.push({ x, y, z });
+  }));
+  ctx.scope.onDispose(flags.onChange((flag, on) => {
+    const effects = complete.get(flag);
+    if (on && effects !== undefined && wirePage.settled) commitQuestEffects(ctx, rows.quest, effects.filter(effect => effect.kind === 'toast' || effect.kind === 'sting')); // the flag is the server's
+  }));
+  ctx.scope.onDispose(() => { puffs.length = 0; });
+  return { puffs: rows.puffs, count: 0, force: () => undefined, takePuffs: () => { const out = puffs; puffs = []; return out; }, update: () => undefined };
+}
+
 /** Construct only after the entry has published its quest, animal and sound
  * loans. The complete named runtime contributes .spawns; there is no selector. */
 export async function installDeclaredQuestSpawns(ctx: ShardContext, capability: QuestSpawnCapability, spawns: PageSimFeed['spawnScript']): Promise<QuestSpawnResult> {
@@ -159,7 +180,7 @@ export async function installDeclaredQuestSpawns(ctx: ShardContext, capability: 
   const rows = parseQuestSpawnPage(runtime.spawns);
   if (boundQuestState(ctx.scope, rows.quest).flags !== quest.flags) throw new Error('Quest spawn loan differs from its bound quest');
   // The server directs these spawns, and they arrive as rows.
-  if (wirePage.on) return { puffs: rows.puffs, count: 0, force: () => undefined, takePuffs: () => [], update: () => undefined };
+  if (wirePage.on) return wiredQuestSpawns(ctx, rows, quest.flags, bank);
   const source = await spawns.read(ctx.product, rows.script);
   if (ctx.scope.disposed || ctx.scope.disposing || ctx.product !== product) throw new Error('Quest left during spawn director admission');
   if (entryOwner(ctx.scope, 'quest', capability.quest) !== quest || entryOwner(ctx.scope, 'animals', capability.animals) !== animals

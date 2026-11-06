@@ -93,6 +93,8 @@ export class WirePage {
     const run: Live = next => { const off = use(next); if (off !== undefined) scope.onDispose(off); return undefined; };
     this.waiting.add(run); scope.onDispose(() => { this.waiting.delete(run); });
   }
+  /** Past this world's first frame. Until then a flag that rises only says where a save stood. */
+  get settled(): boolean { const cell = this.client?.latest?.cell; return cell !== undefined && this.seeded === cell; }
   /** Every flag book this page makes from now on follows the server's. */
   followBooks(): void { Flags.made = book => { this.books.add(book); book.follow(flag => { if (flag.startsWith('seen:')) { this.send(flag); return; } if (flag.startsWith(TALKED)) this.send(`${flag.slice(TALKED.length)}.talk`); this.send(`${STORY_ACT}${flag}`); }); }; }
   /** The wire is up. `press` sends one `interact`. */

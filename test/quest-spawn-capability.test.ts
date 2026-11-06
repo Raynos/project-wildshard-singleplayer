@@ -17,6 +17,9 @@ import * as spawn from '../src/game/server/population/spawnScript';
 import { compileDecisionScripts } from '../src/sharddev/buildDecisionScripts';
 import { parseSpawnScript, spawnScriptRegistries, type SpawnScriptRows } from '@wildshard/format/spawnScripts';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
+import type { NetClient } from '../src/engine/client/net/client';
+import { wirePage } from '../src/game/client/shardfile/wirePage';
+import { spawnCueWord } from '../src/game/shared/shardfile/wirePrompts';
 
 let program: SpawnScriptRows | undefined;
 beforeAll(async () => {
@@ -67,6 +70,27 @@ for (const kind of ['quest', 'animals', 'sounds'] as const) test(`declared spawn
   await expect(installDeclaredQuestSpawns(f.ctx, f.capability, pageSimFeed.spawnScript)).rejects.toThrow('Missing live entry owner');
   expect(f.read).not.toHaveBeenCalled(); expect(f.events).toEqual([]);
 });
+// N1: on the wire the server directs the script. This page plays what it says, and shows a finish as its flag rises.
+test('on the wire a script\'s cues and its finish show once, and a save\'s flag is no news', async () => {
+  const on = Object.getOwnPropertyDescriptor(wirePage, 'on'), settled = vi.spyOn(wirePage, 'settled', 'get').mockReturnValue(false);
+  Object.defineProperty(wirePage, 'on', { get: () => true, configurable: true });
+  const f = fixture(), views = new Set<(view: { name: string; args: readonly number[] }) => void>();
+  wirePage.bind(legacyDouble<NetClient>({ onView: view => { views.add(view); return () => { views.delete(view); }; } }), () => undefined, () => undefined, () => false);
+  const say = (args: readonly number[], name = spawnCueWord('marsh.spawn')): void => { for (const view of views) view({ name, args }); };
+  try {
+    const result = await installDeclaredQuestSpawns(f.ctx, f.capability, pageSimFeed.spawnScript);
+    expect(f.read, 'no guest on a page on the wire').not.toHaveBeenCalled();
+    const shown = (): string[] => f.events.filter(event => event !== 'flag');
+    f.flags.set('done:watch'); expect(shown(), 'a save opened with it').toEqual([]);
+    f.flags.clear('done:watch'); settled.mockReturnValue(true);
+    say([2, 1, 2, 3]); say([1, 4, 5, 6]); say([9, 0, 0, 0]); say([1, 7, 8, 9], spawnCueWord('another'));
+    expect(shown()).toEqual(['sound']); expect(result.takePuffs()).toEqual([{ x: 4, y: 5, z: 6 }]); expect(result.takePuffs()).toEqual([]);
+    f.flags.set('done:watch'); expect(shown()).toEqual(['sound', 'complete']);
+    f.flags.set('done:watch'); expect(shown()).toEqual(['sound', 'complete']);
+    f.scope.dispose(); say([2, 0, 0, 0]); expect(views.size).toBe(0);
+  } finally { wirePage.unbind(); if (on === undefined) Reflect.deleteProperty(wirePage, 'on'); else Object.defineProperty(wirePage, 'on', on); }
+});
+
 test('declared spawn effects retain completion-before-cues order and stop with their owner', async () => {
   const f = fixture(), result = await installDeclaredQuestSpawns(f.ctx, f.capability, pageSimFeed.spawnScript);
   // Decisions stage at tick 6 and commit on the next native tick.

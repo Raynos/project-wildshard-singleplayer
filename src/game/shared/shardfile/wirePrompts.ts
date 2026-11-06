@@ -7,6 +7,8 @@ export const ROAMING_VIEW = { roar: 'roaming.roar', burst: 'roaming.burst', haza
 /** A hazard's beats, as `ROAMING_VIEW.hazard` numbers them. */
 export const ROAMING_HAZARD_EVENTS = ['drop', 'fall', 'land', 'burn', 'out', 'placed'] as const;
 /** The view calls an elite's ground tells go by. */
+/** The word a server's spawn script says its cues under: a cue's id, then where it landed. */
+export const spawnCueWord = (script: string): string => `spawn.cue:${script}`;
 export const ELITE_TELL = { lane: 'elite.tell.lane', ring: 'elite.tell.ring', cue: 'elite.cue', hit: 'elite.hit' } as const;
 /** One slot of a thrown volley, as a script row. */
 export const volleyRow = (owner: string, slot: number): string => `volley.${owner}.${String(slot)}`;

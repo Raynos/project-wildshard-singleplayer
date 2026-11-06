@@ -6,6 +6,8 @@ import { readEliteOutputV2,ELITE_OUTPUT_OPERATION,type EliteOutput } from '@wild
 import { readV2WorldAction,V2_ACTION_OPS,type V2ActionBinding,type V2WorldAction } from '@wildshard/format/scriptActionsV2';
 import { prepareV2WorldActions,type V2WorldActionLoan } from '../../shared/shardfile/worldActionsV2';
 import * as v from 'valibot';
+import { sayFightView } from '@wildshard/engine/sim/shardRows';
+import { spawnCueWord } from '../../shared/shardfile/wirePrompts';
 import { OwnedSimBatchV2,type OwnedV2Binding,type OwnedV2Frame } from '@wildshard/engine/script/ownedSimBatchV2';
 import { ObservationColumnsV2,type V2ColumnOwners } from '@wildshard/engine/script/observationColumnsV2';
 import { layoutV2 } from '@wildshard/format/scriptWireV2';
@@ -769,11 +771,13 @@ export function installNativeSpawnScript(host: SimHost, day: Pick<DayCycleClock,
   const rows = parseSpawnScript(input), runner = SpawnScript.native(host, rows,v2Owners,worldActions,queries);
   // A quiet re-save preserves the validated input wire until the first simulation step.
   let restored: SimValue | undefined;
+  const word = spawnCueWord(rows.step);
   host.onStep(rows.step, dt => {
     restored = undefined;
     runner.advance(dt, host.nearestPlayer(runner.standing ?? host.playerFocus).position, day.night, rows.maximum, rows.flags.filter(flag => host.flags.has(flag)));
     for (const flag of rows.flags) if (runner.hasFlag(flag) !== host.flags.has(flag)) host.flags.set(flag, runner.hasFlag(flag));
-    runner.drainEffects();
+    // A page plays these: a thrall's call and its puff are this script's only voice.
+    for (const effect of runner.drainEffects()) if (effect.kind === 'cue') sayFightView(host, word, [effect.id, effect.at.x, effect.at.y, effect.at.z]);
   }, { snapshot: () => restored ?? runner.snapshot(), restore: saved => { runner.restore(saved); restored = structuredClone(saved); } });
   return runner;
 }
