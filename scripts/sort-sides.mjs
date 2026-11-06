@@ -35,7 +35,7 @@ export const FROZEN = /^(?:progress|project|art|public|ios|android|sources|calib
 /** Each side segment a regular expression may meet once a path is sorted; the group keeps it true before and after. */
 const SIDE_GROUP = String.raw`(?:(?:client|cook|server|shared)\/)?`;
 const MAX_TEXT = 8 * 1024 * 1024;
-export const GATE_PHASES = ['binary-json', 'storage', 'deleted-paths', 'ratchet', 'guards', 'fast-lint'];
+export const GATE_PHASES = ['binary-json', 'storage', 'deleted-paths', 'ratchet', 'guards', 'fast-lint', 'census'];
 const CENSUS_CHECKS = [['scripts/check-engine-sides.mjs'], ['scripts/check-sim-players.mjs'], ['scripts/check-graph.mjs', '--source-only']];
 /** Divided folders named by a string that is not a path a tool opens: reviewed by hand, file:literal → new text. */
 const REVIEWED_LITERALS = { 'src/engine/client/explore/ModelExplorer.ts:src/engine/entities/species/': 'src/engine/*/entities/species/' };
@@ -882,7 +882,9 @@ export function main(argv, root = process.cwd()) {
 /** `--view <rev> <script> [args]`: one repo check, reading a commit's blobs instead of the working tree. */
 async function viewCheck([rev, script, ...rest]) {
   const { gitSourceView, installGitSourceView } = await import('./git-source-view.mjs');
-  installGitSourceView(gitSourceView(process.cwd(), rev));
+  const view = gitSourceView(process.cwd(), rev);
+  view.prime([...view.files.keys()].filter(path => /^(?:src|lint)\/.*\.(?:json|[cm]?[jt]sx?)$/u.test(path))); // one blob at a time is a minute
+  installGitSourceView(view);
   process.argv = [process.argv[0] ?? 'node', resolve(script), ...rest];
   await import(pathToFileURL(resolve(script)).href);
 }

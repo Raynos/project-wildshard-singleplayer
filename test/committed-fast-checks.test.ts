@@ -391,6 +391,22 @@ test('guards refuse paths written as data and a file outside a shard\'s layout',
   }finally{f.close();}
 });
 
+test('the census phase runs the ratchets over the tip, and only for source',()=>{
+  const f=fixture();try{
+    for(const file of ['sort-sides.mjs','git-source-view.mjs'])f.put(`scripts/${file}`,readFileSync(resolve('scripts',file),'utf8'));
+    f.put('scripts/check-engine-sides.mjs','console.log("sides fine");\n');
+    f.put('scripts/check-sim-players.mjs',"import {readFileSync} from 'node:fs';if(readFileSync('src/main.ts','utf8').includes('rose')){console.error('  src/main.ts: 2 → 4');process.exitCode=1;}\n");
+    const base=f.commit();
+    expect(f.run('census',base,['src/main.ts'],base).status).toBe(0);
+    f.put('src/main.ts','export const rose=1;\n');const risen=f.commit();
+    expect(f.run('census',risen,['docs/note.md'],base).status).toBe(0);
+    const bad=f.run('census',risen,['src/engine/x.ts'],base);
+    expect(bad.status).toBe(1);expect(bad.stderr).toContain('src/main.ts: 2 → 4');
+    f.put('src/main.ts','export const value=1;\n');
+    expect(f.run('census',risen,['src/engine/x.ts'],base).stderr).toContain('src/main.ts: 2 → 4');
+  }finally{f.close();}
+});
+
 test('side edges compare net across a push, so only the published step cannot rise',()=>{
   const f=fixture();try{
     const edges=(count:number)=>JSON.stringify({files:{'src/game/client/a.ts':{'client → server':count}}});

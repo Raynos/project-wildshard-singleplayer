@@ -416,7 +416,7 @@ readFileSync('../public/assets/native/untracked.bin');
             result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
         self.assertTrue(result['ok'])
         self.assertEqual(result['types'], 'ci')
-        self.assertEqual(calls, ['storage', 'ratchet', 'guards', 'fast-lint'])
+        self.assertEqual(calls, ['storage', 'ratchet', 'guards', 'fast-lint', 'census'])
         self.assertEqual(cleanups, [tip])
         steps = {row['step']: row for row in result['steps']}
         self.assertNotIn('source-prepare', steps)
@@ -488,7 +488,7 @@ readFileSync('../public/assets/native/untracked.bin');
     def test_unfinished_gate_and_unverified_inputs_go_to_ci(self):
         tip = self.commit('src/good.ts')
         cases = [(phase, 'budget') for phase in
-                 ('binary-json', 'tool-inputs', 'storage', 'ratchet', 'guards', 'fast-lint')]
+                 ('binary-json', 'tool-inputs', 'storage', 'ratchet', 'guards', 'fast-lint', 'census')]
         cases.append(('fast-lint', 'unverified-inputs'))
         for phase, cause in cases:
             with self.subTest(phase=phase, cause=cause):
@@ -658,7 +658,7 @@ readFileSync('../public/assets/native/untracked.bin');
             result = PUSH['check_committed'](self.root, self.base, tip, time.monotonic() + 45)
         self.assertTrue(result['ok'])
         self.assertEqual(result['types'], 'ci')
-        self.assertEqual([command[5] for command in calls], ['storage', 'ratchet', 'guards', 'fast-lint'])
+        self.assertEqual([command[5] for command in calls], ['storage', 'ratchet', 'guards', 'fast-lint', 'census'])
         self.assertFalse(any('oxlint' in command or 'vitest' in command for command in calls))
 
     def test_policy_guards_refuse_before_ratchet_or_upload(self):
@@ -693,7 +693,7 @@ readFileSync('../public/assets/native/untracked.bin');
         @contextmanager
         def prepared(*_):
             yield self.root / 'scripts'
-        phases = ['storage', 'deleted-paths', 'ratchet', 'guards', 'fast-lint']
+        phases = ['storage', 'deleted-paths', 'ratchet', 'guards', 'fast-lint', 'census']
         for phase in phases:
             for code, text in [(124, 'pre-push budget exhausted'), (1, 'src/good.ts:1:1 error: observed policy refusal')]:
                 calls = []

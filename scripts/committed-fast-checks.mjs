@@ -1,9 +1,10 @@
 // G675: fast checks read exact Git blobs; typed checks and tests belong to CI.
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFile, execFileSync, spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, matchesGlob, relative, resolve } from 'node:path';
 import ts from '@typescript/typescript6';
 import { pathToFileURL } from 'node:url';
+import { promisify } from 'node:util';
 import { gitSourceView, installGitSourceView, deriveGitVocabulary, deriveGitStarterTables, deriveGitDiscovery } from './git-source-view.mjs';
 import { gitRuleCount } from './git-rule-counts.mjs';
 import * as v from 'valibot';
@@ -234,6 +235,20 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
       const comparedPolicy=Object.fromEntries(Object.entries(policy).filter(([rule])=>!rule.startsWith('wildshard/')||Object.keys(priorPolicy[rule]??{}).length>0));
       failures.push(...ratchetApprovalFailures(priorPolicy,comparedPolicy,
         `Exact outgoing policy approvals\n\n${approvals.join('\n')}`));
+    } else if(phase==='census') {
+      // The census ratchets of CI's prepare job, over the tip's blobs, last so they spend only what the budget leaves.
+      // One that runs out of time is CI's, not a verdict.
+      if(view.files.has('scripts/sort-sides.mjs')&&view.files.has('scripts/check-sim-players.mjs')&&paths.some(path=>/^(?:src\/(?:engine|game|sdk|sharddev)|lint)\//u.test(path))) {
+        const census=async(/** @type {string} */ script)=>{
+          try {await promisify(execFile)(process.execPath,[resolve(root,'scripts/sort-sides.mjs'),'--view',tip,script],{cwd:root,encoding:'utf8',maxBuffer:64*1024*1024,timeout:25_000});return '';}
+          catch(error) {
+            const failed=v.parse(v.looseObject({killed:v.optional(v.boolean()),stdout:v.optional(v.string(),''),stderr:v.optional(v.string(),'')}),error);
+            return failed.killed===true?'':`${failed.stdout}${failed.stderr}`;
+          }
+        };
+        const verdicts=await Promise.all(['scripts/check-engine-sides.mjs','scripts/check-sim-players.mjs'].map(census));
+        failures.push(...verdicts.filter(verdict=>verdict!==''));
+      }
     } else throw new Error('Unknown committed fast-check phase');
     if(failures.length>0)throw new Error(failures.join('\n'));
     if(phase!=='fast-lint')console.log(`${phase}: exact committed inputs passed`);

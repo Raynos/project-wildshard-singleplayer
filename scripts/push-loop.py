@@ -72,7 +72,7 @@ def fast_tools(root, revision, deadline):
 
 
 def check_committed(root, base, tip, deadline):
-    names = ('binary-json', 'tool-inputs', 'storage', 'deleted-paths', 'ratchet', 'guards', 'fast-lint')
+    names = ('binary-json', 'tool-inputs', 'storage', 'deleted-paths', 'ratchet', 'guards', 'fast-lint', 'census')
     steps = LIVE['GateSteps'](names)
     result = {'ok': False, 'phase': 'binary-json', 'files': [], 'output': '', 'types': 'unverified', 'steps': steps.rows}
     def refuse_budget(phase):
@@ -105,7 +105,7 @@ def check_committed(root, base, tip, deadline):
             folder = tools.__enter__()
         try:
             env = dict(os.environ, WS_GIT_CHECK_DEADLINE=str(int((time.time() + max(0, deadline-time.monotonic())) * 1000)))
-            for phase in ('storage', 'deleted-paths', 'ratchet', 'guards', 'fast-lint'):
+            for phase in ('storage', 'deleted-paths', 'ratchet', 'guards', 'fast-lint', 'census'):
                 if phase == 'deleted-paths' and not removed:
                     steps.skip((phase,), 'no-deletions')
                     continue

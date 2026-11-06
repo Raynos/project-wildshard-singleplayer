@@ -181,7 +181,7 @@ rewrite still needs Jake's approval.
   Ordinary full CI and required smoke verdicts remain; do not reinstall the old CF1 gate.
 - **Gate timings (G671 P3):** every checked push records per-step seconds and outcomes in `.git/push.log`,
   with the exact candidate SHA for prefix rechecks. Current phases are binary JSON, checker inputs, storage,
-  deleted paths, ratchet, guards and fast lint; retired source preparation and test-selection phases do not execute.
+  deleted paths, ratchet, guards, fast lint and census (the side and sim-player ratchets); retired source preparation and test-selection phases do not execute.
   Skipped rows name their reason; a timeout never becomes a passing check. Upload time and remaining gate overhead
   are recorded separately. This is measurement, not a new preparation cache or budget policy.
 - **Guards also read paths written as data** (`scripts/check-spelled-paths.mjs`): isolated declaration tests, imports a
