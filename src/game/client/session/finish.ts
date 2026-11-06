@@ -224,6 +224,9 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   // DL11: setup overlapped the spawn download; control still waits for the whole set
   const spawn = currentSpawnDownload();
   if (spawn !== undefined && !spawn.snapshot().complete) await waitFor('Spawn download', spawn.ready, 'file');
+  // DL17, DL21: the server boots under the card, a counted line on it, so its reads land before control and the player's first
+  // press reaches a server that is up. Before the flip this moves only J130's row.
+  if (workerClientOn()) await import('../shardfile/clientWorker').then(worker => worker.launchWorkerClient({ slug: ctx.grid?.home.slug ?? slug, player, physics: world.physics, animals, weapons, health: playerHealth, died: () => { audio.death(); hud.damageFlash(); }, items: ctx.grid === null ? ctx.product.shardfile.items.rows : [], dims: kind => { const species = app.species.get(kind), variant = species?.variants[0]; return variant === undefined ? null : species?.build(variant, new Rng(1)).dims ?? null; }, tools: () => app.equipment?.tools ?? [], day: () => app.dayCycle, grid: workerGrid(ctx), scope: game.levelScope, system: spec => { app.addSystem(spec, game.levelScope); } }));
   const readyFrameGate = game.frameGate, loadingFrameGate = (): boolean => false;
   if (loading.holdRequested) game.frameGate = loadingFrameGate;
   try { await loading.done(); }
@@ -311,8 +314,6 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   ctx.session.residency?.bindComposer(game, game.engineScope, TIER);
   game.captureLevelResources();
   game.levelScope.onDispose(() => { windupWarn?.dispose(); weapons.setEnabled(false); boot.runtime.hooks.dispose?.(); audio.unloadLevel(); });
-  // DL17, DL21: control waits for the server, so its boot is a line on the card and its reads land before the player moves.
-  if (workerClientOn()) await import('../shardfile/clientWorker').then(worker => worker.launchWorkerClient({ slug: ctx.grid?.home.slug ?? slug, player, physics: world.physics, animals, weapons, health: playerHealth, died: () => { audio.death(); hud.damageFlash(); }, items: ctx.grid === null ? ctx.product.shardfile.items.rows : [], dims: kind => { const species = app.species.get(kind), variant = species?.variants[0]; return variant === undefined ? null : species?.build(variant, new Rng(1)).dims ?? null; }, tools: () => app.equipment?.tools ?? [], day: () => app.dayCycle, grid: workerGrid(ctx), scope: game.levelScope, system: spec => { app.addSystem(spec, game.levelScope); } }));
   installProbe(handle, { leakPhysics, health: () => playerHealth.attributes.health, quest: () => ({ adventure: boot.runtime.hooks.adventureFlags?.() ?? [], quest: boot.runtime.hooks.questFlags?.() ?? [] }) });
   ctx.startExplore?.();
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/engine/client/native/boot.ts, via src/native.ts) waits for this
