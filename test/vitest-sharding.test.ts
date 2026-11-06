@@ -142,7 +142,7 @@ test('parallel and dedicated native CI discover every existing file exactly once
  for(const [group,files] of Object.entries(CI_NATIVE_GROUPS))expect(runsByGroup.get(group)).toEqual([...files]);
  expect(CI_NATIVE_GROUPS['chapter-one']).toEqual(['test/nalati-chapter-one.test.ts']);
  expect(CI_NATIVE_GROUPS['stories-qara']).not.toContain('test/nalati-chapter-one.test.ts');
- expect(nativeJob).toContain('timeout-minutes: 20');
+ expect(nativeJob).toContain('timeout-minutes: 30');
  const groups=/group: \[([^\]]+)\]/u.exec(nativeJob)?.[1]?.split(',').map(group=>group.trim());
  expect(groups).toHaveLength(Object.keys(CI_NATIVE_GROUPS).length);
  expect(new Set(groups)).toEqual(new Set(Object.keys(CI_NATIVE_GROUPS)));

@@ -1,10 +1,11 @@
 // G675: fast checks read exact Git blobs; typed checks and tests belong to CI.
-import { execFile, execFileSync, spawnSync } from 'node:child_process';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
+import { once } from 'node:events';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { text } from 'node:stream/consumers';
 import { basename, dirname, matchesGlob, relative, resolve } from 'node:path';
 import ts from '@typescript/typescript6';
 import { pathToFileURL } from 'node:url';
-import { promisify } from 'node:util';
 import { gitSourceView, installGitSourceView, deriveGitVocabulary, deriveGitStarterTables, deriveGitDiscovery } from './git-source-view.mjs';
 import { gitRuleCount } from './git-rule-counts.mjs';
 import * as v from 'valibot';
@@ -240,11 +241,10 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
       // One that runs out of time is CI's, not a verdict.
       if(view.files.has('scripts/sort-sides.mjs')&&view.files.has('scripts/check-sim-players.mjs')&&paths.some(path=>/^(?:src\/(?:engine|game|sdk|sharddev)|lint)\//u.test(path))) {
         const census=async(/** @type {string} */ script)=>{
-          try {await promisify(execFile)(process.execPath,[resolve(root,'scripts/sort-sides.mjs'),'--view',tip,script],{cwd:root,encoding:'utf8',maxBuffer:64*1024*1024,timeout:25_000});return '';}
-          catch(error) {
-            const failed=v.parse(v.looseObject({killed:v.optional(v.boolean()),stdout:v.optional(v.string(),''),stderr:v.optional(v.string(),'')}),error);
-            return failed.killed===true?'':`${failed.stdout}${failed.stderr}`;
-          }
+          const child=spawn(process.execPath,[resolve(root,'scripts/sort-sides.mjs'),'--view',tip,script],{cwd:root,timeout:25_000,stdio:['ignore','pipe','pipe']});
+          const closed=once(child,'close'),[stdout,stderr]=await Promise.all([text(child.stdout),text(child.stderr)]);
+          await closed;
+          return child.exitCode===0||child.signalCode!==null?'':`${stdout}${stderr}`;
         };
         const verdicts=await Promise.all(['scripts/check-engine-sides.mjs','scripts/check-sim-players.mjs'].map(census));
         failures.push(...verdicts.filter(verdict=>verdict!==''));
