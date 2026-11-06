@@ -167,6 +167,19 @@ export async function committedFastChecks(root,base,tip,phase,paths) {
         view.prime([...view.files.keys()].filter(path=>/^src\/(?:engine|game)\/isolated-[^/]+\.test\.ts$|^scripts\/.*\.[cm]?[jt]s$|^src\/shards\/[^/]+\/(?:data|look)\/map\.json$/u.test(path)));
         failures.push(...spelledPathFailures(view.files,path=>view.read(path).toString('utf8')));
       }
+      // The folder rule of check-paths, over committed paths: a new file in a shard's root needs the layout's word.
+      const touchedShards=new Set(paths.flatMap(path=>/^src\/shards\/([^/]+)\//u.exec(path)?.[1]??[]));
+      if(touchedShards.size>0&&view.files.has('lint/shard-layout.json')) {
+        const {checkShardLayout,shardEntries}=/** @type {typeof import('./check-shards.mjs')} */(await module('scripts/check-shards.mjs'));
+        const {producers}=json(view,'scripts/source-generation-outputs.json',{producers:{}});
+        const generated=new Set(Object.values(producers).flat());
+        const outputs=Object.fromEntries([...touchedShards].flatMap(slug=>{
+          const rows=json(view,`src/shards/${slug}/outputs.json`).outputs;
+          return Array.isArray(rows)?[[slug,rows.map(row=>row.slug)]]:[];
+        }));
+        const entries=shardEntries([...view.files.keys()].filter(path=>!generated.has(path)),touchedShards);
+        failures.push(...checkShardLayout(entries,json(view,'lint/shard-layout.json'),outputs).map(row=>`src/shards/${row}`));
+      }
       // What derived-docs walks first: a package's exports. Only a manifest or the lockfile can change that shape.
       if(view.files.has('scripts/docs/read-shardfile-reference.mjs')&&paths.some(path=>/^(?:pnpm-lock\.yaml|src\/[^/]+\/package\.json|scripts\/docs\/(?:sdk-schemas|read-shardfile-reference|schema-reference)\.mjs)$/u.test(path))) {
         const child=spawnSync(process.execPath,['--import','./scripts/sim-node-loader.mjs','scripts/docs/read-shardfile-reference.mjs'],{cwd:root,encoding:'utf8',maxBuffer:64*1024*1024,timeout:15_000});

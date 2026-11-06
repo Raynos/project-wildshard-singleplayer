@@ -371,6 +371,26 @@ export const PLATFORM_LISTS=['lint/ratchet.json'];`);
   }finally{f.close();}
 });
 
+test('guards refuse paths written as data and a file outside a shard\'s layout',()=>{
+  const f=fixture();try{
+    f.put('scripts/check-closed-components.mjs','export function closedComponentSources(){return [];}');
+    f.put('scripts/ratchet-approval.mjs','export function ratchetApprovalFailures(){return [];}');
+    f.put('scripts/check-platform-ratchets.mjs','export const PLATFORM_LISTS=[];export function comparePlatformList(){return [];}');
+    for(const file of ['check-spelled-paths.mjs','check-shards.mjs','shard-outputs.mjs'])f.put(`scripts/${file}`,readFileSync(resolve('scripts',file),'utf8'));
+    f.put('lint/shard-layout.json',JSON.stringify({sourceLayout:{requiredFiles:['shard.config.ts'],allowedFiles:[],folders:['data']}}));
+    f.put('src/shards/one/shard.config.ts','export default {};\n');f.put('src/shards/one/data/map.json','{"inputs":["data"]}\n');
+    f.put('src/engine/client/view.ts','export const view=1;\n');f.put('src/engine/isolated-x.test.ts','const names=["client/view"];\n');
+    const base=f.commit();
+    expect(f.run('guards',base,['src/shards/one/data/map.json'],base).status).toBe(0);
+    f.put('src/shards/one/mounts.json','{}\n');const stray=f.commit();
+    const layout=f.run('guards',stray,['src/shards/one/mounts.json'],base);
+    expect(layout.status).toBe(1);expect(layout.stderr).toContain('src/shards/one/mounts.json: outside the standalone source layout');
+    f.git('rm','-q','src/shards/one/mounts.json');f.git('mv','src/engine/client/view.ts','src/engine/server-view.ts');
+    const moved=f.commit(),spelled=f.run('guards',moved,['src/engine/server-view.ts'],stray);
+    expect(spelled.status).toBe(1);expect(spelled.stderr).toContain('src/engine/isolated-x.test.ts: no module at src/engine/client/view');
+  }finally{f.close();}
+});
+
 test('side edges compare net across a push, so only the published step cannot rise',()=>{
   const f=fixture();try{
     const edges=(count:number)=>JSON.stringify({files:{'src/game/client/a.ts':{'client → server':count}}});
