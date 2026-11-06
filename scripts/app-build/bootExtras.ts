@@ -119,7 +119,9 @@ export function homeExtraFiles(root: string, directory: string): Files | null {
     // A shard's own images count in its product's download bank, like the names above.
     if (input.startsWith(`/shardfiles/${directory}/`)) continue;
     if (!/^\/assets\/(?:[a-zA-Z0-9_.-]+\/)*[a-zA-Z0-9_.-]+$/u.test(input) || input.split('/').some(part => part === '.' || part === '..')) throw new Error('Unsafe boot source URL');
-    files.set(input, statSync(resolve(root, 'public', input.slice(1))).size);
+    // P3: an asset that left with its shard is in the product's mounts, at the same URL.
+    const shared = resolve(root, 'public', input.slice(1));
+    files.set(input, statSync(existsSync(shared) ? shared : resolve(product, 'mounts', input.slice(1))).size);
   }
   return [...files].sort(([left], [right]) => left.localeCompare(right));
 }
