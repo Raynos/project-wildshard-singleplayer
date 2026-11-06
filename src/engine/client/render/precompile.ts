@@ -25,7 +25,7 @@ import { boundEntryWarmup } from './entryWarmupBound';
 import { workSlice } from '../../shared/core/workSlice';
 import { SHADOW_LAYER } from '../core/shadowLayer';
 import { buildHeld, heldBudget, nativeBudgetSpent, presenting } from '../../shared/core/framePacing';
-import { waitFor } from '../../shared/boot/waits';
+import { countedWait, waitFor } from '../../shared/boot/waits';
 import { isDev } from '../core/devMode';
 
 let censusSlot = 0;
@@ -1397,6 +1397,22 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   // DL21: the phase names itself as it opens: its first link wait holds until the GPU process has compiled everything
   // queued before it (Pine's step 29 sat 3.5 s on '474 / 474 batches' in the DL23 recording on 2477dc4)
   if (n > 0) onProgress?.(jobs.length + (parallel && !isolateImageUploads ? n : 0), jobs.length + units + textures.length, `0 / ${n} programs resolved · ${mode}`);
+  // DL21: under the loader a resolve waits on one program while the GPU process links the rest, and they land in a burst behind it
+  // (Pine's step 29 held '2 / 28 programs resolved' 1.2-7.3 s, its foot naming nothing). No frame is on show here, so each wait's
+  // poll also asks one program further on, and the card counts the links as they land, on a named wait.
+  const counted = parallel && isolateImageUploads && !presenting() && n > 1 ? countedWait(`Link ${n} shader programs`, 'linked', 'shader') : undefined;
+  const landed = new Set<ProgramLike>();
+  let ahead = 0;
+  const askAhead = (resolved: number): void => {
+    const left = n - resolved - 1;
+    if (counted === undefined || left <= 0) return;
+    ahead = (ahead + 1) % left;
+    const next = pending[resolved + 1 + ahead];
+    if (next === undefined || landed.has(next) || !(nativeRetired(next) || next.isReady())) return;
+    landed.add(next); counted.add();
+    onProgress?.(jobs.length + 2 * resolved, jobs.length + units + textures.length, `${resolved} / ${n} programs resolved · ${landed.size} linked · ${mode}`);
+  };
+  try {
   for (const [i, p] of pending.entries()) {
     if (nativeBudgetSpent(sliceMs)) { await pause(); tSlice = performance.now(); resolvedInSlice = 0; }
     checkCurrent();
@@ -1405,6 +1421,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     // compiles (~20 ms on the Simulator, a missed vsync), so a link still unfinished is asked less often each time
     let every = linkPollMs(), queryStart = performance.now();
     if (parallel && isolateImageUploads) await boundedLinkWait(() => { queryStart = performance.now(); return nativeRetired(p) || p.isReady(); }, async () => {
+      askAhead(i);
       const asked = performance.now();
       do { await pause(); checkCurrent(); } while (performance.now() - asked < every);
       every = Math.min(every * 2, LIVE_LINK_POLL_MAX_MS);
@@ -1414,6 +1431,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     onProgress?.(jobs.length + linkedProgress, jobs.length + units + textures.length, `${i + 1} / ${n} programs resolved · ${mode}`);
     if (spent(tSlice) || (isolateImageUploads && resolvedInSlice >= programsPerFrame())) { await pause(); tSlice = performance.now(); resolvedInSlice = 0; }
   }
+  } finally { counted?.end(); }
   // Compilation exposes samplers injected by shader callbacks; merge them before any draw.
   if (onStage !== undefined) { onStage('link', performance.now() - stageStart, pending.length); stageStart = performance.now(); }
   const uploadTextures = [...new Set([...textures, ...collectTextures(jobs)])];
