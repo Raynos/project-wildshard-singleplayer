@@ -1,7 +1,7 @@
 /** Reload only on explicit APPLY & RELOAD; currentPose also serves recovery. */
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { settingsReloadUrl } from './Settings';
-import { markReload } from '../boot/lastEnd';
+import { leaveSaved, markReload } from '../boot/lastEnd';
 
 interface Pose { x: number; y: number; z: number; yaw: number; pitch: number }
 let poseOf: () => Pose | null = () => null;
@@ -17,7 +17,6 @@ const TITLE_SKIPPERS = ['skipintro', 'tour', 'showcase', 'nolock', 'x', 'z', 'ya
 export function reloadWithPicks(why = 'reload prompt: reload now'): void {
   const url = new URL(settingsReloadUrl(location.href, TITLE_SKIPPERS));
   url.searchParams.delete('v');
-  markReload(why);
-  location.replace(url.toString());
+  leaveSaved(() => { markReload(why); location.replace(url.toString()); });
 }
 

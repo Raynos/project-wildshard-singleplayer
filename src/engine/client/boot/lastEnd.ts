@@ -214,6 +214,28 @@ export function markUnload(reason: string): void { page.markUnload(reason); }
 export function markReload(message: string, reason: ReloadReason = 'reload'): boolean { return page.markReload(message, reason); }
 /** Install the content-owned durable capture port for the current play scope. */
 export function registerBeforeReload(scope: Scope, capture: (reason: ReloadReason) => boolean): void { page.registerBeforeReload(scope, capture); }
+/** How long a page waits on a server's save before it leaves anyway: a stalled server must never hold a player in a world they left. */
+const LEAVE_WAIT_MS = 4000;
+let saver: (() => Promise<unknown>) | null = null;
+/** `work`, or `LEAVE_WAIT_MS`, whichever ends first. */
+export function atMostLeaveWait(work: Promise<unknown>): Promise<void> {
+  return new Promise(resolve => {
+    const timer = pageScope.timeout(LEAVE_WAIT_MS, resolve);
+    void work.catch(() => undefined).finally(() => { pageScope.cancelTimer(timer); resolve(); });
+  });
+}
+/** A session whose progress lives across a port: nothing written at pagehide reaches a page that's going, so a page asks before it goes. */
+export function holdLeaving(save: () => Promise<unknown>): () => void {
+  saver = save;
+  return () => { if (saver === save) saver = null; };
+}
+/** Run a navigation the game chose, once what a held session has made is durable. With nothing held this is the navigation, now. */
+export function leaveSaved(go: () => void): void {
+  if (saver === null) { go(); return; }
+  const save = saver;
+  saver = null; // a second tap goes the same way, and doesn't save or wait twice
+  void atMostLeaveWait(save()).then(go);
+}
 export function lastEnd(): LastEnd { return page.lastEnd(); }
 export function lastRecordedEnd(): LastEnd | null { return page.lastRecordedEnd(); }
 export function lastEndLine(now: number = Date.now()): string { return page.lastEndLine(now); }

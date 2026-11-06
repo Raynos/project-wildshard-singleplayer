@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { saves } from '@wildshard/engine/saves/runtime';
-import { markUnload } from '@wildshard/engine/boot/lastEnd';
+import { leaveSaved, markUnload } from '@wildshard/engine/boot/lastEnd';
 import { arrivalTier, freshPageArrival, setTitleArrival } from '@wildshard/engine/boot/titleArrival';
 import type { SaveKeyDef, SaveSlot } from '@wildshard/engine/saves/store';
 import { findTitleManifest, titleManifests } from '../shard/titleList';
@@ -80,8 +80,7 @@ function navigateNow(request: TravelRequest): void {
   // The destination document owns any update adoption. A running world
   // neither changes controller nor waits for a worker before leaving (G898).
   // Replacing releases WebKit's previous page rather than parking its heap in the back/forward cache.
-  markUnload(`shard switch to ${request.to} (fresh page)`);
-  location.replace(url.toString());
+  leaveSaved(() => { markUnload(`shard switch to ${request.to} (fresh page)`); location.replace(url.toString()); });
 }
 export function travel(request: TravelRequest): void {
   const manifest = findTitleManifest(request.to);

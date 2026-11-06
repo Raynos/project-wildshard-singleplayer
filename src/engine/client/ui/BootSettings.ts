@@ -26,7 +26,7 @@ import { buildDebugMenu, type DebugMenu } from './DebugMenu';
 import { TITLE_SKIPPERS } from './debugOptions';
 import { MUSIC_CREDIT, sfxCredit } from '../audio/credits';
 import { BOOT_OPTIONS, getSfxSet, pendingReload, saveSetting, savedSetting, settingFromUrl, settingParams, settingsReloadUrl, type OptionKey, type OptionValue } from './Settings';
-import { markReload } from '../boot/lastEnd';
+import { leaveSaved, markReload } from '../boot/lastEnd';
 import { buildOfflineRow } from './offlineDownload';
 import { buildMusicStyleRow } from './musicStyleRow';
 
@@ -155,8 +155,7 @@ function build(): HTMLElement {
   listenTap(scope, apply, () => {
     debug?.applyPending(); developerTools?.applyPending();
     const next = settingsReloadUrl(location.href, TITLE_SKIPPERS);
-    markReload('main menu settings: apply & reload');
-    if (next === location.href) location.reload(); else location.replace(next);
+    leaveSaved(() => { markReload('main menu settings: apply & reload'); if (next === location.href) location.reload(); else location.replace(next); });
   });
   const closeBtn = sheet.querySelector<HTMLButtonElement>('.ws-gmenu-close');
   if (closeBtn) listenTap(scope, closeBtn, close);

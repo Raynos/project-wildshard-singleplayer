@@ -7,8 +7,9 @@ import type { SystemSpec } from '@wildshard/engine/app/systems';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { Vector3 } from 'three';
 import { appIdentity } from '@wildshard/engine/app/identity';
-import { importPageSaves, openIndexedSaves, SERVER_SAVES, type IndexedSaves } from '@wildshard/engine/saves/indexed';
+import { importPageSaves, openIndexedSaves, SERVER_SAVES, serverStopsForImport, type IndexedSaves } from '@wildshard/engine/saves/indexed';
 import { saveEnvironment } from '@wildshard/engine/saves/environment';
+import { atMostLeaveWait, holdLeaving } from '@wildshard/engine/boot/lastEnd';
 import { countedWait } from '@wildshard/engine/boot/waits';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import type { NetClient } from '@wildshard/engine/net/client';
@@ -75,7 +76,7 @@ export interface WorkerClientPorts {
   readonly system: (system: SystemSpec) => void;
 }
 interface ShellModule { readonly startStandalone: (config: { slug: string; base: string; build: string; savePrefix: string; lone?: true; held?: (url: string) => Promise<ArrayBuffer | null> } & IndexedSaves) => Shell }
-interface Shell { raise: (flag: string) => void; join: (id: string, x: number, y: number, z: number) => { readonly client: NetClient; readonly move: (x: number, y: number, z: number) => void }; readonly client: NetClient; readonly booted: Promise<{ readonly restored: boolean }>; place: (x: number, y: number, z: number, yaw: number) => void; hardHits: (by: number) => void; ready: () => void; save: () => Promise<{ readonly tick: number; readonly ok: boolean }>; probe: () => Promise<{ readonly tickMs: number }>; dispose: () => void }
+interface Shell { pause: () => void; raise: (flag: string) => void; join: (id: string, x: number, y: number, z: number) => { readonly client: NetClient; readonly move: (x: number, y: number, z: number) => void }; readonly client: NetClient; readonly booted: Promise<{ readonly restored: boolean }>; place: (x: number, y: number, z: number, yaw: number) => void; hardHits: (by: number) => void; ready: () => void; save: () => Promise<{ readonly tick: number; readonly ok: boolean }>; probe: () => Promise<{ readonly tickMs: number }>; dispose: () => void }
 
 const SAVE_EVERY_MS = 30_000;
 /** How often a page whose frames are parked behind a panel still hears the server. */
@@ -138,6 +139,8 @@ function syncCreatures(client: NetClient, animals: Creatures | null, bodies: Map
 }
 
 type BodyDims = Parameters<typeof creatureBodyShape>[0];
+/** A session leaving with its page still up, until its last save has landed. */
+let closing: Promise<void> = Promise.resolve();
 /** Measures of a kind this page has no species for, which only stop a walk a little early or late. A kind's measures never change, and building them isn't cheap. */
 const SOME_CREATURE: BodyDims = { bodyRadius: 0.45, bodyHalfLen: 0.7, bodyY: 0.9 }, KIND_DIMS = new Map<string, BodyDims>();
 /** The head over a body, as an elite's bar reads it. */
@@ -189,6 +192,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   environment.installBrowserSaveEnvironment();
   const { startStandalone } = await import(/* @vite-ignore */ `${root}/shell.js`) as ShellModule;
   // The server's saves: the page's own, read once into IndexedDB and left in place. A session outgrows localStorage at its first cell.
+  await closing; // a world a session just left may still be saving into what this one reads
   const saves = await openIndexedSaves(SERVER_SAVES), { savePrefix } = appIdentity();
   const page = saveEnvironment().storage('shard');
   if (page !== null) await importPageSaves(saves, page, savePrefix);
@@ -196,9 +200,12 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   const card = countedWait('Server world', 'files');
   const shell = startStandalone({ slug, base: `/shardfiles/${slug}/`, build, savePrefix, ...ports.grid === null ? { lone: true as const } : {}, held: url => { card.add(); return spawnHeldBytes(url); }, ...saves }), { client } = shell;
   void shell.booted.catch(() => undefined).finally(card.end);
-  let ended = false;
-  const stop = (): void => { if (!ended) { ended = true; shell.dispose(); } };
-  scope.onDispose(stop);
+  let ended = false, leaves = (): void => undefined;
+  // Settings stops a server before it touches what the server saves: that stop must not save.
+  const stop = (): void => { if (!ended) { ended = true; leaves(); shell.dispose(); } };
+  scope.onDispose(serverStopsForImport(stop));
+  // A session that ends with its page still here saves first. What navigates asks through `holdLeaving`, below.
+  scope.onDispose(() => { if (ended) return; ended = true; leaves(); shell.pause(); closing = atMostLeaveWait(shell.save()).finally(() => { shell.dispose(); }); });
   const retired = new Map<string, number>(), spawnMs = new Map<string, number>(), net = new NetPlayer(client, player, physics), show = overlay(ports), row = new Float64Array(ANIMAL_CLASS.row.length), near: PredictedRow[] = [], costs = new Float64Array(240), bodies = new Map<number, RowBody>();
   // the ride: a press goes up, and it starts and ends on the server's word. The body under the rider leaves its row for it
   let mount: Mount | null = null;
@@ -260,10 +267,13 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   const { attributes } = ports.health, cap = attributes.incomingCap;
   attributes.incomingCap = 0;
   scope.onDispose(() => { attributes.incomingCap = cap ?? Infinity; });
-  // The server keeps the session's saves, and only a page knows when to ask: on a timer and as a phone hides it.
+  // The server keeps the session's saves, and only a page knows when to ask: on a timer, as a phone hides it, as a page goes, and before
+  // a navigation. Hiding is the phone's only warning, so it can't wait for a timer; `pagehide` covers a close that never hid.
   const save = async (): Promise<void> => { const { tick, ok } = await shell.save(); report.savedTick = tick; report.savedOk = ok; grid?.saveLocation(); };
   scope.interval(SAVE_EVERY_MS, () => { void save(); });
   scope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'hidden') void save(); });
+  scope.listen(window, 'pagehide', () => { void save(); });
+  leaves = holdLeaving(() => { shell.pause(); return save(); });
   let firstTick = -1, ticksFrom = started, cost = 0, sampleAt = 0, framesAt = 0, sampledAt = started, presented = started;
   scope.onDispose(client.onTravel(() => { firstTick = -1; ticksFrom = diagnosticNow(); }));
   const sample = (now: number): void => {

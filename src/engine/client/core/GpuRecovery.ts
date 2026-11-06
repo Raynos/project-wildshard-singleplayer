@@ -36,7 +36,7 @@ import type { Scope } from '../../shared/app/scope';
 import { gpuOnlyContent, rebakeGpuContent } from './gpuOnly';
 import { emitFault } from '../../shared/core/faults';
 import { recordGpuRecovery } from '../boot/bootTrace';
-import { markReload } from '../boot/lastEnd';
+import { leaveSaved, markReload } from '../boot/lastEnd';
 
 const savedStorage = saveStorage('session');
 
@@ -119,8 +119,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
     }
     phase = 'reloading';
     try { savedStorage.setItem(RELOAD_KEY, '1'); } catch { /* This document still records its reloading phase. */ }
-    markReload(`graphics recovery: ${why}`, 'gpu');
-    location.replace(to);
+    leaveSaved(() => { markReload(`graphics recovery: ${why}`, 'gpu'); location.replace(to); });
   };
 
   const lose = (why: string): void => {

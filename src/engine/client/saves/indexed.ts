@@ -36,6 +36,8 @@ export async function openIndexedSaves(name: string): Promise<IndexedSaves> {
     if (value === null) documents.delete(key); else documents.set(key, value);
     const transaction = database.transaction(SAVES, 'readwrite', { durability: 'strict' }), store = transaction.objectStore(SAVES);
     if (value === null) store.delete(key); else store.put(value, key);
+    // Now, not when the put's answer comes back: once the storage process holds the commit, a killed page no longer stops it.
+    transaction.commit();
     transaction.oncomplete = (): void => { resolve(true); };
     transaction.onerror = transaction.onabort = (): void => { resolve(false); };
   });
@@ -88,10 +90,38 @@ export async function exportServerSaves(prefix: string, format: string): Promise
   }
   return JSON.stringify({ format, version: 2, server: true, exported: new Date().toISOString(), docs }, null, 2);
 }
-/** Take a server's export back, whole: a world's continuation is only readable by the server, which reads it next boot. */
-export async function importServerSaves(json: string, prefix: string, format: string): Promise<ImportReport> {
+let stopServer: () => void = () => undefined;
+/** The running server, which would write over an import at its next save. */
+export function serverStopsForImport(stop: () => void): () => void {
+  stopServer = stop;
+  return () => { if (stopServer === stop) stopServer = (): void => undefined; };
+}
+/** A page's store: it holds what a page's file needs checked and migrated. */
+export interface PageSaves { readonly importAll: (json: string) => ImportReport; readonly storage: SaveStorage | null }
+/**
+ * A file exported before the flip. The page's store checks and migrates it key by key, as it always did, and its documents go where a first
+ * boot's `importPageSaves` puts them. The server keeps a world it has already saved over any page document, so that world goes too, and the
+ * next boot takes the player's progress from these documents as a first boot does.
+ */
+async function importPageFile(json: string, prefix: string, page: PageSaves): Promise<ImportReport> {
+  const report = page.importAll(json), { storage } = page;
+  const scopes = [...new Set(report.imported.map(identity => identity.slice(0, identity.indexOf('/'))))];
+  if (scopes.length === 0 || storage === null) return report;
+  stopServer();
+  const saves = await openIndexedSaves(SERVER_SAVES);
+  for (const scope of scopes) {
+    const doc = storage.getItem(`${prefix}${scope}`);
+    if (doc === null || !await saves.write(`${prefix}${scope}`, doc) || !await forgetServerInstance(saves, prefix, scope)) return { imported: [], skipped: [...report.skipped, { key: scope, reason: 'Storage unavailable or full' }] };
+  }
+  await saves.write(IMPORTED, '1');
+  return report;
+}
+/** Take a file back. A server's export comes back whole: a world's continuation is only readable by the server, which reads it next boot. */
+export async function importServerSaves(json: string, prefix: string, format: string, page: PageSaves): Promise<ImportReport> {
   const value: unknown = JSON.parse(json);
-  if (!isRecord(value) || value['format'] !== format || value['server'] !== true || !isRecord(value['docs'])) return { imported: [], skipped: [{ key: '*', reason: 'Unknown save format' }] };
+  if (!isRecord(value) || value['format'] !== format || !isRecord(value['docs'])) return { imported: [], skipped: [{ key: '*', reason: 'Unknown save format' }] };
+  if (value['server'] !== true) return importPageFile(json, prefix, page);
+  stopServer();
   const saves = await openIndexedSaves(SERVER_SAVES), rows = Object.entries(value['docs']);
   const wrote = await Promise.all(rows.map(([scope, doc]) => saves.write(`${prefix}${scope}`, JSON.stringify(doc))));
   await saves.write(IMPORTED, '1');

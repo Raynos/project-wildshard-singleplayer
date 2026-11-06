@@ -7,6 +7,7 @@ import { markReload } from '../boot/lastEnd';
 import { SAVE_STRINGS as strings } from './saveStrings';
 import { buildOfflineRow } from './offlineDownload';
 import { exportServerSaves, importServerSaves } from '../saves/indexed';
+import { saveEnvironment } from '../../shared/saves/environment';
 import { workerClientOn } from './debugOptions';
 
 /** The save file: a server's documents hold the session, on a page that runs one. */
@@ -44,7 +45,7 @@ export function buildSavePanel(): HTMLDivElement & { refresh: () => void } {
   scope.listen(picker, 'change', () => {
     const file = picker.files?.[0]; if (!file) return;
     void file.text().then(async (json) => {
-      const report = workerClientOn() ? await importServerSaves(json, appIdentity().savePrefix, appIdentity().saveFormat) : app.saves.importAll(json);
+      const report = workerClientOn() ? await importServerSaves(json, appIdentity().savePrefix, appIdentity().saveFormat, { importAll: text => app.saves.importAll(text), storage: saveEnvironment().storage('global') }) : app.saves.importAll(json);
       status.textContent = [strings.imported(report.imported.length), strings.skipped(report.skipped.length), ...report.skipped.map((skip) => `${skip.key}: ${skip.reason}`)].join('\n');
       reload.hidden = report.imported.length === 0; renderAside(); return undefined;
     }).catch(() => { status.textContent = strings.failed; });

@@ -18,7 +18,7 @@ import { engineString } from '../../shared/strings';
  * above the sheet so the pill never lands on CLOSE.
  */
 import { isDev, onDev } from '../core/devMode';
-import { markReload } from '../boot/lastEnd';
+import { leaveSaved, markReload } from '../boot/lastEnd';
 
 
 // The update pill exists before content is selected; keep App and Three out of the entry graph.
@@ -50,9 +50,9 @@ function reload(): void {
     if (title) { markReload('update at title'); location.replace('/'); }
     else { markReload('update tapped'); location.reload(); }
   };
-  if (sw === undefined) { plain(); return; }
-  void sw.adopt(title ? '/' : undefined, title ? 'update at title' : 'update tapped')
-    .then(sent => { if (!sent) plain(); return undefined; }, plain);
+  if (sw === undefined) { leaveSaved(plain); return; }
+  leaveSaved(() => { void sw.adopt(title ? '/' : undefined, title ? 'update at title' : 'update tapped')
+    .then(sent => { if (!sent) plain(); return undefined; }, plain); });
 }
 // pointerup as well as click: iOS drops the synthesized click when a tap jitters (index.html cancels touchmove for the
 // rubber-band), so the pill answers the lift itself; `busy` keeps the pair from running twice
