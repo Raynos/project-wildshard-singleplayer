@@ -247,5 +247,5 @@ test('the same bytes under two URLs of one manifest each keep a readable part', 
   const size = PART_BYTES - 16, a = file('/shardfiles/s/blobs/glb/a.glb', size), b = file('/assets/s/baked/models.glb', size), same = new Uint8Array(size).fill(7);
   const [table] = await writeSpawnParts(out, [manifest([a, b])], () => same, undefined, encoder());
   expect(new Set(table?.map(part => part.url)).size).toBe(2);
-  expect(() => readSpawnManifest({version: 1, shard: 's', tier: 'phone', flow: 'client', files: [a, b], totalBytes: size * 2, wireBytes: 0, parts: table})).not.toThrow();
+  expect(() => readSpawnManifest({version: 1, shard: 's', tier: 'phone', flow: 'client', files: [a, b], totalBytes: size * 2, wireBytes: table?.reduce((sum, part) => sum + (part.wireBytes ?? 0), 0), parts: table})).not.toThrow();
 });
