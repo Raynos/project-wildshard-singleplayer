@@ -31,7 +31,7 @@ test('a server says the pose inputs a page names and nothing else of a body', { 
     const client = new NetClient(link.client, () => 0), heard: string[] = [];
     client.hello(); link.pump();
     client.onView(({ name, args }) => { if (name.startsWith(NET_POSE)) { expect(args).toHaveLength(1); heard.push(name.slice(name.lastIndexOf('.') + 1)); } });
-    client.act({ kind: 'pose', seq: 0, names: 'horseheadUp,snarl,low,bad name,__proto__x,' }); link.pump();
+    client.act({ kind: 'pose', seq: 0, names: 'horseheadUp,snarl,low,burst-x,bad name,__proto__x,' }); link.pump();
     const body = [...host.entities.values()].find(entry => entry.kind === 'horse');
     if (body === undefined) throw new Error('Missing horse');
     for (let tick = 0; tick < 900; tick++) {
@@ -41,6 +41,7 @@ test('a server says the pose inputs a page names and nothing else of a body', { 
     }
     expect(heard).toContain('horseheadUp');
     expect(heard.filter(name => !['horseheadUp', 'snarl', 'low', '__proto__x'].includes(name))).toEqual([]); // no timer, no brain
+    expect(actRoutes(host).poseInputs.has('burst-x'), 'the captain\'s splash lands by its fields').toBe(true);
     expect(actRoutes(host).poseInputs.has('bad name')).toBe(false);
   } finally { live.dispose(); }
 });
