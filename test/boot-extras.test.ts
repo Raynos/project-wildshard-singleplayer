@@ -39,8 +39,8 @@ test('a real emitted image and admitted source produce only the selected home ba
     mkdirSync(resolve(root, 'src/game/client/grid'), { recursive: true });
     writeFileSync(resolve(root, 'src/game/client/grid/session.ts'), 'export const grid = 1;');
     writeFileSync(resolve(root, 'out/.app/discovery.home.generated.ts'), 'export default { slug: "home" };');
-    writeFileSync(resolve(root, 'src/shardList.ts'), 'export { default as home } from "../out/.app/discovery.home.generated";');
-    writeFileSync(resolve(root, 'src/entry.ts'), "window.client = () => import('./game/client/shardfile/client'); window.grid = () => import('./game/client/grid/session'); window.selected = () => import('../out/.app/discovery.home.generated'); window.catalogue = () => import('./shardList'); async function startSelected() { return import('./card'); } void startSelected();");
+    writeFileSync(resolve(root, 'src/catalogueRows.ts'), 'export { default as home } from "../out/.app/discovery.home.generated";');
+    writeFileSync(resolve(root, 'src/entry.ts'), "window.client = () => import('./game/client/shardfile/client'); window.grid = () => import('./game/client/grid/session'); window.selected = () => import('../out/.app/discovery.home.generated'); window.catalogue = () => import('./catalogueRows'); async function startSelected() { return import('./card'); } void startSelected();");
     writeFileSync(resolve(root, 'index.html'), '<html><head></head><body><script type="module" src="/src/entry.ts"></script></body></html>');
     writeFileSync(resolve(root, 'public/assets/required.webp'), new Uint8Array(3));
     writeFileSync(resolve(root, 'public/assets/model.glb'), new Uint8Array(11));

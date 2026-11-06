@@ -45,7 +45,6 @@
     "src/game/client/titleDeck.ts": 1,
     "src/game/client/travel/travel.ts": 1,
     "src/game/shared/weapons/starterBowProfile.ts": 1,
-    "src/shardList.ts": 1,
     "src/shardSelection.ts": 1,
     "src/shards/far-reach/generators/rows/skyPaintedLook.ts": 1,
     "src/shards/nalati-grasslands/generators/output.ts": 1,

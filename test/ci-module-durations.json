@@ -1074,7 +1074,6 @@
   "test/gen-docs.test.ts": 1.096278309,
   "test/gen-programs.test.ts": 0.792426024,
   "test/gen-source.test.ts": 3.828986878,
-  "test/gen-title-phase.test.ts": 0.879447414,
   "test/generated-input-reading.test.ts": 0.740581691,
   "test/generated-isolated-declarations.test.ts": 0.826548637,
   "test/generated-source-guard.test.ts": 0.777264608,
