@@ -18,8 +18,8 @@ import {readTar} from '@wildshard/format/tar';
 import {cookShard, openShardfile, serverRows, type CookReport, type OpenShardfile, type WireBytes} from './shardCook';
 import type {PartEncoder} from './spawnParts';
 
-/** D31: the largest shardfile, stored or decoded, until `api-server`'s cap rises for a shard that needs it (J137). */
-export const MAX_SHARDFILE_BYTES = 300_000_000;
+/** D31: the largest shardfile, stored or decoded: `api-server`'s cap, which Pine's head needs (J137). */
+export const MAX_SHARDFILE_BYTES = 450_000_000;
 /** A shardfile the cook refuses for what it is. A retry can't change it, unlike a killed child or a lost network. */
 export class ShardfileRefusedError extends Error {
   override readonly name = 'ShardfileRefusedError';
