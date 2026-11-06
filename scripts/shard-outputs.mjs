@@ -47,6 +47,7 @@ export function outputManifest(root, folder, output) {
 }
 /** The folders under src/shards with a manifest. @param {string} root */
 export function manifestFolders(root) {
+  if (!existsSync(resolve(root, 'src/shards'))) return []; // P3: a tree with no shard source has no folders.
   return readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && ['manifest.ts', 'manifest.json'].some((file) => existsSync(resolve(root, 'src/shards', entry.name, file))))
     .map((entry) => entry.name).sort();
