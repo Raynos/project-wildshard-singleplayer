@@ -41,6 +41,16 @@ function sectionUrls(slug) {
   }
   return found;
 }
+/** A source file with a cooked stand-in on both tiers, and those stand-ins: no device reads the source, so a shardfile carries
+ *  what the device does. */
+function rawForms(folder) {
+  const file = resolve(root, 'src/shards', folder, 'ktx2.generated.ts');
+  if (!existsSync(file)) return new Map();
+  const [, phone = '', desktop = ''] = /"phone": \{([\s\S]*?)\n {2}\},\n {2}"desktop": \{([\s\S]*?)\n {2}\}/u.exec(readFileSync(file, 'utf8')) ?? [];
+  const rows = (text) => new Map([...text.matchAll(/"(\/assets\/[^"]+)": "(\/assets\/[^"]+)"/gu)].map(match => [match[1], match[2]]));
+  const onPhone = rows(phone);
+  return new Map([...rows(desktop)].flatMap(([url, cooked]) => onPhone.has(url) ? [[url, [onPhone.get(url), cooked]]] : []));
+}
 const SHELL = [/^\/assets\/(?:(?:spawn|packs|physics|fonts)\/|boot-)/u, /\.(?:js|mjs|css)$/u];
 const shellOwned = (url) => SHELL.some(rule => rule.test(url));
 function legacyMembers(slug) {
@@ -75,9 +85,10 @@ for (const { slug } of products) {
   for (const kind of ['sfx', 'music']) for (const name of readdirSync(join(publicRoot, 'assets', kind))) {
     if ((names.has(name) || name.startsWith(`${slug}-`)) && isFolder(`/assets/${kind}/${name}`)) for (const file of filesUnder(`/assets/${kind}/${name}`)) pending.add(file);
   }
-  const seen = new Set();
+  const seen = new Set(), raws = rawForms(folderOf.get(slug));
+  for (const [url, cooked] of raws) if (pending.has(url)) for (const row of cooked) pending.add(row);
   for (const url of pending) {
-    if (!url.startsWith('/assets/') || shellOwned(url) || !onDisk(url) || seen.has(url)) continue;
+    if (!url.startsWith('/assets/') || shellOwned(url) || !onDisk(url) || seen.has(url) || raws.has(url)) continue;
     seen.add(url);
     if (url.endsWith('.gltf')) for (const part of gltfParts(url)) if (onDisk(part)) seen.add(part);
   }

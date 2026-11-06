@@ -2,6 +2,8 @@
  "version": 1,
  "outputs": {
   "nine-dragon-stack": [
+   "/assets/gpu/nine-dragon/lab/grapple/dragon-hook-28bd7a4c.glb",
+   "/assets/gpu/nine-dragon/lab/organic/leaf-atlas-9658a9dd.ktx2",
    "/assets/music/nine-dragon-stack/music.json",
    "/assets/music/nine-dragon-stack/nd-fight-calm-f81a3489.m4a",
    "/assets/music/nine-dragon-stack/nd-fight-tension-56031d7b.m4a",
@@ -13,9 +15,7 @@
    "/assets/music/nine-dragon-stack/sting-death-bf5c76c6.m4a",
    "/assets/music/nine-dragon-stack/sting-pickup-8516b7e3.m4a",
    "/assets/nine-dragon/grade-lut-cleanroom.bin",
-   "/assets/nine-dragon/lab/grapple/dragon-hook.glb",
    "/assets/nine-dragon/lab/organic/lanterns.glb",
-   "/assets/nine-dragon/lab/organic/leaf-atlas.webp",
    "/assets/nine-dragon/lab/organic/lion.glb",
    "/assets/nine-dragon/lab/organic/pots.glb",
    "/assets/nine-dragon/lab/organic/scroll.phone.webp",
