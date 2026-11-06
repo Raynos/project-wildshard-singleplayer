@@ -11,6 +11,7 @@ import { checkGeneratedSourceTree } from './generated-source.mjs';
 const ROOT = process.cwd();
 const failures = new Set();
 for (const failure of checkGeneratedSourceTree(ROOT)) failures.add(failure);
+/** @param {string} path */
 const readTree = path => (existsSync(resolve(ROOT, path)) ? readFileSync(resolve(ROOT, path), 'utf8') : undefined);
 for (const failure of formatLockFailures(readTree, globSync('.github/workflows/*.yml', { cwd: ROOT }))) failures.add(failure);
 const allowFile = 'scripts/check-paths.allow.json';
@@ -33,15 +34,18 @@ const STRINGS = /'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|`(?:\\.|[^`\\])*`/g;
 const ARGUMENT = `(?:\\[(?:\\s|,|${STRINGS.source})*\\]|${STRINGS.source})`;
 const CALLS = new RegExp(`${STRINGS.source}|\\bimport\\.meta\\.glob(?:<[^()]*>)?\\s*\\(\\s*(${ARGUMENT})`, 'g');
 // Preserve strings and line positions while blanking comments. Documentation of deleted paths is not executable code.
+/** @param {string} text @param {boolean} shell */
 function codeOnly(text, shell) {
   const tokens = shell
     ? /'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|#[^\n]*/g
     : /'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|`(?:\\.|[^`\\])*`|\/\*[\s\S]*?\*\/|\/\/[^\n]*/g;
-  return text.replaceAll(tokens, (token) => (token.startsWith(shell ? '#' : '/') ? token.replaceAll(/[^\n]/g, ' ') : token));
+  return text.replaceAll(tokens, (/** @type {string} */ token) => (token.startsWith(shell ? '#' : '/') ? token.replaceAll(/[^\n]/g, ' ') : token));
 }
+/** @param {string} text */
 function strings(text) {
   return [...text.matchAll(STRINGS)].filter((m) => !(m[0].startsWith('`') && m[0].includes('${')));
 }
+/** @param {string} file @param {string} text @param {string} path @param {number} index @param {string} [folder] */
 function check(file, text, path, index, folder = ROOT) {
   if (allowed.has(`${file}\0${path}`)) return;
   // Component ownership keys append a declaration name to an existing module.
@@ -68,7 +72,7 @@ for (const file of tooling) {
     if (PATH.test(path)) check(file, text, path, match.index);
   }
   // Match standalone tokens, never a suffix of /tmp/.../src or weapons-src/...; punctuation may follow prose paths.
-  const unquoted = code.replaceAll(STRINGS, token => token.replaceAll(/[^\n]/gu, ' '));
+  const unquoted = code.replaceAll(STRINGS, (/** @type {string} */ token) => token.replaceAll(/[^\n]/gu, ' '));
   if (shell) for (const match of unquoted.matchAll(/(?<![\w/.-])(?:\.\/)?src\/[\w./*{}?[\],$-]+/g)) check(file, text, match[0].replace(/[.,]$/, ''), match.index);
 }
 

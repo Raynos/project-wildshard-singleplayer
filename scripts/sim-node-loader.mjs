@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 // Exact reviewed schema leaves stay dependency-guarded by lint/sim-closure.mjs; SF16 owns removal.
 const schemaLeaves = new Set(Object.keys(JSON.parse(readFileSync(new URL('../lint/sim-schema-leaves.json', import.meta.url), 'utf8'))).map((path) => new URL(`../${path}`, import.meta.url).href));
+/** @param {string} url */
 const rendererDependency = (url) => !schemaLeaves.has(url) && /\/src\/engine\/(?:(?:client|cook|server|shared)\/)?(?:app\/runtime\.ts|render\/|ui\/|fx\/|anim\/|.*\/view\/)/u.test(url);
 
 const workspace = new Map();

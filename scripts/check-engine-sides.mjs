@@ -12,6 +12,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { SIDES, SIDES_FILE, SIDE_EDGES_FILE, edgeTotals, readEdges, readSides, sideCensus } from '../lint/engine-sides.mjs';
 
 const ROOT = resolve(fileURLToPath(new URL('../', import.meta.url)));
+/** @param {any} value @returns {any} */
 const sortKeys = value => Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)));
 const EDGES_ABOUT = 'P1-E2: per-file counts of forbidden engine-side edges (lint/engine-sides.mjs): one per imported file on the wrong side, and in shared, server or cook one per renderer module and one per DOM global. wildshard/engine-sides refuses a count above these; scripts/check-engine-sides.mjs --update lowers them; they never rise (check-platform-ratchets).';
 
@@ -53,7 +54,9 @@ function main(argv) {
   return 0;
 }
 
+/** @param {any} census @param {any} sides */
 function report(census, sides) {
+  /** @param {string} path */
   const loc = path => readFileSync(resolve(ROOT, path), 'utf8').split('\n').filter(line => line.trim() !== '').length;
   const bySide = Object.fromEntries(SIDES.map(side => [side, { files: 0, loc: 0, mixedFiles: 0, mixedLoc: 0 }]));
   for (const path of census.files) {
@@ -67,6 +70,7 @@ function report(census, sides) {
   for (const [side, row] of Object.entries(bySide)) console.log(`  ${side.padEnd(7)} ${String(row.files).padStart(5)} files ${String(row.loc).padStart(7)} LOC  (mixed: ${row.mixedFiles} files, ${row.mixedLoc} LOC)`);
   console.log('Edge totals:');
   for (const [edge, n] of Object.entries(edgeTotals(census.counts))) console.log(`  ${edge.padEnd(18)} ${n}`);
+  /** @param {string} path */
   const folder = path => { const parts = path.replace(/^src\//u, '').split('/'); return parts.length > 2 ? parts.slice(0, 2).join('/') : parts[0]; };
   const pairs = new Map();
   for (const unit of census.units) {

@@ -37,7 +37,9 @@ const MODELS = ['rock_moss_set_01', 'tree_stump_01', 'dead_tree_trunk', 'stone_f
   'Lantern_01', 'wooden_crate_02', 'wine_barrel_01', 'wooden_bucket_01', 'hatchet'];
 const HDRIS = { kloofendal_48d_partly_cloudy_puresky: '2k', qwantani_late_afternoon_puresky: '2k', qwantani_sunset_puresky: '2k' };
 
+/** @param {string} p */
 async function exists(p) { try { await access(p); return true; } catch { return false; } }
+/** @param {string} url @param {string} dest */
 async function dl(url, dest) {
   if (await exists(dest)) return;
   await mkdir(dirname(dest), { recursive: true });
@@ -46,6 +48,7 @@ async function dl(url, dest) {
   await writeFile(dest, Buffer.from(await r.arrayBuffer()));
   console.log('  ✓', dest);
 }
+/** @param {string} id */
 async function files(id) { return (await fetch(API + id)).json(); }
 
 for (const [id, cfg] of Object.entries({ ...TEXTURES, ...MODEL_MAPS })) {

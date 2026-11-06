@@ -18,6 +18,7 @@ const shared = new Set();
 for (const row of rows) for (const url of Object.values(row.card ?? {})) {
   if (typeof url === 'string' && url.startsWith('/assets/')) shared.add(url.slice(1));
 }
+/** @param {string} directory */
 function scan(directory) {
   for (const row of readdirSync(directory, { withFileTypes: true })) {
     const path = resolve(directory, row.name);

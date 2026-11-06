@@ -7,6 +7,7 @@ import { shards } from '../src/game/client/shard/list.ts';
 import { selectedPackTables } from './app-build/assetTables.mjs';
 
 const common = { bytes: PUBLIC_BYTES, versions: ASSET_VERSIONS, music: MUSIC_MANIFESTS, sfx: SFX_MANIFESTS, packs: {} };
+/** @param {unknown} packs */
 const bank = packs => JSON.stringify({ bytes: {}, versions: {}, music: {}, sfx: {}, packs });
 process.stdout.write(JSON.stringify({ common: JSON.stringify(common), all: bank(PACKS),
   packs: selectedPackTables(PACKS, shards().map(shard => shard.slug)) }));

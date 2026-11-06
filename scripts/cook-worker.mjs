@@ -20,6 +20,7 @@ const { refreshServiceWorker } = await import('./app-build/serviceWorker.ts');
 const { folderStore, r2Store } = await import('../src/game/cook/packStore.ts');
 
 const env = process.env;
+/** @param {string} name */
 const need = name => { const value = env[name]; if (value === undefined || value === '') throw new Error(`cook-worker needs ${name}`); return value; };
 const store = env.COOK_STORE_DIR === undefined
   ? r2Store({ endpoint: `https://${need('R2_ACCOUNT_ID')}.r2.cloudflarestorage.com`, bucket: need('R2_BUCKET_PACKS'), accessKeyId: need('R2_PACKS_ACCESS_KEY_ID'), secretAccessKey: need('R2_PACKS_SECRET_ACCESS_KEY') })

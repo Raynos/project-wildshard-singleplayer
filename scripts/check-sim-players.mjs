@@ -29,7 +29,7 @@ const isTest = (/** @type {string} */ path) => /\.test\.m?tsx?$/u.test(path) || 
 
 /** @param {ts.Program} program @returns {{ path: string, line: number, name: string }[]} */
 function census(program) {
-  const checker = program.getTypeChecker(), sites = [];
+  const checker = program.getTypeChecker(), sites = /** @type {any[]} */ ([]);
   for (const source of program.getSourceFiles()) {
     if (!source.fileName.startsWith(ROOT) || source.fileName.includes('/node_modules/')) continue;
     const path = source.fileName.slice(ROOT.length + 1);
