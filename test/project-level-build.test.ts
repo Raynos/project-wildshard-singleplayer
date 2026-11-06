@@ -11,6 +11,7 @@ import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { buildProject, readProjectAssets } from '@wildshard/sharddev/project';
 import { manifestImages, readManifestSource, type ProjectManifestSource } from '@wildshard/sharddev/projectManifest';
 import { validateOutputProduct } from '@wildshard/sharddev/outputProduct';
+import { AUTHOR_BUDGETS_MODULE } from '../src/sharddev/authorManifest';
 import { runWildshard } from '../scripts/wildshard.mjs';
 import metadata from '../src/shards/far-reach/manifest.json';
 
@@ -26,6 +27,8 @@ function fixture(): { project: string; output: string; manifest: ProjectManifest
   const authored = parseManifestMetadata({ ...base, slug: folder,
     card: { thumb: url, portrait: url, landscape: url }, minimap: { ...base.minimap, image: url },
     explore: { ...explore, art: { world: url, models: url, sets: url, practice: url } },
+    // The level's program values are its generator's; this fixture has none, so it binds what an author with no generator binds.
+    bindings: { accent: base.bindings.accent, budgets: { module: AUTHOR_BUDGETS_MODULE, export: 'default' } },
   }, folder);
   const file = resolve(project, 'manifest.json'); writeFileSync(file, JSON.stringify(authored));
   writeFileSync(resolve(project, 'shard.config.ts'), `export default ${JSON.stringify(emptyShardfile({ slug: folder, name: 'Level', author: 'Test', revision: 1, seed: 3 }))};`);
