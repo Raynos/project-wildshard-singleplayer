@@ -56,7 +56,9 @@ test('an elite says its tells and its cues', { timeout: 120_000 }, async () => {
     };
     const heard = hear(live, 4000, near);
     expect(heard.get(ELITE_TELL.lane)?.length ?? heard.get(ELITE_TELL.ring)?.length ?? 0).toBeGreaterThan(0);
-    for (const args of heard.get(ELITE_TELL.cue) ?? []) expect(args).toHaveLength(9);
+    const cues = heard.get(ELITE_TELL.cue) ?? [];
+    expect(cues.length, 'a cue fired, and was said').toBeGreaterThan(0);
+    for (const args of cues) { expect(args).toHaveLength(9); expect(args.every(Number.isFinite)).toBe(true); }
   } finally { live.dispose(); }
 });
 
@@ -69,7 +71,9 @@ test('the Antler King says its room, its lanes and its tells', { timeout: 120_00
     const hold = (): void => { lead.position.set(x + 4, host.groundHeightAt(x + 4, z) + 0.1, z); lead.motor.resetAt(lead.position); };
     const heard = hear(live, 6000, hold), said = [...heard.keys()].filter(name => name.startsWith('roaming.'));
     expect(heard.get(ROAMING_VIEW.room)?.length ?? 0, 'the seal closes').toBeGreaterThan(0);
-    expect(said.length).toBeGreaterThan(1);
+    expect(said).toEqual(expect.arrayContaining([ROAMING_VIEW.tell, ROAMING_VIEW.roar, ROAMING_VIEW.burst, ROAMING_VIEW.ring]));
+    const rests = (heard.get(ROAMING_VIEW.ring) ?? []).filter(args => args[2] === 0).length;
+    expect(rests, 'a ring at rest says so once').toBeLessThan(100);
     for (const args of heard.get(ROAMING_VIEW.lane) ?? []) { expect(args).toHaveLength(10); expect(args.every(Number.isFinite)).toBe(true); }
   } finally { live.dispose(); }
 });

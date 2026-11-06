@@ -49,6 +49,7 @@ function nativeGroundFight(host: SimHost, row: RoamingEncounterRow, program: Spe
   const own = { first: false, light: false }, roster = () => populationRoster(host, binding.population);
   /** What a page on this server paints: the fight's own view calls, which are nothing here. */
   let tellTime = 0, telling = false, sealWas = 0, darkWas = 0;
+  const ringing = new Set<number>();
   const tell = { setTime: (t: number): void => { tellTime = t; }, ring: (x: number, z: number, radius: number, alpha: number): void => { telling = true; sayFightView(host, ROAMING_VIEW.tell, [x, z, radius, alpha, tellTime]); },
     hide: (): void => { if (telling) sayFightView(host, ROAMING_VIEW.tellOff, []); telling = false; } };
   const sayLane = (slot: number, state: Lane<NativeGroundBossBody>): void => {
@@ -116,7 +117,11 @@ function nativeGroundFight(host: SimHost, row: RoamingEncounterRow, program: Spe
       burst: k => { sayFightView(host, ROAMING_VIEW.burst, [k.position.x, k.position.y, k.position.z]); },
       hazard: (i, f, t, event) => { const from = fight.body?.position; sayFightView(host, ROAMING_VIEW.hazard, [i, ROAMING_HAZARD_EVENTS.indexOf(event), t, f.x, f.y, f.z, f.fallT, from?.x ?? f.x, from?.y ?? f.y, from?.z ?? f.z]); },
       add: (a, event) => { sayFightView(host, ROAMING_VIEW.add, [event === 'in' ? 1 : 0, a.position.x, a.position.y, a.position.z]); },
-      ring: (i, t, at) => { sayFightView(host, ROAMING_VIEW.ring, [i, t, at === null ? 0 : 1, at?.x ?? 0, at?.z ?? 0, waves[i]?.r ?? 0]); },
+      ring: (i, t, at) => {
+        if (at === null && !ringing.delete(i)) return; // a ring at rest is told so every tick
+        if (at !== null) ringing.add(i);
+        sayFightView(host, ROAMING_VIEW.ring, [i, t, at === null ? 0 : 1, at?.x ?? 0, at?.z ?? 0, waves[i]?.r ?? 0]);
+      },
       tell,
     },
   }, host.level.seed, program, nativeDecisions(host));
