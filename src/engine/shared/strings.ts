@@ -294,6 +294,7 @@ export const ENGINE_STRINGS = {
   "s_f6d2705a823f": "Loading & memory",
   "s_debug_early_programs": "Early shader compile",
   "s_debug_worker_client": "Worker client",
+  "s_debug_weather": "Weather",
   "s_442aded87a55": "Performance",
   "s_c57f1e7056cf": "Creatures & NPCs",
   "s_6cb4be24e5ce": "Combat & weapons",

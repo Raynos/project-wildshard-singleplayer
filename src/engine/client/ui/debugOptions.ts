@@ -22,7 +22,7 @@ import { clearDownloads, freedBytes, lastClear, mbText, storageUsed } from '../b
 import { EARLY_PROGRAMS_SLOT } from '../boot/earlyPrograms';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { markReload } from '../boot/lastEnd';
-import { settingsReloadUrl } from './Settings';
+import { OPTION_VALUES, saveSetting, setting, settingsReloadUrl } from './Settings';
 import type { DebugRowSpec } from '../../server/level/context';
 import { isDev, onDev } from '../core/devMode';
 
@@ -152,6 +152,15 @@ const workerClientRow: DebugRow = { purpose: 'developer', id: 'workerClient', gr
   on: () => undefined,
   note: 'J130: run this page on the server in its worker, which keeps its saves in IndexedDB from a copy of yours. The flip deletes this row.',
   ask: 'E535', reviewBy: '2026-12-30' };
+const weatherWord = (value: string): value is (typeof OPTION_VALUES.weather)[number] => OPTION_VALUES.weather.some(choice => choice === value);
+/** The Weather setting, live: a level that reads it hears it, and on the wire the server's sky does. */
+const weatherRow: DebugRow = { purpose: 'developer', id: 'liveWeather', group: 'tools', label: engineString('s_debug_weather'), reload: false, when: always,
+  choices: () => OPTION_VALUES.weather.map(v => ({ v, text: v })),
+  get: () => setting('weather'),
+  set: (next) => { if (weatherWord(next)) saveSetting('weather', next); },
+  on: () => undefined,
+  note: 'J130: the live Weather setting, which a flip proof presses. Fog and rain hold; live is the level\'s own programme.',
+  ask: 'E535', reviewBy: '2026-12-30' };
 const clearDownloadsRow = action('clearDownloads', 'tools', engineString('s_59cb301bb126'), engineString('s_59cb301bb126'), async (say) => {
   say('Clearing…', CLEAR_IDLE);
   const r = await clearDownloads();
@@ -185,6 +194,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Developer tools ──
   workerClientRow,
+  weatherRow,
 
 ];
 
