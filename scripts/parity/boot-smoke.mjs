@@ -341,12 +341,12 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
   if (mode === 'grid') await context.addInitScript(() => { window.__wildshardHarness = { seed: 357, capture: null }; });
   // Static dist has no serverless API. Acknowledge telemetry and recorded nonfatal lifecycle diagnostics only.
   let telemetryPosts = 0;
-  await context.route(new URL('/api/telemetry', base).href, async route => {
+  await context.route('**/api/telemetry', async route => {
     if (route.request().method() !== 'POST') { await route.continue(); return; }
     telemetryPosts++; await route.fulfill({ status: 204 });
   });
   let gridNavigationIntent = false, gridNavigationObserved = false;
-  await context.route(new URL('/api/errors', base).href, async route => {
+  await context.route('**/api/errors', async route => {
     const request = route.request();
     const report = bootErrorReport(request.url(), request.method(), request.postData());
     if (bootLifecycleDiagnostic(report, gridNavigationObserved)) { await route.fulfill({ status: 204 }); return; }

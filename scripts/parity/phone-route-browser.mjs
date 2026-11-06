@@ -123,7 +123,7 @@ export async function openPhoneBrowser(engine, base, _out, native = {}) {
     page.on('crash', () => faults.push('WebKit page crashed'));
     page.on('response', response => { if (response.status() >= 400 && !new URL(response.url()).pathname.startsWith('/api/')) faults.push(`HTTP ${response.status()}: ${response.url()}`); });
     page.on('request', request => { if (new URL(request.url()).pathname === '/api/errors' && request.method() === 'POST') {let report;try{report=JSON.parse(request.postData()??'null');}catch{report={malformed:request.postData()};}if(!bootLifecycleDiagnostic(report,true))faults.push(`Game error report: ${JSON.stringify(report)}`);} });
-    await context.route(new URL('/api/telemetry', base).href, route => route.fulfill({status:204}));
+    await context.route('**/api/telemetry', route => route.fulfill({status:204}));
     await context.addInitScript({ content: phoneBootstrap('', visit) });
     return { engine: 'webkit-iphone', faults,
       async cold(url, paintScript) { await context.addInitScript({ content: paintScript }); await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 }); },

@@ -1,6 +1,6 @@
 // Production entry: no query parameters or configuration controls. Caps come from the build's shared cost model.
 import { runRig } from './core.js';
-import { BUILD, CFG } from './config.js';
+import { API_ORIGIN, BUILD, CFG } from './config.js';
 
 const status = document.getElementById('status'), back = document.getElementById('return');
 const series = crypto.randomUUID();
@@ -19,7 +19,7 @@ async function send(stage, stats, summary) {
   let error = '';
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const response = await fetch('/api/telemetry', { method: 'POST', headers: { 'content-type': 'application/json' }, body, keepalive: true });
+      const response = await fetch(`${API_ORIGIN}/api/telemetry`, { method: 'POST', headers: { 'content-type': 'application/json' }, body, keepalive: true });
       if (!response.ok) throw new Error(`Telemetry HTTP ${response.status}`);
       const receipt = await response.json();
       window.__crossroadsReceipt = { stage, run, ...receipt };
@@ -35,7 +35,7 @@ async function send(stage, stats, summary) {
   return false;
 }
 window.addEventListener('pagehide', () => {
-  if (!window.__crossroadsDone) navigator.sendBeacon('/api/telemetry', new Blob([JSON.stringify({ ...base, run: `${series}/${iteration}`, iteration, stage: 'interrupted', stats: null })], { type: 'application/json' }));
+  if (!window.__crossroadsDone) navigator.sendBeacon(`${API_ORIGIN}/api/telemetry`, new Blob([JSON.stringify({ ...base, run: `${series}/${iteration}`, iteration, stage: 'interrupted', stats: null })], { type: 'application/json' }));
 });
 async function main() {
   let saved = true, failed = false;

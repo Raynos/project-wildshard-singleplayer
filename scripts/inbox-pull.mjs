@@ -5,7 +5,7 @@
  * The notes come from the in-game FEEDBACK tab / quick note (src/engine/client/ui/Feedback.ts) through `api/inbox.ts`.
  *
  * The password comes from `REVIEW_PASSWORD` in the environment, else from `.env.local` (what `vercel env pull`
- * writes; gitignored). The site defaults to production; `INBOX_URL` or `--url` point it at a preview deployment.
+ * writes; gitignored). The site defaults to the API (scripts/api-origin.mjs); `INBOX_URL` or `--url` point it elsewhere.
  * `--all` re-downloads entries already handled. The drain-inbox skill (.claude/skills/drain-inbox) reads the output.
  *
  * Client error reports (E133: window.onerror, unhandled rejections, a frame-loop system switched off — src/engine/client/core/errorReport.ts
@@ -15,11 +15,11 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { apiOrigin, envLocal } from './api-origin.mjs';
 
 const ROOT = process.cwd();
 const INBOX = path.join(ROOT, '.review', 'inbox');
 const HANDLED = path.join(ROOT, '.review', 'handled');
-const DEFAULT_URL = 'https://wildshard-singleplayer.vercel.app';
 
 /** @param {string} name */
 function arg(name) {
@@ -27,18 +27,6 @@ function arg(name) {
   return i === -1 ? null : (process.argv[i + 1] ?? null);
 }
 
-/** @param {string} key */
-function envLocal(key) {
-  try {
-    for (const line of fs.readFileSync(path.join(ROOT, '.env.local'), 'utf8').split('\n')) {
-      const m = /^(?<k>[A-Z_]+)=(?<q>"?)(?<v>.*)\k<q>$/u.exec(line.trim());
-      if (m?.groups?.k === key) return m.groups.v;
-    }
-  } catch {
-    /* no .env.local */
-  }
-  return null;
-}
 
 /** @param {string} s @param {number} n */
 const pad = (s, n) => (s.length > n ? `${s.slice(0, n - 1)}…` : s.padEnd(n));
@@ -91,7 +79,7 @@ async function pullErrors(base, headers, have) {
 }
 
 async function main() {
-  const base = (arg('--url') ?? process.env.INBOX_URL ?? DEFAULT_URL).replace(/\/$/u, '');
+  const base = (arg('--url') ?? process.env.INBOX_URL ?? apiOrigin()).replace(/\/$/u, '');
   const password = process.env.REVIEW_PASSWORD ?? envLocal('REVIEW_PASSWORD');
   if (password === null || password === '') {
     console.error('inbox-pull: no REVIEW_PASSWORD (env or .env.local — run `vercel env pull`)');

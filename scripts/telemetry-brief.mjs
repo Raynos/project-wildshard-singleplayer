@@ -2,6 +2,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { resolve } from 'node:path';
+import { apiOrigin } from './api-origin.mjs';
 
 const overdue = resolve('.cache/debug-overdue.txt');
 if (existsSync(overdue)) { const value = readFileSync(overdue, 'utf8').trim(); if (value) console.log(`-- overdue Debug flags (key | ask | reviewBy) --\n${value}`); }
@@ -12,7 +13,7 @@ else {
   const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
   for (const query of ['rate=builds&n=3', `digest=${yesterday}`]) {
     try {
-      const response = await fetch(`https://wildshard-singleplayer.vercel.app/api/telemetry?${query}`, { headers: { 'x-review-password': key }, signal: AbortSignal.timeout(3000) });
+      const response = await fetch(`${apiOrigin()}/api/telemetry?${query}`, { headers: { 'x-review-password': key }, signal: AbortSignal.timeout(3000) });
       if (response.ok) console.log(`telemetry ${query}: ${JSON.stringify(await response.json())}`);
       else console.log(`telemetry ${query}: unavailable (${response.status})`);
     } catch { console.log(`telemetry ${query}: unavailable`); }

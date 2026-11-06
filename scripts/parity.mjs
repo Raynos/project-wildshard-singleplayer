@@ -72,7 +72,7 @@ export async function capture(browser,url,opts) {
   console.error(`parity: ${opts.shard}.${opts.tier} boot`);
   const context=await browser.newContext(opts.tier==='phone'?{viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true,serviceWorkers:opts.offline?'allow':'block'}:{viewport:{width:1600,height:900},deviceScaleFactor:1,serviceWorkers:opts.offline?'allow':'block'});
   try {
-    if(opts.telemetryFixture){phases.telemetryFixturePosts=0;await context.route(`${url}/api/telemetry`,async(route)=>{
+    if(opts.telemetryFixture){phases.telemetryFixturePosts=0;await context.route('**/api/telemetry',async(route)=>{
       const request=route.request(); let payload=/** @type {unknown} */(null);
       try{payload=request.postDataJSON();}catch{/* malformed POST remains an observed server error */}
       if(telemetryFixtureAccepts(request.method(),payload)){phases.telemetryFixturePosts++;await route.fulfill({status:200,json:{id:'parity-clock-proof'}});}

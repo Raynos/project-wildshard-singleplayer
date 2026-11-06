@@ -116,7 +116,7 @@ if (mode !== 'native') await (await import('./app-build/standaloneOutput.mjs')).
 if (mode !== 'native') {
   // the crossroads phone rig beside the bundle (was vite/crossroadsRig.ts); before the worker, which counts its files
   step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
-    "(await import('./scripts/app-build/crossroadsRig.ts')).writeCrossroadsRig(process.argv[1], process.cwd());", outDir]);
+    "(await import('./scripts/app-build/crossroadsRig.ts')).writeCrossroadsRig(process.argv[1], process.cwd(), (await import('./scripts/api-origin.mjs')).apiOriginSet());", outDir]);
   // the service worker over the bundle as written (was vite/pwa-plugin.ts): sw.js and its content-named core
   step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
     "(await import('./scripts/app-build/serviceWorker.ts')).writeServiceWorker(process.argv[1], process.cwd());", outDir]);

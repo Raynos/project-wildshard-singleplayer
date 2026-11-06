@@ -20,7 +20,8 @@ echo ""
 pw="${REVIEW_PASSWORD:-$(grep -m1 -E '^REVIEW_PASSWORD=' .env.local 2>/dev/null | sed -E 's/^REVIEW_PASSWORD="?([^"]*)"?$/\1/')}"
 if [ -n "$pw" ] && command -v curl >/dev/null 2>&1; then
   since="$(tr -d '[:space:]' < .review/errors-seen 2>/dev/null || true)"
-  r="$(curl -s --max-time 3 -H "x-review-password: $pw" "https://wildshard-singleplayer.vercel.app/api/errors?count=1&since=$since" 2>/dev/null || true)"
+  api="$(node scripts/api-origin.mjs 2>/dev/null || echo https://wildshard-singleplayer.vercel.app)"
+  r="$(curl -s --max-time 3 -H "x-review-password: $pw" "$api/api/errors?count=1&since=$since" 2>/dev/null || true)"
   n="$(printf '%s' "$r" | sed -nE 's/.*"count":([0-9]+).*/\1/p')"
   [ -n "$n" ] && [ "$n" != 0 ] && echo "!! $n new client error report(s) on the server since ${since:-the first one} — pnpm inbox:pull (category error in .review/inbox/)"
 fi

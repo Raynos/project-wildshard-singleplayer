@@ -27,6 +27,7 @@
     }
   ],
   "include": [
+    "app-build/crossroadsRig.ts",
     "frame-cost-report.ts",
     "types/*.d.ts",
     "parity.mjs",
