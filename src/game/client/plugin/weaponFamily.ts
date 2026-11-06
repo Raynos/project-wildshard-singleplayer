@@ -161,7 +161,7 @@ export abstract class HeldContactWeapon<T extends ContactScanTarget = ContactSca
     this.app.input.bind('heavy', () => { this.swing(true); }, ctx.scope, () => this.enabled);
     ctx.scope.onDispose(() => { this.hold.reset(); });
   }
-  override tryFire(): void { this.swing(false); }
+  override tryFire(): void { const started = this.swing(false); this.wire?.press(started); }
   /** Starts a light or heavy swing when its cooldown and the weapon allow (false: refused). */
   abstract swing(heavy: boolean): boolean;
   /** This frame's aim from the eye (false: no equipment host). */
@@ -172,7 +172,9 @@ export abstract class HeldContactWeapon<T extends ContactScanTarget = ContactSca
   /** The cooldowns run down, the hold steps (its release swings heavy) and the view spring follows the turn. */
   protected stepHeld(dt: number): void {
     this.moves.cool(dt);
-    this.hold.step(dt, this.enabled && this.holster <= 0.001, this.adsHeld, this.releaseHold);
+    const active = this.enabled && this.holster <= 0.001;
+    this.hold.step(dt, active, this.adsHeld, this.releaseHold);
+    this.wire?.hold(active && this.adsHeld); // the server keeps its own charge, and lets go when this does
     this.vm.step(this.spring, new Vector2(), dt);
   }
 }
