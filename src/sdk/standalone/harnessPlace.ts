@@ -5,6 +5,9 @@
 export interface HarnessPlace { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number }
 /** How hard this player's blows land, for a harness that walks a long fight to its end by real ones. */
 export interface HarnessHits { readonly hits: number }
+/** Raise one of this player's flags, for a door whose quest step a proof can't reach in its minutes (a thrall hunt at night). */
+export interface HarnessFlag { readonly flag: string }
+export const isHarnessFlag = (value: unknown): value is HarnessFlag => typeof value === 'object' && value !== null && 'flag' in value && typeof value.flag === 'string';
 /** A proof's second client: it stands here in this cell, on the port that comes with this message. `player` names it after that. */
 export interface HarnessJoin { readonly join: string; readonly x: number; readonly y: number; readonly z: number }
 /** Move a joined client's body. */

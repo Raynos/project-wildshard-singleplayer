@@ -42,6 +42,7 @@ const prompt = (page, match) => page.evaluate(source => { const pattern = new Re
 const press = page => page.keyboard.press('KeyE');
 
 const SUNSCAR_BASIN = [-14, 28, -150], NALATI_DOOR = [-169, 75];
+const groundAt = (page, x, z) => page.evaluate(([gx, gz]) => window.__hf.heightAt(gx, gz), [x, z]);
 /** Walk one way until `done`, or `seconds` run out; whether it was done. */
 async function walkInto(page, yaw, seconds, done) {
   await page.evaluate(heading => { const { player } = window.__wildshard.world; player.yaw = heading; player.pitch = 0; player.touchMove.y = 1; }, yaw);
@@ -142,6 +143,10 @@ async function sunscarJourney(browser, phone, base, step) {
     for (let crackAt = 0; crackAt < 4 && await on() !== true; crackAt++) { await faceAt(page, crack); await page.waitForTimeout(250); await faceAt(page, crack); await page.evaluate(() => { window.__wildshard.world.game.app.input.press('attack'); }); await until(page, on, 1.5); }
     return { ok: await on() === true, poured, label: await label(), server: [(await report(page)).serverX, (await report(page)).serverZ], refused: (await report(page)).refused, flags: (await report(page)).flags.filter(flag => !flag.startsWith('seen:')) };
   });
+  await step('sunscar: a gate a player opened is that player\'s', async () => {
+    const seen = await page.evaluate(() => [0, 1, 2].map(index => window.__workerClientGate(`sunscar.brazier.${index}`)));
+    return { ok: seen.every(open_ => open_ === true) && await page.evaluate(() => window.__workerClientGate('sunscar.lit')) === false, seen };
+  });
   await step('sunscar: the signal fire lights, and the sky has gone to dusk', async () => {
     const fire = await prompt(page, 'signal');
     await place(page, 8.75, fire.y - 1.1, -73.5);
@@ -157,7 +162,7 @@ async function sunscarJourney(browser, phone, base, step) {
     const shown = await bossBar(page), end = await fightTo(page, 'sunscar.matriarch', 'victory', 50);
     await page.waitForTimeout(3000);
     const r = await report(page);
-    return { ok: end?.state === 'victory' && r.quests['sunscar.signal'] === null && r.paid > 0, up: up?.state ?? null, state: end?.state, shown, quests: r.quests, paid: r.paid, coins: r.owned.coins };
+    return { ok: end?.state === 'victory' && r.quests['sunscar.signal'] === null && r.paid > 0 && r.receipts.some(line => line === 'fact:sunscar.matriarch'), up: up?.state ?? null, state: end?.state, shown, quests: r.quests, paid: r.paid, coins: r.owned.coins, receipts: r.receipts };
   });
   await step('sunscar: no page error', () => ({ ok: dune.errors.length === 0, errors: [...new Set(dune.errors)].slice(0, 6) }));
   await dune.context.close();
@@ -309,11 +314,28 @@ async function pineJourney(browser, phone, base, step) {
     await page.waitForTimeout(1000);
     return { ok: moved, whileOpen: moved, buttons: buttons.slice(-6), now: (await board()).slice(0, 8) };
   });
+  await step('pine: the mill door is barred, and opens for the player whose gate it is', async () => {
+    const gate = () => page.evaluate(() => window.__wildshard.world.registry.get('mill-door-bar')?.active?.() ?? null), DOOR = { x: -142.8, z: -164.9 };
+    const barred = await gate(), through = async () => { // from the race side, straight at the door, a step past it
+      const near = await prompt(page, 'open door');
+      const feet = near === null ? 0.8 : await groundAt(page, DOOR.x, DOOR.z + 4);
+      await place(page, DOOR.x, feet + 0.4, DOOR.z + 4);
+      await page.waitForTimeout(1300);
+      await walkInto(page, 0, 3.5, () => page.evaluate(wanted => window.__wildshard.world.player.position.z < wanted, DOOR.z - 1));
+      const r = await report(page);
+      return { z: r.z, server: r.serverZ };
+    }, shut = await through();
+    await page.evaluate(() => { window.__workerClientFlag('errand:done'); });
+    const heard = await until(page, () => page.evaluate(() => window.__workerClientGate('errand:done')), 4);
+    const opened = await gate();
+    await page.keyboard.press('KeyE'); await page.waitForTimeout(800);
+    const open_ = await through();
+    return { ok: barred === true && heard === true && opened === false && shut.z > DOOR.z - 0.5, barred, heard, opened, shut, open: open_, passed: open_.server < DOOR.z - 0.5, corrections: (await report(page)).corrections };
+  });
   await step('pine: no page error', () => ({ ok: pine.errors.length === 0, errors: [...new Set(pine.errors)].slice(0, 6) }));
   await pine.context.close();
 }
 
-const groundAt = (page, x, z) => page.evaluate(([gx, gz]) => window.__hf.heightAt(gx, gz), [x, z]);
 /** Draw and loose at a point, as a player holds the FIRE disc. */
 async function loose(page, at) {
   await faceAt(page, at);

@@ -230,6 +230,38 @@ export async function play(browser, phone, base, only = '') {
     for (let i = 0; i < 30; i++) { phases.add((await claw())?.phase); await nine.page.waitForTimeout(100); }
     return { ok: phases.size > 1, phases: [...phases], own: r.own };
   });
+  await step('nine: a press of the held weapon gets the server\'s answer', async () => {
+    const before = await report(nine.page);
+    await nine.page.evaluate(() => { window.__wildshard.world.game.app.input.press('attack'); });
+    await nine.page.waitForTimeout(1200);
+    const r = await report(nine.page), held = await nine.page.evaluate(() => window.__wildshard.world.game.app.equipment.current?.id ?? null);
+    return { ok: r.refused === before.refused && r.closed === null, held, refused: r.refused, waiting: r.attacks };
+  });
+  await step('nine: a place is discovered and the server keeps it', async () => {
+    const at = await nine.page.evaluate(() => { const { position: p } = window.__wildshard.world.player; return { x: p.x, y: p.y, z: p.z }; });
+    await walk(nine.page, at.x + 12, at.z - 12, 2, 6);
+    for (let i = 0; i < 6; i++) { const r = await report(nine.page), seen = r.flags.filter(flag => flag.startsWith('seen:')); if (seen.length > 0) return { ok: true, seen }; await nine.page.waitForTimeout(1000); }
+    return { ok: false, flags: (await report(nine.page)).flags };
+  });
+  await step('nine: a fall off the stack comes back to firm ground, unhurt', async () => {
+    const stood = await nine.page.evaluate(() => { const { position: p } = window.__wildshard.world.player; return { x: p.x, y: p.y, z: p.z }; }), before = await report(nine.page);
+    await nine.page.waitForTimeout(800);
+    await nine.page.evaluate(({ x, z }) => { window.__wildshard.world.player.link.place(x, 26, z, 0); }, stood);
+    let lowest = Infinity;
+    for (let i = 0; i < 24; i++) { lowest = Math.min(lowest, await nine.page.evaluate(() => window.__wildshard.world.player.position.y)); await nine.page.waitForTimeout(150); }
+    await nine.page.waitForTimeout(1000);
+    const back = await nine.page.evaluate(() => window.__wildshard.world.player.position.y), r = await report(nine.page);
+    return { ok: back > 25 && r.falls === before.falls && r.hp === before.hp, stood: stood.y, lowest, back, falls: r.falls, hp: r.hp };
+  });
+  await step('nine saves and resumes where it stood', async () => {
+    await nine.page.evaluate(() => Promise.race([window.__workerClientSave(), new Promise(resolve => { setTimeout(resolve, 20_000); })]));
+    const stood = await report(nine.page);
+    await nine.page.reload({ waitUntil: 'load' }); await entered(nine.page);
+    await nine.page.waitForTimeout(1500);
+    const r = await report(nine.page);
+    return { ok: stood.savedOk && r.restored && Math.hypot(r.serverX - stood.serverX, r.serverZ - stood.serverZ) < 3, restored: r.restored, flags: r.flags.length };
+  });
+  await step('nine raises no page error', () => ({ ok: nine.errors.length === 0, errors: [...new Set(nine.errors)].slice(0, 6) }));
   await nine.context.close(); }
 
   // Every other shard boots on the row, its sky and fights on rows, with no page error

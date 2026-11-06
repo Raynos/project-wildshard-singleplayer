@@ -72,7 +72,7 @@ export interface WorkerClientPorts {
   readonly system: (system: SystemSpec) => void;
 }
 interface ShellModule { readonly startStandalone: (config: { slug: string; base: string; build: string; savePrefix: string; lone?: true; held?: (url: string) => Promise<ArrayBuffer | null> } & IndexedSaves) => Shell }
-interface Shell { join: (id: string, x: number, y: number, z: number) => { readonly client: NetClient; readonly move: (x: number, y: number, z: number) => void }; readonly client: NetClient; readonly booted: Promise<{ readonly restored: boolean }>; place: (x: number, y: number, z: number, yaw: number) => void; hardHits: (by: number) => void; ready: () => void; save: () => Promise<{ readonly tick: number; readonly ok: boolean }>; probe: () => Promise<{ readonly tickMs: number }>; dispose: () => void }
+interface Shell { raise: (flag: string) => void; join: (id: string, x: number, y: number, z: number) => { readonly client: NetClient; readonly move: (x: number, y: number, z: number) => void }; readonly client: NetClient; readonly booted: Promise<{ readonly restored: boolean }>; place: (x: number, y: number, z: number, yaw: number) => void; hardHits: (by: number) => void; ready: () => void; save: () => Promise<{ readonly tick: number; readonly ok: boolean }>; probe: () => Promise<{ readonly tickMs: number }>; dispose: () => void }
 
 const SAVE_EVERY_MS = 30_000;
 const column = (name: string): number => ANIMAL_CLASS.row.findIndex(entry => entry.name === name);
@@ -101,7 +101,7 @@ export interface WorkerClientReport {
 }
 /** A fight as a proof reads it: its row, where its body stands and the server's name for it. */
 export type WorkerClientFight = EncounterRow & { readonly at: { readonly x: number; readonly y: number; readonly z: number } | null; readonly name: string | null };
-declare global { interface Window { __workerClientFights?: () => readonly WorkerClientFight[]; __workerClientHits?: (by: number) => void; __workerClientBot?: (id: string, x: number, y: number, z: number) => { readonly move: (x: number, y: number, z: number) => void; readonly end: () => void }; __workerClient?: () => WorkerClientReport; __workerClientSave?: () => Promise<void> } }
+declare global { interface Window { __workerClientFights?: () => readonly WorkerClientFight[]; __workerClientHits?: (by: number) => void; __workerClientFlag?: (flag: string) => void; __workerClientGate?: (flag: string) => boolean; __workerClientBot?: (id: string, x: number, y: number, z: number) => { readonly move: (x: number, y: number, z: number) => void; readonly end: () => void }; __workerClient?: () => WorkerClientReport; __workerClientSave?: () => Promise<void> } }
 
 /** A creature on screen, and the world's manager that holds it: a crossing leaves it behind. */
 interface RowBody { readonly body: Animal; readonly manager: Creatures }
@@ -285,6 +285,8 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   } });
   window.__workerClient = () => ({ ...report });
   window.__workerClientHits = by => { shell.hardHits(by); };
+  window.__workerClientFlag = flag => { shell.raise(flag); };
+  window.__workerClientGate = flag => wirePage.gates.has(flag);
   window.__workerClientBot = (id, x, y, z) => {
     const { client: bot, move } = shell.join(id, x, y, z), STILL = { steer: { keyX: 0, keyY: 0, stickX: 0, stickY: 0 }, yaw: 0, pitch: 0, buttons: 0 };
     const beat = scope.interval(1000 / 60, () => { bot.present(); bot.command(STILL); bot.flush(); });
