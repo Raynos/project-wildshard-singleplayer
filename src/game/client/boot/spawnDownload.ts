@@ -588,14 +588,14 @@ function bookSelection(book: unknown, slug: string, flow: 'client' | 'grid', tie
   return pair === undefined ? null : readSpawnManifestAddress(pair);
 }
 /** J138: where a cooked shard's manifests and parts live, when the bake says it isn't this origin. */
-function packBase(slug: string): string | undefined {
-  const element = document.getElementById('ws-catalogue');
-  return element?.dataset['packed']?.split(' ').includes(slug) === true ? element.dataset['packs'] : undefined;
+function packBase(home: unknown, slug: string): string {
+  const shards = get(home, 'shards'), base = get(home, 'base');
+  return Array.isArray(shards) && shards.includes(slug) && typeof base === 'string' ? base : document.baseURI;
 }
-function spawnSelection(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'desktop', mode: string): {address: SpawnManifestAddress; cacheName: unknown} | null {
+function spawnSelection(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'desktop', mode: string): {address: SpawnManifestAddress; cacheName: unknown; base: string} | null {
   const text = document.getElementById('boot-module-files')?.textContent; if (!text) return null;
   const manifests = get(JSON.parse(text), 'spawnManifests'), address = bookSelection(manifests, slug, flow, tier, mode);
-  return address === null ? null : {address, cacheName: get(manifests, 'cacheName')};
+  return address === null ? null : {address, cacheName: get(manifests, 'cacheName'), base: packBase(get(manifests, 'home'), slug)};
 }
 /** DL16: the packs book (the whole level with its parts) is this build's own file, fetched only with Runtime packs on,
  * so the default page carries nothing for an off row. */
@@ -716,13 +716,12 @@ function spawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'd
   // Runtime packs: this entry's whole-level manifest from the packs book. A missing, unreadable or entry-less book
   // fails the download (admission waits on it and refuses control with the reason); it never runs the default set and
   // reports it complete, which would break the whole-level rule (sp-x9's review of 40bc516d5c).
-  const base = packBase(slug) ?? document.baseURI;
-  const download = !packsOn ? downloadSpawnManifest(selected.address, downloadPorts(selected.cacheName, false), base)
+  const download = !packsOn ? downloadSpawnManifest(selected.address, downloadPorts(selected.cacheName, false), selected.base)
     : lateDownload((async () => {
       const address = bookSelection(await readPacksBook(), slug, flow, tier, mode);
       if (address === null) throw new Error(`Packs book has no ${flow} entry for ${slug} (${tier}, ${mode})`);
       if (address.url === selected.address.url) throw new Error('Packs book names the default manifest');
-      return downloadSpawnManifest(address, downloadPorts(selected.cacheName, true), base);
+      return downloadSpawnManifest(address, downloadPorts(selected.cacheName, true), selected.base);
     })());
   current?.download.cancel(); current = {key, download, foreground};
   trackOutcome(download, slug, packsOn);

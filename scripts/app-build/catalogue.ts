@@ -9,18 +9,17 @@ import {productTarball} from './productTarball';
 /** C3 (J61, D7): every build bakes `catalogue.json`, so a build needs no server, and inlines it in `index.html`, so the
  * first paint waits on no new fetch. `WILDSHARD_CATALOGUE` names a file a deploy took from `api-server`'s
  * `/api/catalogue.json`; with none, the in-tree grid and this build's products say the same thing. */
-const ELEMENT = /<script type="application\/json" id="ws-catalogue"[^>]*>[^<]*<\/script>/u;
-const attribute = (text: string): string => text.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;');
-/** J138: the shards cooked to R2 and its origin, for a page's spawn download. Attributes, since the catalogue's own shape is the format's. */
+const ELEMENT = /<script type="application\/json" id="ws-catalogue">[^<]*<\/script>/u;
+/** J138: the shards cooked to R2 and its origin, for a page's spawn download. */
 export interface PackHome {readonly base: string; readonly shards: readonly string[]}
-const inline = (text: string, packs?: PackHome): string => `<script type="application/json" id="ws-catalogue"${packs === undefined ? '' : ` data-packs="${attribute(packs.base)}" data-packed="${attribute(packs.shards.join(' '))}"`}>${text.replaceAll('<', String.raw`\u003c`)}</script>`;
+const inline = (text: string): string => `<script type="application/json" id="ws-catalogue">${text.replaceAll('<', String.raw`\u003c`)}</script>`;
 
-export function writeCatalogueDocument(outDir: string, document: StandaloneCatalogue | StandaloneCatalogueInput, packs?: PackHome): void {
+export function writeCatalogueDocument(outDir: string, document: StandaloneCatalogue | StandaloneCatalogueInput): void {
   const text = JSON.stringify(v.parse(StandaloneCatalogueSchema, document));
   writeFileSync(join(outDir, 'catalogue.json'), text);
   const file = join(outDir, 'index.html'), html = readFileSync(file, 'utf8');
   if (!html.includes('</head>')) throw new Error('No document head for the catalogue');
-  writeFileSync(file, ELEMENT.test(html) ? html.replace(ELEMENT, () => inline(text, packs)) : html.replace('</head>', () => `${inline(text, packs)}</head>`));
+  writeFileSync(file, ELEMENT.test(html) ? html.replace(ELEMENT, () => inline(text)) : html.replace('</head>', () => `${inline(text)}</head>`));
 }
 
 interface Listed {readonly slug: string; readonly order?: number; readonly status?: string}
@@ -62,13 +61,13 @@ export interface CookedShard {
 
 /** A catalogue shard this build has no code or table for, once its packs exist: each table a page reads names it, in files
  *  the bundle doesn't hash. Nothing under `/b/<build>/` changes, which is what "no client rebuild" means (C3). */
-export function addCookedShards(outDir: string, shards: readonly CookedShard[], cooked: string = outDir): void {
+export function addCookedShards(outDir: string, shards: readonly CookedShard[], cooked: string = outDir, home?: PackHome): void {
   const {build} = JSON.parse(readFileSync(join(outDir, 'version.json'), 'utf8')) as {build: string};
   const file = join(outDir, 'index.html');
   let html = readFileSync(file, 'utf8');
   const expression = /(<script type="application\/json" id="boot-module-files">)([^<]+)(<\/script>)/u, match = expression.exec(html);
   if (match?.[2] === undefined) throw new Error('Missing entry module bank');
-  const bank = JSON.parse(match[2]) as {spawnManifests: {client: Record<string, Record<string, unknown>>}};
+  const bank = JSON.parse(match[2]) as {spawnManifests: {client: Record<string, Record<string, unknown>>; home?: PackHome}};
   const bookFile = join(outDir, packsBookPath(build)), book = JSON.parse(readFileSync(bookFile, 'utf8')) as {client?: Record<string, Record<string, unknown>>};
   const verdicts: unknown[] = [];
   for (const shard of shards) {
@@ -82,6 +81,7 @@ export function addCookedShards(outDir: string, shards: readonly CookedShard[], 
     (book.client ??= {})[shard.slug] = pick('whole');
     verdicts.push(shard.verdict);
   }
+  if (home !== undefined) bank.spawnManifests.home = home;
   writeFileSync(bookFile, JSON.stringify(book));
   html = html.replace(expression, () => `<script type="application/json" id="boot-module-files">${JSON.stringify(bank).replaceAll('<', String.raw`\u003c`)}</script>`);
   const stamp = /globalThis\.__WS_SHARDFILE_VERDICTS__=(\[.*?\]);?<\/script>/su, stamped = stamp.exec(html);

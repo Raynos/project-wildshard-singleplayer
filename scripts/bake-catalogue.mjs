@@ -10,6 +10,9 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { brotliCompressSync, constants } from 'node:zlib';
 
+const { prepareAssetDecoders } = await import('@wildshard/format/product');
+const { validateShardfileProduct } = await import('@wildshard/format/productValidation');
+const { readTar } = await import('@wildshard/format/tar');
 const { addCookedShards, writeCatalogueDocument } = await import('./app-build/catalogue.ts');
 const { cookShard, openShardfile, servedAsIs } = await import('../src/game/cook/shardCook.ts');
 const { writeServiceWorker } = await import('./app-build/serviceWorker.ts');
@@ -22,8 +25,14 @@ try {
   const report = await cookShard(tarball, cooked, { now: () => performance.now(), wireBytes: (url, bytes) => servedAsIs(url, bytes) ? bytes.length : brotliCompressSync(bytes, { params: { [constants.BROTLI_PARAM_QUALITY]: 5 } }).length });
   // `dereference`: a preview's dist symlinks its folders.
   cpSync(cooked, packs === undefined ? out : resolve(packs), { recursive: true, dereference: true, force: true });
-  const receipt = JSON.parse(new TextDecoder().decode(shard.read('validation.json')));
-  const { revision, sourceHash, indexHash, residentBytes, postCost, worst } = receipt;
+  // A page trusts a verdict by its index hash, so the verdict is earned here: this build's format validator takes the tarball,
+  // whichever validator stamped its receipt.
+  await prepareAssetDecoders();
+  const files = readTar(tarball);
+  validateShardfileProduct({ read: (path, maximum) => { const bytes = files.get(path); if (bytes === undefined || bytes.length > maximum) throw new Error(`No ${path}`); return bytes; }, paths: () => files.keys() }, { hash: bytes => createHash('sha256').update(bytes).digest('hex') });
+  const revision = /__WS_SHARDFILE_VALIDATOR__="([a-f0-9]{64})"/u.exec(readFileSync(join(out, 'index.html'), 'utf8'))?.[1];
+  if (revision === undefined) throw new Error('No validator stamped on the build');
+  const { sourceHash, indexHash, residentBytes, postCost, worst } = JSON.parse(new TextDecoder().decode(shard.read('validation.json')));
   const header = join(out, 'shardfiles', slug);
   mkdirSync(header, { recursive: true }); writeFileSync(join(header, 'shard.json'), shard.header);
   if (packs !== undefined) { mkdirSync(join(packs, 'shardfiles', slug), { recursive: true }); writeFileSync(join(packs, 'shardfiles', slug, 'shard.json'), shard.header); }
@@ -31,8 +40,8 @@ try {
   const hash = createHash('sha256').update(tarball).digest('hex');
   catalogue.placements = [...catalogue.placements.filter(row => row.slug !== slug), { instance, slug, cell: [Number(x), Number(y)], size: [500, 500, 500], order: catalogue.placements.length + 1 }];
   catalogue.shards = [...catalogue.shards.filter(row => row.slug !== slug), { slug, name: shard.index.identity.name, revision: 1, hash }];
-  writeCatalogueDocument(out, catalogue, packs === undefined || origin === undefined ? undefined : { base: origin, shards: [slug] });
-  addCookedShards(out, [{ slug, hash, header: '', manifests: report.manifests, verdict: { revision, sourceHash, indexHash, residentBytes, postCost, path: `/shardfiles/${slug}/shard.json`, ...(worst === undefined ? {} : { worst }) } }], cooked);
+  writeCatalogueDocument(out, catalogue);
+  addCookedShards(out, [{ slug, hash, header: '', manifests: report.manifests, verdict: { revision, sourceHash, indexHash, residentBytes, postCost, path: `/shardfiles/${slug}/shard.json`, ...(worst === undefined ? {} : { worst }) } }], cooked, packs === undefined || origin === undefined ? undefined : { base: origin, shards: [slug] });
   if (existsSync(join(out, 'sw.js'))) writeServiceWorker(out, process.cwd());
   console.log(JSON.stringify({ slug, hash, seconds: report.seconds, parts: report.parts }));
 } finally { rmSync(cooked, { recursive: true, force: true }); }
