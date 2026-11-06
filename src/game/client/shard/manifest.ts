@@ -596,9 +596,6 @@ export interface ShardManifest {
    * ever sees the bound loader (progress/shard-platform/product-in-look-o272/).
    */
   render?: (product: ShardProduct) => Promise<LookStrategy>;
-  /** the look as a row: a post-graph look read from a product file's row (game/looks/postGraphLook `postGraphLook`);
-   *  `defineShard` binds it as `render` */
-  readonly postLook?: { readonly file: string; readonly field: readonly string[] };
   /**
    * A built fragment's limits (the landscape shards have the terrain's edge walls instead): below `floor` or outside the
    * box, on foot or on the board, the player is put back on the last floor they stood on inside them (a registry floor;
@@ -661,6 +658,9 @@ export interface ChunkPoi { id: string; name: string; x: number; z: number; r?: 
 
 /** Data for first-party discovery and boot; native module loaders stay explicit bindings. */
 export type ShardManifestRows = Omit<ShardManifest, 'scalarBlocks' | 'load' | 'render' | 'roster' | 'ktx2' | 'dev' | 'groundColor' | 'ground' | 'horizon' | 'pois' | 'spawns' | 'minimap' | 'trees' | 'audio'> & {
+  /** the look as a row: a post-graph look read from a product file's row (game/looks/postGraphLook `postGraphLook`);
+   *  `defineShard` binds it as `render`, so a manifest never carries it */
+  readonly postLook?: { readonly file: string; readonly field: readonly string[] };
   readonly spawns: readonly ShardManifest['spawns'][number][];
   readonly trees: ChunkTrees | (Omit<ChunkTrees,'factory'> & { factory: 'declared' });
   readonly audio?: NonNullable<ShardManifest['audio']> & { catalogue?: boolean };

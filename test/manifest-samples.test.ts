@@ -5,6 +5,7 @@ import { defineShard,declaredGround,type ShardManifestRows } from '../src/game/c
 import type { ScalarLatticeRows } from '@wildshard/format/scalarChannel';
 import nalati from '../src/shards/nalati-grasslands/discovery.generated';
 import { readNalatiGeography } from './fixtures/nalati-geography';
+import { manifestClosure,manifestContract } from '../scripts/gen-shards.mjs';
 
 const geography=readNalatiGeography();
 
@@ -80,8 +81,12 @@ test('legacy native callbacks and ground owners retain identity and fixed RGB be
 test('a declared post look binds the manifest render and refuses a second look binding',() => {
   const input = { ...sampled(),postLook: { file: 'look/post.json',field: ['look'] } },manifest = defineShard(input,{});
   expect(typeof manifest.render).toBe('function');
-  expect(manifest.postLook).toBeUndefined();
+  expect('postLook' in manifest).toBe(false);
   expect(() => defineShard(input,{ render: () => Promise.reject(new Error('unused')) })).toThrow('Conflicting manifest look bindings');
+});
+
+test('the manifest contract holds: every field has a reader, every closure its budget',() => {
+  expect(manifestContract('.',manifestClosure('.'),true)).toEqual([]);
 });
 
 test('declared manifests refuse source runtime entries before getters or sample decoding', () => {
