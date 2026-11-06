@@ -498,7 +498,7 @@ export function prepareGroupNativeV2<A extends AnimalSim = AnimalSim>(operations
     const member = operation.member;
     const resultChannel = 'channel' in request ? request.channel : undefined;
     if (resultChannel !== undefined && channels !== undefined) {
-      const channel = JSON.stringify([member?.slot ?? null, resultChannel]);
+      const channel = `${String(member?.slot ?? '')}:${resultChannel}`;
       if (channels.has(channel)) throw new Error('Duplicate native group result channel');
       channels.add(channel);
     }
