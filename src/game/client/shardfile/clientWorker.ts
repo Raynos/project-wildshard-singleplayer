@@ -140,6 +140,7 @@ function syncCreatures(client: NetClient, animals: Creatures | null, bodies: Map
     const kind = String(info.initial['kind']), at = diagnosticNow(), body = animals.spawn(kind, x, z, yaw, String(info.initial['variant']), { y, body: { seed: Number(info.initial['seed']), scale: Number(info.initial['scale']) } });
     spawnMs.set(kind, Math.max(spawnMs.get(kind) ?? 0, diagnosticNow() - at));
     body.rowDriven = true;
+    wirePage.dress(animals, body);
     bodies.set(handle, { body, manager: animals });
     Object.assign(body.mem, poses.get(info.id));
   }
@@ -240,8 +241,8 @@ async function startWorkerClient(ports: WorkerClientPorts, card: ReturnType<type
   };
   scope.onDispose(() => { clawed?.useClaw(null); clawed = null; });
   wirePage.bind(client, id => { net.wire.interact(id); }, stop, (handle, to) => headOf(bodies.get(handle)?.body, to), act => { client.act(act); });
-  wirePage.led = () => net.predictor.leading;
-  scope.onDispose(() => { wirePage.unbind(); wirePage.led = () => false; });
+  wirePage.led = () => net.predictor.leading; wirePage.rowBody = handle => bodies.get(handle)?.body ?? null;
+  scope.onDispose(() => { wirePage.unbind(); wirePage.led = () => false; wirePage.rowBody = () => null; });
   // J116: the lock's body by the server's name for it
   net.lockTarget = () => {
     if (lockOn.state !== 'locked' || lockOn.target === null) return undefined;

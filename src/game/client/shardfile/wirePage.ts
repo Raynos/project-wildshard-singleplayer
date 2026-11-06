@@ -1,6 +1,7 @@
 // J130: what a page with Settings ▸ Developer ▸ Worker client on reads in place of its own sim. Views install long before the
 // server's first frame, so they take this seat at install and it fills when the wire does. The flip commit makes it the page.
 import type { Vector3 } from 'three';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { NetClient } from '@wildshard/engine/net/client';
 import { STORY_ACT, type NetRoomAct } from '@wildshard/engine/net/acts';
@@ -53,6 +54,9 @@ export class WirePage {
   readonly movers: Map<string, MoverView> = new Map<string, MoverView>();
   /** Whether the server is carrying this player's body now. */
   led: () => boolean = () => false;
+  /** A row's body on this page, by its handle. */
+  rowBody: (body: number) => Animal | null = () => null;
+  private readonly dressers = new Map<object, (body: Animal) => void>();
   /** The head over a row's body, into `to`: what an elite's bar stands on. */
   readonly head: (body: number, to: Vector3) => boolean = (body, to) => this.heads(body, to);
   /** How many poses rows have set: what a proof reads. */
@@ -85,6 +89,10 @@ export class WirePage {
   private ownedAt = -1;
   private readonly said = new Map<string, number>();
   get on(): boolean { return workerClientOn(); }
+  /** What a page does to a body its own population spawns, for the rows `manager` draws: until `scope` ends. */
+  dressRows(manager: object, scope: Scope, dress: (body: Animal) => void): void { this.dressers.set(manager, dress); scope.onDispose(() => { if (this.dressers.get(manager) === dress) this.dressers.delete(manager); }); }
+  /** A row's new body, in `manager`. */
+  dress(manager: object, body: Animal): void { this.dressers.get(manager)?.(body); }
   /** Count one thing drawn. */
   drew(what: string): void { this.drawn[what] = (this.drawn[what] ?? 0) + 1; }
 

@@ -1360,6 +1360,7 @@ export class BossView extends DirectorBossBrain {
   private readonly pinned: () => Animal | null;
   /** J130: a bar has one driver. On the wire the row draws it and this page's brain never steps. */
   private readonly rowBar: BossRowBar | null;
+  private readonly rowId: string;
   constructor(ctx: ShardContext, spec: BossViewSpec) {
     const bar = new BossBar(), motor = (): { position: Vector3; yaw: number } | null => ctx.game.runtime?.world?.player ?? null, aim = new Vector3();
     const faceToward = (target: Vector3): void => { const m = motor(); if (m) m.yaw = Math.atan2(m.position.x - target.x, m.position.z - target.z); };
@@ -1370,7 +1371,7 @@ export class BossView extends DirectorBossBrain {
       respawn: (pos, yaw) => { const m = motor(); if (m) { m.position.copy(pos); m.yaw = yaw; } },
       faceToward, spawnReward: () => { spec.spawnReward?.(); }, toast: spec.toast === true ? (message) => { ctx.game.runtime?.play?.hud.toast(message); } : undefined,
       persist: spec.persist }, bar, spec.saved, spec.stages);
-    this.pinned = spec.body;
+    this.pinned = spec.body; this.rowId = spec.row ?? spec.definition.id;
     this.rowBar = wirePage.on ? new BossRowBar(bar, { ...spec.definition, id: spec.row ?? spec.definition.id }, null, { lock: on => { ctx.game.runtime?.play?.weapons.setEnabled(!on); }, ...(spec.won === undefined ? {} : { won: spec.won }), ...(spec.summoned === undefined ? {} : { summoned: spec.summoned }),
       face: body => { faceToward(spec.introAt ?? (wirePage.head(body, aim) ? aim : spec.script.rewardPoint())); },
       attempt: outcome => { if (outcome === 'started') spec.started?.(); ctx.app.events.emit('boss.attempt', { boss: spec.definition.id, outcome }); } }) : null;
@@ -1379,7 +1380,11 @@ export class BossView extends DirectorBossBrain {
   override update(dt: number, t: number): void {
     const body = this.pinned();
     if (body !== null) body.drawPinned = true;
-    if (this.rowBar !== null) { this.rowBar.draw(wirePage.encounters(), dt); return; }
+    if (this.rowBar !== null) {
+      const rows = wirePage.encounters(), row = rows.find(entry => entry.id === this.rowId), rowBody = row === undefined ? null : wirePage.rowBody(row.body);
+      if (rowBody !== null) rowBody.drawPinned = true;
+      this.rowBar.draw(rows, dt); return;
+    }
     super.update(dt, t);
   }
 }

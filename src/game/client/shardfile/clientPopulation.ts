@@ -7,6 +7,7 @@ import type { RuntimeHomePorts } from '../../shared/plugin/runtimeRows';
 import { bindPageHomes } from '../../shared/population/pageHomes';
 import { pagePopulationRows } from '../../shared/population/pageRows';
 import { productPainterLight } from '../looks/paintedLook';
+import { wirePage } from './wirePage';
 import { clientNativeBook } from './clientNativeBook';
 
 /** Compiled population.homes feature keeps the original native bodies,
@@ -18,6 +19,8 @@ export async function installClientPopulation(ctx: ShardContext, input: unknown)
   const declared = pagePopulationRows(ctx.product.section('sim/runtime-plan'));
   const catalogue = book.catalogue, materialScope = ctx.product.section('look/painted').look.lightScope === 'material';
   const addresses = new Set([...declared.homes, ...declared.bosses, ...declared.actors ?? []].map(body => body.id));
+  const rowBodies = ctx.game.runtime?.play?.animals; // herdless on the wire: its population spawns nothing, and the rows' bodies take the same light
+  if (wirePage.on && materialScope && rowBodies !== undefined) wirePage.dressRows(rowBodies, ctx.scope, body => { productPainterLight(ctx.product, body.mesh, ctx.scope); });
   for (const ids of Object.values(row.groups)) if (ids.some(id => !addresses.has(id))) throw new Error('Population group requires actual native bodies');
   const ports: RuntimeHomePorts = { system: row.system,
     decisionActors: parseDecisionScripts(ctx.product.section('sim/scripts')).filter(script => 'spawnGroup' in script.binding).flatMap(script => Object.values(script.actors)),
