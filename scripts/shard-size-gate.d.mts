@@ -9,5 +9,5 @@ export interface ShardSizeBaseline {
 export const BASELINE_FILE: string;
 export function readPhoneDownloads(dist: string): Record<string, number> | null;
 export function checkShardSizes(baseline: ShardSizeBaseline, downloads: Record<string, number>, options?: { cooksAfter?: boolean }): { errors: string[]; notes: string[] };
-export function ratchetShardSizes<T extends { shards: Record<string, Pick<ShardSizeRow, 'ceilingPhoneBytes' | 'latchedPhoneBytes' | 'shrinkOnly'>> }>(baseline: T, downloads: Record<string, number>): T;
+export function ratchetShardSizes<T extends { limits: { ratchetSlackBytes: number }; shards: Record<string, Pick<ShardSizeRow, 'ceilingPhoneBytes' | 'latchedPhoneBytes' | 'shrinkOnly'>> }>(baseline: T, downloads: Record<string, number>): T;
 export function folderBuckets(folder: string): { totalBytes: number; files: number; buckets: Record<string, number> };

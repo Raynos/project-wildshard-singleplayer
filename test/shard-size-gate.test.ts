@@ -53,6 +53,10 @@ test('a ratchet follows a shrink-only shard past its baseline, and the old room 
   expect(errors({ held: 20_000_000, over: 50_000_000 }, regrown)[0]).toContain('"raises"');
 });
 
+test('a ratchet leaves build noise inside the slack alone', () => {
+  expect(ratchetShardSizes(baseline, { over: 89_500_000 }).shards['over']?.ceilingPhoneBytes).toBe(90_000_000);
+});
+
 test('a ratchet leaves a shard at its baseline alone', () => {
   expect(ratchetShardSizes(baseline, { held: 15_000_000 }).shards['held']?.ceilingPhoneBytes).toBe(20_000_000);
   expect(ratchetShardSizes(baseline, { held: 25_000_000 }).shards['held']?.ceilingPhoneBytes).toBe(20_000_000);

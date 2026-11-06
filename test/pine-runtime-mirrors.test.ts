@@ -64,7 +64,9 @@ test('program boot discovery preserves the ordered boot recipes', async () => {
       setPageMode(mode);
       expect(pageModeValue(policy.memoryTrim)).toBe(mode === 'grid');
       expect([256, 512, 1024, 2048].map(cap => pageModeCap(policy.setCap, cap))).toEqual(mode === 'grid' ? [256, 512, 512, 2048] : [256, 512, 1024, 2048]);
-      const table = mode === 'grid' ? { phone:{ ...GPU_FILES.phone, ...ASTC6_PHONE }, desktop:GPU_FILES.desktop } : GPU_FILES;
+      // S4: both page modes read the phone's 6×6 table, whatever the memory trim says.
+      expect(pageModeValue(policy.phoneAstc6)).toBe(true);
+      const table = { phone:{ ...GPU_FILES.phone, ...ASTC6_PHONE }, desktop:GPU_FILES.desktop };
       const baked = metadata[mode];
       expect(pageModeKtx2(gpuTables).GPU_FILES).toEqual(table);
       for (const tier of ['phone','desktop'] as const) for (const tex of ['img','ktx2'] as const) {

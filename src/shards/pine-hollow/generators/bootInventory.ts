@@ -23,5 +23,5 @@ export function pineBootInventory(inventory: Readonly<Record<string, number | tr
 /** GPU rows remain a separate lazy payload; the desktop map is never overlaid. */
 export function pineKtx2Tables(astc: Readonly<Record<string, string>>): { readonly shard: BootGpuFiles; readonly grid: BootGpuFiles } {
   const trimmed = { phone: { ...GPU_FILES.phone, ...astc }, desktop: GPU_FILES.desktop };
-  return { shard: policy.memoryTrim.shard ? trimmed : GPU_FILES, grid: policy.memoryTrim.grid ? trimmed : GPU_FILES };
+  return { shard: policy.phoneAstc6.shard ? trimmed : GPU_FILES, grid: policy.phoneAstc6.grid ? trimmed : GPU_FILES };
 }

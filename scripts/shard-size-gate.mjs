@@ -77,13 +77,14 @@ export function checkShardSizes(baseline, downloads, { cooksAfter = false } = {}
 }
 
 /** The baseline with each shrink-only ceiling lowered to what the shard downloads now, past its baseline if it got there:
- * a shard that reached 58 can't regrow to a 78 baseline unrefused. A shard held at its baseline stays there.
- * @template {{ shards: Record<string, { ceilingPhoneBytes: number, latchedPhoneBytes?: number, shrinkOnly: boolean }> }} T
+ * a shard that reached 58 can't regrow to a 78 baseline unrefused. A shard held at its baseline stays there, and so does one
+ * inside the slack: build noise is no shrink, and latching it would leave no room for the next build's.
+ * @template {{ limits: { ratchetSlackBytes: number }, shards: Record<string, { ceilingPhoneBytes: number, latchedPhoneBytes?: number, shrinkOnly: boolean }> }} T
  * @param {T} baseline @param {Record<string, number>} downloads @returns {T} */
 export function ratchetShardSizes(baseline, downloads) {
   const shards = Object.fromEntries(Object.entries(baseline.shards).map(([slug, row]) => {
     const bytes = downloads[slug];
-    if (bytes === undefined || bytes >= row.ceilingPhoneBytes || !row.shrinkOnly) return [slug, row];
+    if (bytes === undefined || bytes >= row.ceilingPhoneBytes - baseline.limits.ratchetSlackBytes || !row.shrinkOnly) return [slug, row];
     return [slug, { ...row, ceilingPhoneBytes: bytes, latchedPhoneBytes: bytes }];
   }));
   return { ...baseline, shards };

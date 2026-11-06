@@ -21,7 +21,8 @@ export function heroMaterialCandidates(sources){
  const {gpu,astc}=gpuTables(sources),urls=[];
  for(const source of rows.sources)for(const id of [source,`${source}-lod1`]){
   const original=heroModelSource(id),phone=original.replace('.glb','.phone.glb');
-  for(const url of [original,phone,gpu.desktop[original],gpu.desktop[phone],gpu.phone[original],gpu.phone[phone],astc[original],astc[phone]])
+  // S4: the phone's 4×4 twin of a payload with a 6×6 one is read by no page, and a tier's selection keeps its largest variant.
+  for(const url of [original,phone,gpu.desktop[original],gpu.desktop[phone],astc[original]===undefined?gpu.phone[original]:undefined,astc[phone]===undefined?gpu.phone[phone]:undefined,astc[original],astc[phone]])
    if(typeof url==='string'&&!urls.includes(url))urls.push(url);
  }
  return urls;

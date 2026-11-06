@@ -49,7 +49,9 @@ function pinePropMaterialFiles(sources) {
   const aliases = {}, outputs = {}, costs = [];
   for (const id of ['rock_moss_set_01', 'tree_stump_01', 'dead_tree_trunk']) {
     const original = `/assets/models/${id}/${id}_lod.glb`, phone = original.replace('.glb', '.phone.glb'), folder = `/assets/gpu/models/${id}/`;
-    const urls = [...new Set([original, phone, gpu.desktop[original], gpu.phone[phone], astc[phone], ...sources.list(folder).filter(url => !url.slice(folder.length).includes('/') && url.endsWith('.glb')).sort()].filter(Boolean))];
+    // S4: the phone's 4×4 twin stays out once it has a 6×6 one: no page reads it, and a tier's selection keeps its largest variant.
+    const fourByFour = url => astc[phone] !== undefined && /\.phone-[0-9a-f]+\.glb$/u.test(url);
+    const urls = [...new Set([original, phone, gpu.desktop[original], astc[phone] ?? gpu.phone[phone], ...sources.list(folder).filter(url => !url.slice(folder.length).includes('/') && url.endsWith('.glb') && !fourByFour(url)).sort()].filter(Boolean))];
     for (const url of urls) {
       const bytes = sources.bytes(url), packed = new Uint8Array(compactMaterialGlb(Buffer.from(bytes))), target = productName('prop-materials', url);
       aliases[url] = target; outputs[target] = packed; costs.push({ original: url, before: bytes.length, after: packed.length });
