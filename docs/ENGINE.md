@@ -138,7 +138,7 @@ snapshots reuse proof. Other rows revalidate.
 `sim/edgeProfiles.edgeProfileJson` serializes the same numeric row words,
 including signed zero; only private immutable snapshots without signed zero
 or inherited JSON hooks omit the numeric replacer. Other callers retain it.
-`grid/compiledStrips`: source-hashed rings, exact look channels, I12-bound.
+`grid/compiledStrips`: source-hashed rings, exact look channels, bound by `budgets/grid-strip-room.json`.
 Missing entries generate; corrupt declared files refuse.
 `@wildshard/engine/physics/frame` prepares rider/mount
 motor transfers. See [GRID-SIMULATION.md](GRID-SIMULATION.md) for readiness, snapshot and client integration ports.

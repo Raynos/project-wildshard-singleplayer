@@ -596,7 +596,6 @@
     "scripts/map-painter.mjs",
     "scripts/native-recorder-cache.mjs",
     "scripts/parity/init.mjs",
-    "scripts/phone-wire.mjs",
     "scripts/product-build-times.mjs",
     "scripts/program-discovery.mjs",
     "scripts/quiet-cli.mjs",

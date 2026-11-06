@@ -1,6 +1,5 @@
 // The legacy rollout ceilings budget-ceilings.mjs moves into manifest data are `<shard>.<tier>.<pose>.<metric>` keys of
-// lint/ratchet.json's budgets; the other budgets there (J10's `js/*` chunk gzip ceilings, I12's `wire/<product>/phone`
-// wire ceilings) belong to their own checks and stay.
+// lint/ratchet.json's budgets; the other budgets there (J10's `js/*` chunk gzip ceilings) belong to their own checks and stay.
 const ROLLOUT_KEY = /^[^./]+\.(?:phone|desktop)\.[^.]+\.[^.]+$/u;
 
 /** The ratchet budgets left once the rollout ceilings move to manifest data, in their order. */

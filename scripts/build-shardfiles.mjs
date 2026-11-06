@@ -46,7 +46,7 @@ async function buildShardfilesWork(root, { strict = [process.env.CI, process.env
   rmSync(resolve(outputRoot, 'catalog.json'), { force: true });
   const projects = resolve(root, 'src/shards');
   let count = 0;
-  const stale = [], runtimeReport = [], measured = [];
+  const stale = [], runtimeReport = [];
   // A folder may emit many products. Its shared source closure and prerequisite
   // generation are one immutable build-phase fact; output stamps/pixels stay
   // product-specific and are still checked for every output below.
@@ -156,7 +156,6 @@ async function buildShardfilesWork(root, { strict = [process.env.CI, process.env
     console.info(`wildshard build: ${name} ${how === 'built' ? 'built' : `reused (${how})`} in ${((performance.now() - started) / 1000).toFixed(1)}s`);
     count++;
     counters.product(how==='built');
-    measured.push(name);
     if(how==='built')buildTimes.set(name,performance.now()-started);
     else if(strict)validationTimes.set(name,performance.now()-started);
     } catch(error) {
@@ -176,13 +175,6 @@ async function buildShardfilesWork(root, { strict = [process.env.CI, process.env
   runtimeReport.sort((a,b)=>a.slug.localeCompare(b.slug));
   if (copyRuntime === 'closed') for (const report of runtimeReport) console.info(`runtime copy: ${JSON.stringify(report)}`);
   console.info(`wildshard build: ${count} shardfile project(s)`);
-  // I12 (G792): the build refuses a product whose declared phone wire grows past its ceiling
-  if (recorded && onFailure === undefined && measured.length > 0) {
-    const { phoneWireReport } = await import('./phone-wire.mjs');
-    const report = await phoneWireReport(root, measured);
-    for (const row of report.rows) console.info(`phone wire: ${row.name} ${(row.bytes / 1e6).toFixed(2)} MB${row.ceiling === undefined ? ' (no ceiling)' : ` of ${(row.ceiling / 1e6).toFixed(2)} MB`}`);
-    if (report.errors.length > 0) throw new Error(report.errors.join('\n'));
-  }
   if (stale.length > 0) {
     const message = `wildshard build: the baked map of ${stale.join(', ')} does not match its world (SF66); rebake: node scripts/bake-maps.mjs --url=<scripts/serve-build.sh --head> --shards=${stale.join(',')}`;
     if (strict) throw new Error(message);

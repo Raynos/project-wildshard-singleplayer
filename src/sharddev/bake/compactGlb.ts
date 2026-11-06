@@ -11,7 +11,7 @@ import type { ShardEntryways } from '@wildshard/format/entryways';
 import { visitGlbTriangles } from '@wildshard/format/product';
 
 /** The brotli size a phone pays for a file over the wire: the deploy's own encoding, quality 3 (Vercel's responses match it
- *  byte for byte; scripts/phone-wire.mjs measures the same). */
+ *  byte for byte). */
 export function brotliBytes(bytes: Uint8Array): number {
   return brotliCompressSync(bytes, { params: { [constants.BROTLI_PARAM_QUALITY]: 3, [constants.BROTLI_PARAM_SIZE_HINT]: bytes.length } }).length;
 }

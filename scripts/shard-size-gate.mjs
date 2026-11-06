@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 // SHARD-SIZE row 1 (docs/multi-repo/SHARD-SIZE-PLAN.md in project-wildshard-meta): every web build refuses a shard whose
-// phone download grew. The older I12 check (scripts/phone-wire.mjs) reads a product's tier selection, which is not what a
-// phone downloads, so Pine passed it at 67 MB while phones fetched 111. This one reads the packs book, the list the page
-// really downloads: `client.<slug>.phone.wireBytes`. budgets/shard-size-baseline.json holds the ceilings, the measured
-// old numbers, how they were measured and how to change them on purpose.
+// phone download grew. It reads the packs book, the list the page really downloads: `client.<slug>.phone.wireBytes`.
+// budgets/shard-size-baseline.json holds the ceilings, the measured old numbers, how they were measured and how to
+// change them on purpose. I12's older check read a tier selection, so Pine passed at 67 MB while phones took 111.
 //
 //   node scripts/shard-size-gate.mjs [dist]             refuse growth (scripts/build-app.mjs runs this)
 //   node scripts/shard-size-gate.mjs [dist] --ratchet   lower the ceilings of shards that shrank, in the baseline file

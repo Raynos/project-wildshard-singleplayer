@@ -18,8 +18,7 @@ import { generatePlatform } from '../src/engine/shared/sim/strips.ts';
 import { platformGeometrySource } from '../src/game/shared/grid/compiledStrips.ts';
 import { writeGridCollision } from '../src/game/cook/gridCollision.ts';
 import { encodeGridStripPage, GridStripTransportLimitError, writeGridStripPages } from '../src/game/cook/gridStripPages.ts';
-import { phoneWireReport } from './phone-wire.mjs';
-import { existsSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 const root = process.cwd(), outputRoot = resolve(process.argv[2] ?? root), base = 'https://build.invalid/';
 // A deploy that names its catalogue (`bakeCatalogue`) gets seams for that grid, or the page's catalogue and its seams differ.
@@ -95,12 +94,10 @@ for (const developer of [false, true]) for (const devserver of [false, true]) fo
 /** @template T @param {ReadonlyMap<string,T>} rows */
 const ordered = rows => [...rows].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
 const output = JSON.stringify({ plans: ordered(plans), edges: ordered(sources) });
-const names = [...new Set(compiled.map(row => row.slug))].filter(slug => existsSync(resolve(root, 'out', slug, 'shard.json')));
-const wire = await phoneWireReport(root, names);
-if (wire.errors.length > 0) throw new Error(wire.errors.join('\n'));
-const pages = writeGridStripPages(outputRoot, createHash('sha256').update(output).digest('hex'), compiled, wire.rows);
-// Addressing only: all original strip bytes, hashes and I12 selection stay in
+const { room } = JSON.parse(readFileSync(resolve(root, 'budgets/grid-strip-room.json'), 'utf8'));
+const pages = writeGridStripPages(outputRoot, createHash('sha256').update(output).digest('hex'), compiled, room);
+// Addressing only: all original strip bytes, hashes and room selection stay in
 // writeGridStripPages. The title can request its exact existing initial page.
 writeFileSync(resolve(outputRoot, 'out/.app/grid-strip-entry-modes.json'), JSON.stringify(Object.fromEntries(entryModes)));
-for (const row of pages.rows) console.error(`[grid strip wire] ${row.home} source=${row.source.slice(0, 8)} added=${row.added} product=${String(row.product)} ceiling=${String(row.ceiling)} ${row.included ? 'compiled' : 'native'}${row.outer ? '+outer' : ''}`);
+for (const row of pages.rows) console.error(`[grid strip wire] ${row.home} source=${row.source.slice(0, 8)} added=${row.added} room=${String(row.room)} ${row.included ? 'compiled' : 'native'}${row.outer ? '+outer' : ''}`);
 process.stdout.write(output);
