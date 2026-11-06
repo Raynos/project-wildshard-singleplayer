@@ -6,6 +6,7 @@
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
+/** @param {string} name @param {string} fallback @returns {string} */
 const flag = (name, fallback) => process.argv.find(row => row.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const dist = resolve(flag('dist', 'dist')), tier = flag('tier', 'phone'), check = process.argv.includes('--check');
 const { build } = JSON.parse(readFileSync(join(dist, 'version.json'), 'utf8'));
@@ -26,7 +27,7 @@ for (const [slug, manifest] of manifests) {
     }
   }
   if (used > raw) problems.push(`${slug}: members hold ${used} bytes in ${raw} bytes of parts`);
-  rows.push({ slug, parts: parts.length, rawMB: Number((raw / 1e6).toFixed(1)), wireMB: Number((wire / 1e6).toFixed(1)), overFetchMB: Number(((raw - used) / 1e6).toFixed(1)), shared: parts.filter(part => (users.get(part.url)?.size ?? 0) > 1).length });
+  rows.push({ slug, parts: parts.length, rawMB: Number((raw / 1e6).toFixed(1)), wireMB: Number((wire / 1e6).toFixed(1)), overFetchMB: Number(((raw - used) / 1e6).toFixed(1)), shared: parts.filter((/** @type {{ url: string }} */ part) => (users.get(part.url)?.size ?? 0) > 1).length });
 }
 console.table(rows.filter(row => row.parts > 0).sort((a, b) => b.wireMB - a.wireMB).slice(0, 12));
 for (const line of problems) console.error(line);

@@ -7,14 +7,15 @@ import { devices } from 'playwright';
 import { launchMemoryBrowser } from './chromium-memory-browser.mjs';
 import { saveFixture } from './debug-settings.mjs';
 
+/** @param {string} name */
 const option = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const base = option('base'), pin = option('pin'), output = option('out'), directory = option('dist');
 if (!base || !/^[a-f0-9]{40}$/u.test(pin ?? '') || !output || !directory) throw new Error('Expected --base --pin --dist --out');
 const version = await (await fetch(new URL('/version.json', base))).json();
-if (!version.build.startsWith(pin.slice(0, 7))) throw new Error('Preview pin differs');
+if (!version.build.startsWith((pin ?? '').slice(0, 7))) throw new Error('Preview pin differs');
 const dist = resolvePath(directory), modules = JSON.parse(readFileSync(resolvePath(dist, '.vite/chunk-modules.json'), 'utf8'));
 const memory = await launchMemoryBrowser(['--mute-audio', '--enable-precise-memory-info', '--use-angle=metal']);
-const result = { pin, version, serviceWorkers: 'blocked', forcedGC: false, rows: [], errors: [] };
+const result = { pin, version, serviceWorkers: 'blocked', forcedGC: false, rows: /** @type {any[]} */ ([]), errors: /** @type {string[]} */ ([]) };
 try {
   const context = await memory.browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: 'block' });
   await saveFixture(context, { scope: 'device', key: 'devMode', data: false });
@@ -41,9 +42,9 @@ try {
 if (result.errors.length > 0) throw new Error(result.errors.join('\n'));
 const kernels = new Map();
 for (const row of result.rows) {
-  const key = JSON.stringify(row.files.map(item => item.file));
+  const key = JSON.stringify(row.files.map((/** @type {{ file: string }} */ item) => item.file));
   if (kernels.has(key)) { row.compileKernel = kernels.get(key); continue; }
-  const kernel = spawnSync(process.execPath, ['--expose-gc', '--experimental-vm-modules', 'scripts/js-payload-heap.mjs', ...row.files.map(item => resolvePath(dist, item.file))], { encoding: 'utf8' });
+  const kernel = spawnSync(process.execPath, ['--expose-gc', '--experimental-vm-modules', 'scripts/js-payload-heap.mjs', ...row.files.map((/** @type {{ file: string }} */ item) => resolvePath(dist, item.file))], { encoding: 'utf8' });
   if (kernel.status !== 0) throw new Error(kernel.stderr ?? 'Compile kernel refused');
   row.compileKernel = JSON.parse(kernel.stdout);
   kernels.set(key, row.compileKernel);

@@ -14,6 +14,7 @@ if (process.argv.length !== 4 || file === undefined || name === undefined || !/^
 const entry = realpathSync(file), root = dirname(entry);
 if (basename(root) !== 'generators') throw new Error('Spawn bindings must name their generators directory');
 const seen = new Set();
+/** @param {string} url */
 function admit(url) {
   if (!url.startsWith('file:')) throw new Error('Spawn generators may import only local generator TypeScript');
   const path = realpathSync(fileURLToPath(url));

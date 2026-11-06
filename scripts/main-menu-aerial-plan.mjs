@@ -5,4 +5,4 @@ import { aerialHeroPlan, landscapeHeroPlan, round4HeroPlan, round5HeroPlan, roun
 const round = process.argv[2] ?? 'aerial';
 const plans = { aerial: aerialHeroPlan, landscape: landscapeHeroPlan, square: squareHeroPlan, 4: round4HeroPlan, 5: round5HeroPlan, 6: round6HeroPlan, '5x5': grid5x5HeroPlan, far: farVariantPlan };
 if (!Object.hasOwn(plans, round)) throw new Error('Plan round must be aerial, landscape, square, 4, 5, 6, 5x5 or far');
-process.stdout.write(`${JSON.stringify(plans[round]())}\n`);
+process.stdout.write(`${JSON.stringify(plans[/** @type {keyof typeof plans} */ (round)]())}\n`);

@@ -11,6 +11,7 @@ const file = process.argv.at(2), name = process.argv.at(3);
 if (process.argv.length !== 4 || file === undefined || name === undefined || !/^[a-zA-Z_$][a-zA-Z0-9_$]*$/u.test(name)) throw new Error('Expected a declared budget module and export');
 const entry = realpathSync(file), root = dirname(entry);
 const seen = new Set();
+/** @param {string} url */
 function admit(url) {
   if (!url.startsWith('file:')) throw new Error('Budget modules may import only local data TypeScript');
   const path = realpathSync(fileURLToPath(url));

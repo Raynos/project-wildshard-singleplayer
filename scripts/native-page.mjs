@@ -16,7 +16,7 @@ const WEB_ONLY_HTML = [
   /\s*<script type="module" src="\/src\/engine\/(?:(?:client|cook|server|shared)\/)?ui\/Update\.ts"><\/script>/,
 ];
 
-/** The native page from the web page's text. */
+/** The native page from the web page's text. @param {string} html */
 export function nativePage(html) {
   let out = html;
   for (const re of WEB_ONLY_HTML) {
@@ -30,7 +30,7 @@ export function nativePage(html) {
   return out.replace(main, '<script type="module" src="/src/native.ts"></script>');
 }
 
-/** native.html as index.html makes it. */
+/** native.html as index.html makes it. @param {string} root */
 export function nativePageTable(root) {
   return { 'native.html': nativePage(readFileSync(resolve(root, 'index.html'), 'utf8')) };
 }
