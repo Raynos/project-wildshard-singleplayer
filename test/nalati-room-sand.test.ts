@@ -3,7 +3,7 @@ import {createSimHost,type SimHost} from '../src/engine/server/sim';
 import {loadRapier} from '../src/engine/shared/physics/rapier';
 import {fixtureBytes} from '@wildshard/engine/test/nativeBytes';
 import {HeightPatch} from '../src/engine/shared/physics/heightPatch';
-import {ArenaRoomGround} from '../src/game/shared/boss/arenaGround';
+import {ArenaRoomGround,sandWireName} from '../src/game/shared/boss/arenaGround';
 import { snapshotSimHostBytes } from '../src/engine/shared/sim/snapshot';
 import { restoreSimHost } from '../src/engine/server/sim/restore';
 import {physicsState} from './fake/simState';
@@ -37,7 +37,7 @@ test('room sand preserves original heightfields and a quiet complete native cont
   const rapier=await loadRapier(Uint8Array.from(fixtureBytes(new URL('../public/assets/physics/rapier.wasm',import.meta.url))));
   const level={...SIM_LEVEL,entities:[],quests:[]},page=createSimHost(level,{rapier}),native=createSimHost(level,{rapier});
   const original=new ArenaRoomGround(room),patch=new HeightPatch(page.physics,{x:0,y:5,z:0,size:10,res:5,material:'sand',owner:'native.room.sand'});
-  const sand=new NativeArenaSand(native,room,'native.room.sand');let restored:SimHost|undefined,copy:NativeArenaSand|undefined;
+  const sand=new NativeArenaSand(native,room,'native.room.sand',sandWireName('native.room'));let restored:SimHost|undefined,copy:NativeArenaSand|undefined;
   page.onStep('page.room.sand',dt=>{if(original.pace(dt))patch.set(originalGrid(original));});
   native.onStep('native.room.sand',dt=>{sand.advance(dt);},{snapshot:()=>({...sand.snapshot()}),restore:value=>{sand.restore(value);},physicsRestored:()=>{sand.physicsRestored();}});
   try{
@@ -50,7 +50,7 @@ test('room sand preserves original heightfields and a quiet complete native cont
       if(tick===58){
         const saved=snapshotSimHostBytes(native);
         restored=restoreSimHost(level,{rapier},saved,host=>{
-          const next=new NativeArenaSand(host,room,'native.room.sand');copy=next;
+          const next=new NativeArenaSand(host,room,'native.room.sand',sandWireName('native.room'));copy=next;
           host.onStep('native.room.sand',dt=>{next.advance(dt);},{snapshot:()=>({...next.snapshot()}),restore:value=>{next.restore(value);},physicsRestored:()=>{next.physicsRestored();}});
         });
         expect(snapshotSimHostBytes(restored)).toStrictEqual(saved);
@@ -64,7 +64,7 @@ test('room sand preserves original heightfields and a quiet complete native cont
 
 test('room sand refuses foreign saved data, replaced geometry and a retired owner',async()=>{
   const rapier=await loadRapier(Uint8Array.from(fixtureBytes(new URL('../public/assets/physics/rapier.wasm',import.meta.url))));
-  const host=createSimHost({...SIM_LEVEL,entities:[],quests:[]},{rapier}),sand=new NativeArenaSand(host,room,'native.room.sand');
+  const host=createSimHost({...SIM_LEVEL,entities:[],quests:[]},{rapier}),sand=new NativeArenaSand(host,room,'native.room.sand',sandWireName('native.room'));
   try{
     sand.ground.addSand(0,0,3,.4,.5);
     for(let tick=0;tick<4;tick++)sand.advance(1/30);

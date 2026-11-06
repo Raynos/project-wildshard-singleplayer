@@ -20,6 +20,7 @@ import {nalatiWeaponsOf} from './nalati-weapons-native';
 import {nalatiBalbalsOf} from './nalati-balbal-native';
 import {restoreEncounterBrains} from './restoreEncounterBrains';
 import {NativeArenaSand} from '../../src/game/server/boss/nativeArenaSand';
+import {sandWireName} from '../../src/game/shared/boss/arenaGround';
 import {KingContinuation,type KingObservation} from './nalati-king-continuation';
 import {nativeKingSeal} from './nalati-king-seal';
 import {readNalatiWeaponObservation} from './nalati-weapon-observation';
@@ -58,7 +59,7 @@ export function installNativeKing(host:SimHost,context:Pick<HeadlessRuntimeInsta
   if(population===undefined||weapons===undefined||mount===undefined||balbals===undefined||mount.mounted)
     throw new Error('King needs its original entered population, weapons, on-foot motor and balbal owners');
   population.validateSpawn(data.declared.kind,data.declared.look);
-  const sand=new NativeArenaSand(host,data.room,'nalati.king.sand'),seal=nativeKingSeal(host,data.room),poses=new Map<string,NativeCreaturePose>();
+  const sand=new NativeArenaSand(host,data.room,'nalati.king.sand',sandWireName('nalati.king')),seal=nativeKingSeal(host,data.room),poses=new Map<string,NativeCreaturePose>();
   const animate=data.poses.animations((x,z)=>host.groundHeightAt(x,z)).get(data.declared.kind);
   if(animate===undefined)throw new Error('King has no original packed frame');
   const owned=new Map<AnimalSim,NonNullable<ReturnType<NativeEliteBindings['brains']['get']>>>();
