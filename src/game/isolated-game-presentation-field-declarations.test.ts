@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["client/boss/encounterView","client/looks/keyedSky","client/models/collectionWall","client/plugin/heldFirearm","client/plugin/heldTool","server/plugin/mover","server/quest/eliteDecisions","client/riding/hud","client/riding/reins","server/riding/roster","client/shardfile/emptyEquipment","client/shardfile/sceneDressing","client/shardfile/sceneMotion","client/systems/looks/particles","client/systems/looks/waterSurface","client/systems/npc/figureRows","client/systems/npc/kitFigure","client/systems/tools/hoverboard"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["client/boss/encounterView","client/looks/keyedSky","client/models/collectionWall","client/plugin/heldFirearm","client/plugin/heldTool","server/plugin/mover","shared/quest/eliteDecisions","client/riding/hud","client/riding/reins","server/riding/roster","client/shardfile/emptyEquipment","client/shardfile/sceneDressing","client/shardfile/sceneMotion","client/systems/looks/particles","client/systems/looks/waterSurface","client/systems/npc/figureRows","client/systems/npc/kitFigure","client/systems/tools/hoverboard"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/game/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);

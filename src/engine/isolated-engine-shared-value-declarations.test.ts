@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import ts from '@typescript/typescript6';
 import {expect,test} from 'vitest';
 
-for(const name of ["server/ai/huntPattern","shared/boot/steps","client/combat/view/ranged","client/entities/species/loft","shared/entities/species/rigs","client/models/hoverboard","client/models/place","client/models/swimHands","client/render/programRetention","shared/saves/runtime","client/script/client","shared/sim/dayClock","shared/sim/snapshot","client/ui/haptics","client/ui/hudSlots","client/ui/review"])test(`${name} emits isolated declarations`,()=>{
+for(const name of ["shared/ai/huntPattern","shared/boot/steps","client/combat/view/ranged","client/entities/species/loft","shared/entities/species/rigs","client/models/hoverboard","client/models/place","client/models/swimHands","client/render/programRetention","shared/saves/runtime","client/script/client","shared/sim/dayClock","shared/sim/snapshot","client/ui/haptics","client/ui/hudSlots","client/ui/review"])test(`${name} emits isolated declarations`,()=>{
  const emitted=ts.transpileDeclaration(readFileSync(`src/engine/${name}.ts`,'utf8'),{fileName:`${name}.ts`,reportDiagnostics:true,compilerOptions:{isolatedDeclarations:true,strict:true,exactOptionalPropertyTypes:true}});
  expect(emitted.diagnostics).toEqual([]);
  expect(emitted.outputText.length).toBeLessThan(100_000);
