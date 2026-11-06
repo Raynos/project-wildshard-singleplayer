@@ -16,7 +16,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-export {CONTENT_NAMED_RE, contentNamed} from '../../src/game/cook/contentNamed';
+export {CONTENT_NAMED_RE, contentNamed} from '../../src/game/cook/contentNamed.ts';
 
 const memo = new Map<string, { key: string; hash: string }>();
 
