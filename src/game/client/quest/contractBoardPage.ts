@@ -3,7 +3,7 @@
 import { wirePage } from '../shardfile/wirePage';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
-import type { ContractBoardPageRows } from '@wildshard/format/contracts';
+import type { ContractBoardPageRows, ContractReward } from '@wildshard/format/contracts';
 import { jsonSchema, jsonSlot } from '@wildshard/engine/saves/slots';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
@@ -50,17 +50,31 @@ export function installContractBoardPage(ctx: ShardContext, quest: string, rows:
     prompt: { x: rows.at.x, y: terrainHeight(rows.at.x, rows.at.z) + rows.height, z: rows.at.z } }), board = owner.current;
   const persist = (): void => { try { const raw = saveBoard(board); v.parse(jsonSchema, JSON.parse(raw) as unknown); saved.write(raw); } catch { /* storage unavailable */ } };
   const views = new QuestViews(ctx);
+  /** What a claim changes in the player's hands. */
+  const inHand = (reward: ContractReward): void => {
+    if (reward.bolts > 0 && rows.ammunition !== undefined) loadout?.addAmmo(rows.ammunition.kind, reward.bolts);
+    if (reward.skin === undefined) return;
+    const finish = finishes.get(reward.skin); if (finish === undefined) throw new Error('Missing admitted board finish');
+    play.skins.own(reward.skin); play.wearSkin(finish.finish); play.hud.toast(finish.text);
+  };
+  const paid = (): void => { sfx.interact('chest'); play.music.sting('pickup'); play.hud.toast(notice(rows.notices.claimed, { claimed: board.claimed, streak: board.streak })); };
+  /** The press the rows haven't answered: the server judges a claim, so what it pays plays when its count moves. */
+  let claiming: { readonly reward: ContractReward | null; readonly claimed: number } | null = null;
+  /** The server's board, onto this page's: what a page's own claim and kills would have said, as its lines move. */
+  const mirror = (raw: string): void => {
+    const before = board.slots.map(slot => ({ serial: slot.serial, have: slot.have }));
+    owner.mirror(raw);
+    if (claiming !== null && board.claimed > claiming.claimed) { const { reward } = claiming; claiming = null; if (reward !== null) inHand(reward); paid(); }
+    board.slots.forEach((slot, index) => { const was = before[index]; if (was?.serial === slot.serial && slot.have > was.have) play.hud.toast(notice(isFilled(slot) ? rows.notices.filled : rows.notices.progress, { goal: slot.goal, have: slot.have, need: slot.need })); });
+  };
   const panel = views.view('board', scope => new DataPanel(panelRows, { scope, values: () => board, actions: new Map([
     ['claim', (value: unknown): void => {
       if (typeof value !== 'number') throw new Error('Contract action requires its slot');
-      if (wirePage.on) { wirePage.contract('claim', value); sfx.interact('chest'); play.music.sting('pickup'); return; } // the server pays, and the rows say so
+      if (wirePage.on) { claiming = { reward: board.slots[value]?.reward ?? null, claimed: board.claimed }; wirePage.contract('claim', value); return; } // the server pays, and the rows say so
       const reward = owner.claim(value)?.reward; if (reward === undefined) return;
       commitQuestEffects(ctx, quest, reward.items.map(item => ({ kind: 'item', item: item.id, count: item.n })));
-      if (reward.bolts > 0 && rows.ammunition !== undefined) loadout?.addAmmo(rows.ammunition.kind, reward.bolts);
-      if (reward.skin !== undefined) { const finish = finishes.get(reward.skin); if (finish === undefined) throw new Error('Missing admitted board finish');
-        play.skins.own(reward.skin); play.wearSkin(finish.finish); play.hud.toast(finish.text); }
-      persist(); sfx.interact('chest'); play.music.sting('pickup'); feats.event('streak', board.streak);
-      play.hud.toast(notice(rows.notices.claimed, { claimed: board.claimed, streak: board.streak }));
+      inHand(reward);
+      persist(); paid(); feats.event('streak', board.streak);
     }],
     ['tear', (value: unknown): void => { if (typeof value !== 'number') throw new Error('Contract action requires its slot'); if (wirePage.on) wirePage.contract('tear', value); else { owner.tear(value); persist(); } sfx.interact('door'); }],
   ]) }));
@@ -69,7 +83,7 @@ export function installContractBoardPage(ctx: ShardContext, quest: string, rows:
     onInteract: () => { panel().open(); sfx.interact('door', prompt.position, { gain: 0.5 }); } };
   runtime.interactables.push(prompt);
   ctx.scope.onDispose(() => { const index = runtime.interactables.indexOf(prompt); if (index !== -1) runtime.interactables.splice(index, 1); views.disposeLegacy(() => { panel().root.remove(); }); });
-  if (wirePage.on) wirePage.hold({ board: owner }, ctx.scope);
+  if (wirePage.on) wirePage.hold({ board: { mirror } }, ctx.scope);
   let observing = false;
   return { state: board, panel, fill: slot => { const row = board.slots[slot]; if (row !== undefined) { row.have = row.need; persist(); } }, observe: () => {
     if (observing || ctx.scope.disposed) throw new Error('Quest board deaths already installed or disposed'); observing = true;

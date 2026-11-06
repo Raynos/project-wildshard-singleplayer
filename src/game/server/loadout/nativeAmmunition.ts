@@ -16,6 +16,8 @@ const owners = new WeakMap<SimHost, NativeHeldAmmunition>();
 export function nativeHeldAmmunition(host: SimHost): NativeHeldAmmunition {
   const owner = owners.get(host); if (owner === undefined) throw new Error('Missing native ammunition owner'); return owner;
 }
+/** The quiver a world's equipment installed, or null on a world that has none. */
+export const heldAmmunition = (host: SimHost): NativeHeldAmmunition | null => owners.get(host) ?? null;
 /** Native continuation over the row-driven pouch. Construction alone never replaces the installed equipment owner. */
 export class NativeHeldAmmunition {
   private readonly quiver: AmmoPouch<string>;
@@ -69,6 +71,8 @@ export class NativeHeldAmmunition {
     if (kind === this.rows.bow.ammo) { this.ports.longbow.state.arrows = Math.min(this.bowCapacity, this.ports.longbow.state.arrows + n); return; }
     if (kind === this.selected) this.ports.crossbow.addBolts(n); else this.quiver.add(kind, n);
   }
+  /** Plain bolts into the crossbow. */
+  addBolts(n: number): void { this.ports.crossbow.addBolts(n); }
   loadKind(kind: string): void {
     const state = this.ports.crossbow.state, n = this.quiver.select(kind, state.quiver);
     if (n === null) return;

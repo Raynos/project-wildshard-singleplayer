@@ -36,6 +36,8 @@ import { createRegionalView, type RegionalView } from './regionalView';
 import { installEnteredRuntimeService } from "../shard/retainedHooks";
 import { Progress } from '../Progress';
 import { Inventory } from '../Inventory';
+import { ownedSave } from '../../shared/saves';
+import { readOnlySave, wirePage } from '../shardfile/wirePage';
 import { Owned } from '../../shared/loot/Owned';
 import type { EnteredEquipment } from './enteredEquipment';
 import { SkinLocker } from '../cosmetics/locker';
@@ -384,7 +386,9 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
                 for (const weapon of [kit.rifle, kit.secondary, ...(kit.extras ?? [])]) if (weapon !== null) weapons.add(weapon, { locked: true });
                 kit.install?.(weapons); app.registerEquipment(weapons, world.game.levelScope);
                 if (preparing) { weapons.enabled = false; weapons.visible = false; weapons.stowed = true; }
-                const progress = new Progress(request.cell.instance), inventory = new Inventory(request.cell.instance), owned = new Owned(request.cell.instance);
+                // J130: a cell's pack and gear are the server's, and its lines reach whichever cell the page has entered.
+                const progress = new Progress(request.cell.instance), inventory = new Inventory(request.cell.instance), owned = new Owned(request.cell.instance, wirePage.on ? readOnlySave(ownedSave) : undefined);
+                if (wirePage.on) { inventory.writes = false; wirePage.hold({ shard: request.cell.slug, inventory, gear: owned }, owner); }
                 const skins = new SkinLocker(request.cell.instance, skinRows, request.admitted.source.migrations);
                 // SF57: the page's maps reach this resident's hooks through owner facades, so what its play registers on
                 // them after an await (a quest card, its places, its marks) ends with the resident, not the page. (Not the

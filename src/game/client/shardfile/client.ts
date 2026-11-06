@@ -436,6 +436,13 @@ export class ShardfileClient {
     const fact = (name: string, entity: string, origin: string): void => {
       const emitter = emitters.get(origin); if (emitter === undefined) throw new Error('Missing declared fact provenance'); emitter.emit(name, entity);
     };
+    // The server's ledger decides, and a page keeps its word where Progress reads: a feat counts and tells once, off its receipt.
+    if (wirePage.on) wirePage.facts(ctx.scope, (name, id) => {
+      const rule = source.ledger.find(row => row.fact === name);
+      if (rule === undefined) return;
+      ledger.record({ ...identity, origin: rule.origin, tick: 0, ordinal: 0, name, entity: id });
+      play.progress.refreshLedger();
+    });
     const read = (scope: 'shared' | 'player', id: number): number => {
       const field = source.state[scope].find((row) => row.id === id); if (field === undefined) throw new Error('Missing declared state field');
       const value = this.sim?.lane?.world.viewField(health.id, scope, field.name);

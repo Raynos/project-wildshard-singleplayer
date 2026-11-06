@@ -3,6 +3,7 @@ import { actRoutes } from '@wildshard/engine/sim/actRoutes';
 import type { SimHost } from '@wildshard/engine/sim';
 import { publishOwned } from '@wildshard/engine/sim/shardRows';
 import { addInventory, takeInventory } from '../../shared/inventoryLaw';
+import { heldAmmunition } from '../loadout/nativeAmmunition';
 import { Exchange } from '../../shared/loot/exchange';
 import { isCosmetic, isOwnedId, Owned } from '../../shared/loot/Owned';
 import { Purse } from '../../shared/loot/Purse';
@@ -63,13 +64,13 @@ export class PlayerOwned {
   }
 }
 
-/** Put a world on the wire's owned rows. Any owner of a pack or a shop already in the world keeps them. */
+/** Put a world on the wire's owned rows. Any owner of a pack or a shop already in the world keeps them. A good of ammunition goes to the world's quiver, and a world with none has no room for it. */
 export function installPlayerOwned(host: SimHost, shard: string, economy: unknown, pack: boolean): PlayerOwned {
   const owned = new PlayerOwned(shard), routes = actRoutes(host);
   publishOwned(host, 'player', (_player, out) => { owned.read(out, pack); });
   routes.wear = (_player, id) => { if (isOwnedId(id) && isCosmetic(id) && owned.owned.has(id)) owned.owned.toggleWorn(id); };
   if (economy !== null && economy !== undefined && routes.buy === null) {
-    owned.trade(economy, new Map<string, unknown>([['skins', { owns: (id: string) => owned.owned.has(id), own: (id: string) => { owned.owned.grant(id); } }], ['ammo', { capacity: () => false, addBolts: () => undefined, grant: () => undefined }]]));
+    owned.trade(economy, new Map<string, unknown>([['skins', { owns: (id: string) => owned.owned.has(id), own: (id: string) => { owned.owned.grant(id); } }], ['ammo', { capacity: (kind: string, n: number) => heldAmmunition(host)?.room(kind, n) ?? false, addBolts: (n: number) => { heldAmmunition(host)?.addBolts(n); }, grant: (kind: string, n: number) => { heldAmmunition(host)?.add(kind, n); } }]]));
     routes.buy = (_player, good) => { owned.buy(good); };
   }
   return owned;

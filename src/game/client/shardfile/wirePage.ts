@@ -26,6 +26,8 @@ import type { MoverView } from '../../server/plugin/mover';
 type Live = (client: NetClient) => (() => void) | undefined;
 /** What a page draws of what its player holds. */
 export interface WireHoldings {
+  /** The shard these lines are this page's for, on a grid page that holds several: the entered one's reach the page. */
+  readonly shard?: string;
   readonly purse?: Pick<Purse, 'mirror'>; readonly inventory?: Pick<Inventory, 'mirror'>; readonly gear?: Pick<Owned, 'grant' | 'worn' | 'toggleWorn'>; readonly board?: Pick<ContractBoard, 'mirror'>;
 }
 /** A page's own copy of a save that the server keeps: it reads the page's last word and writes nothing. */
@@ -46,8 +48,6 @@ export class WirePage {
   stop: () => void = () => undefined;
   /** Mover views by id: rows pose them, and no script runs them here. */
   readonly movers: Map<string, MoverView> = new Map<string, MoverView>();
-  /** The kinds a page's riding offers: the rows of these are what a rider reaches for. */
-  readonly mountKinds: Set<string> = new Set<string>();
   /** Whether the server is carrying this player's body now. */
   led: () => boolean = () => false;
   /** The head over a row's body, into `to`: what an elite's bar stands on. */
@@ -107,13 +107,14 @@ export class WirePage {
   /** What this page shows of what its player holds: `hold`'s until `scope` ends. */
   hold(holdings: WireHoldings, scope: Scope): void { this.holdings.add(holdings); this.ownedAt = -1; scope.onDispose(() => { this.holdings.delete(holdings); }); }
   /** The server's lines, onto the page's purse, pack and gear. They only say what's so: the server owns all three. */
-  private mirrorOwned(client: NetClient): void {
+  private mirrorOwned(client: NetClient, level: string | null): void {
     if (client.ownedVersion === this.ownedAt || !client.owned.has(OWNED_ROW.coins)) return;
     this.ownedAt = client.ownedVersion;
     const pack = new Map<string, number>(), { owned } = client;
     for (const [name, value] of owned) if (name.startsWith(OWNED_ROW.item)) pack.set(name.slice(OWNED_ROW.item.length), value);
     const contracts = boardFromLines(owned);
-    for (const { purse, inventory, gear, board } of this.holdings) {
+    for (const { shard, purse, inventory, gear, board } of this.holdings) {
+      if (shard !== undefined && shard !== level) continue;
       purse?.mirror(owned.get(OWNED_ROW.coins) ?? 0); inventory?.mirror(pack);
       for (const [name, value] of owned) if (name.startsWith(OWNED_ROW.owned)) { const id = name.slice(OWNED_ROW.owned.length); gear?.grant(id); if (isOwnedId(id) && isCosmetic(id) && gear?.worn(id) !== (value === WORN_LINE)) gear?.toggleWorn(id); }
       if (board !== undefined && contracts !== null) board.mirror(contracts);
@@ -141,6 +142,10 @@ export class WirePage {
       return () => { off?.(); };
     } };
   }
+  /** The declared facts the server grants this player, each once: its name, and the receipt that is its identity. */
+  facts(scope: Scope, hear: (name: string, id: string) => void): void {
+    this.whenLive(scope, client => client.onLedger(receipt => { if (receipt.grant === 'fact') hear(receipt.name, receipt.id); }));
+  }
   /** The fights and lairs in this frame. */
   encounters(): readonly EncounterRow[] { return this.encounterRows?.() ?? NO_ROWS; }
   /** How many living creatures of `kind` are near this player, or null with no wire. */
@@ -149,7 +154,7 @@ export class WirePage {
   frame(level: string | null, here: boolean, clock: DayFollower | null = null): void {
     const { client } = this;
     if (client === null || client.latest === null || !here) return;
-    this.followDay(clock, client); this.mirrorOwned(client);
+    this.followDay(clock, client); this.mirrorOwned(client, level);
     for (const [id, row] of client.quests) this.quests.set(id, row);
     this.heard.clear(); for (const flag of client.phased) this.heard.add(flag);
     const held = new Set([...client.flags(), ...client.phased]), now = client.latest.tick;
