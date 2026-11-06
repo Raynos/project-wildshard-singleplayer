@@ -50,7 +50,8 @@ function fixture(read?: (request: Request) => Promise<Response>, nativeRoutes = 
     const listeners = new Map<string, ((event: WorkerEvent) => void)[]>();
     const claim = vi.fn(() => Promise.resolve()), skipWaiting = vi.fn(() => Promise.resolve());
     const routes = vi.fn<(rules: NativeRoute[]) => Promise<void>>(() => Promise.resolve());
-    const live = new Set<string>(), get = (id: string): Promise<{ id: string } | undefined> => Promise.resolve(live.has(id) ? { id } : undefined);
+    const live = new Set<string>(), workers = new Set<string>();
+    const get = (id: string): Promise<{ id: string; type?: string } | undefined> => Promise.resolve(workers.has(id) ? { id, type: 'worker' } : live.has(id) ? { id } : undefined);
     const self = { location: new URL(origin), registration: { scope: `${origin}/` }, clients: { claim, get }, skipWaiting,
       addEventListener: (kind: string, listener: (event: WorkerEvent) => void) => { listeners.set(kind, [...listeners.get(kind) ?? [], listener]); } };
     const owner = readFileSync('src/engine/client/app/workerScope.js', 'utf8').replaceAll(/^export /gmu, '');
@@ -65,7 +66,7 @@ function fixture(read?: (request: Request) => Promise<Response>, nativeRoutes = 
         waitUntil: promise => { work.push(promise); }, respondWith: promise => { work.push(Promise.resolve(promise).then(value => { response = value; return value; })); } });
       await Promise.all(work); return response;
     };
-    return { dispatch, claim, skipWaiting, routes, live };
+    return { dispatch, claim, skipWaiting, routes, live, workers };
   };
   return { caches, open, books, fetch, load };
 }
@@ -148,6 +149,28 @@ test('a pause never strands the precache: a gone loader or the time limit resume
     await vi.advanceTimersByTimeAsync(1); await pending;
     expect(stuck.f.fetch).toHaveBeenCalledTimes(14);
   } finally { vi.useRealTimers(); }
+});
+
+test('a worker\'s reads neither pause the precache nor stand as a loader', async () => {
+  const held = heldPrecache(), worker = held.f.load('A', held.files, []);
+  await worker.dispatch('install'); await worker.dispatch('activate');
+  void worker.dispatch('message', { ...precached, source: held.source('page-1') });
+  await vi.waitFor(() => { expect(held.f.fetch).toHaveBeenCalledTimes(6); });
+  // The page at control starts its server: the worker lives on, and never reports control. Nothing it reads stops the precache.
+  worker.workers.add('server');
+  await worker.dispatch('fetch', { request: new Request(url('/shardfiles/nine/server/a.bin')), clientId: 'server' });
+  expect(held.f.fetch.mock.calls.filter(([request]) => typeof request !== 'string' && request.signal.aborted)).toEqual([]);
+  // A loading document does pause it, and a worker read in that pause doesn't keep it paused once the document has gone.
+  const again = heldPrecache(), second = again.f.load('A', again.files, []);
+  await second.dispatch('install'); await second.dispatch('activate');
+  const run = second.dispatch('message', { ...precached, source: again.source('page-1') });
+  await vi.waitFor(() => { expect(again.f.fetch).toHaveBeenCalledTimes(6); });
+  second.workers.add('server'); second.live.add('page-2');
+  await second.dispatch('fetch', { request: new Request(url('/')), clientId: 'page-2' });
+  await second.dispatch('fetch', { request: new Request(url('/shardfiles/nine/server/a.bin')), clientId: 'server' });
+  again.release(); second.live.delete('page-2');
+  await second.dispatch('fetch', { request: new Request(url('/')), clientId: 'page-1' }); await run;
+  expect(again.f.fetch).toHaveBeenCalledTimes(14);
 });
 
 test('a waiting update steps its precache aside on a loading page\'s PAUSE', async () => {

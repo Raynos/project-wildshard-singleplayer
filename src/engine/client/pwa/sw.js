@@ -95,9 +95,21 @@ workerScope.listen(self, 'install', event => {
 // A pause never strands it (sp-x2): it also resumes once every loading client that paused it is gone, and at the
 // latest PAUSE_LIMIT_MS after the pause. A waiting update has no fetch events of its own: a loading page tells it
 // with a PAUSE message (src/engine/client/boot/sw.ts), and that page's control resumes it with PRECACHE.
+// Only a document loads. A worker never reports control, and the server worker lives as long as its page, so its reads
+// would hold the precache to the limit on every visit (DL1): a worker's fetch neither pauses it nor counts as a loader.
 const PRECACHE_LANES = 6, PAUSE_LIMIT_MS = 60_000;
 let precaching, paused = false, resume = () => undefined, pauses = 0;
-const inflight = new Set(), controlled = new Set(), loading = new Set();
+const inflight = new Set(), controlled = new Set(), loading = new Set(), workers = new Map();
+function isWorker(id) {
+  if (typeof self.clients?.get !== 'function') return Promise.resolve(false);
+  let known = workers.get(id);
+  if (known === undefined) { known = self.clients.get(id).then(client => client?.type === 'worker', () => false); workers.set(id, known); }
+  return known;
+}
+async function pauseForClient(id) {
+  if (typeof id === 'string' && id !== '' && await isWorker(id)) return;
+  pausePrecache(id);
+}
 function pausePrecache(client) {
   if (typeof client === 'string' && client !== '') loading.add(client);
   if (precaching === undefined || paused) return;
@@ -215,7 +227,8 @@ async function cached(request, name) {
 workerScope.listen(self, 'fetch', event => {
   const request = event.request, url = new URL(request.url);
   // A loading page (a navigation, or a client that has not reported control) gets the link: the precache waits.
-  if (request.mode === 'navigate' || !controlled.has(event.clientId)) pausePrecache(request.mode === 'navigate' ? event.resultingClientId : event.clientId);
+  if (request.mode === 'navigate') pausePrecache(event.resultingClientId);
+  else if (!controlled.has(event.clientId)) event.waitUntil(pauseForClient(event.clientId));
   else if (paused) event.waitUntil(resumeIfLoadersGone());
   if (request.method !== 'GET' || url.origin !== self.location.origin || url.searchParams.get('sw') === '0') return;
   if (url.pathname === '/version.json' || url.pathname === '/sw.js' || url.pathname.startsWith('/api/')) return;
