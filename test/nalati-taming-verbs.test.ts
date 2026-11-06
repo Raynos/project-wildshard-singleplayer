@@ -32,4 +32,4 @@ test('the entry walk earns a living stallion prompt and all five native bucking 
   expect(report.approachTicks).toBeGreaterThan(0);expect(report.breakingTicks).toBeGreaterThan(0);
   expect(report.checkpointTick).toBeGreaterThan(report.approachTicks);expect(report.rounds).toBe(5);
 // The existing native taming/checkpoint proof uses this same finite bound. J112's walk and a second try take CI past 180 s.
-},300_000);
+},450_000);

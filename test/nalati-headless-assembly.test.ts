@@ -50,4 +50,4 @@ test('Nalati chapter landing retains the native taming adoption suffix', async (
   const proof = v.parse(v.object({ taming: v.object({ suffixExact: v.literal(true), tulparAdopted: v.literal(true),
     originalHiddenAlive: v.literal(true), rounds: v.literal(5), ticksExecuted: v.number() }) }), await nalatiTamingNativeWitness());
   expect(proof.taming.ticksExecuted).toBeGreaterThan(0);
-}, 300_000); // J112's walk and a second try take CI past 180 s; the bound stops a hang and claims no speed
+}, 450_000); // J112's walk and a second try take a slow CI runner past 300 s; the bound stops a hang and claims no speed
