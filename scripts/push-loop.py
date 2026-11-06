@@ -281,6 +281,10 @@ def tick(root, checker=check_committed, uploader=None, notify=ping):
 
 
 def main():
+    # Any other argument, --help included, must not fall through to a real tick.
+    if sys.argv[1:] and not (len(sys.argv) == 3 and sys.argv[1] == '--check'):
+        print('usage: push-loop.py [--check <revision>]', file=sys.stderr)
+        return 2
     root = Path(git(Path.cwd(), 'rev-parse', '--show-toplevel'))
     if len(sys.argv) == 3 and sys.argv[1] == '--check':
         tip = git(root, 'rev-parse', sys.argv[2])

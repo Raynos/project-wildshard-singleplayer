@@ -105,6 +105,18 @@ class PushLoop(unittest.TestCase):
         self.assertEqual(json.loads(resumed.stdout)['status'], 'idle')
         self.assertEqual(self.git('rev-parse', 'origin/main'), self.base)
 
+    def test_cli_refuses_unknown_arguments_before_any_tick(self):
+        tip = self.commit('src/good.ts')
+        env = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
+        for arguments in (['--help'], ['--check'], ['--dry-run'], ['--check', 'HEAD', 'extra']):
+            refused = subprocess.run([sys.executable, str(ROOT / 'scripts/push-loop.py'), *arguments],
+                                     cwd=self.root, env=env, capture_output=True, text=True, timeout=3)
+            self.assertEqual(refused.returncode, 2, refused.stdout)
+            self.assertEqual(refused.stdout, '')
+            self.assertIn('usage: push-loop.py', refused.stderr)
+        self.assertEqual(self.git('rev-parse', 'origin/main'), self.base)
+        self.assertEqual(self.git('rev-parse', 'main'), tip)
+
     def test_quiet_sample_never_defers_checks_or_upload(self):
         tip = self.commit('src/good.ts')
         self.put('.git/quiet', json.dumps({'schema':1,'kind':'simulator-reading','script':'scripts/sim-grid-entry.mjs','owner':'fixture-sample','pid':os.getpid()}))
