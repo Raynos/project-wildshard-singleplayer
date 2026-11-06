@@ -120,13 +120,13 @@ export async function prepareOpenArena(product: Pick<ShardProduct, 'json' | 'sec
       const boss=new BossBrain({...data.definition,reward:{}},fight,{events:host.events,player:room.party.player,lockInput:on=>{
         locked=on;for(const player of host.players.values()){player.moveScale=on?0:1;weapons().of(player).setEnabled(!on);}},
         respawn:room.party.respawn,
-        skipHeld:()=>ports.commands().some(command=>command.kind==='script'&&command.actorId===row.input.skip&&command.value===1),
+        skipHeld:()=>actRoutes(host).skipHeld||ports.commands().some(command=>command.kind==='script'&&command.actorId===row.input.skip&&command.value===1),
         faceToward:(target,dt)=>{const near=room.near,p=near.position;camera.position.set(p.x,p.y+1.68,p.z);
           easeViewToward(weapons().of(near).look,camera.position,target,dt);},spawnReward:()=>{
           room.heartFell();
           const at=itemPickupFloor(host.physics,fight.rewardPoint());rewardPoint=new Vector3(at.x,at.y+ITEM_PICKUP_HOVER+.5,at.z);reward=true;
         },persist:saved=>{records.bosses.write({...records.bosses.read(),[data.definition.id]:saved});},toast,feed},ui,current);
-      encounter.boss=boss;room.bind(boss,fight);first.health.checkpoint(host.scope,()=>room.party.died(boss));
+      encounter.boss=boss;room.bind(boss,fight,()=>rewardPoint);first.health.checkpoint(host.scope,()=>room.party.died(boss));
       const boundaryPorts={boss,fight,prompt,get player(){return room.near.position;},toast,
         wall:()=>{hit('wall',room.near.position,data.view.wallDamage,data.lines.wall);},clear:()=>{actual.storm.weather.force(data.weather.clearing);},
         persistence:records.outcomes};
@@ -154,7 +154,7 @@ export async function prepareOpenArena(product: Pick<ShardProduct, 'json' | 'sec
         if(boss.state!=='dormant'||fight.body.visible)boss.update(dt,host.clock.now);else fight.update(dt,host.clock.now,false);
         const answer=fight.takeBoundary();if(answer!==null)arenaBoundary(answer,data.lines,data.record,boundaryPorts);
       };
-      if(ports.grantItem!==undefined)actRoutes(host).interactions.set(`${row.id}.reward`,{actorId:row.input.use,value:TAKE});
+      if(ports.grantItem!==undefined)for(const id of[row.id,data.definition.id])actRoutes(host).interactions.set(`${id}.reward`,{actorId:row.input.use,value:TAKE});
       actRoutes(host).interactions.set(`${row.id}.tie`,{actorId:row.input.use,value:1});
       updates.set(host,run);owners.set(host,{fight,boss,records,target:row.target,locked:()=>locked,reward:()=>reward,storm:()=>actual.storm.stormActive,
         weather:()=>({state:actual.storm.weather.state,left:actual.storm.weather.phaseLeft}),

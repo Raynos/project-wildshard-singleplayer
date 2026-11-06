@@ -226,7 +226,7 @@ export class NativeEliteRoster {
   install(): void {
     this.validate(); if (this.installed || this.members.length !== this.rows.length || this.host.hasStep(this.input.step)) throw new Error('Incomplete or duplicate elite roster installation');
     Object.freeze(this.prepared); for (const script of this.prepared) this.core.add(script);
-    this.prepared.forEach((script, i) => { publishEncounter(this.host, script.def.id, () => { const entry = this.entries[i]; if (entry === undefined) throw new Error('Missing elite entry'); return eliteNetView({ state: entry.state, phase2: entry.phase2, beatT: entry.beatT, script }); }); });
+    this.prepared.forEach((script, i) => { publishEncounter(this.host, script.def.id, () => { const entry = this.entries[i]; if (entry === undefined) throw new Error('Missing elite entry'); return eliteNetView({ ...entry, script }); }); });
     this.installed = true;
     const continuation = new NativeEliteContinuation({ version: this.input.version, wire: this.input.wire, rows: this.rows }, {
       host: this.host, core: this.core, members: this.members, bindings: this.bindings, kernels: this.kernels,

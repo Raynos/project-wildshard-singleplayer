@@ -1,5 +1,7 @@
 import type { Game } from '@wildshard/engine/core/Game';
 import { BossRowBar } from './boss/barFeed';
+import type { EncounterReward } from '@wildshard/engine/sim/encounterRows';
+import { ITEM_PICKUP_HOVER } from '@wildshard/engine/world/interact/pickup';
 import { wirePage } from './shardfile/wirePage';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
@@ -218,17 +220,31 @@ export class Boss extends BossBrain {
   /** whether the spare light is a slot of the scene's LightPool (G808) rather than a raw scene light */
   private pooledSpare(): boolean { return this.renderHost.spareLight?.parent === LightPool.for(this.renderHost.scene).group; }
 
-  private spawnReward(): void {
+  /** The server's reward, where its row says it lies (J130). Taking it is a press, and what it gives comes back as a receipt. */
+  showRowReward(at: EncounterReward, press: () => void): void {
+    this.spawnReward(new THREE.Vector3(at.x, at.y - ITEM_PICKUP_HOVER, at.z), press);
+  }
+  hideRowReward(): void {
+    const { drop } = this;
+    if (drop === null) return;
+    this.renderHost.removeInteractable(drop.interactable); this.renderHost.pickupHum?.(false); this.renderUi.hideReward();
+    drop.dispose(); this.drop = null;
+  }
+  /** A row's reward has no brain to draw it. */
+  tendDrop(dt: number, t: number): void {
+    this.drop?.update(dt, t, this.renderHost.renderer, this.renderHost.camera);
+    if (this.drop?.group.parent === null) this.drop = null;
+  }
+  private spawnReward(at: THREE.Vector3 = this.script.rewardPoint(), take: () => void = () => { this.takeReward(); this.def.reward.grant(); }): void {
     const r = this.def.reward;
     const spare = this.renderHost.spareLight;
     if (spare !== undefined) { if (this.pooledSpare()) LightPool.for(this.renderHost.scene).release(spare); else spare.visible = false; }
-    const drop = new WeaponPickup({ scene: this.renderHost.scene, item: r.model(), position: this.script.rewardPoint(), tier: 'legendary', prompt: r.prompt, scale: 1.7, radius: 2.6 });
+    const drop = new WeaponPickup({ scene: this.renderHost.scene, item: r.model(), position: at, tier: 'legendary', prompt: r.prompt, scale: 1.7, radius: 2.6 });
     this.drop = drop;
     this.renderHost.addInteractable(drop.interactable);
     drop.onNear = (inside) => this.renderHost.pickupHum?.(inside);
     drop.onPickup = () => {
-      this.takeReward();
-      r.grant();
+      take();
       this.renderHost.removeInteractable(drop.interactable);
       this.renderHost.pickupHum?.(false);
       this.renderHost.music?.('pickup');
@@ -326,6 +342,6 @@ export function installBossEncounter<S extends BossScript>(rows: BossEncounterRo
   }, ui, ports.chunkId, ports.persistence);
   if (ports.scope !== null) app.encounters.boss(rows.definition.id, boss, ports.scope);
   // J130: a bar has one driver. On the wire the row draws it and this page's brain never arms.
-  const rowBar = wirePage.on ? new BossRowBar(ui, rows.definition) : null;
-  return { fight, boss, ui, update: (dt, t) => { if (rowBar !== null) rowBar.draw(wirePage.encounters(), dt); else if (ports.advance === undefined) boss.update(dt, t); else ports.advance(boss, fight, dt, t); }, onPlayerDeath: () => rowBar === null && boss.onPlayerDeath() };
+  const rowBar = wirePage.on ? new BossRowBar(ui, rows.definition, { show: at => { boss.showRowReward(at, () => { wirePage.send(`${rows.definition.id}.reward`); }); }, hide: () => { boss.hideRowReward(); } }) : null;
+  return { fight, boss, ui, update: (dt, t) => { if (rowBar !== null) { rowBar.draw(wirePage.encounters(), dt); boss.tendDrop(dt, t); } else if (ports.advance === undefined) boss.update(dt, t); else ports.advance(boss, fight, dt, t); }, onPlayerDeath: () => rowBar === null && boss.onPlayerDeath() };
 }

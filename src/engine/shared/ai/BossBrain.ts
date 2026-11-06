@@ -103,6 +103,8 @@ export class BossBrain {
   get rewardTaken(): boolean { return this.saved.rewardTaken; }
   get engaged(): boolean { return this.state === 'intro' || this.state === 'fight' || this.state === 'beat'; }
   /** Snapshot the phase/checkpoint/retry clocks as plain data; actor and arena state belong to their own adapters. */
+  /** How far a hold-to-skip has come, 0 to 1. */
+  get skipHeldFor(): number { return Math.min(1, this.skipT / SKIP_HOLD); }
   snapshot(): BossContinuation { return { state: this.state, phase: this.phase, checkpoint: this.checkpoint, attempts: this.attempts, t: this.t, skipT: this.skipT, short: this.short, saved: { ...this.saved } }; }
   /** Restore without replaying intro/victory actions or persistence callbacks. */
   restore(value: BossContinuation): void {

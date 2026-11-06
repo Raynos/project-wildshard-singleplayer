@@ -9,6 +9,7 @@ import type { MoverView, MoverRuntime, MoverRoleComposition } from '../../server
 import type { installDeclaredMovers } from '../../server/plugin/moverInstall';
 import type { QuestWorldReactions, declaredItemScriptBindings } from '../../server/plugin/simulation';
 import { pageSim } from '../shardfile/clientMoverOwners';
+import { BossRowBar } from '../boss/barFeed';
 import { wirePage } from '../shardfile/wirePage';
 import { WorldTargetHost, type WorldTargetLanding } from '../../shared/shardfile/worldTargets';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
@@ -1320,6 +1321,8 @@ export function installPersistedQuest(ctx: ShardContext, source: Shardfile, rows
 /** What a boss row's browser encounter is given: its rows, its view-free script, its body and its record. */
 export interface BossViewSpec {
   readonly definition: BossDefinition;
+  /** The row a server publishes this fight under, where that isn't its definition's id. */
+  readonly row?: string;
   /** The encounter's authored stage rows (`DirectorBossBrain`). */
   readonly stages: unknown;
   readonly script: BossScript;
@@ -1345,6 +1348,8 @@ export interface BossViewSpec {
  */
 export class BossView extends DirectorBossBrain {
   private readonly pinned: () => Animal | null;
+  /** J130: a bar has one driver. On the wire the row draws it and this page's brain never steps. */
+  private readonly rowBar: BossRowBar | null;
   constructor(ctx: ShardContext, spec: BossViewSpec) {
     const bar = new BossBar(), motor = (): { position: Vector3; yaw: number } | null => ctx.game.runtime?.world?.player ?? null;
     ctx.scope.onDispose(() => { bar.scope.dispose(); });
@@ -1356,11 +1361,13 @@ export class BossView extends DirectorBossBrain {
       spawnReward: () => { spec.spawnReward?.(); }, toast: spec.toast === true ? (message) => { ctx.game.runtime?.play?.hud.toast(message); } : undefined,
       persist: spec.persist }, bar, spec.saved, spec.stages);
     this.pinned = spec.body;
+    this.rowBar = wirePage.on ? new BossRowBar(bar, { ...spec.definition, id: spec.row ?? spec.definition.id }) : null;
   }
   /** The boss's body is drawn at any distance (no tier draw-distance shrink), whichever body is up this frame. */
   override update(dt: number, t: number): void {
     const body = this.pinned();
     if (body !== null) body.drawPinned = true;
+    if (this.rowBar !== null) { this.rowBar.draw(wirePage.encounters(), dt); return; }
     super.update(dt, t);
   }
 }
@@ -1378,7 +1385,7 @@ export function installBossView<T extends BossView>(ctx: ShardContext, id: strin
 }
 
 /** A body boss's rows: its encounter definition, its authored stages and its spawned or held fight profile. */
-export interface RowBossRows { readonly definition: BossDefinition; readonly stages: unknown; readonly profile: unknown }
+export interface RowBossRows { readonly definition: BossDefinition; readonly stages: unknown; readonly profile: unknown; /** The server's row for this fight. */ readonly row?: string }
 /** A boss record: the saved state to start from and how it persists. */
 export interface RowBossRecord { readonly saved: BossSaved; readonly persist: (value: BossSaved) => void }
 /**
@@ -1395,7 +1402,7 @@ export type RowBossPorts = { readonly player: Vector3; readonly record: RowBossR
 interface RowBossMade { readonly spec: BossViewSpec; readonly at: Vector3 | null; readonly weather: { storm: number }; readonly after: () => void }
 function rowBossSpec(ctx: ShardContext, rows: RowBossRows, ports: RowBossPorts): RowBossMade {
   const profile = parseBossProfile(rows.profile), { player, record } = ports, saved = record.saved;
-  const base = { definition: rows.definition, stages: rows.stages, player, saved, persist: record.persist };
+  const base = { definition: rows.definition, stages: rows.stages, player, saved, persist: record.persist, ...(rows.row === undefined ? {} : { row: rows.row }) };
   if ('held' in ports) {
     if (profile.pattern !== 'held') throw new Error(`${rows.definition.id} requires its declared held-body pattern`);
     const fight = bodyBossFight(profile, { body: ports.held, brain: ports.brain, victory: ports.victory });
@@ -1460,7 +1467,7 @@ export function bindDeclaredFight(ctx: ShardContext, row: BossViewRows | undefin
     if (ports.kind === 'held') ports.reward(row.reward, row.victory.rewardLabel ?? '');
   };
   let boss: RowBossView, summoned: (() => void) | undefined, control: ReturnType<SpeciesPageCatalogue['prepareHeld']> = null;
-  const rows = { definition: row.definition, stages: row.stages, profile: row.profile };
+  const rows = { definition: row.definition, stages: row.stages, profile: row.profile, ...(row.row === undefined ? {} : { row: row.row }) };
   if (ports.kind === 'held') {
     control = ports.held === null ? null : ports.catalogue?.prepareHeld(ports.held.kind, ports.held) ?? null;
     if (ports.held !== null && control === null) throw new Error('Held creature controller must be prepared by its species binding');

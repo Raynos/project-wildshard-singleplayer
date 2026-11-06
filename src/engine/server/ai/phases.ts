@@ -4,7 +4,7 @@ import { BossBrain, type BossSaved, type BossPresentation } from '../../shared/a
 import type { AnimalSim } from '../../shared/entities/AnimalSim';
 import type { SimHost, SimValue } from '../sim';
 import { BossContenders } from './bossContenders';
-import { publishEncounter } from '../../shared/sim/encounterRows';
+import { NO_MOMENTS, publishEncounter } from '../../shared/sim/encounterRows';
 
 /** One ordered phase: health threshold, steering and a presentation caption, authored without callbacks. */
 export interface EncounterPhase { at: number; name: string; caption: string; speed: number; stopDistance: number; turnRate: number }
@@ -77,7 +77,7 @@ export class PhaseEncounter {
     sim.events.on('actor.died', ({ actor: dead }) => { if (sim.players.size > 1) party.fell(dead.id, this.boss); else if (sim.players.has(dead.id)) this.boss.onPlayerDeath(); }, sim.scope);
     sim.onStep(`encounter.${spec.id}`, (_dt) => { party.observe(this.boss); this.boss.update(1 / 60, sim.clock.now); }, { snapshot: () => this.snapshot(), restore: (value) => { this.restore(value); } });
     sim.scope.onDispose(() => { this.boss.disarm(); }); this.boss.arm();
-    publishEncounter(sim, spec.id, () => ({ kind: spec.kind === 'boss' ? 'boss' : 'elite', state: this.boss.state, hp: actor.hp / actor.maxHp, phase: this.boss.phase, shield: this.shield, body: actor.entityId }));
+    publishEncounter(sim, spec.id, () => ({ ...NO_MOMENTS, kind: spec.kind === 'boss' ? 'boss' : 'elite', state: this.boss.state, hp: actor.hp / actor.maxHp, phase: this.boss.phase, shield: this.shield, body: actor.entityId }));
   }
   /** Damage modification and phase transitions use the existing shared combat/clock; no raw health callback is authored. */
   snapshot(): SimValue { const { engaged } = this.party; return JSON.stringify({ contract: this.contract, boss: this.boss.snapshot(), shield: this.shield, ...(engaged === 0 ? {} : { engaged }) }); }

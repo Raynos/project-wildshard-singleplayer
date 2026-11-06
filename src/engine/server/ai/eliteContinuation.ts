@@ -19,7 +19,7 @@ export interface EliteContinuationMember {
 }
 /** The original lifecycle authority supplies its quiet continuation transaction. */
 export interface EliteContinuationCore {
-  readonly entries: readonly { readonly script: { readonly def: { readonly id: string } }; readonly state: string; readonly phase2: boolean; readonly beatT: number }[];
+  readonly entries: readonly { readonly script: { readonly def: { readonly id: string } }; readonly state: string; readonly phase2: boolean; readonly beatT: number; readonly discovered?: boolean; readonly timer?: number; readonly banners?: number; readonly signatures?: number }[];
   readonly snapshot: () => EliteCoreContinuation; readonly prepareRestore: (value: unknown) => () => void;
 }
 /** Borrow original group arrays; no game registry, selector callback or copied actor book. */

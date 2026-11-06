@@ -14,7 +14,8 @@ import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 import { installSpeciesHomes, admitSpeciesProgram, bakedSpecs, type SpeciesHomesSpec, type SpeciesProgramRows, type SpeciesDecisionAuthority } from '../plugin/brain';
 import { BossContenders } from '@wildshard/engine/ai/bossContenders';
 import { BossBounty } from '../boss/bounty';
-import { publishEncounter } from '@wildshard/engine/sim/encounterRows';
+import { actRoutes } from '@wildshard/engine/sim/actRoutes';
+import { NO_MOMENTS, publishEncounter, type EncounterReward } from '@wildshard/engine/sim/encounterRows';
 
 /** What a boss row's encounter is given: its definition and view-free script, its body, its record and its fight state. */
 export interface BossRowSpec {
@@ -43,12 +44,16 @@ export interface BossRowSpec {
   readonly hazardTag?: string;
   /** A player the brain just put back: the host's own part of the return (its motor, its kit). */
   readonly returned?: (player: PlayerSim) => void;
+  /** Where the fight's reward waits to be taken, for a fight that leaves one lying. */
+  readonly rewardPoint?: () => EncounterReward | null;
 }
 
 const finite = v.pipe(v.number(), v.finite());
 /** Authored presentation on the existing held/spawned boss runner. */
 export interface BossViewRows {
   readonly id: string; readonly definition: BossDefinition; readonly stages: unknown; readonly profile: unknown;
+  /** The fixed step a server publishes this fight's row under. */
+  readonly row?: string;
   readonly presentation?: unknown; readonly reward: number;
   readonly record?: BossRecordRow;
   readonly victory: { readonly flag: string; readonly fact: string; readonly once: boolean; readonly again?: string; readonly rewardLabel?: string };
@@ -72,7 +77,7 @@ export function installBossRow(host: SimHost, spec: BossRowSpec): { boss: BossBr
   const party = new BossContenders(host.players, point => spec.script.inArena(point), (player, position, yaw) => { player.position.copy(position); player.yaw = yaw; spec.returned?.(player); });
   const bounty = new BossBounty(host, spec.body, spec.step);
   const ports = { events: host.events, player: party.player,
-    lockInput: () => undefined, skipHeld: () => false, respawn: party.respawn, faceToward: party.faceToward,
+    lockInput: () => undefined, skipHeld: () => actRoutes(host).skipHeld, respawn: party.respawn, faceToward: party.faceToward,
     spawnReward: () => { spec.spawnReward?.(); }, persist: spec.persist };
   const boss = spec.stages === undefined
     ? new BossBrain(spec.definition, spec.script, ports, silentBossPresentation(), spec.saved)
@@ -96,7 +101,7 @@ export function installBossRow(host: SimHost, spec: BossRowSpec): { boss: BossBr
       boss.restore(state.boss); spec.fight.restore(state.fight); party.restoreEngaged(state.engaged ?? 0); bounty.restore(state.earners ?? []); spec.restored?.(state.boss);
     },
   });
-  publishEncounter(host, spec.step, () => ({ kind: 'boss', state: boss.state, hp: spec.script.hpFrac, phase: boss.phase, shield: spec.shielded() || boss.state === 'beat', body: spec.body()?.entityId ?? null }));
+  publishEncounter(host, spec.step, () => ({ ...NO_MOMENTS, kind: 'boss', state: boss.state, hp: spec.script.hpFrac, phase: boss.phase, shield: spec.shielded() || boss.state === 'beat', body: spec.body()?.entityId ?? null, skip: boss.skipHeldFor, reward: spec.rewardPoint?.() ?? null }));
   return { boss, party, bounty, summon: () => { if (boss.state === 'dormant') boss.arm(); }, locked: () => boss.state === 'intro' };
 }
 

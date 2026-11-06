@@ -80,6 +80,8 @@ export interface EliteCoreEntry<S extends EliteCoreScript = EliteCoreScript> {
   seenSig: boolean; leashT: number; lastHit: number;
   /** dev-spawned: out whatever its rule */
   forced: boolean;
+  /** How many banners and signature moves it has shown: a row's moments. No part of a save. */
+  banners: number; signatures: number;
 }
 
 /** One lair's persisted record (the page's 'ws.elites.v1' row). */
@@ -160,7 +162,7 @@ export class EliteCore<S extends EliteCoreScript> {
     const s = this.saved[script.def.id] ?? { timer: 0, discovered: false, skinTaken: false, kills: 0, retired: false };
     this.saved[script.def.id] = s;
     const entry: EliteCoreEntry<S> = {
-      script, state: s.retired ? 'retired' : 'absent', timer: s.timer, waitDusk: false, discovered: s.discovered, bannerArmed: true, farT: 0,
+      script, state: s.retired ? 'retired' : 'absent', timer: s.timer, waitDusk: false, discovered: s.discovered, bannerArmed: true, farT: 0, banners: 0, signatures: 0,
       phase2: false, beatT: 0, lockHp: 0, seenSig: false, leashT: 0, lastHit: -Infinity, forced: false,
     };
     this.entries.push(entry);
@@ -199,7 +201,7 @@ export class EliteCore<S extends EliteCoreScript> {
   signature(id: string): void {
     const e = this.entry(id);
     if (!e || e.seenSig) return;
-    e.seenSig = true;
+    e.seenSig = true; e.signatures++;
     this.hooks.signature?.(e);
   }
 
@@ -250,7 +252,7 @@ export class EliteCore<S extends EliteCoreScript> {
       }
       // ── the banner, once per approach ──
       if (e.bannerArmed && (e.state === 'aware' || e.state === 'engaged' || dl < def.lair.r) && d < BANNER_R) {
-        e.bannerArmed = false; this.hooks.banner?.(e);
+        e.bannerArmed = false; e.banners++; this.hooks.banner?.(e);
       }
       if (!e.bannerArmed) { if (dl > def.leashR) { e.farT += dt; if (e.farT > REARM_T) { e.bannerArmed = true; e.farT = 0; } } else e.farT = 0; }
       // ── phase 2 at 50 % ──

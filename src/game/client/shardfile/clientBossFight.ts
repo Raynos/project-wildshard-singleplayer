@@ -19,7 +19,7 @@ export function installClientBossFight(ctx: ShardContext, input: unknown): void 
   if (typeof row.armed !== 'boolean' && !source.quests.flags.includes(row.armed.flag)) throw new Error('Encounter requires its declared armed flag');
   const common = { player: world.player.position, flags: quest.flags, facts: quest.facts,
     armed: typeof row.armed === 'boolean' ? row.armed : quest.flags.has(row.armed.flag) };
-  const definition = { id: owner.actor, definition: owner.definition, stages: owner.stages, profile: owner.profile, reward: owner.reward.amount,
+  const definition = { id: owner.actor, row: owner.step, definition: owner.definition, stages: owner.stages, profile: owner.profile, reward: owner.reward.amount,
     victory: { ...owner.victory, ...(row.again === undefined ? {} : { again: row.again }), ...(row.rewardLabel === undefined ? {} : { rewardLabel: row.rewardLabel }) } };
   if (row.kind === 'boss.held') {
     const record = quest.persistence.boss;

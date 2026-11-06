@@ -12,6 +12,8 @@ import { createSimHost } from '../src/engine/server/sim';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
 import { directLoopback } from '../src/engine/test/netLoopback';
 import { BossRowBar, EliteRowBar, netEncounterFeed, type BossBarCard, type EncounterRow } from '../src/game/client/boss/barFeed';
+import { NO_MOMENTS, publishEncounter } from '../src/engine/shared/sim/encounterRows';
+import type { SkullMark } from '../src/engine/client/ui/EliteBar';
 import { SIM_CREATURE_RECIPE } from '../src/game/test/creatureRecipe';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
@@ -64,12 +66,12 @@ test('a fight off the server\'s rows shows what the brain shows a page, in order
   } finally { net.dispose(); host.dispose(); }
 });
 
-const row = (id: string, state: string, body: number, hp = 1, phaseAt = 0): EncounterRow => ({ id, kind: 'elite', state, hp, phase: phaseAt, shield: false, body });
+const row = (id: string, state: string, body: number, hp = 1, phaseAt = 0, extra: Partial<EncounterRow> = {}): EncounterRow => ({ id, kind: 'elite', state, hp, phase: phaseAt, shield: false, body, skip: 0, banners: 0, signatures: 0, known: false, sleep: 0, reward: null, ...extra });
 test('the elite bar follows the nearest lair off its rows, and fades after a fall', () => {
   const shown: string[] = [], heads = new Map([[1, 10], [2, 4]]);
-  const bar = { show: (name: string) => { shown.push(`show ${name}`); }, hide: () => { shown.push('hide'); }, caption: (text: string) => { shown.push(`caption ${text}`); }, update: () => undefined,
+  const bar = { show: (name: string) => { shown.push(`show ${name}`); }, hide: () => { shown.push('hide'); }, caption: (text: string) => { shown.push(`caption ${text}`); }, update: () => undefined, banner: () => undefined, skulls: () => undefined,
     set: (hp: number, mode: 'head' | 'pinned', head: Vector3 | null) => { shown.push(`set ${hp.toFixed(1)} ${mode} ${head === null ? 'none' : head.x.toFixed(0)}`); } };
-  const view = new EliteRowBar(bar, [{ id: 'far', name: 'Far', epithet: 'of far', phase2: 'ENRAGED' }, { id: 'near', name: 'Near', epithet: 'of near', phase2: 'ENRAGED' }], { player: { position: new Vector3() }, camera: new PerspectiveCamera(),
+  const view = new EliteRowBar(bar, [{ id: 'far', name: 'Far', epithet: 'of far', phase2: 'ENRAGED', signature: 'POUNCE', lair: { x: 90, z: 0 } }, { id: 'near', name: 'Near', epithet: 'of near', phase2: 'ENRAGED', signature: 'LUNGE', lair: { x: 10, z: 0 } }], { player: { position: new Vector3() }, camera: new PerspectiveCamera(),
     head: (body, to) => { const x = heads.get(body); if (x === undefined) return false; to.set(x, 0, 0); return true; } });
   view.draw([row('far', 'aware', 1)], 0.1);
   view.draw([row('far', 'aware', 1), row('near', 'engaged', 2, 0.8)], 0.1);
@@ -77,4 +79,52 @@ test('the elite bar follows the nearest lair off its rows, and fades after a fal
   view.draw([row('far', 'idle', 1), row('near', 'dead', 0, 0)], 0.1);
   view.draw([row('far', 'idle', 1), row('near', 'dead', 0, 0)], 2);
   expect(shown).toEqual(['show Far', 'set 1.0 head 10', 'show Near', 'set 0.8 pinned 4', 'caption ENRAGED', 'set 0.4 pinned 4', 'set 0.0 pinned none', 'hide']);
+});
+
+const cards = [{ id: 'near', name: 'Near', epithet: 'of near', phase2: 'ENRAGED', signature: 'LUNGE', lair: { x: 10, z: 5 } }];
+function eliteBar(): { view: EliteRowBar; heard: string[]; marks: SkullMark[][] } {
+  const heard: string[] = [], marks: SkullMark[][] = [];
+  const bar = { show: () => undefined, hide: () => undefined, caption: (text: string) => { heard.push(`caption ${text}`); }, update: () => undefined, set: () => undefined,
+    banner: (name: string, epithet: string) => { heard.push(`banner ${name} ${epithet}`); }, skulls: (list: SkullMark[]) => { marks.push(list.map(mark => ({ ...mark }))); } };
+  return { view: new EliteRowBar(bar, cards, { player: { position: new Vector3() }, camera: new PerspectiveCamera(), head: (_body, to) => { to.set(1, 0, 0); return true; } }), heard, marks };
+}
+test('an elite row says its banner, its signature\'s name and its skull', () => {
+  const { view, heard, marks } = eliteBar();
+  view.draw([row('near', 'idle', 2, 1, 0, { banners: 3, signatures: 1 })], 0.1);
+  expect(heard, 'what a row already held when it arrived is no moment').toEqual([]);
+  view.draw([row('near', 'engaged', 2, 1, 0, { banners: 4, signatures: 1 })], 0.1);
+  expect(heard).toEqual(['banner Near of near']);
+  view.draw([row('near', 'engaged', 2, 1, 0, { banners: 4, signatures: 2, known: true })], 0.1);
+  expect(heard.at(-1)).toBe('caption LUNGE');
+  expect(marks.at(-1)).toEqual([{ x: 10, z: 5, shown: true, dead: false, engaged: true, countdown: 0 }]);
+  view.draw([row('near', 'dead', 0, 0, 0, { banners: 4, signatures: 2, known: true, sleep: 0.5 })], 0.1);
+  expect(marks.at(-1)).toEqual([{ x: 10, z: 5, shown: true, dead: true, engaged: false, countdown: 0.5 }]);
+});
+
+test('a boss row fills the skip ring and lays out the server\'s reward, and takes it away with the row', () => {
+  const skips: number[] = [], drops: string[] = [];
+  const bar: BossPresentation = { update: () => undefined, barShown: true, hideBar: () => undefined, hideNameCard: () => undefined, hideReward: () => undefined, showRetry: () => undefined, showNameCard: () => undefined,
+    setSkip: fraction => { skips.push(fraction); }, showBar: () => undefined, setHp: () => undefined, setShield: () => undefined, setPhase: () => undefined };
+  const card = { id: 'boss', name: 'Boss', title: 'The', retryTitle: 'Again', phases: [{ at: 1, caption: 'one' }] };
+  const view = new BossRowBar(bar, card, { show: at => { drops.push(`show ${String(at.x)}`); }, hide: () => { drops.push('hide'); } });
+  const boss = (state: string, extra: Partial<EncounterRow> = {}): EncounterRow => row('boss', state, 1, 1, 0, { ...extra, kind: 'boss' });
+  view.draw([boss('intro', { skip: 0.5 })], 0.1);
+  expect(skips).toEqual([0.5]);
+  view.draw([boss('victory', { reward: { x: 4, y: 1, z: 2 } })], 0.1);
+  view.draw([boss('victory', { reward: { x: 4, y: 1, z: 2 } })], 0.1);
+  expect(drops, 'one reward, once').toEqual(['show 4']);
+  view.draw([boss('victory')], 0.1);
+  expect(drops).toEqual(['show 4', 'hide']);
+});
+
+test('a fight\'s moments reach a client on the encounter row', () => {
+  const host = createSimHost(SIM_LEVEL, { rapier }), link = directLoopback(), client = new NetClient(link.client);
+  publishEncounter(host, 'lair', () => ({ ...NO_MOMENTS, kind: 'elite', state: 'idle', hp: 1, phase: 0, shield: false, body: null, skip: 0.5, banners: 2, signatures: 257, known: true, sleep: 0.25, reward: { x: 3, y: 4, z: 5 } }));
+  const net = new NetRoom({ world: new SimNetWorld(host), step: () => { host.step(); } });
+  net.join(link.server); client.hello(); link.pump(); net.open(); link.pump(); net.tick(); net.tick(); link.pump();
+  const seen = netEncounterFeed(client).rows()[0];
+  expect(seen?.banners).toBe(2); expect(seen?.signatures).toBe(1); expect(seen?.known).toBe(true);
+  expect(seen?.skip).toBeCloseTo(0.5, 1); expect(seen?.sleep).toBeCloseTo(0.25, 2);
+  expect(seen?.reward?.x).toBeCloseTo(3, 2); expect(seen?.reward?.z).toBeCloseTo(5, 2);
+  net.dispose(); host.dispose();
 });

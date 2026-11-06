@@ -36,6 +36,8 @@ export function netInteractCommands(routes: ActRoutes, acts: readonly NetTickAct
   return acts.flatMap(act => {
     if (act.kind !== 'interact') return [];
     if (act.id.startsWith('seen:') && routes.seen !== null) { routes.seen(player, act.id); return []; }
+    const claim = routes.claims.get(act.id);
+    if (claim !== undefined) { claim(player); return []; }
     const route = routes.interactions.get(act.id);
     if (route === undefined) { routes.refused++; return []; }
     return [{ kind: 'script' as const, ...route, playerId: player }];
@@ -48,9 +50,13 @@ export function netRide(routes: ActRoutes, player: string, command: NetCommand |
   if (command !== undefined) routes.lean?.(player, command.steer.keyX, lookPitch(command));
 }
 
-/** A lone player's word on the sky goes straight to the world's weather: a world with none has nothing to say to it. */
-export function netClimateActs(routes: ActRoutes, inputs: readonly Pick<NetTickInput, 'acts'>[]): void {
-  for (const { acts } of inputs) for (const act of acts) if (act.kind === 'climate') routes.climate?.(act);
+/** What a tick's input says to the world itself: a lone player's word on the sky goes straight to the weather (a world with none has nothing to say to it), and anyone may hold a fight's skip. */
+export function netWorldInput(routes: ActRoutes, inputs: readonly Pick<NetTickInput, 'acts' | 'command'>[]): void {
+  routes.skipHeld = false;
+  for (const { acts, command } of inputs) {
+    if (command !== null && has(command, NET_BUTTONS.skip)) routes.skipHeld = true;
+    for (const act of acts) if (act.kind === 'climate') routes.climate?.(act);
+  }
 }
 
 /** A client names any slot, and a tick throws on one nothing owns: that input is refused here, and the rest of its command stands. */

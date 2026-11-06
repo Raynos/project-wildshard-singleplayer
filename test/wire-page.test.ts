@@ -78,7 +78,7 @@ test('New Game forgets every world and site of its instance, and no other', asyn
 });
 
 test('a seen act lands on the host that keeps places, and costs a host with none only a refusal', () => {
-  const seen: string[] = [], routes: ActRoutes = { interactions: new Map(), equip: null, lock: null, ride: null, lean: null, launcher: null, seen: null, climate: null, refused: 0 };
+  const seen: string[] = [], routes: ActRoutes = { interactions: new Map(), equip: null, lock: null, ride: null, lean: null, launcher: null, seen: null, climate: null, claims: new Map(), skipHeld: false, refused: 0 };
   expect(netInteractCommands(routes, [{ kind: 'interact', seq: 1, id: 'seen:cove' }], 'p')).toEqual([]);
   expect(routes.refused).toBe(1);
   routes.seen = (player, flag) => { seen.push(`${player} ${flag}`); };

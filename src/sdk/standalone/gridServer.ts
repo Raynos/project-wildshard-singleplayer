@@ -43,7 +43,7 @@ import { createTrustedHeadlessResident, type HeadlessRuntimeInput } from '../hea
 import type { HeadlessEffect } from '../tickProtocol';
 import { cellDocuments, CONTINUATION, ContinuationSlots, SITE, siteDocuments, type SavedContinuation, type SavedSite } from './continuation';
 import { ledgerFilings } from './ledgerFilings';
-import { netClimateActs, stepResident } from './netInput';
+import { netWorldInput, stepResident } from './netInput';
 
 /** Worlds the worker holds beside the road, and so what a crossroads costs a phone (E5.2b, J68): the one its player stands in. */
 export const STANDALONE_RESIDENTS = 1;
@@ -293,7 +293,7 @@ export class StandaloneGrid {
 
   private step(site: string | null, inputs: readonly NetTickInput[]): boolean {
     const started = this.options.now(), world = site === null ? undefined : this.worlds.get(site);
-    netClimateActs(actRoutes(this.grid.hostOf(site)), inputs);
+    netWorldInput(actRoutes(this.grid.hostOf(site)), inputs);
     if (world === undefined) this.grid.stepSite(site, commandsOf(inputs)); else world.step(inputs);
     const host = this.grid.hostOf(site), player = sessionPlayer(host);
     // The page used to catch a fall, on its own body. The server's world has nothing below it, so it would fall for ever.

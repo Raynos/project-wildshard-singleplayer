@@ -1,5 +1,6 @@
 /** Native boss shell: roster lifetime, ordered presence/brain/room steps,
  * damage ownership, reward flags and save continuation are shared platform law. */
+import { actRoutes } from '@wildshard/engine/sim/actRoutes';
 import { nativeDecisions } from '../shardfile/borrowedDecisions';
 import { populationRoster, type NativePopulationActor } from '../population/roster';
 import { grantNativeInventory } from '../../shared/inventoryLaw';
@@ -104,6 +105,8 @@ function nativeGroundFight(host: SimHost, row: RoamingEncounterRow, program: Spe
   return { fight, own, waves };
 }
 
+/** A standing player's eye over their feet, where a press reaches a reward from. */
+const REACH_EYE = 1.68;
 const rewards = new WeakMap<SimHost, Map<string, { take: (eye: { x: number; y: number; z: number }) => boolean }>>();
 /** Resolve a concrete encounter reward by its declared step identity. */
 export function takeNativeBossReward(host: SimHost, id: string, eye: { x: number; y: number; z: number }): boolean {
@@ -133,7 +136,7 @@ export function installGroundBoss(host: SimHost, input: unknown, profile: unknow
         restoreRoamingFight(row, fight, value, actors);
         if (fight.body !== null) fight.body.hidden = hidden;
       },
-    }, saved, persist: record.persist,
+    }, saved, persist: record.persist, rewardPoint: () => reward,
     spawnReward: () => { const at = itemPickupFloor(host.physics, fight.rewardPoint()); reward = { x: at.x, y: at.y + ITEM_PICKUP_HOVER + row.reward.hover, z: at.z }; } });
   const Reward = v.strictObject({ version: v.literal(1), point: v.nullable(v.strictObject({ x: finite, y: finite, z: finite })) });
   host.onStep(row.steps.reward, () => undefined, {
@@ -167,6 +170,10 @@ export function installGroundBoss(host: SimHost, input: unknown, profile: unknow
   const book = rewards.get(host) ?? new Map<string, { take: (eye: { x: number; y: number; z: number }) => boolean }>();
   if (book.has(row.steps.fight)) throw new Error('Duplicate native boss reward');
   book.set(row.steps.fight, { take: result.takeReward }); rewards.set(host, book);
+  actRoutes(host).claims.set(`${row.steps.fight}.reward`, player => {
+    const feet = host.players.get(player)?.position;
+    if (feet !== undefined) result.takeReward({ x: feet.x, y: feet.y + REACH_EYE, z: feet.z });
+  });
   const readers=observations.get(host)??new Map<string,()=>NativeGroundBossObservation>();
   readers.set(row.steps.fight,()=>({boss:{state:owner.boss.state,phase:owner.boss.phase,attempts:owner.boss.attempts},fight:{
     body:fight.body?.entityId??null,mode:fight.mode,open:fight.open,

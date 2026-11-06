@@ -2,10 +2,15 @@ import { Vector3, type PerspectiveCamera } from 'three';
 import type { BossPresentation } from '@wildshard/engine/ai/BossBrain';
 import type { NetClient } from '@wildshard/engine/net/client';
 import { ENCOUNTER_CLASS } from '@wildshard/engine/net/netSchemas';
-import type { EliteBar } from '@wildshard/engine/ui/EliteBar';
+import type { EncounterReward } from '@wildshard/engine/sim/encounterRows';
+import type { EliteBar, SkullMark } from '@wildshard/engine/ui/EliteBar';
 
 /** One fight or lair this frame, as a client sees it. `body` is the row's handle, 0 while no body is out. */
-export interface EncounterRow { readonly id: string; readonly kind: string; readonly state: string; readonly hp: number; readonly phase: number; readonly shield: boolean; readonly body: number }
+export interface EncounterRow { readonly id: string; readonly kind: string; readonly state: string; readonly hp: number; readonly phase: number; readonly shield: boolean; readonly body: number;
+  /** A hold-to-skip's ring, 0 to 1. */ readonly skip: number;
+  /** Counts of a lair's banners and signature moves. */ readonly banners: number; readonly signatures: number;
+  /** A lair on the map, and how much of its sleep is left, 0 to 1. */ readonly known: boolean; readonly sleep: number;
+  /** Where the fight's reward waits to be taken, or null. */ readonly reward: EncounterReward | null }
 /**
  * E6 COMBAT: the one thing a bar asks of the world. A page's brains still present by themselves, and the flip takes them away
  * with `installLoot`'s law; after it the `encounter` rows are this feed, and these views are what draws a bar. A page has one
@@ -24,7 +29,8 @@ export function netEncounterFeed(client: Pick<NetClient, 'entities' | 'fields' |
     for (const [handle, info] of client.entities) {
       if (info.cls.cls !== ENCOUNTER_CLASS.cls) continue; // the shell's bundle has its own copy of the class
       const row = client.fields(latest, handle);
-      if (row !== null) out.push({ id: info.id.slice(PREFIX.length), kind: String(info.initial['kind']), state: String(row['state']), hp: Number(row['hp']), phase: Number(row['phase']), shield: row['shield'] === true || row['shield'] === 1, body: Number(row['body']) });
+      if (row !== null) out.push({ id: info.id.slice(PREFIX.length), kind: String(info.initial['kind']), state: String(row['state']), hp: Number(row['hp']), phase: Number(row['phase']), shield: row['shield'] === true || row['shield'] === 1, body: Number(row['body']),
+        skip: Number(row['skip']), banners: Number(row['banners']), signatures: Number(row['signatures']), known: row['known'] === true, sleep: Number(row['sleep']), reward: row['rewarded'] === true ? { x: Number(row['rewardX']), y: Number(row['rewardY']), z: Number(row['rewardZ']) } : null });
     }
     return out;
   } };
@@ -35,26 +41,38 @@ export interface BossBarCard {
   readonly id: string; readonly name: string; readonly title: string; readonly retryTitle: string;
   readonly phases: readonly { readonly at: number; readonly caption: string }[];
 }
+/** A fight's reward as a page draws it. */
+export interface BossRowDrop { readonly show: (at: EncounterReward) => void; readonly hide: () => void }
 const HOLD_AFTER_WIN = 1.4;
 const fighting = (state: string): boolean => state === 'fight' || state === 'beat';
 /**
  * A boss's bar and cards off its row, in the order `BossBrain` shows them on a page. Who has died and how often is the room's, so
- * the attempt on the retry card is this client's own count of them. The hold-to-skip ring and the reward card aren't a row's.
+ * the attempt on the retry card is this client's own count of them. A reward lying on the ground is the page's to draw and the
+ * server's to give: `drop` shows it where the row says, and the row ending takes it away.
  */
 export class BossRowBar {
   private state = 'dormant'; private phase = 0; private attempts = 1; private won = false; private held = 0;
   private readonly bar: BossPresentation;
   private readonly card: BossBarCard;
-  constructor(bar: BossPresentation, card: BossBarCard) { this.bar = bar; this.card = card; }
+  private readonly drop: BossRowDrop | null;
+  private out = false;
+  constructor(bar: BossPresentation, card: BossBarCard, drop: BossRowDrop | null = null) { this.bar = bar; this.card = card; this.drop = drop; }
   draw(rows: readonly EncounterRow[], dt: number): void {
     const { bar, card } = this, row = rows.find(entry => entry.id === card.id), state = row?.state ?? 'dormant', was = this.state;
     bar.update(dt);
     if (state !== was) { this.state = state; this.enter(state, was, row); }
+    this.reward(row?.reward ?? null);
     if (row === undefined) return;
+    if (state === 'intro') bar.setSkip(row.skip);
     if (fighting(state)) {
       bar.setHp(row.hp); bar.setShield(row.shield);
       if (row.phase !== this.phase) { this.phase = row.phase; const phase = card.phases[row.phase]; if (phase !== undefined) bar.setPhase(row.phase, phase.caption); }
     } else if (state === 'victory' && (this.held += dt) > HOLD_AFTER_WIN && bar.barShown) bar.hideBar();
+  }
+  private reward(at: EncounterReward | null): void {
+    if ((at !== null) === this.out) return;
+    this.out = at !== null;
+    if (at !== null) this.drop?.show(at); else this.drop?.hide();
   }
   private enter(state: string, was: string, row: EncounterRow | undefined): void {
     const { bar, card } = this, phases = card.phases.slice(1).map(phase => phase.at);
@@ -70,7 +88,7 @@ export class BossRowBar {
 }
 
 /** What an elite's bar says that a row doesn't. */
-export interface EliteBarCard { readonly id: string; readonly name: string; readonly epithet: string; readonly phase2: string }
+export interface EliteBarCard { readonly id: string; readonly name: string; readonly epithet: string; readonly phase2: string; readonly signature: string; readonly lair: { readonly x: number; readonly z: number } }
 /** The rows an elite's view needs of the page: where it stands, and how the bar sees it. */
 export interface EliteRowPorts {
   readonly player: { readonly position: Vector3 }; readonly camera: PerspectiveCamera;
@@ -78,19 +96,43 @@ export interface EliteRowPorts {
   readonly head: (body: number, to: Vector3) => boolean;
 }
 const FADE_AFTER_FALL = 1.6;
-type BarOf = Pick<EliteBar, 'show' | 'hide' | 'set' | 'caption' | 'update'>;
-/** The one elite bar off the rows: the nearest aware or engaged lair, as `EliteView` chooses. A signature's name, the banner and a skull are moments no row says. */
+type BarOf = Pick<EliteBar, 'show' | 'hide' | 'set' | 'caption' | 'update' | 'banner' | 'skulls'>;
+/** The one elite bar off the rows: the nearest aware or engaged lair, as `EliteView` chooses, with every lair's skull, and a banner or a signature's name as a row's count moves. */
 export class EliteRowBar {
   private focus: string | null = null; private phase = 0; private fading = 0;
   private readonly at = new Vector3();
   private readonly bar: BarOf;
   private readonly cards: ReadonlyMap<string, EliteBarCard>;
   private readonly ports: EliteRowPorts;
+  /** The counts each lair last showed: what a row says when it first arrives is no moment. */
+  private readonly shown = new Map<string, { banners: number; signatures: number }>();
+  private readonly skulls: SkullMark[] = [];
   constructor(bar: BarOf, cards: readonly EliteBarCard[], ports: EliteRowPorts) {
     this.bar = bar; this.cards = new Map(cards.map(card => [card.id, card])); this.ports = ports;
   }
+  /** A banner shows wherever it is; a signature's name, only under the bar it belongs to. */
+  private moments(rows: readonly EncounterRow[]): void {
+    for (const row of rows) {
+      if (row.kind !== 'elite') continue;
+      const seen = this.shown.get(row.id), card = this.cards.get(row.id);
+      if (seen === undefined) { this.shown.set(row.id, { banners: row.banners, signatures: row.signatures }); continue; }
+      if (row.banners !== seen.banners && card !== undefined) this.bar.banner(card.name, card.epithet);
+      if (row.signatures !== seen.signatures && card !== undefined && this.focus === row.id) this.bar.caption(card.signature);
+      seen.banners = row.banners; seen.signatures = row.signatures;
+    }
+  }
+  private drawSkulls(rows: readonly EncounterRow[]): void {
+    const { skulls } = this;
+    skulls.length = 0;
+    for (const row of rows) {
+      const card = row.kind === 'elite' ? this.cards.get(row.id) : undefined;
+      if (card !== undefined) skulls.push({ x: card.lair.x, z: card.lair.z, shown: row.known && row.state !== 'retired', dead: row.state === 'dead', engaged: row.state === 'engaged', countdown: row.sleep });
+    }
+    this.bar.skulls(skulls, this.ports.player.position);
+  }
   draw(rows: readonly EncounterRow[], dt: number): void {
     const { at, bar, ports } = this, held = rows.find(row => row.id === this.focus);
+    this.moments(rows);
     let best = rows.find(row => row.kind === 'elite' && row.state === 'broken') ?? null, nearest = Infinity;
     if (best === null) for (const row of rows) {
       if (row.kind !== 'elite' || (row.state !== 'aware' && row.state !== 'engaged') || !ports.head(row.body, at)) continue;
@@ -108,6 +150,7 @@ export class EliteRowBar {
       }
       this.phase = best.phase;
     }
+    this.drawSkulls(rows);
     bar.update(dt);
   }
   private focusOn(row: EncounterRow | null): void {

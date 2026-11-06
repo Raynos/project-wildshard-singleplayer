@@ -9,7 +9,7 @@ import { canReach } from '@wildshard/engine/ai/reach';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import type { SimHost } from '@wildshard/engine/sim';
-import { publishEncounter } from '@wildshard/engine/sim/encounterRows';
+import { NO_MOMENTS, publishEncounter, type EncounterReward } from '@wildshard/engine/sim/encounterRows';
 import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 import type { ArenaScriptData } from '@wildshard/format/arenaScriptRows';
 import { mountedPlayerOf } from '../riding/native';
@@ -60,9 +60,9 @@ export class OpenArenaRoom {
     this.contacts++; return true;
   };
   /** A room's deaths and shares once the brain exists, and the fight's row for every client. */
-  bind(boss: RoomBoss & Pick<BossBrain, 'state' | 'phase'>, fight: Pick<BossScript, 'hpFrac' | 'shielded'>): void {
+  bind(boss: RoomBoss & Pick<BossBrain, 'state' | 'phase' | 'skipHeldFor'>, fight: Pick<BossScript, 'hpFrac' | 'shielded'>, reward: () => EncounterReward | null): void {
     const { host, party } = this;
-    publishEncounter(host, this.data.definition.id, () => ({ kind: 'boss', state: boss.state, hp: fight.hpFrac, phase: boss.phase, shield: fight.shielded || boss.state === 'beat', body: null }));
+    publishEncounter(host, this.data.definition.id, () => ({ ...NO_MOMENTS, kind: 'boss', state: boss.state, hp: fight.hpFrac, phase: boss.phase, shield: fight.shielded || boss.state === 'beat', body: null, skip: boss.skipHeldFor, reward: reward() }));
     host.events.on('player.died', ({ actor }) => { if (host.players.size > 1) party.fell(actor.id, boss); }, host.scope);
     host.events.on('damage.dealt', ({ req }) => { if (party.owns(req, null, this.tag)) party.echo(req, { position: this.centre }, host.combat); }, host.scope);
   }
