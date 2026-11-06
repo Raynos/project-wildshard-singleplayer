@@ -179,6 +179,16 @@ export async function sunscarJourney(browser, phone, base, step, prepare = () =>
 
 /** The nearest living row body of a kind. */
 const bodyOf = (page, kind) => page.evaluate(want => { const { world } = window.__wildshard, live = (world.animals?.animals ?? []).filter(body => body.alive && body.rowDriven && body.kind === want); live.sort((a, b) => a.position.distanceTo(world.player.position) - b.position.distanceTo(world.player.position)); const body = live[0]; return body === undefined ? null : { x: body.position.x, y: body.position.y, z: body.position.z, count: live.length }; }, kind);
+/** What a page bound on a row's body as its fight began, nearest `at`: read off the mesh the page draws. */
+const rowLook = (page, at) => page.evaluate(({ x, z }) => {
+  const live = (window.__wildshard.world.animals?.animals ?? []).filter(body => body.rowDriven), away = body => Math.hypot(body.position.x - x, body.position.z - z);
+  live.sort((one, other) => away(one) - away(other));
+  const body = live[0]; if (body === undefined) return null;
+  const materials = new Set(); body.mesh.traverse(mesh => { for (const material of [mesh.material].flat()) if (material !== undefined) materials.add(material); });
+  const rows = [...materials], standard = rows.filter(material => material.isMeshStandardMaterial), lambert = rows.filter(material => material.isMeshLambertMaterial);
+  return { kind: body.kind, away: Number(away(body).toFixed(1)), pinned: body.drawPinned, standard: standard.length, painted: standard.filter(material => /lights_fragment_end/u.test(material.customProgramCacheKey())).length,
+    glow: Math.max(0, ...lambert.filter(material => material.emissive.getHex() !== 0).map(material => material.emissiveIntensity)), tint: lambert[0]?.color.toArray().map(value => Number(value.toFixed(2))) ?? null };
+}, at);
 /** Far Reach, whole: the keeper's notes, the roost, three vanes, the winch, the crown, the Roc. */
 async function farJourney(browser, phone, base, step) {
   const sky = await open(browser, phone, base, 'far-reach');
@@ -415,11 +425,11 @@ export async function nalatiJourney(browser, phone, base, step, prepare = () => 
   });
   await step('nalati: the King falls to real arrows, and his gold orb lies on the row', async () => {
     const end = Date.now() + 40_000;
-    let row = await fight(page, KING);
-    while (row?.state !== 'victory' && Date.now() < end) { if (row?.at !== null && row?.at !== undefined) await loose(page, bodyMid(row.at)); row = await fight(page, KING); }
+    let row = await fight(page, KING), glow = 0;
+    while (row?.state !== 'victory' && Date.now() < end) { if (row?.at !== null && row?.at !== undefined) { await loose(page, bodyMid(row.at)); glow = Math.max(glow, (await rowLook(page, row.at))?.glow ?? 0); } row = await fight(page, KING); }
     const orb = await until(page, async () => { const seen = await fight(page, KING); return seen?.reward !== null ? seen.reward : null; }, 8);
     await page.waitForTimeout(600);
-    return { ok: row?.state === 'victory' && orb !== null, state: row?.state, orb, shown: await prompt(page, 'take|claim|bow|gold|reward'), said: await heardOf(page) };
+    return { ok: row?.state === 'victory' && orb !== null && glow > 0, state: row?.state, orb, glow, shown: await prompt(page, 'take|claim|bow|gold|reward'), said: await heardOf(page) };
   });
   await step('nalati: the orb refuses a press from across the room, and stays', async () => {
     const { reward } = await fight(page, KING);
@@ -517,6 +527,12 @@ async function chapterJourney(browser, phone, base, step) {
     await sky.waitForTimeout(800);
     const shown = await bossBar(sky), r = await report(sky);
     return { ok: r.flags.includes('lit:cairn') && row !== null && shown.bar.length > 0, mounted, cairn, row: row?.state, shown, flags: r.flags.filter(flag => /cairn|jel/u.test(flag)), refused: r.refused };
+  });
+  // Behind a flag: red today. His fight's looks stay on the server (openArenaNativeViews draws nothing), so a page on it has no cloud to see.
+  if (process.argv.includes('--titanlook')) await step('chapters: the Titan stands in his fight, and the page draws his cloud', async () => {
+    const { page: sky } = storm, row = await until(sky, async () => { const seen = await fight(sky, 'storm-titan'); return seen?.state === 'fight' || seen?.state === 'beat' ? seen : null; }, 40);
+    const seen = await sky.evaluate(() => { const arena = window.__wildshard.shard['nalati.titan'], body = arena?.openFight.body; return { arena: arena !== undefined, visible: body?.visible ?? null, alpha: body?.alpha.value ?? null, fights: window.__workerClientFights().map(entry => entry.id) }; });
+    return { ok: row !== null && seen.visible === true, state: row?.state, ...seen };
   });
   // Behind a flag: a Titan left standing mustn't turn a run red that came for the bar. `--titan` is the fight itself, for his score.
   if (process.argv.includes('--titan')) await step('chapters: the Titan falls to real blows, and his score plays', async () => {
@@ -772,6 +788,58 @@ const kingRig = page => page.evaluate(() => {
   const [core, ribs] = cage.children, at = cage.getWorldPosition(cage.position.clone());
   return { shown: shown(cage), ribs: Number(ribs.scale.x.toFixed(3)), core: Number(core.scale.x.toFixed(3)), ribsGain: Number(ribs.material.emissiveIntensity.toFixed(3)), coreGain: Number(core.material.emissiveIntensity.toFixed(3)), glass: Number((lanterns[0]?.children.find(mesh => mesh.material.emissiveIntensity > 0)?.material.emissiveIntensity ?? 0).toFixed(3)), lanterns: lanterns.length, hung: lanterns.filter(shown).length, fire: flames.filter(shown).length, at: at.toArray().map(value => Number(value.toFixed(1))) };
 });
+/** The binds a body boss, a shard's light and a herd lair make as a fight begins, on rows. */
+async function sweepJourney(browser, phone, base, step) {
+  const dune = await open(browser, phone, base, 'sunscar-dunes');
+  await step('sweep: Sunscar\'s rows wear its painter\'s light', async () => {
+    const at = await dune.page.evaluate(() => { const { x, z } = window.__wildshard.world.player.position; return { x, z }; });
+    const look = await until(dune.page, async () => { const seen = await rowLook(dune.page, at); return seen !== null && seen.standard > 0 ? seen : null; }, 20);
+    return { ok: look !== null && look.painted === look.standard, look };
+  });
+  await dune.context.close();
+  const far = await open(browser, phone, base, 'far-reach');
+  await step('sweep: a body boss\'s row stays drawn at any distance', async () => {
+    await place(far.page, 0, 45.5, -188);
+    const row = await until(far.page, async () => { const seen = await fight(far.page, 'far.roc.encounter'); return seen?.state === 'fight' && seen.at !== null ? seen : null; }, 25);
+    await far.page.waitForTimeout(800);
+    const look = row === null ? null : await rowLook(far.page, row.at);
+    return { ok: look?.pinned === true, look, state: row?.state };
+  });
+  await far.context.close();
+  const steppe = await open(browser, phone, base, 'nalati-grasslands');
+  await step('sweep: Argymaq\'s row wears his colour', async () => {
+    const lair = await steppe.page.evaluate(() => { const { x, z } = window.__wildshard.shard['nalati.elites'].elites.entry('argymaq').script.def.lair; return { x, z }; });
+    const row = await until(steppe.page, async () => { const feet = await groundAt(steppe.page, lair.x + 12, lair.z); await place(steppe.page, lair.x + 12, feet + 0.4, lair.z); return bodyOf(steppe.page, 'argymaq'); }, 30, 1000);
+    await steppe.page.waitForTimeout(500);
+    const look = row === null ? null : await rowLook(steppe.page, row);
+    return { ok: look?.kind === 'argymaq' && look.tint?.[0] === 0.62, look, lair };
+  });
+  await steppe.context.close();
+}
+/** Pine's King on a plain page: the row's numbers to read beside. The row off, and night and blows by hand. */
+async function pageRigJourney(browser, phone, base, step, [x, z]) {
+  const context = await browser.newContext(phone), page = await context.newPage(), errors = [];
+  page.on('pageerror', error => { errors.push(error.message.slice(0, 300)); });
+  await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
+  await saveFixture(context, { scope: 'global', key: 'settings', data: { time: 'night' }, merge: true });
+  await page.goto(new URL('/?chunk=pine-hollow&mute=1&nolock=1&bossGod', base).href, { waitUntil: 'load' });
+  await page.waitForFunction(() => window.__wildshard?.world?.player !== undefined, undefined, { timeout: 150_000 });
+  await page.evaluate(FLOOR_GRID_ENTER);
+  await page.waitForTimeout(4000);
+  const hold = () => page.evaluate(([px, pz]) => { const { player } = window.__wildshard.world, feet = window.__hf.heightAt(px, pz) + 0.1; player.position.set(px, feet, pz); player.motor?.resetAt(player.position); }, [x + 4, z]);
+  await step('rigpage: on a page, what he wears and how it moves', async () => {
+    const end = Date.now() + 100_000;
+    let widest = null, dimmest = null, first = null;
+    while (Date.now() < end) {
+      await hold();
+      const rig = await kingRig(page);
+      if (rig?.shown === true) { first ??= rig; if (widest === null || rig.ribs > widest.ribs) widest = rig; if (dimmest === null || rig.ribs < dimmest.ribs) dimmest = rig; if (widest.ribs > dimmest.ribs + 0.2) break; }
+      await page.waitForTimeout(120);
+    }
+    return { ok: first !== null && widest !== null && widest.ribs > dimmest.ribs + 0.1 && errors.length === 0, first, widest, dimmest, errors: errors.slice(0, 4) };
+  });
+  await context.close();
+}
 /** Pine's King on a server: his ribs, their glow and the lanterns hung off him all follow the fight. Worth reading beside `--only=rigpage`. */
 async function rigJourney(browser, phone, base, step, [x, z]) {
   const pine = await open(browser, phone, base, 'pine-hollow', '&bossGod'), { page } = pine, trail = [];
@@ -877,6 +945,8 @@ async function lanternJourney(browser, phone, base, step, [x, z], blows) {
 export async function fights(browser, phone, base, only, step) {
   const runs = name => only === '' || only === 'fights' || only === name;
   if (runs('rig')) await rigJourney(browser, phone, base, step, KINGS_CLEARING);
+  if (runs('sweep')) await sweepJourney(browser, phone, base, step);
+  if (only === 'rigpage') await pageRigJourney(browser, phone, base, step, KINGS_CLEARING);
   if (runs('lantern')) { await lanternJourney(browser, phone, base, step, KINGS_CLEARING, 4); await lanternJourney(browser, phone, base, step, KINGS_CLEARING, 3000); }
 
   // A boss: its row draws the bar, leaving resets it, a fall comes back, and real blows end it and pay.

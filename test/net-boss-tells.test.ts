@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
-import { shardRows } from '../src/engine/shared/sim/shardRows';
+import { ELITE_MOMENTS, eliteGroundWord, eliteMomentWord, shardRows } from '../src/engine/shared/sim/shardRows';
 import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { BOSS_STRIKE, ELITE_TELL, ROAMING_VIEW } from '../src/game/shared/shardfile/wirePrompts';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
@@ -59,6 +59,25 @@ test('an elite says its tells and its cues', { timeout: 120_000 }, async () => {
     const cues = heard.get(ELITE_TELL.cue) ?? [];
     expect(cues.length, 'a cue fired, and was said').toBeGreaterThan(0);
     for (const args of cues) { expect(args).toHaveLength(9); expect(args.every(Number.isFinite)).toBe(true); }
+  } finally { live.dispose(); }
+});
+
+test('a Nalati kernel says its ground ring and its moments', { timeout: 120_000 }, async () => {
+  const live = await residentOn('nalati-grasslands');
+  try {
+    const { host } = live, lead = leadPlayer(host), id = 'aqbars', word = eliteGroundWord(id);
+    host.events.answer('damage.modify', request => request?.target === lead.health ? null : request, host.scope);
+    await host.dayClock?.set(0.9);
+    const near = (): void => {
+      const body = [...host.entities.values()].find(entry => entry.variant === id && entry.alive);
+      if (body !== undefined) { const x = body.position.x + 9; lead.position.set(x, host.groundHeightAt(x, body.position.z) + 0.1, body.position.z); lead.motor.resetAt(lead.position); }
+    };
+    const heard = hear(live, 8000, near);
+    const rings = heard.get(word) ?? [], moments = heard.get(eliteMomentWord(id)) ?? [];
+    expect(rings.filter(args => args.length === 5).length, 'the pounce paints its ring').toBeGreaterThan(0);
+    expect(rings.some(args => args.length === 0), 'and takes it off').toBe(true);
+    for (const args of moments) { expect(args).toHaveLength(4); expect(ELITE_MOMENTS[args[0] ?? -1]).toBeDefined(); }
+    expect(moments.length, 'its growl').toBeGreaterThan(0);
   } finally { live.dispose(); }
 });
 
