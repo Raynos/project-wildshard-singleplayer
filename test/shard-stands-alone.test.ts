@@ -62,7 +62,7 @@ describe('a shardfile stands alone', () => {
     const missing = named.filter(url => !mounted.has(url) && existsSync(join('public', url.slice(1))) && !engine.has(url));
     // A file no mounts.json lists is either the engine's (read by two shard folders) or this list is stale.
     const cooked = standIns(slug), carried = (url: string): boolean => (cooked.get(url)?.length ?? 0) === 2 && (cooked.get(url) ?? []).every(form => mounted.has(form));
-    expect(missing.filter(url => readers(url) < 2 && !carried(url))).toEqual([]);
+    expect(missing.filter(url => !carried(url) && readers(url) < 2)).toEqual([]);
   }, 60_000);
 
   it.each(['driftwood-isle', 'nalati-grasslands', 'pine-hollow'])('%s loads headless from its unpacked tarball', async slug => {
@@ -91,7 +91,6 @@ describe('a shardfile stands alone', () => {
   }, 120_000);
 });
 
-/** How many shard folders' sections name a URL. */
 /** 4194450b25: a source with a cooked form on both tiers stays out of a shardfile, which carries those forms instead. Its
  *  sections still name the source, as `scripts/record-shard-mounts.mjs` reads them. */
 function standIns(slug: string): ReadonlyMap<string, readonly string[]> {
@@ -100,13 +99,18 @@ function standIns(slug: string): ReadonlyMap<string, readonly string[]> {
   for (const [, url = '', form = ''] of readFileSync(file, 'utf8').matchAll(/"(\/assets\/[^"]+)": "(\/assets\/[^"]+)"/gu)) forms.set(url, [...forms.get(url) ?? [], form]);
   return forms;
 }
-function readers(url: string): number {
-  const folders = new Set<string>();
+let sectionReaders: ReadonlyMap<string, ReadonlySet<string>> | undefined;
+/** How many shard folders' sections name a URL. One read of every section: a walk per URL is synchronous, so no test timeout
+ *  can fire, and on the full product set it outlived its CI job. */
+function readers(url: string): number { return (sectionReaders ??= readSectionReaders()).get(url)?.size ?? 0; }
+function readSectionReaders(): ReadonlyMap<string, ReadonlySet<string>> {
+  const index = new Map<string, Set<string>>();
   for (const slug of products) {
-    const section = join('out', slug, 'sections');
+    const folder = slug.startsWith('open-plot-') ? 'open-plots' : slug, section = join('out', slug, 'sections');
     for (const row of readdirSync(section, {recursive: true, withFileTypes: true})) {
-      if (row.isFile() && readFileSync(join(row.parentPath, row.name), 'utf8').includes(`"${url}"`)) folders.add(slug.startsWith('open-plot-') ? 'open-plots' : slug);
+      if (!row.isFile()) continue;
+      for (const [, url = ''] of readFileSync(join(row.parentPath, row.name), 'utf8').matchAll(/"(\/assets\/[^"]+)"/gu)) index.set(url, (index.get(url) ?? new Set<string>()).add(folder));
     }
   }
-  return folders.size;
+  return index;
 }
