@@ -7,7 +7,7 @@
       390,
       844
     ],
-    "query": "tier=phone&touch",
+    "query": "touch&tier=phone",
     "pitch": -0.06
   },
   "god": {
@@ -15,7 +15,7 @@
       1600,
       900
     ],
-    "query": "tier=desktop",
+    "query": "mute=1&tier=desktop",
     "fovV": 72,
     "topUp": 90,
     "diagUp": 45,
