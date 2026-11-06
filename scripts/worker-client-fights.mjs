@@ -285,32 +285,34 @@ async function pineJourney(browser, phone, base, step) {
     return { ok: false, target, slot: slot?.line, now: (await board()).slice(0, 8) };
   });
   await step('pine: a filled contract is claimed on the board, and it pays', async () => {
-    const lines = await board(), slot = lines.map(([line, have]) => ({ line, have, parts: line.split('|') })).find(row => row.parts.length >= 5 && row.parts[3] === 'species');
-    const target = slot?.parts[4] ?? 'deer', kind = /elk/iu.test(target) ? 'elk' : /boar/iu.test(target) ? 'boar' : 'deer', sealed = () => page.evaluate(() => [...document.querySelectorAll('.ws-ph-seal')].length);
-    let opened = 0;
-    const end = Date.now() + 75_000;
-    while (Date.now() < end && opened === 0) {
-      const body = await bodyOf(page, kind);
-      if (body !== null) { await place(page, body.x + 1.5, body.y + 0.6, body.z + 1.5); await page.waitForTimeout(350); await strike(page, body, false); await page.waitForTimeout(500); }
-      else await page.waitForTimeout(500);
-      opened = await sealed();
-      if (opened === 0 && Date.now() % 4 === 0) { await pressRound(page, 'contract board', () => page.evaluate(() => [...document.querySelectorAll('.ws-ph-seal')].some(node => node.offsetParent !== null))); opened = await sealed(); await page.keyboard.press('Escape').catch(() => undefined); }
+    const slot = (await board()).map(([line]) => line.split('|')).find(parts => parts.length >= 5 && parts[3] === 'species');
+    const target = slot?.[4] ?? 'deer', kind = /elk/iu.test(target) ? 'elk' : /boar/iu.test(target) ? 'boar' : 'deer', ready = () => page.evaluate(() => [...document.querySelectorAll('.ws-ph-seal')].some(node => node.offsetParent !== null));
+    const end = Date.now() + 80_000;
+    let sealed = false, kills = 0;
+    while (Date.now() < end && !sealed) { // a notice wants a few; read the board after each
+      const was = await report(page), body = await bodyOf(page, kind);
+      if (body === null) { await page.waitForTimeout(500); continue; }
+      await place(page, body.x + 1.5, body.y + 0.6, body.z + 1.5); await page.waitForTimeout(350); await strike(page, body, false); await page.waitForTimeout(900);
+      if ((await report(page)).kills === was.kills) continue;
+      kills++;
+      sealed = await pressRound(page, 'contract board', ready);
+      if (!sealed) { await page.locator('button:visible').filter({ hasText: /^close$/iu }).first().dispatchEvent('click').catch(() => undefined); await page.waitForTimeout(500); }
     }
-    await pressRound(page, 'contract board', () => page.evaluate(() => [...document.querySelectorAll('.ws-ph-seal')].some(node => node.offsetParent !== null)));
+    if (!sealed) return { ok: false, kills, target, lines: (await board()).slice(0, 8) };
     const before = await report(page);
-    await page.locator('.ws-ph-seal:visible').first().click({ timeout: 4000 });
-    const paid = await until(page, async () => (await report(page)).owned['board.claimed'] !== before.owned['board.claimed'] ? (await report(page)).owned : null, 4);
-    await page.locator('button:visible').filter({ hasText: /^close$/iu }).first().click({ timeout: 3000 }).catch(() => page.keyboard.press('Escape'));
+    await page.locator('.ws-ph-seal:visible').first().dispatchEvent('click');
+    const paid = await until(page, async () => { const { owned } = await report(page); return owned['board.claimed'] === before.owned['board.claimed'] ? null : owned; }, 4);
+    await page.locator('button:visible').filter({ hasText: /^close$/iu }).first().dispatchEvent('click').catch(() => undefined);
     await page.waitForTimeout(800);
-    return { ok: paid !== null, target, claimed: paid?.['board.claimed'] ?? null, coins: [before.owned.coins, paid?.coins] };
+    return { ok: paid !== null, kills, target, claimed: paid?.['board.claimed'] ?? null, coins: [before.owned.coins, paid?.coins] };
   });
   await step('pine: a contract can be read and torn on the page, and the server deals another', async () => {
     const lines = await board();
     await pressRound(page, 'contract board', () => page.evaluate(() => [...document.querySelectorAll('.ws-ph-tear')].some(node => node.offsetParent !== null)));
     const buttons = await page.evaluate(() => [...document.querySelectorAll('button')].filter(node => node.offsetParent !== null).map(node => (node.textContent ?? '').trim()).filter(Boolean).slice(0, 14));
-    await page.locator('.ws-ph-tear:visible').first().click({ timeout: 4000 });
+    await page.locator('.ws-ph-tear:visible').first().dispatchEvent('click');
     const moved = await until(page, async () => JSON.stringify(await board()) !== JSON.stringify(lines), 3) === true;
-    await page.locator('button:visible').filter({ hasText: /^close$/iu }).first().click({ timeout: 3000 }).catch(() => page.keyboard.press('Escape'));
+    await page.locator('button:visible').filter({ hasText: /^close$/iu }).first().dispatchEvent('click').catch(() => page.keyboard.press('Escape'));
     await page.waitForTimeout(1000);
     return { ok: moved, whileOpen: moved, buttons: buttons.slice(-6), now: (await board()).slice(0, 8) };
   });

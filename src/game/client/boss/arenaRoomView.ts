@@ -80,31 +80,49 @@ export class ArenaRoomPortal {
   private move(): void { this.world.player.moveScale = this.locked ? 0 : this.slow ? this.rows.slow : 1; }
   enter(immediate = false, atZ: number = this.rows.spawn.z): void {
     if (!immediate) { this.ui?.fade(true, this.rows.fade.out); this.law.begin('enter', this.rows.fade.hold); return; }
-    const { game, player, animals } = this.world, origin = this.room.rows.origin;
+    const { player } = this.world;
     this.room.world(this.rows.spawn.x, 0, atZ, player.position);
     player.velocity.set(0,0,0); player.yaw = this.rows.spawn.yaw; player.pitch = 0;
+    this.show();
+  }
+  /** The room stands in for the world around it. */
+  private show(): void {
+    const { game, animals } = this.world, origin = this.room.rows.origin;
     this.law.inside = true; this.room.setVisible(true); this.hidden = [];
     for (const object of game.scene.children) {
       if (!object.visible || object === this.room.group || object === animals.group || object === game.camera || object instanceof THREE.Light || this.keep.test(object.name) || object.type === 'Points'
         || object.position.distanceToSquared(new THREE.Vector3(origin.x,origin.y,origin.z)) < this.rows.near ** 2) continue;
       object.visible = false; this.hidden.push(object);
     }
-    this.calmWas = animals.calm; animals.calm = true; this.fight?.setPresent(true); this.boss?.arm();
+    this.calmWas = animals.calm; animals.calm = true; this.fight?.setPresent(true);
+    if (!wirePage.on) this.boss?.arm(); // the page's brain never arms on the wire: the row is the fight
   }
   leave(teleport: boolean, immediate = false): void {
     if (teleport && !immediate) { this.ui?.fade(true, this.rows.fade.out); this.law.begin('exit', this.rows.fade.hold); return; }
-    const { player, animals } = this.world, e = this.entrance;
+    const { player } = this.world, e = this.entrance;
     if (teleport && e !== null) {
       player.position.set(e.x - Math.sin(e.facing) * this.rows.exitOffset, e.y, e.z - Math.cos(e.facing) * this.rows.exitOffset);
       player.yaw = e.facing; player.pitch = 0; player.velocity.set(0,0,0);
     }
+    this.gone();
+  }
+  /** The world comes back. */
+  private gone(): void {
+    const { animals } = this.world;
     this.law.inside = false; this.room.setVisible(false);
     for (const object of this.hidden) object.visible = true;
-    this.hidden = []; animals.calm = this.calmWas; this.boss?.disarm(); this.fight?.setPresent(false);
+    this.hidden = []; animals.calm = this.calmWas; if (!wirePage.on) this.boss?.disarm(); this.fight?.setPresent(false);
     this.slow = false; this.locked = false; this.move();
   }
   update(dt: number, t: number): void {
     const p = this.world.player.position, origin = this.room.rows.origin;
+    if (wirePage.on) { // the server walks a player in and out: the page follows where it put them, and the fight's frame runs on its row
+      const inside = this.room.inVolume(p);
+      if (inside !== this.law.inside) { if (inside) this.show(); else this.gone(); }
+      this.drive?.(dt,t);
+      if (inside) this.room.update(dt,t);
+      return;
+    }
     const step = this.law.step(dt, () => {
       const z = p.z - origin.z, floor = this.room.floorHeightAt(p.x,p.z);
       return { px: p.x, py: p.y, pz: p.z, floor, volume: this.room.inVolume(p), engaged: this.boss?.engaged === true,
