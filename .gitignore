@@ -167,6 +167,7 @@ public/assets/driftwood-isle/map/top.webp
 /public/assets/far-reach/entry-reads.json
 /public/assets/driftwood-isle/entry-reads.json
 /public/assets/nalati-grasslands/entry-reads.json
+/public/assets/pine-hollow/entry-reads.json
 
 # Maintained ignored source tables; committed tables need no exception.
 /src/shards/_template/discovery.generated.ts

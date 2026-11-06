@@ -15,7 +15,7 @@ const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
 const argv = process.argv.slice(2);
 const flag = (name, d) => { const a = argv.find((x) => x.startsWith(`--${name}=`)); return a ? a.slice(name.length + 3) : d; };
 const url = flag('url', 'http://localhost:4186'), tier = flag('tier', 'phone');
-const DEF = JSON.parse(readFileSync(resolvePath(ROOT, flag('cameras', 'art/pine-hollow/round-0-baseline/cameras.json')), 'utf8'));
+const DEF = JSON.parse(readFileSync(resolvePath(ROOT, flag('cameras', 'src/shards/pine-hollow/art/round-0-baseline/cameras.json')), 'utf8'));
 const b = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal'] });
 const ip = devices['iPhone 16 Pro'];
 const ctxOpts = tier === 'phone'

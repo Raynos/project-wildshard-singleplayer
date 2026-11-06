@@ -18,8 +18,7 @@ def add_args(ap):
 
 
 def load(args):
-    own = HERE.parents[1] / 'src' / 'shards' / args.shard / 'art' / 'horizon-matte.json'
-    p = Path(args.config) if args.config else own if own.exists() else HERE / 'configs' / f'{args.shard}.json'
+    p = Path(args.config) if args.config else HERE.parents[1] / 'src' / 'shards' / args.shard / 'art' / 'horizon-matte.json'
     if not p.exists():
         raise SystemExit(f'horizon-matte: no config for {args.shard} ({p}); copy art/horizon-matte.json from Driftwood and re-shoot the capture')
     return json.loads(p.read_text())
