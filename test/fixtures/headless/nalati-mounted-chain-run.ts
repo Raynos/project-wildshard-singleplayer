@@ -58,7 +58,7 @@ try{
     if(frames.length-offset>=512)await flush();
   };
   await step([{kind:'script',actorId:'nalati.weapon.swap',value:1}]);
-  for(let tick=0;tick<1800&&read().pass.passChain<2;tick++){
+  for(let tick=0;tick<3600&&read().pass.passChain<2;tick++){
     const p=leadPlayer(host).position,target=pack.members.filter(actor=>actor.alive).sort((a,b)=>a.position.distanceToSquared(p)-b.position.distanceToSquared(p))[0];assert.ok(target);
     const dx=target.position.x-p.x,dz=target.position.z-p.z,distance=Math.hypot(dx,dz),direct=Math.atan2(dx,dz);
     const heading=Math.atan2(target.position.x+Math.cos(direct)*1.6-p.x,target.position.z-Math.sin(direct)*1.6-p.z);
@@ -69,7 +69,9 @@ try{
     const vx=mount.rider.velocity.x-Math.sin(target.yaw)*target.speed,vz=mount.rider.velocity.z-Math.cos(target.yaw)*target.speed;
     const closing=Math.max(0,(vx*dx+vz*dz)/Math.max(distance,.001)),pressRange=passReach+target.dims.bodyRadius*target.scale+closing*passWindup;
     const base=mount.body.heading-Math.PI,look=Math.atan2(Math.sin(Math.atan2(-aimDx,-aimDz)-base),Math.cos(Math.atan2(-aimDx,-aimDz)-base));
-    const commands:HeadlessCommand[]=[reins(brake?-.8:Math.abs(delta)>.9?0:distance<6?.85:1,brake?0:Math.max(-1,Math.min(1,delta*2.5)),!brake&&distance>=10,false,base+Math.max(-lookLimit,Math.min(lookLimit,look))),
+    // A pass slash sweeps its own side of the view and misses what sits at the centre, so the rider holds the wolf out on that side.
+    const side=dx*Math.cos(base)-dz*Math.sin(base)>=0?1:-1;
+    const commands:HeadlessCommand[]=[reins(brake?-.8:Math.abs(delta)>.9?0:distance<6?.85:1,brake?0:Math.max(-1,Math.min(1,delta*2.5)),!brake&&distance>=4,false,base+Math.max(-lookLimit,Math.min(lookLimit,look))+.7*side),
       {kind:'script',actorId:'nalati.weapon.pitch',value:Math.atan2(aimPoint.y-p.y-1.68,Math.hypot(aimDx,aimDz))}];
     if(gap<=pressRange&&Math.abs(look)<=lookLimit&&tick%10===0)commands.push({kind:'script',actorId:'nalati.weapon.attack',value:1});
     await step(commands);

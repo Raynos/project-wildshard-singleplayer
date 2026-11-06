@@ -9,7 +9,7 @@ import type { SimHost } from '../../../src/engine/server/sim';
 import { snapshotSimHostBytes, serializeSimSnapshot } from '../../../src/engine/shared/sim/snapshot';
 import type { Rapier } from '../../../src/engine/shared/physics/rapier';
 import { createNativeProofResident, prepareProductPlan as prepareHeadlessRuntime } from '../../fixtures/headless-native';
-import {nalatiTamingPilot} from './tamingPilot';
+import {createNalatiTamingPilot} from './tamingPilot';
 import source from '../../fixtures/nalati-product-source';
 import { createNativeBakeReader } from '@wildshard/game/population/nativeBake';
 import { nativeTamingOf } from '@wildshard/game/riding/nativeTaming';
@@ -52,12 +52,13 @@ export async function nalatiTamingWitness(rapier: Rapier, assets: ReadonlyMap<st
     assert.equal(leadPlayer(first.host).position.x, x, 'Fixture must start beside the authored living stallion');
     assert.equal(leadPlayer(first.host).position.z, z, 'Fixture must start beside the authored living stallion');
     const original = first.host.entities.get(actor.id); if (original === undefined) throw new Error('Missing native authored stallion');
-    let previous = 0, breakingTicks = 0, prompt = false, checkpointTick = 0;
+    const pilot = createNalatiTamingPilot();
+    let breakingTicks = 0, prompt = false, checkpointTick = 0;
     for (let tick = 0; tick < 40_000 && law(first.host).phase !== 'bonded'; tick++) {
-      const taming = law(first.host), pilot = nalatiTamingPilot(first.host, actor.id, previous); previous = pilot.balance;
+      const taming = law(first.host), commands = pilot(first.host, actor.id);
       prompt ||= taming.interactable.radius > 0;
       if (taming.phase === 'breaking') breakingTicks++;
-      first.step(pilot.commands); restored?.step(pilot.commands);
+      first.step(commands); restored?.step(commands);
       if (replay && restored === undefined && taming.phase === 'breaking' && breakingTicks === 250) {
         const snapshot = snapshotSimHostBytes(first.host), wire = serializeSimSnapshot(snapshot); checkpointTick = first.host.state.tick;
         restored = await createNativeProofResident(preparation, entry, wire);

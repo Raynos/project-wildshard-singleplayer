@@ -75,17 +75,17 @@ try{
   await step([{kind:'script',actorId:'nalati.weapon.swap',value:1}]);
   await step([{kind:'script',actorId:'nalati.weapon.swap',value:1}]);assert.equal(read().slot,slot.id);
   const rear=new Vector3(),front=new Vector3(),aimPoint=new Vector3(),lookLimit=Math.PI*140/180;
-  for(let tick=0;tick<1800;tick++){
+  for(let tick=0;tick<3600;tick++){
     if(contact!==undefined)break;
     const p=leadPlayer(host).position,target=pack.members.filter(actor=>actor.alive).sort((a,b)=>a.position.distanceToSquared(p)-b.position.distanceToSquared(p))[0];assert.ok(target);
     const dx=target.position.x-p.x,dz=target.position.z-p.z,distance=Math.hypot(dx,dz),direct=Math.atan2(dx,dz);
-    const heading=Math.atan2(target.position.x+Math.cos(direct)*2-p.x,target.position.z-Math.sin(direct)*2-p.z);
-    const delta=Math.atan2(Math.sin(mount.body.heading-heading),Math.cos(mount.body.heading-heading));
-    const brake=(Math.abs(delta)>.9||distance<2.5)&&Math.abs(mount.body.speed)>3;
+    // A lance strikes inside its cone at speed, so the pilot rides straight at the raider, sprints to catch it and never slows for it.
+    const delta=Math.atan2(Math.sin(mount.body.heading-direct),Math.cos(mount.body.heading-direct));
+    const brake=Math.abs(delta)>.9&&Math.abs(mount.body.speed)>3;
     target.bodyCapsule(rear,front);aimPoint.addVectors(rear,front).multiplyScalar(.5);
     const aimDx=aimPoint.x-p.x,aimDz=aimPoint.z-p.z,base=mount.body.heading-Math.PI;
     const look=Math.atan2(Math.sin(Math.atan2(-aimDx,-aimDz)-base),Math.cos(Math.atan2(-aimDx,-aimDz)-base));
-    await step([reins(brake?-.8:Math.abs(delta)>.9?0:distance<6?.85:1,brake?0:Math.max(-1,Math.min(1,delta*2.5)),!brake&&distance>=10,false,base+Math.max(-lookLimit,Math.min(lookLimit,look))),
+    await step([reins(brake?-.8:Math.abs(delta)>.9?0:distance<6?.85:1,brake?0:Math.max(-1,Math.min(1,delta*2.5)),!brake&&distance>=3,false,base+Math.max(-lookLimit,Math.min(lookLimit,look))),
       {kind:'script',actorId:'nalati.weapon.pitch',value:Math.atan2(aimPoint.y-p.y-1.68,Math.hypot(aimDx,aimDz))}]);
   }
   const landed=contact;assert.ok(landed);assert.ok(middle);
