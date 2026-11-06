@@ -70,6 +70,7 @@ export function rows({ gates, flows, titled, untitled, gridWarm, tasks, programs
   const longTasks = before(gridWarm);
   out.push(row('DL11', longTasks === null ? null : longTasks <= 20, `${longTasks ?? 'no'} long tasks before control, grid warm (bar <= 20, was 86) · Nine cold ${before(tasks) ?? 'unread'}`));
 
+  const red = seven.filter(([, gate]) => gate?.pass !== true).map(([name, gate]) => `${name}: ${gate?.pass === false ? gate.violations[0]?.slice(0, 110) : 'no reading'}`);
   // J130's row starts the server after control, so its reads land after it by construction: DL15 and DL17 read on the flip
   if (row_) out.push(row('DL15', null, 'not on the row: the flip starts the server before control'), row('DL17', null, `${red.length} flows red, read on the flip`));
   else out.push(row('DL15', seven.length === 0 ? null : red.length === 0 && seven.length === 7, seven.length === 7 && red.length === 0 ? 'seven flows green on q11 parts' : `${seven.length} of 7 flows, red: ${list(red)}`));
