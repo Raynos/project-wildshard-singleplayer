@@ -1,7 +1,7 @@
 // J141: Nalati's chapters on the server, per player (J106). The flip deletes the page that ran them; a browser proves the page shows them.
 // oxlint-disable-next-line import/no-nodejs-modules -- A world runs the shipped product bytes and physics module.
 import { readFileSync } from 'node:fs';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { questBooks } from '../src/engine/shared/quest/players';
 import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { actRoutes } from '../src/engine/shared/sim/actRoutes';
@@ -9,6 +9,7 @@ import { NO_MOMENTS, publishEncounter } from '../src/engine/shared/sim/encounter
 import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
 import { shardRows } from '../src/engine/shared/sim/shardRows';
 import { installServerChapters } from '../src/game/server/quest/serverChapters';
+import { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { outputDescriptor } from '../src/game/shared/shardfile/outputDescriptor';
 import { loadHeadlessProduct } from '../src/sdk/headlessProduct';
 import { createTrustedHeadlessResident } from '../src/sdk/headlessRuntime';
@@ -96,4 +97,19 @@ test('a chapter is each player\'s own, and a seat costs a projection, not a scri
     const withTwo = (performance.now() - at) / 600;
     console.info(`[chapters] 2 seats: host tick ${withTwo.toFixed(2)} ms`);
   } finally { live.dispose(); }
+});
+
+test('a chapter is asked on the page\'s beat: its quest signal each half second and its pulse each two', { timeout: 90_000 }, async () => {
+  const dt = 1 / 60, project = vi.spyOn(ReturnProgram.prototype, 'project'); // before the install: an owner keeps the method it was given
+  const live = await nalati();
+  try {
+    const { host } = live;
+    for (let i = 0; i < 600; i++) host.step();
+    const beats = (name: string): number[] => project.mock.calls.flatMap(([signal, values]) => signal === name && values['now'] !== undefined ? [Math.round(values['now'] / dt)] : []);
+    const quest = beats('quest'), pulse = beats('feathers');
+    expect(Math.abs(quest.length - 600 * dt / 0.5), 'twice a second').toBeLessThanOrEqual(1);
+    expect(Math.abs(pulse.length - 600 * dt / 2.5), 'each pulse falls on a beat past its two seconds').toBeLessThanOrEqual(1);
+    expect(pulse.every(tick => quest.includes(tick)), 'a pulse goes with its beat').toBe(true);
+    for (let i = 1; i < quest.length; i++) expect(((quest[i] ?? 0) - (quest[i - 1] ?? 0)) * dt).toBeGreaterThanOrEqual(0.5);
+  } finally { project.mockRestore(); live.dispose(); }
 });
