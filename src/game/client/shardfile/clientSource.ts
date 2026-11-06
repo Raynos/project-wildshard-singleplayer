@@ -106,7 +106,8 @@ function clientSource(admitted: AdmittedProduct, options: ProductOptions, bindin
     // Traversal belongs to the platform, independently of authored item rows or Developer mode.
     loadout: { weapons: [], tools: ['tool.hoverboard'], start: ['tool.hoverboard'] },
     ...(manifest.navigation === undefined ? {} : { navigation: manifest.navigation }),
-    ground: { ...(source.terrain === null && source.meshCollision === null && !source.entryways.some(entry => entry.kind === 'socketLift' || entry.kind === 'portalLink') ? {} : { structures: true }), paths: 'plugin', terrain: clientGround(source, assets.retained), water: shardfileWater(source.water) },
+    // A product with no terrain is a structure world, an empty one included: a slab needs rock art only a hybrid's manifest has.
+    ground: { structures: true, paths: 'plugin', terrain: clientGround(source, assets.retained), water: shardfileWater(source.water) },
     species: source.rows.species.map((row) => row.kind), uses: ['spawns', 'quests', 'bosses', 'elites', 'swim', 'hover', 'explore', 'practice'],
     loot: { coins: source.rows.loot.length > 0 },
     creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },
