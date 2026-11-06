@@ -168,7 +168,7 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
     this.arrows = new Projectiles(ports, undefined, { ...kind, geometry: new THREE.BufferGeometryLoader().parse(geometry),
       material: new THREE.MeshBasicMaterial({ color: new THREE.Color(...colour), vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
         side: THREE.DoubleSide, toneMapped: false, fog: false }) });
-    this.arrows.mesh.renderOrder = renderOrder; this.arrows.mesh.receiveShadow = false;
+    this.arrows.mesh.renderOrder = renderOrder; this.arrows.mesh.receiveShadow = false; this.arrows.mesh.name = 'patrol-arrows';
     this.arrows.onPlayerHit = at => { this.hits.push({ damage: this.rows.damage, from: this.shooter }); ports.cues.cue(this.rows.cues.hurt, at, UP); };
     this.arrows.onImpact = (_surface, at) => { ports.cues.cue(this.rows.cues.impact, at, UP); };
     this.hit = { animal: { kind: '', position: new THREE.Vector3(), alive: false, applyDamage: () => false, damageFor: () => 0 }, point: new THREE.Vector3(), distance: 0, headshot: false };
@@ -244,6 +244,13 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
     return this.hits;
   }
   private seat(r: Rider<A>): THREE.Vector3 { return seat.set(...this.rows.seat).applyMatrix4(r.view.bone.matrixWorld); }
+  /** On the wire a server looses and lands the arrows: this draws the one it heard. Its only hits are a cue's. */
+  hearShot([x = 0, y = 0, z = 0, vx = 0, vy = 0, vz = 0]: readonly number[]): void {
+    this.arrows.launch(seat.set(x, y, z), aimed.set(vx, vy, vz), { damageScale: 1 });
+    this.ports.cues.cue(this.rows.cues.loose, seat, UP);
+  }
+  /** One frame of the arrows a server loosed. */
+  flyRows(dt: number): void { this.hits.length = 0; this.arrows.update(dt); }
   /** One arrow at the player: the `aim` signal's lead and spread from the rider's shoulders. */
   private shoot(r: Rider<A>): void {
     const from = this.seat(r); from.y += this.rows.lift.loose * r.a.scale;

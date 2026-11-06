@@ -20,6 +20,7 @@ import { canReach } from '@wildshard/engine/ai/reach';
 import { floorBelow, worldHit } from '@wildshard/engine/physics/query';
 import { pinBrain } from '@wildshard/engine/ai/pinning';
 import { variantMods } from '@wildshard/engine/entities/species/registry';
+import { sayFightView } from '@wildshard/engine/sim/shardRows';
 import { nearestJointHit, type JointPorts } from '../../shared/boss/jointTargets';
 import { PatrolLaw } from '../../shared/boss/patrolLaw';
 import { ReturnProgram } from '../../shared/population/returnProgram';
@@ -27,6 +28,7 @@ import { NativeCreaturePose, type NativeCreaturePoseRecipe } from '../../shared/
 import { numericCreaturePoseFromBook } from '../../shared/plugin/channelPrograms';
 import { poseRidingEnvelopes } from '../../shared/riding/presentation';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
+import { PATROL_SHOT } from '../../shared/shardfile/wirePrompts';
 import type { nativeRangedHit } from '../plugin/nativeItems';
 import type { EncounterIntake } from '../population/encounterIntake';
 import { DirectedLaw } from '../population/directedLaw';
@@ -222,6 +224,7 @@ export async function preparePatrol(product:Pick<ShardProduct,'json'>,files:Patr
           rider.view.jointPoint(rows.ride.figure.bone,rows.ride.seat,seat);seat.y+=rows.ride.lift.loose*body.scale;
           const out=law.aim(rows.ride.aim,seat);shooter=body;
           arrows.launch(seat,aim.set(out['dx']??0,out['dy']??0,out['dz']??0),{damageScale:1});shots++;
+          sayFightView(host,PATROL_SHOT,[seat.x,seat.y,seat.z,aim.x,aim.y,aim.z]);
         }
       }
       // PatrolEncounterView leaves Projectiles.wind and onRecover unbound.

@@ -10,6 +10,8 @@ export const ROAMING_HAZARD_EVENTS = ['drop', 'fall', 'land', 'burn', 'out', 'pl
 /** The word a server's spawn script says its cues under: a cue's id, then where it landed. */
 export const spawnCueWord = (script: string): string => `spawn.cue:${script}`;
 export const ELITE_TELL = { lane: 'elite.tell.lane', ring: 'elite.tell.ring', cue: 'elite.cue', hit: 'elite.hit' } as const;
+/** The arrow a patrol's rider looses: where it leaves, then its velocity. */
+export const PATROL_SHOT = 'patrol.shot';
 /** One slot of a thrown volley, as a script row. */
 export const volleyRow = (owner: string, slot: number): string => `volley.${owner}.${String(slot)}`;
 /** A socket lift's deck, by the call it takes. */

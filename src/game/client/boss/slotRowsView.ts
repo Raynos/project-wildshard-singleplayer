@@ -12,9 +12,9 @@ import type { EncounterSites } from './encounterView';
 
 const UP = new THREE.Vector3(0, 1, 0), point = new THREE.Vector3();
 /** One body the rows have out. */
-interface Out { lastHp: number; wedge: GroundTell | null; dead: boolean; struck: boolean }
+interface Out { lastHp: number; wedge: GroundTell | null; dead: boolean; struck: boolean; told: boolean }
 /** What a row view borrows. */
-export interface SlotRowsPorts { readonly cues: Pick<CueDirector, 'cue'>; readonly guest: Pick<ReturnProgram, 'project'>; readonly row: (name: string) => number | undefined; readonly cosmetic: () => number }
+export interface SlotRowsPorts { readonly cues: Pick<CueDirector, 'cue'>; readonly guest: Pick<ReturnProgram, 'project'>; readonly row: (name: string) => number | undefined; readonly cosmetic: () => number; readonly drew: (what: string) => void }
 
 export class SlotRowsView {
   private readonly awakeRows;
@@ -71,9 +71,11 @@ export class SlotRowsView {
       ports.cues.cue(row.cue, point.set(a.position.x, row.at === 'ground' ? heightAt(a.position.x, a.position.z) + row.lift : a.position.y + row.lift * sc, a.position.z), UP);
     }
     const p = a.attackPhase, tell = rows.tell, reach = tell.reach * sc, { wedge } = member;
-    if (p < 0) { wedge?.hide(); member.struck = false; return; }
-    if (p < tell.strike + tell.hold) wedge?.wedge(a.position.x, a.position.z, a.yaw, reach, Math.min(1, p / tell.wind), p < tell.strike ? tell.alpha[0] + tell.alpha[1] * (p / tell.wind) : tell.alpha[2]);
-    else wedge?.hide();
+    if (p < 0) { wedge?.hide(); member.struck = false; member.told = false; return; }
+    if (p < tell.strike + tell.hold) {
+      wedge?.wedge(a.position.x, a.position.z, a.yaw, reach, Math.min(1, p / tell.wind), p < tell.strike ? tell.alpha[0] + tell.alpha[1] * (p / tell.wind) : tell.alpha[2]);
+      if (wedge !== null && !member.told) { member.told = true; ports.drew('wedge'); }
+    } else wedge?.hide();
     if (p >= tell.strike && !member.struck) { member.struck = true; this.strike(a, reach); }
   }
   /** One frame's rows. `animals` are the bodies on this page. */
@@ -86,7 +88,7 @@ export class SlotRowsView {
     for (const body of animals) {
       if (body.kind !== this.kind) continue;
       let member = this.out.get(body);
-      if (member === undefined) { member = { lastHp: body.hp, wedge: this.free(), dead: !body.alive, struck: false }; this.out.set(body, member); }
+      if (member === undefined) { member = { lastHp: body.hp, wedge: this.free(), dead: !body.alive, struck: false, told: false }; this.out.set(body, member); }
       this.body(body, member, trail);
     }
   }

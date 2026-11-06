@@ -203,7 +203,7 @@ export class GroundTell {
         this.base[i * 3] = Math.sin(a) * rr; this.base[i * 3 + 2] = Math.cos(a) * rr;
       }
       this.mesh = new THREE.Mesh(g, wedgeStyle.material);
-      this.mesh.renderOrder = 9;
+      this.mesh.renderOrder = 9; this.mesh.name = 'tell-wedge';
     } else {
       this.mat = fxMaterial(FX.ring, color, 0);
       this.mat.uniforms.uP.value.x = kind === 'ring' ? 0.8 : 0.6;

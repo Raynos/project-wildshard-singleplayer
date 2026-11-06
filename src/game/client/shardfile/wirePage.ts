@@ -57,6 +57,8 @@ export class WirePage {
   readonly head: (body: number, to: Vector3) => boolean = (body, to) => this.heads(body, to);
   /** How many poses rows have set: what a proof reads. */
   posed = 0;
+  /** What this page drew of what it only hears, by name: what a proof reads. */
+  readonly drawn: Record<string, number> = {};
   /** The highest drift rows have laid here, in metres: what a proof reads. */
   sandPeak = 0;
   private sandTick = -1;
@@ -83,6 +85,8 @@ export class WirePage {
   private ownedAt = -1;
   private readonly said = new Map<string, number>();
   get on(): boolean { return workerClientOn(); }
+  /** Count one thing drawn. */
+  drew(what: string): void { this.drawn[what] = (this.drawn[what] ?? 0) + 1; }
 
   /** One of this player's lines as the server last said it: 0 for none. */
   line(name: string): number { return this.client?.owned.get(name) ?? 0; }

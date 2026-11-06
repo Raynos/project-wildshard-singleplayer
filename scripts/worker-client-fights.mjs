@@ -554,6 +554,16 @@ async function nightJourney(browser, phone, base, step) {
     const up = await bodyOf(page, 'balbal'), over = up === null ? null : up.y - await groundAt(page, up.x, up.z), r = await report(page);
     return { ok: up !== null && over > under, under, over, kind: up?.kind, rows: r.rows, retired: r.retired };
   });
+  await step('night: the wake\'s cue fired, and a balbal\'s tell wedge drew', async () => {
+    const wedgeUp = () => page.evaluate(() => window.__wildshard.world.game.scene.getObjectsByProperty('name', 'tell-wedge').some(mesh => mesh.visible));
+    const hunted = await bodyOf(page, 'balbal');
+    if (hunted === null) return { ok: false, why: 'no body to stand by' };
+    await place(page, hunted.x + 2, await groundAt(page, hunted.x + 2, hunted.z) + 1, hunted.z);
+    const up = await until(page, async () => (await wedgeUp()) === true ? true : null, 25, 100), r = await report(page);
+    await page.screenshot({ path: 'tmp/flip8/night-wedge.png' }).catch(() => undefined);
+    const wake = r.drawn['cue.balbal.wake'] ?? 0, wedge = r.drawn.wedge ?? 0;
+    return { ok: wake > 0 && wedge > 0 && up === true, wake, wedge, up, drawn: r.drawn };
+  });
   await page.screenshot({ path: 'tmp/flip8/night-balbal.png' }).catch(() => undefined);
   await step('night: a save out of the ground comes back as it stood', async () => {
     const before = await statues(), word = await awakeRow();
@@ -581,6 +591,10 @@ async function nightJourney(browser, phone, base, step) {
     const shown = reading ? true : toasts.some(line => line.includes('carving'));
     return { ok: r.flags.includes('clue:1') && shown, hits: r.hits - paid.hits, kills: r.kills - paid.kills, flags: r.flags.filter(flag => flag.startsWith('clue')), said: Object.entries(r.owned).filter(([line]) => line.startsWith('said.')), toasts, reading, retired: r.retired };
   });
+  await step('night: a blow chips it, and its fall breaks on the page', async () => {
+    const { drawn } = await report(page), chips = Object.entries(drawn).filter(([id]) => /^cue\.balbal\.(chip|crack)/u.test(id)), broken = drawn['cue.balbal.broken'] ?? 0;
+    return { ok: chips.length > 0 && broken > 0, chips, broken };
+  });
   await page.screenshot({ path: 'tmp/flip8/night-clue.png' }).catch(() => undefined);
   await step('night: ghost riders ride on rows, dressed', async () => {
     await place(page, BOWL[0], await groundAt(page, BOWL[0], BOWL[1]) + 1, BOWL[1]);
@@ -589,6 +603,14 @@ async function nightJourney(browser, phone, base, step) {
     await place(page, riders.x + 14, riders.y + 2, riders.z);
     const drawn = await until(page, () => page.evaluate(() => { const body = window.__wildshard.world.animals?.animals.find(row => row.kind === 'ghost-rider' && row.rowDriven); return body === undefined ? null : { material: body.mesh.material.name, scale: body.scale }; }), 12);
     return { ok: drawn !== null && drawn.material.startsWith('nalati-ghost'), drawn, retired: (await report(page)).retired };
+  });
+  await step('night: a rider looses, and its arrow flies on the page', async () => {
+    const arrows = () => page.evaluate(() => { const mesh = window.__wildshard.world.game.scene.getObjectByName('patrol-arrows'), matrices = mesh?.instanceMatrix.array ?? []; let shown = 0; for (let at = 0; at < matrices.length; at += 16) if (matrices[at] !== 0 || matrices[at + 1] !== 0 || matrices[at + 2] !== 0) shown++; return shown; });
+    const riders = await page.evaluate(() => window.__workerClientRows('ghost-rider'));
+    if (riders[0] !== undefined) await place(page, riders[0].x + 24, riders[0].y + 2, riders[0].z);
+    const seen = await until(page, async () => { const shown = await arrows(); return shown > 0 ? shown : null; }, 45, 100), r = await report(page);
+    await page.screenshot({ path: 'tmp/flip8/night-arrow.png' }).catch(() => undefined);
+    return { ok: seen !== null && (r.drawn.shot ?? 0) > 0 && (r.drawn['arrow frame'] ?? 0) > 0, shot: r.drawn.shot, frames: r.drawn['arrow frame'], seen, hp: r.hp };
   });
   await step('night: dawn sends the rest home, and their sites stand', async () => {
     await page.evaluate(() => { window.__workerClientTime('midday'); });
