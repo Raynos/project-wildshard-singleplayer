@@ -253,7 +253,7 @@ if (only.includes('sunscar')) {
     }, async page => {
       await page.evaluate(paid => {
         const { world } = window.__wildshard, lines = window.__said = [], view = window.__introView = [];
-        const toast = world.hud.toast.bind(world.hud); world.hud.toast = (...args) => { lines.push(args[0]); return toast(...args); };
+        const toast = world.hud.toast.bind(world.hud); world.hud.toast = (...args) => { lines.push(args[0]); toast(...args); };
         const look = () => {
           const row = window.__workerClientFights?.().find(entry => entry.id === 'sunscar.matriarch');
           if (row?.state === 'intro' && view.length < 200) { const { player } = world, at = row.at; if (at === null) view.push(null); else { const off = Math.atan2(player.position.x - at.x, player.position.z - at.z) - player.yaw; view.push(Number(Math.abs(Math.atan2(Math.sin(off), Math.cos(off))).toFixed(3))); } }
