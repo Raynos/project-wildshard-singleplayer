@@ -95,5 +95,6 @@ export function generateBootTables(): void {
   copyRapierWasm();
   copyBasisTranscoder();
   for (const [out, src] of Object.entries({ ...bootTableSources(), 'src/game/client/boot/audio.generated.ts': audioTableSource() })) if (!existsSync(out) || readFileSync(out, 'utf8') !== src) writeFileSync(out, src);
-  execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', 'scripts/bake-packs.mjs'], { stdio: 'inherit' });
+  // C3: legacy boot packs come from a shard's source; with none, a page reads its cooked parts and the committed table stands.
+  if (existsSync('src/shards')) execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', 'scripts/bake-packs.mjs'], { stdio: 'inherit' });
 }

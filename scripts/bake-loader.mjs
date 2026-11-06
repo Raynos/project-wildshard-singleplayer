@@ -4,7 +4,8 @@
 //   node --import ./scripts/bake-loader.mjs scripts/bake-chunk.mjs
 import '../src/sharddev/bake/format-hook.mjs';
 import { registerHooks } from 'node:module';
-import { existsSync, statSync, globSync, readFileSync } from 'node:fs';
+import { existsSync, statSync, globSync, readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // Vite URL imports name immutable assets, including JSON, rather than decode modules.
@@ -91,6 +92,13 @@ installAppIdentity(WILDSHARD_IDENTITY);
 // the shard list (AG4) once it is generated: a manifest's imports are node-safe, the game's registry reads it
 const list = await optional('../src/shards.generated.ts');
 if (Array.isArray(list.SHARDS)) installShards(list.SHARDS);
+else {
+  // C3: no shard source, so the built products say what shards exist, as they do for a page.
+  const { shardFromDiscovery } = await import(here('../src/game/client/shard/discovery.ts'));
+  const products = fileURLToPath(new URL('../out', import.meta.url));
+  const documents = existsSync(products) ? readdirSync(products).map(name => join(products, name, 'mounts/shardfiles', name, 'discovery.json')).filter(file => existsSync(file)) : [];
+  if (documents.length > 0) installShards(documents.map(file => shardFromDiscovery(JSON.parse(readFileSync(file, 'utf8')))).sort((a, b) => a.order - b.order));
+}
 installAssetTables({
   bytes: bytes.PUBLIC_BYTES ?? {}, versions: versions.ASSET_VERSIONS ?? {},
   music: audio.MUSIC_MANIFESTS ?? {}, sfx: audio.SFX_MANIFESTS ?? {}, packs: packs.PACKS ?? {},

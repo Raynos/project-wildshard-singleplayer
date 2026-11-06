@@ -294,7 +294,8 @@ export function genShards(root = resolve(import.meta.dirname, '..'), check = fal
   genShardInputs(root, check, initializeMissing, shard);
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
+// C3: the client builds from a catalogue and its packs, so a tree with no shard source has nothing to generate.
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href && existsSync(resolve(import.meta.dirname, '../src/shards'))) {
   try {
     const shard = process.argv.find((arg) => arg.startsWith('--shard='))?.slice(8);
     genShards(undefined, process.argv.includes('--check'), false, shard);
