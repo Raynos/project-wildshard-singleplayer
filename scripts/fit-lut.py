@@ -6,7 +6,7 @@ from its mockup loop's frames.
   python3 scripts/fit-lut.py art/driftwood-isle/round-4-remaster '<pre-LUT captures>/{n}.png' public/assets/lut/driftwood-isle.bin
 
 --shard defaults to driftwood-isle; out.bin to public/assets/lut/<shard>.bin (src/engine/client/world/lut.ts loads it for that shard;
-a shard with no file gets no LUT pass); the regions to scripts/palette-regions/<shard>.json; the predicted frames go to
+a shard with no file gets no LUT pass); the regions to src/shards/<shard>/art/palette-regions.json; the predicted frames go to
 /tmp unless a pred dir is given.
 
 The input captures must be pre-LUT reference frames from the fitting archive, with the shard's loop cameras (Driftwood:

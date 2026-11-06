@@ -237,7 +237,7 @@ In order; each item is one small commit that doesn't collide with the lanes live
    `public/assets/nine-dragon/lab/grapple/fei-zhua.glb` should keep shipping: only the dev lab page loads it. (XS)
 6. **Bring the Nalati recipe home.**
    - Copy the job rows of `~/projects/localai/bin/img2mesh/nalati-jobs.tsv` and the `blender_post.py` arguments into a
-     prop list, `scripts/img2mesh/props/nalati.json`, run by `build_props.py`.
+     prop list, `src/shards/nalati-grasslands/art/model-recipe.json`, run by `build_props.py`.
    - Vendor `blender_post.py` into `scripts/img2mesh/` if `driftwood_post.py` can't do its job.
    - Afterwards the game repo holds every recipe for what it ships; localai keeps the runners and the model installs. (S)
 7. **With M1 / M2 / M5 (the model waves):**
