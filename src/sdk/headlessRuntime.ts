@@ -32,6 +32,7 @@ import { MAX_TICK_SNAPSHOT_CHARS, simPlayerCommand, TickCommandSchema, type Head
 import type { TickWorkerAdapter } from './tickWorkerLoop';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { prepareProductRuntimePlan } from '@wildshard/game/shardfile/nativePlan';
+import { holdPageState, type RuntimeStateValue } from '@wildshard/game/shardfile/runtimeState';
 import type { NativeAssemblyPorts } from '@wildshard/game/shardfile/nativeAssemblyInput';
 
 /** The same admitted bytes and native physics implementation used by the ordinary headless worker. */
@@ -40,6 +41,8 @@ export interface HeadlessRuntimePreparation { shard: Shardfile; assets: Readonly
  * Existing native callers may instead supply or explicitly load their built product. */
 export type HeadlessRuntimeInput = Omit<HeadlessRuntimePreparation, 'product'> & { readonly product?: ShardProduct; readonly sections?: ReadonlyMap<string, unknown> };
 /** Current tick inputs and buffered effects; only a completed tick publishes them to the parent. */
+/** What a page's save held, for a world's first boot: its quest flags and its declared fields, up before its fights install. */
+export interface PageProgress { readonly flags: readonly string[]; readonly state: ReadonlyMap<string, RuntimeStateValue> }
 export interface HeadlessRuntimeInstallation {
   readonly combat?: NativeCombatFrame;
   /** A net room's world, which also runs the fights a tape leaves out. */
@@ -211,7 +214,7 @@ export async function prepareNativeRuntime(provided: HeadlessRuntimeInput, room?
 }
 /** Install the selected plan into one fresh or strictly restored native host.
  * A failed install disposes its world; installation may emit no gameplay effects. */
-export async function createTrustedHeadlessResident(preparation: HeadlessRuntimeInput, snapshot?: string | Readonly<SimSnapshot>, world?: { readonly room?: boolean; readonly near?: NearColliders }): Promise<TrustedHeadlessResident> {
+export async function createTrustedHeadlessResident(preparation: HeadlessRuntimeInput, snapshot?: string | Readonly<SimSnapshot>, world?: { readonly room?: boolean; readonly near?: NearColliders; readonly page?: PageProgress }): Promise<TrustedHeadlessResident> {
   // The roster rolls its herds while this installs, so a room opened afterwards is too late: a save from a native-Math boot
   // would hold recipes its restore on the portable table can't reproduce.
   installPortableMath();
@@ -225,7 +228,7 @@ export async function createTrustedHeadlessResident(preparation: HeadlessRuntime
   let installing: SimHost | undefined;
   let host: SimHost;
   try {
-    if (saved === undefined) { installing = createSimHost(plan.level, ports); if (world?.near !== undefined) { installing.physics.near = world.near; world.near.attach(installing.physics); } plan.install(installing, context); host = installing; }
+    if (saved === undefined) { installing = createSimHost(plan.level, ports); if (world?.near !== undefined) { installing.physics.near = world.near; world.near.attach(installing.physics); } if (world?.page !== undefined) { for (const flag of world.page.flags) installing.flags.set(flag); holdPageState(installing, world.page.state); } plan.install(installing, context); host = installing; }
     else host = restoreSimHost(plan.level, ports, saved, fresh => {
       installing = fresh; if (ports.heightAt !== undefined) fresh.setHeightQuery(ports.heightAt); plan.install(fresh, context);
     });

@@ -297,6 +297,7 @@
     "./shardfile/worldScenes": "./client/shardfile/worldScenes.ts",
     "./shardfile/lentLooks": "./client/shardfile/lentLooks.ts",
     "./shardfile/buildingDoor": "./shared/shardfile/buildingDoor.ts",
+    "./shardfile/runtimeState": "./shared/shardfile/runtimeState.ts",
     "./shardfile/livingBuildings": "./client/shardfile/livingBuildings.ts",
     "./shardfile/buildingCloud": "./client/shardfile/buildingCloud.ts",
     "./animation/limbRig": "./shared/animation/limbRig.ts",

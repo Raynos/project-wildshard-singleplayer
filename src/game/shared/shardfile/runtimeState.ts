@@ -9,6 +9,19 @@ const definition = { key: 'platform.runtime-state', scope: 'shard' as const, ver
   schema: v.nullable(schema), initial: (): v.InferOutput<typeof schema> | null => null };
 /** The same bounded scalar values as declared simulation state; JSON continuations use a declared string field. */
 export type RuntimeStateValue = number | boolean | string;
+
+/** A world's first boot: the fields a page's save held, by name. A server's fights keep their records in the world, so they start from these. */
+export function pageRuntimeState(store: SaveStore, instance: string): ReadonlyMap<string, RuntimeStateValue> {
+  return new Map((store.define(definition).read(instance)?.state.shared ?? []).map(row => [row.name, row.value]));
+}
+const heldPageState = new WeakMap<object, ReadonlyMap<string, RuntimeStateValue>>();
+/** Lend a world what its page saved, before its fights install. */
+export function holdPageState(host: object, state: ReadonlyMap<string, RuntimeStateValue>): void { heldPageState.set(host, state); }
+/** A JSON field a page saved under this name, or with this ending, or null: a save a world can't read starts it fresh, as a page's first boot does. */
+export function pageStateOf(host: object, name: string): unknown {
+  const held = heldPageState.get(host), value = held?.get(name) ?? [...held ?? []].find(([key]) => key.endsWith(name))?.[1];
+  try { return typeof value === 'string' ? JSON.parse(value) : null; } catch { return null; }
+}
 /** A declared host field, scoped to its runtime owner and durable under its stable placement identity. */
 export interface RuntimeState {
   readonly read: () => RuntimeStateValue;

@@ -55,6 +55,7 @@ import { STORY_ACT } from '@wildshard/engine/net/acts';
 import { installServerChapters } from '@wildshard/game/quest/serverChapters';
 import { installServerDoors } from '@wildshard/game/quest/serverDoors';
 import { pageOpenDoors } from '@wildshard/game/shardfile/buildingDoor';
+import { pageRuntimeState } from '@wildshard/game/shardfile/runtimeState';
 import { mountedPlayerOf } from '@wildshard/game/riding/native';
 import { pageSavedFlags } from '@wildshard/engine/world/interact/flags';
 
@@ -296,13 +297,15 @@ export class StandaloneGrid {
       // J68: a native assembly keeps its ground whole and its solids as data. A saved world holds none of them, so a throwaway fresh one lists them.
       const near = input.product !== undefined && hasNativeAssembly(input.product) ? new NearColliders() : undefined, around = near === undefined ? { room: true } : { room: true, near };
       if (near !== undefined && snapshot !== undefined) (await createTrustedHeadlessResident(input, undefined, around)).dispose();
-      const resident = await createTrustedHeadlessResident(input, snapshot, around), { host } = resident;
+      // A world with no save of its own takes the page's: the flags and records its fights read as they install.
+      const page = snapshot === undefined ? { flags: [...new Set([input.shard.identity.slug, cell.instance])].flatMap(level => pageSavedFlags(level)), state: pageRuntimeState(options.saves, cell.instance) } : undefined;
+      const resident = await createTrustedHeadlessResident(input, snapshot, page === undefined ? around : { ...around, page }), { host } = resident;
       bindDiscovery(host, input.product === undefined ? [] : await serverPlaces(input.product)); await installServerChapters(host, input.product, input.shard, resident.fact); await installServerDoors(host, input.product, snapshot === undefined ? pageOpenDoors(options.saves, placed) : undefined);
       if (snapshot === undefined && options.lone === true) addLoneWalls(host);
       host.respawn.served = true; actRoutes(host).introLocks = true;
       const owned = ownedOf(host, input);
       return { host, owned, fall: fallFloorOf(input, host, options.lone === true), dispose: () => { resident.dispose(); }, fact, effects: () => resident.effects,
-        adopt: () => { regionalRuntimeCheckpoint(options.saves, placed, input.shard.identity.revision).restore({ animals: [...host.entities.values()] }); for (const level of new Set([input.shard.identity.slug, cell.instance])) for (const flag of pageSavedFlags(level)) host.flags.set(flag); return true; }, step: inputs => {
+        adopt: () => { regionalRuntimeCheckpoint(options.saves, placed, input.shard.identity.revision).restore({ animals: [...host.entities.values()] }); return true; }, step: inputs => {
         const player = sessionPlayer(host);
         near?.update(player.position.x, player.position.z);
         stepResident(resident, player.id, inputs);

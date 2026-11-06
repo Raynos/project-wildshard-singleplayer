@@ -1,3 +1,4 @@
+import { pageStateOf } from '../../shared/shardfile/runtimeState';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { StrikeRunner } from '@wildshard/engine/ai/strikes';
 import { NativeEliteRoster, nativeEliteBindings, type NativeEliteBindings } from '@wildshard/engine/ai/eliteRoster';
@@ -110,7 +111,7 @@ export function nativeEliteCore(host: SimHost, conditions: NativeEliteConditions
   const core = new EliteCore<EliteCoreScript<AnimalSim>>({ players: host.players, condition: (rule: EliteCoreRule) => {
     const code = need(conditions.rules[rule], 'Missing elite rule');
     return program.project('eliteRule', { rule: code.rule, phase: code.phase ? conditions.phases[day.dayPhase] ?? 0 : 0, storm: code.storm ? (env.storm ? conditions.storm.storm : conditions.storm.calm) : 0 })['accept'] === 1;
-  } }, drops.hooks, host.level.id, memoryElitePersistence());
+  } }, drops.hooks, host.level.id, memoryElitePersistence(host.level.id, pageStateOf(host, '.elites')));
   drops.bind(core);
   return core;
 }

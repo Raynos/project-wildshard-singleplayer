@@ -3,7 +3,7 @@ import {SaveStore,type SaveStorage} from '@wildshard/engine/saves/store';
 import type {SimHost} from '@wildshard/engine/sim';
 import {AdventurePersistenceSchema} from '@wildshard/format/namedJsonContracts';
 import type {ShardProduct} from '../../shared/shardfile/shardProduct';
-import {installRuntimeState} from '../../shared/shardfile/runtimeState';
+import {installRuntimeState,pageStateOf} from '../../shared/shardfile/runtimeState';
 import type {ObservedRecords} from '../../shared/quest/questObservation';
 import {featOutcome,witnessSavedFeats} from '../../shared/quest/featCounters';
 import {nativeQuestInputs,type NativeQuestInputs} from './nativeInputs';
@@ -78,6 +78,10 @@ export async function prepareChapterRecords(product:Pick<ShardProduct,'json'|'sh
       (facts??nativeQuestInputs(host).ledger).fact(fact,key);
     }};
     witnessSavedFeats(counterRows,counterPorts);
+    // A world's first boot takes what a page's save held, so a beaten boss and a running count stand as they did. Their facts are the page's, and filed.
+    const pageBosses=v.safeParse(bosses,pageStateOf(host,rows.bosses.key)),pageCounts=v.safeParse(counts,pageStateOf(host,counterRows.key));
+    if(pageBosses.success)write(pageBosses.output);
+    if(pageCounts.success)writeCounts(pageCounts.output);
     const owner:ChapterRecords={bosses:{read,write},elites:{read:()=>{
       live();return v.parse(elites,eliteOwner.snapshot()).records;
     }},outcomes:{kill:(kind,variant)=>{featOutcome(counterRows,counterPorts,'kill',kind,variant);},

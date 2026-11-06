@@ -127,9 +127,11 @@ export interface EliteCoreHooks<S extends EliteCoreScript> {
   retired?: (e: EliteCoreEntry<S>) => void;
 }
 
+const PageEliteRecords = v.record(v.string(), v.object({ timer: v.number(), discovered: v.boolean(), skinTaken: v.boolean(), kills: v.number(), retired: v.boolean() }));
 /** A renderer-free host's persistence: the records live in memory (its continuation carries them). */
-export function memoryElitePersistence(): EliteCorePersistence & { records: Record<string, Record<string, EliteCoreRecord>> } {
-  const records: Record<string, Record<string, EliteCoreRecord>> = {};
+export function memoryElitePersistence(level = '', page?: unknown): EliteCorePersistence & { records: Record<string, Record<string, EliteCoreRecord>> } {
+  const records: Record<string, Record<string, EliteCoreRecord>> = {}, held = v.safeParse(PageEliteRecords, page);
+  if (held.success) records[level] = held.output; // a world's first boot: what a page's save held, timers and all
   return { records, read: (slug) => records[slug] ?? {}, write: (value, slug) => { records[slug] = value; } };
 }
 

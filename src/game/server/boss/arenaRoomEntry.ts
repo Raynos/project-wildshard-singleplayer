@@ -1,6 +1,7 @@
 /** A room fight from its product rows (P1-E3.4): the page's `combat/room-entry.json` on a SimHost. `installArenaRoom` is the
  *  fight; this lends it the shard's bodies, door collider and reward. Only a net room installs it: a tape's or a page's
  *  host has no such fight, so a one-player save keeps its adapters. */
+import { pageBoss } from '../../shared/plugin/bossRecord';
 import * as v from 'valibot';
 import type { BossSaved } from '@wildshard/engine/ai/BossBrain';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
@@ -51,7 +52,10 @@ export function installArenaEntry(host: SimHost, input: unknown, row: ArenaEntry
     const recipe: unknown = JSON.parse(saved.state);
     host.spawn(recipe as SimSpawn);
   }
-  const flag = (name: string): string => `boss.${row.id}.${name}`, saved: BossSaved = { defeated: host.flags.has(flag('defeated')), rewardTaken: host.flags.has(flag('paid')), kills: 0 };
+  const flag = (name: string): string => `boss.${row.id}.${name}`, paged = pageBoss(host, String(data.encounter.definition['id']));
+  if (paged?.defeated === true) host.flags.set(flag('defeated'));
+  if (paged?.rewardTaken === true) host.flags.set(flag('paid'));
+  const saved: BossSaved = { defeated: host.flags.has(flag('defeated')), rewardTaken: host.flags.has(flag('paid')), kills: paged?.kills ?? 0 };
   const body = (id: string): ArenaRoomBody | null => { const actor = host.entities.get(id); return actor === undefined ? null : Object.assign(actor, { hidden: false }); };
   const spawn = (id: string, kind: string, variant: string, x: number, z: number, yaw: number): ArenaRoomBody => {
     const held = body(id); if (held !== null) { held.place(x, z, yaw); return held; }
