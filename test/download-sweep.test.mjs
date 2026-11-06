@@ -52,6 +52,11 @@ test('DL18 counts warm parts and reports code bytes beside them (J139)', () => {
   expect(state({ ...nothing, flows }, 'DL18')).toBe('FAIL');
 });
 
+test('a digest this Mac could not read is not a reading', () => {
+  expect(state({ ...nothing, digest: 'telemetry: no key\n' }, 'DL20')).toBe('NOT READ');
+  expect(state({ ...nothing, digest: 'telemetry digest=2026-11-04: {}\n' }, 'DL20')).toBe('PASS');
+});
+
 test('a phone-link reading passes on its own bar', () => {
   expect(state({ ...nothing, tasks: { longTasks: Array.from({ length: 21 }) } }, 'DL11')).toBe('FAIL');
   expect(state({ ...nothing, tasks: { longTasks: [] } }, 'DL11')).toBe('PASS');

@@ -77,7 +77,8 @@ export function rows({ gates, flows, titled, untitled, tasks, programs, digest }
   const refetched = warmParts.filter(([, count]) => count > 0).map(([name, count]) => `${name} ${count}`);
   out.push(row('DL18', warmParts.length === 0 ? null : refetched.length === 0, `warm parts ${refetched.length === 0 ? `0 on ${warmParts.length} runs` : list(refetched)} · code ${(warmCode / 1e6).toFixed(2)} MB beside them (J139); a deploy's cost is the upgrade run's`));
 
-  out.push(row('DL20', digest === null ? null : /digest=/u.test(digest), digest === null ? 'no digest' : 'digest in digest.log; the deletion is C2\'s (J136)'));
+  const noDigest = digest === null || /telemetry: no key|: unavailable/u.test(digest);
+  out.push(row('DL20', noDigest ? null : true, noDigest ? 'no digest: telemetry-brief needs ~/.config/wildshard/telemetry.key' : 'digest in digest.log; the deletion is C2\'s (J136)'));
 
   const still = runs.flatMap(([name, { timeline }]) => ['cold', 'warm'].flatMap(mode => (timeline[mode]?.cardStill_ge1s ?? []).map(gap => `${name} ${mode} ${gap.step ?? ''} ${gap.s} s`)));
   const unnamed = runs.flatMap(([name, { timeline }]) => ['cold', 'warm'].flatMap(mode => (timeline[mode]?.setupStalls_ge3s ?? []).filter(stall => !stall.named).map(stall => `${name} ${mode} ${stall.step}`)));
