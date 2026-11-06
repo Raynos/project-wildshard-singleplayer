@@ -43,6 +43,8 @@ export interface ProjectileLawPorts<V extends object, S> {
   readonly playerHit: (point: Vector3, direction: Vector3) => void;
   readonly targetHit: (hit: TargetHit) => void;
   readonly hit: (kind: string, headshot: boolean, killed: boolean, point: Vector3, damage: number) => void;
+  /** Who lands a shot's damage, and whether it killed. Absent, it lands on the target with no owner. */
+  readonly strike?: (flight: V, animal: TargetAnimal, damage: number, point: Vector3, direction: Vector3) => boolean;
 }
 
 /** the ball an arrow sweeps through the world (the broadhead) */
@@ -107,7 +109,7 @@ export class ProjectileLaw<V extends object, S> {
         if (flight.shot !== 0) { this.stop(flight, hit.point, direction, 'flesh', animal.alive ? animal : null, true); return; }
         ports.targetHit(hit);
         const damage = Math.max(1, Math.round(animal.damageFor(hit.headshot, hit.point.distanceTo(flight.origin)) * flight.scale * (flight.hitScale?.(hit) ?? 1)));
-        const killed = animal.applyDamage(damage, hit.point, direction);
+        const killed = ports.strike?.(flight, animal, damage, hit.point, direction) ?? animal.applyDamage(damage, hit.point, direction);
         ports.hit(animal.kind, hit.headshot, killed, hit.point, damage);
         this.stop(flight, hit.point, direction, 'flesh', animal.alive ? animal : null, true);
         if (!animal.alive) this.stopped.dropLast();
