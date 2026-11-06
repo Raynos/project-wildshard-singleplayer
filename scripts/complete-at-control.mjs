@@ -258,9 +258,10 @@ try {
   });
   context.on('requestfailed', req => { const row = open.get(req); if (row) { row.end = Date.now(); row.failed = req.failure()?.errorText ?? 'failed'; } });
   // DL25: the part members of every packs manifest this visit reads
-  const members = new Set();
+  const members = new Set(), listing = { at: null };
   context.on('response', response => {
     if (!/\/assets\/spawn\/[^/]+\.json(?:\?|$)/u.test(response.url())) return;
+    listing.at ??= Date.now();
     void (async () => { for (const member of spawnMembers(await response.json())) members.add(member); })().catch(() => undefined);
   });
   const page = await context.newPage();
@@ -367,7 +368,7 @@ try {
     const c = visit.control, at = visit.at, row = r => ({ url: r.url, by: r.by, msAfterControl: r.start - c });
     // the worker's offline precache is listed apart (splitRequests: root's ruling, G872 (a)); any page request stays red
     const mine = requests.filter(r => r.start >= visit.start && r.start < until), { level, precache, server } = splitRequests(mine, isLevelContent);
-    const rereads = spawnRereads(mine, members, mine.some(r => r.url.includes('/assets/spawn/parts/') && r.failed !== null));
+    const rereads = spawnRereads(mine, members, listing.at, mine.some(r => r.url.includes('/assets/spawn/parts/') && r.failed !== null));
     if (rereads.files > 0) flag(`${rereads.files} files the parts already delivered moved over the network again, ${(rereads.bytes / 1e6).toFixed(2)} MB (first: ${rereads.first.join(', ')})`);
     const pending = level.filter(r => r.start < c && (r.end === null || r.end > c));
     // --trace with --dist: a shared fetch only neighbour work asked for is the neighbour's (root's ruling, G872)

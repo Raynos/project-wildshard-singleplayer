@@ -67,15 +67,15 @@ test('a worker fetch the page never requests in the visit is precache; any page 
 });
 
 test('the server worker\'s code and server class are listed apart; anything else it fetches stays level content', () => {
-  const level = url => /\/(?:shardfiles|b)\//u.test(url);
+  const level = url => /\/(?:shardfiles|server-class|b)\//u.test(url);
   const rows = [
-    { url: 'https://x.test/shardfiles/server-class/nine/server/a.bin', by: 'page', start: 1, end: 2 },
+    { url: 'https://x.test/server-class/nine/server/a.bin', by: 'page', start: 1, end: 2 },
     { url: 'https://x.test/b/abc/standalone/serverWorker-d1.js', by: 'page', start: 1, end: 2 },
     { url: 'https://x.test/shardfiles/nine/blobs/bin/a.bin', by: 'page', start: 3, end: 4 },
     { url: 'https://x.test/b/abc/assets/main-d4.js', by: 'page', start: 3, end: 4 },
   ];
   const { level: levelRows, server } = splitRequests(rows, level);
-  expect(server.map(entry => new URL(entry.url).pathname)).toEqual(['/shardfiles/server-class/nine/server/a.bin', '/b/abc/standalone/serverWorker-d1.js']);
+  expect(server.map(entry => new URL(entry.url).pathname)).toEqual(['/server-class/nine/server/a.bin', '/b/abc/standalone/serverWorker-d1.js']);
   expect(levelRows.map(entry => new URL(entry.url).pathname)).toEqual(['/shardfiles/nine/blobs/bin/a.bin', '/b/abc/assets/main-d4.js']);
 });
 
@@ -84,12 +84,14 @@ test('DL25: a part\'s member moved over the network again is counted, unless its
   const members = spawnMembers(manifest);
   expect([...members]).toEqual(['/shardfiles/nine/a.bin', '/assets/physics/rapier.wasm']);
   const rows = [
-    { url: 'https://x.test/assets/physics/rapier.wasm', bytes: 836_316 },
-    { url: 'https://x.test/shardfiles/nine/a.bin?v=1', bytes: 0 },
-    { url: 'https://x.test/shardfiles/nine/shard.json', bytes: 9 },
+    { url: 'https://x.test/assets/physics/rapier.wasm', bytes: 836_316, start: 20 },
+    { url: 'https://x.test/shardfiles/nine/a.bin?v=1', bytes: 0, start: 20 },
+    { url: 'https://x.test/shardfiles/nine/a.bin', bytes: 7, start: 5 }, // the title's, before the manifest
+    { url: 'https://x.test/shardfiles/nine/shard.json', bytes: 9, start: 20 },
   ];
-  expect(spawnRereads(rows, members)).toEqual({ files: 1, bytes: 836_316, first: ['/assets/physics/rapier.wasm'] });
-  expect(spawnRereads(rows, members, true).files).toBe(0);
+  expect(spawnRereads(rows, members, 10)).toEqual({ files: 1, bytes: 836_316, first: ['/assets/physics/rapier.wasm'] });
+  expect(spawnRereads(rows, members, 10, true).files).toBe(0);
+  expect(spawnRereads(rows, members, null).files).toBe(0);
   expect(spawnMembers({ files: [] }).size).toBe(0);
 });
 

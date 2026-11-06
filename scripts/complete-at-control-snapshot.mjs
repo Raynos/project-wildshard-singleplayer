@@ -122,7 +122,7 @@ export function lapPops(at, lap, homeRegion) {
 /** DL17, after the flip: what only the server worker reads, and so no part of what a page must hold at control: its code and
  *  the server class of a product (`serverProduct.ts`, J91). Listed apart, as the precache is. Any other file a worker
  *  fetches is a file the page could have lent it, and stays level content: `spawnRereads` counts those. */
-export const isServerRead = path => /^\/(?:shardfiles\/server-class|b\/[^/]+\/standalone)\//u.test(path);
+export const isServerRead = path => /^\/(?:server-class|b\/[^/]+\/standalone)\//u.test(path);
 
 /** DL17's request rule (root's ruling, G872 (a)): of one visit's requests (`{ url, by: 'page' | 'service-worker', start,
  *  end }`, end null while open), the level's are every level-content URL (`isLevelContent`) except the worker's offline
@@ -145,11 +145,12 @@ export function spawnMembers(manifest) {
   for (const part of manifest?.parts ?? []) for (const [at] of part.members) { const file = manifest.files[at]; if (file !== undefined) paths.add(new URL(file.url, 'https://x.test').pathname); }
   return paths;
 }
-/** DL25: requests that moved a part's member over the network again, whoever made them: the page already has those bytes.
- *  A worker's answer moved none. A member its failed part handed back to the loose lanes is a real fetch: `failed` lists parts. */
-export function spawnRereads(rows, members, failed = false) {
-  if (failed) return { files: 0, bytes: 0, first: [] };
-  const moved = rows.filter(row => members.has(new URL(row.url).pathname) && (row.bytes ?? 1) > 0);
+/** DL25: requests that moved a part's member over the network again once its manifest had said so, whoever made them: the page
+ *  has those bytes. What the title read before the tap came first, so the part is the second copy, not the read. A service
+ *  worker's answer moved none. A failed part hands its members to the loose lanes, which is a real fetch: `failed` says so. */
+export function spawnRereads(rows, members, listedAt, failed = false) {
+  if (failed || listedAt === null) return { files: 0, bytes: 0, first: [] };
+  const moved = rows.filter(row => row.start >= listedAt && members.has(new URL(row.url).pathname) && (row.bytes ?? 1) > 0);
   return { files: moved.length, bytes: moved.reduce((sum, row) => sum + (row.bytes ?? 0), 0), first: moved.slice(0, 3).map(row => new URL(row.url).pathname) };
 }
 

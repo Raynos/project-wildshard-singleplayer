@@ -38,8 +38,8 @@ const list = (values, count = 3) => values.slice(0, count).join('; ') + (values.
 const requestsOf = gate => gate?.requests ?? gate?.visits?.cold ?? null;
 
 /** The rows, from `readSweep`'s reading. */
-export function rows({ gates, flows, titled, untitled, tasks, programs, digest }) {
-  const out = [], all = Object.entries(gates), seven = all.filter(([name]) => !name.endsWith('-reentry')), runs = Object.entries(flows).filter(([name]) => name.includes('/packs'));
+export function rows({ gates, flows, titled, untitled, tasks, programs, digest }, about = null) {
+  const out = [], row_ = about?.workerRow === 1, all = Object.entries(gates), seven = all.filter(([name]) => !name.endsWith('-reentry')), runs = Object.entries(flows).filter(([name]) => name.includes('/packs'));
   const judged = gate => gate !== null && gate.pass !== null && gate.pass !== undefined;
 
   const code = all.flatMap(([name, gate]) => (requestsOf(gate)?.precacheBeforeControl ?? []).filter(path => path.startsWith('/b/')).map(path => `${name} ${path}`));
@@ -68,8 +68,10 @@ export function rows({ gates, flows, titled, untitled, tasks, programs, digest }
   out.push(row('DL11', longTasks === null ? null : longTasks <= 20, longTasks === null ? 'no run' : `${longTasks} long tasks on Nine cold (bar <= 20, was 86)`));
 
   const red = seven.filter(([, gate]) => gate?.pass !== true).map(([name, gate]) => `${name}: ${gate?.pass === false ? gate.violations[0]?.slice(0, 110) : 'no reading'}`);
-  out.push(row('DL15', seven.length === 0 ? null : red.length === 0 && seven.length === 7, seven.length === 7 && red.length === 0 ? 'seven flows green on q11 parts' : `${seven.length} of 7 flows, red: ${list(red)}`));
-  out.push(row('DL17', seven.length === 0 ? null : red.length === 0 && seven.length === 7 && seven.every(([, gate]) => judged(gate)),
+  // J130's row starts the server after control, so its reads land after it by construction: DL15 and DL17 read on the flip
+  if (row_) out.push(row('DL15', null, 'not on the row: the flip starts the server before control'), row('DL17', null, `${red.length} flows red, read on the flip`));
+  else out.push(row('DL15', seven.length === 0 ? null : red.length === 0 && seven.length === 7, seven.length === 7 && red.length === 0 ? 'seven flows green on q11 parts' : `${seven.length} of 7 flows, red: ${list(red)}`));
+  if (!row_) out.push(row('DL17', seven.length === 0 ? null : red.length === 0 && seven.length === 7 && seven.every(([, gate]) => judged(gate)),
     `server reads listed apart: ${seven.reduce((sum, [, gate]) => sum + (requestsOf(gate)?.serverReads?.beforeControl ?? 0) + (requestsOf(gate)?.serverReads?.afterControl ?? 0), 0)} requests`));
 
   const warmParts = runs.flatMap(([name, { warmPerf }]) => (warmPerf === null ? [] : [[name, warmPerf.res.filter(file => file.n.includes('/assets/spawn/parts/') && file.b > 0).length]]));
@@ -99,7 +101,7 @@ export function rows({ gates, flows, titled, untitled, tasks, programs, digest }
 if (import.meta.url === `file://${process.argv[1]}`) {
   const [out] = process.argv.slice(2);
   if (!out) { console.error('usage: sweep-report.mjs <out>'); process.exit(2); }
-  const result = rows(readSweep(out)), about = json(join(out, 'sweep.json'));
+  const about = json(join(out, 'sweep.json')), result = rows(readSweep(out), about);
   writeFileSync(join(out, 'report.json'), `${JSON.stringify({ ...about, rows: result }, null, 1)}\n`);
   console.log(`DOWNLOAD sweep: ${about?.build ?? out}${about?.workerRow === 1 ? ' (J130 row)' : ''}`);
   for (const line of result) console.log(`${line.id.padEnd(5)} ${line.state.padEnd(8)} ${line.text}`);
