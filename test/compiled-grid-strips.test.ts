@@ -304,33 +304,33 @@ test('a continued outer read still verifies every body byte and releases a refus
   child.dispose(); scope.dispose(); expect(allocator.entries()).toEqual([]);
 });
 
-test('the plain app step ships exact assets only inside the existing I12 ceiling', async () => {
+test('the plain app step ships exact assets only inside the shard\'s room', async () => {
   const f = await fixture(), root = mkdtempSync(resolve('tmp/grid-strip-assets-'));
   try {
     const source = '{"plans":[],"edges":[]}', asset = gridSeamAsset(source);
     mkdirSync(join(root, 'out/.app'), { recursive: true }); writeFileSync(join(root, 'out/.app/grid-seams.json'), source);
-    const report = writeGridStripPages(root, asset.address.sha256, [f.page], [{ name: 'fixture', bytes: 100, ceiling: CONTENT_CAPS.playing }]);
+    const report = writeGridStripPages(root, asset.address.sha256, [f.page], { fixture: CONTENT_CAPS.playing });
     expect(report.rows[0]?.included).toBe(true); expect(report.rows[0]?.added).toBeGreaterThan(0);
     const built = readGridSeams(root); expect(built.address.geometry?.homes).toEqual(['probe']); expect(built.source).toBe(source);
     writeGridSeams(join(root, 'dist'), root);
     for (const file of built.files ?? []) expect(readFileSync(join(root, 'dist', file.url.slice(1))).length).toBe(file.bytes);
-    const refused = writeGridStripPages(root, asset.address.sha256, [f.page], [{ name: 'fixture', bytes: 100, ceiling: 100 }]);
+    const refused = writeGridStripPages(root, asset.address.sha256, [f.page], { fixture: 0 });
     expect(refused.geometry).toBeUndefined(); expect(refused.files).toEqual([]); expect(refused.rows[0]?.added).toBe(0);
     expect(readGridSeams(root).address.geometry).toBeUndefined();
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
-test('initial and outer bodies share one I12 ceiling, with initial readiness first', async () => {
+test('initial and outer bodies share one room, with initial readiness first', async () => {
   const f = await fixture(), outer = encodeGridStripPage(f.source, 'probe', 'fixture', f.original.strips, 'outer'), root = mkdtempSync(resolve('tmp/grid-strip-budget-'));
   try {
-    const all = [f.page, outer], product = { name: 'fixture', bytes: 100, ceiling: CONTENT_CAPS.playing };
-    const complete = writeGridStripPages(root, 'a'.repeat(64), all, [product]), row = complete.rows[0];
+    const all = [f.page, outer];
+    const complete = writeGridStripPages(root, 'a'.repeat(64), all, { fixture: CONTENT_CAPS.playing }), row = complete.rows[0];
     if (row === undefined) throw new Error('Missing combined page');
     expect(complete.rows).toHaveLength(1); expect(row.included).toBe(true); expect(row.outer).toBe(true);
-    const ceiling = product.bytes + row.added - 1;
-    const bounded = writeGridStripPages(root, 'a'.repeat(64), all, [{ ...product, ceiling }]);
+    const room = row.added - 1;
+    const bounded = writeGridStripPages(root, 'a'.repeat(64), all, { fixture: room });
     expect(bounded.rows[0]).toMatchObject({ included: true, outer: false });
-    expect(product.bytes + (bounded.rows[0]?.added ?? Infinity)).toBeLessThanOrEqual(ceiling);
+    expect(bounded.rows[0]?.added ?? Infinity).toBeLessThanOrEqual(room);
     expect(bounded.geometry?.homes).toEqual(['probe']);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
