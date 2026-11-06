@@ -29,6 +29,8 @@
 //      or outer-road work (NEIGHBOUR_WORK's spans of the grid session) is the neighbour's (root's ruling, G872, 11-04);
 //      no stack, or one from anywhere else, stays red. WebKit with the worker on is no reading:
 //      Playwright WebKit reports none of the worker's fetches.
+//      The server worker's own code and server class are listed apart (`isServerRead`, DL17 after the flip), and a part's
+//      member fetched over the network again, by anyone, is red (DL25: report.spawnRereads, its bytes must read 0).
 //   2. Completeness at control: the grid's rings (far / l1 / l0 in flight or queued, reach cells showing a far proxy,
 //      tiles or near placeholders), the shardfile residency, the spawn-view fence (`wildshard.spawn-view.done` must exist
 //      and wait on nothing), every texture of a shown mesh within reach decoded.
@@ -47,7 +49,7 @@ import { createRequire } from 'node:module';
 import { chromium, webkit, devices } from 'playwright';
 import { developerSettings, saveFixture, harnessPins, hideDeveloperOverlays, levelDownloadFixtures } from './debug-settings.mjs';
 import { FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
-import { snapshot, lapLegs, lapPops, splitRequests, neighbourSpans, splitByInitiator, NEIGHBOUR_WORK, firstSeconds, profileTop, heapTop } from './complete-at-control-snapshot.mjs';
+import { snapshot, lapLegs, lapPops, splitRequests, spawnMembers, spawnRereads, neighbourSpans, splitByInitiator, NEIGHBOUR_WORK, firstSeconds, profileTop, heapTop } from './complete-at-control-snapshot.mjs';
 import { execFileSync } from 'node:child_process';
 import { startSharedLink } from './phone-loading/link.ts';
 import { profiles } from './phone-loading/model.ts';
@@ -255,6 +257,12 @@ try {
     void (async () => { const [size, response] = await Promise.all([req.sizes(), req.response()]); row.bytes = response?.fromServiceWorker() === true ? 0 : size.responseBodySize; })().catch(() => undefined);
   });
   context.on('requestfailed', req => { const row = open.get(req); if (row) { row.end = Date.now(); row.failed = req.failure()?.errorText ?? 'failed'; } });
+  // DL25: the part members of every packs manifest this visit reads
+  const members = new Set();
+  context.on('response', response => {
+    if (!/\/assets\/spawn\/[^/]+\.json(?:\?|$)/u.test(response.url())) return;
+    void (async () => { for (const member of spawnMembers(await response.json())) members.add(member); })().catch(() => undefined);
+  });
   const page = await context.newPage();
   page.setDefaultTimeout(240000);
   if (values.profile === 'on' && engine === 'chromium') {
@@ -358,7 +366,9 @@ try {
     const neighbourList = [], note = text => { neighbourList.push(name === '' ? text : `${name}: ${text}`); };
     const c = visit.control, at = visit.at, row = r => ({ url: r.url, by: r.by, msAfterControl: r.start - c });
     // the worker's offline precache is listed apart (splitRequests: root's ruling, G872 (a)); any page request stays red
-    const mine = requests.filter(r => r.start >= visit.start && r.start < until), { level, precache } = splitRequests(mine, isLevelContent);
+    const mine = requests.filter(r => r.start >= visit.start && r.start < until), { level, precache, server } = splitRequests(mine, isLevelContent);
+    const rereads = spawnRereads(mine, members, mine.some(r => r.url.includes('/assets/spawn/parts/') && r.failed !== null));
+    if (rereads.files > 0) flag(`${rereads.files} files the parts already delivered moved over the network again, ${(rereads.bytes / 1e6).toFixed(2)} MB (first: ${rereads.first.join(', ')})`);
     const pending = level.filter(r => r.start < c && (r.end === null || r.end > c));
     // --trace with --dist: a shared fetch only neighbour work asked for is the neighbour's (root's ruling, G872)
     const { level: after, neighbour: byInitiator } = byWork(level.filter(r => r.start >= c), report.trace);
@@ -421,6 +431,9 @@ try {
     return { tapToControlMs: visit.ms, beforeControl: mine.filter(r => r.start < c).length, bytesBeforeControl: mine.filter(r => r.start < c).reduce((sum, r) => sum + (r.bytes ?? 0), 0), level: level.length, byServiceWorker: mine.filter(r => r.by === 'service-worker').length,
       pendingAtControl: pending.map(r => ({ url: r.url, by: r.by, msBeforeControl: c - r.start, msAfterControl: r.end === null ? null : r.end - c, failed: r.failed })), afterControl: after.map(row), neighbourWorkAfterControl: byInitiator.map(r => Object.assign(row(r), { work: r.work })), readsAfterControl: lateReads.slice(0, 40),
       precacheAfterControl: precache.filter(r => r.start >= c).length, precacheOpenAtControl: precache.filter(r => r.start < c && (r.end === null || r.end > c)).length,
+      // DL1: what the service worker fetched for itself before control: shell files only (the code waits for control)
+      precacheBeforeControl: precache.filter(r => r.start < c).map(path), spawnRereads: rereads,
+      serverReads: { beforeControl: server.filter(r => r.start < c).length, afterControl: server.filter(r => r.start >= c).length, bytes: server.reduce((sum, r) => sum + (r.bytes ?? 0), 0) },
       neighbour: { pendingAtControl: nPending.length, afterControl: nAfter.length, readsAfterControl: nReads.length },
       otherAfterControl: mine.filter(r => r.start >= c && !isLevelContent(r.url) && !isNeighbour(r.url)).map(r => ({ url: r.url, by: r.by })) };
   };

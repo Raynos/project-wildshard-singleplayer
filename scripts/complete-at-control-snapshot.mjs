@@ -119,6 +119,11 @@ export function lapPops(at, lap, homeRegion) {
     distanceLod: [...distance.values()], lods: [...lods], textures: [...textures], reattached: [...reattached.values()] };
 }
 
+/** DL17, after the flip: what only the server worker reads, and so no part of what a page must hold at control: its code and
+ *  the server class of a product (`serverProduct.ts`, J91). Listed apart, as the precache is. Any other file a worker
+ *  fetches is a file the page could have lent it, and stays level content: `spawnRereads` counts those. */
+export const isServerRead = path => /^\/(?:shardfiles\/server-class|b\/[^/]+\/standalone)\//u.test(path);
+
 /** DL17's request rule (root's ruling, G872 (a)): of one visit's requests (`{ url, by: 'page' | 'service-worker', start,
  *  end }`, end null while open), the level's are every level-content URL (`isLevelContent`) except the worker's offline
  *  precache: a service-worker fetch whose URL no page request is still reading or reads later (the page never requests
@@ -126,12 +131,26 @@ export function lapPops(at, lap, homeRegion) {
  *  what the level loaded). A file the level needs shows as a page request too (also when the worker answers it from its
  *  cache), so any page request stays the level's. */
 export function splitRequests(rows, isLevelContent) {
-  const path = row => new URL(row.url).pathname, pageReads = new Map();
+  const path = row => new URL(row.url).pathname, pageReads = new Map(), server = rows.filter(row => isServerRead(path(row)));
   for (const row of rows) if (row.by === 'page') { const reads = pageReads.get(path(row)) ?? []; reads.push(row); pageReads.set(path(row), reads); }
   const pageAfter = row => (pageReads.get(path(row)) ?? []).some(read => read.end === null || read.end === undefined || read.end > (row.start ?? 0));
   const precache = rows.filter(row => row.by === 'service-worker' && !pageAfter(row) && isLevelContent(row.url));
-  const held = new Set(precache);
-  return { level: rows.filter(row => isLevelContent(row.url) && !held.has(row)), precache };
+  const held = new Set([...precache, ...server]);
+  return { level: rows.filter(row => isLevelContent(row.url) && !held.has(row)), precache, server };
+}
+
+/** DL25: the files a packs manifest delivers inside its parts, by path. */
+export function spawnMembers(manifest) {
+  const paths = new Set();
+  for (const part of manifest?.parts ?? []) for (const [at] of part.members) { const file = manifest.files[at]; if (file !== undefined) paths.add(new URL(file.url, 'https://x.test').pathname); }
+  return paths;
+}
+/** DL25: requests that moved a part's member over the network again, whoever made them: the page already has those bytes.
+ *  A worker's answer moved none. A member its failed part handed back to the loose lanes is a real fetch: `failed` lists parts. */
+export function spawnRereads(rows, members, failed = false) {
+  if (failed) return { files: 0, bytes: 0, first: [] };
+  const moved = rows.filter(row => members.has(new URL(row.url).pathname) && (row.bytes ?? 1) > 0);
+  return { files: moved.length, bytes: moved.reduce((sum, row) => sum + (row.bytes ?? 0), 0), first: moved.slice(0, 3).map(row => new URL(row.url).pathname) };
 }
 
 /** Root's ruling (G872, wildshard-new 11-04): neighbour and outer-road work, as source spans of the grid session. A span runs

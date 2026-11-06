@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The CLI's argument refusals run in a child process, before any browser.
 import { spawnSync } from 'node:child_process';
-import { lapLegs, lapPops, splitRequests, neighbourSpans, splitByInitiator, NEIGHBOUR_WORK, firstSeconds, profileTop, heapTop } from '../scripts/complete-at-control-snapshot.mjs';
+import { lapLegs, lapPops, splitRequests, spawnMembers, spawnRereads, neighbourSpans, splitByInitiator, NEIGHBOUR_WORK, firstSeconds, profileTop, heapTop } from '../scripts/complete-at-control-snapshot.mjs';
 
 // a snapshot's mesh row: [uuid, chain, signature `geometry|positions|indices|material:map:width`, shown, within reach, skinned]
 const row = (id, chain, geometry, map, shown = true, close = true, skinned = false) => [id, chain, `${geometry}|36|0|mat:${map}:256`, shown, close, skinned];
@@ -64,6 +64,33 @@ test('a worker fetch the page never requests in the visit is precache; any page 
   expect(precache.map(entry => entry.url)).toEqual(['https://x.test/assets/late-Explore-a1.js', 'https://x.test/assets/main-d4.js']);
   expect(levelRows.map(entry => `${entry.by} ${entry.url}`)).toEqual(['service-worker https://x.test/assets/packs/spawn-b2.bin', 'page https://x.test/assets/packs/spawn-b2.bin?v=1',
     'page https://x.test/assets/main-d4.js', 'page https://x.test/assets/gpu/horizon/day-c3.ktx2', 'service-worker https://x.test/assets/gpu/horizon/day-c3.ktx2']);
+});
+
+test('the server worker\'s code and server class are listed apart; anything else it fetches stays level content', () => {
+  const level = url => /\/(?:shardfiles|b)\//u.test(url);
+  const rows = [
+    { url: 'https://x.test/shardfiles/server-class/nine/server/a.bin', by: 'page', start: 1, end: 2 },
+    { url: 'https://x.test/b/abc/standalone/serverWorker-d1.js', by: 'page', start: 1, end: 2 },
+    { url: 'https://x.test/shardfiles/nine/blobs/bin/a.bin', by: 'page', start: 3, end: 4 },
+    { url: 'https://x.test/b/abc/assets/main-d4.js', by: 'page', start: 3, end: 4 },
+  ];
+  const { level: levelRows, server } = splitRequests(rows, level);
+  expect(server.map(entry => new URL(entry.url).pathname)).toEqual(['/shardfiles/server-class/nine/server/a.bin', '/b/abc/standalone/serverWorker-d1.js']);
+  expect(levelRows.map(entry => new URL(entry.url).pathname)).toEqual(['/shardfiles/nine/blobs/bin/a.bin', '/b/abc/assets/main-d4.js']);
+});
+
+test('DL25: a part\'s member moved over the network again is counted, unless its part failed or a worker answered', () => {
+  const manifest = { files: [{ url: '/shardfiles/nine/a.bin' }, { url: '/assets/physics/rapier.wasm?v=2935a533' }, { url: '/shardfiles/nine/shard.json?v=1' }], parts: [{ members: [[0, 0], [1, 16]] }] };
+  const members = spawnMembers(manifest);
+  expect([...members]).toEqual(['/shardfiles/nine/a.bin', '/assets/physics/rapier.wasm']);
+  const rows = [
+    { url: 'https://x.test/assets/physics/rapier.wasm', bytes: 836_316 },
+    { url: 'https://x.test/shardfiles/nine/a.bin?v=1', bytes: 0 },
+    { url: 'https://x.test/shardfiles/nine/shard.json', bytes: 9 },
+  ];
+  expect(spawnRereads(rows, members)).toEqual({ files: 1, bytes: 836_316, first: ['/assets/physics/rapier.wasm'] });
+  expect(spawnRereads(rows, members, true).files).toBe(0);
+  expect(spawnMembers({ files: [] }).size).toBe(0);
 });
 
 test('a model re-attached by the ring after control is listed, a new one is a pop (DL5 target)', () => {
