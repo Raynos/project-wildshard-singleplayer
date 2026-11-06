@@ -117,7 +117,7 @@ export class WirePage {
   hold(holdings: WireHoldings, scope: Scope): void { this.holdings.add(holdings); this.ownedAt = -1; scope.onDispose(() => { this.holdings.delete(holdings); }); }
   /** The server's lines, onto the page's purse, pack and gear. They only say what's so: the server owns all three. */
   private mirrorOwned(client: NetClient, level: string | null): void {
-    if (client.ownedVersion === this.ownedAt || !client.owned.has(OWNED_ROW.coins)) return;
+    if (client.ownedVersion === this.ownedAt || client.ownedVersion === 0) return; // a player with no coins has no coins line: any line at all is the server speaking
     this.ownedAt = client.ownedVersion;
     const pack = new Map<string, number>(), { owned } = client;
     for (const [name, value] of owned) if (name.startsWith(OWNED_ROW.item)) pack.set(name.slice(OWNED_ROW.item.length), value);

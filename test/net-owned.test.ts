@@ -56,6 +56,20 @@ test('a page shows the server\'s lines on its purse, pack and gear, and writes n
   expect(gear.grant).toHaveBeenCalledExactlyOnceWith('sword');
 });
 
+test('a player with no coins still hears their board', () => {
+  const page = new WirePage(), link = directLoopback(), client = new NetClient(link.client), board = { mirror: vi.fn() }, purse = { mirror: vi.fn() };
+  page.bind(client, () => undefined, () => undefined, () => false);
+  page.hold({ purse, board }, new Scope('test'));
+  client.latest = { tick: 2, baselineTick: -1, cell: 1, lastSeq: 0, owner: new Float64Array(0), rows: new Map(), ride: null, fresh: new Set() };
+  page.frame(null, true);
+  expect(board.mirror, 'nothing heard yet, nothing to show').not.toHaveBeenCalled();
+  client.owned.set('board.next', 4); client.owned.set('board|0|0|species|deer', 4); client.ownedVersion++; // a coin line of 0 is no line
+  page.frame(null, true);
+  expect(board.mirror).toHaveBeenCalledOnce();
+  expect(board.mirror).toHaveBeenCalledWith(expect.stringContaining('"serial":0,"kind":"species","target":"deer","have":3'));
+  expect(purse.mirror).toHaveBeenCalledExactlyOnceWith(0);
+});
+
 test('a purchase lands on the exchange that judges it, and a world with none counts it refused', () => {
   const host = createSimHost(SIM_LEVEL, { rapier }), routes = actRoutes(host), buys: [string, number][] = [];
   netBuys(routes, [{ player: 'a', acts: [{ kind: 'buy', seq: 0, good: 1 }] }]);
