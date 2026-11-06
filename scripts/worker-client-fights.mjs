@@ -608,9 +608,11 @@ async function nightJourney(browser, phone, base, step) {
     const arrows = () => page.evaluate(() => { const mesh = window.__wildshard.world.game.scene.getObjectByName('patrol-arrows'), matrices = mesh?.instanceMatrix.array ?? []; let shown = 0; for (let at = 0; at < matrices.length; at += 16) if (matrices[at] !== 0 || matrices[at + 1] !== 0 || matrices[at + 2] !== 0) shown++; return shown; });
     const riders = await page.evaluate(() => window.__workerClientRows('ghost-rider'));
     if (riders[0] !== undefined) await place(page, riders[0].x + 24, riders[0].y + 2, riders[0].z);
-    const seen = await until(page, async () => { const shown = await arrows(); return shown > 0 ? shown : null; }, 45, 100), r = await report(page);
+    const seen = await until(page, async () => { const shown = await arrows(); return shown > 0 ? shown : null; }, 45, 100);
     await page.screenshot({ path: 'tmp/flip8/night-arrow.png' }).catch(() => undefined);
-    return { ok: seen !== null && (r.drawn.shot ?? 0) > 0 && (r.drawn['arrow frame'] ?? 0) > 0, shot: r.drawn.shot, frames: r.drawn['arrow frame'], seen, hp: r.hp };
+    await page.waitForTimeout(1500); // a shot that flies a second's frames is an arrow, and not one that stopped where it left
+    const r = await report(page), frames = r.drawn['arrow frame'] ?? 0;
+    return { ok: seen !== null && (r.drawn.shot ?? 0) > 0 && frames > 3, shot: r.drawn.shot, frames, seen, hurt: r.drawn.hurt, hp: r.hp };
   });
   await step('night: dawn sends the rest home, and their sites stand', async () => {
     await page.evaluate(() => { window.__workerClientTime('midday'); });

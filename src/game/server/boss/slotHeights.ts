@@ -1,6 +1,6 @@
 /** How high a slot body stands: a shard's creature view guest raises and sinks it, and on a server that height is the body's row. Only its
- *  height channels land here. The guest's clock lights a body and moves none, and a dying body's sink is a second's picture, so neither
- *  is saved: a restored world starts the guest fresh. It runs only while a body of its kind is out. */
+ *  height channels land here. The guest's clock lights a body and moves none, so it isn't saved. A dying body's sink is the guest's own
+ *  memory, so a world saved with one going under keeps it: any other save starts the guest fresh. It runs only while a body of its kind is out. */
 import * as v from 'valibot';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
@@ -13,6 +13,20 @@ const SPECIES = 'species:';
 const SLOT_COLUMNS = 7;
 /** The view lane's own floor on a schedule: a server has no display to halve for. */
 const LANE_RATE = 15;
+const natural = v.pipe(v.number(), v.integer(), v.minValue(0)), byte = v.pipe(natural, v.maxValue(255));
+const Saved = v.strictObject({ frames: natural, ids: v.array(v.array(v.nullable(v.string()))), memory: v.array(v.tuple([natural, v.array(byte)])) });
+/** Where a memory isn't zero: a page of it is mostly nothing, and a save carries each run by where it starts. */
+function runsOf(bytes: Uint8Array): [number, number[]][] {
+  const runs: [number, number[]][] = [];
+  for (let at = 0; at < bytes.length; at++) {
+    if (bytes[at] === 0) continue;
+    let end = at;
+    while (bytes[end] !== 0 && end < bytes.length) end++;
+    runs.push([at, Array.from(bytes.subarray(at, end))]);
+    at = end;
+  }
+  return runs;
+}
 
 export class SlotHeights {
   private readonly rows;
@@ -48,6 +62,19 @@ export class SlotHeights {
     const memory = body.mem[field];
     if (Number.isFinite(memory)) return memory ?? 0;
     return field === 'attackPhase' ? body.attackPhase : field === 'seed' ? body.seed : field === 'scale' ? body.scale : field === 'yOffset' ? body.yOffset : 0;
+  }
+  /** The guest's memory while a body of this kind goes under, or null: nothing else is worth a save's bytes. */
+  snapshot(): v.InferOutput<typeof Saved> | null {
+    if (!this.bodies().some(body => !body.alive && this.pools.some(pool => pool.ours && pool.ids.includes(body.entityId)))) return null;
+    return { frames: this.frames, ids: this.pools.map(pool => [...pool.ids]), memory: runsOf(new Uint8Array(this.lane.memory.buffer)) };
+  }
+  restore(input: unknown): void {
+    const saved = v.parse(Saved, input), memory = new Uint8Array(this.lane.memory.buffer);
+    if (saved.ids.length !== this.pools.length || this.pools.some((pool, index) => saved.ids[index]?.length !== pool.ids.length)) throw new Error('A slot height continuation lost its pools');
+    memory.fill(0);
+    for (const [at, run] of saved.memory) memory.set(run, at);
+    this.frames = saved.frames;
+    for (const [index, pool] of this.pools.entries()) pool.ids.splice(0, pool.ids.length, ...saved.ids[index] ?? []);
   }
   frame(dt: number): void {
     const out = this.bodies().filter(body => this.pools.some(pool => pool.ours && pool.row.group === `${SPECIES}${body.kind}`));

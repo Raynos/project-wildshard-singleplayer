@@ -28,7 +28,7 @@ import { nativePopulationOf } from '../riding/nativePopulation';
 import { heldArmsOf } from '../weapons/nativeHeld';
 import { SlotHeights } from './slotHeights';
 
-const Saved = v.strictObject({ version: v.literal(1), law: v.unknown(), sites: v.array(v.boolean()), poses: v.pipe(v.array(v.tuple([v.string(), v.string()])), v.maxLength(16)) });
+const Saved = v.strictObject({ version: v.literal(1), law: v.unknown(), sites: v.array(v.boolean()), poses: v.pipe(v.array(v.tuple([v.string(), v.string()])), v.maxLength(16)), heights: v.exactOptional(v.unknown()) });
 const Held = v.object({ slot: v.string(), enabled: v.optional(v.boolean(), true) });
 /** How far apart a baked box and its site's numbers may read, in metres: a box is f32. */
 const EXACT = 1e-3;
@@ -139,13 +139,14 @@ export async function prepareSlots(product: Pick<ShardProduct, 'json' | 'section
       if (restoring) onSimHostRestored(host, () => { for (const [actor, bound] of ownedBrains) elite.brains.set(actor, bound); });
       const heights = new SlotHeights(module, view.rows, declared.kind, host.scope, bodies, (x, z) => host.groundHeightAt(x, z));
       updates.set(host, dt => { for (const change of law.update(dt, { kind: Number(timing.phases.slots.includes(clock.dayPhase)) })) stand(change.index, change.awake === 1); });
-      host.onStep(`${files.step}.slots`, () => undefined, { snapshot: () => JSON.stringify({ version: 1, law: law.snapshot(body => body.entityId), sites: [...standing], poses: [...presented].map(([id, pose]) => [id, pose.snapshot()]) }), restore: value => {
+      host.onStep(`${files.step}.slots`, () => undefined, { snapshot: () => { const sinking = heights.snapshot(); return JSON.stringify({ version: 1, law: law.snapshot(body => body.entityId), sites: [...standing], poses: [...presented].map(([id, pose]) => [id, pose.snapshot()]), ...(sinking === null ? {} : { heights: sinking }) }); }, restore: value => {
         if (typeof value !== 'string') throw new Error('A slot continuation is a string');
         const parsed: unknown = JSON.parse(value), saved = v.parse(Saved, parsed);
         if (saved.sites.length !== count || saved.poses.length !== population.bodies.filter(body => body.kind === declared.kind).length) throw new Error('A slot continuation lost its roster');
         for (const [id, wire] of saved.poses) { const pose = presented.get(id); if (pose === undefined) throw new Error('Missing a restored slot pose'); pose.restore(wire); }
         law.restore(saved.law, id => population.bodies.find(body => body.entityId === id && body.kind === declared.kind) ?? null);
         saved.sites.forEach((awake, index) => { standing[index] = awake; });
+        if (saved.heights !== undefined) heights.restore(saved.heights);
       }, physicsRestored: () => { solids.clear(); standing.forEach((awake, index) => { solidAt(index).setEnabled(!awake); }); } });
       host.onStep(`${files.step}.slot-poses`, dt => {
         heights.frame(dt);
