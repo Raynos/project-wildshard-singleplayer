@@ -31,6 +31,15 @@ test('the plain emitter stamps the real worker without a boot bank or code-pack 
   expect(next.build).not.toBe(first.build); expect(workerScripts(next.core).fileName).not.toBe(workerScripts(first.core).fileName);
 });
 
+test('a build precaches its server book, and a new book is a new worker', () => {
+  const bundle = { 'index.html': { type: 'asset' as const, source: new TextEncoder().encode('<html><head></head></html>') } };
+  const url = '/assets/spawn/server-fixture.json', bytes = new TextEncoder().encode('{"book":"server"}');
+  const none = serviceWorkerCore(bundle, process.cwd(), 'fixture'), first = serviceWorkerCore(bundle, process.cwd(), 'fixture', { url, bytes });
+  expect(none.core).not.toContain(url); expect(first.core).toContain(url);
+  expect(first.hashed).not.toContain(url);
+  expect(serviceWorkerCore(bundle, process.cwd(), 'fixture', { url, bytes: new TextEncoder().encode('{}') }).build).not.toBe(first.build);
+});
+
 test('document bytes remain data even when they contain worker marker text', () => {
   const html = `<!doctype html><html><body>π 😀 '__FILES__' '__BUILD_ID__' '__DOCUMENT__'</body></html>`;
   const {core} = serviceWorkerCore({'index.html': {type: 'asset', source: new TextEncoder().encode(html)}}, process.cwd(), 'fixture');

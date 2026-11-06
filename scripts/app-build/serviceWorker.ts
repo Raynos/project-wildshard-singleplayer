@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve, sep } from 'node:path';
 import { ASSET_CACHE_NAME } from '../../src/engine/client/pwa/cacheNames';
+import { serverPackBookPath } from '../../src/game/shared/shardfile/serverPack';
 import { titleAssetURLs } from '../title-assets.mjs';
 import { writtenBundle, type EmittedFile } from './writtenBundle';
 
@@ -35,7 +36,7 @@ function shellFiles(html: string, root: string, sources: ReadonlyMap<string, str
 }
 
 /** The build owns names. No worker parses boot banks, packs or runtime product metadata. */
-export function serviceWorkerCore(bundle: Readonly<Record<string, EmittedFile>>, root: string, buildId: string): {
+export function serviceWorkerCore(bundle: Readonly<Record<string, EmittedFile>>, root: string, buildId: string, serverBook?: { readonly url: string; readonly bytes: Uint8Array }): {
   core: string; build: string; assets: string; hashed: string[];
 } {
   const document = bundle['index.html'];
@@ -56,9 +57,11 @@ export function serviceWorkerCore(bundle: Readonly<Record<string, EmittedFile>>,
     digest.update(name).update(file.type === 'chunk' ? file.code ?? '' : file.source ?? new Uint8Array());
   }
   for (const name of shell) if (name !== '/index.html') digest.update(name).update(readFileSync(join(root, 'public', sources.get(name) ?? name)));
+  if (serverBook !== undefined) digest.update(serverBook.url).update(serverBook.bytes);
   const build = `${buildId}-${digest.digest('hex').slice(0, 10)}`;
   const core = source.replaceAll('__BUILD_ID__', build).replaceAll('__ASSET_CACHE__', ASSET_CACHE_NAME)
-    .replace("'__FILES__'", JSON.stringify(JSON.stringify([...hashed, ...portraits])))
+    // The build's server book with its code: a device that adopts a build and goes offline can still read a server class it holds.
+    .replace("'__FILES__'", JSON.stringify(JSON.stringify([...hashed, ...portraits, ...serverBook === undefined ? [] : [serverBook.url]])))
     .replace("'__SHELL_FILES__'", JSON.stringify(JSON.stringify(shell.filter(url => !portraits.includes(url)))))
     .replace("'__DOCUMENT__'", JSON.stringify(html));
   return { core, build, assets: ASSET_CACHE_NAME, hashed };
@@ -83,7 +86,8 @@ export function refreshServiceWorker(outDir: string, before: string): void {
 /** Called after ordinary bundling; previous-deploy chunks are carried by MF2 afterwards. */
 export function writeServiceWorker(outDir: string, root: string): void {
   const { build: buildId } = JSON.parse(readFileSync(join(outDir, 'version.json'), 'utf8')) as { build: string };
-  const { core, build, hashed } = serviceWorkerCore(writtenBundle(outDir, root), root, buildId), scripts = workerScripts(core);
+  const book = join(outDir, serverPackBookPath(buildId));
+  const { core, build, hashed } = serviceWorkerCore(writtenBundle(outDir, root), root, buildId, existsSync(book) ? { url: `/${serverPackBookPath(buildId)}`, bytes: readFileSync(book) } : undefined), scripts = workerScripts(core);
   mkdirSync(dirname(join(outDir, scripts.fileName)), { recursive: true });
   writeFileSync(join(outDir, scripts.fileName), core);
   writeFileSync(join(outDir, 'sw.js'), scripts.bootstrap);
