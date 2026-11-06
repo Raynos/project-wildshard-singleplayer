@@ -116,9 +116,10 @@ async function fightTo(page, id, state, seconds, also = null) {
 }
 
 /** Sunscar, whole: Sefa, the logbook, the well, three waymarks, the signal fire, the Matriarch, the end of the quest. */
-async function sunscarJourney(browser, phone, base, step) {
+export async function sunscarJourney(browser, phone, base, step, prepare = () => Promise.resolve()) {
   const dune = await open(browser, phone, base, 'sunscar-dunes');
   const { page } = dune, flagged = flag => hasFlag(page, flag);
+  await prepare(page);
   await step('sunscar: Sefa starts the quest', async () => {
     await standAt(page, 'Sefa');
     return { ok: await pressUntil(page, flagged('sunscar.scout'), 24), quests: (await report(page)).quests };

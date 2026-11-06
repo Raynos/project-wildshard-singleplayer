@@ -65,6 +65,25 @@ test('each earner of the Antler King takes their own trophy, once, and the orb g
   live.dispose();
 }, 60_000);
 
+test('blows that take a third of the bar move the King\'s phases, and his row says so', async () => {
+  const live = await pine(), { host } = live, lead = [...host.players.values()][0]; if (lead === undefined) throw new Error('No lead');
+  const y = host.groundHeightAt(CLEARING.x, CLEARING.z) + .2, clock = host.dayClock; if (clock === undefined) throw new Error('No day');
+  const seen = (): NonNullable<ReturnType<typeof nativeGroundBossObservation>> => { const row = nativeGroundBossObservation(host, KING); if (row === undefined) throw new Error('No King'); return row; };
+  lead.resetPose({ x: CLEARING.x, y, z: CLEARING.z + 2 }, 0); clock.phase = 0.95;
+  for (let tick = 0; tick < 1200 && seen().fight.body === null; tick++) live.step([]);
+  const id = seen().fight.body, body = id === null ? undefined : host.entities.get(id); if (body === undefined) throw new Error('The King never rose');
+  for (let tick = 0; tick < 3600 && seen().boss.state !== 'fight'; tick++) live.step([]);
+  const trail: string[] = [];
+  for (let blows = 0; blows < 40 && seen().boss.state !== 'victory'; blows++) {
+    for (let wait = 0; wait < 120 && seen().boss.state === 'beat'; wait++) live.step([]);
+    host.combat.hit({ source: lead.health, sourceTags: ['actor.player'], target: body.combatActor(), amount: body.maxHp * 0.3, point: body.position.clone(), dir: new Vector3(0, 0, 1) });
+    for (let tick = 0; tick < 3; tick++) live.step([]);
+    trail.push(`${seen().boss.state}:${String(seen().boss.phase)}:${(body.hp / body.maxHp).toFixed(2)}`);
+  }
+  expect(new Set(trail.map(step => Number(step.split(':')[1])))).toEqual(new Set([0, 1, 2]));
+  live.dispose();
+}, 60_000);
+
 // A page held its player through an intro, and its prediction follows the server's `moveScale`. A tape's steps run on: its world never asks.
 test('a session\'s intro holds who stands in the arena, and lets them go', async () => {
   const live = await pine(), { host } = live;
