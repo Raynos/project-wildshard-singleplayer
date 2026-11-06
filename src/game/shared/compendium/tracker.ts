@@ -86,7 +86,8 @@ export class CompendiumTracker {
   /** body mass of a kill: the entry's scale-1 mass × the individual's scale³ */
   massOf(a: TrackedAnimal): number {
     const e = this.state.matching(a.kind, a.variant).find((m) => m.massKg !== undefined);
-    return e?.massKg !== undefined ? e.massKg * a.scale ** 3 : 0;
+    // oxlint-disable-next-line prefer-exponentiation-operator -- `**` never reaches the portable Math (test/portable-math.test.ts).
+    return e?.massKg !== undefined ? e.massKg * Math.pow(a.scale, 3) : 0;
   }
 
   killed(a: TrackedAnimal): void {

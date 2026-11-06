@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-unassigned-import -- The sim's Math goes in before any module body runs.
+import '../../../src/engine/shared/core/portableMathFirst';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read exact admitted native product and physics bytes.
 import {readFileSync} from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Assertions describe actual current input execution, never golden output.

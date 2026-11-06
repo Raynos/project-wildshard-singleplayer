@@ -13,6 +13,7 @@ import { createHash } from 'node:crypto';
 assert.equal(typeof document, 'undefined'); assert.equal(typeof window, 'undefined');
 const ROOT = new URL('../../../', import.meta.url), loaded = new Set([import.meta.url]);
 registerHooks({ load(url, context, next) { if (url.startsWith(ROOT.href) && !url.includes('/node_modules/')) loaded.add(url); return next(url, context); } });
+await import('../../../src/engine/shared/core/portableMathFirst.ts');
 const { installAppIdentity } = await import('../../../src/engine/shared/app/identity.ts');
 const { WILDSHARD_IDENTITY } = await import('../../../src/game/client/identity.ts');
 const witness = await import('./witness.ts');

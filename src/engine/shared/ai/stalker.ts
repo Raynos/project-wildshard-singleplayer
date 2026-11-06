@@ -320,7 +320,8 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
         if (!noise.seen) { noise.prev.copy(player); noise.seen = true; }
         const moved = Math.hypot(player.x - noise.prev.x, player.z - noise.prev.z);
         noise.prev.copy(player);
-        noise.speed += (Math.min(moved / dt, 9) - noise.speed) * (1 - 0.5 ** (dt * 10));
+        // oxlint-disable-next-line prefer-exponentiation-operator -- `**` never reaches the portable Math (test/portable-math.test.ts).
+        noise.speed += (Math.min(moved / dt, 9) - noise.speed) * (1 - Math.pow(0.5, dt * 10));
       },
       decide: () => {
         this.resetRepaths();

@@ -1,20 +1,35 @@
 // @vitest-environment happy-dom
+// oxlint-disable-next-line import/no-unassigned-import -- The bits these files pin are the portable ones.
+import '../src/engine/shared/core/portableMathFirst';
 // oxlint-disable-next-line import/no-nodejs-modules -- The trace's hash chain.
 import { createHash, type Hash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- The baseline is a file.
 import { readFileSync, writeFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Darwin's hashes are the normative ones.
+// oxlint-disable-next-line import/no-nodejs-modules -- The recorder's switch.
 import process from 'node:process';
+import { SkinnedMesh, Vector3 } from 'three';
 import { beforeAll, expect, test } from 'vitest';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import { App } from '../src/engine/client/app/app';
+import { app } from '../src/engine/client/app/runtime';
+import type { Animal } from '../src/engine/client/entities/AnimalView';
+import type { LevelContext } from '../src/engine/server/level/context';
+import { Scope } from '../src/engine/shared/app/scope';
 import { snapshotSimHostBytes } from '../src/engine/shared/sim/snapshot';
 import type { Rapier } from '../src/engine/shared/physics/rapier';
-import { DECK, HILL_X, HostSide, LEDGE, loadCourseRapier, PageSide, POOL_X, RAMP_Z, terrainHeight, type MotionIntent, type MotionScenario } from './fixtures/motion-trace/parity';
+import { playerModes } from '../src/engine/shared/player/modes';
+import { legacyDouble } from '../src/engine/test/FakeGame';
+import { bindFlatTerrain } from '../src/engine/test/terrain';
+import { Mount } from '../src/game/client/riding/mount';
+import { courseHeightAt, DECK, HILL_X, HostSide, LEDGE, loadCourseRapier, PageSide, POOL_X, RAMP_Z, terrainHeight, type MotionIntent, type MotionScenario } from './fixtures/motion-trace/parity';
+import { lendNalatiRiding } from './fixtures/nalati-riding-loan';
 
-// E4.1's evidence, rebuilt: seven seeded traces of 40,000 ticks, so a refactor can say "bit-identical" and be checked. One page
-// trace (state, every callback in order, the camera) and six host traces (legacy, versioned, wet, dry, driver, walking
-// control: state, every event, and the host's snapshot bytes every 500 ticks). The page's law on the feel side is B1's
-// (test/motion-trace.test.ts). A law row moves the host traces on purpose: re-record in that commit with
-// MOTION_TRACE_RECORD=1. Any other change must leave all seven alone.
+// E4.1's evidence, rebuilt: seeded traces of 40,000 ticks, so a refactor can say "bit-identical" and be checked. Two page traces
+// (state, every callback in order, the camera; and a real Mount carrying the real Player through `stepPlayerMotion`) and six host
+// traces (legacy, versioned, wet, dry, driver, walking control: state, every event, and the host's snapshot bytes every 500
+// ticks). The page's law on the feel side is B1's (test/motion-trace.test.ts). A law row moves the host traces on purpose:
+// re-record in that commit with MOTION_TRACE_RECORD=1. Any other change must leave all eight alone. The hashes hold on every
+// platform: this is what fails when a Mac and a Linux server stop agreeing (J97).
 
 const TICKS = 40_000, HASH_EVERY = 500, SEGMENT = 900;
 const BASELINE = 'test/fixtures/motion-trace/seven-traces.json', RECORDING = process.env['MOTION_TRACE_RECORD'] === '1';
@@ -89,6 +104,46 @@ function pageTrace(): Trace {
   return out;
 }
 
+const RIDE_SPEEDS = { walk: 1, trot: 3, canter: 5, gallop: 8 };
+/** The page's own ride, off the wire: the reins read the keys, and each fixed step is `stepPlayerMotion` handing a real Mount the tick. */
+function ridingTrace(): Trace {
+  const scope = new Scope('riding-trace'), page = new PageSide(R, scenario('riding')), { player, camera } = page, out = trace(), { intent, site } = seededIntent(0x1D1E);
+  lendNalatiRiding(scope);
+  const undoTerrain = bindFlatTerrain({ heightAt: courseHeightAt, normalAt: () => [0, 1, 0] }), was = app.physics;
+  app.physics = page.physics;
+  const start = { x: -10, y: courseHeightAt(-10, 0), z: 0 };
+  const horse = legacyDouble<Animal>({ entityId: 'riding-trace.horse', kind: 'horse', variant: 'starter', alive: true, hidden: false, hp: 100, maxHp: 100, yaw: 0, speed: 0, state: 'idle',
+    lookWeight: 0, gaitPhase: 0, scale: 1, seed: .5, position: new Vector3(start.x, start.y, start.z), lookTarget: new Vector3(), mem: {}, mesh: new SkinnedMesh(), setMotion: (): void => undefined,
+    place: (x: number, z: number): void => { horse.position.set(x, courseHeightAt(x, z), z); } });
+  playerModes(player).register({ id: 'ride', hud: 'ride' }, scope);
+  const mount = new Mount(legacyDouble<LevelContext>({ app: new App(), scope }), player, legacyDouble<AnimalManager>({ animals: [horse] }),
+    { speeds: RIDE_SPEEDS, names: {}, thrownDamage: 7, thrownLabel: 'Thrown', restAt: { x: 3, z: 5 } });
+  mount.input = null; mount.addMountable(horse.entityId, 'Companion');
+  if (!mount.mount(horse.entityId)) throw new Error('The trace has no horse under it');
+  const keys = player.keys, held = (key: string, on: boolean): void => { if (on) keys.add(key); else keys.delete(key); };
+  try {
+    for (let tick = 0; tick < TICKS; tick++) {
+      const at = site(tick), now = intent(tick);
+      if (at !== null) mount.teleport(at.x, at.z, 0);
+      // every other stretch runs flat out, which is the only way to a gallop
+      const run = Math.floor(tick / SEGMENT) % 2 === 1;
+      held('KeyW', run || (now.stickY ?? 0) > .2 || now.keyY === 1); held('KeyS', !run && (now.stickY ?? 0) < -.6); held('KeyD', (now.stickX ?? 0) > .3); held('KeyA', (now.stickX ?? 0) < -.3);
+      held('ShiftLeft', run || now.sprint === true); held('Space', now.jump === true);
+      player.input(1 / 60);
+      page.tick(tick, now);
+      player.update(1 / 60, 1);
+      const p = player.position, f = mount.feet, c = camera.position, q = camera.quaternion;
+      sample.set([p.x, p.y, p.z, f.x, f.y, f.z, mount.heading, mount.speed, mount.vy, Number(mount.grounded), c.x, c.y, c.z, q.x, q.y, q.w]);
+      out.hash.update(bytes); out.seen.add(mount.gait);
+      if (mount.galloping) out.seen.add('spurred');
+      if (!mount.grounded) out.seen.add('air');
+      if (mount.horse === null) throw new Error(`Thrown at tick ${tick}`);
+      if ((tick + 1) % HASH_EVERY === 0) out.hashes.push(out.hash.copy().digest('hex').slice(0, 16));
+    }
+  } finally { app.physics = was; undoTerrain(); scope.dispose(); page.dispose(); }
+  return out;
+}
+
 interface HostProfile {
   readonly seed: number; readonly extra?: Partial<MotionScenario>;
   /** Install a law on the player. */
@@ -144,10 +199,11 @@ function check(name: string, modes: readonly string[], run: () => Trace): void {
   expect(hashes).toHaveLength(TICKS / HASH_EVERY);
   expect(modes.filter(mode => !seen.has(mode))).toEqual([]);
   if (RECORDING) { baseline[name] = hashes; writeFileSync(BASELINE, `${JSON.stringify(baseline, null, 1)}\n`); return; }
-  if (process.platform === 'darwin') expect(hashes).toEqual(baseline[name]);
+  expect(hashes).toEqual(baseline[name]);
 }
 
 test('the page trace: state, callbacks and camera', () => { check('page', ['air', 'board', 'dash', 'slide', 'swim', 'wade'], pageTrace); }, 240_000);
+test('the riding trace: a real Mount through the step', () => { check('riding', ['stand', 'walk', 'trot', 'canter', 'spurred', 'air'], ridingTrace); }, 240_000);
 test.each(Object.keys(HOSTS))('the %s host trace: state, events and snapshot bytes', name => {
   const profile = HOSTS[name];
   if (profile === undefined) throw new Error(`No host ${name}`);

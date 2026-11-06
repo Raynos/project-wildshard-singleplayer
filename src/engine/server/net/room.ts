@@ -2,6 +2,7 @@
 // builds a world frame every second tick (30 Hz, J40) and encodes each client's delta from it. It holds no socket and
 // no save: a Transport carries its bytes, and accounts, rooms and persistence stay in the MMO plan.
 import * as v from 'valibot';
+import { installPortableMath } from '../../shared/core/portableMath';
 import { NetRoomActSchema, type NetChatReport, type NetChatSay, type NetTickAct } from '../../shared/net/acts';
 import { CHAT_RADIUS, RoomChat, type ChatLine, type ChatReports } from './chat';
 import { BitWriter } from '../../shared/net/bits';
@@ -140,7 +141,7 @@ export class NetRoom {
   private opened = false;
   private serial = 0;
   private clientIds = 0;
-  constructor(options: NetRoomOptions) { this.world = options.world; this.step = options.step; this.build = options.build ?? ''; this.book = options.book ?? new LedgerBook(); this.chat = new RoomChat(options.reports); }
+  constructor(options: NetRoomOptions) { installPortableMath(); this.world = options.world; this.step = options.step; this.build = options.build ?? ''; this.book = options.book ?? new LedgerBook(); this.chat = new RoomChat(options.reports); }
   /** Who a client said it is, its Name cleaned. */
   identityOf(client: number): NetIdentity | null { return this.clients.find(entry => entry.id === client)?.identity ?? null; }
   /** The last command `seq` applied for a client, or 0. */

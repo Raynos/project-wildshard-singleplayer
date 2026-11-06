@@ -1,9 +1,11 @@
 // @vitest-environment happy-dom
+// oxlint-disable-next-line import/no-unassigned-import -- The bits these files pin are the portable ones.
+import '../src/engine/shared/core/portableMathFirst';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the shipped player against native Rapier.
 import { readFileSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The trace's hash chain.
 import { createHash } from 'node:crypto';
-// oxlint-disable-next-line import/no-nodejs-modules -- Darwin's hashes are the normative ones.
+// oxlint-disable-next-line import/no-nodejs-modules -- The recorder's switch.
 import process from 'node:process';
 import { PerspectiveCamera, Vector3 } from 'three';
 import { expect, test } from 'vitest';
@@ -182,5 +184,5 @@ test.each(Object.entries(RATES))('the page law at %s frames/s', async (rate, fra
   // the run reached every mode it says it pins
   for (const mode of ['board', 'swim', 'slide', 'wade', 'platform', 'dash', 'ground', 'air', 'traversal', 'lock', 'deck']) expect(first.seen[mode] ?? 0, `${mode} in ${JSON.stringify(first.seen)}`).toBeGreaterThan(mode === 'slide' ? 40 : 100);
   if (recording) { baseline[rate] = first.hashes; writeFileSync(BASELINE, `${JSON.stringify(baseline, null, 1)}\n`); return; }
-  if (process.platform === 'darwin') expect(first.hashes).toEqual(baseline[rate]);
+  expect(first.hashes).toEqual(baseline[rate]);
 }, 240_000);

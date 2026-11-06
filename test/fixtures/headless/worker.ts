@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-unassigned-import -- The sim's Math goes in before any module body runs.
+import '../../../src/engine/shared/core/portableMathFirst';
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixed native worker reads the admitted product and repository physics binary.
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';

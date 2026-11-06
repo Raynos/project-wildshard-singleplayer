@@ -492,7 +492,8 @@ export class AnimalManager {
       if (!this.playerInit) { this.playerPrev.copy(playerPos); this.playerInit = true; }
       const moved = Math.hypot(playerPos.x - this.playerPrev.x, playerPos.z - this.playerPrev.z);
       this.playerPrev.copy(playerPos);
-      this.playerSpeed += (Math.min(moved / dt, 9) - this.playerSpeed) * (1 - 0.5 ** (dt * 10));
+      // oxlint-disable-next-line prefer-exponentiation-operator -- `**` never reaches the portable Math (test/portable-math.test.ts).
+      this.playerSpeed += (Math.min(moved / dt, 9) - this.playerSpeed) * (1 - Math.pow(0.5, dt * 10));
       this.hunt.resetRepaths();
       if (this.rules !== null) this.tokens.sweep(this.stillAttacking); // E297: the tokens of attacks that are over go back
       const t0 = frameCost.on ? performance.now() : 0;

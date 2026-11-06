@@ -5,6 +5,8 @@
   "exports": {
     "./core/faults": "./shared/core/faults.ts",
     "./core/fixedStep": "./shared/core/fixedStep.ts",
+    "./core/portableMath": "./shared/core/portableMath.ts",
+    "./core/portableMathFirst": "./shared/core/portableMathFirst.ts",
     "./test/FakeGame": "./test/FakeGame.ts",
     "./test/realGc": "./test/realGc.ts",
     "./test/world": "./test/world.ts",

@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-unassigned-import -- The sim's Math goes in before any module body runs.
+import '@wildshard/engine/core/portableMathFirst';
 import {createTrustedHeadlessTape} from '../headlessTape';
 import { runHeadlessJourney } from '../headlessJourney';
 import { proveShardfileEntries } from '@wildshard/game/bake/entryways';

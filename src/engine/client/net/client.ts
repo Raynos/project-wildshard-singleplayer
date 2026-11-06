@@ -1,6 +1,7 @@
 // P1-E5.2 (E5-REPLICATION §4): the client's end of the game protocol. It says hello, decodes frames and events, acks, and
 // sends commands in bundles with redundant copies. Prediction and interpolation build on this in E5.3; the view halves
 // read its rows in E4.3. It knows nothing of how bytes travel, and imports nothing from the server.
+import { installPortableMath } from '../../shared/core/portableMath';
 import type { QuestProgress } from '../../shared/quest/progress';
 import type { NetCommand } from '@wildshard/format/netCommand';
 import type { ChatChannel, NetRoomAct } from '../../shared/net/acts';
@@ -83,6 +84,7 @@ export class NetClient {
   private seq = 0;
   private readonly off: (() => void)[];
   constructor(transport: Transport, now: () => number = diagnosticNow) {
+    installPortableMath();
     this.transport = transport; this.now = now;
     this.table = { ownerClass: PLAYER_CLASS, classOf: handle => this.entities.get(handle)?.cls, baseline: tick => this.frames.get(tick) ?? null };
     this.off = [transport.onMessage((_channel, bytes) => { this.receive(new Uint8Array(bytes)); }), transport.onClose(reason => { this.closed = reason; })];

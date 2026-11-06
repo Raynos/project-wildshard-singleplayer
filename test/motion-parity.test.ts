@@ -1,7 +1,9 @@
 // @vitest-environment happy-dom
+// oxlint-disable-next-line import/no-unassigned-import -- The bits these files pin are the portable ones.
+import '../src/engine/shared/core/portableMathFirst';
 // oxlint-disable-next-line import/no-nodejs-modules -- The ratchet is a file.
 import { readFileSync, writeFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Darwin's numbers are the normative ones.
+// oxlint-disable-next-line import/no-nodejs-modules -- The ratchet's update switch.
 import process from 'node:process';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import type { Rapier } from '../src/engine/shared/physics/rapier';
@@ -43,8 +45,7 @@ describe('the server against the page', () => {
     expect((scenario.reaches ?? []).filter(what => !result.reached.has(what))).toEqual([]);
     if (UPDATE) return;
     if (result.failing > debt) throw new Error(`Rose from ${debt}. ${say(result)}`);
-    // Pine and Far Reach drift off macOS: only Darwin says a debt has gone.
-    if (result.failing < debt && process.platform === 'darwin') throw new Error(`Fell from ${debt}: lower it with MOTION_PARITY_UPDATE=1. ${say(result)}`);
+    if (result.failing < debt) throw new Error(`Fell from ${debt}: lower it with MOTION_PARITY_UPDATE=1. ${say(result)}`);
   });
   afterAll(() => {
     if (!UPDATE) return;

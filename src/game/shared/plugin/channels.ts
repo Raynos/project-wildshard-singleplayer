@@ -127,7 +127,8 @@ export function admittedClientChannels(program: ClientChannelProgram): ClientCha
       case 'add': return a + b;
       case 'sub': return a - b;
       case 'mul': return a * b;
-      case 'pow': return a ** b;
+      // oxlint-disable-next-line prefer-exponentiation-operator -- `**` never reaches the portable Math (test/portable-math.test.ts).
+      case 'pow': return Math.pow(a, b);
       case 'div': return a / b;
       case 'mod': return a % b;
       case 'min': return Math.min(a, b);
@@ -193,7 +194,8 @@ export function admittedClientChannels(program: ClientChannelProgram): ClientCha
             case 9: value = a + b; break;
             case 10: value = a - b; break;
             case 11: value = a * b; break;
-            case 12: value = a ** b; break;
+            // oxlint-disable-next-line prefer-exponentiation-operator -- `**` never reaches the portable Math (test/portable-math.test.ts).
+            case 12: value = Math.pow(a, b); break;
             case 13: value = a / b; break;
             case 14: value = a % b; break;
             case 15: value = Math.min(a, b); break;

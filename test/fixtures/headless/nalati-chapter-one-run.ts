@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-unassigned-import -- The sim's Math goes in before any module body runs.
+import '../../../src/engine/shared/core/portableMathFirst';
 // oxlint-disable-next-line import/no-nodejs-modules -- Require earned native state and exact independent input replay.
 import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixed child uses the admitted physics bytes and its owned continuation file.

@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-unassigned-import -- The sim's Math goes in before any module body runs.
+import '../../../src/engine/shared/core/portableMathFirst.ts';
 // The trusted resident (`createNativeProofResident`) in plain Node: the worker adapter's exact composition, its lent
 // commands and per-lend effects, a strict object-continuation restore, and its admission as a GridSimulation region.
 // oxlint-disable-next-line import/no-nodejs-modules -- Native assertions must fail the process.

@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-unassigned-import -- The sim's Math goes in before any module body runs.
+import '../../../src/engine/shared/core/portableMathFirst';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native owner admission and continuation are asserted in the bounded child.
 import assert from 'node:assert/strict';
 // oxlint-disable-next-line import/no-nodejs-modules -- The original shipped Rapier module is part of the native product proof.

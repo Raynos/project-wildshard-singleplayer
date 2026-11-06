@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-unassigned-import -- The sim's Math goes in before any module body runs.
+import '../../../src/engine/shared/core/portableMathFirst.ts';
 // Partial gameplay coverage remains a failed whole-shard compatibility result.
 // oxlint-disable-next-line import/no-nodejs-modules -- Native proof mode and exit status are CLI results.
 import process from 'node:process';

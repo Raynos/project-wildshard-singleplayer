@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-unassigned-import -- The sim's Math goes in before any module body runs.
+import '../../../src/engine/shared/core/portableMathFirst';
 import { sceneLivingBytes } from '@wildshard/format/worldScenePages';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read only declared paths in the admitted native product.
 import {readFileSync} from 'node:fs';
