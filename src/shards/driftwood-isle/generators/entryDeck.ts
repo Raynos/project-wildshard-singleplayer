@@ -1,10 +1,11 @@
-import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '@wildshard/format/contentBounds';
+import { roadSocketMetrics } from '@wildshard/sharddev/entries';
 import { driftwoodGroundSampler } from './groundSampling';
 import { ENTRY_ROWS as authoredEntryRows } from './entryRows';
 
 type DryEntryEdge = (typeof authoredEntryRows.DRY_ENTRIES)[number];
 
 const { DECK_SLAB, DRY_ENTRIES, LANDING_RUN } = authoredEntryRows;
+const { half: CHUNK_HALF, width: ENTRY_WIDTH, asphalt: ENTRY_ASPHALT } = roadSocketMetrics();
 
 
 /** Authored dry ocean footprint in native level coordinates. */

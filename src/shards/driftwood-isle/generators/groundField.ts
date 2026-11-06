@@ -1,7 +1,8 @@
 // Retained native terrain compilation, used only by Driftwood authoring.
-import { CHUNK_HALF } from '@wildshard/format/contentBounds';
+import { roadSocketMetrics } from '@wildshard/sharddev/entries';
 import { DriftwoodNoise as Noise2D, smoothstep, clamp, lerp } from './landscapeNoise';
 
+const { half: CHUNK_HALF } = roadSocketMetrics();
 const ROAD_WIDTH = 15, ROAD_LENGTH = 60;
 type Vec2 = [number, number];
 interface CabinSite { x: number; z: number; rot: number }

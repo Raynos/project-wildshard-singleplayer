@@ -1,9 +1,10 @@
-import type { TerrainBakeSource } from '@wildshard/sharddev/bake/terrain';
-import { CHUNK_HALF } from '@wildshard/format/contentBounds';
+import { readNativeTerrain, type TerrainBakeSource } from '@wildshard/sharddev/bake/terrain';
+import { roadSocketMetrics } from '@wildshard/sharddev/entries';
 import { SEED, SHORE_LEVEL, WORLD_DROP, GRADED, TRAILS } from './landscapeRows';
-import { parseBakedTerrain } from '@wildshard/format/bakedTerrainBytes';
 import { buildDriftwoodField, landscapeHash } from './groundField';
 import { driftwoodLandscape } from './landscape';
+
+const { half: CHUNK_HALF } = roadSocketMetrics();
 
 /** Retained unquantized author field for original mover rows and cold lattice compilation. */
 export function driftwoodGroundField(seed: number = SEED): ReturnType<typeof buildDriftwoodField> {
@@ -54,6 +55,7 @@ function compileGroundBytes(): Uint8Array {
   new Float32Array(buffer, header, count).set(rows.heights);
   const splat = new Uint8Array(buffer, header + count * 4, count * 4);
   for (let i = 0; i < count; i++) splat[i * 4] = 255;
-  if (parseBakedTerrain(buffer) === null) throw new Error('Authored native ground did not satisfy its byte contract');
-  return new Uint8Array(buffer);
+  const bytes = new Uint8Array(buffer);
+  readNativeTerrain(bytes);
+  return bytes;
 }

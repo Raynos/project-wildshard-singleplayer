@@ -1,12 +1,13 @@
 import { Group } from 'three';
 import { BoxCollider, type BoxColliderData } from '@wildshard/sharddev/physics';
 import { readScene } from '@wildshard/sharddev/scene';
-import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '@wildshard/format/contentBounds';
+import { roadSocketMetrics } from '@wildshard/sharddev/entries';
 import { ENTRY_ROWS as authoredEntryRows } from './entryRows';
 
 type DryEntryEdge = (typeof authoredEntryRows.DRY_ENTRIES)[number];
 
 const { DRY_ENTRIES, LANDING_RUN, LANDING_HALF } = authoredEntryRows;
+const { half: CHUNK_HALF, width: ENTRY_WIDTH, asphalt: ENTRY_ASPHALT } = roadSocketMetrics();
 
 /** The primitive floor product; its notice and every box survive persisted JSON. */
 export interface DriftwoodEntryFloorProduct {
