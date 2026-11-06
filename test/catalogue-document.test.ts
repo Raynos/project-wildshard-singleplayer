@@ -7,7 +7,7 @@ import {join} from 'node:path';
 import {afterEach, describe, expect, it} from 'vitest';
 import * as v from 'valibot';
 import {packsBookPath} from '@wildshard/format/spawnManifest';
-import {StandaloneCatalogueSchema, type StandaloneCatalogueInput} from '@wildshard/format/standaloneCatalogue';
+import {StandaloneCatalogueSchema} from '@wildshard/format/standaloneCatalogue';
 import {addCookedShards, writeCatalogueDocument} from '../scripts/app-build/catalogue';
 import {installTitleManifests, titleManifests, withCatalogueHeads, type TitleManifest} from '../src/game/client/shard/titleList';
 import {titlePrefetchOrder} from '../src/game/client/grid/titleOrder';
@@ -71,7 +71,7 @@ describe('the catalogue a page reads', () => {
 });
 
 describe('the bake', () => {
-  const document_: StandaloneCatalogueInput = {version: 0, stage: 'live', placements: [{instance: 'a-solo', slug: 'a', cell: [0, 0], size: [500, 500, 500]}],
+  const document_ = {version: 0, stage: 'live', placements: [{instance: 'a-solo', slug: 'a', cell: [0, 0], size: [500, 500, 500]}],
     grid: shipped.grid, shards: [{...fresh, name: '</script><b>'}], missing: []};
   const folder = (): string => mkdtempSync(join(tmpdir(), 'catalogue-'));
 

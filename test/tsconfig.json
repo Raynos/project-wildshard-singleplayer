@@ -79,6 +79,7 @@
   "files": [
     "../scripts/section-inventory.ts",
     "../scripts/app-build/bootProducts.ts",
+    "../scripts/app-build/catalogue.ts",
     "../scripts/app-build/bootProductTiers.ts",
     "../scripts/app-build/bootExtras.ts",
     "../scripts/app-build/gridEntryDownloads.ts",

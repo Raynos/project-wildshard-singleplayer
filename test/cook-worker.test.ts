@@ -31,7 +31,7 @@ function rawTar(name: string, body: Uint8Array, type = '0'): Uint8Array {
 }
 
 describe('the cook worker', () => {
-  let scratch = '', real = new Uint8Array(), files = new Map<string, Uint8Array>(), store: PackStore;
+  let scratch = '', real: Uint8Array = new Uint8Array(), files = new Map<string, Uint8Array>(), store: PackStore;
   const source = (blobs: ReadonlyMap<string, Uint8Array>): ShardfileSource => ({
     heads: () => Promise.resolve([...blobs].map(([hash], row) => ({slug, revision: row + 1, hash}))),
     download: hash => { const bytes = blobs.get(hash); if (bytes === undefined) throw new Error('No such shardfile'); return Promise.resolve(bytes); },

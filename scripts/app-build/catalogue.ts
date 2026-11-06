@@ -3,7 +3,7 @@ import {existsSync, readFileSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import * as v from 'valibot';
 import {packsBookPath, readSpawnManifest} from '@wildshard/format/spawnManifest';
-import {StandaloneCatalogueSchema, type StandaloneCatalogue, type StandaloneCatalogueInput} from '@wildshard/format/standaloneCatalogue';
+import {StandaloneCatalogueSchema, type StandaloneCatalogue} from '@wildshard/format/standaloneCatalogue';
 import {productTarball} from './productTarball';
 
 /** C3 (J61, D7): every build bakes `catalogue.json`, so a build needs no server, and inlines it in `index.html`, so the
@@ -14,7 +14,7 @@ const ELEMENT = /<script type="application\/json" id="ws-catalogue">[^<]*<\/scri
 export interface PackHome {readonly base: string; readonly shards: readonly string[]}
 const inline = (text: string): string => `<script type="application/json" id="ws-catalogue">${text.replaceAll('<', String.raw`\u003c`)}</script>`;
 
-export function writeCatalogueDocument(outDir: string, document: StandaloneCatalogue | StandaloneCatalogueInput): void {
+export function writeCatalogueDocument(outDir: string, document: unknown): void {
   const text = JSON.stringify(v.parse(StandaloneCatalogueSchema, document));
   writeFileSync(join(outDir, 'catalogue.json'), text);
   const file = join(outDir, 'index.html'), html = readFileSync(file, 'utf8');
@@ -43,7 +43,8 @@ export function inTreeCatalogue(root: string, products: string, listed: readonly
 }
 
 /** The build's step: the file a deploy names, else the tree's. */
-export async function bakeCatalogue(outDir: string, root: string, source: string | undefined = process.env.WILDSHARD_CATALOGUE): Promise<void> {
+export async function bakeCatalogue(outDir: string, root: string): Promise<void> {
+  const {WILDSHARD_CATALOGUE: source} = process.env;
   const {shards} = await import('../../src/game/client/shard/list');
   const document = source === undefined ? inTreeCatalogue(root, join(root, 'out'), shards()) : v.parse(StandaloneCatalogueSchema, JSON.parse(readFileSync(source, 'utf8')));
   writeCatalogueDocument(outDir, document);
