@@ -86,7 +86,8 @@ export async function runCookJob(tarball: Uint8Array, out: string, ports: CookJo
   const proof = product.shard.runtime === null ? await ports.prove(product.shard, product.assets, product.sections) : 'unmeasured' as const;
   const client = join(out, 'client');
   const cook = await cookShard(tarball, client, {wireBytes: ports.wireBytes, now: ports.now, ...(ports.encoder === undefined ? {} : {encoder: ports.encoder}), ...(ports.warn === undefined ? {} : {warn: ports.warn})});
-  const shard = openShardfile(tarball), header = `assets/spawn/headers/${sha256(shard.header)}.json`, file = join(client, header);
+  // Each manifest names the header at its product URL, and no part holds it (DL18); its `?v=` is what caches it.
+  const shard = openShardfile(tarball), header = `shardfiles/${shard.slug}/shard.json`, file = join(client, header);
   mkdirSync(dirname(file), {recursive: true}); writeFileSync(file, shard.header);
   return {slug: product.index.identity.slug, hash: sha256(tarball), proof, cook, header, server: writeServerPack(shard, join(out, 'server')), seconds: (ports.now() - started) / 1000};
 }

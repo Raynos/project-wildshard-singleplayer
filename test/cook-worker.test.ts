@@ -125,6 +125,14 @@ describe('the cook worker', () => {
     expect(JSON.parse(outcome.kind === 'refused' ? outcome.reason : '{}')).toEqual({home: true, hosts: true, write: true, child: true, secret: null, token: null});
   }, 30_000);
 
+  it.runIf(process.platform === 'darwin')('takes a job off the network through the host wrap', async () => {
+    const work = join(mkdtempSync(join(scratch, 'limit-')), 'job'), script = join(work, 'net.mjs');
+    mkdirSync(work);
+    writeFileSync(script, `let reached = false; try { await fetch('https://example.com/', {signal: AbortSignal.timeout(4000)}); reached = true; } catch { /* denied */ } console.log(JSON.stringify({refused: String(reached)})); process.exit(3);`);
+    const outcome = await runJob({...launcher(script), wrap: ['sandbox-exec', '-p', '(version 1)(allow default)(deny network*)']}, join(work, 'x.tar'), join(work, 'out'));
+    expect(outcome).toEqual({kind: 'refused', reason: 'false'});
+  }, 30_000);
+
   it('takes a notice over HTTP, with its token, and cooks it', async () => {
     const hash = hashOf(real), cook = worker(new Map([[hash, real]]), 'b4'), server: Server = notifyServer(cook, 'a-long-enough-test-token');
     await new Promise<void>(resolve => { server.listen(0, '127.0.0.1', resolve); });

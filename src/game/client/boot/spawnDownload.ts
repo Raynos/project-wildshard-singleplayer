@@ -587,6 +587,11 @@ function bookSelection(book: unknown, slug: string, flow: 'client' | 'grid', tie
   const roots = flow === 'grid' ? get(get(book, flow), mode) : get(book, flow), pair = get(get(roots, slug), tier);
   return pair === undefined ? null : readSpawnManifestAddress(pair);
 }
+/** J138: where a cooked shard's manifests and parts live, when the bake says it isn't this origin. */
+function packBase(slug: string): string | undefined {
+  const element = document.getElementById('ws-catalogue');
+  return element?.dataset['packed']?.split(' ').includes(slug) === true ? element.dataset['packs'] : undefined;
+}
 function spawnSelection(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'desktop', mode: string): {address: SpawnManifestAddress; cacheName: unknown} | null {
   const text = document.getElementById('boot-module-files')?.textContent; if (!text) return null;
   const manifests = get(JSON.parse(text), 'spawnManifests'), address = bookSelection(manifests, slug, flow, tier, mode);
@@ -711,12 +716,13 @@ function spawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'd
   // Runtime packs: this entry's whole-level manifest from the packs book. A missing, unreadable or entry-less book
   // fails the download (admission waits on it and refuses control with the reason); it never runs the default set and
   // reports it complete, which would break the whole-level rule (sp-x9's review of 40bc516d5c).
-  const download = !packsOn ? downloadSpawnManifest(selected.address, downloadPorts(selected.cacheName, false), document.baseURI)
+  const base = packBase(slug) ?? document.baseURI;
+  const download = !packsOn ? downloadSpawnManifest(selected.address, downloadPorts(selected.cacheName, false), base)
     : lateDownload((async () => {
       const address = bookSelection(await readPacksBook(), slug, flow, tier, mode);
       if (address === null) throw new Error(`Packs book has no ${flow} entry for ${slug} (${tier}, ${mode})`);
       if (address.url === selected.address.url) throw new Error('Packs book names the default manifest');
-      return downloadSpawnManifest(address, downloadPorts(selected.cacheName, true), document.baseURI);
+      return downloadSpawnManifest(address, downloadPorts(selected.cacheName, true), base);
     })());
   current?.download.cancel(); current = {key, download, foreground};
   trackOutcome(download, slug, packsOn);
