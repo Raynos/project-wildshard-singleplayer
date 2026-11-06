@@ -310,8 +310,9 @@ const layerOf = (path) => {
   return { name: match[1], rank: ['format', 'engine', 'game', 'sdk', 'sharddev', 'commons', 'shards'].indexOf(match[1]), slug: match[1] === 'shards' ? match[2] : null };
 };
 const engineWords = JSON.parse(readFileSync(new URL('engine-words.json', import.meta.url), 'utf8'));
+// P3: the generated list needs shard source. Where that has left, the pin keeps these rules' words.
 const generatedWordsFile = new URL('shard-words.generated.json', import.meta.url);
-const shardWords = JSON.parse(readFileSync(generatedWordsFile, 'utf8'));
+const shardWords = JSON.parse(readFileSync(existsSync(generatedWordsFile) ? generatedWordsFile : new URL('shard-words.pin.json', import.meta.url), 'utf8'));
 const escapeRegex = (text) => text.replaceAll(/[.*+?^${}()|[\]\\]/gu, String.raw`\$&`);
 const WORDS = new RegExp(`\\b(?:${[...new Set([...engineWords, ...shardWords.words])].map(escapeRegex).join('|')})\\b`, 'giu');
 const rule = (description, create) => ({ meta: { type: 'problem', docs: { description }, schema: [] }, create });

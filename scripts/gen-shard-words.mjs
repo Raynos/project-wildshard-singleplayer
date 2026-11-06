@@ -178,4 +178,11 @@ export function genShardWords(root = resolve(import.meta.dirname, '..'), check =
   if (check && !same) throw new Error('gen-shards: stale lint/shard-words.generated.json (run pnpm gen)');
   if (!check && !same) { mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, source); }
 }
-if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) genShardWords(undefined, process.argv.includes('--check'), process.argv.find((arg) => arg.startsWith('--shard='))?.slice(8));
+/** P3: the words engine's lint keeps once shard source leaves. `test/shard-words-pin.test.ts` holds it to the source. */
+export function pinShardWords(root = resolve(import.meta.dirname, '..')) {
+  writeFileSync(resolve(root, 'lint/shard-words.pin.json'), `${JSON.stringify(shardWordData(root), null, 2)}\n`);
+}
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
+  if (process.argv.includes('--pin')) pinShardWords();
+  else genShardWords(undefined, process.argv.includes('--check'), process.argv.find((arg) => arg.startsWith('--shard='))?.slice(8));
+}
