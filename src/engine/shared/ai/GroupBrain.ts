@@ -1,4 +1,4 @@
-import {prepareGroupNativeV2,type GroupStepV2,type GroupStepNativeOwnersV2,type GroupStepNativeResultV2} from '../script/groupStepV2';
+import {prepareGroupNativeV2,settledGroupSlots,type GroupStepV2,type GroupStepNativeOwnersV2,type GroupStepNativeResultV2} from '../script/groupStepV2';
 import type {AnimalSim} from '../entities/AnimalSim';
 import type {V2ColumnOwners} from '../script/observationColumnsV2';
 import type {GroupStepRowsV2} from '@wildshard/format/scriptGroupStepV2';
@@ -85,7 +85,7 @@ export class GroupBrain<A extends GroupMember> {
     this.groupTime = data.time ?? -Infinity; this.directors = directors;
   }
   /** Internal native subclasses capture current original owners at every barrier. */
-  protected captureGuest(_replies:readonly GroupStepNativeResultV2[]):GroupGuestFrameV2<A & AnimalSim> { throw new Error('Missing native group guest capture'); }
+  protected captureGuest(_replies:readonly GroupStepNativeResultV2[],_settled?:{readonly after:object;readonly touched:readonly number[]}):GroupGuestFrameV2<A & AnimalSim> { throw new Error('Missing native group guest capture'); }
   /** Validate the original codec before RNG acceptance; commit performs only scalar/role publication. */
   protected prepareGuestCommit(_frame:GroupGuestFrameV2<A & AnimalSim>,_values:Readonly<Record<string,GroupBankValueV2>>):GroupGuestPublicationV2 { throw new Error('Missing native group guest publication'); }
   /** A frame failure is handled, never a request to fall through to another
@@ -138,11 +138,13 @@ export class GroupBrain<A extends GroupMember> {
    const pc=values[field];
    if(typeof pc!=='number'||!(fixed===undefined?states.includes(pc):fixed.allowed.has(pc)))throw new Error('Undeclared group guest continuation');
    const publication=this.prepareGuestCommit(frame,values),native=prepareGroupNativeV2(prepared.operations,frame.native);
-   publication.validate();native.validate();prepared.validate();
+   // `accept` opens with the candidate's own validate.
+   publication.validate();native.validate();
    prepared.accept();publication.commit();
    const replies=native.run();
    if(pc===0)return;
-   frame=this.captureGuest(replies);
+   const touched=settledGroupSlots(prepared.operations);
+   frame=this.captureGuest(replies,touched===undefined?undefined:{after:prepared,touched});
    }finally{prepared.discard();}
   }
   throw new Error('Group guest continuation exceeded its declared bound');

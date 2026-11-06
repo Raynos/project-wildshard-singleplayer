@@ -24,6 +24,13 @@ interface HerdGuestColumns<A extends AnimalSim> {
   t:number;dt:number;context?:GuardedHerdContext<A>;
 }
 
+/** One call depth's bodies and the reference rows lent for them. */
+interface HerdGuestLoan<A extends AnimalSim> {
+  readonly binding: object; readonly pool: readonly A[]; readonly members: readonly A[]; readonly bodies: readonly A[];
+  readonly references: (GroupBankReferenceV2 & {group:string;slot:number;body:A})[];
+  readonly byBody: ReadonlyMap<A,GroupBankReferenceV2 & {group:string;slot:number;body:A}>;
+}
+
 /** Rim, fall and random grazing parameters for a committed ram. */
 export interface WanderGrazerSpec {
   grazeSpeed: number; ramSpeed: number; noticeRadius: number; rimMargin: number; fallDrop: number;
@@ -104,6 +111,26 @@ const herdContinuation: v.StrictObjectSchema<{ readonly [Key in Exclude<keyof He
     fleeRun: herdFinite, fleeLen: herdFinite, fleeFromX: herdFinite, fleeFromZ: herdFinite, modeT: herdFinite, sT: herdFinite, chargeCd: herdFinite,
     beatenT: herdFinite, beaten: v.boolean(), knockCd: herdFinite }) });
 const herdGuestStorage = [...Object.keys(herdContinuation.entries.state.entries),'lead','stallion','ridden','chargeTarget','groupTime'];
+const herdStateNames = Object.keys(herdContinuation.entries.state.entries);
+const herdFlags = new Set(['initialized','stampeding','alertOwned','beaten']);
+/** The scalar schema's own answer for a well-formed candidate, without its per-segment parse. Anything else returns
+ * undefined, and the schema reads it and says why. */
+function readHerdScalars(candidate: Readonly<Record<string,unknown>>, entries: readonly [string,unknown][]): HerdContinuationData['state'] | undefined {
+  const next: Record<string,unknown> = {};
+  return entries.length === herdStateNames.length && copyHerdScalars(candidate, entries, next) ? next : undefined;
+}
+function copyHerdScalars(candidate: Readonly<Record<string,unknown>>, entries: readonly [string,unknown][], next: Record<string,unknown>): next is HerdContinuationData['state'] {
+  for (let index = 0; index < herdStateNames.length; index++) {
+    const name = herdStateNames[index];
+    if (name === undefined || entries[index]?.[0] !== name) return false;
+    const value = candidate[name];
+    if (name === 'mode' ? value !== 'graze' && value !== 'drift' && value !== 'alert' && value !== 'flee' && value !== 'settle'
+      : name === 'stallionState' ? !GUARDED_STALLION_STATES.some(state => state === value)
+      : herdFlags.has(name) ? typeof value !== 'boolean' : typeof value !== 'number' || !Number.isFinite(value)) return false;
+    next[name] = value;
+  }
+  return true;
+}
 
 
 /** A movement/attack pattern; old row names select these presets without changing their save contract. */
@@ -389,6 +416,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     readonly referenceFields: readonly (readonly [string,string])[];
   } | undefined;
   private readonly guestPlans=new Map<A,{readonly values:readonly number[];applied:boolean}>();
+  private readonly guestLoans:(HerdGuestLoan<A>|undefined)[]=[];
   private readonly guestBanks: {bank:Float64Array;values:Readonly<Record<string,GroupBankValueV2>>;bodies:readonly A[]}[]=[];
   private guestDepth=0;
   private guestCandidateDepth=0;
@@ -398,6 +426,8 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     readonly context: GuardedHerdContext<A> | undefined;
     readonly signal: string; readonly bank: Float64Array; readonly slot:number;
     readonly references: (GroupBankReferenceV2 & {group:string;slot:number;body:A})[];
+    /** `references` by body: the same rows, looked up once per member per segment */
+    readonly bodies: ReadonlyMap<A,GroupBankReferenceV2 & {group:string;slot:number;body:A}>;
     readonly members: HerdGuestColumns<A>[];
     readonly random: Rng;
     readonly arguments: Readonly<Record<string,number>>;
@@ -443,29 +473,46 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     if(binding===undefined||binding.scope.disposed||binding.scope.disposing||binding.program.prepareGroup!==binding.prepare
       ||binding.program.groupBindings!==binding.bindings)throw new Error('Replaced herd guest binding');
   }
+  /** The rows lent for this roster. A herd asks every tick and its bodies rarely change, so a same-roster call keeps them
+   * (one per call depth: a nested call must not share an outer call's rows) and only walks the bodies to prove it. */
+  private herdGuestLoan(binding: NonNullable<GrazerBrain<A>['guest']>, depth: number): HerdGuestLoan<A> {
+    const actors=binding.actors,count=actors instanceof Map?actors.size:actors.length,members=this.members,known=this.guestLoans[depth];
+    if(known?.binding===binding&&known.pool.length===count&&known.members.length===members.length){
+      let same=true,index=0;
+      for(const body of actors instanceof Map?actors.values():actors)if(known.pool[index++]!==body){same=false;break;}
+      for(index=0;same&&index<members.length;index++)same=known.members[index]===members[index];
+      for(index=0;same&&index<known.bodies.length;index++)same=known.references[index]?.identity===known.bodies[index]?.entityId;
+      if(same)return known;
+    }
+    const pool = actors instanceof Map ? [...actors.values()] : actors.slice(), lent=new Set(pool), own=new Map(members.map((member,slot)=>[member,slot] as const));
+    if (members.some(member=>!lent.has(member))) throw new Error('Foreign herd guest actor');
+    const bodies = [...members,...pool.filter(candidate => !own.has(candidate))];
+    if (bodies.length > 1024 || new Set(bodies).size !== bodies.length || new Set(bodies.map(member => member.entityId)).size !== bodies.length) throw new Error('Ambiguous herd guest references');
+    const references = bodies.map((member,index) => {
+      const slot=own.get(member);
+      return {group:slot===undefined?`${binding.group}:external`:binding.group,slot:slot??index,identity:member.entityId,wire:member.entityId,handle:index+1,body:member};
+    });
+    const loan={binding,pool,members:members.slice(),bodies,references,byBody:new Map(references.map(row=>[row.body,row]))};
+    this.guestLoans[depth]=loan;return loan;
+  }
   private runHerdGuest(signal: string, context?: GuardedHerdContext<A>, actor?: A, body = false,
     arguments_: Readonly<Record<string,number>> = {}): boolean {
     const binding = this.guest;
     if (binding === undefined) return false;
     if (binding.scope.disposed || binding.scope.disposing || binding.program.prepareGroup !== binding.prepare
       || binding.program.groupBindings !== binding.bindings) throw new Error('Replaced herd guest binding');
-    const pool = binding.actors instanceof Map ? [...binding.actors.values()] : binding.actors;
-    if (actor !== undefined && !pool.includes(actor) || this.members.some(member => !pool.includes(member))) throw new Error('Foreign herd guest actor');
-    const bodies = [...this.members,...pool.filter(candidate => !this.members.includes(candidate))];
-    if (bodies.length > 1024 || new Set(bodies).size !== bodies.length || new Set(bodies.map(member => member.entityId)).size !== bodies.length) throw new Error('Ambiguous herd guest references');
-    const references = bodies.map((member,index) => ({group:this.members.includes(member)?binding.group:`${binding.group}:external`,
-      slot:this.members.includes(member)?this.members.indexOf(member):index,identity:member.entityId,wire:member.entityId,handle:index+1,body:member}));
+    const depth=this.guestDepth,previous=this.guestCall,{bodies,references,byBody}=this.herdGuestLoan(binding,depth);
+    if (actor !== undefined && !byBody.has(actor)) throw new Error('Foreign herd guest actor');
     const slot = actor === undefined ? 0 : this.members.indexOf(actor);
-    const depth=this.guestDepth,previous=this.guestCall;
     let buffer=this.guestBanks[depth];
-    if(buffer===undefined||buffer.bodies.length!==bodies.length||buffer.bodies.some((member,index)=>member!==bodies[index])){
+    if(buffer===undefined||buffer.bodies!==bodies&&(buffer.bodies.length!==bodies.length||buffer.bodies.some((member,index)=>member!==bodies[index]))){
       const initial:Record<string,GroupBankValueV2>=Object.fromEntries(binding.shape.bank.map(row=>
         [row.name,row.kind==='boolean'?false:row.kind==='reference'?null:row.kind==='enum'?row.values[0]??'':0]));
       Object.assign(initial,this.captureHerdGuestState());
       buffer={bank:binding.codec.encode(initial,binding.group,references),values:initial,bodies};
       this.guestBanks[depth]=buffer;
     }
-    const argumentHandle=actor===undefined?0:references.find(row=>row.body===actor)?.handle;
+    const argumentHandle=actor===undefined?0:byBody.get(actor)?.handle;
     if(argumentHandle===undefined)throw new Error('Missing herd guest argument');
     const native=this.captureHerdGuestState(),reset:Record<string,GroupBankValueV2>={slot:Math.max(0,slot),body};
     for(const row of binding.shape.bank)if(!Object.hasOwn(native,row.name)&&!row.name.startsWith('context.')&&row.name!=='slot'&&row.name!=='body'){
@@ -475,13 +522,13 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     binding.codec.update(buffer.bank,reset,binding.group,references);
     const random=this.herdPorts.sharedRng();
     this.guestDepth=depth+1;
-    this.guestCall={binding,context,signal,slot:Math.max(0,slot),bank:buffer.bank,values:buffer.values,references,
+    this.guestCall={binding,context,signal,slot:Math.max(0,slot),bank:buffer.bank,values:buffer.values,references,bodies:byBody,
       random,arguments:{...arguments_,'context.argHandle':argumentHandle},reply:0,replies:Object.fromEntries(binding.replyChannels.map(channel=>[channel,0])),fresh:true,members:[]};
     try{this.runGuest(binding.program);}
     finally{buffer.values=this.guestCall.values;this.guestCall=previous;this.guestDepth=depth;}
     return true;
   }
-  protected override captureGuest(replies: readonly GroupStepNativeResultV2[]): GroupGuestFrameV2<A> {
+  protected override captureGuest(replies: readonly GroupStepNativeResultV2[], settled?: {readonly after:object;readonly touched:readonly number[]}): GroupGuestFrameV2<A> {
     const call = this.guestCall;
     if (call === undefined || call.binding !== this.guest) throw new Error('Missing herd guest call');
     const {binding,context,references} = call, player = context?.player ?? binding.player;
@@ -491,14 +538,16 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
       if (!Object.hasOwn(call.replies, reply.channel)) throw new Error('Unknown herd guest result');
       call.replies[reply.channel] = reply.value;if (reply.channel === 'reply') call.reply = reply.value;
     }
+    const bodies=call.bodies;
     for (let slot=0;slot<this.members.length;slot++) {
       const actor=this.members[slot];
-      const reference = references.find(row => row.body === actor);
+      const reference = actor===undefined?undefined:bodies.get(actor);
       if (reference === undefined) throw new Error('Unknown appended herd member');
-      reference.group = binding.group;reference.slot = slot;
+      if(reference.group!==binding.group)reference.group = binding.group;
+      if(reference.slot!==slot)reference.slot = slot;
     }
-    const retained = call.values, current = this.captureHerdGuestState();
-    const target = references.find(row => row.body === this.chargeTarget) ?? null;
+    const retained = call.values, current = settled===undefined?this.captureHerdGuestState():retained;
+    const target = (this.chargeTarget===null?undefined:bodies.get(this.chargeTarget)) ?? null;
     const named = binding.referenceFields.map(([name,field]):[string,typeof references[number]|null]=>{
       const value=call.fresh?0:retained[field];if(value===null||value===0)return[name,null];
       const reference=typeof value==='number'?references.find(row=>row.handle===value):typeof value==='string'?references.find(row=>row.wire===value):undefined;
@@ -519,7 +568,8 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     parameters['context.pz']=player.z;
     const changes=call.changes??={};
     for(const name of Object.keys(changes))delete changes[name];
-    for(const name of Object.keys(current)){const value=current[name];if(!Object.is(retained[name],value)){if(value===undefined)throw new Error('Missing herd guest capture value');changes[name]=value;}}
+    // A settled segment wrote no scalar after its commit published `retained`, so there is nothing to diff.
+    if(settled===undefined)for(const name of Object.keys(current)){const value=current[name];if(!Object.is(retained[name],value)){if(value===undefined)throw new Error('Missing herd guest capture value');changes[name]=value;}}
     for(const name of binding.contextFields){
       const value=parameters[name]??0;if(!Object.is(retained[name],value))changes[name]=value;
     }
@@ -527,6 +577,14 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
     const members=call.members,roster=this.members,count=roster.length;members.length=count;
     for(let slot=0;slot<count;slot++){
       const actor=roster[slot];if(actor===undefined)throw new Error('Missing herd member capture');
+      const held=settled===undefined?undefined:members[slot];
+      if(held!==undefined){
+        // A settled segment moved no body and no role: this member's loans keep their keys, so only what a reply can repoint is set.
+        for(let index=0;index<named.length;index++){const entry=named[index];if(entry===undefined)throw new Error('Missing herd capture reference');held.references.set(entry[0],entry[1]);}
+        held.references.set('target',target);held.references.set('threat',threat);held.results.reply=call.reply;
+        for(const channel of binding.replyChannels)if(channel!=='reply')held.results[channel]=call.replies[channel]??0;
+        continue;
+      }
       const member=members[slot]??={scope:binding.scope,self:{group:'',slot:0,identity:'',actor},player:{position:player},
         observed:new Map(),references:new Map(),results:{foal:0,mother:0,reply:0},t:0,dt:0};
       member.self.group=binding.group;member.self.slot=slot;member.self.identity=actor.entityId;member.self.actor=actor;
@@ -537,8 +595,8 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
         const entry=named[index];if(entry===undefined)throw new Error('Missing herd capture reference');
         member.references.set(entry[0],entry[1]);
       }
-      member.references.set('self',references.find(row=>row.body===actor)??null);member.references.set('target',target);member.references.set('threat',threat);
-      Object.assign(member.results,this.captureHerdGuestRoles(actor,member.results));member.results.reply=call.reply;
+      member.references.set('self',bodies.get(actor)??null);member.references.set('target',target);member.references.set('threat',threat);
+      this.captureHerdGuestRoles(actor,member.results);member.results.reply=call.reply;
       for(const channel of binding.replyChannels)if(channel!=='reply')member.results[channel]=call.replies[channel]??0;
     }
     const selection=binding.rows.capture,slots=new Set<number>([0,call.slot]);
@@ -551,7 +609,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
       }
     }
     return {input:{group:binding.group,handle:binding.handle,profile:binding.rows.profile,signal:call.signal,tick:0,state:call.bank,members,references,
-      random:call.random,...(selection===undefined?{}:{capture:{common:selection.common,slots:[...slots]}}),...(context === undefined ? {} : {contextRandom:context.rng})},
+      random:call.random,...(selection===undefined?{}:{capture:{common:selection.common,slots:[...slots]}}),...(context === undefined ? {} : {contextRandom:context.rng}),...(settled===undefined?{}:{settled})},
       native:{scope:binding.scope,members,references,group:{kind:'herd',owner:this},ground:this.herdPorts,
         ...(this.herdPorts.grassHeightAt === undefined ? {} : {grass:{grassHeightAt:this.herdPorts.grassHeightAt}}),
         ...(context === undefined ? {} : {contexts:members.map(() => context)})},resume:binding.rows.resume};
@@ -626,7 +684,7 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
         if(name==='__proto__')Object.defineProperty(candidate,name,{value,writable:true,configurable:true,enumerable:true});
         else candidate[name]=value;
       }
-      const next=v.parse(herdContinuation.entries.state,candidate);parsed=true;return next;
+      const next=readHerdScalars(candidate,entries)??v.parse(herdContinuation.entries.state,candidate);parsed=true;return next;
     }finally{
       if(parsed)for(let index=0;index<entries.length;index++){const name=entries[index]?.[0];if(name!==undefined)candidate[name]=undefined;}
       else this.guestCandidates[depth]=undefined; // A schema error may expose its input record; never recycle it.
@@ -686,7 +744,6 @@ export class GrazerBrain<A extends AnimalSim> extends GroupBrain<A> {
           ||pin.body.entityId!==pin.identity))throw new Error('Changed herd guest publication owner');
       }
     };
-    validate();
     return { validate, commit: () => {
       validate();accepted = true;Object.assign(this,next);
       this.lead = lead;this.stallion = stallion;this.ridden = ridden;this.chargeTarget = target;

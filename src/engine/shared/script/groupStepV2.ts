@@ -9,7 +9,7 @@ import { prepareV2Rng } from '@wildshard/format/scriptRngV2';
 import { createV2FrameWriter, validateV2Frame, layoutV2, relativeTickV2, type V2FrameAuthority, type V2Layout } from '@wildshard/format/scriptWireV2';
 import type { V2QueryBinding } from '@wildshard/format/scriptQueriesV2';
 import { GroupBankV2 } from './groupBankV2';
-import { ObservationColumnsV2, type V2ColumnOwners, type V2ActorColumnSlot, type V2ReferenceColumn } from './observationColumnsV2';
+import { ObservationColumnsV2, type V2ColumnOwners, type V2ActorColumnSlot, type V2ReferenceColumn, type V2ColumnSource } from './observationColumnsV2';
 import { ScriptModuleV2 } from './moduleV2';
 import type { QueryRingV2 } from '../../server/script/queriesV2';
 import type { Scope } from '../app/scope';
@@ -41,6 +41,36 @@ export interface GroupStepOperationV2 {
   readonly reference?: GroupStepReferenceV2;
   readonly native?: Readonly<GroupStepNativeV2>;
 }
+/** One member's pins for a prepared segment, and whether its numbers were kept from the segment before. */
+interface GroupMemberRecordV2 {
+  readonly source: V2ColumnOwners; readonly self: Readonly<V2ColumnOwners['self']>;
+  readonly referenceOwner: V2ColumnOwners['references'];
+  readonly references: {name:string;loan:V2ReferenceColumn|null;body:V2ReferenceColumn['body']|undefined;identity:string|undefined;handle:number|undefined}[];
+  values: Float64Array; common: boolean; held: boolean;
+}
+/** A column a segment of reads and memory writes cannot move: not a reply, and not a reference a reply can repoint. */
+function steadyColumn(source: V2ColumnSource): boolean {
+  if (source.kind === 'result') return source.channel === 'foal' || source.channel === 'mother';
+  return source.kind !== 'reference' || source.binding === 'self';
+}
+/** The members whose memory these operations wrote, when that is all they did: `visibility`, `hearing`, `downwind` and
+ * `environment` read, and `memory` writes one member's memory. Anything else may move a body, so nothing is settled. */
+export function settledGroupSlots(operations: readonly GroupStepOperationV2[]): readonly number[] | undefined {
+  const touched: number[] = [];
+  for (const operation of operations) {
+    const kind = operation.native?.kind;
+    if (kind === 'memory' && operation.member !== undefined) touched.push(operation.member.slot);
+    else if (kind !== 'visibility' && kind !== 'hearing' && kind !== 'downwind' && kind !== 'environment') return undefined;
+  }
+  return touched;
+}
+/** Admitted operations name few keys and ask per segment, so each is matched once. */
+const memoryKeys=new Map<string,boolean>();
+function plainMemoryKey(key:string):boolean {
+  let plain=memoryKeys.get(key);
+  if(plain===undefined){plain=/^(?!(?:__proto__|prototype|constructor)$).+$/u.test(key);if(memoryKeys.size<4096)memoryKeys.set(key,plain);}
+  return plain;
+}
 const stateSlice:unknown=Reflect.get(Float64Array.prototype,'slice');
 /** whether a Float64Array writes the bytes DataView.setFloat64(…, true) writes (every supported engine: little-endian) */
 const LITTLE_ENDIAN=new Uint8Array(Float64Array.of(1).buffer)[7]===0x3f;
@@ -56,6 +86,8 @@ export class GroupStepV2 {
   private busy = false;
   private revision = 0;
   private readonly scope: Scope;
+  /** The last frozen copy of a roster, and its rows by handle: a group lends the same rows every segment. */
+  private loaned: { readonly source: readonly GroupStepReferenceV2[]; readonly refs: readonly Readonly<GroupStepReferenceV2>[]; readonly byHandle: ReadonlyMap<number,Readonly<GroupStepReferenceV2>> } | undefined;
   constructor(bytes: Uint8Array, input: unknown, scope: Scope, shared?: { readonly module: ScriptModuleV2; readonly layout: V2Layout }) {
     this.scope = scope;
     this.live();
@@ -75,7 +107,12 @@ export class GroupStepV2 {
       actions: new Map(rows.actions.map(row=>{if(row.native!==undefined)freezeNative(row.native);return [row.id,row];})),
       order: rows.columns.map((row,column)=>({name:row.name,index:column})).sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0).map(row=>row.index),
       /** the last capture selection's common names (a copy) and the columns they select: a group asks the same each segment */
-      selection: undefined as { readonly names: readonly string[]; readonly selected: readonly boolean[] } | undefined,
+      selection: undefined as { readonly names: readonly string[]; readonly selected: readonly boolean[]; readonly settled: boolean } | undefined,
+      /** the last prepare's token and its member rows: `settled` reads them back instead of capturing again */
+      last: undefined as object | undefined,
+      records: [] as (GroupMemberRecordV2 | undefined)[],
+      /** the observation region's words, written whole: only `present` and the value move between segments */
+      fields: undefined as { readonly count: number; readonly bytes: Uint8Array; readonly words: Uint32Array; readonly numbers: Float64Array } | undefined,
     };});
     const source = Uint8Array.from(bytes), admitted = admitScriptV2(source, { lane: 'project', ioBytes: this.layout.bytes });
     if (admitted.io !== 0 || admitted.initialPages !== this.rows.pages) throw new Error('Group step module layout mismatch');
@@ -85,6 +122,24 @@ export class GroupStepV2 {
   }
   private live(): void {
     if (this.scope.disposed || this.scope.disposing) throw new Error('Group step owner disposed');
+  }
+  /** Frozen rows for this roster. A same-row roster keeps its copy: every row is still compared, none is rebuilt. */
+  private freezeReferences(source: readonly GroupStepReferenceV2[]): NonNullable<GroupStepV2['loaned']> {
+    const known = this.loaned;
+    if (known?.source === source && known.refs.length === source.length) {
+      let same = true;
+      for (let index = 0; same && index < source.length; index++) {
+        const row = known.refs[index];
+        same = row !== undefined && sameReference(source[index], row);
+      }
+      if (same) return known;
+    }
+    const refs = source.map(row => {
+      if (!validReference(row)) throw new Error('Foreign group reference body');
+      return Object.freeze({ ...row });
+    });
+    const loaned = { source, refs, byHandle: new Map(refs.map(row => [row.handle, row])) };
+    this.loaned = loaned;return loaned;
   }
   /** Capture once, execute once, then validate ALL state/actions/queries/RNG.
    * The original native owner preflights its concrete operation loans before
@@ -97,6 +152,8 @@ export class GroupStepV2 {
     readonly capture?: {readonly common:readonly string[];readonly slots:readonly number[]};
     readonly references: readonly GroupStepReferenceV2[]; readonly random?: Rng; readonly contextRandom?: Rng;
     readonly queries?: { readonly ring: QueryRingV2; readonly binding: V2QueryBinding };
+    /** The caller's word that since `after` was prepared only `touched` members' memory has moved (see `settledGroupSlots`). */
+    readonly settled?: { readonly after: object; readonly touched: readonly number[] };
   }): {
     readonly operations: readonly GroupStepOperationV2[];
     readonly values: Readonly<Record<string,GroupBankValueV2>>;
@@ -132,10 +189,7 @@ export class GroupStepV2 {
         originalState=profile.input;originalState.set(stateInput);
       }else originalState=stateInput.slice();
       profile.bank.validate(originalState, input.group, input.references);
-      const refs = input.references.map(row => {
-        if (!validReference(row)) throw new Error('Foreign group reference body');
-        return Object.freeze({ ...row });
-      });
+      const { refs, byHandle } = this.freezeReferences(input.references);
       for (const row of refs) if (row.group === input.group && (row.pose === true || input.members[row.slot]?.self.actor !== row.body))
         throw new Error('Foreign group member reference');
       const identities = input.members.filter(owners => owners.self.actor !== null).map(owners => owners.self.identity);
@@ -146,35 +200,49 @@ export class GroupStepV2 {
         &&selection.common.every((name,index)=>name===known.names[index]);
       if(selection!==undefined&&(selection.common.length>128||selection.slots.length>16||!same&&selection.common.some(name=>!profile.rows.columns.some(row=>row.name===name))
         ||selection.slots.some(slot=>!Number.isInteger(slot)||slot<0||slot>=input.members.length)))throw new Error('Invalid group capture selection');
-      if(selection!==undefined&&!same)profile.selection={names:selection.common.slice(),selected:profile.rows.columns.map(row=>selection.common.includes(row.name))};
+      if(selection!==undefined&&!same){
+        const chosen=profile.rows.columns.map(row=>selection.common.includes(row.name));
+        profile.selection={names:selection.common.slice(),selected:chosen,settled:profile.rows.columns.every((row,index)=>!chosen[index]||steadyColumn(row.source))};
+      }
       const selected=selection===undefined?undefined:profile.selection?.selected;
-      const members = input.members.map((owners, slot) => {
+      const settled=input.settled,keep=settled!==undefined&&same&&profile.selection?.settled===true&&profile.last===settled.after;
+      const members:GroupMemberRecordV2[]=[];
+      for(let slot=0;slot<input.members.length;slot++){
+        const owners=input.members[slot];if(owners===undefined)throw new Error('Missing group member loan');
         if (owners.scope !== this.scope || owners.self.group !== input.group || owners.self.slot !== slot) throw new Error('Foreign group member loan');
-        const referenceOwner = owners.references;
-        const references: {name:string;loan:V2ReferenceColumn|null;body:V2ReferenceColumn['body']|undefined;identity:string|undefined;handle:number|undefined}[] = [];
+        const referenceOwner = owners.references,kept=keep?profile.records[slot]:undefined;
+        // A settled record keeps its frozen self and its pins; its loans are reread, since a reply can name a new threat.
+        const steady=kept!==undefined&&kept.source===owners&&kept.referenceOwner===referenceOwner&&kept.references.length===(referenceOwner?.size??0)&&kept.self.actor===owners.self.actor&&kept.self.identity===owners.self.identity;
+        const references=steady?kept.references:[];
         if(referenceOwner!==undefined){
-          const entries=[...referenceOwner];
-          for(let index=0;index<entries.length;index++){
-            const entry=entries[index];if(entry===undefined)throw new Error('Missing observed group reference');
-            const [name,loan]=entry;
+          let index=0;
+          for(const [name,loan] of referenceOwner){
             if(loan!==null){
-              let found=false;
-              for(let refIndex=0;refIndex<refs.length;refIndex++){
-                const row=refs[refIndex];if(row!==undefined&&row.body===loan.body&&row.identity===loan.identity&&row.handle===loan.handle){found=true;break;}
-              }
-              if(!found)throw new Error('Foreign observed group reference');
+              const row=byHandle.get(loan.handle);
+              if(row===undefined||row.body!==loan.body||row.identity!==loan.identity)throw new Error('Foreign observed group reference');
             }
-            references.push({name,loan,body:loan?.body,identity:loan?.identity,handle:loan?.handle});
+            const pin=references[index];
+            if(steady&&pin?.name===name){pin.loan=loan;pin.body=loan?.body;pin.identity=loan?.identity;pin.handle=loan?.handle;}
+            else references[index]={name,loan,body:loan?.body,identity:loan?.identity,handle:loan?.handle};
+            index++;
           }
         }
         // The busy fence makes these per-profile/member buffers exclusive until
         // the synchronous input writer finishes. Candidate validation reads
         // only body pins; it never rereads these numeric inputs.
         const destination=profile.observations[slot];if(destination===undefined)throw new Error('Missing group observation destination');
-        return { source: owners, self: Object.freeze({ ...owners.self }), referenceOwner, references, values: profile.columns.captureNumeric(owners,selection?.slots.includes(slot)===true?undefined:selected,destination) };
-      });
-      if (originalState.some((value, index) => !Object.is(value, input.state[index]))
-        || input.references.length !== refs.length || refs.some((row, index) => !sameReference(input.references[index], row))) throw new Error('Group state or reference changed during capture');
+        const whole=selection===undefined||selection.slots.includes(slot),held=steady&&!whole&&kept.common&&settled?.touched.includes(slot)!==true;
+        const record:GroupMemberRecordV2=steady?kept:{source:owners,self:Object.freeze({...owners.self}),referenceOwner,references,values:destination,common:false,held:false};
+        record.values=held?destination:profile.columns.captureNumeric(owners,whole?undefined:selected,destination);
+        record.common=!whole;record.held=held;
+        profile.records[slot]=record;members.push(record);
+      }
+      for (let index = 0; index < originalState.length; index++) if (!Object.is(originalState[index], input.state[index])) throw new Error('Group state or reference changed during capture');
+      if (input.references.length !== refs.length) throw new Error('Group state or reference changed during capture');
+      for (let index = 0; index < refs.length; index++) {
+        const row = refs[index];
+        if (row === undefined || !sameReference(input.references[index], row)) throw new Error('Group state or reference changed during capture');
+      }
       const random = input.random, contextRandom = input.contextRandom;
       if (contextRandom !== undefined && (this.rows.randomStreams !== 2 || random === undefined || contextRandom === random))
         throw new Error('Undeclared or aliased group RNG streams');
@@ -225,7 +293,29 @@ export class GroupStepV2 {
         view.setFloat64(p,signal,true);view.setFloat64(p+8,members.length,true);
         if(parameters===3)view.setFloat64(p+16,profileIndex,true);
         let field=0;
-        for(const member of members)for(const column of profile.order){
+        if(LITTLE_ENDIAN){
+          // one bulk copy of the same words: only `present` and the value change, and the row ids stay staged
+          let staged=profile.fields;
+          const stagedBefore=staged;
+          if(staged?.count!==fieldCount){
+            const buffer=new ArrayBuffer(fieldCount*16);
+            staged={count:fieldCount,bytes:new Uint8Array(buffer),words:new Uint32Array(buffer),numbers:new Float64Array(buffer)};
+            for(let index=0;index<fieldCount;index++)staged.words[index*4]=index+1;
+            profile.fields=staged;
+          }
+          const {words,numbers,bytes}=staged,order=profile.order,columns=order.length;
+          for(let slot=0;slot<members.length;slot++){
+            const member=members[slot],row=member?.values;
+            // a held row is still in the staging words the last segment copied from
+            if(member?.held===true&&staged===stagedBefore){field+=columns;continue;}
+            for(let index=0;index<columns;index++){
+              const value=row?.[order[index]??-1];
+              if(value===undefined||value===Infinity||value===-Infinity)throw new Error('Invalid group observation column');
+              const present=!Number.isNaN(value);words[field*4+1]=present?1:0;numbers[field*2+1]=present?value:0;field++;
+            }
+          }
+          new Uint8Array(view.buffer,view.byteOffset+f,bytes.length).set(bytes);
+        }else for(const member of members)for(const column of profile.order){
           const value=member.values[column];
           if(value===undefined||value===Infinity||value===-Infinity)throw new Error('Invalid group observation column');
           const offset=f+field*16,present=!Number.isNaN(value);view.setUint32(offset,field+1,true);view.setUint32(offset+4,Number(present),true);view.setFloat64(offset+8,present?value:0,true);field++;
@@ -239,8 +329,9 @@ export class GroupStepV2 {
         if (authority === undefined) throw new Error('Missing group frame authority');
         const actual = validateV2Frame(view, this.layout, authority), state = this.layout.regions[2], actions = this.layout.regions[9];
         if (state === undefined || actions === undefined || actual[2] !== profile.bank.width || (actual[9] ?? 0) > this.rows.outputs) throw new Error('Incomplete group candidate');
-        const bank = profile.output;
-        for (let index = 0; index < bank.length; index++) bank[index] = view.getFloat64(this.layout.io + state.offset + index * 8, true);
+        const bank = profile.output, words = this.layout.io + state.offset;
+        if (LITTLE_ENDIAN && (view.byteOffset + words) % 8 === 0) bank.set(new Float64Array(view.buffer, view.byteOffset + words, bank.length));
+        else for (let index = 0; index < bank.length; index++) bank[index] = view.getFloat64(words + index * 8, true);
         const prepared = profile.bank.prepare(input.state, bank, input.group, input.references, this.scope);
         bankPreparation=prepared;
         const operations: GroupStepOperationV2[] = [];
@@ -313,7 +404,7 @@ export class GroupStepV2 {
       };
       const discard=():void=>{if(!accepted){accepted=true;candidate.prepared.discard();}};
       handedOff=true;
-      return { operations: candidate.operations, values: candidate.prepared.values, validate, accept, discard, prepareNative: owners => {
+      const prepared={ operations: candidate.operations, values: candidate.prepared.values, validate, accept, discard, prepareNative: <A extends AnimalSim>(owners: GroupStepNativeOwnersV2<A>) => {
         if (owners.scope !== this.scope || owners.members !== input.members
           || owners.references !== undefined && owners.references !== input.references) throw new Error('Foreign native group result scope');
         const native = prepareGroupNativeV2(candidate.operations, owners);
@@ -322,6 +413,8 @@ export class GroupStepV2 {
           validateNative();accept();return native.run();
         } };
       } };
+      profile.last=prepared;
+      return prepared;
     } finally { if(!handedOff)bankPreparation?.discard();this.busy = false; }
   }
 }
@@ -634,7 +727,7 @@ export function prepareGroupNativeV2<A extends AnimalSim = AnimalSim>(operations
       }
       case 'memory': {
         const body = member?.actor, value = operation.values[1], valid = operation.values[2];
-        if (body === undefined || body === null || value === undefined || !/^(?!(?:__proto__|prototype|constructor)$).+$/u.test(request.key))
+        if (body === undefined || body === null || value === undefined || !plainMemoryKey(request.key))
           throw new Error('Invalid native memory operation');
         if (request.encoding !== undefined && (valid !== 0 && valid !== 1 || valid === 0 && !Object.is(value,0)))
           throw new Error('Invalid native memory encoding');
@@ -811,7 +904,7 @@ export function prepareGroupNativeV2<A extends AnimalSim = AnimalSim>(operations
           const sample = owner.hearing, radii = request.radii;
           if (typeof sample !== 'function' || radii.some(value => !Number.isFinite(value) || value < 0))
             throw new Error('Invalid native hearing owner or radii');
-          const copied = structuredClone(radii);
+          const copied = [radii[0], radii[1], radii[2], radii[3]] as const;
           pins.push(() => owner.hearing === sample && radii.every((value, index) => Object.is(value, copied[index])));
           invoke = () => sample.call(owner, copied, player, speed);
         }

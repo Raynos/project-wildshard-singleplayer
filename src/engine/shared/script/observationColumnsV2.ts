@@ -76,6 +76,8 @@ function finite(value: number): number { if (!Number.isFinite(value)) throw new 
 function need<T>(value: T | undefined,kind: string): T { if (value === undefined) throw new Error(`Missing observation ${kind} owner`);return value; }
 
 type Immutable<T> = T extends object ? { readonly [Key in keyof T]: Immutable<T[Key]> } : T;
+/** One admitted column's source, as a caller reads it. */
+export type V2ColumnSource = Immutable<ObservationColumnV2['source']>;
 interface NumericReferencePin {
   readonly name: string;
   loan: V2ReferenceColumn | null | undefined;
@@ -225,9 +227,12 @@ export class ObservationColumnsV2 {
     const values=destination??new Float64Array(this.scalars.length);
     if(selected!==undefined)values.fill(Number.NaN);
     let index=0;
+    // A read only reaches foreign code through a grass query, so only those fence each column; the fence below covers the rest.
+    const fence=queries.length>0;
     for(const read of this.scalars){
       const column=index++;if(selected?.[column]===false)continue;
-      live();values[column]=finite(read(owners));
+      if(fence)live();
+      values[column]=finite(read(owners));
     }
     live();
     if(owners.references!==owner)throw new Error('Retired observation owner');
