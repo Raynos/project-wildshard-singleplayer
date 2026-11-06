@@ -14,6 +14,15 @@ export interface ShardRows {
   readonly world: Map<string, () => readonly StateNetRow[]>;
 }
 
+/** The row a day clock publishes: its phase of the day, 0 to 1. */
+export const DAY_ROW = 'day.phase';
+/** A clock's row moves in steps of this much of a day: a 24 minute day writes a row every 0.35 s, and no sun shows the step. */
+const DAY_STEPS = 4096;
+/** Publish a day clock for the host's lifetime. A client's sky follows it. */
+export function publishDay(host: RowHost, clock: { readonly phase: number }): void {
+  const row = { name: DAY_ROW, value: 0 }, rows: readonly StateNetRow[] = [row];
+  publishWorldState(host, 'day', () => { row.value = Math.round(clock.phase * DAY_STEPS) / DAY_STEPS; return rows; });
+}
 const books = new WeakMap<object, ShardRows>();
 const NO_ROWS: ShardRows = { bodies: new Map<string, () => ScriptNetView>(), state: null, world: new Map<string, () => readonly StateNetRow[]>() };
 interface RowHost { readonly scope: { readonly onDispose: (run: () => void) => unknown } }

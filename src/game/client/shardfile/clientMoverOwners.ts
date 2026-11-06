@@ -35,7 +35,7 @@ export function wirePageSim():void{
       for(const row of options.data)wirePage.movers.set(row.id,{pose:pose=>{wirePage.posed++;runtime.follow(row.id,pose);}});
       return runtime;
     },
-    climate:(ports:Parameters<PageSimFeed['climate']>[0])=>climate({...ports,net:rows=>netClimate(wirePage.climateRows,rows)}),
+    climate:(ports:Parameters<PageSimFeed['climate']>[0])=>climate({...ports,net:rows=>netClimate(wirePage.climateRows,rows,word=>{wirePage.climate(word);})}),
   } satisfies Partial<PageSimFeed>);
 }
 // The grass a creature reads and parts is a view's, so this seat lends it the moment the page sim is reachable.

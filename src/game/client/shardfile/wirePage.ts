@@ -3,6 +3,10 @@
 import type { Vector3 } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { NetClient } from '@wildshard/engine/net/client';
+import type { NetRoomAct } from '@wildshard/engine/net/acts';
+import { DAY_ROW } from '@wildshard/engine/sim/shardRows';
+import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
+import type { ClimateWord } from '../weather/netClimate';
 import { QuestViewFeed } from '@wildshard/engine/quest/view/replica';
 import type { QuestDef } from '@wildshard/engine/quest/core';
 import type { QuestGateView, QuestView } from '@wildshard/engine/quest/viewPort';
@@ -15,6 +19,8 @@ import { netCreatureCount } from '../population/netCounts';
 import type { MoverView } from '../../server/plugin/mover';
 
 type Live = (client: NetClient) => (() => void) | undefined;
+/** The page's day clock, as a row sets it. */
+export type DayFollower = Pick<DayCycleClock, 'phase' | 'paused'>;
 const NO_ROWS: readonly EncounterRow[] = [];
 /** A talk's end, which says it again: a press is judged where the server has the body, a command behind, and a retry changes nothing. */
 const TALKED = 'talked:';
@@ -47,6 +53,10 @@ export class WirePage {
   private seeded: number | null = null;
   private heads: (body: number, to: Vector3) => boolean = () => false;
   private press: (id: string) => void = () => undefined;
+  private act: (act: NetRoomAct) => void = () => undefined;
+  /** This player's word on the sky: every world keeps its own weather, so each one hears it as this page gets there. */
+  private readonly skyWords = new Map<ClimateWord['op'], ClimateWord>();
+  private dayRow: number | undefined;
   get on(): boolean { return workerClientOn(); }
 
   /** Run `use` once there is a client, now or later, until `scope` ends. What it returns runs when `scope` does. */
@@ -59,12 +69,24 @@ export class WirePage {
   /** Every flag book this page makes from now on follows the server's. */
   followBooks(): void { Flags.made = book => { this.books.add(book); book.follow(flag => { if (flag.startsWith('seen:')) this.send(flag); else if (flag.startsWith(TALKED)) this.send(`${flag.slice(TALKED.length)}.talk`); }); }; }
   /** The wire is up. `press` sends one `interact`. */
-  bind(client: NetClient, press: (id: string) => void, stop: () => void, heads: (body: number, to: Vector3) => boolean): void {
-    this.client = client; this.press = press; this.stop = stop; this.heads = heads; this.encounterRows = netEncounterFeed(client).rows;
+  bind(client: NetClient, press: (id: string) => void, stop: () => void, heads: (body: number, to: Vector3) => boolean, act: (act: NetRoomAct) => void = () => undefined): void {
+    this.client = client; this.press = press; this.act = act; this.stop = stop; this.heads = heads; this.encounterRows = netEncounterFeed(client).rows;
     for (const use of this.waiting) use(client);
     this.waiting.clear();
   }
-  unbind(): void { this.client = null; this.press = () => undefined; this.stop = () => undefined; this.encounterRows = null; this.heads = () => false; this.seeded = null; this.books.clear(); this.feeds.clear(); this.movers.clear(); }
+  unbind(): void { this.client = null; this.press = () => undefined; this.act = () => undefined; this.dayRow = undefined; this.stop = () => undefined; this.encounterRows = null; this.heads = () => false; this.seeded = null; this.books.clear(); this.feeds.clear(); this.movers.clear(); }
+  /** A setting's weather or a dev's jump: the server's sky takes it. Only a mode outlives its world. */
+  climate(word: ClimateWord): void {
+    if (word.op === 'mode') this.skyWords.set('mode', word);
+    if (this.seeded !== null) this.say(word); else this.skyWords.set(word.op, word);
+  }
+  private say(word: ClimateWord): void { this.act({ kind: 'climate', seq: 0, ...word }); }
+  /** The server's day, followed: the page's clock is a view of it. A paused clock is one a player or a tool stopped. */
+  private followDay(clock: DayFollower | null, client: NetClient): void {
+    const phase = client.latest === null ? undefined : client.stateField(client.latest, DAY_ROW);
+    if (clock === null || phase === undefined || phase === this.dayRow || clock.paused) return;
+    this.dayRow = phase; clock.phase = phase;
+  }
   /** One press of a prompt the server knows by this id. */
   send(id: string): void { this.press(id); }
   /** A quest view for `def`, over this player's rows. */
@@ -86,15 +108,22 @@ export class WirePage {
   /** How many living creatures of `kind` are near this player, or null with no wire. */
   creatures(kind: string): number | null { return this.client === null ? null : netCreatureCount(this.client, kind); }
   /** What this frame's events changed: the server's flags and quest rows, then who they tell. `level` names the entered book, null any; `here` is false while a crossing is under way. */
-  frame(level: string | null, here: boolean): void {
+  frame(level: string | null, here: boolean, clock: DayFollower | null = null): void {
     const { client } = this;
     if (client === null || client.latest === null || !here) return;
+    this.followDay(clock, client);
     for (const [id, row] of client.quests) this.quests.set(id, row);
     this.heard.clear(); for (const flag of client.phased) this.heard.add(flag);
     const held = new Set([...client.flags(), ...client.phased]), now = client.latest.tick;
     for (const book of this.books) if (level === null || book.level.endsWith(level)) book.mirror(held, now);
     // What a save opened with is no news, and nor is a started quest a crossing comes back to: a world's first frame only says where things stand.
-    if (this.seeded !== client.latest.cell) { this.seeded = client.latest.cell; for (const feed of this.feeds.values()) feed.settle(); return; }
+    if (this.seeded !== client.latest.cell) {
+      this.seeded = client.latest.cell;
+      for (const feed of this.feeds.values()) feed.settle();
+      for (const word of this.skyWords.values()) this.say(word);
+      this.skyWords.delete('force');
+      return;
+    }
     for (const feed of this.feeds.values()) feed.sync();
   }
 }

@@ -1,8 +1,11 @@
 import type { NetClient } from '@wildshard/engine/net/client';
+import type { NetClimateAct } from '@wildshard/engine/net/acts';
 import type { WeatherHUD } from '@wildshard/engine/ui/HUD';
 import type { WeatherProgram, WeatherReactionRows } from '@wildshard/format/weatherProgram';
 import { WEATHER_ROW, weatherHud, weatherHudKey, type ClimateFeed, type StormReading, type StormRecord, type WeatherReading } from '../../shared/weather/feed';
 
+/** A page's word on the sky, as an act carries it. */
+export type ClimateWord = Pick<NetClimateAct, 'op' | 'name' | 'at'>;
 /** The numbers a program's weather always has, then what its rows add. */
 const numberIds = (rows: WeatherProgram): readonly string[] => [...new Set(['overcast', 'rain', 'wet', 'wind', 'fog', ...Object.keys(rows.initial ?? {}), ...Object.keys(rows.outputs)])];
 
@@ -62,11 +65,11 @@ class NetStorm implements StormReading {
 }
 
 /** The climate a client's view reads: the server's, off the `weather.*` rows it publishes. It stands in for the page's
- * `pageClimate` at the flip, and steps nothing: a frame only reads the newest rows. A server keeps a setting's mode and a
- * dev's phase jump to itself until a command can carry them. */
-export function netClimate(client: Pick<NetClient, 'latest' | 'stateField'>, rows: { readonly weather: WeatherProgram; readonly reactions?: WeatherReactionRows }): ClimateFeed {
+ * `pageClimate` at the flip, and steps nothing: a frame only reads the newest rows. A setting's mode and a dev's phase jump
+ * go up through `say`. */
+export function netClimate(client: Pick<NetClient, 'latest' | 'stateField'>, rows: { readonly weather: WeatherProgram; readonly reactions?: WeatherReactionRows }, say: (word: ClimateWord) => void): ClimateFeed {
   const weather = new NetWeather(rows.weather), storm = rows.reactions === undefined ? null : new NetStorm(rows.reactions, weather);
-  return { weather, storm, setMode: () => undefined, force: () => undefined,
+  return { weather, storm, setMode: (name, at) => { say({ op: 'mode', name, at: at ?? -1 }); }, force: (name, at) => { say({ op: 'force', name, at }); },
     frame: dt => {
       const frame = client.latest; if (frame === null) return;
       const read = (name: string): number | undefined => client.stateField(frame, name);

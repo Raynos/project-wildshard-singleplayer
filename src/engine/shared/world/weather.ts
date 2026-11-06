@@ -21,7 +21,8 @@ declare module '../../client/events/maps' {
   }
 }
 
-export interface WeatherNumbers { overcast: number; rain: number; wet: number; wind: number; fog: number }
+// oxlint-disable-next-line typescript/consistent-type-definitions -- a type, so its numbers read as a plain record of a sky's rows
+export type WeatherNumbers = { overcast: number; rain: number; wet: number; wind: number; fog: number };
 export interface WeatherFrame<S extends string, N extends WeatherNumbers> {
   state: S; mode: string; t: number; length: number; u: number; dt: number; prev: N; clockPhase: number;
 }

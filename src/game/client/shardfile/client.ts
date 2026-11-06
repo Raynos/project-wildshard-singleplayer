@@ -496,7 +496,7 @@ export class ShardfileClient {
     const ownsDay = borrowed === null && day !== null;
     if (ownsDay) { ctx.app.registerDayCycle(day, ctx.scope); runtimeDays.add(day); }
     const weather = new Map(source.rows.weather.map((row) => [row.id, declaredWeather(row, sim.host.rng.stream('cosmetic').fork(row.id))]));
-    sim.host.onStep('climate.declared', (dt) => { if (ownsDay) day.update(dt); for (const profile of weather.values()) profile.update(dt, day); });
+    sim.host.onStep('climate.declared', (dt) => { if (wirePage.on) return; if (ownsDay) day.update(dt); for (const profile of weather.values()) profile.update(dt, day); }); // on the wire the server's own runs, and its clock reaches this one
     for (const rule of source.ledger) if (!emitters.has(rule.origin.source)) emitters.set(rule.origin.source, installLedgerEmitter(sim.host, ledger, identity, rule.origin));
     for (const [id, view] of this.animals) {
       const core = sim.host.entities.get(id); if (core === undefined) throw new Error('Missing authoritative creature');

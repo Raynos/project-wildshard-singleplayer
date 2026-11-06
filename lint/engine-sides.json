@@ -1427,6 +1427,7 @@
   "src/game/client/shardfile/mapImage.ts": "client",
   "src/game/shared/shardfile/movers.ts": "shared",
   "src/game/shared/shardfile/namedJsonChecks.ts": "shared",
+  "src/game/server/shardfile/declaredClimate.ts": "server",
   "src/game/server/shardfile/nativeAssembly.ts": "server",
   "src/game/server/shardfile/nativeAssemblyHosts.ts": "server",
   "src/game/server/shardfile/nativeAssemblyInput.ts": "server",

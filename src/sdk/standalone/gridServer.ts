@@ -36,13 +36,14 @@ import { GridSimulation, type GridResident } from '@wildshard/game/grid/simulati
 import { bindShardfileSim, createShardfileSim, HOST_PROBE, type ShardfileSimPorts, type ShardfileSimulation } from '@wildshard/game/plugin/simulation';
 import { installRoomRespawn } from '@wildshard/game/roomRespawn';
 import { hasNativeAssembly } from '@wildshard/game/shardfile/nativeAssembly';
+import { installDeclaredClimate } from '@wildshard/game/shardfile/declaredClimate';
 import { createQuestLedger } from '@wildshard/game/quest/ledger';
 import { serverPlaces } from '@wildshard/game/quest/serverPlaces';
 import { createTrustedHeadlessResident, type HeadlessRuntimeInput } from '../headlessRuntime';
 import type { HeadlessEffect } from '../tickProtocol';
 import { cellDocuments, CONTINUATION, ContinuationSlots, SITE, siteDocuments, type SavedContinuation, type SavedSite } from './continuation';
 import { ledgerFilings } from './ledgerFilings';
-import { stepResident } from './netInput';
+import { netClimateActs, stepResident } from './netInput';
 
 /** Worlds the worker holds beside the road, and so what a crossroads costs a phone (E5.2b, J68): the one its player stands in. */
 export const STANDALONE_RESIDENTS = 1;
@@ -274,6 +275,7 @@ export class StandaloneGrid {
     }
     const effects: HeadlessEffect[] = [], { host, dispose, sim } = await openDataCell(input, snapshot, effects, options.lone === true);
     installRoomRespawn(host, []);
+    installDeclaredClimate(host, input.shard.rows);
     bindDiscovery(host, input.product === undefined ? [] : await serverPlaces(input.product));
     host.respawn.served = true;
     return { host, dispose, fact, effects: () => effects, adopt: () => { const held = sim(); return held === undefined || importPageProgress(options.saves, placed, input.shard, held); }, step: inputs => {
@@ -283,7 +285,7 @@ export class StandaloneGrid {
       for (const { player, acts } of inputs) for (const act of acts) {
         if (act.kind === 'interact' && act.id.startsWith('seen:') && routes.seen !== null) routes.seen(player, act.id);
         else if (act.kind === 'interact' && sim()?.selectedInteraction(player) === act.id) sim()?.interact(act.id, player);
-        else routes.refused++;
+        else if (act.kind !== 'climate') routes.refused++;
       }
       host.step(commandsOf(inputs));
     } };
@@ -291,6 +293,7 @@ export class StandaloneGrid {
 
   private step(site: string | null, inputs: readonly NetTickInput[]): boolean {
     const started = this.options.now(), world = site === null ? undefined : this.worlds.get(site);
+    netClimateActs(actRoutes(this.grid.hostOf(site)), inputs);
     if (world === undefined) this.grid.stepSite(site, commandsOf(inputs)); else world.step(inputs);
     const host = this.grid.hostOf(site), player = sessionPlayer(host);
     // The page used to catch a fall, on its own body. The server's world has nothing below it, so it would fall for ever.

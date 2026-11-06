@@ -253,6 +253,7 @@
     "./population/specCatalogue": "./server/population/specCatalogue.ts",
     "./boss/nativeArenaSeal": "./server/boss/nativeArenaSeal.ts",
     "./shardfile/nativeRuntimeLoans": "./server/shardfile/nativeRuntimeLoans.ts",
+    "./shardfile/declaredClimate": "./server/shardfile/declaredClimate.ts",
     "./shardfile/nativeAssembly": "./server/shardfile/nativeAssembly.ts",
     "./shardfile/nativeAssemblyInput": "./server/shardfile/nativeAssemblyInput.ts",
     "./population/mixedRoster": "./server/population/mixedRoster.ts",

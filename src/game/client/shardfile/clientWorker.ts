@@ -27,7 +27,7 @@ import { GrappleTool } from '../grapple/tool';
 import { netClaw } from '../grapple/netClaw';
 import type { Mount } from '../riding/mount';
 import { netMoverPoses } from '../plugin/moverViews';
-import { wirePage } from './wirePage';
+import { wirePage, type DayFollower } from './wirePage';
 
 type Creatures = Pick<AnimalManager, 'animals' | 'spawn' | 'retire'>;
 /** What a grid page lends: its crossing follows the server, and its creatures are the entered cell's. */
@@ -62,6 +62,8 @@ export interface WorkerClientPorts {
   readonly dims: (kind: string) => Parameters<typeof creatureBodyShape>[0] | null;
   /** The tools this page holds now: a hook tool's claw goes on the wire. */
   readonly tools: () => readonly object[];
+  /** The clock this page's sky reads, while it has one. */
+  readonly day: () => DayFollower | null;
   readonly scope: Scope;
   readonly system: (system: SystemSpec) => void;
 }
@@ -187,7 +189,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     tool?.useClaw(course => netClaw(client, id, net.hooks, course));
   };
   scope.onDispose(() => { clawed?.useClaw(null); clawed = null; });
-  wirePage.bind(client, id => { net.wire.interact(id); }, stop, (handle, to) => headOf(bodies.get(handle)?.body, to));
+  wirePage.bind(client, id => { net.wire.interact(id); }, stop, (handle, to) => headOf(bodies.get(handle)?.body, to), act => { client.act(act); });
   scope.onDispose(() => { wirePage.unbind(); });
   // J116: the lock's body by the server's name for it
   net.lockTarget = () => {
@@ -236,7 +238,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     syncCreatures(client, animals, bodies);
     bindMount(); offerMounts(); bindClaw();
     const shown = showRows(client, net, ports, bodies, renderTick, dt, row, near);
-    wirePage.frame(here ? bookOf(client.latest?.cell) : null, here); netMoverPoses(client, wirePage.movers, renderTick);
+    wirePage.frame(here ? bookOf(client.latest?.cell) : null, here, ports.day()); netMoverPoses(client, wirePage.movers, renderTick);
     report.rows = animals === null ? [...client.entities.values()].filter(info => info.cls.cls === ANIMAL_CLASS.cls).length : shown; // a data cell's life draws them
     net.present(dt);
     const now = diagnosticNow(), { predictor } = net, seconds = (now - started) / 1000, tick = client.latest?.tick ?? 0;

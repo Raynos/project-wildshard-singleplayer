@@ -18,6 +18,7 @@ import type { PlayerHealth } from '../shared/combat/health';
 import { Physics } from '../shared/physics/Physics';
 import { CharacterMotor, PLAYER_BODY, PLAYER_CAPSULE, type MotorOptions } from '../shared/physics/CharacterMotor';
 import { PlayerSim, simCommandOf } from './sim/playerSim';
+import { publishDay } from '../shared/sim/shardRows';
 import { BodyBandClocks, creatureBodyDistance, creatureBodyShape, keepsCreatureBody, tickDistance, type BandsState } from '../shared/sim/bands';
 import type { TickRate } from '../shared/app/scheduler';
 import { modeCollides } from '../shared/player/modes';
@@ -497,6 +498,7 @@ export class SimHost {
       clock.restore({ ...clock.snapshot(), value, last: clockDayPhase(clock.spec, value) });
     }
     this.day = clock;
+    publishDay(this, clock);
     return clock;
   }
   /** The installed day clock, if any (its query surface: hour, phase, dayPhase, night, dusk, onDusk…). */

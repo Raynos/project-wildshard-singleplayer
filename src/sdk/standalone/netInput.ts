@@ -48,6 +48,11 @@ export function netRide(routes: ActRoutes, player: string, command: NetCommand |
   if (command !== undefined) routes.lean?.(player, command.steer.keyX, lookPitch(command));
 }
 
+/** A lone player's word on the sky goes straight to the world's weather: a world with none has nothing to say to it. */
+export function netClimateActs(routes: ActRoutes, inputs: readonly Pick<NetTickInput, 'acts'>[]): void {
+  for (const { acts } of inputs) for (const act of acts) if (act.kind === 'climate') routes.climate?.(act);
+}
+
 /** A client names any slot, and a tick throws on one nothing owns: that input is refused here, and the rest of its command stands. */
 function owned(routes: ActRoutes | undefined, slot: number, reload: boolean, fire: boolean): boolean {
   if (routes === undefined) return true;
