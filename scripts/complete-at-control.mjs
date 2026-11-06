@@ -261,8 +261,8 @@ try {
   const members = new Set(), listing = { at: null };
   context.on('response', response => {
     if (!/\/assets\/spawn\/[^/]+\.json(?:\?|$)/u.test(response.url())) return;
-    listing.at ??= Date.now();
-    void (async () => { for (const member of spawnMembers(await response.json())) members.add(member); })().catch(() => undefined);
+    // the first manifest with parts: a title's read-ahead reads a default one, and its loose files are the first copy
+    void (async () => { const found = spawnMembers(await response.json()); if (found.size > 0) listing.at ??= Date.now(); for (const member of found) members.add(member); })().catch(() => undefined);
   });
   const page = await context.newPage();
   page.setDefaultTimeout(240000);

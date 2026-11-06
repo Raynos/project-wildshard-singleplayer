@@ -186,6 +186,19 @@ test('the precache takes a part\'s member from under its `?v=`, and downloads no
   expect(await (await assets.match(url(file)))?.text()).toBe('held');
 });
 
+test('a hashed name read bare is answered from a member kept under its `?v=`; a plain name is not', async () => {
+  const f = fixture(), worker = f.load('A', [], []);
+  await worker.dispatch('install'); await worker.dispatch('activate');
+  const assets = await f.open(ASSET_CACHE_NAME), plain = await f.open('ws-shell-v3-A');
+  await assets.put(url('/assets/boot-tables-4daeb084.json?v=4daeb084'), new Response('kept'));
+  await plain.put(url('/assets/title/plain.json?v=1'), new Response('kept'));
+  const held = await worker.dispatch('fetch', { request: new Request(url('/assets/boot-tables-4daeb084.json')) });
+  expect(await held?.text()).toBe('kept');
+  expect(f.fetch).not.toHaveBeenCalled();
+  await worker.dispatch('fetch', { request: new Request(url('/assets/title/plain.json')) });
+  expect(f.fetch).toHaveBeenCalledTimes(1);
+});
+
 test('a waiting update steps its precache aside on a loading page\'s PAUSE', async () => {
   const held = heldPrecache(), waiting = held.f.load('B', held.files, []);
   await waiting.dispatch('install');

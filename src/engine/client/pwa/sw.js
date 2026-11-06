@@ -205,6 +205,11 @@ async function cached(request, name) {
     cache = await store(name);
     const response = reload ? undefined : await cache.match(request, MATCH);
     if (response !== undefined && !isHtml(response)) return response;
+    // DL25: a hashed name read bare, where a part's member was kept under its manifest's `?v=`: the same file
+    if (!reload && CONTENT.test(new URL(request.url).pathname)) {
+      const kept = await cache.match(request, { ...MATCH, ignoreSearch: true });
+      if (kept !== undefined && !isHtml(kept)) return kept;
+    }
     if (response !== undefined) await cache.delete(request);
     if (!reload && name !== ASSETS) {
       const shared = await (await store(ASSETS)).match(request, MATCH);
