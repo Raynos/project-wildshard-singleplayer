@@ -174,8 +174,9 @@ export async function play(browser, phone, base, only = '') {
     await step('driftwood rides without a page error', () => ({ ok: drift.errors.length === 0, errors: [...new Set(drift.errors)].slice(0, 6) }));
     await drift.context.close();
     const pine = await open(browser, phone, base, '/?chunk=pine-hollow&mute=1&nolock=1');
-    await step('carry: the pine canoe takes a press', async () => { await entered(pine.page); return pressAt(pine.page, 'pine.canoe.ride.0'); });
-    await step('zipline: the pine cable is the server\'s ride', () => pressAt(pine.page, 'pine.zipline'));
+    await step('zipline: the pine cable is the server\'s ride', async () => { await entered(pine.page); return pressAt(pine.page, 'pine.zipline'); });
+    await step('the cable sets its rider down', async () => { await pine.page.waitForFunction(() => !window.__wildshard.world.player.link.predictor.leading, undefined, { timeout: 40_000 }); return true; });
+    await step('carry: the pine canoe takes a press', () => pressAt(pine.page, 'pine.canoe.ride.0'));
     await step('pine rides without a page error', () => ({ ok: pine.errors.length === 0, errors: [...new Set(pine.errors)].slice(0, 6) }));
     await pine.context.close();
     const far = await open(browser, phone, base, '/?chunk=far-reach&mute=1&nolock=1');
