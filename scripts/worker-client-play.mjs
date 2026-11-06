@@ -175,12 +175,13 @@ export async function play(browser, phone, base, only = '') {
     await drift.context.close();
     const pine = await open(browser, phone, base, '/?chunk=pine-hollow&mute=1&nolock=1');
     await step('carry: the pine canoe takes a press', async () => { await entered(pine.page); return pressAt(pine.page, 'pine.canoe.ride.0'); });
+    await step('zipline: the pine cable is the server\'s ride', () => pressAt(pine.page, 'pine.zipline'));
     await step('pine rides without a page error', () => ({ ok: pine.errors.length === 0, errors: [...new Set(pine.errors)].slice(0, 6) }));
     await pine.context.close();
     const far = await open(browser, phone, base, '/?chunk=far-reach&mute=1&nolock=1');
     await step('lift: a far reach islet takes a call and rises', async () => {
       await entered(far.page);
-      const prompts = await far.page.evaluate(() => window.__wildshard.world.interactables.filter(prompt => prompt.wireId === undefined && prompt.position.y > -1000 && prompt.radius > 3).map(prompt => ({ x: prompt.position.x, y: prompt.position.y, z: prompt.position.z, label: prompt.label })));
+      const prompts = await far.page.evaluate(() => window.__wildshard.world.interactables.filter(prompt => prompt.wireId === undefined && prompt.position.y > -1000 && /islet/iu.test(prompt.label)).map(prompt => ({ x: prompt.position.x, y: prompt.position.y, z: prompt.position.z, label: prompt.label })));
       const at = prompts.find(prompt => /islet/iu.test(prompt.label));
       if (at === undefined) return { ok: false, prompts: prompts.slice(0, 8) };
       await far.page.evaluate(({ x, y, z }) => { window.__wildshard.world.player.link.place(x, y + 0.2, z, 0); }, at);

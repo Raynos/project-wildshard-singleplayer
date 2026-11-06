@@ -1205,6 +1205,7 @@ export function installQuestHost(host: SimHost, quests: QuestData, input: QuestH
   // A net client names what it uses; the route it takes is the tick command a tape would send.
   const named = actRoutes(host).interactions;
   for (const route of routes) if (route.value !== null && (route.action.kind === 'row' || route.action.kind === 'owner') && !named.has(route.action.id)) named.set(route.action.id, { actorId: route.actor ?? row.graph.actor, value: route.value });
+  for (const route of routes) if (route.value !== null && route.action.kind === 'cable' && !named.has(route.action.cable)) named.set(route.action.cable, { actorId: route.actor ?? row.graph.actor, value: route.value });
   const accept: NativeQuestHost['accept'] = command => {
     const player = command.playerId ?? books.lead.player;
     // a player the host no longer holds has no command to run

@@ -349,8 +349,12 @@ export class AnimalManager {
    *  src/shards/nalati-grasslands/wet.ts); null = the water line alone */
   wetAt: ((x: number, z: number) => boolean) | null = null;
 
+  /** A page on a server: its creatures are rows, and it places no herds of its own. */
+  herdless = false;
+
   /** Places the shard's herds, yielding after each one (`build` drains it, `buildAsync` pauses between). */
   private *spawnHerds(): Generator<number, void, undefined> {
+    if (this.herdless) return;
     // herd placement comes from the shard: each HerdPlan asks for a clearing (or canopy) in a band of
     // distances off the trails, optionally in a ring around an anchor (a trail, a cabin…) — the hunting brain's recipe
     const { spawns: plan, spawn } = activeLevel();

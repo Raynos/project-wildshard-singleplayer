@@ -3,14 +3,14 @@ import { netSchema, type NetSchema } from './schema';
 
 // P1-E3.10 (E5-REPLICATION §3.2): shard state as a client reads it. Authors never declare wire fields: these three
 // tables carry any shard. A guest's memory, clocks and host-only fields stay on the server.
-const metres = { kind: 'f32q', min: -260, max: 260, bits: 16 } as const;
 /** The `script` class: a shard-script body's pose. No relevance radius: a far lift still has to be where it is. */
 export const SCRIPT_NET: NetSchema<ScriptNetView> = netSchema<ScriptNetView>({
   cls: 'script',
   fields: {
-    x: { ...metres, read: view => view.position.x },
-    y: { ...metres, read: view => view.position.y },
-    z: { ...metres, read: view => view.position.z },
+    // Exact: a client's prompts ask whether a deck stands at its stop, to the millimetre.
+    x: { kind: 'f32', read: view => view.position.x },
+    y: { kind: 'f32', read: view => view.position.y },
+    z: { kind: 'f32', read: view => view.position.z },
     pitch: { kind: 'angle', bits: 16, read: view => view.euler.x },
     yaw: { kind: 'angle', bits: 16, read: view => view.euler.y },
     roll: { kind: 'angle', bits: 16, read: view => view.euler.z },
