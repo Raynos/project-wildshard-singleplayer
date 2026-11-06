@@ -17,7 +17,7 @@ function fixture(active: boolean, tier: 'phone' | 'desktop' = 'phone') {
   const ports = { running: active ? {} : null, window: { __ws_sw: { ready } }, URL, arrivalTier: { current: tier },
     location: { href: 'https://example.test/?v=old', replace: (url: string) => { destinations.push(url); } },
     setTitleArrival: (arrival: unknown) => { arrivals.push(arrival); }, findTitleManifest: () => ({ name: 'Fixture' }),
-    markUnload: (reason: unknown) => { unloads.push(reason); },
+    markUnload: (reason: unknown) => { unloads.push(reason); }, leaveSaved: (go: () => void) => { go(); },
   };
   const navigate: unknown = runInNewContext(stripTypeScriptTypes(`${source.slice(start, end)}\nnavigate`), ports);
   if (typeof navigate !== 'function') throw new Error('Navigation is not callable');
