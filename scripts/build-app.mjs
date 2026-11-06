@@ -132,6 +132,9 @@ copyOutputProducts(process.cwd(), outDir);
 // DL20: the deploy drops the loose copies nothing reads by URL; a native build reads its own folder
 if (mode !== 'native') { const dropped = pruneLooseCopies(outDir); console.log(`Loose copies dropped: ${dropped.files} files, ${(dropped.bytes / 1e6).toFixed(1)} MB`); }
 
+// SHARD-SIZE row 1: refuse a shard whose phone download grew. Only the default web output holds the whole book.
+if (mode !== 'native' && outDir === resolve('dist')) step(['scripts/shard-size-gate.mjs', outDir]);
+
 // Carry the kept builds' graphs. The worker precache above deliberately names this
 // graph only; old pages demand their old files as needed. CI's main push builds the
 // output production ships (deploy.yml's prepare job), so it carries from production too.
