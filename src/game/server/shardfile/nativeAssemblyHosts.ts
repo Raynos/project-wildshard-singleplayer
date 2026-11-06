@@ -84,7 +84,7 @@ async function prepareQuest<C extends NativeAssemblyContext>(row: Extract<Native
   const feats = counters.feats.filter(feat => feat.kind === undefined);
   const native = row.nativeFeats !== true ? counters : parseAchievementCounterData({ ...counters, feats, write: 'each',
     flags: feats.map(feat => counters.flags.find(flag => flag.id === feat.id) ?? { id: feat.id, method: 'count', value: { constant: 0 } }) });
-  const props = row.props === undefined ? undefined : await read<NonNullable<NativeQuestCompositionInput['props']>>(row.props);
+  const props = row.props === undefined ? undefined : await read<unknown>(row.props);
   const trades = row.barter === true ? parseBarterEconomy(need(shard.rows.loot[0], 'Missing barter row').economy).exchange : undefined;
   return run => { run.quest = installNativeQuestComposition(run.host, { source: shard, table, rows, spots: row.readSpots === true ? readNativeQuestSpots(spots) : spots, counters: native,
     ...(content === undefined ? {} : { steps: content.steps, deaths: content.deaths, readings: content.readings, lead: content.lead }),

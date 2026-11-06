@@ -189,7 +189,7 @@ export class PatrolEncounterView<A extends PatrolViewActor = Animal> {
     if (quiet) { a.scale *= rows.quietScale; a.mesh.scale.setScalar(a.scale); pinBrain(a, scope); }
     a.mesh.material = material();
     // a ghost casts no shadow: the roster sets castShadow every frame, so it stays pinned off
-    Object.defineProperty(a.mesh, 'castShadow', { get: () => false, set: () => undefined, configurable: true });
+    Object.defineProperty(a.mesh, 'castShadow', { get: () => false, set: () => { /* pinned */ }, configurable: true });
     const mesh = new THREE.Mesh(figure, material()); mesh.name = `${look}-figure`; mesh.frustumCulled = false; bone.add(mesh);
     this.ports.cues.cue(rows.cues.form, seat.set(a.position.x, heightAt(a.position.x, a.position.z) + rows.lift.form, a.position.z), UP);
     return { scope, fades, bone };

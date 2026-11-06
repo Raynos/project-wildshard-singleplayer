@@ -72,8 +72,8 @@ function release(t: THREE.Texture): void {
   if (released.has(source) || !decodedImage(im)) return;
   released.set(source, cacheKey(t));
   source.data = { width: im.width, height: im.height };
-  Object.defineProperty(source, 'needsUpdate', { configurable: true, get: () => false, set: () => undefined });
-  Object.defineProperty(t, 'needsUpdate', { configurable: true, get: () => false, set: () => undefined }); // a later sampler change keeps the uploaded texture
+  Object.defineProperty(source, 'needsUpdate', { configurable: true, get: () => false, set: () => { /* pinned */ } });
+  Object.defineProperty(t, 'needsUpdate', { configurable: true, get: () => false, set: () => { /* pinned */ } }); // a later sampler change keeps the uploaded texture
   // The source stays live for GPU sharing; its consumed callback must not
   // keep the decoded image or a retired owner's release captures alive.
   const done = bitmapRelease.get(source);

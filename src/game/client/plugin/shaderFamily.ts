@@ -163,7 +163,7 @@ export class ShaderFamily<P extends string = string> {
   }
 
   private splice(source: string, stack: readonly string[], extra: Readonly<Record<string, string>>): string {
-    return source.replace(SPLICE, (_match, name: string) => {
+    return source.replaceAll(SPLICE, (_match, name: string) => {
       const fragment = extra[name] ?? this.fragments[name];
       if (fragment === undefined) throw new Error(`ShaderFamily: no fragment @{${name}}`);
       if (stack.includes(name)) throw new Error(`ShaderFamily: @{${name}} splices itself`);

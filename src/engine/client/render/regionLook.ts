@@ -137,11 +137,11 @@ const VARYING_DECL = /^[ \t]*((?:flat[ \t]+)?(?:varying|in)[ \t]+(?:(?:lowp|medi
  */
 function inline(source: string, overrides: Readonly<Record<string, string>>, shift: boolean, inRegion = false, depth = 0): string {
   if (depth > 16) return source;
-  return source.replace(INCLUDE, (whole, name: string) => {
+  return source.replaceAll(INCLUDE, (whole, name: string) => {
     if (Object.hasOwn(overrides, name)) {
       const body = inline(overrides[name] ?? '', overrides, shift, true, depth + 1);
       if (!shift || inRegion) return body;
-      return `\n${DEFINE}\n${body.replace(VARYING_DECL, (_all, decl: string) => `${UNDEF}\n${decl}\n${DEFINE}`)}\n${UNDEF}\n`;
+      return `\n${DEFINE}\n${body.replaceAll(VARYING_DECL, (_all, decl: string) => `${UNDEF}\n${decl}\n${DEFINE}`)}\n${UNDEF}\n`;
     }
     const text = readChunk(name);
     if (text !== undefined && reached(text, overrides).size > 0) {
@@ -170,7 +170,7 @@ const declared = (look: LookChunks): Set<string> => new Set(Object.values(look.c
  */
 function dedupeUniforms(source: string, names: ReadonlySet<string>): string {
   const seen = new Set<string>();
-  return source.replace(UNIFORM, (statement, name: string) => {
+  return source.replaceAll(UNIFORM, (statement, name: string) => {
     if (!names.has(name)) return statement;
     if (seen.has(name)) return '';
     seen.add(name); return statement;
