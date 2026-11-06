@@ -24,7 +24,7 @@ async function open(slug, query = '') {
   await page.waitForFunction(() => typeof window.__workerClient === 'function', undefined, { timeout: 150_000 });
   await page.evaluate(FLOOR_GRID_ENTER);
   await page.waitForFunction(() => window.__workerClient().frames > 30, undefined, { timeout: 60_000 });
-  await page.evaluate(() => {
+  await page.evaluate(pinned => {
     const { world } = window.__wildshard, tape = window.__tape = [];
     const record = (owner, name) => {
       const real = owner[name].bind(owner);
@@ -32,8 +32,8 @@ async function open(slug, query = '') {
     };
     for (const name of ['combat', 'sting']) record(world.music, name);
     // A lair's runtime pins `hud.killFeed`'s identity: wrapped on Nalati, `shard.nalati.elites` faults every frame, and presses, blows and the barrow's door die with it.
-    record(world.hud, 'toast'); if (slug !== 'nalati-grasslands') record(world.hud, 'killFeed');
-  });
+    record(world.hud, 'toast'); if (!pinned) record(world.hud, 'killFeed');
+  }, slug === 'nalati-grasslands');
   return { context, page, errors };
 }
 const report = page => page.evaluate(() => window.__workerClient());
