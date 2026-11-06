@@ -1,12 +1,12 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import { gzipSync } from 'node:zlib';
-import { gridSessionBudgetErrors, titleClosureBudgetErrors } from '../check-chunks.mjs';
+import { gridSessionBudgetErrors, sessionClosureBudgetErrors, titleClosureBudgetErrors } from '../check-chunks.mjs';
 
 /** Which modules land in which chunk, from the written web bundle: every JavaScript chunk in the build manifest
  *  (`.vite/manifest.json`), its static imports, its bytes, and its modules from its hidden source map's `sources`.
- *  Writes `.vite/chunk-modules.json` (check-chunks, ios-retry-check, js-entry-census) and throws when the title or
- *  grid session closure is over its ratchet budget or names a forbidden module. */
+ *  Writes `.vite/chunk-modules.json` (check-chunks, ios-retry-check, js-entry-census) and throws when the title,
+ *  grid session or session closure is over its ratchet budget or names a forbidden module. */
 export function writeChunkReport(outDir, root) {
   const manifest = JSON.parse(readFileSync(resolve(outDir, '.vite/manifest.json'), 'utf8'));
   /** @type {Record<string, {name: string, moduleIds: string[], rawBytes: number, gzBytes: number, imports: string[]}>} */
@@ -21,7 +21,7 @@ export function writeChunkReport(outDir, root) {
       imports: (row.imports ?? []).map(key => manifest[key]?.file ?? key) };
   }
   const policy = JSON.parse(readFileSync(resolve(root, 'lint/ratchet.json'), 'utf8'));
-  const errors = [...gridSessionBudgetErrors(report, policy.budgets), ...titleClosureBudgetErrors(report, policy.budgets)];
+  const errors = [...gridSessionBudgetErrors(report, policy.budgets), ...titleClosureBudgetErrors(report, policy.budgets), ...sessionClosureBudgetErrors(report, policy.budgets)];
   if (errors.length > 0) throw new Error(errors.join('\n'));
   mkdirSync(resolve(outDir, '.vite'), { recursive: true });
   writeFileSync(resolve(outDir, '.vite/chunk-modules.json'), JSON.stringify(report, null, 2));

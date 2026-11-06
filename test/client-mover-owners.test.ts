@@ -15,7 +15,7 @@ import { bindResidentWorldScope, boundResidentWorldScope } from '../src/game/cli
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import * as movers from '../src/game/server/plugin/mover';
 import { pageSimFeed } from '../src/game/server/plugin/pageSimFeed';
-import { installClientMoverOwners } from '../src/game/client/shardfile/clientMoverOwners';
+import { installClientMoverOwners, installPageSim } from '../src/game/client/shardfile/clientMoverOwners';
 import { publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { hashImmutableBytes } from '../src/sdk/immutable';
@@ -25,6 +25,8 @@ import { validateGraph } from '@wildshard/format/materialGraph';
 import { lendLooks, type LentLooks } from '../src/game/client/shardfile/lentLooks';
 import { originalDriftwoodMovers } from './fixtures/driftwood-movers';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
+
+installPageSim(pageSimFeed);
 
 const island = originalDriftwoodMovers();
 
