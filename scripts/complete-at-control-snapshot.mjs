@@ -147,7 +147,7 @@ export function spawnMembers(manifest) {
 }
 /** DL25: requests that moved a part's member over the network again once its manifest had said so, whoever made them: the page
  *  has those bytes. What the title read before the tap came first, so the part is the second copy, not the read. A service
- *  worker's answer moved none. A failed part hands its members to the loose lanes, which is a real fetch: `failed` says so. */
+ *  worker's answer moved none. A failed part is read again, which is a real fetch: `failed` says so. */
 export function spawnRereads(rows, members, listedAt, failed = false) {
   if (failed || listedAt === null) return { files: 0, bytes: 0, first: [] };
   const moved = rows.filter(row => row.start >= listedAt && members.has(new URL(row.url).pathname) && (row.bytes ?? 1) > 0);

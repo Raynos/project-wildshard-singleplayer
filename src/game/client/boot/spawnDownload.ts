@@ -1,4 +1,4 @@
-import {packsBookPath, readSpawnManifest, readSpawnManifestAddress, type SpawnManifestAddress} from '../../shared/shardfile/spawnManifest';
+import {packsBookPath, readSpawnManifest, readSpawnManifestAddress, type SpawnManifest, type SpawnManifestAddress, type SpawnPart} from '../../shared/shardfile/spawnManifest';
 import {jsonSlot} from '@wildshard/engine/saves/slots';
 
 /** This leaf statically imports no engine, renderer or worker. The title can start it on
@@ -136,10 +136,75 @@ function installMemberLayer(): boolean {
         if (body !== null) return new Response(body, {status: 200, headers: {'content-type': typeOf(url), 'content-length': String(body.byteLength)}});
       }
     }
-    return network(input, init);
+    if (method !== 'GET' || own) return network(input, init);
+    const url = new URL(input instanceof Request ? input.url : input instanceof URL ? input.href : input, location.href);
+    if (url.origin !== location.origin || !url.pathname.startsWith('/shardfiles/')) return network(input, init);
+    const held = await heldPartMember(url);
+    if (held !== null) return held;
+    const response = await network(input, init);
+    if (response.status !== 404 && !/\btext\/html\b/iu.test(response.headers.get('content-type') ?? '')) return response;
+    return await partMember(url) ?? response;
   };
   window.fetch = layer;
   return true;
+}
+/** DL20: a level file whose loose copy left the deploy. Files a home reads in play or past a road crossing are in the home's
+ *  whole-level parts and nowhere else, so a page read of one that answers 404 finds its part in the shard's whole manifest,
+ *  reads the part once, and keeps its members in the asset cache; the rest of the shard's reads of that part answer there. */
+interface PartMembers {readonly base: string; readonly store: Promise<Cache>; readonly files: ReadonlyMap<string, {readonly file: SpawnManifest['files'][number]; readonly part: SpawnPart; readonly offset: number}>}
+const partTables = new Map<string, Promise<PartMembers | null>>(), partReads = new Map<string, Promise<void>>();
+/** Members a part read kept, by path: these never ask the network first. */
+const keptMembers = new Set<string>();
+let partTier: 'phone' | 'desktop' = 'phone';
+async function partTable(slug: string): Promise<PartMembers | null> {
+  const selected = spawnSelection(slug, 'client', partTier, '000');
+  if (selected === null || typeof selected.cacheName !== 'string' || typeof caches === 'undefined') return null;
+  const address = bookSelection(await readPacksBook(), slug, 'client', partTier, '000');
+  if (address === null) return null;
+  const response = await downloadFetch()(new URL(address.url, selected.base));
+  if (!response.ok) return null;
+  const manifest = readSpawnManifest(await response.json()), files = new Map<string, {file: SpawnManifest['files'][number]; part: SpawnPart; offset: number}>();
+  for (const part of manifest.parts ?? []) for (const [index, offset] of part.members) {
+    const file = manifest.files[index]; if (file !== undefined) files.set(new URL(file.url, document.baseURI).pathname, {file, part, offset});
+  }
+  return {base: selected.base, store: caches.open(selected.cacheName), files};
+}
+function readMembersOf(part: SpawnPart, table: PartMembers): Promise<void> {
+  const held = partReads.get(part.url);
+  if (held !== undefined) return held;
+  const read = (async () => {
+    const response = await downloadFetch()(new URL(part.url, table.base));
+    if (!response.ok) throw new Error(`Spawn part unavailable: ${part.url}`);
+    const body = new Uint8Array(await response.arrayBuffer()), store = await table.store;
+    if (body.length !== part.bytes) throw new Error(`Spawn part size differs: ${part.url}`);
+    await Promise.all([...table.files].filter(([, row]) => row.part.url === part.url).map(async ([path, {file, offset}]) => {
+      const member = body.slice(offset, offset + file.bytes);
+      if (await sha256(member) !== file.hash) throw new Error(`Spawn part member differs: ${part.url}`);
+      await store.put(new URL(path, document.baseURI).href, new Response(member, {headers: {'content-type': typeOf(path), 'content-length': String(member.length)}}));
+      keptMembers.add(path);
+    }));
+  })();
+  partReads.set(part.url, read);
+  const settled = (): void => { partReads.delete(part.url); };
+  void read.then(settled, settled);
+  return read;
+}
+async function heldPartMember(url: URL): Promise<Response | null> {
+  if (!keptMembers.has(url.pathname)) return null;
+  const slug = url.pathname.split('/')[2] ?? '', table = await partTables.get(slug);
+  return await (await table?.store)?.match(new URL(url.pathname, document.baseURI).href) ?? null;
+}
+/** The file's bytes from its part, or null when no part holds it (the read keeps its 404). */
+async function partMember(url: URL): Promise<Response | null> {
+  try {
+    const slug = url.pathname.split('/')[2] ?? '';
+    let tabled = partTables.get(slug);
+    if (tabled === undefined) { tabled = partTable(slug); partTables.set(slug, tabled); void tabled.catch(() => { partTables.delete(slug); }); }
+    const table = await tabled, row = table?.files.get(url.pathname);
+    if (table === null || table === undefined || row === undefined) return null;
+    await readMembersOf(row.part, table);
+    return await heldPartMember(url);
+  } catch { return null; }
 }
 async function sha256(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
   return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), byte => byte.toString(16).padStart(2, '0')).join('');
@@ -715,6 +780,7 @@ function lateDownload(inner: Promise<SpawnDownload>): SpawnDownload {
     cancel: () => {cancelled = true; resolved?.cancel(); markStopped(new DOMException('Spawn download cancelled', 'AbortError')); for (const off of listeners.values()) off(); listeners.clear();}};
 }
 function spawnDownload(slug: string, flow: 'client' | 'grid', tier: 'phone' | 'desktop', mode: string, foreground: boolean): SpawnDownload | null {
+  partTier = tier; installMemberLayer();
   const selected = spawnSelection(slug, flow, tier, mode); if (selected === null) return null;
   const key = packsOn ? `packs:${flow}|${slug}|${tier}|${mode}` : addressKey(selected.address);
   if (current !== undefined && current.key === key) {
