@@ -310,7 +310,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     if (latest === null) return out;
     for (const [handle, info] of client.entities) {
       const seen = info.cls.cls === ANIMAL_CLASS.cls && info.initial['kind'] === kind ? client.fields(latest, handle) : null;
-      if (seen !== null && seen['alive'] === 1) out.push({ x: Number(seen['x']), y: Number(seen['y']), z: Number(seen['z']) });
+      if (seen !== null && Boolean(seen['alive'])) out.push({ x: Number(seen['x']), y: Number(seen['y']), z: Number(seen['z']) });
     }
     return out;
   };
