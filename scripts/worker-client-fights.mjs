@@ -546,6 +546,19 @@ async function nightJourney(browser, phone, base, step) {
     return { ok: up !== null && over > under, under, over, kind: up?.kind, rows: r.rows, retired: r.retired };
   });
   await page.screenshot({ path: 'tmp/flip8/night-balbal.png' }).catch(() => undefined);
+  await step('night: a save out of the ground comes back as it stood', async () => {
+    const before = await statues(), word = await awakeRow();
+    await page.evaluate(() => Promise.race([window.__workerClientSave(), new Promise(resolve => { setTimeout(resolve, 20_000); })]));
+    const saved = await report(page);
+    await page.reload({ waitUntil: 'load' });
+    await page.waitForFunction(() => typeof window.__workerClient === 'function', undefined, { timeout: 150_000 });
+    await page.evaluate(FLOOR_GRID_ENTER);
+    await page.waitForFunction(() => window.__workerClient().frames > 30, undefined, { timeout: 60_000 });
+    await page.evaluate(() => { window.__toasts = []; new MutationObserver(list => { for (const row of list) for (const node of row.addedNodes) if (node.classList?.contains('ws-game-toast')) window.__toasts.push(node.textContent); }).observe(document.body, { childList: true, subtree: true }); window.__workerClientHits(60); });
+    const back = await until(page, async () => (await awakeRow()) === word, 12), down = (await statues()).filter(site => site.awake).length, r = await report(page);
+    await page.waitForTimeout(1500);
+    return { ok: saved.savedOk && r.restored && back === true && down === before.filter(site => site.awake).length, savedOk: saved.savedOk, restored: r.restored, word, row: await awakeRow(), down, balbal: await bodyOf(page, 'balbal') };
+  });
   await step('night: real blows topple it, and it reads as a clue on the page', async () => {
     const paid = await report(page), end = Date.now() + 60_000;
     for (;;) {
@@ -560,6 +573,13 @@ async function nightJourney(browser, phone, base, step) {
     return { ok: r.flags.includes('clue:1') && shown, hits: r.hits - paid.hits, kills: r.kills - paid.kills, flags: r.flags.filter(flag => flag.startsWith('clue')), said: Object.entries(r.owned).filter(([line]) => line.startsWith('said.')), toasts, reading, retired: r.retired };
   });
   await page.screenshot({ path: 'tmp/flip8/night-clue.png' }).catch(() => undefined);
+  await step('night: ghost riders ride on rows, dressed', async () => {
+    const riders = await until(page, async () => (await page.evaluate(() => window.__workerClientRows('ghost-rider')))[0] ?? null, 45, 1000);
+    if (riders === null) return { ok: true, note: 'no patrol within a row of here' };
+    await place(page, riders.x + 14, riders.y + 2, riders.z);
+    const drawn = await until(page, () => page.evaluate(() => { const body = window.__wildshard.world.animals?.animals.find(row => row.kind === 'ghost-rider' && row.rowDriven); return body === undefined ? null : { material: body.mesh.material.name, scale: body.scale }; }), 12);
+    return { ok: drawn !== null && drawn.material.startsWith('nalati-ghost'), drawn, retired: (await report(page)).retired };
+  });
   await step('night: dawn sends the rest home, and their sites stand', async () => {
     await page.evaluate(() => { window.__workerClientTime('midday'); });
     const clear = await until(page, async () => (await awakeRow()) === 0, 45, 500);
@@ -622,7 +642,7 @@ async function secondClientJourney(browser, phone, base, step) {
   await step('second client: no page error', () => ({ ok: pine.errors.length === 0, errors: [...new Set(pine.errors)].slice(0, 6) }));
   await pine.context.close();
   const steppe = await open(browser, phone, base, 'nalati-grasslands');
-  const nalati = steppe.page, FACT = 'nalati.quest.tulpar', filed = async () => (await report(nalati)).receipts.filter(line => line === `fact:${FACT}`).length, kept = async () => { await nalati.waitForTimeout(1100); return (await report(nalati)).keptFacts; };
+  const nalati = steppe.page, FACT = 'nalati.quest.tulpar', filed = async () => (await report(nalati)).receipts.filter(line => line === `fact:${FACT}`).length, kept = () => nalati.evaluate(name => Object.keys(localStorage).map(key => (localStorage.getItem(key) ?? '').split(`"name":"${name}"`).length - 1).reduce((sum, count) => sum + count, 0), FACT);
   await step('a chapter\'s fact is filed once, and a reload adds none', async () => {
     const before = await kept();
     for (const flag of ['talked:elder', 'tamed:horse', 'won:kokpar', 'told:tulpar']) { await nalati.evaluate(wanted => { window.__workerClientFlag(wanted); }, flag); await nalati.waitForTimeout(300); }
@@ -634,8 +654,8 @@ async function secondClientJourney(browser, phone, base, step) {
     await nalati.reload({ waitUntil: 'load' }); await nalati.waitForFunction(() => typeof window.__workerClient === 'function', undefined, { timeout: 150_000 }); await nalati.evaluate(FLOOR_GRID_ENTER); await nalati.waitForFunction(() => window.__workerClient().frames > 30, undefined, { timeout: 60_000 });
     await nalati.waitForTimeout(4000);
     const again = await filed(), second = await kept();
-    // A fresh page hears the server's book from the top, by the receipt's own id: it keeps each one once.
-    return { ok: done === true && once === 1 && first === before + all.filter(line => line.startsWith('fact:')).length && second === first, done, once, again, before, first, second, receipts: all };
+    // A fresh page hears the server's book from the top. The page's own ledger keeps the fact once, however often it's told.
+    return { ok: done === true && once === 1 && before === 0 && first <= 1 && second === first, done, once, again, before, first, second, receipts: all, keys: await nalati.evaluate(() => Object.keys(localStorage).slice(0, 30)) };
   });
   await step('nalati, a second time: no page error', () => ({ ok: steppe.errors.length === 0, errors: [...new Set(steppe.errors)].slice(0, 6) }));
   await steppe.context.close();

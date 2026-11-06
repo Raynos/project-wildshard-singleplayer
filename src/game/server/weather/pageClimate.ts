@@ -56,8 +56,8 @@ export function pageClimate(ports: PageClimatePorts): PageClimate {
   const feed = net?.(declared) ?? null;
   if (feed !== null && storm !== null) for (const event of new Set(storm.rows.steps.flatMap(step => step.emit.map(row => row.event)))) feed.storm?.on(event, ({ age: _age, ...fields }) => { storm.raise(event, fields); });
   return { weather, storm,
-    setMode: (mode, at) => { weather.setMode(mode, at); },
-    force: (phase, at) => { weather.force(phase, at); },
+    setMode: (mode, at) => { if (feed === null) weather.setMode(mode, at); else feed.setMode(mode, at); }, // the server's sky takes both
+    force: (phase, at) => { if (feed === null) weather.force(phase, at); else feed.force(phase, at); },
     frame: (dt, seen) => {
       if (feed !== null) { feed.frame(dt, null); weather.state = feed.weather.state; Object.assign(weather.n, feed.weather.n); Object.assign(weather.registers, feed.weather.registers); return; }
       if (storm === null || world === null || seen === null) return;
