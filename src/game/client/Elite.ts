@@ -21,6 +21,7 @@ import type { CrowdTargets } from '../shared/shardfile/crowdRuntime';
 import { eliteViewSource, eliteViewTell, parseEliteOutputActions, parseEliteOutputBank, type EliteEnteredPresentation, type EliteOutputAction, type EliteOutput } from '@wildshard/format/eliteFeature';
 import { pageSim } from './shardfile/clientMoverOwners';
 import { wirePage } from './shardfile/wirePage';
+import { ELITE_MOMENTS, eliteGroundWord, eliteMomentWord } from '@wildshard/engine/sim/shardRows';
 import { EliteRowBar, type BossRowDrop } from './boss/barFeed';
 import { lendViewTell, lendViewValues } from './shardfile/clientViewProgram';
 import { Scope } from '@wildshard/engine/app/scope';
@@ -193,6 +194,7 @@ export class Elites {
       hud: entered.hud, audio: entered.audio, persistence: owners.persistence, contacts,
       strikes: rows.strikes, fallbackStrike: rows.fallbackStrike };
     this.bindEnteredPresentation(entered, rows.presentation, { actions: rows.actions, loans: outputs });
+    if (wirePage.on) this.followKernels(entered.scope, entered, player);
     if (rows.debug !== undefined) construction.onDispose(app.debug.scopedExpose(rows.debug, { scripts: entry.scripts, elites: this, bar: this.bar }));
     for (const row of rows.prewarm) { try { animals.factory.model(row.kind, row.variant); } catch (cause) { console.warn('[elites] prewarm failed', row.kind, cause); } }
   }
@@ -246,6 +248,25 @@ export class Elites {
     if (entered?.drainOutputs === undefined) throw new Error('Missing live elite output binding');
     entered.drainOutputs();
   }
+  /** A page on a server steps no lair. A native kernel says its ground ring and its moments, and they land here as a page's own do. */
+  private followKernels(scope: Scope, { hud, audio }: Pick<EliteEnteredOwners, 'hud' | 'audio'>, player: Pick<Player, 'position' | 'yaw'>): void {
+    const point = new THREE.Vector3(), grounds = new Map<string, NativeEliteController>(), moments = new Map<string, NativeEliteController>();
+    for (const { script } of this.entries) if (script instanceof NativeEliteController) { grounds.set(eliteGroundWord(script.def.id), script); moments.set(eliteMomentWord(script.def.id), script); }
+    wirePage.whenLive(scope, client => client.onView(({ name, args }) => {
+      const tell = grounds.get(name)?.tell, row = moments.get(name)?.row;
+      if (tell !== undefined) {
+        const [x, z, radius = 0, alpha = 0, t = 0] = args;
+        if (x === undefined || z === undefined) { tell.hide(); return; }
+        tell.setTime(t); tell.ring(x, z, radius, alpha); wirePage.drew('elite ground');
+      } else if (row !== undefined) {
+        const [index = -1, x = 0, y = 0, z = 0] = args, moment = ELITE_MOMENTS[index]; if (moment === undefined) return;
+        const line = row.messages[moment], voice = row.voices[moment];
+        if (line !== undefined) hud.killFeed(line);
+        if (voice !== undefined) audio.animal(voice, point.set(x, y, z), player.position, player.yaw);
+        wirePage.drew('elite moment');
+      }
+    }));
+  }
   /** Materialize eligible lair actors before restoring a rebuilt world, without advancing AI, timers or rewards. */
   initialize(): void { this.core.initialize(); }
   entry(id: string): Entry | undefined { return this.core.entry(id); }
@@ -257,6 +278,14 @@ export class Elites {
   /** a once elite won for good (Argymaq tamed): the trophy + the "skin" (the horse is the reward), the lair retires */
   won(id: string): void { this.core.won(id); }
 
+  /** A herd lair's leader wears its colour on the row's body as on the page's. */
+  private readonly tinted = new WeakSet<Animal>();
+  private tintRows(): void {
+    for (const row of wirePage.encounters()) {
+      const script = this.core.entry(row.id)?.script, body = wirePage.rowBody(row.body);
+      if (script instanceof BorrowedElite && body !== null && !this.tinted.has(body)) { this.tinted.add(body); script.tint(body); }
+    }
+  }
   /** A first kill's orb, as a lair's row lays it out. */
   private rowDrop(id: string, pressed: () => void): BossRowDrop {
     const entry = this.core.entry(id);
@@ -267,7 +296,7 @@ export class Elites {
   update(dt: number, t: number): void {
     // J130: a bar has one driver. On the wire the rows draw it and this page's lairs never wake.
     if (wirePage.on) { this.rowBar ??= new EliteRowBar(this.bar, this.core.entries.map(entry => entry.script.def), { player: this.host.player, camera: this.host.camera, head: wirePage.head, drop: (id, pressed) => this.rowDrop(id, pressed),
-      sting: (id, event) => { const entry = this.core.entry(id); if (entry !== undefined) this.view.sting(entry, event); }, trophy: id => { this.core.entry(id)?.script.trophy(); } }); this.rowBar.draw(wirePage.encounters(), dt); this.view.tendDrops(dt, t); return; }
+      sting: (id, event) => { const entry = this.core.entry(id); if (entry !== undefined) this.view.sting(entry, event); }, trophy: id => { this.core.entry(id)?.script.trophy(); } }); this.rowBar.draw(wirePage.encounters(), dt); this.view.tendDrops(dt, t); this.tintRows(); return; }
     this.view.update(dt, t, this.core.update(dt, t), this.core.entries);
   }
 }

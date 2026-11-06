@@ -12,6 +12,7 @@ import type { PackBrain } from './pack';
 import { StrikeRunner, type StrikeSpec } from '../../shared/ai/strikes';
 import { canReach } from '../../shared/ai/reach';
 import { nearestOnGround } from '../../shared/sim/nearPlayer';
+import { ELITE_MOMENTS, eliteGroundWord, eliteMomentWord, sayFightView } from '../../shared/sim/shardRows';
 
 const finite = v.pipe(v.number(), v.finite()), handle = HandleIdSchema;
 const rowSchema: v.GenericSchema<NativeEliteKernelPayloadInput, NativeEliteKernelPayload> = v.strictObject({
@@ -111,7 +112,12 @@ export class NativeEliteKernels {
       this.contacts.contact(strike, { ...contactPorts, actor, target: struck.position });
     };
     const common = { player: { get position() { return foe().position; } }, lair: row.lair, phase2: () => state.phase2, signature: () => { this.validate(); this.lifecycle.signature(id); } };
-    const tells = { setTime: silent, ring: silent, lane: silent, hide: silent };
+    // A page on a server steps no kernel: what it would paint and play is said, and nothing here reads it.
+    const ground = eliteGroundWord(id), word = eliteMomentWord(id);
+    let tellTime = 0, telling = false;
+    const tells = { setTime: (t: number): void => { tellTime = t; }, lane: silent, ring: (x: number, z: number, radius: number, strength: number): void => { telling = true; sayFightView(this.host, ground, [x, z, radius, strength, tellTime]); },
+      hide: (): void => { if (telling) sayFightView(this.host, ground, []); telling = false; } };
+    const moment = (name: typeof ELITE_MOMENTS[number], at?: { readonly x: number; readonly y: number; readonly z: number }): void => { sayFightView(this.host, word, [ELITE_MOMENTS.indexOf(name), at?.x ?? 0, at?.y ?? 0, at?.z ?? 0]); };
     const profile = row.profile;
     const controller = profile.pattern === 'pouncer' ? new StalkerBrain<AnimalSim>({ pattern: profile.pattern, spec: profile.spec, ports: {
       ...common, ledges: this.ledges, heightAt: (x, z) => { this.validate(); return this.terrain.heightAt(x, z); }, awareRadius: row.awareRadius, ring: tells,
@@ -121,10 +127,10 @@ export class NativeEliteKernels {
         const speed = row.knockdown.speed * Math.max(row.knockdown.min, Math.min(row.knockdown.max, 1));
         this.knocked.x = x / length * speed; this.knocked.z = z / length * speed;
         foe().dashAt(this.knocked.x, this.knocked.z, row.knockdown.seconds);
-      }, opened: silent, growl: silent,
+      }, opened: () => { moment('opened'); }, growl: at => { moment('growl', at); },
     } }) : new StalkerBrain<AnimalSim>({ pattern: profile.pattern, spec: profile.spec, ports: {
       ...common, pack: () => state.pack, environment: () => this.environment, random: () => this.rng.stream('ai').next(), rings: tells,
-      hurt, regrouped: silent, interrupted: silent, closed: silent, howl: silent,
+      hurt, regrouped: () => { moment('regrouped'); }, interrupted: () => { moment('interrupted'); }, closed: () => { moment('closed'); }, howl: at => { moment('howl', at); },
     } });
     this.created.set(controller, { id, state }); return controller;
   }

@@ -105,9 +105,14 @@ export class BorrowedElite implements BorrowedEliteController {
       this.program = program;
       setEliteDamage(animal, (_body, point) => eliteDamageScale(this.row, this.decisions, Number(this.program?.state('main')['mode'] ?? 0), point.distanceTo(this.services.player.position)));
     } else if (this.row.mode === 'herd') {
-      const color = this.row.spawn.color;
-      for (const material of Array.isArray(animal.mesh.material) ? animal.mesh.material : [animal.mesh.material]) if (material instanceof MeshLambertMaterial) material.color.setRGB(...color);
+      this.tint(animal);
     }
+  }
+  /** A herd lair's leader wears its row's colour. */
+  tint(animal: Animal): void {
+    if (this.row.mode !== 'herd') return;
+    const color = this.row.spawn.color;
+    for (const material of Array.isArray(animal.mesh.material) ? animal.mesh.material : [animal.mesh.material]) if (material instanceof MeshLambertMaterial) material.color.setRGB(...color);
   }
   support(actors: readonly Animal[]): void { this.line = actors; }
   despawn(): void {

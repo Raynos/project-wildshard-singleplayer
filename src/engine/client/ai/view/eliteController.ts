@@ -67,6 +67,8 @@ export class NativeEliteController {
   private requireLive(): void { if (this.scope.disposed || this.scope.disposing) throw new Error('Retired elite controller owner'); }
   private releaseBindings(): void { for (const release of this.bindings.splice(0)) release(); }
   readonly row: NativeEliteRow;
+  /** Its ground ring. A page on a server has it painted by what the server's kernel says. */
+  readonly tell: GroundTell;
   private readonly services: NativeEliteServices;
   private readonly drop: THREE.Object3D;
   constructor(row: NativeEliteRow, services: NativeEliteServices, drop: THREE.Object3D) {
@@ -75,7 +77,7 @@ export class NativeEliteController {
     this.row = row; this.services = services; this.drop = drop;
     this.def = row.def;
     const { game, player, lifecycle, bar } = services;
-    const tell = new GroundTell(game.scene, 'ring', new THREE.Color(...row.tell));
+    const tell = this.tell = new GroundTell(game.scene, 'ring', new THREE.Color(...row.tell));
     this.requireLive();
     const geometry = new THREE.CylinderGeometry(.05, .05, 1, 6, 1, true); geometry.translate(0, .5, 0);
     const material = fxMaterial(FX.beam, new THREE.Color(...row.beam), 0), beam = new THREE.Mesh(geometry, material);
