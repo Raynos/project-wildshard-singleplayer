@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import * as v from 'valibot';
 import { app } from '@wildshard/engine/app/runtime';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
+import { wirePage } from '../shardfile/wirePage';
 import { arenaSealCollider } from '../../shared/boss/arenaCollision';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
@@ -313,6 +314,7 @@ export class BossArenaRoom {
     c.mat.uniforms.uAlpha.value = c.k;
     c.mesh.visible = c.k > 0.02;
     this.flames.uniforms.uAlpha.value = 0.85 + 0.15 * Math.sin(t * 13) * Math.sin(t * 7.3);
+    if (wirePage.on) wirePage.sandInto(this.ground, this.rows.id);
     if (this.ground.pace(dt)) this.writeSand();
   }
 }

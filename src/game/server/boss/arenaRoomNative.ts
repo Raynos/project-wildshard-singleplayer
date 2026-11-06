@@ -11,7 +11,8 @@ import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 import { parseBossProfile } from '@wildshard/format/bossProfiles';
 import type { PhasedBossFight } from '../plugin/bossPhase';
 import { installBossRow } from '../shardfile/bossRow';
-import type { ArenaRoomGround } from '../../shared/boss/arenaGround';
+import { sandWireName, type ArenaRoomGround } from '../../shared/boss/arenaGround';
+import { publishWorldState } from '@wildshard/engine/sim/shardRows';
 import { ArenaPortalLaw, type ArenaPortalEntrance } from '../../shared/boss/arenaPortal';
 import type { ArenaRoomPortalRows, BoundedArenaFight } from '../../shared/boss/arenaRoomRows';
 import type { BossBounty } from './bounty';
@@ -25,7 +26,7 @@ export interface ArenaRoomFirstThink { readonly flag: string; readonly defaults:
 export interface ArenaRoomNativeRows {
   /** The fight's fixed step; its brain, sand and seal hang off it. */
   readonly step: string;
-  readonly room: ConstructorParameters<typeof ArenaRoomGround>[0];
+  readonly room: ConstructorParameters<typeof ArenaRoomGround>[0] & { readonly id: string };
   readonly definition: BossDefinition;
   readonly fight: BoundedArenaFight;
   readonly initialize?: ArenaRoomFirstThink;
@@ -62,7 +63,8 @@ const Saved = v.strictObject({ think: finite, sealed: v.boolean(), fight: v.unkn
 export function installArenaRoom<A extends ArenaRoomBody>(host: SimHost, rows: ArenaRoomNativeRows, ports: ArenaRoomNativePorts<A>): {
   boss: ReturnType<typeof installBossRow>['boss']; party: BossContenders; bounty: BossBounty; inside: (id: string) => boolean; fight: PhasedBossFight<A>; ground: ArenaRoomGround; locked: () => boolean;
 } {
-  const sand = new NativeArenaSand(host, rows.room, `${rows.step}.sand`), ground = sand.ground, profile = parseBossProfile(rows.fight.profile);
+  const sand = new NativeArenaSand(host, rows.room, `${rows.step}.sand`, sandWireName(rows.room.id)), ground = sand.ground, profile = parseBossProfile(rows.fight.profile);
+  publishWorldState(host, `${rows.step}.sand`, () => sand.wire);
   if (profile.pattern !== 'arena') throw new Error('Arena room requires an arena boss profile');
   const owner: { party: BossContenders | null; fight: PhasedBossFight<A> | null } = { party: null, fight: null };
   const doors = new Map<string, ArenaPortalLaw>();
@@ -93,7 +95,7 @@ export function installArenaRoom<A extends ArenaRoomBody>(host: SimHost, rows: A
       restore: value => {
         const saved = v.parse(Saved, value); think = saved.think; sealWanted = saved.sealed;
         for (const [id, door] of saved.doors ?? []) { const portal = rows.portal; if (portal !== undefined) { const law = new ArenaPortalLaw(portal.program, portal.rows, portal.entrance); law.restore(door); doors.set(id, law); } }
-        sand.restore(saved.sand); fight.restore(saved.fight, ports.find);
+        sand.restore(saved.sand); sand.republish(); fight.restore(saved.fight, ports.find);
       } } });
   owner.party = row.party; owner.fight = fight;
   const { portal } = rows;

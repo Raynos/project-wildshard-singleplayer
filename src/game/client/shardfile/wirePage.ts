@@ -10,6 +10,7 @@ import type { ClimateWord } from '../weather/netClimate';
 import type { Inventory } from '../Inventory';
 import { boardFromLines, OWNED_ROW, WORN_LINE } from '../../shared/loot/ownedRows';
 import type { ContractBoard } from '../../shared/quest/contractBoard';
+import { sandWireName, type ArenaRoomGround } from '../../shared/boss/arenaGround';
 import { isCosmetic, isOwnedId, type Owned } from '../../shared/loot/Owned';
 import type { Purse } from '../../shared/loot/Purse';
 import { QuestViewFeed } from '@wildshard/engine/quest/view/replica';
@@ -54,6 +55,10 @@ export class WirePage {
   readonly head: (body: number, to: Vector3) => boolean = (body, to) => this.heads(body, to);
   /** How many poses rows have set: what a proof reads. */
   posed = 0;
+  /** The highest drift rows have laid here, in metres: what a proof reads. */
+  sandPeak = 0;
+  private sandTick = -1;
+  private readonly sandStrips: string[] = [];
   /** This player's own world (J106), for a gate and a key. */
   readonly gates: QuestGateView = { has: flag => this.heard.has(flag) };
   private readonly quests = new Map<string, QuestProgress>();
@@ -119,6 +124,15 @@ export class WirePage {
       for (const [name, value] of owned) if (name.startsWith(OWNED_ROW.owned)) { const id = name.slice(OWNED_ROW.owned.length); gear?.grant(id); if (isOwnedId(id) && isCosmetic(id) && gear?.worn(id) !== (value === WORN_LINE)) gear?.toggleWorn(id); }
       if (board !== undefined && contracts !== null) board.mirror(contracts);
     }
+  }
+  /** A room's drifts as the server's rows have them: what this page's player walks on is what the server's does. */
+  sandInto(ground: ArenaRoomGround, room: string): void {
+    const { client } = this, frame = client?.latest ?? null;
+    if (client === null || frame === null || frame.tick === this.sandTick) return;
+    this.sandTick = frame.tick;
+    const name = sandWireName(room), strips = this.sandStrips;
+    ground.mirrorSand(strip => { strips[strip] ??= `${name}.${String(strip)}`; return client.stateField(frame, strips[strip]); });
+    this.sandPeak = ground.sandPeak;
   }
   /** Put a cosmetic on or take it off: the server keeps what's worn. */
   wear(id: string): void { this.act({ kind: 'wear', seq: 0, id }); }

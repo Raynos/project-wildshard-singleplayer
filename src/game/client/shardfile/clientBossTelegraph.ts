@@ -3,6 +3,7 @@ import { parse } from 'valibot';
 import { ClientBossTelegraphSchema } from '@wildshard/format/clientNative';
 import type { ShardContext } from '../plugin/context';
 import { clientNativeBook } from './clientNativeBook';
+import { wirePage } from './wirePage';
 
 /** Client-only telegraphs on the original encounter. Marked views are consumed
  * when the spawned fight binds; lane sheets read its real strike controller. */
@@ -11,7 +12,7 @@ export function installClientBossTelegraph(ctx: ShardContext, input: unknown): v
   const world = ctx.game.runtime?.world;
   if (fight === null || world === undefined || world === null || row.actor !== ctx.product.section('sim/runtime-plan').recipe.population.owner.actor)
     throw new Error('Boss telegraph requires its actual encounter owner');
-  if (view.kind === 'marked') return;
+  if (view.kind === 'marked' || wirePage.on) return; // a row names no strike, and a page on a server holds no body to read one off
   const strike = ctx.product.section('actors/strikes').find(entry => entry.id === view.strike), body = fight.control;
   if (strike?.shape.kind !== 'lane' || body === null) throw new Error('Lane sheet requires its admitted lane strike and held controller');
   const width = strike.shape.width, reach = strike.shape.length;

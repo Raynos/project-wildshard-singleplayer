@@ -14,6 +14,14 @@ interface Point { readonly x: number; readonly y: number; readonly z: number }
 /** the ground's continuation as data: every sand cell, whether a write is pending, and the publishing clock */
 export interface ArenaGroundSnapshot { readonly sand: readonly number[]; readonly dirty: boolean; readonly clock: number }
 
+/** The state rows a room's drifts go by. */
+export const sandWireName = (room: string): string => `sand.${room}`;
+/** One strip of drifts on the wire. */
+export interface SandRow { readonly name: string; readonly value: number }
+/** A state row is an f32, whose whole numbers are exact to 24 bits. */
+const SAND_ROW_CELLS = 3;
+const sandByte = (height: number): number => Math.round(Math.min(1, Math.max(0, height)) * 255);
+
 export class ArenaRoomGround {
   /** the sand drifts: a heightfield over the chamber floor (sandCells × sandCells cells, row j = z, column i = x) */
   readonly sand: Float32Array;
@@ -81,6 +89,30 @@ export class ArenaRoomGround {
     return false;
   }
 
+  /** The drifts as wire rows: three cells to a row, a byte each, over a metre. Calm strips send nothing. */
+  sandRows(prefix: string): SandRow[] {
+    const rows: SandRow[] = [], { sand } = this;
+    for (let strip = 0; strip * SAND_ROW_CELLS < sand.length; strip++) {
+      let value = 0;
+      for (let cell = 0; cell < SAND_ROW_CELLS; cell++) value = value * 256 + sandByte(sand[strip * SAND_ROW_CELLS + cell] ?? 0);
+      if (value !== 0) rows.push({ name: `${prefix}.${String(strip)}`, value });
+    }
+    return rows;
+  }
+  /** A page's drifts, as the server's rows say: `row` reads a strip, undefined where it is calm. */
+  mirrorSand(row: (strip: number) => number | undefined): void {
+    const { sand } = this;
+    for (let strip = 0; strip * SAND_ROW_CELLS < sand.length; strip++) {
+      let value = row(strip) ?? 0;
+      for (let cell = SAND_ROW_CELLS - 1; cell >= 0; cell--) {
+        const at = strip * SAND_ROW_CELLS + cell;
+        if (at < sand.length) { const height = (value % 256) / 255; if (sand[at] !== height) { sand[at] = height; this.dirty = true; } }
+        value = Math.floor(value / 256);
+      }
+    }
+  }
+  /** The highest drift, in metres. */
+  get sandPeak(): number { return Math.max(...this.sand); }
   snapshot(): ArenaGroundSnapshot { return { sand: Array.from(this.sand), dirty: this.dirty, clock: this.clock }; }
   restore(saved: ArenaGroundSnapshot): void {
     if (saved.sand.length !== this.sand.length || saved.sand.some(h => !Number.isFinite(h)) || !Number.isFinite(saved.clock)) throw new Error('Invalid arena ground snapshot');

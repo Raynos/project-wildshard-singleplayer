@@ -4,7 +4,7 @@ import {HeightPatch} from '@wildshard/engine/physics/heightPatch';
 import {tagOf,untagCollider} from '@wildshard/engine/physics/surface';
 import {toColumnMajor} from '@wildshard/engine/physics/terrain';
 import {groups} from '@wildshard/engine/physics/groups';
-import {ArenaRoomGround} from '../../shared/boss/arenaGround';
+import {ArenaRoomGround,type SandRow} from '../../shared/boss/arenaGround';
 
 const finite:v.GenericSchema<number>=v.pipe(v.number(),v.finite());
 /** The sand's continuation: its recipe, its ground and the grid and collider last published. */
@@ -40,7 +40,9 @@ export class NativeArenaSand {
   private retained:number|null=null;
   private readonly options:{x:number;y:number;z:number;size:number;res:number;material:'sand';owner:string};
   private readonly recipe:string;
-  constructor(private readonly host:SimHost,private readonly rows:ConstructorParameters<typeof ArenaRoomGround>[0],private readonly id:string){
+  /** The drifts as a client reads them, as last published. */
+  wire:readonly SandRow[]=[];
+  constructor(private readonly host:SimHost,private readonly rows:ConstructorParameters<typeof ArenaRoomGround>[0],private readonly id:string,private readonly wireName:string){
     if(id.length===0||rows.sandCells>256)throw new Error('Missing bounded room sand owner');
     this.ground=new ArenaRoomGround(rows);
     this.options={x:rows.origin.x,y:rows.origin.y,z:rows.origin.z,size:rows.halfWidth*2,res:rows.sandCells+1,material:'sand' as const,owner:id};
@@ -67,6 +69,7 @@ export class NativeArenaSand {
   }
   advance(dt:number):void {
     this.live();if(!this.ground.pace(dt))return;
+    this.wire=this.ground.sandRows(this.wireName);
     if(this.retained!==null){
       if(this.collider()!==this.retained)throw new Error('Restored room sand owner was replaced');
       const collider=this.host.physics.world.getCollider(this.retained);if(collider===null)throw new Error('Missing restored sand collider');
@@ -84,5 +87,7 @@ export class NativeArenaSand {
     this.ground.restore(saved.ground);this.grid=saved.grid===null?null:Float32Array.from(saved.grid);
     this.retained=saved.collider;this.patch=undefined;
   }
+  /** What a restored ground says on the wire. */
+  republish():void {this.wire=this.ground.sandRows(this.wireName);}
   physicsRestored():void {if(this.collider()!==this.retained)throw new Error('Restored room sand handle differs');}
 }
