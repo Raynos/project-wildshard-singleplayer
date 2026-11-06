@@ -165,6 +165,7 @@ public/assets/driftwood-isle/map/top.webp
 /public/assets/blender-template/entry-reads.json
 /public/assets/sunscar-dunes/entry-reads.json
 /public/assets/far-reach/entry-reads.json
+/public/assets/driftwood-isle/entry-reads.json
 
 # Maintained ignored source tables; committed tables need no exception.
 /src/shards/_template/discovery.generated.ts

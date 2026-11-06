@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """build_props.py <props.json> <out dir> [ref ...] — image-to-3D generations → game props, for any shard (PH-0.3).
 
-  python3 scripts/img2mesh/build_props.py scripts/img2mesh/props/driftwood-hero.json public/assets/models/driftwood-hero
+  python3 scripts/img2mesh/build_props.py src/shards/driftwood-isle/art/hero-props.json public/assets/models/driftwood-hero
   python3 scripts/img2mesh/build_props.py <pine-hollow props>.json public/assets/models/<dir> lantern   # just these refs
 
 The prop list JSON: {"gen": dir of <ref>.glb generations, "stage": staging dir, "args": [driftwood_post.py args for

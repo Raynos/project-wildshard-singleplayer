@@ -1,6 +1,6 @@
 """The day-segment prompts of art/driftwood-isle/round-9-horizon (codex image_gen, one run per heading).
 
-Kept for the old command line: the prompts now live in configs/driftwood-isle.json (jobs.day2) and this is
+Kept for the old command line: the prompts now live in src/shards/driftwood-isle/art/horizon-matte.json (jobs.day2) and this is
 `mkjobs.py --shard driftwood-isle --set day2 <workdir>` (PINE-HOLLOW-REMASTER PH-0.3).
 """
 import os

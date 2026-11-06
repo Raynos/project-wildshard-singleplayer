@@ -5,7 +5,7 @@ Projects the shard's perspective segments (its capture: headings t, dir = (cos t
 Driftwood: six 1536x1024 at t = 0,60..300, vfov 72) into one cylindrical strip W x H (u = azimuth, rows linear in
 elevation EL_MAX..EL_MIN), joins neighbours along a min-cost vertical seam inside their overlap and feathers it.
 Seamless at the 0/360 wrap by construction (the wrap is the middle of segment 0). Parameters:
-scripts/horizon-matte/configs/<shard>.json (capture, strip, stitch).
+src/shards/<shard>/art/horizon-matte.json (capture, strip, stitch).
 """
 import argparse
 import numpy as np

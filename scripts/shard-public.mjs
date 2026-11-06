@@ -4,7 +4,7 @@ import { copyFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
 /** The shards gathered so far. Open Plots follows; its products share one source folder. */
-export const GATHERED_SHARDS = Object.freeze(['_template', 'blender-template', 'ink-cel-valley', 'pastel-plain', 'sunscar-dunes', 'far-reach']);
+export const GATHERED_SHARDS = Object.freeze(['_template', 'blender-template', 'ink-cel-valley', 'pastel-plain', 'sunscar-dunes', 'far-reach', 'driftwood-isle']);
 
 /** Where the entry crawl's record lives for a shard: its own folder once gathered, else its public folder.
  * @param {string} root @param {string} slug */

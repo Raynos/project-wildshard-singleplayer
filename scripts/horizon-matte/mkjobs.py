@@ -3,7 +3,7 @@
 shard's painted horizon (one job per capture heading), for run_codex.py.
 
 <workdir> holds the in-game captures and references the set names (Driftwood day2: day-<h>.jpg + ref-hero.jpg); writes
-<workdir>/jobs-<set>.json. The prompts live in scripts/horizon-matte/configs/<shard>.json under jobs.<set>: `common`
+<workdir>/jobs-<set>.json. The prompts live in src/shards/<shard>/art/horizon-matte.json under jobs.<set>: `common`
 plus, per heading, [light, content]. Driftwood's day2 set = art/driftwood-isle/round-9-horizon (was mkjobs_day2.py).
 """
 import argparse

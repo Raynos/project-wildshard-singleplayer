@@ -4,7 +4,7 @@
 Pulls the painted far distance off the painted sky: a per-row, slowly varying sky model S(x, y) estimated from the
 strip's own sky pixels, alpha = how far a pixel is from it, colour un-mixed (F = S + (P - S) / a). Below the horizon
 row the painted feet are kept for `key.feet` deg then faded out by -`key.fadeTo` deg (Driftwood: 0.6 / 1.6 — the game's
-sea covers it). The strip's elevation range and the feet come from scripts/horizon-matte/configs/<shard>.json.
+sea covers it). The strip's elevation range and the feet come from src/shards/<shard>/art/horizon-matte.json.
 """
 import argparse
 import numpy as np
