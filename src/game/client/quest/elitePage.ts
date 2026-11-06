@@ -12,12 +12,30 @@ import type { Elites, EliteScript } from '../Elite';
 import { DomePuffs } from '@wildshard/engine/fx/groundFx';
 import { pageSim } from '../shardfile/clientMoverOwners';
 import { wirePage } from '../shardfile/wirePage';
+import { ELITE_TELL } from '../../shared/shardfile/wirePrompts';
 import { EliteDecisions } from '../../shared/quest/eliteDecisions';
 import { parseEliteFeature } from '@wildshard/format/eliteFeature';
 
 
 /** Client-only presentation over the same v1 owner as native encounters. Every authority is an existing concrete service;
  * content contributes only rows and prepared models, with no shard callback, override or reflected path. */
+/** How long a tell the server said stands without being said again. */
+const HEARD_FOR = 0.2;
+interface TellDraw { readonly tell?: string | undefined; readonly phase: string; readonly time: number; readonly windup: number; readonly x0: number; readonly z0: number; readonly x1: number; readonly z1: number; readonly width: number; readonly radius: number }
+type HeardTell = TellDraw & { readonly tell: 'lane' | 'ring'; readonly bodyX: number; readonly bodyZ: number; at: number };
+/** A strike's ground tell, as its windup and active time have it. */
+function drawTell(tell: GroundTell, strike: TellDraw, t: number, bodyX: number, bodyZ: number): void {
+  if (strike.tell === 'lane' && strike.phase === 'windup') {
+    const k = Math.min(1, strike.time / Math.max(0.001, strike.windup)); tell.lane(strike.x0, strike.z0, strike.x1, strike.z1, strike.width, 0.35 + 0.55 * k * (0.75 + 0.25 * Math.sin(t * 22)));
+  } else if (strike.tell === 'lane' && strike.phase === 'active') tell.lane(strike.x0, strike.z0, strike.x1, strike.z1, strike.width, Math.max(0, 0.6 - strike.time * 1.2));
+  else if (strike.tell === 'ring' && strike.phase === 'windup') { const k = Math.min(1, strike.time / Math.max(0.001, strike.windup)); tell.ring(bodyX, bodyZ, strike.radius * (0.7 + 0.3 * k), 0.35 + 0.6 * k * (0.7 + 0.3 * Math.sin(t * 20))); }
+  else tell.hide();
+}
+/** An elite's tell off the wire: `eliteTellArgs`'s numbers back into a strike. */
+function heardTell(name: string, args: readonly number[]): HeardTell | null {
+  const tell = name === ELITE_TELL.lane ? 'lane' : name === ELITE_TELL.ring ? 'ring' : null, [, phase = 0, time = 0, windup = 0, x0 = 0, z0 = 0, x1 = 0, z1 = 0, width = 0, radius = 0, bodyX = 0, bodyZ = 0] = args;
+  return tell === null ? null : { tell, phase: phase === 0 ? 'windup' : phase === 1 ? 'active' : 'done', time, windup, x0, z0, x1, z1, width, radius, bodyX, bodyZ, at: 0 };
+}
 export function installEliteFeaturePage(game: Game, animals: AnimalManager, player: Player, sky: SkyRig, elites: Elites,
   models: ReadonlyMap<string, THREE.Object3D>, input: unknown, seed: number, hud: HUD, god = false): {
   readonly elites: Elites; readonly update: (dt: number, t: number) => void; readonly force: (id: string, move: string) => void; readonly isElite: (body: Animal) => boolean;
@@ -61,12 +79,30 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
     if (scope !== null) game.app.encounters.elite(script.def.id, Object.assign(script, { force: (move: string) => { controller.force(move); } }), scope);
     elites.add(script);
   }
-  const active = new Set<string>();
+  const active = new Set<string>(), heard = new Map<string, HeardTell>();
+  let lastTime = 0;
+  const scope = game.app.levelScope;
+  if (wirePage.on && scope !== null) wirePage.whenLive(scope, client => client.onView(({ name, args }) => {
+    const row = heardTell(name, args);
+    if (row !== null) { row.at = lastTime; heard.set(`${name}:${String(args[0])}`, row); }
+  }));
   return {
     elites,
     isElite: body => controllers.some(controller => controller.animal === body),
     force: (id, move) => { controllers.find(controller => controller.def.id === id)?.force(move); },
     update: (dt, t) => {
+      lastTime = t;
+      if (wirePage.on) { // the server fights: this page bars its row and draws the tells it hears
+        elites.update(dt, t);
+        for (const [key, row] of heard) {
+          if (t - row.at > HEARD_FOR) { tells.get(key)?.hide(); heard.delete(key); continue; }
+          let tell = tells.get(key);
+          if (tell === undefined) { tell = new GroundTell(game.scene, row.tell, color); tells.set(key, tell); }
+          tell.setTime(t); drawTell(tell, row, t, row.bodyX, row.bodyZ);
+        }
+        puffs.update(dt, t);
+        return;
+      }
       // PF5: the clock's dusk and night curves, evaluated once a frame for every elite
       const clock = sky.dayNight, dusk = clock?.dusk ?? 0, night = clock?.night ?? 0;
       for (const controller of controllers) controller.frame(player.position, dusk, night, god, player.yaw);
@@ -102,11 +138,7 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
           active.add(key); let tell = tells.get(key);
           if (tell === undefined) { tell = new GroundTell(game.scene, strike.tell, color); tells.set(key, tell); }
           tell.setTime(t);
-          if (strike.tell === 'lane' && strike.phase === 'windup') {
-            const k = Math.min(1, strike.time / Math.max(0.001, strike.windup)); tell.lane(strike.x0, strike.z0, strike.x1, strike.z1, strike.width, 0.35 + 0.55 * k * (0.75 + 0.25 * Math.sin(t * 22)));
-          } else if (strike.tell === 'lane' && strike.phase === 'active') tell.lane(strike.x0, strike.z0, strike.x1, strike.z1, strike.width, Math.max(0, 0.6 - strike.time * 1.2));
-          else if (strike.tell === 'ring' && strike.phase === 'windup') { const k = Math.min(1, strike.time / Math.max(0.001, strike.windup)); tell.ring(body.position.x, body.position.z, strike.radius * (0.7 + 0.3 * k), 0.35 + 0.6 * k * (0.7 + 0.3 * Math.sin(t * 20))); }
-          else tell.hide();
+          drawTell(tell, strike, t, body.position.x, body.position.z);
         }
         for (const [key, tell] of tells) if (key.startsWith(`${controller.def.id}:`) && !active.has(key)) tell.hide();
       }

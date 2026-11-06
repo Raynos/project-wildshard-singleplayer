@@ -1,3 +1,5 @@
+import { sayFightView } from '@wildshard/engine/sim/shardRows';
+import { ELITE_TELL } from '../../shared/shardfile/wirePrompts';
 import { EliteCoreContinuationSchema } from '@wildshard/format/eliteContinuation';
 import { Vector3 } from 'three';
 import * as v from 'valibot';
@@ -71,6 +73,11 @@ export function installNativeEliteFeature(host: SimHost, day: DayCycleClock, inp
       script.frame(foe.position, day.dusk, day.night, false, foe.yaw);
     }
     core.update(dt, host.clock.now);
+    for (const [index, script] of scripts.entries()) for (const strike of script.program.strikePresentation()) {
+      const body = script.program.body(strike.actor), name = strike.tell === 'lane' ? ELITE_TELL.lane : strike.tell === 'ring' ? ELITE_TELL.ring : null;
+      if (body === null || name === null) continue;
+      sayFightView(host, name, [index * 256 + strike.actor, strike.phase === 'windup' ? 0 : strike.phase === 'active' ? 1 : 2, strike.time, strike.windup, strike.x0, strike.z0, strike.x1, strike.z1, strike.width, strike.radius, body.position.x, body.position.z]);
+    }
     for (const script of scripts) for (const effect of script.program.drainEffects()) {
       if (effect.kind === 'cue') { if (rows.view?.cues.find(row => row.id === script.program.cue(effect.id))?.signature === true) core.signature(script.def.id); continue; }
       if (effect.kind !== 'hit') continue;
