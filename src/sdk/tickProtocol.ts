@@ -19,7 +19,7 @@ export const TickCommandSchema: v.GenericSchema<BoundedTickCommandInput, Bounded
   // here lands confirms it (J47). `viewTick` is the tick a client saw the world at, which its blow is settled against (J50); no
   // rewind without one.
   // `lockTarget` is J116's lock-on: what SimCommand.lockTarget orbits.
-  v.pipe(v.strictObject({ kind: v.literal('player'), moveX: finite, moveZ: finite, yaw: finite, attack: v.optional(v.strictObject({ targetId: text })), lockTarget: v.exactOptional(text), hover: v.optional(v.literal(true)),
+  v.pipe(v.strictObject({ kind: v.literal('player'), moveX: finite, moveZ: finite, yaw: finite, attack: v.optional(v.strictObject({ targetId: text })), lockTarget: v.exactOptional(text), hover: v.optional(v.literal(true)), boost: v.optional(v.literal(true)),
     jump: v.optional(v.literal(true)), dodge: v.optional(v.literal(true)), heavy: v.optional(v.strictObject({ targetId: v.optional(text) })),
     swing: v.exactOptional(v.literal(true)), seq: v.exactOptional(natural), viewTick: v.exactOptional(natural), pitch: v.exactOptional(v.pipe(finite, v.minValue(-Math.PI / 2), v.maxValue(Math.PI / 2))), dive: v.exactOptional(v.boolean()), surface: v.exactOptional(v.boolean()),
     commandVersion: v.exactOptional(v.literal(1)), steer: v.exactOptional(v.strictObject({ keyX: v.pipe(finite, v.minValue(-1), v.maxValue(1)), keyY: v.pipe(finite, v.minValue(-1), v.maxValue(1)),
@@ -41,7 +41,7 @@ export function simPlayerCommand(command: Extract<HeadlessCommand, { kind: 'play
     ...(command.attack === undefined ? {} : { attack: { ...command.attack } }), ...(command.lockTarget === undefined ? {} : { lockTarget: command.lockTarget }),
     ...(command.hover === undefined ? {} : { hover: command.hover }), ...(command.jump === undefined ? {} : { jump: command.jump }),
     ...(command.dodge === undefined ? {} : { dodge: command.dodge }),
-    ...(command.dive === undefined ? {} : { dive: command.dive }), ...(command.surface === undefined ? {} : { surface: command.surface }),
+    ...(command.dive === undefined ? {} : { dive: command.dive }), ...(command.surface === undefined ? {} : { surface: command.surface }), ...(command.boost === undefined ? {} : { boost: command.boost }),
     ...(command.commandVersion === undefined ? {} : { commandVersion: command.commandVersion }),
     ...(command.steer === undefined ? {} : { steer: { ...command.steer } }),
     ...(command.sprint === undefined ? {} : { sprint: command.sprint }), ...(command.crouch === undefined ? {} : { crouch: command.crouch }) };
@@ -131,6 +131,7 @@ type BoundedTickCommand = {
     seq?: number;
     viewTick?: number;
     pitch?: number;
+    boost?: true | undefined;
     dive?: boolean;
     surface?: boolean;
     commandVersion?: 1;

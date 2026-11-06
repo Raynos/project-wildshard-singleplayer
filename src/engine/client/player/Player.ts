@@ -463,7 +463,8 @@ export class Player {
     const surface = (input?.held('surface') ?? (k.has('ShiftLeft') || k.has('ShiftRight'))) || this.touchSurface, board = this.boardPressed;
     this.boardPressed = false;
     const buttons = (jump ? NET_BUTTONS.jump : 0) | (dodge ? NET_BUTTONS.dodge : 0) | (sprint ? NET_BUTTONS.sprint : 0) | (this.crouchWanted ? NET_BUTTONS.crouch : 0)
-      | (dive ? NET_BUTTONS.dive : 0) | (surface ? NET_BUTTONS.surface : 0) | (board ? NET_BUTTONS.hover : 0) | (input?.held('skip') === true ? NET_BUTTONS.skip : 0);
+      | (dive ? NET_BUTTONS.dive : 0) | (surface ? NET_BUTTONS.surface : 0) | (board ? NET_BUTTONS.hover : 0) | (input?.held('skip') === true ? NET_BUTTONS.skip : 0)
+      | (this.hoverBoost && isDev() ? NET_BUTTONS.boost : 0);
     return { steer, yaw: this.yaw, pitch: this.pitch, buttons };
   }
 

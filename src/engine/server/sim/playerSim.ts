@@ -23,6 +23,9 @@ import { netSimCommand } from '../../shared/sim/netMotion';
 import type { SimCommand, SimExternalPlayer, SimHost, SimPlayerBody, SimPlayerDriver, SimPlayerMotionSample, SimRide, SimTickCommand, SimWalkingControl } from '../sim';
 
 /** The world-space command a tick's input means. */
+/** Developer boost is a Developer page's, on its own server: a standalone worker says so at boot, and any other host ignores the button. */
+let developerBoost = false;
+export function allowDeveloperBoost(): void { developerBoost = true; }
 export function simCommandOf(input: SimTickCommand): SimCommand { return 'seq' in input ? netSimCommand(input) : input; }
 /** A board whose "riding near the ride height" is the fall's ground. */
 function boardOn(fall: { grounded: boolean }): BoardState & { on: boolean } {
@@ -89,6 +92,8 @@ export class PlayerSim implements PlayerMotionState {
   /** The board's live speed cap where something rules one (the grid, GridSimulation): the page's `hoverSpeedLimit`. Never saved:
    *  its owner puts it back. */
   hoverSpeedLimit: (() => number) | null = null;
+  /** Developer boost, held this tick. Never saved. */
+  private boosted = false;
   /** The orbit radius a lock holds (player/lockOrbit.ts). */
   readonly lock: LockState = { r0: 0 };
   /** The body this player's lock holds, as its last command named it; null with none. */
@@ -338,8 +343,8 @@ export class PlayerSim implements PlayerMotionState {
         get crouching() { return walking().crouching; },
         get coyoteMs() { return coyote(); },
       },
-      boardTop: () => hoverSpeed(this.hoverSpeedLimit?.()),
-      boardCapped: () => this.hoverSpeedLimit !== null,
+      boardTop: () => hoverSpeed(this.hoverSpeedLimit?.(), this.boosted),
+      boardCapped: () => this.hoverSpeedLimit !== null || this.boosted,
       jumped: () => { this.host.events.emit('player.jump', true); },
       dodged: () => { this.host.events.emit('player.dodge', true); },
       lunged: () => undefined,
@@ -381,6 +386,7 @@ export class PlayerSim implements PlayerMotionState {
     this.walking = walking;
     if (!Number.isFinite(walking.speed) || walking.speed < 0 || typeof walking.crouching !== 'boolean') throw new RangeError('Invalid walking control');
     // the HOVER press lands in the ordinary input phase; an active alternative driver owns its own motion switches
+    this.boosted = developerBoost && command?.boost === true;
     if (!delegated && command?.hover === true) this.setBoard(!this.board.on);
   }
   /** The tick's motion phase, after the world steps. */

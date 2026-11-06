@@ -10,6 +10,7 @@ import { ServerClock } from '@wildshard/engine/net/serverClock';
 import { installSaveEnvironment } from '@wildshard/engine/saves/environment';
 import { ForwardedStorage } from '@wildshard/engine/saves/forwardedStorage';
 import { saves } from '@wildshard/engine/saves/runtime';
+import { allowDeveloperBoost } from '@wildshard/engine/sim/playerSim';
 import type { SimHost } from '@wildshard/engine/sim';
 import { ServerMessageSchema, ShellMessageSchema, type ProbedRow, type ServerMessage, type ShellMessage } from '@wildshard/format/standaloneControl';
 import type { GridPoint } from '@wildshard/game/grid/assembly';
@@ -56,6 +57,7 @@ export function runStandaloneServer(options: StandaloneServerOptions): { dispose
     storage = new ForwardedStorage(message.saves, write => { post({ kind: 'write', ...write }); });
     const local = storage, { arrival, residents } = options.proof ?? {};
     installWorkerIdentity(message.savePrefix);
+    allowDeveloperBoost(); // this server is the player's own device; a page only sends the button with Developer on
     installSaveEnvironment({ storage: saveScope => saveScope === 'session' ? null : local, persistent: () => true, persist: () => Promise.resolve(false) });
     const server = await StandaloneGrid.boot({ slug: message.slug, build: message.build, book, saves, storage: local, savePrefix: message.savePrefix, now: diagnosticNow, ...(message.lone === true ? { lone: true } : {}),
       load: slug => options.load(message, slug), stepped, ...(options.onSaveRefused === undefined ? {} : { refused: options.onSaveRefused }), ...(options.reports === undefined ? {} : { reports: options.reports }),
