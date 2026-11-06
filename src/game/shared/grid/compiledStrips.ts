@@ -193,7 +193,7 @@ async function inflateGridLook(bytes: Uint8Array, expected: number, scope: Scope
     return output.subarray(0, size);
   } finally {
     forget();
-    try { await reader.cancel().catch(() => undefined); } finally { reader.releaseLock(); }
+    await reader.cancel().catch(() => undefined);
   }
 }
 

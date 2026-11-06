@@ -27,9 +27,7 @@ async function inflateStream(body: ReadableStream<Uint8Array<ArrayBuffer>>): Pro
     async cancel(reason: unknown) { await reader.cancel(reason); },
   });
   try { return new Uint8Array(await new Response(input.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer()); }
-  finally {
-    try { await reader.cancel(); } finally { reader.releaseLock(); }
-  }
+  finally { await reader.cancel(); }
 }
 
 /** Base64 text as bytes (an inline block): one pass over the decoded text, never a mapper call per byte (G639: Nalati's grass

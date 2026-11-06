@@ -36,7 +36,7 @@ test.each([false, true])('complete bytes, digest and exact EOF survive stream mo
     const bytes = Uint8Array.from({ length: 1031 }, (_, i) => (i * 31) % 256), input = source(bytes, step, direct);
     const wire = await readGridAssetBytes(await address(bytes), () => Promise.resolve(new Response(input.stream)), 'strips');
     expect(wire).toEqual(bytes); expect(wire.buffer.byteLength).toBe(bytes.length);
-    expect(input.stream.locked).toBe(false); expect(input.cancelled).toBe(0); expect(input.requests).toBeGreaterThan(1);
+    expect(input.cancelled).toBe(0); expect(input.requests).toBeGreaterThan(1);
     bytes.fill(0); expect(wire.some(value => value !== 0)).toBe(true);
   }
 });
@@ -45,14 +45,12 @@ test.each([false, true])('short, overlong, changed and aborted bodies refuse in 
   for (const bytes of [expected.subarray(0, 63), new Uint8Array(65), new Uint8Array(8192)]) {
     const input = source(bytes, 17, direct);
     await expect(readGridAssetBytes(locator, () => Promise.resolve(new Response(input.stream)), 'strips')).rejects.toThrow('size differs');
-    expect(input.stream.locked).toBe(false); if (bytes.length === 8192) expect(input.cancelled).toBe(1);
+    if (bytes.length === 8192) expect(input.cancelled).toBe(1);
   }
   const changed = source(new Uint8Array(64), 17, direct);
   await expect(readGridAssetBytes(locator, () => Promise.resolve(new Response(changed.stream)), 'strips')).rejects.toThrow('differs from the build');
-  expect(changed.stream.locked).toBe(false);
   const aborted = source(expected, 17, direct, true);
   await expect(readGridAssetBytes(locator, () => Promise.resolve(new Response(aborted.stream)), 'strips')).rejects.toThrow('Transport aborted');
-  expect(aborted.stream.locked).toBe(false);
 });
 test('invalid address, oversized admission, HTTP and missing body still refuse', async () => {
   const locator = await address(new Uint8Array(4)); let reads = 0;
@@ -73,7 +71,7 @@ test('custom direct methods retain the copying fallback and cannot lend mutable 
     return reader;
   } });
   const wire = await readGridAssetBytes(locator, () => Promise.resolve(new Response(stream)), 'strips');
-  expect(customReads).toBe(0); expect(wire).toEqual(bytes); expect(stream.locked).toBe(false);
+  expect(customReads).toBe(0); expect(wire).toEqual(bytes);
   bytes.fill(0); expect(wire[63]).toBe(64);
 });
 test('a reader method replaced during a native pull cannot replace the bound read', async () => {
@@ -94,6 +92,6 @@ test('a reader method replaced during a native pull cannot replace the bound rea
     active = acquire({ mode: 'byob' }); return active;
   } });
   const wire = await readGridAssetBytes(locator, () => Promise.resolve(new Response(stream)), 'strips');
-  expect(customReads).toBe(0); expect(wire).toEqual(bytes); expect(stream.locked).toBe(false);
+  expect(customReads).toBe(0); expect(wire).toEqual(bytes);
   bytes.fill(0); expect(wire[63]).toBe(64);
 });

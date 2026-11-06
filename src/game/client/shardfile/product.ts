@@ -211,7 +211,6 @@ async function readBoundedResponse(response: Response, maximum: number, read?: (
       read?.(next.value.length);
     }
   } catch (error) { await reader.cancel().catch(() => undefined); throw error; }
-  finally { reader.releaseLock(); }
   const bytes = new Uint8Array(size); let at = 0;
   for (const chunk of chunks) { bytes.set(chunk, at); at += chunk.length; }
   return bytes;

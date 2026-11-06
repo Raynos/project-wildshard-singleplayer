@@ -65,7 +65,6 @@ async function body(response: Response, url: string, maximum: number, read?: (by
     // do not deadlock recovery before the caller can retire its failed clone.
     void reader.cancel().catch(() => undefined); throw error;
   }
-  finally { reader.releaseLock(); }
   const result = size === bytes.length ? bytes : bytes.slice(0, size);
   if (html(result)) throw new ContentReadError(url, 'missing content (HTML response)');
   if (expected !== undefined && size !== expected) throw sizeError();

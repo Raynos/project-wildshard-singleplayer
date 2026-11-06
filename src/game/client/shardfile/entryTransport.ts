@@ -40,10 +40,10 @@ export function startEntryDownload(slug: string, flow: 'client' | 'grid' = 'clie
       const consume = async (response: Response): Promise<void> => {
         if (response.body === null) return;
         const reader = response.body.getReader(); let size = 0;
-        try { for (;;) {
+        for (;;) {
           const part = await reader.read(); if (part.done) break;
           size += part.value.length; if (size > 2_000_000) { await reader.cancel(); break; }
-        } } finally { reader.releaseLock(); }
+        }
       };
       void fetch(url, {keepalive: true, priority: 'high'}).then(consume).catch(() => undefined);
     }
@@ -125,12 +125,12 @@ export function installEntryTransport(): void {
       if (response.body === null) return null;
       const reader = response.body.getReader(), chunks: Uint8Array<ArrayBuffer>[] = [];
       let size = 0;
-      try { for (;;) {
+      for (;;) {
         const part = await reader.read(); if (part.done) break;
         size += part.value.length;
         if (size > cap) { await reader.cancel(); throw new Error('Entry metadata exceeds cap'); }
         chunks.push(part.value);
-      } } finally { reader.releaseLock(); }
+      }
       const bytes = new Uint8Array(size); let at = 0;
       for (const chunk of chunks) { bytes.set(chunk, at); at += chunk.length; }
       return JSON.parse(new TextDecoder().decode(bytes));
@@ -174,14 +174,12 @@ export function installEntryTransport(): void {
         if (!response.ok || response.status === 206 || response.body === null) { await response.body?.cancel(); return null; }
         const reader = response.body.getReader(), chunks: Uint8Array<ArrayBuffer>[] = [];
         let size = 0;
-        try {
-          for (;;) {
-            const part = await reader.read(); if (part.done) break;
-            size += part.value.byteLength;
-            if (size > row.bytes || stopped) { await reader.cancel(); return null; }
-            chunks.push(part.value);
-          }
-        } finally { reader.releaseLock(); }
+        for (;;) {
+          const part = await reader.read(); if (part.done) break;
+          size += part.value.byteLength;
+          if (size > row.bytes || stopped) { await reader.cancel(); return null; }
+          chunks.push(part.value);
+        }
         if (size !== row.bytes || stopped) return null;
         return new Response(new ReadableStream({start(stream): void {
           for (const chunk of chunks) stream.enqueue(chunk);

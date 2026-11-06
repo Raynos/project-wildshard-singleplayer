@@ -35,10 +35,10 @@ export function startGridStripDownload(mode: GridMode, home: string, phase: 'all
       const consume = async (response: Response): Promise<void> => {
         if (response.body === null) return;
         const reader = response.body.getReader(); let total = 0;
-        try { for (;;) {
+        for (;;) {
           const part = await reader.read(); if (part.done) break;
           total += part.value.length; if (total > bytes) { await reader.cancel(); break; }
-        } } finally { reader.releaseLock(); }
+        }
       };
       void fetch(url, {keepalive: phase !== 'mesh', priority: 'low'}).then(consume).catch(() => undefined);
     }

@@ -157,7 +157,7 @@ export function streamPack(whole: PackDef, plan: Plan<BootStep>, files: ChunkFil
       if (!signalled) nearlyDone();
       if (i < part.files.length) throw new Error(`pack part ended after ${i} / ${part.files.length} files: ${part.url}`);
       if (copy !== undefined && received === part.bytes) await publishBootResponse(part.url, copy);
-    } finally { reader.releaseLock(); void copy?.body?.cancel().catch(() => undefined); }
+    } finally { void copy?.body?.cancel().catch(() => undefined); }
   };
 
   const streamed = (async () => {

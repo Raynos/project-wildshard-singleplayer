@@ -11,7 +11,6 @@ test('copies exact multi-chunk bytes into detached full-length storage', async (
   expect(bytes).toEqual(new Uint8Array([1, 2, 3, 4]));
   expect(bytes.buffer).not.toBe(original.buffer);
   expect(bytes.byteOffset).toBe(0); expect(bytes.buffer.byteLength).toBe(4);
-  expect(response.body?.locked).toBe(false);
 });
 
 test('releases consumed chunks before the download finishes', async () => {
@@ -46,7 +45,7 @@ test('refuses oversize streams immediately and cancels without retaining the rea
     pulls++; controller.enqueue(new Uint8Array([1, 2, 3]));
   }, cancel() { cancelled = true; } }, { highWaterMark: 0 }));
   await expect(readContentResponse(response, 2)).rejects.toThrow('declared size');
-  expect(pulls).toBe(1); expect(cancelled).toBe(true); expect(response.body?.locked).toBe(false);
+  expect(pulls).toBe(1); expect(cancelled).toBe(true);
 });
 
 test('preserves short and empty lengths for the caller exact-size refusal', async () => {
@@ -59,5 +58,4 @@ test('preserves short and empty lengths for the caller exact-size refusal', asyn
 test('stream errors release the reader and never return a partial body', async () => {
   const response = new Response(new ReadableStream<Uint8Array>({ start(controller) { controller.error(new Error('network lost')); } }));
   await expect(readContentResponse(response, 2)).rejects.toThrow('network lost');
-  expect(response.body?.locked).toBe(false);
 });

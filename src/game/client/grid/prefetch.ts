@@ -77,7 +77,7 @@ export async function readGridPrefetch(url: string, maximum: number, fetcher: ty
       if (length > maximum) throw new Error('Prefetched file exceeds its declared size');
       chunks.push(part.value);
     }
-  } finally { await reader.cancel().catch(() => undefined); reader.releaseLock(); }
+  } finally { await reader.cancel().catch(() => undefined); }
   const bytes = new Uint8Array(length); let offset = 0;
   for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
   return bytes;

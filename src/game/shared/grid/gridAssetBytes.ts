@@ -37,7 +37,6 @@ async function readChunks(body: ReadableStream<Uint8Array>, bytes: number, label
     }
     if (size !== wire.length) throw new Error(`${label} size differs from the build`);
   } catch (error) { await reader.cancel().catch(() => undefined); throw error; }
-  finally { reader.releaseLock(); }
   return wire;
 }
 async function readDirect(reader: ReadableStreamBYOBReader, bytes: number, label: string): Promise<Uint8Array<ArrayBuffer>> {
@@ -57,5 +56,4 @@ async function readDirect(reader: ReadableStreamBYOBReader, bytes: number, label
     if (size !== bytes) throw new Error(`${label} size differs from the build`);
     return wire;
   } catch (error) { await reader.cancel().catch(() => undefined); throw error; }
-  finally { reader.releaseLock(); }
 }

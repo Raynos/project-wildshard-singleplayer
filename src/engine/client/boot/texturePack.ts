@@ -144,7 +144,6 @@ async function readBody(response: Response, expected: number, signal: AbortSigna
     if (offset !== bytes.length) throw new Error('Texture pack body is truncated');
     return bytes;
   } catch (error) { void reader.cancel().catch(() => undefined); throw error; }
-  finally { reader.releaseLock(); }
 }
 async function cachedPart(path: string): Promise<Response | undefined> {
   try { return typeof caches === 'undefined' ? undefined : await (await caches.open(ASSET_CACHE_NAME)).match(new URL(path, location.href).href, { ignoreVary: true }); }

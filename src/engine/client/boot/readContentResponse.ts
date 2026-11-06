@@ -13,6 +13,5 @@ export async function readContentResponse(response: Response, maximum: number): 
       bytes.set(part.value, length); length += part.value.byteLength;
     }
   } catch (error) { await reader.cancel().catch(() => undefined); throw error; }
-  finally { reader.releaseLock(); }
   return length === maximum ? bytes : bytes.subarray(0, length);
 }
