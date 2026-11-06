@@ -46,7 +46,8 @@ import { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import { authoredTargets } from '@wildshard/engine/combat/targets';
 import { viewmodelTexturesReady } from '@wildshard/engine/combat/view/ranged';
 import { AnimalHerdView } from '@wildshard/engine/entities/AnimalHerdView';
-import { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import { pageSim } from '../shardfile/clientMoverOwners';
 import { listShardModels } from '@wildshard/engine/models/roster';
 import { LockOnSystem } from '@wildshard/engine/player/LockOnTarget';
 import { TouchControls } from '@wildshard/engine/player/TouchControls';
@@ -61,7 +62,7 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) : Promi
 
 
   const animals = await step('animals', async (p) => {
-    const herds = new AnimalManager(new AnimalHerdView(game.rootScene, sky), app, forest);
+    const herds = pageSim.animalManager(new AnimalHerdView(game.rootScene, sky), app, forest);
     herds.herdless = workerClientOn();
     const a = await herds.buildAsync(macrotask); // a task per herd, not one long one
     a.setResidency(followRing()); // T6: the animals outside the player's 5 x 5 sleep

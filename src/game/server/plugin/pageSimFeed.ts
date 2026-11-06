@@ -1,5 +1,8 @@
 import { installDeclaredMovers } from './moverInstall';
-import { bindMeleeContacts, bindQuestWorldReactions, commandSocketLift, declaredItemScriptBindings, startMeleeSecondary } from './simulation';
+import { bindMeleeContacts, bindQuestWorldReactions, commandSocketLift, createShardfileSim, declaredItemScriptBindings, prepareShardfileSimRestore, startMeleeSecondary } from './simulation';
+import { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import { createSimHost } from '@wildshard/engine/sim';
+import { GridRegionDurability } from '../grid/durability';
 import { readSpawnScript, SpawnScript } from '../population/spawnScript';
 import { FixedPageSpawnTable, PageActorGroups, bindPageGroups, lendPageGrass, wildEnv } from '../population/pageGroups';
 import { PageWildlife, lendClientWildlife } from '../population/wildlife';
@@ -59,6 +62,14 @@ export interface PageSimFeed {
   readonly bindMeleeContacts: typeof bindMeleeContacts;
   readonly startMeleeSecondary: typeof startMeleeSecondary;
   readonly spawnScript: { readonly read: typeof readSpawnScript; readonly page: typeof SpawnScript.page };
+  /** The page's own sim, and the restore a grid home takes it through (E6 SESSION). */
+  readonly createShardfileSim: typeof createShardfileSim;
+  readonly prepareShardfileSimRestore: typeof prepareShardfileSimRestore;
+  /** A regional world's bodyless shell and the manager its creatures stand in. */
+  readonly createSimHost: typeof createSimHost;
+  readonly animalManager: (...args: ConstructorParameters<typeof AnimalManager>) => AnimalManager;
+  /** What a grid page keeps of a cell it has played. */
+  readonly regionDurability: (...args: ConstructorParameters<typeof GridRegionDurability>) => GridRegionDurability;
 }
 /** The page sim's own owners. */
 export const pageSimFeed: PageSimFeed = {
@@ -70,4 +81,6 @@ export const pageSimFeed: PageSimFeed = {
   bindPageGroups: (...args) => { bindPageGroups(...args); }, pageWildlife: (...args) => new PageWildlife<CrowdDraw>(...args), lendPageGrass, crowdGuardProjection, bindCrowdGuard,
   admitSpeciesProgram, borrowedDecisionAuthority, bindMeleeContacts, startMeleeSecondary,
   spawnScript: { read: (...args) => readSpawnScript(...args), page: (...args) => SpawnScript.page(...args) },
+  createShardfileSim, prepareShardfileSimRestore, createSimHost,
+  animalManager: (...args) => new AnimalManager(...args), regionDurability: (...args) => new GridRegionDurability(...args),
 };

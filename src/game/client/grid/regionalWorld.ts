@@ -54,7 +54,6 @@ import { TexturePolicyBinding, registerGpuFiles, texMode } from '@wildshard/engi
 import { ownSceneResource, ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import { AnimalHerdView } from '@wildshard/engine/entities/AnimalHerdView';
-import { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { LevelFrameBinding, type LevelFrameOptions } from '@wildshard/engine/level/frame';
 import type { LevelSpec } from '@wildshard/engine/level/spec';
 import { prepareWorldLook, type LookStrategy } from '@wildshard/engine/render/look';
@@ -63,7 +62,8 @@ import type { Rapier } from '@wildshard/engine/physics/rapier';
 import { addTerrain, resampleTerrain } from '@wildshard/engine/physics/terrain';
 import { workerClientOn } from '@wildshard/engine/ui/debugOptions';
 import { applySkin, type SkinDef } from '@wildshard/engine/player/Skins';
-import { createSimHost, type SimHost, type SimLevel } from '@wildshard/engine/sim';
+import type { SimHost, SimLevel } from '@wildshard/engine/sim';
+import { pageSim } from '../shardfile/clientMoverOwners';
 import { SIM_API_VERSION } from '@wildshard/engine/sim/apiVersion';
 import { SkyRig } from '@wildshard/engine/world/skyRig';
 import { loadCarriedLUT, loadLUT } from '@wildshard/engine/boot/bakedApi';
@@ -313,7 +313,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           look => prepareWorldLook(look, { renderer: game.renderer, sky, scope: resident })),
         Promise.resolve().then(() => {
           if (left() || resident.disposing) throw new Error('Regional world left before its physics shell');
-          return withOwner(resident, () => createSimHost(simLevel(level), { rapier: ports.rapier, playerBody: false, ground: false,
+          return withOwner(resident, () => pageSim.createSimHost(simLevel(level), { rapier: ports.rapier, playerBody: false, ground: false,
             heightAt: (x, z) => field().heightAt(x, z), scope: resident }));
         }),
       ]));
@@ -526,7 +526,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
         },
         afterKit: async () => {
           if (resident.disposed) throw new Error('Regional world left before its creatures');
-          const animals = frame.run(app, () => new AnimalManager(new AnimalHerdView(scene, sky, { physics: host.physics }), app, forest, host.physics));
+          const animals = frame.run(app, () => pageSim.animalManager(new AnimalHerdView(scene, sky, { physics: host.physics }), app, forest, host.physics));
           animals.herdless = workerClientOn();
           await animals.buildAsync(ports.pause, frame);
           if (left()) throw new Error('Regional world left while building creatures');

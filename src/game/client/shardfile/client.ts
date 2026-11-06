@@ -77,7 +77,8 @@ import { syncTargetColliders } from '../../shared/shardfile/targets';
 import type { ClientAssets } from './clientAssets';
 import { installDeclaredItems, type DeclaredItems } from '../../shared/shardfile/items';
 import { runtimeBoundWorldFiles, withoutRuntimeRows } from "../../shared/plugin/runtimeRows";
-import { createShardfileSim, declaredItemScriptBindings, type ShardfileSimulation, type ShardfileSimPorts } from '../../server/plugin/simulation';
+import type { ShardfileSimulation, ShardfileSimPorts } from '../../server/plugin/simulation';
+import { pageSim } from './clientMoverOwners';
 import { scriptDisabledNotice } from '../../shared/shardfile/scriptNotice';
 import type { DeclaredGroupPorts } from '../../server/shardfile/groupRuntime';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -351,7 +352,7 @@ export class ShardfileClient {
     };
     const player = (): NonNullable<ShardContext['app']['player']> => { const actor = ctx.app.player; if (actor === null) throw new Error('Player health has not entered play'); return actor; };
     const actor: Actor = { id: 'actor.player', get tags() { return player().tags; }, get state() { return player().state; }, get attributes() { return player().attributes; }, get alive() { return player().alive; }, applyDamage: (request) => player().applyDamage(request) };
-    const itemBindings = declaredItemScriptBindings(source.items, actor.id);
+    const itemBindings = pageSim.declaredItemScriptBindings(source.items, actor.id);
     const aimTarget = (target: CombatTarget): ItemTarget => {
       const body = this.sim?.host.entities.get(target.actor.id);
       return { ...target, aimPoint: target.position.clone().add(new Vector3(0, body === undefined ? 0.9 : body.dims.bodyY * body.scale, 0)) };
@@ -458,7 +459,7 @@ export class ShardfileClient {
     let encounterWrites = 0;
     let simulationActive = true, installing = true; // SF67: no sim step between the installation's parts
     const ladderCommand = { x: 0, z: 0, release: true };
-    const sim = createShardfileSim(source, this.assets.retained, { sections: outputDescriptor(source)?.sections, rapier: world.physics.R, physics: world.physics,
+    const sim = pageSim.createShardfileSim(source, this.assets.retained, { sections: outputDescriptor(source)?.sections, rapier: world.physics.R, physics: world.physics,
       creatureImpulse: velocity => { world.player.impulse(velocity); },
       ...(this.bindings.brains === undefined ? {} : { brains: this.bindings.brains }),
       ...(this.bindings.groups === undefined ? {} : { groups: this.bindings.groups }),

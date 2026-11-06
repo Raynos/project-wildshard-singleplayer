@@ -54,7 +54,7 @@ import { LiveGridHost, type LiveGridAdmission, type LiveGridFrame, type LiveGrid
 import { prepareApproachProductInputs } from './approachProductInputs';
 import { installGridCrossing, type GridCheckpointResult, type GridCrossingSession, type GridCrossingState } from '../../shared/grid/crossing';
 import { GridWallet, stowGridMount } from '../../shared/grid/wallet';
-import { GridRegionDurability } from '../../server/grid/durability';
+import type { GridRegionDurability } from '../../server/grid/durability';
 import type { LedgerCatalogueItem } from '../../shared/ledger';
 import { installGridHoverSpeed } from '../../shared/grid/rules';
 import { installGridTravellerCombat } from '../../shared/grid/travellerCombat';
@@ -68,7 +68,8 @@ import { gridRecovery, type GridRecoveryReason, type GridRecoveryRecord } from '
 import { RoadRecovery, onRoad, type RoadPoint, type RoadRecoveryCell } from '../../shared/grid/roadRecovery';
 import { GridCellWaitingError } from './refusal';
 import { scriptDisabledNotice, type ScriptNoticePorts } from '../../shared/shardfile/scriptNotice';
-import { prepareShardfileSimRestore, type ShardfileSimulation } from '../../server/plugin/simulation';
+import type { ShardfileSimulation } from '../../server/plugin/simulation';
+import { pageSim } from '../shardfile/clientMoverOwners';
 import { withCopyLayout } from './copyLayout';
 import type { CollisionStrip } from '../../shared/grid/collisionStrips';
 import type { LocalSaveInstance } from '../../shared/instanceSaves';
@@ -677,7 +678,7 @@ export class LiveGridSession {
     if (metadata) return finish({ bytes, isolatedPreparation: true, tilePreparation: source.tiles.some(tile => tile.lod === 0), reloadsCheckpoint: true, cancel: retained.release });
     let durability = this.durability.get(cell.instance);
     if (durability === undefined) {
-      durability = new GridRegionDurability(this.page.saves, { id: cell.instance, shard: cell.slug }, source, this.page.catalogue);
+      durability = pageSim.regionDurability(this.page.saves, { id: cell.instance, shard: cell.slug }, source, this.page.catalogue);
       this.durability.set(cell.instance, durability);
     }
     const savedRegion = durability, quest = savedRegion.quest;
@@ -694,7 +695,7 @@ export class LiveGridSession {
     // Four native creature-only walls and their shape/query adapters belong to this regional claim.
     // SF57: a reviewed per-sim reading (the generated ground and backstop inside it) replaces the declared ceiling
     const build = (saved: Parameters<LiveGridAdmission['create']>[0]): ReturnType<LiveGridAdmission['create']> => {
-      const prepared = prepareShardfileSimRestore(copySource, assets, { sections: outputDescriptor(source)?.sections, rapier, playerBody: false, quest, groundResolution, ...scriptPorts }), sim = prepared.simulation;
+      const prepared = pageSim.prepareShardfileSimRestore(copySource, assets, { sections: outputDescriptor(source)?.sections, rapier, playerBody: false, quest, groundResolution, ...scriptPorts }), sim = prepared.simulation;
       let releaseBasis: () => void = () => undefined;
       let transfer: TransferWalls;
       try {
@@ -804,7 +805,7 @@ export class LiveGridSession {
     // also requires the strict page/owner projection and serializes every constructor through its cleanup.
     const isolatedPreparation = dataPage || manifest.clientPlanRuntime === true;
     if (metadata) return { bytes, exclusiveRuntime: true, isolatedPreparation, tilePreparation: retained.admitted.source.tiles.some(tile => tile.lod === 0), reloadsCheckpoint: true, cancel: retained.release, prepareRuntime: prepareEntry };
-    const saved = new GridRegionDurability(this.page.saves, { id: cell.instance, shard: cell.slug }, retained.admitted.source, this.page.catalogue);
+    const saved = pageSim.regionDurability(this.page.saves, { id: cell.instance, shard: cell.slug }, retained.admitted.source, this.page.catalogue);
     this.durability.set(cell.instance, saved);
     let closed = false;
     const release = (): void => { if (closed) return; closed = true; this.durability.delete(cell.instance); retained.release(); };
