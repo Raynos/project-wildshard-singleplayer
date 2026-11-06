@@ -41,7 +41,9 @@
   "inputs": [
     "generators",
     "data/layout.json",
-    "../../sdk",
+    "../../sdk/headlessSections.ts",
+    "../../sdk/immutable.ts",
+    "../../sdk/shardfile.ts",
     "../../format",
     "../../../pnpm-lock.yaml"
   ]

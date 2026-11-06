@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare authored inputs across owned installation layouts.
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Keep fixture trees under repository scratch.
 import { dirname, resolve } from 'node:path';
 import ts from '@typescript/typescript6';
@@ -40,6 +40,26 @@ function programInputs(entry: string): Set<string> {
   }
   return files;
 }
+
+/** Every file a shard's generators reach through imports, across layers, packages' exports included. */
+function generatorClosure(shard: string): Set<string> {
+  const options: ts.CompilerOptions = { moduleResolution: ts.ModuleResolutionKind.Bundler, allowJs: true, resolveJsonModule: true, allowImportingTsExtensions: true };
+  const generators = resolve(shard, 'generators');
+  const seen = new Set(readdirSync(generators).filter(name => /\.m?[jt]s$/u.test(name) && !name.endsWith('.test.ts')).map(name => resolve(generators, name)));
+  for (const file of seen) for (const dependency of ts.preProcessFile(readFileSync(file, 'utf8')).importedFiles) {
+    const found = ts.resolveModuleName(dependency.fileName, file, options, ts.sys).resolvedModule?.resolvedFileName;
+    if (found === undefined || found.includes('/node_modules/.pnpm/') || !/\.[cm]?[jt]s$/u.test(found)) continue;
+    seen.add(realpathSync(found));
+  }
+  return seen;
+}
+
+// A map hashes the SDK files it reads, so an export or a file it doesn't read can't rewrite a template's bytes.
+test.each(['_template', 'pastel-plain'])('%s map names exactly the SDK files its generators reach', (slug) => {
+  const shard = resolve('src/shards', slug), sdk = `${resolve('src/sdk')}/`;
+  const declared = mapInputRoots(shard).filter(root => `${root}/`.startsWith(sdk));
+  expect(declared).toEqual([...generatorClosure(shard)].filter(file => file.startsWith(sdk)).sort());
+}, 60_000);
 
 test('source-owned maps declare their program and its defining raster inputs', () => {
   // Open Plots paints each output inside its product; other maps have a named map program.
