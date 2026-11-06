@@ -189,7 +189,7 @@ function overlay({ scope }: Pick<WorkerClientPorts, 'scope'>): (text: string) =>
 async function readWorker(shell: Shell, report: WorkerClientReport): Promise<void> { report.workerTickMs = (await shell.probe()).tickMs; }
 
 /** Boot the server in its worker and put this page on it. */
-async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
+async function startWorkerClient(ports: WorkerClientPorts, card: ReturnType<typeof countedWait>): Promise<void> {
   const { slug, player, physics, scope, system } = ports, build = (globalThis as { __WS_BUILD_ID__?: string }).__WS_BUILD_ID__ ?? '', root = `/b/${build}/standalone`;
   await import(/* @vite-ignore */ `${root}/identity.js`);
   const environment = await import(/* @vite-ignore */ `${root}/storage.js`) as { installBrowserSaveEnvironment: () => void };
@@ -200,10 +200,9 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
   const saves = await openIndexedSaves(SERVER_SAVES), { savePrefix } = appIdentity();
   const page = saveEnvironment().storage('shard');
   if (page !== null) await importPageSaves(saves, page, savePrefix);
-  // DL21: the server's boot is on the card while a card is up, counting what it has read. DL25: it reads what this page holds first.
-  const card = countedWait('Server world', 'files');
+  // DL21: the card counts what the server has read. DL25: it reads what this page holds first.
   const shell = startStandalone({ slug, base: `/shardfiles/${slug}/`, build, savePrefix, ...ports.grid === null ? { lone: true as const } : {}, held: url => { card.add(); return spawnHeldBytes(url); }, ...saves }), { client } = shell;
-  void shell.booted.catch(() => undefined).finally(card.end);
+  void shell.booted.catch(() => undefined);
   let ended = false, leaves = (): void => undefined;
   // Settings stops a server before it touches what the server saves: that stop must not save.
   const stop = (): void => { if (!ended) { ended = true; leaves(); shell.dispose(); } };
@@ -395,8 +394,10 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
 }
 
 async function guarded(ports: WorkerClientPorts): Promise<void> {
-  try { await startWorkerClient(ports); }
+  const card = countedWait('Server world', 'files'); // from the first module, so loading the server's code is on the card too
+  try { await startWorkerClient(ports, card); }
   catch (error) { console.error('[worker client]', error); overlay(ports)(`worker client failed\n${String(error)}`); }
+  finally { card.end(); }
 }
 
 /** Start the client and its server; a failure says so, because a phone has no console. It settles once the server has booted, or
