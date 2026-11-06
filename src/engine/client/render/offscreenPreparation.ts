@@ -27,5 +27,15 @@ export function registerOffscreenPreparation(scene: Scene, owner: Scope, pass: O
   owner.onDispose(() => { held.delete(pass); if (held.size === 0) passes.delete(scene); });
 }
 
+let heldBakes = 0;
+/** DL10: a frame of systems that may not bake. The loader's pose step runs before Shaders has linked anything, and a registered
+ *  pass that bakes in it links its programs inside that frame (Nalati's static capture: 1.1-1.5 s on the Simulator, 311 of 811 ms
+ *  on one link read at phone CPU, read as step 17, 19 or 24 by where the card last moved). The next frame bakes. */
+export function withoutOffscreenBakes(run: () => void): void {
+  heldBakes++;
+  try { run(); } finally { heldBakes--; }
+}
+export const offscreenBakesHeld = (): boolean => heldBakes > 0;
+
 /** Read the borrowed passes for one scene; empty after their owners retire. Does not run any render or update. */
 export function offscreenPreparations(scene: Scene): readonly OffscreenPreparation[] { return [...(passes.get(scene) ?? [])]; }

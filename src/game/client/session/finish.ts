@@ -18,6 +18,7 @@ import { installGpuRecovery } from '@wildshard/engine/core/GpuRecovery';
 import { TIER } from '@wildshard/engine/core/tier';
 import { installProbe } from '@wildshard/engine/debug/probe';
 import { lockOn as lockState } from '@wildshard/engine/player/AimTargets';
+import { withoutOffscreenBakes } from '@wildshard/engine/render/offscreenPreparation';
 import { liveWarmPacing, precompileLevel, queuedLinks } from '@wildshard/engine/render/precompile';
 import { textureBytes } from '@wildshard/engine/render/textureBytes';
 import { workerClientOn } from '@wildshard/engine/ui/debugOptions';
@@ -121,7 +122,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
       // Until the first systems step the camera stands at the origin (Nine: 127 m below the spawn's eye, at 72° not the
       // held 93°) and placed copies hold none until their first cull: one step without its draw poses the spawn view,
       // so the shaders below and firstFrame's warm turns link and draw what the player sees, not the origin's view
-      game.stepFrame();
+      withoutOffscreenBakes(() => { game.stepFrame(); });
       // A six-material job exceeded the loading text's one-second update
       // budget at phone CPU speed. Use the existing one-material sliced path.
       // PL6: and what the first frame's warm turns show, so none of it builds and links inside that frame

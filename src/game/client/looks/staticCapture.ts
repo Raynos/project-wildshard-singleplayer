@@ -8,7 +8,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { loadLookGraphCompiler } from '@wildshard/engine/render/graphBackend';
 import type { GraphIr } from '@wildshard/format/materialGraph';
 
-import { registerOffscreenPreparation } from '@wildshard/engine/render/offscreenPreparation';
+import { offscreenBakesHeld, registerOffscreenPreparation } from '@wildshard/engine/render/offscreenPreparation';
 
 
 /** Client-only static shadow and contact capture. Scene bounds and quality are authored rows; the pass programs are the host's. */
@@ -159,6 +159,7 @@ export class StaticCapture {
 
   /** each frame: re-bake when the key light has swung past the threshold (or the casters changed) */
   update(keyDir: THREE.Vector3): void {
+    if (offscreenBakesHeld()) return;
     this.scene.updateWorldMatrix(true, false);
     const at = _at.setFromMatrixPosition(this.scene.matrixWorld);
     if (!at.equals(this.origin)) { this.origin.copy(at); this.dirty = true; }
