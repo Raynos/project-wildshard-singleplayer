@@ -443,7 +443,7 @@ export async function nalatiJourney(browser, phone, base, step, prepare = () => 
     await page.evaluate(() => Promise.race([window.__workerClientSave(), new Promise(resolve => { setTimeout(resolve, 20_000); })]));
     const saved = await report(page);
     await page.reload({ waitUntil: 'load' });
-    await page.waitForFunction(() => typeof window.__workerClient === 'function', undefined, { timeout: 150_000 });
+    await page.waitForFunction(() => typeof window.__workerClient === 'function' && window.__wildshard?.world?.player !== undefined, undefined, { timeout: 150_000 });
     await page.evaluate(FLOOR_GRID_ENTER);
     await page.waitForFunction(() => window.__workerClient().frames > 30, undefined, { timeout: 60_000 });
     await page.waitForTimeout(2500);
@@ -590,7 +590,7 @@ async function nightJourney(browser, phone, base, step) {
     await page.evaluate(() => Promise.race([window.__workerClientSave(), new Promise(resolve => { setTimeout(resolve, 20_000); })]));
     const saved = await report(page);
     await page.reload({ waitUntil: 'load' });
-    await page.waitForFunction(() => typeof window.__workerClient === 'function', undefined, { timeout: 150_000 });
+    await page.waitForFunction(() => typeof window.__workerClient === 'function' && window.__wildshard?.world?.player !== undefined, undefined, { timeout: 150_000 });
     await page.evaluate(FLOOR_GRID_ENTER);
     await page.waitForFunction(() => window.__workerClient().frames > 30, undefined, { timeout: 60_000 });
     await page.evaluate(() => { window.__toasts = []; new MutationObserver(list => { for (const row of list) for (const node of row.addedNodes) if (node.classList?.contains('ws-game-toast')) window.__toasts.push(node.textContent); }).observe(document.body, { childList: true, subtree: true }); window.__workerClientHits(60); });
@@ -664,7 +664,7 @@ async function secondClientJourney(browser, phone, base, step) {
   const { page } = pine, MILL = { x: -178.09, z: -145.32 }, millWire = 'cabin-7-door', millId = `door:${millWire}`;
   const hasDoor = flag => async () => (await report(page)).flags.includes(flag) === true;
   const stood = (x, z) => groundAt(page, x, z).then(y => place(page, x, y + 0.4, z));
-  const reopen = async () => { await page.reload({ waitUntil: 'load' }); await page.waitForFunction(() => typeof window.__workerClient === 'function', undefined, { timeout: 150_000 }); await page.evaluate(FLOOR_GRID_ENTER); await page.waitForFunction(() => window.__workerClient().frames > 30, undefined, { timeout: 60_000 }); };
+  const reopen = async () => { await page.reload({ waitUntil: 'load' }); await page.waitForFunction(() => typeof window.__workerClient === 'function' && window.__wildshard?.world?.player !== undefined, undefined, { timeout: 150_000 }); await page.evaluate(FLOOR_GRID_ENTER); await page.waitForFunction(() => window.__workerClient().frames > 30, undefined, { timeout: 60_000 }); };
   const free = await page.evaluate(wanted => { const row = window.__wildshard.world.interactables.find(entry => entry.wireId?.includes('door') && entry.wireId !== wanted); return row === undefined ? null : { id: row.wireId, x: row.position.x, y: row.position.y, z: row.position.z }; }, millWire);
   await step('second client: its press swings a door, and this page sees it', async () => {
     if (free === null) return { ok: false, why: 'no free door' };
@@ -719,7 +719,7 @@ async function secondClientJourney(browser, phone, base, step) {
     const once = await filed(), first = await kept(), all = (await report(nalati)).receipts;
     await nalati.evaluate(() => Promise.race([window.__workerClientSave(), new Promise(resolve => { setTimeout(resolve, 20_000); })]));
     await nalati.waitForTimeout(800);
-    await nalati.reload({ waitUntil: 'load' }); await nalati.waitForFunction(() => typeof window.__workerClient === 'function', undefined, { timeout: 150_000 }); await nalati.evaluate(FLOOR_GRID_ENTER); await nalati.waitForFunction(() => window.__workerClient().frames > 30, undefined, { timeout: 60_000 });
+    await nalati.reload({ waitUntil: 'load' }); await nalati.waitForFunction(() => typeof window.__workerClient === 'function' && window.__wildshard?.world?.player !== undefined, undefined, { timeout: 150_000 }); await nalati.evaluate(FLOOR_GRID_ENTER); await nalati.waitForFunction(() => window.__workerClient().frames > 30, undefined, { timeout: 60_000 });
     await nalati.waitForTimeout(4000);
     const again = await filed(), second = await kept();
     // A fresh page hears the server's book from the top. The page's own ledger keeps the fact once, however often it's told.
