@@ -65,6 +65,8 @@ export interface ProductOptions {
    * this reader fetches its canonical URL and compares the declared length.
    * Node author and external readers omit it and retain checked admission. */
   firstPartyRead?: (url:string,expectedBytes:number|undefined,read?:(bytes:number)=>void,hash?:string,priority?:'low')=>Promise<Uint8Array>;
+  /** S4: the tier whose splat layers this device draws, when it isn't `tier`. Asked only of a shard with a phone set. */
+  splatTier?: () => 'phone' | 'desktop';
   /** The spawn manifest names individual files, never transport envelopes. */
   directFiles?: boolean;
   /** Optional live parser; boot and receipts stay on the page. Hashes/validators retain admission. */
@@ -385,7 +387,7 @@ async function readBuiltProduct(input:unknown,options:ProductOptions,read:NonNul
   const source=await resolveDescriptor(input,options);
   if(!isBuildValidatedOutput(source))throw new Error('First-party reader did not assemble its build output');
   await options.reserve?.(source);
-  const selected=options.tier===undefined?source.files:await tierProductFilesPaced(source,options.tier,options.pause);
+  const selected=options.tier===undefined?source.files:await tierProductFilesPaced(source,options.tier,options.pause,options.splatTier);
   const initial=options.tier==='phone'?controlFiles(await playLibrarySourcePaced(source,options.pause),selected):selected;
   const base=new URL('.',options.base).href,assets=new Map<string,Uint8Array>();
   const refs=[...initial.map(file=>({ref:file.hash,bytes:file.compressed})),...source.requires.commons.map(hash=>({ref:`commons:${hash}`,bytes:source.requires.commonsWire[hash]??0}))];
@@ -497,7 +499,7 @@ async function admitProductWork(input: unknown, options: ProductOptions, trace?:
   // of unselected alternatives. Keep the complete descriptor for verified late
   // reads and a later device tier; unknown, critical and shared references stay.
   const selected = options.firstParty && receipt !== null && options.tier !== undefined
-    ? await tierProductFilesPaced(source, options.tier, options.pause) : source.files;
+    ? await tierProductFilesPaced(source, options.tier, options.pause, options.splatTier) : source.files;
   // Untrusted/unreceipted products retain complete byte validation. The exact
   // first-party phone receipt permits lazy tile reads through ClientAssets.
   const files = options.firstParty && receipt !== null && options.tier === 'phone'

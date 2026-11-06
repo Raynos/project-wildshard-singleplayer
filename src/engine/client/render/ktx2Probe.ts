@@ -57,11 +57,11 @@ export interface Ktx2Probe {
   readonly veto: string | null;
 }
 
-interface Candidate { family: Ktx2Family; format: string; ext: string; gl: number; block: Uint8Array; expected: readonly number[]; srgb: boolean }
+interface Candidate { family: Ktx2Family; format: string; ext: string; gl: number; block: Uint8Array; expected: readonly number[]; srgb: boolean; edge: number }
 
 const SIZE = 8, LEVELS = 4, TOLERANCE = 12;
 
-/** ASTC 4×4 void-extent block: one constant colour as UNORM16 (0.8, 0.4, 0.2, 0.6) */
+/** ASTC void-extent block, the same at every footprint: one constant colour as UNORM16 (0.8, 0.4, 0.2, 0.6) */
 function astcBlock(): Uint8Array {
   const b = new Uint8Array(16);
   b.set([0xfc, 0xfd, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]);
@@ -93,13 +93,16 @@ const linear = (c: number): number => { const s = c / 255; return Math.round(255
 
 function candidates(): Candidate[] {
   const out: Candidate[] = [];
-  const add = (family: Ktx2Family, format: string, ext: string, gl: number, block: Uint8Array | readonly number[], rgba: readonly number[], srgb: boolean): void => {
+  const add = (family: Ktx2Family, format: string, ext: string, gl: number, block: Uint8Array | readonly number[], rgba: readonly number[], srgb: boolean, edge = 4): void => {
     const [r = 0, g = 0, b = 0, a = 255] = rgba;
-    out.push({ family, format, ext, gl, block: Uint8Array.from(block), srgb, expected: srgb ? [linear(r), linear(g), linear(b), a] : [r, g, b, a] });
+    out.push({ family, format, ext, gl, block: Uint8Array.from(block), srgb, edge, expected: srgb ? [linear(r), linear(g), linear(b), a] : [r, g, b, a] });
   };
   const astc = astcBlock(), etcRgba = [...EAC_ALPHA, ...ETC_RGB], bc7 = bc7Block(), bc3 = [...BC3_ALPHA, ...BC1];
   add('astc', 'RGBA_ASTC_4x4', 'WEBGL_compressed_texture_astc', 0x93b0, astc, [204, 102, 51, 153], false);
   add('astc', 'SRGB8_ALPHA8_ASTC_4x4', 'WEBGL_compressed_texture_astc', 0x93d0, astc, [204, 102, 51, 153], true);
+  // S4: the extension promises every footprint, but a phone's overlay reads raw 6×6 with no transcode: it is proved too
+  add('astc', 'RGBA_ASTC_6x6', 'WEBGL_compressed_texture_astc', 0x93b4, astc, [204, 102, 51, 153], false, 6);
+  add('astc', 'SRGB8_ALPHA8_ASTC_6x6', 'WEBGL_compressed_texture_astc', 0x93d4, astc, [204, 102, 51, 153], true, 6);
   add('etc2', 'RGB8_ETC2', 'WEBGL_compressed_texture_etc', 0x9274, ETC_RGB, [206, 104, 53, 255], false);
   add('etc2', 'SRGB8_ETC2', 'WEBGL_compressed_texture_etc', 0x9275, ETC_RGB, [206, 104, 53, 255], true);
   add('etc2', 'RGBA8_ETC2_EAC', 'WEBGL_compressed_texture_etc', 0x9278, etcRgba, [206, 104, 53, 155], false);
@@ -162,7 +165,7 @@ export function probeCompressedMips(gl: WebGL2RenderingContext): { families: Par
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
       gl.texStorage2D(gl.TEXTURE_2D, LEVELS, c.gl, SIZE, SIZE);
       for (let level = 0; level < LEVELS; level++) {
-        const s = Math.max(1, SIZE >> level), blocks = Math.ceil(s / 4) ** 2, data = new Uint8Array(blocks * c.block.length);
+        const s = Math.max(1, SIZE >> level), blocks = Math.ceil(s / c.edge) ** 2, data = new Uint8Array(blocks * c.block.length);
         for (let i = 0; i < blocks; i++) data.set(c.block, i * c.block.length);
         gl.compressedTexSubImage2D(gl.TEXTURE_2D, level, 0, 0, s, s, c.gl, data);
       }

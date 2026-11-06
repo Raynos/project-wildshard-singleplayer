@@ -199,11 +199,11 @@ export function tierLibrarySourcePaced(source: Shardfile, tier: 'phone' | 'deskt
 /** Typed alternatives which no critical, shared or dependency reader needs can
  * stay on disk. The full descriptor remains available for verified late reads.
  * The boot compiler and runtime use this same selection before declaring bytes. */
-export async function tierProductFilesPaced(source: Shardfile, tier: 'phone' | 'desktop', pause?: () => Promise<void>): Promise<Shardfile['files']> {
+export async function tierProductFilesPaced(source: Shardfile, tier: 'phone' | 'desktop', pause?: () => Promise<void>, splatTier: () => 'phone' | 'desktop' = () => tier): Promise<Shardfile['files']> {
   const descriptor = outputDescriptor(source);
   if (descriptor === undefined) return source.files;
   const inactive = await paced(entryFileSteps(source, tier, descriptor), pause ?? (() => Promise.resolve()));
-  const splat = otherTierSplatFiles(source, tier);
+  const splat = otherTierSplatFiles(source, splatTier);
   return inactive.size === 0 && splat.size === 0 ? source.files : source.files.filter(file => !inactive.has(file.hash) && !splat.has(file.hash));
 }
 function* tierLibrarySourceSteps(source: Shardfile, tier: 'phone' | 'desktop', assets?: ReadonlyMap<string, Uint8Array>): Generator<void, Shardfile> {

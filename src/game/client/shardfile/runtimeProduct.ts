@@ -18,6 +18,7 @@ import { absentShardProduct, type ShardProduct } from '../../shared/shardfile/sh
 import { prepareManifestScalarBlocks,type ShardManifest } from '../shard/manifest';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
 import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
+import { splatDrawTier } from '@wildshard/engine/boot/gpuFiles';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { readProductDescriptor, browserContentHash, browserProductCache, type AdmittedProduct, type ProductOptions } from './product';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -109,7 +110,7 @@ export function browserShardfileOptions(base: string, firstParty = false): Produ
     }, navigator.serviceWorker?.controller === null || navigator.serviceWorker?.controller === undefined ? storage : undefined), 'file', address);
     entryTransport()?.expand(); return result;
   };
-  return { ...(parseJson === undefined ? {} : { parseJson }), base, firstParty, ...(spawn === undefined ? {} : {directFiles: true}), tier: TIER, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: verifiedHash,
+  return { ...(parseJson === undefined ? {} : { parseJson }), base, firstParty, ...(spawn === undefined ? {} : {directFiles: true}), tier: TIER, splatTier: splatDrawTier, quality, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: verifiedHash,
     ...(firstParty ? { firstPartyRead } : {}),
     backgroundFetch: (url, signal) => fetch(resolve(url), { priority: 'low', ...(signal === undefined ? {} : { signal }) }),
     fetch: (url, signal) => waitFor(`Read ${productResourceRole(url, base)}`, (async () => {
@@ -234,7 +235,7 @@ export async function loadShardProduct(expectedIdentity: string, options: Produc
           let prepared: Promise<ReturnType<typeof productCacheCompletion>> | undefined;
           const receipt = descriptor.receipt;
           productCompletions.set(entry.product, async owner => {
-            prepared ??= tierProductFilesPaced(source, 'phone', options.pause).then(selected => productCacheCompletion(source, options, selected, lateFiles(source, selected), { source: descriptor.index, firstParty: true,
+            prepared ??= tierProductFilesPaced(source, 'phone', options.pause, options.splatTier).then(selected => productCacheCompletion(source, options, selected, lateFiles(source, selected), { source: descriptor.index, firstParty: true,
               validation: { revision: receipt.revision, sourceHash: receipt.sourceHash, indexHash: descriptor.indexHash, worst: receipt.worst } }));
             const complete = await prepared; await complete?.(owner);
           });

@@ -104,11 +104,18 @@ export class TexturePolicyBinding {
   }
 }
 let resolving = false;
+/** A phone-tier GPU that can't sample raw ASTC: absent, or read wrong by the probe (the iOS Simulator has the extension and
+ *  zeroes sRGB mips). No verdict (no page, or a measurement pin) changes nothing. The transcoder reads this same probe. */
+const noRawAstc = (probe: Ktx2Probe): boolean => probe.ran && probe.families.astc !== true;
 /** S4: an overlay's raw ASTC 6×6 files have no transcode, so a phone-tier GPU that can't sample ASTC loads images. */
 function rawAstcVeto(probe: Ktx2Probe): string | null {
-  if (!probe.ran || TIER !== 'phone' || probe.families.astc === true || ![...registered.phone].some(url => url.includes('/astc6/'))) return null;
+  if (TIER !== 'phone' || !noRawAstc(probe) || ![...registered.phone].some(url => url.includes('/astc6/'))) return null;
   return 'this table names raw ASTC 6×6 and the GPU has no ASTC';
 }
+/** S4: which tier's splat layers this device draws. A phone's are raw ASTC 6×6, so a phone that can't sample ASTC draws the
+ *  desktop's Basis set, read whole from the blobs only by such a device. Needs no renderer: products are admitted before one. */
+export function splatTierOn(tier: 'phone' | 'desktop', probe: () => Ktx2Probe): 'phone' | 'desktop' { return tier === 'phone' && noRawAstc(probe()) ? 'desktop' : tier; }
+export function splatDrawTier(): 'phone' | 'desktop' { return splatTierOn(TIER, ktx2Probe); }
 /** the mode this page loads with, and why (fixed on the first call) */
 export function texModeWhy(): { mode: TexMode; why: string } {
   const state = activePolicy();
