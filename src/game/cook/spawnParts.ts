@@ -144,16 +144,25 @@ export async function writeSpawnParts(outDir: string, manifests: readonly SpawnP
     if (key === undefined) { key = placementKey(url, stableKey(url)); keys.set(url, key); }
     return key;
   };
-  const inflight = new Set<Promise<void>>();
+  const inflight = new Set<Promise<void>>(), bodies = new Map<string, readonly string[]>();
   const write = async (batch: readonly string[]): Promise<void> => {
     const length = batch.reduce((at, url) => align(at) + (sizes.get(url) ?? 0), 0);
-    const body = new Uint8Array(length), offsets = new Map<string, number>(); let cursor = 0;
+    let body = new Uint8Array(length); const offsets = new Map<string, number>(); let cursor = 0;
     for (const url of batch) {
       cursor = align(cursor); const bytes = read(url);
       if (bytes.length !== sizes.get(url)) throw new Error(`Spawn part member size differs: ${url}`);
       body.set(bytes, cursor); offsets.set(url, cursor); cursor += bytes.length;
     }
-    const hash = createHash('sha256').update(body).digest('hex'), url = `/assets/spawn/parts/${hash.slice(0, 16)}.pack.br`;
+    // The same bytes under two URLs of one manifest (Far Reach's prepared models, a blob and a mount) would name one part
+    // twice at offset 0, which no reader takes, so the second copy keeps a part of its own.
+    let hash = createHash('sha256').update(body).digest('hex');
+    const twin = bodies.get(hash)?.filter(other => !batch.includes(other)) ?? [];
+    if (twin.length > 0 && manifests.some(manifest => { const urls = new Set(manifest.rows.map(row => row.url)); return twin.some(other => urls.has(other)) && batch.some(row => urls.has(row)); })) {
+      const padded = new Uint8Array(body.length + SPAWN_PART_ALIGN); padded.set(body); body = padded;
+      hash = createHash('sha256').update(body).digest('hex');
+    }
+    bodies.set(hash, [...bodies.get(hash) ?? [], ...batch]);
+    const url = `/assets/spawn/parts/${hash.slice(0, 16)}.pack.br`;
     for (const [member, offset] of offsets) placed.set(member, {url, bytes: body.length, hash, offset});
     if (wire.has(url)) return;
     wire.set(url, 0);

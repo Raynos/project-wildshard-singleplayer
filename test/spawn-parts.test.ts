@@ -242,3 +242,10 @@ test('C2: a server pack holds the server class by content, and a reader finds ea
     expect(await cookServerPack([], () => new Uint8Array(), folder, createPartEncoder(resolve(folder, 'cache'), 1))).toBeUndefined();
   } finally { rmSync(folder, {recursive: true, force: true}); }
 });
+
+test('the same bytes under two URLs of one manifest each keep a readable part', async () => {
+  const size = PART_BYTES - 16, a = file('/shardfiles/s/blobs/glb/a.glb', size), b = file('/assets/s/baked/models.glb', size), same = new Uint8Array(size).fill(7);
+  const [table] = await writeSpawnParts(out, [manifest([a, b])], () => same, undefined, encoder());
+  expect(new Set(table?.map(part => part.url)).size).toBe(2);
+  expect(() => readSpawnManifest({version: 1, shard: 's', tier: 'phone', flow: 'client', files: [a, b], totalBytes: size * 2, wireBytes: 0, parts: table})).not.toThrow();
+});
