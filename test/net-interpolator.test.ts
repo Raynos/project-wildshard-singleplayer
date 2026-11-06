@@ -95,3 +95,15 @@ test('a real encoded frame: a tiered row left out arrives as no sample', () => {
   lerp.sample(1, 4, out);
   expect(out[0]).toBeCloseTo(Number(ANIMAL.row[0]?.value(100)), 5); // the held copy never entered: tick 4 is a hold of tick 2
 });
+
+test('a body under a predicted player runs on past its newest row, and a row the frames left out has stopped', () => {
+  const lerp = stack(), speed = 0.05;
+  for (let tick = 0; tick <= 20; tick += 2) lerp.push(frameOf(tick, { 7: still({ x: tick * speed }) }));
+  const at = (tick: number, reach: number): number => { const out = new Float64Array(BODY.row.length); expect(lerp.project(7, tick, out, reach)).toBe(true); return out[X] ?? 0; };
+  expect(at(10, 30)).toBeCloseTo(0.5, 2); // inside its history it is `sample`
+  expect(at(32, 30)).toBeCloseTo(32 * speed, 1); // past `sample`'s 50 ms, where a deck under a rider has to be
+  expect(at(100, 30)).toBeCloseTo(50 * speed, 0); // as far as its reach
+  expect(read(lerp, 7, 32)[X]).toBeLessThan(at(32, 30)); // which `sample` is not
+  lerp.push(frameOf(22, { 7: still({ x: 20 * speed }) }, []));
+  expect(at(32, 30)).toBe(read(lerp, 7, 20)[X]); // it stopped, where it stopped
+});

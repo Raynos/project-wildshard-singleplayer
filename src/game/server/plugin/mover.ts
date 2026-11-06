@@ -153,7 +153,9 @@ function moverQueries(data: MoverData, physicsQueries: ScriptQuery): ScriptQuery
 }
 
 /** Transitional view recipe only; a shard may project published poses but cannot author physics or tick ownership. */
-export interface MoverView { pose: (value: MoverPose, fields: Readonly<Record<number, number>>) => void; chain?: RopeChain }
+export interface MoverView { pose: (value: MoverPose, fields: Readonly<Record<number, number>>) => void; chain?: RopeChain;
+  /** A replay's deck: its collider stands at `at` now, and `next` waits for the physics step after the replay. No view moves. */
+  place?: (at: MoverPose, next: MoverPose) => void }
 /** Declared rows plus trusted legacy view callbacks; the platform owns context, world, scripts, scope and fixed systems. */
 export interface MoverInstallation {
   flags?: Pick<Flags, 'has' | 'set'>;
@@ -289,6 +291,9 @@ export class MoverRuntime {
     was.still = was.x === at.x && was.y === at.y && was.z === at.z ? was.still + 1 : 0;
     was.x = at.x; was.y = at.y; was.z = at.z;
   }
+  /** A replay of a command under a predicted body: no physics steps between replayed commands, so the deck goes where this one
+   * meets it at once, and the pose the next live step carries from waits behind it. */
+  replayPose(id: string, at: MoverPose, next: MoverPose): void { const body = this.bodies.get(id); body?.resetPose(at); body?.setPose(next); }
   /** Queue a host-validated interact command; scene dispatch resolves the stable mover id, never an arbitrary function export. */
   command(id: string, action: 1 | 2 | 3, player?: string): void {
     const row = this.data.find(m => m.id === id); if (row === undefined) throw new Error('Unknown mover');

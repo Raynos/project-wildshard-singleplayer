@@ -9,7 +9,8 @@ import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
 import { directLoopback } from '../src/engine/test/netLoopback';
 import { netNeighbourRegion } from '../src/game/client/grid/neighbourRows';
 import { netCreatureCount } from '../src/game/client/population/netCounts';
-import { netMoverPoses } from '../src/game/client/plugin/moverViews';
+import { NetMovers } from '../src/game/client/plugin/moverViews';
+import type { MoverPose } from '../src/engine/shared/physics/mover';
 import { MoverScriptDriver, type MoverView } from '../src/game/server/plugin/mover';
 import { emptyShardfile } from '../src/sharddev/author';
 import { canoeMover } from '../src/shards/pine-hollow/generators/canoe';
@@ -57,6 +58,29 @@ test('a population count off the rows is the server\'s, and a death leaves it', 
   } finally { host.dispose(); }
 });
 
+test('a deck under a predicted body stands where each command meets it, and a far one at render time', () => {
+  const host = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier });
+  try {
+    const row = canoeMover(() => 2, timberWorld(PINE_SOURCES).landmarks), source = emptyShardfile({ slug: 'net-test', name: 'Net', author: 'Test', revision: 1, seed: 3 });
+    const motion = new MoverScriptDriver([row], host).install(host, { content: source, assets: new Map(), rules: { fields: {}, archetypes: [], events: [], maxEntities: 32 } }, { id: 'net-test', drive: true, restoreFlags: new Set(host.flags.all) });
+    const { client, run } = wired(host);
+    motion.command(row.id, 1); run(120);
+    const posed: MoverPose[] = [], placed: (readonly [MoverPose, MoverPose])[] = [], view: MoverView = { pose: pose => { posed.push(pose); }, place: (at, next) => { placed.push([at, next]); } };
+    const { x, z } = motion.pose(row.id).position, tick = host.state.tick, renderTick = tick - 6, near = new NetMovers(client, new Map([[row.id, view]]), { x, z });
+    near.frame(renderTick);
+    expect(posed).toEqual([]); // it waits for a step
+    near.at(tick + 3, false);
+    expect(posed).toHaveLength(1);
+    near.at(tick + 3, true);
+    expect(posed).toHaveLength(1); // a replay moves no view
+    const [[at, next] = []] = placed;
+    expect(Math.hypot((next?.position.x ?? 0) - (at?.position.x ?? 0), (next?.position.z ?? 0) - (at?.position.z ?? 0)), 'one tick apart').toBeGreaterThan(0);
+    expect(next?.position.x).toBe(posed[0]?.position.x); // the step after a replay carries from the pose the live step would have left
+    new NetMovers(client, new Map([[row.id, view]]), { x: x + 100, z }).frame(renderTick);
+    expect(posed).toHaveLength(2); // far away: posed at once, at render time
+  } finally { host.dispose(); }
+});
+
 test('a mover view posed off its row stands where the server has the mover', () => {
   const host = createSimHost({ ...SIM_LEVEL, entities: [] }, { rapier });
   try {
@@ -65,7 +89,7 @@ test('a mover view posed off its row stands where the server has the mover', () 
     const { client, run } = wired(host), drawn = { x: Number.NaN, z: Number.NaN, enabled: false };
     const view: MoverView = { pose: pose => { Object.assign(drawn, { x: pose.position.x, z: pose.position.z, enabled: pose.enabled }); } };
     motion.command(row.id, 1); run(300);
-    netMoverPoses(client, new Map([[row.id, view]]), Number.MAX_SAFE_INTEGER);
+    new NetMovers(client, new Map([[row.id, view]]), { x: 0, z: 0 }).frame(Number.MAX_SAFE_INTEGER);
     const actual = motion.pose(row.id);
     expect(drawn.x).toBeCloseTo(actual.position.x, 0); expect(drawn.z).toBeCloseTo(actual.position.z, 0); expect(drawn.enabled).toBe(actual.enabled);
   } finally { host.dispose(); }

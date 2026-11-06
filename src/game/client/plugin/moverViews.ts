@@ -1,12 +1,14 @@
 /**
  * The view half of declared movers (E6): binding a shard's rendered groups and native chains to the poses a mover
- * publishes. A page feeds these views from its own MoverRuntime; `netMoverPoses` feeds the same views off `script` rows.
+ * publishes. A page feeds these views from its own MoverRuntime; `NetMovers` feeds the same views off `script` rows.
  */
 import * as v from 'valibot';
 import type { Object3D } from 'three';
 import type { World } from '@wildshard/engine/core/bootstrap';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import type { NetClient } from '@wildshard/engine/net/client';
+import type { PredictedMover } from '@wildshard/engine/net/predictionWorld';
+import type { MoverPose } from '@wildshard/engine/physics/mover';
 import { RopeChain } from '@wildshard/engine/physics/ropeChain';
 import type { MoverData } from '@wildshard/format/movers';
 import type { MoverInstallation, MoverRuntime, MoverView } from '../../server/plugin/mover';
@@ -64,14 +66,50 @@ export function enterMovers(ctx: LevelContext, world: World, data: MoverData,
   return pageSim.installDeclaredMovers(ctx, world, { ...ports, data, modules: new Map(), systemId: rows.systemId, views: borrowedMoverViews(data, rows.bindings, targets) });
 }
 
-/** The same views off the wire: every `script` row the client holds poses the mover of that id. Run once a frame. */
-export function netMoverPoses(client: NetClient, views: ReadonlyMap<string, MoverView>, renderTick: number): void {
-  for (const [handle, info] of client.entities) {
-    if (!info.id.startsWith('script:')) continue;
-    const view = views.get(info.id.slice('script:'.length)), row = view === undefined ? null : client.interpolator.fields(handle, renderTick);
-    if (view === undefined || row === null) continue;
-    const { x, y, z, pitch, yaw, roll, enabled } = row;
-    if (typeof x !== 'number' || typeof y !== 'number' || typeof z !== 'number' || typeof pitch !== 'number' || typeof yaw !== 'number' || typeof roll !== 'number') continue;
-    view.pose({ position: { x, y, z }, euler: { x: pitch, y: yaw, z: roll }, enabled: enabled === true }, {});
+/** A deck this near the feet, or under them, stands in the present and not at render time. A far one costs a step nothing. */
+const DECK_REACH = 24;
+/** Ticks a deck runs on past its newest row: a page that has fallen behind its rows by half a second. */
+const DECK_RUN_ON = 30;
+interface Deck { readonly id: string; readonly handle: number; readonly view: MoverView }
+/** A row's pose, or null for a row that doesn't hold one. */
+function rowPose(row: ReturnType<NetClient['interpolator']['fields']>): MoverPose | null {
+  if (row === null) return null;
+  const { x, y, z, pitch, yaw, roll, enabled } = row;
+  if (typeof x !== 'number' || typeof y !== 'number' || typeof z !== 'number' || typeof pitch !== 'number' || typeof yaw !== 'number' || typeof roll !== 'number') return null;
+  return { position: { x, y, z }, euler: { x: pitch, y: yaw, z: roll }, enabled: enabled === true };
+}
+
+/**
+ * The same views off the wire. Every `script` row the client holds poses the mover of that id: a far one once a frame at render
+ * time, and a near one as `at` asks, a step at a time, in the tick its command meets it. A body on a deck drawn a render delay
+ * behind the server is a correction a frame: the feet ride what the deck was, and one command later the server says otherwise.
+ */
+export class NetMovers implements PredictedMover {
+  private readonly decks: Deck[] = [];
+  constructor(private readonly client: NetClient, private readonly views: ReadonlyMap<string, MoverView>, private readonly feet: { readonly x: number; readonly z: number }) {}
+  /** Once a frame. */
+  frame(renderTick: number): void {
+    const { client, views, decks, feet } = this;
+    decks.length = 0;
+    for (const [handle, info] of client.entities) {
+      if (!info.id.startsWith('script:')) continue;
+      const id = info.id.slice('script:'.length), view = views.get(id), pose = view === undefined ? null : rowPose(client.interpolator.fields(handle, renderTick));
+      if (view === undefined || pose === null) continue;
+      if (view.place !== undefined && Math.hypot(pose.position.x - feet.x, pose.position.z - feet.z) < DECK_REACH) decks.push({ id, handle, view });
+      else view.pose(pose, {});
+    }
+  }
+  /** Off a replay `tick`'s pose waits for the next physics step, as the server's does. On one no step comes: the command read the
+   *  pose of the tick before it, as every server tick does, and `tick`'s waits for the step after the replay. */
+  at(tick: number, replay: boolean): void {
+    const { interpolator } = this.client;
+    for (const { id, handle, view } of this.decks) {
+      if (this.views.get(id) !== view) continue; // the page crossed since the frame
+      const next = rowPose(interpolator.fields(handle, tick, DECK_RUN_ON));
+      if (next === null) continue;
+      if (!replay) { view.pose(next, {}); continue; }
+      const here = rowPose(interpolator.fields(handle, tick - 1, DECK_RUN_ON));
+      if (here !== null) view.place?.(here, next);
+    }
   }
 }

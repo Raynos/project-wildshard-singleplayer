@@ -27,7 +27,7 @@ import { mountOf } from '../../shared/riding/entered';
 import { GrappleTool } from '../grapple/tool';
 import { netClaw } from '../grapple/netClaw';
 import type { Mount } from '../riding/mount';
-import { netMoverPoses } from '../plugin/moverViews';
+import { NetMovers } from '../plugin/moverViews';
 import { spawnHeldBytes } from '../boot/spawnDownload';
 import { DAY_ROW } from '@wildshard/engine/sim/shardRows';
 import type { EncounterRow } from '../boss/barFeed';
@@ -262,6 +262,8 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     if (now - sampleAt > 2000) { sampleAt = now; void readWorker(shell, report); }
     show(`worker client ${report.closed ?? 'open'}\n${report.framesPerSecond.toFixed(1)} fps  ${report.ticksPerSecond.toFixed(1)} ticks/s\ndelay ${report.delayMs.toFixed(0)} ms  jitter ${report.jitterMs.toFixed(1)} ms\ncorrections ${report.corrections} (${report.correctionsPerMinute.toFixed(1)}/min)  worst ${report.worstOffset.toFixed(2)} m\nqueue ${report.queue}  replays/frame ${report.replaysPerFrame.toFixed(2)}\nmain ${report.mainMsP95.toFixed(2)} ms  worker ${report.workerTickMs.toFixed(1)} ms  rows ${report.rows}\nhits ${report.hits}  kills ${report.kills}  refused ${report.refused}  waiting ${report.attacks}  held ${report.held}`);
   };
+  const decks = new NetMovers(client, wirePage.movers, player.position);
+  scope.onDispose(net.world.addMover(decks));
   system({ id: 'proof.worker.reconcile', phase: 'input', run: () => { const at = diagnosticNow(); net.reconcile(); cost = diagnosticNow() - at; } });
   system({ id: 'proof.worker.present', phase: 'update', run: dt => {
     // A page still crossing stands in another world than the frames: those rows aren't its manager's to spawn.
@@ -272,7 +274,7 @@ async function startWorkerClient(ports: WorkerClientPorts): Promise<void> {
     syncCreatures(client, animals, bodies, retired, spawnMs);
     bindMount(); offerMounts(); bindClaw();
     const shown = showRows(client, net, ports, bodies, renderTick, dt, row, near, rideable);
-    wirePage.frame(here ? bookOf(client.latest?.cell) : null, here, ports.day()); netMoverPoses(client, wirePage.movers, renderTick);
+    wirePage.frame(here ? bookOf(client.latest?.cell) : null, here, ports.day()); decks.frame(renderTick);
     report.rows = animals === null ? [...client.entities.values()].filter(info => info.cls.cls === ANIMAL_CLASS.cls).length : shown; // a data cell's life draws them
     net.present(dt);
     const now = diagnosticNow(), { predictor } = net, seconds = (now - started) / 1000, tick = client.latest?.tick ?? 0;

@@ -89,12 +89,30 @@ export class Interpolator {
     return true;
   }
 
-  /** One row at `tick` as field values, for a caller that does not run per row per frame. */
-  fields(handle: number, tick: number): Readonly<Record<string, NetValue>> | null {
+  /**
+   * `sample` for a body a predicted player stands on, which has to stand in the present and not 100 ms behind: past the newest
+   * sample it runs on along its last delta for up to `reach` ticks, where `sample` stops at 50 ms. A row the newest frames left
+   * out has stopped, and holds where it stopped.
+   */
+  project(handle: number, tick: number, out: Float64Array, reach: number): boolean {
+    const track = this.tracks.get(handle);
+    if (track === undefined || track.count === 0) return false;
+    const { ticks, values, count, blend } = track, to = ticks[count - 1] ?? 0, from = ticks[count - 2] ?? 0, width = blend.columns.length;
+    if (tick <= to) return this.sample(handle, tick, out);
+    const past = count === 1 || this.newest > to ? 0 : Math.min(tick - to, reach) / (to - from), { carried } = blend, a = (count - 2) * width, b = (count - 1) * width;
+    for (let at = 0; at < width; at++) {
+      const older = values[a + at] ?? 0, newer = values[b + at] ?? 0;
+      out[at] = carried[at] !== true || past === 0 ? newer : newer + delta(blend.columns[at], older, newer) * past;
+    }
+    return true;
+  }
+
+  /** One row at `tick` as field values, for a caller that does not run per row per frame. With `reach`, as `project` reads it. */
+  fields(handle: number, tick: number, reach?: number): Readonly<Record<string, NetValue>> | null {
     const columns = this.columns(handle);
     if (columns === null) return null;
     const out = new Float64Array(columns.length), fields: Record<string, NetValue> = {};
-    this.sample(handle, tick, out);
+    if (reach === undefined) this.sample(handle, tick, out); else this.project(handle, tick, out, reach);
     columns.forEach((column, index) => { fields[column.name] = BLENDED.has(column.kind) ? out[index] ?? 0 : column.value(out[index] ?? 0); });
     return fields;
   }
