@@ -4,7 +4,7 @@
 // entry hundreds of milliseconds to seconds (and which a KTX2 hull cannot do at all: its atlas has no pixels). So the game
 // paints them here, offline, and the runtime loads the result.
 //
-// Pine Hollow: generators/coatProducer.ts (through scripts/bake/pineCoats.mjs) reads authored recipes and the committed
+// Pine Hollow: generators/coatProducer.ts (through src/shards/pine-hollow/bake/pineCoats.mjs) reads authored recipes and the committed
 // rigged hulls through SDK Node readers. It installs no runtime registry and opens no page. The Pine program paints the
 // same lossless pages as product files (generators/coatPages.ts).
 // Nalati: generators/coats.ts (through scripts/bake/nalatiCoats.mjs) reads the committed rigged hulls and the
@@ -61,7 +61,7 @@ try {
   for (const tier of tiers) {
     const tex = 'img';
     const list = join(TMP, `${tier}.json`);
-    execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', `scripts/bake/${slug === 'pine-hollow' ? 'pineCoats' : 'nalatiCoats'}.mjs`, tier, list], { cwd: ROOT, stdio: 'inherit' });
+    execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', slug === 'pine-hollow' ? 'src/shards/pine-hollow/bake/pineCoats.mjs' : 'scripts/bake/nalatiCoats.mjs', tier, list], { cwd: ROOT, stdio: 'inherit' });
     const sources = readCoatFiles(list);
     if (sources.length === 0) throw new Error(`${tier}: no coats (texture mode ${tex})`);
     const next = {};

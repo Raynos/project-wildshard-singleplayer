@@ -1,4 +1,4 @@
-"""Bone-heat skin weights for the Antler King's own rig (E322 F-M1), called by scripts/king-rig-bake.mjs.
+"""Bone-heat skin weights for the Antler King's own rig (E322 F-M1), called by src/shards/pine-hollow/bake/king-rig-bake.mjs.
 
   blender -b --factory-startup --python-exit-code 1 -P scripts/img2mesh/king_heat_weights.py -- <in.json> <out.json>
 

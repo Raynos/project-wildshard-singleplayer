@@ -6,7 +6,7 @@
 // own textures, a glTF skin whose joints are KING_BONES by name and in order, bound at the rest pose (inverse binds =
 // −joint position, identity rotations — what src/engine/entities/pineCreatures.ts loads).
 //
-//   node --import ./scripts/bake-loader.mjs scripts/king-rig-bake.mjs [--tiers=desktop,phone] [--json=<report.json>]
+//   node --import ./scripts/bake-loader.mjs src/shards/pine-hollow/bake/king-rig-bake.mjs [--tiers=desktop,phone] [--json=<report.json>]
 //
 // The hull is not re-posed: its generated stance IS the rest pose (a raised chest, planted forelimbs), so the bake only
 // ADDS a skin (the img2-character rule: repair before the freeze, after it only add):
@@ -26,11 +26,11 @@ import { tmpdir } from 'node:os';
 import { resolve as resolvePath, join } from 'node:path';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
-import { KING_RIG, KING_BONES } from '../src/shards/pine-hollow/generators/kingRig.ts';
+import { KING_RIG, KING_BONES } from '../generators/kingRig.ts';
 
 const KING_LIMBS = KING_RIG.limbs;
 
-const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
+const ROOT = resolvePath(new URL('../../../..', import.meta.url).pathname);
 const argv = process.argv.slice(2);
 const flag = (n, d) => { const a = argv.find((x) => x.startsWith(`--${n}=`)); return a ? a.slice(n.length + 3) : d; };
 const TIERS = flag('tiers', 'desktop,phone').split(',').filter(Boolean);
