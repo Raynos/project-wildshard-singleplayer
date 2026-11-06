@@ -88,7 +88,6 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
     elites.add(script);
   }
   const active = new Set<string>(), heard = new Map<string, HeardTell>();
-  let lastTime = 0;
   const scope = game.app.levelScope;
   /** The server's cue, as a page's own would play: `args` are its row, its elite, where it landed, and the body. */
   const heardCue = ([index = -1, elite = -1, atX = 0, atY = 0, atZ = 0, bodyX = 0, bodyY = 0, bodyZ = 0, scale = 1]: readonly number[]): void => {
@@ -108,17 +107,17 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
     if (name === ELITE_TELL.cue) { heardCue(args); return; }
     if (name === ELITE_TELL.hit) { const [trauma = 0, x = 0, z = 0] = args; if (Math.hypot(x - player.position.x, z - player.position.z) < WHO_WAS_HIT) CameraFX.for(game).addTrauma(trauma); return; }
     const row = heardTell(name, args);
-    if (row !== null) { row.at = lastTime; heard.set(`${name}:${String(args[0])}`, row); }
+    if (row !== null) heard.set(`${name}:${String(args[0])}`, row);
   }));
   return {
     elites,
     isElite: body => controllers.some(controller => controller.animal === body),
     force: (id, move) => { controllers.find(controller => controller.def.id === id)?.force(move); },
     update: (dt, t) => {
-      lastTime = t;
       if (wirePage.on) { // the server fights: this page bars its row and draws the tells it hears
         elites.update(dt, t);
         for (const [key, row] of heard) {
+          if (row.at === 0) row.at = t; // the clock's the frame's: a slow frame still shows what it heard
           if (t - row.at > HEARD_FOR) { tells.get(key)?.hide(); heard.delete(key); continue; }
           let tell = tells.get(key);
           if (tell === undefined) { tell = new GroundTell(game.scene, row.tell, color); tells.set(key, tell); }

@@ -116,9 +116,10 @@ interface FollowedFight {
   readonly room: (dt: number, t: number) => void; readonly sound: (at: THREE.Vector3) => void;
 }
 const LANE_HEARD_FOR = 0.25;
+/** A lane heard since the last frame. */
+const FRESH = Number.POSITIVE_INFINITY;
 function followRoamingFight(context: ShardContext, { rows, ring, hazard, cues, lane, addLanes, tellRing, puffs, waves, heardRoom, hazardFrom, room, sound }: FollowedFight): void {
   const lanes = [lane, ...addLanes], heard = lanes.map(() => Number.NEGATIVE_INFINITY), point = new THREE.Vector3(), up = new THREE.Vector3();
-  let now = 0;
   const actions: Readonly<Record<string, (args: readonly number[]) => void>> = {
     [ROAMING_VIEW.roar]: ([x = 0, y = 0, z = 0]) => { sound(point.set(x, y, z)); },
     [ROAMING_VIEW.burst]: ([x = 0, y = 0, z = 0]) => { cues.cue(rows.events.burst, point.set(x, y, z), up.set(0, 1, 0)); },
@@ -132,7 +133,7 @@ function followRoamingFight(context: ShardContext, { rows, ring, hazard, cues, l
     [ROAMING_VIEW.tell]: ([x = 0, z = 0, radius = 0, alpha = 0, t = 0]) => { tellRing.setTime(t); tellRing.ring(x, z, radius, alpha); },
     [ROAMING_VIEW.tellOff]: () => { tellRing.hide(); },
     [ROAMING_VIEW.lane]: ([slot = 0, state = 0, elapsed = 0, duration = 1, x0 = 0, z0 = 0, x1 = 0, z1 = 0, width = 0, t = 0]) => {
-      lanes[slot]?.paint(LANE_STATES[state] ?? 'none', elapsed, duration, x0, z0, x1, z1, width, t); heard[slot] = now;
+      lanes[slot]?.paint(LANE_STATES[state] ?? 'none', elapsed, duration, x0, z0, x1, z1, width, t); heard[slot] = FRESH;
     },
     [ROAMING_VIEW.room]: ([sealK = 0, darkK = 0]) => { heardRoom.sealK = sealK; heardRoom.darkK = darkK; },
     [ROAMING_VIEW.hazard]: ([index = 0, event = 0, t = 0, x = 0, y = 0, z = 0, fallT = 0, fromX = 0, fromY = 0, fromZ = 0]) => {
@@ -142,8 +143,11 @@ function followRoamingFight(context: ShardContext, { rows, ring, hazard, cues, l
   };
   wirePage.whenLive(context.scope, client => client.onView(({ name, args }) => { actions[name]?.(args); }));
   context.system({ id: 'roaming.followed', phase: 'update', run: (dt, t) => {
-    now = t; room(dt, t);
-    for (const [slot, row] of lanes.entries()) if (t - (heard[slot] ?? 0) > LANE_HEARD_FOR) row.hide();
+    room(dt, t);
+    for (const [slot, row] of lanes.entries()) {
+      if (heard[slot] === FRESH) heard[slot] = t; // the clock's the frame's: a slow frame still shows what it heard
+      else if (t - (heard[slot] ?? 0) > LANE_HEARD_FOR) row.hide();
+    }
   } });
 }
 export async function installRoamingBossProjection(context: ShardContext, input: unknown): Promise<ProjectionFight> {
