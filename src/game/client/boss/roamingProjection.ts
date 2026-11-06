@@ -334,7 +334,7 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
     if (TIER_CONFIG.furShells) { k.setShellLevel(rows.fur.prewarm); k.setShellLevel(rows.fur.parked); }
     fight.present = true; fight.setPresent(false);
     for (const row of rows.prewarm) park(ctx.animals.spawn(row.kind, C.x, C.z, 0, row.variant));
-  }
+  } else if (light !== null) { pool.release(light); light = null; } // as `setPresent(false)` returns it: held, no fight lights it, and the next light asked for makes the level one more, which rebuilds every lit program (DL10: Pine 61 / 107)
   context.scope.onDispose(() => {
     disposeTell(tellRing); for (const wave of waves) disposeTell(wave.g); for (const hazard of fallen) disposeTell(hazard.ring);
     lane.dispose(); for (const add of addLanes) add.dispose(); puffs.dispose();
