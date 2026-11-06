@@ -59,6 +59,12 @@ function admit(tarball: Uint8Array, cap: number): ValidatedProduct {
   } catch (error) { throw new ShardfileRefusedError(error instanceof Error ? error.message : 'Shardfile refused', {cause: error}); }
 }
 
+/** A failed proof is a verdict on these bytes: another try walks the same lanes. A dead child never reaches this. */
+async function proved(product: ValidatedProduct, ports: CookJobPorts): Promise<SimulationProof> {
+  try { return await ports.prove(product.shard, product.assets, product.sections); }
+  catch (error) { throw new ShardfileRefusedError(error instanceof Error ? error.message : 'Simulation proof failed', {cause: error}); }
+}
+
 function writeServerPack(shard: OpenShardfile, out: string): ServerPackReport {
   let bytes = 0;
   const paths = serverRows(shard).map(row => row.path);
@@ -74,7 +80,7 @@ export async function runCookJob(tarball: Uint8Array, out: string, ports: CookJo
   const started = ports.now();
   await prepareAssetDecoders();
   const product = admit(tarball, ports.maxBytes ?? MAX_SHARDFILE_BYTES);
-  const proof = product.shard.runtime === null ? await ports.prove(product.shard, product.assets, product.sections) : 'unmeasured' as const;
+  const proof = product.shard.runtime === null ? await proved(product, ports) : 'unmeasured' as const;
   const client = join(out, 'client');
   const cook = await cookShard(tarball, client, {wireBytes: ports.wireBytes, now: ports.now, ...(ports.encoder === undefined ? {} : {encoder: ports.encoder}), ...(ports.warn === undefined ? {} : {warn: ports.warn})});
   // Each manifest names the header at its product URL, and no part holds it (DL18); its `?v=` is what caches it.

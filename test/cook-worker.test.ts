@@ -12,6 +12,7 @@ import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {readTar, writeTar} from '@wildshard/format/tar';
 import {productTarball} from '../src/game/cook/productTarball';
 import {collectGarbage, createCookWorker, indexKey, notifyServer, objectHeaders, readCapped, runJob, storeUsage, type CookIndex, type JobLauncher, type ShardfileSource} from '../src/game/cook/cookWorker';
+import {runCookJob, ShardfileRefusedError} from '../src/game/cook/cookJob';
 import {folderStore, r2Store, type PackStore} from '../src/game/cook/packStore';
 
 /** C4 (J28, J29, J30): a real product and hostile ones through real child processes under their real limits. */
@@ -84,6 +85,11 @@ describe('the cook worker', () => {
     const row = await cook.cook({slug, hash});
     expect(row.state, `${name}: ${row.detail ?? ''}`).toBe('refused');
     expect(await folderStore(join(scratch, 'hostile-store')).has(indexKey('b-hostile', hash))).toBe(false);
+  }, 60_000);
+
+  it('takes a failed simulation proof as a refusal: another try walks the same lanes', async () => {
+    const ports = {prove: (): Promise<never> => Promise.reject(new Error('Blocked edge entry north lane 1')), wireBytes: (): number => 0, now: (): number => 0};
+    await expect(runCookJob(real, join(scratch, 'unproved'), ports)).rejects.toThrow(ShardfileRefusedError);
   }, 60_000);
 
   it('refuses a shardfile for another slug: a notice cannot put bytes on a shard', async () => {
