@@ -83,7 +83,7 @@ test('the gate proof runs the push gate\'s phases on its path lists',()=>{
   // --gate-proof's candidate is in a private store: a phase's path list has to look there too.
   const store=resolve(root,'.git/private-objects');mkdirSync(store,{recursive:true});
   const env={...process.env,GIT_OBJECT_DIRECTORY:store,GIT_ALTERNATE_OBJECT_DIRECTORIES:resolve(root,'.git/objects')};
-  const candidate=execFileSync('git',['commit-tree',`${base}^{tree}`,'-p',tip,'-m','candidate'],{cwd:root,encoding:'utf8',env}).trim();
+  const candidate=execFileSync('git',['-c','user.name=sort-sides','-c','user.email=sort@local','commit-tree',`${base}^{tree}`,'-p',tip,'-m','candidate'],{cwd:root,encoding:'utf8',env}).trim();
   expect(()=>gatePhaseCommand(root,tip,candidate,'storage')).toThrow();
   expect(JSON.parse(gatePhaseCommand(root,tip,candidate,'storage',env).at(-1)??'[]')).toEqual([from,to]);
 });

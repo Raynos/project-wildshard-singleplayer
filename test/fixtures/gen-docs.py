@@ -25,6 +25,7 @@ with tempfile.TemporaryDirectory(dir=repo/'tmp', prefix='gen-docs-test-') as fol
     program_tables = 'export function programInputPlan(root,plan){return plan}export async function emitProgramTables(root,plan,{inputsOnly,writeTables,build}){await writeTables();if(!inputsOnly)await build(root,plan)}'
     module('gen-programs', 'import {resolve} from "node:path";export function generationPlan(){return {products:["fixture"],folders:["fixture"],legacy:["fixture"],scoped:false}}export function prepareProgramInputs(){'+record('prepareGeneration')+'}export function buildPrograms(root){if(root!==resolve(root))throw Error("product receipt root is not canonical");'+record('programs')+'}'+program_tables)
     module('bake-loader', record('loader'))
+    module('shard-public', 'export function publishShardFiles(){'+record('publish')+'}')
     module('gen-shards', 'export function refreshDiscovery(){'+record('discovery')+'}export function genShardInputs(){'+record('shard-inputs')+'}export function genShards(){'+record('shards')+'}')
     for file, function in [('gen-budget-derivations','genBudgetDerivations'),('generate','prepareGeneration'),('gen-starter-arm-clips','genStarterArmClips'),('gen-starter-weapons','genStarterWeapons'),('gen-starter-bag','genStarterBag'),('gen-starter-effects','genStarterEffects'),('gen-format-schema','writeFormatJsonSchemas'),('gen-shard-words','genShardWords')]:
         module(file, 'export function '+function+'(){'+record(function)+'}')
