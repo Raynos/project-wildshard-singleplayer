@@ -60,7 +60,7 @@ function courseGrid(): Float32Array {
   return grid;
 }
 const deckAt = (tick: number): { x: number; y: number; z: number } => ({ x: DECK.x + Math.sin(tick * FIXED_STEP * .8) * 3, y: DECK.y + Math.sin(tick * FIXED_STEP * 1.3) * .2, z: DECK.z });
-const lowDeckAt = (tick: number): { x: number; y: number; z: number } => ({ x: LOW_DECK.x + Math.sin(tick * FIXED_STEP * .9) * 2, y: LOW_DECK.top - .1, z: LOW_DECK.z });
+export const lowDeckAt = (tick: number): { x: number; y: number; z: number } => ({ x: LOW_DECK.x + Math.sin(tick * FIXED_STEP * .9) * 2, y: LOW_DECK.top - .1, z: LOW_DECK.z });
 
 /** The same static and moving world, built into one side's physics. Queries are the same functions on both. */
 export interface Course {
@@ -69,6 +69,8 @@ export interface Course {
   advance: (tick: number) => void;
   /** The decks at `tick`, now: nothing will step. */
   place: (tick: number) => void;
+  /** The low deck off a row, for a client that can't work it out: `next` for the next physics step, and with `at` that pose now. */
+  lowDeck: (next: { readonly x: number; readonly y: number; readonly z: number }, at?: { readonly x: number; readonly y: number; readonly z: number }) => void;
 }
 function buildCourse(physics: Physics): Course {
   const { R, world } = physics, grid = courseGrid();
@@ -90,6 +92,10 @@ function buildCourse(physics: Physics): Course {
       deck.setTranslation(deckAt(tick), false); lowDeck.setTranslation(lowDeckAt(tick), false);
       deck.setNextKinematicTranslation(deckAt(tick)); lowDeck.setNextKinematicTranslation(lowDeckAt(tick));
       world.propagateModifiedBodyPositionsToColliders();
+    },
+    lowDeck: (next, at) => {
+      if (at !== undefined) { lowDeck.setTranslation(at, false); world.propagateModifiedBodyPositionsToColliders(); }
+      lowDeck.setNextKinematicTranslation(next);
     } };
 }
 export const courseHeightAt = (x: number, z: number): number => terrainHeight(x, z);
