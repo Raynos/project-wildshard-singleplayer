@@ -41,7 +41,7 @@ test('a marsh\'s views run on the rows a server sends: memory effects, a seated 
     splash: { ...source.splash, capacity: 12, count: 3 }, effects: [{ kind: 'boar', state: 'display', actions: [{ state: 3, sound: 'marsh.call', splash: 1 }],
       periodic: { state: 7, interval: .2, chance: 1, x: 'goal-x', z: 'goal-z', radius: .1, splash: .5 } }] });
   try {
-    expect([...poseInputNames].sort(), 'what these views read of a body, asked for by name').toEqual(['display', source.light.rise, source.light.rising].sort());
+    expect([...poseInputNames].sort(), 'what these views read of a body, asked for by name').toEqual(['display', 'goal-x', 'goal-z', source.light.rise, source.light.rising].sort());
     await projection.build();
     expect(f.manager.animals, 'on the wire the creatures are rows: this page stands up none').toHaveLength(0);
     expect(f.manager.habitat.perches[0]?.toArray()).toEqual([2.5, 14, 2]);
