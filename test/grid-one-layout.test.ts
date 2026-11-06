@@ -4,7 +4,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import { CHUNK_HALF } from '../src/engine/shared/core/config';
 import { GridAssembly } from '../src/game/shared/grid/assembly';
 import { installGridCrossing } from '../src/game/shared/grid/crossing';
-import { titlePrefetchOrder } from '../src/game/client/grid/titleOrder';
+import { gridPrefetchOrder } from '../src/game/client/grid/prefetch';
 
 const publicMode = { developer: false, devserver: false, nineDragon: false };
 for (const developer of [false, true]) for (const devserver of [false, true]) for (const nineDragon of [false, true]) {
@@ -15,7 +15,7 @@ for (const developer of [false, true]) for (const devserver of [false, true]) fo
     expect(grid.cells).toEqual(canonical.cells);
     expect(grid.cell('nine-dragon-stack')).toMatchObject({ slug: 'nine-dragon-stack', cell: [1, -1],
       origin: { x: grid.pitch, y: 0, z: -grid.pitch } });
-    for (const tier of ['phone', 'desktop'] as const) expect(titlePrefetchOrder(mode, tier)).toEqual(titlePrefetchOrder(publicMode, tier));
+    for (const tier of ['phone', 'desktop'] as const) expect(gridPrefetchOrder(grid, {x: 0, z: 0}, tier)).toEqual(gridPrefetchOrder(canonical, {x: 0, z: 0}, tier));
   });
 }
 

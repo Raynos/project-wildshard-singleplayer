@@ -2,9 +2,6 @@ import { expect, test } from 'vitest';
 import { contentHash } from '../src/game/shared/shardfile/contentHash';
 import { GridCellEvents } from '../src/game/shared/grid/cellEvents';
 import { titleRowOf } from '../scripts/app-build/catalogue';
-import { titlePrefetchOrder } from '../src/game/client/grid/titleOrder';
-import { GridAssembly } from '../src/game/shared/grid/assembly';
-import { gridPrefetchOrder } from '../src/game/client/grid/prefetch';
 import { titleMetadata, type TitleManifest } from '../src/game/client/shard/titleList';
 
 test('a title row is a discovery document\'s data, with its cards where a home serves them', () => {
@@ -19,13 +16,6 @@ test('a title row is a discovery document\'s data, with its cards where a home s
   expect(homed.discovery?.startsWith('https://packs.example/shardfiles/island/discovery.json')).toBe(true);
   const executable = { ...data, load: () => { throw new Error('Never load a world on the title'); } };
   expect(titleMetadata(executable)).toEqual(data);
-});
-
-test('title placement data preserves the complete existing prefetch order in every mode', () => {
-  for (const developer of [false, true]) for (const devserver of [false, true]) for (const nineDragon of [false, true]) {
-    const mode = { developer, devserver, nineDragon };
-    expect(titlePrefetchOrder(mode)).toEqual(gridPrefetchOrder(new GridAssembly(mode), { x: 0, z: 0 }));
-  }
 });
 
 test('shared prefetch and admission digest respects an owned slice exactly', async () => {

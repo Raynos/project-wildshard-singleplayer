@@ -20,9 +20,8 @@ import { gridEntryShown, menuMode, gridMode } from './grid/menu';
 import { dropGridIntent, enterGrid, gridRecoveryLoop } from './grid/pageEntry';
 import { pageScope } from '@wildshard/engine/app/resources';
 import { saves } from '@wildshard/engine/saves/runtime';
-import { titlePrefetchOrder } from './grid/titleOrder';
 import { findTitleManifest, titleManifests } from './shard/titleList';
-import { titlePrefetchChoice, titlePrefetchFlow, titlePrefetchTargets } from './grid/titlePrefetchChoice';
+import { titlePrefetchChoice, titlePrefetchTarget } from './grid/titlePrefetchChoice';
 
 import { GAME_STRINGS } from '../shared/strings';
 import { WHATS_NEW, type WhatsNew } from './whatsNew';
@@ -155,7 +154,7 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
   deck.onTap(selectCard, () => { show('select'); deck.start(); });
   const gridCard = main.querySelector('.ws-main-grid');
   if (gridCard instanceof HTMLButtonElement) deck.onTap(gridCard, () => { if (gridEntryShown(mode())) { onGrid(); leaveTitle(); } });
-  // PL13: only the home/last product, after the title paints. This is verified
+  // S2: only the player's last product, after the title paints; a first visit reads nothing. This is verified
   // disk prefetch, never world construction or a hidden offline-size scan. It shows nothing (QB2).
   let started = false;
   const startPrefetch = (): void => {
@@ -163,12 +162,12 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
     started = true;
     owner.raf(() => {
       const choice = titlePrefetchChoice(saves), selectedMode = gridMode(mode().devserver, mode());
-      const targets = titlePrefetchTargets(titlePrefetchOrder(selectedMode)[0], choice.read(), titleManifests(), mode().developer);
-      const flow = titlePrefetchFlow(targets.at(-1), choice.read(), choice.flow(), gridEntryShown(mode()));
+      const target = titlePrefetchTarget(choice.read(), titleManifests(), mode().developer);
+      if (target === undefined) return;
       const load = async (): Promise<void> => {
         const {startTitlePrefetch} = await import('./grid/prefetch');
         if (owner.disposed || leavingTitle) return;
-        const run = startTitlePrefetch(targets, flow, `${Number(selectedMode.developer)}${Number(selectedMode.devserver)}${Number(selectedMode.nineDragon)}`);
+        const run = startTitlePrefetch(target, choice.flow(), `${Number(selectedMode.developer)}${Number(selectedMode.devserver)}${Number(selectedMode.nineDragon)}`);
         if (run === null) return;
         stopReadAhead = run.stop;
         owner.onDispose(run.stop);

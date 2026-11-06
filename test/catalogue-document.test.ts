@@ -11,7 +11,6 @@ import {StandaloneCatalogueSchema} from '@wildshard/format/standaloneCatalogue';
 import {addCookedShards, catalogueWithAdded, writeCatalogueDocument} from '../scripts/app-build/catalogue';
 import {refreshServiceWorker, workerScripts} from '../scripts/app-build/serviceWorker';
 import {installTitleManifests, titleManifests, withCatalogueHeads, type TitleManifest} from '../src/game/client/shard/titleList';
-import {titlePrefetchOrder} from '../src/game/client/grid/titleOrder';
 import {GridAssembly} from '../src/game/shared/grid/assembly';
 import {catalogueDocument} from '../src/game/shared/grid/catalogueDocument';
 import {installCatalogue, installInlineCatalogue, installedCatalogue} from '../src/game/shared/grid/catalogueSlot';
@@ -52,7 +51,6 @@ describe('the catalogue a page reads', () => {
   it('runs a new placement through every reader', () => {
     installCatalogue(added);
     expect(new GridAssembly({developer: false, devserver: false}).cell('test-shard').slug).toBe('test-shard');
-    expect(titlePrefetchOrder({developer: false, devserver: false})).toContain('test-shard');
     expect(firstPartyInstance('test-shard')).toBe('test-shard-solo');
     expect(instanceSaveIdentity({id: 'test-shard-solo', shard: 'test-shard'})).toEqual({id: 'test-shard-solo', legacy: 'test-shard'});
     // Placed by the catalogue, so an outside product can't take its slug or saves.

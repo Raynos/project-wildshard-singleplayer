@@ -1,5 +1,3 @@
-import { catalogueDocument } from '../../shared/grid/catalogueDocument';
-import { parseGridCatalogue, type GridMode } from '../../shared/grid/catalogue';
 import type { Tier } from '@wildshard/engine/core/tier';
 
 /** iPhone downloads I9 (G737): the phone tier prefetches only the home cell and its ring (iOS cannot tell cellular from
@@ -7,11 +5,4 @@ import type { Tier } from '@wildshard/engine/core/tier';
  * caller passes the tier (the title's static graph never loads the render tiers). */
 export function prefetchRing<T extends { readonly cell: readonly [number, number] }>(rows: readonly T[], home: readonly [number, number], tier: Tier): readonly T[] {
   return tier === 'desktop' ? rows : rows.filter(row => Math.max(Math.abs(row.cell[0] - home[0]), Math.abs(row.cell[1] - home[1])) <= 1);
-}
-
-/** Only placement data is needed to prefetch from the title, not a world assembly. */
-export function titlePrefetchOrder(_mode: GridMode, tier: Tier = 'desktop'): readonly string[] {
-  const data = parseGridCatalogue(catalogueDocument().grid);
-  const near = [...prefetchRing(data.cells, [0, 0], tier)].sort((a, b) => Math.hypot(...a.cell) - Math.hypot(...b.cell));
-  return [...new Set(near.map(row => row.slug))];
 }

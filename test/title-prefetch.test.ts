@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import {expect, test} from 'vitest';
 import {SaveStore} from '../src/engine/shared/saves/store';
-import {titlePrefetchChoice, titlePrefetchFlow, titlePrefetchTargets} from '../src/game/client/grid/titlePrefetchChoice';
+import {titlePrefetchChoice, titlePrefetchTarget} from '../src/game/client/grid/titlePrefetchChoice';
 import type {TitleManifest} from '../src/game/client/shard/titleList';
 import * as v from 'valibot';
 
@@ -35,25 +35,15 @@ test('old last-shard preference migrates as client and later retains the actual 
   expect(reread.read()).toBe('driftwood-isle'); expect(reread.flow()).toBe('grid');
 });
 
-test('title selects the compiled home then last, deduplicating and refusing a card with no shardfile', () => {
+test('the title reads ahead only for a real last pick, never a guess', () => {
   const row = (slug: TitleManifest['slug'], extra: Partial<TitleManifest> = {}): TitleManifest => ({slug, name: slug, biome: '', status: 'live',
     card: {thumb: '', portrait: '', landscape: ''}, shardfile: `/shardfiles/${slug}/shard.json`, ...extra});
   const { shardfile: _none, ...unbuilt } = row('blender-template');
   const rows = [row('driftwood-isle'), row('nalati-grasslands'), row('_template', {status: 'hidden'}), unbuilt];
-  expect(titlePrefetchTargets('driftwood-isle', 'nalati-grasslands', rows, false)).toEqual(['driftwood-isle', 'nalati-grasslands']);
-  expect(titlePrefetchTargets('driftwood-isle', 'driftwood-isle', rows, false)).toEqual(['driftwood-isle']);
-  expect(titlePrefetchTargets('unknown', 'blender-template', rows, true)).toEqual([]);
-  expect(titlePrefetchTargets('_template', null, rows, false)).toEqual([]);
-  expect(titlePrefetchTargets('_template', null, rows, true)).toEqual(['_template']);
-});
-
-test('a first visit reads ahead for the grid home when INFINITE WILDSHARD is shown; a remembered pick keeps its flow', () => {
-  // DL2: the title's read-ahead stores the files the next document's own spawn manifest asks for.
-  expect(titlePrefetchFlow('driftwood-isle', null, 'client', true)).toBe('grid');
-  expect(titlePrefetchFlow('driftwood-isle', null, 'client', false)).toBe('client');
-  expect(titlePrefetchFlow('nalati-grasslands', 'nalati-grasslands', 'client', true)).toBe('client');
-  expect(titlePrefetchFlow('driftwood-isle', 'driftwood-isle', 'grid', false)).toBe('grid');
-  // A last pick that cannot seed downloads falls back to the home's first card.
-  expect(titlePrefetchFlow('driftwood-isle', 'blender-template', 'client', true)).toBe('grid');
-  expect(titlePrefetchFlow(undefined, null, 'client', true)).toBe('grid');
+  expect(titlePrefetchTarget('nalati-grasslands', rows, false)).toBe('nalati-grasslands');
+  expect(titlePrefetchTarget(null, rows, false)).toBeUndefined(); // S2: a first visit spends nothing on a shard nobody chose
+  expect(titlePrefetchTarget('unknown', rows, true)).toBeUndefined();
+  expect(titlePrefetchTarget('blender-template', rows, true)).toBeUndefined();
+  expect(titlePrefetchTarget('_template', rows, false)).toBeUndefined();
+  expect(titlePrefetchTarget('_template', rows, true)).toBe('_template');
 });

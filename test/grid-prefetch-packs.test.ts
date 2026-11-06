@@ -73,7 +73,7 @@ test.each(['play', 'title', 'title-stop', 'grid-title', 'title-adopt'] as const)
       : url.endsWith(`${hashes[1] ?? ''}.bin`) ? new Response(second) : new Response(null, {status: 404}));
   });
   try {
-    const titleRun = mode === 'play' ? null : startTitlePrefetch(['never-read', '_template'], mode === 'grid-title' ? 'grid' : 'client', '100');
+    const titleRun = mode === 'play' ? null : startTitlePrefetch('_template', mode === 'grid-title' ? 'grid' : 'client', '100');
     if (mode === 'play') startGridPrefetch(['_template']);
     else expect(titleRun).not.toBeNull();
     if (mode === 'title-adopt') {
@@ -83,7 +83,7 @@ test.each(['play', 'title', 'title-stop', 'grid-title', 'title-adopt'] as const)
       titleRun?.stop(); await foreground.ready;
       expect(foreground.snapshot().complete).toBe(true); expect(aborted).toBe(false);
       // A late title callback cannot start or replace the active world's job.
-      expect(startTitlePrefetch(['_template'])).toBeNull();
+      expect(startTitlePrefetch('_template')).toBeNull();
       const readsBefore = reads.length;
       expect(adoptCompletedSpawnDownload('_template', 'client', 'phone')).toBe(foreground);
       expect(adoptCompletedSpawnDownload('_template', 'grid', 'phone')).toBeNull();

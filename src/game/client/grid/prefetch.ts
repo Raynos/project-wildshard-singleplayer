@@ -259,8 +259,8 @@ function launchPrefetch(run: GridPrefetch): void {
 }
 /** G897: only the last selected shard's spawn files, not whole products or
  * neighbouring worlds. Foreground adoption retains the same cache operation. */
-export function startTitlePrefetch(slugs: readonly string[], flow: 'client' | 'grid' = 'client', gridKey = '000'): {snapshot: () => GridPrefetchStatus; stop: () => void} | null {
-  const target = slugs.at(-1); if (target === undefined || typeof caches === 'undefined') return null;
+export function startTitlePrefetch(target: string, flow: 'client' | 'grid' = 'client', gridKey = '000'): {snapshot: () => GridPrefetchStatus; stop: () => void} | null {
+  if (typeof caches === 'undefined') return null;
   const futureTier = (): 'auto' | Tier => settingFromUrl('tier') ? setting('tier') : savedSetting('tier');
   const preferred = futureTier(), tier = preferred === 'auto' ? TIER : preferred;
   setSpawnPacks(runtimePacksOn()); // DL16: the title's read-ahead follows Debug ▸ Loading & memory ▸ Level download
