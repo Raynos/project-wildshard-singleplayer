@@ -8,7 +8,7 @@ import { CLIENT_FEATURES, admitClientPlan, installClientPhase } from '../src/gam
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import * as claims from '../src/game/client/shardfile/heldClaimsEntry';
 import * as creatures from '../src/game/client/population/productCreatures';
-import * as decisions from '../src/game/server/shardfile/borrowedDecisions';
+import { pageSimFeed } from '../src/game/server/plugin/pageSimFeed';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
 function fixture(namedFile = true, omitLegacy?: 'economy/loot' | 'look/hull-book') {
@@ -29,7 +29,7 @@ test('unordered kit rows retain prepare, creatures, install, paths and catalogue
   const f = fixture(), order: string[] = [], authority = authorityFixture();
   const prepare = vi.spyOn(claims, 'prepareHeldClaimsEntry').mockImplementation((_ctx, id) => { order.push(`prepare:${id}`); return Promise.resolve(); });
   const install = vi.spyOn(claims, 'installHeldClaimsEntry').mockImplementation((_ctx, id) => { order.push(`install:${id}`); });
-  const decision = vi.spyOn(decisions, 'pageDecisionAuthority').mockResolvedValue(authority);
+  const decision = vi.spyOn(pageSimFeed, 'pageDecisionAuthority').mockResolvedValue(authority);
   const populate = vi.spyOn(creatures, 'installProductCreatures').mockImplementation((_ctx, value) => { expect(value).toBe(authority); order.push('creatures'); return Promise.resolve(); });
   const path = vi.spyOn(CLIENT_FEATURES['world.paths'], 'install').mockImplementation(() => { order.push('paths'); });
   const items = vi.spyOn(CLIENT_FEATURES['content.catalogue'], 'install').mockImplementation(() => { order.push('catalogue'); });
@@ -71,7 +71,7 @@ test('leaving during decision-authority preparation constructs no product creatu
   const pending = new Promise<SpeciesDecisionAuthority>(resolve => { finish = resolve; });
   const prepare = vi.spyOn(claims, 'prepareHeldClaimsEntry').mockResolvedValue(undefined);
   const install = vi.spyOn(claims, 'installHeldClaimsEntry');
-  const decision = vi.spyOn(decisions, 'pageDecisionAuthority').mockImplementation(() => {
+  const decision = vi.spyOn(pageSimFeed, 'pageDecisionAuthority').mockImplementation(() => {
     if (announce === undefined) throw new Error('Missing preparation notification'); announce(); return pending;
   });
   const populate = vi.spyOn(creatures, 'installProductCreatures');

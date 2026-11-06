@@ -57,7 +57,7 @@ function fixture(sharedConstruction?: Scope) {
       contacts: [{ amount: 14, action: 1 }, { amount: 35, action: 2 }], knock: 3, opened: 4, growl: 5 } },
     { id: borrowed.def.id, condition: 'always', controller: { kind: 'borrowed' as const, controller: 'original.rider' } }] };
   const scene = new Scene(), model = new Group(), spawn = vi.fn<AnimalManager['spawn']>(() => { throw new Error('No body allocation expected'); });
-  const actors: Animal[] = [], retire = vi.fn<AnimalManager['retire']>(() => undefined), manager = legacyDouble<AnimalManager>({ spawn, retire, animals: actors });
+  const actors: Animal[] = [], retire = vi.fn<AnimalManager['retire']>(() => undefined), manager = legacyDouble<AnimalManager>({ spawn, retire, animals: actors, retired: () => false });
   const entries: { script: NativeEliteController | typeof borrowed }[] = [];
   const lifecycle = { entries, signature: vi.fn<(_id: string) => void>(() => undefined), owned: vi.fn((_id: string) => false),
     add: vi.fn<(script: NativeEliteController | typeof borrowed) => void>(script => { entries.push({ script }); }),

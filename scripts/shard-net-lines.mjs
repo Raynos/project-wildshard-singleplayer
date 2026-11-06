@@ -38,7 +38,9 @@ export function netLineReport(current,baselines,platform) {
       return [slug,{before,after:row?.customLines??null,basis:row?.basis??'unknown',cut:row===undefined?null:before-row.customLines}];
     }));
     const values=Object.values(shards),customCut=values.some(row=>row.cut===null)?null:values.reduce((sum,row)=>sum+(row.cut??0),0);
-    const layers=Object.fromEntries(PLATFORM_LAYERS.map(layer=>[layer,{before:baseline.platformLines[layer],after:platform[layer],growth:platform[layer]-baseline.platformLines[layer]}]));
+    // A baseline older than a layer has nothing to measure it against: charge what it counted.
+    const counted=PLATFORM_LAYERS.filter(layer=>baseline.platformLines[layer]!==undefined);
+    const layers=Object.fromEntries(counted.map(layer=>[layer,{before:baseline.platformLines[layer],after:platform[layer],growth:platform[layer]-baseline.platformLines[layer]}]));
     const platformGrowth=Object.values(layers).reduce((sum,row)=>sum+row.growth,0);
     return {wave:baseline.wave,revision:baseline.revision,record:baseline.record,baselineBasis:'historical source M0',
       enforcement:'report-only',shards,layers,customCut,platformGrowth,netCut:customCut===null?null:customCut-platformGrowth};
