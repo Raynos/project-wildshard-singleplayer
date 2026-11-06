@@ -301,7 +301,9 @@ async function pineJourney(browser, phone, base, step) {
       await place(page, body.x + 1.5, body.y + 0.6, body.z + 1.5); await page.waitForTimeout(350); await strike(page, body, false); await page.waitForTimeout(900);
       if ((await report(page)).kills > was.kills) kills++;
     }
-    const sealed = await pressRound(page, 'contract board', ready);
+    await place(page, -169.5, -0.3, -112.5); // the prompt's label changes once a notice is filled, so stand at its spot
+    await page.waitForTimeout(1200);
+    const sealed = await pressUntil(page, ready, 2);
     if (!sealed) return { ok: false, kills, target, lines: (await board()).slice(0, 8) };
     const before = await report(page);
     await page.locator('.ws-ph-seal:visible').first().dispatchEvent('click');
