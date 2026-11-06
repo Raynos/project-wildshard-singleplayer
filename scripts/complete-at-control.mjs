@@ -49,7 +49,7 @@ import { createRequire } from 'node:module';
 import { chromium, webkit, devices } from 'playwright';
 import { developerSettings, saveFixture, harnessPins, hideDeveloperOverlays, levelDownloadFixtures } from './debug-settings.mjs';
 import { FLOOR_GRID_ENTER } from './frame-floor-navigation.mjs';
-import { snapshot, lapLegs, lapPops, splitRequests, spawnMembers, spawnRereads, neighbourSpans, splitByInitiator, NEIGHBOUR_WORK, firstSeconds, profileTop, heapTop } from './complete-at-control-snapshot.mjs';
+import { snapshot, lapLegs, lapPops, splitRequests, splitManifests, spawnRereads, neighbourSpans, splitByInitiator, NEIGHBOUR_WORK, firstSeconds, profileTop, heapTop } from './complete-at-control-snapshot.mjs';
 import { execFileSync } from 'node:child_process';
 import { startSharedLink } from './phone-loading/link.ts';
 import { profiles } from './phone-loading/model.ts';
@@ -120,11 +120,14 @@ const contentPath = (url) => {
   if (/^\/assets\/[a-z0-9-]+?-(?:landscape|portrait)-[\w-]+\.(?:jpg|webp)$/u.test(at.pathname) || /^\/assets\/card-[\w-]+\.jpg$/u.test(at.pathname)) return null;
   return at.pathname;
 };
-/** The grid's neighbour content: another cell's files and the grid road (G828: today's loading stays until Jake rules). */
+/** Every packs manifest this visit read (DL25). */
+const spawnManifests = [];
+const neighbourCell = slug => flow === 'grid' && !levelSlugs.has(slug) && GRID_SLUGS.has(slug);
+/** The grid's neighbour content: another cell's files, its packs and the grid road (G828: today's loading stays until Jake rules). */
 const isNeighbour = (url) => {
   const at = flow === 'grid' ? contentPath(url) : null;
   if (at === null) return false;
-  if (at.startsWith('/assets/grid-road/')) return true;
+  if (at.startsWith('/assets/grid-road/') || splitManifests(spawnManifests, neighbourCell).packs.has(at)) return true;
   const slug = slugOf(at);
   return slug !== null && !levelSlugs.has(slug) && GRID_SLUGS.has(slug);
 };
@@ -259,12 +262,9 @@ try {
   context.on('requestfailed', req => { const row = open.get(req); if (row) { row.end = Date.now(); row.failed = req.failure()?.errorText ?? 'failed'; } });
   // DL1: code the document names is shell (the worker installs it); any other code before control is the precache running early
   const shellDocument = await (await fetch(base)).text();
-  // DL25: the part members of every packs manifest this visit reads
-  const members = new Set(), listing = { at: null };
   context.on('response', response => {
     if (!/\/assets\/spawn\/[^/]+\.json(?:\?|$)/u.test(response.url())) return;
-    // the first manifest with parts: a title's read-ahead reads a default one, and its loose files are the first copy
-    void (async () => { const found = spawnMembers(await response.json()); if (found.size > 0) listing.at ??= Date.now(); for (const member of found) members.add(member); })().catch(() => undefined);
+    void (async () => { const manifest = await response.json(); spawnManifests.push({ at: Date.now(), path: new URL(response.url()).pathname, manifest }); })().catch(() => undefined);
   });
   const page = await context.newPage();
   page.setDefaultTimeout(240000);
@@ -370,7 +370,8 @@ try {
     const c = visit.control, at = visit.at, row = r => ({ url: r.url, by: r.by, msAfterControl: r.start - c });
     // the worker's offline precache is listed apart (splitRequests: root's ruling, G872 (a)); any page request stays red
     const mine = requests.filter(r => r.start >= visit.start && r.start < until), { level, precache, server } = splitRequests(mine, isLevelContent);
-    const rereads = spawnRereads(mine, members, listing.at, mine.some(r => r.url.includes('/assets/spawn/parts/') && r.failed !== null));
+    const { members, listedAt } = splitManifests(spawnManifests, neighbourCell);
+    const rereads = spawnRereads(mine, members, listedAt, mine.some(r => r.url.includes('/assets/spawn/parts/') && r.failed !== null));
     if (rereads.files > 0) flag(`${rereads.files} files the parts already delivered moved over the network again, ${(rereads.bytes / 1e6).toFixed(2)} MB (first: ${rereads.first.join(', ')})`);
     const pending = level.filter(r => r.start < c && (r.end === null || r.end > c));
     // --trace with --dist: a shared fetch only neighbour work asked for is the neighbour's (root's ruling, G872)

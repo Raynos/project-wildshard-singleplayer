@@ -145,6 +145,20 @@ export function spawnMembers(manifest) {
   for (const part of manifest?.parts ?? []) for (const [at] of part.members) { const file = manifest.files[at]; if (file !== undefined) paths.add(new URL(file.url, 'https://x.test').pathname); }
   return paths;
 }
+/** DL25, G828: a visit's packs manifests, by whose they are. A neighbour's files read through its own parts (DL20), whose hashed URLs
+ *  name no shard, so only its manifest says those are its: `packs`, listed apart. `members` and `listedAt` are the home's, for DL25.
+ *  @param {{ at: number, path: string, manifest: any }[]} rows @param {(shard: string) => boolean} neighbour */
+export function splitManifests(rows, neighbour) {
+  const members = new Set(), packs = new Set();
+  let listedAt = null;
+  for (const { at, path, manifest } of rows) {
+    if (neighbour(manifest.shard)) { packs.add(path); for (const part of manifest.parts ?? []) packs.add(new URL(part.url, 'https://x.test').pathname); continue; }
+    const found = spawnMembers(manifest);
+    if (found.size > 0) listedAt ??= at; // the first manifest with parts: a title's read-ahead reads a default one, and its loose files are the first copy
+    for (const member of found) members.add(member);
+  }
+  return { members, listedAt, packs };
+}
 /** DL25: requests that moved a part's member over the network again once its manifest had said so, whoever made them: the page
  *  has those bytes. What the title read before the tap came first, so the part is the second copy, not the read. A service
  *  worker's answer moved none. A failed part is read again, which is a real fetch: `failed` says so. */
