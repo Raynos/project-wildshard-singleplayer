@@ -91,6 +91,11 @@ export function readBuiltShardfile(sourceRoot, name, { cacheRoot = shardfileCach
   const destination = resolve(root, 'out', name), built = env.WS_TEST_PRODUCTS_SHA;
   if (built !== undefined && /^[a-f0-9]{40}$/u.test(built) && built === env.VERCEL_GIT_COMMIT_SHA
     && existsSync(resolve(destination, 'shard.json'))) return destination;
+  // P3: no shard source to rebuild from, so a product is a pinned shardfile (J65) or it is missing.
+  if (!existsSync(resolve(root, 'src/shards'))) {
+    if (existsSync(resolve(destination, 'shard.json'))) return destination;
+    throw new Error(`No shard source and no pinned product: ${name}`);
+  }
   const folder = productFolder(root, name), project = resolve(root, 'src/shards', folder);
   const output = name === folder ? undefined : name;
   const map = productMapInput(project, output);
