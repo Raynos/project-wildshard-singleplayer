@@ -222,7 +222,7 @@ export class Boss extends BossBrain {
 
   /** The server's reward, where its row says it lies (J130). Taking it is a press, and what it gives comes back as a receipt. */
   showRowReward(at: EncounterReward, press: () => void): void {
-    this.spawnReward(new THREE.Vector3(at.x, at.y - ITEM_PICKUP_HOVER, at.z), press);
+    this.spawnReward(new THREE.Vector3(at.x, at.y - ITEM_PICKUP_HOVER, at.z), () => { press(); this.def.reward.grant(); }); // what's in hand is the page's to change: the server's own grant is in its rows
   }
   hideRowReward(): void {
     const { drop } = this;
@@ -282,6 +282,8 @@ export interface BossEncounterScore {
 /** Native fight, equipment, presence, save and reward owners remain borrowed; no replacement body is created. */
 export interface BossEncounterPorts<S extends BossScript> extends Omit<BossHost, 'scene' | 'camera' | 'renderer' | 'addInteractable' | 'removeInteractable' | 'music'> {
   readonly game: Pick<BossHost, 'scene' | 'camera' | 'renderer'>;
+  /** The id a server publishes this fight under, where that isn't its definition's. */
+  readonly row?: string;
   readonly interactables: Interactable[];
   readonly scope: Scope | null;
   readonly chunkId: string;
@@ -342,6 +344,7 @@ export function installBossEncounter<S extends BossScript>(rows: BossEncounterRo
   }, ui, ports.chunkId, ports.persistence);
   if (ports.scope !== null) app.encounters.boss(rows.definition.id, boss, ports.scope);
   // J130: a bar has one driver. On the wire the row draws it and this page's brain never arms.
-  const rowBar = wirePage.on ? new BossRowBar(ui, rows.definition, { show: at => { boss.showRowReward(at, () => { wirePage.send(`${rows.definition.id}.reward`); }); }, hide: () => { boss.hideRowReward(); } }) : null;
+  const rowId = ports.row ?? rows.definition.id;
+  const rowBar = wirePage.on ? new BossRowBar(ui, { ...rows.definition, id: rowId }, { show: at => { boss.showRowReward(at, () => { wirePage.send(`${rowId}.reward`); }); }, hide: () => { boss.hideRowReward(); } }) : null;
   return { fight, boss, ui, update: (dt, t) => { if (rowBar !== null) { rowBar.draw(wirePage.encounters(), dt); boss.tendDrop(dt, t); } else if (ports.advance === undefined) boss.update(dt, t); else ports.advance(boss, fight, dt, t); }, onPlayerDeath: () => rowBar === null && boss.onPlayerDeath() };
 }

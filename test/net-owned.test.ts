@@ -45,7 +45,7 @@ test('a player\'s lines reach only that client, as they change, and a line that 
 
 test('a page shows the server\'s lines on its purse, pack and gear, and writes none of it', () => {
   const page = new WirePage(), link = directLoopback(), client = new NetClient(link.client);
-  const purse = { mirror: vi.fn() }, inventory = { mirror: vi.fn() }, gear = { grant: vi.fn(() => true) };
+  const purse = { mirror: vi.fn() }, inventory = { mirror: vi.fn() }, gear = { grant: vi.fn(() => true), worn: () => false, toggleWorn: () => true };
   page.bind(client, () => undefined, () => undefined, () => false);
   page.hold({ purse, inventory, gear }, new Scope('test'));
   client.owned.set('coins', 12); client.owned.set('item.hide', 3); client.owned.set('own.sword', 1); client.ownedVersion++;

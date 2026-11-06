@@ -8,9 +8,9 @@ import { DAY_ROW } from '@wildshard/engine/sim/shardRows';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import type { ClimateWord } from '../weather/netClimate';
 import type { Inventory } from '../Inventory';
-import { boardFromLines, OWNED_ROW } from '../../shared/loot/ownedRows';
+import { boardFromLines, OWNED_ROW, WORN_LINE } from '../../shared/loot/ownedRows';
 import type { ContractBoard } from '../../shared/quest/contractBoard';
-import type { Owned } from '../../shared/loot/Owned';
+import { isCosmetic, isOwnedId, type Owned } from '../../shared/loot/Owned';
 import type { Purse } from '../../shared/loot/Purse';
 import { QuestViewFeed } from '@wildshard/engine/quest/view/replica';
 import type { QuestDef } from '@wildshard/engine/quest/core';
@@ -26,7 +26,7 @@ import type { MoverView } from '../../server/plugin/mover';
 type Live = (client: NetClient) => (() => void) | undefined;
 /** What a page draws of what its player holds. */
 export interface WireHoldings {
-  readonly purse?: Pick<Purse, 'mirror'>; readonly inventory?: Pick<Inventory, 'mirror'>; readonly gear?: Pick<Owned, 'grant'>; readonly board?: Pick<ContractBoard, 'mirror'>;
+  readonly purse?: Pick<Purse, 'mirror'>; readonly inventory?: Pick<Inventory, 'mirror'>; readonly gear?: Pick<Owned, 'grant' | 'worn' | 'toggleWorn'>; readonly board?: Pick<ContractBoard, 'mirror'>;
 }
 /** A page's own copy of a save that the server keeps: it reads the page's last word and writes nothing. */
 export const readOnlySave = <T extends object>(save: T & { readonly write: unknown }): T => new Proxy(save, { get: (target, name) => name === 'write' ? (): boolean => true : Reflect.get(target, name, target) as unknown });
@@ -46,6 +46,8 @@ export class WirePage {
   stop: () => void = () => undefined;
   /** Mover views by id: rows pose them, and no script runs them here. */
   readonly movers: Map<string, MoverView> = new Map<string, MoverView>();
+  /** The kinds a page's riding offers: the rows of these are what a rider reaches for. */
+  readonly mountKinds: Set<string> = new Set<string>();
   /** Whether the server is carrying this player's body now. */
   led: () => boolean = () => false;
   /** The head over a row's body, into `to`: what an elite's bar stands on. */
@@ -113,10 +115,12 @@ export class WirePage {
     const contracts = boardFromLines(owned);
     for (const { purse, inventory, gear, board } of this.holdings) {
       purse?.mirror(owned.get(OWNED_ROW.coins) ?? 0); inventory?.mirror(pack);
-      for (const name of owned.keys()) if (name.startsWith(OWNED_ROW.owned)) gear?.grant(name.slice(OWNED_ROW.owned.length));
+      for (const [name, value] of owned) if (name.startsWith(OWNED_ROW.owned)) { const id = name.slice(OWNED_ROW.owned.length); gear?.grant(id); if (isOwnedId(id) && isCosmetic(id) && gear?.worn(id) !== (value === WORN_LINE)) gear?.toggleWorn(id); }
       if (board !== undefined && contracts !== null) board.mirror(contracts);
     }
   }
+  /** Put a cosmetic on or take it off: the server keeps what's worn. */
+  wear(id: string): void { this.act({ kind: 'wear', seq: 0, id }); }
   /** A hand on the contract board: the server checks it and pays. */
   contract(op: 'claim' | 'tear', slot: number): void { this.act({ kind: 'board', seq: 0, op, slot }); }
   /** Buy a good of this shard's exchange: the server checks it and takes the price. */

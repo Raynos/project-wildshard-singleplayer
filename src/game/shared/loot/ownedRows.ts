@@ -2,6 +2,8 @@ import type { Board } from '../quest/contracts';
 
 /** The lines a client reads of what its player holds: the purse's coins, a pack's item by id, gear by id. */
 export const OWNED_ROW = { coins: 'coins', item: 'item.', owned: 'own.', board: 'board.', slot: 'board|' } as const;
+/** A gear line's value when the cosmetic is on. */
+export const WORN_LINE = 2;
 /** A contract board's numbers, and a line per slot naming its contract, whose value is how much of it is done, plus one so none reads 0. */
 export function boardLines(board: Board, out: Map<string, number>): void {
   out.set(`${OWNED_ROW.board}next`, board.next + 1); out.set(`${OWNED_ROW.board}claimed`, board.claimed + 1); out.set(`${OWNED_ROW.board}streak`, board.streak + 1); out.set(`${OWNED_ROW.board}best`, board.best + 1);

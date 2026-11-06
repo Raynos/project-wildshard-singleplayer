@@ -299,7 +299,7 @@ export class StandaloneGrid {
         if (act.kind === 'interact' && act.id.startsWith('seen:') && routes.seen !== null) routes.seen(player, act.id);
         else if (claim !== undefined) claim(player);
         else if (act.kind === 'interact' && sim()?.selectedInteraction(player) === act.id) sim()?.interact(act.id, player);
-        else if (act.kind !== 'climate' && act.kind !== 'buy' && act.kind !== 'board') routes.refused++;
+        else if (act.kind !== 'climate' && act.kind !== 'buy' && act.kind !== 'board' && act.kind !== 'wear') routes.refused++;
       }
       host.step(commandsOf(inputs));
     } };

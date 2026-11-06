@@ -4,9 +4,9 @@ import type { SimHost } from '@wildshard/engine/sim';
 import { publishOwned } from '@wildshard/engine/sim/shardRows';
 import { addInventory, takeInventory } from '../../shared/inventoryLaw';
 import { Exchange } from '../../shared/loot/exchange';
-import { isOwnedId, Owned } from '../../shared/loot/Owned';
+import { isCosmetic, isOwnedId, Owned } from '../../shared/loot/Owned';
 import { Purse } from '../../shared/loot/Purse';
-import { OWNED_ROW } from '../../shared/loot/ownedRows';
+import { OWNED_ROW, WORN_LINE } from '../../shared/loot/ownedRows';
 import { inventorySave, saveSlug } from '../../shared/saves';
 
 /** A pack keeps what the server hands it: a slot limit is the giver's to check. */
@@ -59,15 +59,16 @@ export class PlayerOwned {
   read(out: Map<string, number>, pack: boolean): void {
     out.set(OWNED_ROW.coins, this.purse.coins);
     if (pack) for (const id of this.order) out.set(`${OWNED_ROW.item}${id}`, this.counts[id] ?? 0);
-    for (const id of this.owned.all) out.set(`${OWNED_ROW.owned}${id}`, 1);
+    for (const id of this.owned.all) out.set(`${OWNED_ROW.owned}${id}`, isCosmetic(id) && this.owned.worn(id) ? WORN_LINE : 1);
   }
 }
 
 /** Put a world on the wire's owned rows. Any owner of a pack or a shop already in the world keeps them. */
-export function installPlayerOwned(host: SimHost, shard: string, economy: unknown | null, pack: boolean): PlayerOwned {
+export function installPlayerOwned(host: SimHost, shard: string, economy: unknown, pack: boolean): PlayerOwned {
   const owned = new PlayerOwned(shard), routes = actRoutes(host);
   publishOwned(host, 'player', (_player, out) => { owned.read(out, pack); });
-  if (economy !== null && routes.buy === null) {
+  routes.wear = (_player, id) => { if (isOwnedId(id) && isCosmetic(id) && owned.owned.has(id)) owned.owned.toggleWorn(id); };
+  if (economy !== null && economy !== undefined && routes.buy === null) {
     owned.trade(economy, new Map<string, unknown>([['skins', { owns: (id: string) => owned.owned.has(id), own: (id: string) => { owned.owned.grant(id); } }], ['ammo', { capacity: () => false, addBolts: () => undefined, grant: () => undefined }]]));
     routes.buy = (_player, good) => { owned.buy(good); };
   }

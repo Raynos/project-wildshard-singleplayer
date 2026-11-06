@@ -72,7 +72,7 @@ export async function installRoamingCombat(context: ShardContext, input: unknown
   const fight = await installRoamingBossProjection(context, rows.projection);
   const night = (): boolean => ctx.night() > rows.availability;
   const encounter = context.scope.run(() => installBossEncounter(bossEncounterPresentation(rows.presentation, rows.projection.encounter), () => fight, {
-    game, player, scope: context.scope, chunkId: source.identity.slug, interactables: runtime.interactables, persistence: persistence.bosses,
+    game, player, row: rows.projection.encounter.steps.fight, scope: context.scope, chunkId: source.identity.slug, interactables: runtime.interactables, persistence: persistence.bosses,
     reward: { model: () => { const group = new THREE.Group(), model = bow.displayModel(); model.rotation.x = rows.reward.bowPitch; model.scale.setScalar(rows.reward.bowScale); group.add(model); return group; },
       grant: () => { ctx.ownSkin(rows.reward.finish); loadout.grantLongbow(); }, trophy: () => { ctx.addItem(trophy, rows.reward.count); } },
     lockInput: on => { session.lockInput(on); }, respawn: (position, yaw) => { player.spawn(position.x, position.z, yaw); player.pitch = 0; loadout.onPlayerDeath(); launcher.addBolts(slots.pouch.capacity - launcher.state.bolts); },

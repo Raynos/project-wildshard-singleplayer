@@ -90,7 +90,7 @@ export function installLoot<A extends LootBody>(h: ScopedLootHost<A>): ScopedLoo
   installEnteredRuntimeService(ctx, (scope) => {
     if (!live) return;
     const shown = new CoinChip(purse.coins), offBag = bagMenu(h.menu).addLoot('loot', { gear: () => view.gear(purse), finds: view.finds,
-      wear: (id) => { if (isOwnedId(id) && isCosmetic(id)) owned.toggleWorn(id); } });
+      wear: (id) => { if (!isOwnedId(id) || !isCosmetic(id)) return; if (wirePage.on) wirePage.wear(id); else owned.toggleWorn(id); } });
     chip = shown; entered = true; applyChart();
     const off = (): void => {
       if (chip !== shown) return;
