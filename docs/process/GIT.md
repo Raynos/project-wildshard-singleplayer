@@ -184,6 +184,10 @@ rewrite still needs Jake's approval.
   deleted paths, ratchet, guards and fast lint; retired source preparation and test-selection phases do not execute.
   Skipped rows name their reason; a timeout never becomes a passing check. Upload time and remaining gate overhead
   are recorded separately. This is measurement, not a new preparation cache or budget policy.
+- **Guards also read paths written as data** (`scripts/check-spelled-paths.mjs`): isolated declaration tests, imports a
+  generator emits, a shard map's declared inputs, plus a touched shard's layout and, when a manifest or the lock moves,
+  the schema reference's walk of package exports. `sort-sides --move` keeps those spellings current; a hand `git mv` is
+  what this catches. Fast lint treats `@wildshard/format` as a dependency pinned by the lock, not a workspace layer.
 - **Source checks:** pre-commit checks the pathspec's named files and refuses if they change during the check.
   The scheduled push gate checks immutable committed candidates in disposable source snapshots, preserving the
   shared working tree and index. Missing generated test inputs follow the explicit cache-miss rule above.
