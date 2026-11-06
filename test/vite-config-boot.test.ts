@@ -1,5 +1,7 @@
 import { expect, test } from 'vitest';
 import { loadConfigFromFile } from 'vite';
+// oxlint-disable-next-line import/no-nodejs-modules -- The build's own loader, as the build starts it.
+import { spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own and remove the real Node config-loader fixture.
 import { mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Import the actual build helper from the fixture config.
@@ -20,26 +22,22 @@ test('the bundled Vite generator config imports discovery without loading the pr
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
-test('the Vite Node loader computes tier facts without importing page runtime state',async()=>{
-  mkdirSync('tmp/vite-config-boot',{recursive:true});
-  const root=mkdtempSync(resolve('tmp/vite-config-boot/tier-'));
+// The build reads these through the loader that takes the format package's TypeScript (`build-app.mjs`), never a Vite config.
+function bootFacts(module: string, name: string): string {
+  mkdirSync('tmp/vite-config-boot', { recursive: true });
+  const root = mkdtempSync(resolve('tmp/vite-config-boot/facts-'));
   try {
-    const path=resolve(root,'vite.config.ts');
-    writeFileSync(path,`import {bootTierProductTotals} from ${JSON.stringify(resolve('scripts/app-build/bootProductTiers.ts'))}; export default {define:{BOOT_TOTALS:JSON.stringify(bootTierProductTotals(${JSON.stringify(root)}))}};`);
-    const loaded=await loadConfigFromFile({command:'build',mode:'production'},path,root,'silent',undefined,'bundle');
-    expect(loaded?.config.define?.['BOOT_TOTALS']).toBe('{}');
-  } finally {rmSync(root,{recursive:true,force:true});}
+    const script = `const { ${name} } = await import(${JSON.stringify(resolve(module))}); console.log(JSON.stringify(${name}(${JSON.stringify(root)})));`;
+    const run = spawnSync(process.execPath, ['--no-warnings', '--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', script], { encoding: 'utf8' });
+    expect(run.status, run.stderr).toBe(0);
+    return run.stdout.trim();
+  } finally { rmSync(root, { recursive: true, force: true }); }
+}
+
+test('the build computes tier facts in plain Node, with no page runtime state', () => {
+  expect(bootFacts('scripts/app-build/bootProductTiers.ts', 'bootTierProductTotals')).toBe('{}');
 });
 
-test('the Vite bundled Node config loader reads boot facts without importing the runtime format graph', async () => {
-  mkdirSync('tmp/vite-config-boot', { recursive: true });
-  const root = mkdtempSync(resolve('tmp/vite-config-boot/case-'));
-  try {
-    const path = resolve(root, 'vite.config.ts');
-    writeFileSync(path, `import { bootProductTotals } from ${JSON.stringify(resolve('scripts/app-build/bootProducts.ts'))}; export default { define: { BOOT_TOTALS: JSON.stringify(bootProductTotals(${JSON.stringify(root)})) } };`);
-    const loaded = await loadConfigFromFile({ command: 'build', mode: 'production' }, path, root, 'silent', undefined, 'bundle');
-    if (loaded === null || loaded.config.define === undefined) throw new Error('Config loader did not reach the build configuration');
-    const value: unknown = Reflect.get(loaded.config.define, 'BOOT_TOTALS');
-    expect(value).toBe('{}');
-  } finally { rmSync(root, { recursive: true, force: true }); }
+test('the build reads boot facts in plain Node, with no runtime format graph', () => {
+  expect(bootFacts('scripts/app-build/bootProducts.ts', 'bootProductTotals')).toBe('{}');
 });
