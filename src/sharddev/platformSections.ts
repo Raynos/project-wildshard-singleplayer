@@ -3,6 +3,7 @@ import { PLATFORM_DATA_SECTIONS, parsePlatformDataSection, type PlatformDataSect
 import { parseWorldPhysics, type WorldPhysics } from '@wildshard/format/worldPhysics';
 import { encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import { ownAssetBytes } from './assetOwner';
+import { locatedError } from './authorError';
 import type { DefinedSectionEntry, EmittedSections } from './sections';
 import { parseClientPlan, type ClientPlan } from '@wildshard/format/clientPlan';
 
@@ -21,13 +22,17 @@ export function worldPhysicsSection(input: unknown, policy: { readonly rig: 'seg
   return parseWorldPhysics({ ...value, rig: policy.rig, provenance: policy.provenance });
 }
 
+function parsedSection(name: PlatformDataSectionName, input: unknown): ReturnType<typeof parsePlatformDataSection> {
+  try { return parsePlatformDataSection(name, input); } catch (error) { throw locatedError(error, `Section ${name}: `); }
+}
+
 /** Emit new platform sections through their defining parsers. The product writer merges these independently from
  * custom definitions and the older root-key envelopes, refusing duplicate names across all three sources. */
 export function emitPlatformSections(values: ReadonlyMap<PlatformDataSectionName, unknown>): EmittedSections {
   const sections: DefinedSectionEntry[] = [], files = new Map<string, Uint8Array>();
   for (const [name, input] of values) {
-    if (!Object.hasOwn(PLATFORM_DATA_SECTIONS, name)) throw new Error('Unknown platform data section');
-    const value = parsePlatformDataSection(name, input), path = `sections/${name}.json`;
+    if (!Object.hasOwn(PLATFORM_DATA_SECTIONS, name)) throw new Error(`Unknown platform data section: ${name}`);
+    const value = parsedSection(name, input), path = `sections/${name}.json`;
     const owned = ownAssetBytes(new TextEncoder().encode(encodeCanonicalJson(value))), bytes = owned.bytes;
     files.set(path, bytes);
     sections.push({ name, path, schema: `wildshard:${name}@1`, hash: owned.hash, bytes: bytes.length });

@@ -20,6 +20,7 @@ import { synthProject } from './synth';
 import { formatJsonSchemas, schemaAt, schemaDeclaration } from './formatJsonSchema';
 import { decisionModuleContracts } from '@wildshard/format/scriptContract';
 import { outputScriptAdmissionRows, validateOutputProduct } from './outputProduct';
+import { locatedError } from './authorError';
 import type { ProjectManifestSource } from './projectManifest';
 
 const unmeasured: PerformanceObservations = { scripts: { p95Micros: 0, maxMicros: 0, samples: 0 }, fuel: { p95: 0, max: 0, samples: 0 } };
@@ -34,8 +35,8 @@ async function admitBuild(shard: Shardfile, assets: ReadonlyMap<string, Uint8Arr
   if (shard.runtime !== null) { printReport(shard, unmeasured, policy); return; }
   printReport(shard, await measureSimulation(shard, assets, undefined, sections), policy);
 }
-/** Run the author CLI; returns only after validation/build completes. */
-export async function runCli(args: readonly string[], options: { readonly decisionLegacyLines?: number; readonly manifest?: ProjectManifestSource } = {}): Promise<void> {
+interface CliOptions { readonly decisionLegacyLines?: number; readonly manifest?: ProjectManifestSource }
+async function runCommand(args: readonly string[], options: CliOptions): Promise<void> {
   const [command, input, output, buildFlag] = args;
   if (command === 'schema') {
     if (buildFlag !== undefined) throw new Error('usage: wildshard schema [list|shardfile|root] [JSON-pointer]');
@@ -73,7 +74,9 @@ export async function runCli(args: readonly string[], options: { readonly decisi
       console.info(`built ${files.length} native behaviour outputs`); return;
     }
     const flags = args.slice(3), mapSourceHash = flags.find(flag => flag.startsWith('--generated-map-tiles-hash='))?.slice(27), mapPath = flags.find(flag => flag.startsWith('--map='))?.slice(6), tilesHash = flags.find(flag => flag.startsWith('--map-tiles-hash='))?.slice(17), selected = flags.find(flag => flag.startsWith('--output='))?.slice(9);
-    if (flags.some(flag => flag !== '--product-only' && flag !== '--no-placeholders' && flag !== '--format=2' && flag !== '--copy-runtime' && !flag.startsWith('--map=') && !flag.startsWith('--map-tiles-hash=') && !flag.startsWith('--output=') && !flag.startsWith('--generated-map-tiles-hash=')) || flags.filter(flag => flag.startsWith('--output=')).length > 1 || flags.length !== new Set(flags).size || flags.filter(flag => flag.startsWith('--map=')).length > 1 || flags.filter(flag => flag.startsWith('--map-tiles-hash=')).length > 1 || flags.filter(flag => flag.startsWith('--generated-map-tiles-hash=')).length > 1 || mapSourceHash !== undefined && mapPath !== undefined || ((mapPath === undefined) !== (tilesHash === undefined))) throw new Error('unknown or incomplete build map flag');
+    const unknownFlag = flags.find(flag => flag !== '--product-only' && flag !== '--no-placeholders' && flag !== '--format=2' && flag !== '--copy-runtime' && !flag.startsWith('--map=') && !flag.startsWith('--map-tiles-hash=') && !flag.startsWith('--output=') && !flag.startsWith('--generated-map-tiles-hash='));
+    if (unknownFlag !== undefined) throw new Error(`unknown build flag: ${unknownFlag}`);
+    if (flags.filter(flag => flag.startsWith('--output=')).length > 1 || flags.length !== new Set(flags).size || flags.filter(flag => flag.startsWith('--map=')).length > 1 || flags.filter(flag => flag.startsWith('--map-tiles-hash=')).length > 1 || flags.filter(flag => flag.startsWith('--generated-map-tiles-hash=')).length > 1 || mapSourceHash !== undefined && mapPath !== undefined || ((mapPath === undefined) !== (tilesHash === undefined))) throw new Error('unknown or incomplete build map flag');
     const map = mapPath === undefined || tilesHash === undefined ? undefined : { bytes: readBoundedFile(resolve(mapPath), STILL_IMAGE_LIMITS.bytes), tilesHash };
     const shard = await buildProject(resolve(input), output === undefined ? undefined : resolve(output), { outputFormat:2, ...(selected === undefined ? {} : { output: selected }), ...(options.decisionLegacyLines === undefined ? {} : { decisionLegacyLines: options.decisionLegacyLines }), ...(options.manifest === undefined ? {} : { manifest: options.manifest }), copyRuntime: flags.includes('--copy-runtime'), ...(flags.includes('--product-only') ? { client: null } : {}), ...(map === undefined ? {} : { map }), ...(mapSourceHash === undefined ? {} : { mapSourceHash }), placeholders: !flags.includes('--no-placeholders'), admit: admitBuild }); console.info(`built ${shard.identity.slug} v${shard.version}`); return;
   }
@@ -118,4 +121,8 @@ export async function runCli(args: readonly string[], options: { readonly decisi
     return;
   }
   throw new Error('unknown wildshard command');
+}
+/** Run the author CLI; returns only after validation/build completes. */
+export async function runCli(args: readonly string[], options: CliOptions = {}): Promise<void> {
+  try { await runCommand(args, options); } catch (error) { throw locatedError(error); }
 }
