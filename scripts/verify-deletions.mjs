@@ -2,6 +2,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
+if (existsSync('release-deletions.json') && JSON.parse(readFileSync('release-deletions.json', 'utf8')).state === 'complete') throw new Error('Source retirement is sealed; its evidence cannot be regenerated from the thin shell');
 const home = process.env.HOME;
 const lift = resolve(home, '.cache/wildshard/lift-work/d3');
 const repos = ['engine', 'sharddev', 'shard-driftwood', 'shard-sky-reach', 'shard-dunes', 'shard-nalati', 'shard-pine-hollow', 'shard-nine-dragon', 'shard-open-plots'];
