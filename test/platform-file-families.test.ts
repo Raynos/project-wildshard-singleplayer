@@ -38,9 +38,12 @@ test('shared names require the defining type and keep private neighbours custom'
     expect(platformFileFamily(file, schema)).toBeUndefined();
   }
   // Format names a reader by its side-free identity: a retag must not need a format release.
+  // v0.4.0 still names the wildlife page the feed's cut deleted. Its rows are read here until format moves at the lift.
+  const retired = new Map([['src/game/population/wildlife.ts', 'src/game/population/wildlifeFeature.ts']]);
   for (const family of PLATFORM_FILE_FAMILIES) {
-    const onDisk = ['client', 'server', 'shared'].map(side => family.reader.replace('src/game/', `src/game/${side}/`)).find(path => existsSync(path));
-    expect(readFileSync(onDisk ?? family.reader, 'utf8').length).toBeGreaterThan(0);
+    const reader = retired.get(family.reader) ?? family.reader;
+    const onDisk = ['client', 'server', 'shared'].map(side => reader.replace('src/game/', `src/game/${side}/`)).find(path => existsSync(path));
+    expect(readFileSync(onDisk ?? reader, 'utf8').length).toBeGreaterThan(0);
   }
 });
 
