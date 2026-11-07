@@ -12,6 +12,7 @@ import { pageSim } from '../shardfile/clientMoverOwners';
 import { BossRowBar } from '../boss/barFeed';
 import { easeField } from '@wildshard/engine/world/easedFields';
 import { wirePage } from '../shardfile/wirePage';
+import { liftPrompt } from '../../shared/shardfile/wirePrompts';
 import { WorldTargetHost, type WorldTargetLanding } from '../../shared/shardfile/worldTargets';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
 import { parseWorldTargets, type WorldTargets } from '@wildshard/format/worldTargets';
@@ -737,7 +738,7 @@ export function createClientChannelPrompt(input: unknown,
     if (row.kind === 'named') { const handler = bind.named?.get(row.name); if (handler === undefined) throw new Error('Unknown named prompt action'); return handler; }
     const ports = bind.socketLifts, entry = ports?.entryways.find(value => value.kind === 'socketLift' && value.edge === row.edge), lift = entry?.lift;
     if (ports === undefined || lift === undefined) throw new Error('Unknown socket lift prompt action');
-    return () => { const runtime = ports.runtime(); if (runtime !== null) pageSim.commandSocketLift(runtime, lift, row.action); };
+    return () => { if (ports.runtime() !== null) wirePage.send(liftPrompt(lift.mover, row.action)); };
   };
   const action = resolve(Object.freeze(declaration.action));
   const lane = createClientChannels(program);

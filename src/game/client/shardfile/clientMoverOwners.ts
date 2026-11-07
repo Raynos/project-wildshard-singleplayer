@@ -6,7 +6,6 @@ import type { BorrowedSpeciesControl, SpeciesDecisionAuthority } from '../../ser
 import type { PageSimFeed } from '../../server/plugin/pageSimFeed';
 import { netClimate } from '../weather/netClimate';
 import { wirePage } from './wirePage';
-import { liftPrompt } from '../../shared/shardfile/wirePrompts';
 import { entryOwner } from '../../shared/shardfile/entryOwners';
 import { boundResidentWorldScope } from './hybridPresentation';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
@@ -49,7 +48,6 @@ export function wirePageSim():void{
     },
     // A blade still swings here, and what it lands is the server's: its contacts have nobody to scan.
     bindMeleeContacts:(id,rows,ports)=>bindMeleeContacts(id,rows,{...ports,targets:()=>[]}),
-    commandSocketLift:(_runtime:Parameters<PageSimFeed['commandSocketLift']>[0],lift:Parameters<PageSimFeed['commandSocketLift']>[1],action:Parameters<PageSimFeed['commandSocketLift']>[2])=>{wirePage.send(liftPrompt(lift.mover,action));},
     climate:(ports:Parameters<PageSimFeed['climate']>[0])=>climate({...ports,net:rows=>netClimate(wirePage.climateRows,rows,word=>{wirePage.climate(word);})}),
   } satisfies Partial<PageSimFeed>);
 }
