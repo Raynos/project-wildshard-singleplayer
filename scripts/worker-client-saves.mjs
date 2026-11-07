@@ -104,8 +104,11 @@ if (only.includes('exit') || only.includes('travel') || only.includes('import'))
   try {
     if (only.includes('exit')) {
       await mark(page, 'n3.exit');
-      const asked = await page.evaluate(() => { const started = performance.now(); window.__wildshard.world.hud.onExitToMain(); return started; });
-      await page.waitForURL(address => !address.search.includes('chunk='), { timeout: 15_000 });
+      // The title is a new document, not a new address: a grid page is already at `/`. Going on before it lands would end the page Exit is holding.
+      const started = Date.now();
+      await page.evaluate(() => { window.__leaving = true; window.__wildshard.world.hud.onExitToMain(); });
+      await page.waitForFunction(() => window.__leaving === undefined, undefined, { timeout: 15_000 });
+      const asked = Date.now() - started;
       await enter(page); await page.waitForTimeout(1500);
       pass('Exit to Title saves', (await flags(page)).includes('n3.exit'), { asked, flags: (await flags(page)).filter(flag => flag.startsWith('n3.')) });
     }
