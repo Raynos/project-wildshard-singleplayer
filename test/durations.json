@@ -370,7 +370,6 @@
  "src/game/server/plugin/quest-world-reactions.test.ts": 0,
  "src/game/client/plugin/world-native-prelude.test.ts": 0,
  "src/game/client/plugin/world-scene-placement-sliced.test.ts": 0.2,
- "src/game/server/population/fixed-page-spawn-table.test.ts": 0,
  "src/game/server/population/group-species.test.ts": 0,
  "src/game/server/population/native-actor-interface.test.ts": 0,
  "src/game/shared/population/projected-event-state.test.ts": 0,

@@ -438,7 +438,6 @@
   "src/game/server/plugin/quest-world-reactions.test.ts": 0.826216136,
   "src/game/client/plugin/world-native-prelude.test.ts": 1.256430306,
   "src/game/client/plugin/world-scene-placement-sliced.test.ts": 0.874080539,
-  "src/game/server/population/fixed-page-spawn-table.test.ts": 0.280744096,
   "src/game/server/population/group-species.test.ts": 0.371951877,
   "src/game/server/population/native-actor-interface.test.ts": 0.051531498,
   "src/game/shared/population/projected-event-state.test.ts": 0.161373926,
