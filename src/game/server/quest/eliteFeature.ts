@@ -60,7 +60,7 @@ export function installNativeEliteFeature(host: SimHost, day: DayCycleClock, inp
     return { stun: first === undefined ? null : { ...first }, ...(Object.keys(others).length === 0 ? {} : { others }) };
   };
   const validateRecords = (records: Readonly<Record<string, unknown>>): void => {
-    if (Object.keys(records).length !== scripts.length || scripts.some(script => records[script.def.id] === undefined)) throw new Error('Incompatible elite records');
+    if (scripts.some(script => records[script.def.id] === undefined)) throw new Error('Incompatible elite records'); // more than the roster: a page's lairs, kept
   };
   const held = new Vector3(), direction = new Vector3(), routes = actRoutes(host);
   // Whatever way a lair's body lands a blow, and its bite isn't always its script's.

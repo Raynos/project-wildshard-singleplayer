@@ -313,8 +313,8 @@ export class EliteCore<S extends EliteCoreScript> {
 
   /** Copy the lair rules only, preserving their historical wire field order and null last-hit sentinel. */
   snapshot(): EliteCoreContinuation {
-    // A page's save can hold a lair this world has no row for, and a continuation names exactly its roster.
-    return { clocks: this.clocks(), records: Object.fromEntries(Object.entries(this.saved).filter(([id]) => this.entries.some(e => e.script.def.id === id)).map(([id, row]) => [id,
+    // A page's save can hold a lair this world has no row for: its record rides along, for the world that has one.
+    return { clocks: this.clocks(), records: Object.fromEntries(Object.entries(this.saved).map(([id, row]) => [id,
       { timer: row.timer, discovered: row.discovered, skinTaken: row.skinTaken, kills: row.kills, retired: row.retired }])),
       entries: this.entries.map(e => ({ id: e.script.def.id, state: e.state, timer: e.timer, waitDusk: e.waitDusk, discovered: e.discovered, bannerArmed: e.bannerArmed,
         farT: e.farT, phase2: e.phase2, beatT: e.beatT, lockHp: e.lockHp, seenSig: e.seenSig, leashT: e.leashT, lastHit: e.lastHit === -Infinity ? null : e.lastHit, forced: e.forced })) };

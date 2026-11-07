@@ -92,7 +92,7 @@ export class NativeEliteContinuation {
     const packViews = originalPacks?.map(pack => ({ owner: pack.members, actors: [...pack.members], ids: pack.members.map(body => body.entityId), kinds: pack.members.map(body => body.kind) }));
     const borrowedActors = rows.map(row => row.continuation?.borrowed === undefined ? undefined : originalGuards?.[row.continuation.borrowed.group]?.stallion);
     const originals = this.members.map(member => [member.animal, member.phase2, member.pack, member.adopted, member.detached] as const);
-    if (Object.keys(continuation.records).length !== rows.length || rows.some(row => continuation.records[row.def.id] === undefined)) throw new Error('Incompatible encounter records');
+    if (rows.some(row => continuation.records[row.def.id] === undefined)) throw new Error('Incompatible encounter records'); // more than the roster: a page's lairs, kept
     const bound = this.members.map((member, i) => {
       const row = rows[i]; if (row === undefined) throw new Error('Missing elite continuation row');
       const state = v.parse(row.pack === undefined ? v.omit(EliteMemberContinuationSchema, ['pack']) : EliteMemberContinuationSchema, saved[row.snapshot]);
