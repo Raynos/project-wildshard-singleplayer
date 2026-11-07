@@ -24,7 +24,15 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-        with: {fetch-depth: 2}
+        with:
+          fetch-depth: 2
+          sparse-checkout: |
+            /*
+            !/art/
+            !/progress/
+            !/sources/
+            !/src/
+          sparse-checkout-cone-mode: false
       - uses: pnpm/action-setup@v4
         with: {version: 10.34.9}
       - uses: actions/setup-node@v4
@@ -55,10 +63,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: pinned-release
-          path: |
-            dist/
-            .vercel/output/
-            prebuilt-output/
+          path: prebuilt-output/
           include-hidden-files: true
           compression-level: 0
           retention-days: 7
@@ -75,11 +80,12 @@ jobs:
         with: {node-version: 24}
       - run: pnpm install --frozen-lockfile
       - uses: actions/download-artifact@v4
-        with: {name: pinned-release}
+        with: {name: pinned-release, path: prebuilt-output}
+      - run: python3 scripts/prebuilt-output.py restore --sha "$GITHUB_SHA" --run "$GITHUB_RUN_ID"
       - run: pnpm exec playwright install --with-deps chromium webkit
       - name: Test the exact installed artifact on both phone engines
         run: |
-          node scripts/preview-server.mjs --outDir dist --port 4173 &
+          node scripts/preview-server.mjs --outDir .vercel/output/static --port 4173 &
           server_pid=$!
           trap 'kill "$server_pid"' EXIT
           node scripts/prove-release.mjs http://127.0.0.1:4173
@@ -94,14 +100,23 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-        with: {fetch-depth: 2}
+        with:
+          fetch-depth: 2
+          sparse-checkout: |
+            /*
+            !/art/
+            !/progress/
+            !/sources/
+            !/src/
+          sparse-checkout-cone-mode: false
       - uses: pnpm/action-setup@v4
         with: {version: 10.34.9}
       - uses: actions/setup-node@v4
         with: {node-version: 24}
       - run: pnpm install --frozen-lockfile
       - uses: actions/download-artifact@v4
-        with: {name: pinned-release}
+        with: {name: pinned-release, path: prebuilt-output}
+      - run: python3 scripts/prebuilt-output.py restore --sha "$GITHUB_SHA" --run "$GITHUB_RUN_ID"
       - name: Honor the production hold
         id: policy
         run: |
@@ -133,5 +148,6 @@ jobs:
           VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
           STAGED_URL: ${{ steps.stage.outputs.url }}
         run: |
+          test "$(gh api "repos/$GITHUB_REPOSITORY/branches/main" --jq .commit.sha)" = "$GITHUB_SHA"
           vercel promote "$STAGED_URL" --yes --scope raynos-projects --token "$VERCEL_BUILD_TOKEN"
           DEPLOY_SHA="$GITHUB_SHA" node scripts/deploy-version.mjs verify
