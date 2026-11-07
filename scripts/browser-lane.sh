@@ -199,12 +199,18 @@ wait_room() {
   done
 }
 
+# J148: name any listener outside localhost. Warn only: a lane never waits on a macOS service.
+warn_listeners() {
+  [ "$(uname)" = Darwin ] || return 0
+  node "$(dirname "$SELF")/check-listeners.mjs" --warn >&2 || true
+}
+
 case "${1:-}" in
   status) status; exit 0;;
   capacity) n=$(used); free=$((LANES - n)); [ "$free" -lt 0 ] && free=0; printf '%s %s\n' "$LANES" "$free"; exit 0;;
   reap) reap "${2:-}"; exit 0;;
   free) [ "$(used)" -lt "$LANES" ]; exit $?;;
-  wait) wait_room; exit $?;;
+  wait) warn_listeners; wait_room; exit $?;;
   ''|-h|--help) sed -n '2,30p' "$SELF"; exit 0;;
   _slot)
     # the slot's shell, run under the kernel lease for N: re-check the cap (a browser may have opened outside the lane
@@ -238,6 +244,7 @@ MAX_MIN=60
 if [ "${1:-}" = "--max" ]; then MAX_MIN="${2:?--max needs minutes}"; shift 2; fi
 [ "${1:-}" = "--" ] && shift
 [ $# -gt 0 ] || { echo "usage: browser-lane.sh [--max <min>] <cmd …>" >&2; exit 64; }
+warn_listeners
 
 # Keep the native BSD path on the shared Mac. Linux CI uses the same
 # nonblocking kernel lease through Python's POSIX flock; no lock binary install.

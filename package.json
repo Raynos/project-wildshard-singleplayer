@@ -27,6 +27,7 @@
     "lint:fix": "oxlint --fix",
     "lint:ratchet": "node lint/ratchet.mjs",
     "check:chunks": "node scripts/check-chunks.mjs dist",
+    "check:listeners": "node scripts/check-listeners.mjs",
     "audit:assets": "pnpm gen --inputs-only && node scripts/audit-assets.mjs",
     "bake:entry-reads": "scripts/browser-lane.sh --max 60 node --experimental-transform-types --import ./scripts/shard-platform-format.mjs scripts/entry-reads/crawl.ts",
     "test": "python3 scripts/heavy-lane.py check -- node scripts/vitest-tmp.ts run",
