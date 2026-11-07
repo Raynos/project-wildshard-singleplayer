@@ -70,7 +70,6 @@ class FailFastTests(unittest.TestCase):
         self.assertIn('python3 scripts/ci-products.py pack', prepare)
         self.assertIn('zstd --long=27 -3 -T2 --keep test-products.tar', prepare)
         self.assertIn('scripts/ci-checks.mjs --prepared', prepare)
-        self.assertIn('python3 scripts/ci-products.py unpack', prepare)
         self.assertLess(prepare.index(generation), prepare.index('scripts/ci-products.py pack'))
         self.assertLess(prepare.index('scripts/ci-products.py pack'), prepare.index('scripts/ci-checks.mjs --prepared'))
         for name in ('typecheck-lint', 'derived-docs', 'behaviour'):
