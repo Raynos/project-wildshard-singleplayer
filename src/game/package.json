@@ -215,6 +215,7 @@
     "./weapons/starterGlyphs": "./shared/weapons/starterGlyphs.ts",
     "./weapons/mountedPass": "./shared/weapons/mountedPass.ts",
     "./weapons/heldBowBase": "./shared/weapons/heldBowBase.ts",
+    "./weapons/nativeHeld": "./server/weapons/nativeHeld.ts",
     "./weapons/polearmContact": "./shared/weapons/polearmContact.ts",
     "./weapons/starterMoves": "./shared/weapons/starterMoves.ts",
     "./weapons/starterMeleeProfile": "./shared/weapons/starterMeleeProfile.ts",

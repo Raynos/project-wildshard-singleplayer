@@ -504,7 +504,12 @@ async function chapterJourney(browser, phone, base, step) {
   });
   await step('chapters: no page error', () => ({ ok: steppe.errors.length === 0, errors: [...new Set(steppe.errors)].slice(0, 6) }));
   await steppe.context.close();
-  const storm = await open(browser, phone, base, 'nalati-grasslands');
+  await stormJourney(browser, phone, base, step);
+}
+
+/** The Storm Titan: tied at the cairn in the storm, his bar and, behind flags, his looks and his whole fight. */
+async function stormJourney(browser, phone, base, step) {
+  const storm = await open(browser, phone, base, 'nalati-grasslands', process.argv.includes('--titan') ? '&bossGod' : '');
   await step('chapters: tied at the cairn in the storm, the Titan\'s bar comes up off its row', async () => {
     const { page: sky } = storm;
     await listen(sky);
@@ -540,16 +545,139 @@ async function chapterJourney(browser, phone, base, step) {
     await sky.screenshot({ path: 'tmp/titan/look.png' }).catch(() => undefined);
     return { ok: row !== null && seen.visible === true && seen.puffs === true && seen.alpha > 0 && (seen.words['open-arena.look'] ?? 0) > 0, state: row?.state, focus, ...seen };
   });
-  // Behind a flag: a Titan left standing mustn't turn a run red that came for the bar. `--titan` is the fight itself, for his score.
-  if (process.argv.includes('--titan')) await step('chapters: the Titan falls to real blows, and his score plays', async () => {
-    const { page: sky } = storm, row = await until(sky, async () => (await fight(sky, 'storm-titan'))?.state === 'fight', 30);
-    const end = await fightTo(sky, 'storm-titan', 'victory', 120);
-    await sky.waitForTimeout(1500);
-    const heard = await heardOf(sky);
-    return { ok: end?.state === 'victory' && heard.includes('sting chunk') && heard.includes('combat 1'), up: row === true, state: end?.state, phase: end?.phase, hp: end?.hp, heard, drawn: await arenaDrawn(sky) };
-  });
+  // Behind a flag: a Titan left standing mustn't turn a run red that came for the bar. `--titan` is the fight itself, for his score. His row has no
+  // body, so `fightTo` has nothing to swing at (`row.at` is null): the heart stands 70 m off in a gale, so the proof carries a drawn bow up to it, and
+  // every blow, chip and rider is the server's own. Under `?bossGod`: a proof that stood in the grass would die to the spear and restart him.
+  if (process.argv.includes('--titan')) {
+    const titan = page => page.evaluate(() => { const fightOf = window.__wildshard.shard['nalati.titan'].openFight, { field, scorch } = fightOf.viewLoan, modes = Array.from(field.modeCells), { x, y, z } = fightOf.body.focusPoint;
+      return { open: fightOf.open, focus: { x, y, z }, hot: modes.flatMap((mode, cell) => mode === field.rows.states.active ? [{ x: field.x(cell), z: field.z(cell) }] : []), spent: modes.filter(mode => mode === field.rows.states.spent).length, scorch: scorch.count }; });
+    const bow = (page, on) => page.evaluate(held => { window.__wildshard.world.game.app.equipment.altHeld = held; }, on);
+    let spot = 0;
+    const away = async page => { const a = spot++ * 2.4, x = -30 + Math.cos(a) * 14, z = -20 + Math.sin(a) * 14; await place(page, x, await groundAt(page, x, z) + 0.6, z); };
+    const heartShot = async page => {
+      const { focus } = await titan(page);
+      await place(page, focus.x + 1, focus.y - 12, focus.z + 14); await page.waitForTimeout(160);
+      await faceAt(page, (await titan(page)).focus); await page.waitForTimeout(60);
+      await bow(page, false); await page.waitForTimeout(350);
+      await away(page); await page.waitForTimeout(300);
+    };
+    const riders = page => page.evaluate(() => window.__wildshard.world.animals.animals.filter(body => body.rowDriven && body.alive && body.kind === 'ghost-rider').map(({ position: { x, y, z } }) => ({ x, y, z })));
+    await step('chapters: the Titan falls to real blows, and his score plays', async () => {
+      const { page: sky } = storm, up = await until(sky, async () => (await fight(sky, 'storm-titan'))?.state === 'fight', 30);
+      const log = [], end = Date.now() + 420_000, say = async note => { const row = await fight(sky, 'storm-titan'), seen = await titan(sky); log.push(`${note} ${row?.state} p${row?.phase} hp${row?.hp.toFixed(2)} hot${seen.hot.length} scorch${seen.scorch}`); };
+      let row = await fight(sky, 'storm-titan'), shots = 0, wasOpen = false, burned = null;
+      await bow(sky, true);
+      while (Date.now() < end && row?.state !== 'victory') {
+        const seen = await titan(sky);
+        if (shots++ % 10 === 0) await sky.evaluate(() => { window.__workerClientHits(1); });
+        if (row?.phase === 0) {
+          if (seen.open && !wasOpen) { await heartShot(sky); await bow(sky, true); await away(sky); } else if (row.state === 'fight' && Math.random() < 0.1) await away(sky);
+          wasOpen = seen.open;
+          await sky.waitForTimeout(100);
+        } else if (row?.phase === 1 && row.shield) {
+          const [first] = await riders(sky);
+          await sky.waitForTimeout(1150);
+          if (first !== undefined) {
+            await place(sky, first.x + 3, first.y + 0.4, first.z + 3); await sky.waitForTimeout(260);
+            const [now = first] = await riders(sky); await faceAt(sky, { x: now.x, y: now.y + 1.4, z: now.z }); await sky.waitForTimeout(50);
+          }
+          await bow(sky, false); await sky.waitForTimeout(450); await bow(sky, true);
+        } else if (row?.phase === 2 && burned === null) {
+          // The grass fire: flames and scorch on the page, in step with its cells.
+          if (seen.hot.length > 0 && seen.spent > 5) { burned = { hot: seen.hot.length, spent: seen.spent, scorch: seen.scorch }; await say('burning'); await sky.screenshot({ path: 'tmp/titan/fire.png' }).catch(() => undefined); }
+          else { await away(sky); await sky.waitForTimeout(700); }
+        } else if (row?.state === 'fight') { await sky.waitForTimeout(1150); await heartShot(sky); await bow(sky, true); }
+        else await sky.waitForTimeout(250);
+        const next = await fight(sky, 'storm-titan');
+        if (next?.phase !== row?.phase || next?.state !== row?.state) await say('now');
+        row = next;
+      }
+      await bow(sky, false);
+      await sky.waitForTimeout(1500);
+      const heard = await heardOf(sky), words = await arenaDrawn(sky), reward = (await fight(sky, 'storm-titan'))?.reward ?? null;
+      if (reward !== null) { await place(sky, reward.x + 1, reward.y - 1.2, reward.z + 1); await sky.waitForTimeout(1500); await faceAt(sky, reward); for (let i = 0; i < 6 && (await fight(sky, 'storm-titan'))?.reward !== null; i++) { await press(sky); await sky.waitForTimeout(800); } }
+      await sky.waitForTimeout(1000);
+      const { owned, flags } = await report(sky);
+      return { ok: row?.state === 'victory' && heard.includes('sting chunk') && heard.includes('combat 1') && burned !== null && burned.scorch === burned.spent && owned['item.naizagai'] === 1 && owned['item.sky-marked-saddle'] === 1 && (words.words['open-arena.cells'] ?? 0) > 0 && (words.words['open-arena.fire'] ?? 0) > 0,
+        up: up === true, state: row?.state, phase: row?.phase, hp: row?.hp, burned, heard, naizagai: owned['item.naizagai'] ?? 0, saddle: owned['item.sky-marked-saddle'] ?? 0, dead: flags.filter(flag => flag.startsWith('dead:')), log: log.slice(-16), words: words.words };
+    });
+  }
   await step('chapters: the storm page raises no page error', () => ({ ok: storm.errors.length === 0, errors: [...new Set(storm.errors)].slice(0, 6) }));
   await storm.context.close();
+}
+
+/** Qara Batyr on a server: a night's patrol thinned by real kills brings him, his lane, his fall and his orb are the server's, and a save keeps him fallen. */
+async function qaraJourney(browser, phone, base, step) {
+  const steppe = await open(browser, phone, base, 'nalati-grasslands', '&bossGod'), { page } = steppe, id = 'qara-batyr';
+  const riders = () => page.evaluate(() => window.__wildshard.world.animals.animals.filter(body => body.rowDriven && body.alive && body.kind === 'ghost-rider').map(({ variant, position: { x, y, z } }) => ({ variant, x, y, z })));
+  const bow = on => page.evaluate(held => { window.__wildshard.world.game.app.equipment.altHeld = held; }, on);
+  const shoot = async at => {
+    await bow(true); await page.waitForTimeout(1150);
+    const [from = at] = await riders(); await page.waitForTimeout(100);
+    const [now = from] = await riders(), lead = 3.4, x = now.x + (now.x - from.x) * lead, z = now.z + (now.z - from.z) * lead; // a line rides at 11 m/s: shoot where it will be
+    await place(page, x + 3, now.y + 0.4, z + 3); await page.waitForTimeout(230);
+    await faceAt(page, { x, y: now.y + 2.2, z }); await page.waitForTimeout(40);
+    await bow(false); await page.waitForTimeout(400);
+  };
+  await step('qara: a night\'s patrol, thinned by real kills, brings its captain on a row', async () => {
+    await page.evaluate(() => { window.__workerClientHits(40); window.__workerClientTime('night'); });
+    let row = null, shots = 0;
+    const end = Date.now() + 320_000;
+    while (Date.now() < end) {
+      row = await fight(page, id);
+      if (row?.at !== null && row?.at !== undefined) break;
+      const [first] = await riders();
+      if (first === undefined) { await place(page, 0, await groundAt(page, 0, 0) + 1, 0); await page.waitForTimeout(1000); continue; } // a line rides for the camp, and a page holds only the rows near it
+      await shoot(first);
+      if (++shots % 12 === 0) await page.evaluate(() => { window.__workerClientHits(1); });
+    }
+    const line = await riders();
+    return { ok: row?.at !== null && row?.at !== undefined && row.name !== null, state: row?.state, at: row?.at, name: row?.name, shots, captains: line.filter(body => body.variant === 'captain').length, kills: (await report(page)).kills };
+  });
+  await step('qara: his charge lane is drawn off the server\'s words, and his bar off his row', async () => {
+    const row = await fight(page, id);
+    if (row?.at === null || row?.at === undefined) return { ok: false, why: 'no captain' };
+    await place(page, row.at.x + 14, row.at.y + 0.4, row.at.z + 14);
+    const lane = await until(page, async () => { const drawn = (await report(page)).drawn['elite lane'] ?? 0, seen = await fight(page, id); if (seen?.at !== null && seen?.at !== undefined) { await faceAt(page, { ...seen.at, y: seen.at.y + 1.4 }); } return drawn > 0 ? drawn : null; }, 45, 500);
+    await page.screenshot({ path: 'tmp/flip16/qara-lane.png' }).catch(() => undefined);
+    return { ok: lane !== null, lane, state: (await fight(page, id))?.state, shown: await bossBar(page) };
+  });
+  await step('qara: real blows end him, and his orb is taken', async () => {
+    await page.evaluate(() => { window.__workerClientHits(1); });
+    let end = await fight(page, id);
+    const until_ = Date.now() + 60_000;
+    while (Date.now() < until_ && end?.state !== 'dead') {
+      await bow(true); await page.waitForTimeout(1150);
+      const from = (await fight(page, id))?.at ?? null; await page.waitForTimeout(100);
+      const now = (await fight(page, id))?.at ?? from;
+      if (from !== null && now !== null) {
+        const x = now.x + (now.x - from.x) * 3.4, z = now.z + (now.z - from.z) * 3.4;
+        await place(page, x + 3, now.y + 0.4, z + 3); await page.waitForTimeout(230);
+        await faceAt(page, { x, y: now.y + 2, z }); await page.waitForTimeout(40);
+      }
+      await bow(false); await page.waitForTimeout(400);
+      end = await fight(page, id);
+    }
+    await page.waitForTimeout(800);
+    const row = await fight(page, id), { reward } = row ?? {};
+    if (reward !== null && reward !== undefined) { await place(page, reward.x + 0.6, reward.y - 1.2, reward.z + 0.6); await page.waitForTimeout(1200); await faceAt(page, reward); for (let i = 0; i < 6 && (await fight(page, id))?.reward !== null; i++) { await press(page); await page.waitForTimeout(700); } }
+    const after = await fight(page, id);
+    return { ok: end?.state === 'dead' && reward !== null && reward !== undefined && after?.reward === null, state: after?.state, sleep: after?.sleep, reward };
+  });
+  await step('qara: a save keeps him fallen and a page\'s fresh boot reads it back', async () => {
+    await page.evaluate(() => Promise.race([window.__workerClientSave(), new Promise(resolve => { setTimeout(resolve, 20_000); })]));
+    const before = await fight(page, id);
+    await page.reload({ waitUntil: 'load' });
+    await page.waitForFunction(() => window.__wildshard?.world?.player !== undefined, undefined, { timeout: 150_000 });
+    await page.waitForFunction(() => typeof window.__workerClient === 'function', undefined, { timeout: 150_000 });
+    await page.evaluate(FLOOR_GRID_ENTER);
+    await page.waitForFunction(() => window.__workerClient().frames > 30, undefined, { timeout: 60_000 });
+    await page.waitForTimeout(1500);
+    const { restored } = await report(page), row = await fight(page, id);
+    return { ok: restored === true && row?.state === 'dead' && row.sleep > 0, restored, state: row?.state, sleep: row?.sleep, before: before?.sleep };
+  });
+  await step('qara: no page error', () => ({ ok: steppe.errors.length === 0, errors: [...new Set(steppe.errors)].slice(0, 6) }));
+  await steppe.context.close();
 }
 
 /** Run the fights; `step` prints one line each. */
@@ -822,6 +950,10 @@ async function sweepJourney(browser, phone, base, step) {
   });
   /** A lair's tell as the page's elite holds it, and what the page has drawn of what it heard. */
   const tell = id => steppe.page.evaluate(want => { const { tell: ground } = window.__wildshard.shard['nalati.elites'].elites.entry(want).script; return { shown: ground.mesh.visible, drawn: window.__workerClient().drawn }; }, id);
+  await step('sweep: Argymaq\'s charge lane is drawn off the server\'s words', async () => {
+    const lane = await until(steppe.page, async () => { const row = await fight(steppe.page, 'argymaq'); if (row?.at !== null && row?.at !== undefined) { await place(steppe.page, row.at.x + 14, row.at.y + 0.4, row.at.z); await faceAt(steppe.page, row.at); } return (await report(steppe.page)).drawn['elite lane'] ?? null; }, 45, 800);
+    return { ok: lane !== null, lane, shown: (await tell('argymaq')).shown, state: (await fight(steppe.page, 'argymaq'))?.state };
+  });
   await step('sweep: Aqbars\'s pounce rings the ground, and its growl and feed are heard', async () => {
     await steppe.page.evaluate(() => { window.__workerClientTime('night'); });
     await place(steppe.page, 138, 62, -58);
@@ -959,6 +1091,8 @@ async function lanternJourney(browser, phone, base, step, [x, z], blows) {
 
 export async function fights(browser, phone, base, only, step) {
   const runs = name => only === '' || only === 'fights' || only === name;
+  if (only === 'titan') await stormJourney(browser, phone, base, step);
+  if (runs('qara')) await qaraJourney(browser, phone, base, step);
   if (runs('rig')) await rigJourney(browser, phone, base, step, KINGS_CLEARING);
   if (runs('sweep')) await sweepJourney(browser, phone, base, step);
   if (only === 'rigpage') await pageRigJourney(browser, phone, base, step, KINGS_CLEARING);

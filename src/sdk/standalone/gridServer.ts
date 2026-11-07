@@ -30,6 +30,7 @@ import type { Transport } from '@wildshard/engine/net/transport';
 import { GridAssembly, type GridCell, type GridPoint } from '@wildshard/game/grid/assembly';
 import type { GridCollisionStrip } from '@wildshard/game/grid/gridCollision';
 import { importPageProgress } from '@wildshard/game/grid/durability';
+import { heldArmsOf } from '@wildshard/game/weapons/nativeHeld';
 import { gridRecovery } from '@wildshard/game/grid/recovery';
 import { regionalRuntimeCheckpoint } from '@wildshard/game/grid/runtimeCheckpoint';
 import { GridRoom } from '@wildshard/game/grid/room';
@@ -383,6 +384,7 @@ export class StandaloneGrid {
   hardHits(by: number): void {
     const { host } = this;
     host.events.answer('damage.modify', req => req === null || landedBy(req, host.players) === null ? req : { ...req, amount: req.amount * by }, host.scope, { order: 90 });
+    for (const player of host.players.values()) heldArmsOf(host)?.of(player).refill(); // a boss's heart takes its arrows whole, and it wants more than a quiver
   }
   /** A Developer's `?bossGod`, on the pipeline that now lands the blow, and a lair's script, whose contact wears no fight's tag. */
   bossGod(): void { this.host.combat.playerRules(this.host.scope, { bossGod: true }); actRoutes(this.host).god = true; }
