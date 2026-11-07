@@ -47,7 +47,6 @@ export function wirePageSim():void{
       wildlife.rowBodies=true;
       return wildlife;
     },
-    prepareProductDecisionMemories:()=>Promise.resolve(),
     // A blade still swings here, and what it lands is the server's: its contacts have nobody to scan.
     bindMeleeContacts:(id,rows,ports)=>bindMeleeContacts(id,rows,{...ports,targets:()=>[]}),
     commandSocketLift:(_runtime:Parameters<PageSimFeed['commandSocketLift']>[0],lift:Parameters<PageSimFeed['commandSocketLift']>[1],action:Parameters<PageSimFeed['commandSocketLift']>[2])=>{wirePage.send(liftPrompt(lift.mover,action));},

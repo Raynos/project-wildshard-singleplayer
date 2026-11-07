@@ -12,14 +12,10 @@ import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { readStrikeState } from '@wildshard/engine/ai/strikeState';
 import { focusPlayer, ShardDecisions, type DecisionRuntime } from './decisions';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
-import type { ShardContext } from '../../client/plugin/context';
 import type { SimHost } from '@wildshard/engine/sim';
 import { canReach } from '@wildshard/engine/ai/reach';
-import { prepareDecisionMemories } from '@wildshard/engine/script/decisionModule';
-import { waitFor } from '@wildshard/engine/boot/waits';
 import { sayFightView } from '@wildshard/engine/sim/shardRows';
 import { BOSS_STRIKE } from '../../shared/shardfile/wirePrompts';
-import { decisionMemoryPreparationPages } from '@wildshard/format/scriptContract';
 import type { BorrowedSpeciesControl, SpeciesDecisionAuthority, SpeciesDecisionObservation } from '../plugin/brain';
 
 /** Existing world services and fixed-step registration, lent by the page/native owner.
@@ -57,15 +53,6 @@ export function nativeDecisionAuthority(source: Shardfile, assets: ReadonlyMap<s
   });
   nativeAuthorities.set(host, authority); return authority;
 }
-/** Prepare the product's unique stateful v1 sim module memories under its scope,
- * one per drawn frame. Repeated calls share one owner plan. Stateless return/spawn
- * guests use their existing reset paths and cannot consume this fresh-v1 pool. */
-export function prepareProductDecisionMemories(ctx: ShardContext): Promise<void> {
-  const descriptor = outputDescriptor(ctx.product.shardfile);
-  if (descriptor === undefined) return Promise.reject(new Error('Decision memories require a verified product'));
-  return waitFor('Prepare decision Wasm memories', prepareDecisionMemories(decisionMemoryPreparationPages(descriptor.sections), ctx.scope), 'wasm');
-}
-
 const finite = v.pipe(v.number(), v.finite());
 const savedControl = v.strictObject({ version: v.literal(1), actor: v.string(), phase: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(255)),
   fighting: v.boolean(), decision: v.string(), strike: v.unknown() });
