@@ -17,62 +17,6 @@ export const clientStateSave: { key: string; scope: "shard"; version: number; sc
   schema: v.nullable(ClientCheckpointSchema), initial: (): ClientCheckpoint | null => null };
 type Runtimes = DeclaredItems['runtimes'];
 
-/** Retry every home save owner; a logical continuation alone cannot confirm durable rewards or coins. */
-export function checkpointClientState(ports: { ledger: { flush: () => boolean }; purse: { flush: () => boolean } | null; encounters: () => boolean; continuation: () => boolean; canCheckpoint?: () => boolean }): boolean {
-  if (ports.canCheckpoint?.() === false) return false;
-  const profile = ports.ledger.flush(), coins = ports.purse?.flush() ?? true;
-  // Attempt all writes even after a refusal, retaining the latest local progress for the next retry.
-  const encounters = ports.encounters(), continuation = ports.continuation();
-  return profile && coins && encounters && continuation;
-}
-
-/** One owner for periodic, hidden and disposed checkpoints; successful reset suppresses every later stale write. */
-export function clientCheckpoint(ports: Parameters<typeof checkpointClientState>[0]): { checkpoint: () => boolean; suppress: () => void } {
-  let suppressed = false;
-  return { checkpoint: () => !suppressed && checkpointClientState(ports), suppress: () => { suppressed = true; } };
-}
-
-/** The periodic checkpoint's period: 30 s of 60 Hz fixed steps (G816; it was 5 s). */
-export const CHECKPOINT_TICKS = 1800;
-/** a player at rest moves less than this (metres, summed over the axes) between two periodic checkpoints */
-const STILL = 0.05;
-interface CadencePorts {
-  /** the periodic write is due only when the shard may checkpoint now (no portal transition) */
-  readonly blocked: () => boolean;
-  /** progress identity: equal marks mean nothing but the clock changed; undefined always writes */
-  readonly mark: () => string | undefined;
-  /** coins or a ledger fact not yet saved: written even while the player is idle */
-  readonly unsaved: () => boolean;
-  /** the input service's command count and the player's position */
-  readonly activity: () => number;
-  readonly position: () => { readonly x: number; readonly y: number; readonly z: number };
-  readonly write: () => boolean;
-}
-/**
- * G816 (Jake): the periodic checkpoint runs every 30 s and is skipped while the player is idle (no input command and
- * the same spot since the last checkpoint); a write whose progress mark matches the last periodic one is skipped too.
- * `now` is every other checkpoint (pagehide, hidden, dispose, a crossing): it always writes and resets both marks, so
- * at most 30 s of play is lost on a crash and an idle page writes nothing.
- */
-export function clientCheckpointCadence(ports: CadencePorts): { step: (tick: number) => void; now: () => boolean } {
-  let quiet: string | undefined, acted = ports.activity(), at = { ...ports.position() };
-  const rest = (): void => { const p = ports.position(); acted = ports.activity(); at = { x: p.x, y: p.y, z: p.z }; };
-  const idle = (): boolean => {
-    const p = ports.position();
-    return ports.activity() === acted && Math.abs(p.x - at.x) + Math.abs(p.y - at.y) + Math.abs(p.z - at.z) < STILL;
-  };
-  return {
-    step: (tick) => {
-      if (tick % CHECKPOINT_TICKS !== 0 || ports.blocked()) return;
-      if (!ports.unsaved() && idle()) return;
-      const mark = ports.mark();
-      if (mark !== undefined && mark === quiet) { rest(); return; }
-      quiet = ports.write() ? mark : undefined; rest();
-    },
-    now: () => { quiet = undefined; rest(); return ports.write(); },
-  };
-}
-
 function itemStates(items: Runtimes): v.InferOutput<typeof itemsSchema> {
   return v.parse(itemsSchema, Object.fromEntries([...items].map(([id, runtime]) => [id, runtime.snapshot()])));
 }
@@ -80,15 +24,6 @@ function restoreItems(items: Runtimes, input: unknown): void {
   const states = v.parse(itemsSchema, input);
   if (Object.keys(states).length !== items.size || [...items.keys()].some((id) => states[id] === undefined)) throw new Error('Item continuation identities changed');
   for (const [id, runtime] of items) { const state = states[id]; if (state === undefined) throw new Error('Missing item continuation'); runtime.restore(state); }
-}
-/** Include authoritative item queues in complete headless snapshots as well as the client's local checkpoint. */
-export function installClientItemState(sim: ShardfileSimulation, items: Runtimes, step: () => void): void {
-  sim.host.onStep('items.declared', step, { snapshot: () => JSON.stringify(itemStates(items)), restore: (value) => {
-    if (typeof value !== 'string') throw new Error('Invalid item continuation');
-    const before = itemStates(items);
-    try { const parsed: unknown = JSON.parse(value); restoreItems(items, parsed); }
-    catch (error) { restoreItems(items, before); throw error; }
-  } });
 }
 /** Snapshot only logical authored progress; regional whole-world snapshots remain owned by the grid sim registry. */
 export function captureClientState(source: Shardfile, sim: ShardfileSimulation, items: Runtimes): ClientCheckpoint {
@@ -98,12 +33,6 @@ export function captureClientState(source: Shardfile, sim: ShardfileSimulation, 
   const logical = sim.lane === undefined ? logicalStateFromLane(source.state.version, null) : logicalStateFromWorld(source.state.version, sim.lane.world);
   return v.parse(logicalCheckpoint, { version: 2, shard: source.identity.slug, state: migrateLogicalState(logical, source.state), revision: source.identity.revision, tick: sim.host.state.tick,
     lane, ...clientStateParts(source, sim, items) });
-}
-/** The non-lane continuation as text with every clock left out (an item's state carries the sim tick it last stepped at):
- * equal text means equal progress apart from the time. */
-export function clientStateMark(source: Shardfile, sim: ShardfileSimulation, items: Runtimes): string {
-  const states = Object.fromEntries([...items].map(([id, runtime]) => { const { tick: _tick, ...state } = runtime.snapshot(); return [id, state]; }));
-  return JSON.stringify({ ...clientStateParts(source, sim, items), items: states });
 }
 /** Every continuation field except the clock and the script lane (and the logical state read from that lane), unparsed:
  * the continuation's schema admits them. */

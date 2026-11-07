@@ -44,7 +44,6 @@ import { declaredProductCompendium, declaredDay, declaredWeather } from '../../s
 import { installDeclaredTargets } from '../shard/declaredTargets';
 import { mountDeclaredUi } from '../shard/declaredUi';
 import type { ClientScriptViewTarget } from "../plugin/ui";
-import { instanceSave } from '../../shared/instanceSaves';
 import { Ledger, type LedgerCatalogueItem } from '../../shared/ledger';
 import { EmptyEquipment } from './emptyEquipment';
 import type { ResidencyAllocator } from '../../shared/grid/allocator';
@@ -69,9 +68,7 @@ import { standaloneClientTiles } from './tileContent';
 import { tileRing } from './tileDriver';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import { clientSimStep } from './clientStep';
-import { clientScene, projectItemFields, handledItemInputs } from './clientItems';
-import { captureClientState, restoreClientState, installClientItemState, clientStateSave, clientCheckpoint } from '../../shared/shardfile/clientState';
-import { portalTransitioning } from '../../shared/shardfile/portalTraversal';
+import { clientScene, handledItemInputs } from './clientItems';
 import { installShardfileColliders } from '../../shared/shardfile/collisionBindings';
 import type { ClientAssets } from './clientAssets';
 import { installDeclaredItems, type DeclaredItems } from '../../shared/shardfile/items';
@@ -122,8 +119,8 @@ export interface ShardfileClientBindings {
   audioProfiles?: (play: ShardPlayHost, product: { source: Shardfile['audio']; read: ((path: string) => Promise<ArrayBuffer>) | undefined }) => DeclaredAudioPorts['profiles'];
   /** Announced during construction only when this data client will create a simulation; empty trusted transitions never announce a handoff. */
   onSimulationExpected?: () => void;
-  /** Production handoff after restoration; checkpoint confirms ledger, coins, encounters and continuation writes. The existing Game driver remains the home tick owner. */
-  onSimulation?: (binding: { source: Shardfile; simulation: ShardfileSimulation; items: ReadonlyMap<string, ItemRuntime>; scope: ShardContext['scope']; checkpoint: () => boolean; suppressCheckpoint: () => void; setActive: (active: boolean) => void; residency?: HomeResidencyClaim }) => void;
+  /** Production handoff to a grid home; the server keeps its saves, so `checkpoint` says only that this page still stands. */
+  onSimulation?: (binding: { source: Shardfile; simulation: ShardfileSimulation; items: ReadonlyMap<string, ItemRuntime>; scope: ShardContext['scope']; checkpoint: () => boolean; setActive: (active: boolean) => void; residency?: HomeResidencyClaim }) => void;
 }
 
 /** G348: the far proxy's and near placeholder's files (and what they depend on): the grid's presentation of the shard,
@@ -415,7 +412,7 @@ export class ShardfileClient {
     } });
     const lootRow = source.rows.loot[0];
     if (lootRow !== undefined && 'gear' in lootRow && lootPresentation === null) throw new Error('Missing loot presentation module');
-    const loot = lootRow === undefined || !('gear' in lootRow) || lootPresentation === null ? null : lootPresentation.installLoot({ ctx, manifest: ctx.manifest, owned: play.owned, scene: world.game.scene,
+    if (lootRow !== undefined && 'gear' in lootRow && lootPresentation !== null) lootPresentation.installLoot({ ctx, manifest: ctx.manifest, owned: play.owned, scene: world.game.scene,
       player: world.player, camera: world.game.camera, animals: () => play.animals.animals, menu: play.menu, presentation: lootPresentation.enteredLootPresentation(ctx,lootRow.id),
     });
     if (source.rows.compendiums.length > 0) {
@@ -528,20 +525,8 @@ export class ShardfileClient {
       driveClientScriptViews(views, { system: ctx.system, id: 'game.shardfile.client-script-views' });
       ctx.debug.expose('shardfileClientScripts', { views: () => views.state(), frames: () => scripts.lane.frames() });
     }
-    installClientItemState(sim, items.runtimes, () => {
-      items.step(sim.host.state.tick, 1 / 60);
-      const lane = sim.lane, player = sim.actors.get(health.id);
-      if (lane !== undefined && player !== undefined) projectItemFields(source, items.runtimes, lane, player);
-    });
     yield;
-    const continuation = instanceSave(ctx.app.saves, clientStateSave, { id: identity.instance, shard: identity.shard });
-    const prior = continuation.read();
-    if (prior !== null && !restoreClientState(source, sim, items.runtimes, prior)) throw new Error('Saved progress requires an admitted checkpoint migration');
-    const saver = clientCheckpoint({ ledger, purse: loot?.purse ?? null,
-      canCheckpoint: () => !portalTransitioning(world.physics),
-      encounters: () => true, continuation: () => continuation.write(captureClientState(source, sim, items.runtimes)),
-    });
-    // The server's session keeps this world's saves, and runs its scenes: a press goes by the prompt's `wireId`.
+    // The server keeps this world's saves and reads a page's old ones, and it runs its scenes: a press goes by the prompt's `wireId`.
     const scene = clientScene(source, items.runtimes, () => undefined);
 
     if (source.plumbing !== null && source.plumbing.input.length + source.plumbing.debug.length > 0) {
@@ -610,7 +595,7 @@ export class ShardfileClient {
     });
     this.bindings.onSimulation?.({ source, simulation: sim, items: items.runtimes, scope: ctx.scope,
       ...(this.bindings.residency === undefined ? {} : { residency: this.bindings.residency.home() }),
-      checkpoint: () => !ctx.scope.disposed, suppressCheckpoint: saver.suppress, setActive: (active) => { simulationActive = active && !ctx.scope.disposed; },
+      checkpoint: () => !ctx.scope.disposed, setActive: (active) => { simulationActive = active && !ctx.scope.disposed; },
     });
   }
 }

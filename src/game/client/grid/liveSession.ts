@@ -333,7 +333,6 @@ export class LiveGridSession {
     scope.onDispose(gridHomeSim.take((sim) => {
       if (sim.residency !== ports.residency) throw new Error('Home simulation handoff must retain its admitted page claim');
       this.homeSim = sim; sim.setActive(this.live.current() === home.instance);
-      if (this.checkpointsSuppressed) sim.suppressCheckpoint?.();
     }));
     scope.onDispose(() => { this.homeSim?.setActive(true); this.homeSim = null; });
     page.onFixedPre(() => {
@@ -421,7 +420,6 @@ export class LiveGridSession {
   bindWire(wire: LiveGridWire): void {
     this.wire = wire; this.checkpointsSuppressed = true; this.autosave?.return(false); this.autosave = null;
     this.live.followServer();
-    this.homeSim?.suppressCheckpoint?.();
     this.ports.scope.onDispose(() => { this.wire = null; });
   }
 
@@ -527,7 +525,6 @@ export class LiveGridSession {
     if (!gridRecovery(this.page.saves).write(this.ports.assembly, this.ports.home, this.recoveryRoad(), reason)) return false;
     // The intent names exactly this checkpoint; a later pagehide/timer must not replace its location or continuation.
     this.checkpointsSuppressed = true; this.autosave?.return(false); this.autosave = null;
-    this.homeSim?.suppressCheckpoint?.();
     return true;
   }
 
@@ -541,7 +538,6 @@ export class LiveGridSession {
     if (!recovery.prepareReset(this.ports.assembly, home, road, target ?? { id: home.instance, shard: home.slug })) throw new Error('New game recovery road is not durable');
     return () => {
       this.checkpointsSuppressed = true; this.autosave?.return(false); this.autosave = null;
-      this.homeSim?.suppressCheckpoint?.();
       recovery.completeReset(this.ports.assembly);
     };
   }

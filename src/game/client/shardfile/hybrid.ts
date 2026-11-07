@@ -326,7 +326,7 @@ export async function prepareHybridShard(product: ShardProduct, options: Product
   // in a grid page the restored home simulation goes to the live grid owner (its freeze fence gates the existing driver)
   const onSimulation: ShardfileClientBindings['onSimulation'] = gridInstance === null ? clientBindings.onSimulation : (binding) => {
     clientBindings.onSimulation?.(binding);
-    gridHomeSim.offer({ setActive: binding.setActive, checkpoint: binding.checkpoint, suppressCheckpoint: binding.suppressCheckpoint, disposed: () => binding.scope.disposed,
+    gridHomeSim.offer({ setActive: binding.setActive, checkpoint: binding.checkpoint, disposed: () => binding.scope.disposed,
       ...(binding.residency === undefined ? {} : { residency: binding.residency }),
     });
   };
