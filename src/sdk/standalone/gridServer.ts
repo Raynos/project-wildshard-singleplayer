@@ -29,7 +29,7 @@ import type { SaveStore } from '@wildshard/engine/saves/store';
 import type { Transport } from '@wildshard/engine/net/transport';
 import { GridAssembly, type GridCell, type GridPoint } from '@wildshard/game/grid/assembly';
 import type { GridCollisionStrip } from '@wildshard/game/grid/gridCollision';
-import { importPageProgress } from '@wildshard/game/grid/durability';
+import { carryRefusedSave, importPageProgress } from '@wildshard/game/grid/durability';
 import { heldArmsOf } from '@wildshard/game/weapons/nativeHeld';
 import { gridRecovery } from '@wildshard/game/grid/recovery';
 import { regionalRuntimeCheckpoint } from '@wildshard/game/grid/runtimeCheckpoint';
@@ -78,8 +78,8 @@ const ROAD: SimLevel = { version: SIM_API_VERSION, id: 'grid-road', seed: 1, gro
 
 /** One world the worker has open: its host, and how it takes a tick and reports what the tick granted. */
 interface CellWorld extends GridResident {
-  /** Take over a page's progress in this cell, in a world made fresh for it. False keeps the fresh world. */
-  readonly adopt: () => boolean;
+  /** Take over a page's progress in this cell, or what a save this build refused still says, in a world made fresh for it. False keeps the fresh world. */
+  readonly adopt: (refused: SimSnapshot | undefined) => boolean;
   readonly effects: () => readonly HeadlessEffect[];
   readonly step: (inputs: readonly NetTickInput[]) => void;
   readonly fact: (name: string, entity: string) => { readonly id: string; readonly status: 'granted' | 'duplicate' | 'pending' } | null;
@@ -166,6 +166,9 @@ function sessionPlayer(host: SimHost): PlayerSim {
   return player;
 }
 
+/** A saved world, if its bytes still read at all. */
+function readableSnapshot(snapshot: string): SimSnapshot | undefined { try { return decodeSimSnapshot(snapshot); } catch { return undefined; } }
+
 /** A world's continuation. The solids held near its player are out of it while it is taken: they are in no save. */
 function capture(host: SimHost): string {
   const { near } = host.physics, { position } = sessionPlayer(host);
@@ -243,18 +246,21 @@ export class StandaloneGrid {
     const open = async (cell: GridCell, cached: SimSnapshot | undefined): Promise<CellWorld> => {
       const source = await input(cell);
       if (cached !== undefined) return StandaloneGrid.world(cell, source, cached, options);
-      const held = slots(cell.instance);
-      for (const row of held.candidates()) {
+      const held = slots(cell.instance), rows = held.candidates();
+      for (const row of rows) {
         try { const world = await StandaloneGrid.world(cell, source, row.saved.snapshot, options); held.restored(row); resumed = row.saved; return world; }
         catch (error) { held.setAside(row); options.refused?.(error); }
       }
-      const world = await StandaloneGrid.world(cell, source, undefined, options);
-      try { if (!world.adopt()) options.refused?.(new Error(`A page's progress in ${cell.instance} would not restore`)); }
+      // A later build can refuse a whole world over one thing it changed. The player's progress is still in there, and goes on from a fresh world.
+      const refused = rows.map(row => ({ row, saved: readableSnapshot(row.saved.snapshot) })).find(row => row.saved !== undefined);
+      const world = await StandaloneGrid.world(cell, source, undefined, options, refused?.saved);
+      try { if (!world.adopt(refused?.saved)) options.refused?.(new Error(`Saved progress in ${cell.instance} would not restore`)); }
       catch (error) { options.refused?.(error); }
+      resumed = refused?.row.saved;
       return world;
     };
     const strips = options.lone === true ? [] : await options.strips();
-    const road = StandaloneGrid.road(rapier, assembly.cells, strips, site === null ? candidate?.saved.road : undefined, arrival);
+    const road = StandaloneGrid.road(rapier, assembly.cells, strips, site === null ? candidate?.saved.road : undefined, arrival, options.refused);
     const grid: GridSimulation = new GridSimulation(assembly, { highway: { host: road, dispose: () => { road.dispose(); } }, maxResidents: options.residents ?? STANDALONE_RESIDENTS,
       load: async (cell, cached) => {
         const world = await open(cell, cached);
@@ -276,22 +282,24 @@ export class StandaloneGrid {
     return server;
   }
 
-  private static road(rapier: Rapier, cells: readonly GridCell[], strips: readonly GridCollisionStrip[], saved: string | undefined, arrival: Readonly<GridPoint> | undefined): SimHost {
+  private static road(rapier: Rapier, cells: readonly GridCell[], strips: readonly GridCollisionStrip[], saved: string | undefined, arrival: Readonly<GridPoint> | undefined, refused: GridServerOptions['refused']): SimHost {
     if (saved !== undefined) {
-      const restored = restoreSimHost(ROAD, { rapier }, decodeSimSnapshot(saved));
-      holdStrips(restored, strips.map(strip => strip.mesh));
-      return restored;
+      try {
+        const restored = restoreSimHost(ROAD, { rapier }, decodeSimSnapshot(saved));
+        holdStrips(restored, strips.map(strip => strip.mesh));
+        return restored;
+      } catch (error) { refused?.(error); } // a road holds no progress but where the player stood
     }
-    const road = createSimHost(ROAD, { rapier });
+    const road = createSimHost(ROAD, { rapier }), [x, y, z] = readableSnapshot(saved ?? '')?.players[0]?.position ?? [], stood = arrival ?? (x === undefined || y === undefined || z === undefined ? undefined : { x, y, z });
     addCellWalls(road, cells);
     holdStrips(road, strips.map(strip => strip.mesh));
     const player = sessionPlayer(road);
-    if (arrival !== undefined) { player.position.set(arrival.x, Math.max(arrival.y, ROAD_SKIN), arrival.z); player.motor.resetAt(player.position); }
+    if (stood !== undefined) { player.position.set(stood.x, Math.max(stood.y, ROAD_SKIN), stood.z); player.motor.resetAt(player.position); }
     road.physics.near?.update(player.position.x, player.position.z);
     return road;
   }
 
-  private static async world(cell: GridCell, input: HeadlessRuntimeInput, snapshot: string | SimSnapshot | undefined, options: GridServerOptions): Promise<CellWorld> {
+  private static async world(cell: GridCell, input: HeadlessRuntimeInput, snapshot: string | SimSnapshot | undefined, options: GridServerOptions, refused?: SimSnapshot): Promise<CellWorld> {
     const declared = new Set(input.shard.ledger.map(row => row.fact)), placed = { id: cell.instance, shard: input.shard.identity.slug };
     const ledger = createQuestLedger(options.saves, input.shard, cell.instance), fact: CellWorld['fact'] = (name, entity) => declared.has(name) ? ledger(name, entity) : null;
     if (nativeCell(input)) {
@@ -299,7 +307,7 @@ export class StandaloneGrid {
       const near = input.product !== undefined && hasNativeAssembly(input.product) ? new NearColliders() : undefined, around = near === undefined ? { room: true } : { room: true, near };
       if (near !== undefined && snapshot !== undefined) (await createTrustedHeadlessResident(input, undefined, around)).dispose();
       // A world with no save of its own takes the page's: the flags and records its fights read as they install.
-      const page = snapshot === undefined ? { flags: [...new Set([input.shard.identity.slug, cell.instance])].flatMap(level => pageSavedFlags(level)), state: pageRuntimeState(options.saves, cell.instance) } : undefined;
+      const page = snapshot === undefined ? { flags: [...new Set([...[input.shard.identity.slug, cell.instance].flatMap(level => pageSavedFlags(level)), ...refused?.flags ?? []])], state: pageRuntimeState(options.saves, cell.instance) } : undefined;
       const resident = await createTrustedHeadlessResident(input, snapshot, page === undefined ? around : { ...around, page }), { host } = resident;
       bindDiscovery(host, input.product === undefined ? [] : await serverPlaces(input.product)); await installServerChapters(host, input.product, input.shard, resident.fact); await installServerDoors(host, input.product, snapshot === undefined ? pageOpenDoors(options.saves, placed) : undefined);
       if (snapshot === undefined && options.lone === true) addLoneWalls(host);
@@ -317,7 +325,7 @@ export class StandaloneGrid {
     installDeclaredClimate(host, input.shard.rows);
     bindDiscovery(host, input.product === undefined ? [] : await serverPlaces(input.product));
     host.respawn.served = true; actRoutes(host).introLocks = true;
-    return { host, owned: ownedOf(host, input), fall: fallFloorOf(input, host, options.lone === true), dispose, fact, effects: () => effects, adopt: () => { const held = sim(); return held === undefined || importPageProgress(options.saves, placed, input.shard, held); }, step: inputs => {
+    return { host, owned: ownedOf(host, input), fall: fallFloorOf(input, host, options.lone === true), dispose, fact, effects: () => effects, adopt: saved => { const held = sim(); return held === undefined || (saved === undefined ? importPageProgress(options.saves, placed, input.shard, held) : carryRefusedSave(input.shard, held, saved)); }, step: inputs => {
       effects.length = 0;
       // A data shard's prompts answer whoever stands at them; an id they don't offer that player is dropped, since an input may not end the server.
       const routes = actRoutes(host);

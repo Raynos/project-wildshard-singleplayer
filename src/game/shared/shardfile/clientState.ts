@@ -86,7 +86,7 @@ function apply(source: Shardfile, sim: ShardfileSimulation, items: Runtimes, sta
   if (state.lane !== null) sim.lane?.restore(state.lane);
   sim.movers?.resetPublishedPoses(); sim.host.state.tick = state.tick; sim.decisions?.continueAt(state.tick);
 }
-function applyMigrated(source: Shardfile, sim: ShardfileSimulation, items: Runtimes, state: ClientCheckpoint): void {
+function applyMigrated(source: Shardfile, sim: ShardfileSimulation, items: Runtimes, state: ClientCheckpoint, exact: boolean): void {
   // All historical version-1 client checkpoints predate authored state-version migrations and used state version 1.
   const logical = state.version === 2 ? state.state : logicalStateFromLane(1, state.lane);
   const migrated = migrateLogicalState(logical, source.state, source.migrations);
@@ -109,21 +109,25 @@ function applyMigrated(source: Shardfile, sim: ShardfileSimulation, items: Runti
     const saved = state.dialogue[row.id];
     if (saved === null || (saved !== undefined && row.nodes.some((node) => node.id === saved))) dialogue[row.id] = saved;
   }
-  sim.quest.restore(dialogue); restoreBuiltins(sim, state, state.revision === source.identity.revision); sim.host.state.tick = state.tick;
+  sim.quest.restore(dialogue); restoreBuiltins(sim, state, exact); sim.host.state.tick = state.tick;
   sim.decisions?.continueAt(state.tick); // fresh sim decisions follow the restored clock (not portable progress)
 }
-/** Refuse incompatible/corrupt progress atomically. Silent quest restore never repeats profile rewards or scene events. */
+/**
+ * Refuse incompatible/corrupt progress atomically. Silent quest restore never repeats profile rewards or scene events.
+ * An exact lane is one build's: its contract holds the compiled modules, so a rebuild refuses it, and a server has no page's items to match its
+ * rows against. Neither is the player's progress, which the logical state carries.
+ */
 export function restoreClientState(source: Shardfile, sim: ShardfileSimulation, items: Runtimes, input: unknown): boolean {
   const result = v.safeParse(ClientCheckpointSchema, input); if (!result.success || result.output.revision > source.identity.revision
     || !v.safeParse(v.literal(source.identity.slug), sim.host.level.id).success
     || (result.output.version === 2 && !v.safeParse(v.literal(source.identity.slug), result.output.shard).success)
     || (source.entryways.some(entry => entry.kind === 'socketLift') && (sim.lane?.host.currentTick ?? -1) >= 0)) return false;
-  const previous = captureClientState(source, sim, items);
-  try {
-    if (result.output.revision === source.identity.revision && !(result.output.version === 2 && result.output.lane === null)) apply(source, sim, items, result.output);
-    else applyMigrated(source, sim, items, result.output);
-    restoreLiftRider(source, sim, result.output.liftRider ?? null);
-    return true;
+  const previous = captureClientState(source, sim, items), saved = result.output, sameRevision = saved.revision === source.identity.revision;
+  const tries = sameRevision && !(saved.version === 2 && saved.lane === null)
+    ? [() => { apply(source, sim, items, saved); }, () => { applyMigrated(source, sim, items, saved, false); }] : [() => { applyMigrated(source, sim, items, saved, sameRevision); }];
+  for (const attempt of tries) {
+    try { attempt(); restoreLiftRider(source, sim, saved.liftRider ?? null); return true; }
+    catch { apply(source, sim, items, previous); }
   }
-  catch { apply(source, sim, items, previous); return false; }
+  return false;
 }

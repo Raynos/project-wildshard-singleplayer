@@ -40,6 +40,16 @@ export function importPageProgress(store: SaveStore, placement: LocalSaveInstanc
   return logical === null || restoreClientState(source, sim, new Map(), logical);
 }
 
+/**
+ * What a server's own save still says on a build that won't restore it exactly: a data cell's logical progress, or at the least its flags.
+ * Which revision wrote it isn't in the save, so it counts as an older one: declared fields match by id, and the rest stay at their defaults.
+ */
+export function carryRefusedSave(source: Shardfile, sim: ShardfileSimulation, saved: Omit<SimSnapshot, 'physics'>): boolean {
+  try { if (restoreClientState(source, sim, new Map(), clientStateFromRegion(source, saved, 0))) return true; } catch { /* its script state is past reading: the flags aren't */ }
+  sim.host.flags.restore(saved.flags);
+  return false;
+}
+
 /** Durable local continuation and rewards for one stable placement; coordinates never enter a save key. */
 export class GridRegionDurability {
   readonly wallet: GridWallet;
