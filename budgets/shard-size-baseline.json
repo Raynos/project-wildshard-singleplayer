@@ -212,7 +212,7 @@
   "far-reach": {
    "baselinePhoneBytes": 49888072,
    "recordedPhoneBytes": 53585115,
-   "ceilingPhoneBytes": 53585115,
+   "ceilingPhoneBytes": 39236814,
    "shrinkOnly": true,
    "baseline": {
     "phone": {
@@ -283,7 +283,8 @@
     "head": "66eacdbb4a7c306d36e58396004e9bdb92230fe51d7a518b995cd3dd59973f51",
     "bytes": 66691072,
     "mountsAssetsBytes": 29602062
-   }
+   },
+   "latchedPhoneBytes": 39236814
   },
   "sunscar-dunes": {
    "baselinePhoneBytes": 12421514,

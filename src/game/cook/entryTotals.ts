@@ -239,7 +239,10 @@ export async function writeSpawnManifests(outDir: string, input: unknown,
       if (extra !== undefined) {
         const inventory = bytesFor(extra[0]);
         if (inventory.length !== extra[1] || createHash('sha256').update(inventory).digest('hex') !== extra[3]) throw new Error('Spawn public inventory differs');
-        for (const [url, bytes] of v.parse(files, JSON.parse(new TextDecoder().decode(inventory)))) add(asset(url, bytes));
+        // S4 on Sky: this inventory names a page's image sources on every tier. A phone with an overlay reads the 6×6 file in
+        // their place, and one with no ASTC reads them loose, so they stay off the phone's list.
+        const overlay = tier === 'phone' ? phoneOverlay(root, directory) : {};
+        for (const [url, bytes] of v.parse(files, JSON.parse(new TextDecoder().decode(inventory)))) if (!Object.hasOwn(overlay, url.split('?')[0] ?? url)) add(asset(url, bytes));
       }
       // Required code can resolve while bulk content downloads. Keep each
       // partition's original order, every row and the full download barrier.

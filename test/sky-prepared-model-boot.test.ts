@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify public inputs and the original physics declaration.
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the public pack inputs before product publication.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
@@ -69,7 +69,9 @@ test('public boot omits all owned geometry files across both tiers and texture p
 
 test('receipt-owned GPU discovery registers the admitted rig table for both tiers', async () => {
   const blobs = [...originalSkyRigs()].map(([name, bytes]) => nameBlob(`world/rigs/${name}`, 'glb', bytes));
-  const expected = skyRigAssetSources(blobs.map(blob => blob.file), GPU_FILES), boot = skyProductBoot(expected);
+  // S4 on Sky: the phone table the page registers carries the ASTC 6×6 overlay.
+  const astc: Record<string, string> = JSON.parse(readFileSync('src/shards/far-reach/data/astc6.generated.json', 'utf8')) as Record<string, string>;
+  const expected = skyRigAssetSources(blobs.map(blob => blob.file), { phone: { ...GPU_FILES.phone, ...astc }, desktop: GPU_FILES.desktop }), boot = skyProductBoot(expected);
   expect(boot.ktx2).toEqual(expected.gpuFiles);
   expect(parseDiscoveryValues(boot).ktx2).toEqual(expected.gpuFiles);
   if (MANIFEST.ktx2 === undefined) throw new Error('Missing native GPU callback');
