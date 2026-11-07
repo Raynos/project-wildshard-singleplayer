@@ -30,7 +30,7 @@ test('a page on a shard that reads a key still takes it over, and a file for ano
   installSaveEnvironment({ storage: () => null, persistent: () => true, persist: () => Promise.resolve(true) });
   const local = new Local(), store = new SaveStore({ local, session: local });
   definePageSaveKeys(store);
-  const doors = { 'platform.buildings': { v: 1, data: { cabins: { doors: [] } } }, 'platform.runtime-state': { v: 1, data: null } };
+  const doors = { 'platform.buildings': { v: 1, data: { cabins: { doors: [] } } }, 'platform.grid-position': { v: 1, data: null }, 'platform.runtime-state': { v: 1, data: null } };
   const before = store.importAll(JSON.stringify({ format: 'wildshard', version: 2, build: 'old', exported: 'then', docs: { 'pine-hollow': { keys: doors } } }));
   expect(before.skipped).toEqual([]);
   expect(() => { store.define(buildingSave); }).not.toThrow();

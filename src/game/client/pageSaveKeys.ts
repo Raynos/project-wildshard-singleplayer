@@ -6,7 +6,7 @@ import type { SaveKeyDef, SaveStore } from '@wildshard/engine/saves/store';
  * defined, and a key it doesn't know is left out of the import. A file holds every shard, so a Driftwood page meets Pine's doors. Every page
  * stubs these, whichever shard it's on, and leaves their shape to whatever reads them: a server, or a page on the shard that does.
  */
-const FILE_KEYS: readonly SaveKeyDef<unknown>[] = ['platform.buildings', 'platform.continuation', 'platform.encounters', 'platform.region', 'platform.runtime-logical', 'platform.runtime-state']
+const FILE_KEYS: readonly SaveKeyDef<unknown>[] = ['platform.buildings', 'platform.continuation', 'platform.encounters', 'platform.grid-position', 'platform.region', 'platform.runtime-logical', 'platform.runtime-state']
   .map(key => ({ key, scope: 'shard', version: 1, schema: v.unknown(), initial: (): unknown => null, stub: true }));
 
 /** Before a player can reach Settings. */
