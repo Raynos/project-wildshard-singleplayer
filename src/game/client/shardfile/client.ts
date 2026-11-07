@@ -72,7 +72,7 @@ import { clientSimStep } from './clientStep';
 import { clientScene, projectItemFields, handledItemInputs } from './clientItems';
 import { captureClientState, restoreClientState, installClientItemState, clientStateSave, clientCheckpoint } from '../../shared/shardfile/clientState';
 import { portalTransitioning } from '../../shared/shardfile/portalTraversal';
-import { syncTargetColliders } from '../../shared/shardfile/targets';
+import { installShardfileColliders } from '../../shared/shardfile/collisionBindings';
 import type { ClientAssets } from './clientAssets';
 import { installDeclaredItems, type DeclaredItems } from '../../shared/shardfile/items';
 import { runtimeBoundWorldFiles, withoutRuntimeRows } from "../../shared/plugin/runtimeRows";
@@ -279,7 +279,7 @@ export class ShardfileClient {
     const collider = nativeWorld && this.source.terrain !== null ? await this.assets.read(this.source.terrain.collider) : undefined;
     // On the wire this page predicts on the ground the server walks: the shard's collider, sample for sample. A page sampled at its own
     // lattice stands centimetres off it on a dune, and every step corrects.
-    if (this.source.terrain !== null && retireTerrain(world.physics)) addBakedTerrainCollider(world.physics, collider ?? await this.assets.read(this.source.terrain.collider), ctx.scope);
+    if (this.source.terrain !== null && (retireTerrain(world.physics) || this.mode === 'full')) addBakedTerrainCollider(world.physics, collider ?? await this.assets.read(this.source.terrain.collider), ctx.scope);
     const views = clientViews({ root: ctx.root, terrain: this.source.terrain?.family ?? null, terrainShadow: this.source.terrain?.shadow, terrainOrder: this.source.terrain?.order, ...presentation, ...(collider === undefined ? {} : { lattice: decodeTerrainTile(collider) }) });
     this.worldTiles = await standaloneClientTiles({ source: this.source, assets: this.assets, root: ctx.root, views: views.tiles }, ctx.scope, {
         instance: this.bindings.instance, budget: allocator, radius: tileRing, start,
@@ -456,7 +456,9 @@ export class ShardfileClient {
     const ladderCommand = { x: 0, z: 0, release: true };
     // This page's flags are the server's, followed by `wirePage`: nothing here saves them.
     const flags = new Flags(source.identity.slug, false);
-    const sim = pageSim.createShardfileSim(source, this.assets.retained, { sections: outputDescriptor(source)?.sections, rapier: world.physics.R, physics: world.physics,
+    // A prop's colliders are world data: the page predicts against them, and the server holds its own.
+    const colliders = installShardfileColliders(source, this.assets.retained, () => world.physics, ctx.scope);
+    const sim = pageSim.createShardfileSim(source, this.assets.retained, { sections: outputDescriptor(source)?.sections, rapier: world.physics.R, physics: world.physics, colliders,
       creatureImpulse: velocity => { world.player.impulse(velocity); },
       ...(this.bindings.brains === undefined ? {} : { brains: this.bindings.brains }),
       ...(this.bindings.groups === undefined ? {} : { groups: this.bindings.groups }),
@@ -535,9 +537,8 @@ export class ShardfileClient {
     const continuation = instanceSave(ctx.app.saves, clientStateSave, { id: identity.instance, shard: identity.shard });
     const prior = continuation.read();
     if (prior !== null && !restoreClientState(source, sim, items.runtimes, prior)) throw new Error('Saved progress requires an admitted checkpoint migration');
-    syncTargetColliders(source.targets, sim.colliders, read);
     const saver = clientCheckpoint({ ledger, purse: loot?.purse ?? null,
-      canCheckpoint: () => !portalTransitioning(sim.host.physics),
+      canCheckpoint: () => !portalTransitioning(world.physics),
       encounters: () => true, continuation: () => continuation.write(captureClientState(source, sim, items.runtimes)),
     });
     // The server's session keeps this world's saves, and runs its scenes: a press goes by the prompt's `wireId`.
@@ -550,7 +551,7 @@ export class ShardfileClient {
       });
       if (source.plumbing.input.some(row => row.when !== undefined)) ctx.system({ id: 'declared.input.conditions', phase: 'input', before: ['engine.input.contexts'], run: plumbing.update });
     }
-    installDeclaredTargets(source.targets, { panels: tiles.props?.panels ?? new Map(), colliders: sim.colliders, read, scene, interactables: runtime.interactables, scope: ctx.scope, system: ctx.system });
+    installDeclaredTargets(source.targets, { panels: tiles.props?.panels ?? new Map(), colliders, read, scene, interactables: runtime.interactables, scope: ctx.scope, system: ctx.system });
     for (const declaration of source.quests.quests) {
       const quest = new QuestState(declaration, flags, ctx.app.events, ctx.scope);
       const options = declaration.track === false ? { chip: () => ({ label: '', count: '' }) } : {};
@@ -562,9 +563,9 @@ export class ShardfileClient {
     runtime.hooks.questFlags = () => flags.all; runtime.hooks.adventureFlags = () => flags.all;
     // An admitted scene installs its own declared profiles once in the play phase.
     if (this.bindings.audioOwner !== 'runtime' && !this.plan?.features.some(row => row.kind === 'audio.scene')) installDeclaredAudio(source.audio, { audio: play.audio, cues: play.cues, voices: this.bindings.voices(play.audio), music: play.music, scope: ctx.scope, profiles: this.bindings.audioProfiles?.(play, { source: source.audio, read: this.assets.audioRead() }) });
-    ctx.debug.expose('shardfile', { source, host: sim.host, lane: sim.lane, items: items.runtimes, colliders: sim.colliders, fine: tiles.fine, weather,
+    ctx.debug.expose('shardfile', { source, host: sim.host, lane: sim.lane, items: items.runtimes, colliders, fine: tiles.fine, weather,
       // What a panel's field has drawn here: its look, and whether it stands in this page's world.
-      targets: () => source.targets.panels.map(row => ({ panel: row.panel, visible: tiles.props?.panels.get(row.panel)?.visible ?? false, solid: row.colliders.every(id => sim.colliders.get(id)?.active() ?? false) })),
+      targets: () => source.targets.panels.map(row => ({ panel: row.panel, visible: tiles.props?.panels.get(row.panel)?.visible ?? false, solid: row.colliders.every(id => colliders.get(id)?.active() ?? false) })),
       // Read actual live views; an authored spawn or a detached model alone cannot satisfy the author view proof.
       equipmentEvidence: () => {
         const equipment = ctx.app.equipment;

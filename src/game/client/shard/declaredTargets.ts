@@ -3,6 +3,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { SystemSpec } from '@wildshard/engine/app/systems';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { ShardTargets } from '@wildshard/format/targets';
+import { syncTargetColliders } from '../../shared/shardfile/targets';
 
 /** Bind admitted targets to existing panels, physics active-state ports and the session's interaction list. */
 export function installDeclaredTargets(data: ShardTargets, ports: {
@@ -20,6 +21,8 @@ export function installDeclaredTargets(data: ShardTargets, ports: {
       const matched = ports.read(row.scope, row.fieldId) === row.equals;
       panel.visible = matched === row.visibleWhenMatched;
     }
+    // What the server opened stands open here too, or a walk through it corrects.
+    syncTargetColliders(data, ports.colliders, ports.read);
   };
   sync();
   if (bindings.length > 0) ports.system({ id: 'game.shardfile.targets', phase: 'fixed.post', after: ['game.shardfile.sim'], run: sync });
