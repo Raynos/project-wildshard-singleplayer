@@ -996,6 +996,7 @@
   "src/game/client/grid/refusal.ts": "client",
   "src/game/client/grid/regionalBuildCheckpoint.ts": "client",
   "src/game/client/grid/regionalInputs.ts": "client",
+  "src/game/client/grid/regionShell.ts": "client",
   "src/game/client/grid/regionalRuntime.ts": "client",
   "src/game/client/grid/regionalView.ts": "client",
   "src/game/client/grid/regionalWorld.ts": "client",

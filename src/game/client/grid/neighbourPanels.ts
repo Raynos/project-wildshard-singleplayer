@@ -10,16 +10,15 @@
  */
 import type { Group, Object3D } from 'three';
 import type { ClientTileViews } from '../shardfile/clientViews';
-import type { ShardfileSimulation } from '../../server/plugin/simulation';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { GridCell } from '../../shared/grid/assembly';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
-/** What the panels read from the session: a cell's admitted region (absent until the live host admits it). */
+/** What the panels read of a cell the live host has admitted: the solids of its world, and a field's row where this page has one. */
+export interface PanelRegion { readonly colliders: ReadonlyMap<string, { readonly setActive: (active: boolean) => void }>; readonly field: (name: string) => number | undefined }
 /** The page scope the panels live and die with (the views' own scope type). */
 type PageScope = Parameters<ClientTileViews['panels']>[3];
 export interface NeighbourPanelPorts {
-  readonly scope: PageScope; readonly simulation: (instance: string) => ShardfileSimulation | undefined;
+  readonly scope: PageScope; readonly region: (instance: string) => PanelRegion | undefined;
   /** the page's warm-up for a newly drawn root (the session's `prepareView`): compiled before the panel first draws */
   readonly prepare?: (root: Object3D, current: () => boolean) => Promise<void>;
 }
@@ -32,18 +31,10 @@ function numeric(value: boolean | number | string | undefined): number {
   return typeof value === 'boolean' ? Number(value) : typeof value === 'number' ? value : Number.NaN;
 }
 
-/**
- * Whether a target row's condition holds now: through its first collider's state when the region is admitted (that
- * collider is active exactly when `matched === activeWhenMatched`), else through the field (live, or its default).
- */
-export function targetMatched(row: TargetRow, fallback: number, region: ShardfileSimulation | undefined, source: Shardfile): boolean {
-  if (region !== undefined) {
-    const id = row.colliders[0], port = id === undefined ? undefined : region.colliders.get(id);
-    if (port !== undefined) return port.active() === row.activeWhenMatched;
-    const field = source.state[row.scope].find((f) => f.id === row.fieldId), lane = region.lane;
-    if (field !== undefined && lane !== undefined) return (lane.world.viewField(leadPlayer(region.host).id, row.scope, field.name) ?? fallback) === row.equals;
-  }
-  return fallback === row.equals;
+/** Whether a target row's condition holds now: through the field's row where the page has one, else its default. */
+export function targetMatched(row: TargetRow, fallback: number, region: PanelRegion | undefined, source: Shardfile): boolean {
+  const field = source.state[row.scope].find((f) => f.id === row.fieldId);
+  return ((field === undefined ? undefined : region?.field(field.name)) ?? fallback) === row.equals;
 }
 
 /** The page's neighbour panels: one set per shardfile neighbour whose targets show or hide a panel; disposed with the scope. */
@@ -83,7 +74,11 @@ export class NeighbourPanels {
   }
 
   private sync(cell: CellPanels): void {
-    const region = this.ports.simulation(cell.instance);
-    for (const { row, panel, fallback } of cell.bindings) panel.visible = targetMatched(row, fallback, region, cell.source) === row.visibleWhenMatched;
+    const region = this.ports.region(cell.instance);
+    for (const { row, panel, fallback } of cell.bindings) {
+      const matched = targetMatched(row, fallback, region, cell.source);
+      panel.visible = matched === row.visibleWhenMatched;
+      for (const id of row.colliders) region?.colliders.get(id)?.setActive(matched === row.activeWhenMatched);
+    }
   }
 }

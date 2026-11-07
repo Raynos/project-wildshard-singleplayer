@@ -11,7 +11,7 @@ function fixture(load: () => Promise<void>) {
   const source = readFileSync(new URL('liveSession.ts', import.meta.url), 'utf8');
   const method = source.indexOf('  private async admitRuntime(');
   const start = source.indexOf('    const manifest = findShard(cell.slug)', method);
-  const end = source.indexOf('    const saved = pageSim.regionDurability', start);
+  const end = source.indexOf('    let closed = false;', start);
   if (method === -1 || start === -1 || end === -1) throw new Error('Regional entry import boundary missing');
   const factory: unknown = runInNewContext(stripTypeScriptTypes(`(async function(metadata, inputs) {
     const {cell, retained, findShard, hasDeclaredClientPage, resolveRegionalRuntimeTextures,

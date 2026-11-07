@@ -1,36 +1,25 @@
 /**
  * A template copy's "[E] …" prompts inside the grid (SHARD-PLATFORM template-prompts, E435). Standalone, a shardfile
  * shard's declared interactions (`targets.interactions`: the template's hut door) become the page runtime's prompts
- * (`installDeclaredTargets`), each running its declared scene through the shard's script lane. In the grid every template
- * copy is its own bodyless regional simulation (`createShardfileSim` in `LiveGridSession.admit`), so the same rows become
- * that region's prompts here: in the region's frame (the source's own coordinates are frame-local), each scene enqueued on
- * the region's own lane for the region's player actor, so the door, its collider, its panel and the quest move exactly as
- * standalone. The page offers them only while the feet stand in the entered copy (`enteredCopy`), and they go with the
- * region (built at admission, dropped at its disposal).
+ * (`installDeclaredTargets`). In the grid every copy is a region of the server's, so the same rows become that region's
+ * prompts here: in its frame (the source's own coordinates are frame-local), and each press goes to the server by its row,
+ * which runs the scene. The page offers them only while the feet stand in the entered copy (`enteredCopy`), and they go
+ * with the region (built at admission, dropped at its disposal).
  *
  * Not here: an item scene (`targets.itemActions`, the template's lantern toggle / refill) is the held item's own action;
  * a template cell holds its empty equipment (bare hands, G68), so no prompt can reach an item runtime there.
  */
 import { Vector3 } from 'three';
 import type { ShardRuntime } from '../../shared/shard/runtime';
-import { createQuestScriptPorts } from '../../shared/quest/declared';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import type { ShardfileSimulation } from '../../server/plugin/simulation';
-import { leadPlayer } from '@wildshard/engine/sim/leadPlayer';
 
 type Interactable = ShardRuntime['interactables'][number];
 
-/** What a copy's prompts read of its admitted region: its script lane, actor handles and player actor. */
-export type CopyRegion = Pick<ShardfileSimulation, 'lane' | 'actors'> & { readonly host: { readonly players: ReadonlyMap<string, { readonly id: string }> } };
-
-/** The copy's declared interactions as frame-local prompts on `region`'s own lane (none without a lane). */
-export function copyPrompts(source: Pick<Shardfile, 'targets' | 'hooks'>, region: CopyRegion): Interactable[] {
-  const lane = region.lane;
-  if (lane === undefined || source.targets.interactions.length === 0) return [];
+/** The copy's declared interactions as frame-local prompts the server answers. */
+export function copyPrompts(source: Pick<Shardfile, 'targets'>): Interactable[] {
   const items = new Set((source.targets.itemActions ?? []).map((row) => row.scene));
-  const scenes = createQuestScriptPorts(lane, source.hooks, region.actors), actor = leadPlayer(region.host).id;
   return source.targets.interactions.filter((row) => !items.has(row.scene)).map((row) => ({
-    position: new Vector3(...row.at), radius: row.radius, label: row.label, onInteract: () => { scenes.scene(row.scene, actor); },
+    position: new Vector3(...row.at), radius: row.radius, label: row.label, wireId: row.id, onInteract: () => undefined,
   }));
 }
 

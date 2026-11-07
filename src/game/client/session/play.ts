@@ -230,7 +230,6 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
   gridLive = grid?.attach({ traveller: player, health: playerHealth, equipment: weapons, events: app.events,
     runtimePage: () => boot.context === undefined || boot.runtime.play === null ? null : { world, play: boot.runtime.play, context: boot.context, ...(ctx.enteredEquipment === undefined ? {} : { equipment: ctx.enteredEquipment }) },
     onSafeZone: () => { app.effects?.clearHarmful(playerHealth); },
-    scriptNotices: { toast: (text) => { hud.toast(text, 'warn'); }, devAlert: (text) => { hud.devAlert(text); } },
     saves: app.saves, ...(authoredBounds === undefined ? {} : { homeFallFloor: authoredBounds.floor }), checkpoint: legacyHomeCheckpoint(() => boot.runtime.play), catalogue: [],
     setPhysics: (physics) => { world.physics = physics; app.physics = physics; },
     onFixedPre: (fn) => { game.onFixed('pre', fn, 'game.grid.live.pre'); }, onFixedPost: (fn) => { game.onFixed('post', fn, 'game.grid.live.post'); },

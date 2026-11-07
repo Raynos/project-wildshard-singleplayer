@@ -57,7 +57,7 @@ test('T7: leaving a cell retires its whole world while retaining durable metadat
     expect(f.live.current()).toBeNull(); expect(f.live.state().residents).toEqual([]);
     expect(f.events).toContain(`retire:${f.home.instance}`);
     expect(f.claims().some(row => row.owner === f.home.instance)).toBe(false);
-    expect(f.live.state().continuations.entries).toBe(0);
+    
     const reenter = await f.live.prepare(null, f.home.instance); reenter.commit();
     expect(f.live.ready(f.home.instance)).toBe(true);
   } finally { f.close(); }
@@ -113,7 +113,7 @@ async function fixture(options: { paired?: boolean; loading?: number; isolation?
   const player = { position: leadPlayer(page).position, yaw: -Math.PI / 2, health: leadPlayer(page).health, owner: leadPlayer(page), motor: leadPlayer(page).releaseMotor() };
   const live = new LiveGridHost(assembly, {
     home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },
-    player, allocator: residency.allocator, continuations: 'durable', save: () => true,
+    player, allocator: residency.allocator,
     bindFrame: frame => { events.push(`frame:${frame.instance ?? 'road'}`); }, gameplayReady: () => true,
     ...(options.priorities === undefined ? {} : { prioritize: (cell: { instance: string }) => {
       options.priorities?.push(`hold:${cell.instance}`); return () => { options.priorities?.push(`release:${cell.instance}`); };
@@ -131,11 +131,11 @@ async function fixture(options: { paired?: boolean; loading?: number; isolation?
     // a large world: its readiness reach starts well inside the source
     readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 3 },
       bundle: () => ({ criticalWireBytes: 1000, hybridWireBytes: 1000, decodeSeconds: 0, runtimeParseSeconds: options.horizonSeconds ?? 10 }) },
-    admit: cell => { admissions.push(cell.instance); return Promise.resolve({ bytes: 1000, exclusiveRuntime: true, reloadsCheckpoint: true,
+    admit: cell => { admissions.push(cell.instance); return Promise.resolve({ bytes: 1000, exclusiveRuntime: true,
       prepareRuntime: () => { runtimes.push(cell.instance); return options.runtimeReady?.(cell.instance) ?? Promise.resolve(); }, cancel: () => { cancelled.push(cell.instance); },
       ...(options.tilePreparation === true ? { tilePreparation: true } : {}),
       ...(options.paired === true && options.isolation !== false ? { isolatedPreparation: true } : {}),
-      create: (_saved, _claim, signal) => {
+      create: (_claim, signal) => {
         signal?.addEventListener('abort', () => { control.aborted.push(cell.instance); }, { once: true });
         allocated.push({ instance: cell.instance, owners: [...residency.allocator.claims()].map(row => row.owner) });
         events.push(`create:${cell.instance}`);
@@ -802,7 +802,7 @@ test('T7: a long road excursion retains no whole source world or claim', async (
     await f.settle();
     expect(f.live.state().residents).toEqual([]); expect(f.created()).toEqual([f.home.instance]);
     expect(f.entries().find(row => row.owner === f.home.instance)).toBeUndefined();
-    expect(f.live.state().continuations.entries).toBe(0);
+    
   } finally { f.close(); }
 });
 

@@ -27,7 +27,7 @@ for (const mode of [{ developer: false, devserver: false }, { developer: true, d
     const player = { position: leadPlayer(page).position, yaw: 0, health: leadPlayer(page).health, owner: leadPlayer(page), motor: leadPlayer(page).releaseMotor() };
     const live = new LiveGridHost(assembly, {
       home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },
-      player, allocator: residency.allocator, continuations: 'durable', save: () => true,
+      player, allocator: residency.allocator,
       bindFrame: () => undefined, gameplayReady: () => true,
       highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
       readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: .25, maxStallSeconds: 3 },

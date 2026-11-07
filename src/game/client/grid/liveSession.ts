@@ -1,6 +1,5 @@
 import { hasDeclaredClientPage } from '@wildshard/format/runtimeBinds';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
 import { emitFault } from '@wildshard/engine/core/faults';
 import { crossingLoadingRows } from '../boot/loadingPaths';
 import { loadingUnits } from '@wildshard/engine/boot/waits';
@@ -38,11 +37,10 @@ import type { PlayerFrameQueries } from '@wildshard/engine/player/Player';
 import type { PlayerHealth } from '@wildshard/engine/combat/health';
 import type { SaveStore } from '@wildshard/engine/saves/store';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
-import type { SimHost } from '@wildshard/engine/sim';
 import { finishSimSteps } from '@wildshard/engine/sim/snapshot';
 import { installStripCollider, PLATFORM_COLLIDER_OWNER } from '@wildshard/engine/physics/stripColliders';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
-import { gridCreatureConstraint, installGridBorders } from '@wildshard/engine/physics/gridBorders';
+import { installGridBorders } from '@wildshard/engine/physics/gridBorders';
 import type { ReadinessWalls, ReadinessEdge } from '@wildshard/engine/physics/readinessWalls';
 import { TransferWalls, TRANSFER_WALL_BYTES } from '@wildshard/engine/physics/transferWalls';
 import type { ReadinessBundle, ReadinessLink } from '@wildshard/engine/sim/readiness';
@@ -50,11 +48,10 @@ import type { GridAssembly, GridCell } from '../../shared/grid/assembly';
 import type { NeighbourRegion } from './neighbourLife';
 import type { ResidencyAllocator } from '../../shared/grid/allocator';
 import type { HomeResidencyClaim } from './pageResidency';
-import { LiveGridHost, type LiveGridAdmission, type LiveGridFrame, type LiveGridState } from './live';
+import { LiveGridHost, type LiveGridAdmission, type LiveGridFrame, type LiveGridRegion, type LiveGridState } from './live';
 import { prepareApproachProductInputs } from './approachProductInputs';
 import { installGridCrossing, type GridCheckpointResult, type GridCrossingSession, type GridCrossingState } from '../../shared/grid/crossing';
 import { GridWallet, stowGridMount } from '../../shared/grid/wallet';
-import type { GridRegionDurability } from '../../server/grid/durability';
 import type { LedgerCatalogueItem } from '../../shared/ledger';
 import { installGridHoverSpeed } from '../../shared/grid/rules';
 import { installGridTravellerCombat } from '../../shared/grid/travellerCombat';
@@ -67,15 +64,13 @@ import {productPostCost} from '../shardfile/productCost';
 import { gridRecovery, type GridRecoveryReason, type GridRecoveryRecord } from '../../shared/grid/recovery';
 import { RoadRecovery, onRoad, type RoadPoint, type RoadRecoveryCell } from '../../shared/grid/roadRecovery';
 import { GridCellWaitingError } from './refusal';
-import { scriptDisabledNotice, type ScriptNoticePorts } from '../../shared/shardfile/scriptNotice';
-import type { ShardfileSimulation } from '../../server/plugin/simulation';
-import { pageSim } from '../shardfile/clientMoverOwners';
 import { withCopyLayout } from './copyLayout';
+import { dataCellWorld, type RegionShell } from './regionShell';
+import type { PanelRegion } from './neighbourPanels';
+import { wirePage } from '../shardfile/wirePage';
 import type { CollisionStrip } from '../../shared/grid/collisionStrips';
 import type { LocalSaveInstance } from '../../shared/instanceSaves';
 import { loadNavmesh } from '@wildshard/engine/physics/navmeshLoad';
-import { constructionOwner, currentOwner } from '@wildshard/engine/app/ownership';
-import { prepareScriptMemoryLease, SCRIPT_LIMITS } from '@wildshard/engine/script/host';
 import { enteredRuntime, pickInFrame } from './enteredInteract';
 import { copyPrompts, enteredCopy } from './copyPrompts';
 import { yieldGridAdmission, yieldGridConstruction } from './admissionYield';
@@ -85,7 +80,6 @@ import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type Prepa
 import { bindHomeBuildCache } from '../shardfile/homeBuildCache';
 import type { ClientTileRegistration } from '../shardfile/tileContent';
 import { createRegionalWorldFoundation, hangCellDataSky, resolveRegionalRuntimeTextures } from './regionalWorld';
-import { regionalRuntimeCheckpoint } from '../../shared/grid/runtimeCheckpoint';
 import { regionalDataCellBytes } from './runtimeCost';
 import { resolveLevelBounds } from '../../shared/shard/runtime';
 
@@ -121,7 +115,6 @@ export interface LiveGridPage {
   /** Optional polled storage readiness. Pending never grants permission; true is followed by a fresh local/native checkpoint. */
   readonly crossingSaveReady?: (instance: string) => GridCheckpointResult;
   /** Page-owned script notices; regional scripts never construct another HUD. */
-  readonly scriptNotices?: ScriptNoticePorts;
   /** The home runtime's resolved higher fall floor; neighbour floors come from their own declarations. */
   readonly homeFallFloor?: number;
   /** Profile rewards are restricted to the platform's admitted catalogue. */
@@ -204,11 +197,7 @@ async function disposeInSteps(region: PreparedRegionalRuntime['region']): Promis
   }
 }
 
-function regionTransferWalls(host: SimHost, radius: number, restoring = false): TransferWalls {
-  const walls = new TransferWalls(() => host.physics, [{ x: 0, z: 0 }], radius, 'exit', host.scope, restoring);
-  host.onStep('platform.transferWalls', () => undefined, { snapshot: () => walls.snapshot(), restore: value => { walls.restore(value); } });
-  return walls;
-}
+const regionTransferWalls = (shell: RegionShell, radius: number): TransferWalls => new TransferWalls(() => shell.physics, [{ x: 0, z: 0 }], radius, 'exit', shell.scope);
 /** The live crossing for one grid page; disposed with the level scope. */
 
 export class LiveGridSession {
@@ -217,7 +206,6 @@ export class LiveGridSession {
   private wire: LiveGridWire | null = null;
   private readonly ports: LiveGridSessionPorts;
   private readonly page: LiveGridPage;
-  private readonly durability = new Map<string, GridRegionDurability>();
   private readonly transferWalls = new Map<string | null, TransferWalls>();
   private readonly offset = new Vector3();
   private framePhysics: Physics;
@@ -227,7 +215,7 @@ export class LiveGridSession {
   private readonly applied = new Vector3();
   private readonly roadWallet: GridWallet;
   /** each admitted region's authored spawn (its level's player start) and its ground / water queries, local */
-  private readonly regions = new Map<string, { readonly spawn: LiveGridSpawn; readonly items: Shardfile['items']['rows']; readonly queries: PlayerFrameQueries; readonly simulation: ShardfileSimulation; readonly prompts: ReturnType<typeof copyPrompts> }>();
+  private readonly regions = new Map<string, { readonly spawn: LiveGridSpawn; readonly items: Shardfile['items']['rows']; readonly queries: PlayerFrameQueries; readonly colliders: PanelRegion['colliders']; readonly prompts: ReturnType<typeof copyPrompts> }>();
   private readonly runtimeScope: Scope;
   private readonly runtimeRegions = new Map<string, PreparedRegionalRuntime>();
   private readonly leaveTiming: { instance: string; leaveMs: number }[] = [];
@@ -277,7 +265,6 @@ export class LiveGridSession {
     const highwayBytes = (ports.initialStripBytes ?? ports.strips.reduce((sum, strip) => sum + strip.mesh.positions.byteLength + strip.mesh.indices.byteLength, 0))
       + assembly.cells.length * TRANSFER_WALL_BYTES;
     try { this.live = new LiveGridHost(assembly, {
-      continuations: 'durable', // Every owned production region below reconstructs its basis and reloads its durable save.
       lastCell: { windowMs: 30_000, playingBytes: CONTENT_CAPS.playing, schedule: (expire, ms) => {
         const timer = scope.child('grid.last-cell-expiry');
         timer.timeout(ms, () => { timer.dispose(); scope.run(expire); });
@@ -300,9 +287,6 @@ export class LiveGridSession {
       pause: () => yieldGridAdmission(scope),
       prefetchable: (cell) => { const manifest = findShard(cell.slug); return (manifest?.shardfile ?? manifest?.gridShardfile) !== undefined; },
       ...(ports.backgroundReady === undefined ? {} : { backgroundReady: ports.backgroundReady }),
-      save: (instance, snapshot) => this.regionSave(instance).checkpoint(snapshot),
-      saveSteps: (instance, snapshot) => this.regionSave(instance).checkpointSteps(snapshot),
-      saveBytesSteps: (instance, snapshot) => this.regionSave(instance).checkpointSteps(snapshot),
       bindFrame: (frame) => { this.bind(frame); },
       gameplayReady: () => this.gameplayReady(),
       readiness: { link: LINK, bundle: (cell) => this.bundle(cell) },
@@ -390,7 +374,7 @@ export class LiveGridSession {
         return readiness === true ? this.live.checkpoint(instance) : readiness;
       }, target: (feet) => this.wire === null ? this.live.target(feet) : this.wireTarget() },
     this.ports.assembly, (instance) => {
-      const runtime = this.runtimeRegions.get(instance), flush = (): boolean => this.wire !== null || this.regionSave(instance).flush();
+      const runtime = this.runtimeRegions.get(instance), flush = (): boolean => true;
       if (runtime === undefined) return { checkpoint: flush, stow: () => { stowGridMount(this.page.traveller); }, interior: () => undefined };
       if (this.wire !== null) return { ...runtime.loadout, checkpoint: flush };
       // rt3-crossing2: a committed runtime the traveller never entered never ran its hooks and never played: it saves as
@@ -462,12 +446,6 @@ export class LiveGridSession {
     // There is no home gameplay owner in the neutral shell. Retry the real stored local purse/bag without flushing
     // the page's inert Progress/Inventory copies over a newer owned runtime continuation.
     return this.roadWallet.flush();
-  }
-
-  private regionSave(instance: string): GridRegionDurability {
-    const saved = this.durability.get(instance);
-    if (saved === undefined) throw new Error('Regional durability was not admitted');
-    return saved;
   }
 
   /** Save the active region and retry its pending profile/local rewards before a reload or page exit. */
@@ -658,7 +636,6 @@ export class LiveGridSession {
       return admission;
     };
     const { source, assets } = retained.admitted;
-    let releaseProduct = retained.release;
     try {
     // SF59: the original metadata admission owns the adjacent post-stack check.
     // Rehydration verifies input bytes without moving that policy check to each visit.
@@ -671,109 +648,56 @@ export class LiveGridSession {
       return finish(await (metadata ? this.admitRuntime(cell, retained, choice, true) : this.admitRuntime(cell, retained, choice, false)));
     }
     const bytes = regionalDataCellBytes(cell.slug, source, findShard(cell.slug));
-    if (metadata) return finish({ bytes, isolatedPreparation: true, tilePreparation: source.tiles.some(tile => tile.lod === 0), reloadsCheckpoint: true, cancel: retained.release });
-    let durability = this.durability.get(cell.instance);
-    if (durability === undefined) {
-      durability = pageSim.regionDurability(this.page.saves, { id: cell.instance, shard: cell.slug }, source, this.page.catalogue);
-      this.durability.set(cell.instance, durability);
-    }
-    const savedRegion = durability, quest = savedRegion.quest;
-    releaseProduct = () => {
-      if (this.durability.get(cell.instance) === savedRegion) this.durability.delete(cell.instance);
-      retained.release();
-    };
+    if (metadata) return finish({ bytes, isolatedPreparation: true, tilePreparation: source.tiles.some(tile => tile.lod === 0), cancel: retained.release });
     const groundResolution = source.edge.north.heights.length === 256 ? 256 : 257;
     // G220 pass 2: a shared product's copy collides with its own landmarks (copyLayout.ts); every other cell gets its source unchanged
     const copySource = withCopyLayout(source, cell.identity);
     const rapier = this.ports.physics.R, duplicates = this.ports.strips.flatMap((strip) => strip.duplicates.filter((row) => row.instance === cell.instance).map((row) => row.mesh));
-    const notices = this.page.scriptNotices;
-    const scriptPorts = notices === undefined ? {} : { scriptDisabled: scriptDisabledNotice(notices) };
-    // Four native creature-only walls and their shape/query adapters belong to this regional claim.
-    // SF57: a reviewed per-sim reading (the generated ground and backstop inside it) replaces the declared ceiling
-    const build = (saved: Parameters<LiveGridAdmission['create']>[0]): ReturnType<LiveGridAdmission['create']> => {
-      const prepared = pageSim.prepareShardfileSimRestore(copySource, assets, { sections: outputDescriptor(source)?.sections, rapier, playerBody: false, quest, groundResolution, ...scriptPorts }), sim = prepared.simulation;
-      let releaseBasis: () => void = () => undefined;
-      let transfer: TransferWalls;
+    const build = (): LiveGridRegion & { readonly shell: RegionShell } => {
+      const { shell, water, heightAt, colliders } = dataCellWorld(copySource, assets, rapier, groundResolution);
       try {
-        for (const mesh of duplicates) installStripCollider(sim.host.physics, mesh, sim.host.scope);
-        // Admission proves real, clear, dry ground first. A 5mm backstop avoids coplanar ghost contacts. Include it
-        // in the immutable basis; exact restore carries its tagged handles and must not install another four floors.
-        installEntrySockets(sim.host.physics, sim.host.scope, [{ x: 0, z: 0 }], 'backstop');
-        installGridBorders(sim.host.physics, sim.host.scope);
-        transfer = regionTransferWalls(sim.host, this.page.traveller.motor.opts.radius);
-        const basis = sim.host.physics.snapshot();
-        const basisLease = this.ports.allocator.reserve({ id: `sim-basis:${cell.instance}`, category: 'sim', owner: cell.instance,
-          bytes: basis.byteLength, distance: 0, needed: true });
-        if (basisLease === null) throw new Error('Regional checkpoint basis exceeds residency budget');
-        releaseBasis = () => { basisLease.release(); };
-        savedRegion.setPhysicsBasis(basis);
-        const prior = saved ?? savedRegion.read(true);
-        savedRegion.bind(sim.host, sim.colliders);
-        if (prior !== undefined) {
-          for (const player of prepared.restore(prior).players.values()) player.detachMotor(); // the saved world carries its strip duplicates already
-        } else {
-          prepared.keep();
-          if (!savedRegion.restoreLogical(sim)) throw new Error('Regional logical migration was refused');
-        }
-        const region = sim, start = region.host.level.player, host = region.host, water = region.water;
+        for (const mesh of duplicates) installStripCollider(shell.physics, mesh, shell.scope);
+        // Admission proves real, clear, dry ground first. A 5mm backstop avoids coplanar ghost contacts.
+        installEntrySockets(shell.physics, shell.scope, [{ x: 0, z: 0 }], 'backstop');
+        installGridBorders(shell.physics, shell.scope);
+        const transfer = regionTransferWalls(shell, this.page.traveller.motor.opts.radius), start = shell.level.player;
+        shell.physics.step();
         transfer.sync(); this.transferWalls.set(cell.instance, transfer);
-        // Motors collide with BORDER; analytic/flying motion uses the same walls before sampling admitted terrain.
-        // Restore already carries the four colliders in its native basis, so only these live readers reconnect.
-        for (const actor of host.entities.values()) actor.motionConstraint = gridCreatureConstraint(() => host.physics, actor.dims.bodyRadius * actor.scale);
-        // Reinstall on the final host after native restore. Repeated actor ids in another region confer no permission.
-        installGridTravellerCombat(host.events, host.scope, this.page.health, cell.instance, () => {
-          const feet = this.live.worldFeet();
-          return this.ports.assembly.at(feet.x, feet.z)?.instance ?? null;
-        }, new Map([...host.entities.values()].map(actor => [actor.combatActor(), actor.position])));
         this.regions.set(cell.instance, { spawn: { x: start.at.x, y: undefined, z: start.at.z, yaw: start.yaw },
           // the admitted terrain inside the cell (one source of truth); its strips are road level (the terrain tile ends at the cell edge)
-          queries: { heightAt: (x, z) => (Math.max(Math.abs(x), Math.abs(z)) <= CHUNK_HALF ? host.groundHeightAt(x, z) : 0), waterSurfaceAt: (x, z) => water.restAt(x, z), platforms: [] }, simulation: region, items: copySource.items.rows, prompts: copyPrompts(copySource, region) });
+          queries: { heightAt: (x, z) => (Math.max(Math.abs(x), Math.abs(z)) <= CHUNK_HALF ? heightAt(x, z) : 0), waterSurfaceAt: (x, z) => water.restAt(x, z), platforms: [] }, colliders, items: copySource.items.rows, prompts: copyPrompts(copySource) });
         this.respawnCells.set(cell.instance, { instance: cell.instance, origin: cell.origin, entryways: source.entryways });
         // G321: its own sky inside its cell (its data look's dome and light), laid while it is resident
         {
-          const request = { instance: cell.instance, slug: cell.slug, look: copySource.look, assets, page: this.page.runtimePage?.() ?? null, allocator: this.ports.allocator, scope: host.scope };
+          const request = { instance: cell.instance, slug: cell.slug, look: copySource.look, assets, page: this.page.runtimePage?.() ?? null, allocator: this.ports.allocator, scope: shell.scope };
           void (async (): Promise<void> => {
             try { await hangCellDataSky(request); } catch (error) { console.warn(`[region sky] ${cell.instance}`, error); }
           })();
         }
-        const unlist = (): void => { this.regions.delete(cell.instance); this.transferWalls.delete(cell.instance); savedRegion.unbind(); };
-        const release = (): void => { try { releaseBasis(); } finally { releaseProduct(); } };
-        return Promise.resolve({ host: region.host, dispose: () => {
+        const unlist = (): void => { this.regions.delete(cell.instance); this.transferWalls.delete(cell.instance); };
+        return { host: shell, shell, dispose: () => {
           unlist();
-          try { region.dispose(); } finally { release(); }
+          try { shell.dispose(); } finally { retained.release(); }
         // T7 (the leave freeze: leaving template-2 drew 0.4-0.7 s frames): a crossing retires the data region in steps (O20)
         }, *retire(): Generator<DisposeStep, void> {
           unlist();
-          try { yield* region.host.disposeSteps(); } finally { release(); }
-        } });
+          try { yield* shell.disposeSteps(); } finally { retained.release(); }
+        } };
+      } catch (error) { shell.dispose(); throw error; }
+    };
+    return finish({ bytes, isolatedPreparation: true, cancel: retained.release, create: async () => {
+      const region = build();
+      try {
+        const feet = this.live.worldFeet();
+        await this.ports.prepareDataTiles?.(cell, region.shell.scope, { x: feet.x - cell.origin.x, z: feet.z - cell.origin.z });
+        return region;
       } catch (error) {
-        savedRegion.unbind();
-        try { sim.dispose(); } finally { releaseBasis(); }
+        try { region.dispose(); }
+        catch (cleanup) { throw new AggregateError([error, cleanup], 'Data entry and cleanup failed', { cause: cleanup }); }
         throw error;
       }
-    };
-    return finish({ bytes, isolatedPreparation: true, reloadsCheckpoint: true, cancel: releaseProduct, create: async (saved: Parameters<LiveGridAdmission['create']>[0]) => {
-      // SF88e: each declared script module's WebAssembly.Memory is a synchronous full GC on iOS JSC (40-80 ms each);
-      // lease them one drawn frame apart under the owner the script host installs in, so entry draws no 250 ms frame
-      const owner = constructionOwner() ?? currentOwner();
-      const modules = copySource.sim.scripts.flatMap(name => { const module = assets.get(name); return module === undefined ? [] : [module]; });
-      const release = owner === null || modules.length === 0 || modules.length > SCRIPT_LIMITS.instances ? undefined
-        : await prepareScriptMemoryLease(modules, owner, 'frame');
-      try {
-        const region = await (owner === null ? build(saved) : owner.run(() => build(saved)));
-        try {
-          const feet = this.live.worldFeet();
-          await this.ports.prepareDataTiles?.(cell, region.host.scope, { x: feet.x - cell.origin.x, z: feet.z - cell.origin.z });
-          return region;
-        } catch (error) {
-          try { region.dispose(); }
-          catch (cleanup) { throw new AggregateError([error, cleanup], 'Data entry and cleanup failed', { cause: cleanup }); }
-          throw error;
-        }
-      }
-      finally { release?.(); }
     } });
-    } catch (error) { try { releaseProduct(); } finally { product.release(); } throw error; }
+    } catch (error) { try { retained.release(); } finally { product.release(); } throw error; }
   }
 
   private admitRuntime(cell: GridCell, retained: GridProductMetadata, choice: RegionalPreparationChoice, metadata: true): Promise<GridAdmissionMetadata>;
@@ -800,22 +724,18 @@ export class LiveGridSession {
     // Only admitted declarative/client-plan worlds supply reversible construction bindings. The live host
     // also requires the strict page/owner projection and serializes every constructor through its cleanup.
     const isolatedPreparation = dataPage || manifest.clientPlanRuntime === true;
-    if (metadata) return { bytes, exclusiveRuntime: true, isolatedPreparation, tilePreparation: retained.admitted.source.tiles.some(tile => tile.lod === 0), reloadsCheckpoint: true, cancel: retained.release, prepareRuntime: prepareEntry };
-    const saved = pageSim.regionDurability(this.page.saves, { id: cell.instance, shard: cell.slug }, retained.admitted.source, this.page.catalogue);
-    this.durability.set(cell.instance, saved);
+    if (metadata) return { bytes, exclusiveRuntime: true, isolatedPreparation, tilePreparation: retained.admitted.source.tiles.some(tile => tile.lod === 0), cancel: retained.release, prepareRuntime: prepareEntry };
     let closed = false;
-    const release = (): void => { if (closed) return; closed = true; this.durability.delete(cell.instance); retained.release(); };
-    return { bytes, exclusiveRuntime: true, isolatedPreparation, reloadsCheckpoint: true, cancel: release, prepareRuntime: prepareEntry, create: async (_prior, claim, signal) => {
+    const release = (): void => { if (closed) return; closed = true; retained.release(); };
+    return { bytes, exclusiveRuntime: true, isolatedPreparation, cancel: release, prepareRuntime: prepareEntry, create: async (claim, signal) => {
       const factory = createRegionalRuntimeFactory({ home: this.ports.home.origin,
-        continuation: regionalRuntimeCheckpoint(this.page.saves, { id: cell.instance, shard: cell.slug }, retained.admitted.source.identity.revision),
         prepareFoundation: createRegionalWorldFoundation({ rapier: this.ports.physics.R, ...(this.ports.tiles === undefined ? {} : { tiles: this.ports.tiles }), navmesh: level => loadNavmesh(level.id, level.bakedId ?? level.id, level.navigation), pause: () => yieldGridConstruction(this.runtimeScope),
           install: host => {
             for (const strip of this.ports.strips) for (const row of strip.duplicates) if (row.instance === cell.instance) installStripCollider(host.physics, row.mesh, host.scope);
             installEntrySockets(host.physics, host.scope, [{ x: 0, z: 0 }], 'backstop');
             installGridBorders(host.physics, host.scope);
             this.transferWalls.set(cell.instance, regionTransferWalls(host, this.page.traveller.motor.opts.radius));
-            saved.bind(host);
-          }, checkpoint: () => saved.flush(),
+          }, checkpoint: () => true,
         }),
       });
       let prepared: PreparedRegionalRuntime;
@@ -825,7 +745,7 @@ export class LiveGridSession {
         const entryPoint = { x: feet.x - cell.origin.x, z: feet.z - cell.origin.z };
         prepared = await factory({ cell, admitted: retained.admitted, manifest, page, textures, allocator: this.ports.allocator, claim, scope: this.runtimeScope, entryPoint });
       }
-      catch (error) { this.transferWalls.delete(cell.instance); saved.unbind(); throw error; }
+      catch (error) { this.transferWalls.delete(cell.instance); throw error; }
       this.runtimeRegions.set(cell.instance, prepared); this.runtimeResidents.set(cell.instance, prepared.resident);
       this.respawnCells.set(cell.instance, { instance: cell.instance, origin: cell.origin, entryways: retained.admitted.source.entryways });
       try {
@@ -835,7 +755,7 @@ export class LiveGridSession {
       }
       catch (error) {
         this.runtimeRegions.delete(cell.instance); this.runtimeResidents.delete(cell.instance); this.transferWalls.delete(cell.instance);
-        try { await disposeInSteps(prepared.region); } finally { saved.unbind(); }
+        await disposeInSteps(prepared.region);
         throw error;
       }
       let disposalFailure: Error | undefined;
@@ -852,13 +772,13 @@ export class LiveGridSession {
         release();
       };
       const retireSteps = prepared.region.retire;
-      return { ...prepared.region, checkpoint: () => !this.startedRuntimes.has(cell.instance) ? saved.flush()
+      return { ...prepared.region, checkpoint: () => !this.startedRuntimes.has(cell.instance) ? true
         : this.hybrid.state().instance === cell.instance && !this.hybrid.state().ready ? false : prepared.checkpoint(), dispose: () => {
         if (disposalFailure !== undefined) throw disposalFailure;
-        try { prepared.region.dispose(); saved.unbind(); }
+        try { prepared.region.dispose(); }
         catch (error) { disposalFailure = error instanceof Error ? error : new Error(String(error)); throw disposalFailure; }
         forget();
-      }, ...(retireSteps === undefined ? {} : { *retire(): ReturnType<typeof retireSteps> { yield* retireSteps(); saved.unbind(); forget(); } }) };
+      }, ...(retireSteps === undefined ? {} : { *retire(): ReturnType<typeof retireSteps> { yield* retireSteps(); forget(); } }) };
     } };
   }
 
@@ -983,13 +903,13 @@ export class LiveGridSession {
   /** The active frame's identity (the home instance, a region, or null for the highway). */
   frame(): string | null { return this.live.current(); }
 
-  /** The admitted native simulation for a browser witness; the page exposes this only when harness pins exist. */
-  simulation(instance: string): ShardfileSimulation | undefined { return this.regions.get(instance)?.simulation; }
-  /** What draws a cell's life: its region here, or on a wire the server's rows, which exist only where the page stands. */
-  lifeRegion(instance: string): NeighbourRegion | undefined {
-    if (this.wire === null) return this.simulation(instance);
-    return this.wire.site() === instance ? this.wire.rows : undefined;
+  /** What a cell's panels read: its solids here, and a field's row while the wire stands in it. */
+  panelRegion(instance: string): PanelRegion | undefined {
+    const region = this.regions.get(instance);
+    return region === undefined ? undefined : { colliders: region.colliders, field: name => this.wire?.site() === instance ? wirePage.row(name) : undefined };
   }
+  /** What draws a cell's life: the server's rows, which exist only where the page stands. */
+  lifeRegion(instance: string): NeighbourRegion | undefined { return this.wire?.site() === instance ? this.wire.rows : undefined; }
 
   /** Fresh per-frame travel facts; setup/final witnesses use the complete state readout. */
   travelState(): Pick<LiveGridSessionState, 'live' | 'crossing' | 'runtimeTiming'> {

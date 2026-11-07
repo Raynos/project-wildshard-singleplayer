@@ -1,8 +1,6 @@
 import { installDeclaredMovers } from './moverInstall';
-import { bindMeleeContacts, declaredItemScriptBindings, prepareShardfileSimRestore, startMeleeSecondary } from './simulation';
+import { bindMeleeContacts, declaredItemScriptBindings, startMeleeSecondary } from './simulation';
 import { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
-import { createSimHost } from '@wildshard/engine/sim';
-import { GridRegionDurability } from '../grid/durability';
 import { lendPageGrass, wildEnv } from '../population/pageGroups';
 import { bindCrowdGuard, crowdGuardProjection } from '../ambient/crowdPage';
 import { admitSpeciesProgram } from './brain';
@@ -36,13 +34,8 @@ export interface PageSimFeed {
   /** A held blade's contacts and its secondary, which the page's weapons still settle themselves. */
   readonly bindMeleeContacts: typeof bindMeleeContacts;
   readonly startMeleeSecondary: typeof startMeleeSecondary;
-  /** The restore a grid home takes its page sim through (E6 SESSION). */
-  readonly prepareShardfileSimRestore: typeof prepareShardfileSimRestore;
-  /** A regional world's bodyless shell and the manager its creatures stand in. */
-  readonly createSimHost: typeof createSimHost;
+  /** The manager a regional world's creatures stand in. */
   readonly animalManager: (...args: ConstructorParameters<typeof AnimalManager>) => AnimalManager;
-  /** What a grid page keeps of a cell it has played. */
-  readonly regionDurability: (...args: ConstructorParameters<typeof GridRegionDurability>) => GridRegionDurability;
 }
 /** The page sim's own owners. */
 export const pageSimFeed: PageSimFeed = {
@@ -52,6 +45,5 @@ export const pageSimFeed: PageSimFeed = {
   wild: wildEnv,
   lendPageGrass, crowdGuardProjection, bindCrowdGuard,
   admitSpeciesProgram, bindMeleeContacts, startMeleeSecondary,
-  prepareShardfileSimRestore, createSimHost,
-  animalManager: (...args) => new AnimalManager(...args), regionDurability: (...args) => new GridRegionDurability(...args),
+  animalManager: (...args) => new AnimalManager(...args),
 };

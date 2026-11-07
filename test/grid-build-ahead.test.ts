@@ -26,13 +26,13 @@ for (const [axis, side] of [['x', 1], ['x', -1], ['z', 1], ['z', -1]] as const) 
     const created: string[] = [];
     const live = new LiveGridHost(assembly, {
       home: { mode: 'owned', instance: home.instance, bytes: 1000, residency: residency.admitHome(home.instance, 1000) },
-      player, allocator: residency.allocator, continuations: 'durable', save: () => true,
+      player, allocator: residency.allocator,
       bindFrame: () => undefined, gameplayReady: () => true,
       highway: { bytes: 1000, create: () => ({ physics: page.physics, dispose: () => undefined }) },
       prefetchable: cell => cell.instance === target.instance,
       readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: 0.25, maxStallSeconds: 3 },
         bundle: () => ({ criticalWireBytes: 1000, hybridWireBytes: 1000, decodeSeconds: 0, runtimeParseSeconds: 0 }) },
-      admit: cell => Promise.resolve({ bytes: 1000, exclusiveRuntime: true, reloadsCheckpoint: true, prepareRuntime: () => Promise.resolve(),
+      admit: cell => Promise.resolve({ bytes: 1000, exclusiveRuntime: true, prepareRuntime: () => Promise.resolve(),
         create: () => {
           created.push(cell.instance);
           const host = createSimHost(level, { rapier, playerBody: false, ground: false });

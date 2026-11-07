@@ -13,7 +13,7 @@ import type { ResidencyAllocator } from '../../shared/grid/allocator';
  *
  * The page keeps its one renderer, camera, sky, player, input and combat. The region owns, under its resident scope,
  *
- * - a bodyless destination `SimHost` (its own Physics, no second traveller capsule) with the real terrain collider of the
+ * - a bodyless destination `RegionShell` (its own Physics, no second traveller capsule) with the real terrain collider of the
  *   region's level, plus whatever cell installs the live session adds (borders, entry sockets, transfer walls);
  * - a `LevelFrameBinding` (level, heightfield, chunk constants, water, navmesh) that is entered with the runtime scope;
  * - a scene subtree: a `Scene` parented under the regional view's root (already at the cell's render offset), which
@@ -61,9 +61,7 @@ import { compileOffscreenPass } from '@wildshard/engine/render/precompile';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import { addTerrain, resampleTerrain } from '@wildshard/engine/physics/terrain';
 import { applySkin, type SkinDef } from '@wildshard/engine/player/Skins';
-import type { SimHost, SimLevel } from '@wildshard/engine/sim';
 import { pageSim } from '../shardfile/clientMoverOwners';
-import { SIM_API_VERSION } from '@wildshard/engine/sim/apiVersion';
 import { SkyRig } from '@wildshard/engine/world/skyRig';
 import { loadCarriedLUT, loadLUT } from '@wildshard/engine/boot/bakedApi';
 import { Terrain } from '@wildshard/engine/world/Terrain';
@@ -71,6 +69,7 @@ import { TreeFactory } from '@wildshard/engine/world/TreeFactory';
 import { Forest } from '@wildshard/engine/world/forest/Forest';
 import { WaterBodies } from '@wildshard/engine/world/water/body';
 import { CHUNK_SIZE, TERRAIN_RES } from '@wildshard/engine/core/config';
+import { RegionShell, type RegionLevel } from './regionShell';
 import { buildYield, workSlice } from '@wildshard/engine/core/workSlice';
 import { heightAt } from '@wildshard/engine/world/Heightfield';
 import { loadBakedTerrain } from '@wildshard/engine/world/BakedTerrain';
@@ -114,9 +113,9 @@ export interface RegionalWorldPorts {
    *  the runtime's own registrations join while entered. */
   readonly water?: (level: LevelSpec) => WaterBodies;
   /** Cell installs on the owned destination (grid borders, entry sockets, transfer walls), before any gameplay. */
-  readonly install?: (host: SimHost, request: RegionalRuntimeRequest) => void;
+  readonly install?: (host: RegionShell, request: RegionalRuntimeRequest) => void;
   /** The region's native continuation; false keeps the traveller in the source frame. */
-  readonly checkpoint: (host: SimHost, request: RegionalRuntimeRequest) => boolean;
+  readonly checkpoint: (host: RegionShell, request: RegionalRuntimeRequest) => boolean;
   /** Yield between herd slices and heavy builds (a macrotask in the browser). */
   readonly pause: () => Promise<void>;
   /** The drawn ground (default: `regionalTerrain`, the level's own painter on the frame's captured heightfield and assets). */
@@ -239,13 +238,7 @@ async function slicedTerrainGrid(run: (rows: () => number) => number, left: () =
   }
 }
 
-function simLevel(level: LevelSpec): SimLevel {
-  const { spawn } = level;
-  return { version: SIM_API_VERSION, id: level.id, seed: level.seed ?? 0, ground: { size: CHUNK_SIZE, height: 0 },
-    player: { at: { x: spawn.x, y: spawn.y ?? 0, z: spawn.z }, yaw: spawn.yaw, speed: 0 }, entities: [], quests: [],
-    // A bodyless destination has no authored player strike; its creatures are the regional AnimalManager's.
-    weapon: { id: 'region.none', shape: { kind: 'ring', inner: 0, outer: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
-}
+const regionLevel = ({ id, spawn }: LevelSpec): RegionLevel => ({ id, player: { at: { x: spawn.x, y: spawn.y ?? 0, z: spawn.z }, yaw: spawn.yaw } });
 
 /** Resolve the existing texture policy once before memory admission. The resident enters this SAME policy for
  * asynchronous construction and each frame, so a capability-probe image fallback cannot retain a compressed claim. */
@@ -312,8 +305,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           look => prepareWorldLook(look, { renderer: game.renderer, sky, scope: resident })),
         Promise.resolve().then(() => {
           if (left() || resident.disposing) throw new Error('Regional world left before its physics shell');
-          return withOwner(resident, () => pageSim.createSimHost(simLevel(level), { rapier: ports.rapier, playerBody: false, ground: false,
-            heightAt: (x, z) => field().heightAt(x, z), scope: resident }));
+          return withOwner(resident, () => new RegionShell(regionLevel(level), ports.rapier, resident));
         }),
       ]));
       // Drain both before teardown. Navigation/look keeps its original failure

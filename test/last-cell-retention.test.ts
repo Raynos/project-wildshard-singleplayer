@@ -27,7 +27,7 @@ async function fixture(options: { cap?: number; isolated?: boolean; beforeAdmit?
   const player = { position: leadPlayer(page).position, yaw: 0, health: leadPlayer(page).health, owner: leadPlayer(page), motor: leadPlayer(page).releaseMotor() };
   const live = new LiveGridHost(assembly, {
     home: { mode: 'owned', instance: home.instance, bytes: 50_000_000, residency: residency.admitHome(home.instance, 50_000_000) },
-    player, allocator: residency.allocator, continuations: 'durable', save: () => true,
+    player, allocator: residency.allocator,
     lastCell: { windowMs: 30_000, playingBytes: options.cap ?? CONTENT_CAPS.playing, schedule: (run, delay) => {
       const expiry = { run, delay, cancelled: false }; expiries.push(expiry); return () => { expiry.cancelled = true; };
     } },
@@ -36,7 +36,7 @@ async function fixture(options: { cap?: number; isolated?: boolean; beforeAdmit?
     readiness: { link: { speed: 30, linkBitsPerSecond: 5_000_000, requestLatencySeconds: .25, maxStallSeconds: 3 },
       bundle: () => ({ criticalWireBytes: 1000, hybridWireBytes: 1000, decodeSeconds: 0, runtimeParseSeconds: 0 }) },
     admit: async (cell, required) => { await options.beforeAdmit?.(cell.instance, required === true); return { bytes: 50_000_000, exclusiveRuntime: true, isolatedPreparation: options.isolated !== false,
-      reloadsCheckpoint: true, prepareRuntime: () => Promise.resolve(), create: () => {
+      prepareRuntime: () => Promise.resolve(), create: () => {
         created.push(cell.instance); objects.set(cell.instance, {});
         allocated.push({ instance: cell.instance, owners: [...residency.allocator.claims()].map(row => row.owner) });
         const host = createSimHost(level, { rapier, playerBody: false, ground: false });

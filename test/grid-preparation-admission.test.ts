@@ -24,7 +24,7 @@ test('G723: metadata retains the explicit isolation capability but fresh prepara
   const lease = claim();
   try {
     expect(admitted).toMatchObject({ isolatedPreparation: true });
-    await expect(admitted.create(undefined, lease)).rejects.toThrow('isolation');
+    await expect(admitted.create(lease)).rejects.toThrow('isolation');
     expect(create).not.toHaveBeenCalled(); expect(cancel).toHaveBeenCalledOnce();
   } finally { lease.release(); }
 });
@@ -38,19 +38,19 @@ test('prefetch releases its input lease and cached admission reacquires on every
     const visit = ++next; let active = true;
     events.push(`acquire:${visit}`);
     const cancel = (): void => { if (active) { active = false; events.push(`release:${visit}`); } };
-    return Promise.resolve({ bytes: 42, reloadsCheckpoint: true, exclusiveRuntime: true, prepareRuntime: () => { events.push('runtime'); return Promise.resolve(); }, cancel,
-      create: saved => {
-        expect(active).toBe(true); expect(saved).toBeUndefined(); events.push(`world:${visit}`);
+    return Promise.resolve({ bytes: 42, exclusiveRuntime: true, prepareRuntime: () => { events.push('runtime'); return Promise.resolve(); }, cancel,
+      create: () => {
+        expect(active).toBe(true); events.push(`world:${visit}`);
         return Promise.resolve(region(cancel));
       } });
   };
   const admitted = await preparationAdmission(() => prepare(true), () => prepare(false)), lease = claim();
   try {
     expect(events).toEqual(['acquire:1', 'release:1']);
-    expect(admitted.bytes).toBe(42); expect(admitted.reloadsCheckpoint).toBe(true); expect(admitted.exclusiveRuntime).toBe(true);
+    expect(admitted.bytes).toBe(42); expect(admitted.exclusiveRuntime).toBe(true);
     await admitted.prepareRuntime?.();
-    const first = await admitted.create(undefined, lease); first.dispose();
-    const second = await admitted.create(undefined, lease); second.dispose();
+    const first = await admitted.create(lease); first.dispose();
+    const second = await admitted.create(lease); second.dispose();
     expect(events).toEqual(['acquire:1', 'release:1', 'runtime', 'acquire:2', 'world:2', 'release:2', 'acquire:3', 'world:3', 'release:3']);
     expect(metadata).toEqual([true, false, false]);
   } finally { lease.release(); }
@@ -63,7 +63,7 @@ test('failed verified reacquisition never starts a world', async () => {
     return Promise.resolve({ bytes: 1, cancel, create });
   });
   const lease = claim();
-  try { await expect(admitted.create(undefined, lease)).rejects.toThrow('hash mismatch'); expect(create).not.toHaveBeenCalled(); expect(cancel).toHaveBeenCalledOnce(); }
+  try { await expect(admitted.create(lease)).rejects.toThrow('hash mismatch'); expect(create).not.toHaveBeenCalled(); expect(cancel).toHaveBeenCalledOnce(); }
   finally { lease.release(); }
 });
 
@@ -73,7 +73,7 @@ test('cancellation during reacquisition releases the fresh lease without constru
   const admitted = await prepareFixture(() => ++calls === 1 ? Promise.resolve({ bytes: 1, create }) : new Promise<LiveGridAdmission>(resolve => { resume = resolve; }));
   const lease = claim();
   try {
-    const pending = admitted.create(undefined, lease); admitted.cancel?.();
+    const pending = admitted.create(lease); admitted.cancel?.();
     if (resume === undefined) throw new Error('Missing reacquisition gate'); resume({ bytes: 1, cancel, create });
     await expect(pending).rejects.toThrow('cancelled'); expect(create).not.toHaveBeenCalled(); expect(cancel).toHaveBeenCalledOnce();
   } finally { lease.release(); }
@@ -86,7 +86,7 @@ test('cancellation keeps inputs pinned until a running build settles, then dispo
     create: () => new Promise<LiveGridRegion>(resolve => { finish = resolve; }) }));
   const lease = claim();
   try {
-    const pending = admitted.create(undefined, lease); await Promise.resolve(); await Promise.resolve();
+    const pending = admitted.create(lease); await Promise.resolve(); await Promise.resolve();
     admitted.cancel?.(); expect(cancel).not.toHaveBeenCalled();
     if (finish === undefined) throw new Error('Missing build gate'); finish(region(dispose));
     await expect(pending).rejects.toThrow('cancelled'); expect(dispose).toHaveBeenCalledOnce(); expect(cancel).toHaveBeenCalledOnce();
@@ -105,7 +105,7 @@ test('same-cell metadata prefetch during construction preserves the checkpoint o
   const admitted = await preparationAdmission(metadata, prepareWorld), lease = claim();
   try {
     expect(prepareWorld).not.toHaveBeenCalled();
-    const building = admitted.create(undefined, lease); await Promise.resolve(); await Promise.resolve();
+    const building = admitted.create(lease); await Promise.resolve(); await Promise.resolve();
     expect(owners.get(id)).toBe(owner);
     // LiveGridHost drops its product entry before awaiting create; radial
     // prefetch may therefore prepare the same cell while this world is pending.

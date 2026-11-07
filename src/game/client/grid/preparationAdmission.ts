@@ -1,7 +1,7 @@
 import type { LiveGridAdmission } from './live';
 
 /** Prefetch has no world constructor and owns no regional durability registration. */
-export type GridAdmissionMetadata = Pick<LiveGridAdmission, 'bytes' | 'exclusiveRuntime' | 'isolatedPreparation' | 'tilePreparation' | 'reloadsCheckpoint' | 'prepareRuntime' | 'cancel'>;
+export type GridAdmissionMetadata = Pick<LiveGridAdmission, 'bytes' | 'exclusiveRuntime' | 'isolatedPreparation' | 'tilePreparation' | 'prepareRuntime' | 'cancel'>;
 
 /** Cached admission keeps metadata only; every world, including re-entry, borrows verified preparation inputs anew. */
 export async function preparationAdmission(metadata: () => Promise<GridAdmissionMetadata>, prepare: () => Promise<LiveGridAdmission>): Promise<LiveGridAdmission> {
@@ -13,10 +13,9 @@ export async function preparationAdmission(metadata: () => Promise<GridAdmission
     ...(first.exclusiveRuntime === undefined ? {} : { exclusiveRuntime: first.exclusiveRuntime }),
     ...(first.isolatedPreparation === undefined ? {} : { isolatedPreparation: first.isolatedPreparation }),
     ...(first.tilePreparation === undefined ? {} : { tilePreparation: first.tilePreparation }),
-    ...(first.reloadsCheckpoint === undefined ? {} : { reloadsCheckpoint: first.reloadsCheckpoint }),
     ...(first.prepareRuntime === undefined ? {} : { prepareRuntime: first.prepareRuntime }),
     cancel: () => { generation++; },
-    create: async (saved, claim, signal) => {
+    create: async (claim, signal) => {
       const current = generation;
       const cancelled = (): boolean => current !== generation || signal?.aborted === true;
       if (cancelled()) throw new Error('Regional preparation cancelled');
@@ -24,7 +23,7 @@ export async function preparationAdmission(metadata: () => Promise<GridAdmission
       try {
         if (cancelled()) throw new Error('Regional preparation cancelled');
         if (first.isolatedPreparation === true && admission.isolatedPreparation !== true) throw new Error('Regional preparation isolation changed');
-        const region = await admission.create(saved, claim, signal);
+        const region = await admission.create(claim, signal);
         if (cancelled()) {
           region.dispose(); throw new Error('Regional preparation cancelled');
         }

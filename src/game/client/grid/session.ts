@@ -42,7 +42,6 @@ import type { StepProgress } from '@wildshard/engine/boot/plan';
 import { WORK_SLICE_MS, workSlice } from '@wildshard/engine/core/workSlice';
 import { app } from '@wildshard/engine/app/runtime';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
-import { harnessPins } from '@wildshard/engine/app/identity';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
 import { installStripCollider } from '@wildshard/engine/physics/stripColliders';
@@ -809,7 +808,7 @@ export class GridSession {
     this.life = new NeighbourLife({ scope: host.scope, simulation: (id) => this.live?.lifeRegion(id), active: (id) => (this.live === null ? this.home.instance : this.live.live.current()) === id });
     // one late system for the grid (the page's onLate takes one label): the alive neighbours, then the one frame's weights
     const prepareView = host.prepareView;
-    this.panels = new NeighbourPanels({ scope: host.scope, simulation: (id) => this.live?.simulation(id), ...(prepareView === undefined ? {} : { prepare: prepareView }) });
+    this.panels = new NeighbourPanels({ scope: host.scope, region: (id) => this.live?.panelRegion(id), ...(prepareView === undefined ? {} : { prepare: prepareView }) });
     // G539: each drawn far view's band (proxy, impostor or the dithered fade between) by the camera's distance to its cell
     const eye = new Vector3();
     const bands = (): void => {
@@ -880,7 +879,6 @@ export class GridSession {
       }),
       // the live cell alone, for a sampler that must not build the whole readout four times a second (state() allocates it)
       current: () => (this.live === null ? null : this.live.live.current()),
-      ...(harnessPins() === undefined ? {} : { simulation: (instanceId: string) => this.live?.simulation(instanceId) }),
     }));
     this.constructorTiming?.('streaming');
   }

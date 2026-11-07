@@ -30,6 +30,7 @@ import type { GridCell } from '../../shared/grid/assembly';
 import { enteredFullMap, shiftedFullMap, shiftedMinimap } from './mapFrame';
 import type { ResidencyAllocator, ResidencyLease } from '../../shared/grid/allocator';
 import type { LiveGridRegion } from './live';
+import type { RegionShell } from './regionShell';
 import type { GridLoadout } from '../../shared/grid/wallet';
 import { runtimeAccountedBytes, type RuntimeCost } from '@wildshard/format/runtimeCost';
 import { createRegionalView, type RegionalView } from './regionalView';
@@ -110,7 +111,7 @@ export interface RegionalRuntimeRequest {
  * The resident's scope owns disposal in dependency order. A synthetic empty host cannot stand in for this contract.
  */
 export interface PreparedRegionalRuntime {
-  readonly region: LiveGridRegion;
+  readonly region: LiveGridRegion & { readonly host: RegionShell };
   readonly queries: PlayerFrameQueries;
   readonly resident: HybridResident;
   /** Scalar warm-up progress only when the page trace belongs to this exact destination root. */
@@ -143,7 +144,7 @@ export type RegionalRuntimeFactory = (request: RegionalRuntimeRequest) => Promis
  * Keeping this port required prevents an unfinished foundation from silently becoming an enterable empty world.
  */
 export interface RegionalRuntimeFoundation {
-  readonly region: LiveGridRegion;
+  readonly region: LiveGridRegion & { readonly host: RegionShell };
   readonly ground: Pick<PlayerFrameQueries, 'heightAt' | 'waterSurfaceAt'>;
   /** The one renderer/player, but a regional scene facade, level scope, sky, terrain and forest. */
   readonly world: (view: RegionalView) => ShardWorld;
@@ -174,8 +175,6 @@ export interface RegionalRuntimeFoundation {
 export interface RegionalRuntimeFactoryPorts {
   readonly home: Readonly<{ x: number; z: number }>;
   readonly prepareFoundation?: (request: RegionalRuntimeRequest) => Promise<RegionalRuntimeFoundation>;
-  /** Validated logical continuation for a rebuilt opaque runtime; supplied by the live instance owner. */
-  readonly continuation?: { restore: (animals: AnimalManager) => void; checkpoint: (animals: AnimalManager) => boolean };
 }
 
 /** Compose the trusted regional stages without changing discovery, module admission or the fixed crossing driver. */
@@ -212,7 +211,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
       if (retireWorld === undefined) scope.onDispose(foundation.region.dispose);
       else scope.onDisposeSteps(function* retireRegionWorld() { const steps = retireWorld(); while (steps.next().done !== true) yield; });
       const host = foundation.region.host;
-      if (host.embedded || [...host.players.values()].some(player => player.hasMotor) || host.physics === request.page.world.physics) throw new Error('Regional factory requires an owned bodyless destination');
+      if (host.physics === request.page.world.physics) throw new Error('Regional factory requires an owned bodyless destination');
       // The page's own level scope owns its player services (loadout registers the equipment host there). Not
       // app.levelScope: with G580 T1 a build-ahead starts while another world is entered, whose scope that is, and its
       // services leave with it, so a construction lending from it lost the equipment host mid-build when the traveller
