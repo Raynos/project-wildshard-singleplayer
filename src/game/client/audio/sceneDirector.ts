@@ -12,7 +12,7 @@ import type { Audio, HoofSurface, ImpactKind } from '@wildshard/engine/audio/Aud
 import type { Music } from '@wildshard/engine/audio/Music';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Player } from '@wildshard/engine/player/Player';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import { SampledAmbience, PositionalLoops } from '@wildshard/engine/audio/AmbienceBeds';
 import { installSfxCredit } from '@wildshard/engine/audio/credits';
 import { CuePlayer, cueManifest } from '@wildshard/engine/audio/Cues';
@@ -63,7 +63,7 @@ export class AudioSceneDirector {
   ctx.on('weapon.charge',({id,phase,value})=>{for(const row of this.rows.charges){if(row.weapon!==id||row.phase!==phase)continue;if(row.cancelDeferred)this.thrustPending=false;this.cues.cue((value===1&&row.full!==undefined?row.full:row.cue) as `cue.${string}`,{strength:value??1});}});
  }
  /** Re-enter with a fresh lifetime, restoring native hoof, bed and animal-sound owners on exit. */
- bind(a:Audio,music:Music|undefined,animals:AnimalManager|undefined,scope:Scope):void{
+ bind(a:Audio,music:Music|undefined,animals:RowBodiesView|undefined,scope:Scope):void{
   this.audio=a;this.music=music;
   const previousHoof=a.hoofSurfaceAt,previousBed=a.bedId,previousAnimal=animals&&Object.getOwnPropertyDescriptor(animals,'onSound');
   const hoof=(x:number,z:number):HoofSurface=>this.surfaceAt(x,z);a.hoofSurfaceAt=hoof;

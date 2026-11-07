@@ -12,7 +12,7 @@ import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService
 import type { Targets } from '@wildshard/engine/combat/types';
 import type { Weapon } from '@wildshard/engine/combat/Weapon';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
 import type { FirstHints } from '@wildshard/engine/ui/FirstHints';
 import type { HUD } from '@wildshard/engine/ui/HUD';
@@ -29,7 +29,7 @@ import type { Bounds } from '@wildshard/engine/level/spec';
 
 /** Services supplied by the gameplay shell after it has built the player kit and UI. */
 export interface ShardPlayHost {
-  animals: AnimalManager; weapons: EquipmentService; primary: Weapon; rifle: Weapon | null; secondary: Weapon | null;
+  animals: RowBodiesView; weapons: EquipmentService; primary: Weapon; rifle: Weapon | null; secondary: Weapon | null;
   inventory: Inventory; owned: Owned; progress: Progress; hud: HUD; menu: GameMenu; fullMap: FullMap;
   audio: Audio; music: Music; skins: SkinLocker; wearSkin: (skin: SkinDef) => void;
   touchUi: () => boolean; nolock: boolean; disposeRifleDrop: () => void; cues: CombatCues;
@@ -45,10 +45,10 @@ export interface ShardPlayHooks {
   wearFinish?: (id: string) => void;
   updatePickups?: (dt: number, t: number) => void;
   disposeRifleDrop?: () => void;
-  animalsReady?: (animals: AnimalManager) => void;
+  animalsReady?: (animals: RowBodiesView) => void;
   /** Awaited right after `animalsReady`: a shard whose creature build is longer than a task builds it here, a task apart per
    *  group (SF67), before the boot moves on (the same spawns in the same order as a one-task build). */
-  animalsBuilt?: (animals: AnimalManager) => Promise<void>;
+  animalsBuilt?: (animals: RowBodiesView) => Promise<void>;
   worldUpdate?: (dt: number, t: number) => void;
   equipmentUpdate?: (dt: number) => void;
   audioUpdate?: (dt: number) => void;

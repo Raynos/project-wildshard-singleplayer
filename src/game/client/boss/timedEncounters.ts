@@ -3,7 +3,7 @@ import type { TimedEncountersRows } from '@wildshard/format/encounterRows';
 import type { BufferGeometry, Vector3 } from 'three';
 import { app } from '@wildshard/engine/app/runtime';
 import type { TargetHit } from '@wildshard/engine/combat/types';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
@@ -29,7 +29,7 @@ export class TimedEncounters {
   private readonly rows;
   /** On the wire the server runs the night: this draws its rows, and no law steps here. */
   private readonly rowsView: SlotRowsView | null;
-  private animals: AnimalManager | null = null;
+  private animals: RowBodiesView | null = null;
   /** A cue this page only heard: drawn, and counted for a proof. */
   private readonly heard: Pick<CueDirector, 'cue'> = { cue: (id, at, up) => { wirePage.drew(id); this.cues.cue(id, at, up); } };
   constructor(ctx: TimedEncounterContext, input: TimedEncountersRows,
@@ -72,7 +72,7 @@ export class TimedEncounters {
     if (this.riders.arrows.inFlight > 0) wirePage.drew('arrow frame');
     this.cues.setLight(Math.max(rows.lightFloor, pageSim.wild.light)); this.cues.update(dt);
   }
-  attach(animals: AnimalManager): void {
+  attach(animals: RowBodiesView): void {
     this.animals = animals;
     try { this.slots.attachActors(animals); } catch (cause) { console.error('[encounters] slot actors disabled:', cause); }
     try { this.riders.attachActors(animals); } catch (cause) { console.error('[encounters] patrol actors disabled:', cause); }

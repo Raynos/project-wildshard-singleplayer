@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import type { Rng } from '@wildshard/engine/core/rng';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
 import type { PageWildlife } from '../population/wildlife';
@@ -13,7 +13,7 @@ import { PastureCues, type PastureCue } from '../../shared/riding/pastureCues';
 export class PagePastureRaid<T extends CrowdTargets> extends NativePastureRaid<Animal,PackBrain<Animal>> {
   private readonly cues: PastureCues;
   private readonly rows: boolean;
-  constructor(animals: AnimalManager,population: PageWildlife<T>,input: unknown,random: Rng) {
+  constructor(animals: RowBodiesView,population: PageWildlife<T>,input: unknown,random: Rng) {
     const rows = v.parse(PastureActorSchema,input),cues = new PastureCues(rows.cues);
     const flock = population.flocks[0] ?? null,program = population.pastureAuthor;
     const delay = program.project('raidFirst',{},random)['raidT'] ?? 0;

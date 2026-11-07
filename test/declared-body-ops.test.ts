@@ -10,9 +10,8 @@ import { createSimHost } from '../src/engine/server/sim';
 import { snapshotSimHost } from '../src/engine/shared/sim/snapshot';
 import { restoreSimHost } from '../src/engine/server/sim/restore';
 import { AnimalHerdView } from '../src/engine/client/entities/AnimalHerdView';
-import { AnimalManager } from '../src/engine/server/entities/AnimalManager';
+import { RowBodies, type RowBodiesView } from '../src/engine/client/entities/RowBodies';
 import { Animal } from '../src/engine/client/entities/AnimalView';
-import { Forest } from '../src/engine/client/world/forest/Forest';
 import { SkyRig } from '../src/engine/client/world/skyRig';
 import { activeLevel, configureLevel } from '../src/engine/shared/level/selection';
 import { Scope } from '../src/engine/shared/app/scope';
@@ -95,12 +94,12 @@ test('rows are plain data and absent targets refuse before publishing any body',
 test('page actors are real native rigs, excluded from target lists and retired exactly once', async () => {
   const owner = new Scope('declared-guide'), previous = activeLevel();
   configureLevel({ ...previous, ground: { structures: true } });
-  const sky: unknown = Object.create(SkyRig.prototype), forest: unknown = Object.create(Forest.prototype);
-  if (!(sky instanceof SkyRig) || !(forest instanceof Forest)) throw new Error('Missing native test services');
+  const sky: unknown = Object.create(SkyRig.prototype);
+  if (!(sky instanceof SkyRig)) throw new Error('Missing native test services');
   const material = vi.spyOn(sky, 'setupMaterial').mockImplementation(() => undefined);
   const preloads = vi.spyOn(app.species, 'preloads').mockReturnValue([]);
-  const manager = owner.run(() => new AnimalManager(new AnimalHerdView(new Scene(), sky, { style: 'toon', render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true } }), app, forest));
-  const ctx = { scope: owner, app, game: { runtime: { play: { animals: manager } } } } as ShardContext;
+  const manager = owner.run(() => new RowBodies(new AnimalHerdView(new Scene(), sky, { style: 'toon', render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true } }), app));
+  const animals: RowBodiesView = manager, ctx = { scope: owner, app, game: { runtime: { play: { animals } } } } as ShardContext;
   const retire = vi.spyOn(manager, 'retire');
   try {
     const ops = await DeclaredBodyOps.install(ctx, { bodies: [{ id: 'guide', kind: 'actor', species: 'bear', variant: 'brown', at: { x: 1, y: 2, z: 3 }, yaw: .5 }], colliders: [] });

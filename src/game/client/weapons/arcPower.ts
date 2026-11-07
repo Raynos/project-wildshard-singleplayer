@@ -6,7 +6,7 @@ import * as v from 'valibot';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Move } from '@wildshard/engine/combat/view/melee';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import { castRay, floorBelow } from '@wildshard/engine/physics/query';
 import type { Player } from '@wildshard/engine/player/Player';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
@@ -20,7 +20,7 @@ export interface ArcWeaponDeps {
   scene: THREE.Scene;
   player: Player;
   camera: THREE.Camera;
-  animals: AnimalManager;
+  animals: RowBodiesView;
   
   weather:{readonly stormActive:boolean;flash:number};
 }

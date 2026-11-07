@@ -21,7 +21,7 @@ import type { FixedDraws } from '../models/fixedDraws';
 import type { BossBar } from '@wildshard/engine/ui/BossBar';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { Player } from '@wildshard/engine/player/Player';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import type { ReturnProgram } from '../../shared/population/returnProgram';
 import { modelContext, type ModelContext } from '@wildshard/engine/models/model';
 import { parsePrivateScene } from '@wildshard/format/clientChannels';
@@ -51,7 +51,7 @@ import { pageRidingMount, respawnPageMounted, installArenaBoundary } from '../ri
 export interface ArenaRoomPortalWorld {
   readonly game: Pick<Game, 'scene' | 'camera'>;
   readonly player: Pick<Player, 'position' | 'velocity' | 'yaw' | 'pitch' | 'moveScale'>;
-  readonly animals: Pick<AnimalManager, 'calm' | 'group'>;
+  readonly animals: Pick<RowBodiesView, 'calm' | 'group'>;
 }
 /** Client-only entry/exit lifecycle of the existing arena host. AS observes
  * the actual room floor and entrance; the host owns fades, isolation, movement

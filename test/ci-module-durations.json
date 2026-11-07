@@ -127,7 +127,7 @@
   "src/engine/client/entities/facet-geometry.test.ts": 0.112676464,
   "src/engine/client/entities/far-herd-upload.test.ts": 0.101935713,
   "src/engine/server/entities/hunt-cadence.test.ts": 0.118046159,
-  "src/engine/server/entities/pose-cadence.test.ts": 0.035039377,
+  "src/engine/shared/entities/pose-cadence.test.ts": 0.035039377,
   "src/engine/shared/events/events.test.ts": 0.038233889,
   "src/engine/client/explore/compare-progress.test.ts": 0.694673737,
   "src/engine/client/explore/load-progress.test.ts": 0.469751541,

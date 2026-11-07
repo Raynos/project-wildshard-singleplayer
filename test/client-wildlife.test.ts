@@ -72,7 +72,7 @@ test('declared wildlife waits for animals, owns one frame and retires its hook',
     await build(animals); expect(pause).toHaveBeenCalledTimes(2); expect(clientWildlife(ctx)).toBeInstanceOf(PageWildlifeView);
     application.events.ask('combat.targets.ray',request);expect(hits).toEqual(['prior','wildlife','night','titan']);hits.length=0;
     expect(ray).toHaveBeenCalledWith(request.origin,request.dir,request.maxDist,null);
-    expect(animals.navSteer).toBe(true); frame.run(.1, 3);
+    frame.run(.1, 3);
     expect(begin).toHaveBeenCalledWith(.1, expect.objectContaining({ crouching: true }), { mounted: false });
     expect(end).toHaveBeenCalledOnce();
     await expect(build(animals)).rejects.toThrow('unavailable');

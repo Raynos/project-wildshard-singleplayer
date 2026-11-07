@@ -3,7 +3,7 @@ import { Vector3, type Object3D, type PerspectiveCamera, type Scene } from 'thre
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import { practiceRoomState } from '@wildshard/engine/core/practiceRoomState';
 import type { ModelContext, ModelDef } from '@wildshard/engine/models/model';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { QuestPlace } from '@wildshard/engine/world/interact/types';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
@@ -125,7 +125,7 @@ export interface CollectionKeepers<P extends object> {
   world: { game: Omit<CollectionKeepsakeHost<never>['game'], 'onUpdate'>; sky: SkyRig;
     player: CollectionKeepsakeHost<never>['player']; registry: WorldRegistry };
   play: { owned: Owned; hud: CollectionKeepsakeHost<never>['hud']; audio: Audio; music: CollectionKeepsakeHost<never>['music'];
-    bodyShadow?: BodyShadow | null; animals: AnimalManager };
+    bodyShadow?: BodyShadow | null; animals: RowBodiesView };
   swords: CollectionKeepsakeHost<never>['swords'];
   catalogue: CollectionCatalogue;
   models: ReadonlyMap<string, ModelDef<P>>;

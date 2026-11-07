@@ -1,5 +1,5 @@
 import { clearBody as clearNativeBody } from './bodyClear';
-import { poseEvery } from './poseCadence';
+import { poseEvery } from '../../shared/entities/poseCadence';
 import { EntityIds } from '../../shared/entities/ids';
 import { emitFault } from '../../shared/core/faults';
 import { MathUtils, Vector3, type PerspectiveCamera } from 'three';
@@ -21,7 +21,7 @@ import { speciesDef, type EnemyWorld, type ThinkCtx } from '../../shared/entitie
 import type { AnimalFactory, AnimalKind } from '../../client/entities/AnimalFactory';
 import type { Animal } from '../../client/entities/AnimalView';
 import { damageFor } from '../../shared/entities/AnimalSim';
-import { creatureFloor } from './creatureFloor';
+import { creatureFloor } from '../../shared/entities/creatureFloor';
 import { CreatureRefill } from './creatureRefill';
 import { killBelowWorld } from './killHeight';
 import { activeLevel } from '../../shared/level/selection';

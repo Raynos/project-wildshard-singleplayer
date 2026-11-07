@@ -11,7 +11,7 @@ import { ObservationColumnsV2, type V2ColumnOwners } from '../../../shared/scrip
 import { NativeEliteController, type NativeEliteEffect, type NativeEliteRow, type NativeEliteServices } from './eliteController';
 import { EncounterRegistry } from '../../../shared/ai/encounters';
 import type { Animal } from '../../entities/AnimalView';
-import type { AnimalManager } from '../../../server/entities/AnimalManager';
+import type { RowBodiesView } from '../../entities/RowBodies';
 import { Color, MeshLambertMaterial, Object3D, Vector3 } from 'three';
 import { GroundTell } from '../../fx/groundTell';
 import { setEliteDamage } from '../../../shared/entities/eliteBrain';
@@ -200,7 +200,7 @@ export interface EliteEntryLoans<S extends BorrowedEliteController> {
   readonly construction: Scope; readonly entered: Scope;
   readonly ui: { readonly id: string; readonly services: Omit<NativeEliteServices, 'animals'> };
   readonly profiles: readonly { readonly id: string; readonly value: unknown }[];
-  readonly bodies: readonly { readonly id: string; readonly manager: AnimalManager }[];
+  readonly bodies: readonly { readonly id: string; readonly manager: RowBodiesView }[];
   readonly models: readonly { readonly id: string; readonly object: Object3D }[];
   readonly observations: readonly { readonly id: string; readonly columns: ObservationColumnsV2; readonly owners: V2ColumnOwners }[];
   readonly programs: readonly { readonly id: string; readonly owner: Scope; readonly program: {

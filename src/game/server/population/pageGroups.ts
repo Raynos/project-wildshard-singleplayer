@@ -17,7 +17,7 @@ import { ReturnProgram, ProjectedState } from '../../shared/population/returnPro
 import { createCreatureSpawner, type CreatureSpawnRow } from '../plugin/brain';
 import { WildSenses } from './nativeManager';
 import { groupContact, nearestPopulationActor, sharedGroupPorts, initializeDeclaredGroup } from '../shardfile/groupRuntime';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { terrainHeight, terrainNormal, terrainWaterLevel } from '@wildshard/engine/world/terrainHeight';
 import type { PopulationProjectionRows } from '@wildshard/format/populationProjection';
@@ -36,7 +36,7 @@ export class PageActorGroups {
   private trainingRow: Placement | null = null;
   private readonly law: ProjectedState;
   private deadTime = 0;
-  constructor(animals: AnimalManager, row: PopulationProjectionRows['practice'], scope: Scope) {
+  constructor(animals: RowBodiesView, row: PopulationProjectionRows['practice'], scope: Scope) {
     this.owner = createCreatureSpawner(animals);
     this.law = new ProjectedState({ ...row.law, signals: { step: row.law.signal } }, ReturnProgram.page(row.program, scope));
   }
@@ -84,7 +84,7 @@ const whole = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(1024));
  * chooses retries, terrain admission, member variants and relative placements.
  * Inputs are data and existing authorities; no content callback crosses it. */
 export class PagePopulationPlanner {
-  constructor(private readonly animals: AnimalManager, private readonly program: ReturnProgram, private readonly random: Rng,
+  constructor(private readonly animals: RowBodiesView, private readonly program: ReturnProgram, private readonly random: Rng,
     private readonly signals: { readonly begin: string; readonly spot: string; readonly accept: string; readonly yaw: string }) {}
   spot(x: number, z: number, radius: number): { x: number; z: number } {
     const attempts = v.parse(whole, this.program.project(this.signals.begin, {})['attempts']);
@@ -218,7 +218,7 @@ export class PageGroups {
   private readonly targets: CrowdRoster<CrowdTargets>;
   private readonly rows: v.InferOutput<typeof PageGroupRowsSchema>;
   private readonly contact: ReturnType<typeof groupContact>;
-  constructor(private readonly animals: AnimalManager, crowds: readonly CrowdTargets[], input: unknown, private readonly groupOwner?: {readonly scope:Scope;readonly player:Vector3}) {
+  constructor(private readonly animals: RowBodiesView, crowds: readonly CrowdTargets[], input: unknown, private readonly groupOwner?: {readonly scope:Scope;readonly player:Vector3}) {
     this.rows = v.parse(PageGroupRowsSchema,input);
     // T10: every herd and pack lends its guest program to ReturnProgram.page, which reuses a frozen declaration's
     // admission (~9 ms a herd of a Nalati entry at phone 4x); these parsed rows are this owner's own copy

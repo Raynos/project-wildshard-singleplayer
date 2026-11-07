@@ -13,7 +13,7 @@ import { castRay, floorBelow } from '../../shared/physics/query';
 import { heightAt, normalAt } from '../../shared/world/Heightfield';
 import type { SkyRig as Sky } from '../world/skyRig';
 import { AnimalFactory, type AnimalKind, type AnimalModel, type AnimalStyle } from './AnimalFactory';
-import type { AnimalDraw } from '../../server/entities/AnimalManager';
+import type { RowBodiesDraw } from './RowBodies';
 import { Animal } from './AnimalView';
 import { AnimalGroup } from './animalMatrices';
 import { attachShadowCaster } from './animalShadow';
@@ -144,7 +144,7 @@ interface FarRig extends FarMember {
  * The page's half of the herds (P1-E4.3): rigs, the far and shadow batches, fur shells, draw distance, blood and the
  * debug capsules. AnimalManager.ts decides; this draws. It holds no decision and no gameplay random stream.
  */
-export class AnimalHerdView implements AnimalDraw {
+export class AnimalHerdView implements RowBodiesDraw {
   /** the animals' own world-matrix pass: a still, far animal's bones are not recomputed (animalMatrices.ts) */
   readonly group: AnimalGroup = new AnimalGroup();
   readonly factory: AnimalFactory;
@@ -203,12 +203,12 @@ export class AnimalHerdView implements AnimalDraw {
     if (this.group.parent !== this.scene) this.scene.add(this.group);
   }
 
-  /** the hidden group joins the region before its herds spawn (AnimalManager.buildAsync) */
+  /** the hidden group joins the region before its herds spawn (RowBodiesView.build) */
   park(): void { this.group.visible = false; this.scene.add(this.group); }
   show(): void { this.group.visible = true; }
   inFrame<T>(frame: LevelFrameBinding, run: () => T): T { return frame.run(app, run); }
 
-  rig(kind: AnimalKind, variant: string, rigSeed: number, seed: number, scale: number, id: string): ReturnType<AnimalDraw['rig']> {
+  rig(kind: AnimalKind, variant: string, rigSeed: number, seed: number, scale: number, id: string): ReturnType<RowBodiesDraw['rig']> {
     const model = this.factory.model(kind, variant);
     const rig = this.factory.instantiate(model, rigSeed);
     const actor = new Animal(rig, model, seed, scale, id);

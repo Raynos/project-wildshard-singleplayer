@@ -34,7 +34,7 @@ import { populationRoster } from './roster';
 import { nativePopulationOf } from '../riding/nativePopulation';
 import { ANIMAL_STATES } from '@wildshard/engine/entities/animalStates';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 
 /** Entered concrete service loans only; no shard callback or reflected name resolver. */
@@ -214,8 +214,8 @@ export class SpawnScript {
       reach: (body, target) => canReach(body, target, host.physics),
     }, undefined, undefined, undefined, host, module);
   }
-  /** Client-only binding to the actual AnimalManager. Its existing spawn/retire path owns bodies and draws. */
-  static page(animals: AnimalManager, input: unknown, physics?: Physics | null,v2Owners?: SpawnV2Owners,elites?: Elites,worldActions?: readonly V2WorldActionLoan[],queries?: SpawnQueryLoansV2): SpawnScript {
+  /** Client-only binding to the page's row bodies. Its existing spawn/retire path owns bodies and draws. */
+  static page(animals: RowBodiesView, input: unknown, physics?: Physics | null,v2Owners?: SpawnV2Owners,elites?: Elites,worldActions?: readonly V2WorldActionLoan[],queries?: SpawnQueryLoansV2): SpawnScript {
     if (queries !== undefined && (physics === undefined || physics === null || [...queries.worlds.values()].some(world => world.physics !== physics))) throw new Error('Foreign page query world');
     return new SpawnScript(input, { spawn: (kind, x, z, yaw, variant) => animals.spawn(kind, x, z, yaw, variant),
       retire: actor => { const real = animals.animals.find(row => row === actor); if (real === undefined) throw new Error('Foreign page spawn retirement'); animals.retire(real); },

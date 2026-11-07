@@ -5,7 +5,7 @@ import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { RayTargets } from '@wildshard/engine/combat/targets';
 import type { SpeciesActorsFileRows } from '@wildshard/format/speciesBookRows';
 import { WildlifePopulationSchema } from '@wildshard/format/wildlifePopulation';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { Vector3 } from 'three';
 import * as v from 'valibot';
@@ -40,7 +40,7 @@ export class PageWildlifeView<T extends CrowdTargets = CrowdDraw> {
   readonly foragers: { readonly rules: ForagerPopulation } | null;
   private readonly rows: Rows; private readonly placement: ReturnProgram;
   private readonly weaponTarget: CrowdWeaponTarget<T>; private readonly motion: ProjectedMotionSample;
-  constructor(private readonly animals: AnimalManager, input: unknown, programmeScope: Scope) {
+  constructor(private readonly animals: RowBodiesView, input: unknown, programmeScope: Scope) {
     this.rows = v.parse(WildlifePopulationSchema, input); const row = this.rows;
     this.placement = ReturnProgram.page(row.admission, programmeScope);
     this.weaponTarget = new CrowdWeaponTarget(new CrowdRoster(animals.animals, this.flocks, row.groups.prey), row.combat);
@@ -167,11 +167,10 @@ export async function installClientWildlife(ctx: ShardContext, feature: ClientFe
     hit:owner.wildlife===null?request.hit:owner.wildlife.raycastWeapon(request.origin,request.dir,request.maxDist,request.hit)}));
   let started = false;
   const ensureActive = (): void => { if (ctx.scope.disposed) throw new Error('Wildlife owner left during construction'); };
-  const build = async (animals: AnimalManager): Promise<void> => {
+  const build = async (animals: RowBodiesView): Promise<void> => {
     if (ctx.scope.disposed || started) throw new Error('Wildlife animal stage is unavailable');
     started = true;
     animals.wetAt = (x, z) => pageSim.wild.wetAt(x, z);
-    animals.navSteer = feature.navSteer;
     const population = new PageWildlifeView(animals, rows, world.game.levelScope);
     // the population's admission and its first pack take a task each: together they were one 117 ms afterKit frame of a
     // cold Nalati crossing at phone 4x (~32 ms admitting its programmes, ~59 ms the first pack)

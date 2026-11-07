@@ -8,7 +8,7 @@ import { ForagerPopulation } from '@wildshard/engine/ai/ambientForager';
 import { Rng } from '@wildshard/engine/core/rng';
 import { pageApp } from '@wildshard/engine/app/pageSeat';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { CrowdTargets, CrowdRoster, CrowdWeaponTarget } from '../../shared/shardfile/crowdRuntime';
 import { PageGroups, PagePopulationPlanner, drainSteps, wildEnv } from './pageGroups';
@@ -33,7 +33,7 @@ export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
   private readonly motion: ProjectedMotionSample; private readonly predatorBodies: Animal[] = [];
   /** A page on a server: its packs and guardians are rows, so they are known by kind and this population spawns none. */
   rowBodies = false;
-  constructor(private readonly animals: AnimalManager,input: unknown, programmeScope?:Scope, groupPlayer?:Vector3) {
+  constructor(private readonly animals: RowBodiesView,input: unknown, programmeScope?:Scope, groupPlayer?:Vector3) {
     this.rows = v.parse(WildlifePopulationSchema,input); const row = this.rows;
     this.placement = ReturnProgram.page(row.admission,programmeScope); this.pastureAuthor = ReturnProgram.page(row.pasture,programmeScope);
     this.population = new PagePopulationPlanner(animals,this.placement,new Rng(row.random),{ begin: 'begin',spot: 'spot',accept: 'accept',yaw: 'yaw' });

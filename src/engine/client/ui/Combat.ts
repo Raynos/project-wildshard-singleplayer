@@ -3,7 +3,7 @@ import { engineString } from '../../shared/strings';
 import * as THREE from 'three';
 import { app } from '../app/runtime';
 import type { Game } from '../core/Game';
-import type { AnimalManager } from '../../server/entities/AnimalManager';
+import type { RowBodiesView } from '../entities/RowBodies';
 import type { Animal } from '../entities/AnimalView';
 import type { Weapon } from '../../shared/combat/Weapon';
 import { TIER } from '../core/tier';
@@ -86,9 +86,9 @@ export class Combat {
   /** read at every fire, not once: the kit swaps between the sword (reach 2.2 m) and ranged weapons (no reach) mid-play */
   private weapon: { readonly reach?: number | undefined };
 
-  private animals: AnimalManager;
+  private animals: RowBodiesView;
   private camera: THREE.Camera;
-  constructor(game: Game, animals: AnimalManager, weapon: Pick<Weapon, 'onFire' | 'onImpact'> & { readonly reach?: number | undefined }, camera: THREE.Camera) {
+  constructor(game: Game, animals: RowBodiesView, weapon: Pick<Weapon, 'onFire' | 'onImpact'> & { readonly reach?: number | undefined }, camera: THREE.Camera) {
     this.animals = animals;
     this.camera = camera;
     this.weapon = weapon;
@@ -146,7 +146,6 @@ export class Combat {
 
   private impact(surface: string, point: THREE.Vector3): void {
     if (surface === 'flesh') return;
-    this.animals.disturb(point);
     const p = this.resolveOldest();
     if (!p) return;
     // MISS at the impact point if it is on screen, else over the animal we were aiming at

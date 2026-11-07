@@ -18,7 +18,7 @@ import type { Game } from '../../core/Game';
 import type { Player } from '../../player/Player';
 import type { Physics } from '../../../shared/physics/Physics';
 import type { WorldRegistry } from '../../world/registry';
-import type { AnimalManager } from '../../../server/entities/AnimalManager';
+import type { RowBodiesView } from '../../entities/RowBodies';
 import type { PlaygroundId } from './catalog';
 import type { RoomMap } from '../../ui/roomMap';
 
@@ -33,7 +33,7 @@ export interface PlaygroundHost {
   /** the shard's spawn: the playground stands over it (x, z) */
   spawn: { x: number; z: number };
   toast: (text: string) => void;
-  animals: AnimalManager;
+  animals: RowBodiesView;
 }
 
 export interface Playground {

@@ -2,7 +2,7 @@ import { currentProbe, harnessPins, setCurrentProbe } from '../../shared/app/ide
 import * as THREE from 'three';
 import type { World } from '../core/bootstrap';
 import type { Animal } from '../entities/AnimalView';
-import type { AnimalManager } from '../../server/entities/AnimalManager';
+import type { RowBodiesView } from '../entities/RowBodies';
 import type { EquipmentService } from '../combat/EquipmentService';
 import type { WeaponState } from '../../shared/combat/Weapon';
 import type { TrainingArena } from '../practice/TrainingArena';
@@ -79,7 +79,7 @@ export interface HarnessPins {
   coarseLevel?: 'forced';
 }
 export type ProbeWorld = World & {
-  animals: AnimalManager; weapons: EquipmentService; hud: HUD; audio: Audio; music: Music; arena: TrainingArena | null;
+  animals: RowBodiesView; weapons: EquipmentService; hud: HUD; audio: Audio; music: Music; arena: TrainingArena | null;
   interactables: readonly Interactable[];
 } & Record<string, unknown>;
 export interface ProbePose { name?: string; x?: number; y?: number; z?: number; yaw?: number; pitch?: number }

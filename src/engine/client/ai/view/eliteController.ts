@@ -7,7 +7,7 @@ import { DiverBrain, type WindDiverSpec } from '../../../shared/ai/diver';
 import type { EliteBar } from '../../ui/EliteBar';
 import * as THREE from 'three';
 import type { Game } from '../../core/Game';
-import type { AnimalManager } from '../../../server/entities/AnimalManager';
+import type { RowBodiesView } from '../../entities/RowBodies';
 import type { Animal } from '../../entities/AnimalView';
 import type { Player } from '../../player/Player';
 import { app } from '../../app/runtime';
@@ -36,7 +36,7 @@ export type NativeEliteEffect = { readonly kind: 'feed'; readonly id: string; re
 /** Existing entered services, separate from the row. No author factory or
  * lifecycle override is accepted. The owner may attach a real pack after spawn. */
 export interface NativeEliteServices {
-  readonly game: Game; readonly animals: AnimalManager; readonly player: Player; readonly lifecycle: { readonly signature: (id: string) => void }; readonly bar: EliteBar;
+  readonly game: Game; readonly animals: RowBodiesView; readonly player: Player; readonly lifecycle: { readonly signature: (id: string) => void }; readonly bar: EliteBar;
   readonly ledges: readonly PouncerLedge[]; readonly rock: { readonly x: number; readonly z: number; readonly top: number };
 }
 export interface NativeEliteObservation {

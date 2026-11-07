@@ -45,8 +45,7 @@ import { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import { authoredTargets } from '@wildshard/engine/combat/targets';
 import { viewmodelTexturesReady } from '@wildshard/engine/combat/view/ranged';
 import { AnimalHerdView } from '@wildshard/engine/entities/AnimalHerdView';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
-import { pageSim } from '../shardfile/clientMoverOwners';
+import { RowBodies } from '@wildshard/engine/entities/RowBodies';
 import { listShardModels } from '@wildshard/engine/models/roster';
 import { LockOnSystem } from '@wildshard/engine/player/LockOnTarget';
 import { TouchControls } from '@wildshard/engine/player/TouchControls';
@@ -54,17 +53,13 @@ import { HUD } from '@wildshard/engine/ui/HUD';
 import { setting, type getMusicStyle } from '@wildshard/engine/ui/Settings';
 import { hudAdapters } from '@wildshard/engine/ui/hudAdapters';
 import { bindClockSettings } from './clockSettings';
-import { followRing } from '../shardfile/tileDriver';
 
-async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) : Promise<{ animals: AnimalManager; getArena: () => Arena | null; prepareArena: () => Promise<Arena>; swimArms: SwimArms | undefined; crossbow: Weapon; rifle: Weapon | null; longbow: Weapon | null; weapons: EquipmentService; enteredEquipment: DeclarationEnteredEquipment | undefined; lockSys: LockOnSystem; touchControls: TouchControls; hud: HUD; world: World & { chunk: ShardManifest; }; game: Game; sky: SkyRig; player: Player; forest: Forest; params: URLSearchParams; chunk: ShardManifest; registry: WorldRegistry; fragileBoot: boolean; failGpuBoot: (reason: string, stack?: string) => void; onBootContextLost: (event: Event) => void; nolock: boolean; viewer: () => Vector3; edgeDressing: { boundary: Boundary; water: Water | null; streams: null; horizon: Horizon; horizonReady: Promise<void>; }; boundary: Boundary; water: Water | null; horizon: Horizon; interactables: Interactable[]; props: null; prepareAudio: () => { audio: Audio; music: Music; }; disableBootGpuGuard: () => void; level: LevelContext | undefined; loading: Loading; audioProfile: LevelAudioProfile | undefined; files: Readonly<Record<"sky" | "baked" | "terrain" | "trees" | "physics" | "cabins" | "props" | "art" | "music" | "sfx", readonly string[]>>; plan: Plan<"audio" | "sky" | "terrain" | "physics" | "cabins" | "props" | "renderer" | "cards" | "forest" | "edge" | "grass" | "animals" | "weapon" | "assembly" | "menu" | "shaders" | "firstFrame">; step: StepRunner; menuLoad: Preload<void> | null; audioLoad: Preload<AudioBanks> | null; deferredAudio: (Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks>; }) | null; fieldModels: Promise<(ctx: FieldModelsContext) => void> | null; manifest: ShardManifest; slug: string; stage: LoadStage; boot: StagedBoot; session: SessionState; kit: KitPorts; product: ShardProduct; }> {
+async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) : Promise<{ animals: RowBodies; getArena: () => Arena | null; prepareArena: () => Promise<Arena>; swimArms: SwimArms | undefined; crossbow: Weapon; rifle: Weapon | null; longbow: Weapon | null; weapons: EquipmentService; enteredEquipment: DeclarationEnteredEquipment | undefined; lockSys: LockOnSystem; touchControls: TouchControls; hud: HUD; world: World & { chunk: ShardManifest; }; game: Game; sky: SkyRig; player: Player; forest: Forest; params: URLSearchParams; chunk: ShardManifest; registry: WorldRegistry; fragileBoot: boolean; failGpuBoot: (reason: string, stack?: string) => void; onBootContextLost: (event: Event) => void; nolock: boolean; viewer: () => Vector3; edgeDressing: { boundary: Boundary; water: Water | null; streams: null; horizon: Horizon; horizonReady: Promise<void>; }; boundary: Boundary; water: Water | null; horizon: Horizon; interactables: Interactable[]; props: null; prepareAudio: () => { audio: Audio; music: Music; }; disableBootGpuGuard: () => void; level: LevelContext | undefined; loading: Loading; audioProfile: LevelAudioProfile | undefined; files: Readonly<Record<"sky" | "baked" | "terrain" | "trees" | "physics" | "cabins" | "props" | "art" | "music" | "sfx", readonly string[]>>; plan: Plan<"audio" | "sky" | "terrain" | "physics" | "cabins" | "props" | "renderer" | "cards" | "forest" | "edge" | "grass" | "animals" | "weapon" | "assembly" | "menu" | "shaders" | "firstFrame">; step: StepRunner; menuLoad: Preload<void> | null; audioLoad: Preload<AudioBanks> | null; deferredAudio: (Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks>; }) | null; fieldModels: Promise<(ctx: FieldModelsContext) => void> | null; manifest: ShardManifest; slug: string; stage: LoadStage; boot: StagedBoot; session: SessionState; kit: KitPorts; product: ShardProduct; }> {
   const { kit, stage, boot, step, fieldModels, world, game, sky, player, forest, chunk, registry, nolock, product } = ctx;
 
 
   const animals = await step('animals', async (p) => {
-    const herds = pageSim.animalManager(new AnimalHerdView(game.rootScene, sky), app, forest);
-    herds.herdless = true;
-    const a = await herds.buildAsync(macrotask); // a task per herd, not one long one
-    a.setResidency(followRing()); // T6: the animals outside the player's 5 x 5 sleep
+    const a = await new RowBodies(new AnimalHerdView(game.rootScene, sky), app).build(macrotask); // a task per species, not one long one
     p.detail(`${a.animals.length} animals`);
     return a;
   });

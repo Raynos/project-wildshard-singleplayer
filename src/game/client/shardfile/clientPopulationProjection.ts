@@ -1,5 +1,5 @@
 import type { ShardContext } from '../plugin/context';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import { PopulationProjection } from '../population/projection';
 
 /** Client-only composition at the existing animals-built/world-update boundary.
@@ -9,7 +9,7 @@ export function installPopulationProjection(ctx: ShardContext, input: unknown): 
   if (shell === undefined || world === undefined || world === null) throw new Error('Population projection requires its world');
   const previousReady = shell.hooks.animalsBuilt, previousUpdate = shell.hooks.worldUpdate;
   let projection: PopulationProjection | null = null;
-  const ready = async (animals: AnimalManager): Promise<void> => {
+  const ready = async (animals: RowBodiesView): Promise<void> => {
     await previousReady?.(animals);
     projection = await new PopulationProjection(animals, world.game.scene, world.sky, ctx.scope, input, world.game.rootScene).build();
     shell.objects['enemies'] = projection;

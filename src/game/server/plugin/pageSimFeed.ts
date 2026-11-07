@@ -1,6 +1,5 @@
 import { installDeclaredMovers } from './moverInstall';
 import { bindMeleeContacts, declaredItemScriptBindings, startMeleeSecondary } from './simulation';
-import { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { lendPageGrass, wildEnv } from '../population/pageGroups';
 import { bindCrowdGuard, crowdGuardProjection } from '../ambient/crowdPage';
 import { admitSpeciesProgram } from './brain';
@@ -34,8 +33,6 @@ export interface PageSimFeed {
   /** A held blade's contacts and its secondary, which the page's weapons still settle themselves. */
   readonly bindMeleeContacts: typeof bindMeleeContacts;
   readonly startMeleeSecondary: typeof startMeleeSecondary;
-  /** The manager a regional world's creatures stand in. */
-  readonly animalManager: (...args: ConstructorParameters<typeof AnimalManager>) => AnimalManager;
 }
 /** The page sim's own owners. */
 export const pageSimFeed: PageSimFeed = {
@@ -45,5 +42,4 @@ export const pageSimFeed: PageSimFeed = {
   wild: wildEnv,
   lendPageGrass, crowdGuardProjection, bindCrowdGuard,
   admitSpeciesProgram, bindMeleeContacts, startMeleeSecondary,
-  animalManager: (...args) => new AnimalManager(...args),
 };

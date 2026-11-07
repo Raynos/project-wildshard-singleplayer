@@ -9,7 +9,7 @@ import type { PatrolEncounterView } from './boss/encounterView';
 import type { PageWildlife } from '../server/population/wildlife';
 import type { PageWildEnvironment } from '../server/population/pageGroups';
 import type { AdventurePersistence } from '../shared/quest/persistence';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { Player } from '@wildshard/engine/player/Player';
 import { StrikeRunner } from '@wildshard/engine/ai/strikes';
@@ -330,7 +330,7 @@ export type EliteOutputController = { readonly kind: 'keeper'; readonly owner: N
  * map or opaque shard object is admitted. Construction and entered may be siblings. */
 export interface EliteDeclaredEntryOwners<T extends CrowdTargets = CrowdTargets> {
   readonly construction: Scope; readonly entered: EliteEnteredOwners;
-  readonly game: Game; readonly player: Player; readonly body: string; readonly animals: AnimalManager;
+  readonly game: Game; readonly player: Player; readonly body: string; readonly animals: RowBodiesView;
   readonly models: ReadonlyMap<string, THREE.Object3D>;
   readonly program: { readonly id: string; readonly scope: Scope; readonly value: ReturnProgram };
   readonly controllers?: readonly BorrowedElite[];
@@ -346,7 +346,7 @@ export interface ElitePageOutputLoans<T extends CrowdTargets = CrowdTargets> {
   readonly construction: Scope; readonly entered: Scope; readonly game: Game;
   readonly controllers: readonly EliteOutputController[];
   readonly patrol: PatrolEncounterView | null; readonly wildlife: PageWildlife<T> | null;
-  readonly animals: AnimalManager; readonly environment: PageWildEnvironment;
+  readonly animals: RowBodiesView; readonly environment: PageWildEnvironment;
   readonly player: Player; readonly hud: HUD; readonly audio: Audio;
   readonly persistence: AdventurePersistence; readonly contacts: StrikeRunner;
   readonly strikes: readonly { readonly amount: number; readonly strike: StrikeData }[];

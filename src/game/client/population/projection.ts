@@ -11,7 +11,7 @@ import { SEED } from '@wildshard/engine/core/config';
 import { TIER } from '@wildshard/engine/core/tier';
 import { worldTime } from '@wildshard/engine/core/time';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import { ParticlePool } from '@wildshard/engine/fx/ParticlePool';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
@@ -38,7 +38,7 @@ export class PopulationProjection {
   private readonly matrix = new THREE.Matrix4(); private readonly scale = new THREE.Vector3(1, 1, 1);
   /** `lightScene`: the scene whose light pool lends this projection's lights (the page's root scene): a light count that
    *  leaves with a region recompiles every lit program in view (B7, LightPool) */
-  constructor(private readonly animals: AnimalManager, private readonly scene: THREE.Scene, sky: SkyRig, private readonly scope: Scope, input: unknown,
+  constructor(private readonly animals: RowBodiesView, private readonly scene: THREE.Scene, sky: SkyRig, private readonly scope: Scope, input: unknown,
     private readonly lightScene: THREE.Scene = scene) {
     this.rows = v.parse(PopulationProjectionSchema, input); const row = this.rows;
     if (row.seed !== SEED) throw new Error('Population projection requires its authored seed');

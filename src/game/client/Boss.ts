@@ -4,7 +4,7 @@ import type { EncounterReward } from '@wildshard/engine/sim/encounterRows';
 import { ITEM_PICKUP_HOVER } from '@wildshard/engine/world/interact/pickup';
 import { wirePage } from './shardfile/wirePage';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { BossBrain, easeViewToward, type BossScript } from '@wildshard/engine/ai/BossBrain';
 import { app } from '@wildshard/engine/app/runtime';
@@ -37,7 +37,7 @@ export function pageCombatSession(scope: Scope, id: string): PageCombatSession {
  * Content supplies ids and policy values; callbacks, renderers and save owners
  * are never author inputs. Existing encounters retain their own update phase. */
 export class PageCombatSession {
-  readonly context: { game: Game; sky: SkyRig; player: Player; animals: AnimalManager; god: boolean; reach: (actor: Animal, target: { x: number; y: number; z: number; }) => boolean; hurt: (actor: Animal, amount: number, throughWalls?: boolean) => void; stun: (seconds: number) => void; trauma: (amount: number) => void; sound: (name: string, at: THREE.Vector3) => void; shot: (name: string, at: THREE.Vector3) => void; toast: (text: string) => void; feed: (text: string) => void; addItem: (id: ItemId, count?: number) => void; ownSkin: (id: SkinId) => void; dusk: () => number; night: () => number; };
+  readonly context: { game: Game; sky: SkyRig; player: Player; animals: RowBodiesView; god: boolean; reach: (actor: Animal, target: { x: number; y: number; z: number; }) => boolean; hurt: (actor: Animal, amount: number, throughWalls?: boolean) => void; stun: (seconds: number) => void; trauma: (amount: number) => void; sound: (name: string, at: THREE.Vector3) => void; shot: (name: string, at: THREE.Vector3) => void; toast: (text: string) => void; feed: (text: string) => void; addItem: (id: ItemId, count?: number) => void; ownSkin: (id: SkinId) => void; dusk: () => number; night: () => number; };
   private readonly legsOwner;
   private readonly equipment;
   private readonly rows;

@@ -10,7 +10,6 @@ import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Music } from '@wildshard/engine/audio/Music';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { TitleArrival } from '@wildshard/engine/boot/titleArrival';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { TrainingArena } from '@wildshard/engine/practice/TrainingArena';
 
 import type { Weapon } from '@wildshard/engine/combat/Weapon';
@@ -108,6 +107,7 @@ import { PlayerHurt } from '@wildshard/engine/ui/playerHurt';
 import { onReview, queuedCount, quickNote } from '@wildshard/engine/ui/review';
 import { installBounds } from '@wildshard/engine/world/bounds';
 import { gridCells, gridHomeSim, pageMode } from '../plugin/context';
+import type { RowBodies } from '@wildshard/engine/entities/RowBodies';
 import { whenControl } from '@wildshard/engine/boot/prefetch';
 import { installMemoryWarning, residentOverLimit } from '../grid/memoryWarning';
 import { ACCENTS } from '@wildshard/format/accent';
@@ -126,7 +126,7 @@ const GRID_SPAWN_SETTLE_MS = 3000;
 /** …or for the player to move this far from where control began (m): a walk or a ride opens it at once */
 const GRID_SPAWN_SETTLE_METRES = 2;
 
-async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promise<{ grid: DeclarationGridSession | null; gridLive: LiveGridSession | null; leakPhysics: Physics; perf: Perf; audio: Audio; music: Music; playerHealth: PlayerHealth; exploring: () => boolean; hands: Hands; windupWarn: WindupWarn<Animal> | null; resuming: boolean; continuingGridEntry: boolean; arrival: TitleArrival | null; menuFirst: boolean; enter: () => void; getPlayground: () => Playground | null; minimap: Minimap; startExplore: (() => void) | undefined; animals: AnimalManager; getArena: () => TrainingArena | null; prepareArena: () => Promise<TrainingArena>; swimArms: SwimArms | undefined; crossbow: Weapon; rifle: Weapon | null; longbow: Weapon | null; weapons: EquipmentService; enteredEquipment: EnteredEquipment | undefined; lockSys: LockOnSystem; touchControls: TouchControls; hud: HUD; world: World & { chunk: ShardManifest; }; game: Game; sky: SkyRig; player: Player; forest: Forest; params: URLSearchParams; chunk: ShardManifest; registry: WorldRegistry; fragileBoot: boolean; failGpuBoot: (reason: string, stack?: string) => void; onBootContextLost: (event: Event) => void; nolock: boolean; viewer: () => THREE.Vector3; edgeDressing: { boundary: Boundary; water: Water | null; streams: null; horizon: Horizon; horizonReady: Promise<void>; }; boundary: Boundary; water: Water | null; horizon: Horizon; interactables: Interactable[]; props: null; prepareAudio: () => { audio: Audio; music: Music; }; disableBootGpuGuard: () => void; level: LevelContext | undefined; loading: Loading; audioProfile: LevelAudioProfile | undefined; files: Readonly<Record<"sky" | "baked" | "terrain" | "trees" | "physics" | "cabins" | "props" | "art" | "music" | "sfx", readonly string[]>>; plan: Plan<"audio" | "sky" | "terrain" | "physics" | "cabins" | "props" | "renderer" | "cards" | "forest" | "edge" | "grass" | "animals" | "weapon" | "assembly" | "menu" | "shaders" | "firstFrame">; step: StepRunner; menuLoad: Preload<void> | null; audioLoad: Preload<AudioBanks> | null; deferredAudio: (Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks>; }) | null; fieldModels: Promise<(ctx: FieldModelsContext) => void> | null; manifest: ShardManifest; slug: string; stage: LoadStage; boot: StagedBoot; session: SessionState; kit: KitPorts; product: ShardProduct; }> {
+async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promise<{ grid: DeclarationGridSession | null; gridLive: LiveGridSession | null; leakPhysics: Physics; perf: Perf; audio: Audio; music: Music; playerHealth: PlayerHealth; exploring: () => boolean; hands: Hands; windupWarn: WindupWarn<Animal> | null; resuming: boolean; continuingGridEntry: boolean; arrival: TitleArrival | null; menuFirst: boolean; enter: () => void; getPlayground: () => Playground | null; minimap: Minimap; startExplore: (() => void) | undefined; animals: RowBodies; getArena: () => TrainingArena | null; prepareArena: () => Promise<TrainingArena>; swimArms: SwimArms | undefined; crossbow: Weapon; rifle: Weapon | null; longbow: Weapon | null; weapons: EquipmentService; enteredEquipment: EnteredEquipment | undefined; lockSys: LockOnSystem; touchControls: TouchControls; hud: HUD; world: World & { chunk: ShardManifest; }; game: Game; sky: SkyRig; player: Player; forest: Forest; params: URLSearchParams; chunk: ShardManifest; registry: WorldRegistry; fragileBoot: boolean; failGpuBoot: (reason: string, stack?: string) => void; onBootContextLost: (event: Event) => void; nolock: boolean; viewer: () => THREE.Vector3; edgeDressing: { boundary: Boundary; water: Water | null; streams: null; horizon: Horizon; horizonReady: Promise<void>; }; boundary: Boundary; water: Water | null; horizon: Horizon; interactables: Interactable[]; props: null; prepareAudio: () => { audio: Audio; music: Music; }; disableBootGpuGuard: () => void; level: LevelContext | undefined; loading: Loading; audioProfile: LevelAudioProfile | undefined; files: Readonly<Record<"sky" | "baked" | "terrain" | "trees" | "physics" | "cabins" | "props" | "art" | "music" | "sfx", readonly string[]>>; plan: Plan<"audio" | "sky" | "terrain" | "physics" | "cabins" | "props" | "renderer" | "cards" | "forest" | "edge" | "grass" | "animals" | "weapon" | "assembly" | "menu" | "shaders" | "firstFrame">; step: StepRunner; menuLoad: Preload<void> | null; audioLoad: Preload<AudioBanks> | null; deferredAudio: (Preload<void> & { readonly style: ReturnType<typeof getMusicStyle>; decode: () => Promise<AudioBanks>; }) | null; fieldModels: Promise<(ctx: FieldModelsContext) => void> | null; manifest: ShardManifest; slug: string; stage: LoadStage; boot: StagedBoot; session: SessionState; kit: KitPorts; product: ShardProduct; }> {
   const { manifest, boot, session, kit, files, step, menuLoad, world, game, sky, player, params, chunk, registry, nolock, viewer, boundary, horizon, prepareAudio, animals, getArena, prepareArena, swimArms, crossbow, rifle, longbow, weapons, lockSys, touchControls, hud } = ctx;
   const leakPhysics = world.physics; // The borrowed page world outlives temporary active frames.
   // G628 M4: a shard page's Developer warning chip; a grid page's resident over-limit is a line of its memory strip instead,
@@ -390,7 +390,6 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
     arc: (x, z, at, yaw, damage) => hurtArc.hit(x, z, at, yaw, damage),
     trauma: (value) => CameraFX.for(game).addTrauma(value),
   });
-  animals.onCharge = (a, raw) => playerHurt.creature(a, raw);
   animals.onSound = (name, pos) => { audio.animal(name, pos, player.position, player.yaw); };
   // E297 fight rules (Driftwood): an amber edge chevron toward an enemy winding up where you can't see it (src/engine/client/ui/WindupWarn.ts);
   // chained after the wind-up's sound cue
@@ -697,7 +696,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
     const homeActive = grid === null || gridLive === null;
     aimList.length = 0;
     if (homeActive) {
-      animals.update(dt, t, player.position, player.sprinting, viewer(), game.camera);
+      animals.update(dt, t, player.position, viewer(), game.camera);
       aimList.push(...app.events.ask('combat.aimTargets', animals.animals.filter((a) => a !== player.mountedOn)));
     } else if (gridLive !== null) {
       aimList.push(...app.events.ask('combat.aimTargets', gridLive.aimAnimals().filter((a) => a !== player.mountedOn)));

@@ -12,7 +12,7 @@ import * as THREE from 'three';
 import * as v from 'valibot';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import type { HerdBrain } from '@wildshard/engine/ai/herd';
 import type { InputService } from '@wildshard/engine/input/InputService';
 import type { LevelContext } from '@wildshard/engine/level/context';
@@ -63,7 +63,7 @@ export interface PageTamingOwner {
 }
 /** Client-only native effect adapter. Placement, persisted bond values, labels and
  * upgrade appearance are rows; the existing engine actors own their real rigs. */
-export function createPageTaming(ctx: LevelContext, player: Player, animals: AnimalManager, mount: Mount, rows: PageTamingRows, owners: PageRidingOwners): PageTamingOwner {
+export function createPageTaming(ctx: LevelContext, player: Player, animals: RowBodiesView, mount: Mount, rows: PageTamingRows, owners: PageRidingOwners): PageTamingOwner {
   const profile = v.parse(PageTamingBindingSchema, rows.binding);
   const colour = v.parse(v.tuple([v.number(), v.number(), v.number()]), rows.adopted.upgrade.colour);
   const herds = ridingHerds(owners, rows.herds), wind = owners.wind;
@@ -130,7 +130,7 @@ export class RidingActions {
   private readonly rules: ReturnProgram;
   private readonly herds: readonly HerdBrain<Animal>[];
   constructor(private readonly ctx: LevelContext, private readonly mount: Mount, private readonly taming: PageTamingOwner,
-    private readonly player: Player, private readonly camera: THREE.PerspectiveCamera, private readonly animals: AnimalManager, private readonly rows: RidingActionRows, owners: PageRidingOwners) {
+    private readonly player: Player, private readonly camera: THREE.PerspectiveCamera, private readonly animals: RowBodiesView, private readonly rows: RidingActionRows, owners: PageRidingOwners) {
     this.herds = ridingHerds(owners, rows.herds);
     this.rules = ReturnProgram.page(rows.program, ctx.scope);
     this.hud = new RideHUD(ctx, camera, { tagRange: rows.tagRange, tagHeight: rows.tagHeight });
@@ -226,7 +226,7 @@ export function respawnPageMounted(ctx: LevelContext, position: THREE.Vector3, y
     if (mount.mount(actor)) { mount.teleport(position.x,position.z,yaw+row.yaw); mount.steed = row.steed; mount.winded = false; return; }
   }
 }
-export function createPageRiding(ctx: LevelContext, player: Player, animals: AnimalManager, camera: THREE.PerspectiveCamera, rows: PageRidingRows, owners: PageRidingOwners): PageRidingSession {
+export function createPageRiding(ctx: LevelContext, player: Player, animals: RowBodiesView, camera: THREE.PerspectiveCamera, rows: PageRidingRows, owners: PageRidingOwners): PageRidingSession {
   ridingHerds(owners, rows.taming.herds); ridingHerds(owners, rows.actions.herds);
   const controls=rows.controls===undefined?undefined:v.parse(RidingControlsSchema,rows.controls);
   if(controls!==undefined && rows.taming.breakingContext!==undefined && controls.breaking!==rows.taming.breakingContext)throw new Error('Riding breaking context mismatch');

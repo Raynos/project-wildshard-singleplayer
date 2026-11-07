@@ -9,7 +9,7 @@ import { lockOn } from '@wildshard/engine/player/AimTargets';
 import { playerModes, type PredictedRide } from '@wildshard/engine/player/modes';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import type { MountProfile, MountActorRef } from '@wildshard/format/riding';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import type { Player } from '@wildshard/engine/player/Player';
 import { inChunk, waterLevel } from '@wildshard/engine/world/Heightfield';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
@@ -88,7 +88,7 @@ export class Mount extends MountedBody {
     adopt: words => { this.restoreRide(words, 0); } };
   /** Present on a wire: `Player` reads the fixed step's controls off the command through this. */
   get predicted(): PredictedRide | undefined { return this.wire === null ? undefined : this.saddle; }
-  constructor(private readonly ctx: LevelContext, player: Player, private readonly animals: AnimalManager, private readonly opts: MountProfile) {
+  constructor(private readonly ctx: LevelContext, player: Player, private readonly animals: RowBodiesView, private readonly opts: MountProfile) {
     super(opts.speeds);
     this.companions = new MountCompanions(opts);
     enterMount(ctx.scope, player, this);

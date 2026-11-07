@@ -4,7 +4,7 @@ import type { ShardContext } from "../plugin/context";
 import { installEnteredRuntimeService, retainsRuntimeServices } from "../shard/retainedHooks";
 import { app } from '@wildshard/engine/app/runtime';
 import { perfLap } from '@wildshard/engine/core/perfLap';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import { lineOfSight } from '@wildshard/engine/physics/query';
 import type { HUD } from '@wildshard/engine/ui/HUD';
 import { hudSlots } from '@wildshard/engine/ui/hudSlots';
@@ -39,7 +39,7 @@ export interface CompendiumHost {
   camera: THREE.Camera;
   hud: HUD;
   menu: GameMenu;
-  animals: AnimalManager;
+  animals: RowBodiesView;
   /** the shard's cabins (the wall hangs in one) — null on a shard without */
   cabins: { roots: readonly THREE.Object3D[] } | null;
   /** main.ts's prompt list ("[E] …") */

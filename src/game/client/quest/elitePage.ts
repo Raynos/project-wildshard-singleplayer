@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { Game } from '@wildshard/engine/core/Game';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { HUD } from '@wildshard/engine/ui/HUD';
@@ -42,12 +42,12 @@ function heardTell(name: string, args: readonly number[]): HeardTell | null {
 /** Metres from a blow's victim a page takes it for its own: the row says who by where, and a shake is one body's. */
 const WHO_WAS_HIT = 2;
 /** The row body that stands at a server's point, whose head a cue's puff leaves from. */
-function rowBodyAt(animals: AnimalManager, x: number, z: number): Animal | null {
+function rowBodyAt(animals: RowBodiesView, x: number, z: number): Animal | null {
   let best: Animal | null = null, nearest = 1;
   for (const body of animals.animals) { const away = Math.hypot(body.position.x - x, body.position.z - z); if (away < nearest) { best = body; nearest = away; } }
   return best;
 }
-export function installEliteFeaturePage(game: Game, animals: AnimalManager, player: Player, elites: Elites,
+export function installEliteFeaturePage(game: Game, animals: RowBodiesView, player: Player, elites: Elites,
   models: ReadonlyMap<string, THREE.Object3D>, input: unknown, hud: HUD): {
   readonly elites: Elites; readonly update: (dt: number, t: number) => void; readonly isElite: (body: Animal) => boolean;
 } {

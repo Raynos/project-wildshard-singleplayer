@@ -109,10 +109,6 @@ function installWeatherPresentation(ctx: ShardContext, world: ShardWorld, skies:
   const answers = (scope: Scope): void => {
     if (weather.rows.wetProjectile !== undefined) { const wet = weather.rows.wetProjectile;
       game.app.events.answer('projectile.modify', (input) => game.app.levelScope === game.levelScope ? (input.ammo.wet === undefined ? input : { ...input, ...wetFlight(input, wet, weather.rain) }) : input, scope); }
-    if (shelter !== null) game.app.events.answer('creature.wander-goal', (query) => {
-      if (game.app.levelScope !== game.levelScope) return query;
-      return { ...query, goal: shelter.wanderGoal(query.herd, weather.rain) ?? query.goal };
-    }, scope);
   };
   if (entered === undefined) answers(ctx.scope);
   else installEnteredRuntimeService(entered, (scope) => {

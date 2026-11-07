@@ -61,7 +61,6 @@ import { compileOffscreenPass } from '@wildshard/engine/render/precompile';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import { addTerrain, resampleTerrain } from '@wildshard/engine/physics/terrain';
 import { applySkin, type SkinDef } from '@wildshard/engine/player/Skins';
-import { pageSim } from '../shardfile/clientMoverOwners';
 import { SkyRig } from '@wildshard/engine/world/skyRig';
 import { loadCarriedLUT, loadLUT } from '@wildshard/engine/boot/bakedApi';
 import { Terrain } from '@wildshard/engine/world/Terrain';
@@ -70,6 +69,7 @@ import { Forest } from '@wildshard/engine/world/forest/Forest';
 import { WaterBodies } from '@wildshard/engine/world/water/body';
 import { CHUNK_SIZE, TERRAIN_RES } from '@wildshard/engine/core/config';
 import { RegionShell, type RegionLevel } from './regionShell';
+import { RowBodies } from '@wildshard/engine/entities/RowBodies';
 import { buildYield, workSlice } from '@wildshard/engine/core/workSlice';
 import { heightAt } from '@wildshard/engine/world/Heightfield';
 import { loadBakedTerrain } from '@wildshard/engine/world/BakedTerrain';
@@ -98,7 +98,7 @@ import { clientViews } from '../shardfile/clientViews';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { shardfileLook } from '../shardfile/look';
 import { findShard } from '../shard/registry';
-import { followRing, tileRing } from '../shardfile/tileDriver';
+import { tileRing } from '../shardfile/tileDriver';
 
 /** Page-root ports; every default is the standalone behaviour, the live session supplies the cell's own installs. */
 export interface RegionalWorldPorts {
@@ -517,11 +517,9 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
         },
         afterKit: async () => {
           if (resident.disposed) throw new Error('Regional world left before its creatures');
-          const animals = frame.run(app, () => pageSim.animalManager(new AnimalHerdView(scene, sky, { physics: host.physics }), app, forest, host.physics));
-          animals.herdless = true;
-          await animals.buildAsync(ports.pause, frame);
+          const animals = frame.run(app, () => new RowBodies(new AnimalHerdView(scene, sky, { physics: host.physics }), app, host.physics));
+          await animals.build(ports.pause, frame);
           if (left()) throw new Error('Regional world left while building creatures');
-          animals.setResidency(followRing()); // T6: the animals outside the player's 5 x 5 sleep
           return { animals, wearSkin: (equipment: EquipmentService, skin: SkinDef): void => {
             const model = equipment.get(skin.weapon).model;
             if (model instanceof Group) applySkin(model, skin, sky);

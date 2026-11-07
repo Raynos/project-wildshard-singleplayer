@@ -16,7 +16,7 @@ import { NetPlayer, type NetWeapons } from '@wildshard/engine/net/netPlayer';
 import type { PredictedRow } from '@wildshard/engine/net/predictionWorld';
 import { ANIMAL_CLASS } from '@wildshard/engine/net/netSchemas';
 import type { Physics } from '@wildshard/engine/physics/Physics';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { ANIMAL_STATES } from '@wildshard/engine/entities/animalStates';
 import { creatureBodyShape } from '@wildshard/engine/sim/bands';
@@ -41,7 +41,7 @@ import type { EncounterRow } from '../boss/barFeed';
 import { wirePage, type DayFollower } from './wirePage';
 import { OWNED_ROW } from '../../shared/loot/ownedRows';
 
-type Creatures = Pick<AnimalManager, 'animals' | 'spawn' | 'retire'>;
+type Creatures = Pick<RowBodiesView, 'animals' | 'spawn' | 'retire'>;
 /** What a grid page lends: its crossing follows the server, and its creatures are the entered cell's. */
 export interface WorkerClientGrid {
   readonly cells: readonly { readonly instance: string; readonly slug: string }[];

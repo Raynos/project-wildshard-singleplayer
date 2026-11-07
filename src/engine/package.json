@@ -437,6 +437,7 @@
     "./world/windField": "./shared/world/windField.ts",
     "./saves/view/storage": "./client/saves/view/storage.ts",
     "./entities/AnimalView": "./client/entities/AnimalView.ts",
+    "./entities/RowBodies": "./client/entities/RowBodies.ts",
     "./entities/AnimalSim": "./shared/entities/AnimalSim.ts",
     "./entities/animalStates": "./shared/entities/animalStates.ts",
     "./entities/killHeight": "./server/entities/killHeight.ts",

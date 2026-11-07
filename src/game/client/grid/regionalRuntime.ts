@@ -15,7 +15,7 @@ import { createLevelInstallation } from '@wildshard/engine/level/installation';
 import { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import { startViewmodelTextures } from '@wildshard/engine/combat/view/ranged';
 import { authoredTargets } from '@wildshard/engine/combat/targets';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { RowBodies, RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
 import type { PlayerFrameQueries } from '@wildshard/engine/player/Player';
 import { gridCreatureConstraint } from '@wildshard/engine/physics/gridBorders';
@@ -120,9 +120,9 @@ export interface PreparedRegionalRuntime {
   /** Flush authored runtime progress and its admitted continuation; false keeps the traveller in the source frame. */
   readonly checkpoint: () => boolean;
   /** The actual retained herd; callers expose it to aiming only while this runtime is ready and entered. */
-  readonly aimAnimals: () => AnimalManager['animals'];
+  readonly aimAnimals: () => RowBodiesView['animals'];
   /** Its creature manager once built, where a row is drawn (J130). */
-  readonly animals: () => AnimalManager | null;
+  readonly animals: () => RowBodiesView | null;
   /** This cell's item rows: a ranged row names the server's slot for it. */
   readonly items: Shardfile['items']['rows'];
   /** Its own scoped runtime's interact prompts (frame-local; emptied on entry, ended with the runtime); callers scan them
@@ -132,7 +132,7 @@ export interface PreparedRegionalRuntime {
    *  per-frame matrix updates while it is hidden (they resume whenever it shows; sp-o5's freezeParkedMatrices). Once. */
   readonly park?: () => void;
   /** Actual actor-object provenance in the retained region; repeated IDs in parked neighbours grant no permission. */
-  readonly combatActors: () => ReadonlyMap<ReturnType<AnimalManager['animals'][number]['combatActor']>, Readonly<{ x: number; y: number; z: number }>>;
+  readonly combatActors: () => ReadonlyMap<ReturnType<RowBodiesView['animals'][number]['combatActor']>, Readonly<{ x: number; y: number; z: number }>>;
 }
 
 /** Trusted composition-root adapter. Whole-runtime admission precedes construction; entered services stay interior-only. */
@@ -156,7 +156,7 @@ export interface RegionalRuntimeFoundation {
   readonly afterWorld?: (context: ShardContext, world: ShardWorld) => Promise<void> | void;
   /** Build regional creatures after kit registrations; apply skins through the existing regional view adapter. */
   readonly afterKit: (context: ShardContext, world: ShardWorld) => Promise<{
-    animals: AnimalManager; wearSkin: (equipment: EquipmentService, skin: SkinDef) => void;
+    animals: RowBodies; wearSkin: (equipment: EquipmentService, skin: SkinDef) => void;
   }>;
   /** Real runtime continuation, local purse/ownership and encounter writes; refusal keeps the source frame. */
   readonly checkpoint: () => boolean;
@@ -408,7 +408,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
                 installEnteredRuntimeService(entered, entry => {
                   app.addContentSystem({ id: `grid.runtime.${request.cell.instance}.animals`, phase: 'update', run: (dt, t) => {
                     // Native hitboxes/controllers are lazy, but belong to the parked resident rather than this entry.
-                    withOwner(owner, () => regional.animals.update(dt, t, world.player.position, world.player.sprinting, world.player.position, viewFromRoot.of(world.game.camera)));
+                    withOwner(owner, () => regional.animals.update(dt, t, world.player.position, world.player.position, viewFromRoot.of(world.game.camera)));
                     localPlay?.progress.addPlay(dt);
                     weapons.update(dt, t);
                   } }, entry);

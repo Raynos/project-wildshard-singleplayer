@@ -14,7 +14,7 @@ import type { ModelSiteLayout, Placed } from '@wildshard/engine/models/place';
 import type { ForestWeatherRig } from '../../client/weather/forest';
 import type { FixedDraws } from '../../client/models/fixedDraws';
 import type { RopeDeckSite } from '../../client/models/ropeDeckSite';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import type { QuestSpawnResult } from '../../client/quest/chapterDirector';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -75,7 +75,7 @@ export interface EntryOwnerTypes {
   'ambient-draw': AmbientFlockDraw;
   collection: CollectionCatalogue;
   claims: HeldClaims;
-  animals: AnimalManager;
+  animals: RowBodiesView;
   sounds: DeclaredSoundBank;
   'quest-spawns': QuestSpawnResult;
   'painted-world': PainterlyWorld;

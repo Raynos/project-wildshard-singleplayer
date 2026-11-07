@@ -1,6 +1,6 @@
-import type { Physics } from '../../shared/physics/Physics';
-import { castRay } from '../../shared/physics/query';
-import { heightAt } from '../../shared/world/Heightfield';
+import type { Physics } from '../physics/Physics';
+import { castRay } from '../physics/query';
+import { heightAt } from '../world/Heightfield';
 
 /** WORLD floors only; the terrain heightfield retains its exact analytic wildlife sampling. */
 export function creatureFloor(physics: Physics | null, x: number, z: number, fromY: number): { y: number; structure: boolean } {
