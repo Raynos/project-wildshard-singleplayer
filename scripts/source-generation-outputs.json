@@ -17,9 +17,6 @@
       "src/shards/far-reach/data/movers.generated.json"
     ],
     "scripts/bake-astc6.mjs": [
-      "src/shards/far-reach/data/astc6.generated.json",
-      "src/shards/nalati-grasslands/data/astc6.generated.json",
-      "src/shards/nalati-grasslands/ktx2Overlay.generated.ts",
       "src/shards/pine-hollow/data/astc6.generated.json"
     ],
     "progress/shard-platform/sf48/edges.mjs": [

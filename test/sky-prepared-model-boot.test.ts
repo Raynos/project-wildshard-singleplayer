@@ -1,10 +1,11 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Verify public inputs and the original physics declaration.
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the public pack inputs before product publication.
 import { resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { bootFileList, bootSourceFiles, bootLateReads } from '../src/engine/client/boot/filePolicy';
 import { parseDiscoveryValues } from '@wildshard/format/discoveryValues';
+import { phoneOverlayRows } from '../src/sharddev/bootInventory';
 import { BOOT_FILES, BOOT_SOURCES, LATE_READS, skyProductBoot } from '../src/shards/far-reach/generators/bootInventory';
 import { BAKED_PIECES, BAKED_URLS, FAN_URL, SKY_CREATURE_RIGS, SKY_MESHES, MODEL_URLS } from '../src/shards/far-reach/generators/fileInventory';
 import { PREPARED_MODELS_URL } from '../src/shards/far-reach/generators/modelFrames';
@@ -70,7 +71,8 @@ test('public boot omits all owned geometry files across both tiers and texture p
 test('receipt-owned GPU discovery registers the admitted rig table for both tiers', async () => {
   const blobs = [...originalSkyRigs()].map(([name, bytes]) => nameBlob(`world/rigs/${name}`, 'glb', bytes));
   // S4 on Sky: the phone table the page registers carries the ASTC 6×6 overlay.
-  const astc: Record<string, string> = JSON.parse(readFileSync('src/shards/far-reach/data/astc6.generated.json', 'utf8')) as Record<string, string>;
+  const baked = readdirSync('public/assets/far-reach/astc6', { recursive: true, encoding: 'utf8' }).map(file => `/assets/far-reach/astc6/${file}`).filter(url => url.endsWith('.glb'));
+  const astc = phoneOverlayRows(GPU_FILES.phone, baked, 'far-reach');
   const expected = skyRigAssetSources(blobs.map(blob => blob.file), { phone: { ...GPU_FILES.phone, ...astc }, desktop: GPU_FILES.desktop }), boot = skyProductBoot(expected);
   expect(boot.ktx2).toEqual(expected.gpuFiles);
   expect(parseDiscoveryValues(boot).ktx2).toEqual(expected.gpuFiles);

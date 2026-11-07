@@ -51,7 +51,12 @@ export function desktopFence(reads: readonly string[], urls: readonly string[]):
  *  file under the same served URL, so its fence read keeps the identity it had. */
 function phoneOverlay(root: string, directory: string): Readonly<Record<string, string>> {
   const path = join(root, 'src/shards', directory, 'data/astc6.generated.json');
-  return existsSync(path) ? v.parse(v.record(v.string(), v.string()), JSON.parse(readFileSync(path, 'utf8'))) : {};
+  if (existsSync(path)) return v.parse(v.record(v.string(), v.string()), JSON.parse(readFileSync(path, 'utf8')));
+  // Any other shard's overlay is in its product: the discovery's phone table, the rows that name a 6×6 file.
+  const discovery = join(root, 'out', directory, 'mounts/shardfiles', directory, 'discovery.json');
+  if (!existsSync(discovery)) return {};
+  const table = v.safeParse(v.looseObject({native: v.looseObject({ktx2: v.looseObject({GPU_FILES: v.looseObject({phone: v.record(v.string(), v.string())})})})}), JSON.parse(readFileSync(discovery, 'utf8')));
+  return table.success ? Object.fromEntries(Object.entries(table.output.native.ktx2.GPU_FILES.phone).filter(([, url]) => url.includes('/astc6/'))) : {};
 }
 /** DL5: a shard's packs set, `src/shards/<slug>/packs-set.json` (`{"version": 1, "set": "fence"}`): 'fence' packs the
  *  default set (what the boot reads before control), absent packs the whole level. Anything else fails the build. */
