@@ -55,6 +55,8 @@ export class WirePage {
   led: () => boolean = () => false;
   /** A row's body on this page, by its handle. */
   rowBody: (body: number) => Animal | null = () => null;
+  /** A row's body on this page, by the name the server gave it. */
+  namedBody: (id: string) => Animal | null = () => null;
   private readonly dressers = new Map<object, (body: Animal) => void>();
   /** The head over a row's body, into `to`: what an elite's bar stands on. */
   readonly head: (body: number, to: Vector3) => boolean = (body, to) => this.heads(body, to);

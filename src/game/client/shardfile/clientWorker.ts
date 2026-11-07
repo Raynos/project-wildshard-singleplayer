@@ -244,7 +244,8 @@ async function startWorkerClient(ports: WorkerClientPorts, card: ReturnType<type
   scope.onDispose(() => { clawed?.useClaw(null); clawed = null; });
   wirePage.bind(client, id => { net.wire.interact(id); }, stop, (handle, to) => headOf(bodies.get(handle)?.body, to), act => { client.act(act); });
   wirePage.led = () => net.predictor.leading; wirePage.rowBody = handle => bodies.get(handle)?.body ?? null;
-  scope.onDispose(() => { wirePage.unbind(); wirePage.led = () => false; wirePage.rowBody = () => null; });
+  wirePage.namedBody = id => { for (const [handle, { body }] of bodies) if (client.entities.get(handle)?.id === id) return body; return null; };
+  scope.onDispose(() => { wirePage.unbind(); wirePage.led = () => false; wirePage.rowBody = () => null; wirePage.namedBody = () => null; });
   // J116: the lock's body by the server's name for it
   net.lockTarget = () => {
     if (lockOn.state !== 'locked' || lockOn.target === null) return undefined;

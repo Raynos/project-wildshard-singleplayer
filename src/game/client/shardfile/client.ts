@@ -36,7 +36,6 @@ import type { ItemFamily } from '@wildshard/engine/combat/itemFamilies';
 import type { EquipmentIcon } from '@wildshard/engine/combat/Equipment';
 import { installDeclaredAudio, type DeclaredAudioPorts } from '@wildshard/engine/audio/declared';
 import { TIER } from '@wildshard/engine/core/tier';
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { ShardContext } from "../plugin/context";
 import type { ShardPlayHost } from '../../shared/shard/runtime';
 import { installDeclaredPlumbing } from '../shard/declaredPlumbing';
@@ -200,7 +199,6 @@ export class ShardfileClient {
   private sim: ShardfileSimulation | undefined;
   private items: DeclaredItems | undefined;
   private itemModels: Awaited<ReturnType<typeof loadItemModels>> = new Map();
-  private readonly animals = new Map<string, Animal>();
   private readonly mode: DataMode;
   private readonly nativeFeatures: boolean;
   /** The declared state as authored: a runtime-bound host field keeps its default for the look's curves. */
@@ -352,8 +350,8 @@ export class ShardfileClient {
     const actor: Actor = { id: 'actor.player', get tags() { return player().tags; }, get state() { return player().state; }, get attributes() { return player().attributes; }, get alive() { return player().alive; }, applyDamage: (request) => player().applyDamage(request) };
     const itemBindings = pageSim.declaredItemScriptBindings(source.items, actor.id);
     const aimTarget = (target: CombatTarget): ItemTarget => {
-      const body = this.sim?.host.entities.get(target.actor.id);
-      return { ...target, aimPoint: target.position.clone().add(new Vector3(0, body === undefined ? 0.9 : body.dims.bodyY * body.scale, 0)) };
+      const { dims, scale = 1 } = target.target; // a row's body knows its own measures
+      return { ...target, aimPoint: target.position.clone().add(new Vector3(0, dims === undefined ? 0.9 : dims.bodyY * scale, 0)) };
     };
     runtime.buildEquipment = () => {
       // a retained (grid) runtime's item input contexts are entered-only (installPageItemContexts), so copies never collide
@@ -504,36 +502,26 @@ export class ShardfileClient {
     if (ownsDay) { ctx.app.registerDayCycle(day, ctx.scope); runtimeDays.add(day); }
     const weather = new Map(source.rows.weather.map((row) => [row.id, declaredWeather(row, sim.host.rng.stream('cosmetic').fork(row.id))]));
     for (const rule of source.ledger) if (!emitters.has(rule.origin.source)) emitters.set(rule.origin.source, installLedgerEmitter(sim.host, ledger, identity, rule.origin));
-    for (const [id, view] of this.animals) {
-      const core = sim.host.entities.get(id); if (core === undefined) throw new Error('Missing authoritative creature');
-      view.bindSimulation(core); view.mesh.scale.setScalar(core.scale);
-    }
     // SF25 / G66: presentation-only client scripts; live creatures keep their sim pose and clips, a frozen home (the
     // traveller in another frame) breathes and grazes on top of it. The lane sees copies; its sim is never stepped here.
     if (source.clientScripts.bindings.length > 0) {
       if (presentation === null) throw new Error('Missing client script presentation module');
       const { ClientScriptViews, driveClientScriptViews } = presentation;
-      const animals = this.animals, lane = sim.lane;
+      const lane = sim.lane;
       const scripts = createShardfileClientScripts(source, this.assets.retained, { actorId: health.id, ...(lane === undefined ? {} : { state: lane.world }),
-        observe: (target) => {
-          if (target.kind === 'particles') return { position: target.at, frozen: !simulationActive };
-          const p = target.kind === 'creature' ? animals.get(target.id)?.mesh.position : undefined;
-          return { position: p === undefined ? [0, 0, 0] : [p.x, p.y, p.z], frozen: !simulationActive };
-        },
+        observe: (target) => ({ position: target.kind === 'particles' ? target.at : [0, 0, 0], frozen: !simulationActive }),
         observeInto: (target, capture) => {
           // Particle rows retain their authored iterable alias until the bridge
           // copies it. A creature's former fresh tuple is a numeric snapshot.
           if (target.kind === 'particles') return { position: target.at, frozen: !simulationActive };
-          const p = target.kind === 'creature' ? animals.get(target.id)?.mesh.position : undefined;
-          captureClientScriptPosition(p, false, capture);
+          captureClientScriptPosition(undefined, false, capture);
           capture.frozen = !simulationActive; return undefined;
         } });
       ctx.scope.onDispose(() => { scripts.dispose(); });
       const targets = scripts.targets.map(({ entity, target }): ClientScriptViewTarget => {
-        const view = target.kind === 'creature' ? animals.get(target.id) : undefined, body = view === undefined ? 0 : (sim.host.entities.get(view.entityId)?.dims.bodyY ?? 0.5) * (view.mesh.scale.y || 1);
         const looks = source.clientScripts.bindings.find((b) => b.entity === entity)?.emitters.map((e) => ({ id: e.id, live: e.live, colour: e.colour, size: e.size, velocity: e.velocity, gravity: e.gravity })) ?? [];
-        return { entity, object: view?.mesh ?? null, emitters: looks,
-          anchor: (out) => (target.kind === 'particles' ? out.fromArray(target.at) : view === undefined ? out.set(0, 0, 0) : out.copy(view.mesh.position).setY(view.mesh.position.y + body * 1.6)) };
+        return { entity, object: null, emitters: looks,
+          anchor: (out) => (target.kind === 'particles' ? out.fromArray(target.at) : out.set(0, 0, 0)) };
       });
       const views = new ClientScriptViews(scripts.lane, targets, { root: ctx.root, scope: ctx.scope });
       let presentationTick = 0, stopped = false;
@@ -610,8 +598,8 @@ export class ShardfileClient {
         const selected = pickPrompt(runtime.interactables, world.game.camera.position, sim.host.physics);
         const interaction = selected === undefined ? undefined : source.targets.interactions.find(row => row.label === selected.label && row.at.every((coordinate, axis) => coordinate === selected.position.getComponent(axis)));
         const creatures = source.creatures.spawns.map(spawn => {
-          const view = this.animals.get(spawn.id), core = sim.host.entities.get(spawn.id);
-          if (view === undefined || core === undefined) throw new Error('Declared creature lacks its live native/view pair');
+          const view = wirePage.namedBody(spawn.id);
+          if (view === null) throw new Error('Declared creature lacks its row body');
           view.mesh.updateMatrixWorld(true); view.mesh.skeleton.update();
           let visible = true;
           for (let parent: Object3D | null = view.mesh; parent !== null; parent = parent.parent) visible &&= parent.visible;
@@ -620,7 +608,7 @@ export class ShardfileClient {
           return { id: spawn.id, bound: view.simulationBound, attached: world.game.scene.getObjectById(view.mesh.id) === view.mesh,
             visible: visible && materials.some(material => material.visible && material.opacity > 0), vertices,
             bones: view.mesh.skeleton.bones.length, finitePose: view.mesh.skeleton.boneMatrices !== null && [...view.mesh.skeleton.boneMatrices].every(Number.isFinite),
-            matchesNative: view.position === core.position && [view.mesh.position.x, view.mesh.position.y, view.mesh.position.z].every(Number.isFinite) && Math.abs(view.mesh.scale.y - core.scale) < 0.001 };
+            matchesNative: view.rowDriven && [view.mesh.position.x, view.mesh.position.y, view.mesh.position.z].every(Number.isFinite) && Math.abs(view.mesh.scale.y - view.scale) < 0.001 };
         });
         return { tick: sim.host.state.tick, frames: renderCount(world.game.renderer), creatures, selectedInteraction: interaction?.id ?? null };
       },

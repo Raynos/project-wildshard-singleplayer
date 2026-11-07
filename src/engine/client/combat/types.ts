@@ -11,6 +11,9 @@ export interface TargetAnimal {
   alive: boolean;
   stagger?: (dir: Vector3, strength: number) => void;
   stuckFrame?: (point: Vector3) => TargetFrame | null;
+  /** A body's own measures, where it has them: how high its middle stands. */
+  readonly dims?: { readonly bodyY: number };
+  readonly scale?: number;
 }
 export interface TargetHit { animal: TargetAnimal; point: Vector3; distance: number; headshot: boolean }
 export interface Targets { raycast: (origin: Vector3, dir: Vector3, maxDist: number) => TargetHit | null }
