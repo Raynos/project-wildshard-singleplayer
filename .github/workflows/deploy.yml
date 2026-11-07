@@ -61,12 +61,22 @@ jobs:
           node engine-source/scripts/shard-size-gate.mjs .vercel/output/static
           python3 scripts/prebuilt-output.py pack --sha "$GITHUB_SHA" --run "$GITHUB_RUN_ID"
       - uses: actions/upload-artifact@v4
+        if: github.event_name != 'pull_request'
         with:
           name: pinned-release
           path: prebuilt-output/
           include-hidden-files: true
           compression-level: 0
           retention-days: 7
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'pull_request'
+        with:
+          name: pinned-release
+          path: dist/
+          include-hidden-files: true
+          compression-level: 0
+          retention-days: 3
           if-no-files-found: error
   prove-pinned:
     needs: build-pinned
@@ -80,12 +90,15 @@ jobs:
         with: {node-version: 24}
       - run: pnpm install --frozen-lockfile
       - uses: actions/download-artifact@v4
-        with: {name: pinned-release, path: prebuilt-output}
-      - run: python3 scripts/prebuilt-output.py restore --sha "$GITHUB_SHA" --run "$GITHUB_RUN_ID"
+        with:
+          name: pinned-release
+          path: ${{ github.event_name == 'pull_request' && 'dist' || 'prebuilt-output' }}
+      - if: github.event_name != 'pull_request'
+        run: python3 scripts/prebuilt-output.py restore --sha "$GITHUB_SHA" --run "$GITHUB_RUN_ID"
       - run: pnpm exec playwright install --with-deps chromium webkit
       - name: Test the exact installed artifact on both phone engines
         run: |
-          node scripts/preview-server.mjs --outDir .vercel/output/static --port 4173 &
+          node scripts/preview-server.mjs --outDir "${{ github.event_name == 'pull_request' && 'dist' || '.vercel/output/static' }}" --port 4173 &
           server_pid=$!
           trap 'kill "$server_pid"' EXIT
           node scripts/prove-release.mjs http://127.0.0.1:4173

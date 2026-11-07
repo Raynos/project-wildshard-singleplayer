@@ -26,13 +26,15 @@ for (const [name, type] of [['Chromium', chromium], ['WebKit', webkit]]) {
       page.on('response', result => { if (result.status() >= 400) errors.push(`${result.status()} ${result.url()}`); });
       await page.goto(new URL(path, base).href, { waitUntil: 'load', timeout: 90_000 });
       if (label === 'grid') {
-        const back = page.locator('.ws-menu-back');
-        if (await back.isVisible()) await back.click();
-        const developer = page.locator('.ws-main-dev');
-        await developer.waitFor({ state: 'attached', timeout: 90_000 });
-        if (await developer.getAttribute('aria-checked') === 'false') await developer.click();
-        await page.locator('.ws-main-grid').waitFor({ state: 'visible', timeout: 90_000 });
-        await Promise.all([page.waitForURL(url => url.searchParams.has('chunk'), { timeout: 90_000 }), page.locator('.ws-main-grid').click()]);
+        await page.waitForFunction(() => document.querySelector('.ws-main-dev') !== null, undefined, { timeout: 90_000 });
+        await page.evaluate(() => {
+          const developer = document.querySelector('.ws-main-dev');
+          if (developer?.getAttribute('aria-checked') === 'false') developer.click();
+        });
+        await page.waitForFunction(() => document.querySelector('.ws-main-grid') !== null, undefined, { timeout: 90_000 });
+        // The shipped floor proof uses this exact title-button operation: the
+        // inactive carousel remains attached and inert during title transitions.
+        await Promise.all([page.waitForURL(url => url.searchParams.has('chunk'), { timeout: 90_000 }), page.evaluate(() => document.querySelector('.ws-main-grid').click())]);
       }
       if (label === 'title') await page.locator('.ws-menu-play').waitFor({ state: 'visible', timeout: 90_000 });
       else {
