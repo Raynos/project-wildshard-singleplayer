@@ -16,7 +16,7 @@ import { pageSpeciesBehaviour } from '../population/speciesBehaviour';
 import { pageClimate } from '../weather/pageClimate';
 import { arenaRoomFight, bindArenaBrain } from '../boss/arenaRoomFight';
 import { readEliteFeature } from '../quest/eliteFeature';
-import { borrowedDecisionAuthority, pageDecisionAuthority, prepareProductDecisionMemories } from '../shardfile/borrowedDecisions';
+import { borrowedDecisionAuthority, prepareProductDecisionMemories } from '../shardfile/borrowedDecisions';
 
 /**
  * What the page's quest views and motion still take from the page's own sim (E6: port first, flip last). A view asks
@@ -43,7 +43,6 @@ export interface PageSimFeed {
   readonly bindArenaBrain: typeof bindArenaBrain;
   readonly readEliteFeature: typeof readEliteFeature;
   readonly prepareProductDecisionMemories: typeof prepareProductDecisionMemories;
-  readonly pageDecisionAuthority: typeof pageDecisionAuthority;
   readonly bossFight: typeof bossFight;
   readonly fixedSpawnTable: (...args: ConstructorParameters<typeof FixedPageSpawnTable>) => FixedPageSpawnTable;
   readonly clientWildlifeState: typeof clientWildlifeState;
@@ -76,7 +75,7 @@ export const pageSimFeed: PageSimFeed = {
   installDeclaredMovers, declaredItemScriptBindings, commandSocketLift, bindQuestWorldReactions,
   climate: pageClimate, speciesBehaviour: pageSpeciesBehaviour,
   perchBody: (...args) => new PerchBodyBinding(...args), actorGroups: (...args) => new PageActorGroups(...args), wind: () => wildEnv.wind,
-  wild: wildEnv, arenaRoomFight, bindArenaBrain, readEliteFeature, prepareProductDecisionMemories, pageDecisionAuthority, bossFight,
+  wild: wildEnv, arenaRoomFight, bindArenaBrain, readEliteFeature, prepareProductDecisionMemories, bossFight,
   fixedSpawnTable: (...args) => new FixedPageSpawnTable(...args), clientWildlifeState, lendClientWildlife,
   bindPageGroups: (...args) => { bindPageGroups(...args); }, pageWildlife: (...args) => new PageWildlife<CrowdDraw>(...args), lendPageGrass, crowdGuardProjection, bindCrowdGuard,
   admitSpeciesProgram, borrowedDecisionAuthority, bindMeleeContacts, startMeleeSecondary,

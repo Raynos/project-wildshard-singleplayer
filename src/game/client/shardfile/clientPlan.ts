@@ -209,10 +209,8 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
   } },
   'population.product-creatures': { phase: 'kit', rank: -20, lifetime: 'entered', sections: ['actors/species-programs'], install: async ctx => {
     const { installProductCreatures } = await import('../population/productCreatures');
-    const { pageSim } = await import('./clientMoverOwners');
-    const authority = await pageSim.pageDecisionAuthority(ctx);
     if (ctx.scope.disposed || ctx.scope.disposing) throw new Error('Client feature owner is disposed');
-    await installProductCreatures(ctx, authority);
+    await installProductCreatures(ctx);
   } },
   'held.claims.install': { phase: 'kit', rank: -10, lifetime: 'entered', sections: [], install: async (ctx, row) => {
     if (row.kind !== 'held.claims.install') throw new Error('Invalid claims installation feature');

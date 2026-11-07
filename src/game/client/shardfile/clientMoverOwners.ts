@@ -2,7 +2,7 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardContext } from '../plugin/context';
 import type { MoverRuntime, MoverView } from '../../server/plugin/mover';
-import type { BorrowedSpeciesControl } from '../../server/plugin/brain';
+import type { BorrowedSpeciesControl, SpeciesDecisionAuthority } from '../../server/plugin/brain';
 import type { PageSimFeed } from '../../server/plugin/pageSimFeed';
 import { netClimate } from '../weather/netClimate';
 import { wirePage } from './wirePage';
@@ -27,6 +27,8 @@ export let pageSim:PageSimFeed;
 /** J130: this page runs on a server. Motion and the sky come off rows; what else `pageSim` holds still builds, on nothing, and
  * stands down where a bar, a payout or a flag would otherwise have two drivers. */
 const noDecision=():BorrowedSpeciesControl=>({phase:0,fighting:false,restart:()=>undefined,current:null,windup:0,aim:0,snapshot:()=>null,restore:()=>undefined,observe:()=>undefined});
+/** A row's brain is the server's. A body this page draws asks for a decision and is told there is none. */
+export const rowDecisions:SpeciesDecisionAuthority={bind:noDecision};
 let wired=false;
 export function wirePageSim():void{
   wirePage.followBooks();
@@ -45,8 +47,6 @@ export function wirePageSim():void{
       wildlife.rowBodies=true;
       return wildlife;
     },
-    // A row's brain is the server's. A body this page draws asks for a decision and is told there is none.
-    pageDecisionAuthority:()=>Promise.resolve({bind:noDecision}),
     borrowedDecisionAuthority:()=>({bind:noDecision}),
     prepareProductDecisionMemories:()=>Promise.resolve(),
     // A blade still swings here, and what it lands is the server's: its contacts have nobody to scan.

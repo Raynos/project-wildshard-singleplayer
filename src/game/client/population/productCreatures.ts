@@ -4,10 +4,9 @@ import { CreatureInstallSchema, type CreatureInstallRows } from '@wildshard/form
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalMaterial } from '@wildshard/engine/entities/AnimalFactory';
 import { declaredSpawnTables } from '@wildshard/engine/ai/encounters';
-import type { SpeciesDecisionAuthority } from '../../server/plugin/brain';
 import type { ShardContext } from '../plugin/context';
 import { registerLootTable } from '../loot/tables';
-import { pageSim } from '../shardfile/clientMoverOwners';
+import { pageSim, rowDecisions } from '../shardfile/clientMoverOwners';
 import { readLootTables } from '../../shared/loot/tableRows';
 import { installPopulationProjection } from '../shardfile/clientPopulationProjection';
 import { productHullBook } from '../looks/speciesBook';
@@ -24,7 +23,7 @@ const left = (ctx: ShardContext): boolean => ctx.scope.disposed || ctx.scope.dis
  * same admitted sections on its own. A page left during any awaited admission installs nothing more: each await is
  * followed by a retiring-scope fence before the next allocation or row.
  */
-export async function installProductCreatures(ctx: ShardContext, decisions: SpeciesDecisionAuthority): Promise<void> {
+export async function installProductCreatures(ctx: ShardContext): Promise<void> {
   const rows = v.parse(CreatureInstallSchema, await ctx.product.json('actors/creature-install.json'));
   if (left(ctx)) return;
   const perchRows = await ctx.product.json(rows.perch);
@@ -34,7 +33,7 @@ export async function installProductCreatures(ctx: ShardContext, decisions: Spec
   const perch = pageSim.perchBody(perchRows, ctx.scope);
   const section = ctx.product.section('actors/species-programs'), program = section.program;
   if (program === undefined || section.spawns?.find(row => row.id === rows.practice)?.respawn === undefined) throw new Error('Creature install requires its admitted species programs');
-  ctx.rows.species([...perch.species(ctx, program, decisions), ...section.page]);
+  ctx.rows.species([...perch.species(ctx, program, rowDecisions), ...section.page]);
   const book = productHullBook(ctx.product), packed = book.packed.looks(lookRows);
   const looks = [...rows.packed.kinds.map(kind => packed.get(kind)), ...rows.hulls.map(kind => book.look(kind))];
   ctx.rows.speciesLook(looks.map(look => lentGraphLook(look.kind === perch.row.kind ? { ...look, animate: perch.animate } : look, rows.lent)));

@@ -14,7 +14,6 @@ import { focusPlayer, ShardDecisions, type DecisionRuntime } from './decisions';
 import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
 import type { ShardContext } from '../../client/plugin/context';
 import type { SimHost } from '@wildshard/engine/sim';
-import { floorBelow } from '@wildshard/engine/physics/query';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { prepareDecisionMemories } from '@wildshard/engine/script/decisionModule';
 import { waitFor } from '@wildshard/engine/boot/waits';
@@ -67,37 +66,6 @@ export function prepareProductDecisionMemories(ctx: ShardContext): Promise<void>
   return waitFor('Prepare decision Wasm memories', prepareDecisionMemories(decisionMemoryPreparationPages(descriptor.sections), ctx.scope), 'wasm');
 }
 
-/** Prepare flag-free species guests before the page builds its bodies. All physics, contacts and fixed ticks
- * come from the existing page. Flag-using guests must use the quest-bound catalogue instead of this port.
- */
-export async function pageDecisionAuthority(ctx: ShardContext): Promise<SpeciesDecisionAuthority> {
-  const source = ctx.product.shardfile, descriptor = outputDescriptor(source);
-  if (descriptor === undefined) throw new Error('Decision species require a verified product');
-  const rows = parseDecisionScripts(descriptor.sections.get('sim/scripts'));
-  if (rows.some(row => Object.keys(row.flags).length > 0 || row.on.includes('flag') || row.reads.includes('flag') || row.commands.includes('flag')))
-    throw new Error('Page species flags require the actual quest owner');
-  const assets = new Map<string, Uint8Array>();
-  await Promise.all(rows.map(async row => {
-    const hash = row.module.slice('blobs/wasm/'.length, -'.wasm'.length), file = descriptor.index.files.find(entry => entry.hash === hash);
-    if (file?.name === undefined) throw new Error('Decision module has no admitted logical file');
-    assets.set(hash, await ctx.product.file(file.name));
-  }));
-  await prepareProductDecisionMemories(ctx);
-  let authority: SpeciesDecisionAuthority | undefined;
-  return { bind: (actor, row, body) => {
-    const world = ctx.game.runtime?.world, physics = ctx.app.physics, health = ctx.app.player;
-    if (world === undefined || world === null || physics === null || health === null) throw new Error('Decision body requires its actual page world');
-    const noFlags = (): never => { throw new Error('Decision guest has no flag authority'); };
-    authority ??= borrowedDecisionAuthority(source, assets, descriptor.sections, { scope: ctx.scope, events: ctx.app.events, physics,
-      flags: { has: noFlags, set: noFlags, onChange: () => () => undefined },
-      player: { id: health.id, position: world.player.position, get yaw() { return world.player.yaw; }, health, motor: world.player.motor },
-      groundHeightAt: (x, z) => { const y = floorBelow(physics, x, z, world.player.position.y + 500, 1000); if (y === undefined) throw new Error('Decision ground has no floor'); return y; },
-      live: value => value.alive && !ctx.scope.disposed,
-      fixed: (id, run, scope) => { ctx.app.addSystem({ id, phase: 'fixed.post', when: () => !scope.disposed && ctx.app.state === 'play', run }, scope); },
-    });
-    return authority.bind(actor, row, body);
-  } };
-}
 const finite = v.pipe(v.number(), v.finite());
 const savedControl = v.strictObject({ version: v.literal(1), actor: v.string(), phase: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(255)),
   fighting: v.boolean(), decision: v.string(), strike: v.unknown() });

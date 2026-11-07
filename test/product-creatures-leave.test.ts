@@ -2,7 +2,6 @@ import { expect, test } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';
 import { installProductCreatures } from '../src/game/client/population/productCreatures';
 import type { ShardContext } from '../src/game/client/plugin/context';
-import type { SpeciesDecisionAuthority } from '../src/game/server/plugin/brain';
 import { CREATURE_INSTALL } from '../src/shards/driftwood-isle/generators/creatureLook';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
@@ -27,7 +26,7 @@ function leavingPage(leaveAt: number): { ctx: ShardContext; bound: string[] } {
 test('a page left during any awaited install read binds no creature rows', async () => {
   for (const leaveAt of [1, 2, 3]) {
     const { ctx, bound } = leavingPage(leaveAt);
-    await installProductCreatures(ctx, legacyDouble<SpeciesDecisionAuthority>({}));
+    await installProductCreatures(ctx);
     expect(bound, `left at read ${String(leaveAt)}`).toEqual([]);
   }
 });
@@ -44,7 +43,7 @@ test('a refused perch leaves later inputs unread and binds no rows', async () =>
   const ctx = legacyDouble<ShardContext>({ scope, product: legacyDouble<ShardContext['product']>({ json,
     section: (): never => { throw new Error('published after refusal'); } }) });
   try {
-    await expect(installProductCreatures(ctx, legacyDouble<SpeciesDecisionAuthority>({}))).rejects.toBe(failure);
+    await expect(installProductCreatures(ctx)).rejects.toBe(failure);
     expect(requested).toEqual(['actors/creature-install.json', CREATURE_INSTALL.perch]);
   } finally { scope.dispose(); }
 });

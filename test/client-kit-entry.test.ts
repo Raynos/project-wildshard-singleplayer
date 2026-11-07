@@ -1,7 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { Scope } from '../src/engine/shared/app/scope';
 import type { ShardContext } from '../src/game/client/plugin/context';
-import type { SpeciesDecisionAuthority } from '../src/game/server/plugin/brain';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
 import { emptyShardfile } from '../src/sharddev/author';
 import { CLIENT_FEATURES, admitClientPlan, installClientPhase } from '../src/game/client/shardfile/clientPlan';
@@ -25,15 +24,13 @@ function fixture(namedFile = true, omitLegacy?: 'economy/loot' | 'look/hull-book
   const scope = new Scope('kit-orchard'), ctx = legacyDouble<ShardContext>({ scope, product });
   return { scope, ctx };
 }
-const authorityFixture = (): SpeciesDecisionAuthority => ({ bind: () => { throw new Error('No actor binding in phase-order fixture'); } });
 const pair = [{ kind: 'held.claims.install', claims: 'orchard.claims' }, { kind: 'held.claims.prepare', id: 'orchard.claims' }];
 
 test('unordered kit rows retain prepare, creatures, install, paths and catalogue order', async () => {
-  const f = fixture(), order: string[] = [], authority = authorityFixture();
+  const f = fixture(), order: string[] = [];
   const prepare = vi.spyOn(claims, 'prepareHeldClaimsEntry').mockImplementation((_ctx, id) => { order.push(`prepare:${id}`); return Promise.resolve(); });
   const install = vi.spyOn(claims, 'installHeldClaimsEntry').mockImplementation((_ctx, id) => { order.push(`install:${id}`); });
-  const decision = vi.spyOn(pageSimFeed, 'pageDecisionAuthority').mockResolvedValue(authority);
-  const populate = vi.spyOn(creatures, 'installProductCreatures').mockImplementation((_ctx, value) => { expect(value).toBe(authority); order.push('creatures'); return Promise.resolve(); });
+  const populate = vi.spyOn(creatures, 'installProductCreatures').mockImplementation(() => { order.push('creatures'); return Promise.resolve(); });
   const path = vi.spyOn(CLIENT_FEATURES['world.paths'], 'install').mockImplementation(() => { order.push('paths'); });
   const items = vi.spyOn(CLIENT_FEATURES['content.catalogue'], 'install').mockImplementation(() => { order.push('catalogue'); });
   try {
@@ -45,8 +42,7 @@ test('unordered kit rows retain prepare, creatures, install, paths and catalogue
     expect(order).toEqual([]);
     await installClientPhase(f.ctx, plan, 'kit', f.scope, 'entered');
     expect(order).toEqual(['prepare:orchard.claims', 'creatures', 'install:orchard.claims', 'paths', 'catalogue']);
-    expect(decision).toHaveBeenCalledOnce();
-  } finally { prepare.mockRestore(); install.mockRestore(); decision.mockRestore(); populate.mockRestore(); path.mockRestore(); items.mockRestore(); f.scope.dispose(); }
+  } finally { prepare.mockRestore(); install.mockRestore(); populate.mockRestore(); path.mockRestore(); items.mockRestore(); f.scope.dispose(); }
 });
 
 test('missing, mismatched and duplicate claims pairs refuse before allocation', () => {
@@ -67,26 +63,16 @@ test('creature rows need their fixed admitted file before either claims effect',
   } finally { prepare.mockRestore(); f.scope.dispose(); }
 });
 
-test('leaving during decision-authority preparation constructs no product creatures', async () => {
-  const f = fixture(), authority = authorityFixture();
-  let finish: ((value: SpeciesDecisionAuthority) => void) | undefined, announce: (() => void) | undefined;
-  const ready = new Promise<void>(resolve => { announce = resolve; });
-  const pending = new Promise<SpeciesDecisionAuthority>(resolve => { finish = resolve; });
-  const prepare = vi.spyOn(claims, 'prepareHeldClaimsEntry').mockResolvedValue(undefined);
+test('leaving during claims preparation constructs no product creatures', async () => {
+  const f = fixture();
+  const prepare = vi.spyOn(claims, 'prepareHeldClaimsEntry').mockImplementation(() => { f.scope.dispose(); return Promise.resolve(); });
   const install = vi.spyOn(claims, 'installHeldClaimsEntry');
-  const decision = vi.spyOn(pageSimFeed, 'pageDecisionAuthority').mockImplementation(() => {
-    if (announce === undefined) throw new Error('Missing preparation notification'); announce(); return pending;
-  });
   const populate = vi.spyOn(creatures, 'installProductCreatures');
   try {
     const plan = admitClientPlan({ version: 1, features: [...pair, { kind: 'population.product-creatures' }] }, f.ctx.product);
-    const entering = installClientPhase(f.ctx, plan, 'kit', f.scope);
-    const refused = expect(entering).rejects.toThrow('owner is disposed');
-    await ready; f.scope.dispose();
-    if (finish === undefined) throw new Error('Missing decision-authority resolver'); finish(authority);
-    await refused;
+    await expect(installClientPhase(f.ctx, plan, 'kit', f.scope)).rejects.toThrow();
     expect(populate).not.toHaveBeenCalled(); expect(install).not.toHaveBeenCalled();
-  } finally { prepare.mockRestore(); install.mockRestore(); decision.mockRestore(); populate.mockRestore(); f.scope.dispose(); }
+  } finally { prepare.mockRestore(); install.mockRestore(); populate.mockRestore(); f.scope.dispose(); }
 });
 
 

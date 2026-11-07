@@ -5,7 +5,6 @@ import * as v from 'valibot';
 import type { SpeciesProgramData } from '@wildshard/format/speciesPrograms';
 import { RoamingBossProjectionSchema, type RoamingBossProjectionRows } from '@wildshard/format/roamingBossProjection';
 import type { RoamingEncounterRow } from '@wildshard/format/bossEncounter';
-import type { SpeciesDecisionAuthority } from '../../server/plugin/brain';
 import { pageSim } from '../shardfile/clientMoverOwners';
 import { pageCombatSession, type PageCombatSession } from '../Boss';
 import { bindRuntimeBoss } from '../../shared/plugin/runtimeRows';
@@ -53,14 +52,11 @@ const damageOwners = new WeakMap<Animal, ProjectionFight>();
 /** Species views query their actual entered fight; no damage callback is lent. */
 export function roamingBossDamage(actor: Animal, point: THREE.Vector3): number { return damageOwners.get(actor)?.damageMul(actor, point) ?? 1; }
 
-function createProjectionFight(env: PageCombatSession['context'], views: ProjectionViews, seed: number, program: SpeciesProgramData,
-  decisions: SpeciesDecisionAuthority, row: RoamingEncounterRow): ProjectionFight {
+function createProjectionFight(env: PageCombatSession['context'], views: ProjectionViews, seed: number, program: SpeciesProgramData, row: RoamingEncounterRow): ProjectionFight {
   const species = program.species.find(candidate => candidate.kind === row.kind);
   if (species?.brain?.archetype !== 'decision' || species.body === undefined) throw new Error('Roaming boss requires its declared decision body');
-  const declared = species.brain.data, recipe = species.body, bound = new WeakSet<Animal>();
-  const bind = (actor: Animal): Animal => { if (!bound.has(actor)) { decisions.bind(actor, declared, recipe); bound.add(actor); } return actor; };
   const contacts = new Map(program.strikes.map(strike => [strike.id, strikeFromData(strike)])), runner = new StrikeRunner();
-  const fight = pageSim.bossFight(row.profile, { ...views, body: { ...views.body, make: () => bind(views.body.make()) }, player: env.player,
+  return pageSim.bossFight(row.profile, { ...views, player: env.player,
     random: { call: new Rng(fnv1a32(`${String(seed)}:${row.streams.call}`)), charge: new Rng(fnv1a32(`${String(seed)}:${row.streams.charge}`)) },
     contact: (actor, strike, hit, options) => {
       const spec = contacts.get(row.strikePrefix + strike); if (spec === undefined) throw new Error(`Missing roaming strike ${strike}`);
@@ -68,13 +64,6 @@ function createProjectionFight(env: PageCombatSession['context'], views: Project
         || (!spec.tags.includes('cover.exempt') && !env.reach(actor, env.player.position))) return false;
       hit(spec.damage); return true;
     }, hurt: (actor, damage, through) => { env.hurt(actor, damage, through); }, trauma: value => { env.trauma(value); }, shot: (sound, at) => { env.shot(sound, at); } });
-  const restore = fight.restore.bind(fight);
-  fight.restore = (saved, bodies) => {
-    const actor = saved.body === null ? undefined : bodies.get(saved.body);
-    if (actor !== undefined && !bound.has(actor)) { const state = actor.snapshot(); bind(actor); actor.restore(state); }
-    restore(saved, bodies);
-  };
-  return fight;
 }
 
 /** The native lane owns contacts; this private projection paints its tell. */
@@ -159,10 +148,10 @@ function followRoamingFight(context: ShardContext, { rows, ring, hazard, cues, l
 export async function installRoamingBossProjection(context: ShardContext, input: unknown): Promise<ProjectionFight> {
   const rows = v.parse(RoamingBossProjectionSchema, input), program = context.product.section('actors/species-programs').program;
   if (program === undefined) throw new Error('Roaming projection requires its species programme');
-  const decisions = await pageSim.pageDecisionAuthority(context); await prepareBossSocketRig(context, rows.socketRig);
-  return context.scope.run(() => enterProjection(context, rows, program, decisions));
+  await prepareBossSocketRig(context, rows.socketRig);
+  return context.scope.run(() => enterProjection(context, rows, program));
 }
-function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows, program: SpeciesProgramData, decisions: SpeciesDecisionAuthority): ProjectionFight {
+function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows, program: SpeciesProgramData): ProjectionFight {
   const session = pageCombatSession(context.scope, rows.session), ctx = session.context, source = context.product.shardfile;
   const scene = ctx.game.scene, kit = bossSocketResources(context.scope, rows.socketRig.id), encounterRows = rows.encounter, actions = new Map(Object.entries(encounterRows.actions));
   const bodyOwner = bindRuntimeBoss(context, source, rows.spawn, undefined, { identity: 'runtime' });
@@ -282,7 +271,7 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
       ring: ringView,
       tell: tellRing,
     },
-  }, source.identity.seed, program, decisions, encounterRows);
+  }, source.identity.seed, program, encounterRows);
   const air = heardRoom;
   
 
