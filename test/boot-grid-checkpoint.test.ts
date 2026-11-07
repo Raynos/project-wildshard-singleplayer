@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
-import { afterEach, expect, test } from 'vitest';
-import { bootSignalRoadPlan, bootTemplateCheckpoint, bootTemplateRoadPlans, verifyBootTemplateRoad } from '../scripts/parity/boot-smoke.mjs';
+import { afterEach, expect, test, vi } from 'vitest';
+import { bootSignalRoadPlan, bootStoredSave, bootTemplateCheckpoint, bootTemplateRoadPlans, verifyBootTemplateRoad } from '../scripts/parity/boot-smoke.mjs';
 import type { FloorGridState, FloorGridWitness, FloorGridPlan } from '../scripts/frame-floor-grid.mjs';
 
 test('smoke road entries follow the observed lattice without changing local entry points', () => {
@@ -52,6 +52,30 @@ test("a server's own document is durable Template evidence too", () => {
   expect(bootTemplateCheckpoint('template-2', document({ tick: 40, snapshot: '{"version":4}' }))).toMatchObject({ instance: 'template-2', mode: 'exact', revision: 40, snapshotCharacters: 13 });
   for (const data of [null, {}, { tick: -1, snapshot: 'x' }, { tick: 1, snapshot: '' }]) expect(() => bootTemplateCheckpoint('template-2', document(data))).toThrow('invalid durable checkpoint');
   expect(() => bootTemplateCheckpoint('template-2', null)).toThrow('no durable checkpoint');
+});
+
+/** The two calls `bootStoredSave` makes of IndexedDB, over a row table. */
+function serverRows(rows: Readonly<Record<string, string>>) {
+  const answer = <T>(result: T, then: (request: { result: T; onsuccess: (() => void) | null }) => void = () => undefined) => {
+    const request = { result, onsuccess: null as (() => void) | null };
+    then(request); queueMicrotask(() => { request.onsuccess?.(); });
+    return request;
+  };
+  const database = { objectStoreNames: { contains: (name: string) => name === 'saves' }, close: () => undefined,
+    transaction: () => ({ objectStore: () => ({ get: (name: string) => answer(rows[name]) }) }) };
+  vi.stubGlobal('indexedDB', { databases: () => Promise.resolve([{ name: 'wildshard-saves' }]), open: () => answer(database) });
+}
+
+test("a page's location document never hides the server's checkpoint", async () => {
+  const served = (tick: number): string => JSON.stringify({ keys: { continuation: { v: 1, data: { tick, snapshot: '{"version":4}' } } } });
+  localStorage.setItem(key, JSON.stringify({ keys: { 'platform.grid-position': { v: 1, data: { instance: 'template-2' } } } }));
+  serverRows({ 'wildshard.save.v2.standalone-template-2': served(40), 'wildshard.save.v2.standalonealt-template-2': served(60) });
+  try {
+    expect(bootTemplateCheckpoint('template-2', await bootStoredSave('template-2'))).toMatchObject({ mode: 'exact', revision: 60 });
+    serverRows({}); // No server wrote yet: the page's document answers, and is no checkpoint.
+    expect(() => { bootTemplateCheckpoint('template-2'); }).toThrow('invalid durable checkpoint');
+    expect(await bootStoredSave('template-2')).toBe(localStorage.getItem(key));
+  } finally { vi.unstubAllGlobals(); }
 });
 
 function witness(plan: FloorGridPlan, beforeCount: number): FloorGridWitness {

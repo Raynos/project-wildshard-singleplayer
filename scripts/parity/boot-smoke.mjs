@@ -208,22 +208,22 @@ export function bootTemplateCheckpoint(instance, raw = localStorage.getItem(`wil
   return { instance, mode: data.mode, revision: data.revision, integrity: data.integrity, snapshotCharacters: data.snapshot?.length ?? 0, storageCharacters: raw.length };
 }
 
-/** A world's document where this page keeps it: a page's in localStorage, a server's in IndexedDB under its own two names
- * (src/engine/client/saves/indexed.ts, src/sdk/standalone/continuation.ts). Newest of the two.
+/** A world's document: a server's, in IndexedDB under its own two names (src/engine/client/saves/indexed.ts,
+ * src/sdk/standalone/continuation.ts), newest of the two. On a wire a page's localStorage document holds only where it stood
+ * (`saveLocation`, on any checkpoint inside the cell), so it answers only when no server wrote.
  * @param {string} instance @returns {Promise<string | null>} */
 export async function bootStoredSave(instance) {
   const prefix = 'wildshard.save.v2.', page = localStorage.getItem(`${prefix}${instance}`);
-  if (page !== null) return page;
-  if (!(await indexedDB.databases()).some(row => row.name === 'wildshard-saves')) return null;
+  if (!(await indexedDB.databases()).some(row => row.name === 'wildshard-saves')) return page;
   const opening = indexedDB.open('wildshard-saves');
   /** @type {IDBDatabase} */ const database = await new Promise((resolve, reject) => { opening.onsuccess = () => { resolve(opening.result); }; opening.onerror = () => { reject(opening.error ?? new Error('Save storage refused')); }; });
   try {
-    if (!database.objectStoreNames.contains('saves')) return null;
+    if (!database.objectStoreNames.contains('saves')) return page;
     const store = database.transaction('saves').objectStore('saves');
     const read = (/** @type {string} */ name) => new Promise((resolve, reject) => { const reading = store.get(`${prefix}${name}`); reading.onsuccess = () => { resolve(reading.result); }; reading.onerror = () => { reject(reading.error ?? new Error('Save storage refused')); }; });
     const rows = (await Promise.all([read(`standalone-${instance}`), read(`standalonealt-${instance}`)])).filter(value => typeof value === 'string');
     const tick = (/** @type {string} */ row) => JSON.parse(row)?.keys?.continuation?.data?.tick ?? -1;
-    return rows.sort((a, b) => tick(b) - tick(a)).at(0) ?? null;
+    return rows.sort((a, b) => tick(b) - tick(a)).at(0) ?? page;
   } finally { database.close(); }
 }
 
