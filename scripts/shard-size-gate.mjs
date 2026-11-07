@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// SHARD-SIZE row 1 (docs/multi-repo/SHARD-SIZE-PLAN.md in project-wildshard-meta): every web build refuses a shard whose
+// SHARD-SIZE row 1 (docs/plans/multi-repo/SHARD-SIZE-PLAN.md in project-wildshard-meta): every web build refuses a shard whose
 // phone download grew. It reads the packs book, the list the page really downloads: `client.<slug>.phone.wireBytes`.
 // budgets/shard-size-baseline.json holds the ceilings, the measured old numbers, how they were measured and how to
 // change them on purpose. I12's older check read a tier selection, so Pine passed at 67 MB while phones took 111.

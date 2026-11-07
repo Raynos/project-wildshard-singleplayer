@@ -1,7 +1,7 @@
 # DOWNLOAD — State (coordinator: the multi-repo DOWNLOAD lane; ≤ 3 KB)
 
 **2026-11-05:** every open row is built, on the worker path as well as the shipped path. What is left is J136's close.
-Rows and history: [DOWNLOAD.md](../DOWNLOAD.md). Queue: meta `docs/multi-repo/DOWNLOAD-THEN-C.md`.
+Rows and history: [DOWNLOAD.md](../DOWNLOAD.md). Queue: meta `docs/plans/multi-repo/DOWNLOAD-THEN-C.md`.
 
 **Spine:** Runtime packs ON for everyone (DL16 `d0683e4e38`). Goal: tap → control and a smooth first 30 s (G1000, G1008), every
 second something moves (G1006). The level is complete at control.
