@@ -28,3 +28,6 @@ questions"), each with a recommendation; answers go in its last column.
 at a breaking promotion (J149, so the save shims go), and the slice rule's same-slice migration becomes the staging dance.
 Done when: slice files name the new repos, save-shim work is cut, and hours are re-estimated. Top 20 (start here):
 [Kitchen Sink Engine Top 20](https://claude.ai/artifact/R3JZEyPiaPuMMQiiAqsozV).
+
+**Open row, MK1 (found 2026-11-06, E537):** m01 and m02 still show the surface Titan arena (m01 also the size stencils),
+and w07's caption has the old kicker heights. Done when: all three are redone on round 5 and D7, in the polished look.
