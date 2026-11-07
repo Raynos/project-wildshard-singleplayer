@@ -28,9 +28,9 @@ export async function readManifestSource(source: ProjectManifestSource, declared
     import('./sourceReader'),
   ]);
   if (source.imageRoots.length > 32) throw new Error('Too many manifest image roots');
-  const roots = source.imageRoots.map(root => {
+  const roots = source.imageRoots.flatMap(root => {
     if (!/^\/(?:[a-zA-Z0-9_-]+\/)+$/u.test(root.prefix)) throw new Error('Manifest image root needs a bounded absolute URL prefix');
-    return { prefix: root.prefix, directory: fs.realpathSync(root.directory) };
+    return fs.existsSync(root.directory) ? [{ prefix: root.prefix, directory: fs.realpathSync(root.directory) }] : [];
   });
   const input = source.composed ?? (source.file === undefined ? declared : reader.readShardfileSource(source.file));
   if (input === undefined) throw new Error('Manifest intake requires an explicit file or declared level metadata');

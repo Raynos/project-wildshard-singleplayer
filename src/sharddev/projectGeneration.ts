@@ -120,9 +120,10 @@ export function createProjectGeneration(project: string, programHash: string, as
   v.parse(hash, programHash);
   const root = realpathSync(project), pending = new Map<string, Promise<ReadonlyMap<string, Uint8Array>>>();
   if (inputRoots.length > 32) throw new Error('Too many generation input roots');
-  const roots = inputRoots.map(source => {
+  // A folder an outside project doesn't have holds no inputs: a project needs no `public/`.
+  const roots = inputRoots.flatMap(source => {
     if (!/^\/(?:[a-zA-Z0-9_-]+\/)+$/u.test(source.prefix)) throw new Error('Generation input root needs a bounded absolute URL prefix');
-    return { prefix: source.prefix, directory: realpathSync(source.directory) };
+    return existsSync(source.directory) ? [{ prefix: source.prefix, directory: realpathSync(source.directory) }] : [];
   });
   return {
     compileScript: (source, options) => compileScript(source, { ...options, compileMemo: memoAssemblyScript }),

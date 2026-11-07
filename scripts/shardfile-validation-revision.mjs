@@ -6,7 +6,9 @@ import { resolve, relative } from 'node:path';
  * Format owns schemas, parser and memory policy; shardfile admission consumes
  * them and boot/PWA own verified cache bytes. Gameplay and rendering outside
  * this boundary do not change a saved asset-validation verdict. */
-export function shardfileValidationRevision(root = resolve(import.meta.dirname, '..')) {
+export function shardfileValidationRevision(project = resolve(import.meta.dirname, '..')) {
+  // An author's empty folder is no checkout: the verdict belongs to the tools they run.
+  const root = existsSync(resolve(project, 'pnpm-lock.yaml')) ? project : resolve(import.meta.dirname, '..');
   const hash = createHash('sha256');
   for (const name of ['package.json', 'pnpm-lock.yaml']) hash.update(name).update('\0').update(readFileSync(resolve(root, name))).update('\0');
   /** @param {string} directory */
