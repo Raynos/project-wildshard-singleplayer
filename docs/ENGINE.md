@@ -12026,6 +12026,14 @@ declared herd identities before entry effects, and retain scope lifetime
 checks. `enterClientRiding` supplies the existing population and wind; no
 second service book, body owner, decision clock or save is created.
 
+Worker taming follows private `ride.*` owner lines for trust, alert, ear,
+prompt, breaking and bond. `ride.offer.start` / `ride.offer.stop`
+interaction acts hold OFFER; `ride.whistle` calls the owner's eligible
+horse within 150 m. Lean and look travel with motion commands.
+`riding/companions.advanceCompanionCall` keeps the original steering.
+The optional native `calling` timer defaults to zero in old saves;
+`SIM_SNAPSHOT_VERSION` stays 3.
+
 ### Chapter-only quest page views
 
 `game/quest/pageComposition.installQuestPageComposition(ctx,
