@@ -1,8 +1,0 @@
-import { expect } from 'vitest';
-// Registers every species exactly as src/engine/client/entities/AnimalFactory.ts does (eager glob over the folder) without pulling in
-// the factory itself (materials, baked textures, the sky). The glob runs when this module loads; `loadSpecies()` makes
-// the dependency explicit at the call site and returns the files it registered.
-const modules = import.meta.glob(["../src/engine/client/entities/species/*.ts", "../src/engine/shared/entities/species/*.ts","!../src/engine/shared/entities/species/registry.ts","!../src/engine/client/entities/species/loft.ts"], { eager: true });
-expect(Object.keys(modules).length).toBeGreaterThan(0);
-
-export function loadSpecies(): string[] { return Object.keys(modules); }
