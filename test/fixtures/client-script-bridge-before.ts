@@ -4,7 +4,7 @@ import type { DeclaredScriptWorld } from '@wildshard/engine/script/state';
 import { clientScriptRules, parseClientScripts, type ClientScriptContent, type ClientScriptTarget } from '@wildshard/format/clientScripts';
 
 /** Trusted input ports; the actor comes from the page, and observation never exposes a simulation object to bytecode. */
-export interface ShardfileClientScriptPorts { actorId: string; state?: DeclaredScriptWorld; observe: (target: ClientScriptTarget) => { position: readonly [number, number, number]; frozen: boolean }; memoryBytes?: number }
+export interface ShardfileClientScriptPorts { actorId: string; state?: Pick<DeclaredScriptWorld, 'viewField'>; observe: (target: ClientScriptTarget) => { position: readonly [number, number, number]; frozen: boolean }; memoryBytes?: number }
 /** Construct one isolated presentation lane and copy only the selected public/owner values on each presentation tick. */
 export function createShardfileClientScripts(source: ClientScriptContent, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileClientScriptPorts): {
   lane: ClientScriptLane; targets: readonly { entity: number; target: ClientScriptTarget }[]; step: (tick: number) => void; dispose: () => void;

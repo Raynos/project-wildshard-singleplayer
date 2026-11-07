@@ -22,7 +22,7 @@ export function captureClientScriptPosition(position: Readonly<{ x: number; y: n
 
 /** Trusted input ports; the actor comes from the page, and observation never exposes a simulation object to bytecode. */
 export interface ShardfileClientScriptPorts {
-  actorId: string; state?: DeclaredScriptWorld;
+  actorId: string; state?: Pick<DeclaredScriptWorld, 'viewField'>;
   observe: (target: ClientScriptTarget) => { position: readonly [number, number, number]; frozen: boolean };
   /** Fill numeric capture, or return an iterable observation. Legacy observers retain their one-argument call. */
   observeInto?: (target: ClientScriptTarget, capture: ClientScriptTargetCapture) => { position: readonly [number, number, number]; frozen: boolean } | undefined;

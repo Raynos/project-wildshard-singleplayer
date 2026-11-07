@@ -43,7 +43,6 @@ import { installDeclaredPlumbing } from '../shard/declaredPlumbing';
 import { declaredProductCompendium, declaredDay, declaredWeather } from '../../shared/shard/declaredRows';
 import { installDeclaredTargets } from '../shard/declaredTargets';
 import { mountDeclaredUi } from '../shard/declaredUi';
-import { createQuestScriptPorts } from '../../shared/quest/declared';
 import type { ClientScriptViewTarget } from "../plugin/ui";
 import { instanceSave } from '../../shared/instanceSaves';
 import { Ledger, type LedgerCatalogueItem } from '../../shared/ledger';
@@ -195,7 +194,6 @@ export class ShardfileClient {
   private post: ClientPost | null = null;
   private skins: ReadonlyMap<string, ClientSkin> = new Map();
   private worldTiles: Awaited<ReturnType<typeof standaloneClientTiles>> | undefined;
-  private sim: ShardfileSimulation | undefined;
   private items: DeclaredItems | undefined;
   private itemModels: Awaited<ReturnType<typeof loadItemModels>> = new Map();
   private readonly mode: DataMode;
@@ -347,7 +345,6 @@ export class ShardfileClient {
     };
     const player = (): NonNullable<ShardContext['app']['player']> => { const actor = ctx.app.player; if (actor === null) throw new Error('Player health has not entered play'); return actor; };
     const actor: Actor = { id: 'actor.player', get tags() { return player().tags; }, get state() { return player().state; }, get attributes() { return player().attributes; }, get alive() { return player().alive; }, applyDamage: (request) => player().applyDamage(request) };
-    const itemBindings = pageSim.declaredItemScriptBindings(source.items, actor.id);
     const aimTarget = (target: CombatTarget): ItemTarget => {
       const { dims, scale = 1 } = target.target; // a row's body knows its own measures
       return { ...target, aimPoint: target.position.clone().add(new Vector3(0, dims === undefined ? 0.9 : dims.bodyY * scale, 0)) };
@@ -360,7 +357,7 @@ export class ShardfileClient {
         runtime: (row) => ({ actor, combat: ctx.app.combat, active: () => ctx.app.state === 'play' && !world.freeCamera,
           targets: () => ctx.app.combat.targets().map(aimTarget),
           effect: (target, effect, from) => { const service = ctx.app.effects; if (service === null) throw new Error('Missing normal effect host'); service.apply(target, effect, from); },
-          hook: row.hook === null ? null : (command) => { const lane = this.sim?.lane; if (lane === undefined) throw new Error('Missing admitted item lane'); const hook = itemBindings.hooks(lane.host).get(row.id); if (hook === undefined) throw new Error('Missing admitted item hook'); return hook(command); },
+          hook: row.hook === null ? null : (command) => command.action, // what an item's script says is the server's: this runtime never steps
         }),
       });
       this.items = items;
@@ -436,9 +433,18 @@ export class ShardfileClient {
       ledger.record({ ...identity, origin: rule.origin, tick: 0, ordinal: 0, name, entity: id });
       play.progress.refreshLedger();
     });
+    // A field a player may see, on this page: the server's row where it sends one. Only public shared fields have rows, so a player's own stands
+    // at its authored default: no such row, and none invented here (RETIRE-FEED A6).
+    const fieldValue = (scope: 'shared' | 'player', name: string): number | undefined => {
+      const field = source.state[scope].find((row) => row.name === name);
+      if (field === undefined || (scope === 'shared' ? field.privacy !== 'public' : field.privacy === 'host')) return undefined;
+      const value = wirePage.row(name);
+      if (value !== undefined || typeof field.default === 'string') return value;
+      return typeof field.default === 'boolean' ? Number(field.default) : field.default;
+    };
     const read = (scope: 'shared' | 'player', id: number): number => {
       const field = source.state[scope].find((row) => row.id === id); if (field === undefined) throw new Error('Missing declared state field');
-      const value = this.sim?.lane?.world.viewField(health.id, scope, field.name);
+      const value = fieldValue(scope, field.name);
       if (value !== undefined) return value;
       if (typeof field.default === 'string') throw new Error('UI requires numeric state'); return typeof field.default === 'boolean' ? Number(field.default) : field.default;
     };
@@ -477,13 +483,10 @@ export class ShardfileClient {
       fixedStep: clientSimStep({ scope: ctx.scope, app: ctx.app, active: () => false, freeCamera: () => world.freeCamera, system: ctx.system }), hud: ui,
       quest: { fact: () => undefined, coins: () => undefined },
     });
-    this.sim = sim;
     yield;
     // SF59: graph params read the frame owner's clock (the level backdrop's, G158) and the live public state
     // a field the sim does not hold (a runtime-bound host field) reads the runtime's port (G345)
-    const graphSources: GraphSources = { hour: () => world.game.sky.dayNight?.hour ?? null, state: (scope, name) => {
-      const value = sim.lane?.world.viewField(health.id, scope, name); return typeof value === 'number' ? value : undefined;
-    } };
+    const graphSources: GraphSources = { hour: () => world.game.sky.dayNight?.hour ?? null, state: fieldValue };
     this.presentation?.graphs.bind(graphSources);
     this.post?.bind(graphSources); // the post stack's bound params read the same clock and state
     // G580 T1: a runtime borrows the level's clock (the page's sky) but never another runtime's own declared day: a warm
@@ -498,8 +501,7 @@ export class ShardfileClient {
     if (source.clientScripts.bindings.length > 0) {
       if (presentation === null) throw new Error('Missing client script presentation module');
       const { ClientScriptViews, driveClientScriptViews } = presentation;
-      const lane = sim.lane;
-      const scripts = createShardfileClientScripts(source, this.assets.retained, { actorId: health.id, ...(lane === undefined ? {} : { state: lane.world }),
+      const scripts = createShardfileClientScripts(source, this.assets.retained, { actorId: health.id, state: { viewField: (_actor, scope, name) => fieldValue(scope, name) },
         observe: (target) => ({ position: target.kind === 'particles' ? target.at : [0, 0, 0], frozen: !simulationActive }),
         observeInto: (target, capture) => {
           // Particle rows retain their authored iterable alias until the bridge
@@ -538,9 +540,8 @@ export class ShardfileClient {
       canCheckpoint: () => !portalTransitioning(sim.host.physics),
       encounters: () => true, continuation: () => continuation.write(captureClientState(source, sim, items.runtimes)),
     });
-    // The server's session keeps this world's saves.
-    const hooks = sim.lane === undefined ? null : createQuestScriptPorts(sim.lane, source.hooks, sim.actors);
-    const scene = clientScene(source, items.runtimes, (id) => { if (hooks === null) throw new Error('Missing admitted scene lane'); hooks.scene(id, health.id); });
+    // The server's session keeps this world's saves, and runs its scenes: a press goes by the prompt's `wireId`.
+    const scene = clientScene(source, items.runtimes, () => undefined);
 
     if (source.plumbing !== null && source.plumbing.input.length + source.plumbing.debug.length > 0) {
       const plumbing = installDeclaredPlumbing(source.plumbing, { handledInput: handledItemInputs(source), instance: source.identity.slug, tier: TIER, scope: ctx.scope, input: ctx.app.input,
@@ -562,6 +563,8 @@ export class ShardfileClient {
     // An admitted scene installs its own declared profiles once in the play phase.
     if (this.bindings.audioOwner !== 'runtime' && !this.plan?.features.some(row => row.kind === 'audio.scene')) installDeclaredAudio(source.audio, { audio: play.audio, cues: play.cues, voices: this.bindings.voices(play.audio), music: play.music, scope: ctx.scope, profiles: this.bindings.audioProfiles?.(play, { source: source.audio, read: this.assets.audioRead() }) });
     ctx.debug.expose('shardfile', { source, host: sim.host, lane: sim.lane, items: items.runtimes, colliders: sim.colliders, fine: tiles.fine, weather,
+      // What a panel's field has drawn here: its look, and whether it stands in this page's world.
+      targets: () => source.targets.panels.map(row => ({ panel: row.panel, visible: tiles.props?.panels.get(row.panel)?.visible ?? false, solid: row.colliders.every(id => sim.colliders.get(id)?.active() ?? false) })),
       // Read actual live views; an authored spawn or a detached model alone cannot satisfy the author view proof.
       equipmentEvidence: () => {
         const equipment = ctx.app.equipment;
