@@ -386,7 +386,21 @@ The boot purge was at **212k files**, up 45k in 4 h and closing on the 250k inve
   `size-baseline` 8.6 GB (the worktree `step.sh` measures in), `ci-lane-2` 3 GB. Free disk 1,535 → 1,269 GB.
 - **11-06 04:47:** `./tmp` 187 → **239 GB** / 1.86M files: new `flip-save` 31 GB (born 04:02), `lane-save` 25 GB (00:35),
   `flip-dress` 14 GB (02:52), `ci-e` 7.9 GB (03:41). `node-compile-cache` is 110 GB. Free disk **1,062 GB, down 207 GB
-  in 4 h**, or about 21 hours to empty at that rate.
+  in 4 h**. (This entry first said about 21 hours to empty. That was wrong: the rate did not hold, and most of the
+  loss was `/cores` and `node-compile-cache`, which Jake has since cleared.)
+- **11-06, log stamp 16:49:** the scan took about 5 hours under load, so these figures are from about 21:45, not 16:49.
+  Boot purge 5.12M, `/private/tmp` 258 GB. `./tmp` 264 GB / 2.0M files: new `lane-dl23` 16 GB, `s1-debt` 9.1 GB.
+  `/cores` emptied (212 GB freed) and `node-compile-cache` deleted by Jake. Free disk 1,309 GB and rising.
+- **11-07 00:47:** boot purge **5.16M** (+43k), `/private/tmp` 260 GB, `$TMPDIR` 6.3 GB. The scan took 3 minutes this time.
+  The session scratchpad is still in use, so do not delete it yet (Jake). `./tmp` 264 → **297 GB**, 2.0M → **2.52M
+  files**. Free disk 1,296 GB, `node-compile-cache` 4.7 GB.
+- **`tmp/ci-f` is that whole `./tmp` growth: 32 GB / 512k files in under 3 hours.** Lane CI-F's `gate.sh` makes one
+  full tree per commit it checks, at `tmp/ci-f/trees/<sha>-<time>`, 3.6 GB and about 57k files each. Nine trees so far,
+  from 22:17 to 00:44, and none of its scripts removes one. At that pace it adds about 13 GB an hour while the lane runs.
+  **Fix:** the lane removes a tree once its verdict is written, as the `fprobe.sh` bisect's lane did (section 13).
+- **`/cores` is refilling:** `core.58621`, 6.5 GB, 11-06 23:51. `lldb` shows `abort` called from
+  `node::Abort` on a JS call, which is what `process.abort()` does and matches the 6.5 GB size, so
+  `test/cook-worker.test.ts:119` is now close to confirmed (section 13). `ulimit -c unlimited` is still at `~/.bashrc:12`.
 
 ## Decisions (Jake, 2026-10-15)
 
