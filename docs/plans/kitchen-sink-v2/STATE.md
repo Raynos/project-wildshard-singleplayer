@@ -22,3 +22,9 @@ plan; D49–D61). The ramps were D7 (launch walls, kickers 2.4 / 3.6 / 4.8 m).
 
 **Open for Jake:** the 67 questions in [OPEN-QUESTIONS.md](OPEN-QUESTIONS.md) (the walk-through page "Kitchen Sink v2 open
 questions"), each with a recommendation; answers go in its last column.
+
+**Open row, MR1 (found 2026-11-06, E536):** re-baseline the slices for multi-repo. The hours and paths date from 11-03:
+`src/format` is now the `shardfile` repo (each new row = a release), new features start in the new repos (J119), saves wipe
+at a breaking promotion (J149, so the save shims go), and the slice rule's same-slice migration becomes the staging dance.
+Done when: slice files name the new repos, save-shim work is cut, and hours are re-estimated. Top 20 (start here):
+[Kitchen Sink Engine Top 20](https://claude.ai/artifact/R3JZEyPiaPuMMQiiAqsozV).
