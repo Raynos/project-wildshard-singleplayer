@@ -16,7 +16,6 @@ import type { EngineRows } from '@wildshard/engine/level/context';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { hasSpecies, registerSpecies, speciesDef, type BoneDef, type SpeciesDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
-import { roamingBossDamage } from '../boss/roamingProjection';
 import { limbAnimation } from '../animation/limbView';
 import { pageSim } from '../shardfile/clientMoverOwners';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -46,13 +45,13 @@ export class HullLookBook {
     return { ...definition, build: () => structuredClone(body) };
   }
   /** G571: register each declared derived species once, on its own custom limb rig; its think is external (its owning
-   *  fight drives it) and its damage the roaming boss's rule. */
+   *  fight drives it) and its damage the server's. */
   registerDerived(): void {
     for (const [kind, row] of Object.entries(this.book.derived)) {
       if (hasSpecies(kind)) continue;
       const rig = row.rig, coat: VariantDef = row.coat;
       registerSpecies({ ...this.definition(row.from), ...row.fields, kind, label: row.label, variants: [coat],
-        think: () => undefined, damageMul: (actor, req) => roamingBossDamage(actor, req),
+        think: () => undefined, damageMul: () => 1,
         rigContract: { skeleton: rig.skeleton, clips: [], sockets: rig.sockets }, rig: 'custom', animate: limbAnimation(rig.spec, rig.blend, rig.clips),
         build: () => ({ bones: structuredClone(rig.bones), furParts: [], hardParts: [], eyeParts: [], dims: structuredClone(rig.dims) }) });
     }

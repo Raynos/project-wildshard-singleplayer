@@ -4,13 +4,12 @@ import { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { createSimHost } from '@wildshard/engine/sim';
 import { GridRegionDurability } from '../grid/durability';
 import { readSpawnScript, SpawnScript } from '../population/spawnScript';
-import { FixedPageSpawnTable, PageActorGroups, bindPageGroups, lendPageGrass, wildEnv } from '../population/pageGroups';
+import { PageActorGroups, bindPageGroups, lendPageGrass, wildEnv } from '../population/pageGroups';
 import { PageWildlife, lendClientWildlife } from '../population/wildlife';
 import { clientWildlifeState } from '../../shared/population/wildlifeOwner';
 import { bindCrowdGuard, crowdGuardProjection } from '../ambient/crowdPage';
 import { admitSpeciesProgram } from './brain';
 import type { CrowdDraw } from '../../client/ambient/crowdDraw';
-import { bossFight } from './bossPhase';
 import { PerchBodyBinding } from '../population/perchBody';
 import { pageSpeciesBehaviour } from '../population/speciesBehaviour';
 import { pageClimate } from '../weather/pageClimate';
@@ -38,8 +37,6 @@ export interface PageSimFeed {
   readonly wild: typeof wildEnv;
   /** The page's fights: an elite feature's rows. */
   readonly readEliteFeature: typeof readEliteFeature;
-  readonly bossFight: typeof bossFight;
-  readonly fixedSpawnTable: (...args: ConstructorParameters<typeof FixedPageSpawnTable>) => FixedPageSpawnTable;
   readonly clientWildlifeState: typeof clientWildlifeState;
   /** The page's population, which its wildlife feature builds and lends (E6 WORLD). */
   readonly lendClientWildlife: typeof lendClientWildlife;
@@ -69,8 +66,8 @@ export const pageSimFeed: PageSimFeed = {
   installDeclaredMovers, declaredItemScriptBindings, commandSocketLift, bindQuestWorldReactions,
   climate: pageClimate, speciesBehaviour: pageSpeciesBehaviour,
   perchBody: (...args) => new PerchBodyBinding(...args), actorGroups: (...args) => new PageActorGroups(...args), wind: () => wildEnv.wind,
-  wild: wildEnv, readEliteFeature, bossFight,
-  fixedSpawnTable: (...args) => new FixedPageSpawnTable(...args), clientWildlifeState, lendClientWildlife,
+  wild: wildEnv, readEliteFeature,
+  clientWildlifeState, lendClientWildlife,
   bindPageGroups: (...args) => { bindPageGroups(...args); }, pageWildlife: (...args) => new PageWildlife<CrowdDraw>(...args), lendPageGrass, crowdGuardProjection, bindCrowdGuard,
   admitSpeciesProgram, bindMeleeContacts, startMeleeSecondary,
   spawnScript: { read: (...args) => readSpawnScript(...args), page: (...args) => SpawnScript.page(...args) },

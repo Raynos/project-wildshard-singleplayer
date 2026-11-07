@@ -2,20 +2,14 @@ import { CueDirector } from '../audio/cueDirector';
 /** Client-only roaming boss projection. All author input is rows and ids. */
 import * as THREE from 'three';
 import * as v from 'valibot';
-import type { SpeciesProgramData } from '@wildshard/format/speciesPrograms';
 import { RoamingBossProjectionSchema, type RoamingBossProjectionRows } from '@wildshard/format/roamingBossProjection';
-import type { RoamingEncounterRow } from '@wildshard/format/bossEncounter';
-import { pageSim } from '../shardfile/clientMoverOwners';
-import { pageCombatSession, type PageCombatSession } from '../Boss';
-import { bindRuntimeBoss } from '../../shared/plugin/runtimeRows';
+import { pageCombatSession } from '../Boss';
+import { rowFightScript } from './barFeed';
 import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import { prepareBossSocketRig, bindBossSocketRig, bossSocketResources, type BossSocketRig } from './socketRig';
 import { keyedSkyOf } from '../looks/keyedSky';
-import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
-import { pinBrain } from '@wildshard/engine/ai/pinning';
-import type { DamageDealt } from '@wildshard/engine/combat/pipeline';
-import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
+import type { BossScript } from '@wildshard/engine/ai/BossBrain';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { fogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
@@ -23,10 +17,6 @@ import { GroundTell } from '../eliteView';
 import { effectField } from '@wildshard/engine/fx/effectField';
 import { lentLook, setLentParam } from '../shardfile/lentLooks';
 import type { ShardContext } from '../plugin/context';
-import { Rng, fnv1a32, type RngState } from '@wildshard/engine/core/rng';
-import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
-import { Lane, type LaneState } from '../../shared/boss/lane';
-import type { RoamingBossFight, RoamingBossPorts, RoamingBossRing } from '../../server/plugin/bossPhase';
 import { DomePuffs } from '@wildshard/engine/fx/groundFx';
 import { wirePage } from '../shardfile/wirePage';
 import { ROAMING_HAZARD_EVENTS, ROAMING_VIEW } from '../../shared/shardfile/wirePrompts';
@@ -45,44 +35,19 @@ class Dim {
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _col = new THREE.Color(), _fog = [0, 0, 0];
 
 
-type ProjectionFight = RoamingBossFight<Animal, LaneState, RngState>;
-type ProjectionPorts = RoamingBossPorts<Animal, LaneState, RngState, string, string, string>;
-type ProjectionViews = Omit<ProjectionPorts, 'player' | 'random' | 'contact' | 'hurt' | 'trauma' | 'shot'>;
-const damageOwners = new WeakMap<Animal, ProjectionFight>();
-/** Species views query their actual entered fight; no damage callback is lent. */
-export function roamingBossDamage(actor: Animal, point: THREE.Vector3): number { return damageOwners.get(actor)?.damageMul(actor, point) ?? 1; }
+/** A hazard's beat, as the server's fight says it. */
+type HazardBeat = (typeof ROAMING_HAZARD_EVENTS)[number];
+interface HazardFrame { readonly x: number; readonly y: number; readonly z: number; readonly fallT: number }
+interface RingWave { readonly g: GroundTell; r: number }
+/** What a Boss and a session keep of this fight: its points, and the room as the server's fight said it. */
+export type ProjectionFight = BossScript & { readonly room: HeardRoom };
 
-function createProjectionFight(env: PageCombatSession['context'], views: ProjectionViews, seed: number, program: SpeciesProgramData, row: RoamingEncounterRow): ProjectionFight {
-  const species = program.species.find(candidate => candidate.kind === row.kind);
-  if (species?.brain?.archetype !== 'decision' || species.body === undefined) throw new Error('Roaming boss requires its declared decision body');
-  const contacts = new Map(program.strikes.map(strike => [strike.id, strikeFromData(strike)])), runner = new StrikeRunner();
-  return pageSim.bossFight(row.profile, { ...views, player: env.player,
-    random: { call: new Rng(fnv1a32(`${String(seed)}:${row.streams.call}`)), charge: new Rng(fnv1a32(`${String(seed)}:${row.streams.charge}`)) },
-    contact: (actor, strike, hit, options) => {
-      const spec = contacts.get(row.strikePrefix + strike); if (spec === undefined) throw new Error(`Missing roaming strike ${strike}`);
-      if (!runner.contains(spec, { actor: { position: actor.position, scale: actor.scale, yaw: actor.yaw }, target: env.player.position, ...options })
-        || (!spec.tags.includes('cover.exempt') && !env.reach(actor, env.player.position))) return false;
-      hit(spec.damage); return true;
-    }, hurt: (actor, damage, through) => { env.hurt(actor, damage, through); }, trauma: value => { env.trauma(value); }, shot: (sound, at) => { env.shot(sound, at); } });
-}
-
-/** The native lane owns contacts; this private projection paints its tell. */
-class ProjectionLane extends Lane<Animal> {
+/** A lane's tell. The server's lane runs; a page paints what it says. */
+class LaneTell {
   private readonly decal: GroundTell;
-  private duration = 1;
-  constructor(scene: THREE.Scene, colour: THREE.ColorRepresentation, strike: StrikeSpec, reach: PageCombatSession['context']['reach']) {
-    super(strike, reach); this.decal = new GroundTell(scene, 'lane', colour);
-  }
+  constructor(scene: THREE.Scene, colour: THREE.ColorRepresentation) { this.decal = new GroundTell(scene, 'lane', colour); }
   dispose(): void { disposeTell(this.decal); }
-  override start(actor: Animal, x: number, z: number, tell: number, speed = 1): void { this.duration = tell; super.start(actor, x, z, tell, speed); }
-  override restore(saved: LaneState): void { super.restore(saved); this.duration = saved.tellT; }
-  override cancel(): void { super.cancel(); this.decal.hide(); }
-  override update(actor: Animal, dt: number, time: number, player: THREE.Vector3, hurt: (damage: number) => void): void {
-    const state = this.state; if (state === 'none') return;
-    const elapsed = this.t + dt; super.update(actor, dt, time, player, hurt);
-    this.paint(state, elapsed, this.duration, this.x0, this.z0, this.x1, this.z1, this.width, time);
-  }
-  /** One frame of the tell: a page on a server has it from the server's lane, whose runner it doesn't step. */
+  /** One frame of the tell. */
   paint(state: string, elapsed: number, duration: number, x0: number, z0: number, x1: number, z1: number, width: number, time: number): void {
     this.decal.setTime(time);
     if (state === 'tell') {
@@ -98,12 +63,12 @@ function disposeTell(tell: GroundTell): void {
 }
 
 /** The room and its light on a server's page, as that server's fight last said them. */
-interface HeardRoom { sealK: number; darkK: number; glow: number; open: number; hung: boolean; readonly won: false; readonly focus: THREE.Vector3 }
+interface HeardRoom { sealK: number; darkK: number; glow: number; open: number; hung: boolean; readonly focus: THREE.Vector3 }
 /** A page on a server steps no fight: what the server's fight tells its views paints these, and a lane that stops being said ends. */
 interface FollowedFight {
-  readonly rows: RoamingBossProjectionRows; readonly ring: ProjectionViews['views']['ring']; readonly hazard: ProjectionViews['views']['hazard']; readonly cues: NonNullable<ReturnType<typeof CueDirector.entered>>;
-  readonly lane: ProjectionLane; readonly addLanes: readonly ProjectionLane[]; readonly tellRing: GroundTell; readonly puffs: DomePuffs;
-  readonly waves: readonly RoamingBossRing[]; readonly heardRoom: HeardRoom; readonly hazardFrom: THREE.Vector3;
+  readonly rows: RoamingBossProjectionRows; readonly ring: (index: number, t: number, at: THREE.Vector3 | null) => void; readonly hazard: (index: number, frame: HazardFrame, t: number, beat: HazardBeat) => void; readonly cues: NonNullable<ReturnType<typeof CueDirector.entered>>;
+  readonly lane: LaneTell; readonly addLanes: readonly LaneTell[]; readonly tellRing: GroundTell; readonly puffs: DomePuffs;
+  readonly waves: readonly RingWave[]; readonly heardRoom: HeardRoom; readonly hazardFrom: THREE.Vector3;
   readonly room: (dt: number, t: number) => void; readonly sound: (at: THREE.Vector3) => void; readonly light: (on: boolean) => void; readonly rig: () => void;
   readonly struck: (point: THREE.Vector3, dir: THREE.Vector3) => void;
 }
@@ -133,7 +98,7 @@ function followRoamingFight(context: ShardContext, { rows, ring, hazard, cues, l
     [ROAMING_VIEW.struck]: ([x = 0, y = 0, z = 0, dx = 0, dy = 0, dz = 0]) => { struck(point.set(x, y, z), up.set(dx, dy, dz)); },
     [ROAMING_VIEW.hazard]: ([index = 0, event = 0, t = 0, x = 0, y = 0, z = 0, fallT = 0, fromX = 0, fromY = 0, fromZ = 0]) => {
       const beat = ROAMING_HAZARD_EVENTS[event]; if (beat === undefined) return;
-      hazardFrom.set(fromX, fromY, fromZ); hazard(index, { x, y, z, fallT, acc: 0 }, t, beat);
+      hazardFrom.set(fromX, fromY, fromZ); hazard(index, { x, y, z, fallT }, t, beat);
     },
   };
   wirePage.whenLive(context.scope, client => client.onView(({ name, args }) => { actions[name]?.(args); }));
@@ -146,23 +111,17 @@ function followRoamingFight(context: ShardContext, { rows, ring, hazard, cues, l
   } });
 }
 export async function installRoamingBossProjection(context: ShardContext, input: unknown): Promise<ProjectionFight> {
-  const rows = v.parse(RoamingBossProjectionSchema, input), program = context.product.section('actors/species-programs').program;
-  if (program === undefined) throw new Error('Roaming projection requires its species programme');
+  const rows = v.parse(RoamingBossProjectionSchema, input);
   await prepareBossSocketRig(context, rows.socketRig);
-  return context.scope.run(() => enterProjection(context, rows, program));
+  return context.scope.run(() => enterProjection(context, rows));
 }
-function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows, program: SpeciesProgramData): ProjectionFight {
-  const session = pageCombatSession(context.scope, rows.session), ctx = session.context, source = context.product.shardfile;
-  const scene = ctx.game.scene, kit = bossSocketResources(context.scope, rows.socketRig.id), encounterRows = rows.encounter, actions = new Map(Object.entries(encounterRows.actions));
-  const bodyOwner = bindRuntimeBoss(context, source, rows.spawn, undefined, { identity: 'runtime' });
-  const spawner = pageSim.fixedSpawnTable(ctx.animals, context.app.encounters, context.scope, rows.spawnStream);
+function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows): ProjectionFight {
+  const session = pageCombatSession(context.scope, rows.session), ctx = session.context;
+  const scene = ctx.game.scene, kit = bossSocketResources(context.scope, rows.socketRig.id), encounterRows = rows.encounter;
   const tellRing = new GroundTell(scene, 'ring', new THREE.Color(...rows.colours.tell));
-  const waves = [0, 1].map(() => ({ g: new GroundTell(scene, 'ring', new THREE.Color(...rows.colours.wave)), r: 0, on: false, hit: false, delay: 0 }));
-  const profiles = new Map(program.strikes.map(row => [row.id, strikeFromData(row)]));
-  const bossLane = profiles.get(encounterRows.lanes.boss), thrallLane = profiles.get(encounterRows.lanes.add);
-  if (bossLane === undefined || thrallLane === undefined) throw new Error('Missing declared roaming lanes');
-  const lane = new ProjectionLane(scene, new THREE.Color(...rows.colours.tell), bossLane, ctx.reach);
-  const addLanes = Array.from({ length: encounterRows.lanes.count }, () => new ProjectionLane(scene, new THREE.Color(...rows.colours.wave), thrallLane, ctx.reach));
+  const waves: RingWave[] = [0, 1].map(() => ({ g: new GroundTell(scene, 'ring', new THREE.Color(...rows.colours.wave)), r: 0 }));
+  const lane = new LaneTell(scene, new THREE.Color(...rows.colours.tell));
+  const addLanes = Array.from({ length: encounterRows.lanes.count }, () => new LaneTell(scene, new THREE.Color(...rows.colours.wave)));
   const C = encounterRows.profile.fight.origin, R = rows.wall.radius;
   const cues = CueDirector.entered(context,rows.presentation);
   if (cues === undefined) throw new Error('Missing declared roaming presentation');
@@ -184,7 +143,7 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
   let light: THREE.PointLight | null = pool.acquire(rows.light.colour, 0, rows.light.distance, rows.light.decay);
   let look: BossSocketRig | null = null, rowBody: Animal | null = null;
   /** A page's own room comes off its fight. */
-  const heardRoom: HeardRoom = { sealK: 0, darkK: 0, glow: 0, open: 0, hung: true, won: false, focus: new THREE.Vector3() }, ember = { darkK: (): number => heardRoom.darkK }, hazardFrom = new THREE.Vector3();
+  const heardRoom: HeardRoom = { sealK: 0, darkK: 0, glow: 0, open: 0, hung: true, focus: new THREE.Vector3() }, ember = { darkK: (): number => heardRoom.darkK }, hazardFrom = new THREE.Vector3();
   /** A page on a server has no body of its own: the rig goes on the row's, as the fight says it, and comes off when the row goes. */
   const rigView = (): void => {
     if (rowBody !== null && !ctx.animals.animals.includes(rowBody)) { look?.dispose(); look = null; rowBody = null; }
@@ -201,7 +160,7 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
     if (on) light ??= pool.borrow(rows.light.colour, 0, rows.light.distance, rows.light.decay);
     else if (light) { pool.release(light); light = null; }
   };
-  const hazardView: ProjectionViews['views']['hazard'] = (i, f, t, event) => {
+  const hazardView: FollowedFight['hazard'] = (i, f, t, event) => {
     const view = fallen[i]; if (view === undefined) return;
     if (event === 'drop') { if (look === null) view.from.copy(hazardFrom); else look.hazardWorld(i, view.from); view.group.visible = true; view.group.position.copy(view.from); }
     else if (event === 'fall' || event === 'land') {
@@ -218,60 +177,10 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
     } else if (event === 'placed') { view.group.visible = true; view.group.position.set(f.x, f.y + rows.hazard.landingLift, f.z); view.group.rotation.set(rows.hazard.rotation[0], i, rows.hazard.rotation[2]); }
     else { view.group.visible = false; view.flame.visible = false; view.ring.hide(); }
   };
-  const ringView: ProjectionViews['views']['ring'] = (i, t, at) => {
+  const ringView: FollowedFight['ring'] = (i, t, at) => {
     const w = waves[i]; if (w === undefined) return;
     if (at === null) w.g.hide(); else { w.g.setTime(t); w.g.ring(at.x, at.z, w.r, 0.95, 0.25); }
   };
-  const park = (a: Animal): void => {
-    a.hidden = true; a.mesh.visible = false;
-    const i = ctx.animals.animals.indexOf(a); if (i !== -1) ctx.animals.animals.splice(i, 1);
-  };
-  const fight: ProjectionFight = createProjectionFight(ctx, {
-    groundAt: heightAt,
-    body: {
-      make: () => {
-        const a = bodyOwner.spawn(); if (a === null) throw new Error('Missing native roaming boss body');
-        pinBrain(a);
-        const dressed = look = bindBossSocketRig(context.scope, rows.socketRig.id, a);
-        const king = a.combatActor();
-        const onDamage = ({ req }: DamageDealt): void => {
-          if (req.target !== king) return;
-          const { point, dir } = req;
-          cues.cue(rows.events.hit, point, dir);
-          if (point.distanceTo(dressed.focusWorld(_v)) < dressed.focusRadius) cues.cue(fight.open > 0.5 ? rows.events.open : rows.events.shut, point, dir);
-        };
-        context.on('damage.dealt', onDamage);
-        installEnteredRuntimeService(context, scope => { damageOwners.set(a, fight); scope.onDispose(() => { if (damageOwners.get(a) === fight) damageOwners.delete(a); }); });
-        return a;
-      },
-      retire: k => { look?.dispose(); look = null; ctx.animals.retire(k); }, park,
-      unpark: a => { a.hidden = false; a.mesh.visible = true; if (!ctx.animals.animals.includes(a)) ctx.animals.animals.push(a); },
-    },
-    adds: {
-      spawn: (kind, x, z, yaw) => {
-        const a = spawner.spawn({ kind, tags: ['night'] }, { x, z, yaw }, { kind, variant: encounterRows.adds.variant });
-        a.herd = -1; a.state = encounterRows.adds.state; a.scripted = true; return a;
-      },
-      retire: a => { spawner.retire(a); }, lanes: () => addLanes,
-    },
-    lane: () => lane, rings: () => waves,
-    weakPoint: p => look !== null && p.distanceTo(look.focusWorld(_v)) < look.focusRadius,
-    views: {
-      glow: gain => { look?.setGlow(gain); }, hung: on => { look?.setHazardsHung(on); },
-      focus: (k, out) => look === null ? out.copy(k.position) : look.focusWorld(out),
-      room: (dt, t) => { room(dt, t); },
-      light: lightView,
-      action: (k, move) => { k.mem[encounterRows.actionField] = actions.get(move) ?? 0; }, roar: k => { ctx.animals.onSound?.(rows.roar, k.position); },
-      burst: k => { cues.cue(rows.events.burst, k.position, _w.set(0, 1, 0)); },
-      hazard: hazardView,
-      add: (a, event) => {
-        if (event === 'in') puffs.burst(_v.set(a.position.x, heightAt(a.position.x, a.position.z) + rows.puffs.lift, a.position.z), ...rows.puffs.enter);
-        else puffs.burst(_v.copy(a.position).setY(a.position.y + rows.puffs.lift), ...rows.puffs.leave);
-      },
-      ring: ringView,
-      tell: tellRing,
-    },
-  }, source.identity.seed, program, encounterRows);
   const air = heardRoom;
   
 
@@ -295,7 +204,7 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
     } else {
       if (look === null) light.position.copy(heardRoom.focus); else look.focusWorld(light.position);
       light.position.y += rows.light.focusAbove; light.color.fromArray(rows.light.focusColour); light.distance = rows.light.focusDistance;
-      light.intensity = air.won ? 0 : rows.light.focusGain * air.glow * (rows.light.focusOpen[0] + rows.light.focusOpen[1] * air.open);
+      light.intensity = rows.light.focusGain * air.glow * (rows.light.focusOpen[0] + rows.light.focusOpen[1] * air.open);
     }
   }
 
@@ -330,22 +239,17 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
   };
 
   followRoamingFight(context, { rows, ring: ringView, hazard: hazardView, cues, lane, addLanes, tellRing, puffs, waves, heardRoom, hazardFrom, room, sound: at => { ctx.animals.onSound?.(rows.roar, at); }, light: lightView, rig: rigView, struck: struckView });
-  const victory = fight.victory.bind(fight);
-  fight.victory = () => { victory(); look?.setOpen(0, 0); };
   installEnteredRuntimeService(context, scope => {
     const descriptor = Object.getOwnPropertyDescriptor(scene, 'onBeforeRender'), previous = scene.onBeforeRender.bind(scene);
     scene.onBeforeRender = (...args) => { atmosphere(); previous(...args); };
     scope.onDispose(() => { if (descriptor === undefined) Reflect.deleteProperty(scene, 'onBeforeRender'); else Object.defineProperty(scene, 'onBeforeRender', descriptor); });
   });
-  if (!ctx.animals.herdless) { // a page on a server has no body of its own to warm
-    const k = fight.spawn();
-    if (TIER_CONFIG.furShells) { k.setShellLevel(rows.fur.prewarm); k.setShellLevel(rows.fur.parked); }
-    fight.present = true; fight.setPresent(false);
-    for (const row of rows.prewarm) park(ctx.animals.spawn(row.kind, C.x, C.z, 0, row.variant));
-  } else if (light !== null) { pool.release(light); light = null; } // as `setPresent(false)` returns it: held, no fight lights it, and the next light asked for makes the level one more, which rebuilds every lit program (DL10: Pine 61 / 107)
+  if (light !== null) { pool.release(light); light = null; } // held, no fight lights it, and the next light asked for makes the level one more, which rebuilds every lit program (DL10: Pine 61 / 107)
   context.scope.onDispose(() => {
     disposeTell(tellRing); for (const wave of waves) disposeTell(wave.g); for (const hazard of fallen) disposeTell(hazard.ring);
     lane.dispose(); for (const add of addLanes) add.dispose(); puffs.dispose();
     if (light !== null) { pool.release(light); light = null; } look?.dispose(); wall.removeFromParent(); wall.geometry.dispose(); });
-  return fight;
+  const { points } = encounterRows.profile.fight, rewardZ = C.z + points.rewardZ, respawnZ = C.z + points.respawnZ;
+  return rowFightScript({ room: heardRoom, rewardPoint: () => new THREE.Vector3(C.x, heightAt(C.x, rewardZ) + points.rewardY, rewardZ),
+    respawnPoint: () => ({ pos: new THREE.Vector3(C.x, heightAt(C.x, respawnZ), respawnZ), yaw: points.respawnYaw }) });
 }

@@ -83,7 +83,7 @@ export function inlinePlatformSpans(path, source, report = console.error) {
 }
 
 /** Reviewed sole-user ownership, including declarations hidden behind shared
- * optional dispatch. FixedPageSpawnTable and StaticCapture remain shared.
+ * optional dispatch. StaticCapture remains shared.
  * @param {string} path @param {string} [name]
  * @returns {import('./shard-components.mjs').Component|null} */
 export function platformChargeback(path, name) {

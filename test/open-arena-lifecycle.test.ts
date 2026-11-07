@@ -5,7 +5,6 @@ import {expect,test,vi} from 'vitest';
 import {MeshBasicMaterial,Vector3,Group} from 'three';
 import {app} from '../src/engine/client/app/runtime';
 import {Scope} from '../src/engine/shared/app/scope';
-import type {BossScript} from '../src/engine/shared/ai/BossBrain';
 import {ArenaRoomEncounter} from '../src/game/client/boss/arenaRoom';
 import {ARENA_ROOM_PAGE} from '../src/game/client/boss/arenaRoomView';
 import {OriginalOpenArenaEncounter} from './fake/originalOpenArena';
@@ -58,7 +57,7 @@ function run(original:boolean):{trace:unknown[];input:unknown[];ownerScope:boole
   const kit=legacyDouble<HeldSlotKit>({upgradeBlade:(slot,_weapons,source)=>{expect(source).toBeInstanceOf(Power);trace.push(['upgrade',slot]);},refill:()=>{trace.push('refill');}});
   const locker=legacyDouble<CosmeticFinishLocker>({own:id=>{trace.push(['own',id]);}});
   const reward:ModelDef<object>={id:'open.reward',name:'open reward',category:'gear',pipeline:'code',file:'fixture',defaults:{},build:()=>{trace.push('reward.model');return new Group();}};
-  let ports:bossHost.BossEncounterPorts<BossScript>|undefined;
+  let ports:bossHost.BossEncounterPorts|undefined;
   const install=vi.spyOn(bossHost,'installBossEncounter').mockImplementation((_rows,makeScript,borrowed)=>{
     ports=borrowed;trace.push('install');
     return {fight:makeScript(),boss:legacyDouble<bossHost.Boss>({rewardTaken:true,state:'dormant',engaged:false,update:(dt,t)=>{trace.push(['boss.update',dt,t]);}}),ui:legacyDouble<BossBar>({}),update:()=>undefined,onPlayerDeath:()=>false};

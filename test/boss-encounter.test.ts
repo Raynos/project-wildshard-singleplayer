@@ -31,7 +31,7 @@ function fixture(rows: BossEncounterRows, owned = false) {
     clampHp: (value: number) => { hp = value; }, setInvulnerable: (on: boolean) => { events.push(`shield:${on}`); },
     victory: () => { events.push('victory'); }, rewardPoint: () => new Vector3(0, 0, 0), respawnPoint: () => ({ pos: new Vector3(4, 0, 0), yaw: 1 }),
   } satisfies BossScript & { readonly phase: number };
-  const ports: BossEncounterPorts<typeof script> = {
+  const ports: BossEncounterPorts = {
     game: { scene, camera }, player, scope, chunkId: 'boss-test', interactables: [],
     persistence: { read: () => saved, write: value => { Object.assign(saved, value); events.push('persist'); } },
     reward: { model: () => { events.push('model'); return new Group(); }, grant: () => { grants++; }, trophy: () => { trophies++; } },
@@ -41,7 +41,7 @@ function fixture(rows: BossEncounterRows, owned = false) {
       setScene: value => { events.push(`scene:${value}`); }, setBossPhase: value => { events.push(`score-phase:${value}`); },
       combat: value => { events.push(`combat:${value}`); }, playSting: value => { events.push(`sting:${value}`); },
     }; },
-    ambientScene: () => ambient, scorePhase: fight => fight.phase,
+    ambientScene: () => ambient,
   };
   return { events, scope, scene, script, ports, saved, get grants() { return grants; }, get trophies() { return trophies; }, get scoreReads() { return scoreReads; },
     damage: (value: number) => { hp = value; }, die: () => { dead = true; }, daytime: () => { ambient = 'day'; } };

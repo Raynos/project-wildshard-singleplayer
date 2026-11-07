@@ -76,20 +76,14 @@ export async function installRoamingCombat(context: ShardContext, input: unknown
     lockInput: on => { session.lockInput(on); }, respawn: (position, yaw) => { player.spawn(position.x, position.z, yaw); player.pitch = 0; loadout.onPlayerDeath(); launcher.addBolts(slots.pouch.capacity - launcher.state.bolts); },
     skipHeld: () => context.app.input.held('skip') || context.app.input.held('jump') || context.app.input.held('use') || context.app.input.held('confirm'),
     toast: ctx.toast, feed: ctx.feed, pickupHum: on => { audio.pickupHum(on); },
-    score: () => CatalogueScore.get(music, requireAudioProfile(source.audio.music, rows.score), undefined, false), ambientScene: () => night() ? rows.nightScene : rows.dayScene, scorePhase: owner => owner.phase,
-    advance: (boss, owner, dt, time) => {
-      const p = rows.projection.encounter, d = Math.hypot(player.position.x - p.profile.fight.origin.x, player.position.z - p.profile.fight.origin.z);
-      if (boss.state === 'dormant') { if (night() && d < p.presence.enter) { owner.setPresent(true); boss.arm(); } }
-      else if ((boss.state === 'armed' || boss.state === 'victory') && (d > p.presence.leave || !night())) { boss.disarm(); owner.setPresent(false); }
-      boss.update(dt, time); if (boss.state === 'dormant') owner.update(dt, time, false);
-    },
+    score: () => CatalogueScore.get(music, requireAudioProfile(source.audio.music, rows.score), undefined, false), ambientScene: () => night() ? rows.nightScene : rows.dayScene,
   }));
   if (retainsRuntimeServices(context)) {
     installEnteredRuntimeAttachment(context, eliteUi.root); installEnteredRuntimeAttachment(context, encounter.ui.root);
     installEnteredRuntimeService(context, scope => { eliteUi.setActive(true); scope.onDispose(() => { eliteUi.setActive(false); }); });
     elites.initialize();
   }
-  context.answer('weather.hold', previous => context.app.render === game ? Math.max(previous, fight.sealK) : previous);
+  context.answer('weather.hold', previous => context.app.render === game ? Math.max(previous, fight.room.sealK) : previous);
   context.system({ id: rows.system.id, phase: 'update', before: rows.system.before, run: (dt, time) => {
     session.legs(); let n = 0;
     for (const actor of animals.animals) {
@@ -109,6 +103,6 @@ export async function installRoamingCombat(context: ShardContext, input: unknown
   installEnteredRuntimeService(context, scope => { scope.onDispose(() => { session.onPlayerDeath(); player.carried = false; }); });
   installEnteredRuntimeObserver(context, rows.observers.elites, eliteFeature); installEnteredRuntimeObserver(context, rows.observers.boss, encounter);
   context.scope.onDispose(() => { park.removeFromParent(); });
-  return { elites, encounter, finishModel, weatherHold: () => fight.sealK, onPlayerDeath: () => { session.onPlayerDeath(); return encounter.onPlayerDeath(); },
+  return { elites, encounter, finishModel, weatherHold: () => fight.room.sealK, onPlayerDeath: () => { session.onPlayerDeath(); return encounter.onPlayerDeath(); },
     isElite: (actor: Animal) => eliteFeature.isElite(actor), useSfx: (bank: DeclaredSoundBank) => { session.useSfx(bank); }, eliteEngaged: () => elites.focus?.state === 'engaged' };
 }

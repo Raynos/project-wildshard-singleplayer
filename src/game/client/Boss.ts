@@ -282,7 +282,7 @@ export interface BossEncounterScore {
   playSting: (sting: 'chunk' | 'death' | 'pickup') => void;
 }
 /** Native fight, equipment, presence, save and reward owners remain borrowed; no replacement body is created. */
-export interface BossEncounterPorts<S extends BossScript> extends Omit<BossHost, 'scene' | 'camera' | 'renderer' | 'addInteractable' | 'removeInteractable' | 'music'> {
+export interface BossEncounterPorts extends Omit<BossHost, 'scene' | 'camera' | 'renderer' | 'addInteractable' | 'removeInteractable' | 'music'> {
   readonly game: Pick<BossHost, 'scene' | 'camera' | 'renderer'>;
   /** The id a server publishes this fight under, where that isn't its definition's. */
   readonly row?: string;
@@ -293,9 +293,7 @@ export interface BossEncounterPorts<S extends BossScript> extends Omit<BossHost,
   readonly reward: Pick<BossReward, 'model' | 'grant' | 'trophy'>;
   readonly score?: () => BossEncounterScore;
   readonly ambientScene?: () => string;
-  readonly scorePhase?: (script: S) => number;
   readonly music?: BossHost['music'];
-  readonly advance?: (boss: Boss, script: S, dt: number, t: number) => void;
 }
 /** The original bar, reward pickup and boss record over the caller's exact fight. */
 export interface BossEncounter<S extends BossScript> {
@@ -306,9 +304,9 @@ export interface BossEncounter<S extends BossScript> {
   onPlayerDeath: () => boolean;
 }
 /** Assemble the existing rendered Boss once. Bar construction precedes fight preparation/prewarm, and registration
- * follows Boss construction. Optional score rows preserve action order; presence/dormant stepping stays with the caller.
+ * follows Boss construction. Optional score rows preserve action order.
  */
-export function installBossEncounter<S extends BossScript>(rows: BossEncounterRows, makeScript: () => S, ports: BossEncounterPorts<S>): BossEncounter<S> {
+export function installBossEncounter<S extends BossScript>(rows: BossEncounterRows, makeScript: () => S, ports: BossEncounterPorts): BossEncounter<S> {
   if (rows.score !== undefined && (ports.score === undefined || ports.music !== undefined)) throw new Error('Encounter score rows require one score owner');
   for (const actions of Object.values(rows.score ?? {})) {
     if (actions.length > 16) throw new RangeError('Too many encounter score actions');
@@ -316,12 +314,12 @@ export function installBossEncounter<S extends BossScript>(rows: BossEncounterRo
       if (action.kind === 'combat' && (!Number.isFinite(action.value) || action.value < 0 || action.value > 1)) throw new RangeError('Invalid encounter intensity');
       if (action.kind === 'scene' && (action.value.length === 0 || action.value.length > 512)) throw new RangeError('Invalid encounter score scene');
       if (action.kind === 'ambient' && ports.ambientScene === undefined) throw new Error('Encounter requires its ambient scene owner');
-      if (action.kind === 'phase-index' && (ports.scorePhase === undefined || action.values.length === 0 || action.values.length > 16)) throw new Error('Encounter requires its bounded phase owner');
+      if (action.kind === 'phase-index' && (action.values.length === 0 || action.values.length > 16)) throw new Error('Encounter requires its bounded phase owner');
     }
   }
   const ui = new BossBar(), fight = makeScript(), aim = new THREE.Vector3();
   const scoreRows = rows.score, scoreOwner = ports.score;
-  // J130: a bar has one driver. On the wire the row draws it and this page's brain never arms.
+  // J130: a bar has one driver: its row. This page's brain never arms.
   let rowBar: BossRowBar | null = null;
   const music: BossHost['music'] = scoreRows === undefined || scoreOwner === undefined ? ports.music : event => {
     const score = scoreOwner(), actions = scoreRows[event];
@@ -334,7 +332,7 @@ export function installBossEncounter<S extends BossScript>(rows: BossEncounterRo
       if (action.kind === 'scene') score.setScene?.(action.value);
       else if (action.kind === 'ambient') { const scene = ports.ambientScene?.(); if (scene === undefined) throw new Error('Missing ambient scene'); score.setScene?.(scene); }
       else if (action.kind === 'phase') score.setBossPhase?.(action.value);
-      else if (action.kind === 'phase-index') { const phase = rowBar === null ? ports.scorePhase?.(fight) : rowBar.phase; if (phase === undefined) throw new Error('Missing encounter phase'); score.setBossPhase?.(action.values[phase] ?? action.otherwise); }
+      else if (action.kind === 'phase-index') { const phase = rowBar?.phase ?? 0; score.setBossPhase?.(action.values[phase] ?? action.otherwise); }
       else if (action.kind === 'combat') score.combat(action.value);
       else score.playSting(action.value);
     }
@@ -351,5 +349,5 @@ export function installBossEncounter<S extends BossScript>(rows: BossEncounterRo
   rowBar = new BossRowBar(ui, { ...rows.definition, id: rowId }, { show: at => { boss.showRowReward(at, () => { rowBar?.pressed(); wirePage.send(`${rowId}.reward`); }); }, hide: taken => { boss.hideRowReward(taken); } },
     { lock: ports.lockInput, ...(music === undefined ? {} : { music }), ...(ports.feed === undefined ? {} : { feed: ports.feed }), ...(ports.toast === undefined ? {} : { toast: ports.toast }), attempt: outcome => { app.events.emit('boss.attempt', { boss: rows.definition.id, outcome }); },
       face: (body, dt) => { boss.faceToward(wirePage.head(body, aim) ? aim : fight.rowlessFocus?.() ?? fight.rewardPoint(), dt); } });
-  return { fight, boss, ui, update: (dt, t) => { if (rowBar !== null) { rowBar.draw(wirePage.encounters(), dt); boss.tendDrop(dt, t); } else if (ports.advance === undefined) boss.update(dt, t); else ports.advance(boss, fight, dt, t); }, onPlayerDeath: () => rowBar === null && boss.onPlayerDeath() };
+  return { fight, boss, ui, update: (dt, t) => { rowBar?.draw(wirePage.encounters(), dt); boss.tendDrop(dt, t); }, onPlayerDeath: () => false };
 }
