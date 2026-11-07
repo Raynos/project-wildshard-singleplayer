@@ -3,7 +3,6 @@ import { BorrowedElite, type DeclaredEliteEntry, type EliteEntryLoans } from '@w
 import { ObservationColumnsV2, type V2EnvironmentColumns } from '@wildshard/engine/script/observationColumnsV2';
 import { parseEliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
 import type { ReturnProgram } from '../shared/population/returnProgram';
-import type { SpawnScriptRows } from '@wildshard/format/spawnScripts';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import type { PouncerLedge } from '@wildshard/engine/ai/stalker';
 import type { PatrolEncounterView } from './boss/encounterView';
@@ -19,7 +18,6 @@ import { strikeFromData, type StrikeData } from '@wildshard/engine/ai/strikeRows
 import { app } from '@wildshard/engine/app/runtime';
 import type { CrowdTargets } from '../shared/shardfile/crowdRuntime';
 import { eliteViewSource, eliteViewTell, parseEliteOutputActions, parseEliteOutputBank, type EliteEnteredPresentation, type EliteOutputAction, type EliteOutput } from '@wildshard/format/eliteFeature';
-import { pageSim } from './shardfile/clientMoverOwners';
 import { wirePage } from './shardfile/wirePage';
 import { ELITE_MOMENTS, eliteCueWord, eliteGroundWord, eliteLaneWord, eliteMomentWord, eliteWindWord } from '@wildshard/engine/sim/shardRows';
 import { EliteRowBar, type BossRowDrop } from './boss/barFeed';
@@ -115,6 +113,12 @@ export interface EliteHost {
   canSee?: (from: THREE.Vector3, to: THREE.Vector3) => boolean;
 }
 
+/** A lair a page draws off its row: its card, its orb and its trophy line. Its body and clock are the server's, so nothing else of it moves. */
+export function rowEliteScript(def: EliteDef, trophy: () => void, dropModel: () => THREE.Object3D): EliteScript {
+  const still = (): void => undefined;
+  return { def, animal: null, trophy, dropModel, spawn: still, despawn: still, tick: still, enterPhase2: still, reset: still };
+}
+
 /** A tell for the page session that binds elites, which reaches the view half through this file alone. */
 export function eliteGroundTell(scene: THREE.Scene, kind: 'ring' | 'lane', color: THREE.ColorRepresentation): GroundTell { return new GroundTell(scene, kind, color); }
 type PresentationCallbacks = 'addInteractable' | 'removeInteractable' | 'toast' | 'sting' | 'pickupHum';
@@ -164,13 +168,11 @@ export class Elites {
       persistence: owners.persistence, contacts, patrol: owners.patrol, wildlife: owners.wildlife });
     const selected = owners.controllers === undefined ? rows.borrowed.map(row => {
       const model = models.get(row.def.id);
-      if (model === undefined || (row.mode === 'script' && owners.fight === undefined)) throw new Error('Missing declared borrowed elite model or fight');
+      if (model === undefined) throw new Error('Missing declared borrowed elite model');
       return { row, model };
     }) : [];
-    const fight = owners.fight, spawnOwners = { scope: entered.scope, environment: owners.environment, clock: owners.clock, weather: owners.weather, ...(owners.fightModule === undefined ? {} : { module: owners.fightModule }) };
-    const pages = fight === undefined ? undefined : { page: () => fight.v2 === undefined ? pageSim.spawnScript.page(animals, fight, game.app.physics, owners.fightModule === undefined ? undefined : spawnOwners) : pageSim.spawnScript.page(animals, fight, game.app.physics, spawnOwners, this) };
     const controllers = owners.controllers ?? selected.map(({ row, model }) => new BorrowedElite(row,
-      { game, player, elites: this, ...(row.mode === 'script' && pages !== undefined ? { fight: pages } : {}) }, program.value, model, true));
+      { game, player, elites: this }, program.value, model, true));
     if (controllers.length !== rows.borrowed.length || controllers.some((controller, index) => !(controller instanceof BorrowedElite)
       || controller.def.id !== rows.borrowed[index]?.def.id) || new Set(controllers).size !== controllers.length) throw new Error('Foreign declared borrowed elite controller');
     const emptyActors = new Map<number, Animal>();
@@ -289,12 +291,10 @@ export class Elites {
       }
     }));
   }
-  /** Materialize eligible lair actors before restoring a rebuilt world, without advancing AI, timers or rewards. */
-  initialize(): void { this.core.initialize(); }
+  /** A lair's body is its row's: a page never wakes one, and the server materializes what's eligible. */
+  initialize(): void { /* no lair of a page's own */ }
   entry(id: string): Entry | undefined { return this.core.entry(id); }
   owned(id: string): boolean { return this.core.owned(id); }
-  /** dev: spawn it now next to (x, z) whatever its rule (`?elite=`) */
-  devSpawn(id: string): Animal | null { return this.core.devSpawn(id); }
   /** the script says this elite moved its signature move now: flash its name the first time */
   signature(id: string): void { this.core.signature(id); }
   /** a once elite won for good (Argymaq tamed): the trophy + the "skin" (the horse is the reward), the lair retires */
@@ -334,8 +334,6 @@ export interface EliteDeclaredEntryOwners<T extends CrowdTargets = CrowdTargets>
   readonly models: ReadonlyMap<string, THREE.Object3D>;
   readonly program: { readonly id: string; readonly scope: Scope; readonly value: ReturnProgram };
   readonly controllers?: readonly BorrowedElite[];
-  readonly fight?: SpawnScriptRows;
-  readonly fightModule?: Uint8Array;
   readonly environment: PageWildEnvironment & V2EnvironmentColumns;
   readonly clock: DayCycleClock; readonly weather: { readonly stormActive: boolean };
   readonly ledges: readonly PouncerLedge[]; readonly rock: { readonly x: number; readonly z: number; readonly top: number };

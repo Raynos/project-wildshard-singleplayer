@@ -4,7 +4,6 @@ import { DeclaredEliteEntry } from '@wildshard/engine/ai/view/eliteEntry';
 import { parseEliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../plugin/context';
-import { clientNativeBook } from './clientNativeBook';
 import { ReturnProgram } from '../../shared/population/returnProgram';
 import { pageSim } from './clientMoverOwners';
 import { SceneDressing } from './sceneDressing';
@@ -29,10 +28,6 @@ export async function installClientEliteConstruction(ctx: ShardContext, input: u
   if (presentEntryOwner(scope, 'elite-entry', row.owner) !== null) throw new Error('Elite construction owner already exists');
   const {admission} = v.parse(v.object({admission: v.unknown()}), await product.json(row.admission)); live();
   const rows = parseEliteEntryPageRows(row.rows), program = ReturnProgram.page(admission, scope);
-  const assets = clientNativeBook(ctx).decisionAssets;
-  const fight = await pageSim.spawnScript.read(product, row.fight, assets); live();
-  const fightModule = fight.bytes === '' ? assets.get(fight.script.module.slice('blobs/wasm/'.length,-'.wasm'.length)) : undefined;
-  if (fight.bytes === '' && fightModule === undefined) throw new Error('Missing prepared elite fight module');
   const ledges = SceneDressing.current(ctx).pieces.get(row.ledges.part)?.anchors[row.ledges.anchor] ?? [];
   const entry = new DeclaredEliteEntry(rows.entry, construction);
   let population: ReturnType<typeof pageSim.clientWildlifeState> | undefined;
@@ -44,7 +39,7 @@ export async function installClientEliteConstruction(ctx: ShardContext, input: u
   const readWeather = () => { live(); const rig = weather(); originalWeather ??= resolveWeather();
     if (rig.sky !== originalWeather.sky || rig.storm !== originalWeather.storm || originalWeather.sky.clock !== originalWeather.clock)
       throw new Error('Elite weather owner changed'); return originalWeather; };
-  const loan: EliteEntryConstruction = {entry, rows, construction, models, program: {id: row.program, scope: construction, value: program}, fight, ...(fightModule === undefined ? {} : {fightModule}), environment: pageSim.wild, ledges,
+  const loan: EliteEntryConstruction = {entry, rows, construction, models, program: {id: row.program, scope: construction, value: program}, environment: pageSim.wild, ledges,
     get population() { return readPopulation(); },
     get clock() { return readWeather().clock; },
     get weather() { return readWeather().storm; },

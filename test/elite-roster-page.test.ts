@@ -26,7 +26,7 @@ import { parseExternalElite } from '@wildshard/format/eliteFeature';
 import { strike } from '../src/sharddev/species';
 import strikes from './fixtures/nalati-strikeProfiles-original.json' with { type: 'json' };
 
-test('a marsh roster binds its own herd, drop and identities without author callbacks', () => {
+test('a marsh roster binds its own drop and identities, and wakes no lair of its own', () => {
   const source = ecology.externalElites.find(row => row.mode === 'herd');
   if (source?.mode !== 'herd') throw new Error('Missing external template');
   const row = parseExternalElite({ ...source, def: { ...source.def, id: 'marsh.stag', name: 'Reed Stag', rule: 'always' as const,
@@ -64,8 +64,8 @@ test('a marsh roster binds its own herd, drop and identities without author call
         patrol: null, wildlife, persistence: legacyDouble<AdventurePersistence>({ elites: saved, kill: () => undefined, feat: () => undefined }), contacts: new StrikeRunner() });
     });
     entry.initialize({ patrolAvailable: false, herdAvailable: true, kills: 0, bonded: false, mount: null });
-    expect(requests).toEqual([[32, -16, 3, 0, false], ['reed-stag', 30, -12, 0, 'silver']]);
-    expect(entry.scripts[0]?.animal).toBe(body); expect(body.herd).toBe(0); expect(members.some(member => member === body)).toBe(true);
+    expect(requests).toEqual([]); // a lair's body is its row's: a page wakes none
+    expect(entry.scripts[0]?.animal).toBeNull();
     expect(entry.scripts[0]?.dropModel()).toBeInstanceOf(Group);
   } finally { root.dispose(); }
 });

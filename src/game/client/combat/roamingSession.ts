@@ -64,7 +64,7 @@ export async function installRoamingCombat(context: ShardContext, input: unknown
     canSee: (from, to) => context.app.physics === null || lineOfSight(context.app.physics, from, to, .6),
   }, eliteUi, source.identity.slug, persistence.elites));
   const eliteRows = await readPageEliteRows(context.product, rows.elites);
-  const eliteFeature = context.scope.run(() => installEliteFeaturePage(game, animals, player, elites, parked, eliteRows, source.identity.seed, play.hud));
+  const eliteFeature = context.scope.run(() => installEliteFeaturePage(game, animals, player, elites, parked, eliteRows, play.hud));
   elites.bindEnteredPresentation({ scope: context.scope, interactables: runtime.interactables, hud: play.hud, audio, music }, rows.elitePresentation);
   const fight = await installRoamingBossProjection(context, rows.projection);
   const night = (): boolean => ctx.night() > rows.availability;

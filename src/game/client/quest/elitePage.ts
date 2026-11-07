@@ -7,12 +7,10 @@ import type { HUD } from '@wildshard/engine/ui/HUD';
 import { CameraFX } from '@wildshard/engine/player/CameraFX';
 import { Impacts } from '@wildshard/engine/fx/Impacts';
 import { GroundTell } from '@wildshard/engine/fx/groundTell';
-import type { Elites, EliteScript } from '../Elite';
+import { rowEliteScript, type Elites } from '../Elite';
 import { DomePuffs } from '@wildshard/engine/fx/groundFx';
-import { pageSim } from '../shardfile/clientMoverOwners';
 import { wirePage } from '../shardfile/wirePage';
 import { ELITE_TELL } from '../../shared/shardfile/wirePrompts';
-import { EliteDecisions } from '../../shared/quest/eliteDecisions';
 import { parseEliteFeature, type EliteFeatureRows } from '@wildshard/format/eliteFeature';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
 
@@ -50,8 +48,8 @@ function rowBodyAt(animals: AnimalManager, x: number, z: number): Animal | null 
   return best;
 }
 export function installEliteFeaturePage(game: Game, animals: AnimalManager, player: Player, elites: Elites,
-  models: ReadonlyMap<string, THREE.Object3D>, input: unknown, seed: number, hud: HUD): {
-  readonly elites: Elites; readonly update: (dt: number, t: number) => void; readonly force: (id: string, move: string) => void; readonly isElite: (body: Animal) => boolean;
+  models: ReadonlyMap<string, THREE.Object3D>, input: unknown, hud: HUD): {
+  readonly elites: Elites; readonly update: (dt: number, t: number) => void; readonly isElite: (body: Animal) => boolean;
 } {
   const rows = parseEliteFeature(input), view = rows.view;
   if (view === undefined) throw new Error('Elite page needs declared presentation');
@@ -63,31 +61,23 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
     if (group !== undefined) { const index = group.members.indexOf(body); if (index === -1) group.members.push(ordinary); else group.members[index] = ordinary; }
   }
   const puffs = new DomePuffs(game.scene, new THREE.Color(...view.puffColor), view.puffPool.capacity, view.puffPool.segments, view.puffPool.order), color = new THREE.Color(...view.tellColor);
-  const controllers = rows.fights.map(row => new EliteDecisions(row, () => pageSim.spawnScript.page(animals, row.program, game.app.physics), rows, seed));
-  const point = new THREE.Vector3(), direction = new THREE.Vector3(), tells = new Map<string, GroundTell>();
-  for (const controller of controllers) {
-    for (const slot of controller.row.program.slots) for (const kind of new Set((controller.row.program.strikes ?? []).flatMap(row => row.tell === undefined ? [] : [row.tell]))) {
-      tells.set(`${controller.def.id}:${slot.handle}:${kind}`, new GroundTell(game.scene, kind, color));
+  const point = new THREE.Vector3(), direction = new THREE.Vector3(), tells = new Map<string, GroundTell>(), ids = new Set(rows.fights.map(row => row.def.id));
+  const scope = game.app.levelScope;
+  for (const { def, program } of rows.fights) {
+    for (const slot of program.slots) for (const kind of new Set((program.strikes ?? []).flatMap(row => row.tell === undefined ? [] : [row.tell]))) {
+      tells.set(`${def.id}:${slot.handle}:${kind}`, new GroundTell(game.scene, kind, color));
     }
-    const script: EliteScript = { def: controller.def, get animal() { return null; },
-      spawn: () => { controller.spawn(); }, despawn: () => { controller.despawn(); },
-      tick: (dt, t, engaged, leashing) => { controller.tick(dt, t, engaged, leashing); },
-      cadence: far => { controller.cadence(far); },
-      enterPhase2: () => { controller.enterPhase2(); }, reset: () => { controller.reset(); }, trophy: () => {  hud.killFeed(`${controller.def.drop.trophyName ?? 'Felled'} — ${controller.def.name}`); },
-      dropModel: () => {
-        const id = controller.def.drop.skin, model = id === null ? undefined : models.get(id);
-        if (model === undefined) throw new Error('Missing admitted elite drop model'); const clone = model.clone(true); clone.visible = true; return clone;
-      },
-    };
-    const scope = game.app.levelScope;
-    if (scope !== null) game.app.encounters.elite(script.def.id, Object.assign(script, { force: (move: string) => { controller.force(move); } }), scope);
+    const script = rowEliteScript(def, () => { hud.killFeed(`${def.drop.trophyName ?? 'Felled'} — ${def.name}`); }, () => {
+      const id = def.drop.skin, model = id === null ? undefined : models.get(id);
+      if (model === undefined) throw new Error('Missing admitted elite drop model'); const clone = model.clone(true); clone.visible = true; return clone;
+    });
+    if (scope !== null) game.app.encounters.elite(def.id, script, scope);
     elites.add(script);
   }
   const heard = new Map<string, HeardTell>();
-  const scope = game.app.levelScope;
   /** The server's cue, as a page's own would play: `args` are its row, its elite, where it landed, and the body. */
   const heardCue = ([index = -1, elite = -1, atX = 0, atY = 0, atZ = 0, bodyX = 0, bodyY = 0, bodyZ = 0, scale = 1]: readonly number[]): void => {
-    const cue = view.cues[index], id = controllers[elite]?.def.id;
+    const cue = view.cues[index], id = rows.fights[elite]?.def.id;
     if (cue === undefined || id === undefined) return;
     if (cue.signature === true) elites.signature(id);
     if (cue.trauma !== undefined) CameraFX.for(game).addTrauma(cue.trauma);
@@ -107,8 +97,7 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
   }));
   return {
     elites,
-    isElite: body => controllers.some(controller => controller.animal === body),
-    force: (id, move) => { controllers.find(controller => controller.def.id === id)?.force(move); },
+    isElite: body => wirePage.encounters().some(row => ids.has(row.id) && wirePage.rowBody(row.body) === body),
     update: (dt, t) => {
       // the server fights: this page bars its row and draws the tells it hears
         elites.update(dt, t);

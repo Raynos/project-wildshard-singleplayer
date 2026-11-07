@@ -3,7 +3,6 @@ import { bindMeleeContacts, bindQuestWorldReactions, commandSocketLift, createSh
 import { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { createSimHost } from '@wildshard/engine/sim';
 import { GridRegionDurability } from '../grid/durability';
-import { readSpawnScript, SpawnScript } from '../population/spawnScript';
 import { PageActorGroups, bindPageGroups, lendPageGrass, wildEnv } from '../population/pageGroups';
 import { PageWildlife, lendClientWildlife } from '../population/wildlife';
 import { clientWildlifeState } from '../../shared/population/wildlifeOwner';
@@ -48,7 +47,6 @@ export interface PageSimFeed {
   /** A held blade's contacts and its secondary, which the page's weapons still settle themselves. */
   readonly bindMeleeContacts: typeof bindMeleeContacts;
   readonly startMeleeSecondary: typeof startMeleeSecondary;
-  readonly spawnScript: { readonly read: typeof readSpawnScript; readonly page: typeof SpawnScript.page };
   /** The page's own sim, and the restore a grid home takes it through (E6 SESSION). */
   readonly createShardfileSim: typeof createShardfileSim;
   readonly prepareShardfileSimRestore: typeof prepareShardfileSimRestore;
@@ -67,7 +65,6 @@ export const pageSimFeed: PageSimFeed = {
   clientWildlifeState, lendClientWildlife,
   bindPageGroups: (...args) => { bindPageGroups(...args); }, pageWildlife: (...args) => new PageWildlife<CrowdDraw>(...args), lendPageGrass, crowdGuardProjection, bindCrowdGuard,
   admitSpeciesProgram, bindMeleeContacts, startMeleeSecondary,
-  spawnScript: { read: (...args) => readSpawnScript(...args), page: (...args) => SpawnScript.page(...args) },
   createShardfileSim, prepareShardfileSimRestore, createSimHost,
   animalManager: (...args) => new AnimalManager(...args), regionDurability: (...args) => new GridRegionDurability(...args),
 };

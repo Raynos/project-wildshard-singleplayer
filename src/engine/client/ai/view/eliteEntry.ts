@@ -82,7 +82,6 @@ export class BorrowedElite implements BorrowedEliteController {
     this.services = services; this.decisions = decisions; this.drop = drop;
     this.row = parseExternalElite(row); this.def = row.def;
     if (!deferPresentation) this.tellValue = new GroundTell(services.game.scene, 'lane', new Color(...row.tell));
-    if (row.mode === 'script' && services.fight === undefined) throw new Error('Script encounter needs an admitted fight');
   }
   get tell(): GroundTell { if (this.tellValue === null) throw new Error('Unprepared external elite presentation'); return this.tellValue; }
   /** Compiled entry construction calls this once, at the borrowed row's original position. No clock, RNG or body work. */
@@ -98,7 +97,7 @@ export class BorrowedElite implements BorrowedEliteController {
   spawn(): void { if (this.animal?.alive === true || this.pending) return; this.pending = true; this.events.push({ kind: 'request', row: this.row }); }
   adopt(animal: Animal, herd: BorrowedEliteHerd | null = null): void {
     if (!this.pending) throw new Error('Unrequested encounter body');
-    const program = this.row.mode === 'script' ? need(this.services.fight).page() : null;
+    const program = this.row.mode === 'script' ? this.services.fight?.page() ?? null : null;
     program?.adopt('main', animal.entityId);
     this.pending = false; this.animal = animal; this.herd = herd;
     if (program !== null) {
