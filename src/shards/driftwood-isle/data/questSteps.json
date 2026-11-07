@@ -1,5 +1,0 @@
-{
-  "version": 1,
-  "steps": [],
-  "guards": [{ "id": "iron-sword", "actor": "sailor", "message": "The drowned sailor guards the rack", "absentUnless": "dead:sailor" }]
-}
