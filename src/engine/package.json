@@ -551,7 +551,6 @@
     "./world/tileStreamer": "./client/world/tileStreamer.ts",
     "./ui/StartTitle": "./client/ui/StartTitle.ts",
     "./telemetry/runtime": "./client/telemetry/runtime.ts",
-    "./native/boot": "./client/native/boot.ts",
     "./practice/TrainingDummy": "./client/practice/TrainingDummy.ts",
     "./practice/DummyMotion": "./client/practice/DummyMotion.ts",
     "./practice/DummyClips": "./client/practice/DummyClips.ts",

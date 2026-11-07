@@ -68,7 +68,7 @@ export async function clearDownloads(): Promise<ClearReport> {
       const regs = await navigator.serviceWorker.getRegistrations();
       const done = await Promise.all(regs.map((r) => r.unregister().catch(() => false)));
       workers = done.filter(Boolean).length;
-    } catch { /* no worker API here (a native shell): nothing registered */ }
+    } catch { /* no worker API here: nothing registered */ }
   }
   // 3. every cache; a put that was already under way can re-create one, so look again until none is left
   let deleted = 0;

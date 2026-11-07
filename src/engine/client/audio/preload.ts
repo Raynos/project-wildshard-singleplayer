@@ -4,7 +4,7 @@ import { resourceScope } from '../../shared/app/resources';
 //
 //   decodeBytes(bytes)                 → AudioBuffer, decoded on one shared OfflineAudioContext at the files' rate (48 kHz)
 //   cachedBytes(url)                   → the file's bytes from Cache Storage (the service worker stored it while the bar
-//                                        downloaded it), else a plain fetch (no worker: dev, ?sw=0, the native shell)
+//                                        downloaded it), else a plain fetch (no worker: dev, ?sw=0)
 //   decodeSfxSet(set, bed, read)       → an SfxBank: sfx.json's beds (this shard's + underwater), hums, one-shots
 //   trackBusy('music' | 'sfx', work)   → work, flagging the menu's picker busy only if it runs past BUSY_MS
 //   onAudioBusy(fn)                    → the picker's spinner (src/engine/client/ui/Menu.ts)

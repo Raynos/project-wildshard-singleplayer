@@ -3,12 +3,11 @@ import { apiOrigin, apiUrl } from './apiOrigin';
 
 describe('apiUrl', () => {
   it('keeps today\'s calls until the build value is set', () => {
-    expect(apiUrl('errors', '', false)).toBe('/api/errors');
-    expect(apiUrl('inbox', '', true)).toBe('https://wildshard-singleplayer.vercel.app/api/inbox');
+    expect(apiUrl('errors', '')).toBe('/api/errors');
   });
 
-  it('sends web and native to the one value once it is set', () => {
-    for (const native of [false, true]) expect(apiUrl('telemetry', 'https://api.wildshard.io', native)).toBe('https://api.wildshard.io/api/telemetry');
+  it('sends the web to the one value once it is set', () => {
+    expect(apiUrl('telemetry', 'https://api.wildshard.io')).toBe('https://api.wildshard.io/api/telemetry');
   });
 });
 

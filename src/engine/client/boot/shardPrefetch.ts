@@ -22,7 +22,7 @@ import { prepareBootAudio } from './audioInventory';
  *
  * Polite: starts a few seconds after playable and only when idle; at most CONCURRENCY files in flight; nothing new while
  * the tab is hidden; on Wi-Fi and cellular alike (E158), off on the OS's data saver (Save-Data) or without a controlling
- * worker (dev, `?sw=0`, the native shells). The current shard goes first:
+ * worker (dev, `?sw=0`). The current shard goes first:
  * whatever its own boot fetched before the worker controlled the page
  * (a first visit on a slow link, the ≤ 2.5 s cap in src/engine/client/boot/sw.ts) is stored now instead of on the next launch.
  *

@@ -7,7 +7,6 @@
     "scripts/parity/fast-png.mjs": 1,
     "src/commons/practiceCourse.ts": 1,
     "src/engine/client/core/deflate.ts": 1,
-    "src/engine/client/native/updates.ts": 1,
     "src/game/server/plugin/brain.ts": 1,
     "src/game/server/population/spawnScript.ts": 5,
     "src/game/shared/population/returnProgram.ts": 1,

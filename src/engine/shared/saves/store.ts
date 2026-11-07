@@ -35,7 +35,6 @@ interface Document { keys: Record<string, unknown>; reset?: number }
 interface StoreOptions {
   local?: SaveStorage | null; session?: SaveStorage | null; build?: string; now?: () => string;
   report?: (failure: SchemaFailure) => void;
-  forgetLegacy?: (keys: readonly string[]) => void;
   persist?: () => Promise<boolean>;
 }
 /** every save key's prefix: the app's (a wire contract; src/engine/shared/app/identity.ts) */
@@ -77,7 +76,7 @@ export class SaveStore {
   private initialize(): void {
     if (this.initialized) return;
     this.initialized = true;
-    try { resetLegacy(this.storage('global'), this.storage('session'), this.options.forgetLegacy); } catch { /* blocked storage: memory keeps this page playable */ }
+    try { resetLegacy(this.storage('global'), this.storage('session')); } catch { /* blocked storage: memory keeps this page playable */ }
   }
   private name(scope: SaveScope, namespace?: string): string {
     if (scope === 'shard' && (!namespace || !shardNamespace(namespace))) throw new Error('Shard saves need a slug');

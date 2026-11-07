@@ -316,7 +316,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   game.levelScope.onDispose(() => { windupWarn?.dispose(); weapons.setEnabled(false); boot.runtime.hooks.dispose?.(); audio.unloadLevel(); });
   installProbe(handle, { leakPhysics, health: () => playerHealth.attributes.health, quest: () => ({ adventure: boot.runtime.hooks.adventureFlags?.() ?? [], quest: boot.runtime.hooks.questFlags?.() ?? [] }) });
   ctx.startExplore?.();
-  document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/engine/client/native/boot.ts, via src/native.ts) waits for this
+  document.dispatchEvent(new Event('ws:ready')); // booted to the title
   const completeOfflineCopy = async (): Promise<void> => {
     try { await completeManifestCache(manifest, levelScope, ctx.product); }
     catch (error: unknown) { if (!levelScope.disposed && !levelScope.disposing) console.info('[cache] deferred offline copy', error); }

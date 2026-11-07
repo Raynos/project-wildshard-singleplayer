@@ -38,12 +38,11 @@ function carry(storage: SaveStorage | null, scope: 'device' | 'session', mapping
   storage.setItem(name, JSON.stringify(savedDoc));
 }
 /** Only named gameplay keys reset; pre-boot, diagnostic, per-tab and OTA keys survive. */
-export function resetLegacy(local: SaveStorage | null, session: SaveStorage | null, forget?: (keys: readonly string[]) => void): void {
+export function resetLegacy(local: SaveStorage | null, session: SaveStorage | null): void {
   if (local?.getItem(`${appIdentity().savePrefix}global`) !== null) return;
   carry(local, 'device', LEGACY_DEVICE); carry(session, 'session', LEGACY_SESSION);
   const deleted: string[] = [];
   for (let i = 0; i < local.length; i++) { const key = local.key(i); if (key && LEGACY_GAME_KEYS.some((old) => key === old || key.startsWith(`${old}:`))) deleted.push(key); }
   for (const key of deleted) local.removeItem(key);
-  forget?.(deleted);
   local.setItem(`${appIdentity().savePrefix}global`, '{"keys":{}}');
 }
