@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "pnpm build",
+  "buildCommand": "node scripts/check-release-output.mjs",
   "headers": [
     {
       "source": "/(.*)",
@@ -253,5 +253,6 @@
         }
       ]
     }
-  ]
+  ],
+  "outputDirectory": "dist"
 }

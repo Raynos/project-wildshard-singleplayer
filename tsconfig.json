@@ -39,16 +39,11 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": true
   },
-  "references": [
-    {
-      "path": "./test/tsconfig.json"
-    }
-  ],
+  "references": [],
   "include": [],
   "exclude": [
     "node_modules",
-    "src/sharddev/dist",
-    "src/sdk/dist"
-  ],
-  "files": []
+    "engine-source",
+    "shard-sources"
+  ]
 }

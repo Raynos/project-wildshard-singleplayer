@@ -197,3 +197,7 @@ public/assets/driftwood-isle/map/top.webp
 /src/shards/sunscar-dunes/discovery.generated.ts
 /public/assets/sunscar-dunes/
 /public/assets/driftwood-isle/
+
+# Immutable CI-only dependency checkouts (J189).
+/engine-source/
+/shard-sources/

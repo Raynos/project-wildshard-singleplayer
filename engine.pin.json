@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "engine": {
+    "repo": "engine",
+    "tag": "v0.1.1",
+    "commit": "e4b4b4636fc336c10527a744ede8b6e3829c7c52"
+  },
+  "saveEpoch": 1,
+  "shards": [
+    {
+      "repo": "shard-driftwood",
+      "commit": "30699090c9d792042c161d86b19c72562a717c6a"
+    },
+    {
+      "repo": "shard-sky-reach",
+      "commit": "7d40c9845eb4d3b09d7e09a744e9229d3a63aa49"
+    },
+    {
+      "repo": "shard-dunes",
+      "commit": "d3c5fe8659197557495bc30cabdf3c7c54ad6d05"
+    },
+    {
+      "repo": "shard-nalati",
+      "commit": "6dcc052fa686a053423396ac4a50c1a537b66d8e"
+    },
+    {
+      "repo": "shard-pine-hollow",
+      "commit": "08cbdf735af1263dc0d0228c0379b9ae89789237"
+    },
+    {
+      "repo": "shard-nine-dragon",
+      "commit": "3f5c23a8bda8db34135348a3029bca61083c911e"
+    },
+    {
+      "repo": "shard-open-plots",
+      "commit": "b70e59b10166fae172fc3f2043f0f26fd12d53f1"
+    }
+  ]
+}

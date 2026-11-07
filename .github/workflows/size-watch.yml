@@ -1,53 +1,10 @@
-# SHARD-SIZE row 8: what the build's size gate can't see. Nightly, measure production by the same meter that set the
-# baseline, and open or update one issue when a title passes 3 MB or a flow passes its book by 10 %.
-# Reads production and files an issue. No build, no Vercel secret, no deploy step belongs here: deploys live in deploy.yml.
 name: size-watch
-
 on:
-  schedule:
-    - cron: '23 8 * * *'
   workflow_dispatch:
-
 permissions:
   contents: read
-  issues: write
-
-concurrency:
-  group: size-watch
-  cancel-in-progress: false
-
 jobs:
-  meter:
+  retired:
     runs-on: ubuntu-latest
-    timeout-minutes: 75
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with: {version: 10.34.9}
-      - uses: actions/setup-node@v4
-        with: {node-version: 24, cache: pnpm}
-      - uses: ./.github/actions/org-deps
-        with:
-          client-id: ${{ secrets.APP_CLIENT_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
-      - name: Measure production
-        id: watch
-        run: node scripts/shard-size-watch.mjs --upstream https://wildshard-singleplayer.vercel.app/ --out size-watch
-        continue-on-error: true
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: size-watch
-          path: size-watch
-          retention-days: 14
-      - name: File what it found
-        if: steps.watch.outcome == 'failure'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          title='Size watch: a title or a flow is over its line'
-          open=$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')
-          if [ -n "$open" ]; then gh issue comment "$open" --body-file size-watch/report.md
-          else gh issue create --title "$title" --body-file size-watch/report.md; fi
+      - run: echo "Retired by J189; use the engine repository"

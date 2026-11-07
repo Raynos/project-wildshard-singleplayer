@@ -1,13 +1,3 @@
-# E432: the layers are workspace packages (@wildshard/engine, @wildshard/game, @wildshard/sdk, @wildshard/sharddev, @wildshard/commons; SF54
-# dissolved @wildshard/kit), linked into node_modules.
-# Their package.json "exports" are the public entries; a deep path does not resolve.
-packages:
-  - src/engine
-  - src/game
-  - src/sdk
-  - src/sharddev
-  - src/commons
-# `pnpm add <dep>` at the root keeps working without -w
+packages: []
 ignoreWorkspaceRootCheck: true
-# Scripts and the build mirror read node_modules/.pnpm; a machine-wide global virtual store would move it.
 enableGlobalVirtualStore: false

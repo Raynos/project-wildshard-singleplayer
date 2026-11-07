@@ -6,7 +6,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 const original = readFileSync('vercel.json');
 const config = JSON.parse(original.toString());
 try {
-  writeFileSync('vercel.json', JSON.stringify({...config, buildCommand:'node scripts/check-devserver.mjs dist',
+  writeFileSync('vercel.json', JSON.stringify({...config, buildCommand:'node scripts/check-release-output.mjs',
     installCommand:'true', outputDirectory:'dist'}));
   const result = spawnSync('vercel', ['build','--standalone','--prod','--scope','raynos-projects','--token',process.env.VERCEL_BUILD_TOKEN ?? ''], {stdio:'inherit'});
   if (result.error) throw result.error;
