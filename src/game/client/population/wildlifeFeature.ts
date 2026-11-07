@@ -34,12 +34,12 @@ type Rows = v.InferOutput<typeof WildlifePopulationSchema>;
 type BuildStep = { kind: 'pause' } | { kind: 'foragers' } | { kind: 'crowd'; index: number; options: { x: number; z: number; count: number; seed: number; range: number } };
 /** What a page keeps of a wild the server runs: the crowds it draws, the foragers underfoot and the row bodies they read.
  * Every pack, herd and mount is a row, so this spawns none and steps no group. */
-export class PageWildlifeView {
-  readonly flocks: CrowdDraw[] = []; readonly predators: Animal[] = []; readonly mountables: readonly Animal[] = [];
+export class PageWildlifeView<T extends CrowdTargets = CrowdDraw> {
+  readonly flocks: T[] = []; readonly predators: Animal[] = []; readonly mountables: readonly Animal[] = [];
   readonly packs: readonly PackBrain<Animal>[] = []; readonly herds: readonly HerdBrain<Animal>[] = [];
   readonly foragers: { readonly rules: ForagerPopulation } | null;
   private readonly rows: Rows; private readonly placement: ReturnProgram;
-  private readonly weaponTarget: CrowdWeaponTarget<CrowdDraw>; private readonly motion: ProjectedMotionSample;
+  private readonly weaponTarget: CrowdWeaponTarget<T>; private readonly motion: ProjectedMotionSample;
   constructor(private readonly animals: AnimalManager, input: unknown, programmeScope: Scope) {
     this.rows = v.parse(WildlifePopulationSchema, input); const row = this.rows;
     this.placement = ReturnProgram.page(row.admission, programmeScope);
@@ -67,7 +67,7 @@ export class PageWildlifeView {
       .concat(row.flocks.some(flock => flock.dog) ? [{ kind: guardian, variant: guardianVariant }] : []);
   }
   /** Bind an already-built crowd. */
-  attachCrowd(index: number, view: CrowdDraw): void {
+  attachCrowd(index: number, view: T): void {
     if (!(view instanceof CrowdTargets) || index !== this.flocks.length || this.rows.flocks[index]?.count !== view.n) throw new Error('Invalid population crowd binding');
     this.flocks.push(view);
   }
