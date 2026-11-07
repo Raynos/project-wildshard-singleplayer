@@ -587,6 +587,7 @@ export class LiveGridHost {
   /** The same checkpoint in stages, for a periodic autosave spread over frames (rt3-freeze): the first `next()` captures
    *  at the caller's fixed-step boundary; later stages encode and write. A later checkpoint, a crossing or an unload
    *  supersedes it: it then returns false without writing, so an older capture never replaces a newer save. */
+  // oxlint-disable-next-line require-yield -- liveSession's autosave delegates here with yield*; a page region saves in one stage.
   *checkpointSteps(instance: string): Generator<undefined, boolean> {
     if (this.disposed) return false;
     const resident = this.residents.get(instance); if (resident === undefined) return false;
