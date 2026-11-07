@@ -3327,7 +3327,7 @@ Rapier world and motor contacts, flags, quest progress, four `SimSlots` and regi
 references resolve by stable identity. Restore boots a fresh matching level and calls `install` to register scoped
 callbacks and adapters; authored content and functions stay outside. Engine, snapshot and level fingerprints must match.
 Version 1's lone `player` decodes to a one-player list (P1-E5.2a). The level fingerprint omits the level's `version`,
-so an engine version bump does not orphan a save. `install` runs for the lead; other saved players rejoin before restore.
+so an engine version bump does not orphan a save. `install` runs for the lead; other saved players rejoin before their state lands.
 For a regional basis that needs a complete fresh installation first, `prepareSimHostRestore(level, ports)`
 creates one unpublished owned host and its restore-check context before services bind. Its one-use `keep()`
 retains the fresh/logically migrated target, or `restore(saved, install?)` applies the same exact transaction
