@@ -14,6 +14,8 @@ const RESERVED_NAMESPACES: ReadonlySet<string> = new Set(['global', 'profile', '
 export interface SaveKeyDef<T> {
   key: string; scope: SaveScope; version: number; schema: v.GenericSchema<unknown, T>; initial: () => T;
   migrate?: Readonly<Record<number, (old: unknown) => unknown>>;
+  /** Says only that a file may hold this key, so an import keeps it. The definition that reads it takes its place. */
+  stub?: true;
 }
 export interface SaveSlot<T> { /** Validated existing data, without creating or changing a save. */ peek: (namespace?: string) => T | null;
   /** Storage/admission metadata only; nullable valid values remain distinct from malformed or absent entries. */ status?: (namespace?: string) => 'absent' | 'valid' | 'invalid' | 'future';
@@ -153,7 +155,7 @@ export class SaveStore {
   define<T>(definition: SaveKeyDef<T>): SaveSlot<T> {
     const id = `${definition.scope}/${definition.key}`;
     const priorDef = this.definitions.get(id);
-    if (priorDef && priorDef !== definition) throw new Error(`Duplicate save definition: ${id}`);
+    if (priorDef && priorDef !== definition && priorDef.stub !== true) throw new Error(`Duplicate save definition: ${id}`);
     this.definitions.set(id, definition);
     const generations = new Map<string, number>();
     const remember = (name: string, stored: Document): void => { if (!generations.has(name)) generations.set(name, stored.reset ?? 0); };

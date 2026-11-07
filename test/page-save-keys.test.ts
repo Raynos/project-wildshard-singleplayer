@@ -3,6 +3,7 @@ import { installAppIdentity } from '../src/engine/shared/app/identity';
 import { installSaveEnvironment } from '../src/engine/shared/saves/environment';
 import { SaveStore, type SaveStorage } from '../src/engine/shared/saves/store';
 import { definePageSaveKeys } from '../src/game/client/pageSaveKeys';
+import { buildingSave } from '../src/game/shared/shardfile/buildingDoor';
 
 class Local implements SaveStorage {
   readonly items = new Map<string, string>();
@@ -23,4 +24,14 @@ test('a file from before the flip keeps what only a server reads, on a page that
   expect(report.skipped).toEqual([]);
   expect(new Set(report.imported)).toEqual(new Set(Object.keys(keys).map(key => `pastel-plain/${key}`)));
   expect(JSON.parse([...local.items.values()].find(doc => doc.includes('platform.region')) ?? 'null')).toMatchObject({ keys });
+});
+test('a page on a shard that reads a key still takes it over, and a file for another shard keeps it', () => {
+  installAppIdentity({ name: '', wordmark: '', tagline: '', savePrefix: 'ws.', saveFormat: 'wildshard', fileSlug: '', exposeProbe: () => undefined, harness: () => undefined });
+  installSaveEnvironment({ storage: () => null, persistent: () => true, persist: () => Promise.resolve(true) });
+  const local = new Local(), store = new SaveStore({ local, session: local });
+  definePageSaveKeys(store);
+  const doors = { 'platform.buildings': { v: 1, data: { cabins: { doors: [] } } }, 'platform.runtime-state': { v: 1, data: null } };
+  const before = store.importAll(JSON.stringify({ format: 'wildshard', version: 2, build: 'old', exported: 'then', docs: { 'pine-hollow': { keys: doors } } }));
+  expect(before.skipped).toEqual([]);
+  expect(() => { store.define(buildingSave); }).not.toThrow();
 });
