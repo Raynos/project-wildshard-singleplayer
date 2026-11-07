@@ -13,6 +13,10 @@ export function checkShell(revision = 'HEAD') {
   const read = file => git(['show', index ? `:${file}` : `${revision}:${file}`]);
   const pin = validatePin(JSON.parse(read('engine.pin.json')));
   const ledger = JSON.parse(read('release-deletions.json'));
+  if (ledger.schema !== 1 || !['retiring', 'complete'].includes(ledger.state)) throw new Error('Invalid source retirement state');
+  let previous = null;
+  try { previous = JSON.parse(git(['show', `${index ? 'HEAD' : revision + '^'}:release-deletions.json`])); } catch { /* Initial retirement has no ledger. */ }
+  if (previous?.state === 'complete' && ledger.state !== 'complete') throw new Error('Completed source retirement cannot reopen');
   const retiring = new Set(ledger.state === 'retiring' ? ledger.files.map(row => row.path) : []);
   const forbidden = files.filter(file => !file.endsWith('/README.md') && (/^(?:drafts|vite|out|engine-source|shard-sources)\//u.test(file) || file.startsWith('src/') && !file.startsWith('src/shards/blender-template/') && !file.includes('/art/') && !file.endsWith('/README.md')));
   if (forbidden.filter(file => !retiring.has(file)).length > 0) throw new Error(`Shell contains project source: ${forbidden.filter(file => !retiring.has(file)).slice(0, 12).join(', ')}`);
@@ -30,6 +34,8 @@ export function checkShell(revision = 'HEAD') {
       const held = blobs.get(row.path);
       if (held !== row.blob) throw new Error(`Retiring source changed: ${row.path}`);
     }
+    if (row.target === null && row.home !== 'regenerated' && !row.reason.startsWith('J186')) throw new Error(`No destination or disposition: ${row.path}`);
+    if (!/^[a-f0-9]{40}$/u.test(row.commit)) throw new Error('Missing immutable destination revision');
     if (!/^[a-f0-9]{40}$/u.test(row.blob) || typeof row.home !== 'string' || row.reason.length < 8) throw new Error('Invalid deletion evidence');
   }
   console.log(`Shell ${ledger.state}: verified: engine ${pin.engine.tag}, seven shards, epoch ${pin.saveEpoch}, ${ledger.files.length} deletions, no active local project source`);
