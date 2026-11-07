@@ -30,9 +30,6 @@ export async function installClientEliteConstruction(ctx: ShardContext, input: u
   const rows = parseEliteEntryPageRows(row.rows), program = ReturnProgram.page(admission, scope);
   const ledges = SceneDressing.current(ctx).pieces.get(row.ledges.part)?.anchors[row.ledges.anchor] ?? [];
   const entry = new DeclaredEliteEntry(rows.entry, construction);
-  let population: ReturnType<typeof pageSim.clientWildlifeState> | undefined;
-  const readPopulation = () => { live(); const current = pageSim.clientWildlifeState(ctx); population ??= current;
-    if (population !== current) throw new Error('Elite population owner changed'); return current; };
   const resolveWeather = () => { const rig = weather(), sky = rig.sky, storm = rig.storm;
     if (sky === null || storm === null) throw new Error('Elite weather owner is missing'); return {sky, storm, clock: sky.clock}; };
   let originalWeather: ReturnType<typeof resolveWeather> | undefined;
@@ -40,7 +37,6 @@ export async function installClientEliteConstruction(ctx: ShardContext, input: u
     if (rig.sky !== originalWeather.sky || rig.storm !== originalWeather.storm || originalWeather.sky.clock !== originalWeather.clock)
       throw new Error('Elite weather owner changed'); return originalWeather; };
   const loan: EliteEntryConstruction = {entry, rows, construction, models, program: {id: row.program, scope: construction, value: program}, environment: pageSim.wild, ledges,
-    get population() { return readPopulation(); },
     get clock() { return readWeather().clock; },
     get weather() { return readWeather().storm; },
     get patrol() { live(); return night().riders; }};

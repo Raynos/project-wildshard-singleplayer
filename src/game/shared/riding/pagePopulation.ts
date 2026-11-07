@@ -1,12 +1,9 @@
 import type { HerdBrain } from '@wildshard/engine/ai/herd';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { PagePastureRaid } from '../../server/riding/pagePasture';
-import type { CrowdDraw } from '../../client/ambient/crowdDraw';
 
 /**
- * What a riding page reads of the wildlife around it (E6: port first, flip last). The page's own population lends this today,
+ * What a riding page reads of the wildlife around it. The page's own view lends it, over rows:
  * and the flip feeds it from rows: a view never holds the population, its groups or the wild environment.
  */
 export interface PageRidingPopulation {
@@ -17,8 +14,6 @@ export interface PageRidingPopulation {
   readonly wetAt: (x: number, z: number) => boolean;
   /** Tell the wild that this page's player sits a horse. */
   readonly rider: (mounted: boolean) => void;
-  /** The pasture's raid, whose shepherd stands in `animals`. */
-  readonly raid: (animals: AnimalManager) => PagePastureRaid<CrowdDraw>;
 }
 
 const lent = new WeakMap<Scope, () => PageRidingPopulation | null>();

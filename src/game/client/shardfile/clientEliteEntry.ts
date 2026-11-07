@@ -17,16 +17,16 @@ export function installClientEliteEntry(ctx: ShardContext, row: Extract<ClientFe
   const taming = row.taming === undefined ? null : entryOwner(ctx.scope, 'taming', row.taming);
   if (loan.construction !== world.game.levelScope || loan.construction.disposed || loan.construction.disposing)
     throw new Error('Elite entry requires its original construction scope');
-  const wildlife = loan.population.wildlife, scope = ctx.scope.child('Elites.bind');
+  const scope = ctx.scope.child('Elites.bind');
   try {
     scope.run(() => {
       const { game, player } = world, entry = loan.entry, bar = new EliteBar();
       const owner = new Elites({ scene: game.scene, camera: game.camera, player,
         condition: rule => entry.holds(rule), ownSkin: skin => { entry.skins.add(skin); } }, bar, game.level.id, persistence.elites);
       owner.bindDeclaredEntry(entry, loan.rows, { ...loan, game, player, body: row.body, rock: row.rock, animals: play.animals,
-        entered: { scope, interactables: shell.interactables, hud: play.hud, audio: play.audio, music: play.music }, wildlife, persistence });
+        entered: { scope, interactables: shell.interactables, hud: play.hud, audio: play.audio, music: play.music }, wildlife: null, persistence });
       // Boss prewarming reserves its identity before authored lairs materialize.
-      if (retainsRuntimeServices(ctx)) entry.initialize({ patrolAvailable: true, herdAvailable: wildlife !== null,
+      if (retainsRuntimeServices(ctx)) entry.initialize({ patrolAvailable: true, herdAvailable: true,
         kills: loan.patrol?.killsTonight ?? 0, bonded: taming?.phase === 'bonded', mount: taming?.companion ?? null });
     });
   } catch (error) { scope.dispose(); throw error; }

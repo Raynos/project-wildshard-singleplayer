@@ -33,18 +33,12 @@ export function wirePageSim():void{
   wirePage.followBooks();
   if(wired)return;
   wired=true;
-  const {installDeclaredMovers,climate,pageWildlife,bindMeleeContacts}=pageSim;
+  const {installDeclaredMovers,climate,bindMeleeContacts}=pageSim;
   Object.assign(pageSim,{
     installDeclaredMovers:async(...[ctx,world,options]:Parameters<PageSimFeed['installDeclaredMovers']>)=>{
       const runtime=await installDeclaredMovers(ctx,world,{...options,followed:true});
       for(const row of options.data)wirePage.movers.set(row.id,{pose:pose=>{wirePage.posed++;runtime.follow(row.id,pose);},place:(at,next)=>{runtime.replayPose(row.id,at,next);}});
       return runtime;
-    },
-    // The server keeps the wild: a page keeps only what has no row, the crowds it draws and the foragers underfoot. Its crowds see the rows.
-    pageWildlife:(...input:Parameters<PageSimFeed['pageWildlife']>)=>{
-      const wildlife=pageWildlife(...input);
-      wildlife.rowBodies=true;
-      return wildlife;
     },
     // A blade still swings here, and what it lands is the server's: its contacts have nobody to scan.
     bindMeleeContacts:(id,rows,ports)=>bindMeleeContacts(id,rows,{...ports,targets:()=>[]}),

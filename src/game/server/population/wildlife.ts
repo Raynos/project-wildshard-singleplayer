@@ -1,8 +1,4 @@
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { CrowdDraw } from '../../client/ambient/crowdDraw';
-import { lendRidingPopulation, type PageRidingPopulation } from '../../shared/riding/pagePopulation';
-import { adoptClientWildlife, type WildlifeOwner } from '../../shared/population/wildlifeOwner';
-import { PagePastureRaid } from '../riding/pagePasture';
 import { PopulationRelations } from './relations';
 import * as v from 'valibot';
 import type { TargetHit } from '@wildshard/engine/combat/types';
@@ -144,14 +140,3 @@ export class PageWildlife<T extends CrowdTargets = CrowdTargets> {
   killCrowd(hit: { flock: T; index: number }): void { hit.flock.kill(hit.index); }
 }
 
-/** The riding page's port on this population (E6). */
-function ridingPort(population: PageWildlife<CrowdDraw>): PageRidingPopulation {
-  return { get herds() { return population.herds; }, mountables: population.mountables, predators: population.predators, get wind() { return wildEnv.wind; },
-    wetAt: (x, z) => wildEnv.wetAt(x, z), rider: mounted => { wildEnv.playerMounted = mounted; },
-    raid: animals => new PagePastureRaid(animals, population, population.pastureProfile, pageApp().rng.stream('ai')) };
-}
-/** Lend a scope its population's owner, and the riding page its port on it; the owner stays empty until the animal stage builds. */
-export function lendClientWildlife(scope: Scope, owner: WildlifeOwner): void {
-  adoptClientWildlife(scope, owner);
-  lendRidingPopulation(scope, () => owner.wildlife === null ? null : ridingPort(owner.wildlife));
-}

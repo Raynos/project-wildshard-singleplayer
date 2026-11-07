@@ -5,12 +5,9 @@ import { publishEntryOwner, presentEntryOwner, type WorldFrameOwner } from '../.
 import { DataPanel } from '../ui/dataPanels';
 import { enteredAdventurePersistence } from '../../shared/quest/chapterBindings';
 import type { HeldClaims } from '../loadout/claims';
-import type { CrowdDraw } from '../ambient/crowdDraw';
 import { companionToName } from '../../shared/riding/companions';
 import { MountedReins } from './reins';
-import type { PagePastureRaid } from '../../server/riding/pagePasture';
 import { ridingPopulation } from '../../shared/riding/pagePopulation';
-import { app } from '@wildshard/engine/app/runtime';
 import * as THREE from 'three';
 import * as v from 'valibot';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -26,8 +23,6 @@ import type { TamingObservation } from '../../shared/riding/bindingTypes';
 import { Mount } from './mount';
 import { enteredMount } from '../../shared/riding/entered';
 import { RidingControlsSchema, PageTamingBindingSchema, ClientRidingSessionSchema, cleanMountName, type RidingControls, type MountProfile } from '@wildshard/format/riding';
-import { MountedSpecimenSeatSchema, type MountedSpecimenSeatRows } from '@wildshard/format/mountedSpecimenRows';
-import { SeatedFigure,prepareSeatedFigure } from './seatedFigure';
 import { playerModes } from '@wildshard/engine/player/modes';
 import { ReturnProgram } from '../../shared/population/returnProgram';
 import { RideHUD } from './hud';
@@ -278,10 +273,10 @@ function bindRidingControls(ctx: LevelContext, mount: Mount, taming: PageTamingO
 /** The existing mount, taming and pasture authorities with their client views. */
 export interface PageRidingView {
   readonly mount: Mount; readonly taming: PageTamingOwner; readonly hud: RideHUD; readonly interactable: Interactable;
-  readonly mounted: boolean; readonly reins: MountedReins; readonly raid: PagePastureRaid<CrowdDraw>;
+  readonly mounted: boolean; readonly reins: MountedReins;
   update: (dt: number) => void; late: (dt: number) => void; noteShot: (x: number, z: number) => void;
 }
-interface ClientRidingOwner extends WorldFrameOwner { readonly id: string | undefined; readonly rows: v.InferOutput<typeof ClientRidingSessionSchema>; readonly figure: MountedSpecimenSeatRows | null; readonly figureFiles:ReadonlyMap<string,Uint8Array>; view: PageRidingView | null }
+interface ClientRidingOwner extends WorldFrameOwner { readonly id: string | undefined; readonly rows: v.InferOutput<typeof ClientRidingSessionSchema>; view: PageRidingView | null }
 const clientSessions = new WeakMap<Scope, ClientRidingOwner>();
 /** Admit the client session before world wiring; body and equipment authorities
  * arrive through their native stages, never through authored callbacks. */
@@ -295,10 +290,8 @@ export async function installClientRiding(ctx: ShardContext, feature: ClientFeat
   const rows = v.parse(ClientRidingSessionSchema, await read.call(product, feature.file));
   available();
   ReturnProgram.prepareMemory(rows.programs.approach, scope);
-  const figure = rows.figure === undefined ? null : v.parse(MountedSpecimenSeatSchema, await read.call(product, rows.figure));
   available();
-  const figureFiles=figure===null?new Map<string,Uint8Array>():await prepareSeatedFigure(product,figure,scope);available();
-  const owner: ClientRidingOwner = { id: feature.owner, rows, figure, figureFiles, view: null,
+  const owner: ClientRidingOwner = { id: feature.owner, rows, view: null,
     update(dt) { active(); if (clientSessions.get(scope) !== owner) throw new Error('Riding frame owner changed'); owner.view?.update(dt); },
     late(dt) { active(); if (clientSessions.get(scope) !== owner) throw new Error('Riding frame owner changed'); owner.view?.late(dt); },
   };
@@ -324,7 +317,7 @@ export function enterClientRiding(ctx: ShardContext, arsenal: HeldClaims): PageR
     mountables: population.mountables.map(actor => ({ id: actor.entityId, name: preset.mountableLabel })),
   }, owners);
   const { mount, taming, hud, interactable } = session, reins = new MountedReins(world.game.camera, rows.programs.reins, ctx.scope);
-  const namer = new DataPanel(rows.naming.panel), raid = population.raid(play.animals), nameValues = { current: '' };
+  const namer = new DataPanel(rows.naming.panel), nameValues = { current: '' };
   let namingActor: string | null = null;
   const actions = new Map<string, (value: unknown) => void>([[rows.naming.action, value => {
     if (typeof value !== 'string') throw new Error('Mount name input requires text');
@@ -332,12 +325,9 @@ export function enterClientRiding(ctx: ShardContext, arsenal: HeldClaims): PageR
     if (name.length > 0 && namingActor !== null) { mount.rename(namingActor, name); persistence.names.write(names); play.hud.toast(rows.naming.notice + name); }
   }]]);
   ctx.scope.onDispose(() => { namer.close(); });
-  const weaponMount = { speed: 0, yaw: 0 }, signals: string[] = [];
-  // the raid's seated figure (its shepherd), gesturing on this frame's cue kinds
-  const figure = owner.figure === null ? null : new SeatedFigure(owner.figure, ctx.scope,owner.figureFiles);
-  if (figure !== null && raid.shepherd !== null) figure.attach(raid.shepherd);
+  const weaponMount = { speed: 0, yaw: 0 };
   const view: PageRidingView = {
-    mount, taming, hud, interactable, reins, raid, get mounted() { return mount.mounted; },
+    mount, taming, hud, interactable, reins, get mounted() { return mount.mounted; },
     noteShot: (x, z) => { taming.noteShot(x, z); },
     update: dt => {
       session.update(dt, population.wetAt(mount.feet.x, mount.feet.z), false, namer.isOpen); population.rider(mount.mounted);
@@ -347,16 +337,6 @@ export function enterClientRiding(ctx: ShardContext, arsenal: HeldClaims): PageR
         else if (event.kind === 'bonded') persistence.feat(rows.naming.bondedFeat);
         else if (event.kind === 'name') { namingActor = event.actor; nameValues.current = event.current; namer.open(nameValues, actions); }
       }
-      // the raid's declared cues: a toast, a sound at its actor, and this frame's kinds for the seated figure
-      raid.update(dt, world.player.position, population.predators, app.clock.now, practiceRoom.open); signals.length = 0;
-      for (let i = 0; i < 8; i++) {
-        const cue = raid.nextCue(); if (cue === undefined) break;
-        signals.push(cue.kind);
-        if (cue.text !== '') play.hud.toast(cue.text);
-        const actor = play.animals.animals.find(body => body.entityId === cue.actor);
-        if (cue.sound !== null && actor !== undefined) play.animals.onSound?.(cue.sound, actor.position);
-      }
-      figure?.update(dt, signals);
     },
     late: dt => {
       weaponMount.speed = mount.speed; weaponMount.yaw = mount.heading - Math.PI; kit.setMount(mount.mounted ? weaponMount : null);

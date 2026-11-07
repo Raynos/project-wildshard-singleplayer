@@ -7,7 +7,6 @@ import type { SpeciesCatalogue } from '../../client/looks/speciesBook';
 import type { DeclaredEliteEntry } from '@wildshard/engine/ai/view/eliteEntry';
 import type { EliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
 import type { EliteDeclaredEntryOwners } from '../../client/Elite';
-import type { clientWildlifeState } from '../population/wildlifeOwner';
 import type { ArenaRoomEncounter } from '../../client/boss/arenaRoom';
 import type { PageTamingOwner, PageRidingView } from '../../client/riding/client';
 import type { AdventurePersistence } from '../quest/persistence';
@@ -39,7 +38,6 @@ export interface WorldFrameOwner { readonly update: (dt: number, time: number) =
  * feature. No factory, shard object, reflected path or new durable owner. */
 export interface EliteEntryConstruction extends Pick<EliteDeclaredEntryOwners,
   'construction' | 'models' | 'program' | 'environment' | 'clock' | 'weather' | 'ledges' | 'patrol'> {
-  readonly population: ReturnType<typeof clientWildlifeState>;
   readonly entry: DeclaredEliteEntry;
   readonly rows: EliteEntryPageRows;
 }

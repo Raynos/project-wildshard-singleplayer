@@ -3,12 +3,9 @@ import { bindMeleeContacts, createShardfileSim, declaredItemScriptBindings, prep
 import { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { createSimHost } from '@wildshard/engine/sim';
 import { GridRegionDurability } from '../grid/durability';
-import { bindPageGroups, lendPageGrass, wildEnv } from '../population/pageGroups';
-import { PageWildlife, lendClientWildlife } from '../population/wildlife';
-import { clientWildlifeState } from '../../shared/population/wildlifeOwner';
+import { lendPageGrass, wildEnv } from '../population/pageGroups';
 import { bindCrowdGuard, crowdGuardProjection } from '../ambient/crowdPage';
 import { admitSpeciesProgram } from './brain';
-import type { CrowdDraw } from '../../client/ambient/crowdDraw';
 import { PerchBodyBinding } from '../population/perchBody';
 import { pageSpeciesBehaviour } from '../population/speciesBehaviour';
 import { pageClimate } from '../weather/pageClimate';
@@ -30,11 +27,6 @@ export interface PageSimFeed {
   readonly wind: () => typeof wildEnv.wind;
   /** The page's weather and light, which its fights read (E6 COMBAT). */
   readonly wild: typeof wildEnv;
-  readonly clientWildlifeState: typeof clientWildlifeState;
-  /** The page's population, which its wildlife feature builds and lends (E6 WORLD). */
-  readonly lendClientWildlife: typeof lendClientWildlife;
-  readonly bindPageGroups: typeof bindPageGroups;
-  readonly pageWildlife: (...args: ConstructorParameters<typeof PageWildlife<CrowdDraw>>) => PageWildlife<CrowdDraw>;
   readonly lendPageGrass: typeof lendPageGrass;
   /** A crowd's guardian, whose law is the page sim's and whose crowd is a view. */
   readonly crowdGuardProjection: typeof crowdGuardProjection;
@@ -59,8 +51,7 @@ export const pageSimFeed: PageSimFeed = {
   climate: pageClimate, speciesBehaviour: pageSpeciesBehaviour,
   perchBody: (...args) => new PerchBodyBinding(...args), wind: () => wildEnv.wind,
   wild: wildEnv,
-  clientWildlifeState, lendClientWildlife,
-  bindPageGroups: (...args) => { bindPageGroups(...args); }, pageWildlife: (...args) => new PageWildlife<CrowdDraw>(...args), lendPageGrass, crowdGuardProjection, bindCrowdGuard,
+  lendPageGrass, crowdGuardProjection, bindCrowdGuard,
   admitSpeciesProgram, bindMeleeContacts, startMeleeSecondary,
   createShardfileSim, prepareShardfileSimRestore, createSimHost,
   animalManager: (...args) => new AnimalManager(...args), regionDurability: (...args) => new GridRegionDurability(...args),

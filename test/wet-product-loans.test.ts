@@ -45,7 +45,7 @@ function wildlife(owner:Scope,read:()=>Promise<Uint8Array>){
 test('wildlife lends its named wet block once before binding or publishing the animal stage',async()=>{
   if(feature===undefined)throw new Error('Missing wildlife feature');
   const scope=new Scope('wet.product'),f=wildlife(scope,()=>Promise.resolve(wetBytes)),stop=new Error('verified group boundary');
-  const bind=vi.spyOn(groups,'bindPageGroups').mockImplementation((_ctx,_rows,block)=>{
+  const bind=vi.spyOn(groups.wildEnv,'enter').mockImplementation((_scope,_rows,_author,block)=>{
     expect(block?.file).toBe(wetFile);expect(block?.bytes).toBe(wetBytes);throw stop;
   });
   try{
@@ -60,7 +60,7 @@ for(const changed of ['ancestor','world','runtime'] as const){
     if(feature===undefined)throw new Error('Missing wildlife feature');
     const root=new Scope('wet.root'),owner=root.child('entered');let finish:(bytes:Uint8Array)=>void=()=>undefined,started:()=>void=()=>undefined;
     const pending=new Promise<Uint8Array>(resolve=>{finish=resolve;}),reading=new Promise<void>(resolve=>{started=resolve;});
-    const f=wildlife(owner,()=>{started();return pending;}),bind=vi.spyOn(groups,'bindPageGroups');
+    const f=wildlife(owner,()=>{started();return pending;}),bind=vi.spyOn(groups.wildEnv,'enter');
     try{
       const install=installClientWildlife(f.context,feature);await reading;
       if(changed==='ancestor')root.disposeSteps().next();else if(changed==='world')f.runtime.world=null;else Object.defineProperty(f.context.game,'runtime',{value:null});
@@ -88,7 +88,7 @@ test('native preparation lends one verified wet block to both existing native ow
 test('a failed named wet read publishes no group, frame or animal stage',async()=>{
   if(feature===undefined)throw new Error('Missing wildlife feature');
   const scope=new Scope('wet.unavailable'),error=new Error('wet product unavailable'),f=wildlife(scope,()=>Promise.reject(error));
-  const bind=vi.spyOn(groups,'bindPageGroups');
+  const bind=vi.spyOn(groups.wildEnv,'enter');
   try{
     await expect(installClientWildlife(f.context,feature)).rejects.toBe(error);
     expect(f.reads).toEqual(['rows','wet']);expect(bind).not.toHaveBeenCalled();expect(f.systems).not.toHaveBeenCalled();expect(f.runtime.hooks.animalsBuilt).toBeUndefined();

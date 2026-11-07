@@ -6,9 +6,8 @@ import type { ArenaRoomEncounter } from '../boss/arenaRoom';
 import type { TimedEncounters } from '../boss/timedEncounters';
 import type { CrowdWeaponTarget, ForagerTargets } from '../../shared/shardfile/crowdRuntime';
 import type { ShardContext } from '../plugin/context';
-import type {PageWildlife} from '../../server/population/wildlife';
+import type {PageWildlifeView} from '../population/wildlifeFeature';
 import {clientWildlifeState} from '../../shared/population/wildlifeOwner';
-import type { CrowdDraw } from '../ambient/crowdDraw';
 import {entryOwner} from '../../shared/shardfile/entryOwners';
 import { installEnteredLevelService } from '../shard/retainedHooks';
 import { filterCombatAimTargets } from '../../shared/shardfile/aimTargetFilter';
@@ -21,7 +20,7 @@ export type CombatTargetOwner = Pick<CrowdWeaponTarget<ForagerTargets>, 'raycast
  * All ids and methods resolve before registration. Every query checks the whole
  * borrowed bank before any target call, and again between native calls. */
 export function installCombatTargets(ctx: Pick<ShardContext, 'scope'> & { readonly app: Pick<ShardContext['app'], 'events'> }, input: unknown,
-  sources: ReadonlyMap<string, CombatTargetOwner> | Readonly<v.InferOutput<typeof DeclaredCombatTargetsSchema>['bindings']>, population?: { readonly wildlife: PageWildlife<CrowdDraw> | null }): void {
+  sources: ReadonlyMap<string, CombatTargetOwner> | Readonly<v.InferOutput<typeof DeclaredCombatTargetsSchema>['bindings']>, population?: { readonly wildlife: PageWildlifeView | null }): void {
   const rows = v.parse(CombatTargetRowsSchema, input), scope = ctx.scope, events = ctx.app.events;
   let populationOwner=population;
   const owners = 'get' in sources ? sources : (() => {

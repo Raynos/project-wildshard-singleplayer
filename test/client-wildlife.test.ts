@@ -15,9 +15,8 @@ import * as crowdPage from '../src/game/client/ambient/pageCrowds';
 import type { PreparedCrowds } from '../src/game/shared/shardfile/crowdRuntime';
 import type { ShardContext } from '../src/game/client/plugin/context';
 import type { ShardRuntime } from '../src/game/shared/shard/runtime';
-import { installClientWildlife } from '../src/game/client/population/wildlifeFeature';
+import { PageWildlifeView, installClientWildlife } from '../src/game/client/population/wildlifeFeature';
 import { clientWildlife } from '../src/game/shared/population/wildlifeOwner';
-import { PageWildlife } from '../src/game/server/population/wildlife';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import { NALATI_HEADLESS_ASSEMBLY as headlessAssembly } from './fixtures/nalati-headless-assembly';
 import { admittedSheepProduct } from './fake/admittedSheep';
@@ -34,7 +33,7 @@ test('declared wildlife waits for animals, owns one frame and retires its hook',
   const native = legacyDouble<PreparedCrowds>({ policies: new Map(), advance: vi.fn<PreparedCrowds['advance']>() });
   vi.spyOn(crowdPage, 'createPageCrowds').mockReturnValue(legacyDouble<ReturnType<typeof crowdPage.createPageCrowds>>({ runtime: native }));
   const pause = vi.spyOn(boot, 'macrotask').mockResolvedValue();
-  const begin = vi.spyOn(PageWildlife.prototype, 'beginFrame').mockReturnValue(0), end = vi.spyOn(PageWildlife.prototype, 'endFrame').mockReturnValue();
+  const begin = vi.spyOn(PageWildlifeView.prototype, 'beginFrame').mockReturnValue(0), end = vi.spyOn(PageWildlifeView.prototype, 'endFrame').mockReturnValue();
   const rows = { ...headlessAssembly.constants.pageWildlife, packs: [], herds: [], flocks: [], mountables: [], foragers: null };
   const hooks: ShardRuntime['hooks'] = {};
   const runtime = legacyDouble<ShardRuntime>({ hooks, world: legacyDouble<NonNullable<ShardRuntime['world']>>({
@@ -47,13 +46,13 @@ test('declared wildlife waits for animals, owns one frame and retires its hook',
   const fixture = createShardProduct({ slug: 'orchard', revision: 1, shardfile: emptyShardfile({ slug: 'orchard', name: 'Orchard', author: 'Fixture', revision: 1, seed: 7 }), sections: new Map(), files: new Map([[nalatiWetBlock.file,fixtureProductFile(nalatiWetBlock.file,{hash:'wet',url:'/wet'})],[feature.file, fixtureProductFile(feature.file,{ hash: 'population', url: '/population' })], [feature.crowd.json, fixtureProductFile(feature.crowd.json,{ hash: 'crowd', url: '/crowd' })], [feature.crowd.binary,{hash:'body',url:'/body'}]]), read: readJson,jsonCheck:fixtureJsonCheck });
   const ctx = legacyDouble<ShardContext>({ answer:(name,handler)=>{application.events.answer(name,handler,scope);}, scope, app: application, game: legacyDouble<ShardContext['game']>({ runtime }), system: row => { systems.push(row); },
     product: fixture });
-  const animals = legacyDouble<AnimalManager>({ animals: [], herds: [], wetAt: () => false, navSteer: false });
+  const animals = legacyDouble<AnimalManager>({ animals: [], herds: [], wetAt: () => false, navSteer: false, factory: legacyDouble<AnimalManager['factory']>({ *prepareSteps() { /* no bodies in this fixture */ } }) });
   try {
     expect(() => clientWildlife(ctx)).toThrow('not installed');
     const hits:string[]=[];
     const request={origin:new Vector3(),dir:new Vector3(0,0,1),maxDist:10,hit:null};
     application.events.answer('combat.targets.ray',value=>{hits.push('prior');return value;},scope);
-    const ray=vi.spyOn(PageWildlife.prototype,'raycastWeapon').mockImplementation((_origin,_direction,_maximum,prior)=>{hits.push('wildlife');return prior;});
+    const ray=vi.spyOn(PageWildlifeView.prototype,'raycastWeapon').mockImplementation((_origin,_direction,_maximum,prior)=>{hits.push('wildlife');return prior;});
     await installClientWildlife(ctx, feature);
     const body = vi.mocked(crowdPage.createPageCrowds).mock.calls[0]?.[2];
     if(body===undefined)throw new Error('Missing real fixed-draw body');
@@ -70,7 +69,7 @@ test('declared wildlife waits for animals, owns one frame and retires its hook',
     expect(frame).toMatchObject({ id: 'orchard.wildlife', after: ['orchard.places'], before: ['engine.creatures.update'] });
     frame.run(.1, 2); expect(begin).not.toHaveBeenCalled();
     const build = hooks.animalsBuilt; if (build === undefined) throw new Error('Missing animal stage');
-    await build(animals); expect(pause).toHaveBeenCalledTimes(2); expect(clientWildlife(ctx)).toBeInstanceOf(PageWildlife);
+    await build(animals); expect(pause).toHaveBeenCalledTimes(2); expect(clientWildlife(ctx)).toBeInstanceOf(PageWildlifeView);
     application.events.ask('combat.targets.ray',request);expect(hits).toEqual(['prior','wildlife','night','titan']);hits.length=0;
     expect(ray).toHaveBeenCalledWith(request.origin,request.dir,request.maxDist,null);
     expect(animals.navSteer).toBe(true); frame.run(.1, 3);
@@ -94,7 +93,7 @@ test('declared wildlife waits for animals, owns one frame and retires its hook',
       application.events.ask('combat.targets.ray',request);expect(hits).toEqual(['reentered']);
       expect(application.events.census().answerers).toBe(baseline+2);
       const rebuilt=nextRuntime.hooks.animalsBuilt;if(rebuilt===undefined)throw new Error('Missing reentered animal stage');
-      await rebuilt(animals);expect(clientWildlife(next)).toBeInstanceOf(PageWildlife);
+      await rebuilt(animals);expect(clientWildlife(next)).toBeInstanceOf(PageWildlifeView);
     }finally{entered.dispose();}
     expect(application.events.census().answerers).toBe(baseline);
   } finally { scope.dispose(); vi.restoreAllMocks(); }
