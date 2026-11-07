@@ -9,11 +9,8 @@ import { NetRoom, type NetTickInput } from '../src/engine/server/net/room';
 import { SimNetWorld } from '../src/engine/server/net/simWorld';
 import { createSimHost } from '../src/engine/server/sim';
 import { loadRapier, type Rapier } from '../src/engine/shared/physics/rapier';
-import type { Actor } from '../src/engine/shared/combat/pipeline';
 import { directLoopback } from '../src/engine/test/netLoopback';
-import { legacyDouble } from '../src/engine/test/FakeGame';
-import { netLootFeed, pageLootFeed, type LootPayout } from '../src/game/client/loot/feed';
-import { registerLootTable } from '../src/game/client/loot/tables';
+import { netLootFeed, type LootPayout } from '../src/game/client/loot/feed';
 import { installPersonalLoot } from '../src/game/server/loot/personal';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
@@ -65,18 +62,3 @@ test('a room pays a lone player, who has no page feed once the flip takes it, an
   }
 });
 
-test('the page\'s feed pays a death once, against its bounty, and stops with its listener', () => {
-  const actor = legacyDouble<Actor>({}), body = { kind: 'crab', herd: 0, alive: true, position: { x: 1, y: 2, z: 3 }, combatActor: () => actor };
-  let died: (event: never) => void = () => undefined;
-  const ctx = { on: (_event: unknown, run: (event: never) => void): void => { died = run; } };
-  const hear = (): void => { Reflect.apply(died, undefined, [{ actor }]); };
-  registerLootTable({ id: 'coins', domain: 'coins', table: { mode: 'each', rows: [{ item: 'coin', count: 5, weight: 1, when: () => true }] } });
-  {
-    const feed = pageLootFeed(ctx, { slug: 'feed-test', loot: { coins: true } }, () => [body], []), paid: LootPayout[] = [], stop = feed.onPayout(payout => { paid.push(payout); });
-    expect(feed.debug['fullClear']).toBe(5);
-    hear(); hear();
-    expect(paid).toEqual([{ at: body.position, coins: 5 }]);
-    stop(); hear();
-    expect(paid).toHaveLength(1);
-  }
-});

@@ -12,7 +12,7 @@ import { OWNED_ROW } from '../../shared/loot/ownedRows';
 import { wirePage } from '../shardfile/wirePage';
 import {prepareSpecimenCatalogue} from '../models/specimenCatalogue';
 import { CarriedQuestProp } from './carriedProp';
-import { enteredAdventurePersistence, publishChapterFlags } from '../../shared/quest/chapterBindings';
+import { publishChapterFlags } from '../../shared/quest/chapterBindings';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
 import type { ContractCatalogue } from '@wildshard/format/contracts';
 import { installQuestHintFile } from './hints';
@@ -204,36 +204,20 @@ export async function installQuestPageComposition(ctx: ShardContext, input: Ques
     live();
     const carriedFiles = await prepareSpecimenCatalogue(product,carriedRows.model,ctx.scope);
     live();
-    const carried = new CarriedQuestProp(ctx, carriedRows,carriedFiles), persistence = enteredAdventurePersistence(ctx.scope);
+    const carried = new CarriedQuestProp(ctx, carriedRows,carriedFiles);
     world.game.scene.add(carried.object);
-    let now = 0, slowT = 0, pulseT = -1e9;
-    const wired = wirePage.on; // J141: the server runs these chapters, and this page shows what it says
-    if (wired) wirePage.hold({ said: channel => { for (const effect of chapterChannel(story, carriedRows, channel)) presentQuestEffect(effect, chapter.quest.flags, { observe: () => 1, reading: row => { chapter.reading(row); }, sting: name => { play.music.sting(name); }, toast: text => { play.hud.toast(text); } }); } }, ctx.scope);
-    const project = (signal: string): void => { chapter.project(signal, { [rows.timeField]: now }); };
-    const poll = (): void => {
-      const observed = { 'taming.bonded': Number(taming?.phase === 'bonded'), 'taming.upgraded': Number(taming?.upgraded === true),
-        'arena.inside': Number(arena.inside), 'arena.tied': Number(fight.tied) };
-      chapter.project(rows.signal, { [rows.timeField]: now, ...Object.fromEntries(Object.entries(rows.observations).map(([field, source]) => [field, observed[source]])) });
-      if (now - pulseT > rows.pulse.interval) { pulseT = now; project(rows.pulse.signal); }
-    };
-    const death = (): void => { project(rows.death.signal); };
-    if (!wired) {
-      poll();
-      ctx.on('actor.died', ({ actor }) => {
-        const body = play.animals.animals.find(candidate => candidate.combatActor() === actor);
-        if (body !== undefined) { persistence.kill(body.kind, body.variant); if (body.kind === rows.death.kind) death(); }
-      });
-      chapter.installFeats();
-    }
+    let slowT = 0;
+    wirePage.hold({ said: channel => { for (const effect of chapterChannel(story, carriedRows, channel)) presentQuestEffect(effect, chapter.quest.flags, { observe: () => 1, reading: row => { chapter.reading(row); }, sting: name => { play.music.sting(name); }, toast: text => { play.hud.toast(text); } }); } }, ctx.scope);
+    
     ctx.system({ ...rows.system, phase: 'update', run: (dt, t) => {
-      now = t; const pp = world.player.position;
+      const pp = world.player.position;
       chapter.update(dt, pp); people.update(dt, t, pp); chip.update(t, world.player);
-      if (wired) carried.show(wirePage.line(OWNED_ROW.prop)); else carried.update(dt);
-      if (t - slowT > rows.interval) { slowT = t; if (!wired) poll(); places.update(pp.x, pp.z); }
+      carried.show(wirePage.line(OWNED_ROW.prop));
+      if (t - slowT > rows.interval) { slowT = t;  places.update(pp.x, pp.z); }
     } });
     const debug = rows.debug;
     ctx.debug.expose(debug.id, { flags: chapter.quest.flags, line, people, [debug.prop]: carried, places, chip, markers,
-      get dialogue() { return chapter.dialogueBox(); }, [debug.goals]: carried.goals, [rows.death.signal]: death, talk: chapter.talk });
+      get dialogue() { return chapter.dialogueBox(); }, [debug.goals]: carried.goals, talk: chapter.talk });
     await people.ready;
     live();
     return chapter.quest.flags;

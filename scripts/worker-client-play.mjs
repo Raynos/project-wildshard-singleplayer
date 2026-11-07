@@ -9,7 +9,6 @@ async function open(browser, phone, base, path) {
   page.on('pageerror', error => { errors.push(error.message.slice(0, 300)); });
   page.on('console', line => { if (line.type() === 'error') errors.push(line.text().slice(0, 300)); });
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
-  await saveFixture(context, { scope: 'device', key: 'debug.workerClient', data: 'on' });
   await page.goto(new URL(path, base).href, { waitUntil: 'load' });
   return { context, page, errors };
 }

@@ -21,7 +21,7 @@ export type MoverOwnerBinding =
   | {readonly id:string;readonly kind:'chain';readonly owner:string};
 export interface MoverOwnerRows {readonly system:string;readonly bindings:readonly MoverOwnerBinding[]}
 const installed=new WeakSet<Scope>();
-/** The client's one seat on the page sim's feed. The flip replaces this binding; views only read it. `src/pageSim.ts` fills it
+/** The client's one seat on the page sim's feed. Views only read it, and each row goes as a view stops building on it. `src/pageSim.ts` fills it
  * from the boot's import bank, so the sim stays out of the session chunk's static closure (J10's ratchet). */
 export let pageSim:PageSimFeed;
 /** J130: this page runs on a server. Motion and the sky come off rows; what else `pageSim` holds still builds, on nothing, and

@@ -11,18 +11,14 @@ import type { ModelDef } from '../src/engine/client/models/model';
 import { currentOwner } from '../src/engine/shared/app/ownership';
 import finishes from '../src/shards/nalati-grasslands/data/skinFinishes.json' with {type:'json'};
 import {lendNalatiPasture} from './fixtures/nalati-titan-loan';
-import { ArenaRoomEncounter, pageArenaRoomFight, type OpenArenaWorld } from '../src/game/client/boss/arenaRoom';
-import { ARENA_ROOM_PAGE, arenaRoomViews } from '../src/game/client/boss/arenaRoomView';
+import { ArenaRoomEncounter, type OpenArenaWorld } from '../src/game/client/boss/arenaRoom';
+import { ARENA_ROOM_PAGE } from '../src/game/client/boss/arenaRoomView';
 import type { Animal } from '../src/engine/client/entities/AnimalView';
 import { eliteDamageMul } from '../src/engine/shared/entities/eliteBrain';
 // @vitest-environment happy-dom
 import { app } from '../src/engine/client/app/runtime';
 import { shardContext, type ShardContext } from '../src/game/client/plugin/context';
-import type { ShardRuntime, ShardPlayHost } from '../src/game/shared/shard/runtime';
-import type { ShardWorld } from '../src/game/server/shard/world';
-import type { HUD } from '../src/engine/client/ui/HUD';
-import { parseRuntimeSpawns } from '@wildshard/format/runtimeSpawns';
-import NALATI_RUNTIME_SPAWNS from '../src/shards/nalati-grasslands/data/spawns.json' with { type: 'json' };
+import type { ShardRuntime } from '../src/game/shared/shard/runtime';
 import { expect, test,vi } from 'vitest';
 import { parse } from 'valibot';
 import { PatrolViewSchema } from '@wildshard/format/encounterRows';
@@ -40,12 +36,9 @@ import { Mount } from '../src/game/client/riding/mount';
 import type { LevelContext } from '../src/engine/server/level/context';
 import { NALATI_NIGHT as nightInput } from './fixtures/nalati-night';
 import {withWeatherWitness} from './fixtures/weatherInlineWitness';
-import { bossArena } from './fake/bossArena';
 import fireView from '../src/shards/nalati-grasslands/data/arenaFire.json' with { type: 'json' };
 import * as titan from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import { titanGeometryRows } from '../src/shards/nalati-grasslands/generators/stormTitanGeometry';
-import king from './fixtures/nalati-goldenKing-original.json' with { type: 'json' };
-import layout from './fixtures/nalati-kurganLayout-original.json' with { type: 'json' };
 import * as world from '../src/shards/nalati-grasslands/generators/layout';
 import { manager } from '@wildshard/engine/test/manager';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
@@ -60,7 +53,6 @@ import { emptyShardfile } from '../src/sharddev/author';
 import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 import { nalatiTitanView } from '../src/shards/nalati-grasslands/generators/titanView';
 import { nalatiViewBytes } from './fixtures/nalati-view-modules';
-import { FIXTURE_RUNTIME_COST } from './fixtures/clientPlanRuntime';
 
 const geometry = titanGeometryRows();
 
@@ -95,37 +87,6 @@ function encounter(def: Omit<BossDefinition, 'reward'>, script: BossScript, posi
     brain.update(dt, t); const state = `${brain.state}:${brain.phase}`; if (trace.at(-1) !== state) trace.push(state);
   } };
 }
-
-test('Golden King runs all phases, clears the real adds and reaches its single reward end state headlessly', () => {
-  const restore = bindFlatTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
-  const scope = new Scope('golden-king-headless');
-  lendNalatiPasture(scope);
-  scope.expose(app, 'levelScope', scope);
-  const f = manager(), dungeon = bossArena().build(true);
-  Reflect.set(f.player, 'dash', () => undefined);
-  f.player.position.set(layout.DUNGEON.x, layout.DUNGEON.y, layout.DUNGEON.z + 5);
-  const runtime = legacyDouble<ShardRuntime>({ world: legacyDouble<ShardWorld>({ player: f.player }),
-    play: legacyDouble<ShardPlayHost>({ animals: f.manager, hud: legacyDouble<HUD>({ killFeed: () => undefined }) }) });
-  const context = legacyDouble<ShardContext>({ app, game: legacyDouble<ShardContext['game']>({ runtime }),
-    product: legacyDouble<ShardContext['product']>({ shardfile: legacyDouble<ShardContext['product']['shardfile']>({
-      runtime: { kind: 'client-plan', cost: FIXTURE_RUNTIME_COST, binds: ['spawns'], spawns: parseRuntimeSpawns(NALATI_RUNTIME_SPAWNS) },
-    }) }) });
-  const fight = pageArenaRoomFight(context, dungeon, king.page, presentation => arenaRoomViews(dungeon, presentation));
-  const e = encounter(king.encounter, fight.script, f.player.position), direction = new Vector3(0, 0, -1);
-  try {
-    e.brain.arm();
-    for (let frame = 0; frame < 12000 && e.brain.state !== 'victory'; frame++) {
-      const dt = 1 / 30, t = frame * dt; e.step(dt, t); f.manager.update(dt, t, f.player.position);
-      if (frame % 15 === 0 && e.brain.state === 'fight') {
-        for (const add of fight.phased.adds()) if (add.alive) add.applyDamage(1000, add.position, direction);
-        const body = fight.body(); if (body !== null && !fight.script.shielded) body.applyDamage(90, body.headWorld(new Vector3()), direction);
-      }
-    }
-    expect(e.brain.state).toBe('victory'); expect(e.trace).toEqual(['intro:0','fight:0','beat:1','fight:1','beat:2','fight:2','victory:2']);
-    expect(e.saved).toEqual({ defeated: true, rewardTaken: false, kills: 1 }); expect(e.rewards).toBe(1);
-    expect(fight.body()?.alive).toBe(false); expect(fight.phased.adds().filter(a => a.alive)).toHaveLength(0);
-  } finally { scope.dispose(); restore(); }
-});
 
 test.each([false,true])('arena script runs mounted phases, exposes its heart and wins (orchard fixture %s)', orchard => {
   mockCanvas();

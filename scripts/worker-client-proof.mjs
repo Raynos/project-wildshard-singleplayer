@@ -99,7 +99,6 @@ try {
   page.on('pageerror', error => { errors.push(error.message); console.log('[error]', (error.stack ?? error.message).slice(0, 400)); });
   page.on('console', line => { if (line.type() === 'error' || /worker client|Standalone|save refused/iu.test(line.text())) console.log('[page]', line.text().slice(0, 240)); });
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
-  await saveFixture(context, { scope: 'device', key: 'debug.workerClient', data: 'on' });
   // A one-shard page: its player walks to the wall and stays on the wire, and the world never changes.
   if (chunk !== '') {
     await page.goto(new URL(`/?chunk=${chunk}`, base).href, { waitUntil: 'load' });

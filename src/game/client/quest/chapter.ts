@@ -145,7 +145,7 @@ export async function prepareQuestEntry(ctx: ShardContext, input: unknown): Prom
   return { story, flags, services, ...placement,
     board: boardInput => {
       if (boardInstalled || interaction === null || achievements === null || ctx.scope.disposed) throw new Error('Quest board requires its live table and achievement owners');
-      const board = questBoardPage(ctx, story.quest.id, boardInput, interaction.sfx, achievements);
+      const board = questBoardPage(ctx, boardInput, interaction.sfx);
       boardInstalled = true; return board;
     },
     trader: traderInput => {

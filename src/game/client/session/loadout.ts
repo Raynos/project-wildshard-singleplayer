@@ -1,5 +1,4 @@
 
-import { workerClientOn } from '@wildshard/engine/ui/debugOptions';
 import type { SwimArms } from '@wildshard/engine/player/Hands';
 import type { EnteredEquipment as DeclarationEnteredEquipment } from '../grid/enteredEquipment';
 import type { World } from '@wildshard/engine/core/bootstrap';
@@ -63,7 +62,7 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) : Promi
 
   const animals = await step('animals', async (p) => {
     const herds = pageSim.animalManager(new AnimalHerdView(game.rootScene, sky), app, forest);
-    herds.herdless = workerClientOn();
+    herds.herdless = true;
     const a = await herds.buildAsync(macrotask); // a task per herd, not one long one
     a.setResidency(followRing()); // T6: the animals outside the player's 5 x 5 sleep
     p.detail(`${a.animals.length} animals`);

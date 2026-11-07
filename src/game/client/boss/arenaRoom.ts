@@ -25,7 +25,7 @@ import type { AimTarget } from '@wildshard/engine/player/AimTargets';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
 import type { WeatherReactions } from '../../server/weather/reactions';
-import { arenaBoundary, arenaTie, arenaTieWord } from '../../shared/boss/arenaAnswers';
+import { arenaBoundary, arenaTieWord } from '../../shared/boss/arenaAnswers';
 import { OpenArenaFight, readArenaScriptData, type ArenaRiderOwner, type OpenArenaViews } from '../../shared/boss/openArenaFight';
 import { pageSim } from '../shardfile/clientMoverOwners';
 import { wirePage } from '../shardfile/wirePage';
@@ -108,14 +108,14 @@ export function pageArenaRoomFight(ctx: ShardContext, dungeon: BossArenaRoom, in
   }, rows, presentation => {
     const binding = views(presentation);
     // The server's fight runs, and its looks reach this room as it told them. A room nobody has entered has nothing built to draw on.
-    if (wirePage.on) wirePage.whenLive(ctx.scope, client => client.onView(({ name, args }) => {
+    wirePage.whenLive(ctx.scope, client => client.onView(({ name, args }) => {
       if (!dungeon.built) return;
       if (name === 'boss.glow') dungeon.actor = animals.animals.find(actor => actor.rowDriven && actor.kind === owner.row.kind) ?? null; // the server's body is the row's
       binding[name]?.(...args);
     }));
     return binding;
   });
-  if (wirePage.on) fight.script.reset = () => undefined; // the server's fight has the body: this one never stands one up
+  fight.script.reset = () => undefined; // the server's fight has the body: this one never stands one up
   return { ...fight, setPresent: on => {
     const body = fight.phased.body(), bodies = body === null ? fight.phased.adds() : [body, ...fight.phased.adds()];
     for (const actor of bodies) {
@@ -171,7 +171,7 @@ export class ArenaRoomEncounter {
       const projection=this.projection=new OpenArenaFight({scope:world.game.levelScope,get weather(){return world.weather;},get tieSpot(){return world.tieSpot;},ai:page.ai,
         fog:()=>world.game.scene.fog,get camera(){return world.game.camera;},wild:pageSim.wild,phone:page.phone},this,rows,page.openViews(scene,rows));
       this.spareLight=page.openLight(source.world.game.scene,source.rows.view.light.colour,new Vector3(source.rows.arena.body.x,source.rows.view.light.y,source.rows.arena.body.z));
-      const spot=projection.cairnSpot();this.prompt={position:new Vector3(spot.x,spot.y+source.rows.view.promptLift,spot.z),radius:0,label:source.rows.lines.tie,onInteract:()=>{this.tie();}};
+      const spot=projection.cairnSpot();this.prompt={position:new Vector3(spot.x,spot.y+source.rows.view.promptLift,spot.z),radius:0,label:source.rows.lines.tie,onInteract:()=>undefined};
     }
   }
   /** The fight's rows and programmes as the page's build admits them, a slice each. */
@@ -232,24 +232,17 @@ export class ArenaRoomEncounter {
       music:event=>{if(event==='death'||event==='pickup')play.music.sting(event);else if(event==='victory')play.music.sting('chunk');else play.music.combat(1);}});
     this.boss=encounter.boss;this.ui=encounter.ui;this.drive=encounter.update;
     if(open===null){
-      if(this.fight===null||this.portal===null||room===null)throw new Error('Missing room fight');this.portal.bind(encounter.boss,encounter.ui,this.fight,encounter.update);encounter.fight.reset(0);this.fight.setPresent(false);
+      if(this.fight===null||this.portal===null||room===null)throw new Error('Missing room fight');this.portal.bind(encounter.ui,this.fight,encounter.update);encounter.fight.reset(0);this.fight.setPresent(false);
       if(encounter.boss.rewardTaken)kit.upgradeBow('bow-reward',play.weapons);
     }else{
       if(this.prompt===null||this.projection===null)throw new Error('Missing open arena projection');runtime.interactables.push(this.prompt);
-      if(wirePage.on){const word=arenaTieWord(this.data.definition.id),lines=this.data.tieLines,heard=this.projection;wirePage.whenLive(ctx.scope,client=>client.onView(({name,args})=>{const line=name===word?lines[args[0]??-1]:undefined;if(line!==undefined)play.hud.toast(line);if(name.startsWith('open-arena.')){heard.hear(name,args);wirePage.drew(name);}}));}
+      {const word=arenaTieWord(this.data.definition.id),lines=this.data.tieLines,heard=this.projection;wirePage.whenLive(ctx.scope,client=>client.onView(({name,args})=>{const line=name===word?lines[args[0]??-1]:undefined;if(line!==undefined)play.hud.toast(line);if(name.startsWith('open-arena.')){heard.hear(name,args);wirePage.drew(name);}}));}
       if(encounter.boss.rewardTaken){if(blade===null)throw new Error('Missing open arena power');kit.upgradeBlade('blade-reward',play.weapons,blade);}
       page.boundary(ctx.scope,this.projection.boundary);page.lendOpenView(this.projection,ctx.scope);
     }
     page.listenSkip(scope,(source,on)=>{if(source==='key')this.skipKeys=on;else this.skipTouch=on;});
     if(open!==null)ctx.debug.expose(open.view.debug,this);
     if(open===null&&room!==null)game.app.addSystem({id:room.client.system,phase:'update',after:['hud.combat'],before:['first hints','main.frame'],run:dt=>{bow?.update(dt);}},scope);
-  }
-  private tie():void{
-    const boss=this.boss;if(boss===null)return;const fight=this.openFight;
-    if(wirePage.on)return; // the press went to the server, which ties it, and the bar says so
-    // the tie answer's order is arenaTie's (renderer-free, CI12)
-    arenaTie(fight.life,{engaged:this.engaged,victory:boss.state==='victory',hit:boss.reward!==null,mounted:this.mounted(),storm:this.world.weather.stormActive},this.data.tieLines,
-      {boss,fight,toast:line=>{this.toast(line);}});
   }
   devStartAt(phase:number):void{
     if(this.openRows===null){this.portal?.enter(true,this.rows?.client.debugZ);this.boss?.devStartAt(phase);return;}
@@ -259,9 +252,9 @@ export class ArenaRoomEncounter {
   update(dt:number,t:number):void{
     if(this.openRows===null){this.portal?.update(dt,t);return;}
     this.power?.update(dt,t);this.hurtT-=dt;const boss=this.boss;if(boss===null||this.context===null||this.kit===null)return;
-    const fight=this.openFight;if(wirePage.on||boss.state!=='dormant'||fight.body.visible)this.drive?.(dt,t);else fight.update(dt,t,false);
-    if(wirePage.on)fight.followFrame(dt,t); // the page steps no fight on the wire: it draws what the server's says
-    if(wirePage.on&&this.prompt!==null){const line=wirePage.line(OWNED_ROW.tie),{lines,arena}=this.data;this.prompt.wireId=`${this.data.definition.id}.tie`;this.prompt.position.x=arena.anchor.x;this.prompt.position.z=arena.anchor.z;this.prompt.radius=Math.floor(line/10)/100;this.prompt.label=line%10===1?lines.tieOnFoot:line%10===2?lines.tieQuiet:lines.tie;}
+    const fight=this.openFight;this.drive?.(dt,t);
+    fight.followFrame(dt,t); // the page steps no fight on the wire: it draws what the server's says
+    if(this.prompt!==null){const line=wirePage.line(OWNED_ROW.tie),{lines,arena}=this.data;this.prompt.wireId=`${this.data.definition.id}.tie`;this.prompt.position.x=arena.anchor.x;this.prompt.position.z=arena.anchor.z;this.prompt.radius=Math.floor(line/10)/100;this.prompt.label=line%10===1?lines.tieOnFoot:line%10===2?lines.tieQuiet:lines.tie;}
     const answer=fight.takeBoundary();if(answer===null)return;const prompt=this.prompt;if(prompt===null)throw new Error('Missing open arena prompt');
     // the boundary answer's order is arenaBoundary's (renderer-free, CI12)
     const p=this.player.position,scope=this.context.scope;

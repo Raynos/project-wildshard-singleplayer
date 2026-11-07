@@ -15,9 +15,7 @@ import { enteredHeldLoadout } from '../loadout/held';
 import { HeldFinishes } from '../loadout/finishes';
 import { DataPanel } from '../ui/dataPanels';
 import { ContractBoard } from '../../shared/quest/contractBoard';
-import { saveBoard, contractKill, isFilled, ownContractCatalogue, type Board } from '../../shared/quest/contracts';
-import { commitQuestEffects } from '../../shared/quest/effects';
-import type { bindStoryAchievements } from './story';
+import { saveBoard, isFilled, ownContractCatalogue, type Board } from '../../shared/quest/contracts';
 
 /** Existing page resources returned to the entry's original modal/debug phases. */
 export interface ContractBoardPage {
@@ -34,8 +32,7 @@ function notice(template: string, values: Readonly<Record<string, string | numbe
 }
 /** Framework-only binding: author input enters through QuestEntry.board as JSON;
  * the entry lends its already-installed sound and achievement services. */
-export function installContractBoardPage(ctx: ShardContext, quest: string, rows: ContractBoardPageRows,
-  sfx: InteractSfx, feats: Awaited<ReturnType<typeof bindStoryAchievements>>): ContractBoardPage {
+export function installContractBoardPage(ctx: ShardContext, rows: ContractBoardPageRows, sfx: InteractSfx): ContractBoardPage {
   if (ctx.scope.disposed) throw new Error('Quest board requires a live owner');
   const panelRows = rows.panel;
   const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
@@ -70,28 +67,19 @@ export function installContractBoardPage(ctx: ShardContext, quest: string, rows:
   const panel = views.view('board', scope => new DataPanel(panelRows, { scope, values: () => board, actions: new Map([
     ['claim', (value: unknown): void => {
       if (typeof value !== 'number') throw new Error('Contract action requires its slot');
-      if (wirePage.on) { claiming = { reward: board.slots[value]?.reward ?? null, claimed: board.claimed }; wirePage.contract('claim', value); return; } // the server pays, and the rows say so
-      const reward = owner.claim(value)?.reward; if (reward === undefined) return;
-      commitQuestEffects(ctx, quest, reward.items.map(item => ({ kind: 'item', item: item.id, count: item.n })));
-      inHand(reward);
-      persist(); paid(); feats.event('streak', board.streak);
+      claiming = { reward: board.slots[value]?.reward ?? null, claimed: board.claimed }; wirePage.contract('claim', value); 
     }],
-    ['tear', (value: unknown): void => { if (typeof value !== 'number') throw new Error('Contract action requires its slot'); if (wirePage.on) wirePage.contract('tear', value); else { owner.tear(value); persist(); } sfx.interact('door'); }],
+    ['tear', (value: unknown): void => { if (typeof value !== 'number') throw new Error('Contract action requires its slot'); wirePage.contract('tear', value); sfx.interact('door'); }],
   ]) }));
   const prompt: Interactable = { position: new Vector3(rows.at.x, terrainHeight(rows.at.x, rows.at.z) + rows.height, rows.at.z),
     get radius() { return panel().isOpen ? 0 : rows.radius; }, get label() { return board.slots.some(isFilled) ? rows.filled : rows.label; },
     onInteract: () => { panel().open(); sfx.interact('door', prompt.position, { gain: 0.5 }); } };
   runtime.interactables.push(prompt);
   ctx.scope.onDispose(() => { const index = runtime.interactables.indexOf(prompt); if (index !== -1) runtime.interactables.splice(index, 1); views.disposeLegacy(() => { panel().root.remove(); }); });
-  if (wirePage.on) wirePage.hold({ board: { mirror } }, ctx.scope);
+  wirePage.hold({ board: { mirror } }, ctx.scope);
   let observing = false;
   return { state: board, panel, fill: slot => { const row = board.slots[slot]; if (row !== undefined) { row.have = row.need; persist(); } }, observe: () => {
     if (observing || ctx.scope.disposed) throw new Error('Quest board deaths already installed or disposed'); observing = true;
-    if (wirePage.on) return; // the server's board counts the kills
-    ctx.on('actor.died', ({ actor }) => { const body = play.animals.animals.find(animal => animal.combatActor() === actor); if (body === undefined) return;
-      const moved = owner.killed(contractKill(contracts, body)); if (moved.length === 0) return; persist();
-      for (const slot of moved) { const row = board.slots[slot]; if (row !== undefined) play.hud.toast(notice(isFilled(row) ? rows.notices.filled : rows.notices.progress,
-        { goal: row.goal, have: row.have, need: row.need })); }
-    });
+    
   } };
 }

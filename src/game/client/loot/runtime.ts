@@ -10,7 +10,7 @@ import { CoinChip } from './ui/CoinChip';
 import { CoinBurst } from './CoinBurst';
 import { Purse, publishPurse } from '../../shared/loot/Purse';
 import { coinsOn, type LootGate } from './coins';
-import { pageLootFeed, type LootFeed } from './feed';
+import type { LootFeed } from './feed';
 import { readOnlySave, wirePage } from '../shardfile/wirePage';
 import { purseSave } from '../../shared/saves';
 import { OWNED,isCosmetic, isOwnedId, type Owned, type OwnedId } from '../../shared/loot/Owned';
@@ -63,8 +63,8 @@ export function installLoot<A extends LootBody>(h: ScopedLootHost<A>): ScopedLoo
   const { ctx, owned, presentation: view } = h;
   const lifetime = ctx.scope.child('loot');
   // J130: on the wire the server owns the coins, and a page's purse only shows its rows
-  const purse = new Purse(h.manifest.slug, wirePage.on ? readOnlySave(purseSave) : undefined), burst = new CoinBurst(h.scene);
-  if (wirePage.on) wirePage.hold({ purse }, lifetime);
+  const purse = new Purse(h.manifest.slug, readOnlySave(purseSave)), burst = new CoinBurst(h.scene);
+  wirePage.hold({ purse }, lifetime);
   let chip: CoinChip | null = null, entered = false, leave: (() => void) | null = null;
   const releasePurse = publishPurse(ctx.scope, purse);
   let live = true, charted = false;
@@ -73,11 +73,11 @@ export function installLoot<A extends LootBody>(h: ScopedLootHost<A>): ScopedLoo
   const onHidden = (): void => { if (document.visibilityState === 'hidden') flush(); };
   lifetime.listen(window, 'pagehide', flush); lifetime.listen(document, 'visibilitychange', onHidden);
   // the page's law stays until the flip deletes it; a page with a wire has one payer, the server (J105)
-  const feed = h.feed ?? (wirePage.on ? wirePage.lootFeed(lifetime) : pageLootFeed(ctx, h.manifest, h.animals, view.lateKinds ?? []));
+  const feed = h.feed ?? (wirePage.lootFeed(lifetime));
   const projected = new THREE.Vector3(), fell = new THREE.Vector3();
   const offPayouts = feed.onPayout(({ at, coins: n }) => {
     if (!live) return;
-    burst.spawn(fell.set(at.x, at.y, at.z), n, (share) => { if (!wirePage.on) purse.add(share, false); }, () => { flush(); view.chime(); });
+    burst.spawn(fell.set(at.x, at.y, at.z), n, () => undefined, () => { flush(); view.chime(); });
     projected.set(at.x, at.y + 1.5, at.z).project(h.camera);
     if (chip !== null && projected.z < 1 && Math.abs(projected.x) < 1.1 && Math.abs(projected.y) < 1.1) chip.pop((projected.x + 1) * 0.5 * window.innerWidth, (1 - projected.y) * 0.5 * window.innerHeight, n);
   });
@@ -90,7 +90,7 @@ export function installLoot<A extends LootBody>(h: ScopedLootHost<A>): ScopedLoo
   installEnteredRuntimeService(ctx, (scope) => {
     if (!live) return;
     const shown = new CoinChip(purse.coins), offBag = bagMenu(h.menu).addLoot('loot', { gear: () => view.gear(purse), finds: view.finds,
-      wear: (id) => { if (!isOwnedId(id) || !isCosmetic(id)) return; if (wirePage.on) wirePage.wear(id); else owned.toggleWorn(id); } });
+      wear: (id) => { if (!isOwnedId(id) || !isCosmetic(id)) return; wirePage.wear(id); } });
     chip = shown; entered = true; applyChart();
     const off = (): void => {
       if (chip !== shown) return;

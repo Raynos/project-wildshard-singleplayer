@@ -1,5 +1,5 @@
-// J130: what a page with Settings ▸ Developer ▸ Worker client on reads in place of its own sim. Views install long before the
-// server's first frame, so they take this seat at install and it fills when the wire does. The flip commit makes it the page.
+// What a page reads in place of a sim of its own. Views install long before the server's first frame, so they take this seat at
+// install and it fills when the wire does.
 import type { Vector3 } from 'three';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -18,7 +18,6 @@ import { QuestViewFeed } from '@wildshard/engine/quest/view/replica';
 import type { QuestDef } from '@wildshard/engine/quest/core';
 import type { QuestGateView, QuestView } from '@wildshard/engine/quest/viewPort';
 import type { QuestProgress } from '@wildshard/engine/quest/progress';
-import { workerClientOn } from '@wildshard/engine/ui/debugOptions';
 import { Flags } from '@wildshard/engine/world/interact/flags';
 import { netEncounterFeed, type EncounterRow } from '../boss/barFeed';
 import { netLootFeed, type LootFeed } from '../loot/feed';
@@ -88,7 +87,6 @@ export class WirePage {
   private readonly holdings = new Set<WireHoldings>();
   private ownedAt = -1;
   private readonly said = new Map<string, number>();
-  get on(): boolean { return workerClientOn(); }
   /** What a page does to a body its own population spawns, for the rows `manager` draws: until `scope` ends. */
   dressRows(manager: object, scope: Scope, dress: (body: Animal) => void): void { this.dressers.set(manager, dress); scope.onDispose(() => { if (this.dressers.get(manager) === dress) this.dressers.delete(manager); }); }
   /** A row's new body, in `manager`. */

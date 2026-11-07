@@ -17,7 +17,7 @@ if (dist === undefined || out === undefined) throw new Error('Requires --dist an
 rmSync(out, { recursive: true, force: true }); mkdirSync(dirname(out), { recursive: true });
 execFileSync('cp', ['-cR', dist, out]); // APFS clones: a build is 2.8 GB, and most of it never changes
 for (const file of ['trailer-15.mp4', 'trailer-30.mp4', '.vite']) rmSync(join(out, file), { recursive: true, force: true }); // no phone proof reads them
-const seeds = [{ scope: 'device', key: 'devMode', data: true }, { scope: 'device', key: 'debug.workerClient', data: 'on' }].map(saveFixtureCode).join(';');
+const seeds = [{ scope: 'device', key: 'devMode', data: true }].map(saveFixtureCode).join(';');
 const page = join(out, 'index.html'), html = readFileSync(page, 'utf8');
 if (!html.includes('<head>')) throw new Error('A build page has no head');
 writeFileSync(page, html.replace('<head>', `<head><script>${seeds}</script>`));

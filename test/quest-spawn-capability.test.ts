@@ -12,7 +12,6 @@ import type { QuestPageComposition } from '../src/game/client/quest/pageComposit
 import { publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { installDeclaredQuestSpawns, type QuestSpawnCapability } from '../src/game/client/quest/chapterDirector';
-import { pageSimFeed } from '../src/game/server/plugin/pageSimFeed';
 import * as spawn from '../src/game/server/population/spawnScript';
 import { compileDecisionScripts } from '../src/sharddev/buildDecisionScripts';
 import { parseSpawnScript, spawnScriptRegistries, type SpawnScriptRows } from '@wildshard/format/spawnScripts';
@@ -67,7 +66,7 @@ function fixture(omit?: 'quest' | 'animals' | 'sounds') {
 }
 for (const kind of ['quest', 'animals', 'sounds'] as const) test(`declared spawn capability refuses a missing ${kind} loan before guest admission`, async () => {
   const f = fixture(kind);
-  await expect(installDeclaredQuestSpawns(f.ctx, f.capability, pageSimFeed.spawnScript)).rejects.toThrow('Missing live entry owner');
+  await expect(installDeclaredQuestSpawns(f.ctx, f.capability)).rejects.toThrow('Missing live entry owner');
   expect(f.read).not.toHaveBeenCalled(); expect(f.events).toEqual([]);
 });
 // N1: on the wire the server directs the script. This page plays what it says, and shows a finish as its flag rises.
@@ -78,7 +77,7 @@ test('on the wire a script\'s cues and its finish show once, and a save\'s flag 
   wirePage.bind(legacyDouble<NetClient>({ onView: view => { views.add(view); return () => { views.delete(view); }; } }), () => undefined, () => undefined, () => false);
   const say = (args: readonly number[], name = spawnCueWord('marsh.spawn')): void => { for (const view of views) view({ kind: 'view', tick: 0, name, args }); };
   try {
-    const result = await installDeclaredQuestSpawns(f.ctx, f.capability, pageSimFeed.spawnScript);
+    const result = await installDeclaredQuestSpawns(f.ctx, f.capability);
     expect(f.read, 'no guest on a page on the wire').not.toHaveBeenCalled();
     const shown = (): string[] => f.events.filter(event => event !== 'flag');
     f.flags.set('done:watch'); expect(shown(), 'a save opened with it').toEqual([]);
@@ -91,39 +90,18 @@ test('on the wire a script\'s cues and its finish show once, and a save\'s flag 
   } finally { wirePage.unbind(); if (on === undefined) Reflect.deleteProperty(wirePage, 'on'); else Object.defineProperty(wirePage, 'on', on); }
 });
 
-test('declared spawn effects retain completion-before-cues order and stop with their owner', async () => {
-  const f = fixture(), result = await installDeclaredQuestSpawns(f.ctx, f.capability, pageSimFeed.spawnScript);
-  // Decisions stage at tick 6 and commit on the next native tick.
-  result.update(7 / 60, new Vector3(3, 2, 4));
-  expect(f.events).toEqual(['flag', 'complete', 'sound']); expect(result.count).toBe(1);
-  expect(result.takePuffs()).toEqual([{ x: 0, y: 0, z: 0 }]);
-  result.update(.1, new Vector3()); expect(f.events).toEqual(['flag', 'complete', 'sound']);
-  f.flags.clear('done:watch'); result.update(.1, new Vector3());
-  const before = [...f.events]; f.scope.dispose(); result.force(); result.update(.1, new Vector3());
-  expect(result.takePuffs()).toEqual([]); expect(f.events).toEqual(before);
-});
 test('restored quest flags and v1 envelope stay quiet during capability construction', async () => {
   const f = fixture(); f.flags.restore(['done:watch']);
   const saved: ReturnType<QuestState['snapshot']> = { version: 1, id: f.quest.def.id, started: true, currentId: null };
   f.quest.restore(saved); const flags = f.flags.all;
-  const result = await installDeclaredQuestSpawns(f.ctx, f.capability, pageSimFeed.spawnScript);
+  const result = await installDeclaredQuestSpawns(f.ctx, f.capability);
   expect(f.quest.snapshot()).toEqual(saved); expect(f.flags.all).toEqual(flags); expect(f.events).toEqual([]);
   result.update(.1, new Vector3()); expect(result.takePuffs()).toEqual([]); expect(f.events).toEqual([]);
 });
-test('leaving during admitted byte read constructs no guest or publication', async () => {
-  const f = fixture(); let finish: ((value: SpawnScriptRows) => void) | undefined;
-  f.read.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
-  const page = vi.spyOn(spawn.SpawnScript, 'page'), pending = installDeclaredQuestSpawns(f.ctx, f.capability, pageSimFeed.spawnScript);
-  const refusal = expect(pending).rejects.toThrow('Quest left during spawn director admission');
-  await vi.waitFor(() => expect(f.read).toHaveBeenCalled());
-  f.scope.dispose(); if (finish === undefined) throw new Error('Missing pending admission'); finish(f.source);
-  await refusal; expect(page).not.toHaveBeenCalled(); expect(f.events).toEqual([]);
-});
-
 test('leaving during complete runtime admission constructs no spawn guest', async () => {
   const f = fixture(); let finish: ((value: unknown) => void) | undefined;
   f.json.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
-  const pending = installDeclaredQuestSpawns(f.ctx, f.capability, pageSimFeed.spawnScript);
+  const pending = installDeclaredQuestSpawns(f.ctx, f.capability);
   const refusal = expect(pending).rejects.toThrow('Quest left during runtime admission');
   f.scope.dispose();
   if (finish === undefined) throw new Error('Missing pending runtime admission');
@@ -134,7 +112,7 @@ test('leaving during complete runtime admission constructs no spawn guest', asyn
 test('a changed product during runtime admission publishes no spawn owner', async () => {
   const f = fixture(); let finish: ((value: unknown) => void) | undefined;
   f.json.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
-  const pending = installDeclaredQuestSpawns(f.ctx, f.capability, pageSimFeed.spawnScript);
+  const pending = installDeclaredQuestSpawns(f.ctx, f.capability);
   const refusal = expect(pending).rejects.toThrow('Quest left during runtime admission');
   Object.defineProperty(f.ctx, 'product', { value: legacyDouble<ShardProduct>({}), configurable: true });
   if (finish === undefined) throw new Error('Missing pending runtime admission');

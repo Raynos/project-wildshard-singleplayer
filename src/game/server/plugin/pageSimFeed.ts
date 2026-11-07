@@ -20,8 +20,8 @@ import { borrowedDecisionAuthority, pageDecisionAuthority, prepareProductDecisio
 
 /**
  * What the page's quest views and motion still take from the page's own sim (E6: port first, flip last). A view asks
- * this feed, through the one client seat in `shardfile/clientMoverOwners.ts`, and never names these owners itself, so
- * the flip swaps one object instead of every view. Each row is the owner's own function: nothing here adds law.
+ * this feed, through the one client seat in `shardfile/clientMoverOwners.ts`, and never names these owners itself. Every
+ * page runs on the server, so what these rows build runs on nothing; each row goes as its view stops building on it.
  */
 export interface PageSimFeed {
   readonly installDeclaredMovers: typeof installDeclaredMovers;

@@ -1,10 +1,7 @@
 import type { ShardContext } from '../plugin/context';
 import type { TimedEncountersRows } from '@wildshard/format/encounterRows';
-import { Vector3, type BufferGeometry } from 'three';
+import type { BufferGeometry, Vector3 } from 'three';
 import { app } from '@wildshard/engine/app/runtime';
-import { canReach } from '@wildshard/engine/ai/reach';
-import { StrikeRunner } from '@wildshard/engine/ai/strikes';
-import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import type { TargetHit } from '@wildshard/engine/combat/types';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Game } from '@wildshard/engine/core/Game';
@@ -29,25 +26,23 @@ interface TimedEncounterContext {
  *  hits the player through cover. Its owner borrows the declared cue presentation. */
 export class TimedEncounters {
   readonly slots: SlotEncounterView; readonly riders: PatrolEncounterView;
-  private readonly rows; private readonly strike;
-  private readonly contacts = new StrikeRunner(); private readonly direction = new Vector3();
+  private readonly rows;
   /** On the wire the server runs the night: this draws its rows, and no law steps here. */
   private readonly rowsView: SlotRowsView | null;
   private animals: AnimalManager | null = null;
   /** A cue this page only heard: drawn, and counted for a proof. */
   private readonly heard: Pick<CueDirector, 'cue'> = { cue: (id, at, up) => { wirePage.drew(id); this.cues.cue(id, at, up); } };
-  constructor(private readonly ctx: TimedEncounterContext, input: TimedEncountersRows,
+  constructor(ctx: TimedEncounterContext, input: TimedEncountersRows,
     figures: Readonly<Record<string, BufferGeometry>>, guest: ReturnProgram, private readonly cues: CueDirector) {
     const rows = this.rows = input, scope = ctx.game.levelScope;
     if (scope.disposed) throw new Error('Encounter owner was disposed during admission');
-    this.strike = strikeFromData(rows.contact.strike);
     const program = ReturnProgram.page(rows.program, scope);
     this.slots = new SlotEncounterView(rows.slots, rows.view, program, { scene: ctx.game.scene, cues: this.cues, sites: ctx.sites?.sites ?? null, guest });
     this.riders = new PatrolEncounterView({ patrol: rows.patrol, motion: rows.motion, view: rows.ride }, program,
       { game: ctx.game, sky: ctx.sky, player: ctx.player, forest: ctx.forest, cues: this.cues, figures });
     const actors = rows.slots.actors, sites = ctx.sites;
-    this.rowsView = wirePage.on && actors !== undefined && sites !== null ? new SlotRowsView(actors.kind, rows.view, sites, this.slots.tells, { cues: this.heard, guest, row: name => wirePage.row(name), cosmetic: () => app.rng.stream('cosmetic').next(), drew: what => { wirePage.drew(what); } }) : null;
-    if (wirePage.on) wirePage.whenLive(scope, client => client.onView(({ name, args }) => {
+    this.rowsView = actors !== undefined && sites !== null ? new SlotRowsView(actors.kind, rows.view, sites, this.slots.tells, { cues: this.heard, guest, row: name => wirePage.row(name), cosmetic: () => app.rng.stream('cosmetic').next(), drew: what => { wirePage.drew(what); } }) : null;
+    wirePage.whenLive(scope, client => client.onView(({ name, args }) => {
       if (name === PATROL_TEAR) this.riders.hearTear(args, this.heard);
       if (name !== PATROL_SHOT) return;
       this.riders.hearShot(args); wirePage.drew('shot');
@@ -68,26 +63,13 @@ export class TimedEncounters {
     if (presentation === undefined) throw new Error('Missing declared encounter presentation');
     return scope.run(() => new TimedEncounters(ctx, input, figures, guest, presentation));
   }
-  update(dt: number, time: number): void {
-    const { ctx, rows, rowsView } = this, player = ctx.player;
-    if (wirePage.on) {
-      rowsView?.update(dt, this.animals?.animals ?? []);
-      const riders = rows.patrol.actors?.kind;
-      if (this.animals !== null && riders !== undefined) this.riders.showRows(riders, this.animals.animals, dt, this.heard);
-      this.riders.flyRows(dt);
-      if (this.riders.arrows.inFlight > 0) wirePage.drew('arrow frame');
-      this.cues.setLight(Math.max(rows.lightFloor, pageSim.wild.light)); this.cues.update(dt);
-      return;
-    }
-    ctx.sites?.apply(this.slots.update(dt, { kind: Number(rows.phases.slots.includes(ctx.clock.dayPhase)) }));
-    for (const { damage, from } of this.riders.update(dt, time, { hold: 0, night: Number(rows.phases.patrol.includes(ctx.clock.dayPhase)) })) {
-      const actor = from ?? this.riders.riders[0]?.a, target = app.player;
-      if (actor === undefined || target === null) continue;
-      if (!this.contacts.contains(this.strike, { actor, target: player.position,
-        ...(rows.contact.origin === 'player' ? { origin: player.position } : {}) }) || !canReach(actor, player.position, app.physics)) continue;
-      app.combat.hit({ source: 'env', sourceTags: rows.contact.tags, target, amount: damage,
-        point: actor.position, dir: this.direction.set(0, 0, 0), cause: { kind: actor.kind, label: actor.label } });
-    }
+  update(dt: number, _time: number): void {
+    const { rows, rowsView } = this;
+    rowsView?.update(dt, this.animals?.animals ?? []);
+    const riders = rows.patrol.actors?.kind;
+    if (this.animals !== null && riders !== undefined) this.riders.showRows(riders, this.animals.animals, dt, this.heard);
+    this.riders.flyRows(dt);
+    if (this.riders.arrows.inFlight > 0) wirePage.drew('arrow frame');
     this.cues.setLight(Math.max(rows.lightFloor, pageSim.wild.light)); this.cues.update(dt);
   }
   attach(animals: AnimalManager): void {

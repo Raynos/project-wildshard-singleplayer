@@ -263,7 +263,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
         // Attempt all owners even after a refusal; neither gameplay death/reset hooks nor a constant true is a save.
         const progress = localPlay.progress.checkpoint(), inventory = localPlay.inventory.checkpoint(), native = foundation.checkpoint();
         // On the wire the creatures are the server's rows: its session saves them, and this page's herd is empty.
-        const logical = wirePage.on || (ports.continuation?.checkpoint(localPlay.animals) ?? true);
+        const logical = true;
         return progress && inventory && native && logical;
       };
       const resident: HybridResident = { instance: request.cell.instance, slug: request.cell.slug, declaration, firstParty: true,
@@ -388,8 +388,8 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
                 kit.install?.(weapons); app.registerEquipment(weapons, world.game.levelScope);
                 if (preparing) { weapons.enabled = false; weapons.visible = false; weapons.stowed = true; }
                 // J130: a cell's pack and gear are the server's, and its lines reach whichever cell the page has entered.
-                const progress = new Progress(request.cell.instance), inventory = new Inventory(request.cell.instance), owned = new Owned(request.cell.instance, wirePage.on ? readOnlySave(ownedSave) : undefined);
-                if (wirePage.on) { inventory.writes = false; wirePage.hold({ shard: request.cell.slug, inventory, gear: owned }, owner); }
+                const progress = new Progress(request.cell.instance), inventory = new Inventory(request.cell.instance), owned = new Owned(request.cell.instance, readOnlySave(ownedSave));
+                inventory.writes = false; wirePage.hold({ shard: request.cell.slug, inventory, gear: owned }, owner);
                 const skins = new SkinLocker(request.cell.instance, skinRows, request.admitted.source.migrations);
                 // SF57: the page's maps reach this resident's hooks through owner facades, so what its play registers on
                 // them after an await (a quest card, its places, its marks) ends with the resident, not the page. (Not the
@@ -422,7 +422,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
             afterPlay: async entered => {
               if (localPlay === null) throw new Error('Regional play services are not installed');
               // Trusted play can install encounter creatures; validate the complete herd before publishing readiness.
-              if (!wirePage.on) ports.continuation?.restore(localPlay.animals);
+              
               const equipment = request.page.equipment, weapons = localPlay.weapons;
               await timeClientPreparation(request.cell.slug, 'entry.selection', () => weapons.settleSelection());
               if(owner.disposed||owner.disposing)throw new Error('Regional runtime left while preparing selected equipment');

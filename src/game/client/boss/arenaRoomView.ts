@@ -18,7 +18,6 @@ import { createClientScene } from '../plugin/scene';
 import type { BossViewBinding } from '../../server/plugin/bossPhase';
 import type { ShardContext } from '../plugin/context';
 import type { FixedDraws } from '../models/fixedDraws';
-import type { Boss } from '../Boss';
 import type { BossBar } from '@wildshard/engine/ui/BossBar';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { Player } from '@wildshard/engine/player/Player';
@@ -66,7 +65,7 @@ export class ArenaRoomPortal {
   private hidden: THREE.Object3D[] = [];
   private calmWas = false;
   private locked = false; private slow = false;
-  private boss: Boss | null = null; private ui: BossBar | null = null;
+  private ui: BossBar | null = null;
   private fight: ArenaPageFight | null = null;
   /** The encounter's own frame: its brain on a page, its row on the wire. */
   private drive: ((dt: number, t: number) => void) | null = null;
@@ -75,7 +74,7 @@ export class ArenaRoomPortal {
     this.rows = v.parse(ArenaRoomPortalSchema, input); this.keep = new RegExp(this.rows.keep, 'i');
     this.law = new ArenaPortalLaw(program, this.rows, entrance);
   }
-  bind(boss: Boss, ui: BossBar, fight: ArenaPageFight, drive: (dt: number, t: number) => void): void { this.boss = boss; this.ui = ui; this.fight = fight; this.drive = drive; }
+  bind(ui: BossBar, fight: ArenaPageFight, drive: (dt: number, t: number) => void): void { this.ui = ui; this.fight = fight; this.drive = drive; }
   setLocked(on: boolean): void { this.locked = on; this.move(); }
   private move(): void { this.world.player.moveScale = this.locked ? 0 : this.slow ? this.rows.slow : 1; }
   enter(immediate = false, atZ: number = this.rows.spawn.z): void {
@@ -95,7 +94,7 @@ export class ArenaRoomPortal {
       object.visible = false; this.hidden.push(object);
     }
     this.calmWas = animals.calm; animals.calm = true; this.fight?.setPresent(true);
-    if (!wirePage.on) this.boss?.arm(); // the page's brain never arms on the wire: the row is the fight
+     // the page's brain never arms on the wire: the row is the fight
   }
   leave(teleport: boolean, immediate = false): void {
     if (teleport && !immediate) { this.ui?.fade(true, this.rows.fade.out); this.law.begin('exit', this.rows.fade.hold); return; }
@@ -111,34 +110,16 @@ export class ArenaRoomPortal {
     const { animals } = this.world;
     this.law.inside = false; this.room.setVisible(false);
     for (const object of this.hidden) object.visible = true;
-    this.hidden = []; animals.calm = this.calmWas; if (!wirePage.on) this.boss?.disarm(); this.fight?.setPresent(false);
+    this.hidden = []; animals.calm = this.calmWas;  this.fight?.setPresent(false);
     this.slow = false; this.locked = false; this.move();
   }
   update(dt: number, t: number): void {
-    const p = this.world.player.position, origin = this.room.rows.origin;
-    if (wirePage.on) { // the server walks a player in and out: the page follows where it put them, and the fight's frame runs on its row
+    const p = this.world.player.position;
+    // the server walks a player in and out: the page follows where it put them, and the fight's frame runs on its row
       const inside = this.room.inVolume(p);
       if (inside !== this.law.inside) { if (inside) this.show(); else this.gone(); }
       this.drive?.(dt,t);
       if (inside) this.room.update(dt,t);
-      return;
-    }
-    const step = this.law.step(dt, () => {
-      const z = p.z - origin.z, floor = this.room.floorHeightAt(p.x,p.z);
-      return { px: p.x, py: p.y, pz: p.z, floor, volume: this.room.inVolume(p), engaged: this.boss?.engaged === true,
-        sand: this.room.inChamber(p) ? this.room.sandAt(p.x-origin.x,z) : 0, originY: origin.y, originZ: origin.z };
-    });
-    if (step.kind === 'fading') return;
-    if (step.kind === 'faded') { if (step.pending === 'enter') this.enter(true); else if (step.pending === 'exit') this.leave(true,true); this.ui?.fade(false,this.rows.fade.in); return; }
-    if (step.kind === 'decided') {
-      if (!this.inside) { if (this.entrance !== null && step.enter) this.enter(); }
-      else if (step.exit !== 0) { this.leave(step.exit === 2); return; }
-      if (this.inside) { this.slow = step.slow; this.move(); }
-    }
-    if (!this.inside) return;
-    const floor = this.room.floorHeightAt(p.x,p.z);
-    if (floor !== undefined && p.y < floor-this.rows.floor.tolerance && p.y > floor-this.rows.floor.depth) { p.y = floor; if (this.world.player.velocity.y < 0) this.world.player.velocity.y = 0; }
-    this.drive?.(dt,t); this.room.update(dt,t);
   }
 }
 interface Stream { mesh: THREE.Mesh; mat: FxMaterial; tell: THREE.Mesh; tellMat: FxMaterial; x: number; z: number }
@@ -336,7 +317,7 @@ export class BossArenaRoom {
     c.mat.uniforms.uAlpha.value = c.k;
     c.mesh.visible = c.k > 0.02;
     this.flames.uniforms.uAlpha.value = 0.85 + 0.15 * Math.sin(t * 13) * Math.sin(t * 7.3);
-    if (wirePage.on) wirePage.sandInto(this.ground, this.rows.id);
+    wirePage.sandInto(this.ground, this.rows.id);
     if (this.ground.pace(dt)) this.writeSand();
   }
 }

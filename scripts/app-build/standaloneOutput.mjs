@@ -1,6 +1,6 @@
 /** E5.4's pointer half (J129): the standalone shell and its server worker beside the client, under the build's folder. The
- * page client doesn't import them until SESSION's flip, so they get their own bundle and leave its chunks and budgets
- * alone. standalone-smoke plays this output. Runs before the service worker, which precaches it. */
+ * page client loads them by URL at runtime, so they get their own bundle and leave its chunks and budgets alone.
+ * standalone-smoke plays this output. Runs before the service worker, which precaches it. */
 import { resolve } from 'node:path';
 import { build } from 'vite';
 import { rapierAlias } from '../../vite/rapier.ts';

@@ -88,7 +88,7 @@ test('second-shard fire rows bound capacity, own graph ids, expire and reset', (
  } finally { scope.dispose(); }
 });
 
-test('the reed vault portal owns fade, isolation, floor recovery and exit placement', async () => {
+test('the reed vault portal isolates the room its player stands in', async () => {
  const source = structuredClone(view), root = source.scene.nodes.find(node => node.id === source.scene.root);
  if (root === undefined || !('position' in root)) throw new Error('Missing room root');
  root.position = [30,20,40];
@@ -127,17 +127,14 @@ test('the reed vault portal owns fade, isolation, floor recovery and exit placem
  }finally{entryScope.dispose();bind.mockRestore();pageKit.mockRestore();model.mockRestore();}
 
  const portal = new ArenaRoomPortal({ game,animals,player },room,portalRows,ReturnProgram.page(titan.rules),entrance);
+ // The server walks a player in and out: the portal follows where it put them.
  portal.update(.1,0); expect(portal.inside).toBe(false);
- portal.update(.1,.1); expect(portal.inside).toBe(false);
- portal.update(.11,.21); expect(portal.inside).toBe(true);
- expect(player.position.toArray()).toEqual([30,20,49]); expect(player.velocity.length()).toBe(0);
+ player.position.set(30,20,49); portal.update(.1,.1); expect(portal.inside).toBe(true);
  expect(outside.visible).toBe(false); expect(animals.calm).toBe(true);
  portal.setLocked(true); expect(player.moveScale).toBe(0);
  portal.setLocked(false); expect(player.moveScale).toBe(1);
- player.position.set(30,19,40); portal.update(.1,.31); expect(player.position.y).toBeGreaterThanOrEqual(20);
- portal.leave(true); expect(portal.inside).toBe(true);
- portal.update(.21,.52); expect(portal.inside).toBe(false);
- expect(player.position.toArray()).toEqual([200,2,197]); expect(outside.visible).toBe(true); expect(animals.calm).toBe(false);
+ player.position.set(200,2,197); portal.update(.1,.2); expect(portal.inside).toBe(false);
+ expect(outside.visible).toBe(true); expect(animals.calm).toBe(false);
 });
 
 test('room and approved open-arena entries keep distinct owners and strict equipment rows',()=>{

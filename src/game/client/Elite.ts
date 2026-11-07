@@ -194,7 +194,7 @@ export class Elites {
       hud: entered.hud, audio: entered.audio, persistence: owners.persistence, contacts,
       strikes: rows.strikes, fallbackStrike: rows.fallbackStrike };
     this.bindEnteredPresentation(entered, rows.presentation, { actions: rows.actions, loans: outputs });
-    if (wirePage.on) this.followKernels(entered.scope, entered, player);
+    this.followKernels(entered.scope, entered, player);
     if (rows.debug !== undefined) construction.onDispose(app.debug.scopedExpose(rows.debug, { scripts: entry.scripts, elites: this, bar: this.bar }));
     for (const row of rows.prewarm) { try { animals.factory.model(row.kind, row.variant); } catch (cause) { console.warn('[elites] prewarm failed', row.kind, cause); } }
   }
@@ -317,9 +317,8 @@ export class Elites {
 
   update(dt: number, t: number): void {
     // J130: a bar has one driver. On the wire the rows draw it and this page's lairs never wake.
-    if (wirePage.on) { this.rowBar ??= new EliteRowBar(this.bar, this.core.entries.map(entry => entry.script.def), { player: this.host.player, camera: this.host.camera, head: wirePage.head, drop: (id, pressed) => this.rowDrop(id, pressed),
-      sting: (id, event) => { const entry = this.core.entry(id); if (entry !== undefined) this.view.sting(entry, event); }, trophy: id => { this.core.entry(id)?.script.trophy(); } }); this.rowBar.draw(wirePage.encounters(), dt); this.view.tendDrops(dt, t); this.tintRows(); return; }
-    this.view.update(dt, t, this.core.update(dt, t), this.core.entries);
+    this.rowBar ??= new EliteRowBar(this.bar, this.core.entries.map(entry => entry.script.def), { player: this.host.player, camera: this.host.camera, head: wirePage.head, drop: (id, pressed) => this.rowDrop(id, pressed),
+      sting: (id, event) => { const entry = this.core.entry(id); if (entry !== undefined) this.view.sting(entry, event); }, trophy: id => { this.core.entry(id)?.script.trophy(); } }); this.rowBar.draw(wirePage.encounters(), dt); this.view.tendDrops(dt, t); this.tintRows(); 
   }
 }
 

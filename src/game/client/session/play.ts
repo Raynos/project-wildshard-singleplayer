@@ -212,7 +212,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
   // SF28 (G87 / G104): the big item cards wear the shard's declared accent (in the grid, the cell's: grid/gridHud.ts)
   setHudAccent(accentHex(manifest.accent)); hud.cardAccent = hudAccent();
   game.levelScope.onDispose(onHudAccent((hex) => { hud.cardAccent = hex; }));
-  const owned = new Owned(manifest.slug, wirePage.on ? readOnlySave(ownedSave) : undefined);            // E314: upgrades, cosmetics, trophies, the found iron sword (src/game/shared/loot/Owned.ts)
+  const owned = new Owned(manifest.slug, readOnlySave(ownedSave));            // E314: upgrades, cosmetics, trophies, the found iron sword (src/game/shared/loot/Owned.ts)
   const playerHealth = new PlayerHealth(app.events, {
     now: () => performance.now(), position: () => player.position,
     dodging: () => player.dodging, dodgeGuard: () => false,
@@ -243,7 +243,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) : Promis
   // ── the in-game menu: MAP · INVENTORY · ACHIEVEMENTS · SETTINGS (src/engine/client/ui/Menu.ts) ──
   const progress = new Progress(manifest.slug);     // shard achievements → titles (src/game/shared/achievements.ts)
   const inventory = new Inventory(manifest.slug);   // the pack: harvest drops
-  if (wirePage.on) { inventory.writes = false; wirePage.hold({ inventory, gear: owned }, game.levelScope); }
+  inventory.writes = false; wirePage.hold({ inventory, gear: owned }, game.levelScope);
   if (boot.featTotal !== undefined) progress.setFeatTotal(boot.featTotal);
   applyTravelCarry(boot.handoff, inventory);
   game.levelScope.onDispose(bindTravelInventory({ shard: chunk.slug, inventory, rows: boot.items }));

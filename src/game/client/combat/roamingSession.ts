@@ -67,7 +67,7 @@ export async function installRoamingCombat(context: ShardContext, input: unknown
   const eliteRows = await pageSim.readEliteFeature(context.product, rows.elites);
   // The elite fights' spawn scripts take the prepared memories the boss projection's authority would prepare after them.
   await pageSim.prepareProductDecisionMemories(context);
-  const eliteFeature = context.scope.run(() => installEliteFeaturePage(game, animals, player, sky, elites, parked, eliteRows, source.identity.seed, play.hud, rows.session.god));
+  const eliteFeature = context.scope.run(() => installEliteFeaturePage(game, animals, player, elites, parked, eliteRows, source.identity.seed, play.hud));
   elites.bindEnteredPresentation({ scope: context.scope, interactables: runtime.interactables, hud: play.hud, audio, music }, rows.elitePresentation);
   const fight = await installRoamingBossProjection(context, rows.projection);
   const night = (): boolean => ctx.night() > rows.availability;

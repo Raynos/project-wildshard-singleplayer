@@ -11,8 +11,6 @@ import { bossEncounterPresentation } from '@wildshard/format/bossEncounter';
 import { mockCanvas } from '@wildshard/engine/test/weaponParity';
 import type { EncounterRow } from '../src/game/client/boss/barFeed';
 import { wirePage } from '../src/game/client/shardfile/wirePage';
-import * as titan from '../src/shards/nalati-grasslands/generators/stormTitanFight';
-import king from './fixtures/nalati-goldenKing-original.json' with { type: 'json' };
 
 const ANTLER_KING_PRESENTATION = bossEncounterPresentation(bossPresentation, bossRows);
 
@@ -48,53 +46,6 @@ function fixture(rows: BossEncounterRows, owned = false) {
   return { events, scope, scene, script, ports, saved, get grants() { return grants; }, get trophies() { return trophies; }, get scoreReads() { return scoreReads; },
     damage: (value: number) => { hp = value; }, die: () => { dead = true; }, daytime: () => { ambient = 'day'; } };
 }
-
-test('Pine keeps bar/prewarm/register order, borrowed room stepping, phase checkpoints and one-time reward ownership', () => {
-  mockCanvas();
-  const f = fixture(ANTLER_KING_PRESENTATION), registration = vi.spyOn(app.encounters, 'boss');
-  const live = installBossEncounter(ANTLER_KING_PRESENTATION, () => {
-    expect(document.querySelector('.ws-boss')).not.toBeNull(); f.events.push('prewarm'); return f.script;
-  }, { ...f.ports, advance: (boss, fight, dt, t) => {
-    f.events.push('presence'); boss.update(dt, t); if (boss.state === 'dormant') fight.update(dt, t, false);
-  } });
-  try {
-    expect(live.fight).toBe(f.script); expect(registration).toHaveBeenCalledWith('antler-king', live.boss, f.scope);
-    expect(f.events).toEqual(['prewarm']); expect(f.scoreReads).toBe(0); expect(f.ports.interactables).toHaveLength(0);
-    live.update(0.1, 1); expect(f.events.slice(-2)).toEqual(['presence', 'room:false']);
-    live.boss.arm(); live.update(0.1, 2);
-    expect(live.boss.state).toBe('intro'); expect(f.events.filter(value => /scene:|score-phase:|combat:/.test(value))).toEqual(['scene:boss', 'score-phase:1', 'combat:1']);
-    live.update(5, 7); expect(live.boss.state).toBe('fight');
-    f.damage(0.5); live.update(0.1, 8); expect(live.boss.state).toBe('beat');
-    expect(f.events.filter(value => value.startsWith('score-phase:'))).toEqual(['score-phase:1', 'score-phase:2']);
-    const checkpoint = live.boss.snapshot(); expect(checkpoint.checkpoint).toBe(1);
-    expect(live.onPlayerDeath()).toBe(true); expect(live.boss.state).toBe('armed'); expect(f.ports.player.position.x).toBe(4);
-    expect(f.events.indexOf('sting:death')).toBeLessThan(f.events.indexOf('respawn'));
-    const before = f.events.length; live.boss.restore(checkpoint); expect(f.events).toHaveLength(before); // silent old continuation
-    expect(live.boss.takeReward()).toBe(false); expect(live.boss.rewardTaken).toBe(false); // not beaten yet: nothing to take
-    live.update(2, 10); f.die(); f.daytime(); live.update(0.1, 11);
-    expect(live.boss.state).toBe('victory'); expect(f.trophies).toBe(1); expect(f.grants).toBe(0);
-    expect(f.events.filter(value => /scene:day|sting:chunk/.test(value))).toEqual(['scene:day', 'sting:chunk']);
-    const drop = live.boss.reward; if (drop === null) throw new Error('Missing original reward pickup');
-    expect(f.ports.interactables).toEqual([drop.interactable]);
-    drop.interactable.onInteract(); drop.interactable.onInteract();
-    expect(f.grants).toBe(1); expect(f.ports.interactables).toEqual([]); expect(f.saved['antler-king']?.rewardTaken).toBe(true);
-    expect(f.events.filter(value => value === 'sting:pickup')).toHaveLength(1);
-    expect(live.boss.takeReward()).toBe(false); // the record transition is once, whoever reaches the prompt
-  } finally { live.ui.scope.dispose(); f.scope.dispose(); }
-});
-
-test.each([{ definition: titan.TITAN_ENCOUNTER, reward: titan.TITAN_REWARD }, { definition: king.encounter, reward: king.reward }])('a paid $definition.id record stays paid with its original event owner', ({ definition, reward }) => {
-  const rows: BossEncounterRows = { definition, reward,
-    score: { intro: [{ kind: 'combat', value: 1 }], phase: [{ kind: 'combat', value: 1 }], victory: [{ kind: 'sting', value: 'chunk' }], death: [{ kind: 'sting', value: 'death' }], pickup: [{ kind: 'sting', value: 'pickup' }] } };
-  const f = fixture(rows, true), live = installBossEncounter(rows, () => f.script, f.ports);
-  try {
-    expect(live.boss.rewardTaken).toBe(true); expect(f.grants).toBe(0); expect(f.scoreReads).toBe(0);
-    live.boss.arm(); live.update(0.1, 1); live.update(5, 6); f.die(); live.update(0.1, 7);
-    expect(live.boss.state).toBe('victory'); expect(live.boss.reward).toBeNull(); expect(f.ports.interactables).toHaveLength(0);
-    expect(f.trophies).toBe(1); expect(f.grants).toBe(0);
-    expect(f.events.filter(value => /combat:|sting:/.test(value))).toEqual(['combat:1', 'sting:chunk']);
-  } finally { live.ui.scope.dispose(); f.scope.dispose(); }
-});
 
 test('missing score owners and unbounded actions refuse before prewarm or opening a panel', () => {
   const f = fixture(ANTLER_KING_PRESENTATION), make = vi.fn(() => f.script), count = document.querySelectorAll('.ws-boss').length;

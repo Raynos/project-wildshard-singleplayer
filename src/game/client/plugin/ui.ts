@@ -454,7 +454,7 @@ export function questCard(quest: QuestView, introTitle?: string): MapQuest {
  * The chip, card, pins and marks read a `QuestView`; only places and talks write flags, so only they need `flags`. */
 export function presentQuest<Q extends QuestView & { readonly flags?: Flags }>(host: QuestPresentationHost, source: Q, options: QuestPresentationOptions = {}): QuestPresentation<Q> {
   // J130: on the wire a view reads the server's rows, and the page's quest only carries its flag book
-  const quest: QuestView & { readonly flags?: Flags | undefined } = wirePage.on ? Object.assign(Object.create(wirePage.quest(source.def)) as QuestView, { flags: source.flags }) : source;
+  const quest: QuestView & { readonly flags?: Flags | undefined } = Object.assign(Object.create(wirePage.quest(source.def)) as QuestView, { flags: source.flags });
   const messages=options.messages===undefined?null:questMessageHandlers(quest,options.messages,{toast:host.toast,sting:host.sting,
     ...(options.afterStep===undefined?{}:{afterStep:options.afterStep})});
   const scope = host.scope.child(`quest.${quest.def.id}`);
@@ -887,7 +887,7 @@ export interface QuestReward { readonly burst: CoinMotion; readonly pay: () => u
 export function questReward(ctx: ShardContext, o: { readonly player: Vector3; readonly coins: RuntimeCoins; readonly amount: number; readonly paid: () => boolean; readonly markPaid: () => void; readonly toast: string }): QuestReward {
   const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = coinBurst(scene);
   // J130: on a page the coins a burst flies are the server's, already in the purse's line: they land and count for nothing.
-  const spawn = (amount: number, toast: string): void => { burst.spawn(o.player, amount, wirePage.on ? () => undefined : o.coins, () => { ctx.game.runtime?.play?.hud.toast(toast); }); };
+  const spawn = (amount: number, toast: string): void => { burst.spawn(o.player, amount, () => undefined, () => { ctx.game.runtime?.play?.hud.toast(toast); }); };
   const pay = (): undefined => {
     if (o.paid()) return undefined;
     o.markPaid(); spawn(o.amount, o.toast);
@@ -1372,9 +1372,9 @@ export class BossView extends DirectorBossBrain {
       faceToward, spawnReward: () => { spec.spawnReward?.(); }, toast: spec.toast === true ? (message) => { ctx.game.runtime?.play?.hud.toast(message); } : undefined,
       persist: spec.persist }, bar, spec.saved, spec.stages);
     this.pinned = spec.body; this.rowId = spec.row ?? spec.definition.id;
-    this.rowBar = wirePage.on ? new BossRowBar(bar, { ...spec.definition, id: spec.row ?? spec.definition.id }, null, { lock: on => { ctx.game.runtime?.play?.weapons.setEnabled(!on); }, ...(spec.won === undefined ? {} : { won: spec.won }), ...(spec.summoned === undefined ? {} : { summoned: spec.summoned }),
+    this.rowBar = new BossRowBar(bar, { ...spec.definition, id: spec.row ?? spec.definition.id }, null, { lock: on => { ctx.game.runtime?.play?.weapons.setEnabled(!on); }, ...(spec.won === undefined ? {} : { won: spec.won }), ...(spec.summoned === undefined ? {} : { summoned: spec.summoned }),
       face: body => { faceToward(spec.introAt ?? (wirePage.head(body, aim) ? aim : spec.script.rewardPoint())); },
-      attempt: outcome => { if (outcome === 'started') spec.started?.(); ctx.app.events.emit('boss.attempt', { boss: spec.definition.id, outcome }); } }) : null;
+      attempt: outcome => { if (outcome === 'started') spec.started?.(); ctx.app.events.emit('boss.attempt', { boss: spec.definition.id, outcome }); } });
   }
   /** The boss's body is drawn at any distance (no tier draw-distance shrink), whichever body is up this frame. */
   override update(dt: number, t: number): void {
@@ -1449,7 +1449,7 @@ function rowBossSpec(ctx: ShardContext, rows: RowBossRows, ports: RowBossPorts):
       if (saved.defeated) onDown?.();
       ctx.scope.onDispose(() => { burst.update(3, player); burst.dispose(); const animal = fight.body(); if (animal) body.retire(animal); fight.adopt(null); });
       // J130: a page on a server steps no fight, so its row says when the storm blows, by the same phases and at the same ease.
-      if (wirePage.on) ctx.system({ id: `${rows.definition.id}.storm`, phase: 'update', run: dt => {
+      ctx.system({ id: `${rows.definition.id}.storm`, phase: 'update', run: dt => {
         const row = wirePage.encounters().find(entry => entry.id === (rows.row ?? rows.definition.id));
         const goal = (row?.state === 'fight' || row?.state === 'beat') && profile.fight.stormPhases.includes(row.phase) ? 1 : 0;
         fight.weather.storm = easeField(fight.weather.storm, goal, dt, { seconds: profile.fight.stormFade });

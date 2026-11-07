@@ -19,9 +19,7 @@ import type { DeclaredSoundBank } from '@wildshard/engine/audio/declaredBank';
 import { QuestRewardController } from '../../shared/plugin/quests';
 import { parseQuestSpawnPage, parseQuestLeadPage, QuestLeadPageSchema, type QuestSpawnPageRows, type QuestLeadPageRows } from '@wildshard/format/questSteps';
 import * as v from 'valibot';
-import type { PageSimFeed } from '../../server/plugin/pageSimFeed';
 import { boundQuestState } from '../../shared/quest/boundState';
-import { TIER } from '@wildshard/engine/core/tier';
 import { entryOwner } from '../../shared/shardfile/entryOwners';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { ChapterClock } from '../../shared/quest/chapterClock';
@@ -46,10 +44,10 @@ export async function installChapterWakeEncounter(ctx: ShardContext, input: unkn
   // J130: a bar has one driver. On the wire the row draws it, and the body under it is the server's.
   // A wake fight tells no start, and a fall ends it as a walk away does: only the page knows its player died.
   let fell = false;
-  const rowBar = wirePage.on ? new BossRowBar(bar, { id: rows.encounter.id, name: rows.encounter.name, title: '', retryTitle: '', phases: [{ at: 1, caption: '' }, ...rows.encounter.presentation.cuts.map(at => ({ at, caption: '' }))] }, null, { attempt: outcome => {
+  const rowBar = new BossRowBar(bar, { id: rows.encounter.id, name: rows.encounter.name, title: '', retryTitle: '', phases: [{ at: 1, caption: '' }, ...rows.encounter.presentation.cuts.map(at => ({ at, caption: '' }))] }, null, { attempt: outcome => {
     if (outcome !== 'started') ctx.app.events.emit('boss.attempt', { boss: rows.encounter.id, level: rows.encounter.level, outcome: outcome === 'left' && fell ? 'lost' : outcome === 'died' ? 'lost' : outcome });
     fell = false;
-  } }) : null;
+  } });
   const spawn = (): void => {
     if (actor !== null || rowBar !== null) return;
     try {
@@ -169,7 +167,7 @@ function wiredQuestSpawns(ctx: ShardContext, rows: QuestSpawnPageRows, flags: Fl
 
 /** Construct only after the entry has published its quest, animal and sound
  * loans. The complete named runtime contributes .spawns; there is no selector. */
-export async function installDeclaredQuestSpawns(ctx: ShardContext, capability: QuestSpawnCapability, spawns: PageSimFeed['spawnScript']): Promise<QuestSpawnResult> {
+export async function installDeclaredQuestSpawns(ctx: ShardContext, capability: QuestSpawnCapability): Promise<QuestSpawnResult> {
   const quest = entryOwner(ctx.scope, 'quest', capability.quest), animals = entryOwner(ctx.scope, 'animals', capability.animals);
   const bank = entryOwner(ctx.scope, 'sounds', capability.sounds);
   const product = ctx.product;
@@ -180,31 +178,7 @@ export async function installDeclaredQuestSpawns(ctx: ShardContext, capability: 
   const rows = parseQuestSpawnPage(runtime.spawns);
   if (boundQuestState(ctx.scope, rows.quest).flags !== quest.flags) throw new Error('Quest spawn loan differs from its bound quest');
   // The server directs these spawns, and they arrive as rows.
-  if (wirePage.on) return wiredQuestSpawns(ctx, rows, quest.flags, bank);
-  const source = await spawns.read(ctx.product, rows.script);
-  if (ctx.scope.disposed || ctx.scope.disposing || ctx.product !== product) throw new Error('Quest left during spawn director admission');
-  if (entryOwner(ctx.scope, 'quest', capability.quest) !== quest || entryOwner(ctx.scope, 'animals', capability.animals) !== animals
-    || entryOwner(ctx.scope, 'sounds', capability.sounds) !== bank) throw new Error('Quest spawn loan changed during admission');
-  if (rows.channel > source.channels.length || rows.cues.some(cue => cue.id > source.cues.length)
-    || rows.complete.some(row => !source.flags.includes(row.flag))) throw new Error('Unknown quest spawn publication');
-  if (rows.cues.some(cue => cue.kind === 'sound' && !bank.acceptsShot(cue.name))) throw new Error('Unknown quest spawn sound');
-  const flags = quest.flags, world = ctx.game.runtime?.world;
-  if (world === undefined || world === null) throw new Error('Quest spawn director requires its entered world');
-  const brain = spawns.page(animals, source);
-  let puffs: { readonly x: number; readonly y: number; readonly z: number }[] = [];
-  ctx.scope.onDispose(() => { puffs.length = 0; });
-  return { puffs: rows.puffs, get count() { return brain.channel(rows.channel); }, force: () => { if (!ctx.scope.disposed) brain.force(); },
-    takePuffs: () => { const out = puffs; puffs = []; return out; }, update: (dt, player) => {
-      if (ctx.scope.disposed) return;
-      brain.advance(dt, player, world.sky.dayNight?.night ?? 0, rows.limit[TIER], source.flags.filter(flag => flags.has(flag)));
-      for (const row of rows.complete) if (brain.hasFlag(row.flag) && !flags.has(row.flag)) commitQuestEffects(ctx, rows.quest, row.effects);
-      for (const event of brain.drainEffects()) {
-        if (event.kind !== 'cue') continue;
-        const cue = rows.cues.find(row => row.id === event.id);
-        if (cue?.kind === 'sound') bank.shot(cue.name, { at: event.at });
-        else if (cue?.kind === 'puff') { if (puffs.length >= 64) throw new Error('Quest puff cue allowance'); puffs.push(event.at); }
-      }
-    } };
+  return wiredQuestSpawns(ctx, rows, quest.flags, bank);
 }
 
 /** Client-only guide lifetime over the actual manager. The chapter's AS projection decides at 10 Hz (G565: gate, walk

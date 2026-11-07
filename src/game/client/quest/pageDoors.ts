@@ -15,7 +15,7 @@ export function installPageDoor(ctx: ShardContext, input: unknown): { readonly p
   const rows = v.parse(QuestPageDoorSchema, input), { life, lateDoors } = forestPage(ctx.scope, rows.forest).cabins;
   const pieces = life.doorPieces(), index = pieces.findIndex(piece => piece.id === rows.door);
   const piece = pieces[index], prompt = life.interactables[index];
-  const view = wirePage.on ? wirePage.gates : undefined; // J106: on the wire a gate is this player's, off its `phase` events
+  const view = wirePage.gates; // J106: on the wire a gate is this player's, off its `phase` events
   // I2: a late cabin weld hydrates and registers its doors after control, so the door may not stand yet; the gate binds its registered piece then
   const bar = (): void => { if (!ctx.scope.disposed && !ctx.scope.disposing && life.doorPieces().some(door => door.id === rows.door)) new QuestFlagGates(ctx, rows.gates, false, view); };
   if (rows.gates.gates.some(gate => gate.target.kind !== 'piece' || gate.target.piece !== rows.door)) throw new Error('Page door gates bar its own registered piece');

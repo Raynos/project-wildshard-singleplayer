@@ -1,7 +1,6 @@
 // P1-E5.2 (J31, E5-REPLICATION §6.3): the page half of the standalone target. It composes the client with the server worker
-// and owns what only a page can do: start the worker, keep the real storage, and pause on a hidden tab. Only the Developer row
-// (J130) imports it yet: build-app emits it, and SESSION's flip switches the shipped client onto it. This file must never reach
-// a `server`-tagged module (J2).
+// and owns what only a page can do: start the worker, keep the real storage, and pause on a hidden tab. Every page runs on it: build-app
+// emits it under the build's folder. This file must never reach a `server`-tagged module (J2).
 import { installedCatalogue } from '@wildshard/game/grid/catalogueSlot';
 import * as v from 'valibot';
 import { Scope } from '@wildshard/engine/app/scope';

@@ -6,7 +6,7 @@ import { wirePage } from '../shardfile/wirePage';
 
 const pageSettings = { setting, onSettingChange };
 /** On the wire the day is the server's: a Developer's pick goes up as well. */
-const sayTime = (time: TimePick): void => { if (wirePage.on) wirePage.climate({ op: 'time', name: time, at: 0 }); };
+const sayTime = (time: TimePick): void => { wirePage.climate({ op: 'time', name: time, at: 0 }); };
 
 /** Apply an explicit Developer time at resident-clock binding; Live preserves authored starts and fixed overrides. */
 export function bindClockSettings(clock: DayCycleClock, scope: Scope, settings: Pick<Settings, 'setting' | 'onSettingChange'> = pageSettings): void {

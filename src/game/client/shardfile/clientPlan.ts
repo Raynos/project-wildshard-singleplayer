@@ -195,9 +195,8 @@ export const CLIENT_FEATURES: Readonly<Record<ClientFeatureKind, ClientFeature>>
     if (row.kind !== 'quest.spawns') throw new Error('Invalid quest spawns feature');
     const { installDeclaredQuestSpawns } = await import('../quest/chapterDirector');
     const { publishEntryOwner } = await import('../../shared/shardfile/entryOwners');
-    const { pageSim } = await import('./clientMoverOwners');
     v.parse(QuestRuntimeFileSchema,row.source);
-    publishEntryOwner(ctx.scope, 'quest-spawns', row.id, await installDeclaredQuestSpawns(ctx, { ...row, source: row.source }, pageSim.spawnScript));
+    publishEntryOwner(ctx.scope, 'quest-spawns', row.id, await installDeclaredQuestSpawns(ctx, { ...row, source: row.source }));
   } },
   'held.claims.prepare': { phase: 'kit', phaseFor: row => row.kind === 'held.claims.prepare' && row.source !== undefined ? 'world-bindings' : 'kit', rank: -30, lifetime: 'entered', sections: ['held/arms'], install: async (ctx, row) => {
     if (row.kind !== 'held.claims.prepare') throw new Error('Invalid claims preparation feature');

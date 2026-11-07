@@ -1,6 +1,5 @@
-// P1-E5.3 I6 (J126), J130: Settings ▸ Developer ▸ Worker client runs the real Game and Player against the real server in its
-// worker: the Player predicts and reconciles, and every creature is an interpolated row drawn by the real views. The flip commit
-// deletes the row and keeps this path. The page's other systems still run, on nothing: movers and fights wait for their own rows.
+// P1-E5.3 I6 (J126), E6: every page runs the real Game and Player against the real server in its worker: the Player predicts and
+// reconciles, and every creature is an interpolated row drawn by the real views.
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { LiveGridWire } from '../grid/liveSession';
 import type { SystemSpec } from '@wildshard/engine/app/systems';
@@ -23,6 +22,8 @@ import { ANIMAL_STATES } from '@wildshard/engine/entities/animalStates';
 import { creatureBodyShape } from '@wildshard/engine/sim/bands';
 import { lockOn } from '@wildshard/engine/player/AimTargets';
 import { hudSlots } from '@wildshard/engine/ui/hudSlots';
+import { isDev } from '@wildshard/engine/core/devMode';
+import { showError } from '@wildshard/engine/ui/ErrorModal';
 import { saveSetting, type OptionValue } from '@wildshard/engine/ui/Settings';
 import { netNeighbourRegion } from '../grid/neighbourRows';
 import { mountOf } from '../../shared/riding/entered';
@@ -215,7 +216,7 @@ async function startWorkerClient(ports: WorkerClientPorts, card: ReturnType<type
   scope.onDispose(serverStopsForImport(stop));
   // A session that ends with its page still here saves first. What navigates asks through `holdLeaving`, below.
   scope.onDispose(() => { if (ended) return; ended = true; leaves(); shell.pause(); closing = atMostLeaveWait(shell.save()).finally(() => { shell.dispose(); }); });
-  const retired = new Map<string, number>(), spawnMs = new Map<string, number>(), net = new NetPlayer(client, player, physics), show = overlay(ports), row = new Float64Array(ANIMAL_CLASS.row.length), near: PredictedRow[] = [], costs = new Float64Array(240), bodies = new Map<number, RowBody>();
+  const retired = new Map<string, number>(), spawnMs = new Map<string, number>(), net = new NetPlayer(client, player, physics), show = isDev() ? overlay(ports) : (): void => undefined, row = new Float64Array(ANIMAL_CLASS.row.length), near: PredictedRow[] = [], costs = new Float64Array(240), bodies = new Map<number, RowBody>();
   // the ride: a press goes up, and it starts and ends on the server's word. The body under the rider leaves its row for it
   let mount: Mount | null = null;
   const bindMount = (): void => {
@@ -351,6 +352,7 @@ async function startWorkerClient(ports: WorkerClientPorts, card: ReturnType<type
     report.missed = predictor.missed; report.corrections = predictor.corrections; report.correctionsPerMinute = predictor.corrections / seconds * 60; report.worstOffset = net.worstOffset; report.queue = predictor.pending;
     report.replaysPerFrame = predictor.replays / report.frames; report.delayMs = client.clock.delayMs; report.jitterMs = client.clock.jitterMs;
     report.refused = net.attacks.refused; report.attacks = net.attacks.pending; report.held = net.heldSlot;
+    if (report.closed === null && client.closed !== null && !ended && client.closed !== 'reload') showError(`The game's server stopped (${client.closed})`);
     report.dropped = client.dropped; report.closed = client.closed; report.x = player.position.x; report.z = player.position.z;
     const { latest } = client;
     if (latest !== null) { const { px, pz, hp } = client.owner(latest); report.cell = latest.cell; report.serverX = Number(px); report.serverZ = Number(pz); report.hp = Number(hp); attributes.health = Math.max(1, report.hp); }
@@ -419,7 +421,7 @@ async function startWorkerClient(ports: WorkerClientPorts, card: ReturnType<type
 async function guarded(ports: WorkerClientPorts): Promise<void> {
   const card = countedWait('Server world', 'files'); // from the first module, so loading the server's code is on the card too
   try { await startWorkerClient(ports, card); }
-  catch (error) { console.error('[worker client]', error); overlay(ports)(`worker client failed\n${String(error)}`); }
+  catch (error) { console.error('[worker client]', error); showError(`The game's server didn't start (${String(error)})`, error instanceof Error ? error.stack ?? '' : ''); }
   finally { card.end(); }
 }
 

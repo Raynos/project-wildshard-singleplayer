@@ -71,7 +71,7 @@ import { tileRing } from './tileDriver';
 import { buildYield } from '@wildshard/engine/core/workSlice';
 import { clientSimStep } from './clientStep';
 import { clientScene, projectItemFields, handledItemInputs } from './clientItems';
-import { captureClientState, clientStateMark, restoreClientState, installClientItemState, clientStateSave, clientCheckpoint, clientCheckpointCadence } from '../../shared/shardfile/clientState';
+import { captureClientState, restoreClientState, installClientItemState, clientStateSave, clientCheckpoint } from '../../shared/shardfile/clientState';
 import { portalTransitioning } from '../../shared/shardfile/portalTraversal';
 import { syncTargetColliders } from '../../shared/shardfile/targets';
 import type { ClientAssets } from './clientAssets';
@@ -284,7 +284,7 @@ export class ShardfileClient {
     const collider = nativeWorld && this.source.terrain !== null ? await this.assets.read(this.source.terrain.collider) : undefined;
     // On the wire this page predicts on the ground the server walks: the shard's collider, sample for sample. A page sampled at its own
     // lattice stands centimetres off it on a dune, and every step corrects.
-    if (wirePage.on && this.source.terrain !== null && retireTerrain(world.physics)) addBakedTerrainCollider(world.physics, collider ?? await this.assets.read(this.source.terrain.collider), ctx.scope);
+    if (this.source.terrain !== null && retireTerrain(world.physics)) addBakedTerrainCollider(world.physics, collider ?? await this.assets.read(this.source.terrain.collider), ctx.scope);
     const views = clientViews({ root: ctx.root, terrain: this.source.terrain?.family ?? null, terrainShadow: this.source.terrain?.shadow, terrainOrder: this.source.terrain?.order, ...presentation, ...(collider === undefined ? {} : { lattice: decodeTerrainTile(collider) }) });
     this.worldTiles = await standaloneClientTiles({ source: this.source, assets: this.assets, root: ctx.root, views: views.tiles }, ctx.scope, {
         instance: this.bindings.instance, budget: allocator, radius: tileRing, start,
@@ -345,9 +345,7 @@ export class ShardfileClient {
     runtime.hooks.animalsReady = (manager) => {
       for (const spawn of source.creatures.spawns) {
         const species = source.rows.species.find((row) => row.id === spawn.species); if (species === undefined) throw new Error('Missing authored creature species');
-        if (wirePage.on) { manager.factory.model(species.kind, spawn.variant); continue; } // the rows are the creatures: their models wait for them
-        const view = manager.spawn(species.kind, spawn.at[0], spawn.at[2], spawn.yaw, spawn.variant, { y: spawn.at[1], entityId: spawn.id });
-        this.animals.set(spawn.id, view);
+        manager.factory.model(species.kind, spawn.variant); continue;
       }
     };
     const player = (): NonNullable<ShardContext['app']['player']> => { const actor = ctx.app.player; if (actor === null) throw new Error('Player health has not entered play'); return actor; };
@@ -439,7 +437,7 @@ export class ShardfileClient {
       const emitter = emitters.get(origin); if (emitter === undefined) throw new Error('Missing declared fact provenance'); emitter.emit(name, entity);
     };
     // The server's ledger decides, and a page keeps its word where Progress reads: a feat counts and tells once, off its receipt.
-    if (wirePage.on) wirePage.facts(ctx.scope, (name, id) => {
+    wirePage.facts(ctx.scope, (name, id) => {
       const rule = source.ledger.find(row => row.fact === name);
       if (rule === undefined) return;
       ledger.record({ ...identity, origin: rule.origin, tick: 0, ordinal: 0, name, entity: id });
@@ -457,7 +455,7 @@ export class ShardfileClient {
     yield;
     const saved = instanceSave(ctx.app.saves, encounterSave, { id: identity.instance, shard: identity.shard }), encounters = saved.read();
     let encounterWrites = 0;
-    let simulationActive = true, installing = true; // SF67: no sim step between the installation's parts
+    let simulationActive = true;
     const ladderCommand = { x: 0, z: 0, release: true };
     const sim = pageSim.createShardfileSim(source, this.assets.retained, { sections: outputDescriptor(source)?.sections, rapier: world.physics.R, physics: world.physics,
       creatureImpulse: velocity => { world.player.impulse(velocity); },
@@ -468,7 +466,7 @@ export class ShardfileClient {
       // G168: a module switched off after its strikes tells the player once, and Developer mode names it
       scriptDisabled: scriptDisabledNotice({ toast: (text) => { play.hud.toast(text, 'warn'); }, devAlert: (text) => { play.hud.devAlert(text); } }),
       player: { id: health.id, position: world.player.position, get yaw() { return world.player.yaw; }, set yaw(value) { world.player.yaw = value; }, health, get motor() { return world.player.motor; } },
-      ladders: { modes: playerModes(world.player), enabled: () => simulationActive && !installing && !wirePage.on, command: () => {
+      ladders: { modes: playerModes(world.player), enabled: () => false, command: () => {
         const command = world.player.traversalCommand;
         if (command === null) { ladderCommand.x = 0; ladderCommand.z = 0; ladderCommand.release = true; return ladderCommand; }
         const sin = Math.sin(command.yaw), cos = Math.cos(command.yaw), { buttons, steer } = command;
@@ -483,13 +481,8 @@ export class ShardfileClient {
         if (!(clock instanceof DayCycle)) throw new Error('Director requires the rendered declared look clock');
         return clock;
       },
-      fixedStep: clientSimStep({ scope: ctx.scope, app: ctx.app, active: () => simulationActive && !installing && !wirePage.on, freeCamera: () => world.freeCamera, system: ctx.system }), hud: ui,
-      quest: { fact: (name, entity) => { if (!wirePage.on) fact(name, entity, 'quest.complete'); }, coins: (amount, entity) => {
-        if (wirePage.on) return; // the server pays, and its ledger reaches the page
-        if (loot?.purse !== null && loot?.purse !== undefined) { loot.purse.add(amount); return; }
-        const host = this.sim?.host; if (host === undefined) throw new Error('Missing local coin host');
-        const key = `coins.${entity}`, prior = host.slots.questState[key]; host.slots.questState[key] = (typeof prior === 'number' ? prior : 0) + amount;
-      } },
+      fixedStep: clientSimStep({ scope: ctx.scope, app: ctx.app, active: () => false, freeCamera: () => world.freeCamera, system: ctx.system }), hud: ui,
+      quest: { fact: () => undefined, coins: () => undefined },
       encounters: (id) => ({ saved: encounters[id] ?? { defeated: false, rewardTaken: false, kills: 0 }, persist: (value) => { encounters[id] = value; encounterWrites++; saved.write(encounters); },
         reward: () => { for (const rule of source.ledger) if (rule.origin.kind === 'engine' && rule.origin.source === 'encounter.complete') fact(rule.fact, id, rule.origin.source); },
       }),
@@ -510,7 +503,6 @@ export class ShardfileClient {
     const ownsDay = borrowed === null && day !== null;
     if (ownsDay) { ctx.app.registerDayCycle(day, ctx.scope); runtimeDays.add(day); }
     const weather = new Map(source.rows.weather.map((row) => [row.id, declaredWeather(row, sim.host.rng.stream('cosmetic').fork(row.id))]));
-    sim.host.onStep('climate.declared', (dt) => { if (wirePage.on) return; if (ownsDay) day.update(dt); for (const profile of weather.values()) profile.update(dt, day); }); // on the wire the server's own runs, and its clock reaches this one
     for (const rule of source.ledger) if (!emitters.has(rule.origin.source)) emitters.set(rule.origin.source, installLedgerEmitter(sim.host, ledger, identity, rule.origin));
     for (const [id, view] of this.animals) {
       const core = sim.host.entities.get(id); if (core === undefined) throw new Error('Missing authoritative creature');
@@ -567,23 +559,7 @@ export class ShardfileClient {
       canCheckpoint: () => !portalTransitioning(sim.host.physics),
       encounters: () => saved.write(encounters), continuation: () => continuation.write(captureClientState(source, sim, items.runtimes)),
     });
-    // G816: every 30 s, skipped while the player is idle or when its progress matches the last periodic write, with only
-    // the clock advanced (each write rereads and rewrites the whole shard document). Any other checkpoint (pagehide,
-    // hidden, dispose, a grid crossing) always writes the current clock; a lane without a state revision, a ledger fact,
-    // an encounter write or unsaved coins always write (clientCheckpointCadence).
-    const unsaved = (): boolean => ledger.unsaved || loot?.purse?.unsaved === true;
-    const cadence = clientCheckpointCadence({ blocked: () => portalTransitioning(sim.host.physics), unsaved, write: saver.checkpoint,
-      activity: () => ctx.app.input.activity, position: () => world.player.position,
-      mark: () => {
-        const lane = sim.lane, revision = lane === undefined ? 0 : lane.stateRevision?.();
-        if (revision === undefined || unsaved()) return undefined;
-        return `${String(revision)}|${String(ledger.recordCount)}|${String(encounterWrites)}|${clientStateMark(source, sim, items.runtimes)}`;
-      } });
-    const checkpoint = (): boolean => wirePage.on || cadence.now(); // on the wire the server's session keeps this world's saves
-    sim.host.onStep('client.save', () => { if (!wirePage.on) cadence.step(sim.host.state.tick); });
-    ctx.scope.onDispose(() => { checkpoint(); });
-    ctx.scope.listen(window, 'pagehide', () => { checkpoint(); });
-    ctx.scope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'hidden') checkpoint(); });
+    // The server's session keeps this world's saves.
     const hooks = sim.lane === undefined ? null : createQuestScriptPorts(sim.lane, source.hooks, sim.actors);
     const scene = clientScene(source, items.runtimes, (id) => { if (hooks === null) throw new Error('Missing admitted scene lane'); hooks.scene(id, health.id); });
 
@@ -651,8 +627,7 @@ export class ShardfileClient {
     });
     this.bindings.onSimulation?.({ source, simulation: sim, items: items.runtimes, scope: ctx.scope,
       ...(this.bindings.residency === undefined ? {} : { residency: this.bindings.residency.home() }),
-      checkpoint: () => !ctx.scope.disposed && checkpoint(), suppressCheckpoint: saver.suppress, setActive: (active) => { simulationActive = active && !ctx.scope.disposed; },
+      checkpoint: () => !ctx.scope.disposed, suppressCheckpoint: saver.suppress, setActive: (active) => { simulationActive = active && !ctx.scope.disposed; },
     });
-    installing = false;
   }
 }

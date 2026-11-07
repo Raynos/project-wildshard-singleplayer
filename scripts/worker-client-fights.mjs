@@ -18,7 +18,6 @@ async function open(browser, phone, base, slug, query = '') {
   page.on('pageerror', error => { errors.push(error.message.slice(0, 300)); });
   page.on('console', line => { if (line.type() === 'error') errors.push(line.text().slice(0, 300)); });
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
-  await saveFixture(context, { scope: 'device', key: 'debug.workerClient', data: 'on' });
   await page.goto(new URL(`/?chunk=${slug}&mute=1&nolock=1${query}`, base).href, { waitUntil: 'load' });
   await page.waitForFunction(() => window.__wildshard?.world?.player !== undefined, undefined, { timeout: 150_000 });
   await page.waitForFunction(() => typeof window.__workerClient === 'function', undefined, { timeout: 150_000 });

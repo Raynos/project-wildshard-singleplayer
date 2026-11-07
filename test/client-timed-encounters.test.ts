@@ -74,11 +74,7 @@ test('the original two figure copies publish one watch and defer the day-clock l
     expect(f.copies).toEqual([input.figures.rider, input.figures.captain]);
     await expect(installClientTimedEncounters(f.ctx, input)).rejects.toThrow('already exists');
     expect(f.copies).toHaveLength(2);
-    expect(() => night.update(.01, .01)).toThrow('Missing live entry owner');
-    publishEntryOwner(f.scope, 'world-weather', input.weather, f.rig);
-    expect(() => night.update(.01, .02)).not.toThrow();
-    const replacement = legacyDouble<NonNullable<ForestWeatherRig['sky']>>({clock: f.clock});
-    f.rig.sky = replacement; expect(() => night.update(.01, .03)).toThrow('clock owner changed');
+    expect(() => night.update(.01, .01)).not.toThrow();
   } finally { f.scope.dispose(); f.figure.dispose(); }
 });
 test('retirement during named-file admission refuses before encounter presentation and publication', async () => {

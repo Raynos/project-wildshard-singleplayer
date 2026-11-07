@@ -111,7 +111,7 @@ stampBuildDocuments(outDir, {validator, verdicts: buildValidationReceipts(valida
 writeTitleAssets(process.cwd(), outDir);
 
 // the standalone shell and its server worker under the build's folder, before the service worker, which precaches them (J130)
-if (mode !== 'native') await (await import('./app-build/standaloneOutput.mjs')).writeStandaloneOutput(outDir, buildId, process.cwd());
+await (await import('./app-build/standaloneOutput.mjs')).writeStandaloneOutput(outDir, buildId, process.cwd());
 
 if (mode !== 'native') {
   // the crossroads phone rig beside the bundle (was vite/crossroadsRig.ts); before the worker, which counts its files

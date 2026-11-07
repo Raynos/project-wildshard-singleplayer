@@ -113,7 +113,7 @@ export async function prepareForestPage(ctx: ShardContext, input: unknown): Prom
       withOwner(owner, () => {
         life.persist(ctx.app.saves, owner, { id: ctx.manifest.slug, shard: ctx.manifest.slug, group: row.save }); life.registerDoors(registry, player.position);
       });
-      if (wirePage.on) life.serve(id => wirePage.gates.has(buildingDoorFlag(id)));
+      life.serve(id => wirePage.gates.has(buildingDoorFlag(id)));
       for (const prompt of life.interactables) setSight(prompt, { slack: row.sightSlack });
     };
     // The assembly publishes without borrowing its living roots. Queue those

@@ -60,7 +60,6 @@ import { prepareWorldLook, type LookStrategy } from '@wildshard/engine/render/lo
 import { compileOffscreenPass } from '@wildshard/engine/render/precompile';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import { addTerrain, resampleTerrain } from '@wildshard/engine/physics/terrain';
-import { workerClientOn } from '@wildshard/engine/ui/debugOptions';
 import { applySkin, type SkinDef } from '@wildshard/engine/player/Skins';
 import type { SimHost, SimLevel } from '@wildshard/engine/sim';
 import { pageSim } from '../shardfile/clientMoverOwners';
@@ -527,7 +526,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
         afterKit: async () => {
           if (resident.disposed) throw new Error('Regional world left before its creatures');
           const animals = frame.run(app, () => pageSim.animalManager(new AnimalHerdView(scene, sky, { physics: host.physics }), app, forest, host.physics));
-          animals.herdless = workerClientOn();
+          animals.herdless = true;
           await animals.buildAsync(ports.pause, frame);
           if (left()) throw new Error('Regional world left while building creatures');
           animals.setResidency(followRing()); // T6: the animals outside the player's 5 x 5 sleep

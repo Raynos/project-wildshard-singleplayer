@@ -348,8 +348,8 @@ export function installBossEncounter<S extends BossScript>(rows: BossEncounterRo
   }, ui, ports.chunkId, ports.persistence);
   if (ports.scope !== null) app.encounters.boss(rows.definition.id, boss, ports.scope);
   const rowId = ports.row ?? rows.definition.id;
-  rowBar = wirePage.on ? new BossRowBar(ui, { ...rows.definition, id: rowId }, { show: at => { boss.showRowReward(at, () => { rowBar?.pressed(); wirePage.send(`${rowId}.reward`); }); }, hide: taken => { boss.hideRowReward(taken); } },
+  rowBar = new BossRowBar(ui, { ...rows.definition, id: rowId }, { show: at => { boss.showRowReward(at, () => { rowBar?.pressed(); wirePage.send(`${rowId}.reward`); }); }, hide: taken => { boss.hideRowReward(taken); } },
     { lock: ports.lockInput, ...(music === undefined ? {} : { music }), ...(ports.feed === undefined ? {} : { feed: ports.feed }), ...(ports.toast === undefined ? {} : { toast: ports.toast }), attempt: outcome => { app.events.emit('boss.attempt', { boss: rows.definition.id, outcome }); },
-      face: (body, dt) => { boss.faceToward(wirePage.head(body, aim) ? aim : fight.rowlessFocus?.() ?? fight.rewardPoint(), dt); } }) : null;
+      face: (body, dt) => { boss.faceToward(wirePage.head(body, aim) ? aim : fight.rowlessFocus?.() ?? fight.rewardPoint(), dt); } });
   return { fight, boss, ui, update: (dt, t) => { if (rowBar !== null) { rowBar.draw(wirePage.encounters(), dt); boss.tendDrop(dt, t); } else if (ports.advance === undefined) boss.update(dt, t); else ports.advance(boss, fight, dt, t); }, onPlayerDeath: () => rowBar === null && boss.onPlayerDeath() };
 }

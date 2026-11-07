@@ -78,10 +78,10 @@ export async function installQuestCableView(ctx: ShardContext, cable: QuestCable
   const prompt = cables.bindView(cable.mode, trolley, world.player, { position, radius: cable.radius, label: cable.label }, cable.camera ? world.game.camera : undefined);
   world.game.scene.add(group); runtime.interactables.push(prompt);
   // On a server the press asks by the cable's mode, and the ride is the server's: this page draws where it carries the body.
-  if (wirePage.on) { cables.serve(cable.mode); prompt.wireId = cable.mode; }
-  return { group, placed, trolley, prompt, cables, mode: cable.mode, update: dt => {
+  cables.serve(cable.mode); prompt.wireId = cable.mode;
+  return { group, placed, trolley, prompt, cables, mode: cable.mode, update: () => {
     if (ctx.scope.disposed) return;
-    if (wirePage.on) cables.follow(cable.mode, wirePage.led(), world.player.position); else cables.update(cable.mode, dt);
+    cables.follow(cable.mode, wirePage.led(), world.player.position);
     if (feedback === undefined || play === null || sfx === null) return;
     for (const on of cables.takeTransitions(cable.mode)) {
       play.weapons.visible = !on;

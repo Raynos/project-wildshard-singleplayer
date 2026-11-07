@@ -90,15 +90,15 @@ export class PopulationProjection {
     if (this.disposed) throw new Error('Population projection left during preparation');
     this.scope.run(() => {
       this.rng.restore(placement.stream);
-      if (!wirePage.on) this.creatures.place(placement.centres, placement.kinds, placement.enemies); // on the wire these are rows
-      for (const spot of placement.enemies.filter(entry => entry.herd < 0 && entry.kind === hold.kind)) {
+       // on the wire these are rows
+      for (const _spot of placement.enemies.filter(entry => entry.herd < 0 && entry.kind === hold.kind)) {
         // pooled, lit only while this projection is shown; a sealed, full pool grows for it (G808: as this group's own
         // light it left the page's light count whenever the home hid, and entering Pine built 149 of 150 programs again)
-        const actor = wirePage.on ? null : this.creatures.loose(spot), light = LightPool.for(this.lightScene).acquire(row.light.colour, 0, row.light.distance, row.light.decay, this.group, true);
+        const actor = null, light = LightPool.for(this.lightScene).acquire(row.light.colour, 0, row.light.distance, row.light.decay, this.group, true);
         this.lights.push({ actor, light, dead: false, fade: 0 });
       }
       this.counts(); this.scene.add(this.group);
-      if (wirePage.on) this.followVolley();
+      this.followVolley();
       wirePage.whenLive(this.scope, client => client.onFrame(() => { this.counts(); })); // on the wire the rows are the census
     });
     return this;
@@ -173,7 +173,7 @@ export class PopulationProjection {
       }
       this.active = alive; this.drops.posAttr.needsUpdate = true;
     }
-    if (wirePage.on) this.seatRowLights();
+    this.seatRowLights();
     for (const light of this.lights) {
       const actor = light.actor, profile = row.light; if (actor === null) continue;
       actor.headWorld(this.head); light.light.position.copy(this.head).y += profile.headY;

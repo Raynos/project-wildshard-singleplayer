@@ -14,7 +14,6 @@ import { markReload } from '@wildshard/engine/boot/lastEnd';
 import { isDev } from '@wildshard/engine/core/devMode';
 import { forgetServerInstance, openIndexedSaves, SERVER_SAVES } from '@wildshard/engine/saves/indexed';
 import { SaveStore } from '@wildshard/engine/saves/store';
-import { workerClientOn } from '@wildshard/engine/ui/debugOptions';
 import type { GameMenu } from '@wildshard/engine/ui/Menu';
 import { mountUi } from '@wildshard/engine/ui/ownership';
 import { catalogueDocument } from '../shared/grid/catalogueDocument';
@@ -155,7 +154,7 @@ function openSheet(card: SaveCardSpec, opts: SavesSettingsOptions, done: () => v
       if (!opts.grid) { (opts.toTitle ?? exitSessionToTitle)(); return; }
       afterReset?.(); markReload('new game', 'new-game'); location.reload();
     };
-    if (!workerClientOn()) { leave(); return; }
+    
     void resetServerCopy(card.instance).then(leave, leave);
   });
   scope.raf(() => { root.classList.add('show'); });

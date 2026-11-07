@@ -209,7 +209,7 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
     if (look !== null && point.distanceTo(look.focusWorld(_v)) < look.focusRadius) cues.cue(heardRoom.open > 0.5 ? rows.events.open : rows.events.shut, point, dir);
   };
   const lightView = (on: boolean): void => {
-    if (on) light ??= wirePage.on ? pool.borrow(rows.light.colour, 0, rows.light.distance, rows.light.decay) : pool.acquire(rows.light.colour, 0, rows.light.distance, rows.light.decay);
+    if (on) light ??= pool.borrow(rows.light.colour, 0, rows.light.distance, rows.light.decay);
     else if (light) { pool.release(light); light = null; }
   };
   const hazardView: ProjectionViews['views']['hazard'] = (i, f, t, event) => {
@@ -283,8 +283,8 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
       tell: tellRing,
     },
   }, source.identity.seed, program, decisions, encounterRows);
-  const air = wirePage.on ? heardRoom : fight;
-  if (!wirePage.on) ember.darkK = () => fight.darkK;
+  const air = heardRoom;
+  
 
   /** the fog wall, the puffs, the ribcage's opening and the fight's light, every frame (I–II: the ribcage's amber on the
    *  stones; III: your lantern) */
@@ -298,10 +298,7 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
       wallFog.copy(fog.color); setLentParam(rows.wall.look, rows.wall.colour, _col.copy(fog.color).multiplyScalar(rows.wall.colourGain).toArray(_fog));
     }
     puffs.update(dt, t);
-    if (!wirePage.on) {
-      if (fight.body === null || look === null) return;
-      look.setOpen(Math.max(fight.open, 0.35 * fight.darkK), t);
-    } else if (look !== null) { look.setGlow(heardRoom.glow); look.setOpen(Math.max(heardRoom.open, 0.35 * heardRoom.darkK), t); } // in this order, as a frame of his own fight lands them: the opening burns over the glow
+    if (look !== null) { look.setGlow(heardRoom.glow); look.setOpen(Math.max(heardRoom.open, 0.35 * heardRoom.darkK), t); } // in this order, as a frame of his own fight lands them: the opening burns over the glow
     if (!light) return;
     if (air.darkK > rows.light.darkness) {
       const c = ctx.game.camera.position;
@@ -343,7 +340,7 @@ function enterProjection(context: ShardContext, rows: RoamingBossProjectionRows,
     });
   };
 
-  if (wirePage.on) followRoamingFight(context, { rows, ring: ringView, hazard: hazardView, cues, lane, addLanes, tellRing, puffs, waves, heardRoom, hazardFrom, room, sound: at => { ctx.animals.onSound?.(rows.roar, at); }, light: lightView, rig: rigView, struck: struckView });
+  followRoamingFight(context, { rows, ring: ringView, hazard: hazardView, cues, lane, addLanes, tellRing, puffs, waves, heardRoom, hazardFrom, room, sound: at => { ctx.animals.onSound?.(rows.roar, at); }, light: lightView, rig: rigView, struck: struckView });
   const victory = fight.victory.bind(fight);
   fight.victory = () => { victory(); look?.setOpen(0, 0); };
   installEnteredRuntimeService(context, scope => {

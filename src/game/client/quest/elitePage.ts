@@ -4,7 +4,6 @@ import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { HUD } from '@wildshard/engine/ui/HUD';
-import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { CameraFX } from '@wildshard/engine/player/CameraFX';
 import { Impacts } from '@wildshard/engine/fx/Impacts';
 import { GroundTell } from '@wildshard/engine/fx/groundTell';
@@ -44,8 +43,8 @@ function rowBodyAt(animals: AnimalManager, x: number, z: number): Animal | null 
   for (const body of animals.animals) { const away = Math.hypot(body.position.x - x, body.position.z - z); if (away < nearest) { best = body; nearest = away; } }
   return best;
 }
-export function installEliteFeaturePage(game: Game, animals: AnimalManager, player: Player, sky: SkyRig, elites: Elites,
-  models: ReadonlyMap<string, THREE.Object3D>, input: unknown, seed: number, hud: HUD, god = false): {
+export function installEliteFeaturePage(game: Game, animals: AnimalManager, player: Player, elites: Elites,
+  models: ReadonlyMap<string, THREE.Object3D>, input: unknown, seed: number, hud: HUD): {
   readonly elites: Elites; readonly update: (dt: number, t: number) => void; readonly force: (id: string, move: string) => void; readonly isElite: (body: Animal) => boolean;
 } {
   const rows = parseEliteFeature(input), view = rows.view;
@@ -60,24 +59,15 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
   const puffs = new DomePuffs(game.scene, new THREE.Color(...view.puffColor), view.puffPool.capacity, view.puffPool.segments, view.puffPool.order), color = new THREE.Color(...view.tellColor);
   const controllers = rows.fights.map(row => new EliteDecisions(row, () => pageSim.spawnScript.page(animals, row.program, game.app.physics), rows, seed));
   const point = new THREE.Vector3(), direction = new THREE.Vector3(), tells = new Map<string, GroundTell>();
-  // PF5: a body is checked against the roster once a frame (the rules, the bar and the page read it several times a frame)
-  const checked = new WeakMap<object, { frame: number; real: Animal }>();
-  const bodyFor = (controller: EliteDecisions): Animal | null => {
-    const body = controller.animal; if (body === null) return null;
-    const known = checked.get(body), frame = game.frameCount;
-    if (known !== undefined && known.frame === frame) return known.real;
-    for (const real of animals.animals) if (real === body) { if (known === undefined) checked.set(body, { frame, real }); else { known.frame = frame; known.real = real; } return real; }
-    throw new Error('Foreign elite page body');
-  };
   for (const controller of controllers) {
     for (const slot of controller.row.program.slots) for (const kind of new Set((controller.row.program.strikes ?? []).flatMap(row => row.tell === undefined ? [] : [row.tell]))) {
       tells.set(`${controller.def.id}:${slot.handle}:${kind}`, new GroundTell(game.scene, kind, color));
     }
-    const script: EliteScript = { def: controller.def, get animal() { return wirePage.on ? null : bodyFor(controller); },
+    const script: EliteScript = { def: controller.def, get animal() { return null; },
       spawn: () => { controller.spawn(); }, despawn: () => { controller.despawn(); },
       tick: (dt, t, engaged, leashing) => { controller.tick(dt, t, engaged, leashing); },
       cadence: far => { controller.cadence(far); },
-      enterPhase2: () => { controller.enterPhase2(); }, reset: () => { controller.reset(); }, trophy: () => { if (!wirePage.on) controller.trophy(); hud.killFeed(`${controller.def.drop.trophyName ?? 'Felled'} — ${controller.def.name}`); },
+      enterPhase2: () => { controller.enterPhase2(); }, reset: () => { controller.reset(); }, trophy: () => {  hud.killFeed(`${controller.def.drop.trophyName ?? 'Felled'} — ${controller.def.name}`); },
       dropModel: () => {
         const id = controller.def.drop.skin, model = id === null ? undefined : models.get(id);
         if (model === undefined) throw new Error('Missing admitted elite drop model'); const clone = model.clone(true); clone.visible = true; return clone;
@@ -87,7 +77,7 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
     if (scope !== null) game.app.encounters.elite(script.def.id, Object.assign(script, { force: (move: string) => { controller.force(move); } }), scope);
     elites.add(script);
   }
-  const active = new Set<string>(), heard = new Map<string, HeardTell>();
+  const heard = new Map<string, HeardTell>();
   const scope = game.app.levelScope;
   /** The server's cue, as a page's own would play: `args` are its row, its elite, where it landed, and the body. */
   const heardCue = ([index = -1, elite = -1, atX = 0, atY = 0, atZ = 0, bodyX = 0, bodyY = 0, bodyZ = 0, scale = 1]: readonly number[]): void => {
@@ -103,7 +93,7 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
       point.y += fx.height * scale; puffs.burst(point, fx.speed, fx.size, fx.lifetime, fx.opacity);
     } else { point.set(bodyX, bodyY + fx.height, bodyZ); direction.set(player.position.x - point.x, 0, player.position.z - point.z); Impacts.for(game).burst('dirt', point, direction, fx.count); }
   };
-  if (wirePage.on && scope !== null) wirePage.whenLive(scope, client => client.onView(({ name, args }) => {
+  if (scope !== null) wirePage.whenLive(scope, client => client.onView(({ name, args }) => {
     if (name === ELITE_TELL.cue) { heardCue(args); return; }
     if (name === ELITE_TELL.hit) { const [trauma = 0, x = 0, z = 0] = args; if (Math.hypot(x - player.position.x, z - player.position.z) < WHO_WAS_HIT) CameraFX.for(game).addTrauma(trauma); return; }
     const row = heardTell(name, args);
@@ -114,7 +104,7 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
     isElite: body => controllers.some(controller => controller.animal === body),
     force: (id, move) => { controllers.find(controller => controller.def.id === id)?.force(move); },
     update: (dt, t) => {
-      if (wirePage.on) { // the server fights: this page bars its row and draws the tells it hears
+      // the server fights: this page bars its row and draws the tells it hears
         elites.update(dt, t);
         for (const [key, row] of heard) {
           if (row.at === 0) row.at = t; // the clock's the frame's: a slow frame still shows what it heard
@@ -124,48 +114,7 @@ export function installEliteFeaturePage(game: Game, animals: AnimalManager, play
           tell.setTime(t); drawTell(tell, row, t, row.bodyX, row.bodyZ);
         }
         puffs.update(dt, t);
-        return;
-      }
-      // PF5: the clock's dusk and night curves, evaluated once a frame for every elite
-      const clock = sky.dayNight, dusk = clock?.dusk ?? 0, night = clock?.night ?? 0;
-      for (const controller of controllers) controller.frame(player.position, dusk, night, god, player.yaw);
-      elites.update(dt, t);
-      for (const controller of controllers) {
-        const program = controller.program;
-        for (const effect of program.drainEffects()) {
-          if (effect.kind === 'hit') {
-            if (god) continue;
-            const body = program.body(effect.actor), health = game.app.player;
-            if (body === null || health === null) continue;
-            game.app.combat.hit({ source: body.combatActor(), sourceTags: [`creature.${body.kind}`, 'feel.blow', 'cover.checked'], target: health,
-              amount: effect.hit.damage, point: body.position, dir: direction.set(0, 0, 0), throughWalls: effect.hit.throughWalls, cause: { kind: body.kind, label: body.label } });
-            if (effect.hit.stun > 0) game.app.effects?.apply(health, 'effect.stun', undefined, { duration: effect.hit.stun });
-            if (effect.hit.trauma > 0) CameraFX.for(game).addTrauma(effect.hit.trauma);
-          } else if (effect.kind === 'cue') {
-            const name = program.cue(effect.id), cue = view.cues.find(row => row.id === name), body = program.body(effect.actor);
-            if (cue === undefined || body === null) continue;
-            if (cue.signature === true) elites.signature(controller.def.id);
-            if (cue.trauma !== undefined) CameraFX.for(game).addTrauma(cue.trauma);
-            if (cue.voice !== undefined) animals.onSound?.(cue.voice, point.set(effect.at.x, effect.at.y, effect.at.z));
-            const fx = cue.effect; if (fx === undefined) continue;
-            if (fx.kind === 'puff') {
-              if (fx.at === 'head') body.headWorld(point); else point.copy(body.position);
-              point.y += fx.height * body.scale; puffs.burst(point, fx.speed, fx.size, fx.lifetime, fx.opacity);
-            } else { point.copy(body.position); point.y += fx.height; direction.set(player.position.x - point.x, 0, player.position.z - point.z); Impacts.for(game).burst('dirt', point, direction, fx.count); }
-          }
-        }
-        active.clear();
-        for (const strike of program.strikePresentation()) {
-          if (strike.tell === undefined) continue;
-          const key = `${controller.def.id}:${strike.actor}:${strike.tell}`, body = program.body(strike.actor); if (body === null) continue;
-          active.add(key); let tell = tells.get(key);
-          if (tell === undefined) { tell = new GroundTell(game.scene, strike.tell, color); tells.set(key, tell); }
-          tell.setTime(t);
-          drawTell(tell, strike, t, body.position.x, body.position.z);
-        }
-        for (const [key, tell] of tells) if (key.startsWith(`${controller.def.id}:`) && !active.has(key)) tell.hide();
-      }
-      puffs.update(dt, t);
+        
     },
   };
 }

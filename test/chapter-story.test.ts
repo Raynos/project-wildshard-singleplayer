@@ -11,14 +11,13 @@ import type { MapQuest } from '../src/engine/client/ui/Map';
 import { shardContext } from '../src/game/client/plugin/context';
 import { RetainedRuntimeHooks } from '../src/game/client/shard/retainedHooks';
 import { createShardProduct } from '../src/game/shared/shardfile/shardProduct';
-import { bindStoryChapters, presentChapterStory, presentQuestStory } from '../src/game/client/quest/story';
+import { bindStoryChapters, presentChapterStory } from '../src/game/client/quest/story';
 import { parseChapterStoryPresentation } from '@wildshard/format/questStory';
 import { parseQuestData } from '@wildshard/format/quests';
 import content from '../src/shards/nalati-grasslands/data/questContent.json' with { type: 'json' };
 import policy from '../src/shards/nalati-grasslands/data/chapterStory.json' with { type: 'json' };
 import { preparedProductEnvelope } from './fixtures/prepared-product-envelope';
 import { MANIFEST } from '../src/shards/_template/discovery.generated';
-import { PAGE_STORY } from '../src/shards/driftwood-isle/generators/pageStory';
 import { PAGE_STORY as PINE_STORY } from '../src/shards/pine-hollow/generators/pageStory';
 
 import { buildQuestChapter } from '../src/game/client/quest/chapter';
@@ -116,36 +115,6 @@ test('chapter presentation preserves messages, reward timing, discoveries and ho
     retained.activate(); expect(presentation.dialogue()).not.toBe(dialogue); expect(presentation.chip.line.root.parentNode).toBe(parent);
     expect(flags.has('seen:nomad-camp')).toBe(true); expect(line.active?.def.id).toBe('golden-king');
   } finally { line.dispose(); scope.dispose(); }
-});
-
-for (const [source, story] of [[drift, PAGE_STORY], [pine, PINE_STORY]] as const)
-test(`${source.identity.slug}: shared chapter retains its previous notices, card and objective through completion`, () => {
-  const scope = new Scope(`${source.identity.slug}-chapter-parity`), oldFlags = new Flags('chapter-old', false), flags = new Flags('chapter-new', false);
-  const oldLine = new QuestLine(parseQuestData(source.quests).quests, oldFlags), line = new QuestLine(parseQuestData(source.quests).quests, flags);
-  const quest = line.chapters[0], oldQuest = oldLine.chapters[0], rows = story.chapters;
-  if (quest === undefined || oldQuest === undefined || rows === undefined) throw new Error('Missing admitted chapter');
-  const player = { position: new Vector3(), velocity: new Vector3(), yaw: 0, pitch: 0, carried: false };
-  const oldNotices: string[] = [], notices: string[] = [];
-  let oldCard: (() => MapQuest | null) | undefined, card: (() => MapQuest | null) | undefined;
-  const place = (at: { x: number; z: number }): { x: number; y: number; z: number } => ({ x: at.x, y: 0, z: at.z });
-  try {
-    const previous = presentQuestStory(story, { scope, player, toast: text => { oldNotices.push(text); }, sting: () => { oldNotices.push('sting'); },
-      fullMap: { setQuest: read => { oldCard = read; } } }, oldQuest, { place });
-    const current = presentChapterStory(line, rows, { scope, flags, npcs: {}, figures: {}, places: [], prompts: [], open: () => undefined,
-      toast: text => { notices.push(text); }, sting: () => { notices.push('sting'); }, fullMap: { setQuest: read => { card = read; } },
-      placements: Object.fromEntries([...quest.def.intro?.markers ?? [], ...quest.def.steps.flatMap(step => step.markers ?? [])].map(marker => [JSON.stringify(marker.at), place(marker.at)])), chip: () => quest.chip() });
-    let time = 0;
-    for (const condition of [quest.def.startWhen, ...quest.def.steps.map(step => step.done)]) {
-      for (const flag of condition?.none ?? []) { flags.clear(flag); oldFlags.clear(flag); }
-      for (const flag of condition?.all ?? condition?.any?.slice(0, 1) ?? []) {
-        flags.set(flag); oldFlags.set(flag); time++;
-        previous.update(.1, time); current.update(.1, player.position); current.chip.update(time, player);
-        expect(current.chip.line.root.textContent).toBe(previous.chip.line.root.textContent);
-        expect(current.markers()).toEqual(previous.markers()); expect(card?.()).toEqual(oldCard?.()); expect(notices).toEqual(oldNotices);
-      }
-    }
-    expect(quest.isComplete).toBe(true);
-  } finally { oldLine.dispose(); line.dispose(); scope.dispose(); }
 });
 
 test('entered chapter rows preserve carving order and continue the same saved chapters', () => {
