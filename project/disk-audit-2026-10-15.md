@@ -467,6 +467,11 @@ Readings of 232 cited folders are in `tmp/keep/<name>/` (1.1 GB). Left on purpos
 - **New source, `core.3860` (14 GB, 12:48):** the Android emulator, `qemu-system-aarch64-headless`, crashed in
   `AppleMetalOpenGLRenderer` while the E7 phone work was running. Each emulator crash can cost this much. Only the
   `ulimit` change stops this one.
+- **11-07 16:47 check:** `/cores` 44 → **79 GB, 10 dumps**. All five new ones (13:03 9.5 GB, then 6.5 GB at 13:38, 14:13,
+  14:28, 14:41) hold the `crash.mjs` path under `~/.cache/wildshard/lift-work/real/engine`, which still lacks 42c8182da0.
+  Boot purge 273k → **319k**: `$TMPDIR` 51k → 103k files, mostly 232 Vite `client/`/`ssr/` folders of about 1,350 files
+  each, back since the hygiene pass removed 314. `./tmp` 107 GB / 966k files, free disk 1,583 GB. `e7` is still in the
+  session scratchpad.
 
 ## Decisions (Jake, 2026-10-15)
 
