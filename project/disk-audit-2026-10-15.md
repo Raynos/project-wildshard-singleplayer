@@ -401,6 +401,15 @@ The boot purge was at **212k files**, up 45k in 4 h and closing on the 250k inve
 - **`/cores` is refilling:** `core.58621`, 6.5 GB, 11-06 23:51. `lldb` shows `abort` called from
   `node::Abort` on a JS call, which is what `process.abort()` does and matches the 6.5 GB size, so
   `test/cook-worker.test.ts:119` is now close to confirmed (section 13). `ulimit -c unlimited` is still at `~/.bashrc:12`.
+- **11-07 04:47:** boot purge **5.21M** (+44k), `/private/tmp` 262 GB, `$TMPDIR` 6.3 → 7.2 GB and 167k → 196k files.
+  `./tmp` 297 → **271 GB**, 2.52M → 2.02M files: the CI-F lane removed its trees (`tmp/ci-f` 11 MB, no trees), so the
+  fix above is done by hand for now, though no script does it. `tmp/serve` 2.8 GB → 62 MB. No new core. Free disk 1,318 GB.
+- **New, smaller `$TMPDIR` writer:** 428 folders with 21-character random names, oldest 10-26, about 1,400–1,800 files
+  each, holding `client/` and `ssr/` files named by hash. The contents are `__vite_ssr_exportName__` module code, so this
+  is very likely Vite or Vitest transform output left by runs that did not clean up (not traced to a process). It is
+  the Vitest `TMPDIR` finding (finding 1) in a new form: it counts against the boot purge, where `./tmp/vitest` would not.
+- `tmp/sweep` 6.2 GB (born 03:59, live, from `tmp/sweep/chain.sh` running `scripts/loading-flow/sweep.sh` against production) and
+  `tmp/worker-proof/deploy` 2.7 GB (written 02:56, read by `scripts/worker-proof-page.mjs`) are both lane output.
 
 ## Decisions (Jake, 2026-10-15)
 
