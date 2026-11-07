@@ -58,6 +58,7 @@
     "scripts/tile-bake-policy.mjs",
     "test/engine-pin.test.mjs",
     "tsconfig.json",
-    "vercel.json"
+    "vercel.json",
+    "lint/base64-debt.json"
   ]
 }

@@ -683,14 +683,6 @@
       "reason": "Verified lifted target; imports and layer paths rewritten"
     },
     {
-      "path": "lint/base64-debt.json",
-      "blob": "f272eb9c1c282d95cb00ce805ab84af6704d289e",
-      "home": "engine",
-      "commit": "9d736f7e56fc75cb123d8b2e8a28315c592cce22",
-      "target": "lint/base64-debt.json",
-      "reason": "Verified lifted target; imports and layer paths rewritten"
-    },
-    {
       "path": "lint/class-moves.json",
       "blob": "33fe44c56bf07d45471a056a2e82bc320cd4a448",
       "home": "engine",
