@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { compareWitnessManifests } from '../scripts/witness-checkpoints.mjs';
 
-type Manifest = Record<string, unknown> & { cache: { payloads: Record<string, string> } };
+interface Manifest { ticks: Record<string, number>; hashes: Record<string, string>; checkpoints: { digest: string; profile: unknown }[]; cache: { payloads: Record<string, string> } }
 const committed = (slug: string): Manifest => JSON.parse(readFileSync(`test/proof/${slug}/checkpoints/manifest.json`, 'utf8')) as Manifest;
 const text = (manifest: Manifest): string => JSON.stringify(manifest);
 const otherGzip = (manifest: Manifest): Manifest => ({ ...manifest, cache: { ...manifest.cache,
@@ -17,13 +17,13 @@ test('Linux accepts another host gzip, and Darwin does not', () => {
 });
 
 test('Linux sees Pine drift in a tick or a canonical hash', () => {
-  const pine = committed('pine-hollow'), ticks = pine.ticks as Record<string, number>, hashes = pine.hashes as Record<string, string>;
+  const pine = committed('pine-hollow'), { ticks, hashes } = pine;
   expect(() => { compareWitnessManifests(text(pine), text({ ...pine, ticks: { ...ticks, king: 31854 } }), 'linux'); }).toThrow(moved);
   expect(() => { compareWitnessManifests(text(pine), text({ ...pine, hashes: { ...hashes, dawn: 'a'.repeat(64) } }), 'linux'); }).toThrow(moved);
 });
 
 test('Linux sees Driftwood drift in its outcome and passes its float digests', () => {
-  const drift = committed('driftwood-isle'), rows = drift.checkpoints as { digest: string; profile: unknown }[];
+  const drift = committed('driftwood-isle'), rows = drift.checkpoints;
   const digests = structuredClone(rows);
   for (const each of digests) each.digest = 'a'.repeat(64);
   expect(() => { compareWitnessManifests(text(drift), text({ ...drift, checkpoints: digests, endDigest: 'a' }), 'linux'); }).not.toThrow();
