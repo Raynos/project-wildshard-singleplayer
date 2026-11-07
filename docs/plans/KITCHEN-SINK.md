@@ -346,6 +346,8 @@ lanes in the same files (Z6, Z13 finish first, D31).
   notice before it lands. Found: the slot under the minimap is contested (quest chip, weather chip, toasts, the course
   clock, wave / room counters, storm hour), so the toast stack order must be set first; levelled nameplates need ~120 px
   (were 72); the XP bar and GUARD fit without moving anything.
+- [Kitchen Sink Engine Top 20](https://claude.ai/artifact/R3JZEyPiaPuMMQiiAqsozV): the 87 slices grouped into the 20
+  heaviest engine and host features, by hours × complexity (`art/showcase-template/kitchen-sink-v2/engine-top-20/`).
 
 ## 7. Done when
 

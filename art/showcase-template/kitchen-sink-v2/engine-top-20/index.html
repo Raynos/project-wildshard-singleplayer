@@ -1,0 +1,370 @@
+<title>Kitchen Sink Engine Top 20</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Saira+Stencil+One&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Layout: one ranked column that doubles as the chart; every bar shares one scale. Single dark theme by choice, the Kitchen Sink tracker's family. */
+  --floor: #26282b; --panel: #303337; --line: #484c52; --ink: #eceae6; --muted: #aeb2b8;
+  --orange: #f08a24; --cyan: #4cc9d8;
+  --display: "Saira Stencil One", Impact, sans-serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--floor); color: var(--ink); font: 16px/1.55 var(--body); }
+main { max-width: 760px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 30px; grid-template-columns: minmax(0, 1fr); }
+header { display: grid; gap: 12px; min-width: 0; }
+.eyebrow { font: 600 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0; }
+h1 { font: 38px/1.08 var(--display); color: var(--orange); margin: 0; text-wrap: balance; letter-spacing: .5px; }
+h2 { font: 23px/1.15 var(--display); color: var(--orange); margin: 0; letter-spacing: .4px; text-wrap: balance; }
+p { margin: 0; max-width: 66ch; }
+code { font: 14px var(--mono); }
+section { display: grid; gap: 12px; min-width: 0; }
+.split { display: grid; gap: 8px; }
+.splitbar { display: flex; height: 22px; gap: 2px; }
+.splitbar b { display: block; height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font: 13px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.legend i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; }
+.e { background: var(--orange); } .m { background: var(--cyan); } .s { background: var(--line); }
+.kinds { display: grid; gap: 10px; }
+.kinds div { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 10px; align-items: start; }
+.tag { font: 600 11px/1 var(--mono); letter-spacing: .06em; padding: 4px 6px; justify-self: start; }
+.t-new { background: var(--orange); color: #241503; }
+.t-rebuild { background: var(--cyan); color: #06262b; }
+.t-extend { color: var(--ink); box-shadow: inset 0 0 0 1px var(--muted); }
+ol { list-style: none; margin: 0; padding: 0; }
+.f { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; padding-block: 20px; border-top: 1px solid var(--line); }
+.rank { font: 30px/1 var(--display); color: var(--orange); text-align: right; font-variant-numeric: tabular-nums; }
+.fbody { display: grid; gap: 8px; min-width: 0; }
+h3 { font: 600 19px/1.25 var(--body); margin: 0; text-wrap: balance; }
+.meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.h { font: 600 14px var(--mono); font-variant-numeric: tabular-nums; }
+.pips { display: inline-flex; gap: 3px; }
+.pips i { width: 10px; height: 10px; box-shadow: inset 0 0 0 1px var(--muted); }
+.pips i.on { background: var(--ink); box-shadow: none; }
+.bar { display: flex; height: 8px; gap: 1px; background: var(--panel); }
+.bar b { display: block; height: 100%; }
+.why { color: var(--muted); } .why strong { color: var(--ink); font-weight: 600; }
+.shards { font-size: 14px; } .shards span { display: block; font: 600 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.note { background: var(--panel); padding: 16px; display: grid; gap: 10px; }
+ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 66ch; }
+details { font-size: 14px; min-width: 0; } summary { cursor: pointer; font: 600 13px var(--mono); color: var(--orange); padding-block: 6px; }
+summary:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.scroll { overflow-x: auto; margin-top: 8px; }
+table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: 13px; }
+th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 11px var(--mono); color: var(--muted); }
+.n { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); } .sl { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.src { font: 12px/1.5 var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+@media (min-width: 620px) { h1 { font-size: 50px; } }
+</style>
+<main>
+<header>
+  <p class="eyebrow">Showcase Template · engine and host work · 6 Nov 2026</p>
+  <h1>Twenty features carry 87 % of the Kitchen Sink's platform work</h1>
+  <p>The showcase needs 1,342 hours of engine, host and shard-migration work, plus 770 hours of levels and art. The top 20 below are 1,171 of those platform hours. None of them is built yet: main has no levels code, no cutscene timeline, no shared boss host and no interior section today.</p>
+  <div class="split">
+    <div class="splitbar" role="img" aria-label="2,112 hours in total: 851 engine and host, 491 moving other shards, 770 showcase content">
+      <b class="e" style="flex:851"></b><b class="m" style="flex:491"></b><b class="s" style="flex:770"></b>
+    </div>
+    <div class="legend"><span><i class="e"></i>851 h engine and hosts</span><span><i class="m"></i>491 h moving other shards</span><span><i class="s"></i>770 h showcase content</span></div>
+  </div>
+</header>
+
+<section>
+  <h2>Most of it is rebuilding, not inventing</h2>
+  <p>Only six of the 20 are new. The biggest costs come from systems that already work for one shard and have to work for any shard.</p>
+  <div class="kinds">
+    <div><span class="tag t-new">NEW</span><span><strong>6 features, 276 h.</strong> Nothing shipped does this today.</span></div>
+    <div><span class="tag t-rebuild">REBUILD</span><span><strong>8 features, 567 h.</strong> It works, but it's hardcoded to a shard, stuck in the plugin, or split across several paths.</span></div>
+    <div><span class="tag t-extend">EXTEND</span><span><strong>6 features, 328 h.</strong> A shared host exists and gains new rows or rules.</span></div>
+  </div>
+  <p>17 of the 20 touch a shipped shard or a template. Across the 20, 439 hours (37 %) are spent moving shards rather than building the feature.</p>
+</section>
+
+<section>
+  <h2>The hours have aged</h2>
+  <div class="note">
+    <p>These estimates date from 3 November, before the multi-repo rulings. I have not re-estimated them, so treat them as relative weight rather than a schedule.</p>
+    <ul>
+      <li><strong>Saves wipe at a breaking promotion (J149).</strong> The old-save shims and fixtures in the plan can go, which should cut hours on items and quests.</li>
+      <li><strong>Every new row is now a release.</strong> The schemas moved to the <code>shardfile</code> repo, so a new section means a tagged release and a version bump. That adds cost to almost every feature here.</li>
+      <li><strong>New features start in the new repos (J119).</strong> The slice files still point at singleplayer paths, and <code>src/format</code> no longer exists there.</li>
+      <li><strong>"Migrate every shard in the same slice" is now the staging dance.</strong> The shard-changing features below are the first real list of breaking changes for that plan.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <h2>The top 20</h2>
+  <p>Ranked by platform hours × complexity. Hours come from the plan's slices. Complexity is my own 1 to 5 rating: how many shards it touches, how exact the proof must be, and how much else waits on it. Every bar uses the same scale.</p>
+  <div class="legend"><span><i class="e"></i>engine and hosts</span><span><i class="m"></i>moving other shards</span></div>
+  <ol>
+<li class="f" id="f1">
+  <div class="rank" aria-hidden="true">1</div>
+  <div class="fbody">
+    <h3>Items, shops and payouts</h3>
+    <div class="meta"><span class="tag t-rebuild">REBUILD</span><span class="h">120 h</span><span class="pips" role="img" aria-label="Complexity 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></span></div>
+    <div class="bar" role="img" aria-label="62 hours of platform work, 58 hours moving shards"><b class="e" style="width:51.67%"></b><b class="m" style="width:48.33%"></b></div>
+    <p>Any shard declares its own currency, pack, owned items, shops, kill payouts and salvage as rows. Forge tiers and upgrades become data too.</p>
+    <p class="why"><strong>Why it's heavy.</strong> Item lists in game code still name Driftwood and Pine ids, and the shop runs on the plugin. Both shards have to pay out exactly what they pay today: a full Driftwood clear still pays 92.</p>
+    <p class="shards"><span>Shards it changes</span> Driftwood, Pine, Sky, Signal, templates</p>
+  </div>
+</li>
+<li class="f" id="f2">
+  <div class="rank" aria-hidden="true">2</div>
+  <div class="fbody">
+    <h3>One quest path and the contract board</h3>
+    <div class="meta"><span class="tag t-rebuild">REBUILD</span><span class="h">108 h</span><span class="pips" role="img" aria-label="Complexity 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></span></div>
+    <div class="bar" role="img" aria-label="54 hours of platform work, 54 hours moving shards"><b class="e" style="width:45.00%"></b><b class="m" style="width:45.00%"></b></div>
+    <p>One way to author quests: givers, the grey and yellow "!", kill and hold steps, level locks, and a shared kill-contract board.</p>
+    <p class="why"><strong>Why it's heavy.</strong> Pine's quest runtime has to be taken apart into rows and scripts, which is 38 of these hours by itself. Every other quest shard needs proof that its quests still run the same.</p>
+    <p class="shards"><span>Shards it changes</span> Pine, Driftwood, Nalati, Sky, Signal, Nine, templates</p>
+  </div>
+</li>
+<li class="f" id="f3">
+  <div class="rank" aria-hidden="true">3</div>
+  <div class="fbody">
+    <h3>One boss path</h3>
+    <div class="meta"><span class="tag t-rebuild">REBUILD</span><span class="h">82 h</span><span class="pips" role="img" aria-label="Complexity 5 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div>
+    <div class="bar" role="img" aria-label="22 hours of platform work, 60 hours moving shards"><b class="e" style="width:18.33%"></b><b class="m" style="width:50.00%"></b></div>
+    <p>One boss section and one host for phases, telegraphs, hazards, adds, shields, rewards and retries. A boss becomes rows plus its own AssemblyScript.</p>
+    <p class="why"><strong>Why it's heavy.</strong> There are five boss paths today. All seven shipped bosses move: Captain, Antler King, Storm Titan, Golden King, Roc, Matriarch and the template boss. 73 % of the hours are that move.</p>
+    <p class="shards"><span>Shards it changes</span> Driftwood, Pine, Nalati, Sky, Signal, templates</p>
+  </div>
+</li>
+<li class="f" id="f4">
+  <div class="rank" aria-hidden="true">4</div>
+  <div class="fbody">
+    <h3>Levels and combat maths</h3>
+    <div class="meta"><span class="tag t-new">NEW</span><span class="h">70 h</span><span class="pips" role="img" aria-label="Complexity 5 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div>
+    <div class="bar" role="img" aria-label="60 hours of platform work, 10 hours moving shards"><b class="e" style="width:50.00%"></b><b class="m" style="width:8.33%"></b></div>
+    <p>Opt-in levels 1 to 20, seven attributes, and a dice stage for crit, glance, DEFLECT and DODGE. HP from VIT, regen, XP and death cost come with it.</p>
+    <p class="why"><strong>Why it's heavy.</strong> It sits inside the damage pipeline every shard runs, and damage has no outcome or damage type today. Other shards stay on flat combat, so each one needs proof nothing moved.</p>
+    <p class="shards"><span>Shards it changes</span> None change. All are checked.</p>
+  </div>
+</li>
+<li class="f" id="f5">
+  <div class="rank" aria-hidden="true">5</div>
+  <div class="fbody">
+    <h3>Weapons as rows, ammo and parry</h3>
+    <div class="meta"><span class="tag t-rebuild">REBUILD</span><span class="h">70 h</span><span class="pips" role="img" aria-label="Complexity 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></span></div>
+    <div class="bar" role="img" aria-label="44 hours of platform work, 26 hours moving shards"><b class="e" style="width:36.67%"></b><b class="m" style="width:21.67%"></b></div>
+    <p>Bow, crossbow and rifle become weapon-family rows. Ammo types get effects, and melee gets an opt-in parry and riposte.</p>
+    <p class="why"><strong>Why it's heavy.</strong> Pine's held equipment scored 2 of 6 on the host bar, and firearms still live in the plugin. Parry is only an animation clip today, and it needs a new touch control.</p>
+    <p class="shards"><span>Shards it changes</span> Pine, Nalati</p>
+  </div>
+</li>
+<li class="f" id="f6">
+  <div class="rank" aria-hidden="true">6</div>
+  <div class="fbody">
+    <h3>Enemy attack kinds</h3>
+    <div class="meta"><span class="tag t-extend">EXTEND</span><span class="h">84 h</span><span class="pips" role="img" aria-label="Complexity 3 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i></span></div>
+    <div class="bar" role="img" aria-label="68 hours of platform work, 16 hours moving shards"><b class="e" style="width:56.67%"></b><b class="m" style="width:13.33%"></b></div>
+    <p>Wall stuns, creature projectiles, energy damage, floor hazards, hit zones, guard arcs, enemy parry, a stagger bar, and burn, shock and blast on hit.</p>
+    <p class="why"><strong>Why it's heavy.</strong> Each one is small, and most robot movement is already rows. They all enter the same hit path, so they have to land one at a time.</p>
+    <p class="shards"><span>Shards it changes</span> Sky, Driftwood, Nalati, Pine, maybe Signal</p>
+  </div>
+</li>
+<li class="f" id="f7">
+  <div class="rank" aria-hidden="true">7</div>
+  <div class="fbody">
+    <h3>Movers and director out of the plugin</h3>
+    <div class="meta"><span class="tag t-rebuild">REBUILD</span><span class="h">58 h</span><span class="pips" role="img" aria-label="Complexity 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></span></div>
+    <div class="bar" role="img" aria-label="26 hours of platform work, 32 hours moving shards"><b class="e" style="width:21.67%"></b><b class="m" style="width:26.67%"></b></div>
+    <p>Sliders, spinners, lifts and wave stages become real hosts reached from rows.</p>
+    <p class="why"><strong>Why it's heavy.</strong> The player never sees this, but other work waits on it. Quests, Nine's portal and the boss paths all import this scaffolding, so the director has to move before the boss path.</p>
+    <p class="shards"><span>Shards it changes</span> Sky, Driftwood, Pine, Signal, Nine, templates</p>
+  </div>
+</li>
+<li class="f" id="f8">
+  <div class="rank" aria-hidden="true">8</div>
+  <div class="fbody">
+    <h3>Interiors, portals and the 500 m cube</h3>
+    <div class="meta"><span class="tag t-rebuild">REBUILD</span><span class="h">58 h</span><span class="pips" role="img" aria-label="Complexity 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></span></div>
+    <div class="bar" role="img" aria-label="36 hours of platform work, 22 hours moving shards"><b class="e" style="width:30.00%"></b><b class="m" style="width:18.33%"></b></div>
+    <p>One interior host for caves, vaults and arenas, walk-in portals, and a validator that keeps every space inside the shard's cube with no overlaps.</p>
+    <p class="why"><strong>Why it's heavy.</strong> Pine's cave, Nine's portal and Nalati's arena each do this their own way. The showcase needs a Vault at y −40 and a Titan arena at y −150, and the two never load together.</p>
+    <p class="shards"><span>Shards it changes</span> Pine, Nine, Nalati</p>
+  </div>
+</li>
+<li class="f" id="f9">
+  <div class="rank" aria-hidden="true">9</div>
+  <div class="fbody">
+    <h3>In-engine cutscenes</h3>
+    <div class="meta"><span class="tag t-new">NEW</span><span class="h">44 h</span><span class="pips" role="img" aria-label="Complexity 5 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div>
+    <div class="bar" role="img" aria-label="28 hours of platform work, 16 hours moving shards"><b class="e" style="width:23.33%"></b><b class="m" style="width:13.33%"></b></div>
+    <p>A timeline with a real camera: authored shots, letterbox, captions, music cues and hold to skip, all as rows.</p>
+    <p class="why"><strong>Why it's heavy.</strong> The engine has no camera except the player's. The new owner borrows the render camera and must always hand it back. Five boss intros and Driftwood's finale move onto it. IN-GAME-CUTSCENES still waits for your go.</p>
+    <p class="shards"><span>Shards it changes</span> Driftwood, Pine, Nalati, Sky, Signal</p>
+  </div>
+</li>
+<li class="f" id="f10">
+  <div class="rank" aria-hidden="true">10</div>
+  <div class="fbody">
+    <h3>Sealed rooms and group waves</h3>
+    <div class="meta"><span class="tag t-new">NEW</span><span class="h">44 h</span><span class="pips" role="img" aria-label="Complexity 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></span></div>
+    <div class="bar" role="img" aria-label="34 hours of platform work, 10 hours moving shards"><b class="e" style="width:28.33%"></b><b class="m" style="width:8.33%"></b></div>
+    <p>A shrine host: rooms that seal, a checkpoint per room and a shrine card, plus director inputs such as "wave 2 is dead". The Vault and the gauntlet both use it.</p>
+    <p class="why"><strong>Why it's heavy.</strong> No host exists, only pieces in the arena room, plates and director. Dying restarts one room while solved puzzles stay solved. It has one real user unless Driftwood's sea cave becomes the second.</p>
+    <p class="shards"><span>Shards it changes</span> Templates, maybe Driftwood</p>
+  </div>
+</li>
+<li class="f" id="f11">
+  <div class="rank" aria-hidden="true">11</div>
+  <div class="fbody">
+    <h3>Traversal rows</h3>
+    <div class="meta"><span class="tag t-extend">EXTEND</span><span class="h">58 h</span><span class="pips" role="img" aria-label="Complexity 3 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i></span></div>
+    <div class="bar" role="img" aria-label="38 hours of platform work, 20 hours moving shards"><b class="e" style="width:31.67%"></b><b class="m" style="width:16.67%"></b></div>
+    <p>Conveyors, jump pads, a shared rope-bridge deck, hooks in the world, and ziplines baked by the SDK.</p>
+    <p class="why"><strong>Why it's heavy.</strong> Zipline, ride and grapple rows are refused unless a shard declares a quest page, and that link has to go. Rope sway has to leave Driftwood.</p>
+    <p class="shards"><span>Shards it changes</span> Sky, Driftwood, Nine</p>
+  </div>
+</li>
+<li class="f" id="f12">
+  <div class="rank" aria-hidden="true">12</div>
+  <div class="fbody">
+    <h3>Elites, rare and night variants</h3>
+    <div class="meta"><span class="tag t-extend">EXTEND</span><span class="h">58 h</span><span class="pips" role="img" aria-label="Complexity 3 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i></span></div>
+    <div class="bar" role="img" aria-label="32 hours of platform work, 26 hours moving shards"><b class="e" style="width:26.67%"></b><b class="m" style="width:21.67%"></b></div>
+    <p>One rarity row (uncommon 8 %, rare 2 %), night-shift swaps, elite phases, typed drops, named stings and interruptible wind-ups.</p>
+    <p class="why"><strong>Why it's heavy.</strong> The rows are simple. The hours go on moving Pine's coats and night thralls and Nalati's elites without changing them.</p>
+    <p class="shards"><span>Shards it changes</span> Pine, Nalati, templates</p>
+  </div>
+</li>
+<li class="f" id="f13">
+  <div class="rank" aria-hidden="true">13</div>
+  <div class="fbody">
+    <h3>World courses and saved records</h3>
+    <div class="meta"><span class="tag t-new">NEW</span><span class="h">51 h</span><span class="pips" role="img" aria-label="Complexity 3 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i></span></div>
+    <div class="bar" role="img" aria-label="38 hours of platform work, 13 hours moving shards"><b class="e" style="width:31.67%"></b><b class="m" style="width:10.83%"></b></div>
+    <p>Timed courses out in the world, personal bests that save, placeable dummies and a weapon loan zone.</p>
+    <p class="why"><strong>Why it's heavy.</strong> Courses only exist today in dev rooms far above the map, and their bests are never saved.</p>
+    <p class="shards"><span>Shards it changes</span> Nalati, Nine</p>
+  </div>
+</li>
+<li class="f" id="f14">
+  <div class="rank" aria-hidden="true">14</div>
+  <div class="fbody">
+    <h3>Enemy cap and pack spawner</h3>
+    <div class="meta"><span class="tag t-extend">EXTEND</span><span class="h">38 h</span><span class="pips" role="img" aria-label="Complexity 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></span></div>
+    <div class="bar" role="img" aria-label="26 hours of platform work, 12 hours moving shards"><b class="e" style="width:21.67%"></b><b class="m" style="width:10.00%"></b></div>
+    <p>At most 12 enemies awake and 16 posed. Packs get levels, group respawn at about 90 s, and a sleep pose.</p>
+    <p class="why"><strong>Why it's heavy.</strong> The cap runs on every shard, so replays have to prove it. The showcase needs it most: up to 15 enemies in one portrait view is an estimate that has never run on a phone.</p>
+    <p class="shards"><span>Shards it changes</span> Every shard for the cap. Driftwood, Pine, Nalati for spawns.</p>
+  </div>
+</li>
+<li class="f" id="f15">
+  <div class="rank" aria-hidden="true">15</div>
+  <div class="fbody">
+    <h3>One weather system</h3>
+    <div class="meta"><span class="tag t-rebuild">REBUILD</span><span class="h">34 h</span><span class="pips" role="img" aria-label="Complexity 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></span></div>
+    <div class="bar" role="img" aria-label="18 hours of platform work, 16 hours moving shards"><b class="e" style="width:15.00%"></b><b class="m" style="width:13.33%"></b></div>
+    <p>Weather and day rows that fill the shared sections, with a hold rule so storm hour lasts until the four beacons are lit.</p>
+    <p class="why"><strong>Why it's heavy.</strong> Few hours, wide reach. Weather code is tied to arrows and wildlife, and its wind drives Sky's and Signal's painted looks, so four shards need their looks checked.</p>
+    <p class="shards"><span>Shards it changes</span> Pine, Nalati, Sky, Signal</p>
+  </div>
+</li>
+<li class="f" id="f16">
+  <div class="rank" aria-hidden="true">16</div>
+  <div class="fbody">
+    <h3>Board tricks and grind rails</h3>
+    <div class="meta"><span class="tag t-new">NEW</span><span class="h">39 h</span><span class="pips" role="img" aria-label="Complexity 3 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i></span></div>
+    <div class="bar" role="img" aria-label="34 hours of platform work, 5 hours moving shards"><b class="e" style="width:28.33%"></b><b class="m" style="width:4.17%"></b></div>
+    <p>Board events, trick rows and a trick score, plus rail rows with their own rail law. The board's look moves into the game layer.</p>
+    <p class="why"><strong>Why it's heavy.</strong> A rail is a new movement law. The board is on every shard and the highway, so the look move touches them all, though only as path changes.</p>
+    <p class="shards"><span>Shards it changes</span> Every shard, paths only</p>
+  </div>
+</li>
+<li class="f" id="f17">
+  <div class="rank" aria-hidden="true">17</div>
+  <div class="fbody">
+    <h3>Combat HUD</h3>
+    <div class="meta"><span class="tag t-extend">EXTEND</span><span class="h">38 h</span><span class="pips" role="img" aria-label="Complexity 3 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i></span></div>
+    <div class="bar" role="img" aria-label="34 hours of platform work, 4 hours moving shards"><b class="e" style="width:28.33%"></b><b class="m" style="width:3.33%"></b></div>
+    <p>XP bar, LV chip, level-up moment, nameplates, floating numbers and the Character tab.</p>
+    <p class="why"><strong>Why it's heavy.</strong> Health bars and floating text already exist, so much of this is new data on old pieces. Levelled nameplates need about 120 px, and every other shard's HUD has to stay the same.</p>
+    <p class="shards"><span>Shards it changes</span> None change. All are checked.</p>
+  </div>
+</li>
+<li class="f" id="f18">
+  <div class="rank" aria-hidden="true">18</div>
+  <div class="fbody">
+    <h3>Scramble climb</h3>
+    <div class="meta"><span class="tag t-new">NEW</span><span class="h">28 h</span><span class="pips" role="img" aria-label="Complexity 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></span></div>
+    <div class="bar" role="img" aria-label="28 hours of platform work, 0 hours moving shards"><b class="e" style="width:23.33%"></b><b class="m" style="width:0.00%"></b></div>
+    <p>A real climb mode for scramble faces, and the first shipped use of ladder rows.</p>
+    <p class="why"><strong>Why it's heavy.</strong> The climb is a new driven mode in the character motor, with its own feel and collision work. There is no migration, so all the risk is in the mode itself.</p>
+    <p class="shards"><span>Shards it changes</span> None</p>
+  </div>
+</li>
+<li class="f" id="f19">
+  <div class="rank" aria-hidden="true">19</div>
+  <div class="fbody">
+    <h3>Interactables and hinges</h3>
+    <div class="meta"><span class="tag t-rebuild">REBUILD</span><span class="h">37 h</span><span class="pips" role="img" aria-label="Complexity 3 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i></span></div>
+    <div class="bar" role="img" aria-label="22 hours of platform work, 15 hours moving shards"><b class="e" style="width:18.33%"></b><b class="m" style="width:12.50%"></b></div>
+    <p>One section for plates, levers, doors, barrels and beacons, plates that feel any body, and a hinge row for see-saws.</p>
+    <p class="why"><strong>Why it's heavy.</strong> The plate puzzle has shipped three different ways, and no joints exist anywhere yet.</p>
+    <p class="shards"><span>Shards it changes</span> Driftwood, Pine, Signal, templates</p>
+  </div>
+</li>
+<li class="f" id="f20">
+  <div class="rank" aria-hidden="true">20</div>
+  <div class="fbody">
+    <h3>Collectibles, trophies and finishes</h3>
+    <div class="meta"><span class="tag t-extend">EXTEND</span><span class="h">52 h</span><span class="pips" role="img" aria-label="Complexity 2 of 5"><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i></span></div>
+    <div class="bar" role="img" aria-label="28 hours of platform work, 24 hours moving shards"><b class="e" style="width:23.33%"></b><b class="m" style="width:20.00%"></b></div>
+    <p>Collectible sets, bench views, record feats, a trophy wall section, and finish and title grants.</p>
+    <p class="why"><strong>Why it's heavy.</strong> This is the simplest design on the list. Its weight comes from moving Driftwood's glass and plaques, Pine's mounts and Nalati's finishes, which removes two custom sections.</p>
+    <p class="shards"><span>Shards it changes</span> Driftwood, Pine, Nalati</p>
+  </div>
+</li>
+  </ol>
+</section>
+
+<section>
+  <h2>Three things decide the order</h2>
+  <ul>
+    <li><strong>The director moves before the boss path.</strong> One boss class lives inside it.</li>
+    <li><strong>Movers move before the quest board.</strong> Three quest modules import the mover code, so both edit the same files.</li>
+    <li><strong>Weather comes after the bow work.</strong> Weather reads the arrow code that the bow slice changes.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>What's outside the 20</h2>
+  <p>The other 171 platform hours: the honest ruler and host register 36, the required shard-complete card 28, audio hosts 24, stealth 22, the robot Blender pipeline 16, the loaner horse 14, and 31 hours of small work spread across content slices. The ruler comes first in the build, but it's tooling rather than a feature.</p>
+  <details>
+    <summary>Hours and slices per feature</summary>
+    <div class="scroll"><table>
+      <thead><tr><th>#</th><th>Feature</th><th class="n">Eng</th><th class="n">Move</th><th class="n">Cx</th><th class="n">Score</th><th>Slices</th></tr></thead>
+      <tbody>
+<tr><td>1</td><td>Items, shops and payouts</td><td class="n">62</td><td class="n">58</td><td class="n">4</td><td class="n">480</td><td class="sl">W2a W2b E0i E1d E1e</td></tr>
+<tr><td>2</td><td>One quest path and the contract board</td><td class="n">54</td><td class="n">54</td><td class="n">4</td><td class="n">432</td><td class="sl">W1b E1f E1g E1h E1i E13</td></tr>
+<tr><td>3</td><td>One boss path</td><td class="n">22</td><td class="n">60</td><td class="n">5</td><td class="n">410</td><td class="sl">E12a E12b E12c</td></tr>
+<tr><td>4</td><td>Levels and combat maths</td><td class="n">60</td><td class="n">10</td><td class="n">5</td><td class="n">350</td><td class="sl">E0a E0b E0c E0d</td></tr>
+<tr><td>5</td><td>Weapons as rows, ammo and parry</td><td class="n">44</td><td class="n">26</td><td class="n">4</td><td class="n">280</td><td class="sl">W3b W3c W3d</td></tr>
+<tr><td>6</td><td>Enemy attack kinds</td><td class="n">68</td><td class="n">16</td><td class="n">3</td><td class="n">252</td><td class="sl">E0g E2 E3 E4 E5a E6</td></tr>
+<tr><td>7</td><td>Movers and director out of the plugin</td><td class="n">26</td><td class="n">32</td><td class="n">4</td><td class="n">232</td><td class="sl">W6a E11a</td></tr>
+<tr><td>8</td><td>Interiors, portals and the 500 m cube</td><td class="n">36</td><td class="n">22</td><td class="n">4</td><td class="n">232</td><td class="sl">W0e W9a E10a</td></tr>
+<tr><td>9</td><td>In-engine cutscenes</td><td class="n">28</td><td class="n">16</td><td class="n">5</td><td class="n">220</td><td class="sl">E12d E12e</td></tr>
+<tr><td>10</td><td>Sealed rooms and group waves</td><td class="n">34</td><td class="n">10</td><td class="n">4</td><td class="n">176</td><td class="sl">E10b E11b</td></tr>
+<tr><td>11</td><td>Traversal rows</td><td class="n">38</td><td class="n">20</td><td class="n">3</td><td class="n">174</td><td class="sl">W6b W6c W7a W7b</td></tr>
+<tr><td>12</td><td>Elites, rare and night variants</td><td class="n">32</td><td class="n">26</td><td class="n">3</td><td class="n">174</td><td class="sl">E7a E7b E8a</td></tr>
+<tr><td>13</td><td>World courses and saved records</td><td class="n">38</td><td class="n">13</td><td class="n">3</td><td class="n">153</td><td class="sl">W3a W6d W10b</td></tr>
+<tr><td>14</td><td>Enemy cap and pack spawner</td><td class="n">26</td><td class="n">12</td><td class="n">4</td><td class="n">152</td><td class="sl">E0h E1c</td></tr>
+<tr><td>15</td><td>One weather system</td><td class="n">18</td><td class="n">16</td><td class="n">4</td><td class="n">136</td><td class="sl">W11a E9</td></tr>
+<tr><td>16</td><td>Board tricks and grind rails</td><td class="n">34</td><td class="n">5</td><td class="n">3</td><td class="n">117</td><td class="sl">W5a W5b W5c</td></tr>
+<tr><td>17</td><td>Combat HUD</td><td class="n">34</td><td class="n">4</td><td class="n">3</td><td class="n">114</td><td class="sl">E0e E0f</td></tr>
+<tr><td>18</td><td>Scramble climb</td><td class="n">28</td><td class="n">0</td><td class="n">4</td><td class="n">112</td><td class="sl">W8a W8b</td></tr>
+<tr><td>19</td><td>Interactables and hinges</td><td class="n">22</td><td class="n">15</td><td class="n">3</td><td class="n">111</td><td class="sl">W4a W4b</td></tr>
+<tr><td>20</td><td>Collectibles, trophies and finishes</td><td class="n">28</td><td class="n">24</td><td class="n">2</td><td class="n">104</td><td class="sl">W9b E8d E8e</td></tr>
+      </tbody>
+    </table></div>
+  </details>
+  <p class="src">Sources: docs/plans/KITCHEN-SINK.md, slices/INDEX-west.md, slices/INDEX-east.md, slices/IMPACT.md (hours from 3 Nov). Code status checked on main at 88db9bea08. Multi-repo rulings from project-wildshard-meta. The grouping into 20 features is mine; the plan has 87 slices and no such list.</p>
+</section>
+</main>
