@@ -6,6 +6,8 @@ import { coatVariant, COAT_PALETTES } from './coatRecipes';
 import { coatDiffers, paintCoatPixels, type CoatBone, type CoatSpec } from './coatPixels';
 import { pressFlap } from './coatFlap';
 
+const CREATURE_ASSETS = '/assets/pine-hollow/creatures/';
+
 /** One lossless coat product; the key retains the KTX2 table's original identity. */
 export interface CoatProduct { readonly key: string; readonly image: string; readonly png: Uint8Array; readonly pixels: Uint8ClampedArray; readonly width: number; readonly height: number }
 
@@ -40,7 +42,7 @@ export async function producePineCoats(readAsset: (url: string) => Promise<Uint8
     if (palette === undefined) throw new Error(`Missing authored palette ${authored.palette}`);
     const spec: CoatSpec = { ...authored, palette };
     const source = coatVariant(authored.source[0], authored.source[1]);
-    const rigUrl = `/assets/pine-hollow/creatures/${name}${tier === 'phone' ? '.phone' : ''}.rigged.glb`;
+    const rigUrl = `${CREATURE_ASSETS}${name}${tier === 'phone' ? '.phone' : ''}.rigged.glb`;
     const rig = await readCoatRig(await readAsset(rigUrl), name, images);
     for (const [key, hull] of Object.entries(PINE_HULLS.hulls)) {
       if (hull !== name) continue;
