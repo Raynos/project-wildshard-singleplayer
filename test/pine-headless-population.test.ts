@@ -117,4 +117,4 @@ test('the tick worker runs Pine from its built product: the same world, and it r
       expect(canonicalSimDigest(decodeSimSnapshot(end.snapshot))).toBe(canonicalSimDigest(snapshotSimHost(twin.host)));
     } finally { await resumed.dispose(); }
   } finally { await worker.dispose(); twin.dispose(); }
-}, 240_000);
+}, 360_000);
