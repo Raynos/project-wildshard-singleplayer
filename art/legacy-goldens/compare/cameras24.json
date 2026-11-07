@@ -1510,6 +1510,11 @@
     ],
     "yaw": 0,
     "pitch": 0,
+    "feet": [
+     0,
+     30,
+     -5.5
+    ],
     "fov": 72,
     "kind": "co6",
     "poi": "CO6 camera windmill",
@@ -1524,6 +1529,11 @@
     ],
     "yaw": 0,
     "pitch": 0,
+    "feet": [
+     -1.582,
+     30,
+     -5.696
+    ],
     "fov": 72,
     "kind": "co6",
     "poi": "CO6 camera roost",

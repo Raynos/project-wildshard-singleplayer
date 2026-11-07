@@ -4,7 +4,8 @@
 // Run through scripts/browser-lane.sh on a serve-build.sh preview (version.json is the source authority).
 //
 //   node art/legacy-goldens/compare/capture.mjs --base=http://127.0.0.1:44xx/ --out=tmp/golden-compare/raw [--shards=a,b]
-//     [--cameras=art/legacy-goldens/compare/cameras24.json] [--cams=1,5,9] [--textures=ktx2|img]
+//     [--cameras=art/legacy-goldens/compare/cameras24.json] [--cams=1,5,9] [--textures=ktx2|img] [--no-astc]
+// --no-astc hides WEBGL_compressed_texture_astc, so a phone profile takes the path of a phone GPU that has none (S4's overlays).
 // --cameras: the 24-camera set (G859); its frames hide every element but the canvases (no HUD), at device pixels, named <nn>-<camera>-<mode>.png. A camera
 // without an eye takes the player's settled eye plus its lift; receipts-<slug>.json records it. The LEGACY frames are
 // frozen: the LEGACY entry is gone (QD7 LD5), so --mode=legacy refuses and every run enters by ENTER WORLD.
@@ -12,7 +13,10 @@
 // streams in its update (instanced dressing, the tile ring, coarse masks) follows the eye. A free camera (its eye more than
 // FREE m from the probe's) poses the player under the eye, hovering, so the ring and colliders stand round the camera as
 // they would round a player there (its board, on the camera and under it, is hidden for the shot); an eye-height camera
-// keeps its probe. LIVE frames run at the eye before the shot.
+// keeps its probe. LIVE frames run at the eye before the shot. A worker page's board is a press the server hears a command
+// later, and the server drops it on a pose: `board` asks, then waits for the answer, so a press never lands after the pose
+// and turns the board back on. ON_FOOT: a board that shows in the frame. It stows Sky's fan and fills its hover decks, and
+// its goldens have neither, so a player hovering there for its streaming steps off for the shot.
 import {chromium,webkit,devices} from 'playwright';
 import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
 import {readFile} from 'node:fs/promises';
@@ -34,10 +38,14 @@ const exp=arg('exp','')?readFileSync(arg('exp',''),'utf8'):'';// --exp=<file.js>
 const only=selectGoldenCameraNumbers(arg('cams',''));
 const slugs=selectGoldenShards(canonical,arg('shards',undefined));
 const nativeBinding=mode==='shardfile'&&slugs.includes('nine-dragon-stack')?await goldenRefinementBinding(base,source):null;
-const FRAMES=120,SETTLE_MS=30000,LIVE=60,FREE=4,EYE=1.7;
+const FRAMES=120,SETTLE_MS=30000,LIVE=60,FREE=4,EYE=1.7,ON_FOOT=new Set(['far-reach']);
 // --textures=ktx2|img pins the page's texture mode (the harness pin, src/engine/boot/gpuFiles.ts) to judge a texture-policy
 // change on a clean build; omitted, the shipped Auto policy picks
 const TEXTURES=arg('textures','');if(!['','ktx2','img'].includes(TEXTURES))throw Error(`--textures=${TEXTURES}`);
+const NO_ASTC=process.argv.includes('--no-astc');
+const hideAstc=()=>{const ext='WEBGL_compressed_texture_astc';for(const gl of [WebGLRenderingContext,WebGL2RenderingContext]){const{getExtension,getSupportedExtensions}=gl.prototype;
+ gl.prototype.getExtension=function(name){return name===ext?null:getExtension.call(this,name);};
+ gl.prototype.getSupportedExtensions=function(){return getSupportedExtensions.call(this)?.filter(name=>name!==ext)??null;};}};
 // --level-download=packs|shardfile (DL16): Debug ▸ Loading & memory ▸ Level download for every capture (default: the build's)
 const LEVEL_DOWNLOAD=arg('level-download','');if(!['','packs','shardfile'].includes(LEVEL_DOWNLOAD))throw Error(`--level-download=${LEVEL_DOWNLOAD}`);
 mkdirSync(root,{recursive:true});
@@ -52,6 +60,12 @@ const browser=owner?await chromium.connectOverCDP(endpoint):await webkit.launch(
 
 const frames=(page,n)=>page.evaluate(async n=>{const g=window.__wildshard.world.game,from=g.frameCount;
  await new Promise(r=>{const f=()=>g.frameCount>=from+n?r():requestAnimationFrame(f);requestAnimationFrame(f);});},n);
+
+// On or off the board, as the server has it. True when it holds.
+const board=(page,on)=>page.evaluate(async on=>{const w=window.__wildshard.world,p=w.player;if(!p.setHover)return true;
+ const wait=n=>new Promise(r=>{const from=w.game.frameCount,f=()=>w.game.frameCount>=from+n?r():requestAnimationFrame(f);f();});
+ for(let asked=0;asked<4;asked++){await wait(15);if(p.hover===on)return true;p.setHover(on);}
+ await wait(15);return p.hover===on;},on);
 
 // Streaming idle: no request in flight for 1.5 s and, when a grid is present, no ring tile in flight or queued.
 // A request open for more than 15 s is a long-lived one (it stays open across every pose), not streaming.
@@ -82,6 +96,7 @@ try{for(const slug of slugs){
     await saveFixture(context,{scope:'device',key:pair.slice(0,at),data:pair.slice(at+1)});
   }
   await context.addInitScript(hideDeveloperOverlays);
+  if(NO_ASTC)await context.addInitScript(hideAstc);
   await context.addInitScript(textures=>{window.__wildshardHarness={seed:357,capture:null,...(textures===''?{}:{textures})};},TEXTURES);
   if (slug==='nine-dragon-stack'&&nativeBinding!==null) await context.addInitScript(`window.__installGoldenResidency=()=>window.__goldenResidencyPromise??=(async()=>{
     try {
@@ -99,6 +114,8 @@ try{for(const slug of slugs){
   // console warnings, each text once with its count (NR4: AttributeNode missing-channel warnings)
   page.on('console',m=>{if(m.type()!=='warning')return;const t=m.text().slice(0,300);row.warnings[t]=(row.warnings[t]??0)+1;});
   const inflight=new Map();page.on('request',r=>inflight.set(r,Date.now()));page.on('requestfinished',r=>inflight.delete(r));page.on('requestfailed',r=>inflight.delete(r));
+  // what never arrived: a fallback path's first symptom
+  row.failed=[];page.on('requestfailed',r=>row.failed.push(r.url()));page.on('response',r=>{if(r.status()>=400)row.failed.push(`${r.status()} ${r.url()}`);});
   const version=await(await page.request.get(new URL('/version.json',base).href)).json();
   const actual=goldenPreviewIdentity(version,arg('sha',''));
   if(actual.build!==source.build)throw Error(`Preview changed from ${source.build} to ${actual.build}`);row.build=actual.build;
@@ -135,11 +152,11 @@ try{for(const slug of slugs){
    // a free camera: the player hovers under the eye (its x / z, an eye height below), so ring and culling are the eye's
    const free=c.eye!==undefined&&Math.hypot(c.eye[0]-probe.x,c.eye[2]-probe.z,probe.y===undefined?0:c.eye[1]-EYE-probe.y)>FREE;
    const at=free?{...probe,x:c.eye[0],y:c.eye[1]-EYE,z:c.eye[2]}:probe;
-   await page.evaluate(([p,free])=>{const w=window.__wildshard.world;w.game.hold=false;window.__wsEye=null;w.player.setHover?.(false);
+   await page.evaluate(()=>{const w=window.__wildshard.world;w.game.hold=false;window.__wsEye=null;
     // what hangs off the camera before any hover (the held weapon, the hands): the shot keeps only these visible. Taken
     // once per entry: a board stepped off a moment ago still shows while it fades
-    window.__wsCamOff??=new Set(w.game.camera.children.filter(o=>o.visible));
-    return window.__wildshard.pose(p).then(()=>{if(free)w.player.setHover?.(true);});},[at,free]);
+    window.__wsCamOff??=new Set(w.game.camera.children.filter(o=>o.visible));});
+   await board(page,false);await page.evaluate(p=>window.__wildshard.pose(p),at);if(free)await board(page,true);
    await frames(page,FRAMES);const idle=await settle(page,inflight);await frames(page,30);
    // a player on a slope slides off its pose while streaming settles (Pine's bear den slid into the lake and respawned at
    // spawn, so its eye became spawn's): an eye-height camera puts it back before its eye is read
@@ -156,8 +173,9 @@ try{for(const slug of slugs){
     if(window.__wsEyeHook!==g){window.__wsEyeHook=g;g.onLate(()=>{const e=window.__wsEye;if(e===null||e===undefined)return;
      cam.position.set(...e.eye);cam.rotation.set(e.pitch,e.yaw,0,'YXZ');cam.fov=e.fov;cam.updateProjectionMatrix();cam.updateMatrixWorld();},'golden.eye');}},c);
    // the eye is read: a sliding player now hovers where it stands, so it cannot slide off (and respawn) during the live frames
-   if(drifted)await page.evaluate(()=>window.__wildshard.world.player.setHover?.(true));
+   if(drifted)await board(page,true);
    await frames(page,LIVE);const live=await settle(page,inflight);await frames(page,LIVE);
+   if(ON_FOOT.has(slug)&&!await board(page,false))row.errors.push(`camera ${c.n}: still on the board`);
    const expResult=exp?await page.evaluate(code=>(new Function('w','g','return (async()=>{'+code+'})()'))(window.__wildshard.world,window.__wildshard.world.game),exp):undefined;
    let residency;
    if (slug==='nine-dragon-stack'&&nativeBinding!==null) {
@@ -174,7 +192,7 @@ try{for(const slug of slugs){
     g.scene.traverse(o=>{if(o.name==='hoverboard'&&o.visible){o.visible=false;window.__wsBoards.push(o);}});
     cam.position.set(...e.eye);cam.rotation.set(e.pitch,e.yaw,0,'YXZ');cam.fov=e.fov;cam.updateProjectionMatrix();cam.updateMatrixWorld();// QF20: two frames at the held camera; one left SHARDFILE's shadow-layer casters (the body shadow) out
     g.shardFrame();g.composer.render(0);g.shardFrame();g.composer.render(0);
-    return{eye:cam.position.toArray(),rotation:cam.rotation.toArray(),fov:cam.fov,frame:g.frameCount,player,settledEye:e.settled};
+    return{eye:cam.position.toArray(),rotation:cam.rotation.toArray(),fov:cam.fov,frame:g.frameCount,player,hover:w.player.hover===true,settledEye:e.settled};
    });
    const shot=set?`${dir}/${String(c.n).padStart(2,'0')}-${c.name}-${mode}.png`:`${dir}/${i+1}-${c.name}-shardfile.png`;
    // the 24-camera set hides the HUD (every element but the canvases; a canvas read-back misses Nine's layered composite)
