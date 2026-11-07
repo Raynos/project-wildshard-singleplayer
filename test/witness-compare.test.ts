@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { expect, test } from 'vitest';
 import { compareWitnessManifests } from '../scripts/witness-checkpoints.mjs';
 
-interface Manifest { ticks: Record<string, number>; hashes: Record<string, string>; checkpoints: { digest: string; profile: unknown }[]; cache: { payloads: Record<string, string> } }
+interface Manifest { ticks: Record<string, number>; hashes: Record<string, string>; checkpoints: { digest: string; profile: unknown }[]; endDigest?: string; effects?: unknown[]; cache: { payloads: Record<string, string> } }
 const committed = (slug: string): Manifest => JSON.parse(readFileSync(`test/proof/${slug}/checkpoints/manifest.json`, 'utf8')) as Manifest;
 const text = (manifest: Manifest): string => JSON.stringify(manifest);
 const otherGzip = (manifest: Manifest): Manifest => ({ ...manifest, cache: { ...manifest.cache,
