@@ -1,8 +1,0 @@
-{
-  "achievementPrefix": "pine-hollow.",
-  "migrateProgress": false,
-  "replay": true,
-  "refresh": "outcome",
-  "syncEvents": true,
-  "state": "pine.feat-counts"
-}
