@@ -47,7 +47,7 @@ function validate(baseline, root) {
 }
 
 /** @param {string} root @param {string} baselineFile @param {string[] | null} files */
-function counts(root, baselineFile, files = null, /** @type {{guardRequirement?: string}} */ options = {}) {
+function counts(root, baselineFile, files = null, /** @type {{guardRequirement?: string, quiet?: boolean}} */ options = {}) {
   const {guardRequirement}=options;
   if (guardRequirement!==undefined && files===null) throw new Error('Required guard only applies to scoped commit measurement');
   const guardedHard=guardRequirement===undefined ? null : requiredGuardRules(root,guardRequirement,files ?? []);
@@ -93,7 +93,7 @@ function counts(root, baselineFile, files = null, /** @type {{guardRequirement?:
     }
     if (result.status === 1 && output.diagnostics.length === 0) throw new Error(`oxlint failed without diagnostics: ${result.stderr}`);
   }
-  if (measuredFiles === null) console.log(`Ratchet census: ${selected.length} explicit files linted`);
+  if (measuredFiles === null && options.quiet !== true) console.log(`Ratchet census: ${selected.length} explicit files linted`);
   return current;
 }
 
@@ -166,7 +166,7 @@ function main() {
     throw new Error(`Refusing ${addRule}: hard rules cannot be ratcheted`);
   if (scopedPaths !== null && mode !== 'update') throw new Error('--files-from is a shrink-only update mode');
   if (guardRequirement!==undefined && (mode!=='update' || scopedPaths===null)) throw new Error('Required guard is commit-only');
-  const measured = counts(root, baselineFile, scopedPaths,{guardRequirement});
+  const measured = counts(root, baselineFile, scopedPaths,{guardRequirement,quiet:mode === 'measure'}); // --measure's stdout is its JSON
   const current = scopedPaths === null ? measured : Object.fromEntries(Object.entries(baseline).filter(([key]) => !NON_FILE.has(key)).map(([key, values]) => [key, { ...values }]));
   if (scopedPaths !== null) {
     for (const values of Object.values(current)) for (const file of Object.keys(values)) if (scopedPaths.includes(file) || !existsSync(resolve(root,file))) delete values[file];
@@ -187,7 +187,6 @@ function main() {
   }
   const hard = hardRules(resolve(REPO, '.oxlintrc.json'));
   const { failures, warnings } = compareCounts(baseline, current, hard, undefined, mode === 'update' || deferReductions, mode === 'measure');
-  if (mode === 'measure') for (const [rule, files] of Object.entries(current)) if (hard.has(rule) && Object.keys(files).length > 0) failures.push(`${rule}: hard rule cannot be measured as legacy debt`);
   if (mode !== 'measure') for (const warning of warnings) console.warn(deferReductions
     ? warning.replace('partial slack; lower the ratchet', 'central regeneration will lower the debt') : warning);
   const rows = baseline.debugRows ? debugCount(root,mode==='update' && scopedPaths!==null ? process.env.WS_COMMIT_WITNESS_CACHE : undefined) : null;
