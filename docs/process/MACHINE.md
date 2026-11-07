@@ -30,6 +30,20 @@ Each open game tab costs ~1.5 cores and ~1 GB for as long as it is open.
   when Jake asks for it (~3 cores per page). No `--disable-frame-rate-limit`. One Android emulator at a time, killed
   when the run ends.
 
+## Third-party sites and listeners (J148)
+
+The Mac holds the deploy and signing secrets, and Playwright's Chromium is older than the current security fixes (meta
+`docs/plans/NOVEMBER-IDEAS.md` NI4).
+
+- **Third-party sites run only in a cloud container or system Chrome, never in a repo Playwright browser.** agent-browser's
+  Chrome for Testing is neither, so it takes our own pages only: localhost, `*.wildshard.io` and our Vercel deployments.
+- **Servers bind to `127.0.0.1`.** `pnpm check:listeners` fails on any listener outside localhost that isn't on the
+  allowlist in `scripts/check-listeners.mjs`. `browser-lane.sh` runs it at lane start and only warns, so a macOS service
+  never blocks a lane. A new macOS service goes on the allowlist with its reason; anything else gets fixed. CI can't see
+  the Mac, so this stays local.
+- **agent-browser's Chrome** comes from `agent-browser install`, which fetches the latest stable Chrome for Testing. Run it
+  after a Chrome security release. Playwright 1.65.0 waits until after the flip.
+
 ## One full suite and three app builds machine-wide (G620)
 
 Ten simultaneous full suites pushed machine load above 150 and timed out real worker proofs. Python 3 and `flock`
