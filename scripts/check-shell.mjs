@@ -6,7 +6,10 @@ import { validatePin } from './engine-pin.mjs';
 const git = args => execFileSync('git', args, { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
 export function checkShell(revision = 'HEAD') {
   const index = revision === '--index';
-  const files = (index ? git(['ls-files', '-z']) : git(['ls-tree', '-rz', '--name-only', revision])).split('\0').filter(Boolean);
+  const entries = git(index ? ['ls-files', '--stage', '-z'] : ['ls-tree', '-rz', revision]).split('\0').filter(Boolean).map(row => row.split('\t'));
+  const blobs = new Map(entries.map(([meta, path]) => [path, meta.split(' ')[index ? 1 : 2]]));
+  const files = [...blobs.keys()];
+  const names = new Set(files);
   const read = file => git(['show', index ? `:${file}` : `${revision}:${file}`]);
   const pin = validatePin(JSON.parse(read('engine.pin.json')));
   const ledger = JSON.parse(read('release-deletions.json'));
@@ -22,9 +25,9 @@ export function checkShell(revision = 'HEAD') {
   if (!workflow.includes('node scripts/install-release.mjs install') || !workflow.includes('node scripts/build-release.mjs') || !workflow.includes('needs: [build-pinned, prove-pinned]')) throw new Error('CI does not gate the installed artifact');
   for (const file of ['scripts/repo-size.mjs', 'scripts/storage-policy.json', '.github/workflows/storage.yml']) if (!files.includes(file)) throw new Error(`Storage gate has no running home: ${file}`);
   for (const row of ledger.files) {
-    if (files.includes(row.path)) {
+    if (names.has(row.path)) {
       if (ledger.state !== 'retiring') throw new Error(`Deleted source returned: ${row.path}`);
-      const held = git(['rev-parse', index ? `:${row.path}` : `${revision}:${row.path}`]).trim();
+      const held = blobs.get(row.path);
       if (held !== row.blob) throw new Error(`Retiring source changed: ${row.path}`);
     }
     if (!/^[a-f0-9]{40}$/u.test(row.blob) || typeof row.home !== 'string' || row.reason.length < 8) throw new Error('Invalid deletion evidence');
