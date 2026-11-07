@@ -307,7 +307,9 @@ async function bootTemplateRoad(page, faults, frames, deadline) {
   const exit = await bootRoadRoute(page, faults, plans.exit, documentOrigin, deadline, 'Template checkpoint-backed return');
   const instance = plans.entry.to ?? '';
   // A server writes this from its worker, a moment behind the frames.
-  await until(page, faults, async () => await page.evaluate(bootStoredSave, instance) !== null, 'Template durable checkpoint', Math.min(deadline, Date.now() + 15000)).catch(() => undefined);
+  await until(page, faults, async () => {
+    try { bootTemplateCheckpoint(instance, await page.evaluate(bootStoredSave, instance)); return true; } catch { return false; }
+  }, 'Template durable checkpoint', Math.min(deadline, Date.now() + 15000)).catch(() => undefined);
   const result = { entry, exit, checkpoint: bootTemplateCheckpoint(instance, await page.evaluate(bootStoredSave, instance)) };
   verifyBootTemplateRoad(result);
   await captureBootFrame(page, 'grid Template checkpoint return', deadline, frames);
