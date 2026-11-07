@@ -1,9 +1,0 @@
-{
-  "shardSystems": {
-    "pine-hollow": {
-      "update": {
-        "main.5": "pine.landmarks"
-      }
-    }
-  }
-}
