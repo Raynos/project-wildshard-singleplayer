@@ -103,6 +103,8 @@ export abstract class Weapon extends Equipment implements WeaponHooks {
   shotDraws(world: () => number): () => number { return this.wire === null ? world : shotRandom(this.wire.nextSeq()); }
   reload(): void { /* Melee weapons and tools have no reload action. */ }
   addBolts(_n: number): void { /* Ammo families override the refill. */ }
+  /** What the server says this weapon holds: a server's count is the count. */
+  mirrorArrows(_count: number): void { /* Only a bow's arrows are counted on the wire. */ }
   aimRay(origin: Vector3, dir: Vector3): Vector3 {
     const aim = this.commandedAim ?? this.aimSource?.();
     if (aim === undefined) throw new Error(`Equipment ${this.row.id} has no aim command source`);

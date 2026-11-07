@@ -358,6 +358,8 @@ export class EquipmentService implements WeaponHooks {
   }
   /** The server settled a blow of ours: the weapon in hand plays it. */
   serverHit(hit: OwnHit): void { this.current.serverHit(hit); }
+  /** The server's arrow count, for every bow held: one in the hand or one on the back. */
+  mirrorArrows(count: number): void { for (const weapon of this.list) weapon.mirrorArrows(count); }
   /** The server refused a start: the weapon in hand lets go. */
   attackRefused(): void { this.current.attackRefused(); }
   update(dt: number, t: number): void {

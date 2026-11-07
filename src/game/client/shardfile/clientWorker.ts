@@ -38,6 +38,7 @@ import { POSE_NAMES } from '@wildshard/engine/net/acts';
 import { poseInputNames } from '../../shared/plugin/channelPrograms';
 import type { EncounterRow } from '../boss/barFeed';
 import { wirePage, type DayFollower } from './wirePage';
+import { OWNED_ROW } from '../../shared/loot/ownedRows';
 
 type Creatures = Pick<AnimalManager, 'animals' | 'spawn' | 'retire'>;
 /** What a grid page lends: its crossing follows the server, and its creatures are the entered cell's. */
@@ -310,7 +311,7 @@ async function startWorkerClient(ports: WorkerClientPorts, card: ReturnType<type
   };
   // A body's pose inputs beyond its rows: this page names what its programs read, and the server says those as they change.
   const poses = new Map<string, Record<string, number>>();
-  let said = 0, saidCell = -1;
+  let said = 0, saidCell = -1, arrowsSaid = -1;
   const sayPoseInputs = (): void => {
     const cell = client.latest?.cell ?? -1;
     if (poseInputNames.size === said && cell === saidCell) return;
@@ -335,6 +336,8 @@ async function startWorkerClient(ports: WorkerClientPorts, card: ReturnType<type
     const entered = grid?.items() ?? items;
     if (entered !== items) { items = entered; net.bindSlots(slotsOf(items)); }
     sayPoseInputs(); syncCreatures(client, animals, bodies, retired, spawnMs, poses);
+    const arrows = client.owned.get(OWNED_ROW.arrows); // plus one, so an empty quiver is a line too
+    if (arrows !== undefined && arrows !== arrowsSaid) { arrowsSaid = arrows; ports.weapons.mirrorArrows(arrows - 1); }
     bindMount(); offerMounts(); bindClaw();
     const shown = showRows(client, net, ports, bodies, renderTick, dt, row, near, rideable);
     wirePage.frame(here ? bookOf(client.latest?.cell) : null, here, ports.day()); decks.frame(renderTick);

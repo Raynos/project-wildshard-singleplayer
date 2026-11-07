@@ -262,6 +262,7 @@ export class Bow<Style extends string = string> extends Weapon {
   parthian = false;
 
   override addBolts(n: number): void { this.state.bolts = Math.min(this.profile.quiver, this.state.bolts + n); }
+  override mirrorArrows(count: number): void { this.state.bolts = count; }
   override reload(): void { /* the draw is the reload */ }
 
   // ── per frame ──

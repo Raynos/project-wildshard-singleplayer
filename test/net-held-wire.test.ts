@@ -58,7 +58,7 @@ async function rig(): Promise<Rig> {
   } });
   room.join(link.server, world.playerOf(lead)); client.hello(); link.pump(); room.open(); link.pump();
   const net = new NetPlayer(client, player, page.physics), followed: string[] = [], hits: OwnHit[] = [], refusals: number[] = [];
-  net.bindWeapons({ bindWire: () => undefined, serverHit: hit => { hits.push(hit); }, attackRefused: () => { refusals.push(1); }, heldByServer: row => { followed.push(row); } }, SLOTS);
+  net.bindWeapons({ bindWire: () => undefined, serverHit: hit => { hits.push(hit); }, mirrorArrows: () => undefined, attackRefused: () => { refusals.push(1); }, heldByServer: row => { followed.push(row); } }, SLOTS);
   for (let at = 0; at < 4; at++) { room.tick(); link.pump(); }
   player.link = net; player.locked = true;
   const run = (ticks: number): void => {

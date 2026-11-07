@@ -17,7 +17,7 @@ import { predictedPlayer, PredictionWorld } from './predictionWorld';
 import { Predictor } from './predictor';
 
 /** Where this player's attacks are drawn: `EquipmentService`, on a page. */
-export interface NetWeapons { readonly bindWire: (wire: WeaponWire | null) => void; readonly serverHit: (hit: OwnHit) => void; readonly attackRefused: () => void; readonly heldByServer: (row: string) => void }
+export interface NetWeapons { readonly bindWire: (wire: WeaponWire | null) => void; readonly serverHit: (hit: OwnHit) => void; readonly attackRefused: () => void; readonly heldByServer: (row: string) => void; readonly mirrorArrows: (count: number) => void }
 
 /** A traversal tool's line to the server. `lock` is a LOCK press naming its hook by index, and answers the `seq` that carries it. */
 export interface NetHookWire { readonly lock: (hook: number | undefined) => number; readonly fire: () => void }

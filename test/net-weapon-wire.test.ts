@@ -109,7 +109,7 @@ test('over a bad link a start with no answer is refused inside RTT and two frame
   const net = new NetPlayer(client, player, page.physics), refusals: number[] = [];
   let tick = 0, pressedAt = 0;
   const hits: OwnHit[] = [];
-  net.bindWeapons({ bindWire: () => undefined, serverHit: hit => { hits.push(hit); }, attackRefused: () => { refusals.push(tick - pressedAt); }, heldByServer: () => undefined }, new Map());
+  net.bindWeapons({ bindWire: () => undefined, serverHit: hit => { hits.push(hit); }, mirrorArrows: () => undefined, attackRefused: () => { refusals.push(tick - pressedAt); }, heldByServer: () => undefined }, new Map());
   player.link = net; player.locked = true;
   for (; tick < 600; tick++) {
     pass(); net.reconcile(); page.stepWorld(); player.setBodyEnabled(true);

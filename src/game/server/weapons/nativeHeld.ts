@@ -24,6 +24,7 @@ import type { TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { PlayerSim } from '@wildshard/engine/sim/playerSim';
 import { actRoutes } from '@wildshard/engine/sim/actRoutes';
+import { publishOwned } from '@wildshard/engine/sim/shardRows';
 import { filterCombatAimTargets } from '../../shared/shardfile/aimTargetFilter';
 import { heldBowBase } from '../../shared/weapons/heldBowBase';
 import { HeldDecision } from '../../shared/weapons/heldDecision';
@@ -38,6 +39,7 @@ import { playerSeats, type PlayerSeat, type PlayerSeats } from '../plugin/player
 import { mountedPlayerOf } from '../riding/native';
 import { nativePopulationOf } from '../riding/nativePopulation';
 import { nativeTamingOf } from '../riding/nativeTaming';
+import { OWNED_ROW } from '../../shared/loot/ownedRows';
 
 const finite=v.pipe(v.number(),v.finite()),count=v.pipe(finite,v.integer(),v.minValue(0)),vector=v.tuple([finite,finite,finite]);
 const SwingSaved=v.strictObject({move:v.nullable(count),swingT:finite,comboIdx:count,lastSwingEnd:finite,cooldown:finite,
@@ -68,7 +70,7 @@ export interface HeldArrowTargets {
   readonly resolve: (host: SimHost, key: string) => TargetAnimal | null;
 }
 /** What an encounter may do to one player's arms. */
-export interface HeldSeat extends PlayerSeat { readonly setEnabled: (on: boolean) => void; readonly refill: () => void; readonly look: { yaw: number; pitch: number } }
+export interface HeldSeat extends PlayerSeat { readonly setEnabled: (on: boolean) => void; readonly refill: () => void; readonly arrows: () => number; readonly look: { yaw: number; pitch: number } }
 /** What a world lends these arms. */
 export interface HeldArmsContext { readonly combat: NativeCombatFrame; readonly room?: boolean | undefined; readonly tick: HeldTick; readonly contacts?: HeldRay | undefined; readonly arrowTargets?: HeldArrowTargets | undefined }
 const owners = new WeakMap<SimHost, PlayerSeats<HeldSeat>>();
@@ -185,7 +187,7 @@ export async function prepareHeldArms(product: Pick<ShardProduct, 'json' | 'sect
       surface:material=>material==='flesh'?'flesh':material==='wood'||material==='planks'?'wood':'ground'});
     const extra=[bladeMoves.passes.left,bladeMoves.passes.right];
     const live=():void=>{if(host.scope.disposed||host.scope.disposing)throw new Error('Native held equipment owner retired');};
-    const seat:Pick<HeldSeat,'look'|'setEnabled'|'refill'>={look:{get yaw(){return player.yaw;},set yaw(value){live();player.yaw=value;},
+    const seat:Pick<HeldSeat,'look'|'setEnabled'|'refill'|'arrows'>={arrows:()=>bolts,look:{get yaw(){return player.yaw;},set yaw(value){live();player.yaw=value;},
       get pitch(){return pitch;},set pitch(value){live();pitch=value;}},setEnabled:on=>{live();weaponsEnabled=on;},refill:()=>{
       live();for(const refill of slots.refills){
         if(refill.slot===bowSlot.id&&refill.kind==='add-magazine')bolts=Math.min(bow.base.quiver,bolts+bow.base.quiver);
@@ -307,6 +309,11 @@ export async function prepareHeldArms(product: Pick<ShardProduct, 'json' | 'sect
       }};
     });
     owners.set(host, seats); host.scope.onDispose(() => { owners.delete(host); });
+    if (room) {
+      // A page's own count would drift from these: its misses aren't the server's, and it never hears a refill. Saying it, and refilling as a page's respawn does, keeps one count.
+      publishOwned(host, 'held.arrows', (id, out) => { const player = host.players.get(id); if (player !== undefined) out.set(OWNED_ROW.arrows, seats.of(player).arrows() + 1); });
+      host.events.on('player.respawned', ({ player: id }) => { const player = id === undefined ? undefined : host.players.get(id); if (player !== undefined) seats.of(player).refill(); }, host.scope);
+    }
     host.onStep(arms.step, seats.step, seats.adapter, 'afterBodies');
   };
 }
