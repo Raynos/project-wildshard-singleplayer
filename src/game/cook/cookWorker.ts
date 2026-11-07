@@ -25,7 +25,7 @@ import {Scope} from '@wildshard/engine/app/scope';
 import {shardSlugOf} from '@wildshard/format/standaloneCatalogue';
 import {ShardfileHashSchema, ShardSlugSchema, RevisionNumberSchema} from '@wildshard/format/uploadWire';
 import {MAX_SHARDFILE_BYTES, type CookJobReport} from './cookJob';
-import type {ObjectHeaders, PackStore} from './packStore';
+import type {ObjectHeaders, PackStore, StoredObject} from './packStore';
 
 export interface CatalogueRow {readonly slug: string; readonly revision: number; readonly hash: string}
 /** The shape `api-server` POSTs (its `ShardfileNoticeSchema`, J30). */
@@ -203,15 +203,17 @@ export const PACK_BUDGET_BYTES = 4_000_000_000;
 /** A part younger than this may belong to a cook that hasn't written its index yet. */
 const GC_GRACE_MS = 3_600_000;
 
-export async function storeUsage(store: PackStore, budget: number): Promise<StoreUsage> {
+function usageOf(rows: readonly StoredObject[], budget: number): StoreUsage {
   const byPrefix: Record<string, {count: number; bytes: number}> = {};
   let objects = 0, bytes = 0;
-  for (const row of await store.list('')) {
+  for (const row of rows) {
     const path = row.key.split('/'), name = path.slice(0, path.length > 3 ? 3 : Math.min(2, path.length - 1)).join('/'), kept = byPrefix[name] ?? {count: 0, bytes: 0};
     kept.count++; kept.bytes += row.bytes; byPrefix[name] = kept; objects++; bytes += row.bytes;
   }
   return {objects, bytes, share: bytes / budget, byPrefix};
 }
+
+export async function storeUsage(store: PackStore, budget: number): Promise<StoreUsage> { return usageOf(await store.list(''), budget); }
 
 /** J83: keep what a kept build's index names, and delete the rest, indexes of other builds included. */
 export async function collectGarbage(store: PackStore, builds: readonly string[], budget: number, now: number, grace: number = GC_GRACE_MS): Promise<GcReport> {
@@ -270,12 +272,16 @@ export function createCookWorker(options: CookWorkerOptions): CookWorker {
   const verdicts = new Map<string, CookRow>();
   const publish = async (work: string, report: CookJobReport, hash: string): Promise<void> => {
     const client = join(work, 'out/client'), keys = filesUnder(client);
-    const fresh = (await Promise.all(keys.map(async key => ((await store.has(key)) ? 0 : statSync(join(client, key)).size)))).reduce((sum, bytes) => sum + bytes, 0);
-    const used = (await storeUsage(store, budget)).bytes;
+    const rows = await store.list(''), held = new Map(rows.map(row => [row.key, row.modified]));
+    const fresh = keys.reduce((sum, key) => sum + (held.has(key) ? 0 : statSync(join(client, key)).size), 0);
+    const used = usageOf(rows, budget).bytes;
     if (used + fresh > budget) throw new Error(`Over the pack budget: ${used} + ${fresh} of ${budget}`);
+    // CF-8: skipping a PUT keeps a part's old date, so GC could take it before this index lands. A part past half the grace
+    // is written again, which GC reads as new.
+    const current = (key: string): boolean => clock() - (held.get(key) ?? 0) < GC_GRACE_MS / 2;
     const order = (key: string): number => (key.includes('/parts/') ? 0 : key.startsWith('assets/spawn/') ? 2 : 1);
     for (const key of [...keys].sort((a, b) => order(a) - order(b))) {
-      if (!CONTENT_NAMED.test(key) || !(await store.has(key))) await store.put(key, readFileSync(join(client, key)), objectHeaders(key));
+      if (!CONTENT_NAMED.test(key) || !current(key)) await store.put(key, readFileSync(join(client, key)), objectHeaders(key));
     }
     const target = join(serverPacks, report.slug, hash), parked = `${target}.${process.pid}.tmp`;
     rmSync(parked, {recursive: true, force: true}); mkdirSync(dirname(target), {recursive: true});
