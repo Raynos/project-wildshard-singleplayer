@@ -1,8 +1,0 @@
-{
-  "version": 1,
-  "features": [
-    { "kind": "debug.expose", "name": "fixtureHarbour" },
-    { "kind": "world.scenes" },
-    { "kind": "strings.register" }
-  ]
-}
