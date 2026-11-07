@@ -13,7 +13,6 @@ import type { CrowdDraw } from '../../client/ambient/crowdDraw';
 import { PerchBodyBinding } from '../population/perchBody';
 import { pageSpeciesBehaviour } from '../population/speciesBehaviour';
 import { pageClimate } from '../weather/pageClimate';
-import { readEliteFeature } from '../quest/eliteFeature';
 
 /**
  * What the page's quest views and motion still take from the page's own sim (E6: port first, flip last). A view asks
@@ -35,8 +34,6 @@ export interface PageSimFeed {
   readonly wind: () => typeof wildEnv.wind;
   /** The page's weather and light, which its fights read (E6 COMBAT). */
   readonly wild: typeof wildEnv;
-  /** The page's fights: an elite feature's rows. */
-  readonly readEliteFeature: typeof readEliteFeature;
   readonly clientWildlifeState: typeof clientWildlifeState;
   /** The page's population, which its wildlife feature builds and lends (E6 WORLD). */
   readonly lendClientWildlife: typeof lendClientWildlife;
@@ -66,7 +63,7 @@ export const pageSimFeed: PageSimFeed = {
   installDeclaredMovers, declaredItemScriptBindings, commandSocketLift, bindQuestWorldReactions,
   climate: pageClimate, speciesBehaviour: pageSpeciesBehaviour,
   perchBody: (...args) => new PerchBodyBinding(...args), actorGroups: (...args) => new PageActorGroups(...args), wind: () => wildEnv.wind,
-  wild: wildEnv, readEliteFeature,
+  wild: wildEnv,
   clientWildlifeState, lendClientWildlife,
   bindPageGroups: (...args) => { bindPageGroups(...args); }, pageWildlife: (...args) => new PageWildlife<CrowdDraw>(...args), lendPageGrass, crowdGuardProjection, bindCrowdGuard,
   admitSpeciesProgram, bindMeleeContacts, startMeleeSecondary,

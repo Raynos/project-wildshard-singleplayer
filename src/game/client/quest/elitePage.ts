@@ -13,8 +13,14 @@ import { pageSim } from '../shardfile/clientMoverOwners';
 import { wirePage } from '../shardfile/wirePage';
 import { ELITE_TELL } from '../../shared/shardfile/wirePrompts';
 import { EliteDecisions } from '../../shared/quest/eliteDecisions';
-import { parseEliteFeature } from '@wildshard/format/eliteFeature';
+import { parseEliteFeature, type EliteFeatureRows } from '@wildshard/format/eliteFeature';
+import type { ShardProduct } from '../../shared/shardfile/shardProduct';
 
+
+/** An elite feature's rows, as a page reads them. The programme catalogue they name is the server's to check. */
+export async function readPageEliteRows(product: ShardProduct, name: string): Promise<EliteFeatureRows> {
+  return parseEliteFeature(JSON.parse(new TextDecoder().decode(await product.file(name))));
+}
 
 /** Client-only presentation over the same v1 owner as native encounters. Every authority is an existing concrete service;
  * content contributes only rows and prepared models, with no shard callback, override or reflected path. */

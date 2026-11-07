@@ -18,7 +18,7 @@ import { HeldLauncher } from '../weapons/heldLauncher';
 import { HeldFirearm } from '../plugin/heldFirearm';
 import { Bow } from '../weapons/Bow';
 import { eliteStream } from '../../shared/quest/eliteStreams';
-import { pageSim } from '../shardfile/clientMoverOwners';
+import { readPageEliteRows } from '../quest/elitePage';
 import { installRoamingCombat, type RoamingCombat } from '../combat/roamingSession';
 import { installCollectionCompendium } from '../models/collectionWall';
 import { installItemEffects } from './effects';
@@ -57,7 +57,7 @@ export async function installRangedPage(ctx: ShardContext, input: unknown): Prom
   const floor = forestPage(ctx.scope, rows.forest), slots = ctx.product.section('held/loadout');
   const rifle = weapons.get(slots.firearm.slot), bow = weapons.get(slots.bow.slot), launcher = weapons.get(slots.launcher.slot);
   if (!(rifle instanceof HeldFirearm) || !(bow instanceof Bow) || !(launcher instanceof HeldLauncher)) throw new Error('Ranged page requires declared weapon families');
-  const elites = await pageSim.readEliteFeature(ctx.product, rows.elites);
+  const elites = await readPageEliteRows(ctx.product, rows.elites);
   const random = (id: string): (() => number) => { const stream = eliteStream(elites, ctx.product.shardfile.identity.seed, 'pickup', id); return () => stream.next(); };
   runtime.hooks.wearFinish = id => {
     if (!HeldFinishes.current(ctx.manifest.slug).has(id)) return;
