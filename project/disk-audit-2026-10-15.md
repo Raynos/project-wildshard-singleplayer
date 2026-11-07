@@ -417,6 +417,46 @@ The boot purge was at **212k files**, up 45k in 4 h and closing on the 250k inve
 - **`/cores` 13 GB, two dumps:** `core.3105` (11-07 07:33) has the same `node::Abort` stack and 6.5 GB size as `core.58621`.
 - **`node-compile-cache` is regrowing:** 4.7 → 15 GB in under 11 hours since Jake deleted it. Nothing evicts it.
 
+## 15. 2026-11-07 12:15 hygiene pass: 268 GB cleared; `gen` is 98% duplicate bytes (`gen` OPEN)
+
+Lane HYGIENE, at Jake's request. Sizes are `du` figures. Free disk is 1,625 GB, which also counts the session scratchpad
+folders the coordinator cleared in the same hour.
+
+| Cleared | GB | Files |
+|---|---|---|
+| `~/.cache/wildshard/p45` | 90.5 | 1.57M |
+| `tmp/`: 2,024 stale entries, plus `flip/export` | 151 | 700k |
+| `tmp/vitest`: dead run dirs | 9.6 | 300k |
+| `node-compile-cache`, capped once | 12.4 | 202k |
+| `$TMPDIR`: 314 Vitest folders proven by their contents | 5.2 | 167k |
+
+Readings of 232 cited folders are in `tmp/keep/<name>/` (1.1 GB). Left on purpose: `p45/freeze3/tree/.git` (6.4 GB; a
+`git lg` pager on `ttys019` holds its pack, by hardlink). `$TMPDIR` keeps 91 `tmp*.ply` meshes (2 GB) and the `sides-`,
+`freeze-`, `receipts-` folders, none proven to be Wildshard's.
+
+- **`gen` is the main finding: 463 GB holds 11 GB of distinct bytes.** A build at `main` reads 238 of its 91,435 keys,
+  1.2 GB. `pine-material-sources` has 816 keys and 3 distinct outputs. The step key in
+  `src/sharddev/projectGeneration.ts:160` includes `programHash`, the shard's whole author program, so any edit in that
+  program's import closure rekeys and reruns every step, and each key stores its own full copy. The writers are the
+  per-shard build and every per-commit tree (9,425 commits since `gen` began on 10-23, d19af9d060).
+- **Nothing evicts `gen` on this Mac.** `trimGenerationCache` runs only on the hosted Linux runner
+  (`scripts/ci-product-cache.mjs:44`), and it refuses here: main's generation receipt is not current, and a mirror's
+  checkout root differs. G430 (cap 20 GB, newest 3 per job) was written for the old store and did not move with the jobs.
+- **`generate` went 354 GB → 906 MB** because K4 (a1ae66679c, 10-23) prunes it after every generation to a day and 4 GiB,
+  and its jobs moved into `gen` the same day. The bytes moved; they did not go away.
+- **Proposed rule for `gen`, nothing done yet:** (1) store each blob once, `gen/blobs/<sha256>`, with a key holding only its
+  `index.json`. Blob names are already content hashes, so hardlinking in place frees about 450 GB with no cold rebuild.
+  (2) Evict as G430 says, keeping every key a current receipt names. A hit must touch its key, since nothing updates mtime.
+  (3) Key a step on its own inputs and generator, not the whole program, which also removes most of the reruns.
+- **`node-compile-cache`:** `NODE_COMPILE_CACHE` comes from `~/.bash_profile:16` and `~/.profile:23` (G430, moved out of
+  `$TMPDIR`). Node never evicts it and files each script by absolute path: the same source at a second path adds an entry,
+  and a rerun at the same path adds none. So every fresh tree (`tmp/ci-*/trees/<sha>`, `p4p5/run*`, rehearsal rings) adds a
+  full set. `scripts/temp-janitor.mjs` now caps it at a day and 4 GiB.
+- **Test leftovers:** `push-config-*`, `sim-readiness-test-*`, `author-module-*` and the nine fixtures all clean up in a
+  `finally` or `addCleanup`. Only killed runs leak. The janitor (1d9c456852) runs from each Vitest start, at most every 10
+  minutes. `sp-*` is lane scratch made by hand, which no script owns, so it still needs a rule.
+- **`test/cook-worker.test.ts`:** fixed in 42c8182da0, a real SIGABRT with `RLIMIT_CORE` 0.
+
 ## Decisions (Jake, 2026-10-15)
 
 - **Boot-purge warning: 500,000 files.**
