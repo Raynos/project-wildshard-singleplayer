@@ -23,11 +23,10 @@ import type { ArenaScriptData } from '@wildshard/format/arenaScriptRows';
 import type { TargetHit } from '@wildshard/engine/combat/types';
 import type { AimTarget } from '@wildshard/engine/player/AimTargets';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
-import type { WeatherReactions } from '../../server/weather/reactions';
+import type { StormReading } from '../../shared/weather/feed';
 import { arenaBoundary, arenaTieWord } from '../../shared/boss/arenaAnswers';
 import { OpenArenaFight, readArenaScriptData, type ArenaRiderOwner, type OpenArenaViews } from '../../shared/boss/openArenaFight';
-import { pageSim } from '../shardfile/clientMoverOwners';
+import { pageAir } from '../population/pageAir';
 import { wirePage } from '../shardfile/wirePage';
 import { rowFightScript } from './barFeed';
 import { OWNED_ROW } from '../../shared/loot/ownedRows';
@@ -59,7 +58,7 @@ export const ArenaRoomEncounterSchema: v.GenericSchema<BoundedArenaEncounterInpu
       prewarm: v.strictObject({ kind: rowId, variant: rowId }), system: rowId, debugZ: finite }),
   program: ReturnProgramSchema,
 });
-export interface OpenArenaWorld { readonly game: Game; readonly player: Player; readonly weather: WeatherReactions; readonly air: WeatherContinuation; readonly tieSpot: Vector3 | null }
+export interface OpenArenaWorld { readonly game: Game; readonly player: Player; readonly weather: StormReading; readonly tieSpot: Vector3 | null }
 
 /** What the page lends an encounter: its lights, looks, portal and rendered reward, the riding page and the DOM's skip keys.
  *  A later host lends its own; none of these decide anything. */
@@ -138,7 +137,7 @@ export class ArenaRoomEncounter {
       // looks, the world's parts read when the fight uses them (the weather owner publishes after the arena is built)
       const world=source.world,rows=source.rows,scene=world.game.scene,page=source.page;
       const projection=this.projection=new OpenArenaFight({scope:world.game.levelScope,get weather(){return world.weather;},get tieSpot(){return world.tieSpot;},ai:page.ai,
-        fog:()=>world.game.scene.fog,get camera(){return world.game.camera;},wild:pageSim.wild,phone:page.phone},this,rows,page.openViews(scene,rows));
+        fog:()=>world.game.scene.fog,get camera(){return world.game.camera;},wild:pageAir,phone:page.phone},this,rows,page.openViews(scene,rows));
       this.spareLight=page.openLight(source.world.game.scene,source.rows.view.light.colour,new Vector3(source.rows.arena.body.x,source.rows.view.light.y,source.rows.arena.body.z));
       const spot=projection.cairnSpot();this.prompt={position:new Vector3(spot.x,spot.y+source.rows.view.promptLift,spot.z),radius:0,label:source.rows.lines.tie,onInteract:()=>undefined};
     }
@@ -215,7 +214,7 @@ export class ArenaRoomEncounter {
   }
   devStartAt(phase:number):void{
     if(this.openRows===null){this.portal?.enter(true,this.rows?.client.debugZ);this.boss?.devStartAt(phase);return;}
-    this.world.air.force(this.data.weather.storm,.1);const at=this.openFight.respawnPoint(),ctx=this.context;if(ctx!==null)this.page.respawnMounted(ctx,at.pos,at.yaw,this.data.view.respawn);this.openFight.tied=true;this.boss?.devStartAt(phase);
+    const at=this.openFight.respawnPoint(),ctx=this.context;if(ctx!==null)this.page.respawnMounted(ctx,at.pos,at.yaw,this.data.view.respawn);this.openFight.tied=true;this.boss?.devStartAt(phase);
   }
   onPlayerDeath():boolean{return this.boss?.onPlayerDeath()??false;}
   update(dt:number,t:number):void{
@@ -228,7 +227,7 @@ export class ArenaRoomEncounter {
     // the boundary answer's order is arenaBoundary's (renderer-free, CI12)
     const p=this.player.position,scope=this.context.scope;
     arenaBoundary(answer,this.data.lines,this.data.record,{boss,fight,prompt,player:p,toast:line=>{this.toast(line);},
-      wall:()=>{this.contact('wall',p,this.data.view.wallDamage,this.data.lines.wall);},clear:()=>{this.world.air.force(this.data.weather.clearing);},
+      wall:()=>{this.contact('wall',p,this.data.view.wallDamage,this.data.lines.wall);},clear:()=>undefined,
       get persistence(){return enteredAdventurePersistence(scope);}});
   }
   target(origin:Vector3,dir:Vector3,max:number,hit:TargetHit|null):TargetHit|null{return this.openFight.target(origin,dir,max,hit);}

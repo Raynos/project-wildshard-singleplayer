@@ -9,10 +9,6 @@ let installed: Promise<void> | undefined;
 export function installNalatiSpeciesFixture(): Promise<void> { return installed ??= prepare(); }
 
 async function prepare(): Promise<void> {
-  // The page's composition root fills this seat (src/pageSim.ts); a test has no such root, and a species book reads it.
-  const { installPageSim } = await import('../../src/game/client/shardfile/clientMoverOwners');
-  const { pageSimFeed } = await import('../../src/game/server/plugin/pageSimFeed');
-  installPageSim(pageSimFeed);
   const { registerSpecies } = await import('../../src/engine/shared/entities/species/registry');
   const { speciesWithLook } = await import('../../src/engine/client/entities/species/look');
   const { nalatiSpeciesCatalogue, prepareNalatiSpecies } = await import('../fake/nalatiSpecies');

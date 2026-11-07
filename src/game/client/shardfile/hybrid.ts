@@ -18,7 +18,7 @@ import { shardfileSource } from './clientSource';
 import type { ProductOptions } from './product';
 import { configureLevel, selectedLevel } from '@wildshard/engine/level/selection';
 import { reserveMapImage } from './mapImage';
-import { browserShardfileOptions, provideHybridDeclaration, runtimeProduct } from './runtimeProduct';
+import { browserShardfileOptions, provideHybridDeclaration } from './runtimeProduct';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
 import type { ShardfileClientBindings } from './client';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -104,9 +104,7 @@ export class HybridResidentWorld<T> {
       if (row.source.runtime?.binds?.includes('movers') !== true) throw new Error('Resident motion must be runtime-bound');
       const world = context.game.runtime?.world;
       if (world === undefined || world === null) throw new Error('Resident motion requires its world');
-      const assets = runtimeProduct(row.source).assets;
-      await enterMovers(context, world, row.source.movers, { systemId: row.systemId, bindings: row.rows }, value,
-        { admitted: assets.retained, read: hash => assets.read(hash) });
+      enterMovers(context, world, row.source.movers, { systemId: row.systemId, bindings: row.rows }, value);
     }
     return value;
   }

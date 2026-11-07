@@ -67,7 +67,7 @@ function run(original:boolean):{trace:unknown[];input:unknown[];ownerScope:boole
   const weather=legacyDouble<ConstructorParameters<typeof OriginalOpenArenaEncounter>[0]['weather']>({flash:0,raise:()=>undefined,stormActive:true});
   const air=legacyDouble<ConstructorParameters<typeof OriginalOpenArenaEncounter>[0]['air']>({});
   try{
-    const owner=original?new OriginalOpenArenaEncounter({...owners,weather,air,tieSpot:new Vector3()},data):new ArenaRoomEncounter({kind:'open',page:ARENA_ROOM_PAGE,world:{...owners,weather,air,tieSpot:new Vector3()},rows:data});
+    const owner=original?new OriginalOpenArenaEncounter({...owners,weather,air,tieSpot:new Vector3()},data):new ArenaRoomEncounter({kind:'open',page:ARENA_ROOM_PAGE,world:{...owners,weather,tieSpot:new Vector3()},rows:data});
     if(owner instanceof ArenaRoomEncounter)owner.bind(ctx,kit,reward,{arsenal:power,locker});else owner.bind(ctx,kit,power,reward,locker);
     if(ports===undefined)throw new Error('Missing native encounter ports');
     expect(checkpoint.mock.calls[0]?.[0]).toBe(entered);

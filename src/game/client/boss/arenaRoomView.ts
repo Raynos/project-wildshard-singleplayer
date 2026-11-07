@@ -31,10 +31,9 @@ import { buildYield } from '@wildshard/engine/core/workSlice';
 import { gpuOnlyAttributes } from '@wildshard/engine/core/gpuOnly';
 import { listenPage } from '@wildshard/engine/input/dom';
 import type { ArenaScriptData } from '@wildshard/format/arenaScriptRows';
-import type { WeatherContinuation } from '@wildshard/engine/world/weatherContinuation';
 import { TIER } from '@wildshard/engine/core/tier';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import type { WeatherReactions } from '../../server/weather/reactions';
+import type { StormReading } from '../../shared/weather/feed';
 import { ArenaFireView, ArenaWhirlsView, lendOpenArenaView } from './arenaFire';
 import { ArenaPortalLaw } from '../../shared/boss/arenaPortal';
 import { ArenaRoomGround } from '../../shared/boss/arenaGround';
@@ -490,7 +489,7 @@ async function buildOpenArenaEncounter(Encounter:typeof ArenaRoomEncounter,ports
   const product = ctx.product, game = world.game, player = world.player, sky = world.sky, root = game.scene, owner = game.levelScope;
   const read = product.json, answer = ctx.answer, point = entryOwner(scope, 'world-point', stage.anchor);
   const x = point?.x, y = point?.y, z = point?.z, weatherLoan = lateEntryOwner(scope, 'world-weather', stage.weather);
-  let weather: { readonly rig: ReturnType<typeof weatherLoan>; readonly storm: WeatherReactions; readonly air: WeatherContinuation } | undefined;
+  let weather: { readonly rig: ReturnType<typeof weatherLoan>; readonly storm: StormReading } | undefined;
   const live = (): void => {
     if (scope.disposed || scope.disposing || owner.disposed || owner.disposing) throw new Error('World arena owner left');
     if (ports.weatherContext !== ctx || ctx.scope !== scope || ctx.product !== product || product.json !== read || ctx.answer !== answer
@@ -501,11 +500,11 @@ async function buildOpenArenaEncounter(Encounter:typeof ArenaRoomEncounter,ports
   };
   const weatherOwner = (): NonNullable<typeof weather> => {
     live();
-    const rig = weatherLoan(), storm = rig.storm, air = rig.weather;
-    if (weather !== undefined && (weather.rig !== rig || weather.storm !== storm || weather.air !== air))
+    const rig = weatherLoan(), storm = rig.storm;
+    if (weather !== undefined && (weather.rig !== rig || weather.storm !== storm))
       throw new Error('World arena owners changed');
     if (storm === null) throw new Error('World arena needs its original storm');
-    weather ??= { rig, storm, air };
+    weather ??= { rig, storm };
     return weather;
   };
   const constructionLive = (): void => {
@@ -525,7 +524,7 @@ async function buildOpenArenaEncounter(Encounter:typeof ArenaRoomEncounter,ports
   // 133 ms Nalati world-hook frame at phone 4x)
   await prepareLentLooks([data.arenaFire.flameLook, data.arenaFire.smokeLook, data.geometry.body.puffs.look]); constructionLive();
   const encounter = new Encounter({kind:'open',page:ARENA_ROOM_PAGE,world:{game,player,
-    get weather() { return weatherOwner().storm; }, get air() { return weatherOwner().air; },tieSpot:point},rows:data}); constructionLive();
+    get weather() { return weatherOwner().storm; },tieSpot:point},rows:data}); constructionLive();
   ctx.answer('weather.storm-hold', held => Math.max(held, Number(encounter.engaged))); constructionLive();
   return encounter;
 }

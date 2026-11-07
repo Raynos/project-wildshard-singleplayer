@@ -88,7 +88,7 @@ export class RowBodies {
   set habitat(value: EnemyWorld) { this.enemyWorld = value; }
   /** An attack is coming from `a`, by its row: what the off-screen warning draws. */
   readonly isThreat = (a: Animal): boolean =>
-    a.alive && !a.hidden && !a.stunned && (speciesDef(a.kind).think !== undefined ? a.attackPhase >= 0 && a.attackPhase < 1 : a.state === 'charge');
+    a.alive && !a.hidden && !a.stunned && (speciesDef(a.kind).phased === true ? a.attackPhase >= 0 && a.attackPhase < 1 : a.state === 'charge');
   private readonly draw: RowBodiesDraw;
   private readonly host: RowBodiesHost;
   /** A region's own physics; omitted, the page's. */

@@ -19,7 +19,6 @@ import type { ShardProduct } from '../shardfile/shardProduct';
 import type { Mount } from '../../client/riding/mount';
 import type { ArenaBoundary } from '../../client/riding/client';
 import type { WeatherReactions } from '../../server/weather/reactions';
-import type { wildEnv } from '../../server/population/pageGroups';
 import type { ArenaFireView, ArenaWhirlsView } from '../../client/boss/arenaFire';
 import type { ArenaWhirlsSnapshot } from './arenaWhirls';
 import type { ArenaSceneView, CloudBody } from '../../client/boss/encounterView';
@@ -72,7 +71,7 @@ export interface OpenArenaViews<D extends ArenaDraw = THREE.InstancedMesh> {
 export interface OpenArenaFightWorld {
   readonly scope: Scope; readonly weather: Pick<WeatherReactions, 'stormActive' | 'flash' | 'raise'>; readonly tieSpot: THREE.Vector3 | null;
   readonly ai: () => Rng; readonly fog: () => { readonly color: THREE.Color } | null; readonly camera: ViewCamera;
-  readonly wild: Pick<typeof wildEnv, 'trample' | 'onEvent'>; readonly phone: boolean;
+  readonly wild: { readonly trample: (x: number, z: number, radius: number, strength: number, vx: number, vz: number) => void; readonly onEvent: (name: string, x: number, z: number) => void }; readonly phone: boolean;
   /** CI12: the ground's height and the steppe wind the fight reads (absent: the page's terrainHeight and steppe wind) */
   readonly ground?: (x: number, z: number) => number;
   readonly wind?: { readonly dirX: number; readonly dirZ: number; readonly speed: number };

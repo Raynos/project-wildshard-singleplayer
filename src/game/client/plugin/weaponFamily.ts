@@ -1,12 +1,12 @@
+import { BladeMoves, type BladeBody, type BladePorts } from './bladeMoves';
 import { createClientChannelView, type ClientGeometryKernels } from './clientChannelView';
 import { admitHeldRecipe } from './heldRecipe';
 import { createClientChannels, bindClientChannelInputs } from '../../shared/plugin/channels';
 import { readBorrowedOwner, type BorrowedOwnerPath } from '../../shared/plugin/borrowed';
-import { pageSim } from '../shardfile/clientMoverOwners';
 import { createClientScene, createHeldMeleeBinding, type ClientScene, type ClientScenePorts } from './scene';
 import { Object3D, BufferGeometry, Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector2, Vector3, MathUtils } from "three";
 import { blocks } from "@wildshard/engine/blocks";
-import type { ContactFamily, ContactScanTarget, ContactFamilyPorts, ContactWorldTarget, WorldContactDispatcher } from "@wildshard/engine/combat/contactWeapon";
+import type { WorldContactDispatcher } from "@wildshard/engine/combat/contactWeapon";
 import { Weapon, type WeaponState, type AimInfo } from "@wildshard/engine/combat/Weapon";
 import { Tool } from "@wildshard/engine/combat/Tool";
 import type { EquipmentRow, EquipContext } from "@wildshard/engine/combat/Equipment";
@@ -131,11 +131,11 @@ class DeclaredLantern extends Tool {
 export type HeldContactSpring = Parameters<typeof blocks.viewmodel>[0];
 /**
  * A held contact weapon (SHARD-PLATFORM SF85): the chassis a trusted family's held weapon shares over its move rows
- * (`ContactFamily`). Attack swings light, Heavy swings heavy, and a still hold (touch) fills the charge ring over
+ * (`BladeMoves`). Attack swings light, Heavy swings heavy, and a still hold (touch) fills the charge ring over
  * `chargeSeconds` and its release swings heavy at once; the model sways on the view spring; contacts go through the
  * shared melee block. A family gives its rows' runtime (`moves`), its `swing` and its view in `update` (after `stepHeld`).
  */
-export abstract class HeldContactWeapon<T extends ContactScanTarget = ContactScanTarget> extends Weapon {
+export abstract class HeldContactWeapon<T extends BladeBody = BladeBody> extends Weapon {
   override readonly state: WeaponState = { ammo: undefined, magazine: 0, reserve: 0, loaded: true, reloading: false, reloadProgress: 0, ads: false };
   override holster = 0; override enabled = true; override adsHeld = false; override aimInfo: AimInfo | null = null;
   /** told of every swing's start (heavy or light) */
@@ -144,10 +144,10 @@ export abstract class HeldContactWeapon<T extends ContactScanTarget = ContactSca
   protected readonly vm: ReturnType<typeof blocks.viewmodel>;
   protected readonly contact: ReturnType<typeof blocks.melee>;
   protected readonly spring = { yaw: 0, pitch: 0, yawVelocity: 0, pitchVelocity: 0 };
-  protected get hold(): ContactFamily<T>['hold'] { return this.moves.hold; }
+  protected get hold(): BladeMoves<T>['hold'] { return this.moves.hold; }
   protected chargeSeconds: number;
   /** the family's move rows at work */
-  protected abstract readonly moves: ContactFamily<T>;
+  protected abstract readonly moves: BladeMoves<T>;
   private readonly releaseHold = (): void => { this.moves.cooldown = 0; this.swing(true); };
   constructor(app: App, row: EquipmentRow, spring: HeldContactSpring, chargeSeconds: number) {
     super(row); this.app = app; this.chargeSeconds = chargeSeconds;
@@ -310,30 +310,28 @@ export class HeldPlayback {
 
 
 /** Owned presentation parts and the trusted contact factory; the factory retains the original source/reaction laws. */
-export interface HeldMeleePorts<T extends ContactScanTarget, P> {
+export interface HeldMeleePorts<T extends BladeBody, P> {
   readonly model: Group; readonly parts: P; readonly presentation: HeldPlayback;
   readonly nodes: ReadonlyMap<string, unknown>;
-  readonly contacts: (ports: Omit<ContactFamilyPorts<T>, 'react' | 'body'>) => ContactFamily<T>;
-  readonly targets: () => readonly T[];
+  readonly contacts: (ports: Omit<BladePorts<T>, 'react' | 'body'>) => BladeMoves<T>;
   readonly restingVisible?: boolean; readonly tip?: Vector3; readonly caughtPart?: () => Mesh;
 }
 /**
  * One page held-melee phase owner. Immediate contacts claim before sampling aim; delayed contacts sample at their
- * original landing times. Rows select the phase/channel, while ContactFamily and the existing AS owner stay authoritative.
+ * original landing times. Rows select the phase/channel, and the server stays authoritative.
  */
-export class HeldMeleeWeapon<T extends ContactScanTarget, P> extends HeldContactWeapon<T> {
+export class HeldMeleeWeapon<T extends BladeBody, P> extends HeldContactWeapon<T> {
   override readonly model: Group;
   readonly parts: P; readonly presentation: HeldPlayback;
-  protected readonly moves: ContactFamily<T>;
+  protected readonly moves: BladeMoves<T>;
   private readonly binding: ReturnType<typeof createHeldMeleeBinding>;
   private readonly ports: HeldMeleePorts<T, P>;
   private readonly observed = { phase: 1, charge: 0, spring: 0, holster: 0, stowed: 0,
     ext: 0, slack: 0, tipX: 0, tipY: 0, tipZ: 0, gripX: 0, gripY: 0, gripZ: 0, modelX: 0, modelY: 0,
     reach: 0, taut: 0, caughtX: 0, caughtY: 0, caughtZ: 0 };
   private readonly end = new Vector3();
-  private worldTargets: readonly ContactWorldTarget[] = [];
   private caughtAt: Vector3 | null = null; private caughtT = 0; private caughtMesh: Mesh | null = null;
-  private secondary: ((family: ContactFamily<T>) => number | null) | null = null;
+  private secondary: ((family: BladeMoves<T>) => number | null) | null = null;
   onGust: ((from: Vector3, dir: Vector3) => void) | null = null;
   stowed: () => boolean = () => false;
   motion: string; motionK = 1;
@@ -343,8 +341,7 @@ export class HeldMeleeWeapon<T extends ContactScanTarget, P> extends HeldContact
     if (data.mode === 'delayed' && (ports.tip === undefined || ports.caughtPart === undefined)) throw new Error('Delayed phase requires owned deformation/catch ports');
     this.binding = binding; this.ports = ports; this.model = ports.model; this.parts = ports.parts; this.presentation = ports.presentation;
     this.motion = data.phases[0].id;
-    this.moves = ports.contacts({ hit: request => this.contact.hit(request), targets: ports.targets,
-      world: () => this.worldTargets, aim: (from, dir) => this.aim(from, dir),
+    this.moves = ports.contacts({ hit: request => this.contact.hit(request), aim: (from, dir) => this.aim(from, dir),
       fired: () => { this.onFire?.(); }, struck: (id, killed) => { this.onHit?.(id, false, killed); },
       caught: caught => { if (this.moves.move === data.phases[1].move) this.catchAt(caught.at); } });
     for (let i = 0; i < data.phases.length; i++) { const phase = data.phases[i]; if (phase === undefined) throw new Error('Missing admitted primary'); const move = this.moves.row(phase.move); if (move.lane !== 'primary' || move.heavy !== (i === 1) || (data.mode === 'immediate' ? move.lands.length > 0 : move.lands.length === 0)) throw new Error('Phase crossed its contact mode or lane'); }
@@ -354,8 +351,7 @@ export class HeldMeleeWeapon<T extends ContactScanTarget, P> extends HeldContact
     if (data.rotation !== undefined) this.model.rotation.set(...data.rotation);
     if (data.scale !== undefined) this.model.scale.setScalar(data.scale);
   }
-  bindSecondary(start: (family: ContactFamily<T>) => number | null, charge: number): void { this.secondary = start; this.chargeSeconds = charge; }
-  aimAt(targets: readonly ContactWorldTarget[]): void { this.worldTargets = targets; }
+  bindSecondary(start: (family: BladeMoves<T>) => number | null, charge: number): void { this.secondary = start; this.chargeSeconds = charge; }
   /** Platform contact policy attaches to the existing immediate/delayed landing owner. */
   bindWorldTargets(owner: WorldContactDispatcher | null): void { this.moves.bindWorldTargets(owner); }
   override install(ctx: EquipContext): void {
@@ -395,11 +391,7 @@ export class HeldMeleeWeapon<T extends ContactScanTarget, P> extends HeldContact
   }
   blow(from: Vector3, dir: Vector3): number {
     const row = this.binding.row; if (row.mode !== 'immediate') throw new Error('No admitted immediate secondary');
-    this.moves.land(row.secondary.phase.move, 0, from, dir); return this.moves.touched;
-  }
-  crackWorld(from: Vector3, dir: Vector3, reach: number, second: boolean): ContactWorldTarget | null { return this.moves.crackWorld(from, dir, reach, second); }
-  strike(target: Parameters<ContactFamily<T>['strike']>[0], point: Vector3, dir: Vector3, from: Vector3, heavy: boolean, second = false): boolean {
-    return this.moves.strike(target, this.binding.row.phases[heavy ? 1 : 0].move, second ? 1 : 0, point, dir, from);
+    return this.moves.land(row.secondary.phase.move, 0, from, dir);
   }
   private play(id: string): void { this.motion = id; this.motionK = 0; }
   private catchAt(at: Vector3): void {
@@ -444,7 +436,6 @@ type PageMeleeTarget = ReturnType<App['combat']['targets']>[number];
 /** Borrowed query and owned scene ports for an admitted held melee item. */
 export interface HeldMeleeScenePorts {
   readonly presentation: HeldPlayback; readonly contacts: unknown;
-  readonly targets?: () => readonly PageMeleeTarget[];
   readonly raycast?: (from: Vector3, dir: Vector3, reach: number) => { readonly animal: Parameters<App['combat']['target']>[0]; readonly point: Vector3 } | null;
   readonly tip?: readonly [number, number, number]; readonly restingGroup?: string;
   readonly caught?: { readonly scene: Parameters<HeldPlayback['createPart']>[0]; readonly part: string };
@@ -458,8 +449,7 @@ export function createHeldMelee(app: App, row: EquipmentRow, phases: unknown, po
     ...(ports.tip === undefined ? {} : { tip: new Vector3(...ports.tip) }),
     ...(ports.restingGroup === undefined ? {} : { restingVisible: model.model?.group(ports.restingGroup) === null }),
     ...(caught === undefined ? {} : { caughtPart: () => { const mesh = model.createPart(caught.scene).mesh(caught.part); if (mesh === null) throw new Error('Declared caught part unavailable'); return mesh; } }),
-    targets: ports.targets ?? (() => app.combat.targets()),
-    contacts: bound => pageSim.bindMeleeContacts(row.id, ports.contacts, { ...bound, owner: 'env',
+    contacts: bound => new BladeMoves(row.id, ports.contacts, { ...bound,
       ...(ports.raycast === undefined ? {} : { body: (from: Vector3, dir: Vector3, reach: number) => {
         const hit = ports.raycast?.(from, dir, reach) ?? null, target = hit === null ? null : app.combat.target(hit.animal);
         return hit === null || target === null ? null : { port: target, point: hit.point };
@@ -565,7 +555,7 @@ export function createDeclaredHeldMelee(app:App,recipe:HeldMeleeRecipe,ports:Dec
   try {
     return createHeldMelee(app,recipe.equipment,ports.charge===undefined?recipe.phases:{...recipe.phases,charge:ports.charge},{
       presentation:model,contacts:ports.contacts,
-      ...(ports.targets===undefined?{}:{targets:ports.targets}),...(ports.raycast===undefined?{}:{raycast:ports.raycast}),
+      ...(ports.raycast===undefined?{}:{raycast:ports.raycast}),
       ...(recipe.tip===undefined?{}:{tip:recipe.tip}),...(recipe.restingGroup===undefined?{}:{restingGroup:recipe.restingGroup}),
       ...(recipe.caught===undefined?{}:{caught:{scene:{row:recipe.caught.row,ports:{geometry:scene.geometry}},part:recipe.caught.part}}),
     });

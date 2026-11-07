@@ -7,7 +7,6 @@ import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import type { PouncerLedge } from '@wildshard/engine/ai/stalker';
 import type { PatrolEncounterView } from './boss/encounterView';
 import type { PageWildlife } from '../server/population/wildlife';
-import type { PageWildEnvironment } from '../server/population/pageGroups';
 import type { AdventurePersistence } from '../shared/quest/persistence';
 import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import type { Game } from '@wildshard/engine/core/Game';
@@ -334,7 +333,7 @@ export interface EliteDeclaredEntryOwners<T extends CrowdTargets = CrowdTargets>
   readonly models: ReadonlyMap<string, THREE.Object3D>;
   readonly program: { readonly id: string; readonly scope: Scope; readonly value: ReturnProgram };
   readonly controllers?: readonly BorrowedElite[];
-  readonly environment: PageWildEnvironment & V2EnvironmentColumns;
+  readonly environment: EliteAir;
   readonly clock: DayCycleClock; readonly weather: { readonly stormActive: boolean };
   readonly ledges: readonly PouncerLedge[]; readonly rock: { readonly x: number; readonly z: number; readonly top: number };
   readonly patrol: PatrolEncounterView | null; readonly wildlife: PageWildlife<T> | null;
@@ -342,11 +341,13 @@ export interface EliteDeclaredEntryOwners<T extends CrowdTargets = CrowdTargets>
 }
 /** Existing entered owners lent to the effect application. None is authored
  * content, an additional body registry, clock, continuation or installer. */
+/** What an elite reads of the air, and the knockdown it deals through it. */
+type EliteAir = V2EnvironmentColumns & { readonly onKnockdown: (x: number, z: number, strength: number) => void };
 export interface ElitePageOutputLoans<T extends CrowdTargets = CrowdTargets> {
   readonly construction: Scope; readonly entered: Scope; readonly game: Game;
   readonly controllers: readonly EliteOutputController[];
   readonly patrol: PatrolEncounterView | null; readonly wildlife: PageWildlife<T> | null;
-  readonly animals: RowBodiesView; readonly environment: PageWildEnvironment;
+  readonly animals: RowBodiesView; readonly environment: EliteAir;
   readonly player: Player; readonly hud: HUD; readonly audio: Audio;
   readonly persistence: AdventurePersistence; readonly contacts: StrikeRunner;
   readonly strikes: readonly { readonly amount: number; readonly strike: StrikeData }[];

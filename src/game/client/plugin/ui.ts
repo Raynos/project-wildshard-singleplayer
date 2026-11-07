@@ -5,10 +5,8 @@ import { lightEmitterPresentation } from '../shardfile/lightEmitters';
 import { residentWorldScope } from '../shardfile/hybridPresentation';
 import { readBorrowedOwner, type BorrowedOwnerPath } from '../../shared/plugin/borrowed';
 import { createClientChannels, type ClientChannelObservation, type ClientChannelFrame } from '../../shared/plugin/channels';
-import type { MoverView, MoverRuntime, MoverRoleComposition } from '../../server/plugin/mover';
-import type { installDeclaredMovers } from '../../server/plugin/moverInstall';
-import type { declaredItemScriptBindings } from '../../server/plugin/simulation';
-import { pageSim } from '../shardfile/clientMoverOwners';
+import type { World } from '@wildshard/engine/core/bootstrap';
+import { installFollowedMovers, type FollowedMovers, type MoverView } from './followedMovers';
 import { BossRowBar } from '../boss/barFeed';
 import { easeField } from '@wildshard/engine/world/easedFields';
 import { wirePage } from '../shardfile/wirePage';
@@ -29,7 +27,7 @@ import type { Events } from '@wildshard/engine/events/events';
 import type { HudVerbs, LevelContext } from '@wildshard/engine/level/context';
 import type { MapPoi, MapQuest } from '@wildshard/engine/ui/Map';
 import type { MapMark } from '@wildshard/engine/ui/Minimap';
-import { Flags, flagValue, test as testFlags } from '@wildshard/engine/world/interact/flags';
+import { Flags, test as testFlags } from '@wildshard/engine/world/interact/flags';
 import type { BoxSpec } from '@wildshard/engine/physics/box';
 import { boxInFrame } from '@wildshard/engine/physics/boxFrame';
 import type { MoverPose } from '@wildshard/engine/physics/mover';
@@ -51,7 +49,6 @@ import { app } from '@wildshard/engine/app/runtime';
 import { CoinMotion } from '../loot/CoinMotion';
 import { DirectorBossBrain, bindDirectorActions, type DirectorActionBinding, type BoundDirectorActions } from '../../shared/plugin/director';
 import { bindRuntimeCoins, type RuntimeBoss, type RuntimeCoins } from '../../shared/plugin/runtimeRows';
-import type { SpeciesPageCatalogue } from '../../server/plugin/brain';
 import type { BossViewRows } from '../../server/shardfile/bossRow';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { npcDef, type NpcRow } from '../../shared/plugin/quests';
@@ -590,8 +587,6 @@ export function installEnteredQuestPresentation(context: ShardContext, quest: Qu
 export interface ClientMoverInstallation {
   readonly viewSystemId?: string;
   readonly socketLiftPrompts?: boolean;
-  /** Compose admitted item aliases and verified modules into the existing mover host. */
-  readonly itemRole?: NonNullable<MoverRoleComposition['declarations']>[number]['row'];
   readonly systemId: string;
   readonly permissions?: readonly { readonly mover: string; readonly flags: readonly { readonly name: string; readonly bit: number }[] }[];
 }
@@ -603,19 +598,17 @@ export function bindClientChannels(programs: readonly ClientChannelProgram[], po
   readonly kernels?: ClientGeometryKernels; readonly observed?: (id: string, frame: ClientChannelFrame) => void;
 }): {
   readonly movers: ReadonlyMap<string, MoverView>; readonly interactables: readonly Interactable[];
-  readonly runtime: MoverRuntime | null;
+  readonly runtime: FollowedMovers | null;
   /** Release borrowed view/prompt references; their geometry and materials stay caller-owned. */
   readonly dispose: () => void;
-  readonly hooks: ReturnType<ReturnType<typeof declaredItemScriptBindings>['hooks']>;
-  readonly installMovers: (ctx: LevelContext, world: Parameters<typeof installDeclaredMovers>[1], source: Shardfile, row: ClientMoverInstallation, flags: Pick<Flags, 'has'>, assets: { readonly retained: ReadonlyMap<string, Uint8Array>; readonly read: (hash: string) => Promise<Uint8Array> }, composition?: MoverRoleComposition) => Promise<MoverRuntime>;
+  readonly installMovers: (ctx: LevelContext, world: World, source: Shardfile, row: ClientMoverInstallation, flags: Pick<Flags, 'has'>) => FollowedMovers;
   readonly evaluate: (id: string, observation: ClientChannelObservation) => void;
   readonly view: (id: string) => ReturnType<typeof createClientChannelView>;
   readonly prompt: (id: string) => Interactable;
   readonly bindPrompts: (bind: Parameters<typeof createClientChannelPrompt>[1]) => void;
   readonly updateMovers: (pose?: (id: string) => MoverPose) => void;
 } {
-  let runtime: MoverRuntime | null = null, installed = false;
-  let hooks: ReturnType<ReturnType<typeof declaredItemScriptBindings>['hooks']> = new Map();
+  let runtime: FollowedMovers | null = null, installed = false;
   const owners = ports.nativeOwners ?? [];
   if (owners.length > 32 || new Set(owners).size !== owners.length) throw new Error('Invalid native mover view owners');
   const copiedOwners = ports.copiedOwners ?? [];
@@ -642,13 +635,13 @@ export function bindClientChannels(programs: readonly ClientChannelProgram[], po
   const prompts = new Map<string, ReturnType<typeof createClientChannelPrompt>>();
   let promptRows: readonly { id: string; lane: ReturnType<typeof createClientChannelPrompt> }[] = [];
   let interactables: readonly Interactable[] = Object.freeze([]), promptsBound = false;
-  const binding = Object.freeze({ movers, get runtime() { return runtime; }, get hooks() { return hooks; }, get interactables() { return interactables; },
+  const binding = Object.freeze({ movers, get runtime() { return runtime; }, get interactables() { return interactables; },
     dispose: () => {
       movers.clear(); views.clear(); prompts.clear(); pending.clear(); copiedViews.length = 0;
-      promptRows = []; interactables = Object.freeze([]); runtime = null; hooks = new Map();
+      promptRows = []; interactables = Object.freeze([]); runtime = null;
       installed = true; promptsBound = true;
     },
-    installMovers: async (ctx: LevelContext, world: Parameters<typeof installDeclaredMovers>[1], source: Shardfile, row: ClientMoverInstallation, flags: Pick<Flags, 'has'>, assets: { readonly retained: ReadonlyMap<string, Uint8Array>; readonly read: (hash: string) => Promise<Uint8Array> }, composition?: MoverRoleComposition) => {
+    installMovers: (ctx: LevelContext, world: World, source: Shardfile, row: ClientMoverInstallation, flags: Pick<Flags, 'has'>) => {
       if (installed) throw new Error('Client motion is already installed');
       const grants = row.permissions ?? [];
       if (grants.length > 32 || new Set(grants.map(grant => grant.mover)).size !== grants.length
@@ -656,20 +649,9 @@ export function bindClientChannels(programs: readonly ClientChannelProgram[], po
           || new Set(grant.flags.map(flag => flag.name)).size !== grant.flags.length
           || grant.flags.some(flag => flag.name.length === 0 || !Number.isSafeInteger(flag.bit) || flag.bit < 0 || flag.bit > 65536))) throw new Error('Invalid client mover flag grants');
       installed = true;
-      const items = row.itemRole === undefined ? undefined : pageSim.declaredItemScriptBindings(source.items, 'actor.player');
-      const modules = items === undefined ? undefined : await items.modules(hash => assets.read(hash));
-      const composed = row.itemRole === undefined || items === undefined || modules === undefined ? composition : {
-        modules: new Map([...(composition?.modules ?? []), ...modules]), roles: composition?.roles ?? [],
-        declarations: [...(composition?.declarations ?? []), { row: row.itemRole, entities: items.entities, actors: items.actors }],
-        ...(composition?.schedules === undefined ? {} : { schedules: composition.schedules }), seed: composition?.seed ?? source.identity.seed,
-      };
-      runtime = await pageSim.installDeclaredMovers(ctx, world, { data: source.movers, modules: new Map(), views: movers,
+      runtime = installFollowedMovers(ctx, world, { data: source.movers, views: movers, systemId: row.systemId,
         restoreFlags: new Set(source.movers.flatMap(mover => mover.restoreFrom !== undefined && flags.has(mover.restoreFrom.flag) ? [mover.restoreFrom.flag] : [])),
-        admitted: assets.retained, read: hash => assets.read(hash), systemId: row.systemId,
-        ...(composed === undefined ? {} : { composition: composed }),
-        permissions: () => new Map(grants.map(grant => [grant.mover, flagValue(flags, grant.flags)])),
-        onDispose: () => { runtime = null; hooks = new Map(); } });
-      hooks = items?.hooks(runtime.scriptHost) ?? new Map();
+        onDispose: () => { runtime = null; } });
       if (row.socketLiftPrompts === true) binding.bindPrompts({ socketLifts: { entryways: source.entryways, runtime: () => runtime } });
       if (row.viewSystemId !== undefined) ctx.system({ id: row.viewSystemId, phase: 'update', run: () => {
         const active = runtime;
@@ -723,7 +705,7 @@ export function bindClientChannels(programs: readonly ClientChannelProgram[], po
 /** Declarative prompt dispatch over existing named handlers and admitted lift/mover owners. */
 export interface ClientPromptBindings {
   readonly named?: ReadonlyMap<string, (spot: Interactable) => void>;
-  readonly socketLifts?: { readonly entryways: Shardfile['entryways']; readonly runtime: () => MoverRuntime | null };
+  readonly socketLifts?: { readonly entryways: Shardfile['entryways']; readonly runtime: () => FollowedMovers | null };
 }
 /** A channel-owned prompt: copied coordinates plus a separately bound real input action. */
 export function createClientChannelPrompt(input: unknown,
@@ -1156,7 +1138,7 @@ export interface PageQuestStagePorts {
   readonly actor?: (id: string) => { readonly alive: boolean } | null;
   readonly observations?: ReadonlyMap<string, () => boolean>;
   readonly bindings?: ReadonlyMap<string, readonly DirectorActionBinding[]>;
-  readonly motion?: Pick<MoverRuntime, 'atEnd'> & Partial<Pick<MoverRuntime, 'pose'>>;
+  readonly motion?: Pick<FollowedMovers, 'atEnd'> & Partial<Pick<FollowedMovers, 'pose'>>;
 }
 /** Advance a declared event stage; tick stages are registered with the page owner. */
 export interface PageQuestStages { readonly advance: (id: string) => void }
@@ -1481,7 +1463,7 @@ export class RowBossView extends BossView {
 /** Actual owners lent to the same held or spawned presentation interpreter. */
 export type DeclaredFightPorts = { readonly player: Vector3; readonly flags: Pick<Flags, 'has' | 'set'>;
   readonly facts: (name: string, actor: string) => unknown; readonly armed: boolean } & ({
-  readonly kind: 'held'; readonly held: Animal | null; readonly catalogue: SpeciesPageCatalogue | null;
+  readonly kind: 'held'; readonly held: Animal | null;
   readonly record: RowBossRecord; readonly reward: (amount: number, label: string) => void;
 } | { readonly kind: 'spawned'; readonly source: Shardfile; readonly coins?: RuntimeCoins;
   readonly body: RuntimeBoss;
@@ -1490,7 +1472,7 @@ export type DeclaredFightPorts = { readonly player: Vector3; readonly flags: Pic
 /** Bind authored boss presentation at the caller's original phase, on its
  * population's actual body/controller and original record, flags and reward. */
 export function bindDeclaredFight(ctx: ShardContext, row: BossViewRows | undefined, ports: DeclaredFightPorts): {
-  boss: RowBossView; summon: () => void; control: ReturnType<SpeciesPageCatalogue['prepareHeld']>;
+  boss: RowBossView; summon: () => void;
 } {
   if (row === undefined) throw new Error('Missing declared browser fight');
   const toast = (text: string): void => { ctx.game.runtime?.play?.hud.toast(text); };
@@ -1506,12 +1488,10 @@ export function bindDeclaredFight(ctx: ShardContext, row: BossViewRows | undefin
     again = true;
     if (ports.kind === 'held') ports.reward(row.reward, row.victory.rewardLabel ?? '');
   } };
-  let boss: RowBossView, summoned: (() => void) | undefined, control: ReturnType<SpeciesPageCatalogue['prepareHeld']> = null;
+  let boss: RowBossView, summoned: (() => void) | undefined;
   const rows = { definition: row.definition, stages: row.stages, profile: row.profile, ...(row.row === undefined ? {} : { row: row.row }) };
   if (ports.kind === 'held') {
-    control = ports.held === null ? null : ports.catalogue?.prepareHeld(ports.held.kind, ports.held) ?? null;
-    if (ports.held !== null && control === null) throw new Error('Held creature controller must be prepared by its species binding');
-    boss = new RowBossView(ctx, rows, { player: ports.player, held: ports.held, brain: control, victory, record: ports.record, ...told });
+    boss = new RowBossView(ctx, rows, { player: ports.player, held: ports.held, brain: ports.held === null ? null : { phase: 0, fighting: false, restart: () => undefined }, victory, record: ports.record, ...told });
   } else {
     if (row.record === undefined) throw new Error('Spawned presentation requires its declared record');
     const body = ports.body;
@@ -1521,5 +1501,5 @@ export function bindDeclaredFight(ctx: ShardContext, row: BossViewRows | undefin
       reward: row.reward, coins: ports.coins ?? bindRuntimeCoins(ctx, null), onDown: victory, source: ports.source, ...told });
     summoned = () => { toast(presentation.toasts.summoned); };
   }
-  return { ...installBossView(ctx, row.id, boss, ports.armed, summoned), control };
+  return installBossView(ctx, row.id, boss, ports.armed, summoned);
 }

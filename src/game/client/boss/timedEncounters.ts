@@ -12,7 +12,7 @@ import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { CueDirector } from '../audio/cueDirector';
 import { ReturnProgram } from '../../shared/population/returnProgram';
 import { PATROL_SHOT, PATROL_TEAR } from '../../shared/shardfile/wirePrompts';
-import { pageSim } from '../shardfile/clientMoverOwners';
+import { pageAir } from '../population/pageAir';
 import { wirePage } from '../shardfile/wirePage';
 import { PatrolEncounterView, SlotEncounterView, type EncounterSites } from './encounterView';
 import { SlotRowsView } from './slotRowsView';
@@ -70,7 +70,7 @@ export class TimedEncounters {
     if (this.animals !== null && riders !== undefined) this.riders.showRows(riders, this.animals.animals, dt, this.heard);
     this.riders.flyRows(dt);
     if (this.riders.arrows.inFlight > 0) wirePage.drew('arrow frame');
-    this.cues.setLight(Math.max(rows.lightFloor, pageSim.wild.light)); this.cues.update(dt);
+    this.cues.setLight(Math.max(rows.lightFloor, pageAir.light)); this.cues.update(dt);
   }
   attach(animals: RowBodiesView): void {
     this.animals = animals;

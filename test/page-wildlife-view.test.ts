@@ -5,8 +5,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import type { AnimalManager } from '../src/engine/server/entities/AnimalManager';
 import type { Animal } from '../src/engine/client/entities/AnimalView';
 import { PageWildlifeView } from '../src/game/client/population/wildlifeFeature';
-import { installPageSim } from '../src/game/client/shardfile/clientMoverOwners';
-import { pageSimFeed } from '../src/game/server/plugin/pageSimFeed';
+import { pageAir } from '../src/game/client/population/pageAir';
 import { CrowdTargets } from '../src/game/shared/shardfile/crowdRuntime';
 import { FlockBrain } from '../src/engine/shared/ai/flock';
 import { parseFlock } from '@wildshard/format/crowds';
@@ -14,7 +13,6 @@ import { NALATI_HEADLESS_ASSEMBLY as headlessAssembly } from './fixtures/nalati-
 import { lendNalatiPasture } from './fixtures/nalati-return-modules';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
-installPageSim(pageSimFeed);
 
 const source = headlessAssembly.constants.pageWildlife, kinds = source.kinds;
 const body = (kind: string, x: number, z: number, alive = true): Animal => legacyDouble<Animal>({ kind, alive, position: new Vector3(x, 0, z), speed: 0, scale: 1, yaw: 0 });
@@ -42,7 +40,7 @@ test('a page keeps the crowds it draws and reads its wild off rows, spawning nob
     expect(spawn).not.toHaveBeenCalled(); expect(view.mountables).toEqual([]); expect(view.packs).toEqual([]); expect(view.herds).toEqual([]);
     expect(view.rowGuardian(0)).toBe(near); expect(view.rowGuardian(1)).toBeNull();
     view.beginFrame(.1, { position: new Vector3(), forward: new Vector3(0, 0, -1), crouching: true }, { mounted: true });
-    expect(view.predators).toHaveLength(1); expect(view.predators[0]).toBe(wolf); expect(pageSimFeed.wild.playerCrouched).toBe(true); expect(pageSimFeed.wild.playerMounted).toBe(true);
+    expect(view.predators).toHaveLength(1); expect(view.predators[0]).toBe(wolf); expect(pageAir.playerCrouched).toBe(true); expect(pageAir.playerMounted).toBe(true);
     view.disturb(4, 4); expect(scared).toHaveBeenCalledOnce();
     view.disturb(100000, 100000); expect(scared).toHaveBeenCalledOnce();
   } finally { scope.dispose(); }

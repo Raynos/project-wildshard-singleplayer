@@ -5,7 +5,7 @@ import { parseEliteEntryPageRows } from '@wildshard/format/eliteEntryRows';
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../plugin/context';
 import { ReturnProgram } from '../../shared/population/returnProgram';
-import { pageSim } from './clientMoverOwners';
+import { pageAir } from '../population/pageAir';
 import { SceneDressing } from './sceneDressing';
 import { entryOwner, lateEntryOwner, presentEntryOwner, publishEntryOwner, type EliteEntryConstruction } from '../../shared/shardfile/entryOwners';
 
@@ -36,7 +36,7 @@ export async function installClientEliteConstruction(ctx: ShardContext, input: u
   const readWeather = () => { live(); const rig = weather(); originalWeather ??= resolveWeather();
     if (rig.sky !== originalWeather.sky || rig.storm !== originalWeather.storm || originalWeather.sky.clock !== originalWeather.clock)
       throw new Error('Elite weather owner changed'); return originalWeather; };
-  const loan: EliteEntryConstruction = {entry, rows, construction, models, program: {id: row.program, scope: construction, value: program}, environment: pageSim.wild, ledges,
+  const loan: EliteEntryConstruction = {entry, rows, construction, models, program: {id: row.program, scope: construction, value: program}, environment: pageAir, ledges,
     get clock() { return readWeather().clock; },
     get weather() { return readWeather().storm; },
     get patrol() { live(); return night().riders; }};

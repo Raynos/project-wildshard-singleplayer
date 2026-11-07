@@ -1,5 +1,6 @@
 import { app } from '@wildshard/engine/app/runtime';
-import type { ActorProjectionV2 } from '../../server/population/actorProjectionV2';
+import { ReturnProgram } from '../../shared/population/returnProgram';
+import { parseActorProjectionV2 } from '@wildshard/format/actorProjectionV2';
 import { numericCreaturePose, numericCreaturePoseFromBook } from '../../shared/plugin/channelPrograms';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { creatureFrame } from '../../shared/plugin/creatureFrame';
@@ -17,7 +18,7 @@ import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { hasSpecies, registerSpecies, speciesDef, type BoneDef, type SpeciesDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
 import { limbAnimation } from '../animation/limbView';
-import { pageSim } from '../shardfile/clientMoverOwners';
+import { pageAir } from '../population/pageAir';
 import type { Scope } from '@wildshard/engine/app/scope';
 
 /** Client-only hull projection on shared fauna or declared skeletons. The data
@@ -92,7 +93,7 @@ export class HullLookBook {
     const envelopes = new Map(book.rows.flatMap(row => row.postPose?.envelopes === undefined ? [] : [[row.postPose.alive, row.postPose.envelopes] as const]));
     const pose = (id: string, context: AnimalRigContext): void => {
       const programme = programmes.get(id); if (programme === undefined) throw new Error('Missing species pose programme');
-      const envelope = envelopes.get(id); if (envelope !== undefined) poseRidingEnvelopes(context, envelope, pageSim.wind());
+      const envelope = envelopes.get(id); if (envelope !== undefined) poseRidingEnvelopes(context, envelope, pageAir.wind);
       programme(context);
     };
     let hulls: ReturnType<typeof productRiggedHulls> | undefined;
@@ -188,9 +189,9 @@ export async function productSpeciesCatalogueSliced(product:Parameters<typeof pr
   return speciesCatalogue(book,rules,book.packedLooks(lookRows));
 }
 function speciesCatalogue(book:HullLookBook,rules:ReturnType<typeof speciesBehaviour>,packed:ReturnType<HullLookBook['packedLooks']>):SpeciesCatalogue{
-  const bodies=book.packed,rows=rules.rows,looks=packed.all.map(look=>rules.look(look));
-  const projection = (kind: string): ActorProjectionV2 => { const value = rules.projections.get(kind); if (value === undefined) throw new Error('Missing actor projection'); return value; };
-  return {rows,looks,packed,program:kind=>projection(kind).program(),prepareMemory:(kind,scope)=>projection(kind).prepareMemory(scope),preload:()=>bodies.preload(),
+  const bodies=book.packed,{rows}=rules,looks=packed.all;
+  const declared=(kind:string):unknown=>{const value=rules.programs.get(kind);if(value===undefined)throw new Error('Missing actor projection');return value;};
+  return {rows,looks,packed,program:kind=>ReturnProgram.page(declared(kind),app.levelScope??undefined),prepareMemory:(kind,scope)=>ReturnProgram.prepareMemory(declared(kind),scope),preload:()=>bodies.preload(),
     install:target=>{target.species(rows);target.speciesLook(looks);}};
 }
 
@@ -198,7 +199,7 @@ function speciesCatalogue(book:HullLookBook,rules:ReturnType<typeof speciesBehav
  *  looks' poses, the creature guest rows and the packed bodies' preload. */
 export interface SpeciesCatalogue {
   readonly rows: readonly SpeciesRow[]; readonly looks: readonly SpeciesLook[];
-  program:(kind:string)=>ReturnType<ActorProjectionV2['program']>;
+  program:(kind:string)=>ReturnProgram;
   prepareMemory:(kind:string,scope:Scope)=>boolean;
   readonly packed: ReturnType<HullLookBook['packedLooks']>;
   preload: () => Promise<void>; install: (target: Pick<EngineRows, 'species' | 'speciesLook'>) => void;
@@ -215,5 +216,9 @@ function expandCompactBodies(data:CompactSpeciesBodiesRows):unknown{
   return {file:data.file,bytes:data.bytes,bodies:data.rows.map(body=>{const skeleton=data.skeletons[body.skeleton];if(skeleton===undefined)throw new Error('Missing packed skeleton');
     return {kind:body.kind,variant:body.variant,bones:skeleton.bones,dims:skeleton.dims,fur:parts(body.fur),hard:parts(body.hard),eye:parts(body.eye)};})};
 }
-/** G600 L8: the species rows' behaviour hooks, from the page's sim (E6: they leave with it). */
-export function speciesBehaviour(book: Pick<NativeSpeciesLookBookRows, 'rows' | 'program'>): ReturnType<typeof pageSim.speciesBehaviour> { return pageSim.speciesBehaviour(book, app); }
+/** The book's species as a page draws them, and the programmes their views run. Behaviour is the server's. */
+export function speciesBehaviour(book: Pick<NativeSpeciesLookBookRows, 'rows' | 'program'>): { readonly rows: readonly SpeciesRow[]; readonly programs: ReadonlyMap<string, unknown> } {
+  const driven = (row: NativeSpeciesLookBookRows['rows'][number]): boolean => row.control !== undefined || row.projection?.step !== undefined || row.group !== undefined || row.directed !== undefined || row.guard === true || row.elite === true;
+  return { rows: book.rows.map(row => driven(row) ? { ...row.metadata, phased: true } : row.metadata),
+    programs: new Map(book.rows.flatMap(row => row.projection === undefined ? [] : [[row.metadata.kind, parseActorProjectionV2(row.projection).program] as const])) };
+}

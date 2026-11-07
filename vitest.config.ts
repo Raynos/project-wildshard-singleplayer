@@ -4,7 +4,6 @@ import { rapierAlias } from './vite/rapier';
 import { assertVitestLane, vitestMaxWorkers, vitestNodeExecArgv } from './scripts/vitest-lane';
 import { vitestTmpRoot } from './scripts/vitest-tmp';
 import { vitestModuleCache } from './scripts/vitest-module-cache';
-import { vitestPageSeat } from './scripts/vitest-page-seat';
 import { DurationSequencer } from './scripts/vitest-shard';
 import { setPriority } from 'node:os';
 
@@ -15,7 +14,7 @@ const { CI: ci, GITHUB_ACTIONS: githubActions } = process.env;
 if (!ci && !githubActions) setPriority(10);
 export default defineConfig({
   define: { __TITLE_ASSET_URLS__: readFileSync('scripts/title-assets.generated.json', 'utf8') },
-  plugins: [vitestTmpRoot(), vitestModuleCache(), vitestPageSeat()],
+  plugins: [vitestTmpRoot(), vitestModuleCache()],
   resolve: { alias: rapierAlias }, assetsInclude: ['**/*.bin', '**/*.wasm'],
   // Reuse transformed code in CI; each test still executes in its isolated worker.
   test: { execArgv: vitestNodeExecArgv(), fsModuleCache: Boolean(ci ?? githubActions), ...(maxWorkers === undefined ? {} : { maxWorkers }), testTimeout: 30_000, environment: 'node',

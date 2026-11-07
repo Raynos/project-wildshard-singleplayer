@@ -13,7 +13,8 @@ import { parseWorldTargets } from '@wildshard/format/worldTargets';
 import { parseInteractionRows } from '@wildshard/format/questInteractions';
 import { InteractionRules, installInteractionRows } from '../src/game/shared/quest/interactionRows';
 import { bindQuestPageInteractions } from '../src/game/client/plugin/ui';
-import { bindMeleeContacts, bindNativeWorldTargets, installNativeMelee, type NativeRuntimeEffect, type NativeMeleeInput } from '../src/game/server/plugin/simulation';
+import { BladeMoves } from '../src/game/client/plugin/bladeMoves';
+import { bindNativeWorldTargets, installNativeMelee, type NativeRuntimeEffect, type NativeMeleeInput } from '../src/game/server/plugin/simulation';
 import { TickEffectSchema, TickCommitSchema } from '../src/sdk/tickProtocol';
 import { WHIP_CONTACT_MOVES } from '../src/shards/sunscar-dunes/generators/rows/whipContacts';
 import { SIGNAL_MELEE_HOST } from '../src/shards/sunscar-dunes/generators/rows/nativeMelee';
@@ -37,7 +38,7 @@ const pageSource = () => ({actions:[{id:'pull-visible',interaction:'crank',after
 test('page attachment uses actual marks and aliased action presentation on the existing timed landing',()=>{
   const flags=new Flags('page-target-binding',false), bucket={visible:false}, hints:string[]=[], caught:boolean[]=[];
   const page=bindQuestPageInteractions(pageSource(),{flags,interactions:interactionRows(),visible:new Map([['bucket',bucket]]),toast:text=>{hints.push(text);}},rayTargets());
-  const family=bindMeleeContacts(whip,WHIP_CONTACT_MOVES,{owner:'env',hit:()=>null,targets:()=>[],
+  const family=new BladeMoves(whip,WHIP_CONTACT_MOVES,{hit:()=>null,fired:()=>undefined,struck:()=>undefined,
     aim:(from,dir)=>{from.set(0,1.68,0);dir.set(0,0,-1);return true;},caught:(_target,second)=>{caught.push(second);}});
   page.bindWorldTargets(family);
   family.swing(0);family.advance(.12);expect(hints).toEqual(['Pull']);expect(bucket.visible).toBe(false);
@@ -52,7 +53,7 @@ test('page binding refuses absent or ambiguously presented interactions before c
   const flags=new Flags('page-target-refusal',false), bucket={visible:false};
   const ports={flags,interactions:interactionRows(),visible:new Map([['bucket',bucket]]),toast:()=>undefined};
   const page=bindQuestPageInteractions(pageSource(),ports);
-  const family=bindMeleeContacts(whip,WHIP_CONTACT_MOVES,{owner:'env',hit:()=>null,targets:()=>[]});
+  const family=new BladeMoves(whip,WHIP_CONTACT_MOVES,{hit:()=>null,aim:()=>false,fired:()=>undefined,struck:()=>undefined,caught:()=>undefined});
   expect(()=>page.bindWorldTargets(family)).toThrow('Missing admitted world targets');
   expect(()=>bindQuestPageInteractions(pageSource(),ports,{targets:[],spots:[{id:'perch',at:[0,2,0],yaw:0}]}).bindWorldTargets(family)).toThrow('Missing admitted world targets');
   expect(()=>bindQuestPageInteractions({actions:[]},ports,rayTargets())).toThrow('Missing world target interaction');

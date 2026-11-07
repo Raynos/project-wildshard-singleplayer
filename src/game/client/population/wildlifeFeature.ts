@@ -16,7 +16,6 @@ import type { HerdBrain } from '@wildshard/engine/ai/herd';
 import type { PackBrain } from '@wildshard/engine/ai/pack';
 import type { TargetHit } from '@wildshard/engine/combat/types';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
-import { PageGroupRowsSchema } from '@wildshard/format/creatures';
 import { ProjectedMotionSample, ReturnProgram } from '../../shared/population/returnProgram';
 import { adoptClientWildlife, clientWildlifeLent, retireClientWildlife } from '../../shared/population/wildlifeOwner';
 import { pageRidingMounted } from '../../shared/riding/entered';
@@ -28,7 +27,7 @@ import { prepareForagerDraw, type ForagerDraw } from '../ambient/foragerDraw';
 import { createPageCrowds } from '../ambient/pageCrowds';
 import { fixedDraws } from '../models/fixedDraws';
 import type { ShardContext } from '../plugin/context';
-import { pageSim } from '../shardfile/clientMoverOwners';
+import { pageAir } from './pageAir';
 
 type Rows = v.InferOutput<typeof WildlifePopulationSchema>;
 type BuildStep = { kind: 'pause' } | { kind: 'foragers' } | { kind: 'crowd'; index: number; options: { x: number; z: number; count: number; seed: number; range: number } };
@@ -73,7 +72,7 @@ export class PageWildlifeView<T extends CrowdTargets = CrowdDraw> {
   }
   /** Observe before advancing declared crowds, without a per-crowd callback. */
   beginFrame(dt: number, player: { position: Vector3; forward: Vector3; crouching: boolean }, extra: { mounted?: boolean }): number {
-    const p = player.position, speed = this.motion.update(dt, p.x, p.z), length = Math.hypot(player.forward.x, player.forward.z), { wild } = pageSim;
+    const p = player.position, speed = this.motion.update(dt, p.x, p.z), length = Math.hypot(player.forward.x, player.forward.z), wild = pageAir;
     if (length > 1e-4) { wild.playerFwdX = player.forward.x / length; wild.playerFwdZ = player.forward.z / length; }
     const health = pageApp().player?.attributes;
     wild.playerCrouched = player.crouching; wild.playerMounted = extra.mounted ?? false; wild.playerHealth01 = health === undefined ? 1 : health.health / health.maxHealth;
@@ -112,7 +111,7 @@ export class PageWildlifeView<T extends CrowdTargets = CrowdDraw> {
     this.scareCrowds(x, z, disturbRadius, disturbSeconds);
   }
   /** Lightning near a crowd this page draws. */
-  scare(x: number, z: number, radius = 60): void { this.scareCrowds(x, z, radius, this.rows.relations.scareSeconds); pageSim.wild.onEvent('scare', x, z); }
+  scare(x: number, z: number, radius = 60): void { this.scareCrowds(x, z, radius, this.rows.relations.scareSeconds); pageAir.onEvent('scare', x, z); }
   private scareCrowds(x: number, z: number, radius: number, seconds: number): void {
     for (const view of this.flocks) if (this.placement.project(this.rows.relations.range, { x, z, px: view.cx, pz: view.cz, radius })['accept'] === 1) view.scare(x, z, seconds);
   }
@@ -132,14 +131,10 @@ export async function installClientWildlife(ctx: ShardContext, feature: ClientFe
   if (ctx.scope.disposed || ctx.scope.disposing || ctx.game.runtime !== runtime || runtime.world !== world) throw new Error('Wildlife owner left during wet preparation');
   const wetBlock=wetFile===undefined?undefined:{file:wetFile,bytes:await ctx.product.file(wetFile)};
   if (ctx.scope.disposed || ctx.scope.disposing || ctx.game.runtime !== runtime || runtime.world !== world) throw new Error('Wildlife owner left during wet preparation');
-  // Only programmes this population consumes, in the same two original scopes.
-  // Guest initialization stays at bindPageGroups / animalsBuilt below.
-  for (const [program, scope] of [[rows.groups.damage, ctx.scope], [rows.admission, world.game.levelScope]] as const) {
-    if (ReturnProgram.prepareMemory(program, scope)) await buildYield(scope);
-    if (ctx.scope.disposed || ctx.scope.disposing || ctx.game.runtime !== runtime || runtime.world !== world) throw new Error('Wildlife owner left during memory preparation');
-  }
-  const groups = v.parse(PageGroupRowsSchema, rows.groups), senses = ReturnProgram.page(groups.damage, ctx.scope);
-  installEnteredService(ctx, scope => { pageSim.wild.enter(scope, rows.groups, senses, wetBlock); });
+  // The one programme this population consumes: placement's, on the level.
+  if (ReturnProgram.prepareMemory(rows.admission, world.game.levelScope)) await buildYield(world.game.levelScope);
+  if (ctx.scope.disposed || ctx.scope.disposing || ctx.game.runtime !== runtime || runtime.world !== world) throw new Error('Wildlife owner left during memory preparation');
+  installEnteredService(ctx, scope => { pageAir.enter(scope, rows.groups, wetBlock); });
   const page = await ctx.product.json<SpeciesActorsFileRows>(feature.crowd.json);
   if (page.parts.length === 0 || page.parts.length !== page.pivots.length || page.radius <= 0 || page.draws.length !== 1) throw new Error('Invalid crowd body joints or bound');
   const draws = fixedDraws(ctx.product, page.draws), template = draws.handle(feature.crowd.binary);
@@ -151,13 +146,13 @@ export async function installClientWildlife(ctx: ShardContext, feature: ClientFe
   // The original animated sphere includes moving limbs; fixedDraws stays static.
   geometry.boundingSphere.radius = page.radius;
   const body = { geometry, pivots: page.pivots, parts: page.parts };
-  const predators: Animal[] = [], crowds = createPageCrowds(world.sky, world.chunk.seed, body, page.page.world, predators,world.game.levelScope);
+  const predators: Animal[] = [], crowds = createPageCrowds(world.sky, world.chunk.seed, body, page.page.world, predators);
   const foragers = rows.foragers?.view === undefined ? null : await prepareForagerDraw(ctx, rows);
   const owner: { wildlife: PageWildlifeView | null } = { wildlife: null };
   let draw: ForagerDraw | null = null;
   adoptClientWildlife(ctx.scope, owner);
   lendRidingPopulation(ctx.scope, () => {
-    const population = owner.wildlife, { wild } = pageSim;
+    const population = owner.wildlife, wild = pageAir;
     return population === null ? null : { herds: population.herds, mountables: population.mountables, predators: population.predators, wind: wild.wind,
       wetAt: (x, z) => wild.wetAt(x, z), rider: mounted => { wild.playerMounted = mounted; } };
   });
@@ -170,7 +165,7 @@ export async function installClientWildlife(ctx: ShardContext, feature: ClientFe
   const build = async (animals: RowBodiesView): Promise<void> => {
     if (ctx.scope.disposed || started) throw new Error('Wildlife animal stage is unavailable');
     started = true;
-    animals.wetAt = (x, z) => pageSim.wild.wetAt(x, z);
+    animals.wetAt = (x, z) => pageAir.wetAt(x, z);
     const population = new PageWildlifeView(animals, rows, world.game.levelScope);
     // the population's admission and its first pack take a task each: together they were one 117 ms afterKit frame of a
     // cold Nalati crossing at phone 4x (~32 ms admitting its programmes, ~59 ms the first pack)
@@ -199,7 +194,7 @@ export async function installClientWildlife(ctx: ShardContext, feature: ClientFe
       const population = owner.wildlife; if (population === null) return;
       player.forward.set(-Math.sin(world.player.yaw), 0, -Math.cos(world.player.yaw)); player.crouching = world.player.crouching;
       extra.mounted = pageRidingMounted(ctx);
-      const env = pageSim.wild; env.wind.x = wind.dirX; env.wind.z = wind.dirZ; env.wind.strength = Math.min(1, wind.speed / 10);
+      const env = pageAir; env.wind.x = wind.dirX; env.wind.z = wind.dirZ; env.wind.strength = Math.min(1, wind.speed / 10);
       const speed = population.beginFrame(dt, player, extra);
       predators.length = 0;
       for (let index = 0; index < 64; index++) { const actor = population.predators[index]; if (actor === undefined) break; predators.push(actor); }

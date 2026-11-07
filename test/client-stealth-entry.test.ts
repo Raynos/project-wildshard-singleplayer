@@ -12,7 +12,7 @@ import type { HeldClaims, HeldSlotKit } from '../src/game/client/loadout/claims'
 import type { StealthController } from '../src/game/client/stealth/controller';
 import type { PageRidingView } from '../src/game/client/riding/client';
 import type { clientWildlifeState } from '../src/game/shared/population/wildlifeOwner';
-import { wildEnv } from '../src/game/server/population/pageGroups';
+import { pageAir } from '../src/game/client/population/pageAir';
 import { bindStealthWeapons, installClientStealthEntry } from '../src/game/client/shardfile/clientStealthEntry';
 import { publishEntryOwner } from '../src/game/shared/shardfile/entryOwners';
 import { CLIENT_FEATURES } from '../src/game/client/shardfile/clientPlan';
@@ -40,7 +40,7 @@ function fixture() {
   const claims = legacyDouble<HeldClaims>({pageKit() { return kit; }});
   const stealth = legacyDouble<StealthController>({noteShot() { calls.push('shot'); scale = 4; }, sneakMultiplier() { calls.push('scale'); return scale; },
     updateSources(dt, time, owners) { expect(owners.population).toBe(population); expect(owners.riding).toBe(riding);
-      expect(owners.kit).toBe(kit); expect(owners.grass).toBe(wildEnv); calls.push(`frame:${dt}:${time}`); }});
+      expect(owners.kit).toBe(kit); expect(owners.grass).toBe(pageAir); calls.push(`frame:${dt}:${time}`); }});
   const ctx = legacyDouble<ShardContext>({scope, app, game: legacyDouble<ShardContext['game']>({runtime}),
     on(name, handler, options) { app.events.on(name, handler, scope, options); }, system(spec) { systems.push(spec); }});
   publishEntryOwner(scope, 'stealth', row.owner, stealth);
@@ -54,19 +54,19 @@ test('strict entry rows refuse executable settings, unknown fields and negative 
     expect(() => parseClientPlan({version: 1, features: [input]})).toThrow();
 });
 test('fired and impact callbacks preserve the original order and exact exclusion boundary', () => {
-  const f = fixture(), lastShot = wildEnv.lastShotT;
+  const f = fixture(), lastShot = pageAir.lastShotT;
   try {
     bindStealthWeapons(f.ctx, row, f.stealth, f.kit, f.populationOwner, f.riding);
     expect(f.bow.damageMultiplier?.(legacyDouble<TargetHit>({}))).toBe(6);
     expect(f.calls).toEqual(['previous', 'scale']); f.calls.length = 0;
     f.app.events.emit('weapon.fired', {id: 'weapon.reed'}); f.app.events.flush('update');
-    expect(f.calls).toEqual(['shot', 'melee', 'scale']); expect(f.polearm.damageScale).toBe(4); expect(wildEnv.lastShotT).toBe(f.app.clock.now);
+    expect(f.calls).toEqual(['shot', 'melee', 'scale']); expect(f.polearm.damageScale).toBe(4); expect(pageAir.lastShotT).toBe(f.app.clock.now);
     f.calls.length = 0;
     for (const x of [6.499, 6.5, 7]) { f.app.events.emit('weapon.impact', {id: 'weapon.reed', surface: 'ground', point: new Vector3(x, 0, 3)}); f.app.events.flush('update'); }
     expect(f.calls).toEqual(['disturb:6.5:3', 'ride:6.5:3', 'disturb:7:3', 'ride:7:3']);
     f.systems[0]?.run(.025, 12); expect(f.calls.at(-1)).toBe('frame:0.025:12');
     expect(f.systems[0]).toMatchObject({id: row.frame.id, phase: 'update', after: row.frame.after, before: row.frame.before});
-  } finally { f.scope.dispose(); wildEnv.lastShotT = lastShot; }
+  } finally { f.scope.dispose(); pageAir.lastShotT = lastShot; }
 });
 test('original population replacement and sliced owner retirement refuse before weapon or frame effects', () => {
   for (const retire of [false, true]) {

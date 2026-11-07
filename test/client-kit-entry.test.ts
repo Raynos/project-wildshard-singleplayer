@@ -7,11 +7,8 @@ import { CLIENT_FEATURES, admitClientPlan, installClientPhase } from '../src/gam
 import { parseClientPlan } from '@wildshard/format/clientPlan';
 import * as claims from '../src/game/client/shardfile/heldClaimsEntry';
 import * as creatures from '../src/game/client/population/productCreatures';
-import { pageSimFeed } from '../src/game/server/plugin/pageSimFeed';
-import { installPageSim } from '../src/game/client/shardfile/clientMoverOwners';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 
-installPageSim(pageSimFeed);
 
 function fixture(namedFile = true, omitLegacy?: 'economy/loot' | 'look/hull-book') {
   const source = emptyShardfile({ slug: 'kit-orchard', name: 'Orchard', author: 'Fixture', revision: 1, seed: 7 });

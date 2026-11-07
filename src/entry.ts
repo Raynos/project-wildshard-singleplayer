@@ -223,7 +223,7 @@ async function startSelected(): Promise<void> {
   // precede admission and installation, with their original refusal order.
   const [speciesModule, iconsModule, pickupsModule, pickupRowsModule, propsModule, starterModule, hoverboardModule,
     voicesModule, boarModule, familiesModule, sourceModule, runtimeModule,
-    pathsModule, prefetchModule, pageSimModule] = [
+    pathsModule, prefetchModule] = [
     import('@wildshard/game/systems/species/install'), import('@wildshard/game/icons'),
     import('@wildshard/game/models/specimenCatalogue'), import('@wildshard/game/data/pickupCatalogue'),
     import('@wildshard/game/models/interact'), import('@wildshard/game/bag/starter.generated'),
@@ -231,11 +231,11 @@ async function startSelected(): Promise<void> {
     import('@wildshard/game/systems/species/view/boar'), import('@wildshard/game/plugin/weaponFamily'),
     import('@wildshard/game/shardfile/clientSource'), import('@wildshard/game/shardfile/runtimeProduct'),
     import('@wildshard/game/boot/loadingPaths'),
-    import('@wildshard/game/grid/prefetch'), import('./pageSim'),
+    import('@wildshard/game/grid/prefetch'),
   ] as const;
   const imports = prepareBootImports(Promise.all([speciesModule, iconsModule, pickupsModule, pickupRowsModule, propsModule,
     starterModule, hoverboardModule, voicesModule, boarModule, familiesModule, sourceModule, runtimeModule,
-    gridEntryModule, pathsModule, prefetchModule, pageSimModule]));
+    gridEntryModule, pathsModule, prefetchModule]));
   // Cover the full-ALL route's five observed misses; never recycle growables.
   const [{ prepareScriptMemoryBank }, { yieldTask }, { diagnosticNow }] = await Promise.all([
     import('@wildshard/engine/script/moduleV2'), import('@wildshard/engine/core/workSlice'),

@@ -4,52 +4,19 @@
 import { afterEach, expect, test } from 'vitest';
 import { Vector3 } from 'three';
 import * as v from 'valibot';
-import { Scope } from '../src/engine/shared/app/scope';
-import { app } from '../src/engine/client/app/runtime';
+import type { Scope } from '../src/engine/shared/app/scope';
 import { RngService } from '../src/engine/shared/core/rng';
-import type { Animal } from '../src/engine/client/entities/AnimalView';
-import type { ThinkCtx } from '../src/engine/shared/entities/species/registry';
 import { EliteReadiness, type EliteProjection } from '../src/engine/shared/ai/eliteScript';
 import { EncounterPatrolSchema } from '@wildshard/format/encounterRows';
 import { bindFlatTerrain } from '@wildshard/engine/test/terrain';
-import { legacyDouble } from '@wildshard/engine/test/FakeGame';
-import { DirectedSpecies } from '../src/game/server/population/directedSpecies';
-import { DirectedLaw } from '../src/game/server/population/directedLaw';
 import { PatrolLaw } from '../src/game/shared/boss/patrolLaw';
 import { ReturnProgram } from '../src/game/shared/population/returnProgram';
-import { lendNalatiAdmission, admission } from './fixtures/nalati-admission-loan';
 import { NALATI_NIGHT as nightInput } from './fixtures/nalati-night';
 import { withWeatherWitness } from './fixtures/weatherInlineWitness';
 
 const scopes: Scope[] = [];
 let unbind = (): void => undefined;
 afterEach(() => { for (const scope of scopes.splice(0)) scope.dispose(); unbind(); });
-
-test('the directed law decides as the page binding does: state, look, motion and damage', () => {
-  const row = { signal: 'steer', clock: 'courier.clock', every: .1, target: ['guide.x', 'guide.z'], motion: ['guide.speed', 'guide.turn'],
-    speed: 3, turn: 1.8, threshold: 5, stopDistance: 1.2, look: .4, states: ['wander', 'flee'],
-    damage: { signal: 'riderDamage', player: ['eye.x', 'eye.z'], radius: 2, scale: 1.4, elite: false } };
-  const scope = new Scope('directed.law'); scopes.push(scope); lendNalatiAdmission(scope); scope.expose(app, 'levelScope', scope);
-  const page = new DirectedSpecies(row, admission, app).binding, native = new DirectedLaw(row, () => ReturnProgram.page(admission, scope)).binding;
-  const rider = (log: number[][]) => legacyDouble<Animal>({ position: new Vector3(4, 0, 8), yaw: .3, state: 'idle',
-    mem: { 'guide.x': 7, 'guide.z': 12, 'guide.speed': 6, 'eye.x': 0, 'eye.z': 0 }, lookTarget: new Vector3(), lookWeight: 0,
-    setMotion: (yaw: number, speed: number, turn?: number) => { log.push([yaw, speed, turn ?? 1]); } });
-  const a: number[][] = [], b: number[][] = [], ra = rider(a), rb = rider(b);
-  const frame = legacyDouble<ThinkCtx>({ dt: 1 / 30, t: 0, player: new Vector3(1, 2, 3) });
-  for (let f = 0; f < 300; f++) {
-    frame.t = f / 30; frame.player.set(Math.sin(f / 20) * 6, 2, Math.cos(f / 20) * 6);
-    for (const r of [ra, rb]) {
-      r.position.set(4 + Math.sin(f / 30) * 5, 0, 8 + f * .05); r.yaw = f * .01;
-      r.mem['guide.x'] = 7 + Math.cos(f / 25) * 9; r.mem['guide.z'] = 12 - f * .03;
-      if (f % 90 === 45) delete r.mem['guide.x'];
-    }
-    page.think?.(ra, frame); native.think?.(rb, frame);
-    expect([rb.state, rb.lookWeight, rb.mem['courier.clock']]).toEqual([ra.state, ra.lookWeight, ra.mem['courier.clock']]);
-    const hit = new Vector3(Math.sin(f) * 3, 0, Math.cos(f) * 3);
-    expect(native.damageMul?.(rb, hit, new Vector3())).toBe(page.damageMul?.(ra, hit, new Vector3()));
-  }
-  expect(b).toEqual(a); expect(a.length).toBeGreaterThan(50);
-});
 
 const night = withWeatherWitness(nightInput);
 const patrol = { ...v.parse(EncounterPatrolSchema, night.patrol), actors: { kind: 'orchard-watch', variant: 'scout', leader: 'warden', count: 2, herd: -2,

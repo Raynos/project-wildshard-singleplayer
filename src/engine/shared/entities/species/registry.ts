@@ -285,6 +285,8 @@ export interface SpeciesDef {
   act?: (a: Animal, ctx: ThinkCtx) => void;
   /** The species runs its own decisions on its declared cadence. */
   think?: (a: Animal, ctx: ThinkCtx) => void;
+  /** A page's row body of a kind with its own decisions: its strike reads by its attack phase, not a charge. */
+  phased?: boolean;
   /** scale the damage of a hit by where it lands: (animal, hitPoint, blow direction) → multiplier (the crab's shell: 0.5 from the front) */
   damageMul?: (a: Animal, hitPoint: THREE.Vector3, dir: THREE.Vector3, request?: DamageRequest) => number;
   /** custom rigs: seconds the corpse stays before it fades on its own (the sailor dissolves into droplets); omit = stays like any carcass */

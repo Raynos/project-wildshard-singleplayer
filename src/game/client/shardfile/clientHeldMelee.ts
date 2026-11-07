@@ -3,14 +3,12 @@ import { Mesh } from 'three';
 import { ClientHeldMeleeSchema } from '@wildshard/format/clientNative';
 import type { ShardContext } from '../plugin/context';
 import { createDeclaredHeldMelee } from '../plugin/weaponFamily';
-import { pageSim } from './clientMoverOwners';
 import { runtimeEquipment } from '../../shared/plugin/runtimeRows';
 import { resolveSceneHeld } from '../models/sceneSpecimens';
 import { productPainterLight, productPaintedImage } from '../looks/paintedLook';
 import { sceneModelSource } from './sceneSources';
 import { bindPageMelee, installPageItemContexts } from './pageItems';
 import { clientNativeBook } from './clientNativeBook';
-import { sceneMotion } from './sceneMotion';
 
 type EquipmentBuilder = NonNullable<NonNullable<ShardContext['game']['runtime']>['buildEquipment']>;
 type EquipmentTargets = Parameters<EquipmentBuilder>[0];
@@ -32,7 +30,7 @@ export function installClientHeldMelee(ctx: ShardContext, input: unknown): void 
     if (row.targets === 'raycast' && raycast === undefined) throw new Error('Held raycast requires its equipment query owner');
     const weapon = createDeclaredHeldMelee(ctx.app, recipe, { model, contacts,
       ...(charge === undefined ? {} : { charge }),
-      ...(raycast === undefined ? { targets: () => ctx.app.combat.targets().filter(target => target.hittable) } : { raycast }),
+      ...(raycast === undefined ? {} : { raycast }),
     });
     const finish = row.finish;
     if (finish !== undefined) {
@@ -67,20 +65,16 @@ export function enterClientHeldMelee(ctx: ShardContext, input: unknown): void {
   if (stowedMode !== undefined) weapon.stowed = () => ctx.app.player?.mode === stowedMode;
   installPageItemContexts(ctx, source);
   if (!row.composed) return;
-  const item = source.items.rows.find(candidate => candidate.id === row.item), channels = sceneMotion(ctx).channels;
-  const motion = sceneMotion(ctx).motion;
-  if (item?.kind !== 'weapon' || item.secondary === undefined || motion === undefined) throw new Error('Held composed action needs its admitted native lane');
-  const secondary = item.secondary, hook = channels.hooks.get(item.id), native = weapon.row;
-  if (secondary.code !== undefined && hook === undefined) throw new Error('Missing composed held hook');
+  const item = source.items.rows.find(candidate => candidate.id === row.item);
+  if (item?.kind !== 'weapon' || item.secondary === undefined) throw new Error('Held composed action needs its admitted item');
+  const secondary = item.secondary, native = weapon.row;
   bindPageMelee(ctx, source, {
     presentation: { ...(native.cues === undefined ? {} : { cues: native.cues }), ui: { touch: 'melee', lockOn: true, melee: true, tracers: false } },
     icon: name => { if (name !== native.ui.icon) throw new Error('Unknown held item icon'); return native.ui.icon; },
-    hooks: channels.hooks,
     create: (equipment, spec, ports) => {
       if (ports.contacts === undefined || ports.secondary === undefined) throw new Error('Missing admitted secondary contact');
-      const code = secondary.code;
-      weapon.bindSecondary(family => code === undefined ? family.claim(secondary.move) ? secondary.move : null
-        : pageSim.startMeleeSecondary(family, hook ?? null, { tick: motion.scriptHost.currentTick, dt: 1 / 60, action: code, move: secondary.move }), spec.charge);
+      // A secondary's start is felt here and settled by the server, whose item hook has the say (J126).
+      weapon.bindSecondary(family => family.claim(secondary.move) ? secondary.move : null, spec.charge);
       weapon.row = { ...equipment, meta: native.meta };
       return weapon;
     },

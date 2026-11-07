@@ -14,6 +14,7 @@ import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { ShardContext } from '../../client/plugin/context';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { projectedSite } from './projectedSites';
+import { stepPerchRoot } from '../../shared/population/perchRoot';
 import { ReturnProgram } from '../../shared/population/returnProgram';
 import type { SimHost } from '@wildshard/engine/sim';
 
@@ -62,22 +63,6 @@ export function bindPerchBody<A extends AnimalSim, C extends PerchBodyPorts<A>>(
       to.set(c.player.x, c.player.y + row.targetHeight, c.player.z); c.world.throwCoconut?.(from, to, a);
     }],
   ]) });
-}
-
-/** Client-independent root integration for a declared climbing/drop pose. The
- * roster invokes this on its existing body clock before numeric joint poses. */
-export function stepPerchRoot(c: AnimalRigContext, row: MixedPopulationRows['perch']['root']): void {
-  const a = c.animal, m = a.mem, dt = c.dt, height = m[row.height] ?? 0;
-  if (m[row.drop]) {
-    m[row.velocity] = (m[row.velocity] ?? 0) - row.gravity * dt; a.yOffset += (m[row.velocity] ?? 0) * dt;
-    if (a.yOffset <= 0) { a.yOffset = 0; m[row.drop] = 0; m[row.velocity] = 0; m[row.land] = row.landing; }
-  } else if (m[row.climb] && height > 0) {
-    a.yOffset = Math.min(height, a.yOffset + row.speed * dt);
-    const k = height > .01 ? a.yOffset / height : 1, bx = m[row.baseX] ?? 0, bz = m[row.baseZ] ?? 0, x = m[row.x] ?? 0, z = m[row.z] ?? 0;
-    a.position.x = bx + (x - bx) * k; a.position.z = bz + (z - bz) * k;
-    if (a.yOffset >= height - 1e-3) { m[row.climb] = 0; a.position.x = x; a.position.z = z; }
-  }
-  m[row.land] = Math.max(0, (m[row.land] ?? 0) - dt);
 }
 
 /** Bind the projection to the installed host's admitted terrain. */

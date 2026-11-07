@@ -11,7 +11,7 @@ import { sampleStealthSources, StealthCrouch, type StealthObservation, type Stea
 import type { PageWildlifeView } from '../population/wildlifeFeature';
 import type { PageRidingView } from '../riding/client';
 import type { HeldSlotKit } from '../loadout/claims';
-import type { PageWildEnvironment } from '../../server/population/pageGroups';
+import type { PageAir } from '../population/pageAir';
 import './stealth.css';
 
 /** Concrete native sources, with no copied roster or authored callback. */
@@ -19,7 +19,7 @@ export interface StealthSourcesOwners extends StealthSampleOwners {
  readonly population: Pick<PageWildlifeView, 'packs' | 'herds'> | null;
  readonly riding: PageRidingView | null;
  readonly kit: HeldSlotKit | null;
- readonly grass: Pick<PageWildEnvironment, 'grassStandingAt'>;
+ readonly grass: Pick<PageAir, 'grassStandingAt'>;
 }
 /** Client-only crouch/detection presentation. The guest owns eligibility, concealment and alert-state decisions. */
 export class StealthController {

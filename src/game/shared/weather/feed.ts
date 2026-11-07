@@ -19,8 +19,10 @@ export type StormRecord = Readonly<Record<string, number>>;
 /** A storm as a view hears it. */
 export interface StormReading {
   readonly rows: Pick<WeatherReactionRows, 'steps'>;
-  readonly stormActive: boolean; readonly flash: number;
+  readonly stormActive: boolean; flash: number;
   on: (event: string, listener: (event: StormRecord) => void) => () => void;
+  /** Raise a declared event here, for this page's eyes: its record and its listeners, as a row would. */
+  raise: (event: string, fields: Readonly<Record<string, number>>) => void;
   record: (event: string) => StormRecord;
   /** The HUD's chip and GET LOW when they changed since the last call, else null; `quiet` holds GET LOW off. */
   hud: (wind: number, quiet: boolean) => WeatherHUD | null;

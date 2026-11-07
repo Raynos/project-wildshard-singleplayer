@@ -1,14 +1,13 @@
 import { createClientChannelView } from '../plugin/clientChannelView';
 import { Vector3 } from 'three';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
-import type { MoverRuntime } from '../../server/plugin/mover';
+import type { FollowedMovers } from '../plugin/followedMovers';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { parseSceneMotion, type SceneMotion } from '@wildshard/format/sceneMotion';
 import { bindClientChannels } from '../plugin/ui';
 import { createClientChannels } from '../../shared/plugin/channels';
 import type { ShardContext } from '../plugin/context';
 import type { DeclaredPage } from '../quest/declaredPage';
-import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
 import type { SceneHandles } from './sceneHandles';
 
 type Channels = ReturnType<typeof bindClientChannels>;
@@ -25,8 +24,8 @@ export class SceneMotionBinding {
     readonly run: (flags: Flags, delta: number, time: number) => void;
   }[];
   private page: DeclaredPage | undefined;
-  private nativeMotion: MoverRuntime | undefined;
-  get motion(): MoverRuntime | undefined {
+  private nativeMotion: FollowedMovers | undefined;
+  get motion(): FollowedMovers | undefined {
     if (this.ctx.scope.disposed) throw new Error('Scene motion owner is disposed'); return this.nativeMotion;
   }
   constructor(private readonly ctx: ShardContext, readonly rows: SceneMotion, handles: SceneHandles) {
@@ -133,19 +132,11 @@ export class SceneMotionBinding {
     if (this.page !== undefined) throw new Error('Motion page is already bound'); this.page = page;
   }
   /** Install once at the normal play phase, after the original saved flag book. */
-  async install(flags: Flags): Promise<void> {
+  install(flags: Flags): void {
     if (this.nativeMotion !== undefined) throw new Error('Scene motion is already installed');
     const world = this.ctx.game.runtime?.world;
     if (world === undefined || world === null) throw new Error('Scene motion requires its native world');
-    const index = outputDescriptor(this.ctx.product.shardfile)?.index;
-    if (index === undefined) throw new Error('Scene motion requires its verified product inventory');
-    this.nativeMotion = await this.channels.installMovers(this.ctx, world, this.ctx.product.shardfile, this.rows.installation, flags, {
-      retained: new Map(), read: hash => {
-        const file = index.files.find(row => row.hash === hash);
-        if (file?.name === undefined) throw new Error('Scene motion module requires its admitted logical name');
-        return this.ctx.product.file(file.name);
-      },
-    });
+    this.nativeMotion = this.channels.installMovers(this.ctx, world, this.ctx.product.shardfile, this.rows.installation, flags);
     const frameSystemId = this.rows.installation.frameSystemId;
     if (frameSystemId !== undefined) this.ctx.system({ id: frameSystemId, phase: 'update', run: (delta, time) => {
       for (const frame of this.frames) frame.run(flags, delta, time);

@@ -1,6 +1,3 @@
-import type { ActorProjectionV2 } from '../../server/population/actorProjectionV2';
-import type { ReturnProgram } from '../../shared/population/returnProgram';
-import type { Rng } from '@wildshard/engine/core/rng';
 import { ANIMAL_STATES } from '@wildshard/engine/entities/animalStates';
 import { CrowdPresentationSchema, CrowdGuardSchema } from '@wildshard/format/crowdPresentation';
 import { FlockSchema, parseFlock } from '@wildshard/format/crowds';
@@ -13,20 +10,17 @@ import { CrowdDraw as Flock, type CrowdBody as FlockBody } from './crowdDraw';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import { productRiggedHulls } from '../looks/riggedHulls';
-import type { Scope } from '@wildshard/engine/app/scope';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
-import { pageSim } from '../shardfile/clientMoverOwners';
+import { pageAir } from '../population/pageAir';
 
 interface FlockOpts { x: number; z: number; count: number; seed: number; range?: number }
 
 /** Native observation/view bridge; sheep shaders, prey, dog identities and render-frame ordering stay G51. */
 export interface PageCrowdViews {
-  guardian: (actor: Animal, index: number, author: ReturnProgram, random: Rng) => void;
   runtime: PreparedCrowds;
   factory: (options: FlockOpts, index: number) => Flock;
   advance: (view: Flock, index: number, speed: number, player: Vector3, dt: number, time: number, step: PreparedCrowds['advance']) => void;
 }
-const stragglerPoint = new Vector3();
 
 const number = v.pipe(v.number(), v.finite());
 const PageCrowdsSchema = v.strictObject({ slug: v.string(), hull: v.nullable(v.string()),
@@ -38,20 +32,19 @@ const PageCrowdsSchema = v.strictObject({ slug: v.string(), hull: v.nullable(v.s
 /** Client-only native crowd/view roster. All placement, bounds, materials and
  * hull identities are admitted rows; it borrows the installed terrain and
  * perception authorities without an author factory or frame callback. */
-export function createPageCrowds(sky: SkyRig, seed: number, body: FlockBody, input: unknown, dogWolves: readonly Animal[] = [],scope:Scope|undefined=app.levelScope??undefined): PageCrowdViews {
+export function createPageCrowds(sky: SkyRig, seed: number, body: FlockBody, input: unknown, dogWolves: readonly Animal[] = []): PageCrowdViews {
   const data = v.parse(PageCrowdsSchema, input);
   const rows = data.rows.map(row => parseFlock({ ...row, seed: seed + row.seed }));
   if(data.guard?.projection.operations.some(operation=>operation.kind==='state'&&operation.states.some(state=>!ANIMAL_STATES.some(value=>value===state)))===true)throw new Error('Invalid crowd guardian states');
   if (data.bounds[0] >= data.bounds[1] || data.bounds[2] >= data.bounds[3]) throw new Error('Invalid crowd placement bounds');
-  let projection:ActorProjectionV2|undefined,projectionAuthor:ReturnProgram|undefined;
   const views = new Map<string, Flock>(), observations = new Map<string, CrowdObservation>();
   const runtime = prepareDeclaredCrowds(rows, { flock: row => {
     const observation: CrowdObservation = { player: new Vector3(), playerSpeed: 0, wolves: dogWolves, dog: null };
     observations.set(row.id, observation);
     return { ports: { heightAt, normalY: (x, z) => normalAt(x, z)[1],
       inBounds: (x, z, margin) => x >= data.bounds[0] + margin && x <= data.bounds[1] - margin && z >= data.bounds[2] + margin && z <= data.bounds[3] - margin,
-      wetAt: (x, z) => pageSim.wild.wetAt(x,z), playerCrouched: () => pageSim.wild.playerCrouched,
-      grassHeightAt: (x, z) => pageSim.wild.grassHeightAt(x, z), trample: (...values) => { pageSim.wild.trample(...values); }, centre: () => undefined },
+      wetAt: (x, z) => pageAir.wetAt(x,z), playerCrouched: () => pageAir.playerCrouched,
+      grassHeightAt: (x, z) => pageAir.grassHeightAt(x, z), trample: (...values) => { pageAir.trample(...values); }, centre: () => undefined },
     observe: () => observation,
     sound: (cue, x, z) => { const view=views.get(row.id);if(view!==undefined)app.events.emit('creature.sound',{cue,x,y:heightAt(x,z),z}); },
     present: (_policy, time, moved) => {
@@ -60,16 +53,7 @@ export function createPageCrowds(sky: SkyRig, seed: number, body: FlockBody, inp
     } };
   } });
   runtime.initialize();
-  return { runtime, guardian: (actor, index, author, random) => {
-    const row = rows[index], view = row === undefined ? undefined : views.get(row.id);
-    if (row === undefined || view === undefined || data.guard === undefined) throw new Error('Unbound crowd guardian');
-    if(scope===undefined)throw new Error('Missing crowd projection scope');
-    if(projectionAuthor!==undefined&&projectionAuthor!==author)throw new Error('Replaced crowd projection programme');
-    projection??=pageSim.crowdGuardProjection('crowd.guard',{program:author.declaration,step:data.guard.projection},app);
-    projectionAuthor=author;
-    pageSim.bindCrowdGuard(actor,projection,{scope,group:row.id,slot:0,identity:actor.entityId,random,
-      crowd:{owner:view,point:stragglerPoint},rosters:new Map([['threats',dogWolves]])});
-  }, factory: (options, index) => {
+  return { runtime, factory: (options, index) => {
     const row = rows[index], policy = row === undefined ? undefined : runtime.policies.get(row.id);
     if (row === undefined || policy === undefined || views.has(row.id) || row.x !== options.x || row.z !== options.z
       || row.count !== options.count || row.seed !== options.seed || row.range !== (options.range ?? 45)) throw new Error('Unbound native crowd roster');

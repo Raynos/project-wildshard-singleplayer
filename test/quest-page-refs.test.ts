@@ -6,7 +6,6 @@ import { QuestState } from '../src/engine/shared/quest/core';
 import { publishBoundQuest } from '../src/game/shared/quest/boundState';
 import { EmitterPresentation } from '../src/game/client/shardfile/lightEmitters';
 import { parseLightEmitters } from '@wildshard/format/lightEmitters';
-import type { MoverRuntime } from '../src/game/server/plugin/mover';
 import { client as SIGNAL_CLIENT_PLAN, signalProductRows } from './fixtures/sunscar-source-program';
 import { skyProductRows } from '../src/shards/far-reach/generators/product';
 import { expect, test } from 'vitest';
@@ -94,16 +93,16 @@ function nativePageFixture(input: typeof signal, questHost: typeof SIGNAL_HOST |
   const product = createShardProduct({ slug: source.identity.slug, revision: 1, shardfile: source,
     sections: new Map<string, unknown>([['world/targets', parseWorldTargets({ targets: [], spots: [] })], ['client/plan', SIGNAL_CLIENT_PLAN]]), files: new Map(),
     read: () => Promise.reject(new Error('The rule fixture declares no asset')) });
-  const toasts: string[] = [], commands: number[] = [], stages: string[] = [], interactables: Interactable[] = [];
+  const toasts: string[] = [], stages: string[] = [], interactables: Interactable[] = [];
   let up = false;
-  const motion = { command: (_id: string, command: 1 | 2 | 3) => { commands.push(command); }, atEnd: (_id: string) => up } as MoverRuntime;
+  const motion = { atEnd: (_id: string) => up, field: () => undefined };
   const ctx = { scope, product, root: new Group(),
     game: { runtime: { interactables, play: { hud: { toast: (text: string) => { toasts.push(text); } } } } } } as ShardContext;
   const emitters = new EmitterPresentation(parseLightEmitters({ version: 1, input: 'firelights', clock: 'firetime',
     rows: [...groups.keys()].map(id => ({ id, parent: id, initially: false, draws: [] })) }), handles, ctx, scope, new Map());
   const channelPrompts = new Map([['sunscar.well.prompt', { label: 'Well', position: new Vector3(), radius: 2, onInteract: () => undefined }]]);
   const bind = () => bindDeclaredPage(ctx, rows, { flags, handles, motion, channelPrompts, stages: { advance: id => { stages.push(id); } } });
-  return { scope, flags, jar, groups, commands, stages, toasts, emitters, bind, raise: () => { up = true; } };
+  return { scope, flags, jar, groups, stages, toasts, emitters, bind, raise: () => { up = true; } };
 }
 
 test('Signal typed page retains crank permissions, all waymark effects and old-save continuation', () => {
@@ -111,7 +110,7 @@ test('Signal typed page retains crank permissions, all waymark effects and old-s
   try {
     const bound = f.bind();
     expect(bound.run('well')).toBe(false); expect(f.jar.visible).toBe(true);
-    expect(bound.run('crank')).toBe(true); expect(f.commands).toEqual([1]);
+    expect(bound.run('crank')).toBe(true);
     expect(bound.run('well')).toBe(true); expect(f.jar.visible).toBe(false);
     expect(bound.run('crank')).toBe(false); expect(bound.run('well')).toBe(false);
     expect(bound.run('fire')).toBe(false);
@@ -135,9 +134,9 @@ test('Sky typed notes and winch keep both permissions and do not command a raise
   try {
     const bound = f.bind();
     expect(bound.run('notes')).toBe(true); expect(f.flags.has('far.notes')).toBe(true);
-    expect(bound.run('winch')).toBe(false); expect(f.commands).toEqual([]);
+    expect(bound.run('winch')).toBe(false);
     f.flags.set('far.roost'); f.flags.set('far.vanes');
-    expect(bound.run('winch')).toBe(true); expect(f.commands).toEqual([1]);
-    f.raise(); expect(bound.run('winch')).toBe(false); expect(f.commands).toEqual([1]);
+    expect(bound.run('winch')).toBe(true);
+    f.raise(); expect(bound.run('winch')).toBe(false);
   } finally { f.scope.dispose(); }
 });

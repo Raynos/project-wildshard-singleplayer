@@ -19,7 +19,7 @@ import { settleWeatherFields } from './weatherFields';
 
 /** The compiled quest.page feature installs the original saved quest and NPC.
  * Its entered flag book is also the motion and weather presentation authority. */
-export async function installClientQuestPage(ctx: ShardContext, input: unknown, resident: Scope): Promise<void> {
+export function installClientQuestPage(ctx: ShardContext, input: unknown, resident: Scope): void {
   const row = parseData(ClientQuestPageSchema, input), book = clientNativeBook(ctx);
   const runtime = ctx.game.runtime, world = runtime?.world;
   if (book.quest !== null || runtime === undefined || world === null || world === undefined) throw new Error('Quest page needs one actual entered world');
@@ -41,7 +41,7 @@ export async function installClientQuestPage(ctx: ShardContext, input: unknown, 
   const npcPrompts = runtime.interactables.slice(firstNpc);
   publishQuestFacts(ctx.scope, row.rows.id, quest.facts);
   if (row.progress) quest.persistence.bindProgress(runtime.play?.progress);
-  await sceneMotion(ctx).install(flags);
+  sceneMotion(ctx).install(flags);
   const motion = sceneMotion(ctx), pageRows = ctx.product.shardfile.questHost?.page;
   if (pageRows === undefined || !('version' in pageRows)) throw new Error('Saved page requires its typed interaction rows');
   book.page = bindDeclaredPage(ctx, pageRows, { flags, handles: clientSceneHandles(ctx.product, resident), motion: motion.motion,
@@ -74,23 +74,14 @@ export function finishClientQuestPage(ctx: ShardContext, input: unknown): void {
     actions.push({ action: { spawn: request.target }, run: fight.summon }); bindings.set(request.director, actions);
   }
   book.stages = bindPageQuestStages(ctx, source, { flags: quest.flags, actor: id => clientPopulationActor(ctx, id), bindings, motion: native });
-  const stages = book.stages;
   for (const endpoint of row.endpoints) {
     native.atEnd(endpoint.mover);
     if (!host.stages.some(stage => stage.row.id === endpoint.stage)) throw new Error('Unknown quest endpoint stage');
   }
-  if (row.endpoints.length > 0) ctx.system({ id: `${host.graph.step}.mover-endpoints`, phase: 'fixed.post', run: () => {
-    for (const event of native.drainEndEvents()) {
-      const endpoint = row.endpoints.find(entry => entry.mover === event.mover); if (endpoint === undefined || !event.atEnd) continue;
-      const flag = native.data.find(entry => entry.id === event.mover)?.restoreFrom?.flag;
-      const already = flag !== undefined && quest.flags.has(flag);
-      stages.advance(endpoint.stage); if (!already && endpoint.toast !== undefined) ctx.game.runtime?.play?.hud.toast(endpoint.toast);
-    }
-  } });
   const captures = new Map(Object.entries(row.capture).map(([name, steps]) => [name, steps.map(step => {
     if ('flag' in step) { if (!source.quests.flags.includes(step.flag)) throw new Error('Unknown capture flag'); return () => { quest.flags.set(step.flag); }; }
     if ('action' in step) { if (!host.page?.actions.some(action => action.id === step.action)) throw new Error('Unknown capture action'); return () => { page.run(step.action); }; }
-    if ('mover' in step) { native.atEnd(step.mover); return () => { native.command(step.mover, step.command); }; }
+    if ('mover' in step) { native.atEnd(step.mover); return () => undefined; } // the server's mover: a capture only names it
     if ('finish' in step) return quest.finished;
     if (!ctx.product.section('client/plan').features.some(feature => feature.kind === 'weather.fields')) throw new Error('Capture requires its admitted weather fields');
     return () => { settleWeatherFields(source.identity.slug, quest.flags.all); };

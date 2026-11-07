@@ -25,7 +25,7 @@ export function installClientBossFight(ctx: ShardContext, input: unknown): void 
     const record = quest.persistence.boss;
     if (record === null || book.population === null) throw new Error('Held encounter requires its actual body and saved record');
     book.fight = bindDeclaredFight(ctx, definition, { ...common, kind: 'held', held: clientPopulationActor(ctx, owner.actor),
-      catalogue: book.catalogue, reward: quest.reward.spawn, record: { saved: record.read(), persist: record.write, read: record.read } });
+      reward: quest.reward.spawn, record: { saved: record.read(), persist: record.write, read: record.read } });
   } else {
     const names = owner.record;
     const telegraph = ctx.product.section('client/plan').features.find(feature => feature.kind === 'boss.telegraph' && feature.actor === owner.actor);

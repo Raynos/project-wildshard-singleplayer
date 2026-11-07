@@ -3,7 +3,7 @@ import type { ClientFeatureRow } from '@wildshard/format/clientPlan';
 import type { ShardContext } from '../plugin/context';
 import type { HeldSlotKit } from '../loadout/claims';
 import { clientWildlifeState } from '../../shared/population/wildlifeOwner';
-import { pageSim } from './clientMoverOwners';
+import { pageAir } from '../population/pageAir';
 import { enterClientRiding, type PageRidingView } from '../riding/client';
 import { StealthController } from '../stealth/controller';
 import { entryOwner, presentEntryOwner, publishEntryOwner } from '../../shared/shardfile/entryOwners';
@@ -37,7 +37,7 @@ export function bindStealthWeapons(ctx: ShardContext, row: EntryRows, stealth: S
   bow.damageMultiplier = multiplier;
   scope.onDispose(() => { if (bow.damageMultiplier === multiplier) bow.damageMultiplier = previous; });
   ctx.on('weapon.fired', () => {
-    valid(); stealth.noteShot(); kit.polearm(row.melee).damageScale = stealth.sneakMultiplier(); pageSim.wild.lastShotT = ctx.app.clock.now;
+    valid(); stealth.noteShot(); kit.polearm(row.melee).damageScale = stealth.sneakMultiplier(); pageAir.lastShotT = ctx.app.clock.now;
   });
   ctx.on('weapon.impact', ({point}) => {
     valid();
@@ -45,7 +45,7 @@ export function bindStealthWeapons(ctx: ShardContext, row: EntryRows, stealth: S
     population.disturb(point.x, point.z); riding.noteShot(point.x, point.z);
   });
   ctx.system({id: row.frame.id, phase: 'update', after: [...row.frame.after], before: [...row.frame.before], run: (dt, time) => {
-    valid(); stealth.updateSources(dt, time, {population, riding, kit, grass: pageSim.wild});
+    valid(); stealth.updateSources(dt, time, {population, riding, kit, grass: pageAir});
   }});
 }
 

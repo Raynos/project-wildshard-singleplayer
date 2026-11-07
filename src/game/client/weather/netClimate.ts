@@ -39,6 +39,12 @@ class NetStorm implements StormReading {
   }
   get stormActive(): boolean { return this.rows.active.includes(this.weather.state); }
   get flash(): number { return this.weather.registers[this.rows.flash] ?? 0; }
+  set flash(value: number) { this.weather.registers[this.rows.flash] = value; }
+  raise(event: string, fields: Readonly<Record<string, number>>): void {
+    const row = this.records.get(event); if (row === undefined) throw new Error(`Undeclared weather reaction: ${event}`);
+    Object.assign(row.record, fields); row.record['age'] = 0;
+    for (const listener of this.listeners.get(event) ?? []) listener(row.record);
+  }
   on(event: string, listener: (event: StormRecord) => void): () => void {
     const set = this.listeners.get(event) ?? new Set(); set.add(listener); this.listeners.set(event, set);
     return () => { set.delete(listener); };

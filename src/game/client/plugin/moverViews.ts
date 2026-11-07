@@ -1,6 +1,6 @@
 /**
  * The view half of declared movers (E6): binding a shard's rendered groups and native chains to the poses a mover
- * publishes. A page feeds these views from its own MoverRuntime; `NetMovers` feeds the same views off `script` rows.
+ * publishes. `NetMovers` feeds these views off `script` rows.
  */
 import * as v from 'valibot';
 import type { Object3D } from 'three';
@@ -11,8 +11,7 @@ import type { PredictedMover } from '@wildshard/engine/net/predictionWorld';
 import type { MoverPose } from '@wildshard/engine/physics/mover';
 import { RopeChain } from '@wildshard/engine/physics/ropeChain';
 import type { MoverData } from '@wildshard/format/movers';
-import type { MoverInstallation, MoverRuntime, MoverView } from '../../server/plugin/mover';
-import { pageSim } from '../shardfile/clientMoverOwners';
+import { installFollowedMovers, type FollowedMoverInstallation, type FollowedMovers, type MoverView } from './followedMovers';
 
 /** One authored binding of a mover to a rendered group or a native chain of the constructed world. */
 export interface BorrowedMoverRow {
@@ -61,9 +60,9 @@ export function borrowedMoverViews(data: MoverData, input: readonly BorrowedMove
  * lends actual flags/prompts/assets; the page's mover host retains the fixed-step owner. */
 export function enterMovers(ctx: LevelContext, world: World, data: MoverData,
     rows: { readonly systemId: string; readonly bindings: readonly BorrowedMoverRow[] }, targets: unknown,
-    ports: Pick<MoverInstallation, 'flags' | 'prompts' | 'admitted' | 'read'> = {}): Promise<MoverRuntime> {
+    ports: Pick<FollowedMoverInstallation, 'prompts'> = {}): FollowedMovers {
   v.parse(v.strictObject({ systemId: v.pipe(v.string(), v.minLength(1), v.maxLength(128)), bindings: v.unknown() }), rows);
-  return pageSim.installDeclaredMovers(ctx, world, { ...ports, data, modules: new Map(), systemId: rows.systemId, views: borrowedMoverViews(data, rows.bindings, targets) });
+  return installFollowedMovers(ctx, world, { ...ports, data, systemId: rows.systemId, views: borrowedMoverViews(data, rows.bindings, targets), restoreFlags: new Set() });
 }
 
 /** A deck this near the feet, or under them, stands in the present and not at render time. A far one costs a step nothing. */

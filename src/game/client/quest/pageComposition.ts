@@ -31,7 +31,7 @@ import { ITEMS, isItemId } from '../../shared/bag/itemCatalog';
 import type { ItemId } from '../Inventory';
 import type { ShardContext } from '../plugin/context';
 import { QuestViews, bindQuestPageInteractions, enterPageMovers, type QuestPageInteractions } from '../plugin/ui';
-import type { MoverRuntime } from '../../server/plugin/mover';
+import type { FollowedMovers } from '../plugin/followedMovers';
 import type { DialogueBox } from '@wildshard/engine/quest/view/ui';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { prepareQuestEntry, buildQuestChapter, type QuestChapter } from './chapter';
@@ -69,7 +69,7 @@ export interface QuestPageComposition {
   readonly facets: {
     achievements: Awaited<ReturnType<Awaited<ReturnType<typeof prepareQuestEntry>>['achievements']>> | null;
     people: Awaited<ReturnType<Awaited<ReturnType<typeof prepareQuestEntry>>['talks']>>['people'];
-    cable: QuestCableView | null; motion: MoverRuntime | null; director: Awaited<ReturnType<typeof readChapterDirector>> | null;
+    cable: QuestCableView | null; motion: FollowedMovers | null; director: Awaited<ReturnType<typeof readChapterDirector>> | null;
     board: ReturnType<Awaited<ReturnType<typeof prepareQuestEntry>>['board']> | null;
     shop: ReturnType<typeof installQuestShop> | null;
     readonly pages: ReadonlyMap<string, QuestPageInteractions>;
@@ -266,12 +266,12 @@ export async function installQuestPageComposition(ctx: ShardContext, input: Ques
     adventure.zipline = { ...cable, placed: cable.placed, a: scenes.vector(ends.a), b: scenes.vector(ends.b) };
     setAnchor(ends.publish, { x: scenes.vector(ends.anchor).x, z: scenes.vector(ends.anchor).z });
   }
-  const mover = rows.mover === undefined ? null : await installPageMover(ctx, rows.mover, { scenes, flags, sfx: kit.sfx, enter: enterPageMovers });
-  facets.motion = mover?.motion ?? null;
+  const mover = rows.mover === undefined ? null : installPageMover(ctx, rows.mover, { scenes, enter: enterPageMovers });
+  facets.motion = mover;
   const director = facets.director = rows.files.director === undefined ? null : await readChapterDirector(ctx, rows.files.director);
   if (director !== null) { ui.retainRoot(director.caption.root, () => { director.caption.show(false); }); scope.onDispose(() => { director.caption.root.remove(); }); }
   update((dt, t) => {
-    talks.update(dt, t, world.player.position); mover?.update(); director?.update(dt);
+    talks.update(dt, t, world.player.position); director?.update(dt);
     if (!practiceRoom.open) chapter.chip.update(t, world.player);
   }, rows.systems.talks);
   update(cable.update, rows.systems.cable);

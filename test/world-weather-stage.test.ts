@@ -17,7 +17,6 @@ import { emptyShardfile } from '../src/sharddev/author';
 import { ClientChannels } from '../src/sharddev/clientChannels';
 import { parseClientChannels } from '@wildshard/format/clientChannels';
 import { DayCycle } from '../src/engine/shared/world/dayCycle';
-import { WeatherContinuation } from '../src/engine/shared/world/weatherContinuation';
 import { lendLooks } from '../src/game/client/shardfile/lentLooks';
 import { Events } from '../src/engine/shared/events/events';
 import type { WeatherHUD } from '../src/engine/client/ui/HUD';
@@ -186,10 +185,10 @@ test('real clocked weather runs through play rank40 with the same rig, clock and
   try {
     await CLIENT_FEATURES['weather.forest'].install(f.ctx, row, f.scope);
     const rig = entryOwner(f.scope, 'world-weather', row.owner), entered = f.scope.child('weather-entry');
-    expect(rig.sky?.clock).toBeInstanceOf(DayCycle); expect(rig.weather).toBeInstanceOf(WeatherContinuation);
+    expect(rig.sky?.clock).toBeInstanceOf(DayCycle); expect(rig.weather.state).toBeTypeOf('string');
     expect(rig.sky?.clock.phase).toBe(.5); expect(entryOwner(f.scope, 'object', row.owner)).toBe(rig.group);
     expect(f.exposed.get(policy.debug)).toMatchObject({ clock: rig.sky?.clock, weather: rig.weather, group: rig.group });
-    expect(f.registrations).toEqual(['weather.clock', policy.system.id]);
+    expect(f.registrations).toEqual([policy.system.id]);
     expect(f.trace).toEqual([`read ${row.file}`, 'read weather/sky.json', `read ${policy.files.program}`]);
     lendEntryOwner(entered, f.scope, 'world-weather', row.owner); expect(entryOwner(entered, 'world-weather', row.owner)).toBe(rig);
     entered.dispose(); expect(entryOwner(f.scope, 'world-weather', row.owner)).toBe(rig);

@@ -60,7 +60,6 @@ test('declared wildlife waits for animals, owns one frame and retires its hook',
     expect(body.geometry.boundingSphere?.radius).toBe(metadata.radius);
     expect(body.pivots).toEqual(metadata.pivots);expect(body.parts).toEqual(metadata.parts);
     const disposed=vi.spyOn(body.geometry,'dispose');
-    expect(vi.mocked(crowdPage.createPageCrowds).mock.calls[0]?.[5]).toBe(scope);
     application.events.answer('combat.targets.ray',value=>{hits.push('night');return value;},scope);
     application.events.answer('combat.targets.ray',value=>{hits.push('titan');return value;},scope);
     application.events.ask('combat.targets.ray',request);expect(hits).toEqual(['prior','night','titan']);hits.length=0;

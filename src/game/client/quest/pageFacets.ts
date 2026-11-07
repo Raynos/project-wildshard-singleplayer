@@ -1,13 +1,11 @@
 /** A quest page's optional facets (G565): its ridden mover, its collections and its full map, each from admitted rows. */
-import * as THREE from 'three';
 import * as v from 'valibot';
 import { QuestPageCollectionsSchema, QuestPageMapSchema, QuestPageMoverSchema } from '@wildshard/format/questPageFacets';
-import type { InteractSfx } from '@wildshard/engine/audio/interactSfx';
 import type { StingName } from '@wildshard/engine/audio/Music';
 import { INTERACT_SOUNDS } from '@wildshard/engine/audio/gen';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { InteractEvent } from '@wildshard/engine/world/interact/Interactables';
-import type { MoverRuntime } from '../../server/plugin/mover';
+import type { FollowedMovers } from '../plugin/followedMovers';
 import type { enterMovers } from '../plugin/moverViews';
 import type { ShardContext } from '../plugin/context';
 import type { SceneHandles } from '../shardfile/sceneHandles';
@@ -20,29 +18,12 @@ function entered(ctx: ShardContext) {
   return { runtime, world, play };
 }
 
-/** Enter the page's declared mover on its scene mesh; `update` (the page's quest system) presents each ride transition:
- *  the held weapons stow while riding, the rest stand-in hides while the mover is away, boarding sounds, hints toast. */
-export async function installPageMover(ctx: ShardContext, input: unknown, ports: { readonly scenes: SceneHandles; readonly flags: Flags;
-  readonly sfx: Pick<InteractSfx, 'interact'>; readonly enter: typeof enterMovers }): Promise<{ readonly motion: MoverRuntime; readonly update: () => void }> {
-  const rows = v.parse(QuestPageMoverSchema, input), { runtime, world, play } = entered(ctx);
-  const board = INTERACT_SOUNDS.find(sound => sound === rows.board.sound);
-  if (board === undefined) throw new Error(`Unknown mover boarding sound: ${rows.board.sound}`);
-  const motion = await ports.enter(ctx, world, ctx.product.shardfile.movers, rows.binding,
-    { [rows.target]: { group: ports.scenes.mesh(rows.mesh) } }, { flags: ports.flags, prompts: runtime.interactables });
-  const update = (): void => {
-    for (const event of motion.takeRideTransitions(rows.id)) {
-      play.weapons.visible = !event.riding; play.weapons.setEnabled(!event.riding);
-      const rest = ports.scenes.object(rows.rest);
-      if (event.riding) rest.visible = false;
-      if (event.arrived === -1) rest.visible = true;
-      if (event.riding) {
-        const at = motion.data.find(row => row.id === rows.id)?.at; if (at === undefined) throw new Error('Missing mover rest pose');
-        ports.sfx.interact(board, new THREE.Vector3(at.x, at.y, at.z), { gain: rows.board.gain });
-      }
-      if (event.hint !== undefined) play.hud.toast(event.hint);
-    }
-  };
-  return { motion, update };
+/** Enter the page's declared mover on its scene mesh. */
+export function installPageMover(ctx: ShardContext, input: unknown, ports: { readonly scenes: SceneHandles; readonly enter: typeof enterMovers }): FollowedMovers {
+  const rows = v.parse(QuestPageMoverSchema, input), { runtime, world } = entered(ctx);
+  if (!INTERACT_SOUNDS.some(sound => sound === rows.board.sound)) throw new Error(`Unknown mover boarding sound: ${rows.board.sound}`);
+  return ports.enter(ctx, world, ctx.product.shardfile.movers, rows.binding,
+    { [rows.target]: { group: ports.scenes.mesh(rows.mesh) } }, { prompts: runtime.interactables });
 }
 
 /** The page kit's calls for its collections: each event shows the count chip, each complete event runs its page action

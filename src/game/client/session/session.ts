@@ -1,5 +1,5 @@
 import { bagMenu } from '../bag/tabs';
-import { wirePageSim } from '../shardfile/clientMoverOwners';
+import { wirePage } from '../shardfile/wirePage';
 import * as THREE from 'three';
 import { type LevelSequence, bootLevel } from '@wildshard/engine/boot';
 import { retried } from '@wildshard/engine/boot/retry';
@@ -122,7 +122,7 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts, optio
 }
 
 async function buildSession(manifest: ShardManifest, stage: LoadStage, kit: KitPorts, session: SessionState): Promise<BuiltWorld> {
-  wirePageSim(); // J130: before anything this session installs reads the page's sim
+  wirePage.followBooks(); // J130: before anything this session installs reads a book
   const boot: StagedBoot = { handoff: null, items: new Map(), featTotal: undefined, skins: [],
     runtime: { world: null, step: null, play: null, interactables: [], overhead: [], objects: {}, hooks: {}, viewer: () => new THREE.Vector3(), horizonVeil: null },
     progress: { set: () => undefined, detail: () => undefined }, worldHook: (work) => work() };

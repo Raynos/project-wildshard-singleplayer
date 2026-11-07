@@ -3,7 +3,7 @@ import { test, type Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { parseDeclaredQuestPage } from '@wildshard/format/declaredQuestPage';
 import type { ShardContext } from '../plugin/context';
-import type { MoverRuntime } from '../../server/plugin/mover';
+import type { FollowedMovers } from '../plugin/followedMovers';
 import type { SceneHandles } from '../shardfile/sceneHandles';
 import { WorldTargetHost, type WorldTargetLanding } from '../../shared/shardfile/worldTargets';
 import { InteractionRules } from '../../shared/quest/interactionRows';
@@ -18,7 +18,7 @@ import type { PageQuestStages } from '../plugin/ui';
 interface PageResources {
   readonly flags: Flags;
   readonly handles: SceneHandles;
-  readonly motion?: MoverRuntime | undefined;
+  readonly motion?: Pick<FollowedMovers, 'atEnd' | 'field'> | undefined;
   readonly channelPrompts: ReadonlyMap<string, Interactable>;
   readonly stages?: PageQuestStages | undefined;
 }
@@ -54,7 +54,7 @@ export function bindDeclaredPage(ctx: ShardContext, input: unknown, resources: P
     return [row.id, () => {
       const motion = resources.motion;
       if (motion === undefined) throw new Error('Quest mover observation requires its entered native owner');
-      return ref.state === 'at-end' ? motion.atEnd(ref.mover) : motion.scriptHost.world.entity(mover.entity)?.fields[6] === 1;
+      return ref.state === 'at-end' ? motion.atEnd(ref.mover) : motion.field(mover.id, 6) === 1;
     }] as const;
   }));
   const state = { has: (id: string): boolean => observations.get(id)?.() ?? rules.has(id) };
@@ -143,7 +143,7 @@ interface QuestEffectScene {
   readonly handles: SceneHandles;
   readonly prompts: ReadonlyMap<string, Interactable>;
   readonly rules: InteractionRules;
-  readonly motion?: MoverRuntime | undefined;
+  readonly motion?: Pick<FollowedMovers, 'atEnd' | 'field'> | undefined;
 }
 
 /** Compile client-only effects against the original owners. Every id resolves before
@@ -169,10 +169,7 @@ function compileQuestEffects(ctx: Pick<ShardContext, 'scope' | 'game' | 'product
         if (!ctx.product.shardfile.movers.some(row => row.id === effect.id)) throw new Error(`Missing quest mover ${effect.id}`);
         const command = effect.command;
         if (command !== 1 && command !== 2 && command !== 3) throw new Error('Invalid quest mover command');
-        return (): void => {
-          const motion = scene.motion; if (motion === undefined) throw new Error('Quest mover has not entered play');
-          motion.command(effect.id, command);
-        };
+        return (): void => undefined; // a mover is the server's: a press went up by its row, and its rows come back
       }
       case 'emitter': {
         const emitters = lightEmitterPresentation(residentWorldScope(ctx), ctx.product.slug);

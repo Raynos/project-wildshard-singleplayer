@@ -235,7 +235,6 @@
     "./plugin/geometry": "./client/plugin/geometry.ts",
     "./plugin/quests": "./shared/plugin/quests.ts",
     "./plugin/weaponFamily": "./client/plugin/weaponFamily.ts",
-    "./plugin/pageSimFeed": "./server/plugin/pageSimFeed.ts",
     "./shard/discovery": "./client/shard/discovery.ts",
     "./shardfile/clientMoverOwners": "./client/shardfile/clientMoverOwners.ts",
     "./plugin/heldFirearm": "./client/plugin/heldFirearm.ts",

@@ -124,7 +124,6 @@ function selectedEntry(admissionFailure?: Error, packs = false) {
     '@wildshard/game/shardfile/runtimeProduct': {browserShardfileOptions: () => ({})},
     '@wildshard/game/boot/loadingPaths': {loadingPath: noop},
     '@wildshard/game/grid/prefetch': {gridPrefetchStatus: noop},
-    './pageSim': {},
     '@wildshard/engine/script/moduleV2': {prepareScriptMemoryBank: async () => {
       events.push('memory:start'); memoryStarted.finish(); await memory.ready; events.push('memory:end');
     }},
