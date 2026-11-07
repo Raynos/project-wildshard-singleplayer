@@ -23,7 +23,6 @@ import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
 import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
 import { pickPrompt } from '@wildshard/engine/world/interact/prompts';
 import { renderCount } from '@wildshard/engine/render/frameCounter';
-import * as v from 'valibot';
 import { playerModes } from '@wildshard/engine/player/modes';
 import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
 import { macrotask } from '@wildshard/engine/boot/plan';
@@ -45,7 +44,7 @@ import { mountDeclaredUi } from '../shard/declaredUi';
 import { createQuestScriptPorts } from '../../shared/quest/declared';
 import type { ClientScriptViewTarget } from "../plugin/ui";
 import { instanceSave } from '../../shared/instanceSaves';
-import { Ledger, installLedgerEmitter, type LedgerCatalogueItem, type LedgerEmitter } from '../../shared/ledger';
+import { Ledger, type LedgerCatalogueItem } from '../../shared/ledger';
 import { EmptyEquipment } from './emptyEquipment';
 import type { ResidencyAllocator } from '../../shared/grid/allocator';
 import type { PageResidency, HomeResidencyClaim } from '../grid/pageResidency';
@@ -125,8 +124,6 @@ export interface ShardfileClientBindings {
   /** Production handoff after restoration; checkpoint confirms ledger, coins, encounters and continuation writes. The existing Game driver remains the home tick owner. */
   onSimulation?: (binding: { source: Shardfile; simulation: ShardfileSimulation; items: ReadonlyMap<string, ItemRuntime>; scope: ShardContext['scope']; checkpoint: () => boolean; suppressCheckpoint: () => void; setActive: (active: boolean) => void; residency?: HomeResidencyClaim }) => void;
 }
-const encounterSchema = v.record(v.string(), v.strictObject({ defeated: v.boolean(), rewardTaken: v.boolean(), kills: v.pipe(v.number(), v.integer(), v.minValue(0)) }));
-const encounterSave = { key: 'platform.encounters', scope: 'shard' as const, version: 1, schema: encounterSchema, initial: (): v.InferOutput<typeof encounterSchema> => ({}) };
 
 /** G348: the far proxy's and near placeholder's files (and what they depend on): the grid's presentation of the shard,
  *  which `wildshard build` bakes into any terrain shardfile and the data client never installs. */
@@ -430,10 +427,6 @@ export class ShardfileClient {
       if (journal !== null && !retainsRuntimeServices(ctx)) ctx.scope.onDispose(() => { journal.journal.scope.dispose(); });
     }
     const ledger = new Ledger(ctx.app.saves, [{ id: identity.instance, shard: identity.shard }], [{ shard: identity.shard, revision: identity.revision, rules: source.ledger }], this.bindings.catalogue);
-    const emitters = new Map<string, LedgerEmitter>();
-    const fact = (name: string, entity: string, origin: string): void => {
-      const emitter = emitters.get(origin); if (emitter === undefined) throw new Error('Missing declared fact provenance'); emitter.emit(name, entity);
-    };
     // The server's ledger decides, and a page keeps its word where Progress reads: a feat counts and tells once, off its receipt.
     wirePage.facts(ctx.scope, (name, id) => {
       const rule = source.ledger.find(row => row.fact === name);
@@ -451,8 +444,6 @@ export class ShardfileClient {
       read: (name) => { const scope = source.state.shared.some((row) => row.name === name) ? 'shared' : 'player', field = source.state[scope].find((row) => row.name === name); if (field === undefined) throw new Error('Missing declared counter field'); return read(scope, field.id); },
     });
     yield;
-    const saved = instanceSave(ctx.app.saves, encounterSave, { id: identity.instance, shard: identity.shard }), encounters = saved.read();
-    let encounterWrites = 0;
     let simulationActive = true;
     const ladderCommand = { x: 0, z: 0, release: true };
     const sim = pageSim.createShardfileSim(source, this.assets.retained, { sections: outputDescriptor(source)?.sections, rapier: world.physics.R, physics: world.physics,
@@ -481,9 +472,6 @@ export class ShardfileClient {
       },
       fixedStep: clientSimStep({ scope: ctx.scope, app: ctx.app, active: () => false, freeCamera: () => world.freeCamera, system: ctx.system }), hud: ui,
       quest: { fact: () => undefined, coins: () => undefined },
-      encounters: (id) => ({ saved: encounters[id] ?? { defeated: false, rewardTaken: false, kills: 0 }, persist: (value) => { encounters[id] = value; encounterWrites++; saved.write(encounters); },
-        reward: () => { for (const rule of source.ledger) if (rule.origin.kind === 'engine' && rule.origin.source === 'encounter.complete') fact(rule.fact, id, rule.origin.source); },
-      }),
     });
     this.sim = sim;
     yield;
@@ -501,7 +489,6 @@ export class ShardfileClient {
     const ownsDay = borrowed === null && day !== null;
     if (ownsDay) { ctx.app.registerDayCycle(day, ctx.scope); runtimeDays.add(day); }
     const weather = new Map(source.rows.weather.map((row) => [row.id, declaredWeather(row, sim.host.rng.stream('cosmetic').fork(row.id))]));
-    for (const rule of source.ledger) if (!emitters.has(rule.origin.source)) emitters.set(rule.origin.source, installLedgerEmitter(sim.host, ledger, identity, rule.origin));
     // SF25 / G66: presentation-only client scripts; live creatures keep their sim pose and clips, a frozen home (the
     // traveller in another frame) breathes and grazes on top of it. The lane sees copies; its sim is never stepped here.
     if (source.clientScripts.bindings.length > 0) {
@@ -545,7 +532,7 @@ export class ShardfileClient {
     syncTargetColliders(source.targets, sim.colliders, read);
     const saver = clientCheckpoint({ ledger, purse: loot?.purse ?? null,
       canCheckpoint: () => !portalTransitioning(sim.host.physics),
-      encounters: () => saved.write(encounters), continuation: () => continuation.write(captureClientState(source, sim, items.runtimes)),
+      encounters: () => true, continuation: () => continuation.write(captureClientState(source, sim, items.runtimes)),
     });
     // The server's session keeps this world's saves.
     const hooks = sim.lane === undefined ? null : createQuestScriptPorts(sim.lane, source.hooks, sim.actors);
