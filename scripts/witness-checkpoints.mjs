@@ -49,8 +49,24 @@ export function cachedWitnessManifest(directory) {
   return `${JSON.stringify({ ...outcome, cache }, null, 2)}\n`;
 }
 
-/** Validate regenerated checkpoint hashes against the committed hash table. Native bit identity is normative on
- * Darwin; other platforms validate their own receipts and replay the locally generated state.
+/** Fields Linux records exactly as Darwin does, measured on CI run 42367941424: Pine's ticks and canonical hashes, and
+ * Driftwood's ticks, effects and each checkpoint's name, tick and profile. Gzip payload hashes differ by host, and
+ * Driftwood's `sha`, `digest`, `endDigest` and `tape` carry float state that differs on Linux.
+ * @param {Record<string, unknown>} outcome */
+function portableOutcome({ ticks, hashes, effects, checkpoints }) {
+  const rows = v.parse(v.optional(v.array(v.looseObject({ name: v.string(), tick: v.number(), profile: v.unknown() }))), checkpoints);
+  return { ticks, hashes, effects, checkpoints: rows?.map(({ name, tick, profile }) => ({ name, tick, profile })) };
+}
+
+/** Two manifests that played nothing would match, and the match would prove nothing (E7's empty room).
+ * @param {Record<string, unknown>} outcome */
+function assertPlayed({ ticks }) {
+  const counts = typeof ticks === 'number' ? [ticks] : Object.values(v.parse(v.optional(v.record(v.string(), v.number()), {}), ticks));
+  if (!counts.some(count => count > 0)) throw new Error('Witness played no ticks; its match would prove nothing');
+}
+
+/** Validate a regenerated witness against the committed one. Darwin compares it whole: native bit identity is normative
+ * there. Other hosts compare the portable outcome, so a behaviour drift goes red on Linux too.
  * @param {string} expected @param {string} actual @param {string} [platform] */
 export function compareWitnessManifests(expected, actual, platform = process.platform) {
   /** @param {string} text */
@@ -61,5 +77,8 @@ export function compareWitnessManifests(expected, actual, platform = process.pla
     return outcome;
   };
   const before = parse(expected), after = parse(actual);
-  if (platform === 'darwin' && JSON.stringify(before) !== JSON.stringify(after)) throw new Error('Regenerated witness hashes or outcomes changed; record this behaviour change deliberately');
+  assertPlayed(before); assertPlayed(after);
+  const same = platform === 'darwin' ? JSON.stringify(before) === JSON.stringify(after)
+    : JSON.stringify(portableOutcome(before)) === JSON.stringify(portableOutcome(after));
+  if (!same) throw new Error('Regenerated witness hashes or outcomes changed; record this behaviour change deliberately');
 }
