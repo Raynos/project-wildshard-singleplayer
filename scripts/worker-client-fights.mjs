@@ -775,12 +775,13 @@ async function qyranJourney(browser, phone, base, step) {
         await faceAt(page, { ...seen, y: seen.y + 0.15 }); await page.waitForTimeout(40); // his body lies level at his height: 0.5 m wide
         await bow(false); await page.waitForTimeout(350); shots++;
         await bow(true); await page.waitForTimeout(1150); await faceAt(page, { ...seen, y: seen.y + 0.15 }); await bow(false); shots++;
-        await page.waitForTimeout(300); await bow(true);
+        await page.waitForTimeout(300);
       } else {
-        await bow(true);
         const words = await drew('elite wind');
+        // His flight is about 13 s and a held bow's arms give out at 8 s, so the finger stays up until his beam is. Held the whole way, the shot on
+        // landing was a lift, and the only arrow left as he rose: on WebKit's timing that missed and the step ran out of time at 4 % of his health.
         if (words > heard && !dodged) { // his beam is up: step off his line late, and a stoop that misses grounds him
-          dodged = true; await page.waitForTimeout(1250);
+          dodged = true; await bow(true); await page.waitForTimeout(1250);
           const me = await page.evaluate(() => { const { x, z } = window.__wildshard.world.player.position; return { x, z }; }), turn = Math.random() * Math.PI * 2;
           await feet(me.x + Math.cos(turn) * 8, me.z + Math.sin(turn) * 8);
         } else if (words === heard) dodged = false;
