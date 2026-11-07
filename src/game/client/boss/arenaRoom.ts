@@ -2,7 +2,7 @@
  *  with, listens to and rides on arrives as `ArenaRoomPage` (arenaRoomView.ts), so this file imports no view. */
 import { Vector3, type Object3D, type PointLight, type Scene } from 'three';
 import * as v from 'valibot';
-import type { BossViewBinding, PhasedBossFight } from '../../server/plugin/bossPhase';
+import type { BossViewBinding } from '../../server/plugin/bossPhase';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { StrikeRunner, type StrikeSpec } from '@wildshard/engine/ai/strikes';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
@@ -29,10 +29,10 @@ import { arenaBoundary, arenaTieWord } from '../../shared/boss/arenaAnswers';
 import { OpenArenaFight, readArenaScriptData, type ArenaRiderOwner, type OpenArenaViews } from '../../shared/boss/openArenaFight';
 import { pageSim } from '../shardfile/clientMoverOwners';
 import { wirePage } from '../shardfile/wirePage';
+import { rowFightScript } from './barFeed';
 import { OWNED_ROW } from '../../shared/loot/ownedRows';
 import { bindRuntimeBoss } from '../../shared/plugin/runtimeRows';
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { ArenaFightPageSchema, ArenaRoomPortalSchema, type BoundedArenaFight } from '../../shared/boss/arenaRoomRows';
 import type { ArenaRoomPortal, ArenaRoomPortalWorld, BossArenaRoom } from './arenaRoomView';
 import { setEliteDamage } from '@wildshard/engine/entities/eliteBrain';
@@ -81,49 +81,18 @@ export interface ArenaRoomPage {
   readonly listenSkip: (scope: Scope, held: (source: 'key' | 'touch', on: boolean) => void) => void;
 }
 
-/** The page's room fight, with the presence the portal toggles. */
-export interface ArenaPageFight { phased: PhasedBossFight<Animal>; script: BossScript; body: () => Animal | null; setPresent: (on: boolean) => void; devKill: () => void }
-/** The fight over the page's one player, body and room. */
-export function pageArenaRoomFight(ctx: ShardContext, dungeon: BossArenaRoom, input: unknown, views: (presentation: BoundedArenaFight['presentation']) => BossViewBinding): ArenaPageFight {
-  const rows = v.parse(ArenaFightPageSchema, input), runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play;
-  if (world === undefined || world === null || play === undefined || play === null) throw new Error('Arena fight requires its actual page owners');
-  const { animals } = play, { player } = world, owner = bindRuntimeBoss(ctx, ctx.product.shardfile, rows.body, undefined, { identity: rows.identity });
-  const floor = (actor: Animal): void => { actor.levelGround = true; actor.sampleTerrain(); };
-  const fight = pageSim.arenaRoomFight<Animal>({ room: dungeon,
-    body: { spawn: () => { const actor = owner.spawn(); if (actor === null) return null; dungeon.actor = actor; actor.herd = -1; floor(actor); return actor; },
-      retire: actor => {
-        if (dungeon.actor === actor) dungeon.actor = null;
-        actor.hidden = true; actor.mesh.visible = false; actor.position.y = -9999;
-        const index = animals.animals.indexOf(actor); if (index !== -1) animals.animals.splice(index, 1);
-        actor.mesh.removeFromParent();
-      }, bind: (actor, brain) => { pageSim.bindArenaBrain(actor, brain); },
-      ready: (actor, floorY) => { actor.yOffset = floorY - actor.position.y; actor.mesh.visible = true; } },
-    spawnAdd: (_i, x, z, yaw) => {
-      const actor = animals.spawn(rows.add.kind, x, z, yaw, rows.add.variant);
-      actor.herd = -1; floor(actor); Object.assign(actor.mem, rows.add.memory);
-      actor.yOffset = dungeon.rows.origin.y - actor.position.y; return actor;
-    },
-    target: () => ({ position: player.position, dash: (x, z, seconds) => { player.dash(x, z, seconds); }, health: ctx.app.player }),
-    combat: ctx.app.combat, physics: () => ctx.app.physics, rng: () => ctx.app.rng.stream('ai').next(), feed: line => { play.hud.killFeed(line); },
-  }, rows, presentation => {
-    const binding = views(presentation);
-    // The server's fight runs, and its looks reach this room as it told them. A room nobody has entered has nothing built to draw on.
-    wirePage.whenLive(ctx.scope, client => client.onView(({ name, args }) => {
-      if (!dungeon.built) return;
-      if (name === 'boss.glow') dungeon.actor = animals.animals.find(actor => actor.rowDriven && actor.kind === owner.row.kind) ?? null; // the server's body is the row's
-      binding[name]?.(...args);
-    }));
-    return binding;
-  });
-  fight.script.reset = () => undefined; // the server's fight has the body: this one never stands one up
-  return { ...fight, setPresent: on => {
-    const body = fight.phased.body(), bodies = body === null ? fight.phased.adds() : [body, ...fight.phased.adds()];
-    for (const actor of bodies) {
-      const index = animals.animals.indexOf(actor);
-      if (on && index === -1 && !actor.hidden) { animals.animals.push(actor); animals.group.add(actor.mesh); }
-      if (!on && index !== -1) { animals.animals.splice(index, 1); actor.mesh.removeFromParent(); }
-    }
-  } };
+/** The page's half of a room fight: its looks, as the server's fight tells them. The bar and every body are rows. */
+export function pageArenaRoomFight(ctx: ShardContext, dungeon: BossArenaRoom, input: unknown, views: (presentation: BoundedArenaFight['presentation']) => BossViewBinding): BossScript {
+  const rows = v.parse(ArenaFightPageSchema, input), play = ctx.game.runtime?.play;
+  if (play === undefined || play === null) throw new Error('Arena fight requires its actual page owners');
+  const { animals } = play, owner = bindRuntimeBoss(ctx, ctx.product.shardfile, rows.body, undefined, { identity: rows.identity }), binding = views(rows.presentation);
+  // The server's fight runs, and its looks reach this room as it told them. A room nobody has entered has nothing built to draw on.
+  wirePage.whenLive(ctx.scope, client => client.onView(({ name, args }) => {
+    if (!dungeon.built) return;
+    if (name === 'boss.glow') dungeon.actor = animals.animals.find(actor => actor.rowDriven && actor.kind === owner.row.kind) ?? null; // the server's body is the row's
+    binding[name]?.(...args);
+  }));
+  return rowFightScript({ rewardPoint: () => new Vector3().fromArray(rows.reward), respawnPoint: () => ({ pos: new Vector3().fromArray(rows.respawn), yaw: rows.yaw }) });
 }
 
 export class ArenaRoomEncounter {
@@ -134,7 +103,7 @@ export class ArenaRoomEncounter {
   boss:Boss|null=null;ui:BossBar|null=null;
   /** The encounter's frame: its brain, or on the wire its row. */
   private drive:((dt:number,t:number)=>void)|null=null;
-  fight:ArenaPageFight|null=null;
+  fight:BossScript|null=null;
   power:ReturnType<HeldSlotKit['bowPower']>|ArcWeaponPower|null=null;
   riders:PatrolEncounterView|null=null;mount:Mount|null=null;
   private readonly rows:v.InferOutput<typeof ArenaRoomEncounterSchema>|null;
@@ -221,7 +190,7 @@ export class ArenaRoomEncounter {
       this.power=blade=new(equipment.arsenal.blade('blade').Power)({scene:game.scene,player,camera:game.camera,animals:play.animals,weather:this.world.weather,scope:ctx.scope});
     }
     const row=open??room;if(row===null)throw new Error('Missing arena rows');
-    const saved=enteredAdventurePersistence(ctx.scope),script=this.projection??this.fight?.script;if(script===undefined)throw new Error('Missing arena script');
+    const saved=enteredAdventurePersistence(ctx.scope),script=this.projection??this.fight;if(script===null)throw new Error('Missing arena script');
     const encounter=installBossEncounter({definition:row.definition,reward:row.reward},()=>script,{game,player,spareLight:this.spareLight,scope,chunkId:ctx.product.slug,interactables:runtime.interactables,persistence:saved.bosses,
       reward:{model:()=>page.rewardObject(rewardModel,open===null?nativeWorld.sky:game.sky),grant:()=>{
         if(open===null)kit.upgradeBow('bow-reward',play.weapons);else{if(blade===null||equipment===undefined)throw new Error('Missing arena reward equipment');kit.upgradeBlade('blade-reward',play.weapons,blade);equipment.locker.own(open.skin.id);play.hud.toast(open.skin.toast);}
@@ -232,7 +201,7 @@ export class ArenaRoomEncounter {
       music:event=>{if(event==='death'||event==='pickup')play.music.sting(event);else if(event==='victory')play.music.sting('chunk');else play.music.combat(1);}});
     this.boss=encounter.boss;this.ui=encounter.ui;this.drive=encounter.update;
     if(open===null){
-      if(this.fight===null||this.portal===null||room===null)throw new Error('Missing room fight');this.portal.bind(encounter.ui,this.fight,encounter.update);encounter.fight.reset(0);this.fight.setPresent(false);
+      if(this.fight===null||this.portal===null||room===null)throw new Error('Missing room fight');this.portal.bind(encounter.ui,encounter.update);
       if(encounter.boss.rewardTaken)kit.upgradeBow('bow-reward',play.weapons);
     }else{
       if(this.prompt===null||this.projection===null)throw new Error('Missing open arena projection');runtime.interactables.push(this.prompt);

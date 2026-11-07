@@ -14,7 +14,6 @@ import { bossFight } from './bossPhase';
 import { PerchBodyBinding } from '../population/perchBody';
 import { pageSpeciesBehaviour } from '../population/speciesBehaviour';
 import { pageClimate } from '../weather/pageClimate';
-import { arenaRoomFight, bindArenaBrain } from '../boss/arenaRoomFight';
 import { readEliteFeature } from '../quest/eliteFeature';
 
 /**
@@ -37,9 +36,7 @@ export interface PageSimFeed {
   readonly wind: () => typeof wildEnv.wind;
   /** The page's weather and light, which its fights read (E6 COMBAT). */
   readonly wild: typeof wildEnv;
-  /** The page's fights: an arena room's law, an elite feature's rows. */
-  readonly arenaRoomFight: typeof arenaRoomFight;
-  readonly bindArenaBrain: typeof bindArenaBrain;
+  /** The page's fights: an elite feature's rows. */
   readonly readEliteFeature: typeof readEliteFeature;
   readonly bossFight: typeof bossFight;
   readonly fixedSpawnTable: (...args: ConstructorParameters<typeof FixedPageSpawnTable>) => FixedPageSpawnTable;
@@ -72,7 +69,7 @@ export const pageSimFeed: PageSimFeed = {
   installDeclaredMovers, declaredItemScriptBindings, commandSocketLift, bindQuestWorldReactions,
   climate: pageClimate, speciesBehaviour: pageSpeciesBehaviour,
   perchBody: (...args) => new PerchBodyBinding(...args), actorGroups: (...args) => new PageActorGroups(...args), wind: () => wildEnv.wind,
-  wild: wildEnv, arenaRoomFight, bindArenaBrain, readEliteFeature, bossFight,
+  wild: wildEnv, readEliteFeature, bossFight,
   fixedSpawnTable: (...args) => new FixedPageSpawnTable(...args), clientWildlifeState, lendClientWildlife,
   bindPageGroups: (...args) => { bindPageGroups(...args); }, pageWildlife: (...args) => new PageWildlife<CrowdDraw>(...args), lendPageGrass, crowdGuardProjection, bindCrowdGuard,
   admitSpeciesProgram, bindMeleeContacts, startMeleeSecondary,

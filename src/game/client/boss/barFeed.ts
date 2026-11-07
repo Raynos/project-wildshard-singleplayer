@@ -1,5 +1,5 @@
 import { Vector3, type PerspectiveCamera } from 'three';
-import type { BossPresentation } from '@wildshard/engine/ai/BossBrain';
+import type { BossPresentation, BossScript } from '@wildshard/engine/ai/BossBrain';
 import type { NetClient } from '@wildshard/engine/net/client';
 import { ENCOUNTER_CLASS } from '@wildshard/engine/net/netSchemas';
 import type { EncounterReward } from '@wildshard/engine/sim/encounterRows';
@@ -79,6 +79,13 @@ export class RowReward {
     const taken = this.waiting > 0;
     this.waiting = 0; this.drop.hide(taken);
   }
+}
+/** The two points a `Boss` keeps of a fight its row draws. */
+export interface RowFightPoints { readonly rewardPoint: BossScript['rewardPoint']; readonly respawnPoint: BossScript['respawnPoint'] }
+/** What a `Boss` holds for a fight the server steps. Its bar and cards come off `BossRowBar`, so no brain ever turns this: it answers with the fight's points, and nothing else of it can move. */
+export function rowFightScript<P extends RowFightPoints>(points: P): P & BossScript {
+  const still = (): void => undefined;
+  return { ...points, inArena: () => false, intro: () => points.rewardPoint(), reset: still, seal: still, begin: still, enterPhase: still, update: still, clampHp: still, setInvulnerable: still, victory: still, hpFrac: 0, shielded: false, dead: false };
 }
 const HOLD_AFTER_WIN = 1.4;
 const fighting = (state: string): boolean => state === 'fight' || state === 'beat';

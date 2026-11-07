@@ -39,7 +39,7 @@ import { ArenaFireView, ArenaWhirlsView, lendOpenArenaView } from './arenaFire';
 import { ArenaPortalLaw } from '../../shared/boss/arenaPortal';
 import { ArenaRoomGround } from '../../shared/boss/arenaGround';
 import { ArenaRoomPortalSchema, ArenaRoomSchema, type ArenaRoomRows } from '../../shared/boss/arenaRoomRows';
-import type { ArenaPageFight, ArenaRoomEncounter, ArenaRoomPage } from './arenaRoom';
+import type { ArenaRoomEncounter, ArenaRoomPage } from './arenaRoom';
 import { ArenaSceneView, CloudBody } from './encounterView';
 import {entryOwner, lateEntryOwner, presentEntryOwner} from '../../shared/shardfile/entryOwners';
 import { prepareLentLooks } from '../shardfile/lentLooks';
@@ -66,7 +66,6 @@ export class ArenaRoomPortal {
   private calmWas = false;
   private locked = false; private slow = false;
   private ui: BossBar | null = null;
-  private fight: ArenaPageFight | null = null;
   /** The encounter's own frame: its brain on a page, its row on the wire. */
   private drive: ((dt: number, t: number) => void) | null = null;
   constructor(private readonly world: ArenaRoomPortalWorld, private readonly room: BossArenaRoom, input: unknown,
@@ -74,7 +73,7 @@ export class ArenaRoomPortal {
     this.rows = v.parse(ArenaRoomPortalSchema, input); this.keep = new RegExp(this.rows.keep, 'i');
     this.law = new ArenaPortalLaw(program, this.rows, entrance);
   }
-  bind(ui: BossBar, fight: ArenaPageFight, drive: (dt: number, t: number) => void): void { this.ui = ui; this.fight = fight; this.drive = drive; }
+  bind(ui: BossBar, drive: (dt: number, t: number) => void): void { this.ui = ui; this.drive = drive; }
   setLocked(on: boolean): void { this.locked = on; this.move(); }
   private move(): void { this.world.player.moveScale = this.locked ? 0 : this.slow ? this.rows.slow : 1; }
   enter(immediate = false, atZ: number = this.rows.spawn.z): void {
@@ -93,8 +92,7 @@ export class ArenaRoomPortal {
         || object.position.distanceToSquared(new THREE.Vector3(origin.x,origin.y,origin.z)) < this.rows.near ** 2) continue;
       object.visible = false; this.hidden.push(object);
     }
-    this.calmWas = animals.calm; animals.calm = true; this.fight?.setPresent(true);
-     // the page's brain never arms on the wire: the row is the fight
+    this.calmWas = animals.calm; animals.calm = true; // the page's brain never arms on the wire: the row is the fight
   }
   leave(teleport: boolean, immediate = false): void {
     if (teleport && !immediate) { this.ui?.fade(true, this.rows.fade.out); this.law.begin('exit', this.rows.fade.hold); return; }
@@ -110,7 +108,7 @@ export class ArenaRoomPortal {
     const { animals } = this.world;
     this.law.inside = false; this.room.setVisible(false);
     for (const object of this.hidden) object.visible = true;
-    this.hidden = []; animals.calm = this.calmWas;  this.fight?.setPresent(false);
+    this.hidden = []; animals.calm = this.calmWas;
     this.slow = false; this.locked = false; this.move();
   }
   update(dt: number, t: number): void {
