@@ -21,6 +21,7 @@ import { arenaTie, arenaTieWord, arenaBoundary } from '../../shared/boss/arenaAn
 import { OWNED_ROW } from '../../shared/loot/ownedRows';
 import { publishOwned, sayFightView } from '@wildshard/engine/sim/shardRows';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
+import { arenaWords } from './arenaWords';
 import { OpenArenaRoom } from './openArenaRoom';
 import { OpenArenaSaved } from './openArenaState';
 import { patrolOf } from './patrolNative';
@@ -41,7 +42,7 @@ export interface NativeOpenArena { readonly fight: OpenArenaFight<ArenaDraw>; re
 /** The drawing side's stand-ins, which a headless host lends: a server draws nothing, but the fight reads its body and its eased pose. */
 export interface OpenArenaPresentation {
   readonly views: (host: SimHost, data: ArenaScriptData) => OpenArenaViews<ArenaDraw>;
-  readonly pose: (fight: Pick<OpenArenaFight, 'viewSource' | 'poseCells' | 'adoptView'>, module: Uint8Array, rows: ViewProgramRows,
+  readonly pose: (fight: Pick<OpenArenaFight<ArenaDraw>, 'viewSource' | 'poseCells' | 'adoptView' | 'viewLoan'>, module: Uint8Array, rows: ViewProgramRows,
     ports: { readonly scope: Scope; readonly player: { readonly position: Vector3; readonly velocity: Vector3; readonly yaw: number }; readonly camera: ViewCamera }) => void;
   readonly camera: () => ViewCamera;
 }
@@ -142,6 +143,7 @@ export async function prepareOpenArena(product: Pick<ShardProduct, 'json' | 'sec
         reward=false;rewardPoint=null;
         const saved=boss.snapshot().saved;records.bosses.write({...records.bosses.read(),[data.definition.id]:{...saved,rewardTaken:true}});
       };
+      const sayLooks=arenaWords(host,fight);
       const run=(dt:number):void=>{
         for(const command of ports.commands())if(command.kind==='script'&&command.actorId===row.input.use){
           const actor=host.players.get(command.playerId??first.id);
@@ -155,6 +157,7 @@ export async function prepareOpenArena(product: Pick<ShardProduct, 'json' | 'sec
         room.party.observe(boss);
         if(boss.state!=='dormant'||fight.body.visible)boss.update(dt,host.clock.now);else fight.update(dt,host.clock.now,false);
         const answer=fight.takeBoundary();if(answer!==null)arenaBoundary(answer,data.lines,data.record,boundaryPorts);
+        sayLooks(dt);
       };
       if(ports.grantItem!==undefined)for(const id of[row.id,data.definition.id])actRoutes(host).interactions.set(`${id}.reward`,{actorId:row.input.use,value:TAKE});
       actRoutes(host).interactions.set(`${row.id}.tie`,{actorId:row.input.use,value:1});

@@ -10,6 +10,9 @@ import { createSimHost, type SimCommand, type SimHost } from '../src/engine/serv
 import type { PlayerSim } from '../src/engine/server/sim/playerSim';
 import { OpenArenaFight, type ArenaDraw } from '../src/game/shared/boss/openArenaFight';
 import { OpenArenaRoom } from '../src/game/server/boss/openArenaRoom';
+import { arenaWords } from '../src/game/server/boss/arenaWords';
+import { shardRows, type FightViewCall } from '../src/engine/shared/sim/shardRows';
+import { ARENA_TELL_CALLS, OPEN_ARENA_VIEW } from '../src/game/shared/shardfile/wirePrompts';
 import fireView from '../src/shards/nalati-grasslands/data/arenaFire.json' with { type: 'json' };
 import * as titan from '../src/shards/nalati-grasslands/generators/stormTitanFight';
 import { titanGeometryRows } from '../src/shards/nalati-grasslands/generators/stormTitanGeometry';
@@ -54,6 +57,44 @@ function room(extra = 1): { host: SimHost; lead: PlayerSim; bots: PlayerSim[]; a
 const fall = (host: SimHost, target: PlayerSim): void => {
   host.combat.hit({ source: 'env', sourceTags: ['creature.boar'], target: target.health, amount: 100000, point: target.position.clone(), dir: new Vector3(), cause: { kind: 'test', label: 'test' } });
 };
+
+test('a page that steps no fight draws what this one says', () => {
+  const server = room(), page = room(), { field, arena: scene } = server.fight.viewLoan, heard = page.fight.viewLoan.field;
+  try {
+    const say = arenaWords(server.host, server.fight), calls = (): FightViewCall[] => shardRows(server.host).calls, said = (name: string): readonly (readonly number[])[] => calls().filter(row => row.name === name).map(row => row.args);
+    until(server.host, () => server.boss.state === 'fight'); tick(server.host, 30);
+    calls().length = 0; say(1 / 60);
+    const look = said(OPEN_ARENA_VIEW.look).at(-1);
+    if (look === undefined) throw new Error('The fight said no look');
+    expect(look.every(Number.isFinite)).toBe(true);
+    page.fight.hear(OPEN_ARENA_VIEW.look, look);
+    expect(page.fight.body.visible, 'he stands on the page').toBe(true);
+    // all of it comes back but the boundary's mask, which the page keeps on the boundary its riding reads
+    const back = page.fight.lookWord(), without = (row: readonly number[]): readonly number[] => row.filter((_, index) => index !== 10);
+    expect(without(back)).toEqual(without(look));
+    expect(page.fight.boundary.mask).toBe(look[10]);
+    expect(page.fight.lockTarget(), 'a lock reads the fight the server said').not.toBeNull();
+
+    calls().length = 0;
+    const spear = scene.tell('spear'); spear.ring(1, 2, 3, 0.5); spear.hide(); spear.hide();
+    const tells = said(OPEN_ARENA_VIEW.tell);
+    expect(tells.map(row => row[1]), 'a ring, and its hide once').toEqual([ARENA_TELL_CALLS.indexOf('ring'), ARENA_TELL_CALLS.indexOf('hide')]);
+    for (const row of tells) page.fight.hear(OPEN_ARENA_VIEW.tell, row);
+
+    const x = centre.x, z = centre.z, cell = field.cellAt(x, z), row = Math.floor(cell / field.rows.width);
+    field.activate(x, z);
+    page.fight.hear(OPEN_ARENA_VIEW.cells, field.rowWord(row));
+    expect(heard.state(cell), 'a burning cell burns').toBe(field.rows.states.active);
+    expect(heard.remaining(cell)).toBeCloseTo(field.remaining(cell), 3);
+    heard.coast(0.1);
+    expect(heard.remaining(cell), 'it burns down between words').toBeCloseTo(Math.max(0, field.remaining(cell) - 0.1), 3);
+    expect(field.deactivate()).toEqual([cell]);
+    page.fight.hear(OPEN_ARENA_VIEW.cells, field.rowWord(row));
+    expect(heard.state(cell), 'and goes out spent').toBe(field.rows.states.spent);
+    page.fight.hear(OPEN_ARENA_VIEW.fire, [0, 0]); page.fight.hear(OPEN_ARENA_VIEW.fire, [0, 1]);
+    expect(heard.state(cell), 'a clear takes the scorch').toBe(field.rows.states.idle);
+  } finally { server.host.dispose(); page.host.dispose(); }
+});
 
 test('the Titan\'s contacts land on the bot past the wall, not the lead standing off', () => {
   const { host, lead, bots, arena, boss } = room(), bot = bots[0];

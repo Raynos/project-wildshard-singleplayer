@@ -4,6 +4,12 @@ export const carryPrompt = (mover: string, end: number): string => `${mover}.rid
 export const BOSS_STRIKE = 'boss.strike.';
 /** What a roaming boss's fight tells its views, by name: a page on a server steps no fight. */
 export const ROAMING_VIEW = { light: 'roaming.light', roar: 'roaming.roar', burst: 'roaming.burst', hazard: 'roaming.hazard', add: 'roaming.add', ring: 'roaming.ring', tell: 'roaming.tell', tellOff: 'roaming.tell.off', lane: 'roaming.lane', room: 'roaming.room', rig: 'roaming.rig', struck: 'roaming.struck' } as const;
+/** What an open arena's fight tells its views, by name: a page on a server steps no fight, so it draws what these say. */
+export const OPEN_ARENA_VIEW = { look: 'open-arena.look', tell: 'open-arena.tell', whirl: 'open-arena.whirl', fire: 'open-arena.fire', cells: 'open-arena.cells' } as const;
+/** A tell's calls, as `OPEN_ARENA_VIEW.tell` numbers them. */
+export const ARENA_TELL_CALLS = ['ring', 'lane', 'wedge', 'hide'] as const;
+/** A tell's slot on the wire: its id's place in the arena's tell rows, and which of that id. */
+export const arenaTellSlot = (id: number, index: number): number => id * 16 + index;
 /** A hazard's beats, as `ROAMING_VIEW.hazard` numbers them. */
 export const ROAMING_HAZARD_EVENTS = ['drop', 'fall', 'land', 'burn', 'out', 'placed'] as const;
 /** The view calls an elite's ground tells go by. */

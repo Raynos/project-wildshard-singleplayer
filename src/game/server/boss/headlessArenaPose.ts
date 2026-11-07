@@ -10,24 +10,25 @@ import type { Vector3 } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { viewProgram, type ViewCamera, type ViewTell } from '@wildshard/engine/script/viewProgram';
 import { admitScriptV2 } from '@wildshard/format/scriptAdmissionV2';
-import { ARENA_VIEW } from '@wildshard/format/arenaView';
+import { ARENA_VIEW, arenaChainTell } from '@wildshard/format/arenaView';
 import type { ViewProgramRows } from '@wildshard/format/viewProgram';
-import type { ArenaPoseCells, OpenArenaFight } from '../../shared/boss/openArenaFight';
+import type { ArenaDraw, ArenaPoseCells, OpenArenaFight } from '../../shared/boss/openArenaFight';
 
 /** the display rate that keeps the view lane at every frame (its halving floor is the display rate over 15 Hz) */
 const EVERY_FRAME_HZ = 15;
-/** a native tell (each id its own: the lane claims one target once): the fight's ground rings are presentation only */
+/** a native tell of an id the fight lends nothing for (each id its own: the lane claims one target once) */
 const silentTell = (): ViewTell => ({ ring: () => undefined, lane: () => undefined, wedge: () => undefined, hide: () => undefined });
 
 /** Bind `fight`'s frame slot to its view `module` (admitted with `rows`) for `scope`'s life, reading the fight's sources
  *  and writing its cells as the page's lent slot does. */
-export function bindArenaPoseView(fight: Pick<OpenArenaFight, 'viewSource' | 'poseCells' | 'adoptView'>, module: Uint8Array, rows: ViewProgramRows,
+export function bindArenaPoseView(fight: Pick<OpenArenaFight<ArenaDraw>, 'viewSource' | 'poseCells' | 'adoptView' | 'viewLoan'>, module: Uint8Array, rows: ViewProgramRows,
   ports: { readonly scope: Scope; readonly player: { readonly position: Vector3; readonly velocity: Vector3; readonly yaw: number }; readonly camera: ViewCamera }): void {
   if (rows.slot !== ARENA_VIEW.slot) throw new Error('Arena pose view needs the fight frame slot');
   const bytes = Uint8Array.from(module);
   admitScriptV2(bytes, { lane: 'view', ioBytes: rows.budget.ioBytes });
   const cells: ArenaPoseCells = fight.poseCells(), ids = ARENA_VIEW.cells;
-  const tells = new Map<string, ViewTell>();
+  // the fight's own tells: a server's say what they'd draw (headlessArenaViews.ts)
+  const { arena, chains } = fight.viewLoan, tells = new Map<string, ViewTell>([[ARENA_VIEW.tells.spear, arena.tell('spear')], [ARENA_VIEW.tells.fork, arena.tell('fork')], ...chains.map((tell, index) => [arenaChainTell(index), tell] as const)]);
   const byId = new Map<string, { value: number }>([[ids.bend, cells.bend], [ids.raise, cells.raise], [ids.castL, cells.castL], [ids.struck, cells.struck], [ids.alpha, cells.alpha]]);
   const program = viewProgram(bytes, rows, { scope: ports.scope, player: ports.player, camera: ports.camera, displayHz: EVERY_FRAME_HZ,
     values: source => fight.viewSource(source), floor: () => null, slots: () => null,

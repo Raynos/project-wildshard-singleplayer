@@ -127,4 +127,9 @@ export class ArenaWhirlsView {
     this.hits.length = hits.length;this.live();this.viewFrame?.frame(dt,t);
     return this.hits;
   }
+  /** A page that steps no whirlwinds: each funnel shown as `drawn` was heard, then the view module's frame. */
+  drawHeard(dt: number, t: number): void {
+    for (let i = 0; i < this.funnels.length; i++) { const funnel = this.funnels[i]; if (funnel !== undefined) funnel.visible = this.drawn[i]?.shown === 1; }
+    this.live();this.viewFrame?.frame(dt,t);
+  }
 }

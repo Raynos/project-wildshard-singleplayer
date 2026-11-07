@@ -528,11 +528,17 @@ async function chapterJourney(browser, phone, base, step) {
     const shown = await bossBar(sky), r = await report(sky);
     return { ok: r.flags.includes('lit:cairn') && row !== null && shown.bar.length > 0, mounted, cairn, row: row?.state, shown, flags: r.flags.filter(flag => /cairn|jel/u.test(flag)), refused: r.refused };
   });
-  // Behind a flag: red today. His fight's looks stay on the server (openArenaNativeViews draws nothing), so a page on it has no cloud to see.
+  /** What the page's own fight holds of what it heard: it steps none on the wire, so all of this came off the server's words. */
+  const arenaDrawn = async sky => ({ words: Object.fromEntries(Object.entries((await report(sky)).drawn).filter(([name]) => name.startsWith('open-arena.'))),
+    ...await sky.evaluate(() => { const arena = window.__wildshard.shard['nalati.titan'], body = arena?.openFight.body, { field, whirls } = arena?.openFight.viewLoan ?? {}; return { arena: arena !== undefined, visible: body?.visible ?? null, puffs: body?.puffs.visible ?? null, alpha: body?.alpha.value ?? null, burning: field === undefined ? null : Array.from(field.modeCells).filter(mode => mode === field.rows.states.active).length, whirls: whirls?.drawn.filter(row => row.shown === 1).length ?? null, fights: window.__workerClientFights().map(entry => entry.id) }; }) });
+  // Behind a flag: `--titan` below is the slow half. His looks are the server's: the page draws what its fight says (server/boss/arenaWords.ts).
   if (process.argv.includes('--titanlook')) await step('chapters: the Titan stands in his fight, and the page draws his cloud', async () => {
     const { page: sky } = storm, row = await until(sky, async () => { const seen = await fight(sky, 'storm-titan'); return seen?.state === 'fight' || seen?.state === 'beat' ? seen : null; }, 40);
-    const seen = await sky.evaluate(() => { const arena = window.__wildshard.shard['nalati.titan'], body = arena?.openFight.body; return { arena: arena !== undefined, visible: body?.visible ?? null, alpha: body?.alpha.value ?? null, fights: window.__workerClientFights().map(entry => entry.id) }; });
-    return { ok: row !== null && seen.visible === true, state: row?.state, ...seen };
+    await sky.waitForTimeout(800);
+    const seen = await arenaDrawn(sky), focus = await sky.evaluate(() => { const { x, y, z } = window.__wildshard.shard['nalati.titan'].openFight.body.focusPoint; return { x, y, z }; });
+    await faceAt(sky, focus); await sky.waitForTimeout(400); // the shot looks at him: a page can hold all of this with its camera in the grass
+    await sky.screenshot({ path: 'tmp/titan/look.png' }).catch(() => undefined);
+    return { ok: row !== null && seen.visible === true && seen.puffs === true && seen.alpha > 0 && (seen.words['open-arena.look'] ?? 0) > 0, state: row?.state, focus, ...seen };
   });
   // Behind a flag: a Titan left standing mustn't turn a run red that came for the bar. `--titan` is the fight itself, for his score.
   if (process.argv.includes('--titan')) await step('chapters: the Titan falls to real blows, and his score plays', async () => {
@@ -540,7 +546,7 @@ async function chapterJourney(browser, phone, base, step) {
     const end = await fightTo(sky, 'storm-titan', 'victory', 120);
     await sky.waitForTimeout(1500);
     const heard = await heardOf(sky);
-    return { ok: end?.state === 'victory' && heard.includes('sting chunk') && heard.includes('combat 1'), up: row === true, state: end?.state, phase: end?.phase, hp: end?.hp, heard };
+    return { ok: end?.state === 'victory' && heard.includes('sting chunk') && heard.includes('combat 1'), up: row === true, state: end?.state, phase: end?.phase, hp: end?.hp, heard, drawn: await arenaDrawn(sky) };
   });
   await step('chapters: the storm page raises no page error', () => ({ ok: storm.errors.length === 0, errors: [...new Set(storm.errors)].slice(0, 6) }));
   await storm.context.close();

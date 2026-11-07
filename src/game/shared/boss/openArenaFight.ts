@@ -8,6 +8,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { wind } from '@wildshard/engine/world/steppeWind';
 import type { ArenaScriptData, ArenaScriptFightFile, ArenaScriptRows } from '@wildshard/format/arenaScriptRows';
 import { ARENA_BURNT_PER_FRAME, ARENA_VIEW } from '@wildshard/format/arenaView';
+import { ARENA_TELL_CALLS, OPEN_ARENA_VIEW } from '../shardfile/wirePrompts';
 import { V2_ACTION_OPS, type V2ActionBinding } from '@wildshard/format/scriptActionsV2';
 import { ReturnProgram, ProjectedState, type ProjectedSnapshot } from '../population/returnProgram';
 import { installChannelPrograms } from '../plugin/channelPrograms';
@@ -54,7 +55,7 @@ export interface ArenaScenePort<D extends ArenaDraw = THREE.InstancedMesh> {
   readonly instances: (key: string) => D; readonly mesh: ArenaSceneView['mesh']; readonly update: ArenaSceneView['update'];
 }
 export type ArenaFirePort<D extends ArenaDraw = THREE.InstancedMesh> = Pick<ArenaFireView, 'update'> & { readonly smoke: D; readonly flames: D };
-export type ArenaWhirlsPort = Pick<ArenaWhirlsView, 'arm' | 'reset' | 'update' | 'bindView' | 'snapshot' | 'restore'>;
+export type ArenaWhirlsPort = Pick<ArenaWhirlsView, 'arm' | 'reset' | 'update' | 'bindView' | 'snapshot' | 'restore' | 'drawn' | 'drawHeard'>;
 /** Each look made once, in the fight's construction order: the body (over the fight's pose), the arena, its whirl funnels
  *  (over the arena, the wind law, the attack program and the level scope) and the fire. */
 export interface OpenArenaViews<D extends ArenaDraw = THREE.InstancedMesh> {
@@ -181,6 +182,10 @@ export class OpenArenaFight<D extends ArenaDraw = THREE.InstancedMesh> implement
   /** Nalati zero R6: the tells and pose run in the fight's view module at its frame slot (format/arenaView), lent in the
    *  entered encounter's bind; its cells are the eased pose and the aim's operands */
   private view: { readonly frame: (dt: number, time: number) => void; readonly cells: ArenaPoseCells } | null = null;
+  /** the aim as the last frame drew it: what a page that steps no fight hears */
+  private aimStruck = 0; private aimAlpha = 0;
+  /** the fire's clears a page last heard: null, none yet */
+  private heardClears: number | null = null;
 
   /** the ground's height and the wind the fight reads (OpenArenaFightWorld `ground` / `wind`, else the page's) */
   private readonly groundAt: (x: number, z: number) => number;
@@ -401,7 +406,55 @@ export class OpenArenaFight<D extends ArenaDraw = THREE.InstancedMesh> implement
     this.updateWhirls(dt, t, fighting && this.victoryT < 0, this.hazardDt);
     this.updateFire(dt, t, fighting && this.victoryT < 0, this.hazardDt);
     // the spear in his hand (raised) or stuck in the meadow
-    b.aim(struck===1 ? this.spearAt : null,b.visible ? alpha : 0);
+    this.aimStruck = struck; this.aimAlpha = b.visible ? alpha : 0;
+    b.aim(struck===1 ? this.spearAt : null,this.aimAlpha);
+    b.update(t, this.ctx.camera);
+  }
+
+  // ── a page on a server: it steps no fight, and draws what that fight says (server/boss/arenaWords.ts) ──
+
+  /** A frame of the fight's looks, in the order `hear` takes it. */
+  lookWord(): number[] {
+    const b = this.body, life = this.life, at = this.spearAt, step = this.data.script.fight.retainEvents.step;
+    return [Number(b.visible), b.alpha.value, b.flash.value, Number(b.part(this.data.view.dome).visible), life.value('sealed'), life.value('fighting'), life.value('open'),
+      life.value('victoryT'), life.value('hp'), life.value('tied'), life.value(step.mask), this.aimStruck, this.aimAlpha, at.x, at.y, at.z, ...Object.values(this.pose)];
+  }
+  /** One word off the wire. Nothing here decides: the lock and the ray read what the server's fight said, and the next `followFrame` draws it. */
+  hear(name: string, args: readonly number[]): void {
+    if (name === OPEN_ARENA_VIEW.look) this.hearLook(args);
+    else if (name === OPEN_ARENA_VIEW.tell) this.hearTell(args);
+    else if (name === OPEN_ARENA_VIEW.whirl) { const [index = -1, k = 0, shown = 0, x = 0, y = 0, z = 0] = args, row = this.whirls.drawn[index]; if (row !== undefined) Object.assign(row, { k, shown, x, y, z }); }
+    else if (name === OPEN_ARENA_VIEW.fire) this.hearFire(args);
+    else if (name === OPEN_ARENA_VIEW.cells) { const [row = 0, ...pairs] = args; for (const cell of this.field.hearRow(row, pairs)) this.addScorch(cell); }
+  }
+  private hearLook(args: readonly number[]): void {
+    const [visible = 0, alpha = 1, flash = 0, dome = 0, sealed = 0, fighting = 0, open = 0, victoryT = -1, hp = 0, tied = 0, mask = 0, struck = 0, aim = 0, x = 0, y = 0, z = 0, ...pose] = args, b = this.body;
+    if (b.visible !== (visible === 1)) b.setVisible(visible === 1);
+    b.alpha.value = alpha; b.flash.value = flash; b.part(this.data.view.dome).visible = dome === 1;
+    this.life.set({ sealed, fighting, open, victoryT, hp, tied }); this.boundary.mask = mask;
+    this.aimStruck = struck; this.aimAlpha = aim; this.spearAt.set(x, y, z);
+    const held: Record<string, number> = this.pose;
+    Object.keys(held).forEach((key, index) => { held[key] = pose[index] ?? held[key] ?? 0; });
+  }
+  private hearTell(args: readonly number[]): void {
+    const [slot = 0, call = -1, a = 0, b = 0, c = 0, d = 0, e = 0, f = 0] = args, name = ARENA_TELL_CALLS[call];
+    const tell = this.arena.tells(Object.keys(this.data.geometry.arena.tells)[Math.floor(slot / 16)] ?? '')[slot % 16];
+    if (tell === undefined) return;
+    if (name === 'ring') tell.ring(a, b, c, d); else if (name === 'lane') tell.lane(a, b, c, d, e, f); else if (name === 'wedge') tell.wedge(a, b, c, d, e, f); else tell.hide();
+  }
+  private hearFire([on = 0, clears = 0]: readonly number[]): void {
+    if (this.heardClears !== null && this.heardClears !== clears) this.clearFire();
+    this.heardClears = clears; this.fireOn = on === 1;
+  }
+  /** A page's frame of a fight it heard: `update`'s drawing, in `update`'s order, and none of its rules. */
+  followFrame(dt: number, t: number): void {
+    const b = this.body, fog = this.ctx.fog();
+    this.arena.update(dt, t, this.sealed);
+    this.whirls.drawHeard(dt, t);
+    this.field.coast(dt); this.updateFire(dt, t, false);
+    if (!b.visible) return;
+    if (fog) b.fogColour.copy(fog.color);
+    b.aim(this.aimStruck === 1 ? this.spearAt : null, this.aimAlpha);
     b.update(t, this.ctx.camera);
   }
 

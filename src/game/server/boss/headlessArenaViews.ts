@@ -7,12 +7,19 @@ import {parsePrivateScene} from '@wildshard/format/clientChannels';
 import {HeadlessCloudBody} from './headlessCloudBody';
 import {ArenaWhirls} from '@wildshard/game/boss/arenaWhirls';
 import type {ArenaDraw,ArenaTell,OpenArenaViews} from '../../shared/boss/openArenaFight';
+import {sayFightView} from '@wildshard/engine/sim/shardRows';
+import {ARENA_TELL_CALLS,OPEN_ARENA_VIEW,arenaTellSlot} from '../../shared/shardfile/wirePrompts';
 
-/** Only the drawing ports are silent. Heart matrices, pose feedback and every
+/** Only the drawing ports are silent, and a tell says what it would draw. Heart matrices, pose feedback and every
  * whirlwind decision run their real owners. No drawn object is a target. */
 export function openArenaNativeViews(host:SimHost,data:ArenaScriptData):OpenArenaViews<ArenaDraw> {
-  const tell=():ArenaTell=>({ring:()=>undefined,lane:()=>undefined,wedge:()=>undefined,hide:()=>undefined});
-  const tells=new Map(Object.entries(data.geometry.arena.tells).map(([id,row])=>[id,Array.from({length:row.count},tell)]));
+  // Said each frame it stands, for a page that came late; a hide once.
+  const tell=(slot:number):ArenaTell=>{
+    let up=false;
+    const say=(call:typeof ARENA_TELL_CALLS[number],args:readonly number[]):void=>{sayFightView(host,OPEN_ARENA_VIEW.tell,[slot,ARENA_TELL_CALLS.indexOf(call),...args]);};
+    return {ring:(...args)=>{up=true;say('ring',args);},lane:(...args)=>{up=true;say('lane',args);},wedge:(...args)=>{up=true;say('wedge',args);},hide:()=>{if(up)say('hide',[]);up=false;}};
+  };
+  const tells=new Map(Object.entries(data.geometry.arena.tells).map(([id,row],kind)=>[id,Array.from({length:row.count},(_,index)=>tell(arenaTellSlot(kind,index)))]));
   const geometry=data.geometry,tier=geometry.phone;
   const scene=parsePrivateScene(geometry.arena.scene);
   const capacities=new Map<string,number>([['smoke',data.arenaFire.smokeCount[0]],['flames',data.arenaFire.flameCount]]);
@@ -33,7 +40,7 @@ export function openArenaNativeViews(host:SimHost,data:ArenaScriptData):OpenAren
     whirls:(_arena,wind,author,scope)=>{
       const law=new ArenaWhirls(data.whirls,wind,author,scope,(x,z)=>host.groundHeightAt(x,z));
       const hits:Vector3[]=[];
-      return {arm:mask=>{law.arm(mask);},reset:()=>{law.reset();},bindView:()=>undefined,
+      return {arm:mask=>{law.arm(mask);},reset:()=>{law.reset();},bindView:()=>undefined,drawn:law.drawn,drawHeard:()=>undefined,
         update:(dt,t,live,thinkDt,frame)=>{const points=law.update(dt,t,live,thinkDt,frame);
           points.forEach((point,index)=>{const at=hits[index]??new Vector3();at.set(point.x,point.y,point.z);hits[index]=at;});
           hits.length=points.length;return hits;},snapshot:()=>law.snapshot(),restore:saved=>{law.restore(saved);}};

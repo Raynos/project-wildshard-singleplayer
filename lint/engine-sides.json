@@ -1610,6 +1610,7 @@
   "src/game/shared/weapons/polearmContact.ts": "shared",
   "src/game/server/boss/openArenaNative.ts": "server",
   "src/game/server/boss/openArenaState.ts": "server",
+  "src/game/server/boss/arenaWords.ts": "server",
   "src/game/server/boss/patrolNative.ts": "server",
   "src/game/server/boss/slotHeights.ts": "server",
   "src/game/server/boss/slotsNative.ts": "server",

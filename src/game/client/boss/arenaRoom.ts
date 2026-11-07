@@ -236,7 +236,7 @@ export class ArenaRoomEncounter {
       if(encounter.boss.rewardTaken)kit.upgradeBow('bow-reward',play.weapons);
     }else{
       if(this.prompt===null||this.projection===null)throw new Error('Missing open arena projection');runtime.interactables.push(this.prompt);
-      if(wirePage.on){const word=arenaTieWord(this.data.definition.id),lines=this.data.tieLines;wirePage.whenLive(ctx.scope,client=>client.onView(({name,args})=>{const line=name===word?lines[args[0]??-1]:undefined;if(line!==undefined)play.hud.toast(line);}));}
+      if(wirePage.on){const word=arenaTieWord(this.data.definition.id),lines=this.data.tieLines,heard=this.projection;wirePage.whenLive(ctx.scope,client=>client.onView(({name,args})=>{const line=name===word?lines[args[0]??-1]:undefined;if(line!==undefined)play.hud.toast(line);if(name.startsWith('open-arena.')){heard.hear(name,args);wirePage.drew(name);}}));}
       if(encounter.boss.rewardTaken){if(blade===null)throw new Error('Missing open arena power');kit.upgradeBlade('blade-reward',play.weapons,blade);}
       page.boundary(ctx.scope,this.projection.boundary);page.lendOpenView(this.projection,ctx.scope);
     }
@@ -260,6 +260,7 @@ export class ArenaRoomEncounter {
     if(this.openRows===null){this.portal?.update(dt,t);return;}
     this.power?.update(dt,t);this.hurtT-=dt;const boss=this.boss;if(boss===null||this.context===null||this.kit===null)return;
     const fight=this.openFight;if(wirePage.on||boss.state!=='dormant'||fight.body.visible)this.drive?.(dt,t);else fight.update(dt,t,false);
+    if(wirePage.on)fight.followFrame(dt,t); // the page steps no fight on the wire: it draws what the server's says
     if(wirePage.on&&this.prompt!==null){const line=wirePage.line(OWNED_ROW.tie),{lines,arena}=this.data;this.prompt.wireId=`${this.data.definition.id}.tie`;this.prompt.position.x=arena.anchor.x;this.prompt.position.z=arena.anchor.z;this.prompt.radius=Math.floor(line/10)/100;this.prompt.label=line%10===1?lines.tieOnFoot:line%10===2?lines.tieQuiet:lines.tie;}
     const answer=fight.takeBoundary();if(answer===null)return;const prompt=this.prompt;if(prompt===null)throw new Error('Missing open arena prompt');
     // the boundary answer's order is arenaBoundary's (renderer-free, CI12)

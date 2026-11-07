@@ -54,6 +54,31 @@ export class CellField {
   /** every cell's mode and remaining lifetime, live and in cell order (a view program reads them whole each frame) */
   get modeCells(): ArrayLike<number> { return this.modes; }
   get lifetimeCells(): ArrayLike<number> { return this.lifetimes; }
+  /** One row of cells for a page that steps no field: the row, then `column, left` for each cell that isn't idle (a spent cell's left is -1). */
+  rowWord(row: number): number[] {
+    const { width, states } = this.rows, word = [row];
+    for (let column = 0; column < width; column++) {
+      const cell = row * width + column, mode = this.state(cell);
+      if (mode !== states.idle) word.push(column, mode === states.active ? this.remaining(cell) : -1);
+    }
+    return word;
+  }
+  /** A `rowWord` as its server's field said it. The cells it turned spent. */
+  hearRow(row: number, pairs: readonly number[]): number[] {
+    const { width, states } = this.rows, spent: number[] = [], start = row * width, heard = new Map<number, number>();
+    for (let at = 0; at + 1 < pairs.length; at += 2) heard.set(pairs[at] ?? 0, pairs[at + 1] ?? 0);
+    for (let column = 0; column < width; column++) {
+      const cell = start + column, left = heard.get(column), mode = left === undefined ? states.idle : left < 0 ? states.spent : states.active;
+      if (mode === states.spent && this.state(cell) !== states.spent) spent.push(cell);
+      this.modes[cell] = mode; this.lifetimes[cell] = left === undefined || left < 0 ? 0 : left;
+    }
+    return spent;
+  }
+  /** A heard field's burning cells between its server's words. */
+  coast(dt: number): void {
+    const { active } = this.rows.states;
+    for (let cell = 0; cell < this.modes.length; cell++) if (this.modes[cell] === active) this.lifetimes[cell] = Math.max(0, (this.lifetimes[cell] ?? 0) - dt);
+  }
   state(cell: number): number { return this.modes[cell] ?? this.rows.states.spent; }
   remaining(cell: number): number { return this.lifetimes[cell] ?? 0; }
   x(cell: number): number { return this.rows.x + (cell % this.rows.width + .5) * this.rows.cell; }
