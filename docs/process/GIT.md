@@ -107,6 +107,9 @@ rewrite still needs Jake's approval.
   predecessor-policy and exact-receipt check on its existing committed export before deleting it. It records that
   exact SHA separately in `.git/generated-checked/`; the gate reuses only that completed generated check, retaining
   its independent ratchet check. An absent or mismatched receipt runs the normal clean-export check.
+- **The reseed today:** the regeneration above has no runner left, so the pusher runs `node scripts/generated-files.mjs
+  --write` in a clean export of the exact tip and commits what it writes. It refuses a rise and a dirty tree; AG21's
+  API ceiling, breached at 2726 of 1044, only warns there.
 - **Witness input hashes are the pusher's too.** `scripts/witness-manifests.mjs` re-records every stale
   `test/proof/<slug>/checkpoints/manifest.json` with its real recorder on the same clean export, beside the generators
   (~12–18 s, hidden behind them; verified triples cached in `.git/witness-verified/`), and puts the new `inputs` in the
