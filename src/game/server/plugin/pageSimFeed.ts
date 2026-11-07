@@ -1,5 +1,5 @@
 import { installDeclaredMovers } from './moverInstall';
-import { bindMeleeContacts, bindQuestWorldReactions, createShardfileSim, declaredItemScriptBindings, prepareShardfileSimRestore, startMeleeSecondary } from './simulation';
+import { bindMeleeContacts, createShardfileSim, declaredItemScriptBindings, prepareShardfileSimRestore, startMeleeSecondary } from './simulation';
 import { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { createSimHost } from '@wildshard/engine/sim';
 import { GridRegionDurability } from '../grid/durability';
@@ -21,7 +21,6 @@ import { pageClimate } from '../weather/pageClimate';
 export interface PageSimFeed {
   readonly installDeclaredMovers: typeof installDeclaredMovers;
   readonly declaredItemScriptBindings: typeof declaredItemScriptBindings;
-  readonly bindQuestWorldReactions: typeof bindQuestWorldReactions;
   /** The sky a forest page's weather views read (E6 WORLD). */
   readonly climate: typeof pageClimate;
   /** The page's creature law its population views still install (E6 WORLD). */
@@ -57,7 +56,7 @@ export interface PageSimFeed {
 }
 /** The page sim's own owners. */
 export const pageSimFeed: PageSimFeed = {
-  installDeclaredMovers, declaredItemScriptBindings, bindQuestWorldReactions,
+  installDeclaredMovers, declaredItemScriptBindings,
   climate: pageClimate, speciesBehaviour: pageSpeciesBehaviour,
   perchBody: (...args) => new PerchBodyBinding(...args), actorGroups: (...args) => new PageActorGroups(...args), wind: () => wildEnv.wind,
   wild: wildEnv,

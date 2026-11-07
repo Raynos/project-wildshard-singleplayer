@@ -7,7 +7,7 @@ import { readBorrowedOwner, type BorrowedOwnerPath } from '../../shared/plugin/b
 import { createClientChannels, type ClientChannelObservation, type ClientChannelFrame } from '../../shared/plugin/channels';
 import type { MoverView, MoverRuntime, MoverRoleComposition } from '../../server/plugin/mover';
 import type { installDeclaredMovers } from '../../server/plugin/moverInstall';
-import type { QuestWorldReactions, declaredItemScriptBindings } from '../../server/plugin/simulation';
+import type { declaredItemScriptBindings } from '../../server/plugin/simulation';
 import { pageSim } from '../shardfile/clientMoverOwners';
 import { BossRowBar } from '../boss/barFeed';
 import { easeField } from '@wildshard/engine/world/easedFields';
@@ -1048,7 +1048,7 @@ export interface QuestPageInteractionPorts {
 }
 /** Validated presentation actions; run returns the native acceptance and action supplies a prompt callback. */
 export interface QuestPageInteractions {
-  readonly run:(id:string)=>boolean; readonly action:(id:string)=>()=>void; readonly prompt:(id:string)=>Interactable; readonly world:QuestWorldReactions;
+  readonly run:(id:string)=>boolean; readonly action:(id:string)=>()=>void; readonly prompt:(id:string)=>Interactable;
   /** Lend the platform's admitted dispatcher to the actual held weapon; never supplies shard callbacks. */
   readonly bindWorldTargets: (landing: WorldTargetLanding) => void;
 }
@@ -1129,8 +1129,6 @@ export function bindQuestPageInteractions(source:QuestPageSource,ports:QuestPage
     return ()=>{prompt.receiver[prompt.key]=()=>{action();};};
   });
   for(const row of data.world??[])if(row.action!==undefined)read(row.action);
-  const world=pageSim.bindQuestWorldReactions(data.world??[],{flags:{has:id=>rules.has(id),set:id=>{ports.flags.set(id);}},run:id=>read(id)(),toast:ports.toast,
-    point:row=>{const pointField=readBorrowedOwner(owners,row);if(!(pointField?.value instanceof Vector3))throw new Error('Quest world reaction needs its actual point');return pointField.value;}});
   const targetData = worldTargets ?? ('files' in source && typeof source['files'] === 'object' && source['files'] !== null
     ? outputDescriptor({files:source['files']})?.sections.get('world/targets') : undefined);
   // Effects name native interaction identities, independently of page action aliases.
@@ -1148,7 +1146,7 @@ export function bindQuestPageInteractions(source:QuestPageSource,ports:QuestPage
   for(const bind of prompts)bind();
   for(const row of initial)if(testFlags(view,row.when))for(const effect of row.effects)effect();
   ports.interactables?.push(...registered);
-  return {run:id=>read(id)(),action:id=>{const action=read(id);return ()=>{action();};},prompt:id=>{const prompt=made.get(id);if(prompt===undefined)throw new Error(`Undeclared quest prompt ${id}`);return prompt;},world,
+  return {run:id=>read(id)(),action:id=>{const action=read(id);return ()=>{action();};},prompt:id=>{const prompt=made.get(id);if(prompt===undefined)throw new Error(`Undeclared quest prompt ${id}`);return prompt;},
     bindWorldTargets:landing=>{if(contacts===null)throw new Error('Missing admitted world targets');landing.bindWorldTargets(contacts);}};
 }
 
