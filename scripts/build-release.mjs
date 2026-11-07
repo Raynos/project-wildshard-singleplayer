@@ -1,6 +1,6 @@
 // One engine build, followed by the complete final-artifact size gate.
 import { execFileSync } from 'node:child_process';
-import { readFileSync, existsSync, renameSync } from 'node:fs';
+import { readFileSync, existsSync, renameSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { validatePin } from './engine-pin.mjs';
 if (existsSync('.vercel/.env.production.local')) process.loadEnvFile('.vercel/.env.production.local');
@@ -19,5 +19,12 @@ run(['node', 'scripts/shard-size-gate.mjs', 'dist']);
 run(['node', 'scripts/check-devserver.mjs', 'dist']);
 const version = JSON.parse(readFileSync(resolve(engine, 'dist/version.json'), 'utf8'));
 if (!version.build.startsWith(sha.slice(0, 7) + '-') || version.saveEpoch !== pin.saveEpoch) throw new Error('Built version or save epoch differs from release pin');
+const expectedDsn = process.env.VITE_SENTRY_DSN?.trim();
+if (expectedDsn) {
+  const code = resolve(engine, 'dist/b', version.build);
+  const scripts = readdirSync(code, { recursive: true }).filter(file => file.endsWith('.js'));
+  if (!scripts.some(file => readFileSync(resolve(code, file), 'utf8').includes(expectedDsn))) throw new Error('Configured browser telemetry DSN is absent from the pinned artifact');
+  console.log('Configured browser telemetry is present in the artifact');
+}
 renameSync(resolve(engine, 'dist'), out);
 console.log(`Release artifact ${version.build}, epoch ${version.saveEpoch}, engine ${actual}`);

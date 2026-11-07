@@ -32,6 +32,6 @@ export function checkShell(revision = 'HEAD') {
     }
     if (!/^[a-f0-9]{40}$/u.test(row.blob) || typeof row.home !== 'string' || row.reason.length < 8) throw new Error('Invalid deletion evidence');
   }
-  console.log(`Shell ${ledger.state}: verified: engine ${pin.engine.tag}, seven shards, epoch ${pin.saveEpoch}, ${ledger.files.length} deletions, no local project source`);
+  console.log(`Shell ${ledger.state}: verified: engine ${pin.engine.tag}, seven shards, epoch ${pin.saveEpoch}, ${ledger.files.length} deletions, no active local project source`);
 }
 if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) checkShell(process.argv[2] ?? 'HEAD');
