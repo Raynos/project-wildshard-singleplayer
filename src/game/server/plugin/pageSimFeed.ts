@@ -16,7 +16,7 @@ import { pageSpeciesBehaviour } from '../population/speciesBehaviour';
 import { pageClimate } from '../weather/pageClimate';
 import { arenaRoomFight, bindArenaBrain } from '../boss/arenaRoomFight';
 import { readEliteFeature } from '../quest/eliteFeature';
-import { borrowedDecisionAuthority, prepareProductDecisionMemories } from '../shardfile/borrowedDecisions';
+import { prepareProductDecisionMemories } from '../shardfile/borrowedDecisions';
 
 /**
  * What the page's quest views and motion still take from the page's own sim (E6: port first, flip last). A view asks
@@ -54,9 +54,8 @@ export interface PageSimFeed {
   /** A crowd's guardian, whose law is the page sim's and whose crowd is a view. */
   readonly crowdGuardProjection: typeof crowdGuardProjection;
   readonly bindCrowdGuard: typeof bindCrowdGuard;
-  /** The page's species programme and the decisions its bodies borrow. */
+  /** The page's species programme. */
   readonly admitSpeciesProgram: typeof admitSpeciesProgram;
-  readonly borrowedDecisionAuthority: typeof borrowedDecisionAuthority;
   /** A held blade's contacts and its secondary, which the page's weapons still settle themselves. */
   readonly bindMeleeContacts: typeof bindMeleeContacts;
   readonly startMeleeSecondary: typeof startMeleeSecondary;
@@ -78,7 +77,7 @@ export const pageSimFeed: PageSimFeed = {
   wild: wildEnv, arenaRoomFight, bindArenaBrain, readEliteFeature, prepareProductDecisionMemories, bossFight,
   fixedSpawnTable: (...args) => new FixedPageSpawnTable(...args), clientWildlifeState, lendClientWildlife,
   bindPageGroups: (...args) => { bindPageGroups(...args); }, pageWildlife: (...args) => new PageWildlife<CrowdDraw>(...args), lendPageGrass, crowdGuardProjection, bindCrowdGuard,
-  admitSpeciesProgram, borrowedDecisionAuthority, bindMeleeContacts, startMeleeSecondary,
+  admitSpeciesProgram, bindMeleeContacts, startMeleeSecondary,
   spawnScript: { read: (...args) => readSpawnScript(...args), page: (...args) => SpawnScript.page(...args) },
   createShardfileSim, prepareShardfileSimRestore, createSimHost,
   animalManager: (...args) => new AnimalManager(...args), regionDurability: (...args) => new GridRegionDurability(...args),

@@ -47,7 +47,6 @@ export function wirePageSim():void{
       wildlife.rowBodies=true;
       return wildlife;
     },
-    borrowedDecisionAuthority:()=>({bind:noDecision}),
     prepareProductDecisionMemories:()=>Promise.resolve(),
     // A blade still swings here, and what it lands is the server's: its contacts have nobody to scan.
     bindMeleeContacts:(id,rows,ports)=>bindMeleeContacts(id,rows,{...ports,targets:()=>[]}),
