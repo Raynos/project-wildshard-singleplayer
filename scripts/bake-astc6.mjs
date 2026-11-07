@@ -16,7 +16,11 @@
 // served URL → 6×6 stand-in, the overlay src/shards/pine-hollow/runtime/boot/gpuTable.ts lays over the phone table when the trim
 // is on. Content-addressed and cached (scripts/bake-astc6.cache.json): a rerun encodes only what changed.
 //
-//   node --import ./scripts/bake-loader.mjs scripts/bake-astc6.mjs [--jobs=6] [--force]
+//   node --import ./scripts/bake-loader.mjs scripts/bake-astc6.mjs [--shard=<slug>] [--jobs=6] [--force]
+//
+// S4 on (SHARD-SIZE-PLAN): another shard's phone set the same way. --shard names a row of SHARDS: its overlay goes to
+// public/assets/<folder>/astc6/ and src/shards/<slug>/data/astc6.generated.json, its list is every UASTC file of its own
+// phone table, and its cache is its own. With no --shard this is Pine's bake, unchanged.
 import { createHash } from 'node:crypto';
 import { execFileSync, spawn } from 'node:child_process';
 import { once } from 'node:events';
@@ -27,12 +31,21 @@ import { glbBytes, imageBytes, readGlb } from './astc6-phone-cap.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const PUB = resolve(ROOT, 'public');
-const OUT = resolve(PUB, 'assets/pine-hollow/astc6');
-const LIST_FILE = resolve(ROOT, 'scripts/bake-astc6.list.json');
-const CACHE_FILE = resolve(ROOT, 'scripts/bake-astc6.cache.json');
-const TABLE_FILE = resolve(ROOT, 'src/shards/pine-hollow/data/astc6.generated.json');
 const argv = process.argv.slice(2);
 const flag = (n, d) => { const a = argv.find((x) => x.startsWith(`--${n}=`)); return a ? a.slice(n.length + 3) : d; };
+/** The shards with a phone overlay. `noFlip`: paths written in glTF orientation (a coat is a hull's own map). */
+const SHARDS = {
+  'pine-hollow': { folder: 'pine-hollow', list: true, cap: true, noFlip: [] },
+  'nalati-grasslands': { folder: 'nalati', list: false, cap: false, atlases: true, overlayModule: true, noFlip: ['/models/coats/'] },
+  // Sky's rigs stay: each row names a product file (generators/rigAssetSources.ts).
+  'far-reach': { folder: 'far-reach', list: false, cap: false, glbs: true, skip: /\/rigs\//, noFlip: [] },
+};
+const SLUG = flag('shard', 'pine-hollow'), SHARD = SHARDS[SLUG];
+if (SHARD === undefined) throw new Error(`bake-astc6: no overlay row for ${SLUG}`);
+const OUT = resolve(PUB, `assets/${SHARD.folder}/astc6`);
+const LIST_FILE = resolve(ROOT, 'scripts/bake-astc6.list.json');
+const CACHE_FILE = resolve(ROOT, SLUG === 'pine-hollow' ? 'scripts/bake-astc6.cache.json' : `scripts/bake-astc6.${SLUG}.cache.json`);
+const TABLE_FILE = resolve(ROOT, `src/shards/${SLUG}/data/astc6.generated.json`);
 const JOBS = Number(flag('jobs', '6'));
 const FORCE = argv.includes('--force');
 
@@ -80,7 +93,8 @@ const tables = ['src/engine/client/boot/ktx2.generated.ts', ...readdirSync(resol
 const servedOf = new Map();
 for (const t of tables) for (const [served, gpu] of tableEntries(t)) { const l = servedOf.get(gpu) ?? []; l.push(served); servedOf.set(gpu, l); }
 
-const fetched = JSON.parse(readFileSync(LIST_FILE, 'utf8')).phone;
+const fetched = SHARD.list ? JSON.parse(readFileSync(LIST_FILE, 'utf8')).phone
+  : [...new Set(tableEntries(`src/shards/${SLUG}/ktx2.generated.ts`).map(([, gpu]) => gpu).filter((url) => (SHARD.glbs === true ? /\.(?:ktx2|glb)$/u : /\.ktx2$/u).test(url) && SHARD.skip?.test(url) !== true))];
 const cache = existsSync(CACHE_FILE) ? JSON.parse(readFileSync(CACHE_FILE, 'utf8')) : {};
 const usedKeys = new Set();
 const TMP = join(tmpdir(), `bake-astc6-${process.pid}`);
@@ -116,7 +130,7 @@ function sourceOf(served) {
   return file;
 }
 /** standalone images are Y-flipped at encode; glTF textures, layer twins and Driftwood's lightmaps are not (bake-ktx2.mjs) */
-const NO_FLIP = ['/textures/', '/driftwood-blender/'];
+const NO_FLIP = ['/textures/', '/driftwood-blender/', ...SHARD.noFlip];
 const flipOf = (served) => !served.endsWith('#layer') && !NO_FLIP.some((part) => served.includes(part));
 
 const map = {};
@@ -225,17 +239,48 @@ for (const [served, gpuUrl] of gltfJobs) {
   for (const x of served) map[x] = out;
 }
 
+// ── Nalati's painted atlases: the phone's 512² RGBA stays a phone file, as UASTC with its mip chain. Not raw 6×6: an atlas
+// is a product blob with no image route, so a phone-tier GPU with no ASTC must still transcode it. ──
+const atlasFiles = [];
+if (SHARD.atlases) {
+  const atlasOut = join(OUT, 'atlas'), models = join(PUB, 'assets/nalati/models');
+  mkdirSync(atlasOut, { recursive: true });
+  await runPool(readdirSync(models).filter((name) => name.endsWith('.phone.glb')).sort().map((name) => async () => {
+    const { json, bin } = readGlb(readFileSync(join(models, name)));
+    if (!(json.images?.length === 1)) return;
+    const stem = name.replace(/\.glb$/, ''), image = imageBytes(json, bin, json.images[0].bufferView), to = join(atlasOut, `${stem}.ktx2`);
+    atlasFiles.push(to);
+    const flags = ['-uastc', '-uastc_level', '2', '-srgb', '-ktx2_zstandard_level', '20'];
+    await cached(sha(`${sha(image)}|atlas|${ENCODER}|${[...COMMON, ...flags].join(' ')}`), async () => {
+      const webp = join(TMP, `${stem}.webp`), png = join(TMP, `${stem}.png`);
+      writeFileSync(webp, image);
+      await execFile('magick', [webp, '-strip', `PNG32:${png}`]);
+      await execFile('basisu', [...COMMON, ...flags, png, '-output_file', to]);
+      rmSync(webp); rmSync(png);
+      return pub(to);
+    });
+  }));
+}
+
 // ── outputs: prune what nothing names, the cache and the overlay table ──
 for (const k of Object.keys(cache)) if (!usedKeys.has(k)) delete cache[k];
-const live = new Set(Object.values(map));
+const live = new Set([...Object.values(map), ...atlasFiles.map(pub)]);
 const walk = (d, out = []) => { if (!existsSync(d)) return out; for (const n of readdirSync(d)) { const p = join(d, n); if (statSync(p).isDirectory()) walk(p, out); else out.push(p); } return out; };
 let stale = 0;
 for (const f of walk(OUT)) if (!live.has(pub(f))) { rmSync(f); stale++; }
 writeFileSync(CACHE_FILE, `${JSON.stringify(cache, null, 1)}\n`);
 const sorted = Object.fromEntries(Object.entries(map).sort(([a], [b]) => a.localeCompare(b)));
 writeFileSync(TABLE_FILE, `${JSON.stringify(sorted, null, 2)}\n`);
+// A shard whose page reads its table as a module takes the overlay here; Pine's and Sky's programs lay it on instead.
+if (SHARD.overlayModule === true) writeFileSync(resolve(ROOT, `src/shards/${SLUG}/ktx2Overlay.generated.ts`), `// Generated by scripts/bake-astc6.mjs --shard=${SLUG}: a phone reads the raw ASTC 6×6 overlay under the same served URLs.
+// The desktop map is never overlaid; a phone-tier GPU with no ASTC loads images, as Pine's does.
+import { GPU_FILES as TABLE } from './ktx2.generated';
+import astc from './data/astc6.generated.json' with { type: 'json' };
+
+export const GPU_FILES: { readonly phone: Readonly<Record<string, string>>; readonly desktop: Readonly<Record<string, string>> } = { phone: { ...TABLE.phone, ...astc }, desktop: TABLE.desktop };
+`);
 rmSync(TMP, { recursive: true, force: true });
 let six = 0; for (const f of live) six += statSync(abs(f)).size;
 console.log(`bake-astc6: ${encoded} encoded, ${reused} reused, ${stale} stale removed · ${Object.keys(map).length} served URLs → ${live.size} files, ${(six / 1048576).toFixed(1)} MB`);
 // S4: the phone's 512 sets are these files less their top mip; a later bake would otherwise bring the 1024s back.
-execFileSync(process.execPath, [resolve(ROOT, 'scripts/astc6-phone-cap.mjs')], { stdio: 'inherit' });
+if (SHARD.cap) execFileSync(process.execPath, [resolve(ROOT, 'scripts/astc6-phone-cap.mjs')], { stdio: 'inherit' });

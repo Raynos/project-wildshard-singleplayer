@@ -33,7 +33,7 @@ test('the complete part producer is one config-safe chunk with no publication se
 test('cold, detached persistent hits and changed source/program keys retain the defining complete parts', async () => {
   const directory = mkdtempSync(resolve('tmp/nalati-model-parts-cache-')), inputs = resolve(directory, 'inputs'); mkdirSync(inputs);
   for (const file of selected) writeFileSync(resolve(inputs, file), readFileSync(`public/assets/nalati/models/${file}`));
-  const context = (program: string, root = inputs) => createProjectGeneration(resolve('.'), hash(program), new Map(), resolve(directory, 'cache'), [{ prefix: '/assets/nalati/models/', directory: root }]);
+  const context = (program: string, root = inputs) => createProjectGeneration(resolve('.'), hash(program), new Map(), resolve(directory, 'cache'), [{ prefix: '/assets/nalati/models/', directory: root }, { prefix: '/assets/nalati/astc6/atlas/', directory: resolve('public/assets/nalati/astc6/atlas') }]);
   try {
     const cold = await nalatiModelPartsProgram(context('original'), selected);
     expect([...cold.keys()]).toEqual(['boulder-1.glb', 'boulder-1.ktx2', 'boulder-1.phone.glb', 'boulder-1.phone.ktx2', 'horse-wild.far.glb']);
@@ -46,7 +46,9 @@ test('cold, detached persistent hits and changed source/program keys retain the 
       expect(Buffer.compare(geometry, expected.geometry)).toBe(0);
       if (expected.atlas !== null) {
         const atlas = cold.get(file.replace(/\.glb$/u, '.ktx2')); if (atlas === undefined) throw new Error('Missing cached atlas');
-        expect(Buffer.compare(atlas, expected.atlas)).toBe(0);
+        // S4 on Nalati: a phone atlas is the committed UASTC bake, not the raw pixels.
+        const baked = file.endsWith('.phone.glb') ? readFileSync(`public/assets/nalati/astc6/atlas/${file.replace(/\.glb$/u, '.ktx2')}`) : expected.atlas;
+        expect(Buffer.compare(atlas, baked)).toBe(0);
       }
     }
     const expectedHashes = [...cold].map(([name, bytes]) => [name, hashImmutableBytes(bytes)]);

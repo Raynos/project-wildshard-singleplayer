@@ -366,8 +366,8 @@
   "nalati-grasslands": {
    "baselinePhoneBytes": 58179472,
    "recordedPhoneBytes": 57946689,
-   "ceilingPhoneBytes": 58179472,
-   "shrinkOnly": false,
+   "ceilingPhoneBytes": 49848701,
+   "shrinkOnly": true,
    "baseline": {
     "phone": {
      "wireBytes": 58179472,
@@ -440,7 +440,8 @@
     "head": "bc6e2b7a18ed6c12789f05141efce427df068bbd1fffd0354a2b9243a3d94526",
     "bytes": 151324160,
     "mountsAssetsBytes": 58906158
-   }
+   },
+   "latchedPhoneBytes": 49848701
   },
   "nine-dragon-stack": {
    "baselinePhoneBytes": 21798837,

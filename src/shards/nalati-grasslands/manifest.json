@@ -523,7 +523,7 @@
       "program": true
     },
     "ktx2": {
-      "module": "./ktx2.generated"
+      "module": "./ktx2Overlay.generated"
     },
     "boot": {
       "files": {

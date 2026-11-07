@@ -77,6 +77,13 @@
       "bytes": 2585539,
       "kind": "runtime",
       "purpose": "Nalati species bodies (horse family and canids), lane-shuffled zlib; the committed output of the standalone macOS bake-nalati-bodies.mjs tool (GR6), read by the species program"
+    },
+    {
+      "path": "public/assets/nalati/astc6/nalati/panorama.phone-c0d379fd.ktx2",
+      "oid": "8ef3077ff0f07a1ebaeb0784fee131adcb321afa",
+      "bytes": 1837712,
+      "kind": "runtime",
+      "purpose": "Nalati's phone sky as ASTC 6x6 (SHARD-SIZE-PLAN): half the 3.85 MB UASTC it replaces on every phone"
     }
   ]
 }

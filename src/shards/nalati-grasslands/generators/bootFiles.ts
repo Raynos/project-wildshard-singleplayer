@@ -2,6 +2,10 @@ import { bootFilePolicy as filePolicy, sharedBootTextures, type BootSources as C
 import { GPU_FILES } from '../ktx2.generated';
 import declared from '../data/bootAssets.json' with { type: 'json' };
 
+/** S4 on Nalati: the phone's ASTC 6×6 aliases over the table; a desktop is never overlaid. */
+type Aliases = Readonly<Record<string, string>>;
+const gpuTable = (astc: Aliases) => ({ phone: { ...GPU_FILES.phone, ...astc }, desktop: GPU_FILES.desktop });
+
 /** Public boot inputs. Omit bodies when an admitted product file owns their read. */
 export interface NalatiBootAssets { coats: string; bodies?: string }
 export function nalatiBootAssets(bodyFile?: string): NalatiBootAssets {
@@ -21,8 +25,8 @@ export function worldFiles(tier: Tier, assets: NalatiBootAssets, inventory: Read
     ...(assets.bodies === undefined ? [] : [assets.bodies]),
   ].filter((url) => phone(url) in inventory || url in inventory);
 }
-export function bootSources(tier: Tier, assets: NalatiBootAssets, tex: TexMode, inventory: Readonly<Record<string, number | true>>): ChunkFiles {
-  const { gpu } = filePolicy(tier, tex, GPU_FILES, inventory);
+export function bootSources(tier: Tier, assets: NalatiBootAssets, tex: TexMode, inventory: Readonly<Record<string, number | true>>, astc: Aliases = {}): ChunkFiles {
+  const { gpu } = filePolicy(tier, tex, gpuTable(astc), inventory);
   return {
     sky: [], baked: [...Object.keys(inventory).filter((url) => url.startsWith(declared.bakedTexturesRoot) && !url.includes('.phone.')).map(gpu), ...sharedBootTextures(inventory)],
     // the ground's lattice is the shardfile's admitted query terrain (G384), read once from the product, never the pack
@@ -34,7 +38,7 @@ export function bootSources(tier: Tier, assets: NalatiBootAssets, tex: TexMode, 
 }
 /** Camp people's authored sources keep their original late-read timing and order; their prepared skins are product
  *  files the camp reads when it builds (GR6). */
-export function lateReads(tier: Tier, tex: TexMode, inventory: Readonly<Record<string, number | true>>): string[] {
-  const { gpu } = filePolicy(tier, tex, GPU_FILES, inventory);
+export function lateReads(tier: Tier, tex: TexMode, inventory: Readonly<Record<string, number | true>>, astc: Aliases = {}): string[] {
+  const { gpu } = filePolicy(tier, tex, gpuTable(astc), inventory);
   return declared.people[tier].map(gpu).filter((url) => url in inventory);
 }

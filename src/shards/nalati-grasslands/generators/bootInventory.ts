@@ -3,10 +3,10 @@ import { bootSources, lateReads, type NalatiBootAssets } from './bootFiles';
 import BOOT_STEPS from '../data/bootSteps.json' with { type: 'json' };
 
 /** Pre-admission metadata preserves ordered tier/texture selections and loading weights. */
-export function nalatiBootInventory(assetFiles: NalatiBootAssets, inventory: Readonly<Record<string, number | true>>): { sources: BootModeRows<ChunkFiles>; files: BootModeRows<readonly string[]>; lateReads: BootModeRows<readonly string[]>; steps: typeof BOOT_STEPS; assetFiles: NalatiBootAssets } {
+export function nalatiBootInventory(assetFiles: NalatiBootAssets, inventory: Readonly<Record<string, number | true>>, astc: Readonly<Record<string, string>> = {}): { sources: BootModeRows<ChunkFiles>; files: BootModeRows<readonly string[]>; lateReads: BootModeRows<readonly string[]>; steps: typeof BOOT_STEPS; assetFiles: NalatiBootAssets } {
   const resolve = (tier: 'phone' | 'desktop', tex: 'img' | 'ktx2') => {
-    const sources = bootSources(tier, assetFiles, tex, inventory);
-    return { sources, files: Object.values(sources).flat(), lateReads: lateReads(tier, tex, inventory) };
+    const sources = bootSources(tier, assetFiles, tex, inventory, astc);
+    return { sources, files: Object.values(sources).flat(), lateReads: lateReads(tier, tex, inventory, astc) };
   };
   const phone = { img: resolve('phone', 'img'), ktx2: resolve('phone', 'ktx2') };
   const desktop = { img: resolve('desktop', 'img'), ktx2: resolve('desktop', 'ktx2') };
