@@ -31,3 +31,7 @@ The shell retains its storage workflow and repo-size policy until another
 running home is proved. Shard J186 deletions are recorded in their pinned
 `test/lift-disposition.json` files. Native, archives, API and admin source
 remain parked; the old admin and size-watch schedules are retired.
+
+The original art archives and human-written shard README files remain as
+J18 history, including the parked Template 2 corpus sources. No first-party
+shard implementation remains; the shell never compiles archived files.

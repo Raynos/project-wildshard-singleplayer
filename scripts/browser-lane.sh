@@ -202,7 +202,9 @@ wait_room() {
 # J148: name any listener outside localhost. Warn only: a lane never waits on a macOS service.
 warn_listeners() {
   [ "$(uname)" = Darwin ] || return 0
-  node "$(dirname "$SELF")/check-listeners.mjs" --warn >&2 || true
+  local engine_tools="${WS_ENGINE_SOURCE:-$HOME/projects/games/wildshard/engine}"
+  [ ! -f engine-source/scripts/check-listeners.mjs ] || engine_tools=engine-source
+  node "$engine_tools/scripts/check-listeners.mjs" --warn >&2 || true
 }
 
 case "${1:-}" in
