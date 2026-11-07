@@ -1615,6 +1615,7 @@
   "src/game/server/boss/patrolNative.ts": "server",
   "src/game/server/boss/slotHeights.ts": "server",
   "src/game/server/boss/slotsNative.ts": "server",
+  "src/game/server/boss/windEliteNative.ts": "server",
   "src/game/server/population/encounterIntake.ts": "server",
   "src/game/server/quest/chapterRecords.ts": "server",
   "src/game/server/weapons/nativeHeld.ts": "server",

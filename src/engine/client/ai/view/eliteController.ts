@@ -71,6 +71,8 @@ export class NativeEliteController {
   readonly tell: GroundTell;
   private readonly services: NativeEliteServices;
   private readonly drop: THREE.Object3D;
+  /** Its beam and chevron. A page on a server draws them from what the server's law says. */
+  readonly aim: { readonly show: (from: THREE.Vector3, to: THREE.Vector3, alpha: number, time: number) => void; readonly hide: () => void };
   constructor(row: NativeEliteRow, services: NativeEliteServices, drop: THREE.Object3D) {
     this.requireLive();
     this.scope.onDispose(() => { this.releaseBindings(); });
@@ -84,6 +86,11 @@ export class NativeEliteController {
     if (row.pattern === 'wind') { const scope = resourceScope(); scope.own(geometry); scope.own(material); scope.onDispose(() => { beam.removeFromParent(); }); material.depthTest = false; beam.visible = false; beam.frustumCulled = false; beam.renderOrder = 31; game.scene.add(beam); }
     else { geometry.dispose(); material.dispose(); }
     const up = new THREE.Vector3(0, 1, 0), delta = new THREE.Vector3(), head = new THREE.Vector3();
+    const aim = { setTime: (time: number): void => { material.uniforms.uTime.value = time; }, aim: (from: THREE.Vector3, to: THREE.Vector3, alpha: number): void => {
+      delta.subVectors(to, from); beam.position.copy(from); beam.scale.set(1, delta.length(), 1);
+      beam.quaternion.setFromUnitVectors(up, delta.normalize()); material.uniforms.uAlpha.value = alpha; beam.visible = true;
+    }, chevron: (point: THREE.Vector3 | null): void => { bar.chevron(point, game.camera); }, hide: (): void => { beam.visible = false; } };
+    this.aim = { show: (from, to, alpha, time) => { aim.setTime(time); aim.aim(from, to, alpha); aim.chevron(from); }, hide: () => { aim.hide(); aim.chevron(null); } };
     const event = (kind: 'feed' | 'sound', name: string, at = player.position): void => {
       const id = (kind === 'feed' ? row.messages : row.voices)[name]; if (id !== undefined) this.events.push({ kind, id, at: at.clone() });
     };
@@ -100,10 +107,7 @@ export class NativeEliteController {
       regrouped: () => { event('feed', 'regrouped'); }, interrupted: () => { event('feed', 'interrupted'); }, closed: () => { event('feed', 'closed'); }, howl: at => { event('sound', 'howl', at); } } });
     else this.policy = new DiverBrain(null, { pattern: 'wind', spec: row.spec, ports: {
       ...common, ...contact, rock: services.rock, heightAt: terrainHeight, wind: () => this.observed().wind, random: () => app.rng.stream('ai').next(),
-      tell: { setTime: time => { material.uniforms.uTime.value = time; }, aim: (from, to, alpha) => {
-        delta.subVectors(to, from); beam.position.copy(from); beam.scale.set(1, delta.length(), 1);
-        beam.quaternion.setFromUnitVectors(up, delta.normalize()); material.uniforms.uAlpha.value = alpha; beam.visible = true;
-      }, chevron: point => { bar.chevron(point, game.camera); }, hide: () => { beam.visible = false; } },
+      tell: aim,
       grounded: () => { event('feed', 'grounded'); }, cry: at => { event('sound', 'cry', at); } } });
   }
   spawn(): void {

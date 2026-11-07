@@ -59,11 +59,13 @@ export function publishShardState(host: RowHost, read: () => readonly StateNetRo
 export const eliteGroundWord = (id: string): string => `elite.ground:${id}`;
 /** Its moments, by the name its rows give each: an index into `ELITE_MOMENTS`, then where. */
 export const eliteMomentWord = (id: string): string => `elite.moment:${id}`;
-export const ELITE_MOMENTS = ['opened', 'growl', 'regrouped', 'interrupted', 'closed', 'howl'] as const;
+export const ELITE_MOMENTS = ['opened', 'growl', 'regrouped', 'interrupted', 'closed', 'howl', 'grounded', 'cry'] as const;
 /** A captain's strike lane: its ends, width, strength and time, or nothing for none. */
 export const eliteLaneWord = (id: string): string => `elite.lane:${id}`;
 /** A captain's cue: an index into its row's cues, then where. */
 export const eliteCueWord = (id: string): string => `elite.cue:${id}`;
+/** A wind elite's beam and chevron: where it aims from and at, strength and time, or nothing for none. */
+export const eliteWindWord = (id: string): string => `elite.wind:${id}`;
 /** A fight told its views something. Nothing reads it unless a room is listening, so a page's own host keeps only what's bounded. */
 export function sayFightView(host: RowHost, name: string, args: readonly number[]): void {
   const { calls } = bookOf(host);

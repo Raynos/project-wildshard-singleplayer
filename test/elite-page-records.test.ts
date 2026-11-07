@@ -38,5 +38,5 @@ test('an old row save, three records and no captain, still loads, and he rides o
   const old = { ...saved, adapters };
   live.dispose();
   const back = await nalati(undefined, serializeSimSnapshot(old));
-  try { expect(Object.keys(adapter(back.host, 'nalati.elites').records).sort()).toEqual(['aqbars', 'argymaq', 'kokbori', 'qara-batyr']); expect(back.host.adapters.has(captain)).toBe(true); } finally { back.dispose(); }
+  try { expect(Object.keys(adapter(back.host, 'nalati.elites').records).sort()).toEqual(['aqbars', 'argymaq', 'kokbori', 'qara-batyr', 'qyran']); expect(back.host.adapters.has(captain)).toBe(true); } finally { back.dispose(); }
 });

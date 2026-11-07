@@ -21,7 +21,7 @@ import type { CrowdTargets } from '../shared/shardfile/crowdRuntime';
 import { eliteViewSource, eliteViewTell, parseEliteOutputActions, parseEliteOutputBank, type EliteEnteredPresentation, type EliteOutputAction, type EliteOutput } from '@wildshard/format/eliteFeature';
 import { pageSim } from './shardfile/clientMoverOwners';
 import { wirePage } from './shardfile/wirePage';
-import { ELITE_MOMENTS, eliteCueWord, eliteGroundWord, eliteLaneWord, eliteMomentWord } from '@wildshard/engine/sim/shardRows';
+import { ELITE_MOMENTS, eliteCueWord, eliteGroundWord, eliteLaneWord, eliteMomentWord, eliteWindWord } from '@wildshard/engine/sim/shardRows';
 import { EliteRowBar, type BossRowDrop } from './boss/barFeed';
 import { lendViewTell, lendViewValues } from './shardfile/clientViewProgram';
 import { Scope } from '@wildshard/engine/app/scope';
@@ -250,13 +250,19 @@ export class Elites {
   }
   /** A page on a server steps no lair. A native kernel says its ground ring and its moments, and they land here as a page's own do. */
   private followKernels(scope: Scope, { hud, audio }: Pick<EliteEnteredOwners, 'hud' | 'audio'>, player: Pick<Player, 'position' | 'yaw'>): void {
-    const point = new THREE.Vector3(), grounds = new Map<string, NativeEliteController>(), moments = new Map<string, NativeEliteController>();
+    const point = new THREE.Vector3(), target = new THREE.Vector3(), grounds = new Map<string, NativeEliteController>(), moments = new Map<string, NativeEliteController>(), winds = new Map<string, NativeEliteController>();
     const lanes = new Map<string, BorrowedElite>(), cues = new Map<string, BorrowedElite>();
     for (const { script } of this.entries) {
-      if (script instanceof NativeEliteController) { grounds.set(eliteGroundWord(script.def.id), script); moments.set(eliteMomentWord(script.def.id), script); }
+      if (script instanceof NativeEliteController) { grounds.set(eliteGroundWord(script.def.id), script); moments.set(eliteMomentWord(script.def.id), script); winds.set(eliteWindWord(script.def.id), script); }
       else if (script instanceof BorrowedElite) { lanes.set(eliteLaneWord(script.def.id), script); cues.set(eliteCueWord(script.def.id), script); }
     }
     wirePage.whenLive(scope, client => client.onView(({ name, args }) => {
+      const aim = winds.get(name)?.aim;
+      if (aim !== undefined) {
+        const [x, y, z, toX = 0, toY = 0, toZ = 0, alpha = 0, t = 0] = args;
+        if (x === undefined || y === undefined || z === undefined) { aim.hide(); return; }
+        aim.show(point.set(x, y, z), target.set(toX, toY, toZ), alpha, t); wirePage.drew('elite wind'); return;
+      }
       const lane = lanes.get(name)?.tell, cueRow = cues.get(name)?.row;
       if (lane !== undefined) {
         const [x0, z0, x1 = 0, z1 = 0, width = 0, alpha = 0, t = 0] = args;

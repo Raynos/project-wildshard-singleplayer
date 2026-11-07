@@ -14,6 +14,7 @@ import { need, readAssemblyInput, type AssemblyGround, type AssemblyPrepared, ty
 import { prepareAssemblyFeature, type AssemblyRun } from './nativeAssemblyHosts';
 import { readPatrolIntake } from '../boss/patrolNative';
 import { readSlotIntake } from '../boss/slotsNative';
+import { readWindIntake } from '../boss/windEliteNative';
 import { withEncounters, type EncounterIntake } from '../population/encounterIntake';
 import { prepareReturns } from './nativeRuntimeLoans';
 import type { ShardProduct } from '../../shared/shardfile/shardProduct';
@@ -63,7 +64,7 @@ async function prepareField(product: ShardProduct, plan: NativeAssemblyPlan, gri
   const block = file === undefined ? undefined : { file, bytes: await product.file(file) };
   return { pond, wet: block, world: rows.world, field: new NativePopulationField(need(grid, 'A native field needs its terrain grid'), rows, bake['trees'] as readonly (readonly [number, number, number])[], bake['tops'] as readonly number[], pond, block) };
 }
-const mergedIntake = (a: EncounterIntake, b: EncounterIntake): EncounterIntake => ({ species: [...a.species, ...b.species], recipes: [...a.recipes, ...b.recipes] });
+const mergedIntake = (a: EncounterIntake, ...more: readonly EncounterIntake[]): EncounterIntake => more.reduce((all, row) => ({ species: [...all.species, ...row.species], recipes: [...all.recipes, ...row.recipes], motorless: [...all.motorless ?? [], ...row.motorless ?? []] }), a);
 /** True when this product ships a native-assembly plan. */
 export function hasNativeAssembly(product: ShardProduct): boolean { return product.hasFile(NATIVE_ASSEMBLY_FILE); }
 /**
@@ -74,7 +75,7 @@ export async function prepareNativeAssembly<C extends NativeAssemblyContext>(inp
   const preparation = { product: input, assets }, lendReturns = await prepareReturns(preparation);
   const plan = parseNativeAssembly(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await input.file(NATIVE_ASSEMBLY_FILE))));
   const patrol = ports.room === true ? plan.features.find(row => row.host === 'encounter.patrol') : undefined;
-  const product = patrol === undefined ? input : await withEncounters(input, mergedIntake(await readPatrolIntake(input, patrol), await readSlotIntake(input, patrol)));
+  const product = patrol === undefined ? input : await withEncounters(input, mergedIntake(await readPatrolIntake(input, patrol), await readSlotIntake(input, patrol), await readWindIntake(input, patrol.actors)));
   const shard = product.shardfile, bake = await prepareBake(product, plan.bake), ground = await prepareGround(product, assets, plan, bake);
   const navigation = plan.navigation === 'shard' ? assets.get(need(shard.navigation, 'Missing navigation').file) : await product.file(plan.navigation.file);
   const nav = readNavmesh(navigation, 'Native assembly requires its navigation', () => 0);

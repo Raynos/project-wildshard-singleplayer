@@ -5,7 +5,6 @@ import { expect, test, vi } from 'vitest';
 import { questBooks } from '../src/engine/shared/quest/players';
 import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { actRoutes } from '../src/engine/shared/sim/actRoutes';
-import { NO_MOMENTS, publishEncounter } from '../src/engine/shared/sim/encounterRows';
 import { leadPlayer } from '../src/engine/shared/sim/leadPlayer';
 import { shardRows } from '../src/engine/shared/sim/shardRows';
 import { installServerChapters } from '../src/game/server/quest/serverChapters';
@@ -69,7 +68,10 @@ test('a fight\'s row is what a chapter reads: a fallen lair is a felled flag and
   const live = await nalati();
   try {
     const { host } = live, book = questBooks(host).of(leadPlayer(host).id);
-    publishEncounter(host, 'qyran', () => ({ ...NO_MOMENTS, kind: 'elite', state: 'dead', hp: 0, phase: 0, shield: false, body: null }));
+    actRoutes(host).climate?.({ op: 'force', name: 'storm', at: 0.1 });
+    let qyran = null; for (let i = 0; i < 2400 && qyran === null; i++) { host.step(); qyran = [...host.entities.values()].find(body => body.kind === 'eagle') ?? null; }
+    if (qyran === null) throw new Error('No storm brought Qyran');
+    qyran.hp = 0; qyran.alive = false; // a real row: his own core sees the fall, the world's rules read his record
     for (let i = 0; i < 200; i++) host.step();
     expect(book.flags.has('felled:qyran')).toBe(true);
     expect(book.flags.has('feather:1')).toBe(true);

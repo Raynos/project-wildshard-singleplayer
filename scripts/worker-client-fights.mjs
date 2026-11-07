@@ -29,6 +29,8 @@ async function open(browser, phone, base, slug, query = '') {
 const report = page => page.evaluate(() => window.__workerClient());
 const fight = (page, id) => page.evaluate(want => window.__workerClientFights().find(row => row.id === want) ?? null, id);
 const place = (page, x, y, z) => page.evaluate(([px, py, pz]) => { window.__wildshard.world.player.link.place(px, py, pz, 0); }, [x, y, z]);
+/** `--second`: a second player stands in this fight from here on. It joins after the sky is set: a room shares one sky, and takes no player's word for it. */
+const joinSecond = page => (process.argv.includes('--second') ? page.evaluate(() => { const { x, y, z } = window.__wildshard.world.player.position; window.__secondClient = window.__workerClientBot('bot:2', x + 3, y, z + 3); }) : Promise.resolve());
 /** Wait until `read` answers something truthy; its last answer either way. */
 async function until(page, read, seconds, every = 250) {
   const end = Date.now() + seconds * 1000;
@@ -529,9 +531,14 @@ async function stormJourney(browser, phone, base, step) {
     await sky.evaluate(() => { window.__workerClientSky('storm'); }); await sky.waitForTimeout(2500); // a long ride over, the sky's still up
     for (let i = 0; i < 8; i++) { await press(sky); await sky.waitForTimeout(700); if ((await report(sky)).flags.includes('lit:cairn')) break; }
     const row = await until(sky, async () => { const seen = await fight(sky, 'storm-titan'); return seen !== null && seen.state !== 'dormant' ? seen : null; }, 10);
-    await sky.waitForTimeout(800);
+    const yaw = () => sky.evaluate(() => { const { player, camera } = window.__wildshard.world, fightOf = window.__wildshard.shard['nalati.titan'].openFight, { x, z } = fightOf.body.focusPoint, { position: p } = player; return { yaw: player.yaw, pitch: player.pitch, toward: Math.atan2(-(x - p.x), -(z - p.z)), riding: player.ride !== null, camera: camera?.position?.y ?? null }; });
+    const faced = [await yaw()];
+    await sky.waitForTimeout(800); faced.push(await yaw());
     const shown = await bossBar(sky), r = await report(sky);
-    return { ok: r.flags.includes('lit:cairn') && row !== null && shown.bar.length > 0, mounted, cairn, row: row?.state, shown, flags: r.flags.filter(flag => /cairn|jel/u.test(flag)), refused: r.refused };
+    await sky.screenshot({ path: 'tmp/flip17/titan-intro.png' }).catch(() => undefined);
+    await sky.waitForTimeout(1200); faced.push(await yaw());
+    const off = ({ yaw: at, toward }) => Math.abs(Math.atan2(Math.sin(toward - at), Math.cos(toward - at)));
+    return { ok: r.flags.includes('lit:cairn') && row !== null && shown.bar.length > 0 && off(faced[2]) < Math.max(0.3, off(faced[0]) * 0.5), mounted, cairn, row: row?.state, shown, flags: r.flags.filter(flag => /cairn|jel/u.test(flag)), refused: r.refused, faced };
   });
   /** What the page's own fight holds of what it heard: it steps none on the wire, so all of this came off the server's words. */
   const arenaDrawn = async sky => ({ words: Object.fromEntries(Object.entries((await report(sky)).drawn).filter(([name]) => name.startsWith('open-arena.'))),
@@ -544,6 +551,48 @@ async function stormJourney(browser, phone, base, step) {
     await faceAt(sky, focus); await sky.waitForTimeout(400); // the shot looks at him: a page can hold all of this with its camera in the grass
     await sky.screenshot({ path: 'tmp/titan/look.png' }).catch(() => undefined);
     return { ok: row !== null && seen.visible === true && seen.puffs === true && seen.alpha > 0 && (seen.words['open-arena.look'] ?? 0) > 0, state: row?.state, focus, ...seen };
+  });
+  // `--titanreal`: the same fight with nothing lent: no god, no `place`, a rider on a horse who rides with the stick and shoots with the wind in
+  // mind. The gale carries a full-draw arrow ~26 m and drops it ~14 m by 110 m out (`TITAN_PLACE`), so a shot dead at the heart misses: this is why
+  // the harness's ground shots rarely landed. Each miss walks the next shot in, as a player's eye does; the heart is 7 m wide open.
+  if (process.argv.includes('--titanreal')) await step('chapters: a real rider, no god, puts real arrows in the Titan\'s heart from the saddle', async () => {
+    const { page: sky } = storm, up = await until(sky, async () => (await fight(sky, 'storm-titan'))?.state === 'fight', 40);
+    await joinSecond(sky);
+    const read = () => sky.evaluate(() => { const { world, shard } = window.__wildshard, { player } = world, fightOf = shard['nalati.titan'].openFight, { x, y, z } = fightOf.body.focusPoint, { position: p } = player, wind = fightOf.windNow ?? null;
+      const { center } = fightOf.data.arena, radius = fightOf.data.place.arenaRadius; return { open: fightOf.open, focus: { x, y, z }, at: { x: p.x, y: p.y, z: p.z }, centre: { x: center.x, z: center.z }, radius, riding: player.ride !== null, hurt: world.game.app.player?.attributes?.health ?? null, wind: wind === null ? null : { x: wind.dirX, z: wind.dirZ, speed: wind.speed } }; });
+    const drawn = on => sky.evaluate(held => { window.__wildshard.world.game.app.equipment.altHeld = held; }, on);
+    const ride = (forward, turn) => sky.evaluate(([y, by]) => { const { player } = window.__wildshard.world; player.touchMove.y = y; player.yaw += by; }, [forward, turn]);
+    await sky.evaluate(() => { window.__workerClientHits(1); });
+    const mount = async () => { const body = await bodyOf(sky, 'horse'); if (body === null) return false; await place(sky, body.x - 2.9, body.y + 0.4, body.z); await sky.waitForTimeout(800); await faceAt(sky, body); await sky.waitForTimeout(200); await press(sky); await sky.waitForTimeout(900); return sky.evaluate(() => window.__wildshard.world.player.ride !== null); };
+    if (!(await read()).riding) await mount(); // the cairn's walk-up left the saddle: the ride back on is setup, and nothing after it places the rider
+    const log = [], end = Date.now() + 200_000, seen = await read();
+    let throws = 0, shots = 0, landed = 0, saddle = 0, resets = 0, up_ = 0.15, side = 0.2, row = await fight(sky, 'storm-titan'), deaths = 0, first = null, hp = row?.hp ?? 1;
+    const aim = (s, to) => { const dx = to.x - s.at.x, dz = to.z - s.at.z, d = Math.hypot(dx, dz), carry = (d / 110) ** 2, wx = s.wind?.x ?? 1, wz = s.wind?.z ?? 0, length = Math.hypot(wx, wz) || 1; return { x: to.x - wx / length * 26 * carry * side / 0.2, y: to.y + 14 * carry * up_ / 0.15, z: to.z - wz / length * 26 * carry * side / 0.2, d }; };
+    await drawn(true);
+    while (Date.now() < end && row?.state !== 'victory' && row?.phase === 0) {
+      const s = await read();
+      if (s.hurt !== null && s.hurt <= 0) { deaths++; await sky.waitForTimeout(800); row = await fight(sky, 'storm-titan'); continue; }
+      if (!s.riding && ++throws % 8 === 0) await mount();
+      // The heart stands out over the cloud sea: a rider who rode at it would fall and restart him. Keep inside, round the arena, as a player does.
+      const out = Math.hypot(s.at.x - s.centre.x, s.at.z - s.centre.z) / s.radius;
+      await sky.evaluate(([cx, cz, far]) => { const { player } = window.__wildshard.world, { x, z } = player.position, home = Math.atan2(-(cx - x), -(cz - z)); player.yaw = far ? home : home + 1.2; player.pitch = 0; }, [s.centre.x, s.centre.z, out > 0.55]);
+      if (!s.open) { await ride(0.6, 0); await sky.waitForTimeout(300); row = await fight(sky, 'storm-titan'); continue; }
+      await ride(s.riding ? 0.5 : 0, 0); await sky.waitForTimeout(1150); // a full draw: a rider keeps moving, off the spear's mark
+      const was = (await fight(sky, 'storm-titan'))?.hp ?? hp, now = await read(), point = aim(now, now.focus);
+      await faceAt(sky, point); await sky.waitForTimeout(40);
+      await drawn(false); shots++; await sky.waitForTimeout(350 + point.d * 12);
+      await drawn(true);
+      row = await fight(sky, 'storm-titan');
+      const hit = (row?.hp ?? was) < was;
+      if (hit) { landed++; if (now.riding) saddle++; first ??= { shots, d: Math.round(point.d), hp: row?.hp, riding: now.riding }; } else { side = 0.2 * [1, 0.5, 0, -0.5, -1, 1.5][shots % 6]; up_ = 0.15 * [1, 0.4, 1.6][shots % 3]; }
+      if ((row?.hp ?? was) > was) resets++;
+      const held = await sky.evaluate(() => ({ page: window.__wildshard.world.game.app.equipment.current.state.bolts ?? null }));
+      log.push(`${Math.round(point.d)}m ${hit ? 'HIT' : 'miss'} hp${(row?.hp ?? 0).toFixed(3)} ride${Number(now.riding)} arrows${held.page}/${((await report(sky)).owned['held.arrows'] ?? 1) - 1}`);
+      hp = row?.hp ?? hp;
+    }
+    await drawn(false); await ride(0, 0);
+    const end_ = await read();
+    return { ok: up === true && landed > 0, up, shots, landed, saddle, deaths, resets, first, state: row?.state, phase: row?.phase, hp: row?.hp, riding: end_.riding, startedRiding: seen.riding, wind: end_.wind, log: log.slice(-12), corrections: (await report(sky)).corrections };
   });
   // Behind a flag: a Titan left standing mustn't turn a run red that came for the bar. `--titan` is the fight itself, for his score. His row has no
   // body, so `fightTo` has nothing to swing at (`row.at` is null): the heart stands 70 m off in a gale, so the proof carries a drawn bow up to it, and
@@ -619,8 +668,10 @@ async function qaraJourney(browser, phone, base, step) {
     await faceAt(page, { x, y: now.y + 2.2, z }); await page.waitForTimeout(40);
     await bow(false); await page.waitForTimeout(400);
   };
+  await page.evaluate(() => { const seen = window.__feedSeen = [], root = document.body; new MutationObserver(rows => { for (const row of rows) for (const node of row.addedNodes) { const text = (node.textContent ?? '').trim(); if (/his back is OPEN/u.test(text) && !seen.includes(text)) seen.push(text); } }).observe(root, { childList: true, subtree: root === document.body }); });
   await step('qara: a night\'s patrol, thinned by real kills, brings its captain on a row', async () => {
     await page.evaluate(() => { window.__workerClientHits(40); window.__workerClientTime('night'); });
+    await page.waitForTimeout(2500); await joinSecond(page);
     let row = null, shots = 0;
     const end = Date.now() + 320_000;
     while (Date.now() < end) {
@@ -644,6 +695,7 @@ async function qaraJourney(browser, phone, base, step) {
   });
   await step('qara: real blows end him, and his orb is taken', async () => {
     await page.evaluate(() => { window.__workerClientHits(1); });
+    await until(page, async () => (await report(page)).drawn['elite cue'] > 0 && (await page.evaluate(() => window.__feedSeen?.length ?? 0)) > 0, 25); // a pass he finishes says his back is open
     let end = await fight(page, id);
     const until_ = Date.now() + 60_000;
     while (Date.now() < until_ && end?.state !== 'dead') {
@@ -661,8 +713,8 @@ async function qaraJourney(browser, phone, base, step) {
     await page.waitForTimeout(800);
     const row = await fight(page, id), { reward } = row ?? {};
     if (reward !== null && reward !== undefined) { await place(page, reward.x + 0.6, reward.y - 1.2, reward.z + 0.6); await page.waitForTimeout(1200); await faceAt(page, reward); for (let i = 0; i < 6 && (await fight(page, id))?.reward !== null; i++) { await press(page); await page.waitForTimeout(700); } }
-    const after = await fight(page, id);
-    return { ok: end?.state === 'dead' && reward !== null && reward !== undefined && after?.reward === null, state: after?.state, sleep: after?.sleep, reward };
+    const after = await fight(page, id), r = await report(page);
+    return { ok: end?.state === 'dead' && reward !== null && reward !== undefined && after?.reward === null && r.flags.includes('felled:qara-batyr'), cues: r.drawn['elite cue'] ?? 0, state: after?.state, sleep: after?.sleep, reward, flags: r.flags.filter(flag => /felled|feather/u.test(flag)), feed: await page.evaluate(() => window.__feedSeen ?? []) };
   });
   await step('qara: a save keeps him fallen and a page\'s fresh boot reads it back', async () => {
     await page.evaluate(() => Promise.race([window.__workerClientSave(), new Promise(resolve => { setTimeout(resolve, 20_000); })]));
@@ -677,6 +729,94 @@ async function qaraJourney(browser, phone, base, step) {
     return { ok: restored === true && row?.state === 'dead' && row.sleep > 0, restored, state: row?.state, sleep: row?.sleep, before: before?.sleep };
   });
   await step('qara: no page error', () => ({ ok: steppe.errors.length === 0, errors: [...new Set(steppe.errors)].slice(0, 6) }));
+  await steppe.context.close();
+}
+
+/** Qyran, whole: a storm brings him over his rock on a row, he climbs off his height, his beam and chevron and his fall come off the server's words,
+ *  he lands where a player was and real arrows from the ground end him, and a save keeps him fallen. No god mode: his stoop is dodged as a player does. */
+async function qyranJourney(browser, phone, base, step) {
+  const steppe = await open(browser, phone, base, 'nalati-grasslands'), { page } = steppe, id = 'qyran', rock = { x: 180, z: 85 };
+  const bird = () => page.evaluate(() => { const body = window.__wildshard.world.animals.animals.find(row => row.rowDriven && row.kind === 'eagle'); if (body === undefined) return null; const { x, y, z } = body.position, { mem, alive, hp } = body; return { x, y, z, alive, hp, ground: mem.ground ?? 0, fold: mem.fold ?? 0, flap: mem.flap ?? 0, altY: mem.altY ?? null }; });
+  const bow = on => page.evaluate(held => { window.__wildshard.world.game.app.equipment.altHeld = held; }, on);
+  const feet = async (x, z) => { await place(page, x, await groundAt(page, x, z) + 0.6, z); };
+  const drew = async name => (await report(page)).drawn[name] ?? 0;
+  const landed = seconds => until(page, async () => { const seen = await bird(); return seen !== null && seen.alive && seen.ground === 1 ? seen : null; }, seconds, 100);
+  await step('qyran: a storm brings him over his rock on a row, with his bar, and he flies', async () => {
+    await page.evaluate(() => { window.__workerClientHits(3); window.__workerClientSky('storm'); });
+    await page.waitForTimeout(1200);
+    const row = await until(page, async () => { await page.evaluate(() => { window.__workerClientSky('storm'); }); await feet(rock.x, rock.z - 70); await page.waitForTimeout(600); const seen = await fight(page, id); return seen?.at !== null && seen?.at !== undefined ? seen : null; }, 90, 400);
+    if (row === null) return { ok: false, why: 'no storm brought him', row: await fight(page, id), r: (await report(page)).refused };
+    await joinSecond(page);
+    const flown = await until(page, async () => { const seen = await bird(); return seen !== null && seen.y - await groundAt(page, seen.x, seen.z) > 12 ? seen : null; }, 20);
+    const shown = await until(page, async () => { const words = await bossBar(page); return words.elite.length > 0 ? words : null; }, 12);
+    return { ok: flown !== null && shown !== null && row.name !== null, state: (await fight(page, id))?.state, name: row.name, flown, shown };
+  });
+  await step('qyran: his beam and chevron are drawn off the server\'s words, and his stoop misses a player who moves', async () => {
+    await page.evaluate(() => { const { player } = window.__wildshard.world; player.pitch = -0.2; }); // looking away: the chevron is what says where he is
+    const beam = await until(page, async () => (await drew('elite wind') > 0), 40, 80);
+    const chevron = await page.evaluate(() => document.querySelector('.ws-elite-chevron')?.classList.contains('show') ?? null);
+    await page.screenshot({ path: 'tmp/flip17/qyran-beam.png' }).catch(() => undefined);
+    const at = await page.evaluate(() => { const { x, z } = window.__wildshard.world.player.position; return { x, z }; });
+    await page.waitForTimeout(1250); await feet(at.x + 9, at.z + 9); // the tell tracks you, then the stoop locks where you stood: run as it locks
+    const down = await landed(12);
+    await page.screenshot({ path: 'tmp/flip17/qyran-grounded.png' }).catch(() => undefined);
+    const words = await report(page);
+    return { ok: beam === true && down !== null && (words.drawn['elite moment'] ?? 0) > 0, wind: words.drawn['elite wind'], moments: words.drawn['elite moment'], chevron, down };
+  });
+  await step('qyran: real arrows from the ground end him when he lands, his bar turns, and his orb is taken', async () => {
+    const end = Date.now() + 240_000, hps = [];
+    let row = await fight(page, id), shots = 0, phase = 0, heard = await drew('elite wind'), dodged = false;
+    while (Date.now() < end && row?.state !== 'dead') {
+      const seen = await bird();
+      if (seen === null) { await page.waitForTimeout(300); row = await fight(page, id); continue; }
+      if (seen.ground === 1) { // he has about 2 s on the ground: stand off, face him, loose a drawn bow
+        await feet(seen.x + 2.2, seen.z + 2.2); await page.waitForTimeout(260);
+        const low = await bird(); if (low !== null) Object.assign(seen, low); // he settles at his height in the first moments
+        await faceAt(page, { ...seen, y: seen.y + 0.15 }); await page.waitForTimeout(40); // his body lies level at his height: 0.5 m wide
+        await bow(false); await page.waitForTimeout(350); shots++;
+        await bow(true); await page.waitForTimeout(1150); await faceAt(page, { ...seen, y: seen.y + 0.15 }); await bow(false); shots++;
+        await page.waitForTimeout(300); await bow(true);
+      } else {
+        await bow(true);
+        const words = await drew('elite wind');
+        if (words > heard && !dodged) { // his beam is up: step off his line late, and a stoop that misses grounds him
+          dodged = true; await page.waitForTimeout(1250);
+          const me = await page.evaluate(() => { const { x, z } = window.__wildshard.world.player.position; return { x, z }; }), turn = Math.random() * Math.PI * 2;
+          await feet(me.x + Math.cos(turn) * 8, me.z + Math.sin(turn) * 8);
+        } else if (words === heard) dodged = false;
+        heard = words;
+        await page.waitForTimeout(260);
+      }
+      row = await fight(page, id); phase = Math.max(phase, row?.phase ?? 0); hps.push(Math.round((row?.hp ?? 0) * 100));
+    }
+    await bow(false); await page.waitForTimeout(900);
+    const at = await fight(page, id), { reward } = at ?? {};
+    await page.screenshot({ path: 'tmp/flip17/qyran-fall.png' }).catch(() => undefined);
+    let prompts = null;
+    if (reward !== null && reward !== undefined) { // he can fall in the river: stand on the ground beside his orb
+      for (const off of [0.6, -0.7, 1.1]) {
+        await feet(reward.x + off, reward.z + off); await page.waitForTimeout(1200); await faceAt(page, reward);
+        prompts = await page.evaluate(() => { const { world } = window.__wildshard, { position: p } = world.player; return { at: [p.x, p.y, p.z], near: world.interactables.filter(item => item.radius > 0 && item.position.distanceTo(p) < 8).map(item => `${item.label} ${item.position.distanceTo(p).toFixed(1)}/${item.radius}`).slice(0, 5) }; });
+        for (let i = 0; i < 3 && (await fight(page, id))?.reward !== null; i++) { await press(page); await page.waitForTimeout(500); }
+        if ((await fight(page, id))?.reward === null) break;
+      }
+    }
+    const after = await fight(page, id), r = await report(page);
+    return { hits: r.hits, left: after?.reward ?? null, prompts, ok: at?.state === 'dead' && phase >= 1 && reward !== null && reward !== undefined && after?.reward === null && r.flags.includes('felled:qyran'), state: after?.state, sleep: after?.sleep, shots, phase, reward, hps: [...new Set(hps)], flags: r.flags.filter(flag => /felled|feather/u.test(flag)), arrows: r.owned['held.arrows'] };
+  });
+  await step('qyran: a save keeps him fallen and a page\'s fresh boot reads it back', async () => {
+    await page.evaluate(() => Promise.race([window.__workerClientSave(), new Promise(resolve => { setTimeout(resolve, 20_000); })]));
+    const before = await fight(page, id);
+    await page.reload({ waitUntil: 'load' });
+    await page.waitForFunction(() => window.__wildshard?.world?.player !== undefined, undefined, { timeout: 150_000 });
+    await page.waitForFunction(() => typeof window.__workerClient === 'function', undefined, { timeout: 150_000 });
+    await page.evaluate(FLOOR_GRID_ENTER);
+    await page.waitForFunction(() => window.__workerClient().frames > 30, undefined, { timeout: 60_000 });
+    await page.waitForTimeout(1500);
+    const { restored } = await report(page), row = await fight(page, id);
+    return { ok: restored === true && row?.state === 'dead' && row.sleep > 0, restored, state: row?.state, sleep: row?.sleep, before: before?.sleep };
+  });
+  await step('qyran: no page error', () => ({ ok: steppe.errors.length === 0, errors: [...new Set(steppe.errors)].slice(0, 6) }));
   await steppe.context.close();
 }
 
@@ -1093,6 +1233,7 @@ export async function fights(browser, phone, base, only, step) {
   const runs = name => only === '' || only === 'fights' || only === name;
   if (only === 'titan') await stormJourney(browser, phone, base, step);
   if (runs('qara')) await qaraJourney(browser, phone, base, step);
+  if (runs('qyran')) await qyranJourney(browser, phone, base, step);
   if (runs('rig')) await rigJourney(browser, phone, base, step, KINGS_CLEARING);
   if (runs('sweep')) await sweepJourney(browser, phone, base, step);
   if (only === 'rigpage') await pageRigJourney(browser, phone, base, step, KINGS_CLEARING);

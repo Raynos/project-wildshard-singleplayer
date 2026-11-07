@@ -15,6 +15,8 @@ export interface EncounterIntake {
   readonly borrowedKinds?: readonly string[];
   /** Only these admitted always species acquire fixed decision cadence. */
   readonly alwaysKinds?: readonly string[];
+  /** These bodies get no motor: their law moves them, and one would stand where they spawned. */
+  readonly motorless?: readonly string[];
 }
 const kinds=v.pipe(v.array(v.pipe(v.string(),v.minLength(1))),v.maxLength(16));
 function exact(a:unknown,b:unknown):boolean {
@@ -71,6 +73,6 @@ export async function withEncounters(product: ShardProduct, intake: EncounterInt
     species: { ...boot.species, ...Object.fromEntries(intake.species.filter(row => !Object.hasOwn(boot.species, row.kind)).map(row => [row.kind, {
       kind: row.kind, variants: row.variants, ...(row.spawnOnly === undefined ? {} : { spawnOnly: row.spawnOnly }) }])) },
     hunt: { ...boot.hunt, ...Object.fromEntries(intake.species.map(row => [row.kind, row])) } })],
-    ['server/population.json', encode({ ...config, eliteKinds: [...config.eliteKinds, ...lent], motorKinds: [...config.motorKinds, ...lent], driver: encounterDriver(config.driver, intake) })]]);
+    ['server/population.json', encode({ ...config, eliteKinds: [...config.eliteKinds, ...lent], motorKinds: [...config.motorKinds, ...lent.filter(kind => intake.motorless?.includes(kind) !== true)], driver: encounterDriver(config.driver, intake) })]]);
   return { ...product, file: name => { const bytes = files.get(name); return bytes === undefined ? product.file(name) : Promise.resolve(bytes); } };
 }
