@@ -50,7 +50,7 @@ jobs:
           mkdir -p .vercel
           node -e 'require("fs").writeFileSync(".vercel/project.json",JSON.stringify({projectId:process.env.VERCEL_PROJECT_ID,orgId:process.env.VERCEL_ORG_ID}))'
           vercel pull --yes --environment production --scope raynos-projects --token "$VERCEL_BUILD_TOKEN"
-      - run: node scripts/check-shell.mjs
+      - run: pnpm check
       - run: pnpm test
       - run: node scripts/build-release.mjs
       - name: Package the exact artifact with same-origin API functions
