@@ -12,7 +12,7 @@ import * as THREE from 'three';
 
 
 
-import { wildEnv } from '../../../src/game/server/population/pageGroups';
+import { wildEnv } from '../pageWildEnvironment';
 const angDiff = (a: number,b: number): number => Math.atan2(Math.sin(a-b),Math.cos(a-b));
 const playerVisibility = wildEnv.visibility.bind(wildEnv),downwindOf = wildEnv.downwind.bind(wildEnv),hearingRadius = wildEnv.hearing.bind(wildEnv);
 import { Pack, nativeContactContext } from './pack';

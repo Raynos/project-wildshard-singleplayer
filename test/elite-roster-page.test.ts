@@ -15,10 +15,9 @@ import type { Music } from '../src/engine/client/audio/Music';
 import type { EliteBar } from '../src/engine/client/ui/EliteBar';
 import type { DayCycleClock } from '../src/engine/shared/world/dayCycle';
 import type { AdventurePersistence } from '../src/game/shared/quest/persistence';
-import type { PageWildlife } from '../src/game/server/population/wildlife';
-import { Elites } from '../src/game/client/Elite';
+import { Elites, type EliteWildlife } from '../src/game/client/Elite';
 
-import { PageWildEnvironment } from '../src/game/server/population/pageGroups';
+import { PageAir } from '../src/game/client/population/pageAir';
 import { ELITE_CONDITION_COLUMNS } from '@wildshard/format/eliteEntryRows';
 import { legacyDouble } from '@wildshard/engine/test/FakeGame';
 import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/generators/ecology.mjs';
@@ -35,9 +34,9 @@ test('a marsh roster binds its own drop and identities, and wakes no lair of its
   if (row.mode !== 'herd') throw new Error('Missing admitted herd row');
   const root = new Scope('marsh.roster'), construction = root.child('construction'), entered = root.child('entered'), requests: unknown[][] = [];
   const body = legacyDouble<Animal>({ position: new Vector3(30, 0, -12), mesh: new SkinnedMesh(undefined, new MeshLambertMaterial()), herd: -1, mem: {} });
-  const members = [legacyDouble<Animal>({ herd: 0 })], herd = legacyDouble<ReturnType<PageWildlife['spawnHerd']>>({ members, adoptStallion: actor => { members.push(actor); } });
+  const members = [legacyDouble<Animal>({ herd: 0 })], herd = legacyDouble<ReturnType<EliteWildlife['spawnHerd']>>({ members, adoptStallion: actor => { members.push(actor); } });
   const animals = legacyDouble<AnimalManager>({ herds: [legacyDouble<AnimalManager['herds'][number]>({ members })], spawn: (...args) => { requests.push(args); return body; } });
-  const wildlife = legacyDouble<PageWildlife>({ spawnHerd: (...args) => { requests.push(args); return herd; }, spawnPack: () => { throw new Error('No pack request'); } });
+  const wildlife = legacyDouble<EliteWildlife>({ spawnHerd: (...args) => { requests.push(args); return herd; }, spawnPack: () => { throw new Error('No pack request'); } });
   const game = legacyDouble<Game>({ app, renderer: legacyDouble<Game['renderer']>({}), scene: new Scene(), camera: new PerspectiveCamera(), levelScope: construction });
   const player = legacyDouble<Player>({ position: new Vector3() }), saved = { read: () => ({}), write: () => true };
   const rows = { entry: { version: 1, id: 'marsh.roster', ui: 'marsh.ui', conditionObservations: 'conditions',
@@ -59,7 +58,7 @@ test('a marsh roster binds its own drop and identities, and wakes no lair of its
       const controller = new BorrowedElite(row, { game, player, elites: owner }, guest, new Group(), true);
       owner.bindDeclaredEntry(entry, rows, { construction, entered: { scope: entered, interactables: [],
         hud: legacyDouble<HUD>({ killFeed: () => undefined }), audio: legacyDouble<Audio>({ animal: () => undefined }), music: legacyDouble<Music>({}) }, game, player, body: 'animals', animals,
-        models, program: { id: 'rules', scope: construction, value: guest }, controllers: [controller], environment: new PageWildEnvironment(),
+        models, program: { id: 'rules', scope: construction, value: guest }, controllers: [controller], environment: new PageAir(),
         clock: legacyDouble<DayCycleClock>({ dayPhase: 'day', hour: 12, night: 0 }), weather: { stormActive: false }, ledges: [], rock: { x: 1, z: 2, top: 3 },
         patrol: null, wildlife, persistence: legacyDouble<AdventurePersistence>({ elites: saved, kill: () => undefined, feat: () => undefined }), contacts: new StrikeRunner() });
     });

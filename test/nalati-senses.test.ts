@@ -5,7 +5,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import { GrassField } from '../src/game/shared/systems/looks/grassField';
 import { TrampleField } from '../src/game/shared/systems/looks/trampleField';
 import { NativeWildEnvironment } from '../src/game/server/population/nativeManager';
-import { PageWildEnvironment } from '../src/game/server/population/pageGroups';
+import { PageWildEnvironment } from './fixtures/pageWildEnvironment';
 
 import brains from '../src/shards/nalati-grasslands/data/brains.json' with { type: 'json' };
 import strikes from './fixtures/nalati-strikeProfiles-original.json' with { type: 'json' };

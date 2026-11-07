@@ -8,7 +8,7 @@ import { Scope } from '../src/engine/shared/app/scope';
 import { StalkerBrain } from '../src/engine/shared/ai/stalker';
 import pouncer from '../src/shards/nalati-grasslands/data/aqbarsProfile.json' with { type: 'json' };
 import { SpawnScript } from '../src/game/server/population/spawnScript';
-import { PageWildEnvironment } from '../src/game/server/population/pageGroups';
+import { PageAir } from '../src/game/client/population/pageAir';
 import type { AnimalManager } from '../src/engine/server/entities/AnimalManager';
 import { createSimHost } from '../src/engine/server/sim';
 import { loadRapier } from '../src/engine/shared/physics/rapier';
@@ -46,7 +46,7 @@ async function fixture() {
   const native = host.entities.get(sample.id);if (native === undefined) throw new Error('Missing concrete body');
   const motor = native.motor;if (motor !== null && !(motor instanceof CharacterMotor)) throw new Error('Expected original native motor');
   const body = legacyDouble<Animal>(Object.assign(native,{ motor,mesh: new SkinnedMesh() }));
-  const environment = new PageWildEnvironment();environment.grassHeightAt = (x,z) => x+z;body.position.set(3,2,4);
+  const environment = new PageAir();environment.grassHeightAt = (x,z) => x+z;body.position.set(3,2,4);
   const animals = legacyDouble<AnimalManager>({ animals: [body] }), owners = { scope: host.scope,environment };
   return { host,body,rows,animals,owners };
 }

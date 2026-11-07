@@ -522,7 +522,6 @@ test('G667 case three credits only its exact original binding selectors',()=>{
     ['src/game/client/looks/speciesBook.ts',['productSpeciesCatalogue', 'SpeciesCatalogue', 'speciesBehaviour']],
     ['src/engine/shared/entities/eliteBrain.ts',['current', 'eliteThink', 'eliteAct', 'eliteDamageMul']],
     ['src/game/shared/shardfile/crowdRuntime.ts',['CrowdPrey', 'CrowdTargets', 'CrowdRoster']],
-    ['src/game/server/ambient/crowdPage.ts',['thinkCrowdGuard']],
   ] as const;
   const shared=new Set(['nalati-grasslands','pine-hollow']),approvals=g571HostApprovals('.');
   const modules=new Map(rows.map(([path])=>[path,shared]));
@@ -545,10 +544,7 @@ test('G667 case three credits only its exact original binding selectors',()=>{
 
 test('G667 case 1 credits only the listed herd and pack host',()=>{
   const rows=[
-    ["src/game/server/population/pageGroups.ts", ["point", "whole", "PagePopulationPlanner", "PageWildEnvironment", "wildEnv", "renderedPacks", "renderedHerds", "renderedDamage", "bindPageGroups", "renderedPackOf", "renderedHerdOf", "observeHerdDamage", "PageGroups"]],
     ["src/game/server/shardfile/groupRuntime.ts", ["collections", "nativeHerdCollection", "nativeGroupCollection", "NativeGroupCollection", "installNativeGroupRows"]],
-    ["src/game/server/population/directedSpecies.ts", ["DirectedSpecies"]],
-    ["src/game/server/population/groupSpecies.ts", ["groupSpecies"]],
   ] as const;
   const approvals=g571HostApprovals('.'),users=new Set(['nalati-grasslands','pine-hollow']);
   const modules=new Map(rows.map(([path])=>[path,users]));

@@ -29,7 +29,7 @@ import type { WeatherReactions } from '../../src/game/server/weather/reactions';
 import type { ShardProduct } from '../../src/game/shared/shardfile/shardProduct';
 import { installBossEncounter, type Boss } from '../../src/game/client/Boss';
 import { ProjectedState, ReturnProgram } from '../../src/game/shared/population/returnProgram';
-import { wildEnv } from '../../src/game/server/population/pageGroups';
+import { wildEnv } from '../fixtures/pageWildEnvironment';
 import { setEliteDamage } from '@wildshard/engine/entities/eliteBrain';
 import { CellField } from '../../src/game/shared/systems/cellField';
 import { ArenaFireView, ArenaWhirlsView } from './originalArenaFire';

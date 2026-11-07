@@ -6,7 +6,8 @@ import type { ReturnProgram } from '../shared/population/returnProgram';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import type { PouncerLedge } from '@wildshard/engine/ai/stalker';
 import type { PatrolEncounterView } from './boss/encounterView';
-import type { PageWildlife } from '../server/population/wildlife';
+import type { HerdBrain } from '@wildshard/engine/ai/herd';
+import type { PackBrain } from '@wildshard/engine/ai/pack';
 import type { AdventurePersistence } from '../shared/quest/persistence';
 import type { RowBodiesView } from '@wildshard/engine/entities/RowBodies';
 import type { Game } from '@wildshard/engine/core/Game';
@@ -15,7 +16,6 @@ import { StrikeRunner } from '@wildshard/engine/ai/strikes';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { strikeFromData, type StrikeData } from '@wildshard/engine/ai/strikeRows';
 import { app } from '@wildshard/engine/app/runtime';
-import type { CrowdTargets } from '../shared/shardfile/crowdRuntime';
 import { eliteViewSource, eliteViewTell, parseEliteOutputActions, parseEliteOutputBank, type EliteEnteredPresentation, type EliteOutputAction, type EliteOutput } from '@wildshard/format/eliteFeature';
 import { wirePage } from './shardfile/wirePage';
 import { ELITE_MOMENTS, eliteCueWord, eliteGroundWord, eliteLaneWord, eliteMomentWord, eliteWindWord } from '@wildshard/engine/sim/shardRows';
@@ -155,8 +155,8 @@ export class Elites {
   /** Resolve only original typed authorities for an admitted engine entry.
    * Controller selection, condition cadence and lifecycle ordering live in the
    * engine; this owner retains presentation, native effects and persistence. */
-  bindDeclaredEntry<T extends CrowdTargets>(entry: DeclaredEliteEntry, input: unknown,
-    owners: EliteDeclaredEntryOwners<T>): void {
+  bindDeclaredEntry(entry: DeclaredEliteEntry, input: unknown,
+    owners: EliteDeclaredEntryOwners): void {
     const rows = parseEliteEntryPageRows(input), { construction, entered, game, player, animals, models, program } = owners;
     if (this.entered !== null || entered.scope.disposed || entered.scope.disposing || construction.disposed || construction.disposing
       || game.levelScope !== construction || this.host.player !== player || this.host.scene !== game.scene || this.host.camera !== game.camera
@@ -189,7 +189,7 @@ export class Elites {
     for (const controller of controllers) {
       lendViewTell(entered.scope, eliteViewTell(controller.def.id), controller.tell); lendViewValues(entered.scope, eliteViewSource(controller.def.id), controller.viewValue);
     }
-    const outputs: ElitePageOutputLoans<T> = { construction, entered: entered.scope, game,
+    const outputs: ElitePageOutputLoans = { construction, entered: entered.scope, game,
       controllers: entry.scripts.map(owner => owner instanceof NativeEliteController ? { kind: 'keeper', owner } : { kind: 'external', owner }),
       patrol: owners.patrol, wildlife: owners.wildlife, animals, environment: owners.environment, player,
       hud: entered.hud, audio: entered.audio, persistence: owners.persistence, contacts,
@@ -200,8 +200,8 @@ export class Elites {
     for (const row of rows.prewarm) { try { animals.factory.model(row.kind, row.variant); } catch (cause) { console.warn('[elites] prewarm failed', row.kind, cause); } }
   }
   /** Bind after registering every lair and before initialization. The entered scope owns this exact Elites instance. */
-  bindEnteredPresentation<T extends CrowdTargets>(owners: EliteEnteredOwners, rows: EliteEnteredPresentation,
-    outputs?: { readonly actions: readonly EliteOutputAction[]; readonly loans: ElitePageOutputLoans<T> }): void {
+  bindEnteredPresentation(owners: EliteEnteredOwners, rows: EliteEnteredPresentation,
+    outputs?: { readonly actions: readonly EliteOutputAction[]; readonly loans: ElitePageOutputLoans }): void {
     if (this.entered !== null || owners.scope.disposed || !this.scope.belongsTo(owners.scope)) throw new Error('Invalid entered elite presentation owner');
     const ids = this.entries.map(entry => entry.script.def.id), keys = Object.keys(rows);
     if (keys.length !== ids.length || ids.some(id => !Object.hasOwn(rows, id))) throw new Error('Invalid entered elite presentation identities');
@@ -327,7 +327,12 @@ export type EliteOutputController = { readonly kind: 'keeper'; readonly owner: N
   | { readonly kind: 'external'; readonly owner: BorrowedElite };
 /** Compiled loans for the existing page owner; no authored factory, callback
  * map or opaque shard object is admitted. Construction and entered may be siblings. */
-export interface EliteDeclaredEntryOwners<T extends CrowdTargets = CrowdTargets> {
+/** The population an elite's outputs ask for bodies. */
+export interface EliteWildlife {
+  spawnPack: (x: number, z: number, variants: readonly string[]) => PackBrain<Animal>;
+  spawnHerd: (x: number, z: number, mares: number, foals: number, stallion: boolean) => HerdBrain<Animal>;
+}
+export interface EliteDeclaredEntryOwners {
   readonly construction: Scope; readonly entered: EliteEnteredOwners;
   readonly game: Game; readonly player: Player; readonly body: string; readonly animals: RowBodiesView;
   readonly models: ReadonlyMap<string, THREE.Object3D>;
@@ -336,17 +341,17 @@ export interface EliteDeclaredEntryOwners<T extends CrowdTargets = CrowdTargets>
   readonly environment: EliteAir;
   readonly clock: DayCycleClock; readonly weather: { readonly stormActive: boolean };
   readonly ledges: readonly PouncerLedge[]; readonly rock: { readonly x: number; readonly z: number; readonly top: number };
-  readonly patrol: PatrolEncounterView | null; readonly wildlife: PageWildlife<T> | null;
+  readonly patrol: PatrolEncounterView | null; readonly wildlife: EliteWildlife | null;
   readonly persistence: AdventurePersistence; readonly contacts?: StrikeRunner;
 }
 /** Existing entered owners lent to the effect application. None is authored
  * content, an additional body registry, clock, continuation or installer. */
 /** What an elite reads of the air, and the knockdown it deals through it. */
 type EliteAir = V2EnvironmentColumns & { readonly onKnockdown: (x: number, z: number, strength: number) => void };
-export interface ElitePageOutputLoans<T extends CrowdTargets = CrowdTargets> {
+export interface ElitePageOutputLoans {
   readonly construction: Scope; readonly entered: Scope; readonly game: Game;
   readonly controllers: readonly EliteOutputController[];
-  readonly patrol: PatrolEncounterView | null; readonly wildlife: PageWildlife<T> | null;
+  readonly patrol: PatrolEncounterView | null; readonly wildlife: EliteWildlife | null;
   readonly animals: RowBodiesView; readonly environment: EliteAir;
   readonly player: Player; readonly hud: HUD; readonly audio: Audio;
   readonly persistence: AdventurePersistence; readonly contacts: StrikeRunner;
@@ -355,8 +360,8 @@ export interface ElitePageOutputLoans<T extends CrowdTargets = CrowdTargets> {
 }
 /** Admit every effect sink before engine construction; optional absent native
  * services retain the original no-result semantics. No body/UI allocation. */
-function preflightEliteEffectServices<T extends CrowdTargets>(actions: readonly EliteOutputAction[],
-  loans: Pick<ElitePageOutputLoans<T>, 'game' | 'player' | 'animals' | 'environment' | 'hud' | 'audio' | 'persistence' | 'contacts' | 'patrol' | 'wildlife'>): void {
+function preflightEliteEffectServices(actions: readonly EliteOutputAction[],
+  loans: Pick<ElitePageOutputLoans, 'game' | 'player' | 'animals' | 'environment' | 'hud' | 'audio' | 'persistence' | 'contacts' | 'patrol' | 'wildlife'>): void {
   if (loans.game.app !== app) throw new Error('Foreign elite effect service owner');
   const need = <O extends object>(owner: O | null, key: keyof O): void => {
     if (owner !== null && typeof owner[key] !== 'function') throw new Error('Missing elite effect sink');
@@ -379,8 +384,8 @@ function preflightEliteEffectServices<T extends CrowdTargets>(actions: readonly 
  * command authority interleaves these synchronous operations only after every
  * actor/world/elite branch has passed validation. Actor pointers are captured
  * once here, so an earlier adoption cannot retarget a later emitted contact. */
-function prepareElitePageOutputs<T extends CrowdTargets>(actions: readonly EliteOutputAction[], input: unknown,
-  loans: ElitePageOutputLoans<T>, actors: readonly (Animal | null)[]): { readonly validate: () => void; readonly validateOwners: () => void; readonly operations: readonly (() => void)[] } {
+function prepareElitePageOutputs(actions: readonly EliteOutputAction[], input: unknown,
+  loans: ElitePageOutputLoans, actors: readonly (Animal | null)[]): { readonly validate: () => void; readonly validateOwners: () => void; readonly operations: readonly (() => void)[] } {
   const { construction, entered, game, controllers, patrol, wildlife, animals, environment, player, hud, audio, persistence, contacts, strikes, fallbackStrike } = loans;
   const bank = parseEliteOutputBank(parseEliteOutputActions(actions, controllers.length), input, actors.length);
   preflightEliteEffectServices(actions, loans);
@@ -479,7 +484,7 @@ function prepareElitePageOutputs<T extends CrowdTargets>(actions: readonly Elite
 
 /** Native kernels already chose these events. Match only admitted finite action
  * metadata; guest-prepared page banks retain their place in this SAME drain. */
-function drainElitePageOutputs<T extends CrowdTargets>(elites: Elites, actions: readonly EliteOutputAction[], loans: ElitePageOutputLoans<T>): void {
+function drainElitePageOutputs(elites: Elites, actions: readonly EliteOutputAction[], loans: ElitePageOutputLoans): void {
   const events = loans.controllers.flatMap((loan, controller) => loan.owner.drainEffects().map(effect => ({ controller, effect })));
   const actors: Animal[] = [];
   for (const { effect } of events) if (effect.kind === 'hit' || effect.kind === 'retire') {

@@ -25,7 +25,7 @@ import { NALATI_ECOLOGY as ecology } from '../src/shards/nalati-grasslands/gener
 import { parseExternalElite } from '@wildshard/format/eliteFeature';
 import { StrikeRunner } from '../src/engine/shared/ai/strikes';
 import type { DayCycleClock } from '../src/engine/shared/world/dayCycle';
-import type { PageWildEnvironment } from '../src/game/server/population/pageGroups';
+import type { PageAir } from '../src/game/client/population/pageAir';
 import type { HUD } from '../src/engine/client/ui/HUD';
 import type { Audio } from '../src/engine/client/audio/Audio';
 import type { Music } from '../src/engine/client/audio/Music';
@@ -34,7 +34,7 @@ import strikes from './fixtures/nalati-strikeProfiles-original.json' with { type
 import { BorrowedElite, prepareEliteEntry, DeclaredEliteEntry, type EliteEntryLifecycle } from '../src/engine/client/ai/view/eliteEntry';
 import { NativeEliteController } from '../src/engine/client/ai/view/eliteController';
 import { parseEliteEntryPageRows, ELITE_BODY_COLUMNS, ELITE_CONDITION_COLUMNS } from '@wildshard/format/eliteEntryRows';
-import { ObservationColumnsV2, type V2EnvironmentColumns } from '../src/engine/shared/script/observationColumnsV2';
+import { ObservationColumnsV2 } from '../src/engine/shared/script/observationColumnsV2';
 import type { ThinkCtx } from '../src/engine/shared/entities/species/registry';
 import { eliteThink, eliteDamageMul, setEliteBrain, setEliteDamage } from '../src/engine/shared/entities/eliteBrain';
 import { setTerrainHeight } from '../src/engine/shared/world/terrainHeight';
@@ -360,7 +360,7 @@ function originalOwnerFixture() {
     hud: legacyDouble<HUD>({ killFeed: () => undefined }), audio: legacyDouble<Audio>({ animal: () => undefined }), music: legacyDouble<Music>({}) },
     game: services.game, player: services.player, body: 'animals', animals: f.manager, models: new Map([['reed.model', f.model]]),
     program: { id: 'rules', scope: f.construction, value: legacyDouble<ReturnProgram>({ project: () => ({ accept: 1 }) }) }, controllers: [],
-    environment: legacyDouble<PageWildEnvironment & V2EnvironmentColumns>({ ...sample.environment, onKnockdown: () => undefined }), clock: legacyDouble<DayCycleClock>(sample.clock),
+    environment: legacyDouble<PageAir>({ ...sample.environment, onKnockdown: () => undefined }), clock: legacyDouble<DayCycleClock>(sample.clock),
     weather: sample.weather, ledges: [], rock: services.rock, patrol: null, wildlife: null, persistence, contacts: new StrikeRunner() };
   return { f, entry, elites, rows, owners };
 }

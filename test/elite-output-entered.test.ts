@@ -1,6 +1,5 @@
 // @vitest-environment node
 import * as reach from '../src/engine/shared/ai/reach';
-import type { PageWildlife } from '../src/game/server/population/wildlife';
 import type { PatrolEncounterView } from '../src/game/client/boss/encounterView';
 import type { ReturnProgram } from '../src/game/shared/population/returnProgram';
 import { parseSpawnScript,type SpawnScriptRows } from '@wildshard/format/spawnScripts';
@@ -27,11 +26,11 @@ import { EliteBar } from '../src/engine/client/ui/EliteBar';
 import { installEngineStrings } from '../src/engine/shared/strings';
 import { setTerrainHeight } from '../src/engine/shared/world/terrainHeight';
 import { ENGINE_CONTENT_STRINGS } from '../src/game/client/engineStrings';
-import { Elites, type EliteOutputController, type ElitePageOutputLoans } from '../src/game/client/Elite';
+import { Elites, type EliteOutputController, type ElitePageOutputLoans, type EliteWildlife } from '../src/game/client/Elite';
 import type { EliteEnteredOwners } from '../src/game/client/eliteView';
 import { BorrowedElite, type BorrowedEliteFight } from '../src/engine/client/ai/view/eliteEntry';
 import { NativeEliteController } from '../src/engine/client/ai/view/eliteController';
-import { PageWildEnvironment } from '../src/game/server/population/pageGroups';
+import { PageAir } from '../src/game/client/population/pageAir';
 import type { AdventurePersistence } from '../src/game/shared/quest/persistence';
 import { parseEliteOutputActions, parseEliteOutputBank, type EliteOutputAction } from '@wildshard/format/eliteFeature';
 import pouncer from '../src/shards/nalati-grasslands/data/aqbarsProfile.json' with { type: 'json' };
@@ -74,7 +73,7 @@ function fixture() {
   const music = legacyDouble<EliteEnteredOwners['music']>({});
   const saved = { read: () => ({}), write: () => true };
   const persistence = legacyDouble<AdventurePersistence>({ elites: saved, kill: (kind, variant) => { trace.push(['kill', kind, variant]); }, feat: kind => { trace.push(['feat', kind]); } });
-  const environment = new PageWildEnvironment();
+  const environment = new PageAir();
   vi.spyOn(environment, 'onKnockdown').mockImplementation((x, z, duration) => { trace.push(['knock', x, z, duration]); });
   vi.spyOn(app.combat, 'hit').mockImplementation(request => { trace.push(['hit', request.point, request.amount]); return null; });
   const actions = parseEliteOutputActions([
@@ -240,10 +239,10 @@ test('herd result preserves original member insertion before adoptStallion and c
   const f = fixture(), body = legacyDouble<Animal>({ position: new Vector3(10, 0, 20), herd: -1, mesh: new SkinnedMesh(undefined, new MeshLambertMaterial()) });
   try {
     const members = [legacyDouble<Animal>({ herd: 0 })];
-    const herd = legacyDouble<ReturnType<PageWildlife['spawnHerd']>>({ members, adoptStallion: value => {
+    const herd = legacyDouble<ReturnType<EliteWildlife['spawnHerd']>>({ members, adoptStallion: value => {
       expect(value).toBe(body); expect(value.herd).toBe(0); expect(members[1]).toBe(body); f.trace.push(['adoptStallion']);
     } });
-    const wildlife = legacyDouble<PageWildlife>({ spawnPack: () => { throw new Error('Unexpected pack'); }, spawnHerd: (...args) => { f.trace.push(['herd', ...args]); return herd; } });
+    const wildlife = legacyDouble<EliteWildlife>({ spawnPack: () => { throw new Error('Unexpected pack'); }, spawnHerd: (...args) => { f.trace.push(['herd', ...args]); return herd; } });
     const animals = legacyDouble<AnimalManager>({ herds: [legacyDouble<AnimalManager['herds'][number]>({ members })], spawn: (...args) => { f.trace.push(['actor', ...args]); return body; } });
     Object.assign(f.loans, { wildlife, animals });
     const controller = external(f, 'herd'); controller.spawn();
@@ -259,8 +258,8 @@ test('herd result preserves original member insertion before adoptStallion and c
 test('pack home remains exact f64 and is assigned before the original controller receives it', () => {
   const f = fixture();
   try {
-    const pack = legacyDouble<ReturnType<PageWildlife['spawnPack']>>({ homeX: 0, homeZ: 0 });
-    Object.assign(f.loans, { wildlife: legacyDouble<PageWildlife>({ spawnHerd: () => { throw new Error('Unexpected herd'); }, spawnPack: (x, z, variants) => { f.trace.push(['pack', x, z, ...variants]); return pack; } }) });
+    const pack = legacyDouble<ReturnType<EliteWildlife['spawnPack']>>({ homeX: 0, homeZ: 0 });
+    Object.assign(f.loans, { wildlife: legacyDouble<EliteWildlife>({ spawnHerd: () => { throw new Error('Unexpected herd'); }, spawnPack: (x, z, variants) => { f.trace.push(['pack', x, z, ...variants]); return pack; } }) });
     f.loans.hud.killFeed = value => { expect(f.keeper.pack).toBe(pack); expect(pack.homeX).toBe(100.00000000001); expect(Object.is(pack.homeZ, -0)).toBe(true); f.trace.push(['feed', value]); };
     const rows = parseEliteOutputActions([{ id: 6, controller: 0, kind: 'wildlife-pack', variants: ['plain', 'dark'] }], 1);
     f.bind(rows);

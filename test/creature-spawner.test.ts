@@ -1,14 +1,10 @@
 import { expect, test, vi } from 'vitest';
 import { Rng } from '../src/engine/shared/core/rng';
 import { createCreatureSpawner } from '../src/game/server/plugin/brain';
-import { PageActorGroups } from '../src/game/server/population/pageGroups';
 import { ReturnGate } from '../src/game/shared/population/respawn';
 import { manager as realManager, huntOf } from '@wildshard/engine/test/manager';
 import {onFault,type Fault} from '../src/engine/shared/core/faults';
-import { speciesDef } from '../src/engine/shared/entities/species/registry';
 import { Scope } from '../src/engine/shared/app/scope';
-import {RETURN_PROGRAM as program} from './fixtures/driftwood-guest-programs';
-import {lendDriftwoodReturns} from './fixtures/driftwood-return-modules';
 import { overrideTerrain } from '@wildshard/engine/test/terrain';
 import { installBoarWorldFixture } from './fixtures/boar-world';
 
@@ -50,30 +46,6 @@ test('materializes ordered groups through the manager and retires only owned act
   expect(() => spawner.group('crab', { x: 0, z: 0 }, [])).toThrow();
 });
 
-test('salt-marsh page rows retain actual AI, herd order, training refills and ownership', () => {
-  const restore = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
-  const scope = lendDriftwoodReturns(new Scope('marsh.groups')), fixture = realManager(), animals = fixture.manager;
-  const groups = new PageActorGroups(animals, { program, law: { signal: 'practice', initial: { dead: 0 }, parameters: { delay: 2, away: 5 }, retain: { dead: 'dead' } } }, scope), variant = speciesDef('boar').variants[0]?.id;
-  if (variant === undefined) throw new Error('Missing fixture species');
-  const foreign = animals.spawn('boar', -10, -10, 0, variant);
-  try {
-    const row = { kind: 'boar', variant, x: 3, z: 4, yaw: .2, herd: 0, practice: true } as const;
-    groups.place([{ x: 3, z: 4 }], ['boar'], [row]);
-    const actor = groups.practice; if (actor === null) throw new Error('Missing training body');
-    expect(actor.scripted).toBe(false); expect(animals.herds[actor.herd]?.members).toContain(actor);
-    expect(groups.count('boar')).toBe(1); expect(groups.count('boar', true)).toBe(1);
-    actor.alive = false;
-    groups.updatePractice(2, { x: 3, z: 4 }); expect(groups.practice).toBe(actor);
-    groups.updatePractice(.1, { x: 8, z: 4 }); expect(actor.hidden).toBe(false);
-    actor.hidden = true; groups.updatePractice(.1, { x: 8, z: 4 });
-    const replacement = groups.practice;
-    expect(replacement).not.toBe(actor); expect(replacement?.scripted).toBe(false);
-    expect(replacement?.entityId).not.toBe(actor.entityId); expect(groups.count('boar')).toBe(2);
-    expect(animals.animals).toContain(actor); // the old fading shell remains until the owning manager retires it
-    groups.dispose(); groups.dispose(); expect(animals.animals).toEqual([foreign]);
-  } finally { groups.dispose(); animals.retire(foreign); restore(); scope.dispose(); }
-});
-
 test('native corpse gates keep the original fade clock while the player returns near', () => {
   const state = { dead: 0, fade: -1 }, row = { delay: 2, away: 5, fade: 1.5 };
   expect(ReturnGate.step(state, row, 1, true, 10)).toBe('none'); expect(state.dead).toBe(0);
@@ -82,22 +54,6 @@ test('native corpse gates keep the original fade clock while the player returns 
   expect(ReturnGate.step(state, row, 0, false, 5)).toBe('replace');
 });
 
-
-test('a training death between samples never borrows live frame time', () => {
-  const restore = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100 });
-  const scope = lendDriftwoodReturns(new Scope('marsh.clock')), animals = realManager().manager, variant = speciesDef('boar').variants[0]?.id;
-  if (variant === undefined) throw new Error('Missing fixture species');
-  const groups = new PageActorGroups(animals, { program, law: { signal: 'practice', initial: { dead: 0 }, parameters: { delay: 2, away: 5 }, retain: { dead: 'dead' } } }, scope);
-  try {
-    groups.place([{ x: 3, z: 4 }], ['boar'], [{ kind: 'boar', variant, x: 3, z: 4, yaw: 0, herd: 0, practice: true }]);
-    const actor = groups.practice; if (actor === null) throw new Error('Missing training body');
-    const player = { x: 30, z: 30 };
-    groups.updatePractice(.09, player);
-    actor.alive = false; actor.hidden = true;
-    groups.updatePractice(1.91, player); expect(groups.practice).toBe(actor);
-    groups.updatePractice(.1, player); expect(groups.practice).not.toBe(actor);
-  } finally { groups.dispose(); scope.dispose(); restore(); }
-});
 
 test('a sliced retirement retires one owned actor a step, then nothing more', () => {
   interface Actor { herd: number }

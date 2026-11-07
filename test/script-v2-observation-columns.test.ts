@@ -4,7 +4,7 @@ import { createSimHost } from '../src/engine/server/sim';
 import { loadRapier } from '../src/engine/shared/physics/rapier';
 import { fixtureBytes } from '@wildshard/engine/test/nativeBytes';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
-import { PageWildEnvironment } from '../src/game/server/population/pageGroups';
+import { PageAir } from '../src/game/client/population/pageAir';
 import { ObservationColumnsV2,type V2ColumnOwners,type V2ReferenceColumn } from '../src/engine/shared/script/observationColumnsV2';
 import { parseObservationColumnsV2,ObservationColumnsV2Schema } from '@wildshard/format/scriptObservationColumnsV2';
 import { formatJsonSchema } from '../src/sharddev/formatJsonSchema';
@@ -17,7 +17,7 @@ async function fixture() {
   const actor = host.entities.get('boar:1'), other = host.entities.get('boar:2');
   if (actor === undefined || other === undefined) throw new Error('Missing native actors');
   actor.position.set(4,2,7);leadPlayer(host).position.set(20,3,30);
-  const environment = new PageWildEnvironment(), query = vi.spyOn(environment,'grassHeightAt').mockImplementation((x,z) => x+z);
+  const environment = new PageAir(), query = vi.spyOn(environment,'grassHeightAt').mockImplementation((x,z) => x+z);
   environment.playerCrouched = true;environment.playerFwdX = .6;environment.playerFwdZ = .8;
   environment.wind = { x: .8,z: -.6,strength: .7 };
   const clock = { hour: 22,dayPhase: 'night',night: .8 }, weather = { stormActive: false };
