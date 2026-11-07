@@ -410,6 +410,12 @@ The boot purge was at **212k files**, up 45k in 4 h and closing on the 250k inve
   the Vitest `TMPDIR` finding (finding 1) in a new form: it counts against the boot purge, where `./tmp/vitest` would not.
 - `tmp/sweep` 6.2 GB (born 03:59, live, from `tmp/sweep/chain.sh` running `scripts/loading-flow/sweep.sh` against production) and
   `tmp/worker-proof/deploy` 2.7 GB (written 02:56, read by `scripts/worker-proof-page.mjs`) are both lane output.
+- **11-07 11:16:** boot purge **5.37M** (+162k in 6.5 h), `/private/tmp` **286 GB** (+24 GB), `$TMPDIR` 8.1 GB. The session
+  scratchpad's `e7` is the live growth, 205k files / 30 GB, with full repo trees `e7/engine` 14 GB and `e7/flip` 12 GB.
+  Its `p4p5` is really 2.86M files, not the 1.56M lower bound above. `./tmp` 277 GB / 2.09M files (+6 GB, +72k), mostly
+  `tmp/serve` back to 8 GB. `tmp/ci-f` 3.7 GB, so its trees are starting again. Free disk 1,318 → 1,262 GB.
+- **`/cores` 13 GB, two dumps:** `core.3105` (11-07 07:33) has the same `node::Abort` stack and 6.5 GB size as `core.58621`.
+- **`node-compile-cache` is regrowing:** 4.7 → 15 GB in under 11 hours since Jake deleted it. Nothing evicts it.
 
 ## Decisions (Jake, 2026-10-15)
 
