@@ -15,6 +15,7 @@ import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generate
 import { DRIFTWOOD as source } from './fixtures/driftwood-program';
 import { TRADER_STALL as coinRows } from '../src/shards/driftwood-isle/generators/questShop';
 import { Owned } from '../src/game/shared/loot/Owned';
+import { OWNED_ROW } from '../src/game/shared/loot/ownedRows';
 import { Purse, publishPurse, enteredPurse } from '../src/game/shared/loot/Purse';
 import { installQuestTrader, installQuestShop } from '../src/game/client/quest/trader';
 import { wirePage } from '../src/game/client/shardfile/wirePage';
@@ -44,10 +45,16 @@ function page(loot: unknown = source.rows.loot) {
 }
 
 const silent: Transport = { send: () => undefined, close: () => undefined, onMessage: () => () => undefined, onClose: () => () => undefined, stats: { rttMs: 0, lossPct: 0, sentBytes: 0, recvBytes: 0 } };
-let said: unknown[];
+let said: unknown[], client: NetClient, version = 0;
+/** The server's grant: the good's bought line rises, and a frame reads it. `wirePage` outlives a test and reads a version once. */
+function granted(good: number): void {
+  client.owned.set(`${OWNED_ROW.purchase}${String(good)}`, 1); client.ownedVersion = ++version;
+  client.latest = { tick: 2, baselineTick: -1, cell: 1, lastSeq: 0, owner: new Float64Array(0), rows: new Map(), ride: null, fresh: new Set() };
+  wirePage.frame(null, true);
+}
 beforeEach(() => {
   Object.defineProperty(wirePage, 'on', { get: () => true, configurable: true }); // the flip makes this the only page
-  said = []; wirePage.bind(new NetClient(silent), () => undefined, () => undefined, () => false, act => { said.push(act); });
+  said = []; client = new NetClient(silent); wirePage.bind(client, () => undefined, () => undefined, () => false, act => { said.push(act); });
 });
 afterEach(() => { wirePage.unbind(); Reflect.deleteProperty(wirePage, 'on'); });
 
@@ -65,8 +72,10 @@ test('a coin card says the purchase to the server, spends nothing itself, and ke
     events.length = 0;
     panel.root.querySelector<HTMLButtonElement>('.ws-shop-bigbuy')?.click();
     expect(said).toEqual([{ kind: 'buy', seq: 0, good: 0 }]);
-    expect(events, 'the page keeps its chime and its word; the price is the server\'s').toEqual(['ui-chime', 'Bought · Whetstone I — sword damage +25 %']);
+    expect(events, 'nothing chimes before the server grants').toEqual([]);
     expect(purse.coins).toBe(12); expect(owned.has('whetstone-1')).toBe(false);
+    granted(0);
+    expect(events, 'the page keeps its chime and its word; the price is the server\'s').toEqual(['ui-chime', 'Bought · Whetstone I — sword damage +25 %']);
     panel.close(); expect(weapons.stowed).toBe(false); vi.advanceTimersByTime(450); expect(hud.holdPause).toBe(false);
     said.length = 0; expect(panel.onBuy?.({ id: 'heart-1', name: '', does: '', icon: 'heart', price: 14 }), 'a shut panel buys nothing').toBe(false); expect(said).toEqual([]);
     panel.dispose(); expect(stall.shop).toBeNull(); scope.dispose(); expect(() => enteredPurse(scope)).toThrow('Missing entered purse');
@@ -89,6 +98,8 @@ test('a barter counter checks its costs before it says a thing, and keeps its ca
     expect(panel.onBuy?.(goods[0])).toBe(false); expect(events).toEqual([]); expect(said, 'short: nothing to say').toEqual([]);
     pack.set('seed', 2); panel.render(); panel.root.querySelector<HTMLButtonElement>('.ws-shop-bigbuy')?.click();
     expect(said).toEqual([{ kind: 'buy', seq: 0, good: 0 }]);
+    expect(events, 'no word before the server grants').toEqual([]);
+    granted(0);
     expect(events, 'the page takes nothing from the pack').toEqual(['Traded · Apple bundle']); expect(pack.get('seed')).toBe(2);
     panel.dispose();
   } finally { scope.dispose(); }
