@@ -36,3 +36,10 @@ test('missing tag, red engine, red shard, and epoch downgrade all refuse without
     assert.equal(readFileSync(join(cwd, 'engine.pin.json'), 'utf8'), original);
   });
 });
+
+test('a malformed current epoch refuses before a bump can weaken its floor', () => fixture(({ cwd, invoke }) => {
+  const file = join(cwd, 'engine.pin.json'), pin = JSON.parse(readFileSync(file, 'utf8'));
+  delete pin.saveEpoch; const held = JSON.stringify(pin); writeFileSync(file, held);
+  const result = invoke({ PIN_EPOCH: '0' }); assert.notEqual(result.status, 0);
+  assert.equal(readFileSync(file, 'utf8'), held);
+}));

@@ -34,7 +34,7 @@ export function verify(pin) {
 }
 if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const [command, tag, ...shardRefs] = process.argv.slice(2);
-  const current = JSON.parse(readFileSync('engine.pin.json', 'utf8'));
+  const current = validatePin(JSON.parse(readFileSync('engine.pin.json', 'utf8')));
   if (command === 'verify') verify(current);
   else if (command === 'bump' && tag !== undefined) {
     const commit = tagCommit('engine', tag);
