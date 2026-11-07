@@ -1281,6 +1281,16 @@ jobs:
             tmp/ci-vitest/timings.json
           retention-days: 7
           if-no-files-found: warn
+      # What Linux records for each witness, to set what it can honestly compare.
+      - name: Publish native witness manifests
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: witness-manifests-${{ matrix.shard }}
+          path: ~/.cache/wildshard/generate/witness-*/[0-9a-f]*/manifest.json
+          retention-days: 2
+          if-no-files-found: ignore
 
 
   # G989: software draw diagnostics allocate no runner on push. PRs retain
