@@ -18,6 +18,9 @@ import { RainPresentationSchema } from '@wildshard/format/rainPresentation';
 import { parseAchievementCounterData } from '@wildshard/format/achievementCounters';
 import { parseQuestStepRows, parseQuestHintRows, parseQuestServiceActions, parseCarriedQuest } from '@wildshard/format/questSteps';
 import { parseQuestPageInteractions } from '@wildshard/format/questInteractions';
+import { parseNativeQuestServiceSpots } from '@wildshard/format/nativeQuestComposition';
+import { parseCoverAppearance } from '@wildshard/format/coverAppearance';
+import { parseWeatherProgram } from '@wildshard/format/weatherProgram';
 import { QuestPageCompositionSchema } from '@wildshard/format/questPageComposition';
 import { CoverCompositionSchema } from '@wildshard/format/streamedCover';
 import { ManifestMetadataSchema } from '@wildshard/format/minimap';
@@ -167,6 +170,12 @@ export function questHintRows(input: unknown): ReturnType<typeof parseQuestHintR
 export function questServiceRows(input: unknown): ReturnType<typeof parseQuestServiceActions> { return parseQuestServiceActions(input); }
 /** Admit borrowed page interaction identities and their original restore rules. */
 export function questPageInteractionRows(input: unknown): ReturnType<typeof parseQuestPageInteractions> { return parseQuestPageInteractions(input); }
+/** Admit native quest service spots through their defining composition grammar. */
+export function nativeQuestServiceSpotRows(input: unknown): ReturnType<typeof parseNativeQuestServiceSpots> { return parseNativeQuestServiceSpots(input); }
+/** Admit cover appearance rows without constructing a material. */
+export function coverAppearanceRows(input: unknown): ReturnType<typeof parseCoverAppearance> { return parseCoverAppearance(input); }
+/** Admit a weather program's detached rows without starting weather. */
+export function weatherProgramRows(input: unknown): ReturnType<typeof parseWeatherProgram> { return parseWeatherProgram(input); }
 /** Admit complete quest composition data, including caller-owned entry resources. */
 export function questPageCompositionRows(input: unknown): v.InferOutput<typeof QuestPageCompositionSchema> { return v.parse(QuestPageCompositionSchema, input); }
 /** Admit cover ownership references without constructing ground or geometry. */
