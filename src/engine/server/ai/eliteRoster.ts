@@ -11,6 +11,7 @@ import { GrazerBrain } from './grazer';
 import { NativeEliteContinuation, type EliteContinuationCore, type EliteContinuationGroups, type EliteContinuationMember } from './eliteContinuation';
 import { nearestOnGround } from '../../shared/sim/nearPlayer';
 import { eliteNetView, publishEncounter } from '../../shared/sim/encounterRows';
+import { eliteLaneWord, sayFightView } from '../../shared/sim/shardRows';
 
 const finite = v.pipe(v.number(), v.finite());
 const projectionRows = v.strictObject({ signal: v.pipe(v.string(), v.minLength(1), v.maxLength(128)),
@@ -51,6 +52,13 @@ export class NativeEliteProjection {
     this.live(); state.elapsed = 0; state.lastState = frame.state; state.laneT = result['laneT'] ?? state.laneT; state.runT = result['runT'] ?? state.runT;
     if (result['capture'] === 1) { state.laneFrom = [...frame.at]; state.laneTo = [...frame.player]; }
     effects.signature = result['signature'] === 1; effects.lead = result['lead'] === 1; effects.adopt = result['adopt'] === 1; return effects;
+  }
+  /** The charge lane a page draws, as `behaviour/eliteViews.as` does: from its start to 3 m short of its target, 3 m wide, fading in over half a second. */
+  lane(): readonly [number, number, number, number, number, number] | null {
+    const { laneT, laneFrom: [x, , z], laneTo: [toX, , toZ] } = this.state;
+    if (laneT <= 0) return null;
+    const dx = toX - x, dz = toZ - z, distance = Math.hypot(dx, dz) || 1, k = Math.max(0, distance - 3) / distance;
+    return [x, z, x + dx * k, z + dz * k, 3, 0.55 * Math.min(1, laneT * 2)];
   }
   snapshot(): v.InferOutput<typeof projectionSaved> { this.live(); return structuredClone(this.state); }
   prepareRestore(input: unknown): () => void { this.live(); const state = v.parse(projectionSaved, input); return () => { this.live(); this.state = state; }; }
@@ -194,6 +202,7 @@ export class NativeEliteRoster {
     const member: NativeEliteMember = { row, controller, animal: null, phase2: false, pack: null, adopted: false, detached: false };
     this.projected.push({ group, lead: method(group, 'leadAway'), readers: readers(group, ['leaderState','leader']), program, project: method(program, 'project'), core, won: method(core, 'won') });
     const live = (): void => { this.validate(); if (this.guards?.[binding.group] !== group) throw new Error('Replaced projected elite group'); };
+    let telling = false;
     const script: NativeEliteScript = {
       def: row.def, get animal() { return member.animal; },
       spawn: () => { live(); const actor = group.leader; if (actor === null || !actor.alive || member.animal !== null) throw new Error('Encounter group respawn is not hosted'); member.animal = actor; },
@@ -207,6 +216,8 @@ export class NativeEliteRoster {
         const phase = bond.phase, adopted = bond.companion, at = animal.position, player = nearestOnGround(this.host.players, at.x, at.z).position;
         const effects = controller.advance(dt, { state: group.leaderState, phase2: member.phase2, engaged, bonded: phase === profile.bondedState,
           same: group.leader === animal, health: animal.hp / animal.maxHp, at: [at.x, at.y, at.z], player: [player.x, player.y, player.z] });
+        const lane = controller.lane();
+        if (lane !== null) { telling = true; sayFightView(this.host, eliteLaneWord(row.def.id), [...lane, this.clock.now]); } else if (telling) { telling = false; sayFightView(this.host, eliteLaneWord(row.def.id), []); }
         if (effects.signature) { live(); core.signature(row.def.id); } if (effects.lead) { live(); group.leadAway(player.x, player.z); }
         if (effects.adopt && adopted !== null) {
           live(); const action = profile.adoption;

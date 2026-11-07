@@ -1,4 +1,5 @@
 import { pageStateOf } from '../../shared/shardfile/runtimeState';
+import { prepareCaptain, type CaptainKnock, type NativeCaptain } from '../boss/captainNative';
 import { strikeFromData } from '@wildshard/engine/ai/strikeRows';
 import { StrikeRunner } from '@wildshard/engine/ai/strikes';
 import { NativeEliteRoster, nativeEliteBindings, type NativeEliteBindings } from '@wildshard/engine/ai/eliteRoster';
@@ -68,7 +69,7 @@ export interface AssemblyRun<C extends NativeAssemblyContext> {
   ammunition?: ReturnType<typeof installNativeHeldAmmunition>; elites?: ReturnType<typeof installNativeEliteFeature>;
   island?: ReturnType<typeof installMixedPopulation>; bindings?: NativeEliteBindings; roster?: ReturnType<typeof installNativeBootRoster>;
   weather?: { readonly wind: Wind; readonly storm: WeatherReactions }; patrol?: () => void; arena?: OpenArenaPlan;
-  wild?: NativeWildEnvironment; groups?: ReturnType<typeof installNativeGroupRows>; nativeElites?: NativeEliteRoster; creatures?: ReturnType<typeof installNativePopulationHunt>; taming?: ReturnType<typeof installNativeTaming>;
+  wild?: NativeWildEnvironment; groups?: ReturnType<typeof installNativeGroupRows>; nativeElites?: NativeEliteRoster; eliteCore?: ReturnType<typeof nativeEliteCore>; creatures?: ReturnType<typeof installNativePopulationHunt>; taming?: ReturnType<typeof installNativeTaming>;
 }
 type Step<C extends NativeAssemblyContext> = (run: AssemblyRun<C>) => void;
 const combatOf = <C extends NativeAssemblyContext>(run: AssemblyRun<C>) => need(run.context.combat, 'Native assembly requires its combat frame');
@@ -123,7 +124,7 @@ async function prepareRidingElites<C extends NativeAssemblyContext>(row: Extract
     const core = nativeEliteCore(host, row.conditions, ReturnProgram.native(host, boot.admission), clock, env);
     const elites = new NativeEliteRoster(rows, { host, core, bindings: need(run.bindings, 'Native elites need their bindings'), groups: need(run.groups, 'Native elites need their groups'),
       kernel: { contacts: new StrikeRunner(), strikes, terrain: need(at.samplers, 'Native elites need terrain samplers'), environment: env, ledges: at.bake['ledges'] as NativeEliteKernelLoans['ledges'] } });
-    elites.bindProjected(row.projected, ReturnProgram.native(host, boot.admission), core); elites.install(); run.nativeElites = elites;
+    elites.bindProjected(row.projected, ReturnProgram.native(host, boot.admission), core); elites.install(); run.nativeElites = elites; run.eliteCore = core;
   };
 }
 /** Read one feature's rows now, and return the synchronous step that installs its host. */
@@ -159,10 +160,17 @@ export async function prepareAssemblyFeature<C extends NativeAssemblyContext>(ro
     }
     case 'encounter.patrol': {
       if (at.ports.room !== true) return () => undefined;
-      const patrol = await preparePatrol(product, { ...row, external: await readAssemblyInput<readonly unknown[]>(product, row.external) }), slots = await prepareSlots(product, row);
+      const external = await readAssemblyInput<readonly unknown[]>(product, row.external), patrol = await preparePatrol(product, { ...row, external }), slots = await prepareSlots(product, row);
+      const elites = at.plan.features.find((feature): feature is Extract<NativeAssemblyFeature, { host: 'riding.elites' }> => feature.host === 'riding.elites');
+      const kernels = elites === undefined ? [] : (await readAssemblyInput<{ readonly kernels: readonly { readonly knockdown: CaptainKnock }[] }>(product, elites.rows)).kernels;
+      const [kernel] = kernels, ride = elites === undefined || kernel === undefined ? null : await prepareCaptain(product, external, row.actors, kernel.knockdown);
       return run => {
-        const finish = patrol.begin(run.host, { eliteDamage: (host, actor, request) => run.arena?.eliteDamage(host, actor, request) ?? 1, beforePatrol: (host, dt) => { slots?.advance(host, dt); }, afterPatrol: (host, dt) => { run.arena?.advance(host, dt); } });
-        run.patrol = () => { finish(); slots?.install(run.host, need(run.bindings, 'Slots need their bindings'), run.context.restoring); };
+        let captain: NativeCaptain | null = null;
+        const finish = patrol.begin(run.host, { eliteDamage: (host, actor, request) => captain?.scale(actor, request.point) ?? run.arena?.eliteDamage(host, actor, request) ?? 1, beforePatrol: (host, dt) => { slots?.advance(host, dt); captain?.advance(dt); }, afterPatrol: (host, dt) => { run.arena?.advance(host, dt); } });
+        run.patrol = () => {
+          finish(); slots?.install(run.host, need(run.bindings, 'Slots need their bindings'), run.context.restoring);
+          if (ride !== null && elites !== undefined) { captain = ride(run.host, decisions => nativeEliteCore(run.host, elites.conditions, decisions, dayOf(run), need(run.wild, 'A captain needs his environment')), `${row.step}.captain`); if (captain.lair.record !== undefined) need(run.eliteCore, 'A captain needs the world\'s lairs').share(captain.lair.id, captain.lair.record); }
+        };
       };
     }
     case 'boss.open-arena': {

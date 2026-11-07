@@ -399,7 +399,7 @@ export function restoreInstalledHost(host: SimHost, ports: { rapier: Rapier }, s
     // The installers ran for the lead player; everyone else rejoins here, before their state lands.
     for (const entry of saved.players.slice(1)) if (!host.players.has(entry.id)) host.addPlayer(entry.id);
     if (saved.players[0]?.id !== leadPlayer(host).id || !sameIds(saved.players.map((entry) => entry.id), host.players.keys()) || !sameIds(saved.entities.map((entry) => entry.id), host.entities.keys())
-      || !sameIds(saved.strikes.map((entry) => entry.id), host.strikes.keys()) || !sameIds(saved.adapters.map((entry) => entry.id), host.adapters.keys())
+      || !sameIds(saved.strikes.map((entry) => entry.id), host.strikes.keys()) || !sameIds(saved.adapters.map((entry) => entry.id), [...host.adapters].filter(([id, adapter]) => adapter.joined !== true || saved.adapters.some(entry => entry.id === id)).map(([id]) => id))
       || !sameIds(saved.quests.map((entry) => entry.id), host.quests.map((quest) => quest.def.id))
       || saved.players.some(invalidPlayer) || saved.boardColliders?.length === 0) throw new RangeError('Snapshot instance registrations do not match');
     for (const entry of saved.entities) host.entities.get(entry.id)?.restore(entry.state);
@@ -425,8 +425,9 @@ export function restoreInstalledHost(host: SimHost, ports: { rapier: Rapier }, s
       if (adapter === undefined) throw new RangeError('Snapshot adapter registration disappeared');
       return [entry.id, adapter] as const;
     });
+    const joined = [...host.adapters].filter(([id, adapter]) => adapter.joined === true && !saved.adapters.some(entry => entry.id === id));
     host.adapters.clear();
-    for (const [id, adapter] of adapters) host.adapters.set(id, adapter);
+    for (const [id, adapter] of [...adapters, ...joined]) host.adapters.set(id, adapter);
     for (const entry of saved.adapters) host.adapters.get(entry.id)?.restore(cloneValue(entry.state));
     host.restoreBodyBands(saved.bands);
     host.restoreDayClock(saved.day);

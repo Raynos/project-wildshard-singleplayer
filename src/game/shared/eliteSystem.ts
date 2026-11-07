@@ -185,6 +185,8 @@ export class EliteCore<S extends EliteCoreScript> {
   }
 
   entry(id: string): EliteCoreEntry<S> | undefined { return this.entries.find((e) => e.script.def.id === id); }
+  /** Read a lair another owner keeps as one of these: the same record, so a kill there counts here. */
+  share(id: string, record: EliteCoreRecord): void { this.saved[id] = record; }
   /** a lair's persisted record (the view's drop orb marks its skin taken, then saves) */
   record(id: string): EliteCoreRecord | undefined { return this.saved[id]; }
   owned(id: string): boolean { return this.saved[id]?.skinTaken ?? false; }

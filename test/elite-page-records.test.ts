@@ -28,10 +28,15 @@ test('a world keeps the records of lairs it has no row for', { timeout: 90_000 }
   try { const records = adapter(back.host, 'nalati.elites').records; expect(records).toMatchObject({ qyran: row(3), 'qara-batyr': row(2) }); } finally { back.dispose(); }
 });
 
-test('a world\'s old save, three records and no more, still loads', { timeout: 90_000 }, async () => {
-  const live = await nalati(), wire = serializeSimSnapshot(snapshotSimHostBytes(live.host));
-  expect(Object.keys(adapter(live.host, 'nalati.elites').records).sort()).toEqual(['aqbars', 'argymaq', 'kokbori']);
+test('an old row save, three records and no captain, still loads, and he rides on it unspawned', { timeout: 90_000 }, async () => {
+  const live = await nalati(), captain = 'nalati.patrol.captain';
+  expect(live.host.adapters.has(captain)).toBe(true);
+  const saved = snapshotSimHostBytes(live.host), three = (state: typeof saved.adapters[number]['state']) => { const held = (typeof state === 'string' ? JSON.parse(state) : state) as { records: Record<string, unknown> }, kept = { ...held, records: Object.fromEntries(Object.entries(held.records).filter(([id]) => ['aqbars', 'kokbori', 'argymaq'].includes(id))) }; return typeof state === 'string' ? JSON.stringify(kept) : kept as typeof state; };
+  const adapters = saved.adapters.filter(entry => entry.id !== captain), at = adapters.findIndex(entry => entry.id === 'nalati.elites'), held = adapters[at];
+  if (held === undefined) throw new Error('No elites');
+  adapters[at] = { ...held, state: three(held.state) };
+  const old = { ...saved, adapters };
   live.dispose();
-  const back = await nalati(undefined, wire);
-  try { expect(Object.keys(adapter(back.host, 'nalati.elites').records).sort()).toEqual(['aqbars', 'argymaq', 'kokbori']); } finally { back.dispose(); }
+  const back = await nalati(undefined, serializeSimSnapshot(old));
+  try { expect(Object.keys(adapter(back.host, 'nalati.elites').records).sort()).toEqual(['aqbars', 'argymaq', 'kokbori', 'qara-batyr']); expect(back.host.adapters.has(captain)).toBe(true); } finally { back.dispose(); }
 });

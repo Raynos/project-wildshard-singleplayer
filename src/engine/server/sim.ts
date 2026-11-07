@@ -124,6 +124,8 @@ export interface SimStateAdapter {
   snapshot: () => SimValue; restore: (value: SimValue) => void;
   /** Reconnect saved native handles after world replacement and owner tagging, without allocating or stepping gameplay. */
   physicsRestored?: () => void;
+  /** Came to this world after some of its saves were made: a save without it restores, and it stays as it installed. */
+  joined?: true;
 }
 
 /**
