@@ -456,6 +456,17 @@ Readings of 232 cited folders are in `tmp/keep/<name>/` (1.1 GB). Left on purpos
   `finally` or `addCleanup`. Only killed runs leak. The janitor (1d9c456852) runs from each Vitest start, at most every 10
   minutes. `sp-*` is lane scratch made by hand, which no script owns, so it still needs a rule.
 - **`test/cook-worker.test.ts`:** fixed in 42c8182da0, a real SIGABRT with `RLIMIT_CORE` 0.
+- **11-07 12:47 check:** boot purge 5.37M → **273k**, `/private/tmp` 30 GB, `$TMPDIR` 3.2 GB. `e7` is most of what's left and
+  is still in the session scratchpad, so do not reboot until it moves. `./tmp` **116 GB** / 1.05M files, repo 143 GB, free
+  disk 1,588 GB. New `tmp/e7-phones` 5.9 GB (two 2.7 GB builds, live).
+- **`/cores` is still filling after that fix: 44 GB in 5 dumps, three of them in the 35 minutes to 12:48.** All four node
+  dumps hold the `crash.mjs` path, which now proves the cook-worker cause. The two after the fix ran from trees without
+  it: `core.47740` (10 GB, 12:15) from `~/.cache/wildshard/lift-work/d2/first/engine`, and `core.87654` (6.5 GB, 12:43) from
+  `lift-work/real/engine`, whose `test/cook-worker.test.ts:119` still has the old line (import at 65925fa862).
+  **Fix:** the lift lane takes 42c8182da0, or `~/.bashrc:12` drops `ulimit -c unlimited`.
+- **New source, `core.3860` (14 GB, 12:48):** the Android emulator, `qemu-system-aarch64-headless`, crashed in
+  `AppleMetalOpenGLRenderer` while the E7 phone work was running. Each emulator crash can cost this much. Only the
+  `ulimit` change stops this one.
 
 ## Decisions (Jake, 2026-10-15)
 
