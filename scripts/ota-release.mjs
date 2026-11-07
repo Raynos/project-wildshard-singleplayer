@@ -213,7 +213,8 @@ export function planRelease({ config, inputs, privateKeyPem, bundleId, sequence,
 
 /** The CLI: read dist-native/ + the key, plan, write <out>, carry the live channel along. */
 export async function buildRelease(args) {
-  const config = parseOtaConfig(readFileSync(args.config ?? join(ROOT, 'src/engine/client/native/ota-config.ts'), 'utf8'));
+  if (!args.config) throw new Error('Missing --config');
+  const config = parseOtaConfig(readFileSync(args.config, 'utf8'));
   const source = resolve(args.dist ?? join(ROOT, 'dist-native'));
   if (!args.out) throw new Error('Missing --out');
   const out = resolve(args.out);

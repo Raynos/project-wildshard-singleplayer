@@ -59,7 +59,7 @@ export function deletedReferences(root, deleted) {
   const committed = existsSync(inventory) ? JSON.parse(readFileSync(inventory, 'utf8')) : undefined;
   for (const file of sources(root, false)) {
     // G606: frozen legacy references are historical, never active consumers.
-    if (/^src\/shards\/[^/]+-legacy\//u.test(file) || file.startsWith('test/fixtures/') || file === 'scripts/check-paths.allow.json') continue;
+    if (/^src\/shards\/[^/]+-legacy\//u.test(file) || file.startsWith('test/fixtures/') || file === 'scripts/check-paths.allow.json' || file === 'scripts/normalize/move.dry-run.json') continue; // the dry run is a record, as in check-paths
     if (committed !== undefined && !committed.includes(file)) continue;
     const path = resolve(root, file), text = readFileSync(path, 'utf8');
     const syntax = ts.createSourceFile(path, text, ts.ScriptTarget.Latest, true);
