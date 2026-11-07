@@ -348,6 +348,8 @@ lanes in the same files (Z6, Z13 finish first, D31).
   (were 72); the XP bar and GUARD fit without moving anything.
 - [Kitchen Sink Engine Top 20](https://claude.ai/artifact/R3JZEyPiaPuMMQiiAqsozV): the 87 slices grouped into the 20
   heaviest engine and host features, by hours × complexity (`art/showcase-template/kitchen-sink-v2/engine-top-20/`).
+- [Showcase Template Journey](https://claude.ai/artifact/P4DGGztVnkKY29pQmw7uhL): 20 mockups in play order, what the shard
+  is, how it plays and why it exists (`art/showcase-template/kitchen-sink-v2/journey/`).
 
 ## 7. Done when
 
