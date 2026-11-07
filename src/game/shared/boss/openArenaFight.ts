@@ -318,6 +318,7 @@ export class OpenArenaFight<D extends ArenaDraw = THREE.InstancedMesh> implement
     const answer = this.life.event('point',{ x: at.x,z: at.z,cx: center.x,cz: center.z,bodyX: body.x,bodyZ: body.z,amount: Number(respawn) });
     return { x: answer['x'] ?? at.x,z: answer['z'] ?? at.z,yaw: answer['yaw'] ?? 0 };
   }
+  rowlessFocus(): THREE.Vector3 { return this.body.focusWorld(_openHITP); }
   rewardPoint(): THREE.Vector3 { const p = this.point(false); return new THREE.Vector3(p.x,this.groundAt(p.x,p.z)+this.data.view.reward.lift,p.z); }
   respawnPoint(): { pos: THREE.Vector3; yaw: number } { const p = this.point(true); return { pos: new THREE.Vector3(p.x,this.groundAt(p.x,p.z),p.z),yaw: p.yaw }; }
   cairnSpot(): THREE.Vector3 { return this.ctx.tieSpot ?? new THREE.Vector3(this.data.arena.anchor.x, this.groundAt(this.data.arena.anchor.x, this.data.arena.anchor.z), this.data.arena.anchor.z); }

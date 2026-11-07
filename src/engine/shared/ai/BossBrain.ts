@@ -61,6 +61,8 @@ export interface BossScript {
   victory: () => void;
   /** where the reward orb floats, and where a dead player comes back (feet + yaw) */
   rewardPoint: () => Vector3;
+  /** what its intro looks at, for a fight with no body on a row: a page on a server steps no intro, so reads it here */
+  rowlessFocus?: () => Vector3;
   respawnPoint: () => { pos: Vector3; yaw: number };
 }
 
