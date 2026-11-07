@@ -3,7 +3,7 @@ import { bindMeleeContacts, createShardfileSim, declaredItemScriptBindings, prep
 import { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { createSimHost } from '@wildshard/engine/sim';
 import { GridRegionDurability } from '../grid/durability';
-import { PageActorGroups, bindPageGroups, lendPageGrass, wildEnv } from '../population/pageGroups';
+import { bindPageGroups, lendPageGrass, wildEnv } from '../population/pageGroups';
 import { PageWildlife, lendClientWildlife } from '../population/wildlife';
 import { clientWildlifeState } from '../../shared/population/wildlifeOwner';
 import { bindCrowdGuard, crowdGuardProjection } from '../ambient/crowdPage';
@@ -26,7 +26,6 @@ export interface PageSimFeed {
   /** The page's creature law its population views still install (E6 WORLD). */
   readonly speciesBehaviour: typeof pageSpeciesBehaviour;
   readonly perchBody: (...args: ConstructorParameters<typeof PerchBodyBinding>) => PerchBodyBinding;
-  readonly actorGroups: (...args: ConstructorParameters<typeof PageActorGroups>) => PageActorGroups;
   /** The wind a creature's riding envelopes sway in. */
   readonly wind: () => typeof wildEnv.wind;
   /** The page's weather and light, which its fights read (E6 COMBAT). */
@@ -58,7 +57,7 @@ export interface PageSimFeed {
 export const pageSimFeed: PageSimFeed = {
   installDeclaredMovers, declaredItemScriptBindings,
   climate: pageClimate, speciesBehaviour: pageSpeciesBehaviour,
-  perchBody: (...args) => new PerchBodyBinding(...args), actorGroups: (...args) => new PageActorGroups(...args), wind: () => wildEnv.wind,
+  perchBody: (...args) => new PerchBodyBinding(...args), wind: () => wildEnv.wind,
   wild: wildEnv,
   clientWildlifeState, lendClientWildlife,
   bindPageGroups: (...args) => { bindPageGroups(...args); }, pageWildlife: (...args) => new PageWildlife<CrowdDraw>(...args), lendPageGrass, crowdGuardProjection, bindCrowdGuard,

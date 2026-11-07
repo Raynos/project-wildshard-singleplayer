@@ -2,8 +2,6 @@ import * as THREE from 'three';
 import * as v from 'valibot';
 import { poseInputNames } from '../../shared/plugin/channelPrograms';
 import { PopulationProjectionSchema, type PopulationProjectionRows } from '@wildshard/format/populationProjection';
-import type { PageActorGroups } from '../../server/population/pageGroups';
-import { pageSim } from '../shardfile/clientMoverOwners';
 import { wirePage } from '../shardfile/wirePage';
 import { volleyRow } from '../../shared/shardfile/wirePrompts';
 import { app } from '@wildshard/engine/app/runtime';
@@ -27,7 +25,6 @@ export class PopulationProjection {
   readonly group: THREE.Group = new THREE.Group();
   readonly placed: Record<string, number> = {};
   private readonly rows: PopulationProjectionRows;
-  private readonly creatures: PageActorGroups;
   private readonly rng: Rng;
   private readonly volley: RowBodySlots<Animal>;
   private readonly mesh: THREE.InstancedMesh;
@@ -45,7 +42,7 @@ export class PopulationProjection {
     private readonly lightScene: THREE.Scene = scene) {
     this.rows = v.parse(PopulationProjectionSchema, input); const row = this.rows;
     if (row.seed !== SEED) throw new Error('Population projection requires its authored seed');
-    this.creatures = pageSim.actorGroups(animals, row.practice, scope); this.rng = new Rng(row.random);
+    this.rng = new Rng(row.random);
     this.volley = new RowBodySlots(row.volley, app.bodies, { kind: row.id });
     const geometry = scope.own(new THREE.IcosahedronGeometry(row.volley.body.radius, row.husk.detail)), colour = new THREE.Color(row.husk.colour).toArray();
     geometry.setAttribute('color', new THREE.BufferAttribute(Float32Array.from({ length: geometry.getAttribute('position').count * 3 }, (_, i) => colour[i % 3] ?? 0), 3));
@@ -60,9 +57,8 @@ export class PopulationProjection {
     this.observers = row.effects.map(effect => ({ row: effect, actor: null, state: 0, elapsed: 0 }));
     // A body a server runs has no memory here but what its rows say: these views ask for theirs as a pose program does.
     for (const name of [...row.effects.flatMap(effect => [effect.state, effect.periodic.x, effect.periodic.z]), row.light.rise, row.light.rising]) poseInputNames.add(name);
-    scope.onDisposeSteps(() => this.disposeSteps());
+    scope.onDispose(() => { this.dispose(); });
   }
-  get practice(): Animal | null { return this.creatures.practice; }
   async build(): Promise<this> {
     const row = this.rows, placement = row.page[TIER], habitat = this.animals.habitat;
     const before = { throwCoconut: habitat.throwCoconut, splash: habitat.splash, hold: habitat.hold, perches: habitat.perches, perchBases: habitat.perchBases };
@@ -104,7 +100,7 @@ export class PopulationProjection {
     return this;
   }
   private counts(): void {
-    for (const [id, row] of Object.entries(this.rows.counts)) this.placed[id] = wirePage.creatures(row.kind) ?? this.creatures.count(row.kind, row.groups) - Number(row.practice && this.practice !== null);
+    for (const [id, row] of Object.entries(this.rows.counts)) this.placed[id] = wirePage.creatures(row.kind) ?? 0;
   }
   splash(at: THREE.Vector3, strength = 1): void {
     const row = this.rows.splash, n = Math.round(row.count * strength), rng = app.rng.stream('cosmetic');
@@ -120,7 +116,7 @@ export class PopulationProjection {
   update(dt: number, time: number, player: THREE.Vector3): void {
     if (this.disposed) return;
     const row = this.rows, rng = app.rng.stream('cosmetic');
-    this.creatures.updatePractice(dt, player); this.counts();
+    this.counts();
     for (const observation of this.observers) {
       const actor = this.animals.animals.find(a => a.kind === observation.row.kind && a.alive);
       if (actor === undefined) continue;
@@ -214,12 +210,9 @@ export class PopulationProjection {
       free.actor = actor;
     }
   }
-  dispose(): void { const steps = this.disposeSteps(); while (steps.next().done !== true) { /* whole */ } }
-  /** G598: the projection's creatures retired one a step in a sliced retirement (Driftwood's population held one 14 ms step) */
-  *disposeSteps(): Generator<undefined, void> {
+  dispose(): void {
     if (this.disposed) return;
     this.disposed = true; this.volley.dispose();
-    yield* this.creatures.disposeSteps();
     this.group.removeFromParent();
     const pool = LightPool.for(this.lightScene);
     for (const { light } of this.lights) if (light.parent !== this.group) pool.release(light); // dark, still counted
