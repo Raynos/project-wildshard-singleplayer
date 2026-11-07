@@ -27,6 +27,8 @@ import { playerModes } from '@wildshard/engine/player/modes';
 import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { Mesh, Object3D, Vector3 } from 'three';
+import { QuestState } from '@wildshard/engine/quest/core';
+import { Flags } from '@wildshard/engine/world/interact/flags';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { Actor, CombatTarget } from '@wildshard/engine/combat/pipeline';
 import { fovForAspect } from '@wildshard/engine/combat/blocks/melee';
@@ -446,6 +448,8 @@ export class ShardfileClient {
     yield;
     let simulationActive = true;
     const ladderCommand = { x: 0, z: 0, release: true };
+    // This page's flags are the server's, followed by `wirePage`: nothing here saves them.
+    const flags = new Flags(source.identity.slug, false);
     const sim = pageSim.createShardfileSim(source, this.assets.retained, { sections: outputDescriptor(source)?.sections, rapier: world.physics.R, physics: world.physics,
       creatureImpulse: velocity => { world.player.impulse(velocity); },
       ...(this.bindings.brains === undefined ? {} : { brains: this.bindings.brains }),
@@ -488,7 +492,7 @@ export class ShardfileClient {
     const authoredDay = source.rows.days[0], day = borrowed ?? (authoredDay === undefined ? null : declaredDay(authoredDay));
     const ownsDay = borrowed === null && day !== null;
     if (ownsDay) { ctx.app.registerDayCycle(day, ctx.scope); runtimeDays.add(day); }
-    const weather = new Map(source.rows.weather.map((row) => [row.id, declaredWeather(row, sim.host.rng.stream('cosmetic').fork(row.id))]));
+    const weather = new Map(source.rows.weather.map((row) => [row.id, declaredWeather(row, ctx.app.rng.stream('cosmetic').fork(row.id))]));
     // SF25 / G66: presentation-only client scripts; live creatures keep their sim pose and clips, a frozen home (the
     // traveller in another frame) breathes and grazes on top of it. The lane sees copies; its sim is never stepped here.
     if (source.clientScripts.bindings.length > 0) {
@@ -541,20 +545,20 @@ export class ShardfileClient {
     if (source.plumbing !== null && source.plumbing.input.length + source.plumbing.debug.length > 0) {
       const plumbing = installDeclaredPlumbing(source.plumbing, { handledInput: handledItemInputs(source), instance: source.identity.slug, tier: TIER, scope: ctx.scope, input: ctx.app.input,
         active: () => ctx.app.state === 'play' && !world.freeCamera, scene, knobs: ctx.tiers.knobs, debugRow: ctx.debugRow,
-        observation: { get mode() { return playerModes(world.player).current(); }, get item() { return ctx.app.equipment?.current.row.id ?? null; }, get flags() { return runtime.hooks.questFlags?.() ?? sim.host.flags.all; } },
+        observation: { get mode() { return playerModes(world.player).current(); }, get item() { return ctx.app.equipment?.current.row.id ?? null; }, get flags() { return runtime.hooks.questFlags?.() ?? flags.all; } },
       });
       if (source.plumbing.input.some(row => row.when !== undefined)) ctx.system({ id: 'declared.input.conditions', phase: 'input', before: ['engine.input.contexts'], run: plumbing.update });
     }
     installDeclaredTargets(source.targets, { panels: tiles.props?.panels ?? new Map(), colliders: sim.colliders, read, scene, interactables: runtime.interactables, scope: ctx.scope, system: ctx.system });
-    for (const quest of sim.quest.quests) {
-      const declaration = source.quests.quests.find((row) => row.id === quest.def.id);
-      const options = declaration?.track === false ? { chip: () => ({ label: '', count: '' }) } : {};
+    for (const declaration of source.quests.quests) {
+      const quest = new QuestState(declaration, flags, ctx.app.events, ctx.scope);
+      const options = declaration.track === false ? { chip: () => ({ label: '', count: '' }) } : {};
       // a retained (grid) runtime's chip, pins and card are its entered cell's only
       if (presentation === null) throw new Error('Missing quest presentation module');
       if (retainsRuntimeServices(ctx)) presentation.installEnteredQuestPresentation(ctx, quest, options); else presentation.installQuestPresentation(ctx, quest, options);
     }
-    if (ctx.product.has('ui/completion') && ctx.product.section('ui/completion').trigger === 'quest') installCompletion(ctx, sim.host.flags, play.progress);
-    runtime.hooks.questFlags = () => sim.host.flags.all; runtime.hooks.adventureFlags = () => sim.host.flags.all;
+    if (ctx.product.has('ui/completion') && ctx.product.section('ui/completion').trigger === 'quest') installCompletion(ctx, flags, play.progress);
+    runtime.hooks.questFlags = () => flags.all; runtime.hooks.adventureFlags = () => flags.all;
     // An admitted scene installs its own declared profiles once in the play phase.
     if (this.bindings.audioOwner !== 'runtime' && !this.plan?.features.some(row => row.kind === 'audio.scene')) installDeclaredAudio(source.audio, { audio: play.audio, cues: play.cues, voices: this.bindings.voices(play.audio), music: play.music, scope: ctx.scope, profiles: this.bindings.audioProfiles?.(play, { source: source.audio, read: this.assets.audioRead() }) });
     ctx.debug.expose('shardfile', { source, host: sim.host, lane: sim.lane, items: items.runtimes, colliders: sim.colliders, fine: tiles.fine, weather,
