@@ -7,7 +7,6 @@ import { resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Give the fixture the same measured hash checks as the product reader.
 import { createHash } from 'node:crypto';
 import { bakeWorldMapAtlas, productMapBytes, writeWorldMapAtlas } from '../scripts/app-build/worldMapAtlas';
-import packageJson from '../package.json';
 
 test('one atlas includes every unique map with stable crops and an explicit nonblank plain-plot tile', async () => {
   const red = await sharp({ create: { width: 8, height: 8, channels: 3, background: '#ff0000' } }).png().toBuffer();
@@ -50,16 +49,11 @@ test('the app build writes one atlas and its define, verifies source hashes, and
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
-test('the native command prepares products before the atlas, and a cold atlas refuses an unbuilt product', async () => {
-  const prefix = 'python3 scripts/heavy-lane.py build -- ';
-  const command = packageJson.scripts['build:native'];
-  expect(command.startsWith(prefix)).toBe(true);
-  // the products build first, and a producer refusal stops the chain before the app build (and its atlas) runs
-  expect(command).toMatch(/node scripts\/build-shardfiles\.mjs --reuse && node scripts\/build-app\.mjs --mode native/u);
+test('the atlas precedes the app build, and a cold atlas refuses an unbuilt product', async () => {
   const script = readFileSync('scripts/build-app.mjs', 'utf8');
   expect(script.indexOf('writeWorldMapAtlas')).toBeGreaterThan(-1);
   expect(script.indexOf('writeWorldMapAtlas')).toBeLessThan(script.indexOf("vite, 'build'"));
-  const root = mkdtempSync(resolve('tmp', 'world-atlas-native-'));
+  const root = mkdtempSync(resolve('tmp', 'world-atlas-cold-'));
   try {
     mkdirSync(resolve(root, 'src/game/shared/grid'), { recursive: true });
     writeFileSync(resolve(root, 'src/game/shared/grid/singleplayer.json'), JSON.stringify({ grid: {

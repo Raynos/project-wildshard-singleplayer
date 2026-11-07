@@ -20,38 +20,32 @@ function worldMapDefine(): unknown {
 
 export default defineConfig(({ mode, command }) => {
   if (command === 'build') assertHeavyLease('build');
-  const native = mode === 'native';
   // J57, J131: the web build's code, CSS and wasm go under its immutable folder; build-app mints the id. Other emitted
-  // files are content-named and stay under /assets/, and native bundles its one build, with no pointer to follow.
-  const build = process.env['WS_BUILD_ID'], code = native || build === undefined ? 'assets' : codeDirectory(build);
+  // files are content-named and stay under /assets/.
+  const build = process.env['WS_BUILD_ID'], code = build === undefined ? 'assets' : codeDirectory(build);
   const validationRevision = shardfileValidationRevision();
   buildValidationReceipts(validationRevision); // Fail before bundling on any stale or missing product.
   return {
     server: { port: 5173, host: true },
     // js-payload D2 (Jake): on-phone stacks show Rolldown's mangled names; hidden source maps resolve them on desktop
-    // native: no source maps at all — they would ship inside the app and in every OTA bundle
-    build: native
-      // native.html: the web page with the web-only boot swapped for src/native.ts (scripts/native-page.mjs); build-app names it
-      // index.html in dist-native/ (capacitor.config.ts `webDir`)
-      ? { copyPublicDir: process.env['WS_APP_DEFER_PUBLIC_COPY'] !== '1', target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: false, outDir: 'dist-native', rolldownOptions: { input: { index: join(process.cwd(), 'native.html') } } }
-      // one stylesheet: src/entry.ts splits three.js from the game's graph, and code-split CSS would add a request
-      : {
-        // build-app publishes public files after bundling, omitting the obsolete
-        // shardfiles tree that final product publication replaces (G799: no plugin).
-        copyPublicDir: process.env['WS_APP_DEFER_PUBLIC_COPY'] !== '1',
-        // The mandatory chunk report measures and gates gzip bytes after this web build.
-        assetsDir: code, target: 'es2022', reportCompressedSize: false, chunkSizeWarningLimit: 4000, sourcemap: 'hidden' as const, cssCodeSplit: false, manifest: true,
-        // G221: standalone CLI calibration, never a game-entry or Developer switch.
-        rolldownOptions: {
-          input: { main: join(process.cwd(), 'index.html'), calibration: join(process.cwd(), 'calibration/index.html') },
-          preserveEntrySignatures: false,
-          output: {
-            strictExecutionOrder: true, chunkFileNames: chunk => controlChunkFileName(chunk, code),
-            assetFileNames: asset => `${asset.names.some(name => /\.(?:js|css|wasm)$/u.test(name)) ? code : 'assets'}/[name]-[hash][extname]`,
-            codeSplitting: { groups: controlChunkGroups(process.cwd()) },
-          },
+    // one stylesheet: src/entry.ts splits three.js from the game's graph, and code-split CSS would add a request
+    build: {
+      // build-app publishes public files after bundling, omitting the obsolete
+      // shardfiles tree that final product publication replaces (G799: no plugin).
+      copyPublicDir: process.env['WS_APP_DEFER_PUBLIC_COPY'] !== '1',
+      // The mandatory chunk report measures and gates gzip bytes after this web build.
+      assetsDir: code, target: 'es2022', reportCompressedSize: false, chunkSizeWarningLimit: 4000, sourcemap: 'hidden' as const, cssCodeSplit: false, manifest: true,
+      // G221: standalone CLI calibration, never a game-entry or Developer switch.
+      rolldownOptions: {
+        input: { main: join(process.cwd(), 'index.html'), calibration: join(process.cwd(), 'calibration/index.html') },
+        preserveEntrySignatures: false,
+        output: {
+          strictExecutionOrder: true, chunkFileNames: chunk => controlChunkFileName(chunk, code),
+          assetFileNames: asset => `${asset.names.some(name => /\.(?:js|css|wasm)$/u.test(name)) ? code : 'assets'}/[name]-[hash][extname]`,
+          codeSplitting: { groups: controlChunkGroups(process.cwd()) },
         },
       },
+    },
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
     resolve: { alias: rapierAlias }, // Rapier's wasm-importing module → plain bindings (vite/rapier.ts)
     define: { __TITLE_ASSET_URLS__: readFileSync('scripts/title-assets.generated.json', 'utf8'), __GRID_SEAM_ASSET__: JSON.stringify(readGridSeams(process.cwd()).address), __BOOT_TABLE_ASSETS__: JSON.stringify(assetTableAddresses(readAssetTables(process.cwd()))), __GRID_MAP_ATLAS__: JSON.stringify(worldMapDefine()), __SHARDFILE_VALIDATOR__: VALIDATOR_EXPRESSION, __SHARDFILE_VERDICTS__: VERDICTS_EXPRESSION, __DEVSERVER__: mode === 'devserver', __BUILD_ID__: BUILD_ID_EXPRESSION },

@@ -2,9 +2,9 @@
 // D24 phase 2 (G799: no Vite plugins): the app build as a plain script. Its own steps run around `vite build` (each
 // former Vite plugin is one of them), so every caller builds the app through this file, never a bare `vite build`.
 //
-//   node scripts/build-app.mjs [vite build arguments…]       e.g. --mode native, --config <file>, --outDir <dir>
+//   node scripts/build-app.mjs [vite build arguments…]       e.g. --config <file>, --outDir <dir>
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { bakeAssetTables, writeAssetTables } from './app-build/assetTables.mjs';
 import { writeChunkReport } from './app-build/chunkReport.mjs';
@@ -25,8 +25,8 @@ const option = (name) => {
   if (at !== -1) return args[at + 1];
   return args.find(arg => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
 };
-// the folder the config builds into: native mode's own (vite.config.ts), else dist, unless the caller names one
-const mode = option('mode') ?? 'production', outDir = resolve(option('outDir') ?? (mode === 'native' ? 'dist-native' : 'dist'));
+// the folder the config builds into: dist, unless the caller names one
+const mode = option('mode') ?? 'production', outDir = resolve(option('outDir') ?? 'dist');
 
 /** a node step that must pass (the build stops with its exit code)
  * @param {string[]} nodeArgs */
@@ -69,13 +69,6 @@ if (build.error !== undefined) throw build.error;
 if (build.status !== 0) { process.exitCode = build.status ?? 1; process.exit(); }
 if (deferPublic) copyDeferredPublic(process.cwd(), outDir);
 
-// the native page as dist-native's index.html, the WebView error page beside it, and no trailers (was vite.config.ts's
-// native plugin; capacitor.config.ts names the error page)
-if (mode === 'native') {
-  renameSync(resolve(outDir, 'native.html'), resolve(outDir, 'index.html'));
-  copyFileSync('native-unavailable.html', resolve(outDir, 'native-unavailable.html'));
-  for (const trailer of ['trailer-15.mp4', 'trailer-30.mp4']) rmSync(resolve(outDir, trailer), { force: true });
-}
 // version.json (the build id the documents are stamped with), asset-index.json and asset-manifest.json
 step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', "(await import('./scripts/app-build/versionFiles.ts')).writeVersionFiles(process.argv[1], process.argv[2]);", outDir, buildId]);
 // the seams', boot tables' and world map's exact bytes as their hashed assets, beside the bundle that names them
@@ -91,20 +84,17 @@ checkNoTopLevelAwait(outDir, resolve('public'));
 
 // which modules land in which chunk, and the title and grid session budgets over the bytes as written (was
 // vite/chunkReport.ts); then the boot module bank into index.html and each home's extra file table (was
-// vite/bootModules.ts), and the spawn parts' q11 Brotli bodies (DL15, cached by content). The web build only, which
-// writes the manifest and hidden source maps they read.
-if (mode !== 'native') {
-  try { writeChunkReport(outDir, process.cwd()); }
-  catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exit(1); }
-  step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
-    "(await import('./scripts/app-build/bootModules.ts')).writeBootModules(process.argv[1], process.cwd()); const started = Date.now(); await (await import('./scripts/app-build/appCook.ts')).writeEntryBootstrap(process.argv[1], process.cwd(), parts => { console.log('[spawn parts] ' + parts.parts + ' parts, ' + (parts.rawBytes / 1e6).toFixed(1) + ' MB raw, ' + (parts.wireBytes / 1e6).toFixed(1) + ' MB q11 (' + parts.encoded + ' encoded) in ' + ((Date.now() - started) / 1000).toFixed(1) + ' s'); });", outDir]);
-  // C3 (D7): the catalogue this build runs, as a file and inlined in the document, before the service worker hashes it.
-  step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
-    "await (await import('./scripts/app-build/catalogue.ts')).bakeCatalogue(process.argv[1], process.cwd());", outDir]);
-}
+// vite/bootModules.ts), and the spawn parts' q11 Brotli bodies (DL15, cached by content).
+try { writeChunkReport(outDir, process.cwd()); }
+catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exit(1); }
+step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
+  "(await import('./scripts/app-build/bootModules.ts')).writeBootModules(process.argv[1], process.cwd()); const started = Date.now(); await (await import('./scripts/app-build/appCook.ts')).writeEntryBootstrap(process.argv[1], process.cwd(), parts => { console.log('[spawn parts] ' + parts.parts + ' parts, ' + (parts.rawBytes / 1e6).toFixed(1) + ' MB raw, ' + (parts.wireBytes / 1e6).toFixed(1) + ' MB q11 (' + parts.encoded + ' encoded) in ' + ((Date.now() - started) / 1000).toFixed(1) + ' s'); });", outDir]);
+// C3 (D7): the catalogue this build runs, as a file and inlined in the document, before the service worker hashes it.
+step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
+  "await (await import('./scripts/app-build/catalogue.ts')).bakeCatalogue(process.argv[1], process.cwd());", outDir]);
 
 // HTML owns the deploy identity; hashed runtime code stays reusable across builds.
-// Native and calibration documents need it too. The worker must see these final bytes.
+// Calibration documents need it too. The worker must see these final bytes.
 const validator = shardfileValidationRevision();
 stampBuildDocuments(outDir, {validator, verdicts: buildValidationReceipts(validator)});
 
@@ -113,14 +103,12 @@ writeTitleAssets(process.cwd(), outDir);
 // the standalone shell and its server worker under the build's folder, before the service worker, which precaches them (J130)
 await (await import('./app-build/standaloneOutput.mjs')).writeStandaloneOutput(outDir, buildId, process.cwd());
 
-if (mode !== 'native') {
-  // the crossroads phone rig beside the bundle (was vite/crossroadsRig.ts); before the worker, which counts its files
-  step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
-    "(await import('./scripts/app-build/crossroadsRig.ts')).writeCrossroadsRig(process.argv[1], process.cwd(), (await import('./scripts/api-origin.mjs')).apiOriginSet());", outDir]);
-  // the service worker over the bundle as written (was vite/pwa-plugin.ts): sw.js and its content-named core
-  step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
-    "(await import('./scripts/app-build/serviceWorker.ts')).writeServiceWorker(process.argv[1], process.cwd());", outDir]);
-}
+// the crossroads phone rig beside the bundle (was vite/crossroadsRig.ts); before the worker, which counts its files
+step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
+  "(await import('./scripts/app-build/crossroadsRig.ts')).writeCrossroadsRig(process.argv[1], process.cwd(), (await import('./scripts/api-origin.mjs')).apiOriginSet());", outDir]);
+// the service worker over the bundle as written (was vite/pwa-plugin.ts): sw.js and its content-named core
+step(['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e',
+  "(await import('./scripts/app-build/serviceWorker.ts')).writeServiceWorker(process.argv[1], process.cwd());", outDir]);
 
 // the compiled DEVSERVER mode, as a machine-readable artifact beside the bundle (scripts/check-devserver.mjs, sharddev/dev.ts);
 // the bundle itself takes it from the __DEVSERVER__ define (was vite/devserver.ts)
@@ -129,22 +117,21 @@ writeFileSync(resolve(outDir, 'build-flags.json'), JSON.stringify({ devserver: m
 
 // the data products beside the app (was vite/outputProducts.ts)
 copyOutputProducts(process.cwd(), outDir);
-// DL20: the deploy drops the loose copies nothing reads by URL; a native build reads its own folder
-if (mode !== 'native') { const dropped = pruneLooseCopies(outDir); console.log(`Loose copies dropped: ${dropped.files} files, ${(dropped.bytes / 1e6).toFixed(1)} MB`); }
+// DL20: the deploy drops the loose copies nothing reads by URL
+const dropped = pruneLooseCopies(outDir);
+console.log(`Loose copies dropped: ${dropped.files} files, ${(dropped.bytes / 1e6).toFixed(1)} MB`);
 
 // SHARD-SIZE row 1: refuse a shard whose phone download grew. Only the default web output holds the whole book.
 // A deploy with a catalogue cooks after this build (deploy.yml), and gates again on what the cook wrote.
-if (mode !== 'native' && outDir === resolve('dist')) step(['scripts/shard-size-gate.mjs', outDir, ...process.env.WILDSHARD_CATALOGUE === undefined ? [] : ['--cooks-after']]);
+if (outDir === resolve('dist')) step(['scripts/shard-size-gate.mjs', outDir, ...process.env.WILDSHARD_CATALOGUE === undefined ? [] : ['--cooks-after']]);
 
 // Carry the kept builds' graphs. The worker precache above deliberately names this
 // graph only; old pages demand their old files as needed. CI's main push builds the
 // output production ships (deploy.yml's prepare job), so it carries from production too.
-if (mode !== 'native') {
-  const previousDirectory = process.env.WS_PREVIOUS_DEPLOY_DIR;
-  const release = process.env.VERCEL_ENV === 'production' || (process.env.GITHUB_EVENT_NAME === 'push' && process.env.GITHUB_REF === 'refs/heads/main');
-  const previousOrigin = process.env.WS_PREVIOUS_DEPLOY_ORIGIN ?? (release ? 'https://wildshard-singleplayer.vercel.app' : undefined);
-  console.log('Previous deploy chunks:', await carryPreviousDeploy(outDir, {
-    ...(previousDirectory === undefined ? {} : {previousDirectory}),
-    ...(previousOrigin === undefined ? {} : {previousOrigin}),
-  }));
-}
+const previousDirectory = process.env.WS_PREVIOUS_DEPLOY_DIR;
+const release = process.env.VERCEL_ENV === 'production' || (process.env.GITHUB_EVENT_NAME === 'push' && process.env.GITHUB_REF === 'refs/heads/main');
+const previousOrigin = process.env.WS_PREVIOUS_DEPLOY_ORIGIN ?? (release ? 'https://wildshard-singleplayer.vercel.app' : undefined);
+console.log('Previous deploy chunks:', await carryPreviousDeploy(outDir, {
+  ...(previousDirectory === undefined ? {} : {previousDirectory}),
+  ...(previousOrigin === undefined ? {} : {previousOrigin}),
+}));

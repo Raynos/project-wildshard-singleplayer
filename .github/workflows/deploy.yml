@@ -782,29 +782,9 @@ jobs:
       - name: CSS check
         run: python3 scripts/ci-fail-fast.py -- node scripts/check-css.mjs
 
-      # Native output shares the verified preparation; only native inputs build it.
-      - name: Detect native-only build inputs
-        id: native-inputs
-        env:
-          NATIVE_BASE: ${{ github.event.before || github.event.pull_request.base.sha }}
-        run: |
-          if [ -z "$NATIVE_BASE" ] || [[ "$NATIVE_BASE" =~ ^0+$ ]]; then
-            echo 'needed=true' >> "$GITHUB_OUTPUT"
-          else
-            git cat-file -e "$NATIVE_BASE^{commit}" || git fetch --no-tags --depth=1 origin "$NATIVE_BASE"
-            git diff --name-only -z "$NATIVE_BASE" HEAD > "$RUNNER_TEMP/native-paths"
-            echo "needed=$(node scripts/native-build-inputs.mjs < "$RUNNER_TEMP/native-paths")" >> "$GITHUB_OUTPUT"
-          fi
-      - name: Native web build
-        if: steps.native-inputs.outputs.needed == 'true'
-        run: |
-          python3 scripts/ci-fail-fast.py -- python3 scripts/ci-products.py unpack
-          WS_TEST_PRODUCTS_SHA="$GITHUB_SHA" VERCEL_GIT_COMMIT_SHA="$GITHUB_SHA" \
-            python3 scripts/ci-fail-fast.py -- python3 scripts/heavy-lane.py build -- node scripts/build-app.mjs --mode native
-
       - name: Retire verified preparation transport
-        # The uploaded exact-run artifact and its last local native consumer
-        # have finished. Packaging reads dist; reusable product caches remain.
+        # The uploaded exact-run artifact has finished. Packaging reads dist;
+        # reusable product caches remain.
         run: rm -f -- test-products.tar test-products.tar.zst
 
       - name: Pack the exact web build for boot smoke

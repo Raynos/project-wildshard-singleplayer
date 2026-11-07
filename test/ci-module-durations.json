@@ -1499,7 +1499,6 @@
   "test/named-json-producers.test.ts": 7.751973737,
   "test/native-bake-file-only.test.ts": 0.049781091,
   "test/native-bake-reader.test.ts": 5.962109105,
-  "test/native-build-inputs.test.ts": 0.106392664,
   "test/native-collider-block.test.ts": 4.287295043,
   "test/native-collision-omit.test.ts": 0.164181357,
   "test/native-compiler-fixture.test.ts": 6.226852612,

@@ -12,7 +12,6 @@
     "prebuild": "node scripts/check-css.mjs",
     "build": "python3 scripts/heavy-lane.py build -- bash -c 'pnpm gen --inputs-only && tsc -b tsconfig.layers.json --builders 1 && node scripts/build-shardfiles.mjs && node scripts/build-app.mjs && node scripts/check-devserver.mjs dist && node scripts/site-facts.mjs --out dist/site-facts.json'",
     "build:proof": "python3 scripts/heavy-lane.py build -- bash -c 'node scripts/gen.mjs --proof && node scripts/build-shardfiles.mjs --reuse && node scripts/build-app.mjs && node scripts/check-devserver.mjs dist'",
-    "build:native": "python3 scripts/heavy-lane.py build -- bash -c 'node scripts/build-shardfiles.mjs --reuse && node scripts/build-app.mjs --mode native'",
     "typecheck:root": "node scripts/typecheck-root.mjs",
     "typecheck": "pnpm gen --inputs-only && tsc -b tsconfig.layers.json --builders 1",
     "build:drafts": "python3 scripts/heavy-lane.py build -- bash -c 'vite build --config drafts/vite.config.ts'",
@@ -42,9 +41,6 @@
     "bench:ci": "node scripts/bench-load.mjs --ci",
     "blender:island": "bash scripts/blender/build.sh driftwood-isle/island",
     "inbox:pull": "node scripts/inbox-pull.mjs",
-    "native:sync": "pnpm build:native && cap sync && node scripts/native-paths.mjs",
-    "native:ios": "bash scripts/native-ios.sh",
-    "native:android": "bash scripts/native-android.sh",
     "assets:nine-glyphs": "python3 scripts/heavy-lane.py build -- bash scripts/browser-lane.sh node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/nine-dragon-stack/generators/bake-glyphs.mjs --native-inputs"
   },
   "dependencies": {
