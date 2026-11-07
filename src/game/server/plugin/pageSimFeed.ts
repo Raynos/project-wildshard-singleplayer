@@ -1,5 +1,5 @@
 import { installDeclaredMovers } from './moverInstall';
-import { bindMeleeContacts, createShardfileSim, declaredItemScriptBindings, prepareShardfileSimRestore, startMeleeSecondary } from './simulation';
+import { bindMeleeContacts, declaredItemScriptBindings, prepareShardfileSimRestore, startMeleeSecondary } from './simulation';
 import { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { createSimHost } from '@wildshard/engine/sim';
 import { GridRegionDurability } from '../grid/durability';
@@ -36,8 +36,7 @@ export interface PageSimFeed {
   /** A held blade's contacts and its secondary, which the page's weapons still settle themselves. */
   readonly bindMeleeContacts: typeof bindMeleeContacts;
   readonly startMeleeSecondary: typeof startMeleeSecondary;
-  /** The page's own sim, and the restore a grid home takes it through (E6 SESSION). */
-  readonly createShardfileSim: typeof createShardfileSim;
+  /** The restore a grid home takes its page sim through (E6 SESSION). */
   readonly prepareShardfileSimRestore: typeof prepareShardfileSimRestore;
   /** A regional world's bodyless shell and the manager its creatures stand in. */
   readonly createSimHost: typeof createSimHost;
@@ -53,6 +52,6 @@ export const pageSimFeed: PageSimFeed = {
   wild: wildEnv,
   lendPageGrass, crowdGuardProjection, bindCrowdGuard,
   admitSpeciesProgram, bindMeleeContacts, startMeleeSecondary,
-  createShardfileSim, prepareShardfileSimRestore, createSimHost,
+  prepareShardfileSimRestore, createSimHost,
   animalManager: (...args) => new AnimalManager(...args), regionDurability: (...args) => new GridRegionDurability(...args),
 };

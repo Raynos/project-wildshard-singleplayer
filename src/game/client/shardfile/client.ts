@@ -1,6 +1,5 @@
 import {readModuleGroups} from '@wildshard/engine/boot/download';
 import { whenControl } from '@wildshard/engine/boot/prefetch';
-import { NET_BUTTONS } from '@wildshard/engine/input/netButtons';
 import type * as ScriptPresentation from '../plugin/ui';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type * as LootPresentation from '../loot/runtime';
@@ -19,7 +18,6 @@ import { bindPaintedMaterialMaps } from '../looks/paintedLook';
 import { installCompletion } from '../complete/declared';
 import { retainsRuntimeServices } from '../shard/retainedHooks';
 import { installPageItemContexts } from './pageItems';
-import { outputDescriptor } from '../../shared/shardfile/outputDescriptor';
 import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
 import { pickPrompt } from '@wildshard/engine/world/interact/prompts';
 import { renderCount } from '@wildshard/engine/render/frameCounter';
@@ -29,10 +27,9 @@ import { macrotask } from '@wildshard/engine/boot/plan';
 import { Mesh, Object3D, Vector3 } from 'three';
 import { QuestState } from '@wildshard/engine/quest/core';
 import { Flags } from '@wildshard/engine/world/interact/flags';
-import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { Actor, CombatTarget } from '@wildshard/engine/combat/pipeline';
 import { fovForAspect } from '@wildshard/engine/combat/blocks/melee';
-import type { ItemTarget, ItemRuntime } from '@wildshard/engine/combat/items';
+import type { ItemTarget } from '@wildshard/engine/combat/items';
 import type { ItemFamily } from '@wildshard/engine/combat/itemFamilies';
 import type { EquipmentIcon } from '@wildshard/engine/combat/Equipment';
 import { installDeclaredAudio, type DeclaredAudioPorts } from '@wildshard/engine/audio/declared';
@@ -67,19 +64,13 @@ import { installClientWater, undrawnWater } from './clientWater';
 import { standaloneClientTiles } from './tileContent';
 import { tileRing } from './tileDriver';
 import { buildYield } from '@wildshard/engine/core/workSlice';
-import { clientSimStep } from './clientStep';
 import { clientScene, handledItemInputs } from './clientItems';
 import { installShardfileColliders } from '../../shared/shardfile/collisionBindings';
 import type { ClientAssets } from './clientAssets';
 import { installDeclaredItems, type DeclaredItems } from '../../shared/shardfile/items';
 import { runtimeBoundWorldFiles, withoutRuntimeRows } from "../../shared/plugin/runtimeRows";
-import type { ShardfileSimulation, ShardfileSimPorts } from '../../server/plugin/simulation';
-import { pageSim } from './clientMoverOwners';
-import { scriptDisabledNotice } from '../../shared/shardfile/scriptNotice';
-import type { DeclaredGroupPorts } from '../../server/shardfile/groupRuntime';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { nearPlaceholderRoots } from '@wildshard/format/nearPlaceholder';
-import type { DeclaredBrainPorts } from '../../server/shardfile/brainRuntime';
 
 function isProofMesh(value: Object3D): value is Mesh { return value instanceof Mesh; }
 
@@ -95,14 +86,6 @@ export interface ShardfileClientBindings {
   imageOwner?: Scope;
   /** Optional grid-page owner, created before hydration. Runtime homes reuse its reviewed early claim. */
   residency?: PageResidency;
-  /** Explicit trusted native actor recipes for declared brain families. */
-  brains?: DeclaredBrainPorts;
-  /** Trusted recipes for declared group controllers; one shared policy owns each ordered roster. */
-  groups?: DeclaredGroupPorts;
-  /** Trusted crowd observations and views; the authoritative factory preflights every recipe before initialization. */
-  crowds?: ShardfileSimPorts['crowds'];
-  /** Host-owned custom-policy observation and strike recipes; the factory supplies actor identities and aliases. */
-  scriptBrains?: ShardfileSimPorts['scriptBrains'];
   /** Explicit first-party transition policy: a completely empty data declaration adds no gameplay services. */
   trustedRuntime?: boolean;
   /** Transitional entry owns its stages, while client/plan still installs platform features. */
@@ -120,7 +103,7 @@ export interface ShardfileClientBindings {
   /** Announced during construction only when this data client will create a simulation; empty trusted transitions never announce a handoff. */
   onSimulationExpected?: () => void;
   /** Production handoff to a grid home; the server keeps its saves, so `checkpoint` says only that this page still stands. */
-  onSimulation?: (binding: { source: Shardfile; simulation: ShardfileSimulation; items: ReadonlyMap<string, ItemRuntime>; scope: ShardContext['scope']; checkpoint: () => boolean; setActive: (active: boolean) => void; residency?: HomeResidencyClaim }) => void;
+  onSimulation?: (binding: { scope: ShardContext['scope']; checkpoint: () => boolean; setActive: (active: boolean) => void; residency?: HomeResidencyClaim }) => void;
 }
 
 /** G348: the far proxy's and near placeholder's files (and what they depend on): the grid's presentation of the shard,
@@ -445,43 +428,15 @@ export class ShardfileClient {
       if (value !== undefined) return value;
       if (typeof field.default === 'string') throw new Error('UI requires numeric state'); return typeof field.default === 'boolean' ? Number(field.default) : field.default;
     };
-    const ui = mountDeclaredUi(source.ui, { hud: ctx.hud, system: ctx.system, scope: ctx.scope, bag: ctx.bag,
+    mountDeclaredUi(source.ui, { hud: ctx.hud, system: ctx.system, scope: ctx.scope, bag: ctx.bag,
       read: (name) => { const scope = source.state.shared.some((row) => row.name === name) ? 'shared' : 'player', field = source.state[scope].find((row) => row.name === name); if (field === undefined) throw new Error('Missing declared counter field'); return read(scope, field.id); },
     });
     yield;
     let simulationActive = true;
-    const ladderCommand = { x: 0, z: 0, release: true };
     // This page's flags are the server's, followed by `wirePage`: nothing here saves them.
     const flags = new Flags(source.identity.slug, false);
     // A prop's colliders are world data: the page predicts against them, and the server holds its own.
     const colliders = installShardfileColliders(source, this.assets.retained, () => world.physics, ctx.scope);
-    const sim = pageSim.createShardfileSim(source, this.assets.retained, { sections: outputDescriptor(source)?.sections, rapier: world.physics.R, physics: world.physics, colliders,
-      creatureImpulse: velocity => { world.player.impulse(velocity); },
-      ...(this.bindings.brains === undefined ? {} : { brains: this.bindings.brains }),
-      ...(this.bindings.groups === undefined ? {} : { groups: this.bindings.groups }),
-      ...(this.bindings.crowds === undefined ? {} : { crowds: this.bindings.crowds }),
-      ...(this.bindings.scriptBrains === undefined ? {} : { scriptBrains: this.bindings.scriptBrains }),
-      // G168: a module switched off after its strikes tells the player once, and Developer mode names it
-      scriptDisabled: scriptDisabledNotice({ toast: (text) => { play.hud.toast(text, 'warn'); }, devAlert: (text) => { play.hud.devAlert(text); } }),
-      player: { id: health.id, position: world.player.position, get yaw() { return world.player.yaw; }, set yaw(value) { world.player.yaw = value; }, health, get motor() { return world.player.motor; } },
-      ladders: { modes: playerModes(world.player), enabled: () => false, command: () => {
-        const command = world.player.traversalCommand;
-        if (command === null) { ladderCommand.x = 0; ladderCommand.z = 0; ladderCommand.release = true; return ladderCommand; }
-        const sin = Math.sin(command.yaw), cos = Math.cos(command.yaw), { buttons, steer } = command;
-        const moveX = Math.max(-1, Math.min(1, steer.keyX + steer.stickX)), moveY = Math.max(-1, Math.min(1, steer.keyY + steer.stickY));
-        ladderCommand.x = cos * moveX - sin * moveY; ladderCommand.z = -sin * moveX - cos * moveY;
-        ladderCommand.release = (buttons & (NET_BUTTONS.jump | NET_BUTTONS.dodge)) !== 0 || world.player.hover || world.player.swimming || world.player.ride !== null;
-        return ladderCommand;
-      }, claimed: () => { world.player.velocity.set(0, 0, 0); world.player.onGround = false; } },
-      events: ctx.app.events, clock: ctx.app.clock, combat: ctx.app.combat, scope: ctx.scope, water: ctx.app.world.water,
-      lookClock: () => {
-        const clock = world.game.sky.dayNight;
-        if (!(clock instanceof DayCycle)) throw new Error('Director requires the rendered declared look clock');
-        return clock;
-      },
-      fixedStep: clientSimStep({ scope: ctx.scope, app: ctx.app, active: () => false, freeCamera: () => world.freeCamera, system: ctx.system }), hud: ui,
-      quest: { fact: () => undefined, coins: () => undefined },
-    });
     yield;
     // SF59: graph params read the frame owner's clock (the level backdrop's, G158) and the live public state
     // a field the sim does not hold (a runtime-bound host field) reads the runtime's port (G345)
@@ -548,7 +503,7 @@ export class ShardfileClient {
     runtime.hooks.questFlags = () => flags.all; runtime.hooks.adventureFlags = () => flags.all;
     // An admitted scene installs its own declared profiles once in the play phase.
     if (this.bindings.audioOwner !== 'runtime' && !this.plan?.features.some(row => row.kind === 'audio.scene')) installDeclaredAudio(source.audio, { audio: play.audio, cues: play.cues, voices: this.bindings.voices(play.audio), music: play.music, scope: ctx.scope, profiles: this.bindings.audioProfiles?.(play, { source: source.audio, read: this.assets.audioRead() }) });
-    ctx.debug.expose('shardfile', { source, host: sim.host, lane: sim.lane, items: items.runtimes, colliders, fine: tiles.fine, weather,
+    ctx.debug.expose('shardfile', { source, items: items.runtimes, colliders, fine: tiles.fine, weather,
       // What a panel's field has drawn here: its look, and whether it stands in this page's world.
       targets: () => source.targets.panels.map(row => ({ panel: row.panel, visible: tiles.props?.panels.get(row.panel)?.visible ?? false, solid: row.colliders.every(id => colliders.get(id)?.active() ?? false) })),
       // Read actual live views; an authored spawn or a detached model alone cannot satisfy the author view proof.
@@ -571,11 +526,11 @@ export class ShardfileClient {
             sameAsset &&= geometries.has(node.geometry);
           });
         }
-        return { tick: sim.host.state.tick, frames: renderCount(world.game.renderer), id: current.row.id, asset,
+        return { tick: wirePage.client?.latest?.tick ?? 0, frames: renderCount(world.game.renderer), id: current.row.id, asset,
           mounted: model.parent === equipmentHost.viewmodel, visible, meshes, sameAsset };
       },
       sceneEvidence: () => {
-        const selected = pickPrompt(runtime.interactables, world.game.camera.position, sim.host.physics);
+        const selected = pickPrompt(runtime.interactables, world.game.camera.position, world.physics);
         const interaction = selected === undefined ? undefined : source.targets.interactions.find(row => row.label === selected.label && row.at.every((coordinate, axis) => coordinate === selected.position.getComponent(axis)));
         const creatures = source.creatures.spawns.map(spawn => {
           const view = wirePage.namedBody(spawn.id);
@@ -590,10 +545,10 @@ export class ShardfileClient {
             bones: view.mesh.skeleton.bones.length, finitePose: view.mesh.skeleton.boneMatrices !== null && [...view.mesh.skeleton.boneMatrices].every(Number.isFinite),
             matchesNative: view.rowDriven && [view.mesh.position.x, view.mesh.position.y, view.mesh.position.z].every(Number.isFinite) && Math.abs(view.mesh.scale.y - view.scale) < 0.001 };
         });
-        return { tick: sim.host.state.tick, frames: renderCount(world.game.renderer), creatures, selectedInteraction: interaction?.id ?? null };
+        return { tick: wirePage.client?.latest?.tick ?? 0, frames: renderCount(world.game.renderer), creatures, selectedInteraction: interaction?.id ?? null };
       },
     });
-    this.bindings.onSimulation?.({ source, simulation: sim, items: items.runtimes, scope: ctx.scope,
+    this.bindings.onSimulation?.({ scope: ctx.scope,
       ...(this.bindings.residency === undefined ? {} : { residency: this.bindings.residency.home() }),
       checkpoint: () => !ctx.scope.disposed, setActive: (active) => { simulationActive = active && !ctx.scope.disposed; },
     });

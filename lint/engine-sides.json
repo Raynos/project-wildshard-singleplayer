@@ -1403,7 +1403,6 @@
   "src/game/client/shardfile/clientSplatTerrain.ts": "client",
   "src/game/shared/shardfile/clientState.ts": "shared",
   "src/game/client/shardfile/clientStealthEntry.ts": "client",
-  "src/game/client/shardfile/clientStep.ts": "client",
   "src/game/client/shardfile/clientTargets.ts": "client",
   "src/game/client/shardfile/clientTimedEncounters.ts": "client",
   "src/game/client/shardfile/clientTrails.ts": "client",
