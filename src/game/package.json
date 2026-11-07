@@ -170,6 +170,7 @@
     "./eliteView": "./client/eliteView.ts",
     "./eliteSystem": "./shared/eliteSystem.ts",
     "./Inventory": "./client/Inventory.ts",
+    "./pageSaveKeys": "./client/pageSaveKeys.ts",
     "./inventoryLaw": "./shared/inventoryLaw.ts",
     "./Progress": "./client/Progress.ts",
     "./achievements": "./shared/achievements.ts",

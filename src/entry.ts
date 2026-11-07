@@ -6,7 +6,8 @@ import { installTitleManifests, readTitleRows, unloadedTitleRow, withCatalogueHe
 import { installInlineCatalogue } from '@wildshard/game/grid/catalogueSlot';
 import { installOfflineDownload } from '@wildshard/engine/ui/offlineDownload';
 import { startPageServices } from './pageServices';
-import { persistHomeScreen } from '@wildshard/engine/saves/runtime';
+import { persistHomeScreen, saves } from '@wildshard/engine/saves/runtime';
+import { definePageSaveKeys } from '@wildshard/game/pageSaveKeys';
 import { waitFor } from '@wildshard/engine/boot/waits';
 import { runtimePacksOn } from '@wildshard/engine/boot/loadingPacks';
 import { preloadModuleFiles, readModuleFiles } from '@wildshard/engine/boot/download';
@@ -53,6 +54,7 @@ installOfflineDownload({
   start: async (owner, progress) => (await import('@wildshard/game/grid/prefetch')).downloadEverything(owner, progress),
 });
 persistHomeScreen();
+definePageSaveKeys(saves);
 const search = new URLSearchParams(location.search);
 // Do not depend on the sibling sw.ts module finishing first; both entry points share the same consumed record.
 inspectPreviousBoot();

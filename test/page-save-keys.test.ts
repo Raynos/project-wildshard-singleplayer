@@ -1,0 +1,26 @@
+import { expect, test } from 'vitest';
+import { installAppIdentity } from '../src/engine/shared/app/identity';
+import { installSaveEnvironment } from '../src/engine/shared/saves/environment';
+import { SaveStore, type SaveStorage } from '../src/engine/shared/saves/store';
+import { definePageSaveKeys } from '../src/game/client/pageSaveKeys';
+
+class Local implements SaveStorage {
+  readonly items = new Map<string, string>();
+  get length(): number { return this.items.size; }
+  key(index: number): string | null { return [...this.items.keys()][index] ?? null; }
+  getItem(key: string): string | null { return this.items.get(key) ?? null; }
+  setItem(key: string, value: string): void { this.items.set(key, value); }
+  removeItem(key: string): void { this.items.delete(key); }
+}
+test('a file from before the flip keeps what only a server reads, on a page that opens none of it', () => {
+  installAppIdentity({ name: '', wordmark: '', tagline: '', savePrefix: 'ws.', saveFormat: 'wildshard', fileSlug: '', exposeProbe: () => undefined, harness: () => undefined });
+  installSaveEnvironment({ storage: () => null, persistent: () => true, persist: () => Promise.resolve(true) });
+  const local = new Local(), store = new SaveStore({ local, session: local });
+  definePageSaveKeys(store);
+  const keys = { 'platform.continuation': { v: 1, data: { flags: ['door'] } }, 'platform.encounters': { v: 1, data: { boss: { defeated: true } } },
+    'platform.region': { v: 1, data: { revision: 3, snapshot: null } }, 'platform.runtime-logical': { v: 1, data: { revision: 3, actors: [] } } };
+  const report = store.importAll(JSON.stringify({ format: 'wildshard', version: 2, build: 'old', exported: 'then', docs: { 'pastel-plain': { keys } } }));
+  expect(report.skipped).toEqual([]);
+  expect(new Set(report.imported)).toEqual(new Set(Object.keys(keys).map(key => `pastel-plain/${key}`)));
+  expect(JSON.parse([...local.items.values()].find(doc => doc.includes('platform.region')) ?? 'null')).toMatchObject({ keys });
+});

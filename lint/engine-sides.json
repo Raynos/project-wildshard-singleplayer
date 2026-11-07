@@ -847,6 +847,7 @@
   "src/game/client/boot/packs.generated.ts": "client",
   "src/game/client/boot/spawnDownload.ts": "client",
   "src/game/client/boot/versions.generated.ts": "client",
+  "src/game/client/pageSaveKeys.ts": "client",
   "src/game/client/Boss.ts": "client",
   "src/game/shared/boss/arenaAnswers.ts": "shared",
   "src/game/shared/boss/arenaCollision.ts": "shared",

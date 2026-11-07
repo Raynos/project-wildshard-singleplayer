@@ -6,10 +6,10 @@
 //   exit     Exit to Title, then a fresh entry
 //   travel   a shard switch, then the road back
 //   import   a page file from before the flip, through Settings' own file input
-//   scripts/browser-lane.sh node scripts/worker-client-saves.mjs --base=http://127.0.0.1:4401/ [--chunk=driftwood-isle | --grid] [--delays=0,20,50,100,200,500,1000] [--only=kill,exit]
+//   scripts/browser-lane.sh node scripts/worker-client-saves.mjs --base=http://127.0.0.1:4401/ [--chunk=driftwood-isle | --grid] [--delays=0,20,50,100,200,500,1000] [--only=kill,exit] [--continuation=file --flag=name]
 // Chromium only: a phone kills a tab on its own terms, and WebKit's half is the flip lane's.
-import { spawn } from 'node:child_process';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { chromium } from 'playwright';
@@ -20,19 +20,13 @@ const arg = (key, fallback) => process.argv.find(value => value.startsWith(`--${
 const base = arg('base', ''), chunk = arg('chunk', 'driftwood-isle'), delays = arg('delays', '0,20,50,100,200,500,1000').split(',').map(Number), only = arg('only', 'kill,timer,exit,travel,import').split(',');
 if (base === '') throw new Error('Requires --base');
 const url = (slug = chunk, query = '') => process.argv.includes('--grid') ? floorGridBenchmarkUrl(base) : new URL(`/?chunk=${slug}&mute=1&nolock=1${query}`, base).href;
-const port = 9300 + (process.pid % 500);
 
-/** A real browser on a profile that outlives it, its whole process group ours to kill. */
+/** A real browser on a profile that outlives it, its whole process tree ours to kill. */
 async function launch(profile) {
-  const running = spawn(chromium.executablePath(), ['--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, '--no-first-run', '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--window-size=402,874', 'about:blank'], { detached: true, stdio: 'ignore' });
-  let browser = null;
-  for (let tries = 0; tries < 60 && browser === null; tries++) {
-    try { browser = await chromium.connectOverCDP(`http://127.0.0.1:${port}`); } catch { await new Promise(resolve => { setTimeout(resolve, 250); }); }
-  }
-  if (browser === null) throw new Error('No browser');
-  const context = browser.contexts()[0], page = context.pages()[0] ?? await context.newPage(), errors = [];
+  const context = await chromium.launchPersistentContext(profile, { args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'], viewport: { width: 402, height: 874 } });
+  const page = context.pages()[0] ?? await context.newPage(), errors = [];
   page.on('pageerror', error => { errors.push(error.message.slice(0, 200)); });
-  return { browser, context, page, errors, kill: () => { if (running.pid === undefined) throw new Error('No browser process'); process.kill(-running.pid, 'SIGKILL'); return new Promise(resolve => { running.once('exit', resolve); }); } };
+  return { context, page, errors, kill: () => { spawnSync('pkill', ['-9', '-f', profile]); return new Promise(resolve => { setTimeout(resolve, 500); }); } };
 }
 const seed = async context => {
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
@@ -126,7 +120,9 @@ if (only.includes('exit') || only.includes('travel') || only.includes('import'))
     }
     if (only.includes('import')) {
       // A page's own export, as a player who kept one from before the flip holds it: this page's flags book, in the page file's shape.
-      const file = await page.evaluate(([level]) => JSON.stringify({ format: 'wildshard.save', version: 2, build: 'before-the-flip', exported: new Date(0).toISOString(), docs: { [level]: { keys: { flags: { v: 1, data: ['n4.imported'] } } } } }), [chunk]);
+      // A data shard's page saved a logical continuation instead: --continuation= is one, and --flag= one of its flags.
+      const held = arg('continuation', ''), continuation = held === '' ? null : JSON.parse(readFileSync(held, 'utf8'));
+      const file = await page.evaluate(([level, saved]) => JSON.stringify({ format: 'wildshard.save', version: 2, build: 'before-the-flip', exported: new Date(0).toISOString(), docs: { [level]: { keys: saved === null ? { flags: { v: 1, data: ['n4.imported'] } } : { 'platform.continuation': { v: 1, data: saved } } } } }), [chunk, continuation]);
       await page.keyboard.press('Escape'); await page.waitForTimeout(1000); // Settings builds its save panel when it opens
       const shown = await page.evaluate(async json => {
         const picker = [...document.querySelectorAll('input[type=file]')].find(node => /json/u.test(node.accept));
@@ -136,7 +132,8 @@ if (only.includes('exit') || only.includes('travel') || only.includes('import'))
         return { status: picker.parentElement?.textContent?.slice(0, 300) };
       }, file);
       await enter(page); await page.waitForTimeout(1500);
-      pass('a file from before the flip imports and the next boot holds it', (await flags(page)).includes('n4.imported'), { shown, flags: (await flags(page)).filter(flag => flag.startsWith('n')).slice(0, 8) });
+      const wanted = arg('flag', 'n4.imported');
+      pass('a file from before the flip imports and the next boot holds it', (await flags(page)).includes(wanted), { shown, flags: (await flags(page)).slice(0, 8) });
     }
     if (session.errors.length > 0) pass('no page error', false, session.errors.slice(0, 4));
   } finally { await session.kill(); rmSync(profile, { recursive: true, force: true }); }
