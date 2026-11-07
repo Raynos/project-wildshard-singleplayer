@@ -3317,16 +3317,17 @@ tick; re-entry starts a fresh cadence without catching up the absent time. Omitt
 Trusted deferred-spawn installers use `creatureBodyDistance`, `keepsCreatureBody` and `creatureBodyShape` to synchronize
 a new native body at the same frame position as the page; callers do not duplicate its thresholds or shape law.
 
+Device reward persistence and E7 identity bindings: [`CreatureRewardStore`](../src/game/server/loot/playerOwned.ts)
+defines the player-document adapter contract.
+
 `@wildshard/engine/sim/snapshot` exports `SIM_SNAPSHOT_VERSION`, `SimSnapshot`, `snapshotSimHost(host)`
-and `restoreSimHost(level, { rapier }, saved, install?)`. Capture between fixed steps; the versioned JSON state
-includes every player (`players`, lead first), entities and strikes, queued events, timers and the accumulator, RNG and clock continuations,
-the complete Rapier world and motor contacts, flags and quest progress, the four `SimSlots`, and each
-registered adapter. Actor and live-position references resolve by stable identity in the restored host.
-Restore boots a fresh matching level and invokes `install` to register its scoped callbacks and adapters;
-authored content and functions stay outside the snapshot. Engine, snapshot and level fingerprints must match.
-A version 1 save held one `player`; the decoders turn it into a list of one (P1-E5.2a), and the level fingerprint leaves
-out the level's `version`, so an engine version bump does not orphan a save. `install` runs for the lead player, and the
-other saved players rejoin before their state lands.
+and `restoreSimHost(level, { rapier }, saved, install?)`. Capture between fixed steps. Versioned JSON includes every
+player (`players`, lead first), entities, strikes, queued events, timers, accumulator, RNG and clocks, the complete
+Rapier world and motor contacts, flags, quest progress, four `SimSlots` and registered adapters. Actor and live-position
+references resolve by stable identity. Restore boots a fresh matching level and calls `install` to register scoped
+callbacks and adapters; authored content and functions stay outside. Engine, snapshot and level fingerprints must match.
+Version 1's lone `player` decodes to a one-player list (P1-E5.2a). The level fingerprint omits the level's `version`,
+so an engine version bump does not orphan a save. `install` runs for the lead; other saved players rejoin before restore.
 For a regional basis that needs a complete fresh installation first, `prepareSimHostRestore(level, ports)`
 creates one unpublished owned host and its restore-check context before services bind. Its one-use `keep()`
 retains the fresh/logically migrated target, or `restore(saved, install?)` applies the same exact transaction
