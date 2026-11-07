@@ -828,5 +828,20 @@
     "path": "src/sharddev/dist/",
     "file": "scripts/generated-source.mjs",
     "why": "build-sdk.mjs's gitignored package output: the generated-source check names the folder to skip, so it exists only in a tree that built the SDK and never in a clean CI checkout."
+  },
+  {
+    "path": "src/game/server/population/pageGroups.ts",
+    "file": "test/platform-chargebacks.test.ts",
+    "why": "A retired path kept on purpose: this test feeds it as a synthetic module name, and it must stay unclaimed."
+  },
+  {
+    "path": "src/game/server/ambient/crowdPage.ts",
+    "file": "test/platform-chargebacks.test.ts",
+    "why": "A retired path kept on purpose: this test feeds it as a synthetic module name, and it must stay unclaimed."
+  },
+  {
+    "path": "src/game/server/population/pageGroups.ts",
+    "file": "test/shard-component-spans.test.ts",
+    "why": "A retired path kept on purpose: this test feeds it as a synthetic module name, and it must stay unclaimed."
   }
 ]

@@ -234,23 +234,6 @@
       }
     },
     {
-      "module": "src/game/server/population/pageGroups.ts",
-      "shard": "nalati-grasslands",
-      "plan": {
-        "path": "docs/plans/host-audit/shard-platform-rows.md",
-        "row": "G475"
-      },
-      "documentation": "docs/ENGINE.md",
-      "rechecked-by": "end of W3",
-      "approvedFeature": {
-        "name": "actor-spawn",
-        "decision": {
-          "path": "docs/plans/decisions.md",
-          "row": "G474"
-        }
-      }
-    },
-    {
       "module": "src/game/shared/ambient/flock.ts",
       "shard": "nalati-grasslands",
       "plan": {
