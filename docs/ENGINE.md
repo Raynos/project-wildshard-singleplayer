@@ -369,7 +369,7 @@ bake recorders; implementations own their storage.
 | `level.loaded`, `level.unloaded` | `{ id }` |
 | `damage.dealt` | `DamageDealt { req, dealt, killed }` after the pipeline applies a hit |
 | `actor.died` | `{ actor, req }` |
-| `player.died`, `player.respawned` | the player's death (`checkpoint`, `cause`) and respawn |
+| `player.died`, `player.respawned` | Own-player lifecycle. `NetClient.onPlayerDied` delivers the server checkpoint/cause once; the page emits with its health actor. `NetPlayer.holdRespawn/resumeRespawn` defer the owner pose until the existing fade is dark. |
 | `effect.applied`, `effect.removed` | an effect on a target |
 | `weapon.fired`, `weapon.action`, `weapon.hit`, `weapon.impact`, `weapon.reload`, `weapon.dry`, `weapon.swap`, `weapon.unlocked`, `weapon.charge`, `tool.used` | equipment beats; the cue maps listen to these |
 | `quest.step` | `{ level, quest, step, previous }` |
@@ -3131,7 +3131,7 @@ A playground's pieces are registry pieces with `active: () => this.entered`, so 
 | `setting`, `getSetting`, `getNumber`, `onNumber`, `onSettingChange`, `OptionValue`, `MusicStyle` | the engine's saved options. A shard reads only keys it owns (`shard-sandbox`) |
 | `ENGINE_STRINGS`, `engineString`, `installEngineStrings`, `EngineStringKey` | the engine's string table |
 | `publicBytes`, `assetVersions`, `musicManifests`, `sfxManifests`, `bootPacks`, `installAssetTables`, `AssetTables`, `PackDef`, `PackPart`, `PackFile` | App-owned asset sizes, versions, audio and boot packs, installed after entry selection; the engine reads them at call time. `packFor` selects the tier; `streamPack` serves declared boot parts. `demandPack(pack, scope)` serves complete KTX2 parts ≤4 MiB only when all members are demanded together, verifying hashes and returning private responses without settled backing. Cached parts also serve later/offline members. |
-| `installAppIdentity`, `appIdentity`, `AppIdentity`, `EngineProbe`, `HarnessPins` | App name, wordmark, tagline, save prefix/format, file slug, probe and harness. `src/identity.ts` installs the game's identity before entry; real storage throws without one. Optional `errorReportOrigins` permits external errors only from exact production origins, excluding automation. Optional async `importPlayerDocument(document, player)` rebinds imported server documents to this device's player ID; it preserves the device identity. Wildshard transfers the file's local reward owner, leaving other players separate. |
+| `installAppIdentity`, `appIdentity`, `AppIdentity`, `EngineProbe`, `HarnessPins` | App name, wordmark, tagline, save prefix/format, file slug, probe and harness; `src/identity.ts` installs it before entry. Real storage throws without it. Optional `errorReportOrigins` permits external errors from exact production origins, excluding automation. Async `importPlayerDocument(document, player)` rebinds imported documents while keeping this device's ID; Wildshard transfers the file's local reward owner. |
 | `ctx.strings(table)` (`StringTable`) | registers your table; every player-facing line comes from it |
 
 **A Debug row** (`DebugRowSpec`): `{ id, group, label, choices: [{ value, text }], initial, change(value), reload?,
