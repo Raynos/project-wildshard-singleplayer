@@ -1,16 +1,51 @@
 // Real phone-profile visits of one finished artifact. No game service stubs.
 import { chromium, webkit, devices } from 'playwright';
+import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 const base = process.argv[2];
 if (base === undefined) throw new Error('Usage: prove-release.mjs https://staged-origin');
-const response = await fetch(new URL('/version.json', base), { cache: 'no-store' });
+const staged = process.argv.includes('--vercel');
+if (staged && !/^https:\/\/[^/]+\.vercel\.app\/?$/u.test(base)) throw new Error('Staged proof requires a unique HTTPS Vercel origin');
+const pin = JSON.parse(readFileSync(new URL('../engine.pin.json', import.meta.url), 'utf8'));
+let bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+if (staged && process.argv.includes('--existing-bypass') && !bypass) {
+  const project = JSON.parse(readFileSync('.vercel/project.json', 'utf8'));
+  // Read an existing token only; unlike `vercel curl`, never create one.
+  const metadata = JSON.parse(execFileSync('vercel', ['api', `/v9/projects/${project.projectId}?teamId=${project.orgId}`, '--scope', 'raynos-projects'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }));
+  bypass = Object.entries(metadata.protectionBypass ?? {}).find(([, value]) => value.scope === 'automation-bypass')?.[0];
+  if (!bypass) throw new Error('No existing automation bypass token; project protection was not changed');
+}
+const headers = bypass ? { 'x-vercel-protection-bypass': bypass, 'x-vercel-set-bypass-cookie': 'true' } : {};
+const request = (path, init = {}) => fetch(new URL(path, base), { cache: 'no-store', ...init, headers: { ...headers, ...init.headers }, signal: AbortSignal.timeout(30_000) });
+const response = await request('/version.json');
 if (!response.ok) throw new Error('Release version unavailable');
 const version = await response.json();
-if (version.saveEpoch !== 1) throw new Error('Release progress epoch is not one');
+if (version.saveEpoch !== pin.saveEpoch) throw new Error('Release progress epoch differs from pinned engine');
+const prefix = `wildshard.save.v2@${pin.saveEpoch}.`;
+if (staged) {
+  for (const [path, cache] of [['/', 'no-store'], ['/version.json', 'no-store'], ['/sw.js', 'no-cache']]) {
+    const result = await request(path);
+    if (result.status !== 200 || !result.headers.get('cache-control')?.includes(cache)) throw new Error(`Vercel header contract failed: ${path} HTTP ${result.status}`);
+    if (path === '/') {
+      const html = await result.text(), asset = html.match(/<script\b[^>]*\bsrc="(\/b\/[^"]+\.js)"/u)?.[1];
+      if (!asset) throw new Error('Vercel HTML has no build-scoped module');
+      const module = await request(asset, { method: 'HEAD' });
+      if (module.status !== 200 || !module.headers.get('cache-control')?.includes('immutable')) throw new Error('Vercel build-scoped module is not immutable');
+    }
+    console.log('PASS Vercel headers', path, result.headers.get('cache-control'));
+  }
+  for (const route of ['inbox', 'errors', 'waitlist', 'telemetry']) {
+    const options = await request(`/api/${route}`, { method: 'OPTIONS', headers: { Origin: 'capacitor://localhost' } });
+    const get = await request(`/api/${route}`), body = await get.json();
+    if (options.status !== 204 || options.headers.get('access-control-allow-origin') !== 'capacitor://localhost' || get.status !== 401 || body.error !== 'bad password' || !get.headers.get('cache-control')?.includes('no-store')) throw new Error(`Vercel API function contract failed: ${route} OPTIONS ${options.status}, GET ${get.status}`);
+    console.log('PASS Vercel API', route, 'OPTIONS 204; unauthenticated GET 401; no-store');
+  }
+}
 console.log('Proving', JSON.stringify(version));
 for (const [name, type] of [['Chromium', chromium], ['WebKit', webkit]]) {
   const browser = await type.launch({ headless: true, ...(name === 'Chromium' ? { args: ['--mute-audio'] } : {}) });
   try {
-    const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: 'block' });
+    const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: staged ? 'allow' : 'block', extraHTTPHeaders: headers });
     await context.addInitScript(() => {
       HTMLMediaElement.prototype.play = async () => undefined;
       if (localStorage.getItem('j189-proof-seeded') === null) {
@@ -43,7 +78,14 @@ for (const [name, type] of [['Chromium', chromium], ['WebKit', webkit]]) {
         await page.evaluate(() => window.__wildshard.world.hud.enterNow());
         await page.waitForFunction(() => (window.__workerClient?.().frames ?? 0) > 10, undefined, { timeout: 90_000 });
       }
-      const observed = await page.evaluate(() => ({ shard: window.__wildshard?.shard?.slug ?? null, grid: window.__wildshard?.shard?.grid !== undefined, settings: localStorage.getItem('wildshard.save.v2@1.global'), fatal: [...document.querySelectorAll('[data-boot-fatal],#wserr,.ws-load-error')].map(node => node.textContent), canvas: document.querySelectorAll('canvas').length }));
+      if (staged && label === 'title') {
+        await page.waitForFunction(async () => (await navigator.serviceWorker.getRegistration())?.active?.state === 'activated', undefined, { timeout: 90_000 });
+        await page.reload({ waitUntil: 'load' });
+        await page.locator('.ws-menu-play').waitFor({ state: 'visible', timeout: 90_000 });
+        await page.waitForFunction(() => navigator.serviceWorker.controller !== null, undefined, { timeout: 90_000 });
+      }
+      const observed = await page.evaluate(prefix => ({ shard: window.__wildshard?.shard?.slug ?? null, grid: window.__wildshard?.shard?.grid !== undefined, settings: localStorage.getItem(prefix + 'global'), serviceWorker: navigator.serviceWorker?.controller?.scriptURL ?? null, fatal: [...document.querySelectorAll('[data-boot-fatal],#wserr,.ws-load-error')].map(node => node.textContent), canvas: document.querySelectorAll('canvas').length }), prefix);
+      if (staged && observed.serviceWorker === null) throw new Error(`${name} ${label}: service worker is not controlling the staged page`);
       if (label === 'grid' && !observed.grid) throw new Error(`${name}: title tap did not enter grid mode`);
       if (errors.length > 0 || observed.fatal.length > 0) throw new Error(`${name} ${label}: ${JSON.stringify({ errors, observed })}`);
       const global = JSON.parse(observed.settings ?? 'null');

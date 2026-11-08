@@ -31,6 +31,28 @@ staged URL in WebKit with service workers enabled, plus its real Vercel
 headers and same-origin API functions. The local phone proof alone is not
 this check. Jake's explicit go is still required; production remains held.
 
+Read the exact stage URL from the held workflow's "Stage the proven
+artifact" result, then run from this checkout (phone profile, muted):
+
+```sh
+scripts/browser-lane.sh node scripts/prove-release.mjs "$STAGED_URL" --vercel --existing-bypass
+```
+
+This proves title, Driftwood, Pine, Nalati and the real title-to-grid tap on
+Chromium and WebKit, then reloads under the active service worker and checks
+that settings carried and old progress did not. It also reads the actual
+HTML/version/worker/module caching headers and calls all four deployed API
+functions with OPTIONS and unauthenticated GET. No inbox data is read or
+written. `--existing-bypass` uses the existing Vercel CLI account to read an
+existing project automation token into process memory; it never creates one
+or changes protection. Alternatively provide the existing
+`VERCEL_AUTOMATION_BYPASS_SECRET` through the environment. The proof uses
+[Vercel's documented bypass headers](https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection/protection-bypass-automation)
+without printing the credential. The new staged origin proves worker
+control across reloads; it cannot prove adoption by a physical PWA already
+installed on the production origin. The real IndexedDB migration proof
+separately covers persistence and identity-only carry on both browsers.
+
 Only after Jake's go, the release operator runs these commands from this
 checkout with organization GitHub access and the existing production
 Vercel automation credentials already configured in CI:
