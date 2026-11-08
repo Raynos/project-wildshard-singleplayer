@@ -92333,10 +92333,10 @@
     {
       "path": "test/wire-quest-shop.test.ts",
       "blob": "a006b65e67f40b537015a718ec83a988fd941d25",
-      "home": "sharddev",
-      "commit": "352aa7c05cbcd4c8ab07f4792921a3111c9883ee",
+      "home": "engine",
+      "commit": "9d736f7e56fc75cb123d8b2e8a28315c592cce22",
       "target": "test/wire-quest-shop.test.ts",
-      "reason": "Verified lifted target; imports and layer paths rewritten"
+      "reason": "Verified post-freeze integration test in engine against its pinned Driftwood product"
     },
     {
       "path": "test/witness-compare.test.ts",

@@ -12,11 +12,13 @@ function fixture(run) {
   const pin = { schema: 1, engine: { repo: 'engine', tag: 'v0.1.1', commit: 'd'.repeat(40) }, saveEpoch: 1, shards: repos.map(repo => ({ repo, commit: 'c'.repeat(40) })) };
   const original = JSON.stringify(pin, null, 2) + '\n'; writeFileSync(join(cwd, 'engine.pin.json'), original);
   writeFileSync(join(bin, 'git'), `#!/usr/bin/env node
+if (process.argv[2] === 'rev-parse') { console.log('a'.repeat(40)); process.exit(0); }
 if (process.argv[2] !== 'ls-remote') throw new Error('Unexpected Git mutation');
 if (!process.env.PIN_MISSING_TAG) { const tag=process.argv[4]; console.log('e'.repeat(40)+'\\t'+tag); console.log('a'.repeat(40)+'\\t'+tag+'^{}'); }
 `);
   writeFileSync(join(bin, 'gh'), `#!/usr/bin/env node
 const url=process.argv[3];
+if (process.env.PIN_PUBLIC_ONLY && !url.startsWith('repos/project-wildshard/engine/')) throw new Error('Private repo requested by public build');
 if(url.includes('/contents/save-epoch.json')) console.log(JSON.stringify({saveEpoch:Number(process.env.PIN_EPOCH??1)}));
 else { const repo=url.split('/')[2], sha=new URL('https://api.github.com/'+url).searchParams.get('head_sha'); console.log(JSON.stringify({workflow_runs:['ci','ring-1'].map((name,id)=>({name,id,event:'push',head_sha:sha,conclusion:process.env.PIN_RED_REPO===repo?'failure':'success'}))})); }
 `);
@@ -36,6 +38,17 @@ test('missing tag, red engine, red shard, and epoch downgrade all refuse without
     assert.equal(readFileSync(join(cwd, 'engine.pin.json'), 'utf8'), original);
   });
 });
+
+test('public release verification and installation never query private shard repositories', () => fixture(({ cwd, invoke }) => {
+  assert.equal(invoke({}).status, 0);
+  mkdirSync(join(cwd, 'engine-source'));
+  // Exercise the real installer with only the default public-repo capability.
+  const result = spawnSync(process.execPath, [join(root, 'scripts/install-release.mjs'), 'verify'], {
+    cwd, encoding: 'utf8', env: { ...process.env, PATH: join(cwd, 'bin') + ':' + process.env.PATH, PIN_PUBLIC_ONLY: '1' },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /private shard sources are not build inputs/u);
+}));
 
 test('a malformed current epoch refuses before a bump can weaken its floor', () => fixture(({ cwd, invoke }) => {
   const file = join(cwd, 'engine.pin.json'), pin = JSON.parse(readFileSync(file, 'utf8'));

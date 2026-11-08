@@ -23,13 +23,13 @@ export function green(repo, commit, workflows = ['ci']) {
     if (latest?.conclusion !== 'success') throw new Error(`${repo} ${commit}: latest exact-SHA ${name} is not green`);
   }
 }
-export function verify(pin) {
+export function verify(pin, { shards = false } = {}) {
   validatePin(pin);
   if (tagCommit('engine', pin.engine.tag) !== pin.engine.commit) throw new Error('Engine tag moved');
   green('engine', pin.engine.commit, ['ci', 'ring-1']);
   const metadata = JSON.parse(run('gh', ['api', `repos/${ORG}/engine/contents/save-epoch.json?ref=${pin.engine.commit}`, '-H', 'Accept: application/vnd.github.raw+json']));
   if (metadata.saveEpoch !== pin.saveEpoch) throw new Error('Engine save epoch differs from pin');
-  for (const shard of pin.shards) green(shard.repo, shard.commit);
+  if (shards) for (const shard of pin.shards) green(shard.repo, shard.commit);
   return pin;
 }
 if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
@@ -47,7 +47,7 @@ if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.a
     });
     if (shardRefs.some(ref => !SHARDS.includes(ref.split('=')[0]))) throw new Error('Unknown shard pin');
     const next = validatePin({ schema: 1, engine: { repo: 'engine', tag, commit }, saveEpoch: metadata.saveEpoch, shards }, Math.max(1, current.saveEpoch));
-    verify(next);
+    verify(next, { shards: true });
     writeFileSync('engine.pin.json', `${JSON.stringify(next, null, 2)}\n`);
     console.log(`Pinned engine ${tag} ${commit}, epoch ${next.saveEpoch}, seven shards`);
   } else throw new Error('Usage: node scripts/engine-pin.mjs verify|bump vX.Y.Z [shard-repo=tag-or-SHA...]');
