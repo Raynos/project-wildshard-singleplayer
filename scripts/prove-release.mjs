@@ -3,9 +3,11 @@ import { chromium, webkit, devices } from 'playwright';
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { observeReleaseModules, waitForReleaseWorker } from './release-worker.mjs';
+import { recordFirstReleaseCard, proveLoadingCard, proveEmber } from './release-play.mjs';
 const base = process.argv[2];
 if (base === undefined) throw new Error('Usage: prove-release.mjs https://staged-origin');
 const staged = process.argv.includes('--vercel');
+const extended = staged || process.argv.includes('--extended');
 if (staged && !/^https:\/\/(?:wildshard-singleplayer-[a-z0-9]+-raynos-projects|wildshard-singleplayer)\.vercel\.app\/?$/u.test(base)) throw new Error('Vercel proof requires this project\'s deployment or production HTTPS origin');
 const pin = JSON.parse(readFileSync(new URL('../engine.pin.json', import.meta.url), 'utf8'));
 let bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
@@ -50,10 +52,14 @@ if (staged) {
 }
 console.log('Proving', JSON.stringify(version));
 for (const [name, type] of [['Chromium', chromium], ['WebKit', webkit]]) {
-  const browser = await type.launch({ headless: true, ...(name === 'Chromium' ? { args: ['--mute-audio', ...(process.platform === 'darwin' ? ['--use-angle=metal'] : [])] } : {}) });
+  let browser = await type.launch({ headless: true, ...(name === 'Chromium' ? { args: ['--mute-audio', ...(process.platform === 'darwin' ? ['--use-angle=metal'] : [])] } : {}) });
   try {
     const createContext = async () => {
-      const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: staged ? 'allow' : 'block' });
+      const context = await browser.newContext({ ...devices['iPhone 16 Pro'], deviceScaleFactor: 2, serviceWorkers: staged ? 'allow' : 'block' });
+      if (extended) {
+        await context.grantPermissions(name === 'Chromium' ? ['clipboard-read', 'clipboard-write'] : ['clipboard-read']);
+        await context.addInitScript(recordFirstReleaseCard);
+      }
       if (bypass) {
         // Authenticate only to this origin. A global browser header would also
         // send the credential to third-party telemetry and asset hosts.
@@ -64,23 +70,29 @@ for (const [name, type] of [['Chromium', chromium], ['WebKit', webkit]]) {
         if (cookieOnly.status() !== 200) throw new Error('Staged origin refused cookie-only access');
         await cookieOnly.dispose();
       }
-      await context.addInitScript(() => {
+      await context.addInitScript(extended => {
         HTMLMediaElement.prototype.play = async () => undefined;
         if (localStorage.getItem('j189-proof-seeded') === null) {
-          localStorage.setItem('wildshard.save.v2.global', JSON.stringify({ keys: { settings: { v: 1, data: { music: false, sfx: false } }, gfx: { v: 1, data: {} }, hints: { v: 1, data: ['old-progress'] } } }));
+          localStorage.setItem('wildshard.save.v2.global', JSON.stringify({ keys: { settings: { v: 1, data: { music: false, sfx: false, holdLoading: extended } }, gfx: { v: 1, data: {} }, hints: { v: 1, data: ['old-progress'] } } }));
           localStorage.setItem('wildshard.save.v2.driftwood-isle', '{"keys":{"purse":{"v":1,"data":999}}}');
           localStorage.setItem('wildshard.save.v2.device', '{"keys":{"devMode":{"v":1,"data":true}}}');
           localStorage.setItem('j189-proof-seeded', '1');
         }
-      });
+      }, extended);
       return context;
     };
     let context = await createContext();
-    for (const [label, path] of [['title', '/'], ['Driftwood', '/?chunk=driftwood-isle&mute=1&nolock=1'], ['Pine', '/?chunk=pine-hollow&mute=1&nolock=1'], ['Nalati', '/?chunk=nalati-grasslands&mute=1&nolock=1'], ['grid', '/?mute=1&nolock=1']].filter(([label]) => process.argv[3] !== '--grid-only' || label === 'grid')) {
+    for (const [label, path] of [['title', '/'], ['Driftwood', '/?chunk=driftwood-isle&mute=1&nolock=1'], ['Pine', '/?chunk=pine-hollow&mute=1&nolock=1'], ['Nalati', '/?chunk=nalati-grasslands&mute=1&nolock=1'], ['grid', '/?mute=1&nolock=1']].filter(([label]) => !process.argv.includes('--grid-only') || label === 'grid')) {
       if (label === 'grid') {
         // Closing a standalone page can leave a real crash-resume checkpoint.
         // Grid entry is an independent title journey, not a crash-resume test.
         await context.close();
+        // Exercise the inherited Chromium starvation mode on the actual grid,
+        // after closing the ordinary native-GPU phone visits and their browser.
+        if (extended && name === 'Chromium') {
+          await browser.close();
+          browser = await type.launch({ headless: true, args: ['--mute-audio'] });
+        }
         context = await createContext();
       }
       const page = await context.newPage(), errors = [];
@@ -90,6 +102,11 @@ for (const [name, type] of [['Chromium', chromium], ['WebKit', webkit]]) {
       page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text().slice(0, 400)); });
       page.on('response', result => { if (result.status() >= 400) errors.push(`${result.status()} ${result.url()}`); });
       await page.goto(new URL(path, base).href, { waitUntil: 'load', timeout: 90_000 });
+      // Prove migration before any real play can earn fresh hints. The GRID
+      // crossing deliberately creates new progress, which must then survive.
+      await page.waitForFunction(prefix => localStorage.getItem(prefix + 'global') !== null, prefix, { timeout: 90_000 });
+      const migrated = await page.evaluate(prefix => JSON.parse(localStorage.getItem(prefix + 'global')), prefix);
+      if (((label === 'title' || label === 'grid') && migrated.keys.hints !== undefined) || JSON.stringify(migrated.keys.hints ?? null).includes('old-progress') || migrated.keys.settings?.data?.music !== false || migrated.keys.settings?.data?.sfx !== false) throw new Error(`${name} ${label}: old progress carried or settings lost before play`);
       if (label === 'grid') {
         if (staged) {
           await waitForReleaseWorker(page);
@@ -108,6 +125,7 @@ for (const [name, type] of [['Chromium', chromium], ['WebKit', webkit]]) {
       }
       if (label === 'title') await page.locator('.ws-menu-play').waitFor({ state: 'visible', timeout: 90_000 });
       else {
+        if (extended) await proveLoadingCard(page, label === 'grid' ? 'driftwood-isle' : new URL(path, base).searchParams.get('chunk'), `${name} ${label}`, label !== 'grid');
         try {
           await page.waitForFunction(() => window.__wildshard?.world?.player !== undefined, undefined, { timeout: 150_000 });
         } catch (error) {
@@ -116,8 +134,15 @@ for (const [name, type] of [['Chromium', chromium], ['WebKit', webkit]]) {
           throw error;
         }
         await page.waitForFunction(() => window.__workerClient !== undefined, undefined, { timeout: 90_000 });
-        await page.evaluate(() => window.__wildshard.world.hud.enterNow());
-        await page.waitForFunction(() => (window.__workerClient?.().frames ?? 0) > 10, undefined, { timeout: 90_000 });
+        const firstFrame = await page.evaluate(() => {
+          const before = window.__workerClient().frames;
+          window.__wildshard.world.hud.enterNow();
+          window.__wildshard.world.hud.setPaused(false);
+          if (window.__wildshard.world.game.app.clock.paused) throw new Error('Actual entered world stayed paused');
+          return before;
+        });
+        await page.waitForFunction(before => (window.__workerClient?.().frames ?? 0) > Math.max(10, before + 10), firstFrame, { timeout: 90_000 });
+        if (extended && label === 'grid') await proveEmber(page, modules, name);
       }
       if (staged && label === 'title') {
         await waitForReleaseWorker(page);
@@ -131,7 +156,7 @@ for (const [name, type] of [['Chromium', chromium], ['WebKit', webkit]]) {
       if (label === 'grid' && !observed.grid) throw new Error(`${name}: title tap did not enter grid mode`);
       if (errors.length > 0 || observed.fatal.length > 0) throw new Error(`${name} ${label}: ${JSON.stringify({ errors, observed })}`);
       const global = JSON.parse(observed.settings ?? 'null');
-      if (global === null || global.keys.hints !== undefined || global.keys.settings?.data?.music !== false || global.keys.settings?.data?.sfx !== false) throw new Error(`${name} ${label}: progress carry or missing epoch`);
+      if (global === null || JSON.stringify(global.keys.hints ?? null).includes('old-progress') || global.keys.settings?.data?.music !== false || global.keys.settings?.data?.sfx !== false) throw new Error(`${name} ${label}: progress carry or missing epoch`);
       console.log('PASS', name, label, JSON.stringify(observed));
       modules.dispose();
       await page.close();

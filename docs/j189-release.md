@@ -62,8 +62,18 @@ scripts/browser-lane.sh node scripts/prove-release.mjs "$STAGED_URL" --vercel --
 
 This proves title, Driftwood, Pine, Nalati and the real title-to-grid tap on
 Chromium and WebKit, then reloads under the active service worker and checks
-that settings carried and old progress did not. It also reads the actual
-HTML/version/worker/module caching headers and calls all four deployed API
+that settings carried and old progress did not. Manual `--vercel` visits
+also hold the real loading card, check its first and admitted destination,
+completed measured phases and complete safe native clipboard export, then
+use normal movement inputs to cross the road into Ember. They earn a save,
+exit to the title and tap GRID again, requiring Ember's actual card and
+restored pose within three millimetres. Chromium's GRID leg uses its default
+SwiftShader backend to cover the inherited shader-budget starvation mode;
+the standalone visits use Metal on macOS. No progress or saved pose is
+seeded. `--extended` runs these additional journeys on a local built artifact
+without claiming Vercel headers, APIs or worker control. The Vercel proof
+also reads the actual HTML/version/worker/module caching headers and calls
+all four deployed API
 functions with OPTIONS and unauthenticated GET. No inbox data is read or
 written. `--existing-bypass` uses the existing Vercel CLI account to read an
 existing project automation token into process memory; it never creates one
