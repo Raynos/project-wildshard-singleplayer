@@ -6,6 +6,11 @@ import { observeReleaseModules, waitForReleaseWorker } from './release-worker.mj
 import { recordFirstReleaseCard, proveLoadingCard, proveEmber } from './release-play.mjs';
 const base = process.argv[2];
 if (base === undefined) throw new Error('Usage: prove-release.mjs https://staged-origin');
+// Separate admitted machine slots can run both complete phone journeys at
+// once. The default still proves both; selection never changes an assertion.
+const selected = process.argv.filter(arg => arg.startsWith('--browser='));
+if (selected.length > 1 || selected.some(arg => !['--browser=Chromium', '--browser=WebKit'].includes(arg))) throw new Error('Select exactly one of Chromium or WebKit, or omit --browser to prove both');
+const phones = [['Chromium', chromium], ['WebKit', webkit]].filter(([name]) => selected.length === 0 || selected[0] === `--browser=${name}`);
 const staged = process.argv.includes('--vercel');
 const extended = staged || process.argv.includes('--extended');
 if (staged && !/^https:\/\/(?:wildshard-singleplayer-[a-z0-9]+-raynos-projects|wildshard-singleplayer)\.vercel\.app\/?$/u.test(base)) throw new Error('Vercel proof requires this project\'s deployment or production HTTPS origin');
@@ -51,7 +56,7 @@ if (staged) {
   }
 }
 console.log('Proving', JSON.stringify(version));
-for (const [name, type] of [['Chromium', chromium], ['WebKit', webkit]]) {
+for (const [name, type] of phones) {
   let browser = await type.launch({ headless: true, ...(name === 'Chromium' ? { args: ['--mute-audio', ...(process.platform === 'darwin' ? ['--use-angle=metal'] : [])] } : {}) });
   try {
     const createContext = async () => {
