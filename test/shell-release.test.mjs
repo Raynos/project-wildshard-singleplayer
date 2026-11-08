@@ -3,22 +3,43 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, chmodSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { resolve, join } from 'node:path';
-import { checkLegacyImports } from '../scripts/check-shell.mjs';
 const root = resolve(import.meta.dirname, '..');
-test('legacy imports must be explicitly frozen and cannot enter the release path', () => {
-  const file = 'test/legacy.ts', blobs = new Map([[file, 'original']]);
-  const archive = { schema: 1, files: [{ path: file, blob: 'original', reason: 'Inactive pre-split fixture' }] };
-  const read = () => "import { old } from '" + "../src/game/old" + "';";
-  assert.throws(() => checkLegacyImports(blobs, read, { schema: 1, files: [] }, ''), /Unrecorded legacy/u);
-  checkLegacyImports(blobs, read, archive, '');
-  assert.throws(() => checkLegacyImports(blobs, read, archive, `node ${file}`), /Inactive source on release path/u);
-  assert.throws(() => checkLegacyImports(new Map([[file, 'changed']]), read, archive, ''), /Changed inactive source/u);
-});
 function fixture(run) {
   mkdirSync(join(root, 'tmp'), { recursive: true });
   const cwd = mkdtempSync(join(root, 'tmp/shell-release-'));
   try { run(cwd); } finally { rmSync(cwd, { recursive: true, force: true }); }
 }
+test('the inventory CLI refuses unrecorded, changed or executable legacy source', () => fixture(cwd => {
+  const bin = join(cwd, 'bin'); mkdirSync(bin);
+  const legacy = 'test/legacy.ts', blob = 'a'.repeat(40);
+  const files = {
+    'engine.pin.json': JSON.stringify(JSON.parse(readFileSync(join(root, 'engine.pin.json'), 'utf8'))),
+    'release-deletions.json': '{"schema":1,"state":"complete","files":[]}',
+    'release-archives.json': '{"schema":1,"files":[]}',
+    'package.json': '{"scripts":{}}',
+    '.github/workflows/deploy.yml': 'node scripts/install-release.mjs install\nnode scripts/build-release.mjs\nneeds: [build-pinned, prove-pinned]',
+    '.github/workflows/storage.yml': '', 'scripts/repo-size.mjs': '', 'scripts/storage-policy.json': '{}',
+    [legacy]: "import { old } from '" + "../src/game/old" + "';",
+  };
+  writeFileSync(join(bin, 'git'), `#!/usr/bin/env node
+import fs from 'node:fs';
+const fixture=JSON.parse(fs.readFileSync('fixture.json')), args=process.argv.slice(2);
+if(args[0]==='ls-tree') process.stdout.write(Object.keys(fixture.files).map(file=>'100644 blob '+(file==='test/legacy.ts'?fixture.blob:'a'.repeat(40))+'\\t'+file+'\\0').join(''));
+else if(args[0]==='show' && args[1].startsWith('HEAD:')) process.stdout.write(fixture.files[args[1].slice(5)]);
+else process.exit(1);
+`);
+  chmodSync(join(bin, 'git'), 0o755);
+  const invoke = (heldBlob = blob) => {
+    writeFileSync(join(cwd, 'fixture.json'), JSON.stringify({ files, blob: heldBlob }));
+    return spawnSync(process.execPath, [join(root, 'scripts/check-shell.mjs'), 'HEAD'], { cwd, encoding: 'utf8', env: { ...process.env, PATH: bin + ':' + process.env.PATH } });
+  };
+  const absent = invoke(); assert.notEqual(absent.status, 0); assert.match(absent.stderr, /Unrecorded legacy source import/u);
+  files['release-archives.json'] = JSON.stringify({ schema: 1, files: [{ path: legacy, blob, reason: 'Inactive pre-split fixture' }] });
+  const admitted = invoke(); assert.equal(admitted.status, 0, admitted.stderr);
+  const changed = invoke('b'.repeat(40)); assert.notEqual(changed.status, 0); assert.match(changed.stderr, /Changed inactive source/u);
+  files['package.json'] = JSON.stringify({ scripts: { test: `node ${legacy}` } });
+  const active = invoke(); assert.notEqual(active.status, 0); assert.match(active.stderr, /Inactive source on release path/u);
+}));
 test('Vercel packaging runs the output check only and restores config even on native failure', () => fixture(cwd => {
   const bin = join(cwd, 'bin'); mkdirSync(bin);
   const config = '{\n  "buildCommand": "original", "headers": []\n}\n';
