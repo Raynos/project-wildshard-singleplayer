@@ -477,6 +477,12 @@ Readings of 232 cited folders are in `tmp/keep/<name>/` (1.1 GB). Left on purpos
   still lacks the fix. Free disk 1,583 → **2,004 GB**, `~/.cache/wildshard` 82 GB. New `tmp/split-repair` 2.4 GB: one page
   build for `scripts/split-repair-proof.mjs`, live.
 
+- **11-08: the 4-hourly check now covers the multi-repo checkouts** (Jake). `~/.local/share/boot-temp-audit/rockhop-audit.sh`
+  logs `./tmp`, repo and `.git` for every folder under `~/projects/games/wildshard/`: the 14 in the meta repo's `REPOS.md`
+  plus `repo-kit`, and any new one automatically. `wildshard-dev/` holds only symlinks to those. Baseline 06:48: 5.6 GB in
+  all; `engine` 2.8 GB (`.git` 328 MB), `shard-pine-hollow` 1.0 GB, `sharddev` 833 MB, `shard-nalati` 300 MB, the rest
+  under 160 MB. Their `./tmp` folders are 2.4 MB at most (`engine`).
+
 ## Decisions (Jake, 2026-10-15)
 
 - **Boot-purge warning: 500,000 files.**
