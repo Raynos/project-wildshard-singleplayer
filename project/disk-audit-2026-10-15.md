@@ -472,6 +472,10 @@ Readings of 232 cited folders are in `tmp/keep/<name>/` (1.1 GB). Left on purpos
   Boot purge 273k → **319k**: `$TMPDIR` 51k → 103k files, mostly 232 Vite `client/`/`ssr/` folders of about 1,350 files
   each, back since the hygiene pass removed 314. `./tmp` 107 GB / 966k files, free disk 1,583 GB. `e7` is still in the
   session scratchpad.
+- **11-07 20:47 check:** boot purge **345k** (+25k), all in `$TMPDIR` (128k files, 5.7 GB). The Vite folders went from
+  232 to 270, about 10 a hour, and nothing sweeps them. No new core since 14:41 (`/cores` 79 GB), though the lift tree
+  still lacks the fix. Free disk 1,583 → **2,004 GB**, `~/.cache/wildshard` 82 GB. New `tmp/split-repair` 2.4 GB: one page
+  build for `scripts/split-repair-proof.mjs`, live.
 
 ## Decisions (Jake, 2026-10-15)
 
