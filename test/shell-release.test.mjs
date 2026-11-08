@@ -82,13 +82,13 @@ for (const name of ['shell-prebuilt.py', 'shell-stage.py']) test(`${name}: real 
 
 test('published product URLs survive packed-copy pruning with exact bytes', async () => {
   const cwd = mkdtempSync(join(root, 'tmp/product-publication-'));
-  const engine = join(cwd, 'engine'), output = join(cwd, 'dist'), slug = 'open-plot-fixture';
+  const engine = join(cwd, 'engine'), output = join(cwd, 'dist'), slug = '_fixture', identity = 'open-plot-fixture';
   const body = Buffer.from('immutable admitted GLB bytes'), hash = createHash('sha256').update(body).digest('hex');
   const file = `blobs/glb/${hash}.glb`, path = `/shardfiles/${slug}/${file}`;
   mkdirSync(join(engine, 'out', slug, 'blobs/glb'), { recursive: true });
   mkdirSync(join(output, 'shardfiles', slug), { recursive: true });
   writeFileSync(join(engine, 'out', slug, file), body);
-  writeFileSync(join(output, 'shardfiles', slug, 'shard.json'), JSON.stringify({ identity: { slug }, files: [{ path: file, hash, compressed: body.length }] }));
+  writeFileSync(join(output, 'shardfiles', slug, 'shard.json'), JSON.stringify({ identity: { slug: identity }, files: [{ path: file, hash, compressed: body.length }] }));
   const server = createServer((request, response) => {
     try { response.end(readFileSync(join(output, new URL(request.url, 'http://fixture').pathname))); }
     catch { response.writeHead(404); response.end(); }
@@ -98,11 +98,12 @@ test('published product URLs survive packed-copy pruning with exact bytes', asyn
     const origin = `http://127.0.0.1:${server.address().port}`;
     assert.equal((await fetch(origin + path)).status, 404);
     assert.equal((await fetch(origin + `/assets/${slug}/entry-reads.json`)).status, 404);
-    assert.deepEqual(publishProductFiles(engine, output), { restored: 1, bytes: body.length, emptyRecords: 1 });
+    assert.deepEqual(publishProductFiles(engine, output), { restored: 1, bytes: body.length, emptyRecords: 2 });
     const result = await fetch(origin + path);
     assert.equal(result.status, 200);
     assert.deepEqual(Buffer.from(await result.arrayBuffer()), body);
     assert.deepEqual(await (await fetch(origin + `/assets/${slug}/entry-reads.json`)).json(), []);
+    assert.deepEqual(await (await fetch(origin + `/assets/${identity}/entry-reads.json`)).json(), []);
     const recorded = '[{"region":"authored","tier":"phone","at":[0,0],"reads":[]}]\n';
     writeFileSync(join(output, 'assets', slug, 'entry-reads.json'), recorded);
     assert.deepEqual(publishProductFiles(engine, output), { restored: 0, bytes: 0, emptyRecords: 0 });
