@@ -49,7 +49,7 @@ if (staged) {
 }
 console.log('Proving', JSON.stringify(version));
 for (const [name, type] of [['Chromium', chromium], ['WebKit', webkit]]) {
-  const browser = await type.launch({ headless: true, ...(name === 'Chromium' ? { args: ['--mute-audio'] } : {}) });
+  const browser = await type.launch({ headless: true, ...(name === 'Chromium' ? { args: ['--mute-audio', ...(process.platform === 'darwin' ? ['--use-angle=metal'] : [])] } : {}) });
   try {
     const createContext = async () => {
       const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: staged ? 'allow' : 'block' });
@@ -83,7 +83,9 @@ for (const [name, type] of [['Chromium', chromium], ['WebKit', webkit]]) {
         context = await createContext();
       }
       const page = await context.newPage(), errors = [];
+      const consoleErrors = [];
       page.on('pageerror', error => errors.push(error.message));
+      page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text().slice(0, 400)); });
       page.on('response', result => { if (result.status() >= 400) errors.push(`${result.status()} ${result.url()}`); });
       await page.goto(new URL(path, base).href, { waitUntil: 'load', timeout: 90_000 });
       if (label === 'grid') {
@@ -102,7 +104,13 @@ for (const [name, type] of [['Chromium', chromium], ['WebKit', webkit]]) {
       }
       if (label === 'title') await page.locator('.ws-menu-play').waitFor({ state: 'visible', timeout: 90_000 });
       else {
-        await page.waitForFunction(() => window.__wildshard?.world?.player !== undefined, undefined, { timeout: 150_000 });
+        try {
+          await page.waitForFunction(() => window.__wildshard?.world?.player !== undefined, undefined, { timeout: 150_000 });
+        } catch (error) {
+          const state = await page.evaluate(() => ({ shard: window.__wildshard?.shard?.slug ?? null, step: document.querySelector('.ws-load')?.getAttribute('data-step'), text: document.body.innerText.slice(0, 1000), fatal: [...document.querySelectorAll('[data-boot-fatal],#wserr,.ws-load-error')].map(node => node.textContent) })).catch(() => null);
+          console.error('FAIL phone boot', name, label, JSON.stringify({ state, errors, consoleErrors: consoleErrors.slice(-20) }));
+          throw error;
+        }
         await page.waitForFunction(() => window.__workerClient !== undefined, undefined, { timeout: 90_000 });
         await page.evaluate(() => window.__wildshard.world.hud.enterNow());
         await page.waitForFunction(() => (window.__workerClient?.().frames ?? 0) > 10, undefined, { timeout: 90_000 });
