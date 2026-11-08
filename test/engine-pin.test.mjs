@@ -26,7 +26,7 @@ else { const repo=url.split('/')[2], sha=new URL('https://api.github.com/'+url).
   const invoke = env => spawnSync(process.execPath, [script, 'bump', 'v0.1.2', 'shard-driftwood=' + 'b'.repeat(40)], { cwd, encoding: 'utf8', env: { ...process.env, PATH: bin + ':' + process.env.PATH, ...env } });
   try { run({ cwd, original, invoke }); } finally { rmSync(cwd, { recursive: true, force: true }); }
 }
-test('pin bump resolves an annotated tag and updates one shard while keeping seven immutable installs', () => fixture(({ cwd, invoke }) => {
+test('pin bump resolves an annotated tag and updates one of seven immutable provenance pins', () => fixture(({ cwd, invoke }) => {
   const result = invoke({}); assert.equal(result.status, 0, result.stderr);
   const pin = JSON.parse(readFileSync(join(cwd, 'engine.pin.json'), 'utf8'));
   assert.equal(pin.engine.commit, 'a'.repeat(40)); assert.equal(pin.engine.tag, 'v0.1.2');

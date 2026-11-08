@@ -1,4 +1,4 @@
-// J189: immutable release inputs. Shard authors are installed, never built here.
+// J189: immutable release inputs. Private shard revisions are provenance only.
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';

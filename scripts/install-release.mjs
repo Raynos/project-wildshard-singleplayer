@@ -19,6 +19,5 @@ for (const pkg of packages) {
   }
   const actual = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: directory, encoding: 'utf8' }).trim();
   if (actual !== pkg.commit) throw new Error(`Installed ${pkg.repo} differs from pin`);
-
 }
 console.log(`Installed exact public engine ${pin.engine.commit}; private shard sources are not build inputs`);
