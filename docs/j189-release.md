@@ -69,6 +69,41 @@ Engine builds
 its admitted product pins once. The shell packages and tests that exact
 artifact, including a final size gate without `--cooks-after`.
 
+J195's release train now runs every three hours (`23 */3 * * *`) and on
+manual dispatch. It selects the newest main engine commit with complete
+latest exact-SHA green `ci` and `ring-1` push verdicts. The normal commit
+wrapper and push loop publish a schema-two immutable SHA pin, retaining
+all seven author pins. Tagged schema-one operator bumps remain supported.
+Automatic batches cannot change the current or live save epoch. Divergent
+history, unreadable evidence, an active deployment or a production hold
+stop selection. A red candidate needs a forward fix, not a blind retry.
+
+Each deploy seals one artifact and stages one URL. Independent macOS
+Chromium and WebKit jobs run the complete protected-URL proof, including
+worker reload, headers, APIs, loading card, safe native clipboard, real
+Ember crossing and an earned save/return within three millimetres. All
+existing assertions, movement deadlines and SwiftShader coverage remain.
+Promotion requires both exact-source jobs from the same workflow attempt,
+every other gate green, current main, producer CI, ancestry, hold and epoch
+checks. It promotes that same proven URL and verifies production. No new
+coordinator go is needed. The train explicitly dispatches the exact source
+because default-token pushes do not trigger recursive push workflows.
+
+Production v0.1.2 is `d91507e-mw810im4`, engine `cfd6681`, epoch one. Both
+complete production phone proofs and all nine repaired URLs pass. The
+historical Chromium road timeout did not reproduce as a collision: with
+the same 210-second cap and backend, solo travel passed in 179.9 seconds.
+Its final trace advanced 117.1 metres in 339 frames while settled, ready
+and moving, with the board closed. The earlier run overlapped a full suite;
+missing historical trace prevents claiming CPU causality as proven. Budget
+local release proofs apart from full suites. The rolling trace is read-only.
+
+The manual hold-release procedure below records the v0.1.2 bootstrap.
+Ordinary releases now use the complete automated staged gate above. In CI,
+the existing build token reads the project's existing automation bypass;
+local diagnosis can use the existing authenticated CLI. Neither creates a
+bypass, changes protection, or prints credentials.
+
 The second input is `.github/deploy-pin.json`. `pinned` is a pure production
 hold. A held push still builds, proves and stages an unaliased Vercel URL;
 it cannot promote. Before changing mode, the operator must prove that exact

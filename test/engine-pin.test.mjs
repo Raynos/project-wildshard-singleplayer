@@ -20,7 +20,7 @@ if (!process.env.PIN_MISSING_TAG) { const tag=process.argv[4]; console.log('e'.r
 const url=process.argv[3];
 if (process.env.PIN_PUBLIC_ONLY && !url.startsWith('repos/project-wildshard/engine/')) throw new Error('Private repo requested by public build');
 if(url.includes('/contents/save-epoch.json')) console.log(JSON.stringify({saveEpoch:Number(process.env.PIN_EPOCH??1)}));
-else { const repo=url.split('/')[2], sha=new URL('https://api.github.com/'+url).searchParams.get('head_sha'); console.log(JSON.stringify({workflow_runs:['ci','ring-1'].map((name,id)=>({name,id,event:'push',head_sha:sha,conclusion:process.env.PIN_RED_REPO===repo?'failure':'success'}))})); }
+else { const repo=url.split('/')[2], sha=new URL('https://api.github.com/'+url).searchParams.get('head_sha'); console.log(JSON.stringify({workflow_runs:['ci','ring-1'].map((name,id)=>({name,id,event:'push',head_sha:sha,status:'completed',conclusion:process.env.PIN_RED_REPO===repo?'failure':'success'}))})); }
 `);
   chmodSync(join(bin, 'git'), 0o755); chmodSync(join(bin, 'gh'), 0o755);
   const invoke = env => spawnSync(process.execPath, [script, 'bump', 'v0.1.2', 'shard-driftwood=' + 'b'.repeat(40)], { cwd, encoding: 'utf8', env: { ...process.env, PATH: bin + ':' + process.env.PATH, ...env } });

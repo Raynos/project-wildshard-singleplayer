@@ -101,20 +101,32 @@ async function enteredEmber(page) {
   return gridState(page);
 }
 async function walk(page, x, z) {
-  const deadline = Date.now() + 210_000;
+  const started = Date.now(), deadline = started + 210_000, trace = [];
   let distance = Infinity;
   try {
     while (Date.now() < deadline) {
-      distance = await page.evaluate(([x, z]) => {
-        const world = window.__wildshard.world, feet = window.__wildshard.shard.grid.state().live?.live.worldFeet;
-        if (feet === undefined) return Infinity;
+      const sample = await page.evaluate(([x, z]) => {
+        const world = window.__wildshard.world, grid = window.__wildshard.shard.grid.state(), feet = grid.live?.live.worldFeet;
+        const row = window.__workerClient();
+        if (feet === undefined) return { distance: Infinity, frames: row.frames };
         world.player.yaw = Math.atan2(feet.x - x, feet.z - z);
         world.player.touchMove.y = 1; world.player.touchSprint = true;
-        return Math.hypot(feet.x - x, feet.z - z);
+        return { distance: Math.hypot(feet.x - x, feet.z - z), x: feet.x, z: feet.z,
+          frames: row.frames, serverX: row.serverX, serverZ: row.serverZ,
+          move: world.player.touchMove.y, sprint: world.player.touchSprint,
+          phase: grid.live?.crossing.phase, ready: grid.live?.live.gameplayReady,
+          board: grid.cellLoading, paused: world.game.app.clock.paused };
       }, [x, z]);
-      if (distance < 5) return;
+      distance = sample.distance;
+      trace.push({ ms: Date.now() - started, ...sample });
+      if (trace.length > 64) trace.shift();
+      if (distance < 5) {
+        console.log('ROAD ARRIVAL TRACE', x, z, JSON.stringify(trace));
+        return;
+      }
       await page.waitForTimeout(250);
     }
+    console.error('ROAD DEADLINE TRACE', x, z, JSON.stringify(trace));
     throw new Error(`Actual road leg ${x},${z} stopped ${distance.toFixed(1)}m away: ${JSON.stringify(await gridState(page))}`);
   } finally {
     await page.evaluate(() => { const player = window.__wildshard.world.player; player.touchMove.y = 0; player.touchSprint = false; });

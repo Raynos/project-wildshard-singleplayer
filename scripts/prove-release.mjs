@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { observeReleaseModules, waitForReleaseWorker } from './release-worker.mjs';
 import { recordFirstReleaseCard, proveLoadingCard, proveEmber } from './release-play.mjs';
+import {existingReleaseBypass} from './release-access.mjs';
 const base = process.argv[2];
 if (base === undefined) throw new Error('Usage: prove-release.mjs https://staged-origin');
 // Separate admitted machine slots can run both complete phone journeys at
@@ -17,11 +18,7 @@ if (staged && !/^https:\/\/(?:wildshard-singleplayer-[a-z0-9]+-raynos-projects|w
 const pin = JSON.parse(readFileSync(new URL('../engine.pin.json', import.meta.url), 'utf8'));
 let bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
 if (staged && process.argv.includes('--existing-bypass') && !bypass) {
-  const project = JSON.parse(readFileSync('.vercel/project.json', 'utf8'));
-  // Read an existing token only; unlike `vercel curl`, never create one.
-  const metadata = JSON.parse(execFileSync('vercel', ['api', `/v9/projects/${project.projectId}?teamId=${project.orgId}`, '--scope', 'raynos-projects'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }));
-  bypass = Object.entries(metadata.protectionBypass ?? {}).find(([, value]) => value.scope === 'automation-bypass')?.[0];
-  if (!bypass) throw new Error('No existing automation bypass token; project protection was not changed');
+  bypass = await existingReleaseBypass();
 }
 const headers = bypass ? { 'x-vercel-protection-bypass': bypass } : {};
 const request = (path, init = {}) => fetch(new URL(path, base), { cache: 'no-store', redirect: 'error', ...init, headers: { ...headers, ...init.headers }, signal: AbortSignal.timeout(30_000) });

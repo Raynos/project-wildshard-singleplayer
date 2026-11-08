@@ -6,7 +6,9 @@ const ORG = 'project-wildshard';
 export const SHARDS = ['shard-driftwood', 'shard-sky-reach', 'shard-dunes', 'shard-nalati', 'shard-pine-hollow', 'shard-nine-dragon', 'shard-open-plots'];
 const run = (command, args) => execFileSync(command, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 export function validatePin(pin, floor = 1) {
-  if (pin.schema !== 1 || !Number.isSafeInteger(pin.saveEpoch) || pin.saveEpoch < floor || pin.engine.repo !== 'engine' || !/^v\d+\.\d+\.\d+$/u.test(pin.engine.tag) || !/^[a-f0-9]{40}$/u.test(pin.engine.commit)) throw new Error('Invalid engine pin or save epoch downgrade');
+  const source = pin.schema === 1 ? /^v\d+\.\d+\.\d+$/u.test(pin.engine.tag)
+    : pin.schema === 2 && pin.engine.source === 'main' && pin.engine.tag === undefined;
+  if (!source || !Number.isSafeInteger(pin.saveEpoch) || pin.saveEpoch < floor || pin.engine.repo !== 'engine' || !/^[a-f0-9]{40}$/u.test(pin.engine.commit)) throw new Error('Invalid engine pin or save epoch downgrade');
   if (pin.shards.length !== SHARDS.length || SHARDS.some(repo => pin.shards.filter(row => row.repo === repo && /^[a-f0-9]{40}$/u.test(row.commit)).length !== 1)) throw new Error('All seven immutable shard revisions are required');
   return pin;
 }
@@ -17,15 +19,20 @@ export function tagCommit(repo, tag) {
   return peeled[0];
 }
 export function green(repo, commit, workflows = ['ci']) {
-  const runs = JSON.parse(run('gh', ['api', `repos/${ORG}/${repo}/actions/runs?head_sha=${commit}&per_page=100`]));
+  const runs = JSON.parse(run('gh', ['api', `repos/${ORG}/${repo}/actions/runs?head_sha=${commit}&per_page=100`, '--jq', '{workflow_runs:[.workflow_runs[]|{id,name,event,head_sha,status,conclusion}]}']));
   for (const name of workflows) {
     const latest = runs.workflow_runs.filter(row => row.name === name && row.head_sha === commit && row.event === 'push').sort((a, b) => b.id - a.id)[0];
-    if (latest?.conclusion !== 'success') throw new Error(`${repo} ${commit}: latest exact-SHA ${name} is not green`);
+    if (latest?.status !== 'completed' || latest.conclusion !== 'success') throw new Error(`${repo} ${commit}: latest exact-SHA ${name} is not green`);
   }
 }
 export function verify(pin, { shards = false } = {}) {
   validatePin(pin);
-  if (tagCommit('engine', pin.engine.tag) !== pin.engine.commit) throw new Error('Engine tag moved');
+  if (pin.schema === 1) {
+    if (tagCommit('engine', pin.engine.tag) !== pin.engine.commit) throw new Error('Engine tag moved');
+  } else {
+    const comparison = JSON.parse(run('gh', ['api', `repos/${ORG}/engine/compare/${pin.engine.commit}...main`, '--jq', '{status,base_commit:{sha:.base_commit.sha}}']));
+    if (!['ahead', 'identical'].includes(comparison.status) || comparison.base_commit?.sha !== pin.engine.commit) throw new Error('Engine commit is outside main');
+  }
   green('engine', pin.engine.commit, ['ci', 'ring-1']);
   const metadata = JSON.parse(run('gh', ['api', `repos/${ORG}/engine/contents/save-epoch.json?ref=${pin.engine.commit}`, '-H', 'Accept: application/vnd.github.raw+json']));
   if (metadata.saveEpoch !== pin.saveEpoch) throw new Error('Engine save epoch differs from pin');

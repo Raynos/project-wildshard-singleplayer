@@ -7,8 +7,13 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: Exact shell commit selected by the release train
+        required: false
+        type: string
 concurrency:
-  group: deploy-${{ github.event_name == 'workflow_dispatch' && 'release' || github.ref }}
+  group: deploy-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 permissions:
   contents: read
@@ -38,6 +43,10 @@ jobs:
         with: {version: 10.34.9}
       - uses: actions/setup-node@v4
         with: {node-version: 24, cache: pnpm}
+      - name: Admit the dispatched source
+        env:
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+        run: test -z "$EXPECTED_SHA" || test "$EXPECTED_SHA" = "$GITHUB_SHA"
       - run: pnpm install --frozen-lockfile
       - run: node scripts/install-release.mjs install
       - run: pnpm --dir engine-source install --frozen-lockfile
@@ -48,6 +57,7 @@ jobs:
         with:
           path: ~/.cache/wildshard/gen/spawn-parts-br/1
           key: spawn-parts-v1-${{ runner.os }}-node24-${{ hashFiles('engine.pin.json') }}
+          restore-keys: spawn-parts-v1-${{ runner.os }}-node24-
       - name: Load the existing production build environment
         if: github.event_name != 'pull_request'
         env:
@@ -86,7 +96,8 @@ jobs:
           compression-level: 0
           retention-days: 3
           if-no-files-found: error
-  prove-pinned:
+  prove-pr:
+    if: github.event_name == 'pull_request'
     needs: build-pinned
     # Match engine's established native WebKit phone-journey host.
     runs-on: macos-15
@@ -110,13 +121,11 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: pinned-release
-          path: ${{ github.event_name == 'pull_request' && 'dist' || 'prebuilt-output' }}
-      - if: github.event_name != 'pull_request'
-        run: python3 scripts/prebuilt-output.py restore --sha "$GITHUB_SHA" --run "$GITHUB_RUN_ID"
+          path: dist
       - run: pnpm exec playwright install --with-deps chromium webkit
       - name: Test the exact installed artifact on both phone engines
         run: |
-          node scripts/preview-server.mjs --outDir "${{ github.event_name == 'pull_request' && 'dist' || '.vercel/output/static' }}" --port 4173 &
+          node scripts/preview-server.mjs --outDir "dist" --port 4173 &
           server_pid=$!
           trap 'kill "$server_pid"' EXIT
           deadline=$((SECONDS + 60))
@@ -128,13 +137,13 @@ jobs:
             sleep 1
           done
           node scripts/prove-release.mjs http://127.0.0.1:4173
-      - name: Publish exact-SHA boot verdict
-        if: github.event_name != 'pull_request'
-        run: gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state=success -f context=boot-smoke -f description='Pinned artifact passed Chromium and WebKit phone visits'
-  release:
-    needs: [build-pinned, prove-pinned]
+  stage-pinned:
+    needs: build-pinned
     if: github.event_name != 'pull_request'
-    concurrency: {group: production-release, cancel-in-progress: false}
+    outputs:
+      url: ${{ steps.stage.outputs.url }}
+      build: ${{ steps.stage.outputs.build }}
+      archive: ${{ steps.stage.outputs.archive }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -179,15 +188,84 @@ jobs:
           url=$(vercel deploy --prebuilt --target=production --skip-domain --yes --scope raynos-projects --token "$VERCEL_BUILD_TOKEN")
           echo "url=$url" >> "$GITHUB_OUTPUT"
           echo "Staged exact artifact: $url"
-      - name: Check live ancestry and save epoch on every release path
-        if: steps.policy.outputs.allowed == 'true'
-        run: node scripts/release-floor.mjs .vercel/output/static/version.json
-      - name: Promote the exact tested artifact
-        if: steps.policy.outputs.allowed == 'true'
+          node --input-type=module <<'NODE'
+          import {readFileSync,appendFileSync} from 'node:fs';
+          const version=JSON.parse(readFileSync('.vercel/output/static/version.json','utf8'));
+          const proof=JSON.parse(readFileSync('prebuilt-output/proof.json','utf8'));
+          if(proof.sha!==process.env.GITHUB_SHA || !/^[a-f0-9]{64}$/.test(proof.archiveHash))throw new Error('Foreign staged archive');
+          appendFileSync(process.env.GITHUB_OUTPUT,`build=${version.build}\narchive=${proof.archiveHash}\n`);
+          NODE
+  prove-pinned:
+    needs: [build-pinned, stage-pinned]
+    if: github.event_name != 'pull_request'
+    name: staged-${{ matrix.browser }}
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        browser: [Chromium, WebKit]
+    runs-on: macos-15
+    timeout-minutes: 20
+    outputs:
+      url: ${{ needs.stage-pinned.outputs.url }}
+      build: ${{ needs.stage-pinned.outputs.build }}
+      archive: ${{ needs.stage-pinned.outputs.archive }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/art/
+            !/progress/
+            !/sources/
+            !/src/
+          sparse-checkout-cone-mode: false
+      - uses: pnpm/action-setup@v4
+        with: {version: 10.34.9}
+      - uses: actions/setup-node@v4
+        with: {node-version: 24, cache: pnpm}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps ${{ matrix.browser == 'Chromium' && 'chromium' || 'webkit' }}
+      - name: Prove the exact protected staged URL
         env:
           VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
-          STAGED_URL: ${{ steps.stage.outputs.url }}
+          STAGED_URL: ${{ needs.stage-pinned.outputs.url }}
+          PHONE: ${{ matrix.browser }}
         run: |
-          test "$(gh api "repos/$GITHUB_REPOSITORY/branches/main" --jq .commit.sha)" = "$GITHUB_SHA"
-          vercel promote "$STAGED_URL" --yes --scope raynos-projects --token "$VERCEL_BUILD_TOKEN"
-          DEPLOY_SHA="$GITHUB_SHA" node scripts/deploy-version.mjs verify
+          mkdir -p .vercel
+          node -e 'require("fs").writeFileSync(".vercel/project.json",JSON.stringify({projectId:process.env.VERCEL_PROJECT_ID,orgId:process.env.VERCEL_ORG_ID}))'
+          node scripts/prove-release.mjs "$STAGED_URL" --vercel --existing-bypass "--browser=$PHONE"
+  release:
+    needs: [build-pinned, prove-pinned]
+    if: github.event_name != 'pull_request'
+    concurrency: {group: production-release, cancel-in-progress: false}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/art/
+            !/progress/
+            !/sources/
+            !/src/
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with: {node-version: 24}
+      - name: Publish the complete exact-source staged verdict
+        run: gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state=success -f context=boot-smoke -f target_url="https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" -f description='Both complete staged phone proofs passed'
+      - name: Promote the same proven artifact
+        env:
+          VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
+          STAGED_URL: ${{ needs.prove-pinned.outputs.url }}
+          STAGED_BUILD: ${{ needs.prove-pinned.outputs.build }}
+          STAGED_ARCHIVE: ${{ needs.prove-pinned.outputs.archive }}
+        run: |
+          npm install --global vercel@59.11.2
+          mkdir -p .vercel
+          node -e 'require("fs").writeFileSync(".vercel/project.json",JSON.stringify({projectId:process.env.VERCEL_PROJECT_ID,orgId:process.env.VERCEL_ORG_ID}))'
+          node scripts/promote-release.mjs "$STAGED_URL" "$STAGED_BUILD" "$STAGED_ARCHIVE"

@@ -1,0 +1,52 @@
+name: release-train
+on:
+  schedule:
+    - cron: '23 */3 * * *'
+  workflow_dispatch:
+concurrency:
+  group: engine-release-train
+  cancel-in-progress: false
+permissions:
+  contents: write
+  actions: write
+env:
+  GH_TOKEN: ${{ github.token }}
+jobs:
+  select:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/art/
+            !/progress/
+            !/sources/
+            !/src/
+          sparse-checkout-cone-mode: false
+      - uses: pnpm/action-setup@v4
+        with: {version: 10.34.9}
+      - uses: actions/setup-node@v4
+        with: {node-version: 24, cache: pnpm}
+      - run: pnpm install --frozen-lockfile
+      - name: Select only a complete green same-epoch engine
+        id: select
+        run: node scripts/release-train.mjs --apply
+      - name: Commit and publish only the immutable pin
+        if: steps.select.outputs.changed == 'true'
+        run: |
+          git config user.name 'wildshard release train'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          message=$(printf 'chore(release): batch green engine\n\nPin immutable producer bytes selected from complete green main\nverdicts. Keep the live save epoch and seven author pins.\n\nGenerated-by: wildshard-release-train\nAssisted-by: Codex:gpt-6.1-sol')
+          scripts/commit.sh "$message" -- engine.pin.json
+          expected=$(git rev-parse HEAD)
+          python3 scripts/push-loop.py --push "$expected" > train-push.json
+          node --input-type=module -e 'import{readFileSync}from"node:fs";const p=JSON.parse(readFileSync("train-push.json","utf8"));if(p.status!=="pushed"||p.tip!==process.argv[1])throw new Error("Train pin was not published");' "$expected"
+          # Default-token pushes cannot recursively trigger push workflows.
+          # The deploy workflow checks this exact source before building.
+          gh workflow run deploy.yml --ref main -f "expected_sha=$expected"
+          echo "Queued exact shell $expected" >> "$GITHUB_STEP_SUMMARY"
