@@ -87,8 +87,12 @@ Release the staged and proven engine-backed shell after the explicit release go.
 
 Assisted-by: Codex:gpt-6.1-sol' -- .github/deploy-pin.json
 python3 scripts/push-loop.py --push HEAD
-gh workflow run deploy --ref main
 ```
+
+The push starts the promoting workflow. Do not also dispatch it: a second
+run rebuilds and updates players twice. After promotion, rerun the same
+Vercel proof against `https://wildshard-singleplayer.vercel.app` from the
+mode commit's checkout; production is that commit's own rebuild.
 
 The workflow admits only newest CI-green main with an exact-SHA green
 boot smoke, rechecks main and the save-epoch floor, then promotes the sealed

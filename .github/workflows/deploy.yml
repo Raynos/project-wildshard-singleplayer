@@ -111,6 +111,14 @@ jobs:
           node scripts/preview-server.mjs --outDir "${{ github.event_name == 'pull_request' && 'dist' || '.vercel/output/static' }}" --port 4173 &
           server_pid=$!
           trap 'kill "$server_pid"' EXIT
+          deadline=$((SECONDS + 60))
+          until curl --fail --silent --max-time 2 http://127.0.0.1:4173/version.json >/dev/null; do
+            if ! kill -0 "$server_pid" 2>/dev/null || (( SECONDS >= deadline )); then
+              echo 'Preview server did not become ready within 60 seconds' >&2
+              exit 1
+            fi
+            sleep 1
+          done
           node scripts/prove-release.mjs http://127.0.0.1:4173
       - name: Publish exact-SHA boot verdict
         if: github.event_name != 'pull_request'

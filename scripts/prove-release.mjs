@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 const base = process.argv[2];
 if (base === undefined) throw new Error('Usage: prove-release.mjs https://staged-origin');
 const staged = process.argv.includes('--vercel');
-if (staged && !/^https:\/\/wildshard-singleplayer-[a-z0-9]+-raynos-projects\.vercel\.app\/?$/u.test(base)) throw new Error('Staged proof requires this project\'s unique HTTPS deployment origin');
+if (staged && !/^https:\/\/(?:wildshard-singleplayer-[a-z0-9]+-raynos-projects|wildshard-singleplayer)\.vercel\.app\/?$/u.test(base)) throw new Error('Vercel proof requires this project\'s deployment or production HTTPS origin');
 const pin = JSON.parse(readFileSync(new URL('../engine.pin.json', import.meta.url), 'utf8'));
 let bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
 if (staged && process.argv.includes('--existing-bypass') && !bypass) {
