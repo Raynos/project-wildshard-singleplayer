@@ -27,7 +27,24 @@ bash ../leftover/src/repo-kit/release.sh v0.1.1 --finish
 Prepare pushes the version/stamp commit through normal hooks and creates
 no tag. Finish repeats normal checks and verifies exact-SHA green `ci`
 and `ring-1`, then tags that explicit SHA without another commit. All SSH
-pushes keep the keepalives and all hooks. Return to the shell checkout:
+pushes keep the keepalives and all hooks.
+
+The newer full-push profile serializes native/performance proofs before
+the ordinary pool. To use that complete inventory during either helper
+phase, acquire its real machine lease first, from a clean existing engine
+checkout:
+
+```sh
+WS_FULL_SUITE=1 ASSISTED_BY=Codex:gpt-6.1-sol \
+GIT_SSH_COMMAND='ssh -o ServerAliveInterval=20 -o ServerAliveCountMax=120 -o TCPKeepAlive=yes' \
+python3 scripts/heavy-lane.py full-test -- env WS_PUSH_GATE_PROFILE=full-v1 \
+  bash "$HOME/projects/games/wildshard/leftover/src/repo-kit/release.sh" v0.1.2 --prepare
+# After exact release-commit ci and ring-1 are green, repeat with --finish.
+```
+
+Do not set the profile without the authenticated lease. The helper remains
+unchanged and repeats its full checks; no test result is fabricated or
+quarantined locally by this command. Then return to the shell checkout:
 
 ```sh
 cd "$HOME/projects/games/wildshard-singleplayer"
