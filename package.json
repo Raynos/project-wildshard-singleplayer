@@ -13,7 +13,7 @@
     "pins:bump": "node scripts/engine-pin.mjs bump",
     "check": "node scripts/check-shell.mjs && tsc -p api/tsconfig.json",
     "typecheck": "tsc -p api/tsconfig.json",
-    "test": "node --test test/engine-pin.test.mjs",
+    "test": "node --test test/engine-pin.test.mjs test/shell-release.test.mjs",
     "preview": "node scripts/preview-server.mjs"
   },
   "dependencies": {

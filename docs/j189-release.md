@@ -1,11 +1,12 @@
 # Engine-backed deployment shell
 
 J189/J190 replaces local engine, game, SDK, author tooling and seven shard
-projects with immutable installed repos. Production stays on the same Vercel
+projects with immutable repo pins. Production stays on the same Vercel
 project, domain and secrets. Native and OTA remain parked. The same-origin
 API functions stay until the separate API switch.
 
-`engine.pin.json` is the only release input pin. Bump it with:
+The release has two independent inputs. The operator first updates the
+artifact inputs in `engine.pin.json` with organization GitHub read access:
 
 ```sh
 node scripts/engine-pin.mjs bump v0.1.1 \
@@ -15,10 +16,55 @@ node scripts/engine-pin.mjs bump v0.1.1 \
 Unspecified shard revisions stay pinned. The command resolves and verifies
 immutable tags, requires exact-SHA green engine CI and ring-1 plus shard CI,
 and refuses a lower save epoch. There is no sharddev on the release path.
-CI installs the pinned engine and all seven shard projects in disposable
-checkouts; no project source remains tracked in this shell. Engine builds
+CI's default GitHub token installs only the public engine. It never fetches
+or queries the seven private shard author repos. Those revisions are
+provenance pins checked by the operator bump; the build reads engine's
+admitted product tarballs. No active project source remains tracked here.
+Engine builds
 its admitted product pins once. The shell packages and tests that exact
 artifact, including a final size gate without `--cooks-after`.
+
+The second input is `.github/deploy-pin.json`. `pinned` is a pure production
+hold. A held push still builds, proves and stages an unaliased Vercel URL;
+it cannot promote. Before changing mode, the operator must prove that exact
+staged URL in WebKit with service workers enabled, plus its real Vercel
+headers and same-origin API functions. The local phone proof alone is not
+this check. Jake's explicit go is still required; production remains held.
+
+Only after Jake's go, the release operator runs these commands from this
+checkout with organization GitHub access and the existing production
+Vercel automation credentials already configured in CI:
+
+```sh
+node scripts/deploy-pin.mjs mode newest-ci-green --go '<Jake release go>'
+scripts/commit.sh 'chore(release): lift the production hold
+
+Release the staged and proven engine-backed shell after the explicit release go.
+
+Assisted-by: Codex:gpt-6.1-sol' -- .github/deploy-pin.json
+python3 scripts/push-loop.py --push HEAD
+gh workflow run deploy --ref main
+```
+
+The workflow admits only newest CI-green main with an exact-SHA green
+boot smoke, rechecks main and the save-epoch floor, then promotes the sealed
+artifact. An engine pin bump alone never releases a held production build.
+
+J179's rule is **fix forward**. `deploy-pin.mjs rollback` is retired and
+refuses without changing the pin. The only emergency rollback is a manual
+Vercel rollback by the release operator after Jake explicitly authorizes it,
+using an existing Vercel account with project deployment access:
+
+```sh
+vercel rollback <previous-production-deployment-url> --scope raynos-projects
+DEPLOY_SHA=<previous-production-commit> DEPLOY_EXPECTED_BUILD=<expected-build-id> node scripts/deploy-version.mjs verify
+```
+
+Use the previous deployment's actual URL and build ID from Vercel's
+production history. Do not emulate rollback by pinning an old Git SHA.
+A rollback hides epoch-one progress and exposes the untouched epoch-zero
+data again; the next forward release resumes epoch one. Native and OTA
+remain parked throughout.
 
 Epoch 1 uses `wildshard.save.v2@1.` and `wildshard-saves@1`. Progress starts
 fresh once. Settings, graphics, controls and device identity carry. A cached
@@ -35,3 +81,8 @@ remain parked; the old admin and size-watch schedules are retired.
 The original art archives and human-written shard README files remain as
 J18 history, including the parked Template 2 corpus sources. No first-party
 shard implementation remains; the shell never compiles archived files.
+
+`release-archives.json` names the inactive pre-split scripts and test
+fixtures that still reference the old source tree. Their exact blobs are
+frozen history, excluded from package scripts and CI. The shell inventory
+gate refuses new unrecorded legacy imports or changes to those blobs.

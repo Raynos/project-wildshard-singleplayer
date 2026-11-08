@@ -1,9 +1,21 @@
 // Exact Git inventory checks for the deployment shell; engine owns its layers.
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { validatePin } from './engine-pin.mjs';
 const git = args => execFileSync('git', args, { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
+export function checkLegacyImports(blobs, read, archive, entrypoints) {
+  if (archive.schema !== 1) throw new Error('Invalid inactive source archive');
+  const archived = new Map();
+  for (const row of archive.files) {
+    if (archived.has(row.path) || blobs.get(row.path) !== row.blob || row.reason.length < 8) throw new Error(`Changed inactive source: ${row.path}`);
+    if (entrypoints.includes(row.path)) throw new Error(`Inactive source on release path: ${row.path}`);
+    archived.set(row.path, row.blob);
+  }
+  for (const file of blobs.keys()) {
+    if (!/^(?:scripts|test)\/.*\.(?:[cm]?js|ts)$/u.test(file)) continue;
+    if (/(?:from\s+|import\s*(?:\(\s*)?)['"][^'"\n]*src\//u.test(read(file)) && !archived.has(file)) throw new Error(`Unrecorded legacy source import: ${file}`);
+  }
+}
 export function checkShell(revision = 'HEAD') {
   const index = revision === '--index';
   const entries = git(index ? ['ls-files', '--stage', '-z'] : ['ls-tree', '-rz', revision]).split('\0').filter(Boolean).map(row => row.split('\t'));
@@ -26,6 +38,8 @@ export function checkShell(revision = 'HEAD') {
     if (files.includes(file) && /^\s*(?:schedule:|cron:)/mu.test(read(file))) throw new Error(`Retired cron still active: ${file}`);
   }
   const workflow = read('.github/workflows/deploy.yml');
+  const entrypoints = JSON.stringify(pkg.scripts) + files.filter(file => /^\.github\/workflows\//u.test(file)).map(read).join('\n');
+  checkLegacyImports(blobs, read, JSON.parse(read('release-archives.json')), entrypoints);
   if (!workflow.includes('node scripts/install-release.mjs install') || !workflow.includes('node scripts/build-release.mjs') || !workflow.includes('needs: [build-pinned, prove-pinned]')) throw new Error('CI does not gate the installed artifact');
   for (const file of ['scripts/repo-size.mjs', 'scripts/storage-policy.json', '.github/workflows/storage.yml']) if (!files.includes(file)) throw new Error(`Storage gate has no running home: ${file}`);
   for (const row of ledger.files) {

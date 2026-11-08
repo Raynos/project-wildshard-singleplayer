@@ -1,0 +1,506 @@
+{
+  "schema": 1,
+  "source": "7736e0a065b2e22588455d3d3f6b08e2eb003b39",
+  "files": [
+    {
+      "path": "scripts/e350-hale-web.mjs",
+      "blob": "8e211c1dadb2b58abcf35feba469a96aea93a535",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "scripts/family-props-board/board.js",
+      "blob": "d6cd7c5121f7a2393d4c97d92facf691606a7a20",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "scripts/graph-mesh-map/proof.ts",
+      "blob": "c109d0a1076bbbec76cee1a866345782ef09351b",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "scripts/legacy-explorer-lists.ts",
+      "blob": "1d779547a6d098e1a2aa51845c5c15f4052bca97",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "scripts/library-cache/proof.ts",
+      "blob": "42ca35b2c66af36b245cc91df763d6e69751e698",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "scripts/proof-rig-normalization.mjs",
+      "blob": "2d4681a47e08e4346f0c1ed76417ad6e64d623da",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "scripts/proof-rig-normalization/client.js",
+      "blob": "228f0e3ec0998806b890f719c9ca03a3fd265b7f",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "scripts/roc-fight/facts.mjs",
+      "blob": "0ed9edf52b387cf431365eda4bf671519ed02ac9",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "scripts/skin-playback/page.js",
+      "blob": "666dfbc4a27c4b031791870abb889b6ef89afe4f",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "scripts/tone-parity/proof.ts",
+      "blob": "834ec0caecd4c889eb29b65a4df81f6fb7fbcb1f",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/authored-manifest.test.ts",
+      "blob": "23a2e0290147151a24c07e05e72789eca1dbdf00",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/decision-project-policy.test.ts",
+      "blob": "10d8efe9a0cf52a152bd97b6eae6241aee1ae281",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fake/captain.ts",
+      "blob": "40ced48c949bd1687ff9601ff8c3fe91b250059e",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fake/declaredTemplateItems.ts",
+      "blob": "0d5028b0fd1558da56212e25dbb7ea4fe7df689b",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fake/legacyActor.ts",
+      "blob": "0b1d84b18961f24257ef673e077df89dc2ca44c0",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fake/legacyHurt.ts",
+      "blob": "de209722480d75038930643208f7c5f768bf88bb",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fake/simSnapshot.ts",
+      "blob": "47834fb974ed22d2781aec42116eaad1a377c708",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fake/sky-specs.ts",
+      "blob": "cb02b75cdb644acbdccec991348888230972bec3",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fake/texturePin.ts",
+      "blob": "ed0be6900f4c9e248718bc91cb5a32a6b6b4a2c2",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/animal-pose/rigShipping.ts",
+      "blob": "9a6b64f714bb51d3bc796c05b8776a9be7854a42",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/animal-pose/shipping.ts",
+      "blob": "7b3ad6a62810aff6cfece9f1c3ac8eea6aa75c06",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/authoredTerrain.ts",
+      "blob": "15d3f6065a56cdb3d9a0aa5cd52fce1c40f494d9",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/authoring-shard.mjs",
+      "blob": "00c84b300ee286d0f2851003a3f0e35111c40644",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/boss-owner/signal.ts",
+      "blob": "febed7d2fe4db864f0f9b52b37bae03d43a72859",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/boss-owner/signalDirector.ts",
+      "blob": "c2b97180eda3df8c74fb38840b8950cb1c6e070f",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/director-boss/BossBrain.ts",
+      "blob": "9854740a1dd61c8a9ce9f9e8808e2e303c42bf71",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/far-reach/heldAuthority.ts",
+      "blob": "a3d48806d3677635265b276a9a23dd288af016c2",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/far-reach/rocBrainOracle.ts",
+      "blob": "cf3f038f80f4b2db84f6d372d35a70575d7469e6",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/far-reach/skyStrikes.ts",
+      "blob": "9c6325d64a4fc8b4495864603d5121e7137ed186",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/flight-oracle/burst.ts",
+      "blob": "bde0a2d511156335d800ea17df199b88f5488983",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/flight-oracle/orbit.ts",
+      "blob": "7715a334a61aaa869fcb0da05d69154b90f74fe7",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/flight-oracle/patrol.ts",
+      "blob": "3bcee3067fd9b1ba5ad408d93901773eb1b05eeb",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/flock-oracle/capture.ts",
+      "blob": "3cbbf1a7b9b28e0b59df1f71ba21510bb364d568",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/grazer-oracle/goat.ts",
+      "blob": "e6c68438ebeabb1851c4b45e9b64563bdc526c15",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/grazer-oracle/strider.ts",
+      "blob": "7e684bff06974a0e68aa54744fff283498e734d8",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/grid/durability.mjs",
+      "blob": "33dbc51110df7b7121687b5839c3154d8d3f59b7",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/grid/templateWest.ts",
+      "blob": "25f31db3aa7cfbaa2f2f49faf6d2f995dbbe093c",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/guardian-oracle/guardian.ts",
+      "blob": "dc0c65eb4dcb33da74738ec95df75a10f2242b09",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/guardian-oracle/perchHunter.ts",
+      "blob": "979fd2bd9bd2115495ef4aa92c5fc4076329f866",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/half-output-proof.ts",
+      "blob": "4b3f8e70d15b30fb39038f291b90ecc85b5220a4",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/home-build-cache-browser.ts",
+      "blob": "6c6c71300cc789c6783b7ddfbb7322e6304f15ae",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/inline-material-graphs.ts",
+      "blob": "78ed51e6b3053a2bcc78f18a714217c80d1bcde0",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/modes/nativeGrapple.ts",
+      "blob": "796fd595bb770799b955b874e93766eb169cef94",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/modes/nativeUpdraft.ts",
+      "blob": "299be8267aecff83e0a763d344e85b2c26ca7073",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/nalati-aqbars-oracle/shipping.ts",
+      "blob": "a2947eaa622c94644c36f82d482fc98913336a91",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/nalati-charge-compile.mjs",
+      "blob": "abffc229cd6af0e2a2797bd8f6d32894257ffb75",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/nalati-cover-transport.ts",
+      "blob": "17d15eeb4c7bebeb6779a60c60e2e4896ff6144b",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/nalati-day-keys.ts",
+      "blob": "b7f22ef583415ef0d67fa19a5c36580a7dd38314",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/nalati-entry-transport.ts",
+      "blob": "bf53b00b07b443a80cd0512280cfa723c54f840c",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/nalati-geography-compile.mjs",
+      "blob": "842f40a6f8a89af5ff62b320e024d87d1e569efe",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/nalati-ghost-line-oracle/shipping.ts",
+      "blob": "b862a200b14f7f7824975c11ff9a93f861984101",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/nalati-ghost-roster-oracle/shipping.ts",
+      "blob": "a67cb46944d02d46997c11ceedd901321ce54bd0",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/nalati-ghost-volley-oracle/shipping.ts",
+      "blob": "94c2253a324d751b6410cd67084ab30eac6bda82",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/nalati-kokbori-oracle/shipping.ts",
+      "blob": "5ba1f9b05df44ad73491d07e2d38f5c6d2ace10f",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/nalati-kokpar-compile.mjs",
+      "blob": "0d01a82f09ac7dd63b940d82afe3d4939f7bcdf6",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/nalati-qara-oracle/shipping.ts",
+      "blob": "4aca0e4d3555233804327128053f2d74ef6b8dae",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/nalati-render-header.ts",
+      "blob": "e2930b27f106763ea936ff2b02398f99240bf22b",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/nalati-slot-colliders.ts",
+      "blob": "5c2aae241a39633a6d69341351ac5549519b062b",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/nalati-view-compile.mjs",
+      "blob": "c9d1720f69c49ac4678491f075bd24ca03c23b07",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/namedModelProduct.ts",
+      "blob": "25399ec5b378b83d4756eef3b97f4c0ddb6d3900",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/navigation-soup.ts",
+      "blob": "c0d624f59960b742669cc4107c6e42068034a6a2",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/navmesh-oracle/queries.ts",
+      "blob": "95480d73b7011aca3a21eefda4a6be6bfe9c552e",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/navmesh-oracle/replay.mjs",
+      "blob": "e6fad8aafbbc63211b8787b78de2bfdc74f7f674",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/nine-boot-contract.ts",
+      "blob": "e59d0335fa60e99bb42ad8a9e39aa40b65d1c6a4",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/nine-coarse-predecessor.ts",
+      "blob": "4f6775b4f774e1f8159a1273bc79df76d29f7df0",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/nine-half-world.ts",
+      "blob": "e08c05911dbf2534bd9286d9e7f88423afa679b0",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/nine-output-receipt.ts",
+      "blob": "00f2be143857545fbe4938b6c69cf3789dbe2aad",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/nine-refine-predecessor.ts",
+      "blob": "adddf14f9d664b654abf50814a998995da049c24",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/quest-host/sky.ts",
+      "blob": "7b6b0821e83d66256c32a5f9c122467262b6678c",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/quest-oracle/driftwood-castaway.ts",
+      "blob": "3521ca21c38b93d0dbe6f9629a23ba3543b8f60c",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/quest-oracle/driftwood-finale.ts",
+      "blob": "2894bacde34805b9ab1af793d8674c95381171fd",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/quest-oracle/sky-bridge.ts",
+      "blob": "1ed89afbe0ba22471d37d7fb257c8af3661618e1",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/script-conformance/run.ts",
+      "blob": "7dd242ab1dacf428d3ef052ec8442b2b9622076e",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/shardfile/terrain/source.ts",
+      "blob": "782c39e6b39e7f95087a582a52d101466891755a",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/signal-dune-law.ts",
+      "blob": "16642a1a9fce8adbd593166c55e69665301e6948",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/signal-inline-embers.ts",
+      "blob": "26736ef62133e2216c11a399fcb6e3d640348a22",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/sky-islet-layout.ts",
+      "blob": "cde0e0f2207f6ce65f2cb6ef97fba6a3df9d1a72",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/socket-lift/shard.ts",
+      "blob": "7d676cd9ded1c98f3640658721d6dd772930e511",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/species-oracle/antlerKingFight.ts",
+      "blob": "60a4a55aeb99eae522e4de027670c015f8481416",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/species-oracle/antlerKingGoals.ts",
+      "blob": "1a7fb1647d0655e93e1ebb3c39c30197fde9249e",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/species-oracle/driftwood-crab.ts",
+      "blob": "bc58f427ee39be0631d9711a191975c01e646cbe",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/species-oracle/driftwood-sailor.ts",
+      "blob": "ebfb75950b001ac0e21f2fc9c020c91aff090d54",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/species-oracle/goldenKing.ts",
+      "blob": "297e93309b2d6b61d31cda0457d5d5995036928b",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/species-oracle/matriarch.ts",
+      "blob": "f79c6f982dfd69bd28711daffc5ea327e91071b7",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/species-oracle/skitterer.ts",
+      "blob": "af6a4df9c7a255603717eb7fab19c925f96218bc",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/species/pine.ts",
+      "blob": "224fa9d672b71aad10dc760a75033eb8e85cc4b6",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/species/signal-matriarch.ts",
+      "blob": "e5c94781373a6cb6506a9f91fd5fef719c1b2d40",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/species/signal-ray.ts",
+      "blob": "ef02512342ce63657ad414a5bff4e899f4e0319c",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/species/signal-skitterer.ts",
+      "blob": "64a4df517c94e295e22bf016dbab8ec325b067e2",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/species/signal-strider.ts",
+      "blob": "6beef8f3bb6b9a4a45dfff3d4bae68af966a4c20",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/species/sky-roc.ts",
+      "blob": "eda380e7ccd0e4b5f4d8922027b15532042d6870",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/species/sky-wisp.ts",
+      "blob": "29d6c2186c93980fddde090c0048f37fa318473c",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/species/sky.ts",
+      "blob": "2534f42df5f730af0fa2103bc6286ef01c4c3b7f",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/taming-oracle/horsePose.ts",
+      "blob": "aa9c6b05829ce04190e0df2ce5d77f20bab7a8f7",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/fixtures/texture-retirement.mjs",
+      "blob": "656e1428dda5e010b693fd152252fc71e388d4ad",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/loading-transport-units.test.ts",
+      "blob": "4001f19ad77bbcb96c7d5c9d16d9f064a8543c34",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/precommit-generated-inputs.test.ts",
+      "blob": "43a7bccaeff1f53a2d1ce10e0c9802029751363d",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/push-checks.test.ts",
+      "blob": "40dff3b2ae7c42714d2c0e775b5baea8a0c4f5fe",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/push-generated-inputs.test.ts",
+      "blob": "8d51e37395208c9dfa5ee9732dbf93a4009bd201",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    },
+    {
+      "path": "test/sunscar-source-entry.test.ts",
+      "blob": "86cbb3fdbb57986df922d79bf3472db8c226fd65",
+      "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
+    }
+  ]
+}

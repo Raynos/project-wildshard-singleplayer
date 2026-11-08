@@ -7,7 +7,7 @@
 //   node scripts/deploy-pin.mjs release-ready                         # ready=, sha= to $GITHUB_OUTPUT; no wait
 //   node scripts/deploy-pin.mjs check-live-floor <sha>                # automatic releases never move behind production
 //   node scripts/deploy-pin.mjs set <sha> --milestone M<n> --go "<where Jake OKed>"
-//   node scripts/deploy-pin.mjs rollback <sha> --go "<Jake's words>"   # any SHA proven previously live in production
+//   node scripts/deploy-pin.mjs rollback <sha> --go "<Jake's words>"   # retired: refuses (J179)
 //   node scripts/deploy-pin.mjs mode newest-green --go "<…>"          # Z4 only
 //   node scripts/deploy-pin.mjs mode newest-ci-green --go "<…>"       # the newest main whose push CI (deploy.yml) passed
 //
@@ -971,16 +971,8 @@ async function main() {
     return 0;
   }
   if (cmd === 'rollback') {
-    const go = arg('--go');
-    if (!a1 || !go) throw new Error('rollback <sha> --go "<Jake\'s words>"');
-    const sha = git('rev-parse', a1);
-    if (!productionLive(sha)) { console.error(`deploy-pin rollback: refused — ${sha.slice(0, 8)} has no prior production proof`); return 1; }
-    const old = history().find((p) => p.sha === sha) ?? readPin();
-    writePin({ ...old, mode: 'pinned', sha, gate: 'grandfathered', milestone: `${old.milestone}-rollback`, go, set: new Date().toISOString(), by: 'E357 lead' });
-    const f10 = ok(() => git('merge-base', '--is-ancestor', sha, 'HEAD')) && !ok(() => git('show', `${sha}:src/engine/shared/saves/store.ts`));
-    if (f10) console.log('NOTE: this build predates SaveStore (F10): it cannot read the v2 saves made since, so progress resets again (decision 95). Tell Jake.');
-    console.log(`rolled back to ${sha.slice(0, 8)} (${old.milestone}). Commit ${FILE} alone, push, gh workflow run deploy.`);
-    return 0;
+    console.error('deploy-pin rollback: retired by J179. Fix forward. The only rollback is a Jake-authorized manual vercel rollback; changing this pin cannot roll back production. See docs/j189-release.md.');
+    return 1;
   }
   if (cmd === 'mode') {
     const go = arg('--go');
