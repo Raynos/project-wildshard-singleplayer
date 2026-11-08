@@ -15,11 +15,11 @@ engine now requires two phases using the published helper in `leftover`:
 
 ```sh
 cd "$HOME/projects/games/wildshard/engine"
-WS_FULL_SUITE=1 WS_VITEST_MAX_WORKERS=4 ASSISTED_BY=Codex:gpt-6.1-sol \
+WS_FULL_SUITE=1 WS_VITEST_MAX_WORKERS=2 ASSISTED_BY=Codex:gpt-6.1-sol \
 GIT_SSH_COMMAND='ssh -o ServerAliveInterval=20 -o ServerAliveCountMax=120 -o TCPKeepAlive=yes' \
 bash ../leftover/src/repo-kit/release.sh v0.1.1 --prepare
 # Require both workflows green on the exact release commit printed above.
-WS_FULL_SUITE=1 WS_VITEST_MAX_WORKERS=4 ASSISTED_BY=Codex:gpt-6.1-sol \
+WS_FULL_SUITE=1 WS_VITEST_MAX_WORKERS=2 ASSISTED_BY=Codex:gpt-6.1-sol \
 GIT_SSH_COMMAND='ssh -o ServerAliveInterval=20 -o ServerAliveCountMax=120 -o TCPKeepAlive=yes' \
 bash ../leftover/src/repo-kit/release.sh v0.1.1 --finish
 ```
