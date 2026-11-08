@@ -127,11 +127,17 @@ for (const [name, type] of phones) {
       }
       if (label === 'title') await page.locator('.ws-menu-play').waitFor({ state: 'visible', timeout: 90_000 });
       else {
-        if (extended) await proveLoadingCard(page, label === 'grid' ? 'driftwood-isle' : new URL(path, base).searchParams.get('chunk'), `${name} ${label}`, label !== 'grid');
         try {
+          if (extended) await proveLoadingCard(page, label === 'grid' ? 'driftwood-isle' : new URL(path, base).searchParams.get('chunk'), `${name} ${label}`, label !== 'grid');
           await page.waitForFunction(() => window.__wildshard?.world?.player !== undefined, undefined, { timeout: 150_000 });
         } catch (error) {
-          const state = await page.evaluate(() => ({ shard: window.__wildshard?.shard?.slug ?? null, step: document.querySelector('.ws-load')?.getAttribute('data-step'), text: document.body.innerText.slice(0, 1000), fatal: [...document.querySelectorAll('[data-boot-fatal],#wserr,.ws-load-error')].map(node => node.textContent) })).catch(() => null);
+          const state = await page.evaluate(() => {
+            const timing = window.__bootTiming?.read(), world = window.__wildshard?.world;
+            return { shard: window.__wildshard?.shard?.slug ?? null, step: document.querySelector('.ws-load')?.getAttribute('data-step'),
+              text: document.body.innerText.slice(0, 1000), fatal: [...document.querySelectorAll('[data-boot-fatal],#wserr,.ws-load-error')].map(node => node.textContent),
+              active: timing?.active, overflow: timing?.overflow, tail: timing?.entries.slice(-12),
+              frames: world?.game.renderer.info.render.frame, app: world?.game.app.state, visibility: document.visibilityState };
+          }).catch(() => null);
           console.error('FAIL phone boot', name, label, JSON.stringify({ state, errors, consoleErrors: consoleErrors.slice(-20) }));
           throw error;
         }
