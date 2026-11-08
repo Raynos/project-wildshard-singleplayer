@@ -1,10 +1,10 @@
 {
   "$doc": "Production release policy (J179/J189): pinned is a pure hold. After the engine pin bump and staged proofs, release requires a separately authorized mode newest-ci-green change. Fix forward is the rule. Only a Jake-authorized manual vercel rollback rolls production back; deploy-pin rollback is retired. See docs/j189-release.md.",
-  "mode": "newest-ci-green",
-  "sha": "5f70a2dfe4b5311c81919b3978ea671ad804f707",
-  "milestone": "J189 hold before engine switch",
+  "mode": "pinned",
+  "sha": "044c06402e3e435e3ac18f7e30a39c0cd9152a4b",
+  "milestone": "E543: prove staged v0.1.2 before promotion",
   "gate": "grandfathered",
-  "go": "Yeah, approve, don't build twice. Let's get single player importing engine and shard dev.",
-  "set": "2026-11-08T04:35:31.363Z",
-  "by": "E357 lead"
+  "go": "Jake E543: ship only after every staged proof passes; save epoch stays 1",
+  "set": "2026-11-08T08:51:44.629Z",
+  "by": "Codex port"
 }
