@@ -35,9 +35,10 @@ if (staged) {
     console.log('PASS Vercel headers', path, result.headers.get('cache-control'));
   }
   for (const route of ['inbox', 'errors', 'waitlist', 'telemetry']) {
-    const options = await request(`/api/${route}`, { method: 'OPTIONS', headers: { Origin: 'capacitor://localhost' } });
+    const origin = route === 'waitlist' ? 'https://wildshard.io' : 'capacitor://localhost';
+    const options = await request(`/api/${route}`, { method: 'OPTIONS', headers: { Origin: origin } });
     const get = await request(`/api/${route}`), body = await get.json();
-    if (options.status !== 204 || options.headers.get('access-control-allow-origin') !== 'capacitor://localhost' || get.status !== 401 || body.error !== 'bad password' || !get.headers.get('cache-control')?.includes('no-store')) throw new Error(`Vercel API function contract failed: ${route} OPTIONS ${options.status}, GET ${get.status}`);
+    if (options.status !== 204 || options.headers.get('access-control-allow-origin') !== origin || get.status !== 401 || body.error !== 'bad password' || !get.headers.get('cache-control')?.includes('no-store')) throw new Error(`Vercel API function contract failed: ${route} OPTIONS ${options.status}, GET ${get.status}`);
     console.log('PASS Vercel API', route, 'OPTIONS 204; unauthenticated GET 401; no-store');
   }
 }
