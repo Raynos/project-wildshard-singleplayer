@@ -49,9 +49,11 @@ artifact, including a final size gate without `--cooks-after`.
 The second input is `.github/deploy-pin.json`. `pinned` is a pure production
 hold. A held push still builds, proves and stages an unaliased Vercel URL;
 it cannot promote. Before changing mode, the operator must prove that exact
-staged URL in WebKit with service workers enabled, plus its real Vercel
-headers and same-origin API functions. The local phone proof alone is not
-this check. Jake's explicit go is still required; production remains held.
+staged URL in both Chromium and WebKit with service workers enabled, plus
+its real Vercel headers and same-origin API functions. The local phone
+proof alone is not this check. Jake's J195 authorizes v0.1.2 promotion as
+soon as every staged proof passes; no additional coordinator go is needed.
+Production remains held until those exact staged proofs pass.
 
 Read the exact stage URL from the held workflow's "Stage the proven
 artifact" result, then run from this checkout (phone profile, muted):
@@ -85,9 +87,10 @@ control across reloads; it cannot prove adoption by a physical PWA already
 installed on the production origin. The real IndexedDB migration proof
 separately covers persistence and identity-only carry on both browsers.
 
-Only after Jake's go, the release operator runs these commands from this
-checkout with organization GitHub access and the existing production
-Vercel automation credentials already configured in CI:
+Only after every staged proof passes, the release operator runs these
+commands under Jake's J195 go, from this checkout with organization GitHub
+access and the existing production Vercel automation credentials already
+configured in CI:
 
 ```sh
 node scripts/deploy-pin.mjs mode newest-ci-green --go '<Jake release go>'
