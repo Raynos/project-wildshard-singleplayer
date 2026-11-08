@@ -38,11 +38,13 @@ checkout:
 WS_FULL_SUITE=1 ASSISTED_BY=Codex:gpt-6.1-sol \
 GIT_SSH_COMMAND='ssh -o ServerAliveInterval=20 -o ServerAliveCountMax=120 -o TCPKeepAlive=yes' \
 python3 scripts/heavy-lane.py full-test -- env WS_PUSH_GATE_PROFILE=full-v1 \
+  WS_VITEST_MAX_WORKERS=10 WS_PUSH_LINT_THREADS=1 GOMAXPROCS=1 UV_THREADPOOL_SIZE=1 \
   bash "$HOME/projects/games/wildshard/leftover/src/repo-kit/release.sh" v0.1.2 --prepare
 # After exact release-commit ci and ring-1 are green, repeat with --finish.
 ```
 
-Do not set the profile without the authenticated lease. The helper remains
+Use the complete process budget, including child threads, just as the
+normal hook does. Do not set the profile without the authenticated lease. The helper remains
 unchanged and repeats its full checks; no test result is fabricated or
 quarantined locally by this command. Then return to the shell checkout:
 
