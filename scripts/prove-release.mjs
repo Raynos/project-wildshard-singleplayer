@@ -51,41 +51,54 @@ console.log('Proving', JSON.stringify(version));
 for (const [name, type] of [['Chromium', chromium], ['WebKit', webkit]]) {
   const browser = await type.launch({ headless: true, ...(name === 'Chromium' ? { args: ['--mute-audio'] } : {}) });
   try {
-    const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: staged ? 'allow' : 'block' });
-    if (bypass) {
-      // Authenticate only to this origin. A global browser header would also
-      // send the credential to third-party telemetry and asset hosts.
-      const authenticated = await context.request.get(base, { headers: { ...headers, 'x-vercel-set-bypass-cookie': 'true' }, maxRedirects: 0 });
-      if (![200, 307].includes(authenticated.status()) || !(await context.cookies(base)).some(cookie => cookie.name === '_vercel_jwt')) throw new Error('Staged bypass did not establish an origin cookie');
-      await authenticated.dispose();
-      const cookieOnly = await context.request.get(base, { maxRedirects: 0 });
-      if (cookieOnly.status() !== 200) throw new Error('Staged origin refused cookie-only access');
-      await cookieOnly.dispose();
-    }
-    await context.addInitScript(() => {
-      HTMLMediaElement.prototype.play = async () => undefined;
-      if (localStorage.getItem('j189-proof-seeded') === null) {
-        localStorage.setItem('wildshard.save.v2.global', JSON.stringify({ keys: { settings: { v: 1, data: { music: false, sfx: false } }, gfx: { v: 1, data: {} }, hints: { v: 1, data: ['old-progress'] } } }));
-        localStorage.setItem('wildshard.save.v2.driftwood-isle', '{"keys":{"purse":{"v":1,"data":999}}}');
-        localStorage.setItem('wildshard.save.v2.device', '{"keys":{"devMode":{"v":1,"data":true}}}');
-        localStorage.setItem('j189-proof-seeded', '1');
+    const createContext = async () => {
+      const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: staged ? 'allow' : 'block' });
+      if (bypass) {
+        // Authenticate only to this origin. A global browser header would also
+        // send the credential to third-party telemetry and asset hosts.
+        const authenticated = await context.request.get(base, { headers: { ...headers, 'x-vercel-set-bypass-cookie': 'true' }, maxRedirects: 0 });
+        if (![200, 307].includes(authenticated.status()) || !(await context.cookies(base)).some(cookie => cookie.name === '_vercel_jwt')) throw new Error('Staged bypass did not establish an origin cookie');
+        await authenticated.dispose();
+        const cookieOnly = await context.request.get(base, { maxRedirects: 0 });
+        if (cookieOnly.status() !== 200) throw new Error('Staged origin refused cookie-only access');
+        await cookieOnly.dispose();
       }
-    });
+      await context.addInitScript(() => {
+        HTMLMediaElement.prototype.play = async () => undefined;
+        if (localStorage.getItem('j189-proof-seeded') === null) {
+          localStorage.setItem('wildshard.save.v2.global', JSON.stringify({ keys: { settings: { v: 1, data: { music: false, sfx: false } }, gfx: { v: 1, data: {} }, hints: { v: 1, data: ['old-progress'] } } }));
+          localStorage.setItem('wildshard.save.v2.driftwood-isle', '{"keys":{"purse":{"v":1,"data":999}}}');
+          localStorage.setItem('wildshard.save.v2.device', '{"keys":{"devMode":{"v":1,"data":true}}}');
+          localStorage.setItem('j189-proof-seeded', '1');
+        }
+      });
+      return context;
+    };
+    let context = await createContext();
     for (const [label, path] of [['title', '/'], ['Driftwood', '/?chunk=driftwood-isle&mute=1&nolock=1'], ['Pine', '/?chunk=pine-hollow&mute=1&nolock=1'], ['Nalati', '/?chunk=nalati-grasslands&mute=1&nolock=1'], ['grid', '/?mute=1&nolock=1']].filter(([label]) => process.argv[3] !== '--grid-only' || label === 'grid')) {
+      if (label === 'grid') {
+        // Closing a standalone page can leave a real crash-resume checkpoint.
+        // Grid entry is an independent title journey, not a crash-resume test.
+        await context.close();
+        context = await createContext();
+      }
       const page = await context.newPage(), errors = [];
       page.on('pageerror', error => errors.push(error.message));
       page.on('response', result => { if (result.status() >= 400) errors.push(`${result.status()} ${result.url()}`); });
       await page.goto(new URL(path, base).href, { waitUntil: 'load', timeout: 90_000 });
       if (label === 'grid') {
+        if (staged) {
+          await page.waitForFunction(async () => (await navigator.serviceWorker.getRegistration())?.active?.state === 'activated', undefined, { timeout: 90_000 });
+          await page.reload({ waitUntil: 'load' });
+          await page.waitForFunction(() => navigator.serviceWorker.controller !== null, undefined, { timeout: 90_000 });
+        }
         await page.waitForFunction(() => document.querySelector('.ws-main-dev') !== null, undefined, { timeout: 90_000 });
         await page.evaluate(() => {
           const developer = document.querySelector('.ws-main-dev');
           if (developer?.getAttribute('aria-checked') === 'false') developer.click();
         });
         await page.waitForFunction(() => document.querySelector('.ws-main-grid') !== null, undefined, { timeout: 90_000 });
-        // The shipped floor proof uses this exact title-button operation: the
-        // inactive carousel remains attached and inert during title transitions.
-        await Promise.all([page.waitForURL(url => url.searchParams.has('chunk'), { timeout: 90_000 }), page.evaluate(() => document.querySelector('.ws-main-grid').click())]);
+        await Promise.all([page.waitForURL(url => url.searchParams.has('chunk'), { timeout: 90_000 }), page.locator('.ws-main-grid').click()]);
       }
       if (label === 'title') await page.locator('.ws-menu-play').waitFor({ state: 'visible', timeout: 90_000 });
       else {
