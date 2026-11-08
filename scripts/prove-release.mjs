@@ -15,7 +15,7 @@ if (staged && process.argv.includes('--existing-bypass') && !bypass) {
   bypass = Object.entries(metadata.protectionBypass ?? {}).find(([, value]) => value.scope === 'automation-bypass')?.[0];
   if (!bypass) throw new Error('No existing automation bypass token; project protection was not changed');
 }
-const headers = bypass ? { 'x-vercel-protection-bypass': bypass, 'x-vercel-set-bypass-cookie': 'true' } : {};
+const headers = bypass ? { 'x-vercel-protection-bypass': bypass } : {};
 const request = (path, init = {}) => fetch(new URL(path, base), { cache: 'no-store', redirect: 'error', ...init, headers: { ...headers, ...init.headers }, signal: AbortSignal.timeout(30_000) });
 const response = await request('/version.json');
 if (!response.ok) throw new Error('Release version unavailable');
@@ -49,9 +49,12 @@ for (const [name, type] of [['Chromium', chromium], ['WebKit', webkit]]) {
     if (bypass) {
       // Authenticate only to this origin. A global browser header would also
       // send the credential to third-party telemetry and asset hosts.
-      const authenticated = await context.request.get(base, { headers, maxRedirects: 0 });
-      if (authenticated.status() !== 200 || !(await context.cookies(base)).some(cookie => cookie.name === '_vercel_jwt')) throw new Error('Staged bypass did not establish an origin cookie');
+      const authenticated = await context.request.get(base, { headers: { ...headers, 'x-vercel-set-bypass-cookie': 'true' }, maxRedirects: 0 });
+      if (![200, 307].includes(authenticated.status()) || !(await context.cookies(base)).some(cookie => cookie.name === '_vercel_jwt')) throw new Error('Staged bypass did not establish an origin cookie');
       await authenticated.dispose();
+      const cookieOnly = await context.request.get(base, { maxRedirects: 0 });
+      if (cookieOnly.status() !== 200) throw new Error('Staged origin refused cookie-only access');
+      await cookieOnly.dispose();
     }
     await context.addInitScript(() => {
       HTMLMediaElement.prototype.play = async () => undefined;
