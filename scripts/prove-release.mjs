@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 const base = process.argv[2];
 if (base === undefined) throw new Error('Usage: prove-release.mjs https://staged-origin');
 const staged = process.argv.includes('--vercel');
-if (staged && !/^https:\/\/[^/]+\.vercel\.app\/?$/u.test(base)) throw new Error('Staged proof requires a unique HTTPS Vercel origin');
+if (staged && !/^https:\/\/wildshard-singleplayer-[a-z0-9]+-raynos-projects\.vercel\.app\/?$/u.test(base)) throw new Error('Staged proof requires this project\'s unique HTTPS deployment origin');
 const pin = JSON.parse(readFileSync(new URL('../engine.pin.json', import.meta.url), 'utf8'));
 let bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
 if (staged && process.argv.includes('--existing-bypass') && !bypass) {
@@ -21,6 +21,11 @@ const response = await request('/version.json');
 if (!response.ok) throw new Error('Release version unavailable');
 const version = await response.json();
 if (version.saveEpoch !== pin.saveEpoch) throw new Error('Release progress epoch differs from pinned engine');
+if (staged) {
+  const sha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+  const short = version.build?.split('-')[0];
+  if (!/^[a-f0-9]{7,40}$/u.test(short ?? '') || !sha.startsWith(short)) throw new Error('Staged build differs from exact shell HEAD');
+}
 const prefix = `wildshard.save.v2@${pin.saveEpoch}.`;
 if (staged) {
   for (const [path, cache] of [['/', 'no-store'], ['/version.json', 'no-store'], ['/sw.js', 'no-cache']]) {
