@@ -8,7 +8,29 @@ API functions stay until the separate API switch.
 The release has two independent inputs. The operator first updates the
 artifact inputs in `engine.pin.json` with organization GitHub read access:
 
+Before the shell bump, release engine from its clean main checkout. First
+require green `ci` and `ring-1` on the pushed engine fix. The kit's old
+single-phase helper tagged a new version commit before CI had seen it;
+engine now requires two phases using the published helper in `leftover`:
+
 ```sh
+cd "$HOME/projects/games/wildshard/engine"
+WS_FULL_SUITE=1 WS_VITEST_MAX_WORKERS=4 ASSISTED_BY=Codex:gpt-6.1-sol \
+GIT_SSH_COMMAND='ssh -o ServerAliveInterval=20 -o ServerAliveCountMax=120 -o TCPKeepAlive=yes' \
+bash ../leftover/src/repo-kit/release.sh v0.1.1 --prepare
+# Require both workflows green on the exact release commit printed above.
+WS_FULL_SUITE=1 WS_VITEST_MAX_WORKERS=4 ASSISTED_BY=Codex:gpt-6.1-sol \
+GIT_SSH_COMMAND='ssh -o ServerAliveInterval=20 -o ServerAliveCountMax=120 -o TCPKeepAlive=yes' \
+bash ../leftover/src/repo-kit/release.sh v0.1.1 --finish
+```
+
+Prepare pushes the version/stamp commit through normal hooks and creates
+no tag. Finish repeats normal checks and verifies exact-SHA green `ci`
+and `ring-1`, then tags that explicit SHA without another commit. All SSH
+pushes keep the keepalives and all hooks. Return to the shell checkout:
+
+```sh
+cd "$HOME/projects/games/wildshard-singleplayer"
 node scripts/engine-pin.mjs bump v0.1.1 \
   shard-driftwood=<40-character-commit-or-tag>
 ```
