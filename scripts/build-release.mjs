@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync, existsSync, renameSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { validatePin } from './engine-pin.mjs';
+import { publishProductFiles } from './publish-product-files.mjs';
 if (existsSync('.vercel/.env.production.local')) process.loadEnvFile('.vercel/.env.production.local');
 const pin = validatePin(JSON.parse(readFileSync('engine.pin.json', 'utf8')));
 const engine = resolve(process.env.WS_ENGINE_SOURCE ?? 'engine-source');
@@ -15,6 +16,7 @@ const run = args => execFileSync(args[0], args.slice(1), { cwd: engine, stdio: '
 // build:game owns pins, generated inputs, layers and the web artifact. No
 // sharddev, build-shardfiles or author generators run on this release path.
 run(['pnpm', 'build:game']);
+publishProductFiles(engine, resolve(engine, 'dist'));
 run(['node', 'scripts/shard-size-gate.mjs', 'dist']);
 run(['node', 'scripts/check-devserver.mjs', 'dist']);
 const version = JSON.parse(readFileSync(resolve(engine, 'dist/version.json'), 'utf8'));

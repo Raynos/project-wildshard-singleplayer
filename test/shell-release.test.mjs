@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, chmodSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { resolve, join } from 'node:path';
+import { createHash } from 'node:crypto';
+import { createServer } from 'node:http';
+import { publishProductFiles } from '../scripts/publish-product-files.mjs';
 const root = resolve(import.meta.dirname, '..');
 function fixture(run) {
   mkdirSync(join(root, 'tmp'), { recursive: true });
@@ -75,4 +78,39 @@ test('the retired rollback refuses before Git, network or pin mutation', () => f
 for (const name of ['shell-prebuilt.py', 'shell-stage.py']) test(`${name}: real shell release controller boundaries`, () => {
   const result = spawnSync('python3', [join(root, 'test', name)], { cwd: root, encoding: 'utf8', timeout: 4000, env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1' } });
   assert.equal(result.status, 0, result.stdout + result.stderr);
+});
+
+test('published product URLs survive packed-copy pruning with exact bytes', async () => {
+  const cwd = mkdtempSync(join(root, 'tmp/product-publication-'));
+  const engine = join(cwd, 'engine'), output = join(cwd, 'dist'), slug = 'open-plot-fixture';
+  const body = Buffer.from('immutable admitted GLB bytes'), hash = createHash('sha256').update(body).digest('hex');
+  const file = `blobs/glb/${hash}.glb`, path = `/shardfiles/${slug}/${file}`;
+  mkdirSync(join(engine, 'out', slug, 'blobs/glb'), { recursive: true });
+  mkdirSync(join(output, 'shardfiles', slug), { recursive: true });
+  writeFileSync(join(engine, 'out', slug, file), body);
+  writeFileSync(join(output, 'shardfiles', slug, 'shard.json'), JSON.stringify({ identity: { slug }, files: [{ path: file, hash, compressed: body.length }] }));
+  const server = createServer((request, response) => {
+    try { response.end(readFileSync(join(output, new URL(request.url, 'http://fixture').pathname))); }
+    catch { response.writeHead(404); response.end(); }
+  });
+  try {
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    const origin = `http://127.0.0.1:${server.address().port}`;
+    assert.equal((await fetch(origin + path)).status, 404);
+    assert.equal((await fetch(origin + `/assets/${slug}/entry-reads.json`)).status, 404);
+    assert.deepEqual(publishProductFiles(engine, output), { restored: 1, bytes: body.length, emptyRecords: 1 });
+    const result = await fetch(origin + path);
+    assert.equal(result.status, 200);
+    assert.deepEqual(Buffer.from(await result.arrayBuffer()), body);
+    assert.deepEqual(await (await fetch(origin + `/assets/${slug}/entry-reads.json`)).json(), []);
+    const recorded = '[{"region":"authored","tier":"phone","at":[0,0],"reads":[]}]\n';
+    writeFileSync(join(output, 'assets', slug, 'entry-reads.json'), recorded);
+    assert.deepEqual(publishProductFiles(engine, output), { restored: 0, bytes: 0, emptyRecords: 0 });
+    assert.equal(readFileSync(join(output, 'assets', slug, 'entry-reads.json'), 'utf8'), recorded);
+    writeFileSync(join(output, 'shardfiles', slug, file), 'corrupt');
+    assert.throws(() => publishProductFiles(engine, output), /hash or size differs/u);
+  } finally {
+    await new Promise(resolve => server.close(resolve));
+    rmSync(cwd, { recursive: true, force: true });
+  }
 });

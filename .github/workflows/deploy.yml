@@ -41,6 +41,13 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: node scripts/install-release.mjs install
       - run: pnpm --dir engine-source install --frozen-lockfile
+      # Each reused body is decompressed and SHA-256 checked by the pinned
+      # encoder. Admission, builds, size gates and browser proofs still run.
+      - name: Cache verified spawn-part encodings
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/wildshard/gen/spawn-parts-br/1
+          key: spawn-parts-v1-${{ runner.os }}-node24-${{ hashFiles('engine.pin.json') }}
       - name: Load the existing production build environment
         if: github.event_name != 'pull_request'
         env:
