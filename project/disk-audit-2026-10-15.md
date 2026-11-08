@@ -483,6 +483,11 @@ Readings of 232 cited folders are in `tmp/keep/<name>/` (1.1 GB). Left on purpos
   all; `engine` 2.8 GB (`.git` 328 MB), `shard-pine-hollow` 1.0 GB, `sharddev` 833 MB, `shard-nalati` 300 MB, the rest
   under 160 MB. Their `./tmp` folders are 2.4 MB at most (`engine`).
 
+- **11-08 08:47 check:** boot purge **418k** (+42k), 82k under the warning line. The session scratchpad grew a new
+  `hash/` folder, 32.7k files written by 06:22, next to `e7` (187k). `$TMPDIR` Vite folders 336. `/cores` 79 GB, no new
+  dump. Free disk 1,967 GB. The seven world shards grew from 15–300 MB to about 0.8–2.2 GB each since 06:48, in the repo,
+  not `./tmp` (`shard-dunes` now has `node_modules`). New `tmp/pine-dl21` 2.1 GB, a `dist` build from 08:03–08:38.
+
 ## Decisions (Jake, 2026-10-15)
 
 - **Boot-purge warning: 500,000 files.**
