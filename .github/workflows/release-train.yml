@@ -41,7 +41,7 @@ jobs:
         run: |
           git config user.name 'wildshard release train'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          message=$(printf 'chore(release): batch green engine\n\nPin immutable producer bytes selected from complete green main\nverdicts. Keep the live save epoch and seven author pins.\n\nGenerated-by: wildshard-release-train\nAssisted-by: Codex:gpt-6.1-sol')
+          message=$(printf 'chore(release): batch green engine\n\nPin immutable producer bytes selected from complete green main\nverdicts. Keep the live save epoch and seven author pins.\n\nGenerated-by: wildshard-release-train\n\nAssisted-by: Codex:gpt-6.1-sol')
           scripts/commit.sh "$message" -- engine.pin.json
           expected=$(git rev-parse HEAD)
           python3 scripts/push-loop.py --push "$expected" > train-push.json
