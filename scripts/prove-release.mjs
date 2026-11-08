@@ -2,6 +2,7 @@
 import { chromium, webkit, devices } from 'playwright';
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { observeReleaseModules, waitForReleaseWorker } from './release-worker.mjs';
 const base = process.argv[2];
 if (base === undefined) throw new Error('Usage: prove-release.mjs https://staged-origin');
 const staged = process.argv.includes('--vercel');
@@ -83,6 +84,7 @@ for (const [name, type] of [['Chromium', chromium], ['WebKit', webkit]]) {
         context = await createContext();
       }
       const page = await context.newPage(), errors = [];
+      const modules = observeReleaseModules(page);
       const consoleErrors = [];
       page.on('pageerror', error => errors.push(error.message));
       page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text().slice(0, 400)); });
@@ -90,7 +92,8 @@ for (const [name, type] of [['Chromium', chromium], ['WebKit', webkit]]) {
       await page.goto(new URL(path, base).href, { waitUntil: 'load', timeout: 90_000 });
       if (label === 'grid') {
         if (staged) {
-          await page.waitForFunction(async () => (await navigator.serviceWorker.getRegistration())?.active?.state === 'activated', undefined, { timeout: 90_000 });
+          await waitForReleaseWorker(page);
+          await modules.wait();
           await page.reload({ waitUntil: 'load' });
           await page.waitForFunction(() => navigator.serviceWorker.controller !== null, undefined, { timeout: 90_000 });
         }
@@ -100,6 +103,7 @@ for (const [name, type] of [['Chromium', chromium], ['WebKit', webkit]]) {
           if (developer?.getAttribute('aria-checked') === 'false') developer.click();
         });
         await page.waitForFunction(() => document.querySelector('.ws-main-grid') !== null, undefined, { timeout: 90_000 });
+        await modules.wait();
         await Promise.all([page.waitForURL(url => url.searchParams.has('chunk'), { timeout: 90_000 }), page.locator('.ws-main-grid').click()]);
       }
       if (label === 'title') await page.locator('.ws-menu-play').waitFor({ state: 'visible', timeout: 90_000 });
@@ -116,7 +120,8 @@ for (const [name, type] of [['Chromium', chromium], ['WebKit', webkit]]) {
         await page.waitForFunction(() => (window.__workerClient?.().frames ?? 0) > 10, undefined, { timeout: 90_000 });
       }
       if (staged && label === 'title') {
-        await page.waitForFunction(async () => (await navigator.serviceWorker.getRegistration())?.active?.state === 'activated', undefined, { timeout: 90_000 });
+        await waitForReleaseWorker(page);
+        await modules.wait();
         await page.reload({ waitUntil: 'load' });
         await page.locator('.ws-menu-play').waitFor({ state: 'visible', timeout: 90_000 });
         await page.waitForFunction(() => navigator.serviceWorker.controller !== null, undefined, { timeout: 90_000 });
@@ -128,6 +133,7 @@ for (const [name, type] of [['Chromium', chromium], ['WebKit', webkit]]) {
       const global = JSON.parse(observed.settings ?? 'null');
       if (global === null || global.keys.hints !== undefined || global.keys.settings?.data?.music !== false || global.keys.settings?.data?.sfx !== false) throw new Error(`${name} ${label}: progress carry or missing epoch`);
       console.log('PASS', name, label, JSON.stringify(observed));
+      modules.dispose();
       await page.close();
     }
     await context.close();
