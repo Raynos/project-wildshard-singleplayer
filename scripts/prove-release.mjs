@@ -159,7 +159,8 @@ for (const [name, type] of phones) {
           if (name === 'Chromium' && process.argv.includes('--profile-worker')) {
             const workers = page.workers().filter(worker => /\/standalone\/serverWorker[^/]*\.js$/u.test(new URL(worker.url()).pathname));
             if (workers.length !== 1) throw new Error('Expected one actual standalone server worker to profile');
-            stopProfile = await profileReleaseWorker(browser, workers[0].url(), `tmp/release-worker-profile/${version.build}-worker.json`);
+            const attempt = process.argv.includes('--grid-only') ? 'grid' : 'full';
+            stopProfile = await profileReleaseWorker(browser, workers[0].url(), `tmp/release-worker-profile/${version.build}-${attempt}-worker.json`, { durationMs: 210_000 });
           }
           };
           let failure;

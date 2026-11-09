@@ -50,7 +50,7 @@ export async function profileReleaseWorker(browser,workerURL,file,{durationMs=60
         await root.send('Tracing.end');const traced=await complete;
         if(typeof traced.stream!=='string')throw new Error('Worker trace has no stream');
         const chunks=[];let total=0;
-        try{for(;;){const chunk=await root.send('IO.read',{handle:traced.stream});const bytes=Buffer.from(chunk.data,chunk.base64Encoded?'base64':'utf8');total+=bytes.length;if(total>32*1024*1024)throw new Error('Worker diagnostic trace exceeds32MiB');chunks.push(bytes);if(chunk.eof)break;}}
+        try{for(;;){const chunk=await root.send('IO.read',{handle:traced.stream});const bytes=Buffer.from(chunk.data,chunk.base64Encoded?'base64':'utf8');total+=bytes.length;if(total>128*1024*1024)throw new Error('Worker diagnostic trace exceeds128MiB');chunks.push(bytes);if(chunk.eof)break;}}
         finally{await root.send('IO.close',{handle:traced.stream});}
         const traceBytes=Buffer.concat(chunks),trace=JSON.parse(traceBytes.toString()),traceFile=file.replace(/\.json$/u,'-trace.json.gz');
         mkdirSync(dirname(file),{recursive:true});writeFileSync(traceFile,gzipSync(traceBytes));

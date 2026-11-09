@@ -242,7 +242,7 @@ jobs:
       # An earlier strict boot failure must remain red. Still collect the
       # independent real grid path so it cannot hide the road diagnosis.
       - name: Diagnose grid after an earlier refusal
-        if: failure() && matrix.browser == 'Chromium'
+        if: failure() && matrix.browser == 'Chromium' && hashFiles('tmp/release-worker-profile/*-full-worker.json') == ''
         env:
           VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
           STAGED_URL: ${{ needs.stage-pinned.outputs.url }}
