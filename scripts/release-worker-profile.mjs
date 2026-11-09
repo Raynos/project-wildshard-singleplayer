@@ -2,8 +2,9 @@
 import{mkdirSync,writeFileSync}from'node:fs';
 import{dirname}from'node:path';
 import{gzipSync}from'node:zlib';
+import{observeReleasePorts,finishReleasePorts}from'./release-port-profile.mjs';
 /** Attach only to an exact worker in this owned browser. */
-export async function profileReleaseWorker(browser,workerURL,file,{durationMs=60000}={}){
+export async function profileReleaseWorker(browser,workerURL,file,{durationMs=60000,page}={}){
   const root=await browser.newBrowserCDPSession(),pending=new Map(),parsed=new Map();let serial=0,closed=false;
   const {targetInfos}=await root.send('Target.getTargets');
   const targets=targetInfos.filter(row=>row.type==='worker'&&row.url===workerURL);
@@ -30,6 +31,10 @@ export async function profileReleaseWorker(browser,workerURL,file,{durationMs=60
   };
   let started;
   try{
+    if(page===undefined)throw new Error('Native port diagnosis needs the actual grid page');
+    await page.evaluate(observeReleasePorts);
+    const installed=await send('Runtime.evaluate',{expression:`(${observeReleasePorts.toString()})();undefined`,returnByValue:true});
+    if(installed.exceptionDetails!==undefined)throw new Error('Native worker port observer failed to install');
     await root.send('Tracing.start',{categories:'devtools.timeline,v8',transferMode:'ReturnAsStream'});
     await send('Profiler.enable');await send('Profiler.setSamplingInterval',{interval:1000});
     const clock=await send('Runtime.evaluate',{expression:'({origin:performance.timeOrigin,now:performance.now()})',returnByValue:true});
@@ -60,7 +65,13 @@ export async function profileReleaseWorker(browser,workerURL,file,{durationMs=60
         for(const[scriptId,url]of parsed)if(url===workerURL||/\/standalone\/serverRuntime[^/]*\.js$/u.test(url)){
           const{scriptSource}=await send('Debugger.getScriptSource',{scriptId});sources.push({scriptId,url,scriptSource});
         }
-        const result={protocol:'release-worker-cpu/1',workerURL,intervalMicros:1000,started,stopped:{before,after,clock:clock.result?.value},profile,sources,trace:traceEvidence};
+        const pagePorts=await page.evaluate(finishReleasePorts);
+        const workerPorts=await send('Runtime.evaluate',{expression:`(${finishReleasePorts.toString()})()`,returnByValue:true});
+        if(workerPorts.exceptionDetails!==undefined)throw new Error('Native worker port observer failed to stop');
+        const portFile=file.replace(/\.json$/u,'-ports.json');
+        writeFileSync(portFile,JSON.stringify({page:pagePorts,worker:workerPorts.result?.value})+'\n');
+        if(pagePorts.overflow||workerPorts.result?.value?.overflow)throw new Error('Native port diagnostic overflow');
+        const result={protocol:'release-worker-cpu/1',workerURL,intervalMicros:1000,started,stopped:{before,after,clock:clock.result?.value},profile,sources,trace:traceEvidence,portFile};
         mkdirSync(dirname(file),{recursive:true});writeFileSync(file,JSON.stringify(result)+'\n');
         console.log('Captured actual worker CPU profile',JSON.stringify({file,workerURL,profileMs:(profile.endTime-profile.startTime)/1000,samples:profile.samples?.length,sources:sources.length}));
         return result;
