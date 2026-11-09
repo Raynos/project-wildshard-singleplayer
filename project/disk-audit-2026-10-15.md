@@ -488,6 +488,16 @@ Readings of 232 cited folders are in `tmp/keep/<name>/` (1.1 GB). Left on purpos
   dump. Free disk 1,967 GB. The seven world shards grew from 15–300 MB to about 0.8–2.2 GB each since 06:48, in the repo,
   not `./tmp` (`shard-dunes` now has `node_modules`). New `tmp/pine-dl21` 2.1 GB, a `dist` build from 08:03–08:38.
 
+- **11-08 12:47 and 11-09 12:23 checks:** boot purge 418k → **445k**, then flat at 443k for the day after. All the growth
+  is in `$TMPDIR` (197k files, 7.8 GB): Vite `client/`/`ssr/` folders went from 336 to 374. **The new ones come from the
+  multi-repo checkouts.** The newest 12 (11-08 12:31–12:44) hold module paths under `wildshard/engine` (1,349 and 117
+  files each) and `wildshard/shardfile` (711–805). `engine` has `scripts/vitest-tmp.ts`, which points `TMPDIR` at
+  `./tmp/vitest/<pid>` for `test:fast`, so these come from a run that bypasses it (a direct `vitest`, `vite-node`, or a
+  config without the plugin; not traced). `shardfile` has no redirect and no `temp-janitor.mjs`. **Fix:** every repo
+  that runs Vite or Vitest gets the same `TMPDIR` redirect, and the janitor sweeps these folders. `/cores` 79 GB, no new
+  dump since 11-07 14:41. `engine/tmp/build-mirror/check` passed 2 GB (2.1 GB). Free disk 1,964 GB. Checks are now twice
+  a day, about 08:47 and 20:47 (Jake, 11-09).
+
 ## Decisions (Jake, 2026-10-15)
 
 - **Boot-purge warning: 500,000 files.**
