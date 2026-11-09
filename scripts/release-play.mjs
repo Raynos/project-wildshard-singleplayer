@@ -109,10 +109,17 @@ async function walk(page, x, z) {
         const world = window.__wildshard.world, grid = window.__wildshard.shard.grid.state(), feet = grid.live?.live.worldFeet;
         const row = window.__workerClient();
         if (feet === undefined) return { distance: Infinity, frames: row.frames };
+        const game = world.game, slot = (game.frameI + game.frameMs.length - 1) % game.frameMs.length;
         world.player.yaw = Math.atan2(feet.x - x, feet.z - z);
         world.player.touchMove.y = 1; world.player.touchSprint = true;
         return { distance: Math.hypot(feet.x - x, feet.z - z), x: feet.x, z: feet.z,
           frames: row.frames, serverX: row.serverX, serverZ: row.serverZ,
+          clientFps: row.framesPerSecond, simulationTps: row.ticksPerSecond,
+          workerTickMs: row.workerTickMs, clientMainP95Ms: row.mainMsP95,
+          frame: { count: game.frameCount, intervalMs: game.frameMs[slot], workMs: game.workMs[slot],
+            updateMs: game.updateMs[slot], renderMs: game.renderMs[slot],
+            calls: game.lastFrame.calls, triangles: game.lastFrame.triangles },
+          visibility: document.visibilityState,
           move: world.player.touchMove.y, sprint: world.player.touchSprint,
           phase: grid.live?.crossing.phase, ready: grid.live?.live.gameplayReady,
           board: grid.cellLoading, paused: world.game.app.clock.paused };
@@ -134,6 +141,14 @@ async function walk(page, x, z) {
 }
 export async function proveEmber(page, modules, label) {
   console.log('Real road crossing', label);
+  console.log('ROAD PLATFORM', label, JSON.stringify(await page.evaluate(() => {
+    const game = window.__wildshard.world.game, gl = game.renderer.getContext();
+    const info = gl.getExtension('WEBGL_debug_renderer_info');
+    return { build: window.__bootTiming?.read().build, userAgent: navigator.userAgent,
+      devicePixelRatio, width: innerWidth, height: innerHeight, visibility: document.visibilityState,
+      vendor: info === null ? gl.getParameter(gl.VENDOR) : gl.getParameter(info.UNMASKED_VENDOR_WEBGL),
+      renderer: info === null ? gl.getParameter(gl.RENDERER) : gl.getParameter(info.UNMASKED_RENDERER_WEBGL) };
+  })));
   for (const [x, z] of [[0, -281.25], [1125, -281.25], [1125, -390]]) {
     await walk(page, x, z);
     console.log('PASS actual road leg', label, x, z, JSON.stringify(await gridState(page)));
