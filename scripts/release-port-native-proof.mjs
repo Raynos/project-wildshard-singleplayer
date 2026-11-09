@@ -1,0 +1,41 @@
+// Manual native transport validation; run through scripts/browser-lane.sh.
+import assert from 'node:assert/strict';
+import {chromium,devices} from 'playwright';
+import {KEYCHAIN_ARGS} from './chromium-keychain.mjs';
+import {profileReleaseWorker} from './release-worker-profile.mjs';
+const browser=await chromium.launch({headless:true,args:[...KEYCHAIN_ARGS,'--mute-audio']});
+try{
+ const context=await browser.newContext({...devices['iPhone 16 Pro'],deviceScaleFactor:2});
+ const page=await context.newPage();await page.goto('about:blank');
+ const pending=page.waitForEvent('worker');
+ await page.evaluate(()=>{
+  const worker=new Worker(URL.createObjectURL(new Blob([`onmessage=e=>{const port=e.ports[0];port.onmessage=event=>{const data=event.data;port.postMessage(data,[data.bytes]);};postMessage('ready');};`],{type:'text/javascript'})));
+  const channel=new MessageChannel();
+  Reflect.set(globalThis,'portProof',{port:channel.port1,worker});
+  return new Promise(resolve=>{worker.onmessage=()=>resolve();worker.postMessage({},[channel.port2]);});
+ });
+ const worker=await pending;
+ const stop=await profileReleaseWorker(browser,worker.url(),'tmp/codex-release/native-port-worker.json',{page,durationMs:10000});
+ await page.evaluate(async()=>{
+  const {port}=Reflect.get(globalThis,'portProof');
+  for(let i=1;i<=200;i++){
+   const delivered=new Promise(resolve=>{port.onmessage=event=>resolve(event.data);});
+   const bytes=new Uint8Array([i&255,i>>8,12,45]).buffer;
+   port.postMessage({channel:'unreliable',bytes},[bytes]);
+   if(bytes.byteLength!==0)throw Error('Native transfer did not detach');
+   const data=await delivered;if(new Uint8Array(data.bytes)[0]!== (i&255))throw Error('Echo payload changed');
+  }
+ });
+ const evidence=await stop();
+ const {readFileSync}=await import('node:fs');
+ const ports=JSON.parse(readFileSync(evidence.portFile,'utf8'));
+ assert.deepEqual(ports.errors,[]);assert.equal(ports.page.overflow,false);assert.equal(ports.worker.overflow,false);
+ assert.equal(ports.page.rows.filter(row=>row.direction==='send').length,200);
+ assert.equal(ports.worker.rows.filter(row=>row.direction==='send').length,200);
+ assert.ok(ports.page.rows.filter(row=>row.direction==='receive').length>=199);
+ assert.ok(ports.worker.rows.filter(row=>row.direction==='receive').length>=199);
+ assert.equal(await page.evaluate(()=>Reflect.has(globalThis,'__releasePortStop')),false);
+ assert.equal(await worker.evaluate(()=>Reflect.has(globalThis,'__releasePortStop')),false);
+ console.log('PASS actual Chromium page/worker CDP capture, 200 native transfers each way, both observers removed; diagnostic validation only, no road verdict');
+ await context.close();
+}finally{await browser.close();}
