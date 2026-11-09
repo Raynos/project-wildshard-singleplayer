@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // Receipt-only diagnostic: existing shipped route, allocation sampling and bounded large-buffer constructor records.
 import { chromium, devices } from '/Users/raynos/projects/games/wildshard-singleplayer/node_modules/playwright/index.mjs';
 import { createWriteStream, writeFileSync } from 'node:fs';
@@ -13,7 +14,7 @@ const fixtures = [saveFixtureCode({ scope: 'global', key: 'settings', data: { ti
   saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
   saveFixtureCode({ scope: 'device', key: 'devMode', data: false }), entry.fixture].join(';');
 const result = { base, version: await (await fetch(new URL('version.json', base))).json(), routes: [], samples: [], errors: [], buffers: null, profile: null };
-const browser = await chromium.launch({ channel: 'chromium', headless: true, args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info'] });
+const browser = await chromium.launch({ channel: 'chromium', headless: true, args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info'] });
 let cdp, polling = false, poll;
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: 'block' });

@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM sp-o280 (W2a): standalone Pine boot on one muted Metal "iPhone 16 Pro" portrait context, phone tier /
 // 2x: page errors, the held weapon, the bird draw and the King kit loaded from the product, a short walk and a shot.
 //   SERVE_OWNER=sp-o280 scripts/serve-build.sh --rev <sha> --shard pine-hollow --name o280
@@ -11,7 +12,7 @@ const [base, out] = process.argv.slice(2);
 const TAG = process.env.TAG ?? 'now';
 if (!base || !out) throw new Error('usage: boot.mjs <preview-url> <out-dir>');
 mkdirSync(out, { recursive: true });
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const report = { tag: TAG, errors: [], consoleErrors: [], requests: { shardfile: 0, publicPine: 0 } };
 try {
   const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] });

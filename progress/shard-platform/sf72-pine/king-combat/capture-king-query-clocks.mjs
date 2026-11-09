@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // Real-fight query parity, including the previous-pose collision cache. Writes a bounded summary, never a frame archive.
 import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
@@ -5,7 +6,7 @@ import { saveFixture } from '../../../../scripts/debug-settings.mjs';
 
 const [url, output] = process.argv.slice(2);
 if (!url || !output) throw new Error('Expected preview URL and summary path');
-const errors = [], browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--mute-audio'] });
+const errors = [], browser = await chromium.launch({ headless: true, args: [...KEYCHAIN_ARGS, '--use-angle=metal', '--mute-audio'] });
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], deviceScaleFactor: 2 });
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });

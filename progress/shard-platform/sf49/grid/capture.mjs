@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // E435 / SF49-g: a cold grid admission through every road socket, ridden lift, rope bridge and playable island.
 // Only the declared initial road approach is seeded. All measured traversal uses held input and the normal RIDE prompt.
 // Run through browser-lane.sh: node capture.mjs <pinned-preview-url> <scratch-report.json> [edge]
@@ -15,7 +16,7 @@ const started = Date.now();
 const report = { version: await (await fetch(new URL('version.json', base))).json(),
   protocol: 'Production build, Developer ON, phone tier/2x, one muted Metal iPhone 16 Pro portrait browser. Four cold contexts. One road pose per context; no later teleport, creature freeze or crossing reload. Labelled GL and allocator cost only; native WebContent pending.', entries: [], errors: [], consoleErrors: [], warnings: [], documents: [] };
 const save = () => writeFileSync(out, `${JSON.stringify(report, null, 2)}\n`);
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const snapshot = page => page.evaluate(() => {
   const api = window.__wildshard, grid = api.shard.grid, world = api.requireWorld();
   return { state: grid.state(), residency: grid.residency(), gl: window.__sc_gl().map(({ gl, ...row }) => row),

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM E450 picks G173 / G175 / G181: the new defaults in a real browser, no Debug row set (the rows are gone).
 // Chromium as an iPhone 16 Pro portrait, muted, phone tier.
 //
@@ -27,7 +28,7 @@ const toJpeg = (png, name) => {
   rmSync(tmp, { force: true });
 };
 const out = { url, started: new Date().toISOString() };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 
 async function open(slug) {
   const ctx = await browser.newContext({ ...PHONE, viewport: PHONE.screen });

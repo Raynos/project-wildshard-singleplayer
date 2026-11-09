@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../chromium-keychain.mjs';
 // SF67 loading audit (E461): SHARD SELECT -> shard load, profiled in desktop Chromium emulating the iPhone 16 Pro.
 // Per shard: a cold run (fresh context: no SW, no HTTP cache, no IndexedDB) and a warm run (same context, again).
 // The title is opened, the shard card and ENTER WORLD are tapped (the real travel(): location.replace(?chunk=)),
@@ -61,7 +62,7 @@ const COLLECT = `(() => { const W = window; const nav = performance.getEntriesBy
     sw: !!navigator.serviceWorker?.controller, isLoad: W.__a_isLoad, loadEls: [...document.querySelectorAll('.ws-load')].map((e) => e.className + ':' + getComputedStyle(e).display + ':' + getComputedStyle(e).opacity + ':' + getComputedStyle(e).visibility),
     resources: res.map((r) => [r.name.replace(location.origin, ''), Math.round(r.startTime), Math.round(r.duration), r.transferSize, r.encodedBodySize, r.initiatorType]) }; })()`;
 
-const browser = await chromium.launch({ headless: true, args: ['--mute-audio', '--use-angle=metal', '--enable-gpu-rasterization', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ headless: true, args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--enable-gpu-rasterization', '--ignore-gpu-blocklist'] });
 const { defaultBrowserType: _ignored, ...phone } = devices['iPhone 16 Pro'];
 const cdpBrowser = await browser.newBrowserCDPSession();
 

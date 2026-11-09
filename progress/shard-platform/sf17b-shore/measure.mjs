@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF17b G149: the per-view road budget re-measured with the shore revetment, plus portrait shots of it from the road and
 // from Driftwood's shore (the Driftwood hybrid row ON, so its sea is at 0 and its seabed edges get the revetment).
 // Forked from ../sf17b-cull/measure.mjs (the cull is the only path since G112, so there is no cull fixture).
@@ -52,7 +53,7 @@ const SHORE_SHOTS = {
   'shore-corner-air': look({ x: 205, y: 26, z: 205 }, { x: 262, z: 262 }, -0.5, true),
 };
 const SHOTS = { crossroads: { x: 277.5, y: 3, z: 215, yaw: 0, pitch: -0.1 }, boulevard: { x: 277.5, y: 1.7, z: -40, yaw: 0, pitch: -0.08 }, 'outer-ring': { x: 832.5, y: 1.7, z: -60, yaw: 0, pitch: -0.05 }, entry: { x: 262, y: 2.5, z: -6, yaw: -Math.PI / 2, pitch: -0.1 } };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const out = { url, label, started: new Date().toISOString(), poses: {} };
 try {
   const ctx = await browser.newContext({ ...PHONE, viewport: PHONE.screen });

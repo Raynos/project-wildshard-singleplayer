@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM op-sky40 (from op-sky36's / op-sky35's / op-look28's, E435, G321): the readout adds Sky Reach's sky pieces (`sky`: the
 // dressing drawn and its fade, the rose-fog share of the world's materials, the environment map).
 // op-sky35's header: each shard in a grid cell against SHARD SELECT, at the same pose,
@@ -20,7 +21,7 @@ if (!base || !out || !slugs) throw new Error('usage: capture.mjs <preview-url> <
 mkdirSync(out, { recursive: true });
 const report = { version: await (await fetch(new URL('version.json', base))).json(), started: new Date().toISOString(), shards: {} };
 const save = () => writeFileSync(join(out, `capture-${TAG}.json`), `${JSON.stringify(report, null, 2)}\n`);
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 
 async function context(row) {
   const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] });

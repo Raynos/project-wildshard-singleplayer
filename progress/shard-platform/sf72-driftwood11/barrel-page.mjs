@@ -1,8 +1,9 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // barrel-page.mjs <base> [shot.jpg] (through scripts/browser-lane.sh, a served build): boot Driftwood on the page (muted, iPhone 16 Pro), push the tide puzzle's barrel onto plate b by the
 // stick alone (the headless test's closed-loop push, frame by frame), and report where it went and the plate flag.
 import { chromium, devices } from 'playwright';
 const BASE = process.argv[2], SHOT = process.argv[3];
-const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
+const browser = await chromium.launch({ headless: true, args: [...KEYCHAIN_ARGS, '--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
 try {
   const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] }), page = await ctx.newPage(), errors = [];
   page.on('pageerror', (e) => errors.push(String(e).slice(0, 200)));

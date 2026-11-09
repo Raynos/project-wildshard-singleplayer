@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // Muted iPhone portrait reveal readiness trace; enter through the real grid title tap, never skip the reveal.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -9,7 +10,7 @@ const flag = (name, fallback) => args.find((arg) => arg.startsWith(`--${name}=`)
 const base = flag('url', ''), label = flag('label', 'readiness');
 if (base === '') throw new Error('--url=<committed preview> required');
 const version = await (await fetch(`${base}/version.json`)).json();
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const samples = [], errors = [], warnings = [];
 let timings = null;
 try {

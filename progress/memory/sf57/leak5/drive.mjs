@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // SF57 upload-owner (round 4): the leak3 driver plus, at every heap pose, the GL counts (renderer.info.memory), the SF64
 // ledger's GPU / RAM totals, the scope census of the slow-growing UI / music scopes, and the upload live set grouped by
 // owner (null / disposed / live) and type, with the stray-owner census. From leak3:
@@ -28,7 +29,7 @@ const fixtures = [
   saveFixtureCode({ scope: 'device', key: 'devMode', data: true }),
 ].join(';');
 
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
 const result = { base: BASE, circuits: CIRCUITS, samples: [], heap: [], errors: [] };
 const save = () => { writeFileSync(join(OUT, 'result.json'), `${JSON.stringify(result, null, 2)}\n`); };
 try {

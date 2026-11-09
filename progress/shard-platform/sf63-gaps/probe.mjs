@@ -1,10 +1,11 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF63 gaps (SHARD-PLATFORM, E435): the post chain a boot runs, as data: every composer pass and its effects (name, blend
 // opacity) plus the knobs that differ between chains (bloom intensity / threshold / smoothing, vignette darkness, rays).
 // scripts/browser-lane.sh node progress/shard-platform/sf63-gaps/probe.mjs <preview url> <grid | Card name>
 import { chromium, devices } from 'playwright';
 import { saveFixture } from '../../../scripts/debug-settings.mjs';
 const [base, mode = 'grid'] = process.argv.slice(2);
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext(devices['iPhone 16 Pro']);
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });

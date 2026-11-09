@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // G217 (SF18b / SF58): the full Developer loading screen in 3D on every cell you can't enter, proven in a real browser:
 // Chromium as an iPhone 16 Pro portrait, muted, Settings ▸ Developer on (INFINITE WILDSHARD is Developer-only until SF22).
 //
@@ -29,7 +30,7 @@ const toJpeg = (png, name) => {
   rmSync(tmp, { force: true });
 };
 const out = { url, refuse, started: new Date().toISOString() };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const ctx = await browser.newContext({ ...PHONE, viewport: PHONE.screen });
   await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true });

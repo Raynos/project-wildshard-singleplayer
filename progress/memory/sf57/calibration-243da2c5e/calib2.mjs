@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // SF57 calibration probe 2: per-owner labelled GL + the engine's RAM attribution, public grid home vs standalone
 // Driftwood, texture mode img (the Simulator's mode), Chromium "iPhone 16 Pro", muted. Lists the allocator's claims.
 import { chromium, devices } from '/Users/raynos/projects/games/wildshard-singleplayer/node_modules/playwright/index.mjs';
@@ -10,7 +11,7 @@ const BASE = process.argv[2] ?? 'http://127.0.0.1:4402';
 const OUT = process.argv[3] ?? 'calib2.json';
 const pages = (process.argv[4] ?? 'standalone,public').split(',');
 const out = [];
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--enable-unsafe-swiftshader', '--js-flags=--expose-gc'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--enable-unsafe-swiftshader', '--js-flags=--expose-gc'] });
 for (const page0 of pages) {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'] });
   await context.addInitScript(GL_INIT);

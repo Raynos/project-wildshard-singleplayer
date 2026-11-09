@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // The grid client's browser drive (SHARD-PLATFORM SF18b / SF21a / SF17b): EXPERIMENTAL Wildshard entered from the title
 // (Settings ▸ Developer on), then a hover loop around the home cell on the inner highway ring, sampling the grid session's
 // readout (`__wildshard.shard.grid.state()`) every 250 ms: holes (a visible neighbour not drawn by any level), the allocator's
@@ -25,7 +26,7 @@ const toJpeg = (png, jpg) => {
   execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '78', '--resampleWidth', '603', tmp, '--out', jpg], { stdio: 'ignore' });
   rmSync(tmp, { force: true });
 };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const out = { url, started: new Date().toISOString() };
 try {
   const ctx = await browser.newContext({ ...PHONE, viewport: PHONE.screen });

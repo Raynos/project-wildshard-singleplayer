@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // G219 polish (E435): every open plot from the road at its four entries, a demo corner and a billboard close up, and its
 // centrepiece from across the grid (~530 m, on the boulevard). iPhone 16 Pro portrait, muted, Developer ON.
 // scripts/browser-lane.sh node progress/shard-platform/g219-polish/capture.mjs --url=<preview> --out=<dir> --tag=<before|after>
@@ -29,7 +30,7 @@ for (const plot of PLOTS) {
   { const p = { x: o.x - Math.sign(plot.cell[0]) * 450, z: o.z - Math.sign(plot.cell[1]) * PITCH / 2 };
     POSES.push({ name: `${plot.name}-centre-far`, ...p, yaw: look(p, o), pitch: -0.1 }); }
 }
-const report = { base, tag, shots: [], errors: [] }, browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const report = { base, tag, shots: [], errors: [] }, browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext(devices['iPhone 16 Pro']);
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });

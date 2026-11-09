@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // probe: Driftwood's north jetty from the beach, on foot and on the hoverboard (standalone or in the grid)
 //   node pier.mjs --url=... --mode=standalone|grid --out=<dir>
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -12,7 +13,7 @@ const url = flag('url'), mode = flag('mode', 'standalone'), OUT = resolve(flag('
 mkdirSync(OUT, { recursive: true });
 const PHONE = devices['iPhone 16 Pro'];
 const sleep = (ms) => new Promise((r) => { setTimeout(r, ms); });
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const ctx = await browser.newContext({ ...PHONE, viewport: PHONE.screen });
 await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true });
 await ctx.addInitScript(() => { window.__wildshardHarness = { seed: 357, capture: null }; });

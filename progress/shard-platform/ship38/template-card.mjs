@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM op-ship38: the Template card in SHARD SELECT. For each way in (the cold title, or a loaded shard's title;
 // Developer on), select the Template card, read its buttons, press one (or the Enter key), and record the shard booted.
 //   scripts/browser-lane.sh node progress/shard-platform/ship38/template-card.mjs <preview-url> <out-dir>
@@ -9,7 +10,7 @@ import { saveFixture } from '../../../scripts/debug-settings.mjs';
 const [base, out] = process.argv.slice(2);
 if (!base || !out) throw new Error('usage: template-card.mjs <preview-url> <out-dir>');
 mkdirSync(out, { recursive: true });
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const results = [];
 async function attempt(label, from, press) {
   const row = { label, from, press, buttons: null, booted: null, url: null, errors: [] };

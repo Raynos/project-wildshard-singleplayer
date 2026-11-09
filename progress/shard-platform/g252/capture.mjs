@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // G252 proof: each shard standalone on iPhone 16 Pro portrait (phone tier, muted): the minimap, then Bag ▸ MAP.
 import { writeFileSync } from 'node:fs';
 const ROOT = '/Users/raynos/projects/games/wildshard-singleplayer';
@@ -5,7 +6,7 @@ const { saveFixture } = await import(`${ROOT}/scripts/debug-settings.mjs`);
 const { chromium, devices } = await import(`${ROOT}/node_modules/playwright/index.mjs`);
 const URL0 = process.argv[2], OUT = process.argv[3], SHARDS = process.argv[4].split(',');
 const sleep = (ms) => new Promise((r) => { setTimeout(r, ms); });
-const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
+const browser = await chromium.launch({ headless: true, args: [...KEYCHAIN_ARGS, '--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
 const report = [];
 try {
   for (const slug of SHARDS) {

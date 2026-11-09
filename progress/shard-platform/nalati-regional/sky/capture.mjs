@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // E435 / G223 (SF48-g): the page's one sky before entering Nalati, inside it, and on the road after leaving, twice.
 // Real input through Nalati's west entry and back (from sf48/regional-runtime.mjs); at each stop the camera faces the
 // same way and the shared light is read (sky rig, painterly, grade chain, volumetrics, frame) and a frame captured.
@@ -14,7 +15,7 @@ const visits = Number(flag('visits', '2'));
 if (base === '') throw new Error('Pass --url=<pinned preview> and --out=<receipt>');
 let page;
 const result = { diagnostic: true, base, started: new Date().toISOString(), errors: [], consoleErrors: [] };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext(devices['iPhone 16 Pro']);
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });

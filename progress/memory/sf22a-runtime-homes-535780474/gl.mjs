@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF22a E435: cold Auto play/Explorer coverage, matching the Simulator 30 s phases.
 // Caller holds browser-lane; fresh iPhone 16 Pro contexts, muted Metal, renderer scale 2.
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -14,7 +15,7 @@ if (slugs.some(slug => !/^_?[a-z0-9-]+$/.test(slug)) || new Set(slugs).size !== 
 if (memorySaver !== undefined && !['on', 'off'].includes(memorySaver)) throw new Error('Invalid Memory saver setting');
 const settings = { tex: 'auto', ...(memorySaver === undefined ? {} : { memorySaver }) };
 mkdirSync(out, { recursive: true });
-const browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info'] });
+const browser = await chromium.launch({ channel: 'chromium', args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info'] });
 const records = [];
 try {
   for (let round = 1; round <= 3; round++) for (const slug of slugs) {

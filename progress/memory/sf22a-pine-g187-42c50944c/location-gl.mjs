@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF22a E435: cold Auto, real play/capture/Explorer coverage, matching sim-memory --locations=on.
 // Caller holds browser-lane; fresh iPhone 16 Pro contexts, muted Metal, renderer scale 2.
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -10,7 +11,7 @@ import { saveFixtureCode } from '../../../scripts/debug-settings.mjs';
 const [base, out] = process.argv.slice(2);
 if (!base || !out) throw new Error('location-gl.mjs <preview-url> <out>');
 mkdirSync(out, { recursive: true });
-const browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info'] });
+const browser = await chromium.launch({ channel: 'chromium', args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info'] });
 const records = [];
 try {
   for (let round = 1; round <= 3; round++) {

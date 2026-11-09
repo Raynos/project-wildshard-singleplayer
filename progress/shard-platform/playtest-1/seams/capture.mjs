@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // G222 / SF17b (agent playtest round 1, item 4): the 60-100 m grey seam cliffs at the grid's road edges, before / after,
 // from the playtest's own spots (home-relative: the boulevard at (±150..240, −280), the x = −279 road looking north).
 // Chromium as an iPhone 16 Pro portrait, muted, Settings ▸ Developer on (the Developer catalogue).
@@ -26,7 +27,7 @@ const toJpeg = (png, name) => {
   rmSync(tmp, { force: true });
 };
 const out = { url, label, started: new Date().toISOString() };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const ctx = await browser.newContext({ ...PHONE, viewport: PHONE.screen });
   await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true });

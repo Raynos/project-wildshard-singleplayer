@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // capture.mjs <spec.json> — deterministic frame-stepped capture of a served build, iPhone portrait 1080x1920.
 // spec: { url, out (dir), fps, seconds, loadWaitSec, setup (js, once after load), frame (js body using `t`),
 //         hideDom (bool: hide everything but the canvas), clock (bool: fake clock stepping, default true),
@@ -11,7 +12,7 @@ const __hide = async (page, css = '') => { await page.evaluate(() => { let best 
 const spec = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 const fps = spec.fps ?? 30, n = Math.round((spec.seconds ?? 8) * fps);
 fs.mkdirSync(spec.out, { recursive: true });
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const ctx = await browser.newContext({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true,
   userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1' });
 const page = await ctx.newPage();

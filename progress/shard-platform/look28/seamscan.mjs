@@ -1,8 +1,9 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // op-look28 scratch: which meshes carry faces in a cell-edge plane (any parent), and the grid's seam features
 import { chromium, devices } from 'playwright';
 import { saveFixture } from '/Users/raynos/projects/games/wildshard-singleplayer/scripts/debug-settings.mjs';
 const [base] = process.argv.slice(2);
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] });
   await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true });

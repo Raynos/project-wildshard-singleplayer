@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM op-ship38 (G326, E435): the push-CI boot smoke's own standalone case (scripts/parity/boot-smoke.mjs
 // `bootCase`: the real title ▸ SHARD SELECT ▸ ENTER WORLD, ten live gameplay frames, no fatal / console error / HTTP error)
 // on each shard's shardfile folder (`?chunk=<slug>` is the shardfile shard since SF73; its legacy copy is `<slug>-legacy`).
@@ -10,7 +11,7 @@ import { bootCase } from '../../../scripts/parity/boot-smoke.mjs';
 const [base, out, list] = process.argv.slice(2);
 if (!base || !out || !list) throw new Error('usage: boot.mjs <preview-url> <out-dir> <slug[:dev],...>');
 mkdirSync(out, { recursive: true });
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 let failed = 0;
 try {
   for (const item of list.split(',')) {

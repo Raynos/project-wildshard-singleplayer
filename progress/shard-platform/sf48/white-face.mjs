@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF48-g / E435: diagnostic visibility ablation only; no production rendering change.
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
@@ -6,7 +7,7 @@ import { saveFixture } from '../../../scripts/debug-settings.mjs';
 const arg = key => process.argv.find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3) ?? '';
 const base = arg('url'), out = arg('out'); if (!base || !out) throw new Error('Pass --url and --out');
 mkdirSync(out, { recursive: true });
-const report = { base, poses: [], errors: [] }, browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const report = { base, poses: [], errors: [] }, browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext(devices['iPhone 16 Pro']);
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });

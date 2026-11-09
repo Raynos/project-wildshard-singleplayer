@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM SF19b (E435): Signal Dunes (G94), Nalati (G96) and Nine Dragon (G95) under the grid's one frame (G158,
 // G175's 16 m edge blend), as regression evidence. A DEVSERVER build (Nine Dragon's cell is DEVSERVER-only), Developer on,
 // phone tier / 2x, one muted Metal iPhone 16 Pro portrait context per shard, entered from the ordinary title.
@@ -30,7 +31,7 @@ const SHARDS = [
 ].filter((row) => !only || row.slug === only);
 const report = { version: await (await fetch(new URL('version.json', base))).json(), started: new Date().toISOString(), shards: {} };
 const save = () => writeFileSync(join(out, 'capture.json'), `${JSON.stringify(report, null, 2)}\n`);
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const frameReadout = (page) => page.evaluate(() => {
   const s = window.__wildshard.shard.grid.state(), live = s.live?.live;
   const bands = []; window.__wildshard.requireWorld().game.scene.traverse((o) => { if (o.name === 'haze-band') bands.push({ visible: o.visible, colour: o.material.uniforms.uColour.value.toArray() }); });

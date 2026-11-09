@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF46 part 2: walk Driftwood's four midpoint entries road <-> shard inside the live grid (INFINITE WILDSHARD), hybrid row ON.
 // scripts/browser-lane.sh node progress/shard-platform/sf46/grid-walk.mjs --url=<served build> --out=<json>
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -14,7 +15,7 @@ const legs = route.filter((l) => / (in|out)$/u.test(l.name)).map((l) => {
   if (l.name.endsWith(' in')) { const s = out(l.start); return { ...l, name: `${l.name} (road)`, start: { x: s.x, z: s.z, yaw: l.start.yaw }, waypoints: [{ x: l.start.x, z: l.start.z }, ...l.waypoints] }; }
   return { ...l, name: `${l.name} (road)`, waypoints: [...l.waypoints, out(l.waypoints.at(-1))] };
 });
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const result = { row: ROW, base: BASE, legs: [], errors: [] };
 try {
   const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] }), page = await ctx.newPage();

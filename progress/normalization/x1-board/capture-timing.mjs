@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // Controlled live-game before/after reproduction; run through scripts/browser-lane.sh.
 import { chromium } from 'playwright';
 import { writeFileSync, mkdirSync } from 'node:fs';
@@ -11,7 +12,7 @@ mkdirSync(captureOutput, { recursive: true });
 const exported = url.startsWith('rev:') ? await cachedTree(resolve('.'), url.slice(4)) : null;
 const preview = exported ? await serve(exported.tree, url.slice(4), true) : null;
 const origin = preview?.url ?? url;
-const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
+const browser = await chromium.launch({ headless: true, args: [...KEYCHAIN_ARGS, '--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
 try {
   for (const scenarioName of requested ? [requested] : ['buffer', 'coyote']) {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, serviceWorkers: 'block', recordVideo: { dir: captureOutput, size: { width: 390, height: 844 } } });

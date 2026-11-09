@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF63 cumulus (SHARD-PLATFORM, E435): why Driftwood's layered cumulus ring is not seen inside its grid cell. A Developer-ON
 // grid boot, a pose onto the road, a held-input drive to the entry stop, then the layered dome's draw state (render order,
 // depth, blend, world position vs the camera, the camera's near / far) and every visible depth-writing mesh past 600 m,
@@ -13,7 +14,7 @@ if (!base || !out) throw new Error('Pass --url and --out');
 mkdirSync(out, { recursive: true });
 const W = Math.PI / 2;
 const report = { base, errors: [] };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext(devices['iPhone 16 Pro']);
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });

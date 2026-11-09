@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // Run through scripts/browser-lane.sh; preview and browser close even on a failed assertion.
 import { chromium } from 'playwright';
 import { writeFileSync } from 'node:fs';
@@ -8,7 +9,7 @@ import { installInit } from '../../../scripts/parity/init.mjs';
 const [sha, output] = process.argv.slice(2);
 const exported = await cachedTree(resolve('.'), sha);
 const preview = await serve(exported.tree, sha, true);
-const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
+const browser = await chromium.launch({ headless: true, args: [...KEYCHAIN_ARGS, '--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
 try {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
   await installInit(context, { lane: 'm5', sha, browser: browser.version(), capture: 30, tier: 'phone' });

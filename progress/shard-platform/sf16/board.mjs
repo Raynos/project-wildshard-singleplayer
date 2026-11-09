@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM SF16, the M1 look board: today's template (the legacy chunk, ?chunk=_template on the built client)
 // beside the template booted from its shardfile through the real client (the same build with the template's shardfile
 // embedded: the plain clientWorld + water + exported creatures + the look), six matched cameras, SSIM per pair.
@@ -42,7 +43,7 @@ const CAMERAS = [
 
 const [legacyServer, clientServer] = await Promise.all([serve(legacyDir), serve(clientDir)]);
 const port = (server) => { const address = server.address(); if (address === null || typeof address === 'string') throw new Error('no port'); return address.port; };
-const browser = await chromium.launch({ headless: true, args: ['--mute-audio', '--use-angle=metal'] });
+const browser = await chromium.launch({ headless: true, args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal'] });
 try {
   const open = async (lane) => {
     const context = await browser.newContext({ ...devices['iPhone 16 Pro'] });

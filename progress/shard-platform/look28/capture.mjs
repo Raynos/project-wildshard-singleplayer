@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM op-look28 (from op-look28's, E435, SF63 / G158; adds NINE_DUMP=1: Nine's shared uniforms and kit meshes): each shard in a grid cell against SHARD SELECT, at the same pose.
 // Per shard, one muted Metal iPhone 16 Pro portrait context per shot, Developer on, phone tier / 2x, Memory saver on
 // (op-frame21's setup):
@@ -19,7 +20,7 @@ if (!base || !out || !slugs) throw new Error('usage: capture.mjs <preview-url> <
 mkdirSync(out, { recursive: true });
 const report = { version: await (await fetch(new URL('version.json', base))).json(), started: new Date().toISOString(), shards: {} };
 const save = () => writeFileSync(join(out, 'capture.json'), `${JSON.stringify(report, null, 2)}\n`);
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 
 async function context(row, composite) {
   const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] });

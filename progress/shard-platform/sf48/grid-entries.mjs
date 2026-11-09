@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF48-g: Nalati's four midpoint entries inside the live grid (INFINITE WILDSHARD, Nalati the home cell).
 // One page does three things: (1) scans each 8 x 15 m socket footprint with downward rays through the live physics
 // world (any static surface above road height, or water over it, is a blocker), (2) walks every entry road <-> shard
@@ -13,7 +14,7 @@ const BASE = flag('url', ''), OUT = flag('out', '.'), SHOTS = flag('shots', '1')
 const SLUG = 'nalati-grasslands';
 const route = JSON.parse(readFileSync(`${ROOT}/progress/shard-platform/sf48/entries-route.json`, 'utf8'))[SLUG];
 mkdirSync(OUT, { recursive: true });
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const result = { base: BASE, footprints: [], legs: [], shots: [], errors: [] };
 try {
   const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] }), page = await ctx.newPage();

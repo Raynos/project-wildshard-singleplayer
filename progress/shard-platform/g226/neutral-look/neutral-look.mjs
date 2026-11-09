@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // G226 neutral-look: boot each hybrid home (Driftwood, Pine Hollow, Nalati) as a Developer-ON owned-shell grid page and
 // count shader compile failures. Per home: the title's one-shot grid intent, Developer on, iPhone 16 Pro portrait, muted;
 // wait for the live grid, force-compile the whole root scene (`renderer.compile`, so off-screen materials count too), then
@@ -14,7 +15,7 @@ mkdirSync(OUT, { recursive: true });
 // one open view per home besides its spawn (Driftwood: the parity 'beach' pose, the sea and the island in one frame)
 const POSES = { 'driftwood-isle': { x: -10, z: -150, yaw: 4.3, pitch: -0.04 } };
 const shaderError = (text) => /Shader Error|ERROR: \d+:\d+|VALIDATE_STATUS false|Program Info Log|undeclared identifier/u.test(text);
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const results = [];
 try {
   for (const slug of SLUGS) {

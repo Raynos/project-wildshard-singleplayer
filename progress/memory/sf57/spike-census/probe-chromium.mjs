@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // SF57 spike probe (Chromium, desktop): drive the shipped public cells circuit and attribute WC-side allocation bursts.
 // node probe.mjs <base> <out.json> [circuits=2]
 import { chromium, devices } from '/Users/raynos/projects/games/wildshard-singleplayer/node_modules/playwright/index.mjs';
@@ -14,7 +15,7 @@ const entry = soakGridEntry('shipped');
 const fixtures = [saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0 } }),
   saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
   saveFixtureCode({ scope: 'device', key: 'devMode', data: false }), entry.fixture].join(';');
-const browser = await chromium.launch({ channel: 'chromium', headless: true, args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info', '--js-flags=--expose-gc'] });
+const browser = await chromium.launch({ channel: 'chromium', headless: true, args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info', '--js-flags=--expose-gc'] });
 const out = { base, timeline: [], routes: [], profiles: [] };
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: 'block' });

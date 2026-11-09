@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM op-frame21 (E435, SF63 / G158): does a shard's own post composite (ExtendLook.cell) draw in the grid?
 // Per shard (Nine Dragon: the Jiehua composite; Sky Reach: its NEUTRAL tone curve), one muted Metal iPhone 16 Pro portrait
 // context per run, Developer on, phone tier / 2x, Memory saver on (op-lut20's setup):
@@ -28,7 +29,7 @@ const SHARDS = [
 ].filter((row) => !only || row.slug === only);
 const report = { version: await (await fetch(new URL('version.json', base))).json(), started: new Date().toISOString(), shards: {} };
 const save = () => writeFileSync(join(out, 'capture.json'), `${JSON.stringify(report, null, 2)}\n`);
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 
 async function context(row, lut) {
   const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] });

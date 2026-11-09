@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM G224 adopt (SF8c): ride Nine Dragon's portals, now the format's portalLink entries and its checked
 // transfer, in a real browser (iPhone 16 Pro portrait, muted, Developer ON): for each of the four road-height decks,
 // stand on the deck, walk in along it (the normal move input, no teleport of ours) until its ring sends you to Lantern
@@ -13,7 +14,7 @@ import { saveFixture } from '../../../../scripts/debug-settings.mjs';
 
 const arg = (name, fallback) => process.argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const URL0 = arg('url', 'http://127.0.0.1:4400/').replace(/\/$/u, ''), OUT = import.meta.dirname;
-const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
+const browser = await chromium.launch({ headless: true, args: [...KEYCHAIN_ARGS, '--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
 const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 const report = { build: null, date: new Date().toISOString(), rides: [], errors: [] };
 // the deck frames (world/portalPlan.ts): edge midpoint and inward axis

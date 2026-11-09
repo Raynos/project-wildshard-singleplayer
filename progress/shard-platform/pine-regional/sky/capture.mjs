@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // E435 / G223 (pine-sky): Pine Hollow standalone vs Pine entered from the grid with Settings ▸ Debug ▸ Region sky on A (one
 // grid sky) or B (the region's own), at the same cell-local poses; a WebGL byte census at every stop; and the road sky read
 // before entry, after leaving and after re-entering + leaving again (it must come back exactly).
@@ -20,7 +21,7 @@ const POSES = [
 ];
 const ROAD = { label: 'road', x: 277.5, z: 0, yaw: Math.PI / 2, pitch: 0.05 };
 const result = { diagnostic: true, base, mode, sky, dev, started: new Date().toISOString(), errors: [], consoleErrors: [], stops: [] };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 let page;
 // what the frame draws and what lights it (runs in the browser)
 const census = () => {

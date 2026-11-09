@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 import { chromium, devices } from 'playwright';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { saveFixture } from '../../../../scripts/debug-settings.mjs';
@@ -9,7 +10,7 @@ mkdirSync(out, { recursive: true });
 const report = { base, device: 'iPhone 16 Pro', errors: [], stages: [] };
 const stage = value => { report.stages.push(value); console.log('stage', value.stage); };
 let page;
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: 'allow' });
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });

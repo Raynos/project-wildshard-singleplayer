@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM G200: the standalone arrival caps, captured standalone and in the grid (iPhone 16 Pro portrait, muted).
 // Sky Reach: from the north gate isle down the chains to the resting islet and the sky dock, and on the dock looking out.
 // Nine Dragon (nineDragonEntries ON): on the north lift deck looking out at its open end. Each page also probes the cap's
@@ -13,7 +14,7 @@ const arg = (n, d) => process.argv.find((a) => a.startsWith(`--${n}=`))?.slice(n
 const URL0 = arg('url', 'http://127.0.0.1:4401/').replace(/\/$/u, ''), SLUG = arg('shard', 'far-reach'), GRID = arg('grid', '0') === '1', OUT = import.meta.dirname;
 const MODE = GRID ? 'grid' : 'standalone', TAG = SLUG === 'far-reach' ? 'skyreach' : 'ninedragon';
 const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
-const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
+const browser = await chromium.launch({ headless: true, args: [...KEYCHAIN_ARGS, '--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
 const report = { url: URL0, shard: SLUG, mode: MODE, date: new Date().toISOString(), probes: {}, shots: [], errors: [] };
 try {
   const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] }), page = await ctx.newPage();

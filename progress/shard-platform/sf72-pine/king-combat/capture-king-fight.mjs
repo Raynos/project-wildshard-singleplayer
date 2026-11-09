@@ -1,10 +1,11 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
 import { saveFixture } from '../../../../scripts/debug-settings.mjs';
 
 const url = process.argv[2], output = process.argv[3];
 if (!url || !output) throw new Error('Expected preview URL and output path');
-const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--mute-audio'] });
+const browser = await chromium.launch({ headless: true, args: [...KEYCHAIN_ARGS, '--use-angle=metal', '--mute-audio'] });
 const errors = [];
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], deviceScaleFactor: 2 });

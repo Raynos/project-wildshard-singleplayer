@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // SF57 place-lifetime: Chromium (muted, iPhone 16 Pro, Developer on, phone tier, 2x) drives the D -> P -> N -> template
 // -> D cell circuit N times (the pmrem lane's ../pmrem/drive.mjs route). After every leg it reads the placement census
 // (the probe's `app.placement`: live worlds, model records, groups, per-frame cullers). At home after each circuit it
@@ -25,7 +26,7 @@ const fixtures = [
   saveFixtureCode({ scope: 'device', key: 'devMode', data: true }),
 ].join(';');
 
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
 const result = { base: BASE, circuits: CIRCUITS, samples: [], heap: [], errors: [] };
 const save = () => { writeFileSync(join(OUT, 'result.json'), `${JSON.stringify(result, null, 2)}\n`); };
 try {

@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // SF57 PMREM: Chromium (muted, iPhone 16 Pro, Developer on) drives the D -> P -> N -> template -> D cell circuit N times
 // and reads the live PMREM cube-UV GL allocations (scripts/parity/glbytes.mjs census) after every leg; screenshots two
 // fixed poses at home after circuits 1 and N for the pixel diff.
@@ -21,7 +22,7 @@ const fixtures = [
   saveFixtureCode({ scope: 'device', key: 'devMode', data: true }),
 ].join(';');
 
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
 const result = { base: BASE, circuits: CIRCUITS, samples: [], shots: [], errors: [] };
 const save = () => { writeFileSync(join(OUT, 'result.json'), `${JSON.stringify(result, null, 2)}\n`); };
 try {

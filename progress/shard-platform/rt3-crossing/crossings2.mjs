@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // rt3-crossing (part 2: full program keys, per-frame program census, --profile=<slugs> CPU profiles per leg): time each grid crossing (Chromium, iPhone 16 Pro, muted, Developer on, phone tier, 2x, 4x CPU).
 // Route: Driftwood home -> Pine -> Nalati -> Sky Reach -> Driftwood (re-entry), through the real fixed-step road drive.
 //   scripts/browser-lane.sh node crossings.mjs --base=http://127.0.0.1:44xx/ --out=<dir> [--cpu=4]
@@ -65,7 +66,7 @@ const SAMPLER = () => {
   }, 100);
   window.__rt3 = { rows, gaps, tasks, progs, completed: () => { try { return window.__wildshard.shard.grid.state().live?.runtimeTiming?.completed ?? []; } catch { return []; } } };
 };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
 const result = { base: BASE, cpu: CPU, legs: [], errors: [], console: [] };
 const save = () => { writeFileSync(join(OUT, 'result.json'), `${JSON.stringify(result, null, 1)}\n`); };
 try {

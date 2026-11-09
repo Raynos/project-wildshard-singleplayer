@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // parity-triage: does the page answer from the SF67 geometry table? <url> <shard> <tier> <chromium|webkit> <served|blocked> <out.json>
 // Run through scripts/browser-lane.sh. Muted, iPhone 16 Pro for the phone tier, Developer on (the parity fixture).
 import { writeFileSync } from 'node:fs';
@@ -5,7 +6,7 @@ import { chromium, webkit, devices } from 'playwright';
 const ROOT = '/Users/raynos/projects/games/wildshard-singleplayer';
 const { developerSettings, hideDeveloperOverlays } = await import(`${ROOT}/scripts/debug-settings.mjs`);
 const [url, shard, tier, engine, mode, out] = process.argv.slice(2);
-const browser = engine === 'webkit' ? await webkit.launch() : await chromium.launch({ channel: 'chromium', args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = engine === 'webkit' ? await webkit.launch() : await chromium.launch({ channel: 'chromium', args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext(tier === 'phone' ? { ...devices['iPhone 16 Pro'], serviceWorkers: 'block' } : { viewport: { width: 1600, height: 900 }, serviceWorkers: 'block' });
   await developerSettings(context, { time: 'midday', weather: 'clear' });

@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // G208: classify Pine's whole presentation (standalone SHARD SELECT boot, level frame = cell frame) into L1 ring chunks,
 // shared dependencies and cell-wide (non-streaming) drawables, beside the labelled GL census.
 // scripts/browser-lane.sh --max 15 node progress/memory/g208-pine-rings/standalone.mjs <base> <out.json> <preflight.iife.js>
@@ -10,7 +11,7 @@ const [base, out, bundle] = process.argv.slice(2);
 const version = await (await fetch(new URL('version.json', base))).json();
 const report = { version, errors: [] };
 const save = () => writeFileSync(out, JSON.stringify(report, null, 2) + '\n');
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: 'block' });
 try {
   await saveFixture(context, { scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto' }, merge: true });

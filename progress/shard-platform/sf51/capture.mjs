@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF51-g: portrait frames of one Nine Dragon entry deck (the north one) for Jake's board, row on (and one with it off).
 // The player is posed (the standalone world has no road: the grid draws it): at the deck's mouth looking in (the road's
 // view), and on the end wall's top looking back out over the deck (from above).
@@ -14,7 +15,7 @@ const POSES = [
   { name: 'road', x: 0, z: 249.6, y: 0, yaw: 0, pitch: 0.12 },
   { name: 'above', x: 0, z: 233.6, y: 6, yaw: Math.PI, pitch: -0.55 },
 ];
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] }), page = await ctx.newPage();
   await saveFixture(ctx, { scope: 'global', key: 'settings', data: { tier: 'phone' }, merge: true });

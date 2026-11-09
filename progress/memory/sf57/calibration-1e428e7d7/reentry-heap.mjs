@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // SF57 re-entry witness: boot the public grid page on the borrowed Driftwood home, leave to the road and come back
 // twice, and count the per-entry installs each time (they must appear exactly once and still work); diff colliders.
 import { writeFileSync } from 'node:fs';
@@ -7,7 +8,7 @@ import { publicGridIntentCode } from '/Users/raynos/projects/games/wildshard-sin
 const BASE = process.argv[2] ?? 'http://127.0.0.1:4401';
 const VISITS = Number(process.argv[3] ?? 2);
 const OUT = '/private/tmp/claude-501/sp-builders/sf57-qualify2';
-const browser = await chromium.launch({ args: ['--js-flags=--expose-gc', '--enable-precise-memory-info', '--mute-audio', '--use-angle=metal', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--js-flags=--expose-gc', '--enable-precise-memory-info', '--mute-audio', '--use-angle=metal', '--enable-unsafe-swiftshader'] });
 const context = await browser.newContext({ ...devices['iPhone 16 Pro'] });
 await context.addInitScript({ content: 'window.__wildshardHarness={seed:357,capture:null};' });
 await context.addInitScript(publicGridIntentCode({ instance: 'driftwood-isle', slug: 'driftwood-isle' }));

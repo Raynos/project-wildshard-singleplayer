@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from './chromium-keychain.mjs';
 // Real phone-profile visits of one finished artifact. No game service stubs.
 import { chromium, webkit, devices } from 'playwright';
 import { readFileSync } from 'node:fs';
@@ -12,7 +13,7 @@ if (base === undefined) throw new Error('Usage: prove-release.mjs https://staged
 const selected = process.argv.filter(arg => arg.startsWith('--browser='));
 if (selected.length > 1 || selected.some(arg => !['--browser=Chromium', '--browser=WebKit'].includes(arg))) throw new Error('Select exactly one of Chromium or WebKit, or omit --browser to prove both');
 const phones = [['Chromium', chromium], ['WebKit', webkit]].filter(([name]) => selected.length === 0 || selected[0] === `--browser=${name}`);
-const chromiumArgs = ['--mute-audio', '--use-mock-keychain', '--password-store=basic'];
+const chromiumArgs = [...KEYCHAIN_ARGS, '--mute-audio'];
 const staged = process.argv.includes('--vercel');
 const extended = staged || process.argv.includes('--extended');
 if (staged && !/^https:\/\/(?:wildshard-singleplayer-[a-z0-9]+-raynos-projects|wildshard-singleplayer)\.vercel\.app\/?$/u.test(base)) throw new Error('Vercel proof requires this project\'s deployment or production HTTPS origin');

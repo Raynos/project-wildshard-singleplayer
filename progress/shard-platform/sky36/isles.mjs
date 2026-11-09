@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM op-sky36 (E435, the coordinator's pick for Jake): Sky Reach's island shapes draw from the session's
 // cosmetic random stream (world/build.ts → world/isle.ts islandMesh), so every live session builds a different set. This
 // shoots SHARD SELECT (?chunk=far-reach) at two poses for three live sessions (no harness seed: each page draws its own
@@ -16,7 +17,7 @@ const SESSIONS = [{ name: 'live-1', seed: null }, { name: 'live-2', seed: null }
 // the spawn view (the windmill isle and the sky isles past it) and a turn to the right (the roost and grove isles)
 const POSES = [{ name: 'spawn', turn: 0, pitch: -0.05 }, { name: 'right', turn: -Math.PI / 2, pitch: 0.02 }];
 const report = { sessions: {} };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   for (const session of SESSIONS) {
     const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] });

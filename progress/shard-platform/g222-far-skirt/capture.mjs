@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // G222 / SF23 (E435): road captures of the far proxies' border faces at sp-x3's poses (SF48-g) and north of Pine Hollow.
 // scripts/browser-lane.sh node progress/shard-platform/g222-far-skirt/capture.mjs --url=<preview> --out=<dir> --tag=<before|after>
 import { writeFileSync, mkdirSync } from 'node:fs';
@@ -13,7 +14,7 @@ const POSES = [
   { name: 'pine-north', x: -150, z: 832.5, yaw: -Math.PI / 2, pitch: 0.12 },
   { name: 'pine-north-face', x: 0, z: 836, yaw: 0, pitch: 0.18 },
 ];
-const report = { base, tag, poses: [], errors: [] }, browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const report = { base, tag, poses: [], errors: [] }, browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext(devices['iPhone 16 Pro']);
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });

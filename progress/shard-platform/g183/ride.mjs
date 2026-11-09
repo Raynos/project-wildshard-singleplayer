@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM SF49-g (G183): walk and ride each of Sky Reach's four Rising Islet entries in a real browser (iPhone 16 Pro
 // portrait, muted): from the stone lip at the road socket's far edge onto the resting islet,
 // ride it up its chains to the gate isle (the KinematicMover carries the player; no teleport), then walk the gate isle, the
@@ -11,7 +12,7 @@ import { walkPhysicsLeg } from '../../../scripts/physics-walk.mjs';
 
 const arg = (name, fallback) => process.argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const URL0 = arg('url', 'http://127.0.0.1:4402/').replace(/\/$/u, ''), ONLY = arg('edge', ''), OUT = import.meta.dirname;
-const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
+const browser = await chromium.launch({ headless: true, args: [...KEYCHAIN_ARGS, '--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
 const report = { build: null, date: new Date().toISOString(), entries: [] }, route = { $doc: '', 'far-reach': [] };
 const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 try {

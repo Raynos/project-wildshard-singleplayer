@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../chromium-keychain.mjs';
 // run.mjs: the SF9b / SF10a follow-up board (SHARD-PLATFORM, E435): declared props keep their material family's shader,
 // and the PBR family's flat-shading option. Builds board.js (vite's API) into a scratch dir, serves it with the template
 // shard's assets on one local port, opens one muted headless Chromium on Metal as the iPhone 16 Pro, draws each row
@@ -44,7 +45,7 @@ await new Promise((resolve) => { server.listen(0, '127.0.0.1', () => { resolve(u
 const address = server.address();
 const base = `http://127.0.0.1:${typeof address === 'object' && address ? address.port : 0}`;
 
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const rows = [];
 try {
   for (const kind of ['toon', 'painterly', 'pool']) {

@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // G227 (E435): today's Nalati terrain vs the same terrain redrawn as 62.5 m tiles with the painterly family's painted-terrain
 // layer (the probe's `shard.terrainTiles` handle: look/terrainTiles.ts at e2fa752de, taken out of the shard after the
 // capture so the shard keeps no test-only engine edges; re-apply it from that commit to re-run). iPhone 16 Pro portrait, muted, fixed poses, both
@@ -19,7 +20,7 @@ const POSES = [
   { name: 'crags', x: -120, z: -60, yaw: 2.2, pitch: -0.05 },
 ];
 const report = { base, tier, poses: [], errors: [] };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext(devices['iPhone 16 Pro']);
   await context.addInitScript(() => { window.__wildshardHarness = { seed: 357, capture: null }; });

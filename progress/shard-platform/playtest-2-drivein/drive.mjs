@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // Playtest round 2, the drive-in rows (SHARD-PLATFORM, E435): a Developer-ON grid boot, a pose onto the road only, then a
 // held-input drive into the cell (never a teleport inside it), and the captures at each stop.
 // scripts/browser-lane.sh node progress/shard-platform/playtest-2-drivein/drive.mjs --url=<preview> --out=<dir> --tag=<before|after> --scene=<plot|nalati|pine> [--settings='{"regionSky":"own"}']
@@ -29,7 +30,7 @@ const SCENES = {
 const plan = SCENES[scene];
 if (!plan) throw new Error(`Unknown scene ${scene}`);
 const report = { base, tag, scene, stops: [], errors: [], console: [] };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext(devices['iPhone 16 Pro']);
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });

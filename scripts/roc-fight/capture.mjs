@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../chromium-keychain.mjs';
 // G393 baseline (sp-o130): the Storm Roc fight in a real served build, on the capture clock with pinned randomness
 // (scripts/parity/init.mjs: Math.random seeded, the game advances 1/30 s per drawn frame and only when the harness
 // releases frames), as an iPhone 16 Pro portrait page. The page has no tape replay, so the fight is staged as play reaches
@@ -177,7 +178,7 @@ function windows(list, end) {
   return merged;
 }
 
-const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--mute-audio'] });
+const browser = await chromium.launch({ headless: true, args: [...KEYCHAIN_ARGS, '--use-angle=metal', '--mute-audio'] });
 /** @type {Row[]} */
 let logA;
 let found;

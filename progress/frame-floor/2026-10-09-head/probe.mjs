@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF69 probe: the floor's desktop setup (1440x900 @2, desktop tier, fps auto, Developer on), grid entered by the title tap,
 // then timing at a pose with experiments.
 //   scripts/browser-lane.sh node progress/shard-platform/sf69/probe.mjs --url=<serve-build base> [--pose=spawn|grid-crossroads|grid-deck-north|grid-deck-east|template]
@@ -13,7 +14,7 @@ const fixture = [
   saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
   saveFixtureCode({ scope: 'device', key: 'devMode', data: arg('dev', '1') !== '0' }),
 ].join(';');
-const browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ channel: 'chromium', args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const out = { base, pose: poseName };
 try {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, serviceWorkers: 'block' });

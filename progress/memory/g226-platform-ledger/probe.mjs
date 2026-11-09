@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -11,7 +12,7 @@ const report = { version: await (await fetch(new URL('version.json', base))).jso
   protocol: 'One muted Chromium/Metal iPhone 16 Pro, Developer ON, live input crossings. Claims count retained resources; hidden is not freed.',
   driverHash: createHash('sha256').update(`${stageFloorGrid.toString()}\n${driveFloorGrid.toString()}`).digest('hex'), snapshots: [], routes: [], errors: [], console: [], assetRequests: [] };
 const save = () => writeFileSync(out, `${JSON.stringify(report, null, 2)}\n`);
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: 'block' });
   await saveFixture(context, { scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex: 'auto' }, merge: true });

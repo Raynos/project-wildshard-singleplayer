@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // E435 G216: caller holds browser-lane; sequential fresh phone contexts in one muted Metal browser.
 import { chromium, devices } from 'playwright';
 import { saveFixtureCode } from '../../../scripts/debug-settings.mjs';
@@ -5,7 +6,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 const [base, out, rev] = process.argv.slice(2);
 if (!base || !out || !rev) throw new Error('browser.mjs <preview> <output> <revision>');
 mkdirSync(out, { recursive: true });
-const browser = await chromium.launch({ channel:'chromium', args:['--mute-audio','--use-angle=metal','--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ channel:'chromium', args:[...KEYCHAIN_ARGS, '--mute-audio','--use-angle=metal','--ignore-gpu-blocklist'] });
 const results = [];
 try {
 for (const variant of [{slug:'pine-hollow',dev:false}, {slug:'pine-hollow',dev:true}, {slug:'driftwood-isle',dev:false}, {slug:'grid',dev:true}]) {

@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM op-look28 (E435, SF23 open item): do the neighbours' far-proxy skirts still hide G90's retaining walls?
 // One muted Metal iPhone 16 Pro portrait context, Developer on, phone tier / 2x. In the grid it finds the seam's tallest
 // retaining-wall faces (vertical triangles 27.5 m off a road centre line, the cell-edge plane, more than 5 m tall, outside
@@ -12,7 +13,7 @@ import { saveFixture } from '../../../scripts/debug-settings.mjs';
 const [base, out, count = '3'] = process.argv.slice(2);
 if (!base || !out) throw new Error('usage: wall.mjs <preview-url> <out-dir> [count]');
 mkdirSync(out, { recursive: true });
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const report = { version: await (await fetch(new URL('version.json', base))).json(), walls: [] };
 try {
   const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] });

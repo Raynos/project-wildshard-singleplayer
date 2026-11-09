@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
 import { saveFixture } from '../../../scripts/debug-settings.mjs';
@@ -6,7 +7,7 @@ const [base, out, mode = 'both'] = process.argv.slice(2);
 const version = await (await fetch(new URL('version.json', base))).json();
 const report = { version, grid: { snapshots: [], errors: [], console: [] }, warning: {} };
 const save = () => writeFileSync(out, JSON.stringify(report, null, 2) + '\n');
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
  if (mode !== 'warning') {
  const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: 'block' });

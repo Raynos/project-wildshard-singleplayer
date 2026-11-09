@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM SF52 / G220 pass 2: Template 1's districts and each grid copy's own landmarks, captured in a real browser
 // (Chromium as an iPhone 16 Pro portrait, muted, Settings ▸ Developer on, a build of the candidate tree).
 //
@@ -29,7 +30,7 @@ const jpeg = (png, name) => {
   execFileSync('sips', ['-Z', '1600', '-s', 'format', 'jpeg', '-s', 'formatOptions', '72', tmp, '--out', join(OUT, `${name}.jpg`)], { stdio: 'ignore' });
   rmSync(tmp); console.log('captured', name);
 };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const log = { url, legs: [] };
 const errors = [];
 

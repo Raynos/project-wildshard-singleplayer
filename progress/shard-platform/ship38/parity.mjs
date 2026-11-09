@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM op-ship38 (G326, E435): legacy against shardfile at the same poses, entered the way SHARD SELECT does it
 // (Developer on: main menu ▸ SHARD SELECT ▸ the card ▸ LEGACY / SHARDFILE; no URL switch picks the copy). Muted iPhone 16
 // Pro portrait, phone tier, Developer on, clock parked at midday, clear weather, the HUD hidden. The legacy side boots
@@ -17,7 +18,7 @@ mkdirSync(out, { recursive: true });
 const slugOf = card.toLowerCase().replace(/[^a-z]+/gu, '-');
 const report = { base, card, version: null, sides: {}, poses: [], diffs: [] };
 const hideHud = page => page.addStyleTag({ content: '#hud, .ws-toast, .ws-hints, .ws-minimap, .ws-touch, .ws-grid-banner, .ws-dev-banner, [class*="ws-memory"] { visibility: hidden !important; }' });
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 
 async function side(mode) {
   const row = { mode, errors: [], consoleErrors: [], shard: null, bootMs: null, shots: [] };

@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // G252b proof: iPhone 16 Pro portrait (phone tier, muted, Developer on). Standalone shards: the HUD minimap, then Bag ▸ MAP.
 // The grid (INFINITE WILDSHARD from the title): inside the home cell, on the road deck, the full MAP, then inside a template
 // copy reached by real travel (the frame floor's template route), its minimap and MAP.
@@ -9,7 +10,7 @@ const { chromium, devices } = await import(`${ROOT}/node_modules/playwright/inde
 const { gridFloorPlans, gridFloorDocumentIdentity, runFloorGridRoute } = await import(`${ROOT}/scripts/frame-floor-grid.mjs`);
 const URL0 = process.argv[2], OUT = process.argv[3], SHARDS = process.argv[4] === '-' ? [] : process.argv[4].split(','), GRID = process.argv[5] === 'grid';
 const sleep = (ms) => new Promise((r) => { setTimeout(r, ms); });
-const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
+const browser = await chromium.launch({ headless: true, args: [...KEYCHAIN_ARGS, '--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
 const report = [];
 async function context(harness = false) {
   const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] });

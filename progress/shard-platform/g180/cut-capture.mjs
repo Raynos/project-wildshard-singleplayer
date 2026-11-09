@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // G180 (E435): one content-cut variant of Pine Hollow, measured and captured the same way for the board. The scratch build
 // (a dangling commit, never pushed) reads localStorage `g180.cut` = { trees, herd, view } (fractions of today's; see
 // README.md); this script sets it, with the Pine memory trim ON (G180's B1 + B2 + B4 + B5), GPU textures KTX2, phone tier,
@@ -16,7 +17,7 @@ const [url, out, label, cutJson = '{}'] = process.argv.slice(2);
 if (!url || !out || !label) throw new Error("Usage: cut-capture.mjs <preview-url> <out dir> <label> '<cut json>'");
 const cut = JSON.parse(cutJson);
 mkdirSync(out, { recursive: true });
-const browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info', '--js-flags=--expose-gc'] });
+const browser = await chromium.launch({ channel: 'chromium', args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info', '--js-flags=--expose-gc'] });
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: 'block' });
   await context.addInitScript(GL_INIT);

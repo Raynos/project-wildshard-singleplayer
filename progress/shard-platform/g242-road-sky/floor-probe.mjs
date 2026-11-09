@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // G242 floor attribution probe: desktop floor conditions (1440x900 @2, desktop tier, fps auto, Developer on), grid entered by the
 // title tap, posed at the floor's grid-crossroads; then timing samples and experiments.
 //   scripts/browser-lane.sh node progress/shard-platform/g242-road-sky/floor-probe.mjs --url=<serve-build base> [--pose=grid-crossroads|grid-deck-north] [--exp=gl,gpu,programs,nodome,nolayers,nocsm2]
@@ -11,7 +12,7 @@ const fixture = [
   saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
   saveFixtureCode({ scope: 'device', key: 'devMode', data: true }),
 ].join(';');
-const browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ channel: 'chromium', args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const out = { base };
 try {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, serviceWorkers: 'block' });

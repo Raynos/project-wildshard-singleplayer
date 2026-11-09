@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM sp-o4 DS1.4 look parity: each shard standalone (?chunk=<slug>) with Settings ▸ Debug ▸ Look ▸
 // "Graph materials" on, time fixed at midday, at its spawn pose and a quarter turn from it. One muted context per shot:
 // iPhone 16 Pro portrait (phone tier) and a 1440 × 900 desktop context at DPR 2 (desktop tier). Run once on the A build
@@ -13,7 +14,7 @@ if (!base || !out || !tag) throw new Error('usage: capture.mjs <preview-url> <ou
 mkdirSync(out, { recursive: true });
 const slugs = ['ink-cel-valley', 'pastel-plain'];
 const report = { tag, base, shots: {} };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 
 for (const slug of slugs) for (const desktop of [false, true]) {
   const ctx = await browser.newContext(desktop ? { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 } : { ...devices['iPhone 16 Pro'] });

@@ -1,9 +1,10 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // The browser half of the updraft ride (muted Chromium, iPhone 16 Pro): stand on the windmill deck, HOVER on, hold the
 // stick toward the step along the ramp (the baseline autopilot's input path), log every frame.
 import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
 const url = process.argv[2], out = process.argv[3];
-const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--mute-audio'] });
+const browser = await chromium.launch({ headless: true, args: [...KEYCHAIN_ARGS, '--use-angle=metal', '--mute-audio'] });
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'] });
   const page = await context.newPage(); const errors = []; page.on('pageerror', e => errors.push(String(e)));

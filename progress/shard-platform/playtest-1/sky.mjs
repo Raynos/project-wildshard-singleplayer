@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // probe: drive a hoverboard at 30 m/s across a cell edge in the grid, sample the frame every frame, record video.
 //   node sky.mjs --url=http://127.0.0.1:4401 --leg=template|driftwood --out=<dir>
 import { execFileSync } from 'node:child_process';
@@ -13,7 +14,7 @@ const url = flag('url'), leg = flag('leg', 'template'), OUT = resolve(flag('out'
 mkdirSync(OUT, { recursive: true });
 const PHONE = devices['iPhone 16 Pro'];
 const sleep = (ms) => new Promise((r) => { setTimeout(r, ms); });
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const video = join(OUT, '.video'); rmSync(video, { recursive: true, force: true });
 const ctx = await browser.newContext({ ...PHONE, viewport: PHONE.screen, recordVideo: { dir: video, size: PHONE.screen } });
 await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true });

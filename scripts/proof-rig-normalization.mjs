@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from './chromium-keychain.mjs';
 // Exact source/normalized practice figures through their native loader and fixed DummyStudio on phone pixels.
 // Run through heavy-lane build and browser-lane; output is a short summary plus one labelled O-check still per user.
 import { createServer } from 'node:http';
@@ -40,7 +41,7 @@ if (existsSync(quietFile)) { server.close(); throw new Error('Another lane acqui
 const rows = [], errors = [];
 let browser;
 try {
-  browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--mute-audio'] });
+  browser = await chromium.launch({ headless: true, args: [...KEYCHAIN_ARGS, '--use-angle=metal', '--mute-audio'] });
   for (const row of cases) {
     const captures = [];
     for (const arm of ['original', 'normalized']) {

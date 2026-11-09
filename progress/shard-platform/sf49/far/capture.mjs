@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // SF49 (C4-R1-C13 + the far re-bake): the grid's view of Sky Reach from the road, proven in a real browser: Chromium as an
 // iPhone 16 Pro portrait, muted, Settings ▸ Developer on (the Developer catalogue: Sky Reach is the south cell).
 //
@@ -25,7 +26,7 @@ const toJpeg = (png, name) => {
   rmSync(tmp, { force: true });
 };
 const out = { url, started: new Date().toISOString() };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const ctx = await browser.newContext({ ...PHONE, viewport: PHONE.screen });
   await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true });

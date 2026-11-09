@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // E435 / G223 (pine-visuals): Pine Hollow standalone vs Pine entered from the grid, at the same cell-local poses.
 // grid: boot INFINITE WILDSHARD, spawn on the road east of Pine, walk in through its east entry with real input, stop at
 // each pose (same yaw / pitch), capture a frame and a scene census (what is drawn: the grid cell root, its far proxy and
@@ -20,7 +21,7 @@ const ALL_POSES = [
 ];
 const POSES = ALL_POSES.slice(0, Number(flag('poses', String(ALL_POSES.length))));
 const result = { diagnostic: true, base, mode, started: new Date().toISOString(), errors: [], consoleErrors: [], stops: [] };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 let page;
 // what the frame draws, read from the page (runs in the browser)
 const census = () => {

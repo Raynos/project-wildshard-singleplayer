@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // The grid's player-facing moments (SHARD-PLATFORM SF21a / SF20a / SF20d; G98, G78, G82 / G105, G97), proven in a real
 // browser: Chromium as an iPhone 16 Pro portrait, muted, Settings ▸ Developer on.
 //
@@ -27,7 +28,7 @@ const toJpeg = (png, name) => {
   rmSync(tmp, { force: true });
 };
 const out = { url, started: new Date().toISOString() };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const video = join(OUT, '.video'); rmSync(video, { recursive: true, force: true });
 try {
   const ctx = await browser.newContext({ ...PHONE, viewport: PHONE.screen, recordVideo: { dir: video, size: PHONE.screen } });

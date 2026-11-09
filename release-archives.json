@@ -29,7 +29,7 @@
     },
     {
       "path": "scripts/proof-rig-normalization.mjs",
-      "blob": "2d4681a47e08e4346f0c1ed76417ad6e64d623da",
+      "blob": "2326603dc54336e2578f3ea80a46845aec344a43",
       "reason": "Pre-split test or proof fixture; frozen inactive history, no shell build or test entry"
     },
     {

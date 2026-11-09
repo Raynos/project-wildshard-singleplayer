@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // op-pineperf probe: Pine Hollow standalone, the floor's desktop setup (1440x900 @2, desktop tier, Developer on).
 //   scripts/browser-lane.sh node probe.mjs --url=<base> [--poses=spawn,cabin,pond] [--dev=1] [--exp=cpu,gpu,gpupass,gpusec,stats,cpuprof,alloc,...]
 import { chromium } from 'playwright';
@@ -10,7 +11,7 @@ const fixture = [
   saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
   saveFixtureCode({ scope: 'device', key: 'devMode', data: arg('dev', '1') !== '0' }),
 ].join(';');
-const browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ channel: 'chromium', args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const load = () => Number(String(require_os().loadavg()[0]).slice(0, 5));
 function require_os() { return globalThis.__os; }
 globalThis.__os = await import('node:os');

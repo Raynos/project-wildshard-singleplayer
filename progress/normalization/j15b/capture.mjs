@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 import { chromium } from 'playwright';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
@@ -7,7 +8,7 @@ import assert from 'node:assert/strict';
 const out = dirname(fileURLToPath(import.meta.url));
 await mkdir(out, { recursive: true });
 const browser = await chromium.launch({ channel: 'chromium', headless: true,
-  args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
+  args: [...KEYCHAIN_ARGS, '--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
 try {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true,
     deviceScaleFactor: 1 });

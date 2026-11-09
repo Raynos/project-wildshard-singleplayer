@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM sp-o288 (W2a): Pine Hollow's creature hulls in the real Model Explorer, one still per creature, on a
 // muted Metal "iPhone 16 Pro" portrait context, phone tier / 2x. A finger is held on the canvas before each card opens,
 // so the turntable stays on the explorer's own opening angle (no idle turn) and the before / after stills line up.
@@ -12,7 +13,7 @@ const [base, out, want = '--list'] = process.argv.slice(2);
 const TAG = process.env.TAG ?? 'now';
 if (!base || !out) throw new Error('usage: specimens.mjs <preview-url> <out-dir> [id,id,…|--list]');
 mkdirSync(out, { recursive: true });
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const report = { tag: TAG, errors: [], consoleErrors: [], warnings: [], shots: [], requests: { rigBlob: 0, publicRig: 0, ktx2Blob: 0 } };
 try {
   const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] });

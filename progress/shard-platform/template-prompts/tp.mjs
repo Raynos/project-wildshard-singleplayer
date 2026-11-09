@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // template-prompts probe (E435): the public grid (Developer saved OFF, the pre-release grid intent), iPhone 16 Pro, muted.
 // Walk Driftwood → template-1 (real held input), stand at the grey hut's door, read the prompt, tap USE, walk into the hut,
 // read the copy's quest and door state from its own regional simulation, then walk back out onto the road.
@@ -10,7 +11,7 @@ import { publicGridIntentCode, readPublicGridWitness, publicGridWitnessFailures 
 const arg = (k, d = '') => process.argv.find((a) => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const base = arg('url').replace(/\/$/, ''), out = arg('out'), tag = arg('tag'), engine = arg('engine', 'webkit');
 mkdirSync(out, { recursive: true });
-const browser = engine === 'webkit' ? await webkit.launch({ headless: true }) : await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = engine === 'webkit' ? await webkit.launch({ headless: true }) : await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const report = { tag, engine, errors: [], steps: [] };
 const CELL = 'template-1';
 try {

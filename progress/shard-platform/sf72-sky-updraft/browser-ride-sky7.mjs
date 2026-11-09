@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF72 Sky Reach: ride the hoverboard from the windmill deck up the updraft in the real page (muted, iPhone 16 Pro),
 // recording every fixed step: y, v.y, the impulse's y, hoverAir / hoverBob, touchdowns (onLand) and health.
 // usage: node ride.mjs <base-url> <out.json>
@@ -7,7 +8,7 @@ const require = createRequire('/Users/raynos/projects/games/wildshard-singleplay
 const { chromium, devices } = require('playwright');
 const [BASE, OUT] = process.argv.slice(2);
 if (!BASE || !OUT) throw new Error('usage: node ride.mjs <base-url> <out.json>');
-const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
+const browser = await chromium.launch({ headless: true, args: [...KEYCHAIN_ARGS, '--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
 try {
   const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] }), page = await ctx.newPage(), errors = [];
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 300)));

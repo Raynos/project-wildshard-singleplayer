@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // Real page input-phase corroboration. Mount setup uses the declared camp's actual prompt callback;
 // keyboard and touch values then enter the normal Player -> Mount -> native motor pipeline.
 import { chromium, devices } from 'playwright';
@@ -7,7 +8,7 @@ const url = process.argv.find(v => v.startsWith('--url='))?.slice(6);
 const output = process.argv.find(v => v.startsWith('--output='))?.slice(9);
 if (!url || !output) throw new Error('Use --url=<pinned preview> --output=<receipt.json>');
 const version = await (await fetch(new URL('/version.json', url))).json();
-const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--mute-audio'] });
+const browser = await chromium.launch({ headless: true, args: [...KEYCHAIN_ARGS, '--use-angle=metal', '--mute-audio'] });
 const errors = [];
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], deviceScaleFactor: 2 });

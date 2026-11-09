@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../scripts/chromium-keychain.mjs';
 // SF22d NaN repro (E435): boots a served build with Debug ▸ Memory saver ON, catches three's computeBoundingBox NaN error with its
 // stack and the geometry's attribute state, and counts GPU readbacks (getBufferSubData) before / after the level unload.
 // scripts/browser-lane.sh --max 15 env LEAK=1 node progress/shard-platform/SF22d-nan-probe.mjs <url> <shard> desktop 1500 <weather> on
@@ -6,7 +7,7 @@ import { installInit } from '../../scripts/parity/init.mjs';
 import { debugSettings } from '../../scripts/debug-settings.mjs';
 import { advance } from '../../scripts/parity/frames.mjs';
 const [url, shard, tier, framesArg, weather = 'clear', saver = 'on'] = process.argv.slice(2);
-const browser = await chromium.launch({ channel: 'chromium', headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
+const browser = await chromium.launch({ channel: 'chromium', headless: true, args: [...KEYCHAIN_ARGS, '--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
 try {
   const context = await browser.newContext(tier === 'phone' ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, serviceWorkers: 'block' } : { viewport: { width: 1600, height: 900 }, serviceWorkers: 'block' });
   await installInit(context, { lane: 'm5', sha: 'probe', browser: browser.version(), capture: 30, accelerated: true, tier });

@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF50-g / SF51-g: a shard's four midpoint entries on its live standalone world (?chunk=<slug>, the trusted runtime).
 // (1) scans each 8 x 15 m socket footprint (shard-local, north = +z) with downward rays through the live physics world:
 // any static surface above road height, a floor missing or under it, or water over it is a blocker; (2) walks the route
@@ -19,7 +20,7 @@ const SETTINGS = Object.fromEntries(flag('settings', '').split(',').filter(Boole
 const DEVICE = Object.fromEntries(process.argv.slice(2).filter((a) => a.startsWith('--device-save=')).map((a) => { const kv = a.slice(14), i = kv.indexOf('='); return [kv.slice(0, i), kv.slice(i + 1)]; }));
 const route = ROUTE ? JSON.parse(readFileSync(`${ROOT}/${ROUTE}`, 'utf8'))[SLUG] ?? [] : [];
 mkdirSync(OUT, { recursive: true });
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const result = { base: BASE, slug: SLUG, settings: SETTINGS, deviceSaves: DEVICE, footprints: [], legs: [], errors: [] };
 try {
   const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] }), page = await ctx.newPage();

@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF63 follow-up, Pine post (SHARD-PLATFORM, E435): sf63-gaps/drive.mjs unchanged; `frame.chain.fx` (the carried shafts, fringe
 // and grain: carrier, weight, shaft opacity and strength, fringe offset, grain opacity, march target, depth source) rides in
 // `frame.chain`, so the road read-back covers it.
@@ -47,7 +48,7 @@ const SCENES = {
 const plan = SCENES[scene];
 if (!plan) throw new Error(`Unknown scene ${scene}`);
 const report = { base, tag, scene, stops: [], errors: [], console: [], look: [], shaderErrors: 0, poses: [] };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext(devices['iPhone 16 Pro']);
   await context.addInitScript(GL_INIT);

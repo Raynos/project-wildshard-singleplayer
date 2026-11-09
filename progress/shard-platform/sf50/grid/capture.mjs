@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // E435 / SF50-g: cold entry, return to the road and re-entry through each native Signal Dunes socket.
 // Only the first road approach is seeded; every later crossing uses held input and the production motor.
 // Run through browser-lane.sh: node capture.mjs <pinned-preview-url> <scratch-report.json> [edge]
@@ -15,7 +16,7 @@ const started = Date.now();
 const report = { version: await (await fetch(new URL('version.json', base))).json(),
   protocol: 'Production build, Developer ON, phone tier/2x, one muted Metal iPhone 16 Pro portrait browser. Four cold contexts. One road pose per context; real-input entry, road return and re-entry, no later teleport, creature freeze or crossing reload. Labelled GL and allocator cost only; native WebContent pending.', entries: [], errors: [], consoleErrors: [], warnings: [], documents: [] };
 const save = () => writeFileSync(out, `${JSON.stringify(report, null, 2)}\n`);
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const interrupt = () => {
   report.interrupted = true; process.exitCode = 1; save();
   void browser.close().catch(error => { report.closeFailure = String(error); save(); });

@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // E435 / SF47-g: borrowed-home Pine cold unload, native rebuild, exact HP restore and final unload census.
 // Run through scripts/browser-lane.sh against a pinned serve-build; Developer is toggled after the public boot.
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -8,7 +9,7 @@ import { installResources } from '../../../../scripts/parity/resources.mjs';
 const flag = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) ?? '';
 const base = flag('url'), sha = flag('sha'), output = flag('out');
 if (!base || !sha || !output) throw new Error('Supply url, sha and out');
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const started = Date.now(), result = { sha, surface: 'Chromium Metal, iPhone 16 Pro portrait', phases: [], errors: [], navigations: [], documents: [], caught: [], failedResponses: [], reports: [], warnings: [] };
 const progress = phase => { result.phase = phase; const value = { phase, seconds: (Date.now() - started) / 1000, errors: result.errors, navigations: result.navigations.length }; writeFileSync(output.replace(/\.json$/u, '-progress.json'), JSON.stringify(value)); console.log(JSON.stringify(value)); };
 let page, monitor;

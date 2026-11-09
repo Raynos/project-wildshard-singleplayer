@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // G232 (SHARD-PLATFORM SF63, E435): sf63/drive.mjs plus the frame's carried grade chain (`frame.chain`: owner, weight,
 // LUT drawn, the page grade values) on the road before entry, at each stop and after driving back out, and each shot's
 // player pose in shard-local metres (`poses`, for ../playtest-2-drivein/standalone.mjs at the same spots).
@@ -43,7 +44,7 @@ const SCENES = {
 const plan = SCENES[scene];
 if (!plan) throw new Error(`Unknown scene ${scene}`);
 const report = { base, tag, scene, stops: [], drives: [], errors: [], console: [], look: [], shaderErrors: 0, poses: [] };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext(devices['iPhone 16 Pro']);
   await context.addInitScript(GL_INIT);

@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // E435 / G226: extend the platform-ledger native driver with the actual return and durable home HP.
 import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
@@ -9,7 +10,7 @@ import { driveFloorGrid, gridFloorPlans, stageFloorGrid, gridFloorWitnessFailure
 const [base, out] = process.argv.slice(2);
 const started = Date.now(), report = { version: await (await fetch(new URL('version.json', base))).json(), protocol: 'Developer ON owned shell, real held-input D->P->N->D. No crossing reload. One muted Metal iPhone16Pro portrait browser.', driverHash:createHash('sha256').update(driveFloorGrid.toString()).digest('hex'),snapshots:[],routes:[],damage:[],errors:[],consoleErrors:[],documents:[],assetRequests:[] };
 const save=()=>writeFileSync(out,JSON.stringify(report,null,2)+'\n');
-const browser=await chromium.launch({args:['--mute-audio','--use-angle=metal','--ignore-gpu-blocklist']});let page;
+const browser=await chromium.launch({args:[...KEYCHAIN_ARGS, '--mute-audio','--use-angle=metal','--ignore-gpu-blocklist']});let page;
 try {
  const context=await browser.newContext({...devices['iPhone 16 Pro'],serviceWorkers:'block'});
  await saveFixture(context,{scope:'global',key:'settings',data:{tier:'phone',fps:'auto',tex:'auto'},merge:true});

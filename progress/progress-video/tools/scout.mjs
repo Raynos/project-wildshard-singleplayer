@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // scout.mjs <spec.json> — stills from free-camera views in one page load (window.__world builds).
 // spec: { url, out, ready (js expr, truthy when loaded), install (js, run once), views: [{ id, cam, at, fov, fp, eval }] }
 // fp: cam[1] / at[1] are metres above the ground under the camera (player.spawn drops the player there).
@@ -11,7 +12,7 @@ const spec = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 spec.install ??= fs.readFileSync(new URL('./install-world.js', import.meta.url), 'utf8');
 spec.ready ??= 'Boolean(window.__world || window.__wildshard?.world)';
 fs.mkdirSync(spec.out, { recursive: true });
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const ctx = await browser.newContext({ viewport: { width: 360, height: 640 }, deviceScaleFactor: spec.dpr ?? 1.5, isMobile: true, hasTouch: true,
   userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1' });
 const page = await ctx.newPage();

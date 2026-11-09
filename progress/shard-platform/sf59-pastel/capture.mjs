@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF59 / G169: capture a G169 fixture shard (SHARD, default pastel-plain; ink-cel-valley is its twin) on a served build as "iPhone 16 Pro" portrait at 2x, with Settings ▸ Debug ▸ Look
 // ▸ "Graph materials" off and on, and record every console error and WebGL warning (shader compile errors, GL_INVALID_*,
 // uniform block limits included) and the GL program count.
@@ -12,7 +13,7 @@ const [base = 'http://127.0.0.1:4408', out = 'progress/shard-platform/sf59-paste
 const shard = process.env.SHARD ?? 'pastel-plain';
 mkdirSync(out, { recursive: true });
 const views = [{ name: 'spawn', x: 0, y: 1.7, z: 6, yaw: 0, pitch: -0.05 }, { name: 'hut', x: 6, y: 2.2, z: 2, yaw: 0.45, pitch: -0.08 }];
-const browser = await chromium.launch({ args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--mute-audio'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--mute-audio'] });
 const result = {};
 try {
   for (const graphs of (process.env.GRAPHS ?? 'off,on').split(',')) {

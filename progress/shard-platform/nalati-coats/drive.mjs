@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // drive.mjs — SHARD-PLATFORM G226 nalati-coats (E435): Nalati's entry long tasks in a Developer-ON grid drive.
 // progress/shard-platform/playtest-2-drivein/drive.mjs's Nalati scene (a pose onto the boulevard beside the cell, then a
 // held-input hover drive into it, never a teleport inside it), with a long-task observer and the entered runtime's hook
@@ -12,7 +13,7 @@ if (!base || !out || !tag) throw new Error('Pass --url, --out and --tag');
 const E = -Math.PI / 2;
 const road = { x: 277.5, z: 0, yaw: E }, stops = [[{ x: 322, z: 0 }], [{ x: 470, z: 0 }]];
 const report = { base, tag, stops: [], errors: [], console: [] };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: 'block' });
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });

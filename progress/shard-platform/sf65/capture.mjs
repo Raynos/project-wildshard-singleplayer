@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF65 (G237–G241, E435): SHARD SELECT's LEGACY / SHARDFILE entry buttons. iPhone 16 Pro portrait, muted.
 //   scripts/browser-lane.sh node progress/shard-platform/sf65/capture.mjs --url=<preview> --out=<dir> [--enter=0|1]
 // A: Developer OFF SHARD SELECT (one ENTER WORLD, no badge). B: Developer ON, every card (badge, both buttons, their
@@ -11,7 +12,7 @@ const base = arg('url'), out = arg('out'), enter = arg('enter') !== '0', only = 
 if (!base || !out) throw new Error('Pass --url and --out');
 mkdirSync(out, { recursive: true });
 const report = { base, off: null, on: [], entries: [], errors: [] };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const slugOf = name => name.toLowerCase().replaceAll(/\W+/g, '-');
 const title = async (page) => {
   await page.goto(`${base}/?mute=1&sw=0`, { waitUntil: 'commit', timeout: 300_000 });

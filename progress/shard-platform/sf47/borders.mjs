@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF47-g (E435): the allocator's playing total at Pine Hollow's borders, both grid layouts, one muted Chromium/Metal
 // iPhone 16 Pro portrait context per layout (phone tier, 2x). Diagnostic poses (player.spawn), not a crossing or physics
 // verdict. Per pose: the grid's state (playing / accounted / rings / live), the allocator table and the labelled GL census.
@@ -24,7 +25,7 @@ const POSES = [
 const version = await (await fetch(new URL('version.json', base))).json();
 const report = { version, layouts: {} };
 const save = () => writeFileSync(out, JSON.stringify(report, null, 2) + '\n');
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   for (const layout of which === 'both' ? ['dev', 'shipped'] : [which]) {
     const rec = { snapshots: [], errors: [], console: [] }; report.layouts[layout] = rec;

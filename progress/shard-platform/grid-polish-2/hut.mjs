@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // G222 follow-up probe (grid-polish-2 #1 / #2): Template-2's hub in the grid (cell 1,1). It surveys what a ray from the north
 // meets at the cell centre (the stray creature capsule at (0, 0, 0)?), photographs the hut's door from the north, drives the
 // board south into the hut at 30 m/s, then opens the door through its published field and drives again.
@@ -14,7 +15,7 @@ const url = flag('url'), OUT = resolve(flag('out', '.')), tag = flag('tag', 'run
 mkdirSync(OUT, { recursive: true });
 const PHONE = devices['iPhone 16 Pro'];
 const sleep = (ms) => new Promise((r) => { setTimeout(r, ms); });
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const ctx = await browser.newContext({ ...PHONE, viewport: PHONE.screen });
 await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true });
 await ctx.addInitScript(() => { window.__wildshardHarness = { seed: 357, capture: null }; });

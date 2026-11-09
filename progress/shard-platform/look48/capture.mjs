@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM sp-o5 look48 (the look-parity sweep on HEAD, G321 + G322 in force): op-sky46's, plus DESKTOP=1 (a 1440 × 900
 // desktop context at DPR 2, desktop tier, shots suffixed -desktop) and no Debug row (ROW) by default.
 // SHARD-PLATFORM op-sky46 (G321 part 5): op-sky43's, plus every composer effect with its opacity (`effects`), the environment map, and ROW=<value> (the gridSkyEnvironment Debug row).
@@ -25,7 +26,7 @@ if (!base || !out || !slugs) throw new Error('usage: capture.mjs <preview-url> <
 mkdirSync(out, { recursive: true });
 const report = { version: await (await fetch(new URL('version.json', base))).json(), started: new Date().toISOString(), shards: {} };
 const save = () => writeFileSync(join(out, `capture-${TAG}.json`), `${JSON.stringify(report, null, 2)}\n`);
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 
 async function context(row) {
   const ctx = await browser.newContext(DESKTOP ? { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 } : { ...devices['iPhone 16 Pro'] });

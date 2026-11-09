@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from './chromium-keychain.mjs';
 // bulk-pack-bench.mjs: the one-file-per-request boot download against the WSPK pack download, with no engine
 // (E525 bulk-download spike, docs/plans/bulk-download-mini-spike.md).
 //
@@ -141,7 +142,7 @@ for (const file of JSON.parse(readFileSync(manifestPath, 'utf8')).files) {
 }
 
 // --- the browser ----------------------------------------------------------------------------------------------------
-const browser = await chromium.launch({ args: ['--mute-audio', '--ignore-certificate-errors'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--ignore-certificate-errors'] });
 async function run(kind, cpu) {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], ignoreHTTPSErrors: true });
   const tab = await context.newPage();

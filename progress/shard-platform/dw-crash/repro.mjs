@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // node repro.mjs <base> <grid|driftwood-isle> <outPrefix> [walk]
 import { chromium, devices } from '/Users/raynos/projects/games/wildshard-singleplayer/node_modules/playwright/index.mjs';
 import { saveFixtureCode } from '/Users/raynos/projects/games/wildshard-singleplayer/scripts/debug-settings.mjs';
@@ -6,7 +7,7 @@ import { gridSeamRoute, driveGridSeam, gridDriveFailures } from '/Users/raynos/p
 import { setTimeout as sleep } from 'node:timers/promises';
 const [base, mode, out, walk] = process.argv.slice(2);
 const fixture = [saveFixtureCode({ scope: 'device', key: 'devMode', data: true })].join(';');
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] });
 await ctx.addInitScript({ content: fixture });
 const page = await ctx.newPage();

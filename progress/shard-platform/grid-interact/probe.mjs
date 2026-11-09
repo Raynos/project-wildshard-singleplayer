@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // grid-interact probe: Developer-ON grid boot (iPhone 16 Pro, muted, WebKit). Walk from the road north of Sky Reach to the
 // Rising Islet's centre, then read the HUD prompt. Also reads the home (Driftwood) prompt near the castaway if --home.
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -7,7 +8,7 @@ import { saveFixture } from '/Users/raynos/projects/games/wildshard-singleplayer
 const arg = (k, d = '') => process.argv.find((a) => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const base = arg('url').replace(/\/$/, ''), out = arg('out'), tag = arg('tag'), engine = arg('engine', 'webkit'), to = Number(arg('to', '-326.9'));
 mkdirSync(out, { recursive: true });
-const browser = engine === 'webkit' ? await webkit.launch({ headless: true }) : await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = engine === 'webkit' ? await webkit.launch({ headless: true }) : await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const report = { tag, engine, errors: [] };
 try {
   const { defaultBrowserType: _e, ...phone } = devices['iPhone 16 Pro'];

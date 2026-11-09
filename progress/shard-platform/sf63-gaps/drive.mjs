@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF63 gaps (SHARD-PLATFORM, E435): g232-grade/drive.mjs plus, at each stop, the drawn grass of the region's own grass
 // driver (`grass` instances per grass-v2 mesh) and the layered sky's cloud layer offset from the camera (`skyDome`: 0 when it
 // travels with the camera); `frame.chain.post` now carries the page chain's bloom / vignette / rays knobs.
@@ -44,7 +45,7 @@ const SCENES = {
 const plan = SCENES[scene];
 if (!plan) throw new Error(`Unknown scene ${scene}`);
 const report = { base, tag, scene, stops: [], errors: [], console: [], look: [], shaderErrors: 0, poses: [] };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext(devices['iPhone 16 Pro']);
   await context.addInitScript(GL_INIT);

@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // grid-base: Chromium (muted, iPhone 16 Pro, Developer on, phone tier, 2x, Memory saver on) attribution of the grid page's
 // overhead at Pine. Grid: home settled -> Pine entry -> Pine centre (the native ruler's pine-centre route). Standalone:
 // ?chunk=pine-hollow at the cell centre. At every pose: 3x forced GC, JS heap usage, the SF64 ledger aggregated by owner.
@@ -20,7 +21,7 @@ const fixtures = [
   saveFixtureCode({ scope: 'device', key: 'devMode', data: true }),
 ].join(';');
 
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--js-flags=--expose-gc'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--js-flags=--expose-gc'] });
 const result = { base: BASE, mode: MODE, poses: [], errors: [] };
 const save = () => { writeFileSync(join(OUT, `${TAG}.json`), `${JSON.stringify(result, null, 2)}\n`); };
 try {

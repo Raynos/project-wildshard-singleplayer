@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF47-g (E435): scripts/parity/glbytes-probe.mjs (SF22b's labelled GL census after every authored pose) with Pine's
 // pineMemoryTrim row and the GPU-textures mode set as device / global fixtures.
 // scripts/browser-lane.sh node progress/shard-platform/sf47/glbytes.mjs <preview-url> <output.json> <trim off|on> <tex img|ktx2> [phone|desktop]
@@ -10,7 +11,7 @@ import { saveFixtureCode } from '../../../scripts/debug-settings.mjs';
 
 const [url, output, trim = 'off', tex = 'ktx2', tier = 'phone'] = process.argv.slice(2), shard = 'pine-hollow';
 if (!url || !output || !['phone', 'desktop'].includes(tier) || !['off', 'on'].includes(trim) || !['img', 'ktx2'].includes(tex)) throw new Error('Usage: glbytes.mjs <preview-url> <output.json> <off|on> <img|ktx2> [phone|desktop]');
-const browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ channel: 'chromium', args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext(tier === 'phone'
     ? { ...devices['iPhone 16 Pro'], serviceWorkers: 'block' }

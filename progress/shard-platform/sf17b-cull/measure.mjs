@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF17b's per-view road budget, measured in the real game (SHARD-PLATFORM §3.2 road targets: ≤ 150k triangles resident,
 // ≤ 60k drawn and ≤ 8 draws per view, shadow draws included). INFINITE WILDSHARD from the title (Developer mode), then the
 // worst grid poses: a crossroads, an entry, the outer ring (a side and a corner) and looking along the boulevard, each at
@@ -36,7 +37,7 @@ const POSES = {
   boulevard: { x: 277.5, y: 1.7, z: -240 },
 };
 const SHOTS = { crossroads: { x: 277.5, y: 3, z: 215, yaw: 0, pitch: -0.1 }, boulevard: { x: 277.5, y: 1.7, z: -40, yaw: 0, pitch: -0.08 }, 'outer-ring': { x: 832.5, y: 1.7, z: -60, yaw: 0, pitch: -0.05 }, entry: { x: 262, y: 2.5, z: -6, yaw: -Math.PI / 2, pitch: -0.1 } };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const out = { url, label, started: new Date().toISOString(), poses: {} };
 try {
   const ctx = await browser.newContext({ ...PHONE, viewport: PHONE.screen });

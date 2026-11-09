@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // E435: actual title -> standalone and title -> owned grid smoke for UUID-less target admission.
 import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
@@ -6,7 +7,7 @@ import { installResources } from '../../../scripts/parity/resources.mjs';
 const [base, out] = process.argv.slice(2), started = Date.now();
 const report = { version: await (await fetch(new URL('version.json', base))).json(), boots: [], errors: [] };
 const save = () => writeFileSync(out, JSON.stringify(report, null, 2) + '\n');
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   for (const grid of [false, true]) {
     const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: 'block' });

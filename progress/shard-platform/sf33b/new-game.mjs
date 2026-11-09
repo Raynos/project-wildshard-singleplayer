@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF33b (SHARD-PLATFORM, G83, E439): pause ▸ Settings ▸ SAVES and the New game sheet, proven in a real browser.
 //
 //   scripts/serve-build.sh --head --name sf33b                 # → http://127.0.0.1:<port>/
@@ -27,7 +28,7 @@ const toJpeg = (png, name) => {
 const P = 'wildshard.save.v2.';
 const OTHER = { keys: { flags: { v: 1, data: ['pine.someone.elses'] }, inventory: { v: 1, data: { counts: { cone: 2 }, order: ['cone'] } } } };
 
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--enable-gpu'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--enable-gpu'] });
 const result = { url, steps: [] };
 const log = (step, data = {}) => { result.steps.push({ step, ...data }); console.error(`sf33b: ${step} ${JSON.stringify(data).slice(0, 300)}`); };
 try {

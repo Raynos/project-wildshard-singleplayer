@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM sp-o2 sky47 (G321, from op-sky46's capture.mjs): every grid cell's own sky, one shot inside its cell and one
 // on its 16 m edge band (standing on the edge line: the cell's owner weight 0.5), facing the cell's centre, with the frame's
 // sky readout (the region skies hung, their weights and bytes). One muted Metal context per surface: iPhone 16 Pro portrait
@@ -17,7 +18,7 @@ const PITCH = 555, HALF = 250, INSIDE = 200;
 mkdirSync(out, { recursive: true });
 const report = { version: await (await fetch(new URL('version.json', base))).json(), surface, started: new Date().toISOString(), cells: {}, errors: [], consoleErrors: 0, consoleSamples: [] };
 const save = () => writeFileSync(join(out, `capture-${surface}.json`), `${JSON.stringify(report, null, 2)}\n`);
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const phone = surface === 'phone';
 
 const ctx = await browser.newContext(phone ? { ...devices['iPhone 16 Pro'] } : { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });

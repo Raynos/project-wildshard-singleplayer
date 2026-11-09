@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../scripts/chromium-keychain.mjs';
 import { chromium } from 'playwright';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -14,7 +15,7 @@ const result = { sha, clock: 'raf', seed: 4242, capture: 60, swingAfter: 6, swin
 try {
   execFileSync('pnpm', ['gen'], { cwd: tree.tree, stdio: 'pipe' });
   server = await serve(tree.tree, sha);
-  browser = await chromium.launch({ channel: 'chromium', headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
+  browser = await chromium.launch({ channel: 'chromium', headless: true, args: [...KEYCHAIN_ARGS, '--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
   const context = await browser.newContext({ viewport: { width: 900, height: 700 }, serviceWorkers: 'block' });
   await installInit(context, { lane: 'm5', sha, browser: browser.version(), capture: 60, accelerated: false });
   await debugSettings(context, { time: 'midday', weather: 'clear' });

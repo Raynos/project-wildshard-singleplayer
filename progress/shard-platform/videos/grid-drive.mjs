@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM SF60 (G202): the milestone video of real play, recorded in a real browser (Chromium as an iPhone 16 Pro
 // portrait, muted, Settings ▸ Developer on, a HEAD build).
 //
@@ -26,7 +27,7 @@ const PHONE = devices['iPhone 16 Pro'];
 const sleep = (ms) => new Promise((r) => { setTimeout(r, ms); });
 mkdirSync(OUT, { recursive: true });
 const out = { url, date, started: new Date().toISOString(), legs: [] };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const video = join(OUT, '.video'); rmSync(video, { recursive: true, force: true });
 const cuts = []; // [fromSeconds, toSeconds] of the recording to keep
 try {

@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // cold grid start probe: where the 'Weapons · HUD' step spends its time (Chromium iPhone 16 Pro, 4x CPU, muted)
 import { writeFileSync } from 'node:fs';
 const ROOT = '/Users/raynos/projects/games/wildshard-singleplayer';
@@ -6,7 +7,7 @@ const { chromium, devices } = await import(`${ROOT}/node_modules/playwright/inde
 const BASE = process.argv[2], OUT = process.argv[3];
 const fixtures = [saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0, time: 'midday' } }),
   saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }), saveFixtureCode({ scope: 'device', key: 'devMode', data: true })].join(';');
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
 const out = { console: [], requests: [], steps: [] };
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'] });

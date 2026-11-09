@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // Screenshot-only B placement; A is the shipped E319 ring plus reserved discs above JUMP.
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -5,7 +6,7 @@ import { installInit } from '../../../scripts/parity/init.mjs';
 
 const [url, output] = process.argv.slice(2);
 mkdirSync(output, { recursive: true });
-const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
+const browser = await chromium.launch({ headless: true, args: [...KEYCHAIN_ARGS, '--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
 try {
   for (const shard of ['pine-hollow', 'nalati-grasslands']) {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, serviceWorkers: 'block' });

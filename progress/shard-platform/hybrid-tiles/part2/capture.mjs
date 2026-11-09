@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // M3 tiles-swap: Signal Dunes standalone, the groundTiles row off (twice: the noise floor) and on, at the manifest's dev
 // poses; cold load, memory at the centre, the ground witness. Muted Chromium, iPhone 16 Pro, Developer on.
 //   scripts/browser-lane.sh node capture.mjs <base> <out>
@@ -17,7 +18,7 @@ const POSES = [
   { name: 'quest', x: 4, z: -63, yaw: 15, pitch: 22 },
   { name: 'centre', x: 0, z: 0, yaw: 0, pitch: -6 },
 ];
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const result = { base, device: 'iPhone 16 Pro', runs: [] };
 for (const variant of ['off', 'off2', 'on']) {
   const row = variant === 'on' ? 'on' : 'off';

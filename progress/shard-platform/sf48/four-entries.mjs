@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // E435 / SF48-g: four actual midpoint walks, then a fresh page on the same persisted storage.
 // Only initial road placements use spawn; each socket/inward/return leg uses normal input. No stuck recovery.
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -12,7 +13,7 @@ const base = flag('url', ''), out = flag('out', '.');
 if (!base) throw new Error('Pass --url and --out');
 mkdirSync(out, { recursive: true });
 const report = { started: new Date().toISOString(), base, pages: [], errors: [], consoleErrors: [] };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext(devices['iPhone 16 Pro']);
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });

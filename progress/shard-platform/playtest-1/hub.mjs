@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // probe: Template-2 (cell 1,1; centre 555,555 in Driftwood's frame) hub block at 30 m/s from each road; per frame the
 // player's feet, the capsule's penetration into WORLD colliders and whether the camera is inside one.
 //   node hub.mjs --url=... --out=<dir> [--video]
@@ -15,7 +16,7 @@ const only = flag('only');
 mkdirSync(OUT, { recursive: true });
 const PHONE = devices['iPhone 16 Pro'];
 const sleep = (ms) => new Promise((r) => { setTimeout(r, ms); });
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const video = join(OUT, '.video'); rmSync(video, { recursive: true, force: true });
 const ctx = await browser.newContext({ ...PHONE, viewport: PHONE.screen, ...(record ? { recordVideo: { dir: video, size: PHONE.screen } } : {}) });
 await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true });

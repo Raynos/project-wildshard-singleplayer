@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // SF57 sf57-qualify3: WebContent / renderer phys_footprint delta of N regional template sims vs 0, Chromium and WebKit.
 // Muted, "iPhone 16 Pro" context. Run through scripts/browser-lane.sh.
 import { chromium, webkit, devices } from '/Users/raynos/projects/games/wildshard-singleplayer/node_modules/playwright/index.mjs';
@@ -28,7 +29,7 @@ const out = { base, steps: plan, runs: [] };
 for (const [name, type] of [['chromium', chromium], ['webkit', webkit]]) {
   for (let rep = 0; rep < 2; rep++) {
     const before = new Set(name === 'webkit' ? (() => { try { return pids('ms-playwright/webkit.*WebContent'); } catch { return []; } })() : []);
-    const browser = await type.launch({ args: name === 'chromium' ? ['--mute-audio', '--js-flags=--expose-gc'] : [] });
+    const browser = await type.launch({ args: name === 'chromium' ? [...KEYCHAIN_ARGS, '--mute-audio', '--js-flags=--expose-gc'] : [...KEYCHAIN_ARGS, ] });
     const context = await browser.newContext({ ...devices['iPhone 16 Pro'] });
     const page = await context.newPage();
     const errors = []; page.on('pageerror', (e) => errors.push(String(e)));

@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // G242 (SHARD-PLATFORM, E455; Jake's pick B "grid dawn"): the road's own dome and key light, blended across the 16 m
 // cell-edge band into each shard's own sky. From ../g232-grade/drive.mjs: a Developer-ON grid boot, a pose onto the road
 // only, then held input into the cell (never a teleport inside it). Captures on the road, on the edge line, just inside and
@@ -39,7 +40,7 @@ const SCENES = {
 const plan = SCENES[scene];
 if (!plan) throw new Error(`Unknown scene ${scene}`);
 const report = { base, scene, video, stops: [], drives: [], errors: [], console: [], shaderErrors: 0, poses: [] };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], ...(video ? { recordVideo: { dir: out, size: { width: 540, height: 1174 } } } : {}) });
   await context.addInitScript(GL_INIT);

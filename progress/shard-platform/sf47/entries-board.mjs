@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF47-g (E435): Pine Hollow's four canyon-gap entries (G93 / G103), each from the road side (at the edge midpoint, looking
 // in) and from inside (60 m in, looking back out through the gap). iPhone 16 Pro portrait, phone tier, render scale 2, muted.
 // scripts/browser-lane.sh node progress/shard-platform/sf47/entries-board.mjs <preview-url> <out dir>
@@ -17,7 +18,7 @@ const EDGES = [
   { name: 'south', edge: [0, -248], inside: [0, -190], inward: Math.PI },
   { name: 'west', edge: [-248, 0], inside: [-190, 0], inward: -Math.PI / 2 },
 ];
-const browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ channel: 'chromium', args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: 'block' });
   await context.addInitScript([

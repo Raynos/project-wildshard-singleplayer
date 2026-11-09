@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF19a's board (SHARD-PLATFORM, one frame for the grid): EXPERIMENTAL Wildshard (Settings ▸ Developer on, so the dev
 // cells Signal Dunes and Sky Reach are in) entered twice, Settings ▸ Debug ▸ "Grid one frame" off then on, posed at the
 // north-east crossroads (Driftwood, Nalati, Pine Hollow, a template) and the south-west corner crossroads (Driftwood,
@@ -28,7 +29,7 @@ const POSES = {
   corner: { x: -277.5, y: 2, z: 150, look: { x: -277.5, z: -700 }, pitch: -0.02 },
 };
 const out = { url, started: new Date().toISOString(), runs: {} };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   for (const row of ['off', 'on']) {
     const ctx = await browser.newContext({ ...PHONE, viewport: PHONE.screen });

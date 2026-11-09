@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../scripts/chromium-keychain.mjs';
 import { chromium, devices } from 'playwright';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { installInit } from '../../scripts/parity/init.mjs';
@@ -6,7 +7,7 @@ const ROOT=new URL('../..',import.meta.url).pathname.replace(/\/$/,'');
 const [base,sha,out,tier='phone']=process.argv.slice(2);
 if(!base||!sha||!out||(tier!=='phone'&&tier!=='desktop'))throw new Error('Usage: SF47-pond-contact.mjs <preview URL> <SHA> <output JSON> [phone|desktop]');
 const leg=JSON.parse(readFileSync(`${ROOT}/scripts/physics-route.json`,'utf8'))['pine-hollow'].find(r=>r.name==='pond');
-const browser=await chromium.launch({headless:true,args:['--use-angle=metal','--ignore-gpu-blocklist','--mute-audio']});
+const browser=await chromium.launch({headless:true,args:[...KEYCHAIN_ARGS, '--use-angle=metal','--ignore-gpu-blocklist','--mute-audio']});
 try {
  const context=await browser.newContext({...devices['iPhone 16 Pro'],serviceWorkers:'block'});
  await installInit(context,{lane:'m5',sha,browser:browser.version(),capture:30,accelerated:true,tier});

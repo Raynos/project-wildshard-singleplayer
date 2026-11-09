@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF66: the minimap and the full MAP draw each shard's baked map (and the grid's full map lays out every cell's), proven
 // in a real browser: Chromium as an iPhone 16 Pro portrait, muted, Settings ▸ Developer on.
 //
@@ -27,7 +28,7 @@ const toJpeg = (png, name) => {
 };
 const memory = (page) => page.evaluate(() => { try { const m = window.__wildshard?.memory?.(); return m === undefined ? null : JSON.parse(JSON.stringify(m)); } catch { return null; } });
 const out = { url, started: new Date().toISOString(), shards: {} };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   for (const slug of ['driftwood-isle', 'far-reach', 'sunscar-dunes']) {
     const ctx = await browser.newContext({ ...PHONE, viewport: PHONE.screen, serviceWorkers: 'block' });

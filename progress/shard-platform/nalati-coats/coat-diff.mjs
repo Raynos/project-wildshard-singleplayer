@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // coat-diff.mjs — SHARD-PLATFORM G226 (E435): Nalati's baked coats against the procedural paint, per coat, per tier.
 //
 // On an IMAGES page per tier (the phone as "iPhone 16 Pro", the desktop at 1440×900; muted), once Nalati is up:
@@ -20,7 +21,7 @@ const url = argv.find((a) => !a.startsWith('--'))?.replace(/\/$/u, '');
 const tiers = (argv.find((a) => a.startsWith('--tiers='))?.slice(8) ?? 'phone,desktop').split(',');
 if (!url) throw new Error('Usage: coat-diff.mjs <preview-url> [--tiers=phone,desktop]');
 const report = { url, tiers: {} };
-const browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ channel: 'chromium', args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   for (const tier of tiers) {
     const context = await browser.newContext(tier === 'phone'

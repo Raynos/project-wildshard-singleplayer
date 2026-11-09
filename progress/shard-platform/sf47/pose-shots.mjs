@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF47-g (E435): Pine Hollow's authored capture poses (gate, cabin, pond …) as iPhone 16 Pro portrait PNGs, phone tier,
 // render scale 2, muted, GPU textures forced to KTX2 (the phone's steady state), for the G65 memory-variant A / B frames.
 // scripts/browser-lane.sh node progress/shard-platform/sf47/pose-shots.mjs <preview-url> <out dir> [trim off|on]
@@ -10,7 +11,7 @@ import { saveFixtureCode } from '../../../scripts/debug-settings.mjs';
 const [url, out, trim = 'off'] = process.argv.slice(2);
 if (!url || !out || !['off', 'on'].includes(trim)) throw new Error('Usage: pose-shots.mjs <preview-url> <out dir> [off|on]');
 mkdirSync(out, { recursive: true });
-const browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ channel: 'chromium', args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: 'block' });
   await context.addInitScript([

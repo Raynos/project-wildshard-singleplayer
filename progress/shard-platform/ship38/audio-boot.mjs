@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM op-ship38 (G325, SF67): where the page's AudioContext is made on an arrival boot. Desktop Chromium (muted,
 // 1440×900, 4× CPU through CDP), the player's own way in: a loaded Driftwood title ▸ SHARD SELECT ▸ another card ▸ ENTER WORLD, a fresh page
 // that enters at once (arrival `enter`). An init script times every AudioContext constructor (start, ms, whether the page
@@ -9,7 +10,7 @@ import { chromium } from 'playwright';
 
 const [base, out, card = 'Nalati Grasslands'] = process.argv.slice(2);
 if (!base || !out) throw new Error('usage: audio-boot.mjs <preview-url> <out.json> [card]');
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const report = { base, card, version: null, contexts: [], beforeTap: null, afterTap: null, profile: null, errors: [] };
 try {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 });

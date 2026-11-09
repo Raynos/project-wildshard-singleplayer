@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF63 cumulus (SHARD-PLATFORM, E435): sf63-gaps/drive.mjs with the layered sky read inside the layer's band (render order
 // −10 … −9, no longer one −9.5 for every piece): `skyDome` is the dome's offset from the camera, `skyOrders` each piece's order.
 // From SF63 gaps: g232-grade/drive.mjs plus, at each stop, the drawn grass of the region's own grass
@@ -46,7 +47,7 @@ const SCENES = {
 const plan = SCENES[scene];
 if (!plan) throw new Error(`Unknown scene ${scene}`);
 const report = { base, tag, scene, stops: [], errors: [], console: [], look: [], shaderErrors: 0, poses: [] };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext(devices['iPhone 16 Pro']);
   await context.addInitScript(GL_INIT);

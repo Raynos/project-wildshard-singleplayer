@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // E435 / SF48-g: one initial road placement, then real input through Nalati's west entry and back, twice.
 // Run through scripts/browser-lane.sh against a pinned scripts/serve-build.sh preview. No stuck recovery teleports.
 import { writeFileSync } from 'node:fs';
@@ -10,7 +11,7 @@ const base = flag('url', ''), output = flag('out', 'nalati-regional-runtime.json
 if (base === '') throw new Error('Pass --url=<pinned preview> and --out=<receipt>');
 let page;
 const result = { diagnostic: true, base, started: new Date().toISOString(), errors: [], consoleErrors: [] };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext(devices['iPhone 16 Pro']);
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });

@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM op-look30 (from op-look28's, E435, SF63 / G158): each shard in a grid cell against SHARD SELECT, at the same pose.
 // op-look30 adds: a hidden shard (slug `_…`, the template) or SELECT_MENU=1 enters standalone the way SHARD SELECT does (main
 // menu ▸ SHARD SELECT ▸ its card ▸ ENTER WORLD, or SHARDFILE for a shardfile-only shard with Developer on; no URL switch);
@@ -24,7 +25,7 @@ if (!base || !out || !slugs) throw new Error('usage: capture.mjs <preview-url> <
 mkdirSync(out, { recursive: true });
 const report = { version: await (await fetch(new URL('version.json', base))).json(), started: new Date().toISOString(), shards: {} };
 const save = () => writeFileSync(join(out, 'capture.json'), `${JSON.stringify(report, null, 2)}\n`);
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 
 async function context(row, composite) {
   const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] });

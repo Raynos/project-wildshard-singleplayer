@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../chromium-keychain.mjs';
 // run.mjs: SF9c's playback video and board (SHARD-PLATFORM §4 F1 SF9c, the playback half). Builds the harness (page.js,
 // vite's API) into a scratch dir, serves it with the repo's public/ on one local port, opens one muted headless Chromium on
 // Metal as an iPhone 16 Pro, plays every clip of the three exported skins next to today's procedural original (page.js)
@@ -43,7 +44,7 @@ await new Promise((resolve) => { server.listen(0, '127.0.0.1', () => { resolve(u
 const address = server.address();
 const base = `http://127.0.0.1:${typeof address === 'object' && address ? address.port : 0}`;
 
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const clips = [], stills = [];
 try {
   const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] });

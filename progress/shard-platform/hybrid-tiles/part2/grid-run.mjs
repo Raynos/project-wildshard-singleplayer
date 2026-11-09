@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // SF50-p close: Signal Dunes in the live grid on the served candidate build (muted Chromium, iPhone 16 Pro, Developer on):
 // enter from the north road through its midpoint entry (real held input on the hover board), a quest step through the bound
 // quest, a whip crack, the bound homes (13 `sunscar.home:<i>` identities), leave by the same road and re-enter; 0 errors.
@@ -9,7 +10,7 @@ const { chromium, devices } = await import(`${ROOT}/node_modules/playwright/inde
 const { saveFixtureCode } = await import(`${ROOT}/scripts/debug-settings.mjs`);
 const [base, out] = process.argv.slice(2);
 mkdirSync(out, { recursive: true });
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const ctx = await browser.newContext({ ...devices['iPhone 16 Pro'] });
 await ctx.addInitScript({ content: saveFixtureCode({ scope: 'device', key: 'devMode', data: true }) });
 await ctx.addInitScript({ content: saveFixtureCode({ scope: 'device', key: 'debug.plugin.sunscar-dunes.groundTiles', data: process.env.ROW ?? 'off' }) });

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF21a (G79 / G88 / G98): the Wildshard main menu, proven in a real browser (iPhone 16 Pro portrait, muted).
 //
 //   scripts/serve-build.sh --name sf21a                    # → http://127.0.0.1:<port>/
@@ -28,7 +29,7 @@ const toJpeg = (png, jpg) => {
   rmSync(tmp, { force: true });
 };
 
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const results = {};
 try {
   for (const dev of [false, true]) {

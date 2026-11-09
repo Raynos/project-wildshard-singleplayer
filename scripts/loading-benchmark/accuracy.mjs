@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../chromium-keychain.mjs';
 // G543: exact-build loading receipts, through real title entry on a muted phone browser.
 // scripts/browser-lane.sh --max 15 node scripts/loading-benchmark/accuracy.mjs --base=URL --pin=SHA --out=DIR
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -18,7 +19,7 @@ if (!base || !/^[a-f0-9]{40}$/u.test(pin) || !out) throw new Error('Requires --b
 const version = await (await fetch(new URL('/version.json', base))).json();
 if (!version.build?.startsWith(pin.slice(0, 7))) throw new Error('Served SHA differs');
 mkdirSync(out, { recursive: true });
-const browser = await chromium.launch({ headless: true, args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ headless: true, args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const { defaultBrowserType: _engine, ...phone } = devices['iPhone 16 Pro'];
 const desktop = arg('surface', 'phone') === 'desktop';
 const cpu = desktop ? 1 : 4;

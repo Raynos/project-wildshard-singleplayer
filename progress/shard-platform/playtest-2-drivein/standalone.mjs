@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // Playtest round 2 drive-in rows: the same spots in SHARD SELECT (the shard alone), the reference for each grid capture.
 // scripts/browser-lane.sh node progress/shard-platform/playtest-2-drivein/standalone.mjs --url=<preview> --out=<dir> --tag=<t> --shard=<Card name> --poses=<json [[name,x,z,yaw,pitch,y?],…] in shard-local metres>
 import { writeFileSync, mkdirSync } from 'node:fs';
@@ -9,7 +10,7 @@ const base = arg('url'), out = arg('out'), tag = arg('tag'), shard = arg('shard'
 if (!base || !out || !tag || !shard) throw new Error('Pass --url, --out, --tag, --shard and --poses');
 mkdirSync(out, { recursive: true });
 const report = { base, tag, shard, shots: [], errors: [] };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext(devices['iPhone 16 Pro']);
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });

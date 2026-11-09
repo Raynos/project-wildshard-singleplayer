@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // Grid UI part 2 (SHARD-PLATFORM SF28 / SF20a; G107 minimap blend, G78 border shimmer, G104 accent swap, G119 save
 // status), proven in a real browser: Chromium as an iPhone 16 Pro portrait, muted, Settings ▸ Developer on.
 //
@@ -27,7 +28,7 @@ const toJpeg = (png, name) => {
   rmSync(tmp, { force: true });
 };
 const out = { url, started: new Date().toISOString() };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const ctx = await browser.newContext({ ...PHONE, viewport: PHONE.screen });
   await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true });

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF60 / G214 (Jake: B, a slim banner under the logo): the main menu's WHAT'S NEW banner in a real browser
 // (iPhone 16 Pro portrait, muted).
 //
@@ -38,7 +39,7 @@ const layout = (page) => page.evaluate(() => {
     expanded: document.querySelector('.ws-whatsnew-head')?.getAttribute('aria-expanded') ?? null };
 });
 
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const results = {};
 try {
   const ctx = await browser.newContext({ ...PHONE, viewport: PHONE.screen });

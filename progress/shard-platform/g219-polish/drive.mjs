@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // G219 polish (E435): a portrait glide at hoverboard speed (~20 m/s) along the boulevard south of the NW open plot, a turn
 // into its south entry under the survey sign, past the demo corner and billboard, on to the centrepiece. iPhone 16 Pro, muted.
 // scripts/browser-lane.sh node progress/shard-platform/g219-polish/drive.mjs --url=<preview> --out=<dir>
@@ -11,7 +12,7 @@ mkdirSync(out, { recursive: true });
 // waypoints (grid metres): the boulevard z = 277.5 west to the NW plot's south stub (x = −555), then north to its centre
 const PATH = [{ x: -120, z: 272 }, { x: -540, z: 272 }, { x: -555, z: 290 }, { x: -555, z: 470 }];
 const SPEED = 20, STEP = 0.1;
-const report = { base, errors: [] }, browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const report = { base, errors: [] }, browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 let video = null;
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], recordVideo: { dir: out, size: { width: 540, height: 1174 } } });

@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // SF57 calibration probe: labelled live GL (and the allocator's claims) for Driftwood standalone and the public grid home,
 // in each texture mode (Settings ▸ Debug ▸ GPU textures), Chromium "iPhone 16 Pro", muted. GL only: WebContent needs the Simulator.
 import { chromium, devices } from '/Users/raynos/projects/games/wildshard-singleplayer/node_modules/playwright/index.mjs';
@@ -7,7 +8,7 @@ import { debugSettings } from '/Users/raynos/projects/games/wildshard-singleplay
 
 const BASE = process.argv[2] ?? 'http://127.0.0.1:4402';
 const out = [];
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--enable-unsafe-swiftshader'] });
 for (const page0 of ['standalone', 'public']) for (const tex of ['img', 'ktx2']) {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'] });
   await context.addInitScript(GL_INIT);

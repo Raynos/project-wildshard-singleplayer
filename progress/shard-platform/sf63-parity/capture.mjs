@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF63 parity (SHARD-PLATFORM, E435): each shard inside its grid cell against the same shard from SHARD SELECT, at the same
 // shard-local poses, on one tier. The grid half is sf63-pine-post/drive.mjs's drive (a Developer-ON grid boot, a pose onto the
 // road only, then held input into the cell, never a teleport inside it); the standalone half poses SHARD SELECT at the poses
@@ -60,7 +61,7 @@ const chainProbe = page => page.evaluate(() => {
     })(),
   };
 });
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const watch = (page, side) => {
   page.on('pageerror', e => { side.errors.push(e.message.slice(0, 300)); });
   page.on('console', m => { if (/THREE\.WebGLProgram|Shader Error|shader error/iu.test(m.text())) side.shaderErrors++; });

@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM op-frame22 (E435, SF63 / G158): op-frame21's Sky Reach B shot kept a "Loading" card on screen after the
 // cell reported ready. Re-run that pose (north sky dock, local -1.2 / 0.3 / 236.5, yaw 0) with the gridCellComposite row
 // off (A) and on (B), and at each of three moments after the cell reports ready (0 s, 4 s, 15 s) record a screenshot and
@@ -16,7 +17,7 @@ mkdirSync(out, { recursive: true });
 const slug = 'far-reach', normal = [0, 1], local = { x: -1.2, y: 0.3, z: 236.5, yaw: 0, pitch: -0.05 };
 const report = { version: await (await fetch(new URL('version.json', base))).json(), started: new Date().toISOString(), runs: {} };
 const save = () => writeFileSync(join(out, 'sky-loading.json'), `${JSON.stringify(report, null, 2)}\n`);
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 
 function readout() {
   const api = window.__wildshard, s = api.shard.grid.state(), l = s.live.live, p = api.requireWorld().player.position;

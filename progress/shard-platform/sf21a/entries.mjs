@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF21a (SHARD-PLATFORM §3.3, G58, G61, R3-C5): the main menu's two entries, proven in a real browser per mode.
 //
 //   scripts/serve-build.sh --name sf21a                # production build  → http://127.0.0.1:<a>/
@@ -103,7 +104,7 @@ async function gridRound(page, url) {
   return { result: { before: Object.keys(before).length, inGrid, reload, lost, killed }, page: reopened };
 }
 
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const results = [];
 try {
   for (const build of BUILDS) for (const dev of [false, true]) {

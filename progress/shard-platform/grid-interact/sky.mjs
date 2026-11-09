@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // rt3-dev (8): a Developer-ON grid boot (iPhone 16 Pro, muted), a pose onto the road north of Sky Reach only, then held
 // input straight south along x = 0 into the cell over its north entry (hover or walking) until it stops; off the board, the
 // RIDE prompt's USE band tapped (a DOM tap), the islet's ride, then held input on south across the gate isle and the rope
@@ -10,7 +11,7 @@ import { saveFixture } from '/Users/raynos/projects/games/wildshard-singleplayer
 const arg = (k, d = '') => process.argv.find((a) => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const base = arg('url').replace(/\/$/, ''), out = arg('out'), tag = arg('tag'), mode = arg('mode', 'hover'), engine = arg('engine', 'webkit');
 mkdirSync(out, { recursive: true });
-const browser = engine === 'webkit' ? await webkit.launch({ headless: true }) : await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = engine === 'webkit' ? await webkit.launch({ headless: true }) : await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const report = { tag, mode, engine, errors: [] };
 try {
   const { defaultBrowserType: _e, ...phone } = devices['iPhone 16 Pro'];

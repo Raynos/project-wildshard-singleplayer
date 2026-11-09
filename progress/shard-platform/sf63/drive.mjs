@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF63 (SHARD-PLATFORM, E435), from playtest round 2's drive-in: a Developer-ON grid boot, a pose onto the road only, then a
 // held-input drive into the cell (never a teleport inside it), and the captures at each stop, with the region look census
 // ([region look] lines), shader errors, the renderer's program count and GL bytes at each stop.
@@ -38,7 +39,7 @@ const SCENES = {
 const plan = SCENES[scene];
 if (!plan) throw new Error(`Unknown scene ${scene}`);
 const report = { base, tag, scene, stops: [], errors: [], console: [], look: [], shaderErrors: 0 };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext(devices['iPhone 16 Pro']);
   await context.addInitScript(GL_INIT);

@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // Playtest round 2 visual rows (SHARD-PLATFORM, E435): road / shard / plot poses, the HUD strips, and a measured board glide.
 // scripts/browser-lane.sh node progress/shard-platform/playtest-2/capture.mjs --url=<preview> --out=<dir> --tag=<before|after> [--only=a,b]
 import { writeFileSync, mkdirSync } from 'node:fs';
@@ -24,7 +25,7 @@ const POSES = [
   { name: 'open-plot-se-n', x: 555, z: -555, yaw: N, pitch: 0.05 },
   { name: 'open-plot-se-e', x: 555, z: -555, yaw: E, pitch: 0.05 },
 ].filter(p => only.length === 0 || only.some(o => p.name.startsWith(o)));
-const report = { base, tag, poses: [], glide: null, errors: [] }, browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const report = { base, tag, poses: [], glide: null, errors: [] }, browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext(devices['iPhone 16 Pro']);
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });

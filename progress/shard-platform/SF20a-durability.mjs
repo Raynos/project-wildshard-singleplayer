@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../scripts/chromium-keychain.mjs';
 // SF20a durability witness: one muted portrait Chromium, the real grid entry, controller walks across both borders,
 // native quest/death callbacks, fresh-document reload and return. No URLs select variants and no completion callback
 // fabricates a quest reward. Run after the coordinator's quiet window:
@@ -11,7 +12,7 @@ import { installResources } from '../../scripts/parity/resources.mjs';
 const flag = (name) => (process.argv.find((value) => value.startsWith(`--${name}=`)) ?? '').slice(name.length + 3);
 const url = flag('url'), sha = flag('sha'), output = flag('out') || new URL('./SF20a-durability.json', import.meta.url).pathname;
 if (!url || !sha) throw new Error('Supply --url=<build> and --sha=<commit>');
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const result = { sha, surface: 'Chromium emulating iPhone 16 Pro portrait', started: new Date().toISOString(), phases: [], errors: [] };
 const started = Date.now();
 let page;

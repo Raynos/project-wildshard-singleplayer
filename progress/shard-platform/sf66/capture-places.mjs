@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SF66: the full MAP names the places that had none (Nine Dragon's square, market, stair-street, Well rim and road portals,
 // the template's hut and arenas, Sky Reach's rising islets), proven in a real browser: Chromium as an iPhone 16 Pro
 // portrait, muted, Settings ▸ Developer on. Writes <slug>-places.png into --out (the board is composed from them).
@@ -17,7 +18,7 @@ const PHONE = devices['iPhone 16 Pro'];
 const sleep = (ms) => new Promise((r) => { setTimeout(r, ms); });
 mkdirSync(out, { recursive: true });
 const report = {};
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   for (const slug of ['nine-dragon-stack', '_template', 'far-reach']) {
     const ctx = await browser.newContext({ ...PHONE, viewport: PHONE.screen, serviceWorkers: 'block' });

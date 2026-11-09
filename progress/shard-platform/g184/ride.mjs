@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM SF51-p (G184): walk and ride Nine Dragon's north lantern lift in a real browser (iPhone 16 Pro portrait,
 // muted), with the nineDragonEntries row ON: from the north landing deck (y 0) through the end wall's door into the resting
 // cage, ride it up (the KinematicMover carries the player; no teleport) to the winch house, step out onto the north street
@@ -14,7 +15,7 @@ import { walkPhysicsLeg } from '../../../scripts/physics-walk.mjs';
 
 const arg = (name, fallback) => process.argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
 const URL0 = arg('url', 'http://127.0.0.1:4400/').replace(/\/$/u, ''), OUT = import.meta.dirname;
-const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
+const browser = await chromium.launch({ headless: true, args: [...KEYCHAIN_ARGS, '--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
 const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 const report = { build: null, date: new Date().toISOString(), legs: [], rides: [], gate: {}, errors: [] };
 try {

@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // G227 platform atlas (E435): GL bytes by label and fixed-pose captures of the grid's road signs, before / after.
 // node progress/shard-platform/platform-atlas/capture.mjs <base url> <out dir> <label>
 // Run through scripts/browser-lane.sh. One muted Chromium/Metal "iPhone 16 Pro", phone tier, dpr 2, Developer ON.
@@ -15,7 +16,7 @@ mkdirSync(out, { recursive: true });
 const layout = JSON.parse(readFileSync(join(import.meta.dirname, 'signs.json'), 'utf8'));
 const report = { label, version: await (await fetch(new URL('version.json', base))).json(), poses: [], gl: null, errors: [] };
 const save = () => writeFileSync(join(out, `${label}.json`), `${JSON.stringify(report, null, 2)}\n`);
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: 'block' });
   await saveFixture(context, { scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex: 'auto' }, merge: true });

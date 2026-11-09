@@ -1,3 +1,4 @@
+import { KEYCHAIN_ARGS } from '../../../../scripts/chromium-keychain.mjs';
 // E435 / SF47-g: three Pine visits, two full road re-entries, draw-time GL census and same-document final unload.
 // Run through scripts/browser-lane.sh against a pinned scripts/serve-build.sh preview; muted iPhone portrait.
 import { writeFileSync } from 'node:fs';
@@ -18,7 +19,7 @@ const POSES = [
 ];
 const ROAD = { label: 'road', x: 277.5, z: 0, yaw: Math.PI / 2, pitch: 0.05 };
 const result = { diagnostic: true, base, mode, sky, dev, started: new Date().toISOString(), errors: [], consoleErrors: [], stops: [] };
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 let page;
 // what the frame draws and what lights it (runs in the browser)
 const census = () => {

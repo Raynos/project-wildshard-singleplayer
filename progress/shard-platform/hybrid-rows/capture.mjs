@@ -1,9 +1,10 @@
+import { KEYCHAIN_ARGS } from '../../../scripts/chromium-keychain.mjs';
 // SHARD-PLATFORM M3 hybrid-rows: Signal Dunes standalone boot on the served build (Chromium, muted, iPhone 16 Pro):
 // entry, the bound whip (declared item row → runtime family), quest progress through the bound quest, a whip crack.
 import { chromium, devices } from 'playwright';
 import { writeFileSync } from 'node:fs';
 const [url, out] = process.argv.slice(2);
-const browser = await chromium.launch({ args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
+const browser = await chromium.launch({ args: [...KEYCHAIN_ARGS, '--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
 const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: 'block' });
 const page = await context.newPage(), errors = [];
 page.on('pageerror', (e) => errors.push(e.message)); page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
