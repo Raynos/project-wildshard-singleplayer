@@ -20,8 +20,14 @@ try{
   request.onerror=()=>reject(request.error);
   request.onsuccess=()=>{const database=request.result,transaction=database.transaction('fixture','readwrite');transaction.objectStore('fixture').put('unchanged native write','fixture');transaction.onabort=()=>{database.close();resolve();};transaction.abort();};
  }));
+ await page.evaluate(()=>new Promise((resolve,reject)=>{
+  const request=indexedDB.open('native-proof',1);request.onerror=()=>reject(request.error);
+  request.onsuccess=()=>{const database=request.result,transaction=database.transaction('fixture','readwrite'),store=transaction.objectStore('fixture');store.add('first','same');store.add('second','same');transaction.onabort=()=>{database.close();resolve();};transaction.oncomplete=()=>reject(new Error('Native duplicate key was not refused'));};
+ }));
  const storage=await page.evaluate(()=>Reflect.get(globalThis,'__releaseStorageFaults'));
- assert.ok(storage.some(row=>row.event==='abort'&&row.database==='native-proof'));
+ assert.ok(storage.rows.some(row=>row.event==='abort'&&row.database==='native-proof'));
+ assert.ok(storage.rows.some(row=>row.error==='ConstraintError'&&row.stores.includes('fixture')));
+ assert.equal(storage.dropped,0);
  const pending=page.waitForEvent('worker');
  await page.evaluate(()=>{
   const worker=new Worker(URL.createObjectURL(new Blob([`onmessage=e=>{const port=e.ports[0];port.onmessage=event=>{const data=event.data;const bytes=new Uint8Array(data.bytes)[0]%2===0?data.bytes:data.bytes.slice(0);port.postMessage({...data,bytes},[bytes]);};postMessage('ready');};`],{type:'text/javascript'})));

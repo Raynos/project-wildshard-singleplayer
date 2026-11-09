@@ -43,7 +43,10 @@ export async function profileReleaseWorker(browser,workerURL,file,{durationMs=60
       if(result.status==='rejected')errors.push(`${realm}: ${String(result.reason)}`);
     }
     if(workerResult.status==='fulfilled'&&workerResult.value.exceptionDetails!==undefined)errors.push(`worker: ${JSON.stringify(workerResult.value.exceptionDetails)}`);
-    portEvidence={page:pageResult.status==='fulfilled'?pageResult.value:null,worker:workerResult.status==='fulfilled'?workerResult.value.result?.value:null,errors};
+    if(pageResult.status==='fulfilled'&&pageResult.value.cleanupError)errors.push(`page: ${pageResult.value.cleanupError}`);
+    if(workerResult.status==='fulfilled'&&workerResult.value.result?.value?.cleanupError)errors.push(`worker: ${workerResult.value.result.value.cleanupError}`);
+    const storage=await page.evaluate(()=>Reflect.get(globalThis,'__releaseStorageFaults')).catch(error=>({captureError:String(error)}));
+    portEvidence={page:pageResult.status==='fulfilled'?pageResult.value:null,worker:workerResult.status==='fulfilled'?workerResult.value.result?.value:null,storage,errors};
     mkdirSync(dirname(file),{recursive:true});
     writeFileSync(file.replace(/\.json$/u,'-ports.json'),JSON.stringify(portEvidence)+'\n');
     return portEvidence;

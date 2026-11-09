@@ -6,15 +6,15 @@ export function observeReleasePorts() {
   const original = Object.getOwnPropertyDescriptor(prototype, 'postMessage');
   if (original === undefined || typeof original.value !== 'function') throw new Error('Native MessagePort sender missing');
   const send = original.value, ports = new Map(), rows = [], longTasks = [];
-  let serial = 0, overflow = false, stopped = false;
+  let serial = 0, overflow = false, longTaskOverflow = false, stopped = false;
   const recordTasks = entries => {
     for (const entry of entries) {
-      if (longTasks.length === 4096) { overflow = true; return; }
+      if (longTasks.length === 4096) { longTaskOverflow = true; return; }
       longTasks.push({ at: performance.timeOrigin + entry.startTime, duration: entry.duration });
     }
   };
-  const tasks = typeof PerformanceObserver !== 'undefined' && PerformanceObserver.supportedEntryTypes.includes('longtask')
-    ? new PerformanceObserver(list => recordTasks(list.getEntries())) : null;
+  const longTasksSupported = typeof PerformanceObserver !== 'undefined' && PerformanceObserver.supportedEntryTypes.includes('longtask');
+  const tasks = longTasksSupported ? new PerformanceObserver(list => recordTasks(list.getEntries())) : null;
   tasks?.observe({ type: 'longtask' });
   const envelope = value => typeof value === 'object' && value !== null
     && value.channel === 'unreliable' && value.bytes instanceof ArrayBuffer;
@@ -48,9 +48,9 @@ export function observeReleasePorts() {
     if (tasks !== null) { recordTasks(tasks.takeRecords()); tasks.disconnect(); }
     const current = Object.getOwnPropertyDescriptor(prototype, 'postMessage');
     for (const [port, row] of ports) port.removeEventListener('message', row.receive);
-    if (current?.value !== observed) throw new Error('Native port observer changed during capture');
-    Object.defineProperty(prototype, 'postMessage', original);
-    return { protocol: 'release-native-port/1', overflow, ports: ports.size, rows, longTasks };
+    const cleanupError = current?.value !== observed ? 'Native port observer changed during capture' : null;
+    if (cleanupError === null) Object.defineProperty(prototype, 'postMessage', original);
+    return { protocol: 'release-native-port/1', overflow, ports: ports.size, rows, longTasks, longTasksSupported, longTaskOverflow, cleanupError };
   };
   Reflect.set(globalThis, '__releasePortStop', stop);
 }

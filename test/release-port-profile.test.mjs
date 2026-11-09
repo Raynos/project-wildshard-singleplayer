@@ -24,6 +24,9 @@ test('port diagnosis preserves native transfers and excludes reliable data', asy
     const result = finishReleasePorts();
     assert.equal(result.overflow, false);
     assert.equal(result.ports, 2);
+    assert.equal(typeof result.longTasksSupported, 'boolean');
+    assert.equal(result.longTaskOverflow, false);
+    assert.equal(result.cleanupError, null);
     assert.equal(result.rows.filter(row => row.direction === 'send').length, 3);
     assert.equal(result.rows.filter(row => row.direction === 'receive').length, 2);
     assert.ok(result.rows.every(row => row.length === 3 && row.header.length === 3 && row.at > 0));
@@ -33,4 +36,18 @@ test('port diagnosis preserves native transfers and excludes reliable data', asy
     if (Reflect.has(globalThis, '__releasePortStop')) finishReleasePorts();
     port1.close(); port2.close();
   }
+});
+
+test('observer retains evidence and preserves a later prototype owner', () => {
+  const original = Object.getOwnPropertyDescriptor(MessagePort.prototype, 'postMessage');
+  observeReleasePorts();
+  const later = function (...args) { return Reflect.apply(original.value, this, args); };
+  try {
+    Object.defineProperty(MessagePort.prototype, 'postMessage', { ...original, value: later });
+    const result = finishReleasePorts();
+    assert.match(result.cleanupError, /changed during capture/u);
+    assert.deepEqual(result.rows, []);
+    assert.equal(MessagePort.prototype.postMessage, later);
+    assert.equal(Reflect.has(globalThis, '__releasePortStop'), false);
+  } finally { Object.defineProperty(MessagePort.prototype, 'postMessage', original); }
 });

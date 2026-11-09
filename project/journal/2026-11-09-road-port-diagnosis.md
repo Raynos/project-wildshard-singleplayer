@@ -63,3 +63,16 @@ from a guessed quota diagnosis. The manual Chromium proof observes a
 real native aborted transaction and unchanged native transfers, and
 closes its owned fixture listener even if launch fails. It is outside
 hooks and remains separate from the real game verdict.
+
+
+The second one-shot Opus review, singleplayer-native-diagnostics-2324,
+used the corrected restricted settings/tools, no session persistence,
+and all seven actual Herdr keys removed. No MUST-FIX was found. The
+SHOULD forwards expose storage truncation, open/blocked/forced-close
+failures and source store names, prove a real native ConstraintError,
+mark unsupported/truncated long-task data separately, retain storage
+faults in road artifacts and preserve evidence on cleanup conflicts.
+Sixteen existing/new Node cases pass. The native Chromium fixture
+passes real abort/error-name observation plus both transferred-buffer
+receive paths and closes its listener. No raw save keys or values are
+recorded. Subsequent reviews use the newly published repo-kit helper.
