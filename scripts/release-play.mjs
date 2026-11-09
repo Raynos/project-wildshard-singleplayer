@@ -107,7 +107,7 @@ async function walk(page, x, z) {
     while (Date.now() < deadline) {
       const sample = await page.evaluate(([x, z]) => {
         const world = window.__wildshard.world, grid = window.__wildshard.shard.grid.state(), feet = grid.live?.live.worldFeet;
-        const row = window.__workerClient();
+        const row = window.__workerClient(), net = world.player.link, latest = net?.client?.latest;
         if (feet === undefined) return { distance: Infinity, frames: row.frames };
         const game = world.game, slot = (game.frameI + game.frameMs.length - 1) % game.frameMs.length;
         world.player.yaw = Math.atan2(feet.x - x, feet.z - z);
@@ -115,6 +115,16 @@ async function walk(page, x, z) {
         return { distance: Math.hypot(feet.x - x, feet.z - z), x: feet.x, z: feet.z,
           frames: row.frames, serverX: row.serverX, serverZ: row.serverZ,
           clientFps: row.framesPerSecond, simulationTps: row.ticksPerSecond,
+          // Raw authoritative clocks distinguish delayed presentation, input
+          // starvation and server-clock loss; the displayed TPS is cumulative.
+          wireClock: { tick: latest?.tick, ack: latest?.lastSeq, seq: net?.seq,
+            consumed: net?.inputTick, seen: net?.seen?.tick, mode: net?.deviceMode,
+            pending: net?.predictor?.pending, full: net?.predictor?.full,
+            unacked: net?.client?.unacked?.length, fresh: net?.client?.fresh,
+            appMode: game.app.clock.mode, appState: game.app.state,
+            afterStep: Boolean(net?.afterStep), pressed: net?.pressed, gust: net?.gust,
+            launcher: Boolean(net?.launcher), hookLocked: net?.hookLocked, hookFired: net?.hookFired,
+            ride: world.player.ride !== null, inFwd: world.player.inFwd },
           workerTickMs: row.workerTickMs, clientMainP95Ms: row.mainMsP95,
           frame: { count: game.frameCount, intervalMs: game.frameMs[slot], workMs: game.workMs[slot],
             updateMs: game.updateMs[slot], renderMs: game.renderMs[slot],
