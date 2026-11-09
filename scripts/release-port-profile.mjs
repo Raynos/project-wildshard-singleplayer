@@ -12,8 +12,11 @@ export function observeReleasePorts() {
   const record = (port, direction, data) => {
     if (!envelope(data)) return;
     if (rows.length === 50_000) { overflow = true; return; }
-    const header = Array.from(new Uint8Array(data.bytes, 0, Math.min(64, data.bytes.byteLength)));
-    rows.push({ at: performance.timeOrigin + performance.now(), port, direction, length: data.bytes.byteLength, header });
+    const length = data.bytes.byteLength;
+    // A native receiver may forward/transfer the buffer in its earlier handler.
+    // Do not throw or claim a recovered header after that legitimate detach.
+    const header = length === 0 ? [] : Array.from(new Uint8Array(data.bytes, 0, Math.min(64, length)));
+    rows.push({ at: performance.timeOrigin + performance.now(), port, direction, length, header });
   };
   function observed(...args) {
     const [data] = args;

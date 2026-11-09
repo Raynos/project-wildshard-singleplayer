@@ -29,3 +29,12 @@ and setup/stop failures still restore both observers. A changed foreign
 prototype is preserved while our listeners/global are retired. Native
 MessageChannel plus the existing release tests remain 15/15 green.
 The packet proof so far is Node native, not a claimed browser pass.
+
+
+The actual Chromium page/worker CDP validation caught an edge case in
+the observer itself: an echo handler can legally forward and detach the
+received buffer before our passive listener runs. The observer now
+records zero length and an unavailable header without constructing a
+view of a detached buffer. The exact same native fixture then passed
+200 transferred packets each direction, with both observer globals
+removed; no game or road pass is inferred. The existing 15 tests pass.
