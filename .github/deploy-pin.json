@@ -1,10 +1,10 @@
 {
   "$doc": "Production release policy (J179/J189): pinned is a pure hold. After the engine pin bump and staged proofs, release requires a separately authorized mode newest-ci-green change. Fix forward is the rule. Only a Jake-authorized manual vercel rollback rolls production back; deploy-pin rollback is retired. See docs/j189-release.md.",
-  "mode": "newest-ci-green",
-  "sha": "044c06402e3e435e3ac18f7e30a39c0cd9152a4b",
-  "milestone": "E543: prove staged v0.1.2 before promotion",
+  "mode": "pinned",
+  "sha": "d91507e4e8f2a113acb62fd79752d74af1a7f136",
+  "milestone": "Opus release-train must-fixes, 2026-11-09",
   "gate": "grandfathered",
-  "go": "Jake J195 / coordinator 2026-11-08: release v0.1.2 after full exact c792449-mw7ze0pw staged Chromium and WebKit proofs passed: headers, four APIs, service worker, ten loading cards/native copies, real Ember crossings and earned returns; all nine repaired URLs 200/exact bytes. Save epoch remains 1.",
-  "set": "2026-11-08T16:03:56.878Z",
-  "by": "E357 lead"
+  "go": "Publication held until exact code-proving CI selection, post-control quota fallback and failed-cycle reporting are repaired and green; epoch stays 1.",
+  "set": "2026-11-09T17:46:23Z",
+  "by": "codex-port / coordinator must-fix order"
 }
