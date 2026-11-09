@@ -50,3 +50,8 @@ jobs:
           # The deploy workflow checks this exact source before building.
           gh workflow run deploy.yml --ref main -f "expected_sha=$expected"
           echo "Queued exact shell $expected" >> "$GITHUB_STEP_SUMMARY"
+      - name: Retry only a new eligible committed shell
+        if: steps.select.outputs.retry == 'true'
+        run: |
+          gh workflow run deploy.yml --ref main -f "expected_sha=$GITHUB_SHA"
+          echo "Queued forward retry for exact shell $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"

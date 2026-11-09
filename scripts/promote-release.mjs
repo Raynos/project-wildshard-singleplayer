@@ -51,4 +51,4 @@ if (!process.env.VERCEL_BUILD_TOKEN) throw new Error('Existing production deploy
 try { execFileSync('vercel',['promote',url,'--yes','--scope','raynos-projects','--token',process.env.VERCEL_BUILD_TOKEN],{stdio:'inherit'}); }
 catch { throw new Error('Vercel promotion failed; production was not rolled back'); }
 execFileSync(process.execPath,['scripts/deploy-version.mjs','verify'],{stdio:'inherit',env:{...process.env,DEPLOY_SHA:sha,DEPLOY_EXPECTED_BUILD:build}});
-console.log(`Production ${build}; engine ${pin.engine.commit}; epoch ${pin.saveEpoch}; proven archive ${archive}`);
+console.log(`Production ${build}; engine ${pin.engine.commit}; epoch ${pin.saveEpoch}; recorded source archive ${archive}; same staged URL ${url}`);

@@ -141,6 +141,7 @@ jobs:
     needs: build-pinned
     if: github.event_name != 'pull_request'
     outputs:
+      allowed: ${{ steps.policy.outputs.allowed }}
       url: ${{ steps.stage.outputs.url }}
       build: ${{ steps.stage.outputs.build }}
       archive: ${{ steps.stage.outputs.archive }}
@@ -175,9 +176,11 @@ jobs:
           const allowed=pin.mode==='newest-ci-green'||pin.mode==='pinned'&&pin.sha===process.env.GITHUB_SHA;
           appendFileSync(process.env.GITHUB_OUTPUT,`allowed=${allowed}\n`);
           console.log(allowed?'Exact proven release admitted':'Production held at '+pin.sha);
+          if(!allowed)appendFileSync(process.env.GITHUB_STEP_SUMMARY,'**HELD:** no Vercel staging, browser release proofs or promotion for this source.\n');
           NODE
       - name: Stage the proven artifact without moving production
         id: stage
+        if: steps.policy.outputs.allowed == 'true'
         env:
           VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
         run: |
@@ -197,7 +200,7 @@ jobs:
           NODE
   prove-pinned:
     needs: [build-pinned, stage-pinned]
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && needs.stage-pinned.outputs.allowed == 'true'
     name: staged-${{ matrix.browser }}
     strategy:
       fail-fast: false

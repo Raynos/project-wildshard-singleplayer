@@ -89,6 +89,21 @@ checks. It promotes that same proven URL and verifies production. No new
 coordinator go is needed. The train explicitly dispatches the exact source
 because default-token pushes do not trigger recursive push workflows.
 
+The November 9 review hardens the selector and installer: an exact engine
+CI must contain successful test shards and e2e, not a docs-filtered green.
+A failed, cancelled or completed-but-unreleased current shell cycle is
+reported red with its run link. A new eligible committed shell SHA can
+retry an already pinned producer without rewriting the pin. An explicit
+hold skips staging and both browser release proofs and says so in the
+workflow summary. The recorded archive identifier is provenance; release
+identity rests on the same immutable staged URL and matching build.
+
+Promotion deliberately requires a complete successful same-attempt job
+inventory. A partial rerun that omits carried-over jobs refuses; it cannot
+stand in for a new forward cycle. The bounded cache drain is a mitigation
+for app-owned title navigation, not a guarantee for browser Back, close,
+bfcache or native operations lasting beyond its existing four-second cap.
+
 Production v0.1.2 is `d91507e-mw810im4`, engine `cfd6681`, epoch one. Both
 complete production phone proofs and all nine repaired URLs pass. The
 historical Chromium road timeout did not reproduce as a collision: with

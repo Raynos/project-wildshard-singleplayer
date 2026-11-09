@@ -28,12 +28,13 @@ test('scheduled selector commits no refused, foreign, red or different-epoch byt
       if(mode.startsWith('docs-after-'))body.workflow_runs.push(...['ci','ring-1'].map((name,id)=>({id:id+3,name,head_sha:'e'.repeat(40),head_branch:'main',event:'push',status:'completed',conclusion:name==='ci'?(mode==='docs-after-red'?'failure':'cancelled'):'success'})),...['ci','ring-1'].map((name,id)=>({id:id+5,name,head_sha:old,head_branch:'main',event:'push',status:'completed',conclusion:'success'})));
     }
     else if(path.includes('/compare/')){const [base]=path.split('/compare/')[1].split('...');body={status:mode==='diverged'?'diverged':'ahead',base_commit:{sha:base}};}
+    else if(path.endsWith('/contents/engine.pin.json'))body=pin;
     else if(path.endsWith('/contents/save-epoch.json'))body={saveEpoch:mode==='wipe'?2:mode==='downgrade'?0:1};
     else{res.writeHead(404);res.end('{}');return;}
     res.end(JSON.stringify(body));
   });
   const invoke=origin=>new Promise((resolve,reject)=>{
-    const child=spawn(process.execPath,[join(root,'scripts/release-train.mjs'),'--apply'],{cwd,env:{...process.env,GITHUB_API_URL:origin,WS_RELEASE_ORIGIN:origin,GITHUB_OUTPUT:''},stdio:['ignore','pipe','pipe']});
+    const child=spawn(process.execPath,[join(root,'scripts/release-train.mjs'),'--apply'],{cwd,env:{...process.env,GITHUB_API_URL:origin,WS_RELEASE_ORIGIN:origin,GITHUB_OUTPUT:'',GITHUB_STEP_SUMMARY:''},stdio:['ignore','pipe','pipe']});
     let output='';child.stdout.on('data',b=>output+=b);child.stderr.on('data',b=>output+=b);child.on('error',reject);child.on('close',code=>resolve({code,output}));
   });
   try{
@@ -72,4 +73,37 @@ require('fs').writeFileSync('unexpected-write','bad');process.exit(99);
     const result=spawnSync(process.execPath,[join(root,'scripts/promote-release.mjs'),'https://wildshard-singleplayer-fixture-raynos-projects.vercel.app','aaaaaaa-build','c'.repeat(64)],{cwd,encoding:'utf8',timeout:4000,env:{...process.env,PATH:bin+':'+process.env.PATH,GITHUB_RUN_ID:'123',GITHUB_RUN_ATTEMPT:'1',PROOF_CASE:mode}});
     assert.notEqual(result.status,0,mode);assert.match(result.stderr,/Foreign release workflow|Missing same-source successful release job|Unfinished or red release gate/u);assert.equal(existsSync(join(cwd,'unexpected-write')),false);
   }}finally{rmSync(cwd,{recursive:true,force:true});}
+});
+
+test('failed cycles name their run and only a new eligible shell SHA can retry',async()=>{
+  const cwd=mkdtempSync(join(root,'tmp/train-retry-'));mkdirSync(join(cwd,'.github'));
+  const pin=JSON.parse(readFileSync(join(root,'engine.pin.json'),'utf8'));pin.engine.commit=next;
+  const original=JSON.stringify(pin)+'\n', previous={...pin,engine:{...pin.engine,commit:old}};
+  writeFileSync(join(cwd,'engine.pin.json'),original);writeFileSync(join(cwd,'.github/deploy-pin.json'),'{"mode":"newest-ci-green"}');
+  let mode='failed';
+  const server=createServer((req,res)=>{
+    const path=new URL(req.url,'http://fixture').pathname;let body;
+    if(path==='/version.json')body={build:'fffffff-live',saveEpoch:1};
+    else if(path.includes('workflows/deploy.yml/runs'))body={workflow_runs:mode==='unrecorded'?[]:[{id:901,event:'workflow_dispatch',head_branch:'main',head_sha:mode==='new-head'?'e'.repeat(40):tip,status:'completed',conclusion:mode==='live'||mode==='unreleased'?'success':mode==='cancelled'?'cancelled':'failure'}]};
+    else if(path.endsWith('/contents/engine.pin.json'))body=mode==='live'?pin:previous;
+    else if(path.endsWith('/branches/main'))body={commit:{sha:tip}};
+    else if(path.includes('/jobs'))body={jobs:['plan','tests (1)','e2e'].map(name=>({name,head_sha:next,status:'completed',conclusion:'success'}))};
+    else if(path.includes('/actions/runs'))body={workflow_runs:['ci','ring-1'].map((name,id)=>({id:id+10,name,head_sha:next,head_branch:'main',event:'push',status:'completed',conclusion:'success'}))};
+    else if(path.includes('/compare/'))body={status:'ahead',base_commit:{sha:path.split('/compare/')[1].split('...')[0]}};
+    else{res.writeHead(404);res.end('{}');return;}
+    res.setHeader('Content-Type','application/json');res.end(JSON.stringify(body));
+  });
+  try{
+    await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const origin=`http://127.0.0.1:${server.address().port}`;
+    for(mode of ['failed','cancelled','unreleased','new-head','unrecorded','live']){
+      const result=await new Promise((resolve,reject)=>{
+        const child=spawn(process.execPath,[join(root,'scripts/release-train.mjs'),'--apply'],{cwd,env:{...process.env,GITHUB_API_URL:origin,WS_RELEASE_ORIGIN:origin,GITHUB_SHA:tip,GITHUB_OUTPUT:'',GITHUB_STEP_SUMMARY:''},stdio:['ignore','pipe','pipe']});
+        let output='';child.stdout.on('data',b=>output+=b);child.stderr.on('data',b=>output+=b);child.on('error',reject);child.on('close',code=>resolve({code,output}));
+      });
+      const state=JSON.parse(result.output);
+      if(['failed','cancelled','unreleased'].includes(mode)){assert.notEqual(result.code,0,mode);assert.equal(state.state,'held');assert.equal(state.failedRun.id,901);}
+      else{assert.equal(result.code,0,result.output);assert.equal(state.state,mode==='live'?'idle':'retry');if(state.state==='retry')assert.equal(state.sha,tip);}
+      assert.equal(readFileSync(join(cwd,'engine.pin.json'),'utf8'),original);
+    }
+  }finally{await new Promise(resolve=>server.close(resolve));rmSync(cwd,{recursive:true,force:true});}
 });
