@@ -238,7 +238,15 @@ jobs:
         run: |
           mkdir -p .vercel
           node -e 'require("fs").writeFileSync(".vercel/project.json",JSON.stringify({projectId:process.env.VERCEL_PROJECT_ID,orgId:process.env.VERCEL_ORG_ID}))'
-          node scripts/prove-release.mjs "$STAGED_URL" --vercel --existing-bypass "--browser=$PHONE"
+          node scripts/prove-release.mjs "$STAGED_URL" --vercel --existing-bypass "--browser=$PHONE" --profile-worker
+      - name: Retain actual worker CPU diagnosis
+        if: always() && matrix.browser == 'Chromium'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-worker-profile-${{ github.sha }}
+          path: tmp/release-worker-profile/
+          retention-days: 7
+          if-no-files-found: warn
   release:
     needs: [build-pinned, prove-pinned]
     if: github.event_name != 'pull_request'

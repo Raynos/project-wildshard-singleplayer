@@ -102,7 +102,7 @@ async function enteredEmber(page) {
 }
 async function walk(page, x, z) {
   const started = Date.now(), deadline = started + 210_000, trace = [];
-  let distance = Infinity;
+  let distance = Infinity, nextClockLog = started;
   try {
     while (Date.now() < deadline) {
       const sample = await page.evaluate(([x, z]) => {
@@ -136,6 +136,10 @@ async function walk(page, x, z) {
       }, [x, z]);
       distance = sample.distance;
       trace.push({ ms: Date.now() - started, ...sample });
+      if (Date.now() >= nextClockLog) {
+        console.log('ROAD CLOCK SAMPLE', x, z, JSON.stringify(trace.at(-1)));
+        nextClockLog = Date.now() + 10_000;
+      }
       if (trace.length > 64) trace.shift();
       if (distance < 5) {
         console.log('ROAD ARRIVAL TRACE', x, z, JSON.stringify(trace));
@@ -149,7 +153,7 @@ async function walk(page, x, z) {
     await page.evaluate(() => { const player = window.__wildshard.world.player; player.touchMove.y = 0; player.touchSprint = false; });
   }
 }
-export async function proveEmber(page, modules, label) {
+export async function proveEmber(page, modules, label, { beforeLongRoad } = {}) {
   console.log('Real road crossing', label);
   console.log('ROAD PLATFORM', label, JSON.stringify(await page.evaluate(() => {
     const game = window.__wildshard.world.game, gl = game.renderer.getContext();
@@ -160,6 +164,7 @@ export async function proveEmber(page, modules, label) {
       renderer: info === null ? gl.getParameter(gl.RENDERER) : gl.getParameter(info.UNMASKED_RENDERER_WEBGL) };
   })));
   for (const [x, z] of [[0, -281.25], [1125, -281.25], [1125, -390]]) {
+    if (x === 1125 && z === -281.25) await beforeLongRoad?.();
     await walk(page, x, z);
     console.log('PASS actual road leg', label, x, z, JSON.stringify(await gridState(page)));
   }

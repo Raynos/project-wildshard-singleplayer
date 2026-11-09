@@ -6,6 +6,7 @@ import { execFileSync } from 'node:child_process';
 import { observeReleaseModules, waitForReleaseWorker } from './release-worker.mjs';
 import { recordFirstReleaseCard, proveLoadingCard, proveEmber } from './release-play.mjs';
 import {existingReleaseBypass} from './release-access.mjs';
+import {profileReleaseWorker} from './release-worker-profile.mjs';
 const base = process.argv[2];
 if (base === undefined) throw new Error('Usage: prove-release.mjs https://staged-origin');
 // Separate admitted machine slots can run both complete phone journeys at
@@ -152,7 +153,21 @@ for (const [name, type] of phones) {
           return before;
         });
         await page.waitForFunction(before => (window.__workerClient?.().frames ?? 0) > Math.max(10, before + 10), firstFrame, { timeout: 90_000 });
-        if (extended && label === 'grid') await proveEmber(page, modules, name);
+        if (extended && label === 'grid') {
+          let stopProfile;
+          const beforeLongRoad = async () => {
+          if (name === 'Chromium' && process.argv.includes('--profile-worker')) {
+            const workers = page.workers().filter(worker => /\/standalone\/serverWorker[^/]*\.js$/u.test(new URL(worker.url()).pathname));
+            if (workers.length !== 1) throw new Error('Expected one actual standalone server worker to profile');
+            stopProfile = await profileReleaseWorker(browser, workers[0].url(), `tmp/release-worker-profile/${version.build}-worker.json`);
+          }
+          };
+          let failure;
+          try { await proveEmber(page, modules, name, { beforeLongRoad }); } catch (error) { failure = error; }
+          try { await stopProfile?.(); }
+          catch (error) { failure = failure === undefined ? error : new AggregateError([failure, error], 'Road and worker profile both refused'); }
+          if (failure !== undefined) throw failure;
+        }
       }
       if (staged && label === 'title') {
         await waitForReleaseWorker(page);
