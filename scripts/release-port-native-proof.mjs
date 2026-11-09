@@ -3,10 +3,25 @@ import assert from 'node:assert/strict';
 import {chromium,devices} from 'playwright';
 import {KEYCHAIN_ARGS} from './chromium-keychain.mjs';
 import {profileReleaseWorker} from './release-worker-profile.mjs';
-const browser=await chromium.launch({headless:true,args:[...KEYCHAIN_ARGS,'--mute-audio']});
+import {observeReleaseStorage} from './release-storage-profile.mjs';
+import {createServer} from 'node:http';
+const server=createServer((_request,response)=>response.end('<!doctype html><title>Native diagnostic fixture</title>'));
+await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+/** @type {import('playwright').Browser|undefined} */
+let browser;
 try{
+ browser=await chromium.launch({headless:true,args:[...KEYCHAIN_ARGS,'--mute-audio']});
  const context=await browser.newContext({...devices['iPhone 16 Pro'],deviceScaleFactor:2});
- const page=await context.newPage();await page.goto('about:blank');
+ await context.addInitScript(observeReleaseStorage);
+ const address=server.address();assert.ok(address!==null&&typeof address!=='string');
+ const page=await context.newPage();await page.goto(`http://127.0.0.1:${address.port}/`);
+ await page.evaluate(()=>new Promise((resolve,reject)=>{
+  const request=indexedDB.open('native-proof',1);request.onupgradeneeded=()=>request.result.createObjectStore('fixture');
+  request.onerror=()=>reject(request.error);
+  request.onsuccess=()=>{const database=request.result,transaction=database.transaction('fixture','readwrite');transaction.objectStore('fixture').put('unchanged native write','fixture');transaction.onabort=()=>{database.close();resolve();};transaction.abort();};
+ }));
+ const storage=await page.evaluate(()=>Reflect.get(globalThis,'__releaseStorageFaults'));
+ assert.ok(storage.some(row=>row.event==='abort'&&row.database==='native-proof'));
  const pending=page.waitForEvent('worker');
  await page.evaluate(()=>{
   const worker=new Worker(URL.createObjectURL(new Blob([`onmessage=e=>{const port=e.ports[0];port.onmessage=event=>{const data=event.data;const bytes=new Uint8Array(data.bytes)[0]%2===0?data.bytes:data.bytes.slice(0);port.postMessage({...data,bytes},[bytes]);};postMessage('ready');};`],{type:'text/javascript'})));
@@ -40,4 +55,4 @@ try{
  assert.equal(await worker.evaluate(()=>Reflect.has(globalThis,'__releasePortStop')),false);
  console.log('PASS actual Chromium page/worker CDP capture, 200 native transfers each way, both observers removed; diagnostic validation only, no road verdict');
  await context.close();
-}finally{await browser.close();}
+}finally{try{await browser?.close();}finally{await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}}

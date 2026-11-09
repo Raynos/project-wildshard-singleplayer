@@ -7,6 +7,7 @@ import { observeReleaseModules, waitForReleaseWorker } from './release-worker.mj
 import { recordFirstReleaseCard, proveLoadingCard, proveEmber } from './release-play.mjs';
 import {existingReleaseBypass} from './release-access.mjs';
 import {profileReleaseWorker} from './release-worker-profile.mjs';
+import {observeReleaseStorage} from './release-storage-profile.mjs';
 const base = process.argv[2];
 if (base === undefined) throw new Error('Usage: prove-release.mjs https://staged-origin');
 // Separate admitted machine slots can run both complete phone journeys at
@@ -61,6 +62,7 @@ for (const [name, type] of phones) {
   try {
     const createContext = async () => {
       const context = await browser.newContext({ ...devices['iPhone 16 Pro'], deviceScaleFactor: 2, serviceWorkers: staged ? 'allow' : 'block' });
+      if (process.argv.includes('--profile-worker')) await context.addInitScript(observeReleaseStorage);
       if (extended) {
         await context.grantPermissions(name === 'Chromium' ? ['clipboard-read', 'clipboard-write'] : ['clipboard-read']);
         await context.addInitScript(recordFirstReleaseCard);
@@ -139,7 +141,8 @@ for (const [name, type] of phones) {
             return { shard: window.__wildshard?.shard?.slug ?? null, step: document.querySelector('.ws-load')?.getAttribute('data-step'),
               text: document.body.innerText.slice(0, 1000), fatal: [...document.querySelectorAll('[data-boot-fatal],#wserr,.ws-load-error')].map(node => node.textContent),
               active: timing?.active, overflow: timing?.overflow, tail: timing?.entries.slice(-12),
-              frames: world?.game.renderer.info.render.frame, app: world?.game.app.state, visibility: document.visibilityState };
+              frames: world?.game.renderer.info.render.frame, app: world?.game.app.state, visibility: document.visibilityState,
+              storageFaults: Reflect.get(globalThis, '__releaseStorageFaults') };
           }).catch(() => null);
           console.error('FAIL phone boot', name, label, JSON.stringify({ state, errors, consoleErrors: consoleErrors.slice(-20) }));
           throw error;

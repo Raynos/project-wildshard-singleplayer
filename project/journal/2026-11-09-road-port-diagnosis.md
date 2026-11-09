@@ -38,3 +38,28 @@ records zero length and an unavailable header without constructing a
 view of a detached buffer. The exact same native fixture then passed
 200 transferred packets each direction, with both observer globals
 removed; no game or road pass is inferred. The existing 15 tests pass.
+
+
+Hosted c95906c run42715998247 is still red: WebKit passes; Chromium's
+Nalati boot reports Page rewards could not be saved. Its independent
+strict grid road ends 297.5 m short. No promotion occurs.
+
+The entire 210-second native packet evidence establishes where the
+road waits. Worker snapshots advance 59.86 ticks/s; command acknowledgements
+advance 45.33/s. Matched worker-to-page delivery differences have median
+943 ms, p95 2038 ms and maximum3127 ms, while the other direction is
+much faster. Realm epoch clocks have a small offset (negative minima),
+so these are approximate delays, not exact one-way network RTTs.
+Of6316 page receive intervals,5821 are below1 ms:353 bursts carry a
+median15 snapshots, maximum55, with gaps up to1806 ms. A64-move ring
+fills while acknowledgements wait in the page. This does not establish
+a ServerClock implementation defect; no clock or motion change is made.
+
+The next capture adds passive long-task timings and top-level native
+trace tasks, retaining the128 MiB diagnostic trace cap. It also records
+native IndexedDB error names at failure, without keys, values, retries
+or swallowing failures. That distinguishes the real Nalati save error
+from a guessed quota diagnosis. The manual Chromium proof observes a
+real native aborted transaction and unchanged native transfers, and
+closes its owned fixture listener even if launch fails. It is outside
+hooks and remains separate from the real game verdict.

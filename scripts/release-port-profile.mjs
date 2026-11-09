@@ -5,8 +5,17 @@ export function observeReleasePorts() {
   const prototype = MessagePort.prototype;
   const original = Object.getOwnPropertyDescriptor(prototype, 'postMessage');
   if (original === undefined || typeof original.value !== 'function') throw new Error('Native MessagePort sender missing');
-  const send = original.value, ports = new Map(), rows = [];
+  const send = original.value, ports = new Map(), rows = [], longTasks = [];
   let serial = 0, overflow = false, stopped = false;
+  const recordTasks = entries => {
+    for (const entry of entries) {
+      if (longTasks.length === 4096) { overflow = true; return; }
+      longTasks.push({ at: performance.timeOrigin + entry.startTime, duration: entry.duration });
+    }
+  };
+  const tasks = typeof PerformanceObserver !== 'undefined' && PerformanceObserver.supportedEntryTypes.includes('longtask')
+    ? new PerformanceObserver(list => recordTasks(list.getEntries())) : null;
+  tasks?.observe({ type: 'longtask' });
   const envelope = value => typeof value === 'object' && value !== null
     && value.channel === 'unreliable' && value.bytes instanceof ArrayBuffer;
   const record = (port, direction, data) => {
@@ -36,11 +45,12 @@ export function observeReleasePorts() {
   const stop = () => {
     if (stopped) throw new Error('Release port observer already stopped');
     stopped = true;
+    if (tasks !== null) { recordTasks(tasks.takeRecords()); tasks.disconnect(); }
     const current = Object.getOwnPropertyDescriptor(prototype, 'postMessage');
     for (const [port, row] of ports) port.removeEventListener('message', row.receive);
     if (current?.value !== observed) throw new Error('Native port observer changed during capture');
     Object.defineProperty(prototype, 'postMessage', original);
-    return { protocol: 'release-native-port/1', overflow, ports: ports.size, rows };
+    return { protocol: 'release-native-port/1', overflow, ports: ports.size, rows, longTasks };
   };
   Reflect.set(globalThis, '__releasePortStop', stop);
 }

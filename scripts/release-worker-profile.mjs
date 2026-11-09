@@ -6,6 +6,7 @@ import{observeReleasePorts,finishReleasePorts}from'./release-port-profile.mjs';
 /** Attach only to an exact worker in this owned browser. */
 export async function profileReleaseWorker(browser,workerURL,file,{durationMs=60000,page}={}){
   if(page===undefined)throw new Error('Native port diagnosis needs the actual grid page');
+  const traceCategories='devtools.timeline,v8,toplevel';
   const root=await browser.newBrowserCDPSession(),pending=new Map(),parsed=new Map();let serial=0,closed=false;
   const {targetInfos}=await root.send('Target.getTargets');
   const targets=targetInfos.filter(row=>row.type==='worker'&&row.url===workerURL);
@@ -52,7 +53,7 @@ export async function profileReleaseWorker(browser,workerURL,file,{durationMs=60
     await page.evaluate(observeReleasePorts);
     const installed=await send('Runtime.evaluate',{expression:`(${observeReleasePorts.toString()})();undefined`,returnByValue:true});
     if(installed.exceptionDetails!==undefined)throw new Error('Native worker port observer failed to install');
-    await root.send('Tracing.start',{categories:'devtools.timeline,v8',transferMode:'ReturnAsStream'});
+    await root.send('Tracing.start',{categories:traceCategories,transferMode:'ReturnAsStream'});
     await send('Profiler.enable');await send('Profiler.setSamplingInterval',{interval:1000});
     const clock=await send('Runtime.evaluate',{expression:'({origin:performance.timeOrigin,now:performance.now()})',returnByValue:true});
     const before=Date.now();await send('Profiler.start');started={before,after:Date.now(),clock:clock.result?.value};
@@ -77,7 +78,7 @@ export async function profileReleaseWorker(browser,workerURL,file,{durationMs=60
         finally{await root.send('IO.close',{handle:traced.stream});}
         const traceBytes=Buffer.concat(chunks),trace=JSON.parse(traceBytes.toString()),traceFile=file.replace(/\.json$/u,'-trace.json.gz');
         mkdirSync(dirname(file),{recursive:true});writeFileSync(traceFile,gzipSync(traceBytes));
-        const traceEvidence={file:traceFile,bytes:traceBytes.length,events:trace.traceEvents?.length,categories:'devtools.timeline,v8',screenshots:false};
+        const traceEvidence={file:traceFile,bytes:traceBytes.length,events:trace.traceEvents?.length,categories:traceCategories,screenshots:false};
         await send('Debugger.enable');
         const sources=[];
         for(const[scriptId,url]of parsed)if(url===workerURL||/\/standalone\/serverRuntime[^/]*\.js$/u.test(url)){
