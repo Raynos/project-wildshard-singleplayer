@@ -12,6 +12,7 @@ if (base === undefined) throw new Error('Usage: prove-release.mjs https://staged
 const selected = process.argv.filter(arg => arg.startsWith('--browser='));
 if (selected.length > 1 || selected.some(arg => !['--browser=Chromium', '--browser=WebKit'].includes(arg))) throw new Error('Select exactly one of Chromium or WebKit, or omit --browser to prove both');
 const phones = [['Chromium', chromium], ['WebKit', webkit]].filter(([name]) => selected.length === 0 || selected[0] === `--browser=${name}`);
+const chromiumArgs = ['--mute-audio', '--use-mock-keychain', '--password-store=basic'];
 const staged = process.argv.includes('--vercel');
 const extended = staged || process.argv.includes('--extended');
 if (staged && !/^https:\/\/(?:wildshard-singleplayer-[a-z0-9]+-raynos-projects|wildshard-singleplayer)\.vercel\.app\/?$/u.test(base)) throw new Error('Vercel proof requires this project\'s deployment or production HTTPS origin');
@@ -54,7 +55,7 @@ if (staged) {
 }
 console.log('Proving', JSON.stringify(version));
 for (const [name, type] of phones) {
-  let browser = await type.launch({ headless: true, ...(name === 'Chromium' ? { args: ['--mute-audio', ...(process.platform === 'darwin' ? ['--use-angle=metal'] : [])] } : {}) });
+  let browser = await type.launch({ headless: true, ...(name === 'Chromium' ? { args: [...chromiumArgs, ...(process.platform === 'darwin' ? ['--use-angle=metal'] : [])] } : {}) });
   try {
     const createContext = async () => {
       const context = await browser.newContext({ ...devices['iPhone 16 Pro'], deviceScaleFactor: 2, serviceWorkers: staged ? 'allow' : 'block' });
@@ -93,7 +94,7 @@ for (const [name, type] of phones) {
         // after closing the ordinary native-GPU phone visits and their browser.
         if (extended && name === 'Chromium') {
           await browser.close();
-          browser = await type.launch({ headless: true, args: ['--mute-audio'] });
+          browser = await type.launch({ headless: true, args: chromiumArgs });
         }
         context = await createContext();
       }
