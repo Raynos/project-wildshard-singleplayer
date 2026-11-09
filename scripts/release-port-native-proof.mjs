@@ -9,7 +9,7 @@ try{
  const page=await context.newPage();await page.goto('about:blank');
  const pending=page.waitForEvent('worker');
  await page.evaluate(()=>{
-  const worker=new Worker(URL.createObjectURL(new Blob([`onmessage=e=>{const port=e.ports[0];port.onmessage=event=>{const data=event.data;port.postMessage(data,[data.bytes]);};postMessage('ready');};`],{type:'text/javascript'})));
+  const worker=new Worker(URL.createObjectURL(new Blob([`onmessage=e=>{const port=e.ports[0];port.onmessage=event=>{const data=event.data;const bytes=new Uint8Array(data.bytes)[0]%2===0?data.bytes:data.bytes.slice(0);port.postMessage({...data,bytes},[bytes]);};postMessage('ready');};`],{type:'text/javascript'})));
   const channel=new MessageChannel();
   Reflect.set(globalThis,'portProof',{port:channel.port1,worker});
   return new Promise(resolve=>{worker.onmessage=()=>resolve();worker.postMessage({},[channel.port2]);});
@@ -34,6 +34,8 @@ try{
  assert.equal(ports.worker.rows.filter(row=>row.direction==='send').length,200);
  assert.ok(ports.page.rows.filter(row=>row.direction==='receive').length>=199);
  assert.ok(ports.worker.rows.filter(row=>row.direction==='receive').length>=199);
+ assert.equal(ports.worker.rows.filter(row=>row.direction==='receive'&&row.length===0).length,100,'Forwarded native buffers stay explicitly unavailable');
+ assert.ok(ports.worker.rows.filter(row=>row.direction==='receive'&&row.length===4).length>=99,'Copied native replies retain matchable incoming headers');
  assert.equal(await page.evaluate(()=>Reflect.has(globalThis,'__releasePortStop')),false);
  assert.equal(await worker.evaluate(()=>Reflect.has(globalThis,'__releasePortStop')),false);
  console.log('PASS actual Chromium page/worker CDP capture, 200 native transfers each way, both observers removed; diagnostic validation only, no road verdict');
