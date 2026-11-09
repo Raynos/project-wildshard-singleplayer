@@ -2,6 +2,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
+import {codeProvingJobs} from './engine-code-verdict.mjs';
 const ORG = 'project-wildshard';
 export const SHARDS = ['shard-driftwood', 'shard-sky-reach', 'shard-dunes', 'shard-nalati', 'shard-pine-hollow', 'shard-nine-dragon', 'shard-open-plots'];
 const run = (command, args) => execFileSync(command, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
@@ -23,6 +24,16 @@ export function green(repo, commit, workflows = ['ci']) {
   for (const name of workflows) {
     const latest = runs.workflow_runs.filter(row => row.name === name && row.head_sha === commit && row.event === 'push').sort((a, b) => b.id - a.id)[0];
     if (latest?.status !== 'completed' || latest.conclusion !== 'success') throw new Error(`${repo} ${commit}: latest exact-SHA ${name} is not green`);
+    if (repo === 'engine' && name === 'ci') {
+      const jobs = [];
+      for (let page = 1; ; page++) {
+        const payload = JSON.parse(run('gh', ['api', `repos/${ORG}/engine/actions/runs/${latest.id}/jobs?filter=latest&per_page=100&page=${page}`, '--jq', '{jobs:[.jobs[]|{name,head_sha,status,conclusion}]}']));
+        if (!Array.isArray(payload.jobs)) throw new Error('Unreadable exact engine CI jobs');
+        jobs.push(...payload.jobs);
+        if (payload.jobs.length < 100) break;
+      }
+      if (!codeProvingJobs(jobs, commit)) throw new Error(`${repo} ${commit}: exact ci did not run and pass tests and e2e`);
+    }
   }
 }
 export function verify(pin, { shards = false } = {}) {

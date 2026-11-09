@@ -3,6 +3,7 @@
 import {execFileSync} from 'node:child_process';
 import {appendFileSync, readFileSync, writeFileSync, renameSync} from 'node:fs';
 import {validatePin} from './engine-pin.mjs';
+import {codeProvingJobs} from './engine-code-verdict.mjs';
 const engine = 'project-wildshard/engine', shell = 'Raynos/project-wildshard-singleplayer';
 const api = new URL(process.env.GITHUB_API_URL ?? 'https://api.github.com');
 const fixture = api.protocol === 'http:' && ['127.0.0.1', 'localhost'].includes(api.hostname);
@@ -17,6 +18,7 @@ async function query(path, raw = false) {
   if (raw) args.push('-H', 'Accept: application/vnd.github.raw+json');
   else if (path.includes('/actions/') && path.includes('/runs?')) args.push('--jq','{workflow_runs:[.workflow_runs[]|{id,name,event,head_sha,head_branch,status,conclusion}]}');
   else if (path.includes('/compare/')) args.push('--jq','{status,base_commit:{sha:.base_commit.sha}}');
+  else if (path.includes('/jobs?')) args.push('--jq','{jobs:[.jobs[]|{name,head_sha,status,conclusion}]}');
   else if (path.endsWith('/branches/main')) args.push('--jq','{commit:{sha:.commit.sha}}');
   try { return JSON.parse(execFileSync('gh', args, {encoding:'utf8', stdio:['ignore','pipe','pipe']})); }
   catch { throw new Error(`GitHub evidence unavailable: ${path.split('?')[0]}`); }
@@ -58,6 +60,15 @@ async function select(current) {
   for (const candidate of order) {
     const pair = checks.get(candidate);
     if (!['ci','ring-1'].every(name => pair.get(name)?.status === 'completed' && pair.get(name)?.conclusion === 'success')) continue;
+    const jobs = [];
+    for (let page = 1; ; page++) {
+      const payload = await query(`repos/${engine}/actions/runs/${pair.get('ci').id}/jobs?filter=latest&per_page=100&page=${page}`);
+      if (!Array.isArray(payload.jobs)) throw new Error('Unreadable exact engine CI jobs');
+      jobs.push(...payload.jobs);
+      if (payload.jobs.length < 100) break;
+    }
+    // Pin the exact code-proven ancestor, never its untested docs-only child.
+    if (!codeProvingJobs(jobs, candidate)) continue;
     if (!advances(await query(`repos/${engine}/compare/${candidate}...${head}`), candidate)) continue;
     if (candidate === current.engine.commit) return {state:'idle', reason:'newest proven engine already pinned'};
     if (!advances(await query(`repos/${engine}/compare/${current.engine.commit}...${candidate}`), current.engine.commit)) return {state:'held', reason:'producer would move backward or diverge'};

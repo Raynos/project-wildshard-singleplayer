@@ -20,6 +20,7 @@ if (!process.env.PIN_MISSING_TAG) { const tag=process.argv[4]; console.log('e'.r
 const url=process.argv[3];
 if (process.env.PIN_PUBLIC_ONLY && !url.startsWith('repos/project-wildshard/engine/')) throw new Error('Private repo requested by public build');
 if(url.includes('/contents/save-epoch.json')) console.log(JSON.stringify({saveEpoch:Number(process.env.PIN_EPOCH??1)}));
+else if(url.includes('/jobs?')) console.log(JSON.stringify({jobs:['plan','tests (1)','e2e'].map(name=>({name,head_sha:'a'.repeat(40),status:'completed',conclusion:process.env.PIN_DOCS_SKIP?'skipped':'success'}))}));
 else { const repo=url.split('/')[2], sha=new URL('https://api.github.com/'+url).searchParams.get('head_sha'); console.log(JSON.stringify({workflow_runs:['ci','ring-1'].map((name,id)=>({name,id,event:'push',head_sha:sha,status:'completed',conclusion:process.env.PIN_RED_REPO===repo?'failure':'success'}))})); }
 `);
   chmodSync(join(bin, 'git'), 0o755); chmodSync(join(bin, 'gh'), 0o755);
@@ -33,7 +34,7 @@ test('pin bump resolves an annotated tag and updates one of seven immutable prov
   assert.equal(pin.saveEpoch, 1); assert.equal(pin.shards.length, 7); assert.equal(pin.shards[0].commit, 'b'.repeat(40)); assert.equal(pin.shards[1].commit, 'c'.repeat(40));
 }));
 test('missing tag, red engine, red shard, and epoch downgrade all refuse without changing the pin', () => {
-  for (const env of [{ PIN_MISSING_TAG: '1' }, { PIN_RED_REPO: 'engine' }, { PIN_RED_REPO: 'shard-pine-hollow' }, { PIN_EPOCH: '0' }]) fixture(({ cwd, original, invoke }) => {
+  for (const env of [{ PIN_MISSING_TAG: '1' }, { PIN_RED_REPO: 'engine' }, { PIN_RED_REPO: 'shard-pine-hollow' }, { PIN_EPOCH: '0' }, { PIN_DOCS_SKIP: '1' }]) fixture(({ cwd, original, invoke }) => {
     const result = invoke(env); assert.notEqual(result.status, 0, result.stdout);
     assert.equal(readFileSync(join(cwd, 'engine.pin.json'), 'utf8'), original);
   });

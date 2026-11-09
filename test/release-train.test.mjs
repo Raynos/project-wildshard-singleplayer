@@ -18,7 +18,15 @@ test('scheduled selector commits no refused, foreign, red or different-epoch byt
     if(path==='/version.json')body={build:'d'.repeat(7)+'-live',saveEpoch:1};
     else if(path.includes('workflows/deploy.yml/runs'))body={workflow_runs:mode==='active'?[{event:'push',head_branch:'main',status:'in_progress'}]:[]};
     else if(path.endsWith('/branches/main'))body={commit:{sha:tip}};
-    else if(path.includes('/actions/runs'))body={workflow_runs:['ci','ring-1'].map((name,id)=>({id:id+1,name,head_sha:next,head_branch:'main',event:mode==='foreign'?'pull_request':'push',status:'completed',conclusion:mode==='red'&&name==='ring-1'?'failure':'success'}))};
+    else if(path.includes('/jobs')){
+      const ancestor=path.includes('/runs/5/'),docs=mode.startsWith('docs-after-')&&!ancestor;
+      body={jobs:['plan','tests (1)','tests (2)','e2e'].filter(name=>mode!=='missing-e2e'||name!=='e2e').map(name=>({name,head_sha:mode==='foreign-jobs'?tip:ancestor?old:next,status:'completed',
+        conclusion:docs||mode==='docs-skip'||mode==='e2e-skip'&&name==='e2e'||mode==='shard-skip'&&name==='tests (2)'?'skipped':mode==='tests-red'&&name==='tests (2)'?'failure':'success'}))};
+    }
+    else if(path.includes('/actions/runs')){
+      body={workflow_runs:['ci','ring-1'].map((name,id)=>({id:id+1,name,head_sha:next,head_branch:'main',event:mode==='foreign'?'pull_request':'push',status:'completed',conclusion:mode==='red'&&name==='ring-1'?'failure':'success'}))};
+      if(mode.startsWith('docs-after-'))body.workflow_runs.push(...['ci','ring-1'].map((name,id)=>({id:id+3,name,head_sha:'e'.repeat(40),head_branch:'main',event:'push',status:'completed',conclusion:name==='ci'?(mode==='docs-after-red'?'failure':'cancelled'):'success'})),...['ci','ring-1'].map((name,id)=>({id:id+5,name,head_sha:old,head_branch:'main',event:'push',status:'completed',conclusion:'success'})));
+    }
     else if(path.includes('/compare/')){const [base]=path.split('/compare/')[1].split('...');body={status:mode==='diverged'?'diverged':'ahead',base_commit:{sha:base}};}
     else if(path.endsWith('/contents/save-epoch.json'))body={saveEpoch:mode==='wipe'?2:mode==='downgrade'?0:1};
     else{res.writeHead(404);res.end('{}');return;}
@@ -30,7 +38,7 @@ test('scheduled selector commits no refused, foreign, red or different-epoch byt
   });
   try{
     await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const origin=`http://127.0.0.1:${server.address().port}`;
-    for(mode of ['held','active','foreign','red','diverged','wipe','downgrade','green']){
+    for(mode of ['held','active','foreign','red','diverged','wipe','downgrade','docs-skip','e2e-skip','shard-skip','tests-red','foreign-jobs','missing-e2e','docs-after-red','docs-after-cancel','green']){
       writeFileSync(join(cwd,'engine.pin.json'),original);writeFileSync(join(cwd,'.github/deploy-pin.json'),JSON.stringify({mode:mode==='held'?'pinned':'newest-ci-green'}));
       const result=await invoke(origin);
       if(mode==='green'){
