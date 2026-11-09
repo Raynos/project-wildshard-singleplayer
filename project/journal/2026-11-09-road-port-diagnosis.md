@@ -19,3 +19,13 @@ All existing road deadlines, release assertions and rendering remain.
 The next hosted result must distinguish late page delivery, command
 production and the server's admission using matching packet headers.
 This is observation, not a claimed repair or a green production release.
+
+
+J206's corrected read-only Opus review is saved as
+singleplayer-road-ports-2253.json/.md outside Git. It found no MUST-FIX
+and three failure-cleanup SHOULDs, all addressed: both realm cleanups
+settle independently, packet evidence is saved before trace/source work,
+and setup/stop failures still restore both observers. A changed foreign
+prototype is preserved while our listeners/global are retired. Native
+MessageChannel plus the existing release tests remain 15/15 green.
+The packet proof so far is Node native, not a claimed browser pass.

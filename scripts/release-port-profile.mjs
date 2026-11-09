@@ -34,9 +34,9 @@ export function observeReleasePorts() {
     if (stopped) throw new Error('Release port observer already stopped');
     stopped = true;
     const current = Object.getOwnPropertyDescriptor(prototype, 'postMessage');
+    for (const [port, row] of ports) port.removeEventListener('message', row.receive);
     if (current?.value !== observed) throw new Error('Native port observer changed during capture');
     Object.defineProperty(prototype, 'postMessage', original);
-    for (const [port, row] of ports) port.removeEventListener('message', row.receive);
     return { protocol: 'release-native-port/1', overflow, ports: ports.size, rows };
   };
   Reflect.set(globalThis, '__releasePortStop', stop);
@@ -45,7 +45,6 @@ export function observeReleasePorts() {
 export function finishReleasePorts() {
   const stop = Reflect.get(globalThis, '__releasePortStop');
   if (typeof stop !== 'function') throw new Error('Native port observer missing');
-  const result = stop();
-  Reflect.deleteProperty(globalThis, '__releasePortStop');
-  return result;
+  try { return stop(); }
+  finally { Reflect.deleteProperty(globalThis, '__releasePortStop'); }
 }

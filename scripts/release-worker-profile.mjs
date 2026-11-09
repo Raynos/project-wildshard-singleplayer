@@ -5,6 +5,7 @@ import{gzipSync}from'node:zlib';
 import{observeReleasePorts,finishReleasePorts}from'./release-port-profile.mjs';
 /** Attach only to an exact worker in this owned browser. */
 export async function profileReleaseWorker(browser,workerURL,file,{durationMs=60000,page}={}){
+  if(page===undefined)throw new Error('Native port diagnosis needs the actual grid page');
   const root=await browser.newBrowserCDPSession(),pending=new Map(),parsed=new Map();let serial=0,closed=false;
   const {targetInfos}=await root.send('Target.getTargets');
   const targets=targetInfos.filter(row=>row.type==='worker'&&row.url===workerURL);
@@ -29,9 +30,25 @@ export async function profileReleaseWorker(browser,workerURL,file,{durationMs=60
     for(const row of pending.values()){clearTimeout(row.timer);row.reject(new Error('Worker profile retired'));}pending.clear();
     try{await root.send('Target.detachFromTarget',{sessionId});}finally{await root.detach();}
   };
+  let portEvidence;
+  const collectPorts=async()=>{
+    if(portEvidence!==undefined)return portEvidence;
+    const captured=await Promise.allSettled([
+      page.evaluate(finishReleasePorts),
+      send('Runtime.evaluate',{expression:`(${finishReleasePorts.toString()})()`,returnByValue:true}),
+    ]);
+    const [pageResult,workerResult]=captured,errors=[];
+    for(const [realm,result]of [['page',pageResult],['worker',workerResult]]){
+      if(result.status==='rejected')errors.push(`${realm}: ${String(result.reason)}`);
+    }
+    if(workerResult.status==='fulfilled'&&workerResult.value.exceptionDetails!==undefined)errors.push(`worker: ${JSON.stringify(workerResult.value.exceptionDetails)}`);
+    portEvidence={page:pageResult.status==='fulfilled'?pageResult.value:null,worker:workerResult.status==='fulfilled'?workerResult.value.result?.value:null,errors};
+    mkdirSync(dirname(file),{recursive:true});
+    writeFileSync(file.replace(/\.json$/u,'-ports.json'),JSON.stringify(portEvidence)+'\n');
+    return portEvidence;
+  };
   let started;
   try{
-    if(page===undefined)throw new Error('Native port diagnosis needs the actual grid page');
     await page.evaluate(observeReleasePorts);
     const installed=await send('Runtime.evaluate',{expression:`(${observeReleasePorts.toString()})();undefined`,returnByValue:true});
     if(installed.exceptionDetails!==undefined)throw new Error('Native worker port observer failed to install');
@@ -39,13 +56,14 @@ export async function profileReleaseWorker(browser,workerURL,file,{durationMs=60
     await send('Profiler.enable');await send('Profiler.setSamplingInterval',{interval:1000});
     const clock=await send('Runtime.evaluate',{expression:'({origin:performance.timeOrigin,now:performance.now()})',returnByValue:true});
     const before=Date.now();await send('Profiler.start');started={before,after:Date.now(),clock:clock.result?.value};
-  }catch(error){await detach();throw error;}
+  }catch(error){try{await collectPorts();}finally{await detach();}throw error;}
   let finished,timer;
   const stop=()=>{
     if(finished!==undefined)return finished;clearTimeout(timer);
     finished=(async()=>{
       try{
         const before=Date.now(),{profile}=await send('Profiler.stop'),after=Date.now();
+        const ports=await collectPorts();
         const clock=await send('Runtime.evaluate',{expression:'({origin:performance.timeOrigin,now:performance.now()})',returnByValue:true});
         const complete=new Promise((resolve,reject)=>{
           const deadline=setTimeout(()=>{root.off('Tracing.tracingComplete',received);reject(new Error('Worker trace completion deadline'));},15000);
@@ -65,17 +83,14 @@ export async function profileReleaseWorker(browser,workerURL,file,{durationMs=60
         for(const[scriptId,url]of parsed)if(url===workerURL||/\/standalone\/serverRuntime[^/]*\.js$/u.test(url)){
           const{scriptSource}=await send('Debugger.getScriptSource',{scriptId});sources.push({scriptId,url,scriptSource});
         }
-        const pagePorts=await page.evaluate(finishReleasePorts);
-        const workerPorts=await send('Runtime.evaluate',{expression:`(${finishReleasePorts.toString()})()`,returnByValue:true});
-        if(workerPorts.exceptionDetails!==undefined)throw new Error('Native worker port observer failed to stop');
         const portFile=file.replace(/\.json$/u,'-ports.json');
-        writeFileSync(portFile,JSON.stringify({page:pagePorts,worker:workerPorts.result?.value})+'\n');
-        if(pagePorts.overflow||workerPorts.result?.value?.overflow)throw new Error('Native port diagnostic overflow');
         const result={protocol:'release-worker-cpu/1',workerURL,intervalMicros:1000,started,stopped:{before,after,clock:clock.result?.value},profile,sources,trace:traceEvidence,portFile};
         mkdirSync(dirname(file),{recursive:true});writeFileSync(file,JSON.stringify(result)+'\n');
+        if(ports.errors.length>0)throw new Error('Native port observer cleanup refused: '+ports.errors.join('; '));
+        if(ports.page?.overflow||ports.worker?.overflow)throw new Error('Native port diagnostic overflow');
         console.log('Captured actual worker CPU profile',JSON.stringify({file,workerURL,profileMs:(profile.endTime-profile.startTime)/1000,samples:profile.samples?.length,sources:sources.length}));
         return result;
-      }finally{await detach();}
+      }finally{try{await collectPorts();}finally{await detach();}}
     })();
     // A timed capture can fail before the caller finishes its road proof; the
     // same rejection is still checked by the explicit final stop below.
