@@ -3,6 +3,27 @@ import{mkdirSync,writeFileSync}from'node:fs';
 import{dirname}from'node:path';
 import{gzipSync}from'node:zlib';
 import{observeReleasePorts,finishReleasePorts}from'./release-port-profile.mjs';
+// Stop recording at the sample boundary, before diagnostic cleanup and source
+// inspection add their own V8 work. Completion and byte limits stay unchanged.
+async function finishNativeTrace(root){
+  let cancelTrace;
+  const complete=new Promise((resolve,reject)=>{
+    const received=event=>{clearTimeout(deadline);resolve(event);};
+    const deadline=setTimeout(()=>{root.off('Tracing.tracingComplete',received);reject(new Error('Worker trace completion deadline'));},15000);
+    root.once('Tracing.tracingComplete',received);
+    cancelTrace=()=>{clearTimeout(deadline);root.off('Tracing.tracingComplete',received);};
+  });
+  let traced,endError;
+  const ended=root.send('Tracing.end').catch(error=>{endError=error;});
+  try{[,traced]=await Promise.all([ended,complete]);}
+  catch(error){throw endError===undefined?error:new AggregateError([endError,error],'Native trace end and completion refused');}
+  finally{cancelTrace();}
+  if(typeof traced.stream!=='string')throw new Error('Worker trace has no stream');
+  const chunks=[];let total=0;
+  try{if(endError!==undefined)throw endError;for(;;){const chunk=await root.send('IO.read',{handle:traced.stream});const bytes=Buffer.from(chunk.data,chunk.base64Encoded?'base64':'utf8');total+=bytes.length;if(total>128*1024*1024)throw new Error('Worker diagnostic trace exceeds128MiB');chunks.push(bytes);if(chunk.eof)break;}}
+  finally{await root.send('IO.close',{handle:traced.stream});}
+  return Buffer.concat(chunks);
+}
 /** Attach only to an exact worker in this owned browser. */
 export async function profileReleaseWorker(browser,workerURL,file,{durationMs=60000,page}={}){
   if(page===undefined)throw new Error('Native port diagnosis needs the actual grid page');
@@ -76,7 +97,9 @@ export async function profileReleaseWorker(browser,workerURL,file,{durationMs=60
   const stop=()=>{
     if(finished!==undefined)return finished;clearTimeout(timer);
     finished=(async()=>{
+      let traceOutcome;
       try{
+        traceOutcome=finishNativeTrace(root).then(bytes=>({bytes}),error=>({error}));
         const before=Date.now(),profiles=await Promise.allSettled([send('Profiler.stop'),pageSend('Profiler.stop')]),after=Date.now();
         const [workerProfile,pageProfile]=profiles,portFile=file.replace(/\.json$/u,'-ports.json'),pageFile=file.replace(/\.json$/u,'-page.json'),cpuFile=file.replace(/\.json$/u,'-cpu.json');
         const cpuErrors=profiles.flatMap((row,index)=>row.status==='rejected'?[`${index===0?'worker':'page'}: ${String(row.reason)}`]:[]);
@@ -88,6 +111,13 @@ export async function profileReleaseWorker(browser,workerURL,file,{durationMs=60
         save();
         if(pageProfile.status==='fulfilled')writeFileSync(pageFile,JSON.stringify({protocol:'release-page-cpu/1',intervalMicros:1000,
           started:pageStarted,stopped:{before,after},profile:pageProfile.value.profile})+'\n');
+        const captured=await traceOutcome;
+        if('error'in captured){result.traceError=String(captured.error);save();throw captured.error;}
+        try{
+          const traceBytes=captured.bytes,trace=JSON.parse(traceBytes.toString()),traceFile=file.replace(/\.json$/u,'-trace.json.gz');
+          writeFileSync(traceFile,gzipSync(traceBytes));
+          result.trace={file:traceFile,bytes:traceBytes.length,events:trace.traceEvents?.length,categories:traceCategories,screenshots:false};
+        }catch(error){result.traceError=String(error);throw error;}finally{save();}
         if(cpuErrors.length>0)throw new Error('Native CPU profile capture refused: '+cpuErrors.join('; '));
         const {profile}=workerProfile.value;
         const ports=await collectPorts();
@@ -98,24 +128,6 @@ export async function profileReleaseWorker(browser,workerURL,file,{durationMs=60
           const{scriptSource}=await send('Debugger.getScriptSource',{scriptId});result.sources.push({scriptId,url,scriptSource});
         }
         save();
-        let cancelTrace;
-        const complete=new Promise((resolve,reject)=>{
-          const deadline=setTimeout(()=>{root.off('Tracing.tracingComplete',received);reject(new Error('Worker trace completion deadline'));},15000);
-          const received=event=>{clearTimeout(deadline);resolve(event);};root.once('Tracing.tracingComplete',received);
-          cancelTrace=()=>{clearTimeout(deadline);root.off('Tracing.tracingComplete',received);};
-        });
-        void complete.catch(()=>undefined);
-        try{
-        let traced;
-        try{await root.send('Tracing.end');traced=await complete;}finally{cancelTrace();}
-        if(typeof traced.stream!=='string')throw new Error('Worker trace has no stream');
-        const chunks=[];let total=0;
-        try{for(;;){const chunk=await root.send('IO.read',{handle:traced.stream});const bytes=Buffer.from(chunk.data,chunk.base64Encoded?'base64':'utf8');total+=bytes.length;if(total>128*1024*1024)throw new Error('Worker diagnostic trace exceeds128MiB');chunks.push(bytes);if(chunk.eof)break;}}
-        finally{await root.send('IO.close',{handle:traced.stream});}
-        const traceBytes=Buffer.concat(chunks),trace=JSON.parse(traceBytes.toString()),traceFile=file.replace(/\.json$/u,'-trace.json.gz');
-        mkdirSync(dirname(file),{recursive:true});writeFileSync(traceFile,gzipSync(traceBytes));
-        result.trace={file:traceFile,bytes:traceBytes.length,events:trace.traceEvents?.length,categories:traceCategories,screenshots:false};
-        }catch(error){result.traceError=String(error);throw error;}finally{save();}
         // The original filename still means trace finalization completed. The
         // workflow uses its absence to request an independent grid diagnostic.
         writeFileSync(file,JSON.stringify(result)+'\n');
@@ -123,7 +135,7 @@ export async function profileReleaseWorker(browser,workerURL,file,{durationMs=60
         if(ports.page?.overflow||ports.worker?.overflow)throw new Error('Native port diagnostic overflow');
         console.log('Captured actual page/worker CPU profiles',JSON.stringify({file,pageFile,workerURL,profileMs:(profile.endTime-profile.startTime)/1000,samples:profile.samples?.length,sources:result.sources.length}));
         return result;
-      }finally{try{await collectPorts();}finally{await detach();}}
+      }finally{await traceOutcome;try{await collectPorts();}finally{await detach();}}
     })();
     // A timed capture can fail before the caller finishes its road proof; the
     // same rejection is still checked by the explicit final stop below.
