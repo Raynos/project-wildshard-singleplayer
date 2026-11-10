@@ -76,3 +76,28 @@ Sixteen existing/new Node cases pass. The native Chromium fixture
 passes real abort/error-name observation plus both transferred-buffer
 receive paths and closes its listener. No raw save keys or values are
 recorded. Subsequent reviews use the newly published repo-kit helper.
+
+Hosted ce2e18a / shell 5f3517f passes all strict native loading copies
+and the full WebKit road and earned return. Chromium still refuses:
+the primary road ends 211.8 m short and its diagnostic ends 66.9 m short,
+both moving at 210 s. Stable raw server clocks are 59.84/59.99 TPS;
+commands run 47.60/51.92 TPS and prediction fills intermittently. Native
+page long tasks occupy 203.8/202.4 s. Both attempts also refuse at the
+15 s trace-completion deadline. This is not a proven server-clock bug.
+
+Trace finalization discarded the already completed worker CPU capture,
+so the forward persists each completed realm first and samples the real
+page at the same 1 ms interval. CPU-only artifacts have their own name;
+the original completed-profile filename still means tracing finished,
+preserving the workflow's independent grid diagnostic after a refusal.
+Every road deadline, trace category, 128 MiB cap and release assertion
+stays unchanged. A trace error still rejects and the artifact records it.
+
+The real Chromium page/worker proof transfers 200 native buffers in each
+direction, verifies page samples and observer retirement, then injects a
+transport refusal after actual native Tracing.end. Both CPU artifacts
+survive; no completed-profile file is published and the refusal stays
+red. The same native control on the old helper loses its CPU artifact.
+Unique failure paths prevent a stale file from satisfying the control.
+The one-shot read-only review reports no MUST/SHOULD findings. Shell
+checks and seven release cases pass. No new game or road pass is claimed.

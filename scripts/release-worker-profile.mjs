@@ -1,4 +1,4 @@
-// Diagnostic only. Sample the actual worker; never install a game clock or input.
+// Diagnostic only. Sample the actual page and worker; never install a game clock or input.
 import{mkdirSync,writeFileSync}from'node:fs';
 import{dirname}from'node:path';
 import{gzipSync}from'node:zlib';
@@ -12,6 +12,13 @@ export async function profileReleaseWorker(browser,workerURL,file,{durationMs=60
   const targets=targetInfos.filter(row=>row.type==='worker'&&row.url===workerURL);
   if(targets.length!==1){await root.detach();throw new Error('Exact release worker target missing or ambiguous');}
   const {sessionId}=await root.send('Target.attachToTarget',{targetId:targets[0].targetId,flatten:false});
+  let pageSession;
+  const pageSend=(method,params={})=>{
+    if(pageSession===undefined)return Promise.reject(new Error('Page profile session missing'));
+    let deadline;
+    const timeout=new Promise((resolve,reject)=>{deadline=setTimeout(()=>reject(new Error('Page profile RPC deadline: '+method)),15000);});
+    return Promise.race([pageSession.send(method,params),timeout]).finally(()=>clearTimeout(deadline));
+  };
   const receive=event=>{
     if(event.sessionId!==sessionId)return;const message=JSON.parse(event.message);
     if(message.method==='Debugger.scriptParsed')parsed.set(message.params.scriptId,message.params.url);
@@ -29,7 +36,7 @@ export async function profileReleaseWorker(browser,workerURL,file,{durationMs=60
   const detach=async()=>{
     closed=true;root.off('Target.receivedMessageFromTarget',receive);
     for(const row of pending.values()){clearTimeout(row.timer);row.reject(new Error('Worker profile retired'));}pending.clear();
-    try{await root.send('Target.detachFromTarget',{sessionId});}finally{await root.detach();}
+    try{await root.send('Target.detachFromTarget',{sessionId});}finally{try{await pageSession?.detach();}finally{await root.detach();}}
   };
   let portEvidence;
   const collectPorts=async()=>{
@@ -51,14 +58,18 @@ export async function profileReleaseWorker(browser,workerURL,file,{durationMs=60
     writeFileSync(file.replace(/\.json$/u,'-ports.json'),JSON.stringify(portEvidence)+'\n');
     return portEvidence;
   };
-  let started;
+  let started,pageStarted;
   try{
+    pageSession=await page.context().newCDPSession(page);
     await page.evaluate(observeReleasePorts);
     const installed=await send('Runtime.evaluate',{expression:`(${observeReleasePorts.toString()})();undefined`,returnByValue:true});
     if(installed.exceptionDetails!==undefined)throw new Error('Native worker port observer failed to install');
     await root.send('Tracing.start',{categories:traceCategories,transferMode:'ReturnAsStream'});
     await send('Profiler.enable');await send('Profiler.setSamplingInterval',{interval:1000});
+    await pageSend('Profiler.enable');await pageSend('Profiler.setSamplingInterval',{interval:1000});
     const clock=await send('Runtime.evaluate',{expression:'({origin:performance.timeOrigin,now:performance.now()})',returnByValue:true});
+    const pageClock=await pageSend('Runtime.evaluate',{expression:'({origin:performance.timeOrigin,now:performance.now()})',returnByValue:true});
+    const pageBefore=Date.now();await pageSend('Profiler.start');pageStarted={before:pageBefore,after:Date.now(),clock:pageClock.result?.value};
     const before=Date.now();await send('Profiler.start');started={before,after:Date.now(),clock:clock.result?.value};
   }catch(error){try{await collectPorts();}finally{await detach();}throw error;}
   let finished,timer;
@@ -66,33 +77,51 @@ export async function profileReleaseWorker(browser,workerURL,file,{durationMs=60
     if(finished!==undefined)return finished;clearTimeout(timer);
     finished=(async()=>{
       try{
-        const before=Date.now(),{profile}=await send('Profiler.stop'),after=Date.now();
+        const before=Date.now(),profiles=await Promise.allSettled([send('Profiler.stop'),pageSend('Profiler.stop')]),after=Date.now();
+        const [workerProfile,pageProfile]=profiles,portFile=file.replace(/\.json$/u,'-ports.json'),pageFile=file.replace(/\.json$/u,'-page.json'),cpuFile=file.replace(/\.json$/u,'-cpu.json');
+        const cpuErrors=profiles.flatMap((row,index)=>row.status==='rejected'?[`${index===0?'worker':'page'}: ${String(row.reason)}`]:[]);
+        const result={protocol:'release-worker-cpu/1',workerURL,intervalMicros:1000,started,stopped:{before,after},
+          profile:workerProfile.status==='fulfilled'?workerProfile.value.profile:null,sources:[],trace:null,portFile,pageFile,cpuFile,cpuErrors};
+        const save=()=>{mkdirSync(dirname(file),{recursive:true});writeFileSync(cpuFile,JSON.stringify(result)+'\n');};
+        // Persist each completed realm before any port/source/trace operation can
+        // fail. In particular, the trace's unchanged 15 s refusal stays red.
+        save();
+        if(pageProfile.status==='fulfilled')writeFileSync(pageFile,JSON.stringify({protocol:'release-page-cpu/1',intervalMicros:1000,
+          started:pageStarted,stopped:{before,after},profile:pageProfile.value.profile})+'\n');
+        if(cpuErrors.length>0)throw new Error('Native CPU profile capture refused: '+cpuErrors.join('; '));
+        const {profile}=workerProfile.value;
         const ports=await collectPorts();
         const clock=await send('Runtime.evaluate',{expression:'({origin:performance.timeOrigin,now:performance.now()})',returnByValue:true});
+        result.stopped.clock=clock.result?.value;
+        await send('Debugger.enable');
+        for(const[scriptId,url]of parsed)if(url===workerURL||/\/standalone\/serverRuntime[^/]*\.js$/u.test(url)){
+          const{scriptSource}=await send('Debugger.getScriptSource',{scriptId});result.sources.push({scriptId,url,scriptSource});
+        }
+        save();
+        let cancelTrace;
         const complete=new Promise((resolve,reject)=>{
           const deadline=setTimeout(()=>{root.off('Tracing.tracingComplete',received);reject(new Error('Worker trace completion deadline'));},15000);
           const received=event=>{clearTimeout(deadline);resolve(event);};root.once('Tracing.tracingComplete',received);
+          cancelTrace=()=>{clearTimeout(deadline);root.off('Tracing.tracingComplete',received);};
         });
         void complete.catch(()=>undefined);
-        await root.send('Tracing.end');const traced=await complete;
+        try{
+        let traced;
+        try{await root.send('Tracing.end');traced=await complete;}finally{cancelTrace();}
         if(typeof traced.stream!=='string')throw new Error('Worker trace has no stream');
         const chunks=[];let total=0;
         try{for(;;){const chunk=await root.send('IO.read',{handle:traced.stream});const bytes=Buffer.from(chunk.data,chunk.base64Encoded?'base64':'utf8');total+=bytes.length;if(total>128*1024*1024)throw new Error('Worker diagnostic trace exceeds128MiB');chunks.push(bytes);if(chunk.eof)break;}}
         finally{await root.send('IO.close',{handle:traced.stream});}
         const traceBytes=Buffer.concat(chunks),trace=JSON.parse(traceBytes.toString()),traceFile=file.replace(/\.json$/u,'-trace.json.gz');
         mkdirSync(dirname(file),{recursive:true});writeFileSync(traceFile,gzipSync(traceBytes));
-        const traceEvidence={file:traceFile,bytes:traceBytes.length,events:trace.traceEvents?.length,categories:traceCategories,screenshots:false};
-        await send('Debugger.enable');
-        const sources=[];
-        for(const[scriptId,url]of parsed)if(url===workerURL||/\/standalone\/serverRuntime[^/]*\.js$/u.test(url)){
-          const{scriptSource}=await send('Debugger.getScriptSource',{scriptId});sources.push({scriptId,url,scriptSource});
-        }
-        const portFile=file.replace(/\.json$/u,'-ports.json');
-        const result={protocol:'release-worker-cpu/1',workerURL,intervalMicros:1000,started,stopped:{before,after,clock:clock.result?.value},profile,sources,trace:traceEvidence,portFile};
-        mkdirSync(dirname(file),{recursive:true});writeFileSync(file,JSON.stringify(result)+'\n');
+        result.trace={file:traceFile,bytes:traceBytes.length,events:trace.traceEvents?.length,categories:traceCategories,screenshots:false};
+        }catch(error){result.traceError=String(error);throw error;}finally{save();}
+        // The original filename still means trace finalization completed. The
+        // workflow uses its absence to request an independent grid diagnostic.
+        writeFileSync(file,JSON.stringify(result)+'\n');
         if(ports.errors.length>0)throw new Error('Native port observer cleanup refused: '+ports.errors.join('; '));
         if(ports.page?.overflow||ports.worker?.overflow)throw new Error('Native port diagnostic overflow');
-        console.log('Captured actual worker CPU profile',JSON.stringify({file,workerURL,profileMs:(profile.endTime-profile.startTime)/1000,samples:profile.samples?.length,sources:sources.length}));
+        console.log('Captured actual page/worker CPU profiles',JSON.stringify({file,pageFile,workerURL,profileMs:(profile.endTime-profile.startTime)/1000,samples:profile.samples?.length,sources:result.sources.length}));
         return result;
       }finally{try{await collectPorts();}finally{await detach();}}
     })();

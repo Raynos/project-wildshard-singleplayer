@@ -48,7 +48,11 @@ try{
   }
  });
  const evidence=await stop();
- const {readFileSync}=await import('node:fs');
+ const {readFileSync,mkdtempSync,existsSync}=await import('node:fs');
+ const pageProfile=JSON.parse(readFileSync(evidence.pageFile,'utf8'));
+ assert.equal(pageProfile.protocol,'release-page-cpu/1');
+ assert.ok(pageProfile.profile.nodes.length>0);
+ assert.ok(pageProfile.profile.samples.length>0);
  const ports=JSON.parse(readFileSync(evidence.portFile,'utf8'));
  assert.deepEqual(ports.errors,[]);assert.equal(ports.page.overflow,false);assert.equal(ports.worker.overflow,false);
  assert.equal(ports.page.rows.filter(row=>row.direction==='send').length,200);
@@ -59,6 +63,27 @@ try{
  assert.ok(ports.worker.rows.filter(row=>row.direction==='receive'&&row.length===4).length>=99,'Copied native replies retain matchable incoming headers');
  assert.equal(await page.evaluate(()=>Reflect.has(globalThis,'__releasePortStop')),false);
  assert.equal(await worker.evaluate(()=>Reflect.has(globalThis,'__releasePortStop')),false);
- console.log('PASS actual Chromium page/worker CDP capture, 200 native transfers each way, both observers removed; diagnostic validation only, no road verdict');
+ // A real trace-finalization refusal must not discard the already sampled CPU
+ // profiles. Only this owned CDP transport injects the error, after native end.
+ const failedFile=mkdtempSync('tmp/codex-release/native-profile-refusal-')+'/worker.json';
+ const refuseTrace={newBrowserCDPSession:async()=>{
+  const root=await browser.newBrowserCDPSession();
+  return new Proxy(root,{get(target,key){
+   if(key==='send')return async(method,...args)=>{const result=await target.send(method,...args);if(method==='Tracing.end')throw new Error('Native proof trace refusal');return result;};
+   const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+  }});
+ }};
+ const refused=await profileReleaseWorker(refuseTrace,worker.url(),failedFile,{page,durationMs:10000});
+ await page.evaluate(()=>{let value=0;for(let i=0;i<1000000;i++)value+=Math.sqrt(i);return value;});
+ await assert.rejects(refused(),/Native proof trace refusal/u);
+ assert.equal(existsSync(failedFile),false,'Failed trace must still trigger the independent grid diagnostic');
+ const retained=JSON.parse(readFileSync(failedFile.replace(/\.json$/u,'-cpu.json'),'utf8'));
+ assert.ok(retained.profile.nodes.length>0);
+ assert.equal(retained.trace,null);
+ assert.equal(retained.traceError,'Error: Native proof trace refusal');
+ assert.ok(JSON.parse(readFileSync(retained.pageFile,'utf8')).profile.samples.length>0);
+ assert.equal(await page.evaluate(()=>Reflect.has(globalThis,'__releasePortStop')),false);
+ assert.equal(await worker.evaluate(()=>Reflect.has(globalThis,'__releasePortStop')),false);
+ console.log('PASS actual Chromium page/worker CDP capture, 200 native transfers each way, both observers removed; trace refusal stays red and retains both CPU profiles; diagnostic validation only, no road verdict');
  await context.close();
 }finally{try{await browser?.close();}finally{await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}}
