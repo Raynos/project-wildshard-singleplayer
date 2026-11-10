@@ -498,6 +498,15 @@ Readings of 232 cited folders are in `tmp/keep/<name>/` (1.1 GB). Left on purpos
   dump since 11-07 14:41. `engine/tmp/build-mirror/check` passed 2 GB (2.1 GB). Free disk 1,964 GB. Checks are now twice
   a day, about 08:47 and 20:47 (Jake, 11-09).
 
+- **11-09 21:13 check: the boot-purge risk is fixed for now.** Boot purge 443k → **81k**: `/private/tmp` 8.4 GB,
+  `$TMPDIR` 2.6 GB, Vite folders 374 → 12. E7 moved out of the session scratchpad to `wildshard-singleplayer/tmp/e7`
+  (24 GB), and every multi-repo checkout now has a `tmp/vitest`. Jake had the audit agent delete `/cores` (10 dumps,
+  79 GB) on 11-09 16:21; still empty. `~/.bashrc:12` still says `ulimit -c unlimited`. Free disk 1,981 GB.
+- **`wildshard/engine/tmp` 2.1 → 55 GB / 612k files in one afternoon**, all `tmp/opus-*` lane folders (15:55–19:01):
+  `opus-ls11` 16 GB, `opus-fastload` 12 GB / 162k files, `opus-split` 5.2 GB, `opus-sr4` and `opus-ls5` 4.8 GB each.
+  Benchmark and preview-grid output, which the lanes leave behind (section 4 of the fix plan). Disk only, not boot.
+  `shardfile/tmp/codex-wire-ws1-20261109` 1.9 GB; `wildshard-singleplayer/tmp/codex-ci-finish` 2.4 GB.
+
 ## Decisions (Jake, 2026-10-15)
 
 - **Boot-purge warning: 500,000 files.**
